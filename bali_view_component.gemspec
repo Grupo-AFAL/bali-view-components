@@ -1,7 +1,7 @@
 require_relative 'lib/bali/version'
 
 Gem::Specification.new do |spec|
-  spec.name        = 'bali'
+  spec.name        = 'bali_view_components'
   spec.version     = Bali::VERSION
   spec.authors     = ['Federico Gonzalez']
   spec.email       = ['fedegl@hey.com']

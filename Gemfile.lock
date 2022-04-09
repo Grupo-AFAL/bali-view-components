@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    bali (0.1.0)
+    bali_view_components (0.1.0)
       rails (>= 7.0.2.3)
       view_component (>= 2.0.0, < 3.0)
       view_component-contrib
@@ -180,7 +180,7 @@ PLATFORMS
   x86_64-darwin-20
 
 DEPENDENCIES
-  bali!
+  bali_view_components!
   bulma-rails (~> 0.9.3)
   sassc-rails
   sprockets-rails
