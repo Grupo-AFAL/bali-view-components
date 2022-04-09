@@ -5,7 +5,7 @@ import { Controller } from '@hotwired/stimulus'
   It generates a tabs component with open and hide content actions
   with active tab property.
 */
-export default class TabsController extends Controller {
+export class TabsController extends Controller {
   open (event) {
     event.preventDefault()
     const index = event.currentTarget.getAttribute('data-tab-index')
