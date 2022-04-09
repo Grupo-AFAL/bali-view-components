@@ -1,0 +1,26 @@
+<%= tag.div data: { controller: 'tabs' } do %>
+  <%= tag.div class: classes, **@options do %>
+    <ul>
+      <% tabs.each_with_index do |tab, index| %>
+        <%= tag.li data: { 'tab-index': index, action: 'click->tabs#open' },
+                   class: class_names('is-active': tab.active) do %>
+          <a>
+            <% if tab.icon %>
+              <%= icon_tag(tab.icon) %>
+            <% end %>
+            <span><%= tab.title %></span>
+          </a>
+        <% end %>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <div class="tabs-content">
+    <% tabs.each_with_index do |tab, index| %>
+      <%= tag.div data: { 'content-index': index },
+                  class: class_names('is-hidden': !tab.active) do %>
+        <%= tab %>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

@@ -1,0 +1,7 @@
+@import 'sass/components/tabs';
+
+.tabs {
+  & > ul {
+    margin: 0;
+  }
+}
