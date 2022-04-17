@@ -35,7 +35,7 @@ class ViewComponentGenerator < Rails::Generators::NamedBase
   def create_css_file
     return if options[:skip_css] || options[:skip_js]
 
-    template 'index.css', File.join('app/components', class_path, file_name, 'index.css')
+    template 'index.scss', File.join('app/components', class_path, file_name, 'index.scss')
   end
 
   def create_js_file

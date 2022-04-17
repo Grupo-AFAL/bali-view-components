@@ -1,1 +1,1 @@
-<div>Add <%= class_name %> template here</div>
+<div class="<%= file_name %>-component"></div>

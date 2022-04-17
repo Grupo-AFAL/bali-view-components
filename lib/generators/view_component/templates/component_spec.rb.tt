@@ -2,9 +2,9 @@
 
 require "rails_helper"
 
-describe <%= class_name %>::Component do
+describe Bali::<%= class_name %>::Component do
   let(:options) { {} }
-  let(:component) { <%= class_name %>::Component.new(**options) }
+  let(:component) { Bali::<%= class_name %>::Component.new(**options) }
 
   subject { rendered_component }
 
