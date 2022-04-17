@@ -1,0 +1,21 @@
+<%= tag.div(
+    'data-dropdown-hoverable-value': @hoverable,
+    'data-dropdown-close-on-click-value': @close_on_click,
+    **@options
+) do %>
+  <div class="dropdown-trigger">
+    <%= trigger %>
+  </div>
+
+  <div class="dropdown-menu">
+    <div class="dropdown-content">
+      <% if items.any? %>
+        <% items.each do |item| %>
+          <%= item %>
+        <% end %>
+      <% else %>
+        <%= content %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

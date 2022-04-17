@@ -5,7 +5,7 @@ module Bali
     class Component < ApplicationViewComponent
       delegate :icon_tag, to: :helpers
 
-      renders_many :tabs, 'TabComponent'
+      renders_many :tabs, Tab::Component
 
       def initialize(**options)
         @options = options
@@ -14,20 +14,6 @@ module Bali
 
       def classes
         class_names('tabs', @class)
-      end
-
-      class TabComponent < ViewComponent::Base
-        attr_reader :title, :icon, :active
-
-        def initialize(title:, icon: nil, active: false)
-          @title = title
-          @icon = icon
-          @active = active
-        end
-
-        def call
-          content
-        end
       end
     end
   end

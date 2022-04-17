@@ -6,6 +6,7 @@ module Bali
 
     config.eager_load_paths = %W[
       #{root}/app/components
+      #{root}/app/lib
     ]
 
     config.generators do |g|

@@ -2,9 +2,9 @@
 
 require "rails_helper"
 
-describe Bali::Tabs::Component do
+describe Bali::Dropdown::Component do
   let(:options) { {} }
-  let(:component) { Bali::Tabs::Component.new(**options) }
+  let(:component) { Bali::Dropdown::Component.new(**options) }
 
   subject { rendered_component }
 

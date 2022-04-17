@@ -2,6 +2,8 @@
 
 module Bali
   class ApplicationViewComponent < ViewComponentContrib::Base
+    include HtmlElementHelper
+
     private
 
     def identifier
