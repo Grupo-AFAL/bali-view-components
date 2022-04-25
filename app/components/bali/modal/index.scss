@@ -1,0 +1,132 @@
+@import 'sass/components/modal';
+
+$narrow-size: 25rem;
+$medium-size: 40rem;
+$wide-size: 50rem;
+$extra-wide-size: 70rem;
+
+$active-modal-z-index: 100;
+
+$z-index-drawer: 39;
+$z-index-modal: 40;
+
+.modal {
+  .box.is-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100px;
+
+    .loader {
+      @include loader;
+    }
+  }
+}
+
+.modal-content {
+  @include tablet {
+    &.narrow {
+      max-width: $narrow-size;
+      width: 100%;
+    }
+
+    &.medium {
+      max-width: $medium-size;
+      width: 100%;
+    }
+
+    &.wide {
+      max-width: $wide-size;
+      width: 100%;
+    }
+
+    &.extra-wide {
+      max-width: $extra-wide-size;
+      width: 100%;
+    }
+  }
+}
+
+@include tablet {
+  .modal.drawer {
+    display: block;
+    opacity: 0;
+    pointer-events: none;
+    z-index: $z-index-drawer;
+
+    .modal-close {
+      display: none;
+    }
+
+    &.is-active {
+      opacity: 1;
+      pointer-events: auto;
+
+      .modal-content {
+        transform: none;
+      }
+    }
+
+    .modal-content {
+      position: absolute;
+      top: 0;
+      right: 0px;
+      opacity: 1;
+
+      width: $medium-size;
+      height: 100%;
+      max-height: 100%;
+
+      transform: translateX(100%);
+      transition: all 0.2s ease-in-out;
+      margin: 0;
+
+      border-radius: 0px;
+      box-shadow: 0px 0px 18px 18px rgba($black, 0.2);
+    }
+
+    .modal-background {
+      background-color: rgba($black, 0.1);
+    }
+  }
+}
+
+@include mobile {
+  .modal {
+    display: block;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .modal.is-active {
+    opacity: 1;
+    pointer-events: auto;
+    z-index: $active-modal-z-index;
+
+    .modal-content {
+      position: absolute;
+      bottom: 0px;
+      border-radius: 0px;
+      margin: 0;
+      transform: none;
+      opacity: 1;
+      width: 100%;
+      top: 4rem;
+      max-height: 100%;
+    }
+  }
+
+  .modal-content {
+    opacity: 1;
+    transform: translateY(100%);
+    transition: all 0.5s ease-in-out;
+    width: 100%;
+    margin: 0;
+  }
+}
+
+@include tablet {
+  .modal-content {
+    opacity: 1;
+  }
+}
