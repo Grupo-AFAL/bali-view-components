@@ -1,0 +1,14 @@
+<div class="column is-one-quarter">
+  <div class="card">
+    <div class="card-image">
+      <figure class="image <%= image_class %>">
+        <%= content %>
+      </figure>
+    </div>
+    <% if footer? %>
+      <footer class="card-footer">
+        <%= footer %>
+      </footer>
+    <% end %>
+  </div>
+</div>
