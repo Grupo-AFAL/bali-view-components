@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-class Bali::Tabs::Preview < ApplicationViewComponentPreview
-  def default
+module Tabs
+  class Preview < ApplicationViewComponentPreview
+    def default; end
   end
 end
