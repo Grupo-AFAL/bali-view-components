@@ -26,4 +26,6 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency 'view_component', ['>= 2.0.0', '< 3.0']
   spec.add_runtime_dependency 'view_component-contrib'
+
+  spec.add_development_dependency 'rspec-rails'
 end
