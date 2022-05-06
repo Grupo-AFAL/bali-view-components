@@ -11,3 +11,11 @@
 yarn-debug.log*
 .yarn-integrity
 .env
+
+# Ignore dummy files
+/spec/dummy/db/*.sqlite3
+/spec/dummy/db/*.sqlite3-*
+/spec/dummy/log/*.log
+/spec/dummy/storage/
+/spec/dummy/tmp/
+/spec/dummy/tmp/development_secret.txt
