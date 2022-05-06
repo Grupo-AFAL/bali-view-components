@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-require "rails_helper"
+require 'rails_helper'
 
-describe Bali::ImageGrid::Component do
+RSpec.describe Bali::ImageGrid::Component, type: :component do
   let(:options) { {} }
   let(:component) { Bali::ImageGrid::Component.new(**options) }
 
   subject { rendered_component }
 
-  it "renders" do
+  it 'renders' do
     render_inline(component)
 
-    is_expected.to have_css "div"
+    expect(subject).to have_css 'div'
   end
 end
