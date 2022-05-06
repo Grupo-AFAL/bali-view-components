@@ -14,6 +14,10 @@ gem 'view_component-contrib'
 # Start debugger with binding.b [https://github.com/ruby/debug]
 # gem "debug", ">= 1.0.0"
 
+group :development do
+  gem 'puma', '~> 5.2'
+end
+
 group :test do
   gem 'capybara', '~> 3'
   gem 'rspec-rails', '~> 5'
