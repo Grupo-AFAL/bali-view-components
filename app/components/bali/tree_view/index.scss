@@ -1,0 +1,55 @@
+.tree-view-component {
+  .tree-view-item-component {
+    display: block;
+
+    .item {
+      padding: 0.25rem 0.5rem;
+      cursor: pointer;
+
+      &:hover {
+        background-color: $white-ter;
+      }
+    }
+
+    .is-active {
+      background-color: $white-ter;
+    }
+  }
+
+  .children .item {
+    padding-left: 1.25rem;
+  }
+
+  .caret {
+    cursor: pointer;
+    user-select: none;
+    padding: 0.25rem;
+    margin-right: 0.25rem;
+    border-radius: 0.25rem;
+    font-size: $size-7;
+
+    &:before {
+      content: '\25B6';
+      color: $black-ter;
+      display: inline-block;
+    }
+
+    &:hover {
+      background-color: $grey-lighter;
+    }
+  }
+
+  .is-childless .caret {
+    &:before {
+      color: $grey-light;
+    }
+
+    &:hover {
+      background-color: $white-ter;
+    }
+  }
+
+  .caret-down::before {
+    transform: rotate(90deg);
+  }
+}
