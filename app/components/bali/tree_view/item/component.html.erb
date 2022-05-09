@@ -5,10 +5,10 @@
   <% end %>
 
   <% if items? %>
-    <%= tag.div
+    <%= tag.div(
         class: class_names('children', 'is-hidden': !active_child?),
         data: { 'tree-view-item-target': 'children' }
-    do %>
+    ) do %>
       <% items.each do |item| %>
         <%= item %>
       <% end %>
