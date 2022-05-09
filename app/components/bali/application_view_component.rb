@@ -3,6 +3,7 @@
 module Bali
   class ApplicationViewComponent < ViewComponentContrib::Base
     include HtmlElementHelper
+    include PathHelper
 
     private
 

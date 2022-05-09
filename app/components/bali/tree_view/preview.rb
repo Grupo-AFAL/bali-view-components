@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
-class Bali::TreeView::Preview < ApplicationViewComponentPreview
-  def default
+module Bali
+  module TreeView
+    class Preview < ApplicationViewComponentPreview
+      def default; end
+    end
   end
 end

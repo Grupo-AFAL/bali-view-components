@@ -4,8 +4,6 @@ module Bali
   module TreeView
     module Item
       class Component < ApplicationViewComponent
-        include FrontendHelpers::Utils
-
         renders_many :items, 'Bali::TreeView::Item::Component'
 
         def initialize(name:, path:, root: false, **options)
@@ -19,7 +17,7 @@ module Bali
         end
 
         def active?
-          active_path?(@path, :partial)
+          active_path?(@path)
         end
 
         def active_child?
