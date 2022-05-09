@@ -11,9 +11,7 @@ Gem::Specification.new do |spec|
   spec.summary     = 'View Components'
   spec.description = 'View Components'
   spec.license = 'MIT'
-  # rubocop:disable Gemspec/RequiredRubyVersion
-  spec.required_ruby_version = Gem::Requirement.new('>= 3')
-  # rubocop:enable Gemspec/RequiredRubyVersion
+  spec.required_ruby_version = ['>= 3', '< 3.2.0']
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the "allowed_push_host"
   # to allow pushing to a single host or delete this section to allow pushing to any host.

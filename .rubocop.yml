@@ -7,21 +7,19 @@ AllCops:
   Exclude:
     - 'coverage/**/*'
     - 'log/*'
-    - 'db/**/*'
     - 'config/**/*'
     - 'public/**/*'
     - 'storage/**/*'
     - 'tmp/**/*'
     - 'script/**/*'
     - 'node_modules/**/*'
-    - 'lib/templates/**/*'
-    - 'lib/tasks/database.rake'
+    - 'lib/tasks/bali_tasks.rake'
     - 'bin/**/*'
-    - 'vendor/**/*'
     - 'spec/spec_helper.rb'
     - !ruby/regexp /old_and_unused\.rb$/
-    - 'db/schema.rb'
-    - 'lib/heroku_app.rb'
+
+Gemspec/RequiredRubyVersion:
+  Enabled: false
 
 Layout/LineLength:
   Max: 100
@@ -31,12 +29,6 @@ Layout/SpaceBeforeBrackets:
 
 Metrics/ClassLength:
   Max: 150
-
-Metrics/AbcSize:
-  Max: 30
-  Exclude:
-    - spec/system/*
-    - 'app/commands/**/*_tables.rb'
 
 Metrics/CyclomaticComplexity:
   Max: 8
@@ -89,20 +81,6 @@ Naming/VariableNumber:
 Naming/RescuedExceptionsVariableName:
   Enabled: false
 
-Rails/HelperInstanceVariable:
-  Exclude:
-    - app/helpers/bulma/*
-    - app/helpers/ransack/*
-    - app/helpers/shared_form_builder_utils.rb
-
-Rails/DynamicFindBy:
-  Exclude:
-    - app/commands/pm/initiatives_export.rb
-
-Rails/UniqueValidationWithoutIndex:
-  Exclude:
-    - app/models/inv/package_vendor.rb
-
 Lint/EmptyBlock:
   Exclude:
     - spec/**/*
@@ -110,10 +88,6 @@ Lint/EmptyBlock:
 Lint/MissingSuper:
   Exclude:
     - app/components/**/*
-
-Style/StringLiterals:
-  Exclude:
-    - db/schema.rb
 
 Style/RedundantBegin:
   Enabled: false
