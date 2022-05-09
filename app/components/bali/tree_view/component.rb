@@ -9,7 +9,6 @@ module Bali
 
       def initialize(**options)
         @options = prepend_class_name(options, 'tree-view-component')
-        @options = prepend_controller(options, 'tree-view')
       end
     end
   end
