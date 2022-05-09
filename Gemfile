@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
@@ -16,6 +18,8 @@ gem 'view_component-contrib'
 
 group :development do
   gem 'puma', '~> 5.2'
+  gem 'rubocop', '~> 1', require: false
+  gem 'rubocop-rails', '~> 2'
 end
 
 group :test do

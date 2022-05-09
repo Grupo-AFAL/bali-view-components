@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'lib/bali/version'
 
 Gem::Specification.new do |spec|
@@ -9,6 +11,7 @@ Gem::Specification.new do |spec|
   spec.summary     = 'View Components'
   spec.description = 'View Components'
   spec.license = 'MIT'
+  spec.required_ruby_version = Gem::Requirement.new('>= 3.0.3')
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the "allowed_push_host"
   # to allow pushing to a single host or delete this section to allow pushing to any host.
@@ -28,4 +31,5 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'view_component-contrib'
 
   spec.add_development_dependency 'rspec-rails'
+  spec.metadata['rubygems_mfa_required'] = 'true'
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Bali
   module HtmlElementHelper
     def prepend_action(options, action)
