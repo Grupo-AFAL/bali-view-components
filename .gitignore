@@ -5,7 +5,8 @@
 /tmp/
 
 /node_modules
-/yarn-error.log
+yarn.lock
+yarn-error.log
 yarn-debug.log*
 .yarn-integrity
 .env
@@ -15,8 +16,6 @@ yarn-debug.log*
 /cypress/screenshots/
 /cypress/fixtures/example.json
 
-yarn.lock
-yarn-error.log
 
 # Ignore dummy files
 /spec/dummy/db/*.sqlite3
