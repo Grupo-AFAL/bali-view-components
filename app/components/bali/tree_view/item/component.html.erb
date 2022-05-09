@@ -1,6 +1,7 @@
 <%= tag.div **@options do %>
   <%= tag.div class: class_names('item', 'is-childless': !items?, 'is-root': @root, 'is-active': active?) do %>
-    <span class="caret" data-action="click->tree-view-item#toggle" data-tree-view-item-target="caret"></span>
+    <%= tag.span(class: class_names('caret', 'caret-down': active_child?),
+                 data: { action: 'click->tree-view-item#toggle', 'tree-view-item-target': 'caret' }) %>
     <%= link_to @name, @path %>
   <% end %>
 
