@@ -15,6 +15,7 @@ AllCops:
     - 'node_modules/**/*'
     - 'lib/tasks/bali_tasks.rake'
     - 'bin/**/*'
+    - 'vendor/**/*'
     - 'spec/spec_helper.rb'
     - !ruby/regexp /old_and_unused\.rb$/
 
