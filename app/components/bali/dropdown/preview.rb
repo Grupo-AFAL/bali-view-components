@@ -2,7 +2,7 @@
 
 module Bali
   module Dropdown
-    class Preview < Bali::ApplicationViewComponentPreview
+    class Preview < ApplicationViewComponentPreview
       def default; end
     end
   end

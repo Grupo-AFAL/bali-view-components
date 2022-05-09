@@ -2,7 +2,7 @@
 
 module Bali
   module ImageGrid
-    class Preview < Bali::ApplicationViewComponentPreview
+    class Preview < ApplicationViewComponentPreview
       def default; end
     end
   end

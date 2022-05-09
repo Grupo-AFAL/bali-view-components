@@ -2,7 +2,7 @@
 
 module Bali
   module Modal
-    class Preview < Bali::ApplicationViewComponentPreview
+    class Preview < ApplicationViewComponentPreview
       def default; end
     end
   end
