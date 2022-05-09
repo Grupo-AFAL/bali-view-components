@@ -11,6 +11,12 @@ yarn-debug.log*
 .env
 
 /coverage
+/cypress/videos/
+/cypress/screenshots/
+/cypress/fixtures/example.json
+
+yarn.lock
+yarn-error.log
 
 # Ignore dummy files
 /spec/dummy/db/*.sqlite3
