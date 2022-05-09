@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
-class Bali::ImageGrid::Preview < ApplicationViewComponentPreview
-  def default
+module Bali
+  module ImageGrid
+    class Preview < Bali::ApplicationViewComponentPreview
+      def default; end
+    end
   end
 end

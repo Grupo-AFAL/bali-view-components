@@ -12,6 +12,8 @@ yarn-debug.log*
 .yarn-integrity
 .env
 
+/coverage
+
 # Ignore dummy files
 /spec/dummy/db/*.sqlite3
 /spec/dummy/db/*.sqlite3-*

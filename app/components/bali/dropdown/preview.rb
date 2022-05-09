@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
-class Bali::Dropdown::Preview < ApplicationViewComponentPreview
-  def default
+module Bali
+  module Dropdown
+    class Preview < Bali::ApplicationViewComponentPreview
+      def default; end
+    end
   end
 end
