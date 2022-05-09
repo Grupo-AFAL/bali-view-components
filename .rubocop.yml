@@ -15,7 +15,11 @@ AllCops:
     - 'node_modules/**/*'
     - 'lib/tasks/bali_tasks.rake'
     - 'bin/**/*'
+    - 'vendor/**/*'
     - 'spec/spec_helper.rb'
+    - 'spec/dummy/bin/*'
+    - 'spec/dummy/config/**/*'
+    - 'spec/dummy/db/**/*'
     - !ruby/regexp /old_and_unused\.rb$/
 
 Gemspec/RequiredRubyVersion:
