@@ -58,6 +58,9 @@ Style/HashTransformKeys:
 Style/HashTransformValues:
   Enabled: true
 
+Style/HashSyntax:
+  EnforcedShorthandSyntax: never
+
 Style/Lambda:
   Enabled: false
 
