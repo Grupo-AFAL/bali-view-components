@@ -13,7 +13,9 @@ jobs:
           bundler-cache: true
       - run: bin/rails server -p 3000 -d
 
-      - run: npm install -g yarn
+      - run: |
+          npm install -g yarn
+          yarn install
 
       - name: Cypress run
         run: yarn cy:run
