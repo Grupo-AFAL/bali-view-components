@@ -5,17 +5,23 @@
 /tmp/
 
 /node_modules
-/yarn-error.log
+yarn-error.log
 yarn-debug.log*
 .yarn-integrity
 .env
 
 /coverage
+/cypress/videos/
+/cypress/screenshots/
+/cypress/fixtures/example.json
+
 
 # Ignore dummy files
+/spec/dummy/app/assets/builds/
 /spec/dummy/db/*.sqlite3
 /spec/dummy/db/*.sqlite3-*
 /spec/dummy/log/*.log
+/spec/dummy/node_modules/
 /spec/dummy/storage/
 /spec/dummy/tmp/
 /spec/dummy/tmp/development_secret.txt
