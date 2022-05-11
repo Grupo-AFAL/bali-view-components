@@ -11,13 +11,9 @@ jobs:
       - uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
+      - run: bin/rails server -p 3000
 
       - run: npm install -g yarn
 
       - name: Cypress run
-        uses: cypress-io/github-action@v2
-        with:
-          browser: chrome
-          headless: true
-          start: bin/rails server -p 3000
-          wait-on: 'http://localhost:3000'
+        run: yarn cy:run
