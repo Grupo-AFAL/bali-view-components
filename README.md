@@ -44,6 +44,6 @@ To run ruby tests, run: `bundle exec rspec`
 
 To run JavaScript tests:
 
-- Run `rails server`. The `http://localhost:3000/rails/view_components` has been configured as the baseUrl, and tests will likely fail if the server is not running
+- Run `rails server`. The `http://localhost:3000/rails/view_components` has been configured as the baseUrl, and tests will fail if the server is not running
 - Run `yarn run cy:run` to run tests in the terminal
 - Or run `yarn run cy:open` to open the tests in the browser
