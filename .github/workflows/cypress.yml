@@ -8,10 +8,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - run: bin/rails server -p 3000
+
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
           browser: chrome
-          install: yarn run build
-          start: bin/rails server -p 3000
+          headless: true
+          build: yarn --cwd spec/dummy/ install && yarn --cwd spec/dummy/ build
           wait-on: 'http://localhost:3000'
