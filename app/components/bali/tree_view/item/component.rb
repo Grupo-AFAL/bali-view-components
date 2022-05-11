@@ -17,11 +17,11 @@ module Bali
         end
 
         def active?
-          active_path?(@path)
+          active_path?(@path, match: :partial)
         end
 
         def active_child?
-          items.any?(&:active?)
+          items.any? { |i| i.active? || i.active_child? }
         end
       end
     end
