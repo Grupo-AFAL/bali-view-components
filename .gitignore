@@ -5,7 +5,6 @@
 /tmp/
 
 /node_modules
-yarn.lock
 yarn-error.log
 yarn-debug.log*
 .yarn-integrity
@@ -18,9 +17,11 @@ yarn-debug.log*
 
 
 # Ignore dummy files
+/spec/dummy/app/assets/builds/
 /spec/dummy/db/*.sqlite3
 /spec/dummy/db/*.sqlite3-*
 /spec/dummy/log/*.log
+/spec/dummy/node_modules/
 /spec/dummy/storage/
 /spec/dummy/tmp/
 /spec/dummy/tmp/development_secret.txt
