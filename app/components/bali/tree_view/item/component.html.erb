@@ -2,7 +2,7 @@
   <%= tag.div class: class_names('item', 'is-childless': !items?, 'is-root': @root, 'is-active': active?) do %>
     <%= tag.span(class: class_names('caret', 'caret-down': active_child?),
                  data: { action: 'click->tree-view-item#toggle', 'tree-view-item-target': 'caret' }) %>
-    <%= link_to @name, @path %>
+    <%= link_to @name, @path, title: @name %>
   <% end %>
 
   <% if items? %>

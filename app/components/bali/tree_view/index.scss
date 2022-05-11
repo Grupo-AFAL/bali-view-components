@@ -5,6 +5,9 @@
     .item {
       padding: 0.25rem 0.5rem;
       cursor: pointer;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
 
       &:hover {
         background-color: $white-ter;
@@ -18,6 +21,14 @@
 
   .children .item {
     padding-left: 1.25rem;
+  }
+
+  .children .children .item {
+    padding-left: 2rem;
+  }
+
+  .children .children .children .item {
+    padding-left: 2.75rem;
   }
 
   .caret {
