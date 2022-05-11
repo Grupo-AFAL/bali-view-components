@@ -38,5 +38,9 @@ module Dummy
 
     # Don't generate system test files.
     config.generators.system_tests = nil
+
+    # ViewComponents
+    config.autoload_paths << Rails.root.parent.parent.join('app', 'components')
+    config.view_component.preview_paths << Rails.root.parent.parent.join('app', 'components')
   end
 end
