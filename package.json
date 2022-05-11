@@ -11,8 +11,9 @@
     "@hotwired/stimulus": "^3.0.1"
   },
   "scripts": {
-    "cy:open": "yarn install && yarn --cwd spec/dummy/ build && cypress open",
-    "cy:run": "yarn install && yarn --cwd spec/dummy/ build && cypress run"
+    "build": "yarn --cwd spec/dummy/ install && yarn --cwd spec/dummy/ build",
+    "cy:open": "yarn build && cypress open",
+    "cy:run": "yarn build && cypress run"
   },
   "devDependencies": {
     "cypress": "^9.6.1"

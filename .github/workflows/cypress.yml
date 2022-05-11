@@ -2,21 +2,30 @@ name: Cypress Tests
 on: [push]
 
 jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
   cypress-run:
     runs-on: ubuntu-latest
+    needs: [bundle]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install Ruby and gems
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
+      - name: Run Rails Server in background
+        run: bin/rails server -p 3000 &
+
+      - run: yarn install
 
       - name: Cypress run
         uses: cypress-io/github-action@v2
+        run: yarn cy:run
         with:
           browser: chrome
           headless: true
-          build: yarn --cwd spec/dummy/ install && yarn --cwd spec/dummy/ build
           wait-on: 'http://localhost:3000'
