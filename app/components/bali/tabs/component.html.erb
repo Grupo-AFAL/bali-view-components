@@ -17,8 +17,7 @@
 
   <div class="tabs-content">
     <% tabs.each_with_index do |tab, index| %>
-      <%= tag.div data: { 'content-index': index },
-                  class: class_names('is-hidden': !tab.active) do %>
+      <%= tag.div **tab.options, data: { 'content-index': index } do %>
         <%= tab %>
       <% end %>
     <% end %>
