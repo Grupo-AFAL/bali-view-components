@@ -11,7 +11,7 @@ jobs:
       - uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-      - run: rails server -p 3000 -d
+      - run: bin/rails server -p 3000 -d
 
       - run: npm install -g yarn
 
