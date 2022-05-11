@@ -11,9 +11,14 @@ jobs:
       - uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-      - run: bin/rails server -p 3000
+      - run: |
+          alias startRails='rails server -p 3000 -d'
+          alias stopRails='kill -9 $(lsof -i :3000 -t)'
+          startRails
 
       - run: npm install -g yarn
 
       - name: Cypress run
         run: yarn cy:run
+
+      - run: stopRails
