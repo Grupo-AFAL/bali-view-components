@@ -11,13 +11,10 @@ jobs:
       - uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-      - run: bin/rails server -p 3000 -d
+
+      - run: gem install foreman
 
       - run: |
           npm install -g yarn
           yarn install
-
-      - name: Cypress run
-        run: yarn cy:run
-
-      - run: stopRails='kill -9 $(lsof -i :3000 -t)'
+          foreman start -f Procfile.dev
