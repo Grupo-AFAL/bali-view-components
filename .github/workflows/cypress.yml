@@ -8,15 +8,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - uses: ruby/setup-ruby@v1
+      - name: Install ruby
+        uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
 
-      - run: gem install foreman
+      - name: Install foreman gem
+        run: gem install foreman
 
-      - run: |
+      - name: Install yarn and build
+        run: |
           npm install -g yarn
           yarn install
           yarn build
 
-      - run: foreman start -f Procfile.dev
+      - name: Start server and run tests
+        run: foreman start -f Procfile.dev
