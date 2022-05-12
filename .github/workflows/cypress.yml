@@ -17,5 +17,6 @@ jobs:
       - run: |
           npm install -g yarn
           yarn install
+          yarn build
 
       - run: foreman start -f Procfile.dev
