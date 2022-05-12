@@ -1,2 +1,2 @@
 web: bin/rails server -p 3000
-js: npm wait-on http://localhost:3000 && yarn run cy:run
+js: yarn run cy:run
