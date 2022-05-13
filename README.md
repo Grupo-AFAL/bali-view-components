@@ -62,11 +62,9 @@ and allowing them to be previewed and tested in Storybook via its Server support
 
 ### Rebuild Storybook
 
-```sh
-rake storybook:rebuild
-```
+Run `rake storybook:rebuild` inside the `spec/dummy` directory to rebuild the Storybook.
 
-Go to: http://localhost:3000/_storybook/index.html
+Then go to: http://localhost:3000/_storybook/index.html
 
 > **_NOTE:_** If your new component does not show up on the storybook component list, a posible solution might be to delete your browser cookies or use incognito mode.
 
