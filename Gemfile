@@ -15,7 +15,7 @@ gem 'view_component-contrib'
 gem 'view_component_storybook'
 
 # Start debugger with binding.b [https://github.com/ruby/debug]
-# gem "debug", ">= 1.0.0"
+gem 'debug', '>= 1.0.0'
 
 group :development do
   gem 'jsbundling-rails'

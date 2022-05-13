@@ -26,3 +26,5 @@ yarn-debug.log*
 /spec/dummy/tmp/
 /spec/dummy/tmp/development_secret.txt
 /spec/dummy/public/_storybook/
+
+**/*.stories.json

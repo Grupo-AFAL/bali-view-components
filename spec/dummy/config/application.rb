@@ -46,6 +46,6 @@ module Dummy
     config.autoload_paths << Rails.root.parent.parent.join('app', 'components')
     config.view_component.preview_paths << Rails.root.parent.parent.join('app', 'components')
 
-    config.view_component_storybook.stories_path = Rails.root.parent.parent.join('app', 'components', 'bali')
+    config.view_component_storybook.stories_path = Rails.root.parent.parent.join('app', 'components')
   end
 end
