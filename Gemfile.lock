@@ -242,6 +242,8 @@ GEM
     view_component-contrib (0.1.1)
       ruby-next-core (>= 0.12.0)
       view_component
+    view_component_storybook (0.11.1)
+      view_component (>= 2.36)
     websocket-driver (0.7.5)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
@@ -270,6 +272,7 @@ DEPENDENCIES
   sqlite3
   view_component
   view_component-contrib
+  view_component_storybook
 
 BUNDLED WITH
    2.2.33
