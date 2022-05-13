@@ -16,6 +16,26 @@
     "cy:run": "yarn build && cypress run"
   },
   "devDependencies": {
-    "cypress": "^9.6.1"
+    "@babel/core": "^7.17.10",
+    "@babel/eslint-parser": "^7.17.0",
+    "@babel/plugin-proposal-class-properties": "^7.16.7",
+    "@babel/preset-env": "^7.17.10",
+    "cypress": "^9.6.1",
+    "standard": "^17.0.0"
+  },
+  "standard": {
+    "parser": "@babel/eslint-parser",
+    "globals": [
+      "cy",
+      "it",
+      "context",
+      "describe",
+      "beforeEach",
+      "Cypress",
+      "fetch",
+      "history",
+      "FormData",
+      "CustomEvent"
+    ]
   }
 }
