@@ -7,12 +7,11 @@ module Bali
         attr_reader :options
 
         def initialize(**options)
-          @class = options.delete(:class)
-          @options = options
+          @options = prepend_class_name(options, 'column')
         end
 
         def call
-          tag.div(content, class: "column #{@class}", **options)
+          tag.div(content, **options)
         end
       end
     end

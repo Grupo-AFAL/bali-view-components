@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Bali::PageHeader::Component, type: :component do
+RSpec.describe Bali::Table::Component, type: :component do
   let(:component) { Bali::Table::Component.new(**@options) }
 
   before { @options = {} }

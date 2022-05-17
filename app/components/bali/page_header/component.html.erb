@@ -1,12 +1,12 @@
-<div class="level">
-  <div class="level-left">
-    <div class="level-item block">
+<%= render Bali::Level::Component.new do |c| %>
+  <%= c.level_left do |level| %>
+    <%= level.item(class: 'block') do %>
       <%= tag.h1 @title, class: title_classes %>
       <%= tag.p @subtitle, class: subtitle_classes if @subtitle %>
-    </div>
-  </div>
+    <% end %>
+  <% end %>
 
-  <div class="level-right">
+  <%= c.level_right do %>
     <%= content %>
-  </div>
-</div>
+  <% end %>
+<% end %>

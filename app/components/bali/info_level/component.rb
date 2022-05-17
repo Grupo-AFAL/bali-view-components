@@ -3,15 +3,12 @@
 module Bali
   module InfoLevel
     class Component < ApplicationViewComponent
+      attr_reader :options
+
       renders_many :items, Item::Component
 
       def initialize(**options)
-        @class = options.delete(:class)
-        @options = options
-      end
-
-      def classes
-        class_names('level', @class)
+        @options = prepend_class_name(options, 'info-level-component level', )
       end
     end
   end

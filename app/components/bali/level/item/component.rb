@@ -8,16 +8,11 @@ module Bali
 
         def initialize(text: nil, **options)
           @text = text
-          @class = options.delete(:class)
-          @options = options
-        end
-
-        def classes
-          "level-item #{@class}"
+          @options = prepend_class_name(options, 'level-item')
         end
 
         def call
-          tag.div class: classes, **options do
+          tag.div **options do
             text || content
           end
         end

@@ -8,12 +8,7 @@ module Bali
       renders_many :columns, Column::Component
 
       def initialize(**options)
-        @class = options.delete(:class)
-        @options = options
-      end
-
-      def classes
-        "columns-component columns #{@class}"
+        @options = prepend_class_name(options, 'columns-component columns')
       end
     end
   end

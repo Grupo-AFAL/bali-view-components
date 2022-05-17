@@ -10,15 +10,11 @@ module Bali
 
         def initialize(position: :left, **options)
           @position = position
-          @options = options
-        end
-
-        def classes
-          "level-#{position} #{@class}"
+          @options = prepend_class_name(options, "level-#{position}")
         end
 
         def call
-          tag.div class: classes, **options do
+          tag.div **options do
             items.size.positive? ? safe_join(items.map { |item| item }) : content
           end
         end
