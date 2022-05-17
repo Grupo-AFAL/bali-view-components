@@ -22,15 +22,7 @@ module Bali
         @form = form
         @class = options.delete(:class)
         @tbody_options = hyphenize_keys((options.delete(:tbody) || {}))
-        @options = hyphenize_keys(options)
-      end
-
-      def table_container_classes
-        class_names('table-container table-component')
-      end
-
-      def table_classes
-        class_names('table is-fullwidth', @class)
+        @options = prepend_class_name(hyphenize_keys(options), 'table is-fullwidth')
       end
 
       def id
