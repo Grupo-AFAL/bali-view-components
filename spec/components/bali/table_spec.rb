@@ -17,9 +17,9 @@ RSpec.describe Bali::PageHeader::Component, type: :component do
                 ])
     end
 
-    expect(rendered_component).to have_css 'table'
-    expect(rendered_component).to have_css 'tr th', text: 'name'
-    expect(rendered_component).to have_css 'tr th', text: 'amount'
+    is_expected.to have_css 'table'
+    is_expected.to have_css 'tr th', text: 'name'
+    is_expected.to have_css 'tr th', text: 'amount'
   end
 
   it 'renders a table with rows' do
@@ -27,7 +27,7 @@ RSpec.describe Bali::PageHeader::Component, type: :component do
       c.row { '<td>Hola</td>'.html_safe }
     end
 
-    expect(rendered_component).to have_css 'tr td', text: 'Hola'
+    is_expected.to have_css 'tr td', text: 'Hola'
   end
 
   it 'renders a table with footer' do
@@ -35,21 +35,33 @@ RSpec.describe Bali::PageHeader::Component, type: :component do
       c.footer { '<td>Total</td>'.html_safe }
     end
 
-    expect(rendered_component).to have_css 'table'
-    expect(rendered_component).to have_css 'tfoot tr td', text: 'Total'
+    is_expected.to have_css 'table'
+    is_expected.to have_css 'tfoot tr td', text: 'Total'
   end
 
   it 'renders an empty table without results' do
+    form = double('form') 
+    allow(form).to receive(:active_filters?) { true }
+    allow(form).to receive(:id) { '1' }
+
+    @options = { form: form }
     render_inline(component)
 
-    expect(rendered_component).to have_css '.empty-table p', text: 'No Records'
+    is_expected.to have_css '.empty-table p', text: 'No Results'
   end
 
   it 'renders an empty query message' do
     @options.merge!(form: @filter_form)
     render_inline(component)
 
-    expect(rendered_component).to have_css '.empty-table p',
-                                           text: 'No Records'
+    is_expected.to have_css '.empty-table p', text: 'No Records'
+  end
+
+  xit 'renders a table with new record link' do
+    render_inline(component) do |c|
+      c.new_record_link(name: 'Add New Record', href: '#', modal: false)
+    end
+
+    is_expected.to have_css 'a', text: 'Add New Record'
   end
 end

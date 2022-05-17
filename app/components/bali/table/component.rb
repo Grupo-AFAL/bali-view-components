@@ -11,9 +11,10 @@ module Bali
 
       renders_many :footers, Footer::Component
 
-      renders_one :new_record_link, ->(name:, href:, modal: true, **options) do
-        Link::Component.new(name: name, href: href, type: :success, modal: modal, **options)
-      end
+      # TODO: Enable after a link component has been migrated/created
+      # renders_one :new_record_link, ->(name:, href:, modal: true, **options) do
+      #   Link::Component.new(name: name, href: href, type: :success, modal: modal, **options)
+      # end
 
       attr_reader :form, :options, :tbody_options
 
