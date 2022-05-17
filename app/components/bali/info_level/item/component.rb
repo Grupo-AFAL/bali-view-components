@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Bali
-  module CenteredLevel
+  module InfoLevel
     module Item
       class Component < ApplicationViewComponent
         attr_reader :heading, :title, :title_class, :heading_class

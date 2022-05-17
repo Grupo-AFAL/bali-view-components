@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Bali
-  module CenteredLevel
+  module InfoLevel
     class Component < ApplicationViewComponent
       renders_many :items, Item::Component
 
