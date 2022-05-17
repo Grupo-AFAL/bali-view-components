@@ -10,13 +10,13 @@ RSpec.describe Bali::Columns::Component, type: :component do
 
   it 'renders' do
     render_inline(component) do |c|
-        c.column do
-            '<p>First</p>'
-        end
+      c.column do
+        '<p>First</p>'
+      end
 
-        c.column do
-            '<p>Second</p>'
-        end
+      c.column do
+        '<p>Second</p>'
+      end
     end
 
     is_expected.to have_css '.columns-component.columns div'
