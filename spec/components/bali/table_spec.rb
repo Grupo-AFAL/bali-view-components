@@ -40,7 +40,7 @@ RSpec.describe Bali::PageHeader::Component, type: :component do
   end
 
   it 'renders an empty table without results' do
-    form = double('form') 
+    form = double('form')
     allow(form).to receive(:active_filters?) { true }
     allow(form).to receive(:id) { '1' }
 
