@@ -35,8 +35,7 @@ RSpec.describe Bali::PageHeader::Component, type: :component do
         render_inline(component) do |c|
           c.title('Page Header')
           c.subtitle('Header subtitle')
-
-          'Right content'
+          c.right_panel { 'Right content' }
         end
 
         is_expected.to have_css '.level-left h1.title', text: 'Page Header'

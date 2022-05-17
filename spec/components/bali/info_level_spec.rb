@@ -13,8 +13,8 @@ RSpec.describe Bali::InfoLevel::Component, type: :component do
     it 'renders' do
       render_inline(component) do |c|
         c.item do |ci|
-          ci.heading { 'Heading' }
-          ci.title { 'Title' }
+          ci.heading('Heading')
+          ci.title('Title')
         end
       end
 
@@ -28,9 +28,9 @@ RSpec.describe Bali::InfoLevel::Component, type: :component do
     it 'renders' do
       render_inline(component) do |c|
         c.item do |ci|
-          ci.heading { 'Heading' }
-          ci.title { 'Title 1' }
-          ci.title { 'Title 2' }
+          ci.heading('Heading')
+          ci.title('Title 1')
+          ci.title('Title 2')
         end
       end
 

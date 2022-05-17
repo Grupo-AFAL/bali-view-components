@@ -6,18 +6,20 @@ module Bali
       class Component < ApplicationViewComponent
         attr_reader :options
 
-        renders_one :heading, ->(**options, &block) do
+        renders_one :heading, ->(text, **options) do
           options = prepend_class_name(options, 'heading')
-          tag.p(**options, &block)
+          tag.p(text, **options)
         end
 
-        renders_many :titles, ->(**options, &block) do
+        renders_many :titles, ->(text, **options) do
           options[:class] = 'title is-3' unless options[:class]
-          tag.p(**options, &block)
+          tag.p(text, **options)
         end
 
         def initialize(**options)
-          @options = prepend_class_name(hyphenize_keys(options), 'level-item has-text-centered')
+          @options = prepend_class_name(
+            hyphenize_keys(options), 'level-item has-text-centered is-block'
+          )
         end
 
         def call
