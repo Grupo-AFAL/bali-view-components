@@ -13,10 +13,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: amancevice/setup-code-climate@v0
-        name: CodeClimate Install
-        with:
-          cc_test_reporter_id: ${{ secrets.CC_TEST_REPORTER_ID }}
       - name: Checkout code
         uses: actions/checkout@v3
       # Add or replace dependency steps here
@@ -24,10 +20,10 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-      - name: CodeClimate Pre-build Notification
-        run: cc-test-reporter before-build
       # Add or replace test runners here
-      - name: Run RSpec
-        run: bundle exec rspec spec/
-      - name: CodeClimate Post-build Notification
-        run: cc-test-reporter after-build -t simplecov -r ${{secrets.CC_TEST_REPORTER_ID}}
+      - name: Run Rspec & publish code coverage
+        uses: paambaati/codeclimate-action@v3.0.0
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        with:
+          coverageCommand: bundle exec rspec spec/
