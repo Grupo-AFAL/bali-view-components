@@ -14,7 +14,7 @@ module Bali
         end
 
         def call
-          tag.div **options do
+          tag.div(**options) do
             items.size.positive? ? safe_join(items.map { |item| item }) : content
           end
         end

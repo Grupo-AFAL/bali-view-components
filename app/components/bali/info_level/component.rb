@@ -8,7 +8,7 @@ module Bali
       renders_many :items, Item::Component
 
       def initialize(**options)
-        @options = prepend_class_name(options, 'info-level-component level', )
+        @options = prepend_class_name(options, 'info-level-component level')
       end
     end
   end

@@ -17,7 +17,7 @@ RSpec.describe Bali::InfoLevel::Component, type: :component do
           ci.title { 'Title' }
         end
       end
-  
+
       expect(subject).to have_css '.info-level-component'
       expect(subject).to have_css '.heading', text: 'Heading'
       expect(subject).to have_css '.title', text: 'Title'
@@ -33,7 +33,7 @@ RSpec.describe Bali::InfoLevel::Component, type: :component do
           ci.title { 'Title 2' }
         end
       end
-  
+
       expect(subject).to have_css '.info-level-component'
       expect(subject).to have_css '.heading', text: 'Heading'
       expect(subject).to have_css '.title', text: 'Title 1'

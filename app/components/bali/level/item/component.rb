@@ -12,7 +12,7 @@ module Bali
         end
 
         def call
-          tag.div **options do
+          tag.div(**options) do
             text || content
           end
         end

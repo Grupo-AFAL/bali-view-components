@@ -6,14 +6,14 @@ module Bali
       class Component < ApplicationViewComponent
         attr_reader :options
 
-        renders_one :heading, -> (**options, &block) do
-          options =  prepend_class_name(options, 'heading')
-          tag.p **options, &block
+        renders_one :heading, ->(**options, &block) do
+          options = prepend_class_name(options, 'heading')
+          tag.p(**options, &block)
         end
 
-        renders_many :titles, -> (**options, &block) do
+        renders_many :titles, ->(**options, &block) do
           options[:class] = 'title is-3' unless options[:class]
-          tag.p **options, &block
+          tag.p(**options, &block)
         end
 
         def initialize(**options)
@@ -21,8 +21,8 @@ module Bali
         end
 
         def call
-          tag.div **options do
-            safe_join([ heading, titles ])
+          tag.div(**options) do
+            safe_join([heading, titles])
           end
         end
       end

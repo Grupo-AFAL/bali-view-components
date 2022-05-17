@@ -5,12 +5,12 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :options
 
-      renders_one :title, -> (text, **options) do
+      renders_one :title, ->(text, **options) do
         options[:class] = 'title is-1' unless options[:class]
         tag.h1 text, **options
       end
 
-      renders_one :subtitle, -> (text, **options) do
+      renders_one :subtitle, ->(text, **options) do
         options[:class] = 'subtitle mt-0 is-6' unless options[:class]
         tag.p text, **options
       end
