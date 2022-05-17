@@ -1,0 +1,12 @@
+<div class="level">
+  <div class="level-left">
+    <div class="level-item block">
+      <%= tag.h1 @title, class: title_classes %>
+      <%= tag.p @subtitle, class: subtitle_classes if @subtitle %>
+    </div>
+  </div>
+
+  <div class="level-right">
+    <%= content %>
+  </div>
+</div>
