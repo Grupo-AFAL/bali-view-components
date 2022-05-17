@@ -4,7 +4,7 @@ module Bali
   module PageHeader
     class Component < ApplicationViewComponent
       attr_reader :options
-      
+
       renders_one :right_panel
 
       renders_one :title, ->(text, **options) do
