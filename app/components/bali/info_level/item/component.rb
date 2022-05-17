@@ -8,7 +8,7 @@ module Bali
 
         def initialize(heading:, title:, options: {})
           @heading = heading
-          @title = title
+          @title = Array(title)
           @title_class = options.delete(:title_class)
           @heading_class = options.delete(:heading_class)
           @options = options.transform_keys { |k| k.to_s.gsub('_', '-') }
@@ -19,9 +19,7 @@ module Bali
         end
 
         def title_items
-          return safe_join(title.map { |t| tag.p(t, class: title_classes) }) if title.is_a?(Array)
-
-          tag.p(title, class: title_classes)
+          safe_join(title.map { |t| tag.p(t, class: title_classes) })
         end
 
         def call
