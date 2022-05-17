@@ -15,6 +15,10 @@ module Bali
       options
     end
 
+    def hyphenize_keys(options)
+      options.transform_keys { |k| k.to_s.gsub('_', '-') }
+    end
+
     private
 
     def prepend_data_attribute(options, attr_name, attr_value)

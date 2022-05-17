@@ -6,7 +6,7 @@ module Bali
       class Component < ApplicationViewComponent
         def initialize(options = {})
           @skip_tr = options.delete(:skip_tr)
-          @options = options.transform_keys { |k| k.to_s.gsub('_', '-') }
+          @options = hyphenize_keys(options)
         end
 
         def call

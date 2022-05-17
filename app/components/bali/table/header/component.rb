@@ -8,7 +8,7 @@ module Bali
           @name = name
           @form = form
           @sort_attribute = sort
-          @options = options.transform_keys { |k| k.to_s.gsub('_', '-') }
+          @options = hyphenize_keys(options)
         end
 
         def call

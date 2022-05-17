@@ -4,7 +4,7 @@ module Bali
   module InfoLevel
     module Item
       class Component < ApplicationViewComponent
-        attr_reader :heading, :title, :title_class, :heading_class
+        attr_reader :options
 
         renders_one :heading, -> (**options, &block) do
           options =  prepend_class_name(options, 'heading')
@@ -16,12 +16,14 @@ module Bali
           tag.p **options, &block
         end
 
-        def initialize(options: {})
-          @options = options.transform_keys { |k| k.to_s.gsub('_', '-') }
+        def initialize(**options)
+          @options = prepend_class_name(hyphenize_keys(options), 'level-item has-text-centered')
         end
 
         def call
-          safe_join([ heading, titles ])
+          tag.div **options do
+            safe_join([ heading, titles ])
+          end
         end
       end
     end

@@ -5,7 +5,7 @@ module Bali
     module Footer
       class Component < ApplicationViewComponent
         def initialize(options = {})
-          @options = options.transform_keys { |k| k.to_s.gsub('_', '-') }
+          @options = hyphenize_keys(options)
         end
 
         def call

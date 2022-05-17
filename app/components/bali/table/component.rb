@@ -21,8 +21,8 @@ module Bali
       def initialize(form: nil, **options)
         @form = form
         @class = options.delete(:class)
-        @tbody_options = (options.delete(:tbody) || {}).transform_keys { |k| k.to_s.gsub('_', '-') }
-        @options = options.transform_keys { |k| k.to_s.gsub('_', '-') }
+        @tbody_options = hyphenize_keys((options.delete(:tbody) || {}))
+        @options = hyphenize_keys(options)
       end
 
       def table_container_classes
