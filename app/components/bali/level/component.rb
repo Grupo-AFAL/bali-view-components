@@ -13,12 +13,7 @@ module Bali
       }
 
       def initialize(**options)
-        @class = options.delete(:class)
-        @options = options
-      end
-
-      def classes
-        "level #{@class}"
+        @options = prepend_class_name(options, 'level')
       end
     end
   end

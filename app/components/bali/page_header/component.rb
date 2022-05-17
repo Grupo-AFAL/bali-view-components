@@ -3,19 +3,20 @@
 module Bali
   module PageHeader
     class Component < ApplicationViewComponent
-      def initialize(title:, subtitle: nil, title_class: 'is-1', subtitle_class: 'is-6')
-        @title = title
-        @subtitle = subtitle
-        @title_class = title_class
-        @subtitle_class = subtitle_class
+      attr_reader :options
+
+      renders_one :title, -> (text, **options) do
+        options[:class] = 'title is-1' unless options[:class]
+        tag.h1 text, **options
       end
 
-      def title_classes
-        class_names('title', @title_class)
+      renders_one :subtitle, -> (text, **options) do
+        options[:class] = 'subtitle mt-0 is-6' unless options[:class]
+        tag.p text, **options
       end
 
-      def subtitle_classes
-        class_names('subtitle mt-0', @subtitle_class)
+      def initialize(**options)
+        @options = prepend_class_name(options, 'page-header-component')
       end
     end
   end
