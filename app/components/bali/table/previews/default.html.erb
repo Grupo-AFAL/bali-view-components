@@ -1,0 +1,12 @@
+<%= render(Table::Component.new) do |c| %>
+  <%= c.headers(headers) %>
+
+  <% records.each do |record| %>
+    <%= c.row do %>
+      <td><%= record[:name] %></td>
+      <td><%= record[:amount] %></td>
+    <% end %>
+  <% end %>
+
+  <%= c.new_record_link name: 'Nuevo registro', href: '#' %>
+<% end %>
