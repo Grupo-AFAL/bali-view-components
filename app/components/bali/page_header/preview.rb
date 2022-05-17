@@ -6,8 +6,9 @@ module Bali
       def default
         render PageHeader::Component.new do |c|
           c.title('Title')
-
-          tag.a 'Right action', class: 'button is-secondary', href: '#'
+          c.right_panel do
+            tag.a 'Right action', class: 'button is-secondary', href: '#'
+          end
         end
       end
     end
