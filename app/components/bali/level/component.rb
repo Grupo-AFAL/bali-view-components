@@ -6,10 +6,10 @@ module Bali
       attr_reader :options
 
       renders_one :level_left, lambda { |**args|
-        Side::Component.new(side: :left, **args)
+        Side::Component.new(position: :left, **args)
       }
       renders_one :level_right, lambda { |**args|
-        Side::Component.new(side: :right, **args)
+        Side::Component.new(position: :right, **args)
       }
 
       def initialize(**options)

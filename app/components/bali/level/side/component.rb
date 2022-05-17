@@ -4,17 +4,17 @@ module Bali
   module Level
     module Side
       class Component < ApplicationViewComponent
-        attr_reader :side, :options
+        attr_reader :position, :options
 
         renders_many :items, Item::Component
 
-        def initialize(side: :left, **options)
-          @side = side
+        def initialize(position: :left, **options)
+          @position = position
           @options = options
         end
 
         def classes
-          "level-#{side} #{@class}"
+          "level-#{position} #{@class}"
         end
 
         def call
