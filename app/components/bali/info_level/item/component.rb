@@ -12,7 +12,7 @@ module Bali
         end
 
         renders_many :titles, ->(text, **options) do
-          options[:class] = 'title is-3' unless options[:class]
+          options[:class] ||= 'title is-3'
           tag.p(text, **options)
         end
 

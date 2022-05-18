@@ -8,12 +8,12 @@ module Bali
       renders_one :right_panel
 
       renders_one :title, ->(text, **options) do
-        options[:class] = 'title is-1' unless options[:class]
+        options[:class] ||= 'title is-1'
         tag.h1 text, **options
       end
 
       renders_one :subtitle, ->(text, **options) do
-        options[:class] = 'subtitle mt-0 is-6' unless options[:class]
+        options[:class] ||= 'subtitle mt-0 is-6'
         tag.p text, **options
       end
 

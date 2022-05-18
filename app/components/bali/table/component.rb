@@ -20,7 +20,6 @@ module Bali
 
       def initialize(form: nil, **options)
         @form = form
-        @class = options.delete(:class)
         @tbody_options = hyphenize_keys((options.delete(:tbody) || {}))
         @options = prepend_class_name(hyphenize_keys(options), 'table is-fullwidth')
       end
