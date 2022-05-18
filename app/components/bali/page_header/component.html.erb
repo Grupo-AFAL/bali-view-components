@@ -1,0 +1,12 @@
+<%= render Bali::Level::Component.new(**options) do |c| %>
+  <%= c.level_left do |level| %>
+    <%= level.item(class: 'block') do %>
+      <%= title %>
+      <%= subtitle %>
+    <% end %>
+  <% end %>
+
+  <%= c.level_right do %>
+    <%= right_panel %>
+  <% end %>
+<% end %>

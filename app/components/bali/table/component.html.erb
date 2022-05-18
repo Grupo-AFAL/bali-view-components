@@ -1,0 +1,39 @@
+<%= tag.div class: 'table-container table-component' do %>
+  <%= tag.table id: id, **options do %>
+    <thead>
+      <tr>
+        <% headers.each do |header| %>
+          <%= header %>
+        <% end %>
+      </tr>
+    </thead>
+    <%= tag.tbody(**tbody_options) do %>
+      <% if rows.any? %>
+        <% rows.each do |row| %>
+          <%= row %>
+        <% end %>
+      <% else %>
+        <tr>
+          <td class="empty-table" colspan="<%= headers.count %>">
+            <div class='has-text-centered m-6'>
+              <% if form&.active_filters? %>
+                <p class="body-1"><%= t('.no_results') %></p>
+              <% else %>
+                  <p class='body-1'><%= t('.no_records') %></p>
+                  <br />
+                  <%# new_record_link %>
+              <% end %>
+            </div>
+          </td>
+        </tr>
+      <% end %>
+    <% end %>
+    <% if footers.any? %>
+      <tfoot>
+        <% footers.each do |footer| %>
+          <%= footer %>
+        <% end %>
+      </tfoot>
+    <% end %>
+  <% end %>
+<% end %>
