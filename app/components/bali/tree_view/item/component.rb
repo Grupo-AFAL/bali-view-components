@@ -16,12 +16,18 @@ module Bali
           @options[:data]['tree-view-item-url-value'] = path
         end
 
+        def display_children?
+          return false unless items?
+
+          active? || active_child?
+        end
+
         def active?
-          active_path?(@path, match: :partial)
+          @active ||= active_path?(@path, match: :exact)
         end
 
         def active_child?
-          items.any? { |i| i.active? || i.active_child? }
+          @active_child ||= items.any? { |i| i.active? || i.active_child? }
         end
       end
     end
