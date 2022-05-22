@@ -8,7 +8,8 @@
   "license": "MIT",
   "private": false,
   "dependencies": {
-    "@hotwired/stimulus": "^3.0.1"
+    "@hotwired/stimulus": "^3.0.1",
+    "frontend-helpers": "https://github.com/Grupo-AFAL/frontend-helpers.git"
   },
   "scripts": {
     "build": "yarn --cwd spec/dummy/ install && yarn --cwd spec/dummy/ build",

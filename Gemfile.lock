@@ -1,3 +1,12 @@
+GIT
+  remote: https://github.com/Grupo-AFAL/frontend-helpers.git
+  revision: b6cfeda7d6ea4e141684e3f93d0b3b28ac5b1ab5
+  branch: main
+  specs:
+    frontend_helpers (0.5.28)
+      rails (> 6.1)
+      ransack
+
 PATH
   remote: .
   specs:
@@ -177,6 +186,10 @@ GEM
       zeitwerk (~> 2.5)
     rainbow (3.1.1)
     rake (13.0.6)
+    ransack (3.2.0)
+      activerecord (>= 6.1.5)
+      activesupport (>= 6.1.5)
+      i18n
     regexp_parser (2.2.1)
     reline (0.3.0)
       io-console (~> 0.5)
@@ -271,6 +284,7 @@ DEPENDENCIES
   bulma-rails (~> 0.9.3)
   capybara (~> 3)
   debug (>= 1.0.0)
+  frontend_helpers!
   jsbundling-rails
   puma (~> 5.2)
   rspec-rails (~> 5)

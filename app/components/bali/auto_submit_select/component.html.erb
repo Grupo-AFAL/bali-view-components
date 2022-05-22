@@ -1,0 +1,5 @@
+<%= form_with model: record, builder: FrontendHelpers::FormBuilder, **options do |f| %>
+  <%= f.select_field attribute, choices,
+      { show_search: false },
+      { data: { action: 'submit-on-change#submit' } } %>
+<% end %>

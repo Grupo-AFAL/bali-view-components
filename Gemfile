@@ -14,6 +14,8 @@ gem 'view_component'
 gem 'view_component-contrib'
 gem 'view_component_storybook'
 
+gem 'frontend_helpers', github: 'Grupo-AFAL/frontend-helpers', branch: 'main'
+
 # Start debugger with binding.b [https://github.com/ruby/debug]
 gem 'debug', '>= 1.0.0'
 
