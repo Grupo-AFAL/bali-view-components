@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-describe Bali::<%= class_name %>::Component do
+RSpec.describe Bali::<%= class_name %>::Component, type: :component do
   let(:options) { {} }
   let(:component) { Bali::<%= class_name %>::Component.new(**options) }
 
