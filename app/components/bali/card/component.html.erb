@@ -17,10 +17,10 @@
         </div>
 
         <div class="content">
-        <div class="has-text-weight-bold is-uppercase">
-            <%= link_to_if link.present?, title.truncate(50), link, class: 'has-text-dark' %>
-        </div>
-        <%= description.truncate(100) %>
+            <div class="has-text-weight-bold is-uppercase card-title">
+                <%= link_to_if link.present?, title.truncate(50), link, class: 'has-text-dark' %>
+            </div>
+            <%= description.truncate(100) %>
         </div>
     </div>
     <div class="card-footer">

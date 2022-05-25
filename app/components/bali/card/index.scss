@@ -1,5 +1,7 @@
-.card {
+.column:not(.is-full) {
+  .card {
     &.card-fit {
+      .card-title,
       >* {
         overflow: hidden;
       }
@@ -13,3 +15,4 @@
       }
     }
   }
+}
