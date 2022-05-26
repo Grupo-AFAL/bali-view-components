@@ -1,36 +1,32 @@
-<%= tag.div **@options %>
-<%= image_container do %>
-  <% if !image.nil? %>
-    <figure class="image is-2by1">
-      <%= image_tag image, class: 'is-full' %>
-    </figure>
+<%= tag.div **@options do %>
+  <%= image_container do %>
+    <% if !image.nil? %>
+      <figure class="image is-2by1">
+        <%= image_tag image, class: 'is-full' %>
+      </figure>
+    <% end %>
   <% end %>
-<% end %>
-
-<div class="card-content">
-  <div class="media">
-    <div class="media-content">
-      <%= media %>
+  <div class="card-content">
+    <div class="media">
+      <div class="media-content">
+        <%= media %>
+      </div>
+    </div>
+    <div class="content">
+      <div class="has-text-weight-bold is-uppercase card-title">
+        <%= link_to_if link.present?, title.truncate(50), link, class: 'has-text-dark' %>
+      </div>
+      <%= description.truncate(100) %>
     </div>
   </div>
-
-  <div class="content">
-    <div class="has-text-weight-bold is-uppercase card-title">
-      <%= link_to_if link.present?, title.truncate(50), link, class: 'has-text-dark' %>
-    </div>
-    <%= description.truncate(100) %>
+  <div class="card-footer">
+    <% footer_items.each do |item| %>
+      <div class="card-footer-item">
+        <%= item %>
+      </div>
+    <% end %>
+    <% if link.present? %>
+      <%= link_to t('actions.read'), link, class: 'card-footer-item' %>
+    <% end %>
   </div>
-</div>
-
-<div class="card-footer">
-  <% footer_items.each do |item| %>
-    <div class="card-footer-item">
-      <%= item %>
-    </div>
-  <% end %>
-
-  <% if link.present? %>
-    <%= link_to t('actions.read'), link, class: 'card-footer-item' %>
-  <% end %>
-</div>
 <% end %>
