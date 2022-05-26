@@ -1,16 +1,19 @@
+.card-component {
+}
+
 .column:not(.is-full) {
   .card {
     &.card-fit {
       .card-title,
-      >* {
+      > * {
         overflow: hidden;
       }
-  
+
       .card-content .content {
-        >div {
+        > div {
           height: 3rem;
         }
-  
+
         height: 6.25rem;
       }
     }

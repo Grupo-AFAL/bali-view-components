@@ -8,11 +8,12 @@ module Bali
       renders_one :media
       renders_many :footer_items
 
-      def initialize(title:, description:, image: nil, link: nil)
+      def initialize(title:, description:, image: nil, link: nil, **options)
         @title = title
         @description = description
         @image = image
         @link = link
+        @options = prepend_class_name(options, 'card-component card')
       end
 
       def image_container(&)
