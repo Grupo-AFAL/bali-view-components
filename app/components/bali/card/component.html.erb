@@ -1,8 +1,10 @@
 <div class="card-component card card-fit">
     <%= image_container do %>
-        <figure class="image is-2by1">
-        <%= image_tag image, class: 'is-full' %>
-        </figure>
+        <% if !image.nil? %>
+            <figure class="image is-2by1">
+            <%= image_tag image, class: 'is-full' %>
+            </figure>
+        <% end %>
     <% end %>
     <div class="card-content">
         <div class="media">
