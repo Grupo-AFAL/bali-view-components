@@ -3,8 +3,8 @@
 module Bali
   module Card
     class Component < ApplicationViewComponent
-
       attr_reader :title, :description, :image, :link
+
       renders_one :media
       renders_many :footer_items
 
@@ -15,14 +15,10 @@ module Bali
         @link = link
       end
 
-      def set_link(link)
-        @link = link
-      end
+      def image_container(&)
+        return tag.div(class: 'card-image', &) if link.blank?
 
-      def image_container(&block)
-        return tag.div class: 'card-image', &block if link.blank?
-
-        link_to link, class: 'card-image', &block
+        link_to(link, class: 'card-image', &)
       end
     end
   end

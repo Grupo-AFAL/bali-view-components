@@ -3,9 +3,10 @@
 module Bali
   module Card
     class Preview < ApplicationViewComponentPreview
-
       def default
-        render Card::Component.new(title: 'Title', description: 'Description', image: 'https://via.placeholder.com/320x244.png', link: '#') do |c|
+        render Card::Component.new(title: 'Title', description: 'Description',
+                                   image: 'https://via.placeholder.com/320x244.png',
+                                   link: '#') do |c|
           c.media do
             tag.div 'Media'
           end
