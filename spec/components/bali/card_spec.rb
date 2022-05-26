@@ -3,38 +3,41 @@
 require 'rails_helper'
 
 RSpec.describe Bali::Card::Component, type: :component do
-  let(:options) { {} }
-  let(:component) do
-    Bali::Card::Component.new(title: 'Title', description: 'Description',
-                              image: 'https://via.placeholder.com/320x244.png',
-                              link: '#')
-  end
+  let(:component) { Bali::Card::Component.new }
 
   subject { rendered_component }
 
-  describe 'rendering' do
-    context 'media' do
-      it 'renders' do
-        render_inline(component) do |c|
-          c.media do
-            '<div class="media">Media</div>'.html_safe
-          end
-        end
+  it 'renders a card with content' do
+    render_inline(component) do
+      '<div class="content">Content</div>'.html_safe
+    end
 
-        is_expected.to have_css '.media', text: 'Media'
+    is_expected.to have_css '.content', text: 'Content'
+  end
+
+  it 'renders a card with an clickable image' do
+    render_inline(component) do |c|
+      c.image(src: '/image.png', href: '/path/to/page')
+    end
+
+    is_expected.to have_css 'a[href="/path/to/page"] img[src="/image.png"]'
+  end
+
+  it 'renders a card with footer item link' do
+    render_inline(component) do |c|
+      c.footer_item(href: '/path') { 'Link to path' }
+    end
+
+    is_expected.to have_css 'a[href="/path"].card-footer-item', text: 'Link to path'
+  end
+
+  it 'renders a card with regular footer item' do
+    render_inline(component) do |c|
+      c.footer_item do
+        '<span class="hola">Hola</span>'.html_safe
       end
     end
 
-    context 'footer_item' do
-      it 'renders' do
-        render_inline(component) do |c|
-          c.footer_item do
-            '<a href="#">Footer item with link</a>'.html_safe
-          end
-        end
-
-        is_expected.to have_css '.card-footer-item a', text: 'Footer item with link'
-      end
-    end
+    is_expected.to have_css '.card-footer-item span.hola', text: 'Hola'
   end
 end

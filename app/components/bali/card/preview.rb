@@ -4,15 +4,21 @@ module Bali
   module Card
     class Preview < ApplicationViewComponentPreview
       def default
-        render Card::Component.new(title: 'Title', description: 'Description',
-                                   image: 'https://via.placeholder.com/320x244.png',
-                                   link: '#') do |c|
-          c.media do
-            tag.div 'Media'
+        render Card::Component.new do |c|
+          c.image(
+            src: 'https://via.placeholder.com/320x244.png',
+            href: '/'
+          )
+
+          c.footer_item(href: '#') do
+            'Footer item with link'
           end
+
           c.footer_item do
-            tag.a 'Footer item with link', href: '#'
+            tag.span('Item with span')
           end
+
+          tag.div('Title', class: 'title is-4')
         end
       end
     end
