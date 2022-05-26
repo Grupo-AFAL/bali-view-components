@@ -1,6 +1,6 @@
 <%= tag.div **@options do %>
   <%= image_container do %>
-    <% if !image.nil? %>
+    <% if image.present? %>
       <figure class="image is-2by1">
         <%= image_tag image, class: 'is-full' %>
       </figure>
