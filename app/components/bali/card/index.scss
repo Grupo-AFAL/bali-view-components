@@ -1,0 +1,16 @@
+.card-component {
+  &.card-fit {
+    .card-title,
+    > * {
+      overflow: hidden;
+    }
+
+    .card-content .content {
+      > div {
+        height: 3rem;
+      }
+
+      height: 6.25rem;
+    }
+  }
+}
