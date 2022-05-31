@@ -2,11 +2,13 @@
 import { Application } from '@hotwired/stimulus'
 
 import {
+  HelpTipController,
   TabsController,
-  HelpTipController
+  TreeViewItemController
 } from '../../../../app/javascript/bali'
 
 const application = Application.start()
 
 application.register('help-tip', HelpTipController)
 application.register('tabs', TabsController)
+application.register('tree-view-item', TreeViewItemController)
