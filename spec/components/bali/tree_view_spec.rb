@@ -3,15 +3,9 @@
 require 'rails_helper'
 
 RSpec.describe Bali::TreeView::Component, type: :component do
-  let(:options) { {} }
-  let(:component) { Bali::TreeView::Component.new(**options) }
+  let(:component) { Bali::TreeView::Component.new(current_path: '/') }
 
   subject { rendered_component }
-
-  before do
-    allow_any_instance_of(Bali::TreeView::Item::Component)
-      .to receive(:active_path?).and_return(false)
-  end
 
   it 'renders root items' do
     render_inline(component) do |c|

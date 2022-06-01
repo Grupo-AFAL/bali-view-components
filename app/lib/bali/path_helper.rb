@@ -2,9 +2,9 @@
 
 module Bali
   module PathHelper
-    def active_path?(path, match: :exact)
+    def active_path?(path, current_path, match: :exact)
       path_without_params = path.split('?').first
-      current_request_path = request.path.gsub(/\.html$/, '')
+      current_request_path = current_path.gsub(/\.html$/, '')
 
       case match
       when :partial
