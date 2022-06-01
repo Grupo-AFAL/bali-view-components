@@ -27,7 +27,7 @@ module Bali
 
       # Right Content
       # ---------------
-      # Content on the bottom
+      # Content on the right
       def right
         render HelpTip::Component.new(placement: 'right') do
           tag.p 'Hi, this is the help tip content'
@@ -36,7 +36,7 @@ module Bali
 
       # Left Content
       # ---------------
-      # Content on the bottom
+      # Content on the left
       def left
         render HelpTip::Component.new(placement: 'left') do
           tag.p 'Hi, this is the help tip content'
