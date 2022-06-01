@@ -1,4 +1,7 @@
 <%= tag.div **options do %>
   <%= level_left %>
   <%= level_right %>
+  <% items.each do |item| %>
+    <%= item %>
+  <% end %>
 <% end %>

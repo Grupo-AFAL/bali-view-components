@@ -12,6 +12,8 @@ module Bali
         Side::Component.new(position: :right, **args)
       }
 
+      renders_many :items, Item::Component
+
       def initialize(**options)
         @options = prepend_class_name(options, 'level')
       end
