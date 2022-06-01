@@ -15,12 +15,12 @@ RSpec.describe Bali::Level::Component, type: :component do
         c.level_left do |level|
           level.item(text: 'Left')
         end
-  
+
         c.level_right do |level|
           level.item(text: 'Right')
         end
       end
-  
+
       is_expected.to have_css '.level div'
       is_expected.to have_css 'div.level-item', text: 'Left'
       is_expected.to have_css 'div.level-item', text: 'Right'
@@ -31,10 +31,10 @@ RSpec.describe Bali::Level::Component, type: :component do
     it 'renders' do
       render_inline(component) do |c|
         c.item(text: 'Item 1')
-  
+
         c.item { '<h1>Item 2</h1>'.html_safe }
       end
-  
+
       is_expected.to have_css '.level div'
       is_expected.to have_css 'div.level-item', text: 'Item 1'
       is_expected.to have_css 'div.level-item', text: 'Item 2'

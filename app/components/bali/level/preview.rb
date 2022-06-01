@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 module Bali
   module Level
     class Preview < ApplicationViewComponentPreview
       def default
         render Bali::Level::Component.new do |c|
           c.level_left { tag.p 'Left' }
-          c.level_right { tag.p 'Right' }          
+          c.level_right { tag.p 'Right' }
         end
       end
 
