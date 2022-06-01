@@ -8,6 +8,7 @@ module Bali
           c.left do |l|
             l.item(text: 'Item 1')
             l.item(text: 'Item 2')
+            l.item(text: 'Item 3')
           end
 
           c.right do |r|
