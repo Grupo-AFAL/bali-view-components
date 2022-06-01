@@ -5,10 +5,10 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :options
 
-      renders_one :left, -> (**args) do
+      renders_one :left, ->(**args) do
         Side::Component.new(position: :left, **args)
       end
-      renders_one :right, -> (**args) do
+      renders_one :right, ->(**args) do
         Side::Component.new(position: :right, **args)
       end
 

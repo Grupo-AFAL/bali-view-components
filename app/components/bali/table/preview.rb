@@ -7,7 +7,7 @@ module Bali
         { name: 'Name' },
         { name: 'Amount' }
       ].freeze
-      
+
       RECORDS = [
         { name: 'Name 1', amount: 1 },
         { name: 'Name 2', amount: 2 },
