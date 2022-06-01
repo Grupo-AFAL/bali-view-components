@@ -11,11 +11,11 @@ RSpec.describe Bali::Level::Component, type: :component do
 
   it 'renders' do
     render_inline(component) do |c|
-      c.level_left do |level|
+      c.left do |level|
         level.item(text: 'Left')
       end
 
-      c.level_right do |level|
+      c.right do |level|
         level.item(text: 'Right')
       end
     end

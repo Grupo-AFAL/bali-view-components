@@ -2,6 +2,7 @@
 import { Application } from '@hotwired/stimulus'
 
 import {
+  DropdownController,
   HelpTipController,
   TabsController,
   TreeViewItemController
@@ -10,5 +11,6 @@ import {
 const application = Application.start()
 
 application.register('help-tip', HelpTipController)
+application.register('dropdown', DropdownController)
 application.register('tabs', TabsController)
 application.register('tree-view-item', TreeViewItemController)

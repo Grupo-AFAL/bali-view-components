@@ -3,7 +3,37 @@
 module Bali
   module Dropdown
     class Preview < ApplicationViewComponentPreview
-      def default; end
+      # Dropdown with items
+      # ---------------
+      # Default dropdown with a list of items
+      def default
+        render(Dropdown::Component.new) do |c|
+          c.trigger(class: 'button') { 'Trigger' }
+
+          c.item { 'Item 1' }
+          c.item { 'Item 2' }
+          c.item { 'Item 3' }
+          c.item(class: 'has-text-weight-bold') { 'Item with class_name' }
+        end
+      end
+
+      # Dropdown with any content
+      # ---------------
+      # Specify any HTML content within the block, it will be inserted
+      # inside the div.dropdown-content
+      def with_content
+        render(Dropdown::Component.new) do |c|
+          c.trigger(class: 'button') { 'Trigger' }
+
+          c.tag.ul do
+            safe_join([
+                        c.tag.li('Item 1'),
+                        c.tag.li('Item 2'),
+                        c.tag.li('Item 3')
+                      ])
+          end
+        end
+      end
     end
   end
 end
