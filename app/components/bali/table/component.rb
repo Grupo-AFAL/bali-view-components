@@ -11,7 +11,7 @@ module Bali
 
       renders_many :footers, Footer::Component
 
-      # TODO: Enable after a link component has been migrated/created
+      # TODO: Enable when link is migrated
       # renders_one :new_record_link, ->(name:, href:, modal: true, **options) do
       #   Link::Component.new(name: name, href: href, type: :success, modal: modal, **options)
       # end

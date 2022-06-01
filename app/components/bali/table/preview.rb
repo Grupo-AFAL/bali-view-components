@@ -15,7 +15,7 @@ module Bali
 
       def default
         render_with_template(
-          template: 'table/previews/default',
+          template: 'bali/table/previews/default',
           locals: {
             headers: HEADERS,
             records: RECORDS,
@@ -26,7 +26,7 @@ module Bali
 
       def empty_table
         render_with_template(
-          template: 'table/previews/default',
+          template: 'bali/table/previews/default',
           locals: {
             headers: HEADERS,
             records: [],
@@ -37,7 +37,7 @@ module Bali
 
       def empty_search
         render_with_template(
-          template: 'table/previews/default',
+          template: 'bali/table/previews/default',
           locals: {
             headers: HEADERS,
             records: [],
