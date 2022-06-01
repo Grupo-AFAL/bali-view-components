@@ -19,7 +19,6 @@ require 'action_cable/engine'
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 require 'view_component'
-require 'view_component/storybook'
 
 Bundler.require(*Rails.groups)
 require 'bali'
@@ -45,7 +44,5 @@ module Dummy
     # ViewComponents
     config.autoload_paths << Rails.root.parent.parent.join('app', 'components')
     config.view_component.preview_paths << Rails.root.parent.parent.join('app', 'components')
-
-    config.view_component_storybook.stories_path = Rails.root.parent.parent.join('app', 'components')
   end
 end

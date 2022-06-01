@@ -8,7 +8,6 @@ SimpleCov.start 'rails' do
   add_group 'Components', 'app/components/bali'
 
   add_filter(/preview.rb/)
-  add_filter(/stories.rb/)
 end
 
 # This file is copied to spec/ when you run 'rails generate rspec:install'

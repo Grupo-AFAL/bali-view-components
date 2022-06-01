@@ -12,7 +12,7 @@ gem 'sprockets-rails'
 
 gem 'view_component'
 gem 'view_component-contrib'
-gem 'view_component_storybook'
+gem "lookbook"
 
 # Start debugger with binding.b [https://github.com/ruby/debug]
 gem 'debug', '>= 1.0.0'

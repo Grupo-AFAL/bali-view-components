@@ -17,6 +17,11 @@ export class TreeViewItemController extends Controller {
   navigateTo (event) {
     if (this.caretTarget === event.target) return
 
-    window.Turbo.visit(this.urlValue)
+    if (window.Turbo) {
+      window.Turbo.visit(this.urlValue)
+    } else {
+      event.preventDefault()
+      console.log('Turbo not configured')
+    }
   }
 }

@@ -48,36 +48,10 @@ To run JavaScript tests:
 - Run `yarn run cy:run` to run tests in the terminal
 - Or run `yarn run cy:open` to open the tests in the browser
 
-# Storybook
+# Lookbook
 
-There are several pieces to involved in configuring view_components and generating the
-necesarry files to display the view_components in Storybook.
+Lookbook gives ViewComponent-based projects a ready-to-go development UI for navigating, inspecting and interacting with component previews.
 
-## View Component Storybook
+Project URL: https://github.com/allmarkedup/lookbook
 
-**Github repository:** https://github.com/jonspalmer/view_component_storybook
-
-The ViewComponent::Storybook gem provides Ruby api for writing stories describing View Components
-and allowing them to be previewed and tested in Storybook via its Server support.
-
-### Rebuild Storybook
-
-Run `rake storybook:rebuild` inside the `spec/dummy` directory to rebuild the Storybook.
-
-Then go to: http://localhost:3000/_storybook/index.html
-
-> **_NOTE:_** If your new component does not show up on the storybook component list, a posible solution might be to delete your browser cookies or use incognito mode.
-
-The rake command does 2 things:
-
-#### Generate JSON stories from Ruby files
-
-##### `rake view_component_storybook:write_stories_json`
-
-View component storybook provides us with a way to configure storybook stories in ruby, but Storybook expects JSON files for that configuration. In order for Storybook to work we need a step where the ruby files are converted to the JSON configuration files Storybook expects.
-
-#### Build Storybook
-
-##### `build-storybook -o public/_storybook`
-
-Storybook needs to compile the JSON files in order to generate a static site where the actual Storybook lives.
+To add a component, just create a `preview.rb` file within the component folder. Lookbook will automatically detect component previews and display them in the sidebar.
