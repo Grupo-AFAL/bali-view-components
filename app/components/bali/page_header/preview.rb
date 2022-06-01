@@ -4,7 +4,7 @@ module Bali
   module PageHeader
     class Preview < ApplicationViewComponentPreview
       def default
-        render PageHeader::Component.new(title: 'Title') do |c|
+        render PageHeader::Component.new(title: 'Title') do
           tag.a 'Right action', class: 'button is-secondary', href: '#'
         end
       end
@@ -14,7 +14,7 @@ module Bali
       end
 
       def with_subtitle_as_param
-        render PageHeader::Component.new(title: 'Title', subtitle: 'Subtitle') do |c|
+        render PageHeader::Component.new(title: 'Title', subtitle: 'Subtitle') do
           tag.a 'Right action', class: 'button is-secondary', href: '#'
         end
       end
