@@ -54,6 +54,17 @@ module Bali
           chart_options: { scales: { x: { stacked: true, }, y: { stacked: true } } }
         )
       end
+
+      def multiple_axis(id: 'chart', type: [:bar, :line], title: 'Title')
+        render Chart::Component.new(
+          id: id, title: title, data: DATA_FORMAT_2, type: type, axis: [1, 2], order: [1, 0], 
+          chart_options: {
+            scales: { 
+              y_1: { type: 'linear', position: 'left', title: { display: true, text: 'Axis 1' } }, 
+              y_2: { type: 'linear', position: 'right', title: { display: true, text: 'Axis 2' } } 
+            }
+          })
+      end
     end
   end
 end

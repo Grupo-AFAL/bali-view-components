@@ -14,7 +14,7 @@
 #    }
 #    where:
 #     - labels are x axis labels
-#     - label is dataset label
+#     - label inside data is dataset label
 #     - label (dataset label) is optional
 #     - values must be the same length as labels
 
@@ -22,30 +22,21 @@ module Bali
   module Chart
     class Component < ApplicationViewComponent
       MAX_LABEL_X_LENGTH = 16
+      LINE_GRAPH_TENSION = 0.3
   
       attr_reader :data, :type, :id, :title, :legend, :axis, :order,
                   :chart_options, :html_options
   
-      def initialize(data:, id:, type: :bar, title: nil, **options)
-        @id = id
-        @title = title
+      def initialize(data:, type: :bar, axis: [], order: [], legend: false, **options)
         @data = data
+        @axis = axis
+        @order = order
+        @legend = legend
         @type = Array.wrap(type)
+        @title = options.delete(:title)
         @chart_options = options.delete(:chart_options) || {}
-        @axis = options.delete(:axis) || []
-        @order = options.delete(:order) || []
-        @legend = options.delete(:legend) || false
-        @class = options.delete(:class)
         @html_options = options
         @color_pointer = 0
-      end
-  
-      def classes
-        class_names('chart', @class)
-      end
-  
-      def chart_data
-        { labels: labels, datasets: datasets }
       end
   
       def options
@@ -74,11 +65,35 @@ module Bali
             yAxisID: "y_#{axis[index] || 1}",
             type: type[index],
             order: order[index] || 1,
-            tension: dataset_tension(type[index]&.to_sym)
-          }.merge!(dataset_colors(type[index]&.to_sym)).compact
+            tension: LINE_GRAPH_TENSION
+          }.merge!(datasets_colors(type[index]&.to_sym)).compact
         end
       end
+
+      private
+
+      def datasets_colors(graph_type)
+        colors = color_per_dataset?(graph_type)  ? labels.map { |_| picked_color } : [picked_color]
   
+        {
+          backgroundColor: colors.map { |color| opacify(color) },
+          borderColor: colors.map { |color| opacify(color, 7) }
+        }
+      end
+
+      def color_per_dataset?(graph_type)
+        [:pie, :doughnut, :polarArea].include?(graph_type)
+      end
+
+      def picked_color
+        @color_options ||= colors.keys
+  
+        picked = colors[@color_options[@color_pointer]]
+        @color_pointer >= (@color_options.size - 1) ? @color_pointer = 0 : @color_pointer += 1
+  
+        picked
+      end
+
       # Google charts colors samples
       def colors
         @colors ||= {
@@ -93,32 +108,6 @@ module Bali
           olive: '#AAAA11',
           turquoise: '#22AA99'
         }
-      end
-  
-      def picked_color
-        @color_options ||= colors.keys
-  
-        picked = colors[@color_options[@color_pointer]]
-        @color_pointer >= (@color_options.size - 1) ? @color_pointer = 0 : @color_pointer += 1
-  
-        picked
-      end
-  
-      def dataset_colors(graph_type)
-        colors = [:pie, :doughnut, :polarArea].include?(graph_type)  ? labels.map { |_| picked_color } : [picked_color]
-  
-        {
-          backgroundColor: colors.map { |color| opacify(color) },
-          borderColor: colors.map { |color| opacify(color, 7) }
-        }
-      end
-
-      private
-
-      def dataset_tension(graph_type)
-        return unless graph_type == :line
-  
-        0.3
       end
 
       def opacify(base_color, opacity = 5)
