@@ -1,12 +1,14 @@
 <%= render Bali::Level::Component.new(**options) do |c| %>
-  <%= c.level_left do |level| %>
-    <div>
-      <%= title || tag.h1(@title, class: 'title mb-0 is-1') %>
-      <%= subtitle || tag.p(@subtitle, class: 'subtitle mt-0 is-6') %>
-    </div>
+  <%= c.left do |level| %>
+    <%= level.item do %>
+      <div>
+        <%= title || tag.h1(@title, class: 'title mb-0 is-1') %>
+        <%= subtitle || tag.p(@subtitle, class: 'subtitle mt-0 is-6') %>
+      </div>
+    <% end %>
   <% end %>
 
-  <%= c.level_right do %>
+  <%= c.right do %>
     <%= content %>
   <% end %>
 <% end %>

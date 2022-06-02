@@ -5,8 +5,16 @@ module Bali
     class Preview < ApplicationViewComponentPreview
       def default
         render Bali::Level::Component.new do |c|
-          c.level_left { tag.p 'Left' }
-          c.level_right { tag.p 'Right' }
+          c.left do |l|
+            l.item(text: 'Item 1')
+            l.item(text: 'Item 2')
+            l.item(text: 'Item 3')
+          end
+
+          c.right do |r|
+            r.item(text: 'Item 1')
+            r.item(text: 'Item 2')
+          end
         end
       end
 

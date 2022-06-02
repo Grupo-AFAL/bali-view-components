@@ -3,7 +3,11 @@
 module Bali
   module Modal
     class Preview < ApplicationViewComponentPreview
-      def default; end
+      def default
+        render(Modal::Component.new) do
+          tag.h1 'Modal content', class: 'title is-1'
+        end
+      end
     end
   end
 end

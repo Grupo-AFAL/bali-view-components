@@ -1,4 +1,4 @@
-<%= render Bali::Table::Component.new do |c| %>
+<%= render(Bali::Table::Component.new) do |c| %>
   <%= c.headers(headers) %>
 
   <% records.each do |record| %>

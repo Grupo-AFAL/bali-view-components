@@ -5,12 +5,12 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :options
 
-      renders_one :level_left, lambda { |**args|
+      renders_one :left, ->(**args) do
         Side::Component.new(position: :left, **args)
-      }
-      renders_one :level_right, lambda { |**args|
+      end
+      renders_one :right, ->(**args) do
         Side::Component.new(position: :right, **args)
-      }
+      end
 
       renders_many :items, Item::Component
 

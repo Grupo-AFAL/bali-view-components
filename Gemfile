@@ -10,9 +10,9 @@ gem 'bulma-rails', '~> 0.9.3'
 gem 'sassc-rails'
 gem 'sprockets-rails'
 
+gem 'lookbook'
 gem 'view_component'
 gem 'view_component-contrib'
-gem 'view_component_storybook'
 
 # Start debugger with binding.b [https://github.com/ruby/debug]
 gem 'debug', '>= 1.0.0'

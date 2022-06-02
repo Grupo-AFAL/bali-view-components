@@ -7,6 +7,7 @@ module Bali
         { name: 'Name' },
         { name: 'Amount' }
       ].freeze
+
       RECORDS = [
         { name: 'Name 1', amount: 1 },
         { name: 'Name 2', amount: 2 },
@@ -18,8 +19,7 @@ module Bali
           template: 'bali/table/previews/default',
           locals: {
             headers: HEADERS,
-            records: RECORDS,
-            query: nil
+            records: RECORDS
           }
         )
       end
@@ -29,19 +29,7 @@ module Bali
           template: 'bali/table/previews/default',
           locals: {
             headers: HEADERS,
-            records: [],
-            query: nil
-          }
-        )
-      end
-
-      def empty_search
-        render_with_template(
-          template: 'bali/table/previews/default',
-          locals: {
-            headers: HEADERS,
-            records: [],
-            query: { name: 'Name' }
+            records: []
           }
         )
       end
