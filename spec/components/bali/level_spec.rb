@@ -3,9 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe Bali::Level::Component, type: :component do
-  let(:component) { Bali::Level::Component.new(**@options) }
-
-  before { @options = {} }
+  let(:component) { Bali::Level::Component.new }
 
   subject { rendered_component }
 
@@ -18,11 +16,11 @@ RSpec.describe Bali::Level::Component, type: :component do
       c.right do |level|
         level.item(text: 'Right')
       end
-
-      is_expected.to have_css '.level div'
-      is_expected.to have_css 'div.level-item', text: 'Left'
-      is_expected.to have_css 'div.level-item', text: 'Right'
     end
+
+    is_expected.to have_css '.level div'
+    is_expected.to have_css 'div.level-item', text: 'Left'
+    is_expected.to have_css 'div.level-item', text: 'Right'
   end
 
   context 'with level items' do
