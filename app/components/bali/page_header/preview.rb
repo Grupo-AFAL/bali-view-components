@@ -3,35 +3,43 @@
 module Bali
   module PageHeader
     class Preview < ApplicationViewComponentPreview
-      def default
-        render PageHeader::Component.new(title: 'Title') do
+      # @param title text
+      def default(title: 'Title')
+        render PageHeader::Component.new(title: title) do
           tag.a 'Right action', class: 'button is-secondary', href: '#'
         end
       end
 
-      def without_right_content
-        render PageHeader::Component.new(title: 'Title')
+      # @param title text
+      def without_right_content(title: 'Title')
+        render PageHeader::Component.new(title: title)
       end
 
-      def with_subtitle_as_param
-        render PageHeader::Component.new(title: 'Title', subtitle: 'Subtitle') do
+      # @param title text
+      # @param subtitle text
+      def with_subtitle_as_param(title: 'Title', subtitle: 'Subtitle')
+        render PageHeader::Component.new(title: title, subtitle: subtitle) do
           tag.a 'Right action', class: 'button is-secondary', href: '#'
         end
       end
 
-      def with_title_and_subtitle_as_slots
+      # @param title text
+      # @param subtitle text
+      def with_title_and_subtitle_as_slots(title: 'Title', subtitle: 'Subtitle')
         render PageHeader::Component.new do |c|
-          c.title('Title', class: 'title is-3')
-          c.subtitle('Subtitle', class: 'subtitle is-6')
+          c.title(title, class: 'title is-3')
+          c.subtitle(subtitle, class: 'subtitle is-6')
 
           tag.a 'Right action', class: 'button is-secondary', href: '#'
         end
       end
 
-      def with_title_and_subtitle_as_block
+      # @param title text
+      # @param subtitle text
+      def with_title_and_subtitle_as_block(title: 'Title', subtitle: 'Subtitle')
         render PageHeader::Component.new do |c|
-          c.title { tag.h1('Title', class: 'title is-3') }
-          c.subtitle { tag.p('Subtitle', class: 'subtitle is-6') }
+          c.title { tag.h1(title, class: 'title is-3') }
+          c.subtitle { tag.p(subtitle, class: 'subtitle is-6') }
 
           tag.a 'Right action', class: 'button is-secondary', href: '#'
         end
