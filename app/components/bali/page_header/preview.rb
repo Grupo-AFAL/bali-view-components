@@ -31,7 +31,7 @@ module Bali
       def with_title_and_subtitle_as_block
         render PageHeader::Component.new do |c|
           c.title { tag.h1('Title', class: 'title is-3') }
-          c.subtitle { tag.h1('Subtitle', class: 'subtitle is-6') }
+          c.subtitle { tag.p('Subtitle', class: 'subtitle is-6') }
 
           tag.a 'Right action', class: 'button is-secondary', href: '#'
         end
