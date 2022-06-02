@@ -5,11 +5,7 @@
     "esbuild": "^0.14.38"
   },
   "scripts": {
-    "build": "esbuild app/javascript/*.* --bundle --sourcemap --outdir=app/assets/builds",
-    "storybook:build": "build-storybook -o public/_storybook"
+    "build": "esbuild app/javascript/*.* --bundle --sourcemap --outdir=app/assets/builds"
   },
-  "devDependencies": {
-    "@storybook/addon-controls": "^6.4.22",
-    "@storybook/server": "^6.4.22"
-  }
+  "devDependencies": {}
 }
