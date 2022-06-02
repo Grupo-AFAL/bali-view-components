@@ -54,15 +54,13 @@ module Bali
       end
 
       def datasets
-        values = data[:data] || [{ label: '', values: data.values }]
-
         values.map.with_index do |dataset_info, index|
           Dataset.new(
             type[index],
             dataset_info[:values],
             dataset_info[:label],
             order[index] || 1,
-            "y_#{axis[index] || 1}", 
+            "y_#{axis[index] || 1}",
             dataset_colors(type[index])
           ).result
         end
@@ -70,9 +68,13 @@ module Bali
 
       private
 
+      def values
+        @values ||= data[:data] || [{ label: '', values: data.values }]
+      end
+
       def dataset_colors(graph_type)
         return labels.map { |_| color_picker.next_color } if color_per_label?(graph_type)
-         
+
         [color_picker.next_color]
       end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Bali
   module Chart
     class ColorPicker
@@ -9,9 +11,9 @@ module Bali
       end
 
       def next_color
-        @pointer += 1 
+        @pointer += 1
         reset_pointer if pointer_out_of_range?
-  
+
         @current = colors[@pointer]
       end
 
@@ -24,7 +26,7 @@ module Bali
       end
 
       private
-      
+
       def pointer_out_of_range?
         @pointer >= (colors.size - 1)
       end

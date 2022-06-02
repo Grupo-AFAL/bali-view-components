@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Bali
   module Chart
     class Dataset
@@ -14,17 +16,17 @@ module Bali
       end
 
       def result
-          {
-            label: @label,
-            data: @values,
-            borderWidth: 2,
-            yAxisID: @axis,
-            type: @type,
-            order: @order,
-            tension: LINE_GRAPH_TENSION,
-            backgroundColor: background_colors,
-            borderColor: border_colors
-          }
+        {
+          label: @label,
+          data: @values,
+          borderWidth: 2,
+          yAxisID: @axis,
+          type: @type,
+          order: @order,
+          tension: LINE_GRAPH_TENSION,
+          backgroundColor: background_colors,
+          borderColor: border_colors
+        }
       end
 
       private
