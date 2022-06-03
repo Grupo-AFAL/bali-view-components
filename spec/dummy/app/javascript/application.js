@@ -5,7 +5,8 @@ import {
   DropdownController,
   HelpTipController,
   TabsController,
-  TreeViewItemController
+  TreeViewItemController,
+  ChartController
 } from '../../../../app/javascript/bali'
 
 const application = Application.start()
@@ -14,3 +15,4 @@ application.register('help-tip', HelpTipController)
 application.register('dropdown', DropdownController)
 application.register('tabs', TabsController)
 application.register('tree-view-item', TreeViewItemController)
+application.register('chart', ChartController)

@@ -1,0 +1,16 @@
+<div class='chart-component'>
+  <%= tag.h3 title, class: 'title is-3' if title %>
+
+  <%= tag.div(class: 'chart-container', **html_options) do %>
+    <%= tag.canvas(class: 'chart',
+        data: { 
+          controller: 'chart', 
+          'chart-type-value': type.first,
+          'chart-data-value': { labels: labels, datasets: datasets }.to_json,
+          'chart-options-value': options.to_json }
+    ) do %>
+      <%= t('.loading') %>
+    <% end %>
+  <% end %>
+</div>
+
