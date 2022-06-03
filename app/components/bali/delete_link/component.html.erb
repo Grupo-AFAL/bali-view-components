@@ -1,0 +1,9 @@
+<% if @disabled %>
+  <%= render(HoverCardLink::Component.new(
+      name: name,
+      hover_url: @disabled_hover_url,
+      class: 'button has-text-danger is-text', 
+      disabled: true )) %>
+<% else %>
+  <%= link_to name, href, class: classes, method: :delete, data: { confirm: confirm } %>
+<% end %>

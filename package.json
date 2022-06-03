@@ -9,6 +9,7 @@
   "private": false,
   "dependencies": {
     "@hotwired/stimulus": "^3.0.1",
+    "@popperjs/core": "^2.11.5",
     "tippy.js": "^6.3.7"
   },
   "scripts": {

@@ -1,0 +1,9 @@
+<%= tag.div data: hovercard_data, **options do %>
+  <%= trigger %>
+
+  <% if template.present? %>
+    <template data-hovercard-target='template'>
+      <%= template %>
+    </template>
+  <% end %>
+<% end %>

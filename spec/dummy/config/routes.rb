@@ -6,5 +6,7 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "articles#index"
 
+  get 'show-content-in-hovercard', to: 'hovercard#show' if Rails.env.development?
+
   mount Lookbook::Engine, at: '/lookbook'
 end
