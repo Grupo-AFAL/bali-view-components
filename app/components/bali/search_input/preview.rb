@@ -1,24 +1,5 @@
 # frozen_string_literal: true
 
-class DummyFilterForm
-  include ActiveModel::Model
-  include ActiveModel::Attributes
-
-  attribute :name, :string
-
-  def model_name
-    @model_name ||= ActiveModel::Name.new(self, nil, 'q')
-  end
-
-  def id
-    @id ||= 1
-  end
-
-  def result(options = {})
-    @result ||= []
-  end
-end
-
 module Bali
   module SearchInput
     class Preview < ApplicationViewComponentPreview

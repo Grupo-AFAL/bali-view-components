@@ -2,31 +2,6 @@
 
 require 'rails_helper'
 
-class DummyFilterForm
-  include ActiveModel::Model
-  include ActiveModel::Attributes
-
-  attribute :name, :string
-
-  def model_name
-    @model_name ||= ActiveModel::Name.new(self, nil, 'q')
-  end
-
-  def id
-    @id ||= 1
-  end
-
-  def result(_options = {})
-    @result ||= []
-  end
-
-  def query_params
-    {}
-  end
-
-  def status_in; end
-end
-
 RSpec.describe Bali::Filters::Component, type: :component do
   let(:component) do
     Bali::Filters::Component.new(form: DummyFilterForm.new, url: '#', text_field: :name)
