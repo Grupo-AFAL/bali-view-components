@@ -1,12 +1,15 @@
 <%= render Bali::Level::Component.new(**options) do |c| %>
-  <%= c.left do |level| %>
-    <%= level.item(class: 'block') do %>
-      <%= title %>
-      <%= subtitle %>
+  <%= c.left(class: 'is-block') do |level| %>
+    <%= level.item(class: 'is-block') do %>
+      <%= title || tag.h1(@title, class: 'title is-1') %>
+    <% end %>
+
+    <%= level.item(class: 'is-block') do %>
+      <%= subtitle || tag.p(@subtitle, class: 'subtitle is-6') %>
     <% end %>
   <% end %>
 
   <%= c.right do %>
-    <%= right_panel %>
+    <%= content %>
   <% end %>
 <% end %>

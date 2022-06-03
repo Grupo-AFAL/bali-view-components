@@ -5,19 +5,19 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :options
 
-      renders_one :right_panel
-
-      renders_one :title, ->(text, **options) do
-        options[:class] ||= 'title is-1'
-        tag.h1 text, **options
+      renders_one :title, ->(text = nil, **options, &block) do
+        options[:class] ||= 'title is-1 mb-0'
+        text.present? ? tag.h1(text, **options) : tag.div(&block)
       end
 
-      renders_one :subtitle, ->(text, **options) do
+      renders_one :subtitle, ->(text = nil, **options, &block) do
         options[:class] ||= 'subtitle mt-0 is-6'
-        tag.p text, **options
+        text.present? ? tag.p(text, **options) : tag.div(&block)
       end
 
-      def initialize(**options)
+      def initialize(title: nil, subtitle: nil, **options)
+        @title = title
+        @subtitle = subtitle
         @options = prepend_class_name(options, 'page-header-component')
       end
     end
