@@ -6,7 +6,7 @@ module Bali
       attr_reader :name, :href, :type, :drawer, :modal, :options
 
       renders_one :icon, ->(**options, &block) { tag.span(**options, &block) }
-  
+
       def initialize(name:, href:, type: :normal, modal: false, drawer: false, **options)
         @name = name
         @href = href
@@ -16,11 +16,11 @@ module Bali
         @data = hyphenize_keys((options.delete(:data) || {}))
         @options = prepend_class_name(options, "button is-#{type}")
       end
-  
+
       def data
         @data.merge!(action: 'remote-modal#open') if modal
         @data.merge!(action: 'remote-drawer#open') if drawer
-  
+
         @data
       end
     end
