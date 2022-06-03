@@ -7,9 +7,8 @@ module Bali
         render Icon::Component.new('snowflake')
       end
 
-      # @param classes text
-      def adding_a_class(classes: 'has-text-info')
-        render Icon::Component.new('snowflake', class: classes)
+      def adding_a_class
+        render Icon::Component.new('snowflake', class: 'has-text-info')
       end
     end
   end
