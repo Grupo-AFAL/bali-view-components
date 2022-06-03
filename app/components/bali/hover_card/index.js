@@ -28,7 +28,7 @@ export class HovercardController extends Controller {
     this.popperInstance = createPopper(this.element, this.cardNode, {
       placement: this.placementValue,
       modifiers: [
-        { name: 'eventListeners', enabled: false }, 
+        { name: 'eventListeners', enabled: false },
         { name: 'offset', options: { offset: [0, 5] } }
       ]
     })
