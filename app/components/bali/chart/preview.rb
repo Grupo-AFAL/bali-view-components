@@ -10,47 +10,41 @@ module Bali
         data: [{ label: 'Res', values: [10, 5] }, { label: 'Cerdo', values: [20, 10] }]
       }.freeze
 
-      def bar(id: 'chart', type: :bar)
-        render Chart::Component.new(data: DATA_FORMAT_2, type: type.to_sym, id: id)
+      def bar(id: 'chart')
+        render Chart::Component.new(data: DATA_FORMAT_2, type: :bar, id: id)
       end
 
-      def line(id: 'chart', type: :line)
-        render Chart::Component.new(data: DATA_FORMAT_2, type: type.to_sym, id: id)
+      def line(id: 'chart')
+        render Chart::Component.new(data: DATA_FORMAT_2, type: :line, id: id)
       end
 
-      def pie(id: 'chart', type: :pie)
+      def pie(id: 'chart')
+        render Chart::Component.new(data: DATA_FORMAT_1, id: id, type: :pie, legend: true)
+      end
+
+      def two_lines(id: 'chart')
         render Chart::Component.new(
-          data: DATA_FORMAT_1, type: type.to_sym, id: id, legend: true
+          data: DATA_FORMAT_2, id: id, type: ["line", "line"], legend: true
         )
       end
 
-      def two_lines(id: 'chart', type: :pie)
+      def stacked_bar_line(id: 'chart')
         render Chart::Component.new(
-          data: DATA_FORMAT_2, type: type.to_sym, id: id, type: ["line", "line"], legend: true
+          data: DATA_FORMAT_2, id: id, type: ["bar", "line"], legend: true
         )
       end
 
-      def stacked_bar_line(id: 'chart', type: :pie)
-        render Chart::Component.new(
-          data: DATA_FORMAT_2, type: type.to_sym, id: id, type: ["bar", "line"], legend: true
-        )
+      def doughnut(id: 'chart')
+        render Chart::Component.new(data: DATA_FORMAT_1, id: id, type: :doughnut, legend: true)
       end
 
-      def doughnut(id: 'chart', type: :pie)
-        render Chart::Component.new(
-          data: DATA_FORMAT_1, type: type.to_sym, id: id, type: :doughnut, legend: true
-        )
+      def polar_area(id: 'chart')
+        render Chart::Component.new(data: DATA_FORMAT_1, id: id, type: :polarArea, legend: true)
       end
 
-      def polar_area(id: 'chart', type: :pie)
+      def stacked(id: 'chart')
         render Chart::Component.new(
-          data: DATA_FORMAT_1, type: type.to_sym, id: id, type: :polarArea, legend: true
-        )
-      end
-
-      def stacked(id: 'chart', type: :pie)
-        render Chart::Component.new(
-          data: DATA_FORMAT_2, type: type.to_sym, id: id, type: :bar, legend: true,
+          data: DATA_FORMAT_2, id: id, type: :bar, legend: true,
           chart_options: { scales: { x: { stacked: true, }, y: { stacked: true } } }
         )
       end
