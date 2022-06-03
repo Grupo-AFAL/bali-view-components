@@ -12,14 +12,14 @@ module Bali
       end
 
       renders_one :template
-  
+
       def initialize(hover_url: nil, placement: 'auto', **options)
         @placement = placement
         @data = options.delete(:data) || {}
         @hover_url = options.dig(:data, :'hovercard-url-value') || hover_url
         @options = prepend_class_name(options, 'hovercard-component vertical-horizontal-align')
       end
-  
+
       private
 
       def hovercard_data

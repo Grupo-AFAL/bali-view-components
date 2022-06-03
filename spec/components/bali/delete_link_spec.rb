@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rails_helper"
+require 'rails_helper'
 
 RSpec.describe Bali::DeleteLink::Component, type: :component do
   let(:options) { {} }
@@ -8,9 +8,9 @@ RSpec.describe Bali::DeleteLink::Component, type: :component do
 
   subject { rendered_component }
 
-  it "renders" do
+  it 'renders' do
     render_inline(component)
 
-    is_expected.to have_css "div"
+    is_expected.to have_css 'div'
   end
 end
