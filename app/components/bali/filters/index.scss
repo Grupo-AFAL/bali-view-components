@@ -1,0 +1,87 @@
+$animation-duration: 0.2s;
+$z-index-popover: 6;
+
+.filters-component {
+  .field.has-addons .control input {
+    height: 100%;
+  }
+
+  .button {
+    &.is-text {
+      &:hover {
+        background-color: $grey-lightest;
+        border: 1px solid darken($grey-lightest, 5%);
+      }
+    }
+
+    &.is-selected {
+      background-color: $info;
+      color: $white;
+      border: 1px solid darken($info, 5%);
+
+      &:hover {
+        background-color: darken($info, 5%);
+        border: 1px solid darken($info, 10%);
+      }
+    }
+
+    .counter {
+      padding-right: 0.25rem;
+    }
+  }
+
+  .popup-element {
+    position: relative;
+  }
+
+  .filters-popup {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: $z-index-popover;
+
+    .box {
+      box-shadow: 0px 3px 18px rgba($black, 0.1), 0 0 0 5px rgba($black, 0.03);
+    }
+
+    .filter-options {
+      overflow-y: auto;
+      max-height: 14rem;
+    }
+
+    .tag:not(.is-white) {
+      display: flex;
+      justify-content: flex-start;
+      margin-bottom: 0.25rem;
+      cursor: pointer;
+      background-color: $grey-lightest;
+      color: $grey-darker;
+
+      &.is-selected {
+        background-color: $info;
+        color: $white;
+      }
+    }
+
+    input[type=checkbox] {
+      display: none;
+    }
+
+    &.popin {
+      animation-duration: $animation-duration;
+      animation-name: slidein;
+    }
+  }
+}
+
+@keyframes slidein {
+  from {
+    opacity: 0;
+    margin-top: -1rem;
+  }
+
+  to {
+    opacity: 1;
+    margin-top: 0;
+  }
+}
