@@ -18,7 +18,7 @@ module Bali
         @data = options.delete(:data) || {}
         @hover_url = options.dig(:data, :'hovercard-url-value') || hover_url
         @options = prepend_class_name(options, 'hover-card-component')
-        @options = prepend_controller(@options, "hovercard #{data.delete(:controller)}")
+        @options = prepend_controller(@options, 'hovercard')
         @options = prepend_data_attribute(@options, 'hovercard-placement-value', placement)
         @options = prepend_data_attribute(@options, 'hovercard-url-value', hover_url)
       end
