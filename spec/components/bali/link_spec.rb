@@ -9,41 +9,39 @@ RSpec.describe Bali::Link::Component, type: :component do
 
   subject { rendered_component }
 
-  describe 'rendering' do
-    context 'default' do
+  context 'default' do
+    it 'renders' do
+      render_inline(component)
+
+      is_expected.to have_css 'a.button', text: 'Click me!'
+      is_expected.to have_css 'a[href="#"]'
+    end
+  end
+
+  %i[primary secondary success danger warning].each do |button_type|
+    context "#{button_type} button type" do
+      before { @options.merge!(type: button_type) }
+
       it 'renders' do
         render_inline(component)
 
-        is_expected.to have_css 'a.button', text: 'Click me!'
+        is_expected.to have_css "a.button.is-#{button_type}", text: 'Click me!'
         is_expected.to have_css 'a[href="#"]'
       end
     end
+  end
 
-    %i[primary secondary success danger warning].each do |button_type|
-      context "#{button_type} button type" do
-        before { @options.merge!(type: button_type) }
-
-        it 'renders' do
-          render_inline(component)
-
-          is_expected.to have_css "a.button.is-#{button_type}", text: 'Click me!'
-          is_expected.to have_css 'a[href="#"]'
+  context 'with icon' do
+    it 'renders' do
+      render_inline(component) do |c|
+        c.icon(class: 'icon') do
+          '<svg></svg>'.html_safe
         end
       end
-    end
 
-    context 'with icon' do
-      it 'renders' do
-        render_inline(component) do |c|
-          c.icon(class: 'icon') do
-            '<svg></svg>'.html_safe
-          end
-        end
-
-        is_expected.to have_css 'a.button', text: 'Click me!'
-        is_expected.to have_css 'a[href="#"]'
-        is_expected.to have_css 'span.icon'
-      end
+      is_expected.to have_css 'a.button', text: 'Click me!'
+      is_expected.to have_css 'a[href="#"]'
+      is_expected.to have_css 'span.icon'
     end
   end
 end

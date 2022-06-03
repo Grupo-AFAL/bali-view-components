@@ -15,13 +15,8 @@ module Bali
         @drawer = drawer
         @data = hyphenize_keys((options.delete(:data) || {}))
         @options = prepend_class_name(options, "button is-#{type}")
-      end
-
-      def data
-        @data.merge!(action: 'remote-modal#open') if modal
-        @data.merge!(action: 'remote-drawer#open') if drawer
-
-        @data
+        @options = prepend_action(@options, 'remote-modal#open') if modal
+        @options = prepend_action(@options, 'remote-drawer#open') if drawer
       end
     end
   end
