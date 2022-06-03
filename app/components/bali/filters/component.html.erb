@@ -3,7 +3,7 @@
     <div class="level-left width-inherit">
       <% if text_field.present? %>
         <div class="level-item width-inherit">
-          <%= render SearchInput::Component.new(form: form, method: text_field, auto_submit: auto_submit_search_input) %>
+          <%= render Bali::SearchInput::Component.new(form: form, method: text_field, auto_submit: auto_submit_search_input) %>
         </div>
       <% end %>
 

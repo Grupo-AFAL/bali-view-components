@@ -1,0 +1,27 @@
+.search-input-component {
+  .search-control {
+    width: auto;
+  }
+
+  .search-bar {
+    position: relative;
+  
+    input {
+      background: $grey-lightest;
+      border-radius: 3.4375rem !important;
+      border: none;
+      padding: 0.5rem $size-4;
+      height: 2.625rem !important;
+    }
+  
+    &::after {
+      content: image-url('svg/search.svg');
+      position: absolute;
+      right: $size-4;
+      top: 50%;
+      width: $size-3;
+      height: $size-3;
+      transform: translateY(-50%);
+    }
+  }
+}
