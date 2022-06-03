@@ -57,7 +57,7 @@ RSpec.describe Bali::Table::Component, type: :component do
     is_expected.to have_css '.empty-table p', text: 'No Records'
   end
 
-  xit 'renders a table with new record link' do
+  it 'renders a table with new record link' do
     render_inline(component) do |c|
       c.new_record_link(name: 'Add New Record', href: '#', modal: false)
     end
