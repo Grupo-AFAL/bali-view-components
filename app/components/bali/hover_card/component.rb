@@ -17,7 +17,7 @@ module Bali
         @placement = placement
         @data = options.delete(:data) || {}
         @hover_url = options.dig(:data, :'hovercard-url-value') || hover_url
-        @options = prepend_class_name(options, 'hovercard-component vertical-horizontal-align')
+        @options = prepend_class_name(options, 'hover-card-component')
       end
 
       private
