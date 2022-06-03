@@ -1,0 +1,5 @@
+es:
+  view_components:
+    bali:
+      chart:
+        loading: Cargando...
