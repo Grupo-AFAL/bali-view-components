@@ -7,3 +7,5 @@ export { PopupController } from '../../components/bali/filters'
 export { SelectedController } from '../../components/bali/filters'
 export { TabsController } from '../../components/bali/tabs'
 export { TreeViewItemController } from '../../components/bali/tree_view/item'
+
+export { SubmitOnChangeController } from './controllers'
