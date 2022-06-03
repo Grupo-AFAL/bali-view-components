@@ -55,3 +55,30 @@ Lookbook gives ViewComponent-based projects a ready-to-go development UI for nav
 Project URL: https://github.com/allmarkedup/lookbook
 
 To add a component, just create a `preview.rb` file within the component folder. Lookbook will automatically detect component previews and display them in the sidebar.
+
+## Components' Status
+
+| Component Name |     In Project     |      Preview       |       Tests        |
+| -------------- | :----------------: | :----------------: | :----------------: |
+| Card           | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| Chart          | :white_check_mark: |        :x:         |        :x:         |
+| Columns        | :white_check_mark: |        :x:         |        :x:         |
+| Dropdown       | :white_check_mark: |        :x:         |        :x:         |
+| HelpTip        | :white_check_mark: |        :x:         |        :x:         |
+| ImageGrid      | :white_check_mark: |        :x:         |        :x:         |
+| InfoLevel      | :white_check_mark: |        :x:         |        :x:         |
+| Level          | :white_check_mark: |        :x:         |        :x:         |
+| Modal          | :white_check_mark: |        :x:         |        :x:         |
+| PageHeader     | :white_check_mark: |        :x:         |        :x:         |
+| Table          | :white_check_mark: |        :x:         |        :x:         |
+| Tabs           | :white_check_mark: |        :x:         |        :x:         |
+| TreeView       | :white_check_mark: |        :x:         |        :x:         |
+| Chart          | :white_check_mark: |        :x:         |        :x:         |
+
+### Legends
+
+| Icon               | Meaning          |
+| ------------------ | ---------------- |
+| :white_check_mark: | Is complete      |
+| :wavy_dash:        | Incomplete       |
+| :x:                | Missing entirely |
