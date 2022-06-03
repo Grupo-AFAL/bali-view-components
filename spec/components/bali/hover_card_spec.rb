@@ -18,7 +18,7 @@ RSpec.describe Bali::HoverCard::Component, type: :component do
           end
         end
 
-        is_expected.to have_css 'div.hovercard-component'
+        is_expected.to have_css 'div.hover-card-component'
         is_expected.to include "data-hovercard-target='template'"
         is_expected.to include 'Cuerpo'
       end
@@ -30,7 +30,7 @@ RSpec.describe Bali::HoverCard::Component, type: :component do
       it 'renders' do
         render_inline(component)
 
-        is_expected.to have_css 'div.hovercard-component'
+        is_expected.to have_css 'div.hover-card-component'
         is_expected.not_to include "data-hovercard-target='template'"
       end
     end
