@@ -5,13 +5,13 @@ module Bali
     class Dataset
       LINE_GRAPH_TENSION = 0.3
 
-      def initialize(type, values, label, order, axis, colors)
+      def initialize(type, values, colors, **options)
         @type = type
         @values = values
-        @label = label
-        @order = order
-        @axis = axis
         @colors = colors
+        @label = options.delete(:label) || ''
+        @order = options.delete(:order) || 1
+        @axis = options.delete(:axis) || 1
         @color_picker = ColorPicker.new
       end
 
@@ -20,7 +20,7 @@ module Bali
           label: @label,
           data: @values,
           borderWidth: 2,
-          yAxisID: @axis,
+          yAxisID: "y_#{@axis}",
           type: @type,
           order: @order,
           tension: LINE_GRAPH_TENSION,

@@ -58,10 +58,10 @@ module Bali
           Dataset.new(
             type[index],
             dataset_info[:values],
-            dataset_info[:label],
-            order[index] || 1,
-            "y_#{axis[index] || 1}",
-            dataset_colors(type[index])
+            dataset_colors(type[index]),
+            label:  dataset_info[:label],
+            order: order[index],
+            axis: axis[index]
           ).result
         end
       end
