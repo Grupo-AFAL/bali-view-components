@@ -6,7 +6,7 @@
                    class: class_names('is-active': tab.active) do %>
           <a>
             <% if tab.icon %>
-              <%= icon_tag(tab.icon) %>
+              <%= render Bali::Icon::Component.new(tab.icon) %>
             <% end %>
             <span><%= tab.title %></span>
           </a>

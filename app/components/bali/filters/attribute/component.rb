@@ -2,7 +2,7 @@
 
 module Bali
   module Filters
-    module Attributes
+    module Attribute
       class Component < ApplicationViewComponent
         attr_reader :form, :attribute, :collection_options, :title, :multiple
 

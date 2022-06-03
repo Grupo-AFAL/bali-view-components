@@ -6,14 +6,14 @@
       <% if option_value.is_a?(Array) %>
         <span class="tag is-white has-text-weight-bold"><%= option_name %></span>
         <% option_value.each do |sub_option_name, sub_option_value| %>
-          <%= render Option::Component.new(
+          <%= render Bali::Filters::Option::Component.new(
               title: sub_option_name,
               name: input_name,
               value: sub_option_value,
               selected: selected_values.include?(sub_option_value.to_s)) %>
         <% end %>
       <% else %>
-        <%= render Option::Component.new(
+        <%= render Bali::Filters::Option::Component.new(
             title: option_name,
             name: input_name,
             value: option_value,

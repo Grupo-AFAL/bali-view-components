@@ -8,3 +8,5 @@ en:
         generic_name: Delete
         specific_confirm_message: Are you sure you want to delete %{pronoun} %{name}?
         specific_name: Delete %{name}
+      search_input:
+        placeholder: Search...

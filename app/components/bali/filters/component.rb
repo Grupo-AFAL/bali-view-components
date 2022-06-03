@@ -8,7 +8,7 @@ module Bali
       delegate :query_params, to: :form
 
       renders_many :attributes, ->(title:, attribute:, collection_options:, multiple: true) do
-        Attribute::Component.new(
+        Bali::Filters::Attribute::Component.new(
           form: @form,
           title: title,
           attribute: attribute,

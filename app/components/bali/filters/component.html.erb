@@ -13,7 +13,7 @@
               class: class_names('button is-text', 'is-selected': opened),
               data: { action: 'popup#toggle', 'popup-target': 'button' } do %>
 
-            <%= helpers.icon_tag('filter') %>
+            <%= render Bali::Icon::Component.new('filter') %>
 
             <%= tag.span "#{active_filters_count > 0 ? "(#{active_filters_count}) " : nil}",
                 class: 'counter',
