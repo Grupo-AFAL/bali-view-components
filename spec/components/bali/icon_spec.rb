@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe Bali::Icon::Component, type: :component do
-  let(:component) { Bali::Icon::Component.new('snowflake',**@options) }
+  let(:component) { Bali::Icon::Component.new('snowflake', **@options) }
 
   before { @options = {} }
 

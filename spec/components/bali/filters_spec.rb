@@ -16,18 +16,16 @@ class DummyFilterForm
     @id ||= 1
   end
 
-  def result(options = {})
+  def result(_options = {})
     @result ||= []
   end
 
   def query_params
-    { }
+    {}
   end
 
-  def status_in
-  end
+  def status_in; end
 end
-
 
 RSpec.describe Bali::Filters::Component, type: :component do
   let(:component) do
@@ -48,7 +46,8 @@ RSpec.describe Bali::Filters::Component, type: :component do
       c.attribute(
         title: 'Active',
         attribute: :status_in,
-        collection_options:  [['active', :true], ['inactive', false]])
+        collection_options: [['active', true], ['inactive', false]]
+      )
     end
 
     is_expected.to have_css 'div.search-input-component'

@@ -16,20 +16,19 @@ class DummyFilterForm
     @id ||= 1
   end
 
-  def result(options = {})
+  def result(_options = {})
     @result ||= []
   end
 
   def query_params
-    { }
+    {}
   end
 
-  def status_in
-  end
+  def status_in; end
 end
 
 RSpec.describe Bali::SearchInput::Component, type: :component do
-  let(:component) do 
+  let(:component) do
     Bali::SearchInput::Component.new(form: DummyFilterForm.new, method: :name, **@options)
   end
 
@@ -49,7 +48,7 @@ RSpec.describe Bali::SearchInput::Component, type: :component do
 
     it 'renders' do
       render_inline(component)
-      
+
       is_expected.to have_css 'div.search-input-component'
       is_expected.not_to have_css 'div.search-control'
     end
