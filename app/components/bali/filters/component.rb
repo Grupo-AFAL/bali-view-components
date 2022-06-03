@@ -6,7 +6,7 @@ module Bali
       attr_reader :form, :url, :text_field, :opened, :auto_submit_search_input
 
       delegate :query_params, to: :form
-  
+
       renders_many :attributes, ->(title:, attribute:, collection_options:, multiple: true) do
         Attribute::Component.new(
           form: @form,
@@ -28,11 +28,11 @@ module Bali
       def filters_opened?(opened)
         !!ActiveRecord::Type::Boolean.new.cast(opened)
       end
-  
+
       def active_filters_count
         @active_filters_count ||= (active_filters.keys & attribute_names).size
       end
-  
+
       def active_filters?
         active_filters_count.positive?
       end
@@ -46,7 +46,7 @@ module Bali
             'submit-on-change-response-kind-value': 'turbo-stream'
           }
         end
-  
+
         { controller: 'filter-form', 'filter-form-text-field-value': text_field }
       end
 
