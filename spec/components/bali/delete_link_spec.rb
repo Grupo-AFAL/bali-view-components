@@ -47,9 +47,12 @@ RSpec.describe Bali::DeleteLink::Component, type: :component do
 
   context 'with active record model' do
     before do
-      model_name = double('model_name', i18n_key: 'model', human: 'model', name: 'model', route_key: 'root')
-      model = double('model', id: 1, model_name: model_name, to_model: double(model_name: model_name, persisted?: false))
-      
+      model_name = double(
+        'model_name', i18n_key: 'model', human: 'model', name: 'model', route_key: 'root'
+      )
+      to_model = double(model_name: model_name, persisted?: false)
+      model = double('model', id: 1, model_name: model_name, to_model: to_model)
+
       @options = { model: model }
     end
 
