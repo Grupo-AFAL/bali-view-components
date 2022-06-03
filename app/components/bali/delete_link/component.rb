@@ -59,7 +59,7 @@ module Bali
       end
 
       def classes
-        class_names('has-text-danger', @classes)
+        class_names('button has-text-danger is-text', @classes)
       end
 
       private
