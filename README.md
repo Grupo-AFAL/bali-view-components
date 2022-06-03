@@ -73,7 +73,7 @@ Update this table when making progress on any of the Components or when adding n
 | Collapse (Reveal) |        :x:         |        :x:         |        :x:         |        :x:         | Rename from Reveal to Collapse                 |
 | Columns           | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | DataTable         |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
-| DeleteLink        |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| DeleteLink        | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark:         |                                                |
 | DisplayValue      |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Dropdown          | :white_check_mark: | :white_check_mark: | :white_check_mark: |        :x:         |                                                |
 | Filters           |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
@@ -81,11 +81,12 @@ Update this table when making progress on any of the Components or when adding n
 | Heatmap           |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | HelpTip           | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Hero              |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
-| Hovercard         |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| Hovercard         | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark:         |                                                |
 | Icon              |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | ImageGrid         | :white_check_mark: | :white_check_mark: | :white_check_mark: |        :x:         |                                                |
 | InfoLevel         | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | Level             | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
+| Link              | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | Loader            |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Modal             | :white_check_mark: | :white_check_mark: |        :x:         |        :x:         |                                                |
 | NavBar            |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
