@@ -13,7 +13,6 @@ module Bali
         @type = type.to_sym
         @modal = modal
         @drawer = drawer
-        @data = hyphenize_keys((options.delete(:data) || {}))
         @options = prepend_class_name(options, "button is-#{type}")
         @options = prepend_action(@options, 'remote-modal#open') if modal
         @options = prepend_action(@options, 'remote-drawer#open') if drawer
