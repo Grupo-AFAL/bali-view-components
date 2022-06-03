@@ -1,0 +1,19 @@
+<div class="calendar-component">
+  <div class="day-view">
+    <div class="columns is-mobile">
+      <div class="column is-narrow">
+        <%= link_to helpers.icon_tag('chevron-left'), url_for(prev_day), title: 'previous' %>
+      </div>
+      <div class="column has-text-centered">
+        <span class="title is-5 has-text-grey-dark has-text-weight-normal">
+          <%= l(start_date, format: :long_with_day) %>
+        </span>
+      </div>
+      <div class="column is-narrow">
+        <%= link_to helpers.icon_tag('chevron-right'), url_for(next_day), title: 'next' %>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <%= render template, events: sorted_events[start_date], period: :day, day: start_date %>
+  </div>
+</div>
