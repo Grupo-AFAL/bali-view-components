@@ -76,13 +76,13 @@ Update this table when making progress on any of the Components or when adding n
 | DeleteLink        | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark:         |                                                |
 | DisplayValue      |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Dropdown          | :white_check_mark: | :white_check_mark: | :white_check_mark: |        :x:         |                                                |
-| Filters           |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| Filters           | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark:         |                                                |
 | GanttChart        |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Heatmap           |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | HelpTip           | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Hero              |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Hovercard         | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark:         |                                                |
-| Icon              |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| Icon              | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark:         |                                                |
 | ImageGrid         | :white_check_mark: | :white_check_mark: | :white_check_mark: |        :x:         |                                                |
 | InfoLevel         | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | Level             | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
@@ -94,7 +94,7 @@ Update this table when making progress on any of the Components or when adding n
 | PageHeader        | :white_check_mark: | :white_check_mark: |    :wavy_dash:     | :white_check_mark: |                                                |
 | ProfilePicture    |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Rate (Rating)     |        :x:         |        :x:         |        :x:         |        :x:         | Rename from Rating to Rate                     |
-| SearchInput       |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| SearchInput       | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark:         |                                                |
 | SideMenu          |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | SortableList      |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Steps (Progress)  |        :x:         |        :x:         |        :x:         |        :x:         | Rename from Progress to Steps                  |

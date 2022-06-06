@@ -1,0 +1,46 @@
+<%= form_with(model: form, url: url, method: :get, data: form_data, class: 'width-inherit') do |f| %>
+  <div class="level filters-component is-mobile width-inherit">
+    <div class="level-left width-inherit">
+      <% if text_field.present? %>
+        <div class="level-item width-inherit">
+          <%= render Bali::SearchInput::Component.new(form: form, method: text_field, auto_submit: auto_submit_search_input) %>
+        </div>
+      <% end %>
+
+      <% if attributes? %>
+        <div class="level-item popup-element" data-controller="popup" data-popup-opened-value="<%= opened %>">
+          <%= tag.a id: 'filters-button',
+              class: class_names('button is-text', 'is-selected': opened),
+              data: { action: 'popup#toggle', 'popup-target': 'button' } do %>
+
+            <%= render Bali::Icon::Component.new('filter') %>
+
+            <%= tag.span "#{active_filters_count > 0 ? "(#{active_filters_count}) " : nil}",
+                class: 'counter',
+                data: { 'filter-form-target': 'filterCounter' } %>
+
+            <%= tag.span t('.filters'), class: 'text' %>
+          <% end %>
+
+          <%= hidden_field_tag :opened, opened, data: { 'popup-target': 'openedInput' } %>
+
+          <%= tag.div class: class_names('filters-popup', 'is-hidden': !opened), data: { 'popup-target': 'container' } do %>
+            <div class="box">
+              <div class="columns">
+                <% attributes.each do |attribute| %>
+                  <%= attribute %>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="level-item">
+          <%= link_to t('.remove_filters'), url,
+              class: class_names('is-hidden': !active_filters?),
+              data: { 'filter-form-target': 'removeButton' } %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>

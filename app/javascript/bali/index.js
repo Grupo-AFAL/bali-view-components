@@ -1,7 +1,12 @@
 export { ChartController } from '../../components/bali/chart'
 export { DropdownController } from '../../components/bali/dropdown'
+export { FilterFormController } from '../../components/bali/filters'
 export { HelpTipController } from '../../components/bali/help_tip'
 export { HovercardController } from '../../components/bali/hover_card'
 export { ModalController } from '../../components/bali/modal'
+export { PopupController } from '../../components/bali/filters'
+export { SelectedController } from '../../components/bali/filters'
 export { TabsController } from '../../components/bali/tabs'
 export { TreeViewItemController } from '../../components/bali/tree_view/item'
+
+export { SubmitOnChangeController } from './controllers'

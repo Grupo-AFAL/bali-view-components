@@ -1,0 +1,24 @@
+<div id="<%= input_id %>" class="column">
+  <label class="label"><%= title %></label>
+
+  <div class="filter-options">
+    <% collection_options.each do |option_name, option_value| %>
+      <% if option_value.is_a?(Array) %>
+        <span class="tag is-white has-text-weight-bold"><%= option_name %></span>
+        <% option_value.each do |sub_option_name, sub_option_value| %>
+          <%= render Bali::Filters::Option::Component.new(
+              title: sub_option_name,
+              name: input_name,
+              value: sub_option_value,
+              selected: selected_values.include?(sub_option_value.to_s)) %>
+        <% end %>
+      <% else %>
+        <%= render Bali::Filters::Option::Component.new(
+            title: option_name,
+            name: input_name,
+            value: option_value,
+            selected: selected_values.include?(option_value.to_s)) %>
+      <% end %>
+    <% end %>
+  </div>
+</div>
