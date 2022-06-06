@@ -22,7 +22,7 @@ module Bali
         @url = url
         @text_field = text_field
         @opened = filters_opened?(opened)
-        @auto_submit_search_input = !!options.delete(:auto_submit_search_input)
+        @auto_submit_search_input = options.delete(:auto_submit_search_input)
       end
 
       def filters_opened?(opened)

@@ -8,5 +8,8 @@ es:
         generic_name: Eliminar
         specific_confirm_message: "¿Seguro que desea eliminar %{pronoun} %{name}?"
         specific_name: Eliminar %{name}
+      filters:
+        filters: Filtros
+        remove_filters: Quitar filtros
       search_input:
         placeholder: Buscar...

@@ -1413,7 +1413,6 @@ module Bali
         'facebook' => FACEBOOK,
         'face-profile' => FACE_PROFILE,
         'file-certificate' => FILE_CERTIFICATE,
-
         'file-signature' => FILE_SIGNATURE,
         'filter' => FILTER,
         'fire-alt' => FIRE_ALT,

@@ -19,7 +19,7 @@
                 class: 'counter',
                 data: { 'filter-form-target': 'filterCounter' } %>
 
-            <%= tag.span "Filtros", class: 'text' %>
+            <%= tag.span t('.filters'), class: 'text' %>
           <% end %>
 
           <%= hidden_field_tag :opened, opened, data: { 'popup-target': 'openedInput' } %>
@@ -36,7 +36,7 @@
         </div>
 
         <div class="level-item">
-          <%= link_to 'Quitar filtros', url,
+          <%= link_to t('.remove_filters'), url,
               class: class_names('is-hidden': !active_filters?),
               data: { 'filter-form-target': 'removeButton' } %>
         </div>
