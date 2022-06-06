@@ -1,5 +1,14 @@
 <%= tag.div **@options do %>
-  <%= image %>
+  <% if alt_image.present? %>
+  <div class="card card-component">
+    <div class="card-images-container">
+      <%= alt_image %>
+      <%= image %>
+    </div>
+  </div>
+  <% else %>
+    <%= image %>
+  <% end %>
 
   <div class="card-content">
     <div class="content">
