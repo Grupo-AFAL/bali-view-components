@@ -32,7 +32,7 @@ module Bali
       def table_wrapper_classes
         @table_wrapper_class || 'box'
       end
-  
+
       def id
         "data-table-#{@filter_form.id}"
       end
