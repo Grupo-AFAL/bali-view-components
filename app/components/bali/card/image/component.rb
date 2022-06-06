@@ -12,6 +12,10 @@ module Bali
           @options = prepend_class_name(options, 'card-image')
         end
 
+        def add_class(class_name)
+          @option = prepend_class_name(@options, class_name)
+        end
+
         def tag_name
           options[:href].present? ? :a : :div
         end
