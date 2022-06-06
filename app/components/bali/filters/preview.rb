@@ -14,7 +14,7 @@ module Bali
           c.attribute(
             title: 'Active',
             attribute: :status_in,
-            collection_options: [['active', :true], ['inactive', false]])
+            collection_options: [['active', true], ['inactive', false]])
         end
       end
     end

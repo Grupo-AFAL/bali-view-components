@@ -3,7 +3,7 @@
     <% fp.attribute(
        title: 'Status',
        attribute: :status_in,
-       collection_options: [['active', :true], ['inactive', false]]) %>
+       collection_options: [['active', true], ['inactive', false]]) %>
   <% end %>
 
   <%= c.summary { summary } if local_assigns[:summary] %>
