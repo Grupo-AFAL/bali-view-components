@@ -72,7 +72,7 @@ Update this table when making progress on any of the Components or when adding n
 | Chart             | :white_check_mark: | :white_check_mark: |    :wavy_dash:     | :white_check_mark: |                                                |
 | Collapse (Reveal) |        :x:         |        :x:         |        :x:         |        :x:         | Rename from Reveal to Collapse                 |
 | Columns           | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
-| DataTable         |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| DataTable         | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark:     |                                                |
 | DeleteLink        | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark:         |                                                |
 | DisplayValue      |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Dropdown          | :white_check_mark: | :white_check_mark: | :white_check_mark: |        :x:         |                                                |
