@@ -1,3 +1,8 @@
-<% icons.each do |icon| %>
-  <%= render Bali::Icon::Component.new(icon) %>
-<% end %>
+<div class='columns is-multiline is-3'>
+  <% icons.each do |icon| %>
+    <div class='column is-one-fifth'>
+      <%= render Bali::Icon::Component.new(icon) %>
+      <p><%= icon %></p>
+    </div>
+  <% end %>
+</div>
