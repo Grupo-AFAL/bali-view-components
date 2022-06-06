@@ -21,6 +21,10 @@ module Bali
           tag.div('Title', class: 'title is-4')
         end
       end
+
+      def custom_image
+        render_with_template(template: 'bali/card/previews/custom_image')
+      end
     end
   end
 end
