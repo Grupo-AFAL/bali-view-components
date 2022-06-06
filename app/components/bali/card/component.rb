@@ -4,6 +4,7 @@ module Bali
   module Card
     class Component < ApplicationViewComponent
       renders_one :image, Image::Component
+      renders_one :alt_image, Image::Component
       renders_many :footer_items, FooterItem::Component
 
       def initialize(**options)
