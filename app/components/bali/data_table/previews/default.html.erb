@@ -1,0 +1,23 @@
+<%= render Bali::DataTable::Component.new(filter_form: form, url: '#') do |c| %>
+  <% c.filters_panel(text_field: :name, opened: false) do |fp| %>
+    <% fp.attribute(
+       title: 'Status',
+       attribute: :status_in,
+       collection_options: [['active', :true], ['inactive', false]]) %>
+  <% end %>
+
+  <%= c.summary { summary } if local_assigns[:summary] %>
+
+  <% c.table do %>
+    <%= render Bali::Table::Component.new do |ct| %>
+      <%= ct.headers(headers) %>
+
+      <% records.each do |record| %>
+        <%= ct.row do %>
+          <td><%= record[:name] %></td>
+          <td><%= record[:amount] %></td>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
