@@ -32,6 +32,11 @@ $z-index-popover: 6;
 
   .popup-element {
     position: relative;
+
+    svg {
+      width: $size-6;
+      height: $size-6;
+    }
   }
 
   .filters-popup {

@@ -3,8 +3,10 @@
 module Bali
   module Icon
     class Preview < ApplicationViewComponentPreview
+      include Options
+
       def default
-        render Icon::Component.new('snowflake')
+        render_with_template(template: 'bali/icon/previews/default', locals: { icons: MAP.keys })
       end
 
       def adding_a_class
