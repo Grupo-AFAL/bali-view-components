@@ -11,10 +11,9 @@ module Bali
 
       renders_many :footers, Footer::Component
 
-      # TODO: Enable when link is migrated
-      # renders_one :new_record_link, ->(name:, href:, modal: true, **options) do
-      #   Link::Component.new(name: name, href: href, type: :success, modal: modal, **options)
-      # end
+      renders_one :new_record_link, ->(name:, href:, modal: true, **options) do
+        Bali::Link::Component.new(name: name, href: href, type: :success, modal: modal, **options)
+      end
 
       attr_reader :form, :options, :tbody_options
 

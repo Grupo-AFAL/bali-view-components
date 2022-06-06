@@ -55,3 +55,58 @@ Lookbook gives ViewComponent-based projects a ready-to-go development UI for nav
 Project URL: https://github.com/allmarkedup/lookbook
 
 To add a component, just create a `preview.rb` file within the component folder. Lookbook will automatically detect component previews and display them in the sidebar.
+
+## Components' Status
+
+Update this table when making progress on any of the Components or when adding new ones.
+
+| Component Name    |     In Project     |      Preview       |        Docs        |       Tests        | Notes                                          |
+| ----------------- | :----------------: | :----------------: | :----------------: | :----------------: | ---------------------------------------------- |
+| AddToCalendar     |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| Box               |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| Breadcrumb        |        :x:         |        :x:         |        :x:         |        :x:         | Create from scratch                            |
+| BurgerButton      |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| Calendar          |        :x:         | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
+| Carousel          |        :x:         | :white_check_mark: |        :x:         | :white_check_mark: | Two versions in Enjoy and GA, need to merge    |
+| Card              | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
+| Chart             | :white_check_mark: | :white_check_mark: |    :wavy_dash:     | :white_check_mark: |                                                |
+| Collapse (Reveal) |        :x:         |        :x:         |        :x:         |        :x:         | Rename from Reveal to Collapse                 |
+| Columns           | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
+| DataTable         |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| DeleteLink        | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark:         |                                                |
+| DisplayValue      |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| Dropdown          | :white_check_mark: | :white_check_mark: | :white_check_mark: |        :x:         |                                                |
+| Filters           |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| GanttChart        |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| Heatmap           |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| HelpTip           | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
+| Hero              |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| Hovercard         | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark:         |                                                |
+| Icon              |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| ImageGrid         | :white_check_mark: | :white_check_mark: | :white_check_mark: |        :x:         |                                                |
+| InfoLevel         | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
+| Level             | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
+| Link              | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
+| Loader            |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| Modal             | :white_check_mark: | :white_check_mark: |        :x:         |        :x:         |                                                |
+| NavBar            |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| Notification      |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| PageHeader        | :white_check_mark: | :white_check_mark: |    :wavy_dash:     | :white_check_mark: |                                                |
+| ProfilePicture    |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| Rate (Rating)     |        :x:         |        :x:         |        :x:         |        :x:         | Rename from Rating to Rate                     |
+| SearchInput       |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| SideMenu          |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| SortableList      |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| Steps (Progress)  |        :x:         |        :x:         |        :x:         |        :x:         | Rename from Progress to Steps                  |
+| Table             | :white_check_mark: |    :wavy_dash:     |        :x:         | :white_check_mark: |                                                |
+| Tabs              | :white_check_mark: | :white_check_mark: |        :x:         |        :x:         |                                                |
+| Timeline          |        :x:         |        :x:         |        :x:         |        :x:         | Create from scratch, HTML already exists on GA |
+| TreeView          | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
+
+### Legends
+
+| Icon               | Meaning          |
+| ------------------ | ---------------- |
+| :white_check_mark: | Is complete      |
+| :wavy_dash:        | Incomplete       |
+| :x:                | Missing entirely |

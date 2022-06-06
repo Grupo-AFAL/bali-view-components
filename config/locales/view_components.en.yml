@@ -3,3 +3,8 @@ en:
     bali:
       chart:
         loading: Loading...
+      delete_link:
+        generic_confirm_message: Are you sure?
+        generic_name: Delete
+        specific_confirm_message: Are you sure you want to delete %{pronoun} %{name}?
+        specific_name: Delete %{name}
