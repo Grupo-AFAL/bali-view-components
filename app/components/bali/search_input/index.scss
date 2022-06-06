@@ -1,0 +1,24 @@
+.search-input-component {
+  .search-control {
+    width: auto;
+
+    svg {
+      width: $size-6;
+      height: $size-6;
+    }
+  }
+
+  .search-bar {
+    position: relative;
+  
+    &::after {
+      content: image-url('bali/svg/search.svg');
+      position: absolute;
+      right: $size-6;
+      top: 50%;
+      width: $size-4;
+      height: $size-4;
+      transform: translateY(-50%);
+    }
+  }
+}

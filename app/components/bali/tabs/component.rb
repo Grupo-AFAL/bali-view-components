@@ -3,8 +3,6 @@
 module Bali
   module Tabs
     class Component < ApplicationViewComponent
-      delegate :icon_tag, to: :helpers
-
       renders_many :tabs, Tab::Component
 
       def initialize(**options)
