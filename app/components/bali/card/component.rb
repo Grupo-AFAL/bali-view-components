@@ -3,7 +3,14 @@
 module Bali
   module Card
     class Component < ApplicationViewComponent
-      renders_one :image, Image::Component
+      renders_one :image, ->(src: nil, **options, &block) do
+        if src.present?
+          Image::Component.new(src: src, **options)
+        else
+          tag.div(**options, &block)
+        end
+      end
+
       renders_many :footer_items, FooterItem::Component
 
       def initialize(**options)
