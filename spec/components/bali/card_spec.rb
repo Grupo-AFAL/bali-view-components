@@ -40,4 +40,16 @@ RSpec.describe Bali::Card::Component, type: :component do
 
     is_expected.to have_css '.card-footer-item span.hola', text: 'Hola'
   end
+
+  it 'renders a card with custom image' do
+    render_inline(component) do |c|
+      c.image do
+        '<div class="content">Custom content in image</div>'.html_safe
+      end
+
+      c.footer_item(href: '/path') { 'Link to path' }
+
+      '<div class="content">Content</div>'.html_safe
+    end
+  end
 end
