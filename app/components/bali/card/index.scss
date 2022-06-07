@@ -11,4 +11,12 @@
   .alt-image {
     display: none;
   }
+  .image-container:hover {
+    .alt-image {
+      display: block;
+    }
+    .main-image {
+      display: none;
+    }
+  }
 }
