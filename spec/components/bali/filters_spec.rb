@@ -3,8 +3,9 @@
 require 'rails_helper'
 
 RSpec.describe Bali::Filters::Component, type: :component do
+  let(:form) { Bali::Utils::DummyFilterForm.new }
   let(:component) do
-    Bali::Filters::Component.new(form: DummyFilterForm.new, url: '#', text_field: :name)
+    Bali::Filters::Component.new(form: form, url: '#', text_field: :name)
   end
 
   subject { rendered_component }
