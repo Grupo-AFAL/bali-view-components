@@ -3,6 +3,9 @@
 module Bali
   module Card
     class Preview < ApplicationViewComponentPreview
+      # Card view
+      # ---------------
+      # Basic card view with image, title, description and footer.
       def default
         render Card::Component.new do |c|
           c.image(
@@ -22,6 +25,9 @@ module Bali
         end
       end
 
+      # Card view
+      # ---------------
+      # Card view with custom image module, in this example we use the image with hover effect.
       def custom_image
         render_with_template(template: 'bali/card/previews/custom_image')
       end
