@@ -1,8 +1,8 @@
 <%= render Bali::Card::Component.new do |c| %>
-  <%= c.image do %>
+  <% c.image do %>
     <div class="image-container">
       <%= render Bali::Card::Image::Component.new(src: 'https://via.placeholder.com/320x244.png', class: 'alt-image') %>
-      <%= render Bali::Card::Image::Component.new(src: 'https://via.placeholder.com/320x244.png', class: 'main-image') %>
+      <%= render Bali::Card::Image::Component.new(src: 'https://via.placeholder.com/640x480.png', class: 'main-image') %>
     </div>
   <% end %>
 

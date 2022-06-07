@@ -1,15 +1,19 @@
 <%= tag.div **@options do %>
   <%= image %>
 
-  <div class="card-content">
-    <div class="content">
-      <%= content %>
+  <% if content.present? %>
+    <div class="card-content">
+      <div class="content">
+        <%= content %>
+      </div>
     </div>
-  </div>
+  <% end %>
 
-  <div class="card-footer">
-    <% footer_items.each do |footer_item| %>
-      <%= footer_item %>
-    <% end %>
-  </div>
+  <% if footer_items.size > 0 %>
+    <div class="card-footer">
+      <% footer_items.each do |footer_item| %>
+        <%= footer_item %>
+      <% end %>
+    </div>
+  <% end %>
 <% end %>
