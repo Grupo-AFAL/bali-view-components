@@ -5,4 +5,16 @@
       <%= render Bali::Card::Image::Component.new(src: 'https://via.placeholder.com/320x244.png', class: 'main-image') %>
     </div>
   <% end %>
+
+  <% c.footer_item(href: '#') do %>
+    Footer item with link
+  <% end %>
+
+  <% c.footer_item do %>
+    Item with span
+  <% end %>
+
+  <div>
+    Card content
+  </div>
 <% end %>
