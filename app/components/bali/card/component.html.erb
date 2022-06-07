@@ -9,7 +9,7 @@
     </div>
   <% end %>
 
-  <% if footer_items.size > 0 %>
+  <% if footer_items.size.positive? %>
     <div class="card-footer">
       <% footer_items.each do |footer_item| %>
         <%= footer_item %>
