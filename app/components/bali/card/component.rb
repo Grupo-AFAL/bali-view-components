@@ -10,7 +10,7 @@ module Bali
           tag.div(**options, &block)
         end
       end
-      # renders_one :alt_image, Image::Component
+
       renders_many :footer_items, FooterItem::Component
 
       def initialize(**options)
