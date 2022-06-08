@@ -3,8 +3,9 @@
 require 'rails_helper'
 
 RSpec.describe Bali::SearchInput::Component, type: :component do
+  let(:form) { Bali::Utils::DummyFilterForm.new }
   let(:component) do
-    Bali::SearchInput::Component.new(form: DummyFilterForm.new, method: :name, **@options)
+    Bali::SearchInput::Component.new(form: form, method: :name, **@options)
   end
 
   before { @options = {} }

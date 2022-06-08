@@ -3,7 +3,7 @@
 module Bali
   module DataTable
     class Preview < ApplicationViewComponentPreview
-      FORM = DummyFilterForm.new
+      FORM = Bali::Utils::DummyFilterForm.new
 
       HEADERS = [
         { name: 'Name' },
@@ -22,7 +22,7 @@ module Bali
           locals: {
             headers: HEADERS,
             records: RECORDS,
-            form: FORM,
+            form: FORM
           }
         )
       end
