@@ -1,3 +1,9 @@
 .hover-card-component {
+  $z-index-hovercard: 101;
+
   width: max-content;
+
+  .hovercard.card {
+    z-index: $z-index-hovercard;
+  }
 }
