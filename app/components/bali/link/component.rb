@@ -7,7 +7,7 @@ module Bali
 
       renders_one :icon, ->(**options, &block) { tag.span(**options, &block) }
 
-      def initialize(name:, href:, type: :normal, modal: false, drawer: false, **options)
+      def initialize(name:, href:, type: :primary, modal: false, drawer: false, **options)
         @name = name
         @href = href
         @type = type.to_sym
