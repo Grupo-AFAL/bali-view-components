@@ -5,5 +5,5 @@
     <% end %>
   <% end %>
 <% else %>
-  <%= link_to name, href, class: classes, method: :delete, data: { confirm: confirm } %>
+  <%= link_to name, href, class: classes, data: { 'turbo-method': :delete ,confirm: confirm } %>
 <% end %>
