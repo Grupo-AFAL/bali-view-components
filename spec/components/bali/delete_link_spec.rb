@@ -12,31 +12,30 @@ RSpec.describe Bali::DeleteLink::Component, type: :component do
   it 'renders a delete link' do
     render_inline(component)
 
-    expect(rendered_component).to have_css 'a.button.has-text-danger.is-text', text: 'Delete'
-    expect(rendered_component).to have_css "[data-confirm='Are you sure?']"
-    expect(rendered_component).to have_css "[data-method='delete']"
-    expect(rendered_component).to have_css "[href='/delete-url']"
+    expect(rendered_component).to have_css 'button.has-text-danger.is-text', text: 'Delete'
+    expect(rendered_component).to have_css "[data-turbo-confirm='Are you sure?']"
+    expect(rendered_component).to have_css "[action='/delete-url']"
   end
 
   it 'overrides the link name' do
     @options.merge!(name: 'Cancel')
     render_inline(component)
 
-    expect(rendered_component).to have_css 'a.button.has-text-danger.is-text', text: 'Cancel'
+    expect(rendered_component).to have_css 'button.has-text-danger.is-text', text: 'Cancel'
   end
 
   it 'overrides the link confirm message' do
     @options.merge!(confirm: 'Continue?')
     render_inline(component)
 
-    expect(rendered_component).to have_css "[data-confirm='Continue?']"
+    expect(rendered_component).to have_css "[data-turbo-confirm='Continue?']"
   end
 
   it 'add a css class to the link' do
     @options.merge!(classes: 'is-large')
     render_inline(component)
 
-    expect(rendered_component).to have_css 'a.button.has-text-danger.is-text.is-large'
+    expect(rendered_component).to have_css 'button.has-text-danger.is-text.is-large'
   end
 
   it 'raises an error without model or href' do
@@ -61,17 +60,16 @@ RSpec.describe Bali::DeleteLink::Component, type: :component do
 
       render_inline(component)
 
-      expect(rendered_component).to have_css 'a.button.has-text-danger.is-text', text: 'Delete'
+      expect(rendered_component).to have_css 'button.has-text-danger.is-text', text: 'Delete'
       expect(rendered_component).to include 'Are you sure you want to delete'
-      expect(rendered_component).to have_css "[data-method='delete']"
-      expect(rendered_component).to have_css "[href='/models/1']"
+      expect(rendered_component).to have_css "[action='/models/1']"
     end
 
     it 'overrides the default model href' do
       @options.merge!(href: '/delete-url')
       render_inline(component)
 
-      expect(rendered_component).to have_css "[href='/delete-url']"
+      expect(rendered_component).to have_css "[action='/delete-url']"
     end
   end
 
