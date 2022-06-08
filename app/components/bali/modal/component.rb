@@ -5,11 +5,9 @@ module Bali
     class Component < ApplicationViewComponent
       def initialize(active: true, **options)
         @active = active
-        @options = options
-      end
-
-      def classes
-        class_names('modal-component', @options[:class])
+        @wrapper_class = options.delete(:wrapper_class)
+        @options = prepend_class_name(options,'is-active') if @active
+        @options = prepend_class_name(options,"modal-component modal")
       end
     end
   end

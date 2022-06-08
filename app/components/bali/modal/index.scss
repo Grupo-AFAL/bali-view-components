@@ -21,30 +21,6 @@ $z-index-modal: 40;
   }
 }
 
-.modal-content {
-  @include tablet {
-    &.narrow {
-      max-width: $narrow-size;
-      width: 100%;
-    }
-
-    &.medium {
-      max-width: $medium-size;
-      width: 100%;
-    }
-
-    &.wide {
-      max-width: $wide-size;
-      width: 100%;
-    }
-
-    &.extra-wide {
-      max-width: $extra-wide-size;
-      width: 100%;
-    }
-  }
-}
-
 @include tablet {
   .modal.drawer {
     display: block;
@@ -87,6 +63,30 @@ $z-index-modal: 40;
       background-color: rgba($black, 0.1);
     }
   }
+
+  .modal-content {
+    opacity: 1;
+
+    &.narrow {
+      max-width: $narrow-size;
+      width: 100%;
+    }
+
+    &.medium {
+      max-width: $medium-size;
+      width: 100%;
+    }
+
+    &.wide {
+      max-width: $wide-size;
+      width: 100%;
+    }
+
+    &.extra-wide {
+      max-width: $extra-wide-size;
+      width: 100%;
+    }
+  }
 }
 
 @include mobile {
@@ -120,11 +120,5 @@ $z-index-modal: 40;
     transition: all 0.5s ease-in-out;
     width: 100%;
     margin: 0;
-  }
-}
-
-@include tablet {
-  .modal-content {
-    opacity: 1;
   }
 }
