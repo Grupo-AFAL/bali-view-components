@@ -1,0 +1,4 @@
+<%= tag.label class: classes, data: { controller: 'selected', 'selected-selected-class': 'is-selected' } do %>
+  <%= check_box_tag name, value, selected, id: input_id, data: { action: 'filter-form#submit selected#change' } %>
+  <%= title %>
+<% end %>

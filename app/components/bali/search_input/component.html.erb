@@ -1,0 +1,21 @@
+<%= tag.div(id: "field-#{input_id}", class: 'field search-input-component width-inherit') do %>
+  <%= tag.div class: field_class do %>
+    <%= tag.div class: control_class do %>
+      <%= tag.input placeholder: placeholder || t('.placeholder'),
+                    class: input_class,
+                    type: 'text',
+                    name: input_name,
+                    id: input_id,
+                    value: value,
+                    data: input_data %>
+    <% end %>
+
+    <% if !auto_submit %>
+      <div class="control search-control">
+        <button type="submit" class="button is-info">
+          <%= render Bali::Icon::Component.new('search') %>
+        </button>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>

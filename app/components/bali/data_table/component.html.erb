@@ -1,0 +1,31 @@
+<div class='data-table-component'>
+  <% if filters_panel.present? %>
+    <%= render Bali::Level::Component.new do |c| %>
+      <%= c.left(class: filters_class) do%>
+        <%= filters_panel %>
+      <% end %>
+
+      <%= c.right do %>
+        <%# TODO: Add export options %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <% if summary.present? %>
+    <%= summary %>
+  <% end %>
+
+  <%= tag.div class: table_wrapper_classes do %>
+    <%= table %>
+  <% end %>
+
+  <% if @pagy %>
+    <% if custom_pagy_nav.present? %>
+      <%= custom_pagy_nav %>
+    <% else %>
+      <div id="pagy-bulma-nav">
+        <%== pagy_bulma_nav(@pagy) %>
+      </div>
+    <% end %>
+  <% end %>
+</div>
