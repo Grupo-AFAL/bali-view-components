@@ -1,4 +1,4 @@
-$medium-size: 40rem;
+$content-width: 40rem;
 
 $z-index-drawer: 39;
 
@@ -11,6 +11,8 @@ $z-index-drawer: 39;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  opacity: 0;
+  pointer-events: none;
   overflow: hidden;
   z-index: $z-index-drawer;
 
@@ -18,6 +20,16 @@ $z-index-drawer: 39;
     display: flex;
     opacity: 1;
     pointer-events: auto;
+
+    .drawer-content {
+      transform: none;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      margin: 0;
+      opacity: 1;
+    }
   }
 
   .box.is-loading {
@@ -32,6 +44,21 @@ $z-index-drawer: 39;
   }
 
   .drawer-content {
+    position: absolute;
+    top: 0;
+    right: 0;
+    opacity: 1;
+
+    width: $content-width;
+    height: 100%;
+    max-height: 100%;
+
+    transform: translateX(100%);
+    transition: all 0.2s ease-in-out;
+    margin: 0;
+
+    border-radius: 0;
+
     box-shadow: 0px 0px 18px 18px rgba($black, 0.2);
     overflow: auto;
   }
@@ -46,61 +73,15 @@ $z-index-drawer: 39;
   }
 }
 
-@include tablet {
-  .drawer {
-    display: block;
-    opacity: 0;
-    pointer-events: none;
-    z-index: $z-index-drawer;
-
-    .drawer-close {
-      display: none;
-    }
-
-    &.is-active {
-      .drawer-content {
-        transform: none;
-      }
-    }
-
-    .drawer-content {
-      position: absolute;
-      top: 0;
-      right: 0;
-      opacity: 1;
-
-      width: $medium-size;
-      height: 100%;
-      max-height: 100%;
-
-      transform: translateX(100%);
-      transition: all 0.2s ease-in-out;
-      margin: 0;
-
-      border-radius: 0;
-    }
-  }
+.drawer-close {
+  display: none;
 }
 
 @include mobile {
-  .drawer {
-    display: block;
-    opacity: 0;
-    pointer-events: none;
-    
-    &.is-active {
-      .drawer-content {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        right: 0;
-        border-radius: 0;
-        margin: 0;
-        transform: none;
-        opacity: 1;
-        width: 100%;
-        max-width: 70%;
-      }
+  .drawer.is-active {
+    .drawer-content {
+      width: 100%;
+      max-width: 70%;
     }
   }
 }
