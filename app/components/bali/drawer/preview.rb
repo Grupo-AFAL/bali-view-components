@@ -9,7 +9,10 @@ module Bali
       # @param active toggle
       def default(active: true)
         render Bali::Drawer::Component.new(active: active) do
-          tag.h1('Drawer content', class: 'title is-1')
+          safe_join([
+            tag.h1('Drawer Title', class: 'title is-1'),
+            tag.p('Drawer content')
+          ])
         end
       end
     end

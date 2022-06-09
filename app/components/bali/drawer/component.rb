@@ -7,7 +7,7 @@ module Bali
 
       def prepend_class_names
         @options = prepend_class_name(@options, 'is-active') if @active
-        @options = prepend_class_name(@options, 'drawer-component modal drawer')
+        @options = prepend_class_name(@options, 'drawer-component drawer')
       end
 
       def prepend_data_attributes
