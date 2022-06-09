@@ -220,4 +220,19 @@ describe Bali::Calendar::Component, type: :component do
       expect(params).to eq({ start_time: Date.parse('2020-02-02'), period: 'week' })
     end
   end
+
+  describe '#sorted_events' do
+    it 'returns the events sorted and gruped by start_time' do
+      key1 = Struct.new(:start_time)
+      key2 = Struct.new(:start_time)
+      value1 = key1.new(Date.parse('2020-02-02'))
+      value2 = key2.new(Date.parse('2020-02-01'))
+
+      events = [value1, value2]
+      @options.merge!(events: events)
+
+      expect(component.sorted_events.keys).to eq([Date.parse('2020-02-01'),
+                                                  Date.parse('2020-02-02')])
+    end
+  end
 end
