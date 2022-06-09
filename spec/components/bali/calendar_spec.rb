@@ -71,7 +71,7 @@ describe Bali::Calendar::Component, type: :component do
     expect(rendered_component).to have_css 'tr > th.has-text-centered', text: 'Sunday'
   end
 
-  describe '#prev_date' do
+  describe '#prev_day' do
     context 'when the start_date is monday' do
       context 'when all_week is true' do
         it 'returns the previous day' do
@@ -99,7 +99,7 @@ describe Bali::Calendar::Component, type: :component do
     end
   end
 
-  describe '#next_date' do
+  describe '#next_day' do
     context 'when the start_date is friday' do
       context 'when all_week is true' do
         it 'returns the next day' do
@@ -124,6 +124,72 @@ describe Bali::Calendar::Component, type: :component do
           expect(component.next_day).to eq({ start_time: monday + 1.day })
         end
       end
+    end
+  end
+
+  describe '#prev_start_date' do
+    it 'returns the first date of the last month' do
+      prev_date = Date.current
+
+      render_inline(component) do |c|
+        prev_date = c.header(start_date: '2020-03-03').prev_start_date
+      end
+
+      expect(prev_date).to eq(Date.parse('2020-02-01'))
+    end
+  end
+
+  describe '#next_start_date' do
+    it 'returns the first date of the next month' do
+      next_date = Date.current
+
+      render_inline(component) do |c|
+        next_date = c.header(start_date: '2020-03-03').next_start_date
+      end
+
+      expect(next_date).to eq(Date.parse('2020-04-01'))
+    end
+  end
+
+  describe '#extra_params' do
+    it 'returns params for going back in the calendar' do
+      params = {}
+
+      render_inline(component) do |c|
+        params = c.header(start_date: '2020-02-02').extra_params(:prev)
+      end
+
+      expect(params).to eq({ start_time: Date.parse('2020-01-01'), period: :month })
+    end
+
+    it 'returns params for going forward in the calendar' do
+      params = {}
+
+      render_inline(component) do |c|
+        params = c.header(start_date: '2020-02-02').extra_params(:next)
+      end
+
+      expect(params).to eq({ start_time: Date.parse('2020-03-01'), period: :month })
+    end
+
+    it 'returns params for change the view to month in the calendar' do
+      params = {}
+
+      render_inline(component) do |c|
+        params = c.header(start_date: '2020-02-02').extra_params(:month)
+      end
+
+      expect(params).to eq({ start_time: Date.parse('2020-02-02'), period: 'month' })
+    end
+
+    it 'returns params for change the view to week in the calendar' do
+      params = {}
+
+      render_inline(component) do |c|
+        params = c.header(start_date: '2020-02-02').extra_params(:week)
+      end
+
+      expect(params).to eq({ start_time: Date.parse('2020-02-02'), period: 'week' })
     end
   end
 end
