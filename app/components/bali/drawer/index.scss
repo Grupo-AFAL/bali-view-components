@@ -33,6 +33,7 @@ $z-index-drawer: 39;
 
   .drawer-content {
     box-shadow: 0px 0px 18px 18px rgba($black, 0.2);
+    overflow: auto;
   }
 }
 
