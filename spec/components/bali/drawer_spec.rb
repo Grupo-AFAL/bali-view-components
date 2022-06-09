@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rails_helper"
+require 'rails_helper'
 
 RSpec.describe Bali::Drawer::Component, type: :component do
   let(:component) { Bali::Drawer::Component.new(**@options) }

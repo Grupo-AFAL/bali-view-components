@@ -18,7 +18,7 @@ module Bali
         @options = prepend_class_name(@options, 'is-active') if @active
         @options = prepend_class_name(@options, 'modal-component modal')
       end
-      
+
       def prepend_data_attributes
         @options = prepend_data_attribute(@options, 'modal-target', 'template')
       end
