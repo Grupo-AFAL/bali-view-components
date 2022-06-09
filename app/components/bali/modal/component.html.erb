@@ -1,6 +1,6 @@
 <%= tag.div(id: 'modal-template', **@options) do %>
   <div class="modal-background" data-modal-target="background"></div>
-  <button class="modal-close is-large" aria-label="close" data-action="modal#close"></button>
+  <button id="close-modal" class="modal-close is-large" aria-label="close" data-action="modal#close"></button>
   <div class="<%= "modal-content box #{@wrapper_class}" %>" data-modal-target="wrapper">
     <div class="modal-inner" data-modal-target="content">
       <%= content %>
