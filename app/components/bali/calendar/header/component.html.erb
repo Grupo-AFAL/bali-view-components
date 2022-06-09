@@ -2,8 +2,7 @@
   <div class="columns is-mobile is-gapless">
     <div class="coulum is-narrow">
       <% if route_name.present? %>
-        <%= link_to helpers.icon_tag('arrow-left'), polymorphic_path(route_name, extra_params(:prev)), class: 'button', title: 'previous' %>
-
+        <%= link_to render(Bali::Icon::Component.new('arrow-left')), polymorphic_path(route_name, extra_params(:prev)), class: 'button', title: 'previous' %>
       <% end %>
     </div>
 
@@ -14,19 +13,19 @@
       <% if period_switch && route_name.present? %>
         <%= link_to polymorphic_path(route_name, extra_params(:week)), class: class_names('button is-primary ml-3', unselected: period == :month) do %>
           <span>Semana</span>
-          <%= helpers.icon_tag('ga-week') %>
+          <%= render Bali::Icon::Component.new('ga-week') %>
         <% end %>
 
         <%= link_to polymorphic_path(route_name, extra_params(:month)), class: class_names('button is-primary ml-3', unselected: period == :week) do %>
           <span>Mes</span>
-          <%= helpers.icon_tag('ga-month') %>
+          <%= render Bali::Icon::Component.new('ga-month') %>
         <% end %>
       <% end %>
     </div>
 
     <div class="column is-narrow">
       <% if route_name.present? %>
-        <%= link_to helpers.icon_tag('arrow-right'), polymorphic_path(route_name, extra_params(:next)), class: 'button', title: 'next' %>
+        <%= link_to render(Bali::Icon::Component.new('arrow-right')), polymorphic_path(route_name, extra_params(:next)), class: 'button', title: 'next' %>
       <% end %>
     </div>
   </div>
