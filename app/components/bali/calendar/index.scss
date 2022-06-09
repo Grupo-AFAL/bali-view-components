@@ -1,5 +1,9 @@
 $td-padding: 6px;
 $td-border-color: #ddd;
+$w-100: 100%;
+$grey-7: hsl(200, 13%, 95%) !default;
+$grey-alpha: hsla(0, 0%, 35%, 0.5);
+$grey-darker-alpha: hsla(224, 28%, 19%, 0.4);
 
 .calendar-component {
   td {
