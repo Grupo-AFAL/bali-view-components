@@ -1,4 +1,4 @@
-<%= tag.div(id: 'modal-template', data: { 'modal-target': 'template' }, **@options) do %>
+<%= tag.div(id: 'modal-template', **@options) do %>
   <div class="modal-background" data-modal-target="background"></div>
   <div class="<%= "modal-content box #{@wrapper_class}" %>" data-modal-target="wrapper">
     <div class="modal-inner" data-modal-target="content">

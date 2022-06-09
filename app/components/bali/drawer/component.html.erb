@@ -1,0 +1,9 @@
+<%= tag.div(id: 'drawer-template', **@options) do %>
+  <div class="drawer-background" data-drawer-target="background"></div>
+  <div class="<%= "drawer-content box" %>" data-drawer-target="wrapper">
+    <div class="drawer-inner" data-drawer-target="content">
+      <%= content %>
+    </div>
+  </div>
+  <button class="drawer-close is-large" aria-label="close" data-action="drawer#close"></button>
+<% end %>

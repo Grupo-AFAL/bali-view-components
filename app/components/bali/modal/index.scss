@@ -5,7 +5,6 @@ $extra-wide-size: 70rem;
 
 $active-modal-z-index: 100;
 
-$z-index-drawer: 39;
 $z-index-modal: 40;
 
 .modal {
@@ -22,48 +21,6 @@ $z-index-modal: 40;
 }
 
 @include tablet {
-  .modal.drawer {
-    display: block;
-    opacity: 0;
-    pointer-events: none;
-    z-index: $z-index-drawer;
-
-    .modal-close {
-      display: none;
-    }
-
-    &.is-active {
-      opacity: 1;
-      pointer-events: auto;
-
-      .modal-content {
-        transform: none;
-      }
-    }
-
-    .modal-content {
-      position: absolute;
-      top: 0;
-      right: 0px;
-      opacity: 1;
-
-      width: $medium-size;
-      height: 100%;
-      max-height: 100%;
-
-      transform: translateX(100%);
-      transition: all 0.2s ease-in-out;
-      margin: 0;
-
-      border-radius: 0px;
-      box-shadow: 0px 0px 18px 18px rgba($black, 0.2);
-    }
-
-    .modal-background {
-      background-color: rgba($black, 0.1);
-    }
-  }
-
   .modal-content {
     opacity: 1;
 

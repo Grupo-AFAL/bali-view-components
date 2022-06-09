@@ -1,0 +1,92 @@
+$medium-size: 40rem;
+
+$active-drawer-z-index: 100;
+
+$z-index-drawer: 39;
+
+.drawer {
+  .box.is-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100px;
+
+    .loader {
+      @include loader;
+    }
+  }
+
+  .drawer-content {
+    box-shadow: 0px 0px 18px 18px rgba($black, 0.2);
+  }
+}
+
+@include tablet {
+  .drawer {
+    display: block;
+    opacity: 0;
+    pointer-events: none;
+    z-index: $z-index-drawer;
+
+    .drawer-close {
+      display: none;
+    }
+
+    &.is-active {
+      opacity: 1;
+      pointer-events: auto;
+
+      .drawer-content {
+        transform: none;
+      }
+    }
+
+    .drawer-content {
+      position: absolute;
+      top: 0;
+      right: 0px;
+      opacity: 1;
+
+      width: $medium-size;
+      height: 100%;
+      max-height: 100%;
+
+      transform: translateX(100%);
+      transition: all 0.2s ease-in-out;
+      margin: 0;
+
+      border-radius: 0px;
+    }
+
+    .drawer-background {
+      background-color: rgba($black, 0.1);
+    }
+  }
+}
+
+@include mobile {
+  .drawer {
+    display: block;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .drawer.is-active {
+    opacity: 1;
+    pointer-events: auto;
+    z-index: $active-drawer-z-index;
+
+    .drawer-content {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      border-radius: 0;
+      margin: 0;
+      transform: none;
+      opacity: 1;
+      width: 100%;
+      max-width: 70%;
+    }
+  }
+}

@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
 module Bali
-  module Modal
+  module Drawer
     class Preview < ApplicationViewComponentPreview
-      # Modal
+      # Drawer
       # ---------------
-      # Renders any content inside a modal.
+      # Renders any content inside a drawer.
       # @param active toggle
       def default(active: true)
-        render Modal::Component.new(active: active) do
-          tag.h1 'Modal content', class: 'title is-1'
+        render Bali::Drawer::Component.new(active: active) do
+          tag.h1('Drawer content', class: 'title is-1')
         end
       end
     end
