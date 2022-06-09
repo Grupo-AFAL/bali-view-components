@@ -11,15 +11,9 @@
         <%= t('date.month_names')[start_date.month] %> <%= start_date.year %>
       </h3>
       <% if period_switch && route_name.present? %>
-        <%= link_to polymorphic_path(route_name, extra_params(:week)), class: class_names('button is-primary ml-3', unselected: period == :month) do %>
-          <span>Semana</span>
-          <%= render Bali::Icon::Component.new('ga-week') %>
-        <% end %>
+        <%= link_to 'Semana', polymorphic_path(route_name, extra_params(:week)), class: class_names('button is-primary ml-3', unselected: period == :month) %>
 
-        <%= link_to polymorphic_path(route_name, extra_params(:month)), class: class_names('button is-primary ml-3', unselected: period == :week) do %>
-          <span>Mes</span>
-          <%= render Bali::Icon::Component.new('ga-month') %>
-        <% end %>
+        <%= link_to 'Mes', polymorphic_path(route_name, extra_params(:month)), class: class_names('button is-primary ml-3', unselected: period == :week) %>
       <% end %>
     </div>
 

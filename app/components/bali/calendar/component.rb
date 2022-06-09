@@ -7,7 +7,14 @@ module Bali
                   :template, :all_week, :show_date
 
       renders_one :footer
-      renders_one :header, Header::Component
+      renders_one :header, ->(route_name: nil, period_switch: true, **options) do
+                             Header::Component.new(start_date: @start_date.to_s,
+                                                   period: @period,
+                                                   route_name: route_name,
+                                                   period_switch: period_switch,
+                                                   start_attribute: @start_attribute,
+                                                   **options)
+                           end
 
       # rubocop:disable Metrics/ParameterLists
       def initialize(template: nil,
