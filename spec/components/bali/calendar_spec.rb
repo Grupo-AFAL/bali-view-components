@@ -128,26 +128,54 @@ describe Bali::Calendar::Component, type: :component do
   end
 
   describe '#prev_start_date' do
-    it 'returns the first date of the last month' do
-      prev_date = Date.current
+    context 'when the period is month' do
+      it 'returns the first date of the last month' do
+        prev_date = Date.current
 
-      render_inline(component) do |c|
-        prev_date = c.header(start_date: '2020-03-03').prev_start_date
+        render_inline(component) do |c|
+          prev_date = c.header(start_date: '2020-03-03').prev_start_date
+        end
+
+        expect(prev_date).to eq(Date.parse('2020-02-01'))
       end
+    end
 
-      expect(prev_date).to eq(Date.parse('2020-02-01'))
+    context 'when the period is week' do
+      it 'returns the first date of the previous week' do
+        prev_date = Date.current
+
+        render_inline(component) do |c|
+          prev_date = c.header(start_date: '2020-03-03', period: :week).prev_start_date
+        end
+
+        expect(prev_date).to eq(Date.parse('2020-02-24'))
+      end
     end
   end
 
   describe '#next_start_date' do
-    it 'returns the first date of the next month' do
-      next_date = Date.current
+    context 'when the period is month' do
+      it 'returns the first date of the next month' do
+        next_date = Date.current
 
-      render_inline(component) do |c|
-        next_date = c.header(start_date: '2020-03-03').next_start_date
+        render_inline(component) do |c|
+          next_date = c.header(start_date: '2020-03-03').next_start_date
+        end
+
+        expect(next_date).to eq(Date.parse('2020-04-01'))
       end
+    end
 
-      expect(next_date).to eq(Date.parse('2020-04-01'))
+    context 'when the period is week' do
+      it 'returns the first date of the next week' do
+        next_date = Date.current
+
+        render_inline(component) do |c|
+          next_date = c.header(start_date: '2020-03-03', period: :week).next_start_date
+        end
+
+        expect(next_date).to eq(Date.parse('2020-03-09'))
+      end
     end
   end
 
