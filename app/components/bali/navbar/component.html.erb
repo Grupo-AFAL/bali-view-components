@@ -1,0 +1,25 @@
+<%= tag.nav(role: 'navigation', 'aria-label': 'Main', **options) do %>
+  <%= '<div class="container">'.html_safe unless fullscreen %>
+
+  <div class="navbar-brand">
+    <%= brand %>
+
+    <%= burger || render(Bali::Navbar::Burger::Component.new(data: { action:"navbar#toggleMenu" })) %>
+  </div>
+
+  <div class="navbar-menu" data-navbar-target="menu">
+    <div class="navbar-start">
+      <% left_items.each do |left_item| %>
+        <%= left_item %>
+      <% end %>
+    </div>
+
+    <div class="navbar-end">
+      <% right_items.each do |right_item| %>
+        <%= right_item %>
+      <% end %>
+    </div>
+  </div>
+
+  <%= '</div>'.html_safe unless fullscreen %>
+<% end %>
