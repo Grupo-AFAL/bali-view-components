@@ -9,7 +9,7 @@ module Bali
                  all_week: false,
                  show_date: true
                )) do |c|
-          c.header(start_date: Date.current.to_s)
+          c.header(start_date: Date.current.to_s, route_name: :lookbook)
         end
       end
 
@@ -20,7 +20,49 @@ module Bali
                                   period: :week,
                                   show_date: true)
         ) do |c|
-          c.header(start_date: Date.current.to_s)
+          c.header(start_date: Date.current.to_s, route_name: :lookbook)
+        end
+      end
+
+      def with_out_period
+        render(Calendar::Component.new(start_date: Date.current.to_s,
+                                       all_week: false,
+                                       period: :month,
+                                       show_date: true)) do |c|
+          c.header(start_date: Date.current.to_s, route_name: :lookbook, period_switch: false)
+        end
+      end
+
+      def with_out_date
+        render(Calendar::Component.new(start_date: Date.current.to_s,
+                                       all_week: false,
+                                       period: :month,
+                                       show_date: false)) do |c|
+          c.header(start_date: Date.current.to_s, route_name: :lookbook)
+        end
+      end
+
+      def all_week
+        render(Calendar::Component.new(start_date: Date.current.to_s,
+                                       all_week: true,
+                                       period: :month,
+                                       show_date: true)) do |c|
+          c.header(start_date: Date.current.to_s, route_name: :lookbook)
+        end
+      end
+
+      def with_events
+        events = []
+        events << Calendar::Previews::Events.new(start_time: Date.current, name: 'Event 2')
+        events << Calendar::Previews::Events.new(start_time: Date.current - 1.day, name: 'Event 1')
+
+        render(Calendar::Component.new(start_date: Date.current.to_s,
+                                       all_week: false,
+                                       period: :month,
+                                       show_date: true,
+                                       template: 'bali/calendar/previews/template',
+                                       events: events)) do |c|
+          c.header(start_date: Date.current.to_s, route_name: :lookbook)
         end
       end
     end
