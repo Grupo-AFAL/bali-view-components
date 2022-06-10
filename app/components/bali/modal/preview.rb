@@ -3,8 +3,12 @@
 module Bali
   module Modal
     class Preview < ApplicationViewComponentPreview
-      def default
-        render(Modal::Component.new) do
+      # Modal
+      # ---------------
+      # Renders any content inside a modal.
+      # @param active toggle
+      def default(active: true)
+        render Modal::Component.new(active: active) do
           tag.h1 'Modal content', class: 'title is-1'
         end
       end

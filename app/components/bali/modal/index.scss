@@ -5,7 +5,6 @@ $extra-wide-size: 70rem;
 
 $active-modal-z-index: 100;
 
-$z-index-drawer: 39;
 $z-index-modal: 40;
 
 .modal {
@@ -19,10 +18,46 @@ $z-index-modal: 40;
       @include loader;
     }
   }
+
+  @include mobile {
+    display: block;
+    opacity: 0;
+    pointer-events: none;
+  
+    .modal-content:not(.carousel-modal) {
+      position: absolute;
+      top: 4rem;
+      bottom: 0;
+      max-height: unset;
+  
+      margin: 0;
+      margin-top: 4.5rem;
+      padding-bottom: 3rem;
+      width: 100%;
+  
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      opacity: 1;
+      transform: translateY(100%);
+      transition: all 0.5s ease-in-out;
+    }
+  
+    &.is-active {
+      opacity: 1;
+      pointer-events: auto;
+  
+      .modal-content {
+        transform: none;
+        opacity: 1;
+      }
+    }
+  }
 }
 
-.modal-content {
-  @include tablet {
+@include tablet {
+  .modal-content {
+    opacity: 1;
+
     &.narrow {
       max-width: $narrow-size;
       width: 100%;
@@ -45,86 +80,3 @@ $z-index-modal: 40;
   }
 }
 
-@include tablet {
-  .modal.drawer {
-    display: block;
-    opacity: 0;
-    pointer-events: none;
-    z-index: $z-index-drawer;
-
-    .modal-close {
-      display: none;
-    }
-
-    &.is-active {
-      opacity: 1;
-      pointer-events: auto;
-
-      .modal-content {
-        transform: none;
-      }
-    }
-
-    .modal-content {
-      position: absolute;
-      top: 0;
-      right: 0px;
-      opacity: 1;
-
-      width: $medium-size;
-      height: 100%;
-      max-height: 100%;
-
-      transform: translateX(100%);
-      transition: all 0.2s ease-in-out;
-      margin: 0;
-
-      border-radius: 0px;
-      box-shadow: 0px 0px 18px 18px rgba($black, 0.2);
-    }
-
-    .modal-background {
-      background-color: rgba($black, 0.1);
-    }
-  }
-}
-
-@include mobile {
-  .modal {
-    display: block;
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .modal.is-active {
-    opacity: 1;
-    pointer-events: auto;
-    z-index: $active-modal-z-index;
-
-    .modal-content {
-      position: absolute;
-      bottom: 0px;
-      border-radius: 0px;
-      margin: 0;
-      transform: none;
-      opacity: 1;
-      width: 100%;
-      top: 4rem;
-      max-height: 100%;
-    }
-  }
-
-  .modal-content {
-    opacity: 1;
-    transform: translateY(100%);
-    transition: all 0.5s ease-in-out;
-    width: 100%;
-    margin: 0;
-  }
-}
-
-@include tablet {
-  .modal-content {
-    opacity: 1;
-  }
-}
