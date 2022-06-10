@@ -7,9 +7,10 @@ module Bali
 
       attr_reader :name, :options
 
+      # @param name [String] One of Bali::Icon::Options::MAP.keys
       def initialize(name, **options)
         @name = name
-        @options = prepend_class_name(options, 'icon')
+        @options = prepend_class_name(options, 'icon-component icon')
       end
 
       def call
