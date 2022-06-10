@@ -72,29 +72,30 @@ Update this table when making progress on any of the Components or when adding n
 | Chart             | :white_check_mark: | :white_check_mark: |    :wavy_dash:     | :white_check_mark: |                                                |
 | Collapse (Reveal) |        :x:         |        :x:         |        :x:         |        :x:         | Rename from Reveal to Collapse                 |
 | Columns           | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
-| DataTable         | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark:     |                                                |
-| DeleteLink        | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark:         |                                                |
+| DataTable         | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
+| DeleteLink        | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | DisplayValue      |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| Drawer            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Dropdown          | :white_check_mark: | :white_check_mark: | :white_check_mark: |        :x:         |                                                |
-| Filters           | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark:         |                                                |
+| Filters           | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | GanttChart        |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Heatmap           |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | HelpTip           | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Hero              |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
-| Hovercard         | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark:         |                                                |
-| Icon              | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark:         |                                                |
+| Hovercard         | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
+| Icon              | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | ImageGrid         | :white_check_mark: | :white_check_mark: | :white_check_mark: |        :x:         |                                                |
 | InfoLevel         | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | Level             | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | Link              | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | Loader            |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
-| Modal             | :white_check_mark: | :white_check_mark: |        :x:         |        :x:         |                                                |
+| Modal             | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | NavBar            |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Notification      |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | PageHeader        | :white_check_mark: | :white_check_mark: |    :wavy_dash:     | :white_check_mark: |                                                |
 | ProfilePicture    |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Rate (Rating)     |        :x:         |        :x:         |        :x:         |        :x:         | Rename from Rating to Rate                     |
-| SearchInput       | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark:         |                                                |
+| SearchInput       | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | SideMenu          |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | SortableList      |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Steps (Progress)  |        :x:         |        :x:         |        :x:         |        :x:         | Rename from Progress to Steps                  |
