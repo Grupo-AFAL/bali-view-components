@@ -12,8 +12,8 @@
         <%= t('date.month_names')[start_date.month] %> <%= start_date.year %>
       </h3>
       <% if period_switch && route_name.present? %>
-        <%= link_to t('components.calendar.header.week'), polymorphic_path(route_name, extra_params(:week)), class: class_names('button is-primary ml-3', unselected: period == :month) %>
-        <%= link_to t('components.calendar.header.month'), polymorphic_path(route_name, extra_params(:month)), class: class_names('button is-primary ml-3', unselected: period == :week) %>
+        <%= link_to t('view_components.bali.calendar.header.week'), polymorphic_path(route_name, extra_params(:week)), class: class_names('button is-primary ml-3', unselected: period == :month) %>
+        <%= link_to t('view_components.bali.calendar.header.month'), polymorphic_path(route_name, extra_params(:month)), class: class_names('button is-primary ml-3', unselected: period == :week) %>
       <% end %>
     <% end %>
 

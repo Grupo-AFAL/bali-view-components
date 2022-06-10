@@ -30,8 +30,4 @@
 # available at https://guides.rubyonrails.org/i18n.html.
 
 en:
-  components:
-    calendar:
-      header:
-        week: Week
-        month: Month
+  hello: "Hello world"
