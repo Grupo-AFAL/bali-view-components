@@ -51,9 +51,9 @@ describe Bali::Calendar::Component, type: :component do
     expect(rendered_component).to have_css '.header > .columns > .column > h3.title',
                                            text: 'January 2020'
     expect(rendered_component).not_to have_css '.header > .columns > .column > a.button',
-                                               text: 'Semana'
+                                               text: 'Week'
     expect(rendered_component).not_to have_css '.header > .columns > .column > a.button',
-                                               text: 'Mes'
+                                               text: 'Month'
   end
 
   it 'renders the calendar component with week view' do
