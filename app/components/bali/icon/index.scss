@@ -1,0 +1,24 @@
+$icon-size-normal: 1em;
+$icon-size-medium: 2rem;
+$icon-size-large: 3rem;
+
+.icon-component {
+  .svg-inline {
+    display: inline-block;
+    font-size: inherit;
+    height: $icon-size-normal;
+    width: $icon-size-normal;
+    overflow: visible;
+    vertical-align: -0.125em;
+  }
+
+  span.icon.is-large svg {
+    height: $icon-size-large;
+    width: $icon-size-large;
+  }
+
+  span.icon.is-medium svg {
+    height: $icon-size-medium;
+    width: $icon-size-medium;
+  }
+}

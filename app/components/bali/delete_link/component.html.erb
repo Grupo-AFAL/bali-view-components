@@ -5,5 +5,5 @@
     <% end %>
   <% end %>
 <% else %>
-  <%= link_to name, href, class: classes, method: :delete, data: { confirm: confirm } %>
+  <%= button_to name, href, method: :delete, form: { data: { 'turbo-confirm': confirm } }, class: classes %>
 <% end %>
