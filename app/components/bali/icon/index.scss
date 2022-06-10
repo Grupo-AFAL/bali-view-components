@@ -12,12 +12,13 @@ $icon-size-large: 3rem;
     vertical-align: -0.125em;
   }
 
-  span.icon.is-large svg {
+
+  &.is-large svg {
     height: $icon-size-large;
     width: $icon-size-large;
   }
 
-  span.icon.is-medium svg {
+  &.is-medium svg {
     height: $icon-size-medium;
     width: $icon-size-medium;
   }
