@@ -5,9 +5,9 @@
 ) do |nav| %>
   <% nav.brand { tag.a('LOGO', class: 'navbar-item', href: '#') } %>
   
-  <% nav.left_item(name: 'Home') %>
-  <% nav.left_item(name: 'Documentation', href: '#') %>
-  <% nav.left_item(class: 'has-dropdown is-hoverable', tag_name: :div) do %>
+  <% nav.start_item(name: 'Home') %>
+  <% nav.start_item(name: 'Documentation', href: '#') %>
+  <% nav.start_item(class: 'has-dropdown is-hoverable', tag_name: :div) do %>
     <a class="navbar-link">
       More
     </a>
@@ -20,7 +20,7 @@
     </div>
   <% end %>
 
-  <%= nav.right_item(tag_name: :div) do %>
+  <%= nav.end_item(tag_name: :div) do %>
     <div class='buttons'>
       <a class='button is-primary'>Sign up</a>
       <a class='button is-light'>Log in</a>

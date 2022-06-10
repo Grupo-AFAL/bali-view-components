@@ -7,8 +7,8 @@ module Bali
 
       renders_one :brand
       renders_one :burger, Burger::Component
-      renders_many :left_items, Item::Component
-      renders_many :right_items, Item::Component
+      renders_many :start_items, Item::Component
+      renders_many :end_items, Item::Component
 
       def initialize(transparency: false, fullscreen: false, **options)
         @transparency = transparency
