@@ -525,9 +525,26 @@ module Bali
         </svg>
       )
 
-      GA_REPORT = %(
+      MONTH = %(
+        <svg viewBox="0 0 18 19" class="svg-inline">
+          <rect x="17.5" y="0.5" width="7" height="7" rx="0.5" transform="rotate(90 17.5 0.5)" stroke="white"/>
+          <rect x="7.5" y="0.5" width="7" height="7" rx="0.5" transform="rotate(90 7.5 0.5)" stroke="white"/>
+          <rect x="17.5" y="11.5" width="7" height="7" rx="0.5" transform="rotate(90 17.5 11.5)" stroke="white"/>
+          <rect x="7.5" y="11.5" width="7" height="7" rx="0.5" transform="rotate(90 7.5 11.5)" stroke="white"/>
+        </svg>
+      )
+
+      TICKET = %(
         <svg viewBox="0 0 12 12" fill="none" class="svg-inline">
           <path d="M8 0H1.33333C0.6 0 0.00666666 0.6 0.00666666 1.33333L0 10.6667C0 11.4 0.593333 12 1.32667 12H10.6667C11.4 12 12 11.4 12 10.6667V4L8 0ZM1.33333 10.6667V1.33333H7.33333V4.66667H10.6667V10.6667H1.33333ZM4 3.33333C4 3.7 3.7 4 3.33333 4C2.96667 4 2.66667 3.7 2.66667 3.33333C2.66667 2.96667 2.96667 2.66667 3.33333 2.66667C3.7 2.66667 4 2.96667 4 3.33333ZM4 6C4 6.36667 3.7 6.66667 3.33333 6.66667C2.96667 6.66667 2.66667 6.36667 2.66667 6C2.66667 5.63333 2.96667 5.33333 3.33333 5.33333C3.7 5.33333 4 5.63333 4 6ZM4 8.66667C4 9.03333 3.7 9.33333 3.33333 9.33333C2.96667 9.33333 2.66667 9.03333 2.66667 8.66667C2.66667 8.3 2.96667 8 3.33333 8C3.7 8 4 8.3 4 8.66667Z" fill="#474747" fill-opacity="0.9"/>
+        </svg>
+      )
+
+      WEEK = %(
+        <svg viewBox="0 0 20 19" class="svg-inline">
+          <rect x="19.5" y="0.5" width="18" height="4" rx="0.5" transform="rotate(90 19.5 0.5)" stroke="white"/>
+          <rect x="12.5" y="0.5" width="18" height="4" rx="0.5" transform="rotate(90 12.5 0.5)" stroke="white"/>
+          <rect x="4.5" y="0.5" width="18" height="4" rx="0.5" transform="rotate(90 4.5 0.5)" stroke="white"/>
         </svg>
       )
 
@@ -1409,7 +1426,9 @@ module Bali
         'filter' => FILTER,
         'fire-alt' => FIRE_ALT,
         'day' => DAY,
-        'ga-report' => GA_REPORT,
+        'month' => MONTH,
+        'ticket' => TICKET,
+        'week' => WEEK,
         'gift' => GIFT,
         'github' => GITHUB,
         'grin-wink' => GRIN_WINK,
