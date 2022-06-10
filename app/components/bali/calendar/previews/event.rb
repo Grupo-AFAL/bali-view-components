@@ -3,7 +3,7 @@
 module Bali
   module Calendar
     module Previews
-      class Events
+      class Event
         attr_reader :start_time, :name
 
         def initialize(start_time: nil, name: nil)

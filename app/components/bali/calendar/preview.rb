@@ -52,9 +52,10 @@ module Bali
       end
 
       def with_events
-        events = []
-        events << Calendar::Previews::Events.new(start_time: Date.current, name: 'Event 2')
-        events << Calendar::Previews::Events.new(start_time: Date.current - 1.day, name: 'Event 1')
+        events = [
+          Calendar::Previews::Event.new(start_time: Date.current, name: 'Event 2'),
+          Calendar::Previews::Event.new(start_time: Date.current - 1.day, name: 'Event 1')
+        ]
 
         render(Calendar::Component.new(start_date: Date.current.to_s,
                                        all_week: false,
