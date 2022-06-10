@@ -3,7 +3,7 @@
 module Bali
   module Navbar
     class Component < ApplicationViewComponent
-      attr_reader :transparency, :fullscreen,  :options
+      attr_reader :transparency, :fullscreen, :options
 
       renders_one :brand
       renders_one :burger, Burger::Component
