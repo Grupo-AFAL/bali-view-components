@@ -1,11 +1,13 @@
-<%= tag.div(class: classes, id: 'modal-template') do %>
-  <div class="modal <%= 'is-active' if @active %>" data-modal-target="template">
-    <div class="modal-background" data-modal-target="background"></div>
-    <div class="modal-content box" data-modal-target="wrapper">
-      <div class="modal-inner" data-modal-target="content">
-        <%= content %>
-      </div>
+<%= tag.div(id: 'modal-template', **@options) do %>
+  <div class="modal-background" data-modal-target="background"></div>
+  <button id="close-modal" class="modal-close is-large" aria-label="close" data-action="modal#close"></button>
+  <div 
+    class="<%= "modal-content box #{@wrapper_class}" %>" 
+    data-wrapper-class="<%= @wrapper_class%>"
+    data-modal-target="wrapper"
+  >
+    <div class="modal-inner" data-modal-target="content">
+      <%= content %>
     </div>
-    <button class="modal-close is-large" aria-label="close" data-action="modal#close"></button>
   </div>
 <% end %>

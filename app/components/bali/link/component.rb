@@ -15,7 +15,7 @@ module Bali
         @drawer = drawer
         @options = prepend_class_name(options, "button is-#{type}")
         @options = prepend_action(@options, 'modal#open') if modal
-        @options = prepend_action(@options, 'remote-drawer#open') if drawer
+        @options = prepend_action(@options, 'drawer#open') if drawer
       end
     end
   end

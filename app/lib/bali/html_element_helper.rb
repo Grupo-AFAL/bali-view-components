@@ -19,8 +19,6 @@ module Bali
       options.transform_keys { |k| k.to_s.gsub('_', '-') }
     end
 
-    private
-
     def prepend_data_attribute(options, attr_name, attr_value)
       options[:data] ||= {}
       options[:data][attr_name] = "#{attr_value} #{options[:data][attr_name]}".strip

@@ -1,4 +1,5 @@
 export { ChartController } from '../../components/bali/chart'
+export { DrawerController } from '../../components/bali/drawer'
 export { DropdownController } from '../../components/bali/dropdown'
 export { FilterFormController } from '../../components/bali/filters'
 export { HelpTipController } from '../../components/bali/help_tip'
