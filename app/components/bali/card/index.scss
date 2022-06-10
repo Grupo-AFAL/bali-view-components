@@ -1,4 +1,6 @@
 .card-component {
+  overflow: hidden;
+  border-radius: 1.25rem;
   &.card-fit {
     height: 100%;
     display: flex;
