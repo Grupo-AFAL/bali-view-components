@@ -65,6 +65,19 @@ module Bali
           c.header(start_date: Date.current.to_s, route_name: :lookbook)
         end
       end
+
+      def with_footer
+        render(Calendar::Component.new(start_date: Date.current.to_s,
+                                       all_week: false,
+                                       period: :month,
+                                       show_date: true,
+                                       footer: true)) do |c|
+          c.header(start_date: Date.current.to_s, route_name: :lookbook)
+          c.footer do
+            '<span class="tag is-primary">This is the footer<spam>'.html_safe
+          end
+        end
+      end
     end
   end
 end
