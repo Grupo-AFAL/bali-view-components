@@ -4,12 +4,16 @@ es:
       chart:
         loading: Cargando...
       delete_link:
-        generic_confirm_message: "¿Estas seguro(a)?"
+        generic_confirm_message: '¿Estas seguro(a)?'
         generic_name: Eliminar
-        specific_confirm_message: "¿Seguro que desea eliminar %{pronoun} %{name}?"
+        specific_confirm_message: '¿Seguro que desea eliminar %{pronoun} %{name}?'
         specific_name: Eliminar %{name}
       filters:
         filters: Filtros
         remove_filters: Quitar filtros
       search_input:
         placeholder: Buscar...
+      calendar:
+        header:
+          week: Semana
+          month: Mes
