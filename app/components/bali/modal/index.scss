@@ -26,6 +26,7 @@ $z-index-modal: 40;
   
     .modal-content:not(.carousel-modal) {
       position: absolute;
+      top: 4rem;
       bottom: 0;
       max-height: unset;
   
