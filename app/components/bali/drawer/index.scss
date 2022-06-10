@@ -73,10 +73,6 @@ $z-index-drawer: 39;
   }
 }
 
-.drawer-close {
-  display: none;
-}
-
 @include mobile {
   .drawer.is-active {
     .drawer-content {
