@@ -64,7 +64,6 @@ module Bali
 
         td_class
       end
-      # rubocop:enable Metrics/AbcSize
 
       def sorted_events
         @sorted_events ||= begin
@@ -73,7 +72,6 @@ module Bali
         end
       end
 
-      # rubocop:disable Metrics/AbcSize
       def group_events_by_date(events)
         events_grouped_by_date = Hash.new { |h, k| h[k] = [] }
 
@@ -94,11 +92,9 @@ module Bali
       # rubocop:enable Metrics/AbcSize
 
       def filter_week(week)
-        if all_week
-          week
-        else
-          week.filter(&:on_weekday?)
-        end
+        return week if all_week
+
+        week.select(&:on_weekday?)
       end
 
       def prev_day
