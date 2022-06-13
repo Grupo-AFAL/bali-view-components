@@ -14,12 +14,14 @@ RSpec.describe Bali::Navbar::Component, type: :component do
     it 'renders navbar component' do
       render_inline(component) do |c|
         c.brand { '<h4 class="title is-5 has-text-white">Bali</h4>'.html_safe }
-        c.start_items([
-                        { name: 'Tech Stack', href: '#' },
-                        { name: 'Projects', href: '#' },
-                        { name: 'Team', href: '#' },
-                        { name: 'Open Positions', href: '#' }
-                      ])
+        c.menu do |menu|
+          menu.start_items([
+                          { name: 'Tech Stack', href: '#' },
+                          { name: 'Projects', href: '#' },
+                          { name: 'Team', href: '#' },
+                          { name: 'Open Positions', href: '#' }
+                        ])
+        end
       end
 
       is_expected.to have_css 'h4.title.is-5', text: 'Bali'
@@ -38,7 +40,9 @@ RSpec.describe Bali::Navbar::Component, type: :component do
     it 'renders navbar component with fullscreen' do
       render_inline(component) do |c|
         c.brand { '<h4 class="title is-5 has-text-white">Bali</h4>'.html_safe }
-        c.start_items([{ name: 'Tech Stack', href: '#' }])
+        c.menu do |menu|
+          menu.start_items([{ name: 'Tech Stack', href: '#' }])
+        end
       end
 
       is_expected.to have_css 'h4.title.is-5', text: 'Bali'
@@ -54,7 +58,9 @@ RSpec.describe Bali::Navbar::Component, type: :component do
     it 'renders navbar component with fullscreen' do
       render_inline(component) do |c|
         c.brand { '<h4 class="title is-5 has-text-white">Bali</h4>'.html_safe }
-        c.start_items([{ name: 'Tech Stack', href: '#' }])
+        c.menu do |menu|
+          menu.start_items([{ name: 'Tech Stack', href: '#' }])
+        end
       end
 
       is_expected.to have_css 'h4.title.is-5', text: 'Bali'
@@ -67,7 +73,9 @@ RSpec.describe Bali::Navbar::Component, type: :component do
       render_inline(component) do |c|
         c.brand { '<h4 class="title is-5 has-text-white">Bali</h4>'.html_safe }
         c.burger(class: 'custom-burger')
-        c.start_items([{ name: 'Tech Stack', href: '#' }])
+        c.menu do |menu|
+          menu.start_items([{ name: 'Tech Stack', href: '#' }])
+        end
       end
 
       is_expected.to have_css 'h4.title.is-5', text: 'Bali'

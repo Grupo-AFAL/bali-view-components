@@ -1,7 +1,6 @@
 <%= render Bali::Navbar::Component.new(
     fullscreen: fullscreen,
     transparency: transparency,
-    split_menu_on_mobile: split_menu_on_mobile,
     class: 'is-fixed-top'
 ) do |nav| %>
   <% nav.brand do %>
@@ -14,26 +13,30 @@
     <%= render Bali::Icon::Component.new('user', tag_name: :div) %>
   <% end %>
 
-  <% nav.start_item(name: 'Home') %>
-  <% nav.start_item(name: 'Documentation', href: '#') %>
-  <% nav.start_item(class: 'has-dropdown is-hoverable', tag_name: :div) do %>
-    <a class="navbar-link">
-      More
-    </a>
-    <div class='navbar-dropdown'>
-      <a class='navbar-item'>About</a>
-      <a class='navbar-item'>Jobs</a>
-      <a class='navbar-item'>Contact</a>
-      <hr class='navbar-divider' />
-      <a class='navbar-item'>Report an issue</a>
-    </div>
+  <% nav.menu(data: { 'navbar-target': 'menu' }) do |menu| %>
+    <% menu.start_item(name: 'Home') %>
+    <% menu.start_item(name: 'Documentation', href: '#') %>
+    <% menu.start_item(class: 'has-dropdown is-hoverable', tag_name: :div) do %>
+      <a class="navbar-link">
+        More
+      </a>
+      <div class='navbar-dropdown'>
+        <a class='navbar-item'>About</a>
+        <a class='navbar-item'>Jobs</a>
+        <a class='navbar-item'>Contact</a>
+        <hr class='navbar-divider' />
+        <a class='navbar-item'>Report an issue</a>
+      </div>
+    <% end %>
   <% end %>
 
-  <%= nav.end_item(tag_name: :div) do %>
-    <div class='buttons'>
-      <a class='button is-primary'>Sign up</a>
-      <a class='button is-light'>Log in</a>
-    </div>
+  <% nav.menu(data: { 'navbar-target': 'altMenu' }) do |menu| %>
+    <% menu.end_item(tag_name: :div) do %>
+      <div class='buttons'>
+        <a class='button is-primary'>Sign up</a>
+        <a class='button is-light'>Log in</a>
+      </div>
+    <% end %>
   <% end %>
 <% end %>
 

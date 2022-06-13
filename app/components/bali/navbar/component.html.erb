@@ -14,36 +14,8 @@
     <% end %>
   </div>
 
-  <% if split_menu_on_mobile %>
-    <div class="navbar-menu" data-navbar-target="menu">
-      <div class="navbar-start">
-        <% start_items.each do |start_item| %>
-          <%= start_item %>
-        <% end %>
-      </div>
-    </div>
-
-    <div class="navbar-menu" data-navbar-target="altMenu">
-      <div class="navbar-end">
-        <% end_items.each do |end_item| %>
-          <%= end_item %>
-        <% end %>
-      </div>
-    </div>
-  <% else %>
-    <div class="navbar-menu" data-navbar-target="menu">
-      <div class="navbar-start">
-        <% start_items.each do |start_item| %>
-          <%= start_item %>
-        <% end %>
-      </div>
-
-      <div class="navbar-end">
-        <% end_items.each do |end_item| %>
-          <%= end_item %>
-        <% end %>
-      </div>
-    </div>
+  <% menus.each do |menu| %>
+    <%= menu %>
   <% end %>
 
   <%= '</div>'.html_safe unless fullscreen %>

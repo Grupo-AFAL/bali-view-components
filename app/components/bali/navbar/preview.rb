@@ -17,15 +17,10 @@ module Bali
 
       # @param fullscreen toggle
       # @param transparency toggle
-      # @param split_menu_on_mobile toggle
-      def split_menu_on_mobile(fullscreen: false, transparency: false, split_menu_on_mobile: true)
+      def with_multiple_menus(fullscreen: false, transparency: false)
         render_with_template(
-          template: 'bali/navbar/previews/split_menu_on_mobile',
-          locals: { 
-            fullscreen: fullscreen, 
-            transparency: transparency,
-            split_menu_on_mobile: split_menu_on_mobile
-          }
+          template: 'bali/navbar/previews/with_multiple_menus',
+          locals: { fullscreen: fullscreen, transparency: transparency }
         )
       end
     end
