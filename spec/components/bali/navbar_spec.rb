@@ -16,11 +16,11 @@ RSpec.describe Bali::Navbar::Component, type: :component do
         c.brand { '<h4 class="title is-5 has-text-white">Bali</h4>'.html_safe }
         c.menu do |menu|
           menu.start_items([
-                          { name: 'Tech Stack', href: '#' },
-                          { name: 'Projects', href: '#' },
-                          { name: 'Team', href: '#' },
-                          { name: 'Open Positions', href: '#' }
-                        ])
+                             { name: 'Tech Stack', href: '#' },
+                             { name: 'Projects', href: '#' },
+                             { name: 'Team', href: '#' },
+                             { name: 'Open Positions', href: '#' }
+                           ])
         end
       end
 
