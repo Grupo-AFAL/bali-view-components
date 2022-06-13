@@ -22,7 +22,6 @@
 
   @include touch {
     &.is-transparent.is-active {
-      background: $yellow;
       transition: background-color $background-transition-time;
       box-shadow: none;
 
@@ -33,7 +32,6 @@
       }
 
       .navbar-menu {
-        background: $yellow;
         transition: background-color $background-transition-time;
       }
     }

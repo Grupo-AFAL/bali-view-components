@@ -8,7 +8,6 @@ module Bali
 
         def initialize(**options)
           @options = prepend_class_name(options, 'navbar-burger burger')
-          @options = prepend_data_attribute(options, 'navbar-target', 'burger')
         end
 
         def call

@@ -9,7 +9,8 @@
         <%= burger %>
       <% end %>
     <% else %>
-      <%= render Bali::Navbar::Burger::Component.new(data: { action:"navbar#toggleMenu" }) %>
+      <%= render Bali::Navbar::Burger::Component.new(
+          data: { action:"navbar#toggleMenu", 'navbar-target': 'burger' }) %>
     <% end %>
   </div>
 
