@@ -1,0 +1,22 @@
+<div class="calendar-component">
+  <div class="day-view">
+    <%= render(Bali::Columns::Component.new(class: 'is-mobile')) do |c| %>
+      <%= c.column(class: 'is-narrow') do %>
+        <%= link_to render(Bali::Icon::Component.new('chevron-left')), url_for(prev_day), title: 'previous' %>
+      <% end %>
+
+      <%= c.column(class: 'has-text-centered') do %>
+        <span class="title is-5 has-text-grey-dark has-text-weight-normal">
+          <%= l(start_date, format: :long_with_day) %>
+        </span>
+      <% end %>
+
+      <%= c.column(class: 'is-narrow') do %>
+        <%= link_to render(Bali::Icon::Component.new('chevron-right')), url_for(next_day), title: 'next' %>
+      <% end %>
+    <% end %>
+
+    <div class="divider"></div>
+    <%= render template, events: sorted_events[start_date], period: :day, day: start_date %>
+  </div>
+</div>
