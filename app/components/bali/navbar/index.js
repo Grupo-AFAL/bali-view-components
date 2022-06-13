@@ -7,7 +7,10 @@ export class NavbarController extends Controller {
     throttleInterval: { type: Number, default: 1000 }
   }
 
-  static targets = ['menu', 'burger']
+  static targets = ['menu', 'burger', 'altMenu', 'altBurger']
+
+  menuActive = false
+  altMenuActive = false
 
   connect () {
     if (!this.allowTransparencyValue) return
@@ -46,11 +49,30 @@ export class NavbarController extends Controller {
 
   toggleMenu (event) {
     event.preventDefault()
-    this.element.classList.toggle('is-active')
+    this.menuActive = !this.menuActive
+    if (!this.altMenuActive) {
+      this.element.classList.toggle('is-active')
+    }
     this.menuTarget.classList.toggle('is-active')
 
     if (this.hasBurgerTarget) {
       this.burgerTarget.classList.toggle('is-active')
+    }
+  }
+
+  toggleAltMenu (event) {
+    event.preventDefault()
+    this.altMenuActive = !this.altMenuActive
+    if (!this.menuActive) {
+      this.element.classList.toggle('is-active')
+    }
+
+    if (this.hasAltMenuTarget) {
+      this.altMenuTarget.classList.toggle('is-active')
+    }
+
+    if (this.hasAltBurgerTarget) {
+      this.altBurgerTarget.classList.toggle('is-active')
     }
   }
 }

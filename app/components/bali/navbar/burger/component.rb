@@ -12,6 +12,8 @@ module Bali
         end
 
         def call
+          return tag.a(role: 'button', **options) { content } if content.present?
+
           tag.a role: 'button', **options do
             safe_join([
                         tag.span('aria-hidden': true),
