@@ -5,7 +5,7 @@ module Bali
     class Component < ApplicationViewComponent
       include Options
 
-      attr_reader :name,:tag_name, :options
+      attr_reader :name, :tag_name, :options
 
       # @param name [String] One of Bali::Icon::Options::MAP.keys
       def initialize(name, tag_name: :span, **options)
