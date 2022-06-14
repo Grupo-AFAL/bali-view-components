@@ -82,4 +82,27 @@ RSpec.describe Bali::Navbar::Component, type: :component do
       is_expected.to have_css 'a.navbar-burger.burger.custom-burger'
     end
   end
+
+  context 'with multiple menu and burgers' do
+    it 'renders navbar component with fullscreen' do
+      render_inline(component) do |c|
+        c.brand { '<h4 class="title is-5 has-text-white">Bali</h4>'.html_safe }
+        c.burger(class: 'custom-burger')
+        c.burger(type: :alt)
+        c.menu do |menu|
+          menu.start_items([{ name: 'Tech Stack', href: '#' }])
+        end
+
+        c.menu(type: :alt) do |menu|
+          menu.end_items([{ name: 'About us', href: '#' }])
+        end
+      end
+
+      is_expected.to have_css 'h4.title.is-5', text: 'Bali'
+      is_expected.to have_css '[data-navbar-target="burger"]'
+      is_expected.to have_css '[data-navbar-target="altBurger"]'
+      is_expected.to have_css '[data-navbar-target="menu"]'
+      is_expected.to have_css '[data-navbar-target="altMenu"]'
+    end
+  end
 end

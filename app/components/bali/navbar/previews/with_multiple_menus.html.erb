@@ -7,13 +7,13 @@
     <%= tag.a('LOGO', class: 'navbar-item is-centered', href: '#', style: 'position: absolute; left: 50%;') %>
   <% end %>
 
-  <% nav.burger(class: 'left-burger', data: { action: 'navbar#toggleMenu', 'navbar-target': 'burger' }) %>
+  <% nav.burger(class: 'left-burger') %>
 
-  <% nav.burger(class: 'vertical-horizontal-align is-hidden-desktop', data: { action: 'navbar#toggleAltMenu' }) do %>
+  <% nav.burger(class: 'is-flex is-justify-content-center is-align-items-center is-hidden-desktop', type: :alt) do %>
     <%= render Bali::Icon::Component.new('user', tag_name: :div) %>
   <% end %>
 
-  <% nav.menu(data: { 'navbar-target': 'menu' }) do |menu| %>
+  <% nav.menu do |menu| %>
     <% menu.start_item(name: 'Home') %>
     <% menu.start_item(name: 'Documentation', href: '#') %>
     <% menu.start_item(class: 'has-dropdown is-hoverable', tag_name: :div) do %>
@@ -30,7 +30,7 @@
     <% end %>
   <% end %>
 
-  <% nav.menu(data: { 'navbar-target': 'altMenu' }) do |menu| %>
+  <% nav.menu(type: :alt) do |menu| %>
     <% menu.end_item(tag_name: :div) do %>
       <div class='buttons'>
         <a class='button is-primary'>Sign up</a>

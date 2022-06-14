@@ -5,7 +5,7 @@
 ) do |nav| %>
   <% nav.brand { tag.a('LOGO', class: 'navbar-item', href: '#') } %>
 
-  <% nav.menu(data: { 'navbar-target': 'menu' }) do |menu| %>
+  <% nav.menu do |menu| %>
     <% menu.start_item(name: 'Home') %>
     <% menu.start_item(name: 'Documentation', href: '#') %>
     <% menu.start_item(class: 'has-dropdown is-hoverable', tag_name: :div) do %>
