@@ -35,11 +35,11 @@ module Bali
         end
 
         def attrs_for_main
-          @attrs_for_main ||= { target: 'burger', action: 'navbar#toggleMenu' }
+          { target: 'burger', action: 'navbar#toggleMenu' }
         end
 
         def attrs_for_alt
-          @attrs_for_alt ||= { target: 'altBurger', action: 'navbar#toggleAltMenu' }
+          { target: 'altBurger', action: 'navbar#toggleAltMenu' }
         end
       end
     end
