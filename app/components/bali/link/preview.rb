@@ -56,6 +56,12 @@ module Bali
           c.icon('poo')
         end
       end
+
+      def is_active
+        render Bali::Link::Component.new(name: 'Click me!', href: '#', active_path: '#',
+                                         class: 'button')
+      end
+
       # @!endgroup
     end
   end

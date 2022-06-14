@@ -7,16 +7,26 @@ module Bali
 
       renders_one :icon, ->(name, **options) { Icon::Component.new(name, **options) }
 
-      def initialize(name:, href:, type: nil, modal: false, drawer: false, **options)
+      # rubocop:disable Metrics/ParameterLists
+      def initialize(name:, href:, type: nil, modal: false, drawer: false, active_path: nil,
+                     match: :exact, **options)
         @name = name
         @href = href
         @type = type.present? ? type.to_sym : type
         @modal = modal
+        @active_path = active_path
         @drawer = drawer
         @options = options
+        active_link(href, active_path, match: match) if active_path.present?
         @options = prepend_class_name(@options, "button is-#{type}") if type.present?
         @options = prepend_action(@options, 'modal#open') if modal
         @options = prepend_action(@options, 'drawer#open') if drawer
+      end
+      # rubocop:enable Metrics/ParameterLists
+
+      def active_link(href, current_path, match: :exact)
+        @options = prepend_class_name(@options, 'is-active') if active_path?(href, current_path,
+                                                                             match: match)
       end
     end
   end
