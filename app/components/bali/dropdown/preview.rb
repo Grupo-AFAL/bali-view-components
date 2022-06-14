@@ -6,8 +6,10 @@ module Bali
       # Dropdown with items
       # ---------------
       # Default dropdown with a list of items
-      def default
-        render(Dropdown::Component.new) do |c|
+      # @param hoverable toggle
+      # @param close_on_click toggle
+      def default(hoverable: false, close_on_click: true)
+        render(Dropdown::Component.new(hoverable: hoverable, close_on_click: close_on_click)) do |c|
           c.trigger(class: 'button') { 'Trigger' }
 
           c.item { 'Item 1' }
@@ -21,8 +23,10 @@ module Bali
       # ---------------
       # Specify any HTML content within the block, it will be inserted
       # inside the div.dropdown-content
-      def with_content
-        render(Dropdown::Component.new) do |c|
+      # @param hoverable toggle
+      # @param close_on_click toggle
+      def with_content(hoverable: false, close_on_click: true)
+        render(Dropdown::Component.new(hoverable: hoverable, close_on_click: close_on_click)) do |c|
           c.trigger(class: 'button') { 'Trigger' }
 
           c.tag.ul do
