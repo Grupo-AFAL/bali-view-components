@@ -1,0 +1,21 @@
+<%= tag.nav(role: 'navigation', 'aria-label': 'Main', **options) do %>
+  <%= '<div class="container">'.html_safe unless fullscreen %>
+
+  <div class="navbar-brand">
+    <%= brand %>
+
+    <% if burgers? %>
+      <% burgers.each do |burger| %>
+        <%= burger %>
+      <% end %>
+    <% else %>
+      <%= render Bali::Navbar::Burger::Component.new %>
+    <% end %>
+  </div>
+
+  <% menus.each do |menu| %>
+    <%= menu %>
+  <% end %>
+
+  <%= '</div>'.html_safe unless fullscreen %>
+<% end %>
