@@ -5,15 +5,16 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :name, :href, :type, :drawer, :modal, :options
 
-      renders_one :icon, ->(**options, &block) { tag.span(**options, &block) }
+      renders_one :icon, ->(name, **options) { Icon::Component.new(name, **options) }
 
-      def initialize(name:, href:, type: :primary, modal: false, drawer: false, **options)
+      def initialize(name:, href:, type: nil, modal: false, drawer: false, **options)
         @name = name
         @href = href
-        @type = type.to_sym
+        @type = type.present? ? type.to_sym : type
         @modal = modal
         @drawer = drawer
-        @options = prepend_class_name(options, "button is-#{type}")
+        @options = options
+        @options = prepend_class_name(@options, "button is-#{type}") if type.present?
         @options = prepend_action(@options, 'modal#open') if modal
         @options = prepend_action(@options, 'drawer#open') if drawer
       end

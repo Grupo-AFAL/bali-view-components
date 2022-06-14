@@ -8,7 +8,7 @@ module Bali
       def default
         render Bali::Link::Component.new(name: 'Click me!', href: '#')
       end
-      
+
       def primary
         render Bali::Link::Component.new(name: 'Click me!', href: '#', type: :primary)
       end
@@ -29,13 +29,31 @@ module Bali
         render Bali::Link::Component.new(name: 'Click me!', href: '#', type: :warning)
       end
 
+      def small
+        render Bali::Link::Component.new(name: 'Small', href: '#', class: 'button is-small')
+      end
+
+      def normal
+        render Bali::Link::Component.new(name: 'Normal', href: '#', class: 'button is-normal')
+      end
+
+      def medium
+        render Bali::Link::Component.new(name: 'Medium', href: '#', class: 'button is-medium')
+      end
+
+      def large
+        render Bali::Link::Component.new(name: 'Large', href: '#', class: 'button is-large')
+      end
+
       def with_icon
         render Bali::Link::Component.new(name: 'Click me!', href: '#') do |c|
-          c.icon(class: 'icon') do
-            '<svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M12.1728 2.75329C12.4328 3.01329 12.4328 3.43329 12.1728 3.69329L10.9528 4.91329L8.4528 2.41329L9.6728 1.19329C9.9328 0.933291 10.3528 0.933291 10.6128 1.19329L12.1728 2.75329ZM0.366211 12.9999V10.4999L7.73954 3.12655L10.2395 5.62655L2.86621 12.9999H0.366211Z" fill="#00AA92"/>
-            </svg>'.html_safe
-          end
+          c.icon('poo')
+        end
+      end
+
+      def button_with_icon
+        render Bali::Link::Component.new(name: 'Click me!', href: '#', type: :primary) do |c|
+          c.icon('poo')
         end
       end
       # @!endgroup
