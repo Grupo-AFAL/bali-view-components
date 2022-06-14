@@ -8,8 +8,14 @@ RSpec.describe Bali::Dropdown::Component, type: :component do
 
   subject { rendered_component }
 
-  it 'renders' do
-    render_inline(component)
+  it 'renders dropdown with options' do
+    render_inline(component) do |c|
+      c.trigger(class: 'button') { 'Trigger' }
+
+      c.tag.ul do
+        c.tag.li('Item')
+      end
+    end
 
     expect(subject).to have_css 'div'
   end
