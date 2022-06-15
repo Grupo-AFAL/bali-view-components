@@ -1,3 +1,25 @@
+<%
+=begin %>
+Basic usage:
+render(Bali::Link::Component.new(name: 'Text', href: '/'))
+
+this will render:
+<a href="/">Text</a>
+
+You can also pass a block to the component with icon slot:
+render(Bali::Link::Component.new(name: 'Text', href: '/') do
+icon(name: 'icon-name')
+end)
+
+this will render:
+<a href="/">
+  <i class="icon-name"></i>
+  Text
+</a>
+
+<%
+=end %>
+
 <%= link_to href, **options do %>
   <%= icon %>
   <%= tag.span name %>
