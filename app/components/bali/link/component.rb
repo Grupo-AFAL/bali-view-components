@@ -9,8 +9,16 @@ module Bali
 
       # rubocop:disable Metrics/ParameterLists
       # rubocop:disable Metrics/AbcSize
-      def initialize(name:, href:, type: nil, modal: false, drawer: false, active_path: nil,
-                     match: :exact, method: nil, **options)
+      def initialize(name:,
+                     href:,
+                     type: nil,
+                     modal: false,
+                     drawer: false,
+                     active_path: nil,
+                     match: :exact,
+                     method: nil,
+                     **options)
+
         @name = name
         @href = href
         @type = type.present? ? type.to_sym : type
