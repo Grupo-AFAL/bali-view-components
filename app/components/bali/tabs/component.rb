@@ -6,12 +6,7 @@ module Bali
       renders_many :tabs, Tab::Component
 
       def initialize(**options)
-        @options = options
-        @class = options.delete(:class)
-      end
-
-      def classes
-        class_names('tabs', @class)
+        @options = prepend_class_name(options, 'tabs-component tabs')
       end
     end
   end

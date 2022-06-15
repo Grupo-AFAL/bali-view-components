@@ -1,15 +1,14 @@
 <%= tag.div data: { controller: 'tabs' } do %>
-  <%= tag.div class: classes, **@options do %>
+  <%= tag.div **@options do %>
     <ul>
       <% tabs.each_with_index do |tab, index| %>
         <%= tag.li data: { 'tab-index': index, action: 'click->tabs#open' },
                    class: class_names('is-active': tab.active) do %>
-          <a>
-            <% if tab.icon %>
-              <%= render Bali::Icon::Component.new(tab.icon) %>
-            <% end %>
-            <span><%= tab.title %></span>
-          </a>
+
+          <%= tag.a href: tab.href do %>
+            <%= render Bali::Icon::Component.new(tab.icon) if tab.icon %>
+            <%= tag.span { tab.title } %>
+          <% end %>
         <% end %>
       <% end %>
     </ul>
