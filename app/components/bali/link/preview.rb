@@ -92,6 +92,15 @@ module Bali
         end
       end
 
+      # Link with just an icon
+      # --------------
+      # This will add an icon to the link but no text.
+      def link_with_just_icon
+        render Bali::Link::Component.new(href: '#') do |c|
+          c.icon('poo')
+        end
+      end
+
       # Link with `is-active` class
       # --------------
       # This will add the `is-active` class if the `active_path` is the same as the href.
