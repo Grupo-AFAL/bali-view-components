@@ -10,6 +10,10 @@ module Bali
       prepend_data_attribute(options, :controller, controller_name)
     end
 
+    def prepend_turbo_method(options, turbo_method)
+      prepend_data_attribute(options, :turbo_method, turbo_method)
+    end
+
     def prepend_class_name(options, class_name)
       options[:class] = "#{class_name} #{options[:class]}".strip
       options

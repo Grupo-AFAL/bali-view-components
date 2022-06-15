@@ -62,6 +62,11 @@ module Bali
                                          class: 'button')
       end
 
+      def data_turbo_method
+        render Bali::Link::Component.new(name: 'Click me!', href: '#', method: :post,
+                                         class: 'button')
+      end
+
       # @!endgroup
     end
   end
