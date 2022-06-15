@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.0] - 2022-06-15
 
-- `Link` component was finished
+- Completed `Link` and `Calendar` components.
 
 ## [0.1.0] - 2022-06-10
 
