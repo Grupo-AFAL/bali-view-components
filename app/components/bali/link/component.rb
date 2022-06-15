@@ -7,17 +7,15 @@ module Bali
 
       renders_one :icon, ->(name, **options) { Icon::Component.new(name, **options) }
 
-      # Params:
-      #  name: [String] The name of the link.
-      #  href: [String] The href of the link.
-      #  type: [Symbol] or [String] This is a class for the link:
-      #   (:primary, :secondary, :success, :danger, :warning)
-
-      #  modal: [Boolean] The link opens a modal.
-      #  drawer: [Boolean] The link opens a drawer.
-      #  active_path: [String] The path of the active page.
-      #  match: [Symbol] To check if the path is exact or cotains the path.
-      #  method: [Symbol] or [String] The method to call when the link is clicked.
+      #  @param name [String] The name of the link.
+      #  @param href [String] The href of the link.
+      #  @param type [Symbol|String] This adds a class for the link: :primary, :secondary,
+      #  :success, :danger, :warning also adds the button class.
+      #  @param modal [Boolean] Link to open a modal.
+      #  @param drawer [Boolean] Link to open a drawer.
+      #  @param active_path [String] The path of the active page.
+      #  @param match [Symbol] To check if the path is exact or cotains the path.
+      #  @param method [Symbol|String] Adds a turbo method to the link.
 
       # rubocop:disable Metrics/ParameterLists
       # rubocop:disable Metrics/AbcSize
