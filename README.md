@@ -76,7 +76,7 @@ Update this table when making progress on any of the Components or when adding n
 | DeleteLink        | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | DisplayValue      |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Drawer            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
-| Dropdown          | :white_check_mark: | :white_check_mark: | :white_check_mark: |        :x:         |                                                |
+| Dropdown          | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Filters           | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | GanttChart        |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Heatmap           |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
@@ -90,7 +90,7 @@ Update this table when making progress on any of the Components or when adding n
 | Link              | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | Loader            |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Modal             | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
-| NavBar            |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| NavBar            | :white_check_mark: | :white_check_mark: | :white_check_mark: |  :white_check_mark: |                                                |
 | Notification      |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | PageHeader        | :white_check_mark: | :white_check_mark: |    :wavy_dash:     | :white_check_mark: |                                                |
 | ProfilePicture    |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
