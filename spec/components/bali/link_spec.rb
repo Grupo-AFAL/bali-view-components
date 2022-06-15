@@ -32,7 +32,7 @@ RSpec.describe Bali::Link::Component, type: :component do
   end
 
   context 'with icon' do
-    it 'renders link without class button' do
+    it 'renders a link without class button' do
       render_inline(component) do |c|
         c.icon('poo')
       end
@@ -42,7 +42,7 @@ RSpec.describe Bali::Link::Component, type: :component do
       is_expected.to have_css 'span.icon'
     end
 
-    it 'renders link with class button' do
+    it 'renders a link with class button' do
       @options.merge!(class: 'button')
 
       render_inline(component) do |c|
@@ -55,7 +55,7 @@ RSpec.describe Bali::Link::Component, type: :component do
     end
   end
 
-  it 'renders link with is-active class' do
+  it 'renders a link with is-active class' do
     @options.merge!(active_path: '#')
 
     render_inline(component)
@@ -63,7 +63,7 @@ RSpec.describe Bali::Link::Component, type: :component do
     expect(rendered_component).to have_css 'a.is-active', text: 'Click me!'
   end
 
-  it 'renders link with turbo method' do
+  it 'renders a link with turbo method' do
     @options.merge!(method: :post)
 
     render_inline(component)
