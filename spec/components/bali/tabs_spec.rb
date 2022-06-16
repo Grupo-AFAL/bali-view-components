@@ -14,17 +14,18 @@ RSpec.describe Bali::Tabs::Component, type: :component do
       c.tab(title: 'Tab 2') { '<p>Tab 2 content</p>'.html_safe }
     end
 
-    expect(rendered_component).to have_css 'li.is-active', text: 'Tab 1'
-    expect(rendered_component).to have_css 'li', text: 'Tab 2'
-    expect(rendered_component).to have_css 'p', text: 'Tab 1 content'
-    expect(rendered_component).to have_css '.is-hidden p', text: 'Tab 2 content'
+    is_expected.to have_css '.tabs-component'
+    is_expected.to have_css 'li.is-active', text: 'Tab 1'
+    is_expected.to have_css 'li', text: 'Tab 2'
+    is_expected.to have_css 'p', text: 'Tab 1 content'
+    is_expected.to have_css '.is-hidden p', text: 'Tab 2 content'
   end
 
   it 'renders tabs with class centered' do
     options.merge!(class: 'is-centered')
     render_inline(component)
 
-    expect(rendered_component).to have_css 'div.tabs.is-centered'
+    is_expected.to have_css 'div.tabs.is-centered'
   end
 
   it 'renders tabs with icon' do
@@ -32,6 +33,6 @@ RSpec.describe Bali::Tabs::Component, type: :component do
       c.tab(title: 'Tab', active: true, icon: 'alert') { '<p>Tab content</>'.html_safe }
     end
 
-    expect(rendered_component).to have_css 'span.icon svg'
+    is_expected.to have_css 'span.icon svg'
   end
 end
