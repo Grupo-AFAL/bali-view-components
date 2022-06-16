@@ -3,6 +3,8 @@
 module Bali
   module PathHelper
     def active_path?(path, current_path, match: :exact)
+      return false if current_path.nil?
+
       path_without_params = path.split('?').first
       current_request_path = current_path.gsub(/\.html$/, '')
 
