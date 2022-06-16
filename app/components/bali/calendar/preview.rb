@@ -3,6 +3,8 @@
 module Bali
   module Calendar
     class Preview < ApplicationViewComponentPreview
+      # Basic calendar
+      # -------------
       def default
         render(Calendar::Component.new(
                  start_date: Date.current.to_s,
@@ -13,6 +15,8 @@ module Bali
         end
       end
 
+      # Calendar with week view
+      # ----------------------
       def week
         render(
           Calendar::Component.new(start_date: Date.current.to_s,
@@ -24,7 +28,10 @@ module Bali
         end
       end
 
-      def with_out_period
+      # Calendar without period options
+      # ---------------------------
+      # This will hide the month and week options.
+      def without_period
         render(Calendar::Component.new(start_date: Date.current.to_s,
                                        all_week: false,
                                        period: :month,
@@ -33,7 +40,10 @@ module Bali
         end
       end
 
-      def with_out_date
+      # Calendar without date
+      # -------------------
+      # This will hide the day date.
+      def without_date
         render(Calendar::Component.new(start_date: Date.current.to_s,
                                        all_week: false,
                                        period: :month,
@@ -42,6 +52,9 @@ module Bali
         end
       end
 
+      # Calendar with all week
+      # ---------------------
+      # This will display the entire week.
       def all_week
         render(Calendar::Component.new(start_date: Date.current.to_s,
                                        all_week: true,
@@ -51,6 +64,9 @@ module Bali
         end
       end
 
+      # Calendar with events
+      # -------------------
+      # This will display the events in the calendar.
       def with_events
         events = [
           Calendar::Previews::Event.new(start_time: Date.current, name: 'Event 2'),
@@ -67,6 +83,9 @@ module Bali
         end
       end
 
+      # Calendar with footer
+      # -------------------
+      # This will display custom content in the footer.
       def with_footer
         render(Calendar::Component.new(start_date: Date.current.to_s,
                                        all_week: false,

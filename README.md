@@ -66,7 +66,7 @@ Update this table when making progress on any of the Components or when adding n
 | Box               |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Breadcrumb        |        :x:         |        :x:         |        :x:         |        :x:         | Create from scratch                            |
 | BurgerButton      |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
-| Calendar          |        :x:         | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
+| Calendar          | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Carousel          |        :x:         | :white_check_mark: |        :x:         | :white_check_mark: | Two versions in Enjoy and GA, need to merge    |
 | Card              | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Chart             | :white_check_mark: | :white_check_mark: |    :wavy_dash:     | :white_check_mark: |                                                |
@@ -87,10 +87,10 @@ Update this table when making progress on any of the Components or when adding n
 | ImageGrid         | :white_check_mark: | :white_check_mark: | :white_check_mark: |        :x:         |                                                |
 | InfoLevel         | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | Level             | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
-| Link              | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
+| Link              | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Loader            |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Modal             | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
-| NavBar            | :white_check_mark: | :white_check_mark: | :white_check_mark: |  :white_check_mark: |                                                |
+| NavBar            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Notification      |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | PageHeader        | :white_check_mark: | :white_check_mark: |    :wavy_dash:     | :white_check_mark: |                                                |
 | ProfilePicture    |        :x:         |        :x:         |        :x:         |        :x:         |                                                |

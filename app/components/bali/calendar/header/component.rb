@@ -6,6 +6,13 @@ module Bali
       class Component < ApplicationViewComponent
         attr_reader :route_name, :period, :start_date, :period_switch, :start_attribute
 
+        # @param start_date [Date|String] The date to start the calendar from.
+        # @param period [Symbol] The period of the calendar, :month or :week.
+        # @param route_name [String] The route to use for the links.
+        # @param period_switch [Boolean] To display the period switch or not.
+        # @param start_attribute [Symbol] Method to be called on each event object for the
+        # start_date.
+
         def initialize(start_date:, period: :month, route_name: nil, period_switch: true,
                        start_attribute: :start_time, **options)
           @start_date = Date.parse(start_date.presence || Date.current.to_s)
