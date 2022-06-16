@@ -13,7 +13,7 @@ RSpec.describe Bali::Link::Component, type: :component do
     it 'renders' do
       render_inline(component)
 
-      is_expected.to have_css 'a.button', text: 'Click me!'
+      is_expected.to have_css 'a', text: 'Click me!'
       is_expected.to have_css 'a[href="#"]'
     end
   end
@@ -32,16 +32,42 @@ RSpec.describe Bali::Link::Component, type: :component do
   end
 
   context 'with icon' do
-    it 'renders' do
+    it 'renders a link without class button' do
       render_inline(component) do |c|
-        c.icon(class: 'icon') do
-          '<svg></svg>'.html_safe
-        end
+        c.icon('poo')
       end
 
-      is_expected.to have_css 'a.button', text: 'Click me!'
+      is_expected.to have_css 'a', text: 'Click me!'
       is_expected.to have_css 'a[href="#"]'
       is_expected.to have_css 'span.icon'
     end
+
+    it 'renders a link with class button' do
+      @options.merge!(class: 'button')
+
+      render_inline(component) do |c|
+        c.icon('poo')
+      end
+
+      expect(rendered_component).to have_css 'a.button', text: 'Click me!'
+      expect(rendered_component).to have_css 'a[href="#"]'
+      expect(rendered_component).to have_css 'span.icon'
+    end
+  end
+
+  it 'renders a link with is-active class' do
+    @options.merge!(active_path: '#')
+
+    render_inline(component)
+
+    expect(rendered_component).to have_css 'a.is-active', text: 'Click me!'
+  end
+
+  it 'renders a link with turbo method' do
+    @options.merge!(method: :post)
+
+    render_inline(component)
+
+    expect(rendered_component).to have_css 'a[data-turbo-method="post"]', text: 'Click me!'
   end
 end

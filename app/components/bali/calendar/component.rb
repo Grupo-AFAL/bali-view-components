@@ -15,6 +15,16 @@ module Bali
                                                    start_attribute: @start_attribute,
                                                    **options)
                            end
+      # @param template [String] Path to an HTML template with the content of each day.
+      # @param start_date [Date|String] The date to start the calendar from.
+      # @param period [Symbol] The period of the calendar, :month or :week.
+      # @param events [Array] Events to display in the calendar, must respond to the method
+      #  defined as `start_attribute`.
+      # @param start_attribute [Symbol] Method to be called on each event object for the
+      #  start_date.
+      # @param end_attribute [Symbol] Method to be called on each event object for the end date.
+      # @param all_week [Boolean] Display the entire week or just the weekdays.
+      # @param show_date [Boolean] Display the date or not.
 
       # rubocop:disable Metrics/ParameterLists
       def initialize(template: nil,
