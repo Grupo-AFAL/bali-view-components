@@ -2,23 +2,12 @@ import { Controller } from '@hotwired/stimulus'
 
 /*
   Tabs controller
-  It generates a tabs component with open and hide content actions
-  with active tab property.
+  It adds open and hide content actions to the tabs with active tab property.
+  Allows to load content on demand from a given source on tab click.
 */
 export class TabsController extends Controller {
   connect () {
     this._loadActiveTabContent()
-  }
-
-  _loadActiveTabContent () {
-    const activeTab = Array.from(this._allTabs()).find(t =>
-      t.classList.contains('is-active')
-    )
-    const activeTabContent = this.element.querySelector(
-      `[data-content-index="${activeTab.dataset.tabIndex}"]`
-    )
-
-    this._loadTabContent(activeTab, activeTabContent)
   }
 
   open (event) {
@@ -46,16 +35,31 @@ export class TabsController extends Controller {
     this._loadTabContent(tabLi, contentDiv)
   }
 
+  _loadActiveTabContent () {
+    const activeTab = Array.from(this._allTabs()).find(t =>
+      t.classList.contains('is-active')
+    )
+    const activeTabContent = this.element.querySelector(
+      `[data-content-index="${activeTab.dataset.tabIndex}"]`
+    )
+
+    this._loadTabContent(activeTab, activeTabContent)
+  }
+
   _loadTabContent (tabLi, tabContentDiv) {
-    if (tabContentDiv.innerHTML !== '\n') return
+    const url = tabLi.getAttribute('data-tab-src')
 
-    const urlValue = tabLi.querySelector('a').getAttribute('href')
+    if (!url) return
 
-    if (urlValue) {
-      fetch(urlValue)
-        .then(r => r.text())
-        .then(html => (tabContentDiv.innerHTML = html))
-    }
+    const contentLoaded = tabLi.hasAttribute('data-tab-content-loaded')
+    const reloadContent = tabLi.getAttribute('data-tab-reload-on-click')
+
+    if (reloadContent === 'false' && contentLoaded) return
+
+    fetch(this._buildURL(url))
+      .then(r => r.text())
+      .then(html => (tabContentDiv.innerHTML = html))
+      .then(() => (tabLi.dataset.tabContentLoaded = true))
   }
 
   _allTabs () {
@@ -64,5 +68,12 @@ export class TabsController extends Controller {
 
   _allContents () {
     return this.element.querySelectorAll('[data-content-index]')
+  }
+
+  _buildURL = path => {
+    const url = new URL(path, window.location.origin)
+    url.searchParams.set('layout', 'false')
+
+    return url.toString()
   }
 }
