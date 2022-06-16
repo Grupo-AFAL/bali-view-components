@@ -31,13 +31,17 @@ module Bali
 
         @name = name
         @href = href
-        @type = type.present? ? type.to_sym : type
+        @type = type
         @modal = modal
         @active_path = active_path
         @drawer = drawer
         @method = method
         @options = options
-        active_link(href, active_path, match: match) if active_path.present?
+
+        if active_path?(href, current_path, match: match)
+          @options = prepend_class_name(@options, 'is-active')
+        end
+
         @options = prepend_class_name(@options, "button is-#{type}") if type.present?
         @options = prepend_action(@options, 'modal#open') if modal
         @options = prepend_action(@options, 'drawer#open') if drawer
@@ -45,11 +49,6 @@ module Bali
       end
       # rubocop:enable Metrics/AbcSize
       # rubocop:enable Metrics/ParameterLists
-
-      def active_link(href, current_path, match: :exact)
-        @options = prepend_class_name(@options, 'is-active') if active_path?(href, current_path,
-                                                                             match: match)
-      end
     end
   end
 end
