@@ -15,10 +15,10 @@ module Bali
                                                    start_attribute: @start_attribute,
                                                    **options)
                            end
-      #   @param template [String] This is the template with the contentent of each day.
+      #   @param template [String] Path to an HTML template with the content of each day.
       #   @param start_date [Date|String] The date to start the calendar from.
       #   @param period [Symbol] The period of the calendar, :month or :week.
-      #   @params events [Array] Events to display in the calendar, must respond to the method
+      #   @param events [Array] Events to display in the calendar, must respond to the method
       #   defined as `start_attribute`.
       #   @param start_attribute [Symbol] Method to be called on each event object for the
       #   start_date.

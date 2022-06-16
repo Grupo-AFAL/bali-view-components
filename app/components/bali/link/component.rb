@@ -20,7 +20,7 @@ module Bali
       # rubocop:disable Metrics/ParameterLists
       # rubocop:disable Metrics/AbcSize
       def initialize(href:,
-                     name: '',
+                     name: nil,
                      type: nil,
                      modal: false,
                      drawer: false,
