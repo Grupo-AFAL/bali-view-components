@@ -47,9 +47,11 @@ module Bali
         @options = prepend_action(@options, 'modal#open') if modal
         @options = prepend_action(@options, 'drawer#open') if drawer
 
-        return unless method.present? && method.to_s != 'get'
-
-        @options = prepend_turbo_method(@options, method.to_s)
+        if method.to_s == 'get'
+          @options = prepend_data_attribute(@options, :method, 'get')
+        elsif method.present?
+          @options = prepend_turbo_method(@options, method.to_s)
+        end
       end
       # rubocop:enable Metrics/AbcSize
       # rubocop:enable Metrics/ParameterLists
