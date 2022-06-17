@@ -1,14 +1,10 @@
 .link-component {
-  .icon {
-    width: 1.5rem;
-  }
-
-  a:not(.button) {
+  &:not(.button) {
     display: flex;
     align-items: center;
   }
 
-  a.button {
+  &.button {
     .icon {
       margin-right: 0 !important;
     }

@@ -18,6 +18,7 @@ module Bali
       # @param method [Symbol|String] Adds a turbo method to the link.
 
       # rubocop:disable Metrics/ParameterLists
+      # rubocop:disable Metrics/AbcSize
       def initialize(href:,
                      name: nil,
                      type: nil,
@@ -36,6 +37,7 @@ module Bali
         @drawer = drawer
         @method = method
         @options = options
+        @options = prepend_class_name(@options, 'link-component')
 
         if active_path?(href, active_path, match: match)
           @options = prepend_class_name(@options, 'is-active')
@@ -46,6 +48,7 @@ module Bali
         @options = prepend_action(@options, 'drawer#open') if drawer
         @options = prepend_turbo_method(@options, method.to_s) if method.present?
       end
+      # rubocop:enable Metrics/AbcSize
       # rubocop:enable Metrics/ParameterLists
     end
   end
