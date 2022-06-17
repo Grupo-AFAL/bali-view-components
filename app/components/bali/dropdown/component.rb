@@ -11,8 +11,19 @@ module Bali
         @close_on_click = close_on_click
         @options = options
 
-        @options = prepend_class_name(@options, 'is-right') if align == :right
-        @options = prepend_class_name(@options, 'is-centered') if align == :center
+        @options = prepend_class_name(@options, alignment_class)
+        ...
+        
+        def alignment_class
+          case @align
+          when :right
+            'is-right'
+          when :center
+             'is-centered'
+           else
+             'is-left'
+            end
+        end
         @options = prepend_class_name(@options, 'dropdown-component dropdown')
         @options = prepend_controller(@options, 'dropdown')
       end
