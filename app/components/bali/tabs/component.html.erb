@@ -1,5 +1,5 @@
-<%= tag.div data: { controller: 'tabs' } do %>
-  <%= tag.div **@options do %>
+<%= tag.div **@options do %>
+  <%= tag.div class: class_names('tabs', @tabs_class) do %>
     <ul>
       <% tabs.each_with_index do |tab, index| %>
         <%= tag.li data: { 'tabs-target': 'tab',

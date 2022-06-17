@@ -43,7 +43,7 @@ module Bali
       # Add a custom class to the tabs component whenever you need to customize it.
       # @param klass select [is-centered, is-right, is-small, is-medium, is-large, is-boxed, is-toggle, is-toggle is-toggle-rounded, is-fullwidth]
       def with_custom_class(klass: 'is-centered')
-        render(Tabs::Component.new(class: klass)) do |c|
+        render(Tabs::Component.new(tabs_class: klass)) do |c|
           c.tab(title: 'Tab 1', active: true) do
             tag.p('Tab one content')
           end
