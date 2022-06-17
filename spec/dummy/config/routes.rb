@@ -8,5 +8,9 @@ Rails.application.routes.draw do
 
   get 'show-content-in-hovercard', to: 'hovercard#show'
 
+  get 'tab1', to: 'tabs#tab1'
+  get 'tab2', to: 'tabs#tab2'
+  get 'tab3', to: 'tabs#tab3'
+
   mount Lookbook::Engine, at: '/lookbook'
 end
