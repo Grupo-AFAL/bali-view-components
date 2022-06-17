@@ -10,6 +10,7 @@ module Bali
         @hoverable = hoverable
         @close_on_click = close_on_click
         @options = options
+        @align = align
 
         @options = prepend_class_name(@options, alignment_class)
         ...
