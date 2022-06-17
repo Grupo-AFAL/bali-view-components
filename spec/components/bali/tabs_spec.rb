@@ -22,7 +22,7 @@ RSpec.describe Bali::Tabs::Component, type: :component do
   end
 
   it 'renders tabs with class centered' do
-    options.merge!(class: 'is-centered')
+    options.merge!(tabs_class: 'is-centered')
     render_inline(component)
 
     is_expected.to have_css 'div.tabs.is-centered'
