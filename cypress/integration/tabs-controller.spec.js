@@ -29,10 +29,13 @@ describe('TabsController', () => {
     })
 
     it('load tab content on click', () => {
-      cy.get('.tabs li:nth-child(3)').should('not.have.attr', 'data-tab-content-loaded')
+      cy.get('.tabs li:nth-child(3)').should(
+        'not.have.attr',
+        'data-content-loaded'
+      )
 
       cy.get('.tabs li:nth-child(3) a').click()
-      cy.get('.tabs li:nth-child(3)').should('have.attr', 'data-tab-content-loaded')
+      cy.get('.tabs li:nth-child(3)').should('have.attr', 'data-content-loaded')
     })
   })
 })

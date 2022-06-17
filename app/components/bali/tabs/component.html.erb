@@ -2,9 +2,10 @@
   <%= tag.div **@options do %>
     <ul>
       <% tabs.each_with_index do |tab, index| %>
-        <%= tag.li data: { 'tab-index': index,
-                           'tab-src': tab.src,
-                           'tab-reload-on-click': tab.reload_on_click,
+        <%= tag.li data: { 'tabs-target': 'tab',
+                           'tabs-index-param': index,
+                           'tabs-src-param': tab.src,
+                           'tabs-reload-param': tab.reload,
                             action: 'click->tabs#open' },
                    class: class_names('is-active': tab.active) do %>
 
@@ -19,7 +20,9 @@
 
   <div class="tabs-content">
     <% tabs.each_with_index do |tab, index| %>
-      <%= tag.div **tab.options, data: { 'content-index': index } do %>
+      <%= tag.div **tab.options, data: {
+            'tabs-target': 'tabContent',
+            'tabs-index-param': index } do %>
         <%= tab %>
       <% end %>
     <% end %>

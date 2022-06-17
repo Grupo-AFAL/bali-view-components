@@ -41,9 +41,9 @@ module Bali
       # Tabs with custom class
       # ----------------------
       # Add a custom class to the tabs component whenever you need to customize it.
-      # @param _class select [is-centered, is-right, is-small, is-medium, is-large, is-boxed, is-toggle, is-toggle is-toggle-rounded, is-fullwidth]
-      def with_custom_class(_class: 'is-centered')
-        render(Tabs::Component.new(class: _class)) do |c|
+      # @param klass select [is-centered, is-right, is-small, is-medium, is-large, is-boxed, is-toggle, is-toggle is-toggle-rounded, is-fullwidth]
+      def with_custom_class(klass: 'is-centered')
+        render(Tabs::Component.new(class: klass)) do |c|
           c.tab(title: 'Tab 1', active: true) do
             tag.p('Tab one content')
           end
@@ -61,13 +61,12 @@ module Bali
       # Tabs with on demand content
       # ---------------------------
       # Set a hyperlink to the tab, to load it's content on demand.
-      # @param src url
-      # @param reload_on_click toggle
-      def on_demand_content(src: 'https://dog.ceo/api/breeds/image/random', reload_on_click: false)
+      # @param reload toggle
+      def on_demand_content(reload: false)
         render(Tabs::Component.new) do |c|
-          c.tab(title: 'Tab 1', src: src, reload_on_click: reload_on_click, active: true)
-          c.tab(title: 'Tab 2', src: src, reload_on_click: reload_on_click)
-          c.tab(title: 'Tab 3', src: src, reload_on_click: reload_on_click)
+          c.tab(title: 'Tab 1', src: '/tab1', reload: reload, active: true)
+          c.tab(title: 'Tab 2', src: '/tab2', reload: reload)
+          c.tab(title: 'Tab 3', src: '/tab3', reload: reload)
         end
       end
     end
