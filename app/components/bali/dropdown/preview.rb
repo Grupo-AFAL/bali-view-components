@@ -8,7 +8,7 @@ module Bali
       # Default dropdown with a list of items
       # @param hoverable toggle
       # @param close_on_click toggle
-      # @param align [Symbol] select [left, right]
+      # @param align [Symbol] select [left, right, up]
       def default(hoverable: false, close_on_click: true, align: :left)
         render(Dropdown::Component.new(hoverable: hoverable, close_on_click: close_on_click, align: align)) do |c|
           c.trigger(class: 'button') { 'Trigger' }
@@ -26,7 +26,7 @@ module Bali
       # inside the div.dropdown-content
       # @param hoverable toggle
       # @param close_on_click toggle
-      # @param align [Symbol] select [left, right]
+      # @param align [Symbol] select [left, right, up]
       def with_content(hoverable: false, close_on_click: true, align: :left)
         render(Dropdown::Component.new(hoverable: hoverable, close_on_click: close_on_click, align: align)) do |c|
           c.trigger(class: 'button') { 'Trigger' }

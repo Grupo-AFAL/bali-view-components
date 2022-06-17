@@ -10,10 +10,10 @@ module Bali
         case @align
         when :right
           'is-right'
-        when :center
-          'is-centered'
+        when :up
+          'is-up'
         else
-          'is-left'
+          ''
         end
       end
 
