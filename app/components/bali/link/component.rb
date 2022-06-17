@@ -46,7 +46,10 @@ module Bali
         @options = prepend_class_name(@options, "button is-#{type}") if type.present?
         @options = prepend_action(@options, 'modal#open') if modal
         @options = prepend_action(@options, 'drawer#open') if drawer
-        @options = prepend_turbo_method(@options, method.to_s) if method.present?
+
+        return unless method.present? && method.to_s != 'get'
+
+        @options = prepend_turbo_method(@options, method.to_s)
       end
       # rubocop:enable Metrics/AbcSize
       # rubocop:enable Metrics/ParameterLists
