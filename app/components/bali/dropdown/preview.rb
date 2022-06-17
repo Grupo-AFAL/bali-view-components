@@ -25,8 +25,9 @@ module Bali
       # inside the div.dropdown-content
       # @param hoverable toggle
       # @param close_on_click toggle
+      # @param align select[:left, :right, :center]
       def with_content(hoverable: false, close_on_click: true)
-        render(Dropdown::Component.new(hoverable: hoverable, close_on_click: close_on_click)) do |c|
+        render(Dropdown::Component.new(hoverable: hoverable, close_on_click: close_on_click, align: :right)) do |c|
           c.trigger(class: 'button') { 'Trigger' }
 
           c.tag.ul do
