@@ -47,7 +47,7 @@ module Bali
       # --------------
       # This will add an icon to the link but no text.
       def link_with_just_icon
-        render Bali::Link::Component.new(href: '#') do |c|
+        render Bali::Link::Component.new(href: '#', type: :primary) do |c|
           c.icon('address-book')
         end
       end

@@ -1,4 +1,6 @@
 <%= link_to href, **options do %>
   <%= icon %>
-  <%= tag.span name %>
+  <% if name.present? %>
+    <%= tag.span name %>
+  <% end %>
 <% end %>

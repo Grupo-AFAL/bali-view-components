@@ -6,7 +6,11 @@
 
   &.button {
     .icon {
-      margin-right: 0 !important;
+      margin-right: calc(-0.5em - 1px) !important;
+    }
+
+    span {
+      margin-left: 0.5rem;
     }
   }
 }
