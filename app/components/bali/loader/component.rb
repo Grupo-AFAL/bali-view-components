@@ -5,7 +5,7 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :text
 
-      def initialize(text: 'Loading...')
+      def initialize(text: t('.loading'))
         @text = text
       end
     end
