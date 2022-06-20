@@ -88,7 +88,7 @@ Update this table when making progress on any of the Components or when adding n
 | InfoLevel         | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | Level             | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | Link              | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
-| Loader            |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| Loader            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark:  |                                                |
 | Modal             | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | NavBar            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Notification      |        :x:         | :white_check_mark: |        :x:         |        :x:         |                                                |
