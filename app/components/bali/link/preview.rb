@@ -55,6 +55,19 @@ module Bali
         )
       end
 
+      # Link with icon in the right side
+      # --------------
+      # This will add an icon to the right of the link name
+      # @param type select [primary, success, danger, warning, info, link]
+      # @param size select [small, normal, medium, large]
+      def with_icon_in_right_side(type: :primary, size: :normal)
+        render Bali::Link::Component.new(
+          name: 'Click me!', href: '#', type: type, class: "is-#{size}"
+        ) do |c|
+          c.icon_right('address-book')
+        end
+      end
+
       # Link with `is-active` class
       # --------------
       # This will add the `is-active` class if the `active_path` is the same as the href.

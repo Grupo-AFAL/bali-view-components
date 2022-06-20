@@ -6,6 +6,7 @@ module Bali
       attr_reader :name, :href, :type, :icon_name, :drawer, :modal, :options
 
       renders_one :icon, ->(name, **options) { Icon::Component.new(name, **options) }
+      renders_one :icon_right, ->(name, **options) { Icon::Component.new(name, **options) }
 
       # @param name [String] The name of the link.
       # @param href [String] The href of the link.
