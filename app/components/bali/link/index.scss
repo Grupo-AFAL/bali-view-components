@@ -3,14 +3,4 @@
     display: flex;
     align-items: center;
   }
-
-  &.button {
-    .icon {
-      margin-right: calc(-0.5em - 1px) !important;
-    }
-
-    span {
-      margin-left: 0.5rem;
-    }
-  }
 }

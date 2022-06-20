@@ -1,5 +1,10 @@
 <%= link_to href, **options do %>
-  <%= icon %>
+  <% if icon.present? %>
+    <%= icon %>
+  <% elsif icon_name.present? %>
+    <%= render Bali::Icon::Component.new(icon_name) %>
+  <% end %>
+
   <% if name.present? %>
     <%= tag.span name %>
   <% end %>

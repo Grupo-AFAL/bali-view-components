@@ -3,7 +3,7 @@
 module Bali
   module Link
     class Component < ApplicationViewComponent
-      attr_reader :name, :href, :type, :drawer, :modal, :options
+      attr_reader :name, :href, :type, :icon_name, :drawer, :modal, :options
 
       renders_one :icon, ->(name, **options) { Icon::Component.new(name, **options) }
 
@@ -22,6 +22,7 @@ module Bali
       def initialize(href:,
                      name: nil,
                      type: nil,
+                     icon_name: nil,
                      modal: false,
                      drawer: false,
                      active_path: nil,
@@ -32,6 +33,7 @@ module Bali
         @name = name
         @href = href
         @type = type
+        @icon_name = icon_name
         @modal = modal
         @active_path = active_path
         @drawer = drawer
