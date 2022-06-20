@@ -15,10 +15,13 @@ RSpec.describe Bali::Notification::Component, type: :component do
 
       is_expected.to have_css 'div.notification', text: 'Hello World!'
       is_expected.to have_css 'div.is-success'
+      is_expected.to have_css 'div[data-controller="notification"]'
+      is_expected.to have_css 'button[data-action="notification#close"]'
+      is_expected.to have_css 'button.delete'
     end
   end
 
-  %i[success info warning danger].each do |notification_type|
+  %i[success info warning danger info primary].each do |notification_type|
     context "#{notification_type} notification type" do
       it 'renders' do
         render_inline(component.new(type: notification_type)) do

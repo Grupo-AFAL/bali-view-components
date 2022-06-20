@@ -1,4 +1,4 @@
 <%= tag.div **options do %>
-  <button data-action="notification#close" class="delete"></button>
+  <%= tag.button class: 'delete', data: { action: 'notification#close'} %>
   <%= content %>
 <% end %>
