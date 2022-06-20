@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe Bali::Loader::Component, type: :component do
   let(:component) { Bali::Loader::Component.new(**@options) }
 
-  before { @options = { text: 'Cargando...' } }
+  before { @options = {} }
 
   subject { rendered_component }
 
