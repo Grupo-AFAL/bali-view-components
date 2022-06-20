@@ -111,3 +111,9 @@ Update this table when making progress on any of the Components or when adding n
 | :white_check_mark: | Is complete      |
 | :wavy_dash:        | Incomplete       |
 | :x:                | Missing entirely |
+
+
+## Conventions
+- The top component tag should containt the name of the component following by the word `-component`
+ - Ex. Link::Component =>  ```<a class="link-component">content</div>```
+- 
