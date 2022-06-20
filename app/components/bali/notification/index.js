@@ -18,7 +18,7 @@ export class NotificationController extends Controller {
 
   connect() {
     this.closed = false
-    // setTimeout(() => this.close(), this.delayValue)
+    setTimeout(() => this.close(), this.delayValue)
   }
 
   // This is for disconnecting the controller

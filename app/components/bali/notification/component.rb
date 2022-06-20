@@ -12,7 +12,7 @@ module Bali
       # @param [<Integer>] miliseconds_to_close How long the notification will be shown.
       # @param [<Hash>] options This adds a custom attributes to the component.
 
-      def initialize(type: :notice, miliseconds_to_close: 3000, **options)
+      def initialize(type: :success, miliseconds_to_close: 3000, **options)
         @options = options
 
         @options = prepend_class_name(@options, "notification is-#{type}")
