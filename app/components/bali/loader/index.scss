@@ -2,7 +2,7 @@ $loader-color: $primary;
 $loader-background-color: $white;
 $loader-size: 10em;
 
-.loader-component {
+.loader-component .spinner {
   $spinner-size: $loader-size + 0.2em;
   $spinner-half-size: $spinner-size/2;
 
