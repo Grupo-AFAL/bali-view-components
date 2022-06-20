@@ -100,7 +100,7 @@ Update this table when making progress on any of the Components or when adding n
 | SortableList      |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Steps (Progress)  |        :x:         |        :x:         |        :x:         |        :x:         | Rename from Progress to Steps                  |
 | Table             | :white_check_mark: |    :wavy_dash:     |        :x:         | :white_check_mark: |                                                |
-| Tabs              | :white_check_mark: | :white_check_mark: |        :x:         |        :x:         |                                                |
+| Tabs              | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Timeline          |        :x:         |        :x:         |        :x:         |        :x:         | Create from scratch, HTML already exists on GA |
 | TreeView          | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 
