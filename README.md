@@ -91,7 +91,7 @@ Update this table when making progress on any of the Components or when adding n
 | Loader            |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Modal             | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | NavBar            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
-| Notification      |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| Notification      |        :x:         | :white_check_mark: |        :x:         |        :x:         |                                                |
 | PageHeader        | :white_check_mark: | :white_check_mark: |    :wavy_dash:     | :white_check_mark: |                                                |
 | ProfilePicture    |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Rate (Rating)     |        :x:         |        :x:         |        :x:         |        :x:         | Rename from Rating to Rate                     |
