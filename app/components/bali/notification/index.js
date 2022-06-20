@@ -16,18 +16,18 @@ export class NotificationController extends Controller {
     remove: Boolean
   }
 
-  connect () {
+  connect() {
     this.closed = false
-    setTimeout(() => this.close(), this.delayValue)
+    // setTimeout(() => this.close(), this.delayValue)
   }
 
   // This is for disconnecting the controller
-  disconnect () {
+  disconnect() {
     if (this.closed) return
     this.removeElement()
   }
 
-  close () {
+  close() {
     const animationClass = this.hasAnimationClass
       ? this.animationClass
       : 'fadeOutRight'
@@ -39,7 +39,7 @@ export class NotificationController extends Controller {
     })
   }
 
-  removeElement () {
+  removeElement() {
     if (!this.hasRemoveValue) {
       this.element.remove()
     }

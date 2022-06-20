@@ -91,7 +91,7 @@ Update this table when making progress on any of the Components or when adding n
 | Loader            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark:  |                                                |
 | Modal             | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | NavBar            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
-| Notification      |        :x:         | :white_check_mark: |        :x:         |        :x:         |                                                |
+| Notification      | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | PageHeader        | :white_check_mark: | :white_check_mark: |    :wavy_dash:     | :white_check_mark: |                                                |
 | ProfilePicture    |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Rate (Rating)     |        :x:         |        :x:         |        :x:         |        :x:         | Rename from Rating to Rate                     |
@@ -116,4 +116,12 @@ Update this table when making progress on any of the Components or when adding n
 ## Conventions
 - The top component tag should containt the name of the component following by the word `-component`
  - Ex. Link::Component =>  ```<a class="link-component">content</div>```
-- 
+- The name of the CSS should be wrapped into the name of the component
+ - Ex.
+ ```
+  .link-component {
+    &:hover{
+      background-color: #000;
+    }
+  }
+  ```
