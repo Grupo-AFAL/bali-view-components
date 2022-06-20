@@ -3,68 +3,17 @@
 module Bali
   module Notification
     class Preview < ApplicationViewComponentPreview
-      # Success notification
+      # System notification
       # -------------------
-      # This will add the class `is-success` to the notification.
-      def default
-        render Notification::Component.new do
+      # Default system notification with success type.
+      # @param delay number
+      # @param fixed toggle
+      # @param type [Symbol] select [primary, success, info, warning, danger, link]
+      def default(delay: 3000, fixed: true, type: :success)
+        render Notification::Component.new(type: type, delay: delay, fixed: fixed) do
           tag.h1 'This is a success notification, Yay!'
         end
       end
-
-      # @!group Notification
-
-      # Danger notification
-      # ------------------
-      # This will add the class `is-danger` to the notification.
-      def danger
-        render Notification::Component.new(
-          type: :danger, miliseconds_to_close: 3500, fixed: false) do
-          tag.h1 'This is a Danger notification, Oh No!'
-        end
-      end
-
-      # Primary notification
-      # ------------------
-      # This will add the class `is-primary` to the notification.
-      def primary
-        render Notification::Component.new(
-          type: :primary, miliseconds_to_close: 4000, fixed: false) do
-          tag.h1 'This is a alert notification, Should be firts!'
-        end
-      end
-
-      # Warning notification
-      # ------------------
-      # This will add the class `is-warning` to the notification.
-      def warning
-        render Notification::Component.new(
-          type: :warning, miliseconds_to_close: 4500, fixed: false) do
-          tag.h1 'This is a alert notification, Watch out!'
-        end
-      end
-
-      # Info notification
-      # ------------------
-      # This will add the class `is-info` to the notification.
-      def info
-        render Notification::Component.new(
-          type: :info, miliseconds_to_close: 5000, fixed: false) do
-          tag.h1 'This is a alert notification, mmm, interesting!'
-        end
-      end
-
-      # Link notification
-      # ------------------
-      # This will add the class `is-link` to the notification with 10000 miliseconds to close.
-      def link
-        render Notification::Component.new(
-          type: :link, miliseconds_to_close: 5500, fixed: false) do
-          tag.h1 'This is a alert notification, Nice Link!'
-        end
-      end
-
-      # @!endgroup
     end
   end
 end

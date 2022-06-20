@@ -9,18 +9,16 @@ module Bali
       # Notification Component with different type of notification.
       #
       # @param [<Symbol>] type This adds a class for the notification: :success, :danger
-      # @param [<Integer>] miliseconds_to_close How long the notification will be shown.
+      # @param [<Integer>] delay How long the notification will be shown.
       # @param [<Hash>] options This adds a custom attributes to the component.
 
-      def initialize(type: :success, miliseconds_to_close: 3000, fixed: true, **options)
+      def initialize(type: :success, delay: 3000, fixed: true, **options)
         @options = options
 
-        @options = prepend_class_name(@options, 'notification-component')
-        @options = prepend_class_name(@options, "notification is-#{type}")
+        @options = prepend_class_name(@options, "notification-component notification is-#{type}")
         @options = prepend_class_name(@options, 'fixed') if fixed
         @options = prepend_controller(@options, 'notification')
-        @options = prepend_data_attribute(@options, 'notification-delay-value',
-                                          miliseconds_to_close)
+        @options = prepend_data_attribute(@options, 'notification-delay-value', delay)
         @options = prepend_data_attribute(@options, 'turbo-cache', false)
       end
     end
