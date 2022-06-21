@@ -14,7 +14,7 @@
 #
 # See https://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 
-# Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].sort.each { |f| require f }
+Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].sort.each { |f| require f }
 
 ENV['RAILS_ENV'] = 'test'
 
