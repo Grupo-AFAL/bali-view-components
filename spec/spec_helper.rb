@@ -14,6 +14,18 @@
 #
 # See https://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 
+require 'simplecov'
+
+SimpleCov.start 'rails' do
+  add_filter 'spec/'
+  add_filter '.github/'
+  add_filter 'lib/bali/version'
+
+  add_group 'Components', 'app/components/bali'
+
+  add_filter(/preview.rb/)
+end
+
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].sort.each { |f| require f }
 
 ENV['RAILS_ENV'] = 'test'
