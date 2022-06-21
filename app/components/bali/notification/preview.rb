@@ -6,12 +6,14 @@ module Bali
       # System notification
       # -------------------
       # Default system notification with success type.
+      # @param type [Symbol] select [primary, success, info, warning, danger, link]
       # @param delay number
       # @param fixed toggle
-      # @param type [Symbol] select [primary, success, info, warning, danger, link]
-      def default(delay: 3000, fixed: true, type: :success)
-        render Notification::Component.new(type: type, delay: delay, fixed: fixed) do
-          tag.h1 'This is a success notification, Yay!'
+      # @param dismissible toggle
+      def default(delay: 3000, fixed: true, type: :success, dismissible: false)
+        render Notification::Component.new(
+          type: type, delay: delay, fixed: fixed, dismissible: dismissible) do
+          tag.h1 'This is a notification, Yay!, Oh no!'
         end
       end
     end

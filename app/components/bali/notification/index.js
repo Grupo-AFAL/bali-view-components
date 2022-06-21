@@ -6,22 +6,24 @@ import { Controller } from '@hotwired/stimulus'
  * Defaults:
  *  --delay: 3 seconds
  *  --animation: fadeOutRight
- *  --remove: true (The element will be removed if removeValue is assigned)
+ *  --dismissible: true (The element will be removed if dismissibleValue is true)
  */
 export class NotificationController extends Controller {
   static classes = ['animation']
 
   static values = {
     delay: { type: Number, default: 3000 },
-    remove: Boolean
+    dismissible: { type: Boolean, default: true }
   }
 
   connect () {
     this.closed = false
-    setTimeout(() => this.close(), this.delayValue)
+
+    if (this.dismissibleValue) {
+      setTimeout(() => this.close(), this.delayValue)
+    }
   }
 
-  // This is for disconnecting the controller
   disconnect () {
     if (this.closed) return
     this.removeElement()
@@ -40,8 +42,6 @@ export class NotificationController extends Controller {
   }
 
   removeElement () {
-    if (!this.hasRemoveValue) {
-      this.element.remove()
-    }
+    this.element.remove()
   }
 }
