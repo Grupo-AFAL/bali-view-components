@@ -9,10 +9,10 @@ module Bali
       # @param type [Symbol] select [primary, success, info, warning, danger, link]
       # @param delay number
       # @param fixed toggle
-      # @param dismissible toggle
-      def default(delay: 3000, fixed: true, type: :success, dismissible: false)
+      # @param dismiss toggle
+      def default(delay: 3000, fixed: true, type: :success, dismiss: false)
         render Notification::Component.new(
-          type: type, delay: delay, fixed: fixed, dismissible: dismissible) do
+          type: type, delay: delay, fixed: fixed, dismiss: dismiss) do
           tag.h1 'This is a notification, Yay!, Oh no!'
         end
       end

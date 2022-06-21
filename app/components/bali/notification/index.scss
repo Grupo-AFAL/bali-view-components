@@ -1,12 +1,13 @@
 $z-index-notification: 101;
 $box-shadow: 0px 3px 18px rgba($black, 0.1), 0 0 0 1px rgba($black, 0.03);
+$top-position: 4.25rem;
 
 .notification-component {
   box-shadow: $box-shadow;
 
   &.fixed {
     position: fixed;
-    top: 4.25rem;
+    top: $top-position;
     right: 1rem;
     z-index: $z-index-notification;
   }
