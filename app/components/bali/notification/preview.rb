@@ -5,7 +5,7 @@ module Bali
     class Preview < ApplicationViewComponentPreview
       # System notification
       # -------------------
-      # Default system notification with success type.
+      # Default system notification.
       # @param type [Symbol] select [primary, success, info, warning, danger, link]
       # @param delay number
       # @param fixed toggle
