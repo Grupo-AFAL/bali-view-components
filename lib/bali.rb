@@ -2,7 +2,9 @@
 
 require 'bali/version'
 require 'bali/engine'
+require 'bali/filter_form'
 
 module Bali
-  # Your code goes here...
+  class Engine < ::Rails::Engine; end
+  class Error < StandardError; end
 end

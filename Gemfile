@@ -11,6 +11,7 @@ gem 'sassc-rails'
 gem 'sprockets-rails'
 
 gem 'lookbook'
+gem 'ransack'
 gem 'view_component'
 gem 'view_component-contrib'
 
