@@ -20,10 +20,10 @@ ENV['RAILS_ENV'] = 'test'
 
 require_relative '../spec/dummy/config/environment'
 
-# ENV['RAILS_ROOT'] ||= "#{File.dirname(__FILE__)}../../../spec/dummy"
+ENV['RAILS_ROOT'] ||= "#{File.dirname(__FILE__)}../../../spec/dummy"
 
 require 'bundler/setup'
-# require 'action_view/railtie'
+require 'action_view/railtie'
 require 'active_model/railtie'
 require 'bali'
 
