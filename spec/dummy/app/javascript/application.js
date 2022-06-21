@@ -8,6 +8,7 @@ import {
   HelpTipController,
   HovercardController,
   NavbarController,
+  NotificationController,
   PopupController,
   TabsController,
   TreeViewItemController,
@@ -23,6 +24,7 @@ application.register('filter-form', FilterFormController)
 application.register('help-tip', HelpTipController)
 application.register('hovercard', HovercardController)
 application.register('navbar', NavbarController)
+application.register('notification', NotificationController)
 application.register('popup', PopupController)
 application.register('tabs', TabsController)
 application.register('tree-view-item', TreeViewItemController)
