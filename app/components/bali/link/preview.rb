@@ -89,6 +89,17 @@ module Bali
           name: 'Click me!', href: '#', method: :post, type: type, class: "is-#{size}"
         )
       end
+
+      # Link with custom content
+      # --------------
+      # This will add custom content to the link.
+      # @param type select [primary, success, danger, warning, info, link]
+      # @param size select [small, normal, medium, large]
+      def custom_content(type: :primary, size: :normal)
+        render Bali::Link::Component.new(href: '#', type: type, class: "is-#{size}") do |c|
+          c.tag.p('custom content')
+        end
+      end
     end
   end
 end
