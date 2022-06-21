@@ -4,7 +4,7 @@ import { Controller } from '@hotwired/stimulus'
  * Notification Controller
  * Automatically hides or not the element after given delay seconds
  * Defaults:
- *  --delay: 3 seconds default
+ *  --delay: 3 seconds
  *  --animation: fadeOutRight
  *  --dismissible: true (The element will be removed if dismissibleValue is true)
  */
