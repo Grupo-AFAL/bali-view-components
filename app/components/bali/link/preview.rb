@@ -3,121 +3,103 @@
 module Bali
   module Link
     class Preview < ApplicationViewComponentPreview
-      # @!group Button
-
       # Basic link
-      # ----------
+      # --------------
+      # This will return a basic link with the name and href.
       def default
         render Bali::Link::Component.new(name: 'Click me!', href: '#')
       end
 
-      # Link with type prymary
-      # ---------------------
-      # This will add the class `button` and `is-primary` to the link.
-      def primary
-        render Bali::Link::Component.new(name: 'Click me!', href: '#', type: :primary)
-      end
-
-      # Link with type secondary
-      # -----------------------
-      # This will add the class `button` and `is-secondary` to the link.
-      def secondary
-        render Bali::Link::Component.new(name: 'Click me!', href: '#', type: :secondary)
-      end
-
-      # Link with type success
-      # ----------------------
-      # This will add the class `button` and `is-success` to the link.
-      def success
-        render Bali::Link::Component.new(name: 'Click me!', href: '#', type: :success)
-      end
-
-      # Link with type danger
-      # ---------------------
-      # This will add the class `button` and `is-danger` to the link.
-      def danger
-        render Bali::Link::Component.new(name: 'Click me!', href: '#', type: :danger)
-      end
-
-      # Link with type warning
-      # ---------------------
-      # This will add the class `button` and `is-warning` to the link.
-      def warning
-        render Bali::Link::Component.new(name: 'Click me!', href: '#', type: :warning)
-      end
-
-      # Link with size small
-      # ------------------
-      # This will change the size of the link to small.
-      def small
-        render Bali::Link::Component.new(name: 'Small', href: '#', class: 'button is-small')
-      end
-
-      # Link with size normal
-      # ------------------
-      # This will change the size of the link to normal, also this is the default size.
-      def normal
-        render Bali::Link::Component.new(name: 'Normal', href: '#', class: 'button is-normal')
-      end
-
-      # Link with size medium
-      # ------------------
-      # This will change the size of the link to medium.
-      def medium
-        render Bali::Link::Component.new(name: 'Medium', href: '#', class: 'button is-medium')
-      end
-
-      # Link with size large
-      # ------------------
-      # This will change the size of the link to large.
-      def large
-        render Bali::Link::Component.new(name: 'Large', href: '#', class: 'button is-large')
+      # Basic usage
+      # -------------
+      # This will add the class `button`, `is-primary` and the size to the link.
+      # @param type select [primary, success, danger, warning, info, link]
+      # @param size select [small, normal, medium, large]
+      def basic(type: :primary, size: :normal)
+        render Bali::Link::Component.new(name: 'Click me!', href: '#', type: type,
+                                         class: "is-#{size}")
       end
 
       # Link with icon
       # --------------
-      # This will add an icon to the link.
-      def with_icon
-        render Bali::Link::Component.new(name: 'Click me!', href: '#') do |c|
-          c.icon('poo')
-        end
+      # This will add an icon to the left of the link name
+      # @param type select [primary, success, danger, warning, info, link]
+      # @param size select [small, normal, medium, large]
+      def with_icon(type: :primary, size: :normal)
+        render Bali::Link::Component.new(
+          name: 'Click me!', href: '#', icon_name: 'books', type: type, class: "is-#{size}"
+        )
       end
 
       # Link with icon
       # --------------
-      # This will add an icon to the link with class button is-primary.
-      def button_with_icon
-        render Bali::Link::Component.new(name: 'Click me!', href: '#', type: :primary) do |c|
-          c.icon('poo')
+      # This will add an icon to the link and pass additional options
+      # @param type select [primary, success, danger, warning, info, link]
+      # @param size select [small, normal, medium, large]
+      def with_icon_customized(type: :primary, size: :large)
+        render Bali::Link::Component.new(
+          name: 'Click me!', href: '#', type: type, class: "is-#{size}"
+        ) do |c|
+          c.icon('books', class: "is-#{size}")
         end
       end
 
       # Link with just an icon
       # --------------
       # This will add an icon to the link but no text.
-      def link_with_just_icon
-        render Bali::Link::Component.new(href: '#') do |c|
-          c.icon('poo')
+      # @param type select [primary, success, danger, warning, info, link]
+      # @param size select [small, normal, medium, large]
+      def link_with_just_icon(type: :primary, size: :normal)
+        render Bali::Link::Component.new(
+          href: '#', type: type, icon_name: 'address-book', class: "is-#{size}"
+        )
+      end
+
+      # Link with icon in the right side
+      # --------------
+      # This will add an icon to the right of the link name
+      # @param type select [primary, success, danger, warning, info, link]
+      # @param size select [small, normal, medium, large]
+      def with_icon_in_right_side(type: :primary, size: :normal)
+        render Bali::Link::Component.new(
+          name: 'Click me!', href: '#', type: type, class: "is-#{size}"
+        ) do |c|
+          c.icon_right('address-book')
         end
       end
 
       # Link with `is-active` class
       # --------------
       # This will add the `is-active` class if the `active_path` is the same as the href.
-      def is_active
-        render Bali::Link::Component.new(name: 'Click me!', href: '#', active_path: '#',
-                                         class: 'button')
+      # @param type select [primary, success, danger, warning, info, link]
+      # @param size select [small, normal, medium, large]
+      def is_active(type: :primary, size: :normal)
+        render Bali::Link::Component.new(
+          name: 'Click me!', href: '#', active_path: '#', type: type, class: "is-#{size}"
+        )
       end
 
       # Link with `data-turbo-method` attribute
       # --------------
       # This will add the `data-turbo-method` attribute to the link.
-      def data_turbo_method
-        render Bali::Link::Component.new(name: 'Click me!', href: '#', method: :post,
-                                         class: 'button')
+      # @param type select [primary, success, danger, warning, info, link]
+      # @param size select [small, normal, medium, large]
+      def data_turbo_method(type: :primary, size: :normal)
+        render Bali::Link::Component.new(
+          name: 'Click me!', href: '#', method: :post, type: type, class: "is-#{size}"
+        )
       end
 
-      # @!endgroup
+      # Link with custom content
+      # --------------
+      # This will add custom content to the link.
+      # @param type select [primary, success, danger, warning, info, link]
+      # @param size select [small, normal, medium, large]
+      def custom_content(type: :primary, size: :normal)
+        render Bali::Link::Component.new(href: '#', type: type, class: "is-#{size}") do |c|
+          c.tag.p('custom content')
+        end
+      end
     end
   end
 end
