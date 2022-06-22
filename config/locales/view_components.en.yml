@@ -11,6 +11,8 @@ en:
       filters:
         filters: Filters
         remove_filters: Clear
+      loader:
+        loading: Loading...
       search_input:
         placeholder: Search...
       calendar:
