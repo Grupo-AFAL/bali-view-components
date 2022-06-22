@@ -63,11 +63,26 @@ RSpec.describe Bali::Link::Component, type: :component do
     expect(rendered_component).to have_css 'a.is-active', text: 'Click me!'
   end
 
-  it 'renders a link with turbo method' do
-    @options.merge!(method: :post)
+  context 'when use a the method parameter' do
+    context 'when the method is not get' do
+      it 'renders a link with turbo method' do
+        @options.merge!(method: :post)
 
-    render_inline(component)
+        render_inline(component)
 
-    expect(rendered_component).to have_css 'a[data-turbo-method="post"]', text: 'Click me!'
+        expect(rendered_component).to have_css 'a[data-turbo-method="post"]', text: 'Click me!'
+      end
+    end
+
+    context 'when the metho is get' do
+      it 'renders a link without turbo method' do
+        @options.merge!(method: :get)
+
+        render_inline(component)
+
+        expect(rendered_component).to have_css 'a.link-component', text: 'Click me!'
+        expect(rendered_component).not_to have_css 'a[data-turbo-method="post"]'
+      end
+    end
   end
 end
