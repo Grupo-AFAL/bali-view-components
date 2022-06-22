@@ -1,6 +1,19 @@
 # frozen_string_literal: true
 
 # This file is copied to spec/ when you run 'rails generate rspec:install'
+
+require 'simplecov'
+
+SimpleCov.start 'rails' do
+  add_filter 'spec/'
+  add_filter '.github/'
+  add_filter 'lib/bali/version'
+
+  add_group 'Components', 'app/components/bali'
+
+  add_filter(/preview.rb/)
+end
+
 require 'spec_helper'
 ENV['RAILS_ENV'] ||= 'test'
 require File.expand_path('./dummy/config/environment', __dir__)
