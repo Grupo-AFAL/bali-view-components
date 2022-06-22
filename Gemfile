@@ -11,6 +11,7 @@ gem 'sassc-rails'
 gem 'sprockets-rails'
 
 gem 'lookbook'
+gem 'ransack'
 gem 'view_component'
 gem 'view_component-contrib'
 
@@ -26,7 +27,10 @@ end
 
 group :test do
   gem 'capybara', '~> 3'
-  gem 'rspec-rails', '~> 5'
   gem 'simplecov', require: false
   gem 'sqlite3'
+end
+
+group :development, :test do
+  gem 'rspec-rails', '~> 5'
 end
