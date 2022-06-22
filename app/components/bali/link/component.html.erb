@@ -1,4 +1,5 @@
 <%= link_to href, **options do %>
+
   <% if icon.present? %>
     <%= icon %>
   <% elsif icon_name.present? %>
@@ -6,12 +7,10 @@
   <% end %>
 
   <% if name.present? %>
-    <%= tag.span name %>
+    <%= tag.span name if name.present? %>
   <% end %>
 
-  <% if icon_right.present? %>
-    <%= icon_right %>
-  <% end %>
+  <%= icon_right if icon_right.present? %>
 
   <%= content %>
 <% end %>

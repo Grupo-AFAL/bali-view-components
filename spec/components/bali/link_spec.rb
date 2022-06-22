@@ -81,7 +81,7 @@ RSpec.describe Bali::Link::Component, type: :component do
         render_inline(component)
 
         expect(rendered_component).to have_css 'a.link-component', text: 'Click me!'
-        expect(rendered_component).not_to have_css 'a[data-turbo-method="post"]'
+        expect(rendered_component).not_to have_css 'a[data-turbo-method="get"]'
       end
     end
   end

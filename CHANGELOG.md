@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.0] - 2022-06-21
 
-- Fix style in `link` component.
+- Fix style in `Link::Component`.
 
 ## [0.7.0] - 2022-06-21
 
