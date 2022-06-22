@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+# rubocop:disable Style/MixinUsage
+include Bali::Types
+# rubocop:enable Style/MixinUsage
+
 RSpec.describe Bali::Types::TimeValue do
   describe 'integration with a model' do
     it 'casts a time value from integer to a date string' do
