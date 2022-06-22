@@ -5,5 +5,5 @@ require 'bali/engine'
 require 'bali/filter_form'
 
 module Bali
-  class Error < StandardError; end
+  # Your code goes here...
 end

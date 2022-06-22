@@ -20,10 +20,12 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
+      - name: Set up database schema
+        run: bin/rails db:schema:load
       # Add or replace test runners here
       - name: Run Rspec & publish code coverage
         uses: paambaati/codeclimate-action@v3.0.0
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
-          coverageCommand: bundle exec rake spec
+          coverageCommand: bundle exec rspec spec/
