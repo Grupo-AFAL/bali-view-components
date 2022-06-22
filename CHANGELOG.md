@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added Time Value class and its corresponding tests.
 
+## [0.8.1] - 2022-06-22
+
+- Remove double validation in `Link::Component`.
+
 ## [0.8.0] - 2022-06-21
 
 - Fix style in `Link::Component`.
