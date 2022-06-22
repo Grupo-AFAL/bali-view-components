@@ -11,7 +11,7 @@ module Bali
         # @param route_name [String] The route to use for the links.
         # @param period_switch [Boolean] To display the period switch or not.
         # @param start_attribute [Symbol] Method to be called on each event object for the
-        # start_date.
+        #  start_date.
 
         def initialize(start_date:, period: :month, route_name: nil, period_switch: true,
                        start_attribute: :start_time, **options)

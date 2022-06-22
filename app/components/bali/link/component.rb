@@ -3,9 +3,10 @@
 module Bali
   module Link
     class Component < ApplicationViewComponent
-      attr_reader :name, :href, :type, :drawer, :modal, :options
+      attr_reader :name, :href, :type, :icon_name, :drawer, :modal, :options
 
       renders_one :icon, ->(name, **options) { Icon::Component.new(name, **options) }
+      renders_one :icon_right, ->(name, **options) { Icon::Component.new(name, **options) }
 
       # @param name [String] The name of the link.
       # @param href [String] The href of the link.
@@ -18,9 +19,11 @@ module Bali
       # @param method [Symbol|String] Adds a turbo method to the link.
 
       # rubocop:disable Metrics/ParameterLists
+      # rubocop:disable Metrics/AbcSize
       def initialize(href:,
                      name: nil,
                      type: nil,
+                     icon_name: nil,
                      modal: false,
                      drawer: false,
                      active_path: nil,
@@ -31,11 +34,13 @@ module Bali
         @name = name
         @href = href
         @type = type
+        @icon_name = icon_name
         @modal = modal
         @active_path = active_path
         @drawer = drawer
         @method = method
         @options = options
+        @options = prepend_class_name(@options, 'link-component')
 
         if active_path?(href, active_path, match: match)
           @options = prepend_class_name(@options, 'is-active')
@@ -44,8 +49,14 @@ module Bali
         @options = prepend_class_name(@options, "button is-#{type}") if type.present?
         @options = prepend_action(@options, 'modal#open') if modal
         @options = prepend_action(@options, 'drawer#open') if drawer
-        @options = prepend_turbo_method(@options, method.to_s) if method.present?
+
+        if method.to_s == 'get'
+          @options = prepend_data_attribute(@options, :method, 'get')
+        elsif method.present?
+          @options = prepend_turbo_method(@options, method.to_s)
+        end
       end
+      # rubocop:enable Metrics/AbcSize
       # rubocop:enable Metrics/ParameterLists
     end
   end
