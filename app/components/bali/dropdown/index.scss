@@ -1,5 +1,7 @@
 .dropdown-component {
-  .dropdown-menu {
-    min-width: 22rem;
+  &.wide {
+    .dropdown-menu {
+      min-width: 22rem;
+    }
   }
 }
