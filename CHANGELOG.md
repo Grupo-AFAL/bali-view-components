@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.11.0] - 2022-06-23
 
-- Added min-width css property to `Dropdown::Component`.
+- Added `wide` css class to `Dropdown::Component`.
 
 ## [0.10.0] - 2022-06-23
 
