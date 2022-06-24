@@ -1,0 +1,11 @@
+<li>
+  <%= render SideMenu::Link::Component.new(name: @name, href: @href, icon: @icon, **@options) %>
+
+  <% if active_child_items? %>
+    <ul>
+      <% child_items.each do |item| %>
+        <%= item %>
+      <% end %>
+    </ul>
+  <% end %>
+</li>
