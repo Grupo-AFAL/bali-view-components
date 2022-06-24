@@ -4,7 +4,7 @@ module Bali
   module SideMenu
     module Item
       class Component < ApplicationViewComponent
-        renders_many :child_items, 'SideMenu::Item::Component'
+        renders_many :child_items, 'Bali::SideMenu::Item::Component'
 
         attr_reader :href
 

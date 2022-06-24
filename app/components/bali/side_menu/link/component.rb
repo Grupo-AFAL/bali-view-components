@@ -4,8 +4,6 @@ module Bali
   module SideMenu
     module Link
       class Component < ApplicationViewComponent
-        delegate :icon_tag, :active_path?, to: :helpers
-
         def initialize(name:, href:, icon: nil, **options)
           @name = name
           @icon = icon
