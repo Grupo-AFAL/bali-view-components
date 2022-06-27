@@ -18,7 +18,7 @@ module Bali
       def call
         field_id = "field-#{@method}"
         class_name = "field #{@field_class}"
-  
+
         content_tag(:div, id: field_id, class: class_name, data: @data) do
           safe_join([generate_label_html, inner_field_div].compact)
         end
@@ -27,33 +27,33 @@ module Bali
       private
 
       def inner_field_div
-        return content if @addon_left.blank? &&  @addon_right.blank?
-  
+        return content if @addon_left.blank? && @addon_right.blank?
+
         content_tag(:div, class: 'field has-addons') do
           safe_join([addon_left, content, addon_right].compact)
         end
       end
-  
+
       def addon_left
         return if @addon_left.blank?
-  
+
         generate_addon_html(@addon_left)
       end
-  
+
       def addon_right
         return if @addon_right.blank?
-  
+
         generate_addon_html(@addon_right)
       end
-  
+
       def generate_addon_html(addon_content)
         return if addon_content.blank?
-  
+
         content_tag(:div, class: 'control') do
           addon_content
         end
       end
-  
+
       def generate_label_html
         @form.label(@method, @label_text) unless @options[:type] == 'hidden' || @label_text == false
       end
