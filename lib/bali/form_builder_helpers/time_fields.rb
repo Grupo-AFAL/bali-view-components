@@ -15,29 +15,10 @@ module Bali
           'data-datepicker-no-calendar-value': true
         }
 
-        if options[:seconds]
-          options[:wrapper_options].merge!(
-            'data-datepicker-enable-seconds-value': true
-          )
-        end
-
-        if options[:default_date].present?
-          options[:wrapper_options].merge!(
-            'data-datepicker-default-date-value': options[:default_date]
-          )
-        end
-
-        if options[:min_time].present?
-          options[:wrapper_options].merge!(
-            'data-datepicker-min-time-value': options[:min_time]
-          )
-        end
-
-        if options[:max_time].present?
-          options[:wrapper_options].merge!(
-            'data-datepicker-max-time-value': options[:max_time]
-          )
-        end
+        enable_seconds(options)
+        datepicker_default_date(options)
+        datepicker_min_time(options)
+        datepicker_max_time(option)
 
         value = object.send(method)
 
@@ -46,6 +27,38 @@ module Bali
         options[:value] = [Date.current, value].join(' ') unless value.include?(' ')
 
         date_field(method, options)
+      end
+
+      private
+
+      def enable_seconds(options)
+        return unless options[:seconds]
+
+        options[:wrapper_options].merge!('data-datepicker-enable-seconds-value': true)
+      end
+
+      def datepicker_default_date(options)
+        return if options[:default_date].blank?
+
+        options[:wrapper_options].merge!(
+          'data-datepicker-default-date-value': options[:default_date]
+        )
+      end
+
+      def datepicker_min_time(options)
+        return if options[:min_time].blank?
+
+        options[:wrapper_options].merge!(
+          'data-datepicker-min-time-value': options[:min_time]
+        )
+      end
+
+      def datepicker_max_time(options)
+        return if options[:max_time].blank?
+
+        options[:wrapper_options].merge!(
+          'data-datepicker-max-time-value': options[:max_time]
+        )
       end
     end
   end

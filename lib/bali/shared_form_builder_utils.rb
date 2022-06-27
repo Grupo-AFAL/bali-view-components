@@ -13,6 +13,7 @@ module Bali
       field_helper(method, super(method, field_options(method, options)), options)
     end
 
+    # rubocop: disable Metrics/AbcSize
     def date_field(method, options = {})
       clear_btn = if options.delete(:clear)
                     content_tag(:div, class: 'control') do
@@ -42,6 +43,7 @@ module Bali
         input_date_field(clear_btn, method, options)
       end
     end
+    # rubocop: enable Metrics/AbcSize
 
     def input_date_field(clear_btn, method, options)
       if options[:manual]
