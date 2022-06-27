@@ -4,7 +4,7 @@ module Bali
   module FormBuilderHelpers
     module TimeFields
       def time_field_group(method, options = {})
-        FieldGroupWrapper.render @template, self, method, options do
+        @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
           time_field(method, options)
         end
       end

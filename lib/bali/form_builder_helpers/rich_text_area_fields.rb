@@ -4,7 +4,7 @@ module Bali
   module FormBuilderHelpers
     module RichTextAreaFields
       def rich_text_area_group(method, options = {})
-        FieldGroupWrapper.render @template, self, method, options do
+        @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
           rich_text_area(method, options)
         end
       end

@@ -4,7 +4,7 @@ module Bali
   module FormBuilderHelpers
     module SelectFields
       def select_group(method, values, options = {}, html_options = {})
-        FieldGroupWrapper.render @template, self, method, options do
+        @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
           select_field(method, values, options, html_options)
         end
       end

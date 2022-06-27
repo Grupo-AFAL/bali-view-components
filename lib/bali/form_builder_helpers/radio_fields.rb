@@ -4,7 +4,7 @@ module Bali
   module FormBuilderHelpers
     module RadioFields
       def radio_field_group(method, values, options = {}, html_options = {})
-        FieldGroupWrapper.render @template, self, method, options do
+        @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
           radio_field(method, values, options, html_options)
         end
       end

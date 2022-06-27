@@ -13,7 +13,7 @@ module Bali
           )
         )
 
-        FieldGroupWrapper.render @template, self, method, options do
+        @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
           text_field(method, options)
         end
       end

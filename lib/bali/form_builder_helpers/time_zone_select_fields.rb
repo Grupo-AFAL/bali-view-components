@@ -4,7 +4,7 @@ module Bali
   module FormBuilderHelpers
     module TimeZoneSelectFields
       def time_zone_select_group(method, priority_zones = nil, options = {}, html_options = {})
-        FieldGroupWrapper.render @template, self, method, options do
+        @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
           time_zone_select(method, priority_zones, options, html_options)
         end
       end
