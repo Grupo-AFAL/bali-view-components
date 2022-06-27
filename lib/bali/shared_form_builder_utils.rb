@@ -17,7 +17,7 @@ module Bali
       clear_btn = if options.delete(:clear)
                     content_tag(:div, class: 'control') do
                       content_tag(:a, class: 'button', data: { action: 'datepicker#clear' }) do
-                        Bali::Icon::Component.new('times-circle').call
+                        @template.render(Bali::Icon::Component.new('times-circle'))
                       end
                     end
                   end
@@ -52,7 +52,7 @@ module Bali
     end
 
     def date_field_previous_btn
-      content_tag(:button, Bali::Icon::Component.new('arrow-back').call,
+      content_tag(:button, @template.render(Bali::Icon::Component.new('arrow-back')),
                   {
                     class: 'button is-transparent',
                     data: { action: 'datepicker#previousDate' }
@@ -60,7 +60,7 @@ module Bali
     end
 
     def date_field_next_btn
-      content_tag(:button, Bali::Icon::Component.new('arrow-forward').call,
+      content_tag(:button, @template.render(Bali::Icon::Component.new('arrow-forward')),
                   {
                     class: 'button is-transparent',
                     data: { action: 'datepicker#nextDate' }

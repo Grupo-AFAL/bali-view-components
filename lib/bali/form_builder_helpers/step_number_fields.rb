@@ -32,7 +32,7 @@ module Bali
         @template.content_tag(:div, class: 'field has-addons',
                                     data: { controller: 'step-number-input' }) do
           addon_left = @template.content_tag(:div, class: 'control') do
-            @template.link_to Bali::Icon::Component.new('minus').call,
+            @template.link_to @template.render(Bali::Icon::Component.new('minus')),
                               '', class: button_class, disabled: disabled,
                                   data: disabled ? {} : subtract_button_data,
                                   title: 'subtract'
@@ -43,10 +43,10 @@ module Bali
           end
 
           addon_right = @template.content_tag(:div, class: 'control') do
-            @template.link_to Bali::Icon::Component.new('plus').call,
+            @template.link_to @template.render(Bali::Icon::Component.new('plus')),
                               '', class: button_class, disabled: disabled,
-                                  data: disabled ? {} : add_button_data,
-                                  title: 'add'
+                              data: disabled ? {} : add_button_data,
+                              title: 'add'
           end
 
           @template.safe_join([addon_left, input, addon_right])

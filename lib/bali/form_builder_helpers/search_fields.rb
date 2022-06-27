@@ -7,7 +7,7 @@ module Bali
         options.with_defaults!(
           placeholder: 'Search...',
           addon_right: tag.button(
-            Bali::Icon::Component.new('search').call,
+            @template.render(Bali::Icon::Component.new('search')),
             type: 'submit',
             class: options.delete(:addon_class) || 'button is-info'
           )

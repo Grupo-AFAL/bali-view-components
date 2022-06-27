@@ -15,7 +15,7 @@ module Bali
 
         file_cta = @template.content_tag(:span, class: 'file-cta') do
           file_icon = @template.content_tag(:span, class: 'file-icon') do
-            Bali::Icon::Component.new(file_icon_name).call
+            @template.render(Bali::Icon::Component.new(file_icon_name))
           end
 
           file_label = @template.content_tag(:span, choose_file_text, class: 'file-label')
