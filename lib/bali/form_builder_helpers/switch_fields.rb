@@ -4,11 +4,11 @@ module Bali
   module FormBuilderHelpers
     module SwitchFields
       def switch_field_group(method, options = {},
-                             checked_value = '1', unchecked_value = '0', &block)
+                             checked_value = '1', unchecked_value = '0', &)
         control_class = options.delete(:control_class)
         label_class = options.delete(:label_class)
         label = if block_given?
-                  @template.capture(&block)
+                  @template.capture(&)
                 else
                   tag.p(options.delete(:label), class: label_class)
                 end

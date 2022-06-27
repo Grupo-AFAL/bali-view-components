@@ -1,13 +1,12 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/ModuleLength
 module Bali
   module SharedFormBuilderUtils
     include BuilderHtmlUtils
 
-    def label(method, text = nil, options = {}, &block)
+    def label(method, text = nil, options = {}, &)
       options[:class] = "label #{options[:class]}"
-      super(method, text, options, &block)
+      super(method, text, options, &)
     end
 
     def text_field(method, options = {})
@@ -73,4 +72,3 @@ module Bali
     end
   end
 end
-# rubocop:enable Metrics/ModuleLength

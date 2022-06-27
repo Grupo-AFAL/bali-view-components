@@ -31,7 +31,7 @@ module Bali
       # @param options [Hash] options to customize the display
       # @option options [String] :label text for the label tag
       # @option options [String] :button_text for the button to add a new associated record
-      def dynamic_fields_group(method, options = {}, &block)
+      def dynamic_fields_group(method, options = {}, &)
         object = self.object
         singular = method.to_s.singularize
         container_id = [object.model_name.singular, singular, 'container'].join('_')
@@ -45,7 +45,7 @@ module Bali
         end
 
         contents = if block_given?
-                     @template.capture(&block)
+                     @template.capture(&)
                    else
                      default_header_contents(method, options)
                    end

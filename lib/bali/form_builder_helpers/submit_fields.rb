@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Bali
   module FormBuilderHelpers
     module SubmitFields
@@ -20,7 +22,7 @@ module Bali
 
       # TODO: Fix these lint warning
       #
-      # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+      # rubocop:disable Metrics/CyclomaticComplexity
       #
       def submit_actions(value, options = {})
         cancel_path = options.delete(:cancel_path) || ''
@@ -52,7 +54,7 @@ module Bali
           end
         end
       end
-      # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+      # rubocop:enable Metrics/CyclomaticComplexity
     end
   end
 end

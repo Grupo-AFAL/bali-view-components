@@ -46,8 +46,8 @@ module Bali
     #
     # This method is just a passthrough for the Rails method, so we can't really change the
     # signature of the method.
-    def content_tag(name, content_or_options_with_block = nil, options = nil, escape = true, &block)
-      @template.content_tag(name, content_or_options_with_block, options, escape, &block)
+    def content_tag(name, content_or_options_with_block = nil, options = nil, escape = true, &)
+      @template.content_tag(name, content_or_options_with_block, options, escape, &)
     end
     # rubocop:enable Style/OptionalBooleanParameter
 
