@@ -4,7 +4,7 @@ import { Controller } from '@hotwired/stimulus'
  * Toggles ON and OFF different elements based on the state of a checkbox
  *
  * <div data-controller="checkbox-toggle" data-checkbox-toggle-checked-value="true">
- *   <input data-action="toggle#change" type="checkbox">
+ *   <input data-action="checkbox-toggle#change" type="checkbox">
  *   <div data-checkbox-toggle-target="off">
  *     Off content
  *   </div>
