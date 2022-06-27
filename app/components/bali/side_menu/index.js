@@ -1,30 +1,28 @@
 import { Controller } from '@hotwired/stimulus'
 
 export class SideMenuController extends Controller {
-  static targets = ['overlay']
+  static targets = ['container', 'overlay']
 
   connect () {
-    this.element.addEventListener('click', this.closeMenu)
-
-    if (this.hasOverlayTarget) {
+    if (this.hasOverlayTarget && this.hasContainerTarget) {
       this.overlayTarget.addEventListener('click', this.closeMenu)
+      this.containerTarget.addEventListener('click', this.closeMenu)
     }
   }
 
   disconnect () {
-    this.element.removeEventListener('click', this.closeMenu)
-
-    if (this.hasOverlayTarget) {
+    if (this.hasOverlayTarget && this.hasContainerTarget) {
       this.overlayTarget.removeEventListener('click', this.closeMenu)
+      this.containerTarget.removeEventListener('click', this.closeMenu)
     }
   }
 
   toggleMenu (e) {
     e.stopPropagation()
-    this.element.classList.toggle('is-active')
+    this.containerTarget.classList.toggle('is-active')
   }
 
   closeMenu = e => {
-    this.element.classList.remove('is-active')
+    this.containerTarget.classList.remove('is-active')
   }
 }
