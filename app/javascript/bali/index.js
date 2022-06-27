@@ -17,14 +17,14 @@ export { TabsController } from '../../components/bali/tabs'
 export { TreeViewItemController } from '../../components/bali/tree_view/item'
 
 export {
-  AutoPlayAudioController,
   AutocompleteAddressController,
+  AutoPlayAudioController,
   CheckboxToggleController,
   ElementsOverlapController,
   FocusOnConnectController,
-  SubmitButtonController,
   InputOnChangeController,
   PrintController,
   RadioToggleController,
+  SubmitButtonController,
   SubmitOnChangeController
 } from './controllers'

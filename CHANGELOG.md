@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.13.0] - 2022-06-27
 
-- Added Stimulus JS Controllers.
+- Added Stimulus JS Controllers
+  [`auto-play-audio`, `autocomplete-address`, `checkbox-toggle`, `elements-overlap`,
+  `focus-on-connect`, `input-on-change`, `print`, `radio-toggle`, `submit-button`,
+  `submit-on-change`].
 
 ## [0.12.0] - 2022-06-24
 
