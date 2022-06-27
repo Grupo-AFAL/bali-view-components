@@ -21,7 +21,7 @@ module Bali
         end
 
         def active?
-          active_path?(@href, @options[:match])
+          active_path?(@href, request.path, match: @options[:match])
         end
       end
     end
