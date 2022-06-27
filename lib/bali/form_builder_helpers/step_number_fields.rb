@@ -45,8 +45,8 @@ module Bali
           addon_right = @template.content_tag(:div, class: 'control') do
             @template.link_to @template.render(Bali::Icon::Component.new('plus')),
                               '', class: button_class, disabled: disabled,
-                              data: disabled ? {} : add_button_data,
-                              title: 'add'
+                                  data: disabled ? {} : add_button_data,
+                                  title: 'add'
           end
 
           @template.safe_join([addon_left, input, addon_right])
