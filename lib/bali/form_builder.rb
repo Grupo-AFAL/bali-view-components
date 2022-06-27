@@ -22,6 +22,7 @@ module Bali
     include FormBuilderHelpers::SlimSelectFields
     include FormBuilderHelpers::StepNumberFields
     include FormBuilderHelpers::SubmitFields
+    include FormBuilderHelpers::SwitchFields
     include FormBuilderHelpers::TextAreaFields
     include FormBuilderHelpers::TextFields
     include FormBuilderHelpers::TimeFields
