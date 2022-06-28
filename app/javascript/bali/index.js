@@ -1,3 +1,7 @@
+import GoogleMapsLoader from './utils/google-maps-loader'
+import * as time from './utils/time'
+
+export { GoogleMapsLoader, time }
 export { ChartController } from '../../components/bali/chart'
 export { DrawerController } from '../../components/bali/drawer'
 export { DropdownController } from '../../components/bali/dropdown'
@@ -13,4 +17,15 @@ export { SideMenuController } from '../../components/bali/side_menu'
 export { TabsController } from '../../components/bali/tabs'
 export { TreeViewItemController } from '../../components/bali/tree_view/item'
 
-export { SubmitOnChangeController } from './controllers'
+export {
+  AutocompleteAddressController,
+  AutoPlayAudioController,
+  CheckboxToggleController,
+  ElementsOverlapController,
+  FocusOnConnectController,
+  InputOnChangeController,
+  PrintController,
+  RadioToggleController,
+  SubmitButtonController,
+  SubmitOnChangeController
+} from './controllers'

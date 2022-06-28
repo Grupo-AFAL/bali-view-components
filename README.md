@@ -104,6 +104,21 @@ Update this table when making progress on any of the Components or when adding n
 | Timeline          |        :x:         |        :x:         |        :x:         |        :x:         | Create from scratch, HTML already exists on GA |
 | TreeView          | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 
+## Stimulus JS Controllers
+
+| Name                | Description                                                            | Tests |
+| ------------------- | ---------------------------------------------------------------------- | ----- |
+| AutoPlay            | It plays audio automatically when the page is loaded                   | :x:   |
+| AutocompleteAddress | Autocompletes address using Google places API                          | :x:   |
+| CheckboxToggle      | Toggles ON and OFF different elements based on the state of a checkbox | :x:   |
+| ElementsOverlap     | Prevents a fixed elements overlaps a dynamic element                   | :x:   |
+| FocusOnConnect      | Scrolls an element into the visible area of the browser window         | :x:   |
+| InputOnChange       | It notifies the server when there is some change in the input          | :x:   |
+| Print               | Prints the current page                                                | :x:   |
+| RadioToggle         | Shows different elements based on the value of a radio button          | :x:   |
+| SubmitButton        | Displays a loading button state when a form submission is started      | :x:   |
+| SubmitOnChange      | Automatically submits the form when the form element changes value     | :x:   |
+
 ### Legends
 
 | Icon               | Meaning          |
