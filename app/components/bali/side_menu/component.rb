@@ -7,6 +7,8 @@ module Bali
 
       def initialize(**options)
         @options = options
+        @options = prepend_class_name(@options, 'side-menu-component')
+        @options = prepend_data_attribute(@options, :side_menu_target, 'container')
       end
     end
   end

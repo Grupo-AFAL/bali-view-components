@@ -1,9 +1,9 @@
-<div class="side-menu-component" data-side-menu-target="container">
+<%= tag.div **@options do %>
   <aside class="menu">
     <% lists.each do |list| %>
       <%= list %>
     <% end %>
   </aside>
-</div>
+<% end %>
 
 <div class="menu-overlay" data-side-menu-target="overlay"></div>
