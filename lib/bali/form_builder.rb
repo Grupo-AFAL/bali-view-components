@@ -5,27 +5,9 @@ module Bali
     include HtmlElementHelper
     include SharedFormBuilderUtils
     include Utils
-    include FormBuilderHelpers::BooleanFields
-    include FormBuilderHelpers::CurrencyFields
-    include FormBuilderHelpers::DateFields
-    include FormBuilderHelpers::DatetimeFields
-    include FormBuilderHelpers::DynamicFields
-    include FormBuilderHelpers::EmailFields
-    include FormBuilderHelpers::FileFields
-    include FormBuilderHelpers::NumberFields
-    include FormBuilderHelpers::PasswordFields
-    include FormBuilderHelpers::PercentageFields
-    include FormBuilderHelpers::RadioFields
-    include FormBuilderHelpers::RichTextAreaFields
-    include FormBuilderHelpers::SearchFields
-    include FormBuilderHelpers::SelectFields
-    include FormBuilderHelpers::SlimSelectFields
-    include FormBuilderHelpers::StepNumberFields
-    include FormBuilderHelpers::SubmitFields
-    include FormBuilderHelpers::SwitchFields
-    include FormBuilderHelpers::TextAreaFields
-    include FormBuilderHelpers::TextFields
-    include FormBuilderHelpers::TimeFields
-    include FormBuilderHelpers::TimeZoneSelectFields
+
+    Dir.glob(File.join(File.dirname(__FILE__), 'form_builder_helpers', '*.rb')) do |file|
+      include FormBuilderHelpers.const_get(File.basename(file, '.rb').camelize)
+    end
   end
 end
