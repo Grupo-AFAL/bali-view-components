@@ -17,7 +17,7 @@ module Bali
 
       def call
         field_id = "field-#{@method}"
-        class_name = "field #{@field_class}"
+        class_name = "field-group-wrapper-component field #{@field_class}"
 
         content_tag(:div, id: field_id, class: class_name, data: @data) do
           safe_join([generate_label_html, inner_field_div].compact)
@@ -35,15 +35,11 @@ module Bali
       end
 
       def addon_left
-        return if @addon_left.blank?
-
-        generate_addon_html(@addon_left)
+        generate_addon_html(@addon_left) if @addon_left.present?
       end
 
       def addon_right
-        return if @addon_right.blank?
-
-        generate_addon_html(@addon_right)
+        generate_addon_html(@addon_right) if @addon_right.present?
       end
 
       def generate_addon_html(addon_content)
