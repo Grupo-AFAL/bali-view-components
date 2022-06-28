@@ -15,6 +15,8 @@ import throttle from 'lodash.throttle'
  *                   when preventin overlaping
  *    - minWindowWidth: Screen width size where the controller will start to prevent overlaping
  */
+
+// TODO: Add tests (Issue: #139)
 export class ElementsOverlapController extends Controller {
   static values = {
     throttleInterval: { type: Number, default: 10 },

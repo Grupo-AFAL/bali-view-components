@@ -16,6 +16,8 @@ import { Controller } from '@hotwired/stimulus'
  *   </div>
  * </div>
  */
+
+// TODO: Add tests (Issue: #143)
 export class RadioToggleController extends Controller {
   static targets = ['element']
   static values = { current: String }

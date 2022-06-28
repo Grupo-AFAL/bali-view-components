@@ -7,6 +7,8 @@ import { Controller } from '@hotwired/stimulus'
  *
  * https://bulma.io/documentation/elements/button/#states
  */
+
+// TODO: Add tests (Issue: #144)
 export class SubmitButtonController extends Controller {
   connect () {
     this.element.addEventListener('turbo:submit-start', e => {
