@@ -10,11 +10,19 @@ module Bali
       end
 
       def radio_field(method, values, options = {}, html_options = {})
-        field_name = [object.model_name.singular, method].join('_')
-        data = html_options.delete(:data)
         label_class = class_names(['radio', html_options.delete(:radio_label_class)])
 
-        tags = values.map do |display_value|
+        field = @template.safe_join(tags(values, html_options, method, label_class))
+        field_helper(method, field, options)
+      end
+
+      private
+
+      def tags(values, html_options, method, label_class)
+        field_name = [object.model_name.singular, method].join('_')
+        data = html_options.delete(:data)
+
+        values.map do |display_value|
           display, value, radio_options = display_value
           radio_options ||= {}
           radio_options.merge!(html_options)
@@ -23,9 +31,6 @@ module Bali
             radio_button(method, value, radio_options.merge(data: data)) + display
           end
         end
-
-        field = @template.safe_join(tags)
-        field_helper(method, field, options)
       end
     end
   end
