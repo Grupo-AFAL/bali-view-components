@@ -20,8 +20,8 @@ module Bali
       def authorized
         render(SideMenu::Component.new) do |c|
           c.list(title: 'Section title') do |list|
-            list.item(name: 'Item autorized', authorized: true, href: '#')
-            list.item(name: 'Item no autorized', authorized: false, href: '#')
+            list.item(name: 'Authorized item', authorized: true, href: '#')
+            list.item(name: 'Unauthorized item', authorized: false, href: '#')
           end
         end
       end
