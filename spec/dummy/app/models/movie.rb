@@ -8,7 +8,7 @@ class Movie < ApplicationRecord
 
   attribute :indie, :boolean
   attribute :synopsis
-  attribute :duration, default: -> { "#{Date.current} 00:00:00"}
+  attribute :duration, default: -> { "#{Date.current} 00:00:00" }
   attribute :release_date
   attribute :budget
   attribute :contact_email
