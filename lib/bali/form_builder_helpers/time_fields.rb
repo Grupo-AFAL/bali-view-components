@@ -18,7 +18,7 @@ module Bali
         enable_seconds(options)
         datepicker_default_date(options)
         datepicker_min_time(options)
-        datepicker_max_time(option)
+        datepicker_max_time(options)
 
         value = object.send(method)
 
