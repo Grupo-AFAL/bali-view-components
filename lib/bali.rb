@@ -12,7 +12,7 @@ require 'bali/html_element_helper'
 require 'bali/path_helper'
 
 builder_helpers = File.join(File.dirname(__FILE__), 'bali/form_builder_helpers', '*_fields.rb')
-  
+
 Dir.glob(builder_helpers).each do |builder_helper|
   require builder_helper
 end
