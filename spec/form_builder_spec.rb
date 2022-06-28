@@ -220,15 +220,15 @@ RSpec.describe Bali::FormBuilder do
   describe '#search_field_group' do
     it 'renders an input' do
       expect(builder.search_field_group(:name)).to include(
-        "<div id=\"field-name\" class=\"field \"><label class=\"label \" for=\"movie_name\">Name"\
-        "</label><div class=\"field has-addons\"><div class=\"control \"><input "\
-        "placeholder=\"Search...\" class=\"input \" type=\"text\" name=\"movie[name]\" "\
-        "id=\"movie_name\" /></div><div class=\"control\"><button type=\"submit\" "\
+        '<div id="field-name" class="field "><label class="label " for="movie_name">Name'\
+        '</label><div class="field has-addons"><div class="control "><input '\
+        'placeholder="Search..." class="input " type="text" name="movie[name]" '\
+        'id="movie_name" /></div><div class="control"><button type="submit" '\
         "class=\"button is-info\"><span class=\"icon-component icon\">\n        <svg "\
         "viewBox=\"0 0 512 512\" class=\"svg-inline\">\n          <path fill=\"currentColor\"\n"\
-        "            d=\"M508.5 481.6l-129-129c-2.3-2.3-5.3-3.5-8.5-3.5h-10.3C395 312 416 262.5 "\
-        "416 208 416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c54.5 0 104-21 141.1-55.2V3"\
-        "71c0 3.2 1.3 6.2 3.5 8.5l129 129c4.7 4.7 12.3 4.7 17 0l9.9-9.9c4.7-4.7 4.7-12.3 0-17zM2"\
+        '            d="M508.5 481.6l-129-129c-2.3-2.3-5.3-3.5-8.5-3.5h-10.3C395 312 416 262.5 '\
+        '416 208 416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c54.5 0 104-21 141.1-55.2V3'\
+        '71c0 3.2 1.3 6.2 3.5 8.5l129 129c4.7 4.7 12.3 4.7 17 0l9.9-9.9c4.7-4.7 4.7-12.3 0-17zM2'\
         "08 384c-97.3 0-176-78.7-176-176S110.7 32 208 32s176 78.7 176 176-78.7 176-176 176z\"\n  "\
         "          class=\"\"></path>\n        </svg>\n      </span></button></div></div></div>"
       )
@@ -238,10 +238,10 @@ RSpec.describe Bali::FormBuilder do
   describe '#select_group' do
     it 'renders an input' do
       expect(builder.select_group(:status, Movie.statuses.to_a)).to include(
-        "<div id=\"field-status\" class=\"field \"><label class=\"label \" for=\"movie_status\">"\
-        "Status</label><div class=\"control \"><div id=\"status_select_div\" class=\"select \">"\
+        '<div id="field-status" class="field "><label class="label " for="movie_status">'\
+        'Status</label><div class="control "><div id="status_select_div" class="select ">'\
         "<select name=\"movie[status]\" id=\"movie_status\"><option value=\"0\">draft</option>\n"\
-        "<option value=\"1\">done</option></select></div></div></div>"
+        '<option value="1">done</option></select></div></div></div>'
       )
     end
   end
@@ -249,9 +249,9 @@ RSpec.describe Bali::FormBuilder do
   describe '#select_field' do
     it 'renders an input' do
       expect(builder.select_field(:status, Movie.statuses.to_a)).to include(
-        "<div class=\"control \"><div id=\"status_select_div\" class=\"select \">"\
+        '<div class="control "><div id="status_select_div" class="select ">'\
         "<select name=\"movie[status]\" id=\"movie_status\"><option value=\"0\">draft</option>\n"\
-        "<option value=\"1\">done</option></select></div></div>"
+        '<option value="1">done</option></select></div></div>'
       )
     end
   end
@@ -259,17 +259,17 @@ RSpec.describe Bali::FormBuilder do
   describe '#slim_select_group' do
     it 'renders an input' do
       expect(builder.slim_select_group(:status, Movie.statuses.to_a)).to include(
-        "<div id=\"field-status\" class=\"field \"><label class=\"label \" for=\"movie_status\">"\
-        "Status</label><div class=\"control \"><div id=\"status_select_div\" "\
-        "class=\"slim-select\" data-controller=\"slim-select\" data-slim-select-close-on-select-"\
-        "value=\"true\" data-slim-select-allow-deselect-option-value=\"false\" data-slim-select-"\
-        "add-items-value=\"false\" data-slim-select-show-content-value=\"auto\" data-slim-select-"\
-        "show-search-value=\"true\" data-slim-select-search-placeholder-value=\"Buscar\" data-"\
-        "slim-select-add-to-body-value=\"false\" data-slim-select-select-all-text-value=\"Select"\
-        " all\" data-slim-select-deselect-all-text-value=\"Deselect all\"><select data-slim-"\
-        "select-target=\"select\" class=\"select\" name=\"movie[status]\" id=\"movie_status\">"\
+        '<div id="field-status" class="field "><label class="label " for="movie_status">'\
+        'Status</label><div class="control "><div id="status_select_div" '\
+        'class="slim-select" data-controller="slim-select" data-slim-select-close-on-select-'\
+        'value="true" data-slim-select-allow-deselect-option-value="false" data-slim-select-'\
+        'add-items-value="false" data-slim-select-show-content-value="auto" data-slim-select-'\
+        'show-search-value="true" data-slim-select-search-placeholder-value="Buscar" data-'\
+        'slim-select-add-to-body-value="false" data-slim-select-select-all-text-value="Select'\
+        ' all" data-slim-select-deselect-all-text-value="Deselect all"><select data-slim-'\
+        'select-target="select" class="select" name="movie[status]" id="movie_status">'\
         "<option value=\"0\">draft</option>\n<option value=\"1\">done</option></select></div>"\
-        "</div></div>"
+        '</div></div>'
       )
     end
   end
@@ -277,16 +277,16 @@ RSpec.describe Bali::FormBuilder do
   describe '#slim_select_field' do
     it 'renders an input' do
       expect(builder.slim_select_field(:status, Movie.statuses.to_a)).to include(
-        "<div class=\"control \"><div id=\"status_select_div\" class=\"slim-select\" "\
-        "data-controller=\"slim-select\" data-slim-select-close-on-select-value=\"true\" "\
-        "data-slim-select-allow-deselect-option-value=\"false\" data-slim-select-add-items"\
-        "-value=\"false\" data-slim-select-show-content-value=\"auto\" data-slim-select-show"\
-        "-search-value=\"true\" data-slim-select-search-placeholder-value=\"Buscar\" data-slim"\
-        "-select-add-to-body-value=\"false\" data-slim-select-select-all-text-value=\"Select "\
-        "all\" data-slim-select-deselect-all-text-value=\"Deselect all\"><select data-slim-"\
-        "select-target=\"select\" class=\"select\" name=\"movie[status]\" id=\"movie_status\">"\
+        '<div class="control "><div id="status_select_div" class="slim-select" '\
+        'data-controller="slim-select" data-slim-select-close-on-select-value="true" '\
+        'data-slim-select-allow-deselect-option-value="false" data-slim-select-add-items'\
+        '-value="false" data-slim-select-show-content-value="auto" data-slim-select-show'\
+        '-search-value="true" data-slim-select-search-placeholder-value="Buscar" data-slim'\
+        '-select-add-to-body-value="false" data-slim-select-select-all-text-value="Select '\
+        'all" data-slim-select-deselect-all-text-value="Deselect all"><select data-slim-'\
+        'select-target="select" class="select" name="movie[status]" id="movie_status">'\
         "<option value=\"0\">draft</option>\n<option value=\"1\">done</option></select></div>"\
-        "</div>"
+        '</div>'
       )
     end
   end
@@ -294,21 +294,21 @@ RSpec.describe Bali::FormBuilder do
   describe '#step_number_field_group' do
     it 'renders an input' do
       expect(builder.step_number_field_group(:duration)).to include(
-        "<div id=\"field-duration\" class=\"field \"><label class=\"label \" "\
-        "for=\"movie_duration\">Duration</label><div class=\"field has-addons\" "\
-        "data-controller=\"step-number-input\"><div class=\"control\"><a class=\"button\" "\
-        "data-action=\"step-number-input#subtract\" data-step-number-input-target=\"subtract\" "\
+        '<div id="field-duration" class="field "><label class="label " '\
+        'for="movie_duration">Duration</label><div class="field has-addons" '\
+        'data-controller="step-number-input"><div class="control"><a class="button" '\
+        'data-action="step-number-input#subtract" data-step-number-input-target="subtract" '\
         "title=\"subtract\" href=\"\"><span class=\"icon-component icon\">\n        <svg "\
         "viewBox=\"0 0 14 2\" class=\"svg-inline\" fill=\"none\">\n          <path d=\"M0.599609 "\
         "0H13.3996V1.60001H0.599609V0Z\" fill=\"currentColor\"/>\n        </svg>\n      </span>"\
-        "</a></div><div class=\"control\"><div class=\"control \"><input data-step-number-input-"\
-        "target=\"input\" class=\"input \" type=\"number\" value=\"2022-06-28 00:00:00\" "\
-        "name=\"movie[duration]\" id=\"movie_duration\" /></div></div><div class=\"control\"><a "\
-        "class=\"button\" data-action=\"step-number-input#add\" data-step-number-input-target"\
+        '</a></div><div class="control"><div class="control "><input data-step-number-input-'\
+        'target="input" class="input " type="number" value="2022-06-28 00:00:00" '\
+        'name="movie[duration]" id="movie_duration" /></div></div><div class="control"><a '\
+        'class="button" data-action="step-number-input#add" data-step-number-input-target'\
         "=\"add\" title=\"add\" href=\"\"><span class=\"icon-component icon\">\n        <svg "\
         "viewBox=\"0 0 448 512\" class=\"svg-inline\">\n          <path fill=\"currentColor\"\n "\
-        "           d=\"M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H3"\
-        "2c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c1"\
+        '           d="M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H3'\
+        '2c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c1'\
         "7.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"\n   "\
         "         class=\"\"></path>\n        </svg>\n      </span></a></div></div></div>"
       )
@@ -318,20 +318,20 @@ RSpec.describe Bali::FormBuilder do
   describe '#step_number_field' do
     it 'renders an input' do
       expect(builder.step_number_field(:duration)).to include(
-        "<div class=\"field has-addons\" data-controller=\"step-number-input\"><div "\
-        "class=\"control\"><a class=\"button\" data-action=\"step-number-input#subtract\" "\
-        "data-step-number-input-target=\"subtract\" title=\"subtract\" href=\"\"><span "\
+        '<div class="field has-addons" data-controller="step-number-input"><div '\
+        'class="control"><a class="button" data-action="step-number-input#subtract" '\
+        'data-step-number-input-target="subtract" title="subtract" href=""><span '\
         "class=\"icon-component icon\">\n        <svg viewBox=\"0 0 14 2\" class=\"svg-inline\" "\
         "fill=\"none\">\n          <path d=\"M0.599609 0H13.3996V1.60001H0.599609V0Z\" "\
         "fill=\"currentColor\"/>\n        </svg>\n      </span></a></div><div class=\"control\">"\
-        "<div class=\"control \"><input data-step-number-input-target=\"input\" class=\"input \" "\
-        "type=\"number\" value=\"2022-06-28 00:00:00\" name=\"movie[duration]\" "\
-        "id=\"movie_duration\" /></div></div><div class=\"control\"><a class=\"button\" "\
-        "data-action=\"step-number-input#add\" data-step-number-input-target=\"add\" "\
+        '<div class="control "><input data-step-number-input-target="input" class="input " '\
+        'type="number" value="2022-06-28 00:00:00" name="movie[duration]" '\
+        'id="movie_duration" /></div></div><div class="control"><a class="button" '\
+        'data-action="step-number-input#add" data-step-number-input-target="add" '\
         "title=\"add\" href=\"\"><span class=\"icon-component icon\">\n        <svg viewBox=\"0 0"\
         " 448 512\" class=\"svg-inline\">\n          <path fill=\"currentColor\"\n            "\
-        "d=\"M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 "\
-        "0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 "\
+        'd="M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 '\
+        '0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 '\
         "32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z\"\n        "\
         "    class=\"\"></path>\n        </svg>\n      </span></a></div></div>"
       )
@@ -341,7 +341,7 @@ RSpec.describe Bali::FormBuilder do
   describe '#switch_field_group' do
     it 'renders an input' do
       expect(builder.switch_field_group(:indie, label: 'Indie')).to include(
-        "<p>Indie</p><div class=\"field switch\">"
+        '<p>Indie</p><div class="field switch">'
       )
     end
   end
@@ -349,7 +349,7 @@ RSpec.describe Bali::FormBuilder do
   describe '#switch_field' do
     it 'renders an input' do
       expect(builder.switch_field(:indie)).to include(
-        "<div class=\"field switch\">"
+        '<div class="field switch">'
       )
     end
   end
@@ -357,10 +357,10 @@ RSpec.describe Bali::FormBuilder do
   describe '#text_area_group' do
     it 'renders an input' do
       expect(builder.text_area_group(:synopsis)).to include(
-        "<div id=\"field-synopsis\" class=\"field \"><label class=\"label \" "\
-        "for=\"movie_synopsis\">Synopsis</label><div class=\"control \"><textarea "\
+        '<div id="field-synopsis" class="field "><label class="label " '\
+        'for="movie_synopsis">Synopsis</label><div class="control "><textarea '\
         "class=\"textarea \" name=\"movie[synopsis]\" id=\"movie_synopsis\">\n</textarea>"\
-        "</div></div>"
+        '</div></div>'
       )
     end
   end
@@ -368,7 +368,7 @@ RSpec.describe Bali::FormBuilder do
   describe '#text_area' do
     it 'renders an input' do
       expect(builder.text_area(:synopsis)).to include(
-        "<div class=\"control \"><textarea class=\"textarea \" name=\"movie[synopsis]\" "\
+        '<div class="control "><textarea class="textarea " name="movie[synopsis]" '\
         "id=\"movie_synopsis\">\n</textarea></div>"
       )
     end
