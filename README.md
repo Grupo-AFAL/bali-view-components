@@ -88,7 +88,7 @@ Update this table when making progress on any of the Components or when adding n
 | InfoLevel         | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | Level             | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | Link              | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
-| Loader            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark:  |                                                |
+| Loader            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Modal             | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | NavBar            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Notification      | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
@@ -96,7 +96,7 @@ Update this table when making progress on any of the Components or when adding n
 | ProfilePicture    |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Rate (Rating)     |        :x:         |        :x:         |        :x:         |        :x:         | Rename from Rating to Rate                     |
 | SearchInput       | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
-| SideMenu          |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| SideMenu          | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | SortableList      |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Steps (Progress)  |        :x:         |        :x:         |        :x:         |        :x:         | Rename from Progress to Steps                  |
 | Table             | :white_check_mark: |    :wavy_dash:     |        :x:         | :white_check_mark: |                                                |
