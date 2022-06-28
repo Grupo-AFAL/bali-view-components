@@ -104,14 +104,6 @@ Update this table when making progress on any of the Components or when adding n
 | Timeline          |        :x:         |        :x:         |        :x:         |        :x:         | Create from scratch, HTML already exists on GA |
 | TreeView          | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 
-### Legends
-
-| Icon               | Meaning          |
-| ------------------ | ---------------- |
-| :white_check_mark: | Is complete      |
-| :wavy_dash:        | Incomplete       |
-| :x:                | Missing entirely |
-
 ## Stimulus JS Controllers
 
 | Name                | Description                                                            | Tests |
@@ -126,3 +118,11 @@ Update this table when making progress on any of the Components or when adding n
 | RadioToggle         | Shows different elements based on the value of a radio button          | :x:   |
 | SubmitButton        | Displays a loading button state when a form submission is started      | :x:   |
 | SubmitOnChange      | Automatically submits the form when the form element changes value     | :x:   |
+
+### Legends
+
+| Icon               | Meaning          |
+| ------------------ | ---------------- |
+| :white_check_mark: | Is complete      |
+| :wavy_dash:        | Incomplete       |
+| :x:                | Missing entirely |
