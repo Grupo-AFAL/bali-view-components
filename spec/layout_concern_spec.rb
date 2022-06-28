@@ -2,12 +2,12 @@
 
 require 'rails_helper'
 
-class CustomApplitationController < ApplicationController
+class CustomApplicationController < ApplicationController
   include Bali::LayoutConcern
 end
 
 RSpec.describe 'Bali::LayoutConcern' do
-  let(:controller) { CustomApplitationController.new }
+  let(:controller) { CustomApplicationController.new }
 
   describe '#conditionally_skip_layout' do
     context 'when layout param is false' do
