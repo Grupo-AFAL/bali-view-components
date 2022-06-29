@@ -33,7 +33,7 @@ module Bali
       # This will add a conditional to the item specified
       # @param title text
       # @param name text
-      # @param authorized select [true, false]
+      # @param authorized toggle
       def authorized(title: 'Section title', name: 'Authorized Item', authorized: true)
         render(SideMenu::Component.new) do |c|
           c.list(title: title) do |list|
