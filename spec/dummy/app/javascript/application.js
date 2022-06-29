@@ -13,6 +13,7 @@ import {
   TabsController,
   TreeViewItemController,
   SelectedController,
+  SideMenuController,
   SubmitOnChangeController
 } from '../../../../app/javascript/bali'
 
@@ -29,4 +30,5 @@ application.register('popup', PopupController)
 application.register('tabs', TabsController)
 application.register('tree-view-item', TreeViewItemController)
 application.register('selected', SelectedController)
+application.register('side-menu', SideMenuController)
 application.register('submit-on-change', SubmitOnChangeController)

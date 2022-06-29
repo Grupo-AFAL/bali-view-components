@@ -1,0 +1,91 @@
+$desktop-side-menu-width: 12rem;
+$side-menu-width: 14rem;
+$z-index-menu-overlay: 4;
+$z-index-side-menu: 5;
+
+.side-menu-component {
+  position: fixed;
+  width: $side-menu-width;
+  height: 100%;
+  top: $navbar-height;
+  left: -$side-menu-width;
+  padding: 0;
+  background: $white;
+  z-index: $z-index-side-menu;
+  box-shadow: $box-shadow;
+
+  transition: 0.2s ease-in-out;
+
+  @include desktop-only {
+    width: $desktop-side-menu-width;
+  }
+
+  @include desktop {
+    left: 0;
+  }
+
+  &.is-active {
+    left: 0;
+  }
+
+  .menu-label {
+    padding: $size-6;
+  }
+
+  .menu {
+    height: 100%;
+  }
+
+  .menu-list {
+    height: inherit;
+    overflow-y: auto;
+
+    a {
+      padding-left: 1rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .is-active {
+      font-weight: $fw-500;
+
+      .icon > svg > * {
+        fill: currentColor !important;
+      }
+    }
+
+    li ul {
+      a {
+        padding-left: 4rem;
+        font-size: $size-7;
+      }
+    }
+    > li:last-of-type {
+      padding-bottom: 9rem;
+    }
+  }
+
+  .icon {
+    margin-right: 0.5rem;
+  }
+}
+
+.menu-overlay {
+  transition: 0.2s ease-in-out;
+  bottom: 0;
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: $z-index-menu-overlay;
+  display: none;
+}
+
+.side-menu-component.is-active ~ .menu-overlay {
+  display: block;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 1;
+  pointer-events: auto;
+}

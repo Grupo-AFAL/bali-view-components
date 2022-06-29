@@ -1,0 +1,9 @@
+<%= tag.div **@options do %>
+  <aside class="menu">
+    <% lists.each do |list| %>
+      <%= list %>
+    <% end %>
+  </aside>
+<% end %>
+
+<div class="menu-overlay" data-side-menu-target="overlay"></div>
