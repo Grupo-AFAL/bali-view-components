@@ -1,5 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 
+// TODO: Add tests (Issue: #154)
+
 /**
  * Datepicker Controller
  * Uses the flatpickr library to render a Date Picker

@@ -1,5 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 
+// TODO: Add tests (Issue: #158)
+
 export class StepNumberInputController extends Controller {
   static targets = ['input', 'add', 'subtract']
 

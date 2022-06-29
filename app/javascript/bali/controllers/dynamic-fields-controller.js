@@ -7,6 +7,8 @@ import {
   nextSibling
 } from '../utils/domHelpers'
 
+// TODO: Add tests (Issue: #155)
+
 export class DynamicFieldsController extends Controller {
   static targets = ['template', 'container', 'button']
   static values = {

@@ -1,5 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 
+// TODO: Add tests (Issue: #157)
+
 export class SlimSelectController extends Controller {
   static values = {
     placeholder: String,
