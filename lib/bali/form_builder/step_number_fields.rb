@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Bali
-  module FormBuilderHelpers
+  class FormBuilder < ActionView::Helpers::FormBuilder
     module StepNumberFields
       def step_number_field_group(method, options = {})
         @template.render Bali::FieldGroupWrapper::Component.new self, method, options do

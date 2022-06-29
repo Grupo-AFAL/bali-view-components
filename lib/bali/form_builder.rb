@@ -3,11 +3,13 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     include HtmlElementHelper
-    include SharedFormBuilderUtils
+    include SharedUtils
+    include SharedDateUtils
     include Utils
+    include HtmlUtils
 
-    Dir.glob(File.join(File.dirname(__FILE__), 'form_builder_helpers', '*.rb')) do |file|
-      include FormBuilderHelpers.const_get(File.basename(file, '.rb').camelize)
+    Dir.glob(File.join(File.dirname(__FILE__), 'form_builder', '*.rb')) do |file|
+      include FormBuilder.const_get(File.basename(file, '.rb').camelize)
     end
   end
 end

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Bali
-  module FormBuilderHelpers
+  class FormBuilder < ActionView::Helpers::FormBuilder
     module DynamicFields
       # rubocop: disable Metrics/AbcSize
       # Field helper to add associated records in a form, it generates a label and a link

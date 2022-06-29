@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Bali
-  module FormBuilderHelpers
+  class FormBuilder < ActionView::Helpers::FormBuilder
     module TimeZoneSelectFields
       def time_zone_select_group(method, priority_zones = nil, options = {}, html_options = {})
         @template.render Bali::FieldGroupWrapper::Component.new self, method, options do

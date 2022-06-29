@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Bali
-  module FormBuilderHelpers
+  class FormBuilder < ActionView::Helpers::FormBuilder
     module PercentageFields
       def percentage_field_group(method, options = {})
         options.with_defaults!(

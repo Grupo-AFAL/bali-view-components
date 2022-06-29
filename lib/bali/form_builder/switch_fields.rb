@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Bali
-  module FormBuilderHelpers
+  class FormBuilder < ActionView::Helpers::FormBuilder
     module SwitchFields
       def switch_field_group(method, options = {}, checked_value = '1', unchecked_value = '0', &)
         control_class = options.delete(:control_class)
