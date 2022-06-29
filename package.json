@@ -1,6 +1,6 @@
 {
   "name": "bali-view-components",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "description": "Bali ViewComponents",
   "main": "app/javascript/bali/index.js",
   "repository": "git@github.com:Grupo-AFAL/bali.git",
@@ -12,8 +12,10 @@
     "@popperjs/core": "^2.11.5",
     "@rails/request.js": "^0.0.6",
     "chart.js": "^3.8.0",
+    "flatpickr": "^4.6.13",
     "lodash.debounce": "^4.0.8",
     "lodash.throttle": "^4.1.1",
+    "slim-select": "^1.27.1",
     "stimulus-chartjs": "^4.0.0",
     "tippy.js": "^6.3.7"
   },
