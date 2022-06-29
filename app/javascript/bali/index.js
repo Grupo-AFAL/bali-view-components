@@ -21,11 +21,16 @@ export {
   AutocompleteAddressController,
   AutoPlayAudioController,
   CheckboxToggleController,
+  DatepickerController,
+  DynamicFieldsController,
   ElementsOverlapController,
+  FileInputController,
   FocusOnConnectController,
   InputOnChangeController,
   PrintController,
   RadioToggleController,
+  SlimSelectController,
+  StepNumberInputController,
   SubmitButtonController,
   SubmitOnChangeController
 } from './controllers'
