@@ -13,6 +13,7 @@ export { NavbarController } from '../../components/bali/navbar'
 export { NotificationController } from '../../components/bali/notification'
 export { PopupController } from '../../components/bali/filters'
 export { SelectedController } from '../../components/bali/filters'
+export { SideMenuController } from '../../components/bali/side_menu'
 export { TabsController } from '../../components/bali/tabs'
 export { TreeViewItemController } from '../../components/bali/tree_view/item'
 

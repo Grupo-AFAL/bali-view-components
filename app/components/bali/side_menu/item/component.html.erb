@@ -1,0 +1,11 @@
+<li>
+  <%= render Bali::Link::Component.new(href: @href, name: @name, icon_name: @icon, active_path: request.path) %>
+
+  <% if active_child_items? %>
+    <ul>
+      <% child_items.each do |item| %>
+        <%= item %>
+      <% end %>
+    </ul>
+  <% end %>
+</li>
