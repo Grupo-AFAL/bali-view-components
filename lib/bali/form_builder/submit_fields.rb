@@ -44,13 +44,13 @@ module Bali
 
       private
 
-      def cancel_button(path = nil, options = nil, modal: true, drawer: false)
-        return unless path.present? || options.present?
+      def cancel_button(path = nil, options = nil, modal: false, drawer: false)
+        return unless path.present? || options.present? || modal || drawer
 
         options ||= {}
         options = prepend_action(options, 'modal#close') if modal
         options = prepend_action(options, 'drawer#close') if drawer
-        label = options.delete(:label) || I18n.t(:cancel, default: 'Cancel')
+        label = options.delete(:label) || I18n.t('helpers.cancel.text', default: 'Cancel')
 
         options.with_defaults!(class: 'button is-secondary')
         @template.content_tag(:div, class: 'control') do

@@ -2,8 +2,6 @@
 
 require 'rails_helper'
 
-class TestHelper < ActionView::Base; end
-
 RSpec.describe Bali::FieldGroupWrapper::Component, type: :component do
   let(:helper) { TestHelper.new(ActionView::LookupContext.new(ActionView::PathSet.new), {}, nil) }
   let(:resource) { Movie.new }

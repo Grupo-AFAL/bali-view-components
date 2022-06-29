@@ -3,6 +3,8 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module DynamicFields
+      # TODO: Add tests (Issue: #160)
+
       # rubocop: disable Metrics/AbcSize
       # Field helper to add associated records in a form, it generates a label and a link
       # to dynamically add additional associated records.
