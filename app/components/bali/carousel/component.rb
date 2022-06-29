@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Bali
   module Carousel
     class Component < ApplicationViewComponent
@@ -6,7 +8,9 @@ module Bali
         @selected_image = selected_image
       end
 
-      def classes; end
+      def classes
+        class_names('carousel-componet glide')
+      end
     end
   end
 end
