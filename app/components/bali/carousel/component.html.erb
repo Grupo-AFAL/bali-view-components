@@ -1,0 +1,20 @@
+<%= tag.div class: 'glide', data: { controller: "carousel", "carousel-index-value": @selected_image  }  do %>
+  <div data-glide-el="track" class="glide__track">
+    <ul class="glide__slides">
+      <% @images.each do |image| %>
+        <li class="glide__slide">
+          <%= image_tag image.variant(resize_to_limit: [640, 640]), class: "image-center" %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+
+  <div class="glide__arrows" data-glide-el="controls">
+    <button class="glide__arrow glide__arrow--left" data-glide-dir="<">
+      <%= render Bali::Icon::Component.new('arrow-left') %>
+    </button>
+    <button class="glide__arrow glide__arrow--right" data-glide-dir=">">
+      <%= render Bali::Icon::Component.new('arrow-right') %>
+    </button>
+  </div>
+<% end %>
