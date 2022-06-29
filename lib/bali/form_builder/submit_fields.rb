@@ -50,12 +50,15 @@ module Bali
         options ||= {}
         options = prepend_action(options, 'modal#close') if modal
         options = prepend_action(options, 'drawer#close') if drawer
-        label = options.delete(:label) || I18n.t('helpers.cancel.text', default: 'Cancel')
 
         options.with_defaults!(class: 'button is-secondary')
         @template.content_tag(:div, class: 'control') do
-          @template.link_to(label, path, options)
+          @template.link_to(cancel_button_label(options), path, options)
         end
+      end
+
+      def cancel_button_label(options)
+        options.delete(:label) || I18n.t('helpers.cancel.text', default: 'Cancel')
       end
     end
   end
