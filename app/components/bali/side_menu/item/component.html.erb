@@ -1,5 +1,5 @@
 <li>
-  <%= render Bali::SideMenu::Link::Component.new(name: @name, href: @href, icon: @icon, **@options) %>
+  <%= render Bali::Link::Component.new(href: @href, name: @name, icon_name: @icon, active_path: request.path) %>
 
   <% if active_child_items? %>
     <ul>
