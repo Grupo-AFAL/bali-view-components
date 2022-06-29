@@ -57,6 +57,20 @@ module Bali
           end
         end
       end
+
+      # SideMenu with item disabled
+      # -------------------
+      # This will render a Menu with a disable item
+      # @param title text
+      # @param name text
+      # @param disabled toggle
+      def disabled(title: 'Section title', name: 'Item', disabled: true)
+        render(SideMenu::Component.new) do |c|
+          c.list(title: title) do |list|
+            list.item(name: name, href: '#', disabled: disabled)
+          end
+        end
+      end
     end
   end
 end
