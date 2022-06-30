@@ -3,7 +3,7 @@
     <ul class="glide__slides">
       <% @images.each do |image| %>
         <li class="glide__slide">
-          <%= image_tag image.variant(resize_to_limit: [640, 640]), class: "image-center" %>
+          <%= image_tag image, class: "image-center" %>
         </li>
       <% end %>
     </ul>
