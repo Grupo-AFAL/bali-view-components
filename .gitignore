@@ -27,3 +27,5 @@ yarn-debug.log*
 /spec/dummy/tmp/development_secret.txt
 /spec/dummy/public
 /vendor
+
+.DS_Store
