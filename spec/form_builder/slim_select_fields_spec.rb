@@ -21,7 +21,9 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'renders a select' do
-      expect(slim_select_group).to have_css 'select#movie_status[name="movie[status]"][data-slim-select-target="select"]'
+      expect(slim_select_group).to have_css(
+        'select#movie_status[name="movie[status]"][data-slim-select-target="select"]'
+      )
 
       Movie.statuses.each do |name, value|
         expect(slim_select_group).to have_css "option[value=\"#{value}\"]", text: name
@@ -41,7 +43,9 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'renders a select' do
-      expect(slim_select_field).to have_css 'select#movie_status[name="movie[status]"][data-slim-select-target="select"]'
+      expect(slim_select_field).to have_css(
+        'select#movie_status[name="movie[status]"][data-slim-select-target="select"]'
+      )
 
       Movie.statuses.each do |name, value|
         expect(slim_select_field).to have_css "option[value=\"#{value}\"]", text: name

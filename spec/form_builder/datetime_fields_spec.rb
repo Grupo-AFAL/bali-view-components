@@ -26,7 +26,9 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'renders an input' do
-      expect(datetime_field_group).to have_css 'input#movie_release_date[name="movie[release_date]"]'
+      expect(datetime_field_group).to have_css(
+        'input#movie_release_date[name="movie[release_date]"]'
+      )
     end
   end
 

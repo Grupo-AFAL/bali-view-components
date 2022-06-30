@@ -17,7 +17,9 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'renders an input' do
-      expect(search_field_group).to have_css 'input#movie_name[name="movie[name]"][placeholder="Search..."]'
+      expect(search_field_group).to have_css(
+        'input#movie_name[name="movie[name]"][placeholder="Search..."]'
+      )
     end
 
     it 'renders an icon' do

@@ -10,7 +10,8 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
 
     it 'renders a field with a file-input controller' do
       expect(file_field_group).to have_css(
-        'div.field[data-controller="file-input"][data-file-input-non-selected-text-value="No file selected"]'
+        'div.field[data-controller="file-input"]'\
+        '[data-file-input-non-selected-text-value="No file selected"]'
       )
     end
 

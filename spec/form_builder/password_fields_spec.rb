@@ -17,7 +17,9 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'renders an input' do
-      expect(password_field_group).to have_css 'input#movie_budget[type="password"][name="movie[budget]"]'
+      expect(password_field_group).to have_css(
+        'input#movie_budget[type="password"][name="movie[budget]"]'
+      )
     end
   end
 
