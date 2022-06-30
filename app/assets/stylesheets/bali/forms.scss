@@ -17,8 +17,7 @@
 .select.full-width {
   width: 100%;
 
-  select,
-  .select2-container {
+  select {
     width: 100% !important;
   }
 }
@@ -27,28 +26,12 @@
   width: 10rem;
 }
 
-.is-danger .select2-container .select2-selection--multiple {
-  border-color: $danger;
-}
-
 .inline-label {
   line-height: 32px;
   margin-right: 0.75rem;
 
   &:not(:first-child) {
     margin-left: 1.5rem;
-  }
-}
-
-.form-subsection {
-  position: relative;
-  padding-bottom: 1.5rem;
-  margin-bottom: 1.5rem;
-  border-bottom: 2px solid $background;
-
-  .delete {
-    position: absolute;
-    right: 0;
   }
 }
 
