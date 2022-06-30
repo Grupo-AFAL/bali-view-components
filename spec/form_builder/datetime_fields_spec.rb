@@ -21,7 +21,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
       expect(datetime_field_group).to have_css 'div.field[data-controller="datepicker"]'
     end
 
-    it 'renders a field with data-datepicker-enable-time-value enabled' do
+    it 'renders a field with datepicker time enabled' do
       expect(datetime_field_group).to have_css 'div.field[data-datepicker-enable-time-value="true"]'
     end
 
@@ -39,7 +39,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
       expect(datetime_field).to have_css 'div.field[data-controller="datepicker"]'
     end
 
-    it 'renders a field with data-datepicker-enable-time-value enabled' do
+    it 'renders a field with datepicker time enabled' do
       expect(datetime_field).to have_css 'div.field[data-datepicker-enable-time-value="true"]'
     end
 
