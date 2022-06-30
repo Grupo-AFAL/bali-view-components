@@ -25,8 +25,14 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
   end
 
   describe '#email_field' do
+    let(:email_field) { builder.email_field(:contact_email) }
+
+    it 'renders a div with control class' do
+      expect(email_field).to have_css 'div.control'
+    end
+
     it 'renders an input' do
-      expect(builder.email_field(:contact_email)).to have_css(
+      expect(email_field).to have_css(
         'input#movie_contact_email[type="email"][name="movie[contact_email]"]'
       )
     end
