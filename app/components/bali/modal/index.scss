@@ -19,32 +19,36 @@ $z-index-modal: 40;
     }
   }
 
+  .carousel-modal {
+    overflow: visible;
+    background-color: transparent;
+    box-shadow: none;
+  }
+
   @include mobile {
     display: block;
     opacity: 0;
     pointer-events: none;
-  
+
     .modal-content:not(.carousel-modal) {
       position: absolute;
       bottom: 0;
       max-height: 85%;
-  
       margin: 0;
       margin-top: 4.5rem;
       padding-bottom: 3rem;
       width: 100%;
-  
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
       opacity: 1;
       transform: translateY(100%);
       transition: all 0.5s ease-in-out;
     }
-  
+
     &.is-active {
       opacity: 1;
       pointer-events: auto;
-  
+
       .modal-content {
         transform: none;
         opacity: 1;
@@ -78,4 +82,3 @@ $z-index-modal: 40;
     }
   }
 }
-
