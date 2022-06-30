@@ -2,32 +2,46 @@
 
 require 'rails_helper'
 
-RSpec.describe Bali::FormBuilder do
+RSpec.describe Bali::FormBuilder, type: :form_builder do
   include_context 'form builder'
 
   describe '#datetime_field_group' do
+    let(:datetime_field_group) { builder.datetime_field_group(:release_date) }
+
+    it 'renders a label and input within a wrapper' do
+      expect(datetime_field_group).to have_css 'div.field.field-group-wrapper-component'
+    end
+
+    it 'renders a label' do
+      expect(datetime_field_group).to have_css 'label[for="movie_release_date"]', text: 'Release date'
+    end
+
+    it 'renders a field with a datepicker controller' do
+      expect(datetime_field_group).to have_css 'div.field[data-controller="datepicker"]'
+    end
+
+    it 'renders a field with data-datepicker-enable-time-value enabled' do
+      expect(datetime_field_group).to have_css 'div.field[data-datepicker-enable-time-value="true"]'
+    end
+
     it 'renders an input' do
-      expect(builder.datetime_field_group(:release_date)).to include(
-        '<div id="field-release_date" class="field-group-wrapper-component field ">'\
-        '<label class="label " for="movie_release_date">Release date</label>'\
-        '<div class="field flatpickr" data-controller="datepicker" '\
-        'data-datepicker-locale-value="en" data-datepicker-enable-time-value="true">'\
-        '<div class="control is-fullwidth "><input control_class="is-fullwidth " '\
-        'class="input " type="text" name="movie[release_date]" id="movie_release_date" />'\
-        '</div></div></div>'
-      )
+      expect(datetime_field_group).to have_css 'input#movie_release_date[name="movie[release_date]"]'
     end
   end
 
   describe '#datetime_field' do
+    let(:datetime_field) { builder.datetime_field(:release_date) }
+
+    it 'renders a field with a datepicker controller' do
+      expect(datetime_field).to have_css 'div.field[data-controller="datepicker"]'
+    end
+
+    it 'renders a field with data-datepicker-enable-time-value enabled' do
+      expect(datetime_field).to have_css 'div.field[data-datepicker-enable-time-value="true"]'
+    end
+
     it 'renders an input' do
-      expect(builder.datetime_field(:release_date)).to include(
-        '<div class="field flatpickr" data-controller="datepicker" '\
-        'data-datepicker-locale-value="en" data-datepicker-enable-time-value="true">'\
-        '<div class="control is-fullwidth "><input control_class="is-fullwidth " '\
-        'class="input " type="text" name="movie[release_date]" id="movie_release_date" />'\
-        '</div></div>'
-      )
+      expect(datetime_field).to have_css 'input#movie_release_date[name="movie[release_date]"]'
     end
   end
 end

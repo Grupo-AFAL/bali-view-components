@@ -2,28 +2,42 @@
 
 require 'rails_helper'
 
-RSpec.describe Bali::FormBuilder do
+RSpec.describe Bali::FormBuilder, type: :form_builder do
   include_context 'form builder'
 
   describe '#select_group' do
-    it 'renders an input' do
-      expect(builder.select_group(:status, Movie.statuses.to_a)).to include(
-        '<div id="field-status" class="field-group-wrapper-component field ">'\
-        '<label class="label " for="movie_status">'\
-        'Status</label><div class="control "><div id="status_select_div" class="select ">'\
-        "<select name=\"movie[status]\" id=\"movie_status\"><option value=\"0\">draft</option>\n"\
-        '<option value="1">done</option></select></div></div></div>'
-      )
+    let(:select_group) { builder.select_group(:status, Movie.statuses.to_a) }
+
+    it 'render a label an input within a wrapper' do
+      expect(select_group).to have_css 'div.field.field-group-wrapper-component'
+    end
+
+    it 'renders a label' do
+      expect(select_group).to have_css 'label[for="movie_status"]', text: 'Status'
+    end
+
+    it 'renders a select' do
+      expect(select_group).to have_css 'select#movie_status[name="movie[status]"]'
+
+      Movie.statuses.each do |name, value|
+        expect(select_group).to have_css "option[value=\"#{value}\"]", text: name
+      end
     end
   end
 
   describe '#select_field' do
-    it 'renders an input' do
-      expect(builder.select_field(:status, Movie.statuses.to_a)).to include(
-        '<div class="control "><div id="status_select_div" class="select ">'\
-        "<select name=\"movie[status]\" id=\"movie_status\"><option value=\"0\">draft</option>\n"\
-        '<option value="1">done</option></select></div></div>'
-      )
+  let(:select_field) { builder.select_field(:status, Movie.statuses.to_a) }
+
+  it 'renders a div with control class' do
+    expect(select_field).to have_css 'div.control'
+  end
+
+  it 'renders a select' do
+    expect(select_field).to have_css 'select#movie_status[name="movie[status]"]'
+
+    Movie.statuses.each do |name, value|
+      expect(select_field).to have_css "option[value=\"#{value}\"]", text: name
     end
+  end
   end
 end
