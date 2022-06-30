@@ -20,7 +20,7 @@ module Bali
     end
 
     def hyphenize_keys(options)
-      options.transform_keys { |k| k.to_s.gsub('_', '-') }
+      options.transform_keys { |k| k.to_s.gsub('_', '-').to_sym }
     end
 
     def prepend_data_attribute(options, attr_name, attr_value)
