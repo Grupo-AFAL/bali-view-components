@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe Bali::DataTable::Component, type: :component do
-  let(:form) { Bali::Utils::DummyFilterForm.new }
+  let(:form) { DummyFilterForm.new }
   let(:component) { Bali::DataTable::Component.new(filter_form: form, url: '#') }
 
   subject { rendered_component }

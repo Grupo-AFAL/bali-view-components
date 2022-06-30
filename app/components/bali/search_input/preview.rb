@@ -3,7 +3,7 @@
 module Bali
   module SearchInput
     class Preview < ApplicationViewComponentPreview
-      FORM = Bali::Utils::DummyFilterForm.new
+      FORM = DummyFilterForm.new
 
       def default
         render Bali::SearchInput::Component.new(form: FORM, method: :name)
