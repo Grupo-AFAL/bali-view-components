@@ -31,7 +31,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'renders the input' do
-      expect(time_field).to have_css '#movie_duration[name="movie[duration]"]'
+      expect(time_field).to have_css 'input#movie_duration[name="movie[duration]"]'
     end
 
     it 'renders with datepicker time enabled' do
