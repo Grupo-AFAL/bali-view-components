@@ -1,0 +1,25 @@
+.panel > div .panel-block:first-child {
+  border-top: 0;
+}
+
+.panel-block {
+  & > .delete {
+    position: absolute;
+    right: 0.5rem;
+  }
+
+  position: relative;
+}
+
+.panel.box {
+  padding: 0;
+
+  .panel-heading {
+    margin-bottom: 0;
+  }
+
+  .panel-block {
+    padding: 1.25rem;
+    display: block;
+  }
+}
