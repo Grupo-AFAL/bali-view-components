@@ -1,5 +1,5 @@
 <li>
-  <%= render Bali::Link::Component.new(href: @href, name: @name, icon_name: @icon, active_path: request.path) %>
+  <%= render Bali::Link::Component.new(href: @href, name: @name, icon_name: @icon, active_path: request.path, **@options) %>
 
   <% if active_child_items? %>
     <ul>

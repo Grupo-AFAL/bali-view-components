@@ -111,11 +111,16 @@ Update this table when making progress on any of the Components or when adding n
 | AutoPlay            | It plays audio automatically when the page is loaded                   | :x:   |
 | AutocompleteAddress | Autocompletes address using Google places API                          | :x:   |
 | CheckboxToggle      | Toggles ON and OFF different elements based on the state of a checkbox | :x:   |
+| Datepicker          | Uses the flatpickr library to render a Date Picker                     | :x:   |
+| DynamicFields       | Renders input fields dynamically                                       | :x:   |
 | ElementsOverlap     | Prevents a fixed elements overlaps a dynamic element                   | :x:   |
+| FileInput           | Displays the selected filename in the correct place                    | :x:   |
 | FocusOnConnect      | Scrolls an element into the visible area of the browser window         | :x:   |
 | InputOnChange       | It notifies the server when there is some change in the input          | :x:   |
 | Print               | Prints the current page                                                | :x:   |
 | RadioToggle         | Shows different elements based on the value of a radio button          | :x:   |
+| SlimSelect          | Uses Slim Select library to render a Select Input                      | :x:   |
+| StepNumberInput     | Provides step number functionality to inputs                           | :x:   |
 | SubmitButton        | Displays a loading button state when a form submission is started      | :x:   |
 | SubmitOnChange      | Automatically submits the form when the form element changes value     | :x:   |
 

@@ -54,4 +54,14 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
 
     expect(rendered_component).to have_css 'a.is-active', text: 'item'
   end
+
+  it 'renders a disabled link' do
+    render_inline(component) do |c|
+      c.list(title: 'Section title') do |list|
+        list.item(name: 'Item', href: '#', disabled: true)
+      end
+    end
+
+    expect(rendered_component).to have_css 'a[disabled="disabled"]', text: 'Item'
+  end
 end
