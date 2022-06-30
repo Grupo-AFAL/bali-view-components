@@ -2,19 +2,27 @@
 
 require 'rails_helper'
 
-RSpec.describe Bali::FormBuilder do
+RSpec.describe Bali::FormBuilder, type: :form_builder do
   include_context 'form builder'
 
   describe '#currency_field_group' do
+    let(:currency_field_group) { builder.currency_field_group(:budget) }
+
+    it 'renders a label and input within a wrapper' do
+      expect(currency_field_group).to have_css 'div#field-budget.field-group-wrapper-component'
+    end
+
+    it 'renders a label' do
+      expect(currency_field_group).to have_css 'label[for="movie_budget"]', text: 'Budget'
+    end
+
+    it 'renders a currency sign within a has-addons wrapper' do
+      expect(currency_field_group).to have_css 'div.field.has-addons', text: '$'
+    end
+
     it 'renders an input' do
-      expect(builder.currency_field_group(:budget)).to include(
-        '<div id="field-budget" class="field-group-wrapper-component field ">'\
-        '<label class="label " for="movie_budget">Budget</label>'\
-        '<div class="field has-addons"><div class="control">'\
-        '<span class="button is-static">$</span></div>'\
-        '<div class="control "><input placeholder="0" step="0.01" '\
-        'pattern="^(\\d+|\\d{1,3}(,\\d{3})*)(\\.\\d+)?$" class="input " type="text" '\
-        'name="movie[budget]" id="movie_budget" /></div></div></div>'
+      expect(currency_field_group).to have_css(
+        'input#movie_budget[name="movie[budget]"][type="text"][step="0.01"][placeholder="0"]'
       )
     end
   end
