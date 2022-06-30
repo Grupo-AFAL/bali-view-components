@@ -1,4 +1,4 @@
-<%= tag.div class: classes, data: { controller: "carousel", "carousel-index-value": @selected_image  }  do %>
+<%= tag.div **options do %>
   <div data-glide-el="track" class="glide__track">
     <ul class="glide__slides">
       <% @images.each do |image| %>

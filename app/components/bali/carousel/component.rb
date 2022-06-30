@@ -3,13 +3,11 @@
 module Bali
   module Carousel
     class Component < ApplicationViewComponent
-      def initialize(images:, selected_image: 0)
+      def initialize(images:, selected_image: 0, **options)
         @images = images
-        @selected_image = selected_image
-      end
-
-      def classes
-        class_names('carousel-componet glide')
+        @optinos = prepend_class_name(options, 'carousel-componet glide')
+        @options = prepend_controller(@options, 'carousel')
+        @options = prepend_data_attribute(@options, 'carousel-index-value', selected_image)
       end
     end
   end
