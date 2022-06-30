@@ -20,6 +20,10 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
       expect(date_field_group).to have_css 'div[data-controller="datepicker"]'
     end
 
+    it 'renders a field with datepicker locale value' do
+      expect(date_field_group).to have_css 'div[data-datepicker-locale-value="en"]'
+    end
+
     it 'renders an input' do
       expect(date_field_group).to have_css 'input#movie_release_date[name="movie[release_date]"]'
     end
