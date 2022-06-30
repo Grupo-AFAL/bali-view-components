@@ -3,7 +3,7 @@
 module Bali
   module Filters
     class Preview < ApplicationViewComponentPreview
-      FORM = DummyFilterForm.new
+      FORM = Bali::Utils::DummyFilterForm.new
 
       def default
         render Bali::Filters::Component.new(form: FORM, url: '#', text_field: :name)

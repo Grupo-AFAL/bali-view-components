@@ -1,0 +1,23 @@
+a {
+  &[disabled] {
+    color: $grey-lighter;
+    cursor: not-allowed;
+  }
+
+  &.with-icon {
+    display: flex;
+  }
+}
+
+.absolute-right {
+  position: absolute;
+  right: 0;
+}
+
+.push-right {
+  flex-grow: 20;
+}
+
+.is-fullwidth {
+  width: 100%;
+}
