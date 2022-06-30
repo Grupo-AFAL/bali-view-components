@@ -1,41 +1,45 @@
-@import '../../..//node_modules/@glidejs/glide/src/assets/sass/glide.core';
-@import '../../../node_modules/@glidejs/glide/src/assets/sass/glide.theme';
+@import '/../../../../node_modules/@glidejs/glide/src/assets/sass/glide.core';
+@import '/../../../node_modules/@glidejs/glide/src/assets/sass/glide.theme';
 
-.glide {
-  .glide__arrow--left {
-    left: 1rem;
-  }
+.carousel-componente {
+  .glide {
+    .glide__arrow--left {
+      left: 1rem;
+    }
 
-  .glide__arrow--right {
-    right: 1rem;
-  }
+    .glide__arrow--right {
+      right: 1rem;
+    }
 
-  .glide__arrow {
-    border-radius: 50%;
-    padding: 0.188rem;
-  }
+    .glide__arrow {
+      border-radius: 50%;
+      padding: 0.188rem;
+    }
 
-  .glide__expand-link {
-    position: absolute;
-    bottom: 1.25rem;
-    right: 1.25rem;
-    z-index: 1;
-    border-radius: 50%;
+    .glide__expand-link {
+      position: absolute;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      z-index: 1;
+      border-radius: 50%;
 
-    path {
-      fill: $white;
+      path {
+        fill: $white;
+      }
+    }
+
+    .glide__slide--active {
+      z-index: 1;
     }
   }
 
-  .glide__slide--active {
-    z-index: 1;
-  }
-}
+  // .carousel-modal {
+  // overflow: visible;
+  // box-shadow: none !important;
 
-.carousel-modal {
-  overflow: visible;
-  background-color: transparent;
-  box-shadow: none !important;
+  .modal-content {
+    background-color: transparent;
+  }
 
   .image-center {
     display: block;
