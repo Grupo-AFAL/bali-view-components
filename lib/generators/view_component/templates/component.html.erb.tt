@@ -1,1 +1,3 @@
-<div class="<%= file_name %>-component"></div>
+<%%= tag.div(**options) do %>
+  <%%= content %>
+<%% end %>
