@@ -26,18 +26,18 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
   end
 
   describe '#select_field' do
-  let(:select_field) { builder.select_field(:status, Movie.statuses.to_a) }
+    let(:select_field) { builder.select_field(:status, Movie.statuses.to_a) }
 
-  it 'renders a div with control class' do
-    expect(select_field).to have_css 'div.control'
-  end
-
-  it 'renders a select' do
-    expect(select_field).to have_css 'select#movie_status[name="movie[status]"]'
-
-    Movie.statuses.each do |name, value|
-      expect(select_field).to have_css "option[value=\"#{value}\"]", text: name
+    it 'renders a div with control class' do
+      expect(select_field).to have_css 'div.control'
     end
-  end
+
+    it 'renders a select' do
+      expect(select_field).to have_css 'select#movie_status[name="movie[status]"]'
+
+      Movie.statuses.each do |name, value|
+        expect(select_field).to have_css "option[value=\"#{value}\"]", text: name
+      end
+    end
   end
 end

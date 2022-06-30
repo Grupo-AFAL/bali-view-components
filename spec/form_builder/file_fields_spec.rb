@@ -19,7 +19,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
         'input#movie_cover_photo[name="movie[cover_photo]"][data-action="file-input#onChange"]'
       )
     end
-    
+
     it 'renders a label' do
       expect(file_field_group).to have_css 'label.file-label', text: 'No file selected'
     end

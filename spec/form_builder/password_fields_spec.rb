@@ -22,8 +22,8 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
   end
 
   describe '#password_field' do
-    let(:password_field) { builder.password_field(:budget) } 
- 
+    let(:password_field) { builder.password_field(:budget) }
+
     it 'renders a div with control class' do
       expect(password_field).to have_css 'div.control'
     end

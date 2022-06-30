@@ -13,7 +13,8 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'renders a label' do
-      expect(datetime_field_group).to have_css 'label[for="movie_release_date"]', text: 'Release date'
+      expect(datetime_field_group).to have_css 'label[for="movie_release_date"]',
+                                               text: 'Release date'
     end
 
     it 'renders a field with a datepicker controller' do

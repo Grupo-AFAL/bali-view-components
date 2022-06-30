@@ -20,7 +20,6 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
       expect(percentage_field_group).to have_css 'span.button.is-static', text: '%'
     end
 
-
     it 'renders an input' do
       expect(percentage_field_group).to have_css(
         'input#movie_budget[name="movie[budget]"][placeholder="0"][step="0.01"]'

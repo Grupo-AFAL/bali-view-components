@@ -6,19 +6,21 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
   include_context 'form builder'
 
   describe '#submit' do
-    let(:submit) { builder.submit('Save') } 
+    let(:submit) { builder.submit('Save') }
 
     it 'renders an inline div' do
       expect(submit).to have_css 'div.inline'
     end
-     
+
     it 'renders a submit button' do
       expect(submit).to have_css 'button[type="submit"][class="button is-primary"]', text: 'Save'
     end
   end
 
   describe '#submit_actions' do
-    let(:submit_actions) { builder.submit_actions('Save', cancel_path: '/', cancel_options: { label: 'Back' }) } 
+    let(:submit_actions) do
+      builder.submit_actions('Save', cancel_path: '/', cancel_options: { label: 'Back' })
+    end
 
     it 'renders buttons within a wrapper' do
       expect(submit_actions).to have_css 'div.field.is-grouped.is-grouped-right'
@@ -31,7 +33,8 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'renders a submit button' do
-      expect(submit_actions).to have_css 'button[type="submit"][class="button is-primary"]', text: 'Save'
+      expect(submit_actions).to have_css 'button[type="submit"][class="button is-primary"]',
+                                         text: 'Save'
     end
   end
 end

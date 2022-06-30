@@ -7,9 +7,10 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
 
   describe '#time_zone_select_group' do
     let(:time_zone_select_group) { builder.time_zone_select_group(:release_date) }
-   
+
     it 'renders a label' do
-      expect(time_zone_select_group).to have_css 'label[for="movie_release_date"]', text: 'Release date'
+      expect(time_zone_select_group).to have_css 'label[for="movie_release_date"]',
+                                                 text: 'Release date'
     end
 
     it 'renders a select tag' do

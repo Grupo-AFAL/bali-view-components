@@ -12,7 +12,6 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
       expect(radio_field_group).to have_css 'div.control'
     end
 
-
     it 'renders a label and input for each option' do
       Movie.statuses.each do |name, value|
         expect(radio_field_group).to have_css "label[for=\"movie_status_#{value}\"]", text: name

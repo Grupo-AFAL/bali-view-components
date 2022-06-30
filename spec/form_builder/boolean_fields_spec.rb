@@ -19,12 +19,12 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     it 'renders the inputs' do
       expect(boolean_field_group).to have_css 'input[value="0"]', visible: false
       expect(boolean_field_group).to have_css 'input#movie_indie[value="1"]'
-    end    
+    end
   end
 
   describe '#boolean_field' do
     let(:boolean_field) { builder.boolean_field(:indie) }
-    
+
     it 'renders a label' do
       expect(boolean_field).to have_css 'label[for="movie_indie"]', text: 'Indie'
     end

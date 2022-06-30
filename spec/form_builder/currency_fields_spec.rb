@@ -22,7 +22,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
 
     it 'renders an input' do
       expect(currency_field_group).to have_css(
-        'input#movie_budget[name="movie[budget]"][type="text"][step="0.01"][placeholder="0"]',
+        'input#movie_budget[name="movie[budget]"][type="text"][step="0.01"][placeholder="0"]'
       )
     end
   end

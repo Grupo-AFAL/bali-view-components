@@ -13,7 +13,8 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'renders a label' do
-      expect(email_field_group).to have_css 'label[for="movie_contact_email"]', text: 'Contact email'
+      expect(email_field_group).to have_css 'label[for="movie_contact_email"]',
+                                            text: 'Contact email'
     end
 
     it 'renders an input' do
@@ -25,9 +26,9 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
 
   describe '#email_field' do
     it 'renders an input' do
-        expect(builder.email_field(:contact_email)).to have_css(
-          'input#movie_contact_email[type="email"][name="movie[contact_email]"]'
-        )
+      expect(builder.email_field(:contact_email)).to have_css(
+        'input#movie_contact_email[type="email"][name="movie[contact_email]"]'
+      )
     end
   end
 end
