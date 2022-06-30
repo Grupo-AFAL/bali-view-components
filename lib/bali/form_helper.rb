@@ -11,11 +11,5 @@ module Bali
 
       super(**options, &)
     end
-
-    def form_for(record, **options, &)
-      prepend_controller(options, 'submit-button')
-
-      super(record, **options, &)
-    end
   end
 end
