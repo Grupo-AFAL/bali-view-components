@@ -26,14 +26,13 @@ module Bali
           @options = prepend_class_name(@options, 'is-hidden') unless @active
         end
 
-        def trigger(index = 0)  
+        def trigger(index = 0)
           tag.li(data: trigger_li_data(index), class: trigger_li_classes) do
-
             tag.a(**trigger_a_options) do
               safe_join([
-                icon ? render(Bali::Icon::Component.new(icon)) : nil,
-                tag.span { title }
-              ])
+                          icon ? render(Bali::Icon::Component.new(icon)) : nil,
+                          tag.span { title }
+                        ])
             end
           end
         end
@@ -47,13 +46,13 @@ module Bali
         def trigger_li_data(index)
           return {} if full_page_reload
 
-          { 
+          {
             'tabs-target': 'tab',
-                           'tabs-index-param': index,
-                           'tabs-src-param': src,
-                           'tabs-reload-param': reload,
-                            action: 'click->tabs#open' 
-                          }
+            'tabs-index-param': index,
+            'tabs-src-param': src,
+            'tabs-reload-param': reload,
+            action: 'click->tabs#open'
+          }
         end
 
         def trigger_li_classes

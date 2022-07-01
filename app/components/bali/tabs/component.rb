@@ -5,7 +5,7 @@ module Bali
     class Component < ApplicationViewComponent
       renders_many :tabs, ->(**options) {
         Tab::Component.new(full_page_reload: @full_page_reload, **options)
-      } 
+      }
 
       def initialize(full_page_reload: false, **options)
         @full_page_reload = full_page_reload
