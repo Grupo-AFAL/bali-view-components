@@ -1,6 +1,6 @@
 {
   "name": "bali-view-components",
-  "version": "0.21.0",
+  "version": "0.22.0",
   "description": "Bali ViewComponents",
   "main": "app/javascript/bali/index.js",
   "repository": "git@github.com:Grupo-AFAL/bali.git",
@@ -17,6 +17,7 @@
     "lodash.debounce": "^4.0.8",
     "lodash.throttle": "^4.1.1",
     "slim-select": "^1.27.1",
+    "sortablejs": "^1.15.0",
     "stimulus-chartjs": "^4.0.0",
     "tippy.js": "^6.3.7"
   },

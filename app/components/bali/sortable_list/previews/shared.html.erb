@@ -1,0 +1,21 @@
+<%= render Bali::SortableList::Component.new(
+    disabled: disabled,
+    group_name: group_name,
+    list_id: 1) do |s| %>
+
+  <% 5.times do |i|  %>
+    <% s.item(update_url: update_url) { "Item #{i}" } %>
+  <% end %>
+<% end %>
+
+<br>
+
+<%= render Bali::SortableList::Component.new(
+    disabled: disabled,
+    group_name: group_name,
+    list_id: 2) do |s| %>
+
+  <% 5.times do |i|  %>
+    <% s.item(update_url: update_url) { "Another item #{i}" } %>
+  <% end %>
+<% end %>

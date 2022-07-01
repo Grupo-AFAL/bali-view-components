@@ -97,7 +97,7 @@ Update this table when making progress on any of the Components or when adding n
 | Rate (Rating)           |        :x:         |        :x:         |        :x:         |        :x:         | Rename from Rating to Rate                     |
 | SearchInput             | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | SideMenu                | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
-| SortableList            |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
+| SortableList            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Stepper                 | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Table                   | :white_check_mark: |    :wavy_dash:     |        :x:         | :white_check_mark: |                                                |
 | Tabs                    | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
