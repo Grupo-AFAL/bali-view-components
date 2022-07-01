@@ -64,7 +64,7 @@ Update this table when making progress on any of the Components or when adding n
 | ----------------------- | :----------------: | :----------------: | :----------------: | :----------------: | ---------------------------------------------- |
 | AddToCalendar           |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Box                     |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
-| Breadcrumb              |        :x:         |        :x:         |        :x:         |        :x:         | Create from scratch                            |
+| Breadcrumb              | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | BooleanIcon             | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Calendar                | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Carousel                |        :x:         | :white_check_mark: |        :x:         | :white_check_mark: | Two versions in Enjoy and GA, need to merge    |
