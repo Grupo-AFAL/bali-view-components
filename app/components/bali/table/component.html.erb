@@ -17,11 +17,15 @@
           <td class="empty-table" colspan="<%= headers.count %>">
             <div class='has-text-centered m-6'>
               <% if form&.active_filters? %>
-                <p class="body-1"><%= t('.no_results') %></p>
+                <%= no_results_notification || tag.p(t('.no_results')) %>
               <% else %>
-                  <p class='body-1'><%= t('.no_records') %></p>
+                <% if no_records_notification.present? %>
+                  <%= no_records_notification %>
+                <% else %>
+                  <p><%= t('.no_records') %></p>
                   <br />
                   <%= new_record_link %>
+                <% end %>
               <% end %>
             </div>
           </td>

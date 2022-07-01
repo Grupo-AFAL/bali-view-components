@@ -33,6 +33,16 @@ module Bali
           }
         )
       end
+
+      def with_custom_no_records_notification
+        render_with_template(
+          template: 'bali/table/previews/with_custom_no_records_notification',
+          locals: {
+            headers: HEADERS,
+            records: []
+          }
+        )
+      end
     end
   end
 end

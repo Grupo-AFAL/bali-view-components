@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.0] - 2022-07-01
+
+- Create `Breadcrumb::Component` to improve the navigation experience
+
+## [0.19.1] - 2022-07-01
+
+- Custom notifications have been added for `no results/no records` in the table component.
+
+## [0.19.0] - 2022-07-01
+
+- Create `Stepper::Component` to display steps completed in a process
+
+## [0.18.0] - 2022-06-30
+
+- Added a `FormHelper` to add the `submit-button-controller` to the `form_for` method.
+
 ## [0.17.1] - 2022-06-30
 
 - Update `hyphenize_keys` to return a hash in which the keys are symbols instead of strings.

@@ -64,4 +64,30 @@ RSpec.describe Bali::Table::Component, type: :component do
 
     is_expected.to have_css 'a', text: 'Add New Record'
   end
+
+  context 'with custom no records notification' do
+    it 'renders an empty query message' do
+      @options.merge!(form: @filter_form)
+      render_inline(component) do |c|
+        c.no_records_notification { 'So sorry, no records found!' }
+      end
+
+      is_expected.to have_css '.empty-table', text: 'So sorry, no records found!'
+    end
+  end
+
+  context 'with custom no results notification' do
+    it 'renders an empty table without results' do
+      form = double('form')
+      allow(form).to receive(:active_filters?) { true }
+      allow(form).to receive(:id) { '1' }
+
+      @options = { form: form }
+      render_inline(component) do |c|
+        c.no_results_notification { 'So sorry, no results!' }
+      end
+
+      is_expected.to have_css '.empty-table', text: 'So sorry, no results!'
+    end
+  end
 end
