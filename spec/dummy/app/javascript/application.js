@@ -14,6 +14,7 @@ import {
   TreeViewItemController,
   SelectedController,
   SideMenuController,
+  SortableListController,
   SubmitOnChangeController
 } from '../../../../app/javascript/bali'
 
@@ -31,4 +32,5 @@ application.register('tabs', TabsController)
 application.register('tree-view-item', TreeViewItemController)
 application.register('selected', SelectedController)
 application.register('side-menu', SideMenuController)
+application.register('sortable-list', SortableListController)
 application.register('submit-on-change', SubmitOnChangeController)

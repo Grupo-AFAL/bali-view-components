@@ -10,6 +10,16 @@ module Bali
       prepend_data_attribute(options, :controller, controller_name)
     end
 
+    def prepend_values(options, controller_name, values)
+      values.each do |key, value|
+        prepend_data_attribute(
+          options,
+          "#{controller_name}-#{hyphenize(key)}-value",
+          value
+        )
+      end
+    end
+
     def prepend_turbo_method(options, turbo_method)
       prepend_data_attribute(options, :turbo_method, turbo_method)
     end
@@ -20,7 +30,11 @@ module Bali
     end
 
     def hyphenize_keys(options)
-      options.transform_keys { |k| k.to_s.gsub('_', '-').to_sym }
+      options.transform_keys { |k| hyphenize(k) }
+    end
+
+    def hyphenize(key)
+      key.to_s.gsub('_', '-').to_sym
     end
 
     def prepend_data_attribute(options, attr_name, attr_value)

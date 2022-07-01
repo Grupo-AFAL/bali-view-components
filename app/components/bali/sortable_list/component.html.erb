@@ -1,0 +1,7 @@
+<%= tag.div(class: classes, data: data_attributes, **options) do %>
+  <%= content %>
+
+  <% items.each do |item| %>
+    <%= item %>
+  <% end %>
+<% end %>

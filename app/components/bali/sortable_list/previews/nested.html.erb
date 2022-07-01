@@ -1,0 +1,15 @@
+<%= render Bali::SortableList::Component.new(disabled: disabled, group_name: group_name) do |s| %>
+  <% 5.times do |i| %>
+    <% s.item(update_url: update_url) { "Item #{i}" } %>
+  <% end %>
+
+  <% s.item(update_url: update_url) do |item| %>
+    <p>Item 5</p>
+
+    <% item.sortable(disabled: disabled, group_name: group_name) do |ns| %>
+      <% 5.times do |j| %>
+        <% ns.item(update_url: update_url) { "Nested Item #{j}" } %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

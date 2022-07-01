@@ -16,6 +16,7 @@
     "lodash.debounce": "^4.0.8",
     "lodash.throttle": "^4.1.1",
     "slim-select": "^1.27.1",
+    "sortablejs": "^1.15.0",
     "stimulus-chartjs": "^4.0.0",
     "tippy.js": "^6.3.7"
   },
