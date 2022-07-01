@@ -3,7 +3,7 @@
 module Bali
   module SortableList
     class Preview < ApplicationViewComponentPreview
-      def default(disabled: false, update_url: '/')
+      def default(disabled: false, update_url: '/sortable_list')
         render SortableList::Component.new(disabled: disabled) do |s|
           5.times do |i|
             s.item(update_url: update_url) { "Item #{i}" }
@@ -11,11 +11,11 @@ module Bali
         end
       end
 
-      def with_handle(disabled:, update_url:, handle:)
+      def with_handle(disabled: false, update_url: '/sortable_list', handle: '.handle')
         handle_class = handle.gsub(/\./, '')
 
         render_with_template(
-          template: 'sortable_list/previews/with_handle',
+          template: 'bali/sortable_list/previews/with_handle',
           locals: {
             disabled: disabled,
             handle: handle,
@@ -25,9 +25,9 @@ module Bali
         )
       end
 
-      def shared(disabled:, group_name:, update_url:)
+      def shared(group_name: 'shared', update_url: '/sortable_list', disabled: false)
         render_with_template(
-          template: 'sortable_list/previews/shared',
+          template: 'bali/sortable_list/previews/shared',
           locals: {
             disabled: disabled,
             group_name: group_name,
@@ -36,9 +36,9 @@ module Bali
         )
       end
 
-      def nested(disabled:, group_name:, update_url:)
+      def nested(disabled: false, group_name: 'nested', update_url: '/sortable_list')
         render_with_template(
-          template: 'sortable_list/previews/nested',
+          template: 'bali/sortable_list/previews/nested',
           locals: {
             disabled: disabled,
             group_name: group_name,

@@ -6,7 +6,7 @@ export class SortableListController extends Controller {
   static values = {
     resourceName: String,
     positionParamName: { type: String, default: 'position' },
-    listParamName: String,
+    listParamName: { type: String, default: 'list_id' },
     responseKind: { type: String, default: 'html' },
     animation: { type: Number, default: 150 },
     handle: String,
@@ -38,7 +38,7 @@ export class SortableListController extends Controller {
       ? `${this.resourceNameValue}[${this.listParamNameValue}]`
       : this.listParamNameValue
 
-    const toListId = to.dataset.sortableListListId || ''
+    const toListId = to.dataset.sortableListListIdValue || ''
 
     const data = new FormData()
     data.append(positionParam, newIndex + 1)
@@ -59,6 +59,9 @@ export class SortableListController extends Controller {
   }
 
   itemChangedSortableList = event => {
-    return event.to.dataset.sortableListId !== event.from.dataset.sortableListId
+    return (
+      event.to.dataset.sortableListListIdValue !==
+      event.from.dataset.sortableListListIdValue
+    )
   }
 }
