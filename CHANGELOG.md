@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Custom notifications have been added for `no results/no records` in the table component.
 
+## [0.18.0] - 2022-06-30
+
+- Added a `FormHelper` to add the `submit-button-controller` to the `form_for` method.
+
 ## [0.17.1] - 2022-06-30
 
 - Update `hyphenize_keys` to return a hash in which the keys are symbols instead of strings.
