@@ -20,7 +20,7 @@ import {
 
 const application = Application.start()
 
-application.register('chart', CarouselController)
+application.register('carousel', CarouselController)
 application.register('chart', ChartController)
 application.register('dropdown', DropdownController)
 application.register('filter-form', FilterFormController)
