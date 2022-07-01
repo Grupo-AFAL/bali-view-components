@@ -12,5 +12,7 @@ Rails.application.routes.draw do
   get 'tab2', to: 'tabs#tab2'
   get 'tab3', to: 'tabs#tab3'
 
+  patch 'sortable_list', to: 'sortable_list#update'
+
   mount Lookbook::Engine, at: '/lookbook'
 end

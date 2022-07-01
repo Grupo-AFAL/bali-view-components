@@ -1,0 +1,8 @@
+<%= render Bali::SortableList::Component.new(disabled: disabled, handle: handle) do |s| %>
+  <% 5.times do |i| %>
+    <% s.item(update_url: update_url) do %>
+      <%= tag.span ':::', class: handle_class %>
+      <%= "Item #{i}" %>
+    <% end %>
+  <% end %>
+<% end %>
