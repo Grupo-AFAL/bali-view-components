@@ -4,7 +4,7 @@ module Bali
   module Tabs
     module Tab
       class Component < ApplicationViewComponent
-        attr_reader :active, :icon, :title, :src, :reload, :full_page_reload, :options
+        attr_reader :active, :icon, :title, :src, :reload, :navigation_action, :options
 
         # @param active [Boolean] Whether the tab is active
         # @param icon [String] The name of the icon to use
@@ -20,7 +20,7 @@ module Bali
           @title = title
           @src = src
           @reload = reload
-          @full_page_reload = options.delete(:full_page_reload)
+          @navigation_action = options.delete(:navigation_action)
 
           @options = options
           @options = prepend_class_name(@options, 'is-hidden') unless @active
@@ -43,8 +43,12 @@ module Bali
 
         private
 
+        def navigation_advance?
+          navigation_action == :advance
+        end
+
         def trigger_li_data(index)
-          return {} if full_page_reload
+          return {} if navigation_advance?
 
           {
             'tabs-target': 'tab',
@@ -56,13 +60,14 @@ module Bali
         end
 
         def trigger_li_classes
-          return class_names('is-active': active_path?(request.fullpath, src)) if full_page_reload
+          return class_names('is-active': active) unless navigation_advance?
 
-          class_names('is-active': active)
+         
+          class_names('is-active': active_path?(request.fullpath, src))
         end
 
         def trigger_a_options
-          return { href: src } if full_page_reload
+          return { href: src } if navigation_advance?
 
           {}
         end
