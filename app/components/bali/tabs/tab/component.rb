@@ -62,7 +62,6 @@ module Bali
         def trigger_li_classes
           return class_names('is-active': active) unless navigation_advance?
 
-         
           class_names('is-active': active_path?(request.fullpath, src))
         end
 
