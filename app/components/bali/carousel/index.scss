@@ -7,11 +7,11 @@
     box-sizing: inherit;
   }
 
-  &__track {
+  .glide__track {
     overflow: hidden;
   }
 
-  &__slides {
+  .glide__slides {
     position: relative;
     width: 100%;
     list-style: none;
@@ -27,7 +27,7 @@
     will-change: transform;
   }
 
-  &__slide {
+  .glide__slide {
     margin: auto;
     width: 100%;
     height: 100%;
@@ -54,12 +54,12 @@
     }
   }
 
-  &__arrows {
+  .glide__arrows {
     -webkit-touch-callout: none;
     user-select: none;
   }
 
-  &__arrow {
+  .glide__arrow {
     position: absolute;
     display: block;
     top: 50%;
@@ -106,7 +106,7 @@
     }
   }
 
-  &__bullets {
+  .glide__bullets {
     -webkit-touch-callout: none;
     user-select: none;
     position: absolute;
@@ -118,7 +118,7 @@
     transform: translateX(-50%);
   }
 
-  &__bullet {
+  .glide__bullet {
     background-color: rgba(255, 255, 255, 0.5);
     width: 9px;
     height: 9px;
