@@ -47,6 +47,11 @@
 
       &--active {
         z-index: 1;
+
+        .image-center {
+          display: block;
+          margin: auto;
+        }
       }
     }
 
@@ -83,10 +88,18 @@
 
       &--left {
         left: -4rem;
+
+        @include mobile {
+          left: 2rem;
+        }
       }
 
       &--right {
         right: -4rem;
+
+        @include mobile {
+          right: 2rem;
+        }
       }
 
       &--disabled {
@@ -97,7 +110,6 @@
     &__bullets {
       -webkit-touch-callout: none;
       user-select: none;
-
       position: absolute;
       z-index: 2;
       bottom: 2em;
@@ -160,43 +172,6 @@
 
       path {
         fill: $white;
-      }
-    }
-  }
-
-  .modal-content {
-    background-color: transparent;
-  }
-
-  .image-center {
-    display: block;
-    margin: auto;
-  }
-
-  @include mobile {
-    li {
-      margin-top: 12.5rem;
-    }
-  }
-
-  @include tablet {
-    width: 45rem;
-    padding: 0;
-  }
-
-  @include widescreen {
-    width: 67.5rem;
-    padding: 0;
-  }
-
-  .glide {
-    @media screen and (min-width: 52.5rem), print {
-      .glide__arrow--left {
-        left: -4rem;
-      }
-
-      .glide__arrow--right {
-        right: -4rem;
       }
     }
   }
