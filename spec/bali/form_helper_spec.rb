@@ -6,7 +6,7 @@ class FormHelperTest < ActionView::TestCase
   include Bali::FormHelper
 end
 
-RSpec.describe Bali::FormHelper, type: :form_helper do
+RSpec.describe Bali::FormHelper, type: :form_builder do
   let(:helper) { FormHelperTest.new(nil) }
 
   describe '#form_with' do

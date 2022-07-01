@@ -42,7 +42,6 @@ RSpec.configure do |config|
   config.include ViewComponent::TestHelpers, type: :component
   config.include Capybara::RSpecMatchers, type: :component
   config.include Capybara::RSpecMatchers, type: :form_builder
-  config.include Capybara::RSpecMatchers, type: :form_helper
 
   # Remove this line to enable support for ActiveRecord
   config.use_active_record = false

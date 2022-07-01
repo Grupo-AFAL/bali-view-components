@@ -1,0 +1,83 @@
+$step-marker-border-size: 0.5rem;
+$step-marker-size: 2rem;
+$step-details-padding-top: 0.2rem;
+$step-connector-height: 0.2rem;
+
+.stepper-component {
+  display: flex;
+  flex-wrap: wrap;
+
+  .step-component {
+    margin-top: 0;
+    position: relative;
+    flex-grow: 1;
+    flex-basis: 0;
+
+    &:before {
+      background: linear-gradient(to left, $grey-lighter 50%, $primary 50%);
+      background-size: 200% 100%;
+      background-position: right bottom;
+    }
+
+    &.is-active:before,
+    &.is-done:before {
+      background: linear-gradient(to left, $primary 50%, $primary 50%);
+    }
+
+    &.is-done {
+      .step-marker {
+        background: $primary;
+        border: $step-marker-border-size solid $primary;
+      }
+
+      .icon path {
+        fill: $white;
+      }
+    }
+
+    &.is-active .step-marker {
+      background: $white;
+      border: $step-marker-border-size solid $primary;
+    }
+
+    &.is-pending {
+      color: $grey-light;
+    }
+
+    &:not(:first-child)::before {
+      content: ' ';
+      display: block;
+      position: absolute;
+      height: $step-connector-height;
+      width: 100%;
+      bottom: 0;
+      left: -50%;
+      top: $step-marker-size/2;
+    }
+  }
+
+  .step-marker {
+    height: $step-marker-size;
+    width: $step-marker-size;
+    position: absolute;
+    left: calc(50% - #{($step-marker-size/2)});
+
+    align-items: center;
+    display: flex;
+    border-radius: 50%;
+    font-weight: 700;
+    justify-content: center;
+    background: $grey-lighter;
+    border: $step-marker-border-size solid $grey-lighter;
+    box-shadow: 0px 0px 0px $step-marker-border-size $white;
+    z-index: 1;
+  }
+
+  .step-details {
+    text-align: center;
+    margin-top: $step-marker-size;
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+    padding-top: $step-details-padding-top;
+  }
+}
