@@ -2,6 +2,7 @@ import GoogleMapsLoader from './utils/google-maps-loader'
 import * as time from './utils/time'
 
 export { GoogleMapsLoader, time }
+export { CarouselController } from '../../components/bali/carousel'
 export { ChartController } from '../../components/bali/chart'
 export { DrawerController } from '../../components/bali/drawer'
 export { DropdownController } from '../../components/bali/dropdown'
