@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'rails_helper'
+
 class MovieFilterForm < Bali::FilterForm
   attribute :name_i_cont, :string
   attribute :genre_in, default: []

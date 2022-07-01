@@ -1,6 +1,11 @@
 # frozen_string_literal: true
 
-class Bali::<%= class_name %>::Preview < <%= preview_parent_class %>
-  def default
+module Bali
+  module <%= class_name %>
+    class Preview < <%= preview_parent_class %>
+      def default
+        # Default preview goes here
+      end
+    end
   end
 end

@@ -4,13 +4,14 @@ module Bali
   module <%= class_name %>
     class Component < <%= parent_class %>
       <%- if initialize_instance_variables -%>
-      attr_reader <%= attr_reader_parameters %>
+      attr_reader <%= attr_reader_parameters %>, :options
       <%- end -%>
 
-      def initialize(<%= initialize_parameters %>)
+      def initialize(<%= initialize_parameters %>, **options)
       <%- if initialize_instance_variables -%>
         <%= initialize_instance_variables %>
       <%- end -%>
+        @options = prepend_class_name(options, '<%= default_css_class %>')
       end
     end
   end

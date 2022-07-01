@@ -6,7 +6,7 @@ class CustomHelperTest < ActionView::TestCase
   include Bali::Utils
 end
 
-RSpec.describe 'Bali::Utils' do
+RSpec.describe Bali::Utils do
   let(:helper) { CustomHelperTest.new(nil) }
 
   describe '#class_names' do

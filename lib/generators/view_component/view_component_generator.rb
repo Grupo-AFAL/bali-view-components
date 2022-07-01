@@ -7,7 +7,7 @@ class ViewComponentGenerator < Rails::Generators::NamedBase
   class_option :skip_test, type: :boolean, default: false
   class_option :skip_preview, type: :boolean, default: false
   class_option :skip_js, type: :boolean, default: false
-  class_option :skip_css, type: :boolean, default: false
+  class_option :skip_scss, type: :boolean, default: false
 
   argument :attributes, type: :array, default: [], banner: 'attribute'
 
@@ -32,8 +32,8 @@ class ViewComponentGenerator < Rails::Generators::NamedBase
     template 'preview.rb', File.join('app/components', class_path, file_name, 'preview.rb')
   end
 
-  def create_css_file
-    return if options[:skip_css] || options[:skip_js]
+  def create_scss_file
+    return if options[:skip_scss] || options[:skip_js]
 
     template 'index.scss', File.join('app/components', class_path, file_name, 'index.scss')
   end
@@ -42,6 +42,10 @@ class ViewComponentGenerator < Rails::Generators::NamedBase
     return if options[:skip_js]
 
     template 'index.js', File.join('app/components', class_path, file_name, 'index.js')
+  end
+
+  def default_css_class
+    "#{file_name}-component"
   end
 
   private
@@ -68,5 +72,9 @@ class ViewComponentGenerator < Rails::Generators::NamedBase
 
   def attr_reader_parameters
     attributes.map { |attr| ":#{attr.name}" }.join(', ')
+  end
+
+  def attr_reader_test_parameters
+    attributes.map { |attr| "#{attr.name}: nil" }.join(', ')
   end
 end

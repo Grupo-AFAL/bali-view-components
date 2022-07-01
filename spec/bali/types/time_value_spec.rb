@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'rails_helper'
+
 RSpec.describe Bali::Types::TimeValue do
   describe 'integration with a model' do
     it 'casts a time value from integer to a date string' do
