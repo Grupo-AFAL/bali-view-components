@@ -5,9 +5,9 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :current, :options
 
-      renders_many :steps, ->(title:, **options, &block) do
+      renders_many :steps, ->(title:, **options) do
         @index += 1
-        Step::Component.new(title: title, current: @current, index: @index, **options, &block)
+        Step::Component.new(title: title, current: @current, index: @index, **options)
       end
 
       def initialize(current: 0, **options)
