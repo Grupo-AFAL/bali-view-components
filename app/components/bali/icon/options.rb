@@ -234,6 +234,12 @@ module Bali
         </svg>
       )
 
+      CHECK = %(
+        <svg viewBox="0 0 24 24" class="svg-inline">
+          <path d="M21.3745 4.45325H19.7362C19.5065 4.45325 19.2885 4.55872 19.1479 4.73918L9.48462 16.9806L4.85103 11.1095C4.78093 11.0205 4.69159 10.9485 4.5897 10.899C4.48781 10.8495 4.37603 10.8237 4.26274 10.8236H2.62446C2.46743 10.8236 2.38071 11.004 2.47681 11.1259L8.89634 19.2587C9.19634 19.6384 9.7729 19.6384 10.0752 19.2587L21.5221 4.75325C21.6182 4.63372 21.5315 4.45325 21.3745 4.45325V4.45325Z" fill="currentColor"/>
+        </svg>
+      )
+
       CHECK_CIRCLE = %(
         <svg viewBox="0 0 512 512" class="svg-inline">
           <path fill="currentColor"
@@ -1390,6 +1396,7 @@ module Bali
         'camera' => CAMERA,
         'capsules' => CAPSULES,
         'chart-line' => CHART_LINE,
+        'check' => CHECK,
         'check-circle' => CHECK_CIRCLE,
         'checklist' => CHECKLIST,
         'chevron-doble-down' => CHEVRON_DOBLE_DOWN,

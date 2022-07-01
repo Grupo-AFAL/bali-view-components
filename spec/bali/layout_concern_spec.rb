@@ -6,7 +6,7 @@ class CustomApplicationController < ApplicationController
   include Bali::LayoutConcern
 end
 
-RSpec.describe 'Bali::LayoutConcern' do
+RSpec.describe Bali::LayoutConcern do
   let(:controller) { CustomApplicationController.new }
 
   describe '#conditionally_skip_layout' do

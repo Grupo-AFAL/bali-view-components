@@ -15,6 +15,9 @@ module Bali
         Bali::Link::Component.new(name: name, href: href, type: :success, modal: modal, **options)
       end
 
+      renders_one :no_records_notification
+      renders_one :no_results_notification
+
       attr_reader :form, :options, :tbody_options
 
       def initialize(form: nil, **options)

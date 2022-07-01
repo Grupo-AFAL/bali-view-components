@@ -5,9 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.1] - 2022-07-01
+
+- Custom notifications have been added for `no results/no records` in the table component.
+
+## [0.19.0] - 2022-07-01
+
+- Create `Stepper::Component` to display steps completed in a process
+
+## [0.18.0] - 2022-06-30
+
+- Added a `FormHelper` to add the `submit-button-controller` to the `form_for` method.
+
+## [0.17.1] - 2022-06-30
+
+- Update `hyphenize_keys` to return a hash in which the keys are symbols instead of strings.
+
+## [0.17.0] - 2022-06-30
+
+- Create `BooleanIcon::Component` and update Component Generator templates.
+
 ## [0.16.0] - 2022-06-30
 
-- Create `BooleanIcon::Component` and update Component Generator.
+- Added non-component stylesheets (`box`, `code`, `container`, `flatpickr_customizations`, `forms`, `general`, `panel`, `slim_select_customizations`, `switch`, `typography`, `variables`). In addition missing Hover Card styles (Frontend helpers) have been added to the Hover card.
+
+## [0.15.3] - 2022-06-30
+
+-Reorganize specs to have all tests within a bali/ folder.
 
 ## [0.15.2] - 2022-06-30
 
