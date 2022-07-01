@@ -1,9 +1,9 @@
 <%= tag.div **@options do %>
   <div data-glide-el="track" class="glide__track">
     <ul class="glide__slides">
-      <% images.each do |image| %>
+      <% items.each do |item| %>
         <li class="glide__slide">
-          <%= image %>
+          <%= item %>
         </li>
       <% end %>
     </ul>

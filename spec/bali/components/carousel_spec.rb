@@ -8,7 +8,7 @@ RSpec.describe Bali::Carousel::Component, type: :component do
 
   it 'renders component' do
     render_inline(component) do |c|
-      c.image do
+      c.item do
         '<img src="https://via.placeholder.com/320x244.png" />'.html_safe
       end
     end
@@ -16,14 +16,14 @@ RSpec.describe Bali::Carousel::Component, type: :component do
     expect(rendered_component).to have_css '.glide .glide__track .glide__slides'
   end
 
-  it 'render component with second image selected' do
-    options.merge!(selected_image: 1)
+  it 'render component with second item selected' do
+    options.merge!(start_at: 1)
     render_inline(component) do |c|
-      c.image do
+      c.item do
         '<img src="https://via.placeholder.com/320x244.png" />'.html_safe
       end
     end
 
-    expect(rendered_component).to have_css 'div[data-carousel-index-value="1"]'
+    expect(rendered_component).to have_css 'div[data-carousel-start-at-value="1"]'
   end
 end

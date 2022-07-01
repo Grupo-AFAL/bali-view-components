@@ -3,7 +3,7 @@ import { Controller } from '@hotwired/stimulus'
 export class CarouselController extends Controller {
   static values = {
     type: { type: String, default: 'carousel' },
-    index: { type: Number, default: 0 },
+    startAt: { type: Number, default: 0 },
     perView: { type: Number, default: 1 },
     autoplay: { type: String, default: 'false' },
     gap: { type: Number, default: 0 },
@@ -17,7 +17,7 @@ export class CarouselController extends Controller {
 
     const options = {
       type: this.typeValue,
-      startAt: this.indexValue,
+      startAt: this.startAtValue,
       perView: this.perViewValue,
       autoplay: this.autoplayValue === 'false' ? false : this.autoplayValue,
       gap: this.gapValue,
