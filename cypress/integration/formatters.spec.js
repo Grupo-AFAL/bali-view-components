@@ -10,7 +10,7 @@ describe('toInt', () => {
   })
 
   it('converts a string with commas to an integer', () => {
-    expect(toInt('123,000')).to.equal(123000)
+    expect(toInt('1,000')).to.equal(1000)
   })
 })
 
@@ -24,6 +24,6 @@ describe('toFloat', () => {
   })
 
   it('converts a string with commas to a float', () => {
-    expect(toFloat('123,000.12')).to.equal(123000.12)
+    expect(toFloat('1,000.12')).to.equal(1000.12)
   })
 })
