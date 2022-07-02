@@ -41,6 +41,7 @@
       "it",
       "context",
       "describe",
+      "expect",
       "beforeEach",
       "Cypress",
       "fetch",
