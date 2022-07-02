@@ -1,7 +1,8 @@
 import GoogleMapsLoader from './utils/google-maps-loader'
 import * as time from './utils/time'
+import * as formatters from './utils/formatters'
 
-export { GoogleMapsLoader, time }
+export { GoogleMapsLoader, time, formatters }
 export { CarouselController } from '../../components/bali/carousel'
 export { ChartController } from '../../components/bali/chart'
 export { DrawerController } from '../../components/bali/drawer'
