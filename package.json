@@ -1,6 +1,6 @@
 {
   "name": "bali-view-components",
-  "version": "0.22.0",
+  "version": "0.23.0",
   "description": "Bali ViewComponents",
   "main": "app/javascript/bali/index.js",
   "repository": "git@github.com:Grupo-AFAL/bali.git",
@@ -41,6 +41,7 @@
       "it",
       "context",
       "describe",
+      "expect",
       "beforeEach",
       "Cypress",
       "fetch",
