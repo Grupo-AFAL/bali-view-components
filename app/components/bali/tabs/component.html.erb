@@ -2,18 +2,7 @@
   <%= tag.div class: class_names('tabs', @tabs_class) do %>
     <ul>
       <% tabs.each_with_index do |tab, index| %>
-        <%= tag.li data: { 'tabs-target': 'tab',
-                           'tabs-index-param': index,
-                           'tabs-src-param': tab.src,
-                           'tabs-reload-param': tab.reload,
-                            action: 'click->tabs#open' },
-                   class: class_names('is-active': tab.active) do %>
-
-          <%= tag.a do %>
-            <%= render Bali::Icon::Component.new(tab.icon) if tab.icon %>
-            <%= tag.span { tab.title } %>
-          <% end %>
-        <% end %>
+        <%= render Bali::Tabs::Trigger::Component.new(tab, index)  %>
       <% end %>
     </ul>
   <% end %>
