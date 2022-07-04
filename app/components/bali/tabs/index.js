@@ -10,7 +10,7 @@ export class TabsController extends Controller {
   static targets = ['tab', 'tabContent']
 
   connect () {
-    if(!this.hasTabTarget) return
+    if (!this.hasTabTarget) return
 
     this._loadActiveTabContent()
   }
