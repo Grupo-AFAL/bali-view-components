@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.24] - 2022-07-04
+
+- Add `Avatar::Component`.
+
 ## [0.23.1] - 2022-07-04
 
 - Add `Tabs::Trigger::Component`. In addition, a tab will cause the entire page to be reloaded when `href` is present.

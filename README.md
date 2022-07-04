@@ -93,7 +93,7 @@ Update this table when making progress on any of the Components or when adding n
 | NavBar                  | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Notification            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | PageHeader              | :white_check_mark: | :white_check_mark: |    :wavy_dash:     | :white_check_mark: |                                                |
-| ProfilePicture (Avatar) |        :x:         |        :x:         |        :x:         |        :x:         | Rename to Avatar                               |
+| ProfilePicture (Avatar) | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | Rename to Avatar                               |
 | Rate (Rating)           |        :x:         |        :x:         |        :x:         |        :x:         | Rename from Rating to Rate                     |
 | SearchInput             | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
 | SideMenu                | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
