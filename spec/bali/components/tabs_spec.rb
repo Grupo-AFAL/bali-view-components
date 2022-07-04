@@ -41,7 +41,7 @@ RSpec.describe Bali::Tabs::Component, type: :component do
       render_inline(component) do |c|
         c.tab(title: 'Tab', href: '/')
       end
-  
+
       is_expected.to have_css 'a[href="/"]'
     end
   end
