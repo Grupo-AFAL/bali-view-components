@@ -1,0 +1,16 @@
+<%= tag.div **@options do %>
+  <figure class="image is-128x128">
+    <% if @picture.attached? %>
+      <%= image_tag @picture.variant(resize_to_fill: [228, 228]).processed,
+                      class: 'is-rounded', data: { "image-preview-target": "output" } %>
+    <% else %>
+      <img class="is-rounded" src="<%= placeholder_url %>" data-image-preview-target="output">
+    <% end %>
+  </figure>
+  <div class="icon-content">
+    <label for="file-input">
+      <%= render Bali::Icon::Component.new('camera') %>
+    </label>
+    <%= file_field_input %>
+  </div>
+<% end %>

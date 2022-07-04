@@ -1,0 +1,40 @@
+$icon-size: 2rem;
+
+.avatar-component {
+  position: relative;
+  width: fit-content;
+
+  & .image img {
+    height: 100% !important;
+  }
+
+  & .image-figure {
+    transition: 0.5s ease;
+    backface-visibility: hidden;
+  }
+
+  &:hover .image-figure {
+    opacity: 0.3;
+  }
+
+  & .icon-content {
+    position: absolute;
+    top: 0;
+    left: 70%;
+    border-radius: 50%;
+    height: $icon-size;
+    width: $icon-size;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: $grey-lighter;
+
+    & > .control {
+      display: none;
+    }
+
+    & > label {
+      cursor: pointer;
+    }
+  }
+}
