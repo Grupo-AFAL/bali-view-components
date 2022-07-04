@@ -949,6 +949,11 @@
     minimatch "^3.1.2"
     strip-json-comments "^3.1.1"
 
+"@glidejs/glide@^3.5.2":
+  version "3.5.2"
+  resolved "https://registry.yarnpkg.com/@glidejs/glide/-/glide-3.5.2.tgz#7012c5920ecf202bbda44d8526fc979984b6dd54"
+  integrity sha512-7jGciNJ2bQ4eZLSNlSZ+VAyW63kALf420CvkEpK4lEsUfWJq9odqimci0YCiyNyMUFB+pWHwLYyNc57dijYsCg==
+
 "@hotwired/stimulus@^3.0.1":
   version "3.0.1"
   resolved "https://registry.npmjs.org/@hotwired/stimulus/-/stimulus-3.0.1.tgz"
