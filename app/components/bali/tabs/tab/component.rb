@@ -4,7 +4,13 @@ module Bali
   module Tabs
     module Tab
       class Component < ApplicationViewComponent
-        attr_reader :active, :icon, :title, :src, :reload, :navigation_action, :options
+        attr_reader :active, :icon, :title, :src, :reload, :options, :href
+
+        renders_one :trigger, ->(index) do
+          Trigger::Component.new(
+            index, href: href, icon: icon, title: title, src: src, reload: reload, active: active
+          )
+        end
 
         # @param active [Boolean] Whether the tab is active
         # @param icon [String] The name of the icon to use
@@ -20,55 +26,14 @@ module Bali
           @title = title
           @src = src
           @reload = reload
-          @navigation_action = options.delete(:navigation_action)
+          @href = options.delete(:href)
 
           @options = options
           @options = prepend_class_name(@options, 'is-hidden') unless @active
         end
 
-        def trigger(index = 0)
-          tag.li(data: trigger_li_data(index), class: trigger_li_classes) do
-            tag.a(**trigger_a_options) do
-              safe_join([
-                          icon ? render(Bali::Icon::Component.new(icon)) : nil,
-                          tag.span { title }
-                        ])
-            end
-          end
-        end
-
         def call
           content
-        end
-
-        private
-
-        def navigation_advance?
-          navigation_action == :advance
-        end
-
-        def trigger_li_data(index)
-          return {} if navigation_advance?
-
-          {
-            'tabs-target': 'tab',
-            'tabs-index-param': index,
-            'tabs-src-param': src,
-            'tabs-reload-param': reload,
-            action: 'click->tabs#open'
-          }
-        end
-
-        def trigger_li_classes
-          return class_names('is-active': active) unless navigation_advance?
-
-          class_names('is-active': active_path?(request.fullpath, src))
-        end
-
-        def trigger_a_options
-          return { href: src } if navigation_advance?
-
-          {}
         end
       end
     end

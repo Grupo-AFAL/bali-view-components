@@ -3,13 +3,9 @@
 module Bali
   module Tabs
     class Component < ApplicationViewComponent
-      renders_many :tabs, ->(**options) {
-        Tab::Component.new(navigation_action: @navigation_action, **options)
-      }
+      renders_many :tabs, Tab::Component
 
-      def initialize(navigation_action: :replace, **options)
-        @navigation_action = navigation_action.to_sym
-
+      def initialize(**options)
         @options = prepend_class_name(options, 'tabs-component')
         @options = prepend_controller(options, 'tabs')
 

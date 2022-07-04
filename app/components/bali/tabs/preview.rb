@@ -62,8 +62,8 @@ module Bali
       # ---------------------------
       # Set a hyperlink to the tab, to load it's content on demand.
       # @param reload toggle
-      def on_demand_content(reload: false, navigation_action: :replace)
-        render(Tabs::Component.new(navigation_action: navigation_action)) do |c|
+      def on_demand_content(reload: false)
+        render(Tabs::Component.new) do |c|
           c.tab(title: 'Tab 1', src: '/tab1', reload: reload, active: true)
           c.tab(title: 'Tab 2', src: '/tab2', reload: reload)
           c.tab(title: 'Tab 3', src: '/tab3', reload: reload)
