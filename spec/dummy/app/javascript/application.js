@@ -2,6 +2,7 @@
 import { Application } from '@hotwired/stimulus'
 
 import {
+  CarouselController,
   ChartController,
   DropdownController,
   FilterFormController,
@@ -14,11 +15,13 @@ import {
   TreeViewItemController,
   SelectedController,
   SideMenuController,
+  SortableListController,
   SubmitOnChangeController
 } from '../../../../app/javascript/bali'
 
 const application = Application.start()
 
+application.register('carousel', CarouselController)
 application.register('chart', ChartController)
 application.register('dropdown', DropdownController)
 application.register('filter-form', FilterFormController)
@@ -31,4 +34,5 @@ application.register('tabs', TabsController)
 application.register('tree-view-item', TreeViewItemController)
 application.register('selected', SelectedController)
 application.register('side-menu', SideMenuController)
+application.register('sortable-list', SortableListController)
 application.register('submit-on-change', SubmitOnChangeController)

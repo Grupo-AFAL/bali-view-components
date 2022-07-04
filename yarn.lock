@@ -949,6 +949,11 @@
     minimatch "^3.1.2"
     strip-json-comments "^3.1.1"
 
+"@glidejs/glide@^3.5.2":
+  version "3.5.2"
+  resolved "https://registry.yarnpkg.com/@glidejs/glide/-/glide-3.5.2.tgz#7012c5920ecf202bbda44d8526fc979984b6dd54"
+  integrity sha512-7jGciNJ2bQ4eZLSNlSZ+VAyW63kALf420CvkEpK4lEsUfWJq9odqimci0YCiyNyMUFB+pWHwLYyNc57dijYsCg==
+
 "@hotwired/stimulus@^3.0.1":
   version "3.0.1"
   resolved "https://registry.npmjs.org/@hotwired/stimulus/-/stimulus-3.0.1.tgz"
@@ -3109,6 +3114,11 @@ slim-select@^1.27.1:
   version "1.27.1"
   resolved "https://registry.yarnpkg.com/slim-select/-/slim-select-1.27.1.tgz#aab08c1f0428fc2c32b0376857f3da9b1fbdcb2f"
   integrity sha512-LvJ02cKKk6/jSHIcQv7dZwkQSXHLCVQR3v3lo8RJUssUUcmKPkpBmTpQ8au8KSMkxwca9+yeg+dO0iHAaVr5Aw==
+
+sortablejs@^1.15.0:
+  version "1.15.0"
+  resolved "https://registry.yarnpkg.com/sortablejs/-/sortablejs-1.15.0.tgz#53230b8aa3502bb77a29e2005808ffdb4a5f7e2a"
+  integrity sha512-bv9qgVMjUMf89wAvM6AxVvS/4MX3sPeN0+agqShejLU5z5GX4C75ow1O2e5k4L6XItUyAK3gH6AxSbXrOM5e8w==
 
 sshpk@^1.14.1:
   version "1.17.0"

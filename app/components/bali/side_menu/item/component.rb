@@ -28,10 +28,12 @@ module Bali
           @href.blank?
         end
 
+        def active?
+          request.path.include?(uri.path)
+        end
+
         def active_child_items?
-          child_items.reject(&:disabled?).any? do |item|
-            request.path.include?(item.uri.path)
-          end
+          child_items.reject(&:disabled?).any?(&:active?)
         end
       end
     end
