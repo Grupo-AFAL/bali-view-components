@@ -6,8 +6,7 @@ module Bali
       class Component < ApplicationViewComponent
         def initialize(picture:, **options)
           @picture = picture
-          @options = options
-          @options = prepend_class_name(@options, 'is-rounded')
+          @options = prepend_class_name(options, 'is-rounded')
           @options = prepend_data_attribute(@options, :image_preview_target, 'output')
         end
 

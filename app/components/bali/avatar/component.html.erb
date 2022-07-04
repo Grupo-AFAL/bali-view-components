@@ -3,13 +3,16 @@
     <% if picture? %>
       <%= picture %>
     <% else %>
-      <img class="is-rounded" src="<%= placeholder_url %>" data-image-preview-target="output">
+      <img class="is-rounded" src="<%= @placeholder_url %>" data-image-preview-target="output">
     <% end %>
   </figure>
   <div class="icon-content">
     <label for="file-input">
       <%= render Bali::Icon::Component.new('camera') %>
     </label>
-    <%= file_field_input %>
+    <div class="control">
+      <%= @form.file_field @attr_model_name, accept: @accepted_formats, id: 'file-input',
+                        data: { 'image-preview-target': 'input', action: 'change->image-preview#showImage' } %>
+    </div>
   </div>
 <% end %>

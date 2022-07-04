@@ -3,10 +3,16 @@
 module Bali
   module Avatar
     class Component < ApplicationViewComponent
-      renders_one :file_field_input
       renders_one :picture, Picture::Component
 
-      def initialize(placeholder_url: 'https://bulma.io/images/placeholders/256x256.png', **options)
+      def initialize(form:,
+                     attr_model_name:,
+                     accepted_formats:,
+                     placeholder_url: 'https://bulma.io/images/placeholders/256x256.png',
+                     **options)
+        @form = form
+        @attr_model_name = attr_model_name
+        @accepted_formats = accepted_formats
         @placeholder_url = placeholder_url
         @options = prepend_class_name(options, 'avatar-component')
         @options = prepend_controller(@options, 'image-preview')

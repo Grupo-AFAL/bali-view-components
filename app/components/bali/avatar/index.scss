@@ -4,11 +4,11 @@ $icon-size: 2rem;
   position: relative;
   width: fit-content;
 
-  & .image img {
+  .image img {
     height: 100% !important;
   }
 
-  & .image-figure {
+  .image-figure {
     transition: 0.5s ease;
     backface-visibility: hidden;
   }
@@ -17,7 +17,7 @@ $icon-size: 2rem;
     opacity: 0.3;
   }
 
-  & .icon-content {
+  .icon-content {
     position: absolute;
     top: 0;
     left: 70%;
