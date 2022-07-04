@@ -4,18 +4,16 @@ module Bali
   module Tabs
     module Trigger
       class Component < ApplicationViewComponent
-        attr_reader :index, :href, :icon, :title, :src, :reload, :options, :active
+        attr_reader :index, :href, :icon, :title, :src, :reload, :active
 
-        def initialize(
-          index = 0, icon: nil, title: '', reload: false, active: false, **options
-        )
+        def initialize(index = 0, tab)
           @index = index
-          @icon = icon
-          @title = title
-          @reload = reload
-          @active = active
-          @src = options.delete(:src)
-          @href = options.delete(:href)
+          @icon = tab.icon
+          @title = tab.title
+          @reload = tab.reload
+          @active = tab.active
+          @src = tab.src
+          @href = tab.href
         end
 
         private

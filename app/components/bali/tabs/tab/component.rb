@@ -6,12 +6,6 @@ module Bali
       class Component < ApplicationViewComponent
         attr_reader :active, :icon, :title, :src, :reload, :options, :href
 
-        renders_one :trigger, ->(index) do
-          Trigger::Component.new(
-            index, href: href, icon: icon, title: title, src: src, reload: reload, active: active
-          )
-        end
-
         # @param active [Boolean] Whether the tab is active
         # @param icon [String] The name of the icon to use
         # @param title [String] The title of the tab
