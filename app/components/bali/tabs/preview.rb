@@ -69,6 +69,18 @@ module Bali
           c.tab(title: 'Tab 3', src: '/tab3', reload: reload)
         end
       end
+
+      # Tabs with on demand content (Full Page Reload)
+      # ---------------------------
+      # Set a hyperlink to the tab, to load it's content on demand.
+      # The content will be loaded by a complete reload of the page.
+      def on_demand_content_full_page_reload
+        render(Tabs::Component.new) do |c|
+          c.tab(title: 'Tab 1', href: '/tab1')
+          c.tab(title: 'Tab 2', href: '/tab2')
+          c.tab(title: 'Tab 3', href: '/tab3')
+        end
+      end
     end
   end
 end
