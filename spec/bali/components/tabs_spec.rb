@@ -35,4 +35,14 @@ RSpec.describe Bali::Tabs::Component, type: :component do
 
     is_expected.to have_css 'span.icon svg'
   end
+
+  context 'when a tab has href' do
+    it 'renders tabs with href' do
+      render_inline(component) do |c|
+        c.tab(title: 'Tab', href: '/')
+      end
+
+      is_expected.to have_css 'a[href="/"]'
+    end
+  end
 end
