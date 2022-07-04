@@ -2,7 +2,7 @@
   <%= tag.div class: class_names('tabs', @tabs_class) do %>
     <ul>
       <% tabs.each_with_index do |tab, index| %>
-        <%= render Bali::Tabs::Trigger::Component.new(index, tab)  %>
+        <%= render Bali::Tabs::Trigger::Component.new(tab, index)  %>
       <% end %>
     </ul>
   <% end %>

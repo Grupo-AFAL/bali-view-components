@@ -6,7 +6,7 @@ module Bali
       class Component < ApplicationViewComponent
         attr_reader :index, :href, :icon, :title, :src, :reload, :active
 
-        def initialize(index = 0, tab)
+        def initialize(tab, index = 0)
           @index = index
           @icon = tab.icon
           @title = tab.title
