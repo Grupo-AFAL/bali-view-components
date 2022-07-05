@@ -12,7 +12,7 @@
     </label>
     <div class="control">
       <%= @form.file_field @attr_model_name, accept: @accepted_formats, id: 'file-input',
-                        data: { 'image-preview-target': 'input', action: 'change->image-preview#showImage' } %>
+                        data: { 'avatar-target': 'input', action: 'change->avatar#showImage' } %>
     </div>
   </div>
 <% end %>

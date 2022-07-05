@@ -2,13 +2,13 @@
 import { Application } from '@hotwired/stimulus'
 
 import {
+  AvatarController,
   CarouselController,
   ChartController,
   DropdownController,
   FilterFormController,
   HelpTipController,
   HovercardController,
-  ImagePreviewController,
   NavbarController,
   NotificationController,
   PopupController,
@@ -22,13 +22,13 @@ import {
 
 const application = Application.start()
 
+application.register('avatar', AvatarController)
 application.register('carousel', CarouselController)
 application.register('chart', ChartController)
 application.register('dropdown', DropdownController)
 application.register('filter-form', FilterFormController)
 application.register('help-tip', HelpTipController)
 application.register('hovercard', HovercardController)
-application.register('image-preview', ImagePreviewController)
 application.register('navbar', NavbarController)
 application.register('notification', NotificationController)
 application.register('popup', PopupController)

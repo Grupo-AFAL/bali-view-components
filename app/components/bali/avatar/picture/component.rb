@@ -7,7 +7,7 @@ module Bali
         def initialize(picture:, **options)
           @picture = picture
           @options = prepend_class_name(options, 'is-rounded')
-          @options = prepend_data_attribute(@options, :image_preview_target, 'output')
+          @options = prepend_data_attribute(@options, :avatar_target, 'output')
         end
 
         def call
