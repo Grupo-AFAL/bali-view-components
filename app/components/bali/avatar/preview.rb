@@ -5,8 +5,12 @@ module Bali
         # Default Avatar
         # ----------------
         # This will render the basic avatar component
+        # @params placeholder_url text
         render_with_template(
-          template: 'bali/avatar/previews/default'
+          template: 'bali/avatar/previews/default',
+          locals: {
+            placeholder_url: 'bulma-default.png'
+          }
         )
       end
 
