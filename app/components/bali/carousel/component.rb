@@ -6,7 +6,7 @@ module Bali
       renders_many :items
 
       renders_one :bullets, Bullets::Component
-      renders_one :controls, Controls::Component
+      renders_one :arrows, Arrows::Component
 
       def initialize(
         start_at: 0,

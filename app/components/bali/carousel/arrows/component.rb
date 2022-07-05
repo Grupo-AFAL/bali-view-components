@@ -2,23 +2,18 @@
 
 module Bali
   module Carousel
-    module Controls
+    module Arrows
       class Component < ApplicationViewComponent
-        attr_reader :hidden, :options, :bullets, :previous_icon, :next_icon
-        attr_accessor :bullets_count
+        attr_reader :hidden, :options, :previous_icon, :next_icon
 
-        def initialize(hidden: false, bullets: {}, **options)
+        def initialize(hidden: false, **options)
           @hidden = hidden
-          @options = options
           @previous_icon = options.delete(:previous_icon) || 'arrow-left'
           @next_icon = options.delete(:next_icon) || 'arrow-right'
-          @bullets_count = bullets.delete(:count) || 0
 
           @options = prepend_class_name(options, 'glide__arrows')
           @options = prepend_data_attribute(@options, 'glide-el', 'controls')
 
-          @bullets = prepend_class_name(bullets, 'glide__bullets')
-          @bullets = prepend_data_attribute(@bullets, 'glide-el', 'controls[nav]')
         end
 
         def render?

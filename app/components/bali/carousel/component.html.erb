@@ -10,5 +10,5 @@
   </div>
 
   <%= bullets || render(Bali::Carousel::Bullets::Component.new(count: items.size)) %>
-  <%= controls || render(Bali::Carousel::Controls::Component.new) %>
+  <%= arrows || render(Bali::Carousel::Arrows::Component.new) %>
 <% end %>
