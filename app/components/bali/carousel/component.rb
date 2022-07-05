@@ -5,6 +5,7 @@ module Bali
     class Component < ApplicationViewComponent
       renders_many :items
 
+      renders_one :bullets, Bullets::Component
       renders_one :controls, Controls::Component
 
       def initialize(
@@ -42,9 +43,9 @@ module Bali
       end
 
       def before_render
-        return if controls.blank?
+        return if bullets.blank?
 
-        controls.bullets_count = items.size
+        bullets.count = items.size
       end
 
       def render?

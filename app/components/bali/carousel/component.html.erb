@@ -9,5 +9,6 @@
     </ul>
   </div>
 
-  <%= controls || render(Bali::Carousel::Controls::Component.new(bullets: { count: items.size })) %>
+  <%= bullets || render(Bali::Carousel::Bullets::Component.new(count: items.size)) %>
+  <%= controls || render(Bali::Carousel::Controls::Component.new) %>
 <% end %>
