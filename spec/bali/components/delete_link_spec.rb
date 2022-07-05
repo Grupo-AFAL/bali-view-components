@@ -44,6 +44,21 @@ RSpec.describe Bali::DeleteLink::Component, type: :component do
     expect { render_inline(component) }.to raise_error(Bali::DeleteLink::Component::MissingURL)
   end
 
+  it 'renders a delete link with custom classes' do
+    @options.merge!(classes: 'is-small')
+    render_inline(component)
+
+    expect(rendered_component).to have_css 'button.has-text-danger.is-text.is-small', text: 'Delete'
+  end
+
+  it 'renders a delete link with custom form classes' do
+    @options.merge!(form_classes: 'has-background-success')
+    render_inline(component)
+
+    expect(rendered_component).to have_css 'button.has-text-danger.is-text', text: 'Delete'
+    expect(rendered_component).to have_css 'form.button_to.has-background-success'
+  end
+
   context 'with active record model' do
     before do
       model_name = double(

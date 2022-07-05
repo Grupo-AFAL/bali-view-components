@@ -14,6 +14,7 @@ module Bali
         name: nil,
         confirm: nil,
         classes: nil,
+        form_classes: nil,
         disabled: false,
         disabled_hover_url: nil,
         skip_confirm: false
@@ -23,6 +24,7 @@ module Bali
         @name = name
         @confirm = confirm
         @classes = classes
+        @form_classes = form_classes
         @disabled = disabled
         @disabled_hover_url = disabled_hover_url
         @skip_confirm = skip_confirm
@@ -56,6 +58,10 @@ module Bali
 
       def classes
         class_names('button has-text-danger is-text', @classes)
+      end
+
+      def form_classes
+        class_names('button_to', @form_classes)
       end
 
       private
