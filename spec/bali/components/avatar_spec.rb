@@ -13,7 +13,7 @@ describe Bali::Avatar::Component, type: :component do
 
   it 'renders the avatar component' do
     helper.form_with(url: '/') do |form|
-      options.merge!(method: :test, accepted_formats: '.jpg, .jpeg, .png', form: form)
+      options.merge!(method: :test, form: form)
       render_inline(component)
     end
 
