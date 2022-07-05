@@ -16,6 +16,12 @@ module Bali
           @options = options
         end
 
+        def before_render
+          super
+
+          @options = prepend_class_name(@options, 'is-active') if active?(request.path)
+        end
+
         def render?
           @authorized
         end
@@ -29,7 +35,7 @@ module Bali
         end
 
         def active?(base_path)
-          base_path.include?(uri.path)
+          base_path.include?(uri.path) || active_child_items?(base_path)
         end
 
         def active_child_items?(base_path)
