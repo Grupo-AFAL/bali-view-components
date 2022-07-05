@@ -1,0 +1,5 @@
+<%= tag.div **options do %>
+  <% count.times do |index| %>
+    <%= tag.button(class: "slider__bullet glide__bullet", 'aria-label': "Carousel Item #{index + 1}", data: { 'glide-dir': "=#{index}" }) %>
+  <% end %>
+<% end %>
