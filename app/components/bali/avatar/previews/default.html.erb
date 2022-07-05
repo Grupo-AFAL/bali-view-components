@@ -1,5 +1,4 @@
 <%= form_with(url: '/') do |form| %>
-  <%= render(Bali::Avatar::Component.new(form: form, attr_model_name: :avatar, 
-                                         accepted_formats: '.jpg, .jpeg, .png')) do |c| %>
+  <%= render(Bali::Avatar::Component.new(form: form, method: :avatar)) do |c| %>
   <% end %>
 <% end %>

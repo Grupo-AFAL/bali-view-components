@@ -11,8 +11,8 @@
       <%= render Bali::Icon::Component.new('camera') %>
     </label>
     <div class="control">
-      <%= @form.file_field @attr_model_name, accept: @accepted_formats, id: 'file-input',
-                        data: { 'avatar-target': 'input', action: 'change->avatar#showImage' } %>
+      <%= @form.file_field @method, accept: accepted_formats, id: 'file-input',
+                           data: { 'avatar-target': 'input', action: 'change->avatar#showImage' } %>
     </div>
   </div>
 <% end %>
