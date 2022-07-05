@@ -8,7 +8,7 @@ module Bali
 
         attr_reader :title
 
-        def initialize(title:, **options)
+        def initialize(title: nil, **options)
           @title = title
           @options = options
         end
