@@ -27,7 +27,7 @@ RSpec.describe Bali::HtmlElementHelper do
     it 'adds values for a stimulus controller' do
       options = helper.prepend_values({}, 'list', { param_name: 'position' })
 
-      expect(options[:data]['list-param-name-value']).to eq('position')
+      expect(options[:data]['list-param-name-value']).to eq("position")
     end
 
     it 'does not override other values in data' do
@@ -35,7 +35,15 @@ RSpec.describe Bali::HtmlElementHelper do
       options = helper.prepend_values(options, 'list', { param_name: 'position' })
 
       expect(options[:data][:controller]).to eq('list')
-      expect(options[:data]['list-param-name-value']).to eq('position')
+      expect(options[:data]['list-param-name-value']).to eq("position")
+    end
+
+    context 'when value is a Hash' do
+      it 'adds values for a stimulus controller' do
+        options = helper.prepend_values({}, 'list', { params: { name: 'position' } })
+  
+        expect(options[:data]['list-params-value']).to eq("{\"name\":\"position\"}")
+      end
     end
   end
 

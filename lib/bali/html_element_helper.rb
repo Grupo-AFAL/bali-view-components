@@ -17,7 +17,7 @@ module Bali
         options = prepend_data_attribute(
           options,
           "#{controller_name}-#{hyphenize(key)}-value",
-          value.to_json
+          value.is_a?(Hash) ? value.to_json : value
         )
       end
 

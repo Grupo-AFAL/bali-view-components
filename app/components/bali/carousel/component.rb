@@ -40,7 +40,7 @@ module Bali
           focus_at: @focus_at,
           breakpoints: @breakpoints,
           peek: @peek
-        }.compact
+        }
       end
 
       def before_render
