@@ -10,8 +10,8 @@ module Bali
         def initialize(hidden: false, bullets: {}, **options)
           @hidden = hidden
           @options = options
-          @previous_icon = options.delete(:previous_icon)
-          @next_icon = options.delete(:next_icon)
+          @previous_icon = options.delete(:previous_icon) || 'arrow-left'
+          @next_icon = options.delete(:next_icon) || 'arrow-right'
           @bullets_count = bullets.delete(:count) || 0
 
           @options = prepend_class_name(options, 'glide__arrows')
@@ -19,6 +19,10 @@ module Bali
 
           @bullets = prepend_class_name(bullets, 'glide__bullets')
           @bullets = prepend_data_attribute(@bullets, 'glide-el', 'controls[nav]')
+        end
+
+        def render?
+          !hidden
         end
       end
     end

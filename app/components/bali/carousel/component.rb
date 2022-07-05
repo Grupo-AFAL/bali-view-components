@@ -31,7 +31,7 @@ module Bali
 
       def controller_values
         {
-          index: @start_at,
+          start_at: @start_at,
           per_view: @per_view,
           autoplay: @autoplay,
           gap: @gap,
