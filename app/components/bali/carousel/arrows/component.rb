@@ -13,7 +13,6 @@ module Bali
 
           @options = prepend_class_name(options, 'glide__arrows')
           @options = prepend_data_attribute(@options, 'glide-el', 'controls')
-
         end
 
         def render?
