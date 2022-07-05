@@ -1,4 +1,5 @@
 <li>
+  <% @options = prepend_class_name(@options, 'is-active') if active?(request.path) %>
   <%= render Bali::Link::Component.new(href: @href, name: @name, icon_name: @icon, active_path: request.path, **@options) %>
 
   <% if (active?(request.path) || active_child_items?(request.path)) && child_items.present? %>

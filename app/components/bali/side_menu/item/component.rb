@@ -29,7 +29,7 @@ module Bali
         end
 
         def active?(base_path)
-          base_path.include?(uri.path)
+          base_path.include?(uri.path) || active_child_items?(base_path)
         end
 
         def active_child_items?(base_path)
