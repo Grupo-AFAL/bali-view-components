@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.24.0] - 2022-07-05
 
-- `title`, `footer`, `controls` slots were added to `Carousel` component.
+- `controls` slot was added to `Carousel` component.
 
 ## [0.23.3] - 2022-07-04
 
