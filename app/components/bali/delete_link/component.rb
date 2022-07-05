@@ -40,11 +40,7 @@ module Bali
       def name
         return @name if @name.present?
 
-        if model.present?
-          t('.specific_name', **translation_attributes)
-        else
-          t('.generic_name')
-        end
+        t('.default_name')
       end
 
       def confirm

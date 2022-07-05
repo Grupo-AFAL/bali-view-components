@@ -4,7 +4,7 @@ module Bali
   module Tabs
     module Tab
       class Component < ApplicationViewComponent
-        attr_reader :active, :icon, :title, :src, :reload, :options
+        attr_reader :active, :icon, :title, :src, :reload, :options, :href
 
         # @param active [Boolean] Whether the tab is active
         # @param icon [String] The name of the icon to use
@@ -20,6 +20,7 @@ module Bali
           @title = title
           @src = src
           @reload = reload
+          @href = options.delete(:href)
 
           @options = options
           @options = prepend_class_name(@options, 'is-hidden') unless @active
