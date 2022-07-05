@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.24.4] - 2022-07-05
+
+- Let `DeleteLink::Component` receive form classes for the `buttton_to` tag.
+
 ## [0.24.3] - 2022-07-05
 
 - Add `type="button"` to Carousel controls (`arrows`, `bullets`).
@@ -21,7 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `arrows` and `bullets` slots were added to `Carousel` component.
 
-
 ## [0.23.4] - 2022-07-05
 
 - Fix SideMenu parent item when sub item is selected
@@ -32,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.23.2] - 2022-07-04
 
-- Set `Delete` as default name for `Deletelink::Component`
+- Set `Delete` as default name for `DeleteLink::Component`
 
 ## [0.23.1] - 2022-07-04
 

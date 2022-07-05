@@ -17,6 +17,14 @@ module Bali
           disabled: disabled,
           disabled_hover_url: '/show-content-in-hovercard')
       end
+
+      # @param klass select [is-small, is-medium, is-large]
+      # @param form_class select ['has-background-white', has-background-success, has-background-warning]
+      def with_custom_classes(klass: nil, form_class: nil)
+        render DeleteLink::Component.new(href: '#',
+                                         class: klass,
+                                         form_class: form_class)
+      end
     end
   end
 end

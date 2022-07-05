@@ -1,9 +1,12 @@
 <% if @disabled %>
   <%= render Bali::HoverCard::Component.new(hover_url: @disabled_hover_url) do |c| %>
     <% c.trigger do %>
-      <%= tag.a(name, class: 'button has-text-danger is-text', disabled: true) %>
+      <%= tag.a(name, disabled: true, **options) %>
     <% end %>
   <% end %>
 <% else %>
-  <%= button_to name, href, method: :delete, form: { data: { 'turbo-confirm': confirm } }, class: classes %>
+  <%= button_to name, href, method: :delete,
+                            form: { data: { 'turbo-confirm': confirm } },
+                            form_class: @form_class,
+                            **options %>
 <% end %>
