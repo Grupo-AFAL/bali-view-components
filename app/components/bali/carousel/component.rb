@@ -5,12 +5,16 @@ module Bali
     class Component < ApplicationViewComponent
       renders_many :items
 
+      renders_one :title
+      renders_one :footer
+      renders_one :controls, Controls::Component
+
       def initialize(
         start_at: 0,
         per_view: 1,
         autoplay: false,
         gap: 0,
-        focus_at: 'center',
+        focus_at: 0,
         **options
       )
         @start_at = start_at
@@ -22,21 +26,26 @@ module Bali
         @peek = options.delete(:peek)
 
         @options = options
-        @options = prepend_class_name(@options, 'carousel-component glide')
+        @options = prepend_class_name(@options, 'glide')
         @options = prepend_controller(@options, 'carousel')
         @options = prepend_values(@options, 'carousel', controller_values)
       end
 
       def controller_values
         {
-          start_at: @start_at,
+          index: @start_at,
           per_view: @per_view,
           autoplay: @autoplay,
           gap: @gap,
           focus_at: @focus_at,
           breakpoints: @breakpoints,
-          peek: @peek
-        }
+          peek: @peek,
+          autoplay: @autoplay
+        }.compact
+      end
+
+      def render?
+        items?
       end
     end
   end
