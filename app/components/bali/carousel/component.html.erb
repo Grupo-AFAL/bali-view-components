@@ -1,19 +1,13 @@
-<div class='carousel-component'>
-  <%= tag.div(title, class: 'carousel-title') if title %>
-
-  <%= tag.div **@options do %>
-    <div data-glide-el="track" class="glide__track">
-      <ul class="glide__slides">
-        <% items.each do |item| %>
-          <li class="glide__slide">
-            <%= item %>
-          </li>
-        <% end %>
-      </ul>
-    </div>
+<%= tag.div **@options do %>
+  <div data-glide-el="track" class="glide__track">
+    <ul class="glide__slides">
+      <% items.each do |item| %>
+        <li class="glide__slide">
+          <%= item %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
 
   <%= controls || render(Bali::Carousel::Controls::Component.new(bullets: { count: items.size })) %>
-  <% end %>
-
-  <%= footer %>
-</div>
+<% end %>

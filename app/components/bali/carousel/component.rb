@@ -5,8 +5,6 @@ module Bali
     class Component < ApplicationViewComponent
       renders_many :items
 
-      renders_one :title
-      renders_one :footer
       renders_one :controls, Controls::Component
 
       def initialize(
@@ -26,7 +24,7 @@ module Bali
         @peek = options.delete(:peek)
 
         @options = options
-        @options = prepend_class_name(@options, 'glide')
+        @options = prepend_class_name(@options, 'carousel-component glide')
         @options = prepend_controller(@options, 'carousel')
         @options = prepend_values(@options, 'carousel', controller_values)
       end
