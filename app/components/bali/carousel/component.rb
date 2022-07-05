@@ -40,12 +40,11 @@ module Bali
           focus_at: @focus_at,
           breakpoints: @breakpoints,
           peek: @peek,
-          autoplay: @autoplay
         }.compact
       end
 
       def before_render
-        return unless controls.present?
+        return if controls.blank?
 
         controls.bullets_count = items.size
       end
