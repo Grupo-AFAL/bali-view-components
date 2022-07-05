@@ -44,6 +44,12 @@ module Bali
         }.compact
       end
 
+      def before_render
+        return unless controls.present?
+
+        controls.bullets_count = items.size
+      end
+
       def render?
         items?
       end

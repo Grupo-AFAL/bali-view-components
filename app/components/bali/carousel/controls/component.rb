@@ -2,7 +2,8 @@ module Bali
   module Carousel
     module Controls
       class Component < ApplicationViewComponent
-        attr_reader :hidden, :options, :bullets, :previous_icon, :next_icon, :bullets_count
+        attr_reader :hidden, :options, :bullets, :previous_icon, :next_icon
+        attr_accessor :bullets_count
 
         def initialize(hidden: false, bullets: {}, **options)
           @hidden = hidden
