@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add `Avatar::Component`. With this compoent we'll be able to see a preview of the image we want as an avatar.
 
+## [0.24.3] - 2022-07-05
+
+- Add `type="button"` to Carousel controls (`arrows`, `bullets`).
+
+## [0.24.2] - 2022-07-05
+
+- Wrap card image slot in `slot` instead of `div`.
+
 ## [0.24.1] - 2022-07-05
 
 - Set SideMenu list with optional title
