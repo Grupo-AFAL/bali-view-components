@@ -7,7 +7,7 @@ module Bali
         if src.present?
           Image::Component.new(src: src, **options)
         else
-          tag.div(**options, &block)
+          tag.slot(**options, &block)
         end
       end
 
