@@ -1,16 +1,12 @@
 module Bali
   module Avatar
     class Preview < ApplicationViewComponentPreview
+      # Default Avatar
+      # ----------------
+      # This will render the basic avatar component
       def default
-        # Default Avatar
-        # ----------------
-        # This will render the basic avatar component
-        # @params placeholder_url text
         render_with_template(
-          template: 'bali/avatar/previews/default',
-          locals: {
-            placeholder_url: 'bulma-default.png'
-          }
+          template: 'bali/avatar/previews/default'
         )
       end
 

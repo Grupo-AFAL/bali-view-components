@@ -13,7 +13,7 @@ RSpec.describe Bali::Avatar::Component, type: :component do
 
   it 'renders the avatar component' do
     helper.form_with(url: '/') do |form|
-      options.merge!(method: :test, form: form)
+      options.merge!(method: :test, form: form, placeholder_url: '/bulma-default.png')
       render_inline(component)
     end
 
