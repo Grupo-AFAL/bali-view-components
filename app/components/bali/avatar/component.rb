@@ -8,7 +8,7 @@ module Bali
       def initialize(form:,
                      attr_model_name:,
                      accepted_formats:,
-                     placeholder_url: 'https://bulma.io/images/placeholders/256x256.png',
+                     placeholder_url: 'bulma-default.png',
                      **options)
         @form = form
         @attr_model_name = attr_model_name
@@ -16,10 +16,6 @@ module Bali
         @placeholder_url = placeholder_url
         @options = prepend_class_name(options, 'avatar-component')
         @options = prepend_controller(@options, 'avatar')
-      end
-
-      def default_image
-        image_tag(@placeholder_url, class: 'is-rounded', data: { 'avatar-target': 'output' })
       end
     end
   end

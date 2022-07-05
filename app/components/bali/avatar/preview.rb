@@ -14,7 +14,7 @@ module Bali
       # ----------------
       # This will render the avatar component with an image loaded already
       # @param image_url text
-      def with_image(image_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8qsnp3N8vzUr0SdcfX8ILtjAipw3bNA9DAg&usqp=CAU')
+      def with_image(image_url: 'avatar.png')
         render_with_template(
           template: 'bali/avatar/previews/with_image',
           locals: {

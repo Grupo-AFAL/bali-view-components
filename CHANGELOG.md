@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.24.0] - 2022-07-04
 
-- Add `Avatar::Component`.
+- Add `Avatar::Component`. With this compoent we'll be able to see a preview of the image we want as an avatar.
 
 ## [0.23.1] - 2022-07-04
 

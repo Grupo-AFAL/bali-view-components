@@ -3,7 +3,7 @@
     <% if picture? %>
       <%= picture %>
     <% else %>
-      <%= default_image %>
+      <%= image_tag(@placeholder_url, class: 'is-rounded', data: { 'avatar-target': 'output' }) %>
     <% end %>
   </figure>
   <div class="icon-content">
