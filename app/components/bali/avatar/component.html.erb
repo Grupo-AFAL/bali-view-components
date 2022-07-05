@@ -3,7 +3,7 @@
     <% if picture? %>
       <%= picture %>
     <% else %>
-      <img class="is-rounded" src="<%= @placeholder_url %>" data-image-preview-target="output">
+      <%= default_image %>
     <% end %>
   </figure>
   <div class="icon-content">

@@ -17,6 +17,10 @@ module Bali
         @options = prepend_class_name(options, 'avatar-component')
         @options = prepend_controller(@options, 'image-preview')
       end
+
+      def default_image
+        image_tag(@placeholder_url, class: 'is-rounded', data: { 'image-preview-target': 'output' })
+      end
     end
   end
 end
