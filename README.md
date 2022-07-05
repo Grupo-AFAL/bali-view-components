@@ -63,7 +63,7 @@ Update this table when making progress on any of the Components or when adding n
 | Component Name    |     In Project     |      Preview       |        Docs        |       Tests        | Notes                                          |
 | ----------------- | :----------------: | :----------------: | :----------------: | :----------------: | ---------------------------------------------- |
 | AddToCalendar     |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
-| Avatar            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | Rename to Avatar                               |
+| Avatar            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Box               |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Breadcrumb        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | BooleanIcon       | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |

@@ -1,10 +1,7 @@
 <%= tag.div **@options do %>
   <figure class="image is-128x128">
-    <% if picture? %>
-      <%= picture %>
-    <% else %>
-      <%= image_tag(@placeholder_url, class: 'is-rounded', data: { 'avatar-target': 'output' }) %>
-    <% end %>
+    <%= picture if picture?%>
+    <%= default_picture unless picture? %>
   </figure>
   <div class="icon-content">
     <label>

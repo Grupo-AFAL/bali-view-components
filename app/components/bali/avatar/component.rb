@@ -21,6 +21,10 @@ module Bali
       def accepted_formats
         @formats.map { |f| ".#{f}," }
       end
+
+      def default_picture
+        image_tag(@placeholder_url, class: 'is-rounded', data: { 'avatar-target': 'output' })
+      end
     end
   end
 end
