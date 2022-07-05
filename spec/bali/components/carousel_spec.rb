@@ -24,6 +24,6 @@ RSpec.describe Bali::Carousel::Component, type: :component do
       end
     end
 
-    expect(rendered_component).to have_css 'div[data-carousel-index-value="1"]'
+    expect(rendered_component).to have_css 'div[data-carousel-start-at-value="1"]'
   end
 end
