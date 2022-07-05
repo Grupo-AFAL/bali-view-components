@@ -18,8 +18,8 @@ RSpec.describe Bali::FieldGroupWrapper::Component, type: :component do
       render_inline(component)
 
       is_expected.to include(
-        '<div id="field-name" class="field-group-wrapper-component field ">'\
-        '<label class="label " for="movie_name">Name</label>'\
+        '<div id="field-name" class="field-group-wrapper-component field ">' \
+        '<label class="label " for="movie_name">Name</label>' \
         '</div>'
       )
     end
@@ -37,10 +37,10 @@ RSpec.describe Bali::FieldGroupWrapper::Component, type: :component do
       render_inline(component)
 
       is_expected.to include(
-        '<div id="field-name" class="field-group-wrapper-component field ">'\
-        '<label class="label " for="movie_name">Name</label>'\
-        '<div class="field has-addons">'\
-        '<div class="control"><p>Left addon</p></div><div class="control">'\
+        '<div id="field-name" class="field-group-wrapper-component field ">' \
+        '<label class="label " for="movie_name">Name</label>' \
+        '<div class="field has-addons">' \
+        '<div class="control"><p>Left addon</p></div><div class="control">' \
         '<p>Right addon</p></div></div></div>'
       )
     end

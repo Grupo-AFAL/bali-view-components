@@ -1,5 +1,7 @@
-<%= tag.p class: title_class do %>
-  <%= title %>
+<% if title.present? %>
+  <%= tag.p class: title_class do %>
+    <%= title %>
+  <% end %>
 <% end %>
 
 <%= tag.ul class: list_class do %>

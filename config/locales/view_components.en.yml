@@ -5,9 +5,8 @@ en:
         loading: Loading...
       delete_link:
         generic_confirm_message: Are you sure?
-        generic_name: Delete
+        default_name: Delete
         specific_confirm_message: Are you sure you want to delete %{pronoun} %{name}?
-        specific_name: Delete %{name}
       filters:
         filters: Filters
         remove_filters: Clear

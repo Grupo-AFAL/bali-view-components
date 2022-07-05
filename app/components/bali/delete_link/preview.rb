@@ -3,17 +3,19 @@
 module Bali
   module DeleteLink
     class Preview < ApplicationViewComponentPreview
-      def default(name: 'Eliminar', href: 'Elminar')
-        render DeleteLink::Component.new(name: name, href: href)
+      # @param name [String]
+      def default(name: nil)
+        render DeleteLink::Component.new(name: name, href: '#')
       end
     
-      def with_hovercard(
-        disabled_hover_url: '/show-content-in-hovercard', href: '#', disabled: true
-      )
+      # @param name [String]
+      # @param disabled toggle
+      def with_hovercard(name: nil, disabled: true)
         render DeleteLink::Component.new(
-          href: href,
+          name: name,
+          href: '#',
           disabled: disabled,
-          disabled_hover_url: disabled_hover_url) 
+          disabled_hover_url: '/show-content-in-hovercard')
       end
     end
   end

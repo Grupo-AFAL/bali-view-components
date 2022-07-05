@@ -16,6 +16,12 @@ module Bali
           @options = options
         end
 
+        def before_render
+          super
+
+          @options = prepend_class_name(@options, 'is-active') if active?(request.path)
+        end
+
         def render?
           @authorized
         end
@@ -28,12 +34,12 @@ module Bali
           @href.blank?
         end
 
-        def active?
-          request.path.include?(uri.path)
+        def active?(base_path)
+          base_path.include?(uri.path) || active_child_items?(base_path)
         end
 
-        def active_child_items?
-          child_items.reject(&:disabled?).any?(&:active?)
+        def active_child_items?(base_path)
+          child_items.reject(&:disabled?).any? { |child_item| child_item.active?(base_path) }
         end
       end
     end

@@ -5,9 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+<<<<<<< HEAD
 ## [0.24.0] - 2022-07-04
 
 - Add `Avatar::Component`. With this compoent we'll be able to see a preview of the image we want as an avatar.
+=======
+## [0.23.4] - 2022-07-05
+
+- Fix SideMenu parent item when sub item is selected
+
+## [0.23.3] - 2022-07-04
+
+- Fix SideMenu sub items show only when active
+
+## [0.23.2] - 2022-07-04
+
+- Set `Delete` as default name for `Deletelink::Component`
+>>>>>>> 3b2742cd2c4bf0a8b710ea6b6536a2a39711eaac
 
 ## [0.23.1] - 2022-07-04
 

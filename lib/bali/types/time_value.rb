@@ -15,8 +15,8 @@ module Bali
 
         seconds = value
 
-        "#{Date.current} #{format('%<hour>02d', hour: hours)}:"\
-          "#{format('%<mins>02d', mins: minutes)}:"\
+        "#{Date.current} #{format('%<hour>02d', hour: hours)}:" \
+          "#{format('%<mins>02d', mins: minutes)}:" \
           "#{format('%<sec>02d', sec: seconds)}"
       end
 
