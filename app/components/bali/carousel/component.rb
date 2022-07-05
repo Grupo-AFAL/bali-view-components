@@ -39,7 +39,7 @@ module Bali
           gap: @gap,
           focus_at: @focus_at,
           breakpoints: @breakpoints,
-          peek: @peek,
+          peek: @peek
         }.compact
       end
 
