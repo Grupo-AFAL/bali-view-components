@@ -6,7 +6,7 @@ class FormHelperTest < ActionView::TestCase
   include Bali::FormHelper
 end
 
-describe Bali::Avatar::Component, type: :component do
+RSpec.describe Bali::Avatar::Component, type: :component do
   let(:options) { {} }
   let(:component) { Bali::Avatar::Component.new(**options) }
   let(:helper) { FormHelperTest.new(nil) }
