@@ -16,6 +16,12 @@ module Bali
           @options = options
         end
 
+        def before_render
+          super
+
+          @options = prepend_class_name(@options, 'is-active') if active?(request.path)
+        end
+
         def render?
           @authorized
         end
