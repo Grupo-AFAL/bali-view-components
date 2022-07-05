@@ -5,9 +5,8 @@ es:
         loading: Cargando...
       delete_link:
         generic_confirm_message: '¿Estas seguro(a)?'
-        generic_name: Eliminar
+        default_name: Eliminar
         specific_confirm_message: '¿Seguro que desea eliminar %{pronoun} %{name}?'
-        specific_name: Eliminar %{name}
       filters:
         filters: Filtros
         remove_filters: Quitar filtros
