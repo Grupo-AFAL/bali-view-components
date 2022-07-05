@@ -20,9 +20,9 @@ describe Bali::Avatar::Component, type: :component do
     expect(rendered_component).to have_css '.avatar-component > figure.image'
     expect(rendered_component).to have_css '.avatar-component > .icon-content'
     expect(rendered_component).to have_css 'figure.image > img.is-rounded'
-    expect(rendered_component).to have_css '.icon-content > label[for="file-input"]'
-    expect(rendered_component).to have_css '.icon-content > .control'
-    expect(rendered_component).to have_css '.control > input[accept=".jpg, .jpeg, .png"]'
+    expect(rendered_component).to have_css '.icon-content > label > .control'
+    expect(rendered_component).to have_css '.icon-content > label > .icon-component.icon'
+    expect(rendered_component).to have_css '.control > input[accept=".jpg, .jpeg, .png,"]'
     expect(rendered_component).to have_css '.control > input[name="test"]'
   end
 end
