@@ -17,7 +17,7 @@ module Bali
         options = prepend_data_attribute(
           options,
           "#{controller_name}-#{hyphenize(key)}-value",
-          value.is_a?(Hash) ? value.to_json : value
+          normalize_data_attribute_value(value)
         )
       end
 
@@ -45,6 +45,12 @@ module Bali
 
     def hyphenize(key)
       key.to_s.gsub('_', '-').to_sym
+    end
+
+    private
+
+    def normalize_data_attribute_value(value)
+      value.is_a?(Hash) ? value.to_json : value
     end
   end
 end
