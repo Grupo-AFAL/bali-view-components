@@ -1,0 +1,8 @@
+<%= tag.div **options do %>
+  <button class="glide__arrow glide__arrow--left" data-glide-dir="<">
+    <%= render Bali::Icon::Component.new(previous_icon) %>
+  </button>
+  <button class="glide__arrow glide__arrow--right" data-glide-dir=">">
+    <%= render Bali::Icon::Component.new(next_icon) %>
+  </button>
+<% end %>
