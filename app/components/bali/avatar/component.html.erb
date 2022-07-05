@@ -7,12 +7,12 @@
     <% end %>
   </figure>
   <div class="icon-content">
-    <label for="file-input">
+    <label>
       <%= render Bali::Icon::Component.new('camera') %>
-    </label>
-    <div class="control">
-      <%= @form.file_field @method, accept: accepted_formats, id: 'file-input',
+      <div class="control">
+        <%= @form.file_field @method, accept: accepted_formats,
                            data: { 'avatar-target': 'input', action: 'change->avatar#showImage' } %>
-    </div>
+      </div>
+    </label>
   </div>
 <% end %>
