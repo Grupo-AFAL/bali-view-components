@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `controls` slot was added to `Carousel` component.
 
+## [0.23.4] - 2022-07-05
+
+- Fix SideMenu parent item when sub item is selected
+
 ## [0.23.3] - 2022-07-04
 
 - Fix SideMenu sub items show only when active
