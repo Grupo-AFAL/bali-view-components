@@ -5,12 +5,15 @@ module Bali
     class Component < ApplicationViewComponent
       renders_many :items
 
+      renders_one :bullets, Bullets::Component
+      renders_one :arrows, Arrows::Component
+
       def initialize(
         start_at: 0,
         per_view: 1,
         autoplay: false,
         gap: 0,
-        focus_at: 'center',
+        focus_at: 0,
         **options
       )
         @start_at = start_at
@@ -37,6 +40,16 @@ module Bali
           breakpoints: @breakpoints,
           peek: @peek
         }
+      end
+
+      def before_render
+        return if bullets.blank?
+
+        bullets.count = items.size
+      end
+
+      def render?
+        items?
       end
     end
   end

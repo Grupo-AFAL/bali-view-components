@@ -9,12 +9,6 @@
     </ul>
   </div>
 
-  <div class="glide__arrows" data-glide-el="controls">
-    <button class="glide__arrow glide__arrow--left" data-glide-dir="<">
-      <%= render Bali::Icon::Component.new('arrow-left') %>
-    </button>
-    <button class="glide__arrow glide__arrow--right" data-glide-dir=">">
-      <%= render Bali::Icon::Component.new('arrow-right') %>
-    </button>
-  </div>
+  <%= bullets || render(Bali::Carousel::Bullets::Component.new(count: items.size)) %>
+  <%= arrows || render(Bali::Carousel::Arrows::Component.new) %>
 <% end %>
