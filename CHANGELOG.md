@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.24.4] - 2022-07-05
 
-- Let `DeleteLink::Component` accept form classes for the `buttton_to` tag.
+- Let `DeleteLink::Component` receive form classes for the `buttton_to` tag.
 
 ## [0.24.3] - 2022-07-05
 
