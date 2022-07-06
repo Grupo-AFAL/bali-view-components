@@ -12,10 +12,10 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
       end
     end
 
-    expect(rendered_component).to have_css('.side-menu-component')
-    expect(rendered_component).to have_css('p.menu-label', text: 'Comedor')
-    expect(rendered_component).to have_css('ul.menu-list')
-    expect(rendered_component).to have_css("a[href='/movies']", text: 'Item 1')
+    expect(page).to have_css('.side-menu-component')
+    expect(page).to have_css('p.menu-label', text: 'Comedor')
+    expect(page).to have_css('ul.menu-list')
+    expect(page).to have_css("a[href='/movies']", text: 'Item 1')
   end
 
   it 'renders the side menu with icon' do
@@ -25,9 +25,9 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
       end
     end
 
-    expect(rendered_component).to have_css '.side-menu-component'
-    expect(rendered_component).to have_css 'a > span.icon-component.icon'
-    expect(rendered_component).to have_css 'a', text: 'Item 1'
+    expect(page).to have_css '.side-menu-component'
+    expect(page).to have_css 'a > span.icon-component.icon'
+    expect(page).to have_css 'a', text: 'Item 1'
   end
 
   context 'when not authorized' do
@@ -38,8 +38,8 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
         end
       end
 
-      expect(rendered_component).to have_css '.side-menu-component'
-      expect(rendered_component).not_to have_css 'li > a'
+      expect(page).to have_css '.side-menu-component'
+      expect(page).not_to have_css 'li > a'
     end
   end
 
@@ -52,7 +52,7 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
       end
     end
 
-    expect(rendered_component).to have_css 'a.is-active', text: 'item'
+    expect(page).to have_css 'a.is-active', text: 'item'
   end
 
   it 'renders a disabled link' do
@@ -62,6 +62,6 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
       end
     end
 
-    expect(rendered_component).to have_css 'a[disabled="disabled"]', text: 'Item'
+    expect(page).to have_css 'a[disabled="disabled"]', text: 'Item'
   end
 end

@@ -6,7 +6,7 @@ RSpec.describe Bali::ImageGrid::Component, type: :component do
   let(:options) { {} }
   let(:component) { Bali::ImageGrid::Component.new(**options) }
 
-  subject { rendered_component }
+  subject { page }
 
   it 'renders' do
     render_inline(component)

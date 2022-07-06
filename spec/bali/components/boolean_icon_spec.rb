@@ -6,7 +6,7 @@ RSpec.describe Bali::BooleanIcon::Component, type: :component do
   let(:options) { { value: true } }
   let(:component) { Bali::BooleanIcon::Component.new(**options) }
 
-  subject { rendered_component }
+  subject { page }
 
   it 'renders a boolean-icon component with true value' do
     render_inline(component)

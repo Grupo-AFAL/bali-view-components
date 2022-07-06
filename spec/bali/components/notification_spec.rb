@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe Bali::Notification::Component, type: :component do
   let(:component) { described_class }
 
-  subject { rendered_component }
+  subject { page }
 
   context 'default' do
     it 'renders success component with default values' do

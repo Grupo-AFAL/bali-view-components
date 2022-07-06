@@ -12,6 +12,7 @@ require 'bali/utils'
 require 'bali/html_element_helper'
 require 'bali/path_helper'
 require 'bali/form_helper'
+require 'bali/auto_submit_select_helper'
 
 builder_helpers = File.join(File.dirname(__FILE__), 'bali/form_builder', '*_fields.rb')
 

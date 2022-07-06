@@ -7,7 +7,7 @@ RSpec.describe Bali::Link::Component, type: :component do
 
   before { @options = { name: 'Click me!', href: '#' } }
 
-  subject { rendered_component }
+  subject { page }
 
   context 'default' do
     it 'renders' do
@@ -49,9 +49,9 @@ RSpec.describe Bali::Link::Component, type: :component do
         c.icon('poo')
       end
 
-      expect(rendered_component).to have_css 'a.button', text: 'Click me!'
-      expect(rendered_component).to have_css 'a[href="#"]'
-      expect(rendered_component).to have_css 'span.icon'
+      expect(page).to have_css 'a.button', text: 'Click me!'
+      expect(page).to have_css 'a[href="#"]'
+      expect(page).to have_css 'span.icon'
     end
   end
 
@@ -60,7 +60,7 @@ RSpec.describe Bali::Link::Component, type: :component do
 
     render_inline(component)
 
-    expect(rendered_component).to have_css 'a.is-active', text: 'Click me!'
+    expect(page).to have_css 'a.is-active', text: 'Click me!'
   end
 
   context 'with the method parameter' do
@@ -70,7 +70,7 @@ RSpec.describe Bali::Link::Component, type: :component do
 
         render_inline(component)
 
-        expect(rendered_component).to have_css 'a[data-turbo-method="post"]', text: 'Click me!'
+        expect(page).to have_css 'a[data-turbo-method="post"]', text: 'Click me!'
       end
     end
 
@@ -80,9 +80,9 @@ RSpec.describe Bali::Link::Component, type: :component do
 
         render_inline(component)
 
-        expect(rendered_component).to have_css 'a.link-component', text: 'Click me!'
-        expect(rendered_component).not_to have_css 'a[data-turbo-method="get"]'
-        expect(rendered_component).to have_css 'a[data-method="get"]'
+        expect(page).to have_css 'a.link-component', text: 'Click me!'
+        expect(page).not_to have_css 'a[data-turbo-method="get"]'
+        expect(page).to have_css 'a[data-method="get"]'
       end
     end
   end

@@ -11,17 +11,12 @@ RSpec.describe Bali::FieldGroupWrapper::Component, type: :component do
 
   before { @options = {} }
 
-  subject { rendered_component }
-
   context 'default' do
-    it 'renders' do
+    it 'renders field with label' do
       render_inline(component)
 
-      is_expected.to include(
-        '<div id="field-name" class="field-group-wrapper-component field ">' \
-        '<label class="label " for="movie_name">Name</label>' \
-        '</div>'
-      )
+      expect(page).to have_css '#field-name.field'
+      expect(page).to have_css 'label.label', text: 'Name'
     end
   end
 
@@ -33,16 +28,11 @@ RSpec.describe Bali::FieldGroupWrapper::Component, type: :component do
       )
     end
 
-    it 'renders' do
+    it 'renders addons' do
       render_inline(component)
 
-      is_expected.to include(
-        '<div id="field-name" class="field-group-wrapper-component field ">' \
-        '<label class="label " for="movie_name">Name</label>' \
-        '<div class="field has-addons">' \
-        '<div class="control"><p>Left addon</p></div><div class="control">' \
-        '<p>Right addon</p></div></div></div>'
-      )
+      expect(page).to have_css '.control p:first-child', text: 'Left addon'
+      expect(page).to have_css '.control p:last-child', text: 'Right addon'
     end
   end
 end

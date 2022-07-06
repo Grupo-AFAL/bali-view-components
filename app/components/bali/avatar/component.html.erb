@@ -1,0 +1,14 @@
+<%= tag.div **@options do %>
+  <figure class="image is-128x128">
+    <%= picture || default_picture %>
+  </figure>
+  <div class="icon-content">
+    <label>
+      <%= render Bali::Icon::Component.new('camera') %>
+      <div class="control">
+        <%= @form.file_field @method, accept: accepted_formats,
+                           data: { 'avatar-target': 'input', action: 'change->avatar#showImage' } %>
+      </div>
+    </label>
+  </div>
+<% end %>

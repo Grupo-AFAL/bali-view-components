@@ -7,41 +7,49 @@ RSpec.describe Bali::DeleteLink::Component, type: :component do
 
   let(:component) { Bali::DeleteLink::Component.new(**@options) }
 
-  subject { rendered_component }
+  subject { page }
 
   it 'renders a delete link' do
     render_inline(component)
 
-    expect(rendered_component).to have_css 'button.has-text-danger.is-text', text: 'Delete'
-    expect(rendered_component).to have_css "[data-turbo-confirm='Are you sure?']"
-    expect(rendered_component).to have_css "[action='/delete-url']"
+    expect(page).to have_css 'button.has-text-danger.is-text', text: 'Delete'
+    expect(page).to have_css "[data-turbo-confirm='Are you sure?']"
+    expect(page).to have_css "[action='/delete-url']"
   end
 
   it 'overrides the link name' do
     @options.merge!(name: 'Cancel')
     render_inline(component)
 
-    expect(rendered_component).to have_css 'button.has-text-danger.is-text', text: 'Cancel'
+    expect(page).to have_css 'button.has-text-danger.is-text', text: 'Cancel'
   end
 
   it 'overrides the link confirm message' do
     @options.merge!(confirm: 'Continue?')
     render_inline(component)
 
-    expect(rendered_component).to have_css "[data-turbo-confirm='Continue?']"
+    expect(page).to have_css "[data-turbo-confirm='Continue?']"
   end
 
   it 'add a css class to the link' do
-    @options.merge!(classes: 'is-large')
+    @options.merge!(class: 'is-large')
     render_inline(component)
 
-    expect(rendered_component).to have_css 'button.has-text-danger.is-text.is-large'
+    expect(page).to have_css 'button.has-text-danger.is-text.is-large'
   end
 
   it 'raises an error without model or href' do
     @options.merge!(href: nil)
 
     expect { render_inline(component) }.to raise_error(Bali::DeleteLink::Component::MissingURL)
+  end
+
+  it 'renders a delete link with custom form classes' do
+    @options.merge!(form_class: 'has-background-success')
+    render_inline(component)
+
+    expect(page).to have_css 'button.has-text-danger.is-text', text: 'Delete'
+    expect(page).to have_css 'form.button_to.has-background-success'
   end
 
   context 'with active record model' do
@@ -60,16 +68,15 @@ RSpec.describe Bali::DeleteLink::Component, type: :component do
 
       render_inline(component)
 
-      expect(rendered_component).to have_css 'button.has-text-danger.is-text', text: 'Delete'
-      expect(rendered_component).to include 'Are you sure you want to delete'
-      expect(rendered_component).to have_css "[action='/models/1']"
+      expect(page).to have_css 'button.has-text-danger.is-text', text: 'Delete'
+      expect(page).to have_css "[action='/models/1']"
     end
 
     it 'overrides the default model href' do
       @options.merge!(href: '/delete-url')
       render_inline(component)
 
-      expect(rendered_component).to have_css "[action='/delete-url']"
+      expect(page).to have_css "[action='/delete-url']"
     end
   end
 
@@ -78,7 +85,7 @@ RSpec.describe Bali::DeleteLink::Component, type: :component do
       @options.merge!(disabled: true)
       render_inline(component)
 
-      expect(rendered_component).to have_css '[disabled="disabled"]'
+      expect(page).to have_css '[disabled="disabled"]'
     end
   end
 end
