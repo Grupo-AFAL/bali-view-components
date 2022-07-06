@@ -1,0 +1,33 @@
+.reveal-component {
+  user-select: none;
+
+  .icon {
+    height: $size-7;
+    transform: rotate(270deg);
+  }
+
+  .reveal-trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: $size-4;
+    margin-bottom: $size-4;
+    border-bottom: 0.0625rem solid rgba(0, 0, 0, 0.23);
+  }
+
+  .reveal-content {
+    margin-bottom: $size-3;
+    display: none;
+  }
+
+  &.is-revealed {
+    .icon {
+      display: flex !important;
+      transform: rotate(0deg);
+    }
+
+    .reveal-content {
+      display: block;
+    }
+  }
+}
