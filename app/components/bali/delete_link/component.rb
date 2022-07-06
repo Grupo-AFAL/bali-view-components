@@ -16,6 +16,7 @@ module Bali
         disabled: false,
         disabled_hover_url: nil,
         skip_confirm: false,
+        with_default_classes: true,
         **options
       )
         @model = model
@@ -27,7 +28,8 @@ module Bali
         @skip_confirm = skip_confirm
         @form_class = class_names('button_to', options.delete(:form_class))
 
-        @options = prepend_class_name(options, default_classes)
+        @options = options
+        @options = prepend_class_name(options, default_classes) if with_default_classes
 
         return unless @href.blank? && @model.blank?
 
