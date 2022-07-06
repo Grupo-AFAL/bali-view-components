@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe Bali::TreeView::Component, type: :component do
   let(:component) { Bali::TreeView::Component.new(current_path: '/') }
 
-  subject { rendered_component }
+  subject { page }
 
   it 'renders root items' do
     render_inline(component) do |c|

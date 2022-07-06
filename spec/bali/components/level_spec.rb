@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe Bali::Level::Component, type: :component do
   let(:component) { Bali::Level::Component.new }
 
-  subject { rendered_component }
+  subject { page }
 
   it 'renders' do
     render_inline(component) do |c|

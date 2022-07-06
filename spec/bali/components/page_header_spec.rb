@@ -7,7 +7,7 @@ RSpec.describe Bali::PageHeader::Component, type: :component do
 
   before { @options = {} }
 
-  subject { rendered_component }
+  subject { page }
 
   describe 'rendering' do
     context 'with title and subtitle as params' do

@@ -6,7 +6,7 @@ RSpec.describe Bali::Columns::Component, type: :component do
   let(:options) { {} }
   let(:component) { Bali::Columns::Component.new(**options) }
 
-  subject { rendered_component }
+  subject { page }
 
   it 'renders' do
     render_inline(component) do |c|

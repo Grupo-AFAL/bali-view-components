@@ -6,7 +6,7 @@ RSpec.describe Bali::Navbar::Component, type: :component do
   let(:component) { Bali::Navbar::Component.new(**@options) }
   before { @options = {} }
 
-  subject { rendered_component }
+  subject { page }
 
   context 'without fullscreen' do
     before { @options.merge!(fullscreen: false) }

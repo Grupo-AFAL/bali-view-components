@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe Bali::Card::Component, type: :component do
   let(:component) { Bali::Card::Component.new }
 
-  subject { rendered_component }
+  subject { page }
 
   it 'renders a card with content' do
     render_inline(component) do

@@ -7,19 +7,19 @@ RSpec.describe Bali::Loader::Component, type: :component do
 
   before { @options = {} }
 
-  subject { rendered_component }
-
   it 'renders loader with default options' do
     render_inline(component)
-    expect(rendered_component).to have_css('div.loader-component')
-    expect(rendered_component).to have_css('h2.title.is-4.has-text-centered'), text: 'Cargando...'
+
+    expect(page).to have_css 'div.loader-component'
+    expect(page).to have_css 'h2.title.is-4.has-text-centered', text: 'Loading...'
   end
 
   it 'renders loader with custom text' do
-    @options.merge!(text: :Loading)
+    @options.merge!(text: 'Cargando')
 
     render_inline(component)
-    expect(rendered_component).to have_css('div.loader-component')
-    expect(rendered_component).to have_css('h2.title.is-4.has-text-centered'), text: 'Loading'
+
+    expect(page).to have_css 'div.loader-component'
+    expect(page).to have_css 'h2.title.is-4.has-text-centered', text: 'Cargando'
   end
 end

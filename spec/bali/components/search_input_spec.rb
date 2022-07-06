@@ -10,7 +10,7 @@ RSpec.describe Bali::SearchInput::Component, type: :component do
 
   before { @options = {} }
 
-  subject { rendered_component }
+  subject { page }
 
   it 'renders' do
     render_inline(component)

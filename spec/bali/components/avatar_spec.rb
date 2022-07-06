@@ -17,13 +17,13 @@ RSpec.describe Bali::Avatar::Component, type: :component do
       render_inline(component)
     end
 
-    expect(rendered_component).to have_css '.avatar-component > figure.image'
-    expect(rendered_component).to have_css '.avatar-component > .icon-content'
-    expect(rendered_component).to have_css 'figure.image > img.is-rounded'
-    expect(rendered_component).to have_css '.icon-content > label > .control'
-    expect(rendered_component).to have_css '.icon-content > label > .icon-component.icon'
-    expect(rendered_component).to have_css '.control > input[accept=".jpg, .jpeg, .png,"]'
-    expect(rendered_component).to have_css '.control > input[name="test"]'
+    expect(page).to have_css '.avatar-component > figure.image'
+    expect(page).to have_css '.avatar-component > .icon-content'
+    expect(page).to have_css 'figure.image > img.is-rounded'
+    expect(page).to have_css '.icon-content > label > .control'
+    expect(page).to have_css '.icon-content > label > .icon-component.icon'
+    expect(page).to have_css '.control > input[accept=".jpg, .jpeg, .png,"]'
+    expect(page).to have_css '.control > input[name="test"]'
   end
 
   it 'renders the avatar component with an image loaded' do
@@ -34,7 +34,7 @@ RSpec.describe Bali::Avatar::Component, type: :component do
       end
     end
 
-    expect(rendered_component).to have_css '.avatar-component > figure.image'
-    expect(rendered_component).to have_css 'figure.image > img[src*="avatar.png"]'
+    expect(page).to have_css '.avatar-component > figure.image'
+    expect(page).to have_css 'figure.image > img[src*="avatar.png"]'
   end
 end

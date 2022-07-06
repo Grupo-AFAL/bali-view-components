@@ -8,15 +8,15 @@ RSpec.describe Bali::SortableList::Component, type: :component do
 
   it 'renders a sortable component' do
     render_inline(component)
-    expect(rendered_component).to have_css 'div.sortable-list-component'
-    expect(rendered_component).to have_css 'div[data-controller="sortable-list"]'
-    expect(rendered_component).to have_css 'div[data-sortable-list-disabled-value="false"]'
+    expect(page).to have_css 'div.sortable-list-component'
+    expect(page).to have_css 'div[data-controller="sortable-list"]'
+    expect(page).to have_css 'div[data-sortable-list-disabled-value="false"]'
   end
 
   it 'renders disabled sortable component' do
     @options[:disabled] = true
     render_inline(component)
-    expect(rendered_component).to have_css 'div[data-sortable-list-disabled-value="true"]'
+    expect(page).to have_css 'div[data-sortable-list-disabled-value="true"]'
   end
 
   it 'renders sortable component with items' do
@@ -26,14 +26,14 @@ RSpec.describe Bali::SortableList::Component, type: :component do
       c.item(update_url: '/', item_pull: false) { 'Item 3' }
     end
 
-    expect(rendered_component).to have_css 'div.sortable-item', count: 3
-    expect(rendered_component).to(
+    expect(page).to have_css 'div.sortable-item', count: 3
+    expect(page).to(
       have_css('div.sortable-item[data-sortable-update-url="/"]', count: 3)
     )
-    expect(rendered_component).to(
+    expect(page).to(
       have_css('div.sortable-item[data-sortable-item-pull="true"]', count: 2)
     )
-    expect(rendered_component).to(
+    expect(page).to(
       have_css('div.sortable-item[data-sortable-item-pull="false"]', count: 1)
     )
   end
@@ -65,7 +65,7 @@ RSpec.describe Bali::SortableList::Component, type: :component do
     ]
 
     div_data.each do |div|
-      expect(rendered_component).to have_css div
+      expect(page).to have_css div
     end
   end
 end

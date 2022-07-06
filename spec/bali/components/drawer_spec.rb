@@ -7,7 +7,7 @@ RSpec.describe Bali::Drawer::Component, type: :component do
 
   before { @options = {} }
 
-  subject { rendered_component }
+  subject { page }
 
   it 'renders when active is true' do
     @options.merge!(active: true)

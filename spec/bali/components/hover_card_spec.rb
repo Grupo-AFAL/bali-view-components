@@ -7,8 +7,6 @@ RSpec.describe Bali::HoverCard::Component, type: :component do
 
   before { @options = {} }
 
-  subject { rendered_component }
-
   describe 'render' do
     context 'with template' do
       it 'renders' do
@@ -18,9 +16,10 @@ RSpec.describe Bali::HoverCard::Component, type: :component do
           end
         end
 
-        is_expected.to have_css 'div.hover-card-component'
-        is_expected.to include "data-hovercard-target='template'"
-        is_expected.to include 'Cuerpo'
+        expect(page).to have_css 'div.hover-card-component'
+
+        expect(rendered_content).to include "data-hovercard-target='template'"
+        expect(rendered_content).to include 'Cuerpo'
       end
     end
 
@@ -30,8 +29,8 @@ RSpec.describe Bali::HoverCard::Component, type: :component do
       it 'renders' do
         render_inline(component)
 
-        is_expected.to have_css 'div.hover-card-component'
-        is_expected.not_to include "data-hovercard-target='template'"
+        expect(page).to have_css 'div.hover-card-component'
+        expect(rendered_content).not_to include "data-hovercard-target='template'"
       end
     end
   end
