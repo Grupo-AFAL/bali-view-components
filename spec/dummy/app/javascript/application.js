@@ -2,6 +2,7 @@
 import { Application } from '@hotwired/stimulus'
 
 import {
+  AvatarController,
   CarouselController,
   ChartController,
   DropdownController,
@@ -21,6 +22,7 @@ import {
 
 const application = Application.start()
 
+application.register('avatar', AvatarController)
 application.register('carousel', CarouselController)
 application.register('chart', ChartController)
 application.register('dropdown', DropdownController)

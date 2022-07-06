@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.25.0] - 2022-07-05
+
+- Add `Avatar::Component`. With this component we'll be able to see a preview of the image we want as an avatar.
+
 ## [0.24.4] - 2022-07-05
 
 - Let `DeleteLink::Component` receive form classes for the `buttton_to` tag.

@@ -4,6 +4,7 @@ import * as formatters from './utils/formatters'
 import * as time from './utils/time'
 
 export { GoogleMapsLoader, form, formatters, time }
+export { AvatarController } from '../../components/bali/avatar'
 export { CarouselController } from '../../components/bali/carousel'
 export { ChartController } from '../../components/bali/chart'
 export { DrawerController } from '../../components/bali/drawer'
