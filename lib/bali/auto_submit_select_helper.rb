@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Bali
-  module AutoSubmitSelect
+  module AutoSubmitSelectHelper
     include HtmlElementHelper
 
     def auto_submit_select(record:, attribute:, choices:, **options)
