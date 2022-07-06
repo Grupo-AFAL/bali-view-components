@@ -15,7 +15,7 @@ RSpec.describe Bali::Dropdown::Component, type: :component do
     end
   end
 
-  subject { rendered_component }
+  subject { page }
 
   it 'renders dropdown with options' do
     expect(subject).to have_css '.dropdown-item'

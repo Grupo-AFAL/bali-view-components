@@ -8,7 +8,7 @@ RSpec.describe Bali::Filters::Component, type: :component do
     Bali::Filters::Component.new(form: form, url: '#', text_field: :name)
   end
 
-  subject { rendered_component }
+  subject { page }
 
   it 'renders' do
     render_inline(component)

@@ -6,7 +6,7 @@ RSpec.describe Bali::Stepper::Component, type: :component do
   let(:options) { { current: 0 } }
   let(:component) { Bali::Stepper::Component.new(**options) }
 
-  subject { rendered_component }
+  subject { page }
 
   it 'renders stepper with first step current' do
     render_inline(component) do |c|

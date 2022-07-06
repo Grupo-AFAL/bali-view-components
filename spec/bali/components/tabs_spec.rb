@@ -6,7 +6,7 @@ RSpec.describe Bali::Tabs::Component, type: :component do
   let(:options) { {} }
   let(:component) { Bali::Tabs::Component.new(**options) }
 
-  subject { rendered_component }
+  subject { page }
 
   it 'renders tabs with content' do
     render_inline(component) do |c|

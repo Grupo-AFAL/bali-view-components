@@ -13,7 +13,7 @@ RSpec.describe Bali::Carousel::Component, type: :component do
       end
     end
 
-    expect(rendered_component).to have_css '.glide .glide__track .glide__slides'
+    expect(page).to have_css '.glide .glide__track .glide__slides'
   end
 
   it 'render component with second item selected' do
@@ -24,6 +24,6 @@ RSpec.describe Bali::Carousel::Component, type: :component do
       end
     end
 
-    expect(rendered_component).to have_css 'div[data-carousel-start-at-value="1"]'
+    expect(page).to have_css 'div[data-carousel-start-at-value="1"]'
   end
 end

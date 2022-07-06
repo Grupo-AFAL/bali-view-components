@@ -6,7 +6,7 @@ RSpec.describe Bali::DataTable::Component, type: :component do
   let(:form) { Bali::Utils::DummyFilterForm.new }
   let(:component) { Bali::DataTable::Component.new(filter_form: form, url: '#') }
 
-  subject { rendered_component }
+  subject { page }
 
   it 'renders without summary' do
     render_inline(component) do |c|

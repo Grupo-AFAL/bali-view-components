@@ -6,7 +6,7 @@ RSpec.describe Bali::HelpTip::Component, type: :component do
   let(:options) { {} }
   let(:component) { Bali::HelpTip::Component.new(**options) }
 
-  subject { rendered_component }
+  subject { page }
 
   it 'renders a trigger with a question mark' do
     render_inline(component)

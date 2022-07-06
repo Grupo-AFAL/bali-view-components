@@ -17,28 +17,28 @@ describe Bali::Calendar::Component, type: :component do
       c.header(period: c.period, start_date: '2020-01-01')
     end
 
-    expect(rendered_component).to have_css '.calendar-component'
-    expect(rendered_component).to have_css '.month-view'
-    expect(rendered_component).to have_css 'tr > th.has-text-centered', text: 'Monday'
-    expect(rendered_component).to have_css 'tr > th.has-text-centered', text: 'Friday'
-    expect(rendered_component).to have_css 'tr > th.has-text-centered', text: 'Saturday'
-    expect(rendered_component).to have_css 'tr > th.has-text-centered', text: 'Sunday'
-    expect(rendered_component).to have_css '.header > .columns > .column > h3.title',
-                                           text: 'January 2020'
+    expect(page).to have_css '.calendar-component'
+    expect(page).to have_css '.month-view'
+    expect(page).to have_css 'tr > th.has-text-centered', text: 'Monday'
+    expect(page).to have_css 'tr > th.has-text-centered', text: 'Friday'
+    expect(page).to have_css 'tr > th.has-text-centered', text: 'Saturday'
+    expect(page).to have_css 'tr > th.has-text-centered', text: 'Sunday'
+    expect(page).to have_css '.header > .columns > .column > h3.title',
+                             text: 'January 2020'
   end
 
   it 'renders calendar component from monday to friday' do
     @options.merge!(start_date: '2020-01-01', all_week: false)
     render_inline(component)
 
-    expect(rendered_component).to have_css '.calendar-component'
-    expect(rendered_component).to have_css 'tr > th.has-text-centered', text: 'Monday'
-    expect(rendered_component).to have_css 'tr > th.has-text-centered', text: 'Tuesday'
-    expect(rendered_component).to have_css 'tr > th.has-text-centered', text: 'Wednesday'
-    expect(rendered_component).to have_css 'tr > th.has-text-centered', text: 'Thursday'
-    expect(rendered_component).to have_css 'tr > th.has-text-centered', text: 'Friday'
-    expect(rendered_component).not_to have_css 'tr > th.has-text-centered', text: 'Saturday'
-    expect(rendered_component).not_to have_css 'tr > th.has-text-centered', text: 'Sunday'
+    expect(page).to have_css '.calendar-component'
+    expect(page).to have_css 'tr > th.has-text-centered', text: 'Monday'
+    expect(page).to have_css 'tr > th.has-text-centered', text: 'Tuesday'
+    expect(page).to have_css 'tr > th.has-text-centered', text: 'Wednesday'
+    expect(page).to have_css 'tr > th.has-text-centered', text: 'Thursday'
+    expect(page).to have_css 'tr > th.has-text-centered', text: 'Friday'
+    expect(page).not_to have_css 'tr > th.has-text-centered', text: 'Saturday'
+    expect(page).not_to have_css 'tr > th.has-text-centered', text: 'Sunday'
   end
 
   it 'renders the calendar component hiding the calendar view options' do
@@ -47,28 +47,28 @@ describe Bali::Calendar::Component, type: :component do
       c.header(period: c.period, start_date: '2020-01-01', period_switch: false)
     end
 
-    expect(rendered_component).to have_css '.calendar-component'
-    expect(rendered_component).to have_css '.header > .columns > .column > h3.title',
-                                           text: 'January 2020'
-    expect(rendered_component).not_to have_css '.header > .columns > .column > a.button',
-                                               text: 'Week'
-    expect(rendered_component).not_to have_css '.header > .columns > .column > a.button',
-                                               text: 'Month'
+    expect(page).to have_css '.calendar-component'
+    expect(page).to have_css '.header > .columns > .column > h3.title',
+                             text: 'January 2020'
+    expect(page).not_to have_css '.header > .columns > .column > a.button',
+                                 text: 'Week'
+    expect(page).not_to have_css '.header > .columns > .column > a.button',
+                                 text: 'Month'
   end
 
   it 'renders the calendar component with week view' do
     @options.merge!(start_date: '2020-01-01', period: :week)
     render_inline(component)
 
-    expect(rendered_component).to have_css '.calendar-component'
-    expect(rendered_component).to have_css '.week-view'
-    expect(rendered_component).to have_css 'tr > th.has-text-centered', text: 'Monday'
-    expect(rendered_component).to have_css 'tr > th.has-text-centered', text: 'Tuesday'
-    expect(rendered_component).to have_css 'tr > th.has-text-centered', text: 'Wednesday'
-    expect(rendered_component).to have_css 'tr > th.has-text-centered', text: 'Thursday'
-    expect(rendered_component).to have_css 'tr > th.has-text-centered', text: 'Friday'
-    expect(rendered_component).to have_css 'tr > th.has-text-centered', text: 'Saturday'
-    expect(rendered_component).to have_css 'tr > th.has-text-centered', text: 'Sunday'
+    expect(page).to have_css '.calendar-component'
+    expect(page).to have_css '.week-view'
+    expect(page).to have_css 'tr > th.has-text-centered', text: 'Monday'
+    expect(page).to have_css 'tr > th.has-text-centered', text: 'Tuesday'
+    expect(page).to have_css 'tr > th.has-text-centered', text: 'Wednesday'
+    expect(page).to have_css 'tr > th.has-text-centered', text: 'Thursday'
+    expect(page).to have_css 'tr > th.has-text-centered', text: 'Friday'
+    expect(page).to have_css 'tr > th.has-text-centered', text: 'Saturday'
+    expect(page).to have_css 'tr > th.has-text-centered', text: 'Sunday'
   end
 
   describe '#prev_day' do

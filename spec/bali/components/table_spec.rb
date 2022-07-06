@@ -7,7 +7,7 @@ RSpec.describe Bali::Table::Component, type: :component do
 
   before { @options = {} }
 
-  subject { rendered_component }
+  subject { page }
 
   it 'renders a table with headers' do
     render_inline(component) do |c|

@@ -7,7 +7,7 @@ RSpec.describe Bali::InfoLevel::Component, type: :component do
 
   before { @options = {} }
 
-  subject { rendered_component }
+  subject { page }
 
   context 'with one title' do
     it 'renders' do
