@@ -1,3 +1,3 @@
 <%= form_with(url: '/') do |form| %>
-  <%= render(Bali::Avatar::Component.new(form: form, method: :avatar)) %>
+  <%= render(Bali::Avatar::Component.new(form: form, method: :avatar, placeholder_url: 'bulma-default.png')) %>
 <% end %>

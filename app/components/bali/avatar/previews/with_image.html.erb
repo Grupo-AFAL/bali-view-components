@@ -1,5 +1,5 @@
 <%= form_with(url: '/') do |form| %>
-  <%= render(Bali::Avatar::Component.new(form: form, method: :avatar)) do |c| %>
+  <%= render(Bali::Avatar::Component.new(form: form, method: :avatar, placeholder_url: 'bulma-defaul.png')) do |c| %>
     <% c.picture(image_url: image_url) %>
   <% end %>
 <% end %>

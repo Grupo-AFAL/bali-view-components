@@ -7,8 +7,8 @@ module Bali
 
       def initialize(form:,
                      method:,
+                     placeholder_url:,
                      formats: %i[jpg jpeg png],
-                     placeholder_url: 'bulma-default.png',
                      **options)
         @form = form
         @method = method
