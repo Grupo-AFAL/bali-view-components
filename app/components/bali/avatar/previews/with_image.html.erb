@@ -1,6 +1,5 @@
 <%= form_with(url: '/') do |form| %>
   <%= render(Bali::Avatar::Component.new(form: form, method: :avatar)) do |c| %>
-
     <% c.picture(image_url: image_url) %>
   <% end %>
 <% end %>

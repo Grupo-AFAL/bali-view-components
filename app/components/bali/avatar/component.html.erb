@@ -1,7 +1,6 @@
 <%= tag.div **@options do %>
   <figure class="image is-128x128">
-    <%= picture if picture?%>
-    <%= default_picture unless picture? %>
+    <%= picture || default_picture %>
   </figure>
   <div class="icon-content">
     <label>
