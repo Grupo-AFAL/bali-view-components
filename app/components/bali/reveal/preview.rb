@@ -3,8 +3,13 @@
 module Bali
   module Reveal
     class Preview < ApplicationViewComponentPreview
-      def default
-        render Reveal::Component.new(opened: false) do |c|
+      # Reveal
+      # ------
+      # Displays hidden content when clicked
+      #
+      # @param opened toggle
+      def default(opened: false)
+        render Reveal::Component.new(opened: opened) do |c|
           c.trigger(title: 'Click to see contents')
 
           c.tag.h1 'Revealed contents'
