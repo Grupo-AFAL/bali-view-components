@@ -9,8 +9,8 @@ module Bali
 
       def initialize(opened: false, **options)
         @opened = opened
-        @options = prepend_class_name(options,
-                                      class_names('reveal-component', 'is-revealed': opened))
+        @options = prepend_class_name(options, 'reveal-component')
+        @options = prepend_class_name(@options, 'is-revealed') if opened
         @options = prepend_controller(@options, 'reveal')
       end
     end
