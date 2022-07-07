@@ -9,6 +9,7 @@ module Bali
         def initialize(title:, **options)
           @title = title
           @title_class = options.delete(:title_class)
+          @icon_class = options.delete(:icon_class)
 
           @options = prepend_class_name(options, 'reveal-trigger')
           @options = prepend_action(@options, 'click->reveal#toggle')
