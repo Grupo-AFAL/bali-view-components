@@ -14,6 +14,7 @@ import {
   PopupController,
   TabsController,
   TreeViewItemController,
+  RevealController,
   SelectedController,
   SideMenuController,
   SortableListController,
@@ -32,9 +33,10 @@ application.register('hovercard', HovercardController)
 application.register('navbar', NavbarController)
 application.register('notification', NotificationController)
 application.register('popup', PopupController)
-application.register('tabs', TabsController)
-application.register('tree-view-item', TreeViewItemController)
+application.register('reveal', RevealController)
 application.register('selected', SelectedController)
 application.register('side-menu', SideMenuController)
 application.register('sortable-list', SortableListController)
 application.register('submit-on-change', SubmitOnChangeController)
+application.register('tabs', TabsController)
+application.register('tree-view-item', TreeViewItemController)
