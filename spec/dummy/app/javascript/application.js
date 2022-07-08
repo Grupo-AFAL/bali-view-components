@@ -12,13 +12,14 @@ import {
   NavbarController,
   NotificationController,
   PopupController,
-  TabsController,
-  TreeViewItemController,
   RevealController,
   SelectedController,
   SideMenuController,
   SortableListController,
-  SubmitOnChangeController
+  SubmitOnChangeController,
+  TabsController,
+  TreeViewItemController,
+  TrixAttachmentsController
 } from '../../../../app/javascript/bali'
 
 const application = Application.start()
@@ -40,3 +41,4 @@ application.register('sortable-list', SortableListController)
 application.register('submit-on-change', SubmitOnChangeController)
 application.register('tabs', TabsController)
 application.register('tree-view-item', TreeViewItemController)
+application.register('trix-attachments', TrixAttachmentsController)
