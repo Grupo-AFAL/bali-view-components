@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe Bali::Tag::Component, type: :component do
-  let(:options) { {  } }
+  let(:options) { {} }
   let(:component) { Bali::Tag::Component.new(**options) }
 
   subject { page }
