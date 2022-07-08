@@ -137,6 +137,64 @@ module Bali
           )
         end
       end
+
+      # Tag view
+      # ---------------
+      # Link tag view with text.
+      # 
+      # **Available sizes:** small, normal, large.
+      #
+      # **Available colors:** black, dark, light, white, primary, link, info, success, warning, danger.
+      # @param size [Symbol] select [small, normal, large]
+      # @param light_color toggle
+      # @param rounded toggle
+      def link_tag(size: :normal, light_color: false, rounded: false)
+        render Tags::Component.new(
+          sizes: size,
+          all_light: light_color,
+          all_rounded: rounded
+        ) do |c|
+          c.tag_item(
+            text: 'Tag item with text',
+            href: '#'
+          )
+
+          c.tag_item(
+            text: 'Tag item with text',
+            href: '#'
+          )
+        end
+      end
+
+      # Tag view
+      # ---------------
+      # Link tag view with text. All tags must be with `href` and `ìs_delete` option at true.
+      # 
+      # **Available sizes:** small, normal, large.
+      #
+      # **Available colors:** black, dark, light, white, primary, link, info, success, warning, danger.
+      # @param size [Symbol] select [small, normal, large]
+      # @param light_color toggle
+      # @param rounded toggle
+      def link_with_control_tag(size: :normal, light_color: false, rounded: false)
+        render Tags::Component.new(
+          sizes: size,
+          all_light: light_color,
+          all_rounded: rounded
+        ) do |c|
+          c.tag_item(
+            text: 'Tag item with text',
+            href: '#',
+            is_delete: true
+          )
+
+          c.tag_item(
+            text: 'Tag item with text',
+            href: '#',
+            is_delete: true
+          )
+        end
+      end
     end
   end
 end
