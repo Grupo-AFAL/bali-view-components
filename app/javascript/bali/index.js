@@ -39,5 +39,6 @@ export {
   SlimSelectController,
   StepNumberInputController,
   SubmitButtonController,
-  SubmitOnChangeController
+  SubmitOnChangeController,
+  TrixAttachmentsController
 } from './controllers'
