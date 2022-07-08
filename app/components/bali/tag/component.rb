@@ -23,7 +23,7 @@ module Bali
         @delete_options = {class: href.blank? ? 'delete' : 'tag is-delete'}
         @addons_options = {class: @is_grouped ? 'tags has-addons' : ''}
         @control_options = {class: @is_grouped ? 'control' : ''}
-        @options = prepend_class_name(options, 'tag-item tag')
+        @options = prepend_class_name(options, 'tag-component tag')
         @options = prepend_class_name(@options, 'is-light') if light
         @options = prepend_class_name(@options, "is-#{color}") if color.present?
         @options = prepend_class_name(@options, "is-#{size}") if size.present?
