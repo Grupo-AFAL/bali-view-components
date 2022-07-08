@@ -3,10 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe Bali::Navbar::Component, type: :component do
-  let(:component) { Bali::Navbar::Component.new(**@options) }
   before { @options = {} }
-
-  subject { page }
+  let(:component) { Bali::Navbar::Component.new(**@options) }
 
   context 'without fullscreen' do
     before { @options.merge!(fullscreen: false) }
@@ -24,13 +22,13 @@ RSpec.describe Bali::Navbar::Component, type: :component do
         end
       end
 
-      is_expected.to have_css 'h4.title.is-5', text: 'Bali'
-      is_expected.to have_css 'a.navbar-item', text: 'Tech Stack'
-      is_expected.to have_css 'a.navbar-item', text: 'Projects'
-      is_expected.to have_css 'a.navbar-item', text: 'Team'
-      is_expected.to have_css 'a.navbar-item', text: 'Open Positions'
-      is_expected.to have_css 'a.navbar-burger'
-      is_expected.to have_css 'nav div.container'
+      expect(page).to have_css 'h4.title.is-5', text: 'Bali'
+      expect(page).to have_css 'a.navbar-item', text: 'Tech Stack'
+      expect(page).to have_css 'a.navbar-item', text: 'Projects'
+      expect(page).to have_css 'a.navbar-item', text: 'Team'
+      expect(page).to have_css 'a.navbar-item', text: 'Open Positions'
+      expect(page).to have_css 'a.navbar-burger'
+      expect(page).to have_css 'nav div.container'
     end
   end
 
@@ -45,10 +43,10 @@ RSpec.describe Bali::Navbar::Component, type: :component do
         end
       end
 
-      is_expected.to have_css 'h4.title.is-5', text: 'Bali'
-      is_expected.to have_css 'a.navbar-item', text: 'Tech Stack'
-      is_expected.to have_css 'a.navbar-burger'
-      is_expected.not_to have_css 'nav div.container'
+      expect(page).to have_css 'h4.title.is-5', text: 'Bali'
+      expect(page).to have_css 'a.navbar-item', text: 'Tech Stack'
+      expect(page).to have_css 'a.navbar-burger'
+      expect(page).not_to have_css 'nav div.container'
     end
   end
 
@@ -63,8 +61,8 @@ RSpec.describe Bali::Navbar::Component, type: :component do
         end
       end
 
-      is_expected.to have_css 'h4.title.is-5', text: 'Bali'
-      is_expected.to have_css '[data-navbar-allow-transparency-value="true"]'
+      expect(page).to have_css 'h4.title.is-5', text: 'Bali'
+      expect(page).to have_css '[data-navbar-allow-transparency-value="true"]'
     end
   end
 
@@ -78,8 +76,8 @@ RSpec.describe Bali::Navbar::Component, type: :component do
         end
       end
 
-      is_expected.to have_css 'h4.title.is-5', text: 'Bali'
-      is_expected.to have_css 'a.navbar-burger.burger.custom-burger'
+      expect(page).to have_css 'h4.title.is-5', text: 'Bali'
+      expect(page).to have_css 'a.navbar-burger.burger.custom-burger'
     end
   end
 
@@ -98,11 +96,11 @@ RSpec.describe Bali::Navbar::Component, type: :component do
         end
       end
 
-      is_expected.to have_css 'h4.title.is-5', text: 'Bali'
-      is_expected.to have_css '[data-navbar-target="burger"]'
-      is_expected.to have_css '[data-navbar-target="altBurger"]'
-      is_expected.to have_css '[data-navbar-target="menu"]'
-      is_expected.to have_css '[data-navbar-target="altMenu"]'
+      expect(page).to have_css 'h4.title.is-5', text: 'Bali'
+      expect(page).to have_css '[data-navbar-target="burger"]'
+      expect(page).to have_css '[data-navbar-target="altBurger"]'
+      expect(page).to have_css '[data-navbar-target="menu"]'
+      expect(page).to have_css '[data-navbar-target="altMenu"]'
     end
   end
 end

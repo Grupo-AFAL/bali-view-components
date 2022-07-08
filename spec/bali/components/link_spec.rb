@@ -7,14 +7,12 @@ RSpec.describe Bali::Link::Component, type: :component do
 
   before { @options = { name: 'Click me!', href: '#' } }
 
-  subject { page }
-
   context 'default' do
     it 'renders' do
       render_inline(component)
 
-      is_expected.to have_css 'a', text: 'Click me!'
-      is_expected.to have_css 'a[href="#"]'
+      expect(page).to have_css 'a', text: 'Click me!'
+      expect(page).to have_css 'a[href="#"]'
     end
   end
 
@@ -25,8 +23,8 @@ RSpec.describe Bali::Link::Component, type: :component do
       it 'renders' do
         render_inline(component)
 
-        is_expected.to have_css "a.button.is-#{button_type}", text: 'Click me!'
-        is_expected.to have_css 'a[href="#"]'
+        expect(page).to have_css "a.button.is-#{button_type}", text: 'Click me!'
+        expect(page).to have_css 'a[href="#"]'
       end
     end
   end
@@ -37,9 +35,9 @@ RSpec.describe Bali::Link::Component, type: :component do
         c.icon('poo')
       end
 
-      is_expected.to have_css 'a', text: 'Click me!'
-      is_expected.to have_css 'a[href="#"]'
-      is_expected.to have_css 'span.icon'
+      expect(page).to have_css 'a', text: 'Click me!'
+      expect(page).to have_css 'a[href="#"]'
+      expect(page).to have_css 'span.icon'
     end
 
     it 'renders a link with class button' do

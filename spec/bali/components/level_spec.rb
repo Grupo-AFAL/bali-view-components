@@ -5,8 +5,6 @@ require 'rails_helper'
 RSpec.describe Bali::Level::Component, type: :component do
   let(:component) { Bali::Level::Component.new }
 
-  subject { page }
-
   it 'renders' do
     render_inline(component) do |c|
       c.left do |level|
@@ -18,9 +16,9 @@ RSpec.describe Bali::Level::Component, type: :component do
       end
     end
 
-    is_expected.to have_css '.level div'
-    is_expected.to have_css 'div.level-item', text: 'Left'
-    is_expected.to have_css 'div.level-item', text: 'Right'
+    expect(page).to have_css '.level div'
+    expect(page).to have_css 'div.level-item', text: 'Left'
+    expect(page).to have_css 'div.level-item', text: 'Right'
   end
 
   context 'with level items' do
@@ -31,9 +29,9 @@ RSpec.describe Bali::Level::Component, type: :component do
         c.item { '<h1>Item 2</h1>'.html_safe }
       end
 
-      is_expected.to have_css '.level div'
-      is_expected.to have_css 'div.level-item', text: 'Item 1'
-      is_expected.to have_css 'div.level-item', text: 'Item 2'
+      expect(page).to have_css '.level div'
+      expect(page).to have_css 'div.level-item', text: 'Item 1'
+      expect(page).to have_css 'div.level-item', text: 'Item 2'
     end
   end
 end

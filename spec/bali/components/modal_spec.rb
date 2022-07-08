@@ -7,19 +7,17 @@ RSpec.describe Bali::Modal::Component, type: :component do
 
   before { @options = {} }
 
-  subject { page }
-
   it 'renders when active is true' do
     @options.merge!(active: true)
     render_inline(component)
 
-    is_expected.to have_css 'div.modal.is-active'
+    expect(page).to have_css 'div.modal.is-active'
   end
 
   it 'renders when active is false' do
     render_inline(component)
 
-    is_expected.to have_css 'div.modal'
+    expect(page).to have_css 'div.modal'
   end
 
   it 'renders with custom content' do
@@ -27,7 +25,7 @@ RSpec.describe Bali::Modal::Component, type: :component do
       '<p>Hello World!</p>'.html_safe
     end
 
-    is_expected.to have_css 'p', text: 'Hello World!'
+    expect(page).to have_css 'p', text: 'Hello World!'
   end
 
   it 'renders with custom class' do
@@ -36,6 +34,6 @@ RSpec.describe Bali::Modal::Component, type: :component do
       '<p>Hello World!</p>'.html_safe
     end
 
-    is_expected.to have_css 'div.modal-component.custom-class', text: 'Hello World!'
+    expect(page).to have_css 'div.modal-component.custom-class', text: 'Hello World!'
   end
 end

@@ -7,8 +7,6 @@ RSpec.describe Bali::DeleteLink::Component, type: :component do
 
   let(:component) { Bali::DeleteLink::Component.new(**@options) }
 
-  subject { page }
-
   it 'renders a delete link' do
     render_inline(component)
 

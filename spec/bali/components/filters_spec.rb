@@ -8,13 +8,11 @@ RSpec.describe Bali::Filters::Component, type: :component do
     Bali::Filters::Component.new(form: form, url: '#', text_field: :name)
   end
 
-  subject { page }
-
   it 'renders' do
     render_inline(component)
 
-    is_expected.to have_css 'div.search-input-component'
-    is_expected.not_to have_css 'a.filters-button'
+    expect(page).to have_css 'div.search-input-component'
+    expect(page).not_to have_css 'a.filters-button'
   end
 
   it 'renders with filters' do
@@ -26,7 +24,7 @@ RSpec.describe Bali::Filters::Component, type: :component do
       )
     end
 
-    is_expected.to have_css 'div.search-input-component'
-    is_expected.to have_css 'a[id="filters-button"]'
+    expect(page).to have_css 'div.search-input-component'
+    expect(page).to have_css 'a[id="filters-button"]'
   end
 end
