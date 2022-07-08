@@ -1,3 +1,7 @@
-<%= tag.div(**options) do %>
-  <%= content %>
+<% if tag_items.size.positive? %>
+  <%= tag.div(**@options) do %>
+    <% tag_items.each do |tag_item| %>
+      <%= tag_item %>
+    <% end %>
+  <% end %>
 <% end %>
