@@ -1,13 +1,5 @@
 <%= tag.div(**options) do %>
-  <header class="timeline-header">
-    <span class="tag is-primary is-light"><%= start_text %></span>
-  </header>
-
-  <% items.each do |item| %>
-    <%= item %>
+  <% tags.each do |tag| %>
+    <%= tag %>
   <% end %>
-
-  <div class="timeline-header">
-    <span class="tag is-primary is-light"><%= end_text %></span>
-  </div>
 <% end %>

@@ -3,14 +3,17 @@
 module Bali
   module Timeline
     class Component < ApplicationViewComponent
-      attr_reader :start_text, :end_text, :options
+      include ViewComponent::PolymorphicSlots
 
-      renders_many :items, Timeline::Item::Component
+      attr_reader :options
 
-      def initialize(position: :left, start_text: 'Start', end_text: 'End', **options)
+      renders_many :tags, types: {
+        header: Timeline::Header::Component,
+        item: Timeline::Item::Component
+      }
+
+      def initialize(position: :left, **options)
         @position = position
-        @start_text = start_text
-        @end_text = end_text
 
         @options = prepend_class_name(options, 'timeline-component')
         @options = prepend_class_name(@options, 'is-centered') if position == :center
