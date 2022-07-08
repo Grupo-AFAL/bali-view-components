@@ -34,7 +34,7 @@ module Bali
         end
       end
 
-      # Timeline custom header class
+      # Timeline with a custom header class
       # ----------------------
       #
       # @param position select [left, center, right]
