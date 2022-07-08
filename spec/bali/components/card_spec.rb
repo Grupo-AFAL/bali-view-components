@@ -5,14 +5,12 @@ require 'rails_helper'
 RSpec.describe Bali::Card::Component, type: :component do
   let(:component) { Bali::Card::Component.new }
 
-  subject { page }
-
   it 'renders a card with content' do
     render_inline(component) do
       '<div class="content">Content</div>'.html_safe
     end
 
-    is_expected.to have_css '.content', text: 'Content'
+    expect(page).to have_css '.content', text: 'Content'
   end
 
   it 'renders a card with an clickable image' do
@@ -20,7 +18,7 @@ RSpec.describe Bali::Card::Component, type: :component do
       c.image(src: '/image.png', href: '/path/to/page')
     end
 
-    is_expected.to have_css 'a[href="/path/to/page"] img[src="/image.png"]'
+    expect(page).to have_css 'a[href="/path/to/page"] img[src="/image.png"]'
   end
 
   it 'renders a card with footer item link' do
@@ -28,7 +26,7 @@ RSpec.describe Bali::Card::Component, type: :component do
       c.footer_item(href: '/path') { 'Link to path' }
     end
 
-    is_expected.to have_css 'a[href="/path"].card-footer-item', text: 'Link to path'
+    expect(page).to have_css 'a[href="/path"].card-footer-item', text: 'Link to path'
   end
 
   it 'renders a card with regular footer item' do
@@ -38,7 +36,7 @@ RSpec.describe Bali::Card::Component, type: :component do
       end
     end
 
-    is_expected.to have_css '.card-footer-item span.hola', text: 'Hola'
+    expect(page).to have_css '.card-footer-item span.hola', text: 'Hola'
   end
 
   it 'renders a card with custom image' do
@@ -52,6 +50,6 @@ RSpec.describe Bali::Card::Component, type: :component do
       '<div class="content">Content</div>'.html_safe
     end
 
-    is_expected.to have_css '.image-content', text: 'Custom content in image'
+    expect(page).to have_css '.image-content', text: 'Custom content in image'
   end
 end

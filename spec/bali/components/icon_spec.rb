@@ -7,19 +7,17 @@ RSpec.describe Bali::Icon::Component, type: :component do
 
   before { @options = {} }
 
-  subject { page }
-
   it 'renders' do
     render_inline(component)
 
-    is_expected.to have_css 'span.icon'
+    expect(page).to have_css 'span.icon'
   end
 
   it 'renders with an id and additional classes' do
     @options.merge!(id: 'my-icon', class: 'has-text-info')
     render_inline(component)
 
-    is_expected.to have_css 'span.icon.has-text-info'
-    is_expected.to have_css 'span[id="my-icon"]'
+    expect(page).to have_css 'span.icon.has-text-info'
+    expect(page).to have_css 'span[id="my-icon"]'
   end
 end

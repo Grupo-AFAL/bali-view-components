@@ -3,10 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe Bali::Columns::Component, type: :component do
-  let(:options) { {} }
-  let(:component) { Bali::Columns::Component.new(**options) }
-
-  subject { page }
+  let(:component) { Bali::Columns::Component.new }
 
   it 'renders' do
     render_inline(component) do |c|
@@ -19,8 +16,8 @@ RSpec.describe Bali::Columns::Component, type: :component do
       end
     end
 
-    is_expected.to have_css '.columns-component.columns div'
-    is_expected.to have_css 'div.column', text: 'First'
-    is_expected.to have_css 'div.column', text: 'Second'
+    expect(page).to have_css '.columns-component.columns div'
+    expect(page).to have_css 'div.column', text: 'First'
+    expect(page).to have_css 'div.column', text: 'Second'
   end
 end

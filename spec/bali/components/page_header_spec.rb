@@ -3,11 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe Bali::PageHeader::Component, type: :component do
-  let(:component) { Bali::PageHeader::Component.new(**@options) }
-
   before { @options = {} }
-
-  subject { page }
+  let(:component) { Bali::PageHeader::Component.new(**@options) }
 
   describe 'rendering' do
     context 'with title and subtitle as params' do
@@ -16,8 +13,8 @@ RSpec.describe Bali::PageHeader::Component, type: :component do
       it 'renders' do
         render_inline(component)
 
-        is_expected.to have_css '.level-left h1.title', text: 'Title'
-        is_expected.to have_css '.level-left p.subtitle', text: 'Subtitle'
+        expect(page).to have_css '.level-left h1.title', text: 'Title'
+        expect(page).to have_css '.level-left p.subtitle', text: 'Subtitle'
       end
     end
 
@@ -30,9 +27,9 @@ RSpec.describe Bali::PageHeader::Component, type: :component do
             'Right content'
           end
 
-          is_expected.to have_css '.level-left h1.title', text: 'Title'
-          is_expected.to have_css '.level-left p.subtitle', text: 'Subtitle'
-          is_expected.to have_css '.level-right', text: 'Right content'
+          expect(page).to have_css '.level-left h1.title', text: 'Title'
+          expect(page).to have_css '.level-left p.subtitle', text: 'Subtitle'
+          expect(page).to have_css '.level-right', text: 'Right content'
         end
       end
 
@@ -44,9 +41,9 @@ RSpec.describe Bali::PageHeader::Component, type: :component do
             'Right content'
           end
 
-          is_expected.to have_css '.level-left h2.title', text: 'Title'
-          is_expected.to have_css '.level-left p.subtitle', text: 'Subtitle'
-          is_expected.to have_css '.level-right', text: 'Right content'
+          expect(page).to have_css '.level-left h2.title', text: 'Title'
+          expect(page).to have_css '.level-left p.subtitle', text: 'Subtitle'
+          expect(page).to have_css '.level-right', text: 'Right content'
         end
       end
     end

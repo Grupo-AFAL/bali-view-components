@@ -6,8 +6,6 @@ RSpec.describe Bali::DataTable::Component, type: :component do
   let(:form) { Bali::Utils::DummyFilterForm.new }
   let(:component) { Bali::DataTable::Component.new(filter_form: form, url: '#') }
 
-  subject { page }
-
   it 'renders without summary' do
     render_inline(component) do |c|
       c.filters_panel(text_field: :name, opened: false)
@@ -15,9 +13,9 @@ RSpec.describe Bali::DataTable::Component, type: :component do
       c.table { '<div class="table-component"></div>'.html_safe }
     end
 
-    is_expected.to have_css 'div.data-table-component'
-    is_expected.to have_css 'div.filters-component'
-    is_expected.to have_css 'div.table-component'
+    expect(page).to have_css 'div.data-table-component'
+    expect(page).to have_css 'div.filters-component'
+    expect(page).to have_css 'div.table-component'
   end
 
   it 'renders with summary' do
@@ -29,9 +27,9 @@ RSpec.describe Bali::DataTable::Component, type: :component do
       c.table { '<div class="table-component"></div>'.html_safe }
     end
 
-    is_expected.to have_css 'div.data-table-component'
-    is_expected.to have_css 'div.filters-component'
-    is_expected.to have_css 'div.table-component'
-    is_expected.to have_css 'p', text: 'Summary'
+    expect(page).to have_css 'div.data-table-component'
+    expect(page).to have_css 'div.filters-component'
+    expect(page).to have_css 'div.table-component'
+    expect(page).to have_css 'p', text: 'Summary'
   end
 end

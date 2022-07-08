@@ -6,8 +6,6 @@ RSpec.describe Bali::Stepper::Component, type: :component do
   let(:options) { { current: 0 } }
   let(:component) { Bali::Stepper::Component.new(**options) }
 
-  subject { page }
-
   it 'renders stepper with first step current' do
     render_inline(component) do |c|
       c.step(title: 'Step One')
@@ -15,10 +13,10 @@ RSpec.describe Bali::Stepper::Component, type: :component do
       c.step(title: 'Step Three')
     end
 
-    expect(subject).to have_css 'div.stepper-component'
-    expect(subject).to have_css '.step-component.is-active', text: 'Step One'
-    expect(subject).to have_css '.step-component.is-pending', text: 'Step Two'
-    expect(subject).to have_css '.step-component.is-pending', text: 'Step Three'
+    expect(page).to have_css 'div.stepper-component'
+    expect(page).to have_css '.step-component.is-active', text: 'Step One'
+    expect(page).to have_css '.step-component.is-pending', text: 'Step Two'
+    expect(page).to have_css '.step-component.is-pending', text: 'Step Three'
   end
 
   it 'renders stepper with second step current' do
@@ -30,10 +28,10 @@ RSpec.describe Bali::Stepper::Component, type: :component do
       c.step(title: 'Step Three')
     end
 
-    expect(subject).to have_css 'div.stepper-component'
-    expect(subject).to have_css '.step-component.is-done', text: 'Step One'
-    expect(subject).to have_css '.step-component.is-active', text: 'Step Two'
-    expect(subject).to have_css '.step-component.is-pending', text: 'Step Three'
+    expect(page).to have_css 'div.stepper-component'
+    expect(page).to have_css '.step-component.is-done', text: 'Step One'
+    expect(page).to have_css '.step-component.is-active', text: 'Step Two'
+    expect(page).to have_css '.step-component.is-pending', text: 'Step Three'
   end
 
   it 'renders stepper with third step current' do
@@ -45,9 +43,9 @@ RSpec.describe Bali::Stepper::Component, type: :component do
       c.step(title: 'Step Three')
     end
 
-    expect(subject).to have_css 'div.stepper-component'
-    expect(subject).to have_css '.step-component.is-done', text: 'Step One'
-    expect(subject).to have_css '.step-component.is-done', text: 'Step Two'
-    expect(subject).to have_css '.step-component.is-active', text: 'Step Three'
+    expect(page).to have_css 'div.stepper-component'
+    expect(page).to have_css '.step-component.is-done', text: 'Step One'
+    expect(page).to have_css '.step-component.is-done', text: 'Step Two'
+    expect(page).to have_css '.step-component.is-active', text: 'Step Three'
   end
 end

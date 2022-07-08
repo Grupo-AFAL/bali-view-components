@@ -10,13 +10,11 @@ RSpec.describe Bali::SearchInput::Component, type: :component do
 
   before { @options = {} }
 
-  subject { page }
-
   it 'renders' do
     render_inline(component)
 
-    is_expected.to have_css 'div.search-input-component'
-    is_expected.to have_css 'div.search-control'
+    expect(page).to have_css 'div.search-input-component'
+    expect(page).to have_css 'div.search-control'
   end
 
   context 'auto submit search input' do
@@ -25,8 +23,8 @@ RSpec.describe Bali::SearchInput::Component, type: :component do
     it 'renders' do
       render_inline(component)
 
-      is_expected.to have_css 'div.search-input-component'
-      is_expected.not_to have_css 'div.search-control'
+      expect(page).to have_css 'div.search-input-component'
+      expect(page).not_to have_css 'div.search-control'
     end
   end
 end

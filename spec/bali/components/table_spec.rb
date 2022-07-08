@@ -7,8 +7,6 @@ RSpec.describe Bali::Table::Component, type: :component do
 
   before { @options = {} }
 
-  subject { page }
-
   it 'renders a table with headers' do
     render_inline(component) do |c|
       c.headers([
@@ -17,9 +15,9 @@ RSpec.describe Bali::Table::Component, type: :component do
                 ])
     end
 
-    is_expected.to have_css 'table'
-    is_expected.to have_css 'tr th', text: 'name'
-    is_expected.to have_css 'tr th', text: 'amount'
+    expect(page).to have_css 'table'
+    expect(page).to have_css 'tr th', text: 'name'
+    expect(page).to have_css 'tr th', text: 'amount'
   end
 
   it 'renders a table with rows' do
@@ -27,7 +25,7 @@ RSpec.describe Bali::Table::Component, type: :component do
       c.row { '<td>Hola</td>'.html_safe }
     end
 
-    is_expected.to have_css 'tr td', text: 'Hola'
+    expect(page).to have_css 'tr td', text: 'Hola'
   end
 
   it 'renders a table with footer' do
@@ -35,8 +33,8 @@ RSpec.describe Bali::Table::Component, type: :component do
       c.footer { '<td>Total</td>'.html_safe }
     end
 
-    is_expected.to have_css 'table'
-    is_expected.to have_css 'tfoot tr td', text: 'Total'
+    expect(page).to have_css 'table'
+    expect(page).to have_css 'tfoot tr td', text: 'Total'
   end
 
   it 'renders an empty table without results' do
@@ -47,14 +45,14 @@ RSpec.describe Bali::Table::Component, type: :component do
     @options = { form: form }
     render_inline(component)
 
-    is_expected.to have_css '.empty-table p', text: 'No Results'
+    expect(page).to have_css '.empty-table p', text: 'No Results'
   end
 
   it 'renders an empty query message' do
     @options.merge!(form: @filter_form)
     render_inline(component)
 
-    is_expected.to have_css '.empty-table p', text: 'No Records'
+    expect(page).to have_css '.empty-table p', text: 'No Records'
   end
 
   it 'renders a table with new record link' do
@@ -62,7 +60,7 @@ RSpec.describe Bali::Table::Component, type: :component do
       c.new_record_link(name: 'Add New Record', href: '#', modal: false)
     end
 
-    is_expected.to have_css 'a', text: 'Add New Record'
+    expect(page).to have_css 'a', text: 'Add New Record'
   end
 
   context 'with custom no records notification' do
@@ -72,7 +70,7 @@ RSpec.describe Bali::Table::Component, type: :component do
         c.no_records_notification { 'So sorry, no records found!' }
       end
 
-      is_expected.to have_css '.empty-table', text: 'So sorry, no records found!'
+      expect(page).to have_css '.empty-table', text: 'So sorry, no records found!'
     end
   end
 
@@ -87,7 +85,7 @@ RSpec.describe Bali::Table::Component, type: :component do
         c.no_results_notification { 'So sorry, no results!' }
       end
 
-      is_expected.to have_css '.empty-table', text: 'So sorry, no results!'
+      expect(page).to have_css '.empty-table', text: 'So sorry, no results!'
     end
   end
 end

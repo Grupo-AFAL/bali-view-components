@@ -7,8 +7,6 @@ RSpec.describe Bali::InfoLevel::Component, type: :component do
 
   before { @options = {} }
 
-  subject { page }
-
   context 'with one title' do
     it 'renders' do
       render_inline(component) do |c|
@@ -18,9 +16,9 @@ RSpec.describe Bali::InfoLevel::Component, type: :component do
         end
       end
 
-      expect(subject).to have_css '.info-level-component'
-      expect(subject).to have_css '.heading', text: 'Heading'
-      expect(subject).to have_css '.title', text: 'Title'
+      expect(page).to have_css '.info-level-component'
+      expect(page).to have_css '.heading', text: 'Heading'
+      expect(page).to have_css '.title', text: 'Title'
     end
   end
 
@@ -34,10 +32,10 @@ RSpec.describe Bali::InfoLevel::Component, type: :component do
         end
       end
 
-      expect(subject).to have_css '.info-level-component'
-      expect(subject).to have_css '.heading', text: 'Heading'
-      expect(subject).to have_css '.title', text: 'Title 1'
-      expect(subject).to have_css '.title', text: 'Title 2'
+      expect(page).to have_css '.info-level-component'
+      expect(page).to have_css '.heading', text: 'Heading'
+      expect(page).to have_css '.title', text: 'Title 1'
+      expect(page).to have_css '.title', text: 'Title 2'
     end
   end
 end
