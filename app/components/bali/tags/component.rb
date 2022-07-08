@@ -4,7 +4,7 @@ module Bali
   module Tags
     class Component < ApplicationViewComponent
       renders_many :tag_items, ->(text: nil, href: nil, delete: false, **options) do
-        @with_links = true if delete && text.to_s.length.positive? && href.present?
+        @withlinks = true if delete && text.to_s.length.positive? && href.present?
         size = @all_sizes || nil
         Bali::Tag::Component.new(
           text: text,
@@ -23,7 +23,7 @@ module Bali
         rounded: false,
         **options
       )
-        @with_links = false
+        @withlinks = false
         @light = light
         @rounded = rounded
         @all_sizes = sizes
@@ -33,7 +33,7 @@ module Bali
 
       def container_options
         @options = prepend_class_name(@options,
-                                      @with_links ? 'field is-grouped is-grouped-multiline' : 'tags')
+                                      @withlinks ? 'field is-grouped is-grouped-multiline' : 'tags')
       end
     end
   end

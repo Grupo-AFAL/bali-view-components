@@ -5,6 +5,10 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :text, :href, :delete
 
+      # rubocop: disable Metrics/ParameterLists
+      # rubocop: disable Metrics/CyclomaticComplexity
+      # rubocop: disable Metrics/AbcSize
+      # rubocop: disable Metrics/PerceivedComplexity
       def initialize(
         text: '',
         href: nil,
