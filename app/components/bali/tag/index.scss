@@ -1,0 +1,7 @@
+$grey-light: hsl(0, 0%, 71%);
+
+.tag-component.tag {
+  &.with-border {
+    border: 1px solid $grey-light;
+  }
+}
