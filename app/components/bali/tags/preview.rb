@@ -87,6 +87,7 @@ module Bali
           all_rounded: rounded
         ) do |c|
           c.tag_item(
+            text: 'Delete tag view',
             is_delete: true
           )
 

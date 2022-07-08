@@ -1,3 +1,4 @@
 <%= tag.div(**@options) do %>
   <%= text %>
+  <%= tag.button(**@delete_options) if is_delete && text.to_s.length > 0 %>
 <% end %>
