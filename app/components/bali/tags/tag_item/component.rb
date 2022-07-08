@@ -4,7 +4,6 @@ module Bali
   module Tags
     module TagItem
       class Component < ApplicationViewComponent
-
         attr_reader :text
 
         def initialize(

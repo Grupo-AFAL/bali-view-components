@@ -3,8 +3,7 @@
 module Bali
   module Tags
     class Component < ApplicationViewComponent
-
-      renders_many :tag_items, -> (**options) do
+      renders_many :tag_items, ->(**options) do
         TagItem::Component.new(
           is_light: @all_light,
           rounded: @all_rounded,
