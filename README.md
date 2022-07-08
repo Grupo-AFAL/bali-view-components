@@ -123,6 +123,7 @@ Update this table when making progress on any of the Components or when adding n
 | StepNumberInput     | Provides step number functionality to inputs                           | :x:   |
 | SubmitButton        | Displays a loading button state when a form submission is started      | :x:   |
 | SubmitOnChange      | Automatically submits the form when the form element changes value     | :x:   |
+| TrixAttachments     | Allows to upload files with a certain size limit using the Trix editor | :x:   |
 
 ### Legends
 
