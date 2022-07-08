@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update README with component updates
 - Add `ImageGrid::Component` tests
 - Add `Column::Component` previews
+- Standardize on expect(page) syntax instead of using subject + is_expected
 
 ## [0.27.0] - 2022-07-07
 
