@@ -68,25 +68,25 @@ Update this table when making progress on any of the Components or when adding n
 | Breadcrumb     | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | BooleanIcon    | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Calendar       | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
-| Carousel       | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | Two versions in Enjoy and GA, need to merge    |
+| Carousel       | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Card           | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Chart          | :white_check_mark: | :white_check_mark: |    :wavy_dash:     | :white_check_mark: |                                                |
-| Columns        | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
-| DataTable      | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
-| DeleteLink     | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
+| Columns        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
+| DataTable      | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
+| DeleteLink     | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | DisplayValue   |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Drawer         | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Dropdown       | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
-| Filters        | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
+| Filters        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | GanttChart     |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | Heatmap        |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
 | HelpTip        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Hero           |        :x:         |        :x:         |        :x:         |        :x:         |                                                |
-| Hovercard      | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
+| Hovercard      | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Icon           | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
-| ImageGrid      | :white_check_mark: | :white_check_mark: | :white_check_mark: |        :x:         |                                                |
-| InfoLevel      | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
-| Level          | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
+| ImageGrid      | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
+| InfoLevel      | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
+| Level          | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Link           | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Loader         | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Modal          | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
@@ -95,14 +95,14 @@ Update this table when making progress on any of the Components or when adding n
 | PageHeader     | :white_check_mark: | :white_check_mark: |    :wavy_dash:     | :white_check_mark: |                                                |
 | Rate (Rating)  |        :x:         |        :x:         |        :x:         |        :x:         | Rename from Rating to Rate                     |
 | Reveal         | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
-| SearchInput    | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
+| SearchInput    | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | SideMenu       | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | SortableList   | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Stepper        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
-| Table          | :white_check_mark: |    :wavy_dash:     |        :x:         | :white_check_mark: |                                                |
+| Table          | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Tabs           | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 | Timeline       |        :x:         |        :x:         |        :x:         |        :x:         | Create from scratch, HTML already exists on GA |
-| TreeView       | :white_check_mark: | :white_check_mark: |        :x:         | :white_check_mark: |                                                |
+| TreeView       | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |                                                |
 
 ## Stimulus JS Controllers
 
