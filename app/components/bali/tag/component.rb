@@ -38,6 +38,10 @@ module Bali
 
         @delete_options = prepend_class_name(@delete_options, "is-#{size}") if size.present?
       end
+      # rubocop: enable Metrics/ParameterLists
+      # rubocop: enable Metrics/CyclomaticComplexity
+      # rubocop: enable Metrics/AbcSize
+      # rubocop: enable Metrics/PerceivedComplexity
     end
   end
 end
