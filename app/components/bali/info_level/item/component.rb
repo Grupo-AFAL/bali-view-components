@@ -6,14 +6,16 @@ module Bali
       class Component < ApplicationViewComponent
         attr_reader :options
 
-        renders_one :heading, ->(text, **options) do
+        renders_one :heading, ->(text = nil, **options, &block) do
           options = prepend_class_name(options, 'heading')
-          tag.p(text, **options)
+
+          text.present? ? tag.p(text, **options) : tag.div(**options, &block)
         end
 
-        renders_many :titles, ->(text, **options) do
+        renders_many :titles, ->(text = nil, **options, &block) do
           options[:class] ||= 'title is-3'
-          tag.p(text, **options)
+
+          text.present? ? tag.p(text, **options) : tag.div(**options, &block)
         end
 
         def initialize(**options)
