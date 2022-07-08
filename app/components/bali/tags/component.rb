@@ -5,7 +5,7 @@ module Bali
     class Component < ApplicationViewComponent
       renders_many :tag_items, ->(**options) do
         size = @all_sizes || nil
-        TagItem::Component.new(
+        Bali::Tag::Component.new(
           is_light: @all_light,
           rounded: @all_rounded,
           size: size,
