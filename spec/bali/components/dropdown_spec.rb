@@ -3,8 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe Bali::Dropdown::Component, type: :component do
-  let(:options) { {} }
-  let(:component) { Bali::Dropdown::Component.new(**options) }
+  let(:component) { Bali::Dropdown::Component.new }
+
   before do
     render_inline(component) do |c|
       c.trigger(class: 'button') { 'Trigger' }
@@ -15,13 +15,11 @@ RSpec.describe Bali::Dropdown::Component, type: :component do
     end
   end
 
-  subject { page }
-
   it 'renders dropdown with options' do
-    expect(subject).to have_css '.dropdown-item'
+    expect(page).to have_css '.dropdown-item'
   end
 
   it 'renders dropdown and check trigger' do
-    expect(subject).to have_css '.button', text: 'Trigger'
+    expect(page).to have_css '.button', text: 'Trigger'
   end
 end

@@ -7,13 +7,11 @@ RSpec.describe Bali::Chart::Component, type: :component do
 
   before { @options = { data: { chocolate: 3 } } }
 
-  subject { page }
-
   it 'renders a chart title' do
     @options.merge!(title: 'Chocolate Sales', id: 'chocolate-sales')
     render_inline(component)
 
-    is_expected.to have_css 'h3.title', text: 'Chocolate Sales'
+    expect(page).to have_css 'h3.title', text: 'Chocolate Sales'
   end
 
   it 'renders a div with chart controller' do
