@@ -2,13 +2,8 @@
 
 require 'rails_helper'
 
-def form_builder
-  view_context = ActionController::Base.new.view_context
-  Bali::FormBuilder.new('movie', Movie.new, view_context, {})
-end
-
 RSpec.describe Bali::Rate::Component, type: :component do
-  let(:options) { { form: form_builder, method: :rating, value: 1, auto_submit: false } }
+  let(:options) { { form: movie_form_builder, method: :rating, value: 1, auto_submit: false } }
   let(:component) { Bali::Rate::Component.new(**options) }
 
   it 'renders rate component' do
