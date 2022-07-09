@@ -5,15 +5,13 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :form, :method, :value, :scale, :size, :auto_submit, :options
 
-      def initialize(
-        form:, method:, value:, scale: 1..5, size: :medium, auto_submit: false, **options
-      )
+      def initialize(form:, method:, value:, scale: 1..5, auto_submit: false, **options)
         @form = form
         @method = method
         @value = value
         @scale = scale
-        @size = size
         @auto_submit = auto_submit
+        @size = options.delete(:size) || :medium
 
         @options = prepend_class_name(options, 'rate-component')
         @options = prepend_controller(options, 'rate')
@@ -32,17 +30,17 @@ module Bali
       end
 
       def star_icon(rate)
-        render(Bali::Icon::Component.new('star', class: icon_class_names(rate)))
+        render(Bali::Icon::Component.new('star', class: icon_class(rate)))
       end
 
       private
 
-      def icon_class_names(rate)
+      def icon_class(rate)
         class_names("is-#{size}", solid: value.to_i >= rate)
       end
 
       def form_object_class
-        "#{dom_class(form.object)}"
+        dom_class(form.object)
       end
 
       def unique_identifier
