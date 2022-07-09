@@ -14,7 +14,7 @@ module Bali
         @size = options.delete(:size) || :medium
 
         @options = prepend_class_name(options, 'rate-component')
-        @options = prepend_controller(options, 'rate')
+        @options = prepend_controller(@options, 'rate')
 
         @radio_options = options.delete(:radio) || {}
         @radio_options = prepend_data_attribute(@radio_options, 'rate-target', 'star')
