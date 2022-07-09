@@ -38,4 +38,40 @@ RSpec.describe Bali::InfoLevel::Component, type: :component do
       expect(page).to have_css '.title', text: 'Title 2'
     end
   end
+
+  context 'with custom heading' do
+    it 'renders' do
+      render_inline(component) do |c|
+        c.item do |ci|
+          ci.heading do
+            'My custom heading'
+          end
+
+          ci.title('Title')
+        end
+      end
+
+      expect(page).to have_css '.info-level-component'
+      expect(page).to have_css '.heading', text: 'My custom heading'
+      expect(page).to have_css '.title', text: 'Title'
+    end
+  end
+
+  context 'with custom title' do
+    it 'renders' do
+      render_inline(component) do |c|
+        c.item do |ci|
+          ci.heading('Heading')
+
+          ci.title do
+            'My custom title'
+          end
+        end
+      end
+
+      expect(page).to have_css '.info-level-component'
+      expect(page).to have_css '.heading', text: 'Heading'
+      expect(page).to have_css '.title', text: 'My custom title'
+    end
+  end
 end
