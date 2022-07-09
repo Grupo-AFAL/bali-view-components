@@ -1,0 +1,32 @@
+$icon-stroke-width: 30;
+
+.rate-component {
+  display: flex;
+  flex-wrap: wrap;
+
+  input[type='radio'] {
+    display: none;
+  }
+
+  .icon path {
+    fill: $white;
+    stroke: darken($yellow, 20%);
+    stroke-width: $icon-stroke-width;
+  }
+
+  .icon.solid path {
+    fill: $yellow;
+  }
+
+  button.star {
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 0.5rem;
+
+    &:first-child {
+      margin-left: 0;
+    }
+  }
+}

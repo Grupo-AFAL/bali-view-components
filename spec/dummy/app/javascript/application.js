@@ -12,6 +12,7 @@ import {
   NavbarController,
   NotificationController,
   PopupController,
+  RateController,
   RevealController,
   SelectedController,
   SideMenuController,
@@ -34,6 +35,7 @@ application.register('hovercard', HovercardController)
 application.register('navbar', NavbarController)
 application.register('notification', NotificationController)
 application.register('popup', PopupController)
+application.register('rate', RateController)
 application.register('reveal', RevealController)
 application.register('selected', SelectedController)
 application.register('side-menu', SideMenuController)
