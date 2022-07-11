@@ -25,8 +25,8 @@ module Bali
         @delete = delete
         @is_grouped = delete && text.to_s.length.positive?
         @delete_options = { class: href.blank? ? 'delete' : 'tag is-delete' }
-        @addons_options = { class: @is_grouped ? 'tags has-addons' : '' }
-        @control_options = { class: @is_grouped ? 'control' : '' }
+        @addons_options = { class: 'tags has-addons' } if @is_grouped
+        @control_options = { class: 'control' } if @is_grouped
         @options = prepend_class_name(options, 'tag-component tag')
         @options = prepend_class_name(@options, 'is-light') if light
         @options = prepend_class_name(@options, "is-#{color}") if color.present?
