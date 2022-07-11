@@ -50,8 +50,8 @@ module Bali
 
       def delete_tag
         @tag_options = { class: href.blank? ? 'delete' : 'tag is-delete',
-                            href: href,
-                            **delete }
+                         href: href,
+                         **delete }
         @tag_options = prepend_class_name(@tag_options, "is-#{size}") if size.present?
         @tag_options
       end
