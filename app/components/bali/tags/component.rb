@@ -31,6 +31,10 @@ module Bali
         @options = prepend_class_name(@options, "are-#{sizes}") if sizes.present?
       end
 
+      def render?
+        tag_items.size.positive?
+      end
+
       def container_options
         @options = prepend_class_name(@options,
                                       @withlinks ? 'field is-grouped is-grouped-multiline' : 'tags')
