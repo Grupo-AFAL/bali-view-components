@@ -48,39 +48,12 @@ module Bali
       # rubocop: enable Metrics/AbcSize
       # rubocop: enable Metrics/PerceivedComplexity
 
-      def confirm
-        return if skip_confirm
-        return @confirm if @confirm.present?
-
-        if @model.present?
-          t('.specific_confirm_message', **translation_attributes)
-        else
-          t('.generic_confirm_message')
-        end
-      end
-
-      def translation_attributes
-        { pronoun: pronoun, name: model_name }
-      end
-
-      def model_name
-        @model.model_name.human
-      end
-
-      def pronoun
-        t("activerecord.pronouns.#{@model.model_name.i18n_key}")
-      end
-
-      def delete_button
-        delete.merge!(data: {
-                        'turbo-method': :delete,
-                        'turbo-confirm': confirm
-                      })
-        @delete_options = { class: href.blank? ? 'delete' : 'tag is-delete',
+      def delete_tag
+        @tag_options = { class: href.blank? ? 'delete' : 'tag is-delete',
                             href: href,
                             **delete }
-        @delete_options = prepend_class_name(@delete_options, "is-#{size}") if size.present?
-        @delete_options
+        @tag_options = prepend_class_name(@tag_options, "is-#{size}") if size.present?
+        @tag_options
       end
     end
   end

@@ -1,7 +1,7 @@
 <% if href.blank? %>
   <%= tag.div(**@options) do %>
     <%= text %>
-    <%= tag.button(**delete_button) if delete && text.to_s.length > 0 %>
+    <%= tag.button(**delete_tag) if delete && text.to_s.length > 0 %>
   <% end %>
 <% else %>
   <% if @is_grouped %>
@@ -10,13 +10,13 @@
         <%= tag.a(href: href, **@options) do %>
           <%= text %>
         <% end %>
-        <%= tag.a(**delete_button) if delete && text.to_s.length > 0 %>
+        <%= tag.a(**delete_tag) if delete && text.to_s.length > 0 %>
       <% end %>
     <% end %>
   <% else %>
     <%= tag.a(href: href, **@options) do %>
       <%= text %>
-      <%= tag.button(**delete_button) if delete && text.to_s.length > 0 %>
+      <%= tag.button(**delete_tag) if delete && text.to_s.length > 0 %>
     <% end %>
   <% end %>
 <% end %>
