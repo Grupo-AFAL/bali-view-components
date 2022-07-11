@@ -3,7 +3,7 @@
 module Bali
   module Tags
     class Component < ApplicationViewComponent
-      renders_many :tag_items, ->(text: nil, href: nil, delete: false, **options) do
+      renders_many :items, ->(text: nil, href: nil, delete: false, **options) do
         @withlinks = true if delete && text.to_s.length.positive? && href.present?
         size = @all_sizes || nil
         Bali::Tag::Component.new(
@@ -32,7 +32,7 @@ module Bali
       end
 
       def render?
-        tag_items.size.positive?
+        items.size.positive?
       end
 
       def container_options

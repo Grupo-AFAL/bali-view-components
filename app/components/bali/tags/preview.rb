@@ -19,51 +19,51 @@ module Bali
           light: light,
           rounded: rounded
         ) do |c|
-          c.tag_item(
+          c.item(
             text: 'Tag item with text'
           )
 
-          c.tag_item(
+          c.item(
             text: 'Tag item with text',
             color: :black
           )
 
-          c.tag_item(
+          c.item(
             text: 'Tag item with text',
             color: :light
           )
 
-          c.tag_item(
+          c.item(
             text: 'Tag item with text',
             color: :white
           )
 
-          c.tag_item(
+          c.item(
             text: 'Tag item with text',
             color: :primary
           )
 
-          c.tag_item(
+          c.item(
             text: 'Tag item with text',
             color: :link
           )
 
-          c.tag_item(
+          c.item(
             text: 'Tag item with text',
             color: :info
           )
 
-          c.tag_item(
+          c.item(
             text: 'Tag item with text',
             color: :success
           )
 
-          c.tag_item(
+          c.item(
             text: 'Tag item with text',
             color: :warning
           )
           
-          c.tag_item(
+          c.item(
             text: 'Tag item with text',
             color: :danger
           )
@@ -86,52 +86,52 @@ module Bali
           light: light,
           rounded: rounded
         ) do |c|
-          c.tag_item(
+          c.item(
             text: 'Delete tag view',
             delete: true
           )
 
-          c.tag_item(
+          c.item(
             color: :black,
             delete: true
           )
 
-          c.tag_item(
+          c.item(
             color: :light,
             delete: true
           )
 
-          c.tag_item(
+          c.item(
             color: :white,
             delete: true
           )
 
-          c.tag_item(
+          c.item(
             color: :primary,
             delete: true
           )
 
-          c.tag_item(
+          c.item(
             color: :link,
             delete: true
           )
 
-          c.tag_item(
+          c.item(
             color: :info,
             delete: true
           )
 
-          c.tag_item(
+          c.item(
             color: :success,
             delete: true
           )
 
-          c.tag_item(
+          c.item(
             color: :warning,
             delete: true
           )
           
-          c.tag_item(
+          c.item(
             color: :danger,
             delete: true
           )
@@ -154,12 +154,12 @@ module Bali
           light: light,
           rounded: rounded
         ) do |c|
-          c.tag_item(
+          c.item(
             text: 'Tag item with text',
             href: '#'
           )
 
-          c.tag_item(
+          c.item(
             text: 'Tag item with text',
             href: '#'
           )
@@ -182,13 +182,13 @@ module Bali
           light: light,
           rounded: rounded
         ) do |c|
-          c.tag_item(
+          c.item(
             text: 'Tag item with text',
             href: '#',
             delete: true
           )
 
-          c.tag_item(
+          c.item(
             text: 'Tag item with text',
             href: '#',
             delete: true
