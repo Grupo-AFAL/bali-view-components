@@ -37,7 +37,7 @@ module Bali
       def heading_tag(text, type, **options, &)
         size = type.to_s.gsub(/^h/, '')
 
-        text.present? ? tag.send("h#{size}", text, **options) : tag.div(**options, &)
+        text.present? ? tag.send("h#{size}", text, **options) : tag.div(&)
       end
     end
   end
