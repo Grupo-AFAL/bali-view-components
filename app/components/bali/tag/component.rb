@@ -33,7 +33,10 @@ module Bali
         @options = prepend_class_name(@options, "is-#{size}") if size.present?
         @options = prepend_class_name(@options, "is-#{type}") if type.present?
         @options = prepend_class_name(@options, 'is-rounded') if rounded
-        @options = prepend_class_name(@options, 'is-delete') if @delete.present? && text.to_s.length.zero?
+        if @delete.present? && text.to_s.length.zero?
+          @options = prepend_class_name(@options,
+                                        'is-delete')
+        end
         @options = prepend_class_name(@options, 'is-link') if href.present?
 
         @skip_confirm = @options.delete(:skip_confirm)
@@ -70,13 +73,12 @@ module Bali
 
       def delete_button
         delete.merge!(data: {
-          'turbo-method': :delete,
-          'turbo-confirm': confirm
-        })
+                        'turbo-method': :delete,
+                        'turbo-confirm': confirm
+                      })
         @delete_options = { class: href.blank? ? 'delete' : 'tag is-delete',
                             href: href,
-                            **delete
-                          }
+                            **delete }
         @delete_options = prepend_class_name(@delete_options, "is-#{size}") if size.present?
         @delete_options
       end
