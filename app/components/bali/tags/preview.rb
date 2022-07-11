@@ -7,9 +7,9 @@ module Bali
       # ---------------
       # Basic tag view with text.
       # 
-      # **Available sizes:** small, normal, large.
+      # **The available sizes are:** small, normal, large.
       #
-      # **Available colors:** black, dark, light, white, primary, link, info, success, warning, danger.
+      # **The available colors are:** black, dark, light, white, primary, link, info, success, warning, danger.
       # @param size [Symbol] select [small, normal, large]
       # @param light toggle
       # @param rounded toggle
@@ -74,9 +74,9 @@ module Bali
       # ---------------
       # Delete tag view, juts specify `delete` to true on each item. Text will be ommited.
       # 
-      # **Available sizes:** small, normal, large.
+      # **The available sizes are:** small, normal, large.
       #
-      # **Available colors:** black, dark, light, white, primary, link, info, success, warning, danger.
+      # **The available colors are:** black, dark, light, white, primary, link, info, success, warning, danger.
       # @param size [Symbol] select [small, normal, large]
       # @param light toggle
       # @param rounded toggle
@@ -142,9 +142,9 @@ module Bali
       # ---------------
       # Link tag view with text.
       # 
-      # **Available sizes:** small, normal, large.
+      # **The available sizes are:** small, normal, large.
       #
-      # **Available colors:** black, dark, light, white, primary, link, info, success, warning, danger.
+      # **The available colors are:** black, dark, light, white, primary, link, info, success, warning, danger.
       # @param size [Symbol] select [small, normal, large]
       # @param light toggle
       # @param rounded toggle
@@ -170,9 +170,9 @@ module Bali
       # ---------------
       # Link tag view with text. All tags must be with `href` and `ìs_delete` option at true.
       # 
-      # **Available sizes:** small, normal, large.
+      # **The available sizes are:** small, normal, large.
       #
-      # **Available colors:** black, dark, light, white, primary, link, info, success, warning, danger.
+      # **The available colors are:** black, dark, light, white, primary, link, info, success, warning, danger.
       # @param size [Symbol] select [small, normal, large]
       # @param light toggle
       # @param rounded toggle
