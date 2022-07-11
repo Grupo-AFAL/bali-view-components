@@ -6,11 +6,9 @@ RSpec.describe Bali::<%= class_name %>::Component, type: :component do
   let(:options) { { <%= attr_reader_test_parameters %> } }
   let(:component) { Bali::<%= class_name %>::Component.new(**options) }
 
-  subject { page }
-
   it 'renders <%= class_name.downcase %> component' do
     render_inline(component)
 
-    expect(subject).to have_css 'div.<%= default_css_class %>'
+    expect(page).to have_css 'div.<%= default_css_class %>'
   end
 end

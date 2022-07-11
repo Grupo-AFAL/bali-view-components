@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.29.0] - 2022-07-08
+
+- Create `Rate::Component` to give feedback on something.
+
+## [0.28.1] - 2022-07-08
+
+- Allowed `InfoLevel::Component` to receive a block on its heading and title.
+
+## [0.28.0] - 2022-07-08
+
+- Create `Timeline::Component` to display contents in a vertical timeline
+
 ## [0.27.1] - 2022-07-07
 
 - Update README with component updates

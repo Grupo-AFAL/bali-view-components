@@ -16,6 +16,30 @@ module Bali
           end
         end
       end
+
+      def with_custom_heading
+        render InfoLevel::Component.new do |c|
+          c.item do |i|
+            i.heading do
+              tag.p('Custom') + tag.p('heading')
+            end
+
+            i.title('Title 1')
+          end
+        end
+      end
+
+      def with_custom_title
+        render InfoLevel::Component.new do |c|
+          c.item do |i|
+            i.heading('Heading 1')
+
+            i.title do
+              tag.p('Custom') + tag.p('title')
+            end
+          end
+        end
+      end
     end
   end
 end

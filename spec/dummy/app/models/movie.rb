@@ -13,6 +13,7 @@ class Movie < ApplicationRecord
   attribute :budget
   attribute :contact_email
   attribute :cover_photo
+  attribute :rating
 
   scope :active, -> { where(status: 0) }
 end

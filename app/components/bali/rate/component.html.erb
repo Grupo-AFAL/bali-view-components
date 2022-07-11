@@ -1,0 +1,17 @@
+<%= tag.div(**options) do %>
+  <% scale.each_with_index do |rate, index| %>
+    <% if auto_submit %>
+      <%= tag.button star_icon(rate),
+                     value: rate,
+                     name: input_name,
+                     class: 'star',
+                     type: 'submit',
+                     title: "Review Star #{rate}" %>
+    <% else %>
+      <%= tag.label for: star_dom_id(rate), class: 'radio' do %>
+        <%= form.radio_button method, rate, **@radio_options, id: star_dom_id(rate) %>
+        <%= star_icon(rate) %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
