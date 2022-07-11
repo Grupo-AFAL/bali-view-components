@@ -144,7 +144,9 @@ module Bali
         ) do |c|
           c.item(
             text: 'Tag item with text',
-            delete: true,
+            delete: {
+              data: {confirm: 'Are you sure?'}
+            },
             href: '#'
           )
         end
@@ -161,6 +163,9 @@ module Bali
       # @param light toggle
       # @param rounded toggle
       def delete_tags(size: :normal, light: false, rounded: false)
+        confirm = {
+          data: {confirm: 'Are you sure?'}
+        }
         render Tags::Component.new(
           sizes: size,
           light: light,
@@ -168,53 +173,52 @@ module Bali
         ) do |c|
           c.item(
             text: 'Delete tag view',
-            delete: true,
-            href: '#'
+            delete: confirm
           )
 
           c.item(
             color: :black,
-            delete: true
+            delete: confirm
           )
 
           c.item(
             color: :light,
-            delete: true
+            delete: confirm
           )
 
           c.item(
             color: :white,
-            delete: true
+            delete: confirm
           )
 
           c.item(
             color: :primary,
-            delete: true
+            delete: confirm
           )
 
           c.item(
             color: :link,
-            delete: true
+            delete: confirm
           )
 
           c.item(
             color: :info,
-            delete: true
+            delete: confirm
           )
 
           c.item(
             color: :success,
-            delete: true
+            delete: confirm
           )
 
           c.item(
             color: :warning,
-            delete: true
+            delete: confirm
           )
           
           c.item(
             color: :danger,
-            delete: true
+            delete: confirm
           )
         end
       end
@@ -258,6 +262,9 @@ module Bali
       # @param light toggle
       # @param rounded toggle
       def link_with_control_tag(size: :normal, light: false, rounded: false)
+        confirm = {
+          data: {confirm: 'Are you sure?'}
+        }
         render Tags::Component.new(
           sizes: size,
           light: light,
@@ -266,13 +273,13 @@ module Bali
           c.item(
             text: 'Tag item with text',
             href: '#',
-            delete: true
+            delete: confirm
           )
 
           c.item(
             text: 'Tag item with text',
             href: '#',
-            delete: true
+            delete: confirm
           )
         end
       end

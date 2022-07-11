@@ -39,7 +39,9 @@ module Bali
         render Tag::Component.new(
           text: 'Tag item with text',
           color: color,
-          delete: true,
+          delete: {
+            data: {confirm: 'Are you sure?'}
+          },
           size: size,
           light: light,
           rounded: rounded
@@ -59,7 +61,9 @@ module Bali
       # @param rounded toggle
       def tag_delete_without_text(size: :normal, color: :black, light: false, rounded: false)
         render Tag::Component.new(
-          delete: true,
+          delete: {
+            data: {confirm: 'Are you sure?'}
+          },
           color: color,
           size: size,
           light: light,
