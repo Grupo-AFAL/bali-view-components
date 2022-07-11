@@ -17,14 +17,14 @@ module Bali
         size: nil,
         type: nil,
         rounded: false,
-        delete: false,
+        delete: nil,
         **options
       )
         @text = text
         @href = href
         @delete = delete
         @size = size
-        @is_grouped = delete && text.to_s.length.positive?
+        @is_grouped = delete.present? && text.to_s.length.positive?
         @addons_options = { class: 'tags has-addons' } if @is_grouped
         @control_options = { class: 'control' } if @is_grouped
         @options = prepend_class_name(options, 'tag-component tag')
@@ -33,7 +33,7 @@ module Bali
         @options = prepend_class_name(@options, "is-#{size}") if size.present?
         @options = prepend_class_name(@options, "is-#{type}") if type.present?
         @options = prepend_class_name(@options, 'is-rounded') if rounded
-        @options = prepend_class_name(@options, 'is-delete') if delete && text.to_s.length.zero?
+        @options = prepend_class_name(@options, 'is-delete') if delete.present? && text.to_s.length.zero?
         @options = prepend_class_name(@options, 'is-link') if href.present?
 
       end
