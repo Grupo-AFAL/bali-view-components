@@ -33,11 +33,11 @@ RSpec.describe Bali::PageHeader::Component, type: :component do
         end
       end
 
-      context 'when using the type param' do
+      context 'when using the tag param' do
         it 'renders' do
           render_inline(component) do |c|
-            c.title('Title', type: :h2)
-            c.subtitle('Subtitle', type: :h4)
+            c.title('Title', tag: :h2)
+            c.subtitle('Subtitle', tag: :h4)
           end
 
           expect(page).to have_css '.level-left h2.title', text: 'Title'
