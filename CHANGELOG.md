@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.30.1] - 2022-07-12
 
-- Updated `PageHeader::Component`, title and subtitle slots now receive an optional type to specify the size of the heading. New default title size is `h3` and subtitle is `h5`.
+- Updated `PageHeader::Component`, title and subtitle slots now receive an optional tag param to specify the size of the heading. New default title size is `h3` and subtitle is `h5`.
 
 ## [0.30.0] - 2022-07-11
 
