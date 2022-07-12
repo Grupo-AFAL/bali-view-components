@@ -1,9 +1,3 @@
-<% if href.blank? %>
-  <%= tag.div(**@options) do %>
-    <%= text %>
-  <% end %>
-<% else %>
-  <%= tag.a(href: href, **@options) do %>
-    <%= text %>
-  <% end %>
+<%= tag.send(tag_name, **options) do %>
+  <%= text %>
 <% end %>

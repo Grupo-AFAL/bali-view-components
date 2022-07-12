@@ -3,32 +3,33 @@
 module Bali
   module Tag
     class Component < ApplicationViewComponent
-      attr_reader :text, :href, :size, :skip_confirm
+      attr_reader :text, :href, :options
 
       # rubocop: disable Metrics/ParameterLists
       def initialize(
-        text: '',
+        text:,
         href: nil,
         color: nil,
-        light: false,
         size: nil,
-        type: nil,
+        light: false,
         rounded: false,
         **options
       )
         @text = text
         @href = href
-        @size = size
+
+        options[:href] = href if href.present?
         @options = prepend_class_name(options, 'tag-component tag')
-        @options = prepend_class_name(@options, 'is-light') if light
         @options = prepend_class_name(@options, "is-#{color}") if color.present?
         @options = prepend_class_name(@options, "is-#{size}") if size.present?
-        @options = prepend_class_name(@options, "is-#{type}") if type.present?
+        @options = prepend_class_name(@options, 'is-light') if light
         @options = prepend_class_name(@options, 'is-rounded') if rounded
-
-        @options = prepend_class_name(@options, 'is-link') if href.present?
       end
       # rubocop: enable Metrics/ParameterLists
+
+      def tag_name
+        href.present? ? :a : :div
+      end
     end
   end
 end

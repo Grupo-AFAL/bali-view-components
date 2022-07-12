@@ -14,6 +14,14 @@ RSpec.describe Bali::Tags::Component, type: :component do
       expect(page).to have_css 'div.tag-component.tag', text: 'Tag item with text'
     end
 
+    it 'renders a link tag' do
+      render_inline(component) do |c|
+        c.item(text: 'Tag', href: '/')
+      end
+
+      expect(page).to have_css 'a.tag-component.tag', text: 'Tag'
+    end
+
     it 'single item color' do
       render_inline(component) do |c|
         c.item(text: 'Tag item with text', color: :black)
