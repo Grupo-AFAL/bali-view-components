@@ -6,8 +6,6 @@ RSpec.describe Bali::Tag::Component, type: :component do
   before { @options = {} }
   let(:component) { Bali::Tag::Component.new(**@options) }
 
-  subject { page }
-
   describe 'rendering tag with' do
     before { @options.merge!(text: 'Tag item with text') }
 
