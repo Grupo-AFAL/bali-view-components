@@ -13,8 +13,8 @@ RSpec.describe Bali::PageHeader::Component, type: :component do
       it 'renders' do
         render_inline(component)
 
-        expect(page).to have_css '.level-left h1.title', text: 'Title'
-        expect(page).to have_css '.level-left p.subtitle', text: 'Subtitle'
+        expect(page).to have_css '.level-left h3.title', text: 'Title'
+        expect(page).to have_css '.level-left h5.subtitle', text: 'Subtitle'
       end
     end
 
@@ -27,9 +27,33 @@ RSpec.describe Bali::PageHeader::Component, type: :component do
             'Right content'
           end
 
-          expect(page).to have_css '.level-left h1.title', text: 'Title'
-          expect(page).to have_css '.level-left p.subtitle', text: 'Subtitle'
+          expect(page).to have_css '.level-left h3.title', text: 'Title'
+          expect(page).to have_css '.level-left h5.subtitle', text: 'Subtitle'
           expect(page).to have_css '.level-right', text: 'Right content'
+        end
+      end
+
+      context 'when using the tag param' do
+        it 'renders' do
+          render_inline(component) do |c|
+            c.title('Title', tag: :h2)
+            c.subtitle('Subtitle', tag: :h4)
+          end
+
+          expect(page).to have_css '.level-left h2.title', text: 'Title'
+          expect(page).to have_css '.level-left h4.subtitle', text: 'Subtitle'
+        end
+      end
+
+      context 'with custom classes' do
+        it 'renders' do
+          render_inline(component) do |c|
+            c.title('Title', class: 'has-text-info')
+            c.subtitle('Subtitle', class: 'has-text-primary')
+          end
+
+          expect(page).to have_css '.level-left h3.title.has-text-info', text: 'Title'
+          expect(page).to have_css '.level-left h5.subtitle.has-text-primary', text: 'Subtitle'
         end
       end
 

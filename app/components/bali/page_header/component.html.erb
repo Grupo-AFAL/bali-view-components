@@ -1,11 +1,11 @@
 <%= render Bali::Level::Component.new(**options) do |c| %>
   <%= c.left(class: 'is-block') do |level| %>
     <%= level.item(class: 'is-block') do %>
-      <%= title || tag.h1(@title, class: 'title is-1') %>
+      <%= title || tag.h3(@title, class: 'title is-3') %>
     <% end %>
 
     <%= level.item(class: 'is-block') do %>
-      <%= subtitle || tag.p(@subtitle, class: 'subtitle is-6') %>
+      <%= subtitle || tag.h5(@subtitle, class: 'subtitle is-5') %>
     <% end %>
   <% end %>
 
