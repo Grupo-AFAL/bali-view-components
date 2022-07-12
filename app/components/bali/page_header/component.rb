@@ -20,7 +20,7 @@ module Bali
       def initialize(title: nil, subtitle: nil, **options)
         @title = title
         @subtitle = subtitle
-        @options = prepend_class_name(options, 'page-header-component')
+        @options = prepend_class_name(options, 'page-header-component is-mobile')
       end
 
       def heading_size_class(type)
