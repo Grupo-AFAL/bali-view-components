@@ -6,16 +6,13 @@ module Bali
       # Tag view
       # ---------------
       # Basic tag view with text.
-      # 
-      # **The available sizes are:** normal, medium, large.
       #
-      # **The available colors are:** black, dark, light, white, primary, link, info, success, warning, danger.
       # @param size [Symbol] select [normal, medium, large]
       # @param light toggle
       # @param rounded toggle
       def tags(size: :normal, light: false, rounded: false)
         render Tags::Component.new(
-          sizes: size,
+          size: size,
           light: light,
           rounded: rounded
         ) do |c|
@@ -62,7 +59,7 @@ module Bali
             text: 'Tag item with text',
             color: :warning
           )
-          
+
           c.item(
             text: 'Tag item with text',
             color: :danger
@@ -72,18 +69,15 @@ module Bali
 
       # Tag view
       # ---------------
-      # Tags with class `has-addons` on main container, 
+      # Tags with class `has-addons` on main container,
       # this allow us to group all tags side by side.
-      # 
-      # **The available sizes are:** normal, medium, large.
       #
-      # **The available colors are:** black, dark, light, white, primary, link, info, success, warning, danger.
       # @param size [Symbol] select [normal, medium, large]
       # @param light toggle
       # @param rounded toggle
       def tags_with_addons(size: :normal, light: false, rounded: false)
         render Tags::Component.new(
-          sizes: size,
+          size: size,
           light: light,
           rounded: rounded,
           class: 'has-addons'
@@ -116,7 +110,7 @@ module Bali
             text: 'Tag item with text',
             color: :warning
           )
-          
+
           c.item(
             text: 'Tag item with text',
             color: :danger
@@ -127,16 +121,13 @@ module Bali
       # Tag view
       # ---------------
       # Link tag view with text.
-      # 
-      # **The available sizes are:** normal, medium, large.
       #
-      # **The available colors are:** black, dark, light, white, primary, link, info, success, warning, danger.
       # @param size [Symbol] select [normal, medium, large]
       # @param light toggle
       # @param rounded toggle
       def link_tag(size: :normal, light: false, rounded: false)
         render Tags::Component.new(
-          sizes: size,
+          size: size,
           light: light,
           rounded: rounded
         ) do |c|
