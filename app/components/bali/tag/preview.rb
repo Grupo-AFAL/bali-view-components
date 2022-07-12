@@ -7,10 +7,10 @@ module Bali
       # ---------------
       # Basic tag view with text.
       # 
-      # **The available sizes are:** small, normal, large.
+      # **The available sizes are:** normal, medium, large.
       #
       # **The available colors are:** black, dark, light, white, primary, link, info, success, warning, danger.
-      # @param size [Symbol] select [small, normal, large]
+      # @param size [Symbol] select [normal, medium, large]
       # @param color [Symbol] select [black, dark, light, white, primary, link, info, success, warning, danger]
       # @param light toggle
       # @param rounded toggle
