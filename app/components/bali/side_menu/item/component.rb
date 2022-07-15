@@ -24,9 +24,13 @@ module Bali
           @authorized = authorized
           @current_path = current_path
           @match_type = options.delete(:match) || :exact
-
           @options = options
-          @options = prepend_class_name(options, 'is-active') if active?
+        end
+
+        def before_render
+          super
+
+          @options = prepend_class_name(@options, 'is-active') if active?
         end
 
         def render?
@@ -46,7 +50,7 @@ module Bali
         end
 
         def active_child_items?
-          items.reject(&:disabled?).any?(&:active?)
+          items.reject(&:disabled?).any? { |i| i.active? }
         end
       end
     end

@@ -3,7 +3,7 @@
 module Bali
   module SideMenu
     class Component < ApplicationViewComponent
-      renders_many :lists, ->(title:, **options) do
+      renders_many :lists, ->(title: nil, **options) do
         List::Component.new(title: title, current_path: @current_path, **options)
       end
 
