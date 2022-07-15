@@ -61,6 +61,22 @@ module Bali
           end
         end
       end
+
+      # SideMenu with Active Child Item
+      # -------------------
+      # Will display parent as active when a child item is active
+      # @param title text
+      def with_active_sub_item(title: 'Section title')
+        render(SideMenu::Component.new(current_path: '/child-item-1')) do |c|
+          c.list(title: title) do |list|
+            list.item(name: 'Parent Item', href: '/parent-item') do |item|
+              item.item(name: 'Child Item 1', href: '/child-item-1')
+              item.item(name: 'Child Item 2', href: '/child-item-2')
+              item.item(name: 'Child Item 3', href: '/child-item-3')
+            end
+          end
+        end
+      end
     end
   end
 end
