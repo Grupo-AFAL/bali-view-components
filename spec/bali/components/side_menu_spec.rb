@@ -3,7 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe Bali::SideMenu::Component, type: :component do
-  let(:component) { Bali::SideMenu::Component.new }
+  before { @options = { current_path: '/' } }
+  let(:component) { Bali::SideMenu::Component.new(**@options) }
 
   it 'renders the side menu' do
     render_inline(component) do |c|
@@ -44,11 +45,10 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
   end
 
   it 'renders an active link' do
-    with_request_url '/#' do
-      render_inline(component) do |c|
-        c.list(title: 'Section title') do |list|
-          list.item(name: 'item', href: '/#')
-        end
+    @options[:current_path] = '/item'
+    render_inline(component) do |c|
+      c.list(title: 'Section title') do |list|
+        list.item(name: 'item', href: '/item')
       end
     end
 
