@@ -50,7 +50,7 @@ module Bali
         end
 
         def active_child_items?
-          items.reject(&:disabled?).any? { |i| i.active? }
+          items.reject(&:disabled?).any?(&:active?)
         end
       end
     end
