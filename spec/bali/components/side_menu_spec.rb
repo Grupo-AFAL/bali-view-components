@@ -44,6 +44,41 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
     end
   end
 
+  context 'with index_show match' do
+    it 'renders as active when current path is the item href plus a number' do
+      @options[:current_path] = '/items/123'
+      render_inline(component) do |c|
+        c.list do |list|
+          list.item(name: 'items', href: '/items', match: :index_show)
+        end
+      end
+
+      expect(page).to have_css 'a.is-active', text: 'items'
+    end
+
+    it 'renders as active when current path is the item href' do
+      @options[:current_path] = '/items'
+      render_inline(component) do |c|
+        c.list do |list|
+          list.item(name: 'items', href: '/items', match: :index_show)
+        end
+      end
+
+      expect(page).to have_css 'a.is-active', text: 'items'
+    end
+
+    it 'renders as inactive when current path is the item href plus a non number' do
+      @options[:current_path] = '/items/dashboard'
+      render_inline(component) do |c|
+        c.list do |list|
+          list.item(name: 'items', href: '/items', match: :index_show)
+        end
+      end
+
+      expect(page).not_to have_css 'a.is-active', text: 'items'
+    end
+  end
+
   context 'with starts_with match' do
     it 'renders as active when current path starts with item href' do
       @options[:current_path] = '/item'

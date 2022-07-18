@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.30.6] - 2022-07-18
+
+- And `index_show` match type to `SideMenu::Item`. So it only considers items as active when current_path equals the path or when it has an added number. E.g. When path is `items` ii will consider both `/items` and `/items/123` as active.
+
 ## [0.30.5] - 2022-07-18
 
 - And `starts_with` match type to `SideMenu::Item`. So it only considers items as active when current_path starts with the item's HREF
