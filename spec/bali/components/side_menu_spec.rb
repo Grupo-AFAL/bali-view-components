@@ -3,7 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe Bali::SideMenu::Component, type: :component do
-  let(:component) { Bali::SideMenu::Component.new }
+  before { @options = { current_path: '/' } }
+  let(:component) { Bali::SideMenu::Component.new(**@options) }
 
   it 'renders the side menu' do
     render_inline(component) do |c|
@@ -43,16 +44,34 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
     end
   end
 
-  it 'renders an active link' do
-    with_request_url '/#' do
+  context 'with partial match' do
+    it 'renders an active link' do
+      @options[:current_path] = '/item/menu'
       render_inline(component) do |c|
         c.list(title: 'Section title') do |list|
-          list.item(name: 'item', href: '/#')
+          list.item(name: 'item root', href: '/item', match: :partial)
+          list.item(name: 'item menu', href: '/item/menu')
         end
       end
-    end
 
-    expect(page).to have_css 'a.is-active', text: 'item'
+      expect(page).to have_css 'a.is-active', text: 'item root'
+      expect(page).to have_css 'a.is-active', text: 'item menu'
+    end
+  end
+
+  context 'with exact match' do
+    it 'renders an active link' do
+      @options[:current_path] = '/item'
+      render_inline(component) do |c|
+        c.list(title: 'Section title') do |list|
+          list.item(name: 'item root', href: '/item')
+          list.item(name: 'item 1', href: '/item/1')
+        end
+      end
+
+      expect(page).to have_css 'a.is-active', text: 'item root'
+      expect(page).not_to have_css 'a.is-active', text: 'item 1'
+    end
   end
 
   it 'renders a disabled link' do
