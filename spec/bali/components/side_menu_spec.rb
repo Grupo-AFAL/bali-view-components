@@ -44,13 +44,37 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
     end
   end
 
+  context 'with starts_with match' do
+    it 'renders as active when current path starts with item href' do
+      @options[:current_path] = '/item'
+      render_inline(component) do |c|
+        c.list do |list|
+          list.item(name: 'item root', href: '/item', match: :starts_with)
+        end
+      end
+
+      expect(page).to have_css 'a.is-active', text: 'item root'
+    end
+
+    it 'renders as inactive when href is included within current path' do
+      @options[:current_path] = '/section/item'
+      render_inline(component) do |c|
+        c.list do |list|
+          list.item(name: 'item root', href: '/item', match: :starts_with)
+        end
+      end
+
+      expect(page).not_to have_css 'a.is-active', text: 'item root'
+    end
+  end
+
   context 'with partial match' do
     it 'renders an active link' do
-      @options[:current_path] = '/item/menu'
+      @options[:current_path] = '/section/item/menu'
       render_inline(component) do |c|
         c.list(title: 'Section title') do |list|
           list.item(name: 'item root', href: '/item', match: :partial)
-          list.item(name: 'item menu', href: '/item/menu')
+          list.item(name: 'item menu', href: '/section/item/menu')
         end
       end
 
