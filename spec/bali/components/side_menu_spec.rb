@@ -44,34 +44,45 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
     end
   end
 
-  context 'with index_show match' do
-    it 'renders as active when current path is the item href plus a number' do
+  context 'with crud match' do
+    it 'renders as active when current path is the item show path' do
       @options[:current_path] = '/items/123'
       render_inline(component) do |c|
         c.list do |list|
-          list.item(name: 'items', href: '/items', match: :index_show)
+          list.item(name: 'items', href: '/items', match: :crud)
         end
       end
 
       expect(page).to have_css 'a.is-active', text: 'items'
     end
 
-    it 'renders as active when current path is the item href' do
+    it 'renders as active when current path is the item edit path' do
+      @options[:current_path] = '/items/123/edit'
+      render_inline(component) do |c|
+        c.list do |list|
+          list.item(name: 'items', href: '/items', match: :crud)
+        end
+      end
+
+      expect(page).to have_css 'a.is-active', text: 'items'
+    end
+
+    it 'renders as active when current path is the item index path' do
       @options[:current_path] = '/items'
       render_inline(component) do |c|
         c.list do |list|
-          list.item(name: 'items', href: '/items', match: :index_show)
+          list.item(name: 'items', href: '/items', match: :crud)
         end
       end
 
       expect(page).to have_css 'a.is-active', text: 'items'
     end
 
-    it 'renders as inactive when current path is the item href plus a non number' do
+    it 'renders as inactive when current path is not a CRUD action' do
       @options[:current_path] = '/items/dashboard'
       render_inline(component) do |c|
         c.list do |list|
-          list.item(name: 'items', href: '/items', match: :index_show)
+          list.item(name: 'items', href: '/items', match: :crud)
         end
       end
 
