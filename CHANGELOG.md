@@ -7,11 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.30.6] - 2022-07-18
 
-- And `crud` match type to `SideMenu::Item`. So it only considers items as active when current_path is one of the CRUD actions (index, show, edit.)
+- Add `crud` match type to `SideMenu::Item`. So it only considers items as active when current_path is one of the CRUD actions (index, show, edit.)
 
 ## [0.30.5] - 2022-07-18
 
-- And `starts_with` match type to `SideMenu::Item`. So it only considers items as active when current_path starts with the item's HREF
+- Add `starts_with` match type to `SideMenu::Item`. So it only considers items as active when current_path starts with the item's HREF
 
 ## [0.30.4] - 2022-07-18
 
