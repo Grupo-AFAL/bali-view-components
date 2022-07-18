@@ -6,13 +6,14 @@ export class StepNumberInputController extends Controller {
   static targets = ['input', 'add', 'subtract']
 
   connect () {
-    this.value = parseInt(this.inputTarget.value) || 0
+    this.value = parseFloat(this.inputTarget.value) || 0
     this.minValue = parseInt(this.inputTarget.min) || 0
     this.maxValue = parseInt(this.inputTarget.max) || 10
+    this.step = parseFloat(this.inputTarget.step) || 1
     this.setValue()
 
     this.inputTarget.addEventListener('change', e => {
-      const newValue = parseInt(e.target.value) || 0
+      const newValue = parseFloat(e.target.value) || 0
 
       if (newValue === this.value) return
 
@@ -23,14 +24,14 @@ export class StepNumberInputController extends Controller {
 
   add (e) {
     e.preventDefault()
-    this.value += 1
+    this.value += this.step
     this.setValue()
     this.triggerChangeEvent()
   }
 
   subtract (e) {
     e.preventDefault()
-    this.value -= 1
+    this.value -= this.step
     this.setValue()
     this.triggerChangeEvent()
   }
