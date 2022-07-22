@@ -1,10 +1,9 @@
 <div class='heatmap-component'>
-  <h3 class='title is-3'><%= title %></h3>
-  <p class='subtitle is-6'><i><%= subtitle %></i></p>
+  <%= tag.h3(title, class: 'title is-3') if title %>
+  <%= tag.p(subtitle, class: 'subtitle is-6') if subtitle %>
   <p class='label-y has-text-left mt-4'><%= y_axis_title %></p>
 
-  <div class='is-flex is-flex-direction-column is-align-items-center'>
-    <div class='is-flex'>
+    <div class='is-flex is-justify-content-center'>
       <div>
         <% labels_y.each do |label| %>
           <%= tag.p(label, class: 'label-y is-flex is-justify-content-center is-align-items-center', 
@@ -51,7 +50,7 @@
       <div class='legend-colors'>
         <% gradient_colors.each do |color| %>
           <%= tag.div(style: "background: #{color}; 
-                     width: #{(width - graph_item_width) / gradient_colors.size}px") %>
+                     width: #{(width) / gradient_colors.size}px") %>
         <% end %>
       </div>
 
@@ -60,5 +59,4 @@
         <p><%= max_value %></p>
       </div>
     </div>
-  </div>
 </div>
