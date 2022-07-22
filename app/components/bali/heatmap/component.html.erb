@@ -1,0 +1,64 @@
+<div class='heatmap-component'>
+  <h3 class='title is-3'><%= title %></h3>
+  <p class='subtitle is-6'><i><%= subtitle %></i></p>
+  <p class='label-y has-text-left mt-4'><%= y_axis_title %></p>
+
+  <div class='is-flex is-flex-direction-column is-align-items-center'>
+    <div class='is-flex'>
+      <div>
+        <% labels_y.each do |label| %>
+          <%= tag.p(label, class: 'label-y is-flex is-justify-content-center is-align-items-center', 
+              style:"width: #{graph_item_width}px; height: #{graph_item_height}px") %>
+        <% end %>
+      </div>
+
+      <div>
+        <div class='graph'>
+          <% data.each do |label_x, _values| %>
+            <%= tag.div(class: 'heatmap-column',
+                style:"width: #{graph_item_width}px; height: #{graph_item_height * labels_y.size}px"
+            ) do %>
+              <% labels_y.each do |label_y| %>
+                <% value = data[label_x][label_y] || 0 %>
+                <%= render Bali::HoverCard::Component.new(
+                    class: 'heatmap-item',
+                    style: "width: 100%; height: #{graph_item_height}px; background: #{color_by_value(value)}"
+                ) do |c| %>
+                  <%= c.template do %>
+                    <p class='mb-0'><b><%= hovercard_title %></b></p>
+                    <p class='mt-0'><%= "#{label_x} - #{label_y}" %></p>
+                    <p><%= value %></p>
+                  <% end %>
+                <% end %>
+              <% end %>
+            <% end %>
+          <% end %>
+        </div>
+
+        <div class='labels is-flex mt-2'>
+          <% labels_x.each do |label| %>
+            <%= tag.p(label, class: 'label-x', style:"width: #{graph_item_width}px") %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <p class='label-y mt-2'><%= x_axis_title %></p>
+
+    <div class='legend mt-4' >
+      <div><%= legend_title %></div>
+
+      <div class='legend-colors'>
+        <% gradient_colors.each do |color| %>
+          <%= tag.div(style: "background: #{color}; 
+                     width: #{(width - graph_item_width) / gradient_colors.size}px") %>
+        <% end %>
+      </div>
+
+      <div class='legend-labels is-flex is-justify-content-space-between'>
+        <p>0</p>
+        <p><%= max_value %></p>
+      </div>
+    </div>
+  </div>
+</div>

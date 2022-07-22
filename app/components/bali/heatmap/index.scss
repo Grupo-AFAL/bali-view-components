@@ -1,0 +1,43 @@
+.heatmap-component {
+  $font-size: 0.6rem;
+  $graph-border: solid 1px $grey-light;
+
+  overflow: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+
+  .graph {
+    display: flex;
+    width: max-content;
+    border-left: $graph-border;
+  }
+
+  .heatmap-column {
+    .heatmap-item:last-child {
+      border-bottom: $graph-border;
+    }
+  }
+
+  .label-x,
+  .label-y {
+    font-size: $font-size;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .label-x {
+    transform: rotate(315deg);
+  }
+
+  .legend {
+    width: max-content;
+    font-size: $font-size;
+  }
+
+  .legend-colors,
+  .legend-labels {
+    display: flex;
+    height: $size-3;
+  }
+}
