@@ -6,16 +6,8 @@
   overflow-y: hidden;
   max-width: 100%;
 
-  .graph {
-    display: flex;
-    width: max-content;
-    border-left: $graph-border;
-  }
-
-  .heatmap-column {
-    .heatmap-item:last-child {
-      border-bottom: $graph-border;
-    }
+  table {
+    margin: auto;
   }
 
   .label-x,
@@ -26,8 +18,17 @@
     text-align: center;
   }
 
+  .label-y {
+    vertical-align: middle;
+    padding-right: 1.5rem;
+    border-right: $graph-border;
+  }
+
   .label-x {
+    text-align: center;
+    padding-top: 1rem;
     transform: rotate(315deg);
+    border-top: $graph-border;
   }
 
   .legend {

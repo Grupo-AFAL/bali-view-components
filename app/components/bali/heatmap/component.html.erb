@@ -1,62 +1,65 @@
 <div class='heatmap-component'>
   <%= tag.h3(title, class: 'title is-3') if title %>
   <%= tag.p(subtitle, class: 'subtitle is-6') if subtitle %>
-  <p class='label-y has-text-left mt-4'><%= y_axis_title %></p>
 
-    <div class='is-flex is-justify-content-center'>
-      <div>
-        <% labels_y.each do |label| %>
-          <%= tag.p(label, class: 'label-y is-flex is-justify-content-center is-align-items-center', 
-              style:"width: #{graph_item_width}px; height: #{graph_item_height}px") %>
+  <div class='heatmap table-container'>
+    <table>
+      <thead>
+        <th><%= y_axis_title %></th>
+        <% labels_x.each do |label| %>
+          <th></th>
         <% end %>
-      </div>
+      </thead>
 
-      <div>
-        <div class='graph'>
-          <% data.each do |label_x, _values| %>
-            <%= tag.div(class: 'heatmap-column',
-                style:"width: #{graph_item_width}px; height: #{graph_item_height * labels_y.size}px"
-            ) do %>
-              <% labels_y.each do |label_y| %>
-                <% value = data[label_x][label_y] || 0 %>
+      <tbody>
+        <% labels_y.each do |label_y| %>
+            <tr>
+              <td class='label-y'><%= label_y %></td>
+              <% labels_x.each do |label_x| %>
+                <td style="width: <%= width / (label_x.size + 1) %>px">
+                 <% value = data[label_x][label_y] || 0 %>
                 <%= render Bali::HoverCard::Component.new(
                     class: 'heatmap-item',
-                    style: "width: 100%; height: #{graph_item_height}px; background: #{color_by_value(value)}"
+                    style: "width: #{width / (label_x.size + 1)}px; height: #{graph_item_height}px; background: #{color_by_value(value)}"
                 ) do |c| %>
                   <%= c.template do %>
-                    <p class='mb-0'><b><%= hovercard_title %></b></p>
+                    <%= hovercard_title %>
                     <p class='mt-0'><%= "#{label_x} - #{label_y}" %></p>
                     <p><%= value %></p>
                   <% end %>
                 <% end %>
+                </td>
               <% end %>
-            <% end %>
-          <% end %>
-        </div>
-
-        <div class='labels is-flex mt-2'>
-          <% labels_x.each do |label| %>
-            <%= tag.p(label, class: 'label-x', style:"width: #{graph_item_width}px") %>
-          <% end %>
-        </div>
-      </div>
-    </div>
-
-    <p class='label-y mt-2'><%= x_axis_title %></p>
-
-    <div class='legend mt-4' >
-      <div><%= legend_title %></div>
-
-      <div class='legend-colors'>
-        <% gradient_colors.each do |color| %>
-          <%= tag.div(style: "background: #{color}; 
-                     width: #{(width) / gradient_colors.size}px") %>
+            </tr>
         <% end %>
-      </div>
+      </tbody>
+      
+      <tfoot>
+        <tr>
+          <td></td>
+          <% labels_x.each do |label_x| %>
+            <td class='label-x'>
+              <%= label_x %>
+            </td>
+          <% end %>
+        </tr>
+      </tfoot>
+    </table>
+    <%= x_axis_title %>
+  </div>
 
-      <div class='legend-labels is-flex is-justify-content-space-between'>
-        <p>0</p>
-        <p><%= max_value %></p>
-      </div>
+  <div class='legend mt-4' >
+    <div class='legend-colors'>
+      <% gradient_colors.each do |color| %>
+        <%= tag.div(style: "background: #{color}; 
+                    width: #{(width) / gradient_colors.size}px") %>
+      <% end %>
     </div>
+
+    <div class='legend-labels is-flex is-justify-content-space-between'>
+      <p>0</p>
+      <%= legend_title %>
+      <p><%= max_value %></p>
+    </div>
+  </div>
 </div>

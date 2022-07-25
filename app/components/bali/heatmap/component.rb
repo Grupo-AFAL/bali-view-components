@@ -3,8 +3,12 @@
 module Bali
   module Heatmap
     class Component < ApplicationViewComponent
-      attr_reader :legend_title, :title, :data, :hovercard_title, :x_axis_title, :y_axis_title,
-                  :width, :height, :gradient_base_color, :subtitle
+      attr_reader :title, :data, :width, :height, :gradient_base_color, :subtitle
+
+      renders_one :hovercard_title, ->(text) { tag.p(text, class: 'mb-0') }
+      renders_one :legend_title, ->(text) { tag.p(text, class: 'title is-7') }
+      renders_one :y_axis_title, ->(text) { tag.p(text, class: 'label-y') }
+      renders_one :x_axis_title, ->(text) { tag.p(text, class: 'title is-7 mt-2 has-text-centered') }
 
       def initialize(width: 480, height: 480, data: {}, **options)
         @width = width
@@ -12,10 +16,6 @@ module Bali
         @data = data
         @title = options.delete(:title)
         @subtitle = options.delete(:subtitle)
-        @x_axis_title = options.delete(:x_axis_title)
-        @y_axis_title = options.delete(:y_axis_title)
-        @legend_title = options.delete(:legend_title)
-        @hovercard_title = options.delete(:hovercard_title)
         @gradient_base_color = options.delete(:gradient_base_color) || '#008806'
       end
 
