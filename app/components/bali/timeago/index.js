@@ -33,8 +33,8 @@ export class TimeagoController extends Controller {
     const datetime = this.datetimeValue
     const date = Date.parse(datetime)
     const options = {
-      includeSeconds: this.hasIncludeSecondsValue,
-      addSuffix: this.hasAddSuffixValue,
+      includeSeconds: this.includeSecondsValue,
+      addSuffix: this.addSuffixValue,
       locale: this.locale
     }
 
