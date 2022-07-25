@@ -26,7 +26,7 @@ module Bali
       end
 
       def gradient(color = nil, size: 10)
-        (0..( size-1 )).map { |opacity| opacify(color || @current, opacity) }
+        (0..(size - 1)).map { |opacity| opacify(color || @current, opacity) }
       end
 
       private
