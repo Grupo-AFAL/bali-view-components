@@ -5,7 +5,7 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :title, :data, :width, :height, :gradient_base_color, :subtitle
 
-      renders_one :hovercard_title, ->(text) { tag.p(text, class: 'mb-0') }
+      renders_one :hovercard_title, ->(text) { tag.p(text, class: 'title is-7 mb-0') }
       renders_one :legend_title, ->(text) { tag.p(text, class: 'title is-7') }
       renders_one :y_axis_title, ->(text) { tag.p(text, class: 'label-y') }
       renders_one :x_axis_title, ->(text) {
