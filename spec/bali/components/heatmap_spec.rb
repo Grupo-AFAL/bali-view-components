@@ -10,7 +10,7 @@ RSpec.describe Bali::Heatmap::Component, type: :component do
       Mar: { 0 => 2, 1 => 1, 2 => 4 }
     }
 
-    @options = { title: 'titulo', data: data }
+    @options = { title: 'Title', data: data }
   end
 
   let(:component) { Bali::Heatmap::Component.new(**@options) }
@@ -19,5 +19,6 @@ RSpec.describe Bali::Heatmap::Component, type: :component do
     render_inline(component)
 
     expect(page).to have_css 'div.heatmap-component'
+    expect(page).to have_css '.title', text: 'Title'
   end
 end
