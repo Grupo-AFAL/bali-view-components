@@ -5,7 +5,9 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :datetime, :add_suffix, :refresh_interval, :include_seconds, :options
 
-      def initialize(datetime, add_suffix: false, refresh_interval: 1000, include_seconds: true, **options)
+      def initialize(
+        datetime, add_suffix: false, refresh_interval: 1000, include_seconds: true, **options
+      )
         @datetime = datetime
         @refresh_interval = refresh_interval
         @include_seconds = include_seconds
