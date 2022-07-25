@@ -8,7 +8,9 @@ module Bali
       renders_one :hovercard_title, ->(text) { tag.p(text, class: 'mb-0') }
       renders_one :legend_title, ->(text) { tag.p(text, class: 'title is-7') }
       renders_one :y_axis_title, ->(text) { tag.p(text, class: 'label-y') }
-      renders_one :x_axis_title, ->(text) { tag.p(text, class: 'title is-7 mt-2 has-text-centered') }
+      renders_one :x_axis_title, ->(text) {
+                                   tag.p(text, class: 'title is-7 mt-2 has-text-centered')
+                                 }
 
       def initialize(width: 480, height: 480, data: {}, **options)
         @width = width
