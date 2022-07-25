@@ -7,7 +7,7 @@ module Bali
 
       renders_one :hovercard_title, ->(text) { tag.p(text, class: 'title is-7 mb-0') }
       renders_one :legend_title, ->(text) { tag.p(text, class: 'title is-7') }
-      renders_one :y_axis_title, ->(text) { tag.p(text, class:'title is-7 pb-3') }
+      renders_one :y_axis_title, ->(text) { tag.p(text, class: 'title is-7 pb-3') }
       renders_one :x_axis_title, ->(text) {
                                    tag.p(text, class: 'title is-7 mt-2 has-text-centered')
                                  }
