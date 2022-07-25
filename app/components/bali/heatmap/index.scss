@@ -1,6 +1,8 @@
 .heatmap-component {
   $font-size: 0.6rem;
   $graph-border: solid 1px $grey-light;
+  $label-y-padding-right: 1.5rem;
+  $label-x-padding-top: 1rem;
 
   overflow: auto;
   overflow-y: hidden;
@@ -20,13 +22,13 @@
 
   .label-y {
     vertical-align: middle;
-    padding-right: 1.5rem;
+    padding-right: $label-y-padding-right;
     border-right: $graph-border;
   }
 
   .label-x {
     text-align: center;
-    padding-top: 1rem;
+    padding-top: $label-x-padding-top;
     transform: rotate(315deg);
     border-top: $graph-border;
   }
