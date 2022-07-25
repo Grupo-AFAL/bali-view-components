@@ -18,9 +18,9 @@ module Bali
       def call
         tag.time(**options)
       end
-      
+
       private
-      
+
       def controller_values
         {
           datetime: datetime.to_fs(:iso8601),

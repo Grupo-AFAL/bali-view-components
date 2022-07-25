@@ -11,7 +11,7 @@ RSpec.describe Bali::Timeago::Component, type: :component do
     render_inline(component)
 
     expect(page).to have_css 'time.timeago-component'
-    expect(page).to have_css "[data-controller=\"timeago\"]"
+    expect(page).to have_css '[data-controller="timeago"]'
   end
 
   context 'with refresh interval value' do
@@ -19,9 +19,9 @@ RSpec.describe Bali::Timeago::Component, type: :component do
 
     it 'renders timeago component' do
       render_inline(component)
-  
+
       expect(page).to have_css 'time.timeago-component'
-      expect(page).to have_css "[data-timeago-refresh-interval-value=\"100\"]"
+      expect(page).to have_css '[data-timeago-refresh-interval-value="100"]'
     end
   end
 
@@ -30,9 +30,9 @@ RSpec.describe Bali::Timeago::Component, type: :component do
 
     it 'renders timeago component' do
       render_inline(component)
-  
+
       expect(page).to have_css 'time.timeago-component'
-      expect(page).to have_css "[data-timeago-include-second-value=\"false\"]"
+      expect(page).to have_css '[data-timeago-include-second-value="false"]'
     end
   end
 end
