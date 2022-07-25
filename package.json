@@ -20,7 +20,6 @@
     "slim-select": "^1.27.1",
     "sortablejs": "^1.15.0",
     "stimulus-chartjs": "^4.0.0",
-    "stimulus-timeago": "^4.0.0",
     "tippy.js": "^6.3.7"
   },
   "scripts": {

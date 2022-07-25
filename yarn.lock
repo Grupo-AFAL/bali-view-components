@@ -1504,7 +1504,7 @@ dashdash@^1.12.0:
   dependencies:
     assert-plus "^1.0.0"
 
-date-fns@^2.24.0, date-fns@^2.29.1:
+date-fns@^2.29.1:
   version "2.29.1"
   resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-2.29.1.tgz#9667c2615525e552b5135a3116b95b1961456e60"
   integrity sha512-dlLD5rKaKxpFdnjrs+5azHDFOPEu4ANy/LTh04A1DTzMM7qoajmKCBc8pkKRFT41CNzw+4gQh79X5C+Jq27HAw==
@@ -3170,13 +3170,6 @@ stimulus-chartjs@^4.0.0:
   integrity sha512-eBPjdh+iyzUyBjDHns4dTUNlT5gvHXrL0b3/DX4RMWnzd2BfS5WHVOYY8sxbsabPXY5WgrzWOwJL0TTbN/6YFQ==
   dependencies:
     chart.js "^3.7.0"
-
-stimulus-timeago@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/stimulus-timeago/-/stimulus-timeago-4.0.0.tgz#f3c49f0d0a4404172bf2a37a106942b045d28bc0"
-  integrity sha512-Smetdkp6mGueuprgX1GwEL0jUYQS+ZvCPm+WKTN2gdTqMN6Q9gZ4yLF49b7/nhUEMlZFSeOvJcdRy+/Mp1SeOA==
-  dependencies:
-    date-fns "^2.24.0"
 
 string-width@^4.1.0, string-width@^4.2.0:
   version "4.2.3"
