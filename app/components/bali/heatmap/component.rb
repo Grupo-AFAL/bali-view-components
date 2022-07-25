@@ -3,7 +3,7 @@
 module Bali
   module Heatmap
     class Component < ApplicationViewComponent
-      attr_reader :title, :data, :width, :height, :gradient_base_color, :subtitle
+      attr_reader :title, :data, :width, :height, :subtitle, :gradient_colors
 
       renders_one :hovercard_title, ->(text) { tag.p(text, class: 'title is-7 mb-0') }
       renders_one :legend_title, ->(text) { tag.p(text, class: 'title is-7') }
@@ -19,6 +19,7 @@ module Bali
         @title = options.delete(:title)
         @subtitle = options.delete(:subtitle)
         @gradient_base_color = options.delete(:gradient_base_color) || '#008806'
+        @gradient_colors = Bali::Utils::ColorPicker.new.gradient(@gradient_base_color)
       end
 
       def max_value
@@ -48,21 +49,11 @@ module Bali
         @graph_item_height ||= height / labels_y.size
       end
 
-      def gradient_colors
-        @gradient_colors ||= (0..10).map do |opacity|
-          opacify(gradient_base_color, opacity)
-        end
-      end
-
       def color_by_value(value)
         return gradient_colors.first if max_value.zero?
 
         color_index = (value * (gradient_colors.size - 1) / max_value.to_f).round
         gradient_colors[color_index]
-      end
-
-      def opacify(base_color, opacity = 5)
-        "#{base_color}#{(opacity * 255 / 10).to_s(16)}"
       end
     end
   end

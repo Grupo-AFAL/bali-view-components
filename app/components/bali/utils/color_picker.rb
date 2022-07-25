@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Bali
-  module Chart
+  module Utils
     class ColorPicker
       attr_reader :current
 
@@ -23,6 +23,10 @@ module Bali
 
       def opacify(color, opacity = 5)
         "#{color}#{(opacity * 255 / 10).to_s(16)}"
+      end
+
+      def gradient(color = nil, size: 10)
+        (0..( size-1 )).map { |opacity| opacify(color || @current, opacity) }
       end
 
       private
