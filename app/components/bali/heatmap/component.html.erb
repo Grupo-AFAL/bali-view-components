@@ -16,11 +16,11 @@
             <tr>
               <td class='label-y'><%= label_y %></td>
               <% labels_x.each do |label_x| %>
-                <td style="width: <%= width / (label_x.size + 1) %>px">
+                <td style="width: <%= graph_item_width %>px">
                  <% value = data[label_x][label_y] || 0 %>
                 <%= render Bali::HoverCard::Component.new(
                     class: 'heatmap-item',
-                    style: "width: #{width / (label_x.size + 1)}px; height: #{graph_item_height}px; background: #{color_by_value(value)}"
+                    style: "width: #{graph_item_width}px; height: #{graph_item_height}px; background: #{color_by_value(value)}"
                 ) do |c| %>
                   <%= c.template do %>
                     <%= hovercard_title %>
