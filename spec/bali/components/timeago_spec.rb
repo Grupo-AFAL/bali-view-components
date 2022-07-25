@@ -35,4 +35,15 @@ RSpec.describe Bali::Timeago::Component, type: :component do
       expect(page).to have_css '[data-timeago-include-second-value="false"]'
     end
   end
+
+  context 'with add suffix value' do
+    before { @options.merge!(add_suffix: true) }
+
+    it 'renders timeago component' do
+      render_inline(component)
+
+      expect(page).to have_css 'time.timeago-component'
+      expect(page).to have_css '[data-timeago-add-suffix-value="true"]'
+    end
+  end
 end
