@@ -6,7 +6,7 @@ import en from 'date-fns/locale/en-US'
 export class TimeagoController extends Controller {
   static values = {
     datetime: String,
-    refreshInterval: { default: 5000, type: Number },
+    refreshInterval: Number,
     includeSeconds: { default: true, type: Boolean },
     addSuffix: { default: false, type: Boolean },
     locale: { default: 'en', type: String }

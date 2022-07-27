@@ -10,9 +10,9 @@ module Bali
       # @param add_suffix [Boolean] toggle
       # @param include_seconds [Boolean] toggle
       # @param refresh_interval number
-      def default(add_suffix: false, include_seconds: true, refresh_interval: 5000)
+      def default(add_suffix: false, include_seconds: true, refresh_interval: nil)
         render Bali::Timeago::Component.new(
-          1.seconds.ago,
+          1.second.ago,
           add_suffix: add_suffix,
           include_seconds: include_seconds,
           refresh_interval: refresh_interval
