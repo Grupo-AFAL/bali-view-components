@@ -6,7 +6,7 @@ import en from 'date-fns/locale/en-US'
 export class TimeagoController extends Controller {
   static values = {
     datetime: String,
-    refreshInterval: { default: 1000, type: Number },
+    refreshInterval: { default: 5000, type: Number },
     includeSeconds: { default: true, type: Boolean },
     addSuffix: { default: false, type: Boolean },
     locale: { default: 'en', type: String }
@@ -15,10 +15,16 @@ export class TimeagoController extends Controller {
   initialize () {
     this.isValid = true
     this.locale = this.localeValue === 'es' ? es : en
+    this.options = {
+      includeSeconds: this.includeSecondsValue,
+      addSuffix: this.addSuffixValue,
+      locale: this.locale
+    }
   }
 
   connect () {
     this.load()
+    this.update()
 
     if (this.hasRefreshIntervalValue && this.isValid) {
       this.startRefreshing()
@@ -30,30 +36,26 @@ export class TimeagoController extends Controller {
   }
 
   load () {
-    const datetime = this.datetimeValue
-    const date = Date.parse(datetime)
-    const options = {
-      includeSeconds: this.includeSecondsValue,
-      addSuffix: this.addSuffixValue,
-      locale: this.locale
-    }
+    this.date = Date.parse(this.datetimeValue)
 
-    if (Number.isNaN(date)) {
+    if (Number.isNaN(this.date)) {
       this.isValid = false
 
       console.error(
-        `[stimulus-timeago] Value given in 'data-timeago-datetime' is not a valid date (${datetime}). Please provide a ISO 8601 compatible datetime string. Displaying given value instead.`
+        `[timeago] Value given in 'data-timeago-datetime' is not a valid date (${this.datetimeValue}). Please provide a ISO 8601 compatible datetime string. Displaying given value instead.`
       )
     }
+  }
 
-    // @ts-ignore
-    this.element.dateTime = datetime
-    this.element.innerHTML = this.isValid ? formatDistanceToNow(date, options) : datetime
+  update () {
+    this.element.innerHTML = this.isValid
+      ? formatDistanceToNow(this.date, this.options)
+      : this.datetimeValue
   }
 
   startRefreshing () {
     this.refreshTimer = setInterval(() => {
-      this.load()
+      this.update()
     }, this.refreshIntervalValue)
   }
 
