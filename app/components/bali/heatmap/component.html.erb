@@ -1,7 +1,4 @@
-<div class='heatmap-component'>
-  <%= tag.h3(title, class: 'title is-3') if title %>
-  <%= tag.p(subtitle, class: 'subtitle is-6') if subtitle %>
-
+<%= tag.div(**options) do %>
   <div class='heatmap table-container'>
     <table>
       <thead>
@@ -62,4 +59,4 @@
       <p><%= max_value %></p>
     </div>
   </div>
-</div>
+<% end %>

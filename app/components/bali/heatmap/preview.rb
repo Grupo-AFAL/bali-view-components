@@ -6,11 +6,9 @@ module Bali
       # Heatmap
       # -------------------
       # A graph that shows magnitude of a data as color in two dimensions.
-      # @param title text
-      # @param subtitle text
       # @param width number
       # @param height number
-      def default(title: 'Title', subtitle: 'Subtitle', width: 480, height: 480)
+      def default(width: 480, height: 480)
         data = {
           Dom: { 0 => 0, 1 => 10, 2 => 3 },
           Lun: { 0 => 3, 1 => 1, 2 => 6 },
@@ -18,7 +16,7 @@ module Bali
         }
   
         render Bali::Heatmap::Component.new(
-          title: title, subtitle: subtitle, width: width.to_i, height: height.to_i, data: data
+          width: width.to_i, height: height.to_i, data: data
         ) do |c|
           c.x_axis_title('Days')
           c.y_axis_title('Hours')

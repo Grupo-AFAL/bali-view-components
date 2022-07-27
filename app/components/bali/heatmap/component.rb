@@ -3,7 +3,7 @@
 module Bali
   module Heatmap
     class Component < ApplicationViewComponent
-      attr_reader :title, :data, :width, :height, :subtitle, :gradient_colors
+      attr_reader :data, :width, :height, :gradient_colors, :options
 
       renders_one :hovercard_title, ->(text) { tag.p(text, class: 'title is-7 mb-0') }
       renders_one :legend_title, ->(text) { tag.p(text, class: 'title is-7') }
@@ -16,10 +16,9 @@ module Bali
         @width = width
         @height = height
         @data = data
-        @title = options.delete(:title)
-        @subtitle = options.delete(:subtitle)
         @gradient_base_color = options.delete(:gradient_base_color) || '#008806'
         @gradient_colors = Bali::Utils::ColorPicker.new.gradient(@gradient_base_color)
+        @options = prepend_class_name(options, 'heatmap-component')
       end
 
       def max_value
