@@ -12,7 +12,7 @@ module Bali
         @label = options.delete(:label) || ''
         @order = options.delete(:order) || 1
         @axis = options.delete(:axis) || 1
-        @color_picker = ColorPicker.new
+        @color_picker = Bali::Utils::ColorPicker.new
       end
 
       def result

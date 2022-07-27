@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add `Timeago::Component`.
 
+## [0.31.0] - 2022-07-25
+
+- Add `Heatmap::Component`.
+
 ## [0.30.6] - 2022-07-18
 
 - Add `crud` match type to `SideMenu::Item`. So it only considers items as active when current_path is one of the CRUD actions (index, show, edit.)
