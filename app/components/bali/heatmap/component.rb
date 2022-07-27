@@ -12,12 +12,12 @@ module Bali
                                    tag.p(text, class: 'title is-7 mt-2 has-text-centered')
                                  }
 
-      def initialize(width: 480, height: 480, data: {}, **options)
+      def initialize(width: 480, height: 480, data: {}, color: '#008806', **options)
         @width = width
         @height = height
         @data = data
-        @gradient_base_color = options.delete(:gradient_base_color) || '#008806'
-        @gradient_colors = Bali::Utils::ColorPicker.new.gradient(@gradient_base_color)
+        @color = color
+        @gradient_colors = Bali::Utils::ColorPicker.new.gradient(@color)
         @options = prepend_class_name(options, 'heatmap-component')
       end
 
