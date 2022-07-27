@@ -19,6 +19,7 @@ import {
   SortableListController,
   SubmitOnChangeController,
   TabsController,
+  TimeagoController,
   TreeViewItemController,
   TrixAttachmentsController
 } from '../../../../app/javascript/bali'
@@ -42,5 +43,6 @@ application.register('side-menu', SideMenuController)
 application.register('sortable-list', SortableListController)
 application.register('submit-on-change', SubmitOnChangeController)
 application.register('tabs', TabsController)
+application.register('timeago', TimeagoController)
 application.register('tree-view-item', TreeViewItemController)
 application.register('trix-attachments', TrixAttachmentsController)
