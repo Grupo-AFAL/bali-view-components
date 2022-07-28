@@ -18,7 +18,7 @@ export class ChartController extends Controller {
     this.chart = new Chart(element.getContext('2d'), {
       type: this.typeValue,
       data: this.chartData,
-      options: this.chartOptions
+      options: this.optionsValue
     })
   }
 
@@ -33,16 +33,5 @@ export class ChartController extends Controller {
     }
 
     return this.dataValue
-  }
-
-  get chartOptions () {
-    return {
-      ...this.defaultOptions,
-      ...this.optionsValue
-    }
-  }
-
-  get defaultOptions () {
-    return {}
   }
 }
