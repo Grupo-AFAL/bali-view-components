@@ -45,6 +45,17 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
   end
 
   context 'with crud match' do
+    it 'renders as active when current path is the new path' do
+      @options[:current_path] = '/items/new'
+      render_inline(component) do |c|
+        c.list do |list|
+          list.item(name: 'items', href: '/items', match: :crud)
+        end
+      end
+
+      expect(page).to have_css 'a.is-active', text: 'items'
+    end
+
     it 'renders as active when current path is the item show path' do
       @options[:current_path] = '/items/123'
       render_inline(component) do |c|

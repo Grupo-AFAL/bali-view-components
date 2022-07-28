@@ -34,7 +34,7 @@ module Bali
     private
 
     def new_or_show_or_edit_path?(path, current_request_path)
-      %r{\A#{path}/(new|[[:digit:]]+(/edit))?\Z}.match(current_request_path)
+      %r{\A#{path}/([[:digit:]]+(/edit)?|new)\Z}.match(current_request_path)
     end
   end
 end
