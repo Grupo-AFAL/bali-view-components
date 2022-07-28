@@ -21,7 +21,7 @@ module Bali
       case match
       when :crud
         path_without_params == current_request_path ||
-          show_or_edit_path?(path, current_request_path)
+          new_or_show_or_edit_path?(path, current_request_path)
       when :starts_with
         current_request_path.starts_with?(path)
       when :partial
@@ -33,8 +33,8 @@ module Bali
 
     private
 
-    def show_or_edit_path?(path, current_request_path)
-      %r{\A#{path}/[[:digit:]]+(/edit)?\Z}.match(current_request_path)
+    def new_or_show_or_edit_path?(path, current_request_path)
+      %r{\A#{path}/([[:digit:]]+(/edit)?|new)\Z}.match(current_request_path)
     end
   end
 end
