@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.33.0] - 2022-07-29
 
-- Add `border` to `Reveal::Component` to show or hide the `border-bottom` just below the trigger.
+- Add `show_border` to `Reveal::Component` to show or hide the `border-bottom` just below the trigger.
 
 ## [0.32.2] - 2022-07-28
 

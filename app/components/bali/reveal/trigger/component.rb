@@ -6,7 +6,7 @@ module Bali
       class Component < ApplicationViewComponent
         attr_reader :title, :options
 
-        def initialize(title:, border: true, **options)
+        def initialize(title:, show_border: true, **options)
           @title = title
           @title_class = options.delete(:title_class)
           @icon_class = options.delete(:icon_class)
@@ -14,7 +14,7 @@ module Bali
           @options = prepend_class_name(options, 'reveal-trigger')
           @options = prepend_action(@options, 'click->reveal#toggle')
 
-          @options = prepend_class_name(options, 'is-border-bottom') if border
+          @options = prepend_class_name(options, 'is-border-bottom') if show_border
         end
       end
     end
