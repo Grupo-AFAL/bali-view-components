@@ -3,7 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe Bali::SideMenu::Component, type: :component do
-  let(:component) { Bali::SideMenu::Component.new }
+  before { @options = { current_path: '/' } }
+  let(:component) { Bali::SideMenu::Component.new(**@options) }
 
   it 'renders the side menu' do
     render_inline(component) do |c|
@@ -43,16 +44,115 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
     end
   end
 
-  it 'renders an active link' do
-    with_request_url '/#' do
+  context 'with crud match' do
+    it 'renders as active when current path is the new path' do
+      @options[:current_path] = '/items/new'
       render_inline(component) do |c|
-        c.list(title: 'Section title') do |list|
-          list.item(name: 'item', href: '/#')
+        c.list do |list|
+          list.item(name: 'items', href: '/items', match: :crud)
         end
       end
+
+      expect(page).to have_css 'a.is-active', text: 'items'
     end
 
-    expect(page).to have_css 'a.is-active', text: 'item'
+    it 'renders as active when current path is the item show path' do
+      @options[:current_path] = '/items/123'
+      render_inline(component) do |c|
+        c.list do |list|
+          list.item(name: 'items', href: '/items', match: :crud)
+        end
+      end
+
+      expect(page).to have_css 'a.is-active', text: 'items'
+    end
+
+    it 'renders as active when current path is the item edit path' do
+      @options[:current_path] = '/items/123/edit'
+      render_inline(component) do |c|
+        c.list do |list|
+          list.item(name: 'items', href: '/items', match: :crud)
+        end
+      end
+
+      expect(page).to have_css 'a.is-active', text: 'items'
+    end
+
+    it 'renders as active when current path is the item index path' do
+      @options[:current_path] = '/items'
+      render_inline(component) do |c|
+        c.list do |list|
+          list.item(name: 'items', href: '/items', match: :crud)
+        end
+      end
+
+      expect(page).to have_css 'a.is-active', text: 'items'
+    end
+
+    it 'renders as inactive when current path is not a CRUD action' do
+      @options[:current_path] = '/items/dashboard'
+      render_inline(component) do |c|
+        c.list do |list|
+          list.item(name: 'items', href: '/items', match: :crud)
+        end
+      end
+
+      expect(page).not_to have_css 'a.is-active', text: 'items'
+    end
+  end
+
+  context 'with starts_with match' do
+    it 'renders as active when current path starts with item href' do
+      @options[:current_path] = '/item'
+      render_inline(component) do |c|
+        c.list do |list|
+          list.item(name: 'item root', href: '/item', match: :starts_with)
+        end
+      end
+
+      expect(page).to have_css 'a.is-active', text: 'item root'
+    end
+
+    it 'renders as inactive when href is included within current path' do
+      @options[:current_path] = '/section/item'
+      render_inline(component) do |c|
+        c.list do |list|
+          list.item(name: 'item root', href: '/item', match: :starts_with)
+        end
+      end
+
+      expect(page).not_to have_css 'a.is-active', text: 'item root'
+    end
+  end
+
+  context 'with partial match' do
+    it 'renders an active link' do
+      @options[:current_path] = '/section/item/menu'
+      render_inline(component) do |c|
+        c.list(title: 'Section title') do |list|
+          list.item(name: 'item root', href: '/item', match: :partial)
+          list.item(name: 'item menu', href: '/section/item/menu')
+        end
+      end
+
+      expect(page).to have_css 'a.is-active', text: 'item root'
+      expect(page).to have_css 'a.is-active', text: 'item menu'
+    end
+  end
+
+  context 'with exact match' do
+    it 'renders an active link' do
+      @options[:current_path] = '/item'
+      render_inline(component) do |c|
+        c.list(title: 'Section title') do |list|
+          list.item(name: 'item root', href: '/item')
+          list.item(name: 'item 1', href: '/item/1')
+        end
+      end
+
+      expect(page).to have_css 'a.is-active', text: 'item root'
+      expect(page).not_to have_css 'a.is-active', text: 'item 1'
+    end
   end
 
   it 'renders a disabled link' do

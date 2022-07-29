@@ -1,0 +1,62 @@
+<%= tag.div(**options) do %>
+  <div class='heatmap table-container'>
+    <table>
+      <thead>
+        <th><%= y_axis_title %></th>
+        <% labels_x.each do |label| %>
+          <th></th>
+        <% end %>
+      </thead>
+
+      <tbody>
+        <% labels_y.each do |label_y| %>
+            <tr>
+              <td class='label-y'><%= label_y %></td>
+              <% labels_x.each do |label_x| %>
+                <td style="width: <%= graph_item_width %>px">
+                 <% value = data[label_x][label_y] || 0 %>
+                <%= render Bali::HoverCard::Component.new(
+                    class: 'heatmap-item',
+                    style: "width: #{graph_item_width}px; height: #{graph_item_height}px; background: #{color_by_value(value)}"
+                ) do |c| %>
+                  <%= c.template do %>
+                    <%= hovercard_title %>
+                    <p class='mt-0'><%= "#{label_x} - #{label_y}" %></p>
+                    <p><%= value %></p>
+                  <% end %>
+                <% end %>
+                </td>
+              <% end %>
+            </tr>
+        <% end %>
+      </tbody>
+      
+      <tfoot>
+        <tr>
+          <td></td>
+          <% labels_x.each do |label_x| %>
+            <td class='label-x'>
+              <%= label_x %>
+            </td>
+          <% end %>
+        </tr>
+      </tfoot>
+    </table>
+    <%= x_axis_title %>
+  </div>
+
+  <div class='legend mt-4' >
+    <div class='legend-colors'>
+      <% gradient_colors.each do |color| %>
+        <%= tag.div(style: "background: #{color}; 
+                    width: #{(width) / gradient_colors.size}px") %>
+      <% end %>
+    </div>
+
+    <div class='legend-labels is-flex is-justify-content-space-between'>
+      <p>0</p>
+      <%= legend_title %>
+      <p><%= max_value %></p>
+    </div>
+  </div>
+<% end %>

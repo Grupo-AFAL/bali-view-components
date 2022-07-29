@@ -79,7 +79,7 @@ Update this table when making progress on any of the Components or when adding n
 | Dropdown       | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Filters        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | GanttChart     |        :x:         |        :x:         |        :x:         |        :x:         |       |
-| Heatmap        |        :x:         |        :x:         |        :x:         |        :x:         |       |
+| Heatmap        | :white_check_mark: | :white_check_mark: | :white_check_mark: |        :white_check_mark: |       |
 | HelpTip        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Hero           |        :x:         |        :x:         |        :x:         |        :x:         |       |
 | Hovercard      | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
@@ -101,6 +101,7 @@ Update this table when making progress on any of the Components or when adding n
 | Stepper        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Table          | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Tabs           | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
+| Timeago        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Timeline       | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | TreeView       | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 

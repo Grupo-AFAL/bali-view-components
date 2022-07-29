@@ -23,6 +23,7 @@ export { SelectedController } from '../../components/bali/filters'
 export { SideMenuController } from '../../components/bali/side_menu'
 export { SortableListController } from '../../components/bali/sortable_list'
 export { TabsController } from '../../components/bali/tabs'
+export { TimeagoController } from '../../components/bali/timeago'
 export { TreeViewItemController } from '../../components/bali/tree_view/item'
 
 export {

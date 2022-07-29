@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.32.2] - 2022-07-28
+
+- Add `new` to CRUD actions to display an active tab when current_path is matched.
+
+## [0.32.1] - 2022-07-28
+
+- Remove `stimulus-chartjs` dependency.
+
+## [0.32.0] - 2022-07-25
+
+- Add `Timeago::Component`.
+
+## [0.31.0] - 2022-07-25
+
+- Add `Heatmap::Component`.
+
+## [0.30.6] - 2022-07-18
+
+- Add `crud` match type to `SideMenu::Item`. So it only considers items as active when current_path is one of the CRUD actions (index, show, edit.)
+
+## [0.30.5] - 2022-07-18
+
+- Add `starts_with` match type to `SideMenu::Item`. So it only considers items as active when current_path starts with the item's HREF
+
+## [0.30.4] - 2022-07-18
+
+- Only consider exact URL matches for displaying a `SideMenu::Item` as active. This fixes a problem where 2 items had a similar URL and both were considered active.
+
+## [0.30.3] - 2022-07-14
+
+- `step-number-input` controller was updated to be able to set a custom step.
+
+## [0.30.2] - 2022-07-14
+
+- Updated `PageHeader::Component` CSS to prevent overflow.
+
 ## [0.30.1] - 2022-07-12
 
 - Updated `PageHeader::Component`, title and subtitle slots now receive an optional tag param to specify the size of the heading. New default title size is `h3` and subtitle is `h5`.

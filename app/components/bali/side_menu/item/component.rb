@@ -4,22 +4,33 @@ module Bali
   module SideMenu
     module Item
       class Component < ApplicationViewComponent
-        renders_many :child_items, 'Bali::SideMenu::Item::Component'
+        renders_many :items, ->(name:, href:, icon: nil, authorized: true, **options) do
+          Item::Component.new(
+            name: name,
+            href: href,
+            icon: icon,
+            authorized: authorized,
+            current_path: @current_path,
+            **options
+          )
+        end
 
-        attr_reader :href
+        attr_reader :href, :current_path, :match_type
 
-        def initialize(name:, href:, icon: nil, authorized: true, **options)
+        def initialize(name:, href:, current_path:, icon: nil, authorized: true, **options)
           @name = name
           @href = href
           @icon = icon
           @authorized = authorized
+          @current_path = current_path
+          @match_type = options.delete(:match) || :exact
           @options = options
         end
 
         def before_render
           super
 
-          @options = prepend_class_name(@options, 'is-active') if active?(request.path)
+          @options = prepend_class_name(@options, 'is-active') if active?
         end
 
         def render?
@@ -34,12 +45,12 @@ module Bali
           @href.blank?
         end
 
-        def active?(base_path)
-          base_path.include?(uri.path) || active_child_items?(base_path)
+        def active?
+          active_path?(uri.path, current_path, match: match_type) || active_child_items?
         end
 
-        def active_child_items?(base_path)
-          child_items.reject(&:disabled?).any? { |child_item| child_item.active?(base_path) }
+        def active_child_items?
+          items.reject(&:disabled?).any?(&:active?)
         end
       end
     end

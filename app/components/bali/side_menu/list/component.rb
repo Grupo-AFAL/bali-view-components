@@ -4,12 +4,22 @@ module Bali
   module SideMenu
     module List
       class Component < ApplicationViewComponent
-        renders_many :items, Item::Component
+        renders_many :items, ->(name:, href:, icon: nil, authorized: true, **options) do
+          Item::Component.new(
+            name: name,
+            href: href,
+            icon: icon,
+            authorized: authorized,
+            current_path: @current_path,
+            **options
+          )
+        end
 
         attr_reader :title
 
-        def initialize(title: nil, **options)
+        def initialize(current_path:, title: nil, **options)
           @title = title
+          @current_path = current_path
           @options = options
         end
 
