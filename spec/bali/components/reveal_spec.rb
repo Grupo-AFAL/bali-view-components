@@ -30,4 +30,22 @@ RSpec.describe Bali::Reveal::Component, type: :component do
     expect(page).to have_css 'div.reveal-title', text: 'Click here'
     expect(page).to have_css '.icon-component'
   end
+
+  it 'renders border at bottom' do
+    render_inline(component) do |c|
+      c.trigger(title: 'Click here', title_class: 'reveal-title')
+    end
+
+    expect(page).to have_css 'div.is-border-bottom'
+  end
+
+  it 'does not render border at bottom' do
+    render_inline(component) do |c|
+      c.trigger(title: 'Click here', border: false)
+    end
+
+    render_inline(component)
+
+    expect(page).not_to have_css 'div.is-border-bottom'
+  end
 end

@@ -8,9 +8,10 @@ module Bali
       # Displays hidden content when clicked
       #
       # @param opened toggle
-      def default(opened: false)
+      # @param border toggle
+      def default(opened: false, border: false)
         render Reveal::Component.new(opened: opened) do |c|
-          c.trigger(title: 'Click to see contents')
+          c.trigger(title: 'Click to see contents', border: border)
 
           c.tag.h1 'Revealed contents'
         end

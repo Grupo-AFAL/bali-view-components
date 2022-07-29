@@ -7,12 +7,15 @@
     align-items: center;
     padding-bottom: $size-4;
     margin-bottom: $size-4;
-    border-bottom: 0.0625rem solid rgba(0, 0, 0, 0.23);
-  
+
     .icon {
       height: $size-7;
       transform: rotate(270deg);
     }
+  }
+
+  .is-border-bottom {
+    border-bottom: 0.0625rem solid rgba(0, 0, 0, 0.23);
   }
 
   .reveal-content {
