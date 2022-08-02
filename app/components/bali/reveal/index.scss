@@ -1,3 +1,6 @@
+$border-thickness: 0.0625rem;
+$border-color: rgba(0, 0, 0, 0.23);
+
 .reveal-component {
   user-select: none;
 
@@ -15,7 +18,7 @@
   }
 
   .is-border-bottom {
-    border-bottom: 0.0625rem solid rgba(0, 0, 0, 0.23);
+    border-bottom: $border-thickness solid $border-color;
   }
 
   .reveal-content {
