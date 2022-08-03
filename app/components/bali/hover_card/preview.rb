@@ -10,13 +10,25 @@ module Bali
           end
         end
       end
-    
+
       def with_template
         render HoverCard::Component.new do |c|
           c.trigger do
             tag.p('Hover me!', class: 'has-text-centered')
           end
-    
+
+          c.template do
+            tag.p('Hovercard content!')
+          end
+        end
+      end
+
+      def open_on_click
+        render HoverCard::Component.new(open_on_click: true) do |c|
+          c.trigger do
+            tag.p('Click me!', class: 'has-text-centered')
+          end
+
           c.template do
             tag.p('Hovercard content!')
           end

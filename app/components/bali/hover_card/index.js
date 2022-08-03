@@ -2,6 +2,8 @@ import { Controller } from '@hotwired/stimulus'
 import { createPopper } from '@popperjs/core'
 import { stringToDOMNode } from '../../../javascript/bali/utils/domHelpers'
 
+import useClickOutside from '../../../javascript/bali/utils/use-click-outside'
+
 const CONTENT_CLASS_NAME = 'content'
 
 /*
@@ -13,15 +15,21 @@ export class HovercardController extends Controller {
   static targets = ['template']
   static values = {
     url: String,
-    placement: { type: String, default: 'auto' }
+    placement: { type: String, default: 'auto' },
+    openOnClick: { type: Boolean, default: false }
   }
 
   connect () {
     this.isActive = false
     this.contentLoaded = false
 
-    this.element.addEventListener('mouseenter', this.show.bind(this))
-    this.element.addEventListener('mouseleave', this.hide.bind(this))
+    if (this.openOnClickValue) {
+      this.element.addEventListener('click', this.show.bind(this))
+      useClickOutside(this)
+    } else {
+      this.element.addEventListener('mouseenter', this.show.bind(this))
+      this.element.addEventListener('mouseleave', this.hide.bind(this))
+    }
 
     this.cardNode = this.element.appendChild(this.buildEmptyNode())
 
@@ -84,6 +92,10 @@ export class HovercardController extends Controller {
     this.isActive = false
     this.cardNode.classList.add('is-hidden')
     this.toggleEventListeners(false)
+  }
+
+  clickOutside () {
+    this.hide()
   }
 
   disconnect () {
