@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.35.0] - 2022-08-3
 
-- Add `less-than-modal` class to hide the hover-card when is necessary.
+- Add `under-modal` class to hide the hover-card when is necessary.
 
 ## [0.34.0] - 2022-08-3
 
