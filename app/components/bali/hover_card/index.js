@@ -37,7 +37,7 @@ export class HovercardController extends Controller {
       placement: this.placementValue,
       modifiers: [
         { name: 'eventListeners', enabled: false },
-        { name: 'offset', options: { offset: [0, 5] } }
+        { name: 'offset', options: { offset: [0, 13] } }
       ]
     })
   }
