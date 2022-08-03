@@ -1,14 +1,17 @@
+$z-index-hovercard: 101;
+$z-index-under-modal: 39;
+
 .hover-card-component {
-  $z-index-hovercard: 101;
-
   width: max-content;
-
-  &.less-than-modal {
-    $z-index-hovercard: 39;
-  }
 
   .hovercard.card {
     z-index: $z-index-hovercard;
+  }
+
+  &.under-modal {
+    .hovercard.card {
+      z-index: $z-index-under-modal;
+    }
   }
 
   .hovercard {
