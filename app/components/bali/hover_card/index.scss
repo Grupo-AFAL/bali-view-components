@@ -3,6 +3,10 @@
 
   width: max-content;
 
+  &.less-than-modal {
+    $z-index-hovercard: 39;
+  }
+
   .hovercard.card {
     z-index: $z-index-hovercard;
   }
@@ -10,50 +14,50 @@
   .hovercard {
     overflow: visible;
     max-width: unset;
-  
+
     .card-content {
       padding: 0.75rem;
     }
-  
+
     &[data-popper-placement^='top'] > .arrow {
       bottom: -18px;
-  
+
       svg {
         transform: rotate(0);
       }
     }
-  
+
     &[data-popper-placement^='bottom'] > .arrow {
       top: -18px;
-  
+
       svg {
         transform: rotate(180deg);
       }
     }
-  
+
     &[data-popper-placement^='left'] > .arrow {
       right: -14px;
-  
+
       svg {
         transform: rotate(-90deg) translateX(9px);
       }
     }
-  
+
     &[data-popper-placement^='right'] > .arrow {
       left: -14px;
-  
+
       svg {
         transform: rotate(90deg) translateX(-9px);
       }
     }
-  
+
     .arrow {
       position: absolute;
       width: 20px;
       height: 8px;
       background: transparent;
     }
-  
+
     p,
     strong {
       font-size: 0.75rem;
