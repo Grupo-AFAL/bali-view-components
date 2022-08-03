@@ -33,5 +33,16 @@ RSpec.describe Bali::HoverCard::Component, type: :component do
         expect(rendered_content).not_to include "data-hovercard-target='template'"
       end
     end
+
+    context 'with open_on_click option' do
+      before { @options.merge!(open_on_click: true) }
+
+      it 'renders' do
+        render_inline(component)
+
+        expect(page).to have_css 'div.hover-card-component'
+        expect(rendered_content).to include 'hovercard-open-on-click-value="true"'
+      end
+    end
   end
 end
