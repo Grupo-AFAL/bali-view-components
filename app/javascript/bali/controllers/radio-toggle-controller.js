@@ -33,13 +33,12 @@ export class RadioToggleController extends Controller {
   toggleTargets (value) {
     this.elementTargets.forEach(element => {
       const valuesPorperties = element.dataset.radioToggleValue.split(',')
-      valuesPorperties.forEach(valueProperty => {
-        if (valueProperty === value) {
-          return element.classList.remove('is-hidden')
-        } else {
-          element.classList.add('is-hidden')
-        }
-      })
+
+      if (valuesPorperties.includes(value)) {
+        element.classList.remove('is-hidden')
+      } else {
+        element.classList.add('is-hidden')
+      }
     })
   }
 }
