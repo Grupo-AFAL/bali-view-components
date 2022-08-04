@@ -526,17 +526,17 @@ module Bali
       )
 
       DAY = %(
-        <svg viewBox="0 0 10 10" class="svg-inline">
-          <rect x="9.5" y="0.5" width="9" height="9" rx="0.5" transform="rotate(90 9.5 0.5)" stroke="white"/>
+        <svg viewBox="0 0 10 10" class="svg-inline" stroke="currentColor">
+          <rect x="9.5" y="0.5" width="9" height="9" rx="0.5" transform="rotate(90 9.5 0.5)" />
         </svg>
       )
 
       MONTH = %(
-        <svg viewBox="0 0 18 19" class="svg-inline">
-          <rect x="17.5" y="0.5" width="7" height="7" rx="0.5" transform="rotate(90 17.5 0.5)" stroke="white"/>
-          <rect x="7.5" y="0.5" width="7" height="7" rx="0.5" transform="rotate(90 7.5 0.5)" stroke="white"/>
-          <rect x="17.5" y="11.5" width="7" height="7" rx="0.5" transform="rotate(90 17.5 11.5)" stroke="white"/>
-          <rect x="7.5" y="11.5" width="7" height="7" rx="0.5" transform="rotate(90 7.5 11.5)" stroke="white"/>
+        <svg viewBox="0 0 18 19" class="svg-inline" stroke="currentColor">
+          <rect x="17.5" y="0.5" width="7" height="7" rx="0.5" transform="rotate(90 17.5 0.5)" />
+          <rect x="7.5" y="0.5" width="7" height="7" rx="0.5" transform="rotate(90 7.5 0.5)" />
+          <rect x="17.5" y="11.5" width="7" height="7" rx="0.5" transform="rotate(90 17.5 11.5)" />
+          <rect x="7.5" y="11.5" width="7" height="7" rx="0.5" transform="rotate(90 7.5 11.5)" />
         </svg>
       )
 
@@ -547,10 +547,10 @@ module Bali
       )
 
       WEEK = %(
-        <svg viewBox="0 0 20 19" class="svg-inline">
-          <rect x="19.5" y="0.5" width="18" height="4" rx="0.5" transform="rotate(90 19.5 0.5)" stroke="white"/>
-          <rect x="12.5" y="0.5" width="18" height="4" rx="0.5" transform="rotate(90 12.5 0.5)" stroke="white"/>
-          <rect x="4.5" y="0.5" width="18" height="4" rx="0.5" transform="rotate(90 4.5 0.5)" stroke="white"/>
+        <svg viewBox="0 0 20 19" class="svg-inline" stroke="currentColor">
+          <rect x="19.5" y="0.5" width="18" height="4" rx="0.5" transform="rotate(90 19.5 0.5)" />
+          <rect x="12.5" y="0.5" width="18" height="4" rx="0.5" transform="rotate(90 12.5 0.5)" />
+          <rect x="4.5" y="0.5" width="18" height="4" rx="0.5" transform="rotate(90 4.5 0.5)" />
         </svg>
       )
 
