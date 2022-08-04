@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.35.1] - 2022-08-3
 
-- remove `stroke` attribute from `svg` icons.
+- Remove `stroke` attribute from `rect` and add `stroke` and `fill` in `svg` icons.
 
 ## [0.35.0] - 2022-08-3
 
