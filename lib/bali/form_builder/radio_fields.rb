@@ -16,12 +16,15 @@ module Bali
         field_helper(method, field, options)
       end
 
-      def radio_buttons_grouped(method, values, options = {}, buttons_options = {}, radios_options = {})
+      def radio_buttons_grouped(
+        method, values, options = {}, buttons_options = {}, radios_options = {}
+      )
         options[:control_data] ||= {}
         options[:control_data].merge!(controller: 'radio-toggle',
                                       'radio-toggle-current-value': values.keys.first)
 
-        field = safe_join([buttons(values, buttons_options), radio_options(method, values, radios_options)])
+        field = safe_join([buttons(values, buttons_options),
+                           radio_options(method, values, radios_options)])
         field_helper(method, field, options)
       end
 
@@ -36,7 +39,7 @@ module Bali
           safe_join(values.keys.map do |value|
             button_options[:disabled] = values[value].blank?
             button_options[:value] = value
-            
+
             tag.button(value, **button_options)
           end)
         end
