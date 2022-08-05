@@ -36,19 +36,26 @@ module Bali
       private
 
       def togglers(values, options)
-        toggler_options = options.delete(:toggler) || {}
-        toggler_options = prepend_class_name(toggler_options, 'toggler')
-        toggler_options = prepend_action(toggler_options, 'radio-toggle#change')
-        toggler_options[:type] = 'button'
+        options = prepend_class_name(options, 'togglers')
+        toggler_opts = toggler_options(options)
 
         tag.div(**options) do
           safe_join(values.keys.map do |value|
-            toggler_options[:disabled] = values[value].blank?
-            toggler_options[:value] = value
+            toggler_opts[:disabled] = values[value].blank?
+            toggler_opts[:value] = value
 
-            tag.button(value, **toggler_options)
+            tag.button(value, **toggler_opts)
           end)
         end
+      end
+
+      def toggler_options(options)
+        options.delete(:toggler) || {}
+        options = prepend_class_name(options, 'toggler')
+        options = prepend_action(options, 'radio-toggle#change')
+        options[:type] = 'button'
+
+        options
       end
 
       def radio_buttons(method, values, options)
