@@ -20,11 +20,15 @@ module Bali
         method, values, options = {}, buttons_options = {}, radios_options = {}
       )
         options[:control_data] ||= {}
-        options[:control_data].merge!(controller: 'radio-toggle',
-                                      'radio-toggle-current-value': values.keys.first)
+        options[:control_data].merge!(
+          controller: 'radio-toggle', 'radio-toggle-current-value': values.keys.first
+        )
 
-        field = safe_join([buttons(values, buttons_options),
-                           radio_options(method, values, radios_options)])
+        field = safe_join([
+          buttons(values, buttons_options),
+          radio_buttons(method, values, radios_options)
+        ])
+
         field_helper(method, field, options)
       end
 
@@ -45,7 +49,7 @@ module Bali
         end
       end
 
-      def radio_options(method, values, options)
+      def radio_buttons(method, values, options)
         options = prepend_data_attribute(options, 'radio-toggle-target', 'element')
 
         label_options = options.delete(:label) || {}
