@@ -25,9 +25,9 @@ module Bali
         )
 
         field = safe_join([
-          togglers(values, togglers_options),
-          radio_buttons(method, values, radios_options)
-        ])
+                            togglers(values, togglers_options),
+                            radio_buttons(method, values, radios_options)
+                          ])
 
         field_helper(method, field, options)
       end
