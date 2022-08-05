@@ -55,16 +55,7 @@ export class RadioToggleController extends Controller {
         element.classList.remove('is-hidden')
       } else {
         element.classList.add('is-hidden')
-        this._uncheckedRadioButtons(element)
       }
     })
-  }
-
-  _uncheckedRadioButtons (element) {
-    const radios = element.querySelectorAll("input[type='radio']")
-
-    for (const radio of radios) {
-      radio.checked = false
-    }
   }
 }

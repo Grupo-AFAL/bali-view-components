@@ -95,7 +95,43 @@
 }
 
 .radio-buttons-grouped {
-  .togglers {
+  $togglers-margin-bottom: 1.5rem;
+
+  $toggler-margin-right: 1rem;
+  $toggler-border: solid 1px;
+  $toggler-padding: 1rem;
+  $toggler-active-background: $primary;
+  $toggler-active-color: $white;
+
+  &.is-left {
+    text-align: left;
+  }
+
+  &.is-center {
     text-align: center;
+  }
+
+  &.is-right {
+    text-align: right;
+  }
+
+  .togglers {
+    margin-bottom: $togglers-margin-bottom;
+  }
+
+  .toggler {
+    background: transparent;
+    border: $toggler-border;
+    padding: $toggler-padding;
+
+    &:not(:last-child) {
+      margin-right: $toggler-margin-right;
+
+    }
+
+    &.is-active {
+      background: $toggler-active-background;
+      color: $toggler-active-color;
+    }
   }
 }

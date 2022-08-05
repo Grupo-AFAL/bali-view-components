@@ -22,7 +22,8 @@ module Bali
         options[:control_class] = "radio-buttons-grouped #{options[:control_class] || ''}"
         options[:control_data] ||= {}
         options[:control_data].merge!(
-          controller: 'radio-toggle', 'radio-toggle-current-value': values.keys.first
+          controller: 'radio-buttons-grouped', 
+          'radio-buttons-grouped-current-value': values.keys.first
         )
 
         field = safe_join([
@@ -52,20 +53,21 @@ module Bali
       def toggler_options(options)
         opts = options.delete(:toggler) || {}
         opts = prepend_class_name(opts, 'toggler')
-        opts = prepend_action(opts, 'radio-toggle#change')
+        opts = prepend_action(opts, 'radio-buttons-grouped#change')
+        opts = prepend_data_attribute(opts, 'radio-buttons-grouped-target', 'toggler')
         opts[:type] = 'button'
 
         opts
       end
 
       def radio_buttons(method, values, options)
-        options = prepend_data_attribute(options, 'radio-toggle-target', 'element')
+        options = prepend_data_attribute(options, 'radio-buttons-grouped-target', 'element')
 
         label_options = options.delete(:label) || {}
         label_options = prepend_class_name(label_options, 'radio')
 
         safe_join(values.map do |category, category_values|
-          options[:data]['radio-toggle-value'] = category
+          options[:data]['radio-buttons-grouped-value'] = category
 
           tag.div(**options) do
             safe_join(tags(category_values, {}, method, label_options[:class]))
