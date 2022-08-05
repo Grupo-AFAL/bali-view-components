@@ -43,27 +43,27 @@ export class RadioButtonsGroupedController extends Controller {
   static targets = ['element', 'toggler']
   static values = { current: String }
 
-  connect() {
+  connect () {
     this.activeToggler(this.currentValue)
   }
 
-  change(event) {
+  change (event) {
     this.activeToggler(event.target.value)
   }
 
-  activeToggler(value) {
+  activeToggler (value) {
     this.togglerTargets.forEach(element => {
       if (element.value === value) {
         element.classList.add('is-active')
       } else {
         element.classList.remove('is-active')
       }
-    });
+    })
 
     this.toggleTargets(value)
   }
 
-  toggleTargets(value) {
+  toggleTargets (value) {
     this.elementTargets.forEach(element => {
       const valuesProperties = element.dataset.radioButtonsGroupedValue.split(',')
 
@@ -76,12 +76,11 @@ export class RadioButtonsGroupedController extends Controller {
     })
   }
 
-  uncheckedRadioButtons(element) {
+  uncheckedRadioButtons (element) {
     const radios = element.querySelectorAll("input[type='radio']")
 
     for (const radio of radios) {
       radio.checked = false
     }
   }
-
 }
