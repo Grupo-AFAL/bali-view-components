@@ -50,12 +50,12 @@ module Bali
       end
 
       def toggler_options(options)
-        options.delete(:toggler) || {}
-        options = prepend_class_name(options, 'toggler')
-        options = prepend_action(options, 'radio-toggle#change')
-        options[:type] = 'button'
+        opts = options.delete(:toggler) || {}
+        opts = prepend_class_name(opts, 'toggler')
+        opts = prepend_action(opts, 'radio-toggle#change')
+        opts[:type] = 'button'
 
-        options
+        opts
       end
 
       def radio_buttons(method, values, options)
