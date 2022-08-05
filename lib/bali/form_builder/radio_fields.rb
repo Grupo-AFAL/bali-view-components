@@ -19,6 +19,7 @@ module Bali
       def radio_buttons_grouped(
         method, values, options = {}, togglers_options = {}, radios_options = {}
       )
+        options[:control_class] = "radio-buttons-grouped #{options[:control_class] || ''}"
         options[:control_data] ||= {}
         options[:control_data].merge!(
           controller: 'radio-toggle', 'radio-toggle-current-value': values.keys.first
