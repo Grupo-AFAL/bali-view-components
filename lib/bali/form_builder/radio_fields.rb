@@ -17,7 +17,7 @@ module Bali
       end
 
       def radio_buttons_grouped(
-        method, values, options = {}, buttons_options = {}, radios_options = {}
+        method, values, options = {}, togglers_options = {}, radios_options = {}
       )
         options[:control_data] ||= {}
         options[:control_data].merge!(
@@ -25,7 +25,7 @@ module Bali
         )
 
         field = safe_join([
-          buttons(values, buttons_options),
+          togglers(values, togglers_options),
           radio_buttons(method, values, radios_options)
         ])
 
@@ -34,17 +34,17 @@ module Bali
 
       private
 
-      def buttons(values, options)
-        button_options = options.delete(:button) || {}
-        button_options = prepend_action(button_options, 'radio-toggle#change')
-        button_options[:type] = 'button'
+      def togglers(values, options)
+        toggler_options = options.delete(:toggler) || {}
+        toggler_options = prepend_action(toggler_options, 'radio-toggle#change')
+        toggler_options[:type] = 'button'
 
         tag.div(**options) do
           safe_join(values.keys.map do |value|
-            button_options[:disabled] = values[value].blank?
-            button_options[:value] = value
+            toggler_options[:disabled] = values[value].blank?
+            toggler_options[:value] = value
 
-            tag.button(value, **button_options)
+            tag.button(value, **toggler_options)
           end)
         end
       end
@@ -55,11 +55,11 @@ module Bali
         label_options = options.delete(:label) || {}
         label_options = prepend_class_name(label_options, 'radio')
 
-        safe_join(values.map do |key, valuez|
-          options[:data]['radio-toggle-value'] = key
+        safe_join(values.map do |category, category_values|
+          options[:data]['radio-toggle-value'] = category
 
           tag.div(**options) do
-            safe_join(tags(valuez, {}, method, label_options[:class]))
+            safe_join(tags(category_values, {}, method, label_options[:class]))
           end
         end)
       end
