@@ -16,20 +16,46 @@ module Bali
         field_helper(method, field, options)
       end
 
-      def radio_buttons_grouped(method, values, options = {}, _html_options = {})
-        options = prepend_controller(options, 'radio-toggle')
-        options = prepend_data_attribute(options, 'radio-toggle-current-value', values.keys.first)
-        options = prepend_class_name(options, 'control')
+      def radio_buttons_grouped(method, values, options = {}, buttons_options = {}, radios_options = {})
+        options[:control_data] ||= {}
+        options[:control_data].merge!(controller: 'radio-toggle',
+                                      'radio-toggle-current-value': values.keys.first)
 
-        tag.div(**options) do
-          safe_join([
-                      buttons(values),
-                      radio_options(method, values)
-                    ])
-        end
+        field = safe_join([buttons(values, buttons_options), radio_options(method, values, radios_options)])
+        field_helper(method, field, options)
       end
 
       private
+
+      def buttons(values, options)
+        button_options = options.delete(:button) || {}
+        button_options = prepend_action(button_options, 'radio-toggle#change')
+        button_options[:type] = 'button'
+
+        tag.div(**options) do
+          safe_join(values.keys.map do |value|
+            button_options[:disabled] = values[value].blank?
+            button_options[:value] = value
+            
+            tag.button(value, **button_options)
+          end)
+        end
+      end
+
+      def radio_options(method, values, options)
+        options = prepend_data_attribute(options, 'radio-toggle-target', 'element')
+
+        label_options = options.delete(:label) || {}
+        label_options = prepend_class_name(label_options, 'radio')
+
+        safe_join(values.map do |key, valuez|
+          options[:data]['radio-toggle-value'] = key
+
+          tag.div(**options) do
+            safe_join(tags(valuez, {}, method, label_options[:class]))
+          end
+        end)
+      end
 
       def tags(values, html_options, method, label_class)
         field_name = [object.model_name.singular, method].join('_')
@@ -43,24 +69,6 @@ module Bali
           label(method, class: label_class, for: [field_name, value].join('_')) do
             radio_button(method, value, radio_options.merge(data: data)) + display
           end
-        end
-      end
-
-      def buttons(values)
-        safe_join(values.keys.map do |v|
-          tag.button(v, type: 'button', disabled: values[v].blank?,
-                        data: { action: 'radio-toggle#change' },
-                        value: v)
-        end)
-      end
-
-      def radio_options(method, values)
-        tag.div(class: 'mb-6') do
-          safe_join(values.map do |key, value|
-            tag.div(data: { 'radio-toggle-target': 'element', 'radio-toggle-value': key }) do
-              radio_field method, value
-            end
-          end)
         end
       end
     end
