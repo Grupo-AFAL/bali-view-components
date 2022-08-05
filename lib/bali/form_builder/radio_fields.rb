@@ -22,7 +22,7 @@ module Bali
         options[:control_class] = "radio-buttons-grouped #{options[:control_class] || ''}"
         options[:control_data] ||= {}
         options[:control_data].merge!(
-          controller: 'radio-buttons-grouped', 
+          controller: 'radio-buttons-grouped',
           'radio-buttons-grouped-current-value': values.keys.first
         )
 
