@@ -60,7 +60,7 @@ export class RadioToggleController extends Controller {
     })
   }
 
-  _uncheckedRadioButtons(element) {
+  _uncheckedRadioButtons (element) {
     const radios = element.querySelectorAll("input[type='radio']")
 
     for (const radio of radios) {
