@@ -1,3 +1,49 @@
 <%= tag.div(**options) do %>
-  <%= content %>
+  <div class="gantt-chart-list">
+    <div class="gantt-chart-header">
+      Name
+    </div>
+
+    <div class="gantt-chart-data">
+      <% tasks.each do |task| %>
+        <div class="gantt-chart-row">
+          <%= task.name %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="gantt-chart-timeline">
+    <div class="gantt-chart-header">
+      <div class="gantt-chart-scale-line top-line">
+        <% days_by_month.each do |month_number, dates| %>
+          <div class="gantt-chart-header-month" style="width: <%= dates.size * COLUMN_WIDTH %>px">
+            <%= I18n.t("date.month_names")[month_number] %>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="gantt-chart-scale-line">
+        <% days_by_month.each do |month_number, dates| %>
+          <% dates.each do |date| %>
+            <div class="gantt-chart-header-day">
+              <%= date.day %>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="gantt-chart-data-area" style="width: <%= duration * COLUMN_WIDTH %>px">
+      <% tasks.each do |task| %>
+        <div class="gantt-chart-row">
+          <%= tag.div class: 'gantt-chart-cell',
+                      style: "left: #{task.position_left}px; width: #{task.width}px" do %>
+
+            <div class="gantt-chart-cell-content"></div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
 <% end %>

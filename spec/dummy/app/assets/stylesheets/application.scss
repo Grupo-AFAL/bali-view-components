@@ -16,6 +16,7 @@
 
 // Third Party Libraries
 @import 'bulma';
+@import '../../../../../app/assets/stylesheets/bali/variables';
 @import '../../../../../app/components/bali/avatar/index';
 @import '../../../../../app/components/bali/calendar/index';
 @import '../../../../../app/components/bali/card/index';
@@ -24,6 +25,7 @@
 @import '../../../../../app/components/bali/drawer/index';
 @import '../../../../../app/components/bali/dropdown/index';
 @import '../../../../../app/components/bali/filters/index';
+@import '../../../../../app/components/bali/gantt_chart/index';
 @import '../../../../../app/components/bali/heatmap/index';
 @import '../../../../../app/components/bali/help_tip/index';
 @import '../../../../../app/components/bali/hover_card/index';
