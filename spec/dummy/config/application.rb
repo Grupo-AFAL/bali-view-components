@@ -44,5 +44,7 @@ module Dummy
     # ViewComponents
     config.autoload_paths << Rails.root.parent.parent.join('app', 'components')
     config.view_component.preview_paths << Rails.root.parent.parent.join('app', 'components')
+
+    config.lookbook.listen_extensions = %w[js scss]
   end
 end

@@ -7,6 +7,7 @@ import {
   ChartController,
   DropdownController,
   FilterFormController,
+  GanttChartController,
   HelpTipController,
   HovercardController,
   NavbarController,
@@ -31,6 +32,7 @@ application.register('carousel', CarouselController)
 application.register('chart', ChartController)
 application.register('dropdown', DropdownController)
 application.register('filter-form', FilterFormController)
+application.register('gantt-chart', GanttChartController)
 application.register('help-tip', HelpTipController)
 application.register('hovercard', HovercardController)
 application.register('navbar', NavbarController)
