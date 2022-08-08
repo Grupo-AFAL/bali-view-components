@@ -86,10 +86,10 @@ export class RadioButtonsGroupController extends Controller {
   }
 
   select (event) {
-    const label = event.target.parentNode;
-    const radiosContainer = label.parentNode;
+    const label = event.target.parentNode
+    const radiosContainer = label.parentNode
 
-    for(const element of radiosContainer.children) {
+    for (const element of radiosContainer.children) {
       element.classList.remove('is-active')
     }
 
