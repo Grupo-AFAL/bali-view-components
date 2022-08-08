@@ -39,6 +39,7 @@ export {
   InputOnChangeController,
   PrintController,
   RadioToggleController,
+  ResizerController,
   SlimSelectController,
   StepNumberInputController,
   SubmitButtonController,

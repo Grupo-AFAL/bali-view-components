@@ -1,11 +1,12 @@
 import { Controller } from '@hotwired/stimulus'
 import Sortable from 'sortablejs'
+import useDispatch from '../../../javascript/bali/utils/use-dispatch'
 
 export class GanttChartController extends Controller {
   static targets = ['timeline']
 
   connect () {
-    console.log('Gantt charts')
+    useDispatch(this)
   }
 
   onItemMoved (event) {
@@ -15,5 +16,9 @@ export class GanttChartController extends Controller {
     const { order } = event.detail
 
     timelineSortable.sort(order, true)
+  }
+
+  onItemResized (event) {
+    console.log('onItemResized', event.detail)
   }
 }

@@ -15,6 +15,7 @@
     "chart.js": "^3.8.0",
     "date-fns": "^2.29.1",
     "flatpickr": "^4.6.13",
+    "interactjs": "^1.10.17",
     "lodash.debounce": "^4.0.8",
     "lodash.throttle": "^4.1.1",
     "slim-select": "^1.27.1",

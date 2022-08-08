@@ -18,10 +18,6 @@ const defaultOptions = {
 
 class UseDispatch {
   constructor (controller, options = {}) {
-    // super(controller, options)
-
-    console.log('UseDispatch', controller, options)
-
     this.debug = options?.debug ?? defaultOptions.debug
     this.logger = options?.logger ?? defaultOptions.logger
     this.controller = controller
