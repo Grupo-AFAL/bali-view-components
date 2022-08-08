@@ -23,7 +23,7 @@ module Bali
         options[:control_data] ||= {}
         options[:control_data].merge!(
           controller: 'radio-buttons-grouped',
-          'radio-buttons-grouped-current-value': values.keys.first
+          'radio-buttons-grouped-current-value': options.delete(:current_value) || values.keys.first
         )
 
         field = safe_join([
