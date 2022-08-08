@@ -14,5 +14,7 @@ Rails.application.routes.draw do
 
   patch 'sortable_list', to: 'sortable_list#update'
 
+  resources :gantt_chart, only: %i[update]
+
   mount Lookbook::Engine, at: '/lookbook'
 end

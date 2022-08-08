@@ -96,13 +96,13 @@ $gantt-chart-col-width: 25px;
   .gantt-chart-cell-content {
     position: relative;
 
-    &:hover .gantt-chart-drag {
+    &:hover .gantt-chart-resize {
       opacity: 1;
       background-color: rgba(10, 10, 10, 0.3);
     }
   }
 
-  .gantt-chart-drag {
+  .gantt-chart-resize {
     opacity: 0;
     height: $gantt-chart-item-bubble-height;
     width: $gantt-chart-item-bubble-height/2;
@@ -112,13 +112,13 @@ $gantt-chart-col-width: 25px;
     }
   }
 
-  .gantt-chart-drag-left {
+  .gantt-chart-resize-left {
     cursor: w-resize;
     border-radius: $gantt-chart-item-bubble-radius 0 0
       $gantt-chart-item-bubble-radius;
   }
 
-  .gantt-chart-drag-right {
+  .gantt-chart-resize-right {
     cursor: e-resize;
     border-radius: 0 $gantt-chart-item-bubble-radius
       $gantt-chart-item-bubble-radius 0;

@@ -4,7 +4,7 @@ module Bali
   module GanttChart
     module Task
       class Component < ApplicationViewComponent
-        attr_reader :id, :name, :start_date, :end_date
+        attr_reader :id, :name, :start_date, :end_date, :update_url
 
         attr_accessor :chart_start_date, :chart_end_date
 
@@ -14,6 +14,7 @@ module Bali
           name:,
           start_date:,
           end_date:,
+          update_url: nil,
           progress: 0,
           dependent_on_id: nil,
           **options
@@ -22,6 +23,7 @@ module Bali
           @name = name
           @start_date = start_date
           @end_date = end_date
+          @update_url = update_url
           @progress = progress
           @dependent_on_id = dependent_on_id
           @options = options
@@ -42,6 +44,16 @@ module Bali
 
         def offset
           (start_date - chart_start_date).to_i
+        end
+
+        def params
+          {
+              id: id,
+              name: name,
+              start_date: start_date,
+              end_date: end_date,
+              update_url: update_url
+          }
         end
       end
     end

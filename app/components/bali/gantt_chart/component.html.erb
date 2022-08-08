@@ -39,18 +39,18 @@
          style="width: <%= duration * COLUMN_WIDTH %>px"
     >
       <% tasks.each do |task| %>
-        <%= tag.div class: 'gantt-chart-row',
-                    data: { id: task.id, 'gantt-chart-target': 'item' } do %>
+        <%= tag.div class: 'gantt-chart-row', data: { id: task.id } do %>
           <%= tag.div class: 'gantt-chart-cell',
                       style: "left: #{task.position_left}px; width: #{task.width}px",
                       data: {
                         controller: 'interact',
-                        'interact-position-value': task.position_left
+                        'interact-position-value': task.position_left,
+                        'interact-params-value': task.params.to_json
                       } do %>
 
             <div class="gantt-chart-cell-content">
               <%= render Bali::Icon::Component.new('handle',
-                  class: 'gantt-chart-drag gantt-chart-drag-left',
+                  class: 'gantt-chart-resize gantt-chart-resize-left',
                   data: {
                     action: 'mousedown->interact#onResizeStart',
                     'interact-handle-param': 'left' }) %>
@@ -58,7 +58,7 @@
               <div class="gantt-chart-drag-handle" data-action="mousedown->interact#onDragStart"></div>
 
               <%= render Bali::Icon::Component.new('handle',
-                  class: 'gantt-chart-drag gantt-chart-drag-right',
+                  class: 'gantt-chart-resize gantt-chart-resize-right',
                   data: {
                     action: 'mousedown->interact#onResizeStart',
                     'interact-handle-param': 'right' }) %>
