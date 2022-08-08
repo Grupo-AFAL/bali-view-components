@@ -41,24 +41,24 @@ import { Controller } from '@hotwired/stimulus'
 // TODO: Add tests (Issue: #143)
 export class RadioButtonsGroupController extends Controller {
   static targets = ['element', 'toggler']
-  static values = { 
-    current: String, 
+  static values = {
+    current: String,
     keepSelection: { type: Boolean, default: false }
   }
 
-  connect() {
+  connect () {
     this.activeToggler(this.currentValue)
     this.toggleTargets(this.currentValue)
   }
 
-  change(event) {
+  change (event) {
     this.activeToggler(event.target.value)
     this.toggleTargets(event.target.value)
 
     if (this.keepSelectionValue) { this.keepSelection() }
   }
 
-  activeToggler(value) {
+  activeToggler (value) {
     this.togglerTargets.forEach(element => {
       if (element.value === value) {
         element.classList.add('is-active')
@@ -68,7 +68,7 @@ export class RadioButtonsGroupController extends Controller {
     })
   }
 
-  toggleTargets(value) {
+  toggleTargets (value) {
     this.elementTargets.forEach(element => {
       const valuesProperties = element.dataset.radioButtonsGroupValue.split(',')
 
@@ -82,7 +82,7 @@ export class RadioButtonsGroupController extends Controller {
     })
   }
 
-  uncheckedRadioButtons() {
+  uncheckedRadioButtons () {
     const radios = this.element.querySelectorAll("input[type='radio']")
 
     for (const radio of radios) {
@@ -91,10 +91,10 @@ export class RadioButtonsGroupController extends Controller {
     }
   }
 
-  select(event) {
-    this.checkedText = event.target.closest('label').innerText;
+  select (event) {
+    this.checkedText = event.target.closest('label').innerText
 
-    const labels = this.activeTogglerContent.querySelectorAll("label")
+    const labels = this.activeTogglerContent.querySelectorAll('label')
 
     for (const label of labels) {
       if (label.innerText === this.checkedText) {
@@ -105,15 +105,15 @@ export class RadioButtonsGroupController extends Controller {
     }
   }
 
-  keepSelection() {
+  keepSelection () {
     const radios = this.activeTogglerContent.querySelectorAll("input[type='radio']")
 
     for (const radio of radios) {
       const label = radio.closest('label')
 
       if (label.innerText === this.checkedText) {
-        radio.checked = true;
-        label.classList.add('is-active');
+        radio.checked = true
+        label.classList.add('is-active')
       }
     }
   }
