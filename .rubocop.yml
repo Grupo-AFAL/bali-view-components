@@ -78,7 +78,7 @@ Rails/HasAndBelongsToMany:
   Enabled: false
 
 Metrics/BlockLength:
-  IgnoredMethods: ['describe', 'context', 'it', 'before', 'included']
+  AllowedMethods: ['describe', 'context', 'it', 'before', 'included']
   Exclude:
     - spec/*
     - lib/tasks/*
