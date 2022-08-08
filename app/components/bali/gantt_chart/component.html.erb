@@ -44,22 +44,24 @@
           <%= tag.div class: 'gantt-chart-cell',
                       style: "left: #{task.position_left}px; width: #{task.width}px",
                       data: {
-                        controller: 'resizer',
-                        'resizer-position-value': task.position_left
+                        controller: 'interact',
+                        'interact-position-value': task.position_left
                       } do %>
 
             <div class="gantt-chart-cell-content">
               <%= render Bali::Icon::Component.new('handle',
                   class: 'gantt-chart-drag gantt-chart-drag-left',
                   data: {
-                    action: 'mousedown->resizer#onResizeStart',
-                    'resizer-handle-param': 'left' }) %>
+                    action: 'mousedown->interact#onResizeStart',
+                    'interact-handle-param': 'left' }) %>
+
+              <div class="gantt-chart-drag-handle" data-action="mousedown->interact#onDragStart"></div>
 
               <%= render Bali::Icon::Component.new('handle',
                   class: 'gantt-chart-drag gantt-chart-drag-right',
                   data: {
-                    action: 'mousedown->resizer#onResizeStart',
-                    'resizer-handle-param': 'right' }) %>
+                    action: 'mousedown->interact#onResizeStart',
+                    'interact-handle-param': 'right' }) %>
             </div>
           <% end %>
         <% end %>

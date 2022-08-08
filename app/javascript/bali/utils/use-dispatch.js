@@ -59,8 +59,6 @@ class UseDispatch {
     // includes the emitting controller in the event detail
     Object.assign(detail, { controller })
 
-    console.log(eventName, detail)
-
     const eventNameWithPrefix = composeEventName(
       eventName,
       this.controller,

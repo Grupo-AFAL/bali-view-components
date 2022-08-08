@@ -13,8 +13,8 @@ module Bali
         @options = prepend_class_name(options, 'gantt-chart-component')
         @options = prepend_controller(options, 'gantt-chart')
         @options = prepend_action(options, 'sortable-list:onEnd->gantt-chart#onItemReordered')
-        @options = prepend_action(options, 'resizer:onResizeEnd->gantt-chart#onItemResized')
-        @options = prepend_action(options, 'resizer:onDragEnd->gantt-chart#onItemDragged')
+        @options = prepend_action(options, 'interact:onResizeEnd->gantt-chart#onItemResized')
+        @options = prepend_action(options, 'interact:onDragEnd->gantt-chart#onItemDragged')
       end
 
       def before_render

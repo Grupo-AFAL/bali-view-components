@@ -57,8 +57,6 @@ export class SortableListController extends Controller {
   }
 
   onMove = (event, _originalEvent) => {
-    console.log('dispatching onMove', { event })
-
     const itemPullDisabled = event.dragged.dataset.sortableItemPull === 'false'
 
     if (itemPullDisabled && this.itemChangedSortableList(event)) {
