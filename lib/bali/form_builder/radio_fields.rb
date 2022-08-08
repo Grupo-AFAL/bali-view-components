@@ -80,7 +80,10 @@ module Bali
           options[:data]['radio-buttons-group-value'] = category
 
           tag.div(**options) do
-            safe_join(tags(category_values, {}, method, label_options[:class]))
+            safe_join(tags(
+              category_values,
+              { data: { action: 'click->radio-buttons-group#select' } },
+              method, label_options))
           end
         end)
       end
