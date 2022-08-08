@@ -16,14 +16,24 @@ module Bali
         field_helper(method, field, options)
       end
 
-      def radio_buttons_grouped(
+      def radio_buttons_group(
         method, values, options = {}, togglers_options = {}, radios_options = {}
       )
-        options[:control_class] = "radio-buttons-grouped #{options[:control_class] || ''}"
+        @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
+          radio_buttons_field(
+            method, values, options, togglers_options, radios_options
+          )
+        end
+      end
+
+      def radio_buttons_field(
+        method, values, options = {}, togglers_options = {}, radios_options = {}
+      )
+        options[:control_class] = "radio-buttons-group #{options[:control_class] || ''}"
         options[:control_data] ||= {}
         options[:control_data].merge!(
-          controller: 'radio-buttons-grouped',
-          'radio-buttons-grouped-current-value': options.delete(:current_value) || values.keys.first
+          controller: 'radio-buttons-group',
+          'radio-buttons-group-current-value': options.delete(:current_value) || values.keys.first
         )
 
         field = safe_join([
@@ -53,21 +63,21 @@ module Bali
       def toggler_options(options)
         opts = options.delete(:toggler) || {}
         opts = prepend_class_name(opts, 'toggler')
-        opts = prepend_action(opts, 'radio-buttons-grouped#change')
-        opts = prepend_data_attribute(opts, 'radio-buttons-grouped-target', 'toggler')
+        opts = prepend_action(opts, 'radio-buttons-group#change')
+        opts = prepend_data_attribute(opts, 'radio-buttons-group-target', 'toggler')
         opts[:type] = 'button'
 
         opts
       end
 
       def radio_buttons(method, values, options)
-        options = prepend_data_attribute(options, 'radio-buttons-grouped-target', 'element')
+        options = prepend_data_attribute(options, 'radio-buttons-group-target', 'element')
 
         label_options = options.delete(:label) || {}
         label_options = prepend_class_name(label_options, 'radio')
 
         safe_join(values.map do |category, category_values|
-          options[:data]['radio-buttons-grouped-value'] = category
+          options[:data]['radio-buttons-group-value'] = category
 
           tag.div(**options) do
             safe_join(tags(category_values, {}, method, label_options[:class]))

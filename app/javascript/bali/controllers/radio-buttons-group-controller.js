@@ -39,7 +39,7 @@ import { Controller } from '@hotwired/stimulus'
  */
 
 // TODO: Add tests (Issue: #143)
-export class RadioButtonsGroupedController extends Controller {
+export class RadioButtonsGroupController extends Controller {
   static targets = ['element', 'toggler']
   static values = { current: String }
 
@@ -65,7 +65,7 @@ export class RadioButtonsGroupedController extends Controller {
 
   toggleTargets (value) {
     this.elementTargets.forEach(element => {
-      const valuesProperties = element.dataset.radioButtonsGroupedValue.split(',')
+      const valuesProperties = element.dataset.radioButtonsGroupValue.split(',')
 
       if (valuesProperties.includes(value)) {
         element.classList.remove('is-hidden')
