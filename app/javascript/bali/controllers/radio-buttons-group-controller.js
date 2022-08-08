@@ -41,17 +41,24 @@ import { Controller } from '@hotwired/stimulus'
 // TODO: Add tests (Issue: #143)
 export class RadioButtonsGroupController extends Controller {
   static targets = ['element', 'toggler']
-  static values = { current: String }
+  static values = { 
+    current: String, 
+    keepSelection: { type: Boolean, default: false }
+  }
 
-  connect () {
+  connect() {
     this.activeToggler(this.currentValue)
+    this.toggleTargets(this.currentValue)
   }
 
-  change (event) {
+  change(event) {
     this.activeToggler(event.target.value)
+    this.toggleTargets(event.target.value)
+
+    if (this.keepSelectionValue) { this.keepSelection() }
   }
 
-  activeToggler (value) {
+  activeToggler(value) {
     this.togglerTargets.forEach(element => {
       if (element.value === value) {
         element.classList.add('is-active')
@@ -59,16 +66,15 @@ export class RadioButtonsGroupController extends Controller {
         element.classList.remove('is-active')
       }
     })
-
-    this.toggleTargets(value)
   }
 
-  toggleTargets (value) {
+  toggleTargets(value) {
     this.elementTargets.forEach(element => {
       const valuesProperties = element.dataset.radioButtonsGroupValue.split(',')
 
       if (valuesProperties.includes(value)) {
         element.classList.remove('is-hidden')
+        this.activeTogglerContent = element
       } else {
         element.classList.add('is-hidden')
         this.uncheckedRadioButtons(element)
@@ -76,8 +82,8 @@ export class RadioButtonsGroupController extends Controller {
     })
   }
 
-  uncheckedRadioButtons (element) {
-    const radios = element.querySelectorAll("input[type='radio']")
+  uncheckedRadioButtons() {
+    const radios = this.element.querySelectorAll("input[type='radio']")
 
     for (const radio of radios) {
       radio.checked = false
@@ -85,14 +91,30 @@ export class RadioButtonsGroupController extends Controller {
     }
   }
 
-  select (event) {
-    const label = event.target.parentNode
-    const radiosContainer = label.parentNode
+  select(event) {
+    this.checkedText = event.target.closest('label').innerText;
 
-    for (const element of radiosContainer.children) {
-      element.classList.remove('is-active')
+    const labels = this.activeTogglerContent.querySelectorAll("label")
+
+    for (const label of labels) {
+      if (label.innerText === this.checkedText) {
+        label.classList.add('is-active')
+      } else {
+        label.classList.remove('is-active')
+      }
     }
+  }
 
-    label.classList.add('is-active')
+  keepSelection() {
+    const radios = this.activeTogglerContent.querySelectorAll("input[type='radio']")
+
+    for (const radio of radios) {
+      const label = radio.closest('label')
+
+      if (label.innerText === this.checkedText) {
+        radio.checked = true;
+        label.classList.add('is-active');
+      }
+    }
   }
 }
