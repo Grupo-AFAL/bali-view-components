@@ -84,7 +84,7 @@ module Bali
               tags(
                 category_values,
                 { data: { action: 'click->radio-buttons-group#select' } },
-                method, label_options
+                method, label_options[:class]
               )
             )
           end
