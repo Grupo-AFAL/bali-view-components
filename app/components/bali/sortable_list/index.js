@@ -1,6 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 import Sortable from 'sortablejs'
 import { patch } from '@rails/request.js'
+import useDispatch from '../../../javascript/bali/utils/use-dispatch'
 
 export class SortableListController extends Controller {
   static values = {
@@ -15,6 +16,8 @@ export class SortableListController extends Controller {
   }
 
   connect () {
+    useDispatch(this)
+
     this.sortable = new Sortable(this.element, {
       group: this.groupNameValue,
       animation: this.animationValue,
@@ -28,8 +31,6 @@ export class SortableListController extends Controller {
   }
 
   onEnd = async ({ item, newIndex, to }) => {
-    if (!item.dataset.sortableUpdateUrl) return
-
     const positionParam = this.resourceNameValue
       ? `${this.resourceNameValue}[${this.positionParamNameValue}]`
       : this.positionParamNameValue
@@ -44,6 +45,11 @@ export class SortableListController extends Controller {
     data.append(positionParam, newIndex + 1)
     data.append(listIdParam, toListId)
 
+    const order = this.sortable.toArray()
+    this.dispatch('onEnd', { item, newIndex, to, toListId, order })
+
+    if (!item.dataset.sortableUpdateUrl) return
+
     await patch(item.dataset.sortableUpdateUrl, {
       body: data,
       responseKind: this.responseKindValue
@@ -51,6 +57,8 @@ export class SortableListController extends Controller {
   }
 
   onMove = (event, _originalEvent) => {
+    console.log('dispatching onMove', { event })
+
     const itemPullDisabled = event.dragged.dataset.sortableItemPull === 'false'
 
     if (itemPullDisabled && this.itemChangedSortableList(event)) {

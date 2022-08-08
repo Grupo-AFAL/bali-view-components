@@ -4,7 +4,7 @@ module Bali
   module GanttChart
     module Task
       class Component < ApplicationViewComponent
-        attr_reader :name, :start_date, :end_date
+        attr_reader :id, :name, :start_date, :end_date
 
         attr_accessor :chart_start_date, :chart_end_date
 
@@ -27,18 +27,6 @@ module Bali
           @options = options
         end
         # rubocop:enable Metrics/ParameterLists
-
-        def call
-          tag.span data: {
-            'gantt-chart-target': 'task',
-            id: @id,
-            name: @name,
-            start: @start_date.to_s,
-            end: @end_date.to_s,
-            progress: @progress,
-            dependencies: @dependent_on_id
-          }
-        end
 
         def position_left
           offset * GanttChart::Component::COLUMN_WIDTH
