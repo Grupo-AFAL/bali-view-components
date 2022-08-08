@@ -39,7 +39,8 @@
          style="width: <%= duration * COLUMN_WIDTH %>px"
     >
       <% tasks.each do |task| %>
-        <%= tag.div class: 'gantt-chart-row', data: { id: task.id } do %>
+        <%= tag.div class: 'gantt-chart-row',
+                    data: { id: task.id, 'gantt-chart-target': 'item' } do %>
           <%= tag.div class: 'gantt-chart-cell',
                       style: "left: #{task.position_left}px; width: #{task.width}px",
                       data: {
