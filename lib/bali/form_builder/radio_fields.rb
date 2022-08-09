@@ -29,7 +29,7 @@ module Bali
       def radio_buttons_field(
         method, values, options = {}, togglers_options = {}, radios_options = {}
       )
-        current_value = options.delete(:current_value) || 
+        current_value = options.delete(:current_value) ||
                         values.find { |key, _| values[key].present? }&.first
 
         options[:control_class] = "radio-buttons-group #{options[:control_class] || ''}"
