@@ -21,7 +21,13 @@ module Bali
         end
         @tasks.filter! { |task| task.parent_id.blank? }
 
-        @options = configure_options(options)
+        @options = prepend_class_name(options, 'gantt-chart-component')
+        @options = prepend_controller(@options, 'gantt-chart')
+        @options = prepend_action(@options, 'sortable-list:onEnd->gantt-chart#onItemReordered')
+        @options = prepend_action(@options, 'interact:onResizeEnd->gantt-chart#onItemResized')
+        @options = prepend_action(@options, 'interact:onDragEnd->gantt-chart#onItemDragged')
+        @options = prepend_action(@options, 'gantt-foldable-item:toggle->gantt-chart#onFold')
+        @options = prepend_values(@options, 'gantt-chart', { today_offset: today_offset })
       end
       # rubocop:enable Metrics/AbcSize
 
@@ -57,16 +63,6 @@ module Bali
 
       def today_offset
         (start_date - Date.current).to_i.abs * col_width
-      end
-
-      def configure_options(opts)
-        opts = prepend_class_name(opts, 'gantt-chart-component')
-        opts = prepend_controller(opts, 'gantt-chart')
-        opts = prepend_action(opts, 'sortable-list:onEnd->gantt-chart#onItemReordered')
-        opts = prepend_action(opts, 'interact:onResizeEnd->gantt-chart#onItemResized')
-        opts = prepend_action(opts, 'interact:onDragEnd->gantt-chart#onItemDragged')
-        opts = prepend_action(opts, 'gantt-foldable-item:toggle->gantt-chart#onFold')
-        prepend_values(opts, 'gantt-chart', { today_offset: today_offset })
       end
     end
   end
