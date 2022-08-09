@@ -18,7 +18,7 @@
 
   <div class="gantt-chart-timeline" data-gantt-chart-target="timeline">
     <%= render Bali::GanttChart::TimelineHeader::Component.new(
-               days_by_month: days_by_month, col_width: col_width) %>
+               start_date: start_date, end_date: end_date, col_width: col_width) %>
 
     <div class="gantt-chart-data-area"
          data-controller="sortable-list"

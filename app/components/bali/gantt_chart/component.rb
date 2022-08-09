@@ -54,10 +54,6 @@ module Bali
         @max_date ||= latest_task&.end_date || @default_end_date
       end
 
-      def days_by_month
-        (start_date..end_date).group_by(&:month)
-      end
-
       def earliest_task
         tasks.min { |a, b| a.start_date <=> b.start_date }
       end
