@@ -41,14 +41,6 @@ module Bali
         duration * col_width
       end
 
-      def duration
-        (end_date - start_date).to_i + 1
-      end
-
-      def offset
-        (start_date - chart_start_date).to_i
-      end
-
       def params
         {
           id: id,
@@ -65,6 +57,16 @@ module Bali
 
       def total_row_height
         (child_count + 1) * row_height
+      end
+
+      private
+
+      def duration
+        (end_date - start_date).to_i + 1
+      end
+
+      def offset
+        (start_date - chart_start_date).to_i
       end
     end
   end
