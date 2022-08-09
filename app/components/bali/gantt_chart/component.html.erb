@@ -85,32 +85,7 @@
          style="width: <%= duration * COLUMN_WIDTH %>px"
     >
       <% tasks.each do |task| %>
-        <%= tag.div class: 'gantt-chart-row', data: { id: task.id } do %>
-          <%= tag.div class: 'gantt-chart-cell',
-                      style: "left: #{task.position_left}px; width: #{task.width}px",
-                      data: {
-                        controller: 'interact',
-                        'interact-position-value': task.position_left,
-                        'interact-params-value': task.params.to_json
-                      } do %>
-
-            <div class="gantt-chart-cell-content">
-              <%= render Bali::Icon::Component.new('handle',
-                  class: 'gantt-chart-resize gantt-chart-resize-left',
-                  data: {
-                    action: 'mousedown->interact#onResizeStart',
-                    'interact-handle-param': 'left' }) %>
-
-              <div class="gantt-chart-drag-handle" data-action="mousedown->interact#onDragStart"></div>
-
-              <%= render Bali::Icon::Component.new('handle',
-                  class: 'gantt-chart-resize gantt-chart-resize-right',
-                  data: {
-                    action: 'mousedown->interact#onResizeStart',
-                    'interact-handle-param': 'right' }) %>
-            </div>
-          <% end %>
-        <% end %>
+        <%= render Bali::GanttChart::TimelineRow::Component.new(task: task) %>
       <% end %>
     </div>
   </div>

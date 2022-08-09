@@ -11,6 +11,11 @@ module Bali
         @tasks = tasks.map { |task| Task.new(**task) }
         tasks_by_parent_id = @tasks.group_by(&:parent_id)
 
+        @tasks.each do |task|
+          task.chart_start_date = start_date
+          task.chart_end_date = end_date
+        end
+
         @tasks.each { |task| task.children = tasks_by_parent_id[task.id] || [] }
         @tasks.filter! { |task| task.parent_id.blank? }
 
@@ -22,13 +27,6 @@ module Bali
 
         @default_start_date = Date.current.beginning_of_month - 1.month
         @default_end_date = Date.current.end_of_month + 2.months
-      end
-
-      def before_render
-        tasks.each do |task|
-          task.chart_start_date = start_date
-          task.chart_end_date = end_date
-        end
       end
 
       def start_date
