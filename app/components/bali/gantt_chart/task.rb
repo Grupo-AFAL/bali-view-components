@@ -7,6 +7,8 @@ module Bali
 
       attr_accessor :chart_start_date, :chart_end_date, :children
 
+      ROW_HEIGHT = 35
+
       # rubocop:disable Metrics/ParameterLists
       def initialize(
         id:,
@@ -57,6 +59,14 @@ module Bali
           end_date: end_date,
           update_url: update_url
         }
+      end
+
+      def child_count
+        children.size + children.sum(&:child_count)
+      end
+
+      def row_height
+        (child_count + 1) * ROW_HEIGHT
       end
     end
   end

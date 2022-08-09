@@ -26,7 +26,7 @@ $gantt-chart-col-width: 25px;
       line-height: $gantt-chart-header-height;
     }
 
-    .gantt-chart-row {
+    .gantt-chart-row-contents {
       border-bottom: 1px solid $border-color;
     }
   }
@@ -71,6 +71,9 @@ $gantt-chart-col-width: 25px;
     font-size: $size-7;
 
     position: relative;
+  }
+
+  .gantt-chart-row-contents {
     display: flex;
     align-items: center;
   }
@@ -142,6 +145,7 @@ $gantt-chart-col-width: 25px;
 
     &.children {
       padding-left: 0;
+      font-weight: bold;
     }
   }
 
@@ -157,12 +161,13 @@ $gantt-chart-col-width: 25px;
     cursor: move;
   }
 
-  .is-revealed .chevron-down {
+  .is-folded .chevron-down {
     transform: rotate(-90deg);
   }
 
   .chevron-down {
     width: 0.75rem;
+    cursor: pointer;
 
     .svg-inline {
       height: 0.75rem;

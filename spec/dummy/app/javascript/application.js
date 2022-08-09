@@ -8,6 +8,7 @@ import {
   DropdownController,
   FilterFormController,
   GanttChartController,
+  GanttFoldableItemController,
   HelpTipController,
   HovercardController,
   NavbarController,
@@ -34,6 +35,7 @@ application.register('chart', ChartController)
 application.register('dropdown', DropdownController)
 application.register('filter-form', FilterFormController)
 application.register('gantt-chart', GanttChartController)
+application.register('gantt-foldable-item', GanttFoldableItemController)
 application.register('help-tip', HelpTipController)
 application.register('hovercard', HovercardController)
 application.register('navbar', NavbarController)
