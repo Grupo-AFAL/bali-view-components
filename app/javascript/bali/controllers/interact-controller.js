@@ -5,7 +5,9 @@ export class InteractController extends Controller {
   static values = {
     position: Number,
     increment: { type: Number, default: 25 },
-    params: { type: Object, default: {} }
+    params: { type: Object, default: {} },
+    startDelta: { type: Number, default: 0 },
+    endDelta: { type: Number, default: 0 }
   }
 
   connect () {
@@ -44,20 +46,16 @@ export class InteractController extends Controller {
   }
 
   onResizeEnd = event => {
-    let diffX, startDelta, endDelta
+    let diffX
 
     if (this.handle === 'left') {
       diffX = this.snap(this.positionX - event.clientX)
-      startDelta = -diffX / this.incrementValue
-      endDelta = 0
-
+      this.startDeltaValue -= diffX / this.incrementValue
       this.positionValue = this.positionValue - diffX
       this.width = this.width + diffX
     } else {
       diffX = this.snap(event.clientX - this.positionX)
-      startDelta = 0
-      endDelta = diffX / this.incrementValue
-
+      this.endDeltaValue += diffX / this.incrementValue
       this.width = this.width + diffX
     }
 
@@ -68,8 +66,8 @@ export class InteractController extends Controller {
       params: this.paramsValue,
       position: this.positionValue,
       width: this.width,
-      startDelta,
-      endDelta
+      startDelta: this.startDeltaValue,
+      endDelta: this.endDeltaValue
     })
     this.resetMovement()
   }
@@ -90,11 +88,14 @@ export class InteractController extends Controller {
     const diffX = this.snap(this.positionX - event.clientX)
     this.positionValue = this.positionValue - diffX
     this.element.style.left = `${this.positionValue}px`
+    this.startDeltaValue -= diffX / this.incrementValue
+    this.endDeltaValue -= diffX / this.incrementValue
 
     this.dispatch('onDragEnd', {
       params: this.paramsValue,
       position: this.positionValue,
-      delta: -diffX / this.incrementValue,
+      startDelta: this.startDeltaValue,
+      endDelta: this.endDeltaValue,
       width: this.width
     })
     this.resetMovement()

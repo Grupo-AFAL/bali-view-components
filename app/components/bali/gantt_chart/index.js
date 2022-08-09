@@ -19,24 +19,35 @@ export class GanttChartController extends Controller {
     timelineSortable.sort(order, true)
   }
 
-  onItemResized (event) {
+  async onItemResized (event) {
     console.log('onItemResized', event.detail)
+
+    await this.updateTask(event.detail)
   }
 
   async onItemDragged (event) {
     console.log('onItemDragged', event.detail)
 
+    await this.updateTask(event.detail)
+  }
+
+  async updateTask (detail) {
     let {
-      delta,
+      startDelta,
+      endDelta,
       params: { start_date, end_date, update_url }
-    } = event.detail
+    } = detail
 
-    start_date = new Date(Date.parse(start_date))
-    start_date.setDate(start_date.getDate() + delta)
-
-    end_date = new Date(Date.parse(end_date))
-    end_date.setDate(end_date.getDate() + delta)
+    start_date = this.addDays(start_date, startDelta)
+    end_date = this.addDays(end_date, endDelta)
 
     await patch(update_url, { body: { start_date, end_date } })
+  }
+
+  addDays (date, days) {
+    const newDate = new Date(Date.parse(date))
+    newDate.setDate(newDate.getDate() + days)
+
+    return newDate
   }
 }
