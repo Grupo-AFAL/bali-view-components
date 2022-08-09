@@ -61,8 +61,9 @@ export class RadioButtonsGroupController extends Controller {
   }
 
   change (event) {
-    this.activeToggler(event.target.value)
-    this.toggleTargets(event.target.value)
+    const value = event.target.closest('button').value
+    this.activeToggler(value)
+    this.toggleTargets(value)
 
     if (this.keepSelectionValue) { this.keepSelection() }
   }

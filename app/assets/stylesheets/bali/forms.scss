@@ -136,5 +136,10 @@
       background: $toggler-active-background;
       color: $toggler-active-color;
     }
+
+    &:disabled {
+      color: $grey-light;
+      border-color: $grey-light;
+    }
   }
 }
