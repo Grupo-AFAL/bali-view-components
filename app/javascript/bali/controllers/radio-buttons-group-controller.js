@@ -55,6 +55,7 @@ export class RadioButtonsGroupController extends Controller {
     for (const radio of radios) {
       const label = radio.closest('label')
 
+      radio.checked = true
       label.classList.add('is-active')
       this.selectedText = label.innerText
     }
