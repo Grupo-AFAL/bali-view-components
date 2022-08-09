@@ -37,6 +37,7 @@ export {
   FocusOnConnectController,
   InputOnChangeController,
   PrintController,
+  RadioButtonsGroupController,
   RadioToggleController,
   SlimSelectController,
   StepNumberInputController,

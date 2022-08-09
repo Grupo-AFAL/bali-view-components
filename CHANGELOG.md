@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.37.0] - 2022-08-5
+
+- `radio-buttons-group-controller` was created.
+- Update `ModalController` to look for `data-turbo` attribute in the form if it was not present in the `event.target`.
+
 ## [0.36.0] - 2022-08-4
 
 - Update `radio-toggle-controller` to accept multiple values in current value.

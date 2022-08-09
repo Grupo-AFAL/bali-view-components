@@ -145,7 +145,7 @@ export class ModalController extends Controller {
 
     const form = event.target.closest('form')
     const formURL = form.getAttribute('action')
-    const enableTurbo = event.target.dataset.turbo
+    const enableTurbo = event.target.dataset.turbo || form.dataset.turbo
 
     const url = this._buildURL(formURL, this.redirectTo)
     const options = {
