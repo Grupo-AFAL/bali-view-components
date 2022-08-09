@@ -29,9 +29,6 @@ module Bali
         @options = prepend_action(options, 'interact:onDragEnd->gantt-chart#onItemDragged')
         @options = prepend_action(options, 'gantt-foldable-item:toggle->gantt-chart#onFold')
         @options = prepend_values(options, 'gantt-chart', { today_offset: today_offset })
-
-        @default_start_date = Date.current.beginning_of_month - 1.month
-        @default_end_date = Date.current.end_of_month + 2.months
       end
 
       def start_date
@@ -46,12 +43,14 @@ module Bali
         (end_date - start_date).to_i + 1
       end
 
+      private
+
       def min_date
-        @min_date ||= earliest_task&.start_date || @default_start_date
+        @min_date ||= earliest_task&.start_date || Date.current
       end
 
       def max_date
-        @max_date ||= latest_task&.end_date || @default_end_date
+        @max_date ||= latest_task&.end_date || (Date.current + 2.months)
       end
 
       def earliest_task
