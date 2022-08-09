@@ -15,10 +15,18 @@ export class GanttChartController extends Controller {
     this.timelineTarget.scrollTo({ left: this.todayOffsetValue / 2 })
   }
 
-  onItemReordered (event) {
-    console.log('onItemReordered', event)
-    const { order, toListId } = event.detail
+  onFold (event) {
+    const { taskId, height } = event.detail
+    const listElement = this.timelineTarget.querySelector(
+      `[data-sortable-list-list-id-value='${taskId}']`
+    )
 
+    listElement.classList.toggle('is-hidden')
+    listElement.closest('.gantt-chart-row').style.height = `${height}px`
+  }
+
+  onItemReordered (event) {
+    const { order, toListId } = event.detail
     const listElement = this.timelineTarget.querySelector(
       `[data-sortable-list-list-id-value='${toListId}']`
     )
@@ -28,14 +36,10 @@ export class GanttChartController extends Controller {
   }
 
   async onItemResized (event) {
-    console.log('onItemResized', event.detail)
-
     await this.updateTask(event.detail)
   }
 
   async onItemDragged (event) {
-    console.log('onItemDragged', event.detail)
-
     await this.updateTask(event.detail)
   }
 

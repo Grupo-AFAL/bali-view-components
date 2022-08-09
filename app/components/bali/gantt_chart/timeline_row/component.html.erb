@@ -1,10 +1,8 @@
 <%= tag.div class: 'gantt-chart-row',
     data: {
-      id: task.id,
-      controller: 'gantt-foldable-item',
-      'gantt-foldable-item-child-count-value': task.child_count,
+      id: task.id
     },
-    style: "height: #{task.row_height}px" do %>
+    style: "height: #{task.total_row_height}px" do %>
   <%= tag.div class: 'gantt-chart-cell',
               style: "left: #{task.position_left}px; width: #{task.width}px",
               data: {
@@ -31,8 +29,8 @@
   <% end %>
 
   <% if task.children.any? %>
-    <div class="level-1 gantt-chart-timeline-children" data-gantt-foldable-item-target="item">
-      <div data-controller="sortable-list gantt-foldable-item"
+    <div class="level-1 gantt-chart-timeline-children">
+      <div data-controller="sortable-list"
         data-sortable-list-group-name-value="timeline"
         data-sortable-list-handle-value=".handle"
         data-sortable-list-list-id-value="<%= task.id %>"

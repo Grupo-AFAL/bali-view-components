@@ -5,9 +5,7 @@ module Bali
     class Task
       attr_reader :id, :name, :start_date, :end_date, :update_url, :parent_id
 
-      attr_accessor :chart_start_date, :chart_end_date, :children
-
-      ROW_HEIGHT = 35
+      attr_accessor :chart_start_date, :chart_end_date, :children, :row_height, :col_width
 
       # rubocop:disable Metrics/ParameterLists
       def initialize(
@@ -36,11 +34,11 @@ module Bali
       # rubocop:enable Metrics/ParameterLists
 
       def position_left
-        offset * GanttChart::Component::COLUMN_WIDTH
+        offset * col_width
       end
 
       def width
-        duration * GanttChart::Component::COLUMN_WIDTH
+        duration * col_width
       end
 
       def duration
@@ -65,8 +63,8 @@ module Bali
         children.size + children.sum(&:child_count)
       end
 
-      def row_height
-        (child_count + 1) * ROW_HEIGHT
+      def total_row_height
+        (child_count + 1) * row_height
       end
     end
   end

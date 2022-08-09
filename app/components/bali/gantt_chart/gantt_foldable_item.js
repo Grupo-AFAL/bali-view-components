@@ -1,11 +1,17 @@
 import { Controller } from '@hotwired/stimulus'
+import useDispatch from '../../../javascript/bali/utils/use-dispatch'
 
 export class GanttFoldableItemController extends Controller {
   static targets = ['item']
   static values = {
+    taskId: { type: Number, default: 0 },
     rowHeight: { type: Number, default: 35 },
     childCount: Number,
     folded: { type: Boolean, default: false }
+  }
+
+  connect () {
+    useDispatch(this)
   }
 
   toggle () {
@@ -21,6 +27,12 @@ export class GanttFoldableItemController extends Controller {
     })
 
     this.foldedValue = !this.foldedValue
+
+    this.dispatch('toggle', {
+      taskId: this.taskIdValue,
+      folded: this.foldedValue,
+      height: newHeight
+    })
   }
 
   get expandedHeight () {

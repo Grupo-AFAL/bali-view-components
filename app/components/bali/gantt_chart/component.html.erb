@@ -20,7 +20,7 @@
     <div class="gantt-chart-header">
       <div class="gantt-chart-scale-line top-line">
         <% days_by_month.each do |month_number, dates| %>
-          <div class="gantt-chart-header-month" style="width: <%= dates.size * COLUMN_WIDTH %>px">
+          <div class="gantt-chart-header-month" style="width: <%= dates.size * col_width %>px">
             <%= I18n.t("date.month_names")[month_number] %>
           </div>
         <% end %>
@@ -42,7 +42,8 @@
          data-sortable-list-group-name-value="timeline"
          data-sortable-list-disabled-value="true"
          data-sortable-list-list-id-value="0"
-         style="width: <%= duration * COLUMN_WIDTH %>px"
+         data-sortable-list-pull-value="false"
+         style="width: <%= duration * col_width %>px"
     >
       <% tasks.each do |task| %>
         <%= render Bali::GanttChart::TimelineRow::Component.new(task: task) %>
