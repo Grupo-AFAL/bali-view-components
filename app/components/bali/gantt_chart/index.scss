@@ -3,6 +3,8 @@ $border-color: $grey-lighter;
 $gantt-chart-header-height: 45px;
 $gantt-chart-header-size: 11px;
 
+$gantt-chart-list-width: 150px;
+
 $gantt-chart-row-height: 35px;
 
 $gantt-chart-item-color: $green;
@@ -23,13 +25,17 @@ $gantt-chart-col-width: 25px;
     .gantt-chart-header {
       line-height: $gantt-chart-header-height;
     }
+
+    .gantt-chart-row {
+      border-bottom: 1px solid $border-color;
+    }
   }
 
   .gantt-chart-header {
     display: inline-block;
 
     height: $gantt-chart-header-height;
-    min-width: 100px;
+    min-width: $gantt-chart-list-width;
     font-size: $size-7;
 
     border-bottom: 1px solid $border-color;
@@ -65,6 +71,8 @@ $gantt-chart-col-width: 25px;
     font-size: $size-7;
 
     position: relative;
+    display: flex;
+    align-items: center;
   }
 
   .gantt-chart-cell {
@@ -127,5 +135,38 @@ $gantt-chart-col-width: 25px;
   .gantt-chart-drag-handle {
     width: 100%;
     cursor: move;
+  }
+
+  .gantt-chart-row .task-name {
+    padding-left: 0.75rem;
+
+    &.children {
+      padding-left: 0;
+    }
+  }
+
+  .level-1 .gantt-chart-row .task-name {
+    padding-left: 1.5rem;
+
+    &.children {
+      padding-left: 0.75rem;
+    }
+  }
+
+  .handle {
+    cursor: move;
+  }
+
+  .is-revealed .chevron-down {
+    transform: rotate(-90deg);
+  }
+
+  .chevron-down {
+    width: 0.75rem;
+
+    .svg-inline {
+      height: 0.75rem;
+      width: 0.75rem;
+    }
   }
 }

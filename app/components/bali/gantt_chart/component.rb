@@ -3,13 +3,17 @@
 module Bali
   module GanttChart
     class Component < ApplicationViewComponent
-      attr_reader :options
-
-      renders_many :tasks, Task::Component
+      attr_reader :tasks, :options
 
       COLUMN_WIDTH = 25
 
-      def initialize(**options)
+      def initialize(tasks: [], **options)
+        @tasks = tasks.map { |task| Task.new(**task) }
+        tasks_by_parent_id = @tasks.group_by(&:parent_id)
+
+        @tasks.each { |task| task.children = tasks_by_parent_id[task.id] || [] }
+        @tasks.filter! { |task| task.parent_id.blank? }
+
         @options = prepend_class_name(options, 'gantt-chart-component')
         @options = prepend_controller(options, 'gantt-chart')
         @options = prepend_action(options, 'sortable-list:onEnd->gantt-chart#onItemReordered')

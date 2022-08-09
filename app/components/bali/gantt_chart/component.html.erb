@@ -4,9 +4,44 @@
       Name
     </div>
 
-    <div class="gantt-chart-data" data-controller="sortable-list">
+    <div class="gantt-chart-data"
+         data-controller="sortable-list reveal"
+         data-sortable-list-group-name-value="gantt"
+         data-sortable-list-handle-value=".handle"
+    >
       <% tasks.each do |task| %>
-        <%= tag.div task.name, class: 'gantt-chart-row', data: { id: task.id } %>
+        <%= tag.div class: 'gantt-chart-row', data: { id: task.id, 'sortable-update-url': task.update_url } do %>
+          <%= render Bali::Icon::Component.new('handle', class: 'handle') %>
+          <%= render Bali::Icon::Component.new('chevron-down', class: 'chevron-down', data: { action: 'click->reveal#toggle' }) if task.children.any? %>
+          <%= tag.div task.name, class: class_names('task-name', children: task.children.any?) %>
+        <% end %>
+
+        <% if task.children.any? %>
+          <div class="level-1" data-reveal-target="item">
+            <div data-controller="sortable-list reveal"
+               data-sortable-list-group-name-value="gantt"
+               data-sortable-list-handle-value=".handle"
+            >
+              <% task.children.each do |task| %>
+                <%= tag.div class: 'gantt-chart-row', data: { id: task.id, 'sortable-update-url': task.update_url } do %>
+                  <%= render Bali::Icon::Component.new('handle', class: 'handle') %>
+                  <%= render Bali::Icon::Component.new('chevron-down', class: 'chevron-down', data: { action: 'click->reveal#toggle' }) if task.children.any? %>
+                  <%= tag.div task.name, class: class_names('task-name', children: task.children.any?) %>
+                <% end %>
+
+                <% if task.children.any? %>
+                  <div class="level-2" data-controller="sortable-list" data-sortable-list-group-name-value="gantt">
+                    <% task.children.each do |task| %>
+                      <%= tag.div class: 'gantt-chart-row', data: { id: task.id, 'sortable-update-url': task.update_url } do %>
+                        <div class="task-name"><%= task.name %></div>
+                      <% end %>
+                    <% end %>
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
       <% end %>
     </div>
   </div>
