@@ -1,4 +1,10 @@
-<%= tag.div class: 'gantt-chart-row', data: { id: task.id } do %>
+<%= tag.div class: 'gantt-chart-row',
+    data: {
+      id: task.id,
+      controller: 'gantt-foldable-item',
+      'gantt-foldable-item-child-count-value': task.child_count,
+    },
+    style: "height: #{task.row_height}px" do %>
   <%= tag.div class: 'gantt-chart-cell',
               style: "left: #{task.position_left}px; width: #{task.width}px",
               data: {
@@ -23,8 +29,17 @@
             'interact-handle-param': 'right' }) %>
     </div>
   <% end %>
-<% end %>
 
-<% task.children.each do |child_task| %>
-  <%= render Bali::GanttChart::TimelineRow::Component.new(task: child_task) %>
+  <% if task.children.any? %>
+    <div class="level-1 gantt-chart-timeline-children" data-gantt-foldable-item-target="item">
+      <div data-controller="sortable-list gantt-foldable-item"
+        data-sortable-list-group-name-value="timeline"
+        data-sortable-list-handle-value=".handle"
+    >
+        <% task.children.each do |child_task| %>
+          <%= render Bali::GanttChart::TimelineRow::Component.new(task: child_task) %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
 <% end %>

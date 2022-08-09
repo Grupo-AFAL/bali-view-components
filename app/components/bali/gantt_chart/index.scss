@@ -91,6 +91,14 @@ $gantt-chart-col-width: 25px;
     height: $gantt-chart-item-bubble-height;
     border-radius: $gantt-chart-item-bubble-radius;
     display: flex;
+
+    position: absolute;
+    top: ($gantt-chart-row-height - $gantt-chart-item-bubble-height) / 2;
+
+    &:hover .gantt-chart-resize {
+      opacity: 1;
+      background-color: rgba(10, 10, 10, 0.3);
+    }
   }
 
   .gantt-chart-timeline {
@@ -104,13 +112,9 @@ $gantt-chart-col-width: 25px;
     height: calc(100% - #{($gantt-chart-header-height)});
   }
 
-  .gantt-chart-cell-content {
-    position: relative;
-
-    &:hover .gantt-chart-resize {
-      opacity: 1;
-      background-color: rgba(10, 10, 10, 0.3);
-    }
+  .gantt-chart-timeline-children {
+    position: absolute;
+    top: $gantt-chart-row-height;
   }
 
   .gantt-chart-resize {

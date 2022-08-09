@@ -1,0 +1,27 @@
+<%= tag.div class: 'gantt-chart-row',
+    data: {
+      id: task.id,
+      controller: 'gantt-foldable-item',
+      'gantt-foldable-item-child-count-value': task.child_count,
+      'sortable-update-url': task.update_url
+    },
+    style: "height: #{task.row_height}px" do %>
+  <div class="gantt-chart-row-contents">
+    <%= render Bali::Icon::Component.new('handle', class: 'handle') %>
+    <%= render Bali::Icon::Component.new('chevron-down', class: 'chevron-down', data: { action: 'click->gantt-foldable-item#toggle' }) if task.children.any? %>
+    <%= tag.div task.name, class: class_names('task-name', children: task.children.any?) %>
+  </div>
+
+  <% if task.children.any? %>
+    <div class="level-1" data-gantt-foldable-item-target="item">
+      <div data-controller="sortable-list gantt-foldable-item"
+        data-sortable-list-group-name-value="gantt"
+        data-sortable-list-handle-value=".handle"
+    >
+        <% task.children.each do |child_task| %>
+          <%= render Bali::GanttChart::ListRow::Component.new(task: child_task) %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+<% end %>
