@@ -8,6 +8,7 @@
          data-controller="sortable-list"
          data-sortable-list-group-name-value="gantt"
          data-sortable-list-handle-value=".handle"
+         data-sortable-list-list-id-value="0"
     >
       <% tasks.each do |task| %>
         <%= render Bali::GanttChart::ListRow::Component.new(task: task) %>
@@ -15,7 +16,7 @@
     </div>
   </div>
 
-  <div class="gantt-chart-timeline">
+  <div class="gantt-chart-timeline" data-gantt-chart-target="timeline">
     <div class="gantt-chart-header">
       <div class="gantt-chart-scale-line top-line">
         <% days_by_month.each do |month_number, dates| %>
@@ -38,8 +39,9 @@
 
     <div class="gantt-chart-data-area"
          data-controller="sortable-list"
+         data-sortable-list-group-name-value="timeline"
          data-sortable-list-disabled-value="true"
-         data-gantt-chart-target="timeline"
+         data-sortable-list-list-id-value="0"
          style="width: <%= duration * COLUMN_WIDTH %>px"
     >
       <% tasks.each do |task| %>

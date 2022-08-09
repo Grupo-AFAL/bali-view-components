@@ -17,6 +17,8 @@
       <div data-controller="sortable-list gantt-foldable-item"
         data-sortable-list-group-name-value="gantt"
         data-sortable-list-handle-value=".handle"
+        data-sortable-list-list-id-value="<%= task.id %>"
+        data-sortable-list-pull-value="false"
     >
         <% task.children.each do |child_task| %>
           <%= render Bali::GanttChart::ListRow::Component.new(task: child_task) %>

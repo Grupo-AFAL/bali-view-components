@@ -5,18 +5,26 @@ import { patch } from '@rails/request.js'
 
 export class GanttChartController extends Controller {
   static targets = ['timeline', 'item']
+  static values = {
+    todayOffset: Number
+  }
 
   connect () {
     useDispatch(this)
+
+    this.timelineTarget.scrollTo({ left: this.todayOffsetValue / 2 })
   }
 
   onItemReordered (event) {
     console.log('onItemReordered', event)
+    const { order, toListId } = event.detail
 
-    const timelineSortable = Sortable.get(this.timelineTarget)
-    const { order } = event.detail
+    const listElement = this.timelineTarget.querySelector(
+      `[data-sortable-list-list-id-value='${toListId}']`
+    )
 
-    timelineSortable.sort(order, true)
+    const sortable = Sortable.get(listElement)
+    sortable.sort(order, true)
   }
 
   async onItemResized (event) {

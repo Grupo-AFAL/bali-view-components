@@ -24,6 +24,7 @@ module Bali
         @options = prepend_action(options, 'sortable-list:onEnd->gantt-chart#onItemReordered')
         @options = prepend_action(options, 'interact:onResizeEnd->gantt-chart#onItemResized')
         @options = prepend_action(options, 'interact:onDragEnd->gantt-chart#onItemDragged')
+        @options = prepend_values(options, 'gantt-chart', { today_offset: today_offset })
 
         @default_start_date = Date.current.beginning_of_month - 1.month
         @default_end_date = Date.current.end_of_month + 2.months
@@ -59,6 +60,10 @@ module Bali
 
       def latest_task
         tasks.max { |a, b| a.end_date <=> b.end_date }
+      end
+
+      def today_offset
+        (start_date - Date.current).to_i.abs * COLUMN_WIDTH
       end
     end
   end

@@ -12,6 +12,7 @@ export class SortableListController extends Controller {
     animation: { type: Number, default: 150 },
     handle: String,
     groupName: String,
+    pull: { type: Boolean, default: true },
     disabled: { type: Boolean, default: false }
   }
 
@@ -19,7 +20,7 @@ export class SortableListController extends Controller {
     useDispatch(this)
 
     this.sortable = new Sortable(this.element, {
-      group: this.groupNameValue,
+      group: { name: this.groupNameValue, pull: this.pullValue },
       animation: this.animationValue,
       handle: this.handleValue || undefined,
       fallbackOnBody: true,
