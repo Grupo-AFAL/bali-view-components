@@ -127,6 +127,7 @@
     background: transparent;
     border: $toggler-border;
     padding: $toggler-padding;
+    cursor: pointer;
 
     &:not(:last-child) {
       margin-right: $toggler-margin-right;
