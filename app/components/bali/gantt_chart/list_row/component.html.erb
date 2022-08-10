@@ -16,7 +16,7 @@
 
   <% if task.children.any? %>
     <div class="gantt-chart-list-children"
-        data-controller="sortable-list gantt-foldable-item"
+        data-controller="sortable-list"
         data-sortable-list-group-name-value="gantt-list"
         data-sortable-list-handle-value=".handle"
         data-sortable-list-list-id-value="<%= task.id %>"

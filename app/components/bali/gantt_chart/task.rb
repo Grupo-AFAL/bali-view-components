@@ -51,12 +51,12 @@ module Bali
         }
       end
 
-      def child_count
-        children.size + children.sum(&:child_count)
-      end
-
       def total_row_height
         (child_count + 1) * row_height
+      end
+
+      def child_count
+        children.size + children.sum(&:child_count)
       end
 
       private
