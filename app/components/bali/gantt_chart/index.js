@@ -14,7 +14,7 @@ export class GanttChartController extends Controller {
   connect () {
     useDispatch(this)
 
-    this.timelineTarget.scrollTo({ left: this.todayOffsetValue / 2 })
+    this.timelineTarget.scrollTo({ left: this.todayOffsetValue })
   }
 
   onFold () {

@@ -3,25 +3,31 @@
 module Bali
   module GanttChart
     class Component < ApplicationViewComponent
-      attr_reader :tasks, :row_height, :col_width, :options
+      attr_reader :tasks, :row_height, :col_width, :zoom, :options
 
       # rubocop:disable Metrics/AbcSize
-      def initialize(tasks: [], row_height: 35, col_width: 25, **options)
+      def initialize(tasks: [], row_height: 35, col_width: nil, zoom: :day, **options)
         @row_height = row_height
         @col_width = col_width
+
+        # Default is 100 for month view and 25 for day view.
+        @col_width ||= zoom == :day ? 25 : 100
+        @zoom = zoom
 
         @tasks = tasks.map { |task| Task.new(**task) }
         tasks_by_parent_id = @tasks.group_by(&:parent_id)
         @tasks.each do |task|
           task.chart_start_date = start_date
           task.chart_end_date = end_date
-          task.row_height = row_height
-          task.col_width = col_width
+          task.row_height = @row_height
+          task.col_width = @col_width
+          task.zoom = zoom
           task.children = tasks_by_parent_id[task.id] || []
         end
         @tasks.filter! { |task| task.parent_id.blank? }
 
         @options = prepend_class_name(options, 'gantt-chart-component')
+        @options = prepend_class_name(options, 'month-zoom') if zoom == :month
         @options = prepend_controller(@options, 'gantt-chart')
         @options = prepend_action(@options, 'sortable-list:onEnd->gantt-chart#onItemReordered')
         @options = prepend_action(@options, 'interact:onResizeEnd->gantt-chart#onItemResized')
@@ -34,15 +40,29 @@ module Bali
       # rubocop:enable Metrics/AbcSize
 
       def start_date
-        min_date.beginning_of_month - 1.month
+        if zoom == :day
+          (min_date - 1.month).beginning_of_month
+        elsif zoom == :month
+          (min_date - 1.year).beginning_of_year
+        end
       end
 
       def end_date
-        max_date.end_of_month + 1.month
+        if zoom == :day
+          (max_date + 1.month).end_of_month
+        elsif zoom == :month
+          (max_date + 1.year).end_of_year
+        end
       end
 
       def duration
-        (end_date - start_date).to_i + 1
+        if zoom == :day
+          (end_date - start_date).to_i + 1
+        else
+          end_month = (end_date.year * 12) + end_date.month
+          start_month = (start_date.year * 12) + start_date.month
+          (end_month - start_month).to_i + 1
+        end
       end
 
       private
@@ -64,7 +84,13 @@ module Bali
       end
 
       def today_offset
-        (start_date - Date.current).to_i.abs * col_width
+        if zoom == :day
+          (start_date - Date.current).to_i.abs * col_width
+        else
+          start_month = (start_date.year * 12) + start_date.month
+          current_month = (Date.current.year * 12) + Date.current.month
+          (start_month - current_month).to_i.abs * col_width
+        end
       end
     end
   end

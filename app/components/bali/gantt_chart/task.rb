@@ -5,7 +5,7 @@ module Bali
     class Task
       attr_reader :id, :name, :href, :start_date, :end_date, :update_url, :parent_id, :options
 
-      attr_accessor :chart_start_date, :chart_end_date, :children, :row_height, :col_width
+      attr_accessor :chart_start_date, :chart_end_date, :children, :row_height, :col_width, :zoom
 
       # rubocop:disable Metrics/ParameterLists
       def initialize(
@@ -64,11 +64,21 @@ module Bali
       private
 
       def duration
-        (end_date - start_date).to_i + 1
+        if zoom == :day
+          (end_date - start_date).to_i + 1
+        else
+          (((end_date - start_date) + 1) / 30).to_f
+        end
       end
 
       def offset
-        (start_date - chart_start_date).to_i
+        if zoom == :day
+          (start_date - chart_start_date).to_i + 1
+        else
+          start_month = (start_date.year * 12) + start_date.month
+          chart_start_month = (chart_start_date.year * 12) + chart_start_date.month
+          (start_month - chart_start_month).to_i + (start_date.day.to_f / 30)
+        end
       end
     end
   end
