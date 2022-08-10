@@ -1,10 +1,11 @@
 import { Controller } from '@hotwired/stimulus'
 import Sortable from 'sortablejs'
 import useDispatch from '../../../javascript/bali/utils/use-dispatch'
+import { toBool } from '../../../javascript/bali/utils/formatters'
 import { patch } from '@rails/request.js'
 
 export class GanttChartController extends Controller {
-  static targets = ['timeline', 'item', 'list', 'listRow', 'timelineRow']
+  static targets = ['timeline', 'listRow', 'timelineRow']
   static values = {
     todayOffset: Number,
     rowHeight: Number
@@ -16,41 +17,24 @@ export class GanttChartController extends Controller {
     this.timelineTarget.scrollTo({ left: this.todayOffsetValue / 2 })
   }
 
-  onFold (event) {
-    const { taskId, parentId, height } = event.detail
-
-    console.log('onFold', { parentId })
+  onFold () {
+    const rowData = {}
 
     this.listRowTargets.forEach(listRow => {
-      listRow.style.height = `${this.calculateHeight(listRow)}px`
+      const rowHeight = this.calculateHeight(listRow)
+      const folded = toBool(listRow.dataset.ganttFoldableItemFoldedValue)
+
+      rowData[listRow.dataset.id] = { rowHeight, folded }
+      listRow.style.height = `${rowHeight}px`
     })
 
-    // if (parentId > 0) {
-    //   const parentList = this.listTarget.querySelector(
-    //     `[data-gantt-foldable-item-task-id-value='${parentId}']`
-    //   )
-    //   console.log(parentList)
+    this.timelineRowTargets.forEach(timelineRow => {
+      const { rowHeight, folded } = rowData[timelineRow.dataset.id]
 
-    //   const openInTree = parentList.querySelectorAll(
-    //     '[data-controller="gantt-foldable-item"]'
-    //   )
-
-    //   const openCount = Array.from(openInTree).filter(
-    //     item => item.dataset.ganttFoldableItemHiddenValue !== 'true'
-    //   ).length
-
-    //   const parentHeight = (openCount + 1) * this.rowHeightValue
-    //   parentList.style.height = `${parentHeight}px`
-
-    //   // parentList.querySelectorAll('[data-controller="gantt-foldable-item"]')
-    // }
-
-    // const timelineList = this.timelineTarget.querySelector(
-    //   `[data-sortable-list-list-id-value='${taskId}']`
-    // )
-
-    // timelineList.classList.toggle('is-hidden')
-    // timelineList.closest('.gantt-chart-row').style.height = `${height}px`
+      const operation = folded ? 'add' : 'remove'
+      timelineRow.classList[operation]('is-folded')
+      timelineRow.style.height = `${rowHeight}px`
+    })
   }
 
   calculateHeight (listRow) {
@@ -68,20 +52,11 @@ export class GanttChartController extends Controller {
       ) {
         visibleRowCount += 1
       }
-
-      console.log(
-        'visibleRow',
-        row,
-        parentRow,
-        parentRow.dataset.ganttFoldableItemFoldedValue
-      )
     })
 
     if (listRow.dataset.ganttFoldableItemVisibleValue === 'true') {
       visibleRowCount += 1
     }
-
-    console.log('listRow', listRow.dataset.ganttFoldableItemVisibleValue)
 
     return visibleRowCount * this.rowHeightValue
   }

@@ -191,15 +191,11 @@ $gantt-chart-col-width: 25px;
     .children-container {
       display: none;
     }
+
+    .gantt-chart-timeline-children {
+      display: none;
+    }
   }
-
-  // .is-folded {
-  //   background-color: $white-bis;
-  // }
-
-  // .is-hidden-folded {
-  //   background-color: $grey-lightest;
-  // }
 
   .chevron-down {
     width: 0.75rem;

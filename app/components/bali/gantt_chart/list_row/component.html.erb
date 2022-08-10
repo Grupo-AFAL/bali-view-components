@@ -2,9 +2,6 @@
     data: {
       id: task.id,
       controller: 'gantt-foldable-item',
-      'gantt-foldable-item-task-id-value': task.id,
-      'gantt-foldable-item-parent-id-value': task.parent_id,
-      'gantt-foldable-item-row-height-value': task.row_height,
       'gantt-foldable-item-visible-value': true,
       'gantt-foldable-item-folded-value': false,
       'sortable-update-url': task.update_url,
@@ -18,15 +15,12 @@
   </div>
 
   <% if task.children.any? %>
-    <div class="children-container" data-gantt-foldable-item-target="item">
+    <div class="children-container">
       <div data-controller="sortable-list gantt-foldable-item"
         data-sortable-list-group-name-value="gantt"
         data-sortable-list-handle-value=".handle"
         data-sortable-list-list-id-value="<%= task.id %>"
         data-sortable-list-pull-value="false"
-        data-gantt-foldable-item-task-id-value="<%= task.id %>"
-        data-gantt-foldable-item-parent-id-value="<%= task.parent_id %>"
-        data-gantt-foldable-item-row-height-value="<%= task.row_height %>"
     >
         <% task.children.each do |child_task| %>
           <%= render Bali::GanttChart::ListRow::Component.new(task: child_task) %>
