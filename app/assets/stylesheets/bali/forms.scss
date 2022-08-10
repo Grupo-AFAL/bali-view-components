@@ -93,3 +93,54 @@
     margin-bottom: 0.5rem;
   }
 }
+
+.radio-buttons-group {
+  $togglers-margin-bottom: 1.5rem;
+
+  $toggler-margin-right: 1rem;
+  $toggler-border: 1px solid $black;
+  $toggler-padding: 1rem;
+  $toggler-active-background: $primary;
+  $toggler-active-color: $white;
+
+  .field_with_errors {
+    width: unset;
+  }
+
+  &.is-left {
+    text-align: left;
+  }
+
+  &.is-center {
+    text-align: center;
+  }
+
+  &.is-right {
+    text-align: right;
+  }
+
+  .togglers {
+    margin-bottom: $togglers-margin-bottom;
+  }
+
+  .toggler {
+    background: transparent;
+    border: $toggler-border;
+    padding: $toggler-padding;
+    cursor: pointer;
+
+    &:not(:last-child) {
+      margin-right: $toggler-margin-right;
+    }
+
+    &.is-active {
+      background: $toggler-active-background;
+      color: $toggler-active-color;
+    }
+
+    &:disabled {
+      color: $grey-light;
+      border-color: $grey-light;
+    }
+  }
+}

@@ -13,6 +13,7 @@ import {
   NavbarController,
   NotificationController,
   PopupController,
+  RadioButtonsGroupController,
   RateController,
   InteractController,
   RevealController,
@@ -40,6 +41,7 @@ application.register('hovercard', HovercardController)
 application.register('navbar', NavbarController)
 application.register('notification', NotificationController)
 application.register('popup', PopupController)
+application.register('radio-buttons-group', RadioButtonsGroupController)
 application.register('rate', RateController)
 application.register('interact', InteractController)
 application.register('reveal', RevealController)

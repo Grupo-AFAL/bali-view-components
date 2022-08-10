@@ -1,0 +1,3 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.radio_buttons_field :name, values, { keep_selection: keep_selection } %>
+<% end %>
