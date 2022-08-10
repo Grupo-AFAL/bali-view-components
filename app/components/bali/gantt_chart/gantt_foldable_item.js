@@ -20,17 +20,7 @@ export class GanttFoldableItemController extends Controller {
 
     this.foldedValue = !this.foldedValue
 
-    console.log('toggle', {
-      taskId: this.taskIdValue,
-      parentId: this.parentIdValue,
-      folded: this.foldedValue
-    })
-
-    this.dispatch('toggle', {
-      taskId: this.taskIdValue,
-      parentId: this.parentIdValue,
-      folded: this.foldedValue
-    })
+    this.dispatch('toggle')
   }
 
   get rowChildren () {

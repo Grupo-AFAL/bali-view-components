@@ -46,10 +46,10 @@ export class GanttChartController extends Controller {
 
     visibleRows.forEach(row => {
       const parentRow = row.parentElement.closest('.gantt-chart-row')
-      if (
-        parentRow &&
-        parentRow.dataset.ganttFoldableItemFoldedValue !== 'true'
-      ) {
+      const parentIsNotFolded =
+        parentRow && parentRow.dataset.ganttFoldableItemFoldedValue !== 'true'
+
+      if (parentIsNotFolded) {
         visibleRowCount += 1
       }
     })
