@@ -46,8 +46,7 @@ export class SortableListController extends Controller {
     data.append(positionParam, newIndex + 1)
     data.append(listIdParam, toListId)
 
-    const order = this.sortable.toArray()
-    this.dispatch('onEnd', { item, newIndex, to, toListId, order })
+    this.dispatch('onEnd', { order: this.sortable.toArray(), toListId })
 
     if (!item.dataset.sortableUpdateUrl) return
 
