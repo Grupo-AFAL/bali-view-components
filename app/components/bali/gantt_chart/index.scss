@@ -144,20 +144,38 @@ $gantt-chart-col-width: 25px;
     cursor: move;
   }
 
-  .gantt-chart-row .task-name {
-    padding-left: 0.75rem;
-
-    &.children {
-      padding-left: 0;
-      font-weight: bold;
-    }
-  }
-
-  .level-1 .gantt-chart-row .task-name {
-    padding-left: 1.5rem;
-
-    &.children {
+  .gantt-chart-row {
+    .task-name {
       padding-left: 0.75rem;
+
+      &.children {
+        padding-left: 0;
+        font-weight: 800;
+      }
+    }
+
+    .gantt-chart-row {
+      .chevron-down {
+        margin-left: 0.75rem;
+      }
+
+      .task-name {
+        padding-left: 1.5rem;
+      }
+
+      .task-name.children {
+        padding-left: 0;
+      }
+
+      .gantt-chart-row {
+        .task-name {
+          padding-left: 2.25rem;
+
+          &.children {
+            padding-left: 1.5rem;
+          }
+        }
+      }
     }
   }
 
@@ -169,8 +187,23 @@ $gantt-chart-col-width: 25px;
     transform: rotate(-90deg);
   }
 
+  .is-folded {
+    .children-container {
+      display: none;
+    }
+  }
+
+  // .is-folded {
+  //   background-color: $white-bis;
+  // }
+
+  // .is-hidden-folded {
+  //   background-color: $grey-lightest;
+  // }
+
   .chevron-down {
     width: 0.75rem;
+    margin-right: 0.2rem;
     cursor: pointer;
 
     .svg-inline {

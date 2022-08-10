@@ -9,6 +9,7 @@
          data-sortable-list-group-name-value="gantt"
          data-sortable-list-handle-value=".handle"
          data-sortable-list-list-id-value="0"
+         data-gantt-chart-target="list"
     >
       <% tasks.each do |task| %>
         <%= render Bali::GanttChart::ListRow::Component.new(task: task) %>

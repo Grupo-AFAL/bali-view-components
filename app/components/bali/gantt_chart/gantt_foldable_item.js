@@ -1,13 +1,15 @@
 import { Controller } from '@hotwired/stimulus'
 import useDispatch from '../../../javascript/bali/utils/use-dispatch'
+import { toBool } from '../../../javascript/bali/utils/formatters'
 
 export class GanttFoldableItemController extends Controller {
   static targets = ['item']
   static values = {
     taskId: { type: Number, default: 0 },
+    parentId: { type: Number, default: 0 },
     rowHeight: { type: Number, default: 35 },
-    childCount: Number,
-    folded: { type: Boolean, default: false }
+    folded: { type: Boolean, default: false },
+    visible: { type: Boolean, default: true }
   }
 
   connect () {
@@ -17,25 +19,26 @@ export class GanttFoldableItemController extends Controller {
   toggle () {
     this.element.classList.toggle('is-folded')
 
-    const newHeight = this.foldedValue
-      ? this.expandedHeight
-      : this.rowHeightValue
-    this.element.style.height = `${newHeight}px`
-
-    this.itemTargets.forEach(item => {
-      item.classList.toggle('is-hidden')
+    this.rowChildren.forEach(child => {
+      child.dataset.ganttFoldableItemVisibleValue = this.foldedValue
     })
 
     this.foldedValue = !this.foldedValue
 
+    console.log('toggle', {
+      taskId: this.taskIdValue,
+      parentId: this.parentIdValue,
+      folded: this.foldedValue
+    })
+
     this.dispatch('toggle', {
       taskId: this.taskIdValue,
-      folded: this.foldedValue,
-      height: newHeight
+      parentId: this.parentIdValue,
+      folded: this.foldedValue
     })
   }
 
-  get expandedHeight () {
-    return (this.childCountValue + 1) * this.rowHeightValue
+  get rowChildren () {
+    return this.element.querySelectorAll(`.gantt-chart-row`)
   }
 }

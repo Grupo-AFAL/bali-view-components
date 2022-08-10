@@ -1,6 +1,7 @@
 <%= tag.div class: 'gantt-chart-row',
     data: {
-      id: task.id
+      id: task.id,
+      'gantt-chart-target': 'timelineRow'
     },
     style: "height: #{task.total_row_height}px" do %>
   <%= tag.div class: 'gantt-chart-cell',
@@ -29,7 +30,7 @@
   <% end %>
 
   <% if task.children.any? %>
-    <div class="level-1 gantt-chart-timeline-children">
+    <div class="gantt-chart-timeline-children">
       <div data-controller="sortable-list"
         data-sortable-list-group-name-value="timeline"
         data-sortable-list-handle-value=".handle"

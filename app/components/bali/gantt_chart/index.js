@@ -4,9 +4,10 @@ import useDispatch from '../../../javascript/bali/utils/use-dispatch'
 import { patch } from '@rails/request.js'
 
 export class GanttChartController extends Controller {
-  static targets = ['timeline', 'item']
+  static targets = ['timeline', 'item', 'list', 'listRow', 'timelineRow']
   static values = {
-    todayOffset: Number
+    todayOffset: Number,
+    rowHeight: Number
   }
 
   connect () {
@@ -16,13 +17,73 @@ export class GanttChartController extends Controller {
   }
 
   onFold (event) {
-    const { taskId, height } = event.detail
-    const listElement = this.timelineTarget.querySelector(
-      `[data-sortable-list-list-id-value='${taskId}']`
+    const { taskId, parentId, height } = event.detail
+
+    console.log('onFold', { parentId })
+
+    this.listRowTargets.forEach(listRow => {
+      listRow.style.height = `${this.calculateHeight(listRow)}px`
+    })
+
+    // if (parentId > 0) {
+    //   const parentList = this.listTarget.querySelector(
+    //     `[data-gantt-foldable-item-task-id-value='${parentId}']`
+    //   )
+    //   console.log(parentList)
+
+    //   const openInTree = parentList.querySelectorAll(
+    //     '[data-controller="gantt-foldable-item"]'
+    //   )
+
+    //   const openCount = Array.from(openInTree).filter(
+    //     item => item.dataset.ganttFoldableItemHiddenValue !== 'true'
+    //   ).length
+
+    //   const parentHeight = (openCount + 1) * this.rowHeightValue
+    //   parentList.style.height = `${parentHeight}px`
+
+    //   // parentList.querySelectorAll('[data-controller="gantt-foldable-item"]')
+    // }
+
+    // const timelineList = this.timelineTarget.querySelector(
+    //   `[data-sortable-list-list-id-value='${taskId}']`
+    // )
+
+    // timelineList.classList.toggle('is-hidden')
+    // timelineList.closest('.gantt-chart-row').style.height = `${height}px`
+  }
+
+  calculateHeight (listRow) {
+    let visibleRowCount = 0
+
+    const visibleRows = listRow.querySelectorAll(
+      '[data-gantt-foldable-item-visible-value="true"]'
     )
 
-    listElement.classList.toggle('is-hidden')
-    listElement.closest('.gantt-chart-row').style.height = `${height}px`
+    visibleRows.forEach(row => {
+      const parentRow = row.parentElement.closest('.gantt-chart-row')
+      if (
+        parentRow &&
+        parentRow.dataset.ganttFoldableItemFoldedValue !== 'true'
+      ) {
+        visibleRowCount += 1
+      }
+
+      console.log(
+        'visibleRow',
+        row,
+        parentRow,
+        parentRow.dataset.ganttFoldableItemFoldedValue
+      )
+    })
+
+    if (listRow.dataset.ganttFoldableItemVisibleValue === 'true') {
+      visibleRowCount += 1
+    }
+
+    console.log('listRow', listRow.dataset.ganttFoldableItemVisibleValue)
+
+    return visibleRowCount * this.rowHeightValue
   }
 
   onItemReordered (event) {
