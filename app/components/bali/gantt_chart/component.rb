@@ -3,16 +3,24 @@
 module Bali
   module GanttChart
     class Component < ApplicationViewComponent
-      attr_reader :tasks, :row_height, :col_width, :zoom, :options
+      attr_reader :tasks, :row_height, :col_width, :zoom, :readonly, :options
 
       # rubocop:disable Metrics/AbcSize
-      def initialize(tasks: [], row_height: 35, col_width: nil, zoom: :day, **options)
+      def initialize(
+        tasks: [],
+        row_height: 35,
+        col_width: nil,
+        zoom: :day,
+        readonly: false,
+        **options
+      )
         @row_height = row_height
         @col_width = col_width
 
         # Default is 100 for month view and 25 for day view.
         @col_width ||= zoom == :day ? 25 : 100
         @zoom = zoom
+        @readonly = readonly
 
         @tasks = tasks.map { |task| Task.new(**task) }
         tasks_by_parent_id = @tasks.group_by(&:parent_id)

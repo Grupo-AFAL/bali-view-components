@@ -14,7 +14,7 @@
               } do %>
 
     <%= tag.div class: class_names('gantt-chart-cell-content', 'has-children': task.children.any?) do %>
-      <% if task.children.empty? %>
+      <% if task.children.empty? && !readonly %>
         <%= render Bali::Icon::Component.new('handle',
           class: 'gantt-chart-resize gantt-chart-resize-left',
           data: {
@@ -39,9 +39,10 @@
         data-sortable-list-handle-value=".handle"
         data-sortable-list-list-id-value="<%= task.id %>"
         data-sortable-list-pull-value="false"
+        data-sortable-list-disabled-value="true"
     >
       <% task.children.each do |child_task| %>
-        <%= render Bali::GanttChart::TimelineRow::Component.new(task: child_task) %>
+        <%= render Bali::GanttChart::TimelineRow::Component.new(task: child_task, readonly: readonly) %>
       <% end %>
     </div>
   <% end %>

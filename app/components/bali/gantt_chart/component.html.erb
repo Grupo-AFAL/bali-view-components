@@ -12,7 +12,7 @@
          data-gantt-chart-target="list"
     >
       <% tasks.each do |task| %>
-        <%= render Bali::GanttChart::ListRow::Component.new(task: task) %>
+        <%= render Bali::GanttChart::ListRow::Component.new(task: task, readonly: readonly) %>
       <% end %>
     </div>
   </div>
@@ -30,7 +30,7 @@
          style="width: <%= duration * col_width %>px"
     >
       <% tasks.each do |task| %>
-        <%= render Bali::GanttChart::TimelineRow::Component.new(task: task) %>
+        <%= render Bali::GanttChart::TimelineRow::Component.new(task: task, readonly: readonly) %>
       <% end %>
     </div>
   </div>

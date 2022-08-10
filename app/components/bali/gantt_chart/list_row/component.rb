@@ -4,10 +4,11 @@ module Bali
   module GanttChart
     module ListRow
       class Component < ApplicationViewComponent
-        attr_reader :task
+        attr_reader :task, :readonly
 
-        def initialize(task:)
+        def initialize(task:, readonly:)
           @task = task
+          @readonly = readonly
         end
       end
     end

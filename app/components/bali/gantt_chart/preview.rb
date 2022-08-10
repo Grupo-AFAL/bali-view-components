@@ -12,6 +12,10 @@ module Bali
         render GanttChart::Component.new(tasks: tasks, zoom: :month)
       end
 
+      def readonly
+        render GanttChart::Component.new(tasks: tasks, readonly: true)
+      end
+
       private
 
       def tasks
