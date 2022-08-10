@@ -30,7 +30,9 @@ module Bali
         @options = prepend_class_name(options, 'month-zoom') if zoom == :month
         @options = prepend_controller(@options, 'gantt-chart')
         @options = prepend_action(@options, 'sortable-list:onEnd->gantt-chart#onItemReordered')
+        @options = prepend_action(@options, 'interact:onResizing->gantt-chart#onItemResizing')
         @options = prepend_action(@options, 'interact:onResizeEnd->gantt-chart#onItemResized')
+        @options = prepend_action(@options, 'interact:onDragging->gantt-chart#onItemDragging')
         @options = prepend_action(@options, 'interact:onDragEnd->gantt-chart#onItemDragged')
         @options = prepend_action(@options, 'gantt-foldable-item:toggle->gantt-chart#onFold')
         @options = prepend_values(@options, 'gantt-chart', {

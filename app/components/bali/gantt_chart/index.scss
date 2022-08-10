@@ -93,6 +93,7 @@ $gantt-chart-scale-height: 22px;
     height: $gantt-chart-item-bubble-height;
     border-radius: $gantt-chart-item-bubble-radius;
     display: flex;
+    z-index: 1;
 
     position: absolute;
     top: ($gantt-chart-row-height - $gantt-chart-item-bubble-height) / 2;

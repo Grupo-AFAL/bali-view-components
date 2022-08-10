@@ -3,6 +3,7 @@ import Sortable from 'sortablejs'
 import useDispatch from '../../../javascript/bali/utils/use-dispatch'
 import { toBool } from '../../../javascript/bali/utils/formatters'
 import { patch } from '@rails/request.js'
+import LeaderLine from './leader_line'
 
 export class GanttChartController extends Controller {
   static targets = ['timeline', 'listRow', 'timelineRow']
@@ -15,6 +16,11 @@ export class GanttChartController extends Controller {
     useDispatch(this)
 
     this.timelineTarget.scrollTo({ left: this.todayOffsetValue })
+
+    this.establishConnections()
+
+    this.timelineTarget.addEventListener('scroll', this.repositionConnections)
+    window.addEventListener('resize', this.repositionConnections)
   }
 
   onFold () {
@@ -35,6 +41,8 @@ export class GanttChartController extends Controller {
       timelineRow.classList[operation]('is-folded')
       timelineRow.style.height = `${rowHeight}px`
     })
+
+    this.repositionConnections()
   }
 
   calculateHeight (listRow) {
@@ -69,13 +77,25 @@ export class GanttChartController extends Controller {
 
     const sortable = Sortable.get(listElement)
     sortable.sort(order, true)
+
+    setTimeout(this.repositionConnections, 150)
+  }
+
+  onItemResizing () {
+    this.repositionConnections()
   }
 
   async onItemResized (event) {
+    this.repositionConnections()
     await this.updateTask(event.detail)
   }
 
+  onItemDragging () {
+    this.repositionConnections()
+  }
+
   async onItemDragged (event) {
+    this.repositionConnections()
     await this.updateTask(event.detail)
   }
 
@@ -97,5 +117,30 @@ export class GanttChartController extends Controller {
     newDate.setDate(newDate.getDate() + days)
 
     return newDate
+  }
+
+  establishConnections = () => {
+    this.dependentConnections = {}
+
+    this.timelineRowTargets
+      .filter(t => t.dataset.dependentOnId)
+      .forEach(timelineRow => {
+        const endCell = timelineRow.querySelector('.gantt-chart-cell-content')
+        const startCell = this.timelineTarget.querySelector(
+          `[data-id="${timelineRow.dataset.dependentOnId}"] .gantt-chart-cell-content`
+        )
+
+        const options = { color: 'gray', size: 1, path: 'grid' }
+        const line = new LeaderLine(startCell, endCell, options)
+
+        this.dependentConnections[timelineRow.dataset.id] ||= []
+        this.dependentConnections[timelineRow.dataset.id].push(line)
+      })
+  }
+
+  repositionConnections = () => {
+    Object.values(this.dependentConnections)
+      .flat()
+      .forEach(line => line.position())
   }
 }

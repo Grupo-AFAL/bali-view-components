@@ -1,7 +1,8 @@
 <%= tag.div class: 'gantt-chart-row',
     data: {
       id: task.id,
-      'gantt-chart-target': 'timelineRow'
+      'gantt-chart-target': 'timelineRow',
+      'dependent-on-id': task.dependent_on_id
     },
     style: "height: #{task.total_row_height}px" do %>
   <%= tag.div class: 'gantt-chart-cell',
