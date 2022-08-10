@@ -32,7 +32,8 @@ module Bali
           { id: 8, name: 'Task 2 with a very long name', start_date: date += 17.days, end_date: date + 2.days, update_url: '/gantt_chart/8', dependent_on_id: 7 },
           { id: 9, name: 'Task 3', start_date: date += 1.day, end_date: date + 1.day, update_url: '/gantt_chart/9' },
           { id: 10, name: 'Task 4', start_date: date += 1.day, end_date: date + 1.day, update_url: '/gantt_chart/10' },
-          { id: 11, name: 'Task 5', start_date: date += 1.day, end_date: date + 2.days, update_url: '/gantt_chart/11', dependent_on_id: 7 }
+          { id: 11, name: 'Task 5', start_date: date += 1.day, end_date: date + 2.days, update_url: '/gantt_chart/11', dependent_on_id: 7 },
+          { id: 12, name: 'Milestone', start_date: date + 2.days, end_date: date + 2.days, update_url: '/gantt_chart/12' }
         ]
       end
     end

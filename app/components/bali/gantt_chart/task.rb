@@ -62,6 +62,10 @@ module Bali
         children.size + children.sum(&:child_count)
       end
 
+      def milestone?
+        start_date == end_date
+      end
+
       private
 
       def duration

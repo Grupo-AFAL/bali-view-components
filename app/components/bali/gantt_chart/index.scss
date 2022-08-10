@@ -8,6 +8,8 @@ $gantt-chart-list-width: 200px;
 $gantt-chart-row-height: 35px;
 
 $gantt-chart-item-color: $green;
+$gantt-chart-milestone-color: $purple;
+
 $gantt-chart-item-bubble-height: 25px;
 $gantt-chart-item-bubble-radius: 12px;
 
@@ -94,6 +96,7 @@ $gantt-chart-scale-height: 22px;
     border-radius: $gantt-chart-item-bubble-radius;
     display: flex;
     z-index: 1;
+    box-shadow: $sharp-box-shadow;
 
     position: absolute;
     top: ($gantt-chart-row-height - $gantt-chart-item-bubble-height) / 2;
@@ -107,6 +110,16 @@ $gantt-chart-scale-height: 22px;
     &:hover .gantt-chart-resize {
       opacity: 1;
       background-color: rgba(10, 10, 10, 0.3);
+    }
+
+    &.milestone {
+      background-color: $gantt-chart-milestone-color;
+      border-radius: 2px;
+      transform: rotate(45deg);
+      height: 1rem;
+      width: 1rem;
+      left: 4px;
+      top: 10px;
     }
   }
 

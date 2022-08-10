@@ -13,21 +13,27 @@
                 'interact-params-value': task.params.to_json
               } do %>
 
-    <%= tag.div class: class_names('gantt-chart-cell-content', 'has-children': task.children.any?) do %>
+    <%= tag.div class: class_names('gantt-chart-cell-content',
+                                   'has-children': task.children.any?,
+                                   'milestone': task.milestone?) do %>
       <% if task.children.empty? && !readonly %>
-        <%= render Bali::Icon::Component.new('handle',
-          class: 'gantt-chart-resize gantt-chart-resize-left',
-          data: {
-            action: 'mousedown->interact#onResizeStart',
-            'interact-handle-param': 'left' }) %>
+        <% if !task.milestone? %>
+          <%= render Bali::Icon::Component.new('handle',
+                     class: 'gantt-chart-resize gantt-chart-resize-left',
+                     data: {
+                       action: 'mousedown->interact#onResizeStart',
+                       'interact-handle-param': 'left' }) %>
+        <% end %>
 
         <div class="gantt-chart-drag-handle" data-action="mousedown->interact#onDragStart"></div>
 
-        <%= render Bali::Icon::Component.new('handle',
-          class: 'gantt-chart-resize gantt-chart-resize-right',
-          data: {
-            action: 'mousedown->interact#onResizeStart',
-            'interact-handle-param': 'right' }) %>
+        <% if !task.milestone? %>
+          <%= render Bali::Icon::Component.new('handle',
+                     class: 'gantt-chart-resize gantt-chart-resize-right',
+                     data: {
+                       action: 'mousedown->interact#onResizeStart',
+                       'interact-handle-param': 'right' }) %>
+        <% end %>
       <% end %>
     <% end %>
   <% end %>
