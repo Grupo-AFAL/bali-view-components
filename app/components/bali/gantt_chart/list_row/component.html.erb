@@ -12,16 +12,16 @@
     <%= render Bali::Icon::Component.new('handle', class: 'handle') %>
     <%= render Bali::Icon::Component.new('chevron-down', class: 'chevron-down', data: { action: 'click->gantt-foldable-item#toggle' }) if task.children.any? %>
 
-    <%= render Bali::Tooltip::Component.new do |tip| %>
+    <%= render Bali::Tooltip::Component.new(class: class_names(children: task.children.any?)) do |tip| %>
       <% tip.trigger do %>
         <% if task.href %>
           <%= tag.a task.name,
                     href: task.href,
-                    class: class_names('task-name', children: task.children.any?),
+                    class: 'task-name',
                     **task.options %>
         <% else %>
           <%= tag.div task.name,
-                      class: class_names('task-name', children: task.children.any?),
+                      class: 'task-name',
                       **task.options %>
         <% end %>
       <% end %>

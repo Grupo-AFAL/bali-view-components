@@ -98,6 +98,12 @@ $gantt-chart-scale-height: 22px;
     position: absolute;
     top: ($gantt-chart-row-height - $gantt-chart-item-bubble-height) / 2;
 
+    &.has-children {
+      height: $gantt-chart-item-bubble-height / 3;
+      border-radius: $gantt-chart-item-bubble-radius / 3;
+      top: ($gantt-chart-row-height - ($gantt-chart-item-bubble-height / 3))/2;
+    }
+
     &:hover .gantt-chart-resize {
       opacity: 1;
       background-color: rgba(10, 10, 10, 0.3);
@@ -164,13 +170,6 @@ $gantt-chart-scale-height: 22px;
       padding-left: 0.75rem;
       padding-right: 0.25rem;
       overflow: hidden;
-    }
-
-    .task-name {
-      color: $grey-dark;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      overflow: hidden;
 
       &.children {
         padding-left: 0;
@@ -178,21 +177,28 @@ $gantt-chart-scale-height: 22px;
       }
     }
 
+    .task-name {
+      color: $grey-dark;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
     .gantt-chart-row {
       .chevron-down {
         margin-left: 0.75rem;
       }
 
-      .task-name {
+      .tooltip-component {
         padding-left: 1.5rem;
       }
 
-      .task-name.children {
+      .tooltip-component.children {
         padding-left: 0;
       }
 
       .gantt-chart-row {
-        .task-name {
+        .tooltip-component {
           padding-left: 2.25rem;
 
           &.children {
@@ -223,7 +229,7 @@ $gantt-chart-scale-height: 22px;
   }
 
   .chevron-down {
-    width: 0.75rem;
+    width: 0.5rem;
     margin-right: 0.2rem;
     cursor: pointer;
 
