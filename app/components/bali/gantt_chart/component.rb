@@ -50,17 +50,19 @@ module Bali
       # rubocop:enable Metrics/AbcSize
 
       def start_date
-        if zoom == :day
+        case zoom
+        when :day
           (min_date - 1.month).beginning_of_month
-        elsif zoom == :month
+        when :month
           (min_date - 1.year).beginning_of_year
         end
       end
 
       def end_date
-        if zoom == :day
+        case zoom
+        when :day
           (max_date + 1.month).end_of_month
-        elsif zoom == :month
+        when :month
           (max_date + 1.year).end_of_year
         end
       end
@@ -69,13 +71,17 @@ module Bali
         if zoom == :day
           (end_date - start_date).to_i + 1
         else
-          end_month = (end_date.year * 12) + end_date.month
-          start_month = (start_date.year * 12) + start_date.month
-          (end_month - start_month).to_i + 1
+          duration_in_months
         end
       end
 
       private
+
+      def duration_in_months
+        end_month = (end_date.year * 12) + end_date.month
+        start_month = (start_date.year * 12) + start_date.month
+        (end_month - start_month).to_i + 1
+      end
 
       def min_date
         @min_date ||= earliest_task&.start_date || Date.current
@@ -97,10 +103,14 @@ module Bali
         if zoom == :day
           (start_date - Date.current).to_i.abs * col_width
         else
-          start_month = (start_date.year * 12) + start_date.month
-          current_month = (Date.current.year * 12) + Date.current.month
-          (start_month - current_month).to_i.abs * col_width
+          today_offset_in_months
         end
+      end
+
+      def today_offset_in_months
+        start_month = (start_date.year * 12) + start_date.month
+        current_month = (Date.current.year * 12) + Date.current.month
+        (start_month - current_month).to_i.abs * col_width
       end
     end
   end

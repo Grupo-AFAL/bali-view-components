@@ -80,10 +80,14 @@ module Bali
         if zoom == :day
           (start_date - chart_start_date).to_i + 1
         else
-          start_month = (start_date.year * 12) + start_date.month
-          chart_start_month = (chart_start_date.year * 12) + chart_start_date.month
-          (start_month - chart_start_month).to_i + (start_date.day.to_f / 30)
+          offset_in_months
         end
+      end
+
+      def offset_in_months
+        start_month = (start_date.year * 12) + start_date.month
+        chart_start_month = (chart_start_date.year * 12) + chart_start_date.month
+        (start_month - chart_start_month).to_i + (start_date.day.to_f / 30)
       end
     end
   end

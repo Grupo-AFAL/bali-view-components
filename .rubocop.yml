@@ -32,6 +32,9 @@ Layout/LineLength:
 Layout/SpaceBeforeBrackets:
   Enabled: false
 
+Metrics/AbcSize:
+  Max: 30
+
 Metrics/ClassLength:
   Max: 150
 

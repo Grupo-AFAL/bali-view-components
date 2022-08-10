@@ -9,7 +9,6 @@ module Bali
         end
       end
 
-      # rubocop: disable Metrics/AbcSize
       def slim_select_field(method, values, options = {}, html_options = {})
         html_options.with_defaults!(multiple: false, 'data-slim-select-target': 'select')
 
@@ -43,7 +42,6 @@ module Bali
 
         field_helper(method, field, html_options)
       end
-      # rubocop: enable Metrics/AbcSize
 
       private
 
