@@ -3,15 +3,28 @@
 # # frozen_string_literal: true
 
 module Bali
-  module HelpTip
+  module Tooltip
     class Preview < ApplicationViewComponentPreview
-      # @!group Placements
+      # Default Tooltip
+      # ---------------
+      # Content on the top by default
+      def default
+        render Tooltip::Component.new do |c|
+          c.trigger { tag.a 'Link with tooltip' }
+
+          tag.p 'Hi, this is the tooltip content'
+        end
+      end
+
+      # @!group HelpTip
 
       # Default Help Tip
       # ---------------
       # Content on the top by default
-      def default
-        render HelpTip::Component.new do
+      def top
+        render Tooltip::Component.new(class: 'help-tip') do |c|
+          c.trigger { tag.span '?' }
+
           tag.p 'Hi, this is the help tip content'
         end
       end
@@ -20,7 +33,9 @@ module Bali
       # ---------------
       # Content on the bottom
       def bottom
-        render HelpTip::Component.new(placement: 'bottom') do
+        render Tooltip::Component.new(placement: 'bottom', class: 'help-tip') do |c|
+          c.trigger { tag.span '?' }
+
           tag.p 'Hi, this is the help tip content'
         end
       end
@@ -29,7 +44,9 @@ module Bali
       # ---------------
       # Content on the right
       def right
-        render HelpTip::Component.new(placement: 'right') do
+        render Tooltip::Component.new(placement: 'right', class: 'help-tip') do |c|
+          c.trigger { tag.span '?' }
+
           tag.p 'Hi, this is the help tip content'
         end
       end
@@ -38,7 +55,9 @@ module Bali
       # ---------------
       # Content on the left
       def left
-        render HelpTip::Component.new(placement: 'left') do
+        render Tooltip::Component.new(placement: 'left', class: 'help-tip') do |c|
+          c.trigger { tag.span '?' }
+
           tag.p 'Hi, this is the help tip content'
         end
       end

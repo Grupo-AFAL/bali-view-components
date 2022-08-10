@@ -79,8 +79,7 @@ Update this table when making progress on any of the Components or when adding n
 | Dropdown       | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Filters        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | GanttChart     |        :x:         |        :x:         |        :x:         |        :x:         |       |
-| Heatmap        | :white_check_mark: | :white_check_mark: | :white_check_mark: |        :white_check_mark: |       |
-| HelpTip        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
+| Heatmap        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Hero           |        :x:         |        :x:         |        :x:         |        :x:         |       |
 | Hovercard      | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Icon           | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
@@ -103,6 +102,7 @@ Update this table when making progress on any of the Components or when adding n
 | Tabs           | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Timeago        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Timeline       | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
+| Tooltip        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | TreeView       | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 
 ## Stimulus JS Controllers

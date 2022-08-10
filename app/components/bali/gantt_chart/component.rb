@@ -27,9 +27,9 @@ module Bali
         @options = prepend_action(@options, 'interact:onResizeEnd->gantt-chart#onItemResized')
         @options = prepend_action(@options, 'interact:onDragEnd->gantt-chart#onItemDragged')
         @options = prepend_action(@options, 'gantt-foldable-item:toggle->gantt-chart#onFold')
-        @options = prepend_values(@options, 'gantt-chart', { 
-          today_offset: today_offset, row_height: row_height
-        })
+        @options = prepend_values(@options, 'gantt-chart', {
+                                    today_offset: today_offset, row_height: row_height
+                                  })
       end
       # rubocop:enable Metrics/AbcSize
 

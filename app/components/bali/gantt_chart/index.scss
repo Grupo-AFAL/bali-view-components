@@ -3,7 +3,7 @@ $border-color: $grey-lighter;
 $gantt-chart-header-height: 45px;
 $gantt-chart-header-size: 11px;
 
-$gantt-chart-list-width: 150px;
+$gantt-chart-list-width: 200px;
 
 $gantt-chart-row-height: 35px;
 
@@ -21,9 +21,12 @@ $gantt-chart-col-width: 25px;
 
   .gantt-chart-list {
     border-right: 1px solid $border-color;
+    min-width: $gantt-chart-list-width;
+    width: $gantt-chart-list-width;
 
     .gantt-chart-header {
       line-height: $gantt-chart-header-height;
+      width: 100%;
     }
 
     .gantt-chart-row-contents {
@@ -35,7 +38,6 @@ $gantt-chart-col-width: 25px;
     display: inline-block;
 
     height: $gantt-chart-header-height;
-    min-width: $gantt-chart-list-width;
     font-size: $size-7;
 
     border-bottom: 1px solid $border-color;
@@ -145,8 +147,17 @@ $gantt-chart-col-width: 25px;
   }
 
   .gantt-chart-row {
-    .task-name {
+    .tooltip-component {
       padding-left: 0.75rem;
+      padding-right: 0.25rem;
+      overflow: hidden;
+    }
+
+    .task-name {
+      color: $grey-dark;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
 
       &.children {
         padding-left: 0;
@@ -181,6 +192,7 @@ $gantt-chart-col-width: 25px;
 
   .handle {
     cursor: move;
+    width: 1rem;
   }
 
   .is-folded .chevron-down {

@@ -2,11 +2,13 @@
 
 require 'rails_helper'
 
-RSpec.describe Bali::HelpTip::Component, type: :component do
-  let(:component) { Bali::HelpTip::Component.new }
+RSpec.describe Bali::Tooltip::Component, type: :component do
+  let(:component) { Bali::Tooltip::Component.new(class: 'help-tip') }
 
   it 'renders a trigger with a question mark' do
-    render_inline(component)
+    render_inline(component) do |c|
+      c.trigger { c.tag.span '?' }
+    end
 
     expect(page).to have_css '.trigger', text: '?'
   end

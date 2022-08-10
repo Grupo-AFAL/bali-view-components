@@ -73,6 +73,8 @@ export class InteractController extends Controller {
   }
 
   onDragStart = event => {
+    event.preventDefault()
+
     this.positionX = event.clientX
 
     document.onmousemove = this.onDragging
@@ -80,11 +82,15 @@ export class InteractController extends Controller {
   }
 
   onDragging = event => {
+    event.preventDefault()
+
     const diffX = this.positionX - event.clientX
     this.element.style.left = `${this.positionValue - diffX}px`
   }
 
   onDragEnd = event => {
+    event.preventDefault()
+
     const diffX = this.snap(this.positionX - event.clientX)
     this.positionValue = this.positionValue - diffX
     this.element.style.left = `${this.positionValue}px`

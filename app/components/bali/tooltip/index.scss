@@ -11,31 +11,33 @@ $regular-trigger-size: 1.5rem;
 $small-trigger-font-size: 0.75rem;
 $small-trigger-size: 1rem;
 
-.help-tip-component {
-  width: $regular-trigger-size;
-  height: $regular-trigger-size;
-  display: inline-block;
-
-  &.is-small {
-    width: $small-trigger-size;
-    height: $small-trigger-size;
-
-    .trigger {
-      width: $small-trigger-size;
-      height: $small-trigger-size;
-      font-size: $small-trigger-font-size;
-    }
-  }
-
-  .trigger {
+.tooltip-component {
+  &.help-tip {
     width: $regular-trigger-size;
     height: $regular-trigger-size;
-    border-radius: 50%;
-    border: 1px solid $black;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    font-size: $regular-trigger-font-size;
+    display: inline-block;
+
+    &.is-small {
+      width: $small-trigger-size;
+      height: $small-trigger-size;
+
+      .trigger {
+        width: $small-trigger-size;
+        height: $small-trigger-size;
+        font-size: $small-trigger-font-size;
+      }
+    }
+
+    .trigger {
+      width: $regular-trigger-size;
+      height: $regular-trigger-size;
+      border-radius: 50%;
+      border: 1px solid $black;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      font-size: $regular-trigger-font-size;
+    }
   }
 
   [data-tippy-root] {

@@ -3,7 +3,7 @@
 module Bali
   module GanttChart
     class Task
-      attr_reader :id, :name, :start_date, :end_date, :update_url, :parent_id
+      attr_reader :id, :name, :href, :start_date, :end_date, :update_url, :parent_id, :options
 
       attr_accessor :chart_start_date, :chart_end_date, :children, :row_height, :col_width
 
@@ -14,6 +14,7 @@ module Bali
         start_date:,
         end_date:,
         parent_id: nil,
+        href: nil,
         update_url: nil,
         children: [],
         progress: 0,
@@ -25,6 +26,7 @@ module Bali
         @start_date = start_date
         @end_date = end_date
         @parent_id = parent_id
+        @href = href
         @update_url = update_url
         @children = children
         @progress = progress

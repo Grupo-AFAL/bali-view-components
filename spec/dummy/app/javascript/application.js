@@ -9,7 +9,6 @@ import {
   FilterFormController,
   GanttChartController,
   GanttFoldableItemController,
-  HelpTipController,
   HovercardController,
   NavbarController,
   NotificationController,
@@ -23,6 +22,7 @@ import {
   SubmitOnChangeController,
   TabsController,
   TimeagoController,
+  TooltipController,
   TreeViewItemController,
   TrixAttachmentsController
 } from '../../../../app/javascript/bali'
@@ -36,7 +36,6 @@ application.register('dropdown', DropdownController)
 application.register('filter-form', FilterFormController)
 application.register('gantt-chart', GanttChartController)
 application.register('gantt-foldable-item', GanttFoldableItemController)
-application.register('help-tip', HelpTipController)
 application.register('hovercard', HovercardController)
 application.register('navbar', NavbarController)
 application.register('notification', NotificationController)
@@ -50,5 +49,6 @@ application.register('sortable-list', SortableListController)
 application.register('submit-on-change', SubmitOnChangeController)
 application.register('tabs', TabsController)
 application.register('timeago', TimeagoController)
+application.register('tooltip', TooltipController)
 application.register('tree-view-item', TreeViewItemController)
 application.register('trix-attachments', TrixAttachmentsController)
