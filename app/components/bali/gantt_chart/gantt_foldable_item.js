@@ -20,7 +20,7 @@ export class GanttFoldableItemController extends Controller {
 
     this.foldedValue = !this.foldedValue
 
-    this.dispatch('toggle')
+    this.dispatch('toggle', { folded: this.foldedValue })
   }
 
   get rowChildren () {

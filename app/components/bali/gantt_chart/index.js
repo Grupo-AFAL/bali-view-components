@@ -162,7 +162,7 @@ export class GanttChartController extends Controller {
   }
 
   hideConnections = () => {
-    this.dependentConnections.forEach(line => line.hide())
+    this.dependentConnections.forEach(line => line.hide('none'))
   }
 
   showConnections = () => {
