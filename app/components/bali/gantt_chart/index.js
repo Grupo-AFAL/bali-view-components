@@ -43,6 +43,9 @@ export class GanttChartController extends Controller {
       timelineRow.style.height = `${rowHeight}px`
     })
 
+    const anyFolded = Object.values(rowData).some(({ folded }) => folded)
+    anyFolded ? this.hideConnections() : this.showConnections()
+
     this.repositionConnections()
   }
 
@@ -123,7 +126,7 @@ export class GanttChartController extends Controller {
   establishConnections = () => {
     if (this.zoomValue !== 'day') return
 
-    this.dependentConnections = {}
+    this.dependentConnections = []
 
     this.timelineRowTargets
       .filter(t => t.dataset.dependentOnId)
@@ -136,16 +139,21 @@ export class GanttChartController extends Controller {
         const options = { color: 'gray', size: 1, path: 'grid' }
         const line = new LeaderLine(startCell, endCell, options)
 
-        this.dependentConnections[timelineRow.dataset.id] ||= []
-        this.dependentConnections[timelineRow.dataset.id].push(line)
+        this.dependentConnections.push(line)
       })
   }
 
   repositionConnections = () => {
     if (this.zoomValue !== 'day') return
 
-    Object.values(this.dependentConnections)
-      .flat()
-      .forEach(line => line.position())
+    this.dependentConnections.forEach(line => line.position())
+  }
+
+  hideConnections = () => {
+    this.dependentConnections.forEach(line => line.hide())
+  }
+
+  showConnections = () => {
+    this.dependentConnections.forEach(line => line.show())
   }
 }
