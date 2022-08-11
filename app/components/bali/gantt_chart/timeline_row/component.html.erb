@@ -46,6 +46,7 @@
         data-sortable-list-list-id-value="<%= task.id %>"
         data-sortable-list-pull-value="false"
         data-sortable-list-disabled-value="true"
+        data-sortable-list-animation-value="50"
     >
       <% task.children.each do |child_task| %>
         <%= render Bali::GanttChart::TimelineRow::Component.new(task: child_task, readonly: readonly) %>

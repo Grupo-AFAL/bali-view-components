@@ -18,6 +18,7 @@ export class GanttChartController extends Controller {
 
     this.timelineTarget.scrollTo({ left: this.todayOffsetValue })
 
+    this.dependentConnections = []
     this.establishConnections()
 
     this.timelineTarget.addEventListener('scroll', this.repositionConnections)
@@ -82,7 +83,7 @@ export class GanttChartController extends Controller {
     const sortable = Sortable.get(listElement)
     sortable.sort(order, true)
 
-    setTimeout(this.repositionConnections, 150)
+    setTimeout(this.repositionConnections, 75)
   }
 
   onItemResizing () {
@@ -126,8 +127,6 @@ export class GanttChartController extends Controller {
   establishConnections = () => {
     if (this.zoomValue !== 'day') return
 
-    this.dependentConnections = []
-
     this.timelineRowTargets
       .filter(t => t.dataset.dependentOnId)
       .forEach(timelineRow => {
@@ -144,8 +143,6 @@ export class GanttChartController extends Controller {
   }
 
   repositionConnections = () => {
-    if (this.zoomValue !== 'day') return
-
     this.dependentConnections.forEach(line => line.position())
   }
 

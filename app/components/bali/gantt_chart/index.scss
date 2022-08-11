@@ -29,6 +29,7 @@ $gantt-chart-scale-height: 23px;
       border-right: 1px solid $border-color;
       border-left: 1px solid $border-color;
       width: 100%;
+      padding-left: 1.25rem;
     }
 
     .gantt-chart-row-contents {
@@ -43,7 +44,6 @@ $gantt-chart-scale-height: 23px;
 
     height: $gantt-chart-header-height;
     font-size: $size-7;
-    padding-left: 1.25rem;
 
     border-bottom: 1px solid $border-color;
   }
