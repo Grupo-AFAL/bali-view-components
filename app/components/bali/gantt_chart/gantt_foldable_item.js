@@ -24,6 +24,6 @@ export class GanttFoldableItemController extends Controller {
   }
 
   get rowChildren () {
-    return this.element.querySelectorAll(`.gantt-chart-row`)
+    return this.element.querySelectorAll('.gantt-chart-row')
   }
 }

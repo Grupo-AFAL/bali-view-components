@@ -83,6 +83,7 @@ export class GanttChartController extends Controller {
     const sortable = Sortable.get(listElement)
     sortable.sort(order, true)
 
+    // Wait for sortableList animation to finish before updating connections
     setTimeout(this.repositionConnections, 75)
   }
 
@@ -104,6 +105,7 @@ export class GanttChartController extends Controller {
     await this.updateTask(event.detail)
   }
 
+  /* eslint-disable camelcase */
   async updateTask (detail) {
     let {
       startDelta,
@@ -116,6 +118,7 @@ export class GanttChartController extends Controller {
 
     await patch(update_url, { body: { start_date, end_date } })
   }
+  /* eslint-enable camelcase */
 
   addDays (date, days) {
     const newDate = new Date(Date.parse(date))
