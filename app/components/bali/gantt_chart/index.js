@@ -10,13 +10,16 @@ export class GanttChartController extends Controller {
   static values = {
     todayOffset: Number,
     rowHeight: Number,
+    colWidth: Number,
     zoom: String
   }
 
   connect () {
     useDispatch(this)
 
-    this.timelineTarget.scrollTo({ left: this.todayOffsetValue })
+    this.timelineTarget.scrollTo({
+      left: this.todayOffsetValue - this.colWidthValue
+    })
 
     this.dependentConnections = []
     this.establishConnections()

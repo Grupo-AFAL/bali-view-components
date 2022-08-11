@@ -15,6 +15,8 @@ $gantt-chart-item-bubble-radius: 12px;
 
 $gantt-chart-scale-height: 23px;
 
+$gantt-chart-today-color: lighten($blue, 20%);
+
 .gantt-chart-component {
   display: flex;
   border-top: 2px solid $border-color;
@@ -139,6 +141,27 @@ $gantt-chart-scale-height: 23px;
     flex-grow: 1;
     overflow-x: scroll;
     border-right: 1px solid $border-color;
+    position: relative;
+  }
+
+  .gantt-chart-today-marker {
+    position: absolute;
+    top: $gantt-chart-header-height;
+    height: calc(100% - #{($gantt-chart-header-height)});
+    width: 2px;
+    background-color: $gantt-chart-today-color;
+
+    span {
+      background-color: $gantt-chart-today-color;
+      font-size: 0.625rem;
+      color: $white;
+      display: inline-block;
+      position: absolute;
+      top: 0;
+      padding: 0.12rem 0.25rem;
+      font-weight: 300;
+      z-index: 2;
+    }
   }
 
   .gantt-chart-data-area {

@@ -19,6 +19,10 @@
   </div>
 
   <div class="gantt-chart-timeline" data-gantt-chart-target="timeline">
+    <%= tag.div class: 'gantt-chart-today-marker', style: "left: #{today_offset - 1}px" do %>
+      <span><%= t('.today') %></span>
+    <% end %>
+
     <%= render Bali::GanttChart::TimelineHeader::Component.new(
                start_date: start_date, end_date: end_date, col_width: col_width, zoom: zoom) %>
 

@@ -12,6 +12,7 @@ es:
         remove_filters: Quitar filtros
       gantt_chart:
         task_header: Nombre
+        today: Hoy
       loader:
         loading: Cargando...
       search_input:

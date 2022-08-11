@@ -43,11 +43,13 @@ module Bali
         @options = prepend_action(@options, 'interact:onDragging->gantt-chart#onItemDragging')
         @options = prepend_action(@options, 'interact:onDragEnd->gantt-chart#onItemDragged')
         @options = prepend_action(@options, 'gantt-foldable-item:toggle->gantt-chart#onFold')
-        @options = prepend_values(@options, 'gantt-chart', {
-                                    today_offset: today_offset, row_height: row_height, zoom: zoom
-                                  })
+        @options = prepend_values(@options, 'gantt-chart', controller_values)
       end
       # rubocop:enable Metrics/AbcSize
+
+      def controller_values
+        { today_offset: today_offset, row_height: row_height, col_width: col_width, zoom: zoom }
+      end
 
       def start_date
         case zoom
@@ -126,9 +128,13 @@ module Bali
       end
 
       def today_offset_in_months
+        months_to_today * col_width
+      end
+
+      def months_to_today
         start_month = (start_date.year * 12) + start_date.month
         current_month = (Date.current.year * 12) + Date.current.month
-        (start_month - current_month).to_i.abs * col_width
+        (start_month - current_month).to_i.abs + (Date.current.day / 30.0)
       end
     end
   end
