@@ -119,16 +119,12 @@ module Bali
         when :week
           (days_to_today / 7) * col_width
         when :month
-          today_offset_in_months
+          months_to_today * col_width
         end
       end
 
       def days_to_today
         (start_date - Date.current).to_f.abs
-      end
-
-      def today_offset_in_months
-        months_to_today * col_width
       end
 
       def months_to_today

@@ -28,6 +28,15 @@ export class GanttChartController extends Controller {
     window.addEventListener('resize', this.repositionConnections)
   }
 
+  disconnect () {
+    this.removeConnections()
+    this.timelineTarget.removeEventListener(
+      'scroll',
+      this.repositionConnections
+    )
+    window.removeEventListener('resize', this.repositionConnections)
+  }
+
   onFold () {
     const rowData = {}
 
@@ -158,5 +167,9 @@ export class GanttChartController extends Controller {
 
   showConnections = () => {
     this.dependentConnections.forEach(line => line.show())
+  }
+
+  removeConnections () {
+    this.dependentConnections.forEach(line => line.remove())
   }
 }
