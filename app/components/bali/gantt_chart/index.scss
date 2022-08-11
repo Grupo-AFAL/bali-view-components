@@ -34,6 +34,7 @@ $gantt-chart-scale-height: 23px;
     .gantt-chart-row-contents {
       background-color: $white;
       border: 1px solid $border-color;
+      user-select: none;
     }
   }
 
@@ -42,6 +43,7 @@ $gantt-chart-scale-height: 23px;
 
     height: $gantt-chart-header-height;
     font-size: $size-7;
+    padding-left: 1.25rem;
 
     border-bottom: 1px solid $border-color;
   }
@@ -229,7 +231,7 @@ $gantt-chart-scale-height: 23px;
 
   .handle {
     cursor: move;
-    width: 1rem;
+    width: 1.5rem;
   }
 
   .is-folded .chevron-down {

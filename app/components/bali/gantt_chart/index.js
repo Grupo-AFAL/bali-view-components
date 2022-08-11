@@ -136,7 +136,7 @@ export class GanttChartController extends Controller {
           `[data-id="${timelineRow.dataset.dependentOnId}"] .gantt-chart-cell-content`
         )
 
-        const options = { color: 'gray', size: 1, path: 'grid' }
+        const options = { color: '#b5b5b5', size: 2, path: 'grid' }
         const line = new LeaderLine(startCell, endCell, options)
 
         this.dependentConnections.push(line)
