@@ -9,7 +9,8 @@ export class GanttChartController extends Controller {
   static targets = ['timeline', 'listRow', 'timelineRow']
   static values = {
     todayOffset: Number,
-    rowHeight: Number
+    rowHeight: Number,
+    zoom: String
   }
 
   connect () {
@@ -120,6 +121,8 @@ export class GanttChartController extends Controller {
   }
 
   establishConnections = () => {
+    if (this.zoomValue !== 'day') return
+
     this.dependentConnections = {}
 
     this.timelineRowTargets
@@ -139,6 +142,8 @@ export class GanttChartController extends Controller {
   }
 
   repositionConnections = () => {
+    if (this.zoomValue !== 'day') return
+
     Object.values(this.dependentConnections)
       .flat()
       .forEach(line => line.position())

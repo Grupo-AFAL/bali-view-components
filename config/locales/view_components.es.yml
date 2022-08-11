@@ -10,6 +10,8 @@ es:
       filters:
         filters: Filtros
         remove_filters: Quitar filtros
+      gantt_chart:
+        task_header: Nombre
       loader:
         loading: Cargando...
       search_input:

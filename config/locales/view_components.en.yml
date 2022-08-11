@@ -10,6 +10,8 @@ en:
       filters:
         filters: Filters
         remove_filters: Clear
+      gantt_chart:
+        task_header: Name
       loader:
         loading: Loading...
       search_input:
