@@ -64,13 +64,7 @@ export class InteractController extends Controller {
     this.element.style.left = `${this.positionValue}px`
     this.element.style.width = `${this.width}px`
 
-    this.dispatch('onResizeEnd', {
-      params: this.paramsValue,
-      position: this.positionValue,
-      width: this.width,
-      startDelta: this.startDeltaValue,
-      endDelta: this.endDeltaValue
-    })
+    this.dispatch('onResizeEnd', this.dispatchParams)
     this.resetMovement()
   }
 
@@ -101,13 +95,7 @@ export class InteractController extends Controller {
     this.startDeltaValue -= diffX / this.incrementValue
     this.endDeltaValue -= diffX / this.incrementValue
 
-    this.dispatch('onDragEnd', {
-      params: this.paramsValue,
-      position: this.positionValue,
-      startDelta: this.startDeltaValue,
-      endDelta: this.endDeltaValue,
-      width: this.width
-    })
+    this.dispatch('onDragEnd', this.dispatchParams)
     this.resetMovement()
   }
 
@@ -120,5 +108,15 @@ export class InteractController extends Controller {
 
   snap (value) {
     return Math.round(value / this.incrementValue) * this.incrementValue
+  }
+
+  get dispatchParams () {
+    return {
+      params: this.paramsValue,
+      position: this.positionValue,
+      startDelta: this.startDeltaValue,
+      endDelta: this.endDeltaValue,
+      width: this.width
+    }
   }
 }
