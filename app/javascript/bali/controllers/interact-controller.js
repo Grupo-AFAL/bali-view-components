@@ -30,21 +30,25 @@ export class InteractController extends Controller {
   onResizing = event => {
     event.preventDefault()
 
-    let diffX, left, width
+    let diffX, left
     if (this.handle === 'left') {
       diffX = this.positionX - event.clientX
       left = this.positionValue - diffX
-      width = this.width + diffX
     } else {
       diffX = event.clientX - this.positionX
       left = this.positionValue
-      width = this.width + diffX
     }
+
+    const width = this.width + diffX
 
     this.element.style.left = `${left}px`
     this.element.style.width = `${width}px`
 
-    this.dispatch('onResizing')
+    this.dispatch('onResizing', {
+      ...this.dispatchParams,
+      position: left,
+      width: width
+    })
   }
 
   onResizeEnd = event => {
@@ -54,12 +58,12 @@ export class InteractController extends Controller {
       diffX = this.snap(this.positionX - event.clientX)
       this.startDeltaValue -= diffX / this.incrementValue
       this.positionValue = this.positionValue - diffX
-      this.width = this.width + diffX
     } else {
       diffX = this.snap(event.clientX - this.positionX)
       this.endDeltaValue += diffX / this.incrementValue
-      this.width = this.width + diffX
     }
+
+    this.width = this.width + diffX
 
     this.element.style.left = `${this.positionValue}px`
     this.element.style.width = `${this.width}px`
@@ -81,9 +85,11 @@ export class InteractController extends Controller {
     event.preventDefault()
 
     const diffX = this.positionX - event.clientX
-    this.element.style.left = `${this.positionValue - diffX}px`
+    const left = this.positionValue - diffX
 
-    this.dispatch('onDragging')
+    this.element.style.left = `${left}px`
+
+    this.dispatch('onDragging', { ...this.dispatchParams, position: left })
   }
 
   onDragEnd = event => {

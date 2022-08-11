@@ -9,8 +9,12 @@
               style: "left: #{task.position_left}px; width: #{task.width}px",
               data: {
                 controller: 'interact',
+                'task-id': task.id,
+                'position': task.position_left,
+                'width': task.width,
                 'interact-position-value': task.position_left,
-                'interact-params-value': task.params.to_json
+                'interact-params-value': task.params.to_json,
+                'gantt-chart-target': 'timelineCell',
               } do %>
 
     <%= tag.div class: class_names('gantt-chart-cell-content',

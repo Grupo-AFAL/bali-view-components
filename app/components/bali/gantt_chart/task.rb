@@ -47,6 +47,7 @@ module Bali
       def params
         {
           id: id,
+          parent_id: parent_id,
           name: name,
           start_date: start_date,
           end_date: end_date,
@@ -95,7 +96,7 @@ module Bali
       end
 
       def offset_in_days
-        (start_date - chart_start_date).to_f + 1
+        (start_date - chart_start_date).to_f
       end
 
       def offset_in_months

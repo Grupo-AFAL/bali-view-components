@@ -1,12 +1,12 @@
 import { Controller } from '@hotwired/stimulus'
 import Sortable from 'sortablejs'
 import useDispatch from '../../../javascript/bali/utils/use-dispatch'
-import { toBool } from '../../../javascript/bali/utils/formatters'
+import { toBool, toInt } from '../../../javascript/bali/utils/formatters'
 import { patch } from '@rails/request.js'
 import LeaderLine from './leader_line'
 
 export class GanttChartController extends Controller {
-  static targets = ['timeline', 'listRow', 'timelineRow']
+  static targets = ['timeline', 'listRow', 'timelineRow', 'timelineCell']
   static values = {
     todayOffset: Number,
     rowHeight: Number,
@@ -20,6 +20,10 @@ export class GanttChartController extends Controller {
     this.timelineTarget.scrollTo({
       left: this.todayOffsetValue - this.colWidthValue
     })
+    this.cellsById = this.timelineCellTargets.reduce((acc, target) => {
+      acc[target.dataset.taskId] = target
+      return acc
+    }, {})
 
     this.dependentConnections = []
     this.establishConnections()
@@ -99,20 +103,24 @@ export class GanttChartController extends Controller {
     setTimeout(this.repositionConnections, 75)
   }
 
-  onItemResizing () {
+  onItemResizing (event) {
+    this.updateParentCell(event.detail)
     this.repositionConnections()
   }
 
   async onItemResized (event) {
+    this.updateParentCell(event.detail)
     this.repositionConnections()
     await this.updateTask(event.detail)
   }
 
-  onItemDragging () {
+  onItemDragging (event) {
+    this.updateParentCell(event.detail)
     this.repositionConnections()
   }
 
   async onItemDragged (event) {
+    this.updateParentCell(event.detail)
     this.repositionConnections()
     await this.updateTask(event.detail)
   }
@@ -137,6 +145,42 @@ export class GanttChartController extends Controller {
     newDate.setDate(newDate.getDate() + days)
 
     return newDate
+  }
+
+  updateParentCell (detail) {
+    const {
+      params: { parent_id } /* eslint-disable-line camelcase */,
+      position,
+      width
+    } = detail
+
+    const parentCell = this.cellsById[parent_id]
+    if (!parentCell) return
+
+    // TODO BUG: When the cell being updated surpases both the start and end
+    // positions of the parent cell.
+    const positionDiff = parentCell.dataset.position - position
+    const parentWidth = toInt(parentCell.dataset.width)
+    const parentPosition = toInt(parentCell.dataset.position)
+
+    const parentEndPosition = parentPosition + parentWidth
+    const selfEndPosition = position + width
+    const endPositionDiff = selfEndPosition - parentEndPosition
+
+    let newParentLeft, newParentWidth
+
+    if (endPositionDiff > 0) {
+      newParentLeft = parentPosition
+      newParentWidth = parentWidth + endPositionDiff
+    }
+
+    if (positionDiff > 0) {
+      newParentLeft = position
+      newParentWidth = parentWidth + positionDiff
+    }
+
+    parentCell.style.left = `${newParentLeft}px`
+    parentCell.style.width = `${newParentWidth}px`
   }
 
   establishConnections = () => {
