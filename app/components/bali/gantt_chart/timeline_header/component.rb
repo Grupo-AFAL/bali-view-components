@@ -14,11 +14,21 @@ module Bali
         end
 
         def days_by_month
-          @days_by_month ||= (start_date..end_date).group_by(&:month)
+          @days_by_month ||= date_range.group_by(&:month)
         end
 
         def months_by_year
-          @months_by_year ||= (start_date..end_date).select { |d| d.day == 1 }.group_by(&:year)
+          @months_by_year ||= date_range.select { |d| d.day == 1 }.group_by(&:year)
+        end
+
+        def weeks_by_year
+          @weeks_by_year ||= date_range.select { |d| d.wday == 1 }.group_by(&:year)
+        end
+
+        private
+
+        def date_range
+          start_date..end_date
         end
       end
     end

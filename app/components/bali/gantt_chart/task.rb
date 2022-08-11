@@ -69,19 +69,33 @@ module Bali
       private
 
       def duration
-        if zoom == :day
-          (end_date - start_date).to_i + 1
-        else
-          (((end_date - start_date) + 1) / 30).to_f
+        case zoom
+        when :day
+          duration_in_days
+        when :week
+          duration_in_days / 7
+        when :month
+          duration_in_days / 30
         end
       end
 
+      def duration_in_days
+        (end_date - start_date).to_f + 1
+      end
+
       def offset
-        if zoom == :day
-          (start_date - chart_start_date).to_i + 1
-        else
+        case zoom
+        when :day
+          offset_in_days
+        when :week
+          offset_in_days / 7
+        when :month
           offset_in_months
         end
+      end
+
+      def offset_in_days
+        (start_date - chart_start_date).to_f + 1
       end
 
       def offset_in_months

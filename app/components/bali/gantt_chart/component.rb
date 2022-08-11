@@ -17,7 +17,7 @@ module Bali
         @row_height = row_height
         @col_width = col_width
 
-        # Default is 100 for month view and 25 for day view.
+        # Default is 100 for month and week view and 25 for day view.
         @col_width ||= zoom == :day ? 25 : 100
         @zoom = zoom
         @readonly = readonly
@@ -35,7 +35,7 @@ module Bali
         @tasks.filter! { |task| task.parent_id.blank? }
 
         @options = prepend_class_name(options, 'gantt-chart-component')
-        @options = prepend_class_name(options, 'month-zoom') if zoom == :month
+        @options = prepend_class_name(options, "#{zoom}-zoom")
         @options = prepend_controller(@options, 'gantt-chart')
         @options = prepend_action(@options, 'sortable-list:onEnd->gantt-chart#onItemReordered')
         @options = prepend_action(@options, 'interact:onResizing->gantt-chart#onItemResizing')
@@ -53,6 +53,8 @@ module Bali
         case zoom
         when :day
           (min_date - 1.month).beginning_of_month
+        when :week
+          (min_date - 2.months).beginning_of_week
         when :month
           (min_date - 1.year).beginning_of_year
         end
@@ -62,20 +64,29 @@ module Bali
         case zoom
         when :day
           (max_date + 1.month).end_of_month
+        when :week
+          (max_date + 2.months).end_of_week
         when :month
           (max_date + 1.year).end_of_year
         end
       end
 
       def duration
-        if zoom == :day
-          (end_date - start_date).to_i + 1
-        else
+        case zoom
+        when :day
+          duration_in_days
+        when :week
+          duration_in_days / 7
+        when :month
           duration_in_months
         end
       end
 
       private
+
+      def duration_in_days
+        (end_date - start_date).to_f + 1
+      end
 
       def duration_in_months
         end_month = (end_date.year * 12) + end_date.month
@@ -100,11 +111,18 @@ module Bali
       end
 
       def today_offset
-        if zoom == :day
-          (start_date - Date.current).to_i.abs * col_width
-        else
+        case zoom
+        when :day
+          days_to_today * col_width
+        when :week
+          (days_to_today / 7) * col_width
+        when :month
           today_offset_in_months
         end
+      end
+
+      def days_to_today
+        (start_date - Date.current).to_f.abs
       end
 
       def today_offset_in_months

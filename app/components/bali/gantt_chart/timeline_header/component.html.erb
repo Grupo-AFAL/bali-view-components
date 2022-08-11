@@ -6,6 +6,12 @@
           <%= I18n.t("date.month_names")[month_number] %>
         </div>
       <% end %>
+    <% elsif zoom == :week %>
+      <% weeks_by_year.each do |year_number, dates| %>
+        <div class="gantt-chart-header-year" style="width: <%= dates.size * col_width %>px">
+          <%= year_number %>
+        </div>
+      <% end %>
     <% else %>
       <% months_by_year.each do |year_number, dates| %>
         <div class="gantt-chart-header-year" style="width: <%= dates.size * col_width %>px">
@@ -21,6 +27,14 @@
         <% dates.each do |date| %>
           <div class="gantt-chart-header-day" style="width: <%= col_width %>px">
             <%= date.day %>
+          </div>
+        <% end %>
+      <% end %>
+    <% elsif zoom == :week %>
+      <% weeks_by_year.each do |year_number, dates| %>
+        <% dates.each do |date| %>
+          <div class="gantt-chart-header-week-year" style="width: <%= col_width %>px">
+            <%= date.strftime('%-d/%-m') %> - <%= date.end_of_week.strftime('%-d/%-m') %>
           </div>
         <% end %>
       <% end %>
