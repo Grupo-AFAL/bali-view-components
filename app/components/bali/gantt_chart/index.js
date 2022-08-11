@@ -159,6 +159,8 @@ export class GanttChartController extends Controller {
 
     // TODO BUG: When the cell being updated surpases both the start and end
     // positions of the parent cell.
+
+    // TODO. Update Grandparent cell.
     const positionDiff = parentCell.dataset.position - position
     const parentWidth = toInt(parentCell.dataset.width)
     const parentPosition = toInt(parentCell.dataset.position)
