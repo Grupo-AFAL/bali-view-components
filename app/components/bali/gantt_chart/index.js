@@ -158,8 +158,8 @@ export class GanttChartController extends Controller {
     const parentCell = this.cellsById[parent_id]
     if (!parentCell) return
 
-    const parentPosition = toInt(parentCell.dataset.position)
-    const parentWidth = toInt(parentCell.dataset.width)
+    const parentPosition = toInt(parentCell.dataset.interactPositionValue)
+    const parentWidth = toInt(parentCell.dataset.interactWidthValue)
     const positionDiff = parentPosition - position
 
     const parentEndPosition = parentPosition + parentWidth
@@ -185,6 +185,14 @@ export class GanttChartController extends Controller {
 
     parentCell.style.left = `${newParentLeft}px`
     parentCell.style.width = `${newParentWidth}px`
+
+    // TODO: Need to update the dataset attributes to "store" the new
+    // dimensions of the cells, but right now we are only incrementing
+    // the size of the cells, we still need to reduce it when it becomes
+    // smaller than the parent.
+    //
+    // parentCell.dataset.interactPositionValue = newParentLeft
+    // parentCell.dataset.interactWidthValue = newParentWidth
 
     if (parentCell.dataset.parentId) {
       this.updateParentCell({

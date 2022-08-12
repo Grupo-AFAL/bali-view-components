@@ -7,13 +7,14 @@ export class InteractController extends Controller {
     increment: { type: Number, default: 25 },
     params: { type: Object, default: {} },
     startDelta: { type: Number, default: 0 },
-    endDelta: { type: Number, default: 0 }
+    endDelta: { type: Number, default: 0 },
+    width: { type: Number, default: 0 }
   }
 
   connect () {
     useDispatch(this)
 
-    this.width = this.element.clientWidth
+    this.widthValue = this.element.clientWidth
     this.positionX = 0
   }
 
@@ -39,7 +40,7 @@ export class InteractController extends Controller {
       left = this.positionValue
     }
 
-    const width = this.width + diffX
+    const width = this.widthValue + diffX
 
     this.element.style.left = `${left}px`
     this.element.style.width = `${width}px`
@@ -63,10 +64,10 @@ export class InteractController extends Controller {
       this.endDeltaValue += diffX / this.incrementValue
     }
 
-    this.width = this.width + diffX
+    this.widthValue = this.widthValue + diffX
 
     this.element.style.left = `${this.positionValue}px`
-    this.element.style.width = `${this.width}px`
+    this.element.style.width = `${this.widthValue}px`
 
     this.dispatch('onResizeEnd', this.dispatchParams)
     this.resetMovement()
@@ -122,7 +123,7 @@ export class InteractController extends Controller {
       position: this.positionValue,
       startDelta: this.startDeltaValue,
       endDelta: this.endDeltaValue,
-      width: this.width
+      width: this.widthValue
     }
   }
 }
