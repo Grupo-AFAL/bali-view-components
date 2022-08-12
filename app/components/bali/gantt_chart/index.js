@@ -158,9 +158,6 @@ export class GanttChartController extends Controller {
     const parentCell = this.cellsById[parent_id]
     if (!parentCell) return
 
-    // TODO BUG: When the cell being updated surpases both the start and end
-    // positions of the parent cell.
-
     // TODO. Update Grandparent cell.
     const positionDiff = parentCell.dataset.position - position
     const parentWidth = toInt(parentCell.dataset.width)
@@ -180,6 +177,10 @@ export class GanttChartController extends Controller {
     if (positionDiff > 0) {
       newParentLeft = position
       newParentWidth = parentWidth + positionDiff
+    }
+
+    if (endPositionDiff > 0 && positionDiff > 0) {
+      newParentWidth = parentWidth + positionDiff + endPositionDiff
     }
 
     parentCell.style.left = `${newParentLeft}px`
