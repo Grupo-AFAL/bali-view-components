@@ -185,6 +185,16 @@ export class GanttChartController extends Controller {
 
     parentCell.style.left = `${newParentLeft}px`
     parentCell.style.width = `${newParentWidth}px`
+
+    if (parentCell.dataset.parentId) {
+      this.updateParentCell({
+        params: {
+          parent_id: parentCell.dataset.parentId
+        },
+        position: newParentLeft,
+        width: newParentWidth
+      })
+    }
   }
   /* eslint-enable camelcase */
 
