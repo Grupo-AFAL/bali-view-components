@@ -12,6 +12,7 @@ module Bali
         col_width: nil,
         zoom: :day,
         readonly: false,
+        offset: nil,
         **options
       )
         @row_height = row_height
@@ -21,6 +22,7 @@ module Bali
         @col_width ||= zoom == :day ? 25 : 100
         @zoom = zoom
         @readonly = readonly
+        @offset = offset
 
         @tasks = tasks.map { |task| Task.new(**task) }
         tasks_by_parent_id = @tasks.group_by(&:parent_id)
@@ -48,7 +50,11 @@ module Bali
       # rubocop:enable Metrics/AbcSize
 
       def controller_values
-        { today_offset: today_offset, row_height: row_height, col_width: col_width, zoom: zoom }
+        { offset: offset, row_height: row_height, col_width: col_width, zoom: zoom }
+      end
+
+      def offset
+        @offset || (today_offset - col_width)
       end
 
       def start_date

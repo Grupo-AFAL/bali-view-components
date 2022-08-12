@@ -8,7 +8,7 @@ import LeaderLine from './leader_line'
 export class GanttChartController extends Controller {
   static targets = ['timeline', 'listRow', 'timelineRow', 'timelineCell']
   static values = {
-    todayOffset: Number,
+    offset: Number,
     rowHeight: Number,
     colWidth: Number,
     zoom: String
@@ -17,9 +17,7 @@ export class GanttChartController extends Controller {
   connect () {
     useDispatch(this)
 
-    this.timelineTarget.scrollTo({
-      left: this.todayOffsetValue - this.colWidthValue
-    })
+    this.timelineTarget.scrollTo({ left: this.offsetValue })
     this.cellsById = this.timelineCellTargets.reduce((acc, target) => {
       acc[target.dataset.taskId] = target
       return acc
@@ -29,6 +27,7 @@ export class GanttChartController extends Controller {
     this.establishConnections()
 
     this.timelineTarget.addEventListener('scroll', this.repositionConnections)
+    this.timelineTarget.addEventListener('scroll', this.updateScroll)
     window.addEventListener('resize', this.repositionConnections)
   }
 
@@ -38,7 +37,12 @@ export class GanttChartController extends Controller {
       'scroll',
       this.repositionConnections
     )
+    this.timelineTarget.removeEventListener('scroll', this.updateScroll)
     window.removeEventListener('resize', this.repositionConnections)
+  }
+
+  updateScroll = () => {
+    this.offsetValue = this.timelineTarget.scrollLeft
   }
 
   onFold () {
@@ -136,7 +140,9 @@ export class GanttChartController extends Controller {
     start_date = this.addDays(start_date, startDelta)
     end_date = this.addDays(end_date, endDelta)
 
-    await patch(update_url, { body: { start_date, end_date } })
+    await patch(update_url, {
+      body: { start_date, end_date, offset: this.offsetValue }
+    })
   }
   /* eslint-enable camelcase */
 

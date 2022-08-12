@@ -20,12 +20,16 @@ module Bali
         render GanttChart::Component.new(tasks: tasks, readonly: true)
       end
 
+      def custom_offset
+        render GanttChart::Component.new(tasks: tasks, offset: 500)
+      end
+
       private
 
       def tasks
         date = Date.current
 
-        return [
+        [
           { id: 1, name: 'Task 1', start_date: date, end_date: date + 16.days, update_url: '/gantt_chart/1', href: '/gantt_chart/1', data: { action: 'modal#open' } },
           { id: 2, name: 'Task 1.1', start_date: date, end_date: date + 2.days, update_url: '/gantt_chart/2', parent_id: 1 },
           { id: 3, name: 'Task 1.2', start_date: date + 2.days, end_date: date + 6.days, update_url: '/gantt_chart/3', parent_id: 1 },
