@@ -47,7 +47,7 @@ export class InteractController extends Controller {
     this.dispatch('onResizing', {
       ...this.dispatchParams,
       position: left,
-      width: width
+      width
     })
   }
 

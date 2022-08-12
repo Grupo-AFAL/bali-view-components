@@ -147,9 +147,10 @@ export class GanttChartController extends Controller {
     return newDate
   }
 
+  /* eslint-disable camelcase */
   updateParentCell (detail) {
     const {
-      params: { parent_id } /* eslint-disable-line camelcase */,
+      params: { parent_id },
       position,
       width
     } = detail
@@ -184,6 +185,7 @@ export class GanttChartController extends Controller {
     parentCell.style.left = `${newParentLeft}px`
     parentCell.style.width = `${newParentWidth}px`
   }
+  /* eslint-enable camelcase */
 
   establishConnections = () => {
     if (this.zoomValue !== 'day') return
