@@ -158,28 +158,28 @@ export class GanttChartController extends Controller {
     const parentCell = this.cellsById[parent_id]
     if (!parentCell) return
 
-    // TODO. Update Grandparent cell.
-    const positionDiff = parentCell.dataset.position - position
-    const parentWidth = toInt(parentCell.dataset.width)
     const parentPosition = toInt(parentCell.dataset.position)
+    const parentWidth = toInt(parentCell.dataset.width)
+    const positionDiff = parentPosition - position
 
     const parentEndPosition = parentPosition + parentWidth
     const selfEndPosition = position + width
     const endPositionDiff = selfEndPosition - parentEndPosition
 
-    let newParentLeft, newParentWidth
+    let newParentLeft = parentPosition
+    let newParentWidth = parentWidth
 
-    if (endPositionDiff > 0) {
+    if (endPositionDiff >= 0) {
       newParentLeft = parentPosition
       newParentWidth = parentWidth + endPositionDiff
     }
 
-    if (positionDiff > 0) {
+    if (positionDiff >= 0) {
       newParentLeft = position
       newParentWidth = parentWidth + positionDiff
     }
 
-    if (endPositionDiff > 0 && positionDiff > 0) {
+    if (endPositionDiff >= 0 && positionDiff >= 0) {
       newParentWidth = parentWidth + positionDiff + endPositionDiff
     }
 
@@ -189,7 +189,7 @@ export class GanttChartController extends Controller {
     if (parentCell.dataset.parentId) {
       this.updateParentCell({
         params: {
-          parent_id: parentCell.dataset.parentId
+          parent_id: toInt(parentCell.dataset.parentId)
         },
         position: newParentLeft,
         width: newParentWidth
