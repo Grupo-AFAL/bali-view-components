@@ -9,7 +9,7 @@ $gantt-chart-item-color: $green;
 $gantt-chart-milestone-color: $purple;
 
 $gantt-chart-item-bubble-height: 25px;
-$gantt-chart-item-bubble-radius: 12px;
+$gantt-chart-item-bubble-radius: $gantt-chart-item-bubble-height / 2;
 
 $gantt-chart-scale-height: 23px;
 $gantt-chart-today-color: lighten($blue, 20%);
@@ -101,7 +101,7 @@ $gantt-chart-resizer-width: 10px;
 
       position: absolute;
       left: $gantt-chart-resizer-width/2;
-      background-color: $grey-lighter;
+      background-color: $border-color;
     }
   }
 
