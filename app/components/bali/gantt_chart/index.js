@@ -146,22 +146,28 @@ export class GanttChartController extends Controller {
     await this.updateTask(event.detail)
   }
 
-  /* eslint-disable camelcase */
   async updateTask (detail) {
     let {
       startDelta,
       endDelta,
-      params: { start_date, end_date, update_url }
+      params: {
+        start_date: startDate,
+        end_date: endDate,
+        update_url: updateUrl
+      }
     } = detail
 
-    start_date = this.addDays(start_date, startDelta)
-    end_date = this.addDays(end_date, endDelta)
+    startDate = this.addDays(startDate, startDelta)
+    endDate = this.addDays(endDate, endDelta)
 
-    await patch(update_url, {
-      body: { start_date, end_date, offset: this.offsetValue }
+    await patch(updateUrl, {
+      body: {
+        start_date: startDate,
+        end_date: endDate,
+        offset: this.offsetValue
+      }
     })
   }
-  /* eslint-enable camelcase */
 
   addDays (date, days) {
     const newDate = new Date(Date.parse(date))
