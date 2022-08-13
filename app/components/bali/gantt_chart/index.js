@@ -23,6 +23,12 @@ export class GanttChartController extends Controller {
       return acc
     }, {})
 
+    this.cellsByParentId = this.timelineCellTargets.reduce((acc, target) => {
+      acc[target.dataset.parentId] ||= []
+      acc[target.dataset.parentId].push(target)
+      return acc
+    }, {})
+
     this.dependentConnections = []
     this.establishConnections()
 
@@ -108,23 +114,23 @@ export class GanttChartController extends Controller {
   }
 
   onItemResizing (event) {
-    this.updateParentCell(event.detail)
+    this.updateParentCell(event.detail.params.parent_id)
     this.repositionConnections()
   }
 
   async onItemResized (event) {
-    this.updateParentCell(event.detail)
+    this.updateParentCell(event.detail.params.parent_id)
     this.repositionConnections()
     await this.updateTask(event.detail)
   }
 
   onItemDragging (event) {
-    this.updateParentCell(event.detail)
+    this.updateParentCell(event.detail.params.parent_id)
     this.repositionConnections()
   }
 
   async onItemDragged (event) {
-    this.updateParentCell(event.detail)
+    this.updateParentCell(event.detail.params.parent_id)
     this.repositionConnections()
     await this.updateTask(event.detail)
   }
@@ -154,60 +160,30 @@ export class GanttChartController extends Controller {
   }
 
   /* eslint-disable camelcase */
-  updateParentCell (detail) {
-    const {
-      params: { parent_id },
-      position,
-      width
-    } = detail
-
-    const parentCell = this.cellsById[parent_id]
+  updateParentCell (parentId) {
+    const parentCell = this.cellsById[parentId]
     if (!parentCell) return
 
-    const parentPosition = toInt(parentCell.dataset.interactPositionValue)
-    const parentWidth = toInt(parentCell.dataset.interactWidthValue)
-    const positionDiff = parentPosition - position
-
-    const parentEndPosition = parentPosition + parentWidth
-    const selfEndPosition = position + width
-    const endPositionDiff = selfEndPosition - parentEndPosition
-
-    let newParentLeft = parentPosition
-    let newParentWidth = parentWidth
-
-    if (endPositionDiff >= 0) {
-      newParentLeft = parentPosition
-      newParentWidth = parentWidth + endPositionDiff
-    }
-
-    if (positionDiff >= 0) {
-      newParentLeft = position
-      newParentWidth = parentWidth + positionDiff
-    }
-
-    if (endPositionDiff >= 0 && positionDiff >= 0) {
-      newParentWidth = parentWidth + positionDiff + endPositionDiff
-    }
+    const children = this.cellsByParentId[parentId]
+    const newParentLeft = Math.min(
+      ...children.map(c => toInt(c.style.left.replace('px', '')))
+    )
+    const endPosition = Math.max(
+      ...children.map(
+        c =>
+          toInt(c.style.width.replace('px', '')) +
+          toInt(c.style.left.replace('px', ''))
+      )
+    )
+    const newParentWidth = endPosition - newParentLeft
 
     parentCell.style.left = `${newParentLeft}px`
     parentCell.style.width = `${newParentWidth}px`
-
-    // TODO: Need to update the dataset attributes to "store" the new
-    // dimensions of the cells, but right now we are only incrementing
-    // the size of the cells, we still need to reduce it when it becomes
-    // smaller than the parent.
-    //
-    // parentCell.dataset.interactPositionValue = newParentLeft
-    // parentCell.dataset.interactWidthValue = newParentWidth
+    parentCell.dataset.interactPositionValue = newParentLeft
+    parentCell.dataset.interactWidthValue = newParentWidth
 
     if (parentCell.dataset.parentId) {
-      this.updateParentCell({
-        params: {
-          parent_id: toInt(parentCell.dataset.parentId)
-        },
-        position: newParentLeft,
-        width: newParentWidth
-      })
+      this.updateParentCell(toInt(parentCell.dataset.parentId))
     }
   }
   /* eslint-enable camelcase */

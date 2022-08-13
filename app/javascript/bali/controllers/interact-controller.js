@@ -45,11 +45,7 @@ export class InteractController extends Controller {
     this.element.style.left = `${left}px`
     this.element.style.width = `${width}px`
 
-    this.dispatch('onResizing', {
-      ...this.dispatchParams,
-      position: left,
-      width
-    })
+    this.dispatch('onResizing', this.dispatchParams)
   }
 
   onResizeEnd = event => {
@@ -90,7 +86,7 @@ export class InteractController extends Controller {
 
     this.element.style.left = `${left}px`
 
-    this.dispatch('onDragging', { ...this.dispatchParams, position: left })
+    this.dispatch('onDragging', this.dispatchParams)
   }
 
   onDragEnd = event => {
