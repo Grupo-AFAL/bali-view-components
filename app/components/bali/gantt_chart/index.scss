@@ -285,11 +285,21 @@ $gantt-chart-today-color: lighten($blue, 20%);
       }
 
       .gantt-chart-row {
+        .chevron-down {
+          margin-left: 1.5rem;
+        }
+
         .tooltip-component {
           padding-left: 2.25rem;
 
           &.children {
-            padding-left: 1.5rem;
+            padding-left: 0rem;
+          }
+        }
+
+        .gantt-chart-row {
+          .tooltip-component {
+            padding-left: 3rem;
           }
         }
       }

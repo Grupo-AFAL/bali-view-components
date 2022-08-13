@@ -91,6 +91,9 @@ export class GanttChartController extends Controller {
       '[data-gantt-foldable-item-visible-value="true"]'
     )
 
+    // TODO Bug: When top-level task is being opened and the 2nd level task
+    // is closed it adds an extra white space between tasks. (all other
+    // opening/closing combinations work)
     visibleRows.forEach(row => {
       const parentRow = row.parentElement.closest('.gantt-chart-row')
       const parentIsNotFolded =
