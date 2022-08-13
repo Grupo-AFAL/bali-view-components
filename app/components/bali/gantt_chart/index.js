@@ -147,7 +147,7 @@ export class GanttChartController extends Controller {
   }
 
   async updateTask (detail) {
-    let {
+    const {
       startDelta,
       endDelta,
       params: {
