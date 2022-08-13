@@ -6,6 +6,7 @@ module Bali
       attr_reader :tasks, :row_height, :col_width, :zoom, :readonly, :options
 
       # rubocop:disable Metrics/AbcSize
+      # rubocop:disable Metrics/ParameterLists
       def initialize(
         tasks: [],
         row_height: 35,
@@ -48,6 +49,7 @@ module Bali
         @options = prepend_values(@options, 'gantt-chart', controller_values)
       end
       # rubocop:enable Metrics/AbcSize
+      # rubocop:enable Metrics/ParameterLists
 
       def controller_values
         { offset: offset, row_height: row_height, col_width: col_width, zoom: zoom }
