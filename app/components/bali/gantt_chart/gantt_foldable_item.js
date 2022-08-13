@@ -4,7 +4,8 @@ import useDispatch from '../../../javascript/bali/utils/use-dispatch'
 export class GanttFoldableItemController extends Controller {
   static values = {
     folded: { type: Boolean, default: false },
-    visible: { type: Boolean, default: true }
+    visible: { type: Boolean, default: true },
+    parentId: { type: Number, default: 0 }
   }
 
   connect () {
@@ -14,7 +15,7 @@ export class GanttFoldableItemController extends Controller {
   toggle () {
     this.element.classList.toggle('is-folded')
 
-    this.rowChildren.forEach(child => {
+    this.directChildren.forEach(child => {
       child.dataset.ganttFoldableItemVisibleValue = this.foldedValue
     })
 
@@ -23,7 +24,11 @@ export class GanttFoldableItemController extends Controller {
     this.dispatch('toggle', { folded: this.foldedValue })
   }
 
-  get rowChildren () {
-    return this.element.querySelectorAll('.gantt-chart-row')
+  get directChildren () {
+    return Array.from(
+      this.element.querySelectorAll(
+        `[data-gantt-foldable-item-parent-id-value="${this.element.dataset.id}"]`
+      )
+    )
   }
 }

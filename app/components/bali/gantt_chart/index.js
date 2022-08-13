@@ -85,28 +85,15 @@ export class GanttChartController extends Controller {
   }
 
   calculateHeight (listRow) {
-    let visibleRowCount = 0
+    let visibleRowCount =
+      listRow.dataset.ganttFoldableItemVisibleValue === 'true' ? 1 : 0
 
-    const visibleRows = listRow.querySelectorAll(
-      '[data-gantt-foldable-item-visible-value="true"]'
-    )
+    const visibleSelector = '[data-gantt-foldable-item-visible-value="true"]'
+    const visibleRows = Array.from(listRow.querySelectorAll(visibleSelector))
 
-    // TODO Bug: When top-level task is being opened and the 2nd level task
-    // is closed it adds an extra white space between tasks. (all other
-    // opening/closing combinations work)
-    visibleRows.forEach(row => {
-      const parentRow = row.parentElement.closest('.gantt-chart-row')
-      const parentIsNotFolded =
-        parentRow && parentRow.dataset.ganttFoldableItemFoldedValue !== 'true'
-
-      if (parentIsNotFolded) {
-        visibleRowCount += 1
-      }
-    })
-
-    if (listRow.dataset.ganttFoldableItemVisibleValue === 'true') {
-      visibleRowCount += 1
-    }
+    visibleRowCount += visibleRows.filter(
+      row => !row.parentElement.closest('.is-folded')
+    ).length
 
     return visibleRowCount * this.rowHeightValue
   }
