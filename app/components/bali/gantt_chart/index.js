@@ -6,17 +6,27 @@ import { patch } from '@rails/request.js'
 import LeaderLine from './leader_line'
 
 export class GanttChartController extends Controller {
-  static targets = ['timeline', 'listRow', 'timelineRow', 'timelineCell']
+  static targets = [
+    'list',
+    'listResizer',
+    'timeline',
+    'listRow',
+    'timelineRow',
+    'timelineCell'
+  ]
   static values = {
     todayOffset: Number,
     offset: Number,
     rowHeight: Number,
     colWidth: Number,
-    zoom: String
+    zoom: String,
+    listWidth: { type: Number, default: 200 }
   }
 
   connect () {
     useDispatch(this)
+
+    this.setStoredListWidth()
 
     this.timelineTarget.scrollTo({ left: this.offsetValue })
     this.cellsById = this.timelineCellTargets.reduce((acc, target) => {
@@ -57,6 +67,48 @@ export class GanttChartController extends Controller {
       left: this.todayOffsetValue - this.colWidthValue
     })
     this.updateScroll()
+  }
+
+  setStoredListWidth = () => {
+    const storedListWidth = localStorage.getItem('ganttChartListWidth')
+    if (storedListWidth) {
+      this.listWidthValue = toInt(storedListWidth)
+      this.setListWidth(this.listWidthValue)
+    }
+  }
+
+  resizeListValues = event => {
+    const diffX = this.listResizerPosition - event.clientX
+    this.setListWidth(this.listWidthValue - diffX)
+    this.repositionConnections()
+
+    return diffX
+  }
+
+  setListWidth = width => {
+    this.listTarget.style.minWidth = `${width}px`
+    this.listResizerTarget.style.left = `${width - 5}px`
+  }
+
+  onResizeListStart (event) {
+    event.preventDefault()
+
+    this.listResizerPosition = event.clientX
+
+    document.onmousemove = this.onResizingList
+    document.onmouseup = this.onResizeListEnd
+  }
+
+  onResizingList = event => {
+    this.resizeListValues(event)
+  }
+
+  onResizeListEnd = event => {
+    this.listWidthValue = this.listWidthValue - this.resizeListValues(event)
+    localStorage.setItem('ganttChartListWidth', this.listWidthValue)
+
+    document.onmousemove = null
+    document.onmouseup = null
   }
 
   onFold () {

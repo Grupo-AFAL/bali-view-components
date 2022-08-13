@@ -13,6 +13,7 @@ $gantt-chart-item-bubble-radius: 12px;
 
 $gantt-chart-scale-height: 23px;
 $gantt-chart-today-color: lighten($blue, 20%);
+$gantt-chart-resizer-width: 10px;
 
 .gantt-chart-component {
   border-top: 2px solid $border-color;
@@ -60,6 +61,7 @@ $gantt-chart-today-color: lighten($blue, 20%);
 
   .gantt-chart-container {
     display: flex;
+    position: relative;
   }
 
   .gantt-chart-list {
@@ -80,6 +82,26 @@ $gantt-chart-today-color: lighten($blue, 20%);
       background-color: $white;
       border: 1px solid $border-color;
       user-select: none;
+    }
+  }
+
+  .gantt-chart-list-resizer {
+    width: $gantt-chart-resizer-width;
+    z-index: 2;
+    cursor: col-resize;
+    background: transparent;
+    position: absolute;
+    left: $gantt-chart-list-width - ($gantt-chart-resizer-width/2);
+    height: 100%;
+
+    &:hover .gantt-chart-list-resizer-shadow {
+      box-shadow: 0 0 3px 1px $gantt-chart-today-color;
+      width: 1px;
+      height: 100%;
+
+      position: absolute;
+      left: $gantt-chart-resizer-width/2;
+      background-color: $grey-lighter;
     }
   }
 
