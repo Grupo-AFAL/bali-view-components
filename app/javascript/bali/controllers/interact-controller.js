@@ -35,23 +35,23 @@ export class InteractController extends Controller {
   onResizing = event => {
     event.preventDefault()
 
-    let diffX, left
+    let diffX, position
     if (this.handle === 'left') {
       diffX = this.positionX - event.clientX
-      left = this.positionValue - diffX
+      position = this.positionValue - diffX
     } else {
       diffX = event.clientX - this.positionX
-      left = this.positionValue
+      position = this.positionValue
     }
 
     const width = this.widthValue + diffX
 
     if (width < this.incrementValue) return
 
-    this.element.style.left = `${left}px`
+    this.element.style.left = `${position}px`
     this.element.style.width = `${width}px`
 
-    this.dispatch('onResizing', { ...this.dispatchParams, width })
+    this.dispatch('onResizing', { ...this.dispatchParams, width, position })
   }
 
   onResizeEnd = event => {
@@ -86,7 +86,7 @@ export class InteractController extends Controller {
   onClick (event) {
     const diffX = this.positionX - event.clientX
 
-    if (this.isAClick(diffX)) {
+    if (this.isClick(diffX)) {
       this.resetMovement()
     } else {
       event.preventDefault()
@@ -107,11 +107,11 @@ export class InteractController extends Controller {
     event.preventDefault()
 
     const diffX = this.positionX - event.clientX
-    const left = this.positionValue - diffX
+    const position = this.positionValue - diffX
 
-    this.element.style.left = `${left}px`
+    this.element.style.left = `${position}px`
 
-    this.dispatch('onDragging', this.dispatchParams)
+    this.dispatch('onDragging', { ...this.dispatchParams, position })
   }
 
   onDragEnd = event => {
@@ -119,7 +119,7 @@ export class InteractController extends Controller {
 
     const diffX = this.snap(this.positionX - event.clientX)
 
-    if (this.isAClick(diffX)) {
+    if (this.isClick(diffX)) {
       this.element.style.left = `${this.positionValue}px`
 
       if (!this.hasLinkTarget) {
@@ -138,7 +138,7 @@ export class InteractController extends Controller {
     this.resetMovement()
   }
 
-  isAClick = diffX => {
+  isClick = diffX => {
     const mouseDownDuration = Date.now() - this.dragStartTime
 
     return (

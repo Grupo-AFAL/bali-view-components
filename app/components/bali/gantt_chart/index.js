@@ -15,7 +15,8 @@ export class GanttChartController extends Controller {
     'timeline',
     'listRow',
     'timelineRow',
-    'timelineCell'
+    'timelineCell',
+    'dragShadow'
   ]
 
   static values = {
@@ -172,6 +173,7 @@ export class GanttChartController extends Controller {
   }
 
   onItemResizing (event) {
+    this.updateDragShadow(event.detail)
     this.updateTaskNamePosition(event.detail)
     this.setTaskNameTooLongClass(event.detail)
     this.updateParentCell(event.detail.params.parent_id)
@@ -179,6 +181,7 @@ export class GanttChartController extends Controller {
   }
 
   async onItemResized (event) {
+    this.hideDragShadow(event.detail)
     this.updateTaskNamePosition(event.detail)
     this.setTaskNameTooLongClass(event.detail)
     this.updateParentCell(event.detail.params.parent_id)
@@ -187,14 +190,25 @@ export class GanttChartController extends Controller {
   }
 
   onItemDragging (event) {
+    this.updateDragShadow(event.detail)
     this.updateParentCell(event.detail.params.parent_id)
     this.repositionConnections()
   }
 
   async onItemDragged (event) {
+    this.hideDragShadow(event.detail)
     this.updateParentCell(event.detail.params.parent_id)
     this.repositionConnections()
     await this.updateTask(event.detail)
+  }
+
+  updateDragShadow ({ width, position }) {
+    this.dragShadowTarget.style.width = `${width}px`
+    this.dragShadowTarget.style.left = `${position}px`
+  }
+
+  hideDragShadow () {
+    this.dragShadowTarget.style.width = '0'
   }
 
   async updateTask (detail) {
