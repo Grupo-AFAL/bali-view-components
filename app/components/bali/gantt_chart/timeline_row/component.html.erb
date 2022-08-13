@@ -5,48 +5,9 @@
       'dependent-on-id': task.dependent_on_id
     },
     style: "height: #{task.total_row_height}px" do %>
-  <%= tag.div class: class_names(
-                'gantt-chart-cell',
-                'milestone': task.milestone?,
-                'has-children': task.children.any?
-              ),
-              style: "left: #{task.position_left}px; width: #{task.width}px",
-              data: {
-                controller: 'interact',
-                'task-id': task.id,
-                'parent-id': task.parent_id,
-                'interact-position-value': task.position_left,
-                'interact-width-value': task.width,
-                'interact-params-value': task.params.to_json,
-                'gantt-chart-target': 'timelineCell',
-              } do %>
 
-    <%= tag.div class: 'gantt-chart-cell-content' do %>
-      <% if task.children.empty? && !readonly %>
-        <% if !task.milestone? %>
-          <%= render Bali::Icon::Component.new('handle',
-                     class: 'gantt-chart-resize gantt-chart-resize-left',
-                     data: {
-                       action: 'mousedown->interact#onResizeStart',
-                       'interact-handle-param': 'left' }) %>
-        <% end %>
-
-        <%= render Bali::GanttChart::DragHandle::Component.new(task: task) %>
-
-        <% if !task.milestone? %>
-          <%= render Bali::Icon::Component.new('handle',
-                     class: 'gantt-chart-resize gantt-chart-resize-right',
-                     data: {
-                       action: 'mousedown->interact#onResizeStart',
-                       'interact-handle-param': 'right' }) %>
-        <% end %>
-      <% end %>
-    <% end %>
-
-    <span class="right-timeline-task-name" style="left: <%= task.width + task_name_padding %>px">
-      <%= task.name %>
-    </span>
-  <% end %>
+  <%= render Bali::GanttChart::TimelineCell::Component.new(
+             task: task, readonly: readonly, zoom: zoom) %>
 
   <% if task.children.any? %>
     <div class="gantt-chart-timeline-children"
@@ -59,7 +20,8 @@
         data-sortable-list-animation-value="50"
     >
       <% task.children.each do |child_task| %>
-        <%= render Bali::GanttChart::TimelineRow::Component.new(task: child_task, readonly: readonly) %>
+        <%= render Bali::GanttChart::TimelineRow::Component.new(
+                   task: child_task, readonly: readonly, zoom: zoom) %>
       <% end %>
     </div>
   <% end %>

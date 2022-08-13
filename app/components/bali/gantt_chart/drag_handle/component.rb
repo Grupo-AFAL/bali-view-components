@@ -4,18 +4,15 @@ module Bali
   module GanttChart
     module DragHandle
       class Component < ApplicationViewComponent
-        attr_reader :task, :tag_name, :options
+        attr_reader :task, :draggable, :tag_name, :options
 
-        def initialize(task:)
+        def initialize(task:, draggable:)
           @task = task
+          @draggable = draggable
           @tag_name = :div
 
-          @options = {
-            class: 'gantt-chart-drag-handle',
-            data: {
-              action: 'mousedown->interact#onDragStart'
-            }
-          }
+          @options = { class: class_names('gantt-chart-drag-handle', 'non-draggable': !draggable) }
+          @options = prepend_action(@options, 'mousedown->interact#onDragStart') if draggable
 
           return if task.href.blank?
 

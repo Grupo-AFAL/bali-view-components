@@ -194,13 +194,6 @@ $gantt-chart-resizer-width: 10px;
     top: 10px;
   }
 
-  &.month-zoom,
-  &.week-zoom {
-    .gantt-chart-cell-content * {
-      display: none;
-    }
-  }
-
   .gantt-chart-timeline {
     flex-grow: 1;
     overflow-x: scroll;
@@ -251,7 +244,7 @@ $gantt-chart-resizer-width: 10px;
   .gantt-chart-resize {
     opacity: 0;
     height: $gantt-chart-item-bubble-height;
-    width: 10px;
+    width: $gantt-chart-resizer-width;
 
     path {
       fill: $white;
@@ -279,11 +272,24 @@ $gantt-chart-resizer-width: 10px;
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+
+    &.non-draggable {
+      cursor: default;
+
+      .timeline-task-name {
+        padding-left: $gantt-chart-resizer-width;
+        padding-right: $gantt-chart-resizer-width;
+      }
+    }
   }
 
   .timeline-task-name {
     font-size: 0.625rem;
     font-weight: 600;
+  }
+
+  .gantt-chart-cell.has-children .timeline-task-name {
+    opacity: 0;
   }
 
   .task-name-too-long .timeline-task-name {

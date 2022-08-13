@@ -51,7 +51,8 @@
          style="width: <%= duration * col_width %>px"
       >
         <% tasks.each do |task| %>
-          <%= render Bali::GanttChart::TimelineRow::Component.new(task: task, readonly: readonly) %>
+          <%= render Bali::GanttChart::TimelineRow::Component.new(
+                     task: task, readonly: readonly, zoom: zoom) %>
         <% end %>
       </div>
     </div>

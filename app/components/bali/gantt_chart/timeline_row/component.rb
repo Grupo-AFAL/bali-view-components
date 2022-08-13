@@ -4,12 +4,12 @@ module Bali
   module GanttChart
     module TimelineRow
       class Component < ApplicationViewComponent
-        attr_reader :task, :readonly, :task_name_padding
+        attr_reader :task, :readonly, :zoom
 
-        def initialize(task:, readonly:)
+        def initialize(task:, readonly:, zoom:)
           @task = task
           @readonly = readonly
-          @task_name_padding = 8
+          @zoom = zoom
         end
       end
     end
