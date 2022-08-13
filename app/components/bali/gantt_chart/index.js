@@ -157,13 +157,10 @@ export class GanttChartController extends Controller {
       }
     } = detail
 
-    startDate = this.addDays(startDate, startDelta)
-    endDate = this.addDays(endDate, endDelta)
-
     await patch(updateUrl, {
       body: {
-        start_date: startDate,
-        end_date: endDate,
+        start_date: this.addDays(startDate, startDelta),
+        end_date: this.addDays(endDate, endDelta),
         offset: this.offsetValue
       }
     })
