@@ -50,7 +50,8 @@
       "fetch",
       "history",
       "FormData",
-      "CustomEvent"
+      "CustomEvent",
+      "localStorage"
     ]
   }
 }

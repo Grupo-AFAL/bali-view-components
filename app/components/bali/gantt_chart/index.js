@@ -14,6 +14,7 @@ export class GanttChartController extends Controller {
     'timelineRow',
     'timelineCell'
   ]
+
   static values = {
     todayOffset: Number,
     offset: Number,
