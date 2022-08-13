@@ -159,7 +159,6 @@ export class GanttChartController extends Controller {
     return newDate
   }
 
-  /* eslint-disable camelcase */
   updateParentCell (parentId) {
     const parentCell = this.cellsById[parentId]
     if (!parentCell) return
@@ -186,7 +185,6 @@ export class GanttChartController extends Controller {
       this.updateParentCell(toInt(parentCell.dataset.parentId))
     }
   }
-  /* eslint-enable camelcase */
 
   establishConnections = () => {
     if (this.zoomValue !== 'day') return
