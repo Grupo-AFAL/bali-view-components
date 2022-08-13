@@ -20,8 +20,13 @@ export class ModalController extends Controller {
   static targets = ['template', 'background', 'wrapper', 'content', 'closeBtn']
 
   async connect () {
-    this.wrapperClass = this.wrapperTarget.getAttribute('data-wrapper-class')
-    this.backgroundTarget.addEventListener('click', this._closeModal)
+    if (this.hasWrapperTarget) {
+      this.wrapperClass = this.wrapperTarget.getAttribute('data-wrapper-class')
+    }
+
+    if (this.hasBackgroundTarget) {
+      this.backgroundTarget.addEventListener('click', this._closeModal)
+    }
 
     if (this.hasCloseBtnTarget) {
       this.closeBtnTarget.addEventListener('click', this._closeModal)
@@ -34,7 +39,9 @@ export class ModalController extends Controller {
   }
 
   disconnect () {
-    this.backgroundTarget.removeEventListener('click', this._closeModal)
+    if (this.hasBackgroundTarget) {
+      this.backgroundTarget.removeEventListener('click', this._closeModal)
+    }
 
     if (this.hasCloseBtnTarget) {
       this.closeBtnTarget.removeEventListener('click', this._closeModal)
@@ -42,10 +49,14 @@ export class ModalController extends Controller {
   }
 
   templateTargetConnected () {
+    if (!this.hasBackgroundTarget) return
+
     this.backgroundTarget.addEventListener('click', this._closeModal)
   }
 
   templateTargetDisconnected () {
+    if (!this.hasBackgroundTarget) return
+
     this.backgroundTarget.removeEventListener('click', this._closeModal)
   }
 
