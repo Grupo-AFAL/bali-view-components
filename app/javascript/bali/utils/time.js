@@ -29,3 +29,16 @@ export const waitUntil = async (f, timeoutMs = 2000) => {
     }, checkEveryMs)
   })
 }
+
+/**
+ * Move date into the future by a set number of days
+ *
+ * @param {*} date Date in string format
+ * @param {*} days number of days
+ */
+export const addDaysToDate = (date, days) => {
+  const newDate = new Date(Date.parse(date))
+  newDate.setDate(newDate.getDate() + days)
+
+  return newDate
+}

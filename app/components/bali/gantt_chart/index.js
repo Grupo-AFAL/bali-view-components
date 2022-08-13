@@ -2,6 +2,7 @@ import { Controller } from '@hotwired/stimulus'
 import Sortable from 'sortablejs'
 import useDispatch from '../../../javascript/bali/utils/use-dispatch'
 import { toBool, toInt } from '../../../javascript/bali/utils/formatters'
+import { addDaysToDate } from '../../../javascript/bali/utils/time'
 import { patch } from '@rails/request.js'
 import LeaderLine from './leader_line'
 
@@ -209,18 +210,11 @@ export class GanttChartController extends Controller {
 
     await patch(updateUrl, {
       body: {
-        start_date: this.addDays(startDate, startDelta),
-        end_date: this.addDays(endDate, endDelta),
+        start_date: addDaysToDate(startDate, startDelta),
+        end_date: addDaysToDate(endDate, endDelta),
         offset: this.offsetValue
       }
     })
-  }
-
-  addDays (date, days) {
-    const newDate = new Date(Date.parse(date))
-    newDate.setDate(newDate.getDate() + days)
-
-    return newDate
   }
 
   updateTaskNamePosition ({ element, width }) {
