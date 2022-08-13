@@ -31,20 +31,7 @@
                        'interact-handle-param': 'left' }) %>
         <% end %>
 
-        <% if task.href %>
-          <%= tag.a href: task.href,
-                    class: 'gantt-chart-drag-handle',
-                    data: {
-                      action: 'mousedown->interact#onDragStart click->interact#onClick',
-                      'interact-target': 'link'
-                    } do %>
-            <span class="timeline-task-name"><%= task.name %></span>
-          <% end %>
-        <% else %>
-          <div class="gantt-chart-drag-handle" data-action="mousedown->interact#onDragStart">
-            <span class="timeline-task-name"><%= task.name %></span>
-          </div>
-        <% end %>
+        <%= render Bali::GanttChart::DragHandle::Component.new(task: task) %>
 
         <% if !task.milestone? %>
           <%= render Bali::Icon::Component.new('handle',
