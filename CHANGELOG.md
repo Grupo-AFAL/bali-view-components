@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.37.1] - 2022-08-12
 
-- Update `ModalController` to check for it's targets existence before attempting action.
+- Update `ModalController` to check for targets (Wrapper and Background) existence before attempting action.
 
 ## [0.37.0] - 2022-08-5
 
