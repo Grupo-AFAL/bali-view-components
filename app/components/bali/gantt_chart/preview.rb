@@ -4,8 +4,8 @@ module Bali
   module GanttChart
     class Preview < ApplicationViewComponentPreview
 
-      def default
-        render GanttChart::Component.new(tasks: tasks)
+      def default(zoom: :day)
+        render GanttChart::Component.new(tasks: tasks, zoom: zoom.to_sym)
       end
 
       def month_view

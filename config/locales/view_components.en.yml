@@ -13,6 +13,9 @@ en:
       gantt_chart:
         task_header: Name
         today: Today
+        day: Day
+        week: Week
+        month: Month
       loader:
         loading: Loading...
       search_input:

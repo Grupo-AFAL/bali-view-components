@@ -52,7 +52,13 @@ module Bali
       # rubocop:enable Metrics/ParameterLists
 
       def controller_values
-        { offset: offset, row_height: row_height, col_width: col_width, zoom: zoom }
+        {
+          offset: offset,
+          today_offset: today_offset,
+          row_height: row_height,
+          col_width: col_width,
+          zoom: zoom
+        }
       end
 
       def offset

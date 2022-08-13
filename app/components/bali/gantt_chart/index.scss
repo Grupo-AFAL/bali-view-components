@@ -4,9 +4,7 @@ $gantt-chart-header-height: 45px;
 $gantt-chart-header-size: 11px;
 
 $gantt-chart-list-width: 200px;
-
 $gantt-chart-row-height: 35px;
-
 $gantt-chart-item-color: $green;
 $gantt-chart-milestone-color: $purple;
 
@@ -14,13 +12,55 @@ $gantt-chart-item-bubble-height: 25px;
 $gantt-chart-item-bubble-radius: 12px;
 
 $gantt-chart-scale-height: 23px;
-
 $gantt-chart-today-color: lighten($blue, 20%);
 
 .gantt-chart-component {
-  display: flex;
   border-top: 2px solid $border-color;
   border-bottom: 1px solid $border-color;
+
+  .gantt-chart-actions {
+    width: 100%;
+    height: $gantt-chart-header-height;
+    border-bottom: 1px solid $border-color;
+    border-left: 1px solid $border-color;
+    border-right: 1px solid $border-color;
+    display: flex;
+    align-items: center;
+    padding: 0 0.75rem;
+
+    a.today {
+      color: $grey-dark;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      margin-right: 1rem;
+      border: 1px solid $white-ter;
+
+      &:hover {
+        background-color: $white-ter;
+        border: 1px solid $grey-lightest;
+      }
+    }
+
+    .buttons {
+      margin-bottom: 0;
+    }
+
+    .button {
+      padding: 0.25rem 0.5rem;
+      margin-bottom: 0;
+      height: unset;
+      line-height: unset;
+
+      &.is-info {
+        background-color: $gantt-chart-today-color;
+      }
+    }
+  }
+
+  .gantt-chart-container {
+    display: flex;
+  }
 
   .gantt-chart-list {
     min-width: $gantt-chart-list-width;
@@ -32,6 +72,8 @@ $gantt-chart-today-color: lighten($blue, 20%);
       border-left: 1px solid $border-color;
       width: 100%;
       padding-left: 1.25rem;
+      color: $grey-light;
+      text-transform: uppercase;
     }
 
     .gantt-chart-row-contents {

@@ -8,6 +8,7 @@ import LeaderLine from './leader_line'
 export class GanttChartController extends Controller {
   static targets = ['timeline', 'listRow', 'timelineRow', 'timelineCell']
   static values = {
+    todayOffset: Number,
     offset: Number,
     rowHeight: Number,
     colWidth: Number,
@@ -49,6 +50,13 @@ export class GanttChartController extends Controller {
 
   updateScroll = () => {
     this.offsetValue = this.timelineTarget.scrollLeft
+  }
+
+  scrollToToday () {
+    this.timelineTarget.scrollTo({
+      left: this.todayOffsetValue - this.colWidthValue
+    })
+    this.updateScroll()
   }
 
   onFold () {
