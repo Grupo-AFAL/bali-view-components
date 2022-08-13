@@ -1,7 +1,11 @@
 import { Controller } from '@hotwired/stimulus'
 import useDispatch from '../utils/use-dispatch'
 
+const CLICK_DISTANCE_THRESHOLD = 6 // pixels
+const CLICK_DURATION_THRESHOLD = 500 // miliseconds
+
 export class InteractController extends Controller {
+  static targets = ['link']
   static values = {
     position: Number,
     increment: { type: Number, default: 25 },
@@ -69,10 +73,21 @@ export class InteractController extends Controller {
     this.resetMovement()
   }
 
+  onClick (event) {
+    const diffX = this.positionX - event.clientX
+
+    if (this.isAClick(diffX)) {
+      this.resetMovement()
+    } else {
+      event.preventDefault()
+    }
+  }
+
   onDragStart = event => {
     event.preventDefault()
 
     this.positionX = event.clientX
+    this.dragStartTime = Date.now()
 
     document.onmousemove = this.onDragging
     document.onmouseup = this.onDragEnd
@@ -93,6 +108,17 @@ export class InteractController extends Controller {
     event.preventDefault()
 
     const diffX = this.snap(this.positionX - event.clientX)
+
+    if (this.isAClick(diffX)) {
+      this.element.style.left = `${this.positionValue}px`
+
+      if (!this.hasLinkTarget) {
+        this.resetMovement()
+      }
+
+      return
+    }
+
     this.positionValue = this.positionValue - diffX
     this.element.style.left = `${this.positionValue}px`
     this.startDeltaValue -= diffX / this.incrementValue
@@ -100,6 +126,15 @@ export class InteractController extends Controller {
 
     this.dispatch('onDragEnd', this.dispatchParams)
     this.resetMovement()
+  }
+
+  isAClick = diffX => {
+    const mouseDownDuration = Date.now() - this.dragStartTime
+
+    return (
+      Math.abs(diffX) < CLICK_DISTANCE_THRESHOLD &&
+      mouseDownDuration < CLICK_DURATION_THRESHOLD
+    )
   }
 
   resetMovement = () => {

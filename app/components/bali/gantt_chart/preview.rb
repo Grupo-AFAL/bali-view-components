@@ -31,7 +31,7 @@ module Bali
 
         [
           { id: 1, name: 'Task 1', start_date: date, end_date: date + 16.days, update_url: '/gantt_chart/1', href: '/gantt_chart/1', data: { action: 'modal#open' } },
-          { id: 2, name: 'Task 1.1', start_date: date, end_date: date + 2.days, update_url: '/gantt_chart/2', parent_id: 1 },
+          { id: 2, name: 'Task 1.1', start_date: date, end_date: date + 2.days, update_url: '/gantt_chart/2', parent_id: 1, href: '/gantt_chart/2', data: { action: 'modal#open' } },
           { id: 3, name: 'Task 1.2', start_date: date + 2.days, end_date: date + 6.days, update_url: '/gantt_chart/3', parent_id: 1 },
           { id: 4, name: 'Task 1.3', start_date: date + 6.days, end_date: date + 16.days, update_url: '/gantt_chart/4', parent_id: 1 },
           { id: 5, name: 'Task 1.3.1', start_date: date + 6.days, end_date: date + 12.days, update_url: '/gantt_chart/5', parent_id: 4 },

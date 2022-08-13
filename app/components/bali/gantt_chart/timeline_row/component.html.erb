@@ -29,7 +29,16 @@
                        'interact-handle-param': 'left' }) %>
         <% end %>
 
-        <div class="gantt-chart-drag-handle" data-action="mousedown->interact#onDragStart"></div>
+        <% if task.href %>
+          <%= tag.a href: task.href,
+                    class: 'gantt-chart-drag-handle',
+                    data: {
+                      action: 'mousedown->interact#onDragStart click->interact#onClick',
+                      'interact-target': 'link'
+                    } %>
+        <% else %>
+          <div class="gantt-chart-drag-handle" data-action="mousedown->interact#onDragStart"></div>
+        <% end %>
 
         <% if !task.milestone? %>
           <%= render Bali::Icon::Component.new('handle',
