@@ -46,10 +46,12 @@ export class InteractController extends Controller {
 
     const width = this.widthValue + diffX
 
+    if (width < this.incrementValue) return
+
     this.element.style.left = `${left}px`
     this.element.style.width = `${width}px`
 
-    this.dispatch('onResizing', this.dispatchParams)
+    this.dispatch('onResizing', { ...this.dispatchParams, width })
   }
 
   onResizeEnd = event => {
@@ -57,10 +59,18 @@ export class InteractController extends Controller {
 
     if (this.handle === 'left') {
       diffX = this.snap(this.positionX - event.clientX)
+      if (this.widthValue + diffX < this.incrementValue) {
+        return this.resetMovement()
+      }
+
       this.startDeltaValue -= diffX / this.incrementValue
       this.positionValue = this.positionValue - diffX
     } else {
       diffX = this.snap(event.clientX - this.positionX)
+      if (this.widthValue + diffX < this.incrementValue) {
+        return this.resetMovement()
+      }
+
       this.endDeltaValue += diffX / this.incrementValue
     }
 
@@ -150,6 +160,7 @@ export class InteractController extends Controller {
 
   get dispatchParams () {
     return {
+      element: this.element,
       params: this.paramsValue,
       position: this.positionValue,
       startDelta: this.startDeltaValue,

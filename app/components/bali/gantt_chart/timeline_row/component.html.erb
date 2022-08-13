@@ -5,7 +5,11 @@
       'dependent-on-id': task.dependent_on_id
     },
     style: "height: #{task.total_row_height}px" do %>
-  <%= tag.div class: 'gantt-chart-cell',
+  <%= tag.div class: class_names(
+                'gantt-chart-cell',
+                'milestone': task.milestone?,
+                'has-children': task.children.any?
+              ),
               style: "left: #{task.position_left}px; width: #{task.width}px",
               data: {
                 controller: 'interact',
@@ -17,9 +21,7 @@
                 'gantt-chart-target': 'timelineCell',
               } do %>
 
-    <%= tag.div class: class_names('gantt-chart-cell-content',
-                                   'has-children': task.children.any?,
-                                   'milestone': task.milestone?) do %>
+    <%= tag.div class: 'gantt-chart-cell-content' do %>
       <% if task.children.empty? && !readonly %>
         <% if !task.milestone? %>
           <%= render Bali::Icon::Component.new('handle',
@@ -35,9 +37,13 @@
                     data: {
                       action: 'mousedown->interact#onDragStart click->interact#onClick',
                       'interact-target': 'link'
-                    } %>
+                    } do %>
+            <span class="timeline-task-name"><%= task.name %></span>
+          <% end %>
         <% else %>
-          <div class="gantt-chart-drag-handle" data-action="mousedown->interact#onDragStart"></div>
+          <div class="gantt-chart-drag-handle" data-action="mousedown->interact#onDragStart">
+            <span class="timeline-task-name"><%= task.name %></span>
+          </div>
         <% end %>
 
         <% if !task.milestone? %>
@@ -49,6 +55,10 @@
         <% end %>
       <% end %>
     <% end %>
+
+    <span class="right-timeline-task-name" style="left: <%= task.width + task_name_padding %>px">
+      <%= task.name %>
+    </span>
   <% end %>
 
   <% if task.children.any? %>

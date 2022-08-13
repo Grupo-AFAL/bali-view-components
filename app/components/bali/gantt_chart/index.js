@@ -5,6 +5,8 @@ import { toBool, toInt } from '../../../javascript/bali/utils/formatters'
 import { patch } from '@rails/request.js'
 import LeaderLine from './leader_line'
 
+const TASK_NAME_PADDING = 8
+
 export class GanttChartController extends Controller {
   static targets = [
     'list',
@@ -40,6 +42,10 @@ export class GanttChartController extends Controller {
       acc[target.dataset.parentId].push(target)
       return acc
     }, {})
+
+    this.timelineCellTargets.forEach(cell => {
+      this.setTaskNameTooLongClass({ element: cell })
+    })
 
     this.dependentConnections = []
     this.establishConnections()
@@ -165,11 +171,15 @@ export class GanttChartController extends Controller {
   }
 
   onItemResizing (event) {
+    this.updateTaskNamePosition(event.detail)
+    this.setTaskNameTooLongClass(event.detail)
     this.updateParentCell(event.detail.params.parent_id)
     this.repositionConnections()
   }
 
   async onItemResized (event) {
+    this.updateTaskNamePosition(event.detail)
+    this.setTaskNameTooLongClass(event.detail)
     this.updateParentCell(event.detail.params.parent_id)
     this.repositionConnections()
     await this.updateTask(event.detail)
@@ -213,6 +223,25 @@ export class GanttChartController extends Controller {
     return newDate
   }
 
+  updateTaskNamePosition ({ element, width }) {
+    const rightTaskName = element.querySelector('.right-timeline-task-name')
+    rightTaskName.style.left = `${width + TASK_NAME_PADDING}px`
+  }
+
+  setTaskNameTooLongClass ({ element }) {
+    const taskName = element.querySelector('.timeline-task-name')
+    const dragHandle = element.querySelector('.gantt-chart-drag-handle')
+
+    const tooLong =
+      taskName &&
+      dragHandle &&
+      (taskName.clientWidth > dragHandle.clientWidth ||
+        dragHandle.clientWidth === 0)
+
+    const operation = tooLong ? 'add' : 'remove'
+    element.classList[operation]('task-name-too-long')
+  }
+
   updateParentCell (parentId) {
     const parentCell = this.cellsById[parentId]
     if (!parentCell) return
@@ -235,6 +264,8 @@ export class GanttChartController extends Controller {
     parentCell.dataset.interactPositionValue = newParentLeft
     parentCell.dataset.interactWidthValue = newParentWidth
 
+    this.updateTaskNamePosition({ element: parentCell, width: newParentWidth })
+
     if (parentCell.dataset.parentId) {
       this.updateParentCell(toInt(parentCell.dataset.parentId))
     }
@@ -251,7 +282,7 @@ export class GanttChartController extends Controller {
           `[data-id="${timelineRow.dataset.dependentOnId}"] .gantt-chart-cell-content`
         )
 
-        const options = { color: '#b5b5b5', size: 2, path: 'grid' }
+        const options = { color: '#dbdbdb', size: 2, path: 'grid' }
         const line = new LeaderLine(startCell, endCell, options)
 
         this.dependentConnections.push(line)
