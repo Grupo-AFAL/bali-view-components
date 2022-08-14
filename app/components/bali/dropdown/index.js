@@ -35,7 +35,7 @@ export class DropdownController extends Controller {
 
     if (!this.hoverableValue) return
 
-    this.element.addEventListener('mouseenter', event => this.toggleMenu(event))
+    this.element.addEventListener('mouseenter', this.toggleMenu)
     this.element.addEventListener('mouseleave', this.closeDropdowns)
   }
 
@@ -46,7 +46,7 @@ export class DropdownController extends Controller {
 
     if (!this.hoverableValue) return
 
-    this.element.removeEventListener('mouseenter', this.closeDropdowns)
+    this.element.removeEventListener('mouseenter', this.toggleMenu)
     this.element.removeEventListener('mouseleave', this.closeDropdowns)
   }
 

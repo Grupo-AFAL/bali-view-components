@@ -40,7 +40,17 @@ export class SlimSelectController extends Controller {
   }
 
   disconnect () {
-    this.select.destroy()
+    // BUG: Destroy is causing an error because the slim instance is not
+    // present in the document anymore. My assumption is that it has something
+    // to do with Turbo snapshot caching.
+    // this.select.destroy()
+
+    // Remove event listeners setup by slim-select
+    // https://github.com/brianvoe/slim-select/blob/master/src/slim-select/index.ts#L498
+    document.removeEventListener('click', this.select.documentClick)
+    if (this.select.config.showContent === 'auto') {
+      window.removeEventListener('scroll', this.select.windowScroll, false)
+    }
   }
 
   addable () {

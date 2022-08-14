@@ -32,10 +32,7 @@ export class ModalController extends Controller {
       this.closeBtnTarget.addEventListener('click', this._closeModal)
     }
 
-    document.addEventListener('openModal', e => {
-      this.setOptions(e.detail.options)
-      this.openModal(e.detail.content)
-    })
+    document.addEventListener('openModal', this.setOptionsAndOpenModal)
   }
 
   disconnect () {
@@ -46,6 +43,8 @@ export class ModalController extends Controller {
     if (this.hasCloseBtnTarget) {
       this.closeBtnTarget.removeEventListener('click', this._closeModal)
     }
+
+    document.removeEventListener('openModal', this.setOptionsAndOpenModal)
   }
 
   templateTargetConnected () {
@@ -58,6 +57,11 @@ export class ModalController extends Controller {
     if (!this.hasBackgroundTarget) return
 
     this.backgroundTarget.removeEventListener('click', this._closeModal)
+  }
+
+  setOptionsAndOpenModal = event => {
+    this.setOptions(event.detail.options)
+    this.openModal(event.detail.content)
   }
 
   openModal (content) {

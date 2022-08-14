@@ -41,6 +41,11 @@ export class ElementsOverlapController extends Controller {
     window.addEventListener('resize', this.throttledPreventOverlap)
   }
 
+  disconnect () {
+    document.removeEventListener('scroll', this.throttledPreventOverlap)
+    window.removeEventListener('resize', this.throttledPreventOverlap)
+  }
+
   preventOverlaping = () => {
     if (window.innerWidth <= this.minWindowWidthValue) {
       return
