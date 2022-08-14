@@ -20,6 +20,7 @@ export class GanttChartController extends Controller {
   ]
 
   static values = {
+    resourceName: String,
     todayOffset: Number,
     offset: Number,
     rowHeight: Number,
@@ -222,13 +223,20 @@ export class GanttChartController extends Controller {
       }
     } = detail
 
-    await patch(updateUrl, {
-      body: {
-        start_date: addDaysToDate(startDate, startDelta),
-        end_date: addDaysToDate(endDate, endDelta),
-        offset: this.offsetValue
-      }
-    })
+    const attributes = {
+      start_date: addDaysToDate(startDate, startDelta),
+      end_date: addDaysToDate(endDate, endDelta),
+      offset: this.offsetValue
+    }
+
+    let body = {}
+    if (this.resourceNameValue) {
+      body[this.resourceNameValue] = attributes
+    } else {
+      body = attributes
+    }
+
+    await patch(updateUrl, { body })
   }
 
   updateTaskNamePosition ({ element, width }) {

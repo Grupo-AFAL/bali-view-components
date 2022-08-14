@@ -3,7 +3,7 @@
 module Bali
   module GanttChart
     class Component < ApplicationViewComponent
-      attr_reader :tasks, :row_height, :col_width, :zoom, :readonly, :options
+      attr_reader :tasks, :row_height, :col_width, :zoom, :readonly, :resource_name, :options
 
       # rubocop:disable Metrics/AbcSize
       # rubocop:disable Metrics/ParameterLists
@@ -14,16 +14,21 @@ module Bali
         zoom: :day,
         readonly: false,
         offset: nil,
+        resource_name: nil,
         **options
       )
         @row_height = row_height
         @col_width = col_width
+        @zoom = zoom&.to_sym || :day
 
         # Default is 100 for month and week view and 25 for day view.
-        @col_width ||= zoom == :day ? 25 : 100
-        @zoom = zoom
+        @col_width ||= @zoom == :day ? 25 : 100
         @readonly = readonly
         @offset = offset
+        @resource_name = resource_name
+
+        @default_min_date = Date.current - 2.months
+        @default_max_date = Date.current + 2.months
 
         @tasks = tasks.map { |task| Task.new(**task) }
         tasks_by_parent_id = @tasks.group_by(&:parent_id)
@@ -32,13 +37,13 @@ module Bali
           task.chart_end_date = end_date
           task.row_height = @row_height
           task.col_width = @col_width
-          task.zoom = zoom
+          task.zoom = @zoom
           task.children = tasks_by_parent_id[task.id] || []
         end
         @tasks.filter! { |task| task.parent_id.blank? }
 
         @options = prepend_class_name(options, 'gantt-chart-component')
-        @options = prepend_class_name(options, "#{zoom}-zoom")
+        @options = prepend_class_name(options, "#{@zoom}-zoom")
         @options = prepend_controller(@options, 'gantt-chart')
         @options = prepend_action(@options, 'sortable-list:onEnd->gantt-chart#onItemReordered')
         @options = prepend_action(@options, 'interact:onResizing->gantt-chart#onItemResizing')
@@ -53,6 +58,7 @@ module Bali
 
       def controller_values
         {
+          resource_name: resource_name,
           offset: offset,
           today_offset: today_offset,
           row_height: row_height,
@@ -111,11 +117,11 @@ module Bali
       end
 
       def min_date
-        @min_date ||= earliest_task&.start_date || Date.current
+        @min_date ||= earliest_task&.start_date || @default_min_date
       end
 
       def max_date
-        @max_date ||= latest_task&.end_date || (Date.current + 2.months)
+        @max_date ||= [latest_task&.end_date, @default_max_date].compact.max
       end
 
       def earliest_task

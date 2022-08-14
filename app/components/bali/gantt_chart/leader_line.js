@@ -1,5 +1,5 @@
 /*! LeaderLine v1.0.7 (c) anseki https://anseki.github.io/leader-line/ */
-export default LeaderLine = (function () {
+export default (function () {
   'use strict'
   var Z,
     w,
