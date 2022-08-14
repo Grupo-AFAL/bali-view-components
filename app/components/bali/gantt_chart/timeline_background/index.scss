@@ -1,0 +1,19 @@
+.gantt-chart-component {
+  .gantt-chart-timeline-background {
+    position: absolute;
+    top: $gantt-chart-header-height;
+    height: $gantt-chart-timeline-data-height;
+    width: 100%;
+  }
+
+  .gantt-chart-timeline-background-column {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    border-right: 1px solid rgba($border-color, 0.5);
+
+    &.is-weekend {
+      background-color: rgba($grey-lightest, 0.4);
+    }
+  }
+}
