@@ -1,7 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 import tippy from 'tippy.js'
 
-export class HelpTipController extends Controller {
+export class TooltipController extends Controller {
   static targets = ['content', 'trigger']
   static values = {
     placement: { type: String, default: 'top' },
