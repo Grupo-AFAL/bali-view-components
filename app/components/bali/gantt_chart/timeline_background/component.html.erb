@@ -1,0 +1,33 @@
+<div class="gantt-chart-timeline-background">
+  <% if zoom == :day %>
+    <% days_by_month.each do |month_number, dates| %>
+      <% dates.each do |date| %>
+        <%= tag.div class: class_names(
+                      'gantt-chart-timeline-background-column',
+                      'is-weekend': date.saturday? || date.sunday?
+                    ),
+                    style: "left: #{col_width * @position}px; width: #{col_width}px" %>
+
+        <% @position += 1 %>
+      <% end %>
+    <% end %>
+  <% elsif zoom == :week %>
+    <% weeks_by_year.each do |year_number, dates| %>
+      <% dates.each do |date| %>
+        <%= tag.div class: 'gantt-chart-timeline-background-column',
+                    style: "left: #{col_width * @position}px; width: #{col_width}px" %>
+
+        <% @position += 1 %>
+      <% end %>
+    <% end %>
+  <% elsif zoom == :month %>
+    <% months_by_year.each do |year_number, dates| %>
+      <% dates.each do |date| %>
+        <%= tag.div class: 'gantt-chart-timeline-background-column',
+                    style: "left: #{col_width * @position}px; width: #{col_width}px" %>
+
+        <% @position += 1 %>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

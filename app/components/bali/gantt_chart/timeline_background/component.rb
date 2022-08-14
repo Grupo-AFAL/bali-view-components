@@ -2,7 +2,7 @@
 
 module Bali
   module GanttChart
-    module TimelineHeader
+    module TimelineBackground
       class Component < ApplicationViewComponent
         include DateRanges
 
@@ -13,6 +13,7 @@ module Bali
           @end_date = end_date
           @col_width = col_width
           @zoom = zoom
+          @position = 0
         end
       end
     end
