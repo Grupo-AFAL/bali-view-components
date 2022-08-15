@@ -5,6 +5,7 @@ import {
   AvatarController,
   CarouselController,
   ChartController,
+  ClipboardController,
   DropdownController,
   FilterFormController,
   HovercardController,
@@ -30,6 +31,7 @@ const application = Application.start()
 application.register('avatar', AvatarController)
 application.register('carousel', CarouselController)
 application.register('chart', ChartController)
+application.register('clipboard', ClipboardController)
 application.register('dropdown', DropdownController)
 application.register('filter-form', FilterFormController)
 application.register('hovercard', HovercardController)

@@ -3,6 +3,8 @@ en:
     bali:
       chart:
         loading: Loading...
+      clipboard:
+        copied: Copied!
       delete_link:
         generic_confirm_message: Are you sure?
         default_name: Delete

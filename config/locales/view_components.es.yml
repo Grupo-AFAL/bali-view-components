@@ -3,6 +3,8 @@ es:
     bali:
       chart:
         loading: Cargando...
+      clipboard:
+        copied: ¡Copiado!
       delete_link:
         generic_confirm_message: '¿Estas seguro(a)?'
         default_name: Eliminar
