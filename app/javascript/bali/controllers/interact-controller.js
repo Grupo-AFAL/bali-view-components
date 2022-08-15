@@ -28,12 +28,16 @@ export class InteractController extends Controller {
     this.positionX = event.clientX
     this.handle = event.params.handle
 
+    console.log('onResizeStart')
+
     document.onmousemove = this.onResizing
     document.onmouseup = this.onResizeEnd
   }
 
   onResizing = event => {
     event.preventDefault()
+
+    console.log('onResizing')
 
     let diffX, position
     if (this.handle === 'left') {
@@ -56,6 +60,8 @@ export class InteractController extends Controller {
 
   onResizeEnd = event => {
     let diffX
+
+    console.log('onResizeEnd')
 
     if (this.handle === 'left') {
       diffX = this.snap(this.positionX - event.clientX)
@@ -87,14 +93,17 @@ export class InteractController extends Controller {
     const diffX = this.positionX - event.clientX
 
     if (this.isClick(diffX)) {
+      console.log('isClick')
       this.resetMovement()
     } else {
+      console.log('isDrag')
       event.preventDefault()
     }
   }
 
   onDragStart = event => {
     event.preventDefault()
+    console.log('onDragStart')
 
     this.positionX = event.clientX
     this.dragStartTime = Date.now()
@@ -105,6 +114,7 @@ export class InteractController extends Controller {
 
   onDragging = event => {
     event.preventDefault()
+    console.log('onDragging')
 
     const diffX = this.positionX - event.clientX
     const position = this.positionValue - diffX
@@ -116,10 +126,12 @@ export class InteractController extends Controller {
 
   onDragEnd = event => {
     event.preventDefault()
+    console.log('onDragEnd')
 
     const diffX = this.snap(this.positionX - event.clientX)
 
     if (this.isClick(diffX)) {
+      console.log('is DragEnd Click')
       this.element.style.left = `${this.positionValue}px`
 
       if (!this.hasLinkTarget) {
@@ -148,6 +160,7 @@ export class InteractController extends Controller {
   }
 
   resetMovement = () => {
+    console.log('resetMovement')
     this.positionX = 0
 
     document.onmouseup = null

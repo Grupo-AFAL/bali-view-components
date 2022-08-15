@@ -20,6 +20,10 @@ export class ModalController extends Controller {
   static targets = ['template', 'background', 'wrapper', 'content', 'closeBtn']
 
   async connect () {
+    this.setupListeners('openModal')
+  }
+
+  setupListeners = eventName => {
     if (this.hasWrapperTarget) {
       this.wrapperClass = this.wrapperTarget.getAttribute('data-wrapper-class')
     }
@@ -32,10 +36,14 @@ export class ModalController extends Controller {
       this.closeBtnTarget.addEventListener('click', this._closeModal)
     }
 
-    document.addEventListener('openModal', this.setOptionsAndOpenModal)
+    document.addEventListener(eventName, this.setOptionsAndOpenModal)
   }
 
   disconnect () {
+    this.removeListeners('openModal')
+  }
+
+  removeListeners = eventName => {
     if (this.hasBackgroundTarget) {
       this.backgroundTarget.removeEventListener('click', this._closeModal)
     }
@@ -44,7 +52,7 @@ export class ModalController extends Controller {
       this.closeBtnTarget.removeEventListener('click', this._closeModal)
     }
 
-    document.removeEventListener('openModal', this.setOptionsAndOpenModal)
+    document.removeEventListener(eventName, this.setOptionsAndOpenModal)
   }
 
   templateTargetConnected () {
@@ -122,6 +130,8 @@ export class ModalController extends Controller {
   open = event => {
     event.preventDefault()
     const target = event.currentTarget
+
+    console.log('opening modal/drawer', this.element, target)
 
     this.wrapperClass = target.getAttribute('data-wrapper-class')
     this.redirectTo = target.getAttribute('data-redirect-to')
