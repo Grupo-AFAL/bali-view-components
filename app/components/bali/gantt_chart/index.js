@@ -318,6 +318,10 @@ export class GanttChartController extends Controller {
   }
 
   removeConnections () {
-    this.dependentConnections.forEach(line => line.remove())
+    this.dependentConnections.forEach(line => {
+      if (document.contains(line.start) && document.contains(line.end)) {
+        line.remove()
+      }
+    })
   }
 }
