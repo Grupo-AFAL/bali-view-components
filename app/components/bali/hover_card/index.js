@@ -24,11 +24,11 @@ export class HovercardController extends Controller {
     this.contentLoaded = false
 
     if (this.openOnClickValue) {
-      this.element.addEventListener('click', this.show.bind(this))
+      this.element.addEventListener('click', this.show)
       useClickOutside(this)
     } else {
-      this.element.addEventListener('mouseenter', this.show.bind(this))
-      this.element.addEventListener('mouseleave', this.hide.bind(this))
+      this.element.addEventListener('mouseenter', this.show)
+      this.element.addEventListener('mouseleave', this.hide)
     }
 
     this.cardNode = this.element.appendChild(this.buildEmptyNode())
@@ -42,7 +42,19 @@ export class HovercardController extends Controller {
     })
   }
 
-  show () {
+  disconnect () {
+    if (this.openOnClickValue) {
+      this.element.removeEventListener('click', this.show)
+    } else {
+      this.element.removeEventListener('mouseenter', this.show)
+      this.element.removeEventListener('mouseleave', this.hide)
+    }
+
+    this.popperInstance.destroy()
+    this.cardNode.remove()
+  }
+
+  show = () => {
     this.isActive = true
 
     if (this.contentLoaded) {
@@ -88,7 +100,7 @@ export class HovercardController extends Controller {
     ).firstElementChild
   }
 
-  hide () {
+  hide = () => {
     this.isActive = false
     this.cardNode.classList.add('is-hidden')
     this.toggleEventListeners(false)
@@ -96,11 +108,6 @@ export class HovercardController extends Controller {
 
   clickOutside () {
     this.hide()
-  }
-
-  disconnect () {
-    this.popperInstance.destroy()
-    this.cardNode.remove()
   }
 
   toggleEventListeners (value) {

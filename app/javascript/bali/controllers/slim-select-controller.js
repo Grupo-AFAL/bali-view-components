@@ -1,7 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
+import { destroyWithCheck } from './slim-select-controller/destroy-with-check'
 
 // TODO: Add tests (Issue: #157)
-
 export class SlimSelectController extends Controller {
   static values = {
     placeholder: String,
@@ -18,6 +18,10 @@ export class SlimSelectController extends Controller {
 
   async connect () {
     const { default: SlimSelect } = await import('slim-select')
+
+    Object.assign(SlimSelect.prototype, {
+      destroy: destroyWithCheck
+    })
 
     const options = {
       select: this.selectTarget,
@@ -40,6 +44,12 @@ export class SlimSelectController extends Controller {
   }
 
   disconnect () {
+    // BUG: Destroy is causing an error because the slim instance is not
+    // present in the document anymore. My assumption is that it has something
+    // to do with Turbo snapshot caching. Fix by overriding the destroy function
+    // to check for the existance in the body before attempting to remove.
+    //
+    // https://github.com/brianvoe/slim-select/blob/master/src/slim-select/index.ts#L521
     this.select.destroy()
   }
 
