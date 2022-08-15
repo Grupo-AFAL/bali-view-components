@@ -3,7 +3,8 @@
 module Bali
   module GanttChart
     class Component < ApplicationViewComponent
-      attr_reader :tasks, :row_height, :col_width, :zoom, :readonly, :resource_name, :options
+      attr_reader :tasks, :row_height, :col_width, :zoom, :readonly, :resource_name,
+                  :list_param_name, :options
 
       # rubocop:disable Metrics/AbcSize
       # rubocop:disable Metrics/ParameterLists
@@ -16,6 +17,7 @@ module Bali
         readonly: false,
         offset: nil,
         resource_name: nil,
+        list_param_name: 'list_id',
         **options
       )
         @row_height = row_height
@@ -27,6 +29,7 @@ module Bali
         @readonly = readonly
         @offset = offset
         @resource_name = resource_name
+        @list_param_name = list_param_name
 
         @default_min_date = Date.current - 2.months
         @default_max_date = Date.current + 2.months

@@ -79,6 +79,14 @@ module Bali
         @drag_options ||= options[:drag] || {}
       end
 
+      def list_row_options
+        @list_row_options ||= options[:list_row] || {}
+      end
+
+      def list_task_name_options
+        @list_task_name_options ||= options[:list_task_name] || {}
+      end
+
       private
 
       def duration

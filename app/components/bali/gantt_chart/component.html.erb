@@ -20,9 +20,15 @@
          data-sortable-list-handle-value=".handle"
          data-sortable-list-list-id-value="0"
          data-sortable-list-animation-value="50"
+         data-sortable-list-resource-name-value="<%= resource_name %>"
+         data-sortable-list-list-param-name-value="<%= list_param_name %>"
       >
         <% tasks.each do |task| %>
-          <%= render Bali::GanttChart::ListRow::Component.new(task: task, readonly: readonly) %>
+          <%= render Bali::GanttChart::ListRow::Component.new(
+                     task: task,
+                     readonly: readonly,
+                     resource_name: resource_name,
+                     list_param_name: list_param_name) %>
         <% end %>
       </div>
     </div>

@@ -1,14 +1,4 @@
-<%= tag.div class: 'gantt-chart-row',
-    data: {
-      id: task.id,
-      controller: 'gantt-foldable-item',
-      'gantt-foldable-item-visible-value': true,
-      'gantt-foldable-item-folded-value': false,
-      'gantt-foldable-item-parent-id-value': task.parent_id,
-      'sortable-update-url': task.update_url,
-      'gantt-chart-target': 'listRow'
-    },
-    style: "height: #{task.total_row_height}px" do %>
+<%= tag.div **options do %>
   <div class="gantt-chart-row-contents">
     <%= render Bali::Icon::Component.new('handle', class: 'handle') if !readonly %>
     <%= render Bali::Icon::Component.new('chevron-down', class: 'chevron-down', data: { action: 'click->gantt-foldable-item#toggle' }) if task.children.any? %>
@@ -19,11 +9,11 @@
           <%= tag.a task.name,
                     href: task.href,
                     class: 'task-name',
-                    **task.options %>
+                    **task.list_task_name_options %>
         <% else %>
           <%= tag.div task.name,
                       class: 'task-name',
-                      **task.options %>
+                      **task.list_task_name_options %>
         <% end %>
       <% end %>
 
@@ -40,9 +30,14 @@
         data-sortable-list-pull-value="false"
         data-sortable-list-disabled-value="<%= readonly %>"
         data-sortable-list-animation-value="50"
+        data-sortable-list-resource-name-value="<%= resource_name %>"
     >
       <% task.children.each do |child_task| %>
-        <%= render Bali::GanttChart::ListRow::Component.new(task: child_task, readonly: readonly) %>
+        <%= render Bali::GanttChart::ListRow::Component.new(
+                   task: child_task,
+                   readonly: readonly,
+                   resource_name: resource_name,
+                   list_param_name: list_param_name) %>
       <% end %>
     </div>
   <% end %>
