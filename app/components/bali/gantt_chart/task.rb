@@ -67,6 +67,18 @@ module Bali
         start_date == end_date
       end
 
+      def row_options
+        @row_options ||= options[:row] || {}
+      end
+
+      def cell_options
+        @cell_options ||= options[:cell] || {}
+      end
+
+      def drag_options
+        @drag_options ||= options[:drag] || {}
+      end
+
       private
 
       def duration

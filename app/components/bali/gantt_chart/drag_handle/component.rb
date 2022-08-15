@@ -11,7 +11,7 @@ module Bali
           @draggable = draggable
           @tag_name = :div
 
-          @options = { class: class_names('gantt-chart-drag-handle', 'non-draggable': !draggable) }
+          @options = prepend_class_name(task.drag_options, component_class_names)
           @options = prepend_action(@options, 'mousedown->interact#onDragStart') if draggable
 
           return if task.href.blank?
@@ -20,6 +20,10 @@ module Bali
           @options[:href] = task.href
           @options = prepend_action(@options, 'click->interact#onClick')
           @options = prepend_data_attribute(@options, 'interact-target', 'link')
+        end
+
+        def component_class_names
+          class_names('gantt-chart-drag-handle', 'non-draggable': !draggable)
         end
       end
     end
