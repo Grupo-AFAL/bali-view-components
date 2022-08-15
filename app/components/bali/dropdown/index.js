@@ -50,7 +50,7 @@ export class DropdownController extends Controller {
     this.element.removeEventListener('mouseleave', this.closeDropdowns)
   }
 
-  toggleMenu (e) {
+  toggleMenu = e => {
     e.stopPropagation()
     e.preventDefault()
     this.element.classList.toggle('is-active')
