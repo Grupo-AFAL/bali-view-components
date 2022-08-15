@@ -17,7 +17,7 @@ module Bali
 
           @options = prepend_controller(@options, 'interact')
           @options = prepend_data_attribute(@options, 'task-id', task.id)
-          @options = prepend_data_attribute(@options, 'parent-id', task.id)
+          @options = prepend_data_attribute(@options, 'parent-id', task.parent_id)
           @options = prepend_values(@options, 'interact', interact_controller_values)
           @options = prepend_data_attribute(@options, 'gantt-chart-target', 'timelineCell')
         end
