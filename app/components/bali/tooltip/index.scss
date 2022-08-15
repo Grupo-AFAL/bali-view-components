@@ -40,10 +40,6 @@ $small-trigger-size: 1rem;
     }
   }
 
-  [data-tippy-root] {
-    max-width: calc(100vw - 10px);
-  }
-
   .tippy-box {
     position: relative;
     background-color: $background-color;

@@ -17,10 +17,15 @@ export class NavbarController extends Controller {
 
     this.isTransparent = true
     this.element.classList.add('is-transparent')
-    document.addEventListener(
-      'scroll',
-      throttle(this.updateBackgroundColor, this.throttleIntervalValue)
-    )
+    document.addEventListener('scroll', this.throttledUpdateBackgroundColor)
+  }
+
+  disconnect () {
+    document.removeEventListener('scroll', this.throttledUpdateBackgroundColor)
+  }
+
+  throttledUpdateBackgroundColor = () => {
+    throttle(this.updateBackgroundColor, this.throttleIntervalValue)
   }
 
   updateBackgroundColor = () => {

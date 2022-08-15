@@ -26,6 +26,7 @@ export { SortableListController } from '../../components/bali/sortable_list'
 export { TabsController } from '../../components/bali/tabs'
 export { TimeagoController } from '../../components/bali/timeago'
 export { TooltipController } from '../../components/bali/tooltip'
+export { TooltipController } from '../../components/bali/tooltip'
 export { TreeViewItemController } from '../../components/bali/tree_view/item'
 
 export {

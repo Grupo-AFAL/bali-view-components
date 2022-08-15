@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# # frozen_string_literal: true
-
 module Bali
   module Tooltip
     class Preview < ApplicationViewComponentPreview
@@ -61,7 +59,6 @@ module Bali
           tag.p 'Hi, this is the help tip content'
         end
       end
-
       # @!endgroup
     end
   end

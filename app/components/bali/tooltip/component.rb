@@ -12,8 +12,7 @@ module Bali
         )
 
         @options = prepend_controller(@options, 'tooltip')
-        @options['data-tooltip-trigger-value'] = trigger
-        @options['data-tooltip-placement-value'] = placement
+        @options = prepend_values(@options, 'tooltip', { trigger: trigger, placement: placement })
       end
     end
   end

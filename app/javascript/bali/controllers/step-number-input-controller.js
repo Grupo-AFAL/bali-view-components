@@ -12,14 +12,11 @@ export class StepNumberInputController extends Controller {
     this.step = parseFloat(this.inputTarget.step) || 1
     this.setValue()
 
-    this.inputTarget.addEventListener('change', e => {
-      const newValue = parseFloat(e.target.value) || 0
+    this.inputTarget.addEventListener('change', this.updateValue)
+  }
 
-      if (newValue === this.value) return
-
-      this.value = newValue
-      this.setValue()
-    })
+  disconnect () {
+    this.inputTarget.removeEventListener('change', this.updateValue)
   }
 
   add (e) {
@@ -55,6 +52,15 @@ export class StepNumberInputController extends Controller {
         this.subtractTarget.classList.remove('is-static')
       }
     }
+  }
+
+  updateValue = event => {
+    const newValue = parseFloat(event.target.value) || 0
+
+    if (newValue === this.value) return
+
+    this.value = newValue
+    this.setValue()
   }
 
   triggerChangeEvent () {

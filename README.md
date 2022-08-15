@@ -78,7 +78,7 @@ Update this table when making progress on any of the Components or when adding n
 | Drawer         | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Dropdown       | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Filters        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| GanttChart     | :white_check_mark: | :white_check_mark: |        :x:         |        :x:         |       |
+| GanttChart     | :white_check_mark: | :white_check_mark: | :white_check_mark: |        :x:         |       |
 | Heatmap        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Hero           |        :x:         |        :x:         |        :x:         |        :x:         |       |
 | Hovercard      | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
