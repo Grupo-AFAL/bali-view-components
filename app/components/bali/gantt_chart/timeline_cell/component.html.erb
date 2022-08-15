@@ -1,19 +1,4 @@
-<%= tag.div class: class_names(
-              'gantt-chart-cell',
-              'milestone': task.milestone?,
-              'has-children': task.children.any?
-            ),
-            style: "left: #{task.position_left}px; width: #{task.width}px",
-            data: {
-              controller: 'interact',
-              'task-id': task.id,
-              'parent-id': task.parent_id,
-              'interact-position-value': task.position_left,
-              'interact-width-value': task.width,
-              'interact-params-value': task.params.to_json,
-              'gantt-chart-target': 'timelineCell',
-            } do %>
-
+<%= tag.div **options do %>
   <%= tag.div class: 'gantt-chart-cell-content' do %>
     <% if resize_handle? %>
       <%= render Bali::Icon::Component.new('handle',
