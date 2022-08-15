@@ -1,8 +1,8 @@
 export function destroyWithCheck (id) {
-  var slim = id
+  const slim = id
     ? document.querySelector('.' + id + '.ss-main')
     : this.slim.container
-  var select = id
+  const select = id
     ? document.querySelector('[data-ssid='.concat(id, ']'))
     : this.select.element
 
@@ -22,7 +22,7 @@ export function destroyWithCheck (id) {
   delete select.dataset.ssid
 
   // Remove slim from original select dropdown
-  var el = select
+  const el = select
   el.slim = null
 
   // Remove slim select
@@ -32,7 +32,7 @@ export function destroyWithCheck (id) {
 
   // remove the content if it was added to the document body
   if (this.config.addToBody) {
-    var slimContent = id
+    const slimContent = id
       ? document.querySelector('.' + id + '.ss-content')
       : this.slim.content
 

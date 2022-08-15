@@ -7,6 +7,7 @@ module Bali
 
       # rubocop:disable Metrics/AbcSize
       # rubocop:disable Metrics/ParameterLists
+      # rubocop:disable Metrics/CyclomaticComplexity
       def initialize(
         tasks: [],
         row_height: 35,
@@ -53,8 +54,9 @@ module Bali
         @options = prepend_action(@options, 'gantt-foldable-item:toggle->gantt-chart#onFold')
         @options = prepend_values(@options, 'gantt-chart', controller_values)
       end
-      # rubocop:enable Metrics/AbcSize
+      # rubocop:enable Metrics/CyclomaticComplexity
       # rubocop:enable Metrics/ParameterLists
+      # rubocop:enable Metrics/AbcSize
 
       def controller_values
         {
