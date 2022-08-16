@@ -20,6 +20,7 @@ module Bali
         children: [],
         progress: 0,
         dependent_on_id: nil,
+        milestone: false,
         **options
       )
         @id = id
@@ -32,6 +33,7 @@ module Bali
         @children = children
         @progress = progress
         @dependent_on_id = dependent_on_id
+        @milestone = milestone
         @options = options
       end
       # rubocop:enable Metrics/ParameterLists
@@ -64,7 +66,7 @@ module Bali
       end
 
       def milestone?
-        start_date == end_date
+        @milestone
       end
 
       def row_options

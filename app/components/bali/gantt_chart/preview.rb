@@ -51,7 +51,8 @@ module Bali
           { id: 10, name: 'Task 3', start_date: date += 1.day, end_date: date + 1.day, update_url: '/gantt_chart/9' },
           { id: 11, name: 'Task 4', start_date: date += 1.day, end_date: date + 1.day, update_url: '/gantt_chart/10' },
           { id: 12, name: 'Task 5', start_date: date += 1.day, end_date: date + 2.days, update_url: '/gantt_chart/11', dependent_on_id: 7 },
-          { id: 13, name: 'Milestone', start_date: date + 2.days, end_date: date + 2.days, update_url: '/gantt_chart/12' }
+          { id: 13, name: 'Milestone', start_date: date + 2.days, end_date: date + 2.days, update_url: '/gantt_chart/12', milestone: true },
+          { id: 13, name: 'Task 6', start_date: date + 3.days, end_date: date + 3.days, update_url: '/gantt_chart/13' }
         ]
       end
     end
