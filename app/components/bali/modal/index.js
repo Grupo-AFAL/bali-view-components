@@ -131,8 +131,6 @@ export class ModalController extends Controller {
     event.preventDefault()
     const target = event.currentTarget
 
-    console.log('opening modal/drawer', this.element, target)
-
     this.wrapperClass = target.getAttribute('data-wrapper-class')
     this.redirectTo = target.getAttribute('data-redirect-to')
     this.skipRender = Boolean(target.getAttribute('data-skip-render'))
