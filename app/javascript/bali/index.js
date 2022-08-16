@@ -8,6 +8,7 @@ export { GoogleMapsLoader, form, formatters, time, domHelpers }
 export { AvatarController } from '../../components/bali/avatar'
 export { CarouselController } from '../../components/bali/carousel'
 export { ChartController } from '../../components/bali/chart'
+export { ClipboardController } from '../../components/bali/clipboard'
 export { DrawerController } from '../../components/bali/drawer'
 export { DropdownController } from '../../components/bali/dropdown'
 export { FilterFormController } from '../../components/bali/filters'

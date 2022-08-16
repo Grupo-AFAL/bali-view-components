@@ -71,6 +71,7 @@ Update this table when making progress on any of the Components or when adding n
 | Carousel       | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Card           | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Chart          | :white_check_mark: | :white_check_mark: |    :wavy_dash:     | :white_check_mark: |       |
+| Clipboard      | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Columns        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | DataTable      | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | DeleteLink     | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |

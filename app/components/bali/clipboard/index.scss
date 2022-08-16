@@ -1,0 +1,23 @@
+.clipboard-component {
+  $border-radius-size: 6px;
+  $border-width: 1px;
+  $clipboard-source-padding: 0.5rem 4rem 0.5rem 0.5rem;
+  $clipboard-trigger-padding: 0.5rem $size-7;
+
+  display: flex;
+
+  .clipboard-source {
+    border: solid $border-width;
+    border-right: 0;
+    border-radius: $border-radius-size 0 0 $border-radius-size;
+    padding: $clipboard-source-padding;
+    border-color: $grey-light;
+  }
+
+  .clipboard-trigger {
+    border: solid $border-width;
+    border-radius: 0 $border-radius-size $border-radius-size 0;
+    padding: $clipboard-trigger-padding;
+    border-color: $grey-lighter;
+  }
+}
