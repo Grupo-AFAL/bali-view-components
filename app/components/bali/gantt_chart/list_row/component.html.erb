@@ -5,7 +5,7 @@
 
     <%= render Bali::Tooltip::Component.new(class: class_names(children: task.children.any?)) do |tip| %>
       <% tip.trigger do %>
-        <% if task.href %>
+        <% if task.href && !readonly %>
           <%= tag.a task.name,
                     href: task.href,
                     class: 'task-name',
