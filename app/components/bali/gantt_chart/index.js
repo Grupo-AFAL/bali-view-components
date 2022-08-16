@@ -26,7 +26,8 @@ export class GanttChartController extends Controller {
     rowHeight: Number,
     colWidth: Number,
     zoom: String,
-    listWidth: { type: Number, default: 200 }
+    listWidth: { type: Number, default: 200 },
+    responseKind: { type: String, default: 'turbo-stream' }
   }
 
   connect () {
@@ -236,7 +237,10 @@ export class GanttChartController extends Controller {
       body = attributes
     }
 
-    await patch(updateUrl, { body })
+    await patch(updateUrl, {
+      body: JSON.stringify(body),
+      responseKind: this.responseKindValue
+    })
   }
 
   updateTaskNamePosition ({ element, width }) {
