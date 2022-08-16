@@ -24,6 +24,14 @@ module Bali
         render GanttChart::Component.new(tasks: tasks, offset: 500)
       end
 
+      def with_footer
+        render GanttChart::Component.new(tasks: tasks) do |c|
+          c.footer do
+            tag.span 'This is a footer'
+          end
+        end
+      end
+
       private
 
       def tasks

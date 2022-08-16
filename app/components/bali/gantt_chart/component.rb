@@ -6,6 +6,8 @@ module Bali
       attr_reader :tasks, :row_height, :col_width, :zoom, :readonly, :resource_name,
                   :list_param_name, :options
 
+      renders_one :footer, ->(&block) { tag.div(&block) }
+
       # rubocop:disable Metrics/ParameterLists
       def initialize(
         tasks: [],
