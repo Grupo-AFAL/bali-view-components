@@ -6,9 +6,7 @@ module Bali
       attr_reader :tasks, :row_height, :col_width, :zoom, :readonly, :resource_name,
                   :list_param_name, :options
 
-      # rubocop:disable Metrics/AbcSize
       # rubocop:disable Metrics/ParameterLists
-      # rubocop:disable Metrics/CyclomaticComplexity
       def initialize(
         tasks: [],
         row_height: 35,
@@ -35,19 +33,29 @@ module Bali
         @default_max_date = Date.current + 2.months
 
         @tasks = tasks.map { |task| Task.new(**task) }
-        tasks_by_parent_id = @tasks.group_by(&:parent_id)
-        @tasks.each do |task|
+        @tasks = setup_parent_child_relationships(@tasks)
+
+        @options = setup_options(options)
+      end
+      # rubocop:enable Metrics/ParameterLists
+
+      def setup_parent_child_relationships(tasks)
+        tasks_by_parent_id = tasks.group_by(&:parent_id)
+
+        tasks.each do |task|
           task.chart_start_date = start_date
           task.chart_end_date = end_date
-          task.row_height = @row_height
-          task.col_width = @col_width
-          task.zoom = @zoom
+          task.row_height = row_height
+          task.col_width = col_width
+          task.zoom = zoom
           task.children = tasks_by_parent_id[task.id] || []
         end
-        @tasks.filter! { |task| task.parent_id.blank? }
 
-        @options = prepend_class_name(options, 'gantt-chart-component')
-        @options = prepend_class_name(options, "#{@zoom}-zoom")
+        tasks.filter { |task| task.parent_id.blank? }
+      end
+
+      def setup_options(options)
+        @options = prepend_class_name(options, "gantt-chart-component #{@zoom}-zoom")
         @options = prepend_controller(@options, 'gantt-chart')
         @options = prepend_action(@options, 'sortable-list:onEnd->gantt-chart#onItemReordered')
         @options = prepend_action(@options, 'interact:onResizing->gantt-chart#onItemResizing')
@@ -57,9 +65,6 @@ module Bali
         @options = prepend_action(@options, 'gantt-foldable-item:toggle->gantt-chart#onFold')
         @options = prepend_values(@options, 'gantt-chart', controller_values)
       end
-      # rubocop:enable Metrics/CyclomaticComplexity
-      # rubocop:enable Metrics/ParameterLists
-      # rubocop:enable Metrics/AbcSize
 
       def controller_values
         {
