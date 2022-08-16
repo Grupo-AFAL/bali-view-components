@@ -12,6 +12,12 @@ module Bali
           c.source('Click the button to copy me!')
         end
       end
+
+      def with_icons
+        render_with_template(
+          template: 'bali/clipboard/previews/with_icons'
+        )
+      end
     end
   end
 end

@@ -1,0 +1,11 @@
+<%= render Bali::Clipboard::Component.new do |c| %>
+  <% c.trigger do %>
+    <%= render Bali::Icon::Component.new('copy') %>
+  <% end %>
+
+  <% c.source('Click the button to copy me!') %>
+
+  <% c.success_content do %>
+    <%= render Bali::Icon::Component.new('check') %>
+  <% end %>
+<% end %>
