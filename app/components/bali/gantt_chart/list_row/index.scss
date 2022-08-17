@@ -27,7 +27,7 @@
 
     .gantt-chart-row {
       .chevron-down {
-        margin-left: 0.75rem;
+        margin-left: 1.5rem;
       }
 
       .tooltip-component {
@@ -40,7 +40,7 @@
 
       .gantt-chart-row {
         .chevron-down {
-          margin-left: 1.5rem;
+          margin-left: 2.3rem;
         }
 
         .tooltip-component {
@@ -85,6 +85,7 @@
 
   .chevron-down {
     width: 0.5rem;
+    margin-left: 0.75rem;
     margin-right: 0.2rem;
     cursor: pointer;
 
