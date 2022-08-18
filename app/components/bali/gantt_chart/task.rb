@@ -21,6 +21,7 @@ module Bali
         progress: 0,
         dependent_on_id: nil,
         milestone: false,
+        critical: false,
         **options
       )
         @id = id
@@ -34,6 +35,7 @@ module Bali
         @progress = progress
         @dependent_on_id = dependent_on_id
         @milestone = milestone
+        @critical = critical
         @options = options
       end
       # rubocop:enable Metrics/ParameterLists
@@ -67,6 +69,10 @@ module Bali
 
       def milestone?
         @milestone
+      end
+
+      def critical?
+        @critical
       end
 
       def row_options

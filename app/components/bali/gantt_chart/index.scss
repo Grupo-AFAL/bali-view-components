@@ -8,6 +8,9 @@ $gantt-chart-row-height: 35px;
 $gantt-chart-item-color: $green;
 $gantt-chart-milestone-color: $purple;
 
+$gantt-chart-critical-color: lighten($red, 15%);
+$gantt-chart-critical-border-width: 2px;
+
 $gantt-chart-item-bubble-height: 25px;
 $gantt-chart-item-bubble-radius: $gantt-chart-item-bubble-height / 2;
 
