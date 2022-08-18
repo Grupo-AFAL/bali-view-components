@@ -1,9 +1,9 @@
 .gantt-chart-component {
   .gantt-chart-timeline-background {
     position: absolute;
-    top: $gantt-chart-header-height;
     height: $gantt-chart-timeline-data-height;
     width: 100%;
+    top: 0;
   }
 
   .gantt-chart-timeline-background-column {

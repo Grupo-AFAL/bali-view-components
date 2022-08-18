@@ -61,10 +61,10 @@
                      task: task, readonly: readonly, zoom: zoom) %>
         <% end %>
 
+        <div class="gantt-chart-drag-shadow" data-gantt-chart-target="dragShadow"></div>
+
         <%= render Bali::GanttChart::TimelineBackground::Component.new(
                    start_date: start_date, end_date: end_date, col_width: col_width, zoom: zoom) %>
-
-        <div class="gantt-chart-drag-shadow" data-gantt-chart-target="dragShadow"></div>
       </div>
     </div>
   </div>

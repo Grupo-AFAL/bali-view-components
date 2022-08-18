@@ -14,7 +14,7 @@ $gantt-chart-item-bubble-radius: $gantt-chart-item-bubble-height / 2;
 $gantt-chart-scale-height: 23px;
 $gantt-chart-today-color: lighten($blue, 20%);
 $gantt-chart-resizer-width: 10px;
-$gantt-chart-timeline-data-height: calc(100% - #{($gantt-chart-header-height)});
+$gantt-chart-timeline-data-height: 100%;
 
 @import './drag_handle/index';
 @import './list_row/index';
@@ -121,10 +121,11 @@ $gantt-chart-timeline-data-height: calc(100% - #{($gantt-chart-header-height)});
 
   .gantt-chart-today-marker {
     position: absolute;
-    top: $gantt-chart-header-height;
+    top: 0;
     height: $gantt-chart-timeline-data-height;
     width: 2px;
     background-color: $gantt-chart-today-color;
+    z-index: 1;
 
     span {
       background-color: $gantt-chart-today-color;
@@ -144,14 +145,15 @@ $gantt-chart-timeline-data-height: calc(100% - #{($gantt-chart-header-height)});
     height: $gantt-chart-timeline-data-height;
     width: 0;
     position: absolute;
-    top: $gantt-chart-header-height;
+    top: 0;
   }
 
   .gantt-chart-data-area {
     background-color: $white-bis;
-    height: $gantt-chart-timeline-data-height;
+    height: calc(100% - #{($gantt-chart-header-height)});
     padding-bottom: 1px;
     overflow: hidden;
+    position: relative;
   }
 
   .gantt-chart-timeline-children {
