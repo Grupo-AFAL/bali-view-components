@@ -4,7 +4,7 @@ import useDispatch from '../../../javascript/bali/utils/use-dispatch'
 import { toBool, toInt } from '../../../javascript/bali/utils/formatters'
 import { addDaysToDate } from '../../../javascript/bali/utils/time'
 import { patch } from '@rails/request.js'
-import LeaderLine from './leader_line'
+import ConnectionLine from './connection_line'
 
 const TASK_NAME_PADDING = 8
 
@@ -13,10 +13,12 @@ export class GanttChartController extends Controller {
     'list',
     'listResizer',
     'timeline',
+    'timelineArea',
     'listRow',
     'timelineRow',
     'timelineCell',
-    'dragShadow'
+    'dragShadow',
+    'connectionCanvas'
   ]
 
   static values = {
@@ -51,22 +53,14 @@ export class GanttChartController extends Controller {
       this.setTaskNameTooLongClass({ element: cell })
     })
 
-    this.dependentConnections = []
     this.establishConnections()
 
-    this.timelineTarget.addEventListener('scroll', this.repositionConnections)
     this.timelineTarget.addEventListener('scroll', this.updateScroll)
-    window.addEventListener('resize', this.repositionConnections)
   }
 
   disconnect () {
     this.removeConnections()
-    this.timelineTarget.removeEventListener(
-      'scroll',
-      this.repositionConnections
-    )
     this.timelineTarget.removeEventListener('scroll', this.updateScroll)
-    window.removeEventListener('resize', this.repositionConnections)
   }
 
   updateScroll = () => {
@@ -143,8 +137,6 @@ export class GanttChartController extends Controller {
 
     const anyFolded = Object.values(rowData).some(({ folded }) => folded)
     anyFolded ? this.hideConnections() : this.showConnections()
-
-    this.repositionConnections()
   }
 
   calculateHeight (listRow) {
@@ -267,15 +259,9 @@ export class GanttChartController extends Controller {
     if (!parentCell) return
 
     const children = this.cellsByParentId[parentId]
-    const newParentLeft = Math.min(
-      ...children.map(c => toInt(c.style.left.replace('px', '')))
-    )
+    const newParentLeft = Math.min(...children.map(c => c.offsetLeft))
     const endPosition = Math.max(
-      ...children.map(
-        c =>
-          toInt(c.style.width.replace('px', '')) +
-          toInt(c.style.left.replace('px', ''))
-      )
+      ...children.map(c => c.clientWidth + c.offsetLeft)
     )
     const newParentWidth = endPosition - newParentLeft
 
@@ -292,7 +278,13 @@ export class GanttChartController extends Controller {
   }
 
   establishConnections = () => {
+    this.dependentConnections = []
+
     if (this.zoomValue !== 'day') return
+
+    this.connectionCanvasTarget.width = this.timelineAreaTarget.clientWidth
+    this.connectionCanvasTarget.height = this.timelineAreaTarget.clientHeight
+    this.canvasContext = this.connectionCanvasTarget.getContext('2d')
 
     this.timelineRowTargets
       .filter(t => t.dataset.dependentOnId)
@@ -302,30 +294,38 @@ export class GanttChartController extends Controller {
           `[data-id="${timelineRow.dataset.dependentOnId}"] .gantt-chart-cell-content`
         )
 
-        const options = { color: '#dbdbdb', size: 2, path: 'grid' }
-        const line = new LeaderLine(startCell, endCell, options)
+        const line = new ConnectionLine(
+          this.canvasContext,
+          this.timelineAreaTarget,
+          startCell,
+          endCell,
+          this.colWidthValue
+        )
 
         this.dependentConnections.push(line)
       })
   }
 
   repositionConnections = () => {
-    this.dependentConnections.forEach(line => line.position())
+    this.removeConnections()
+    this.dependentConnections.forEach(line => line.draw())
   }
 
   hideConnections = () => {
-    this.dependentConnections.forEach(line => line.hide('none'))
+    this.removeConnections()
   }
 
   showConnections = () => {
-    this.dependentConnections.forEach(line => line.show())
+    this.removeConnections()
+    this.dependentConnections.forEach(line => line.draw())
   }
 
   removeConnections () {
-    this.dependentConnections.forEach(line => {
-      if (document.contains(line.start) && document.contains(line.end)) {
-        line.remove()
-      }
-    })
+    this.canvasContext.clearRect(
+      0,
+      0,
+      this.connectionCanvasTarget.width,
+      this.connectionCanvasTarget.height
+    )
   }
 }
