@@ -36,7 +36,8 @@ module Bali
           class_names(
             'gantt-chart-cell',
             milestone: task.milestone?,
-            'has-children': task.children.any?
+            'has-children': task.children.any?,
+            critical: task.critical?
           )
         end
 
