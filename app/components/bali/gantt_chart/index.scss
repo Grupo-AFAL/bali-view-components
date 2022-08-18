@@ -5,10 +5,10 @@ $gantt-chart-header-size: 11px;
 
 $gantt-chart-list-width: 200px;
 $gantt-chart-row-height: 35px;
-$gantt-chart-item-color: $green;
+$gantt-chart-item-color: hsl(196, 82%, 46%);
 $gantt-chart-milestone-color: $purple;
 
-$gantt-chart-critical-color: lighten($red, 15%);
+$gantt-chart-critical-color: lighten($red, 10%);
 $gantt-chart-critical-border-width: 2px;
 
 $gantt-chart-item-bubble-height: 25px;
