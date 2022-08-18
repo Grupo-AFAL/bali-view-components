@@ -24,6 +24,10 @@ module Bali
         def controller_values
           { visible: true, folded: false, parent_id: task.parent_id }
         end
+
+        def link_task_name_options
+          prepend_data_attribute(task.list_task_name_options, 'gantt-chart-target', 'taskLink')
+        end
       end
     end
   end

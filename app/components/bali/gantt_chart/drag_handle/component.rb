@@ -22,6 +22,7 @@ module Bali
           @options[:href] = task.href
           @options = prepend_action(@options, 'click->interact#onClick')
           @options = prepend_data_attribute(@options, 'interact-target', 'link')
+          @options = prepend_data_attribute(@options, 'gantt-chart-target', 'taskLink')
         end
 
         def component_class_names

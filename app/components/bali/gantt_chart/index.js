@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import Sortable from 'sortablejs'
+import throttle from 'lodash.throttle'
 import useDispatch from '../../../javascript/bali/utils/use-dispatch'
 import { toBool, toInt } from '../../../javascript/bali/utils/formatters'
 import { addDaysToDate } from '../../../javascript/bali/utils/time'
@@ -18,7 +19,8 @@ export class GanttChartController extends Controller {
     'timelineRow',
     'timelineCell',
     'dragShadow',
-    'connectionCanvas'
+    'connectionCanvas',
+    'taskLink'
   ]
 
   static values = {
@@ -55,16 +57,28 @@ export class GanttChartController extends Controller {
 
     this.establishConnections()
 
-    this.timelineTarget.addEventListener('scroll', this.updateScroll)
+    this.throttledUpdateScroll = throttle(this.updateScroll, 2000)
+    this.timelineTarget.addEventListener('scroll', this.throttledUpdateScroll)
   }
 
   disconnect () {
     this.removeConnections()
-    this.timelineTarget.removeEventListener('scroll', this.updateScroll)
+    this.timelineTarget.removeEventListener(
+      'scroll',
+      this.throttledUpdateScroll
+    )
   }
 
   updateScroll = () => {
     this.offsetValue = this.timelineTarget.scrollLeft
+
+    this.taskLinkTargets.forEach(link => {
+      const url = new URL(link.href)
+      const searchParams = new URLSearchParams(url.search)
+      searchParams.set('offset', this.offsetValue)
+      url.search = `?${searchParams.toString()}`
+      link.href = url.href
+    })
   }
 
   scrollToToday () {
