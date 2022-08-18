@@ -36,9 +36,6 @@
   },
   "standard": {
     "parser": "@babel/eslint-parser",
-    "ignore": [
-      "app/components/bali/gantt_chart/leader_line.js"
-    ],
     "globals": [
       "cy",
       "it",

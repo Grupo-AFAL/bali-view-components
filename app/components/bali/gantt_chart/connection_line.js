@@ -1,10 +1,18 @@
+const STROKE_COLOR = 'rgba(100, 100, 100, 0.6)'
+const LINE_WIDTH = 2
+
 export default class ConnectionLine {
-  constructor (context, parent, start, end, colWidth) {
+  constructor (context, parent, start, end, colWidth, rowHeight) {
     this.context = context
     this.parent = parent
     this.start = start
     this.end = end
     this.colWidth = colWidth
+    this.rowHeight = rowHeight
+
+    this.context.lineJoin = 'round'
+    this.context.lineWidth = LINE_WIDTH
+    this.context.strokeStyle = STROKE_COLOR
 
     this.draw()
   }
@@ -33,20 +41,40 @@ export default class ConnectionLine {
     endX = Math.round(endX - this.parentX)
     endY = Math.round(endY + endHeight / 2 - this.parentY)
 
-    this.context.lineWidth = 2
-    this.context.lineJoin = 'round'
-    this.context.strokeStyle = 'black'
-
     this.context.beginPath()
-    this.context.moveTo(startX, startY)
 
-    const endXStartPath = Math.round(startX + this.colWidth / 2)
+    let currentX = startX
+    let currentY = startY
+    const nodeSegmentWidth = Math.round(this.colWidth / 2)
 
-    this.context.lineTo(endXStartPath, startY)
-    this.context.lineTo(endXStartPath, endY)
+    // Initial position
+    this.context.moveTo(currentX, currentY)
+
+    // Create the first segment moving out from the end of the start element.
+    currentX = currentX + nodeSegmentWidth
+    this.context.lineTo(currentX, currentY)
+
+    const lastPathX = endX - nodeSegmentWidth
+
+    // When the X position is greater than the last X position we need to move
+    // down and backwards to give enough space for the last segment.
+    if (currentX > lastPathX) {
+      // Move down half the row height
+      currentY = currentY + Math.round(this.rowHeight / 2)
+      this.context.lineTo(currentX, currentY)
+
+      // Move left the needed amount
+      currentX -= currentX - lastPathX
+      this.context.lineTo(currentX, currentY)
+    }
+
+    // Move down
+    this.context.lineTo(currentX, endY)
+
+    // Create last segment
     this.context.lineTo(endX, endY)
-    this.context.stroke()
 
-    // console.log({ startX, startY, endX, endY, endXStartPath })
+    // Finish line
+    this.context.stroke()
   }
 }

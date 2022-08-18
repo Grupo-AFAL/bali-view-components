@@ -47,20 +47,19 @@
       <%= render Bali::GanttChart::TimelineHeader::Component.new(
                  start_date: start_date, end_date: end_date, col_width: col_width, zoom: zoom) %>
 
-      <div class="gantt-chart-data-area"
-         data-controller="sortable-list"
-         data-sortable-list-group-name-value="gantt-timeline"
-         data-sortable-list-disabled-value="true"
-         data-sortable-list-list-id-value="0"
-         data-sortable-list-pull-value="false"
-         data-sortable-list-animation-value="50"
-         data-gantt-chart-target="timelineArea"
-         style="width: <%= duration * col_width %>px"
-      >
-        <% tasks.each do |task| %>
-          <%= render Bali::GanttChart::TimelineRow::Component.new(
-                     task: task, readonly: readonly, zoom: zoom) %>
-        <% end %>
+      <div class="gantt-chart-data-area" data-gantt-chart-target="timelineArea" style="width: <%= duration * col_width %>px">
+        <div data-controller="sortable-list"
+             data-sortable-list-group-name-value="gantt-timeline"
+             data-sortable-list-disabled-value="true"
+             data-sortable-list-list-id-value="0"
+             data-sortable-list-pull-value="false"
+             data-sortable-list-animation-value="50"
+        >
+          <% tasks.each do |task| %>
+            <%= render Bali::GanttChart::TimelineRow::Component.new(
+            task: task, readonly: readonly, zoom: zoom) %>
+          <% end %>
+        </div>
 
         <div class="gantt-chart-drag-shadow" data-gantt-chart-target="dragShadow"></div>
 
@@ -68,7 +67,6 @@
                    start_date: start_date, end_date: end_date, col_width: col_width, zoom: zoom) %>
 
         <canvas class="gantt-chart-connections-canvas" data-gantt-chart-target="connectionCanvas"></canvas>
-
       </div>
     </div>
   </div>

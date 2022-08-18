@@ -299,7 +299,8 @@ export class GanttChartController extends Controller {
           this.timelineAreaTarget,
           startCell,
           endCell,
-          this.colWidthValue
+          this.colWidthValue,
+          this.rowHeightValue
         )
 
         this.dependentConnections.push(line)
