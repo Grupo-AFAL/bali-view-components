@@ -19,6 +19,10 @@ Create `GanttChart::Component` for a full fledged Gantt Chart with the following
 - Resizable width of the task list
 - Visualize weekends
 
+## [0.39.1] - 2022-08-16
+
+- Fix `Navbar` transparency.
+
 ## [0.39.0] - 2022-08-15
 
 - Added `Clipboard` component. Copy text to clipboard.
