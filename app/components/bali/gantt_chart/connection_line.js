@@ -18,28 +18,24 @@ export default class ConnectionLine {
   }
 
   draw () {
-    const boundingClient = this.parent.getBoundingClientRect()
-    this.parentX = boundingClient.x
-    this.parentY = boundingClient.y
-
+    const { x: parentX, y: parentY } = this.parent.getBoundingClientRect()
     let {
       x: startX,
       y: startY,
       width: startWidth,
       height: startHeight
     } = this.start.getBoundingClientRect()
-
-    startX = Math.round(startX + startWidth - this.parentX)
-    startY = Math.round(startY + startHeight / 2 - this.parentY)
-
     let {
       x: endX,
       y: endY,
       height: endHeight
     } = this.end.getBoundingClientRect()
 
-    endX = Math.round(endX - this.parentX)
-    endY = Math.round(endY + endHeight / 2 - this.parentY)
+    startX = Math.round(startX + startWidth - parentX)
+    startY = Math.round(startY + startHeight / 2 - parentY)
+
+    endX = Math.round(endX - parentX)
+    endY = Math.round(endY + endHeight / 2 - parentY)
 
     this.context.beginPath()
 
