@@ -5,7 +5,7 @@ $gantt-chart-header-size: 11px;
 
 $gantt-chart-list-width: 200px;
 $gantt-chart-row-height: 35px;
-$gantt-chart-item-color: hsl(196, 82%, 46%);
+$gantt-chart-item-color: lighten(hsl(196, 82%, 46%), 5%);
 $gantt-chart-milestone-color: $purple;
 
 $gantt-chart-critical-color: lighten($red, 10%);

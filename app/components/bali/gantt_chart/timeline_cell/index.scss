@@ -14,6 +14,12 @@
         }
       }
     }
+
+    &.complete {
+      .gantt-chart-cell-content {
+        background-color: darken($gantt-chart-item-color, 15%);
+      }
+    }
   }
 
   .gantt-chart-cell-content {

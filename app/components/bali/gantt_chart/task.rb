@@ -4,7 +4,7 @@ module Bali
   module GanttChart
     class Task
       attr_reader :id, :name, :href, :start_date, :end_date, :update_url, :parent_id,
-                  :dependent_on_id, :zoom, :options
+                  :dependent_on_id, :progress, :zoom, :options
 
       attr_accessor :chart_start_date, :chart_end_date, :children, :row_height, :col_width
 
