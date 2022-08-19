@@ -21,24 +21,42 @@ export default class ConnectionLine {
 
   draw () {
     const { x: parentX, y: parentY } = this.parent.getBoundingClientRect()
+
+    const { startX, startY } = this.calculateStartPosition(parentX, parentY)
+    const { endX, endY } = this.calculateEndPosition(parentX, parentY)
+
+    this.createPath(startX, startY, endX, endY)
+    this.createArrowHead(endX, endY)
+  }
+
+  calculateStartPosition (parentX, parentY) {
     let {
       x: startX,
       y: startY,
       width: startWidth,
       height: startHeight
     } = this.start.getBoundingClientRect()
+
+    startX = Math.round(startX + startWidth - parentX)
+    startY = Math.round(startY + startHeight / 2 - parentY)
+
+    return { startX, startY }
+  }
+
+  calculateEndPosition (parentX, parentY) {
     let {
       x: endX,
       y: endY,
       height: endHeight
     } = this.end.getBoundingClientRect()
 
-    startX = Math.round(startX + startWidth - parentX)
-    startY = Math.round(startY + startHeight / 2 - parentY)
-
     endX = Math.round(endX - parentX)
     endY = Math.round(endY + endHeight / 2 - parentY)
 
+    return { endX, endY }
+  }
+
+  createPath (startX, startY, endX, endY) {
     this.context.beginPath()
 
     let currentX = startX
@@ -54,8 +72,8 @@ export default class ConnectionLine {
 
     const lastPathX = endX - nodeSegmentWidth
 
-    // When the X position is greater than the last X position we need to move
-    // down and backwards to give enough space for the last segment.
+    // When the current X position is greater than the end path X position, we need to move
+    // down and backwards to give enough space for the last path segment.
     if (currentX > lastPathX) {
       // Move down half the row height
       currentY = currentY + Math.round(this.rowHeight / 2)
@@ -74,8 +92,9 @@ export default class ConnectionLine {
 
     // Finish line
     this.context.stroke()
+  }
 
-    // Create arrow head
+  createArrowHead (endX, endY) {
     this.context.beginPath()
     this.context.moveTo(endX, endY)
     this.context.lineTo(endX - ARROW_SIZE, endY + ARROW_SIZE)
