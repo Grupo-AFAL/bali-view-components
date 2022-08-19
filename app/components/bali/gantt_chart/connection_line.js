@@ -1,5 +1,6 @@
-const STROKE_COLOR = 'rgba(100, 100, 100, 0.6)'
+const STROKE_COLOR = 'hsl(0, 0%, 71%)'
 const LINE_WIDTH = 2
+const ARROW_SIZE = 6
 
 export default class ConnectionLine {
   constructor (context, parent, start, end, colWidth, rowHeight) {
@@ -13,6 +14,7 @@ export default class ConnectionLine {
     this.context.lineJoin = 'round'
     this.context.lineWidth = LINE_WIDTH
     this.context.strokeStyle = STROKE_COLOR
+    this.context.fillStyle = STROKE_COLOR
 
     this.draw()
   }
@@ -72,5 +74,12 @@ export default class ConnectionLine {
 
     // Finish line
     this.context.stroke()
+
+    // Create arrow head
+    this.context.beginPath()
+    this.context.moveTo(endX, endY)
+    this.context.lineTo(endX - ARROW_SIZE, endY + ARROW_SIZE)
+    this.context.lineTo(endX - ARROW_SIZE, endY - ARROW_SIZE)
+    this.context.fill()
   }
 }
