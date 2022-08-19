@@ -4,9 +4,9 @@ module Bali
   module GanttChart
     class Task
       attr_reader :id, :name, :href, :start_date, :end_date, :update_url, :parent_id,
-                  :dependent_on_id, :options
+                  :dependent_on_id, :zoom, :options
 
-      attr_accessor :chart_start_date, :chart_end_date, :children, :row_height, :col_width, :zoom
+      attr_accessor :chart_start_date, :chart_end_date, :children, :row_height, :col_width
 
       # rubocop:disable Metrics/ParameterLists
       def initialize(
@@ -95,6 +95,13 @@ module Bali
         @list_task_name_options ||= options[:list_task_name] || {}
       end
 
+      def zoom=(value)
+        @zoom = value
+        return if href.blank?
+
+        @href = add_zoom_query_param(href, @zoom)
+      end
+
       private
 
       def duration
@@ -131,6 +138,13 @@ module Bali
         start_month = (start_date.year * 12) + start_date.month
         chart_start_month = (chart_start_date.year * 12) + chart_start_date.month
         (start_month - chart_start_month).to_i + (start_date.day.to_f / 30)
+      end
+
+      def add_zoom_query_param(href, zoom)
+        uri = URI(href)
+        uri.query ||= ''
+        uri.query += "zoom=#{zoom}"
+        uri.to_s
       end
     end
   end

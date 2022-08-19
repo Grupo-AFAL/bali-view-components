@@ -63,8 +63,8 @@ RSpec.describe Bali::GanttChart::Component, type: :component do
       expect(page).to have_css '[data-id="1"] .chevron-down'
     end
 
-    it 'renders a link when an href is provided' do
-      expect(page).to have_css 'a.task-name[href="/task/2"]', text: 'Task 1.1'
+    it 'renders a link when an href is provided with default zoom' do
+      expect(page).to have_css 'a.task-name[href="/task/2?zoom=day"]', text: 'Task 1.1'
     end
 
     it 'renders a div when no href is provided' do
@@ -77,6 +77,20 @@ RSpec.describe Bali::GanttChart::Component, type: :component do
 
     it 'renders a list resizer' do
       expect(page).to have_css '.gantt-chart-list-resizer'
+    end
+  end
+
+  context "task list custom zoom" do
+    it 'renders a link when an href is provided with month zoom' do
+      options.merge!(zoom: :month)
+      render_inline(component)
+      expect(page).to have_css 'a.task-name[href="/task/2?zoom=month"]', text: 'Task 1.1'
+    end
+
+    it 'renders a link when an href is provided with week zoom' do
+      options.merge!(zoom: :week)
+      render_inline(component)
+      expect(page).to have_css 'a.task-name[href="/task/2?zoom=week"]', text: 'Task 1.1'
     end
   end
 
