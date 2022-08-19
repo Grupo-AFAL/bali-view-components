@@ -293,12 +293,12 @@ export class GanttChartController extends Controller {
 
   establishConnections = () => {
     this.dependentConnections = []
+    this.canvasContext = this.connectionCanvasTarget.getContext('2d')
 
     if (this.zoomValue !== 'day') return
 
     this.connectionCanvasTarget.width = this.timelineAreaTarget.clientWidth
     this.connectionCanvasTarget.height = this.timelineAreaTarget.clientHeight
-    this.canvasContext = this.connectionCanvasTarget.getContext('2d')
 
     this.timelineRowTargets
       .filter(t => t.dataset.dependentOnId)
@@ -336,11 +336,7 @@ export class GanttChartController extends Controller {
   }
 
   removeConnections () {
-    this.canvasContext.clearRect(
-      0,
-      0,
-      this.connectionCanvasTarget.width,
-      this.connectionCanvasTarget.height
-    )
+    const { width, height } = this.connectionCanvasTarget
+    this.canvasContext.clearRect(0, 0, width, height)
   }
 }
