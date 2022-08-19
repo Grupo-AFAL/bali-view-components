@@ -27,9 +27,15 @@ RSpec.describe Bali::GanttChart::Component, type: :component do
   let(:component) { Bali::GanttChart::Component.new(**options) }
 
   context 'chart actions' do
-    before { render_inline(component) }
+    before do
+      render_inline(component) do |c|
+        c.view_mode_button label: 'Day', zoom: :day
+        c.view_mode_button label: 'Week', zoom: :week
+        c.view_mode_button label: 'Month', zoom: :month
+      end
+    end
 
-    it 'renders timescale buttons' do
+    it 'renders view mode buttons' do
       expect(page).to have_css '.gantt-chart-actions .button', text: 'Day'
       expect(page).to have_css '.gantt-chart-actions .button', text: 'Week'
       expect(page).to have_css '.gantt-chart-actions .button', text: 'Month'

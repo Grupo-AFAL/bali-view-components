@@ -1,11 +1,14 @@
 <%= tag.div(**options) do %>
   <div class="gantt-chart-actions">
     <a class="today" data-action="gantt-chart#scrollToToday"><%= t('.today') %></a>
-    <div class="buttons has-addons">
-      <%= tag.a t('.day'), href: '?zoom=day', class: class_names('button is-small', 'is-selected is-info': zoom == :day ) %>
-      <%= tag.a t('.week'), href: '?zoom=week', class: class_names('button is-small', 'is-selected is-info': zoom == :week ) %>
-      <%= tag.a t('.month'), href: '?zoom=month', class: class_names('button is-small', 'is-selected is-info': zoom == :month ) %>
-    </div>
+
+    <% if view_mode_buttons.present? %>
+      <%= tag.div class: 'buttons has-addons' do %>
+        <% view_mode_buttons.each do |view_mode_button| %>
+          <%= view_mode_button %>
+        <% end %>
+      <% end %>
+    <% end %>
   </div>
 
   <div class="gantt-chart-container">

@@ -7,6 +7,7 @@ module Bali
                   :list_param_name, :options
 
       renders_one :footer, ->(&block) { tag.div(&block) }
+      renders_many :view_mode_buttons, ViewModeButton::Component
 
       # rubocop:disable Metrics/ParameterLists
       def initialize(

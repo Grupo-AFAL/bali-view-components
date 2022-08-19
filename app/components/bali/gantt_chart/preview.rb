@@ -8,12 +8,13 @@ module Bali
         render GanttChart::Component.new(tasks: tasks, zoom: zoom.to_sym)
       end
 
-      def month_view
-        render GanttChart::Component.new(tasks: tasks, zoom: :month)
-      end
-
-      def week_view
-        render GanttChart::Component.new(tasks: tasks, zoom: :week)
+      # @param [Symbol] zoom select [day, week, month]
+      def view_modes(zoom: :day)
+        render GanttChart::Component.new(tasks: tasks, zoom: zoom) do |c|
+          c.view_mode_button label: 'Day', zoom: :day, active: zoom == :day
+          c.view_mode_button label: 'Week', zoom: :week, active: zoom == :week
+          c.view_mode_button label: 'Month', zoom: :month, active: zoom == :month
+        end
       end
 
       def readonly
