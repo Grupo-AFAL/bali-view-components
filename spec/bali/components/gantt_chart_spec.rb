@@ -80,7 +80,7 @@ RSpec.describe Bali::GanttChart::Component, type: :component do
     end
   end
 
-  context "task list custom zoom" do
+  context 'task list custom zoom' do
     it 'renders a link when an href is provided with month zoom' do
       options.merge!(zoom: :month)
       render_inline(component)
