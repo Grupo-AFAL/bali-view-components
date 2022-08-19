@@ -3,12 +3,12 @@ const LINE_WIDTH = 2
 const ARROW_SIZE = 6
 
 export default class ConnectionLine {
-  constructor (context, parent, start, end, colWidth, rowHeight) {
+  constructor (context, parent, start, end, startSegmentWidth, rowHeight) {
     this.context = context
     this.parent = parent
     this.start = start
     this.end = end
-    this.colWidth = colWidth
+    this.startSegmentWidth = startSegmentWidth
     this.rowHeight = rowHeight
 
     this.context.lineJoin = 'round'
@@ -61,16 +61,15 @@ export default class ConnectionLine {
 
     let currentX = startX
     let currentY = startY
-    const nodeSegmentWidth = Math.round(this.colWidth / 2)
 
     // Initial position
     this.context.moveTo(currentX, currentY)
 
     // Create the first segment moving out from the end of the start element.
-    currentX = currentX + nodeSegmentWidth
+    currentX = currentX + this.startSegmentWidth
     this.context.lineTo(currentX, currentY)
 
-    const lastPathX = endX - nodeSegmentWidth
+    const lastPathX = endX - this.startSegmentWidth
 
     // When the current X position is greater than the end path X position, we need to move
     // down and backwards to give enough space for the last path segment.

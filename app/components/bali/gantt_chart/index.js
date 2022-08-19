@@ -295,8 +295,6 @@ export class GanttChartController extends Controller {
     this.dependentConnections = []
     this.canvasContext = this.connectionCanvasTarget.getContext('2d')
 
-    if (this.zoomValue !== 'day') return
-
     this.connectionCanvasTarget.width = this.timelineAreaTarget.clientWidth
     this.connectionCanvasTarget.height = this.timelineAreaTarget.clientHeight
 
@@ -313,12 +311,17 @@ export class GanttChartController extends Controller {
           this.timelineAreaTarget,
           startCell,
           endCell,
-          this.colWidthValue,
+          this.connectionStartSegmentSize(),
           this.rowHeightValue
         )
 
         this.dependentConnections.push(line)
       })
+  }
+
+  connectionStartSegmentSize () {
+    if (this.zoomValue === 'day') return this.colWidthValue / 2
+    return this.colWidthValue / 8
   }
 
   repositionConnections = () => {
