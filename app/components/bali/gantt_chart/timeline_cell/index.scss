@@ -7,23 +7,18 @@
 
     &.critical {
       .gantt-chart-cell-content {
-        border: $gantt-chart-critical-border-width solid $gantt-chart-critical-color;
+        border: $gantt-chart-critical-border-width solid
+          $gantt-chart-critical-color;
 
         .gantt-chart-resize {
-          height: $gantt-chart-item-bubble-height - $gantt-chart-critical-border-width
+          height: $gantt-chart-item-bubble-height -
+            $gantt-chart-critical-border-width;
         }
-      }
-    }
-
-    &.complete {
-      .gantt-chart-cell-content {
-        background-color: darken($gantt-chart-item-color, 15%);
       }
     }
   }
 
   .gantt-chart-cell-content {
-    background-color: $gantt-chart-item-color;
     width: 100%;
     height: $gantt-chart-item-bubble-height;
     border-radius: $gantt-chart-item-bubble-radius;
