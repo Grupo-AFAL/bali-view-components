@@ -22,10 +22,10 @@ module Bali
             @options = prepend_data_attribute(@options, 'gantt-chart-target', 'taskLink')
           end
 
-          if draggable
-            @options = prepend_action(@options, 'click->interact#onClick')
-            @options = prepend_data_attribute(@options, 'interact-target', 'link')
-          end
+          return unless draggable
+
+          @options = prepend_action(@options, 'click->interact#onClick')
+          @options = prepend_data_attribute(@options, 'interact-target', 'link')
         end
 
         def component_class_names
