@@ -9,6 +9,7 @@ import ConnectionLine from './connection_line'
 
 const TASK_NAME_PADDING = 8
 const UPDATE_SCROLL_FREQUENCY = 500
+
 export class GanttChartController extends Controller {
   static targets = [
     'list',
@@ -65,7 +66,7 @@ export class GanttChartController extends Controller {
   }
 
   disconnect () {
-    this.removeConnections()
+    this.clearConnectionCavnas()
     this.timelineTarget.removeEventListener(
       'scroll',
       this.throttledUpdateScroll
@@ -75,13 +76,15 @@ export class GanttChartController extends Controller {
   updateScroll = () => {
     this.offsetValue = this.timelineTarget.scrollLeft
 
-    this.taskLinkTargets.forEach(link => {
-      const url = new URL(link.href)
-      const searchParams = new URLSearchParams(url.search)
-      searchParams.set('offset', this.offsetValue)
-      url.search = `?${searchParams.toString()}`
-      link.href = url.href
-    })
+    this.taskLinkTargets.forEach(this.addOffsetToLink)
+  }
+
+  addOffsetToLink = link => {
+    const url = new URL(link.href)
+    const searchParams = new URLSearchParams(url.search)
+    searchParams.set('offset', this.offsetValue)
+    url.search = `?${searchParams.toString()}`
+    link.href = url.href
   }
 
   scrollToToday () {
@@ -93,16 +96,15 @@ export class GanttChartController extends Controller {
 
   setStoredListWidth = () => {
     const storedListWidth = localStorage.getItem('ganttChartListWidth')
-    if (storedListWidth) {
-      this.listWidthValue = toInt(storedListWidth)
-      this.setListWidth(this.listWidthValue)
-    }
+    if (!storedListWidth) return
+
+    this.listWidthValue = toInt(storedListWidth)
+    this.setListWidth(this.listWidthValue)
   }
 
   resizeListValues = event => {
     const diffX = this.listResizerPosition - event.clientX
     this.setListWidth(this.listWidthValue - diffX)
-    this.repositionConnections()
 
     return diffX
   }
@@ -153,7 +155,7 @@ export class GanttChartController extends Controller {
     })
 
     const anyFolded = Object.values(rowData).some(({ folded }) => folded)
-    anyFolded ? this.hideConnections() : this.showConnections()
+    anyFolded ? this.clearConnectionCavnas() : this.drawConnections()
   }
 
   calculateHeight (listRow) {
@@ -180,7 +182,7 @@ export class GanttChartController extends Controller {
     sortable.sort(order, true)
 
     // Wait for sortableList animation to finish before updating connections
-    setTimeout(this.repositionConnections, 75)
+    setTimeout(this.drawConnections, 75)
   }
 
   onItemResizing (event) {
@@ -188,7 +190,7 @@ export class GanttChartController extends Controller {
     this.updateTaskNamePosition(event.detail)
     this.setTaskNameTooLongClass(event.detail)
     this.updateParentCell(event.detail.params.parent_id)
-    this.repositionConnections()
+    this.drawConnections()
   }
 
   async onItemResized (event) {
@@ -196,20 +198,20 @@ export class GanttChartController extends Controller {
     this.updateTaskNamePosition(event.detail)
     this.setTaskNameTooLongClass(event.detail)
     this.updateParentCell(event.detail.params.parent_id)
-    this.repositionConnections()
+    this.drawConnections()
     await this.updateTask(event.detail)
   }
 
   onItemDragging (event) {
     this.updateDragShadow(event.detail)
     this.updateParentCell(event.detail.params.parent_id)
-    this.repositionConnections()
+    this.drawConnections()
   }
 
   async onItemDragged (event) {
     this.hideDragShadow(event.detail)
     this.updateParentCell(event.detail.params.parent_id)
-    this.repositionConnections()
+    this.drawConnections()
     await this.updateTask(event.detail)
   }
 
@@ -327,21 +329,12 @@ export class GanttChartController extends Controller {
     return this.colWidthValue / 8
   }
 
-  repositionConnections = () => {
-    this.removeConnections()
+  drawConnections = () => {
+    this.clearConnectionCavnas()
     this.dependentConnections.forEach(line => line.draw())
   }
 
-  hideConnections = () => {
-    this.removeConnections()
-  }
-
-  showConnections = () => {
-    this.removeConnections()
-    this.dependentConnections.forEach(line => line.draw())
-  }
-
-  removeConnections () {
+  clearConnectionCavnas () {
     const { width, height } = this.connectionCanvasTarget
     this.canvasContext.clearRect(0, 0, width, height)
   }
