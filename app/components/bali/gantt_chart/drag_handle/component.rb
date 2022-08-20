@@ -12,7 +12,6 @@ module Bali
           @tag_name = :div
 
           @options = prepend_class_name(task.drag_options, component_class_names)
-          @options = prepend_action(@options, 'mousedown->interact#onDragStart') if draggable
 
           if task.href.present?
             @tag_name = :a
@@ -24,6 +23,7 @@ module Bali
 
           return unless draggable
 
+          @options = prepend_action(@options, 'mousedown->interact#onDragStart')
           @options = prepend_action(@options, 'click->interact#onClick')
           @options = prepend_data_attribute(@options, 'interact-target', 'link')
         end
