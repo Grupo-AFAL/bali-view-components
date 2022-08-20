@@ -4,25 +4,28 @@ module Bali
   module GanttChart
     module DragHandle
       class Component < ApplicationViewComponent
-        attr_reader :task, :draggable, :readonly, :tag_name, :options
+        attr_reader :task, :draggable, :tag_name, :options
 
-        def initialize(task:, draggable:, readonly:)
+        def initialize(task:, draggable:)
           @task = task
           @draggable = draggable
           @tag_name = :div
 
-          task.drag_options[:data]&.delete(:action) if readonly
-
           @options = prepend_class_name(task.drag_options, component_class_names)
           @options = prepend_action(@options, 'mousedown->interact#onDragStart') if draggable
 
-          return if task.href.blank? || readonly
+          if task.href.present?
+            @tag_name = :a
+            @options[:href] = task.href
 
-          @tag_name = :a
-          @options[:href] = task.href
-          @options = prepend_action(@options, 'click->interact#onClick')
-          @options = prepend_data_attribute(@options, 'interact-target', 'link')
-          @options = prepend_data_attribute(@options, 'gantt-chart-target', 'taskLink')
+            # To set the scroll offset query param throught JS on the link
+            @options = prepend_data_attribute(@options, 'gantt-chart-target', 'taskLink')
+          end
+
+          if draggable
+            @options = prepend_action(@options, 'click->interact#onClick')
+            @options = prepend_data_attribute(@options, 'interact-target', 'link')
+          end
         end
 
         def component_class_names

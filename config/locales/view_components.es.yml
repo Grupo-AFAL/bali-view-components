@@ -15,9 +15,6 @@ es:
       gantt_chart:
         task_header: Nombre
         today: Hoy
-        day: Día
-        week: Semana
-        month: Mes
       loader:
         loading: Cargando...
       search_input:

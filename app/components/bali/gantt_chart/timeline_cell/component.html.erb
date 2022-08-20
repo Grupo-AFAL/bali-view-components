@@ -9,7 +9,7 @@
                     'interact-handle-param': 'left' }) %>
     <% end %>
 
-    <%= render Bali::GanttChart::DragHandle::Component.new(task: task, draggable: draggable?, readonly: readonly ) %>
+    <%= render Bali::GanttChart::DragHandle::Component.new(task: task, draggable: draggable?) %>
 
     <% if resize_handle? %>
       <%= render Bali::Icon::Component.new('handle',

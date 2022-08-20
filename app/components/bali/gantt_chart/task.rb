@@ -107,8 +107,8 @@ module Bali
       end
 
       def colors_gradient
-        "#{colors[:default]} 0%, #{colors[:default]} #{progress}%,
-          #{colors[:completed]} #{progress}%, #{colors[:completed]} 100%"
+        "#{colors[:completed]} 0%, #{colors[:completed]} #{progress}%,
+          #{colors[:default]} #{progress}%, #{colors[:default]} 100%"
       end
 
       private

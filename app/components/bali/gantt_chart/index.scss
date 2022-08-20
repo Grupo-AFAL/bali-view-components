@@ -119,6 +119,7 @@ $gantt-chart-timeline-data-height: 100%;
     flex-grow: 1;
     overflow-x: scroll;
     border-right: 1px solid $border-color;
+    border-bottom: 1px solid $border-color;
     position: relative;
   }
 
@@ -169,5 +170,10 @@ $gantt-chart-timeline-data-height: 100%;
     top: 0;
     height: 100%;
     width: 100%;
+  }
+
+  .gantt-chart-footer {
+    border-left: 1px solid $border-color;
+    border-right: 1px solid $border-color;
   }
 }

@@ -6,7 +6,7 @@ module Bali
       attr_reader :tasks, :row_height, :col_width, :zoom, :readonly, :resource_name,
                   :list_param_name, :options
 
-      renders_one :footer, ->(&block) { tag.div(&block) }
+      renders_one :footer, ->(&block) { tag.div(class: 'gantt-chart-footer', &block) }
       renders_many :view_mode_buttons, ViewModeButton::Component
 
       # rubocop:disable Metrics/ParameterLists
@@ -36,8 +36,8 @@ module Bali
         @default_max_date = Date.current + 2.months
 
         @task_colors = options.delete(:colors) || {
-          default: '#117fa7',
-          completed: '#1cb2e9'
+          default: 'hsl(196, 82%, 62%)',  # blue-4
+          completed: 'hsl(196, 82%, 46%)' # blue-6
         }
         @tasks = tasks.map { |task| Task.new(**task) }
         @tasks = setup_parent_child_relationships(@tasks)

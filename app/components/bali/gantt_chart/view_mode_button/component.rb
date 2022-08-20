@@ -10,10 +10,10 @@ module Bali
           @active = active
           @href = href
 
-          @options = prepend_class_name(options, class_names(
-                                                   'button is-small',
-                                                   'is-selected is-info': @active
-                                                 ))
+          @options = prepend_class_name(
+            options,
+            class_names('button is-small', 'is-selected is-info': @active)
+          )
         end
 
         def call
