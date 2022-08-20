@@ -8,7 +8,7 @@ import { patch } from '@rails/request.js'
 import ConnectionLine from './connection_line'
 
 const TASK_NAME_PADDING = 8
-
+const UPDATE_SCROLL_FREQUENCY = 500
 export class GanttChartController extends Controller {
   static targets = [
     'list',
@@ -57,7 +57,10 @@ export class GanttChartController extends Controller {
 
     this.establishConnections()
 
-    this.throttledUpdateScroll = throttle(this.updateScroll, 2000)
+    this.throttledUpdateScroll = throttle(
+      this.updateScroll,
+      UPDATE_SCROLL_FREQUENCY
+    )
     this.timelineTarget.addEventListener('scroll', this.throttledUpdateScroll)
   }
 
