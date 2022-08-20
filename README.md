@@ -36,7 +36,7 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Javascript
 
-Some javascript controllers emit events for communicating between controllers. To enable debugging this information run the following command on the javascript console. `baliUseDispatchDebug = true`
+Some javascript controllers emit events for communicating between controllers. To enable debugging this information run the following command on the javascript console. `baliDispatchDebugEnabled = true`
 
 ## Testing
 

@@ -32,11 +32,9 @@ class UseDispatch {
   }
 
   log = (functionName, args) => {
-    if (!this.debug && !window.baliUseDispatchDebug) return
+    if (!this.debug && !window.baliDispatchDebugEnabled) return
 
-    this.logger.groupCollapsed(`%c${functionName}`, 'color: #3B82F6')
-    this.logger.log(args)
-    this.logger.groupEnd()
+    this.logger.log(`%c${functionName}`, 'color: #3B82F6', args)
   }
 
   dispatch = (eventName, detail = {}) => {
