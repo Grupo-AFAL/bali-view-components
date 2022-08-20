@@ -4,6 +4,8 @@ module Bali
   module GanttChart
     module ViewModeButton
       class Component < ApplicationViewComponent
+        include Utils::Url
+
         def initialize(label:, zoom:, active: false, href: nil, **options)
           @label = label
           @zoom = zoom
@@ -23,9 +25,7 @@ module Bali
         private
 
         def href
-          zoom_param = "?zoom=#{@zoom}"
-
-          @href.nil? ? zoom_param : @href + zoom_param
+          add_query_param(@href.to_s, :zoom, @zoom)
         end
       end
     end
