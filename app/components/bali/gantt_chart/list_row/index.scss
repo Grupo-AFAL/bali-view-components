@@ -1,7 +1,7 @@
 .gantt-chart-component {
   .gantt-chart-row {
     height: $gantt-chart-row-height;
-    line-height: $gantt-chart-row-height;
+    line-height: $gantt-chart-row-height - 1px;
     font-size: $size-7;
 
     position: relative;

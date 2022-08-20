@@ -4,6 +4,7 @@
     height: $gantt-chart-timeline-data-height;
     width: 100%;
     top: 0;
+    border-bottom: 1px solid $border-color;
   }
 
   .gantt-chart-timeline-background-column {
