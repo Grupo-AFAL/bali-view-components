@@ -19,7 +19,6 @@ module Bali
       # @param method [Symbol|String] Adds a turbo method to the link.
 
       # rubocop:disable Metrics/ParameterLists
-      # rubocop:disable Metrics/AbcSize
       def initialize(href:,
                      name: nil,
                      type: nil,
@@ -56,7 +55,6 @@ module Bali
           @options = prepend_turbo_method(@options, method.to_s)
         end
       end
-      # rubocop:enable Metrics/AbcSize
       # rubocop:enable Metrics/ParameterLists
     end
   end

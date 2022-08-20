@@ -12,6 +12,8 @@ export { ClipboardController } from '../../components/bali/clipboard'
 export { DrawerController } from '../../components/bali/drawer'
 export { DropdownController } from '../../components/bali/dropdown'
 export { FilterFormController } from '../../components/bali/filters'
+export { GanttChartController } from '../../components/bali/gantt_chart'
+export { GanttFoldableItemController } from '../../components/bali/gantt_chart/gantt_foldable_item'
 export { HovercardController } from '../../components/bali/hover_card'
 export { ModalController } from '../../components/bali/modal'
 export { NavbarController } from '../../components/bali/navbar'
@@ -40,6 +42,7 @@ export {
   PrintController,
   RadioButtonsGroupController,
   RadioToggleController,
+  InteractController,
   SlimSelectController,
   StepNumberInputController,
   SubmitButtonController,

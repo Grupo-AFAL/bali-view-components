@@ -8,12 +8,15 @@ import {
   ClipboardController,
   DropdownController,
   FilterFormController,
+  GanttChartController,
+  GanttFoldableItemController,
   HovercardController,
   NavbarController,
   NotificationController,
   PopupController,
   RadioButtonsGroupController,
   RateController,
+  InteractController,
   RevealController,
   SelectedController,
   SideMenuController,
@@ -34,12 +37,15 @@ application.register('chart', ChartController)
 application.register('clipboard', ClipboardController)
 application.register('dropdown', DropdownController)
 application.register('filter-form', FilterFormController)
+application.register('gantt-chart', GanttChartController)
+application.register('gantt-foldable-item', GanttFoldableItemController)
 application.register('hovercard', HovercardController)
 application.register('navbar', NavbarController)
 application.register('notification', NotificationController)
 application.register('popup', PopupController)
 application.register('radio-buttons-group', RadioButtonsGroupController)
 application.register('rate', RateController)
+application.register('interact', InteractController)
 application.register('reveal', RevealController)
 application.register('selected', SelectedController)
 application.register('side-menu', SideMenuController)

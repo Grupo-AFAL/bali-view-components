@@ -1,6 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 import Sortable from 'sortablejs'
 import { patch } from '@rails/request.js'
+import useDispatch from '../../../javascript/bali/utils/use-dispatch'
 
 export class SortableListController extends Controller {
   static values = {
@@ -11,12 +12,15 @@ export class SortableListController extends Controller {
     animation: { type: Number, default: 150 },
     handle: String,
     groupName: String,
+    pull: { type: Boolean, default: true },
     disabled: { type: Boolean, default: false }
   }
 
   connect () {
+    useDispatch(this)
+
     this.sortable = new Sortable(this.element, {
-      group: this.groupNameValue,
+      group: { name: this.groupNameValue, pull: this.pullValue },
       animation: this.animationValue,
       handle: this.handleValue || undefined,
       fallbackOnBody: true,
@@ -28,8 +32,6 @@ export class SortableListController extends Controller {
   }
 
   onEnd = async ({ item, newIndex, to }) => {
-    if (!item.dataset.sortableUpdateUrl) return
-
     const positionParam = this.resourceNameValue
       ? `${this.resourceNameValue}[${this.positionParamNameValue}]`
       : this.positionParamNameValue
@@ -43,6 +45,10 @@ export class SortableListController extends Controller {
     const data = new FormData()
     data.append(positionParam, newIndex + 1)
     data.append(listIdParam, toListId)
+
+    this.dispatch('onEnd', { order: this.sortable.toArray(), toListId })
+
+    if (!item.dataset.sortableUpdateUrl) return
 
     await patch(item.dataset.sortableUpdateUrl, {
       body: data,

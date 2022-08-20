@@ -1,6 +1,6 @@
 {
   "name": "bali-view-components",
-  "version": "0.39.1",
+  "version": "0.40.0",
   "description": "Bali ViewComponents",
   "main": "app/javascript/bali/index.js",
   "repository": "git@github.com:Grupo-AFAL/bali.git",
@@ -47,7 +47,8 @@
       "fetch",
       "history",
       "FormData",
-      "CustomEvent"
+      "CustomEvent",
+      "localStorage"
     ]
   }
 }

@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.40.0] - 2022-08-18
+
+Create `GanttChart::Component` for a full fledged Gantt Chart with the following functionality:
+
+- Display a sortable and nestable list of tasks
+- Fold/Unfold the nested lists
+- Actions for changing the timescale between Day, Week and Month
+- Button for focusing today's date and a today marker
+- Draggable and Resizable tasks
+- Visualize dependencies between tasks
+- Display of milestones
+- Resizable width of the task list
+- Visualize weekends
+
 ## [0.39.1] - 2022-08-16
 
 - Fix `Navbar` transparency.

@@ -39,7 +39,6 @@ module Bali
           end
         end
 
-        # rubocop:disable Metrics/AbcSize
         def extra_params(type)
           parameters = {}
           parameters.merge!(start_attribute => prev_start_date, period: period) if type == :prev
@@ -49,7 +48,6 @@ module Bali
           parameters.merge!(@options[:extra_params]) if @options[:extra_params].present?
           parameters
         end
-        # rubocop:enable Metrics/AbcSize
       end
     end
   end

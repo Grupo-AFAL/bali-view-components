@@ -5,7 +5,6 @@ module Bali
     module DynamicFields
       # TODO: Add tests (Issue: #160)
 
-      # rubocop: disable Metrics/AbcSize
       # Field helper to add associated records in a form, it generates a label and a link
       # to dynamically add additional associated records.
       #
@@ -94,7 +93,6 @@ module Bali
             tag.template(fields, data: { 'dynamic-fields-target': 'template' })
         end
       end
-      # rubocop: enable  Metrics/AbcSize
 
       def link_to_remove_fields(name, html_options = {})
         html_options['href'] = '#'

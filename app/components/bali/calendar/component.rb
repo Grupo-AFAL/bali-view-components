@@ -64,7 +64,6 @@ module Bali
         tr_class
       end
 
-      # rubocop:disable Metrics/AbcSize
       def td_classes_for(day)
         td_class = ['day']
         td_class << 'today' if Date.current == day
@@ -99,7 +98,6 @@ module Bali
 
         events_grouped_by_date
       end
-      # rubocop:enable Metrics/AbcSize
 
       def filter_week(week)
         return week if all_week

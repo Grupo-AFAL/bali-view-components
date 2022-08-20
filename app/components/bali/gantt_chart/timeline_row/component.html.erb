@@ -1,0 +1,21 @@
+<%= tag.div **options do %>
+  <%= render Bali::GanttChart::TimelineCell::Component.new(
+             task: task, readonly: readonly, zoom: zoom) %>
+
+  <% if task.children.any? %>
+    <div class="gantt-chart-timeline-children"
+        data-controller="sortable-list"
+        data-sortable-list-group-name-value="gantt-timeline"
+        data-sortable-list-handle-value=".handle"
+        data-sortable-list-list-id-value="<%= task.id %>"
+        data-sortable-list-pull-value="false"
+        data-sortable-list-disabled-value="true"
+        data-sortable-list-animation-value="50"
+    >
+      <% task.children.each do |child_task| %>
+        <%= render Bali::GanttChart::TimelineRow::Component.new(
+                   task: child_task, readonly: readonly, zoom: zoom) %>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

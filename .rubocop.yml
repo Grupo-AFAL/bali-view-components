@@ -32,6 +32,9 @@ Layout/LineLength:
 Layout/SpaceBeforeBrackets:
   Enabled: false
 
+Metrics/AbcSize:
+  Max: 30
+
 Metrics/ClassLength:
   Max: 150
 
@@ -78,7 +81,7 @@ Rails/HasAndBelongsToMany:
   Enabled: false
 
 Metrics/BlockLength:
-  IgnoredMethods: ['describe', 'context', 'it', 'before', 'included']
+  AllowedMethods: ['describe', 'context', 'it', 'before', 'included']
   Exclude:
     - spec/*
     - lib/tasks/*

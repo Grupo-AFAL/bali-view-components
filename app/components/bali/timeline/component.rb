@@ -3,8 +3,6 @@
 module Bali
   module Timeline
     class Component < ApplicationViewComponent
-      include ViewComponent::PolymorphicSlots
-
       attr_reader :options
 
       renders_many :tags, types: {

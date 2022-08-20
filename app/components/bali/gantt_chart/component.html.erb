@@ -1,0 +1,78 @@
+<%= tag.div(**options) do %>
+  <div class="gantt-chart-actions">
+    <a class="today" data-action="gantt-chart#scrollToToday"><%= t('.today') %></a>
+
+    <% if view_mode_buttons.present? %>
+      <%= tag.div class: 'buttons has-addons' do %>
+        <% view_mode_buttons.each do |view_mode_button| %>
+          <%= view_mode_button %>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div class="gantt-chart-container">
+    <div class="gantt-chart-list" data-gantt-chart-target="list">
+      <div class="gantt-chart-header">
+        <%= t('.task_header') %>
+      </div>
+
+      <div class="gantt-chart-data"
+         data-controller="sortable-list"
+         data-sortable-list-group-name-value="gantt-list"
+         data-sortable-list-handle-value=".handle"
+         data-sortable-list-list-id-value="0"
+         data-sortable-list-animation-value="50"
+         data-sortable-list-resource-name-value="<%= resource_name %>"
+         data-sortable-list-list-param-name-value="<%= list_param_name %>"
+      >
+        <% tasks.each do |task| %>
+          <%= render Bali::GanttChart::ListRow::Component.new(
+                     task: task,
+                     readonly: readonly,
+                     resource_name: resource_name,
+                     list_param_name: list_param_name) %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="gantt-chart-list-resizer"
+      data-action="mousedown->gantt-chart#onResizeListStart"
+      data-gantt-chart-target="listResizer">
+      <div class="gantt-chart-list-resizer-shadow"></div>
+    </div>
+
+    <div class="gantt-chart-timeline" data-gantt-chart-target="timeline">
+      <%= tag.div class: 'gantt-chart-today-marker', style: "left: #{today_offset - 1}px" do %>
+        <span><%= t('.today') %></span>
+      <% end %>
+
+      <%= render Bali::GanttChart::TimelineHeader::Component.new(
+                 start_date: start_date, end_date: end_date, col_width: col_width, zoom: zoom) %>
+
+      <div class="gantt-chart-data-area" data-gantt-chart-target="timelineArea" style="width: <%= duration * col_width %>px">
+        <div data-controller="sortable-list"
+             data-sortable-list-group-name-value="gantt-timeline"
+             data-sortable-list-disabled-value="true"
+             data-sortable-list-list-id-value="0"
+             data-sortable-list-pull-value="false"
+             data-sortable-list-animation-value="50"
+        >
+          <% tasks.each do |task| %>
+            <%= render Bali::GanttChart::TimelineRow::Component.new(
+                       task: task, readonly: readonly, zoom: zoom) %>
+          <% end %>
+        </div>
+
+        <div class="gantt-chart-drag-shadow" data-gantt-chart-target="dragShadow"></div>
+
+        <%= render Bali::GanttChart::TimelineBackground::Component.new(
+                   start_date: start_date, end_date: end_date, col_width: col_width, zoom: zoom) %>
+
+        <canvas class="gantt-chart-connections-canvas" data-gantt-chart-target="connectionCanvas"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <%= footer %>
+<% end %>
