@@ -32,17 +32,10 @@ class UseDispatch {
   }
 
   log = (functionName, args) => {
-    if (!this.debug) return
+    if (!this.debug && !window.baliUseDispatchDebug) return
 
-    this.logger.groupCollapsed(
-      `%c${this.controller.identifier} %c#${functionName}`,
-      'color: #3B82F6',
-      'color: unset'
-    )
-    this.logger.log({
-      controllerId: this.controllerId,
-      ...args
-    })
+    this.logger.groupCollapsed(`%c${functionName}`, 'color: #3B82F6')
+    this.logger.log(args)
     this.logger.groupEnd()
   }
 
@@ -75,12 +68,7 @@ class UseDispatch {
     // dispatch the event from the given element or by default from the root element of the controller
     targetElement.dispatchEvent(event)
 
-    log('dispatch', {
-      eventName: eventNameWithPrefix,
-      detail,
-      bubbles,
-      cancelable
-    })
+    log(eventNameWithPrefix, detail)
 
     return event
   }

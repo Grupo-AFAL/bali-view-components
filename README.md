@@ -34,6 +34,10 @@ Contribution directions go here.
 
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
 
+## Javascript
+
+Some javascript controllers emit events for communicating between controllers. To enable debugging this information run the following command on the javascript console. `baliUseDispatchDebug = true`
+
 ## Testing
 
 ### RSpec
