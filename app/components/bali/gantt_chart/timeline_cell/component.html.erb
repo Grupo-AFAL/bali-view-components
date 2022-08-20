@@ -1,5 +1,6 @@
 <%= tag.div **options do %>
-  <%= tag.div class: 'gantt-chart-cell-content' do %>
+  <%= tag.div class: 'gantt-chart-cell-content',
+              style: task.milestone? ? '' : "background: linear-gradient(to right, #{task.colors_gradient})" do %>
     <% if resize_handle? %>
       <%= render Bali::Icon::Component.new('handle',
                   class: 'gantt-chart-resize gantt-chart-resize-left',

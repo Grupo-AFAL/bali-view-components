@@ -6,7 +6,7 @@ module Bali
       attr_reader :id, :name, :href, :start_date, :end_date, :update_url, :parent_id,
                   :dependent_on_id, :progress, :zoom, :options
 
-      attr_accessor :chart_start_date, :chart_end_date, :children, :row_height, :col_width
+      attr_accessor :chart_start_date, :chart_end_date, :children, :row_height, :col_width, :colors
 
       # rubocop:disable Metrics/ParameterLists
       def initialize(
@@ -75,6 +75,10 @@ module Bali
         @critical
       end
 
+      def complete?
+        progress == 100
+      end
+
       def row_options
         @row_options ||= options[:row] || {}
       end
@@ -100,6 +104,11 @@ module Bali
         return if href.blank?
 
         @href = add_zoom_query_param(href, @zoom)
+      end
+
+      def colors_gradient
+        "#{colors[:default]} 0%, #{colors[:default]} #{progress}%,
+          #{colors[:completed]} #{progress}%, #{colors[:completed]} 100%"
       end
 
       private

@@ -20,7 +20,7 @@ module Bali
           @options = prepend_data_attribute(@options, 'parent-id', task.parent_id)
           @options = prepend_values(@options, 'interact', interact_controller_values)
           @options = prepend_data_attribute(@options, 'gantt-chart-target', 'timelineCell')
-          @options = prepend_class_name(@options, class_names(complete: task.progress == 100))
+          @options = prepend_class_name(@options, class_names(complete: task.complete?))
         end
 
         def resize_handle?

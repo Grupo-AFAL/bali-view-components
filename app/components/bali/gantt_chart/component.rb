@@ -35,6 +35,10 @@ module Bali
         @default_min_date = Date.current - 2.months
         @default_max_date = Date.current + 2.months
 
+        @task_colors = options.delete(:colors) || {
+          default: '#117fa7',
+          completed: '#1cb2e9'
+        }
         @tasks = tasks.map { |task| Task.new(**task) }
         @tasks = setup_parent_child_relationships(@tasks)
 
@@ -51,6 +55,7 @@ module Bali
           task.row_height = row_height
           task.col_width = col_width
           task.zoom = zoom
+          task.colors = @task_colors
           task.children = tasks_by_parent_id[task.id] || []
         end
 
