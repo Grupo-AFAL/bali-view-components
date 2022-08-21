@@ -42,10 +42,26 @@
                     **task.complete_action_options) %>
         <% end %>
 
+        <% if task.indent_action? %>
+          <%= render Bali::Link::Component.new(
+                    name: t('.indent_task'),
+                    icon_name: 'indent',
+                    class: 'is-flex dropdown-item',
+                    **task.indent_action_options) %>
+        <% end %>
+
+        <% if task.outdent_action? %>
+          <%= render Bali::Link::Component.new(
+                    name: t('.outdent_task'),
+                    icon_name: 'outdent',
+                    class: 'is-flex dropdown-item',
+                    **task.outdent_action_options) %>
+        <% end %>
+
         <% if task.delete_action? %>
           <div class="dropdown-divider"></div>
           <%= render Bali::Link::Component.new(
-                    name: 'Eliminar',
+                    name: t('.delete_task'),
                     icon_name: 'trash',
                     class: 'is-flex dropdown-item has-text-danger',
                     **task.delete_action_options) %>

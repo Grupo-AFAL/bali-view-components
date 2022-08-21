@@ -41,7 +41,11 @@ module Bali
           {
             id: 1, name: 'Task 1', start_date: date, end_date: date + 16.days, update_url: '/gantt_chart/1', href: '/gantt_chart/1', data: { action: 'modal#open' },
             actions: {
-              info: { href: '/gantt_chart/1/edit', data: { action: 'modal#open' } }
+              info: { href: '/gantt_chart/1/edit', data: { action: 'modal#open' } },
+              complete: { href: '/gantt_chart/1/complete', data: { 'turbo-method': 'patch' } },
+              indent: { href: '/gantt_chart/1/indent', data: { 'turbo-method': 'patch' } },
+              outdent: { href: '/gantt_chart/1/outdent', data: { 'turbo-method': 'patch' } },
+              delete: { href: '/gantt_chart/1', data: { 'turbo-method': 'delete' } }
             }
           },
           {

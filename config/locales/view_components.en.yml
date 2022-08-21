@@ -15,6 +15,12 @@ en:
       gantt_chart:
         task_header: Name
         today: Today
+        list_row:
+          open_details: Open details
+          complete_task: Complete task
+          delete_task: Delete task
+          indent_task: Indent task
+          outdent_task: Outdent task
       loader:
         loading: Loading...
       search_input:
