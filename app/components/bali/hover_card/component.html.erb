@@ -1,9 +1,13 @@
 <%= tag.div **options do %>
   <%= trigger %>
 
-  <% if template.present? %>
+  <% if content.present? %>
     <template data-hovercard-target='template'>
-      <%= template %>
+      <% if content_padding %>
+        <div class="hover-card-content"><%= content %></div>
+      <% else %>
+        <%= content %>
+      <% end %>
     </template>
   <% end %>
 <% end %>

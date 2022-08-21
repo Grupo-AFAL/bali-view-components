@@ -6,7 +6,7 @@ module Bali
       include Utils::Url
 
       attr_reader :id, :name, :href, :start_date, :end_date, :update_url, :parent_id,
-                  :dependent_on_id, :progress, :zoom, :options
+                  :dependent_on_id, :progress, :zoom, :actions, :options
 
       attr_accessor :chart_start_date, :chart_end_date, :children, :row_height, :col_width, :colors
 
@@ -38,6 +38,8 @@ module Bali
         @dependent_on_id = dependent_on_id
         @milestone = milestone
         @critical = critical
+
+        @actions = options.delete(:actions) || {}
         @options = options
       end
       # rubocop:enable Metrics/ParameterLists
@@ -111,6 +113,31 @@ module Bali
       def colors_gradient
         "#{colors[:completed]} 0%, #{colors[:completed]} #{progress}%,
           #{colors[:default]} #{progress}%, #{colors[:default]} 100%"
+      end
+
+      # Actions
+      # ------------------------------------------
+      # Options for the links in the task dropdown
+      #
+      # info (Open details)
+      # complete (Complete task)
+      # delete (Delete task)
+      # indent (Indent task)
+      # outdent (Outdent task)
+      %i[info complete delete indent outdent].each do |action_name|
+        define_method("#{action_name}_action?") do
+          actions[action_name].present?
+        end
+
+        define_method("#{action_name}_action_options") do
+          actions[action_name] || {}
+        end
+      end
+
+      def actions_enabled?
+        %i[info complete delete indent outdent].any? do |action_name|
+          send("#{action_name}_action?")
+        end
       end
 
       private

@@ -19,6 +19,39 @@
 
       <%= tag.p task.name %>
     <% end %>
+
+    <% if task.actions_enabled? %>
+      <%= render Bali::HoverCard::Component.new(open_on_click: true, placement: 'bottom', content_padding: false) do |c| %>
+        <% c.trigger(class: 'is-flex') do %>
+          <%= render Bali::Icon::Component.new('more', class: 'gantt-chart-task-dropdown') %>
+        <% end %>
+
+        <% if task.info_action? %>
+          <%= render Bali::Link::Component.new(
+                    name: t('.open_details'),
+                    icon_name: 'info-circle',
+                    class: 'is-flex dropdown-item',
+                    **task.info_action_options) %>
+        <% end %>
+
+        <% if task.complete_action? %>
+          <%= render Bali::Link::Component.new(
+                    name: t('.complete_task'),
+                    icon_name: 'checklist',
+                    class: 'is-flex dropdown-item',
+                    **task.complete_action_options) %>
+        <% end %>
+
+        <% if task.delete_action? %>
+          <div class="dropdown-divider"></div>
+          <%= render Bali::Link::Component.new(
+                    name: 'Eliminar',
+                    icon_name: 'trash',
+                    class: 'is-flex dropdown-item has-text-danger',
+                    **task.delete_action_options) %>
+        <% end %>
+      <% end %>
+    <% end %>
   </div>
 
   <% if task.children.any? %>
