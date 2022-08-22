@@ -76,13 +76,14 @@ export class GanttChartController extends Controller {
   updateScroll = () => {
     this.offsetValue = this.timelineTarget.scrollLeft
 
-    this.taskLinkTargets.forEach(this.addOffsetToLink)
+    this.taskLinkTargets.forEach(this.addParamsToLink)
   }
 
-  addOffsetToLink = link => {
+  addParamsToLink = link => {
     const url = new URL(link.href)
     const searchParams = new URLSearchParams(url.search)
     searchParams.set('offset', this.offsetValue)
+    searchParams.set('zoom', this.zoomValue)
     url.search = `?${searchParams.toString()}`
     link.href = url.href
   }
@@ -92,6 +93,12 @@ export class GanttChartController extends Controller {
       left: this.todayOffsetValue - this.colWidthValue
     })
     this.updateScroll()
+  }
+
+  onActionsOpen ({ detail }) {
+    detail.tippy.popper
+      .querySelectorAll('[data-gantt-chart-target="taskLink"]')
+      .forEach(this.addParamsToLink)
   }
 
   setStoredListWidth = () => {

@@ -19,6 +19,8 @@
 
       <%= tag.p task.name %>
     <% end %>
+
+    <%= render Bali::GanttChart::TaskActions::Component.new(task: task) %>
   </div>
 
   <% if task.children.any? %>

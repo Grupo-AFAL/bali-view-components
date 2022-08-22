@@ -19,12 +19,12 @@ module Bali
 
             # To set the scroll offset query param throught JS on the link
             @options = prepend_data_attribute(@options, 'gantt-chart-target', 'taskLink')
+            @options = prepend_action(@options, 'click->interact#onClick')
           end
 
           return unless draggable
 
           @options = prepend_action(@options, 'mousedown->interact#onDragStart')
-          @options = prepend_action(@options, 'click->interact#onClick')
           @options = prepend_data_attribute(@options, 'interact-target', 'link')
         end
 

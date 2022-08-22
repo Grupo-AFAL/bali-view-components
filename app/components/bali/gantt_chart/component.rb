@@ -71,6 +71,7 @@ module Bali
         @options = prepend_action(@options, 'interact:onDragging->gantt-chart#onItemDragging')
         @options = prepend_action(@options, 'interact:onDragEnd->gantt-chart#onItemDragged')
         @options = prepend_action(@options, 'gantt-foldable-item:toggle->gantt-chart#onFold')
+        @options = prepend_action(@options, 'hovercard:show->gantt-chart#onActionsOpen')
         @options = prepend_values(@options, 'gantt-chart', controller_values)
       end
 

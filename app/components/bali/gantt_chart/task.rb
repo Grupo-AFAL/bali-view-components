@@ -2,11 +2,13 @@
 
 module Bali
   module GanttChart
+    # rubocop:disable Metrics/ClassLength
     class Task
       include Utils::Url
+      include HtmlElementHelper
 
-      attr_reader :id, :name, :href, :start_date, :end_date, :update_url, :parent_id,
-                  :dependent_on_id, :progress, :zoom, :options
+      attr_reader :id, :name, :href, :start_date, :end_date, :update_url, :parent_id, :position,
+                  :dependent_on_id, :progress, :zoom, :actions, :options
 
       attr_accessor :chart_start_date, :chart_end_date, :children, :row_height, :col_width, :colors
 
@@ -24,6 +26,7 @@ module Bali
         dependent_on_id: nil,
         milestone: false,
         critical: false,
+        position: 0,
         **options
       )
         @id = id
@@ -38,6 +41,9 @@ module Bali
         @dependent_on_id = dependent_on_id
         @milestone = milestone
         @critical = critical
+        @position = position
+
+        @actions = options.delete(:actions) || {}
         @options = options
       end
       # rubocop:enable Metrics/ParameterLists
@@ -81,6 +87,18 @@ module Bali
         progress == 100
       end
 
+      def parent?
+        children.size.positive?
+      end
+
+      def child?
+        parent_id.present?
+      end
+
+      def first?
+        position == 1
+      end
+
       def row_options
         @row_options ||= options[:row] || {}
       end
@@ -111,6 +129,42 @@ module Bali
       def colors_gradient
         "#{colors[:completed]} 0%, #{colors[:completed]} #{progress}%,
           #{colors[:default]} #{progress}%, #{colors[:default]} 100%"
+      end
+
+      # Actions
+      # ------------------------------------------
+      # Options for the links in the task dropdown
+      #
+      # info (Open details)
+      # complete (Complete task)
+      # delete (Delete task)
+      # indent (Indent task)
+      # outdent (Outdent task)
+      %i[info complete delete indent outdent].each do |action_name|
+        define_method("#{action_name}_action?") do
+          actions[action_name].present?
+        end
+
+        define_method("#{action_name}_action_options") do
+          options = actions[action_name] || {}
+          if options.present?
+            options = prepend_data_attribute(options, 'gantt-chart-target', 'taskLink')
+          end
+          options
+        end
+      end
+
+      def actions_enabled?
+        %i[info complete delete indent outdent].any? do |action_name|
+          send("#{action_name}_action?")
+        end
+      end
+
+      def hover_card_options
+        @actions[:hover_card] || {
+          append_to: '.gantt-chart-component', # Root component element
+          z_index: 38                          # Under the modal/drawer
+        }
       end
 
       private
@@ -151,5 +205,6 @@ module Bali
         (start_month - chart_start_month).to_i + (start_date.day.to_f / 30)
       end
     end
+    # rubocop:enable Metrics/ClassLength
   end
 end

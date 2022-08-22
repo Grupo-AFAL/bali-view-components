@@ -1,10 +1,14 @@
 import { Controller } from '@hotwired/stimulus'
-import { createPopper } from '@popperjs/core'
-import { stringToDOMNode } from '../../../javascript/bali/utils/domHelpers'
+import tippy from 'tippy.js'
+import useDispatch from '../../../javascript/bali/utils/use-dispatch'
 
-import useClickOutside from '../../../javascript/bali/utils/use-click-outside'
-
-const CONTENT_CLASS_NAME = 'content'
+const ARROW_SVG = `
+<svg width="14" height="8" viewBox="0 0 14 8" fill="none">
+  <path d="M14 8L7 8L0 8L7 0L14 8Z" fill="white"/>
+  <path d="M7 0.759296L12.8981 7.5L7 7.5L1.10188 7.5L7 0.759296Z" stroke="#1C1817" stroke-opacity="0.2"/>
+  <path d="M2.20708 7H11.7911L12.8 8H1.39999L2.20708 7Z" fill="white"/>
+</svg>
+`
 
 /*
   Hovercard controller:
@@ -12,111 +16,73 @@ const CONTENT_CLASS_NAME = 'content'
     obtained via a fetch request or template.
 */
 export class HovercardController extends Controller {
-  static targets = ['template']
+  static targets = ['template', 'trigger']
   static values = {
     url: String,
     placement: { type: String, default: 'auto' },
-    openOnClick: { type: Boolean, default: false }
+    trigger: { type: String, default: 'mouseenter focus' },
+    contentPadding: { type: Boolean, default: true },
+    appendTo: { type: String, default: 'body' },
+    zIndex: { type: Number, default: 9999 }
   }
 
   connect () {
-    this.isActive = false
+    useDispatch(this)
+
     this.contentLoaded = false
 
-    if (this.openOnClickValue) {
-      this.element.addEventListener('click', this.show)
-      useClickOutside(this)
-    } else {
-      this.element.addEventListener('mouseenter', this.show)
-      this.element.addEventListener('mouseleave', this.hide)
-    }
+    const content = this.hasTemplateTarget ? this.templateTarget.innerHTML : ''
 
-    this.cardNode = this.element.appendChild(this.buildEmptyNode())
-
-    this.popperInstance = createPopper(this.element, this.cardNode, {
+    this.tippy = tippy(this.triggerTarget, {
+      allowHTML: true,
+      arrow: ARROW_SVG,
+      duration: 100,
+      appendTo: this.appendToProp(),
+      content: content,
       placement: this.placementValue,
-      modifiers: [
-        { name: 'eventListeners', enabled: false },
-        { name: 'offset', options: { offset: [0, 13] } }
-      ]
+      trigger: this.triggerValue,
+      interactive: true,
+      zIndex: this.zIndexValue,
+      onTrigger: this.onTrigger,
+      onCreate: this.onCreate,
+      onShow: this.onShow
     })
   }
 
+  appendToProp () {
+    if (this.appendToValue === 'body') return () => document.body
+    if (this.appendToValue === 'parent') return 'parent'
+
+    return document.querySelector(this.appendToValue)
+  }
+
   disconnect () {
-    if (this.openOnClickValue) {
-      this.element.removeEventListener('click', this.show)
-    } else {
-      this.element.removeEventListener('mouseenter', this.show)
-      this.element.removeEventListener('mouseleave', this.hide)
-    }
-
-    this.popperInstance.destroy()
-    this.cardNode.remove()
+    this.tippy.destroy()
   }
 
-  show = () => {
-    this.isActive = true
+  onCreate = instance => {
+    instance.popper.classList.add('hover-card-tippy-wrapper')
+  }
 
-    if (this.contentLoaded) {
-      return this.showAndUpdatePosition()
-    }
-
-    if (this.urlValue) {
-      fetch(this.urlValue)
-        .then(r => r.text())
-        .then(html => this.insertContent(html))
-    } else if (this.hasTemplateTarget) {
-      this.insertContent(this.templateTarget.innerHTML)
+  onTrigger = () => {
+    if (this.hasUrlValue && this.urlValue.length > 0 && !this.contentLoaded) {
+      this.loadContent()
     }
   }
 
-  insertContent (html) {
-    if (!this.isActive) return
+  onShow = () => {
+    this.dispatch('show', { tippy: this.tippy })
+  }
+
+  async loadContent () {
+    const response = await fetch(this.urlValue)
+    let html = await response.text()
+
+    if (this.contentPaddingValue) {
+      html = `<div class="hover-card-content">${html}</div>`
+    }
+
+    this.tippy.setContent(html)
     this.contentLoaded = true
-
-    this.cardNode.querySelector(`.${CONTENT_CLASS_NAME}`).innerHTML = html
-    this.showAndUpdatePosition()
-  }
-
-  showAndUpdatePosition () {
-    this.cardNode.classList.remove('is-hidden')
-    this.toggleEventListeners(true)
-    this.popperInstance.update()
-  }
-
-  buildEmptyNode () {
-    return stringToDOMNode(
-      `<div class="hovercard card is-hidden">
-        <div class="card-content">
-          <div class="${CONTENT_CLASS_NAME}">
-          </div>
-        </div>
-        <span data-popper-arrow class="arrow">
-          <svg width="20" height="8" viewBox="0 0 20 8" fill="none">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M10 8C13 8 15.9999 0 20 0H0C3.9749 0 7 8 10 8Z" fill="white"></path>
-          </svg>
-        </span>
-      </div`
-    ).firstElementChild
-  }
-
-  hide = () => {
-    this.isActive = false
-    this.cardNode.classList.add('is-hidden')
-    this.toggleEventListeners(false)
-  }
-
-  clickOutside () {
-    this.hide()
-  }
-
-  toggleEventListeners (value) {
-    this.popperInstance.setOptions(options => ({
-      ...options,
-      modifiers: [
-        ...options.modifiers,
-        { name: 'eventListeners', enabled: value }
-      ]
-    }))
   }
 }
