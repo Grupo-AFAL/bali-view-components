@@ -4,6 +4,7 @@ module Bali
   module GanttChart
     class Task
       include Utils::Url
+      include HtmlElementHelper
 
       attr_reader :id, :name, :href, :start_date, :end_date, :update_url, :parent_id,
                   :dependent_on_id, :progress, :zoom, :actions, :options
@@ -130,7 +131,11 @@ module Bali
         end
 
         define_method("#{action_name}_action_options") do
-          actions[action_name] || {}
+          options = actions[action_name] || {}
+          if options.present?
+            options = prepend_data_attribute(options, 'gantt-chart-target', 'taskLink')
+          end
+          options
         end
       end
 
@@ -138,6 +143,10 @@ module Bali
         %i[info complete delete indent outdent].any? do |action_name|
           send("#{action_name}_action?")
         end
+      end
+
+      def hover_card_options
+        @actions[:hover_card] || {}
       end
 
       private

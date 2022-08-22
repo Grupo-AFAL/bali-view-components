@@ -29,10 +29,12 @@ module Bali
       #          left-end
       # @param open_on_click [Boolean] Switch between a hover and a click behavior
       def initialize(hover_url: nil, placement: 'auto', open_on_click: false,
-                     content_padding: true, **options)
+                     append_to: 'body', z_index: 9999, content_padding: true, **options)
         @placement = placement
         @hover_url = hover_url
         @open_on_click = open_on_click
+        @append_to = append_to
+        @z_index = z_index
         @content_padding = content_padding
 
         @options = prepend_class_name(options, 'hover-card-component')
@@ -46,7 +48,13 @@ module Bali
       end
 
       def controller_values
-        { placement: @placement, url: @hover_url, content_padding: @content_padding }
+        {
+          placement: @placement,
+          url: @hover_url,
+          content_padding: @content_padding,
+          z_index: @z_index,
+          append_to: @append_to
+        }
       end
     end
   end

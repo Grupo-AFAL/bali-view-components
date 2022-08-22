@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import tippy from 'tippy.js'
+import useDispatch from '../../../javascript/bali/utils/use-dispatch'
 
 const ARROW_SVG = `
 <svg width="14" height="8" viewBox="0 0 14 8" fill="none">
@@ -20,10 +21,14 @@ export class HovercardController extends Controller {
     url: String,
     placement: { type: String, default: 'auto' },
     trigger: { type: String, default: 'mouseenter focus' },
-    contentPadding: { type: Boolean, default: true }
+    contentPadding: { type: Boolean, default: true },
+    appendTo: { type: String, default: 'body' },
+    zIndex: { type: Number, default: 9999 }
   }
 
   connect () {
+    useDispatch(this)
+
     this.contentLoaded = false
 
     const content = this.hasTemplateTarget ? this.templateTarget.innerHTML : ''
@@ -32,14 +37,23 @@ export class HovercardController extends Controller {
       allowHTML: true,
       arrow: ARROW_SVG,
       duration: 100,
-      appendTo: () => document.body,
+      appendTo: this.appendToProp(),
       content: content,
       placement: this.placementValue,
       trigger: this.triggerValue,
       interactive: true,
+      zIndex: this.zIndexValue,
       onTrigger: this.onTrigger,
-      onCreate: this.onCreate
+      onCreate: this.onCreate,
+      onShow: this.onShow
     })
+  }
+
+  appendToProp () {
+    if (this.appendToValue === 'body') return () => document.body
+    if (this.appendToValue === 'parent') return 'parent'
+
+    return document.querySelector(this.appendToValue)
   }
 
   disconnect () {
@@ -54,6 +68,10 @@ export class HovercardController extends Controller {
     if (this.hasUrlValue && this.urlValue.length > 0 && !this.contentLoaded) {
       this.loadContent()
     }
+  }
+
+  onShow = () => {
+    this.dispatch('show', { tippy: this.tippy })
   }
 
   async loadContent () {

@@ -21,7 +21,12 @@
     <% end %>
 
     <% if task.actions_enabled? %>
-      <%= render Bali::HoverCard::Component.new(open_on_click: true, placement: 'bottom', content_padding: false) do |c| %>
+      <%= render Bali::HoverCard::Component.new(
+                 open_on_click: true,
+                 placement: 'bottom',
+                 content_padding: false,
+                 **task.hover_card_options
+      ) do |c| %>
         <% c.trigger(class: 'is-flex') do %>
           <%= render Bali::Icon::Component.new('more', class: 'gantt-chart-task-dropdown') %>
         <% end %>
@@ -34,7 +39,7 @@
                     **task.info_action_options) %>
         <% end %>
 
-        <% if task.complete_action? %>
+        <% if task.complete_action? && !task.complete? %>
           <%= render Bali::Link::Component.new(
                     name: t('.complete_task'),
                     icon_name: 'checklist',
