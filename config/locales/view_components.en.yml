@@ -15,7 +15,7 @@ en:
       gantt_chart:
         task_header: Name
         today: Today
-        list_row:
+        task_actions:
           open_details: Open details
           complete_task: Complete task
           delete_task: Delete task

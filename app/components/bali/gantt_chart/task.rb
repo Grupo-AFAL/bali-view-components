@@ -2,6 +2,7 @@
 
 module Bali
   module GanttChart
+    # rubocop:disable Metrics/ClassLength
     class Task
       include Utils::Url
       include HtmlElementHelper
@@ -87,7 +88,7 @@ module Bali
       end
 
       def parent?
-        children.size > 0
+        children.size.positive?
       end
 
       def child?
@@ -204,5 +205,6 @@ module Bali
         (start_month - chart_start_month).to_i + (start_date.day.to_f / 30)
       end
     end
+    # rubocop:enable Metrics/ClassLength
   end
 end

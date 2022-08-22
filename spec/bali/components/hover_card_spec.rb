@@ -10,10 +10,8 @@ RSpec.describe Bali::HoverCard::Component, type: :component do
   describe 'render' do
     context 'with template' do
       it 'renders' do
-        render_inline(component) do |c|
-          c.template do
-            '<p>Cuerpo</p>'.html_safe
-          end
+        render_inline(component) do
+          '<p>Cuerpo</p>'.html_safe
         end
 
         expect(page).to have_css 'div.hover-card-component'
@@ -41,7 +39,7 @@ RSpec.describe Bali::HoverCard::Component, type: :component do
         render_inline(component)
 
         expect(page).to have_css 'div.hover-card-component'
-        expect(rendered_content).to include 'hovercard-open-on-click-value="true"'
+        expect(rendered_content).to include 'hovercard-trigger-value="click"'
       end
     end
   end

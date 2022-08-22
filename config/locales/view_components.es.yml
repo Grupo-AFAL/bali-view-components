@@ -15,7 +15,7 @@ es:
       gantt_chart:
         task_header: Nombre
         today: Hoy
-        list_row:
+        task_actions:
           open_details: Abrir detalles
           complete_task: Completar tarea
           delete_task: Eliminar tarea

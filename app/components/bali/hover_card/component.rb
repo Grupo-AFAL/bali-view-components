@@ -28,6 +28,8 @@ module Bali
       #          left-start
       #          left-end
       # @param open_on_click [Boolean] Switch between a hover and a click behavior
+      #
+      # rubocop:disable Metrics/ParameterLists
       def initialize(hover_url: nil, placement: 'auto', open_on_click: false,
                      append_to: 'body', z_index: 9999, content_padding: true, **options)
         @placement = placement
@@ -46,6 +48,7 @@ module Bali
                      prepend_data_attribute(@options, 'hovercard-trigger-value', 'mouseenter focus')
                    end
       end
+      # rubocop:enable Metrics/ParameterLists
 
       def controller_values
         {
