@@ -6,7 +6,7 @@ module Bali
       include Utils::Url
       include HtmlElementHelper
 
-      attr_reader :id, :name, :href, :start_date, :end_date, :update_url, :parent_id,
+      attr_reader :id, :name, :href, :start_date, :end_date, :update_url, :parent_id, :position,
                   :dependent_on_id, :progress, :zoom, :actions, :options
 
       attr_accessor :chart_start_date, :chart_end_date, :children, :row_height, :col_width, :colors
@@ -25,6 +25,7 @@ module Bali
         dependent_on_id: nil,
         milestone: false,
         critical: false,
+        position: 0,
         **options
       )
         @id = id
@@ -39,6 +40,7 @@ module Bali
         @dependent_on_id = dependent_on_id
         @milestone = milestone
         @critical = critical
+        @position = position
 
         @actions = options.delete(:actions) || {}
         @options = options
@@ -82,6 +84,18 @@ module Bali
 
       def complete?
         progress == 100
+      end
+
+      def parent?
+        children.size > 0
+      end
+
+      def child?
+        parent_id.present?
+      end
+
+      def first?
+        position == 1
       end
 
       def row_options
@@ -146,7 +160,10 @@ module Bali
       end
 
       def hover_card_options
-        @actions[:hover_card] || {}
+        @actions[:hover_card] || {
+          append_to: '.gantt-chart-component', # Root component element
+          z_index: 38                          # Under the modal/drawer
+        }
       end
 
       private

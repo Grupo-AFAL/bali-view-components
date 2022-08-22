@@ -47,7 +47,7 @@
                     **task.complete_action_options) %>
         <% end %>
 
-        <% if task.indent_action? %>
+        <% if task.indent_action? && !task.first? %>
           <%= render Bali::Link::Component.new(
                     name: t('.indent_task'),
                     icon_name: 'indent',
@@ -55,7 +55,7 @@
                     **task.indent_action_options) %>
         <% end %>
 
-        <% if task.outdent_action? %>
+        <% if task.outdent_action? && task.child? %>
           <%= render Bali::Link::Component.new(
                     name: t('.outdent_task'),
                     icon_name: 'outdent',
