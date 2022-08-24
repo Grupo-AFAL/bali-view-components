@@ -36,7 +36,7 @@ module Bali
 
       def empty_table_row_id
         empty_row_id = 'empty-table-row'
-        id ? "#{id}-#{empty_row_id}": empty_row_id
+        id ? "#{id}-#{empty_row_id}" : empty_row_id
       end
     end
   end
