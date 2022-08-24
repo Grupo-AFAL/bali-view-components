@@ -27,7 +27,7 @@ module Bali
       end
 
       def id
-        @options['id'] || form&.id
+        @options[:id] || form&.id
       end
 
       class MissingFilterForm < StandardError; end
