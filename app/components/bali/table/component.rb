@@ -31,6 +31,15 @@ module Bali
       end
 
       class MissingFilterForm < StandardError; end
+
+      private
+
+      def empty_table_row_id
+        empty_row_id = 'empty-table-row'
+        empty_row_id.prepend("#{id}-") if id.present?
+
+        empty_row_id
+      end
     end
   end
 end
