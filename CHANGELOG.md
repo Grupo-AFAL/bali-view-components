@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.40.2] - 2022-08-24
 
-- Add `inifinity` icon.
+- Add `infinity` icon.
 
 ## [0.40.1] - 2022-08-18
 
