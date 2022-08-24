@@ -35,8 +35,7 @@ module Bali
       private
 
       def empty_table_row_id
-        empty_row_id = 'empty-table-row'
-        id ? "#{id}-#{empty_row_id}" : empty_row_id
+        [id, 'empty-table-row'].compact.join('-')
       end
     end
   end
