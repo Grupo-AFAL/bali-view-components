@@ -1,12 +1,12 @@
 import { Controller } from '@hotwired/stimulus'
-import { submitForm, queryParams } from '../../../../javascript/bali/utils/form'
+import { queryParams } from '../../../../javascript/bali/utils/form'
 
 export class FilterFormController extends Controller {
   static values = { textField: String }
   static targets = ['removeButton', 'filterCounter']
 
   submit () {
-    submitForm(this.element, { responseKind: 'turbo-stream' })
+    this.element.requestSubmit()
     this.updateButtons()
   }
 
