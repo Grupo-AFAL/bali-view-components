@@ -31,6 +31,12 @@ module Bali
       end
 
       class MissingFilterForm < StandardError; end
+
+      private
+
+      def empty_table_row_id
+        [id, 'empty-table-row'].compact.join('-')
+      end
     end
   end
 end

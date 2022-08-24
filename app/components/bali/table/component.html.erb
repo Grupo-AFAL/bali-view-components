@@ -13,7 +13,7 @@
           <%= row %>
         <% end %>
       <% else %>
-        <tr>
+        <tr id="<%= empty_table_row_id %>">
           <td class="empty-table" colspan="<%= headers.count %>">
             <div class='has-text-centered m-6'>
               <% if form&.active_filters? %>
