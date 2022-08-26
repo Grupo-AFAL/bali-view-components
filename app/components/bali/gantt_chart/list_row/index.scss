@@ -54,8 +54,26 @@
         }
 
         .gantt-chart-row {
+          .chevron-down {
+            margin-left: 3rem;
+          }
+
           .tooltip-component {
             padding-left: 3rem;
+          }
+
+          .tooltip-component.children {
+            padding-left: 0rem;
+          }
+
+          .gantt-chart-row {
+            .tooltip-component {
+              padding-left: 3.75rem;
+            }
+
+            .tooltip-component.children {
+              padding-left: 0rem;
+            }
           }
         }
       }
