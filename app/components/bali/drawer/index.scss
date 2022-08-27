@@ -1,6 +1,9 @@
-$content-width: 40rem;
-
 $z-index-drawer: 39;
+
+$narrow-size: 25rem;
+$medium-size: 40rem;
+$wide-size: 50rem;
+$extra-wide-size: 70rem;
 
 .drawer {
   position: fixed;
@@ -16,7 +19,7 @@ $z-index-drawer: 39;
   overflow: hidden;
   z-index: $z-index-drawer;
 
-  &.is-active { 
+  &.is-active {
     display: flex;
     opacity: 1;
     pointer-events: auto;
@@ -49,7 +52,7 @@ $z-index-drawer: 39;
     right: 0;
     opacity: 1;
 
-    width: $content-width;
+    width: $medium-size;
     height: 100%;
     max-height: 100%;
 
@@ -61,6 +64,21 @@ $z-index-drawer: 39;
 
     box-shadow: 0px 0px 18px 18px rgba($black, 0.2);
     overflow: auto;
+
+    &.narrow {
+      max-width: $narrow-size;
+      width: 100%;
+    }
+
+    &.wide {
+      max-width: $wide-size;
+      width: 100%;
+    }
+
+    &.extra-wide {
+      max-width: $extra-wide-size;
+      width: 100%;
+    }
   }
 
   .drawer-background {

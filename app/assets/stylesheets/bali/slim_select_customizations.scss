@@ -34,8 +34,9 @@
   }
 
   .field_with_errors {
-    .ss-main.select.is-multiple {
-      .ss-multi-selected {
+    .ss-main.select {
+      .ss-multi-selected,
+      .ss-single-selected {
         border-color: $error;
       }
     }
