@@ -1,0 +1,13 @@
+@import './property/index.scss';
+
+.properties-table-component {
+  td,
+  th {
+    border-width: 1px;
+  }
+
+  tbody tr:last-child td,
+  tbody tr:last-child th {
+    border-bottom-width: 1px;
+  }
+}
