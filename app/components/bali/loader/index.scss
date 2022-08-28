@@ -4,7 +4,7 @@ $loader-size: 10em;
 
 .loader-component .spinner {
   $spinner-size: $loader-size + 0.2em;
-  $spinner-half-size: $spinner-size/2;
+  $spinner-half-size: calc($spinner-size / 2);
 
   &,
   &:before,
