@@ -29,14 +29,16 @@ module Bali
         @back_options = prepend_class_name(back, 'back-button button is-text')
 
         @left_options = {}
+
         if align == :top
           @left_options = prepend_class_name(@left_options, 'is-align-items-flex-start')
           @options = prepend_class_name(options, 'is-align-items-flex-start')
         end
-        if align == :bottom
-          @left_options = prepend_class_name(@left_options, 'is-align-items-flex-end')
-          @options = prepend_class_name(options, 'is-align-items-flex-end')
-        end
+
+        return unless align == :bottom
+
+        @left_options = prepend_class_name(@left_options, 'is-align-items-flex-end')
+        @options = prepend_class_name(options, 'is-align-items-flex-end')
       end
 
       def heading_size_class(tag)
