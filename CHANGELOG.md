@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Migrate from `sassc-rails` to `dartsass-rails`
 - Create new `PropertiesTable::Component`
+- Add `Card::Header::Component` slot.
+- Add `icon` option for `DeleteLink::Component` and add customize styles when it's inside a dropdown
+- Add back button option for `PageHeader::Component`
+- Update `more` icon
 
 ## [0.40.8] - 2022-08-27
 

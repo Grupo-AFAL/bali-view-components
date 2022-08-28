@@ -17,6 +17,18 @@ module Bali
 
       # @param title text
       # @param subtitle text
+      # @param align select ['top', 'center', 'bottom']
+      def with_back_button(title: 'Title', subtitle: 'Subtitle', align: :top)
+        render PageHeader::Component.new(
+          title: title,
+          subtitle: subtitle,
+          align: align.to_sym,
+          back: { href: '#' }
+        )
+      end
+
+      # @param title text
+      # @param subtitle text
       def with_subtitle_as_param(title: 'Title', subtitle: 'Subtitle')
         render PageHeader::Component.new(title: title, subtitle: subtitle) do
           tag.a 'Right action', class: 'button is-secondary', href: '#'
