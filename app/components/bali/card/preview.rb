@@ -25,6 +25,14 @@ module Bali
         end
       end
 
+      def with_header
+        render Card::Component.new do |c|
+          c.header(title: 'Header title')
+
+          tag.p('Card content')
+        end
+      end
+
       # Card view
       # ---------------
       # Card view with custom image module, in this example we use the image with hover effect.
