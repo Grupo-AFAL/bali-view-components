@@ -1,3 +1,2 @@
 web: bin/rails server -p 3000
-css: bin/rails app:assets:precompile
 js: yarn cypress run
