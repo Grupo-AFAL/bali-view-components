@@ -39,7 +39,7 @@ rails g view_component hello_button name
 We use [lookbook](https://github.com/allmarkedup/lookbook) to showcase the available components and develop new ones. To run the development server run:
 
 ```bash
-bin/dev
+cd spec/dummy && bin/dev
 ```
 
 This script uses the [foreman](https://github.com/ddollar/foreman) gem to run the following:
@@ -117,7 +117,7 @@ Update this table when making progress on any of the Components or when adding n
 | NavBar          | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Notification    | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | PageHeader      | :white_check_mark: | :white_check_mark: |    :wavy_dash:     | :white_check_mark: |       |
-| PropertiesTable | :white_check_mark: | :white_check_mark: |        :x:         |         :x         |       |
+| PropertiesTable | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark  |       |
 | Rate            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Reveal          | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | SearchInput     | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
