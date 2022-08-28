@@ -61,7 +61,7 @@ class ViewComponentGenerator < Rails::Generators::NamedBase
   def initialize_parameters
     return if attributes.blank?
 
-    attributes.map { |attr| "#{attr.name}:" }.join(', ') + ', '
+    "#{attributes.map { |attr| "#{attr.name}:" }.join(', ')}, "
   end
 
   def initialize_instance_variables
@@ -73,7 +73,7 @@ class ViewComponentGenerator < Rails::Generators::NamedBase
   def attr_reader_parameters
     return if attributes.blank?
 
-    attributes.map { |attr| ":#{attr.name}" }.join(', ') + ', '
+    "#{attributes.map { |attr| ":#{attr.name}" }.join(', ')}, "
   end
 
   def attr_reader_test_parameters
