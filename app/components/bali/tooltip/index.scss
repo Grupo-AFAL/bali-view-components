@@ -2,6 +2,7 @@ $background-color: #333;
 $color: #fff;
 
 $arrow-size: 16px;
+$half-arrow-size: calc($arrow-size / 2);
 
 $content-font-size: 0.875rem;
 
@@ -62,9 +63,9 @@ $small-trigger-size: 1rem;
     }
 
     &[data-placement^='top'] > .tippy-arrow:before {
-      bottom: -$arrow-size/2 + 1px;
+      bottom: -$half-arrow-size + 1px;
       left: 0;
-      border-width: $arrow-size/2 $arrow-size/2 0;
+      border-width: $half-arrow-size $half-arrow-size 0;
       border-top-color: initial;
       transform-origin: center top;
     }
@@ -74,9 +75,9 @@ $small-trigger-size: 1rem;
     }
 
     &[data-placement^='bottom'] > .tippy-arrow:before {
-      top: -$arrow-size/2 + 1px;
+      top: -$half-arrow-size + 1px;
       left: 0;
-      border-width: 0 $arrow-size/2 $arrow-size/2;
+      border-width: 0 $half-arrow-size $half-arrow-size;
       border-bottom-color: initial;
       transform-origin: center bottom;
     }
@@ -86,9 +87,9 @@ $small-trigger-size: 1rem;
     }
 
     &[data-placement^='left'] > .tippy-arrow:before {
-      border-width: $arrow-size/2 0 $arrow-size/2 $arrow-size/2;
+      border-width: $half-arrow-size 0 $half-arrow-size $half-arrow-size;
       border-left-color: initial;
-      right: -$arrow-size/2 + 1px;
+      right: -$half-arrow-size + 1px;
       transform-origin: center left;
     }
 
@@ -97,8 +98,8 @@ $small-trigger-size: 1rem;
     }
 
     &[data-placement^='right'] > .tippy-arrow:before {
-      left: -$arrow-size/2 + 1px;
-      border-width: $arrow-size/2 $arrow-size/2 $arrow-size/2 0;
+      left: -$half-arrow-size + 1px;
+      border-width: $half-arrow-size $half-arrow-size $half-arrow-size 0;
       border-right-color: initial;
       transform-origin: center right;
     }

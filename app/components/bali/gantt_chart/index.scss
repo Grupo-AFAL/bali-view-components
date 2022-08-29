@@ -11,7 +11,7 @@ $gantt-chart-critical-color: lighten($red, 10%);
 $gantt-chart-critical-border-width: 2px;
 
 $gantt-chart-item-bubble-height: 25px;
-$gantt-chart-item-bubble-radius: $gantt-chart-item-bubble-height / 2;
+$gantt-chart-item-bubble-radius: calc($gantt-chart-item-bubble-height / 2);
 
 $gantt-chart-scale-height: 23px;
 $gantt-chart-today-color: lighten($blue, 20%);
@@ -103,7 +103,7 @@ $gantt-chart-timeline-data-height: 100%;
     cursor: col-resize;
     background: transparent;
     position: absolute;
-    left: $gantt-chart-list-width - ($gantt-chart-resizer-width/2);
+    left: $gantt-chart-list-width - calc($gantt-chart-resizer-width / 2);
     height: 100%;
 
     &:hover .gantt-chart-list-resizer-shadow {
@@ -112,7 +112,7 @@ $gantt-chart-timeline-data-height: 100%;
       height: 100%;
 
       position: absolute;
-      left: $gantt-chart-resizer-width/2;
+      left: calc($gantt-chart-resizer-width / 2);
       background-color: $border-color;
     }
   }

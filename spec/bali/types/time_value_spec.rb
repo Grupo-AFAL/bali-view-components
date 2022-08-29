@@ -19,7 +19,7 @@ RSpec.describe Bali::Types::TimeValue do
   subject { Bali::Types::TimeValue.new }
 
   describe '#cast' do
-    it 'return a default time if value is blanck' do
+    it 'return a default time if value is blank' do
       expect(subject.cast('')).to eql("#{Date.current} 00:00:00")
     end
 

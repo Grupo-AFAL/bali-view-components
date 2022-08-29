@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.41.0] - 2022-08-27
+
+- Migrate from `sassc-rails` to `dartsass-rails`
+- Create new `PropertiesTable::Component`
+- Add `Card::Header::Component` slot.
+- Add `icon` option for `DeleteLink::Component` and add customize styles when it's inside a dropdown
+- Add back button option for `PageHeader::Component`
+- Update `more` icon
+
+## [0.40.8] - 2022-08-27
+
+- Add `month_field_group` method to generate fields with labels for date/year only inputs.
+
+## [0.40.7] - 2022-08-24
+
+- Added `badge-percent` icon.
+
 ## [0.40.6] - 2022-08-24
 
 - Updated `GanttChart::Component` css to consider 4th level tasks.

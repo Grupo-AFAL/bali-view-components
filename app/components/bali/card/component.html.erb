@@ -1,4 +1,8 @@
 <%= tag.div **@options do %>
+  <% if header? %>
+    <%= header %>
+  <% end %>
+
   <%= image %>
 
   <% if content.present? %>

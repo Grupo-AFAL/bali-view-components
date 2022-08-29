@@ -45,7 +45,7 @@ class ViewComponentGenerator < Rails::Generators::NamedBase
   end
 
   def default_css_class
-    "#{file_name}-component"
+    "#{file_name.dasherize}-component"
   end
 
   private
@@ -61,7 +61,7 @@ class ViewComponentGenerator < Rails::Generators::NamedBase
   def initialize_parameters
     return if attributes.blank?
 
-    attributes.map { |attr| "#{attr.name}:" }.join(', ')
+    "#{attributes.map { |attr| "#{attr.name}:" }.join(', ')}, "
   end
 
   def initialize_instance_variables
@@ -71,7 +71,9 @@ class ViewComponentGenerator < Rails::Generators::NamedBase
   end
 
   def attr_reader_parameters
-    attributes.map { |attr| ":#{attr.name}" }.join(', ')
+    return if attributes.blank?
+
+    "#{attributes.map { |attr| ":#{attr.name}" }.join(', ')}, "
   end
 
   def attr_reader_test_parameters

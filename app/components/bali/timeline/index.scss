@@ -87,8 +87,8 @@ $dimensions: 16 24 32 48 64 96 128 !default;
 
         .icon-component,
         .svg-inline {
-          height: $timeline-marker-icon-size/2;
-          width: $timeline-marker-icon-size/2;
+          height: calc($timeline-marker-icon-size / 2);
+          width: calc($timeline-marker-icon-size / 2);
         }
       }
 

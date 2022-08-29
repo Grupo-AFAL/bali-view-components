@@ -25,5 +25,8 @@ jobs:
           yarn install
           yarn build
 
+      - name: Precompile assets
+        run: bin/rails app:assets:precompile
+
       - name: Start server and run tests
         run: foreman start -f Procfile.dev
