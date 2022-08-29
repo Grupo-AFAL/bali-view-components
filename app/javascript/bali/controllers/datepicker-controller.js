@@ -18,6 +18,7 @@ export class DatepickerController extends Controller {
     enableTime: { type: Boolean, default: false },
     noCalendar: { type: Boolean, default: false },
     enableSeconds: { type: Boolean, default: false },
+    disableWeekends: { type: Boolean, default: false },
     locale: { type: String, default: 'es' },
     defaultDate: String,
     minDate: String,
@@ -50,7 +51,8 @@ export class DatepickerController extends Controller {
       minDate: this.minDateValue,
       minTime: this.minTimeValue,
       maxTime: this.maxTimeValue,
-      altInputClass: this.altInputClassValue
+      altInputClass: this.altInputClassValue,
+      disable: this.disableWeekendsValue ? [this.isWeekend] : []
     })
   }
 
@@ -136,5 +138,9 @@ export class DatepickerController extends Controller {
     }
 
     this.flatpickr.setDate(currentDate)
+  }
+
+  isWeekend = date => {
+    return date.getDay() === 0 || date.getDay() === 6
   }
 }
