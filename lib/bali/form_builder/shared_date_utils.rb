@@ -24,9 +24,10 @@ module Bali
 
         wrapper_options[:class] += ' has-addons' if options[:manual]
 
-        if options[:min_date].present?
-          wrapper_options.merge!('data-datepicker-min-date-value': options[:min_date])
-        end
+        controller_values = { disable_weekends: options[:disable_weekends],
+                              min_date: options[:min_date] }
+
+        prepend_values(wrapper_options, 'datepicker', controller_values)
 
         content_tag(:div, wrapper_options) do
           input_date_field(clear_btn, method, options)
