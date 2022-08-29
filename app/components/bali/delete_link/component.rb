@@ -5,7 +5,7 @@ module Bali
     class Component < ApplicationViewComponent
       class MissingURL < StandardError; end
 
-      attr_reader :model, :skip_confirm, :options
+      attr_reader :model, :skip_confirm, :icon, :options
 
       # rubocop:disable Metrics/ParameterLists
       def initialize(
@@ -16,6 +16,7 @@ module Bali
         disabled: false,
         disabled_hover_url: nil,
         skip_confirm: false,
+        icon: false,
         **options
       )
         @model = model
@@ -25,6 +26,7 @@ module Bali
         @disabled = disabled
         @disabled_hover_url = disabled_hover_url
         @skip_confirm = skip_confirm
+        @icon = icon
         @form_class = class_names('button_to', options.delete(:form_class))
 
         @options = prepend_class_name(options, default_classes)
@@ -41,6 +43,7 @@ module Bali
 
       def name
         return @name if @name.present?
+        return content if content.present?
 
         t('.default_name')
       end

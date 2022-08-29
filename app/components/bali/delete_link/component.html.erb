@@ -5,8 +5,13 @@
     <% end %>
   <% end %>
 <% else %>
-  <%= button_to name, href, method: :delete,
-                            form: { data: { 'turbo-confirm': confirm } },
-                            form_class: @form_class,
-                            **options %>
+  <%= button_to href, method: :delete,
+                      form: {
+                        data: { 'turbo-confirm': confirm }
+                      },
+                      form_class: @form_class,
+                      **options do %>
+    <%= render Bali::Icon::Component.new('trash') if icon %>
+    <span><%= name %></span>
+  <% end %>
 <% end %>

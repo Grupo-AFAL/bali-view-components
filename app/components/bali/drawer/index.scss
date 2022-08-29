@@ -3,7 +3,7 @@ $z-index-drawer: 39;
 $narrow-size: 25rem;
 $medium-size: 40rem;
 $wide-size: 50rem;
-$extra-wide-size: 70rem;
+$extra-wide-size: 60rem;
 
 .drawer {
   position: fixed;
@@ -95,7 +95,7 @@ $extra-wide-size: 70rem;
   .drawer.is-active {
     .drawer-content {
       width: 100%;
-      max-width: 70%;
+      max-width: 85%;
     }
   }
 }

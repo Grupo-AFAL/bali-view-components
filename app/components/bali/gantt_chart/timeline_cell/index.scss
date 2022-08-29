@@ -27,7 +27,7 @@
     box-shadow: $sharp-box-shadow;
 
     position: absolute;
-    top: ($gantt-chart-row-height - $gantt-chart-item-bubble-height) / 2;
+    top: calc(($gantt-chart-row-height - $gantt-chart-item-bubble-height) / 2);
 
     &:hover .gantt-chart-resize {
       opacity: 1;
@@ -36,9 +36,11 @@
   }
 
   .gantt-chart-cell.has-children .gantt-chart-cell-content {
-    height: $gantt-chart-item-bubble-height / 3;
-    border-radius: $gantt-chart-item-bubble-radius / 3;
-    top: ($gantt-chart-row-height - ($gantt-chart-item-bubble-height / 3))/2;
+    $cell-content-height: calc($gantt-chart-item-bubble-height / 3);
+
+    height: $cell-content-height;
+    border-radius: calc($gantt-chart-item-bubble-radius / 3);
+    top: calc(($gantt-chart-row-height - $cell-content-height) / 2);
   }
 
   .milestone .gantt-chart-cell-content {

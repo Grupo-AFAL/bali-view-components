@@ -1,15 +1,20 @@
 <%= render Bali::Level::Component.new(**options) do |c| %>
-  <%= c.left(class: 'is-block') do |level| %>
-    <%= level.item(class: 'is-block') do %>
-      <%= title || tag.h3(@title, class: 'title is-3') %>
+  <%= c.left(**@left_options) do |level| %>
+    <% if @back_options[:href].present? %>
+      <% level.item do %>
+        <%= render Bali::Link::Component.new(icon_name: 'arrow-left', **@back_options) %>
+      <% end %>
     <% end %>
 
-    <%= level.item(class: 'is-block') do %>
-      <%= subtitle || tag.h5(@subtitle, class: 'subtitle is-5') %>
+    <% level.item do %>
+      <div>
+        <%= title || tag.h3(@title, class: 'title is-3 is-spaced') %>
+        <%= subtitle || tag.h5(@subtitle, class: 'subtitle is-5') %>
+      </div>
     <% end %>
   <% end %>
 
-  <%= c.right do %>
+  <% c.right do %>
     <%= content %>
   <% end %>
 <% end %>

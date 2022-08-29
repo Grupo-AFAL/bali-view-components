@@ -6,7 +6,10 @@ module Bali
       attr_reader :options
 
       renders_one :title, ->(text = nil, tag: :h3, **options, &block) do
-        options = prepend_class_name(options, class_names('title', heading_size_class(tag)))
+        options = prepend_class_name(
+          options,
+          class_names('title is-spaced', heading_size_class(tag))
+        )
 
         heading_tag(text, tag, **options, &block)
       end
@@ -17,10 +20,25 @@ module Bali
         heading_tag(text, tag, **options, &block)
       end
 
-      def initialize(title: nil, subtitle: nil, **options)
+      def initialize(title: nil, subtitle: nil, align: :center, back: {}, **options)
         @title = title
         @subtitle = subtitle
+        @align = align
+
         @options = prepend_class_name(options, 'page-header-component is-mobile')
+        @back_options = prepend_class_name(back, 'back-button button is-text')
+
+        @left_options = {}
+
+        if align == :top
+          @left_options = prepend_class_name(@left_options, 'is-align-items-flex-start')
+          @options = prepend_class_name(options, 'is-align-items-flex-start')
+        end
+
+        return unless align == :bottom
+
+        @left_options = prepend_class_name(@left_options, 'is-align-items-flex-end')
+        @options = prepend_class_name(options, 'is-align-items-flex-end')
       end
 
       def heading_size_class(tag)
@@ -35,7 +53,7 @@ module Bali
       end
 
       def heading_tag(text, tag_name, **options, &)
-        text.present? ? tag.send(tag_name, text, **options) : tag.div(&)
+        text.present? ? tag.send(tag_name, text, **options) : tag.send(tag_name, **options, &)
       end
     end
   end

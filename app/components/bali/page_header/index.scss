@@ -1,5 +1,19 @@
+$back-button-size: 2.25rem;
+
 .page-header-component {
-  .level-left, .level-right {
+  .level-left,
+  .level-right {
     flex-shrink: 1;
+  }
+
+  .level-left .level-item {
+    max-width: 100%;
+  }
+
+  .back-button {
+    height: $back-button-size;
+    width: $back-button-size;
+
+    color: $primary;
   }
 }

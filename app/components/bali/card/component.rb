@@ -3,6 +3,8 @@
 module Bali
   module Card
     class Component < ApplicationViewComponent
+      renders_one :header, Header::Component
+
       renders_one :image, ->(src: nil, **options, &block) do
         if src.present?
           Image::Component.new(src: src, **options)
