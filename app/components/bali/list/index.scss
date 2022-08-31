@@ -1,0 +1,23 @@
+$list-item-regular-spacing: 0.5rem;
+$list-item-relaxed-spacing: 1rem;
+
+.list-component {
+  border: 1px solid $grey-lighter;
+
+  .list-item-component {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $list-item-regular-spacing calc($list-item-regular-spacing * 2);
+    border-bottom: 1px solid $grey-lighter;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &.relaxed-spacing .list-item-component {
+    padding-top: $list-item-relaxed-spacing;
+    padding-bottom: $list-item-relaxed-spacing;
+  }
+}

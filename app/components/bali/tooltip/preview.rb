@@ -14,6 +14,12 @@ module Bali
         end
       end
 
+      def empty_tootip
+        render Tooltip::Component.new do |c|
+          c.trigger { tag.a 'Link without tooltip' }
+        end
+      end
+
       # @!group HelpTip
 
       # Default Help Tip
