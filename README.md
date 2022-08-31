@@ -112,6 +112,7 @@ Update this table when making progress on any of the Components or when adding n
 | InfoLevel       | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Level           | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Link            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
+| List            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Loader          | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Modal           | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | NavBar          | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |

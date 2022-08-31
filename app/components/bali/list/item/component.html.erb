@@ -1,0 +1,17 @@
+<%= tag.div(**options) do %>
+  <div class="item-contents">
+    <% if title? %>
+      <%= title %>
+    <% end %>
+
+    <% if subtitle? %>
+      <%= subtitle %>
+    <% end %>
+  </div>
+
+  <% if actions? %>
+    <div class="item-actions">
+      <%= actions %>
+    </div>
+  <% end %>
+<% end %>
