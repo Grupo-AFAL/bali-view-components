@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Create `List::Component` for displaying elements in a basic list
 
+### Fixed
+
+- Don't create a tippy instance when the contents are empty
+
 ## [0.41.2] - 2022-08-30
 
 - Include third party CSS from the following libraries:
