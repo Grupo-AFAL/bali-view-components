@@ -9,12 +9,20 @@ export class TooltipController extends Controller {
   }
 
   connect () {
-    tippy(this.triggerTarget, {
+    if (this.contentTarget.content.textContent.trim().length === 0) return
+
+    this.tippy = tippy(this.triggerTarget, {
       allowHTML: true,
       appendTo: 'parent',
       content: this.contentTarget.content,
       placement: this.placementValue,
       trigger: this.triggerValue
     })
+  }
+
+  disconnect () {
+    if (!this.tippy) return
+
+    this.tippy.destroy()
   }
 }
