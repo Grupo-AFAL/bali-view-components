@@ -1,0 +1,9 @@
+<%= tag.div(**options) do %>
+  <%= tag.progress(value: value, max: 100) %>
+
+  <% if display_percentage %>
+    <%= tag.span class: 'percentage' do %>
+      <%= value %>%
+    <% end %>
+  <% end %>
+<% end %>

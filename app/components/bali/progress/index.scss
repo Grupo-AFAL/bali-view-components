@@ -1,0 +1,23 @@
+$progress-value-bar-color: hsl(196, 82%, 78%);
+$progress-background-bar-color: lighten($progress-value-bar-color, 18%);
+
+.progress-component {
+  progress {
+    border-radius: 1px;
+    border-style: solid;
+    border-width: thin;
+    border-color: $progress-value-bar-color;
+
+    &::-webkit-progress-bar {
+      background-color: $progress-background-bar-color;
+    }
+
+    &::-webkit-progress-value {
+      background-color: $progress-value-bar-color !important;
+    }
+  }
+
+  .percentage {
+    font-size: small;
+  }
+}
