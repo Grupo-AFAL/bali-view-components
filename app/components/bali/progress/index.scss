@@ -1,5 +1,5 @@
-$progress-value-bar-color: hsl(196, 82%, 78%);
-$progress-background-bar-color: lighten($progress-value-bar-color, 18%);
+$progress-value-bar-color: var(--progress-value-bar-color);
+$progress-background-bar-color: lightgray;
 
 .progress-component {
   progress {
