@@ -4,9 +4,9 @@ module Bali
   module Progress
     class Preview < ApplicationViewComponentPreview
       # @param value [Integer]
-      # @param display_percentage toggle
-      def default(value: 75, display_percentage: true)
-        render Progress::Component.new(value: value, display_percentage: display_percentage)
+      # @param percentage toggle
+      def default(value: 75, percentage: true)
+        render Progress::Component.new(value: value, percentage: percentage)
       end
 
       # @param color_code select ['hsl(196, 82%, 78%)', '#52BE80', 'rgb(205, 92, 92)']

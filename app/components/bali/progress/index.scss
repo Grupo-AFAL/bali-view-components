@@ -1,5 +1,5 @@
 $progress-value-bar-color: var(--progress-value-bar-color);
-$progress-background-bar-color: lightgray;
+$progress-background-bar-color: $white-ter;
 
 .progress-component {
   progress {
@@ -8,6 +8,8 @@ $progress-background-bar-color: lightgray;
     border-width: thin;
     border-color: $progress-value-bar-color;
 
+
+    /* For Chrome or Safari */
     &::-webkit-progress-bar {
       background-color: $progress-background-bar-color;
     }
@@ -15,9 +17,14 @@ $progress-background-bar-color: lightgray;
     &::-webkit-progress-value {
       background-color: $progress-value-bar-color !important;
     }
-  }
 
-  .percentage {
-    font-size: small;
+    /* For Firefox */
+    progress {
+      background-color: $progress-background-bar-color;
+    }
+
+    progress::-moz-progress-bar {
+      background-color: $progress-value-bar-color !important;
+    }
   }
 }

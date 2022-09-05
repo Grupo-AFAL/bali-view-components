@@ -118,6 +118,7 @@ Update this table when making progress on any of the Components or when adding n
 | NavBar          | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Notification    | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | PageHeader      | :white_check_mark: | :white_check_mark: |    :wavy_dash:     | :white_check_mark: |       |
+| Progress        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | PropertiesTable | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark  |       |
 | Rate            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Reveal          | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |

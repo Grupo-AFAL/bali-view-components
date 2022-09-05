@@ -3,19 +3,19 @@
 module Bali
   module Progress
     class Component < ApplicationViewComponent
-      attr_reader :value, :display_percentage, :color_code, :options
+      attr_reader :value, :percentage, :color_code, :options
 
-      def initialize(value: 50, display_percentage: true, color_code: default_color, **options)
+      def initialize(value: 50, percentage: true, color_code: default_color, **options)
         @value = value
-        @display_percentage = display_percentage
+        @percentage = percentage
 
-        @progress_bar_color = progress_bar_color(color_code)
+        @bar_color = bar_color(color_code)
         @options = prepend_class_name(options, 'progress-component')
       end
 
       private
 
-      def progress_bar_color(color_code)
+      def bar_color(color_code)
         "--progress-value-bar-color: #{color_code};"
       end
 

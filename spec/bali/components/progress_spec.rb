@@ -21,8 +21,9 @@ RSpec.describe Bali::Progress::Component, type: :component do
   end
 
   context 'when custom color code is given' do
+    before { options.merge!(color_code: '#52BE80') }
+
     it 'renders progress bar with default color' do
-      options.merge!(color_code: '#52BE80')
       render_inline(component)
 
       expect(page).to have_css 'progress[style="--progress-value-bar-color: #52BE80;"]'
@@ -30,20 +31,21 @@ RSpec.describe Bali::Progress::Component, type: :component do
   end
 
   context 'when display percentage is enabled' do
+    before { options.merge!(value: 75) }
     it 'renders percentage value' do
-      options.merge!(value: 75)
       render_inline(component)
 
-      expect(page).to have_css 'span.percentage'
+      expect(page).to have_css 'span > small'
     end
   end
 
   context 'when display percentage is disabled' do
+    before { options.merge!(value: 35, percentage: false) }
+
     it 'renders percentage value' do
-      options.merge!(value: 35, display_percentage: false)
       render_inline(component)
 
-      expect(page).not_to have_css 'span.percentage'
+      expect(page).not_to have_css 'span > small'
     end
   end
 end
