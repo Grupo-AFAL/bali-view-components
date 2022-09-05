@@ -2,8 +2,8 @@
   <%= tag.progress(value: value, max: 100, style: @bar_color) %>
 
   <% if percentage %>
-    <%= tag.span do %>
-      <small><%= value %>%</small>
+    <%= tag.small do %>
+      <%= value %>%
     <% end %>
   <% end %>
 <% end %>

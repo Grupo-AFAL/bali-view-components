@@ -35,7 +35,7 @@ RSpec.describe Bali::Progress::Component, type: :component do
     it 'renders percentage value' do
       render_inline(component)
 
-      expect(page).to have_css 'span > small'
+      expect(page).to have_css 'small'
     end
   end
 
@@ -45,7 +45,7 @@ RSpec.describe Bali::Progress::Component, type: :component do
     it 'renders percentage value' do
       render_inline(component)
 
-      expect(page).not_to have_css 'span > small'
+      expect(page).not_to have_css 'small'
     end
   end
 end
