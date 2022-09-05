@@ -1,0 +1,9 @@
+<%= tag.div(**options) do %>
+  <%= tag.progress(value: value, max: 100, style: @bar_color) %>
+
+  <% if percentage %>
+    <%= tag.small do %>
+      <%= value %>%
+    <% end %>
+  <% end %>
+<% end %>
