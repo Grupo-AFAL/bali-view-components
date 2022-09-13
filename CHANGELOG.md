@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- `dartsass-rails` requires replaceing `image-url` with `url` to display icons/images. 
+- `dartsass-rails` requires replacing `image-url` with `url` to display icons/images. 
 
 ## [0.43.0] - 2022-09-05
 
