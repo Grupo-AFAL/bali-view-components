@@ -12,7 +12,7 @@
     position: relative;
   
     &::after {
-      content: image-url('bali/svg/search.svg');
+      content: url('bali/svg/search.svg');
       position: absolute;
       right: $size-6;
       top: 50%;
