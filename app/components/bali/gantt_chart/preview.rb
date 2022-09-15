@@ -32,6 +32,14 @@ module Bali
         end
       end
 
+      def with_list_footer
+        render GanttChart::Component.new(tasks: tasks) do |c|
+          c.list_footer do
+            tag.span 'This is a list footer'
+          end
+        end
+      end
+
       private
 
       def tasks
