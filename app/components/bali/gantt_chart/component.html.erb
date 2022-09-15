@@ -33,6 +33,8 @@
                      resource_name: resource_name,
                      list_param_name: list_param_name) %>
         <% end %>
+
+        <%= list_footer %>
       </div>
     </div>
 
@@ -62,6 +64,8 @@
             <%= render Bali::GanttChart::TimelineRow::Component.new(
                        task: task, readonly: readonly, zoom: zoom) %>
           <% end %>
+
+          <div class="gantt-chart-timeline-children"></div>
         </div>
 
         <div class="gantt-chart-drag-shadow" data-gantt-chart-target="dragShadow"></div>

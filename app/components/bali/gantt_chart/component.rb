@@ -6,6 +6,7 @@ module Bali
       attr_reader :tasks, :row_height, :col_width, :zoom, :readonly, :resource_name,
                   :list_param_name, :options
 
+      renders_one :list_footer, ->(&block) { tag.div(class: 'gantt-chart-list-footer', &block) }
       renders_one :footer, ->(&block) { tag.div(class: 'gantt-chart-footer', &block) }
       renders_many :view_mode_buttons, ViewModeButton::Component
 
