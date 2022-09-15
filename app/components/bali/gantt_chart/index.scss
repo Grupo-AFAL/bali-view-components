@@ -172,12 +172,7 @@ $gantt-chart-timeline-data-height: 100%;
     width: 100%;
   }
 
-  .gantt-chart-footer {
-    border-left: 1px solid $border-color;
-    border-right: 1px solid $border-color;
-  }
-
-  .gantt-chart-list-footer {
+  .gantt-chart-footer, .gantt-chart-list-footer {
     border-left: 1px solid $border-color;
     border-right: 1px solid $border-color;
   }
