@@ -66,7 +66,7 @@ export class GanttChartController extends Controller {
   }
 
   disconnect () {
-    this.clearConnectionCavnas()
+    this.clearConnectionCanvas()
     this.timelineTarget.removeEventListener(
       'scroll',
       this.throttledUpdateScroll
@@ -162,7 +162,7 @@ export class GanttChartController extends Controller {
     })
 
     const anyFolded = Object.values(rowData).some(({ folded }) => folded)
-    anyFolded ? this.clearConnectionCavnas() : this.drawConnections()
+    anyFolded ? this.clearConnectionCanvas() : this.drawConnections()
   }
 
   calculateHeight (listRow) {
@@ -337,11 +337,11 @@ export class GanttChartController extends Controller {
   }
 
   drawConnections = () => {
-    this.clearConnectionCavnas()
+    this.clearConnectionCanvas()
     this.dependentConnections.forEach(line => line.draw())
   }
 
-  clearConnectionCavnas () {
+  clearConnectionCanvas () {
     const { width, height } = this.connectionCanvasTarget
     this.canvasContext.clearRect(0, 0, width, height)
   }

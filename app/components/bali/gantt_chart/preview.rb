@@ -64,8 +64,10 @@ module Bali
             id: 3, name: 'Task 1.2', start_date: date + 2.days, end_date: date + 6.days,
             update_url: '/gantt_chart/3', parent_id: 1
           },
-          { id: 4, name: 'Task 1.3', start_date: date + 6.days, end_date: date + 20.days,
-            update_url: '/gantt_chart/4', parent_id: 1, progress: 60 },
+          {
+            id: 4, name: 'Task 1.3', start_date: date + 6.days, end_date: date + 20.days,
+            update_url: '/gantt_chart/4', parent_id: 1, progress: 60
+          },
           {
             id: 5, name: 'Task 1.3.1', start_date: date + 6.days, end_date: date + 12.days,
             update_url: '/gantt_chart/5', parent_id: 4, critical: true, progress: 20
