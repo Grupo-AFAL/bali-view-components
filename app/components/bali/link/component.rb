@@ -46,8 +46,8 @@ module Bali
         end
 
         @options = prepend_class_name(@options, "button is-#{type}") if type.present?
-        @options = prepend_action(@options, 'modal#open') if modal
-        @options = prepend_action(@options, 'drawer#open') if drawer
+        @options = prepend_action(@options, 'modal#open') if modal && !Bali.native_app
+        @options = prepend_action(@options, 'drawer#open') if drawer && !Bali.native_app
 
         if method.to_s == 'get'
           @options = prepend_data_attribute(@options, :method, 'get')
