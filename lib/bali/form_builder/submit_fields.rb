@@ -11,9 +11,11 @@ module Bali
           class: 'button is-primary'
         )
 
-        options = prepend_action(options, 'modal#submit') if options.delete(:modal) && !Bali.native_app
+        unless Bali.native_app
+          options = prepend_action(options, 'modal#submit') if options.delete(:modal)
 
-        options = prepend_action(options, 'drawer#submit') if options.delete(:drawer) && !Bali.native_app
+          options = prepend_action(options, 'drawer#submit') if options.delete(:drawer)
+        end
 
         content_tag(:div, class: options.delete(:wrapper_class)) do
           content_tag(:button, value, options)
