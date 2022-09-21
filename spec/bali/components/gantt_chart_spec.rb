@@ -152,12 +152,12 @@ RSpec.describe Bali::GanttChart::Component, type: :component do
         end
 
         it 'renders headers from 1 month before current date' do
-          start_month = I18n.t('date.month_names')[(@date - 1.month).month]
+          start_month = month_name((@date - 1.month).month)
           expect(page).to have_css '.gantt-chart-header-month', text: start_month
         end
 
         it 'renders headers 1 month after the last task' do
-          end_month = I18n.t('date.month_names')[(@date + 7.months).month]
+          end_month = month_name((@date + 7.months).month)
           expect(page).to have_css '.gantt-chart-header-month', text: end_month
         end
       end
