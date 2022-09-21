@@ -35,8 +35,6 @@ module Bali
         @list_param_name = list_param_name
 
         @start_date = start_date
-        @default_min_date = Date.current - 2.months
-        @default_max_date = Date.current + 2.months
 
         @task_colors = options.delete(:colors) || {
           default: 'hsl(196, 82%, 62%)',  # blue-4
@@ -99,7 +97,7 @@ module Bali
 
         case zoom
         when :day
-          (min_date - 1.month).beginning_of_month
+          (min_date - 3.months).beginning_of_month
         when :week
           (min_date - 2.months).beginning_of_week
         when :month
@@ -110,7 +108,7 @@ module Bali
       def end_date
         case zoom
         when :day
-          (max_date + 1.month).end_of_month
+          (max_date + 3.months).end_of_month
         when :week
           (max_date + 2.months).end_of_week
         when :month
@@ -142,11 +140,11 @@ module Bali
       end
 
       def min_date
-        @min_date ||= [earliest_task&.start_date, @default_min_date].compact.min
+        @min_date ||= [earliest_task&.start_date, Date.current].compact.min
       end
 
       def max_date
-        @max_date ||= [latest_task&.end_date, @default_max_date].compact.max
+        @max_date ||= [latest_task&.end_date, Date.current].compact.max
       end
 
       def earliest_task
