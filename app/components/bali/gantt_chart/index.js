@@ -32,7 +32,8 @@ export class GanttChartController extends Controller {
     colWidth: Number,
     zoom: String,
     listWidth: { type: Number, default: 200 },
-    responseKind: { type: String, default: 'turbo-stream' }
+    responseKind: { type: String, default: 'turbo-stream' },
+    startDate: String
   }
 
   connect () {
@@ -249,6 +250,11 @@ export class GanttChartController extends Controller {
     }
 
     let body = {}
+
+    if (this.hasStartDateValue) {
+      body.chart_start_date = this.startDateValue
+    }
+
     if (this.resourceNameValue) {
       body[this.resourceNameValue] = attributes
     } else {

@@ -20,6 +20,7 @@ module Bali
         offset: nil,
         resource_name: nil,
         list_param_name: 'list_id',
+        start_date: nil,
         **options
       )
         @row_height = row_height
@@ -33,6 +34,7 @@ module Bali
         @resource_name = resource_name
         @list_param_name = list_param_name
 
+        @start_date = start_date
         @default_min_date = Date.current - 2.months
         @default_max_date = Date.current + 2.months
 
@@ -83,7 +85,8 @@ module Bali
           today_offset: today_offset,
           row_height: row_height,
           col_width: col_width,
-          zoom: zoom
+          zoom: zoom,
+          start_date: start_date
         }
       end
 
@@ -92,6 +95,8 @@ module Bali
       end
 
       def start_date
+        return Date.parse(@start_date) if @start_date.present?
+
         case zoom
         when :day
           (min_date - 1.month).beginning_of_month
