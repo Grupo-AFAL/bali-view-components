@@ -5,11 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.44.1] - 2022-09-21
+## [0.45.1] - 2022-09-21
 
 ### Fixed
 
 - Updated `GanttChart::Component` timeline headers calculation to fix current day flag and chart offset.
+
+## [0.45.0] - 2022-09-15
+
+### Updated
+
+- Link component to add support for `native apps` when the `modal` attribute is set to `true`.
+- Notification component to add `native-app` class. This class is useful for customizing the notification component when it appears in a native app.
 
 ## [0.44.0] - 2022-09-15
 

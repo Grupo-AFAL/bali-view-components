@@ -24,5 +24,9 @@ end
 require 'bali/form_builder'
 
 module Bali
-  # Your code goes here...
+  mattr_accessor :native_app, default: false
+
+  def self.config
+    yield(self)
+  end
 end
