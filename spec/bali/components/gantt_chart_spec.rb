@@ -26,6 +26,10 @@ RSpec.describe Bali::GanttChart::Component, type: :component do
   let(:options) { { tasks: tasks } }
   let(:component) { Bali::GanttChart::Component.new(**options) }
 
+  def month_name(number)
+    I18n.t('date.month_names')[number]
+  end
+
   context 'chart actions' do
     before do
       render_inline(component) do |c|
@@ -108,14 +112,28 @@ RSpec.describe Bali::GanttChart::Component, type: :component do
           @end_date = @date + 20.days
         end
 
-        it 'renders headers from 1 month before the first task' do
-          start_month = I18n.t('date.month_names')[(@date - 1.month).beginning_of_month.month]
-          expect(page).to have_css '.gantt-chart-header-month', text: start_month
+        context 'earliest header' do
+          it 'renders headers from 3 months before the first task' do
+            start_month = month_name((@date - 3.months).beginning_of_month.month)
+            expect(page).to have_css '.gantt-chart-header-month', text: start_month
+          end
+
+          it 'does not render header before gantt chart start_date' do
+            invalid_start_month = month_name((@date - 4.months).beginning_of_month.month)
+            expect(page).not_to have_css '.gantt-chart-header-month', text: invalid_start_month
+          end
         end
 
-        it 'renders headers 1 month after the last task' do
-          end_month = I18n.t('date.month_names')[(@end_date + 1.month).end_of_month.month]
-          expect(page).to have_css '.gantt-chart-header-month', text: end_month
+        context 'latest header' do
+          it 'renders headers 3 months after the last task' do
+            end_month = month_name((@end_date + 3.months).end_of_month.month)
+            expect(page).to have_css '.gantt-chart-header-month', text: end_month
+          end
+
+          it 'does not render header after gantt chart end_date' do
+            invalid_end_month = month_name((@end_date + 4.months).end_of_month.month)
+            expect(page).not_to have_css '.gantt-chart-header-month', text: invalid_end_month
+          end
         end
       end
 
