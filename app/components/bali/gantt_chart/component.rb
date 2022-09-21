@@ -43,8 +43,6 @@ module Bali
         @tasks = tasks.map { |task| Task.new(**task) }
         @tasks = setup_parent_child_relationships(@tasks)
 
-        @months_count = months_to_today.to_i
-
         @options = setup_options(options)
       end
       # rubocop:enable Metrics/ParameterLists
@@ -94,15 +92,13 @@ module Bali
       end
 
       def start_date
-        date = min_date > Date.current ? Date.current : min_date
-
         case zoom
         when :day
-          (date - 1.month).beginning_of_month
+          (min_date - 1.month).beginning_of_month
         when :week
-          (date - 2.months).beginning_of_week
+          (min_date - 2.months).beginning_of_week
         when :month
-          (date - 1.year).beginning_of_year
+          (min_date - 1.year).beginning_of_year
         end
       end
 
@@ -141,7 +137,7 @@ module Bali
       end
 
       def min_date
-        @min_date ||= earliest_task&.start_date || @default_min_date
+        @min_date ||= [earliest_task&.start_date, @default_min_date].compact.min
       end
 
       def max_date
@@ -174,8 +170,7 @@ module Bali
       def months_to_today
         start_month = (start_date.year * 12) + start_date.month
         current_month = (Date.current.year * 12) + Date.current.month
-
-        @months_to_today ||= (start_month - current_month).to_i.abs + (Date.current.day / 30.0)
+        (start_month - current_month).to_i.abs + (Date.current.day / 30.0)
       end
     end
   end
