@@ -15,6 +15,7 @@ module Bali
       def initialize(type: :success, delay: 3000, fixed: true, dismiss: true, **options)
         @options = prepend_class_name(options, "notification-component notification is-#{type}")
         @options = prepend_class_name(@options, 'fixed') if fixed
+        @options = prepend_class_name(@options, 'native-app') if Bali.native_app
         @options = prepend_controller(@options, 'notification')
         @options = prepend_data_attribute(@options, 'notification-delay-value', delay)
         @options = prepend_data_attribute(@options, 'notification-dismiss-value', dismiss)
