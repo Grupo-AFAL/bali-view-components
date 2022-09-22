@@ -32,7 +32,8 @@ export class GanttChartController extends Controller {
     colWidth: Number,
     zoom: String,
     listWidth: { type: Number, default: 200 },
-    responseKind: { type: String, default: 'turbo-stream' }
+    responseKind: { type: String, default: 'turbo-stream' },
+    startDate: String
   }
 
   connect () {
@@ -66,7 +67,7 @@ export class GanttChartController extends Controller {
   }
 
   disconnect () {
-    this.clearConnectionCavnas()
+    this.clearConnectionCanvas()
     this.timelineTarget.removeEventListener(
       'scroll',
       this.throttledUpdateScroll
@@ -162,7 +163,7 @@ export class GanttChartController extends Controller {
     })
 
     const anyFolded = Object.values(rowData).some(({ folded }) => folded)
-    anyFolded ? this.clearConnectionCavnas() : this.drawConnections()
+    anyFolded ? this.clearConnectionCanvas() : this.drawConnections()
   }
 
   calculateHeight (listRow) {
@@ -249,6 +250,11 @@ export class GanttChartController extends Controller {
     }
 
     let body = {}
+
+    if (this.hasStartDateValue) {
+      body.chart_start_date = this.startDateValue
+    }
+
     if (this.resourceNameValue) {
       body[this.resourceNameValue] = attributes
     } else {
@@ -337,11 +343,11 @@ export class GanttChartController extends Controller {
   }
 
   drawConnections = () => {
-    this.clearConnectionCavnas()
+    this.clearConnectionCanvas()
     this.dependentConnections.forEach(line => line.draw())
   }
 
-  clearConnectionCavnas () {
+  clearConnectionCanvas () {
     const { width, height } = this.connectionCanvasTarget
     this.canvasContext.clearRect(0, 0, width, height)
   }

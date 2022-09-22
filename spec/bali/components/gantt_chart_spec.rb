@@ -26,6 +26,10 @@ RSpec.describe Bali::GanttChart::Component, type: :component do
   let(:options) { { tasks: tasks } }
   let(:component) { Bali::GanttChart::Component.new(**options) }
 
+  def month_name(number)
+    I18n.t('date.month_names')[number]
+  end
+
   context 'chart actions' do
     before do
       render_inline(component) do |c|
@@ -101,20 +105,61 @@ RSpec.describe Bali::GanttChart::Component, type: :component do
     end
 
     context 'day zoom' do
-      before do
-        options.merge!(zoom: :day)
-        render_inline(component)
-        @end_date = @date + 20.days
+      context 'when tasks begin from current month' do
+        before do
+          options.merge!(zoom: :day)
+          render_inline(component)
+          @end_date = @date + 20.days
+        end
+
+        context 'earliest header' do
+          it 'renders headers from 3 months before the first task' do
+            start_month = month_name((@date - 3.months).beginning_of_month.month)
+            expect(page).to have_css '.gantt-chart-header-month', text: start_month
+          end
+
+          it 'does not render header before gantt chart start_date' do
+            invalid_start_month = month_name((@date - 4.months).beginning_of_month.month)
+            expect(page).not_to have_css '.gantt-chart-header-month', text: invalid_start_month
+          end
+        end
+
+        context 'latest header' do
+          it 'renders headers 3 months after the last task' do
+            end_month = month_name((@end_date + 3.months).end_of_month.month)
+            expect(page).to have_css '.gantt-chart-header-month', text: end_month
+          end
+
+          it 'does not render header after gantt chart end_date' do
+            invalid_end_month = month_name((@end_date + 4.months).end_of_month.month)
+            expect(page).not_to have_css '.gantt-chart-header-month', text: invalid_end_month
+          end
+        end
       end
 
-      it 'renders headers from 1 month before the first task' do
-        start_month = I18n.t('date.month_names')[(@date - 1.month).beginning_of_month.month]
-        expect(page).to have_css '.gantt-chart-header-month', text: start_month
-      end
+      context 'when tasks begin after current month' do
+        before do
+          @date = Date.current.beginning_of_month
 
-      it 'renders headers 1 month after the last task' do
-        end_month = I18n.t('date.month_names')[(@end_date + 1.month).end_of_month.month]
-        expect(page).to have_css '.gantt-chart-header-month', text: end_month
+          @tasks = [
+            { id: 1, name: 'Task 1', start_date: @date + 5.months,
+              end_date: @date + 5.months + 1.week },
+            { id: 2, name: 'Task 2', start_date: @date + 6.months,
+              end_date: @date + 6.months + 1.week }
+          ]
+
+          render_inline(Bali::GanttChart::Component.new(tasks: @tasks))
+        end
+
+        it 'renders headers from 1 month before current date' do
+          start_month = month_name((@date - 1.month).month)
+          expect(page).to have_css '.gantt-chart-header-month', text: start_month
+        end
+
+        it 'renders headers 1 month after the last task' do
+          end_month = month_name((@date + 7.months).month)
+          expect(page).to have_css '.gantt-chart-header-month', text: end_month
+        end
       end
     end
 
