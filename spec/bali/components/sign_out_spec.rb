@@ -11,15 +11,15 @@ RSpec.describe Bali::TurboNativeApp::SignOut::Component, type: :component do
     context 'default' do
       it 'renders' do
         render_inline(component)
-    
+
         expect(page).to have_css 'button.turbo-native-app-sign-out-component', text: 'Sign out'
         expect(page).to have_css '[data-controller="turbo-native-app-sign-out"]'
         expect(page).to have_css '[data-action="turbo-native-app-sign-out#perform"]'
         expect(page).to have_css(
-          '[data-turbo-native-app-sign-out-confirmation-message-value='\
+          '[data-turbo-native-app-sign-out-confirmation-message-value=' \
           '"Are you sure?"]'
         )
-      end  
+      end
     end
 
     context 'with custom name' do
@@ -27,15 +27,15 @@ RSpec.describe Bali::TurboNativeApp::SignOut::Component, type: :component do
 
       it 'renders' do
         render_inline(component)
-    
+
         expect(page).to have_css 'button.turbo-native-app-sign-out-component', text: 'Log out'
         expect(page).to have_css '[data-controller="turbo-native-app-sign-out"]'
         expect(page).to have_css '[data-action="turbo-native-app-sign-out#perform"]'
         expect(page).to have_css(
-          '[data-turbo-native-app-sign-out-confirmation-message-value='\
+          '[data-turbo-native-app-sign-out-confirmation-message-value=' \
           '"Are you sure?"]'
         )
-      end  
+      end
     end
 
     context 'with custom confirmation message' do
@@ -43,15 +43,15 @@ RSpec.describe Bali::TurboNativeApp::SignOut::Component, type: :component do
 
       it 'renders' do
         render_inline(component)
-    
+
         expect(page).to have_css 'button.turbo-native-app-sign-out-component', text: 'Sign out'
         expect(page).to have_css '[data-controller="turbo-native-app-sign-out"]'
         expect(page).to have_css '[data-action="turbo-native-app-sign-out#perform"]'
         expect(page).to have_css(
-          '[data-turbo-native-app-sign-out-confirmation-message-value='\
+          '[data-turbo-native-app-sign-out-confirmation-message-value=' \
           '"are u sure?"]'
         )
-      end  
+      end
     end
   end
 end
