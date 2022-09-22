@@ -7,12 +7,12 @@ export class TurboNativeAppSignOut extends Controller {
     event.preventDefault()
     event.stopImmediatePropagation()
 
-    if (confirm(this.confirmationMessageValue) == true && this._isTurboNativeApp) {
-      window.TurboNativeBridge.postMessage("signOut")
+    if (window.confirm(this.confirmationMessageValue) === true && this._isTurboNativeApp) {
+      window.TurboNativeBridge.postMessage('signOut')
     }
   }
 
-  get _isTurboNativeApp() {
-    return navigator.userAgent.indexOf("Turbo Native") !== -1
+  get _isTurboNativeApp () {
+    return navigator.userAgent.indexOf('Turbo Native') !== -1
   }
 }
