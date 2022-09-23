@@ -27,6 +27,7 @@ export { SortableListController } from '../../components/bali/sortable_list'
 export { TabsController } from '../../components/bali/tabs'
 export { TimeagoController } from '../../components/bali/timeago'
 export { TooltipController } from '../../components/bali/tooltip'
+export { TurboNativeAppSignOut } from '../../components/bali/turbo_native_app/sign_out'
 export { TreeViewItemController } from '../../components/bali/tree_view/item'
 
 export {

@@ -25,6 +25,10 @@ en:
         loading: Loading...
       search_input:
         placeholder: Search...
+      turbo_native_app:
+        sign_out:
+          name: Sign out
+          confirm: Are you sure?
       calendar:
         header:
           week: Week
