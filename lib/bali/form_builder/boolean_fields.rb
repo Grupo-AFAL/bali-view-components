@@ -14,8 +14,14 @@ module Bali
       def boolean_field(method, options = {}, checked_value = '1', unchecked_value = '0')
         label_text = options.delete(:label) || translate_attribute(method)
 
-        label(method, options.delete(:label_options) || {}) do
+        label_html = label(method, options.delete(:label_options) || {}) do
           safe_join([check_box(method, options, checked_value, unchecked_value), label_text], ' ')
+        end
+
+        if errors?(method)
+          label_html + content_tag(:p, full_errors(method), class: 'help is-danger')
+        else
+          label_html
         end
       end
     end
