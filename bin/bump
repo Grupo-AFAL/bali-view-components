@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+APP_ROOT = File.expand_path('..', __dir__)
+
+puts "\n== Bumping to library version: #{ARGV.first} =="
+
+Dir.chdir("#{APP_ROOT}/scripts") do
+  system "thor library_version:bump #{ARGV.first}"
+end
