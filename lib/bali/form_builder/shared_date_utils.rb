@@ -24,8 +24,11 @@ module Bali
 
         wrapper_options[:class] += ' has-addons' if options[:manual]
 
-        controller_values = { disable_weekends: options[:disable_weekends],
-                              min_date: options[:min_date] }
+        controller_values = {
+          disable_weekends: options[:disable_weekends],
+          min_date: options[:min_date],
+          alt_input_class: errors?(method) ? 'is-danger' : ''
+        }
 
         prepend_values(wrapper_options, 'datepicker', controller_values)
 
