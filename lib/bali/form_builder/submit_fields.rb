@@ -39,8 +39,9 @@ module Bali
           submit(value, options)
         end
 
+        render_cancel_button = cancel.present? && !(Bali.native_app && options[:modal])
         @template.content_tag(:div, id: field_id, class: field_class, data: field_data) do
-          cancel.present? && !Bali.native_app ? cancel + submit : submit
+          render_cancel_button ? cancel + submit : submit
         end
       end
 
