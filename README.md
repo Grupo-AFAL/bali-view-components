@@ -132,6 +132,7 @@ Update this table when making progress on any of the Components or when adding n
 | Timeline        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Tooltip         | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | TreeView        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
+| TurboNativeApp::SignOut | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | 
 
 ## Stimulus JS Controllers
 

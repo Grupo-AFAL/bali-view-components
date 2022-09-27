@@ -94,6 +94,10 @@
   }
 }
 
+.label .field_with_errors {
+  display: inline;
+}
+
 .radio-buttons-group {
   $togglers-margin-bottom: 1.5rem;
 

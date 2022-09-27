@@ -38,7 +38,7 @@ export class HovercardController extends Controller {
       arrow: ARROW_SVG,
       duration: 100,
       appendTo: this.appendToProp(),
-      content: content,
+      content,
       placement: this.placementValue,
       trigger: this.triggerValue,
       interactive: true,
