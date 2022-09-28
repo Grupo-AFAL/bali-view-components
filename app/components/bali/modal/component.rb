@@ -16,6 +16,7 @@ module Bali
 
       def prepend_class_names
         @options = prepend_class_name(@options, 'is-active') if @active
+        @options = prepend_class_name(@options, 'native-app') if Bali.native_app
         @options = prepend_class_name(@options, 'modal-component modal')
       end
 
