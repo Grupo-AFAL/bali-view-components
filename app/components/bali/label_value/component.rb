@@ -5,10 +5,10 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :label, :value, :options
 
-      def initialize(label:, value:, **options)
+      def initialize(label:, value: nil, **options)
         @label = label
         @value = value
-        @options = prepend_class_name(options, 'label-value-component')
+        @options = prepend_class_name(options, 'label-value-component mb-2')
       end
     end
   end
