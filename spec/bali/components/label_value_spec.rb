@@ -10,7 +10,7 @@ RSpec.describe Bali::LabelValue::Component, type: :component do
     render_inline(component)
 
     expect(page).to have_css 'div.label-value-component'
-    expect(page).to have_css 'label.title', text: 'Name'
+    expect(page).to have_css 'label.is-size-7', text: 'Name'
     expect(page).to have_css 'div.label-value', text: 'Juan Perez'
   end
 end
