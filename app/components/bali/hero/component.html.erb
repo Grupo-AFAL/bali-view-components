@@ -1,0 +1,12 @@
+<%= tag.section(**options) do %>
+  <div class="hero-body">
+    <div class="container">
+      <%= title if title? %>
+      <%= subtitle if subtitle? %>
+
+      <div class="content">
+        <%= content %>
+      </div>
+    </div>
+  </div>
+<% end %>

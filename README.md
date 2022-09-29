@@ -105,7 +105,7 @@ Update this table when making progress on any of the Components or when adding n
 | Filters                 | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | GanttChart              | :white_check_mark: | :white_check_mark: | :white_check_mark: |        :x:         |       |
 | Heatmap                 | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Hero                    |        :x:         |        :x:         |        :x:         |        :x:         |       |
+| Hero                    | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Hovercard               | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Icon                    | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | ImageGrid               | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
