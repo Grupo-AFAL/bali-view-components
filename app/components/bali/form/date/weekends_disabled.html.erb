@@ -1,0 +1,3 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.date_field_group :date, value: Date.today, disable_weekends: true %>
+<% end %>

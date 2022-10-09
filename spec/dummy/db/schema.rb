@@ -10,13 +10,30 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2021_07_29_212951) do
+ActiveRecord::Schema[7.0].define(version: 2022_10_09_203912) do
   create_table "characters", force: :cascade do |t|
     t.string "name"
     t.integer "movie_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["movie_id"], name: "index_characters_on_movie_id"
+  end
+
+  create_table "form_records", force: :cascade do |t|
+    t.boolean "boolean"
+    t.decimal "currency"
+    t.date "date"
+    t.datetime "datetime"
+    t.date "end_date"
+    t.string "email"
+    t.decimal "number"
+    t.string "password"
+    t.decimal "percentage"
+    t.text "text"
+    t.integer "select"
+    t.integer "time"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "movies", force: :cascade do |t|

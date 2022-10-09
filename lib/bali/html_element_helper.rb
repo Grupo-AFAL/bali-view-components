@@ -50,7 +50,7 @@ module Bali
     private
 
     def normalize_data_attribute_value(value)
-      value.is_a?(Hash) ? value.to_json : value
+      value.is_a?(Hash) || value.is_a?(Array) ? value.to_json : value
     end
   end
 end
