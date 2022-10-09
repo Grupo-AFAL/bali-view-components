@@ -76,7 +76,7 @@ export class DatepickerController extends Controller {
   }
 
   defaultDates () {
-    if (this.hasDefaultDatesValue) {
+    if (this.modeValue === 'range' && this.hasDefaultDatesValue) {
       return this.defaultDatesValue
     } else {
       return this.defaultDateValue
