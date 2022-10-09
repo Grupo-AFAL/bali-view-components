@@ -6,6 +6,7 @@ import {
   CarouselController,
   ChartController,
   ClipboardController,
+  DatepickerController,
   DropdownController,
   FilterFormController,
   GanttChartController,
@@ -35,6 +36,7 @@ application.register('avatar', AvatarController)
 application.register('carousel', CarouselController)
 application.register('chart', ChartController)
 application.register('clipboard', ClipboardController)
+application.register('datepicker', DatepickerController)
 application.register('dropdown', DropdownController)
 application.register('filter-form', FilterFormController)
 application.register('gantt-chart', GanttChartController)
