@@ -21,11 +21,13 @@ export class DatepickerController extends Controller {
     disableWeekends: { type: Boolean, default: false },
     locale: { type: String, default: 'es' },
     defaultDate: String,
+    defaultDates: Array,
     minDate: String,
     minTime: String,
     maxTime: String,
     altInputClass: String,
-    period: String
+    period: String,
+    mode: { type: String, default: 'single' }
   }
 
   async connect () {
@@ -47,11 +49,12 @@ export class DatepickerController extends Controller {
       noCalendar: this.noCalendarValue,
       enableSeconds: this.enableSecondsValue,
       locale: await this.setLocale(this.localeValue),
-      defaultDate: this.defaultDateValue,
+      defaultDate: this.defaultDates(),
       minDate: this.minDateValue,
       minTime: this.minTimeValue,
       maxTime: this.maxTimeValue,
       altInputClass: this.altInputClassValue,
+      mode: this.modeValue,
       disable: this.disableWeekendsValue ? [this.isWeekend] : []
     })
   }
@@ -70,6 +73,14 @@ export class DatepickerController extends Controller {
 
   disconnect () {
     this.flatpickr.destroy()
+  }
+
+  defaultDates () {
+    if (this.hasDefaultDatesValue) {
+      return this.defaultDatesValue
+    } else {
+      return this.defaultDateValue
+    }
   }
 
   altFormat () {

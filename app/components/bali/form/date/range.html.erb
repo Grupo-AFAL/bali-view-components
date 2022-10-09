@@ -1,0 +1,3 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.date_field_group :date, mode: 'range', value: [Date.yesterday, Date.tomorrow] %>
+<% end %>

@@ -20,7 +20,7 @@ module Bali
             ['Runnning', 7],
             ['Clean & Jerks', 8]
           ]
-        }
+        }.freeze
 
         # @param keep_selection toggle
         def radio_buttons_field_group(keep_selection: false)
