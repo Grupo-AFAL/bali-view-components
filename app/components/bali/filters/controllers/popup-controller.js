@@ -5,11 +5,13 @@ import useClickOutside from '../../../../javascript/bali/utils/use-click-outside
 export class PopupController extends Controller {
   static targets = ['container', 'button', 'openedInput']
   static values = {
-    opened: { type: Boolean, default: false }
+    opened: { type: Boolean, default: false },
+    closeOnClickOutside: { type: Boolean, default: true }
   }
 
   connect () {
-    useClickOutside(this)
+    if (this.closeOnClickOutsideValue) { useClickOutside(this) }
+
     this.popperInstance = createPopper(
       this.buttonTarget,
       this.containerTarget,
