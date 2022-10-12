@@ -530,6 +530,15 @@ module Bali
         </svg>
       )
 
+      FILTER_ALT = %(
+        <svg viewBox="0 0 448 512" class="svg-inline">
+          <path fill="currentColor"
+            d="M0 96a32 32 0 0 1 32-32h384a32 32 0 1 1 0 64H32A32 32 0 0 1 0 96zm64 160a32 32 0 0 1
+            32-32h256a32 32 0 1 1 0 64H96a32 32 0 0 1-32-32zm224 160a32 32 0 0 1-32 32h-64a32 32 0
+            1 1 0-64h64a32 32 0 0 1 32 32z"/>
+        </svg>
+      )
+
       FIRE_ALT = %(
         <svg viewBox="0 0 448 512" class="svg-inline">
           <g>
@@ -1514,6 +1523,7 @@ module Bali
         'file-certificate' => FILE_CERTIFICATE,
         'file-signature' => FILE_SIGNATURE,
         'filter' => FILTER,
+        'filter-alt' => FILTER_ALT,
         'fire-alt' => FIRE_ALT,
         'day' => DAY,
         'month' => MONTH,
