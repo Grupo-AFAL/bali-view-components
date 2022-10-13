@@ -7,8 +7,8 @@ module Bali
 
       renders_many :items, Item::Component
 
-      def initialize(**options)
-        @options = prepend_class_name(options, 'info-level-component level')
+      def initialize(align: :center, **options)
+        @options = prepend_class_name(options, "info-level-component level level-align-#{align}")
       end
     end
   end

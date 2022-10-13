@@ -3,8 +3,9 @@
 module Bali
   module InfoLevel
     class Preview < ApplicationViewComponentPreview
-      def default
-        render InfoLevel::Component.new do |c|
+      # @param align select [left, center, right]
+      def default(align: 'center')
+        render InfoLevel::Component.new(align: align) do |c|
           c.item do |i|
             i.heading('Heading 1')
             i.title('Title 1')

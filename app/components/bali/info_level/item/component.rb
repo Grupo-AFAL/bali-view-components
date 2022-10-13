@@ -19,9 +19,7 @@ module Bali
         end
 
         def initialize(**options)
-          @options = prepend_class_name(
-            hyphenize_keys(options), 'level-item has-text-centered is-block'
-          )
+          @options = prepend_class_name(hyphenize_keys(options), 'level-item is-block')
         end
 
         def call
