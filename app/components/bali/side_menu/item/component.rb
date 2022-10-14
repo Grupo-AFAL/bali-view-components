@@ -4,7 +4,7 @@ module Bali
   module SideMenu
     module Item
       class Component < ApplicationViewComponent
-        renders_many :items, ->(name:, href:, icon: nil, authorized: true, **options) do
+        renders_many :items, ->(href:, name: nil, icon: nil, authorized: true, **options) do
           Item::Component.new(
             name: name,
             href: href,
@@ -17,7 +17,7 @@ module Bali
 
         attr_reader :href, :current_path, :match_type
 
-        def initialize(name:, href:, current_path:, icon: nil, authorized: true, **options)
+        def initialize(href:, current_path:, name: nil, icon: nil, authorized: true, **options)
           @name = name
           @href = href
           @icon = icon
