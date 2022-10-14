@@ -33,6 +33,11 @@ module Bali
       options
     end
 
+    def prepend_style(options, styles)
+      options[:style] = "#{styles} #{options[:style]}".strip
+      options
+    end
+
     def prepend_data_attribute(options, attr_name, attr_value)
       options[:data] ||= {}
       options[:data][attr_name] = "#{attr_value} #{options[:data][attr_name]}".strip
