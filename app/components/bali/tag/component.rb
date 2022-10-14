@@ -3,6 +3,8 @@
 module Bali
   module Tag
     class Component < ApplicationViewComponent
+      include Utils::ColorCalculator
+
       attr_reader :text, :href, :options
 
       # rubocop: disable Metrics/ParameterLists
@@ -10,6 +12,7 @@ module Bali
         text:,
         href: nil,
         color: nil,
+        custom_color: nil,
         size: nil,
         light: false,
         rounded: false,
@@ -24,6 +27,13 @@ module Bali
         @options = prepend_class_name(@options, "is-#{size}") if size.present?
         @options = prepend_class_name(@options, 'is-light') if light
         @options = prepend_class_name(@options, 'is-rounded') if rounded
+
+        return if custom_color.blank?
+
+        @options = prepend_style(
+          @options,
+          "background-color: #{custom_color}; color: #{contrasting_text_color(custom_color)}"
+        )
       end
       # rubocop: enable Metrics/ParameterLists
 
