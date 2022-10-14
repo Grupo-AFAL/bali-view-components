@@ -53,12 +53,54 @@ RSpec.describe Bali::Link::Component, type: :component do
     end
   end
 
-  it 'renders a link with is-active class' do
-    @options.merge!(active_path: '#')
+  context 'active indicator' do
+    context 'when current path is active' do
+      before { @options.merge!(href: '/items', active_path: '/items') }
 
-    render_inline(component)
+      it 'does not add the is-active class when active is false' do
+        @options.merge!(active: false)
+        render_inline(component)
 
-    expect(page).to have_css 'a.is-active', text: 'Click me!'
+        expect(page).not_to have_css 'a.is-active'
+      end
+
+      it 'adds the is-active class when active is true' do
+        @options.merge!(active: true)
+        render_inline(component)
+
+        expect(page).to have_css 'a.is-active'
+      end
+
+      it 'adds the is-active class when active is nil' do
+        render_inline(component)
+
+        expect(page).to have_css 'a.is-active'
+      end
+    end
+
+    context 'when current path is not active' do
+      before { @options.merge!(href: '/items', active_path: '/movies') }
+
+      it 'adds the is-active class when active is true' do
+        @options.merge!(active: true)
+        render_inline(component)
+
+        expect(page).to have_css 'a.is-active'
+      end
+
+      it 'does not add the is-active class when active is false' do
+        @options.merge!(active: false)
+        render_inline(component)
+
+        expect(page).not_to have_css 'a.is-active'
+      end
+
+      it 'does not add the is-active class when active is nil' do
+        render_inline(component)
+
+        expect(page).not_to have_css 'a.is-active'
+      end
+    end
   end
 
   context 'with the method parameter' do
