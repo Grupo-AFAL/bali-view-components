@@ -19,6 +19,8 @@ module Bali
       # @param method [Symbol|String] Adds a turbo method to the link.
 
       # rubocop:disable Metrics/ParameterLists
+      # rubocop:disable Metrics/CyclomaticComplexity
+      # rubocop:disable Metrics/PerceivedComplexity
       def initialize(href:,
                      name: nil,
                      type: nil,
@@ -61,6 +63,8 @@ module Bali
         end
       end
       # rubocop:enable Metrics/ParameterLists
+      # rubocop:enable Metrics/CyclomaticComplexity
+      # rubocop:enable Metrics/PerceivedComplexity
     end
   end
 end
