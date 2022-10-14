@@ -26,6 +26,7 @@ module Bali
                      modal: false,
                      drawer: false,
                      active_path: nil,
+                     active: nil,
                      match: :exact,
                      method: nil,
                      **options)
@@ -36,12 +37,13 @@ module Bali
         @icon_name = icon_name
         @modal = modal
         @active_path = active_path
+        @active = active
         @drawer = drawer
         @method = method
         @options = options
         @options = prepend_class_name(@options, 'link-component')
 
-        if active_path?(href, active_path, match: match)
+        if @active == true || (@active.nil? && active_path?(href, active_path, match: match))
           @options = prepend_class_name(@options, 'is-active')
         end
 
