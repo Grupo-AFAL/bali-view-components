@@ -5,7 +5,9 @@
              icon_name: @icon,
              active_path: current_path,
              active: @active,
-             **@options) %>
+             **@options) do %>
+    <%= content %>
+  <% end %>
 
   <% if active? && items.present? %>
     <ul>

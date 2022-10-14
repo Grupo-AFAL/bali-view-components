@@ -77,6 +77,21 @@ module Bali
           end
         end
       end
+
+      # SideMenu with Custom Link Content
+      # -------------------
+      def custom_link_content
+        render(SideMenu::Component.new(current_path: '/child-item-1')) do |c|
+          c.list(title: 'Title') do |list|
+            list.item(href: '/parent-item') do
+              safe_join([
+                          tag.span('Custom Link', class: 'mr-3'),
+                          tag.span('0', class: 'tag is-danger')
+                        ])
+            end
+          end
+        end
+      end
     end
   end
 end
