@@ -19,6 +19,8 @@ module Bali
       # @param method [Symbol|String] Adds a turbo method to the link.
 
       # rubocop:disable Metrics/ParameterLists
+      # rubocop:disable Metrics/CyclomaticComplexity
+      # rubocop:disable Metrics/PerceivedComplexity
       def initialize(href:,
                      name: nil,
                      type: nil,
@@ -26,6 +28,7 @@ module Bali
                      modal: false,
                      drawer: false,
                      active_path: nil,
+                     active: nil,
                      match: :exact,
                      method: nil,
                      **options)
@@ -36,12 +39,13 @@ module Bali
         @icon_name = icon_name
         @modal = modal
         @active_path = active_path
+        @active = active
         @drawer = drawer
         @method = method
         @options = options
         @options = prepend_class_name(@options, 'link-component')
 
-        if active_path?(href, active_path, match: match)
+        if @active == true || (@active.nil? && active_path?(href, active_path, match: match))
           @options = prepend_class_name(@options, 'is-active')
         end
 
@@ -59,6 +63,8 @@ module Bali
         end
       end
       # rubocop:enable Metrics/ParameterLists
+      # rubocop:enable Metrics/CyclomaticComplexity
+      # rubocop:enable Metrics/PerceivedComplexity
     end
   end
 end

@@ -23,6 +23,8 @@ module Bali
           @icon = icon
           @authorized = authorized
           @current_path = current_path
+
+          @active = options.delete(:active)
           @match_type = options.delete(:match) || :exact
           @options = options
         end
@@ -46,6 +48,8 @@ module Bali
         end
 
         def active?
+          return @active unless @active.nil?
+
           active_path?(uri.path, current_path, match: match_type) || active_child_items?
         end
 
