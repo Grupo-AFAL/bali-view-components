@@ -1,0 +1,7 @@
+<%= render Bali::HoverCard::Component.new(**options) do |c| %>
+  <% c.trigger(class: 'actions-dropdown-trigger is-flex') do %>
+    <%= render Bali::Icon::Component.new('ellipsis-h') %>
+  <% end %>
+
+  <%= content %>
+<% end %>
