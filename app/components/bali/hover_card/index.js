@@ -16,6 +16,7 @@ const ARROW_SVG = `
     obtained via a fetch request or template.
 */
 export class HovercardController extends Controller {
+  static classes = ['content']
   static targets = ['template', 'trigger']
   static values = {
     url: String,
@@ -45,7 +46,8 @@ export class HovercardController extends Controller {
       zIndex: this.zIndexValue,
       onTrigger: this.onTrigger,
       onCreate: this.onCreate,
-      onShow: this.onShow
+      onShow: this.onShow,
+      onHide: this.onHide
     })
   }
 
@@ -61,7 +63,11 @@ export class HovercardController extends Controller {
   }
 
   onCreate = instance => {
-    instance.popper.classList.add('hover-card-tippy-wrapper')
+    if (this.hasContentClass) {
+      instance.popper.classList.add(...this.contentClasses)
+    } else {
+      instance.popper.classList.add('hover-card-tippy-wrapper')
+    }
   }
 
   onTrigger = () => {
@@ -71,7 +77,13 @@ export class HovercardController extends Controller {
   }
 
   onShow = () => {
+    this.element.classList.add('is-active')
     this.dispatch('show', { tippy: this.tippy })
+  }
+
+  onHide = () => {
+    this.element.classList.remove('is-active')
+    this.dispatch('hide', { tippy: this.tippy })
   }
 
   async loadContent () {
