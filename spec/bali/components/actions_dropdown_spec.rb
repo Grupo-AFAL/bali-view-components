@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe Bali::ActionsDropdown::Component, type: :component do
-  let(:options) { {  } }
+  let(:options) { {} }
   let(:component) { Bali::ActionsDropdown::Component.new(**options) }
 
   it 'renders actionsdropdown component' do
