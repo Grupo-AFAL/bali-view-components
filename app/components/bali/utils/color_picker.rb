@@ -22,7 +22,7 @@ module Bali
       end
 
       def opacify(color, opacity = 5)
-        "#{color}#{(opacity * 255 / 10).to_s(16)}"
+        "#{color}#{(opacity * 255 / 10).to_fs(16)}"
       end
 
       def gradient(color = nil, size: 10)
