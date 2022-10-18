@@ -25,7 +25,9 @@ export class ModalController extends Controller {
 
   setupListeners = eventName => {
     if (this.hasWrapperTarget) {
-      this.wrapperClass = this.wrapperTarget.getAttribute('data-wrapper-class')
+      this.wrapperClasses = this.normalizeClass(
+        this.wrapperTarget.getAttribute('data-wrapper-class')
+      )
     }
 
     if (this.hasBackgroundTarget) {
@@ -73,7 +75,7 @@ export class ModalController extends Controller {
   }
 
   openModal (content) {
-    this.wrapperTarget.classList.add(this.wrapperClass)
+    this.wrapperTarget.classList.add(...this.wrapperClasses)
 
     this.templateTarget.classList.add('is-active')
     this.contentTarget.innerHTML = content
@@ -90,8 +92,8 @@ export class ModalController extends Controller {
 
   _closeModal = () => {
     this.templateTarget.classList.remove('is-active')
-    if (this.wrapperClass) {
-      this.wrapperTarget.classList.remove(this.wrapperClass)
+    if (this.wrapperClasses) {
+      this.wrapperTarget.classList.remove(...this.wrapperClasses)
     }
     this.contentTarget.innerHTML = ''
   }
@@ -131,7 +133,9 @@ export class ModalController extends Controller {
     event.preventDefault()
     const target = event.currentTarget
 
-    this.wrapperClass = target.getAttribute('data-wrapper-class')
+    this.wrapperClasses = this.normalizeClass(
+      target.getAttribute('data-wrapper-class')
+    )
     this.redirectTo = target.getAttribute('data-redirect-to')
     this.skipRender = Boolean(target.getAttribute('data-skip-render'))
     this.extraProps = JSON.parse(target.getAttribute('data-extra-props'))
@@ -221,5 +225,11 @@ export class ModalController extends Controller {
           this.openModal(responseText)
         }
       })
+  }
+
+  normalizeClass (classes) {
+    if (!classes) return []
+
+    return classes.split(' ')
   }
 }

@@ -80,5 +80,10 @@ $z-index-modal: 40;
       max-width: $extra-wide-size;
       width: 100%;
     }
+
+    &.fullwidth {
+      max-width: calc(100vw - 144px);
+      width: 100%;
+    }
   }
 }
