@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add `modal.fullwidth` class for full width modals
+- Allow multiple CSS classes for the modal wrapper
 
 ## [0.53.0] - 2022-10-18
 
