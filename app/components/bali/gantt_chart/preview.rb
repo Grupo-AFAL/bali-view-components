@@ -7,7 +7,7 @@ module Bali
         render GanttChart::Component.new(tasks: tasks, zoom: zoom.to_sym)
       end
 
-      # @param [Symbol] zoom select [day, week, month]
+      # @param zoom [Symbol] select [day, week, month]
       def view_modes(zoom: :day)
         render GanttChart::Component.new(tasks: tasks, zoom: zoom) do |c|
           c.view_mode_button label: 'Day', zoom: :day, active: zoom == :day

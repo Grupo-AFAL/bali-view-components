@@ -3,12 +3,14 @@
 module Bali
   module FieldGroupWrapper
     class Component < ApplicationViewComponent
-      def initialize(form, method, options)
+      def initialize(form, method, options = {})
         @form = form
         @method = method
         @options = options
 
-        @label_text = options.delete(:label)
+        @label_options = options.delete(:label)
+        @label_options = { text: @label_options } unless @label_options.is_a?(Hash)
+
         @addon_left = options.delete(:addon_left)
         @addon_right = options.delete(:addon_right)
         @field_class = options.delete(:field_class)
@@ -51,7 +53,23 @@ module Bali
       end
 
       def generate_label_html
-        @form.label(@method, @label_text) unless @options[:type] == 'hidden' || @label_text == false
+        return if @options[:type] == 'hidden' || @label_options[:text] == false
+        return @form.label(@method, @label_options[:text]) if @label_options[:tooltip].nil?
+
+        @form.label(@method, class: 'label is-flex') do |translation|
+          safe_join([
+                      translation || @label_options[:text],
+                      label_tooltip(@label_options[:tooltip])
+                    ])
+        end
+      end
+
+      def label_tooltip(content)
+        render(Bali::Tooltip::Component.new) do |c|
+          c.trigger { render(Bali::Icon::Component.new('info-circle')) }
+
+          content
+        end
       end
     end
   end
