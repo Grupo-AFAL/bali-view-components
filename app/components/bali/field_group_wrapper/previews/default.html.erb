@@ -1,0 +1,6 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= render Bali::FieldGroupWrapper::Component.new(
+              form, :email, label: { tooltip: 'Additional text help' }) do %>
+    <span>Field Input</span>
+  <% end %>
+<% end %>

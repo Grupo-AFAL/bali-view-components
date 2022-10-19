@@ -6,7 +6,7 @@ module Bali
       include HtmlUtils
 
       def label(method, text = nil, options = {}, &)
-        options[:class] = "label #{options[:class]}"
+        options = prepend_class_name(options, 'label')
         super(method, text, options, &)
       end
 

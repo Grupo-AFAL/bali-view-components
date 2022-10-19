@@ -98,8 +98,18 @@
   }
 }
 
-.label .field_with_errors {
-  display: inline;
+.label {
+  .field_with_errors {
+    display: inline;
+  }
+
+  .tooltip-component {
+    height: 1.5rem;
+
+    .tippy-content {
+      font-weight: normal;
+    }
+  }
 }
 
 .radio-buttons-group {
