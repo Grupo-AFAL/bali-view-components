@@ -1683,7 +1683,7 @@ module Bali
         'utensils-alt' => UTENSILS_ALT,
         'visa' => VISA,
         'wallet' => WALLET,
-        'wallet_alt' => WALLET_ALT,
+        'wallet-alt' => WALLET_ALT,
         'weight' => WEIGHT,
         'whatsapp' => WHATSAPP,
         'whatsapp-square' => WHATSAPP_SQUARE
