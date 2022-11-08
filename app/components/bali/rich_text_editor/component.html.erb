@@ -1,3 +1,5 @@
 <%= tag.div(**options) do %>
-  <%= content %>
+  <% if editable? %>
+    <%= render Bali::RichTextEditor::BubbleMenu::Component.new %>
+  <% end %>
 <% end %>

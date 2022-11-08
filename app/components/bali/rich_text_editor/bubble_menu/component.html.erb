@@ -1,0 +1,63 @@
+<%= tag.div(**@options) do %>
+  <%= render Bali::Dropdown::Component.new(data: { 'rich-text-editor-target': 'nodeSelect'}) do |c| %>
+    <% c.trigger(class: 'toolbar-link', data: { action: 'rich-text-editor#openNodeSelect' }) do %>
+      <span class="text" data-rich-text-editor-target="nodeSelectTrigger">Text</span>
+      <%= render Bali::Icon::Component.new('chevron-down', class: 'dropdown-icon') %>
+    <% end %>
+
+    <%= c.item(class: 'text', data: { action: 'rich-text-editor#setParagraph', 'rich-text-editor-target': 'text' }) { 'Text' } %>
+    <%= c.item(class: 'h1', data: { action: 'rich-text-editor#toggleH1', 'rich-text-editor-target': 'h1' }) { 'Heading 1' } %>
+    <%= c.item(class: 'h2', data: { action: 'rich-text-editor#toggleH2', 'rich-text-editor-target': 'h2' }) { 'Heading 2' } %>
+    <%= c.item(class: 'h3', data: { action: 'rich-text-editor#toggleH3', 'rich-text-editor-target': 'h3' }) { 'Heading 3' } %>
+    <%= c.item(class: 'ul', data: { action: 'rich-text-editor#toggleBulletList', 'rich-text-editor-target': 'ul' }) { 'Bulleted list' } %>
+    <%= c.item(class: 'ol', data: { action: 'rich-text-editor#toggleOrderedList', 'rich-text-editor-target': 'ol' }) { 'Ordered list' } %>
+    <%= c.item(class: 'blockquote', data: { action: 'rich-text-editor#toggleBlockquote', 'rich-text-editor-target': 'blockquote' }) { 'Quote' } %>
+    <%= c.item(class: 'codeBlock', data: { action: 'rich-text-editor#toggleCodeBlock', 'rich-text-editor-target': 'codeBlock' }) { 'Code' } %>
+  <% end %>
+
+  <%= render Bali::Dropdown::Component.new(close_on_click: false, data: { 'rich-text-editor-target': 'linkPanel' }) do |c| %>
+    <% c.trigger(class: 'toolbar-link mark link', data: { action: 'rich-text-editor#openLinkPanel', 'rich-text-editor-target': 'link' }) do %>
+      <%= render Bali::Icon::Component.new('link') %>
+    <% end %>
+
+    <div class="link-panel">
+      <%= render(Bali::Tabs::Component.new(class: 'is-small')) do |c| %>
+        <%= c.tab(title: 'URL', active: true) do %>
+          <div contenteditable="true"
+                class="input is-small"
+                placeholder="Ingresa la URL"
+                data-rich-text-editor-target="linkInput"
+                data-action="keydown->rich-text-editor#saveLinkUrl">
+          </div>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <%= render Bali::Dropdown::Component.new(data: { 'rich-text-editor-target': 'tablePanel' }) do |c| %>
+    <% c.trigger(class: 'toolbar-link', data: { action: 'rich-text-editor#openTablePanel' }) do %>
+      <%= render Bali::Icon::Component.new('table') %>
+    <% end %>
+
+    <%= c.item(data: { action: 'rich-text-editor#insertTable' }) { 'Insert Table' } %>
+    <%= c.item(class: 'modifier disabled', data: { action: 'rich-text-editor#addColumnBefore', 'rich-text-editor-target': 'tableModifier' }) { 'Insert Left' } %>
+    <%= c.item(class: 'modifier disabled', data: { action: 'rich-text-editor#addColumnAfter', 'rich-text-editor-target': 'tableModifier' }) { 'Insert Right' } %>
+    <%= c.item(class: 'modifier disabled', data: { action: 'rich-text-editor#addRowBefore', 'rich-text-editor-target': 'tableModifier' }) { 'Insert Above' } %>
+    <%= c.item(class: 'modifier disabled', data: { action: 'rich-text-editor#addRowAfter', 'rich-text-editor-target': 'tableModifier' }) { 'Insert Below' } %>
+    <%= c.item(class: 'modifier disabled', data: { action: 'rich-text-editor#deleteColumn', 'rich-text-editor-target': 'tableModifier' }) { 'Remove Column' } %>
+    <%= c.item(class: 'modifier disabled', data: { action: 'rich-text-editor#deleteRow', 'rich-text-editor-target': 'tableModifier' }) { 'Remove Row' } %>
+  <% end %>
+
+  <a class="toolbar-link mark bold" data-action="rich-text-editor#toggleBold" data-rich-text-editor-target="bold">
+    <%= render Bali::Icon::Component.new('bold') %>
+  </a>
+  <a class="toolbar-link mark italic" data-action="rich-text-editor#toggleItalic" data-rich-text-editor-target="italic">
+    <%= render Bali::Icon::Component.new('italic') %>
+  </a>
+  <a class="toolbar-link mark underline" data-action="rich-text-editor#toggleUnderline" data-rich-text-editor-target="underline">
+    <%= render Bali::Icon::Component.new('underline') %>
+  </a>
+  <a class="toolbar-link mark strike" data-action="rich-text-editor#toggleStrike" data-rich-text-editor-target="strike">
+    <%= render Bali::Icon::Component.new('strikethrough') %>
+  </a>
+<% end %>

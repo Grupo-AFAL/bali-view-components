@@ -3,8 +3,9 @@
 module Bali
   module RichTextEditor
     class Preview < ApplicationViewComponentPreview
-      def default
-        render RichTextEditor::Component.new(content: nil)
+      # @param html_content text
+      def default(html_content: '')
+        render RichTextEditor::Component.new(html_content: html_content, editable: true)
       end
 
       # @param html_content text
