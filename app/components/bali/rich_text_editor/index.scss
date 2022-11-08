@@ -17,6 +17,7 @@ $resize-handle-color: #adf;
   &.input {
     height: unset;
     min-height: 5rem;
+    display: block;
 
     &[data-rich-text-editor-editable-value='false'] {
       border: none;

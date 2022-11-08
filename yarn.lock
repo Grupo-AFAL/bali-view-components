@@ -1264,6 +1264,11 @@
     prosemirror-state "^1.4.1"
     prosemirror-view "^1.28.2"
 
+"@tiptap/extension-text-align@^2.0.0-beta.202":
+  version "2.0.0-beta.202"
+  resolved "https://registry.yarnpkg.com/@tiptap/extension-text-align/-/extension-text-align-2.0.0-beta.202.tgz#37c73e884fb0d9ebe2a519d398b2da52672b7a4b"
+  integrity sha512-cB5SBKRTn730BBwtPQaKfc7uYgI7bGuD1UbsdF8UY93vIsRjdRO4McNlvgfDrb8WrD460PsOOXx18YwX1+3T/Q==
+
 "@tiptap/extension-text@^2.0.0-beta.202":
   version "2.0.0-beta.202"
   resolved "https://registry.yarnpkg.com/@tiptap/extension-text/-/extension-text-2.0.0-beta.202.tgz#d0152f547572a14c4e0e88287acb2b0c311fef04"

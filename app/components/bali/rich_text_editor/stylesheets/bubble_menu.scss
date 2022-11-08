@@ -8,7 +8,7 @@ $menu-dropdown-icon-size: 0.75em;
   border-radius: $menu-border-radius;
   width: fit-content;
 
-  .mark.is-active {
+  .toolbar-link.is-active {
     color: $primary;
 
     path {
@@ -50,7 +50,6 @@ $menu-dropdown-icon-size: 0.75em;
 
   .dropdown-trigger {
     a {
-      height: 2rem;
       width: max-content;
     }
   }
@@ -70,7 +69,7 @@ $menu-dropdown-icon-size: 0.75em;
     color: $black-ter;
     background-color: white;
     border-right: 1px solid $grey-lightest;
-    padding: 0.25rem 0.5rem;
+    padding: 0.25rem 0.25rem;
 
     &,
     &.table {
@@ -78,7 +77,6 @@ $menu-dropdown-icon-size: 0.75em;
     }
 
     &.mark {
-      height: 2rem;
       padding: 0.25rem;
       width: max-content;
     }
@@ -135,6 +133,16 @@ $menu-dropdown-icon-size: 0.75em;
 
     .tabs {
       margin-bottom: 0.5rem;
+
+      ul {
+        list-style: none;
+        margin: 0;
+      }
+
+      li {
+        display: block;
+        padding: 0;
+      }
     }
 
     .page-link {

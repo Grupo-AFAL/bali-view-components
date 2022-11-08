@@ -2,7 +2,10 @@ import { Controller } from '@hotwired/stimulus'
 import { Editor } from '@tiptap/core'
 import throttle from 'lodash.throttle'
 
-import useDefaults, { defaultTargets } from './javascript/useDefaults'
+import useDefaults, {
+  defaultTargets,
+  toolbarExtensions
+} from './javascript/useDefaults'
 import useMarks, { marksTargets, toolbarMarks } from './javascript/useMarks'
 import useTable, { tableTargets } from './javascript/useTable'
 import useLink, { linkTargets } from './javascript/useLink'
@@ -29,7 +32,7 @@ export class RichTextEditorController extends Controller {
     imagesUrl: String
   }
 
-  allMenuButtons = toolbarMarks.concat(toolbarNodes)
+  allMenuButtons = toolbarMarks.concat(toolbarNodes, toolbarExtensions)
 
   connect () {
     const { DefaultExtensions } = useDefaults(this, {
@@ -67,6 +70,7 @@ export class RichTextEditorController extends Controller {
       this.resetMenuButtons()
       this.enableSelectedToolbarMarks()
       this.enableSelectedToolbarNode()
+      this.enableSelectedExtensions()
       this.updateTableModifiers()
     })
   }

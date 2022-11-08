@@ -60,4 +60,14 @@
   <a class="toolbar-link mark strike" data-action="rich-text-editor#toggleStrike" data-rich-text-editor-target="strike">
     <%= render Bali::Icon::Component.new('strikethrough') %>
   </a>
+
+  <a class="toolbar-link" data-action="rich-text-editor#setTextAlignLeft" data-rich-text-editor-target="alignLeft">
+    <%= render Bali::Icon::Component.new('align-left') %>
+  </a>
+  <a class="toolbar-link" data-action="rich-text-editor#setTextAlignCenter" data-rich-text-editor-target="alignCenter">
+    <%= render Bali::Icon::Component.new('align-center') %>
+  </a>
+  <a class="toolbar-link" data-action="rich-text-editor#setTextAlignRight" data-rich-text-editor-target="alignRight">
+    <%= render Bali::Icon::Component.new('align-right') %>
+  </a>
 <% end %>
