@@ -1,0 +1,150 @@
+$menu-border-radius: 0.25rem;
+$menu-dropdown-icon-size: 0.75em;
+
+.rich-text-editor-menu {
+  display: flex;
+  box-shadow: $menu-box-shadow;
+  text-align: center;
+  border-radius: $menu-border-radius;
+  width: fit-content;
+
+  .mark.is-active {
+    color: $primary;
+
+    path {
+      fill: $primary;
+    }
+  }
+
+  .dropdown-icon {
+    .svg-inline {
+      width: $menu-dropdown-icon-size;
+      height: $menu-dropdown-icon-size;
+
+      path {
+        fill: $grey-light;
+      }
+    }
+  }
+
+  .image-grid-component {
+    padding: 0.5rem 1rem;
+    width: 25rem;
+
+    .column {
+      padding: 0.25rem;
+    }
+
+    .card {
+      box-shadow: 0 0 0 1px rgba($black, 0.25);
+
+      &:hover {
+        box-shadow: $selected-shadow;
+      }
+    }
+  }
+
+  .dropdown-menu {
+    min-width: unset;
+  }
+
+  .dropdown-trigger {
+    a {
+      height: 2rem;
+      width: max-content;
+    }
+  }
+
+  > :first-child,
+  > :first-child a {
+    border-radius: $menu-border-radius 0 0 $menu-border-radius;
+  }
+
+  > :last-child {
+    border-radius: 0 $menu-border-radius $menu-border-radius 0;
+    border-right: none;
+  }
+
+  a.toolbar-link {
+    display: inline-block;
+    color: $black-ter;
+    background-color: white;
+    border-right: 1px solid $grey-lightest;
+    padding: 0.25rem 0.5rem;
+
+    &,
+    &.table {
+      margin-bottom: 0;
+    }
+
+    &.mark {
+      height: 2rem;
+      padding: 0.25rem;
+      width: max-content;
+    }
+
+    &.disabled {
+      opacity: 0.2;
+      cursor: not-allowed;
+    }
+
+    &:hover {
+      background-color: $grey-lightest;
+    }
+  }
+
+  .dropdown-item {
+    display: block;
+    border: none;
+    width: 100%;
+    text-align: left;
+    padding: 0.25rem 1rem;
+    margin: 0;
+
+    &.is-active {
+      background-color: $white;
+      color: $black;
+      font-weight: bold;
+      text-decoration: underline;
+    }
+
+    &:hover {
+      background-color: $grey-lightest;
+    }
+  }
+
+  .link-panel {
+    width: 18rem;
+    padding: 0 0.5rem;
+    text-align: left;
+    font-size: $size-7;
+
+    .input {
+      display: inline-block;
+      text-align: left;
+      overflow-wrap: normal;
+      overflow: hidden;
+    }
+
+    [contenteditable='true']:empty:before {
+      color: $grey-light;
+      content: attr(placeholder);
+      pointer-events: none;
+      display: block; /* For Firefox */
+    }
+
+    .tabs {
+      margin-bottom: 0.5rem;
+    }
+
+    .page-link {
+      display: block;
+      border: none;
+    }
+  }
+
+  .page-selection {
+    max-height: 200px;
+    overflow: auto;
+  }
+}

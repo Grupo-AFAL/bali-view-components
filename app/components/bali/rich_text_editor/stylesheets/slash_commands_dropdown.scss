@@ -1,0 +1,16 @@
+$dropdown-width: 12rem;
+
+.slash-commands-dropdown {
+  width: $dropdown-width;
+  border: 1px solid $grey-lightest;
+
+  .dropdown-item {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+
+  .icon {
+    margin-right: 0.5rem;
+  }
+}

@@ -1,0 +1,63 @@
+$menu-box-shadow: 0px 9px 9px rgba($black, 0.2), 0 0 0 1px rgba($black, 0.12);
+$selected-shadow: 0 0 0 3px rgba($primary, 0.5);
+$selected-cell-background-color: rgba(200, 200, 255, 0.4);
+$resize-handle-color: #adf;
+
+@import './stylesheets/content';
+@import './stylesheets/bubble_menu';
+@import './stylesheets/slash_commands_dropdown';
+
+.tippy-box .dropdown-item {
+  &.is-active {
+    background-color: $white-ter;
+  }
+}
+
+.rich-text-editor-component {
+  &.input {
+    height: unset;
+    min-height: 5rem;
+
+    &[data-rich-text-editor-editable-value='false'] {
+      border: none;
+      box-shadow: none;
+      padding: 0;
+    }
+  }
+
+  .ProseMirror {
+    outline: none;
+    min-height: 16rem;
+
+    .is-empty:before {
+      content: attr(data-placeholder);
+      float: left;
+      color: #adb5bd;
+      pointer-events: none;
+      height: 0;
+    }
+
+    img.ProseMirror-selectednode {
+      box-shadow: $selected-shadow;
+    }
+  }
+
+  .tableWrapper {
+    overflow-x: auto;
+
+    blockquote:not(:last-child),
+    dl:not(:last-child),
+    ol:not(:last-child),
+    p:not(:last-child),
+    pre:not(:last-child),
+    table:not(:last-child),
+    ul:not(:last-child) {
+      margin-bottom: 0;
+    }
+  }
+
+  .resize-cursor {
+    cursor: ew-resize;
+    cursor: col-resize;
+  }
+}

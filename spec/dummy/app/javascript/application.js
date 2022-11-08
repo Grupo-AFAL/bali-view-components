@@ -19,6 +19,7 @@ import {
   RateController,
   InteractController,
   RevealController,
+  RichTextEditorController,
   SelectedController,
   SideMenuController,
   SortableListController,
@@ -49,6 +50,7 @@ application.register('radio-buttons-group', RadioButtonsGroupController)
 application.register('rate', RateController)
 application.register('interact', InteractController)
 application.register('reveal', RevealController)
+application.register('rich-text-editor', RichTextEditorController)
 application.register('selected', SelectedController)
 application.register('side-menu', SideMenuController)
 application.register('sortable-list', SortableListController)
