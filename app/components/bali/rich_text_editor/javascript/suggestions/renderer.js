@@ -3,7 +3,7 @@ import PopUpListComponent from './popup_list_component'
 
 export default ({ popUpOptions } = {}) => {
   return () => {
-    let component = new PopUpListComponent(popUpOptions)
+    const component = new PopUpListComponent(popUpOptions)
     let popup
 
     return {

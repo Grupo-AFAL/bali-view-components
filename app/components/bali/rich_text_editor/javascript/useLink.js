@@ -35,7 +35,7 @@ export default (controller, options = {}) => {
     if (event.key !== 'Enter') return
     const url = event.target.innerHTML
 
-    if (url == '') {
+    if (url === '') {
       controller.editor
         .chain()
         .focus()

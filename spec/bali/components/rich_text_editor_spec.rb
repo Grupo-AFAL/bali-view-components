@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe Bali::RichTextEditor::Component, type: :component do
-  let(:options) { {  } }
+  let(:options) { {} }
   let(:component) { Bali::RichTextEditor::Component.new(**options) }
 
   it 'renders richtexteditor component' do

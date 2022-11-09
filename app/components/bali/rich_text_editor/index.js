@@ -85,14 +85,12 @@ export class RichTextEditorController extends Controller {
 
     this.outputTarget.value = editor.getHTML()
   }
+
   throttledUpdate = throttle(this.onUpdate, 1000)
 
   runCommand (name, attributes) {
-    this.editor
-      .chain()
-      .focus()
-      [name](attributes)
-      .run()
+    const editor = this.editor.chain().focus()
+    editor[name](attributes).run()
   }
 
   closeAllPanels () {

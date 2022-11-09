@@ -84,7 +84,6 @@ export default (controller, _options = {}) => {
     HardBreak,
     Heading,
     HorizontalRule,
-    Image,
     ListItem,
     OrderedList,
     Paragraph,
@@ -125,10 +124,10 @@ export default (controller, _options = {}) => {
 
   const enableSelectedToolbarNode = () => {
     toolbarNodes.some(({ target, name, text, attributes }) => {
-      if (!controller.editor.isActive(name, attributes)) return
+      if (!controller.editor.isActive(name, attributes)) return false
 
       const targetNode = controller.targets.find(target)
-      if (!targetNode) return
+      if (!targetNode) return false
 
       if (controller.hasNodeSelectTriggerTarget) {
         controller.nodeSelectTriggerTarget.innerHTML = text
