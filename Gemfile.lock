@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    bali_view_components (0.53.3)
+    bali_view_components (0.54.0)
       rails (>= 7.0.2)
       ransack
       view_component (>= 2.0.0, < 3.0)
@@ -147,7 +147,7 @@ GEM
       net-protocol
     net-protocol (0.1.3)
       timeout
-    net-smtp (0.3.2)
+    net-smtp (0.3.3)
       net-protocol
     nio4r (2.5.8)
     nokogiri (1.13.8-arm64-darwin)
