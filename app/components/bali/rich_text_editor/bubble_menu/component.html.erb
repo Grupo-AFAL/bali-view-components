@@ -31,8 +31,20 @@
           </div>
         <% end %>
       <% end %>
+    </div>
+  <% end %>
+
+  <% if images_url.present? %>
+    <%= render Bali::Dropdown::Component.new(data: { 'rich-text-editor-target': 'imagePanel' }) do |c| %>
+      <% c.trigger(class: 'toolbar-link', data: { action: 'rich-text-editor#toggleImagePanel' }) do %>
+        <div class="is-flex is-align-items-center">
+          <%= render Bali::Icon::Component.new('image') %>
+        </div>
+      <% end %>
+
+      <div data-rich-text-editor-target="imageGrid"></div>
     <% end %>
-  </div>
+  <% end %>
 
   <%= render Bali::Dropdown::Component.new(data: { 'rich-text-editor-target': 'tablePanel' }) do |c| %>
     <% c.trigger(class: 'toolbar-link', data: { action: 'rich-text-editor#openTablePanel' }) do %>

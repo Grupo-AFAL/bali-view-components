@@ -3,12 +3,21 @@
 module Bali
   module RichTextEditor
     class Component < ApplicationViewComponent
-      attr_reader :options
+      attr_reader :html_content, :output_input_name, :images_url, :options
 
-      def initialize(html_content: nil, editable: false, placeholder: nil, **options)
+      def initialize(
+        html_content: nil,
+        output_input_name: nil,
+        editable: false,
+        placeholder: nil,
+        images_url: nil,
+        **options
+      )
         @editable = editable
         @html_content = html_content
         @placeholder = placeholder
+        @output_input_name = output_input_name
+        @images_url = images_url
 
         @options = prepend_class_name(options,
                                       'rich-text-editor-component rich-editor-content input')
@@ -20,7 +29,8 @@ module Bali
         {
           content: @html_content || '',
           editable: @editable,
-          placeholder: @placeholder || 'Start typing...'
+          placeholder: @placeholder || 'Start typing...',
+          images_url: @images_url
         }
       end
 
