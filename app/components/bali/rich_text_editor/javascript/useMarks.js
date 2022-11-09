@@ -5,7 +5,7 @@ import Italic from '@tiptap/extension-italic'
 import Strike from '@tiptap/extension-strike'
 // import Subscript from '@tiptap/extension-subscript'
 // import Superscript from '@tiptap/extension-superscript'
-// import TextStyle from '@tiptap/extension-text-style'
+import TextStyle from '@tiptap/extension-text-style'
 import Underline from '@tiptap/extension-underline'
 
 export const marksTargets = ['bold', 'italic', 'underline', 'strike', 'link']
@@ -18,7 +18,7 @@ export const toolbarMarks = [
 ]
 
 export default (controller, _options = {}) => {
-  const MarkExtensions = [Bold, Code, Italic, Strike, Underline]
+  const MarkExtensions = [Bold, Code, Italic, Strike, Underline, TextStyle]
 
   const toggleBold = () => {
     controller.runCommand('toggleBold')

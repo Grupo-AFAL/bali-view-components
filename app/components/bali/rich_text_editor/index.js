@@ -71,6 +71,7 @@ export class RichTextEditorController extends Controller {
       this.enableSelectedToolbarMarks()
       this.enableSelectedToolbarNode()
       this.enableSelectedExtensions()
+      this.enableSelectedColor()
       this.updateTableModifiers()
     })
   }

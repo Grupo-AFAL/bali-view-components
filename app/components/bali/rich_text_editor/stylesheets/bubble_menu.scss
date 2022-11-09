@@ -155,4 +155,20 @@ $menu-dropdown-icon-size: 0.75em;
     max-height: 200px;
     overflow: auto;
   }
+
+  .color-selector {
+    height: auto;
+    padding: 0.25rem;
+
+    &::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+
+    &::-webkit-color-swatch {
+      padding: 0px;
+      margin: 0px;
+      border: none;
+      border-radius: 0px 0.25rem 0.25rem 0px;
+    }
+  }
 }
