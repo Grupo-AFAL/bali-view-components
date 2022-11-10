@@ -1,0 +1,7 @@
+<%= tag.div(**options) do %>
+  <% if editable? %>
+    <%= render Bali::RichTextEditor::BubbleMenu::Component.new(images_url: images_url) %>
+
+    <input type="hidden" data-rich-text-editor-target="output" value="<%= html_content %>" name="<%= output_input_name %>" />
+  <% end %>
+<% end %>
