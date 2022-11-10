@@ -1,13 +1,3 @@
-import Bold from '@tiptap/extension-bold'
-import Code from '@tiptap/extension-code'
-// import Highlight from '@tiptap/extension-highlight'
-import Italic from '@tiptap/extension-italic'
-import Strike from '@tiptap/extension-strike'
-// import Subscript from '@tiptap/extension-subscript'
-// import Superscript from '@tiptap/extension-superscript'
-import TextStyle from '@tiptap/extension-text-style'
-import Underline from '@tiptap/extension-underline'
-
 export const marksTargets = ['bold', 'italic', 'underline', 'strike', 'link']
 export const toolbarMarks = [
   { target: 'bold', name: 'bold' },
@@ -17,7 +7,17 @@ export const toolbarMarks = [
   { target: 'link', name: 'link' }
 ]
 
-export default (controller, _options = {}) => {
+export default async (controller, _options = {}) => {
+  const { default: Bold } = await import('@tiptap/extension-bold')
+  const { default: Code } = await import('@tiptap/extension-code')
+  // const { default: Highlight } = await import('@tiptap/extension-highlight')
+  const { default: Italic } = await import('@tiptap/extension-italic')
+  const { default: Strike } = await import('@tiptap/extension-strike')
+  // const { default: Subscript } = await import('@tiptap/extension-subscript')
+  // const { default: Superscript } = await import('@tiptap/extension-superscript')
+  const { default: TextStyle } = await import('@tiptap/extension-text-style')
+  const { default: Underline } = await import('@tiptap/extension-underline')
+
   const MarkExtensions = [Bold, Code, Italic, Strike, Underline, TextStyle]
 
   const toggleBold = () => {

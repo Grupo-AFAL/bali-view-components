@@ -1,7 +1,7 @@
-import Mention from '@tiptap/extension-mention'
-import suggestion from './suggestions/pages_options'
+export default async (_controller, _options = {}) => {
+  const { default: Mention } = await import('@tiptap/extension-mention')
+  const { default: suggestion } = await import('./suggestions/pages_options')
 
-export default (_controller, _options = {}) => {
   const MentionExtensions = [
     Mention.configure({
       HTMLAttributes: {

@@ -1,12 +1,3 @@
-import Document from '@tiptap/extension-document'
-import Dropcursor from '@tiptap/extension-dropcursor'
-import Gapcursor from '@tiptap/extension-gapcursor'
-import History from '@tiptap/extension-history'
-import Placeholder from '@tiptap/extension-placeholder'
-import BubbleMenu from '@tiptap/extension-bubble-menu'
-import TextAlign from '@tiptap/extension-text-align'
-import Color from '@tiptap/extension-color'
-
 export const defaultTargets = [
   'bubbleMenu',
   'alignLeft',
@@ -21,7 +12,16 @@ export const toolbarExtensions = [
   { target: 'alignRight', name: { textAlign: 'right' } }
 ]
 
-export default (controller, options = {}) => {
+export default async (controller, options = {}) => {
+  const { default: Document } = await import('@tiptap/extension-document')
+  const { default: Dropcursor } = await import('@tiptap/extension-dropcursor')
+  const { default: Gapcursor } = await import('@tiptap/extension-gapcursor')
+  const { default: History } = await import('@tiptap/extension-history')
+  const { default: Placeholder } = await import('@tiptap/extension-placeholder')
+  const { default: BubbleMenu } = await import('@tiptap/extension-bubble-menu')
+  const { default: TextAlign } = await import('@tiptap/extension-text-align')
+  const { default: Color } = await import('@tiptap/extension-color')
+
   const DefaultExtensions = [
     Color.configure({
       types: ['textStyle']

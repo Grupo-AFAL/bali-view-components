@@ -1,19 +1,3 @@
-import Blockquote from '@tiptap/extension-blockquote'
-import BulletList from '@tiptap/extension-bullet-list'
-import CodeBlock from '@tiptap/extension-code-block'
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
-import HardBreak from '@tiptap/extension-hard-break'
-import Heading from '@tiptap/extension-heading'
-import HorizontalRule from '@tiptap/extension-horizontal-rule'
-import ListItem from '@tiptap/extension-list-item'
-import OrderedList from '@tiptap/extension-ordered-list'
-import Paragraph from '@tiptap/extension-paragraph'
-// import TaskList from '@tiptap/extension-task-list'
-// import TaskItem from '@tiptap/extension-task-item'
-import Text from '@tiptap/extension-text'
-
-import lowlight from './lowlight'
-
 export const nodesTargets = [
   'nodeSelect',
   'nodeSelectTrigger',
@@ -73,7 +57,29 @@ export const toolbarNodes = [
   }
 ]
 
-export default (controller, _options = {}) => {
+export default async (controller, _options = {}) => {
+  const { default: Blockquote } = await import('@tiptap/extension-blockquote')
+  const { default: BulletList } = await import('@tiptap/extension-bullet-list')
+  const { default: CodeBlock } = await import('@tiptap/extension-code-block')
+  const { default: CodeBlockLowlight } = await import(
+    '@tiptap/extension-code-block-lowlight'
+  )
+  const { default: HardBreak } = await import('@tiptap/extension-hard-break')
+  const { default: Heading } = await import('@tiptap/extension-heading')
+  const { default: HorizontalRule } = await import(
+    '@tiptap/extension-horizontal-rule'
+  )
+  const { default: ListItem } = await import('@tiptap/extension-list-item')
+  const { default: OrderedList } = await import(
+    '@tiptap/extension-ordered-list'
+  )
+  const { default: Paragraph } = await import('@tiptap/extension-paragraph')
+  // const { default: TaskList } = await import('@tiptap/extension-task-list')
+  // const { default: TaskItem } = await import('@tiptap/extension-task-item')
+  const { default: Text } = await import('@tiptap/extension-text')
+
+  const { default: lowlight } = await import('./lowlight')
+
   const NodesExtensions = [
     Blockquote,
     BulletList,

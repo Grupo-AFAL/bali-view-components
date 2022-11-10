@@ -1,15 +1,17 @@
-import Table from '@tiptap/extension-table'
-import TableRow from '@tiptap/extension-table-row'
-import TableCell from '@tiptap/extension-table-cell'
-import TableHeader from '@tiptap/extension-table-header'
-
 const defaultOptions = {
   resizable: false
 }
 
 export const tableTargets = ['tablePanel', 'tableModifier']
 
-export default (controller, options = {}) => {
+export default async (controller, options = {}) => {
+  const { default: Table } = await import('@tiptap/extension-table')
+  const { default: TableRow } = await import('@tiptap/extension-table-row')
+  const { default: TableCell } = await import('@tiptap/extension-table-cell')
+  const { default: TableHeader } = await import(
+    '@tiptap/extension-table-header'
+  )
+
   const { resizable } = Object.assign({}, defaultOptions, options)
 
   const TableExtensions = [

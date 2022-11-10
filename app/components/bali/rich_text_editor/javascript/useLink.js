@@ -1,12 +1,12 @@
-import Link from '@tiptap/extension-link'
-
 const defaultOptions = {
   openOnClick: false
 }
 
 export const linkTargets = ['linkPanel', 'linkInput']
 
-export default (controller, options = {}) => {
+export default async (controller, options = {}) => {
+  const { default: Link } = await import('@tiptap/extension-link')
+
   const { openOnClick } = Object.assign({}, defaultOptions, options)
 
   const LinkExtensions = [

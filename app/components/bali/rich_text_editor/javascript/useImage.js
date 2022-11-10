@@ -1,9 +1,10 @@
-import Image from '@tiptap/extension-image'
 import { get } from '@rails/request.js'
 
 export const imageTargets = ['imagePanel', 'imageGrid']
 
-export default (controller, _options = {}) => {
+export default async (controller, _options = {}) => {
+  const { default: Image } = await import('@tiptap/extension-image')
+
   const ImageExtensions = [Image]
 
   const reloadImages = async () => {

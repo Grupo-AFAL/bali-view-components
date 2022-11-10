@@ -1,5 +1,4 @@
 import { Controller } from '@hotwired/stimulus'
-import { Editor } from '@tiptap/core'
 import throttle from 'lodash.throttle'
 
 import useDefaults, {
@@ -34,18 +33,20 @@ export class RichTextEditorController extends Controller {
 
   allMenuButtons = toolbarMarks.concat(toolbarNodes, toolbarExtensions)
 
-  connect () {
-    const { DefaultExtensions } = useDefaults(this, {
+  async connect () {
+    const { Editor } = await import('@tiptap/core')
+
+    const { DefaultExtensions } = await useDefaults(this, {
       placeholder: this.placeholderValue
     })
-    const { NodesExtensions } = useNodes(this)
-    const { MarkExtensions } = useMarks(this)
-    const { TableExtensions } = useTable(this)
-    const { LinkExtensions } = useLink(this)
-    const { MentionExtensions } = useMention(this)
-    const { ImageExtensions } = useImage(this)
+    const { NodesExtensions } = await useNodes(this)
+    const { MarkExtensions } = await useMarks(this)
+    const { TableExtensions } = await useTable(this)
+    const { LinkExtensions } = await useLink(this)
+    const { MentionExtensions } = await useMention(this)
+    const { ImageExtensions } = await useImage(this)
 
-    const { SlashCommandsExtension } = useSlashCommands(this)
+    const { SlashCommandsExtension } = await useSlashCommands(this)
 
     this.editor = new Editor({
       element: this.element,
