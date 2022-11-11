@@ -36,7 +36,8 @@ module Bali
           disable_weekends: options[:disable_weekends],
           min_date: options[:min_date],
           alt_input_class: alt_input_class(method, options),
-          mode: options[:mode]
+          mode: options[:mode],
+          alt_input: options[:alt_input]
         }
 
         if options[:mode] == 'range' && options[:value] && options[:value].respond_to?(:first)

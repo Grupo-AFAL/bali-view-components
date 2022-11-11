@@ -27,7 +27,8 @@ export class DatepickerController extends Controller {
     maxTime: String,
     altInputClass: String,
     period: String,
-    mode: { type: String, default: 'single' }
+    mode: { type: String, default: 'single' },
+    altInput: { type: Boolean, default: true }
   }
 
   async connect () {
@@ -42,7 +43,7 @@ export class DatepickerController extends Controller {
     this.altInputClassValue = `form-control input ${this.altInputClassValue}`
 
     this.flatpickr = flatpickr(input, {
-      altInput: true,
+      altInput: this.altInputValue,
       altFormat: this.altFormat(),
       dateFormat: this.dateFormat(),
       enableTime: this.enableTimeValue,
