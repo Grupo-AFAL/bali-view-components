@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Updated
 
-- Add a parameter to the `datepicker controller' to decide whether or not the alt input should be rendered.
+- Add a parameter to the `datepicker controller` to decide whether or not the alt input should be rendered.
 
 ## [0.54.0] - 2022-11-08
 
