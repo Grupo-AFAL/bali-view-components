@@ -1,8 +1,8 @@
 <%= form_with(model: form, url: url, method: :get, data: form_data, class: 'width-inherit') do |f| %>
   <div class="level filters-component is-mobile width-inherit">
     <div class="level-left width-inherit">
-      <% hidden_attributes.each do |hidden_attribute| %>
-        <%= hidden_attribute %>
+      <% additional_query_params.each do |query_param| %>
+        <%= query_param %>
       <% end %>
 
       <% if text_field.present? %>
