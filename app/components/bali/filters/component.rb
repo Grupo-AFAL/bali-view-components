@@ -16,7 +16,7 @@ module Bali
           multiple: multiple
         )
       end
-    
+
       renders_many :additional_query_params
 
       def initialize(form:, url:, text_field: nil, opened: false, **options)
