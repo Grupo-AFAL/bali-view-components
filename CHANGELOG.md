@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `hidden attributes` to filters component. 
+- `additional query params` to filters component. This helps to add query parameters not related to the form.
 
 ## [0.54.1] - 2022-11-11
 
