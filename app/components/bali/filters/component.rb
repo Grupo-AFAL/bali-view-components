@@ -16,6 +16,8 @@ module Bali
           multiple: multiple
         )
       end
+    
+      renders_many :hidden_attributes
 
       def initialize(form:, url:, text_field: nil, opened: false, **options)
         @form = form
