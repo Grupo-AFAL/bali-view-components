@@ -17,6 +17,8 @@ module Bali
         )
       end
 
+      renders_many :additional_query_params
+
       def initialize(form:, url:, text_field: nil, opened: false, **options)
         @form = form
         @url = url

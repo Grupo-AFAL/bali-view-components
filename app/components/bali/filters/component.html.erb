@@ -1,6 +1,10 @@
 <%= form_with(model: form, url: url, method: :get, data: form_data, class: 'width-inherit') do |f| %>
   <div class="level filters-component is-mobile width-inherit">
     <div class="level-left width-inherit">
+      <% additional_query_params.each do |query_param| %>
+        <%= query_param %>
+      <% end %>
+
       <% if text_field.present? %>
         <div class="level-item width-inherit">
           <%= render Bali::SearchInput::Component.new(form: form, method: text_field, auto_submit: auto_submit_search_input) %>
