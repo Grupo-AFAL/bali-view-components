@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 module Bali
   module RichTextEditor
     module PageHyperlinkOption
       class Component < ApplicationViewComponent
         attr_reader :title, :id, :url, :options
 
-        def initialize(title:, id: , url: , **options)
+        def initialize(title:, id:, url:, **options)
           @title = title
           @id = id
           @url = url
