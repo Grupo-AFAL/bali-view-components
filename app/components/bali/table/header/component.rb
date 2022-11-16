@@ -4,10 +4,13 @@ module Bali
   module Table
     module Header
       class Component < ApplicationViewComponent
-        def initialize(name: nil, form: nil, sort: nil, **options)
+        attr_reader :hidden
+
+        def initialize(name: nil, form: nil, sort: nil, hidden: false, **options)
           @name = name
           @form = form
           @sort_attribute = sort
+          @hidden = hidden
           @options = hyphenize_keys(options)
         end
 
