@@ -30,6 +30,14 @@
                 data-action="keydown->rich-text-editor#saveLinkUrl">
           </div>
         <% end %>
+
+        <% if page_hyperlink_options? %>
+          <%= c.tab(title: 'Pages', active: false) do %>
+            <% page_hyperlink_options.each do |hyperlink| %>
+              <%= hyperlink %>
+            <% end %>
+          <% end %>
+        <% end %>
       <% end %>
     </div>
   <% end %>
