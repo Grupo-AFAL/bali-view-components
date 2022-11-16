@@ -6,6 +6,8 @@ module Bali
       class Component < ApplicationViewComponent
         attr_reader :images_url
 
+        renders_many :page_hyperlink_options, PageHyperlinkOption::Component
+
         def initialize(images_url: nil, **options)
           @images_url = images_url
 

@@ -3,7 +3,7 @@
 module Bali
   module RichTextEditor
     class Component < ApplicationViewComponent
-      attr_reader :html_content, :output_input_name, :images_url, :options
+      attr_reader :html_content, :output_input_name, :images_url, :options, :page_hyperlink_options
 
       def initialize(
         html_content: nil,
@@ -18,6 +18,7 @@ module Bali
         @placeholder = placeholder
         @output_input_name = output_input_name
         @images_url = images_url
+        @page_hyperlink_options = options.delete(:page_hyperlink_options) || []
 
         @options = prepend_class_name(options,
                                       'rich-text-editor-component rich-editor-content input')
