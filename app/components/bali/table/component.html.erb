@@ -3,7 +3,7 @@
     <thead>
       <tr>
         <% headers.each do |header| %>
-          <%= header %>
+          <%= header unless header.hidden %>
         <% end %>
       </tr>
     </thead>
