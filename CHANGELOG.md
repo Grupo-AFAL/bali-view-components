@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `Page Hyperlinks` to `Rich Text Editor`.
 
+## [0.54.3] - 2022-11-15
+
+### Added
+
+- Add option to pass a container class to the `Navbar::Component`
+
 ## [0.54.2] - 2022-11-14
 
 ### Added

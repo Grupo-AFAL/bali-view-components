@@ -1,5 +1,5 @@
 <%= tag.nav(role: 'navigation', 'aria-label': 'Main', **options) do %>
-  <%= '<div class="container">'.html_safe unless fullscreen %>
+  <%= "<div class='container #{@container_class}'>".html_safe unless fullscreen %>
 
   <div class="navbar-brand">
     <%= brand %>

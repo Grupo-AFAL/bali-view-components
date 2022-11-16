@@ -12,6 +12,7 @@ module Bali
       def initialize(transparency: false, fullscreen: false, **options)
         @transparency = transparency.present?
         @fullscreen = fullscreen.present?
+        @container_class = options.delete(:container_class)
 
         @options = prepend_controller(options, 'navbar')
         @options = prepend_class_name(options, 'navbar-component navbar')
