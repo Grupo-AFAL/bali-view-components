@@ -100,6 +100,22 @@ module Bali
           c.tag.p('custom content')
         end
       end
+
+      # Disabled link
+      # --------------
+      # It will omit the href attribute to disable the link
+      #
+      # @param type select [primary, success, danger, warning, info, link]
+      # @param size select [small, normal, medium, large]
+      def disabled(type: :primary, size: :normal)
+        render Bali::Link::Component.new(
+          name: 'Click does not work',
+          href: '/',
+          type: type,
+          class: "is-#{size}",
+          disabled: true
+        )
+      end
     end
   end
 end

@@ -31,6 +31,7 @@ module Bali
                      active: nil,
                      match: :exact,
                      method: nil,
+                     disabled: false,
                      **options)
 
         @name = name
@@ -44,6 +45,12 @@ module Bali
         @method = method
         @options = options
         @options = prepend_class_name(@options, 'link-component')
+
+        if disabled
+          @options[:disabled] = true
+        else
+          @options[:href] = href
+        end
 
         if @active == true || (@active.nil? && active_path?(href, active_path, match: match))
           @options = prepend_class_name(@options, 'is-active')
