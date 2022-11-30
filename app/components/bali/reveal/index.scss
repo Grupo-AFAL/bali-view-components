@@ -2,8 +2,6 @@ $border-thickness: 0.0625rem;
 $border-color: rgba(0, 0, 0, 0.23);
 
 .reveal-component {
-  $title-icon-size: 2rem;
-
   user-select: none;
 
   .reveal-trigger {
@@ -12,12 +10,6 @@ $border-color: rgba(0, 0, 0, 0.23);
     align-items: center;
     padding-bottom: $size-4;
     margin-bottom: $size-4;
-
-    .title-icon {
-      width: $title-icon-size;
-      height: $title-icon-size;
-      margin-right: 0.625rem;
-    }
 
     .trigger-icon {
       height: $size-7;
