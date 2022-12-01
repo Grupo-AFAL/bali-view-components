@@ -1,4 +1,5 @@
 <%= tag.div(**options) do %>
-  <%= tag.div title, class: @title_class %>
-  <%= render Bali::Icon::Component.new('chevron-down', class: @icon_class) %>
+  <%= title %>
+
+  <%= render Bali::Icon::Component.new('chevron-down', class: "trigger-icon #{@icon_class}") %>
 <% end %>

@@ -4,11 +4,11 @@ module Bali
   module Reveal
     module Trigger
       class Component < ApplicationViewComponent
-        attr_reader :title, :options
+        attr_reader :options
 
-        def initialize(title:, show_border: true, **options)
-          @title = title
-          @title_class = options.delete(:title_class)
+        renders_one :title
+
+        def initialize(show_border: true, **options)
           @icon_class = options.delete(:icon_class)
 
           @options = prepend_class_name(options, 'reveal-trigger')
