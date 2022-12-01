@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add `disabled` support for `Link::Component`
 
+## [0.55.2] - 2022-11-30
+
+### Added
+
+- Add ability to display an icon in the trigger of the reveal component.
+
 ## [0.55.1] - 2022-11-16
 
 ### Added
