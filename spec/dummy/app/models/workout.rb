@@ -5,5 +5,7 @@ class Workout < ApplicationRecord
   attribute :workout_start_at, TimeValue.new
   attribute :workout_end_at, TimeValue.new
 
-  validates :name, presence: true
+  validates :name, presence: true, if: :validate_name
+
+  attr_accessor :validate_name
 end

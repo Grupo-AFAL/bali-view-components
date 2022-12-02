@@ -46,7 +46,7 @@ module Bali
         end
 
         def radio_field_group_with_errors
-          model = Workout.new
+          model = Workout.new(validate_name: true)
           model.valid?
 
           render_with_template(
