@@ -8,4 +8,6 @@ class Workout < ApplicationRecord
   validates :name, presence: true, if: :validate_name
 
   attr_accessor :validate_name
+
+  has_many_attached :files
 end

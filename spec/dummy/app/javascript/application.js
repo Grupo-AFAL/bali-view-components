@@ -8,6 +8,7 @@ import {
   ClipboardController,
   DatepickerController,
   DropdownController,
+  FileInputController,
   FilterFormController,
   GanttChartController,
   GanttFoldableItemController,
@@ -39,6 +40,7 @@ application.register('chart', ChartController)
 application.register('clipboard', ClipboardController)
 application.register('datepicker', DatepickerController)
 application.register('dropdown', DropdownController)
+application.register('file-input', FileInputController)
 application.register('filter-form', FilterFormController)
 application.register('gantt-chart', GanttChartController)
 application.register('gantt-foldable-item', GanttFoldableItemController)
