@@ -38,7 +38,9 @@ export class FileInputController extends Controller {
     if (event.target.value.length === 0) {
       fileName = this.nonSelectedTextValue
     } else {
-      fileName = event.target.value.split('\\').pop()
+      fileName = Array.from(event.target.files)
+        .map(f => f.name)
+        .join(', ')
     }
 
     this.valueTarget.innerHTML = fileName

@@ -13,7 +13,8 @@ module Bali
         non_selected_text = options.delete(:non_selected_text) || 'No file selected'
         file_icon_name = options.delete(:icon) || 'upload'
 
-        @template.content_tag(:div, wrapper_options(non_selected_text)) do
+        @template.content_tag(:div,
+                              wrapper_options(non_selected_text, options.delete(:field_class))) do
           @template.content_tag(:label, class: 'file-label') do
             file_field(method, options) +
               file_cta(file_icon_name, choose_file_text) +
@@ -28,9 +29,9 @@ module Bali
 
       private
 
-      def wrapper_options(non_selected_text)
+      def wrapper_options(non_selected_text, class_name)
         {
-          class: 'field file has-name',
+          class: "field file has-name #{class_name}".strip,
           data: {
             controller: 'file-input',
             'file-input-non-selected-text-value': non_selected_text
