@@ -104,7 +104,7 @@ module Bali
           radio_options ||= {}
           radio_options.merge!(html_options)
 
-          label(method, class: label_class, for: [field_name, value].join('_')) do
+          tag.label(class: label_class, for: [field_name, value].join('_')) do
             radio_button(method, value, radio_options.merge(data: data)) + display
           end
         end
