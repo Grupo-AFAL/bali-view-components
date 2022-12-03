@@ -1,6 +1,6 @@
 <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
   <%= form.file_field_group :files, required: 'required', multiple: true,
                          accept: '.jpg, .jpeg, .png, .gif, .pdf',
-                         choose_file_text: 'Seleccionar',
+                         choose_file_text: false,
                          non_selected_text: 'No hay documentos seleccionados' %>
 <% end %>

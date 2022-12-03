@@ -119,6 +119,16 @@
   }
 }
 
+.file-icon.empty-text {
+  margin-right: 0;
+}
+
+.file-label {
+  .field_with_errors {
+    width: auto;
+  }
+}
+
 .radio-buttons-group {
   $togglers-margin-bottom: 1.5rem;
 

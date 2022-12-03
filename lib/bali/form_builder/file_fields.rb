@@ -2,36 +2,55 @@
 
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
+    alias rails_file_field file_field
     module FileFields
       def file_field_group(method, options = {})
-        options.with_defaults!(
-          class: 'file-input',
-          data: { action: 'file-input#onChange' }
-        )
+        @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
+          file_field(method, options)
+        end
+      end
 
-        choose_file_text = options.delete(:choose_file_text) || 'Choose file'
-        non_selected_text = options.delete(:non_selected_text) || 'No file selected'
+      def file_field(method, options = {})
+        field_helper(
+          method,
+          custom_file_field(method, field_options(method, options)),
+          options
+        )
+      end
+
+      private
+
+      def custom_file_field(method, options = {})
+        options = prepend_class_name(options, 'file-input')
+        options = prepend_action(options, 'file-input#onChange')
+
+        choose_file_text = if options.key?(:choose_file_text)
+                             options.delete(:choose_file_text)
+                           else
+                             'Choose file'
+                           end
+
+        non_selected_text = if options.key?(:non_selected_text)
+                              options.delete(:non_selected_text)
+                            else
+                              'No file selected'
+                            end
+
+        file_class = options.delete(:file_class)
         file_icon_name = options.delete(:icon) || 'upload'
 
-        @template.content_tag(:div,
-                              wrapper_options(non_selected_text, options.delete(:field_class))) do
+        @template.content_tag(:div, wrapper_options(non_selected_text, file_class)) do
           @template.content_tag(:label, class: 'file-label') do
-            file_field(method, options) +
+            rails_file_field(method, options) +
               file_cta(file_icon_name, choose_file_text) +
               filename(non_selected_text)
           end
         end
       end
 
-      def file_field(method, options = {})
-        field_helper(method, super(method, field_options(method, options)), options)
-      end
-
-      private
-
-      def wrapper_options(non_selected_text, class_name)
+      def wrapper_options(non_selected_text, file_class)
         {
-          class: "field file has-name #{class_name}".strip,
+          class: "file has-name #{file_class}".strip,
           data: {
             controller: 'file-input',
             'file-input-non-selected-text-value': non_selected_text
@@ -46,12 +65,18 @@ module Bali
       end
 
       def file_cta(file_icon_name, choose_file_text)
+        icon_class = class_names('file-icon', 'empty-text': !choose_file_text)
+
         @template.content_tag(:span, class: 'file-cta') do
-          file_icon = @template.content_tag(:span, class: 'file-icon') do
+          file_icon = @template.content_tag(:span, class: icon_class) do
             @template.render(Bali::Icon::Component.new(file_icon_name))
           end
 
-          file_label = @template.content_tag(:span, choose_file_text, class: 'file-label')
+          file_label = if choose_file_text == false
+                         ''
+                       else
+                         @template.content_tag(:span, choose_file_text, class: 'file-label')
+                       end
 
           file_icon + file_label
         end
