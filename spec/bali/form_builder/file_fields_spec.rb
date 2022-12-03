@@ -8,9 +8,9 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
   describe '#file_field_group' do
     let(:file_field_group) { builder.file_field_group(:cover_photo) }
 
-    it 'renders a field with a file-input controller' do
+    it 'renders a div with a file-input controller' do
       expect(file_field_group).to have_css(
-        'div.field[data-controller="file-input"]' \
+        'div.file[data-controller="file-input"]' \
         '[data-file-input-non-selected-text-value="No file selected"]'
       )
     end
