@@ -3,8 +3,9 @@
 module Bali
   module Level
     class Preview < ApplicationViewComponentPreview
-      def default
-        render Bali::Level::Component.new do |c|
+      # @param align select [top, center, bottom]
+      def default(align: :center)
+        render Bali::Level::Component.new(align: align) do |c|
           c.left do |l|
             l.item(text: 'Item 1')
             l.item(text: 'Item 2')
