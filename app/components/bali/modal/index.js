@@ -195,6 +195,7 @@ export class ModalController extends Controller {
 
     let redirected = false
     let redirectURL = null
+    let responseOk = null
     const redirectData = this.extraProps || {}
 
     fetch(url, options)
@@ -207,13 +208,13 @@ export class ModalController extends Controller {
           redirectData[key] = value
         })
 
+        responseOk = response.ok
         return response.text()
       })
       .then(responseText => {
+        const event = new CustomEvent('modal:success', { detail: redirectData })
+
         if (redirected) {
-          const event = new CustomEvent('modal:success', {
-            detail: redirectData
-          })
           document.dispatchEvent(event)
 
           if (this.skipRender) {
@@ -222,6 +223,8 @@ export class ModalController extends Controller {
             this._replaceBodyAndURL(responseText, redirectURL)
           }
         } else {
+          if (responseOk) { document.dispatchEvent(event) }
+
           this.openModal(responseText)
         }
       })
