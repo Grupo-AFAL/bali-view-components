@@ -19,7 +19,7 @@ import { autoFocusInput } from '../../../javascript/bali/utils/form'
 export class ModalController extends Controller {
   static targets = ['template', 'background', 'wrapper', 'content', 'closeBtn']
 
-  async connect () {
+  async connect() {
     this.setupListeners('openModal')
   }
 
@@ -41,7 +41,7 @@ export class ModalController extends Controller {
     document.addEventListener(eventName, this.setOptionsAndOpenModal)
   }
 
-  disconnect () {
+  disconnect() {
     this.removeListeners('openModal')
   }
 
@@ -57,13 +57,13 @@ export class ModalController extends Controller {
     document.removeEventListener(eventName, this.setOptionsAndOpenModal)
   }
 
-  templateTargetConnected () {
+  templateTargetConnected() {
     if (!this.hasBackgroundTarget) return
 
     this.backgroundTarget.addEventListener('click', this._closeModal)
   }
 
-  templateTargetDisconnected () {
+  templateTargetDisconnected() {
     if (!this.hasBackgroundTarget) return
 
     this.backgroundTarget.removeEventListener('click', this._closeModal)
@@ -74,7 +74,7 @@ export class ModalController extends Controller {
     this.openModal(event.detail.content)
   }
 
-  openModal (content) {
+  openModal(content) {
     this.wrapperTarget.classList.add(...this.wrapperClasses)
 
     this.templateTarget.classList.add('is-active')
@@ -83,7 +83,7 @@ export class ModalController extends Controller {
     autoFocusInput(this.contentTarget)
   }
 
-  setOptions (options) {
+  setOptions(options) {
     const keys = Object.keys(options)
     keys.forEach((key, _i) => {
       this[key] = options[key]
@@ -173,6 +173,7 @@ export class ModalController extends Controller {
     const form = event.target.closest('form')
     const formURL = form.getAttribute('action')
     const enableTurbo = event.target.dataset.turbo || form.dataset.turbo
+    const nativeBridgeMessage = form.dataset.nativeBridgeMessage
 
     const url = this._buildURL(formURL, this.redirectTo)
     const options = {
@@ -195,6 +196,7 @@ export class ModalController extends Controller {
 
     let redirected = false
     let redirectURL = null
+    let responseOk = true
     const redirectData = this.extraProps || {}
 
     fetch(url, options)
@@ -207,6 +209,7 @@ export class ModalController extends Controller {
           redirectData[key] = value
         })
 
+        responseOk = response.ok
         return response.text()
       })
       .then(responseText => {
@@ -222,14 +225,26 @@ export class ModalController extends Controller {
             this._replaceBodyAndURL(responseText, redirectURL)
           }
         } else {
+          if (responseOk) { this.sendTurboNativeBridgeMessage(nativeBridgeMessage) }
+
           this.openModal(responseText)
         }
       })
   }
 
-  normalizeClass (classes) {
+  sendTurboNativeBridgeMessage(message) {
+    if (!(this._isTurboNativeApp && message)) return
+
+    window.TurboNativeBridge.postMessage(message) 
+  }
+
+  normalizeClass(classes) {
     if (!classes) return []
 
     return classes.split(' ')
+  }
+
+  get _isTurboNativeApp () {
+    return navigator.userAgent.indexOf('Turbo Native') !== -1
   }
 }
