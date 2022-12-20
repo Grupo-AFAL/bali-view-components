@@ -17,6 +17,7 @@ import debounce from 'lodash.debounce'
  * Optionally you can specify the method and responseKind as values to the controller.
  */
 export class SubmitOnChangeController extends Controller {
+  static targets = ['submitter']
   static values = { delay: Number }
 
   connect () {
@@ -26,6 +27,10 @@ export class SubmitOnChangeController extends Controller {
   }
 
   async submit () {
-    this.element.requestSubmit()
+    if (this.hasSubmitterTarget) {
+      this.element.requestSubmit(this.submitterTarget)
+    } else {
+      this.element.requestSubmit()
+    }
   }
 }
