@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    bali_view_components (0.56.1)
+    bali_view_components (0.56.2)
       rails (>= 7.0.2)
       ransack
       view_component (>= 2.0.0, < 3.0)
@@ -145,7 +145,7 @@ GEM
     method_source (1.0.0)
     mini_mime (1.1.2)
     minitest (5.16.3)
-    net-imap (0.3.2)
+    net-imap (0.3.3)
       date
       net-protocol
     net-pop (0.1.2)
