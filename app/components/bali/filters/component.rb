@@ -49,7 +49,11 @@ module Bali
           }
         end
 
-        { controller: 'filter-form', 'filter-form-text-field-value': text_field }
+        {
+          controller: 'filter-form',
+          'filter-form-text-field-value': text_field,
+          turbo_stream: true
+        }
       end
 
       private
