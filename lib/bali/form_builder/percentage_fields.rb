@@ -8,10 +8,11 @@ module Bali
           placeholder: 0,
           addon_right: tag.span('%', class: 'button is-static'),
           step: '0.01',
+          pattern_type: :number_with_commas
         )
 
         @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
-          number_field(method, options)
+          text_field(method, options)
         end
       end
     end
