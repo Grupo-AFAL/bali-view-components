@@ -9,20 +9,24 @@ module Bali
 
       class_methods do
         def percentage_attribute(name)
-          numeric_attribute_with_commas(name)
+          define_numeric_attribute_setter(name)
+          define_numeric_attribute_getter(name)
         end
 
         def currency_attribute(name)
-          numeric_attribute_with_commas(name)
+          define_numeric_attribute_setter(name)
+          define_numeric_attribute_getter(name)
         end
 
-        def numeric_attribute_with_commas(name)
+        def define_numeric_attribute_setter(name)
           define_method name do
             return read_attribute(name.to_sym) if respond_to?(:read_attribute)
 
             instance_variable_get("@#{name}")
           end
+        end
 
+        def define_numeric_attribute_getter(name)
           define_method "#{name}=" do |value|
             value = value.gsub(',', '').to_d if value.is_a?(String)
 
