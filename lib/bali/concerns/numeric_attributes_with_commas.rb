@@ -20,7 +20,7 @@ module Bali
           end
 
           define_method "#{name}=" do |value|
-            value = value.gsub(',', '') if value.is_a?(String)
+            value = value.gsub(',', '').to_d if value.is_a?(String)
 
             write_attribute(name.to_sym, value)
           end
