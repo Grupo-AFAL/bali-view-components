@@ -18,13 +18,19 @@ module Bali
 
         def numeric_attribute_with_commas(name)
           define_method name do
-            read_attribute(name.to_sym)
+            return read_attribute(name.to_sym) if respond_to?(:read_attribute)
+              
+            instance_variable_get("@#{name}")
           end
 
           define_method "#{name}=" do |value|
             value = value.gsub(',', '').to_d if value.is_a?(String)
 
-            write_attribute(name.to_sym, value)
+            if respond_to?(:write_attribute)
+              write_attribute(name.to_sym, value)
+            else
+              instance_variable_set("@#{name}", value)
+            end
           end
         end
       end
