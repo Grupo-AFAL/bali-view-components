@@ -19,7 +19,7 @@ module Bali
         def numeric_attribute_with_commas(name)
           define_method name do
             return read_attribute(name.to_sym) if respond_to?(:read_attribute)
-              
+
             instance_variable_get("@#{name}")
           end
 
