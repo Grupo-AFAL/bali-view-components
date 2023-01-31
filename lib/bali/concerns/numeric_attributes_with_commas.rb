@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Bali
   module Concerns
     module NumericAttributesWithCommas
@@ -14,13 +16,13 @@ module Bali
 
         def numeric_attribute_with_commas(name)
           define_method name do
-            self.read_attribute(name.to_sym)
+            read_attribute(name.to_sym)
           end
-  
+
           define_method "#{name}=" do |value|
             value = value.gsub(',', '') if value.is_a?(String)
 
-            self.write_attribute(name.to_sym, value)
+            write_attribute(name.to_sym, value)
           end
         end
       end
