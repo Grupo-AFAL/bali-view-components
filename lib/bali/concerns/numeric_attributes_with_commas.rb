@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Complements the `percentage_field_group` and `currency_field_group` methods 
+# Complements the `percentage_field_group` and `currency_field_group` methods
 # by removing the `commas` before saving the value to the DB.
 module Bali
   module Concerns
