@@ -129,6 +129,32 @@
   }
 }
 
+.file.is-boxed {
+  &.is-fullwidth {
+    .file-label {
+      text-align: center;
+    }
+  }
+
+  .file-name {
+    height: unset;
+    max-width: unset;
+
+    ul {
+      margin: 0;
+    }
+
+    li {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    a {
+      margin-left: 1em;
+    }
+  }
+}
+
 .radio-buttons-group {
   $togglers-margin-bottom: 1.5rem;
 

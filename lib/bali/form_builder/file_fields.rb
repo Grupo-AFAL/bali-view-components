@@ -21,25 +21,22 @@ module Bali
       private
 
       def custom_file_field(method, options = {})
+        options.with_defaults!({
+                                 choose_file_text: 'Choose file',
+                                 non_selected_text: 'No file selected',
+                                 icon: 'upload',
+                                 multiple: false
+                               })
+
         options = prepend_class_name(options, 'file-input')
         options = prepend_action(options, 'file-input#onChange')
+        options = prepend_data_attribute(options, :file_input_target, :input)
 
-        choose_file_text = if options.key?(:choose_file_text)
-                             options.delete(:choose_file_text)
-                           else
-                             'Choose file'
-                           end
+        choose_file_text = options.delete(:choose_file_text)
+        non_selected_text = options.delete(:non_selected_text)
+        file_icon_name = options.delete(:icon)
 
-        non_selected_text = if options.key?(:non_selected_text)
-                              options.delete(:non_selected_text)
-                            else
-                              'No file selected'
-                            end
-
-        file_class = options.delete(:file_class)
-        file_icon_name = options.delete(:icon) || 'upload'
-
-        @template.content_tag(:div, wrapper_options(non_selected_text, file_class)) do
+        @template.content_tag(:div, wrapper_options(non_selected_text, options)) do
           @template.content_tag(:label, class: 'file-label') do
             rails_file_field(method, options) +
               file_cta(file_icon_name, choose_file_text) +
@@ -48,12 +45,15 @@ module Bali
         end
       end
 
-      def wrapper_options(non_selected_text, file_class)
+      def wrapper_options(non_selected_text, options)
+        file_class = options.delete(:file_class)
+
         {
-          class: "file has-name #{file_class}".strip,
+          class: class_names("file has-name #{file_class}".strip, 'is-boxed' => options[:multiple]),
           data: {
             controller: 'file-input',
-            'file-input-non-selected-text-value': non_selected_text
+            file_input_non_selected_text_value: non_selected_text,
+            file_input_multiple_value: options[:multiple]
           }
         }
       end
