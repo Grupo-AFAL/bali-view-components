@@ -34,6 +34,13 @@ module Bali
             locals: { model: form_record }
           )
         end
+
+        def multiple
+          render_with_template(
+            template: 'bali/form/file/previews/multiple',
+            locals: { model: form_record }
+          )
+        end
       end
     end
   end
