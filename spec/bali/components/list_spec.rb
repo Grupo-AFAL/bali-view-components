@@ -32,7 +32,7 @@ RSpec.describe Bali::List::Component, type: :component do
   it 'renders list item actions' do
     render_inline(component) do |c|
       c.item do |i|
-        i.actions do
+        i.action do
           c.tag.a('Link 1', href: '/link-1')
         end
       end
