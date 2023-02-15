@@ -14,7 +14,7 @@ module Bali
           tag.div(text || block.call, **prepend_class_name(options, 'subtitle is-7'))
         end
 
-        renders_one :actions
+        renders_many :actions
 
         def initialize(**options)
           @options = prepend_class_name(options, 'list-item-component')

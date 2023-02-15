@@ -29,7 +29,7 @@ module Bali
           c.item do |i|
             i.title('Primer elemento')
             i.subtitle('Descripción primer elemento')
-            i.actions do
+            i.action do
               c.render(Bali::Icon::Component.new('trash'))
             end
           end
@@ -37,9 +37,33 @@ module Bali
           c.item do |i|
             i.title('segundo elemento')
             i.subtitle('Descripción segundo elemento')
-            i.actions do
+            i.action do
               c.render(Bali::Icon::Component.new('trash'))
             end
+          end
+        end
+      end
+
+      def with_content
+        render List::Component.new do |c|
+          c.item do |i|
+            i.title('Primer elemento')
+            i.subtitle('Descripción primer elemento')
+            i.action do
+              c.render(Bali::Icon::Component.new('trash'))
+            end
+
+            tag.p('Aditional content')
+          end
+
+          c.item do |i|
+            i.title('segundo elemento')
+            i.subtitle('Descripción segundo elemento')
+            i.action do
+              c.render(Bali::Icon::Component.new('trash'))
+            end
+
+            tag.p('Aditional content')
           end
         end
       end
