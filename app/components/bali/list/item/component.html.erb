@@ -9,9 +9,17 @@
     <% end %>
   </div>
 
+  <% if content.present? %>
+    <div class="item-contents">
+      <%= content %>
+    </div>
+  <% end %>
+
   <% if actions? %>
     <div class="item-actions">
-      <%= actions %>
+      <% actions.each do |action| %>
+        <%= action %>
+      <% end %>
     </div>
   <% end %>
 <% end %>
