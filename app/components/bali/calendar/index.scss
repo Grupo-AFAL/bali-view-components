@@ -15,6 +15,10 @@ $grey-darker-alpha: hsla(224, 28%, 19%, 0.4);
   .day {
     position: relative;
     width: $w-100;
+
+    .hover-card-component {
+      width: unset;
+    }
   }
 
   .today {
