@@ -1,0 +1,19 @@
+.exchangeable-icons-component {
+  .main-icon {
+    display: inline-flex;
+  }
+
+  .secondary-icon {
+    display: none;
+  }
+
+  &:hover {
+    .main-icon {
+      display: none;
+    }
+
+    .secondary-icon {
+      display: inline-flex;
+    }
+  }
+}
