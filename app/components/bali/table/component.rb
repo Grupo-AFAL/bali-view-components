@@ -18,11 +18,14 @@ module Bali
       renders_one :no_records_notification
       renders_one :no_results_notification
 
-      attr_reader :form, :options, :tbody_options
+      attr_reader :form, :options, :tbody_options, :table_container_options
 
       def initialize(form: nil, **options)
         @form = form
         @tbody_options = hyphenize_keys((options.delete(:tbody) || {}))
+        @table_container_options = prepend_class_name(
+          options.delete(:table_container) || {}, 'table-container table-component'
+        )
         @options = prepend_class_name(hyphenize_keys(options), 'table is-fullwidth')
       end
 
