@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Bali
-  module ExchangeableIcons
+  module SwappableIcons
     class Component < ApplicationViewComponent
       attr_reader :options
 

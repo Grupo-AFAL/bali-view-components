@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 module Bali
-  module ExchangeableIcons
+  module SwappableIcons
     class Preview < ApplicationViewComponentPreview
       def default
-        render Bali::ExchangeableIcons::Component.new do |c|
+        render Bali::SwappableIcons::Component.new do |c|
           c.main_icon('handle')
           c.secondary_icon('handle-alt')
         end
