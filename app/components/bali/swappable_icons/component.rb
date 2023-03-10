@@ -13,7 +13,7 @@ module Bali
       end
 
       def initialize(**options)
-        @options = prepend_class_name(options, 'exchangeable-icons-component')
+        @options = prepend_class_name(options, 'swappable-icons-component')
       end
     end
   end
