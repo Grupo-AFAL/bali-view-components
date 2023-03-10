@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `handle_alt` icon.
+- `Bali::ExchangeableIcons::Component`. This component allows icons to be swapped on hover.
 
 ## [0.58.2] - 2023-02-20
 
