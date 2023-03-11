@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.59.0] - 2023-03-11
+
+### Added
+
+- Added a `readonly` option for the `Rate::Component` for display only purposes.
+
+### Changed
+
+- Add bottom-margin to `ActionsDropddown::Component` when placed inside a `.buttons` element to align with other buttons.
+
 ## [0.58.2] - 2023-02-20
 
 ### Changed
