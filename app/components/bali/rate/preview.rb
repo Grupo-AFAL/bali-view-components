@@ -34,6 +34,20 @@ module Bali
         )
       end
 
+      # Readonly for display purposes
+      # --------------
+      # Renders stars only
+      # @param value [Integer] select [1, 2, 3, 4, 5]
+      # @param size select [small, medium, large]
+      def readonly(value: 1, size: :medium)
+        render Rate::Component.new(
+          value: value,
+          scale: 1..5,
+          size: size,
+          readonly: true
+        )
+      end
+
       private
 
       def form_builder

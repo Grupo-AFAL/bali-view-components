@@ -7,6 +7,8 @@
                      class: 'star',
                      type: 'submit',
                      title: "Review Star #{rate}" %>
+    <% elsif readonly? %>
+      <%= star_icon(rate) %>
     <% else %>
       <%= tag.label for: star_dom_id(rate), class: 'radio' do %>
         <%= form.radio_button method, rate, **@radio_options, id: star_dom_id(rate) %>
