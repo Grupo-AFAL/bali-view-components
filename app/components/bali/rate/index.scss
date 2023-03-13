@@ -8,6 +8,30 @@ $icon-stroke-width: 30;
     display: none;
   }
 
+  .radio + .radio {
+    margin-left: 0;
+  }
+
+  .icon {
+    &.is-small {
+      margin-right: 0.25rem;
+    }
+
+    &.is-medium {
+      margin-right: 0.5rem;
+    }
+
+    &.is-large {
+      margin-right: 0.75rem;
+    }
+  }
+
+  label:last-child .icon,
+  button:last-child .icon,
+  & > .icon:last-child {
+    margin-right: 0;
+  }
+
   .icon path {
     fill: $white;
     stroke: darken($yellow, 20%);
@@ -23,10 +47,5 @@ $icon-stroke-width: 30;
     background: none;
     cursor: pointer;
     padding: 0;
-    margin-left: 0.5rem;
-
-    &:first-child {
-      margin-left: 0;
-    }
   }
 }
