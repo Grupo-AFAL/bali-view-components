@@ -1,0 +1,17 @@
+.table-container.is-sticky-headers {
+  $sticky-headers-background: $white;
+
+  overflow: unset;
+  overflow-y: unset;
+  overflow-x: unset;
+
+  table {
+    overflow-x: auto;
+
+    thead tr {
+      position: sticky;
+      top: $navbar-height;
+      background: $sticky-headers-background;
+    }
+  }
+}
