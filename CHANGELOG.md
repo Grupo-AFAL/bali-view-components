@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.60.0] - 2023-03-13
+
+### Changed
+
+- `TimeValue`now returns a `Time` object when retrieved from DB to be able to format it.
+- `time_field_group` is updated to handle a `Time` value instead of a `String`
+
 ## [0.59.1] - 2023-03-11
 
 ### Fixed
