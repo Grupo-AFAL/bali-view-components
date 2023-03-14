@@ -7,7 +7,7 @@ module Bali
 
       renders_one :header
 
-      def initialize(title: nil, size: :medium, color: :primary, **options)
+      def initialize(title: nil, size: :regular, color: :primary, **options)
         @title = title
         @options = prepend_class_name(options, 'message message-component')
         @options = prepend_class_name(options, "is-#{size} is-#{color}")
