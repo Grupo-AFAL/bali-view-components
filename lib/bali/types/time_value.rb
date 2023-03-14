@@ -27,7 +27,7 @@ module Bali
       end
 
       def time_string_to_seconds(value)
-        hours, minutes, seconds = value.scan(/\d+:\d+:\d+/)[0].split(':')
+        hours, minutes, seconds = value.match(/\d+:\d+(:\d+)?/)[0].split(':')
         (hours.to_i * 3600) + (minutes.to_i * 60) + seconds.to_i
       end
 

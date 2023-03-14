@@ -24,8 +24,13 @@ RSpec.describe Bali::Types::TimeValue do
     end
 
     it 'returns value if is a date string' do
-      date_string = Time.zone.parse("#{Date.current} 00:00:00")
-      expect(subject.cast(date_string)).to eql(date_string)
+      date_string = "#{Date.current} 00:00:00"
+      expect(subject.cast(date_string)).to eql(Time.zone.parse(date_string))
+    end
+
+    it 'handles datetimes without seconds' do
+      date_string = "#{Date.current} 00:00"
+      expect(subject.cast(date_string)).to eql(Time.zone.parse(date_string))
     end
 
     it 'converts a integer to a date string' do
