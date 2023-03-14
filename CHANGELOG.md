@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `TimeValue`now returns a `Time` object when retrieved from DB to be able to format it.
 - `time_field_group` is updated to handle a `Time` value instead of a `String`
 
+## [0.59.2] - 2023-03-10
+
+### Added
+
+- Added sticky headers for table component.
+
 ## [0.59.1] - 2023-03-11
 
 ### Fixed
