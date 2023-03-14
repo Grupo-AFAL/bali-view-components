@@ -6,7 +6,7 @@ RSpec.describe Bali::Types::TimeValue do
   describe 'integration with a model' do
     it 'casts a time value from integer to a date string' do
       workout = Workout.new(workout_start_at: 3600)
-      expect(workout.workout_start_at).to eql("#{Date.current} 01:00:00")
+      expect(workout.workout_start_at).to eql(Time.zone.parse("#{Date.current} 01:00:00"))
     end
 
     it 'serializes a date string to a number in seconds' do
@@ -19,19 +19,19 @@ RSpec.describe Bali::Types::TimeValue do
   subject { Bali::Types::TimeValue.new }
 
   describe '#cast' do
-    it 'return a default time if value is blank' do
-      expect(subject.cast('')).to eql("#{Date.current} 00:00:00")
+    it 'returns nil if value is blank' do
+      expect(subject.cast('')).to be_nil
     end
 
     it 'returns value if is a date string' do
-      date_string = "#{Date.current} 00:00:00"
+      date_string = Time.zone.parse("#{Date.current} 00:00:00")
       expect(subject.cast(date_string)).to eql(date_string)
     end
 
     it 'converts a integer to a date string' do
-      expect(subject.cast(3_600)).to eql("#{Date.current} 01:00:00")
-      expect(subject.cast(3_661)).to eql("#{Date.current} 01:01:01")
-      expect(subject.cast(36_610)).to eql("#{Date.current} 10:10:10")
+      expect(subject.cast(3_600)).to eql(Time.zone.parse("#{Date.current} 01:00:00"))
+      expect(subject.cast(3_661)).to eql(Time.zone.parse("#{Date.current} 01:01:01"))
+      expect(subject.cast(36_610)).to eql(Time.zone.parse("#{Date.current} 10:10:10"))
     end
   end
 
@@ -48,6 +48,12 @@ RSpec.describe Bali::Types::TimeValue do
       expect(subject.serialize("#{Date.current} 01:00:00")).to eql(3_600)
       expect(subject.serialize("#{Date.current} 01:01:01")).to eql(3_661)
       expect(subject.serialize("#{Date.current} 10:10:10")).to eql(36_610)
+    end
+
+    it 'converts a Time object to an integer' do
+      expect(subject.serialize(Time.zone.parse("#{Date.current} 01:00:00"))).to eql(3_600)
+      expect(subject.serialize(Time.zone.parse("#{Date.current} 01:01:01"))).to eql(3_661)
+      expect(subject.serialize(Time.zone.parse("#{Date.current} 10:10:10"))).to eql(36_610)
     end
   end
 end

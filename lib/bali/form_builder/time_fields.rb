@@ -21,10 +21,11 @@ module Bali
         datepicker_max_time(options)
 
         value = object.send(method)
+        value = value.strftime('%Y-%m-%d %H:%M:%S') if value.respond_to?(:strftime)
 
         # Adds a date if already doesn't include one (it will detect the date by an empty space),
         # so that the time_field_group can display its time value correctly
-        options[:value] = [Date.current, value].join(' ') unless value.include?(' ')
+        options[:value] = [Date.current, value].join(' ') if value&.exclude?(' ')
 
         date_field(method, options)
       end
