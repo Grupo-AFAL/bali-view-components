@@ -1,0 +1,15 @@
+<%= tag.div(**options) do %>
+  <% if title.present? %>
+    <div class="message-header">
+      <p><%= title %></p>
+    </div>
+  <% elsif header? %>
+    <div class="message-header">
+      <%= header %>
+    </div>
+  <% end %>
+
+  <div class="message-body">
+    <%= content %>
+  </div>
+<% end %>
