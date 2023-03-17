@@ -13,7 +13,7 @@ export class ChartController extends Controller {
     labels: Array
   }
 
-  connect() {
+  connect () {
     const element = this.hasCanvasTarget ? this.canvasTarget : this.element
     const options = this.optionsValue || {}
 
@@ -28,12 +28,12 @@ export class ChartController extends Controller {
     })
   }
 
-  disconnect() {
+  disconnect () {
     this.chart.destroy()
     this.chart = undefined
   }
 
-  get chartData() {
+  get chartData () {
     if (!this.hasDataValue) {
       console.warn('[stimulus-chartjs] You need to pass data as JSON to see the chart.')
     }
