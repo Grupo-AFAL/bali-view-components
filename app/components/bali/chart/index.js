@@ -9,12 +9,13 @@ export class ChartController extends Controller {
       default: 'line'
     },
     data: Object,
-    options: Object
+    options: Object,
+    labels: Array
   }
 
   connect() {
     const element = this.hasCanvasTarget ? this.canvasTarget : this.element
-    let options = this.optionsValue || {}
+    const options = this.optionsValue || {}
 
     this.addPrefixAndSuffixToAxisLabel(options)
     this.addPrefixAndSuffixToTooltipLabel(options)
@@ -23,7 +24,7 @@ export class ChartController extends Controller {
     this.chart = new Chart(element.getContext('2d'), {
       type: this.typeValue,
       data: this.chartData,
-      options: options
+      options
     })
   }
 
@@ -48,8 +49,8 @@ export class ChartController extends Controller {
         const suffix = options.scales[scale].label.suffix
         const prefix = options.scales[scale].label.prefix
 
-        options.scales[scale]['ticks'] ||= {}
-        options.scales[scale].ticks['callback'] = (value, index, ticks) => {
+        options.scales[scale].ticks ||= {}
+        options.scales[scale].ticks.callback = (value, index, ticks) => {
           return `${prefix || ''} ${value} ${suffix || ''}`.trim()
         }
       }
@@ -69,7 +70,7 @@ export class ChartController extends Controller {
       if (label) {
         label += ':'
       }
-      return `${label} ${prefix || ''} ${context.parsed.y} ${suffix || ''}`.trim();
+      return `${label} ${prefix || ''} ${context.parsed.y} ${suffix || ''}`.trim()
     }
   }
 
@@ -79,7 +80,7 @@ export class ChartController extends Controller {
     options.plugins.tooltip.callbacks ||= {}
 
     options.plugins.tooltip.callbacks.title = (context) => {
-      return this.dataValue.labels[context[0].dataIndex]
+      return this.labelsValue[context[0].dataIndex]
     }
   }
 }
