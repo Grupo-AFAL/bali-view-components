@@ -7,8 +7,7 @@
           controller: 'chart', 
           'chart-type-value': type.first,
           'chart-data-value': { labels: labels, datasets: datasets }.to_json,
-          'chart-options-value': options.to_json,
-          'chart-tooltip-labels-value': labels.to_json }
+          'chart-options-value': options.to_json }
     ) do %>
       <%= t('.loading') %>
     <% end %>

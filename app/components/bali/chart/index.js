@@ -9,8 +9,7 @@ export class ChartController extends Controller {
       default: 'line'
     },
     data: Object,
-    options: Object,
-    tooltipLabels: Array
+    options: Object
   }
 
   connect() {
@@ -83,7 +82,7 @@ export class ChartController extends Controller {
       let contextData = context[0]
       let label = contextData.label
 
-      if (this.tooltipLabelsValue && this.tooltipLabelsValue[contextData.dataIndex]) {
+      if (this.dataValue.labels[contextData.dataIndex]) {
         label = this.tooltipLabelsValue[contextData.dataIndex]
       }
 
