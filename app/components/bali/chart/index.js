@@ -79,14 +79,7 @@ export class ChartController extends Controller {
     options.plugins.tooltip.callbacks ||= {}
 
     options.plugins.tooltip.callbacks.title = (context) => {
-      let contextData = context[0]
-      let label = contextData.label
-
-      if (this.dataValue.labels[contextData.dataIndex]) {
-        label = this.dataValue.labels[contextData.dataIndex]
-      }
-
-      return label
+      return this.dataValue.labels[context[0].dataIndex]
     }
   }
 }
