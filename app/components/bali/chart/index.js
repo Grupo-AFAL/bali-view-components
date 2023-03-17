@@ -83,7 +83,7 @@ export class ChartController extends Controller {
       let label = contextData.label
 
       if (this.dataValue.labels[contextData.dataIndex]) {
-        label = this.tooltipLabelsValue[contextData.dataIndex]
+        label = this.dataValue.labels[contextData.dataIndex]
       }
 
       return label
