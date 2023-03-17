@@ -40,7 +40,9 @@ module Bali
 
       def options
         if chart_options.dig(:plugins, :legend, :display).blank?
-          chart_options.merge!(plugins: { legend: { display: legend } })
+          chart_options[:plugins] ||= {}
+          chart_options[:plugins][:legend] ||= {}
+          chart_options[:plugins][:legend].merge!(display: legend)
         end
 
         chart_options.merge!(responsive: true, maintainAspectRatio: false)
