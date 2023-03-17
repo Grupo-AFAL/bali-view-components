@@ -67,8 +67,14 @@ module Bali
             interaction: { intersect: false, mode: :index },
             plugins: { tooltip: { callbacks: { label: { y_1: { suffix: '%' }, y_2: { prefix: '$' } } } } },
             scales: { 
-              y_1: { type: 'linear', position: 'left', label: { suffix: '%' }, title: { display: true, text: 'Axis 1' } }, 
-              y_2: { type: 'linear', position: 'right', label: { prefix: '$' }, title: { display: true, text: 'Axis 2' } } 
+              y_1: { 
+                type: 'linear', position: 'left', label: { suffix: '%' }, 
+                title: { display: true, text: 'Axis 1' }
+              }, 
+              y_2: { 
+                type: 'linear', position: 'right', label: { prefix: '$' },
+                title: { display: true, text: 'Axis 2' }
+              } 
             }
           })
       end
