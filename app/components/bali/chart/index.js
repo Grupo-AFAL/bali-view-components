@@ -62,8 +62,8 @@ export class ChartController extends Controller {
     const callbackLabelData = options.plugins?.tooltip?.callbacks?.label
 
     options.plugins.tooltip.callbacks.label = (context) => {
-      const suffix = callbackLabelData[context.dataset.yAxisID].suffix
-      const prefix = callbackLabelData[context.dataset.yAxisID].prefix
+      const suffix = callbackLabelData[context.dataset.yAxisID]?.suffix
+      const prefix = callbackLabelData[context.dataset.yAxisID]?.prefix
 
       let label = context.dataset.label
       if (label) {
