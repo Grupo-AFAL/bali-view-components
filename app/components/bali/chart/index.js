@@ -16,8 +16,8 @@ export class ChartController extends Controller {
     const element = this.hasCanvasTarget ? this.canvasTarget : this.element
     let options = this.optionsValue || {}
 
-    this.overrideAxisLabel(options)
-    this.overrideTooltipLabel(options)
+    this.addPrefixAndSuffixToAxisLabel(options)
+    this.addPrefixAndSuffixToTooltipLabel(options)
     this.overrideTooltipTitle(options)
 
     this.chart = new Chart(element.getContext('2d'), {
@@ -40,7 +40,7 @@ export class ChartController extends Controller {
     return this.dataValue
   }
 
-  overrideAxisLabel = (options) => {
+  addPrefixAndSuffixToAxisLabel = (options) => {
     if (!options.scales) return
 
     for (const scale in options.scales) {
@@ -56,7 +56,7 @@ export class ChartController extends Controller {
     }
   }
 
-  overrideTooltipLabel = (options) => {
+  addPrefixAndSuffixToTooltipLabel = (options) => {
     if (!options.plugins?.tooltip?.callbacks?.label) return
 
     const callbackLabelData = options.plugins?.tooltip?.callbacks?.label
