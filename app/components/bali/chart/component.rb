@@ -40,17 +40,20 @@ module Bali
 
       def options
         if chart_options.dig(:plugins, :legend, :display).blank?
-          chart_options.merge!(plugins: { legend: { display: legend } })
+          chart_options[:plugins] ||= {}
+          chart_options[:plugins][:legend] ||= {}
+          chart_options[:plugins][:legend].merge!(display: legend)
         end
 
         chart_options.merge!(responsive: true, maintainAspectRatio: false)
       end
 
       def labels
-        return @labels if defined? @labels
+        @labels ||= (data[:labels] || data.keys.map(&:to_s))
+      end
 
-        @labels = (data[:labels] || data.keys.map(&:to_s))
-        @labels.map { |label| label.to_s.truncate(MAX_LABEL_X_LENGTH) }
+      def truncated_labels
+        @truncated_labels ||= labels.map { |label| label.to_s.truncate(MAX_LABEL_X_LENGTH) }
       end
 
       def datasets

@@ -59,6 +59,25 @@ module Bali
             }
           })
       end
+
+      def customize_axes_and_tooltip(id: 'chart', type: [:bar, :line], title: 'Title')
+        render Chart::Component.new(
+          id: id, title: title, data: DATA_FORMAT_2, type: type, axis: [1, 2], order: [1, 0], 
+          chart_options: {
+            interaction: { intersect: false, mode: :index },
+            plugins: { tooltip: { callbacks: { label: { y_1: { suffix: '%' }, y_2: { prefix: '$' } } } } },
+            scales: { 
+              y_1: { 
+                type: 'linear', position: 'left', label: { suffix: '%' }, 
+                title: { display: true, text: 'Axis 1' }
+              }, 
+              y_2: { 
+                type: 'linear', position: 'right', label: { prefix: '$' },
+                title: { display: true, text: 'Axis 2' }
+              } 
+            }
+          })
+      end
     end
   end
 end

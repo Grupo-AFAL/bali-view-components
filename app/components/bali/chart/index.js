@@ -9,16 +9,22 @@ export class ChartController extends Controller {
       default: 'line'
     },
     data: Object,
-    options: Object
+    options: Object,
+    labels: Array
   }
 
   connect () {
     const element = this.hasCanvasTarget ? this.canvasTarget : this.element
+    const options = this.optionsValue || {}
+
+    this.addPrefixAndSuffixToAxisLabel(options)
+    this.addPrefixAndSuffixToTooltipLabel(options)
+    this.overrideTooltipTitle(options)
 
     this.chart = new Chart(element.getContext('2d'), {
       type: this.typeValue,
       data: this.chartData,
-      options: this.optionsValue
+      options
     })
   }
 
@@ -33,5 +39,48 @@ export class ChartController extends Controller {
     }
 
     return this.dataValue
+  }
+
+  addPrefixAndSuffixToAxisLabel = (options) => {
+    if (!options.scales) return
+
+    for (const scale in options.scales) {
+      if (Object.hasOwn(options.scales[scale], 'label')) {
+        const suffix = options.scales[scale].label.suffix
+        const prefix = options.scales[scale].label.prefix
+
+        options.scales[scale].ticks ||= {}
+        options.scales[scale].ticks.callback = (value, index, ticks) => {
+          return `${prefix || ''} ${value} ${suffix || ''}`.trim()
+        }
+      }
+    }
+  }
+
+  addPrefixAndSuffixToTooltipLabel = (options) => {
+    if (!options.plugins?.tooltip?.callbacks?.label) return
+
+    const callbackLabelData = options.plugins?.tooltip?.callbacks?.label
+
+    options.plugins.tooltip.callbacks.label = (context) => {
+      const suffix = callbackLabelData[context.dataset.yAxisID]?.suffix
+      const prefix = callbackLabelData[context.dataset.yAxisID]?.prefix
+
+      let label = context.dataset.label
+      if (label) {
+        label += ':'
+      }
+      return `${label} ${prefix || ''} ${context.parsed.y} ${suffix || ''}`.trim()
+    }
+  }
+
+  overrideTooltipTitle = (options) => {
+    options.plugins ||= {}
+    options.plugins.tooltip ||= {}
+    options.plugins.tooltip.callbacks ||= {}
+
+    options.plugins.tooltip.callbacks.title = (context) => {
+      return this.labelsValue[context[0].dataIndex]
+    }
   }
 }
