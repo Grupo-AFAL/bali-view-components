@@ -21,7 +21,7 @@ module Bali
 
           if @sort_attribute.present? && @form.present?
             opened = helpers.params.delete('opened')
-            @name = helpers.sort_link(@form.ransack_search, @sort_attribute, @name)
+            @name = helpers.sort_link(@form.ransack_search, @sort_attribute, *[@name].compact)
             helpers.params['opened'] = opened
           end
 
