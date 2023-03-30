@@ -2,8 +2,8 @@
 
   <%= render(Bali::Columns::Component.new(class: 'is-mobile is-gapless')) do |c| %>
     <%= c.column(class: 'is-narrow') do %>
-      <% if route_name.present? %>
-        <%= link_to render(Bali::Icon::Component.new('arrow-left')), polymorphic_path(route_name, extra_params(:prev)), class: 'button', title: 'previous' %>
+      <% if route_path.present? %>
+        <%= link_to render(Bali::Icon::Component.new('arrow-left')), route(extra_params(:prev)), class: 'button', title: 'previous' %>
       <% end %>
     <% end %>
 
@@ -11,15 +11,15 @@
       <h3 class="title is-3 is-inline">
         <%= t('date.month_names')[start_date.month] %> <%= start_date.year %>
       </h3>
-      <% if period_switch && route_name.present? %>
-        <%= link_to t('view_components.bali.calendar.header.week'), polymorphic_path(route_name, extra_params(:week)), class: class_names('button is-primary ml-3', unselected: period == :month) %>
-        <%= link_to t('view_components.bali.calendar.header.month'), polymorphic_path(route_name, extra_params(:month)), class: class_names('button is-primary ml-3', unselected: period == :week) %>
+      <% if period_switch && route_path.present? %>
+        <%= link_to t('view_components.bali.calendar.header.week'), route(extra_params(:week)), class: class_names('button is-primary ml-3', unselected: period == :month) %>
+        <%= link_to t('view_components.bali.calendar.header.month'), route(extra_params(:month)), class: class_names('button is-primary ml-3', unselected: period == :week) %>
       <% end %>
     <% end %>
 
     <%= c.column(class: 'is-narrow') do %>
-      <% if route_name.present? %>
-        <%= link_to render(Bali::Icon::Component.new('arrow-right')), polymorphic_path(route_name, extra_params(:next)), class: 'button', title: 'next' %>
+      <% if route_path.present? %>
+        <%= link_to render(Bali::Icon::Component.new('arrow-right')), route(extra_params(:next)), class: 'button', title: 'next' %>
       <% end %>
     <% end %>
   <% end %>
