@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    bali_view_components (0.61.3)
+    bali_view_components (0.61.4)
       rails (>= 7.0.2)
       ransack
       view_component (>= 2.0.0, < 3.0)
