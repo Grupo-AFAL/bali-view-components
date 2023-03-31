@@ -14,7 +14,7 @@ module Bali
 
         def override_setter(name)
           define_method "#{name}=" do |value|
-            super(normalize_date_range(value))
+            super(normalize_date_range(value)) if value.present?
           end
         end
       end
