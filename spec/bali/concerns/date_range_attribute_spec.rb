@@ -27,7 +27,7 @@ RSpec.describe Bali::Concerns::DateRangeAttribute do
 
     context 'with a valid date range format' do
       let(:range) { Time.zone.local(2023, 3, 1)..Time.zone.local(2023, 3, 10).end_of_day }
-      
+
       before { model.date_range = '2023-03-01 to 2023-03-10' }
 
       it { expect(model.date_range).to eq(range) }
@@ -35,7 +35,7 @@ RSpec.describe Bali::Concerns::DateRangeAttribute do
 
     context 'with a day as a range' do
       let(:range) { Time.zone.local(2023, 3, 1)..Time.zone.local(2023, 3, 1).end_of_day }
-      
+
       before { model.date_range = '2023-03-01' }
 
       it { expect(model.date_range).to eq(range) }
