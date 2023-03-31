@@ -1,5 +1,19 @@
 # frozen_string_literal: true
 
+# Allows to define date range attributes.
+# It will convert '2023-01-01 to 2023-01-10' to a Range
+#
+# Example:
+#
+# class Model
+#   include ActiveModel::Attributes
+#   include Bali::Concerns::DateRangeAttribute
+#
+#   date_range_attribute :date_range, default: Time.zone.now.all_day
+#
+# end
+#
+
 module Bali
   module Concerns
     module DateRangeAttribute
