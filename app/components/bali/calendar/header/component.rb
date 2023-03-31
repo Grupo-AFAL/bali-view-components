@@ -40,9 +40,16 @@ module Bali
         end
 
         def route(params = {})
-          uri = URI.parse(route_path)
-          uri.query = params.merge!(CGI.parse(uri.query.to_s)).to_query
+          uri.query = query_params.merge(params).to_query
           uri.to_s
+        end
+
+        def uri
+          @uri ||= URI.parse(route_path)
+        end
+
+        def query_params
+          @query_params ||= CGI.parse(uri.query.to_s)
         end
 
         def extra_params(type)
