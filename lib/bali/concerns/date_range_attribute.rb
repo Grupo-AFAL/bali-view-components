@@ -14,9 +14,7 @@ module Bali
 
         def override_setter(name)
           define_method "#{name}=" do |value|
-            range = normalize_date_range(value)
-
-            super(range)
+            super(normalize_date_range(value))
           end
         end
       end
