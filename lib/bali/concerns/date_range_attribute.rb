@@ -18,6 +18,7 @@ module Bali
           end
         end
       end
+
       def date_range_separator
         { en: ' to ', es: 'a ' }[I18n.locale]
       end
