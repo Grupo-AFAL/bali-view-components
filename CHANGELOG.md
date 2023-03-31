@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Renamed `route_name` to `route_path` in `Calendar` component. `rout_path` expects a string, for example, `/lookbook`.
+- Renamed `route_name` to `route_path` in `Calendar` component. `route_path` expects a string, for example, `/lookbook`.
 
 ## [0.61.3] - 2023-03-26
 
