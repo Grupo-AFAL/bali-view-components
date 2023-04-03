@@ -35,6 +35,7 @@ module Bali
         controller_values = {
           disable_weekends: options[:disable_weekends],
           min_date: options[:min_date],
+          max_date: options[:max_date],
           alt_input_class: alt_input_class(method, options),
           mode: options[:mode],
           alt_input: options[:alt_input]

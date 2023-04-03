@@ -18,7 +18,7 @@ module Bali
           define_numeric_attribute_getter(name)
         end
 
-        def define_numeric_attribute_setter(name)
+        def define_numeric_attribute_getter(name)
           define_method name do
             return read_attribute(name.to_sym) if respond_to?(:read_attribute)
 
@@ -26,7 +26,7 @@ module Bali
           end
         end
 
-        def define_numeric_attribute_getter(name)
+        def define_numeric_attribute_setter(name)
           define_method "#{name}=" do |value|
             value = value.gsub(',', '').to_d if value.is_a?(String)
 
