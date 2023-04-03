@@ -5,7 +5,6 @@
 #
 # Example:
 #
-# A class including ActiveModel::Attributes
 #    class Model
 #      include ActiveModel::Attributes
 #      include Bali::Concerns::DateRangeAttribute
@@ -21,6 +20,11 @@ module Bali
       extend ActiveSupport::Concern
 
       class_methods do
+        # @param name [Date|String] The name of the attribute
+        # @param default [Range|String] The default value for the attribute
+        # @param start_attribute [String|Symbol] Attribute to store the start of the range
+        # @param end_attribute [String|Symbol] Attribute to store the end of the range
+
         def date_range_attribute(name, default: nil, start_attribute: nil, end_attribute: nil)
           attribute(name, default: default)
 
