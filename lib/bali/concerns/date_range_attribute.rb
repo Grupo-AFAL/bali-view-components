@@ -5,13 +5,14 @@
 #
 # Example:
 #
-# class Model
-#   include ActiveModel::Attributes
-#   include Bali::Concerns::DateRangeAttribute
+# A class including ActiveModel::Attributes
+#    class Model
+#      include ActiveModel::Attributes
+#      include Bali::Concerns::DateRangeAttribute
 #
-#   date_range_attribute :date_range, default: Time.zone.now.all_day
+#      date_range_attribute :date_range, default: Time.zone.now.all_day
 #
-# end
+#    end
 #
 
 module Bali
@@ -22,6 +23,10 @@ module Bali
       class_methods do
         def date_range_attribute(name, default: nil, start_attribute: nil, end_attribute: nil)
           attribute(name, default: default)
+
+          [start_attribute, end_attribute].compact.each do |attribute|
+            attribute(attribute) unless respond_to?(attribute)
+          end
 
           override_setter(name, start_attribute, end_attribute)
           override_getter(name, start_attribute, end_attribute)
