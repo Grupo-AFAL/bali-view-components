@@ -28,9 +28,8 @@ module Bali
         def date_range_attribute(name, default: nil, start_attribute: nil, end_attribute: nil)
           attribute(name, default: default)
 
-          [start_attribute, end_attribute].compact.each do |attribute|
-            attribute(attribute) unless respond_to?(attribute)
-          end
+          attribute(start_attribute) if start_attribute.present? && !respond_to?(start_attribute)
+          attribute(end_attribute) if end_attribute.present? && !respond_to?(end_attribute)
 
           override_setter(name, start_attribute, end_attribute)
           override_getter(name, start_attribute, end_attribute)
