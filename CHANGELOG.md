@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `Bali::Concerns::DateRangeAttribute` concern. This concern allows to define date range attributes, for example, `date_range_attribute :date_range, default: Time.zone.now.all_day`
+- `max_date` option to `date_field_group` and `date_field`. you to set a maximum date that can be selected
 
 ## [0.61.4] - 2023-03-30
 
