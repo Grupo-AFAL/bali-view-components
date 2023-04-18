@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-# rubocop:disable Layout/LineLength
-# rubocop:disable Metrics/ModuleLength
+# rubocop: disable Metrics/ClassLength
 module Bali
   module Icon
     class Options
@@ -9,6 +8,7 @@ module Bali
 
       class IconNotAvailable < StandardError; end
 
+      # rubocop: disable Metrics/MethodLength
       def self.icons
         @icons ||= {
           'address-book' => ADDRESS_BOOK,
@@ -176,6 +176,7 @@ module Bali
           'whatsapp-square' => WHATSAPP_SQUARE
         }.merge!(Bali.custom_icons)
       end
+      # rubocop: enable Metrics/MethodLength
 
       def self.find(name)
         raise IconNotAvailable, "Icon: '#{name}' is not available" unless icons.key?(name.to_s)
@@ -185,5 +186,4 @@ module Bali
     end
   end
 end
-# rubocop:enable Layout/LineLength
-# rubocop:enable Metrics/ModuleLength
+# rubocop: enable Metrics/ClassLength

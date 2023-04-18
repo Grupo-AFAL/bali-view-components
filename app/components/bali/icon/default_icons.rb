@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+# rubocop:disable Layout/LineLength
+# rubocop:disable Metrics/ModuleLength
 module Bali
   module Icon
     module DefaultIcons
@@ -1549,3 +1553,5 @@ module Bali
     end
   end
 end
+# rubocop:enable Layout/LineLength
+# rubocop:enable Metrics/ModuleLength
