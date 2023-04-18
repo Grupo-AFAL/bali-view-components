@@ -3,8 +3,6 @@
 module Bali
   module Icon
     class Component < ApplicationViewComponent
-      include Options
-
       attr_reader :name, :tag_name, :options
 
       # @param name [String] One of Bali::Icon::Options::MAP.keys
@@ -15,7 +13,7 @@ module Bali
       end
 
       def call
-        tag.send(tag_name, **options) { icon_svgs(name) }
+        tag.send(tag_name, **options) { Options.find(name) }
       end
     end
   end

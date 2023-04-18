@@ -27,6 +27,11 @@ require 'bali/form_builder'
 
 module Bali
   mattr_accessor :native_app, default: false
+  mattr_accessor :custom_icons, default: {}
+
+  def self.add_icon(name, svg_str)
+    custom_icons[name.to_s] = svg_str
+  end
 
   def self.config
     yield(self)
