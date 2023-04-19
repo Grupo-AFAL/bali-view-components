@@ -3,8 +3,6 @@
 module Bali
   module Icon
     class Preview < ApplicationViewComponentPreview
-      include Options
-
       # Icon
       # ----
       # Use the default icon component whenever you need to display an icon.
@@ -23,7 +21,10 @@ module Bali
       # ------------------
       # This is a preview of all icons that are available in Bali.
       def all_existing_icons
-        render_with_template(template: 'bali/icon/previews/default', locals: { icons: MAP.keys })
+        render_with_template(
+          template: 'bali/icon/previews/default', 
+          locals: { icons: Bali::Icon::Options.icons.keys }
+        )
       end
     end
   end
