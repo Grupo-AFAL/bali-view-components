@@ -30,7 +30,7 @@ module Bali
 
         @subtract_button_data = options.delete(:subtract_data) || {}
         @subtract_button_data['step-number-input-target'] = 'subtract'
-        @subtract_button_data[:action] =  [
+        @subtract_button_data[:action] = [
           'step-number-input#subtract', @subtract_button_data[:action]
         ].compact.join(' ')
 
@@ -44,7 +44,7 @@ module Bali
         @add_button_data['step-number-input-target'] = 'add'
         @add_button_data[:action] = [
           'step-number-input#add', @add_button_data[:action]
-      ].compact.join(' ')
+        ].compact.join(' ')
 
         @add_button_data
       end
