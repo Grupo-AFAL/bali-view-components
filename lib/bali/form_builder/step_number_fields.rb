@@ -28,21 +28,25 @@ module Bali
       def subtract_button_data(options)
         return @subtract_button_data if defined? @subtract_button_data
 
-        subtract_data = options.delete(:subtract_data) || {}
-        @subtract_button_data ||= {
-          action: ['step-number-input#subtract', subtract_data[:action]].compact.join(' '),
-          'step-number-input-target': 'subtract'
-        }
+        @subtract_button_data = options.delete(:subtract_data) || {}
+        @subtract_button_data['step-number-input-target'] = 'subtract'
+        @subtract_button_data[:action] =  [
+          'step-number-input#subtract', @subtract_button_data[:action]
+        ].compact.join(' ')
+
+        @subtract_button_data
       end
 
       def add_button_data(options)
         return @add_button_data if defined? @add_button_data
 
-        add_data = options.delete(:add_data) || {}
-        @add_button_data ||= {
-          action: ['step-number-input#add', add_data[:action]].compact.join(' '),
-          'step-number-input-target': 'add'
-        }
+        @add_button_data = options.delete(:add_data) || {}
+        @add_button_data['step-number-input-target'] = 'add'
+        @add_button_data[:action] = [
+          'step-number-input#add', @add_button_data[:action]
+      ].compact.join(' ')
+
+        @add_button_data
       end
 
       def addon_button_class(options)
