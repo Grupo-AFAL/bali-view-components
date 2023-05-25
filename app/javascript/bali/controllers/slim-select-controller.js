@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { destroyWithCheck } from './slim-select-controller/destroy-with-check'
+import { get } from '@rails/request.js'
 
 // TODO: Add tests (Issue: #157)
 export class SlimSelectController extends Controller {
@@ -11,7 +12,15 @@ export class SlimSelectController extends Controller {
     searchPlaceholder: String,
     addToBody: Boolean,
     closeOnSelect: Boolean,
-    allowDeselectOption: Boolean
+    allowDeselectOption: Boolean,
+    ajaxParamName: String,
+    ajaxValueName: String,
+    ajaxTextName: String,
+    ajaxUrl: String,
+    ajaxPlaceholder: {
+      type: String,
+      default: 'Type 2 chars to search...'
+    }
   }
 
   static targets = ['select', 'selectAllButton', 'deselectAllButton']
@@ -33,7 +42,8 @@ export class SlimSelectController extends Controller {
       addToBody: this.addToBodyValue,
       closeOnSelect: this.closeOnSelectValue,
       allowDeselectOption: this.allowDeselectOptionValue,
-      addable: this.addable()
+      addable: this.addable(),
+      ajax: this.ajax()
     }
 
     if (this.hasInnerHTML()) {
@@ -92,5 +102,39 @@ export class SlimSelectController extends Controller {
     this.select.set([])
     this.deselectAllButtonTarget.style.display = 'none'
     this.selectAllButtonTarget.style.display = 'block'
+  }
+
+  ajax () {
+    if (!this.hasAjaxValues()) return
+
+    return async (search, callback) => {
+      if (search.length < 2) {
+        return callback(this.ajaxPlaceholderValue)
+      }
+
+      const response = await get(this.ajaxUrlValue, {
+        query: { [this.ajaxParamNameValue]: search },
+        responseKind: 'json'
+      })
+
+      const json = await response.json
+      const options = json.map(record => {
+        return {
+          text: record[this.ajaxTextNameValue],
+          value: record[this.ajaxValueNameValue]
+        }
+      })
+
+      callback(options.length > 0 ? options : false)
+    }
+  }
+
+  hasAjaxValues () {
+    return (
+      this.hasAjaxParamNameValue &&
+      this.hasAjaxValueNameValue &&
+      this.hasAjaxTextNameValue &&
+      this.hasAjaxUrlValue
+    )
   }
 }

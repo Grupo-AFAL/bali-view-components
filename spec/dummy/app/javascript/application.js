@@ -23,6 +23,7 @@ import {
   RichTextEditorController,
   SelectedController,
   SideMenuController,
+  SlimSelectController,
   SortableListController,
   SubmitOnChangeController,
   TabsController,
@@ -55,6 +56,7 @@ application.register('reveal', RevealController)
 application.register('rich-text-editor', RichTextEditorController)
 application.register('selected', SelectedController)
 application.register('side-menu', SideMenuController)
+application.register('slim-select', SlimSelectController)
 application.register('sortable-list', SortableListController)
 application.register('submit-on-change', SubmitOnChangeController)
 application.register('tabs', TabsController)
