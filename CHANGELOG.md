@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.62.0] - 2023-05-25
+
+### Added
+
+- Allow `slim_select_field` to autocomplete options from the server.
+
 ## [0.61.8] - 2023-05-23
 
 ### Changed

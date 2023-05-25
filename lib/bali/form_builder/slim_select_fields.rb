@@ -64,7 +64,12 @@ module Bali
           'data-slim-select-search-placeholder-value': options[:search_placeholder],
           'data-slim-select-add-to-body-value': options[:add_to_body],
           'data-slim-select-select-all-text-value': options[:select_all_text],
-          'data-slim-select-deselect-all-text-value': options[:deselect_all_text]
+          'data-slim-select-deselect-all-text-value': options[:deselect_all_text],
+          'data-slim-select-ajax-param-name-value': options[:ajax_param_name],
+          'data-slim-select-ajax-value-name-value': options[:ajax_value_name],
+          'data-slim-select-ajax-text-name-value': options[:ajax_text_name],
+          'data-slim-select-ajax-url-value': options[:ajax_url],
+          'data-slim-select-ajax-placeholder-value': options[:ajax_placeholder]
         }
       end
     end
