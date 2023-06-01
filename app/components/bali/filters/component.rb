@@ -3,6 +3,8 @@
 module Bali
   module Filters
     class Component < ApplicationViewComponent
+      include Utils::Url
+
       attr_reader :form, :url, :text_field, :opened, :auto_submit_search_input
 
       delegate :query_params, to: :form
@@ -54,6 +56,10 @@ module Bali
           'filter-form-text-field-value': text_field,
           turbo_stream: true
         }
+      end
+
+      def clear_filters_url
+        add_query_param(url, :clear_filters, true)
       end
 
       private

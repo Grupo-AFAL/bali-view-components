@@ -5,14 +5,20 @@ module Bali
     include ActiveModel::Model
     include ActiveModel::Attributes
 
-    attr_reader :scope
+    attr_reader :scope, :storage_id, :context, :clear_filters
 
     # Ransack attribute for receiving the sort parameters
     attribute :s
 
-    def initialize(scope, params = {})
+    def initialize(scope, params = {}, storage_id: nil, context: nil)
       @scope = scope
+      @storage_id = storage_id
+      @context = context
       attributes = params.fetch(:q, {}).permit(permitted_attributes)
+      @clear_filters = params.fetch(:clear_filters, false)
+
+      attributes = fetch_stored_attributes(attributes) if storage_id.present?
+
       super(attributes)
     end
 
@@ -49,6 +55,14 @@ module Bali
       @id ||= scope.cache_key
     end
 
+    def name
+      @name ||= self.class.name.tableize
+    end
+
+    def cache_key
+      @cache_key ||= "#{name};#{context};#{storage_id}"
+    end
+
     def active_filters_count
       (active_filters.keys & attribute_names).size
     end
@@ -73,6 +87,23 @@ module Bali
 
     def ransack_search
       @ransack_search ||= scope.ransack(query_params)
+    end
+
+    private
+
+    def fetch_stored_attributes(attributes)
+      return attributes unless Object.const_defined?('Rails')
+
+      if attributes.present?
+        Rails.cache.write(cache_key, attributes)
+      elsif @clear_filters
+        Rails.cache.delete(cache_key)
+        attributes = {}
+      else
+        attributes = Rails.cache.fetch(cache_key) || {}
+      end
+
+      attributes
     end
   end
 end

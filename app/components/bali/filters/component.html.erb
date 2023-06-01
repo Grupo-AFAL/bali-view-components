@@ -40,7 +40,7 @@
         </div>
 
         <div class="level-item">
-          <%= link_to t('.remove_filters'), url,
+          <%= link_to t('.remove_filters'), clear_filters_url,
               class: class_names('is-hidden': !active_filters?),
               data: { 'filter-form-target': 'removeButton' } %>
         </div>
