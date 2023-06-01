@@ -92,6 +92,8 @@ module Bali
     private
 
     def fetch_stored_attributes(attributes)
+      return attributes unless Object.const_defined?('Rails')
+
       if attributes.present?
         Rails.cache.write(cache_key, attributes)
       elsif @clear_filters
