@@ -13,6 +13,7 @@ Rails.application.routes.draw do
   get 'tab3', to: 'tabs#tab3'
 
   patch 'sortable_list', to: 'sortable_list#update'
+  post 'table/bulk_action', to: 'table#bulk_action'
 
   get 'users', to: 'users#index'
 

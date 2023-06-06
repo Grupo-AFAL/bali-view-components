@@ -27,6 +27,7 @@ import {
   SortableListController,
   SubmitOnChangeController,
   TabsController,
+  TableController,
   TimeagoController,
   TooltipController,
   TreeViewItemController,
@@ -60,6 +61,7 @@ application.register('slim-select', SlimSelectController)
 application.register('sortable-list', SortableListController)
 application.register('submit-on-change', SubmitOnChangeController)
 application.register('tabs', TabsController)
+application.register('table', TableController)
 application.register('timeago', TimeagoController)
 application.register('tooltip', TooltipController)
 application.register('tree-view-item', TreeViewItemController)
