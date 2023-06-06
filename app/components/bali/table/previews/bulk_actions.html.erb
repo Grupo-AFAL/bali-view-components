@@ -1,0 +1,16 @@
+<%= render(Bali::Table::Component.new(
+    bulk_actions: [
+      { name: 'Archivar', href: '/table/bulk_action' }
+    ]
+)) do |c| %>
+  <%= c.headers(headers) %>
+
+  <% records.each do |record| %>
+    <%= c.row(record_id: record[:id]) do %>
+      <td><%= record[:name] %></td>
+      <td><%= record[:amount] %></td>
+    <% end %>
+  <% end %>
+
+  <%= c.new_record_link name: 'Nuevo registro', href: '#' %>
+<% end %>

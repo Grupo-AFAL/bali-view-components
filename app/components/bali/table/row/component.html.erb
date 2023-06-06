@@ -1,0 +1,13 @@
+<% if @skip_tr %>
+  <%= content %>
+<% else %>
+  <%= tag.tr(**@options) do %>
+    <% if @bulk_actions %>
+      <%= tag.td(class: 'is-narrow') do %>
+        <%= tag.input(type: 'checkbox', value: @record_id, data: { table_target: 'checkbox', action: 'table#toggle' }) %>
+      <% end %>
+    <% end %>
+
+    <%= content %>
+  <% end %>
+<% end %>

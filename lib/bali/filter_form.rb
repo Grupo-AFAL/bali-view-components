@@ -18,7 +18,6 @@ module Bali
       @clear_filters = params.fetch(:clear_filters, false)
 
       attributes = fetch_stored_attributes(attributes) if storage_id.present?
-
       super(attributes)
     end
 

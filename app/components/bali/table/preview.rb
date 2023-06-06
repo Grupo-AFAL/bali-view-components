@@ -9,9 +9,9 @@ module Bali
       ].freeze
 
       RECORDS = [
-        { name: 'Name 1', amount: 1 },
-        { name: 'Name 2', amount: 2 },
-        { name: 'Name 3', amount: 3 }
+        { id: 1, name: 'Name 1', amount: 1 },
+        { id: 2, name: 'Name 2', amount: 2 },
+        { id: 3, name: 'Name 3', amount: 3 }
       ].freeze
 
       def default
@@ -40,6 +40,16 @@ module Bali
           locals: {
             headers: HEADERS,
             records: []
+          }
+        )
+      end
+
+      def bulk_actions
+        render_with_template(
+          template: 'bali/table/previews/bulk_actions',
+          locals: {
+            headers: HEADERS,
+            records: RECORDS
           }
         )
       end
