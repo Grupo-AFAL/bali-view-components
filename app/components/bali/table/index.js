@@ -9,6 +9,7 @@ export class TableController extends Controller {
     'actionsContainer',
     'selectedCount'
   ]
+
   static values = {
     selectedIds: { type: Array, default: [] }
   }
