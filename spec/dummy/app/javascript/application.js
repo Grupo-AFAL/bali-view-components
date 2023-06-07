@@ -10,6 +10,7 @@ import {
   DropdownController,
   FileInputController,
   FilterFormController,
+  FilterAttributeController,
   GanttChartController,
   GanttFoldableItemController,
   HovercardController,
@@ -44,6 +45,7 @@ application.register('datepicker', DatepickerController)
 application.register('dropdown', DropdownController)
 application.register('file-input', FileInputController)
 application.register('filter-form', FilterFormController)
+application.register('filter-attribute', FilterAttributeController)
 application.register('gantt-chart', GanttChartController)
 application.register('gantt-foldable-item', GanttFoldableItemController)
 application.register('hovercard', HovercardController)
