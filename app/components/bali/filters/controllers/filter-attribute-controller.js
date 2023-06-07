@@ -5,23 +5,13 @@ export class FilterAttributeController extends Controller {
   static targets = ['checkbox']
 
   change ({ target }) {
-    if (this.multipleValue) return
+    if (!target.checked || this.multipleValue) return
 
-    console.log('target', target)
-
-    if (target.checked) {
-      this.checkboxTargets.forEach(checkbox => {
-        if (checkbox !== target) {
-          console.log('not target', checkbox)
-          checkbox.checked = false
-          checkbox.parentElement.classList.remove('is-selected')
-        } else {
-          console.log('is target', checkbox)
-        }
-      })
-    } else {
-      console.log('not checked', target)
-      target.checked = false
-    }
+    this.checkboxTargets.forEach(checkbox => {
+      if (checkbox !== target) {
+        checkbox.checked = false
+        checkbox.parentElement.classList.remove('is-selected')
+      }
+    })
   }
 }

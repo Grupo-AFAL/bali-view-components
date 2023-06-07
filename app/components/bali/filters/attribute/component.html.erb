@@ -1,4 +1,4 @@
-<div id="<%= input_id %>" class="column" data-controller="filter-attribute" data-filter-attribute-multiple-value="<%= multiple %>">
+<%= tag.div(**@options) do %>
   <label class="label"><%= title %></label>
 
   <div class="filter-options">
@@ -21,4 +21,4 @@
       <% end %>
     <% end %>
   </div>
-</div>
+<% end %>
