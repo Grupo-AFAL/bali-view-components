@@ -7,6 +7,7 @@ module Bali
       include ActiveModel::Attributes
 
       attribute :name, :string
+      attribute :date_gteq, :date
 
       def model_name
         @model_name ||= ActiveModel::Name.new(self, nil, 'q')
@@ -25,6 +26,7 @@ module Bali
       end
 
       def status_in; end
+      def date_gteq; end
     end
   end
 end

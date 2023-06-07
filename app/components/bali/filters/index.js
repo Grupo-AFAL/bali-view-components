@@ -1,1 +1,6 @@
-export { FilterFormController, PopupController, SelectedController } from './controllers'
+export {
+  FilterFormController,
+  FilterAttributeController,
+  PopupController,
+  SelectedController
+} from './controllers'

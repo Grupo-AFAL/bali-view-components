@@ -12,6 +12,11 @@ module Bali
           @collection_options = collection_options
           @title = title
           @multiple = multiple
+
+          @options = { id: input_id }
+          @options = prepend_class_name(@options, 'column')
+          @options = prepend_controller(@options, 'filter-attribute')
+          @options = prepend_values(@options, 'filter-attribute', multiple: multiple)
         end
 
         def selected_values

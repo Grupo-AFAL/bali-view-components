@@ -68,7 +68,8 @@ $z-index-popover: 6;
       }
     }
 
-    input[type=checkbox] {
+    input[type='checkbox'],
+    input[type='radio'] {
       display: none;
     }
 

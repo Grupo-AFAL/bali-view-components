@@ -16,6 +16,16 @@ module Bali
             attribute: :status_in,
             collection_options: [['active', true], ['inactive', false]]
           )
+
+          c.attribute(
+            title: 'Single Option',
+            attribute: :date_gteq,
+            collection_options: [
+              ['7 days', Date.today - 7.days],
+              ['14 days', Date.today - 14.days]
+            ],
+            multiple: false
+          )
         end
       end
     end
