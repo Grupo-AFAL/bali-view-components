@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow to add attributs to the FilterForm where only 1 value can be selected
 
+### Fixed
+
+- `TableController` check for elements presence before updating.
+
 ## [0.64.0] - 2023-06-05
 
 ### Added

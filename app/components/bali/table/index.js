@@ -63,6 +63,8 @@ export class TableController extends Controller {
   }
 
   updateActionsContainer () {
+    if (!this.hasActionsContainerTarget) return
+
     if (this.selectedIdsValue.length > 0) {
       this.actionsContainerTarget.classList.remove('is-hidden')
     } else {
@@ -71,6 +73,8 @@ export class TableController extends Controller {
   }
 
   updateSelectedCount () {
+    if (!this.hasSelectedCountTarget) return
+
     this.selectedCountTarget.innerText = this.selectedIdsValue.length
   }
 
