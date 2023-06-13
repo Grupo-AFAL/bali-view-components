@@ -5,13 +5,13 @@ require_relative 'lib/bali/version'
 Gem::Specification.new do |spec|
   spec.name        = 'bali_view_components'
   spec.version     = Bali::VERSION
-  spec.authors     = ['Federico Gonzalez']
-  spec.email       = ['fedegl@hey.com']
+  spec.authors     = ['Federico Gonzalez', 'Miguel Frías']
+  spec.email       = ['fedegl@hey.com', 'miguelf@enjoykitchen.mx']
   spec.homepage    = 'https://github.com/Grupo-AFAL/bali'
   spec.summary     = 'View Components'
   spec.description = 'View Components'
   spec.license = 'MIT'
-  spec.required_ruby_version = ['>= 3', '< 3.2.0']
+  spec.required_ruby_version = '>= 3'
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the "allowed_push_host"
   # to allow pushing to a single host or delete this section to allow pushing to any host.

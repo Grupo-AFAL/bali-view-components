@@ -2,8 +2,8 @@
 
 APP_ROOT = File.expand_path('..', __dir__)
 
-puts "\n== Bumping to library version: #{ARGV.first} =="
+puts "\n== Bumping to library version: #{ARGV.join(' ')} =="
 
 Dir.chdir("#{APP_ROOT}/scripts") do
-  system "thor library_version:bump #{ARGV.first}"
+  system "thor library_version:bump #{ARGV.join(' ')}"
 end
