@@ -45,6 +45,13 @@ module Bali
             locals: { model: form_record }
           )
         end
+
+        def allow_input
+          render_with_template(
+            template: 'bali/form/date/previews/allow_input',
+            locals: { model: form_record }
+          )
+        end
       end
     end
   end

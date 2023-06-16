@@ -29,7 +29,9 @@ export class DatepickerController extends Controller {
     altInputClass: String,
     period: String,
     mode: { type: String, default: 'single' },
-    altInput: { type: Boolean, default: true }
+    altInput: { type: Boolean, default: true },
+    allowInput: { type: Boolean, default: false },
+    altFormat: String
   }
 
   async connect () {
@@ -58,7 +60,8 @@ export class DatepickerController extends Controller {
       maxTime: this.maxTimeValue,
       altInputClass: this.altInputClassValue,
       mode: this.modeValue,
-      disable: this.disableWeekendsValue ? [this.isWeekend] : []
+      disable: this.disableWeekendsValue ? [this.isWeekend] : [],
+      allowInput: this.allowInputValue
     })
   }
 
@@ -87,6 +90,8 @@ export class DatepickerController extends Controller {
   }
 
   altFormat () {
+    if (this.hasAltFormatValue) return this.altFormatValue
+
     let format = ''
 
     if (this.noCalendarValue || this.enableTimeValue) {

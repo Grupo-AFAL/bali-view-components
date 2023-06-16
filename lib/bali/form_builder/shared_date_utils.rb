@@ -38,7 +38,9 @@ module Bali
           max_date: options[:max_date],
           alt_input_class: alt_input_class(method, options),
           mode: options[:mode],
-          alt_input: options[:alt_input]
+          alt_input: options[:alt_input],
+          allow_input: options[:allow_input],
+          alt_format: options[:alt_format]
         }
 
         if options[:mode] == 'range' && options[:value] && options[:value].respond_to?(:first)
