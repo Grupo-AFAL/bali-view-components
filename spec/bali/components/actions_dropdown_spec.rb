@@ -7,7 +7,9 @@ RSpec.describe Bali::ActionsDropdown::Component, type: :component do
   let(:component) { Bali::ActionsDropdown::Component.new(**options) }
 
   it 'renders actionsdropdown component' do
-    render_inline(component)
+    render_inline(component) do |c|
+      c.tag.span('test')
+    end
 
     expect(page).to have_css 'div.actions-dropdown-component'
   end
