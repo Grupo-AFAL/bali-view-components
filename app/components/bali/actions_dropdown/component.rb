@@ -20,6 +20,10 @@ module Bali
           'hover-card-tippy-wrapper actions-dropdown-tippy-wrapper'
         )
       end
+
+      def render?
+        content.present?
+      end
     end
   end
 end
