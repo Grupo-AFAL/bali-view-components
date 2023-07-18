@@ -75,7 +75,7 @@ export class GeocoderMapsController extends Controller {
         this.setAddressPin(results[0].geometry.location)
         this.setLatLng(results[0].geometry.location)
       } else {
-        alert('Geocode was not successful for the following reason: ' + status)
+        window.alert('Geocode was not successful for the following reason: ' + status)
       }
     })
   }

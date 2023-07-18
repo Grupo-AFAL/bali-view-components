@@ -66,9 +66,9 @@ export class LocationsMapController extends Controller {
           this.openInfoWindow.close()
           this.openInfoWindow = null
         }
-  
+
         this.map.setCenter(position)
-  
+
         infowindow.open(this.map, marker)
         this.openInfoWindow = infowindow
       })
@@ -83,7 +83,7 @@ export class LocationsMapController extends Controller {
       img.src = location.marker.url
       return img
     }
-  
+
     const pinElement = new this.googleMarkers.PinElement({
       background: location.marker.color,
       borderColor: location.marker.borderColor || location.marker.color,
@@ -104,8 +104,11 @@ export class LocationsMapController extends Controller {
         lat: parseFloat(data.lat),
         lng: parseFloat(data.lng),
         marker: {
-          url: data.markerUrl, label: data.markerLabel, color: data.markerColor,
-          borderColor: data.markerBorderColor, glyphColor: data.markerGlyphColor
+          url: data.markerUrl,
+          label: data.markerLabel,
+          color: data.markerColor,
+          borderColor: data.markerBorderColor,
+          glyphColor: data.markerGlyphColor
         }
       }
     })
