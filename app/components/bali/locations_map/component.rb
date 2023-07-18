@@ -14,18 +14,32 @@ module Bali
         center_latitude: CENTER_LAT, center_longitude: CENTER_LNG, zoom: 12, clustered: false,
         **options
       )
+        @center_latitude = center_latitude
+        @center_longitude = center_longitude
+        @zoom = zoom
+        @clustered = clustered
+
         @options = prepend_class_name(options, 'locations-map-component')
         @options = prepend_controller(@options, 'locations-map')
+        @options = setup_data_options(@options)
+      end
 
+      private
+      
+      def setup_data_options(opts)
         { 
-          'locations-map-key' => ENV.fetch('GOOGLE_MAPS_KEY', ''),
-          'locations-map-enable-clustering-value' => clustered,
-          'locations-map-zoom-value'=> zoom,
-          'locations-map-center-latitude-value'=> center_latitude,
-          'locations-map-center-longitude-value'=> center_longitude
+          'key' => ENV.fetch('GOOGLE_MAPS_KEY', ''),
+          'enable-clustering-value' => @clustered,
+          'zoom-value'=> @zoom,
+          'center-latitude-value' => @center_latitude,
+          'center-longitude-value' => @center_longitude,
+          'center-locale-value' => I18n.locale
         }.each do |attribute_name, attribute_value|
-          @options = prepend_data_attribute(@options, attribute_name, attribute_value)
+          attribute_name = "locations-map-#{attribute_name}"
+          opts = prepend_data_attribute(opts, attribute_name, attribute_value)
         end
+
+        opts
       end
     end
   end

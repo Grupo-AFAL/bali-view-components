@@ -11,14 +11,15 @@ export class LocationsMapController extends Controller {
     enableClustering: Boolean,
     zoom: { type: Number, default: 12 },
     centerLatitude: { type: Number, default: TIJUANA_LAT },
-    centerLongitude: { type: Number, default: TIJUANA_LNG }
+    centerLongitude: { type: Number, default: TIJUANA_LNG },
+    locale: { type: String, default: 'en' }
   }
 
   connect = async () => {
     try {
       this.googleMaps = await GoogleMapsLoader({
         libraries: ['drawing'],
-        language: 'es',
+        language: this.localeValue,
         key: this.data.get('key')
       })
 
