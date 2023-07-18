@@ -18,14 +18,12 @@ export class LocationsMapController extends Controller {
   connect = async () => {
     try {
       this.googleMaps = await GoogleMapsLoader({
-        libraries: ['drawing'],
-        language: this.localeValue,
-        key: this.data.get('key')
+        libraries: ['drawing'], language: this.localeValue, key: this.data.get('key')
       })
 
       this.googleMarkers = await this.googleMaps.importLibrary('marker')
 
-      this.locations = this.loadLocations()
+      this.loadLocations()
       this.initializeMap()
       this.addMarkers()
     } catch (error) {
@@ -76,7 +74,6 @@ export class LocationsMapController extends Controller {
       })
     }
 
-
     return marker
   }
 
@@ -98,7 +95,7 @@ export class LocationsMapController extends Controller {
   }
 
   loadLocations = () => {
-    return this.locationTargets.map(target => {
+    this.locations = this.locationTargets.map(target => {
       const data = target.dataset
 
       return {
