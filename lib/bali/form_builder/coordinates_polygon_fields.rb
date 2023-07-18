@@ -13,12 +13,14 @@ module Bali
         options = setup_options(options)
         value = options.delete(:value) || []
         value = value.to_json unless value.is_a?(String)
-  
+
         tag.div(**options) do
-          safe_join([
-            tag.div(class: 'map', style: 'height: 400px', data: { drawing_maps_target: 'map' }),
-            hidden_field(method, value: value, data: { drawing_maps_target: 'polygonField' })
-          ])
+          safe_join(
+            [
+              tag.div(class: 'map', style: 'height: 400px', data: { drawing_maps_target: 'map' }),
+              hidden_field(method, value: value, data: { drawing_maps_target: 'polygonField' })
+            ]
+          )
         end
       end
 
@@ -26,8 +28,7 @@ module Bali
 
       def setup_options(opts)
         opts = prepend_controller(opts, 'drawing-maps')
-        opts = prepend_data_attribute(opts, 'drawing-maps-key', ENV.fetch('GOOGLE_MAPS_KEY', ''))
-        opts
+        prepend_data_attribute(opts, 'drawing-maps-key', ENV.fetch('GOOGLE_MAPS_KEY', ''))
       end
     end
   end

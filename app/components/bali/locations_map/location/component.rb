@@ -9,6 +9,7 @@ module Bali
 
         renders_one :info_view
 
+        # rubocop: disable Metrics/ParameterLists
         def initialize(
           latitude:, longitude:, name: '', label: nil, color: nil, border_color: nil, icon_url: nil,
           glyph_color: nil
@@ -22,6 +23,7 @@ module Bali
           @icon_url = icon_url
           @glyph_color = glyph_color
         end
+        # rubocop: enable Metrics/ParameterLists
 
         def data_attributes
           {

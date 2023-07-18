@@ -25,12 +25,12 @@ module Bali
       end
 
       private
-      
+
       def setup_data_options(opts)
-        { 
+        {
           'key' => ENV.fetch('GOOGLE_MAPS_KEY', ''),
           'enable-clustering-value' => @clustered,
-          'zoom-value'=> @zoom,
+          'zoom-value' => @zoom,
           'center-latitude-value' => @center_latitude,
           'center-longitude-value' => @center_longitude,
           'center-locale-value' => I18n.locale
