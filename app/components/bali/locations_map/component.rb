@@ -23,8 +23,8 @@ module Bali
           'locations-map-zoom-value'=> zoom,
           'locations-map-center-latitude-value'=> center_latitude,
           'locations-map-center-longitude-value'=> center_longitude
-        }.each do |data_attribute_name, data_attribute_value|
-          @options = prepend_data_attribute(@options, data_attribute_name, data_attribute_value)
+        }.each do |attribute_name, attribute_value|
+          @options = prepend_data_attribute(@options, attribute_name, attribute_value)
         end
       end
     end
