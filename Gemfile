@@ -8,6 +8,7 @@ gemspec
 
 gem 'bulma-rails', '~> 0.9.3'
 gem 'dartsass-rails'
+gem 'device_detector'
 gem 'sprockets-rails'
 
 gem 'lookbook'

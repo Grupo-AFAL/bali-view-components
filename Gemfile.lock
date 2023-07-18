@@ -100,6 +100,7 @@ GEM
     debug (1.7.1)
       irb (>= 1.5.0)
       reline (>= 0.3.1)
+    device_detector (1.1.0)
     diff-lcs (1.5.0)
     docile (1.4.0)
     dotenv (2.8.1)
@@ -306,6 +307,7 @@ DEPENDENCIES
   capybara (~> 3)
   dartsass-rails
   debug (>= 1.0.0)
+  device_detector
   dotenv-rails
   jsbundling-rails
   lookbook
