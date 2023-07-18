@@ -45,7 +45,7 @@ module Bali
       def stacked(id: 'chart')
         render Chart::Component.new(
           data: DATA_FORMAT_2, id: id, type: :bar, legend: true,
-          chart_options: { scales: { x: { stacked: true, }, y: { stacked: true } } }
+          chart_options: { scales: { x: { stacked: true, }, y_1: { stacked: true } } }
         )
       end
 
