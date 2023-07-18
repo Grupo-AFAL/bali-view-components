@@ -14,6 +14,7 @@ class Movie < ApplicationRecord
   attribute :contact_email
   attribute :cover_photo
   attribute :rating
+  attribute :available_region
 
   scope :active, -> { where(status: 0) }
 end
