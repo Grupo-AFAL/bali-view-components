@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `Bali::Concerns::SoftDelete`
 - `Bali::Concerns::Controllers::DeviceConcern`
+- `GeocodeAdddressController` (javascript)
 - `ios_naitve_app_user_agent` and `android_native_app_user_agent` as `Bali` configuration
 
 ## [0.66.1] - 2023-07-12
