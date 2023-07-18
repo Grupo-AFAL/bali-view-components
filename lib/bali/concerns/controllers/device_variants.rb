@@ -40,7 +40,7 @@ module Bali
         end
 
         def sketchy_username?
-          sketcky_usernames.include?(params.dig(:user, :email))
+          Bali.sketcky_request_usernames.include?(params.dig(:user, :email))
         end
 
         def native_app?
@@ -56,10 +56,6 @@ module Bali
         end
 
         private
-
-        def sketcky_usernames
-          %w[admin cnadmin enjoykitchen cnenjoykitchen cnenjoykitchen.mx]
-        end
 
         def device_detector
           @device_detector ||= DeviceDetector.new(request.user_agent)
