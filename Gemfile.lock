@@ -102,6 +102,10 @@ GEM
       reline (>= 0.3.1)
     diff-lcs (1.5.0)
     docile (1.4.0)
+    dotenv (2.8.1)
+    dotenv-rails (2.8.1)
+      dotenv (= 2.8.1)
+      railties (>= 3.2)
     erubi (1.12.0)
     ffi (1.15.5)
     globalid (1.1.0)
@@ -302,6 +306,7 @@ DEPENDENCIES
   capybara (~> 3)
   dartsass-rails
   debug (>= 1.0.0)
+  dotenv-rails
   jsbundling-rails
   lookbook
   puma (~> 5.2)

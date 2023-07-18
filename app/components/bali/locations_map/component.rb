@@ -16,19 +16,16 @@ module Bali
       )
         @options = prepend_class_name(options, 'locations-map-component')
         @options = prepend_controller(@options, 'locations-map')
-        @options = prepend_data_attribute(
-          @options, 'locations-map-key', ENV.fetch('GOOGLE_MAPS_KEY', '')
-        )
-        @options = prepend_data_attribute(
-          @options, 'locations-map-enable-clustering-value', clustered
-        )
-        @options = prepend_data_attribute(@options, 'locations-map-zoom-value', zoom)
-        @options = prepend_data_attribute(
-          @options, 'locations-map-center-latitude-value', center_latitude
-        )
-        @options = prepend_data_attribute(
-          @options, 'locations-map-center-longitude-value', center_longitude
-        )
+
+        { 
+          'locations-map-key' => ENV.fetch('GOOGLE_MAPS_KEY', ''),
+          'locations-map-enable-clustering-value' => clustered,
+          'locations-map-zoom-value'=> zoom,
+          'locations-map-center-latitude-value'=> center_latitude,
+          'locations-map-center-longitude-value'=> center_longitude
+        }.each do |data_attribute_name, data_attribute_value|
+          @options = prepend_data_attribute(@options, data_attribute_name, data_attribute_value)
+        end
       end
     end
   end

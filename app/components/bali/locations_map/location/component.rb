@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Bali
   module LocationsMap
     module Location
@@ -8,7 +10,7 @@ module Bali
         renders_one :info_view
 
         def initialize(
-          name: '', latitude:, longitude:, label: nil, color: nil , border_color: nil, icon_url: nil,
+          latitude:, longitude:, name: '', label: nil, color: nil, border_color: nil, icon_url: nil,
           glyph_color: nil
         )
           @name = name
