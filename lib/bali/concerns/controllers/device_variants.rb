@@ -3,7 +3,7 @@
 module Bali
   module Concerns
     module Controllers
-      module DeviceConcern
+      module DeviceVariants
         extend ActiveSupport::Concern
 
         included do
