@@ -48,11 +48,11 @@ module Bali
         end
 
         def ios_app?
-          request.user_agent.to_s.match?(Bali.ios_user_agent)
+          request.user_agent.to_s.match?(Bali.ios_native_app_user_agent)
         end
 
         def android_app?
-          request.user_agent.to_s.match?(Bali.android_user_agent)
+          request.user_agent.to_s.match?(Bali.android_native_app_user_agent)
         end
 
         private

@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.66.2] - 2023-07-18
+
+### Added
+
+- `Bali::Concerns::SoftDelete`
+- `Bali::Concerns::Controllers::DeviceConcern`
+- `ios_naitve_app_user_agent` and `android_native_app_user_agent` as `Bali` configuration
+
 ## [0.66.1] - 2023-07-12
 
 ### Fixed

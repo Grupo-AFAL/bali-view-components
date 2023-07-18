@@ -30,8 +30,8 @@ require 'bali/form_builder'
 module Bali
   mattr_accessor :native_app, default: false
   mattr_accessor :custom_icons, default: {}
-  mattr_accessor :ios_user_agent, default: /Turbo Native \(iOS\)/
-  mattr_accessor :android_user_agent, default: /Turbo Native \(Android\)/
+  mattr_accessor :ios_native_app_user_agent, default: /Turbo Native \(iOS\)/
+  mattr_accessor :android_native_app_user_agent, default: /Turbo Native \(Android\)/
 
   def self.add_icon(name, svg_str)
     custom_icons[name.to_s] = svg_str
