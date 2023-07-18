@@ -6,7 +6,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
   include_context 'form builder'
 
   describe '#coordinates_polygon_field_group' do
-    let(:coordinates_polygon_field_group) do 
+    let(:coordinates_polygon_field_group) do
       builder.coordinates_polygon_field_group(:available_region)
     end
 
