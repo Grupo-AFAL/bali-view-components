@@ -9,7 +9,7 @@ RSpec.describe Bali::LocationsMap::Component, type: :component do
   context 'default' do
     it 'renders locations map component' do
       render_inline(component)
-  
+
       expect(page).to have_css 'div.locations-map-component'
     end
   end
@@ -22,7 +22,7 @@ RSpec.describe Bali::LocationsMap::Component, type: :component do
           label: 'label'
         )
       end
-  
+
       expect(page).to have_css 'div.locations-map-component'
       expect(page).to have_css 'span[data-marker-label="label"]'
       expect(page).to have_css 'span[data-marker-color="gray"]'
@@ -48,7 +48,7 @@ RSpec.describe Bali::LocationsMap::Component, type: :component do
       render_inline(component) do |c|
         c.location(latitude: 10, longitude: 10) do |location|
           location.info_view do
-            '<p>This is an info view</p>'.html_safe 
+            '<p>This is an info view</p>'.html_safe
           end
         end
       end
