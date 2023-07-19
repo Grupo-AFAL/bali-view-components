@@ -12,13 +12,16 @@ export class LocationsMapController extends Controller {
     zoom: { type: Number, default: 12 },
     centerLatitude: { type: Number, default: TIJUANA_LAT },
     centerLongitude: { type: Number, default: TIJUANA_LNG },
-    locale: { type: String, default: 'en' }
+    locale: { type: String, default: 'en' },
+    apiKey: { type: String, default: '' }
   }
 
   connect = async () => {
     try {
       this.googleMaps = await GoogleMapsLoader({
-        libraries: ['drawing'], language: this.localeValue, key: this.data.get('key')
+        libraries: ['drawing'],
+        language: this.localeValue,
+        key: this.apiKeyValue
       })
 
       this.googleMarkers = await this.googleMaps.importLibrary('marker')
@@ -40,7 +43,9 @@ export class LocationsMapController extends Controller {
   }
 
   addMarkers = () => {
-    const markers = this.locations.map(location => this.generateMarker(location))
+    const markers = this.locations.map(location =>
+      this.generateMarker(location)
+    )
 
     if (this.enableClusteringValue) {
       this.markerCluster = new MarkerClusterer({ map: this.map, markers })
@@ -57,9 +62,13 @@ export class LocationsMapController extends Controller {
       content: this.markerContentElement(location)
     })
 
-    const infoViewContent = document.getElementById(location.infoViewId)?.innerHTML
+    const infoViewContent = document.getElementById(
+      location.infoViewId
+    )?.innerHTML
     if (infoViewContent) {
-      const infowindow = new this.googleMaps.InfoWindow({ content: infoViewContent })
+      const infowindow = new this.googleMaps.InfoWindow({
+        content: infoViewContent
+      })
 
       marker.addListener('click', () => {
         if (this.openInfoWindow) {
@@ -77,7 +86,7 @@ export class LocationsMapController extends Controller {
     return marker
   }
 
-  markerContentElement = (location) => {
+  markerContentElement = location => {
     if (location.marker.url) {
       const img = document.createElement('img')
       img.src = location.marker.url
