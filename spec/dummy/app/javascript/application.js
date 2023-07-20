@@ -14,6 +14,7 @@ import {
   GanttChartController,
   GanttFoldableItemController,
   HovercardController,
+  LocationsMapController,
   NavbarController,
   NotificationController,
   PopupController,
@@ -49,6 +50,7 @@ application.register('filter-attribute', FilterAttributeController)
 application.register('gantt-chart', GanttChartController)
 application.register('gantt-foldable-item', GanttFoldableItemController)
 application.register('hovercard', HovercardController)
+application.register('locations-map', LocationsMapController)
 application.register('navbar', NavbarController)
 application.register('notification', NotificationController)
 application.register('popup', PopupController)

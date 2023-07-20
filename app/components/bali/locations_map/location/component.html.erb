@@ -1,0 +1,9 @@
+<div class='locations-map-component--location-component'>
+  <%= tag.span(data: data_attributes) %>
+
+  <% if info_view? %>
+    <template id="<%= info_view_id %>">
+      <%= info_view %>
+    </template>
+  <% end %>
+</div>

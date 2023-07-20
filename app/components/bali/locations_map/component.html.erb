@@ -1,0 +1,7 @@
+<%= tag.div(**options) do %>
+  <% locations.each do |location| %>
+    <%= location %>
+  <% end %>
+
+  <div class="location-map" data-locations-map-target="map"></div>
+<% end %>

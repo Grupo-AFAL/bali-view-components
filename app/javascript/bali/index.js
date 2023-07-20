@@ -16,6 +16,7 @@ export { FilterAttributeController } from '../../components/bali/filters'
 export { GanttChartController } from '../../components/bali/gantt_chart'
 export { GanttFoldableItemController } from '../../components/bali/gantt_chart/gantt_foldable_item'
 export { HovercardController } from '../../components/bali/hover_card'
+export { LocationsMapController } from '../../components/bali/locations_map'
 export { ModalController } from '../../components/bali/modal'
 export { NavbarController } from '../../components/bali/navbar'
 export { NotificationController } from '../../components/bali/notification'
@@ -38,10 +39,12 @@ export {
   AutoPlayAudioController,
   CheckboxToggleController,
   DatepickerController,
+  DrawingMapsController,
   DynamicFieldsController,
   ElementsOverlapController,
   FileInputController,
   FocusOnConnectController,
+  GeocoderMapsController,
   InputOnChangeController,
   PrintController,
   RadioButtonsGroupController,
