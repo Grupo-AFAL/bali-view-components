@@ -56,9 +56,10 @@ module Bali
         return if @options[:type] == 'hidden' || @label_options[:text] == false
         return @form.label(@method, @label_options[:text]) if @label_options[:tooltip].nil?
 
-        @form.label(@method, class: 'label is-flex is-align-items-center') do |translation|
+        label_class = @label_options[:class] || 'is-flex is-align-items-center'
+        @form.label(@method, class: ['label', label_class].join(' ')) do |translation|
           safe_join([
-                      translation || @label_options[:text],
+                      @label_options[:text] || translation,
                       label_tooltip(@label_options[:tooltip])
                     ])
         end
