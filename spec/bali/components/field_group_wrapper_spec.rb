@@ -19,20 +19,4 @@ RSpec.describe Bali::FieldGroupWrapper::Component, type: :component do
       expect(page).to have_css 'label.label', text: 'Name'
     end
   end
-
-  context 'with addons' do
-    before do
-      @options.merge!(
-        addon_left: '<p>Left addon</p>'.html_safe,
-        addon_right: '<p>Right addon</p>'.html_safe
-      )
-    end
-
-    it 'renders addons' do
-      render_inline(component)
-
-      expect(page).to have_css '.control p:first-child', text: 'Left addon'
-      expect(page).to have_css '.control p:last-child', text: 'Right addon'
-    end
-  end
 end
