@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Custom class in the `currency_field_group` label when it renders a tooltip.
 
+### Fixed
+- Issue when an input field has an add-on and error
+
 ## [0.66.2] - 2023-07-18
 
 ### Added
