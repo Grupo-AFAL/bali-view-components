@@ -15,7 +15,7 @@ module Bali
           form_record.errors.add(:currency, :invalid)
 
           render_with_template(
-            template: 'bali/form/currency/previews/with_errors',
+            template: 'bali/form/currency/previews/default',
             locals: { model: form_record }
           )
         end
