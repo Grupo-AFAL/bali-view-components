@@ -34,7 +34,7 @@ module Bali
           c.tag.div 'Additional filters', class: 'bg-gray-100 p-2'
 
           c.custom_filters do
-            c.fields_for :q, FORM do |f|
+            c.fields_for :q, FORM, builder: Bali::FormBuilder do |f|
               f.date_field :date, placeholder: 'Select dates', mode: 'range'
             end
           end
