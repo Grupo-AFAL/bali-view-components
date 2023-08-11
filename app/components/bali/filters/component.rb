@@ -20,6 +20,7 @@ module Bali
       end
 
       renders_many :additional_query_params
+      renders_one :custom_filters
 
       def initialize(form:, url:, text_field: nil, opened: false, **options)
         @form = form

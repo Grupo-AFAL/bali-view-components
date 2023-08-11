@@ -38,7 +38,16 @@
             </div>
           <% end %>
         </div>
+      <% end %>
 
+      <% if custom_filters.present? %>
+        <div class="level-item width-inherit">
+          <%= custom_filters %>
+        </div>
+      <% end %>
+
+
+      <% if attributes? || custom_filters.present? %>
         <div class="level-item">
           <%= link_to t('.remove_filters'), clear_filters_url,
               class: class_names('is-hidden': !active_filters?),

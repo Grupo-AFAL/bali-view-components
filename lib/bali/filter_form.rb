@@ -22,7 +22,7 @@ module Bali
     end
 
     def permitted_attributes
-      scalar_attributes + array_attributes.map { |a| { a => [] } }
+      scalar_attributes + date_range_attributes + array_attributes.map { |a| { a => [] } }
     end
 
     # To define array attributes the user needs to specify an array as
@@ -39,7 +39,17 @@ module Bali
     end
 
     def scalar_attributes
-      @scalar_attributes ||= self.class._default_attributes.keys - array_attributes
+      @scalar_attributes ||= self.class._default_attributes.keys - non_scalar_attributes
+    end
+
+    def non_scalar_attributes
+      @non_scalar_attributes ||= array_attributes + date_range_attributes
+    end
+
+    def date_range_attributes
+      @date_range_attributes ||= self.class.attribute_names.filter do |key|
+        self.class.attribute_types[key].instance_of?(Bali::Types::DateRangeValue)
+      end
     end
 
     def model_name
@@ -74,14 +84,28 @@ module Bali
       @active_filters || query_params.except('s').filter { |_k, v| v.present? }
     end
 
+    def non_date_range_attribute_names
+      attribute_names - date_range_attributes
+    end
+
     def query_params
-      @query_params ||= attribute_names.index_with do |attr_name|
+      @query_params ||= non_date_range_attribute_names.index_with do |attr_name|
         send(attr_name.to_sym)
       end
     end
 
     def result(options = {})
-      @result ||= ransack_search.result(**options)
+      @result ||= begin
+        relation = ransack_search.result(**options)
+
+        date_range_attributes.each do |date_range_attr|
+          next if send(date_range_attr).blank?
+
+          relation = relation.where(date_range_attr => send(date_range_attr))
+        end
+
+        relation
+      end
     end
 
     def ransack_search
