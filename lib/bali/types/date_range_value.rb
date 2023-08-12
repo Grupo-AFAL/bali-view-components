@@ -18,6 +18,7 @@ module Bali
       end
 
       def normalize_date_range(range)
+        return if range.blank?
         return range unless range.is_a? String
 
         result = range.split(date_range_separator)
