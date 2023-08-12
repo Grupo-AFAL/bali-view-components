@@ -6,4 +6,5 @@ puts "\n== Bumping to library version: #{ARGV.join(' ')} =="
 
 Dir.chdir("#{APP_ROOT}/scripts") do
   system "thor library_version:bump #{ARGV.join(' ')}"
+  system 'bundle'
 end

@@ -8,6 +8,7 @@ module Bali
 
       attribute :name, :string
       attribute :date_gteq, :date
+      attribute :date, :date_range
 
       def model_name
         @model_name ||= ActiveModel::Name.new(self, nil, 'q')
