@@ -1,20 +1,25 @@
-.input.is-very-short {
+.input.is-very-short,
+.select.is-very-short {
   width: 4rem;
 }
 
-.input.is-short {
+.input.is-short,
+.select.is-short {
   width: 100px;
 }
 
-.input.is-medium-short {
+.input.is-medium-short,
+.select.is-medium-short {
   width: 140px;
 }
 
-.input.is-long {
+.input.is-long,
+.select.is-long {
   width: 16rem;
 }
 
-.input.is-very-long {
+.input.is-very-long,
+.select.is-very-long {
   width: 20rem;
 }
 
