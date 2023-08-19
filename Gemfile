@@ -21,7 +21,7 @@ gem 'debug', '>= 1.0.0'
 
 group :development do
   gem 'jsbundling-rails'
-  gem 'puma', '~> 5.2'
+  gem 'puma', '~> 5.6'
   gem 'rubocop', '~> 1', require: false
   gem 'rubocop-rails', '~> 2'
 end
