@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Bali
   module IconTagHelper
     def icon_tag(name, options = {})
