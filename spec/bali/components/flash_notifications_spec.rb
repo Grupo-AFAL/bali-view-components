@@ -11,7 +11,7 @@ RSpec.describe Bali::FlashNotifications::Component, type: :component do
     context 'without notice and alert' do
       it 'does not render a notification component' do
         render_inline(component)
-    
+
         expect(page).not_to have_css 'div.notification-component'
       end
     end
@@ -21,7 +21,7 @@ RSpec.describe Bali::FlashNotifications::Component, type: :component do
 
       it 'renders a notification component' do
         render_inline(component)
-    
+
         expect(page).to have_css 'div.notification-component.is-success', text: 'This is a notice'
       end
     end
@@ -31,7 +31,7 @@ RSpec.describe Bali::FlashNotifications::Component, type: :component do
 
       it 'renders a notification component' do
         render_inline(component)
-    
+
         expect(page).to have_css 'div.notification-component.is-danger', text: 'This is an alert'
       end
     end
