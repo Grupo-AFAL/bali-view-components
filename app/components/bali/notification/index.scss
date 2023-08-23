@@ -20,6 +20,16 @@ $top-position: 4.25rem;
       width: 100%;
     }
   }
+
+  &.is-unclosable {
+    .delete {
+      display: none;
+    }
+  
+    .notification-content-component {
+      margin-right: 0;
+    }
+  }
 }
 
 .fadeOutRight {

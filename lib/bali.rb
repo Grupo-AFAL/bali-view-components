@@ -15,6 +15,9 @@ require 'bali/html_element_helper'
 require 'bali/path_helper'
 require 'bali/form_helper'
 require 'bali/auto_submit_select_helper'
+require 'bali/icon_tag_helper'
+require 'bali/tests_helper'
+require 'bali/tenancy_tests_helper'
 
 Dir[File.join(File.dirname(__FILE__), 'bali/concerns', '**/*.rb')].each do |concern|
   require concern
