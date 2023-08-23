@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Bali::TestsHelper`
 - `Bali::Concerns::Mailers::RecipientsSanitizer`. This concern includes `send_mail` method, which removes inactive emails before sending mail.
 - `Bali::Concerns::Mailers::UtmParams`
+- `Bali::FlashNotifications::Component`
 
 ## [0.67.1] - 2023-08-15
 
