@@ -173,7 +173,8 @@ module Bali
           'wallet-alt' => WALLET_ALT,
           'weight' => WEIGHT,
           'whatsapp' => WHATSAPP,
-          'whatsapp-square' => WHATSAPP_SQUARE
+          'whatsapp-square' => WHATSAPP_SQUARE,
+          'youtube' => YOUTUBE
         }.merge!(Bali.custom_icons)
       end
       # rubocop: enable Metrics/MethodLength
