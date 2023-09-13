@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `youtube` icon
+- `title` to `mexican flag` icon
+- `title` to `usa flag` icon
+- `title` to `shopping cart` icon
+
+### Changed
+
+- color of the `facebook` and `instagram` icons to `currentColor`
 
 ### Changed
 
