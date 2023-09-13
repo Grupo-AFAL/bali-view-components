@@ -1,6 +1,6 @@
 {
   "name": "bali-view-components",
-  "version": "0.67.2",
+  "version": "0.67.3",
   "description": "Bali ViewComponents",
   "main": "app/javascript/bali/index.js",
   "repository": "git@github.com:Grupo-AFAL/bali.git",
