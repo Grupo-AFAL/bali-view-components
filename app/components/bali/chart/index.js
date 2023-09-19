@@ -10,7 +10,8 @@ export class ChartController extends Controller {
     },
     data: Object,
     options: Object,
-    labels: Array
+    labels: Array,
+    displayPercent: { type: Boolean, default: false }
   }
 
   connect () {
@@ -20,6 +21,10 @@ export class ChartController extends Controller {
     this.addPrefixAndSuffixToAxisLabel(options)
     this.addPrefixAndSuffixToTooltipLabel(options)
     this.overrideTooltipTitle(options)
+
+    if (this.displayPercentValue) {
+      this.displayPercentInTooltip(options)
+    }
 
     this.chart = new Chart(element.getContext('2d'), {
       type: this.typeValue,
@@ -35,13 +40,15 @@ export class ChartController extends Controller {
 
   get chartData () {
     if (!this.hasDataValue) {
-      console.warn('[stimulus-chartjs] You need to pass data as JSON to see the chart.')
+      console.warn(
+        '[stimulus-chartjs] You need to pass data as JSON to see the chart.'
+      )
     }
 
     return this.dataValue
   }
 
-  addPrefixAndSuffixToAxisLabel = (options) => {
+  addPrefixAndSuffixToAxisLabel = options => {
     if (!options.scales) return
 
     for (const scale in options.scales) {
@@ -57,12 +64,12 @@ export class ChartController extends Controller {
     }
   }
 
-  addPrefixAndSuffixToTooltipLabel = (options) => {
+  addPrefixAndSuffixToTooltipLabel = options => {
     if (!options.plugins?.tooltip?.callbacks?.label) return
 
     const callbackLabelData = options.plugins?.tooltip?.callbacks?.label
 
-    options.plugins.tooltip.callbacks.label = (context) => {
+    options.plugins.tooltip.callbacks.label = context => {
       const suffix = callbackLabelData[context.dataset.yAxisID]?.suffix
       const prefix = callbackLabelData[context.dataset.yAxisID]?.prefix
 
@@ -70,17 +77,30 @@ export class ChartController extends Controller {
       if (label) {
         label += ':'
       }
-      return `${label} ${prefix || ''} ${context.parsed.y} ${suffix || ''}`.trim()
+      return `${label} ${prefix || ''} ${context.parsed.y} ${
+        suffix || ''
+      }`.trim()
     }
   }
 
-  overrideTooltipTitle = (options) => {
+  overrideTooltipTitle = options => {
     options.plugins ||= {}
     options.plugins.tooltip ||= {}
     options.plugins.tooltip.callbacks ||= {}
 
-    options.plugins.tooltip.callbacks.title = (context) => {
+    options.plugins.tooltip.callbacks.title = context => {
       return this.labelsValue[context[0].dataIndex]
+    }
+  }
+
+  displayPercentInTooltip (options) {
+    options.plugins.tooltip.callbacks.label = context => {
+      const label = context.formattedValue || ''
+
+      const total = context.dataset.data.reduce((a, b) => a + b, 0)
+      const percent = (context.dataset.data[context.dataIndex] / total) * 100
+
+      return `${label} (${percent.toFixed(2)}%)`
     }
   }
 }
