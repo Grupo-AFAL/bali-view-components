@@ -36,6 +36,8 @@ module Bali
         @chart_options = options.delete(:chart_options) || {}
         @html_options = options
         @color_picker = Bali::Utils::ColorPicker.new
+
+        @display_percent = options.delete(:display_percent)
       end
 
       def options
