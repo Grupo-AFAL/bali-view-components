@@ -95,7 +95,7 @@ export class ChartController extends Controller {
 
   displayPercentInTooltip (options) {
     options.plugins.tooltip.callbacks.label = context => {
-      let label = context.formattedValue || ''
+      const label = context.formattedValue || ''
 
       const total = context.dataset.data.reduce((a, b) => a + b, 0)
       const percent = (context.dataset.data[context.dataIndex] / total) * 100
