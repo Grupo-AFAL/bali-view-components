@@ -27,7 +27,7 @@ module Bali
         @template.content_tag(:div, class: 'field switch') do
           safe_join([
                       check_box(method, options, checked_value, unchecked_value),
-                      label("#{method}_#{unique_identifier}") { '&nbsp;'.html_safe }
+                      @template.label_tag(options[:id], '')
                     ])
         end
       end
