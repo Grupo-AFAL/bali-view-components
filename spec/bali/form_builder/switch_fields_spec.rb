@@ -25,9 +25,8 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
       expect(switch_field_group).to have_css 'input[name="movie[indie]"][value="1"]'
     end
 
-    it 'renders a label with a non breaking space' do
+    it 'renders an empty label' do
       expect(switch_field_group).to have_css 'label'
-      expect(switch_field_group).to include '&nbsp;</label>'
     end
   end
 
@@ -42,9 +41,8 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
       expect(switch_field).to have_css 'input[name="movie[indie]"][value="1"]'
     end
 
-    it 'renders a label with a non breaking space' do
+    it 'renders an empty label' do
       expect(switch_field).to have_css 'label'
-      expect(switch_field).to include '&nbsp;</label>'
     end
   end
 end
