@@ -62,7 +62,10 @@ module Bali
       end
 
       def datasets
-        @datasets ||= values.map.with_index do |dataset_info, index|
+        return @datasets if defined? @datasets
+
+        datasets_from_data = (data[:datasets].deep_dup || [{ label: '', data: data.values }])
+        @datasets = datasets_from_data.map.with_index do |dataset_info, index|
           dataset_info[:type] ||= (type[index] || type.first)
           dataset_info[:order] ||= order[index]
           dataset_info[:yAxisID] ||= y_axis_ids[index]
@@ -72,10 +75,6 @@ module Bali
       end
 
       private
-
-      def values
-        @values ||= data[:datasets].deep_dup || [{ label: '', data: data.values }]
-      end
 
       def dataset_color(graph_type)
         return labels.map { |_| color_picker.next_color } if multiple_dataset_colors?(graph_type)
