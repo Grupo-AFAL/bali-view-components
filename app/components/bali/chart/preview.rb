@@ -82,6 +82,12 @@ module Bali
             }
           })
       end
+
+      def chart_js_data_structures(id: 'chart')
+        render_with_template(
+          template: 'bali/chart/previews/chart_js_data_structures'
+        )
+      end
     end
   end
 end

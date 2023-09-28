@@ -50,7 +50,11 @@ module Bali
       end
 
       def labels
-        @labels ||= (data[:labels] || data.keys.map(&:to_s))
+        @labels ||= if data.key?(:labels) || (data.keys.size == 1 && data.key?(:datasets))
+                      Array.wrap(data[:labels])
+                    else 
+                      data.keys.map(&:to_s)
+                    end
       end
 
       def truncated_labels
