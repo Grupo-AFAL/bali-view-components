@@ -84,7 +84,7 @@ module Bali
       end
 
       def multiple_dataset_colors?(graph_type)
-        %i[pie doughnut polarArea].include?(graph_type)
+        %i[pie doughnut polarArea].include?(graph_type&.to_sym)
       end
 
       def overwrite_legend_option(opts, legend)
