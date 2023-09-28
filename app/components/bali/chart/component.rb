@@ -52,7 +52,7 @@ module Bali
       def labels
         @labels ||= if data.key?(:labels) || (data.keys.size == 1 && data.key?(:datasets))
                       Array.wrap(data[:labels])
-                    else 
+                    else
                       data.keys.map(&:to_s)
                     end
       end
