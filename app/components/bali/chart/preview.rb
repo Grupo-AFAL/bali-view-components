@@ -88,6 +88,12 @@ module Bali
           template: 'bali/chart/previews/chart_js_data_structures'
         )
       end
+
+      def chart_js_bar_chart_samples(id: 'chart')
+        render_with_template(
+          template: 'bali/chart/previews/chart_js_bar_chart_samples'
+        )
+      end
     end
   end
 end
