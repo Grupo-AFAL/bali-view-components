@@ -5,7 +5,7 @@ module Bali
     class Dataset
       LINE_GRAPH_TENSION = 0.3
 
-      def initialize(label: '', data: {}, order: 1, type: :bar, **options) 
+      def initialize(label: '', data: {}, order: 1, type: :bar, **options)
         @label = label
         @data = data
         @order = order
@@ -20,7 +20,7 @@ module Bali
           data: @data,
           type: @type,
           order: @order,
-          tension: @options.delete(:tension) ||  LINE_GRAPH_TENSION,
+          tension: @options.delete(:tension) || LINE_GRAPH_TENSION,
           borderWidth: @options.delete(:borderWidth) || 2,
           borderColor: @options.delete(:borderColor) || border_color,
           backgroundColor: @options.delete(:backgroundColor) || background_color,

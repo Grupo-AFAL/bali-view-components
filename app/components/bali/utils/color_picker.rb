@@ -7,7 +7,7 @@ module Bali
         def opacify(color, opacity = 5)
           "#{color}#{(opacity * 255 / 10).to_fs(16)}"
         end
-  
+
         def gradient(color = nil, size: 10)
           (0..(size - 1)).map { |opacity| opacify(color || @current, opacity) }
         end
