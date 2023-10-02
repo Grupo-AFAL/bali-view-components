@@ -3,6 +3,16 @@
 module Bali
   module Utils
     class ColorPicker
+      class << self
+        def opacify(color, opacity = 5)
+          "#{color}#{(opacity * 255 / 10).to_fs(16)}"
+        end
+
+        def gradient(color = nil, size: 10)
+          (0..(size - 1)).map { |opacity| opacify(color || @current, opacity) }
+        end
+      end
+
       attr_reader :current
 
       def initialize
@@ -18,15 +28,7 @@ module Bali
       end
 
       def opacify_current(opacity = 5)
-        opacify(@current, opacity)
-      end
-
-      def opacify(color, opacity = 5)
-        "#{color}#{(opacity * 255 / 10).to_fs(16)}"
-      end
-
-      def gradient(color = nil, size: 10)
-        (0..(size - 1)).map { |opacity| opacify(color || @current, opacity) }
+        self.class.opacify(@current, opacity)
       end
 
       private

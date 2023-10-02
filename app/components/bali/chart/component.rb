@@ -10,7 +10,7 @@
 #  Format 2:
 #    {
 #      labels: ["Wed, 12 Jan 2022","Thu, 13 Jan 2022"],
-#      data: [ { label: "Res", values: [0, 0] }, { label: "Cerdo", values: [0, 0] } ]
+#      datasets: [ { label: "Res", data: [0, 0] }, { label: "Cerdo", data: [0, 0] } ]
 #    }
 #    where:
 #     - labels are x axis labels
@@ -23,35 +23,38 @@ module Bali
     class Component < ApplicationViewComponent
       MAX_LABEL_X_LENGTH = 16
 
-      attr_reader :data, :type, :id, :title, :legend, :axis, :order,
-                  :chart_options, :html_options, :color_picker
+      attr_reader :type, :data, :options, :html_options, :title, :display_percent, :color_picker,
+                  :order, :y_axis_ids
 
-      def initialize(data:, type: :bar, axis: [], order: [], legend: false, **options)
-        @data = data
-        @axis = axis
-        @order = order
-        @legend = legend
+      def initialize(
+        type: :bar,
+        data: {},
+        order: [],
+        y_axis_ids: [],
+        options: { responsive: true, maintainAspectRatio: false },
+        **html_options
+      )
         @type = Array.wrap(type)
-        @title = options.delete(:title)
-        @chart_options = options.delete(:chart_options) || {}
-        @html_options = options
+        @data = data
+        @options = options
+        @order = order
+        @y_axis_ids = y_axis_ids
+
+        @title = html_options.delete(:title)
+        @display_percent = html_options.delete(:display_percent)
+
+        overwrite_legend_option(@options, html_options.delete(:legend) || false)
+
+        @html_options = html_options
         @color_picker = Bali::Utils::ColorPicker.new
-
-        @display_percent = options.delete(:display_percent)
-      end
-
-      def options
-        if chart_options.dig(:plugins, :legend, :display).blank?
-          chart_options[:plugins] ||= {}
-          chart_options[:plugins][:legend] ||= {}
-          chart_options[:plugins][:legend].merge!(display: legend)
-        end
-
-        chart_options.merge!(responsive: true, maintainAspectRatio: false)
       end
 
       def labels
-        @labels ||= (data[:labels] || data.keys.map(&:to_s))
+        @labels ||= if data.key?(:labels) || (data.keys.size == 1 && data.key?(:datasets))
+                      Array.wrap(data[:labels])
+                    else
+                      data.keys.map(&:to_s)
+                    end
       end
 
       def truncated_labels
@@ -59,32 +62,34 @@ module Bali
       end
 
       def datasets
-        values.map.with_index do |dataset_info, index|
-          Dataset.new(
-            type[index],
-            dataset_info[:values],
-            dataset_colors(type[index]),
-            label: dataset_info[:label],
-            order: order[index],
-            axis: axis[index]
-          ).result
+        return @datasets if defined? @datasets
+
+        datasets_from_data = (data[:datasets].deep_dup || [{ label: '', data: data.values }])
+        @datasets = datasets_from_data.map.with_index do |dataset_info, index|
+          dataset_info[:type] ||= (type[index] || type.first)
+          dataset_info[:order] ||= order[index]
+          dataset_info[:yAxisID] ||= y_axis_ids[index]
+
+          Dataset.new(color: dataset_color(dataset_info[:type]), **dataset_info.compact).result
         end
       end
 
       private
 
-      def values
-        @values ||= data[:data] || [{ label: '', values: data.values }]
-      end
-
-      def dataset_colors(graph_type)
-        return labels.map { |_| color_picker.next_color } if color_per_label?(graph_type)
+      def dataset_color(graph_type)
+        return labels.map { |_| color_picker.next_color } if multiple_dataset_colors?(graph_type)
 
         [color_picker.next_color]
       end
 
-      def color_per_label?(graph_type)
-        %i[pie doughnut polarArea].include?(graph_type)
+      def multiple_dataset_colors?(graph_type)
+        %i[pie doughnut polarArea].include?(graph_type&.to_sym)
+      end
+
+      def overwrite_legend_option(opts, legend)
+        opts[:plugins] ||= {}
+        opts[:plugins][:legend] ||= {}
+        opts[:plugins][:legend].merge!(display: legend)
       end
     end
   end

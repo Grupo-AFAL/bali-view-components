@@ -1,0 +1,137 @@
+
+<div class='mb-6'>
+  <p class='title'>Primitives []</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'bar', data: { datasets: [{ data: [20, 10], }], labels: ['a', 'b'] }
+  ) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Object [] Version 1</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'line', data: {
+      datasets: [{
+        data: [{x: '10', y: 20}, {x: '15', y: nil}, {x: '20', y: 10}]
+      }]
+  }) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Object [] Version 2</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'line', data: {
+      datasets: [{
+        data: [{x: '2016-12-25', y: 20}, {x: '2016-12-26', y: 10}]
+      }]
+  }) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Object [] Version 3</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'line', data: {
+      datasets: [{
+        data: [{x: 'Sales', y: 20}, {x: 'Revenue', y: 10}]
+      }]
+  }) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Object [] using custom properties Version 1</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'bar', data: {
+      datasets: [{
+          data: [{id: 'Sales', nested: {value: 1500}}, {id: 'Purchases', nested: {value: 500}}]
+        }]
+      },
+      options: {
+        parsing: {
+          xAxisKey: 'id',
+          yAxisKey: 'nested.value'
+        }
+      }
+  ) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Object [] using custom properties Version 2</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'doughnut', data: {
+        datasets: [{
+            data: [{id: 'Sales', nested: {value: 1500}}, {id: 'Purchases', nested: {value: 500}}]
+          }]
+      },
+      options: {
+        parsing: {
+          key: 'nested.value'
+        }
+      }
+  ) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Object [] using custom properties Version 3</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'line', data: {
+        datasets: [{
+          data: [{'data.key': 'one', 'data.value': 20}, {'data.key': 'two', 'data.value': 30}]          }]
+      },
+      options: {
+        parsing: {
+          xAxisKey: 'data\\.key',
+          yAxisKey: 'data\\.value'
+        }
+      }
+  ) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Object</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'line', data:{
+      datasets: [{
+          data: {
+            January: 10,
+            February: 20
+          }
+        }]
+      }
+  ) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Parsing</p>
+  
+  <%= render Bali::Chart::Component.new(
+      type: 'line', data: {
+        labels: ['Jan', 'Feb'],
+        datasets: [{
+          label: 'Net sales',
+          data: [{x: 'Jan', net: 100, cogs: 50, gm: 50}, {x: 'Feb', net: 120, cogs: 55, gm: 75}],
+          parsing: {
+            yAxisKey: 'net'
+          }
+        }, {
+          label: 'Cost of goods sold',
+          data: [{x: 'Jan', net: 100, cogs: 50, gm: 50}, {x: 'Feb', net: 120, cogs: 55, gm: 75}],
+          parsing: {
+            yAxisKey: 'cogs'
+          }
+        }, {
+          label: 'Gross margin',
+          data: [{x: 'Jan', net: 100, cogs: 50, gm: 50}, {x: 'Feb', net: 120, cogs: 55, gm: 75}],
+          parsing: {
+            yAxisKey: 'gm'
+          }
+        }]
+      }
+  ) %>
+</div>

@@ -5,38 +5,37 @@ module Bali
     class Dataset
       LINE_GRAPH_TENSION = 0.3
 
-      def initialize(type, values, colors, **options)
+      def initialize(label: '', data: {}, order: 1, type: :bar, **options)
+        @label = label
+        @data = data
+        @order = order
         @type = type
-        @values = values
-        @colors = colors
-        @label = options.delete(:label) || ''
-        @order = options.delete(:order) || 1
-        @axis = options.delete(:axis) || 1
-        @color_picker = Bali::Utils::ColorPicker.new
+        @color = Array.wrap(options.delete(:color))
+        @options = options
       end
 
       def result
         {
           label: @label,
-          data: @values,
-          borderWidth: 2,
-          yAxisID: "y_#{@axis}",
+          data: @data,
           type: @type,
           order: @order,
-          tension: LINE_GRAPH_TENSION,
-          backgroundColor: background_colors,
-          borderColor: border_colors
+          tension: @options.delete(:tension) || LINE_GRAPH_TENSION,
+          borderWidth: @options.delete(:borderWidth) || 2,
+          borderColor: @options.delete(:borderColor) || border_color,
+          backgroundColor: @options.delete(:backgroundColor) || background_color,
+          **@options
         }
       end
 
       private
 
-      def background_colors
-        @background_colors ||= @colors.map { |color| @color_picker.opacify(color) }
+      def background_color
+        @background_color ||= @color.map { |color| Utils::ColorPicker.opacify(color) }
       end
 
-      def border_colors
-        @border_colors ||= @colors.map { |color| @color_picker.opacify(color, 7) }
+      def border_color
+        @border_color ||= @color.map { |color| Utils::ColorPicker.opacify(color, 7) }
       end
     end
   end

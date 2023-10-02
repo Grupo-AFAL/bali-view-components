@@ -1,0 +1,298 @@
+<div class='mb-6'>
+  <p class='title'>Bubble Chart</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'bubble', data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'],
+        datasets: [
+          {
+            label: 'Dataset 1',
+            data: 7.times.map { |_| [Random.rand(-100..100), Random.rand(-100..100), Random.rand(1..20)]}
+          },
+          {
+            label: 'Dataset 2',
+            data: 7.times.map { |_| [Random.rand(-100..100), Random.rand(-100..100), Random.rand(1..10)]}
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Chart.js Bubble Chart'
+          }
+        }
+      }
+  ) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Combo Bar/Line</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: :bar, data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'],
+        datasets: [
+          {
+            label: 'Dataset 1',
+            data: 7.times.map { |_| [Random.rand(-100..100), Random.rand(-100..100)]},
+            type: :bar
+          },
+          {
+            label: 'Dataset 2',
+            data: 7.times.map { |_| [Random.rand(-100..100), Random.rand(-100..100)]},
+            type: :line
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Chart.js Combined Line/Bar Chart'
+          }
+        }
+      }
+  ) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Doughnut Chart</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'doughnut', data: {
+        labels: ['Red', 'Orange', 'Yellow', 'Green', 'Blue'],
+        datasets: [
+          {
+            label: 'Dataset 1',
+            data: 5.times.map { |_| Random.rand(0..100)},
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Chart.js Doughnut Chart'
+          }
+        }
+      }
+  ) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Multi Series Pie Chart</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'pie', data: {
+        labels: ['Overall Yay', 'Overall Nay', 'Group A Yay', 'Group A Nay', 'Group B Yay', 'Group B Nay', 'Group C Yay', 'Group C Nay'],
+        datasets: [
+          {
+            backgroundColor: ['#AAA', '#777'],
+            data: [21, 79]
+          },
+          {
+            backgroundColor: ['hsl(0, 100%, 60%)', 'hsl(0, 100%, 35%)'],
+            data: [33, 67]
+          },
+          {
+            backgroundColor: ['hsl(100, 100%, 60%)', 'hsl(100, 100%, 35%)'],
+            data: [20, 80]
+          },
+          {
+            backgroundColor: ['hsl(180, 100%, 60%)', 'hsl(180, 100%, 35%)'],
+            data: [10, 90]
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Chart.js Multi Series Pie Chart'
+          }
+        }
+      }
+  ) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Pie Chart</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'pie', data: {
+        labels: ['Red', 'Orange', 'Yellow', 'Green', 'Blue'],
+        datasets: [
+          {
+            label: 'Dataset 1',
+            data: 5.times.map { |_| Random.rand(0..100)},
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Chart.js Pie Chart'
+          }
+        }
+      }
+  ) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Polar Area Chart</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'polarArea', data: {
+        labels: ['Red', 'Orange', 'Yellow', 'Green', 'Blue'],
+        datasets: [
+          {
+            label: 'Dataset 1',
+            data: 5.times.map { |_| Random.rand(0..100)},
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Chart.js Doughnut Chart'
+          }
+        }
+      }
+  ) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Polar Area Centered Point Labels Chart</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'polarArea', data: {
+        labels: ['Bears', 'Dogs', 'Wolves', 'Cats', 'Tigers'],
+        datasets: [
+          {
+            label: 'Dataset 1',
+            data: 5.times.map { |_| Random.rand(0..100)},
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Chart.js Doughnut Chart'
+          }
+        },
+        scales: {
+          r: {
+            pointLabels: {
+              display: true,
+              centerPointLabels: true,
+              font: { size: 18 }
+            }
+          }
+        }
+      }
+  ) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Radar Chart</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'radar', data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'],
+        datasets: [
+          {
+            label: 'Dataset 1',
+            data: 7.times.map { |_| Random.rand(0..100)},
+          },
+          {
+            label: 'Dataset 2',
+            data: 7.times.map { |_| Random.rand(0..100)},
+          },
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Chart.js Radar Chart'
+          }
+        }
+      }
+  ) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Stack Bar/Line Chart</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'line', data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'],
+        datasets: [
+          {
+            label: 'Dataset 1',
+            data: 7.times.map { |_| Random.rand(0..100)},
+            stack: 'combined',
+            type: 'bar'
+          },
+          {
+            label: 'Dataset 2',
+            data: 7.times.map { |_| Random.rand(0..100)},
+            stack: 'combined'
+          },
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Chart.js Stacked Bar/Line Chart'
+          }
+        },
+        scales: {
+          y: {
+            stacked: true
+          }
+        }
+      }
+  ) %>
+</div>

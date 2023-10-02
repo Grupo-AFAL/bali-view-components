@@ -17,7 +17,7 @@ module Bali
         @height = height
         @data = data
         @color = color
-        @gradient_colors = Bali::Utils::ColorPicker.new.gradient(@color)
+        @gradient_colors = Bali::Utils::ColorPicker.gradient(@color)
         @options = prepend_class_name(options, 'heatmap-component')
       end
 

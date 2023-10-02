@@ -1,0 +1,207 @@
+<div class='mb-6'>
+  <p class='title'>Bar Chart Border Radius</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'bar', data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'],
+        datasets: [
+          {
+            label: 'Fully Rounded',
+            data: 7.times.map { |_| Random.rand(-100..100)},
+            borderRadius: 5,
+            borderSkipped: false,
+          },
+          {
+            label: 'Small Radius',
+            data: 7.times.map { |_| Random.rand(-100..100)},
+            borderRadius: 5,
+            borderSkipped: false,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Chart.js Bar Chart'
+          }
+        }
+      }
+  ) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Floating Bars</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'bar', data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'],
+        datasets: [
+          {
+            label: 'Fully Rounded',
+            data: 7.times.map { |_| [Random.rand(-100..100), Random.rand(-100..100)]},
+          },
+          {
+            label: 'Small Radius',
+            data: 7.times.map { |_| [Random.rand(-100..100), Random.rand(-100..100)]},
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Chart.js Bar Chart'
+          }
+        }
+      }
+  ) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Horizontal Bar Chart</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'bar', data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'],
+        datasets: [
+          {
+            label: 'Fully Rounded',
+            data: 7.times.map { |_| Random.rand(-100..100)},
+          },
+          {
+            label: 'Small Radius',
+            data: 7.times.map { |_| Random.rand(-100..100)},
+          }
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        elements: {
+          bar: {
+            borderWidth: 2,
+          }
+        },
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'right',
+          },
+          title: {
+            display: true,
+            text: 'Chart.js Horizontal Bar Chart'
+          }
+        }
+      }
+  ) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Stacked Bar Chart</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'bar', data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'],
+        datasets: [
+          {
+            label: 'Dataset 1',
+            data: 7.times.map { |_| Random.rand(-100..100)},
+          },
+          {
+            label: 'Dataset 2',
+            data: 7.times.map { |_| Random.rand(-100..100)},
+          },
+                    {
+            label: 'Dataset 3',
+            data: 7.times.map { |_| Random.rand(-100..100)},
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Chart.js Horizontal Bar Chart'
+          }
+        },
+        scales: { x: { stacked: true }, y: { stacked: true } }
+      }
+  ) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Stacked Bar Chart with Groups</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'bar', data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'],
+        datasets: [
+          {
+            label: 'Dataset 1',
+            data: 7.times.map { |_| Random.rand(-100..100)},
+            stack: 'Stack 0'
+          },
+          {
+            label: 'Dataset 2',
+            data: 7.times.map { |_| Random.rand(-100..100)},
+            stack: 'Stack 0'
+          },
+          {
+            label: 'Dataset 3',
+            data: 7.times.map { |_| Random.rand(-100..100)},
+            stack: 'Stack 1'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: { intersect: false },
+        plugins: {
+          title: {
+            display: true,
+            text: 'Chart.js Horizontal Bar Chart'
+          }
+        },
+        scales: { x: { stacked: true }, y: { stacked: true } }
+      }
+  ) %>
+</div>
+
+<div class='mb-6'>
+  <p class='title'>Vertical Bar Chart</p>
+
+  <%= render Bali::Chart::Component.new(
+      type: 'bar', data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'],
+        datasets: [
+          {
+            label: 'Dataset 1',
+            data: 7.times.map { |_| Random.rand(-100..100)}
+          },
+          {
+            label: 'Dataset 2',
+            data: 7.times.map { |_| Random.rand(-100..100)}
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top' },
+          title: {
+            display: true,
+            text: 'Chart.js Horizontal Bar Chart'
+          }
+        }
+      }
+  ) %>
+</div>
