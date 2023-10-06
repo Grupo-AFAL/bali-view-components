@@ -62,15 +62,23 @@ export class LocationsMapController extends Controller {
       content: this.markerContentElement(location)
     })
 
-    const infoViewContent = document.getElementById(
-      location.infoViewId
-    )?.innerHTML
+    const infoViewContent = document.getElementById(location.infoViewId)?.innerHTML
+
     if (infoViewContent) {
-      const infowindow = new this.googleMaps.InfoWindow({
-        content: infoViewContent
+      const infowindow = new this.googleMaps.InfoWindow({ content: infoViewContent })
+
+      infowindow.addListener('closeclick', this.unselectLocationCards);
+
+      marker.addListener('click', (e) => {
+        e.stop()
+
+        this.unselectLocationCards()
+        this.highligthDomElement(e.latLng.lat(), e.latLng.lng());
       })
 
-      marker.addListener('click', () => {
+      marker.addListener('click', (e) => {
+        e.stop();
+
         if (this.openInfoWindow) {
           this.openInfoWindow.close()
           this.openInfoWindow = null
@@ -121,5 +129,20 @@ export class LocationsMapController extends Controller {
         }
       }
     })
+  }
+
+  unselectLocationCards = () => {
+    document.querySelectorAll(`[data-locations-map-target="card"]`)
+      .forEach(element => { element.classList.remove('is-selected') })
+  }
+
+  highligthDomElement = (lat, lng) => {
+    const elements = document.querySelectorAll(
+      `[data-locations-map-target="card"][data-latitude="${lat}"][data-longitude="${lng}"]`
+    )
+
+    elements[0]?.scrollIntoView({ behavior: "smooth", block: "center" })
+
+    elements.forEach(element => { element.classList.add('is-selected') })
   }
 }
