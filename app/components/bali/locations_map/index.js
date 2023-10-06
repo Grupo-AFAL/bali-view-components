@@ -6,7 +6,7 @@ const TIJUANA_LAT = 32.5036383
 const TIJUANA_LNG = -117.0308968
 
 export class LocationsMapController extends Controller {
-  static targets = ['map', 'location']
+  static targets = ['map', 'location', 'card']
   static values = {
     enableClustering: Boolean,
     zoom: { type: Number, default: 12 },
@@ -67,14 +67,16 @@ export class LocationsMapController extends Controller {
     if (infoViewContent) {
       const infowindow = new this.googleMaps.InfoWindow({ content: infoViewContent })
 
-      infowindow.addListener('closeclick', this.unselectLocationCards);
+      if (this.hasCardTarget) {
+        infowindow.addListener('closeclick', this.unselectCards);
 
-      marker.addListener('click', (e) => {
-        e.stop()
+        marker.addListener('click', (e) => {
+          e.stop()
 
-        this.unselectLocationCards()
-        this.highligthDomElement(e.latLng.lat(), e.latLng.lng());
-      })
+          this.unselectCards()
+          this.selectCards(e.latLng.lat(), e.latLng.lng());
+        })
+      }
 
       marker.addListener('click', (e) => {
         e.stop();
@@ -131,18 +133,21 @@ export class LocationsMapController extends Controller {
     })
   }
 
-  unselectLocationCards = () => {
-    document.querySelectorAll(`[data-locations-map-target="card"]`)
-      .forEach(element => { element.classList.remove('is-selected') })
+  unselectCards = () => {
+    this.cardTargets.forEach(card => { card.classList.remove('is-selected') })
   }
 
-  highligthDomElement = (lat, lng) => {
-    const elements = document.querySelectorAll(
-      `[data-locations-map-target="card"][data-latitude="${lat}"][data-longitude="${lng}"]`
-    )
+  selectCards = (lat, lng) => {
+    let scrolledIntoView = false
 
-    elements[0]?.scrollIntoView({ behavior: "smooth", block: "center" })
+    for (const card of this.cardTargets) {
+      if (card.dataset.latitude != lat || card.dataset.longitude != lng) continue
 
-    elements.forEach(element => { element.classList.add('is-selected') })
+      card.classList.add('is-selected')
+      if (!scrolledIntoView) {
+        card.scrollIntoView({ behavior: "smooth", block: "center" })
+        scrolledIntoView = true
+      }
+    }
   }
 }

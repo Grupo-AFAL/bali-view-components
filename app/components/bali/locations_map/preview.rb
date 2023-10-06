@@ -27,6 +27,22 @@ module Bali
           end
         end
       end
+
+      def with_card(zoom: 12, clustered: false)
+        render Bali::LocationsMap::Component.new(zoom: zoom, clustered: clustered) do |c|
+          c.card(latitude: 32.516284591574724, longitude: -117.0129754500983) do
+            '<p>This is a card</p>'.html_safe
+          end
+
+          LOCATIONS.each do |location_attrs|
+            c.location(**location_attrs)
+          end
+
+          c.location(latitude: 32.516284591574724, longitude: -117.0129754500983) do |location|
+            location.info_view { '<p>This is an info view</p>'.html_safe }
+          end
+        end
+      end
     end
   end
 end

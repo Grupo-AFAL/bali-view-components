@@ -8,6 +8,7 @@ module Bali
 
       attr_reader :options
 
+      renders_many :cards,  Card::Component
       renders_many :locations, Location::Component
 
       def initialize(
