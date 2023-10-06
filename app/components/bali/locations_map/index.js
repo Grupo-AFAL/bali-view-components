@@ -69,18 +69,18 @@ export class LocationsMapController extends Controller {
       const infowindow = new this.googleMaps.InfoWindow({ content: infoViewContent })
 
       if (this.hasCardTarget && window.innerWidth > this.minWindowWidthValue) {
-        infowindow.addListener('closeclick', this.unselectCards);
+        infowindow.addListener('closeclick', this.unselectCards)
 
         marker.addListener('click', (e) => {
           e.stop()
 
           this.unselectCards()
-          this.selectCards(e.latLng.lat(), e.latLng.lng());
+          this.selectCards(e.latLng.lat(), e.latLng.lng())
         })
       }
 
       marker.addListener('click', (e) => {
-        e.stop();
+        e.stop()
 
         if (this.openInfoWindow) {
           this.openInfoWindow.close()
@@ -142,11 +142,11 @@ export class LocationsMapController extends Controller {
     let scrolledIntoView = false
 
     for (const card of this.cardTargets) {
-      if (card.dataset.latitude != lat || card.dataset.longitude != lng) continue
+      if (parseFloat(card.dataset.latitude) != lat || parseFloat(card.dataset.longitude) != lng) continue
 
       card.classList.add('is-selected')
       if (!scrolledIntoView) {
-        card.scrollIntoView({ behavior: "smooth", block: "center" })
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' })
         scrolledIntoView = true
       }
     }
