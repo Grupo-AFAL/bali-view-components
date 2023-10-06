@@ -142,7 +142,7 @@ export class LocationsMapController extends Controller {
     let scrolledIntoView = false
 
     for (const card of this.cardTargets) {
-      if (parseFloat(card.dataset.latitude) != lat || parseFloat(card.dataset.longitude) != lng) continue
+      if (parseFloat(card.dataset.latitude) !== lat || parseFloat(card.dataset.longitude) !== lng) continue
 
       card.classList.add('is-selected')
       if (!scrolledIntoView) {
