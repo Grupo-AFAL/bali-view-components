@@ -13,7 +13,8 @@ export class LocationsMapController extends Controller {
     centerLatitude: { type: Number, default: TIJUANA_LAT },
     centerLongitude: { type: Number, default: TIJUANA_LNG },
     locale: { type: String, default: 'en' },
-    apiKey: { type: String, default: '' }
+    apiKey: { type: String, default: '' },
+    minWindowWidth: { type: Number, default: 768 }
   }
 
   connect = async () => {
@@ -67,7 +68,7 @@ export class LocationsMapController extends Controller {
     if (infoViewContent) {
       const infowindow = new this.googleMaps.InfoWindow({ content: infoViewContent })
 
-      if (this.hasCardTarget) {
+      if (this.hasCardTarget && window.innerWidth > this.minWindowWidthValue) {
         infowindow.addListener('closeclick', this.unselectCards);
 
         marker.addListener('click', (e) => {

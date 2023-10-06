@@ -24,4 +24,17 @@
     flex: 1;
     margin-left: 0.75rem;
   }
+
+  @include mobile {
+    flex-direction: column;
+
+    &--cards {
+      margin-right: 0;
+    }
+
+    &--locations {
+      margin-left: 0;
+      margin-top: 1.5rem;
+    }
+  }
 }
