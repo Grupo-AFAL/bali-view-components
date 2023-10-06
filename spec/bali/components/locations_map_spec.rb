@@ -58,4 +58,25 @@ RSpec.describe Bali::LocationsMap::Component, type: :component do
       expect(page).to have_css 'template', visible: false
     end
   end
+
+  context 'with cards' do
+    it 'renders locations map component' do
+      render_inline(component) do |c|
+        c.card(latitude: 10, longitude: 10) { '<p>Card</p>'.html_safe }
+        c.location(latitude: 10, longitude: 10) do |location|
+          location.info_view do
+            '<p>This is an info view</p>'.html_safe
+          end
+        end
+      end
+
+      expect(page).to have_css 'div.locations-map-component'
+      expect(page).to have_css 'div.locations-map-component--cards'
+      expect(page).to have_css 'div.locations-map-component--locations'
+      expect(page).to have_css 'div.locations-map-component--card'
+      expect(page).to have_css 'p', text: 'Card'
+      expect(page).to have_css 'span[data-locations-map-target="location"]'
+      expect(page).to have_css 'template', visible: false
+    end
+  end
 end

@@ -1,9 +1,33 @@
 {
-    "[javascript]": {
-        "editor.defaultFormatter": "numso.prettier-standard-vscode",
-        "editor.formatOnSave": true
-    },
-    "[ruby]": {
-        "editor.defaultFormatter": "Shopify.ruby-lsp"
+  "ruby.codeCompletion": "rcodetools",
+  "ruby.intellisense": "rubyLocate",
+  "ruby.useLanguageServer": true,
+  "emmet.includeLanguages": {
+    "erb": "html"
+  },
+  "ruby.format": "rubocop",
+  "ruby.lint": {
+    "rubocop": {
+      "lint": true,
+      "useBundler": true
     }
+  },
+  "editor.formatOnSave": true,
+  "files.associations": {
+    "*.erb": "erb"
+  },
+  "vscode-erb-beautify.keepBlankLines": 1,
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
+  },
+  "[erb]": {
+    "editor.defaultFormatter": "aliariff.vscode-erb-beautify"
+  },
+  "editor.tabSize": 2,
+  "extensions.ignoreRecommendations": true,
+  "files.autoSave": "off",
+  "typescript.tsc.autoDetect": "off",
+  "npm.autoDetect": "off",
+  "debug.allowBreakpointsEverywhere": true,
+  "html.autoClosingTags": false
 }
