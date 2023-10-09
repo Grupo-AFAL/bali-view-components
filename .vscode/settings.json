@@ -1,9 +1,9 @@
 {
-    "[javascript]": {
-        "editor.defaultFormatter": "numso.prettier-standard-vscode",
-        "editor.formatOnSave": true
-    },
-    "[ruby]": {
-        "editor.defaultFormatter": "Shopify.ruby-lsp"
-    }
+  "[javascript]": {
+      "editor.defaultFormatter": "numso.prettier-standard-vscode",
+      "editor.formatOnSave": true
+  },
+  "[ruby]": {
+      "editor.defaultFormatter": "Shopify.ruby-lsp"
+  }
 }

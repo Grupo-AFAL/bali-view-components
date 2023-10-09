@@ -6,14 +6,15 @@ const TIJUANA_LAT = 32.5036383
 const TIJUANA_LNG = -117.0308968
 
 export class LocationsMapController extends Controller {
-  static targets = ['map', 'location']
+  static targets = ['map', 'location', 'card']
   static values = {
     enableClustering: Boolean,
     zoom: { type: Number, default: 12 },
     centerLatitude: { type: Number, default: TIJUANA_LAT },
     centerLongitude: { type: Number, default: TIJUANA_LNG },
     locale: { type: String, default: 'en' },
-    apiKey: { type: String, default: '' }
+    apiKey: { type: String, default: '' },
+    minWindowWidth: { type: Number, default: 768 }
   }
 
   connect = async () => {
@@ -62,15 +63,25 @@ export class LocationsMapController extends Controller {
       content: this.markerContentElement(location)
     })
 
-    const infoViewContent = document.getElementById(
-      location.infoViewId
-    )?.innerHTML
-    if (infoViewContent) {
-      const infowindow = new this.googleMaps.InfoWindow({
-        content: infoViewContent
-      })
+    const infoViewContent = document.getElementById(location.infoViewId)?.innerHTML
 
-      marker.addListener('click', () => {
+    if (infoViewContent) {
+      const infowindow = new this.googleMaps.InfoWindow({ content: infoViewContent })
+
+      if (this.hasCardTarget && window.innerWidth > this.minWindowWidthValue) {
+        infowindow.addListener('closeclick', this.unselectCards)
+
+        marker.addListener('click', (e) => {
+          e.stop()
+
+          this.unselectCards()
+          this.selectCards(e.latLng.lat(), e.latLng.lng())
+        })
+      }
+
+      marker.addListener('click', (e) => {
+        e.stop()
+
         if (this.openInfoWindow) {
           this.openInfoWindow.close()
           this.openInfoWindow = null
@@ -121,5 +132,23 @@ export class LocationsMapController extends Controller {
         }
       }
     })
+  }
+
+  unselectCards = () => {
+    this.cardTargets.forEach(card => { card.classList.remove('is-selected') })
+  }
+
+  selectCards = (lat, lng) => {
+    let scrolledIntoView = false
+
+    for (const card of this.cardTargets) {
+      if (parseFloat(card.dataset.latitude) !== lat || parseFloat(card.dataset.longitude) !== lng) continue
+
+      card.classList.add('is-selected')
+      if (!scrolledIntoView) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        scrolledIntoView = true
+      }
+    }
   }
 }
