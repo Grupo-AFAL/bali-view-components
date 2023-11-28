@@ -3,10 +3,10 @@
 require 'rails_helper'
 
 RSpec.describe Bali::BulkActions::Component, type: :component do
-  let(:options) { {  } }
+  let(:options) { {} }
   let(:component) { Bali::BulkActions::Component.new(**options) }
 
-  context 'default' do  
+  context 'default' do
     it 'renders bulk actions component' do
       render_inline(component)
 
@@ -14,7 +14,7 @@ RSpec.describe Bali::BulkActions::Component, type: :component do
     end
   end
 
-  context 'with actions' do  
+  context 'with actions' do
     it 'renders bulk actions component' do
       render_inline(component) do |c|
         c.action(name: 'Update', href: '#')
@@ -29,7 +29,7 @@ RSpec.describe Bali::BulkActions::Component, type: :component do
     end
   end
 
-  context 'with items' do  
+  context 'with items' do
     it 'renders bulk actions component' do
       render_inline(component) do |c|
         c.item(record_id: 1) { '<p>Item</p>'.html_safe }
