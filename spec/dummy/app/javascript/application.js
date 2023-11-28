@@ -3,6 +3,7 @@ import { Application } from '@hotwired/stimulus'
 
 import {
   AvatarController,
+  BulkActionsController,
   CarouselController,
   ChartController,
   ClipboardController,
@@ -39,6 +40,7 @@ import {
 const application = Application.start()
 
 application.register('avatar', AvatarController)
+application.register('bulk-actions', BulkActionsController)
 application.register('carousel', CarouselController)
 application.register('chart', ChartController)
 application.register('clipboard', ClipboardController)

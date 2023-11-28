@@ -6,6 +6,7 @@ import * as domHelpers from './utils/domHelpers'
 
 export { GoogleMapsLoader, form, formatters, time, domHelpers }
 export { AvatarController } from '../../components/bali/avatar'
+export { BulkActionsController } from '../../components/bali/bulk_actions'
 export { CarouselController } from '../../components/bali/carousel'
 export { ChartController } from '../../components/bali/chart'
 export { ClipboardController } from '../../components/bali/clipboard'
