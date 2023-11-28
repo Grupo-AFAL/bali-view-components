@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `Bali::BulkActions::Component` component. This component allows you to select several dom elements by double-clicking on them, and then apply an action.
+- `Bali::BulkActions::Component` component. This component enables you to double-click on multiple DOM elements, selecting them, and subsequently applying an action.
 
 ## [0.70.0] - 2023-10-06
 
