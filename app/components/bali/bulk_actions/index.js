@@ -5,8 +5,7 @@ export class BulkActionsController extends Controller {
   static targets = [
     'bulkAction',
     'actionsContainer',
-    'selectedCount',
-    'item'
+    'selectedCount'
   ]
 
   static values = {
@@ -16,15 +15,11 @@ export class BulkActionsController extends Controller {
   connect () {
     this.update()
 
-    this.itemTargets.forEach(item => {
-      item.addEventListener('dblclick', this.handleDbClick)
-    })
+    this.element.addEventListener('dblclick', this.handleDbClick)
   }
 
   disconnect = () => {
-    this.itemTargets.forEach(item => {
-      item.removeEventListener('dblclick', this.handleDbClick)
-    })
+    this.element.removeEventListener('dblclick', this.handleDbClick)
   }
 
   handleDbClick = (event) => {
