@@ -1,6 +1,8 @@
 import { Controller } from '@hotwired/stimulus'
 import { toInt } from '../../../javascript/bali/utils/formatters'
 
+IGNORED_TAG_NAMES = ['select', 'input']
+
 export class BulkActionsController extends Controller {
   static targets = [
     'bulkAction',
@@ -23,6 +25,8 @@ export class BulkActionsController extends Controller {
   }
 
   handleDoubleClick = (event) => {
+    if (IGNORED_TAG_NAMES.includes(event.target.tagName.toLowerCase())) return
+
     const item = event.target.closest('[data-bulk-actions-target="item"]')
 
     if (item) { this.toggle(item) }
