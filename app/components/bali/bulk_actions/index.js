@@ -15,14 +15,14 @@ export class BulkActionsController extends Controller {
   connect () {
     this.update()
 
-    this.element.addEventListener('dblclick', this.handleDbClick)
+    this.element.addEventListener('dblclick', this.handleDoubleClick)
   }
 
   disconnect = () => {
-    this.element.removeEventListener('dblclick', this.handleDbClick)
+    this.element.removeEventListener('dblclick', this.handleDoubleClick)
   }
 
-  handleDbClick = (event) => {
+  handleDoubleClick = (event) => {
     const item = event.target.closest('[data-bulk-actions-target="item"]')
 
     if (item) { this.toggle(item) }
