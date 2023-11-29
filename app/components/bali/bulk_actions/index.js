@@ -1,7 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 import { toInt } from '../../../javascript/bali/utils/formatters'
 
-IGNORED_TAG_NAMES = ['select', 'input']
+const IGNORED_TAG_NAMES = ['select', 'input']
 
 export class BulkActionsController extends Controller {
   static targets = [
