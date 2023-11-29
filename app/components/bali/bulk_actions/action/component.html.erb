@@ -1,0 +1,9 @@
+<% if method.to_sym == :get %>
+  <% opts = prepend_data_attribute(options, :bulk_actions_target, 'bulkAction' ) %>
+  <%= render Bali::Link::Component.new(name: name, href: href, method: method, **opts) %>
+<% else %>
+  <%= form_with(url: href, method: method, **options) do |form| %>
+    <%= form.hidden_field(:selected_ids, value: [], data: { bulk_actions_target: 'bulkAction' }) %>
+    <%= form.submit(name, class: 'button') %>
+  <% end %>
+<% end %>

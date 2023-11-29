@@ -1,0 +1,20 @@
+<%= tag.div(**options) do %>
+  <% items.each do |item| %>
+    <%= item %>
+  <% end %>
+
+  <%= content %>
+
+  <% if actions.any? %>
+    <div class="actions-container is-hidden" data-bulk-actions-target="actionsContainer">
+      <div class="floated-bar">
+        <div class="selected-count" data-bulk-actions-target="selectedCount">0</div>
+        <div class="bulk-actions">
+          <% actions.each do |action| %>
+            <%= action %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+<% end %>
