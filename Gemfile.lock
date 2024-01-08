@@ -149,7 +149,6 @@ GEM
     matrix (0.4.2)
     method_source (1.0.0)
     mini_mime (1.1.2)
-    mini_portile2 (2.8.2)
     minitest (5.18.0)
     net-imap (0.4.6)
       date
@@ -160,7 +159,7 @@ GEM
       timeout
     net-smtp (0.4.0)
       net-protocol
-    nio4r (2.5.8)
+    nio4r (2.7.0)
     nokogiri (1.14.2-arm64-darwin)
       racc (~> 1.4)
     nokogiri (1.14.2-x86_64-darwin)
@@ -171,7 +170,7 @@ GEM
     parser (3.2.1.1)
       ast (~> 2.4.1)
     public_suffix (5.0.1)
-    puma (5.6.5)
+    puma (5.6.8)
       nio4r (~> 2.0)
     racc (1.6.2)
     rack (2.2.6.4)
@@ -268,8 +267,9 @@ GEM
       actionpack (>= 5.2)
       activesupport (>= 5.2)
       sprockets (>= 3.0.0)
-    sqlite3 (1.5.3)
-      mini_portile2 (~> 2.8.0)
+    sqlite3 (1.5.3-arm64-darwin)
+    sqlite3 (1.5.3-x86_64-darwin)
+    sqlite3 (1.5.3-x86_64-linux)
     thor (1.2.1)
     timeout (0.4.1)
     tzinfo (2.0.6)
@@ -311,7 +311,7 @@ DEPENDENCIES
   dotenv-rails
   jsbundling-rails
   lookbook
-  puma (~> 5.2)
+  puma (~> 5.6)
   ransack
   rspec-rails (~> 5)
   rubocop (~> 1)
