@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'csv'
+require 'simple_command'
 
 module Bali
   module Commands
