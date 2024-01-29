@@ -13,6 +13,7 @@ gem 'sprockets-rails'
 
 gem 'lookbook'
 gem 'ransack'
+gem 'simple_command'
 gem 'view_component'
 gem 'view_component-contrib'
 

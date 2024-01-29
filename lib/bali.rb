@@ -27,6 +27,10 @@ Dir.glob(builder_helpers).each do |builder_helper|
   require builder_helper
 end
 
+Dir[File.join(File.dirname(__FILE__), 'bali/commands', '**/*.rb')].each do |command|
+  require command
+end
+
 require 'bali/form_builder'
 
 module Bali
