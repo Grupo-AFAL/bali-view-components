@@ -35,5 +35,5 @@ end
 
 group :development, :test do
   gem 'dotenv-rails'
-  gem 'rspec-rails', '~> 5'
+  gem 'rspec-rails', '~> 6'
 end
