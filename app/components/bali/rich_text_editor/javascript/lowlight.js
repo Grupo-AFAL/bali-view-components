@@ -1,4 +1,4 @@
-import {createLowlight} from 'lowlight'
+import { createLowlight } from 'lowlight'
 import css from 'highlight.js/lib/languages/css'
 import javascript from 'highlight.js/lib/languages/javascript'
 import json from 'highlight.js/lib/languages/json'
