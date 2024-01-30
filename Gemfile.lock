@@ -190,7 +190,7 @@ GEM
     psych (5.1.2)
       stringio
     public_suffix (5.0.4)
-    puma (5.6.8)
+    puma (6.4.2)
       nio4r (~> 2.0)
     racc (1.7.3)
     rack (3.0.8)
@@ -232,7 +232,7 @@ GEM
       zeitwerk (~> 2.6)
     rainbow (3.1.1)
     rake (13.1.0)
-    ransack (3.2.1)
+    ransack (4.1.1)
       activerecord (>= 6.1.5)
       activesupport (>= 6.1.5)
       i18n
@@ -341,7 +341,7 @@ DEPENDENCIES
   dotenv-rails
   jsbundling-rails
   lookbook
-  puma (~> 5.2)
+  puma (< 7)
   ransack
   rspec-rails (~> 5)
   rubocop (~> 1)
