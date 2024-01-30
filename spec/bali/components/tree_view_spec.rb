@@ -7,9 +7,9 @@ RSpec.describe Bali::TreeView::Component, type: :component do
 
   it 'renders root items' do
     render_inline(component) do |c|
-      c.item(name: 'Item 1', path: '/items/1')
-      c.item(name: 'Item 2', path: '/items/2')
-      c.item(name: 'Item 3', path: '/items/3')
+      c.with_item(name: 'Item 1', path: '/items/1')
+      c.with_item(name: 'Item 2', path: '/items/2')
+      c.with_item(name: 'Item 3', path: '/items/3')
     end
 
     expect(page).to have_css '.tree-view-component'
@@ -20,8 +20,8 @@ RSpec.describe Bali::TreeView::Component, type: :component do
 
   it 'renders sub items' do
     render_inline(component) do |c|
-      c.item(name: 'Item 1', path: '/items/1') do |sub|
-        sub.item(name: 'Child 1', path: '/items/1a')
+      c.with_item(name: 'Item 1', path: '/items/1') do |sub|
+        sub.with_item(name: 'Child 1', path: '/items/1a')
       end
     end
 

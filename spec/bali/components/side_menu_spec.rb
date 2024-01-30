@@ -8,8 +8,8 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
 
   it 'renders the side menu' do
     render_inline(component) do |c|
-      c.list(title: 'Comedor') do |list|
-        list.item(name: 'Item 1', href: '/movies')
+      c.with_list(title: 'Comedor') do |list|
+        list.with_item(name: 'Item 1', href: '/movies')
       end
     end
 
@@ -21,8 +21,8 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
 
   it 'renders the side menu with icon' do
     render_inline(component) do |c|
-      c.list(title: 'Section title') do |list|
-        list.item(name: 'Item 1', href: '#', icon: 'attachment')
+      c.with_list(title: 'Section title') do |list|
+        list.with_item(name: 'Item 1', href: '#', icon: 'attachment')
       end
     end
 
@@ -34,8 +34,8 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
   context 'when not authorized' do
     it 'does not render the link' do
       render_inline(component) do |c|
-        c.list(title: 'Section title') do |list|
-          list.item(name: 'item', href: '#', authorized: false)
+        c.with_list(title: 'Section title') do |list|
+          list.with_item(name: 'item', href: '#', authorized: false)
         end
       end
 
@@ -48,8 +48,8 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
     it 'renders as active when current path is the new path' do
       @options[:current_path] = '/items/new'
       render_inline(component) do |c|
-        c.list do |list|
-          list.item(name: 'items', href: '/items', match: :crud)
+        c.with_list do |list|
+          list.with_item(name: 'items', href: '/items', match: :crud)
         end
       end
 
@@ -59,8 +59,8 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
     it 'renders as active when current path is the item show path' do
       @options[:current_path] = '/items/123'
       render_inline(component) do |c|
-        c.list do |list|
-          list.item(name: 'items', href: '/items', match: :crud)
+        c.with_list do |list|
+          list.with_item(name: 'items', href: '/items', match: :crud)
         end
       end
 
@@ -70,8 +70,8 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
     it 'renders as active when current path is the item edit path' do
       @options[:current_path] = '/items/123/edit'
       render_inline(component) do |c|
-        c.list do |list|
-          list.item(name: 'items', href: '/items', match: :crud)
+        c.with_list do |list|
+          list.with_item(name: 'items', href: '/items', match: :crud)
         end
       end
 
@@ -81,8 +81,8 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
     it 'renders as active when current path is the item index path' do
       @options[:current_path] = '/items'
       render_inline(component) do |c|
-        c.list do |list|
-          list.item(name: 'items', href: '/items', match: :crud)
+        c.with_list do |list|
+          list.with_item(name: 'items', href: '/items', match: :crud)
         end
       end
 
@@ -92,8 +92,8 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
     it 'renders as inactive when current path is not a CRUD action' do
       @options[:current_path] = '/items/dashboard'
       render_inline(component) do |c|
-        c.list do |list|
-          list.item(name: 'items', href: '/items', match: :crud)
+        c.with_list do |list|
+          list.with_item(name: 'items', href: '/items', match: :crud)
         end
       end
 
@@ -105,8 +105,8 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
     it 'renders as active when current path starts with item href' do
       @options[:current_path] = '/item'
       render_inline(component) do |c|
-        c.list do |list|
-          list.item(name: 'item root', href: '/item', match: :starts_with)
+        c.with_list do |list|
+          list.with_item(name: 'item root', href: '/item', match: :starts_with)
         end
       end
 
@@ -116,8 +116,8 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
     it 'renders as inactive when href is included within current path' do
       @options[:current_path] = '/section/item'
       render_inline(component) do |c|
-        c.list do |list|
-          list.item(name: 'item root', href: '/item', match: :starts_with)
+        c.with_list do |list|
+          list.with_item(name: 'item root', href: '/item', match: :starts_with)
         end
       end
 
@@ -129,9 +129,9 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
     it 'renders an active link' do
       @options[:current_path] = '/section/item/menu'
       render_inline(component) do |c|
-        c.list(title: 'Section title') do |list|
-          list.item(name: 'item root', href: '/item', match: :partial)
-          list.item(name: 'item menu', href: '/section/item/menu')
+        c.with_list(title: 'Section title') do |list|
+          list.with_item(name: 'item root', href: '/item', match: :partial)
+          list.with_item(name: 'item menu', href: '/section/item/menu')
         end
       end
 
@@ -144,9 +144,9 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
     it 'renders an active link' do
       @options[:current_path] = '/item'
       render_inline(component) do |c|
-        c.list(title: 'Section title') do |list|
-          list.item(name: 'item root', href: '/item')
-          list.item(name: 'item 1', href: '/item/1')
+        c.with_list(title: 'Section title') do |list|
+          list.with_item(name: 'item root', href: '/item')
+          list.with_item(name: 'item 1', href: '/item/1')
         end
       end
 
@@ -157,8 +157,8 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
 
   it 'renders a disabled link' do
     render_inline(component) do |c|
-      c.list(title: 'Section title') do |list|
-        list.item(name: 'Item', href: '#', disabled: true)
+      c.with_list(title: 'Section title') do |list|
+        list.with_item(name: 'Item', href: '#', disabled: true)
       end
     end
 

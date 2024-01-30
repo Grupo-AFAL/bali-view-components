@@ -22,8 +22,8 @@ RSpec.describe Bali::PageHeader::Component, type: :component do
       context 'when using text param' do
         it 'renders' do
           render_inline(component) do |c|
-            c.title('Title')
-            c.subtitle('Subtitle')
+            c.with_title('Title')
+            c.with_subtitle('Subtitle')
             'Right content'
           end
 
@@ -36,8 +36,8 @@ RSpec.describe Bali::PageHeader::Component, type: :component do
       context 'when using the tag param' do
         it 'renders' do
           render_inline(component) do |c|
-            c.title('Title', tag: :h2)
-            c.subtitle('Subtitle', tag: :h4)
+            c.with_title('Title', tag: :h2)
+            c.with_subtitle('Subtitle', tag: :h4)
           end
 
           expect(page).to have_css '.level-left h2.title', text: 'Title'
@@ -48,8 +48,8 @@ RSpec.describe Bali::PageHeader::Component, type: :component do
       context 'with custom classes' do
         it 'renders' do
           render_inline(component) do |c|
-            c.title('Title', class: 'has-text-info')
-            c.subtitle('Subtitle', class: 'has-text-primary')
+            c.with_title('Title', class: 'has-text-info')
+            c.with_subtitle('Subtitle', class: 'has-text-primary')
           end
 
           expect(page).to have_css '.level-left h3.title.has-text-info', text: 'Title'
@@ -60,8 +60,8 @@ RSpec.describe Bali::PageHeader::Component, type: :component do
       context 'when using blocks' do
         it 'renders' do
           render_inline(component) do |c|
-            c.title { '<h2 class="title">Title</h2>'.html_safe }
-            c.subtitle { '<p class="subtitle">Subtitle</p>'.html_safe }
+            c.with_title { '<h2 class="title">Title</h2>'.html_safe }
+            c.with_subtitle { '<p class="subtitle">Subtitle</p>'.html_safe }
             'Right content'
           end
 

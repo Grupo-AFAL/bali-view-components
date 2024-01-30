@@ -8,9 +8,9 @@ RSpec.describe Bali::DataTable::Component, type: :component do
 
   it 'renders without summary' do
     render_inline(component) do |c|
-      c.filters_panel(text_field: :name, opened: false)
+      c.with_filters_panel(text_field: :name, opened: false)
 
-      c.table { '<div class="table-component"></div>'.html_safe }
+      c.with_table { '<div class="table-component"></div>'.html_safe }
     end
 
     expect(page).to have_css 'div.data-table-component'
@@ -20,11 +20,11 @@ RSpec.describe Bali::DataTable::Component, type: :component do
 
   it 'renders with summary' do
     render_inline(component) do |c|
-      c.filters_panel(text_field: :name, opened: false)
+      c.with_filters_panel(text_field: :name, opened: false)
 
-      c.summary { '<p>Summary</p>'.html_safe }
+      c.with_summary { '<p>Summary</p>'.html_safe }
 
-      c.table { '<div class="table-component"></div>'.html_safe }
+      c.with_table { '<div class="table-component"></div>'.html_safe }
     end
 
     expect(page).to have_css 'div.data-table-component'

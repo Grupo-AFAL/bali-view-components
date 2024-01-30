@@ -32,7 +32,7 @@ RSpec.describe Bali::Link::Component, type: :component do
   context 'with icon' do
     it 'renders a link without class button' do
       render_inline(component) do |c|
-        c.icon('poo')
+        c.with_icon('poo')
       end
 
       expect(page).to have_css 'a', text: 'Click me!'
@@ -44,7 +44,7 @@ RSpec.describe Bali::Link::Component, type: :component do
       @options.merge!(class: 'button')
 
       render_inline(component) do |c|
-        c.icon('poo')
+        c.with_icon('poo')
       end
 
       expect(page).to have_css 'a.button', text: 'Click me!'

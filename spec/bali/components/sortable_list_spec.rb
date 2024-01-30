@@ -21,9 +21,9 @@ RSpec.describe Bali::SortableList::Component, type: :component do
 
   it 'renders sortable component with items' do
     render_inline(component) do |c|
-      c.item(update_url: '/') { 'Item 1' }
-      c.item(update_url: '/') { 'Item 2' }
-      c.item(update_url: '/', item_pull: false) { 'Item 3' }
+      c.with_item(update_url: '/') { 'Item 1' }
+      c.with_item(update_url: '/') { 'Item 2' }
+      c.with_item(update_url: '/', item_pull: false) { 'Item 3' }
     end
 
     expect(page).to have_css 'div.sortable-item', count: 3

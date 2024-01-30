@@ -17,7 +17,7 @@ RSpec.describe Bali::BulkActions::Component, type: :component do
   context 'with actions' do
     it 'renders bulk actions component' do
       render_inline(component) do |c|
-        c.action(name: 'Update', href: '#')
+        c.with_action(name: 'Update', href: '#')
       end
 
       expect(page).to have_css 'div.bulk-actions-component'
@@ -32,7 +32,7 @@ RSpec.describe Bali::BulkActions::Component, type: :component do
   context 'with items' do
     it 'renders bulk actions component' do
       render_inline(component) do |c|
-        c.item(record_id: 1) { '<p>Item</p>'.html_safe }
+        c.with_item(record_id: 1) { '<p>Item</p>'.html_safe }
       end
 
       expect(page).to have_css 'div.bulk-actions-component'

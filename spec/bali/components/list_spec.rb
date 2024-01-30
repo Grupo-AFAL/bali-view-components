@@ -7,9 +7,9 @@ RSpec.describe Bali::List::Component, type: :component do
 
   it 'renders list item with text arguments' do
     render_inline(component) do |c|
-      c.item do |i|
-        i.title 'Item 1'
-        i.subtitle 'Subtitle 1'
+      c.with_item do |i|
+        i.with_title 'Item 1'
+        i.with_subtitle 'Subtitle 1'
       end
     end
 
@@ -19,9 +19,9 @@ RSpec.describe Bali::List::Component, type: :component do
 
   it 'renders list item with block arguments' do
     render_inline(component) do |c|
-      c.item do |i|
-        i.title { 'Item 1' }
-        i.subtitle { 'Subtitle 1' }
+      c.with_item do |i|
+        i.with_title { 'Item 1' }
+        i.with_subtitle { 'Subtitle 1' }
       end
     end
 
@@ -31,8 +31,8 @@ RSpec.describe Bali::List::Component, type: :component do
 
   it 'renders list item actions' do
     render_inline(component) do |c|
-      c.item do |i|
-        i.action do
+      c.with_item do |i|
+        i.with_action do
           c.tag.a('Link 1', href: '/link-1')
         end
       end

@@ -7,11 +7,11 @@ RSpec.describe Bali::Columns::Component, type: :component do
 
   it 'renders' do
     render_inline(component) do |c|
-      c.column do
+      c.with_column do
         '<p>First</p>'
       end
 
-      c.column do
+      c.with_column do
         '<p>Second</p>'
       end
     end

@@ -30,7 +30,7 @@ RSpec.describe Bali::Avatar::Component, type: :component do
     helper.form_with(url: '/') do |form|
       options.merge!(method: :test, form: form, placeholder_url: '/bulma-default.png')
       render_inline(component) do |c|
-        c.picture(image_url: '/avatar.png', class: 'test-image')
+        c.with_picture(image_url: '/avatar.png', class: 'test-image')
       end
     end
 

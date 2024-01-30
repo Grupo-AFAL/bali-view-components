@@ -8,8 +8,8 @@ RSpec.describe Bali::Hero::Component, type: :component do
 
   it 'renders hero component' do
     render_inline(component) do |c|
-      c.title('Titulo')
-      c.subtitle('Subtitulo')
+      c.with_title('Titulo')
+      c.with_subtitle('Subtitulo')
     end
 
     expect(page).to have_css 'p.title', text: 'Titulo'

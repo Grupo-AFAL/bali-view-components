@@ -17,7 +17,7 @@ RSpec.describe Bali::Filters::Component, type: :component do
 
   it 'renders with filters' do
     render_inline(component) do |c|
-      c.attribute(
+      c.with_attribute(
         title: 'Active',
         attribute: :status_in,
         collection_options: [['active', true], ['inactive', false]]

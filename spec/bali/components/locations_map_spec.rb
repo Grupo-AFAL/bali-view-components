@@ -17,7 +17,7 @@ RSpec.describe Bali::LocationsMap::Component, type: :component do
   context 'with custom location marker' do
     it 'renders locations map component' do
       render_inline(component) do |c|
-        c.location(
+        c.with_location(
           latitude: 10, longitude: 10, color: 'gray', border_color: 'black', glyph_color: 'black',
           label: 'label'
         )
@@ -34,7 +34,7 @@ RSpec.describe Bali::LocationsMap::Component, type: :component do
   context 'with location without info view' do
     it 'renders locations map component' do
       render_inline(component) do |c|
-        c.location(latitude: 10, longitude: 10)
+        c.with_location(latitude: 10, longitude: 10)
       end
 
       expect(page).to have_css 'div.locations-map-component'
@@ -46,8 +46,8 @@ RSpec.describe Bali::LocationsMap::Component, type: :component do
   context 'with location with info view' do
     it 'renders locations map component' do
       render_inline(component) do |c|
-        c.location(latitude: 10, longitude: 10) do |location|
-          location.info_view do
+        c.with_location(latitude: 10, longitude: 10) do |location|
+          location.with_info_view do
             '<p>This is an info view</p>'.html_safe
           end
         end
@@ -62,9 +62,9 @@ RSpec.describe Bali::LocationsMap::Component, type: :component do
   context 'with cards' do
     it 'renders locations map component' do
       render_inline(component) do |c|
-        c.card(latitude: 10, longitude: 10) { '<p>Card</p>'.html_safe }
-        c.location(latitude: 10, longitude: 10) do |location|
-          location.info_view do
+        c.with_card(latitude: 10, longitude: 10) { '<p>Card</p>'.html_safe }
+        c.with_location(latitude: 10, longitude: 10) do |location|
+          location.with_info_view do
             '<p>This is an info view</p>'.html_safe
           end
         end

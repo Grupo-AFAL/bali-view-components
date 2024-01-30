@@ -8,7 +8,7 @@ RSpec.describe Bali::PropertiesTable::Component, type: :component do
 
   it 'renders the properties table component' do
     render_inline(component) do |c|
-      c.property(label: 'Label 1', value: 'Value 1')
+      c.with_property(label: 'Label 1', value: 'Value 1')
     end
 
     expect(page).to have_css 'table.properties-table-component'

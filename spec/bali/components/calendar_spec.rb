@@ -14,7 +14,7 @@ describe Bali::Calendar::Component, type: :component do
   it 'renders calendar component with all week' do
     @options.merge!(start_date: '2020-01-01', all_week: true)
     render_inline(component) do |c|
-      c.header(period: c.period, start_date: '2020-01-01')
+      c.with_header(period: c.period, start_date: '2020-01-01')
     end
 
     expect(page).to have_css '.calendar-component'
@@ -44,7 +44,7 @@ describe Bali::Calendar::Component, type: :component do
   it 'renders the calendar component hiding the calendar view options' do
     @options.merge!(start_date: '2020-01-01', period_switch: false)
     render_inline(component) do |c|
-      c.header(period: c.period, start_date: '2020-01-01', period_switch: false)
+      c.with_header(period: c.period, start_date: '2020-01-01', period_switch: false)
     end
 
     expect(page).to have_css '.calendar-component'
@@ -133,7 +133,7 @@ describe Bali::Calendar::Component, type: :component do
         prev_date = Date.current
 
         render_inline(component) do |c|
-          prev_date = c.header(start_date: '2020-03-03').prev_start_date
+          prev_date = c.with_header(start_date: '2020-03-03').prev_start_date
         end
 
         expect(prev_date).to eq(Date.parse('2020-02-01'))
@@ -145,7 +145,7 @@ describe Bali::Calendar::Component, type: :component do
         prev_date = Date.current
 
         render_inline(component) do |c|
-          prev_date = c.header(start_date: '2020-03-03', period: :week).prev_start_date
+          prev_date = c.with_header(start_date: '2020-03-03', period: :week).prev_start_date
         end
 
         expect(prev_date).to eq(Date.parse('2020-02-24'))
@@ -159,7 +159,7 @@ describe Bali::Calendar::Component, type: :component do
         next_date = Date.current
 
         render_inline(component) do |c|
-          next_date = c.header(start_date: '2020-03-03').next_start_date
+          next_date = c.with_header(start_date: '2020-03-03').next_start_date
         end
 
         expect(next_date).to eq(Date.parse('2020-04-01'))
@@ -171,7 +171,7 @@ describe Bali::Calendar::Component, type: :component do
         next_date = Date.current
 
         render_inline(component) do |c|
-          next_date = c.header(start_date: '2020-03-03', period: :week).next_start_date
+          next_date = c.with_header(start_date: '2020-03-03', period: :week).next_start_date
         end
 
         expect(next_date).to eq(Date.parse('2020-03-09'))
@@ -184,7 +184,7 @@ describe Bali::Calendar::Component, type: :component do
       params = {}
 
       render_inline(component) do |c|
-        params = c.header(start_date: '2020-02-02').extra_params(:prev)
+        params = c.with_header(start_date: '2020-02-02').extra_params(:prev)
       end
 
       expect(params).to eq({ start_time: Date.parse('2020-01-01'), period: :month })
@@ -194,7 +194,7 @@ describe Bali::Calendar::Component, type: :component do
       params = {}
 
       render_inline(component) do |c|
-        params = c.header(start_date: '2020-02-02').extra_params(:next)
+        params = c.with_header(start_date: '2020-02-02').extra_params(:next)
       end
 
       expect(params).to eq({ start_time: Date.parse('2020-03-01'), period: :month })
@@ -204,7 +204,7 @@ describe Bali::Calendar::Component, type: :component do
       params = {}
 
       render_inline(component) do |c|
-        params = c.header(start_date: '2020-02-02').extra_params(:month)
+        params = c.with_header(start_date: '2020-02-02').extra_params(:month)
       end
 
       expect(params).to eq({ start_time: Date.parse('2020-02-02'), period: 'month' })
@@ -214,7 +214,7 @@ describe Bali::Calendar::Component, type: :component do
       params = {}
 
       render_inline(component) do |c|
-        params = c.header(start_date: '2020-02-02').extra_params(:week)
+        params = c.with_header(start_date: '2020-02-02').extra_params(:week)
       end
 
       expect(params).to eq({ start_time: Date.parse('2020-02-02'), period: 'week' })

@@ -7,7 +7,7 @@ RSpec.describe Bali::Tooltip::Component, type: :component do
 
   it 'renders a trigger with a question mark' do
     render_inline(component) do |c|
-      c.trigger { c.tag.span '?' }
+      c.with_trigger { c.tag.span '?' }
     end
 
     expect(page).to have_css '.trigger', text: '?'

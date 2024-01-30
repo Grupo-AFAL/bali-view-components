@@ -1,20 +1,18 @@
 <%= render Bali::Level::Component.new(**options) do |c| %>
-  <%= c.left(**@left_options) do |level| %>
+  <%= c.with_left(**@left_options) do |level| %>
     <% if @back_options[:href].present? %>
-      <% level.item do %>
+      <% level.with_item do %>
         <%= render Bali::Link::Component.new(icon_name: 'arrow-left', **@back_options) %>
       <% end %>
     <% end %>
-
-    <% level.item do %>
+    <% level.with_item do %>
       <div>
         <%= title || tag.h3(@title, class: 'title is-3 is-spaced') %>
         <%= subtitle || tag.h5(@subtitle, class: 'subtitle is-5') %>
       </div>
     <% end %>
   <% end %>
-
-  <% c.right do %>
+  <% c.with_right do %>
     <%= content %>
   <% end %>
 <% end %>

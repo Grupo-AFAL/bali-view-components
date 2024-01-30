@@ -7,12 +7,12 @@ RSpec.describe Bali::Level::Component, type: :component do
 
   it 'renders' do
     render_inline(component) do |c|
-      c.left do |level|
-        level.item(text: 'Left')
+      c.with_left do |level|
+        level.with_item(text: 'Left')
       end
 
-      c.right do |level|
-        level.item(text: 'Right')
+      c.with_right do |level|
+        level.with_item(text: 'Right')
       end
     end
 
@@ -24,9 +24,9 @@ RSpec.describe Bali::Level::Component, type: :component do
   context 'with level items' do
     it 'renders' do
       render_inline(component) do |c|
-        c.item(text: 'Item 1')
+        c.with_item(text: 'Item 1')
 
-        c.item { '<h1>Item 2</h1>'.html_safe }
+        c.with_item { '<h1>Item 2</h1>'.html_safe }
       end
 
       expect(page).to have_css '.level div'

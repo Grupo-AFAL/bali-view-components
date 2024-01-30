@@ -33,9 +33,9 @@ RSpec.describe Bali::GanttChart::Component, type: :component do
   context 'chart actions' do
     before do
       render_inline(component) do |c|
-        c.view_mode_button label: 'Day', zoom: :day
-        c.view_mode_button label: 'Week', zoom: :week
-        c.view_mode_button label: 'Month', zoom: :month
+        c.with_view_mode_button label: 'Day', zoom: :day
+        c.with_view_mode_button label: 'Week', zoom: :week
+        c.with_view_mode_button label: 'Month', zoom: :month
       end
     end
 

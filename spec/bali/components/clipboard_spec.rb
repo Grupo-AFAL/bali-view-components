@@ -9,8 +9,8 @@ RSpec.describe Bali::Clipboard::Component, type: :component do
 
   it 'renders clipboard component' do
     render_inline(component) do |c|
-      c.trigger('Copy')
-      c.source('Click button to copy me!')
+      c.with_trigger('Copy')
+      c.with_source('Click button to copy me!')
     end
 
     expect(page).to have_css 'div.clipboard-component'

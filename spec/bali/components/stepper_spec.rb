@@ -8,9 +8,9 @@ RSpec.describe Bali::Stepper::Component, type: :component do
 
   it 'renders stepper with first step current' do
     render_inline(component) do |c|
-      c.step(title: 'Step One')
-      c.step(title: 'Step Two')
-      c.step(title: 'Step Three')
+      c.with_step(title: 'Step One')
+      c.with_step(title: 'Step Two')
+      c.with_step(title: 'Step Three')
     end
 
     expect(page).to have_css 'div.stepper-component'
@@ -23,9 +23,9 @@ RSpec.describe Bali::Stepper::Component, type: :component do
     options[:current] = 1
 
     render_inline(component) do |c|
-      c.step(title: 'Step One')
-      c.step(title: 'Step Two')
-      c.step(title: 'Step Three')
+      c.with_step(title: 'Step One')
+      c.with_step(title: 'Step Two')
+      c.with_step(title: 'Step Three')
     end
 
     expect(page).to have_css 'div.stepper-component'
@@ -38,9 +38,9 @@ RSpec.describe Bali::Stepper::Component, type: :component do
     options[:current] = 2
 
     render_inline(component) do |c|
-      c.step(title: 'Step One')
-      c.step(title: 'Step Two')
-      c.step(title: 'Step Three')
+      c.with_step(title: 'Step One')
+      c.with_step(title: 'Step Two')
+      c.with_step(title: 'Step Three')
     end
 
     expect(page).to have_css 'div.stepper-component'
