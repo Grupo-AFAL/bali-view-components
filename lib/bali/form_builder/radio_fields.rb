@@ -96,7 +96,7 @@ module Bali
       end
 
       def tags(values, html_options, method, label_class)
-        field_name = [(options[:as] || object.model_name.singular), method].join('_')
+        field_name = [options[:as] || object.model_name.singular, method].join('_')
         data = html_options.delete(:data)
 
         values.map do |display_value|

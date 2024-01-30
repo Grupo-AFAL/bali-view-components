@@ -64,9 +64,9 @@ module Bali
       def datasets
         return @datasets if defined? @datasets
 
-        datasets_from_data = (data[:datasets].deep_dup || [{ label: '', data: data.values }])
+        datasets_from_data = data[:datasets].deep_dup || [{ label: '', data: data.values }]
         @datasets = datasets_from_data.map.with_index do |dataset_info, index|
-          dataset_info[:type] ||= (type[index] || type.first)
+          dataset_info[:type] ||= type[index] || type.first
           dataset_info[:order] ||= order[index]
           dataset_info[:yAxisID] ||= y_axis_ids[index]
 
