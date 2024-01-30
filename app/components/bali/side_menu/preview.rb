@@ -23,10 +23,10 @@ module Bali
       # @param title text
       def with_icon(title: 'Section title')
         render(SideMenu::Component.new(current_path: '/attachment')) do |c|
-          c.list(title: title) do |list|
-            list.item(name: 'Attachment', href: '/attachment', icon: 'attachment')
-            list.item(name: 'Alert', href: '/alert', icon: 'alert')
-            list.item(name: 'Paypal', href: '/paypal', icon: 'paypal')
+          c.with_list(title: title) do |list|
+            list.with_item(name: 'Attachment', href: '/attachment', icon: 'attachment')
+            list.with_item(name: 'Alert', href: '/alert', icon: 'alert')
+            list.with_item(name: 'Paypal', href: '/paypal', icon: 'paypal')
           end
         end
       end
@@ -37,11 +37,11 @@ module Bali
       # @param title text
       def authorized(title: 'Section title')
         render(SideMenu::Component.new(current_path: '/auth-1')) do |c|
-          c.list(title: title) do |list|
-            list.item(name: 'Authorized 1', authorized: true, href: '/auth-1')
-            list.item(name: 'Authorized 2', authorized: true, href: '/auth-2')
-            list.item(name: 'Not authorized 1', authorized: false, href: '/not-auth-1')
-            list.item(name: 'Not authorized 2', authorized: false, href: '/not-auth-1')
+          c.with_list(title: title) do |list|
+            list.with_item(name: 'Authorized 1', authorized: true, href: '/auth-1')
+            list.with_item(name: 'Authorized 2', authorized: true, href: '/auth-2')
+            list.with_item(name: 'Not authorized 1', authorized: false, href: '/not-auth-1')
+            list.with_item(name: 'Not authorized 2', authorized: false, href: '/not-auth-1')
           end
         end
       end
@@ -52,11 +52,11 @@ module Bali
       # @param title text
       def with_sub_item(title: 'Section title')
         render(SideMenu::Component.new(current_path: '/parent-item')) do |c|
-          c.list(title: title) do |list|
-            list.item(name: 'Parent Item', href: '/parent-item') do |item|
-              item.item(name: 'Child Item 1', href: '/child-item-1')
-              item.item(name: 'Child Item 2', href: '/child-item-2')
-              item.item(name: 'Child Item 3', href: '/child-item-3')
+          c.with_list(title: title) do |list|
+            list.with_item(name: 'Parent Item', href: '/parent-item') do |item|
+              item.with_item(name: 'Child Item 1', href: '/child-item-1')
+              item.with_item(name: 'Child Item 2', href: '/child-item-2')
+              item.with_item(name: 'Child Item 3', href: '/child-item-3')
             end
           end
         end
@@ -68,11 +68,11 @@ module Bali
       # @param title text
       def with_active_sub_item(title: 'Section title')
         render(SideMenu::Component.new(current_path: '/child-item-1')) do |c|
-          c.list(title: title) do |list|
-            list.item(name: 'Parent Item', href: '/parent-item') do |item|
-              item.item(name: 'Child Item 1', href: '/child-item-1')
-              item.item(name: 'Child Item 2', href: '/child-item-2')
-              item.item(name: 'Child Item 3', href: '/child-item-3')
+          c.with_list(title: title) do |list|
+            list.with_item(name: 'Parent Item', href: '/parent-item') do |item|
+              item.with_item(name: 'Child Item 1', href: '/child-item-1')
+              item.with_item(name: 'Child Item 2', href: '/child-item-2')
+              item.with_item(name: 'Child Item 3', href: '/child-item-3')
             end
           end
         end
@@ -82,8 +82,8 @@ module Bali
       # -------------------
       def custom_link_content
         render(SideMenu::Component.new(current_path: '/child-item-1')) do |c|
-          c.list(title: 'Title') do |list|
-            list.item(href: '/parent-item') do
+          c.with_list(title: 'Title') do |list|
+            list.with_item(href: '/parent-item') do
               safe_join([
                           tag.span('Custom Link', class: 'mr-3'),
                           tag.span('0', class: 'tag is-danger')

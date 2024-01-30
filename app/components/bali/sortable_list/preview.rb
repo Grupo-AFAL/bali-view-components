@@ -6,7 +6,7 @@ module Bali
       def default(disabled: false, update_url: '/sortable_list')
         render SortableList::Component.new(disabled: disabled) do |s|
           5.times do |i|
-            s.item(update_url: update_url) { "Item #{i}" }
+            s.with_item(update_url: update_url) { "Item #{i}" }
           end
         end
       end

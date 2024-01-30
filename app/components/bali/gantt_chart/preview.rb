@@ -10,9 +10,9 @@ module Bali
       # @param zoom [Symbol] select [day, week, month]
       def view_modes(zoom: :day)
         render GanttChart::Component.new(tasks: tasks, zoom: zoom) do |c|
-          c.view_mode_button label: 'Day', zoom: :day, active: zoom == :day
-          c.view_mode_button label: 'Week', zoom: :week, active: zoom == :week
-          c.view_mode_button label: 'Month', zoom: :month, active: zoom == :month
+          c.with_view_mode_button label: 'Day', zoom: :day, active: zoom == :day
+          c.with_view_mode_button label: 'Week', zoom: :week, active: zoom == :week
+          c.with_view_mode_button label: 'Month', zoom: :month, active: zoom == :month
         end
       end
 
@@ -26,7 +26,7 @@ module Bali
 
       def with_footer
         render GanttChart::Component.new(tasks: tasks) do |c|
-          c.footer do
+          c.with_footer do
             tag.span 'This is a footer'
           end
         end
@@ -34,7 +34,7 @@ module Bali
 
       def with_list_footer
         render GanttChart::Component.new(tasks: tasks) do |c|
-          c.list_footer do
+          c.with_list_footer do
             tag.span 'This is a list footer'
           end
         end

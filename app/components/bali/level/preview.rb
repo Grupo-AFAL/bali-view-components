@@ -7,14 +7,14 @@ module Bali
       def default(align: :center)
         render Bali::Level::Component.new(align: align) do |c|
           c.with_left do |l|
-            l.item(text: 'Item 1')
-            l.item(text: 'Item 2')
-            l.item(text: 'Item 3')
+            l.with_item(text: 'Item 1')
+            l.with_item(text: 'Item 2')
+            l.with_item(text: 'Item 3')
           end
 
           c.with_right do |r|
-            r.item(text: 'Item 1')
-            r.item(text: 'Item 2')
+            r.with_item(text: 'Item 1')
+            r.with_item(text: 'Item 2')
           end
         end
       end

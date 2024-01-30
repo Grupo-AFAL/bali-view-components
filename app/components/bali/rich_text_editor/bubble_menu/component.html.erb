@@ -19,7 +19,7 @@
     <% end %>
     <div class="link-panel">
       <%= render(Bali::Tabs::Component.new(class: 'is-small')) do |c| %>
-        <%= c.with_with_tab(title: 'URL', active: true) do %>
+        <%= c.with_tab(title: 'URL', active: true) do %>
           <div contenteditable="true"
                 class="input is-small"
                 placeholder="Ingresa la URL"
@@ -28,7 +28,7 @@
           </div>
         <% end %>
         <% if page_hyperlink_options? %>
-          <%= c.with_with_tab(title: 'Pages', active: false) do %>
+          <%= c.with_tab(title: 'Pages', active: false) do %>
             <% page_hyperlink_options.each do |hyperlink| %>
               <%= hyperlink %>
             <% end %>
@@ -57,7 +57,7 @@
     <%= c.with_item(class: 'modifier disabled', data: { action: 'rich-text-editor#addRowBefore', 'rich-text-editor-target': 'tableModifier' }) { 'Insert Above' } %>
     <%= c.with_item(class: 'modifier disabled', data: { action: 'rich-text-editor#addRowAfter', 'rich-text-editor-target': 'tableModifier' }) { 'Insert Below' } %>
     <%= c.with_item(class: 'modifier disabled', data: { action: 'rich-text-editor#deleteColumn', 'rich-text-editor-target': 'tableModifier' }) { 'Remove Column' } %>
-    <%= c.iwith_tem(class: 'modifier disabled', data: { action: 'rich-text-editor#deleteRow', 'rich-text-editor-target': 'tableModifier' }) { 'Remove Row' } %>
+    <%= c.with_item(class: 'modifier disabled', data: { action: 'rich-text-editor#deleteRow', 'rich-text-editor-target': 'tableModifier' }) { 'Remove Row' } %>
   <% end %>
   <a class="toolbar-link mark bold" data-action="rich-text-editor#toggleBold" data-rich-text-editor-target="bold">
     <%= render Bali::Icon::Component.new('bold') %>

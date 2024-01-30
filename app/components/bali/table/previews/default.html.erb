@@ -1,5 +1,5 @@
 <%= render(Bali::Table::Component.new) do |c| %>
-  <%= cwith_.headers(headers) %>
+  <%= c.with_headers(headers) %>
   <% records.each do |record| %>
     <%= c.with_row do %>
       <td><%= record[:name] %></td>
