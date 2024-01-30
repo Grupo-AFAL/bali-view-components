@@ -16,51 +16,51 @@ module Bali
           light: light,
           rounded: rounded
         ) do |c|
-          c.item(
+          c.with_item(
             text: 'Tag item with text'
           )
 
-          c.item(
+          c.with_item(
             text: 'Tag item with text',
             color: :black
           )
 
-          c.item(
+          c.with_item(
             text: 'Tag item with text',
             color: :light
           )
 
-          c.item(
+          c.with_item(
             text: 'Tag item with text',
             color: :white
           )
 
-          c.item(
+          c.with_item(
             text: 'Tag item with text',
             color: :primary
           )
 
-          c.item(
+          c.with_item(
             text: 'Tag item with text',
             color: :link
           )
 
-          c.item(
+          c.with_item(
             text: 'Tag item with text',
             color: :info
           )
 
-          c.item(
+          c.with_item(
             text: 'Tag item with text',
             color: :success
           )
 
-          c.item(
+          c.with_item(
             text: 'Tag item with text',
             color: :warning
           )
 
-          c.item(
+          c.with_item(
             text: 'Tag item with text',
             color: :danger
           )
@@ -82,36 +82,36 @@ module Bali
           rounded: rounded,
           class: 'has-addons'
         ) do |c|
-          c.item(
+          c.with_item(
             text: 'Tag item with text'
           )
 
-          c.item(
+          c.with_item(
             text: 'Tag item with text',
             color: :primary
           )
 
-          c.item(
+          c.with_item(
             text: 'Tag item with text',
             color: :link
           )
 
-          c.item(
+          c.with_item(
             text: 'Tag item with text',
             color: :info
           )
 
-          c.item(
+          c.with_item(
             text: 'Tag item with text',
             color: :success
           )
 
-          c.item(
+          c.with_item(
             text: 'Tag item with text',
             color: :warning
           )
 
-          c.item(
+          c.with_item(
             text: 'Tag item with text',
             color: :danger
           )
@@ -131,12 +131,12 @@ module Bali
           light: light,
           rounded: rounded
         ) do |c|
-          c.item(
+          c.with_item(
             text: 'Tag item with text',
             href: '#'
           )
 
-          c.item(
+          c.with_item(
             text: 'Tag item with text',
             href: '#'
           )

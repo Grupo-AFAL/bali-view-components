@@ -7,12 +7,12 @@ module Bali
       # @param title text
       def default(title: 'Section Title')
         render(SideMenu::Component.new(current_path: '/dashboard')) do |c|
-          c.list(title: title) do |list|
-            list.item(name: 'Dashboard', href: '/dashboard')
-            list.item(name: 'Dashboard 2', href: '/t/dashboard')
-            list.item(name: 'Inventory', href: '/inventory')
-            list.item(name: 'Purchasing', href: '/purchasing')
-            list.item(name: 'Configuration', href: '/configuration')
+          c.with_list(title: title) do |list|
+            list.with_item(name: 'Dashboard', href: '/dashboard')
+            list.with_item(name: 'Dashboard 2', href: '/t/dashboard')
+            list.with_item(name: 'Inventory', href: '/inventory')
+            list.with_item(name: 'Purchasing', href: '/purchasing')
+            list.with_item(name: 'Configuration', href: '/configuration')
           end
         end
       end

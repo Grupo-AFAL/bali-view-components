@@ -41,7 +41,7 @@ module Bali
 
       def label_tooltip(content)
         render(Bali::Tooltip::Component.new) do |c|
-          c.trigger { render(Bali::Icon::Component.new('info-circle')) }
+          c.with_trigger { render(Bali::Icon::Component.new('info-circle')) }
 
           content
         end

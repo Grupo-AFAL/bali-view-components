@@ -8,7 +8,7 @@ module Bali
       # Content on the top by default
       def default
         render Tooltip::Component.new do |c|
-          c.trigger { tag.a 'Link with tooltip' }
+          c.with_trigger { tag.a 'Link with tooltip' }
 
           tag.p 'Hi, this is the tooltip content'
         end
@@ -16,7 +16,7 @@ module Bali
 
       def empty_tootip
         render Tooltip::Component.new do |c|
-          c.trigger { tag.a 'Link without tooltip' }
+          c.with_trigger { tag.a 'Link without tooltip' }
         end
       end
 
@@ -27,7 +27,7 @@ module Bali
       # Content on the top by default
       def top
         render Tooltip::Component.new(class: 'help-tip') do |c|
-          c.trigger { tag.span '?' }
+          c.with_trigger { tag.span '?' }
 
           tag.p 'Hi, this is the help tip content'
         end
@@ -38,7 +38,7 @@ module Bali
       # Content on the bottom
       def bottom
         render Tooltip::Component.new(placement: 'bottom', class: 'help-tip') do |c|
-          c.trigger { tag.span '?' }
+          c.with_trigger { tag.span '?' }
 
           tag.p 'Hi, this is the help tip content'
         end
@@ -49,7 +49,7 @@ module Bali
       # Content on the right
       def right
         render Tooltip::Component.new(placement: 'right', class: 'help-tip') do |c|
-          c.trigger { tag.span '?' }
+          c.with_trigger { tag.span '?' }
 
           tag.p 'Hi, this is the help tip content'
         end
@@ -60,7 +60,7 @@ module Bali
       # Content on the left
       def left
         render Tooltip::Component.new(placement: 'left', class: 'help-tip') do |c|
-          c.trigger { tag.span '?' }
+          c.with_trigger { tag.span '?' }
 
           tag.p 'Hi, this is the help tip content'
         end

@@ -7,8 +7,8 @@ module Bali
       # @param color [Symbol] select [white, primary, link, info, success, warning, danger]
       def default(size: nil, color: nil)
         render Hero::Component.new(size: size, color: color) do |c|
-          c.title('Title')
-          c.subtitle('Title')
+          c.with_title('Title')
+          c.with_subtitle('Title')
         end
       end
     end

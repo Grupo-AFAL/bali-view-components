@@ -11,10 +11,10 @@ module Bali
 
       def default
         render Bali::BulkActions::Component.new do |c|
-          c.action(name: 'Archivar', href: '/table/bulk_action')
+          c.with_action(name: 'Archivar', href: '/table/bulk_action')
 
           RECORDS.each do |record|
-            c.item(record_id: record[:id]) do
+            c.with_item(record_id: record[:id]) do
               safe_join([tag.p(record[:name])])
             end
           end

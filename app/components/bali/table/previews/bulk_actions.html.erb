@@ -3,14 +3,12 @@
       { name: 'Archivar', href: '/table/bulk_action' }
     ]
 )) do |c| %>
-  <%= c.headers(headers) %>
-
+  <%= c.with_headers(headers) %>
   <% records.each do |record| %>
-    <%= c.row(record_id: record[:id]) do %>
+    <%= c.with_row(record_id: record[:id]) do %>
       <td><%= record[:name] %></td>
       <td><%= record[:amount] %></td>
     <% end %>
   <% end %>
-
-  <%= c.new_record_link name: 'Nuevo registro', href: '#' %>
+  <%= c.with_new_record_link name: 'Nuevo registro', href: '#' %>
 <% end %>

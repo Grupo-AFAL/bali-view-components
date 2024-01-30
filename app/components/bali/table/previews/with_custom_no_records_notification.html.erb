@@ -1,17 +1,14 @@
 <%= render(Bali::Table::Component.new) do |c| %>
-  <% c.headers(headers) %>
-
-  <% c.no_records_notification do %>
+  <% c.with_headers(headers) %>
+  <% c.with_no_records_notification do %>
     <%= render Bali::Icon::Component.new('alert-alt') %>
     <p>So sorry, no records found!</p>
   <% end %>
-
   <% records.each do |record| %>
-    <%= c.row do %>
+    <%= c.with_row do %>
       <td><%= record[:name] %></td>
       <td><%= record[:amount] %></td>
     <% end %>
   <% end %>
-
-  <%= c.new_record_link name: 'Nuevo registro', href: '#' %>
+  <%= c.with_new_record_link name: 'Nuevo registro', href: '#' %>
 <% end %>

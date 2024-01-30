@@ -8,8 +8,8 @@ module Bali
       # To copy text to clipboard
       def default
         render Clipboard::Component.new do |c|
-          c.trigger('Copy')
-          c.source('Click the button to copy me!')
+          c.with_trigger('Copy')
+          c.with_source('Click the button to copy me!')
         end
       end
 

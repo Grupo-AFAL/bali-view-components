@@ -11,12 +11,12 @@ module Bali
       # @param align [Symbol] select [left, right, up]
       def default(hoverable: false, close_on_click: true, align: :left)
         render(Dropdown::Component.new(hoverable: hoverable, close_on_click: close_on_click, align: align)) do |c|
-          c.trigger(class: 'button') { 'Trigger' }
+          c.with_trigger(class: 'button') { 'Trigger' }
 
-          c.item { 'Item 1' }
-          c.item { 'Item 2' }
-          c.item { 'Item 3' }
-          c.item(class: 'has-text-weight-bold') { 'Item with class_name' }
+          c.with_item { 'Item 1' }
+          c.with_item { 'Item 2' }
+          c.with_item { 'Item 3' }
+          c.with_item(class: 'has-text-weight-bold') { 'Item with class_name' }
         end
       end
 
@@ -29,7 +29,7 @@ module Bali
       # @param align [Symbol] select [left, right, up]
       def with_content(hoverable: false, close_on_click: true, align: :left)
         render(Dropdown::Component.new(hoverable: hoverable, close_on_click: close_on_click, align: align)) do |c|
-          c.trigger(class: 'button') { 'Trigger' }
+          c.with_trigger(class: 'button') { 'Trigger' }
 
           c.tag.ul do
             safe_join([
