@@ -63,7 +63,7 @@
     "@babel/eslint-parser": "^7.17.0",
     "@babel/plugin-proposal-class-properties": "^7.16.7",
     "@babel/preset-env": "^7.17.10",
-    "cypress": "^9.6.1",
+    "cypress": "^13.6.4",
     "standard": "^17.0.0"
   },
   "standard": {
