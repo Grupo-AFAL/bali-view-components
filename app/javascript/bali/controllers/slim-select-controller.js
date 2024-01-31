@@ -111,18 +111,18 @@ export class SlimSelectController extends Controller {
       }
 
       get(
-        this.ajaxUrlValue, { query: { [this.ajaxParamNameValue]: search }, responseKind: 'json'}
+        this.ajaxUrlValue, { query: { [this.ajaxParamNameValue]: search }, responseKind: 'json' }
       ).then((response) => response.json)
-      .then((data) => {
-        const options = data.map(record => {
-          return {
-            text: record[this.ajaxTextNameValue],
-            value: record[this.ajaxValueNameValue]
-          }
-        })
+        .then((data) => {
+          const options = data.map(record => {
+            return {
+              text: record[this.ajaxTextNameValue],
+              value: record[this.ajaxValueNameValue]
+            }
+          })
 
-        resolve(options)
-      })
+          resolve(options)
+        })
     })
   }
 
