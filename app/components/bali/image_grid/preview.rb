@@ -12,7 +12,7 @@ module Bali
       def default
         render(ImageGrid::Component.new) do |c|
           9.times do
-            c.image { tag.img src: URL_3_2 }
+            c.with_image { tag.img src: URL_3_2 }
           end
         end
       end
@@ -23,7 +23,7 @@ module Bali
       def image_ratio
         render(ImageGrid::Component.new) do |c|
           9.times do
-            c.image(image_ratio: 'is-4by5') { tag.img src: URL_4_5 }
+            c.with_image(image_ratio: 'is-4by5') { tag.img src: URL_4_5 }
           end
         end
       end
@@ -34,7 +34,7 @@ module Bali
       def column_size
         render(ImageGrid::Component.new) do |c|
           9.times do
-            c.image(column_size: 'is-one-fifth') { tag.img src: URL_3_2 }
+            c.with_image(column_size: 'is-one-fifth') { tag.img src: URL_3_2 }
           end
         end
       end

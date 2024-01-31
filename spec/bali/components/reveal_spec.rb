@@ -23,8 +23,8 @@ RSpec.describe Bali::Reveal::Component, type: :component do
 
   it 'renders trigger' do
     render_inline(component) do |c|
-      c.trigger do |trigger|
-        trigger.title do
+      c.with_trigger do |trigger|
+        trigger.with_title do
           '<div class="reveal-title">Click here</div>'.html_safe
         end
       end
@@ -37,8 +37,8 @@ RSpec.describe Bali::Reveal::Component, type: :component do
 
   it 'renders border at bottom' do
     render_inline(component) do |c|
-      c.trigger do |trigger|
-        trigger.title do
+      c.with_trigger do |trigger|
+        trigger.with_title do
           '<div class="reveal-title">Click here</div>'.html_safe
         end
       end
@@ -49,8 +49,8 @@ RSpec.describe Bali::Reveal::Component, type: :component do
 
   it 'does not render border at bottom' do
     render_inline(component) do |c|
-      c.trigger(show_border: false) do |trigger|
-        trigger.title do
+      c.with_trigger(show_border: false) do |trigger|
+        trigger.with_title do
           '<div class="reveal-title">Click here</div>'.html_safe
         end
       end

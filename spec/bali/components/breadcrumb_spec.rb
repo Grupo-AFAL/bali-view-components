@@ -8,9 +8,9 @@ RSpec.describe Bali::Breadcrumb::Component, type: :component do
 
   it 'renders breadcrumb component' do
     render_inline(component) do |c|
-      c.item(href: '/home', name: 'Home')
-      c.item(href: '/home/section', name: 'Section')
-      c.item(href: '/home/section/page', name: 'Page', active: true)
+      c.with_item(href: '/home', name: 'Home')
+      c.with_item(href: '/home/section', name: 'Section')
+      c.with_item(href: '/home/section/page', name: 'Page', active: true)
     end
 
     expect(page).to have_css 'nav.breadcrumb-component'
@@ -21,7 +21,7 @@ RSpec.describe Bali::Breadcrumb::Component, type: :component do
 
   it 'renders breadcrumb with icons' do
     render_inline(component) do |c|
-      c.item(href: '/home', name: 'Home', icon_name: 'home')
+      c.with_item(href: '/home', name: 'Home', icon_name: 'home')
     end
 
     expect(page).to have_css 'li a span.icon'
@@ -31,7 +31,7 @@ RSpec.describe Bali::Breadcrumb::Component, type: :component do
   it 'renders breadcrumb with custom classes' do
     options[:class] = 'is-centered is-small'
     render_inline(component) do |c|
-      c.item(href: '/home', name: 'Home', icon_name: 'home')
+      c.with_item(href: '/home', name: 'Home', icon_name: 'home')
     end
 
     expect(page).to have_css 'nav.breadcrumb-component.is-centered.is-small'

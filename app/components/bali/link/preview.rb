@@ -40,7 +40,7 @@ module Bali
         render Bali::Link::Component.new(
           name: 'Click me!', href: '#', type: type, class: "is-#{size}"
         ) do |c|
-          c.icon('books', class: "is-#{size}")
+          c.with_icon('books', class: "is-#{size}")
         end
       end
 
@@ -64,7 +64,7 @@ module Bali
         render Bali::Link::Component.new(
           name: 'Click me!', href: '#', type: type, class: "is-#{size}"
         ) do |c|
-          c.icon_right('address-book')
+          c.with_icon_right('address-book')
         end
       end
 

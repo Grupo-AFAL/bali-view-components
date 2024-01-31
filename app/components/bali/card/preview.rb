@@ -8,16 +8,16 @@ module Bali
       # Basic card view with image, title, description and footer.
       def default
         render Card::Component.new do |c|
-          c.image(
+          c.with_image(
             src: 'https://via.placeholder.com/320x244.png',
             href: '/'
           )
 
-          c.footer_item(href: '#') do
+          c.with_footer_item(href: '#') do
             'Footer item with link'
           end
 
-          c.footer_item do
+          c.with_footer_item do
             tag.span('Item with span')
           end
 
@@ -27,7 +27,7 @@ module Bali
 
       def with_header
         render Card::Component.new do |c|
-          c.header(title: 'Header title')
+          c.with_header(title: 'Header title')
 
           tag.p('Card content')
         end

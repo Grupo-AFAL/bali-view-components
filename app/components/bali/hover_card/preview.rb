@@ -15,7 +15,7 @@ module Bali
           open_on_click: open_on_click,
           content_padding: content_padding
         ) do |c|
-          c.trigger do
+          c.with_trigger do
             tag.p('Hover me!', class: 'has-text-centered')
           end
 
@@ -26,7 +26,7 @@ module Bali
       # @!group Placements
       def top
         render HoverCard::Component.new(placement: 'top') do |c|
-          c.trigger do
+          c.with_trigger do
             tag.p('Hover me!', class: 'has-text-centered')
           end
 
@@ -36,7 +36,7 @@ module Bali
 
       def right
         render HoverCard::Component.new(placement: 'right') do |c|
-          c.trigger do
+          c.with_trigger do
             tag.p('Hover me!', class: 'has-text-centered')
           end
 
@@ -46,7 +46,7 @@ module Bali
 
       def bottom
         render HoverCard::Component.new(placement: 'bottom') do |c|
-          c.trigger do
+          c.with_trigger do
             tag.p('Hover me!', class: 'has-text-centered')
           end
 
@@ -56,7 +56,7 @@ module Bali
 
       def left
         render HoverCard::Component.new(placement: 'left') do |c|
-          c.trigger do
+          c.with_trigger do
             tag.p('Hover me!', class: 'has-text-centered')
           end
 
@@ -81,7 +81,7 @@ module Bali
           open_on_click: open_on_click,
           content_padding: content_padding
         ) do |c|
-          c.trigger do
+          c.with_trigger do
             tag.p('Hover me!', class: 'has-text-centered')
           end
         end

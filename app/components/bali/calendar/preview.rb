@@ -11,7 +11,7 @@ module Bali
                  all_week: false,
                  show_date: true
                )) do |c|
-          c.header(start_date: Date.current.to_s, route_path: '/lookbook')
+          c.with_header(start_date: Date.current.to_s, route_path: '/lookbook')
         end
       end
 
@@ -24,7 +24,7 @@ module Bali
                                   period: :week,
                                   show_date: true)
         ) do |c|
-          c.header(start_date: Date.current.to_s, route_path: '/lookbook')
+          c.with_header(start_date: Date.current.to_s, route_path: '/lookbook')
         end
       end
 
@@ -36,7 +36,7 @@ module Bali
                                        all_week: false,
                                        period: :month,
                                        show_date: true)) do |c|
-          c.header(start_date: Date.current.to_s, route_path: '/lookbook', period_switch: false)
+          c.with_header(start_date: Date.current.to_s, route_path: '/lookbook', period_switch: false)
         end
       end
 
@@ -48,7 +48,7 @@ module Bali
                                        all_week: false,
                                        period: :month,
                                        show_date: false)) do |c|
-          c.header(start_date: Date.current.to_s, route_path: '/lookbook')
+          c.with_header(start_date: Date.current.to_s, route_path: '/lookbook')
         end
       end
 
@@ -60,7 +60,7 @@ module Bali
                                        all_week: true,
                                        period: :month,
                                        show_date: true)) do |c|
-          c.header(start_date: Date.current.to_s, route_path: '/lookbook')
+          c.with_header(start_date: Date.current.to_s, route_path: '/lookbook')
         end
       end
 
@@ -79,7 +79,7 @@ module Bali
                                        show_date: true,
                                        template: 'bali/calendar/previews/template',
                                        events: events)) do |c|
-          c.header(start_date: Date.current.to_s, route_path: '/lookbook')
+          c.with_header(start_date: Date.current.to_s, route_path: '/lookbook')
         end
       end
 
@@ -92,8 +92,8 @@ module Bali
                                        period: :month,
                                        show_date: true,
                                        footer: true)) do |c|
-          c.header(start_date: Date.current.to_s, route_path: '/lookbook')
-          c.footer do
+          c.with_header(start_date: Date.current.to_s, route_path: '/lookbook')
+          c.with_footer do
             '<span class="tag is-primary">This is the footer<spam>'.html_safe
           end
         end

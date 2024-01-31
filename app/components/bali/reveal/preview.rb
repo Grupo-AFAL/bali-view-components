@@ -11,7 +11,7 @@ module Bali
       # @param show_border toggle
       def default(opened: false, show_border: false)
         render Reveal::Component.new(opened: opened) do |c|
-          c.trigger(show_border: show_border) do |trigger|
+          c.with_trigger(show_border: show_border) do |trigger|
             trigger.title do
               tag.div('Click to see contents')
             end

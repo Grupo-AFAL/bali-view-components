@@ -22,7 +22,7 @@ gem 'debug', '>= 1.0.0'
 
 group :development do
   gem 'jsbundling-rails'
-  gem 'puma', '~> 5.2'
+  gem 'puma', '< 7'
   gem 'rubocop', '~> 1', require: false
   gem 'rubocop-rails', '~> 2'
 end
@@ -35,5 +35,5 @@ end
 
 group :development, :test do
   gem 'dotenv-rails'
-  gem 'rspec-rails', '~> 5'
+  gem 'rspec-rails', '~> 6'
 end

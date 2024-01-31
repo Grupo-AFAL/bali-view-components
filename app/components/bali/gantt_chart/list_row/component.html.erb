@@ -2,9 +2,8 @@
   <div class="gantt-chart-row-contents">
     <%= render Bali::Icon::Component.new('handle', class: 'handle') if !readonly %>
     <%= render Bali::Icon::Component.new('chevron-down', class: 'chevron-down', data: { action: 'click->gantt-foldable-item#toggle' }) if task.children.any? %>
-
     <%= render Bali::Tooltip::Component.new(class: class_names(children: task.children.any?)) do |tip| %>
-      <% tip.trigger do %>
+      <% tip.with_trigger do %>
         <% if task.href %>
           <%= tag.a task.name,
                     href: task.href,
@@ -16,13 +15,10 @@
                       **task.list_task_name_options %>
         <% end %>
       <% end %>
-
       <%= tag.p task.name %>
     <% end %>
-
     <%= render Bali::GanttChart::TaskActions::Component.new(task: task) %>
   </div>
-
   <% if task.children.any? %>
     <div class="gantt-chart-list-children"
         data-controller="sortable-list"

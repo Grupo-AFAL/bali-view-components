@@ -10,7 +10,7 @@ class LibraryVersion < Thor
   method_option :number, aliases: '-n', desc: 'New version number'
   method_option :version_type, aliases: '-v', desc: 'Bump version type (major, minor, patch)'
   def bump
-    new_number = (options[:number].presence || generate_new_version_number)
+    new_number = options[:number].presence || generate_new_version_number
 
     gsub_file '../lib/bali/version.rb', /VERSION = '(\d{1,3}.\d{1,3}.\d{1,3})'/,
               "VERSION = '#{new_number}'"

@@ -7,7 +7,6 @@
           <th></th>
         <% end %>
       </thead>
-
       <tbody>
         <% labels_y.each do |label_y| %>
           <tr>
@@ -16,8 +15,7 @@
               <td style="width: <%= graph_item_width %>px">
                 <% value = data[label_x][label_y] || 0 %>
                 <%= render Bali::HoverCard::Component.new do |c| %>
-                  <% c.trigger(class: 'heatmap-item', style: "width: #{graph_item_width}px; height: #{graph_item_height}px; background: #{color_by_value(value)}") %>
-
+                  <% c.with_trigger(class: 'heatmap-item', style: "width: #{graph_item_width}px; height: #{graph_item_height}px; background: #{color_by_value(value)}") %>
                   <%= hovercard_title %>
                   <p class='mt-0'><%= "#{label_x} - #{label_y}" %></p>
                   <p><%= value %></p>
@@ -27,7 +25,6 @@
           </tr>
         <% end %>
       </tbody>
-
       <tfoot>
         <tr>
           <td></td>
@@ -41,7 +38,6 @@
     </table>
     <%= x_axis_title %>
   </div>
-
   <div class='legend mt-4' >
     <div class='legend-colors'>
       <% gradient_colors.each do |color| %>
@@ -49,7 +45,6 @@
                     width: #{(width) / gradient_colors.size}px") %>
       <% end %>
     </div>
-
     <div class='legend-labels is-flex is-justify-content-space-between'>
       <p>0</p>
       <%= legend_title %>

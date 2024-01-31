@@ -9,10 +9,10 @@ RSpec.describe Bali::Table::Component, type: :component do
 
   it 'renders a table with headers' do
     render_inline(component) do |c|
-      c.headers([
-                  { name: 'name' },
-                  { name: 'amount' }
-                ])
+      c.with_headers([
+                       { name: 'name' },
+                       { name: 'amount' }
+                     ])
     end
 
     expect(page).to have_css 'table'
@@ -22,7 +22,7 @@ RSpec.describe Bali::Table::Component, type: :component do
 
   it 'renders a table with rows' do
     render_inline(component) do |c|
-      c.row { '<td>Hola</td>'.html_safe }
+      c.with_row { '<td>Hola</td>'.html_safe }
     end
 
     expect(page).to have_css 'tr td', text: 'Hola'
@@ -30,7 +30,7 @@ RSpec.describe Bali::Table::Component, type: :component do
 
   it 'renders a table with footer' do
     render_inline(component) do |c|
-      c.footer { '<td>Total</td>'.html_safe }
+      c.with_footer { '<td>Total</td>'.html_safe }
     end
 
     expect(page).to have_css 'table'
@@ -57,7 +57,7 @@ RSpec.describe Bali::Table::Component, type: :component do
 
   it 'renders a table with new record link' do
     render_inline(component) do |c|
-      c.new_record_link(name: 'Add New Record', href: '#', modal: false)
+      c.with_new_record_link(name: 'Add New Record', href: '#', modal: false)
     end
 
     expect(page).to have_css 'a', text: 'Add New Record'
@@ -67,7 +67,7 @@ RSpec.describe Bali::Table::Component, type: :component do
     it 'renders an empty query message' do
       @options.merge!(form: @filter_form)
       render_inline(component) do |c|
-        c.no_records_notification { 'So sorry, no records found!' }
+        c.with_no_records_notification { 'So sorry, no records found!' }
       end
 
       expect(page).to have_css '.empty-table', text: 'So sorry, no records found!'
@@ -82,7 +82,7 @@ RSpec.describe Bali::Table::Component, type: :component do
 
       @options = { form: form }
       render_inline(component) do |c|
-        c.no_results_notification { 'So sorry, no results!' }
+        c.with_no_results_notification { 'So sorry, no results!' }
       end
 
       expect(page).to have_css '.empty-table', text: 'So sorry, no results!'

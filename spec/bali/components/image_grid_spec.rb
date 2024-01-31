@@ -14,7 +14,7 @@ RSpec.describe Bali::ImageGrid::Component, type: :component do
   it 'renders 4 images' do
     render_inline(component) do |c|
       4.times do
-        c.image { c.tag.img src: 'img.png' }
+        c.with_image { c.tag.img src: 'img.png' }
       end
     end
 
@@ -24,7 +24,7 @@ RSpec.describe Bali::ImageGrid::Component, type: :component do
   it 'renders with customized column size' do
     render_inline(component) do |c|
       4.times do
-        c.image(column_size: 'is-one-fifth') { c.tag.img src: 'img.png' }
+        c.with_image(column_size: 'is-one-fifth') { c.tag.img src: 'img.png' }
       end
     end
 

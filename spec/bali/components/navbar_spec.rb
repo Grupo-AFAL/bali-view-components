@@ -11,14 +11,14 @@ RSpec.describe Bali::Navbar::Component, type: :component do
 
     it 'renders navbar component' do
       render_inline(component) do |c|
-        c.brand { '<h4 class="title is-5 has-text-white">Bali</h4>'.html_safe }
-        c.menu do |menu|
-          menu.start_items([
-                             { name: 'Tech Stack', href: '#' },
-                             { name: 'Projects', href: '#' },
-                             { name: 'Team', href: '#' },
-                             { name: 'Open Positions', href: '#' }
-                           ])
+        c.with_brand { '<h4 class="title is-5 has-text-white">Bali</h4>'.html_safe }
+        c.with_menu do |menu|
+          menu.with_start_items([
+                                  { name: 'Tech Stack', href: '#' },
+                                  { name: 'Projects', href: '#' },
+                                  { name: 'Team', href: '#' },
+                                  { name: 'Open Positions', href: '#' }
+                                ])
         end
       end
 
@@ -37,9 +37,9 @@ RSpec.describe Bali::Navbar::Component, type: :component do
 
     it 'renders navbar component with fullscreen' do
       render_inline(component) do |c|
-        c.brand { '<h4 class="title is-5 has-text-white">Bali</h4>'.html_safe }
-        c.menu do |menu|
-          menu.start_items([{ name: 'Tech Stack', href: '#' }])
+        c.with_brand { '<h4 class="title is-5 has-text-white">Bali</h4>'.html_safe }
+        c.with_menu do |menu|
+          menu.with_start_items([{ name: 'Tech Stack', href: '#' }])
         end
       end
 
@@ -55,9 +55,9 @@ RSpec.describe Bali::Navbar::Component, type: :component do
 
     it 'renders navbar component with fullscreen' do
       render_inline(component) do |c|
-        c.brand { '<h4 class="title is-5 has-text-white">Bali</h4>'.html_safe }
-        c.menu do |menu|
-          menu.start_items([{ name: 'Tech Stack', href: '#' }])
+        c.with_brand { '<h4 class="title is-5 has-text-white">Bali</h4>'.html_safe }
+        c.with_menu do |menu|
+          menu.with_start_items([{ name: 'Tech Stack', href: '#' }])
         end
       end
 
@@ -69,10 +69,10 @@ RSpec.describe Bali::Navbar::Component, type: :component do
   context 'with custom burger button' do
     it 'renders navbar component with fullscreen' do
       render_inline(component) do |c|
-        c.brand { '<h4 class="title is-5 has-text-white">Bali</h4>'.html_safe }
-        c.burger(class: 'custom-burger')
-        c.menu do |menu|
-          menu.start_items([{ name: 'Tech Stack', href: '#' }])
+        c.with_brand { '<h4 class="title is-5 has-text-white">Bali</h4>'.html_safe }
+        c.with_burger(class: 'custom-burger')
+        c.with_menu do |menu|
+          menu.with_start_items([{ name: 'Tech Stack', href: '#' }])
         end
       end
 
@@ -84,15 +84,15 @@ RSpec.describe Bali::Navbar::Component, type: :component do
   context 'with multiple menu and burgers' do
     it 'renders navbar component with fullscreen' do
       render_inline(component) do |c|
-        c.brand { '<h4 class="title is-5 has-text-white">Bali</h4>'.html_safe }
-        c.burger(class: 'custom-burger')
-        c.burger(type: :alt)
-        c.menu do |menu|
-          menu.start_items([{ name: 'Tech Stack', href: '#' }])
+        c.with_brand { '<h4 class="title is-5 has-text-white">Bali</h4>'.html_safe }
+        c.with_burger(class: 'custom-burger')
+        c.with_burger(type: :alt)
+        c.with_menu do |menu|
+          menu.with_start_items([{ name: 'Tech Stack', href: '#' }])
         end
 
-        c.menu(type: :alt) do |menu|
-          menu.end_items([{ name: 'About us', href: '#' }])
+        c.with_menu(type: :alt) do |menu|
+          menu.with_end_items([{ name: 'About us', href: '#' }])
         end
       end
 

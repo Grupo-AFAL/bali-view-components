@@ -8,8 +8,8 @@ RSpec.describe Bali::Tabs::Component, type: :component do
 
   it 'renders tabs with content' do
     render_inline(component) do |c|
-      c.tab(title: 'Tab 1', active: true) { '<p>Tab 1 content</p>'.html_safe }
-      c.tab(title: 'Tab 2') { '<p>Tab 2 content</p>'.html_safe }
+      c.with_tab(title: 'Tab 1', active: true) { '<p>Tab 1 content</p>'.html_safe }
+      c.with_tab(title: 'Tab 2') { '<p>Tab 2 content</p>'.html_safe }
     end
 
     expect(page).to have_css '.tabs-component'
@@ -28,7 +28,7 @@ RSpec.describe Bali::Tabs::Component, type: :component do
 
   it 'renders tabs with icon' do
     render_inline(component) do |c|
-      c.tab(title: 'Tab', active: true, icon: 'alert') { '<p>Tab content</>'.html_safe }
+      c.with_tab(title: 'Tab', active: true, icon: 'alert') { '<p>Tab content</>'.html_safe }
     end
 
     expect(page).to have_css 'span.icon svg'
@@ -37,7 +37,7 @@ RSpec.describe Bali::Tabs::Component, type: :component do
   context 'when a tab has href' do
     it 'renders tabs with href' do
       render_inline(component) do |c|
-        c.tab(title: 'Tab', href: '/')
+        c.with_tab(title: 'Tab', href: '/')
       end
 
       expect(page).to have_css 'a[href="/"]'

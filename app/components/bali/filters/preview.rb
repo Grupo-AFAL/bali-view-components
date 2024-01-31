@@ -11,13 +11,13 @@ module Bali
 
       def with_filter_attributes
         render Bali::Filters::Component.new(form: FORM, url: '#', text_field: :name) do |c|
-          c.attribute(
+          c.with_attribute(
             title: 'Active',
             attribute: :status_in,
             collection_options: [['active', true], ['inactive', false]]
           )
 
-          c.attribute(
+          c.with_attribute(
             title: 'Single Option',
             attribute: :date_gteq,
             collection_options: [
@@ -33,7 +33,7 @@ module Bali
         render Bali::Filters::Component.new(form: FORM, url: '#', text_field: :name) do |c|
           c.tag.div 'Additional filters', class: 'bg-gray-100 p-2'
 
-          c.custom_filters do
+          c.with_custom_filters do
             c.fields_for :q, FORM, builder: Bali::FormBuilder do |f|
               f.date_field :date, placeholder: 'Select dates', mode: 'range'
             end

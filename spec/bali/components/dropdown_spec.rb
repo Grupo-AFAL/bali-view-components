@@ -7,7 +7,7 @@ RSpec.describe Bali::Dropdown::Component, type: :component do
 
   before do
     render_inline(component) do |c|
-      c.trigger(class: 'button') { 'Trigger' }
+      c.with_trigger(class: 'button') { 'Trigger' }
 
       c.tag.ul do
         c.tag.li('Item', class: 'dropdown-item')

@@ -46,8 +46,8 @@ module Bali
         subtitle: 'Subtitle', subtitle_tag: :h5, subtitle_class: 'has-text-primary'
       )
         render PageHeader::Component.new do |c|
-          c.title(title, tag: title_tag, class: title_class)
-          c.subtitle(subtitle, tag: subtitle_tag, class: subtitle_class)
+          c.with_title(title, tag: title_tag, class: title_class)
+          c.with_subtitle(subtitle, tag: subtitle_tag, class: subtitle_class)
 
           tag.a 'Right action', class: 'button is-secondary', href: '#'
         end
@@ -57,8 +57,8 @@ module Bali
       # @param subtitle text
       def with_title_and_subtitle_as_block(title: 'Title', subtitle: 'Subtitle')
         render PageHeader::Component.new do |c|
-          c.title { tag.h3(title, class: 'title is-3') }
-          c.subtitle { tag.h5(subtitle, class: 'subtitle is-5') }
+          c.with_title { tag.h3(title, class: 'title is-3') }
+          c.with_subtitle { tag.h5(subtitle, class: 'subtitle is-5') }
 
           tag.a 'Right action', class: 'button is-secondary', href: '#'
         end

@@ -5,19 +5,19 @@ module Bali
     class Preview < ApplicationViewComponentPreview
       def default
         render List::Component.new do |c|
-          c.item do |i|
-            i.title('Primer elemento')
-            i.subtitle('Descripción primer elemento')
+          c.with_item do |i|
+            i.with_title('Primer elemento')
+            i.with_subtitle('Descripción primer elemento')
           end
-          c.item do |i|
-            i.title('Segundo elemento con **options', class: 'has-text-success')
-            i.subtitle('Descripción segundo elemento')
+          c.with_item do |i|
+            i.with_title('Segundo elemento con **options', class: 'has-text-success')
+            i.with_subtitle('Descripción segundo elemento')
           end
-          c.item do |i|
-            i.title do
+          c.with_item do |i|
+            i.with_title do
               tag.a 'Tercero con un link', href: '#'
             end
-            i.subtitle do
+            i.with_subtitle do
               tag.p('Descripción tercer elemento con bloque', class: 'has-text-info')
             end
           end
@@ -26,18 +26,18 @@ module Bali
 
       def with_actions
         render List::Component.new do |c|
-          c.item do |i|
-            i.title('Primer elemento')
-            i.subtitle('Descripción primer elemento')
-            i.action do
+          c.with_item do |i|
+            i.with_title('Primer elemento')
+            i.with_subtitle('Descripción primer elemento')
+            i.with_action do
               c.render(Bali::Icon::Component.new('trash'))
             end
           end
 
-          c.item do |i|
-            i.title('segundo elemento')
-            i.subtitle('Descripción segundo elemento')
-            i.action do
+          c.with_item do |i|
+            i.with_title('segundo elemento')
+            i.with_subtitle('Descripción segundo elemento')
+            i.with_action do
               c.render(Bali::Icon::Component.new('trash'))
             end
           end
@@ -46,20 +46,20 @@ module Bali
 
       def with_content
         render List::Component.new do |c|
-          c.item do |i|
-            i.title('Primer elemento')
-            i.subtitle('Descripción primer elemento')
-            i.action do
+          c.with_item do |i|
+            i.with_title('Primer elemento')
+            i.with_subtitle('Descripción primer elemento')
+            i.with_action do
               c.render(Bali::Icon::Component.new('trash'))
             end
 
             tag.p('Aditional content')
           end
 
-          c.item do |i|
-            i.title('segundo elemento')
-            i.subtitle('Descripción segundo elemento')
-            i.action do
+          c.with_item do |i|
+            i.with_title('segundo elemento')
+            i.with_subtitle('Descripción segundo elemento')
+            i.with_action do
               c.render(Bali::Icon::Component.new('trash'))
             end
 

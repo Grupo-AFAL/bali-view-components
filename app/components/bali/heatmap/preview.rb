@@ -14,14 +14,14 @@ module Bali
           Lun: { 0 => 3, 1 => 1, 2 => 6 },
           Mar: { 0 => 2, 1 => 1, 2 => 4 }
         }
-  
+
         render Bali::Heatmap::Component.new(
           width: width.to_i, height: height.to_i, data: data
         ) do |c|
-          c.x_axis_title('Days')
-          c.y_axis_title('Hours')
-          c.hovercard_title('Clicks by hour of day')
-          c.legend_title('Clicks by hour of day')
+          c.with_x_axis_title('Days')
+          c.with_y_axis_title('Hours')
+          c.with_hovercard_title('Clicks by hour of day')
+          c.with_legend_title('Clicks by hour of day')
         end
       end
     end

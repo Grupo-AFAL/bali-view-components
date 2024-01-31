@@ -5,7 +5,7 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :text
 
-      def initialize(text: t('view_components.bali.loader.loading'))
+      def initialize(text: nil)
         @text = text
       end
     end

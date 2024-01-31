@@ -15,7 +15,7 @@ RSpec.describe Bali::Card::Component, type: :component do
 
   it 'renders a card with an clickable image' do
     render_inline(component) do |c|
-      c.image(src: '/image.png', href: '/path/to/page')
+      c.with_image(src: '/image.png', href: '/path/to/page')
     end
 
     expect(page).to have_css 'a[href="/path/to/page"] img[src="/image.png"]'
@@ -23,7 +23,7 @@ RSpec.describe Bali::Card::Component, type: :component do
 
   it 'renders a card with footer item link' do
     render_inline(component) do |c|
-      c.footer_item(href: '/path') { 'Link to path' }
+      c.with_footer_item(href: '/path') { 'Link to path' }
     end
 
     expect(page).to have_css 'a[href="/path"].card-footer-item', text: 'Link to path'
@@ -31,7 +31,7 @@ RSpec.describe Bali::Card::Component, type: :component do
 
   it 'renders a card with regular footer item' do
     render_inline(component) do |c|
-      c.footer_item do
+      c.with_footer_item do
         '<span class="hola">Hola</span>'.html_safe
       end
     end
@@ -41,11 +41,11 @@ RSpec.describe Bali::Card::Component, type: :component do
 
   it 'renders a card with custom image' do
     render_inline(component) do |c|
-      c.image do
+      c.with_image do
         '<div class="image-content">Custom content in image</div>'.html_safe
       end
 
-      c.footer_item(href: '/path') { 'Link to path' }
+      c.with_footer_item(href: '/path') { 'Link to path' }
 
       '<div class="content">Content</div>'.html_safe
     end

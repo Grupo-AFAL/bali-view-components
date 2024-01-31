@@ -10,9 +10,9 @@ RSpec.describe Bali::InfoLevel::Component, type: :component do
   context 'with one title' do
     it 'renders' do
       render_inline(component) do |c|
-        c.item do |ci|
-          ci.heading('Heading')
-          ci.title('Title')
+        c.with_item do |ci|
+          ci.with_heading('Heading')
+          ci.with_title('Title')
         end
       end
 
@@ -25,10 +25,10 @@ RSpec.describe Bali::InfoLevel::Component, type: :component do
   context 'with multiple titles' do
     it 'renders' do
       render_inline(component) do |c|
-        c.item do |ci|
-          ci.heading('Heading')
-          ci.title('Title 1')
-          ci.title('Title 2')
+        c.with_item do |ci|
+          ci.with_heading('Heading')
+          ci.with_title('Title 1')
+          ci.with_title('Title 2')
         end
       end
 
@@ -42,12 +42,12 @@ RSpec.describe Bali::InfoLevel::Component, type: :component do
   context 'with custom heading' do
     it 'renders' do
       render_inline(component) do |c|
-        c.item do |ci|
-          ci.heading do
+        c.with_item do |ci|
+          ci.with_heading do
             'My custom heading'
           end
 
-          ci.title('Title')
+          ci.with_title('Title')
         end
       end
 
@@ -60,10 +60,10 @@ RSpec.describe Bali::InfoLevel::Component, type: :component do
   context 'with custom title' do
     it 'renders' do
       render_inline(component) do |c|
-        c.item do |ci|
-          ci.heading('Heading')
+        c.with_item do |ci|
+          ci.with_heading('Heading')
 
-          ci.title do
+          ci.with_title do
             'My custom title'
           end
         end

@@ -12,9 +12,9 @@ module Bali
       # @param size select [regular, small, medium, large]
       def default(alignment: :left, separator: :slash, size: :regular)
         render Breadcrumb::Component.new(class: classes(alignment, separator, size)) do |c|
-          c.item(href: '/home', name: 'Home')
-          c.item(href: '/home/section', name: 'Section')
-          c.item(href: '/home/section/page', name: 'Page', active: true)
+          c.with_item(href: '/home', name: 'Home')
+          c.with_item(href: '/home/section', name: 'Section')
+          c.with_item(href: '/home/section/page', name: 'Page', active: true)
         end
       end
 
@@ -26,9 +26,9 @@ module Bali
       # @param size select [small, medium, large]
       def with_icons(alignment: :left, separator: :slash, size: :regular)
         render Breadcrumb::Component.new(class: classes(alignment, separator, size)) do |c|
-          c.item(href: '/home', name: 'Home', icon_name: 'home')
-          c.item(href: '/home/store', name: 'Store', icon_name: 'store')
-          c.item(href: '/home/store/snowflake', name: 'Snowflake',
+          c.with_item(href: '/home', name: 'Home', icon_name: 'home')
+          c.with_item(href: '/home/store', name: 'Store', icon_name: 'store')
+          c.with_item(href: '/home/store/snowflake', name: 'Snowflake',
                  icon_name: 'snowflake', active: true)
         end
       end

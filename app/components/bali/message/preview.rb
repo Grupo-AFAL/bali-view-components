@@ -19,7 +19,7 @@ module Bali
       # @param size select [small, regular, medium, large]
       def custom_header(color: :primary, size: :regular)
         render Message::Component.new(size: size, color: color) do |c|
-          c.header do
+          c.with_header do
             tag.h3 'Custom Header', class: 'has-text-danger is-size-3'
           end
 
