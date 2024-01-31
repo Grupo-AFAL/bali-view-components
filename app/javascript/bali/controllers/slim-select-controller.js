@@ -15,7 +15,7 @@ export class SlimSelectController extends Controller {
     ajaxValueName: String,
     ajaxTextName: String,
     ajaxUrl: String,
-    placeholder: { type: String,  default: 'Select value' },
+    placeholder: { type: String, default: 'Select value' },
     ajaxPlaceholder: {
       type: String,
       default: 'Type 2 chars to search...'
