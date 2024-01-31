@@ -4,7 +4,6 @@ import { get } from '@rails/request.js'
 // TODO: Add tests (Issue: #157)
 export class SlimSelectController extends Controller {
   static values = {
-    placeholder: String,
     addItems: Boolean,
     showContent: String,
     showSearch: Boolean,
@@ -16,6 +15,7 @@ export class SlimSelectController extends Controller {
     ajaxValueName: String,
     ajaxTextName: String,
     ajaxUrl: String,
+    placeholder: { type: String,  default: 'Select value' },
     ajaxPlaceholder: {
       type: String,
       default: 'Type 2 chars to search...'
@@ -30,7 +30,7 @@ export class SlimSelectController extends Controller {
     const options = {
       select: this.selectTarget,
       settings: {
-        placeholderText: this.hasPlaceholderValue && this.placeholderValue,
+        placeholderText: this.placeholderValue,
         showSearch: this.showSearchValue,
         openPosition:
           this.showContentValue === 'undefined' ? 'down' : this.showContentValue,
