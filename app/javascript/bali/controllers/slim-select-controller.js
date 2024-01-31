@@ -34,20 +34,28 @@ export class SlimSelectController extends Controller {
 
     const options = {
       select: this.selectTarget,
-      placeholder: this.hasPlaceholderValue && this.placeholderValue,
-      showContent:
-        this.showContentValue === 'undefined' ? 'down' : this.showContentValue,
-      showSearch: this.showSearchValue,
-      searchPlaceholder: this.searchPlaceholderValue,
-      addToBody: this.addToBodyValue,
-      closeOnSelect: this.closeOnSelectValue,
-      allowDeselectOption: this.allowDeselectOptionValue,
-      addable: this.addable(),
-      ajax: this.ajax()
+      settings: {
+        placeholderText: this.hasPlaceholderValue && this.placeholderValue,
+        showSearch: this.showSearchValue,
+        openPosition:
+          this.showContentValue === 'undefined' ? 'down' : this.showContentValue,
+        searchPlaceholder: this.searchPlaceholderValue,
+        closeOnSelect: this.closeOnSelectValue,
+        allowDeselect: this.allowDeselectOptionValue
+      },
+      events: { }
     }
 
     if (this.hasInnerHTML()) {
       options.data = this.dataWithHTML()
+    }
+
+    if (this.hasAjaxValues()) {
+      options.events.search = this.search
+    }
+
+    if (this.addItemsValue) {
+      options.events.addable = (value) => value
     }
 
     this.select = new SlimSelect(options)
@@ -61,14 +69,6 @@ export class SlimSelectController extends Controller {
     //
     // https://github.com/brianvoe/slim-select/blob/master/src/slim-select/index.ts#L521
     this.select.destroy()
-  }
-
-  addable () {
-    if (!this.addItemsValue) return
-
-    return function (value) {
-      return value
-    }
   }
 
   dataWithHTML () {
@@ -104,29 +104,26 @@ export class SlimSelectController extends Controller {
     this.selectAllButtonTarget.style.display = 'block'
   }
 
-  ajax () {
-    if (!this.hasAjaxValues()) return
-
-    return async (search, callback) => {
+  search = (search, currentData) => {
+    return new Promise((resolve, reject) => {
       if (search.length < 2) {
-        return callback(this.ajaxPlaceholderValue)
+        return reject(this.ajaxPlaceholderValue)
       }
 
-      const response = await get(this.ajaxUrlValue, {
-        query: { [this.ajaxParamNameValue]: search },
-        responseKind: 'json'
-      })
+      get(
+        this.ajaxUrlValue, { query: { [this.ajaxParamNameValue]: search }, responseKind: 'json'}
+      ).then((response) => response.json)
+      .then((data) => {
+        const options = data.map(record => {
+          return {
+            text: record[this.ajaxTextNameValue],
+            value: record[this.ajaxValueNameValue]
+          }
+        })
 
-      const json = await response.json
-      const options = json.map(record => {
-        return {
-          text: record[this.ajaxTextNameValue],
-          value: record[this.ajaxValueNameValue]
-        }
+        resolve(options)
       })
-
-      callback(options.length > 0 ? options : false)
-    }
+    })
   }
 
   hasAjaxValues () {
