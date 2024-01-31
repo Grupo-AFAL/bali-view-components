@@ -10,6 +10,7 @@
   }
 
   .ss-main {
+    height: 2.5rem;
 
     .ss-single-selected,
     .ss-multi-selected {
@@ -33,10 +34,6 @@
       .ss-content .ss-list {
         max-height: 160px;
       }
-    }
-
-    &.select.is-multiple {
-      height: 2.5rem;
     }
   }
 

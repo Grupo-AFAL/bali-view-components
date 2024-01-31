@@ -19,6 +19,13 @@ module Bali
           )
         end
 
+        def multiple
+          render_with_template(
+            template: 'bali/form/slim_select/previews/multiple',
+            locals: { model: form_record, options: OPTIONS }
+          )
+        end
+
         def addable
           render_with_template(
             template: 'bali/form/slim_select/previews/addable',
