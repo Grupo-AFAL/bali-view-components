@@ -10,6 +10,8 @@
   }
 
   .ss-main {
+    height: 2.5rem;
+
     .ss-single-selected,
     .ss-multi-selected {
       min-height: 2.5em;
@@ -37,6 +39,7 @@
 
   .field_with_errors {
     .ss-main.select {
+
       .ss-multi-selected,
       .ss-single-selected {
         border-color: $error;
@@ -65,10 +68,24 @@
 
   .ss-list {
     .ss-option {
+
       &:hover,
       &.ss-highlighted {
         background-color: $primary;
       }
     }
+  }
+
+  &.ss-open-above {
+    height: max-content;
+  }
+
+  &.ss-open-below {
+    height: max-content;
+  }
+
+  &.select.ss-open-below::after,
+  &.select.ss-open-above::after {
+    display: none;
   }
 }

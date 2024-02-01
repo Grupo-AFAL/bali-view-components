@@ -1,11 +1,9 @@
 import { Controller } from '@hotwired/stimulus'
-import { destroyWithCheck } from './slim-select-controller/destroy-with-check'
 import { get } from '@rails/request.js'
 
 // TODO: Add tests (Issue: #157)
 export class SlimSelectController extends Controller {
   static values = {
-    placeholder: String,
     addItems: Boolean,
     showContent: String,
     showSearch: Boolean,
@@ -17,6 +15,7 @@ export class SlimSelectController extends Controller {
     ajaxValueName: String,
     ajaxTextName: String,
     ajaxUrl: String,
+    placeholder: { type: String, default: 'Select value' },
     ajaxPlaceholder: {
       type: String,
       default: 'Type 2 chars to search...'
@@ -28,47 +27,37 @@ export class SlimSelectController extends Controller {
   async connect () {
     const { default: SlimSelect } = await import('slim-select')
 
-    Object.assign(SlimSelect.prototype, {
-      destroy: destroyWithCheck
-    })
-
     const options = {
       select: this.selectTarget,
-      placeholder: this.hasPlaceholderValue && this.placeholderValue,
-      showContent:
-        this.showContentValue === 'undefined' ? 'down' : this.showContentValue,
-      showSearch: this.showSearchValue,
-      searchPlaceholder: this.searchPlaceholderValue,
-      addToBody: this.addToBodyValue,
-      closeOnSelect: this.closeOnSelectValue,
-      allowDeselectOption: this.allowDeselectOptionValue,
-      addable: this.addable(),
-      ajax: this.ajax()
+      settings: {
+        placeholderText: this.placeholderValue,
+        showSearch: this.showSearchValue,
+        openPosition:
+          this.showContentValue === 'undefined' ? 'down' : this.showContentValue,
+        searchPlaceholder: this.searchPlaceholderValue,
+        closeOnSelect: this.closeOnSelectValue,
+        allowDeselect: this.allowDeselectOptionValue
+      },
+      events: { }
     }
 
     if (this.hasInnerHTML()) {
       options.data = this.dataWithHTML()
     }
 
+    if (this.hasAjaxValues()) {
+      options.events.search = this.search
+    }
+
+    if (this.addItemsValue) {
+      options.events.addable = (value) => value
+    }
+
     this.select = new SlimSelect(options)
   }
 
   disconnect () {
-    // BUG: Destroy is causing an error because the slim instance is not
-    // present in the document anymore. My assumption is that it has something
-    // to do with Turbo snapshot caching. Fix by overriding the destroy function
-    // to check for the existance in the body before attempting to remove.
-    //
-    // https://github.com/brianvoe/slim-select/blob/master/src/slim-select/index.ts#L521
     this.select.destroy()
-  }
-
-  addable () {
-    if (!this.addItemsValue) return
-
-    return function (value) {
-      return value
-    }
   }
 
   dataWithHTML () {
@@ -104,29 +93,26 @@ export class SlimSelectController extends Controller {
     this.selectAllButtonTarget.style.display = 'block'
   }
 
-  ajax () {
-    if (!this.hasAjaxValues()) return
-
-    return async (search, callback) => {
+  search = (search, currentData) => {
+    return new Promise((resolve, reject) => {
       if (search.length < 2) {
-        return callback(this.ajaxPlaceholderValue)
+        return reject(this.ajaxPlaceholderValue)
       }
 
-      const response = await get(this.ajaxUrlValue, {
-        query: { [this.ajaxParamNameValue]: search },
-        responseKind: 'json'
-      })
+      get(
+        this.ajaxUrlValue, { query: { [this.ajaxParamNameValue]: search }, responseKind: 'json' }
+      ).then((response) => response.json)
+        .then((data) => {
+          const options = data.map(record => {
+            return {
+              text: record[this.ajaxTextNameValue],
+              value: record[this.ajaxValueNameValue]
+            }
+          })
 
-      const json = await response.json
-      const options = json.map(record => {
-        return {
-          text: record[this.ajaxTextNameValue],
-          value: record[this.ajaxValueNameValue]
-        }
-      })
-
-      callback(options.length > 0 ? options : false)
-    }
+          resolve(options)
+        })
+    })
   }
 
   hasAjaxValues () {
