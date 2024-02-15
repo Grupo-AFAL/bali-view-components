@@ -100,9 +100,9 @@ export class DrawingMapsController extends Controller {
   }
 
   isHole = (polygon) => {
-    if (this.drawnPolygons.length === 0)  return false
+    if (this.drawnPolygons.length === 0) return false
 
-    const polygonVertices = polygon.getPath().getArray();
+    const polygonVertices = polygon.getPath().getArray()
     console.log('Polygon vertices', polygonVertices)
 
     let result = false
@@ -122,8 +122,8 @@ export class DrawingMapsController extends Controller {
 
   setPolygonListener = (polygon) => {
     polygon.getPaths().forEach((path, index) => {
-      google.maps.event.addListener(path, 'set_at', () => this.storeCoordinates());
-      google.maps.event.addListener(path, 'insert_at', () => this.storeCoordinates());
+      this.googleMaps.event.addListener(path, 'set_at', () => this.storeCoordinates())
+      this.googleMaps.event.addListener(path, 'insert_at', () => this.storeCoordinates())
     })
   }
 
@@ -133,18 +133,18 @@ export class DrawingMapsController extends Controller {
       const coordinates = []
       polygon.getPaths().forEach((path, index) => {
         path.forEach((latlng, index) => {
-           coordinates.push({ lat: latlng.lat(), lng: latlng.lng() })
+          coordinates.push({ lat: latlng.lat(), lng: latlng.lng() })
         })
       })
 
-      allCoordinates.push({ coordinates: coordinates, hole: polygon.metadata.hole })
+      allCoordinates.push({ coordinates, hole: polygon.metadata.hole })
     })
 
     return allCoordinates
   }
 
   storeCoordinates () {
-    const polygonsCoordinates = this.coordinatesFromDrawnPolygons();
+    const polygonsCoordinates = this.coordinatesFromDrawnPolygons()
 
     console.log('storing', polygonsCoordinates)
     this.polygonFieldTarget.value = JSON.stringify(polygonsCoordinates)
