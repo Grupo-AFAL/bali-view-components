@@ -10,10 +10,12 @@ export class DrawingMapsController extends Controller {
     strokeWeight: { type: Number, default: 5 },
     clickable: { type: Boolean, default: true },
     editable: { type: Boolean, default: true },
-    draggable: { type: Boolean, default: true }
+    draggable: { type: Boolean, default: false }
   }
 
   async connect () {
+    this.drawnPolygons = []
+
     try {
       this.googleMaps = await GoogleMapsLoader({
         libraries: ['drawing'],
@@ -79,25 +81,43 @@ export class DrawingMapsController extends Controller {
     this.googleMaps.event.addListener(
       this.drawingManager,
       'polygoncomplete',
-      this.setPolygonListener
+      this.storePolygonAndAddListeners
     )
   }
 
-  setPolygonListener = polygon => {
-    this.storeCoordinates(polygon)
-    polygon.addListener('dragend', () => this.storeCoordinates(polygon))
-    polygon.addListener('mouseup', () => this.storeCoordinates(polygon))
+  storePolygonAndAddListeners = (polygon) => {
+    this.setPolygonListener(polygon)
+    this.drawnPolygons.push(polygon)
+    this.storeCoordinates();
   }
 
-  storeCoordinates (polygon) {
-    const coordinates = []
-
-    polygon.getPaths().forEach((path, index) => {
-      path.forEach((latlng, index) => {
-        coordinates.push({ lat: latlng.lat(), lng: latlng.lng() })
+  coordinatesFromDrawnPolygons = () => {
+    const allCoordinates = []
+    this.drawnPolygons.forEach(polygon => {
+      const coordinates = []
+      polygon.getPaths().forEach((path, index) => {
+        path.forEach((latlng, index) => {
+           coordinates.push({ lat: latlng.lat(), lng: latlng.lng() })
+        })
       })
-    })
 
-    this.polygonFieldTarget.value = JSON.stringify(coordinates)
+      allCoordinates.push(coordinates)
+    })
+    console.log('All Coordinates', allCoordinates)
+    return allCoordinates
+  }
+
+  setPolygonListener = (polygon) => {
+    polygon.getPaths().forEach((path, index) => {
+      google.maps.event.addListener(path, 'set_at', () => this.storeCoordinates());
+      google.maps.event.addListener(path, 'insert_at', () => this.storeCoordinates());
+    })
+  }
+
+  storeCoordinates () {
+    const polygonsCoordinates = this.coordinatesFromDrawnPolygons();
+
+    console.log('storing', polygonsCoordinates)
+    this.polygonFieldTarget.value = JSON.stringify(polygonsCoordinates)
   }
 }
