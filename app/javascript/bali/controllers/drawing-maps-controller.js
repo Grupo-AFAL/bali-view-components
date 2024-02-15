@@ -18,7 +18,7 @@ export class DrawingMapsController extends Controller {
 
     try {
       this.googleMaps = await GoogleMapsLoader({
-        libraries: ['drawing'],
+        libraries: ['drawing', 'geometry'],
         language: 'es',
         key: this.data.get('key')
       })
@@ -86,9 +86,45 @@ export class DrawingMapsController extends Controller {
   }
 
   storePolygonAndAddListeners = (polygon) => {
+    polygon.metadata ||= {}
+    polygon.metadata.hole = false
+
+    if (this.isHole(polygon)) {
+      polygon.metadata.hole = true
+      polygon.fillColor = 'red'
+    }
+
     this.setPolygonListener(polygon)
     this.drawnPolygons.push(polygon)
-    this.storeCoordinates();
+    this.storeCoordinates()
+  }
+
+  isHole = (polygon) => {
+    if (this.drawnPolygons.length === 0)  return false
+
+    const polygonVertices = polygon.getPath().getArray();
+    console.log('Polygon vertices', polygonVertices)
+
+    let result = false
+    for (const drawnPolygon of this.drawnPolygons) {
+      const allVerticesWithinPolygon = polygonVertices.reduce((acc, vertice) => {
+        return acc && this.googleMaps.geometry.poly.containsLocation(vertice, drawnPolygon)
+      }, true)
+
+      if (allVerticesWithinPolygon) {
+        result = true
+        break
+      }
+    }
+
+    return result
+  }
+
+  setPolygonListener = (polygon) => {
+    polygon.getPaths().forEach((path, index) => {
+      google.maps.event.addListener(path, 'set_at', () => this.storeCoordinates());
+      google.maps.event.addListener(path, 'insert_at', () => this.storeCoordinates());
+    })
   }
 
   coordinatesFromDrawnPolygons = () => {
@@ -101,17 +137,10 @@ export class DrawingMapsController extends Controller {
         })
       })
 
-      allCoordinates.push(coordinates)
+      allCoordinates.push({ coordinates: coordinates, hole: polygon.metadata.hole })
     })
-    console.log('All Coordinates', allCoordinates)
-    return allCoordinates
-  }
 
-  setPolygonListener = (polygon) => {
-    polygon.getPaths().forEach((path, index) => {
-      google.maps.event.addListener(path, 'set_at', () => this.storeCoordinates());
-      google.maps.event.addListener(path, 'insert_at', () => this.storeCoordinates());
-    })
+    return allCoordinates
   }
 
   storeCoordinates () {
