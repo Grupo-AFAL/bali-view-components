@@ -10,7 +10,7 @@ export class DrawingMapsController extends Controller {
     strokeWeight: { type: Number, default: 5 },
     clickable: { type: Boolean, default: true },
     editable: { type: Boolean, default: true },
-    draggable: { type: Boolean, default: false }
+    draggable: { type: Boolean, default: true }
   }
 
   async connect () {
