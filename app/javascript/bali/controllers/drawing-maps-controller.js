@@ -169,13 +169,13 @@ export class DrawingMapsController extends Controller {
 
   drawAndConfigurePolygonFromPaths = (paths, polygonOptions, hole) => {
     const polygon = new this.googleMaps.Polygon({ ...polygonOptions, paths })
-      polygon.setMap(this.map)
-      polygon.metadata = { hole: hole }
-      this.drawnPolygons.push(polygon)
-      this.setPolygonListener(polygon)
+    polygon.setMap(this.map)
+    polygon.metadata = { hole }
+    this.drawnPolygons.push(polygon)
+    this.setPolygonListener(polygon)
 
-      if (hole) {
-        polygon.fillColor = 'red'
-      }
+    if (hole) {
+      polygon.fillColor = 'red'
+    }
   }
 }
