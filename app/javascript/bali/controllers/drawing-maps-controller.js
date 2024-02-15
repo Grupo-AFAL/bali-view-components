@@ -54,10 +54,21 @@ export class DrawingMapsController extends Controller {
 
   initializeDrawing (polygonOptions) {
     const parsedValue = JSON.parse(this.polygonFieldTarget.value)
-    const paths = Array.isArray(parsedValue) ? parsedValue : []
-    const polygon = new this.googleMaps.Polygon({ ...polygonOptions, paths })
-    polygon.setMap(this.map)
-    this.setPolygonListener(polygon)
+    if (this.isLegacyFormat(parsedValue)) {
+      const paths = Array.isArray(parsedValue) ? parsedValue : []
+      this.drawAndConfigurePolygonFromPaths(paths, polygonOptions, false)
+    }
+
+    const shells = parsedValue.shells || []
+    const holes = parsedValue.holes || []
+
+    shells.forEach((paths) => {
+      this.drawAndConfigurePolygonFromPaths(paths, polygonOptions, false)
+    })
+
+    holes.forEach((paths) => {
+      this.drawAndConfigurePolygonFromPaths(paths, polygonOptions, true)
+    })
   }
 
   initializeDrawingManager (polygonOptions) {
@@ -103,8 +114,6 @@ export class DrawingMapsController extends Controller {
     if (this.drawnPolygons.length === 0) return false
 
     const polygonVertices = polygon.getPath().getArray()
-    console.log('Polygon vertices', polygonVertices)
-
     let result = false
     for (const drawnPolygon of this.drawnPolygons) {
       const allVerticesWithinPolygon = polygonVertices.reduce((acc, vertice) => {
@@ -128,7 +137,8 @@ export class DrawingMapsController extends Controller {
   }
 
   coordinatesFromDrawnPolygons = () => {
-    const allCoordinates = []
+    const shellsCoordinates = []
+    const holesCoordinates = []
     this.drawnPolygons.forEach(polygon => {
       const coordinates = []
       polygon.getPaths().forEach((path, index) => {
@@ -137,16 +147,35 @@ export class DrawingMapsController extends Controller {
         })
       })
 
-      allCoordinates.push({ coordinates, hole: polygon.metadata.hole })
+      if (polygon.metadata.hole) {
+        holesCoordinates.push(coordinates)
+      } else {
+        shellsCoordinates.push(coordinates)
+      }
     })
 
-    return allCoordinates
+    return { shells: shellsCoordinates, holes: holesCoordinates }
   }
 
-  storeCoordinates () {
-    const polygonsCoordinates = this.coordinatesFromDrawnPolygons()
+  storeCoordinates = () => {
+    const shellsAndHolesCoordinates = this.coordinatesFromDrawnPolygons()
 
-    console.log('storing', polygonsCoordinates)
-    this.polygonFieldTarget.value = JSON.stringify(polygonsCoordinates)
+    this.polygonFieldTarget.value = JSON.stringify(shellsAndHolesCoordinates)
+  }
+
+  isLegacyFormat = (values) => {
+    return Array.isArray(values)
+  }
+
+  drawAndConfigurePolygonFromPaths = (paths, polygonOptions, hole) => {
+    const polygon = new this.googleMaps.Polygon({ ...polygonOptions, paths })
+      polygon.setMap(this.map)
+      polygon.metadata = { hole: hole }
+      this.drawnPolygons.push(polygon)
+      this.setPolygonListener(polygon)
+
+      if (hole) {
+        polygon.fillColor = 'red'
+      }
   }
 }
