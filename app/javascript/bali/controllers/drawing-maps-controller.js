@@ -116,9 +116,9 @@ export class DrawingMapsController extends Controller {
     const polygonVertices = polygon.getPath().getArray()
     let result = false
     for (const drawnPolygon of this.drawnPolygons) {
-      const allVerticesWithinPolygon = polygonVertices.reduce((acc, vertice) => {
-        return acc && this.googleMaps.geometry.poly.containsLocation(vertice, drawnPolygon)
-      }, true)
+      const allVerticesWithinPolygon = polygonVertices.every((vertice) => {
+        this.googleMaps.geometry.poly.containsLocation(vertice, drawnPolygon)
+      })
 
       if (allVerticesWithinPolygon) {
         result = true
