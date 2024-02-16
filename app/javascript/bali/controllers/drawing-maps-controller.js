@@ -14,9 +14,11 @@ export class DrawingMapsController extends Controller {
   }
 
   async connect () {
+    this.drawnPolygons = []
+
     try {
       this.googleMaps = await GoogleMapsLoader({
-        libraries: ['drawing'],
+        libraries: ['drawing', 'geometry'],
         language: 'es',
         key: this.data.get('key')
       })
@@ -52,10 +54,21 @@ export class DrawingMapsController extends Controller {
 
   initializeDrawing (polygonOptions) {
     const parsedValue = JSON.parse(this.polygonFieldTarget.value)
-    const paths = Array.isArray(parsedValue) ? parsedValue : []
-    const polygon = new this.googleMaps.Polygon({ ...polygonOptions, paths })
-    polygon.setMap(this.map)
-    this.setPolygonListener(polygon)
+    if (this.isLegacyFormat(parsedValue)) {
+      const paths = Array.isArray(parsedValue) ? parsedValue : []
+      this.drawAndConfigurePolygonFromPaths(paths, polygonOptions, false)
+    }
+
+    const shells = parsedValue.shells || []
+    const holes = parsedValue.holes || []
+
+    shells.forEach((paths) => {
+      this.drawAndConfigurePolygonFromPaths(paths, polygonOptions, false)
+    })
+
+    holes.forEach((paths) => {
+      this.drawAndConfigurePolygonFromPaths(paths, polygonOptions, true)
+    })
   }
 
   initializeDrawingManager (polygonOptions) {
@@ -79,25 +92,90 @@ export class DrawingMapsController extends Controller {
     this.googleMaps.event.addListener(
       this.drawingManager,
       'polygoncomplete',
-      this.setPolygonListener
+      this.storePolygonAndAddListeners
     )
   }
 
-  setPolygonListener = polygon => {
-    this.storeCoordinates(polygon)
-    polygon.addListener('dragend', () => this.storeCoordinates(polygon))
-    polygon.addListener('mouseup', () => this.storeCoordinates(polygon))
+  storePolygonAndAddListeners = (polygon) => {
+    polygon.metadata ||= {}
+    polygon.metadata.hole = false
+
+    if (this.isHole(polygon)) {
+      polygon.metadata.hole = true
+      polygon.fillColor = 'red'
+    }
+
+    this.setPolygonListener(polygon)
+    this.drawnPolygons.push(polygon)
+    this.storeCoordinates()
   }
 
-  storeCoordinates (polygon) {
-    const coordinates = []
+  isHole = (polygon) => {
+    if (this.drawnPolygons.length === 0) return false
 
-    polygon.getPaths().forEach((path, index) => {
-      path.forEach((latlng, index) => {
-        coordinates.push({ lat: latlng.lat(), lng: latlng.lng() })
+    const polygonVertices = polygon.getPath().getArray()
+    let result = false
+    for (const drawnPolygon of this.drawnPolygons) {
+      const allVerticesWithinPolygon = polygonVertices.every((vertice) => {
+        return this.googleMaps.geometry.poly.containsLocation(vertice, drawnPolygon)
       })
+
+      if (allVerticesWithinPolygon) {
+        result = true
+        break
+      }
+    }
+
+    return result
+  }
+
+  setPolygonListener = (polygon) => {
+    polygon.getPaths().forEach((path, index) => {
+      this.googleMaps.event.addListener(path, 'set_at', () => this.storeCoordinates())
+      this.googleMaps.event.addListener(path, 'insert_at', () => this.storeCoordinates())
+    })
+  }
+
+  coordinatesFromDrawnPolygons = () => {
+    const shellsCoordinates = []
+    const holesCoordinates = []
+    this.drawnPolygons.forEach(polygon => {
+      const coordinates = []
+      polygon.getPaths().forEach((path, index) => {
+        path.forEach((latlng, index) => {
+          coordinates.push({ lat: latlng.lat(), lng: latlng.lng() })
+        })
+      })
+
+      if (polygon.metadata.hole) {
+        holesCoordinates.push(coordinates)
+      } else {
+        shellsCoordinates.push(coordinates)
+      }
     })
 
-    this.polygonFieldTarget.value = JSON.stringify(coordinates)
+    return { shells: shellsCoordinates, holes: holesCoordinates }
+  }
+
+  storeCoordinates = () => {
+    const shellsAndHolesCoordinates = this.coordinatesFromDrawnPolygons()
+
+    this.polygonFieldTarget.value = JSON.stringify(shellsAndHolesCoordinates)
+  }
+
+  isLegacyFormat = (values) => {
+    return Array.isArray(values)
+  }
+
+  drawAndConfigurePolygonFromPaths = (paths, polygonOptions, hole) => {
+    const polygon = new this.googleMaps.Polygon({ ...polygonOptions, paths })
+    polygon.setMap(this.map)
+    polygon.metadata = { hole }
+    this.drawnPolygons.push(polygon)
+    this.setPolygonListener(polygon)
+
+    if (hole) {
+      polygon.fillColor = 'red'
+    }
   }
 }
