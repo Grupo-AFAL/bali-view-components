@@ -8,8 +8,6 @@ module Bali
     class XlsxExport
       prepend SimpleCommand
 
-      include ActiveSupport::NumberHelper
-
       class Sheet
         attr_reader :name, :columns
 
@@ -101,7 +99,7 @@ module Bali
 
       def format_value(value, format)
         case format
-        when :currency then number_to_currency(value, strip_insignificant_zeros: true)
+        when :currency then "$ #{value.round(2)}"
         when :number then number_to_delimited(value)
         when :percentage then number_to_percentage(value)
         when :array then Array(value).join(', ')
