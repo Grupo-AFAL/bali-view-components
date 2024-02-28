@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'caxlsx'
 require 'simple_command'
 
