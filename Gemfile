@@ -7,6 +7,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 gemspec
 
 gem 'bulma-rails', '~> 0.9.3'
+gem 'caxlsx', '~> 4.1'
 gem 'dartsass-rails'
 gem 'device_detector'
 gem 'sprockets-rails'
