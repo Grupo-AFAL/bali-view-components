@@ -16,8 +16,8 @@ module Bali
           @columns = {}
         end
 
-        def export_column(column_name, value: nil, footer: nil, format: nil)
-          @columns[column_name] = { value: value, footer: footer, format: format }
+        def export_column(column_name, value: nil, style: nil, footer: nil, format: nil)
+          @columns[column_name] = { value: value, style: style, footer: footer, format: format }
         end
       end
 
@@ -50,15 +50,18 @@ module Bali
 
       def call
         xlsx = ::Axlsx::Package.new
+        styles = xlsx.workbook.styles
 
         self.class.sheets.each do |sheet|
           workbook_sheet = xlsx.workbook.add_worksheet(name: sheet.name)
+          sheet_row_styles = row_styles(sheet.columns, styles)
 
           workbook_sheet.add_row(headers(sheet))
           @records.each do |record|
-            workbook_sheet.add_row(row_values(sheet.columns, record))
+            workbook_sheet.add_row(row_values(sheet.columns, record), style: sheet_row_styles)
           end
-          workbook_sheet.add_row(footer_values(sheet.columns))
+
+          workbook_sheet.add_row(footer_values(sheet.columns), style: sheet_row_styles)
         end
 
         xlsx.use_shared_strings = true
@@ -84,26 +87,9 @@ module Bali
       end
 
       def row_values(columns, record)
-        columns.map { |column_name, options| column_value(record, column_name, options) }
-      end
-
-      def column_value(record, column_name, options)
-        options => {value:, format:}
-
-        column_value = value.present? ? record.instance_exec(&value) : record.send(column_name)
-
-        return format_value(column_value, format) if format.is_a?(Symbol)
-
-        column_value
-      end
-
-      def format_value(value, format)
-        case format
-        when :currency then "$ #{value.round(2)}"
-        when :number then number_to_delimited(value)
-        when :percentage then number_to_percentage(value)
-        when :array then Array(value).join(', ')
-        else value
+        columns.map do |column_name, options|
+          options => {value:}
+          value.present? ? record.instance_exec(&value) : record.send(column_name)
         end
       end
 
@@ -113,6 +99,23 @@ module Bali
 
       def export_klass
         self.class.export_klass
+      end
+
+      def row_styles(columns, wb_styles)
+        columns.map do |_, opts|
+          opts => { style:, format: }
+          format_code_from_format = format_codes[format]
+          next if style.blank? && format_code_from_format.blank?
+
+          wb_styles.add_style(**(format_code_from_format.presence || style))
+        end
+      end
+
+      def format_codes
+        {
+          currency: { format_code: '$#,##0_);($#,##0)' },
+          percentage: { format_code: '0%' }
+        }
       end
     end
   end
