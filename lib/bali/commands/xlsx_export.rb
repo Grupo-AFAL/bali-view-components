@@ -9,11 +9,12 @@ module Bali
       prepend SimpleCommand
 
       class Sheet
-        attr_reader :name, :columns
+        attr_reader :name, :columns, :escape_formulas
 
-        def initialize(name)
+        def initialize(name, escape_formulas: true)
           @name = name
           @columns = {}
+          @escape_formulas = escape_formulas
         end
 
         def export_column(column_name, value: nil, style: nil, footer: nil, format: nil)
@@ -22,21 +23,17 @@ module Bali
       end
 
       class << self
-        attr_reader :export_klass, :escape_formulas, :sheets
+        attr_reader :export_klass, :sheets
 
         # rubocop: disable Naming/AccessorMethodName
         def set_export_klass(value)
           @export_klass = value
         end
-
-        def set_escape_formulas(value)
-          @escape_formulas = value
-        end
         # rubocop: enable Naming/AccessorMethodName
 
-        def sheet(name)
+        def sheet(name, **options)
           @sheets ||= []
-          new_sheet = Sheet.new(name)
+          new_sheet = Sheet.new(name, **options)
           @sheets << new_sheet
 
           yield(new_sheet)
@@ -50,11 +47,12 @@ module Bali
 
       def call
         xlsx = ::Axlsx::Package.new
-        xlsx.workbook.escape_formulas = escape_formulas
         styles = xlsx.workbook.styles
 
         self.class.sheets.each do |sheet|
-          workbook_sheet = xlsx.workbook.add_worksheet(name: sheet.name)
+          workbook_sheet = xlsx.workbook.add_worksheet(
+            name: sheet.name, escape_formulas: sheet.escape_formulas
+          )
           sheet_row_styles = row_styles(sheet.columns, styles)
 
           workbook_sheet.add_row(headers(sheet))
@@ -78,11 +76,7 @@ module Bali
       end
 
       def footer_values(columns)
-        columns.map do |_, options|
-          next if options[:footer].blank?
-
-          options[:footer].call
-        end
+        columns.map { |_, options| options[:footer].presence }
       end
 
       def row_values(columns, record)
@@ -98,10 +92,6 @@ module Bali
 
       def export_klass
         self.class.export_klass
-      end
-
-      def escape_formulas
-        !!self.class.escape_formulas
       end
 
       def row_styles(columns, wb_styles)
