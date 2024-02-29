@@ -50,6 +50,7 @@ module Bali
 
       def call
         xlsx = ::Axlsx::Package.new
+        xlsx.workbook.escape_formulas = escape_formulas
         styles = xlsx.workbook.styles
 
         self.class.sheets.each do |sheet|
@@ -65,9 +66,7 @@ module Bali
         end
 
         xlsx.use_shared_strings = true
-        xlsx_string = xlsx.to_stream.string
-
-        [@filename || default_filename, xlsx_string]
+        [@filename || default_filename, xlsx.to_stream.string]
       end
 
       private
@@ -99,6 +98,10 @@ module Bali
 
       def export_klass
         self.class.export_klass
+      end
+
+      def escape_formulas
+        !!self.class.escape_formulas
       end
 
       def row_styles(columns, wb_styles)
