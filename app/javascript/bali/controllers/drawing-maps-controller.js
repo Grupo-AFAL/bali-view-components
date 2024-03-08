@@ -178,4 +178,21 @@ export class DrawingMapsController extends Controller {
       polygon.fillColor = 'red'
     }
   }
+
+  clear = () => {
+    this.drawnPolygons.forEach((polygon) => polygon.setMap(null));
+    this.drawnPolygons = []
+    this.storeCoordinates()
+  }
+
+  clearHoles = () => {
+    const shells = this.drawnPolygons.map(polygon => {
+      if (!polygon.metadata.hole) return polygon
+
+      polygon.setMap(null)
+    });
+    this.drawnPolygons = shells.filter(element => element !== null && element !== undefined);
+
+    this.storeCoordinates()
+  }
 }

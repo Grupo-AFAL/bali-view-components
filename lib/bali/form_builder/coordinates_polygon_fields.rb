@@ -17,6 +17,7 @@ module Bali
         tag.div(**options) do
           safe_join(
             [
+              clear_buttons,
               tag.div(class: 'map', style: 'height: 400px', data: { drawing_maps_target: 'map' }),
               hidden_field(method, value: value, data: { drawing_maps_target: 'polygonField' })
             ]
@@ -29,6 +30,27 @@ module Bali
       def setup_options(opts)
         opts = prepend_controller(opts, 'drawing-maps')
         prepend_data_attribute(opts, 'drawing-maps-key', ENV.fetch('GOOGLE_MAPS_KEY', ''))
+      end
+
+      def clear_buttons
+        tag.div(class: 'is-flex is-justify-content-flex-end is-align-items-center mb-3') do
+          safe_join([clear_holes_button, clear_all_button])
+        end
+      end
+
+      def clear_holes_button
+        tag.button(
+          I18n.t('helpers.clear_holes.text'),
+          type: 'button', class: 'button is-text mr-4', data: { action: 'drawing-maps#clearHoles' }
+        )
+      end
+
+      def clear_all_button
+        tag.button(
+          I18n.t('helpers.clear.text'),
+          type: 'button', class: 'button is-text has-text-danger',
+          data: { action: 'drawing-maps#clear' }
+        )
       end
     end
   end

@@ -2,3 +2,7 @@ en:
   helpers:
     cancel:
       text: Cancel
+    clear:
+      text: Clear
+    clear_holes:
+      text: Clear holes
