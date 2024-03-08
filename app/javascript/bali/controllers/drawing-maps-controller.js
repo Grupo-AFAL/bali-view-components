@@ -181,22 +181,23 @@ export class DrawingMapsController extends Controller {
   }
 
   clear = () => {
-    if(!window.confirm(this.confirmationMessageToClearValue)) return
+    if (!window.confirm(this.confirmationMessageToClearValue)) return
 
-    this.drawnPolygons.forEach((polygon) => polygon.setMap(null));
+    this.drawnPolygons.forEach((polygon) => polygon.setMap(null))
     this.drawnPolygons = []
     this.storeCoordinates()
   }
 
   clearHoles = () => {
-    if(!window.confirm(this.confirmationMessageToClearValue)) return
+    if (!window.confirm(this.confirmationMessageToClearValue)) return
 
     const shells = this.drawnPolygons.map(polygon => {
       if (!polygon.metadata.hole) return polygon
 
       polygon.setMap(null)
-    });
-    this.drawnPolygons = shells.filter(element => element !== null && element !== undefined);
+      return null
+    })
+    this.drawnPolygons = shells.filter(element => element !== null)
 
     this.storeCoordinates()
   }
