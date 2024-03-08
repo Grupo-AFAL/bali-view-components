@@ -10,7 +10,8 @@ export class DrawingMapsController extends Controller {
     strokeWeight: { type: Number, default: 5 },
     clickable: { type: Boolean, default: true },
     editable: { type: Boolean, default: true },
-    draggable: { type: Boolean, default: true }
+    draggable: { type: Boolean, default: true },
+    confirmationMessageToClear: { type: String, default: 'Would you like to continue?' }
   }
 
   async connect () {
@@ -180,12 +181,16 @@ export class DrawingMapsController extends Controller {
   }
 
   clear = () => {
+    if(!window.confirm(this.confirmationMessageToClearValue)) return
+
     this.drawnPolygons.forEach((polygon) => polygon.setMap(null));
     this.drawnPolygons = []
     this.storeCoordinates()
   }
 
   clearHoles = () => {
+    if(!window.confirm(this.confirmationMessageToClearValue)) return
+
     const shells = this.drawnPolygons.map(polygon => {
       if (!polygon.metadata.hole) return polygon
 

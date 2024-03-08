@@ -29,6 +29,11 @@ module Bali
 
       def setup_options(opts)
         opts = prepend_controller(opts, 'drawing-maps')
+        opts = prepend_data_attribute(
+          opts,
+          'drawing-maps-confirmation-message-to-clear-value',
+          I18n.t('helpers.generic_confirm_message.text')
+        )
         prepend_data_attribute(opts, 'drawing-maps-key', ENV.fetch('GOOGLE_MAPS_KEY', ''))
       end
 

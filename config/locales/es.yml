@@ -6,3 +6,5 @@ es:
       text: Limpiar
     clear_holes:
       text: Limpiar agujeros
+    generic_confirm_message:
+      text: '¿Estas seguro(a)?'

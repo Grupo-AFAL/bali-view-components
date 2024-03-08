@@ -6,3 +6,5 @@ en:
       text: Clear
     clear_holes:
       text: Clear holes
+    generic_confirm_message:
+      text: Are you sure?
