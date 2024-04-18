@@ -31,10 +31,10 @@ end
 group :test do
   gem 'capybara', '~> 3'
   gem 'simplecov', require: false
-  gem 'sqlite3'
+  gem 'sqlite3', '~> 1.4'
 end
 
 group :development, :test do
-  gem 'dotenv-rails'
+  gem 'dotenv'
   gem 'rspec-rails', '~> 6'
 end
