@@ -1,9 +1,9 @@
 import { Controller } from '@hotwired/stimulus'
 import Sortable from 'sortablejs'
 import throttle from 'lodash.throttle'
-import useDispatch from '../../../javascript/bali/utils/use-dispatch'
-import { toBool, toInt } from '../../../javascript/bali/utils/formatters'
-import { addDaysToDate } from '../../../javascript/bali/utils/time'
+import useDispatch from 'bali/utils/use-dispatch'
+import { toBool, toInt } from 'bali/utils/formatters'
+import { addDaysToDate } from 'bali/utils/time'
 import { patch } from '@rails/request.js'
 import ConnectionLine from './connection_line'
 

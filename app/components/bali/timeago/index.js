@@ -1,7 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 import { formatDistanceToNow } from 'date-fns'
-import es from 'date-fns/locale/es'
-import en from 'date-fns/locale/en-US'
+import { es } from 'date-fns/locale/es'
+import { enUS } from 'date-fns/locale/en-US'
 
 export class TimeagoController extends Controller {
   static values = {
@@ -14,7 +14,8 @@ export class TimeagoController extends Controller {
 
   initialize () {
     this.isValid = true
-    this.locale = this.localeValue === 'es' ? es : en
+    this.locale = this.localeValue === 'es' ? es : enUS
+    window.locale = this.locale
     this.options = {
       includeSeconds: this.includeSecondsValue,
       addSuffix: this.addSuffixValue,

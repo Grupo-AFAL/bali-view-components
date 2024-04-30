@@ -5,6 +5,7 @@ import useDefaults, {
   defaultTargets,
   toolbarExtensions
 } from './javascript/useDefaults'
+
 import useMarks, { marksTargets, toolbarMarks } from './javascript/useMarks'
 import useTable, { tableTargets } from './javascript/useTable'
 import useLink, { linkTargets } from './javascript/useLink'
