@@ -26,7 +26,7 @@ export class ChartController extends Controller {
       this.displayPercentInTooltip(options)
     }
 
-    Chart.register(...registerables);
+    Chart.register(...registerables)
 
     this.chart = new Chart(element.getContext('2d'), {
       type: this.typeValue,

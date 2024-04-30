@@ -1,0 +1,39 @@
+{
+  "name": "bali-view-components",
+  "version": "0.76.0",
+  "description": "Bali ViewComponents",
+  "repository": "git@github.com:Grupo-AFAL/bali.git",
+  "author": "Federico Gonzalez <fedegl@hey.com>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "cy:open": "cypress open",
+    "cy:run": "cypress run"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.17.10",
+    "@babel/eslint-parser": "^7.17.0",
+    "@babel/plugin-proposal-class-properties": "^7.16.7",
+    "@babel/preset-env": "^7.17.10",
+    "cypress": "^13.6.4",
+    "standard": "^17.0.0"
+  },
+  "standard": {
+    "parser": "@babel/eslint-parser",
+    "globals": [
+      "cy",
+      "it",
+      "context",
+      "describe",
+      "expect",
+      "beforeEach",
+      "Cypress",
+      "fetch",
+      "history",
+      "FormData",
+      "CustomEvent",
+      "localStorage",
+      "DataTransfer"
+    ]
+  }
+}

@@ -1,14 +1,9 @@
 // Configure your import map in config/importmap.rb. Read more: https://github.com/rails/importmap-rails
 
-import { application } from "controllers/application"
+import { application } from 'controllers/application'
 import { Turbo } from '@hotwired/turbo-rails'
-import * as ActiveStorage from "@rails/activestorage"
-import * as ActionCable from '@rails/actioncable'
+import * as ActiveStorage from '@rails/activestorage'
 import 'controllers'
-
-ActiveStorage.start()
-
-window.Turbo = Turbo
 
 import { AutoPlayAudioController } from 'bali/auto-play-audio-controller'
 import { AutocompleteAddressController } from 'bali/autocomplete-address-controller'
@@ -59,6 +54,10 @@ import { FilterAttributeController } from 'bali/filters/filter-attribute'
 import { FilterFormController } from 'bali/filters/filter-form'
 import { PopupController } from 'bali/filters/popup'
 import { SelectedController } from 'bali/filters/selected'
+
+ActiveStorage.start()
+
+window.Turbo = Turbo
 
 application.register('avatar', AvatarController)
 application.register('bulk-actions', BulkActionsController)
