@@ -1,5 +1,4 @@
-import imagePlaceholderUrl from '../assets/image_placeholder.png'
-import SuggestionRenderer from './renderer'
+import SuggestionRenderer from 'bali/rich_text_editor/suggestions/renderer'
 
 /**
  * Tiptap suggestion utility
@@ -111,7 +110,7 @@ export default {
             .chain()
             .focus()
             .deleteRange(range)
-            .setImage({ src: imagePlaceholderUrl })
+            .setImage({ src: 'bali/rich_text_editor/javascript/assets/image_placeholder.png' })
             .run()
         }
       }

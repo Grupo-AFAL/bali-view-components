@@ -4,15 +4,15 @@ import throttle from 'lodash.throttle'
 import useDefaults, {
   defaultTargets,
   toolbarExtensions
-} from './javascript/useDefaults'
+} from 'bali/rich_text_editor/useDefaults'
 
-import useMarks, { marksTargets, toolbarMarks } from './javascript/useMarks'
-import useTable, { tableTargets } from './javascript/useTable'
-import useLink, { linkTargets } from './javascript/useLink'
-import useMention from './javascript/useMention'
-import useNodes, { nodesTargets, toolbarNodes } from './javascript/useNodes'
-import useImage, { imageTargets } from './javascript/useImage'
-import useSlashCommands from './javascript/useSlashCommands'
+import useMarks, { marksTargets, toolbarMarks } from 'bali/rich_text_editor/useMarks'
+import useTable, { tableTargets } from 'bali/rich_text_editor/useTable'
+import useLink, { linkTargets } from 'bali/rich_text_editor/useLink'
+import useMention from 'bali/rich_text_editor/useMention'
+import useNodes, { nodesTargets, toolbarNodes } from 'bali/rich_text_editor/useNodes'
+import useImage, { imageTargets } from 'bali/rich_text_editor/useImage'
+import useSlashCommands from 'bali/rich_text_editor/useSlashCommands'
 
 export class RichTextEditorController extends Controller {
   static targets = [

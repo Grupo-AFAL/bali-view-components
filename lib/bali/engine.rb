@@ -36,6 +36,10 @@ module Bali
           Dir[File.join(dir_path, 'bali', '**', '*.js')].each do |path|
             app.config.assets.precompile << path.gsub("#{dir_path.to_path}/", '')
           end
+
+          Dir[File.join(dir_path, 'bali', '**', '*.png')].each do |path|
+            app.config.assets.precompile << path.gsub("#{dir_path.to_path}/", '')
+          end
         end
       end
     end

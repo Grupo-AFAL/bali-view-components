@@ -1,5 +1,5 @@
 import tippy from 'tippy.js'
-import PopUpListComponent from './popup_list_component'
+import PopUpListComponent from 'bali/rich_text_editor/suggestions/popupListComponent'
 
 export default ({ popUpOptions } = {}) => {
   return () => {
