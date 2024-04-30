@@ -41,7 +41,7 @@ import { NavbarController } from 'bali/navbar'
 import { NotificationController } from 'bali/notification'
 import { RateController } from 'bali/rate'
 import { RevealController } from 'bali/reveal'
-// import { RichTextEditorController } from 'bali/rich_text_editor'
+import { RichTextEditorController } from 'bali/rich_text_editor'
 import { SideMenuController } from 'bali/side_menu'
 import { SortableListController } from 'bali/sortable_list'
 import { TableController } from 'bali/table'
@@ -74,7 +74,7 @@ application.register('navbar', NavbarController)
 application.register('notification', NotificationController)
 application.register('rate', RateController)
 application.register('reveal', RevealController)
-// application.register('rich-text-editor', RichTextEditorController)
+application.register('rich-text-editor', RichTextEditorController)
 application.register('side-menu', SideMenuController)
 application.register('sortable-list', SortableListController)
 application.register('table', TableController)
