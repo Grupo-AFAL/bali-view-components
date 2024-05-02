@@ -110,7 +110,7 @@ export default {
             .chain()
             .focus()
             .deleteRange(range)
-            .setImage({ src: 'image_placeholder.png' })
+            .setImage({ src: '/assets/bali/rich_text_editor/javascript/assets/image_placeholder.png' })
             .run()
         }
       }
