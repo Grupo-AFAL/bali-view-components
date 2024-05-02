@@ -93,13 +93,14 @@ pin "highlight.js/lib/languages/xml", to: 'https://cdn.jsdelivr.net/gh/highlight
 pin "highlight.js/lib/languages/yaml", to: 'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/es/languages/yaml.min.js'
 
 pin "@tiptap/core", to: 'https://cdn.jsdelivr.net/npm/@tiptap/core@2.3.1/+esm'
-pin "@tiptap/pm/commands", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@2.3.1/commands/+esm"
-pin "@tiptap/pm/keymap", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@2.3.1/keymap/+esm"
-pin "@tiptap/pm/model", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@2.3.1/model/+esm"
-pin "@tiptap/pm/schema-list", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@2.3.1/schema-list/+esm"
-pin "@tiptap/pm/state", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@2.3.1/state/+esm"
-pin "@tiptap/pm/transform", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@2.3.1/transform/+esm"
-pin "@tiptap/pm/view", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@2.3.1/view/+esm"
+# pin "@tiptap/pm", to: 'https://cdn.jsdelivr.net/npm/@tiptap/pm@2.3.1/+esm'
+# pin "@tiptap/pm/commands", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@2.3.1/commands/+esm"
+# pin "@tiptap/pm/keymap", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@2.3.1/keymap/+esm"
+# pin "@tiptap/pm/model", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@2.3.1/model/+esm"
+# pin "@tiptap/pm/schema-list", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@2.3.1/schema-list/+esm"
+# pin "@tiptap/pm/state", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@2.3.1/state/+esm"
+# pin "@tiptap/pm/transform", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@2.3.1/transform/+esm"
+# pin "@tiptap/pm/view", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@2.3.1/view/+esm"
 pin "@tiptap/suggestion", to: 'https://cdn.jsdelivr.net/npm/@tiptap/suggestion@2.3.1/+esm'
 pin "@tiptap/prosemirror-tables", to: 'https://cdn.jsdelivr.net/npm/@tiptap/prosemirror-tables@1.1.4/+esm'
 pin "@tiptap/starter-kit", to: 'https://cdn.jsdelivr.net/npm/@tiptap/starter-kit@2.3.1/+esm'
@@ -137,8 +138,6 @@ pin "@tiptap/extension-text-style", to: 'https://cdn.jsdelivr.net/npm/@tiptap/ex
 pin "@tiptap/extension-text", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-text@2.3.1/+esm'
 pin "@tiptap/extension-underline", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-underline@2.3.1/+esm'
 
-pin "orderedmap", to: 'https://cdn.jsdelivr.net/npm/orderedmap@2.1.1/+esm'
-pin "w3c-keyname", to: 'https://cdn.jsdelivr.net/npm/w3c-keyname@2.2.8/+esm'
 pin "prosemirror-changeset", to: 'https://cdn.jsdelivr.net/npm/prosemirror-changeset@2.2.1/+esm'
 pin "prosemirror-collab", to: 'https://cdn.jsdelivr.net/npm/prosemirror-collab@1.3.1/+esm'
 pin "prosemirror-commands", to: 'https://cdn.jsdelivr.net/npm/prosemirror-commands@1.5.2/+esm'
@@ -157,6 +156,14 @@ pin "prosemirror-tables", to: 'https://cdn.jsdelivr.net/npm/prosemirror-tables@1
 pin "prosemirror-trailing-node", to: 'https://cdn.jsdelivr.net/npm/prosemirror-trailing-node@2.0.8/+esm'
 pin "prosemirror-transform", to: 'https://cdn.jsdelivr.net/npm/prosemirror-transform@1.8.0/+esm'
 pin "prosemirror-view", to: 'https://cdn.jsdelivr.net/npm/prosemirror-view@1.33.4/+esm'
+
+pin "orderedmap", to: 'https://cdn.jsdelivr.net/npm/orderedmap@2.1.1/+esm'
+pin "w3c-keyname", to: 'https://cdn.jsdelivr.net/npm/w3c-keyname@2.2.8/+esm'
+pin "rope-sequence", to: 'https://cdn.jsdelivr.net/npm/rope-sequence@1.3.4/+esm'
+pin "markdown-it", to: 'https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/+esm'
+pin "crelt", to: 'https://cdn.jsdelivr.net/npm/crelt@1.0.6/+esm'
+pin "@remirror/core-constants", to: 'https://cdn.jsdelivr.net/npm/@remirror/core-constants@2.0.2/+esm'
+pin "escape-string-regexp", to: 'https://cdn.jsdelivr.net/npm/escape-string-regexp@4.0.0/+esm'
 
 pin 'bali/rich_text_editor', to: 'bali/rich_text_editor/index.js'
 pin 'bali/rich_text_editor/extensions/slashCommands', to: 'bali/rich_text_editor/javascript/extensions/slashCommands.js'
