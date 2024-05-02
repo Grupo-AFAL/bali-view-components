@@ -214,4 +214,3 @@ pin 'bali/rich_text_editor/useMention', to: 'bali/rich_text_editor/javascript/us
 pin 'bali/rich_text_editor/useNodes', to: 'bali/rich_text_editor/javascript/useNodes.js'
 pin 'bali/rich_text_editor/useSlashCommands', to: 'bali/rich_text_editor/javascript/useSlashCommands.js'
 pin 'bali/rich_text_editor/useTable', to: 'bali/rich_text_editor/javascript/useTable.js'
-# pin 'bali/rich_text_editor/image_placeholder.png', to: 'bali/rich_text_editor/javascript/assets/image_placeholder.png'
