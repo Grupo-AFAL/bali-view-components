@@ -107,7 +107,6 @@ pin 'bali/filters/filter-attribute', to: 'bali/filters/controllers/filter-attrib
 pin 'bali/filters/filter-form', to: 'bali/filters/controllers/filter-form-controller.js'
 pin 'bali/filters/popup', to: 'bali/filters/controllers/popup-controller.js'
 pin 'bali/filters/selected', to: 'bali/filters/controllers/selected-controller.js'
-pin "lodash.debounce", to: 'https://cdn.jsdelivr.net/npm/lodash.debounce@4.0.8/+esm'
 
 ## Rich Text Editor ##
 pin "lowlight", to: 'https://cdn.jsdelivr.net/npm/lowlight@3.1.0/+esm'
