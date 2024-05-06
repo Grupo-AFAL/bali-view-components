@@ -1,4 +1,4 @@
-import { toInt, toFloat } from '../../app/javascript/bali/utils/formatters'
+import { toInt, toFloat } from '../../app/assets/javascripts/bali/utils/formatters'
 
 describe('toInt', () => {
   it('converts an empty string to 0', () => {

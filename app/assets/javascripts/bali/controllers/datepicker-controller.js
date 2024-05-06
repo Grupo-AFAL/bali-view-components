@@ -69,7 +69,8 @@ export class DatepickerController extends Controller {
     if (countryCode === 'en') {
       return 'default'
     } else {
-      return (await import('flatpickr/dist/l10n/es.js')).default.es
+      await import('flatpickr/dist/l10n/es.js')
+      return 'es'
     }
   }
 

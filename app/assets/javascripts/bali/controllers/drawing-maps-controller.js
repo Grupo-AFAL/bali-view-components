@@ -1,5 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
-import { GoogleMapsLoader } from '..'
+import GoogleMapsLoader from 'bali/utils/google-maps-loader'
 
 export class DrawingMapsController extends Controller {
   static targets = ['map', 'polygonField']

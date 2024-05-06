@@ -5,12 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.76.0] - 2024-03-08
+## [1.1.0] - 2024-03-08
 
 ### Added
 
 - Button to clear polygons in coordinates polygon field
 - Button to clear holes in coordinates polygon field
+
+## [1.0.0] - 2024-04-17
+
+### Changed
+
+- Migrated from `jsbundling-rails` to `importmaps-rails`
+
+## [0.76.0] - 2024-04-17
+
+### Added
+
+- Updated `gems` and `npm` packages
 
 ## [0.75.0] - 2024-02-28
 

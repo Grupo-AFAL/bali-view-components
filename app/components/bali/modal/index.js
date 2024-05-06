@@ -1,5 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
-import { autoFocusInput } from '../../../javascript/bali/utils/form'
+import { autoFocusInput } from 'bali/utils/form'
 
 /**
  * Loads remote content into a modal window and handles form submission

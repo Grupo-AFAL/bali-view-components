@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
-import { GoogleMapsLoader, formatters } from '..'
+import GoogleMapsLoader from 'bali/utils/google-maps-loader'
+import * as formatters from 'bali/utils/formatters'
 
 const TIJUANA_LAT = 32.5036383
 const TIJUANA_LNG = -117.0308968
