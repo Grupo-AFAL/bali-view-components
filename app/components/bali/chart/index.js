@@ -1,5 +1,4 @@
 import { Controller } from '@hotwired/stimulus'
-import { Chart, registerables } from 'chart.js'
 
 export class ChartController extends Controller {
   static targets = ['canvas']
@@ -25,6 +24,8 @@ export class ChartController extends Controller {
     if (this.displayPercentValue) {
       this.displayPercentInTooltip(options)
     }
+
+    const { Chart, registerables } = await import('chart.js')
 
     Chart.register(...registerables)
 
