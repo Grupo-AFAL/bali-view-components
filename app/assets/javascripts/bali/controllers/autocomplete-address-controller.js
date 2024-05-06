@@ -1,5 +1,4 @@
 import { Controller } from '@hotwired/stimulus'
-import GoogleMapsLoader from 'bali/utils/google-maps-loader'
 
 // TODO: Add tests (Issue: #137)
 export class AutocompleteAddressController extends Controller {
@@ -18,6 +17,8 @@ export class AutocompleteAddressController extends Controller {
   ]
 
   async connect () {
+    const { default: GoogleMapsLoader } = await import('bali/utils/google-maps-loader')
+
     try {
       this.googleMaps = await GoogleMapsLoader({
         libraries: ['places'],

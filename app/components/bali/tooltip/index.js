@@ -1,5 +1,4 @@
 import { Controller } from '@hotwired/stimulus'
-import tippy from 'tippy.js'
 
 export class TooltipController extends Controller {
   static targets = ['content', 'trigger']
@@ -8,8 +7,10 @@ export class TooltipController extends Controller {
     trigger: { type: String, default: 'mouseenter focus' }
   }
 
-  connect () {
+  connect = async () => {
     if (this.contentTarget.content.textContent.trim().length === 0) return
+
+    const { default: tippy } = await import('tippy.js')
 
     this.tippy = tippy(this.triggerTarget, {
       allowHTML: true,

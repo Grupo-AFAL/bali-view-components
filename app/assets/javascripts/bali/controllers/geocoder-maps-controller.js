@@ -1,5 +1,4 @@
 import { Controller } from '@hotwired/stimulus'
-import GoogleMapsLoader from 'bali/utils/google-maps-loader'
 import * as formatters from 'bali/utils/formatters'
 
 const TIJUANA_LAT = 32.5036383
@@ -23,6 +22,8 @@ export class GeocoderMapsController extends Controller {
   ]
 
   async connect () {
+    const { default: GoogleMapsLoader } = await import('bali/utils/google-maps-loader')
+
     const testMode = this.data.get('testMode') === 'true'
     if (testMode) return
 

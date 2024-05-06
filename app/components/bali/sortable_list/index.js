@@ -1,5 +1,4 @@
 import { Controller } from '@hotwired/stimulus'
-import Sortable from 'sortablejs'
 import { patch } from '@rails/request.js'
 import useDispatch from 'bali/utils/use-dispatch'
 
@@ -16,8 +15,10 @@ export class SortableListController extends Controller {
     disabled: { type: Boolean, default: false }
   }
 
-  connect () {
+  connect = async () => {
     useDispatch(this)
+
+    const { default: Sortable } = await import('sortablejs')
 
     this.sortable = new Sortable(this.element, {
       group: { name: this.groupNameValue, pull: this.pullValue },

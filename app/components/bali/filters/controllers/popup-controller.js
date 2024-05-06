@@ -1,5 +1,4 @@
 import { Controller } from '@hotwired/stimulus'
-import { createPopper } from '@popperjs/core'
 import useClickOutside from 'bali/utils/use-click-outside'
 
 export class PopupController extends Controller {
@@ -9,7 +8,9 @@ export class PopupController extends Controller {
     closeOnClickOutside: { type: Boolean, default: true }
   }
 
-  connect () {
+  connect = async () => {
+    const { createPopper } = await import('@popperjs/core');
+
     if (this.closeOnClickOutsideValue) { useClickOutside(this) }
 
     this.popperInstance = createPopper(

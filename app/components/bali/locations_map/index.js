@@ -1,6 +1,4 @@
 import { Controller } from '@hotwired/stimulus'
-import GoogleMapsLoader from 'bali/utils/google-maps-loader'
-import { MarkerClusterer } from '@googlemaps/markerclusterer'
 
 const TIJUANA_LAT = 32.5036383
 const TIJUANA_LNG = -117.0308968
@@ -18,6 +16,10 @@ export class LocationsMapController extends Controller {
   }
 
   connect = async () => {
+    const { default: GoogleMapsLoader } = await import('bali/utils/google-maps-loader')
+    const { MarkerClusterer } = await import('@googlemaps/markerclusterer')
+    this.markerClusterer = MarkerClusterer
+
     try {
       this.googleMaps = await GoogleMapsLoader({
         libraries: ['drawing'],
@@ -49,7 +51,7 @@ export class LocationsMapController extends Controller {
     )
 
     if (this.enableClusteringValue) {
-      this.markerCluster = new MarkerClusterer({ map: this.map, markers })
+      this.markerCluster = new this.markerClusterer({ map: this.map, markers })
     }
   }
 
