@@ -9,7 +9,7 @@ export class PopupController extends Controller {
   }
 
   connect = async () => {
-    const { createPopper } = await import('@popperjs/core');
+    const { createPopper } = await import('@popperjs/core')
 
     if (this.closeOnClickOutsideValue) { useClickOutside(this) }
 

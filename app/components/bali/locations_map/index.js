@@ -18,7 +18,7 @@ export class LocationsMapController extends Controller {
   connect = async () => {
     const { default: GoogleMapsLoader } = await import('bali/utils/google-maps-loader')
     const { MarkerClusterer } = await import('@googlemaps/markerclusterer')
-    this.markerClusterer = MarkerClusterer
+    this.MarkerClusterer = MarkerClusterer
 
     try {
       this.googleMaps = await GoogleMapsLoader({
@@ -51,7 +51,7 @@ export class LocationsMapController extends Controller {
     )
 
     if (this.enableClusteringValue) {
-      this.markerCluster = new this.markerClusterer({ map: this.map, markers })
+      this.markerCluster = new this.MarkerClusterer({ map: this.map, markers })
     }
   }
 
