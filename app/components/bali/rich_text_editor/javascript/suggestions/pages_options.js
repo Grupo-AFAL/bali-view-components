@@ -1,5 +1,5 @@
 import { get } from '@rails/request.js'
-import SuggestionRenderer from './renderer'
+import SuggestionRenderer from 'bali/rich_text_editor/suggestions/renderer'
 
 /**
  * Tiptap suggestion utility

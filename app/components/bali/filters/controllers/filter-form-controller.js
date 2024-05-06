@@ -1,5 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
-import { queryParams } from '../../../../javascript/bali/utils/form'
+import { queryParams } from 'bali/utils/form'
 
 export class FilterFormController extends Controller {
   static values = { textField: String }

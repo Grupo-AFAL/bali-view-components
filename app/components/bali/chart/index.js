@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
+import { Chart, registerables } from 'chart.js'
 
 export class ChartController extends Controller {
   static targets = ['canvas']
@@ -25,7 +26,8 @@ export class ChartController extends Controller {
       this.displayPercentInTooltip(options)
     }
 
-    const { default: Chart } = await import('chart.js/auto')
+    Chart.register(...registerables)
+
     this.chart = new Chart(element.getContext('2d'), {
       type: this.typeValue,
       data: this.chartData,

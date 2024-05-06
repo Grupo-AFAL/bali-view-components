@@ -1,6 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import tippy from 'tippy.js'
-import useDispatch from '../../../javascript/bali/utils/use-dispatch'
+import useDispatch from 'bali/utils/use-dispatch'
 
 const ARROW_SVG = `
 <svg width="14" height="8" viewBox="0 0 14 8" fill="none">

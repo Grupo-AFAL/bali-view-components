@@ -1,6 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { get, post } from '@rails/request.js'
-import { getTimestamp } from '../utils/time'
+import { getTimestamp } from 'bali/utils/time'
 
 /**
  * InputOnChange Controller
@@ -49,7 +49,7 @@ export class InputOnChangeController extends Controller {
     // Extract the value from the SlimSelect instance when available in order to get
     // all the selected values.
     if (event.target.slim) {
-      value = event.target.slim.selected()
+      value = event.target.slim.getSelected()
     }
 
     this.performRequest(this.queryKey(event), value)

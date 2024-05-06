@@ -23,7 +23,6 @@ jobs:
         run: |
           npm install -g yarn
           yarn install
-          yarn build
 
       - name: Precompile assets
         run: bin/rails app:assets:precompile

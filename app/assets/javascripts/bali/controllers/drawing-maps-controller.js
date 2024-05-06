@@ -1,5 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
-import { GoogleMapsLoader } from '..'
+import GoogleMapsLoader from 'bali/utils/google-maps-loader'
 
 export class DrawingMapsController extends Controller {
   static targets = ['map', 'polygonField']
@@ -10,7 +10,8 @@ export class DrawingMapsController extends Controller {
     strokeWeight: { type: Number, default: 5 },
     clickable: { type: Boolean, default: true },
     editable: { type: Boolean, default: true },
-    draggable: { type: Boolean, default: true }
+    draggable: { type: Boolean, default: true },
+    confirmationMessageToClear: { type: String, default: 'Would you like to continue?' }
   }
 
   async connect () {
@@ -177,5 +178,27 @@ export class DrawingMapsController extends Controller {
     if (hole) {
       polygon.fillColor = 'red'
     }
+  }
+
+  clear = () => {
+    if (!window.confirm(this.confirmationMessageToClearValue)) return
+
+    this.drawnPolygons.forEach((polygon) => polygon.setMap(null))
+    this.drawnPolygons = []
+    this.storeCoordinates()
+  }
+
+  clearHoles = () => {
+    if (!window.confirm(this.confirmationMessageToClearValue)) return
+
+    const shells = this.drawnPolygons.map(polygon => {
+      if (!polygon.metadata.hole) return polygon
+
+      polygon.setMap(null)
+      return null
+    })
+    this.drawnPolygons = shells.filter(element => element !== null)
+
+    this.storeCoordinates()
   }
 }

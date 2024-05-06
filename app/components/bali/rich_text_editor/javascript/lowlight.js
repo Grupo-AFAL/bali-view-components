@@ -1,4 +1,4 @@
-import { lowlight } from 'lowlight/lib/core.js'
+import { createLowlight } from 'lowlight'
 import css from 'highlight.js/lib/languages/css'
 import javascript from 'highlight.js/lib/languages/javascript'
 import json from 'highlight.js/lib/languages/json'
@@ -8,13 +8,15 @@ import sql from 'highlight.js/lib/languages/sql'
 import xml from 'highlight.js/lib/languages/xml'
 import yaml from 'highlight.js/lib/languages/yaml'
 
-lowlight.registerLanguage('css', css)
-lowlight.registerLanguage('javascript', javascript)
-lowlight.registerLanguage('json', json)
-lowlight.registerLanguage('ruby', ruby)
-lowlight.registerLanguage('scss', scss)
-lowlight.registerLanguage('sql', sql)
-lowlight.registerLanguage('xml', xml)
-lowlight.registerLanguage('yaml', yaml)
+const lowlight = createLowlight()
+
+lowlight.register('css', css)
+lowlight.register('javascript', javascript)
+lowlight.register('json', json)
+lowlight.register('ruby', ruby)
+lowlight.register('scss', scss)
+lowlight.register('sql', sql)
+lowlight.register('xml', xml)
+lowlight.register('yaml', yaml)
 
 export default lowlight
