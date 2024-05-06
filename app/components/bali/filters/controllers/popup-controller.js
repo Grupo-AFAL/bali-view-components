@@ -1,6 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { createPopper } from '@popperjs/core'
-import useClickOutside from '../../../../javascript/bali/utils/use-click-outside'
+import useClickOutside from 'bali/utils/use-click-outside'
 
 export class PopupController extends Controller {
   static targets = ['container', 'button', 'openedInput']

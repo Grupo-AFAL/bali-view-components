@@ -1,5 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
-import useDispatch from '../utils/use-dispatch'
+import useDispatch from 'bali/utils/use-dispatch'
 
 const CLICK_DISTANCE_THRESHOLD = 6 // pixels
 const CLICK_DURATION_THRESHOLD = 500 // miliseconds

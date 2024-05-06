@@ -1,4 +1,4 @@
-import { ModalController } from '../modal'
+import { ModalController } from 'bali/modal'
 
 export class DrawerController extends ModalController {
   async connect () {

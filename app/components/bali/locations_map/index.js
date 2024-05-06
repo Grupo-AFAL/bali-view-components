@@ -1,5 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
-import { GoogleMapsLoader } from '../../../javascript/bali'
+import GoogleMapsLoader from 'bali/utils/google-maps-loader'
 import { MarkerClusterer } from '@googlemaps/markerclusterer'
 
 const TIJUANA_LAT = 32.5036383

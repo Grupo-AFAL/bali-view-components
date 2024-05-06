@@ -22,7 +22,6 @@ gem 'view_component-contrib'
 gem 'debug', '>= 1.0.0'
 
 group :development do
-  gem 'jsbundling-rails'
   gem 'puma', '< 7'
   gem 'rubocop', '~> 1', require: false
   gem 'rubocop-rails', '~> 2'
@@ -36,5 +35,8 @@ end
 
 group :development, :test do
   gem 'dotenv'
+  gem 'importmap-rails', '~> 2.0'
   gem 'rspec-rails', '~> 6'
+  gem 'stimulus-rails', '~> 1.3'
+  gem 'turbo-rails', '~> 2'
 end

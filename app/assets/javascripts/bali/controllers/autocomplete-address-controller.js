@@ -1,5 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
-import GoogleMapsLoader from '../utils/google-maps-loader'
+import GoogleMapsLoader from 'bali/utils/google-maps-loader'
 
 // TODO: Add tests (Issue: #137)
 export class AutocompleteAddressController extends Controller {
