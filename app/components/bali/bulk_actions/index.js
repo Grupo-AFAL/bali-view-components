@@ -19,7 +19,7 @@ export class BulkActionsController extends Controller {
     this.element.addEventListener('dblclick', this.handleDoubleClick)
   }
 
-  disconnect = () => {
+  disconnect () {
     this.element.removeEventListener('dblclick', this.handleDoubleClick)
   }
 

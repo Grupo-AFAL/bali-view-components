@@ -1,5 +1,4 @@
 import { Controller } from '@hotwired/stimulus'
-import tippy from 'tippy.js'
 import useDispatch from 'bali/utils/use-dispatch'
 
 const ARROW_SVG = `
@@ -27,12 +26,14 @@ export class HovercardController extends Controller {
     zIndex: { type: Number, default: 9999 }
   }
 
-  connect () {
+  async connect () {
     useDispatch(this)
 
     this.contentLoaded = false
 
     const content = this.hasTemplateTarget ? this.templateTarget.innerHTML : ''
+
+    const { default: tippy } = await import('tippy.js')
 
     this.tippy = tippy(this.triggerTarget, {
       allowHTML: true,

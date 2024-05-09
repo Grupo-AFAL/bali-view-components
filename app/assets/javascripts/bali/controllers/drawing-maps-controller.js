@@ -1,5 +1,4 @@
 import { Controller } from '@hotwired/stimulus'
-import GoogleMapsLoader from 'bali/utils/google-maps-loader'
 
 export class DrawingMapsController extends Controller {
   static targets = ['map', 'polygonField']
@@ -15,6 +14,8 @@ export class DrawingMapsController extends Controller {
   }
 
   async connect () {
+    const { default: GoogleMapsLoader } = await import('bali/utils/google-maps-loader')
+
     this.drawnPolygons = []
 
     try {
