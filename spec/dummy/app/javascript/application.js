@@ -33,8 +33,9 @@ import { ChartController } from 'bali/chart'
 import { ClipboardController } from 'bali/clipboard'
 import { DrawerController } from 'bali/drawer'
 import { DropdownController } from 'bali/dropdown'
-import { GanttChartController } from 'bali/gantt_chart'
-import { HovercardController } from 'bali/hover_card'
+import { GanttFoldableItemController } from 'bali/gantt-chart/foldable-item'
+import { GanttChartController } from 'bali/gantt-chart'
+import { HovercardController } from 'bali/hovercard'
 import { LocationsMapController } from 'bali/locations_map'
 import { ModalController } from 'bali/modal'
 import { NavbarController } from 'bali/navbar'
@@ -66,6 +67,7 @@ application.register('chart', ChartController)
 application.register('clipboard', ClipboardController)
 application.register('drawer', DrawerController)
 application.register('dropdown', DropdownController)
+application.register('gantt-foldable-item', GanttFoldableItemController)
 application.register('gantt-chart', GanttChartController)
 application.register('hovercard', HovercardController)
 application.register('locations-map', LocationsMapController)
