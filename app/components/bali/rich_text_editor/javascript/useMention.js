@@ -1,6 +1,6 @@
 export default async (_controller, _options = {}) => {
   const { default: Mention } = await import('@tiptap/extension-mention')
-  const { default: suggestion } = await import('./suggestions/pages_options')
+  const { default: suggestion } = await import('bali/rich_text_editor/suggestions/pagesOptions')
 
   const MentionExtensions = [
     Mention.configure({

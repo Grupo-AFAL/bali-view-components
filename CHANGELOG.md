@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - import `MarkerClusterer` dynamically
 - import `createPopper` dynamically
 
+## [1.1.1] - 2024-05-09
+
+### Fixed
+
+- imports with relative paths were failing in `js` files.
 
 ## [1.1.0] - 2024-03-08
 
