@@ -15,7 +15,7 @@ export class SortableListController extends Controller {
     disabled: { type: Boolean, default: false }
   }
 
-  connect = async () => {
+  async connect () {
     useDispatch(this)
 
     const { default: Sortable } = await import('sortablejs')

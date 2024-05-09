@@ -26,7 +26,7 @@ export class HovercardController extends Controller {
     zIndex: { type: Number, default: 9999 }
   }
 
-  connect = async () => {
+  async connect () {
     useDispatch(this)
 
     this.contentLoaded = false

@@ -7,7 +7,7 @@ export class TooltipController extends Controller {
     trigger: { type: String, default: 'mouseenter focus' }
   }
 
-  connect = async () => {
+  async connect () {
     if (this.contentTarget.content.textContent.trim().length === 0) return
 
     const { default: tippy } = await import('tippy.js')

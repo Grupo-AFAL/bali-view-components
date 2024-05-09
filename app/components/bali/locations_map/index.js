@@ -15,7 +15,7 @@ export class LocationsMapController extends Controller {
     minWindowWidth: { type: Number, default: 768 }
   }
 
-  connect = async () => {
+  async connect () {
     const { default: GoogleMapsLoader } = await import('bali/utils/google-maps-loader')
     const { MarkerClusterer } = await import('@googlemaps/markerclusterer')
     this.MarkerClusterer = MarkerClusterer
