@@ -78,7 +78,7 @@ export default async (controller, _options = {}) => {
   // const { default: TaskItem } = await import('@tiptap/extension-task-item')
   const { default: Text } = await import('@tiptap/extension-text')
 
-  const { default: lowlight } = await import('./lowlight')
+  const { default: lowlight } = await import('bali/rich_text_editor/lowlight')
 
   const NodesExtensions = [
     Blockquote,

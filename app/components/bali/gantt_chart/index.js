@@ -5,7 +5,7 @@ import useDispatch from 'bali/utils/use-dispatch'
 import { toBool, toInt } from 'bali/utils/formatters'
 import { addDaysToDate } from 'bali/utils/time'
 import { patch } from '@rails/request.js'
-import ConnectionLine from './connection_line'
+import ConnectionLine from 'bali/gantt-chart/connection-line'
 
 const TASK_NAME_PADDING = 8
 const UPDATE_SCROLL_FREQUENCY = 500

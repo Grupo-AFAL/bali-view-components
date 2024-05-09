@@ -1,4 +1,4 @@
-import { isElementInViewport } from './domHelpers'
+import { isElementInViewport } from 'bali/utils/domHelpers'
 
 const defaultOptions = {
   events: ['click', 'touchend'],
