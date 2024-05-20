@@ -96,7 +96,6 @@ module Bali
       end
 
       def tags(values, html_options, method, label_class)
-        field_name = [options[:as] || object.model_name.singular, method].join('_')
         data = html_options.delete(:data)
 
         values.map do |display_value|
@@ -104,7 +103,7 @@ module Bali
           radio_options ||= {}
           radio_options.merge!(html_options)
 
-          tag.label(class: label_class, for: [field_name, value].join('_')) do
+          label(method, class: label_class, value: value) do
             radio_button(method, value, radio_options.merge(data: data)) + display
           end
         end
