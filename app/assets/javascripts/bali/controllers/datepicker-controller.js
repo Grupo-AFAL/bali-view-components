@@ -79,7 +79,7 @@ export class DatepickerController extends Controller {
   }
 
   disconnect () {
-    this.flatpickr.destroy()
+    this.flatpickr?.destroy()
   }
 
   defaultDates () {

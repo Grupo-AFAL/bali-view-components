@@ -57,7 +57,7 @@ export class SlimSelectController extends Controller {
   }
 
   disconnect () {
-    this.select.destroy()
+    this.select?.destroy()
   }
 
   dataWithHTML () {
