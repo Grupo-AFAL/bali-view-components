@@ -37,7 +37,7 @@ export class PopupController extends Controller {
   }
 
   disconnect () {
-    this.popperInstance.destroy()
+    this.popperInstance?.destroy()
   }
 
   open () {
