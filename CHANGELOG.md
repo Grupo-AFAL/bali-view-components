@@ -6,12 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.2.2] - 2024-06-06
-- Cannot read properties of undefined (reading 'destroy') in `stimulus` controllers.
-- Missing target element "menu" for "navbar" controller
 
 ### Fixed
-- Incorrect `for` attribute value in radio buttons of `radio_buttons_field_group` when  value is a datetime
-
+- Cannot read properties of undefined (reading 'destroy') in `stimulus` controllers.
+- Missing target element "menu" for "navbar" controller
 
 ## [1.2.1] - 2024-05-20
 
