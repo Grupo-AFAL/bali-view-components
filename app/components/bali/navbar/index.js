@@ -58,7 +58,10 @@ export class NavbarController extends Controller {
     if (!this.altMenuActive) {
       this.element.classList.toggle('is-active')
     }
-    this.menuTarget.classList.toggle('is-active')
+
+    if (this.hasMenuTarget) {
+      this.menuTarget.classList.toggle('is-active')
+    }
 
     if (this.hasBurgerTarget) {
       this.burgerTarget.classList.toggle('is-active')

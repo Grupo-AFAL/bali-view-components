@@ -19,10 +19,15 @@ export class SideMenuController extends Controller {
 
   toggleMenu (e) {
     e.stopPropagation()
-    this.containerTarget.classList.toggle('is-active')
+    
+    if(this.hasContainerTarget) {
+      this.containerTarget.classList.toggle('is-active')
+    }
   }
 
   closeMenu = e => {
-    this.containerTarget.classList.remove('is-active')
+    if (this.hasContainerTarget) {
+      this.containerTarget.classList.remove('is-active')
+    }
   }
 }
