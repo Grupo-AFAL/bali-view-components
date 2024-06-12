@@ -79,7 +79,7 @@ export class RichTextEditorController extends Controller {
   }
 
   disconnect () {
-    this.editor.destroy()
+    this.editor?.destroy()
   }
 
   onUpdate = ({ editor }) => {

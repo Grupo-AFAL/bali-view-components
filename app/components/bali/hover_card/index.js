@@ -60,7 +60,7 @@ export class HovercardController extends Controller {
   }
 
   disconnect () {
-    this.tippy.destroy()
+    this.tippy?.destroy()
   }
 
   onCreate = instance => {

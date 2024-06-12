@@ -37,7 +37,7 @@ export class ChartController extends Controller {
   }
 
   disconnect () {
-    this.chart.destroy()
+    this.chart?.destroy()
     this.chart = undefined
   }
 
