@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    bali_view_components (1.2.2)
+    bali_view_components (1.2.3)
       caxlsx
       rails (>= 7.0.2)
       ransack
