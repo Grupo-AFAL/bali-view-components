@@ -1,3 +1,6 @@
+@use 'sass/utilities' as *;
+@use '../../../assets/stylesheets/bali/variables.scss' as *;
+
 .clipboard-component {
   $border-radius-size: 6px;
   $border-width: 1px;

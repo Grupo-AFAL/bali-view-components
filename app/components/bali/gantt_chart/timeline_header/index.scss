@@ -5,7 +5,7 @@
     height: $gantt-chart-header-height;
     font-size: $size-7;
 
-    border-bottom: 1px solid $border-color;
+    border-bottom: 1px solid $gantt-chart-border-color;
   }
 
   .gantt-chart-scale-line {
@@ -17,19 +17,19 @@
     font-weight: 500;
 
     &.top-line {
-      border-bottom: 1px solid $border-color;
+      border-bottom: 1px solid $gantt-chart-border-color;
     }
   }
 
   .gantt-chart-header-month,
   .gantt-chart-header-year {
     font-weight: 500;
-    border-right: 1px solid $border-color;
+    border-right: 1px solid $gantt-chart-border-color;
   }
 
   .gantt-chart-header-day,
   .gantt-chart-header-month-year {
     display: inline-block;
-    border-right: 1px solid $border-color;
+    border-right: 1px solid $gantt-chart-border-color;
   }
 }

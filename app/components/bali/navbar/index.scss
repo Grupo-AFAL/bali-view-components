@@ -1,14 +1,18 @@
+@use 'sass/utilities' as *;
+@use 'sass/utilities/mixins' as *;
+@use '../../../assets/stylesheets/bali/variables.scss' as *;
+
 .navbar {
   $background-transition-time: 1s;
 
   box-shadow: $box-shadow;
   transition: background-color $background-transition-time;
 
-  & > .container {
+  &>.container {
     & .navbar-brand {
       margin-left: 0;
     }
-    
+
     & .navbar-menu {
       margin-right: 0;
     }
@@ -69,7 +73,7 @@ $user-icon-padding: 0.815rem;
 }
 
 .navbar-link-title {
-  font-size:  0.87rem;
+  font-size: 0.87rem;
 }
 
 .navbar-link-subtitle {

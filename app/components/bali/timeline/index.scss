@@ -1,9 +1,11 @@
+@use 'sass/utilities' as *;
+@use 'sass/utilities/derived-variables' as *;
+
 $timeline-marker-size: 0.75rem !default;
 $timeline-marker-color: $grey-lighter !default;
 $timeline-marker-icon-size: 1.5rem !default;
 $timeline-marker-border-size: 1px !default;
-$timeline-marker-border: $timeline-marker-border-size solid
-  $timeline-marker-color !default;
+$timeline-marker-border: $timeline-marker-border-size solid $timeline-marker-color !default;
 $timeline-line-color: $grey-lighter !default;
 $timeline-line-width: 1px !default;
 $timeline-line-style: solid !default;
@@ -60,18 +62,18 @@ $dimensions: 16 24 32 48 64 96 128 !default;
       width: $timeline-marker-size;
 
       &.is-image {
+        background: $timeline-marker-color;
+        border: $timeline-marker-border;
+        border-radius: 100%;
+        display: block;
+        overflow: hidden;
+
         @each $dimension in $dimensions {
           &.is-#{$dimension}x#{$dimension} {
             height: $dimension * 1px;
             width: $dimension * 1px;
           }
         }
-
-        background: $timeline-marker-color;
-        border: $timeline-marker-border;
-        border-radius: 100%;
-        display: block;
-        overflow: hidden;
       }
 
       &.is-icon {
@@ -96,9 +98,11 @@ $dimensions: 16 24 32 48 64 96 128 !default;
         .image {
           background: $white;
         }
+
         &.is-icon {
           background: $white;
-          > * {
+
+          >* {
             color: $timeline-marker-color;
           }
         }
@@ -106,7 +110,11 @@ $dimensions: 16 24 32 48 64 96 128 !default;
 
       @each $name, $pair in $colors {
         $color: nth($pair, 1);
-        $color-invert: nth($pair, 2);
+        $color-invert: nth($pair, 1);
+
+        @if length($pair)==2 {
+          $color-invert: nth($pair, 2);
+        }
 
         &.is-#{$name} {
           background-color: $color !important;
@@ -120,7 +128,7 @@ $dimensions: 16 24 32 48 64 96 128 !default;
             background-color: $color !important;
             border-color: $color !important;
 
-            > * {
+            >* {
               color: $color-invert !important;
             }
           }
@@ -136,7 +144,7 @@ $dimensions: 16 24 32 48 64 96 128 !default;
             &.is-icon {
               background-color: $white !important;
 
-              > * {
+              >* {
                 color: $color !important;
               }
             }
@@ -155,7 +163,11 @@ $dimensions: 16 24 32 48 64 96 128 !default;
 
     @each $name, $pair in $colors {
       $color: nth($pair, 1);
-      $color-invert: nth($pair, 2);
+      $color-invert: nth($pair, 1);
+
+      @if length($pair)==2 {
+        $color-invert: nth($pair, 2);
+      }
 
       &.is-#{$name} {
         &::before {
@@ -216,7 +228,11 @@ $dimensions: 16 24 32 48 64 96 128 !default;
 
       @each $name, $pair in $colors {
         $color: nth($pair, 1);
-        $color-invert: nth($pair, 2);
+        $color-invert: nth($pair, 1);
+
+        @if length($pair)==2 {
+          $color-invert: nth($pair, 2);
+        }
 
         &.is-#{$name} {
           &::before {
@@ -235,14 +251,14 @@ $dimensions: 16 24 32 48 64 96 128 !default;
       justify-content: flex-end;
       flex-direction: row;
       border-left: none;
+      margin-left: 0;
+      margin-right: $timeline-header-width * 0.5;
 
       &::before {
         right: 0;
         left: auto;
       }
 
-      margin-left: 0;
-      margin-right: $timeline-header-width * 0.5;
 
       .timeline-marker {
         transform: translateX(50%);

@@ -1,3 +1,7 @@
+@use '../../../assets/stylesheets/bali/variables' as *;
+@use 'sass/utilities/initial-variables' as *;
+@use 'sass/utilities/mixins' as *;
+
 $desktop-side-menu-width: 12rem;
 $side-menu-width: 14rem;
 $z-index-menu-overlay: 4;
@@ -49,7 +53,7 @@ $z-index-side-menu: 5;
     .is-active {
       font-weight: $fw-500;
 
-      .icon > svg > * {
+      .icon>svg>* {
         fill: currentColor !important;
       }
     }
@@ -60,7 +64,8 @@ $z-index-side-menu: 5;
         font-size: $size-7;
       }
     }
-    > li:last-of-type {
+
+    >li:last-of-type {
       padding-bottom: 9rem;
     }
   }
@@ -83,7 +88,7 @@ $z-index-side-menu: 5;
   display: none;
 }
 
-.side-menu-component.is-active ~ .menu-overlay {
+.side-menu-component.is-active~.menu-overlay {
   display: block;
   background: rgba(0, 0, 0, 0.5);
   opacity: 1;

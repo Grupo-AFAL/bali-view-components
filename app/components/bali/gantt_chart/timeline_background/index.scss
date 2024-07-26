@@ -4,14 +4,14 @@
     height: $gantt-chart-timeline-data-height;
     width: 100%;
     top: 0;
-    border-bottom: 1px solid $border-color;
+    border-bottom: 1px solid $gantt-chart-border-color;
   }
 
   .gantt-chart-timeline-background-column {
     position: absolute;
     top: 0;
     height: 100%;
-    border-right: 1px solid rgba($border-color, 0.5);
+    border-right: 1px solid rgba($gantt-chart-border-color, 0.5);
 
     &.is-weekend {
       background-color: rgba($grey-lightest, 0.4);

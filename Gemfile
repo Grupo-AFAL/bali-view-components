@@ -6,7 +6,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 # Specify your gem's dependencies in bali.gemspec.
 gemspec
 
-gem 'bulma-rails', '~> 0.9.3'
+gem 'bulma-rails', '~> 1.0'
 gem 'caxlsx', '~> 4.1'
 gem 'dartsass-rails'
 gem 'device_detector'

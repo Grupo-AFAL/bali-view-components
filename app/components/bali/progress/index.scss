@@ -1,3 +1,5 @@
+@use 'sass/utilities' as *;
+
 $progress-value-bar-color: var(--progress-value-bar-color);
 $progress-background-bar-color: $white-ter;
 

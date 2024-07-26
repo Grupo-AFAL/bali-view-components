@@ -1,3 +1,5 @@
+@use 'sass/utilities' as *;
+
 $menu-box-shadow: 0px 9px 9px rgba($black, 0.2), 0 0 0 1px rgba($black, 0.12);
 $selected-shadow: 0 0 0 3px rgba($primary, 0.5);
 $selected-cell-background-color: rgba(200, 200, 255, 0.4);

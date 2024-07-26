@@ -1,3 +1,6 @@
+@use 'sass/utilities/derived-variables' as *;
+@use 'sass/utilities/initial-variables' as *;
+@use 'sass/utilities/mixins' as *;
 @import 'vendor/flatpickr';
 
 .flatpickr-months {

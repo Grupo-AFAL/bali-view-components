@@ -1,3 +1,5 @@
+@use 'sass/utilities' as *;
+
 .properties-table-property-component {
   .property-label {
     background-color: $white-ter;

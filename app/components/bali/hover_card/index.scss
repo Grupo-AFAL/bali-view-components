@@ -1,3 +1,5 @@
+@use 'sass/utilities' as *;
+
 $z-index-hovercard: 101;
 $z-index-under-modal: 39;
 $hover-card-background-color: $white;
@@ -35,7 +37,7 @@ $hover-card-box-shadow: 0px 3px 9px rgba($black, 0.25),
       opacity: 0;
     }
 
-    &[data-placement^='top'] > .tippy-svg-arrow {
+    &[data-placement^='top']>.tippy-svg-arrow {
       bottom: 0;
 
       svg {
@@ -45,7 +47,7 @@ $hover-card-box-shadow: 0px 3px 9px rgba($black, 0.25),
       }
     }
 
-    &[data-placement^='bottom'] > .tippy-svg-arrow {
+    &[data-placement^='bottom']>.tippy-svg-arrow {
       top: 0;
 
       svg {
@@ -54,7 +56,7 @@ $hover-card-box-shadow: 0px 3px 9px rgba($black, 0.25),
       }
     }
 
-    &[data-placement^='left'] > .tippy-svg-arrow {
+    &[data-placement^='left']>.tippy-svg-arrow {
       right: 0;
 
       svg {
@@ -64,7 +66,7 @@ $hover-card-box-shadow: 0px 3px 9px rgba($black, 0.25),
       }
     }
 
-    &[data-placement^='right'] > .tippy-svg-arrow {
+    &[data-placement^='right']>.tippy-svg-arrow {
       left: 0;
 
       svg {

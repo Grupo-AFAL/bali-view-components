@@ -1,3 +1,7 @@
+@use 'sass/utilities' as *;
+@use 'sass/utilities/mixins' as *;
+@use '../../../assets/stylesheets/bali/variables.scss' as *;
+
 $td-padding: 6px;
 $td-border-color: #ddd;
 $w-100: 100%;
@@ -41,7 +45,7 @@ $grey-darker-alpha: hsla(224, 28%, 19%, 0.4);
       border: 1px solid $primary;
       color: $primary;
 
-      svg > rect {
+      svg>rect {
         stroke: $primary;
       }
     }

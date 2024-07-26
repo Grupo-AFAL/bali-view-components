@@ -1,3 +1,5 @@
+@use 'sass/utilities/initial-variables' as *;
+
 a {
   &[disabled] {
     color: $grey-lighter;

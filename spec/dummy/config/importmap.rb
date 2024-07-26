@@ -19,6 +19,9 @@ pin_all_from "app/javascript/controllers", under: "controllers"
 # Maps (Locations maps / Drawing maps)
 pin '@googlemaps/markerclusterer', to: 'https://cdn.jsdelivr.net/npm/@googlemaps/markerclusterer@2.5.3/+esm'
 
+# glidejs
+pin "@glidejs/glide", to: "https://cdn.jsdelivr.net/npm/@glidejs/glide@3.6.2/+esm"
+
 # Trix
 pin "trix", to: 'https://cdn.jsdelivr.net/npm/trix@2.1.3/+esm'
 

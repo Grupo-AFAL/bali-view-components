@@ -91,8 +91,8 @@ GEM
     base64 (0.2.0)
     bigdecimal (3.1.8)
     builder (3.3.0)
-    bulma-rails (0.9.4)
-      sassc (~> 2.0)
+    bulma-rails (1.0.1)
+      dartsass-rails (~> 0.5.0)
     capybara (3.40.0)
       addressable
       matrix
@@ -125,7 +125,6 @@ GEM
     dotenv (3.1.2)
     drb (2.2.1)
     erubi (1.13.0)
-    ffi (1.17.0)
     globalid (1.2.1)
       activesupport (>= 6.1)
     google-protobuf (4.27.2)
@@ -288,8 +287,6 @@ GEM
     sass-embedded (1.77.8)
       google-protobuf (~> 4.26)
       rake (>= 13)
-    sassc (2.4.0)
-      ffi (~> 1.9)
     simple_command (1.0.1)
     simplecov (0.22.0)
       docile (~> 1.1)
@@ -340,7 +337,7 @@ PLATFORMS
 
 DEPENDENCIES
   bali_view_components!
-  bulma-rails (~> 0.9.3)
+  bulma-rails (~> 1.0)
   capybara (~> 3)
   caxlsx (~> 4.1)
   dartsass-rails

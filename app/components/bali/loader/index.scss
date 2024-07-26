@@ -1,3 +1,5 @@
+@use 'sass/utilities' as *;
+
 $loader-color: $primary;
 $loader-background-color: $white;
 $loader-size: 10em;
@@ -6,11 +8,6 @@ $loader-size: 10em;
   $spinner-size: $loader-size + 0.2em;
   $spinner-half-size: calc($spinner-size / 2);
 
-  &,
-  &:before,
-  &:after {
-    border-radius: 50%;
-  }
   color: $loader-color;
   font-size: 11px;
   text-indent: -99999em;
@@ -22,11 +19,19 @@ $loader-size: 10em;
   -webkit-transform: translateZ(0);
   -ms-transform: translateZ(0);
   transform: translateZ(0);
+
+  &,
+  &:before,
+  &:after {
+    border-radius: 50%;
+  }
+
   &:before,
   &:after {
     position: absolute;
     content: '';
   }
+
   &:before {
     width: $spinner-half-size;
     height: $spinner-size;
@@ -39,6 +44,7 @@ $loader-size: 10em;
     -webkit-animation: load2 2s infinite ease 1.5s;
     animation: load2 2s infinite ease 1.5s;
   }
+
   &:after {
     width: $spinner-half-size;
     height: $spinner-size;
@@ -58,6 +64,7 @@ $loader-size: 10em;
     -webkit-transform: rotate(0deg);
     transform: rotate(0deg);
   }
+
   100% {
     -webkit-transform: rotate(360deg);
     transform: rotate(360deg);
@@ -69,6 +76,7 @@ $loader-size: 10em;
     -webkit-transform: rotate(0deg);
     transform: rotate(0deg);
   }
+
   100% {
     -webkit-transform: rotate(360deg);
     transform: rotate(360deg);

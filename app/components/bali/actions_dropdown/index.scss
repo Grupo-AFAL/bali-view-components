@@ -1,3 +1,8 @@
+@use '../hover_card/' as *;
+@use 'sass/elements/icon' as *;
+@use 'sass/utilities' as *;
+@use 'sass/components/dropdown' as *;
+
 .buttons {
   .actions-dropdown-component {
     margin-bottom: 0.5rem;

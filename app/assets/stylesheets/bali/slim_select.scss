@@ -1,3 +1,7 @@
+@use 'sass/utilities/initial-variables' as *;
+@use 'sass/utilities/derived-variables' as *;
+@use '../../../assets/stylesheets/bali/variables.scss' as *;
+
 @import 'vendor/slimselect';
 
 .slim-select {

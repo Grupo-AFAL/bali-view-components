@@ -1,4 +1,7 @@
-$border-color: $grey-lighter;
+@use 'sass/utilities' as *;
+@use '../../../assets/stylesheets/bali/variables.scss' as *;
+
+$gantt-chart-border-color: $grey-lighter;
 
 $gantt-chart-header-height: 45px;
 $gantt-chart-header-size: 11px;
@@ -26,15 +29,15 @@ $gantt-chart-timeline-data-height: 100%;
 @import './timeline_header/index';
 
 .gantt-chart-component {
-  border-top: 2px solid $border-color;
-  border-bottom: 1px solid $border-color;
+  border-top: 2px solid $gantt-chart-border-color;
+  border-bottom: 1px solid $gantt-chart-border-color;
 
   .gantt-chart-actions {
     width: 100%;
     height: $gantt-chart-header-height;
-    border-bottom: 1px solid $border-color;
-    border-left: 1px solid $border-color;
-    border-right: 1px solid $border-color;
+    border-bottom: 1px solid $gantt-chart-border-color;
+    border-left: 1px solid $gantt-chart-border-color;
+    border-right: 1px solid $gantt-chart-border-color;
     display: flex;
     align-items: center;
     padding: 0 0.75rem;
@@ -80,8 +83,8 @@ $gantt-chart-timeline-data-height: 100%;
 
     .gantt-chart-header {
       line-height: $gantt-chart-header-height;
-      border-right: 1px solid $border-color;
-      border-left: 1px solid $border-color;
+      border-right: 1px solid $gantt-chart-border-color;
+      border-left: 1px solid $gantt-chart-border-color;
       width: 100%;
       padding-left: 1.25rem;
       color: $grey-light;
@@ -90,9 +93,9 @@ $gantt-chart-timeline-data-height: 100%;
 
     .gantt-chart-row-contents {
       background-color: $white;
-      border-bottom: 1px solid $border-color;
-      border-left: 1px solid $border-color;
-      border-right: 1px solid $border-color;
+      border-bottom: 1px solid $gantt-chart-border-color;
+      border-left: 1px solid $gantt-chart-border-color;
+      border-right: 1px solid $gantt-chart-border-color;
       user-select: none;
     }
   }
@@ -113,14 +116,14 @@ $gantt-chart-timeline-data-height: 100%;
 
       position: absolute;
       left: calc($gantt-chart-resizer-width / 2);
-      background-color: $border-color;
+      background-color: $gantt-chart-border-color;
     }
   }
 
   .gantt-chart-timeline {
     flex-grow: 1;
     overflow-x: scroll;
-    border-right: 1px solid $border-color;
+    border-right: 1px solid $gantt-chart-border-color;
     position: relative;
   }
 
@@ -174,7 +177,7 @@ $gantt-chart-timeline-data-height: 100%;
 
   .gantt-chart-footer,
   .gantt-chart-list-footer {
-    border-left: 1px solid $border-color;
-    border-right: 1px solid $border-color;
+    border-left: 1px solid $gantt-chart-border-color;
+    border-right: 1px solid $gantt-chart-border-color;
   }
 }
