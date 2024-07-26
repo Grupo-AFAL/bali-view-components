@@ -12,7 +12,7 @@ module Bali
       def text_area(method, options = {})
         options[:class] = field_class_name(method, "textarea #{options[:class]}")
 
-        field_helper(method, super(method, options), options)
+        field_helper(method, super, options)
       end
     end
   end

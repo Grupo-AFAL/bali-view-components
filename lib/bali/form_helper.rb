@@ -9,7 +9,7 @@ module Bali
     def form_with(**options, &)
       prepend_controller(options, 'submit-button')
 
-      super(**options, &)
+      super
     end
   end
 end
