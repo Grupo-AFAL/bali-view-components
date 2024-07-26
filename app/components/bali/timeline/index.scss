@@ -110,7 +110,11 @@ $dimensions: 16 24 32 48 64 96 128 !default;
 
       @each $name, $pair in $colors {
         $color: nth($pair, 1);
-        $color-invert: nth($pair, 2);
+        $color-invert: nth($pair, 1);
+
+        @if length($pair)==2 {
+          $color-invert: nth($pair, 2);
+        }
 
         &.is-#{$name} {
           background-color: $color !important;
@@ -159,7 +163,11 @@ $dimensions: 16 24 32 48 64 96 128 !default;
 
     @each $name, $pair in $colors {
       $color: nth($pair, 1);
-      $color-invert: nth($pair, 2);
+      $color-invert: nth($pair, 1);
+
+      @if length($pair)==2 {
+        $color-invert: nth($pair, 2);
+      }
 
       &.is-#{$name} {
         &::before {
@@ -220,7 +228,11 @@ $dimensions: 16 24 32 48 64 96 128 !default;
 
       @each $name, $pair in $colors {
         $color: nth($pair, 1);
-        $color-invert: nth($pair, 2);
+        $color-invert: nth($pair, 1);
+
+        @if length($pair)==2 {
+          $color-invert: nth($pair, 2);
+        }
 
         &.is-#{$name} {
           &::before {
