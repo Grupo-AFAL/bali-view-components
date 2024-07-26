@@ -17,7 +17,7 @@ module Bali
         @options = prepend_data_attribute(
           options,
           'hovercard-content-class',
-          'hover-card-tippy-wrapper actions-dropdown-tippy-wrapper'
+          'hover-card-tippy-wrapper actions-dropdown-tippy-wrapper dropdown'
         )
       end
 
