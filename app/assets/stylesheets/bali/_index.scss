@@ -27,6 +27,7 @@
 // Load all styles
 @use "bulma";
 
+@forward './vendor/glide';
 @forward 'box';
 @forward 'code';
 @forward 'container';
