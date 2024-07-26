@@ -7,7 +7,7 @@ module Bali
 
       def label(method, text = nil, options = {}, &)
         options = prepend_class_name(options, 'label')
-        super(method, text, options, &)
+        super
       end
 
       def text_field(method, options = {})
