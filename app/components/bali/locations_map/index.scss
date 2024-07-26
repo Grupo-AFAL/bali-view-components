@@ -1,3 +1,7 @@
+@use 'sass/utilities' as *;
+@use 'sass/utilities/mixins' as *;
+@use 'sass/elements/box' as *;
+
 .locations-map-component {
   display: flex;
 

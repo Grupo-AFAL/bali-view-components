@@ -1,3 +1,5 @@
+@use 'sass/utilities' as *;
+
 $icon-stroke-width: 30;
 
 .rate-component {
@@ -8,7 +10,7 @@ $icon-stroke-width: 30;
     display: none;
   }
 
-  .radio + .radio {
+  .radio+.radio {
     margin-left: 0;
   }
 
@@ -28,7 +30,7 @@ $icon-stroke-width: 30;
 
   label:last-child .icon,
   button:last-child .icon,
-  & > .icon:last-child {
+  &>.icon:last-child {
     margin-right: 0;
   }
 

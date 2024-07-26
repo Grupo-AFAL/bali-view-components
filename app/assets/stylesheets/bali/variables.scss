@@ -1,35 +1,14 @@
-// colors
-$black: hsl(0, 0%, 4%);
-$black-bis: hsl(0, 0%, 7%);
-$black-ter: hsl(0, 0%, 14%);
+  $error: hsl(10, 60%, 59%);
 
-$grey-darker: hsl(0, 0%, 21%);
-$grey-dark: hsl(0, 0%, 29%);
-$grey: hsl(0, 0%, 48%);
-$grey-light: hsl(0, 0%, 71%);
-$grey-lighter: hsl(0, 0%, 86%);
-$grey-lightest: hsl(0, 0%, 93%);
+  // box-shadow
+  $box-shadow: 0px 3px 18px rgba(hsl(0, 0%, 4%), 0.1), 0 0 0 1px rgba(hsl(0, 0%, 4%), 0.03);
+  $thick-box-shadow: 0px 3px 18px rgba(hsl(0, 0%, 4%), 0.1), 0 0 0 8px rgba(hsl(0, 0%, 4%), 0.25);
+  $sharp-box-shadow: 3px 3px 3px rgba(10, 10, 10, 0.1);
 
-$white-ter: hsl(0, 0%, 96%);
-$white-bis: hsl(0, 0%, 98%);
-$white: hsl(0, 0%, 100%);
+  // font-weight
+  $fw-500: 500;
 
-$green: hsl(141, 53%, 53%);
-$error: hsl(10, 60%, 59%);
+  // height
+  $navbar-height: 3.75rem;
 
-// box-shadow
-$box-shadow: 0px 3px 18px rgba($black, 0.1), 0 0 0 1px rgba($black, 0.03);
-$thick-box-shadow: 0px 3px 18px rgba($black, 0.1), 0 0 0 8px rgba($black, 0.25);
-$sharp-box-shadow: 3px 3px 3px rgba(10, 10, 10, 0.1);
-
-// font-weight
-$fw-500: 500;
-
-// height
-$navbar-height: 3.75rem;
-
-// sizes
-$size-6: 1rem;
-$size-7: 0.875rem;
-
-$frame-padding-top: 6.25rem;
+  $frame-padding-top: 6.25rem;

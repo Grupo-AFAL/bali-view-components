@@ -1,3 +1,7 @@
+@use 'sass/utilities' as *;
+@use 'sass/elements' as *;
+@use '../../../assets/stylesheets/bali/variables.scss' as *;
+
 $z-index-bulk-actions: 39;
 
 .bulk-actions-component {

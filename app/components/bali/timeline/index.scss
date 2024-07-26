@@ -1,3 +1,6 @@
+@use 'sass/utilities' as *;
+@use 'sass/utilities/derived-variables' as *;
+
 $timeline-marker-size: 0.75rem !default;
 $timeline-marker-color: $grey-lighter !default;
 $timeline-marker-icon-size: 1.5rem !default;

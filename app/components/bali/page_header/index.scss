@@ -1,6 +1,9 @@
+@use 'sass/utilities/derived-variables' as *;
+
 $back-button-size: 2.25rem;
 
 .page-header-component {
+
   .level-left,
   .level-right {
     flex-shrink: 1;

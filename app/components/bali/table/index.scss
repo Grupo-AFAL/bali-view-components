@@ -1,3 +1,7 @@
+@use 'sass/utilities' as *;
+@use '../../../assets/stylesheets/bali/variables' as *;
+@use 'sass/elements/box' as box;
+
 .table-container.is-sticky-headers {
   $sticky-headers-background: $white;
 
@@ -29,7 +33,7 @@
 
     .floated-bar {
       box-shadow: $thick-box-shadow;
-      border-radius: $box-radius;
+      border-radius: box.$box-radius;
       display: flex;
       align-items: center;
     }
@@ -40,7 +44,7 @@
       align-items: center;
       justify-content: center;
       padding: 0.5rem 1rem;
-      border-radius: $box-radius 0 0 $box-radius;
+      border-radius: box.$box-radius 0 0 box.$box-radius;
       color: $white;
       font-weight: bold;
       font-size: $size-4;

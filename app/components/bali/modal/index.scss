@@ -1,7 +1,10 @@
-$narrow-size: 25rem;
-$medium-size: 40rem;
-$wide-size: 50rem;
-$extra-wide-size: 70rem;
+@use 'sass/utilities' as *;
+@use 'sass/utilities/mixins' as *;
+
+$modal-narrow-size: 25rem;
+$modal-medium-size: 40rem;
+$modal-wide-size: 50rem;
+$modal-extra-wide-size: 70rem;
 
 $active-modal-z-index: 100;
 
@@ -62,22 +65,22 @@ $z-index-modal: 40;
     opacity: 1;
 
     &.narrow {
-      max-width: $narrow-size;
+      max-width: $modal-narrow-size;
       width: 100%;
     }
 
     &.medium {
-      max-width: $medium-size;
+      max-width: $modal-medium-size;
       width: 100%;
     }
 
     &.wide {
-      max-width: $wide-size;
+      max-width: $modal-wide-size;
       width: 100%;
     }
 
     &.extra-wide {
-      max-width: $extra-wide-size;
+      max-width: $modal-extra-wide-size;
       width: 100%;
     }
 

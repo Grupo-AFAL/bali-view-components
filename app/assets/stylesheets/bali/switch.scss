@@ -1,3 +1,6 @@
+@use 'sass/utilities/initial-variables' as *;
+@use 'variables' as *;
+
 .switch {
   label {
     $transition-time: 0.4s;
@@ -5,14 +8,14 @@
     $height: 2rem;
     $padding: 0.1875rem;
     $slider-size: 1.62rem;
-  
+
     position: relative;
     display: flex;
     align-items: center;
     width: $width;
     height: $height;
     background-color: $grey-lighter;
-  
+
     box-shadow: $box-shadow;
     border-radius: $height;
     padding: $padding;
@@ -38,9 +41,9 @@
     user-select: none;
   }
 
-  input:checked + label  {
+  input:checked+label {
     background-color: $green;
-    
+
     &::before {
       transform: translateX(100%);
     }

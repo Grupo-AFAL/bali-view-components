@@ -1,3 +1,5 @@
+@use 'sass/utilities' as *;
+
 $loader-color: $primary;
 $loader-background-color: $white;
 $loader-size: 10em;

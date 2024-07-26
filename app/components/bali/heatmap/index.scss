@@ -1,3 +1,5 @@
+@use 'sass/utilities' as *;
+
 .heatmap-component {
   $font-size: 0.6rem;
   $graph-border: solid 1px $grey-light;

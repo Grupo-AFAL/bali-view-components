@@ -1,3 +1,5 @@
+@use 'sass/utilities' as *;
+
 $background-color: #333;
 $color: #fff;
 
@@ -58,11 +60,11 @@ $small-trigger-size: 1rem;
       opacity: 0;
     }
 
-    &[data-placement^='top'] > .tippy-arrow {
+    &[data-placement^='top']>.tippy-arrow {
       bottom: 0;
     }
 
-    &[data-placement^='top'] > .tippy-arrow:before {
+    &[data-placement^='top']>.tippy-arrow:before {
       bottom: -$half-arrow-size + 1px;
       left: 0;
       border-width: $half-arrow-size $half-arrow-size 0;
@@ -70,11 +72,11 @@ $small-trigger-size: 1rem;
       transform-origin: center top;
     }
 
-    &[data-placement^='bottom'] > .tippy-arrow {
+    &[data-placement^='bottom']>.tippy-arrow {
       top: 0;
     }
 
-    &[data-placement^='bottom'] > .tippy-arrow:before {
+    &[data-placement^='bottom']>.tippy-arrow:before {
       top: -$half-arrow-size + 1px;
       left: 0;
       border-width: 0 $half-arrow-size $half-arrow-size;
@@ -82,22 +84,22 @@ $small-trigger-size: 1rem;
       transform-origin: center bottom;
     }
 
-    &[data-placement^='left'] > .tippy-arrow {
+    &[data-placement^='left']>.tippy-arrow {
       right: 0;
     }
 
-    &[data-placement^='left'] > .tippy-arrow:before {
+    &[data-placement^='left']>.tippy-arrow:before {
       border-width: $half-arrow-size 0 $half-arrow-size $half-arrow-size;
       border-left-color: initial;
       right: -$half-arrow-size + 1px;
       transform-origin: center left;
     }
 
-    &[data-placement^='right'] > .tippy-arrow {
+    &[data-placement^='right']>.tippy-arrow {
       left: 0;
     }
 
-    &[data-placement^='right'] > .tippy-arrow:before {
+    &[data-placement^='right']>.tippy-arrow:before {
       left: -$half-arrow-size + 1px;
       border-width: $half-arrow-size $half-arrow-size $half-arrow-size 0;
       border-right-color: initial;

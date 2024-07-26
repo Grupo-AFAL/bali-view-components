@@ -1,3 +1,9 @@
+@use 'sass/layout/container' as *;
+@use '../../../components/bali/side_menu' as *;
+@use 'variables' as *;
+@use 'sass/utilities/mixins' as *;
+@use 'sass/utilities/initial-variables' as *;
+
 #app-frame {
   padding-top: $frame-padding-top;
 
