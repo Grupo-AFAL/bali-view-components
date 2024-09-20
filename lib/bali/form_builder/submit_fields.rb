@@ -33,7 +33,8 @@ module Bali
 
         field_data = options.delete(:field_data)
         field_id = options.delete(:field_id)
-        field_class = options.delete(:field_class) || 'field is-grouped is-grouped-right'
+        field_class = options.delete(:field_class) ||
+                      'submit-actions field is-grouped is-grouped-right'
 
         submit = @template.content_tag(:div, class: 'control') do
           submit(value, options)
