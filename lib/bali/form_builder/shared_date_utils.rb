@@ -43,7 +43,7 @@ module Bali
           alt_format: options[:alt_format]
         }
 
-        if options[:mode] == 'range' && options[:value] && options[:value].respond_to?(:first)
+        if options[:mode] == 'range' && options[:value].respond_to?(:first)
           controller_values[:default_dates] = [options[:value].first, options[:value].last]
         end
 
