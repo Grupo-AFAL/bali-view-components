@@ -8,8 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0] - 2024-10-18
 
 ### Changed
-- Updated `rails` to `7.2`
-- Updated `gems` and `importmap`
+- Upgrade to `rails` to `7.2`
+- Update `gems` and `importmap`
 
 ## [1.2.5] - 2024-09-17
 
