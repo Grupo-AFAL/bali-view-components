@@ -70,7 +70,7 @@ module Bali
       end
 
       def active_filters
-        @active_filters || query_params.except('s').filter { |_k, v| v.present? }
+        @active_filters || query_params.except('s').compact_blank
       end
 
       def attribute_names

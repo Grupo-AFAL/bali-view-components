@@ -30,13 +30,13 @@ end
 group :test do
   gem 'capybara', '~> 3'
   gem 'simplecov', require: false
-  gem 'sqlite3', '~> 1.4'
+  gem 'sqlite3', '~> 2.0'
 end
 
 group :development, :test do
   gem 'dotenv'
   gem 'importmap-rails', '~> 2.0'
-  gem 'rspec-rails', '~> 6'
+  gem 'rspec-rails', '~> 7'
   gem 'stimulus-rails', '~> 1.3'
   gem 'turbo-rails', '~> 2'
 end
