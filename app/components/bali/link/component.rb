@@ -21,6 +21,7 @@ module Bali
       # rubocop:disable Metrics/ParameterLists
       # rubocop:disable Metrics/CyclomaticComplexity
       # rubocop:disable Metrics/PerceivedComplexity
+      # rubocop: disable Metrics/AbcSize
       def initialize(href:,
                      name: nil,
                      type: nil,
@@ -69,6 +70,7 @@ module Bali
           @options = prepend_turbo_method(@options, method.to_s)
         end
       end
+      # rubocop: enable Metrics/AbcSize
       # rubocop:enable Metrics/ParameterLists
       # rubocop:enable Metrics/CyclomaticComplexity
       # rubocop:enable Metrics/PerceivedComplexity
