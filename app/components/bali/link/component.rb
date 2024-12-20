@@ -59,8 +59,8 @@ module Bali
         @options = prepend_class_name(@options, "button is-#{type}") if type.present?
 
         unless Bali.native_app
-          @options = prepend_action(@options, 'modal#open') if modal
-          @options = prepend_action(@options, 'drawer#open') if drawer
+          @options = prepend_action(@options, 'modal#open') if modal && !disabled
+          @options = prepend_action(@options, 'drawer#open') if drawer && !disabled
         end
 
         if method.to_s == 'get'
