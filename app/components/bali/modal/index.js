@@ -19,7 +19,7 @@ import { autoFocusInput } from 'bali/utils/form'
 export class ModalController extends Controller {
   static targets = ['template', 'background', 'wrapper', 'content', 'closeBtn']
 
-  async connect () {
+  async connect() {
     this.setupListeners('openModal')
   }
 
@@ -41,7 +41,7 @@ export class ModalController extends Controller {
     document.addEventListener(eventName, this.setOptionsAndOpenModal)
   }
 
-  disconnect () {
+  disconnect() {
     this.removeListeners('openModal')
   }
 
@@ -57,13 +57,13 @@ export class ModalController extends Controller {
     document.removeEventListener(eventName, this.setOptionsAndOpenModal)
   }
 
-  templateTargetConnected () {
+  templateTargetConnected() {
     if (!this.hasBackgroundTarget) return
 
     this.backgroundTarget.addEventListener('click', this._closeModal)
   }
 
-  templateTargetDisconnected () {
+  templateTargetDisconnected() {
     if (!this.hasBackgroundTarget) return
 
     this.backgroundTarget.removeEventListener('click', this._closeModal)
@@ -74,7 +74,7 @@ export class ModalController extends Controller {
     this.openModal(event.detail.content)
   }
 
-  openModal (content) {
+  openModal(content) {
     this.wrapperTarget.classList.add(...this.wrapperClasses)
 
     this.templateTarget.classList.add('is-active')
@@ -83,7 +83,7 @@ export class ModalController extends Controller {
     autoFocusInput(this.contentTarget)
   }
 
-  setOptions (options) {
+  setOptions(options) {
     const keys = Object.keys(options)
     keys.forEach((key, _i) => {
       this[key] = options[key]
@@ -123,13 +123,19 @@ export class ModalController extends Controller {
     const { body, title } = this._extractResponseBodyAndTitle(html)
 
     document.body.innerHTML = body
-    history.pushState({}, title, url)
+
+    if (window.Turbo) {
+      window.Turbo.session.history.push(new URL(url));
+      Turbo.session.pageBecameInteractive();
+    } else {
+      history.pushState({}, title, url)
+    }
   }
 
   /**
    * Public Methods
    */
-  open = event => {
+  open = async (event) => {
     event.preventDefault()
     const target = event.currentTarget
 
@@ -140,9 +146,11 @@ export class ModalController extends Controller {
     this.skipRender = Boolean(target.getAttribute('data-skip-render'))
     this.extraProps = JSON.parse(target.getAttribute('data-extra-props'))
 
-    fetch(this._buildURL(target.href))
-      .then(response => response.text())
-      .then(body => this.openModal(body))
+    const response = await fetch(this._buildURL(target.href))
+    const body = await response.text()
+    if (!response.redirected) return this.openModal(body)
+
+    this._replaceBodyAndURL(body, response.url)
   }
 
   close = event => {
@@ -230,7 +238,7 @@ export class ModalController extends Controller {
       })
   }
 
-  normalizeClass (classes) {
+  normalizeClass(classes) {
     if (!classes) return []
 
     return classes.split(' ')
