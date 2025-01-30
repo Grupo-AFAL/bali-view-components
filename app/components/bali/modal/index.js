@@ -126,6 +126,7 @@ export class ModalController extends Controller {
 
     if (window.Turbo) {
       window.Turbo.session.history.push(new URL(url));
+
       // Makes the Back Button functional
       window.Turbo.session.pageBecameInteractive();
     } else {
