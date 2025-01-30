@@ -126,7 +126,7 @@ export class ModalController extends Controller {
 
     if (window.Turbo) {
       window.Turbo.session.history.push(new URL(url));
-      Turbo.session.pageBecameInteractive();
+      window.Turbo.session.pageBecameInteractive();
     } else {
       history.pushState({}, title, url)
     }
