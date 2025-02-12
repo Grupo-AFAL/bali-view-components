@@ -21,6 +21,7 @@ module Bali
       # rubocop:disable Metrics/ParameterLists
       # rubocop:disable Metrics/CyclomaticComplexity
       # rubocop:disable Metrics/PerceivedComplexity
+      # rubocop: disable Metrics/AbcSize
       def initialize(href:,
                      name: nil,
                      type: nil,
@@ -59,8 +60,8 @@ module Bali
         @options = prepend_class_name(@options, "button is-#{type}") if type.present?
 
         unless Bali.native_app
-          @options = prepend_action(@options, 'modal#open') if modal
-          @options = prepend_action(@options, 'drawer#open') if drawer
+          @options = prepend_action(@options, 'modal#open') if modal && !disabled
+          @options = prepend_action(@options, 'drawer#open') if drawer && !disabled
         end
 
         if method.to_s == 'get'
@@ -69,6 +70,7 @@ module Bali
           @options = prepend_turbo_method(@options, method.to_s)
         end
       end
+      # rubocop: enable Metrics/AbcSize
       # rubocop:enable Metrics/ParameterLists
       # rubocop:enable Metrics/CyclomaticComplexity
       # rubocop:enable Metrics/PerceivedComplexity
