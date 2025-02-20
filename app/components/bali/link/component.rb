@@ -34,7 +34,6 @@ module Bali
                      method: nil,
                      disabled: false,
                      **options)
-
         @name = name
         @href = href
         @type = type
