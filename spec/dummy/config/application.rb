@@ -14,8 +14,8 @@ module Dummy
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults Rails::VERSION::STRING.to_f
 
-        # For compatibility with applications that use this config
-        config.action_controller.include_all_helpers = false
+    # For compatibility with applications that use this config
+    config.action_controller.include_all_helpers = false
 
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
@@ -33,10 +33,10 @@ module Dummy
     # Don't generate system test files.
     config.generators.system_tests = nil
 
-        # ViewComponents
-        config.autoload_paths << Rails.root.parent.parent.join('app', 'components')
-        config.view_component.preview_paths << Rails.root.parent.parent.join('app', 'components')
+    # ViewComponents
+    config.autoload_paths << Rails.root.parent.parent.join('app', 'components')
+    config.view_component.preview_paths << Rails.root.parent.parent.join('app', 'components')
 
-        config.lookbook.listen_extensions = %w[js scss]
+    config.lookbook.listen_extensions = %w[js scss]
   end
 end
