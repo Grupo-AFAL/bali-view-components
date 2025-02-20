@@ -4,7 +4,7 @@ class Movie < ApplicationRecord
   belongs_to :tenant
   has_many :characters
 
-  enum status: { draft: 0, done: 1 }
+  enum :status, { draft: 0, done: 1 }
 
   attribute :indie, :boolean
   attribute :synopsis
