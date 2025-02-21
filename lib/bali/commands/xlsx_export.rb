@@ -31,9 +31,9 @@ module Bali
         end
         # rubocop: enable Naming/AccessorMethodName
 
-        def sheet(name, **options)
+        def sheet(name, **)
           @sheets ||= []
-          new_sheet = Sheet.new(name, **options)
+          new_sheet = Sheet.new(name, **)
           @sheets << new_sheet
 
           yield(new_sheet)
