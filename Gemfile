@@ -8,6 +8,7 @@ gemspec
 
 gem 'bulma-rails', '~> 0.9.3'
 gem 'caxlsx', '~> 4.1'
+gem 'csv'
 gem 'dartsass-rails'
 gem 'device_detector'
 gem 'sprockets-rails'
