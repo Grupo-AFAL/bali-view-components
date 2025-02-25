@@ -80,9 +80,9 @@ export class ChartController extends Controller {
       if (label) {
         label += ':'
       }
-      return `${label} ${prefix || ''} ${context.parsed.y} ${
-        suffix || ''
-      }`.trim()
+      return (
+        `${label} ${prefix ?? ''} ${context.parsed.y ?? context.parsed} ${suffix ?? ''}`.trim()
+      )
     }
   }
 
