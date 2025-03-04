@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgrade `ruby` to version `3.3.7`
 - Updated `gems` and importmap
 
+## [1.3.3] - 2024-02-25
+
+### Fixed
+- value was displayed as `undefined` when adding a suffix or prefix in a pie or doughnut chart.
+
 ## [1.3.2] - 2024-01-30
 
 ### Fixed
