@@ -52,8 +52,8 @@ module Bali
         }
       end
 
-      def heading_tag(text, tag_name, **options, &)
-        text.present? ? tag.send(tag_name, text, **options) : tag.send(tag_name, **options, &)
+      def heading_tag(text, tag_name, **, &)
+        text.present? ? tag.send(tag_name, text, **) : tag.send(tag_name, **, &)
       end
     end
   end

@@ -5,11 +5,11 @@ module Bali
     module Mailers
       module RecipientsSanitizer
         # Remove inactive emails before sending the email
-        def send_mail(to:, subject:, template: action_name, **options)
+        def send_mail(to:, subject:, template: action_name, **)
           recipients = sanitize_recipients(to)
           return if recipients.blank?
 
-          mail(to: recipients, subject: subject, template: template, **options)
+          mail(to: recipients, subject: subject, template: template, **)
         end
 
         def sanitize_recipients(recipients)
