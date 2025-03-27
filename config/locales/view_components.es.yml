@@ -6,7 +6,7 @@ es:
       clipboard:
         copied: ¡Copiado!
       delete_link:
-        generic_confirm_message: '¿Estas seguro(a)?'
+        generic_confirm_message: '¿Estás seguro(a)?'
         default_name: Eliminar
         specific_confirm_message: '¿Seguro que desea eliminar %{pronoun} %{name}?'
       filters:
