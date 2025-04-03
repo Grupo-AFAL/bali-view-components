@@ -58,7 +58,14 @@ export class TableController extends Controller {
 
   updateBulkActionsSelectedIds () {
     this.bulkActionTargets.forEach(action => {
-      action.value = JSON.stringify(this.selectedIdsValue)
+      if (action.tagName.toLowerCase() === 'a') {
+        const url = new URL(action.href)
+        url.searchParams.set('selected_ids', JSON.stringify(this.selectedIdsValue))
+
+        action.href = url.href
+      } else {
+        action.value = JSON.stringify(this.selectedIdsValue)
+      }
     })
   }
 

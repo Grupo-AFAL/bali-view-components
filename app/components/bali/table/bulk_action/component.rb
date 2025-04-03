@@ -14,13 +14,22 @@ module Bali
         end
 
         def call
-          form_with(url: href, method: method, **options) do |form|
-            safe_join(
-              [
-                form.hidden_field(:selected_ids, value: [], data: { table_target: 'bulkAction' }),
-                form.submit(name, class: 'button')
-              ]
-            )
+          options[:class] ||= 'button is-ghost'
+
+          if method == :get
+            options[:data] ||= {}
+            options[:data][:table_target] = 'bulkAction'
+
+            render(Bali::Link::Component.new(name: name, href: href, method: method, **options))
+          else
+            form_with(url: href, method: method) do |form|
+              safe_join(
+                [
+                  form.hidden_field(:selected_ids, value: [], data: { table_target: 'bulkAction' }),
+                  form.submit(name, **options)
+                ]
+              )
+            end
           end
         end
       end
