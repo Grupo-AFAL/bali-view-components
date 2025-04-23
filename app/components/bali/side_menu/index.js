@@ -3,7 +3,7 @@ import { Controller } from '@hotwired/stimulus'
 export class SideMenuController extends Controller {
   static targets = ['container', 'overlay', 'link']
 
-  connect() {
+  connect () {
     this.scrollToActiveLinkPreviousPosition()
 
     if (this.hasOverlayTarget && this.hasContainerTarget) {
@@ -12,14 +12,14 @@ export class SideMenuController extends Controller {
     }
   }
 
-  disconnect() {
+  disconnect () {
     if (this.hasOverlayTarget && this.hasContainerTarget) {
       this.overlayTarget.removeEventListener('click', this.closeMenu)
       this.containerTarget.removeEventListener('click', this.closeMenu)
     }
   }
 
-  toggleMenu(e) {
+  toggleMenu (e) {
     e.stopPropagation()
 
     if (this.hasContainerTarget) {
@@ -42,11 +42,11 @@ export class SideMenuController extends Controller {
   scrollToActiveLinkPreviousPosition () {
     const activeLinkPrevPosition = window.sessionStorage.getItem('activeLinkPreviousPosition')
     const activeLink = this.linkTargets.findLast((element) => element.classList.contains('is-active'))
-    if (!activeLinkPrevPosition || !activeLink) return 
+    if (!activeLinkPrevPosition || !activeLink) return
 
     const { top } = activeLink.getBoundingClientRect()
     this.containerTarget.scrollTo(
       { top: top - parseFloat(activeLinkPrevPosition), behavior: 'instant' }
-    ) 
+    )
   }
 }
