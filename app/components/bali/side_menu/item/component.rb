@@ -26,13 +26,14 @@ module Bali
 
           @active = options.delete(:active)
           @match_type = options.delete(:match) || :exact
-          @options = options
+          @options = prepend_data_attribute(options, :side_menu_target, 'link')
         end
 
         def before_render
           super
 
           @options = prepend_class_name(@options, 'is-active') if active?
+          @options = prepend_class_name(@options, 'is-list') if items.present?
         end
 
         def render?
