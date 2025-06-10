@@ -106,7 +106,8 @@ export class SlimSelectController extends Controller {
           const options = data.map(record => {
             return {
               text: record[this.ajaxTextNameValue],
-              value: record[this.ajaxValueNameValue]
+              value: record[this.ajaxValueNameValue],
+              html: record.html
             }
           })
 
