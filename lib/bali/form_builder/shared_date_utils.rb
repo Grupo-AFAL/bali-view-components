@@ -40,7 +40,8 @@ module Bali
           mode: options[:mode],
           alt_input: options[:alt_input],
           allow_input: options[:allow_input],
-          alt_format: options[:alt_format]
+          alt_format: options[:alt_format],
+          disabled_dates: (options[:disabled_dates] || []).to_json
         }
 
         if options[:mode] == 'range' && options[:value].respond_to?(:first)
