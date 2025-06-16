@@ -22,6 +22,7 @@ export class DatepickerController extends Controller {
     locale: { type: String, default: 'es' },
     defaultDate: String,
     defaultDates: Array,
+    disabledDates: Array,
     minDate: String,
     maxDate: String,
     minTime: String,
@@ -60,7 +61,7 @@ export class DatepickerController extends Controller {
       maxTime: this.maxTimeValue,
       altInputClass: this.altInputClassValue,
       mode: this.modeValue,
-      disable: this.disableWeekendsValue ? [this.isWeekend] : [],
+      disable: this.disableWeekendsValue ? [this.isWeekend] : this.disabledDatesValue,
       allowInput: this.allowInputValue
     })
   }
