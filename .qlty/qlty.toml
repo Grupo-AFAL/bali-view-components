@@ -85,12 +85,6 @@ name = "ripgrep"
 mode = "comment"
 
 [[plugin]]
-name = "rubocop"
-version = "1.72.2"
-package_file = "Gemfile"
-package_filters = ["rubocop"]
-
-[[plugin]]
 name = "trivy"
 drivers = [
   "config",
