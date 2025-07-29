@@ -37,7 +37,7 @@ end
 group :development, :test do
   gem 'dotenv'
   gem 'importmap-rails', '~> 2.0'
-  gem 'rspec-rails', '~> 7'
+  gem 'rspec-rails', '~> 8'
   gem 'stimulus-rails', '~> 1.3'
   gem 'turbo-rails', '~> 2'
 end

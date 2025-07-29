@@ -261,10 +261,10 @@ GEM
     rspec-mocks (3.13.5)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
-    rspec-rails (7.1.1)
-      actionpack (>= 7.0)
-      activesupport (>= 7.0)
-      railties (>= 7.0)
+    rspec-rails (8.0.1)
+      actionpack (>= 7.2)
+      activesupport (>= 7.2)
+      railties (>= 7.2)
       rspec-core (~> 3.13)
       rspec-expectations (~> 3.13)
       rspec-mocks (~> 3.13)
@@ -366,7 +366,7 @@ DEPENDENCIES
   lookbook
   puma (< 7)
   ransack
-  rspec-rails (~> 7)
+  rspec-rails (~> 8)
   rubocop (~> 1)
   rubocop-rails (~> 2)
   simple_command
