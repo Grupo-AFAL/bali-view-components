@@ -22,10 +22,10 @@ jobs:
           bundler-cache: true
       - name: Set up database schema
         run: bin/rails db:schema:load
-      # Add or replace test runners here
-      - name: Run Rspec & publish code coverage
-        uses: paambaati/codeclimate-action@v3.0.0
-        env:
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+      - name: Run Rspec
+        run: bundle exec rspec spec/
+      - name: Publish code coverage
+        uses: qltysh/qlty-action/coverage@v1
         with:
-          coverageCommand: bundle exec rspec spec/
+          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+          files: coverage/.resultset.json
