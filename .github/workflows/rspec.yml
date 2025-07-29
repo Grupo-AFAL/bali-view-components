@@ -4,11 +4,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  workflow_call:
-    secrets:
-      CC_TEST_REPORTER_ID:
-        description: 'Code Climate Reporter ID for current repo'
-        required: false
+
 jobs:
   test:
     runs-on: ubuntu-latest
