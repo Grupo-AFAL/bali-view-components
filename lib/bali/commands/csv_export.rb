@@ -58,7 +58,7 @@ module Bali
       end
 
       def column_value(record, column_name, options)
-        options => {value:, format:}
+        options => { value:, format: }
 
         column_value = value.present? ? record.instance_exec(&value) : record.send(column_name)
 

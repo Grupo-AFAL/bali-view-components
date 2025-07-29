@@ -81,7 +81,7 @@ module Bali
 
       def row_values(columns, record)
         columns.map do |column_name, options|
-          options => {value:}
+          options => { value: }
           value.present? ? record.instance_exec(&value) : record.send(column_name)
         end
       end

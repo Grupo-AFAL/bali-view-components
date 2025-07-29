@@ -24,7 +24,7 @@ module Bali
       def initialize(form: nil, bulk_actions: [], **options)
         @form = form
         @bulk_actions = bulk_actions
-        @tbody_options = hyphenize_keys((options.delete(:tbody) || {}))
+        @tbody_options = hyphenize_keys(options.delete(:tbody) || {})
         @table_container_options = prepend_class_name(
           options.delete(:table_container) || {}, 'table-container table-component'
         )

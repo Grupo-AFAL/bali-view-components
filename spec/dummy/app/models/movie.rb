@@ -2,7 +2,9 @@
 
 class Movie < ApplicationRecord
   belongs_to :tenant
+  # rubocop: disable Rails/HasManyOrHasOneDependent
   has_many :characters
+  # rubocop: enable Rails/HasManyOrHasOneDependent
 
   enum :status, { draft: 0, done: 1 }
 
