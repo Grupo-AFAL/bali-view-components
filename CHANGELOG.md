@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `submit` function of `ModalController` to check and report inputs validity
 
+## [1.4.5] - 2025-07-29
+
+### Changed
+- Upgrade `gems` and `importmap`
+- Replace `code climate` with `qlty`
+
 ## [1.4.4] - 2025-06-11
 
 ### Changed
