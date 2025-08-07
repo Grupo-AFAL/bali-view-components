@@ -181,6 +181,13 @@ export class ModalController extends Controller {
     event.target.setAttribute('disabled', '')
 
     const form = event.target.closest('form')
+    if (!form.checkValidity()) {
+      event.target.classList.remove('is-loading')
+      event.target.removeAttribute('disabled')
+      form.querySelectorAll('input').forEach(input => { input.reportValidity() })
+      return
+    }
+
     const formURL = form.getAttribute('action')
     const enableTurbo = event.target.dataset.turbo || form.dataset.turbo
 
