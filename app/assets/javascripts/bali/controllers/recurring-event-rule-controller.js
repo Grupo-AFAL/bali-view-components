@@ -18,13 +18,18 @@ export class RecurringEventRuleController extends Controller {
       if (attribute !== 'byweekday') {
         this.element.querySelectorAll(`[data-rrule-attr="${attribute}"]`)
             .forEach(element => { element.value = value })
-      } else {
+      } else if (options.freq !== RRule.WEEKLY) {
+        const joinedValue = value.map(opt => opt.weekday).join(',')
         this.element.querySelectorAll(`select[data-rrule-attr="${attribute}"]`)
-            .forEach(element => { element.value = value.map(opt => opt.weekday).join(',') })
-
+            .forEach(element => {
+              element.options.selectedIndex = Math.max(
+                [...element.options].findIndex(opt => opt.value === joinedValue ), 0
+              )
+            })
+      } else {
         value.map(opt => {
           const checkbox = this.element.querySelector(
-            `input[type="checkbox"][data-rrule-attr="${attribute}"][value="${opt}"]`
+            `input[type="checkbox"][data-rrule-attr="${attribute}"][value="${opt.weekday}"]`
           )
           if (checkbox) checkbox.checked = true
         })

@@ -7,6 +7,11 @@
       value: 'RRULE:INTERVAL=5;FREQ=MONTHLY;BYSETPOS=-1;BYDAY=SU' %> 
 
   <div class="my-6"></div>
+
+  <%= form.recurring_event_rule_field :rule, 
+      value: 'RRULE:INTERVAL=5;FREQ=WEEKLY;BYDAY=SU,TU,TH' %> 
+
+  <div class="my-6"></div>
   
   <%= form.recurring_event_rule_field :rule, value: 'FREQ=DAILY;INTERVAL=1;UNTIL=20250831T000000Z' %>
 <% end %>
