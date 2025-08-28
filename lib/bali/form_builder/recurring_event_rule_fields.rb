@@ -119,7 +119,7 @@ module Bali
           class: 'is-hidden',
           data: {
             recurring_event_rule_target: 'freqInputsContainer',
-            freq_value: Array.wrap(freq_value).join(',')
+            rrule_freq: Array.wrap(freq_value).join(',')
           }, &
         )
       end

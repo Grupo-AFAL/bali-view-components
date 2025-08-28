@@ -63,7 +63,7 @@ export class RecurringEventRuleController extends Controller {
     this.freqInputsContainerTargets.forEach(element => {
       const inputs = element.querySelectorAll('[data-rrule-attr]')
 
-      if (element.dataset.freqValue.split(',').includes(event.target.value.toString())) {
+      if (element.dataset.rruleFreq.split(',').includes(event.target.value.toString())) {
         element.classList.remove('is-hidden')
         const radio = element.querySelector('input[type="radio"]')
         if (radio) this.toggleInputActiveAttribute({ target: radio })
