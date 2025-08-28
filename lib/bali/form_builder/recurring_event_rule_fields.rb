@@ -35,14 +35,14 @@ module Bali
               tag.div(data: { recurring_event_rule_target: 'intervalInputContainer' }) do
                 number_field(
                   'interval', value: 1, data: {
-                    input_target: 'interval', action: 'recurring-event-rule#setRule'
+                    rrule_attr: 'interval', action: 'recurring-event-rule#setRule'
                   }
                 )
               end,
               select_field(
                 'frequency', frequency_options, {},
                 data: {
-                  input_target: 'freq', input_active: true,
+                  rrule_attr: 'freq', input_active: true,
                   action: 'recurring-event-rule#toggleFreqInputsContainer ' \
                           'recurring-event-rule#toggleIntervalInput ' \
                           'recurring-event-rule#setRule'
@@ -80,13 +80,13 @@ module Bali
               number_field(
                 'count',
                 value: 1, min: 1,
-                data: {  input_target: 'count', action: 'recurring-event-rule#setRule' }
+                data: {  rrule_attr: 'count', action: 'recurring-event-rule#setRule' }
               )
             end,
             end_inputs_container('on_date') do
               date_field(
                 'until', data: {
-                  input_target: 'until',
+                  rrule_attr: 'until',
                   recurring_event_rule_target: 'untilInput',
                   action: 'recurring-event-rule#setRule'
                 }
@@ -147,9 +147,9 @@ module Bali
                       )
                     end,
                     select_field('bymonth', bymonth_options, {},
-                                 data: { input_target: 'bymonth', action: 'recurring-event-rule#setRule' }),
+                                 data: { rrule_attr: 'bymonth', action: 'recurring-event-rule#setRule' }),
                     select_field('bymonthday', (1..31).map(&:to_s), {},
-                                 data: { input_target: 'bymonthday', action: 'recurring-event-rule#setRule' })
+                                 data: { rrule_attr: 'bymonthday', action: 'recurring-event-rule#setRule' })
                   ]
                 )
               end,
@@ -169,11 +169,11 @@ module Bali
                       )
                     end,
                     select_field('bysetpos', bysetpos_options, {},
-                                 data: { input_target: 'bysetpos', action: 'recurring-event-rule#setRule' }),
+                                 data: { rrule_attr: 'bysetpos', action: 'recurring-event-rule#setRule' }),
                     select_field('byweekday', byweekday_options, {},
-                                 data: { input_target: 'byweekday', action: 'recurring-event-rule#setRule' }),
+                                 data: { rrule_attr: 'byweekday', action: 'recurring-event-rule#setRule' }),
                     select_field('bymonth', bymonth_options, {},
-                                 data: { input_target: 'bymonth', action: 'recurring-event-rule#setRule' })
+                                 data: { rrule_attr: 'bymonth', action: 'recurring-event-rule#setRule' })
                   ]
                 )
               end
@@ -205,7 +205,7 @@ module Bali
                       )
                     end,
                     select_field('bymonthday', (1..31).map(&:to_s), {},
-                                 data: { input_target: 'bymonthday', action: 'recurring-event-rule#setRule' })
+                                 data: { rrule_attr: 'bymonthday', action: 'recurring-event-rule#setRule' })
                   ]
                 )
               end,
@@ -227,9 +227,9 @@ module Bali
                       )
                     end,
                     select_field('bysetpos', bysetpos_options, {},
-                                 data: { input_target: 'bysetpos', action: 'recurring-event-rule#setRule' }),
+                                 data: { rrule_attr: 'bysetpos', action: 'recurring-event-rule#setRule' }),
                     select_field('byweekday', byweekday_options, {},
-                                 data: { input_target: 'byweekday', action: 'recurring-event-rule#setRule' })
+                                 data: { rrule_attr: 'byweekday', action: 'recurring-event-rule#setRule' })
                   ]
                 )
               end
@@ -255,7 +255,7 @@ module Bali
               @template.check_box_tag(
                 'byweekday[]', value, false,
                 id: "byweekday_#{day}",
-                data: { input_target: 'byweekday', action: 'recurring-event-rule#setRule' }
+                data: { rrule_attr: 'byweekday', action: 'recurring-event-rule#setRule' }
               ) +
                 @template.label_tag("byweekday_#{day}", day)
             end.prepend(
