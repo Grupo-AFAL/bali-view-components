@@ -5,8 +5,8 @@ export class RecurringEventRuleController extends Controller {
   static targets = [
     'input', 
     'endSelect',
-    'freqInputsContainer',
-    'freqOption',
+    'freqCustomizationInputsContainer',
+    'freqCustomizationInputs',
     'endInputsContainer',
     'intervalInputContainer'
   ]
@@ -45,7 +45,7 @@ export class RecurringEventRuleController extends Controller {
   }
 
   checkRadios = (rule) => {
-    this.freqInputsContainerTargets.forEach(element => {
+    this.freqCustomizationInputsContainerTargets.forEach(element => {
       const radios = element.querySelectorAll('input[type="radio"]')
 
       if (radios.length === 1) {
@@ -61,7 +61,7 @@ export class RecurringEventRuleController extends Controller {
   }
 
   toggleFreqCustomizationInputsContainer = (event) => {
-    this.freqInputsContainerTargets.forEach(element => {
+    this.freqCustomizationInputsContainerTargets.forEach(element => {
       if (element.dataset.rruleFreq.split(',').includes(event.target.value.toString())) {
         this._show(element)
         this.toggleFreqCustomizationInputs(
@@ -77,7 +77,7 @@ export class RecurringEventRuleController extends Controller {
   toggleFreqCustomizationInputs = (event) => {
     if (!event.target) return
 
-    this.freqOptionTargets.forEach(element => {
+    this.freqCustomizationInputsTargets.forEach(element => {
       if (event.target.id.endsWith(element.dataset.rruleFreqOption)) {
         this._activateInputs(element)
       } else {

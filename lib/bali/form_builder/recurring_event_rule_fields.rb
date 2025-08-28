@@ -85,7 +85,7 @@ module Bali
             end,
             end_inputs_container('until') do
               date_field(
-                'until', data: {
+                'until', value: 6.months.from_now.to_date, data: {
                   rrule_attr: 'until',
                   recurring_event_rule_target: 'untilInput',
                   action: 'recurring-event-rule#setRule'
@@ -118,7 +118,7 @@ module Bali
         tag.div(
           class: 'is-hidden',
           data: {
-            recurring_event_rule_target: 'freqInputsContainer',
+            recurring_event_rule_target: 'freqCustomizationInputsContainer',
             rrule_freq: Array.wrap(freq_value).join(',')
           }, &
         )
@@ -147,7 +147,7 @@ module Bali
                     )
                   end,
                   tag.div(
-                    data: { recurring_event_rule_target: 'freqOption',
+                    data: { recurring_event_rule_target: 'freqCustomizationInputs',
                             rrule_freq_option: 'yearly_on_1' }
                   ) do
                     safe_join(
@@ -179,7 +179,7 @@ module Bali
                     )
                   end,
                   tag.div(
-                    data: { recurring_event_rule_target: 'freqOption',
+                    data: { recurring_event_rule_target: 'freqCustomizationInputs',
                             rrule_freq_option: 'yearly_on_2' }
                   ) do
                     safe_join(
@@ -223,7 +223,7 @@ module Bali
                     )
                   end,
                   tag.div(
-                    data: { recurring_event_rule_target: 'freqOption',
+                    data: { recurring_event_rule_target: 'freqCustomizationInputs',
                             rrule_freq_option: 'monthly_on_1' }
                   ) do
                     select_field('bymonthday', (1..31).map(&:to_s), {},
@@ -250,7 +250,7 @@ module Bali
                     )
                   end,
                   tag.div(
-                    data: { recurring_event_rule_target: 'freqOption',
+                    data: { recurring_event_rule_target: 'freqCustomizationInputs',
                             rrule_freq_option: 'monthly_on_2' }
                   ) do
                     safe_join(
@@ -274,7 +274,7 @@ module Bali
       def weekly_inputs_container(value, &)
         tag.div(
           class: 'is-hidden',
-          data: { recurring_event_rule_target: 'freqInputsContainer', freq_value: value }, &
+          data: { recurring_event_rule_target: 'freqCustomizationInputsContainer', freq_value: value }, &
         )
       end
 
@@ -288,7 +288,7 @@ module Bali
                 "#{timestamp}_weekly", 1, false, checked: true, class: 'is-hidden'
               ),
               tag.div(
-                data: { recurring_event_rule_target: 'freqOption',
+                data: { recurring_event_rule_target: 'freqCustomizationInputs',
                         rrule_freq_option: 'weekly_1' }
               ) do
                 safe_join(
