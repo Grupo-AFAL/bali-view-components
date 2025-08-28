@@ -17,29 +17,13 @@ export class RecurringEventRuleController extends Controller {
 
     this._setSelectedIndexToEndMethodSelect(options)
     this._syncRruleOptionsWithInputs(options)
-    this.checkRadios(this.inputTarget.value)
+    this._syncFreqCustomizationInputsRadios()
 
     this.toggleFreqCustomizationInputsContainer({ target: { value: options.freq } })
     this.toggleIntervalInputContainer({ target: { value: options.freq } })
     this.toggleEndCustomizationInputsContainer(
       { target: { value: this.endMethodSelectTarget.value }}
     )
-  }
-
-  checkRadios = (rule) => {
-    this.freqCustomizationInputsContainerTargets.forEach(element => {
-      const radios = element.querySelectorAll('input[type="radio"]')
-
-      if (radios.length === 1) {
-        radios[0].checked = true
-      } else if (radios.length > 0 && rule.includes('BYSETPOS')) {
-        radios[0].checked = false
-        radios[radios.length - 1].checked = true
-      } else if (radios.length > 0 ) {
-        radios[0].checked = true
-        radios[radios.length - 1].checked = false
-      }
-    });
   }
 
   toggleFreqCustomizationInputsContainer = (event) => {
@@ -186,5 +170,23 @@ export class RecurringEventRuleController extends Controller {
     element.selectedIndex = Math.max(
       [...element.options].findIndex(opt => opt.value == selectedValue), 0
     )
+  }
+
+    _syncFreqCustomizationInputsRadios = () => {
+      const rule = this.inputTarget.value
+      
+    this.freqCustomizationInputsContainerTargets.forEach(element => {
+      const radios = element.querySelectorAll('input[type="radio"]')
+
+      if (radios.length === 1) {
+        radios[0].checked = true
+      } else if (radios.length > 0 && rule.includes('BYSETPOS')) {
+        radios[0].checked = false
+        radios[radios.length - 1].checked = true
+      } else if (radios.length > 0 ) {
+        radios[0].checked = true
+        radios[radios.length - 1].checked = false
+      }
+    });
   }
 }
