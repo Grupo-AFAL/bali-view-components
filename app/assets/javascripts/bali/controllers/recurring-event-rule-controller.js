@@ -78,8 +78,10 @@ export class RecurringEventRuleController extends Controller {
   setRule = () => {
     const options = {}
     this.element.querySelectorAll('[data-input-active="true"]').forEach(input => {
-      if (!input.dataset.rruleAttr.includes('byweekday')) {
-        options[input.dataset.rruleAttr] = this._parseInputValue(input.dataset.rruleAttr, input.value)
+      if (input.dataset.rruleAttr === 'bysetpos') {
+        options[input.dataset.rruleAttr] = parseInt(input.value)
+      } else if (input.dataset.rruleAttr !== 'byweekday') {
+        options[input.dataset.rruleAttr] = input.value
       } else if (input.type !== 'checkbox' || input.checked) {
         options.byweekday ??= []
         options.byweekday = options.byweekday.concat(input.value.split(','))
@@ -87,22 +89,6 @@ export class RecurringEventRuleController extends Controller {
     })
 
     this.inputTarget.value = new RRule(options).toString().replace('RRULE:', '')
-  }
-
-  _parseInputValue = (attribute, value) => {    
-    let parsedValue = value
-    switch (attribute) {
-      case 'byweekday':
-        parsedValue = value.split(',')
-        break;
-      case 'bysetpos':
-        parsedValue = parseInt(value)
-        break;
-      default:
-        break;
-    }
-
-    return parsedValue
   }
   
   _setInputActiveDataAttribute = (target, value) => {
