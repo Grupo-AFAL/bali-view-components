@@ -15,30 +15,11 @@ export class RecurringEventRuleController extends Controller {
     this.inputTarget.value ||= 'FREQ=YEARLY;BYMONTH=1;BYMONTHDAY=1'
     const options = rrulestr(this.inputTarget.value).origOptions
 
-    for (const [attribute, value] of Object.entries(options)) {
-      if (attribute !== 'byweekday') {
-        this.element.querySelectorAll(`[data-rrule-attr="${attribute}"]`)
-            .forEach(element => { element.value = value })
-      } else if (options.freq !== RRule.WEEKLY) {
-        const joinedValue = value.map(opt => opt.weekday).join(',')
-        this.element.querySelectorAll(`select[data-rrule-attr="${attribute}"]`)
-            .forEach(element => {
-              element.options.selectedIndex = Math.max(
-                [...element.options].findIndex(opt => opt.value === joinedValue ), 0
-              )
-            })
-      } else {
-        value.map(opt => {
-          const checkbox = this.element.querySelector(
-            `input[type="checkbox"][data-rrule-attr="${attribute}"][value="${opt.weekday}"]`
-          )
-          if (checkbox) checkbox.checked = true
-        })
-      } 
-    }
+    this._syncRruleOptionsWithInputs(options)
     
     this.endMethodSelectTarget.value = options.count ? 'count' : (options.until ? 'until' : '')
     this.checkRadios(this.inputTarget.value)
+
     this.toggleFreqCustomizationInputsContainer({ target: { value: options.freq } })
     this.toggleIntervalInputContainer({ target: { value: options.freq } })
     this.toggleEndCustomizationInputsContainer(
@@ -115,6 +96,36 @@ export class RecurringEventRuleController extends Controller {
     });
   }
 
+  setRule = () => {
+    const options = {}
+    this.element.querySelectorAll('[data-input-active="true"]').forEach(input => {
+      if (!input.dataset.rruleAttr.includes('byweekday')) {
+        options[input.dataset.rruleAttr] = this._parseInputValue(input.dataset.rruleAttr, input.value)
+      } else if (input.type !== 'checkbox' || input.checked) {
+        options.byweekday ??= []
+        options.byweekday = options.byweekday.concat(input.value.split(','))
+      }
+    })
+
+    this.inputTarget.value = new RRule(options).toString().replace('RRULE:', '')
+  }
+
+  _parseInputValue = (attribute, value) => {    
+    let parsedValue = value
+    switch (attribute) {
+      case 'byweekday':
+        parsedValue = value.split(',')
+        break;
+      case 'bysetpos':
+        parsedValue = parseInt(value)
+        break;
+      default:
+        break;
+    }
+
+    return parsedValue
+  }
+
   _hide = (element) => {
     element.classList.add('is-hidden')
   }
@@ -133,33 +144,41 @@ export class RecurringEventRuleController extends Controller {
            .forEach(input => { this.setInputActiveDataAttribute(input, "false") })
   }
 
-  setRule = () => {
-    const options = {}
-    this.element.querySelectorAll('[data-input-active="true"]').forEach(input => {
-      if (!input.dataset.rruleAttr.includes('byweekday')) {
-        options[input.dataset.rruleAttr] = this.parseInputValue(input.dataset.rruleAttr, input.value)
-      } else if (input.type !== 'checkbox' || input.checked) {
-        options.byweekday ??= []
-        options.byweekday = options.byweekday.concat(input.value.split(','))
-      }
-    })
+  _syncRruleOptionsWithInputs = (options) => {
+    this._syncRruleByweekdayOptionWithInputs(options.freq, options.byweekday)
 
-    this.inputTarget.value = new RRule(options).toString().replace('RRULE:', '')
+    for (const [attribute, value] of Object.entries(options)) {
+      if (attribute === 'byweekday') continue
+
+      this.element.querySelectorAll(`[data-rrule-attr="${attribute}"]`)
+          .forEach(element => { element.value = value })
+    }
   }
 
-  parseInputValue = (attribute, value) => {    
-    let parsedValue = value
-    switch (attribute) {
-      case 'byweekday':
-        parsedValue = value.split(',')
-        break;
-      case 'bysetpos':
-        parsedValue = parseInt(value)
-        break;
-      default:
-        break;
-    }
+  _syncRruleByweekdayOptionWithInputs = (freq, value) => {
+    if (!value) return
+    if (freq === RRule.WEEKLY) this._checkByWeekDayInputs(value)
+    
+    this._setSelectedIndexToByWeekDaySelect(value.map(opt => opt.weekday).join(',')) 
+  }
 
-    return parsedValue
+  _checkByWeekDayInputs = (weekdays) => {
+    for (const weekday of weekdays) {
+      const checkbox = this.element.querySelector(
+        `input[type="checkbox"][data-rrule-attr="byweekday"][value="${weekday.weekday}"]`
+      )
+      if (!checkbox) continue
+
+      checkbox.checked = true
+    }
+  }
+
+  _setSelectedIndexToByWeekDaySelect = (selectedValue) => {
+    const inputs = this.element.querySelectorAll(`select[data-rrule-attr="byweekday"]`)
+    inputs.forEach(element => {
+      element.options.selectedIndex = Math.max(
+        [...element.options].findIndex(opt => opt.value === selectedValue ), 0
+      )
+    })
   }
 }
