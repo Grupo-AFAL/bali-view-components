@@ -78,6 +78,7 @@ pin 'bali/step-number-input-controller', to: 'bali/controllers/step-number-input
 pin 'bali/submit-button-controller', to: 'bali/controllers/submit-button-controller'
 pin 'bali/submit-on-change-controller', to: 'bali/controllers/submit-on-change-controller'
 pin 'bali/trix-attachments-controller', to: 'bali/controllers/trix-attachments-controller'
+pin 'bali/recurring-event-rule-controller', to: 'bali/controllers/recurring-event-rule-controller'
 
 # Bali Components (Javascript)
 pin 'bali/avatar', to: 'bali/avatar/index.js'
@@ -215,3 +216,5 @@ pin 'bali/rich_text_editor/useMention', to: 'bali/rich_text_editor/javascript/us
 pin 'bali/rich_text_editor/useNodes', to: 'bali/rich_text_editor/javascript/useNodes.js'
 pin 'bali/rich_text_editor/useSlashCommands', to: 'bali/rich_text_editor/javascript/useSlashCommands.js'
 pin 'bali/rich_text_editor/useTable', to: 'bali/rich_text_editor/javascript/useTable.js'
+
+pin 'rrule', to: 'https://cdn.jsdelivr.net/npm/rrule@2.8.1/+esm'

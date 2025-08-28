@@ -1,0 +1,7 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%# form.recurring_event_rule_field_group :rule %>
+
+  <hr>
+  
+  <%= form.recurring_event_rule_field :rule, value: 'FREQ=DAILY;INTERVAL=1;UNTIL=20250831T000000Z' %>
+<% end %>
