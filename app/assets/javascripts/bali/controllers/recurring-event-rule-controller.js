@@ -15,9 +15,8 @@ export class RecurringEventRuleController extends Controller {
     this.inputTarget.value ||= 'FREQ=YEARLY;BYMONTH=1;BYMONTHDAY=1'
     const options = rrulestr(this.inputTarget.value).origOptions
 
+    this._setSelectedIndexToEndMethodSelect(options)
     this._syncRruleOptionsWithInputs(options)
-    
-    this.endMethodSelectTarget.value = options.count ? 'count' : (options.until ? 'until' : '')
     this.checkRadios(this.inputTarget.value)
 
     this.toggleFreqCustomizationInputsContainer({ target: { value: options.freq } })
@@ -144,6 +143,14 @@ export class RecurringEventRuleController extends Controller {
            .forEach(input => { this.setInputActiveDataAttribute(input, "false") })
   }
 
+  _setSelectedIndexToEndMethodSelect = (options) => {
+    let selectedValue = ''
+    const keys = ['count', 'until']
+    keys.forEach(key => { if (options[key]) selectedValue = key })
+
+    this._setSelectedIndexToSelect(this.endMethodSelectTarget, selectedValue)
+  }
+
   _syncRruleOptionsWithInputs = (options) => {
     this._syncRruleByweekdayOptionWithInputs(options.freq, options.byweekday)
 
@@ -159,7 +166,9 @@ export class RecurringEventRuleController extends Controller {
     if (!value) return
     if (freq === RRule.WEEKLY) this._checkByWeekDayInputs(value)
     
-    this._setSelectedIndexToByWeekDaySelect(value.map(opt => opt.weekday).join(',')) 
+    const selectedValue = value.map(opt => opt.weekday).join(',')
+    this.element.querySelectorAll(`select[data-rrule-attr="byweekday"]`)
+                .forEach(element => { this._setSelectedIndexToSelect(element, selectedValue) })
   }
 
   _checkByWeekDayInputs = (weekdays) => {
@@ -173,12 +182,9 @@ export class RecurringEventRuleController extends Controller {
     }
   }
 
-  _setSelectedIndexToByWeekDaySelect = (selectedValue) => {
-    const inputs = this.element.querySelectorAll(`select[data-rrule-attr="byweekday"]`)
-    inputs.forEach(element => {
-      element.options.selectedIndex = Math.max(
-        [...element.options].findIndex(opt => opt.value === selectedValue ), 0
-      )
-    })
+  _setSelectedIndexToSelect = (element, selectedValue) => {
+    element.selectedIndex = Math.max(
+      [...element.options].findIndex(opt => opt.value == selectedValue), 0
+    )
   }
 }
