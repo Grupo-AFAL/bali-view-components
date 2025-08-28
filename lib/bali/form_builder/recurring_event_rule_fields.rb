@@ -135,7 +135,7 @@ module Bali
                       safe_join(
                         [
                           @template.radio_button_tag(
-                            'yearly_on', 1, false,
+                            'yearly_on', 1, true,
                             checked: true,
                             data: {
                               action: 'recurring-event-rule#toggleInputActiveAttribute ' \
@@ -193,7 +193,7 @@ module Bali
                       safe_join(
                         [
                           @template.radio_button_tag(
-                            'monthly_on', 1, false,
+                            'monthly_on', 1, true,
                             checked: true,
                             data: {
                               action: 'recurring-event-rule#toggleInputActiveAttribute ' \
