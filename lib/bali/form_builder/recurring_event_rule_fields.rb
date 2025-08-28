@@ -249,21 +249,22 @@ module Bali
       end
 
       def weekly_inputs
+        timestamp = Time.zone.now.to_f.to_s.gsub('.', '_')
+
         tag.div(class: 'field inputs-container') do
           safe_join(
             [
               ['SU', 6], ['MO', 0], ['TU', 1], ['WE', 2], ['TH', 3], ['FR', 4], ['SA', 5]
             ].map do |day, value|
               @template.check_box_tag(
-                'byweekday[]', value, false,
-                id: "byweekday_#{day}",
+                "byweekday_#{timestamp}_[]", value, false,
+                id: "byweekday_#{timestamp}_#{day}",
                 data: { rrule_attr: 'byweekday', action: 'recurring-event-rule#setRule' }
               ) +
-                @template.label_tag("byweekday_#{day}", day)
+                @template.label_tag("byweekday_#{timestamp}_#{day}", day)
             end.prepend(
               @template.radio_button_tag(
-                "weekly_#{Time.zone.now.to_f.to_s.gsub('.', '_')}", 1, false,
-                checked: true, class: 'is-hidden'
+                "weekly_#{timestamp}", 1, false, checked: true, class: 'is-hidden'
               )
             )
           )

@@ -1,5 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
-import { datetime, RRule, RRuleSet, rrulestr } from 'rrule'
+import { RRule, rrulestr } from 'rrule'
 
 export class RecurringEventRuleController extends Controller {
   static targets = [
@@ -15,8 +15,20 @@ export class RecurringEventRuleController extends Controller {
     const options = rrulestr(this.inputTarget.value).origOptions
 
     for (const [attribute, value] of Object.entries(options)) {
-      this.element.querySelectorAll(`[data-rrule-attr="${attribute}"]`)
-          .forEach(element => { element.value = value })
+      if (attribute !== 'byweekday') {
+        this.element.querySelectorAll(`[data-rrule-attr="${attribute}"]`)
+            .forEach(element => { element.value = value })
+      } else {
+        this.element.querySelectorAll(`select[data-rrule-attr="${attribute}"]`)
+            .forEach(element => { element.value = value.map(opt => opt.weekday).join(',') })
+
+        value.map(opt => {
+          const checkbox = this.element.querySelector(
+            `input[type="checkbox"][data-rrule-attr="${attribute}"][value="${opt}"]`
+          )
+          if (checkbox) checkbox.checked = true
+        })
+      } 
     }
     
     this.endSelectTarget.value = options.count ? 'count' : (options.until ? 'until' : '')
