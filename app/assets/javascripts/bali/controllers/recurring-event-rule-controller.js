@@ -4,11 +4,11 @@ import { RRule, rrulestr } from 'rrule'
 export class RecurringEventRuleController extends Controller {
   static targets = [
     'input', 
-    'endSelect',
-    'freqCustomizationInputsContainer',
-    'freqCustomizationInputs',
+    'endMethodSelect',
     'endInputsContainer',
-    'intervalInputContainer'
+    'intervalInputContainer',
+    'freqCustomizationInputsContainer',
+    'freqCustomizationInputs'
   ]
 
   connect () {
@@ -37,11 +37,11 @@ export class RecurringEventRuleController extends Controller {
       } 
     }
     
-    this.endSelectTarget.value = options.count ? 'count' : (options.until ? 'until' : '')
+    this.endMethodSelectTarget.value = options.count ? 'count' : (options.until ? 'until' : '')
     this.checkRadios(this.inputTarget.value)
     this.toggleFreqCustomizationInputsContainer({ target: { value: options.freq } })
     this.toggleIntervalInputContainer({ target: { value: options.freq } })
-    this.toggleEndInputsContainer({ target: { value: this.endSelectTarget.value }})
+    this.toggleEndInputsContainer({ target: { value: this.endMethodSelectTarget.value }})
   }
 
   checkRadios = (rule) => {

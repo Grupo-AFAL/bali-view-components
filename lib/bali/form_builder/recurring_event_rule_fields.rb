@@ -61,7 +61,7 @@ module Bali
               select_field(
                 'end', ending_options, {},
                 data: {
-                  recurring_event_rule_target: 'endSelect',
+                  recurring_event_rule_target: 'endMethodSelect',
                   action: 'recurring-event-rule#toggleEndInputsContainer ' \
                           'recurring-event-rule#setRule'
                 }
