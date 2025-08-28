@@ -125,6 +125,7 @@ module Bali
       end
 
       def yearly_inputs
+        timestamp = Time.zone.now.to_f.to_s.gsub('.', '_')
         tag.div(classs: 'field') do
           safe_join(
             [
@@ -135,14 +136,14 @@ module Bali
                       safe_join(
                         [
                           @template.radio_button_tag(
-                            'yearly_on', 1, true,
+                            "yearly_on_#{timestamp}", 1, true,
                             checked: true,
                             data: {
                               action: 'recurring-event-rule#toggleInputActiveAttribute ' \
                                       'recurring-event-rule#setRule'
                             }
                           ),
-                          @template.label_tag('yearly_on_1', 'On')
+                          @template.label_tag("yearly_on_#{timestamp}_1", 'On')
                         ]
                       )
                     end,
@@ -160,11 +161,11 @@ module Bali
                       safe_join(
                         [
                           @template.radio_button_tag(
-                            'yearly_on', 2, false, data:
+                            "yearly_on_#{timestamp}", 2, false, data:
                             { action: 'recurring-event-rule#toggleInputActiveAttribute ' \
                                       'recurring-event-rule#setRule' }
                           ),
-                          @template.label_tag('yearly_on_2', 'On the')
+                          @template.label_tag("yearly_on_#{timestamp}_2", 'On the')
                         ]
                       )
                     end,
@@ -183,6 +184,7 @@ module Bali
       end
 
       def monthly_inputs
+        timestamp = Time.zone.now.to_f.to_s.gsub('.', '_')
         tag.div(classs: 'field') do
           safe_join(
             [
@@ -193,14 +195,14 @@ module Bali
                       safe_join(
                         [
                           @template.radio_button_tag(
-                            'monthly_on', 1, true,
+                            "monthly_on_#{timestamp}", 1, true,
                             checked: true,
                             data: {
                               action: 'recurring-event-rule#toggleInputActiveAttribute ' \
                                       'recurring-event-rule#setRule'
                             }
                           ),
-                          @template.label_tag('monthly_on_1', 'On day')
+                          @template.label_tag("monthly_on_#{timestamp}_1", 'On day')
                         ]
                       )
                     end,
@@ -216,13 +218,13 @@ module Bali
                       safe_join(
                         [
                           @template.radio_button_tag(
-                            'monthly_on', 2, false,
+                            "monthly_on_#{timestamp}", 2, false,
                             data: {
                               action: 'recurring-event-rule#toggleInputActiveAttribute ' \
                                       'recurring-event-rule#setRule'
                             }
                           ),
-                          @template.label_tag('monthly_on_2', 'On the')
+                          @template.label_tag("monthly_on_#{timestamp}_2", 'On the')
                         ]
                       )
                     end,
@@ -259,7 +261,10 @@ module Bali
               ) +
                 @template.label_tag("byweekday_#{day}", day)
             end.prepend(
-              @template.radio_button_tag('weekly', 1, false, checked: true, class: 'is-hidden')
+              @template.radio_button_tag(
+                "weekly_#{Time.zone.now.to_f.to_s.gsub('.', '_')}", 1, false,
+                checked: true, class: 'is-hidden'
+              )
             )
           )
         end
