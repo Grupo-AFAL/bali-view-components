@@ -11,42 +11,26 @@ export class RecurringEventRuleController extends Controller {
   ]
 
   connect () {
-    this.ruleOptions = rrulestr(this.inputTarget.value).origOptions
-  
-    // {
-    //   freq: RRule.WEEKLY,
-    //   interval: null,
-    //   wkst: null, // RRule.MO,
-    //   count: null,
-    //   until: null,
-    //   bysetpos: null,
-    //   bymonthday: null,
-    //   byyearday: null,
-    //   byweekno: null,
-    //   byweekday: null,
-    //   byhour: null,
-    //   byminute: null,
-    //   bysecond: null
-    // }
+    this.inputTarget.value ||= 'FREQ=YEARLY;BYMONTH=1;BYMONTHDAY=1'
+    const options = rrulestr(this.inputTarget.value).origOptions
 
-    for (const [attribute, value] of Object.entries(this.ruleOptions)) {
+    for (const [attribute, value] of Object.entries(options)) {
       this.element.querySelectorAll(`[data-rrule-attr="${attribute}"]`)
           .forEach(element => { element.value = value })
-        }
+    }
     
-    this.endSelectTarget.value = this.ruleOptions.count ? 'after' : (this.ruleOptions.until ? 'on_date' : 'never')
-    this.toggleFreqInputsContainer({ target: { value: this.ruleOptions.freq } })
-    this.toggleIntervalInput({ target: { value: this.ruleOptions.freq } })
-    this.toggleEndInputsContainer({ target: { value: this.endSelectTarget.value }})
+    this.endSelectTarget.value = options.count ? 'after' : (options.until ? 'on_date' : 'never')
+    this.toggleFreqInputsContainer({ target: { value: options.freq } })
+    this.toggleIntervalInput({ target: { value: options.freq } })
+    this.toggleEndInputsContainer({ target: { value: options.value }})
+
   }
 
   toggleFreqInputsContainer = (event) => {
-    if (!this.hasFreqInputsContainerTarget) return
-
     this.freqInputsContainerTargets.forEach(element => {
       const inputs = element.querySelectorAll('[data-rrule-attr]')
 
-      if (element.dataset.freqValue.split(',').includes(event.target.value)) {
+      if (element.dataset.freqValue.split(',').includes(event.target.value.toString())) {
         element.classList.remove('is-hidden')
         const radio = element.querySelector('input[type="radio"]')
         if (radio) this.toggleInputActiveAttribute({ target: radio })
@@ -71,7 +55,6 @@ export class RecurringEventRuleController extends Controller {
       inputs.forEach(input => { this.setInputActiveDataAttribute(input, 'false') })
     }
   }
-
 
   toggleIntervalInput = (event) => {
     const intervalInput = this.element.querySelector('[data-rrule-attr="interval"]')
@@ -104,10 +87,8 @@ export class RecurringEventRuleController extends Controller {
     });
   }
 
-  setRule =  () => {
-    console.log('setting rule')
+  setRule = () => {
     const options = {}
-
     this.element.querySelectorAll('[data-input-active="true"]').forEach(input => {
       if (!input.dataset.rruleAttr.includes('byweekday')) {
         options[input.dataset.rruleAttr] = this.parseInputValue(input.dataset.rruleAttr, input.value)
