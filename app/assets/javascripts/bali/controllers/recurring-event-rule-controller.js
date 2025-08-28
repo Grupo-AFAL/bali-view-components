@@ -19,7 +19,7 @@ export class RecurringEventRuleController extends Controller {
           .forEach(element => { element.value = value })
     }
     
-    this.endSelectTarget.value = options.count ? 'after' : (options.until ? 'on_date' : 'never')
+    this.endSelectTarget.value = options.count ? 'count' : (options.until ? 'until' : '')
     this.toggleFreqInputsContainer({ target: { value: options.freq } })
     this.toggleIntervalInput({ target: { value: options.freq } })
     this.toggleEndInputsContainer({ target: { value: this.endSelectTarget.value }})

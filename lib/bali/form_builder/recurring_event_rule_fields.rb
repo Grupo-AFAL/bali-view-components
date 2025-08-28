@@ -75,15 +75,15 @@ module Bali
       def end_inputs
         safe_join(
           [
-            end_inputs_container('never'),
-            end_inputs_container('after') do
+            end_inputs_container(''),
+            end_inputs_container('count') do
               number_field(
                 'count',
                 value: 1, min: 1,
                 data: {  rrule_attr: 'count', action: 'recurring-event-rule#setRule' }
               )
             end,
-            end_inputs_container('on_date') do
+            end_inputs_container('until') do
               date_field(
                 'until', data: {
                   rrule_attr: 'until',
@@ -282,9 +282,9 @@ module Bali
 
       def ending_options
         [
-          %w[Never never],
-          %w[After after],
-          ['On date', 'on_date']
+          ['Never', ''],
+          %w[After count],
+          ['On date', 'until']
         ]
       end
 
