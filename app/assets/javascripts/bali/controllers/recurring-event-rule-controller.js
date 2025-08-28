@@ -20,9 +20,26 @@ export class RecurringEventRuleController extends Controller {
     }
     
     this.endSelectTarget.value = options.count ? 'count' : (options.until ? 'until' : '')
+    this.checkRadios(this.inputTarget.value)
     this.toggleFreqInputsContainer({ target: { value: options.freq } })
     this.toggleIntervalInput({ target: { value: options.freq } })
     this.toggleEndInputsContainer({ target: { value: this.endSelectTarget.value }})
+  }
+
+  checkRadios = (rule) => {
+    this.freqInputsContainerTargets.forEach(element => {
+      const radios = element.querySelectorAll('input[type="radio"]')
+
+      if (radios.length === 1) {
+        radios[0].checked = true
+      } else if (radios.length > 0 && rule.includes('BYSETPOS')) {
+        radios[0].checked = false
+        radios[radios.length - 1].checked = true
+      } else if (radios.length > 0 ) {
+        radios[0].checked = true
+        radios[radios.length - 1].checked = false
+      }
+    });
   }
 
   toggleFreqInputsContainer = (event) => {
