@@ -5,7 +5,7 @@ export class RecurringEventRuleController extends Controller {
   static targets = [
     'input', 
     'endMethodSelect',
-    'endInputsContainer',
+    'endCustomizationInputsContainer',
     'intervalInputContainer',
     'freqCustomizationInputsContainer',
     'freqCustomizationInputs'
@@ -41,7 +41,9 @@ export class RecurringEventRuleController extends Controller {
     this.checkRadios(this.inputTarget.value)
     this.toggleFreqCustomizationInputsContainer({ target: { value: options.freq } })
     this.toggleIntervalInputContainer({ target: { value: options.freq } })
-    this.toggleEndInputsContainer({ target: { value: this.endMethodSelectTarget.value }})
+    this.toggleEndCustomizationInputsContainer(
+      { target: { value: this.endMethodSelectTarget.value }}
+    )
   }
 
   checkRadios = (rule) => {
@@ -101,8 +103,8 @@ export class RecurringEventRuleController extends Controller {
     target.dataset.inputActive = value
   }
 
-  toggleEndInputsContainer = (event) => {
-    this.endInputsContainerTargets.forEach(element => {
+  toggleEndCustomizationInputsContainer = (event) => {
+    this.endCustomizationInputsContainerTargets.forEach(element => {
       if (event.target.value === element.dataset.endValue) {
         this._show(element)
         this._activateInputs(element)

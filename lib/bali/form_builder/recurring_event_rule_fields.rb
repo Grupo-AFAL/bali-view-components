@@ -62,7 +62,7 @@ module Bali
                 'end', ending_options, {},
                 data: {
                   recurring_event_rule_target: 'endMethodSelect',
-                  action: 'recurring-event-rule#toggleEndInputsContainer ' \
+                  action: 'recurring-event-rule#toggleEndCustomizationInputsContainer ' \
                           'recurring-event-rule#setRule'
                 }
               ),
@@ -99,7 +99,7 @@ module Bali
       def end_inputs_container(end_value, &)
         tag.div(
           class: 'is-hidden',
-          data: { recurring_event_rule_target: 'endInputsContainer', end_value: end_value }, &
+          data: { recurring_event_rule_target: 'endCustomizationInputsContainer', end_value: end_value }, &
         )
       end
 
