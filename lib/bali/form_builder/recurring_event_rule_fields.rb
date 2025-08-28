@@ -36,8 +36,8 @@ module Bali
                 'frequency', frequency_options, {},
                 data: {
                   rrule_attr: 'freq', input_active: true,
-                  action: 'recurring-event-rule#toggleFreqInputsContainer ' \
-                          'recurring-event-rule#toggleIntervalInput ' \
+                  action: 'recurring-event-rule#toggleFreqCustomizationInputsContainer ' \
+                          'recurring-event-rule#toggleIntervalInputContainer ' \
                           'recurring-event-rule#setRule'
 
                 }

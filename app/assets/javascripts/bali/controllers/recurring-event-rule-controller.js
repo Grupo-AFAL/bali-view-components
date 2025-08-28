@@ -39,8 +39,8 @@ export class RecurringEventRuleController extends Controller {
     
     this.endSelectTarget.value = options.count ? 'count' : (options.until ? 'until' : '')
     this.checkRadios(this.inputTarget.value)
-    this.toggleFreqInputsContainer({ target: { value: options.freq } })
-    this.toggleIntervalInput({ target: { value: options.freq } })
+    this.toggleFreqCustomizationInputsContainer({ target: { value: options.freq } })
+    this.toggleIntervalInputContainer({ target: { value: options.freq } })
     this.toggleEndInputsContainer({ target: { value: this.endSelectTarget.value }})
   }
 
@@ -60,7 +60,7 @@ export class RecurringEventRuleController extends Controller {
     });
   }
 
-  toggleFreqInputsContainer = (event) => {
+  toggleFreqCustomizationInputsContainer = (event) => {
     this.freqInputsContainerTargets.forEach(element => {
       if (element.dataset.rruleFreq.split(',').includes(event.target.value.toString())) {
         this._show(element)
@@ -86,13 +86,13 @@ export class RecurringEventRuleController extends Controller {
     })
   }
 
-  toggleIntervalInput = (event) => {
+  toggleIntervalInputContainer = (event) => {
     const intervalInput = this.element.querySelector('[data-rrule-attr="interval"]')
     if (event.target.value.toString() === RRule.YEARLY.toString()) {
-      this._show(this.intervalInputContainerTarget)
+      this._hide(this.intervalInputContainerTarget)
       this.setInputActiveDataAttribute(intervalInput, 'false')
     } else {
-      this._hide(this.intervalInputContainerTarget)
+      this._show(this.intervalInputContainerTarget)
       this.setInputActiveDataAttribute(intervalInput, 'true')
     }  
   }
