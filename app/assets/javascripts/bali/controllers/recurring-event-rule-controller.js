@@ -129,7 +129,7 @@ export class RecurringEventRuleController extends Controller {
       }
     })
 
-    this.inputTarget.value = new RRule(options).toString()
+    this.inputTarget.value = new RRule(options).toString().replace('RRULE:', '')
   }
 
   parseInputValue = (attribute, value) => {    
