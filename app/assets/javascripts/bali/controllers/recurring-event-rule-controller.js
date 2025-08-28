@@ -62,27 +62,26 @@ export class RecurringEventRuleController extends Controller {
 
   toggleFreqInputsContainer = (event) => {
     this.freqInputsContainerTargets.forEach(element => {
-      const inputs = element.querySelectorAll('[data-rrule-attr]')
-
       if (element.dataset.rruleFreq.split(',').includes(event.target.value.toString())) {
-        element.classList.remove('is-hidden')
-        const radio = element.querySelector('input[type="radio"]')
-        if (radio) this.toggleInputActiveAttribute({ target: radio })
+        this._show(element)
+        this.toggleFreqCustomizationInputs(
+          { target: element.querySelector('input[type="radio"]:checked') }
+        )
       } else {
-        element.classList.add('is-hidden')
-        inputs.forEach(input => { this.setInputActiveDataAttribute(input, "false") })
+        this._hide(element)
+        this._deactivateInputs(element)
       }
     });
   }
 
-  toggleInputActiveAttribute = (event) => {
-    this.freqOptionTargets.forEach(element => {
-      const inputs = element.querySelectorAll('[data-rrule-attr]')
+  toggleFreqCustomizationInputs = (event) => {
+    if (!event.target) return
 
+    this.freqOptionTargets.forEach(element => {
       if (event.target.id.endsWith(element.dataset.rruleFreqOption)) {
-        inputs.forEach(input => { this.setInputActiveDataAttribute(input, 'true') })
+        this._activateInputs(element)
       } else {
-        inputs.forEach(input => { this.setInputActiveDataAttribute(input, 'false') })
+        this._deactivateInputs(element)
       }
     })
   }
@@ -90,10 +89,10 @@ export class RecurringEventRuleController extends Controller {
   toggleIntervalInput = (event) => {
     const intervalInput = this.element.querySelector('[data-rrule-attr="interval"]')
     if (event.target.value.toString() === RRule.YEARLY.toString()) {
-      this.intervalInputContainerTarget.classList.add('is-hidden')
+      this._show(this.intervalInputContainerTarget)
       this.setInputActiveDataAttribute(intervalInput, 'false')
     } else {
-      this.intervalInputContainerTarget.classList.remove('is-hidden')
+      this._hide(this.intervalInputContainerTarget)
       this.setInputActiveDataAttribute(intervalInput, 'true')
     }  
   }
@@ -104,16 +103,32 @@ export class RecurringEventRuleController extends Controller {
 
   toggleEndInputsContainer = (event) => {
     this.endInputsContainerTargets.forEach(element => {
-      const inputs = element.querySelectorAll('[data-rrule-attr]')
-
       if (event.target.value === element.dataset.endValue) {
-        element.classList.remove('is-hidden')
-        inputs.forEach(input => { this.setInputActiveDataAttribute(input, "true") })
+        this._show(element)
+        this._activateInputs(element)
       } else {
-        element.classList.add('is-hidden')
-        inputs.forEach(input => { this.setInputActiveDataAttribute(input, "false") })
+        this._hide(element)
+        this._deactivateInputs(element)
       }
     });
+  }
+
+  _hide = (element) => {
+    element.classList.add('is-hidden')
+  }
+
+  _show = (element) => {
+    element.classList.remove('is-hidden')
+  }
+
+  _activateInputs = (element) =>{
+    element.querySelectorAll('[data-rrule-attr]')
+           .forEach(input => { this.setInputActiveDataAttribute(input, "true") })
+  }
+
+  _deactivateInputs = (element) =>{
+    element.querySelectorAll('[data-rrule-attr]')
+           .forEach(input => { this.setInputActiveDataAttribute(input, "false") })
   }
 
   setRule = () => {

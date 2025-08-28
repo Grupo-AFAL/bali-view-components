@@ -138,7 +138,7 @@ module Bali
                           "#{timestamp}_yearly_on", 1, true,
                           checked: true,
                           data: {
-                            action: 'recurring-event-rule#toggleInputActiveAttribute ' \
+                            action: 'recurring-event-rule#toggleFreqCustomizationInputs ' \
                                     'recurring-event-rule#setRule'
                           }
                         ),
@@ -171,7 +171,7 @@ module Bali
                       [
                         @template.radio_button_tag(
                           "#{timestamp}_yearly_on", 2, false, data:
-                          { action: 'recurring-event-rule#toggleInputActiveAttribute ' \
+                          { action: 'recurring-event-rule#toggleFreqCustomizationInputs ' \
                                     'recurring-event-rule#setRule' }
                         ),
                         @template.label_tag("#{timestamp}_yearly_on_2", 'On the')
@@ -214,7 +214,7 @@ module Bali
                           "#{timestamp}_monthly_on", 1, true,
                           checked: true,
                           data: {
-                            action: 'recurring-event-rule#toggleInputActiveAttribute ' \
+                            action: 'recurring-event-rule#toggleFreqCustomizationInputs ' \
                                     'recurring-event-rule#setRule'
                           }
                         ),
@@ -241,7 +241,7 @@ module Bali
                         @template.radio_button_tag(
                           "#{timestamp}_monthly_on", 2, false,
                           data: {
-                            action: 'recurring-event-rule#toggleInputActiveAttribute ' \
+                            action: 'recurring-event-rule#toggleFreqCustomizationInputs ' \
                                     'recurring-event-rule#setRule'
                           }
                         ),
