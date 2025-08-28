@@ -128,52 +128,71 @@ module Bali
         timestamp = Time.zone.now.to_f.to_s.gsub('.', '_')
         safe_join(
           [
-            tag.div(class: 'is-flex inputs-container') do
+            tag.div(class: 'is-flex') do
               safe_join(
                 [
                   tag.span do
                     safe_join(
                       [
                         @template.radio_button_tag(
-                          "yearly_on_#{timestamp}", 1, true,
+                          "#{timestamp}_yearly_on", 1, true,
                           checked: true,
                           data: {
                             action: 'recurring-event-rule#toggleInputActiveAttribute ' \
                                     'recurring-event-rule#setRule'
                           }
                         ),
-                        @template.label_tag("yearly_on_#{timestamp}_1", 'On')
+                        @template.label_tag("#{timestamp}_yearly_on_1", 'On')
                       ]
                     )
                   end,
-                  select_field('bymonth', bymonth_options, {},
-                               data: { rrule_attr: 'bymonth', action: 'recurring-event-rule#setRule' }),
-                  select_field('bymonthday', (1..31).map(&:to_s), {},
-                               data: { rrule_attr: 'bymonthday', action: 'recurring-event-rule#setRule' })
+                  tag.div(
+                    data: { recurring_event_rule_target: 'freqOption',
+                            rrule_freq_option: 'yearly_on_1' }
+                  ) do
+                    safe_join(
+                      [
+                        select_field('bymonth', bymonth_options, {},
+                                     data: { rrule_attr: 'bymonth', action: 'recurring-event-rule#setRule' }),
+                        select_field('bymonthday', (1..31).map(&:to_s), {},
+                                     data: { rrule_attr: 'bymonthday', action: 'recurring-event-rule#setRule' })
+
+                      ]
+                    )
+                  end
                 ]
               )
             end,
-            tag.div(class: 'is-flex inputs-container') do
+            tag.div(class: 'is-flex') do
               safe_join(
                 [
                   tag.span do
                     safe_join(
                       [
                         @template.radio_button_tag(
-                          "yearly_on_#{timestamp}", 2, false, data:
+                          "#{timestamp}_yearly_on", 2, false, data:
                           { action: 'recurring-event-rule#toggleInputActiveAttribute ' \
                                     'recurring-event-rule#setRule' }
                         ),
-                        @template.label_tag("yearly_on_#{timestamp}_2", 'On the')
+                        @template.label_tag("#{timestamp}_yearly_on_2", 'On the')
                       ]
                     )
                   end,
-                  select_field('bysetpos', bysetpos_options, {},
-                               data: { rrule_attr: 'bysetpos', action: 'recurring-event-rule#setRule' }),
-                  select_field('byweekday', byweekday_options, {},
-                               data: { rrule_attr: 'byweekday', action: 'recurring-event-rule#setRule' }),
-                  select_field('bymonth', bymonth_options, {},
-                               data: { rrule_attr: 'bymonth', action: 'recurring-event-rule#setRule' })
+                  tag.div(
+                    data: { recurring_event_rule_target: 'freqOption',
+                            rrule_freq_option: 'yearly_on_2' }
+                  ) do
+                    safe_join(
+                      [
+                        select_field('bysetpos', bysetpos_options, {},
+                                     data: { rrule_attr: 'bysetpos', action: 'recurring-event-rule#setRule' }),
+                        select_field('byweekday', byweekday_options, {},
+                                     data: { rrule_attr: 'byweekday', action: 'recurring-event-rule#setRule' }),
+                        select_field('bymonth', bymonth_options, {},
+                                     data: { rrule_attr: 'bymonth', action: 'recurring-event-rule#setRule' })
+                      ]
+                    )
+                  end
                 ]
               )
             end
@@ -185,50 +204,65 @@ module Bali
         timestamp = Time.zone.now.to_f.to_s.gsub('.', '_')
         safe_join(
           [
-            tag.div(class: 'is-flex inputs-container') do
+            tag.div(class: 'is-flex') do
               safe_join(
                 [
                   tag.span do
                     safe_join(
                       [
                         @template.radio_button_tag(
-                          "monthly_on_#{timestamp}", 1, true,
+                          "#{timestamp}_monthly_on", 1, true,
                           checked: true,
                           data: {
                             action: 'recurring-event-rule#toggleInputActiveAttribute ' \
                                     'recurring-event-rule#setRule'
                           }
                         ),
-                        @template.label_tag("monthly_on_#{timestamp}_1", 'On day')
+                        @template.label_tag("#{timestamp}_monthly_on_1", 'On day')
                       ]
                     )
                   end,
-                  select_field('bymonthday', (1..31).map(&:to_s), {},
-                               data: { rrule_attr: 'bymonthday', action: 'recurring-event-rule#setRule' })
+                  tag.div(
+                    data: { recurring_event_rule_target: 'freqOption',
+                            rrule_freq_option: 'monthly_on_1' }
+                  ) do
+                    select_field('bymonthday', (1..31).map(&:to_s), {},
+                                 data: { rrule_attr: 'bymonthday', action: 'recurring-event-rule#setRule' })
+                  end
                 ]
               )
             end,
-            tag.div(class: 'is-flex inputs-container') do
+            tag.div(class: 'is-flex') do
               safe_join(
                 [
                   tag.span do
                     safe_join(
                       [
                         @template.radio_button_tag(
-                          "monthly_on_#{timestamp}", 2, false,
+                          "#{timestamp}_monthly_on", 2, false,
                           data: {
                             action: 'recurring-event-rule#toggleInputActiveAttribute ' \
                                     'recurring-event-rule#setRule'
                           }
                         ),
-                        @template.label_tag("monthly_on_#{timestamp}_2", 'On the')
+                        @template.label_tag("#{timestamp}_monthly_on_2", 'On the')
                       ]
                     )
                   end,
-                  select_field('bysetpos', bysetpos_options, {},
-                               data: { rrule_attr: 'bysetpos', action: 'recurring-event-rule#setRule' }),
-                  select_field('byweekday', byweekday_options, {},
-                               data: { rrule_attr: 'byweekday', action: 'recurring-event-rule#setRule' })
+                  tag.div(
+                    data: { recurring_event_rule_target: 'freqOption',
+                            rrule_freq_option: 'monthly_on_2' }
+                  ) do
+                    safe_join(
+                      [
+
+                        select_field('bysetpos', bysetpos_options, {},
+                                     data: { rrule_attr: 'bysetpos', action: 'recurring-event-rule#setRule' }),
+                        select_field('byweekday', byweekday_options, {},
+                                     data: { rrule_attr: 'byweekday', action: 'recurring-event-rule#setRule' })
+                      ]
+                    )
+                  end
                 ]
               )
             end
@@ -247,22 +281,30 @@ module Bali
       def weekly_inputs
         timestamp = Time.zone.now.to_f.to_s.gsub('.', '_')
 
-        tag.div(class: 'field inputs-container') do
+        tag.div(class: 'field') do
           safe_join(
             [
-              ['SU', 6], ['MO', 0], ['TU', 1], ['WE', 2], ['TH', 3], ['FR', 4], ['SA', 5]
-            ].map do |day, value|
-              @template.check_box_tag(
-                "byweekday_#{timestamp}_[]", value, false,
-                id: "byweekday_#{timestamp}_#{day}",
-                data: { rrule_attr: 'byweekday', action: 'recurring-event-rule#setRule' }
-              ) +
-                @template.label_tag("byweekday_#{timestamp}_#{day}", day)
-            end.prepend(
               @template.radio_button_tag(
-                "weekly_#{timestamp}", 1, false, checked: true, class: 'is-hidden'
-              )
-            )
+                "#{timestamp}_weekly", 1, false, checked: true, class: 'is-hidden'
+              ),
+              tag.div(
+                data: { recurring_event_rule_target: 'freqOption',
+                        rrule_freq_option: 'weekly_1' }
+              ) do
+                safe_join(
+                  [
+                    ['SU', 6], ['MO', 0], ['TU', 1], ['WE', 2], ['TH', 3], ['FR', 4], ['SA', 5]
+                  ].map do |day, value|
+                    @template.check_box_tag(
+                      "byweekday_#{timestamp}_[]", value, false,
+                      id: "byweekday_#{timestamp}_#{day}",
+                      data: { rrule_attr: 'byweekday', action: 'recurring-event-rule#setRule' }
+                    ) +
+                      @template.label_tag("byweekday_#{timestamp}_#{day}", day)
+                  end
+                )
+              end
+            ]
           )
         end
       end

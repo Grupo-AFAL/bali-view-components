@@ -6,6 +6,7 @@ export class RecurringEventRuleController extends Controller {
     'input', 
     'endSelect',
     'freqInputsContainer',
+    'freqOption',
     'endInputsContainer',
     'intervalInputContainer'
   ]
@@ -75,18 +76,15 @@ export class RecurringEventRuleController extends Controller {
   }
 
   toggleInputActiveAttribute = (event) => {
-    const container = event.target.closest('[data-recurring-event-rule-target="freqInputsContainer"]')
-    container.querySelectorAll('input[type="radio"]')
-             .forEach(input  => { this._toggleInputActiveAttribute(input) })
-  }
+    this.freqOptionTargets.forEach(element => {
+      const inputs = element.querySelectorAll('[data-rrule-attr]')
 
-  _toggleInputActiveAttribute = (radio) => {
-    const inputs = radio.closest('.inputs-container').querySelectorAll('[data-rrule-attr]')
-    if (radio.checked) {
-      inputs.forEach(input => { this.setInputActiveDataAttribute(input, 'true') })
-    } else {
-      inputs.forEach(input => { this.setInputActiveDataAttribute(input, 'false') })
-    }
+      if (event.target.id.endsWith(element.dataset.rruleFreqOption)) {
+        inputs.forEach(input => { this.setInputActiveDataAttribute(input, 'true') })
+      } else {
+        inputs.forEach(input => { this.setInputActiveDataAttribute(input, 'false') })
+      }
+    })
   }
 
   toggleIntervalInput = (event) => {
