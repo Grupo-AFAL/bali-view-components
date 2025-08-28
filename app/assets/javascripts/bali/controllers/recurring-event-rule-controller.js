@@ -172,21 +172,14 @@ export class RecurringEventRuleController extends Controller {
     )
   }
 
-    _syncFreqCustomizationInputsRadios = () => {
-      const rule = this.inputTarget.value
-      
-    this.freqCustomizationInputsContainerTargets.forEach(element => {
+  _syncFreqCustomizationInputsRadios = () => {
+    for (const element of this.freqCustomizationInputsContainerTargets) {
       const radios = element.querySelectorAll('input[type="radio"]')
+      if (radios.length === 0) continue
 
-      if (radios.length === 1) {
-        radios[0].checked = true
-      } else if (radios.length > 0 && rule.includes('BYSETPOS')) {
-        radios[0].checked = false
-        radios[radios.length - 1].checked = true
-      } else if (radios.length > 0 ) {
-        radios[0].checked = true
-        radios[radios.length - 1].checked = false
-      }
-    });
+      radios.forEach(radio => { radio.checked = false })
+      const index = this.inputTarget.value.includes('BYSETPOS') ? radios.length - 1 : 0
+      radios[index].checked = true
+    }
   }
 }
