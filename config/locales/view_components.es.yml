@@ -42,9 +42,9 @@ es:
         never: Nunca
         after: Después de
         on_date: En la fecha
-        first: Primero
+        first: Primer
         second: Segundo
-        third: Tercero
+        third: Tercer
         fourth: Cuarto
         last: Último
         day: Día
@@ -57,7 +57,7 @@ es:
         day_s: Día (s)
         hour_s: Hora (s)
         on: En
-        on_the: En
+        on_the: El
         on_day: En el día
         end: Termina
         ocurrence_s: ocurrencia (s)

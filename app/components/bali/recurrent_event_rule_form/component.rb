@@ -56,12 +56,12 @@ module Bali
       end
 
       def bymonth_options
-        translate('date.month_names').compact.map.with_index do |month, index|
+        I18n.t('date.month_names').compact.map.with_index do |month, index|
           [month, index + 1]
         end
       end
 
-      def translation(key)
+      def translate(key)
         I18n.t("view_components.bali.recurrent_event_rule_form.#{key}")
       end
     end

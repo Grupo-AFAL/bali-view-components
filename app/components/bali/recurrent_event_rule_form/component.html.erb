@@ -1,5 +1,5 @@
 <%= tag.div(**@options) do %>
-  <%= @form.text_field @method, value: @value, data: { recurrent_event_rule_target: 'input' } %>
+  <%= @form.hidden_field @method, value: @value, data: { recurrent_event_rule_target: 'input' } %>
 
   <div class="is-flex is-align-items-center mb-3">
     <p class="mr-4"><b><%= t('.repeat') %></b></p>
@@ -29,7 +29,7 @@
           <span class="is-hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="1"><%= t('.month_s') %></span>
           <span class="is-hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="2"><%= t('.week_s') %></span>
           <span class="is-hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="3"><%= t('.day_s') %></span>
-          <span class="is-hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="4"><%= t('.hour_s') %>)</span>
+          <span class="is-hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="4"><%= t('.hour_s') %></span>
         </b>
       </p>
     </div>
@@ -166,9 +166,9 @@
     >
       <% I18n.t('date.day_names').each_with_index do |day, index| %>
         <% value = index.zero? ? 6 : index - 1 %>
-        <%= check_box_tag "byweekday_#{timestamp}_[]", value, false, id: "byweekday_#{timestamp}_#{day}_#{value}",
+        <%= check_box_tag "byweekday_#{timestamp}_[]", value, false, id: "byweekday_#{timestamp}_#{value}",
             data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' } %>
-        <%= label_tag "byweekday_#{timestamp}_#{day}_#{value}", day.first %>
+        <%= label_tag "byweekday_#{timestamp}_#{value}", day.first %>
       <% end %>
     </div>
   </div>
