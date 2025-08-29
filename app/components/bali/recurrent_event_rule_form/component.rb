@@ -7,6 +7,7 @@ module Bali
         @form = form
         @method = method
         @value = value
+        @disabled = options.delete(:disabled) || false
         @options = prepend_class_name(options, 'recurrent-event-rule-form-component')
         @options = prepend_controller(options, 'recurrent-event-rule')
       end
