@@ -33,7 +33,7 @@ en:
         header:
           week: Week
           month: Month
-      recurring_event_rule_form:
+      recurrent_event_rule_form:
         yearly: Yearly
         monthly: Monthly
         weekly: Weekly

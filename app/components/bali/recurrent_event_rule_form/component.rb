@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 module Bali
-  module RecurringEventRuleForm
+  module RecurrentEventRuleForm
     class Component < ApplicationViewComponent
       def initialize(form, method, value, **options)
         @form = form
         @method = method
         @value = value
-        @options = prepend_class_name(options, 'recurring-event-rule-form-component')
-        @options = prepend_controller(options, 'recurring-event-rule')
+        @options = prepend_class_name(options, 'recurrent-event-rule-form-component')
+        @options = prepend_controller(options, 'recurrent-event-rule')
       end
 
       private
@@ -62,7 +62,7 @@ module Bali
       end
 
       def translation(key)
-        I18n.t("view_components.bali.recurring_event_rule_form.#{key}")
+        I18n.t("view_components.bali.recurrent_event_rule_form.#{key}")
       end
     end
   end

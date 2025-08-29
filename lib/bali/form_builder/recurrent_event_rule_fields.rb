@@ -2,17 +2,17 @@
 
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
-    module RecurringEventRuleFields
-      def recurring_event_rule_field_group(method, options = {})
+    module RecurrentEventRuleFields
+      def recurrent_event_rule_field_group(method, options = {})
         @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
-          recurring_event_rule_field(method, options)
+          recurrent_event_rule_field(method, options)
         end
       end
 
-      def recurring_event_rule_field(method, options = {})
+      def recurrent_event_rule_field(method, options = {})
         value = options.delete(:value)
         @template.render(
-          Bali::RecurringEventRuleForm::Component.new(self, method, value, **options)
+          Bali::RecurrentEventRuleForm::Component.new(self, method, value, **options)
         )
       end
     end

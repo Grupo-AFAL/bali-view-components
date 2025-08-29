@@ -1,7 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 import { RRule, rrulestr } from 'rrule'
 
-export class RecurringEventRuleController extends Controller {
+export class RecurrentEventRuleController extends Controller {
   static targets = [
     'input',
     'endMethodSelect',

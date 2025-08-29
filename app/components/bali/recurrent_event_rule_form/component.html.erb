@@ -1,0 +1,165 @@
+<%= tag.div(**@options) do %>
+  <%= @form.hidden_field @method, value: @value, data: { recurrent_event_rule_target: 'input' } %>
+
+  <div class="is-flex is-align-items-center mb-3">
+    <p class="mr-4"><b><%= t('.repeat') %></b></p>
+
+    <%= @form.select_field :frequency, frequency_options, {},
+        data: { rrule_attr: 'freq', input_active: true, 
+          action: 'recurrent-event-rule#toggleFreqCustomizationInputsContainer ' \
+                  'recurrent-event-rule#toggleIntervalInputContainer ' \
+                  'recurrent-event-rule#toggleFreqHelperText ' \
+                  'recurrent-event-rule#setRule' } %>
+
+    <div class="is-flex is-align-items-center" data-recurrent-event-rule-target="intervalInputContainer">
+      <p class="mx-4"><b><%= t('.every') %></b></p>
+
+      <%= @form.number_field :interval, value: 1, min: 1, 
+          data: { rrule_attr: 'interval', action: 'recurrent-event-rule#setRule' } %>
+
+      <p class="ml-4">
+        <b>
+          <span class="is-hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="0"></span>
+          <span class="is-hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="1"><%= t('.month_s') %></span>
+          <span class="is-hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="2"><%= t('.week_s') %></span>
+          <span class="is-hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="3"><%= t('.day_s') %></span>
+          <span class="is-hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="4"><%= t('.hour_s') %>)</span>
+        </b>
+      </p>
+    </div>
+  </div>
+
+  <div class="pl-5 is-hidden"
+    data-recurrent-event-rule-target="freqCustomizationInputsContainer"
+    data-rrule-freq="0"
+  >
+    <div class="is-flex is-align-items-center mb-2">
+      <%= radio_button_tag("#{timestamp}_yearly_on", 1, true, checked: true, class: 'mr-1',
+          data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs ' \
+                          'recurrent-event-rule#setRule' }) %>
+
+      <%= label_tag "#{timestamp}_yearly_on_1", t('.on') %>
+
+      <div class="is-flex is-align-items-center ml-4"
+        data-recurrent-event-rule-target="freqCustomizationInputs" 
+        data-rrule-freq-option="yearly_on_1"
+      >
+        <%= @form.select_field('bymonth', bymonth_options, {},
+            data: { rrule_attr: 'bymonth', action: 'recurrent-event-rule#setRule' }) %>
+
+        <%= @form.select_field('bymonthday', (1..31).map(&:to_s), {}, control_class: 'ml-4',
+            data: { rrule_attr: 'bymonthday', action: 'recurrent-event-rule#setRule' }) %>
+      </div>
+    </div>
+
+    <div class="is-flex is-align-items-center">
+      <%= radio_button_tag("#{timestamp}_yearly_on", 2, true, checked: true, class: 'mr-1',
+            data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs ' \
+                            'recurrent-event-rule#setRule' }) %>
+
+      <%= label_tag "#{timestamp}_yearly_on_2", t('.on_the') %>
+
+      <div class="is-flex is-align-items-center ml-4" 
+        data-recurrent-event-rule-target="freqCustomizationInputs" 
+        data-rrule-freq-option="yearly_on_2"
+      >
+        <%= @form.select_field('bysetpos', bysetpos_options, {}, control_class: 'mr-4',
+            data: { rrule_attr: 'bysetpos', action: 'recurrent-event-rule#setRule' }) %>
+
+        <%= @form.select_field('byweekday', byweekday_options, {}, control_class: 'mr-4',
+            data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' }) %>
+
+        <%= @form.select_field('bymonth', bymonth_options, {},
+            data: { rrule_attr: 'bymonth', action: 'recurrent-event-rule#setRule' }) %>
+      </div>
+    </div>
+  </div>
+
+  <div class="pl-5 is-hidden"
+    data-recurrent-event-rule-target="freqCustomizationInputsContainer"
+    data-rrule-freq="1"
+  >
+    <div class="is-flex is-align-items-center mb-2">
+      <%= radio_button_tag("#{timestamp}_monthly_on", 1, true, checked: true, class: 'mr-1',
+          data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs ' \
+                          'recurrent-event-rule#setRule' }) %>
+
+      <%= label_tag "#{timestamp}_monthly_on_1", t('.on_day') %>
+
+      <div class="is-flex is-align-items-center ml-4"
+        data-recurrent-event-rule-target="freqCustomizationInputs" 
+        data-rrule-freq-option="monthly_on_1"
+      >
+        <%= @form.select_field('bymonthday', (1..31).map(&:to_s), {},
+            data: { rrule_attr: 'bymonthday', action: 'recurrent-event-rule#setRule' }) %>
+      </div>
+    </div>
+
+    <div class="is-flex is-align-items-center">
+      <%= radio_button_tag("#{timestamp}_monthly_on", 2, true, checked: true, class: 'mr-1',
+          data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs ' \
+                          'recurrent-event-rule#setRule' }) %>
+
+      <%= label_tag "#{timestamp}_monthly_on_2", t('.on_the') %>
+
+      <div class="is-flex is-align-items-center ml-4"
+        data-recurrent-event-rule-target="freqCustomizationInputs"
+        data-rrule-freq-option="monthly_on_2"
+      >
+        <%= @form.select_field('bysetpos', bysetpos_options, {}, control_class: 'mr-4',
+            data: { rrule_attr: 'bysetpos', action: 'recurrent-event-rule#setRule' }) %>
+
+        <%= @form.select_field('byweekday', byweekday_options, {},
+            data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' }) %>
+      </div>
+    </div>
+  </div>
+
+  <div class="pl-5 is-hidden"
+    data-recurrent-event-rule-target="freqCustomizationInputsContainer"
+    data-rrule-freq="2"
+  >
+    <%= radio_button_tag "#{timestamp}_weekly", 1, false, checked: true, class: 'is-hidden' %>
+    <div class="weekday-checkboxes-container"
+      data-recurrent-event-rule-target="freqCustomizationInputs" 
+      data-rrule-freq-option="weekly_1"
+    >
+      <% I18n.t('date.day_names').each_with_index do |day, index| %>
+        <% value = index.zero? ? 6 : index - 1 %>
+        <%= check_box_tag "byweekday_#{timestamp}_[]", value, false, id: "byweekday_#{timestamp}_#{day}_#{value}",
+            data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' } %>
+        <%= label_tag "byweekday_#{timestamp}_#{day}_#{value}", day.first %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="pl-5 is-hidden"
+    data-recurrent-event-rule-target="freqCustomizationInputsContainer"
+    data-rrule-freq="3,4"
+  ></div>
+
+  <div class="is-flex is-align-items-center mt-5">
+    <p class="mr-4"><b><%= t('.end') %></b></p>
+
+    <%= @form.select_field :end, ending_options, {}, 
+        data: { 
+          recurrent_event_rule_target: 'endMethodSelect', 
+          action: 'recurrent-event-rule#toggleEndCustomizationInputsContainer ' \
+                  'recurrent-event-rule#setRule'
+        } %>
+
+    <div class="is-hidden ml-4" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="">
+    </div>
+
+    <div class="is-hidden is-flex is-align-items-center ml-4" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="count">
+      <%= @form.number_field :count, value: 1, min: 1,
+          data: {  rrule_attr: 'count', action: 'recurrent-event-rule#setRule' } %>
+      <p class="ml-4"><b><%= t('.ocurrence_s') %></b></p>
+    </div>
+
+    <div class="is-hidden ml-4" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="until">
+      <%= @form.date_field :until, value: 6.months.from_now.to_date, 
+          data: { rrule_attr: 'until', ecurring_event_rule_target: 'untilInput', action: 'recurrent-event-rule#setRule' } %>
+    </div>
+  </div>
+<% end %>

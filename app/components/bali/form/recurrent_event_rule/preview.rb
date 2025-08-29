@@ -2,11 +2,11 @@
 
 module Bali
   module Form
-    module RecurringEventRule
+    module RecurrentEventRule
       class Preview < ApplicationViewComponentPreview
         def default
           render_with_template(
-            template: 'bali/form/recurring_event_rule/previews/default',
+            template: 'bali/form/recurrent_event_rule/previews/default',
             locals: { model: form_record }
           )
         end

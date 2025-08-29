@@ -33,7 +33,7 @@ es:
         header:
           week: Semana
           month: Mes
-      recurring_event_rule_form:
+      recurrent_event_rule_form:
         yearly: Anualmente
         monthly: Mensualmente
         weekly: Semanalmente

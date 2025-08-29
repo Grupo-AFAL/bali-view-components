@@ -109,7 +109,7 @@ pin 'bali/filters/filter-attribute', to: 'bali/filters/controllers/filter-attrib
 pin 'bali/filters/filter-form', to: 'bali/filters/controllers/filter-form-controller.js'
 pin 'bali/filters/popup', to: 'bali/filters/controllers/popup-controller.js'
 pin 'bali/filters/selected', to: 'bali/filters/controllers/selected-controller.js'
-pin 'bali/recurring-event-rule', to: 'bali/recurring_event_rule_form/index.js'
+pin 'bali/recurrent-event-rule', to: 'bali/recurrent_event_rule_form/index.js'
 
 ## Rich Text Editor ##
 pin "lowlight", to: 'https://cdn.jsdelivr.net/npm/lowlight@3.3.0/+esm'

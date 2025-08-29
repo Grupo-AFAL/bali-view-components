@@ -25,7 +25,7 @@ import { StepNumberInputController } from 'bali/step-number-input-controller'
 import { SubmitButtonController } from 'bali/submit-button-controller'
 import { SubmitOnChangeController } from 'bali/submit-on-change-controller'
 import { TrixAttachmentsController } from 'bali/trix-attachments-controller'
-import { RecurringEventRuleController } from 'bali/recurring-event-rule'
+import { RecurrentEventRuleController } from 'bali/recurrent-event-rule'
 
 import { AvatarController } from 'bali/avatar'
 import { BulkActionsController } from 'bali/bulk_actions'
@@ -111,4 +111,4 @@ application.register('step-number-input', StepNumberInputController)
 application.register('submit-button', SubmitButtonController)
 application.register('submit-on-change', SubmitOnChangeController)
 application.register('trix-attachments', TrixAttachmentsController)
-application.register('recurring-event-rule', RecurringEventRuleController)
+application.register('recurrent-event-rule', RecurrentEventRuleController)

@@ -1,4 +1,4 @@
-.recurring-event-rule-form-component {
+.recurrent-event-rule-form-component {
   .weekday-checkboxes-container {
     display: flex;
     gap: 1rem;
@@ -23,7 +23,7 @@
       cursor: pointer;
     }
 
-    input[type="checkbox"]:checked + label {
+    input[type="checkbox"]:checked+label {
       background: $primary;
       color: $white;
     }

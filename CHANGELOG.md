@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- `Bali::RecurringEventRuleForm` component.
-- `recurring_event_rule_field` and `recurring_event_rule_field_group` to `Bali::FormBuilder`
+- `Bali::RecurrentEventRuleForm` component.
+- `recurrent_event_rule_field` and `recurrent_event_rule_field_group` to `Bali::FormBuilder`
 
 ## [1.4.6] - 2025-07-28
 
