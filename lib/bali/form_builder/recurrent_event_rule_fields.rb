@@ -10,7 +10,8 @@ module Bali
       end
 
       def recurrent_event_rule_field(method, options = {})
-        value = options.delete(:value)
+        value = options.delete(:value) || object.try(method) || ''
+
         @template.render(
           Bali::RecurrentEventRuleForm::Component.new(self, method, value, **options)
         )
