@@ -20,21 +20,27 @@ export class RecurringEventRuleController extends Controller {
     this._syncRruleOptionsWithInputs(options)
     this._syncFreqCustomizationInputsRadios()
 
-    this.toggleFreqCustomizationInputsContainer({ target: { value: options.freq } })
+    this.toggleFreqCustomizationInputsContainer({
+      target: { value: options.freq }
+    })
     this.toggleFreqHelperText({ target: { value: options.freq } })
     this.toggleIntervalInputContainer({ target: { value: options.freq } })
-    this.toggleEndCustomizationInputsContainer(
-      { target: { value: this.endMethodSelectTarget.value } }
-    )
+    this.toggleEndCustomizationInputsContainer({
+      target: { value: this.endMethodSelectTarget.value }
+    })
   }
 
   toggleFreqCustomizationInputsContainer = (event) => {
-    this.freqCustomizationInputsContainerTargets.forEach(element => {
-      if (element.dataset.rruleFreq.split(',').includes(event.target.value.toString())) {
+    this.freqCustomizationInputsContainerTargets.forEach((element) => {
+      if (
+        element.dataset.rruleFreq
+          .split(',')
+          .includes(event.target.value.toString())
+      ) {
         this._show(element)
-        this.toggleFreqCustomizationInputs(
-          { target: element.querySelector('input[type="radio"]:checked') }
-        )
+        this.toggleFreqCustomizationInputs({
+          target: element.querySelector('input[type="radio"]:checked')
+        })
       } else {
         this._hide(element)
         this._deactivateInputs(element)
@@ -43,8 +49,12 @@ export class RecurringEventRuleController extends Controller {
   }
 
   toggleFreqHelperText = (event) => {
-    this.freqHelperTextTargets.forEach(element => {
-      if (element.dataset.rruleFreq.split(',').includes(event.target.value.toString())) {
+    this.freqHelperTextTargets.forEach((element) => {
+      if (
+        element.dataset.rruleFreq
+          .split(',')
+          .includes(event.target.value.toString())
+      ) {
         this._show(element)
       } else {
         this._hide(element)
@@ -55,7 +65,7 @@ export class RecurringEventRuleController extends Controller {
   toggleFreqCustomizationInputs = (event) => {
     if (!event.target) return
 
-    this.freqCustomizationInputsTargets.forEach(element => {
+    this.freqCustomizationInputsTargets.forEach((element) => {
       if (event.target.id.endsWith(element.dataset.rruleFreqOption)) {
         this._activateInputs(element)
       } else {
@@ -65,7 +75,9 @@ export class RecurringEventRuleController extends Controller {
   }
 
   toggleIntervalInputContainer = (event) => {
-    const intervalInput = this.element.querySelector('[data-rrule-attr="interval"]')
+    const intervalInput = this.element.querySelector(
+      '[data-rrule-attr="interval"]'
+    )
     if (event.target.value.toString() === RRule.YEARLY.toString()) {
       this._hide(this.intervalInputContainerTarget)
       this._setInputActiveDataAttribute(intervalInput, 'false')
@@ -76,7 +88,7 @@ export class RecurringEventRuleController extends Controller {
   }
 
   toggleEndCustomizationInputsContainer = (event) => {
-    this.endCustomizationInputsContainerTargets.forEach(element => {
+    this.endCustomizationInputsContainerTargets.forEach((element) => {
       if (event.target.value === element.dataset.endValue) {
         this._show(element)
         this._activateInputs(element)
@@ -89,16 +101,20 @@ export class RecurringEventRuleController extends Controller {
 
   setRule = () => {
     const options = {}
-    this.element.querySelectorAll('[data-input-active="true"]').forEach(input => {
-      if (input.dataset.rruleAttr !== 'byweekday') {
-        options[input.dataset.rruleAttr] = parseInt(input.value)
-      } else if (input.type !== 'checkbox' || input.checked) {
-        options.byweekday ??= []
-        options.byweekday = options.byweekday.concat(input.value.split(','))
-      }
-    })
+    this.element
+      .querySelectorAll('[data-input-active="true"]')
+      .forEach((input) => {
+        if (input.dataset.rruleAttr !== 'byweekday') {
+          options[input.dataset.rruleAttr] = parseInt(input.value)
+        } else if (input.type !== 'checkbox' || input.checked) {
+          options.byweekday ??= []
+          options.byweekday = options.byweekday.concat(input.value.split(','))
+        }
+      })
 
-    this.inputTarget.value = new RRule(options).toString().replace('RRULE:', '')
+    this.inputTarget.value = new RRule(options)
+      .toString()
+      .replace('RRULE:', '')
   }
 
   _setInputActiveDataAttribute = (target, value) => {
@@ -114,19 +130,23 @@ export class RecurringEventRuleController extends Controller {
   }
 
   _activateInputs = (element) => {
-    element.querySelectorAll('[data-rrule-attr]')
-      .forEach(input => { this._setInputActiveDataAttribute(input, 'true') })
+    element.querySelectorAll('[data-rrule-attr]').forEach((input) => {
+      this._setInputActiveDataAttribute(input, 'true')
+    })
   }
 
   _deactivateInputs = (element) => {
-    element.querySelectorAll('[data-rrule-attr]')
-      .forEach(input => { this._setInputActiveDataAttribute(input, 'false') })
+    element.querySelectorAll('[data-rrule-attr]').forEach((input) => {
+      this._setInputActiveDataAttribute(input, 'false')
+    })
   }
 
   _setSelectedIndexToEndMethodSelect = (options) => {
     let selectedValue = ''
     const keys = ['count', 'until']
-    keys.forEach(key => { if (options[key]) selectedValue = key })
+    keys.forEach((key) => {
+      if (options[key]) selectedValue = key
+    })
 
     this._setSelectedIndexToSelect(this.endMethodSelectTarget, selectedValue)
   }
@@ -137,8 +157,11 @@ export class RecurringEventRuleController extends Controller {
     for (const [attribute, value] of Object.entries(options)) {
       if (attribute === 'byweekday') continue
 
-      this.element.querySelectorAll(`[data-rrule-attr="${attribute}"]`)
-        .forEach(element => { element.value = value })
+      this.element
+        .querySelectorAll(`[data-rrule-attr="${attribute}"]`)
+        .forEach((element) => {
+          element.value = value
+        })
     }
   }
 
@@ -146,9 +169,12 @@ export class RecurringEventRuleController extends Controller {
     if (!value) return
     if (freq === RRule.WEEKLY) this._checkByWeekDayInputs(value)
 
-    const selectedValue = value.map(opt => opt.weekday).join(',')
-    this.element.querySelectorAll('select[data-rrule-attr="byweekday"]')
-      .forEach(element => { this._setSelectedIndexToSelect(element, selectedValue) })
+    const selectedValue = value.map((opt) => opt.weekday).join(',')
+    this.element
+      .querySelectorAll('select[data-rrule-attr="byweekday"]')
+      .forEach((element) => {
+        this._setSelectedIndexToSelect(element, selectedValue)
+      })
   }
 
   _checkByWeekDayInputs = (weekdays) => {
@@ -164,7 +190,8 @@ export class RecurringEventRuleController extends Controller {
 
   _setSelectedIndexToSelect = (element, selectedValue) => {
     element.selectedIndex = Math.max(
-      [...element.options].findIndex(opt => opt.value === selectedValue), 0
+      [...element.options].findIndex((opt) => opt.value === selectedValue),
+      0
     )
   }
 
@@ -173,8 +200,12 @@ export class RecurringEventRuleController extends Controller {
       const radios = element.querySelectorAll('input[type="radio"]')
       if (radios.length === 0) continue
 
-      radios.forEach(radio => { radio.checked = false })
-      const index = this.inputTarget.value.includes('BYSETPOS') ? radios.length - 1 : 0
+      radios.forEach((radio) => {
+        radio.checked = false
+      })
+      const index = this.inputTarget.value.includes('BYSETPOS')
+        ? radios.length - 1
+        : 0
       radios[index].checked = true
     }
   }

@@ -9,44 +9,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- `Bali::RecurringEventRuleForm` component. 
+- `Bali::RecurringEventRuleForm` component.
 - `recurring_event_rule_field` and `recurring_event_rule_field_group` to `Bali::FormBuilder`
 
 ## [1.4.6] - 2025-07-28
 
 ### Changed
+
 - `submit` function of `ModalController` to check and report inputs validity
 
 ## [1.4.5] - 2025-07-29
 
 ### Changed
+
 - Upgrade `gems` and `importmap`
 - Replace `code climate` with `qlty`
 
 ## [1.4.4] - 2025-06-11
 
 ### Changed
+
 - `datepicker-controller` and `date fields` to support disabling specific dates.
 
 ## [1.4.3] - 2025-05-29
 
 ### Changed
+
 - `slim-select` to support rendering custom HTML for remote search results.
 
 ## [1.4.2] - 2025-04-23
 
 ### Changed
+
 - `Bali::SideMenu::Component` component to preserve scroll position when a link has been clicked
+
 - `Bali::SideMenu::Item::Component` component to add `is-list` class when items are present.
 
 ## [1.4.1] - 2025-03-27
 
 ### Changed
+
 - `Table` component to allow bulk actions to render a modal and add custom style
 
 ## [1.4.0] - 2024-02-20
 
 ### Updated
+
 - Upgrade `rails` to version `8.0.1`
 - Upgrade `ruby` to version `3.3.7`
 - Updated `gems` and importmap
@@ -54,49 +62,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.3] - 2024-02-25
 
 ### Fixed
+
 - value was displayed as `undefined` when adding a suffix or prefix in a pie or doughnut chart.
 
 ## [1.3.2] - 2024-01-30
 
 ### Fixed
+
 - Redirection issues when attempting to open a restricted modal.
 
 ## [1.3.1] - 2024-12-20
 
 ### Changed
+
 - Set `modal` attribute to `false` when link is disabled (`Bali::Link::Component`)
 
 ## [1.3.0] - 2024-10-18
 
 ### Changed
+
 - Upgrade to `rails` to `7.2`
 - Update `gems` and `importmap`
 
 ## [1.2.5] - 2024-09-17
 
 ### Changed
+
 - Added `submit-actions` class name to `submit_actions` fields helper.
 
 ## [1.2.4] - 2024-07-25
 
 ### Changed
+
 - Updated `rails` to version `7.1.4`
 
 ## [1.2.3] - 2024-07-25
 
 ### Changed
+
 - Updated gems and npm packages
 
 ## [1.2.2] - 2024-06-06
 
 ### Fixed
+
 - Cannot read properties of undefined (reading 'destroy') in `stimulus` controllers.
 - Missing target element "menu" for "navbar" controller
 
 ## [1.2.1] - 2024-05-20
 
 ### Fixed
-- Incorrect `for` attribute value in radio buttons of `radio_buttons_field_group` when  value is a datetime
+
+- Incorrect `for` attribute value in radio buttons of `radio_buttons_field_group` when value is a datetime
 
 ## [1.2.0] - 2024-05-06
 
