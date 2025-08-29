@@ -104,7 +104,10 @@ export class RecurrentEventRuleController extends Controller {
     this.element
       .querySelectorAll('[data-input-active="true"]')
       .forEach((input) => {
-        if (input.dataset.rruleAttr !== 'byweekday') {
+        if (input.dataset.rruleAttr === 'until') {
+          const [year, month, day] = input.value.split('-')
+          options[input.dataset.rruleAttr] = new Date(year, month, day)
+        } else if (input.dataset.rruleAttr !== 'byweekday') {
           options[input.dataset.rruleAttr] = parseInt(input.value)
         } else if (input.type !== 'checkbox' || input.checked) {
           options.byweekday ??= []
@@ -153,9 +156,10 @@ export class RecurrentEventRuleController extends Controller {
 
   _syncRruleOptionsWithInputs = (options) => {
     this._syncRruleByweekdayOptionWithInputs(options.freq, options.byweekday)
+    this._syncRruleUntilOptionWithInputs(options.until)
 
     for (const [attribute, value] of Object.entries(options)) {
-      if (attribute === 'byweekday') continue
+      if (attribute === 'byweekday' || attribute === 'until') continue
 
       this.element
         .querySelectorAll(`[data-rrule-attr="${attribute}"]`)
@@ -208,5 +212,21 @@ export class RecurrentEventRuleController extends Controller {
         : 0
       radios[index].checked = true
     }
+  }
+
+  _syncRruleUntilOptionWithInputs = (date) => {
+    const element = this.element.querySelector('[data-rrule-attr="until"]')
+    if (!element || !date) return
+
+    element.value = this._hyphenizeDate(date)
+  }
+
+  _hyphenizeDate = (date) => {
+    console.log(date)
+    const year = date.getFullYear()
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const day = (date.getDate()).toString().padStart(2, '0')
+
+    return `${year}-${month}-${day}`
   }
 }

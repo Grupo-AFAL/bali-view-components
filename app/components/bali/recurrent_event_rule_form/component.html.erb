@@ -1,21 +1,27 @@
 <%= tag.div(**@options) do %>
-  <%= @form.hidden_field @method, value: @value, data: { recurrent_event_rule_target: 'input' } %>
+  <%= @form.text_field @method, value: @value, data: { recurrent_event_rule_target: 'input' } %>
 
   <div class="is-flex is-align-items-center mb-3">
     <p class="mr-4"><b><%= t('.repeat') %></b></p>
 
-    <%= @form.select_field :frequency, frequency_options, {},
-        data: { rrule_attr: 'freq', input_active: true, 
-          action: 'recurrent-event-rule#toggleFreqCustomizationInputsContainer ' \
-                  'recurrent-event-rule#toggleIntervalInputContainer ' \
-                  'recurrent-event-rule#toggleFreqHelperText ' \
-                  'recurrent-event-rule#setRule' } %>
+    <div class="control">
+      <div class="select">
+        <%= select_tag :freq, options_for_select(frequency_options), 
+            data: { rrule_attr: 'freq', input_active: true, 
+            action: 'recurrent-event-rule#toggleFreqCustomizationInputsContainer ' \
+                    'recurrent-event-rule#toggleIntervalInputContainer ' \
+                    'recurrent-event-rule#toggleFreqHelperText ' \
+                    'recurrent-event-rule#setRule' } %>
+      </div>
+    </div>
 
     <div class="is-flex is-align-items-center" data-recurrent-event-rule-target="intervalInputContainer">
       <p class="mx-4"><b><%= t('.every') %></b></p>
 
-      <%= @form.number_field :interval, value: 1, min: 1, 
-          data: { rrule_attr: 'interval', action: 'recurrent-event-rule#setRule' } %>
+      <div class="control">
+        <%= number_field_tag :interval, 1, min: 1, class: 'input', 
+            data: {  rrule_attr: 'interval', action: 'recurrent-event-rule#setRule' } %>
+      </div>
 
       <p class="ml-4">
         <b>
@@ -44,11 +50,19 @@
         data-recurrent-event-rule-target="freqCustomizationInputs" 
         data-rrule-freq-option="yearly_on_1"
       >
-        <%= @form.select_field('bymonth', bymonth_options, {},
-            data: { rrule_attr: 'bymonth', action: 'recurrent-event-rule#setRule' }) %>
+        <div class="control">
+          <div class="select">
+            <%= select_tag :bymonth, options_for_select(bymonth_options), 
+                data: { rrule_attr: 'bymonth', action: 'recurrent-event-rule#setRule' } %>
+          </div>
+        </div>
 
-        <%= @form.select_field('bymonthday', (1..31).map(&:to_s), {}, control_class: 'ml-4',
-            data: { rrule_attr: 'bymonthday', action: 'recurrent-event-rule#setRule' }) %>
+        <div class="control ml-4">
+          <div class="select">
+            <%= select_tag :bymonthday, options_for_select((1..31).map(&:to_s)), 
+                data: { rrule_attr: 'bymonthday', action: 'recurrent-event-rule#setRule' } %>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -63,14 +77,26 @@
         data-recurrent-event-rule-target="freqCustomizationInputs" 
         data-rrule-freq-option="yearly_on_2"
       >
-        <%= @form.select_field('bysetpos', bysetpos_options, {}, control_class: 'mr-4',
-            data: { rrule_attr: 'bysetpos', action: 'recurrent-event-rule#setRule' }) %>
+        <div class="control mr-4">
+          <div class="select">
+            <%= select_tag :bysetpos, options_for_select(bysetpos_options),
+                data: { rrule_attr: 'bysetpos', action: 'recurrent-event-rule#setRule' } %>
+          </div>
+        </div>
 
-        <%= @form.select_field('byweekday', byweekday_options, {}, control_class: 'mr-4',
-            data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' }) %>
+        <div class="control mr-4">
+          <div class="select">
+            <%= select_tag :byweekday, options_for_select(byweekday_options),
+              data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' } %>
+          </div>
+        </div>
 
-        <%= @form.select_field('bymonth', bymonth_options, {},
-            data: { rrule_attr: 'bymonth', action: 'recurrent-event-rule#setRule' }) %>
+        <div class="control">
+          <div class="select">
+            <%= select_tag :bymonth, options_for_select(bymonth_options),
+                data: { rrule_attr: 'bymonth', action: 'recurrent-event-rule#setRule' } %>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -90,8 +116,13 @@
         data-recurrent-event-rule-target="freqCustomizationInputs" 
         data-rrule-freq-option="monthly_on_1"
       >
-        <%= @form.select_field('bymonthday', (1..31).map(&:to_s), {},
-            data: { rrule_attr: 'bymonthday', action: 'recurrent-event-rule#setRule' }) %>
+        <div class="control">
+          <div class="select">
+            <%= select_tag :bymonthday, options_for_select((1..31).map(&:to_s)),
+                data: { rrule_attr: 'bymonthday', action: 'recurrent-event-rule#setRule' } %>
+
+          </div>
+        </div>
       </div>
     </div>
 
@@ -106,11 +137,20 @@
         data-recurrent-event-rule-target="freqCustomizationInputs"
         data-rrule-freq-option="monthly_on_2"
       >
-        <%= @form.select_field('bysetpos', bysetpos_options, {}, control_class: 'mr-4',
-            data: { rrule_attr: 'bysetpos', action: 'recurrent-event-rule#setRule' }) %>
+        <div class="control mr-4">
+          <div class="select">
+            <%= select_tag :bysetpos, options_for_select(bysetpos_options),
+                data: { rrule_attr: 'bysetpos', action: 'recurrent-event-rule#setRule' } %>
 
-        <%= @form.select_field('byweekday', byweekday_options, {},
-            data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' }) %>
+          </div>
+        </div>
+
+        <div class="control">
+          <div class="select">
+            <%= select_tag :byweekday, options_for_select(byweekday_options),
+                data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' } %>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -141,25 +181,33 @@
   <div class="is-flex is-align-items-center mt-5">
     <p class="mr-4"><b><%= t('.end') %></b></p>
 
-    <%= @form.select_field :end, ending_options, {}, 
-        data: { 
-          recurrent_event_rule_target: 'endMethodSelect', 
-          action: 'recurrent-event-rule#toggleEndCustomizationInputsContainer ' \
-                  'recurrent-event-rule#setRule'
-        } %>
+    <div class="control">
+      <div class="select">
+        <%= select_tag :end, options_for_select(ending_options),
+            data: { 
+              recurrent_event_rule_target: 'endMethodSelect', 
+              action: 'recurrent-event-rule#toggleEndCustomizationInputsContainer ' \
+                      'recurrent-event-rule#setRule'
+            } %>
+      </div>
+    </div>
 
     <div class="is-hidden ml-4" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="">
     </div>
 
     <div class="is-hidden is-flex is-align-items-center ml-4" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="count">
-      <%= @form.number_field :count, value: 1, min: 1,
-          data: {  rrule_attr: 'count', action: 'recurrent-event-rule#setRule' } %>
+      <div class="control">
+        <%= number_field_tag :count, 1, min: 1, class: 'input', 
+            data: {  rrule_attr: 'count', action: 'recurrent-event-rule#setRule' } %>
+      </div>
       <p class="ml-4"><b><%= t('.ocurrence_s') %></b></p>
     </div>
 
     <div class="is-hidden ml-4" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="until">
-      <%= @form.date_field :until, value: 6.months.from_now.to_date, 
-          data: { rrule_attr: 'until', ecurring_event_rule_target: 'untilInput', action: 'recurrent-event-rule#setRule' } %>
+      <div class="control">
+        <%= date_field_tag :until, 6.months.from_now.to_date, class: 'input',
+            data: { rrule_attr: 'until', ecurring_event_rule_target: 'untilInput', action: 'recurrent-event-rule#setRule' } %>
+      </div>
     </div>
   </div>
 <% end %>
