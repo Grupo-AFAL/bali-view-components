@@ -33,3 +33,31 @@ es:
         header:
           week: Semana
           month: Mes
+      recurring_event_rule_form:
+        yearly: Anualmente
+        monthly: Mensualmente
+        weekly: Semanalmente
+        daily: Por día
+        hourly: Por hora
+        never: Nunca
+        after: Después de
+        on_date: En la fecha
+        first: Primero
+        second: Segundo
+        third: Tercero
+        fourth: Cuarto
+        last: Último
+        day: Día
+        weekday: Días laborales
+        weekend_day: Fines de semana
+        repeat: Repetir
+        every: cada
+        month_s: Mes (es)
+        week_s: Semana (s)
+        day_s: Día (s)
+        hour_s: Hora (s)
+        on: En
+        on_the: En
+        on_day: En el día
+        end: Termina
+        ocurrence_s: ocurrencia (s)

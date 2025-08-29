@@ -1,17 +1,17 @@
 <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
   <%= form.recurring_event_rule_field_group :rule %>
 
-  <div class="my-6"></div>
+  <hr>
 
   <%= form.recurring_event_rule_field :rule, 
-      value: 'RRULE:INTERVAL=5;FREQ=MONTHLY;BYSETPOS=-1;BYDAY=MO' %> 
+      value: 'RRULE:INTERVAL=5;FREQ=MONTHLY;BYSETPOS=-1;BYDAY=MO' %>
 
-  <div class="my-6"></div>
+  <hr>
 
   <%= form.recurring_event_rule_field :rule, 
-      value: 'RRULE:INTERVAL=5;FREQ=WEEKLY;BYDAY=SU,TU,TH;COUNT=3' %> 
+      value: 'RRULE:INTERVAL=5;FREQ=WEEKLY;BYDAY=SU,TU,TH;COUNT=3' %>
 
-  <div class="my-6"></div>
-  
+  <hr>
+
   <%= form.recurring_event_rule_field :rule, value: 'FREQ=DAILY;INTERVAL=1;UNTIL=20250831T000000Z' %>
 <% end %>

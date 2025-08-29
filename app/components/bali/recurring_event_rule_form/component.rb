@@ -19,62 +19,50 @@ module Bali
 
       def frequency_options
         [
-          %w[Year 0],
-          %w[Month 1],
-          %w[Week 2],
-          %w[Day 3],
-          %w[Hour 4]
+          [translate('yearly'), 0],
+          [translate('monthly'), 1],
+          [translate('weekly'), 2],
+          [translate('daily'), 3],
+          [translate('hourly'), 4]
         ]
       end
 
       def ending_options
         [
-          ['Never', ''],
-          %w[After count],
-          ['On date', 'until']
+          [translate('never'), ''],
+          [translate('after'), 'count'],
+          [translate('on_date'), 'until']
         ]
       end
 
       def bysetpos_options
         [
-          %w[First 1],
-          %w[Second 2],
-          %w[Third 3],
-          %w[Fourth 4],
-          %w[Last -1]
+          [translate('first'), 1],
+          [translate('second'), 2],
+          [translate('fourth'), 4],
+          [translate('third'), 3],
+          [translate('last'), -1]
         ]
       end
 
       def byweekday_options
-        [
-          %w[Sunday 6],
-          %w[Monday 0],
-          %w[Tuesday 1],
-          %w[Wednesday 2],
-          %w[Thursday 3],
-          %w[Friday 4],
-          %w[Saturday 5],
-          %w[Day 6,0,1,2,3,4,5],
-          %w[Weekday 0,1,2,3,4],
-          ['Weekend day', '6,5']
-        ]
+        options = I18n.t('date.day_names').map.with_index do |day, index|
+          [day, index.zero? ? 6 : index - 1]
+        end
+        options << [translate('day'), '6,0,1,2,3,4,5']
+        options << [translate('weekday'), '0,1,2,3,4']
+        options << [translate('weekend_day'), '6,5']
+        options
       end
 
       def bymonth_options
-        [
-          %w[January 1],
-          %w[February 2],
-          %w[March 3],
-          %w[April 4],
-          %w[May 5],
-          %w[June 6],
-          %w[July 7],
-          %w[August 8],
-          %w[September 9],
-          %w[October 10],
-          %w[November 11],
-          %w[December 12]
-        ]
+        translate('date.month_names').compact.map.with_index do |month, index|
+          [month, index + 1]
+        end
+      end
+
+      def translation(key)
+        I18n.t("view_components.bali.recurring_event_rule_form.#{key}")
       end
     end
   end

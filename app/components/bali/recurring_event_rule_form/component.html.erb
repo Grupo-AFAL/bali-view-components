@@ -2,7 +2,7 @@
   <%= @form.hidden_field @method, value: @value, data: { recurring_event_rule_target: 'input' } %>
 
   <div class="is-flex is-align-items-center mb-3">
-    <p class="mr-4"><b>Repeat</b></p>
+    <p class="mr-4"><b><%= t('.repeat') %></b></p>
 
     <%= @form.select_field :frequency, frequency_options, {},
         data: { rrule_attr: 'freq', input_active: true, 
@@ -12,7 +12,7 @@
                   'recurring-event-rule#setRule' } %>
 
     <div class="is-flex is-align-items-center" data-recurring-event-rule-target="intervalInputContainer">
-      <p class="mx-4"><b>Every</b></p>
+      <p class="mx-4"><b><%= t('.every') %></b></p>
 
       <%= @form.number_field :interval, value: 1, min: 1, 
           data: { rrule_attr: 'interval', action: 'recurring-event-rule#setRule' } %>
@@ -20,10 +20,10 @@
       <p class="ml-4">
         <b>
           <span class="is-hidden" data-recurring-event-rule-target="freqHelperText" data-rrule-freq="0"></span>
-          <span class="is-hidden" data-recurring-event-rule-target="freqHelperText" data-rrule-freq="1">Month (s)</span>
-          <span class="is-hidden" data-recurring-event-rule-target="freqHelperText" data-rrule-freq="2">Week (s)</span>
-          <span class="is-hidden" data-recurring-event-rule-target="freqHelperText" data-rrule-freq="3">Day (s)</span>
-          <span class="is-hidden" data-recurring-event-rule-target="freqHelperText" data-rrule-freq="4">Hour (s)</span>
+          <span class="is-hidden" data-recurring-event-rule-target="freqHelperText" data-rrule-freq="1"><%= t('.month_s') %></span>
+          <span class="is-hidden" data-recurring-event-rule-target="freqHelperText" data-rrule-freq="2"><%= t('.week_s') %></span>
+          <span class="is-hidden" data-recurring-event-rule-target="freqHelperText" data-rrule-freq="3"><%= t('.day_s') %></span>
+          <span class="is-hidden" data-recurring-event-rule-target="freqHelperText" data-rrule-freq="4"><%= t('.hour_s') %>)</span>
         </b>
       </p>
     </div>
@@ -38,7 +38,7 @@
           data: { action: 'recurring-event-rule#toggleFreqCustomizationInputs ' \
                           'recurring-event-rule#setRule' }) %>
 
-      <%= label_tag "#{timestamp}_yearly_on_1", 'On' %>
+      <%= label_tag "#{timestamp}_yearly_on_1", t('.on') %>
 
       <div class="is-flex is-align-items-center ml-4"
         data-recurring-event-rule-target="freqCustomizationInputs" 
@@ -57,7 +57,7 @@
             data: { action: 'recurring-event-rule#toggleFreqCustomizationInputs ' \
                             'recurring-event-rule#setRule' }) %>
 
-      <%= label_tag "#{timestamp}_yearly_on_2", 'On the' %>
+      <%= label_tag "#{timestamp}_yearly_on_2", t('.on_the') %>
 
       <div class="is-flex is-align-items-center ml-4" 
         data-recurring-event-rule-target="freqCustomizationInputs" 
@@ -84,7 +84,7 @@
           data: { action: 'recurring-event-rule#toggleFreqCustomizationInputs ' \
                           'recurring-event-rule#setRule' }) %>
 
-      <%= label_tag "#{timestamp}_monthly_on_1", 'On day' %>
+      <%= label_tag "#{timestamp}_monthly_on_1", t('.on_day') %>
 
       <div class="is-flex is-align-items-center ml-4"
         data-recurring-event-rule-target="freqCustomizationInputs" 
@@ -100,7 +100,7 @@
           data: { action: 'recurring-event-rule#toggleFreqCustomizationInputs ' \
                           'recurring-event-rule#setRule' }) %>
 
-      <%= label_tag "#{timestamp}_monthly_on_2", 'On the' %>
+      <%= label_tag "#{timestamp}_monthly_on_2", t('.on_the') %>
 
       <div class="is-flex is-align-items-center ml-4"
         data-recurring-event-rule-target="freqCustomizationInputs"
@@ -124,10 +124,11 @@
       data-recurring-event-rule-target="freqCustomizationInputs" 
       data-rrule-freq-option="weekly_1"
     >
-      <% [['S', 6], ['M', 0], ['T', 1], ['W', 2], ['T', 3], ['F', 4], ['S', 5]].each do |day, value| %>
+      <% I18n.t('date.day_names').each_with_index do |day, index| %>
+        <% value = index.zero? ? 6 : index - 1 %>
         <%= check_box_tag "byweekday_#{timestamp}_[]", value, false, id: "byweekday_#{timestamp}_#{day}_#{value}",
             data: { rrule_attr: 'byweekday', action: 'recurring-event-rule#setRule' } %>
-        <%= label_tag "byweekday_#{timestamp}_#{day}_#{value}", day %>
+        <%= label_tag "byweekday_#{timestamp}_#{day}_#{value}", day.first %>
       <% end %>
     </div>
   </div>
@@ -138,7 +139,7 @@
   ></div>
 
   <div class="is-flex is-align-items-center mt-5">
-    <p class="mr-4"><b>End</b></p>
+    <p class="mr-4"><b><%= t('.end') %></b></p>
 
     <%= @form.select_field :end, ending_options, {}, 
         data: { 
@@ -153,7 +154,7 @@
     <div class="is-hidden is-flex is-align-items-center ml-4" data-recurring-event-rule-target="endCustomizationInputsContainer" data-end-value="count">
       <%= @form.number_field :count, value: 1, min: 1,
           data: {  rrule_attr: 'count', action: 'recurring-event-rule#setRule' } %>
-      <p class="ml-4"><b>ocurrence (s)</b></p>
+      <p class="ml-4"><b><%= t('.ocurrence_s') %></b></p>
     </div>
 
     <div class="is-hidden ml-4" data-recurring-event-rule-target="endCustomizationInputsContainer" data-end-value="until">
