@@ -78,7 +78,6 @@ pin 'bali/step-number-input-controller', to: 'bali/controllers/step-number-input
 pin 'bali/submit-button-controller', to: 'bali/controllers/submit-button-controller'
 pin 'bali/submit-on-change-controller', to: 'bali/controllers/submit-on-change-controller'
 pin 'bali/trix-attachments-controller', to: 'bali/controllers/trix-attachments-controller'
-pin 'bali/recurring-event-rule-controller', to: 'bali/controllers/recurring-event-rule-controller'
 
 # Bali Components (Javascript)
 pin 'bali/avatar', to: 'bali/avatar/index.js'
@@ -110,6 +109,7 @@ pin 'bali/filters/filter-attribute', to: 'bali/filters/controllers/filter-attrib
 pin 'bali/filters/filter-form', to: 'bali/filters/controllers/filter-form-controller.js'
 pin 'bali/filters/popup', to: 'bali/filters/controllers/popup-controller.js'
 pin 'bali/filters/selected', to: 'bali/filters/controllers/selected-controller.js'
+pin 'bali/recurring-event-rule', to: 'bali/recurring_event_rule_form/index.js'
 
 ## Rich Text Editor ##
 pin "lowlight", to: 'https://cdn.jsdelivr.net/npm/lowlight@3.3.0/+esm'

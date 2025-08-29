@@ -8,7 +8,8 @@ export class RecurringEventRuleController extends Controller {
     'endCustomizationInputsContainer',
     'intervalInputContainer',
     'freqCustomizationInputsContainer',
-    'freqCustomizationInputs'
+    'freqCustomizationInputs',
+    'freqHelperText'
   ]
 
   connect () {
@@ -20,6 +21,7 @@ export class RecurringEventRuleController extends Controller {
     this._syncFreqCustomizationInputsRadios()
 
     this.toggleFreqCustomizationInputsContainer({ target: { value: options.freq } })
+    this.toggleFreqHelperText({ target: { value: options.freq } })
     this.toggleIntervalInputContainer({ target: { value: options.freq } })
     this.toggleEndCustomizationInputsContainer(
       { target: { value: this.endMethodSelectTarget.value } }
@@ -36,6 +38,16 @@ export class RecurringEventRuleController extends Controller {
       } else {
         this._hide(element)
         this._deactivateInputs(element)
+      }
+    })
+  }
+
+  toggleFreqHelperText = (event) => {
+    this.freqHelperTextTargets.forEach(element => {
+      if (element.dataset.rruleFreq.split(',').includes(event.target.value.toString())) {
+        this._show(element)
+      } else {
+        this._hide(element)
       }
     })
   }

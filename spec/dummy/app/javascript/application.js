@@ -25,7 +25,7 @@ import { StepNumberInputController } from 'bali/step-number-input-controller'
 import { SubmitButtonController } from 'bali/submit-button-controller'
 import { SubmitOnChangeController } from 'bali/submit-on-change-controller'
 import { TrixAttachmentsController } from 'bali/trix-attachments-controller'
-import { RecurringEventRuleController } from 'bali/recurring-event-rule-controller'
+import { RecurringEventRuleController } from 'bali/recurring-event-rule'
 
 import { AvatarController } from 'bali/avatar'
 import { BulkActionsController } from 'bali/bulk_actions'
