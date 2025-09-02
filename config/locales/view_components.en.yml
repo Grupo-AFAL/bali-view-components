@@ -33,3 +33,31 @@ en:
         header:
           week: Week
           month: Month
+      recurrent_event_rule_form:
+        yearly: Yearly
+        monthly: Monthly
+        weekly: Weekly
+        daily: Daily
+        hourly: Hourly
+        never: Never
+        after: After
+        on_date: On date
+        first: First
+        second: Second
+        third: Third
+        fourth: Fourth
+        last: Last
+        day: Day
+        weekday: Weekday
+        weekend_day: Weekend day
+        repeat: Repeat
+        every: every
+        month_s: Month (s)
+        week_s: Week (s)
+        day_s: Day (s)
+        hour_s: Hour (s)
+        on_option: "On"
+        on_the: On the
+        on_day: On day
+        end: End
+        ocurrence_s: ocurrence (s)

@@ -109,6 +109,7 @@ pin 'bali/filters/filter-attribute', to: 'bali/filters/controllers/filter-attrib
 pin 'bali/filters/filter-form', to: 'bali/filters/controllers/filter-form-controller.js'
 pin 'bali/filters/popup', to: 'bali/filters/controllers/popup-controller.js'
 pin 'bali/filters/selected', to: 'bali/filters/controllers/selected-controller.js'
+pin 'bali/recurrent-event-rule', to: 'bali/recurrent_event_rule_form/index.js'
 
 ## Rich Text Editor ##
 pin "lowlight", to: 'https://cdn.jsdelivr.net/npm/lowlight@3.3.0/+esm'
@@ -215,3 +216,5 @@ pin 'bali/rich_text_editor/useMention', to: 'bali/rich_text_editor/javascript/us
 pin 'bali/rich_text_editor/useNodes', to: 'bali/rich_text_editor/javascript/useNodes.js'
 pin 'bali/rich_text_editor/useSlashCommands', to: 'bali/rich_text_editor/javascript/useSlashCommands.js'
 pin 'bali/rich_text_editor/useTable', to: 'bali/rich_text_editor/javascript/useTable.js'
+
+pin 'rrule', to: 'https://cdn.jsdelivr.net/npm/rrule@2.8.1/+esm'
