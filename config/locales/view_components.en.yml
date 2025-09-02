@@ -56,7 +56,7 @@ en:
         week_s: Week (s)
         day_s: Day (s)
         hour_s: Hour (s)
-        on: On
+        on_option: "On"
         on_the: On the
         on_day: On day
         end: End

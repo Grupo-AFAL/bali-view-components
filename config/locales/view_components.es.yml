@@ -56,7 +56,7 @@ es:
         week_s: Semana (s)
         day_s: Día (s)
         hour_s: Hora (s)
-        on: En
+        on_option: En
         on_the: El
         on_day: En el día
         end: Termina
