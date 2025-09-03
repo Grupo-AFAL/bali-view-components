@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module TimePeriodFields

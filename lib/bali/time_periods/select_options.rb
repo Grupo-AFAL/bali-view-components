@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Bali
   module TimePeriods
     class SelectOptions
@@ -20,6 +22,7 @@ module Bali
           end
         end
 
+        # rubocop: disable Metrics/AbcSize
         def trailing
           [
             [I18n.t('bali.date_ranges.yesterday'), Time.zone.now.yesterday.all_day],
@@ -33,6 +36,7 @@ module Bali
              11.months.ago.beginning_of_month..Time.zone.now.end_of_month]
           ]
         end
+        # rubocop: enable Metrics/AbcSize
       end
     end
   end
