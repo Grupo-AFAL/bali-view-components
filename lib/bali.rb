@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'bali/version'
-require 'bali/engine'
 require 'bali/filter_form'
 require 'bali/form_builder/html_utils'
 require 'bali/form_builder/shared_utils'
@@ -10,12 +8,14 @@ require 'bali/layout_concern'
 require 'bali/types/time_value'
 require 'bali/types/month_value'
 require 'bali/types/date_range_value'
+require 'bali/types/time_period_value'
 require 'bali/utils'
 require 'bali/html_element_helper'
 require 'bali/path_helper'
 require 'bali/form_helper'
 require 'bali/auto_submit_select_helper'
 require 'bali/icon_tag_helper'
+require 'bali/time_periods/select_options'
 
 Dir[File.join(File.dirname(__FILE__), 'bali/concerns', '**/*.rb')].each do |concern|
   require concern
@@ -32,6 +32,9 @@ Dir[File.join(File.dirname(__FILE__), 'bali/commands', '**/*.rb')].each do |comm
 end
 
 require 'bali/form_builder'
+
+require 'bali/version'
+require 'bali/engine'
 
 module Bali
   mattr_accessor :native_app, default: false

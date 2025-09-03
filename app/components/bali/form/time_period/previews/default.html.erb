@@ -1,0 +1,15 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.time_period_field_group :date, [] %>
+
+  <%= form.time_period_field_group :date, Bali::TimePeriods::SelectOptions.yearly_quarter %>
+
+  <%= form.time_period_field_group :date, Bali::TimePeriods::SelectOptions.months,
+      include_blank: 'Custom' %>
+
+  <%= form.time_period_field :date, 
+      [
+        ['next week', 1.week.from_now.all_week],
+        ['current week', Time.zone.now.all_week],
+        ['last week', 1.week.ago.all_week],
+      ], value: Time.zone.now.all_week, include_blank: false %>
+<% end %>

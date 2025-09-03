@@ -77,6 +77,7 @@ pin 'bali/slim-select-controller', to: 'bali/controllers/slim-select-controller'
 pin 'bali/step-number-input-controller', to: 'bali/controllers/step-number-input-controller'
 pin 'bali/submit-button-controller', to: 'bali/controllers/submit-button-controller'
 pin 'bali/submit-on-change-controller', to: 'bali/controllers/submit-on-change-controller'
+pin 'bali/time-period-field-controller', to: 'bali/controllers/time-period-field-controller'
 pin 'bali/trix-attachments-controller', to: 'bali/controllers/trix-attachments-controller'
 
 # Bali Components (Javascript)
