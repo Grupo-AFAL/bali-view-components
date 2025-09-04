@@ -1,0 +1,4 @@
+<%= tag.label(class: 'is-flex') do %>
+  <%= check_box_tag input_name, 1, @form.send(@attribute), id: input_id, class: 'is-block mr-2' %>
+  <b><%= @title %></b>
+<% end %>

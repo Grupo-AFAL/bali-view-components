@@ -4,9 +4,8 @@
       'selected-selected-class': 'is-selected'
     }) do %>
   <%= check_box_tag name, value, selected, id: input_id,
-                    data: {
-                      action: 'filter-attribute#change selected#change filter-form#submit',
-                      'filter-attribute-target': 'checkbox',
-                    } %>
+      data: { 
+        action: 'filter-attribute#change selected#change', 'filter-attribute-target': 'checkbox'
+      } %>
   <%= title %>
 <% end %>

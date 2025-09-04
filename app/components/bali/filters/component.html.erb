@@ -30,11 +30,49 @@
 
           <%= tag.div class: class_names('filters-popup', 'is-hidden': !opened), data: { 'popup-target': 'container' } do %>
             <div class="box">
-              <div class="columns">
-                <% attributes.each do |attribute| %>
-                  <%= attribute %>
-                <% end %>
-              </div>
+              <%= render Bali::Link::Component.new(icon_name: 'times', href: nil, data: { action: 'popup#close' },
+                  class: 'close-button') %>
+
+              <% text_or_number_attributes = attributes.select { |attr| attr.text_field? || attr.numeric_field? } %>
+              <% if text_or_number_attributes.any? %>
+                <% block_displayed = text_or_number_attributes.select(&:display_block?) %>
+                <% flex_displayed = text_or_number_attributes.select(&:display_flex?) %>
+
+                <div class="mb-4">
+                  <% block_displayed.each do |attribute| %>
+                    <div class="mb-2"><%= attribute %></div>
+                  <% end %>
+
+                  <% if flex_displayed.any? %>
+                    <div class="columns is-multiline">
+                      <% flex_displayed.each do |attribute| %>
+                        <div class="column"><%= attribute %></div>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              <% end %>
+
+              <% check_box_attributes = attributes.select(&:check_box_field?) %>
+              <% if check_box_attributes.any? %>
+                <div class="columns is-multiline mb-4">
+                  <% check_box_attributes.each do |attribute| %>
+                    <div class="column"><%= attribute %> </div>
+                  <% end %>
+                </div>
+              <% end %>
+
+              <% collection_attributes = attributes.select(&:collection_field?) %>
+              <% if collection_attributes.any? %>
+                <div class="columns">
+                  <% attributes.select(&:collection_field?).each do |attribute| %>
+                    <%= attribute %>
+                  <% end %>
+                </div>
+              <% end %>
+
+              <%= f.submit t('helpers.apply.text'), class:'button is-primary is-fullwidth mt-5',
+                  data: { action: 'popup#close' } %>
             </div>
           <% end %>
         </div>
@@ -45,7 +83,6 @@
           <%= custom_filters %>
         </div>
       <% end %>
-
 
       <% if attributes? || custom_filters.present? %>
         <div class="level-item">

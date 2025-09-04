@@ -1,5 +1,7 @@
 en:
   helpers:
+    apply:
+      text: Apply
     cancel:
       text: Cancel
     clear:

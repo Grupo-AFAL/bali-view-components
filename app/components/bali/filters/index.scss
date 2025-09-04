@@ -44,9 +44,23 @@ $z-index-popover: 6;
     left: 0;
     top: 0;
     z-index: $z-index-popover;
+    width: max-content;
+
+    .close-button {
+      position: absolute;
+      right: 1rem;
+      top: 1rem;
+      color: $grey-darker;
+      border-radius: 50%;
+
+      &:hover {
+        background-color: $grey-lightest;
+      }
+    }
 
     .box {
       box-shadow: 0px 3px 18px rgba($black, 0.1), 0 0 0 5px rgba($black, 0.03);
+      padding-top: 2rem;
     }
 
     .filter-options {
