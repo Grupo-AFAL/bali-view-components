@@ -2,9 +2,9 @@ import { Controller } from '@hotwired/stimulus'
 
 export class FilterTextInputsManagerController extends Controller {
   static targets = ['inputsContainer']
-  static values = { 
+  static values = {
     inputName: { type: String, default: '' },
-    type: { type: String, default: 'text' } 
+    type: { type: String, default: 'text' }
   }
 
   add = () => {
@@ -13,7 +13,7 @@ export class FilterTextInputsManagerController extends Controller {
 
     const button = this.createRemoveButton()
     const buttonControl = this.createControlElement()
-   
+
     const container = document.createElement('div')
     container.classList.add('field')
     container.classList.add('has-addons')
