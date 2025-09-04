@@ -44,6 +44,7 @@ $z-index-popover: 6;
     left: 0;
     top: 0;
     z-index: $z-index-popover;
+    max-width: 30rem;
     width: max-content;
 
     .close-button {
@@ -90,6 +91,16 @@ $z-index-popover: 6;
     &.popin {
       animation-duration: $animation-duration;
       animation-name: slidein;
+    }
+
+    .multiple-text-inputs-container {
+      display: flex;
+      overflow-x: scroll;
+      gap: 0.5rem;
+
+      input {
+        min-width: 6rem;
+      }
     }
   }
 }

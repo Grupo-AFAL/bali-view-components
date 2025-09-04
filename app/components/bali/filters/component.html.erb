@@ -38,7 +38,7 @@
                 <% block_displayed = text_or_number_attributes.select(&:display_block?) %>
                 <% flex_displayed = text_or_number_attributes.select(&:display_flex?) %>
 
-                <div class="mb-4">
+                <div class="mb-5">
                   <% block_displayed.each do |attribute| %>
                     <div class="mb-2"><%= attribute %></div>
                   <% end %>
@@ -55,7 +55,7 @@
 
               <% check_box_attributes = attributes.select(&:check_box_field?) %>
               <% if check_box_attributes.any? %>
-                <div class="columns is-multiline mb-4">
+                <div class="columns is-multiline mb-5">
                   <% check_box_attributes.each do |attribute| %>
                     <div class="column"><%= attribute %> </div>
                   <% end %>
@@ -64,7 +64,7 @@
 
               <% collection_attributes = attributes.select(&:collection_field?) %>
               <% if collection_attributes.any? %>
-                <div class="columns">
+                <div class="columns is-multiline">
                   <% attributes.select(&:collection_field?).each do |attribute| %>
                     <%= attribute %>
                   <% end %>

@@ -6,6 +6,7 @@
        collection_options: [['active', true], ['inactive', false]]) %>
 
     <%= fp.with_attribute(title: 'Name', attribute: :name_eq) %>
+    <%= fp.with_attribute(title: 'Name', attribute: :name_matches_any) %>
     <%= fp.with_attribute(title: 'Age', attribute: :age_gteq) %>
 
     <%= fp.with_attribute(title: 'Age', attribute: :age_gteq, display: :flex) %>

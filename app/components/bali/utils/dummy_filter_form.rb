@@ -8,6 +8,7 @@ module Bali
 
       attribute :name, :string
       attribute :name_eq, :string
+      attribute :name_matches_any, :string
       attribute :age_gteq, :string
       attribute :cookies_accepted_true, :boolean
       attribute :privacy_accepted_true, :boolean

@@ -1,7 +1,34 @@
 <%= tag.div(id: input_id) do %>
-  <label class="label"><%= @title %> <%= t("ransack.predicates.#{@predicate}") %></label>
+  <% if multiple? %>
+    <div 
+      data-controller='filter-text-inputs-manager' 
+      data-filter-text-inputs-manager-input-name-value="<%= input_name %>"
+    >
+      <label class="label">
+        <%= @title %> <%= t("ransack.predicates.#{@predicate}") %>
+        <%= render Bali::Link::Component.new(
+            href: nil, class: 'ml-2 is-size-7',data: { action: "filter-text-inputs-manager#add" }
+        ) do %>
+          &plus; <%= t('helpers.add.text') %>
+        <% end %>
+      </label>
 
-  <div class="control">
-    <%= text_field_tag input_name, @form.send(@attribute), class: 'input' %>
-  </div>
+      <div class="multiple-text-inputs-container" data-filter-text-inputs-manager-target="inputsContainer">
+        <div class="field has-addons">
+          <div class="control">
+            <%= text_field_tag input_name, @form.send(@attribute), class: 'input' %>
+          </div>
+          <div class="control">
+            <a class="button" data-action="filter-text-inputs-manager#remove">&times;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <label class="label"><%= @title %> <%= t("ransack.predicates.#{@predicate}") %></label>
+
+    <div class="control">
+      <%= text_field_tag input_name, @form.send(@attribute), class: 'input' %>
+    </div>
+  <% end %>
 <% end %>

@@ -1,5 +1,7 @@
 es:
   helpers:
+    add:
+      text: Agregar
     apply:
       text: Aplicar
     cancel:
