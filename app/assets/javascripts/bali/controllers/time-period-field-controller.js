@@ -7,7 +7,7 @@ export class TimePeriodFieldController extends Controller {
     this.toggleDateInput()
     this.setInputValue()
   }
-  
+
   toggleDateInput = () => {
     if (this.selectTarget.value === '') {
       this.dateInputTarget.classList.remove('is-hidden')
