@@ -13,11 +13,10 @@ module Bali
         include_blank = options.key?(:include_blank) ? options.delete(:include_blank) : ''
         options = prepend_controller(options, 'time-period-field')
 
-        select_options = Array.wrap(select_options)
-        select_options << [include_blank, ''] if include_blank
-
         selected ||= object.try(method)
         custom = select_options.find { |_, range| range.to_s == selected.to_s }.blank?
+
+        select_options << [include_blank, ''] if include_blank
 
         tag.div(**options) do
           safe_join(
