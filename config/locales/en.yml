@@ -11,7 +11,6 @@ en:
   bali: 
     time_periods:
       yearly: Yearly
-      quarters: Quarters
       yesterday: Yesterday
       last_7_days: Last 7 days
       last_30_days: Last 30 days
