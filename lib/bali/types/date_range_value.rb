@@ -20,6 +20,7 @@ module Bali
       def normalize_date_range(range)
         return if range.blank?
         return range unless range.is_a? String
+        return parse_stringify_range(range) if range.include?('..')
 
         result = range.split(date_range_separator)
 
@@ -29,6 +30,11 @@ module Bali
         result[0] = Time.zone.parse(result.first).beginning_of_day
         result[1] = Time.zone.parse(result.last).end_of_day
         result[0]..result[1]
+      end
+
+      def parse_stringify_range(range)
+        start_range, end_range = range.split('..')
+        Time.zone.parse(start_range)..Time.zone.parse(end_range)
       end
     end
   end

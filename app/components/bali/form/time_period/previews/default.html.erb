@@ -11,5 +11,5 @@
         ['next week', 1.week.from_now.all_week],
         ['current week', Time.zone.now.all_week],
         ['last week', 1.week.ago.all_week],
-      ], value: Time.zone.now.all_week, include_blank: false %>
+      ], selected: Time.zone.now.all_week, include_blank: false %>
 <% end %>

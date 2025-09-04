@@ -25,7 +25,6 @@ module Bali
 
     initializer 'Register Bali ActiveModel::Types' do
       ActiveModel::Type.register(:date_range, Bali::Types::DateRangeValue)
-      ActiveModel::Type.register(:time_period, Bali::Types::TimePeriodValue)
     end
 
     initializer 'Bali add app/components to assets paths' do |app|
