@@ -3,7 +3,7 @@
     <div 
       data-controller='filter-text-inputs-manager' 
       data-filter-text-inputs-manager-input-name-value="<%= input_name %>"
-      data-filter-text-inputs-manager-type-value="<%= numeric_field? ? 'number' : 'text' %>"
+      data-filter-text-inputs-manager-type-value="<%= input_type %>"
     >
       <label class="label">
         <%= @title %>
@@ -19,11 +19,7 @@
         <% if value.blank? %>
           <div class="field has-addons">
             <div class="control">
-              <% if numeric_field? %>
-                <%= number_field_tag input_name, "", class: 'input', step: :any %>
-              <% else %>
-                <%= text_field_tag input_name, "", class: 'input' %>
-              <% end %>
+              <%= text_field_tag input_name, value, class: 'input', type: input_type %>
             </div>
             <div class="control">
               <a class="button" data-action="filter-text-inputs-manager#remove">&times;</a>
@@ -33,11 +29,7 @@
           <% value.each do |option| %>
             <div class="field has-addons">
               <div class="control">
-                <% if numeric_field? %>
-                  <%= number_field_tag input_name, option, class: 'input', step: :any %>
-                <% else %>
-                  <%= text_field_tag input_name, option, class: 'input' %>
-                <% end %>
+                <%= text_field_tag input_name, value, class: 'input', type: input_type %>
               </div>
               <div class="control">
                 <a class="button" data-action="filter-text-inputs-manager#remove">&times;</a>
@@ -54,11 +46,7 @@
     </label>
 
     <div class="control">
-      <% if numeric_field? %>
-        <%= number_field_tag input_name, value, class: 'input', step: :any %>
-      <% else %>
-        <%= text_field_tag input_name, value, class: 'input' %>
-      <% end %>
+      <%= text_field_tag input_name, value, class: 'input', type: input_type %>
     </div>
   <% end %>
 <% end %>

@@ -40,6 +40,7 @@ export class FilterTextInputsManagerController extends Controller {
     element.classList.add('input')
     element.setAttribute('type', this.typeValue)
     element.setAttribute('name', this.inputNameValue)
+    if (this.typeValue === 'number') element.setAttribute('step', 'any')
 
     return element
   }

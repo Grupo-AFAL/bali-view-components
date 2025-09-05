@@ -32,9 +32,8 @@ module Bali
     # attribute :vendors_id_in, default: []
     #
     def array_attributes
-      @array_attributes ||= self.class._default_attributes.keys.filter do |key|
-        default_value = self.class._default_attributes[key].value_before_type_cast
-        default_value.is_a?(Array)
+      @array_attributes ||= self.class.attribute_names.select do |attribute_name|
+        array_predicates.any? { |predicate| attribute_name.ends_with?(predicate) }
       end
     end
 
@@ -90,7 +89,7 @@ module Bali
 
     def query_params
       @query_params ||= non_date_range_attribute_names.index_with do |attr_name|
-        send(attr_name.to_sym)
+        (value = send(attr_name.to_sym)).is_a?(Array) ? value.compact_blank.presence : value
       end
     end
 
@@ -127,6 +126,10 @@ module Bali
       end
 
       attributes
+    end
+
+    def array_predicates
+      %w[_any _all _not_in _in]
     end
   end
 end

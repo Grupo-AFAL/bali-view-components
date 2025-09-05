@@ -5,12 +5,20 @@ module Bali
     module Attributes
       module Text
         class Component < Bali::Filters::Attributes::Base::Component
-          def multiple?
-            @attribute.to_s.ends_with?('_all') || @attribute.to_s.ends_with?('_any')
+          def value
+            @value ||= if multiple?
+                         (@form.send(@attribute) || []).compact_blank
+                       else
+                         @form.send(@attribute)
+                       end
           end
 
-          def input_name
-            multiple? ? "#{super}[]" : super
+          def numeric_predicates
+            %w[lt lteq gt gteq]
+          end
+
+          def numeric_field?
+            numeric_predicates.include?(ransack_predicate)
           end
         end
       end

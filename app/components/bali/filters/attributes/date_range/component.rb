@@ -5,8 +5,8 @@ module Bali
     module Attributes
       module DateRange
         class Component < Bali::Filters::Attributes::Base::Component
-          def initialize(form:, title:, attribute:, predicate:, **options)
-            super(form: form, title: title, attribute: attribute, predicate: predicate)
+          def initialize(form:, title:, attribute:, **options)
+            super(form: form, title: title, attribute: attribute)
 
             @time_period_options = options.delete(:time_period_options)
           end

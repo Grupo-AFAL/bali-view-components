@@ -98,9 +98,16 @@ $z-index-popover: 6;
       overflow-x: scroll;
       gap: 0.5rem;
 
-      input {
+      input,
+      .field.has-addons .control input {
         min-width: 6rem;
+        height: 2.5rem;
       }
+
+      .field.has-addons {
+        height: min-content;
+      }
+
     }
 
     .flatpickr-wrapper {

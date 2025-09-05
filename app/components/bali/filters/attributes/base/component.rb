@@ -7,11 +7,10 @@ module Bali
         class Component < ApplicationViewComponent
           attr_reader :form, :attribute, :title
 
-          def initialize(form:, title:, attribute:, predicate:, **options)
+          def initialize(form:, title:, attribute:, **options)
             @form = form
             @attribute = attribute
             @title = title
-            @predicate = predicate
 
             @options = options.merge(id: input_id)
           end
@@ -21,7 +20,18 @@ module Bali
           end
 
           def input_name
-            "#{form.model_name}[#{attribute}]"
+            name = "#{form.model_name}[#{attribute}]"
+            name += '[]' if multiple?
+            name
+          end
+
+          def multiple?
+            @attribute.to_s.ends_with?('_all') || @attribute.to_s.ends_with?('_any')
+          end
+
+          def predicate
+            @predicate ||=
+              Ransack::Predicate.names.find { |r_predicate| @attribute.to_s.ends_with?("_#{r_predicate}") }
           end
         end
       end

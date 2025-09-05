@@ -7,12 +7,11 @@ module Bali
         class Component < Bali::Filters::Attributes::Base::Component
           attr_reader :form, :attribute, :collection_options, :title, :multiple
 
-          # rubocop: disable Metrics/ParameterLists
           def initialize(
-            form:, title:, attribute:, collection_options:, predicate:, multiple: true,
+            form:, title:, attribute:, collection_options:, multiple: true,
             **
           )
-            super(form: form, title: title, attribute: attribute, predicate: predicate, **)
+            super(form: form, title: title, attribute: attribute, **)
 
             @collection_options = collection_options
             @multiple = multiple
@@ -21,7 +20,6 @@ module Bali
             @options = prepend_controller(@options, 'filter-attribute')
             @options = prepend_values(@options, 'filter-attribute', multiple: multiple)
           end
-          # rubocop: enable Metrics/ParameterLists
 
           def selected_values
             Array(form.send(attribute)).map(&:to_s)

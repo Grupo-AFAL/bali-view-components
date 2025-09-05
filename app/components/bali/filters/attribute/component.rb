@@ -20,7 +20,7 @@ module Bali
           render field_component
         end
 
-        %i[collection check_box numeric date_range text].each do |type|
+        %i[collection check_box date_range datetime text].each do |type|
           define_method "#{type}_field?" do
             field_type == type
           end
@@ -46,50 +46,57 @@ module Bali
                         Bali::Filters::Attributes::Collection::Component
                       when :check_box
                         Bali::Filters::Attributes::CheckBox::Component
-                      when :numeric
-                        Bali::Filters::Attributes::Numeric::Component
                       when :date_range
                         Bali::Filters::Attributes::DateRange::Component
+                      when :datetime
+                        Bali::Filters::Attributes::Datetime::Component
                       else
                         Bali::Filters::Attributes::Text::Component
                       end
 
           @field_component = component.new(
-            form: @form, title: @title, attribute: @attribute, predicate: ransack_predicate,
-            **@options
+            form: @form, title: @title, attribute: @attribute, **@options
           )
         end
 
         def field_type
           @field_type ||=
-            if @form.date_range_attributes.include?(@attribute.to_s)
-              :date_range
-            elsif predicates_for_collection.include?(ransack_predicate)
+            if @options[:collection_options].present?
               :collection
-            elsif predicates_for_check_box.include?(ransack_predicate)
+            elsif date_range_types.include?(attribute_type)
+              :date_range
+
+            elsif check_box_types.include?(attribute_type)
               :check_box
-            elsif predicates_for_number_field.include?(ransack_predicate)
-              :numeric
+            elsif datetime_types.include?(attribute_type)
+              :datetime
             else
               :text
             end
         end
 
-        def ransack_predicate
-          @ransack_predicate ||=
-            Ransack::Predicate.names.find { |predicate| @attribute.to_s.ends_with?("_#{predicate}") }
+        def attribute_type
+          @form.class._default_attributes[@attribute.to_s].type.class
         end
 
-        def predicates_for_number_field
-          %w[lt lteq gt gteq]
+        def date_range_types
+          [Bali::Types::DateRangeValue]
         end
 
-        def predicates_for_check_box
-          %w[present blank null not_null true false]
+        def text_and_numeric_types
+          [
+            ActiveModel::Type::String, ActiveModel::Type::ImmutableString,
+            ActiveModel::Type::Integer, ActiveModel::Type::BigInteger,
+            ActiveModel::Type::Decimal, ActiveModel::Type::Float
+          ]
         end
 
-        def predicates_for_collection
-          %w[in not_in not_eq_all]
+        def check_box_types
+          [ActiveModel::Type::Boolean]
+        end
+
+        def datetime_types
+          [ActiveModel::Type::Date, ActiveModel::Type::DateTime, ActiveModel::Type::Time]
         end
       end
     end
