@@ -14,15 +14,15 @@
       </div>
     <% end %>
   <% else %>
-    <% custom = @time_period_options.find { |_, range| range.to_s == @form.send(@attribute).to_s }.blank? %>
+    <% custom = @time_period_options.find { |_, range| range.to_s == selected_value.to_s }.blank? %>
     <% @time_period_options << [t('.custom'), ''] %>
 
     <div data-controller="time-period-field" data-time-period-field-date-input-container-class-value="datepicker-container">
-      <%= hidden_field_tag input_name, @form.send(@attribute), data: { time_period_field_target: 'input' } %>
+      <%= hidden_field_tag input_name, selected_value, data: { time_period_field_target: 'input' } %>
 
       <div class="control mb-2 is-fullwidth">
         <div class="select is-fullwidth">
-          <%= select_tag "#{input_id}_period", options_for_select(@time_period_options, custom ? '' : @form.send(@attribute)),
+          <%= select_tag "#{input_id}_period", options_for_select(@time_period_options, custom ? '' : selected_value),
               class: 'is-fullwidth', data: {
                 time_period_field_target: 'select',
                 action: 'time-period-field#toggleDateInput time-period-field#setInputValue'
@@ -35,7 +35,7 @@
           data: datepicker_options
       ) do %>
         <div class="is-fullwidth control">
-          <%= text_field_tag input_name, custom ? @form.send(@attribute) : nil, class: class_names('input', 'is-hidden': !custom),
+          <%= text_field_tag input_name, custom ? selected_value : nil, class: class_names('input', 'is-hidden': !custom),
               data: { time_period_field_target: 'dateInput', action: 'time-period-field#setInputValue' } %>
         </div>
 

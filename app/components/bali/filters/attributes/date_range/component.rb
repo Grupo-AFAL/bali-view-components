@@ -26,6 +26,10 @@ module Bali
 
             opts
           end
+
+          def selected_value
+            @form.send(@attribute)
+          end
         end
       end
     end
