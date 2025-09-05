@@ -2,17 +2,21 @@ import { Controller } from '@hotwired/stimulus'
 
 export class TimePeriodFieldController extends Controller {
   static targets = ['select', 'dateInput', 'input']
+  static values = { dateInputContainerClass: String }
 
   connect = () => {
     this.toggleDateInput()
     this.setInputValue()
+
+    if (!this.hasDateInputContainerClassValue) return
+    this.dateInputContainer = this.element.getElementsByClassName(this.dateInputContainerClassValue)[0]
   }
 
   toggleDateInput = () => {
     if (this.selectTarget.value === '') {
-      this.dateInputTarget.classList.remove('is-hidden')
+      this._show([this.dateInputTarget, this.dateInputContainer])
     } else {
-      this.dateInputTarget.classList.add('is-hidden')
+      this._hide([this.dateInputTarget, this.dateInputContainer])
     }
   }
 
@@ -23,4 +27,13 @@ export class TimePeriodFieldController extends Controller {
       this.inputTarget.value = this.selectTarget.value
     }
   }
+
+  _show = (elements) => {
+    elements.filter(el => el).forEach(element => { element.classList.remove('is-hidden') })
+  }
+
+  _hide = (elements) => {
+    elements.filter(el => el).forEach(element => { element.classList.add('is-hidden') })
+  }
+
 }

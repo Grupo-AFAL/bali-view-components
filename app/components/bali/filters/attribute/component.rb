@@ -20,7 +20,7 @@ module Bali
           render field_component
         end
 
-        %i[collection check_box numeric text].each do |type|
+        %i[collection check_box numeric date_range text].each do |type|
           define_method "#{type}_field?" do
             field_type == type
           end
@@ -48,10 +48,12 @@ module Bali
                         Bali::Filters::Attributes::CheckBox::Component
                       when :numeric
                         Bali::Filters::Attributes::Numeric::Component
+                      when :date_range
+                        Bali::Filters::Attributes::DateRange::Component
                       else
                         Bali::Filters::Attributes::Text::Component
-
                       end
+
           @field_component = component.new(
             form: @form, title: @title, attribute: @attribute, predicate: ransack_predicate,
             **@options
@@ -60,7 +62,9 @@ module Bali
 
         def field_type
           @field_type ||=
-            if predicates_for_collection.include?(ransack_predicate)
+            if @form.date_range_attributes.include?(@attribute.to_s)
+              :date_range
+            elsif predicates_for_collection.include?(ransack_predicate)
               :collection
             elsif predicates_for_check_box.include?(ransack_predicate)
               :check_box

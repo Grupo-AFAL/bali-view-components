@@ -14,6 +14,7 @@ import { Controller } from '@hotwired/stimulus'
  * Default language: Spanish
  */
 export class DatepickerController extends Controller {
+  static targets = ['appendTo']
   static values = {
     enableTime: { type: Boolean, default: false },
     noCalendar: { type: Boolean, default: false },
@@ -32,7 +33,8 @@ export class DatepickerController extends Controller {
     mode: { type: String, default: 'single' },
     altInput: { type: Boolean, default: true },
     allowInput: { type: Boolean, default: false },
-    altFormat: String
+    altFormat: String,
+    static: { type: Boolean, default: false },
   }
 
   async connect () {
@@ -46,7 +48,7 @@ export class DatepickerController extends Controller {
     // this is necesary because `altInputClass` option does not inherit the original classes
     this.altInputClassValue = `form-control input ${this.altInputClassValue}`
 
-    this.flatpickr = flatpickr(input, {
+    const options =  {
       altInput: this.altInputValue,
       altFormat: this.altFormat(),
       dateFormat: this.dateFormat(),
@@ -62,8 +64,12 @@ export class DatepickerController extends Controller {
       altInputClass: this.altInputClassValue,
       mode: this.modeValue,
       disable: this.disableWeekendsValue ? [this.isWeekend] : this.disabledDatesValue,
-      allowInput: this.allowInputValue
-    })
+      allowInput: this.allowInputValue,
+      static: this.staticValue
+    }
+    if (this.hasAppendToTarget) options.appendTo = this.appendToTarget
+    
+    this.flatpickr = flatpickr(input, options)
   }
 
   async setLocale (countryCode) {

@@ -33,6 +33,15 @@
               <%= render Bali::Link::Component.new(icon_name: 'times', href: nil, data: { action: 'popup#close' },
                   class: 'close-button') %>
 
+              <% date_range_atributes = attributes.select(&:date_range_field?) %>
+              <% if date_range_atributes.any? %>
+                <div class="mb-5">
+                  <% date_range_atributes.each do |attribute| %>
+                    <div class="mb-2"><%= attribute %></div>
+                  <% end %>
+                </div>
+              <% end %>
+
               <% text_or_number_attributes = attributes.select { |attr| attr.text_field? || attr.numeric_field? } %>
               <% if text_or_number_attributes.any? %>
                 <% block_displayed = text_or_number_attributes.select(&:display_block?) %>
