@@ -18,7 +18,7 @@ module Bali
           end
 
           def numeric_field?
-            numeric_predicates.include?(ransack_predicate)
+            numeric_predicates.include?(predicate)
           end
         end
       end
