@@ -64,8 +64,15 @@
 
               <% collection_attributes = attributes.select(&:collection_field?) %>
               <% if collection_attributes.any? %>
+                <% with_many_options = collection_attributes.select { |attr| attr.collection_options.size > 5 } %>
+                <% with_few_options = collection_attributes.select { |attr| attr.collection_options.size <= 5 } %>
+
+                <% with_many_options.each do |attribute| %>
+                  <div class="mb-2"><%= attribute %></div>
+                <% end %>
+
                 <div class="columns is-multiline">
-                  <% attributes.select(&:collection_field?).each do |attribute| %>
+                  <% with_few_options.each do |attribute| %>
                     <%= attribute %>
                   <% end %>
                 </div>

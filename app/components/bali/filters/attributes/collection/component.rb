@@ -17,7 +17,7 @@ module Bali
             @collection_options = collection_options
             @multiple = multiple
 
-            @options = prepend_class_name(@options, 'column')
+            @options = prepend_class_name(@options, 'column') if collection_options.size <= 5
             @options = prepend_controller(@options, 'filter-attribute')
             @options = prepend_values(@options, 'filter-attribute', multiple: multiple)
           end

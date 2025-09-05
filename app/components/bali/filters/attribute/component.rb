@@ -6,6 +6,8 @@ module Bali
       class Component < ApplicationViewComponent
         attr_reader :form, :attribute, :title
 
+        delegate :collection_options, :multiple, to: :field_component
+
         def initialize(form:, title:, attribute:, **options)
           @form = form
           @title = title
@@ -15,22 +17,7 @@ module Bali
         end
 
         def call
-          component = case field_type.to_sym
-                      when :collection
-                        Bali::Filters::Attributes::Collection::Component
-                      when :check_box
-                        Bali::Filters::Attributes::CheckBox::Component
-                      when :numeric
-                        Bali::Filters::Attributes::Numeric::Component
-                      else
-                        Bali::Filters::Attributes::Text::Component
-
-                      end
-
-          render component.new(
-            form: @form, title: @title, attribute: @attribute, predicate: ransack_predicate,
-            **@options
-          )
+          render field_component
         end
 
         %i[collection check_box numeric text].each do |type|
@@ -50,6 +37,26 @@ module Bali
         end
 
         private
+
+        def field_component
+          return @field_component if defined? @field_component
+
+          component = case field_type.to_sym
+                      when :collection
+                        Bali::Filters::Attributes::Collection::Component
+                      when :check_box
+                        Bali::Filters::Attributes::CheckBox::Component
+                      when :numeric
+                        Bali::Filters::Attributes::Numeric::Component
+                      else
+                        Bali::Filters::Attributes::Text::Component
+
+                      end
+          @field_component = component.new(
+            form: @form, title: @title, attribute: @attribute, predicate: ransack_predicate,
+            **@options
+          )
+        end
 
         def field_type
           @field_type ||=

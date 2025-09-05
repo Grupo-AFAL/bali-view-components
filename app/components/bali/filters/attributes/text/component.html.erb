@@ -5,7 +5,8 @@
       data-filter-text-inputs-manager-input-name-value="<%= input_name %>"
     >
       <label class="label">
-        <%= @title %> <%= t("ransack.predicates.#{@predicate}") %>
+        <%= @title %>
+        <span class="is-size-7 has-text-grey"><%= t("ransack.predicates.#{@predicate}") %></span>
         <%= render Bali::Link::Component.new(
             href: nil, class: 'ml-2 is-size-7',data: { action: "filter-text-inputs-manager#add" }
         ) do %>
@@ -25,7 +26,10 @@
       </div>
     </div>
   <% else %>
-    <label class="label"><%= @title %> <%= t("ransack.predicates.#{@predicate}") %></label>
+    <label class="label">
+      <%= @title %>
+      <span class="is-size-7 has-text-grey"><%= t("ransack.predicates.#{@predicate}") %></span>
+    </label>
 
     <div class="control">
       <%= text_field_tag input_name, @form.send(@attribute), class: 'input' %>
