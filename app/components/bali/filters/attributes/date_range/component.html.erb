@@ -35,7 +35,7 @@
           data: datepicker_options
       ) do %>
         <div class="is-fullwidth control">
-          <%= text_field_tag input_name, custom ? selected_value : nil, class: class_names('input', 'is-hidden': !custom),
+          <%= text_field_tag "#{input_id}_date_range", custom ? selected_value : nil, class: class_names('input', 'is-hidden': !custom),
               data: { time_period_field_target: 'dateInput', action: 'time-period-field#setInputValue' } %>
         </div>
 
