@@ -34,7 +34,13 @@ module Bali
 
       def parse_stringify_range(range)
         start_range, end_range = range.split('..')
-        Time.zone.parse(start_range)..Time.zone.parse(end_range)
+        if start_range.present? && end_range.present?
+          Time.zone.parse(start_range)..Time.zone.parse(end_range)
+        elsif start_range.present?
+          Time.zone.parse(start_range)..
+        elsif end_range.present?
+          ..Time.zone.parse(end_range)
+        end
       end
     end
   end

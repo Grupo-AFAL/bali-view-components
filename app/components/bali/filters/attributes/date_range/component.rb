@@ -20,9 +20,12 @@ module Bali
               datepicker_target: 'appendTo'
             }
 
-            if @form.send(@attribute).respond_to?(:first)
-              opts[:default_dates] = [@form.send(@attribute).first, @form.send(@attribute).first]
-            end
+            opts[:datepicker_default_dates_value] =
+              if selected_value.is_a?(Array) && selected_value.first && selected_value.last
+                [selected_value.first, selected_value.last]
+              elsif selected_value.is_a?(Range) && selected_value.begin && selected_value.end
+                [selected_value.begin, selected_value.end]
+              end
 
             opts
           end
