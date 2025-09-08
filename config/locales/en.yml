@@ -8,3 +8,11 @@ en:
       text: Clear holes
     generic_confirm_message:
       text: Are you sure?
+  bali: 
+    time_periods:
+      yearly: Yearly
+      yesterday: Yesterday
+      last_7_days: Last 7 days
+      last_30_days: Last 30 days
+      last_12_weeks: Last 12 weeks
+      last_12_months: Last 12 months

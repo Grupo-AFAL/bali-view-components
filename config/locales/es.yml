@@ -8,3 +8,11 @@ es:
       text: Limpiar agujeros
     generic_confirm_message:
       text: '¿Estas seguro(a)?'
+  bali: 
+    time_periods:
+      yearly: Anual
+      yesterday: Ayer
+      last_7_days: Últimos 7 días
+      last_30_days: Últimos 30 días
+      last_12_weeks: Últimas 12 semanas
+      last_12_months: Últimos 12 meses
