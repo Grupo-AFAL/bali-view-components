@@ -65,7 +65,6 @@ module Bali
               :collection
             elsif date_range_types.include?(attribute_type)
               :date_range
-
             elsif check_box_types.include?(attribute_type)
               :check_box
             elsif datetime_types.include?(attribute_type)

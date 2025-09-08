@@ -26,7 +26,7 @@ module Bali
           end
 
           def input_name
-            "#{form.model_name}[#{attribute}]#{'[]' if multiple}"
+            "#{form.model_name}[#{attribute}][]"
           end
         end
       end
