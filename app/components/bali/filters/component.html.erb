@@ -11,7 +11,7 @@
         </div>
       <% end %>
 
-      <% if attributes? %>
+      <% if attributes? || content.present? %>
         <div class="level-item popup-element" data-controller="popup" data-popup-opened-value="<%= opened %>">
           <%= tag.a id: 'filters-button',
               class: class_names('button is-text', 'is-selected': opened),
