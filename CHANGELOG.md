@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- `Bali::Filters::Component` to render the rigth input for each `ransack` predicate.
+- `Bali::Filters::Component` to render the right input for each `ransack` predicate.
 
 ## [1.4.8] - 2025-09-04
 
