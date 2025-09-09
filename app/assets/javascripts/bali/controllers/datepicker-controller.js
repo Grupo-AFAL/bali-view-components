@@ -34,7 +34,7 @@ export class DatepickerController extends Controller {
     altInput: { type: Boolean, default: true },
     allowInput: { type: Boolean, default: false },
     altFormat: String,
-    static: { type: Boolean, default: false },
+    static: { type: Boolean, default: false }
   }
 
   async connect () {
@@ -48,7 +48,7 @@ export class DatepickerController extends Controller {
     // this is necesary because `altInputClass` option does not inherit the original classes
     this.altInputClassValue = `form-control input ${this.altInputClassValue}`
 
-    const options =  {
+    const options = {
       altInput: this.altInputValue,
       altFormat: this.altFormat(),
       dateFormat: this.dateFormat(),
@@ -68,7 +68,7 @@ export class DatepickerController extends Controller {
       static: this.staticValue
     }
     if (this.hasAppendToTarget) options.appendTo = this.appendToTarget
-    
+
     this.flatpickr = flatpickr(input, options)
   }
 

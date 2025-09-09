@@ -35,5 +35,4 @@ export class TimePeriodFieldController extends Controller {
   _hide = (elements) => {
     elements.filter(el => el).forEach(element => { element.classList.add('is-hidden') })
   }
-
 }
