@@ -99,7 +99,7 @@ module Bali
         end
 
         def collection_predicate?
-          %w[_any _all _in _not_in].any? { |predicate| @attribute.ends_with?(predicate) }
+          %w[_in _not_in].any? { |predicate| @attribute.ends_with?(predicate) }
         end
       end
     end
