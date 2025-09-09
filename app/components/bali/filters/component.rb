@@ -43,7 +43,7 @@ module Bali
           return {
             controller: 'filter-form submit-on-change',
             'filter-form-text-field-value': text_field,
-            'submit-on-change-delay-value': 200,
+            'submit-on-change-delay-value': 800,
             'submit-on-change-response-kind-value': 'turbo-stream'
           }
         end
