@@ -15,7 +15,7 @@
     <% end %>
   <% else %>
     <% custom = @time_period_options.find { |_, range| range.to_s == selected_value.to_s }.blank? %>
-    <% @time_period_options << [t('.custom'), ''] %>
+    <% @time_period_options << [t('.custom'), ''] if @include_custom_time_period %>
 
     <div data-controller="time-period-field" data-time-period-field-date-input-container-class-value="datepicker-container">
       <%= hidden_field_tag input_name, selected_value, data: { time_period_field_target: 'input' } %>

@@ -61,7 +61,7 @@ module Bali
 
         def field_type
           @field_type ||=
-            if @options[:collection_options].present?
+            if @options[:collection_options].present? || collection_predicate?
               :collection
             elsif date_range_types.include?(attribute_type)
               :date_range
@@ -96,6 +96,10 @@ module Bali
 
         def datetime_types
           [ActiveModel::Type::Date, ActiveModel::Type::DateTime, ActiveModel::Type::Time]
+        end
+
+        def collection_predicate?
+          %w[_any _all _in _not_in].any? { |predicate| @attribute.ends_with?(predicate) }
         end
       end
     end
