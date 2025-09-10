@@ -12,6 +12,9 @@ es:
       filters:
         filters: Filtros
         remove_filters: Quitar filtros
+        attributes:
+          date_range:
+            custom: Personalizado
       gantt_chart:
         task_header: Nombre
         today: Hoy

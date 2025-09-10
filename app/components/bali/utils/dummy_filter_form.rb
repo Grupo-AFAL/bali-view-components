@@ -7,6 +7,14 @@ module Bali
       include ActiveModel::Attributes
 
       attribute :name, :string
+      attribute :name_eq, :string
+      attribute :name_matches_any, :string
+      attribute :age_gteq, :decimal
+      attribute :age_lteq, :decimal
+      attribute :age_eq, :decimal
+      attribute :cookies_accepted_true, :boolean
+      attribute :privacy_accepted_true, :boolean
+      attribute :terms_accepted_true, :boolean
       attribute :date_gteq, :date
       attribute :date, :date_range
 

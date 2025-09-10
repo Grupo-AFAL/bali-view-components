@@ -38,6 +38,17 @@ module Bali
           }
         )
       end
+
+      def with_custom_filters_layout
+        render_with_template(
+          template: 'bali/data_table/previews/custom_filters_layout',
+          locals: {
+            headers: HEADERS,
+            records: RECORDS,
+            form: FORM
+          }
+        )
+      end
     end
   end
 end

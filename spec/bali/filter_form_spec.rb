@@ -74,7 +74,7 @@ RSpec.describe Bali::FilterForm do
   describe '#query_params' do
     it 'returns a hash of attributes and values' do
       expect(form.query_params).to eql(
-        { 'genre_in' => [], 'name_i_cont' => 'Iron', 's' => nil }
+        { 'genre_in' => nil, 'name_i_cont' => 'Iron', 's' => nil }
       )
     end
   end

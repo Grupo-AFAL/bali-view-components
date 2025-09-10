@@ -9,13 +9,9 @@ module Bali
 
       delegate :query_params, to: :form
 
-      renders_many :attributes, ->(title:, attribute:, collection_options:, multiple: true) do
+      renders_many :attributes, ->(title:, attribute:, **options) do
         Bali::Filters::Attribute::Component.new(
-          form: @form,
-          title: title,
-          attribute: attribute,
-          collection_options: collection_options,
-          multiple: multiple
+          form: @form, title: title, attribute: attribute, **options
         )
       end
 
@@ -47,7 +43,7 @@ module Bali
           return {
             controller: 'filter-form submit-on-change',
             'filter-form-text-field-value': text_field,
-            'submit-on-change-delay-value': 200,
+            'submit-on-change-delay-value': 800,
             'submit-on-change-response-kind-value': 'turbo-stream'
           }
         end

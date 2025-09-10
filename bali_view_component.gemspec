@@ -26,7 +26,7 @@ Gem::Specification.new do |spec|
   end
 
   spec.add_dependency 'caxlsx'
-  spec.add_dependency 'rails', '>= 8.0'
+  spec.add_dependency 'rails', '>= 7.0', '< 9.0'
   spec.add_dependency 'ransack'
 
   spec.add_dependency 'view_component', ['>= 2.0.0', '< 4.0']

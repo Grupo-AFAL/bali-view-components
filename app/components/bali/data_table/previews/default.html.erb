@@ -4,6 +4,16 @@
        title: 'Status',
        attribute: :status_in,
        collection_options: [['active', true], ['inactive', false]]) %>
+
+    <%= fp.with_attribute(title: 'Name', attribute: :name_eq) %>
+    <%= fp.with_attribute(title: 'Name', attribute: :name_matches_any) %>
+    <%= fp.with_attribute(title: 'Age', attribute: :age_gteq) %>
+
+    <%= fp.with_attribute(title: 'Age', attribute: :age_gteq, display: :flex) %>
+    <%= fp.with_attribute(title: 'Age', attribute: :age_gteq, display: :flex) %>
+    <%= fp.with_attribute(title: 'Cookies accepted', attribute: :cookies_accepted_true) %>
+    <%= fp.with_attribute(title: 'Privacy accepted', attribute: :privacy_accepted_true) %>
+    <%= fp.with_attribute(title: 'Terms accepted', attribute: :terms_accepted_true) %>
   <% end %>
   <%= c.with_summary { summary } if local_assigns[:summary] %>
   <% c.with_table do %>

@@ -53,6 +53,7 @@ import { TimeagoController } from 'bali/timeago'
 import { TooltipController } from 'bali/tooltip'
 import { TreeViewItemController } from 'bali/tree_view/item'
 import { TurboNativeAppSignOut } from 'bali/turbo_native_app/sign_out'
+import { FilterTextInputsManagerController } from 'bali/filters/filter-text-inputs-manager'
 import { FilterAttributeController } from 'bali/filters/filter-attribute'
 import { FilterFormController } from 'bali/filters/filter-form'
 import { PopupController } from 'bali/filters/popup'
@@ -87,6 +88,7 @@ application.register('timeago', TimeagoController)
 application.register('tooltip', TooltipController)
 application.register('tree-view-item', TreeViewItemController)
 application.register('turbo-native-app-sign-out', TurboNativeAppSignOut)
+application.register('filter-text-inputs-manager', FilterTextInputsManagerController)
 application.register('filter-attribute', FilterAttributeController)
 application.register('filter-form', FilterFormController)
 application.register('popup', PopupController)

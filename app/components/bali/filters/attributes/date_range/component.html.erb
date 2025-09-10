@@ -1,0 +1,50 @@
+<%= tag.div(id: input_id) do %>
+  <label class="label"><%= @title %></label>
+
+  <% if @time_period_options.blank? %>
+    <%= tag.div(class: 'field has-addons', data: datepicker_options) do %>
+      <div class="is-fullwidth control">
+        <%= text_field_tag input_name, nil, class: 'input' %>
+      </div>
+
+      <div class="control">
+        <a class='button' data-action="datepicker#clear">
+          <%= render Bali::Icon::Component.new('times') %>
+        </a>
+      </div>
+    <% end %>
+  <% else %>
+    <% custom = @time_period_options.find { |_, range| range.to_s == selected_value.to_s }.blank? %>
+    <% @time_period_options << [t('.custom'), ''] if @include_custom_time_period %>
+
+    <div data-controller="time-period-field" data-time-period-field-date-input-container-class-value="datepicker-container">
+      <%= hidden_field_tag input_name, selected_value, data: { time_period_field_target: 'input' } %>
+
+      <div class="control mb-2 is-fullwidth">
+        <div class="select is-fullwidth">
+          <%= select_tag "#{input_id}_period", options_for_select(@time_period_options, custom ? '' : selected_value),
+              class: 'is-fullwidth', data: {
+                time_period_field_target: 'select',
+                action: 'time-period-field#toggleDateInput time-period-field#setInputValue'
+              } %>
+        </div>
+      </div>
+
+      <%= tag.div(
+          class: class_names('field has-addons datepicker-container', ' is-hidden': !custom), 
+          data: datepicker_options
+      ) do %>
+        <div class="is-fullwidth control">
+          <%= text_field_tag "#{input_id}_date_range", custom ? selected_value : nil, class: class_names('input', 'is-hidden': !custom),
+              data: { time_period_field_target: 'dateInput', action: 'time-period-field#setInputValue' } %>
+        </div>
+
+        <div class="control">
+          <a class='button' data-action="datepicker#clear">
+            <%= render Bali::Icon::Component.new('times') %>
+          </a>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>
