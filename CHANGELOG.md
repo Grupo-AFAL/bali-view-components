@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.10] - 2025-09-12
+
+### Added
+
+- `after-change-fetch-url-value` to `slim-select-controller.js`. When this value is present the controller will peform a fetch request after the value of the select has changed.
+
 ## [1.4.9] - 2025-09-09
 
 ### Changed
