@@ -1,5 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
-import { get } from '@rails/request.js'
+import { get, post } from '@rails/request.js'
 
 // TODO: Add tests (Issue: #157)
 export class SlimSelectController extends Controller {
@@ -19,7 +19,9 @@ export class SlimSelectController extends Controller {
     ajaxPlaceholder: {
       type: String,
       default: 'Type 2 chars to search...'
-    }
+    },
+    afterChangeFetchUrl: String,
+    afterChangeFetchMethod: { type: String, default: 'get' }
   }
 
   static targets = ['select', 'selectAllButton', 'deselectAllButton']
@@ -51,6 +53,10 @@ export class SlimSelectController extends Controller {
 
     if (this.addItemsValue) {
       options.events.addable = (value) => value
+    }
+
+    if (this.hasAfterChangeFetchUrlValue) {
+      options.events.afterChange = this.fetchAfterChange
     }
 
     this.select = new SlimSelect(options)
@@ -123,5 +129,17 @@ export class SlimSelectController extends Controller {
       this.hasAjaxTextNameValue &&
       this.hasAjaxUrlValue
     )
+  }
+
+  fetchAfterChange = (newValues) => {
+    const params = { [this.select.select.select.name]: newValues.map(val => val.value) }
+
+    // POST request is needed to send an array of values. With a GET request the multiple
+    // values are sent as a serialized array string, instead of an actual array.
+    if (this.afterChangeFetchMethodValue === 'post') {
+      post(this.afterChangeFetchUrlValue, { body: params, responseKind: 'turbo-stream' })
+    } else {
+      get(this.afterChangeFetchUrlValue, { query: params, responseKind: 'turbo-stream' })
+    }
   }
 }
