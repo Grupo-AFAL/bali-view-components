@@ -69,7 +69,9 @@ module Bali
           'data-slim-select-ajax-value-name-value': options[:ajax_value_name],
           'data-slim-select-ajax-text-name-value': options[:ajax_text_name],
           'data-slim-select-ajax-url-value': options[:ajax_url],
-          'data-slim-select-ajax-placeholder-value': options[:ajax_placeholder]
+          'data-slim-select-ajax-placeholder-value': options[:ajax_placeholder],
+          'data-slim-select-after-change-fetch-url-value': options[:after_change_fetch_url],
+          'data-slim-select-after-change-fetch-method-value': options[:after_change_fetch_method]
         }
       end
     end
