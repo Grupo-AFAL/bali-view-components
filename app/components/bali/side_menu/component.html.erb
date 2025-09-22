@@ -1,17 +1,17 @@
 <%= tag.div **@options do %>
   <% authorized_apps = apps.select(&:authorized?) %>
 
-  <% if authorized_apps.any? %>
+  <div class="header">
     <% if authorized_apps.size == 1 %>
       <%= authorized_apps.first %>
-    <% else %>
+    <% elsif authorized_apps.size > 1 %>
       <% active_app = authorized_apps.find(&:active?) %>
 
       <%= render Bali::HoverCard::Component.new(
           z_index: 38, open_on_click: true, content_padding: false, placement: 'bottom-start', 
           class: 'apps-selector with-multiple-apps', 
           data: { hovercard_content_class: 'hover-card-tippy-wrapper apps-selector-tippy-wrapper' }
-        ) do |c| %>
+      ) do |c| %>
         <% c.with_trigger(class: 'apps-selector--trigger') do %>
           <%= active_app %>
         <% end %>
@@ -24,8 +24,17 @@
       <% end %>
     <% end %>
 
-    <hr/>
-  <% end %>
+    <% if @collapsable %>
+      <%= render Bali::Link::Component.new(href: nil, class: 'has-text-grey-dark',
+          data: { action: 'side-menu#toggleCollapse' }
+      ) do %>
+        <%= render Bali::Icon::Component.new('chevron-left', class: 'collapse-icon') %>
+        <%= render Bali::Icon::Component.new('chevron-right', class: 'expand-icon') %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <%= tag.hr(class: 'mt-3 mb-4') if @collapsable || authorized_apps.any? %>
 
   <aside class="menu">
     <% lists.each do |list| %>

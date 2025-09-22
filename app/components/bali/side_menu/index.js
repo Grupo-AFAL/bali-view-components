@@ -27,6 +27,14 @@ export class SideMenuController extends Controller {
     }
   }
 
+  toggleCollapse (e) {
+    e.stopPropagation()
+
+    if (this.hasContainerTarget) {
+      this.containerTarget.classList.toggle('is-collapsed')
+    }
+  }
+
   closeMenu = e => {
     const closestLink = e.target.closest('.link-component')
     if (closestLink && closestLink.dataset.sideMenuTarget === 'link') {

@@ -1,10 +1,10 @@
 <%= tag.div(class: 'side-menu-component--app-component') do %>
-  <% if @icon_name %>
-    <%= render Bali::Icon::Component.new(@icon_name, class: 'ml-1 mr-3') %>
+  <% if @icon %>
+    <%= render Bali::Icon::Component.new(@icon) %>
   <% end %>
 
-  <div class="<%= class_names('is-fullwidth', 'ml-3': @icon_name.blank?) %>">
-    <p class="has-text-weight-bold"><%= @title %> </p>
+  <div class="<%= class_names('description is-fullwidth', 'ml-3': @icon.blank?) %>">
+    <p class="title-text has-text-weight-bold is-relative"><%= @title %> </p>
     <%= tag.p(@subtitle, class: 'is-size-7 has-text-grey') if @subtitle.present? %>
   </div>
 <% end %>

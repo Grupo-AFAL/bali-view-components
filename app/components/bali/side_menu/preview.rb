@@ -22,43 +22,45 @@ module Bali
       # Default menu with a section name and an item
       # @param title text
       def with_multiple_apps(title: 'Section Title')
-        render(SideMenu::Component.new(current_path: '/inv/counts')) do |c|
+        render(SideMenu::Component.new(
+          current_path: '/inv/counts', collapsable: true, data: { controller: 'side-menu' }
+        )) do |c|
           c.with_app(
             title: 'BoH', subtitle: 'Back of house', href: '/boh/dashboard',
-            active: true, icon_name: 'cutlery-alt'
+            active: true, icon: 'cutlery-alt'
           )
           c.with_app(
             title: 'Logistics', subtitle: 'Logistics team', href: '/logistics/dashboard',
-            icon_name: :truck
+            icon: :truck
           )
           c.with_app(
             title: 'Accounting', subtitle: 'Acct team', href: '/acct/dashboard',
-            icon_name: 'wallet-alt'
+            icon: 'wallet-alt'
           )
 
           c.with_list do |list|
-            list.with_item(name: 'Dashboard', href: '/boh/dashboard', icon_name: :dashboard)
-            list.with_item(name: 'Recipes', href: '/boh/recipes', icon_name: 'recipe-book')
-            list.with_item(name: 'Production', icon_name: :week) do |item|
-              item.with_item(name: 'Plans', href: '/production/plans', icon_name: :ticket)
+            list.with_item(name: 'Dashboard', href: '/boh/dashboard', icon: :dashboard)
+            list.with_item(name: 'Recipes', href: '/boh/recipes', icon: 'recipe-book')
+            list.with_item(name: 'Production', icon: :week) do |item|
+              item.with_item(name: 'Plans', href: '/production/plans', icon: :ticket)
             end
           end
 
           c.with_list(title: title) do |list|
-            list.with_item(name: 'Inventory', icon_name: :table) do |item|
-              item.with_item(name: 'Counts', href: '/inv/counts', icon_name: :report)
-              item.with_item(name: 'Waste', href: '/inv/waste', icon_name: :trash)
-              item.with_item(name: 'Storage locations', href: '/inv/storage_locations', icon_name: :pin)
+            list.with_item(name: 'Inventory', icon: :table) do |item|
+              item.with_item(name: 'Counts', href: '/inv/counts', icon: :report)
+              item.with_item(name: 'Waste', href: '/inv/waste', icon: :trash)
+              item.with_item(name: 'Storage locations', href: '/inv/storage_locations', icon: :pin)
             end
-            list.with_item(name: 'Procurement', icon_name: 'money-bill-wave') do |item|
+            list.with_item(name: 'Procurement', icon: 'money-bill-wave') do |item|
               item.with_item(
-                name: 'Purchase orders', href: '/procurement/purchase_orders', icon_name: 'sticky-note'
+                name: 'Purchase orders', href: '/procurement/purchase_orders', icon: 'sticky-note'
               )
               item.with_item(
-                name: 'Shopping list', href: '/procurement/shopping_list', icon_name: 'shopping-cart'
+                name: 'Shopping list', href: '/procurement/shopping_list', icon: 'shopping-cart'
               )
             end
-            list.with_item(name: 'Configuration', href: '/configuration', icon_name: :cog)
+            list.with_item(name: 'Configuration', href: '/configuration', icon: :cog)
           end
         end
       end
