@@ -23,9 +23,18 @@ module Bali
       # @param title text
       def with_multiple_apps(title: 'Section Title')
         render(SideMenu::Component.new(current_path: '/inv/counts')) do |c|
-          c.with_app(title: 'BoH', subtitle: 'Back of house', icon_name: :comment, href: '/boh/dashboard', active: true)
-          c.with_app(title: 'Logistics', subtitle: 'Logistics team', icon_name: :comment, href: '/logistics/dashboard')
-          c.with_app(title: 'Accounting', subtitle: 'Acct team', icon_name: :comment, href: '/acct/dashboard')
+          c.with_app(
+            title: 'BoH', subtitle: 'Back of house', href: '/boh/dashboard',
+            active: true, icon_name: 'cutlery-alt'
+          )
+          c.with_app(
+            title: 'Logistics', subtitle: 'Logistics team', href: '/logistics/dashboard',
+            icon_name: :truck
+          )
+          c.with_app(
+            title: 'Accounting', subtitle: 'Acct team', href: '/acct/dashboard',
+            icon_name: 'wallet-alt'
+          )
 
           c.with_list do |list|
             list.with_item(name: 'Dashboard', href: '/boh/dashboard', icon_name: :dashboard)
