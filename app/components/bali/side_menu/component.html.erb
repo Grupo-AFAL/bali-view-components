@@ -1,4 +1,33 @@
 <%= tag.div **@options do %>
+  <% authorized_apps = apps.select(&:authorized?) %>
+
+  <% if authorized_apps.any? %>
+    <% if authorized_apps.size == 1 %>
+      <%= authorized_apps.first %>
+    <% else %>
+      <% active_app = authorized_apps.find(&:active?) %>
+
+      <%= render Bali::HoverCard::Component.new(
+          z_index: 38, open_on_click: true, content_padding: false, placement: 'bottom-start', 
+          class: 'apps-selector with-multiple-apps', 
+          data: { hovercard_content_class: 'hover-card-tippy-wrapper apps-selector-tippy-wrapper' }
+        ) do |c| %>
+        <% c.with_trigger(class: 'apps-selector--trigger') do %>
+          <%= active_app %>
+          <%# render Bali::Icon::Component.new('chevron-down', class: 'has-text-grey') %>
+        <% end %>
+
+        <% authorized_apps.reject { |app| app == active_app }.each do |app| %>
+          <%= render Bali::Link::Component.new(href: app.href, class: 'dropdown-item') do %>
+            <%= app %>
+          <% end %>
+        <% end  %>
+      <% end %>
+    <% end %>
+
+    <hr/>
+  <% end %>
+
   <aside class="menu">
     <% lists.each do |list| %>
       <%= list %>

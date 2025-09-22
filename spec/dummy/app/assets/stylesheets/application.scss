@@ -17,6 +17,7 @@
 // Third Party Libraries
 @import 'bulma';
 @import '../../../../../app/assets/stylesheets/bali/variables';
+@import '../../../../../app/assets/stylesheets/bali/general';
 @import '../../../../../app/components/bali/actions_dropdown/index';
 @import '../../../../../app/components/bali/bulk_actions/index';
 @import '../../../../../app/components/bali/avatar/index';
@@ -50,6 +51,7 @@
 @import '../../../../../app/components/bali/reveal/index';
 @import '../../../../../app/components/bali/rich_text_editor/index';
 @import '../../../../../app/components/bali/search_input/index';
+@import '../../../../../app/components/bali/side_menu/index';
 @import '../../../../../app/components/bali/sortable_list/index';
 @import '../../../../../app/components/bali/stepper/index';
 @import '../../../../../app/components/bali/table/index';

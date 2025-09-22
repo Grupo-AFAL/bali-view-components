@@ -17,6 +17,39 @@ module Bali
         end
       end
 
+      # With multiple apps
+      # -------------------
+      # Default menu with a section name and an item
+      # @param title text
+      def with_multiple_apps(title: 'Section Title')
+        render(SideMenu::Component.new(current_path: '/inv/counts')) do |c|
+          c.with_app(title: 'BoH', subtitle: 'Back of house', icon_name: :comment, href: '/boh/dashboard', active: true)
+          c.with_app(title: 'Logistics', subtitle: 'Logistics team', icon_name: :comment, href: '/logistics/dashboard')
+          c.with_app(title: 'Accounting', subtitle: 'Acct team', icon_name: :comment, href: '/acct/dashboard')
+
+          c.with_list do |list|
+            list.with_item(name: 'Dashboard', href: '/boh/dashboard')
+            list.with_item(name: 'Recipes', href: '/boh/recipes')
+            list.with_item(name: 'Production') do |item|
+              item.with_item(name: 'Plans', href: '/production/plans' )
+            end
+          end
+
+          c.with_list(title: title) do |list|
+            list.with_item(name: 'Inventory') do |item|
+              item.with_item(name: 'Counts', href: '/inv/counts')
+              item.with_item(name: 'Waste', href: '/inv/waste' )
+              item.with_item(name: 'Storage locations', href: '/inv/storage_locations' )
+            end
+            list.with_item(name: 'Procurement') do |item|
+              item.with_item(name: 'Purchase orders', href: '/procurement/purchase_orders')
+              item.with_item(name: 'Shopping list', href: '/procurement/shopping_list')
+            end
+            list.with_item(name: 'Configuration', href: '/configuration')
+          end
+        end
+      end
+
       # SideMenu with icon in the item
       # -------------------
       # This will add an icon in the item specified

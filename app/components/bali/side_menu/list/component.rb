@@ -4,7 +4,7 @@ module Bali
   module SideMenu
     module List
       class Component < ApplicationViewComponent
-        renders_many :items, ->(href:, name: nil, icon: nil, authorized: true, **options) do
+        renders_many :items, ->(href: nil, name: nil, icon: nil, authorized: true, **options) do
           Item::Component.new(
             name: name,
             href: href,

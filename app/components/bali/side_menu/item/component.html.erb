@@ -1,19 +1,22 @@
 <li>
-  <%= render Bali::Link::Component.new(
-             href: @href,
-             name: @name,
-             icon_name: @icon,
-             active_path: current_path,
-             active: @active,
-             **@options) do %>
-    <%= content %>
-  <% end %>
+  <% if items.blank? %>
+    <%= render Bali::Link::Component.new(
+        name: @name, href: @href, icon_name: @icon, active_path: current_path, 
+        active: @active, **@options) %>
+  <% else %>
+    <div class="<%= class_names('is-revealed': active?) %>" data-controller="reveal">
+      <%= render Bali::Link::Component.new(name: @name, icon_name: @icon, href: nil, **@options) %>
 
-  <% if active? && items.present? %>
-    <ul>
-      <% items.each do |item| %>
-        <%= item %>
-      <% end %>
-    </ul>
+      <ul class="<%= class_names('pl-4', 'is-hidden': !active?) %>" data-reveal-target="item">
+        <% if @href.present? %>
+          <%= render Bali::Link::Component.new(
+              name: @name, href: @href, icon_name: @icon, active_path: current_path, active: @active) %>
+        <% end %>
+
+        <% items.each do |item| %>
+          <%= item %>
+        <% end %>
+      </ul>
+    </div>
   <% end %>
 </li>
