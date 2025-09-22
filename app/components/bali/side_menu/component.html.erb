@@ -14,7 +14,6 @@
         ) do |c| %>
         <% c.with_trigger(class: 'apps-selector--trigger') do %>
           <%= active_app %>
-          <%# render Bali::Icon::Component.new('chevron-down', class: 'has-text-grey') %>
         <% end %>
 
         <% authorized_apps.reject { |app| app == active_app }.each do |app| %>

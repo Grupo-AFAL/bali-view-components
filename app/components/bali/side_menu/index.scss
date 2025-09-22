@@ -39,6 +39,11 @@ $z-index-side-menu: 5;
       display: flex;
       align-items: center;
       font-size: 0.875rem;
+
+      .icon {
+        width: $size-6;
+        height: $size-6;
+      }
     }
 
     .is-active {
@@ -52,28 +57,20 @@ $z-index-side-menu: 5;
     .link-component {
       position: relative;
 
-      &.is-list {
-        display: flex;
-        justify-content: space-between;
+      &.is-list::after {
+        position: absolute;
+        top: 50%;
+        right: 0.5rem;
+        content: ' ';
+        display: inline-block;
+        border-bottom: 2px solid;
+        border-right: 2px solid;
+        height: 0.5rem;
+        width: 0.5rem;
+        border-color: $grey-light;
+        transform: translateY(-50%) rotate(-45deg);
 
-        &::after {
-          position: absolute;
-          top: 50%;
-          right: 0.5rem;
-          content: ' ';
-          display: inline-block;
-          border-bottom: 2px solid;
-          border-right: 2px solid;
-          height: 0.5rem;
-          width: 0.5rem;
-        }
-
-        &::after {
-          border-color: $grey-light;
-          transform: translateY(-50%) rotate(-45deg);
-        }
-
-        &.is-active::after {
+        &.is-active {
           border-color: $white;
         }
       }
@@ -99,9 +96,10 @@ $z-index-side-menu: 5;
       width: 100%;
       cursor: pointer;
       padding: 0.25rem;
+      border-radius: 2px;
 
       &:hover {
-        background-color: $grey-lightest;
+        background-color: $white-ter;
       }
     }
 

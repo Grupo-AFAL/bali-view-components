@@ -28,24 +28,28 @@ module Bali
           c.with_app(title: 'Accounting', subtitle: 'Acct team', icon_name: :comment, href: '/acct/dashboard')
 
           c.with_list do |list|
-            list.with_item(name: 'Dashboard', href: '/boh/dashboard')
-            list.with_item(name: 'Recipes', href: '/boh/recipes')
-            list.with_item(name: 'Production') do |item|
-              item.with_item(name: 'Plans', href: '/production/plans' )
+            list.with_item(name: 'Dashboard', href: '/boh/dashboard', icon_name: :dashboard)
+            list.with_item(name: 'Recipes', href: '/boh/recipes', icon_name: 'recipe-book')
+            list.with_item(name: 'Production', icon_name: :week) do |item|
+              item.with_item(name: 'Plans', href: '/production/plans', icon_name: :ticket)
             end
           end
 
           c.with_list(title: title) do |list|
-            list.with_item(name: 'Inventory') do |item|
-              item.with_item(name: 'Counts', href: '/inv/counts')
-              item.with_item(name: 'Waste', href: '/inv/waste' )
-              item.with_item(name: 'Storage locations', href: '/inv/storage_locations' )
+            list.with_item(name: 'Inventory', icon_name: :table) do |item|
+              item.with_item(name: 'Counts', href: '/inv/counts', icon_name: :report)
+              item.with_item(name: 'Waste', href: '/inv/waste', icon_name: :trash)
+              item.with_item(name: 'Storage locations', href: '/inv/storage_locations', icon_name: :pin)
             end
-            list.with_item(name: 'Procurement') do |item|
-              item.with_item(name: 'Purchase orders', href: '/procurement/purchase_orders')
-              item.with_item(name: 'Shopping list', href: '/procurement/shopping_list')
+            list.with_item(name: 'Procurement', icon_name: 'money-bill-wave') do |item|
+              item.with_item(
+                name: 'Purchase orders', href: '/procurement/purchase_orders', icon_name: 'sticky-note'
+              )
+              item.with_item(
+                name: 'Shopping list', href: '/procurement/shopping_list', icon_name: 'shopping-cart'
+              )
             end
-            list.with_item(name: 'Configuration', href: '/configuration')
+            list.with_item(name: 'Configuration', href: '/configuration', icon_name: :cog)
           end
         end
       end
