@@ -21,19 +21,19 @@ module Bali
       # -------------------
       # Default menu with a section name and an item
       # @param title text
-      def with_multiple_apps(title: 'Section Title')
+      def with_menu_switcher(title: 'Section Title')
         render(SideMenu::Component.new(
           current_path: '/inv/counts', collapsable: true, data: { controller: 'side-menu' }
         )) do |c|
-          c.with_app(
+          c.with_menu_switch(
             title: 'BoH', subtitle: 'Back of house', href: '/boh/dashboard',
             active: true, icon: 'cutlery-alt'
           )
-          c.with_app(
+          c.with_menu_switch(
             title: 'Logistics', subtitle: 'Logistics team', href: '/logistics/dashboard',
             icon: :truck
           )
-          c.with_app(
+          c.with_menu_switch(
             title: 'Accounting', subtitle: 'Acct team', href: '/acct/dashboard',
             icon: 'wallet-alt'
           )

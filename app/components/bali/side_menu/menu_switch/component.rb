@@ -2,7 +2,7 @@
 
 module Bali
   module SideMenu
-    module App
+    module MenuSwitch
       class Component < ApplicationViewComponent
         attr_reader :title, :subtitle, :icon, :href
 
