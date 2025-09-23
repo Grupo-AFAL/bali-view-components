@@ -6,16 +6,14 @@ export class SideMenuController extends Controller {
   connect () {
     this.scrollToActiveLinkPreviousPosition()
 
-    if (this.hasOverlayTarget && this.hasContainerTarget) {
+    if (this.hasOverlayTarget) {
       this.overlayTarget.addEventListener('click', this.closeMenu)
-      this.containerTarget.addEventListener('click', this.closeMenu)
     }
   }
 
   disconnect () {
-    if (this.hasOverlayTarget && this.hasContainerTarget) {
+    if (this.hasOverlayTarget) {
       this.overlayTarget.removeEventListener('click', this.closeMenu)
-      this.containerTarget.removeEventListener('click', this.closeMenu)
     }
   }
 
