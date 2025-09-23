@@ -4,7 +4,7 @@ module Bali
   module SideMenu
     module Item
       class Component < ApplicationViewComponent
-        renders_many :items, ->(href:, name: nil, icon: nil, authorized: true, **options) do
+        renders_many :items, ->(href: nil, name: nil, icon: nil, authorized: true, **options) do
           Item::Component.new(
             name: name,
             href: href,
@@ -17,7 +17,7 @@ module Bali
 
         attr_reader :href, :current_path, :match_type
 
-        def initialize(href:, current_path:, name: nil, icon: nil, authorized: true, **options)
+        def initialize(current_path:, href: nil, name: nil, icon: nil, authorized: true, **options)
           @name = name
           @href = href
           @icon = icon
@@ -33,7 +33,10 @@ module Bali
           super
 
           @options = prepend_class_name(@options, 'is-active') if active?
-          @options = prepend_class_name(@options, 'is-list') if items.present?
+          return if items.blank?
+
+          @options = prepend_class_name(@options, 'is-list')
+          @options = prepend_data_attribute(@options, :action, 'click->reveal#toggle')
         end
 
         def render?
@@ -51,7 +54,8 @@ module Bali
         def active?
           return @active unless @active.nil?
 
-          active_path?(uri.path, current_path, match: match_type) || active_child_items?
+          (!disabled? && active_path?(uri.path, current_path, match: match_type)) ||
+            active_child_items?
         end
 
         def active_child_items?

@@ -1,5 +1,43 @@
 <%= tag.div **@options do %>
+  <% authorized_menus = menu_switches.select(&:authorized?) %>
   <aside class="menu">
+    <div class="header">
+      <% if authorized_menus.size == 1 %>
+        <%= authorized_menus.first %>
+      <% elsif authorized_menus.size > 1 %>
+        <% active_menu = authorized_menus.find(&:active?) %>
+
+        <%= render Bali::HoverCard::Component.new(
+            z_index: 38, open_on_click: true, content_padding: false, placement: 'bottom-start', 
+            class: 'menu-switcher with-multiple-switches', 
+            data: { hovercard_content_class: 'hover-card-tippy-wrapper menu-switcher-tippy-wrapper' }
+        ) do |c| %>
+          <% c.with_trigger(class: 'menu-switcher--trigger') do %>
+            <%= active_menu %>
+          <% end %>
+
+          <% authorized_menus.each do |menu| %>
+            <%= render Bali::Link::Component.new(
+              href: menu.href, class: 'dropdown-item', disabled: menu == active_menu
+            ) do %>
+              <%= menu %>
+            <% end %>
+          <% end  %>
+        <% end %>
+      <% end %>
+
+      <% if @collapsable %>
+        <%= render Bali::Link::Component.new(href: nil, class: 'has-text-grey-dark',
+            data: { action: 'side-menu#toggleCollapse' }
+        ) do %>
+          <%= render Bali::Icon::Component.new('chevron-left', class: 'collapse-icon') %>
+          <%= render Bali::Icon::Component.new('chevron-right', class: 'expand-icon') %>
+        <% end %>
+      <% end %>
+    </div>
+
+    <%= tag.hr(class: 'mt-3 mb-4') if @collapsable || authorized_menus.any? %>
+
     <% lists.each do |list| %>
       <%= list %>
     <% end %>

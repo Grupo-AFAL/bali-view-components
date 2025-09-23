@@ -1,0 +1,10 @@
+<%= tag.div(class: 'side-menu-component--menu-switch-component') do %>
+  <% if @icon %>
+    <%= render Bali::Icon::Component.new(@icon) %>
+  <% end %>
+
+  <div class="<%= class_names('description is-fullwidth', 'ml-3': @icon.blank?) %>">
+    <p class="title-text has-text-weight-bold is-relative"><%= @title %> </p>
+    <%= tag.p(@subtitle, class: 'is-size-7 has-text-grey') if @subtitle.present? %>
+  </div>
+<% end %>
