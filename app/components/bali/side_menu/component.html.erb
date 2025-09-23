@@ -3,7 +3,7 @@
   <aside class="menu">
     <div class="header">
       <% if authorized_menus.size == 1 %>
-        <%= authorized_apps.first %>
+        <%= authorized_menus.first %>
       <% elsif authorized_menus.size > 1 %>
         <% active_menu = authorized_menus.find(&:active?) %>
 
