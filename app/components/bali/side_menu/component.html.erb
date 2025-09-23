@@ -16,8 +16,10 @@
           <%= active_app %>
         <% end %>
 
-        <% authorized_apps.reject { |app| app == active_app }.each do |app| %>
-          <%= render Bali::Link::Component.new(href: app.href, class: 'dropdown-item') do %>
+        <% authorized_apps.each do |app| %>
+          <%= render Bali::Link::Component.new(
+            href: app.href, class: 'dropdown-item', disabled: app == active_app
+          ) do %>
             <%= app %>
           <% end %>
         <% end  %>
