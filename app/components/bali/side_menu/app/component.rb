@@ -24,7 +24,7 @@ module Bali
         end
 
         def render?
-          @authorized
+          authorized?
         end
       end
     end
