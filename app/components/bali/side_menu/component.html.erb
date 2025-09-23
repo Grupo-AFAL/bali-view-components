@@ -9,10 +9,10 @@
 
         <%= render Bali::HoverCard::Component.new(
             z_index: 38, open_on_click: true, content_padding: false, placement: 'bottom-start', 
-            class: 'apps-selector with-multiple-apps', 
-            data: { hovercard_content_class: 'hover-card-tippy-wrapper apps-selector-tippy-wrapper' }
+            class: 'menu-switcher with-multiple-switches', 
+            data: { hovercard_content_class: 'hover-card-tippy-wrapper menu-switcher-tippy-wrapper' }
         ) do |c| %>
-          <% c.with_trigger(class: 'apps-selector--trigger') do %>
+          <% c.with_trigger(class: 'menu-switcher--trigger') do %>
             <%= active_menu %>
           <% end %>
 

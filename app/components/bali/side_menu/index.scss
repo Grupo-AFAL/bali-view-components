@@ -86,7 +86,7 @@ $z-index-side-menu: 5;
     margin-right: 0.5rem;
   }
 
-  &--app-component {
+  &--menu-switch-component {
     display: flex;
     align-items: center;
     width: 100%;
@@ -96,10 +96,10 @@ $z-index-side-menu: 5;
     }
   }
 
-  .apps-selector {
+  .menu-switcher {
     width: 100%;
 
-    .apps-selector--trigger {
+    .menu-switcher--trigger {
       position: relative;
       display: flex;
       align-items: center;
@@ -113,7 +113,7 @@ $z-index-side-menu: 5;
       }
     }
 
-    &.with-multiple-apps .apps-selector--trigger .side-menu-component--app-component .title-text::after {
+    &.with-multiple-switches .menu-switcher--trigger .side-menu-component--menu-switch-component .title-text::after {
       position: absolute;
       top: 50%;
       content: ' ';
@@ -127,7 +127,7 @@ $z-index-side-menu: 5;
       transform: translateY(-65%) rotate(45deg);
     }
 
-    &.is-active .apps-selector--trigger {
+    &.is-active .menu-switcher--trigger {
       background-color: $grey-lightest;
     }
   }
@@ -148,7 +148,7 @@ $z-index-side-menu: 5;
   &.is-collapsed {
     width: min-content;
 
-    .apps-selector--trigger,
+    .menu-switcher--trigger,
     .menu-list .link-component,
     .header .link-component {
       display: flex;
@@ -175,7 +175,7 @@ $z-index-side-menu: 5;
       }
     }
 
-    .side-menu-component--app-component {
+    .side-menu-component--menu-switch-component {
       justify-content: center;
 
       .icon {
@@ -245,7 +245,7 @@ $z-index-side-menu: 5;
   pointer-events: auto;
 }
 
-.apps-selector-tippy-wrapper {
+.menu-switcher-tippy-wrapper {
   .tippy-svg-arrow {
     display: none;
   }
