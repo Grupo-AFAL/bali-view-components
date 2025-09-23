@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `apps` slot to `Bali::SideMenu::Component`.
+- `menu_switches` slot to `Bali::SideMenu::Component`.
 - `collapsable` attribute to `Bali::SideMenu::Component`.
 
 ## [1.4.10] - 2025-09-12
