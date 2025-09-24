@@ -10,7 +10,7 @@ export class SideMenuController extends Controller {
       this.overlayTarget.addEventListener('click', this.closeMenu)
     }
 
-    if (this.collapsable() && localStorage.getItem('isSideMenuCollapsed')) {
+    if (this.collapsable() && localStorage.getItem('bali_isSideMenuCollapsed')) {
       this.containerTarget.classList.add('is-collapsed')
     }
   }
@@ -36,9 +36,9 @@ export class SideMenuController extends Controller {
     this.containerTarget.classList.toggle('is-collapsed')
 
     if (this.containerTarget.classList.contains('is-collapsed')) {
-      localStorage.setItem('isSideMenuCollapsed', true)
+      localStorage.setItem('bali_isSideMenuCollapsed', true)
     } else {
-      localStorage.removeItem('isSideMenuCollapsed')
+      localStorage.removeItem('bali_isSideMenuCollapsed')
     }
   }
 
