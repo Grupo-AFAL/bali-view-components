@@ -8,6 +8,7 @@ import 'controllers'
 import { AutoPlayAudioController } from 'bali/auto-play-audio-controller'
 import { AutocompleteAddressController } from 'bali/autocomplete-address-controller'
 import { CheckboxToggleController } from 'bali/checkbox-toggle-controller'
+import { CheckboxRevealController } from 'bali/checkbox-reveal-controller'
 import { DatepickerController } from 'bali/datepicker-controller'
 import { DrawingMapsController } from 'bali/drawing-maps-controller'
 import { DynamicFieldsController } from 'bali/dynamic-fields-controller'
@@ -96,7 +97,8 @@ application.register('selected', SelectedController)
 
 application.register('auto-play-audio', AutoPlayAudioController)
 application.register('autocomplete-address', AutocompleteAddressController)
-application.register('checkbox-toggle-address', CheckboxToggleController)
+application.register('checkbox-toggle', CheckboxToggleController)
+application.register('checkbox-reveal', CheckboxRevealController)
 application.register('datepicker', DatepickerController)
 application.register('drawing-maps', DrawingMapsController)
 application.register('dynamic-fields', DynamicFieldsController)
