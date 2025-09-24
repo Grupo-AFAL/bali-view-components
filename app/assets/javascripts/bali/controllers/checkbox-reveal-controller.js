@@ -20,6 +20,6 @@ export class CheckboxRevealController extends Controller {
       } else {
         element.classList.add(this.class)
       }
-    });
+    })
   }
 }
