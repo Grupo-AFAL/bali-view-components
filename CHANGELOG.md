@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `checkbox-reveal-controller.js` stimulus controller.
 
+## [1.4.12] - 2025-09-24
+
+### Fixed
+
+- maintain collapsed side menu after redirections
+
 ## [1.4.11] - 2025-09-23
 
 ### Added
