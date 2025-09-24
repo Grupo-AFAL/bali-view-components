@@ -140,6 +140,12 @@ $z-index-side-menu: 5;
     .expand-icon {
       display: none;
     }
+
+    .link-component {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
   }
 
   .side-menu-component--item-component.is-list.is-collapsed {
@@ -154,6 +160,7 @@ $z-index-side-menu: 5;
     .header .link-component {
       display: flex;
       justify-content: center;
+      align-items: center;
       width: 2.625rem;
       height: 2.625rem;
     }

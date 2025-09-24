@@ -15,6 +15,7 @@ module Bali
         @options = options
         @options = prepend_class_name(@options, 'side-menu-component')
         @options = prepend_data_attribute(@options, :side_menu_target, 'container')
+        @options = prepend_data_attribute(@options, :collapsable, @collapsable)
       end
     end
   end

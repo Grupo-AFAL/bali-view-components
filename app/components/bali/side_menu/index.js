@@ -9,6 +9,10 @@ export class SideMenuController extends Controller {
     if (this.hasOverlayTarget) {
       this.overlayTarget.addEventListener('click', this.closeMenu)
     }
+
+    if (this.collapsable() && localStorage.getItem('bali_isSideMenuCollapsed')) {
+      this.containerTarget.classList.add('is-collapsed')
+    }
   }
 
   disconnect () {
@@ -27,9 +31,14 @@ export class SideMenuController extends Controller {
 
   toggleCollapse (e) {
     e.stopPropagation()
+    if (!this.hasContainerTarget || !this.collapsable()) return
 
-    if (this.hasContainerTarget) {
-      this.containerTarget.classList.toggle('is-collapsed')
+    this.containerTarget.classList.toggle('is-collapsed')
+
+    if (this.containerTarget.classList.contains('is-collapsed')) {
+      localStorage.setItem('bali_isSideMenuCollapsed', true)
+    } else {
+      localStorage.removeItem('bali_isSideMenuCollapsed')
     }
   }
 
@@ -54,5 +63,11 @@ export class SideMenuController extends Controller {
     this.containerTarget.scrollTo(
       { top: top - parseFloat(activeLinkPrevPosition), behavior: 'instant' }
     )
+  }
+
+  collapsable () {
+    if (!this.hasContainerTarget) return false
+
+    return this.containerTarget.dataset.collapsable === 'true'
   }
 }
