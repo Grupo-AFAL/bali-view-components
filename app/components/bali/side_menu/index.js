@@ -12,7 +12,7 @@ export class SideMenuController extends Controller {
 
     if (this.collapsable() && localStorage.getItem('isSideMenuCollapsed')) {
       this.containerTarget.classList.add('is-collapsed')
-    } 
+    }
   }
 
   disconnect () {
