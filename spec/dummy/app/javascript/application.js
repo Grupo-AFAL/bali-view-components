@@ -39,6 +39,7 @@ import { DropdownController } from 'bali/dropdown'
 import { GanttFoldableItemController } from 'bali/gantt-chart/foldable-item'
 import { GanttChartController } from 'bali/gantt-chart'
 import { HovercardController } from 'bali/hovercard'
+import { ImageFieldController } from 'bali/image-field'
 import { LocationsMapController } from 'bali/locations_map'
 import { ModalController } from 'bali/modal'
 import { NavbarController } from 'bali/navbar'
@@ -74,6 +75,7 @@ application.register('dropdown', DropdownController)
 application.register('gantt-foldable-item', GanttFoldableItemController)
 application.register('gantt-chart', GanttChartController)
 application.register('hovercard', HovercardController)
+application.register('image-field', ImageFieldController)
 application.register('locations-map', LocationsMapController)
 application.register('modal', ModalController)
 application.register('navbar', NavbarController)

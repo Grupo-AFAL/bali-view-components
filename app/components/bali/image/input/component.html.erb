@@ -1,0 +1,6 @@
+<%= tag.label **@container_options do %>
+  <%= render Bali::Icon::Component.new(@icon_name) %>
+  <div class="control">
+    <%= @form.file_field @method, accept: accepted_formats, **@options %>
+  </div>
+<% end %>

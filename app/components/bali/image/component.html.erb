@@ -1,0 +1,16 @@
+<%= tag.div **@options do %>
+  <%= image_tag(@image_url, **@image_options) %>
+
+  <% if input? %>
+    <%= image_tag(@placeholder_url, class: 'is-hidden', data: { image_field_target: 'placeholder' }) %>
+
+    <%= input %>
+
+    <% if clear_button? %>
+      <%= clear_button %>
+    <% else %>
+      <%= render Bali::Link::Component.new(icon_name: :times,
+          href: nil, data: { action: 'image-field#clear' }, class: 'button clear-image-button') %>
+    <% end %>
+  <% end %>
+<% end %>
