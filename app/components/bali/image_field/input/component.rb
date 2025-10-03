@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Bali
-  module Image
+  module ImageField
     module Input
       class Component < ApplicationViewComponent
         def initialize(

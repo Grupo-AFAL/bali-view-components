@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Bali
-  module Image
+  module ImageField
     class Component < ApplicationViewComponent
       renders_one :input, Bali::Image::Input::Component
       renders_one :clear_button
@@ -13,7 +13,7 @@ module Bali
         @image_url = image_url || placeholder_url
         @placeholder_url = placeholder_url
 
-        @options = prepend_class_name(options, 'image-component')
+        @options = prepend_class_name(options, 'image-field-component')
         @options = prepend_controller(@options, 'image-field')
 
         @image_options = prepend_data_attribute(image_options, 'image-field-target', 'output')

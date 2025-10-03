@@ -1,5 +1,5 @@
 <%= form_with(url: '/') do |f| %>
-  <%= render(Bali::Image::Component.new) do |c| %>
+  <%= render(Bali::ImageField::Component.new) do |c| %>
     <% c.with_input(form: f, method: :avatar) %>
     <% c.with_clear_button do %>
       <%= render Bali::Link::Component.new(icon_name: :trash,
