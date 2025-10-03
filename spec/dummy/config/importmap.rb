@@ -93,7 +93,7 @@ pin 'bali/gantt-chart/connection-line', to: 'bali/gantt_chart/connection_line.js
 pin 'bali/gantt-chart/foldable-item', to: 'bali/gantt_chart/gantt_foldable_item.js'
 pin 'bali/gantt-chart', to: 'bali/gantt_chart/index.js'
 pin 'bali/hovercard', to: 'bali/hover_card/index.js'
-pin 'bali/image-field', to: 'bali/image/index.js'
+pin 'bali/image-field', to: 'bali/image_field/index.js'
 pin 'bali/locations_map', to: 'bali/locations_map/index.js'
 pin 'bali/modal', to: 'bali/modal/index.js'
 pin 'bali/navbar', to: 'bali/navbar/index.js'
