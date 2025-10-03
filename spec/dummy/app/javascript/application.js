@@ -8,6 +8,7 @@ import 'controllers'
 import { AutoPlayAudioController } from 'bali/auto-play-audio-controller'
 import { AutocompleteAddressController } from 'bali/autocomplete-address-controller'
 import { CheckboxToggleController } from 'bali/checkbox-toggle-controller'
+import { CheckboxRevealController } from 'bali/checkbox-reveal-controller'
 import { DatepickerController } from 'bali/datepicker-controller'
 import { DrawingMapsController } from 'bali/drawing-maps-controller'
 import { DynamicFieldsController } from 'bali/dynamic-fields-controller'
@@ -38,6 +39,7 @@ import { DropdownController } from 'bali/dropdown'
 import { GanttFoldableItemController } from 'bali/gantt-chart/foldable-item'
 import { GanttChartController } from 'bali/gantt-chart'
 import { HovercardController } from 'bali/hovercard'
+import { ImageFieldController } from 'bali/image-field'
 import { LocationsMapController } from 'bali/locations_map'
 import { ModalController } from 'bali/modal'
 import { NavbarController } from 'bali/navbar'
@@ -73,6 +75,7 @@ application.register('dropdown', DropdownController)
 application.register('gantt-foldable-item', GanttFoldableItemController)
 application.register('gantt-chart', GanttChartController)
 application.register('hovercard', HovercardController)
+application.register('image-field', ImageFieldController)
 application.register('locations-map', LocationsMapController)
 application.register('modal', ModalController)
 application.register('navbar', NavbarController)
@@ -96,7 +99,8 @@ application.register('selected', SelectedController)
 
 application.register('auto-play-audio', AutoPlayAudioController)
 application.register('autocomplete-address', AutocompleteAddressController)
-application.register('checkbox-toggle-address', CheckboxToggleController)
+application.register('checkbox-toggle', CheckboxToggleController)
+application.register('checkbox-reveal', CheckboxRevealController)
 application.register('datepicker', DatepickerController)
 application.register('drawing-maps', DrawingMapsController)
 application.register('dynamic-fields', DynamicFieldsController)
