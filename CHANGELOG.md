@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `checkbox-reveal-controller.js` stimulus controller.
+- `Bali::Image::Component` component. This component renders an image and allow to render an input to change and clear the image
 
 ## [1.4.12] - 2025-09-24
 
