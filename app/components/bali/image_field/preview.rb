@@ -1,5 +1,5 @@
 module Bali
-  module Image
+  module ImageField
     class Preview < ApplicationViewComponentPreview
       # Default
       # ----------------

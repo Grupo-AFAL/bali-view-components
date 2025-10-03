@@ -3,7 +3,7 @@
 module Bali
   module ImageField
     class Component < ApplicationViewComponent
-      renders_one :input, Bali::Image::Input::Component
+      renders_one :input, Bali::ImageField::Input::Component
       renders_one :clear_button
 
       def initialize(
