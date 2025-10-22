@@ -20,10 +20,10 @@
             <%= render Bali::Icon::Component.new('filter') %>
 
             <%= tag.span "#{active_filters_count > 0 ? "(#{active_filters_count}) " : nil}",
-                class: 'counter',
+                class: 'counter is-size-7-mobile',
                 data: { 'filter-form-target': 'filterCounter' } %>
 
-            <%= tag.span t('.filters'), class: 'text' %>
+            <%= tag.span t('.filters'), class: 'text is-hidden-mobile' %>
           <% end %>
 
           <%= hidden_field_tag :opened, opened, data: { 'popup-target': 'openedInput' } %>
@@ -107,10 +107,16 @@
       <% if attributes? || custom_filters.present? %>
         <div class="level-item">
           <%= link_to t('.remove_filters'), clear_filters_url,
-              class: class_names('is-hidden': !active_filters?),
+              class: class_names('is-hidden-mobile', 'is-hidden': !active_filters?),
               data: { 'filter-form-target': 'removeButton' } %>
         </div>
       <% end %>
     </div>
+  </div>
+
+  <div class="has-text-centered is-hidden-tablet">
+    <%= link_to t('.remove_filters'), clear_filters_url,
+        class: class_names('is-hidden': !active_filters?),
+        data: { 'filter-form-target': 'removeButton' } %>
   </div>
 <% end %>
