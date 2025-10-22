@@ -21,9 +21,9 @@
 
   <%= render Bali::Link::Component.new(name: render(Bali::Icon::Component.new('list')),
       href: url({ @display_mode_param_name => :table }),
-      type: :text, active: @display_mode&.to_sym == :table) %>
+      type: :text, active: @display_mode&.to_sym == :table, data: { turbo_stream: true }) %>
 
   <%= render Bali::Link::Component.new(name: render(Bali::Icon::Component.new('grid')),
       href: url({ @display_mode_param_name => :grid }),
-      type: :text, active: @display_mode&.to_sym == :grid) %>
+      type: :text, active: @display_mode&.to_sym == :grid, data: { turbo_stream: true }) %>
 <% end %>
