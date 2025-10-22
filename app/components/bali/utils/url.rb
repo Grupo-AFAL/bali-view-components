@@ -9,8 +9,7 @@ module Bali
 
       def add_query_params(url, values = {})
         uri = URI(url)
-        uri.query ||= ''
-        uri.query += values.map { |k, v| "#{k}=#{v}" }.join('&')
+        uri.query = CGI.parse(uri.query.to_s).merge(values).to_query
         uri.to_s
       end
     end
