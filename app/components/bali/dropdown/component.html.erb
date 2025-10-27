@@ -9,9 +9,10 @@
 
   <div class="dropdown-menu">
     <div class="dropdown-content">
-      <% if items.any? %>
-        <% items.each do |item| %>
+      <% if (authorized_items = items.select(&:authorized?)).any? %>
+        <% authorized_items.each_with_index do |item, index| %>
           <%= item %>
+          <%= tag.div(class: 'dropdown-divider') if index < authorized_items.size - 1 %>
         <% end %>
       <% else %>
         <%= content %>

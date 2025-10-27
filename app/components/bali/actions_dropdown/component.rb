@@ -5,6 +5,11 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :options
 
+      renders_many :items, ->(method: :get, **options) do
+        component_klass = method&.to_sym == :delete ? DeleteLink::Component : Link::Component
+        component_klass.new(method: method, **prepend_class_name(options, 'dropdown-item'))
+      end
+
       def initialize(**options)
         options.with_defaults!(
           z_index: 38,
@@ -22,7 +27,7 @@ module Bali
       end
 
       def render?
-        content.present?
+        items? ? items.any?(&:authorized?) : content.present?
       end
     end
   end
