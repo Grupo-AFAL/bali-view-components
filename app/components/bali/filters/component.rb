@@ -24,6 +24,13 @@ module Bali
         @text_field = text_field
         @opened = filters_opened?(opened)
         @auto_submit_search_input = options.delete(:auto_submit_search_input)
+
+        @options = prepend_class_name(options, 'width-inherit')
+        @options = prepend_controller(@options, 'filter-form')
+        @options = prepend_data_attribute(@options, 'filter-form-text-field-value', text_field)
+        @options = prepend_data_attribute(@options, 'turbo-stream', true)
+
+        add_auto_submit_data_to_options if @auto_submit_search_input
       end
 
       def filters_opened?(opened)
@@ -38,21 +45,12 @@ module Bali
         active_filters_count.positive?
       end
 
-      def form_data
-        if auto_submit_search_input
-          return {
-            controller: 'filter-form submit-on-change',
-            'filter-form-text-field-value': text_field,
-            'submit-on-change-delay-value': 800,
-            'submit-on-change-response-kind-value': 'turbo-stream'
-          }
-        end
-
-        {
-          controller: 'filter-form',
-          'filter-form-text-field-value': text_field,
-          turbo_stream: true
-        }
+      def add_auto_submit_data_to_options
+        @options = prepend_controller(@options, 'submit-on-change')
+        @options = prepend_data_attribute(@options, 'submit-on-change-delay-value', 800)
+        @options = prepend_data_attribute(
+          @options, 'submit-on-change-response-kind-value', 'turbo-stream'
+        )
       end
 
       def clear_filters_url
