@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
--  Use `Bali::Link::Component` for `items` slot instead of `Bali::Dropdown::Item::Component` in `Bali::Dropdown::Component`
+- Use `Bali::Link::Component` for `items` slot instead of `Bali::Dropdown::Item::Component` in `Bali::Dropdown::Component`
 
 ## [1.4.14] - 2025-10-22
 
