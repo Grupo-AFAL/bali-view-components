@@ -4,7 +4,12 @@ module Bali
   module Dropdown
     class Component < ApplicationViewComponent
       renders_one :trigger, Trigger::Component
-      renders_many :items, Item::Component
+      renders_many :items, ->(method: :get, href: nil, **options) do
+        component_klass = method&.to_sym == :delete ? DeleteLink::Component : Link::Component
+        component_klass.new(
+          method: method, href: href, **prepend_class_name(options, 'dropdown-item')
+        )
+      end
 
       def alignment_class
         case @align
@@ -26,6 +31,10 @@ module Bali
         @options = prepend_class_name(@options, alignment_class)
         @options = prepend_class_name(@options, 'dropdown-component dropdown')
         @options = prepend_controller(@options, 'dropdown')
+      end
+
+      def render?
+        items? ? items.any?(&:authorized?) : content.present?
       end
     end
   end

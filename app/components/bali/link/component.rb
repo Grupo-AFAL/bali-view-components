@@ -46,6 +46,8 @@ module Bali
         @options = options
         @options = prepend_class_name(@options, 'link-component')
 
+        @authorized = @options.key?(:authorized) ? @options.delete(:authorized) : true
+
         if disabled
           @options[:disabled] = true
         else
@@ -73,6 +75,14 @@ module Bali
       # rubocop:enable Metrics/ParameterLists
       # rubocop:enable Metrics/CyclomaticComplexity
       # rubocop:enable Metrics/PerceivedComplexity
+
+      def render?
+        authorized?
+      end
+
+      def authorized?
+        @authorized
+      end
     end
   end
 end

@@ -31,11 +31,22 @@ module Bali
 
         @options = prepend_class_name(options, default_classes)
 
+        @authorized = @options.key?(:authorized) ? @options.delete(:authorized) : true
+
         return unless @href.blank? && @model.blank?
 
         raise MissingURL, 'Need to provide either a :model or :href attribute'
       end
+
       # rubocop:enable Metrics/ParameterLists
+
+      def render?
+        authorized?
+      end
+
+      def authorized?
+        @authorized
+      end
 
       def href
         @href || @model
