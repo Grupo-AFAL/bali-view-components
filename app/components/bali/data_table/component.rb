@@ -19,13 +19,16 @@ module Bali
           display_mode_param_name: display_mode_param_name
         )
       end
-      renders_one :filters_panel, ->(text_field:, opened:, auto_submit_search_input: false) do
+      renders_one :filters_panel, ->(
+        text_field:, opened:, auto_submit_search_input: false, **options
+      ) do
         Filters::Component.new(
           form: @filter_form,
           url: @url,
           text_field: text_field,
           opened: opened,
-          auto_submit_search_input: auto_submit_search_input
+          auto_submit_search_input: auto_submit_search_input,
+          **options
         )
       end
 
