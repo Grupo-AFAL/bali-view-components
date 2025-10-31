@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Allow `Bali::DataTable::ActionsPanel::Component` to render custom actions.
+
+### Fixed
+
+- Avoid non query param conversion to array when adding new ones to a url.
+
+## [1.4.16] - 2025-10-28
+
+### Changed
+
 - Allow `Bali::Filters::Component` to receive options such as data.
 
 ## [1.4.15] - 2025-10-27
