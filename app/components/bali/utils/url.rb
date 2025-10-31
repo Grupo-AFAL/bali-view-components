@@ -9,7 +9,11 @@ module Bali
 
       def add_query_params(url, values = {})
         uri = URI(url)
-        uri.query = CGI.parse(uri.query.to_s).merge(values).to_query
+        query_params = CGI.parse(uri.query.to_s).merge(values)
+        query_params.each do |key, value|
+          query_params[key] = value.first if !key.ends_with?('[]') && value.is_a?(Array)
+        end
+        uri.query = query_params.to_query
         uri.to_s
       end
     end
