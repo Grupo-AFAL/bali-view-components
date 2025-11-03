@@ -6,6 +6,11 @@ module Bali
       class Component < ApplicationViewComponent
         include Bali::Utils::Url
 
+        renders_many :actions, ->(method: :get, href: nil, **options) do
+          component_klass = method&.to_sym == :delete ? DeleteLink::Component : Link::Component
+          component_klass.new(method: method, href: build_url(url: href), **options)
+        end
+
         def initialize(
           filter_form:,
           url:,
@@ -22,8 +27,8 @@ module Bali
           @display_mode_param_name = display_mode_param_name
         end
 
-        def url(query_params = {})
-          add_query_params(@url, { q: @filter_form.query_params }.merge(query_params))
+        def build_url(query_params = {}, url: nil)
+          add_query_params(url || @url, { q: @filter_form.query_params }.merge(query_params))
         end
       end
     end
