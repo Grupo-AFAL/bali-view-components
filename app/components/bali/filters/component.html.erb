@@ -79,8 +79,12 @@
                   <% with_many_options = collection_attributes.select { |attr| attr.collection_options.size > 5 } %>
                   <% with_few_options = collection_attributes.select { |attr| attr.collection_options.size <= 5 } %>
 
-                  <% with_many_options.each do |attribute| %>
-                    <div class="mb-2"><%= attribute %></div>
+                  <% if with_many_options.present? %>
+                    <div class="mb-4">
+                      <% with_many_options.each do |attribute| %>
+                        <div class="mb-2"><%= attribute %></div>
+                      <% end %>
+                    </div>
                   <% end %>
 
                   <div class="columns is-multiline">
