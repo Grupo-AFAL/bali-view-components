@@ -179,17 +179,17 @@
     data-rrule-freq="3,4"
   ></div>
 
-  <div class="is-flex is-align-items-center mt-5">
+  <div class="<%= class_names('is-flex is-align-items-center mt-5', 'is-hidden': @skip_end_method) %>">
     <p class="mr-4"><b><%= t('.end') %></b></p>
 
     <div class="control">
       <div class="select">
         <%= select_tag :end, options_for_select(ending_options), disabled: @disabled,
-            data: { 
-              recurrent_event_rule_target: 'endMethodSelect', 
-              action: 'recurrent-event-rule#toggleEndCustomizationInputsContainer ' \
-                      'recurrent-event-rule#setRule'
-            } %>
+          data: { 
+            recurrent_event_rule_target: 'endMethodSelect', 
+            action: 'recurrent-event-rule#toggleEndCustomizationInputsContainer ' \
+                    'recurrent-event-rule#setRule'
+          } %>
       </div>
     </div>
 
@@ -199,7 +199,7 @@
     <div class="is-hidden is-flex is-align-items-center ml-4" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="count">
       <div class="control">
         <%= number_field_tag :count, 1, min: 1, class: 'input', disabled: @disabled,
-            data: {  rrule_attr: 'count', action: 'recurrent-event-rule#setRule' } %>
+            data: { rrule_attr: 'count', action: 'recurrent-event-rule#setRule' } %>
       </div>
       <p class="ml-4"><b><%= t('.ocurrence_s') %></b></p>
     </div>
@@ -207,7 +207,7 @@
     <div class="is-hidden ml-4" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="until">
       <div class="control">
         <%= date_field_tag :until, 6.months.from_now.to_date, class: 'input', disabled: @disabled,
-            data: { rrule_attr: 'until', ecurring_event_rule_target: 'untilInput', action: 'recurrent-event-rule#setRule' } %>
+            data: { rrule_attr: 'until', recurrent_event_rule_target: 'untilInput', action: 'recurrent-event-rule#setRule' } %>
       </div>
     </div>
   </div>
