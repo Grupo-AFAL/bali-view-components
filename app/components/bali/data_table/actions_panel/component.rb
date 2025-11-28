@@ -7,8 +7,9 @@ module Bali
         include Bali::Utils::Url
 
         renders_many :actions, ->(method: :get, href: nil, **options) do
-          component_klass = method&.to_sym == :delete ? DeleteLink::Component : Link::Component
-          component_klass.new(method: method, href: build_url(url: href), **options)
+          Bali::DataTable::Action::Component.new(
+            method: method, href: build_url(url: href), **options
+          )
         end
 
         def initialize(
