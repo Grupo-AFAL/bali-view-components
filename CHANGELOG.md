@@ -15,6 +15,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `Bali::DataTable::ActionsPanel::Component` now uses `Bali::DataTable::Action::Component` for rendering actions, enabling support for action descriptions via tooltips.
 
+## [1.4.20] - 2025-11-27
+
+### Added
+
+- `Rrule::EnglishHumanizer` service to convert RRule objects to human-readable English text.
+- `Rrule::SpanishHumanizer` service to convert RRule objects to human-readable Spanish text.
+- `Bali::Concerns::GlobalIdAccessors` concern to define GlobalID getter and setter methods for ActiveRecord associations.
+- `rrule` gem dependency for recurrence rule handling.
+
+### Changed
+
+- Updated `Bali::RecurrentEventRuleForm::Component` to display humanized recurrence rules in English and Spanish.
+- Added RRule override to support `humanize` method with locale parameter.
+
 ## [1.4.19] - 2025-11-25
 
 ### Added

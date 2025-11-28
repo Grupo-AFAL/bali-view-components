@@ -11,6 +11,7 @@ gem 'caxlsx', '~> 4.1'
 gem 'csv'
 gem 'dartsass-rails'
 gem 'device_detector'
+gem 'rrule', git: 'https://github.com/square/ruby-rrule'
 gem 'sprockets-rails'
 
 gem 'lookbook'
