@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.21] - 2025-11-28
+
+### Added
+
+- `Bali::DataTable::Action::Component` to encapsulate action rendering with optional description tooltips.
+
+### Changed
+
+- `Bali::DataTable::ActionsPanel::Component` now uses `Bali::DataTable::Action::Component` for rendering actions, enabling support for action descriptions via tooltips.
+
 ## [1.4.20] - 2025-11-27
 
 ### Added
