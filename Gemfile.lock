@@ -1,7 +1,14 @@
+GIT
+  remote: https://github.com/square/ruby-rrule
+  revision: 4d40a71d82952db29fa04c3f02449b9999340a0a
+  specs:
+    rrule (0.7.0)
+      activesupport (>= 2.3)
+
 PATH
   remote: .
   specs:
-    bali_view_components (1.4.19)
+    bali_view_components (1.4.20)
       caxlsx
       rails (>= 7.0, < 9.0)
       ransack
@@ -367,6 +374,7 @@ DEPENDENCIES
   lookbook
   puma (< 7)
   ransack
+  rrule!
   rspec-rails (~> 8)
   rubocop (~> 1)
   rubocop-rails (~> 2)

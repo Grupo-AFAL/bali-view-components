@@ -8,6 +8,9 @@ module Bali
         @method = method
         @value = value
         @disabled = options.delete(:disabled) || false
+        @skip_end_method = options.delete(:skip_end_method) || false
+        @frequency_options = options.delete(:frequency_options)&.map(&:to_s) ||
+                             %w[yearly monthly weekly daily hourly]
         @options = prepend_class_name(options, 'recurrent-event-rule-form-component')
         @options = prepend_controller(options, 'recurrent-event-rule')
       end
@@ -20,11 +23,11 @@ module Bali
 
       def frequency_options
         [
-          [translate('yearly'), 0],
-          [translate('monthly'), 1],
-          [translate('weekly'), 2],
-          [translate('daily'), 3],
-          [translate('hourly'), 4]
+          [translate('yearly'), 0, { disabled: @frequency_options.exclude?('yearly') }],
+          [translate('monthly'), 1, { disabled: @frequency_options.exclude?('monthly') }],
+          [translate('weekly'), 2, { disabled: @frequency_options.exclude?('weekly') }],
+          [translate('daily'), 3, { disabled: @frequency_options.exclude?('daily') }],
+          [translate('hourly'), 4, { disabled: @frequency_options.exclude?('hourly') }]
         ]
       end
 

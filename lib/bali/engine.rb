@@ -11,6 +11,11 @@ module Bali
       #{root}/app/lib
     ]
 
+    overrides = File.expand_path(
+      File.join(File.dirname(__FILE__), 'overrides', '**', '*_override.rb')
+    )
+    config.to_prepare { Dir.glob(overrides).each { |override| load override } }
+
     config.generators do |g|
       g.test_framework :rspec, fixture: true
       g.view_specs      false
@@ -21,6 +26,10 @@ module Bali
     ActiveSupport.on_load(:view_component) do
       ViewComponent::Preview.extend ViewComponentContrib::Preview::Sidecarable
       ViewComponent::Preview.extend ViewComponentContrib::Preview::Abstract
+    end
+
+    ActiveSupport.on_load(:active_record) do
+      include Bali::Concerns::GlobalIdAccessors
     end
 
     initializer 'Register Bali ActiveModel::Types' do
