@@ -4,8 +4,6 @@ module Bali
   module DataTable
     module Action
       class Component < ApplicationViewComponent
-        include Bali::Utils::Url
-
         renders_one :description
 
         def initialize(href:, method: :get, **options)
