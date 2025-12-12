@@ -7,7 +7,9 @@
 
       <% if text_field.present? %>
         <div class="level-item">
-          <%= render Bali::SearchInput::Component.new(form: form, method: text_field, auto_submit: auto_submit_search_input) %>
+          <%= render Bali::SearchInput::Component.new(
+              form: form, method: text_field, auto_submit: auto_submit_search_input,
+              submit: { data: { action: 'filter-form#submit' } }) %>
         </div>
       <% end %>
 
@@ -96,7 +98,7 @@
               <% end %>
 
               <%= f.submit t('helpers.apply.text'), class:'button is-primary is-fullwidth mt-5',
-                  data: { action: 'popup#close' } %>
+                  data: { action: 'popup#close filter-form#submit' } %>
             </div>
           <% end %>
         </div>
