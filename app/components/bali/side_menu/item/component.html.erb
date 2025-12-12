@@ -1,8 +1,22 @@
 <li>
   <% if items.blank? %>
+    <% link_class = @options.delete(:class) %>
+
     <%= render Bali::Link::Component.new(
         name: @name, href: @href, icon_name: @icon, active_path: current_path, 
-        active: @active, **@options) %>
+        active: @active, class: token_list(link_class, 'side-menu-component--item-component is-expanded'),
+        **@options) %>
+
+    <%= render Bali::Tooltip::Component.new do |tooltip| %>
+      <% tooltip.with_trigger do %>
+        <%= render Bali::Link::Component.new(
+            name: @name, href: @href, icon_name: @icon, active_path: current_path, 
+            active: @active, class: token_list(link_class, 'side-menu-component--item-component is-collapsed'),
+            **@options) %>
+      <% end %>
+
+      <%= @name %>
+    <% end %>
   <% else %>
     <div class="<%= class_names('side-menu-component--item-component is-list is-expanded','is-revealed': active?) %>" data-controller="reveal">
       <%= render Bali::Link::Component.new(name: @name, icon_name: @icon, href: nil, **@options) %>
@@ -41,6 +55,12 @@
                   class: 'dropdown-item') %>
             </li>
           <% end %>
+
+          <li>
+            <%= tag.p(@name, class: 'has-text-weight-bold dropdown-item') %>
+          </li>
+
+          <div class="dropdown-divider mt-0"></div>
 
           <% items.each do |item| %>
             <%= item %>

@@ -223,12 +223,22 @@ $z-index-side-menu: 5;
       display: none;
     }
 
-    .side-menu-component--item-component.is-list.is-collapsed {
-      display: block;
+    .side-menu-component--item-component.is-collapsed {
+      display: flex;
     }
 
-    .side-menu-component--item-component.is-list.is-expanded {
+    .side-menu-component--item-component.is-expanded {
       display: none;
+    }
+  }
+
+  &:not(.is-collapsed) {
+    .side-menu-component--item-component.is-collapsed {
+      display: none;
+    }
+
+    .side-menu-component--item-component.is-expanded {
+      display: block;
     }
   }
 }
@@ -275,6 +285,10 @@ $z-index-side-menu: 5;
       padding: 0.375rem 1rem;
     }
   }
+}
+
+.side-menu-component--item-component-tippy-wrapper .tooltip-component {
+  display: none;
 }
 
 .side-menu-component--item-component-tippy-wrapper ul li .link-component {
