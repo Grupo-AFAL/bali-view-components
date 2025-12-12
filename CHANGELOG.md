@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `Bali::SideMenu::Item::Component` to display a tooltip when the menu is collapsed.
 
+## [1.4.22] - 2025-12-12
+
+### Changed
+
+- Update filter form submission to prevent default behavior, update URL, and enable custom search input button options.
+
 ## [1.4.21] - 2025-11-28
 
 ### Added
