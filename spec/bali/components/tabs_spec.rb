@@ -13,10 +13,10 @@ RSpec.describe Bali::Tabs::Component, type: :component do
     end
 
     expect(page).to have_css '.tabs-component'
-    expect(page).to have_css 'li.is-active', text: 'Tab 1'
+    expect(page).to have_css 'li.tab-active', text: 'Tab 1'
     expect(page).to have_css 'li', text: 'Tab 2'
     expect(page).to have_css 'p', text: 'Tab 1 content'
-    expect(page).to have_css '.is-hidden p', text: 'Tab 2 content'
+    expect(page).to have_css '.hidden p', text: 'Tab 2 content'
   end
 
   it 'renders tabs with class centered' do
@@ -31,7 +31,7 @@ RSpec.describe Bali::Tabs::Component, type: :component do
       c.with_tab(title: 'Tab', active: true, icon: 'alert') { '<p>Tab content</>'.html_safe }
     end
 
-    expect(page).to have_css 'span.icon svg'
+    expect(page).to have_css 'span.icon-component svg'
   end
 
   context 'when a tab has href' do
