@@ -15,7 +15,7 @@ module Bali
       private
 
       def prepend_class_names
-        @options = prepend_class_name(@options, 'is-active') if @active
+        @options = prepend_class_name(@options, 'modal-open') if @active
         @options = prepend_class_name(@options, 'modal-component modal')
       end
 

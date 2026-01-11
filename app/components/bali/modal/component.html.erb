@@ -1,8 +1,8 @@
 <%= tag.div(id: 'modal-template', **@options) do %>
   <div class="modal-background" data-modal-target="background"></div>
-  <button id="close-modal" class="modal-close is-large" aria-label="close" data-action="modal#close"></button>
+  <button id="close-modal" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" aria-label="close" data-action="modal#close">✕</button>
   <div 
-    class="<%= "modal-content box #{@wrapper_class}" %>" 
+    class="<%= "modal-content modal-box #{@wrapper_class}" %>" 
     data-wrapper-class="<%= @wrapper_class%>"
     data-modal-target="wrapper"
   >

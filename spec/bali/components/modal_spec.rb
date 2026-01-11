@@ -11,7 +11,7 @@ RSpec.describe Bali::Modal::Component, type: :component do
     @options.merge!(active: true)
     render_inline(component)
 
-    expect(page).to have_css 'div.modal.is-active'
+    expect(page).to have_css 'div.modal.modal-open'
   end
 
   it 'renders when active is false' do
