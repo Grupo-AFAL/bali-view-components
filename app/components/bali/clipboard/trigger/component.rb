@@ -9,7 +9,7 @@ module Bali
         def initialize(text = '', **options)
           @text = text
 
-          @options = prepend_class_name(options, 'clipboard-trigger is-clickable')
+          @options = prepend_class_name(options, 'clipboard-trigger cursor-pointer')
           @options = prepend_data_attribute(@options, 'clipboard-target', 'button')
           @options = prepend_action(@options, 'click->clipboard#copy')
           @options[:type] = :button
