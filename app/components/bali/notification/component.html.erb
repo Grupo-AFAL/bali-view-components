@@ -1,4 +1,4 @@
-<%= tag.div **options do %>
-  <%= tag.button class: 'delete', data: { action: 'notification#close'} %>
-  <%= content %>
-<% end %>
+<div class="<%= alert_classes %>" data-controller="notification" data-notification-delay-value="<%= @delay %>" data-notification-dismiss-value="<%= @dismiss %>" data-turbo-cache="false">
+  <button class="btn btn-sm btn-circle btn-ghost" data-action="notification#close" aria-label="close">✕</button>
+  <span><%= content %></span>
+</div>

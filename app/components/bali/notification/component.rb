@@ -3,24 +3,41 @@
 module Bali
   module Notification
     class Component < ApplicationViewComponent
-      attr_reader :options
+      TYPES = {
+        success: 'alert-success',
+        info: 'alert-info',
+        warning: 'alert-warning',
+        error: 'alert-error',
+        danger: 'alert-error',
+        primary: 'alert-info'
+      }.freeze
 
-      # Notification Component with different type of notification.
-      #
-      # @param [Symbol] type This adds a class for the notification: :success, :danger
-      # @param [Integer] delay How long the notification will be shown.
-      # @param [Boolean] fixed This add fixed position to the component.
-      # @param [Boolean] dismiss This validates if removes or not the component after delay.
-      # @param [Hash] options This adds a custom attributes to the component.
       def initialize(type: :success, delay: 3000, fixed: true, dismiss: true, **options)
-        daisy_type = type == :danger ? 'error' : type.to_s
-        @options = prepend_class_name(options, "notification-component alert alert-#{daisy_type}")
-        @options = prepend_class_name(@options, 'fixed') if fixed
-        @options = prepend_class_name(@options, 'native-app') if Bali.native_app
-        @options = prepend_controller(@options, 'notification')
-        @options = prepend_data_attribute(@options, 'notification-delay-value', delay)
-        @options = prepend_data_attribute(@options, 'notification-dismiss-value', dismiss)
-        @options = prepend_data_attribute(@options, 'turbo-cache', false)
+        @type = type&.to_sym
+        @delay = delay
+        @fixed = fixed
+        @dismiss = dismiss
+        @options = options
+      end
+
+      def alert_classes
+        class_names(
+          'notification-component',
+          'alert',
+          TYPES[@type],
+          @fixed && 'fixed top-4 right-4 left-4 md:left-auto md:w-96 z-50',
+          Bali.native_app && 'native-app',
+          @options[:class]
+        )
+      end
+
+      def stimulus_attributes
+        {
+          controller: 'notification',
+          'notification-delay-value': @delay,
+          'notification-dismiss-value': @dismiss,
+          'turbo-cache': false
+        }
       end
     end
   end

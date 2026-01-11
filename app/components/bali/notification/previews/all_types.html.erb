@@ -1,0 +1,7 @@
+<div class="flex flex-col gap-4">
+  <% %i[success info warning error].each do |type| %>
+    <%= render Bali::Notification::Component.new(type: type, fixed: false, dismiss: false) do %>
+      This is a <%= type %> notification
+    <% end %>
+  <% end %>
+</div>
