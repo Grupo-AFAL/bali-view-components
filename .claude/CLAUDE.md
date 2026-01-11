@@ -56,6 +56,79 @@ yarn run cy:open  # Interactive
 
 We are migrating all components from Bulma CSS to Tailwind + DaisyUI. This is a major initiative.
 
+### CRITICAL: Per-Component Migration Workflow (NON-NEGOTIABLE)
+
+**DO NOT BATCH COMPONENTS. Process ONE component through the FULL pipeline before starting the next.**
+
+#### Step-by-Step Cycle (BLOCKING - must complete each step)
+
+```
+1. CREATE BRANCH
+   git checkout tailwind-migration
+   git checkout -b migrate/[component-name]
+
+2. EDIT COMPONENT FILES
+   - component.rb (update class mappings)
+   - component.html.erb (update classes)
+   - component.scss (remove Bulma, keep custom)
+   - preview.rb (update for new variants)
+
+3. UPDATE TESTS
+   - Update spec expectations for new DaisyUI classes
+   - DO NOT delete tests to make them pass
+
+4. RUN RSPEC (BLOCKING)
+   bundle exec rspec spec/bali/components/[name]_spec.rb
+   └─ FAIL? → Fix code, re-run. Do NOT proceed until green.
+
+5. RUN RUBOCOP
+   bundle exec rubocop app/components/bali/[name]/ --autocorrect-all
+
+6. VISUAL VERIFICATION WITH PLAYWRIGHT (BLOCKING - DO NOT SKIP)
+   Use Playwright MCP to:
+   a) Navigate to http://localhost:3001/lookbook/inspect/bali/[name]/default
+   b) Wait for page load
+   c) Take screenshot: browser_take_screenshot
+   d) Check console errors: browser_console_messages
+   e) Navigate to each variant and screenshot
+   
+   └─ Console errors? → Fix before proceeding
+   └─ Component not rendering? → Fix before proceeding
+
+7. COMMIT WITH EVIDENCE
+   git add app/components/bali/[name]/ spec/bali/components/[name]_spec.rb
+   git commit -m "Migrate [Name] component from Bulma to DaisyUI
+   
+   - [List changes made]
+   
+   Verification:
+   - RSpec: ✓ N examples, 0 failures
+   - Rubocop: ✓ 0 offenses
+   - Visual: ✓ Lookbook renders correctly"
+
+8. RETURN TO BASE
+   git checkout tailwind-migration
+
+9. START NEXT COMPONENT (repeat from step 1)
+```
+
+#### Anti-Patterns (BLOCKING VIOLATIONS)
+
+| ❌ DON'T | ✅ DO |
+|----------|-------|
+| Edit multiple components before verifying | Complete full cycle for ONE component |
+| Skip Playwright visual verification | ALWAYS verify in Lookbook with screenshots |
+| Commit directly to tailwind-migration | Create `migrate/[name]` branch per component |
+| Batch commits across components | One commit per component with evidence |
+| Delete failing tests | Fix code to make tests pass |
+| Proceed with console errors | Fix errors before committing |
+
+#### Lookbook URLs
+
+- Base: `http://localhost:3001/lookbook`
+- Component inspect: `http://localhost:3001/lookbook/inspect/bali/[name]/default`
+- Variants: `http://localhost:3001/lookbook/inspect/bali/[name]/[variant]`
+
 ### Migration Status
 
 All 40+ components are currently **Pending** migration. Track progress in README.md.
