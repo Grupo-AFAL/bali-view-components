@@ -1,17 +1,13 @@
 <!DOCTYPE html>
 <html data-theme="light">
   <head>
-    <title>Dummy</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
-    <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag "application", media: 'all' %>
     <%= javascript_importmap_tags %>
   </head>
-  <body>
-    <section class="section">
-      <%= yield %>
-    </section>
+  <body class="p-4 bg-base-100">
+    <%= yield %>
   </body>
 </html>

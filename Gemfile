@@ -7,6 +7,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 gemspec
 
 gem 'bulma-rails', '~> 0.9.3'
+gem 'tailwindcss-rails', '~> 4.0'
 gem 'caxlsx', '~> 4.1'
 gem 'csv'
 gem 'dartsass-rails'

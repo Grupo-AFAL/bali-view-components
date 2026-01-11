@@ -1,7 +1,5 @@
-$grey-light: hsl(0, 0%, 71%);
-
-.tag-component.tag {
+.tag-component.badge {
   &.with-border {
-    border: 1px solid $grey-light;
+    border: 1px solid hsl(0, 0%, 71%);
   }
 }
