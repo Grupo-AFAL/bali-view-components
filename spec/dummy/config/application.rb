@@ -1,6 +1,6 @@
-require_relative "boot"
+require_relative 'boot'
 
-require "rails/all"
+require 'rails/all'
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -34,9 +34,10 @@ module Dummy
     config.generators.system_tests = nil
 
     # ViewComponents
-    config.autoload_paths << Rails.root.parent.parent.join('app', 'components')
-    config.view_component.preview_paths << Rails.root.parent.parent.join('app', 'components')
+    config.autoload_paths << Rails.root.parent.parent.join('app/components')
+    config.view_component.preview_paths << Rails.root.parent.parent.join('app/components')
 
     config.lookbook.listen_extensions = %w[js scss]
+    config.lookbook.preview_layout = 'lookbook_preview'
   end
 end

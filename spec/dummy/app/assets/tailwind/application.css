@@ -1,0 +1,12 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: light --default, dark;
+}
+
+/* Source paths for Tailwind to scan */
+@source "../../../views/**/*.erb";
+@source "../../../helpers/**/*.rb";
+@source "../../../javascript/**/*.js";
+@source "../../../../public/*.html";
+/* Bali ViewComponents */
+@source "../../../../../app/components/**/*.{erb,rb}";

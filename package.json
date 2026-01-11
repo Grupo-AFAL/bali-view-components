@@ -35,5 +35,8 @@
       "localStorage",
       "DataTransfer"
     ]
+  },
+  "dependencies": {
+    "daisyui": "^5.5.14"
   }
 }
