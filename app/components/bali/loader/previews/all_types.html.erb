@@ -1,0 +1,8 @@
+<div class="flex flex-wrap gap-8">
+  <% types.each do |type| %>
+    <div class="flex flex-col items-center gap-2">
+      <%= render Bali::Loader::Component.new(type: type, hide_text: true) %>
+      <span class="text-sm"><%= type %></span>
+    </div>
+  <% end %>
+</div>

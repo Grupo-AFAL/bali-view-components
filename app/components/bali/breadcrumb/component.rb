@@ -8,7 +8,16 @@ module Bali
       renders_many :items, Item::Component
 
       def initialize(**options)
-        @options = prepend_class_name(options, 'breadcrumb breadcrumb-component')
+        @options = options
+      end
+
+      def container_classes
+        class_names(
+          'breadcrumbs',
+          'breadcrumb-component',
+          'text-sm',
+          @options[:class]
+        )
       end
     end
   end

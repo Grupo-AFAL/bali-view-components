@@ -1,9 +1,6 @@
-<%= tag.div(**options) do %>
-  <%= tag.progress(value: value, max: 100, style: @bar_color) %>
-
-  <% if percentage %>
-    <%= tag.small do %>
-      <%= value %>%
-    <% end %>
+<div class="progress-component flex items-center gap-2">
+  <progress class="<%= progress_classes %>" value="<%= value %>" max="<%= max %>"></progress>
+  <% if show_percentage? %>
+    <span class="text-sm font-medium"><%= percentage_value %>%</span>
   <% end %>
-<% end %>
+</div>

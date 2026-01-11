@@ -1,14 +1,16 @@
-<%= tag.div **@options do %>
-  <figure class="image is-128x128">
-    <%= picture || default_picture %>
-  </figure>
-  <div class="icon-content">
-    <label>
-      <%= render Bali::Icon::Component.new('camera') %>
-      <div class="control">
+<div class="<%= container_classes %>" data-controller="<%= stimulus_controller %>">
+  <div class="<%= avatar_classes %>">
+    <div class="rounded-full overflow-hidden">
+      <%= picture || default_picture %>
+    </div>
+  </div>
+  <div class="absolute top-0 right-0 bg-base-200 rounded-full w-8 h-8 flex justify-center items-center cursor-pointer hover:bg-base-300">
+    <label class="cursor-pointer">
+      <%= render Bali::Icon::Component.new('camera', size: :sm) %>
+      <div class="hidden">
         <%= @form.file_field @method, accept: accepted_formats,
                            data: { 'avatar-target': 'input', action: 'change->avatar#showImage' } %>
       </div>
     </label>
   </div>
-<% end %>
+</div>

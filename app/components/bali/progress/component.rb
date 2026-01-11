@@ -3,24 +3,44 @@
 module Bali
   module Progress
     class Component < ApplicationViewComponent
-      attr_reader :value, :percentage, :color_code, :options
+      attr_reader :value, :max
 
-      def initialize(value: 50, percentage: true, color_code: default_color, **options)
+      COLORS = {
+        primary: 'progress-primary',
+        secondary: 'progress-secondary',
+        accent: 'progress-accent',
+        neutral: 'progress-neutral',
+        info: 'progress-info',
+        success: 'progress-success',
+        warning: 'progress-warning',
+        error: 'progress-error'
+      }.freeze
+
+      def initialize(value: 0, max: 100, color: nil, show_percentage: true, **options)
         @value = value
-        @percentage = percentage
-
-        @bar_color = bar_color(color_code)
-        @options = prepend_class_name(options, 'progress-component')
+        @max = max
+        @color = color&.to_sym
+        @show_percentage = show_percentage
+        @options = options
       end
 
-      private
-
-      def bar_color(color_code)
-        "--progress-value-bar-color: #{color_code};"
+      def progress_classes
+        class_names(
+          'progress',
+          'w-full',
+          COLORS[@color],
+          @options[:class]
+        )
       end
 
-      def default_color
-        'hsl(196, 82%, 78%)'
+      def show_percentage?
+        @show_percentage
+      end
+
+      def percentage_value
+        return 0 if max.zero?
+
+        ((value.to_f / max) * 100).round
       end
     end
   end

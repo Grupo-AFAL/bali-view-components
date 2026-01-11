@@ -5,14 +5,50 @@ module Bali
     class Component < ApplicationViewComponent
       renders_one :trigger
 
-      def initialize(trigger: 'mouseenter focus', placement: 'top', small: false, **options)
-        @options = prepend_class_name(
-          options,
-          class_names('tooltip-component', 'is-small': small)
-        )
+      POSITIONS = {
+        top: 'top',
+        bottom: 'bottom',
+        left: 'left',
+        right: 'right'
+      }.freeze
 
-        @options = prepend_controller(@options, 'tooltip')
-        @options = prepend_values(@options, 'tooltip', { trigger: trigger, placement: placement })
+      SIZES = {
+        sm: 'tooltip-sm',
+        md: 'tooltip-md',
+        lg: 'tooltip-lg'
+      }.freeze
+
+      def initialize(trigger: 'mouseenter focus', placement: :top, size: nil, **options)
+        @placement = placement&.to_sym
+        @size = size&.to_sym
+        @trigger_event = trigger
+        @options = options
+      end
+
+      def container_classes
+        class_names(
+          'tooltip-component',
+          'inline-block',
+          @options[:class]
+        )
+      end
+
+      def trigger_classes
+        class_names(
+          'trigger',
+          'cursor-pointer'
+        )
+      end
+
+      def stimulus_controller
+        'tooltip'
+      end
+
+      def stimulus_values
+        {
+          trigger: @trigger_event,
+          placement: POSITIONS[@placement] || 'top'
+        }
       end
     end
   end
