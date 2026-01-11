@@ -8,12 +8,18 @@ module Bali
 
         def initialize(src:, **options)
           @src = src
-          @figure_class = options.delete(:figure_class) || 'is-2by1'
-          @options = prepend_class_name(options, 'card-image')
+          @href = options.delete(:href)
+          @options = options
         end
 
-        def tag_name
-          options[:href].present? ? :a : :div
+        def wrapper_tag
+          @href.present? ? :a : :figure
+        end
+
+        def wrapper_options
+          return { href: @href } if @href.present?
+
+          {}
         end
       end
     end

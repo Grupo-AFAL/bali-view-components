@@ -1,5 +1,5 @@
 .tabs-component {
-  & > ul {
-    margin: 0;
+  .tabs-content {
+    @apply bg-base-100;
   }
 }

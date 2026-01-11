@@ -8,7 +8,7 @@ module Bali
 
         def initialize(title:, **options)
           @title = title
-          @options = prepend_class_name(options, 'card-header')
+          @options = options
         end
       end
     end

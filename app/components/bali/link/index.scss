@@ -1,6 +1,3 @@
-.link-component {
-  &:not(.button) {
-    display: inline-flex;
-    align-items: center;
-  }
+a.link:not(.btn) {
+  @apply inline-flex items-center gap-1;
 }

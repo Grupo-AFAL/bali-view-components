@@ -3,13 +3,38 @@
 module Bali
   module Tabs
     class Component < ApplicationViewComponent
+      STYLES = {
+        default: '',
+        border: 'tabs-border',
+        box: 'tabs-box',
+        lift: 'tabs-lift'
+      }.freeze
+
+      SIZES = {
+        xs: 'tabs-xs',
+        sm: 'tabs-sm',
+        md: '',
+        lg: 'tabs-lg',
+        xl: 'tabs-xl'
+      }.freeze
+
       renders_many :tabs, Tab::Component
 
-      def initialize(**options)
-        @options = prepend_class_name(options, 'tabs-component')
-        @options = prepend_controller(options, 'tabs')
+      def initialize(style: :border, size: :md, **options)
+        @style = style&.to_sym
+        @size = size&.to_sym
+        @options = options
 
-        @tabs_class = @options.delete(:tabs_class)
+        @options = prepend_class_name(@options, 'tabs-component')
+        @options = prepend_controller(@options, 'tabs')
+      end
+
+      def tabs_classes
+        class_names(
+          'tabs',
+          STYLES[@style],
+          SIZES[@size]
+        )
       end
     end
   end

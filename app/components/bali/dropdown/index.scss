@@ -1,28 +1,13 @@
-$wide-menu-size: 22rem;
+.dropdown {
+  .menu-item {
+    @apply w-full text-left;
 
-.dropdown-component {
-  &.wide {
-    .dropdown-menu {
-      min-width: $wide-menu-size;
+    button.delete-link-component {
+      @apply p-0 w-full justify-start text-sm;
+
+      .icon-component {
+        @apply ml-0 h-5 w-5;
+      }
     }
-  }
-
-  .dropdown-item button.delete-link-component {
-    padding: 0;
-    height: unset;
-    width: 100%;
-    justify-content: flex-start;
-    font-size: $size-7;
-
-    .icon-component {
-      margin-left: 0;
-      height: 1.5rem;
-      width: 1.5rem;
-    }
-  }
-
-  form.dropdown-item:hover {
-    background-color: $dropdown-item-hover-background-color;
-    color: $dropdown-item-hover-color;
   }
 }

@@ -7,17 +7,19 @@ module Bali
         attr_reader :options
 
         def initialize(**options)
-          @options = prepend_class_name(options, 'card-footer-item')
+          @options = options
         end
 
         def call
-          tag.send(tag_name, **options) do
-            content
+          if options[:href].present?
+            tag.a(**prepend_class_name(options, 'btn')) do
+              content
+            end
+          else
+            tag.div(**options) do
+              content
+            end
           end
-        end
-
-        def tag_name
-          options[:href].present? ? :a : :div
         end
       end
     end

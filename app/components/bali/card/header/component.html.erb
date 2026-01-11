@@ -1,9 +1,8 @@
-<%= tag.header **options do %>
+<div class="card-body pb-0">
   <% if title.present? %>
-    <p class="card-header-title">
+    <h2 class="card-title">
       <%= title %>
-    </p>
+    </h2>
   <% end %>
-
   <%= content %>
-<% end %>
+</div>

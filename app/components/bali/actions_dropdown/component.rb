@@ -7,7 +7,7 @@ module Bali
 
       renders_many :items, ->(method: :get, **options) do
         component_klass = method&.to_sym == :delete ? DeleteLink::Component : Link::Component
-        component_klass.new(method: method, **prepend_class_name(options, 'dropdown-item'))
+        component_klass.new(method: method, **prepend_class_name(options, 'menu-item'))
       end
 
       def initialize(**options)
@@ -18,11 +18,11 @@ module Bali
           placement: 'bottom-end'
         )
 
-        @options = prepend_class_name(options, 'actions-dropdown-component')
+        @options = prepend_class_name(options, 'actions-dropdown')
         @options = prepend_data_attribute(
           options,
           'hovercard-content-class',
-          'hover-card-tippy-wrapper actions-dropdown-tippy-wrapper'
+          'menu bg-base-100 rounded-box shadow-lg min-w-40'
         )
       end
 

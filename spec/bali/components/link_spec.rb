@@ -8,24 +8,53 @@ RSpec.describe Bali::Link::Component, type: :component do
   before { @options = { name: 'Click me!', href: '#' } }
 
   context 'default' do
-    it 'renders' do
+    it 'renders a basic link' do
       render_inline(component)
 
       expect(page).to have_css 'a', text: 'Click me!'
       expect(page).to have_css 'a[href="#"]'
     end
+
+    it 'renders with DaisyUI link class' do
+      render_inline(component)
+
+      expect(page).to have_css 'a.link'
+    end
   end
 
-  %i[primary secondary success danger warning].each do |button_type|
+  %i[primary secondary success error warning].each do |button_type|
     context "#{button_type} button type" do
       before { @options.merge!(type: button_type) }
 
       it 'renders' do
         render_inline(component)
 
-        expect(page).to have_css "a.btn.btn-#{button_type}", text: 'Click me!'
+        expected_class = if button_type == :success
+                           'btn-success'
+                         elsif button_type == :error
+                           'btn-error'
+                         else
+                           "btn-#{button_type}"
+                         end
+        expect(page).to have_css "a.btn.#{expected_class}", text: 'Click me!'
         expect(page).to have_css 'a[href="#"]'
       end
+    end
+  end
+
+  context 'with size' do
+    it 'renders small button' do
+      @options.merge!(type: :primary, size: :sm)
+      render_inline(component)
+
+      expect(page).to have_css 'a.btn.btn-sm'
+    end
+
+    it 'renders large button' do
+      @options.merge!(type: :primary, size: :lg)
+      render_inline(component)
+
+      expect(page).to have_css 'a.btn.btn-lg'
     end
   end
 
@@ -41,7 +70,7 @@ RSpec.describe Bali::Link::Component, type: :component do
     end
 
     it 'renders a link with class button' do
-      @options.merge!(class: 'btn')
+      @options.merge!(type: :primary)
 
       render_inline(component) do |c|
         c.with_icon('poo')
@@ -120,10 +149,21 @@ RSpec.describe Bali::Link::Component, type: :component do
 
         render_inline(component)
 
-        expect(page).to have_css 'a.link-component', text: 'Click me!'
+        expect(page).to have_css 'a.link', text: 'Click me!'
         expect(page).not_to have_css 'a[data-turbo-method="get"]'
         expect(page).to have_css 'a[data-method="get"]'
       end
+    end
+  end
+
+  context 'disabled' do
+    it 'adds btn-disabled class when disabled with type' do
+      @options.merge!(type: :primary, disabled: true)
+
+      render_inline(component)
+
+      expect(page).to have_css 'a.btn-disabled'
+      expect(page).not_to have_css 'a[href]'
     end
   end
 end

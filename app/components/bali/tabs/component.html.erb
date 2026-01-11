@@ -1,13 +1,10 @@
 <%= tag.div **@options do %>
-  <%= tag.div class: class_names('tabs', @tabs_class) do %>
-    <ul>
-      <% tabs.each_with_index do |tab, index| %>
-        <%= render Bali::Tabs::Trigger::Component.new(tab, index)  %>
-      <% end %>
-    </ul>
-  <% end %>
-
-  <div class="tabs-content">
+  <div role="tablist" class="<%= tabs_classes %>">
+    <% tabs.each_with_index do |tab, index| %>
+      <%= render Bali::Tabs::Trigger::Component.new(tab, index) %>
+    <% end %>
+  </div>
+  <div class="tabs-content p-4">
     <% tabs.each_with_index do |tab, index| %>
       <%= tag.div **tab.options, data: {
             'tabs-target': 'tabContent',

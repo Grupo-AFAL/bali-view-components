@@ -2,21 +2,16 @@
   <% if header? %>
     <%= header %>
   <% end %>
-
   <%= image %>
-
-  <% if content.present? %>
-    <div class="card-content">
-      <div class="content">
-        <%= content %>
-      </div>
-    </div>
-  <% end %>
-
-  <% if footer_items.size.positive? %>
-    <div class="card-footer">
-      <% footer_items.each do |footer_item| %>
-        <%= footer_item %>
+  <% if content.present? || footer_items.size.positive? %>
+    <div class="card-body">
+      <%= content %>
+      <% if footer_items.size.positive? %>
+        <div class="card-actions justify-end">
+          <% footer_items.each do |footer_item| %>
+            <%= footer_item %>
+          <% end %>
+        </div>
       <% end %>
     </div>
   <% end %>

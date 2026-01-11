@@ -3,28 +3,37 @@
 module Bali
   module Link
     class Component < ApplicationViewComponent
+      COLORS = {
+        primary: 'btn-primary',
+        secondary: 'btn-secondary',
+        accent: 'btn-accent',
+        info: 'btn-info',
+        success: 'btn-success',
+        warning: 'btn-warning',
+        error: 'btn-error',
+        danger: 'btn-error',
+        ghost: 'btn-ghost',
+        link: 'btn-link',
+        neutral: 'btn-neutral'
+      }.freeze
+
+      SIZES = {
+        xs: 'btn-xs',
+        sm: 'btn-sm',
+        md: '',
+        lg: 'btn-lg',
+        xl: 'btn-xl'
+      }.freeze
+
       attr_reader :name, :href, :type, :icon_name, :drawer, :modal, :options
 
       renders_one :icon, ->(name, **options) { Icon::Component.new(name, **options) }
       renders_one :icon_right, ->(name, **options) { Icon::Component.new(name, **options) }
 
-      # @param name [String] The name of the link.
-      # @param href [String] The href of the link.
-      # @param type [Symbol|String] This adds a class for the link: :primary, :secondary,
-      #  :success, :danger, :warning also adds the button class.
-      # @param modal [Boolean] Link to open a modal.
-      # @param drawer [Boolean] Link to open a drawer.
-      # @param active_path [String] The path of the active page.
-      # @param match [Symbol] To check if the path is exact or cotains the path.
-      # @param method [Symbol|String] Adds a turbo method to the link.
-
-      # rubocop:disable Metrics/ParameterLists
-      # rubocop:disable Metrics/CyclomaticComplexity
-      # rubocop:disable Metrics/PerceivedComplexity
-      # rubocop: disable Metrics/AbcSize
       def initialize(href:,
                      name: nil,
                      type: nil,
+                     size: nil,
                      icon_name: nil,
                      modal: false,
                      drawer: false,
@@ -36,7 +45,8 @@ module Bali
                      **options)
         @name = name
         @href = href
-        @type = type
+        @type = type&.to_sym
+        @size = size&.to_sym
         @icon_name = icon_name
         @modal = modal
         @active_path = active_path
@@ -44,37 +54,11 @@ module Bali
         @drawer = drawer
         @method = method
         @options = options
-        @options = prepend_class_name(@options, 'link-component')
 
         @authorized = @options.key?(:authorized) ? @options.delete(:authorized) : true
 
-        if disabled
-          @options[:disabled] = true
-        else
-          @options[:href] = href
-        end
-
-        if @active == true || (@active.nil? && active_path?(href, active_path, match: match))
-          @options = prepend_class_name(@options, 'active')
-        end
-
-        @options = prepend_class_name(@options, "btn btn-#{type}") if type.present?
-
-        unless Bali.native_app
-          @options = prepend_action(@options, 'modal#open') if modal && !disabled
-          @options = prepend_action(@options, 'drawer#open') if drawer && !disabled
-        end
-
-        if method.to_s == 'get'
-          @options = prepend_data_attribute(@options, :method, 'get')
-        elsif method.present?
-          @options = prepend_turbo_method(@options, method.to_s)
-        end
+        build_options(disabled, match)
       end
-      # rubocop: enable Metrics/AbcSize
-      # rubocop:enable Metrics/ParameterLists
-      # rubocop:enable Metrics/CyclomaticComplexity
-      # rubocop:enable Metrics/PerceivedComplexity
 
       def render?
         authorized?
@@ -82,6 +66,40 @@ module Bali
 
       def authorized?
         @authorized
+      end
+
+      private
+
+      def build_options(disabled, match)
+        if disabled
+          @options[:disabled] = true
+          @options = prepend_class_name(@options, 'btn-disabled') if @type.present?
+        else
+          @options[:href] = @href
+        end
+
+        if @active == true || (@active.nil? && active_path?(@href, @active_path, match: match))
+          @options = prepend_class_name(@options, 'active')
+        end
+
+        if @type.present?
+          @options = prepend_class_name(@options, 'btn')
+          @options = prepend_class_name(@options, COLORS[@type]) if COLORS[@type]
+          @options = prepend_class_name(@options, SIZES[@size]) if @size && SIZES[@size]
+        else
+          @options = prepend_class_name(@options, 'link inline-flex items-center gap-1')
+        end
+
+        unless Bali.native_app
+          @options = prepend_action(@options, 'modal#open') if @modal && !disabled
+          @options = prepend_action(@options, 'drawer#open') if @drawer && !disabled
+        end
+
+        if @method.to_s == 'get'
+          @options = prepend_data_attribute(@options, :method, 'get')
+        elsif @method.present?
+          @options = prepend_turbo_method(@options, @method.to_s)
+        end
       end
     end
   end

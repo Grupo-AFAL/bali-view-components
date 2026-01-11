@@ -1,5 +1,5 @@
-<%= tag.send tag_name, **options do %>
-  <%= tag.figure class: "image is-fullwidth #{@figure_class}" do %>
-    <%= image_tag src, class: 'is-full' %>
+<figure>
+  <%= tag.send wrapper_tag, **wrapper_options do %>
+    <%= image_tag src, class: 'w-full' %>
   <% end %>
-<% end %>
+</figure>

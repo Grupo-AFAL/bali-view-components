@@ -32,7 +32,7 @@ module Bali
 
         def classes
           class_names(
-            'tabs-trigger-component tab',
+            'tab',
             'tab-active': href.present? ? active_path?(request.fullpath, href) : active
           )
         end
