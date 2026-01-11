@@ -23,7 +23,7 @@ module Bali
       end
 
       def status_class(value)
-        value ? 'has-text-success' : 'has-text-danger'
+        value ? 'text-success' : 'text-error'
       end
     end
   end

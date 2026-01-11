@@ -9,13 +9,13 @@ RSpec.describe Bali::BooleanIcon::Component, type: :component do
   it 'renders a boolean-icon component with true value' do
     render_inline(component)
 
-    expect(page).to have_css 'div.boolean-icon-component.has-text-success'
+    expect(page).to have_css 'div.boolean-icon-component.text-success'
   end
 
   it 'renders a boolean-icon component with false value' do
     options[:value] = false
     render_inline(component)
 
-    expect(page).to have_css 'div.boolean-icon-component.has-text-danger'
+    expect(page).to have_css 'div.boolean-icon-component.text-error'
   end
 end
