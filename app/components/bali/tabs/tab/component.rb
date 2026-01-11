@@ -23,7 +23,7 @@ module Bali
           @href = options.delete(:href)
 
           @options = options
-          @options = prepend_class_name(@options, 'is-hidden') unless @active
+          @options = prepend_class_name(@options, 'hidden') unless @active
         end
 
         def call
