@@ -3,10 +3,9 @@
     'data-dropdown-close-on-click-value': @close_on_click,
     **@options
 ) do %>
-  <div class="dropdown-trigger is-flex">
+  <div class="dropdown-trigger flex">
     <%= trigger %>
   </div>
-
   <div class="dropdown-menu">
     <div class="dropdown-content">
       <% if (authorized_items = items.select(&:authorized?)).any? %>
