@@ -14,7 +14,7 @@ module Bali
       # ------------------------
       # Add a custom class to the icon component whenever you need to customize it.
       def with_custom_class
-        render Icon::Component.new('snowflake', class: 'has-text-info')
+        render Icon::Component.new('snowflake', class: 'text-info')
       end
 
       # All existing icons
@@ -22,7 +22,7 @@ module Bali
       # This is a preview of all icons that are available in Bali.
       def all_existing_icons
         render_with_template(
-          template: 'bali/icon/previews/default', 
+          template: 'bali/icon/previews/default',
           locals: { icons: Bali::Icon::Options.icons.keys }
         )
       end
