@@ -14,9 +14,9 @@ module Bali
       def alignment_class
         case @align
         when :right
-          'is-right'
+          'dropdown-end'
         when :up
-          'is-up'
+          'dropdown-top'
         else
           ''
         end
