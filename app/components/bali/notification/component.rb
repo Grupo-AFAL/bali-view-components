@@ -13,7 +13,8 @@ module Bali
       # @param [Boolean] dismiss This validates if removes or not the component after delay.
       # @param [Hash] options This adds a custom attributes to the component.
       def initialize(type: :success, delay: 3000, fixed: true, dismiss: true, **options)
-        @options = prepend_class_name(options, "notification-component notification is-#{type}")
+        daisy_type = type == :danger ? 'error' : type.to_s
+        @options = prepend_class_name(options, "notification-component alert alert-#{daisy_type}")
         @options = prepend_class_name(@options, 'fixed') if fixed
         @options = prepend_class_name(@options, 'native-app') if Bali.native_app
         @options = prepend_controller(@options, 'notification')

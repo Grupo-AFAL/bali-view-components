@@ -12,8 +12,8 @@ RSpec.describe Bali::Notification::Component, type: :component do
       end
 
       expect(page).to have_css 'div.notification-component', text: 'Hello World!'
-      expect(page).to have_css 'div.notification.fixed'
-      expect(page).to have_css 'div.is-success'
+      expect(page).to have_css 'div.alert.fixed'
+      expect(page).to have_css 'div.alert-success'
       expect(page).to have_css 'div[data-controller="notification"]'
       expect(page).to have_css 'div[data-notification-dismiss-value="true"]'
       expect(page).to have_css 'div[data-notification-delay-value="3000"]'
@@ -31,11 +31,12 @@ RSpec.describe Bali::Notification::Component, type: :component do
           'Hello World!'
         end
 
-        expect(page).to have_css 'div.notification', text: 'Hello World!'
+        daisy_type = notification_type == :danger ? 'error' : notification_type.to_s
+        expect(page).to have_css 'div.alert', text: 'Hello World!'
         expect(page).not_to have_css 'div.fixed'
         expect(page).to have_css 'div[data-notification-dismiss-value="false"]'
         expect(page).to have_css 'div[data-notification-delay-value="1000"]'
-        expect(page).to have_css "div.is-#{notification_type}"
+        expect(page).to have_css "div.alert-#{daisy_type}"
         expect(page).to have_css 'button.delete'
       end
     end
