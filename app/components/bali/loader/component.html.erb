@@ -1,4 +1,4 @@
-<div class="loader-component">
-  <div class="spinner"></div>
-  <h2 class="title is-4 has-text-centered"><%= @text || I18n.t('view_components.bali.loader.loading') %></h2>
+<div class="loader-component flex flex-col items-center gap-4">
+  <span class="loading loading-spinner loading-lg"></span>
+  <h2 class="text-xl font-semibold text-center"><%= @text || I18n.t('view_components.bali.loader.loading') %></h2>
 </div>
