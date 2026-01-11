@@ -11,7 +11,8 @@ RSpec.describe Bali::Loader::Component, type: :component do
     render_inline(component)
 
     expect(page).to have_css 'div.loader-component'
-    expect(page).to have_css 'h2.title.is-4.has-text-centered', text: 'Loading...'
+    expect(page).to have_css 'span.loading.loading-spinner.loading-lg'
+    expect(page).to have_css 'h2.text-xl.font-semibold.text-center', text: 'Loading...'
   end
 
   it 'renders loader with custom text' do
@@ -20,6 +21,6 @@ RSpec.describe Bali::Loader::Component, type: :component do
     render_inline(component)
 
     expect(page).to have_css 'div.loader-component'
-    expect(page).to have_css 'h2.title.is-4.has-text-centered', text: 'Cargando'
+    expect(page).to have_css 'h2.text-xl.font-semibold.text-center', text: 'Cargando'
   end
 end
