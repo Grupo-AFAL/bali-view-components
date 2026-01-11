@@ -22,11 +22,11 @@ module Bali
         @href = href
 
         options[:href] = href if href.present?
-        @options = prepend_class_name(options, 'tag-component tag')
-        @options = prepend_class_name(@options, "is-#{color}") if color.present?
-        @options = prepend_class_name(@options, "is-#{size}") if size.present?
-        @options = prepend_class_name(@options, 'is-light') if light
-        @options = prepend_class_name(@options, 'is-rounded') if rounded
+        @options = prepend_class_name(options, 'tag-component badge')
+        @options = prepend_class_name(@options, "badge-#{color}") if color.present?
+        @options = prepend_class_name(@options, "badge-#{size}") if size.present?
+        @options = prepend_class_name(@options, 'badge-outline') if light
+        @options = prepend_class_name(@options, 'rounded-full') if rounded
 
         return if custom_color.blank?
 

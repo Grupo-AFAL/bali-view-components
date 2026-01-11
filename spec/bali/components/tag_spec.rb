@@ -12,7 +12,7 @@ RSpec.describe Bali::Tag::Component, type: :component do
     it 'single item text' do
       render_inline(component)
 
-      expect(page).to have_css 'div.tag-component.tag', text: 'Tag item with text'
+      expect(page).to have_css 'div.tag-component.badge', text: 'Tag item with text'
     end
 
     before { @options.merge!(text: 'Tag item with text', color: :black) }
@@ -20,7 +20,7 @@ RSpec.describe Bali::Tag::Component, type: :component do
     it 'single item color' do
       render_inline(component)
 
-      expect(page).to have_css 'div.is-black.tag-component.tag', text: 'Tag item with text'
+      expect(page).to have_css 'div.badge-black.tag-component.badge', text: 'Tag item with text'
     end
 
     before { @options.merge!(text: 'Tag item with text', size: :small) }
@@ -28,7 +28,7 @@ RSpec.describe Bali::Tag::Component, type: :component do
     it 'single item size' do
       render_inline(component)
 
-      expect(page).to have_css 'div.tag-component.tag.is-small', text: 'Tag item with text'
+      expect(page).to have_css 'div.tag-component.badge.badge-small', text: 'Tag item with text'
     end
 
     before { @options.merge!(text: 'Tag item with text', light: true) }
@@ -36,7 +36,7 @@ RSpec.describe Bali::Tag::Component, type: :component do
     it 'single item light' do
       render_inline(component)
 
-      expect(page).to have_css 'div.tag-component.tag.is-light', text: 'Tag item with text'
+      expect(page).to have_css 'div.tag-component.badge.badge-outline', text: 'Tag item with text'
     end
 
     before { @options.merge!(text: 'Tag item with text', rounded: true) }
@@ -44,7 +44,7 @@ RSpec.describe Bali::Tag::Component, type: :component do
     it 'single item rounded' do
       render_inline(component)
 
-      expect(page).to have_css 'div.tag-component.tag.is-rounded', text: 'Tag item with text'
+      expect(page).to have_css 'div.tag-component.badge.rounded-full', text: 'Tag item with text'
     end
   end
 end
