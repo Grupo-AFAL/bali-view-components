@@ -55,10 +55,10 @@ module Bali
         end
 
         if @active == true || (@active.nil? && active_path?(href, active_path, match: match))
-          @options = prepend_class_name(@options, 'is-active')
+          @options = prepend_class_name(@options, 'active')
         end
 
-        @options = prepend_class_name(@options, "button is-#{type}") if type.present?
+        @options = prepend_class_name(@options, "btn btn-#{type}") if type.present?
 
         unless Bali.native_app
           @options = prepend_action(@options, 'modal#open') if modal && !disabled
