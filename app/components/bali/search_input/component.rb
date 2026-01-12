@@ -11,7 +11,7 @@ module Bali
         @auto_submit = auto_submit
         @placeholder = options.delete(:placeholder)
         @class = options.delete(:class)
-        @submit_options = prepend_class_name(options.delete(:submit) || {}, 'button is-info')
+        @submit_options = prepend_class_name(options.delete(:submit) || {}, 'btn btn-primary')
       end
 
       def value
@@ -27,15 +27,15 @@ module Bali
       end
 
       def input_class
-        class_names('input', @class)
+        class_names('input input-bordered', @class)
       end
 
       def field_class
-        class_names('field', 'has-addons': !auto_submit)
+        class_names('form-control', join: !auto_submit)
       end
 
       def control_class
-        class_names('control', 'search-bar': auto_submit)
+        class_names('join-item': !auto_submit, 'flex-1': true)
       end
 
       def input_data

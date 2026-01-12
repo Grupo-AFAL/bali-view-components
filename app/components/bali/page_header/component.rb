@@ -3,19 +3,28 @@
 module Bali
   module PageHeader
     class Component < ApplicationViewComponent
+      HEADING_SIZES = {
+        h1: 'text-4xl',
+        h2: 'text-3xl',
+        h3: 'text-2xl',
+        h4: 'text-xl',
+        h5: 'text-lg',
+        h6: 'text-base'
+      }.freeze
+
       attr_reader :options
 
       renders_one :title, ->(text = nil, tag: :h3, **options, &block) do
         options = prepend_class_name(
           options,
-          class_names('title is-spaced', heading_size_class(tag))
+          class_names('title font-bold mb-1', HEADING_SIZES[tag])
         )
 
         heading_tag(text, tag, **options, &block)
       end
 
       renders_one :subtitle, ->(text = nil, tag: :h5, **options, &block) do
-        options = prepend_class_name(options, class_names('subtitle', heading_size_class(tag)))
+        options = prepend_class_name(options, class_names('subtitle text-base-content/60', HEADING_SIZES[tag]))
 
         heading_tag(text, tag, **options, &block)
       end
@@ -25,31 +34,20 @@ module Bali
         @subtitle = subtitle
         @align = align
 
-        @options = prepend_class_name(options, 'page-header-component is-mobile')
-        @back_options = prepend_class_name(back, 'back-button button is-text')
+        @options = prepend_class_name(options, 'page-header-component')
+        @back_options = prepend_class_name(back, 'back-button btn btn-ghost')
 
         @left_options = {}
 
         if align == :top
-          @left_options = prepend_class_name(@left_options, 'is-align-items-flex-start')
-          @options = prepend_class_name(options, 'is-align-items-flex-start')
+          @left_options = prepend_class_name(@left_options, 'items-start')
+          @options = prepend_class_name(options, 'items-start')
         end
 
         return unless align == :bottom
 
-        @left_options = prepend_class_name(@left_options, 'is-align-items-flex-end')
-        @options = prepend_class_name(options, 'is-align-items-flex-end')
-      end
-
-      def heading_size_class(tag)
-        {
-          'is-1': tag == :h1,
-          'is-2': tag == :h2,
-          'is-3': tag == :h3,
-          'is-4': tag == :h4,
-          'is-5': tag == :h5,
-          'is-6': tag == :h6
-        }
+        @left_options = prepend_class_name(@left_options, 'items-end')
+        @options = prepend_class_name(options, 'items-end')
       end
 
       def heading_tag(text, tag_name, **, &)

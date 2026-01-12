@@ -1,4 +1,4 @@
-<%= tag.div(id: "field-#{input_id}", class: 'field search-input-component width-inherit') do %>
+<%= tag.div(id: "field-#{input_id}", class: 'search-input-component w-full') do %>
   <%= tag.div class: field_class do %>
     <%= tag.div class: control_class do %>
       <%= tag.input placeholder: placeholder || t('.placeholder'),
@@ -9,11 +9,10 @@
                     value: value,
                     data: input_data %>
     <% end %>
-
     <% if !auto_submit %>
-      <div class="control search-control">
-        <%= tag.button(type: :submit, **@submit_options.except(:type, 'type')) do %>
-          <%= render Bali::Icon::Component.new('search') %>
+      <div class="join-item">
+        <%= tag.button(type: :submit, **@submit_options.merge(class: 'btn btn-primary join-item').except(:type, 'type')) do %>
+          <%= render Bali::Icon::Component.new('search', class: 'w-4 h-4') %>
         <% end %>
       </div>
     <% end %>

@@ -7,19 +7,19 @@ module Bali
         attr_reader :options
 
         renders_one :heading, ->(text = nil, **options, &block) do
-          options = prepend_class_name(options, 'heading')
+          options = prepend_class_name(options, 'heading text-xs text-base-content/60 uppercase tracking-wide')
 
           text.present? ? tag.p(text, **options) : tag.div(**options, &block)
         end
 
         renders_many :titles, ->(text = nil, **options, &block) do
-          options[:class] ||= 'title is-3'
+          options[:class] ||= 'title text-2xl font-bold'
 
           text.present? ? tag.p(text, **options) : tag.div(**options, &block)
         end
 
         def initialize(**options)
-          @options = prepend_class_name(hyphenize_keys(options), 'level-item is-block')
+          @options = prepend_class_name(hyphenize_keys(options), 'level-item text-center')
         end
 
         def call

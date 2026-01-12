@@ -3,6 +3,12 @@
 module Bali
   module Level
     class Component < ApplicationViewComponent
+      ALIGNMENTS = {
+        start: 'items-start',
+        center: 'items-center',
+        end: 'items-end'
+      }.freeze
+
       attr_reader :options
 
       renders_one :left, ->(**args) do
@@ -15,8 +21,15 @@ module Bali
       renders_many :items, Item::Component
 
       def initialize(align: :center, **options)
-        @align = align
-        @options = prepend_class_name(options, "level align-#{align}")
+        @align = align&.to_sym
+        @options = prepend_class_name(options, level_classes)
+      end
+
+      def level_classes
+        class_names(
+          'level flex justify-between gap-4',
+          ALIGNMENTS[@align] || ALIGNMENTS[:center]
+        )
       end
     end
   end

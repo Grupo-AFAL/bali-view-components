@@ -7,8 +7,8 @@
     <% end %>
     <% level.with_item do %>
       <div>
-        <%= title || tag.h3(@title, class: 'title is-3 is-spaced') %>
-        <%= subtitle || tag.h5(@subtitle, class: 'subtitle is-5') %>
+        <%= title || tag.h3(@title, class: 'title text-2xl font-bold mb-1') %>
+        <%= subtitle || tag.h5(@subtitle, class: 'subtitle text-lg text-base-content/60') %>
       </div>
     <% end %>
   <% end %>
