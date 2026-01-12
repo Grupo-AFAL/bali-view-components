@@ -1,5 +1,7 @@
 # Bali Components - Tailwind/DaisyUI Migration Status
 
+> **Detailed Migration Log**: See [.claude/migration-log.md](.claude/migration-log.md) for detailed change history, class mappings, and learnings from each migration.
+
 ## Legend
 - :white_check_mark: Verified & Fixed (complete migration)
 - :large_orange_diamond: Partially migrated (needs verification)

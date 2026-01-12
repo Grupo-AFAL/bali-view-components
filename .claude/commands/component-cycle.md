@@ -14,6 +14,61 @@ Where `$ARGUMENTS` is:
 - `--auto-commit` - Commit after successful cycle
 - `--strict` - Fail on any warning, not just errors
 
+## CRITICAL: Migration Log (MUST DO)
+
+**At the START of every cycle**, read the migration log to understand context:
+```bash
+cat .claude/migration-log.md
+```
+
+**At the END of every cycle**, append an entry to the log:
+```bash
+# Use the Write tool to append to .claude/migration-log.md
+```
+
+### Log Entry Format (append after each cycle):
+
+```markdown
+---
+
+## [ComponentName] - [YYYY-MM-DD HH:MM]
+
+**Status**: SUCCESS | PARTIAL | BLOCKED
+**Iterations**: X of N
+**UX Score**: X/10
+
+### Issues Found
+- [Severity] Issue description
+
+### Fixes Applied
+- Description of fix
+- Files modified: `path/to/file.rb`
+
+### Class Mappings
+| Old (Bulma) | New (Tailwind) |
+|-------------|----------------|
+| `old-class` | `new-class` |
+
+### Tests
+- Added/Modified: X tests
+- Status: All passing / X failures
+
+### Remaining Issues (if any)
+- Issue that couldn't be fixed
+
+### Commit
+`[hash]` Commit message (or "Not committed")
+
+### Next Steps
+- Recommendation for follow-up work
+```
+
+**WHY THIS MATTERS**: The log provides:
+1. Context for future AI sessions about what's been done
+2. Patterns that worked (reusable for similar components)
+3. Track record of migration progress
+4. Quick reference for class mappings
+
 ## Overview
 
 This command orchestrates a complete component improvement cycle:
