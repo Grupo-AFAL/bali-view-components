@@ -16,7 +16,7 @@ RSpec.describe Bali::Columns::Component, type: :component do
       end
     end
 
-    expect(page).to have_css '.columns-component.columns div'
+    expect(page).to have_css '.columns-component.flex div'
     expect(page).to have_css 'div.column', text: 'First'
     expect(page).to have_css 'div.column', text: 'Second'
   end

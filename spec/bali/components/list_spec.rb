@@ -13,8 +13,8 @@ RSpec.describe Bali::List::Component, type: :component do
       end
     end
 
-    expect(page).to have_css '.title.is-6', text: 'Item 1'
-    expect(page).to have_css '.subtitle.is-7', text: 'Subtitle 1'
+    expect(page).to have_css '.title.text-base.font-semibold', text: 'Item 1'
+    expect(page).to have_css '.subtitle.text-sm', text: 'Subtitle 1'
   end
 
   it 'renders list item with block arguments' do
@@ -25,8 +25,8 @@ RSpec.describe Bali::List::Component, type: :component do
       end
     end
 
-    expect(page).to have_css '.title.is-6', text: 'Item 1'
-    expect(page).to have_css '.subtitle.is-7', text: 'Subtitle 1'
+    expect(page).to have_css '.title.text-base.font-semibold', text: 'Item 1'
+    expect(page).to have_css '.subtitle.text-sm', text: 'Subtitle 1'
   end
 
   it 'renders list item actions' do

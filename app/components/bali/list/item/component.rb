@@ -7,17 +7,18 @@ module Bali
         attr_reader :options
 
         renders_one :title, ->(text = nil, **options, &block) do
-          tag.div(text || block.call, **prepend_class_name(options, 'title is-6'))
+          tag.div(text || block.call, **prepend_class_name(options, 'title text-base font-semibold'))
         end
 
         renders_one :subtitle, ->(text = nil, **options, &block) do
-          tag.div(text || block.call, **prepend_class_name(options, 'subtitle is-7'))
+          tag.div(text || block.call, **prepend_class_name(options, 'subtitle text-sm text-base-content/60'))
         end
 
         renders_many :actions
 
         def initialize(**options)
-          @options = prepend_class_name(options, 'list-item-component')
+          @options = prepend_class_name(options,
+                                        'list-item-component flex items-center justify-between gap-4 py-2')
         end
       end
     end

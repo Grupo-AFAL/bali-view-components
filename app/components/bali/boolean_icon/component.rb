@@ -10,7 +10,7 @@ module Bali
 
         @options = prepend_class_name(
           options,
-          class_names('boolean-icon-component', status_class(value))
+          class_names('boolean-icon-component inline-flex', status_class(value))
         )
       end
 
@@ -18,7 +18,7 @@ module Bali
         icon_name = @value ? 'check-circle' : 'times-circle'
 
         tag.div(**@options) do
-          render Bali::Icon::Component.new(icon_name)
+          render Bali::Icon::Component.new(icon_name, class: 'w-5 h-5')
         end
       end
 
