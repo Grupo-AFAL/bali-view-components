@@ -2,6 +2,48 @@
 
 This file provides guidance to AI coding agents working with the Bali ViewComponents library.
 
+## Shared Documentation
+
+Reference documentation is maintained in `docs/` for use by both Claude Code and OpenCode:
+
+| Document | Purpose |
+|----------|---------|
+| `docs/reference/daisyui-mapping.md` | Bulma → DaisyUI class mappings (single source of truth) |
+| `docs/reference/component-patterns.md` | Standard ViewComponent patterns |
+| `docs/reference/stimulus-patterns.md` | Stimulus controller patterns |
+| `docs/guides/accessibility.md` | WCAG 2.1 accessibility standards |
+
+## Available Commands
+
+### Migration Workflow
+| Command | Description |
+|---------|-------------|
+| `/migrate-component [name]` | Migrate component from Bulma to DaisyUI |
+| `/component-cycle [name]` | Full verify→fix→review loop |
+| `/fix-component [name]` | Fix issues in a component |
+| `/verify-component [name]` | Visual and functional verification |
+
+### Quality & Review
+| Command | Description |
+|---------|-------------|
+| `/review [name]` | Code review against DHH standards |
+| `/a11y [name]` | Accessibility audit (WCAG 2.1) |
+| `/audit` | Full library status audit |
+| `/test [name]` | Run component tests |
+
+### Documentation & Release
+| Command | Description |
+|---------|-------------|
+| `/docs [name]` | Generate API documentation |
+| `/release [patch\|minor\|major]` | Release new gem version |
+| `/deprecate [name]` | Mark component/param deprecated |
+
+### Development
+| Command | Description |
+|---------|-------------|
+| `/component [name]` | Create new component |
+| `/pr` | Create pull request |
+
 ## Project Overview
 
 **Bali** is AFAL's open-source ViewComponent library providing 40+ reusable UI components for Rails applications.
@@ -135,53 +177,17 @@ All 40+ components are currently **Pending** migration. Track progress in README
 
 ### Class Mapping Reference
 
-| Bulma Class | DaisyUI Class | Notes |
-|-------------|---------------|-------|
-| `button` | `btn` | Base button |
-| `is-primary` | `btn-primary` | Primary variant |
-| `is-success` | `btn-success` | Success variant |
-| `is-danger` | `btn-error` | Note: danger → error |
-| `is-warning` | `btn-warning` | Warning variant |
-| `is-info` | `btn-info` | Info variant |
-| `is-outlined` | `btn-outline` | Outline variant |
-| `is-small` | `btn-sm` | Small size |
-| `is-medium` | `btn-md` | Medium size |
-| `is-large` | `btn-lg` | Large size |
-| `is-loading` | `loading loading-spinner` | Loading state |
-| `card` | `card bg-base-100` | Card container |
-| `card-header` | N/A (use card-title in card-body) | Structural change |
-| `card-content` | `card-body` | Card content area |
-| `card-footer` | `card-actions` | Card actions area |
-| `modal` | `modal` | Modal container |
-| `modal-card` | `modal-box` | Modal content box |
-| `modal-card-head` | N/A (use elements in modal-box) | Structural change |
-| `modal-card-body` | Content in modal-box | Direct content |
-| `modal-card-foot` | `modal-action` | Modal actions |
-| `notification` | `alert` | Notification/alert |
-| `is-success` (notification) | `alert-success` | Success alert |
-| `is-danger` (notification) | `alert-error` | Error alert |
-| `navbar` | `navbar` | Same |
-| `tabs` | `tabs tabs-boxed` | Tabbed interface |
-| `tag` | `badge` | Tag/badge |
-| `dropdown` | `dropdown` | Same |
-| `table` | `table` | Same |
-| `is-striped` | `table-zebra` | Striped rows |
-| `input` | `input input-bordered` | Text input |
-| `select` | `select select-bordered` | Select input |
-| `textarea` | `textarea textarea-bordered` | Textarea |
-| `field` | `form-control` | Form field wrapper |
-| `label` | `label` | Same |
-| `help` | `label-text-alt` | Helper text |
-| `is-danger` (help) | `text-error` | Error text |
-| `columns` | `grid grid-cols-*` or `flex` | Layout |
-| `column` | Grid/flex children | Layout |
-| `is-half` | `w-1/2` or `col-span-6` | Half width |
-| `is-one-third` | `w-1/3` or `col-span-4` | Third width |
-| `has-text-centered` | `text-center` | Text alignment |
-| `is-hidden-mobile` | `hidden md:block` | Responsive hiding |
-| `level` | `flex justify-between items-center` | Level layout |
-| `hero` | Custom with Tailwind | Hero section |
-| `progress` | `progress` | Progress bar |
+**See `docs/reference/daisyui-mapping.md` for the complete mapping reference.**
+
+Key mappings (quick reference):
+
+| Bulma | DaisyUI | Notes |
+|-------|---------|-------|
+| `is-danger` | `*-error` | DaisyUI uses "error" not "danger" |
+| `is-small/medium/large` | `*-sm/md/lg` | Use abbreviated sizes |
+| `columns` | `grid grid-cols-12` | Use CSS Grid, not Flexbox |
+| `card-content` | `card-body` | Different naming |
+| `notification` | `alert` | Different naming |
 
 ### Migration Workflow
 
