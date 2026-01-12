@@ -2,14 +2,13 @@
   <%= tag.div(**@options) do %>
     <label class="label">
       <%= title %>
-      <span class="is-size-7 has-text-grey"><%= t("ransack.predicates.#{predicate}") %></span>
+      <span class="text-xs text-base-content/60"><%= t("ransack.predicates.#{predicate}") %></span>
     </label>
-
     <% if @collection_options.size <= 5 %>
       <div class="filter-options">
         <% collection_options.each do |option_name, option_value| %>
           <% if option_value.is_a?(Array) %>
-            <span class="tag is-white has-text-weight-bold"><%= option_name %></span>
+            <span class="badge bg-base-100 font-bold"><%= option_name %></span>
             <% option_value.each do |sub_option_name, sub_option_value| %>
               <%= render Bali::Filters::Option::Component.new(
                   title: sub_option_name,
@@ -42,7 +41,7 @@
         data-slim-select-deselect-all-text-value="Deselect all",
       >
         <%= select_tag input_name, options_for_select(@collection_options, selected_values), 
-            multiple: multiple, class: class_names('select', 'is-multiple': multiple),
+            multiple: multiple, class: class_names('select select-bordered w-full'),
             include_blank: !multiple, data: { slim_select_target: 'select' } %>
       </div>
     <% end %>

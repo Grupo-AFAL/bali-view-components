@@ -16,7 +16,7 @@ module Bali
           content_padding: content_padding
         ) do |c|
           c.with_trigger do
-            tag.p('Hover me!', class: 'has-text-centered')
+            tag.p('Hover me!', class: 'text-center')
           end
 
           c.tag.p('Hovercard content!')
@@ -27,7 +27,7 @@ module Bali
       def top
         render HoverCard::Component.new(placement: 'top') do |c|
           c.with_trigger do
-            tag.p('Hover me!', class: 'has-text-centered')
+            tag.p('Hover me!', class: 'text-center')
           end
 
           c.tag.p('Hovercard content!')
@@ -37,7 +37,7 @@ module Bali
       def right
         render HoverCard::Component.new(placement: 'right') do |c|
           c.with_trigger do
-            tag.p('Hover me!', class: 'has-text-centered')
+            tag.p('Hover me!', class: 'text-center')
           end
 
           c.tag.p('Hovercard content!')
@@ -47,7 +47,7 @@ module Bali
       def bottom
         render HoverCard::Component.new(placement: 'bottom') do |c|
           c.with_trigger do
-            tag.p('Hover me!', class: 'has-text-centered')
+            tag.p('Hover me!', class: 'text-center')
           end
 
           c.tag.p('Hovercard content!')
@@ -57,7 +57,7 @@ module Bali
       def left
         render HoverCard::Component.new(placement: 'left') do |c|
           c.with_trigger do
-            tag.p('Hover me!', class: 'has-text-centered')
+            tag.p('Hover me!', class: 'text-center')
           end
 
           c.tag.p('Hovercard content!')
@@ -82,7 +82,7 @@ module Bali
           content_padding: content_padding
         ) do |c|
           c.with_trigger do
-            tag.p('Hover me!', class: 'has-text-centered')
+            tag.p('Hover me!', class: 'text-center')
           end
         end
       end

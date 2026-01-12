@@ -14,7 +14,7 @@ module Bali
 
           @options = prepend_class_name(
             options,
-            class_names('button is-small', 'is-selected is-info': @active)
+            class_names('btn btn-sm', 'btn-info': @active, 'btn-ghost': !@active)
           )
         end
 

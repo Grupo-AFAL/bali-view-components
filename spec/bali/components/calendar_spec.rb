@@ -19,11 +19,11 @@ describe Bali::Calendar::Component, type: :component do
 
     expect(page).to have_css '.calendar-component'
     expect(page).to have_css '.month-view'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Monday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Friday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Saturday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Sunday'
-    expect(page).to have_css '.header > .columns > .column > h3.title',
+    expect(page).to have_css 'tr > th.text-center', text: 'Monday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Friday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Saturday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Sunday'
+    expect(page).to have_css '.header h3.text-2xl',
                              text: 'January 2020'
   end
 
@@ -32,13 +32,13 @@ describe Bali::Calendar::Component, type: :component do
     render_inline(component)
 
     expect(page).to have_css '.calendar-component'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Monday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Tuesday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Wednesday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Thursday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Friday'
-    expect(page).not_to have_css 'tr > th.has-text-centered', text: 'Saturday'
-    expect(page).not_to have_css 'tr > th.has-text-centered', text: 'Sunday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Monday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Tuesday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Wednesday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Thursday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Friday'
+    expect(page).not_to have_css 'tr > th.text-center', text: 'Saturday'
+    expect(page).not_to have_css 'tr > th.text-center', text: 'Sunday'
   end
 
   it 'renders the calendar component hiding the calendar view options' do
@@ -48,11 +48,11 @@ describe Bali::Calendar::Component, type: :component do
     end
 
     expect(page).to have_css '.calendar-component'
-    expect(page).to have_css '.header > .columns > .column > h3.title',
+    expect(page).to have_css '.header h3.text-2xl',
                              text: 'January 2020'
-    expect(page).not_to have_css '.header > .columns > .column > a.button',
+    expect(page).not_to have_css '.header a.btn',
                                  text: 'Week'
-    expect(page).not_to have_css '.header > .columns > .column > a.button',
+    expect(page).not_to have_css '.header a.btn',
                                  text: 'Month'
   end
 
@@ -62,13 +62,13 @@ describe Bali::Calendar::Component, type: :component do
 
     expect(page).to have_css '.calendar-component'
     expect(page).to have_css '.week-view'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Monday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Tuesday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Wednesday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Thursday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Friday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Saturday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Sunday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Monday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Tuesday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Wednesday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Thursday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Friday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Saturday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Sunday'
   end
 
   describe '#prev_day' do

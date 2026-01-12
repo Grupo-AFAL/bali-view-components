@@ -1,15 +1,15 @@
 <div class="calendar-component">
   <div class="day-view">
-    <%= render(Bali::Columns::Component.new(class: 'is-mobile')) do |c| %>
-      <%= c.with_column(class: 'is-narrow') do %>
+    <%= render(Bali::Columns::Component.new(class: 'gap-0')) do |c| %>
+      <%= c.with_column(class: 'flex-none') do %>
         <%= link_to render(Bali::Icon::Component.new('chevron-left')), url_for(prev_day), title: 'previous' %>
       <% end %>
-      <%= c.with_column(class: 'has-text-centered') do %>
-        <span class="title is-5 has-text-grey-dark has-text-weight-normal">
+      <%= c.with_column(class: 'text-center') do %>
+        <span class="text-lg text-base-content/70 font-normal">
           <%= l(start_date, format: :long_with_day) %>
         </span>
       <% end %>
-      <%= c.with_column(class: 'is-narrow') do %>
+      <%= c.with_column(class: 'flex-none') do %>
         <%= link_to render(Bali::Icon::Component.new('chevron-right')), url_for(next_day), title: 'next' %>
       <% end %>
     <% end %>

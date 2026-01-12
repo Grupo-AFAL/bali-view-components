@@ -1,128 +1,111 @@
 <%= form_with(model: form, url: url, method: :get,**@options) do |f| %>
-  <div class="level filters-component is-mobile width-inherit mb-0">
-    <div class="level-left">
+  <div class="flex items-center gap-4 filters-component w-full mb-0">
+    <div class="flex items-center gap-4 flex-wrap">
       <% additional_query_params.each do |query_param| %>
         <%= query_param %>
       <% end %>
-
       <% if text_field.present? %>
-        <div class="level-item">
+        <div class="flex-shrink-0">
           <%= render Bali::SearchInput::Component.new(
               form: form, method: text_field, auto_submit: auto_submit_search_input,
               submit: { data: { action: 'filter-form#submit' } }) %>
         </div>
       <% end %>
-
       <% if attributes? || content.present? %>
-        <div class="level-item popup-element" data-controller="popup" data-popup-opened-value="<%= opened %>">
+        <div class="popup-element" data-controller="popup" data-popup-opened-value="<%= opened %>">
           <%= tag.a id: 'filters-button',
-              class: class_names('button is-text', 'is-selected': opened),
+              class: class_names('btn btn-ghost', 'btn-active': opened),
               data: { action: 'popup#toggle', 'popup-target': 'button' } do %>
-
             <%= render Bali::Icon::Component.new('filter') %>
-
             <%= tag.span "#{active_filters_count > 0 ? "(#{active_filters_count}) " : nil}",
-                class: 'counter is-size-7-mobile',
+                class: 'counter text-xs sm:text-sm',
                 data: { 'filter-form-target': 'filterCounter' } %>
-
-            <%= tag.span t('.filters'), class: 'text is-hidden-mobile' %>
+            <%= tag.span t('.filters'), class: 'text hidden sm:inline' %>
           <% end %>
-
           <%= hidden_field_tag :opened, opened, data: { 'popup-target': 'openedInput' } %>
-
-          <%= tag.div class: class_names('filters-popup', 'is-hidden': !opened), data: { 'popup-target': 'container' } do %>
-            <div class="box">
-              <%= render Bali::Link::Component.new(icon_name: 'times', href: nil, data: { action: 'popup#close' },
-                  class: 'close-button') %>
-
-              <% if content.present? %>
-                <%= content %>
-              <% else %>
-                <% date_range_atributes = attributes.select { |attr| attr.date_range_field? || attr.datetime_field? } %>
-                <% if date_range_atributes.any? %>
-                  <div class="mb-5">
-                    <% date_range_atributes.each do |attribute| %>
-                      <div class="mb-2"><%= attribute %></div>
-                    <% end %>
-                  </div>
-                <% end %>
-
-                <% text_or_number_attributes = attributes.select(&:text_field?) %>
-                <% if text_or_number_attributes.any? %>
-                  <% block_displayed = text_or_number_attributes.select(&:display_block?) %>
-                  <% flex_displayed = text_or_number_attributes.select(&:display_flex?) %>
-
-                  <div class="mb-5">
-                    <% block_displayed.each do |attribute| %>
-                      <div class="mb-2"><%= attribute %></div>
-                    <% end %>
-
-                    <% if flex_displayed.any? %>
-                      <div class="columns is-multiline">
-                        <% flex_displayed.each do |attribute| %>
-                          <div class="column"><%= attribute %></div>
-                        <% end %>
-                      </div>
-                    <% end %>
-                  </div>
-                <% end %>
-
-                <% check_box_attributes = attributes.select(&:check_box_field?) %>
-                <% if check_box_attributes.any? %>
-                  <div class="columns is-multiline mb-5">
-                    <% check_box_attributes.each do |attribute| %>
-                      <div class="column"><%= attribute %> </div>
-                    <% end %>
-                  </div>
-                <% end %>
-
-                <% collection_attributes = attributes.select(&:collection_field?) %>
-                <% if collection_attributes.any? %>
-                  <% with_many_options = collection_attributes.select { |attr| attr.collection_options.size > 5 } %>
-                  <% with_few_options = collection_attributes.select { |attr| attr.collection_options.size <= 5 } %>
-
-                  <% if with_many_options.present? %>
-                    <div class="mb-4">
-                      <% with_many_options.each do |attribute| %>
+          <%= tag.div class: class_names('filters-popup', 'hidden': !opened), data: { 'popup-target': 'container' } do %>
+            <div class="card bg-base-100 shadow-xl">
+              <div class="card-body">
+                <%= render Bali::Link::Component.new(icon_name: 'times', href: nil, data: { action: 'popup#close' },
+                    class: 'close-button btn btn-ghost btn-circle btn-sm absolute right-2 top-2') %>
+                <% if content.present? %>
+                  <%= content %>
+                <% else %>
+                  <% date_range_atributes = attributes.select { |attr| attr.date_range_field? || attr.datetime_field? } %>
+                  <% if date_range_atributes.any? %>
+                    <div class="mb-5">
+                      <% date_range_atributes.each do |attribute| %>
                         <div class="mb-2"><%= attribute %></div>
                       <% end %>
                     </div>
                   <% end %>
-
-                  <div class="columns is-multiline">
-                    <% with_few_options.each do |attribute| %>
-                      <%= attribute %>
+                  <% text_or_number_attributes = attributes.select(&:text_field?) %>
+                  <% if text_or_number_attributes.any? %>
+                    <% block_displayed = text_or_number_attributes.select(&:display_block?) %>
+                    <% flex_displayed = text_or_number_attributes.select(&:display_flex?) %>
+                    <div class="mb-5">
+                      <% block_displayed.each do |attribute| %>
+                        <div class="mb-2"><%= attribute %></div>
+                      <% end %>
+                      <% if flex_displayed.any? %>
+                        <div class="flex flex-wrap gap-4">
+                          <% flex_displayed.each do |attribute| %>
+                            <div class="flex-1 min-w-48"><%= attribute %></div>
+                          <% end %>
+                        </div>
+                      <% end %>
+                    </div>
+                  <% end %>
+                  <% check_box_attributes = attributes.select(&:check_box_field?) %>
+                  <% if check_box_attributes.any? %>
+                    <div class="flex flex-wrap gap-4 mb-5">
+                      <% check_box_attributes.each do |attribute| %>
+                        <div class="flex-1 min-w-48"><%= attribute %> </div>
+                      <% end %>
+                    </div>
+                  <% end %>
+                  <% collection_attributes = attributes.select(&:collection_field?) %>
+                  <% if collection_attributes.any? %>
+                    <% with_many_options = collection_attributes.select { |attr| attr.collection_options.size > 5 } %>
+                    <% with_few_options = collection_attributes.select { |attr| attr.collection_options.size <= 5 } %>
+                    <% if with_many_options.present? %>
+                      <div class="mb-4">
+                        <% with_many_options.each do |attribute| %>
+                          <div class="mb-2"><%= attribute %></div>
+                        <% end %>
+                      </div>
                     <% end %>
-                  </div>
+                    <div class="flex flex-wrap gap-4">
+                      <% with_few_options.each do |attribute| %>
+                        <%= attribute %>
+                      <% end %>
+                    </div>
+                  <% end %>
                 <% end %>
-              <% end %>
-
-              <%= f.submit t('helpers.apply.text'), class:'button is-primary is-fullwidth mt-5',
-                  data: { action: 'popup#close filter-form#submit' } %>
+                <%= f.submit t('helpers.apply.text'), class:'btn btn-primary w-full mt-5',
+                    data: { action: 'popup#close filter-form#submit' } %>
+              </div>
             </div>
           <% end %>
         </div>
       <% end %>
-
       <% if custom_filters.present? %>
-        <div class="level-item width-inherit">
+        <div class="w-auto">
           <%= custom_filters %>
         </div>
       <% end %>
-
       <% if attributes? || custom_filters.present? %>
-        <div class="level-item">
+        <div>
           <%= link_to t('.remove_filters'), clear_filters_url,
-              class: class_names('is-hidden-mobile', 'is-hidden': !active_filters?),
+              class: class_names('link link-hover hidden sm:inline', 'hidden': !active_filters?),
               data: { 'filter-form-target': 'removeButton' } %>
         </div>
       <% end %>
     </div>
   </div>
-
-  <div class="has-text-centered is-hidden-tablet">
+  <div class="text-center sm:hidden">
     <%= link_to t('.remove_filters'), clear_filters_url,
-        class: class_names('is-hidden': !active_filters?),
+        class: class_names('link link-hover', 'hidden': !active_filters?),
         data: { 'filter-form-target': 'removeButton' } %>
   </div>
 <% end %>

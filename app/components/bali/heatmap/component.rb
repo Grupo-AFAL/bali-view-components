@@ -5,11 +5,11 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :data, :width, :height, :gradient_colors, :options
 
-      renders_one :hovercard_title, ->(text) { tag.p(text, class: 'title is-7 mb-0') }
-      renders_one :legend_title, ->(text) { tag.p(text, class: 'title is-7') }
-      renders_one :y_axis_title, ->(text) { tag.p(text, class: 'title is-7 pb-3') }
+      renders_one :hovercard_title, ->(text) { tag.p(text, class: 'text-xs font-bold mb-0') }
+      renders_one :legend_title, ->(text) { tag.p(text, class: 'text-xs font-bold') }
+      renders_one :y_axis_title, ->(text) { tag.p(text, class: 'text-xs font-bold pb-3') }
       renders_one :x_axis_title, ->(text) {
-                                   tag.p(text, class: 'title is-7 mt-2 has-text-centered')
+                                   tag.p(text, class: 'text-xs font-bold mt-2 text-center')
                                  }
 
       def initialize(width: 480, height: 480, data: {}, color: '#008806', **options)

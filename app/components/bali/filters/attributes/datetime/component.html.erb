@@ -7,32 +7,31 @@
     >
       <label class="label">
         <%= @title %>
-        <span class="is-size-7 has-text-grey"><%= t("ransack.predicates.#{predicate}") %></span>
+        <span class="text-xs text-base-content/60"><%= t("ransack.predicates.#{predicate}") %></span>
         <%= render Bali::Link::Component.new(
-            href: nil, class: 'ml-2 is-size-7',data: { action: "filter-text-inputs-manager#add" }
+            href: nil, class: 'ml-2 text-xs',data: { action: "filter-text-inputs-manager#add" }
         ) do %>
           &plus; <%= t('helpers.add.text') %>
         <% end %>
       </label>
-
       <div class="multiple-text-inputs-container" data-filter-text-inputs-manager-target="inputsContainer">
         <% if value.blank? %>
-          <div class="field has-addons">
-            <div class="control">
-              <%= text_field_tag input_name, value, class: 'input', type: input_type %>
+          <div class="join w-full">
+            <div class="join-item flex-1">
+              <%= text_field_tag input_name, value, class: 'input input-bordered w-full', type: input_type %>
             </div>
-            <div class="control">
-              <a class="button" data-action="filter-text-inputs-manager#remove">&times;</a>
+            <div class="join-item">
+              <a class="btn" data-action="filter-text-inputs-manager#remove">&times;</a>
             </div>
           </div>
         <% else %>
           <% value.each do |option| %>
-            <div class="field has-addons">
-              <div class="control">
-                <%= text_field_tag input_name, value, class: 'input', type: input_type %>
+            <div class="join w-full">
+              <div class="join-item flex-1">
+                <%= text_field_tag input_name, value, class: 'input input-bordered w-full', type: input_type %>
               </div>
-              <div class="control">
-                <a class="button" data-action="filter-text-inputs-manager#remove">&times;</a>
+              <div class="join-item">
+                <a class="btn" data-action="filter-text-inputs-manager#remove">&times;</a>
               </div>
             </div>
           <% end %>
@@ -42,11 +41,10 @@
   <% else %>
     <label class="label">
       <%= @title %>
-      <span class="is-size-7 has-text-grey"><%= t("ransack.predicates.#{predicate}") %></span>
+      <span class="text-xs text-base-content/60"><%= t("ransack.predicates.#{predicate}") %></span>
     </label>
-
-    <div class="control">
-      <%= text_field_tag input_name, value, class: 'input', type: input_type %>
+    <div class="form-control">
+      <%= text_field_tag input_name, value, class: 'input input-bordered w-full', type: input_type %>
     </div>
   <% end %>
 <% end %>

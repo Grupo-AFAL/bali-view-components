@@ -36,7 +36,8 @@ module Bali
                                        all_week: false,
                                        period: :month,
                                        show_date: true)) do |c|
-          c.with_header(start_date: Date.current.to_s, route_path: '/lookbook', period_switch: false)
+          c.with_header(start_date: Date.current.to_s, route_path: '/lookbook',
+                        period_switch: false)
         end
       end
 
@@ -94,7 +95,7 @@ module Bali
                                        footer: true)) do |c|
           c.with_header(start_date: Date.current.to_s, route_path: '/lookbook')
           c.with_footer do
-            '<span class="tag is-primary">This is the footer<spam>'.html_safe
+            '<span class="badge badge-primary">This is the footer</span>'.html_safe
           end
         end
       end

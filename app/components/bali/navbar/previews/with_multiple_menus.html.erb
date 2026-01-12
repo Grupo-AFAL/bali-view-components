@@ -1,36 +1,36 @@
 <%= render Bali::Navbar::Component.new(
     fullscreen: fullscreen,
     transparency: transparency,
-    class: 'is-fixed-top'
+    class: 'fixed top-0 left-0 right-0 z-50'
 ) do |nav| %>
   <% nav.with_brand do %>
-    <%= tag.a('LOGO', class: 'navbar-item is-centered', href: '#', style: 'position: absolute; left: 50%;') %>
+    <%= tag.a('LOGO', class: 'navbar-item text-center', href: '#', style: 'position: absolute; left: 50%;') %>
   <% end %>
   <% nav.with_burger(class: 'left-burger') %>
-  <% nav.with_burger(class: 'is-flex is-justify-content-center is-align-items-center is-hidden-desktop', type: :alt) do %>
+  <% nav.with_burger(class: 'flex justify-center items-center lg:hidden', type: :alt) do %>
     <%= render Bali::Icon::Component.new('user', tag_name: :div) %>
   <% end %>
   <% nav.with_menu do |menu| %>
     <% menu.with_start_item(name: 'Home') %>
     <% menu.with_start_item(name: 'Documentation', href: '#') %>
-    <% menu.with_start_item(class: 'has-dropdown is-hoverable', tag_name: :div) do %>
-      <a class="navbar-link">
+    <% menu.with_start_item(class: 'dropdown dropdown-hover', tag_name: :div) do %>
+      <a class="btn btn-ghost">
         More
       </a>
-      <div class='navbar-dropdown'>
-        <a class='navbar-item'>About</a>
-        <a class='navbar-item'>Jobs</a>
-        <a class='navbar-item'>Contact</a>
-        <hr class='navbar-divider' />
-        <a class='navbar-item'>Report an issue</a>
-      </div>
+      <ul class='dropdown-content menu bg-base-100 rounded-box w-52 shadow'>
+        <li><a>About</a></li>
+        <li><a>Jobs</a></li>
+        <li><a>Contact</a></li>
+        <li class="divider"></li>
+        <li><a>Report an issue</a></li>
+      </ul>
     <% end %>
   <% end %>
   <% nav.with_menu(type: :alt) do |menu| %>
     <% menu.with_end_item(tag_name: :div) do %>
-      <div class='buttons'>
-        <a class='button is-primary'>Sign up</a>
-        <a class='button is-light'>Log in</a>
+      <div class='flex gap-2'>
+        <a class='btn btn-primary'>Sign up</a>
+        <a class='btn btn-ghost'>Log in</a>
       </div>
     <% end %>
   <% end %>

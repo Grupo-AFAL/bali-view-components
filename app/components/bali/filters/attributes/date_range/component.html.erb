@@ -1,14 +1,12 @@
 <%= tag.div(id: input_id) do %>
   <label class="label"><%= @title %></label>
-
   <% if @time_period_options.blank? %>
-    <%= tag.div(class: 'field has-addons', data: datepicker_options) do %>
-      <div class="is-fullwidth control">
-        <%= text_field_tag input_name, nil, class: 'input' %>
+    <%= tag.div(class: 'join w-full', data: datepicker_options) do %>
+      <div class="join-item flex-1">
+        <%= text_field_tag input_name, nil, class: 'input input-bordered w-full' %>
       </div>
-
-      <div class="control">
-        <a class='button' data-action="datepicker#clear">
+      <div class="join-item">
+        <a class='btn' data-action="datepicker#clear">
           <%= render Bali::Icon::Component.new('times') %>
         </a>
       </div>
@@ -16,31 +14,25 @@
   <% else %>
     <% custom = @time_period_options.find { |_, range| range.to_s == selected_value.to_s }.blank? %>
     <% @time_period_options << [t('.custom'), ''] if @include_custom_time_period %>
-
     <div data-controller="time-period-field" data-time-period-field-date-input-container-class-value="datepicker-container">
       <%= hidden_field_tag input_name, selected_value, data: { time_period_field_target: 'input' } %>
-
-      <div class="control mb-2 is-fullwidth">
-        <div class="select is-fullwidth">
-          <%= select_tag "#{input_id}_period", options_for_select(@time_period_options, custom ? '' : selected_value),
-              class: 'is-fullwidth', data: {
-                time_period_field_target: 'select',
-                action: 'time-period-field#toggleDateInput time-period-field#setInputValue'
-              } %>
-        </div>
+      <div class="form-control mb-2 w-full">
+        <%= select_tag "#{input_id}_period", options_for_select(@time_period_options, custom ? '' : selected_value),
+            class: 'select select-bordered w-full', data: {
+              time_period_field_target: 'select',
+              action: 'time-period-field#toggleDateInput time-period-field#setInputValue'
+            } %>
       </div>
-
       <%= tag.div(
-          class: class_names('field has-addons datepicker-container', ' is-hidden': !custom), 
+          class: class_names('join w-full datepicker-container', 'hidden': !custom), 
           data: datepicker_options
       ) do %>
-        <div class="is-fullwidth control">
-          <%= text_field_tag "#{input_id}_date_range", custom ? selected_value : nil, class: class_names('input', 'is-hidden': !custom),
+        <div class="join-item flex-1">
+          <%= text_field_tag "#{input_id}_date_range", custom ? selected_value : nil, class: class_names('input input-bordered w-full', 'hidden': !custom),
               data: { time_period_field_target: 'dateInput', action: 'time-period-field#setInputValue' } %>
         </div>
-
-        <div class="control">
-          <a class='button' data-action="datepicker#clear">
+        <div class="join-item">
+          <a class='btn' data-action="datepicker#clear">
             <%= render Bali::Icon::Component.new('times') %>
           </a>
         </div>

@@ -23,8 +23,8 @@ module Bali
       # @param title text
       def with_menu_switcher(title: 'Section Title')
         render(SideMenu::Component.new(
-          current_path: '/inv/counts', collapsable: true, data: { controller: 'side-menu' }
-        )) do |c|
+                 current_path: '/inv/counts', collapsable: true, data: { controller: 'side-menu' }
+               )) do |c|
           c.with_menu_switch(
             title: 'BoH', subtitle: 'Back of house', href: '/boh/dashboard',
             active: true, icon: 'cutlery-alt'
@@ -134,7 +134,7 @@ module Bali
             list.with_item(href: '/parent-item') do
               safe_join([
                           tag.span('Custom Link', class: 'mr-3'),
-                          tag.span('0', class: 'tag is-danger')
+                          tag.span('0', class: 'badge badge-error')
                         ])
             end
           end

@@ -10,7 +10,7 @@ module Bali
             i.with_subtitle('Descripción primer elemento')
           end
           c.with_item do |i|
-            i.with_title('Segundo elemento con **options', class: 'has-text-success')
+            i.with_title('Segundo elemento con **options', class: 'text-success')
             i.with_subtitle('Descripción segundo elemento')
           end
           c.with_item do |i|
@@ -18,7 +18,7 @@ module Bali
               tag.a 'Tercero con un link', href: '#'
             end
             i.with_subtitle do
-              tag.p('Descripción tercer elemento con bloque', class: 'has-text-info')
+              tag.p('Descripción tercer elemento con bloque', class: 'text-info')
             end
           end
         end
