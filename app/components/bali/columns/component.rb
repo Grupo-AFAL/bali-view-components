@@ -8,7 +8,7 @@ module Bali
       renders_many :columns, Column::Component
 
       def initialize(**options)
-        @options = prepend_class_name(options, 'columns-component flex flex-wrap gap-4')
+        @options = prepend_class_name(options, 'columns-component grid grid-cols-12 gap-4')
       end
     end
   end
