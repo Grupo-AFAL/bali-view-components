@@ -12,7 +12,7 @@
 
 | Component | Migration Status | Verified | Tests | Notes |
 |-----------|-----------------|----------|-------|-------|
-| ActionsDropdown | :large_orange_diamond: | :x: | - | Migrated in a89f03a |
+| **ActionsDropdown** | :white_check_mark: | :white_check_mark: | :white_check_mark: | **Fully verified** - DaisyUI menu |
 | Avatar | :grey_question: | :x: | :white_check_mark: | - |
 | BooleanIcon | :large_orange_diamond: | :x: | :white_check_mark: | Migrated in fcae709 |
 | Breadcrumb | :grey_question: | :x: | :white_check_mark: | - |
@@ -74,8 +74,8 @@
 
 | Status | Count |
 |--------|-------|
-| :white_check_mark: Fully Verified | 1 |
-| :large_orange_diamond: Partially Migrated | 22 |
+| :white_check_mark: Fully Verified | 2 |
+| :large_orange_diamond: Partially Migrated | 21 |
 | :grey_question: Unknown/Not Started | 34 |
 | **Total Components** | **57** |
 

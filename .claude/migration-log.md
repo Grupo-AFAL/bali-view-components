@@ -69,3 +69,53 @@ AI agents should READ this at the start of each `/component-cycle` and APPEND af
 ### Next Steps
 - Verify other partially-migrated components using same patterns
 - Components using similar column/grid layouts may need same flex→grid fix
+
+---
+
+## ActionsDropdown - 2026-01-11 21:33
+
+**Status**: SUCCESS (Already Complete)
+**Iterations**: 1 of 3
+**UX Score**: 9/10
+
+### Issues Found
+- None - component was already fully migrated
+
+### Verification Results
+- ✅ No Bulma classes found in component
+- ✅ DaisyUI classes correctly implemented:
+  - Trigger: `btn btn-ghost btn-sm btn-circle`
+  - Content: `menu bg-base-100 rounded-box shadow-lg min-w-40`
+  - List: `menu p-2`
+  - Items: `menu-item`
+- ✅ Dropdown opens on click (via HoverCard Stimulus controller)
+- ✅ Shows Edit, Export, Delete menu items
+- ✅ Delete uses proper form with turbo-confirm
+- ✅ 3 tests passing
+- ✅ No LSP diagnostics
+
+### Files Reviewed (No Changes Needed)
+- `app/components/bali/actions_dropdown/component.rb`
+- `app/components/bali/actions_dropdown/component.html.erb`
+- `app/components/bali/actions_dropdown/preview.rb`
+- `app/components/bali/actions_dropdown/index.scss`
+- `spec/bali/components/actions_dropdown_spec.rb`
+
+### Class Mappings
+| Old (Bulma) | New (DaisyUI) |
+|-------------|---------------|
+| N/A | Already uses `btn btn-ghost btn-circle` |
+| N/A | Already uses `menu`, `menu-item` |
+
+### Tests
+- Existing: 3 tests
+- Status: All passing
+
+### Remaining Issues
+- None
+
+### Commit
+Not needed - already migrated in commit a89f03a
+
+### Next Steps
+- Continue verifying other partially-migrated components

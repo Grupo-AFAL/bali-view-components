@@ -191,6 +191,19 @@ Final UX review of [ComponentName] after functional fixes.
 ## MUST NOT DO
 - Do not break functional code
 - Do not add unnecessary complexity
+
+## REQUIRED TOOLS
+- skill_mcp (Playwright) for browser automation
+
+## PLAYWRIGHT CALL FORMAT (CRITICAL)
+When using skill_mcp for Playwright, arguments MUST be a JSON string:
+
+CORRECT:
+skill_mcp(mcp_name="playwright", tool_name="browser_navigate", arguments='{"url": "http://localhost:3001/lookbook/inspect/bali/[component]/default"}')
+skill_mcp(mcp_name="playwright", tool_name="browser_snapshot", arguments='{}')
+
+WRONG (will cause parse error):
+skill_mcp(mcp_name="playwright", tool_name="browser_navigate", arguments={"url": "..."})
 ```
 
 2. **Apply UX Fixes** (if any):

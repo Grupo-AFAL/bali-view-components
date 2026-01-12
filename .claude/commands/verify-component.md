@@ -69,7 +69,31 @@ Verify the component implements appropriate DaisyUI classes:
 
 ### Step 3: Visual Verification via Playwright
 
-Use the Playwright MCP to:
+Use the Playwright MCP to verify components visually.
+
+**CRITICAL: Playwright MCP Call Format**
+
+When calling Playwright via `skill_mcp`, the `arguments` parameter MUST be a JSON STRING, not an object.
+
+```
+# CORRECT - arguments is a JSON string:
+skill_mcp(mcp_name="playwright", tool_name="browser_navigate", arguments='{"url": "http://localhost:3001/lookbook"}')
+
+skill_mcp(mcp_name="playwright", tool_name="browser_click", arguments='{"element": "button.btn"}')
+
+skill_mcp(mcp_name="playwright", tool_name="browser_snapshot", arguments='{}')
+
+# WRONG - do NOT pass object literals:
+skill_mcp(mcp_name="playwright", tool_name="browser_navigate", arguments={"url": "..."})  # FAILS
+```
+
+**Available Playwright Tools:**
+- `browser_navigate` - Navigate to URL. Args: `{"url": "..."}`
+- `browser_snapshot` - Take accessibility snapshot. Args: `{}`
+- `browser_click` - Click element. Args: `{"element": "...", "ref": "..."}` (use ref from snapshot)
+- `browser_screenshot` - Take PNG screenshot. Args: `{}`
+- `browser_type` - Type text. Args: `{"element": "...", "text": "...", "ref": "..."}`
+- `browser_hover` - Hover element. Args: `{"element": "...", "ref": "..."}`
 
 1. **Navigate to Lookbook preview**:
    ```
@@ -152,6 +176,20 @@ Provide a detailed UX assessment covering:
 - Do not modify any code
 - Do not skip any variant
 - Do not approve components with obvious visual bugs
+
+## REQUIRED TOOLS
+- skill_mcp (Playwright) for browser automation
+
+## PLAYWRIGHT CALL FORMAT (CRITICAL)
+When using skill_mcp for Playwright, arguments MUST be a JSON string:
+
+CORRECT:
+skill_mcp(mcp_name="playwright", tool_name="browser_navigate", arguments='{"url": "http://localhost:3001/lookbook/inspect/bali/[component]/default"}')
+skill_mcp(mcp_name="playwright", tool_name="browser_snapshot", arguments='{}')
+skill_mcp(mcp_name="playwright", tool_name="browser_click", arguments='{"ref": "E123"}')
+
+WRONG (will cause parse error):
+skill_mcp(mcp_name="playwright", tool_name="browser_navigate", arguments={"url": "..."})
 ```
 
 ### Step 6: Generate Verification Report
