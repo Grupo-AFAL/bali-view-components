@@ -218,14 +218,29 @@ skill_mcp(mcp_name="playwright", tool_name="browser_navigate", arguments={"url":
 
 When all checks pass:
 
-1. **Run Final Verification**:
+1. **Pre-Completion Verification Checkpoint** (MANDATORY):
+   
+   Before marking complete, verify IN THE BROWSER that:
+   - [ ] Component renders correctly (no blank/broken state)
+   - [ ] All visual fixes are actually visible (not cached stale version)
+   - [ ] Interactive elements work (hover, click, focus states)
+   - [ ] No console errors related to the component
+   
+   If any checkbox fails:
+   - Clear cache: `rm -rf spec/dummy/public/assets && rm -rf spec/dummy/tmp/cache/assets`
+   - Restart server: `cd spec/dummy && bin/dev`
+   - Re-verify in browser
+   
+   **DO NOT proceed to completion if browser verification fails.**
+
+2. **Run Final Test Verification**:
    ```bash
    bundle exec rspec spec/components/bali/[name]/
    ```
 
-2. **Generate Cycle Report**
+3. **Generate Cycle Report**
 
-3. **Optional Auto-Commit** (if `--auto-commit`):
+5. **Optional Auto-Commit** (if `--auto-commit`):
    ```bash
    git add app/components/bali/[name]/ spec/components/bali/[name]/
    git commit -m "Fix [ComponentName] - complete Tailwind/DaisyUI migration
@@ -242,9 +257,25 @@ When all checks pass:
 | Condition | Action |
 |-----------|--------|
 | All issues resolved, UX score ≥ 7 | **SUCCESS** - Complete |
-| Max iterations reached | **PARTIAL** - Report remaining issues |
+| Max iterations reached, UX score ≥ 7 | **SUCCESS** - Note remaining minor issues |
+| Max iterations reached, UX score < 7 | **BLOCKED** - Escalate to user (see Hard Gate below) |
 | Critical issue cannot be fixed | **BLOCKED** - Escalate to user |
 | Tests fail after fix | **ROLLBACK** - Revert last change, try different approach |
+
+### Hard Gate: UX Score Requirement
+
+**UX score < 7 = BLOCKED. No exceptions.**
+
+If after max iterations the UX score is still below 7:
+1. **DO NOT** mark as PARTIAL or SUCCESS
+2. **DO NOT** accept "good enough"
+3. **MUST** escalate to user with:
+   - Current UX score and why it's failing
+   - Specific issues preventing score ≥ 7
+   - What has been tried
+   - Recommendation for next steps
+
+This prevents shipping components with poor UX "because we ran out of iterations."
 
 ## Cycle Report Format
 
@@ -454,9 +485,17 @@ If the same issue keeps appearing:
 
 ### UX review keeps failing
 If UX score stays below 7:
-1. Focus on critical visual issues only
-2. Accept "good enough" for non-critical items
-3. Create follow-up task for polish
+1. **DO NOT accept "good enough"** - UX < 7 means real issues exist
+2. Analyze WHY the score is low:
+   - Is it a styling issue? → Check for stale cached assets
+   - Is it a JS issue? → Check browser console for errors
+   - Is it a Tippy/popup issue? → Verify wrapper classes are applied
+3. Check for root causes before applying more fixes:
+   - Clear `spec/dummy/public/assets/` and cache
+   - Restart dev server to pick up JS/CSS changes
+   - Verify in browser devtools that classes are actually applied
+4. If truly stuck after exhausting options → **BLOCK and escalate**
+5. Never mark PARTIAL just because iterations ran out
 
 ### Tests fail after fix
 1. Rollback the change
@@ -465,6 +504,9 @@ If UX score stays below 7:
 4. Never delete tests to pass
 
 ### Max iterations reached
-1. Report partial completion
-2. List remaining issues
-3. Let user decide next steps
+1. Check UX score:
+   - Score ≥ 7? → Can mark SUCCESS with notes on remaining minor issues
+   - Score < 7? → MUST mark BLOCKED (see Hard Gate above)
+2. List remaining issues with severity
+3. Provide root cause analysis if possible
+4. Recommend specific next steps (not just "user decides")

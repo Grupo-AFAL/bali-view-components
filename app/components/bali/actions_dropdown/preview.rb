@@ -10,7 +10,7 @@ module Bali
         render ActionsDropdown::Component.new do |c|
           c.with_item(name: 'Edit', icon_name: 'edit', href: '#')
           c.with_item(name: 'Export', icon_name: 'file-export', href: '#')
-          c.with_item(name: 'Delete', icon_name: 'trash', href: '#', method: :delete)
+          c.with_item(name: 'Delete', icon: true, href: '#', method: :delete)
         end
       end
 

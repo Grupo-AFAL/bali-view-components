@@ -15,7 +15,8 @@ module Bali
           z_index: 38,
           open_on_click: true,
           content_padding: false,
-          placement: 'bottom-end'
+          placement: 'bottom-end',
+          arrow: false
         )
 
         @options = prepend_class_name(options, 'actions-dropdown')

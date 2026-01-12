@@ -119,3 +119,117 @@ Not needed - already migrated in commit a89f03a
 
 ### Next Steps
 - Continue verifying other partially-migrated components
+
+---
+
+## ActionsDropdown - 2026-01-12 00:00 (Re-review)
+
+**Status**: PARTIAL
+**Iterations**: 2 of 3
+**UX Score**: 6/10 (honest assessment)
+
+### Issues Found
+- [High] Delete icon missing - preview used `icon_name:` but DeleteLink expects `icon:` (boolean)
+- [Medium] HoverCard caret/arrow positioned awkwardly (doesn't align with trigger)
+- [Medium] Shadow too diffuse, looks muddy
+- [Low] Generic blue color for Edit/Export icons
+
+### Fixes Applied
+- Fixed preview.rb: changed `icon_name: 'trash'` to `icon: true` for Delete item
+- Files modified: `app/components/bali/actions_dropdown/preview.rb`
+
+### Key Learnings
+1. **DeleteLink vs Link API mismatch**: `Link::Component` accepts `icon_name:` param, but `DeleteLink::Component` only accepts `icon:` (boolean) and hardcodes 'trash' icon
+2. **UX reviewer quality**: Gemini model (antigravity-gemini-3-pro-high) couldn't use Playwright MCP correctly (argument format issues). **Switched to Claude Sonnet 4.5** which works properly.
+3. **UX reviewer too lenient**: Even with working tools, the reviewer gave 7/10 PASS for a component with obvious visual issues. Need stricter criteria.
+
+### Tests
+- Existing: 3 tests
+- Status: All passing
+
+### Remaining Issues
+- HoverCard arrow positioning (needs HoverCard component fix)
+- Shadow styling (needs HoverCard component fix)
+- Consider unifying Link/DeleteLink API for `icon_name`
+
+### Commit
+Not committed yet
+
+### Next Steps
+- Fix HoverCard component arrow/shadow styling
+- Consider adding `icon_name:` param to DeleteLink for API consistency
+- Update UX review prompts to be more critical
+
+---
+
+## ActionsDropdown - 2026-01-12 00:55 (Full Cycle)
+
+**Status**: PARTIAL (awaiting JS recompile)
+**Iterations**: 3 of 3
+**UX Score**: 5/10 (strict assessment)
+
+### Issues Found (Initial)
+- [High] Delete icon missing - preview used wrong param
+- [High] HoverCard arrow positioned awkwardly
+- [Medium] Shadow too diffuse
+- [Low] Uneven vertical spacing between menu items
+
+### Fixes Applied
+
+1. **Delete icon fix** (preview.rb)
+   - Changed `icon_name: 'trash'` to `icon: true`
+   - File: `app/components/bali/actions_dropdown/preview.rb`
+
+2. **Arrow option added to HoverCard** (Ruby)
+   - Added `arrow:` param (default: true)
+   - File: `app/components/bali/hover_card/component.rb`
+
+3. **Arrow option in JS** (needs recompile)
+   - Added `arrow` Stimulus value
+   - Tippy now respects `arrow: false`
+   - File: `app/components/bali/hover_card/index.js`
+
+4. **ActionsDropdown disables arrow**
+   - Set `arrow: false` in defaults
+   - File: `app/components/bali/actions_dropdown/component.rb`
+
+5. **Created stricter UX reviewer agent**
+   - File: `.claude/agents/frontend-ui-ux-engineer.md`
+   - Defines scoring criteria, automatic failures
+   - Uses Claude Sonnet 4.5
+
+### Files Modified
+- `app/components/bali/actions_dropdown/preview.rb`
+- `app/components/bali/actions_dropdown/component.rb`
+- `app/components/bali/hover_card/component.rb`
+- `app/components/bali/hover_card/index.js`
+- `.claude/agents/frontend-ui-ux-engineer.md` (created)
+
+### Key Learnings
+
+1. **Gemini can't use skill_mcp**: The Gemini model (antigravity-gemini-3-pro-high) repeatedly failed to format skill_mcp arguments correctly (25+ retries). Claude Sonnet 4.5 works perfectly.
+
+2. **UX reviewers need strict criteria**: Without explicit failure conditions, reviewers are too lenient. The new agent definition includes automatic failure triggers.
+
+3. **HoverCard arrow is hardcoded**: The arrow SVG was embedded in JS with no way to disable. Added `arrow` option to fix this.
+
+4. **DeleteLink API differs from Link**: Link accepts `icon_name:`, DeleteLink accepts `icon:` (boolean). Consider unifying.
+
+### Tests
+- Existing: 3 tests (ActionsDropdown)
+- Added: 0
+- Status: All passing (6/6 with HoverCard tests)
+
+### Remaining Issues (after JS recompile)
+- Uneven vertical spacing between menu items
+- Shadow could be refined (multi-layer)
+
+### Commit
+Not committed - awaiting JS recompile verification
+
+### Next Steps
+1. Restart Lookbook server to recompile JS
+2. Verify arrow is gone
+3. Re-run UX review
+4. Fix spacing if still an issue
+5. Commit all changes
