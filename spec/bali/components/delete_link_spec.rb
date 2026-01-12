@@ -10,7 +10,7 @@ RSpec.describe Bali::DeleteLink::Component, type: :component do
   it 'renders a delete link' do
     render_inline(component)
 
-    expect(page).to have_css 'button.has-text-danger.is-text', text: 'Delete'
+    expect(page).to have_css 'button.text-error.btn-ghost', text: 'Delete'
     expect(page).to have_css "[data-turbo-confirm='Are you sure?']"
     expect(page).to have_css "[action='/delete-url']"
   end
@@ -19,7 +19,7 @@ RSpec.describe Bali::DeleteLink::Component, type: :component do
     @options.merge!(name: 'Cancel')
     render_inline(component)
 
-    expect(page).to have_css 'button.has-text-danger.is-text', text: 'Cancel'
+    expect(page).to have_css 'button.text-error.btn-ghost', text: 'Cancel'
   end
 
   it 'overrides the link confirm message' do
@@ -30,10 +30,10 @@ RSpec.describe Bali::DeleteLink::Component, type: :component do
   end
 
   it 'add a css class to the link' do
-    @options.merge!(class: 'is-large')
+    @options.merge!(class: 'btn-lg')
     render_inline(component)
 
-    expect(page).to have_css 'button.has-text-danger.is-text.is-large'
+    expect(page).to have_css 'button.text-error.btn-ghost.btn-lg'
   end
 
   it 'raises an error without model or href' do
@@ -43,11 +43,11 @@ RSpec.describe Bali::DeleteLink::Component, type: :component do
   end
 
   it 'renders a delete link with custom form classes' do
-    @options.merge!(form_class: 'has-background-success')
+    @options.merge!(form_class: 'bg-success')
     render_inline(component)
 
-    expect(page).to have_css 'button.has-text-danger.is-text', text: 'Delete'
-    expect(page).to have_css 'form.button_to.has-background-success'
+    expect(page).to have_css 'button.text-error.btn-ghost', text: 'Delete'
+    expect(page).to have_css 'form.inline-block.bg-success'
   end
 
   context 'with active record model' do
@@ -66,7 +66,7 @@ RSpec.describe Bali::DeleteLink::Component, type: :component do
 
       render_inline(component)
 
-      expect(page).to have_css 'button.has-text-danger.is-text', text: 'Delete'
+      expect(page).to have_css 'button.text-error.btn-ghost', text: 'Delete'
       expect(page).to have_css "[action='/models/1']"
     end
 

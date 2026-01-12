@@ -14,8 +14,8 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
     end
 
     expect(page).to have_css('.side-menu-component')
-    expect(page).to have_css('p.menu-label', text: 'Comedor')
-    expect(page).to have_css('ul.menu-list')
+    expect(page).to have_css('li.menu-title', text: 'Comedor')
+    expect(page).to have_css('ul.menu')
     expect(page).to have_css("a[href='/movies']", text: 'Item 1')
   end
 
@@ -27,7 +27,7 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
     end
 
     expect(page).to have_css '.side-menu-component'
-    expect(page).to have_css 'a > span.icon-component.icon'
+    expect(page).to have_css 'a > span.icon-component'
     expect(page).to have_css 'a', text: 'Item 1'
   end
 
@@ -53,7 +53,7 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
         end
       end
 
-      expect(page).to have_css 'a.is-active', text: 'items'
+      expect(page).to have_css 'a.active', text: 'items'
     end
 
     it 'renders as active when current path is the item show path' do
@@ -64,7 +64,7 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
         end
       end
 
-      expect(page).to have_css 'a.is-active', text: 'items'
+      expect(page).to have_css 'a.active', text: 'items'
     end
 
     it 'renders as active when current path is the item edit path' do
@@ -75,7 +75,7 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
         end
       end
 
-      expect(page).to have_css 'a.is-active', text: 'items'
+      expect(page).to have_css 'a.active', text: 'items'
     end
 
     it 'renders as active when current path is the item index path' do
@@ -86,7 +86,7 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
         end
       end
 
-      expect(page).to have_css 'a.is-active', text: 'items'
+      expect(page).to have_css 'a.active', text: 'items'
     end
 
     it 'renders as inactive when current path is not a CRUD action' do
@@ -97,7 +97,7 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
         end
       end
 
-      expect(page).not_to have_css 'a.is-active', text: 'items'
+      expect(page).not_to have_css 'a.active', text: 'items'
     end
   end
 
@@ -110,7 +110,7 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
         end
       end
 
-      expect(page).to have_css 'a.is-active', text: 'item root'
+      expect(page).to have_css 'a.active', text: 'item root'
     end
 
     it 'renders as inactive when href is included within current path' do
@@ -121,7 +121,7 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
         end
       end
 
-      expect(page).not_to have_css 'a.is-active', text: 'item root'
+      expect(page).not_to have_css 'a.active', text: 'item root'
     end
   end
 
@@ -135,8 +135,8 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
         end
       end
 
-      expect(page).to have_css 'a.is-active', text: 'item root'
-      expect(page).to have_css 'a.is-active', text: 'item menu'
+      expect(page).to have_css 'a.active', text: 'item root'
+      expect(page).to have_css 'a.active', text: 'item menu'
     end
   end
 
@@ -150,8 +150,8 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
         end
       end
 
-      expect(page).to have_css 'a.is-active', text: 'item root'
-      expect(page).not_to have_css 'a.is-active', text: 'item 1'
+      expect(page).to have_css 'a.active', text: 'item root'
+      expect(page).not_to have_css 'a.active', text: 'item 1'
     end
   end
 

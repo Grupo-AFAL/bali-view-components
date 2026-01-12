@@ -26,11 +26,11 @@ module Bali
         @bulk_actions = bulk_actions
         @tbody_options = hyphenize_keys(options.delete(:tbody) || {})
         @table_container_options = prepend_class_name(
-          options.delete(:table_container) || {}, 'table-container table-component'
+          options.delete(:table_container) || {}, 'overflow-x-auto table-component'
         )
         @table_container_options = prepend_controller(@table_container_options, 'table')
 
-        @options = prepend_class_name(hyphenize_keys(options), 'table is-fullwidth')
+        @options = prepend_class_name(hyphenize_keys(options), 'table table-zebra w-full')
       end
 
       def id

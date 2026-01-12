@@ -1,12 +1,10 @@
 <li>
   <% if items.blank? %>
     <% link_class = @options.delete(:class) %>
-
     <%= render Bali::Link::Component.new(
         name: @name, href: @href, icon_name: @icon, active_path: current_path, 
         active: @active, class: token_list(link_class, 'side-menu-component--item-component is-expanded'),
         **@options) %>
-
     <%= render Bali::Tooltip::Component.new do |tooltip| %>
       <% tooltip.with_trigger do %>
         <%= render Bali::Link::Component.new(
@@ -14,59 +12,27 @@
             active: @active, class: token_list(link_class, 'side-menu-component--item-component is-collapsed'),
             **@options) %>
       <% end %>
-
       <%= @name %>
     <% end %>
   <% else %>
-    <div class="<%= class_names('side-menu-component--item-component is-list is-expanded','is-revealed': active?) %>" data-controller="reveal">
-      <%= render Bali::Link::Component.new(name: @name, icon_name: @icon, href: nil, **@options) %>
-
-      <ul class="<%= class_names('pl-4', 'is-hidden': !active?) %>" data-reveal-target="item">
+    <details class="<%= class_names('collapse collapse-arrow', 'collapse-open': active?) %>" data-controller="reveal">
+      <summary class="collapse-title">
+        <% if @icon.present? %>
+          <%= render Bali::Icon::Component.new(@icon, class: 'w-5 h-5') %>
+        <% end %>
+        <%= @name %>
+      </summary>
+      <ul class="collapse-content pl-4" data-reveal-target="item">
         <% if @href.present? %>
           <li>
             <%= render Bali::Link::Component.new(
                 name: @name, href: @href, icon_name: @icon, active_path: current_path, active: @active) %>
           </li>
         <% end %>
-
         <% items.each do |item| %>
           <%= item %>
         <% end %>
       </ul>
-    </div>
-
-    <% if @icon.present? %>
-      <%= render Bali::HoverCard::Component.new(
-          z_index: 38, content_padding: false, placement: :right,
-          class:  'side-menu-component--item-component is-list is-collapsed',
-          data: { hovercard_content_class: 'hover-card-tippy-wrapper side-menu-component--item-component-tippy-wrapper' }
-      ) do |c| %>
-        <% c.with_trigger do %>
-          <%= render Bali::Link::Component.new(
-              href: @href, icon_name: @icon, active_path: current_path, 
-              active: active?, **@options) %>
-        <% end %>
-
-        <ul>
-          <% if @href.present? %>
-            <li>
-              <%= render Bali::Link::Component.new(
-                  name: @name, href: @href, icon_name: @icon, active_path: current_path, active: @active,
-                  class: 'dropdown-item') %>
-            </li>
-          <% end %>
-
-          <li>
-            <%= tag.p(@name, class: 'has-text-weight-bold dropdown-item') %>
-          </li>
-
-          <div class="dropdown-divider mt-0"></div>
-
-          <% items.each do |item| %>
-            <%= item %>
-          <% end %>
-        </ul>
-      <% end %>
-    <% end %>
+    </details>
   <% end %>
 </li>

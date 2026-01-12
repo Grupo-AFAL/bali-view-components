@@ -6,10 +6,10 @@ module Bali
       class Component < ApplicationViewComponent
         attr_reader :name, :tag_name, :options
 
-        def initialize(tag_name: :a, name: '', type: :item, **options)
+        def initialize(tag_name: :a, name: '', **options)
           @tag_name = tag_name
           @name = name
-          @options = prepend_class_name(options, "navbar-#{type}")
+          @options = options
         end
 
         def call

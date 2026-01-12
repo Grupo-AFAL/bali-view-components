@@ -3,16 +3,17 @@
 module Bali
   module Drawer
     class Preview < ApplicationViewComponentPreview
-      # Drawer
+      # Default Drawer
       # ---------------
-      # Renders any content inside a drawer.
+      # Renders any content inside a drawer panel
       # @param active toggle
-      def default(active: true)
-        render Bali::Drawer::Component.new(active: active) do
+      # @param size [Symbol] select [narrow, medium, wide, extra_wide]
+      def default(active: true, size: :medium)
+        render Bali::Drawer::Component.new(active: active, size: size) do
           safe_join([
-            tag.h1('Drawer Title', class: 'title is-1'),
-            tag.p('Drawer content')
-          ])
+                      tag.h1('Drawer Title', class: 'text-2xl font-bold mb-4'),
+                      tag.p('This is the drawer content. It slides in from the right side of the screen.')
+                    ])
         end
       end
     end

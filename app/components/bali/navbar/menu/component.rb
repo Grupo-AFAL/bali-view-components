@@ -11,7 +11,7 @@ module Bali
 
         def initialize(type: :main, **options)
           @type = type
-          @options = prepend_class_name(options, 'navbar-menu')
+          @options = prepend_class_name(options, 'navbar-center hidden lg:flex')
 
           set_target_attribute unless type.nil?
         end

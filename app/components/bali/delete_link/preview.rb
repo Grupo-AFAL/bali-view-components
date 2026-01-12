@@ -7,7 +7,7 @@ module Bali
       def default(name: nil)
         render DeleteLink::Component.new(name: name, href: '#')
       end
-    
+
       # @param name [String]
       # @param disabled toggle
       def with_hovercard(name: nil, disabled: true)
@@ -15,11 +15,12 @@ module Bali
           name: name,
           href: '#',
           disabled: disabled,
-          disabled_hover_url: '/show-content-in-hovercard')
+          disabled_hover_url: '/show-content-in-hovercard'
+        )
       end
 
-      # @param klass select [is-small, is-medium, is-large]
-      # @param form_class select ['has-background-white', has-background-success, has-background-warning]
+      # @param klass [Symbol] select [btn-sm, btn-md, btn-lg]
+      # @param form_class [Symbol] select [bg-base-200, bg-success, bg-warning]
       def with_custom_classes(klass: nil, form_class: nil)
         render DeleteLink::Component.new(href: '#',
                                          class: klass,

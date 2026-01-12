@@ -1,13 +1,14 @@
 <%= tag.div(**options) do %>
-  <div class='navbar-start'>
+  <ul class="menu menu-horizontal px-1">
     <% start_items.each do |start_item| %>
-      <%= start_item %>
+      <li><%= start_item %></li>
     <% end %>
-  </div>
-
-  <div class='navbar-end'>
-    <% end_items.each do |end_item| %>
-      <%= end_item %>
-    <% end %>
-  </div>
+  </ul>
+  <% if end_items.any? %>
+    <ul class="menu menu-horizontal px-1">
+      <% end_items.each do |end_item| %>
+        <li><%= end_item %></li>
+      <% end %>
+    </ul>
+  <% end %>
 <% end %>

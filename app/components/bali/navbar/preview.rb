@@ -3,15 +3,13 @@
 module Bali
   module Navbar
     class Preview < ApplicationViewComponentPreview
-      # Navbar
-      # ---------------
-      # The navbar component is a responsive and versatile horizontal navigation bar
       # @param fullscreen toggle
       # @param transparency toggle
-      def default(fullscreen: false, transparency: false)
+      # @param color [Symbol] select [base, primary, secondary, accent, neutral]
+      def default(fullscreen: false, transparency: false, color: :base)
         render_with_template(
           template: 'bali/navbar/previews/default',
-          locals: { fullscreen: fullscreen, transparency: transparency }
+          locals: { fullscreen: fullscreen, transparency: transparency, color: color }
         )
       end
 

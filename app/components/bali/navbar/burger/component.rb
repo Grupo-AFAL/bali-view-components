@@ -8,20 +8,29 @@ module Bali
 
         def initialize(type: :main, **options)
           @type = type
-          @options = prepend_class_name(options, 'navbar-burger burger')
+          @options = prepend_class_name(options, 'btn btn-ghost lg:hidden')
 
           configure_attrs unless type.nil?
         end
 
         def call
-          return tag.a(role: 'button', **options) { content } if content.present?
+          return tag.button(role: 'button', **options) { content } if content.present?
 
-          tag.a role: 'button', **options do
-            safe_join([
-                        tag.span('aria-hidden': true),
-                        tag.span('aria-hidden': true),
-                        tag.span('aria-hidden': true)
-                      ])
+          tag.button role: 'button', **options do
+            tag.svg(
+              xmlns: 'http://www.w3.org/2000/svg',
+              class: 'h-5 w-5',
+              fill: 'none',
+              viewBox: '0 0 24 24',
+              stroke: 'currentColor'
+            ) do
+              tag.path(
+                'stroke-linecap': 'round',
+                'stroke-linejoin': 'round',
+                'stroke-width': '2',
+                d: 'M4 6h16M4 12h8m-8 6h16'
+              )
+            end
           end
         end
 

@@ -32,10 +32,9 @@ module Bali
         def before_render
           super
 
-          @options = prepend_class_name(@options, 'is-active') if active?
+          @options = prepend_class_name(@options, 'active') if active?
           return if items.blank?
 
-          @options = prepend_class_name(@options, 'is-list')
           @options = prepend_data_attribute(@options, :action, 'click->reveal#toggle')
         end
 

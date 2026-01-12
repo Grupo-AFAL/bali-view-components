@@ -1,47 +1,43 @@
 <%= tag.div **@options do %>
   <% authorized_menus = menu_switches.select(&:authorized?) %>
-  <aside class="menu">
-    <div class="header">
-      <% if authorized_menus.size == 1 %>
-        <%= authorized_menus.first %>
-      <% elsif authorized_menus.size > 1 %>
-        <% active_menu = authorized_menus.find(&:active?) %>
-
-        <%= render Bali::HoverCard::Component.new(
-            z_index: 38, open_on_click: true, content_padding: false, placement: 'bottom-start', 
-            class: 'menu-switcher with-multiple-switches', 
-            data: { hovercard_content_class: 'hover-card-tippy-wrapper menu-switcher-tippy-wrapper' }
-        ) do |c| %>
-          <% c.with_trigger(class: 'menu-switcher--trigger') do %>
-            <%= active_menu %>
-          <% end %>
-
-          <% authorized_menus.each do |menu| %>
-            <%= render Bali::Link::Component.new(
-              href: menu.href, class: 'dropdown-item', disabled: menu == active_menu
-            ) do %>
-              <%= menu %>
-            <% end %>
-          <% end  %>
+  <ul class="menu bg-base-200 rounded-box w-56">
+    <% if authorized_menus.size == 1 %>
+      <li class="menu-title"><%= authorized_menus.first %></li>
+    <% elsif authorized_menus.size > 1 %>
+      <% active_menu = authorized_menus.find(&:active?) %>
+      <%= render Bali::HoverCard::Component.new(
+          z_index: 38, open_on_click: true, content_padding: false, placement: 'bottom-start', 
+          class: 'menu-switcher with-multiple-switches', 
+          data: { hovercard_content_class: 'hover-card-tippy-wrapper menu-switcher-tippy-wrapper' }
+      ) do |c| %>
+        <% c.with_trigger(class: 'menu-switcher--trigger') do %>
+          <%= active_menu %>
         <% end %>
+        <% authorized_menus.each do |menu| %>
+          <%= render Bali::Link::Component.new(
+            href: menu.href, class: 'block px-4 py-2 hover:bg-base-300', disabled: menu == active_menu
+          ) do %>
+            <%= menu %>
+          <% end %>
+        <% end  %>
       <% end %>
-
-      <% if @collapsable %>
-        <%= render Bali::Link::Component.new(href: nil, class: 'has-text-grey-dark',
+    <% end %>
+    <% if @collapsable %>
+      <li>
+        <%= render Bali::Link::Component.new(href: nil, class: 'text-base-content/70',
             data: { action: 'side-menu#toggleCollapse' }
         ) do %>
           <%= render Bali::Icon::Component.new('chevron-left', class: 'collapse-icon') %>
           <%= render Bali::Icon::Component.new('chevron-right', class: 'expand-icon') %>
         <% end %>
-      <% end %>
-    </div>
-
-    <%= tag.hr(class: 'mt-3 mb-4') if @collapsable || authorized_menus.any? %>
-
+      </li>
+    <% end %>
+    <% if @collapsable || authorized_menus.any? %>
+      <li class="divider"></li>
+    <% end %>
     <% lists.each do |list| %>
       <%= list %>
     <% end %>
-  </aside>
+  </ul>
 <% end %>
-
-<div class="menu-overlay" data-side-menu-target="overlay"></div>
+<div class="menu-overlay fixed inset-0 bg-black/50 z-40 hidden" data-side-menu-target="overlay"></div>

@@ -7,7 +7,6 @@ module Bali
 
       attr_reader :model, :skip_confirm, :icon, :options
 
-      # rubocop:disable Metrics/ParameterLists
       def initialize(
         model: nil,
         href: nil,
@@ -27,7 +26,7 @@ module Bali
         @disabled_hover_url = disabled_hover_url
         @skip_confirm = skip_confirm
         @icon = icon
-        @form_class = class_names('button_to', options.delete(:form_class))
+        @form_class = class_names('inline-block', options.delete(:form_class))
 
         @options = prepend_class_name(options, default_classes)
 
@@ -37,8 +36,6 @@ module Bali
 
         raise MissingURL, 'Need to provide either a :model or :href attribute'
       end
-
-      # rubocop:enable Metrics/ParameterLists
 
       def render?
         authorized?
@@ -71,7 +68,7 @@ module Bali
       end
 
       def default_classes
-        'delete-link-component button has-text-danger is-text'
+        'delete-link-component btn btn-ghost text-error'
       end
 
       private

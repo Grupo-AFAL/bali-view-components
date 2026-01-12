@@ -1,8 +1,8 @@
-<%= tag.div(id: 'drawer-template', **@options) do %>
-  <div class="drawer-background" data-drawer-target="background"></div>
-  <div class="drawer-content box" data-drawer-target="wrapper">
-    <div class="drawer-inner" data-drawer-target="content">
+<div id="drawer-template" class="<%= drawer_classes %>" data-controller="drawer" data-drawer-target="template">
+  <div class="drawer-overlay fixed inset-0 bg-black/30 z-40 opacity-0 pointer-events-none transition-opacity duration-300" data-drawer-target="background" data-action="click->drawer#close"></div>
+  <div class="<%= panel_classes %>" data-drawer-target="wrapper">
+    <div class="drawer-inner p-6" data-drawer-target="content">
       <%= content %>
     </div>
   </div>
-<% end %>
+</div>

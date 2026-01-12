@@ -1,11 +1,6 @@
 <% if title.present? %>
-  <%= tag.p class: title_class do %>
-    <%= title %>
-  <% end %>
+  <li class="<%= title_class %>"><%= title %></li>
 <% end %>
-
-<%= tag.ul class: list_class do %>
-  <% items.each do |item| %>
-    <%= item %>
-  <% end %>
+<% items.each do |item| %>
+  <%= item %>
 <% end %>

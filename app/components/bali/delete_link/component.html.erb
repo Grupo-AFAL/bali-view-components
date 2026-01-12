@@ -1,7 +1,7 @@
 <% if @disabled %>
   <%= render Bali::HoverCard::Component.new(hover_url: @disabled_hover_url) do |c| %>
     <% c.with_trigger do %>
-      <%= tag.a(name, disabled: true, **options) %>
+      <%= tag.a(name, disabled: true, class: 'btn btn-ghost btn-disabled text-error', **options.except(:class)) %>
     <% end %>
   <% end %>
 <% else %>
@@ -11,7 +11,7 @@
                       },
                       form_class: @form_class,
                       **options do %>
-    <%= render Bali::Icon::Component.new('trash') if icon %>
+    <%= render Bali::Icon::Component.new('trash', class: 'w-4 h-4') if icon %>
     <span><%= name %></span>
   <% end %>
 <% end %>

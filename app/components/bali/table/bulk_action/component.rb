@@ -14,7 +14,7 @@ module Bali
         end
 
         def call
-          options[:class] ||= 'button is-ghost'
+          options[:class] ||= 'btn btn-ghost btn-sm'
 
           if method == :get
             options[:data] ||= {}

@@ -1,10 +1,9 @@
-<%= tag.div(class: 'side-menu-component--menu-switch-component') do %>
+<%= tag.div(class: 'side-menu-component--menu-switch-component flex items-center gap-3') do %>
   <% if @icon %>
-    <%= render Bali::Icon::Component.new(@icon) %>
+    <%= render Bali::Icon::Component.new(@icon, class: 'w-6 h-6') %>
   <% end %>
-
-  <div class="<%= class_names('description is-fullwidth', 'ml-3': @icon.blank?) %>">
-    <p class="title-text has-text-weight-bold is-relative"><%= @title %> </p>
-    <%= tag.p(@subtitle, class: 'is-size-7 has-text-grey') if @subtitle.present? %>
+  <div class="<%= class_names('flex-1', 'ml-3': @icon.blank?) %>">
+    <p class="font-bold"><%= @title %></p>
+    <%= tag.p(@subtitle, class: 'text-xs text-base-content/60') if @subtitle.present? %>
   </div>
 <% end %>

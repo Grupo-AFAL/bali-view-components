@@ -24,11 +24,7 @@ module Bali
         end
 
         def title_class
-          class_names(['menu-label', @options.delete(:title_class)].compact)
-        end
-
-        def list_class
-          class_names(['menu-list', @options.delete(:list_class)].compact)
+          class_names('menu-title', @options.delete(:title_class))
         end
       end
     end
