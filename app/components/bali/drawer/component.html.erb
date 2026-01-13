@@ -1,6 +1,18 @@
-<div id="drawer-template" class="<%= drawer_classes %> group" data-controller="drawer" data-drawer-target="template">
-  <div class="drawer-overlay fixed inset-0 bg-black/30 z-40 opacity-0 pointer-events-none transition-opacity duration-300 group-[.drawer-open]:opacity-100 group-[.drawer-open]:pointer-events-auto" data-drawer-target="background" data-action="click->drawer#close"></div>
-  <div class="<%= panel_classes %> group-[.drawer-open]:translate-x-0 max-md:group-[.drawer-open]:max-w-[85%]" data-drawer-target="wrapper">
+<div id="drawer-template"
+     class="<%= drawer_classes %> group"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="drawer-title"
+     data-controller="drawer"
+     data-drawer-target="template"
+     data-action="keydown.esc->drawer#close">
+  <div class="drawer-overlay fixed inset-0 bg-black/30 z-40 opacity-0 pointer-events-none transition-opacity duration-300 group-[.drawer-open]:opacity-100 group-[.drawer-open]:pointer-events-auto"
+       data-drawer-target="background"
+       data-action="click->drawer#close"
+       aria-hidden="true"></div>
+  <div class="<%= panel_classes %> group-[.drawer-open]:translate-x-0 max-md:group-[.drawer-open]:max-w-[85%]"
+       data-drawer-target="wrapper"
+       role="document">
     <div class="drawer-inner p-6" data-drawer-target="content">
       <%= content %>
     </div>

@@ -8,6 +8,10 @@ module Bali
           @options = options
           @options[:tabindex] ||= 0
           @options[:role] ||= 'button'
+          @options[:'aria-haspopup'] ||= 'true'
+          @options[:'aria-expanded'] ||= 'false'
+          @options[:data] ||= {}
+          @options[:data][:dropdown_target] = 'trigger'
         end
 
         def call

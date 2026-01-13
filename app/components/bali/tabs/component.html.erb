@@ -6,9 +6,15 @@
   </div>
   <div class="tabs-content bg-base-100 p-4">
     <% tabs.each_with_index do |tab, index| %>
-      <%= tag.div **tab.options, data: {
-            'tabs-target': 'tabContent',
-            'tabs-index-param': index } do %>
+      <%= tag.div **tab.options,
+            id: "tabpanel-#{index}",
+            role: 'tabpanel',
+            'aria-labelledby': "tab-#{index}",
+            tabindex: 0,
+            data: {
+              'tabs-target': 'tabContent',
+              'tabs-index-param': index
+            } do %>
         <%= tab %>
       <% end %>
     <% end %>

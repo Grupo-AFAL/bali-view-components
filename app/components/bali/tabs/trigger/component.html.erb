@@ -1,4 +1,11 @@
-<%= tag.a(role: 'tab', data: data, class: classes, **link_options) do %>
+<%= tag.a(role: 'tab',
+         id: "tab-#{index}",
+         'aria-selected': active,
+         'aria-controls': "tabpanel-#{index}",
+         tabindex: active ? 0 : -1,
+         data: data,
+         class: classes,
+         **link_options) do %>
   <%= render Bali::Icon::Component.new(icon) if icon %>
   <span><%= title %></span>
 <% end %>

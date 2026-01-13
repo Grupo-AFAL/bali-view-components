@@ -75,12 +75,49 @@ export class ModalController extends Controller {
   }
 
   openModal (content) {
+    // Store the element that triggered the modal for focus restoration
+    this.previouslyFocusedElement = document.activeElement
+
     this.wrapperTarget.classList.add(...this.wrapperClasses)
 
-    this.templateTarget.classList.add('is-active')
+    this.templateTarget.classList.add('modal-open')
     this.contentTarget.innerHTML = content
 
     autoFocusInput(this.contentTarget)
+
+    // Set up focus trap
+    this.trapFocus()
+  }
+
+  trapFocus () {
+    const focusableElements = this.wrapperTarget.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )
+    if (focusableElements.length === 0) return
+
+    this.firstFocusable = focusableElements[0]
+    this.lastFocusable = focusableElements[focusableElements.length - 1]
+
+    // Focus first element
+    this.firstFocusable.focus()
+
+    this.wrapperTarget.addEventListener('keydown', this.handleTabKey)
+  }
+
+  handleTabKey = (event) => {
+    if (event.key !== 'Tab') return
+
+    if (event.shiftKey) {
+      if (document.activeElement === this.firstFocusable) {
+        event.preventDefault()
+        this.lastFocusable.focus()
+      }
+    } else {
+      if (document.activeElement === this.lastFocusable) {
+        event.preventDefault()
+        this.firstFocusable.focus()
+      }
+    }
   }
 
   setOptions (options) {
@@ -91,11 +128,22 @@ export class ModalController extends Controller {
   }
 
   _closeModal = () => {
-    this.templateTarget.classList.remove('is-active')
+    this.templateTarget.classList.remove('modal-open')
     if (this.wrapperClasses) {
       this.wrapperTarget.classList.remove(...this.wrapperClasses)
     }
     this.contentTarget.innerHTML = ''
+
+    // Clean up focus trap
+    if (this.wrapperTarget) {
+      this.wrapperTarget.removeEventListener('keydown', this.handleTabKey)
+    }
+
+    // Restore focus to the element that triggered the modal
+    if (this.previouslyFocusedElement) {
+      this.previouslyFocusedElement.focus()
+      this.previouslyFocusedElement = null
+    }
   }
 
   _buildURL = (path, redirectTo = null) => {
@@ -177,12 +225,12 @@ export class ModalController extends Controller {
    */
   submit = event => {
     event.preventDefault()
-    event.target.classList.add('is-loading')
+    event.target.classList.add('loading')
     event.target.setAttribute('disabled', '')
 
     const form = event.target.closest('form')
     if (!form.checkValidity()) {
-      event.target.classList.remove('is-loading')
+      event.target.classList.remove('loading')
       event.target.removeAttribute('disabled')
       form.querySelectorAll('input').forEach(input => { input.reportValidity() })
       return

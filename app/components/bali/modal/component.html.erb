@@ -1,7 +1,13 @@
-<div id="modal-template" class="<%= modal_classes %> fixed inset-0 z-50 items-center justify-center hidden [&.modal-open]:flex" data-modal-target="template">
-  <div class="modal-backdrop fixed inset-0 bg-black/50" data-modal-target="background" data-action="click->modal#close"></div>
+<div id="modal-template"
+     class="<%= modal_classes %> fixed inset-0 z-50 items-center justify-center hidden [&.modal-open]:flex"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="modal-title"
+     data-modal-target="template"
+     data-action="keydown.esc->modal#close">
+  <div class="modal-backdrop fixed inset-0 bg-black/50" data-modal-target="background" data-action="click->modal#close" aria-hidden="true"></div>
   <div class="<%= box_classes %> relative bg-base-100 rounded-box p-6 shadow-xl w-11/12 max-h-[calc(100vh-5em)] overflow-y-auto" data-wrapper-class="<%= @wrapper_class %>" data-modal-target="wrapper">
-    <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" aria-label="close" data-action="modal#close">✕</button>
+    <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" aria-label="Close modal" data-action="modal#close" type="button">✕</button>
     <div class="modal-inner" data-modal-target="content">
       <%= content %>
     </div>

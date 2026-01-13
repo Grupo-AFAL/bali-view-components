@@ -26,7 +26,7 @@ RSpec.describe Bali::Modal::Component, type: :component do
     it 'renders close button' do
       render_inline(described_class.new)
 
-      expect(page).to have_css 'button[aria-label="close"]'
+      expect(page).to have_css 'button[aria-label="Close modal"]'
     end
   end
 

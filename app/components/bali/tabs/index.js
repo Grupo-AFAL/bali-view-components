@@ -5,6 +5,7 @@ import { get } from '@rails/request.js'
   Tabs controller
   It adds open and hide content actions to the tabs with active tab property.
   Allows to load content on demand from a given source on tab click.
+  Supports keyboard navigation with arrow keys.
 */
 export class TabsController extends Controller {
   static targets = ['tab', 'tabContent']
@@ -13,6 +14,40 @@ export class TabsController extends Controller {
     if (!this.hasTabTarget) return
 
     this._loadActiveTabContent()
+    this.element.addEventListener('keydown', this.handleKeydown)
+  }
+
+  disconnect () {
+    this.element.removeEventListener('keydown', this.handleKeydown)
+  }
+
+  handleKeydown = (event) => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
+    if (!this.tabTargets.includes(event.target)) return
+
+    event.preventDefault()
+    const currentIndex = this.tabTargets.indexOf(event.target)
+    let newIndex
+
+    switch (event.key) {
+      case 'ArrowLeft':
+        newIndex = currentIndex > 0 ? currentIndex - 1 : this.tabTargets.length - 1
+        break
+      case 'ArrowRight':
+        newIndex = currentIndex < this.tabTargets.length - 1 ? currentIndex + 1 : 0
+        break
+      case 'Home':
+        newIndex = 0
+        break
+      case 'End':
+        newIndex = this.tabTargets.length - 1
+        break
+    }
+
+    const newTab = this.tabTargets[newIndex]
+    newTab.focus()
+    this._hideAllTabs()
+    this._openTab({ index: newIndex }, newTab)
   }
 
   open (event) {
@@ -23,25 +58,33 @@ export class TabsController extends Controller {
   }
 
   _hideAllTabs () {
-    this.tabContentTargets.forEach(tc => tc.classList.add('is-hidden'))
-    this.tabTargets.forEach(t => t.classList.remove('is-active'))
+    this.tabContentTargets.forEach(tc => tc.classList.add('hidden'))
+    this.tabTargets.forEach(t => {
+      t.classList.remove('tab-active')
+      t.setAttribute('aria-selected', 'false')
+      t.setAttribute('tabindex', '-1')
+    })
   }
 
-  _openTab (params, tabLi) {
+  _openTab (params, tabElement) {
     const contentDiv = this.tabContentTargets.find(
       t => t.dataset.tabsIndexParam === params.index.toString()
     )
 
-    contentDiv.classList.remove('is-hidden')
-    tabLi.classList.add('is-active')
+    contentDiv.classList.remove('hidden')
+    tabElement.classList.add('tab-active')
+    tabElement.setAttribute('aria-selected', 'true')
+    tabElement.setAttribute('tabindex', '0')
 
-    this._loadTabContent(tabLi, contentDiv, params)
+    this._loadTabContent(tabElement, contentDiv, params)
   }
 
   _loadActiveTabContent () {
     const activeTab = this.tabTargets.find(t =>
-      t.classList.contains('is-active')
+      t.classList.contains('tab-active')
     )
+    if (!activeTab) return
+
     const activeTabContent = this.tabContentTargets.find(
       t => t.dataset.tabsIndexParam === activeTab.dataset.tabsIndexParam
     )
@@ -52,10 +95,10 @@ export class TabsController extends Controller {
     this._loadTabContent(activeTab, activeTabContent, { src, reload })
   }
 
-  async _loadTabContent (tabLi, tabContentDiv, { src, reload }) {
+  async _loadTabContent (tabElement, tabContentDiv, { src, reload }) {
     if (!src) return
 
-    const contentLoaded = tabLi.dataset.contentLoaded
+    const contentLoaded = tabElement.dataset.contentLoaded
 
     if (reload.toString() === 'false' && contentLoaded) return
 
@@ -63,7 +106,7 @@ export class TabsController extends Controller {
     if (response.ok) {
       const body = await response.text
       tabContentDiv.innerHTML = body
-      tabLi.dataset.contentLoaded = true
+      tabElement.dataset.contentLoaded = true
     }
   }
 }

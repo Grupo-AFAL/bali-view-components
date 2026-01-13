@@ -33,7 +33,7 @@ module Bali
         def classes
           class_names(
             'tab',
-            'tab-active': href.present? ? active_path?(request.fullpath, href) : active
+            'tab-active' => (href.present? ? active_path?(request.fullpath, href) : active)
           )
         end
 

@@ -1,9 +1,9 @@
 <%= tag.div(**@options) do %>
   <%= trigger %>
-  <ul tabindex="-1" class="<%= content_classes %>">
+  <ul tabindex="-1" class="<%= content_classes %>" role="menu" aria-label="Dropdown menu" data-dropdown-target="menu">
     <% if (authorized_items = items.select(&:authorized?)).any? %>
       <% authorized_items.each do |item| %>
-        <li><%= item %></li>
+        <li role="none"><%= item %></li>
       <% end %>
     <% else %>
       <%= content %>
