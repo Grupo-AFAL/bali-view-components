@@ -42,6 +42,10 @@ module Bali
   mattr_accessor :android_native_app_user_agent, default: /Turbo Native \(Android\)/
   mattr_accessor :sketcky_request_usernames, default: %w[admin cnadmin]
 
+  # Rich Text Editor configuration
+  # Set to false to disable the Rich Text Editor component and avoid loading TipTap dependencies
+  mattr_accessor :rich_text_editor_enabled, default: true
+
   def self.add_icon(name, svg_str)
     custom_icons[name.to_s] = svg_str
   end

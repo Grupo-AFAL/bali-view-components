@@ -1,5 +1,11 @@
 # Pin npm packages by running ./bin/importmap
 
+# Load Rich Text Editor importmap only if enabled
+# Set DISABLE_RICH_TEXT_EDITOR=1 to skip loading TipTap dependencies
+unless ENV['DISABLE_RICH_TEXT_EDITOR']
+  require_relative '../../../lib/bali/importmap/rich_text_editor'
+end
+
 pin "application"
 
 # Rails
@@ -115,110 +121,10 @@ pin 'bali/filters/popup', to: 'bali/filters/controllers/popup-controller.js'
 pin 'bali/filters/selected', to: 'bali/filters/controllers/selected-controller.js'
 pin 'bali/recurrent-event-rule', to: 'bali/recurrent_event_rule_form/index.js'
 
-## Rich Text Editor ##
-pin "lowlight", to: 'https://cdn.jsdelivr.net/npm/lowlight@3.3.0/+esm'
-pin "devlop", to: 'https://cdn.jsdelivr.net/npm/devlop@1.1.0/+esm'
-pin "highlight.js/lib/languages/javascript", to: 'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/es/languages/javascript.min.js'
-pin "highlight.js/lib/languages/json", to: 'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/es/languages/json.min.js'
-pin "highlight.js/lib/languages/ruby", to: 'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/es/languages/ruby.min.js'
-pin "highlight.js/lib/languages/css", to: 'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/es/languages/css.min.js'
-pin "highlight.js/lib/languages/scss", to: 'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/es/languages/scss.min.js'
-pin "highlight.js/lib/languages/sql", to: 'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/es/languages/sql.min.js'
-pin "highlight.js/lib/languages/xml", to: 'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/es/languages/xml.min.js'
-pin "highlight.js/lib/languages/yaml", to: 'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/es/languages/yaml.min.js'
-
-pin "@tiptap/core", to: 'https://cdn.jsdelivr.net/npm/@tiptap/core@3.0.7/dist/index.min.js'
-pin "@tiptap/pm", to: 'https://cdn.jsdelivr.net/npm/@tiptap/pm@3.0.7/state/dist/index.min.js'
-pin "@tiptap/pm/commands", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@3.0.7/commands/dist/index.js"
-pin "@tiptap/pm/dropcursor", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@3.0.7/dropcursor/dist/index.js"
-pin "@tiptap/pm/gapcursor", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@3.0.7/gapcursor/dist/index.js"
-pin "@tiptap/pm/history", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@3.0.7/history/dist/index.js"
-pin "@tiptap/pm/keymap", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@3.0.7/keymap/dist/index.js"
-pin "@tiptap/pm/model", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@3.0.7/model/dist/index.js"
-pin "@tiptap/pm/schema-list", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@3.0.7/schema-list/dist/index.js"
-pin "@tiptap/pm/state", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@3.0.7/state/dist/index.js"
-pin "@tiptap/pm/tables", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@3.0.7/tables/dist/index.js"
-pin "@tiptap/pm/transform", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@3.0.7/transform/dist/index.js"
-pin "@tiptap/pm/view", to: "https://cdn.jsdelivr.net/npm/@tiptap/pm@3.0.7/view/dist/index.js"
-pin "@tiptap/suggestion", to: 'https://cdn.jsdelivr.net/npm/@tiptap/suggestion@3.0.7/dist/index.min.js'
-pin "@tiptap/prosemirror-tables", to: 'https://cdn.jsdelivr.net/npm/@tiptap/prosemirror-tables@1.1.4/dist/index.cjs.min.js'
-pin "@tiptap/starter-kit", to: 'https://cdn.jsdelivr.net/npm/@tiptap/starter-kit@3.0.7/dist/index.min.js'
-
-pin "@tiptap/extension-blockquote", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-blockquote@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-bold", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-bold@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-bubble-menu", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-bubble-menu@3.0.7/+esm'
-pin "@tiptap/extension-bullet-list", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-bullet-list@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-code-block-lowlight", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-code-block-lowlight@3.0.7/dist/index.js'
-pin "@tiptap/extension-code-block", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-code-block@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-code", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-code@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-color", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-color@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-document", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-document@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-dropcursor", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-dropcursor@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-gapcursor", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-gapcursor@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-hard-break", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-hard-break@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-heading", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-heading@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-history", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-history@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-horizontal-rule", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-horizontal-rule@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-image", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-image@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-italic", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-italic@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-link", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-link@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-list-item", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-list-item@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-mention", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-mention@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-ordered-list", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-ordered-list@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-paragraph", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-paragraph@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-placeholder", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-placeholder@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-strike", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-strike@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-table-cell", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-table-cell@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-table-header", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-table-header@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-table-row", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-table-row@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-table", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-table@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-text-align", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-text-align@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-text-style", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-text-style@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-text", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-text@3.0.7/dist/index.min.js'
-pin "@tiptap/extension-underline", to: 'https://cdn.jsdelivr.net/npm/@tiptap/extension-underline@3.0.7/+esm'
-
-pin "prosemirror-changeset", to: 'https://cdn.jsdelivr.net/npm/prosemirror-changeset@2.3.1/dist/index.js'
-pin "prosemirror-collab", to: 'https://cdn.jsdelivr.net/npm/prosemirror-collab@1.3.1/dist/index.min.js'
-pin "prosemirror-commands", to: 'https://cdn.jsdelivr.net/npm/prosemirror-commands@1.7.1/dist/index.min.js'
-pin "prosemirror-dropcursor", to: 'https://cdn.jsdelivr.net/npm/prosemirror-dropcursor@1.8.2/dist/index.min.js'
-pin "prosemirror-gapcursor", to: 'https://cdn.jsdelivr.net/npm/prosemirror-gapcursor@1.3.2/dist/index.min.js'
-pin "prosemirror-history", to: 'https://cdn.jsdelivr.net/npm/prosemirror-history@1.4.1/dist/index.min.js'
-pin "prosemirror-inputrules", to: 'https://cdn.jsdelivr.net/npm/prosemirror-inputrules@1.5.0/dist/index.min.js'
-pin "prosemirror-keymap", to: 'https://cdn.jsdelivr.net/npm/prosemirror-keymap@1.2.3/dist/index.min.js'
-pin "prosemirror-markdown", to: 'https://cdn.jsdelivr.net/npm/prosemirror-markdown@1.13.2/dist/index.min.js'
-pin "prosemirror-menu", to: 'https://cdn.jsdelivr.net/npm/prosemirror-menu@1.2.5/dist/index.min.js'
-pin "prosemirror-model", to: 'https://cdn.jsdelivr.net/npm/prosemirror-model@1.25.2/dist/index.min.js'
-pin "prosemirror-schema-basic", to: 'https://cdn.jsdelivr.net/npm/prosemirror-schema-basic@1.2.4/dist/index.min.js'
-pin "prosemirror-schema-list", to: 'https://cdn.jsdelivr.net/npm/prosemirror-schema-list@1.5.1/dist/index.min.js'
-pin "prosemirror-state", to: 'https://cdn.jsdelivr.net/npm/prosemirror-state@1.4.3/dist/index.min.js'
-pin "prosemirror-tables", to: 'https://cdn.jsdelivr.net/npm/prosemirror-tables@1.7.1/dist/index.min.js'
-pin "prosemirror-trailing-node", to: 'https://cdn.jsdelivr.net/npm/prosemirror-trailing-node@3.0.0/dist/prosemirror-trailing-node.js'
-pin "prosemirror-transform", to: 'https://cdn.jsdelivr.net/npm/prosemirror-transform@1.10.4/dist/index.min.js'
-pin "prosemirror-view", to: 'https://cdn.jsdelivr.net/npm/prosemirror-view@1.40.1/dist/index.min.js'
-
-pin "linkifyjs", to: 'https://cdn.jsdelivr.net/npm/linkifyjs@4.3.2/+esm'
-pin "orderedmap", to: 'https://cdn.jsdelivr.net/npm/orderedmap@2.1.1/dist/index.min.js'
-pin "w3c-keyname", to: 'https://cdn.jsdelivr.net/npm/w3c-keyname@2.2.8/index.min.js'
-pin "rope-sequence", to: 'https://cdn.jsdelivr.net/npm/rope-sequence@1.3.4/dist/index.min.js'
-pin "markdown-it", to: 'https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js'
-pin "crelt", to: 'https://cdn.jsdelivr.net/npm/crelt@1.0.6/index.min.js'
-pin "@remirror/core-constants", to: 'https://cdn.jsdelivr.net/npm/@remirror/core-constants@3.0.0/dist/remirror-core-constants.js'
-pin "escape-string-regexp", to: 'https://cdn.jsdelivr.net/npm/escape-string-regexp@5.0.0/index.min.js'
-
-pin 'bali/rich_text_editor', to: 'bali/rich_text_editor/index.js'
-pin 'bali/rich_text_editor/extensions/slashCommands', to: 'bali/rich_text_editor/javascript/extensions/slashCommands.js'
-pin 'bali/rich_text_editor/suggestions/commandsOptions', to: 'bali/rich_text_editor/javascript/suggestions/commands_options.js'
-pin 'bali/rich_text_editor/suggestions/pagesOptions', to: 'bali/rich_text_editor/javascript/suggestions/pages_options.js'
-pin 'bali/rich_text_editor/suggestions/popupListComponent', to: 'bali/rich_text_editor/javascript/suggestions/popup_list_component.js'
-pin 'bali/rich_text_editor/suggestions/renderer', to: 'bali/rich_text_editor/javascript/suggestions/renderer.js'
-pin 'bali/rich_text_editor/lowlight', to: 'bali/rich_text_editor/javascript/lowlight.js'
-pin 'bali/rich_text_editor/useDefaults', to: 'bali/rich_text_editor/javascript/useDefaults.js'
-pin 'bali/rich_text_editor/useImage', to: 'bali/rich_text_editor/javascript/useImage.js'
-pin 'bali/rich_text_editor/useLink', to: 'bali/rich_text_editor/javascript/useLink.js'
-pin 'bali/rich_text_editor/useMarks', to: 'bali/rich_text_editor/javascript/useMarks.js'
-pin 'bali/rich_text_editor/useMention', to: 'bali/rich_text_editor/javascript/useMention.js'
-pin 'bali/rich_text_editor/useNodes', to: 'bali/rich_text_editor/javascript/useNodes.js'
-pin 'bali/rich_text_editor/useSlashCommands', to: 'bali/rich_text_editor/javascript/useSlashCommands.js'
-pin 'bali/rich_text_editor/useTable', to: 'bali/rich_text_editor/javascript/useTable.js'
-
 pin 'rrule', to: 'https://cdn.jsdelivr.net/npm/rrule@2.8.1/+esm'
+
+# Rich Text Editor - Conditionally loaded
+# Set DISABLE_RICH_TEXT_EDITOR=1 environment variable to skip these dependencies
+unless ENV['DISABLE_RICH_TEXT_EDITOR']
+  Bali::Importmap::RichTextEditor.pin_all(self)
+end

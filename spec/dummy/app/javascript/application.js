@@ -46,7 +46,6 @@ import { NavbarController } from 'bali/navbar'
 import { NotificationController } from 'bali/notification'
 import { RateController } from 'bali/rate'
 import { RevealController } from 'bali/reveal'
-import { RichTextEditorController } from 'bali/rich_text_editor'
 import { SideMenuController } from 'bali/side_menu'
 import { SortableListController } from 'bali/sortable_list'
 import { TableController } from 'bali/table'
@@ -82,7 +81,6 @@ application.register('navbar', NavbarController)
 application.register('notification', NotificationController)
 application.register('rate', RateController)
 application.register('reveal', RevealController)
-application.register('rich-text-editor', RichTextEditorController)
 application.register('side-menu', SideMenuController)
 application.register('sortable-list', SortableListController)
 application.register('table', TableController)
@@ -120,3 +118,13 @@ application.register('submit-on-change', SubmitOnChangeController)
 application.register('time-period-field', TimePeriodFieldController)
 application.register('trix-attachments', TrixAttachmentsController)
 application.register('recurrent-event-rule', RecurrentEventRuleController)
+
+// Rich Text Editor - Dynamically loaded only if importmap entry exists
+// To disable, set DISABLE_RICH_TEXT_EDITOR=1 environment variable
+import('bali/rich_text_editor')
+  .then(({ RichTextEditorController }) => {
+    application.register('rich-text-editor', RichTextEditorController)
+  })
+  .catch(() => {
+    console.info('Rich Text Editor disabled or not available')
+  })

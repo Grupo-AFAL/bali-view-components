@@ -38,6 +38,10 @@ module Bali
       def editable?
         @editable
       end
+
+      def render?
+        Bali.rich_text_editor_enabled
+      end
     end
   end
 end
