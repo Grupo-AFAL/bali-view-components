@@ -1,5 +1,5 @@
 /* Datepicker styling for Flatpickr */
-@import 'vendor/flatpickr';
+@import './vendor/flatpickr.css';
 
 .flatpickr-months {
   @apply py-2.5 bg-primary rounded-t;
