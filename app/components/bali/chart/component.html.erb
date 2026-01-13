@@ -1,6 +1,6 @@
 <div class='chart-component'>
   <%= tag.h3 title, class: 'title is-3' if title %>
-  <%= tag.div(class: 'chart-container', **html_options) do %>
+  <%= tag.div(class: 'chart-container h-[250px]', **html_options) do %>
     <%= tag.canvas(class: 'chart',
         data: {
           controller: 'chart',

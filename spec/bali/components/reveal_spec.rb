@@ -44,7 +44,7 @@ RSpec.describe Bali::Reveal::Component, type: :component do
       end
     end
 
-    expect(page).to have_css 'div.is-border-bottom'
+    expect(page).to have_css 'div.border-b'
   end
 
   it 'does not render border at bottom' do

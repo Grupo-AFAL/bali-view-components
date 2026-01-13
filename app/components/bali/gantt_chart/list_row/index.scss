@@ -1,43 +1,32 @@
 .gantt-chart-component {
   .gantt-chart-row {
+    @apply relative z-[1] text-sm;
     height: $gantt-chart-row-height;
     line-height: $gantt-chart-row-height - 1px;
-    font-size: $size-7;
-
-    position: relative;
-    z-index: 1;
 
     .tooltip-component {
-      padding-left: 0.75rem;
-      padding-right: 0.25rem;
-      overflow: hidden;
-      flex-grow: 1;
+      @apply pl-3 pr-1 overflow-hidden grow;
 
       &.children {
-        padding-left: 0;
-        font-weight: 800;
+        @apply pl-0 font-extrabold;
       }
     }
 
     .task-name {
-      color: $grey-dark;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      overflow: hidden;
-      display: block;
+      @apply text-base-content/70 text-ellipsis whitespace-nowrap overflow-hidden block;
     }
 
     .gantt-chart-row {
       .chevron-down {
-        margin-left: 1.5rem;
+        @apply ml-6;
       }
 
       .tooltip-component {
-        padding-left: 1.5rem;
+        @apply pl-6;
       }
 
       .tooltip-component.children {
-        padding-left: 0;
+        @apply pl-0;
       }
 
       .gantt-chart-row {
@@ -49,21 +38,21 @@
           padding-left: 2.25rem;
 
           &.children {
-            padding-left: 0rem;
+            @apply pl-0;
           }
         }
 
         .gantt-chart-row {
           .chevron-down {
-            margin-left: 3rem;
+            @apply ml-12;
           }
 
           .tooltip-component {
-            padding-left: 3rem;
+            @apply pl-12;
           }
 
           .tooltip-component.children {
-            padding-left: 0rem;
+            @apply pl-0;
           }
 
           .gantt-chart-row {
@@ -72,7 +61,7 @@
             }
 
             .tooltip-component.children {
-              padding-left: 0rem;
+              @apply pl-0;
             }
           }
         }
@@ -81,51 +70,44 @@
   }
 
   .gantt-chart-row-contents {
-    display: flex;
-    align-items: center;
+    @apply flex items-center;
   }
 
   .gantt-chart-list-children .gantt-chart-row:first-child {
     .gantt-chart-row-contents {
-      border-top: none;
+      @apply border-t-0;
     }
   }
 
   .gantt-chart-data > .gantt-chart-row:first-child {
     & > .gantt-chart-row-contents {
-      border-top: none;
+      @apply border-t-0;
     }
   }
 
   .handle {
-    cursor: move;
-    width: 1.5rem;
-    min-width: 1.5rem;
+    @apply cursor-move w-6 min-w-6;
   }
 
   .chevron-down {
-    width: 0.5rem;
-    margin-left: 0.75rem;
-    margin-right: 0.2rem;
-    cursor: pointer;
+    @apply w-2 ml-3 mr-0.5 cursor-pointer;
 
     .svg-inline {
-      height: 0.75rem;
-      width: 0.75rem;
+      @apply size-3;
     }
   }
 
   .is-folded {
     .chevron-down {
-      transform: rotate(-90deg);
+      @apply -rotate-90;
     }
 
     .gantt-chart-list-children {
-      display: none;
+      @apply hidden;
     }
 
     .gantt-chart-timeline-children {
-      display: none;
+      @apply hidden;
     }
   }
 }

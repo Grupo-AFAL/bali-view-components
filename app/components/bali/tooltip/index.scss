@@ -1,89 +1,61 @@
-$background-color: #333;
-$color: #fff;
-
+// Tooltip variables
 $arrow-size: 16px;
 $half-arrow-size: calc($arrow-size / 2);
 
-$content-font-size: 0.875rem;
-
-$regular-trigger-font-size: 1rem;
-$regular-trigger-size: 1.5rem;
-
-$small-trigger-font-size: 0.75rem;
-$small-trigger-size: 1rem;
-
 .tooltip-component {
   &.help-tip {
-    width: $regular-trigger-size;
-    height: $regular-trigger-size;
-    display: inline-block;
+    @apply size-6 inline-block;
 
     &.is-small {
-      width: $small-trigger-size;
-      height: $small-trigger-size;
+      @apply size-4;
 
       .trigger {
-        width: $small-trigger-size;
-        height: $small-trigger-size;
-        font-size: $small-trigger-font-size;
+        @apply size-4 text-xs;
       }
     }
 
     .trigger {
-      width: $regular-trigger-size;
-      height: $regular-trigger-size;
-      border-radius: 50%;
-      border: 1px solid $black;
-      display: inline-flex;
-      justify-content: center;
-      align-items: center;
-      font-size: $regular-trigger-font-size;
+      @apply size-6 rounded-full border border-base-content;
+      @apply inline-flex justify-center items-center text-base;
     }
   }
 
   .tippy-box {
-    position: relative;
-    background-color: $background-color;
-    color: $color;
-    border-radius: 4px;
-    font-size: $content-font-size;
-    letter-spacing: normal;
-    text-transform: initial;
-    line-height: 1.4;
-    white-space: normal;
-    outline: 0;
+    @apply relative bg-neutral text-neutral-content rounded;
+    @apply text-sm tracking-normal normal-case leading-relaxed;
+    @apply whitespace-normal outline-none;
     transition-property: transform, visibility, opacity;
 
     &[data-animation='fade'][data-state='hidden'] {
-      opacity: 0;
+      @apply opacity-0;
     }
 
     &[data-placement^='top'] > .tippy-arrow {
-      bottom: 0;
+      @apply bottom-0;
     }
 
     &[data-placement^='top'] > .tippy-arrow:before {
       bottom: -$half-arrow-size + 1px;
-      left: 0;
+      @apply left-0;
       border-width: $half-arrow-size $half-arrow-size 0;
       border-top-color: initial;
       transform-origin: center top;
     }
 
     &[data-placement^='bottom'] > .tippy-arrow {
-      top: 0;
+      @apply top-0;
     }
 
     &[data-placement^='bottom'] > .tippy-arrow:before {
       top: -$half-arrow-size + 1px;
-      left: 0;
+      @apply left-0;
       border-width: 0 $half-arrow-size $half-arrow-size;
       border-bottom-color: initial;
       transform-origin: center bottom;
     }
 
     &[data-placement^='left'] > .tippy-arrow {
-      right: 0;
+      @apply right-0;
     }
 
     &[data-placement^='left'] > .tippy-arrow:before {
@@ -94,7 +66,7 @@ $small-trigger-size: 1rem;
     }
 
     &[data-placement^='right'] > .tippy-arrow {
-      left: 0;
+      @apply left-0;
     }
 
     &[data-placement^='right'] > .tippy-arrow:before {
@@ -112,19 +84,15 @@ $small-trigger-size: 1rem;
   .tippy-arrow {
     width: $arrow-size;
     height: $arrow-size;
-    color: $background-color;
+    @apply text-neutral;
   }
 
   .tippy-arrow:before {
     content: '';
-    position: absolute;
-    border-color: transparent;
-    border-style: solid;
+    @apply absolute border-transparent border-solid;
   }
 
   .tippy-content {
-    position: relative;
-    padding: 5px 9px;
-    z-index: 1;
+    @apply relative py-1.5 px-2 z-[1];
   }
 }

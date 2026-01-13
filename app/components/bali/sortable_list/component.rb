@@ -40,7 +40,7 @@ module Bali
         @disabled = disabled
         @animation = animation
 
-        @options = prepend_class_name(options, 'sortable-list-component')
+        @options = prepend_class_name(options, 'sortable-list-component p-0 [&_.handle]:cursor-grab')
         @options = prepend_controller(@options, 'sortable-list')
         @options = prepend_values(@options, 'sortable-list', controller_values)
       end

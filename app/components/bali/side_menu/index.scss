@@ -1,21 +1,15 @@
+// Side menu layout variables
 $side-menu-width: 15rem;
-$z-index-menu-overlay: 4;
-$z-index-side-menu: 5;
+$navbar-height: 3.75rem;
 
 .side-menu-component {
-  position: fixed;
+  @apply fixed h-full p-4 bg-base-100 shadow-lg z-10;
   width: $side-menu-width;
-  height: 100%;
   top: $navbar-height;
   left: -$side-menu-width;
-  padding: $size-6;
-  background: $white;
-  z-index: $z-index-side-menu;
-  box-shadow: $box-shadow;
-
   transition: 0.2s ease-in-out;
 
-  @include desktop {
+  @media (min-width: 1024px) {
     left: 0;
   }
 
@@ -24,290 +18,232 @@ $z-index-side-menu: 5;
   }
 
   .menu-label {
-    font-size: 0.75rem;
-    padding-left: 0.5rem;
+    @apply text-xs pl-2;
   }
 
   .menu {
-    height: 100%;
+    @apply h-full;
   }
 
   .menu-list {
-    overflow-y: auto;
+    @apply overflow-y-auto;
 
     a {
-      padding-left: 0.5rem;
-      display: flex;
-      align-items: center;
-      font-size: 0.875rem;
+      @apply pl-2 flex items-center text-sm;
 
       .icon {
-        width: $size-6;
-        height: $size-6;
+        @apply size-4;
       }
     }
 
     .is-active {
-      font-weight: $fw-500;
+      @apply font-medium;
 
-      .icon>svg>* {
+      .icon > svg > * {
         fill: currentColor !important;
       }
     }
 
     .link-component {
-      position: relative;
+      @apply relative;
 
       &.is-list::after {
-        position: absolute;
-        top: 50%;
-        right: 0.5rem;
+        @apply absolute top-1/2 right-2;
         content: ' ';
-        display: inline-block;
-        border-bottom: 2px solid;
-        border-right: 2px solid;
-        height: 0.5rem;
-        width: 0.5rem;
-        border-color: $grey-light;
-        transform: translateY(-50%) rotate(-45deg);
+        @apply inline-block border-b-2 border-r-2 border-base-content/50;
+        @apply size-2 -translate-y-1/2 -rotate-45;
 
         &.is-active {
-          border-color: $white;
+          @apply border-base-100;
         }
       }
     }
 
     .is-revealed .link-component.is-list::after {
-      transform: translateY(-65%) rotate(45deg);
-      border-color: $grey-light;
+      @apply -translate-y-[65%] rotate-45 border-base-content/50;
     }
   }
 
   .icon {
-    margin-right: 0.5rem;
+    @apply mr-2;
   }
 
   &--menu-switch-component {
-    display: flex;
-    align-items: center;
-    width: 100%;
+    @apply flex items-center w-full;
 
     .icon {
-      margin: 0 0.75rem 0 0;
+      @apply m-0 mr-3;
     }
   }
 
   .menu-switcher {
-    width: 100%;
+    @apply w-full;
 
     .menu-switcher--trigger {
-      position: relative;
-      display: flex;
-      align-items: center;
-      width: 100%;
-      cursor: pointer;
-      padding: 0.25rem 0.25rem 0.25rem 0.5rem;
-      border-radius: 2px;
+      @apply relative flex items-center w-full cursor-pointer;
+      @apply py-1 px-2 rounded-sm;
 
       &:hover {
-        background-color: $white-ter;
+        @apply bg-base-200;
       }
     }
 
     &.with-multiple-switches .menu-switcher--trigger .side-menu-component--menu-switch-component .title-text::after {
-      position: absolute;
-      top: 50%;
+      @apply absolute top-1/2;
       content: ' ';
-      display: inline-block;
-      border-bottom: 2px solid;
-      border-right: 2px solid;
-      height: 0.5rem;
-      width: 0.5rem;
-      margin-left: 0.5rem;
-      border-color: $grey-dark;
-      transform: translateY(-65%) rotate(45deg);
+      @apply inline-block border-b-2 border-r-2 border-base-content/60;
+      @apply size-2 ml-2 -translate-y-[65%] rotate-45;
     }
 
     &.is-active .menu-switcher--trigger {
-      background-color: $grey-lightest;
+      @apply bg-base-200;
     }
   }
 
   .header {
-    display: flex;
-    justify-content: center;
+    @apply flex justify-center;
 
     .expand-icon {
-      display: none;
+      @apply hidden;
     }
 
     .link-component {
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      @apply flex justify-center items-center;
     }
   }
 
   .side-menu-component--item-component.is-list.is-collapsed {
-    display: none;
+    @apply hidden;
   }
 
   &.is-collapsed {
-    width: min-content;
+    @apply w-min;
 
     .menu-switcher--trigger,
     .menu-list .link-component,
     .header .link-component {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 2.625rem;
-      height: 2.625rem;
+      @apply flex justify-center items-center;
+      @apply w-[2.625rem] h-[2.625rem];
     }
 
     .header {
-      flex-direction: column-reverse;
+      @apply flex-col-reverse;
 
       .link-component:hover {
-        border-radius: 2px;
-        background-color: $white-ter;
+        @apply rounded-sm bg-base-200;
       }
 
       .collapse-icon {
-        display: none;
+        @apply hidden;
       }
 
       .expand-icon {
-        display: flex;
-        margin: 0;
+        @apply flex m-0;
       }
     }
 
     .side-menu-component--menu-switch-component {
-      justify-content: center;
+      @apply justify-center;
 
       .icon {
-        padding: 0;
-        margin: 0;
+        @apply p-0 m-0;
       }
 
       .description {
-        display: none;
+        @apply hidden;
       }
     }
 
     .menu-label {
-      display: none;
+      @apply hidden;
     }
 
     .menu-list {
-      width: min-content;
+      @apply w-min;
     }
 
     .menu-list .link-component {
-      padding: 0;
-      display: flex;
-      justify-content: center;
+      @apply p-0 flex justify-center;
 
       span:not(.icon),
       &::after {
-        display: none;
+        @apply hidden;
       }
 
       span.icon {
-        margin: 0;
+        @apply m-0;
       }
     }
 
     .menu-list ul {
-      display: none;
+      @apply hidden;
     }
 
     .side-menu-component--item-component.is-collapsed {
-      display: flex;
+      @apply flex;
     }
 
     .side-menu-component--item-component.is-expanded {
-      display: none;
+      @apply hidden;
     }
   }
 
   &:not(.is-collapsed) {
     .side-menu-component--item-component.is-collapsed {
-      display: none;
+      @apply hidden;
     }
 
     .side-menu-component--item-component.is-expanded {
-      display: block;
+      @apply block;
     }
   }
 }
 
 .menu-overlay {
+  @apply fixed inset-0 z-[4] opacity-0 pointer-events-none hidden;
   transition: 0.2s ease-in-out;
-  bottom: 0;
-  left: 0;
-  opacity: 0;
-  pointer-events: none;
-  position: fixed;
-  right: 0;
-  top: 0;
-  z-index: $z-index-menu-overlay;
-  display: none;
 }
 
-.side-menu-component.is-active~.menu-overlay {
-  display: block;
-  background: rgba(0, 0, 0, 0.5);
-  opacity: 1;
-  pointer-events: auto;
+.side-menu-component.is-active ~ .menu-overlay {
+  @apply block bg-black/50 opacity-100 pointer-events-auto;
 }
 
 .menu-switcher-tippy-wrapper {
   .tippy-svg-arrow {
-    display: none;
+    @apply hidden;
   }
 
   .tippy-content {
     width: $side-menu-width;
 
     :first-child {
-      border-radius: 4px 4px 0 0;
+      @apply rounded-t;
     }
 
     :last-child {
-      border-radius: 0 0 4px 4px;
+      @apply rounded-b;
     }
 
     .link-component.dropdown-item {
-      display: flex;
-      align-items: center;
-      padding: 0.375rem 1rem;
+      @apply flex items-center py-1.5 px-4;
     }
   }
 }
 
 .side-menu-component--item-component-tippy-wrapper .tooltip-component {
-  display: none;
+  @apply hidden;
 }
 
 .side-menu-component--item-component-tippy-wrapper ul li .link-component {
-  position: relative;
-  display: flex;
-  align-items: center;
-  color: $grey-dark;
-  font-size: .875rem;
-  line-height: 1.5;
-  padding: .375rem 1rem;
-  text-align: inherit;
-  white-space: nowrap;
-  width: 100%;
+  @apply relative flex items-center text-base-content/70;
+  @apply text-sm leading-normal py-1.5 px-4;
+  @apply text-left whitespace-nowrap w-full;
 
   .icon {
-    margin-right: 0.75rem;
+    @apply mr-3;
   }
 
   &:hover {
-    background-color: $white-ter;
+    @apply bg-base-200;
   }
 }

@@ -7,7 +7,7 @@
 
   <% if items? %>
     <%= tag.div(
-        class: class_names('children', 'is-hidden': !display_children?),
+        class: class_names('children', 'hidden': !display_children?),
         data: { 'tree-view-item-target': 'children' }
     ) do %>
       <% items.each do |item| %>

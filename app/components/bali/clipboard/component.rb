@@ -10,7 +10,7 @@ module Bali
       renders_one :success_content, SucessContent::Component
 
       def initialize(**options)
-        @options = prepend_class_name(options, 'clipboard-component')
+        @options = prepend_class_name(options, 'clipboard-component flex')
         @options = prepend_controller(@options, 'clipboard')
       end
     end

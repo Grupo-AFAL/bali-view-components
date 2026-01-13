@@ -4,7 +4,7 @@
       <%= c.with_left(class: filters_class) do%>
         <%= filters_panel %>
       <% end %>
-      <%= c.with_right(class: 'is-hidden-mobile') do %>
+      <%= c.with_right(class: 'max-md:hidden') do %>
         <%= actions_panel %>
       <% end %>
     <% end %>
@@ -14,7 +14,7 @@
     <%= summary %>
   <% end %>
 
-  <div class='is-hidden-tablet is-flex is-align-items-center is-justify-content-flex-end mb-3'>
+  <div class='md:hidden flex items-center justify-end mb-3'>
     <%= actions_panel %>
   </div>
 

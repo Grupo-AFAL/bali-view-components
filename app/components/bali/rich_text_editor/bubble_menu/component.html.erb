@@ -40,7 +40,7 @@
   <% if images_url.present? %>
     <%= render Bali::Dropdown::Component.new(data: { 'rich-text-editor-target': 'imagePanel' }) do |c| %>
       <% c.with_trigger(class: 'toolbar-link', data: { action: 'rich-text-editor#toggleImagePanel' }) do %>
-        <div class="is-flex is-align-items-center">
+        <div class="flex items-center">
           <%= render Bali::Icon::Component.new('image') %>
         </div>
       <% end %>

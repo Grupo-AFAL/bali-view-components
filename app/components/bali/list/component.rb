@@ -7,8 +7,20 @@ module Bali
 
       renders_many :items, Item::Component
 
-      def initialize(**options)
-        @options = prepend_class_name(options, 'list-component')
+      def initialize(borderless: false, relaxed_spacing: false, **options)
+        @borderless = borderless
+        @relaxed_spacing = relaxed_spacing
+        @options = prepend_class_name(options, list_classes)
+      end
+
+      private
+
+      def list_classes
+        class_names(
+          'list-component',
+          'border border-base-300' => !@borderless,
+          '[&_.list-item-component]:py-4' => @relaxed_spacing
+        )
       end
     end
   end

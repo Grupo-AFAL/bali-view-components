@@ -1,44 +1,40 @@
 @import 'vendor/flatpickr';
 
 .flatpickr-months {
-  padding: 10px 0;
-  background: $link;
-  border-radius: 5px 5px 0 0;
+  @apply py-2.5 bg-primary rounded-t;
 
   .flatpickr-month {
-    color: $white;
+    @apply text-primary-content;
   }
 
   .flatpickr-next-month,
   .flatpickr-prev-month {
-    padding: 20px;
-    fill: $white;
+    @apply p-5 fill-primary-content;
   }
 }
 
 .flatpickr-current-month {
-  padding: 5px 0 0 0;
+  @apply pt-1 pb-0 px-0;
 }
 
 .flatpickr-calendar.arrowTop:after {
-  border-bottom-color: $link;
+  border-bottom-color: oklch(var(--p));
 }
 
 .flatpickr-day.selected,
 .flatpickr-day.selected:hover {
-  background: $link;
-  border-color: $link;
+  background: oklch(var(--p));
+  border-color: oklch(var(--p));
 }
 
 .flatpickr {
   .is-transparent {
-    background-color: transparent;
-    border-color: transparent;
+    @apply bg-transparent border-transparent;
   }
 
   &.is-horizontal {
-    @include mobile {
-      display: flex;
+    @media (max-width: 768px) {
+      @apply flex;
     }
   }
 }

@@ -1,6 +1,6 @@
-<div id="drawer-template" class="<%= drawer_classes %>" data-controller="drawer" data-drawer-target="template">
-  <div class="drawer-overlay fixed inset-0 bg-black/30 z-40 opacity-0 pointer-events-none transition-opacity duration-300" data-drawer-target="background" data-action="click->drawer#close"></div>
-  <div class="<%= panel_classes %>" data-drawer-target="wrapper">
+<div id="drawer-template" class="<%= drawer_classes %> group" data-controller="drawer" data-drawer-target="template">
+  <div class="drawer-overlay fixed inset-0 bg-black/30 z-40 opacity-0 pointer-events-none transition-opacity duration-300 group-[.drawer-open]:opacity-100 group-[.drawer-open]:pointer-events-auto" data-drawer-target="background" data-action="click->drawer#close"></div>
+  <div class="<%= panel_classes %> group-[.drawer-open]:translate-x-0 max-md:group-[.drawer-open]:max-w-[85%]" data-drawer-target="wrapper">
     <div class="drawer-inner p-6" data-drawer-target="content">
       <%= content %>
     </div>

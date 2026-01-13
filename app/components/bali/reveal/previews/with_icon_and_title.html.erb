@@ -1,7 +1,7 @@
 <%= render Bali::Reveal::Component.new(opened: opened) do |c| %>
   <% c.with_trigger(show_border: show_border) do |trigger| %>
     <% trigger.with_title do %>
-      <div class='is-flex is-align-items-center'>
+      <div class='flex items-center'>
         <%= render Bali::Icon::Component.new('snowflake', class: 'mr-3') %>
         Click to see contents
       </div>

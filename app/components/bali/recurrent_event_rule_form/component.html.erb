@@ -2,7 +2,7 @@
   <%= @form.hidden_field @method, value: @value, data: { recurrent_event_rule_target: 'input' },
       disabled: @disabled %>
 
-  <div class="is-flex is-align-items-center mb-3">
+  <div class="flex items-center mb-3">
     <p class="mr-4"><b><%= t('.repeat') %></b></p>
 
     <div class="control">
@@ -16,7 +16,7 @@
       </div>
     </div>
 
-    <div class="is-flex is-align-items-center" data-recurrent-event-rule-target="intervalInputContainer">
+    <div class="flex items-center" data-recurrent-event-rule-target="intervalInputContainer">
       <p class="mx-4"><b><%= t('.every') %></b></p>
 
       <div class="control">
@@ -26,28 +26,28 @@
 
       <p class="ml-4">
         <b>
-          <span class="is-hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="0"></span>
-          <span class="is-hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="1"><%= t('.month_s') %></span>
-          <span class="is-hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="2"><%= t('.week_s') %></span>
-          <span class="is-hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="3"><%= t('.day_s') %></span>
-          <span class="is-hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="4"><%= t('.hour_s') %></span>
+          <span class="hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="0"></span>
+          <span class="hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="1"><%= t('.month_s') %></span>
+          <span class="hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="2"><%= t('.week_s') %></span>
+          <span class="hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="3"><%= t('.day_s') %></span>
+          <span class="hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="4"><%= t('.hour_s') %></span>
         </b>
       </p>
     </div>
   </div>
 
-  <div class="pl-5 is-hidden"
+  <div class="pl-5 hidden"
     data-recurrent-event-rule-target="freqCustomizationInputsContainer"
     data-rrule-freq="0"
   >
-    <div class="is-flex is-align-items-center mb-2">
+    <div class="flex items-center mb-2">
       <%= radio_button_tag("#{timestamp}_yearly_on", 1, true, checked: true, class: 'mr-1', disabled: @disabled,
           data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs ' \
                           'recurrent-event-rule#setRule' }) %>
 
       <%= label_tag "#{timestamp}_yearly_on_1", t('.on_option'), disabled: @disabled %>
 
-      <div class="is-flex is-align-items-center ml-4"
+      <div class="flex items-center ml-4"
         data-recurrent-event-rule-target="freqCustomizationInputs" 
         data-rrule-freq-option="yearly_on_1"
       >
@@ -67,14 +67,14 @@
       </div>
     </div>
 
-    <div class="is-flex is-align-items-center">
+    <div class="flex items-center">
       <%= radio_button_tag("#{timestamp}_yearly_on", 2, true, checked: true, class: 'mr-1', disabled: @disabled,
             data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs ' \
                             'recurrent-event-rule#setRule' }) %>
 
       <%= label_tag "#{timestamp}_yearly_on_2", t('.on_the'), disabled: @disabled %>
 
-      <div class="is-flex is-align-items-center ml-4" 
+      <div class="flex items-center ml-4" 
         data-recurrent-event-rule-target="freqCustomizationInputs" 
         data-rrule-freq-option="yearly_on_2"
       >
@@ -102,18 +102,18 @@
     </div>
   </div>
 
-  <div class="pl-5 is-hidden"
+  <div class="pl-5 hidden"
     data-recurrent-event-rule-target="freqCustomizationInputsContainer"
     data-rrule-freq="1"
   >
-    <div class="is-flex is-align-items-center mb-2">
+    <div class="flex items-center mb-2">
       <%= radio_button_tag("#{timestamp}_monthly_on", 1, true, checked: true, class: 'mr-1', disabled: @disabled,
           data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs ' \
                           'recurrent-event-rule#setRule' }) %>
 
       <%= label_tag "#{timestamp}_monthly_on_1", t('.on_day'), disabled: @disabled %>
 
-      <div class="is-flex is-align-items-center ml-4"
+      <div class="flex items-center ml-4"
         data-recurrent-event-rule-target="freqCustomizationInputs" 
         data-rrule-freq-option="monthly_on_1"
       >
@@ -127,14 +127,14 @@
       </div>
     </div>
 
-    <div class="is-flex is-align-items-center">
+    <div class="flex items-center">
       <%= radio_button_tag("#{timestamp}_monthly_on", 2, true, checked: true, class: 'mr-1', disabled: @disabled,
           data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs ' \
                           'recurrent-event-rule#setRule' }) %>
 
       <%= label_tag "#{timestamp}_monthly_on_2", t('.on_the'), disabled: @disabled %>
 
-      <div class="is-flex is-align-items-center ml-4"
+      <div class="flex items-center ml-4"
         data-recurrent-event-rule-target="freqCustomizationInputs"
         data-rrule-freq-option="monthly_on_2"
       >
@@ -156,11 +156,11 @@
     </div>
   </div>
 
-  <div class="pl-5 is-hidden"
+  <div class="pl-5 hidden"
     data-recurrent-event-rule-target="freqCustomizationInputsContainer"
     data-rrule-freq="2"
   >
-    <%= radio_button_tag "#{timestamp}_weekly", 1, false, checked: true, class: 'is-hidden' %>
+    <%= radio_button_tag "#{timestamp}_weekly", 1, false, checked: true, class: 'hidden' %>
     <div class="weekday-checkboxes-container"
       data-recurrent-event-rule-target="freqCustomizationInputs" 
       data-rrule-freq-option="weekly_1"
@@ -168,18 +168,20 @@
       <% I18n.t('date.day_names').each_with_index do |day, index| %>
         <% value = index.zero? ? 6 : index - 1 %>
         <%= check_box_tag "byweekday_#{timestamp}_[]", value, false, id: "byweekday_#{timestamp}_#{value}", disabled: @disabled,
+            class: 'peer hidden',
             data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' } %>
-        <%= label_tag "byweekday_#{timestamp}_#{value}", day.first, disabled: @disabled %>
+        <%= label_tag "byweekday_#{timestamp}_#{value}", day.first, disabled: @disabled,
+            class: 'flex items-center justify-center min-w-8 min-h-8 w-8 h-8 rounded-full bg-base-300 font-bold cursor-pointer peer-checked:bg-primary peer-checked:text-primary-content' %>
       <% end %>
     </div>
   </div>
 
-  <div class="pl-5 is-hidden"
+  <div class="pl-5 hidden"
     data-recurrent-event-rule-target="freqCustomizationInputsContainer"
     data-rrule-freq="3,4"
   ></div>
 
-  <div class="<%= class_names('is-flex is-align-items-center mt-5', 'is-hidden': @skip_end_method) %>">
+  <div class="<%= class_names('flex items-center mt-5', 'hidden': @skip_end_method) %>">
     <p class="mr-4"><b><%= t('.end') %></b></p>
 
     <div class="control">
@@ -193,10 +195,10 @@
       </div>
     </div>
 
-    <div class="is-hidden ml-4" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="">
+    <div class="hidden ml-4" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="">
     </div>
 
-    <div class="is-hidden is-flex is-align-items-center ml-4" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="count">
+    <div class="hidden flex items-center ml-4" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="count">
       <div class="control">
         <%= number_field_tag :count, 1, min: 1, class: 'input', disabled: @disabled,
             data: { rrule_attr: 'count', action: 'recurrent-event-rule#setRule' } %>
@@ -204,7 +206,7 @@
       <p class="ml-4"><b><%= t('.ocurrence_s') %></b></p>
     </div>
 
-    <div class="is-hidden ml-4" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="until">
+    <div class="hidden ml-4" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="until">
       <div class="control">
         <%= date_field_tag :until, 6.months.from_now.to_date, class: 'input', disabled: @disabled,
             data: { rrule_attr: 'until', recurrent_event_rule_target: 'untilInput', action: 'recurrent-event-rule#setRule' } %>

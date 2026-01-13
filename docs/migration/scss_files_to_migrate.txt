@@ -1,0 +1,90 @@
+# SCSS Files to Migrate to Tailwind Classes
+# Check off as each file is converted
+# Total: 55 files
+
+## Tier 1: No Dependencies (Start Here)
+[ ] app/components/bali/icon/index.scss
+[ ] app/components/bali/link/index.scss
+[ ] app/components/bali/tag/index.scss
+[ ] app/components/bali/loader/index.scss
+[ ] app/components/bali/progress/index.scss
+[ ] app/components/bali/label_value/index.scss
+[ ] app/components/bali/message/index.scss
+
+## Tier 2: Basic Layout Components
+[ ] app/components/bali/card/index.scss
+[ ] app/components/bali/modal/index.scss
+[ ] app/components/bali/dropdown/index.scss
+[ ] app/components/bali/tabs/index.scss
+[ ] app/components/bali/avatar/index.scss
+[ ] app/components/bali/drawer/index.scss
+[ ] app/components/bali/hover_card/index.scss
+[ ] app/components/bali/tooltip/index.scss
+[ ] app/components/bali/notification/index.scss
+[ ] app/components/bali/reveal/index.scss
+[ ] app/components/bali/clipboard/index.scss
+[ ] app/components/bali/actions_dropdown/index.scss
+
+## Tier 3: Table & List Components
+[ ] app/components/bali/table/index.scss
+[ ] app/components/bali/list/index.scss
+[ ] app/components/bali/sortable_list/index.scss
+[ ] app/components/bali/tree_view/index.scss
+[ ] app/components/bali/properties_table/index.scss
+[ ] app/components/bali/properties_table/property/index.scss
+[ ] app/components/bali/bulk_actions/index.scss
+
+## Tier 4: Form-related Components
+[ ] app/components/bali/filters/index.scss
+[ ] app/components/bali/search_input/index.scss
+[ ] app/components/bali/image_field/index.scss
+[ ] app/components/bali/recurrent_event_rule_form/index.scss
+[ ] app/components/bali/rate/index.scss
+
+## Tier 5: Layout Components
+[ ] app/components/bali/navbar/index.scss
+[ ] app/components/bali/side_menu/index.scss
+[ ] app/components/bali/page_header/index.scss
+[ ] app/components/bali/level/index.scss
+[ ] app/components/bali/info_level/index.scss
+
+## Tier 6: Visualization Components
+[ ] app/components/bali/chart/index.scss
+[ ] app/components/bali/carousel/index.scss
+[ ] app/components/bali/image_grid/index.scss
+[ ] app/components/bali/heatmap/index.scss
+[ ] app/components/bali/timeline/index.scss
+[ ] app/components/bali/stepper/index.scss
+[ ] app/components/bali/calendar/index.scss
+[ ] app/components/bali/locations_map/index.scss
+
+## Tier 7: Complex Components (Migrate Last)
+
+### Gantt Chart (7 files - consider keeping as CSS)
+[ ] app/components/bali/gantt_chart/index.scss
+[ ] app/components/bali/gantt_chart/drag_handle/index.scss
+[ ] app/components/bali/gantt_chart/timeline_background/index.scss
+[ ] app/components/bali/gantt_chart/timeline_header/index.scss
+[ ] app/components/bali/gantt_chart/task_actions/index.scss
+[ ] app/components/bali/gantt_chart/list_row/index.scss
+[ ] app/components/bali/gantt_chart/timeline_cell/index.scss
+
+### Rich Text Editor (4 files - consider keeping as CSS)
+[ ] app/components/bali/rich_text_editor/index.scss
+[ ] app/components/bali/rich_text_editor/stylesheets/bubble_menu.scss
+[ ] app/components/bali/rich_text_editor/stylesheets/content.scss
+[ ] app/components/bali/rich_text_editor/stylesheets/slash_commands_dropdown.scss
+
+## Global Stylesheets (Remove after components migrated)
+[ ] app/assets/stylesheets/bali/variables.scss
+[ ] app/assets/stylesheets/bali/general.scss
+[ ] app/assets/stylesheets/bali/forms.scss
+[ ] app/assets/stylesheets/bali/datepicker.scss
+[ ] app/assets/stylesheets/bali/slim_select.scss
+[ ] app/assets/stylesheets/bali/box.scss
+[ ] app/assets/stylesheets/bali/code.scss
+[ ] app/assets/stylesheets/bali/container.scss
+[ ] app/assets/stylesheets/bali/panel.scss
+[ ] app/assets/stylesheets/bali/switch.scss
+[ ] app/assets/stylesheets/bali/typography.scss
+[ ] app/assets/stylesheets/bali/rich_text.scss

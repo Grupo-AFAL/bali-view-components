@@ -5,42 +5,31 @@
     $height: 2rem;
     $padding: 0.1875rem;
     $slider-size: 1.62rem;
-  
-    position: relative;
-    display: flex;
-    align-items: center;
+
+    @apply relative flex items-center bg-base-300 shadow-sm;
     width: $width;
     height: $height;
-    background-color: $grey-lighter;
-  
-    box-shadow: $box-shadow;
     border-radius: $height;
     padding: $padding;
     transition: background-color $transition-time;
 
     &::before {
       content: '';
+      @apply rounded-full shadow-sm bg-base-100;
       width: $slider-size;
       height: $slider-size;
-      border-radius: 50%;
-      box-shadow: $box-shadow;
-      background: $white;
       transform: translateX(0%);
       transition: transform $transition-time;
     }
   }
 
   input {
-    position: absolute;
-    left: -1rem;
-    opacity: 0;
-    outline: 0;
-    user-select: none;
+    @apply absolute -left-4 opacity-0 outline-none select-none;
   }
 
   input:checked + label  {
-    background-color: $green;
-    
+    @apply bg-success;
+
     &::before {
       transform: translateX(100%);
     }

@@ -6,10 +6,10 @@
   <%= content %>
 
   <% if actions.any? %>
-    <div class="actions-container is-hidden" data-bulk-actions-target="actionsContainer">
-      <div class="floated-bar">
-        <div class="selected-count" data-bulk-actions-target="selectedCount">0</div>
-        <div class="bulk-actions">
+    <div class="actions-container hidden fixed bottom-9 left-1/2 -translate-x-1/2 -translate-y-1/2 flex justify-center z-40 bg-base-100" data-bulk-actions-target="actionsContainer">
+      <div class="floated-bar shadow-xl rounded-lg flex items-center">
+        <div class="selected-count bg-primary text-primary-content flex items-center justify-center px-4 py-2 rounded-l-lg font-bold text-2xl h-full" data-bulk-actions-target="selectedCount">0</div>
+        <div class="bulk-actions px-3 py-2">
           <% actions.each do |action| %>
             <%= action %>
           <% end %>

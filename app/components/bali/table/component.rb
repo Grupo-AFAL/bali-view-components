@@ -21,16 +21,24 @@ module Bali
 
       attr_reader :form, :options, :tbody_options, :table_container_options
 
-      def initialize(form: nil, bulk_actions: [], **options)
+      def initialize(form: nil, bulk_actions: [], sticky_headers: false, **options)
         @form = form
         @bulk_actions = bulk_actions
+        @sticky_headers = sticky_headers
         @tbody_options = hyphenize_keys(options.delete(:tbody) || {})
         @table_container_options = prepend_class_name(
-          options.delete(:table_container) || {}, 'overflow-x-auto table-component'
+          options.delete(:table_container) || {}, table_container_classes
         )
         @table_container_options = prepend_controller(@table_container_options, 'table')
 
         @options = prepend_class_name(hyphenize_keys(options), 'table table-zebra w-full')
+      end
+
+      def table_container_classes
+        class_names(
+          'overflow-x-auto table-component',
+          @sticky_headers && 'overflow-visible [&_table]:overflow-x-auto [&_thead_tr]:sticky [&_thead_tr]:bg-base-100 [&_thead_tr]:top-[3.75rem]'
+        )
       end
 
       def id

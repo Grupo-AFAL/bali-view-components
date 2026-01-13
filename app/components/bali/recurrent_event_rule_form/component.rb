@@ -11,7 +11,7 @@ module Bali
         @skip_end_method = options.delete(:skip_end_method) || false
         @frequency_options = options.delete(:frequency_options)&.map(&:to_s) ||
                              %w[yearly monthly weekly daily hourly]
-        @options = prepend_class_name(options, 'recurrent-event-rule-form-component')
+        @options = prepend_class_name(options, 'recurrent-event-rule-form-component [&_.weekday-checkboxes-container]:flex [&_.weekday-checkboxes-container]:gap-4 [&_.weekday-checkboxes-container]:w-full [&_.weekday-checkboxes-container]:overflow-x-scroll')
         @options = prepend_controller(options, 'recurrent-event-rule')
       end
 

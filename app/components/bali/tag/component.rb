@@ -44,7 +44,7 @@ module Bali
       }.freeze
 
       def initialize(text:, href: nil, color: nil, custom_color: nil, size: nil, style: nil,
-                     light: false, **options)
+                     light: false, rounded: false, **options)
         @text = text
         @href = href
         @color = color&.to_sym
@@ -52,6 +52,7 @@ module Bali
         @size = size&.to_sym
         @style = style&.to_sym
         @light = light
+        @rounded = rounded
         @options = options
 
         warn_deprecation if light
@@ -68,6 +69,7 @@ module Bali
           color_class,
           size_class,
           style_class,
+          @rounded ? 'rounded-full' : nil,
           @options[:class]
         )
       end

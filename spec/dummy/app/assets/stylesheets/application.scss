@@ -14,8 +14,7 @@
  *= require_self
  */
 
-// Third Party Libraries
-@import 'bulma';
+// Third Party Libraries - Bulma removed, now using Tailwind + DaisyUI
 @import '../../../../../app/assets/stylesheets/bali/variables';
 @import '../../../../../app/assets/stylesheets/bali/general';
 @import '../../../../../app/components/bali/actions_dropdown/index';

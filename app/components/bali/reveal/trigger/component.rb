@@ -11,10 +11,10 @@ module Bali
         def initialize(show_border: true, **options)
           @icon_class = options.delete(:icon_class)
 
-          @options = prepend_class_name(options, 'reveal-trigger')
+          @options = prepend_class_name(options, 'reveal-trigger flex justify-between items-center pb-6 mb-6')
           @options = prepend_action(@options, 'click->reveal#toggle')
 
-          @options = prepend_class_name(options, 'is-border-bottom') if show_border
+          @options = prepend_class_name(@options, 'border-b border-base-content/20') if show_border
         end
       end
     end

@@ -1,89 +1,51 @@
-$timeline-marker-size: 0.75rem !default;
-$timeline-marker-color: $grey-lighter !default;
-$timeline-marker-icon-size: 1.5rem !default;
-$timeline-marker-border-size: 1px !default;
-$timeline-marker-border: $timeline-marker-border-size solid
-  $timeline-marker-color !default;
-$timeline-line-color: $grey-lighter !default;
-$timeline-line-width: 1px !default;
-$timeline-line-style: solid !default;
-$timeline-line: $timeline-line-width $timeline-line-style $timeline-line-color !default;
-$timeline-content-padding: 1em 0 0 2em !default;
-$timeline-rtl-content-padding: 1em 2em 0 0 !default;
-$timeline-icon-size: 0.75rem !default;
-$timeline-header-width: 4em !default;
-$timeline-item-padding-left: $timeline-header-width * 0.5 !default;
-$timeline-item-padding-bottom: 2em !default;
-$dimensions: 16 24 32 48 64 96 128 !default;
+// Timeline variables
+$timeline-marker-size: 0.75rem;
+$timeline-marker-icon-size: 1.5rem;
+$timeline-line-width: 1px;
+$timeline-header-width: 4em;
+$timeline-item-padding-left: $timeline-header-width * 0.5;
+$timeline-item-padding-bottom: 2em;
+$timeline-content-padding: 1em 0 0 2em;
+$timeline-rtl-content-padding: 1em 2em 0 0;
 
 .timeline-component {
-  display: flex;
-  flex-direction: column;
+  @apply flex flex-col;
 
   .timeline-header {
     width: $timeline-header-width;
     min-width: $timeline-header-width;
     max-width: $timeline-header-width * 2;
-    word-wrap: normal;
-    text-align: center;
-    display: flex;
-    justify-content: center;
+    @apply break-words text-center flex justify-center;
   }
 
   .timeline-item {
-    display: flex;
-    position: relative;
+    @apply flex relative;
     margin-left: $timeline-item-padding-left;
     padding-bottom: $timeline-item-padding-bottom;
 
     &::before {
       content: '';
-      background-color: $timeline-line-color;
-      display: block;
+      @apply bg-base-300 block absolute top-0;
       width: $timeline-line-width;
       height: 100%;
-      position: absolute;
       left: -($timeline-line-width * 0.5);
-      top: 0;
     }
 
     .timeline-marker {
-      position: absolute;
-      background: $timeline-marker-color;
-      border: $timeline-marker-border;
-      border-radius: 100%;
-      content: '';
-      display: block;
+      @apply absolute bg-base-300 border border-base-300 rounded-full block;
       height: $timeline-marker-size;
+      width: $timeline-marker-size;
       transform: translateX(-50%);
       top: 1.2rem;
-      width: $timeline-marker-size;
 
       &.is-image {
-        @each $dimension in $dimensions {
-          &.is-#{$dimension}x#{$dimension} {
-            height: $dimension * 1px;
-            width: $dimension * 1px;
-          }
-        }
-
-        background: $timeline-marker-color;
-        border: $timeline-marker-border;
-        border-radius: 100%;
-        display: block;
-        overflow: hidden;
+        @apply bg-base-300 border border-base-300 rounded-full block overflow-hidden;
       }
 
       &.is-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        @apply flex items-center justify-center bg-base-300 border border-base-300 rounded-full p-2;
         height: $timeline-marker-icon-size;
         width: $timeline-marker-icon-size;
-        background: $timeline-marker-color;
-        border: $timeline-marker-border;
-        border-radius: 100%;
-        padding: 0.5rem;
 
         .icon-component,
         .svg-inline {
@@ -94,54 +56,41 @@ $dimensions: 16 24 32 48 64 96 128 !default;
 
       &.is-outlined {
         .image {
-          background: $white;
+          @apply bg-base-100;
         }
         &.is-icon {
-          background: $white;
+          @apply bg-base-100;
           > * {
-            color: $timeline-marker-color;
+            @apply text-base-300;
           }
         }
       }
 
-      @each $name, $pair in $colors {
-        $color: nth($pair, 1);
-        $color-invert: nth($pair, 2);
-
-        &.is-#{$name} {
-          background-color: $color !important;
-          border-color: $color !important;
-
-          .image {
-            border-color: $color !important;
-          }
-
-          &.is-icon {
-            background-color: $color !important;
-            border-color: $color !important;
-
-            > * {
-              color: $color-invert !important;
-            }
-          }
-
-          &.is-outlined {
-            background-color: $white !important;
-            border-color: $color !important;
-
-            .image {
-              background-color: $white !important;
-            }
-
-            &.is-icon {
-              background-color: $white !important;
-
-              > * {
-                color: $color !important;
-              }
-            }
-          }
-        }
+      // Color variants
+      &.is-primary {
+        @apply bg-primary border-primary #{!important};
+        &.is-icon > * { @apply text-primary-content #{!important}; }
+        &.is-outlined { @apply bg-base-100 #{!important}; &.is-icon > * { @apply text-primary #{!important}; } }
+      }
+      &.is-success {
+        @apply bg-success border-success #{!important};
+        &.is-icon > * { @apply text-success-content #{!important}; }
+        &.is-outlined { @apply bg-base-100 #{!important}; &.is-icon > * { @apply text-success #{!important}; } }
+      }
+      &.is-warning {
+        @apply bg-warning border-warning #{!important};
+        &.is-icon > * { @apply text-warning-content #{!important}; }
+        &.is-outlined { @apply bg-base-100 #{!important}; &.is-icon > * { @apply text-warning #{!important}; } }
+      }
+      &.is-danger, &.is-error {
+        @apply bg-error border-error #{!important};
+        &.is-icon > * { @apply text-error-content #{!important}; }
+        &.is-outlined { @apply bg-base-100 #{!important}; &.is-icon > * { @apply text-error #{!important}; } }
+      }
+      &.is-info {
+        @apply bg-info border-info #{!important};
+        &.is-icon > * { @apply text-info-content #{!important}; }
+        &.is-outlined { @apply bg-base-100 #{!important}; &.is-icon > * { @apply text-info #{!important}; } }
       }
     }
 
@@ -149,43 +98,33 @@ $dimensions: 16 24 32 48 64 96 128 !default;
       padding: $timeline-content-padding;
 
       .heading {
-        font-weight: $weight-semibold;
+        @apply font-semibold;
       }
     }
 
-    @each $name, $pair in $colors {
-      $color: nth($pair, 1);
-      $color-invert: nth($pair, 2);
-
-      &.is-#{$name} {
-        &::before {
-          background-color: $color;
-        }
-      }
-    }
+    // Line color variants
+    &.is-primary::before { @apply bg-primary; }
+    &.is-success::before { @apply bg-success; }
+    &.is-warning::before { @apply bg-warning; }
+    &.is-danger::before, &.is-error::before { @apply bg-error; }
+    &.is-info::before { @apply bg-info; }
   }
 
   &.is-centered {
     .timeline-header {
-      display: flex;
-      width: 100%;
-      align-self: center;
+      @apply flex w-full self-center;
     }
 
     .timeline-item {
-      width: 50%;
-      align-self: flex-end;
-      flex-direction: row;
+      @apply w-1/2 self-end flex-row;
 
       &:nth-of-type(2n) {
-        align-self: flex-start;
-        flex-direction: row-reverse;
-        margin-left: 0;
+        @apply self-start flex-row-reverse ml-0;
         margin-right: $timeline-item-padding-left;
 
         &::before {
           right: -($timeline-line-width * 0.5);
-          left: auto;
+          @apply left-auto;
         }
 
         .timeline-marker {
@@ -194,71 +133,39 @@ $dimensions: 16 24 32 48 64 96 128 !default;
 
         .timeline-content {
           padding: $timeline-rtl-content-padding;
-          text-align: right;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          flex-basis: 100%;
+          @apply text-right flex flex-col items-end basis-full;
         }
       }
 
       &:nth-of-type(2n + 1) {
         &::before {
           content: '';
-          background-color: $timeline-line-color;
-          display: block;
+          @apply bg-base-300 block absolute top-0;
           width: $timeline-line-width;
           height: 100%;
-          position: absolute;
-          top: 0;
-        }
-      }
-
-      @each $name, $pair in $colors {
-        $color: nth($pair, 1);
-        $color-invert: nth($pair, 2);
-
-        &.is-#{$name} {
-          &::before {
-            background-color: $color;
-          }
         }
       }
     }
   }
 
   &.is-rtl {
-    justify-content: flex-end;
-    align-items: flex-end;
+    @apply justify-end items-end;
 
     .timeline-item {
-      justify-content: flex-end;
-      flex-direction: row;
-      border-left: none;
+      @apply justify-end flex-row border-l-0 ml-0;
+      margin-right: $timeline-header-width * 0.5;
 
       &::before {
-        right: 0;
-        left: auto;
+        @apply right-0 left-auto;
       }
-
-      margin-left: 0;
-      margin-right: $timeline-header-width * 0.5;
 
       .timeline-marker {
         transform: translateX(50%);
-
-        &.is-image {
-          @each $dimension in $dimensions {
-            &.is-#{$dimension}x#{$dimension} {
-              transform: translateX(50%);
-            }
-          }
-        }
       }
 
       .timeline-content {
         padding: $timeline-rtl-content-padding;
-        text-align: right;
+        @apply text-right;
       }
     }
   }

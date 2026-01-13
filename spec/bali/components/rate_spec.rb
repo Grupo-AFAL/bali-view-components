@@ -27,7 +27,7 @@ RSpec.describe Bali::Rate::Component, type: :component do
       options[:value] = 3
       render_inline(component)
 
-      expect(page).to have_css 'button.star .icon.solid', count: 3
+      expect(page).to have_css 'button.star .icon-component.solid', count: 3
     end
   end
 
@@ -45,7 +45,7 @@ RSpec.describe Bali::Rate::Component, type: :component do
       options[:value] = 3
       render_inline(component)
 
-      expect(page).to have_css 'label.radio .icon.solid', count: 3
+      expect(page).to have_css 'label.radio .icon-component.solid', count: 3
     end
 
     it 'radio input with default data' do

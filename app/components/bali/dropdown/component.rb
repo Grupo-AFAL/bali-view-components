@@ -16,7 +16,7 @@ module Bali
       renders_many :items, ->(method: :get, href: nil, **options) do
         component_klass = method&.to_sym == :delete ? DeleteLink::Component : Link::Component
         component_klass.new(
-          method: method, href: href, **prepend_class_name(options, 'menu-item')
+          method: method, href: href, **prepend_class_name(options, 'menu-item w-full text-left')
         )
       end
 

@@ -1,50 +1,37 @@
-$menu-box-shadow: 0px 9px 9px rgba($black, 0.2), 0 0 0 1px rgba($black, 0.12);
-$selected-shadow: 0 0 0 3px rgba($primary, 0.5);
-$selected-cell-background-color: rgba(200, 200, 255, 0.4);
-$resize-handle-color: #adf;
-
 @import './stylesheets/content';
 @import './stylesheets/bubble_menu';
 @import './stylesheets/slash_commands_dropdown';
 
 .tippy-box .dropdown-item {
   &.is-active {
-    background-color: $white-ter;
+    @apply bg-base-200;
   }
 }
 
 .rich-text-editor-component {
   &.input {
-    height: unset;
-    min-height: 5rem;
-    display: block;
+    @apply h-auto min-h-20 block;
 
     &[data-rich-text-editor-editable-value='false'] {
-      border: none;
-      box-shadow: none;
-      padding: 0;
+      @apply border-none shadow-none p-0;
     }
   }
 
   .ProseMirror {
-    outline: none;
-    min-height: 16rem;
+    @apply outline-none min-h-64;
 
     .is-empty:before {
       content: attr(data-placeholder);
-      float: left;
-      color: #adb5bd;
-      pointer-events: none;
-      height: 0;
+      @apply float-left text-base-content/40 pointer-events-none h-0;
     }
 
     img.ProseMirror-selectednode {
-      box-shadow: $selected-shadow;
+      box-shadow: 0 0 0 3px oklch(var(--p) / 0.5);
     }
   }
 
   .tableWrapper {
-    overflow-x: auto;
+    @apply overflow-x-auto;
 
     blockquote:not(:last-child),
     dl:not(:last-child),
@@ -53,7 +40,7 @@ $resize-handle-color: #adf;
     pre:not(:last-child),
     table:not(:last-child),
     ul:not(:last-child) {
-      margin-bottom: 0;
+      @apply mb-0;
     }
   }
 

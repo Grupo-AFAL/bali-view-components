@@ -20,7 +20,7 @@ module Bali
         @zoom = zoom
         @clustered = clustered
 
-        @options = prepend_class_name(options, 'locations-map-component')
+        @options = prepend_class_name(options, 'locations-map-component flex max-md:flex-col')
         @options = prepend_controller(@options, 'locations-map')
         @options = prepend_values(@options, 'locations-map', controller_values)
       end

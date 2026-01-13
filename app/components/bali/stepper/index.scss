@@ -1,55 +1,51 @@
+// Stepper component variables
 $step-marker-border-size: 0.5rem;
 $step-marker-size: 2rem;
 $step-details-padding-top: 0.2rem;
 $step-connector-height: 0.2rem;
 
 .stepper-component {
-  display: flex;
-  flex-wrap: wrap;
+  @apply flex flex-wrap;
 
   .step-component {
-    margin-top: 0;
-    position: relative;
-    flex-grow: 1;
-    flex-basis: 0;
+    @apply mt-0 relative grow basis-0;
 
     &:before {
-      background: linear-gradient(to left, $grey-lighter 50%, $primary 50%);
+      // Gradient from base-300 to primary
+      background: linear-gradient(to left, oklch(var(--b3)) 50%, oklch(var(--p)) 50%);
       background-size: 200% 100%;
       background-position: right bottom;
     }
 
     &.is-active:before,
     &.is-done:before {
-      background: linear-gradient(to left, $primary 50%, $primary 50%);
+      background: linear-gradient(to left, oklch(var(--p)) 50%, oklch(var(--p)) 50%);
     }
 
     &.is-done {
       .step-marker {
-        background: $primary;
-        border: $step-marker-border-size solid $primary;
+        @apply bg-primary;
+        border: $step-marker-border-size solid oklch(var(--p));
       }
 
       .icon path {
-        fill: $white;
+        @apply fill-primary-content;
       }
     }
 
     &.is-active .step-marker {
-      background: $white;
-      border: $step-marker-border-size solid $primary;
+      @apply bg-base-100;
+      border: $step-marker-border-size solid oklch(var(--p));
     }
 
     &.is-pending {
-      color: $grey-light;
+      @apply text-base-content/50;
     }
 
     &:not(:first-child)::before {
       content: ' ';
-      display: block;
-      position: absolute;
+      @apply block absolute w-full;
       height: $step-connector-height;
-      width: 100%;
       bottom: 0;
       left: -50%;
       top: calc($step-marker-size / 2);
@@ -59,25 +55,19 @@ $step-connector-height: 0.2rem;
   .step-marker {
     height: $step-marker-size;
     width: $step-marker-size;
-    position: absolute;
+    @apply absolute;
     left: calc(50% - #{(calc($step-marker-size / 2))});
 
-    align-items: center;
-    display: flex;
-    border-radius: 50%;
-    font-weight: 700;
-    justify-content: center;
-    background: $grey-lighter;
-    border: $step-marker-border-size solid $grey-lighter;
-    box-shadow: 0px 0px 0px $step-marker-border-size $white;
-    z-index: 1;
+    @apply items-center flex rounded-full font-bold justify-center;
+    @apply bg-base-300;
+    border: $step-marker-border-size solid oklch(var(--b3));
+    box-shadow: 0px 0px 0px $step-marker-border-size oklch(var(--b1));
+    @apply z-10;
   }
 
   .step-details {
-    text-align: center;
+    @apply text-center mx-2;
     margin-top: $step-marker-size;
-    margin-left: 0.5em;
-    margin-right: 0.5em;
     padding-top: $step-details-padding-top;
   }
 }

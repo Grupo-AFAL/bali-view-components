@@ -121,7 +121,7 @@ export default {
 
   render: SuggestionRenderer({
     popUpOptions: {
-      rootOptions: { className: 'slash-commands-dropdown' }
+      rootOptions: { className: 'slash-commands-dropdown border border-base-200 w-48 [&_.dropdown-item]:cursor-pointer [&_.dropdown-item]:flex [&_.dropdown-item]:items-center [&_.icon]:mr-2' }
     }
   })
 }

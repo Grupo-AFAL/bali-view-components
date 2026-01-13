@@ -24,7 +24,7 @@ module Bali
         @auto_submit = auto_submit
         @readonly = readonly
 
-        @options = prepend_class_name(options, 'rate-component')
+        @options = prepend_class_name(options, rate_classes)
         @options = prepend_controller(@options, 'rate')
 
         @radio_options = options.delete(:radio) || {}
@@ -49,10 +49,34 @@ module Bali
         render(Bali::Icon::Component.new('star', class: icon_class(rate)))
       end
 
+      ICON_SIZES = {
+        small: 'size-4',
+        medium: 'size-6',
+        large: 'size-8'
+      }.freeze
+
+      ICON_MARGINS = {
+        small: 'mr-1',
+        medium: 'mr-2',
+        large: 'mr-3'
+      }.freeze
+
       private
 
+      def rate_classes
+        class_names(
+          'rate-component flex flex-wrap',
+          "[&_input[type='radio']]:hidden",
+          '[&_.radio+.radio]:ml-0',
+          "[&_.icon_path]:fill-base-100 [&_.icon_path]:stroke-warning/80 [&_.icon_path]:[stroke-width:30]",
+          '[&_.icon.solid_path]:fill-warning',
+          '[&_button.star]:border-none [&_button.star]:bg-transparent [&_button.star]:cursor-pointer [&_button.star]:p-0',
+          "[&_label:last-child_.icon]:mr-0 [&_button:last-child_.icon]:mr-0 [&>.icon:last-child]:mr-0"
+        )
+      end
+
       def icon_class(rate)
-        class_names("is-#{size}", solid: value.to_i >= rate)
+        class_names(ICON_SIZES[size], ICON_MARGINS[size], solid: value.to_i >= rate)
       end
 
       def form_object_class

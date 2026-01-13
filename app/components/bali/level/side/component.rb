@@ -24,7 +24,7 @@ module Bali
         def side_classes
           class_names(
             "level-#{position}",
-            'flex items-center gap-4'
+            'flex items-center gap-4 shrink'
           )
         end
       end

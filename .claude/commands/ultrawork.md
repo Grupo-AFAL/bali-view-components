@@ -10,11 +10,58 @@ Autonomously migrate multiple Bali components from Bulma to DaisyUI without inte
 
 Where `$ARGUMENTS` is:
 - `--all` - Migrate all pending components
-- `--phase N` - Migrate components in phase N (1-6)
-- `--components Button,Card,Modal` - Migrate specific components
+- `--batch N` - Migrate components in batch N (1-8)
+- `--component name` - Migrate a single specific component
+- `--resume` - Resume from last state (reads MIGRATION_STATE.json)
+- `--infrastructure` - Run infrastructure setup only (Phase 1-2)
 - `--dry-run` - Plan only, don't execute
 - `--stop-on-failure` - Stop if any component fails (default: continue)
 - `--skip-visual` - Skip visual verification (faster, less safe)
+
+## State Tracking
+
+Progress is tracked in `docs/migration/MIGRATION_STATE.json`. This allows:
+- Resuming after interruption
+- Tracking which components are done/pending/failed
+- Logging errors for review
+
+## Prerequisites Check
+
+Before ANY component migration, verify:
+1. `docs/migration/MIGRATION_STATE.json` exists and `infrastructure_complete: true`
+2. If infrastructure not complete, run `--infrastructure` first
+3. On `tailwind-migration` branch
+4. Working directory clean (no uncommitted changes)
+5. Lookbook server running at http://localhost:3001/lookbook
+
+## Infrastructure Phase (Run First!)
+
+If `infrastructure_complete` is false, execute these steps:
+
+### Step 1: Update Gemfile
+Remove: `bulma-rails`, `dartsass-rails`, `sprockets-rails`
+Add: `propshaft` (if not present)
+Keep: `tailwindcss-rails`, `importmap-rails`
+
+### Step 2: Update spec/dummy configuration
+- Update `config/application.rb` (remove scss from lookbook extensions)
+- Update `Procfile.dev` (remove sass watcher)
+- Update Tailwind config to scan Bali components
+
+### Step 3: Update Engine
+- Simplify `lib/bali/engine.rb` (remove Sprockets hooks)
+- Create `config/importmap.rb` in gem root
+
+### Step 4: Verify Infrastructure
+```bash
+cd spec/dummy
+bundle install
+bin/rails tailwindcss:build
+bin/rails assets:precompile
+```
+
+### Step 5: Mark Complete
+Update MIGRATION_STATE.json: `infrastructure_complete: true`
 
 ## Verification Strategy (CRITICAL)
 

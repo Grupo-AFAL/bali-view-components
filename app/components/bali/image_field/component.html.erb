@@ -2,7 +2,7 @@
   <%= image_tag(@image_url, **@image_options) %>
 
   <% if input? %>
-    <%= image_tag(@placeholder_url, class: 'is-hidden', data: { image_field_target: 'placeholder' }) %>
+    <%= image_tag(@placeholder_url, class: 'hidden', data: { image_field_target: 'placeholder' }) %>
 
     <%= input %>
 

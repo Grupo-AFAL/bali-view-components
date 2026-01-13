@@ -1,35 +1,48 @@
 a {
   &[disabled] {
-    color: $grey-lighter;
-    cursor: not-allowed;
+    @apply text-base-300 cursor-not-allowed;
   }
 
   &.with-icon {
-    display: flex;
+    @apply flex;
   }
 }
 
 .absolute-right {
-  position: absolute;
-  right: 0;
+  @apply absolute right-0;
 }
 
 .push-right {
-  flex-grow: 20;
+  @apply grow-[20];
 }
 
 .is-fullwidth {
-  width: 100%;
+  @apply w-full;
 }
 
 .w-fit {
-  width: fit-content;
+  @apply w-fit;
 }
 
 .is-margin-auto {
-  margin: auto;
+  @apply m-auto;
 }
 
 .is-circle {
-  border-radius: 50%;
+  @apply rounded-full;
+}
+
+/* Notification fadeOut animation */
+.fadeOutRight {
+  animation: fadeOutRight 1s both;
+}
+
+@keyframes fadeOutRight {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(100%, 0, 0);
+  }
 }

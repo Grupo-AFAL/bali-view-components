@@ -40,9 +40,9 @@ RSpec.describe Bali::GanttChart::Component, type: :component do
     end
 
     it 'renders view mode buttons' do
-      expect(page).to have_css '.gantt-chart-actions .button', text: 'Day'
-      expect(page).to have_css '.gantt-chart-actions .button', text: 'Week'
-      expect(page).to have_css '.gantt-chart-actions .button', text: 'Month'
+      expect(page).to have_css '.gantt-chart-actions .btn', text: 'Day'
+      expect(page).to have_css '.gantt-chart-actions .btn', text: 'Week'
+      expect(page).to have_css '.gantt-chart-actions .btn', text: 'Month'
     end
   end
 

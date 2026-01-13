@@ -8,7 +8,7 @@ module Bali
       renders_many :properties, Bali::PropertiesTable::Property::Component
 
       def initialize(**options)
-        @options = prepend_class_name(options, 'table properties-table-component')
+        @options = prepend_class_name(options, 'table properties-table-component [&_td]:border [&_th]:border [&_tbody]:inline-table [&_tbody]:w-full [&_tbody_tr:last-child_td]:border-b [&_tbody_tr:last-child_th]:border-b')
       end
     end
   end

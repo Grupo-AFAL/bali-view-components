@@ -1,20 +1,10 @@
-$td-padding: 6px;
-$td-border-color: #ddd;
-$w-100: 100%;
-$grey-7: hsl(200, 13%, 95%) !default;
-$grey-alpha: hsla(0, 0%, 35%, 0.5);
-$grey-darker-alpha: hsla(224, 28%, 19%, 0.4);
-
 .calendar-component {
   td {
-    padding: $td-padding;
-    vertical-align: top;
-    border: 1px solid $td-border-color;
+    @apply p-1.5 align-top border border-base-300;
   }
 
   .day {
-    position: relative;
-    width: $w-100;
+    @apply relative w-full;
 
     .hover-card-component {
       width: unset;
@@ -22,27 +12,24 @@ $grey-darker-alpha: hsla(224, 28%, 19%, 0.4);
   }
 
   .today {
-    background: $grey-7;
-    border: 2px solid $grey-alpha;
+    @apply bg-base-200 border-2 border-base-content/50;
   }
 
   .prev-month,
   .next-month {
-    background: $white;
+    @apply bg-base-100;
 
     .has-text-weight-semibold {
-      color: $grey-darker-alpha;
+      @apply text-base-content/40;
     }
   }
 
   .header {
     .unselected {
-      background-color: $white;
-      border: 1px solid $primary;
-      color: $primary;
+      @apply bg-base-100 border border-primary text-primary;
 
       svg > rect {
-        stroke: $primary;
+        @apply stroke-primary;
       }
     }
   }
@@ -50,34 +37,31 @@ $grey-darker-alpha: hsla(224, 28%, 19%, 0.4);
   .table-container {
     .table {
       th {
-        border: none;
-        padding: $td-padding;
+        @apply border-none p-1.5;
       }
 
       th,
       td {
-        flex-grow: 1;
+        @apply grow;
       }
 
       tr {
-        display: flex;
+        @apply flex;
       }
 
       td {
-        margin: 0 0.7rem 0.7rem 0;
-        border-radius: 0.375rem;
-        border-bottom-width: 1px;
+        @apply mr-3 mb-3 rounded-md border-b;
       }
     }
   }
 
   .month-view {
     .day {
-      min-height: 9rem;
+      @apply min-h-36;
     }
 
     td.today {
-      border-bottom-width: 2px;
+      @apply border-b-2;
     }
   }
 
@@ -85,7 +69,7 @@ $grey-darker-alpha: hsla(224, 28%, 19%, 0.4);
     .day {
       min-height: 50vh;
 
-      @include mobile {
+      @media (max-width: 768px) {
         width: 75vw;
       }
     }

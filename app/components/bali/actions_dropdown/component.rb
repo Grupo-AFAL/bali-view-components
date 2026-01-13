@@ -19,7 +19,7 @@ module Bali
           arrow: false
         )
 
-        @options = prepend_class_name(options, 'actions-dropdown')
+        @options = prepend_class_name(options, 'actions-dropdown inline-block')
         @options = prepend_data_attribute(
           options,
           'hovercard-content-class',

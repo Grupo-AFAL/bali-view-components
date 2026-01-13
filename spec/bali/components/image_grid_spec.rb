@@ -8,7 +8,7 @@ RSpec.describe Bali::ImageGrid::Component, type: :component do
   it 'renders the image grid' do
     render_inline(component)
 
-    expect(page).to have_css '.image-grid-component.columns.is-multiline'
+    expect(page).to have_css '.image-grid-component.grid.grid-cols-4'
   end
 
   it 'renders 4 images' do
@@ -18,16 +18,16 @@ RSpec.describe Bali::ImageGrid::Component, type: :component do
       end
     end
 
-    expect(page).to have_css 'figure.image.is-3by2', count: 4
+    expect(page).to have_css 'figure.image', count: 4
   end
 
-  it 'renders with customized column size' do
+  it 'renders with image-grid-item class' do
     render_inline(component) do |c|
       4.times do
-        c.with_image(column_size: 'is-one-fifth') { c.tag.img src: 'img.png' }
+        c.with_image { c.tag.img src: 'img.png' }
       end
     end
 
-    expect(page).to have_css '.column.is-one-fifth', count: 4
+    expect(page).to have_css '.image-grid-item', count: 4
   end
 end

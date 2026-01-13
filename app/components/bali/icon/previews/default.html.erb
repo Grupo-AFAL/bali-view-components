@@ -1,6 +1,6 @@
-<div class='columns is-multiline is-3'>
+<div class='grid grid-cols-5 gap-4'>
   <% icons.each do |icon| %>
-    <div class='column is-one-fifth'>
+    <div class='text-center'>
       <%= render Bali::Icon::Component.new(icon) %>
       <p><%= icon %></p>
     </div>

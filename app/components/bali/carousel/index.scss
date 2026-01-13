@@ -1,94 +1,71 @@
 .carousel-component.glide {
-  position: relative;
-  width: 100%;
-  box-sizing: border-box;
+  @apply relative w-full box-border;
 
   * {
     box-sizing: inherit;
   }
 
   .glide__track {
-    overflow: hidden;
+    @apply overflow-hidden;
   }
 
   .glide__slides {
-    position: relative;
-    width: 100%;
-    list-style: none;
+    @apply relative w-full list-none m-0 p-0;
+    @apply whitespace-nowrap flex flex-nowrap will-change-transform;
     backface-visibility: hidden;
     transform-style: preserve-3d;
     touch-action: pan-Y;
     overflow: hidden;
-    margin: 0;
-    padding: 0;
-    white-space: nowrap;
-    display: flex;
-    flex-wrap: nowrap;
-    will-change: transform;
   }
 
   .glide__slide {
-    margin: auto;
-    width: 100%;
-    height: 100%;
-    flex-shrink: 0;
-    white-space: normal;
-    user-select: none;
+    @apply m-auto w-full h-full shrink-0 whitespace-normal select-none;
     -webkit-touch-callout: none;
     -webkit-tap-highlight-color: transparent;
 
     a {
-      user-select: none;
+      @apply select-none;
       -webkit-user-drag: none;
       -moz-user-select: none;
       -ms-user-select: none;
     }
 
     &--active {
-      z-index: 1;
+      @apply z-[1];
 
       .image-center {
-        display: block;
-        margin: auto;
+        @apply block m-auto;
       }
     }
   }
 
   .glide__arrows {
     -webkit-touch-callout: none;
-    user-select: none;
+    @apply select-none;
   }
 
   .glide__arrow {
-    position: absolute;
-    display: block;
-    top: 50%;
-    z-index: 2;
-    color: white;
-    text-transform: uppercase;
+    @apply absolute block top-1/2 z-[2] text-white uppercase;
+    @apply bg-transparent border-2 border-white/50 rounded-full;
+    @apply opacity-100 cursor-pointer;
     padding: 0.188rem;
-    background-color: transparent;
-    border: 2px solid rgba(255, 255, 255, 0.5);
-    border-radius: 50%;
     box-shadow: 0 0.25em 0.5em 0 rgba(0, 0, 0, 0.1);
     text-shadow: 0 0.25em 0.5em rgba(0, 0, 0, 0.1);
-    opacity: 1;
-    cursor: pointer;
     transition: opacity 150ms ease, border 300ms ease-in-out;
     transform: translateY(-50%);
     line-height: 1;
 
     &:focus {
-      outline: none;
+      @apply outline-none;
     }
     &:hover {
-      border-color: white;
+      @apply border-white;
     }
 
     &--left {
       left: -4rem;
 
-      @include mobile {
+      @media (max-width: 768px) {
         left: 2rem;
       }
     }
@@ -96,66 +73,52 @@
     &--right {
       right: -4rem;
 
-      @include mobile {
+      @media (max-width: 768px) {
         right: 2rem;
       }
     }
 
     &--disabled {
-      opacity: 0.33;
+      @apply opacity-30;
     }
   }
 
   .glide__bullets {
     -webkit-touch-callout: none;
-    user-select: none;
-    position: absolute;
-    z-index: 2;
+    @apply select-none absolute z-[2] left-1/2 inline-flex list-none;
     bottom: 2em;
-    left: 50%;
-    display: inline-flex;
-    list-style: none;
     transform: translateX(-50%);
   }
 
   .glide__bullet {
+    @apply w-2.5 h-2.5 p-0 rounded-full border-2 border-transparent cursor-pointer;
     background-color: rgba(255, 255, 255, 0.5);
-    width: 9px;
-    height: 9px;
-    padding: 0;
-    border-radius: 50%;
-    border: 2px solid transparent;
     transition: all 300ms ease-in-out;
-    cursor: pointer;
     line-height: 0;
     box-shadow: 0 0.25em 0.5em 0 rgba(0, 0, 0, 0.1);
     margin: 0 0.25em;
 
     &:focus {
-      outline: none;
+      @apply outline-none;
     }
 
     &:hover,
     &:focus {
-      border: 2px solid white;
+      @apply border-2 border-white;
       background-color: rgba(255, 255, 255, 0.5);
     }
 
     &--active {
-      background-color: white;
+      @apply bg-white;
     }
   }
 
   &--swipeable {
-    cursor: grab;
-    cursor: -moz-grab;
-    cursor: -webkit-grab;
+    @apply cursor-grab;
   }
 
   &--dragging {
-    cursor: grabbing;
-    cursor: -moz-grabbing;
-    cursor: -webkit-grabbing;
+    @apply cursor-grabbing;
   }
 
   &--rtl {
@@ -163,15 +126,12 @@
   }
 
   .glide__expand-link {
-    position: absolute;
+    @apply absolute z-[1] rounded-full;
     bottom: 1.25rem;
     right: 1.25rem;
-    z-index: 1;
-    border-radius: 50%;
 
     path {
-      fill: $white;
+      @apply fill-white;
     }
   }
 }
-

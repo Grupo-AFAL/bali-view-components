@@ -1,17 +1,17 @@
 <% if cards? %>
   <%= tag.div(**options) do %>
-    <div class="locations-map-component--cards">
+    <div class="locations-map-component--cards flex-1 mr-3 max-md:mr-0">
       <% cards.each do |card| %>
         <%= card %>
       <% end %>
     </div>
 
-    <div class='locations-map-component--locations'>
+    <div class="locations-map-component--locations flex-1 ml-3 max-md:ml-0 max-md:mt-6">
       <% locations.each do |location| %>
         <%= location %>
       <% end %>
 
-      <div class="location-map" data-locations-map-target="map"></div>
+      <div class="location-map flex-1 h-[450px]" data-locations-map-target="map"></div>
     </div>
   <% end %>
 <% else %>
@@ -20,6 +20,6 @@
       <%= location %>
     <% end %>
 
-    <div class="location-map" data-locations-map-target="map"></div>
+    <div class="location-map flex-1 h-[450px]" data-locations-map-target="map"></div>
   <% end %>
 <% end %>

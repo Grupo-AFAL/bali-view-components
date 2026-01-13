@@ -8,9 +8,11 @@ module Bali
 
         attr_reader :image_ratio
 
-        def initialize(image_ratio: 'is-3by2', column_size: 'is-one-quarter', **options)
+        # image_ratio: aspect ratio class (aspect-[3/2], aspect-square, etc.)
+        # column_size: kept for backwards compatibility but now ignored (grid handles column sizing)
+        def initialize(image_ratio: 'aspect-[3/2]', column_size: nil, **options)
           @image_ratio = image_ratio
-          @options = prepend_class_name(options, "column #{column_size}")
+          @options = prepend_class_name(options, 'image-grid-item')
         end
       end
 

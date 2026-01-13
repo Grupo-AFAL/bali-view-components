@@ -1,4 +1,5 @@
 .code-syntax {
+  // Syntax highlighting colors - these are theme-specific, not Bulma variables
   $white-font: #e7e4eb;
   $purple-font: #af8dd9;
   $gray-font: #9e9e9e;
@@ -13,25 +14,20 @@
   $brown-font: #ce9178;
 
   pre {
-    background-color: $black-ter;
-
-    display: block;
-    overflow-x: auto;
-    padding: 1em;
-    color: $white-font;
+    @apply block overflow-x-auto p-4 bg-neutral text-neutral-content;
   }
-  
+
   .hljs-subtr {
     color: $white-font;
   }
-  
+
   .hljs-doctag,
   .hljs-meta,
   .hljs-comment,
   .hljs-quote {
     color: $purple-font;
   }
-  
+
   .hljs-selector-tag,
   .hljs-selector-id,
   .hljs-template-tag,
@@ -39,17 +35,17 @@
   .hljs-tag {
     color: $gray-font;
   }
-  
+
   .hljs-attr {
     color: $light-blue-font;
   }
-  
+
   .hljs-params,
   .hljs-selector-class,
   .hljs-bullet {
     color: $pink-font;
   }
-  
+
   .hljs-keyword,
   .hljs-section,
   .hljs-meta-keyword,
@@ -57,27 +53,27 @@
   .hljs-type {
     color: $green-font;
   }
-  
+
   .hljs-addition,
   .hljs-number,
   .hljs-link {
     color: $light-green-font;
   }
-  
+
   .hljs-string {
     color: $brown-font;
   }
-  
+
   .hljs-attribute,
   .hljs-addition {
     color: $lightest-green-font;
   }
-  
+
   .hljs-variable,
   .hljs-template-variable {
     color: $fuchsia-font;
   }
-  
+
   .hljs-builtin-name,
   .hljs-built_in,
   .hljs-formula,
@@ -87,18 +83,18 @@
   .hljs-function {
     color: $blue-font;
   }
-  
+
   .hljs-selector-pseudo,
   .hljs-deletion,
   .hljs-literal {
     color: $orange-font;
   }
-  
+
   .hljs-emphasis,
   .hljs-quote {
-    font-style: italic;
+    @apply italic;
   }
-  
+
   .hljs-params,
   .hljs-selector-class,
   .hljs-strong,
@@ -107,6 +103,6 @@
   .hljs-template-tag,
   .hljs-section,
   .hljs-keyword {
-    font-weight: bold;
+    @apply font-bold;
   }
 }

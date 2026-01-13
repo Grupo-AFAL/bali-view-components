@@ -4,7 +4,7 @@
       <%= render Bali::Tabs::Trigger::Component.new(tab, index) %>
     <% end %>
   </div>
-  <div class="tabs-content p-4">
+  <div class="tabs-content bg-base-100 p-4">
     <% tabs.each_with_index do |tab, index| %>
       <%= tag.div **tab.options, data: {
             'tabs-target': 'tabContent',

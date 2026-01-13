@@ -24,9 +24,11 @@ module Bali
         class_names(
           'notification-component',
           'alert',
+          'shadow-[0px_3px_18px_rgba(0,0,0,0.1),0_0_0_1px_rgba(0,0,0,0.03)]',
+          '[&.is-unclosable_.btn-circle]:hidden [&.is-unclosable_.notification-content-component]:mr-0',
           TYPES[@type],
-          @fixed && 'fixed top-4 right-4 left-4 md:left-auto md:w-96 z-50',
-          Bali.native_app && 'native-app',
+          @fixed && 'fixed top-[4.25rem] right-4 z-[101]',
+          @fixed && Bali.native_app && 'top-4 left-1/2 right-auto -translate-x-1/2 w-full',
           @options[:class]
         )
       end

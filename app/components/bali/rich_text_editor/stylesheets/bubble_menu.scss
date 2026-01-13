@@ -1,18 +1,18 @@
 $menu-border-radius: 0.25rem;
 $menu-dropdown-icon-size: 0.75em;
+$menu-box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+$selected-shadow: 0 0 0 2px oklch(var(--p) / 0.5);
 
 .rich-text-editor-menu {
-  display: flex;
+  @apply flex text-center w-fit;
   box-shadow: $menu-box-shadow;
-  text-align: center;
   border-radius: $menu-border-radius;
-  width: fit-content;
 
   .toolbar-link.is-active {
-    color: $primary;
+    @apply text-primary;
 
     path {
-      fill: $primary;
+      fill: oklch(var(--p));
     }
   }
 
@@ -22,21 +22,20 @@ $menu-dropdown-icon-size: 0.75em;
       height: $menu-dropdown-icon-size;
 
       path {
-        fill: $grey-light;
+        @apply fill-base-300;
       }
     }
   }
 
   .image-grid-component {
-    padding: 0.5rem 1rem;
-    width: 25rem;
+    @apply py-2 px-4 w-[25rem];
 
     .column {
-      padding: 0.25rem;
+      @apply p-1;
     }
 
     .card {
-      box-shadow: 0 0 0 1px rgba($black, 0.25);
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
 
       &:hover {
         box-shadow: $selected-shadow;
@@ -45,12 +44,12 @@ $menu-dropdown-icon-size: 0.75em;
   }
 
   .dropdown-menu {
-    min-width: unset;
+    @apply min-w-0;
   }
 
   .dropdown-trigger {
     a {
-      width: max-content;
+      @apply w-max;
     }
   }
 
@@ -61,117 +60,86 @@ $menu-dropdown-icon-size: 0.75em;
 
   > :last-child {
     border-radius: 0 $menu-border-radius $menu-border-radius 0;
-    border-right: none;
+    @apply border-r-0;
   }
 
   a.toolbar-link {
-    display: inline-block;
-    color: $black-ter;
-    background-color: white;
-    border-right: 1px solid $grey-lightest;
-    padding: 0.25rem 0.25rem;
+    @apply inline-block text-base-content bg-base-100 border-r border-base-200;
+    @apply py-1 px-1;
 
     &,
     &.table {
-      margin-bottom: 0;
+      @apply mb-0;
     }
 
     &.mark {
-      padding: 0.25rem;
-      width: max-content;
+      @apply p-1 w-max;
     }
 
     &.disabled {
-      opacity: 0.2;
-      cursor: not-allowed;
+      @apply opacity-20 cursor-not-allowed;
     }
 
     &:hover {
-      background-color: $grey-lightest;
+      @apply bg-base-200;
     }
   }
 
   .dropdown-item {
-    display: block;
-    border: none;
-    width: 100%;
-    text-align: left;
-    padding: 0.25rem 1rem;
-    margin: 0;
+    @apply block border-none w-full text-left py-1 px-4 m-0;
 
     &.is-active {
-      background-color: $white;
-      color: $black;
-      font-weight: bold;
-      text-decoration: underline;
+      @apply bg-base-100 text-base-content font-bold underline;
     }
 
     &:hover {
-      background-color: $grey-lightest;
+      @apply bg-base-200;
     }
   }
 
   .link-panel {
-    width: 18rem;
-    padding: 0 0.5rem;
-    text-align: left;
-    font-size: $size-7;
+    @apply w-72 px-2 text-left text-sm;
 
     .input {
-      display: inline-block;
-      text-align: left;
+      @apply inline-block text-left overflow-hidden;
       overflow-wrap: normal;
-      overflow: hidden;
     }
 
     [contenteditable='true']:empty:before {
-      color: $grey-light;
+      @apply text-base-300 block pointer-events-none;
       content: attr(placeholder);
-      pointer-events: none;
-      display: block; /* For Firefox */
     }
 
     .tabs {
-      margin-bottom: 0.5rem;
+      @apply mb-2;
 
       ul {
-        list-style: none;
-        margin: 0;
+        @apply list-none m-0;
       }
 
       li {
-        display: block;
-        padding: 0;
+        @apply block p-0;
       }
     }
 
     .page-link {
-      display: block;
-      border: none;
+      @apply block border-none;
     }
   }
 
   .page-selection {
-    max-height: 200px;
-    overflow: auto;
+    @apply max-h-[200px] overflow-auto;
   }
 
   .color-selector {
-    height: auto;
-    width: 2rem;
-    padding: 0.375rem;
-    border: none;
-    background-color: $white;
+    @apply h-auto w-8 p-1.5 border-none bg-base-100;
 
     &::-webkit-color-swatch-wrapper {
-      padding: 0;
+      @apply p-0;
     }
 
     &::-webkit-color-swatch {
-      padding: 0px;
-      margin: 0px;
-      border: none;
-      border-radius: 0px 0.25rem 0.25rem 0px;
+      @apply p-0 m-0 border-none rounded-r;
     }
   }
 }

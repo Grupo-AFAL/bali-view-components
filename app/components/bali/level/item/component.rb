@@ -8,7 +8,7 @@ module Bali
 
         def initialize(text: nil, **options)
           @text = text
-          @options = prepend_class_name(options, 'level-item flex items-center')
+          @options = prepend_class_name(options, 'level-item flex items-center max-w-full')
         end
 
         def call

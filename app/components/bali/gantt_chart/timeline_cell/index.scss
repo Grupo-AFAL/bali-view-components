@@ -1,9 +1,6 @@
 .gantt-chart-component {
   .gantt-chart-cell {
-    position: absolute;
-    height: 100%;
-    display: flex;
-    align-items: center;
+    @apply absolute h-full flex items-center;
 
     &.critical {
       .gantt-chart-cell-content {
@@ -19,19 +16,15 @@
   }
 
   .gantt-chart-cell-content {
-    width: 100%;
+    @apply w-full flex z-[1] absolute;
     height: $gantt-chart-item-bubble-height;
     border-radius: $gantt-chart-item-bubble-radius;
-    display: flex;
-    z-index: 1;
     box-shadow: $sharp-box-shadow;
 
-    position: absolute;
     top: calc(($gantt-chart-row-height - $gantt-chart-item-bubble-height) / 2);
 
     &:hover .gantt-chart-resize {
-      opacity: 1;
-      background-color: rgba(10, 10, 10, 0.3);
+      @apply opacity-100 bg-black/30;
     }
   }
 
@@ -45,53 +38,44 @@
 
   .milestone .gantt-chart-cell-content {
     background-color: $gantt-chart-milestone-color;
-    border-radius: 2px;
+    @apply rounded-sm h-4 w-4;
     transform: rotate(45deg);
-    height: 1rem;
-    width: 1rem;
     left: 4px;
     top: 10px;
   }
 
   .gantt-chart-resize {
-    opacity: 0;
+    @apply opacity-0;
     height: $gantt-chart-item-bubble-height;
     width: $gantt-chart-resizer-width;
 
     path {
-      fill: $white;
+      @apply fill-white;
     }
   }
 
   .gantt-chart-resize-left {
-    cursor: w-resize;
+    @apply cursor-w-resize;
     border-radius: $gantt-chart-item-bubble-radius 0 0
       $gantt-chart-item-bubble-radius;
   }
 
   .gantt-chart-resize-right {
-    cursor: e-resize;
+    @apply cursor-e-resize;
     border-radius: 0 $gantt-chart-item-bubble-radius
       $gantt-chart-item-bubble-radius 0;
   }
 
   .right-timeline-task-name {
-    display: none;
-    position: absolute;
-    top: 0;
-    font-size: 0.625rem;
-    font-weight: 600;
-    width: 300px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    @apply hidden absolute top-0 text-[0.625rem] font-semibold;
+    @apply w-[300px] overflow-hidden text-ellipsis whitespace-nowrap;
   }
 
   .gantt-chart-cell.has-children,
   .task-name-too-long,
   .milestone {
     .right-timeline-task-name {
-      display: block;
+      @apply block;
     }
   }
 

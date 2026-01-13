@@ -1,34 +1,37 @@
+// Rich text editor theme colors
+$selected-cell-background-color: oklch(var(--p) / 0.2);
+$resize-handle-color: oklch(var(--p));
+
 .rich-editor-content {
   p {
-    min-height: 1.5rem;
+    @apply min-h-6;
   }
 
   h1,
   h2,
   h3 {
-    font-weight: bold;
+    @apply font-bold;
   }
 
   h1 {
-    font-size: $size-4;
+    @apply text-2xl;
   }
 
   h2 {
-    font-size: $size-5;
+    @apply text-xl;
   }
 
   h3 {
-    font-size: $size-6;
+    @apply text-base;
   }
 
   ul {
     list-style: disc outside;
-    margin-left: 2em;
-    margin-top: 1em;
+    @apply ml-8 mt-4;
 
     ul {
       list-style: circle outside;
-      margin-top: 0;
+      @apply mt-0;
 
       ul {
         list-style: square outside;
@@ -45,87 +48,57 @@
   }
 
   li {
-    display: list-item;
-    padding: 3px 2px;
+    @apply list-item py-0.5 px-0.5;
 
     p:not(:last-child) {
-      margin-bottom: 0;
+      @apply mb-0;
     }
   }
 
   ol {
-    list-style-position: outside;
-    margin-left: 2em;
-    margin-top: 1em;
+    @apply list-decimal ml-8 mt-4;
   }
 
   blockquote {
-    background-color: $grey-lightest;
-    border-left: 5px solid $grey-lighter;
-    padding: 1.25em 1.5em;
+    @apply bg-base-200 border-l-4 border-base-300 py-5 px-6;
   }
 
   table {
-    border-collapse: collapse;
-    table-layout: fixed;
-    width: 100%;
-    margin: 0;
-    overflow: hidden;
+    @apply border-collapse table-fixed w-full m-0 overflow-hidden;
 
     td,
     th {
-      min-width: 1em;
-      border: 2px solid $grey-lightest;
-      padding: 3px 5px;
-      vertical-align: top;
-      box-sizing: border-box;
-      position: relative;
+      @apply min-w-4 border-2 border-base-200 py-1 px-1.5;
+      @apply align-top box-border relative;
 
       > * {
-        margin-bottom: 0;
+        @apply mb-0;
       }
     }
 
     th {
-      font-weight: bold;
-      text-align: left;
-      background-color: $white-ter;
+      @apply font-bold text-left bg-base-200;
     }
 
     .selectedCell:after {
-      z-index: 2;
-      position: absolute;
+      @apply z-[2] absolute inset-0 pointer-events-none;
       content: '';
-      left: 0;
-      right: 0;
-      top: 0;
-      bottom: 0;
       background: $selected-cell-background-color;
-      pointer-events: none;
     }
 
     .column-resize-handle {
-      position: absolute;
-      right: -2px;
-      top: 0;
-      bottom: -2px;
-      width: 4px;
+      @apply absolute -right-0.5 top-0 -bottom-0.5 w-1 pointer-events-none;
       background-color: $resize-handle-color;
-      pointer-events: none;
     }
 
     p {
-      margin: 0;
+      @apply m-0;
     }
   }
 
   .suggestion {
-    color: $info;
-    border: 1px solid darken($info, 10%);
-    border-radius: 0.4rem;
-    padding: 0.1rem 0.3rem;
+    @apply text-info border border-info rounded-md py-0.5 px-1 cursor-pointer;
     box-decoration-break: clone;
-    cursor: pointer;
   }
 
   blockquote:not(:last-child),
@@ -135,27 +108,19 @@
   pre:not(:last-child),
   table:not(:last-child),
   ul:not(:last-child) {
-    margin-bottom: 1em;
+    @apply mb-4;
   }
 
   pre {
-    background: #0d0d0d;
-    border-radius: 0.5rem;
-    color: #fff;
+    @apply bg-neutral rounded-lg text-neutral-content p-3;
     font-family: 'JetBrainsMono', monospace;
-    padding: 0.75rem 1rem;
 
     code {
-      background: none;
-      color: inherit;
-      font-size: 0.8rem;
-      padding: 0;
+      @apply bg-transparent text-inherit text-sm p-0;
     }
 
     code.hljs {
-      display: block;
-      overflow-x: auto;
-      padding: 1em;
+      @apply block overflow-x-auto p-4;
     }
 
     .hljs {
@@ -168,12 +133,6 @@
       background-color: #3e4451;
       color: #abb2bf;
     }
-
-    /* purposely do not highlight these things */
-    // .hljs-formula,
-    // .hljs-params,
-    // .hljs-property {
-    // }
 
     /* base03 - #545862 -  Comments, Invisibles, Line Highlighting */
     .hljs-comment {
@@ -193,7 +152,7 @@
     }
 
     .hljs-operator {
-      opacity: 0.7;
+      @apply opacity-70;
     }
 
     /* base08 - Variables, XML Tags, Markup Link Text, Markup Lists, Diff Deleted */
@@ -224,7 +183,7 @@
     }
 
     .hljs-strong {
-      font-weight: bold;
+      @apply font-bold;
       color: #e5c07b;
     }
 
@@ -256,10 +215,6 @@
 
     /* base0E - Keywords, Storage, Selector, Markup Italic, Diff Changed */
     .hljs-type,
-    /* .hljs-selector-id, */
-    /* .hljs-selector-class, */
-    /* .hljs-selector-attr, */
-    /* .hljs-selector-pseudo, */
     .hljs-template-tag,
     .diff .hljs-meta,
     .hljs-keyword {
@@ -267,24 +222,19 @@
     }
     .hljs-emphasis {
       color: #c678dd;
-      font-style: italic;
+      @apply italic;
     }
 
     /* base0F - Deprecated, Opening/Closing Embedded Language Tags, e.g. <?php ?> */
     .hljs-meta,
-    /*
-      prevent top level .keyword and .string scopes
-      from leaking into meta by accident
-    */
     .hljs-meta .hljs-keyword,
     .hljs-meta .hljs-string {
       color: #be5046;
     }
 
     .hljs-meta .hljs-keyword,
-    /* for v10 compatible themes */
     .hljs-meta-keyword {
-      font-weight: bold;
+      @apply font-bold;
     }
   }
 }

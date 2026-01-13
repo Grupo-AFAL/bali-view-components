@@ -32,3 +32,4 @@ yarn-debug.log*
 .DS_Store
 
 firebase-debug.log
+.playwright-mcp/

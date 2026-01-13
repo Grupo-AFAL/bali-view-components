@@ -1,22 +1,23 @@
-$border-color: $grey-lighter;
-
+// Gantt chart layout variables
 $gantt-chart-header-height: 45px;
 $gantt-chart-header-size: 11px;
-
 $gantt-chart-list-width: 200px;
 $gantt-chart-row-height: 35px;
-$gantt-chart-milestone-color: $purple;
-
-$gantt-chart-critical-color: lighten($red, 10%);
-$gantt-chart-critical-border-width: 2px;
-
 $gantt-chart-item-bubble-height: 25px;
 $gantt-chart-item-bubble-radius: calc($gantt-chart-item-bubble-height / 2);
-
 $gantt-chart-scale-height: 23px;
-$gantt-chart-today-color: lighten($blue, 20%);
 $gantt-chart-resizer-width: 10px;
 $gantt-chart-timeline-data-height: 100%;
+$gantt-chart-critical-border-width: 2px;
+
+// Theme colors using DaisyUI CSS variables
+$gantt-chart-today-color: oklch(var(--in) / 0.6);
+$gantt-chart-milestone-color: oklch(var(--a));
+$gantt-chart-critical-color: oklch(var(--er) / 0.8);
+
+// Border and shadow variables (shared with sub-files)
+$border-color: oklch(var(--b3));
+$sharp-box-shadow: 3px 3px 3px rgba(10, 10, 10, 0.1);
 
 @import './drag_handle/index';
 @import './list_row/index';
@@ -26,42 +27,28 @@ $gantt-chart-timeline-data-height: 100%;
 @import './timeline_header/index';
 
 .gantt-chart-component {
-  border-top: 2px solid $border-color;
-  border-bottom: 1px solid $border-color;
+  @apply border-t-2 border-b border-base-300;
 
   .gantt-chart-actions {
-    width: 100%;
+    @apply w-full flex items-center px-3;
+    @apply border-b border-l border-r border-base-300;
     height: $gantt-chart-header-height;
-    border-bottom: 1px solid $border-color;
-    border-left: 1px solid $border-color;
-    border-right: 1px solid $border-color;
-    display: flex;
-    align-items: center;
-    padding: 0 0.75rem;
 
     a.today {
-      color: $grey-dark;
-      font-size: 0.75rem;
-      padding: 0.25rem 0.5rem;
-      border-radius: 0.25rem;
-      margin-right: 1rem;
-      border: 1px solid $white-ter;
+      @apply text-base-content/70 text-xs py-1 px-2 rounded mr-4;
+      @apply border border-base-200;
 
       &:hover {
-        background-color: $white-ter;
-        border: 1px solid $grey-lightest;
+        @apply bg-base-200 border-base-300;
       }
     }
 
     .buttons {
-      margin-bottom: 0;
+      @apply mb-0;
     }
 
     .button {
-      padding: 0.25rem 0.5rem;
-      margin-bottom: 0;
-      height: unset;
-      line-height: unset;
+      @apply py-1 px-2 mb-0 h-auto leading-none;
 
       &.is-info {
         background-color: $gantt-chart-today-color;
@@ -70,8 +57,7 @@ $gantt-chart-timeline-data-height: 100%;
   }
 
   .gantt-chart-container {
-    display: flex;
-    position: relative;
+    @apply flex relative;
   }
 
   .gantt-chart-list {
@@ -79,102 +65,67 @@ $gantt-chart-timeline-data-height: 100%;
     width: $gantt-chart-list-width;
 
     .gantt-chart-header {
+      @apply border-r border-l border-base-300 w-full pl-5;
+      @apply text-base-content/50 uppercase;
       line-height: $gantt-chart-header-height;
-      border-right: 1px solid $border-color;
-      border-left: 1px solid $border-color;
-      width: 100%;
-      padding-left: 1.25rem;
-      color: $grey-light;
-      text-transform: uppercase;
     }
 
     .gantt-chart-row-contents {
-      background-color: $white;
-      border-bottom: 1px solid $border-color;
-      border-left: 1px solid $border-color;
-      border-right: 1px solid $border-color;
-      user-select: none;
+      @apply bg-base-100 border-b border-l border-r border-base-300;
+      @apply select-none;
     }
   }
 
   .gantt-chart-list-resizer {
     width: $gantt-chart-resizer-width;
-    z-index: 2;
-    cursor: col-resize;
-    background: transparent;
-    position: absolute;
+    @apply z-[2] cursor-col-resize bg-transparent absolute h-full;
     left: $gantt-chart-list-width - calc($gantt-chart-resizer-width / 2);
-    height: 100%;
 
     &:hover .gantt-chart-list-resizer-shadow {
       box-shadow: 0 0 3px 1px $gantt-chart-today-color;
-      width: 1px;
-      height: 100%;
-
-      position: absolute;
+      @apply w-px h-full absolute bg-base-300;
       left: calc($gantt-chart-resizer-width / 2);
-      background-color: $border-color;
     }
   }
 
   .gantt-chart-timeline {
-    flex-grow: 1;
-    overflow-x: scroll;
-    border-right: 1px solid $border-color;
-    position: relative;
+    @apply grow overflow-x-scroll border-r border-base-300 relative;
   }
 
   .gantt-chart-today-marker {
-    position: absolute;
-    top: 0;
+    @apply absolute top-0 w-0.5 z-[1];
     height: $gantt-chart-timeline-data-height;
-    width: 2px;
     background-color: $gantt-chart-today-color;
-    z-index: 1;
 
     span {
       background-color: $gantt-chart-today-color;
-      font-size: 0.625rem;
-      color: $white;
-      display: inline-block;
-      position: absolute;
-      top: 0;
-      padding: 0.12rem 0.25rem;
-      font-weight: 300;
-      z-index: 2;
+      @apply text-[0.625rem] text-base-100 inline-block absolute top-0;
+      @apply py-0.5 px-1 font-light z-[2];
     }
   }
 
   .gantt-chart-drag-shadow {
-    background-color: rgba($gantt-chart-today-color, 0.15);
+    background-color: oklch(var(--in) / 0.15);
     height: $gantt-chart-timeline-data-height;
-    width: 0;
-    position: absolute;
-    top: 0;
+    @apply w-0 absolute top-0;
   }
 
   .gantt-chart-data-area {
-    background-color: $white-bis;
+    @apply bg-base-200/50 overflow-hidden relative;
     height: calc(100% - #{($gantt-chart-header-height)});
-    overflow: hidden;
-    position: relative;
   }
 
   .gantt-chart-timeline-children {
-    position: absolute;
+    @apply absolute;
     top: $gantt-chart-row-height;
   }
 
   .gantt-chart-connections-canvas {
-    position: absolute;
-    top: 0;
-    height: 100%;
-    width: 100%;
+    @apply absolute top-0 h-full w-full;
   }
 
   .gantt-chart-footer,
   .gantt-chart-list-footer {
-    border-left: 1px solid $border-color;
-    border-right: 1px solid $border-color;
+    @apply border-l border-r border-base-300;
   }
 }

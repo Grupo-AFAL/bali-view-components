@@ -18,7 +18,7 @@ module Bali
 
         def initialize(**options)
           @options = prepend_class_name(options,
-                                        'list-item-component flex items-center justify-between gap-4 py-2')
+                                        'list-item-component flex items-center justify-between gap-4 py-2 px-4 border-b border-base-300 last:border-b-0')
         end
       end
     end

@@ -1,130 +1,100 @@
-$animation-duration: 0.2s;
-$z-index-popover: 6;
-
 .filters-component {
   .field.has-addons .control input {
-    height: 100%;
+    @apply h-full;
   }
 
   .button {
     &.is-text {
       &:hover {
-        background-color: $grey-lightest;
-        border: 1px solid darken($grey-lightest, 5%);
+        @apply bg-base-200 border border-base-300;
       }
     }
 
     &.is-selected {
-      background-color: $info;
-      color: $white;
-      border: 1px solid darken($info, 5%);
+      @apply bg-info text-info-content border border-info;
 
       &:hover {
-        background-color: darken($info, 5%);
-        border: 1px solid darken($info, 10%);
+        @apply bg-info/90 border-info/80;
       }
     }
 
     .counter {
-      padding-right: 0.25rem;
+      @apply pr-1;
     }
   }
 
   .popup-element {
-    position: relative;
+    @apply relative;
 
     svg {
-      width: $size-6;
-      height: $size-6;
+      @apply size-4;
     }
   }
 
   .filters-popup {
-    position: absolute;
-    left: 0;
-    top: 0;
-    z-index: $z-index-popover;
-    max-width: 30rem;
-    width: max-content;
+    @apply absolute left-0 top-0 z-10 max-w-md w-max;
 
     .close-button {
-      position: absolute;
-      right: 1rem;
-      top: 1rem;
-      color: $grey-darker;
-      border-radius: 50%;
+      @apply absolute right-4 top-4 text-base-content/60 rounded-full;
 
       &:hover {
-        background-color: $grey-lightest;
+        @apply bg-base-200;
       }
     }
 
     .box {
-      box-shadow: 0px 3px 18px rgba($black, 0.1), 0 0 0 5px rgba($black, 0.03);
-      padding-top: 2rem;
+      @apply shadow-lg pt-8;
+      box-shadow: 0px 3px 18px rgba(0, 0, 0, 0.1), 0 0 0 5px rgba(0, 0, 0, 0.03);
     }
 
     .filter-options {
-      overflow-y: auto;
-      max-height: 14rem;
+      @apply overflow-y-auto max-h-56;
     }
 
     .tag:not(.is-white) {
-      display: flex;
-      justify-content: flex-start;
-      margin-bottom: 0.25rem;
-      cursor: pointer;
-      background-color: $grey-lightest;
-      color: $grey-darker;
+      @apply flex justify-start mb-1 cursor-pointer;
+      @apply bg-base-200 text-base-content;
 
       &.is-selected {
-        background-color: $info;
-        color: $white;
+        @apply bg-info text-info-content;
       }
     }
 
     input[type='checkbox'],
     input[type='radio'] {
-      display: none;
+      @apply hidden;
     }
 
     &.popin {
-      animation-duration: $animation-duration;
+      animation-duration: 0.2s;
       animation-name: slidein;
     }
 
     .multiple-text-inputs-container {
-      display: flex;
-      overflow-x: scroll;
-      gap: 0.5rem;
+      @apply flex overflow-x-scroll gap-2;
 
       input,
       .field.has-addons .control input {
-        min-width: 6rem;
-        height: 2.5rem;
+        @apply min-w-24 h-10;
       }
 
       .field.has-addons {
-        height: min-content;
+        @apply h-min;
       }
-
     }
 
     .flatpickr-wrapper {
-      width: 100%;
-      height: 100%;
+      @apply w-full h-full;
     }
   }
 }
 
 @keyframes slidein {
   from {
-    opacity: 0;
-    margin-top: -1rem;
+    @apply opacity-0 -mt-4;
   }
 
   to {
-    opacity: 1;
-    margin-top: 0;
+    @apply opacity-100 mt-0;
   }
 }

@@ -2,23 +2,21 @@
 // the trix-editor content (whether displayed or under editing). Feel free to incorporate this
 // inclusion directly in any other asset bundle and remove this file.
 //
-// We need to override trix.css’s image gallery styles to accommodate the
+// We need to override trix.css's image gallery styles to accommodate the
 // <action-text-attachment> element we wrap around attachments. Otherwise,
 // images in galleries will be squished by the max-width: 33%; rule.
 @import 'vendor/trix';
 
 trix-editor {
-  background-color: $white;
-  min-height: 10rem;
+  @apply bg-base-100 min-h-40;
 
   &.input {
-    display: block;
-    height: auto;
+    @apply block h-auto;
   }
 }
 
 .trix-content {
-  padding: 0.5rem 1rem;
+  @apply py-2 px-4;
 
   ul {
     list-style: disc;
@@ -27,17 +25,14 @@ trix-editor {
   .attachment-gallery {
     > action-text-attachment,
     > .attachment {
-      flex: 1 0 33%;
-      padding: 0 0.5em;
-      max-width: 33%;
+      @apply flex-[1_0_33%] px-2 max-w-[33%];
     }
 
     &.attachment-gallery--2,
     &.attachment-gallery--4 {
       > action-text-attachment,
       > .attachment {
-        flex-basis: 50%;
-        max-width: 50%;
+        @apply flex-[0_0_50%] max-w-[50%];
       }
     }
   }

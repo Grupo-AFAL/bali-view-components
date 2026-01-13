@@ -23,7 +23,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'renders an icon' do
-      expect(search_field_group).to have_css 'span.icon.icon-component'
+      expect(search_field_group).to have_css 'span.icon-component'
     end
   end
 end

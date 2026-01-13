@@ -35,7 +35,7 @@ module Bali
         @align = align
 
         @options = prepend_class_name(options, 'page-header-component')
-        @back_options = prepend_class_name(back, 'back-button btn btn-ghost')
+        @back_options = prepend_class_name(back, 'back-button btn btn-ghost size-9 text-primary')
 
         @left_options = {}
 
