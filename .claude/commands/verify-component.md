@@ -139,58 +139,117 @@ For components with Stimulus controllers:
    - Assert expected state changes
    - Check for JS errors in console
 
-### Step 5: UX/Design Review (Delegate to frontend-ui-ux-engineer)
+### Step 5: Pixel-Perfect UX Review (MANDATORY - frontend-ui-ux-engineer)
 
-**MANDATORY** (unless `--quick` flag is used)
+**THIS STEP IS NON-NEGOTIABLE** (unless `--quick` flag is explicitly used)
 
-Delegate to `frontend-ui-ux-engineer` agent with this prompt structure:
+You MUST spawn the `frontend-ui-ux-engineer` agent for pixel-perfect visual review. This agent is CRITICAL and DEMANDING about visual quality. Do NOT skip this step or try to do the review yourself.
+
+#### Why This Matters
+The Calendar component migration revealed that basic visual checks miss critical issues:
+- Column widths being unequal
+- Navigation elements mispositioned
+- Row heights not matching design specs
+- Grid layouts breaking due to wrong CSS patterns
+
+#### Pixel-Perfect Checklist (Agent MUST Verify)
+
+| Category | Specific Checks |
+|----------|-----------------|
+| **Layout Geometry** | Equal column/row widths where expected, proper alignment, no overflow |
+| **Navigation** | Prev/next arrows on opposite sides, centered titles, proper spacing |
+| **Dimensions** | Cell heights match design (~100px for calendars, proper card heights) |
+| **Spacing** | Consistent padding/margins, no cramped areas, proper gaps |
+| **Borders** | Visible where expected, correct thickness, proper colors |
+| **Backgrounds** | Correct colors applied, proper opacity, hover states |
+| **Typography** | Font sizes match, proper weights, correct colors |
+| **Today/Active States** | Clearly visible highlighting, proper contrast |
+
+#### Compare Against Bulma Version (When Available)
+
+If the original Bulma version is running on port 3002:
+1. Open both versions side-by-side
+2. Verify dimensions match or improve upon original
+3. Note any intentional design changes vs bugs
+
+#### Spawn Agent with This Prompt:
 
 ```
-## TASK
-Review the visual design and UX of the [ComponentName] component for DaisyUI compliance and design quality.
+## TASK: PIXEL-PERFECT VISUAL REVIEW
 
-## CONTEXT
+You are reviewing the [ComponentName] component for PIXEL-PERFECT design quality.
+Be EXTREMELY CRITICAL. Do NOT approve components with ANY layout issues.
+
+## COMPONENT INFO
 - Component: Bali::[ComponentName]::Component
-- Lookbook URL: http://localhost:3001/lookbook/inspect/bali/[component_name]/default
-- Framework: DaisyUI (Tailwind CSS)
-- Screenshots attached: [list of screenshot paths]
+- DaisyUI URL: http://localhost:3001/lookbook/inspect/bali/[component_name]/default
+- Bulma URL (if available): http://localhost:3002/lookbook/inspect/bali/[component_name]/default
 
-## EXPECTED OUTCOME
-Provide a detailed UX assessment covering:
-1. Visual consistency with DaisyUI design system
-2. Color usage and contrast (accessibility)
-3. Spacing and alignment
-4. Interactive states (hover, focus, active, disabled)
-5. Responsive behavior
-6. Animation/transition smoothness
-7. Overall design quality score (1-10)
+## PIXEL-PERFECT CHECKLIST (VERIFY EACH ITEM)
+
+### Layout Geometry
+- [ ] All columns have EQUAL widths (measure if needed)
+- [ ] All rows have consistent heights
+- [ ] No unexpected overflow or wrapping
+- [ ] Grid/flex layouts behave correctly
+
+### Navigation Elements (if applicable)
+- [ ] Left arrow/button is on the LEFT side
+- [ ] Right arrow/button is on the RIGHT side
+- [ ] Title/header is properly CENTERED
+- [ ] Spacing between elements is consistent
+
+### Dimensions
+- [ ] Cell/card heights are appropriate (not too cramped)
+- [ ] Minimum heights are respected
+- [ ] Component doesn't collapse unexpectedly
+
+### Visual Polish
+- [ ] Borders are visible where expected
+- [ ] Background colors applied correctly
+- [ ] Hover/focus states work
+- [ ] Active/selected states are clearly visible
+- [ ] Proper shadows where expected
+
+### Comparison with Original (if Bulma version available)
+- [ ] Layout matches or improves upon original
+- [ ] No regressions in visual quality
+- [ ] Intentional changes documented
 
 ## MUST DO
-- Open Lookbook in browser and inspect ALL preview variants
-- Check each variant against DaisyUI reference (https://daisyui.com/components/[component])
-- Test on different viewport sizes
-- Verify focus states for accessibility
-- Note any visual inconsistencies
+1. Take screenshots of EVERY variant
+2. Compare pixel-by-pixel where needed
+3. Measure element dimensions if layout looks off
+4. Check browser console for errors
+5. Test hover/active states interactively
 
 ## MUST NOT DO
-- Do not modify any code
-- Do not skip any variant
-- Do not approve components with obvious visual bugs
+- Do NOT approve if ANY layout issue exists
+- Do NOT skip checking all variants
+- Do NOT just "eyeball" - be precise
+- Do NOT modify code (report issues only)
 
-## REQUIRED TOOLS
-- skill_mcp (Playwright) for browser automation
+## FAILURE CONDITIONS (AUTO-REJECT)
+- Unequal column widths in grids/tables
+- Navigation arrows both on same side
+- Rows/cells too short for content
+- Missing borders or backgrounds
+- Broken hover/active states
 
-## PLAYWRIGHT CALL FORMAT (CRITICAL)
-When using skill_mcp for Playwright, arguments MUST be a JSON string:
-
-CORRECT:
-skill_mcp(mcp_name="playwright", tool_name="browser_navigate", arguments='{"url": "http://localhost:3001/lookbook/inspect/bali/[component]/default"}')
-skill_mcp(mcp_name="playwright", tool_name="browser_snapshot", arguments='{}')
-skill_mcp(mcp_name="playwright", tool_name="browser_click", arguments='{"ref": "E123"}')
-
-WRONG (will cause parse error):
-skill_mcp(mcp_name="playwright", tool_name="browser_navigate", arguments={"url": "..."})
+## OUTPUT FORMAT
+Provide a detailed report with:
+1. Screenshot evidence for each issue
+2. Specific measurements where applicable
+3. Pass/Fail verdict with confidence level
+4. List of required fixes (if any)
 ```
+
+#### After Agent Completes
+
+If the agent reports ANY issues:
+1. DO NOT mark component as verified
+2. Create fix tasks for each issue
+3. Re-run verification after fixes
 
 ### Step 6: Generate Verification Report
 
@@ -237,17 +296,30 @@ skill_mcp(mcp_name="playwright", tool_name="browser_navigate", arguments={"url":
 ### JS Errors
 - None / [List errors]
 
-## UX Review (by frontend-ui-ux-engineer)
+## Pixel-Perfect UX Review (by frontend-ui-ux-engineer)
 
 ### Design Quality Score: X/10
 
-### Positive Observations
-- [Observation 1]
-- [Observation 2]
+### Pixel-Perfect Checklist Results
 
-### Issues Found
-- [Issue 1]
-- [Issue 2]
+| Check | Status | Notes |
+|-------|--------|-------|
+| Column widths equal | Pass/Fail | [measurement if failed] |
+| Navigation positioning | Pass/Fail | |
+| Row/cell heights | Pass/Fail | [expected vs actual] |
+| Borders visible | Pass/Fail | |
+| Backgrounds correct | Pass/Fail | |
+| Hover states | Pass/Fail | |
+| Active states | Pass/Fail | |
+
+### Comparison with Bulma Version
+- [ ] Matches original layout
+- [ ] No visual regressions
+- [ ] Improvements noted: [list]
+
+### Issues Found (BLOCKING)
+1. [Issue with screenshot evidence]
+2. [Issue with measurements]
 
 ### Recommendations
 1. [Recommendation 1]
