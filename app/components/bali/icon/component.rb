@@ -29,7 +29,7 @@ module Bali
         class_names(
           'icon-component',
           'inline-flex items-center justify-center',
-          '[&_.svg-inline]:inline-block [&_.svg-inline]:text-[1em] [&_.svg-inline]:h-4 [&_.svg-inline]:w-4 [&_.svg-inline]:overflow-visible [&_.svg-inline]:align-[-0.125em]',
+          '*:inline-block *:h-4 *:w-4 *:overflow-visible',
           SIZES[@size],
           size_svg_classes
         )
@@ -37,8 +37,8 @@ module Bali
 
       def size_svg_classes
         case @size
-        when :medium then '[&_.svg-inline]:h-8 [&_.svg-inline]:w-8'
-        when :large then '[&_.svg-inline]:h-12 [&_.svg-inline]:w-12'
+        when :medium then '*:h-8 *:w-8'
+        when :large then '*:h-12 *:w-12'
         end
       end
     end

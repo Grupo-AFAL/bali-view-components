@@ -16,6 +16,7 @@ module Bali
         disabled_hover_url: nil,
         skip_confirm: false,
         icon: false,
+        plain: false,
         **options
       )
         @model = model
@@ -26,9 +27,15 @@ module Bali
         @disabled_hover_url = disabled_hover_url
         @skip_confirm = skip_confirm
         @icon = icon
+        @plain = plain
         @form_class = class_names('inline-block', options.delete(:form_class))
 
-        @options = prepend_class_name(options, default_classes)
+        @options = if @plain
+                     # Minimal layout classes for menu items
+                     prepend_class_name(options, 'flex items-center gap-2 text-error')
+                   else
+                     prepend_class_name(options, default_classes)
+                   end
 
         @authorized = @options.key?(:authorized) ? @options.delete(:authorized) : true
 

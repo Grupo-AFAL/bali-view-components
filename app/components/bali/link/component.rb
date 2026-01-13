@@ -42,6 +42,7 @@ module Bali
                      match: :exact,
                      method: nil,
                      disabled: false,
+                     plain: false,
                      **options)
         @name = name
         @href = href
@@ -53,6 +54,7 @@ module Bali
         @active = active
         @drawer = drawer
         @method = method
+        @plain = plain
         @options = options
 
         @authorized = @options.key?(:authorized) ? @options.delete(:authorized) : true
@@ -86,6 +88,9 @@ module Bali
           @options = prepend_class_name(@options, 'btn')
           @options = prepend_class_name(@options, COLORS[@type]) if COLORS[@type]
           @options = prepend_class_name(@options, SIZES[@size]) if @size && SIZES[@size]
+        elsif @plain
+          # Minimal layout classes for menu items (icons + text need flex)
+          @options = prepend_class_name(@options, 'flex items-center gap-2')
         else
           @options = prepend_class_name(@options, 'link inline-flex items-center gap-1')
         end

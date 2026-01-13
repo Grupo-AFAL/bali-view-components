@@ -1,8 +1,8 @@
-<%= render Bali::HoverCard::Component.new(**options) do |c| %>
-  <% c.with_trigger(class: 'btn btn-ghost btn-sm btn-circle') do %>
+<div <%= tag.attributes(**options) %>>
+  <div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-circle text-neutral-600 hover:text-neutral-800">
     <%= render Bali::Icon::Component.new('ellipsis-h') %>
-  <% end %>
-  <ul class="menu p-2">
+  </div>
+  <ul tabindex="-1" class="dropdown-content menu bg-base-100 text-neutral-800 rounded-box z-10 w-52 p-2 shadow-lg">
     <% if (authorized_items = items.select(&:authorized?)).any? %>
       <% authorized_items.each do |item| %>
         <li><%= item %></li>
@@ -11,4 +11,4 @@
       <%= content %>
     <% end %>
   </ul>
-<% end %>
+</div>

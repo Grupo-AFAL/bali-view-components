@@ -20,21 +20,29 @@ module Bali
       def with_custom_content
         render ActionsDropdown::Component.new do |c|
           c.safe_join([
-                        c.render(Bali::Link::Component.new(
-                                   name: 'Create',
-                                   icon_name: 'plus-circle',
-                                   href: '#',
-                                   drawer: true,
-                                   class: 'menu-item'
-                                 )),
-                        c.render(Bali::Link::Component.new(
-                                   name: 'Export',
-                                   icon_name: 'file-export',
-                                   href: '#',
-                                   drawer: true,
-                                   class: 'menu-item'
-                                 ))
+                        c.tag.li(c.render(Bali::Link::Component.new(
+                                            name: 'Create',
+                                            icon_name: 'plus-circle',
+                                            href: '#',
+                                            drawer: true
+                                          ))),
+                        c.tag.li(c.render(Bali::Link::Component.new(
+                                            name: 'Export',
+                                            icon_name: 'file-export',
+                                            href: '#',
+                                            drawer: true
+                                          )))
                       ])
+        end
+      end
+
+      # Position Start
+      # ---------------
+      # Dropdown that opens to the left instead of right
+      def position_start
+        render ActionsDropdown::Component.new(position: :start) do |c|
+          c.with_item(name: 'Edit', icon_name: 'edit', href: '#')
+          c.with_item(name: 'Delete', icon: true, href: '#', method: :delete)
         end
       end
     end
