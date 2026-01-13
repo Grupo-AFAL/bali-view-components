@@ -1,17 +1,17 @@
-// Stepper component variables
-$step-marker-border-size: 0.5rem;
-$step-marker-size: 2rem;
-$step-details-padding-top: 0.2rem;
-$step-connector-height: 0.2rem;
-
+/* Stepper component */
 .stepper-component {
+  --step-marker-border-size: 0.5rem;
+  --step-marker-size: 2rem;
+  --step-details-padding-top: 0.2rem;
+  --step-connector-height: 0.2rem;
+
   @apply flex flex-wrap;
 
   .step-component {
     @apply mt-0 relative grow basis-0;
 
     &:before {
-      // Gradient from base-300 to primary
+      /* Gradient from base-300 to primary */
       background: linear-gradient(to left, oklch(var(--b3)) 50%, oklch(var(--p)) 50%);
       background-size: 200% 100%;
       background-position: right bottom;
@@ -25,7 +25,7 @@ $step-connector-height: 0.2rem;
     &.is-done {
       .step-marker {
         @apply bg-primary;
-        border: $step-marker-border-size solid oklch(var(--p));
+        border: var(--step-marker-border-size) solid oklch(var(--p));
       }
 
       .icon path {
@@ -35,7 +35,7 @@ $step-connector-height: 0.2rem;
 
     &.is-active .step-marker {
       @apply bg-base-100;
-      border: $step-marker-border-size solid oklch(var(--p));
+      border: var(--step-marker-border-size) solid oklch(var(--p));
     }
 
     &.is-pending {
@@ -45,29 +45,29 @@ $step-connector-height: 0.2rem;
     &:not(:first-child)::before {
       content: ' ';
       @apply block absolute w-full;
-      height: $step-connector-height;
+      height: var(--step-connector-height);
       bottom: 0;
       left: -50%;
-      top: calc($step-marker-size / 2);
+      top: calc(var(--step-marker-size) / 2);
     }
   }
 
   .step-marker {
-    height: $step-marker-size;
-    width: $step-marker-size;
+    height: var(--step-marker-size);
+    width: var(--step-marker-size);
     @apply absolute;
-    left: calc(50% - #{(calc($step-marker-size / 2))});
+    left: calc(50% - var(--step-marker-size) / 2);
 
     @apply items-center flex rounded-full font-bold justify-center;
     @apply bg-base-300;
-    border: $step-marker-border-size solid oklch(var(--b3));
-    box-shadow: 0px 0px 0px $step-marker-border-size oklch(var(--b1));
+    border: var(--step-marker-border-size) solid oklch(var(--b3));
+    box-shadow: 0px 0px 0px var(--step-marker-border-size) oklch(var(--b1));
     @apply z-10;
   }
 
   .step-details {
     @apply text-center mx-2;
-    margin-top: $step-marker-size;
-    padding-top: $step-details-padding-top;
+    margin-top: var(--step-marker-size);
+    padding-top: var(--step-details-padding-top);
   }
 }

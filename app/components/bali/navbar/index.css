@@ -1,3 +1,4 @@
+/* Navbar component */
 .navbar {
   @apply shadow-md;
   transition: background-color 1s;

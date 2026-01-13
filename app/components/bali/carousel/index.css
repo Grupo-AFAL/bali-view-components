@@ -1,3 +1,4 @@
+/* Carousel component - Glide.js styling */
 .carousel-component.glide {
   @apply relative w-full box-border;
 

@@ -1,12 +1,12 @@
-// Side menu layout variables
-$side-menu-width: 15rem;
-$navbar-height: 3.75rem;
-
+/* Side menu component */
 .side-menu-component {
+  --side-menu-width: 15rem;
+  --navbar-height: 3.75rem;
+
   @apply fixed h-full p-4 bg-base-100 shadow-lg z-10;
-  width: $side-menu-width;
-  top: $navbar-height;
-  left: -$side-menu-width;
+  width: var(--side-menu-width);
+  top: var(--navbar-height);
+  left: calc(-1 * var(--side-menu-width));
   transition: 0.2s ease-in-out;
 
   @media (min-width: 1024px) {
@@ -214,7 +214,7 @@ $navbar-height: 3.75rem;
   }
 
   .tippy-content {
-    width: $side-menu-width;
+    width: 15rem;
 
     :first-child {
       @apply rounded-t;

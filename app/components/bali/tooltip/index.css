@@ -1,8 +1,8 @@
-// Tooltip variables
-$arrow-size: 16px;
-$half-arrow-size: calc($arrow-size / 2);
-
+/* Tooltip component - Tippy.js styling */
 .tooltip-component {
+  --arrow-size: 16px;
+  --half-arrow-size: 8px;
+
   &.help-tip {
     @apply size-6 inline-block;
 
@@ -35,9 +35,9 @@ $half-arrow-size: calc($arrow-size / 2);
     }
 
     &[data-placement^='top'] > .tippy-arrow:before {
-      bottom: -$half-arrow-size + 1px;
+      bottom: calc(-1 * var(--half-arrow-size) + 1px);
       @apply left-0;
-      border-width: $half-arrow-size $half-arrow-size 0;
+      border-width: var(--half-arrow-size) var(--half-arrow-size) 0;
       border-top-color: initial;
       transform-origin: center top;
     }
@@ -47,9 +47,9 @@ $half-arrow-size: calc($arrow-size / 2);
     }
 
     &[data-placement^='bottom'] > .tippy-arrow:before {
-      top: -$half-arrow-size + 1px;
+      top: calc(-1 * var(--half-arrow-size) + 1px);
       @apply left-0;
-      border-width: 0 $half-arrow-size $half-arrow-size;
+      border-width: 0 var(--half-arrow-size) var(--half-arrow-size);
       border-bottom-color: initial;
       transform-origin: center bottom;
     }
@@ -59,9 +59,9 @@ $half-arrow-size: calc($arrow-size / 2);
     }
 
     &[data-placement^='left'] > .tippy-arrow:before {
-      border-width: $half-arrow-size 0 $half-arrow-size $half-arrow-size;
+      border-width: var(--half-arrow-size) 0 var(--half-arrow-size) var(--half-arrow-size);
       border-left-color: initial;
-      right: -$half-arrow-size + 1px;
+      right: calc(-1 * var(--half-arrow-size) + 1px);
       transform-origin: center left;
     }
 
@@ -70,8 +70,8 @@ $half-arrow-size: calc($arrow-size / 2);
     }
 
     &[data-placement^='right'] > .tippy-arrow:before {
-      left: -$half-arrow-size + 1px;
-      border-width: $half-arrow-size $half-arrow-size $half-arrow-size 0;
+      left: calc(-1 * var(--half-arrow-size) + 1px);
+      border-width: var(--half-arrow-size) var(--half-arrow-size) var(--half-arrow-size) 0;
       border-right-color: initial;
       transform-origin: center right;
     }
@@ -82,8 +82,8 @@ $half-arrow-size: calc($arrow-size / 2);
   }
 
   .tippy-arrow {
-    width: $arrow-size;
-    height: $arrow-size;
+    width: var(--arrow-size);
+    height: var(--arrow-size);
     @apply text-neutral;
   }
 

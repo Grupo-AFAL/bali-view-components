@@ -1,3 +1,4 @@
+/* Slim Select styling */
 @import 'vendor/slimselect';
 
 .slim-select {
@@ -54,8 +55,8 @@
   }
 }
 
-// Needs to be outside because when the select is appended to the body,
-// it won't be within the .slim-select selector
+/* Needs to be outside because when the select is appended to the body,
+   it won't be within the .slim-select selector */
 .ss-content {
   border-radius: 0 0 4px 4px;
   box-shadow: 3px 12px 12px 0px rgba(10, 10, 10, 0.1);

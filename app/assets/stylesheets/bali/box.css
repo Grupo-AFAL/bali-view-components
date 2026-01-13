@@ -1,3 +1,4 @@
+/* Box component styling */
 .box > ul {
   .box-row:first-child {
     padding-top: 0;
@@ -9,7 +10,7 @@
 }
 
 .box-row {
-  border-bottom: 1px solid whitesmoke;
+  border-bottom: 1px solid oklch(var(--b2));
   padding-top: 1rem;
   padding-bottom: 1rem;
 }

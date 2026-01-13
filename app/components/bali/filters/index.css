@@ -1,3 +1,4 @@
+/* Filters component */
 .filters-component {
   .field.has-addons .control input {
     @apply h-full;

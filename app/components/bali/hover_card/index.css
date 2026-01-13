@@ -1,16 +1,11 @@
-$z-index-hovercard: 101;
-$z-index-under-modal: 39;
-$hover-card-content-font-size: 0.875rem;
-$hover-card-arrow-size: 16px;
-$hover-card-box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-  0 2px 4px -2px rgba(0, 0, 0, 0.1),
-  0 0 0 1px rgba(0, 0, 0, 0.05);
-
+/* HoverCard component - Tippy.js styling */
 .hover-card-component {
   @apply w-max;
 }
 
 .hover-card-tippy-wrapper {
+  --hover-card-arrow-size: 16px;
+
   .hover-card-content {
     @apply p-3;
   }
@@ -18,13 +13,12 @@ $hover-card-box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
   .tippy-box {
     @apply relative bg-base-100 text-base-content rounded;
     @apply whitespace-normal outline-none;
-    font-size: $hover-card-content-font-size;
-    letter-spacing: normal;
-    text-transform: initial;
+    @apply text-sm tracking-normal normal-case;
     line-height: 1.4;
     transition-property: transform, visibility, opacity;
-
-    box-shadow: $hover-card-box-shadow;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -2px rgba(0, 0, 0, 0.1),
+      0 0 0 1px rgba(0, 0, 0, 0.05);
 
     &[data-animation='fade'][data-state='hidden'] {
       @apply opacity-0;
@@ -75,8 +69,8 @@ $hover-card-box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
   }
 
   .tippy-svg-arrow {
-    width: $hover-card-arrow-size;
-    height: $hover-card-arrow-size;
+    width: var(--hover-card-arrow-size);
+    height: var(--hover-card-arrow-size);
     @apply text-base-100;
 
     svg {

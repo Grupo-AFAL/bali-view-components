@@ -1,3 +1,4 @@
+/* Panel component styling */
 .panel > div .panel-block:first-child {
   border-top: 0;
 }

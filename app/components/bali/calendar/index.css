@@ -1,3 +1,4 @@
+/* Calendar component */
 .calendar-component {
   td {
     @apply p-1.5 align-top border border-base-300;
