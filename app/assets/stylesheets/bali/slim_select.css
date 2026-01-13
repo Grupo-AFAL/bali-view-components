@@ -1,5 +1,5 @@
 /* Slim Select styling */
-@import 'vendor/slimselect';
+@import './vendor/slimselect.css';
 
 .slim-select {
   position: relative;

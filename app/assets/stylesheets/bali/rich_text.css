@@ -1,5 +1,5 @@
 /* Rich text (Trix) styling */
-@import 'vendor/trix';
+@import './vendor/trix.css';
 
 trix-editor {
   @apply bg-base-100 min-h-40;
