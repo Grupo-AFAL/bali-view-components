@@ -1,7 +1,19 @@
 /* Calendar component */
 .calendar-component {
-  td {
-    @apply p-1.5 align-top border border-base-300;
+  /* Override DaisyUI table styles for calendar grid */
+  .table {
+    th {
+      @apply text-center text-base-content/70 font-normal text-lg p-2 border-none;
+    }
+
+    td {
+      @apply p-2 align-top bg-base-200/50 border border-base-300;
+    }
+
+    /* Remove DaisyUI's default zebra/hover styles */
+    tbody tr {
+      @apply bg-transparent;
+    }
   }
 
   .day {
@@ -13,16 +25,12 @@
   }
 
   .today {
-    @apply bg-base-200 border-2 border-base-content/50;
+    @apply !bg-base-300/70 border-2 !border-base-content/30;
   }
 
   .prev-month,
   .next-month {
-    @apply bg-base-100;
-
-    .has-text-weight-semibold {
-      @apply text-base-content/40;
-    }
+    @apply !bg-base-100 opacity-60;
   }
 
   .header {
@@ -35,40 +43,20 @@
     }
   }
 
-  .table-container {
-    .table {
-      th {
-        @apply border-none p-1.5;
-      }
-
-      th,
-      td {
-        @apply grow;
-      }
-
-      tr {
-        @apply flex;
-      }
-
-      td {
-        @apply mr-3 mb-3 rounded-md border-b;
-      }
-    }
-  }
-
   .month-view {
-    .day {
-      @apply min-h-36;
+    td {
+      /* Use height instead of min-h for table cells */
+      height: 6.5rem;
     }
 
     td.today {
-      @apply border-b-2;
+      @apply border-2;
     }
   }
 
   .week-view {
-    .day {
-      min-height: 50vh;
+    td {
+      height: 50vh;
 
       @media (max-width: 768px) {
         width: 75vw;
