@@ -44,6 +44,35 @@ cd spec/dummy && bin/dev
 
 Verify the component implements appropriate DaisyUI classes:
 
+#### MANDATORY: Use DaisyUI Blueprint MCP Server
+
+**Before checking compliance manually, you MUST use the DaisyUI Blueprint MCP server** to get authoritative DaisyUI snippets and patterns. This ensures consistency with the official DaisyUI design system.
+
+**Load the MCP tools first:**
+```
+MCPSearch(query: "select:mcp__daisyui-blueprint__daisyUI-Snippets")
+```
+
+**Then fetch the official DaisyUI snippet for the component type:**
+```
+mcp__daisyui-blueprint__daisyUI-Snippets({
+  "component": "[ComponentType]"  // e.g., "button", "card", "modal", "dropdown", etc.
+})
+```
+
+**Use the returned snippet to verify:**
+1. Base class names match (e.g., `btn`, `card`, `modal-box`)
+2. Modifier classes follow DaisyUI conventions (e.g., `btn-primary`, `card-bordered`)
+3. HTML structure matches recommended patterns
+4. Nested elements use correct class relationships
+
+**For complex layouts or when converting designs:**
+```
+MCPSearch(query: "select:mcp__daisyui-blueprint__Figma-to-daisyUI")
+```
+
+This tool can help translate design requirements into proper DaisyUI implementation.
+
 #### Common DaisyUI Patterns to Check
 
 | Component Type | Required Base Class | Common Modifiers |
@@ -180,12 +209,33 @@ If the original Bulma version is running on port 3002:
 You are reviewing the [ComponentName] component for PIXEL-PERFECT design quality.
 Be EXTREMELY CRITICAL. Do NOT approve components with ANY layout issues.
 
+## MANDATORY: USE DAISYUI BLUEPRINT MCP FOR REFERENCE
+
+Before reviewing, you MUST fetch the official DaisyUI snippet to use as the authoritative reference:
+
+1. Load the tool: MCPSearch(query: "select:mcp__daisyui-blueprint__daisyUI-Snippets")
+2. Get the snippet: mcp__daisyui-blueprint__daisyUI-Snippets({"component": "[component_type]"})
+3. Compare the component implementation against the official DaisyUI pattern
+
+The DaisyUI Blueprint MCP provides the SINGLE SOURCE OF TRUTH for:
+- Correct class combinations
+- Recommended HTML structure
+- Proper modifier usage
+- Expected visual appearance
+
 ## COMPONENT INFO
 - Component: Bali::[ComponentName]::Component
 - DaisyUI URL: http://localhost:3001/lookbook/inspect/bali/[component_name]/default
 - Bulma URL (if available): http://localhost:3002/lookbook/inspect/bali/[component_name]/default
 
 ## PIXEL-PERFECT CHECKLIST (VERIFY EACH ITEM)
+
+### DaisyUI Blueprint Compliance (CHECK FIRST)
+- [ ] Fetched official snippet from DaisyUI Blueprint MCP
+- [ ] Base classes match DaisyUI recommendation
+- [ ] Modifier classes follow DaisyUI naming convention
+- [ ] HTML structure aligns with official pattern
+- [ ] No deprecated or non-standard class combinations
 
 ### Layout Geometry
 - [ ] All columns have EQUAL widths (measure if needed)
@@ -230,6 +280,9 @@ Be EXTREMELY CRITICAL. Do NOT approve components with ANY layout issues.
 - Do NOT modify code (report issues only)
 
 ## FAILURE CONDITIONS (AUTO-REJECT)
+- DaisyUI Blueprint snippet not fetched before review
+- Base classes don't match official DaisyUI pattern
+- HTML structure deviates from DaisyUI recommendation
 - Unequal column widths in grids/tables
 - Navigation arrows both on same side
 - Rows/cells too short for content
@@ -262,6 +315,16 @@ If the agent reports ANY issues:
 - Status: [PASS/FAIL/NEEDS_REVIEW]
 
 ## DaisyUI Compliance
+
+### DaisyUI Blueprint MCP Verification
+- **Official Snippet Retrieved**: Yes/No
+- **Component Type**: [component_type]
+
+| Aspect | Blueprint Reference | Implementation | Match |
+|--------|---------------------|----------------|-------|
+| Base class | `[class]` | `[class]` | Yes/No |
+| Structure | [pattern] | [pattern] | Yes/No |
+| Modifiers | [classes] | [classes] | Yes/No |
 
 ### Classes Found
 | Expected | Found | Status |
@@ -304,9 +367,16 @@ If the agent reports ANY issues:
 
 | Check | Status | Notes |
 |-------|--------|-------|
+| **DaisyUI Blueprint Compliance** | | |
+| Official snippet fetched | Pass/Fail | |
+| Base classes match | Pass/Fail | [discrepancies] |
+| Structure matches | Pass/Fail | |
+| Modifiers correct | Pass/Fail | |
+| **Layout Geometry** | | |
 | Column widths equal | Pass/Fail | [measurement if failed] |
 | Navigation positioning | Pass/Fail | |
 | Row/cell heights | Pass/Fail | [expected vs actual] |
+| **Visual Polish** | | |
 | Borders visible | Pass/Fail | |
 | Backgrounds correct | Pass/Fail | |
 | Hover states | Pass/Fail | |

@@ -1,0 +1,12 @@
+<div class="flex items-end gap-6">
+  <% %i[xs sm md lg xl].each do |sz| %>
+    <div class="flex flex-col items-center gap-2">
+      <%= render(Bali::Avatar::Component.new(size: sz, shape: :circle)) do |c| %>
+        <% c.with_placeholder do %>
+          <span><%= initials %></span>
+        <% end %>
+      <% end %>
+      <span class="text-sm text-base-content/70"><%= sz %></span>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,12 @@
+<div class="<%= group_classes %>">
+  <% avatars.each do |avatar| %>
+    <%= avatar %>
+  <% end %>
+  <% if counter? %>
+    <div class="<%= counter_classes %>">
+      <div class="<%= counter_inner_classes %>">
+        <%= counter %>
+      </div>
+    </div>
+  <% end %>
+</div>

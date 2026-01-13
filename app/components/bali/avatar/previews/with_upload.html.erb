@@ -1,0 +1,9 @@
+<%= form_with(url: '/', local: true) do |form| %>
+  <%= render(Bali::Avatar::Component.new(
+    form: form,
+    method: :avatar,
+    placeholder_url: 'avatar.png',
+    size: size,
+    shape: shape
+  )) %>
+<% end %>

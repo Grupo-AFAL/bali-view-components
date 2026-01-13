@@ -1,0 +1,8 @@
+<%= render(Bali::Avatar::Group::Component.new) do |group| %>
+  <% group.with_avatar(placeholder_url: 'avatar.png', size: :md, shape: :circle) %>
+  <% group.with_avatar(placeholder_url: 'avatar.png', size: :md, shape: :circle) %>
+  <% group.with_avatar(placeholder_url: 'avatar.png', size: :md, shape: :circle) %>
+  <% group.with_counter do %>
+    <span>+99</span>
+  <% end %>
+<% end %>

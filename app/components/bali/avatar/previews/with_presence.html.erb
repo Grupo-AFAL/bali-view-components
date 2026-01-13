@@ -1,0 +1,13 @@
+<div class="flex items-center gap-8">
+  <% %i[online offline].each do |s| %>
+    <div class="flex flex-col items-center gap-2">
+      <%= render(Bali::Avatar::Component.new(
+        placeholder_url: 'avatar.png',
+        size: :xl,
+        shape: :circle,
+        status: s
+      )) %>
+      <span class="text-sm text-base-content/70"><%= s %></span>
+    </div>
+  <% end %>
+</div>
