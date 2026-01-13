@@ -2,7 +2,7 @@
 
 Collection of UI components using the ViewComponent library for easily building interfaces.
 
-Uses StimulusJS for javascript functionality and SCSS along with the Bulma framework for styling.
+Uses StimulusJS for javascript functionality and Tailwind CSS with DaisyUI for styling.
 
 ## Usage
 
@@ -26,7 +26,7 @@ And this to the package.json
 yarn add bali-view-components
 ```
 
-To use a component add import the SCSS styles and JS if required.
+To use a component add import the CSS styles and JS if required.
 
 ## Contributing
 
@@ -46,7 +46,7 @@ This script uses the [foreman](https://github.com/ddollar/foreman) gem to run th
 
 - Rails server
 - Process for JS compilation in watch mode
-- Process for SCSS compilation in watch mode
+- Process for CSS/Tailwind compilation in watch mode
 
 Open your browser at: [http://localhost:3001/lookbook](http://localhost:3001/lookbook)
 

@@ -47,7 +47,7 @@ module Bali
 
       def anchor_button(action, target, text, style = nil)
         data = { action: action, 'slim-select-target': target }
-        tag.a text, class: 'button is-small', style: style, data: data
+        tag.a text, class: 'btn btn-sm', style: style, data: data
       end
 
       def slim_select_field_options(method, html_options, options)

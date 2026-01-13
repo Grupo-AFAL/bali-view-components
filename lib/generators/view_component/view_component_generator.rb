@@ -7,7 +7,7 @@ class ViewComponentGenerator < Rails::Generators::NamedBase
   class_option :skip_test, type: :boolean, default: false
   class_option :skip_preview, type: :boolean, default: false
   class_option :skip_js, type: :boolean, default: false
-  class_option :skip_scss, type: :boolean, default: false
+  class_option :skip_css, type: :boolean, default: false
 
   argument :attributes, type: :array, default: [], banner: 'attribute'
 
@@ -32,10 +32,10 @@ class ViewComponentGenerator < Rails::Generators::NamedBase
     template 'preview.rb', File.join('app/components', class_path, file_name, 'preview.rb')
   end
 
-  def create_scss_file
-    return if options[:skip_scss] || options[:skip_js]
+  def create_css_file
+    return if options[:skip_css] || options[:skip_js]
 
-    template 'index.scss', File.join('app/components', class_path, file_name, 'index.scss')
+    template 'index.css', File.join('app/components', class_path, file_name, 'index.css')
   end
 
   def create_js_file

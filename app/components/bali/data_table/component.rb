@@ -5,7 +5,7 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :filters_class
 
-      delegate :pagy_bulma_nav, to: :helpers
+      delegate :pagy_nav, to: :helpers
 
       renders_one :custom_pagy_nav
       renders_one :actions_panel, ->(

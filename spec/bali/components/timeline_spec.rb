@@ -50,15 +50,15 @@ RSpec.describe Bali::Timeline::Component, type: :component do
     end
 
     expect(page).to have_css '.timeline-header', count: 1
-    expect(page).to have_css '.timeline-header .tag', text: 'Start'
+    expect(page).to have_css '.timeline-header .badge', text: 'Start'
   end
 
   it 'renders timeline header with tag_class' do
     render_inline(component) do |c|
-      c.with_tag_header(text: 'Start', tag_class: 'is-primary')
+      c.with_tag_header(text: 'Start', tag_class: 'badge-primary')
     end
 
     expect(page).to have_css '.timeline-header', count: 1
-    expect(page).to have_css '.timeline-header .tag.is-primary', text: 'Start'
+    expect(page).to have_css '.timeline-header .badge.badge-primary', text: 'Start'
   end
 end

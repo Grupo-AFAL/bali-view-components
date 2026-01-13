@@ -71,7 +71,7 @@ module Bali
         # builder with the original ActiveRecord object to get the same results.
         if object.respond_to?(:original_object)
           object = self.object.original_object
-          form_builder = Bulma::FormBuilder.new(object.model_name.param_key, object, @template, {})
+          form_builder = Bali::FormBuilder.new(object.model_name.param_key, object, @template, {})
         else
           object = self.object
           form_builder = self
