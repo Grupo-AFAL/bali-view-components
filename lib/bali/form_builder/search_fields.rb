@@ -9,7 +9,7 @@ module Bali
           addon_right: tag.button(
             @template.render(Bali::Icon::Component.new('search')),
             type: 'submit',
-            class: options.delete(:addon_class) || 'button is-info'
+            class: options.delete(:addon_class) || 'btn btn-info'
           )
         )
 

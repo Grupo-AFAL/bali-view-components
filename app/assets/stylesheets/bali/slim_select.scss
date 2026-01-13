@@ -26,7 +26,7 @@
 
       .ss-values .ss-value {
         font-size: 1rem;
-        background-color: $primary;
+        background-color: oklch(var(--p));
       }
     }
 
@@ -42,7 +42,7 @@
 
       .ss-multi-selected,
       .ss-single-selected {
-        border-color: $error;
+        border-color: oklch(var(--er));
       }
     }
   }
@@ -62,7 +62,7 @@
 
   .ss-search {
     input:focus {
-      box-shadow: 0 0 3px $primary;
+      box-shadow: 0 0 3px oklch(var(--p));
     }
   }
 
@@ -71,7 +71,7 @@
 
       &:hover,
       &.ss-highlighted {
-        background-color: $primary;
+        background-color: oklch(var(--p));
       }
     }
   }

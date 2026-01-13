@@ -6,7 +6,7 @@ module Bali
       def date_field(method, options = {})
         clear_btn = if options.delete(:clear)
                       content_tag(:div, class: 'control') do
-                        content_tag(:a, class: 'button', data: { action: 'datepicker#clear' }) do
+                        content_tag(:a, class: 'btn', data: { action: 'datepicker#clear' }) do
                           @template.render(Bali::Icon::Component.new('times-circle'))
                         end
                       end
@@ -52,7 +52,7 @@ module Bali
       end
 
       def alt_input_class(method, options)
-        return "#{options[:alt_input_class]} is-danger" if errors?(method)
+        return "#{options[:alt_input_class]} input-error" if errors?(method)
 
         options[:alt_input_class]
       end
@@ -68,7 +68,7 @@ module Bali
       def date_field_previous_btn
         content_tag(:button, @template.render(Bali::Icon::Component.new('arrow-back')),
                     {
-                      class: 'button is-transparent',
+                      class: 'btn btn-ghost',
                       data: { action: 'datepicker#previousDate' }
                     })
       end
@@ -76,7 +76,7 @@ module Bali
       def date_field_next_btn
         content_tag(:button, @template.render(Bali::Icon::Component.new('arrow-forward')),
                     {
-                      class: 'button is-transparent',
+                      class: 'btn btn-ghost',
                       data: { action: 'datepicker#nextDate' }
                     })
       end

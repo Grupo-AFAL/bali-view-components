@@ -13,7 +13,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'renders a submit button' do
-      expect(submit).to have_css 'button[type="submit"][class="button is-primary"]', text: 'Save'
+      expect(submit).to have_css 'button[type="submit"][class="btn btn-primary"]', text: 'Save'
     end
   end
 
@@ -28,12 +28,12 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
 
     context 'when cancel path or cancel options is present' do
       it 'renders a cancel button' do
-        expect(submit_actions).to have_css 'a[class="button is-secondary"][href="/"]', text: 'Back'
+        expect(submit_actions).to have_css 'a[class="btn btn-secondary"][href="/"]', text: 'Back'
       end
     end
 
     it 'renders a submit button' do
-      expect(submit_actions).to have_css 'button[type="submit"][class="button is-primary"]',
+      expect(submit_actions).to have_css 'button[type="submit"][class="btn btn-primary"]',
                                          text: 'Save'
     end
   end

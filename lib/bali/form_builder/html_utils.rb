@@ -17,9 +17,9 @@ module Bali
 
       def field_helper(method, field, options = {})
         if errors?(method)
-          help_message = content_tag(:p, full_errors(method), class: 'help is-danger')
+          help_message = content_tag(:p, full_errors(method), class: 'label-text-alt text-error')
         elsif options[:help]
-          help_message = content_tag(:p, options[:help], class: 'help')
+          help_message = content_tag(:p, options[:help], class: 'label-text-alt')
         end
 
         left_addon = options.delete(:addon_left)
@@ -37,7 +37,7 @@ module Bali
       def field_class_name(method, class_name = 'input')
         return class_name unless errors?(method)
 
-        "#{class_name} is-danger"
+        "#{class_name} input-error"
       end
 
       def errors?(method)

@@ -19,7 +19,7 @@ module Bali
         end
 
         if errors?(method)
-          label_html + content_tag(:p, full_errors(method), class: 'help is-danger')
+          label_html + content_tag(:p, full_errors(method), class: 'label-text-alt text-error')
         else
           label_html
         end

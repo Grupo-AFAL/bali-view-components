@@ -128,7 +128,7 @@ module Bali
 
       def add_link_tag(method, options)
         button_text = options[:button_text] || 'Add'
-        button_class = options[:button_class] || 'button is-primary'
+        button_class = options[:button_class] || 'btn btn-primary'
 
         tag.div(class: 'level-right') do
           link_to_add_fields(

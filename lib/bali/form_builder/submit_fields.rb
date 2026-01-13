@@ -8,7 +8,7 @@ module Bali
           wrapper_class: 'inline',
           data: {},
           type: 'submit',
-          class: 'button is-primary'
+          class: 'btn btn-primary'
         )
 
         unless Bali.native_app
@@ -55,7 +55,7 @@ module Bali
         options = prepend_action(options, 'modal#close') if modal
         options = prepend_action(options, 'drawer#close') if drawer
 
-        options.with_defaults!(class: 'button is-secondary')
+        options.with_defaults!(class: 'btn btn-secondary')
         @template.content_tag(:div, class: 'control') do
           @template.link_to(cancel_button_label(options), path, options)
         end
