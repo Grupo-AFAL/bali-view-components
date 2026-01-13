@@ -28,7 +28,7 @@
   @apply w-full;
 
   select {
-    @apply w-full !important;
+    @apply !w-full;
   }
 }
 
@@ -93,7 +93,7 @@
 
 .large-radio-group {
   .radio {
-    @apply text-base mb-4 !important;
+    @apply !text-base !mb-4;
 
     input {
       @apply mr-4;

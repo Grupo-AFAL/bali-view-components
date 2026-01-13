@@ -68,29 +68,29 @@
 
       /* Color variants */
       &.is-primary {
-        @apply bg-primary border-primary !important;
-        &.is-icon > * { @apply text-primary-content !important; }
-        &.is-outlined { @apply bg-base-100 !important; &.is-icon > * { @apply text-primary !important; } }
+        @apply !bg-primary !border-primary;
+        &.is-icon > * { @apply !text-primary-content; }
+        &.is-outlined { @apply !bg-base-100; &.is-icon > * { @apply !text-primary; } }
       }
       &.is-success {
-        @apply bg-success border-success !important;
-        &.is-icon > * { @apply text-success-content !important; }
-        &.is-outlined { @apply bg-base-100 !important; &.is-icon > * { @apply text-success !important; } }
+        @apply !bg-success !border-success;
+        &.is-icon > * { @apply !text-success-content; }
+        &.is-outlined { @apply !bg-base-100; &.is-icon > * { @apply !text-success; } }
       }
       &.is-warning {
-        @apply bg-warning border-warning !important;
-        &.is-icon > * { @apply text-warning-content !important; }
-        &.is-outlined { @apply bg-base-100 !important; &.is-icon > * { @apply text-warning !important; } }
+        @apply !bg-warning !border-warning;
+        &.is-icon > * { @apply !text-warning-content; }
+        &.is-outlined { @apply !bg-base-100; &.is-icon > * { @apply !text-warning; } }
       }
       &.is-danger, &.is-error {
-        @apply bg-error border-error !important;
-        &.is-icon > * { @apply text-error-content !important; }
-        &.is-outlined { @apply bg-base-100 !important; &.is-icon > * { @apply text-error !important; } }
+        @apply !bg-error !border-error;
+        &.is-icon > * { @apply !text-error-content; }
+        &.is-outlined { @apply !bg-base-100; &.is-icon > * { @apply !text-error; } }
       }
       &.is-info {
-        @apply bg-info border-info !important;
-        &.is-icon > * { @apply text-info-content !important; }
-        &.is-outlined { @apply bg-base-100 !important; &.is-icon > * { @apply text-info !important; } }
+        @apply !bg-info !border-info;
+        &.is-icon > * { @apply !text-info-content; }
+        &.is-outlined { @apply !bg-base-100; &.is-icon > * { @apply !text-info; } }
       }
     }
 
