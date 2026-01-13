@@ -233,3 +233,82 @@ Not committed - awaiting JS recompile verification
 3. Re-run UX review
 4. Fix spacing if still an issue
 5. Commit all changes
+
+---
+
+## Card - 2026-01-13 (Component Cycle)
+
+**Status**: SUCCESS
+**Iterations**: 3 of 3
+**UX Score**: 8/10 (after fixes)
+
+### Issues Found (Initial)
+- [Critical] Cards too wide - missing width constraints
+- [Medium] Shadow too aggressive (`shadow-lg` vs DaisyUI's `shadow-sm`)
+- [Medium] Broken placeholder images in custom preview (via.placeholder.com failing)
+- [Low] Not using native DaisyUI card-border/card-dash classes
+
+### Fixes Applied
+
+1. **STYLES constant fix** (component.rb)
+   - Changed to native DaisyUI classes: `card-border`, `card-dash`
+   - File: `app/components/bali/card/component.rb`
+
+2. **Shadow fix** (component.rb)
+   - Changed `shadow-lg` → `shadow-sm` to match DaisyUI defaults
+   - File: `app/components/bali/card/component.rb`
+
+3. **Width constraints added** (preview.rb + custom_image.html.erb)
+   - Added `w-96` to all card previews
+   - Added `max-w-xl` to side layout
+   - Files: `app/components/bali/card/preview.rb`, `app/components/bali/card/previews/custom_image.html.erb`
+
+4. **Test expectations updated** (card_spec.rb)
+   - Updated bordered test to expect `.card.card-border`
+   - Updated dash test to expect `.card.card-dash`
+   - Updated shadow test to expect `.shadow-sm`
+   - File: `spec/bali/components/card_spec.rb`
+
+5. **Placeholder images fixed** (custom_image.html.erb)
+   - Replaced broken via.placeholder.com URLs with daisyui.com stock images
+   - File: `app/components/bali/card/previews/custom_image.html.erb`
+
+### Files Modified
+- `app/components/bali/card/component.rb` - STYLES hash, shadow-sm
+- `app/components/bali/card/preview.rb` - Width constraints
+- `spec/bali/components/card_spec.rb` - Test expectations
+- `app/components/bali/card/previews/custom_image.html.erb` - Image URLs, width
+
+### Class Mappings
+| Old | New (DaisyUI Standard) |
+|-----|------------------------|
+| `shadow-lg` | `shadow-sm` |
+| Custom border classes | `card-border` |
+| Custom dashed classes | `card-dash` |
+
+### Key Learnings
+
+1. **DaisyUI cards have native border modifiers**: `card-border` and `card-dash` are official DaisyUI classes with subtle styling.
+
+2. **Cards need width constraints**: DaisyUI cards expand to fill container. Use `w-96` for typical card width.
+
+3. **DaisyUI uses subtle shadows**: `shadow-sm` is the standard, not `shadow-lg`.
+
+### Tests
+- Existing: 13 tests
+- Modified: 3 tests (bordered, dash, shadow expectations)
+- Status: All passing (13/13)
+
+### Remaining Issues
+- None
+
+### Verification
+- ✅ RSpec: 13 examples, 0 failures
+- ✅ Visual: Card styles match DaisyUI defaults
+- ✅ Width: Cards properly constrained (no longer "huge")
+
+### Commit
+Pending
+
+### Next Steps
+- Commit changes to tailwind-migration branch

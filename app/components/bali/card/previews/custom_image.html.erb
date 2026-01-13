@@ -1,8 +1,8 @@
-<%= render Bali::Card::Component.new do |c| %>
+<%= render Bali::Card::Component.new(class: 'w-96') do |c| %>
   <% c.with_image do %>
     <div class="image-container group">
-      <%= render Bali::Card::Image::Component.new(src: 'https://via.placeholder.com/320x244.png', class: 'hidden group-hover:block') %>
-      <%= render Bali::Card::Image::Component.new(src: 'https://via.placeholder.com/640x480.png', class: 'group-hover:hidden') %>
+      <%= render Bali::Card::Image::Component.new(src: 'https://img.daisyui.com/images/stock/photo-1635805737707-575885ab0820.webp', class: 'hidden group-hover:block') %>
+      <%= render Bali::Card::Image::Component.new(src: 'https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp', class: 'group-hover:hidden') %>
     </div>
   <% end %>
   <% c.with_footer_item(href: '#') do %>

@@ -18,7 +18,7 @@ RSpec.describe Bali::Card::Component, type: :component do
         'Content'
       end
 
-      expect(page).to have_css '.card.shadow-lg'
+      expect(page).to have_css '.card.shadow-sm'
     end
   end
 

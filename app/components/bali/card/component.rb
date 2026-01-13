@@ -55,7 +55,7 @@ module Bali
           SIZES[@size],
           'card-side' => @side,
           'image-full' => @image_full,
-          'shadow-lg' => @shadow
+          'shadow-sm' => @shadow
         )
       end
     end

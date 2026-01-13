@@ -12,7 +12,7 @@ module Bali
       # @param size [Symbol] select [xs, sm, md, lg, xl]
       # @param shadow toggle
       def default(style: :default, size: :md, shadow: true)
-        render Card::Component.new(style: style, size: size, shadow: shadow) do |c|
+        render Card::Component.new(style: style, size: size, shadow: shadow, class: 'w-96') do |c|
           c.with_image(
             src: 'https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp',
             href: '/'
@@ -33,7 +33,7 @@ module Bali
 
       # Card with Header
       def with_header
-        render Card::Component.new do |c|
+        render Card::Component.new(class: 'w-96') do |c|
           c.with_header(title: 'Header title')
 
           tag.p('Card content with header above')
@@ -48,7 +48,7 @@ module Bali
       # ---------------
       # Card with border style
       def bordered
-        render Card::Component.new(style: :bordered, shadow: false) do |_c|
+        render Card::Component.new(style: :bordered, shadow: false, class: 'w-96') do |_c|
           tag.div do
             safe_join([
                         tag.h2('Bordered Card', class: 'card-title'),
@@ -62,7 +62,7 @@ module Bali
       # ---------------
       # Card with dashed border
       def dash
-        render Card::Component.new(style: :dash, shadow: false) do |_c|
+        render Card::Component.new(style: :dash, shadow: false, class: 'w-96') do |_c|
           tag.div do
             safe_join([
                         tag.h2('Dash Card', class: 'card-title'),
@@ -76,7 +76,7 @@ module Bali
       # ---------------
       # Card with side image layout
       def side_layout
-        render Card::Component.new(side: true) do |c|
+        render Card::Component.new(side: true, class: 'max-w-xl') do |c|
           c.with_image(src: 'https://img.daisyui.com/images/stock/photo-1635805737707-575885ab0820.webp')
 
           c.with_footer_item(href: '#', class: 'btn-primary') do
