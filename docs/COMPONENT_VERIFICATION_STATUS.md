@@ -30,7 +30,7 @@ This document tracks the verification status of all Bali ViewComponents during t
 
 | Component | Automated Tests | AI Visual | DaisyUI Compliance | Manual Review | Notes |
 |-----------|:---------------:|:---------:|:------------------:|:-------------:|-------|
-| ActionsDropdown | ✅ | ❌ | ❌ | ✅ | Manually verified by user |
+| ActionsDropdown | ✅ | ✅ | ✅ | ✅ | Full DaisyUI dropdown with align/direction options, 11 previews |
 | Avatar | ✅ | ✅ | ✅ | ✅ | Full DaisyUI implementation |
 | BooleanIcon | ✅ | ❌ | ❌ | ❌ | |
 | Breadcrumb | ✅ | ❌ | ❌ | ❌ | |

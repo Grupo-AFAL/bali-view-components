@@ -37,14 +37,75 @@ RSpec.describe Bali::ActionsDropdown::Component, type: :component do
 
       expect(page).to have_css 'ul.menu li', count: 2
     end
+  end
 
-    it 'supports position end' do
-      render_inline(described_class.new(position: :end)) do |c|
+  describe 'horizontal alignment' do
+    it 'supports align start (default)' do
+      render_inline(described_class.new(align: :start)) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css 'div.dropdown.dropdown-start'
+    end
+
+    it 'supports align center' do
+      render_inline(described_class.new(align: :center)) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css 'div.dropdown.dropdown-center'
+    end
+
+    it 'supports align end' do
+      render_inline(described_class.new(align: :end)) do |c|
         c.with_item(name: 'Edit', href: '#')
       end
 
       expect(page).to have_css 'div.dropdown.dropdown-end'
-      expect(page).not_to have_css 'div.dropdown-start'
+    end
+  end
+
+  describe 'vertical direction' do
+    it 'supports direction top' do
+      render_inline(described_class.new(direction: :top)) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css 'div.dropdown.dropdown-top'
+    end
+
+    it 'supports direction bottom' do
+      render_inline(described_class.new(direction: :bottom)) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css 'div.dropdown.dropdown-bottom'
+    end
+
+    it 'supports direction left' do
+      render_inline(described_class.new(direction: :left)) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css 'div.dropdown.dropdown-left'
+    end
+
+    it 'supports direction right' do
+      render_inline(described_class.new(direction: :right)) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css 'div.dropdown.dropdown-right'
+    end
+  end
+
+  describe 'combined positions' do
+    it 'supports direction and alignment together' do
+      render_inline(described_class.new(direction: :top, align: :end)) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css 'div.dropdown.dropdown-top.dropdown-end'
     end
   end
 end

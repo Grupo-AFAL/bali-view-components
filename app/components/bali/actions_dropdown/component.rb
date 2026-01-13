@@ -10,8 +10,24 @@ module Bali
         component_klass.new(method: method, plain: true, **options)
       end
 
-      def initialize(position: :start, **options)
-        @position = position
+      # Horizontal alignment
+      ALIGNMENTS = {
+        start: 'dropdown-start',
+        center: 'dropdown-center',
+        end: 'dropdown-end'
+      }.freeze
+
+      # Vertical direction
+      DIRECTIONS = {
+        top: 'dropdown-top',
+        bottom: 'dropdown-bottom',
+        left: 'dropdown-left',
+        right: 'dropdown-right'
+      }.freeze
+
+      def initialize(align: :start, direction: nil, **options)
+        @align = align&.to_sym
+        @direction = direction&.to_sym
         @options = prepend_class_name(options, dropdown_classes)
       end
 
@@ -24,8 +40,8 @@ module Bali
       def dropdown_classes
         class_names(
           'dropdown',
-          'dropdown-end': @position == :end,
-          'dropdown-start': @position == :start
+          ALIGNMENTS[@align],
+          DIRECTIONS[@direction]
         )
       end
     end
