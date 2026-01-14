@@ -37,7 +37,7 @@ This document tracks the verification status of all Bali ViewComponents during t
 | BulkActions | ✅ | ✅ | ✅ | ✅ | Fixed is-hidden→hidden, added checkbox support |
 | Calendar | ✅ | ✅ | ✅ | ✅ | Uses card, table, btn components correctly |
 | Card | ✅ | ✅ | ✅ | ✅ | Full DaisyUI card implementation |
-| Carousel | ✅ | ✅ | N/A | ❌ | Uses Glide.js (keep for now, migrate to Embla post-Tailwind) |
+| Carousel | ✅ | ✅ | N/A | ✅ | Uses Glide.js, fixed CSS nesting, arrow positioning, swipe/drag |
 | Chart | ✅ | ❌ | N/A | ❌ | Custom component |
 | Clipboard | ✅ | ✅ | ✅ | ❌ | Already Tailwind compliant |
 | Columns | ✅ | ✅ | ✅ | ❌ | Uses Tailwind grid (grid-cols-12) |
@@ -92,9 +92,9 @@ This document tracks the verification status of all Bali ViewComponents during t
 
 | Status | Automated | AI Visual | DaisyUI | Manual |
 |--------|:---------:|:---------:|:-------:|:------:|
-| ✅ Complete | 39 | 14 | 13 | 7 |
+| ✅ Complete | 39 | 14 | 13 | 8 |
 | ⚠️ Has Issues | 16 | 0 | 0 | 0 |
-| ❌ Not Started | 0 | 41 | 35 | 48 |
+| ❌ Not Started | 0 | 41 | 35 | 47 |
 | N/A | 0 | 0 | 7 | 0 |
 | **Total** | **55** | **55** | **55** | **55** |
 
@@ -191,6 +191,7 @@ bundle exec rubocop app/components/bali/
 
 | Date | Component | Change | By |
 |------|-----------|--------|-----|
+| 2026-01-14 | Carousel | Fixed CSS nesting, arrow positioning, swipe/drag, slots | AI + Human |
 | 2026-01-14 | Carousel | Keep Glide.js for now, migrate to Embla post-Tailwind migration | AI |
 | 2026-01-13 | Clipboard | AI visual and DaisyUI compliance verified | AI |
 | 2026-01-13 | Columns | AI visual and DaisyUI compliance verified (Tailwind grid) | AI |

@@ -22,9 +22,7 @@ export class CarouselController extends Controller {
       autoplay: this.autoplayValue === 'false' ? false : this.autoplayValue,
       gap: this.gapValue,
       focusAt:
-        this.focusAtValue === 'center' ? 'center' : parseInt(this.focusAtValue),
-      dragThreshold: false,
-      swipeThreshold: false
+        this.focusAtValue === 'center' ? 'center' : parseInt(this.focusAtValue)
     }
 
     if (this.hasBreakpointsValue) {

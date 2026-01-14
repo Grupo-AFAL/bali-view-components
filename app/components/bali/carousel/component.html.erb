@@ -9,6 +9,6 @@
     </ul>
   </div>
 
-  <%= bullets || render(Bali::Carousel::Bullets::Component.new(count: items.size)) %>
-  <%= arrows || render(Bali::Carousel::Arrows::Component.new) %>
+  <%= bullets if bullets? %>
+  <%= arrows if arrows? %>
 <% end %>
