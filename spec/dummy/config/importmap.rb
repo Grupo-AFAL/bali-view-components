@@ -37,6 +37,9 @@ pin "slim-select", to: 'https://cdn.jsdelivr.net/npm/slim-select@2.12.1/+esm'
 # Sortable
 pin "sortablejs", to: 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/+esm'
 
+# Glide.js (Carousel)
+pin "@glidejs/glide", to: 'https://cdn.jsdelivr.net/npm/@glidejs/glide@3.6.2/dist/glide.esm.js'
+
 # Hovercard / Tooltip
 pin "tippy.js", to: 'https://cdn.jsdelivr.net/npm/tippy.js@6.3.7/+esm'
 pin "@popperjs/core", to: 'https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/+esm'
