@@ -120,7 +120,7 @@ application.register('trix-attachments', TrixAttachmentsController)
 application.register('recurrent-event-rule', RecurrentEventRuleController)
 
 // Rich Text Editor - Dynamically loaded only if importmap entry exists
-// To disable, set DISABLE_RICH_TEXT_EDITOR=1 environment variable
+// To enable, set ENABLE_RICH_TEXT_EDITOR=1 environment variable
 import('bali/rich_text_editor')
   .then(({ RichTextEditorController }) => {
     application.register('rich-text-editor', RichTextEditorController)

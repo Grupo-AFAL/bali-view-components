@@ -1,8 +1,8 @@
 # Pin npm packages by running ./bin/importmap
 
-# Load Rich Text Editor importmap only if enabled
-# Set DISABLE_RICH_TEXT_EDITOR=1 to skip loading TipTap dependencies
-unless ENV['DISABLE_RICH_TEXT_EDITOR']
+# Load Rich Text Editor importmap only if explicitly enabled
+# Set ENABLE_RICH_TEXT_EDITOR=1 to load TipTap dependencies
+if ENV['ENABLE_RICH_TEXT_EDITOR']
   require_relative '../../../lib/bali/importmap/rich_text_editor'
 end
 
@@ -124,7 +124,7 @@ pin 'bali/recurrent-event-rule', to: 'bali/recurrent_event_rule_form/index.js'
 pin 'rrule', to: 'https://cdn.jsdelivr.net/npm/rrule@2.8.1/+esm'
 
 # Rich Text Editor - Conditionally loaded
-# Set DISABLE_RICH_TEXT_EDITOR=1 environment variable to skip these dependencies
-unless ENV['DISABLE_RICH_TEXT_EDITOR']
+# Set ENABLE_RICH_TEXT_EDITOR=1 environment variable to load TipTap dependencies
+if ENV['ENABLE_RICH_TEXT_EDITOR']
   Bali::Importmap::RichTextEditor.pin_all(self)
 end
