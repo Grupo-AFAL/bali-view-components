@@ -125,11 +125,11 @@ export class RecurrentEventRuleController extends Controller {
   }
 
   _hide = (element) => {
-    element.classList.add('is-hidden')
+    element.classList.add('hidden')
   }
 
   _show = (element) => {
-    element.classList.remove('is-hidden')
+    element.classList.remove('hidden')
   }
 
   _activateInputs = (element) => {

@@ -34,3 +34,5 @@ yarn-debug.log*
 firebase-debug.log
 .playwright-mcp/
 test-results/
+
+firebase-debug.log

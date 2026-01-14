@@ -32,11 +32,11 @@ This document tracks the verification status of all Bali ViewComponents during t
 |-----------|:---------------:|:---------:|:------------------:|:-------------:|-------|
 | ActionsDropdown | ✅ | ✅ | ✅ | ✅ | Full DaisyUI dropdown with align/direction options, 11 previews |
 | Avatar | ✅ | ✅ | ✅ | ✅ | Full DaisyUI implementation |
-| BooleanIcon | ✅ | ✅ | ✅ | ❌ | Uses text-success/text-error correctly |
-| Breadcrumb | ✅ | ✅ | ✅ | ❌ | Proper DaisyUI breadcrumbs structure |
-| BulkActions | ✅ | ✅ | ✅ | ❌ | Fixed is-hidden→hidden, added checkbox support |
-| Calendar | ✅ | ✅ | ✅ | ❌ | Uses card, table, btn components correctly |
-| Card | ✅ | ✅ | ✅ | ❌ | Full DaisyUI card implementation |
+| BooleanIcon | ✅ | ✅ | ✅ | ✅ | Uses text-success/text-error correctly |
+| Breadcrumb | ✅ | ✅ | ✅ | ✅ | Proper DaisyUI breadcrumbs structure |
+| BulkActions | ✅ | ✅ | ✅ | ✅ | Fixed is-hidden→hidden, added checkbox support |
+| Calendar | ✅ | ✅ | ✅ | ✅ | Uses card, table, btn components correctly |
+| Card | ✅ | ✅ | ✅ | ✅ | Full DaisyUI card implementation |
 | Carousel | ✅ | ❌ | ❌ | ❌ | |
 | Chart | ✅ | ❌ | N/A | ❌ | Custom component |
 | Clipboard | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
@@ -92,9 +92,9 @@ This document tracks the verification status of all Bali ViewComponents during t
 
 | Status | Automated | AI Visual | DaisyUI | Manual |
 |--------|:---------:|:---------:|:-------:|:------:|
-| ✅ Complete | 38 | 9 | 9 | 2 |
+| ✅ Complete | 38 | 9 | 9 | 7 |
 | ⚠️ Has Issues | 17 | 0 | 0 | 0 |
-| ❌ Not Started | 0 | 46 | 40 | 53 |
+| ❌ Not Started | 0 | 46 | 40 | 48 |
 | N/A | 0 | 0 | 6 | 0 |
 | **Total** | **55** | **55** | **55** | **55** |
 
@@ -191,6 +191,7 @@ bundle exec rubocop app/components/bali/
 
 | Date | Component | Change | By |
 |------|-----------|--------|-----|
+| 2026-01-13 | BooleanIcon, Breadcrumb, BulkActions, Calendar, Card | Manual verification completed | Human |
 | 2026-01-13 | BooleanIcon | AI visual and DaisyUI compliance verified | AI |
 | 2026-01-13 | Breadcrumb | AI visual and DaisyUI compliance verified | AI |
 | 2026-01-13 | BulkActions | Fixed is-hidden→hidden, added checkbox support, verified | AI |

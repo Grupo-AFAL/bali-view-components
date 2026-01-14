@@ -15,7 +15,7 @@ module Bali
         render Breadcrumb::Component.new do |c|
           c.with_item(href: '/home', name: 'Home', icon_name: 'home')
           c.with_item(href: '/home/store', name: 'Store', icon_name: 'store')
-          c.with_item(href: '/home/store/product', name: 'Product', icon_name: 'box', active: true)
+          c.with_item(href: '/home/store/product', name: 'Product', icon_name: 'camera', active: true)
         end
       end
     end

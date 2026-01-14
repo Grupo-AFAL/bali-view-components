@@ -14,7 +14,7 @@ describe('TabsController', () => {
 
       cy.get('.tabs-content div:nth-child(2)').should(
         'not.have.class',
-        'is-hidden'
+        'hidden'
       )
       cy.get('.tabs-content div:nth-child(2)').should(
         'contain',

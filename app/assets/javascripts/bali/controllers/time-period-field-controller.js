@@ -29,10 +29,10 @@ export class TimePeriodFieldController extends Controller {
   }
 
   _show = (elements) => {
-    elements.filter(el => el).forEach(element => { element.classList.remove('is-hidden') })
+    elements.filter(el => el).forEach(element => { element.classList.remove('hidden') })
   }
 
   _hide = (elements) => {
-    elements.filter(el => el).forEach(element => { element.classList.add('is-hidden') })
+    elements.filter(el => el).forEach(element => { element.classList.add('hidden') })
   }
 }

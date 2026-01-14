@@ -84,10 +84,10 @@ export class RadioButtonsGroupController extends Controller {
       const valuesProperties = element.dataset.radioButtonsGroupValue.split(',')
 
       if (valuesProperties.includes(value)) {
-        element.classList.remove('is-hidden')
+        element.classList.remove('hidden')
         this.activeTogglerContent = element
       } else {
-        element.classList.add('is-hidden')
+        element.classList.add('hidden')
         this.uncheckedRadioButtons(element)
       }
     })

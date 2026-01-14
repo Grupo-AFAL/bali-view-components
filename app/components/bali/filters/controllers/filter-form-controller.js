@@ -18,10 +18,10 @@ export class FilterFormController extends Controller {
     const activeFilters = this.activeFilters()
 
     if (activeFilters.length > 0) {
-      this.removeButtonTarget.classList.remove('is-hidden')
+      this.removeButtonTarget.classList.remove('hidden')
       this.filterCounterTarget.innerText = `(${activeFilters.length})`
     } else {
-      this.removeButtonTarget.classList.add('is-hidden')
+      this.removeButtonTarget.classList.add('hidden')
       this.filterCounterTarget.innerText = ''
     }
   }

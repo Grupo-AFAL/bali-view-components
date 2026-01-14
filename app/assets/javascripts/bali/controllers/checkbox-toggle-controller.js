@@ -29,11 +29,11 @@ export class CheckboxToggleController extends Controller {
 
   toggleTargets (checked) {
     if (checked) {
-      this.onTarget.classList.remove('is-hidden')
-      this.offTarget.classList.add('is-hidden')
+      this.onTarget.classList.remove('hidden')
+      this.offTarget.classList.add('hidden')
     } else {
-      this.onTarget.classList.add('is-hidden')
-      this.offTarget.classList.remove('is-hidden')
+      this.onTarget.classList.add('hidden')
+      this.offTarget.classList.remove('hidden')
     }
   }
 }

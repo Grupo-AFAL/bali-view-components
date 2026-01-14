@@ -52,9 +52,9 @@ export class RadioToggleController extends Controller {
       const valuesProperties = element.dataset.radioToggleValue.split(',')
 
       if (valuesProperties.includes(value)) {
-        element.classList.remove('is-hidden')
+        element.classList.remove('hidden')
       } else {
-        element.classList.add('is-hidden')
+        element.classList.add('hidden')
       }
     })
   }
