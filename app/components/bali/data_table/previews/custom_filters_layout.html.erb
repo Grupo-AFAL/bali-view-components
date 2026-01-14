@@ -1,21 +1,21 @@
 <%= render Bali::DataTable::Component.new(filter_form: form, url: '#') do |c| %>
   <% c.with_filters_panel(text_field: :name, opened: false) do %>
-    <div class="columns">
-      <div class="column">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
         <%= render Bali::Filters::Attribute::Component.new(form: form, title: 'Name', attribute: :name_eq) %>
       </div>
 
-      <div class="column">
+      <div>
         <%= render Bali::Filters::Attribute::Component.new(form: form,title: 'Age', attribute: :age_eq) %>
       </div>
     </div>
 
-    <div class="columns">
-      <div class="column">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+      <div>
         <%= render Bali::Filters::Attribute::Component.new(form: form,title: 'Age', attribute: :age_gteq, display: :flex) %>
       </div>
 
-      <div class="column">
+      <div>
         <%= render Bali::Filters::Attribute::Component.new(form: form,title: 'Age', attribute: :age_lteq, display: :flex) %>
       </div>
     </div>

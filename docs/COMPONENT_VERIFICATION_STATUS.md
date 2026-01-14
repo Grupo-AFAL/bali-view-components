@@ -37,13 +37,13 @@ This document tracks the verification status of all Bali ViewComponents during t
 | BulkActions | ✅ | ✅ | ✅ | ✅ | Fixed is-hidden→hidden, added checkbox support |
 | Calendar | ✅ | ✅ | ✅ | ✅ | Uses card, table, btn components correctly |
 | Card | ✅ | ✅ | ✅ | ✅ | Full DaisyUI card implementation |
-| Carousel | ✅ | ❌ | ❌ | ❌ | |
+| Carousel | ✅ | ⚠️ | ❌ | ❌ | Uses Glide.js, needs full migration to DaisyUI CSS carousel |
 | Chart | ✅ | ❌ | N/A | ❌ | Custom component |
-| Clipboard | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
-| Columns | ✅ | ❌ | ❌ | ❌ | |
-| DataTable | ✅ | ❌ | ❌ | ❌ | |
+| Clipboard | ✅ | ✅ | ✅ | ❌ | Already Tailwind compliant |
+| Columns | ✅ | ✅ | ✅ | ❌ | Uses Tailwind grid (grid-cols-12) |
+| DataTable | ✅ | ✅ | ✅ | ❌ | Fixed Bulma columns→Tailwind grid in preview |
 | DeleteLink | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
-| Drawer | ✅ | ❌ | ❌ | ❌ | |
+| Drawer | ✅ | ✅ | ✅ | ❌ | Hybrid JS approach with Tailwind utilities |
 | Dropdown | ✅ | ❌ | ❌ | ❌ | |
 | FieldGroupWrapper | ✅ | ❌ | ❌ | ❌ | |
 | Filters | ✅ | ❌ | ❌ | ❌ | |
@@ -92,9 +92,9 @@ This document tracks the verification status of all Bali ViewComponents during t
 
 | Status | Automated | AI Visual | DaisyUI | Manual |
 |--------|:---------:|:---------:|:-------:|:------:|
-| ✅ Complete | 38 | 9 | 9 | 7 |
-| ⚠️ Has Issues | 17 | 0 | 0 | 0 |
-| ❌ Not Started | 0 | 46 | 40 | 48 |
+| ✅ Complete | 39 | 13 | 13 | 7 |
+| ⚠️ Has Issues | 16 | 1 | 0 | 0 |
+| ❌ Not Started | 0 | 41 | 36 | 48 |
 | N/A | 0 | 0 | 6 | 0 |
 | **Total** | **55** | **55** | **55** | **55** |
 
@@ -191,6 +191,11 @@ bundle exec rubocop app/components/bali/
 
 | Date | Component | Change | By |
 |------|-----------|--------|-----|
+| 2026-01-13 | Carousel | Verified - needs full migration from Glide.js to DaisyUI | AI |
+| 2026-01-13 | Clipboard | AI visual and DaisyUI compliance verified | AI |
+| 2026-01-13 | Columns | AI visual and DaisyUI compliance verified (Tailwind grid) | AI |
+| 2026-01-13 | DataTable | Fixed Bulma columns→Tailwind grid in preview, verified | AI |
+| 2026-01-13 | Drawer | AI visual and DaisyUI compliance verified | AI |
 | 2026-01-13 | BooleanIcon, Breadcrumb, BulkActions, Calendar, Card | Manual verification completed | Human |
 | 2026-01-13 | BooleanIcon | AI visual and DaisyUI compliance verified | AI |
 | 2026-01-13 | Breadcrumb | AI visual and DaisyUI compliance verified | AI |
