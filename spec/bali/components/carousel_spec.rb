@@ -9,7 +9,7 @@ RSpec.describe Bali::Carousel::Component, type: :component do
   it 'renders component' do
     render_inline(component) do |c|
       c.with_item do
-        '<img src="https://via.placeholder.com/320x244.png" />'.html_safe
+        '<img src="https://placehold.co/320x244" />'.html_safe
       end
     end
 
@@ -20,7 +20,7 @@ RSpec.describe Bali::Carousel::Component, type: :component do
     options.merge!(start_at: 1)
     render_inline(component) do |c|
       c.with_item do
-        '<img src="https://via.placeholder.com/320x244.png" />'.html_safe
+        '<img src="https://placehold.co/320x244" />'.html_safe
       end
     end
 

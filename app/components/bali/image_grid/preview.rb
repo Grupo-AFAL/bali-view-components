@@ -3,8 +3,8 @@
 module Bali
   module ImageGrid
     class Preview < ApplicationViewComponentPreview
-      URL_3_2 = 'https://via.placeholder.com/480x320.png'
-      URL_4_5 = 'https://via.placeholder.com/480x600.png'
+      URL_3_2 = 'https://placehold.co/480x320'
+      URL_4_5 = 'https://placehold.co/480x600'
 
       # Default Image Grid
       # ------------------

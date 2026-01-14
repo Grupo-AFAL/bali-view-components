@@ -7,7 +7,7 @@ module Bali
       def default
         render(Carousel::Component.new) do |c|
           c.with_item do
-            image_tag('https://via.placeholder.com/320x244.png', class: 'image-center')
+            image_tag('https://placehold.co/320x244', class: 'image-center')
           end
         end
       end
@@ -18,11 +18,11 @@ module Bali
       def with_options
         render(Carousel::Component.new(data: { 'carousel-type-value': 'slider' })) do |c|
           c.with_item do
-            image_tag('https://via.placeholder.com/320x244.png', class: 'image-center')
+            image_tag('https://placehold.co/320x244', class: 'image-center')
           end
 
           c.with_item do
-            image_tag('https://via.placeholder.com/320x244.png', class: 'image-center')
+            image_tag('https://placehold.co/320x244', class: 'image-center')
           end
         end
       end
