@@ -43,8 +43,8 @@ module Bali
   mattr_accessor :sketcky_request_usernames, default: %w[admin cnadmin]
 
   # Rich Text Editor configuration
-  # Set to false to disable the Rich Text Editor component and avoid loading TipTap dependencies
-  mattr_accessor :rich_text_editor_enabled, default: true
+  # Set to true to enable the Rich Text Editor component (requires TipTap dependencies)
+  mattr_accessor :rich_text_editor_enabled, default: false
 
   def self.add_icon(name, svg_str)
     custom_icons[name.to_s] = svg_str
