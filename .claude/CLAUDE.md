@@ -2,12 +2,36 @@
 
 This file provides guidance to AI coding agents working with the Bali ViewComponents library.
 
+## AFAL Design System Reference
+
+**CRITICAL**: When building or modifying components, reference the AFAL handbook design system to ensure alignment with the purchased DaisyUI templates (Nexus and Scalo).
+
+| Resource | Location | Purpose |
+|----------|----------|---------|
+| **Design System Catalog** | `handbook/design-system/DESIGN-SYSTEM.md` | Complete component inventory |
+| **daisyUI 5 Reference** | `handbook/design-system/nexus-html@3.2.0/.clinerules/daisyui.md` | Official daisyUI class reference |
+| **Admin Patterns** | `handbook/design-system/nexus-html@3.2.0/src/partials/` | Dashboard, tables, forms |
+| **Marketing Patterns** | `handbook/design-system/scalo-html@3.1.0/src/partials/` | Landing pages, pricing |
+| **Local Reference** | `docs/reference/afal-design-system.md` | Bali ↔ Design system alignment |
+
+### Quick Pattern Lookup
+
+| Building... | Check Template |
+|-------------|----------------|
+| Stats/metric cards | `nexus/partials/blocks/stats/` |
+| Data tables | `nexus/partials/interactions/datatables/` |
+| AI prompt inputs | `nexus/partials/blocks/prompt-bar/` |
+| Pricing sections | `scalo/partials/*/pricing.html` |
+| Hero sections | `scalo/partials/*/hero.html` |
+| Testimonials | `scalo/partials/*/testimonials.html` |
+
 ## Shared Documentation
 
 Reference documentation is maintained in `docs/` for use by both Claude Code and OpenCode:
 
 | Document | Purpose |
 |----------|---------|
+| `docs/reference/afal-design-system.md` | AFAL design system alignment guide |
 | `docs/reference/daisyui-mapping.md` | Bulma → DaisyUI class mappings (single source of truth) |
 | `docs/reference/component-patterns.md` | Standard ViewComponent patterns |
 | `docs/reference/stimulus-patterns.md` | Stimulus controller patterns |
@@ -500,3 +524,120 @@ yarn run cy:run
 - [Tailwind CSS](https://tailwindcss.com/docs)
 - [Lookbook](https://lookbook.build/)
 - [Stimulus Handbook](https://stimulus.hotwired.dev/handbook/introduction)
+
+---
+
+## Bali Component Catalog
+
+### Layout Components
+
+| Component | Purpose | DaisyUI Classes | Design System Pattern |
+|-----------|---------|-----------------|----------------------|
+| `Bali::Card` | Content container | `card bg-base-100 card-border` | `nexus/blocks/stats/` |
+| `Bali::Columns` | Grid layout | `grid grid-cols-12 gap-*` | Tailwind grid |
+| `Bali::Drawer` | Side panel | `drawer drawer-content drawer-side` | `nexus/layouts/sidebar/` |
+| `Bali::Hero` | Hero section | Custom Tailwind | `scalo/*/hero.html` |
+| `Bali::Level` | Horizontal layout | `flex items-center justify-between` | Tailwind flex |
+| `Bali::Modal` | Dialog/modal | `modal modal-box modal-action` | daisyUI modal |
+| `Bali::PageHeader` | Page header | Custom Tailwind | `nexus/layouts/page-title/` |
+
+### Navigation Components
+
+| Component | Purpose | DaisyUI Classes | Design System Pattern |
+|-----------|---------|-----------------|----------------------|
+| `Bali::Breadcrumb` | Navigation breadcrumb | `breadcrumbs` | daisyUI breadcrumbs |
+| `Bali::Dropdown` | Dropdown menu | `dropdown dropdown-content menu` | daisyUI dropdown |
+| `Bali::NavBar` | Navigation bar | `navbar navbar-start/center/end` | `nexus/layouts/topbar/` |
+| `Bali::SideMenu` | Sidebar menu | `menu` | `nexus/layouts/sidebar/` |
+| `Bali::Tabs` | Tab navigation | `tabs tabs-box tab` | daisyUI tabs |
+| `Bali::Stepper` | Step indicator | `steps step step-*` | daisyUI steps |
+
+### Data Display Components
+
+| Component | Purpose | DaisyUI Classes | Design System Pattern |
+|-----------|---------|-----------------|----------------------|
+| `Bali::Avatar` | User avatar | `avatar` | daisyUI avatar |
+| `Bali::BooleanIcon` | Boolean indicator | Custom icons | — |
+| `Bali::Chart` | Data charts | (ApexCharts) | `nexus/components-apex-charts-*` |
+| `Bali::DataTable` | Data table | `table table-zebra` | `nexus/interactions/datatables/` |
+| `Bali::GanttChart` | Gantt chart | Custom | — |
+| `Bali::Heatmap` | Heatmap display | Custom | — |
+| `Bali::Icon` | Icon display | `iconify lucide--*` | Iconify Lucide |
+| `Bali::ImageGrid` | Image gallery | Grid layout | — |
+| `Bali::InfoLevel` | Info display | Custom | — |
+| `Bali::LabelValue` | Label/value pair | Custom Tailwind | — |
+| `Bali::List` | List display | `list list-row` | daisyUI list |
+| `Bali::Progress` | Progress bar | `progress progress-*` | daisyUI progress |
+| `Bali::PropertiesTable` | Property table | `table` | — |
+| `Bali::Rate` | Rating display | `rating` | daisyUI rating |
+| `Bali::Table` | Basic table | `table` | daisyUI table |
+| `Bali::Timeline` | Timeline | `timeline timeline-*` | daisyUI timeline |
+| `Bali::TreeView` | Tree structure | Custom | — |
+
+### Interactive Components
+
+| Component | Purpose | DaisyUI Classes | Design System Pattern |
+|-----------|---------|-----------------|----------------------|
+| `Bali::ActionsDropdown` | Action menu | `dropdown menu` | daisyUI dropdown |
+| `Bali::BulkActions` | Bulk actions | Custom | — |
+| `Bali::Calendar` | Calendar picker | (Flatpickr) | — |
+| `Bali::Carousel` | Image carousel | `carousel carousel-item` | `nexus/interactions/carousel/` |
+| `Bali::Clipboard` | Copy to clipboard | Custom + Stimulus | `nexus/interactions/clipboard/` |
+| `Bali::DeleteLink` | Delete confirmation | `btn btn-error` | — |
+| `Bali::Filters` | Filter controls | Custom | — |
+| `Bali::HoverCard` | Hover popup | Custom | — |
+| `Bali::Link` | Styled link | `link link-*` | daisyUI link |
+| `Bali::Reveal` | Show/hide content | Custom + Stimulus | — |
+| `Bali::SearchInput` | Search field | `input` | `nexus/layouts/search/` |
+| `Bali::SortableList` | Drag-drop list | Custom + SortableJS | `nexus/interactions/sortable/` |
+| `Bali::Tooltip` | Tooltip | `tooltip tooltip-*` | daisyUI tooltip |
+
+### Feedback Components
+
+| Component | Purpose | DaisyUI Classes | Design System Pattern |
+|-----------|---------|-----------------|----------------------|
+| `Bali::FlashNotifications` | Flash messages | `alert alert-*` | daisyUI alert |
+| `Bali::Loader` | Loading indicator | `loading loading-*` | daisyUI loading |
+| `Bali::Message` | Message display | `alert` | daisyUI alert |
+| `Bali::Notification` | Notification | `alert alert-*` | daisyUI alert |
+
+### Form Components
+
+| Component | Purpose | DaisyUI Classes | Design System Pattern |
+|-----------|---------|-----------------|----------------------|
+| `Bali::Form::*` | Form elements | `input select textarea checkbox radio` | daisyUI form elements |
+| `Bali::ImageField` | Image upload | Custom | `nexus/interactions/file-upload/` |
+| `Bali::RichTextEditor` | Rich text | (Trix) | `nexus/interactions/text-editor/` |
+
+### Utility Components
+
+| Component | Purpose | DaisyUI Classes | Design System Pattern |
+|-----------|---------|-----------------|----------------------|
+| `Bali::Tag` | Tag/label | `badge badge-*` | daisyUI badge |
+| `Bali::Tags` | Tag list | `badge` collection | — |
+| `Bali::Timeago` | Relative time | Custom | — |
+| `Bali::LocationsMap` | Map display | (Google Maps) | — |
+
+---
+
+## Stimulus Controllers
+
+| Controller | Purpose | Usage |
+|------------|---------|-------|
+| `AutoPlay` | Auto-play audio | `data-controller="auto-play"` |
+| `AutocompleteAddress` | Google Places autocomplete | `data-controller="autocomplete-address"` |
+| `CheckboxToggle` | Toggle visibility with checkbox | `data-controller="checkbox-toggle"` |
+| `Datepicker` | Flatpickr date picker | `data-controller="datepicker"` |
+| `DynamicFields` | Dynamic form fields | `data-controller="dynamic-fields"` |
+| `ElementsOverlap` | Prevent element overlap | `data-controller="elements-overlap"` |
+| `FileInput` | File input display | `data-controller="file-input"` |
+| `FocusOnConnect` | Auto-focus/scroll | `data-controller="focus-on-connect"` |
+| `InputOnChange` | Server notification on change | `data-controller="input-on-change"` |
+| `Modal` | Modal control | `data-controller="modal"` |
+| `Print` | Print page | `data-controller="print"` |
+| `RadioToggle` | Toggle visibility with radio | `data-controller="radio-toggle"` |
+| `SlimSelect` | Slim Select dropdown | `data-controller="slim-select"` |
+| `StepNumberInput` | Increment/decrement input | `data-controller="step-number-input"` |
+| `SubmitButton` | Loading state on submit | `data-controller="submit-button"` |
+| `SubmitOnChange` | Auto-submit on change | `data-controller="submit-on-change"` |
+| `TrixAttachments` | Trix file attachments | `data-controller="trix-attachments"` |
