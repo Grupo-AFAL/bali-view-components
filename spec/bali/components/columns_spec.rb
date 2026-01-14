@@ -6,22 +6,22 @@ RSpec.describe Bali::Columns::Component, type: :component do
   let(:component) { Bali::Columns::Component.new }
 
   describe 'basic rendering' do
-    it 'renders container with grid classes' do
+    it 'renders container with flex classes' do
       render_inline(component) do |c|
         c.with_column { 'First' }
         c.with_column { 'Second' }
       end
 
-      expect(page).to have_css '.columns-component.grid.grid-cols-12.gap-4'
+      expect(page).to have_css '.columns-component.flex.flex-wrap.gap-4'
     end
 
-    it 'renders columns with default col-span-6 sizing' do
+    it 'renders columns with default flex-1 sizing to fill remaining space' do
       render_inline(component) do |c|
         c.with_column { 'First' }
         c.with_column { 'Second' }
       end
 
-      expect(page).to have_css 'div.column.col-span-6', count: 2
+      expect(page).to have_css 'div.column.flex-1', count: 2
     end
   end
 
@@ -58,8 +58,8 @@ RSpec.describe Bali::Columns::Component, type: :component do
       end
 
       column = page.find('div.column')
-      expect(column[:class]).to include('col-span-6')
-      expect(column[:class]).to include('col-start-4')
+      expect(column[:class]).to include('w-[calc(50%-0.5rem)]')
+      expect(column[:class]).to include('ml-[25%]')
     end
   end
 

@@ -40,7 +40,7 @@ This document tracks the verification status of all Bali ViewComponents during t
 | Carousel | ✅ | ✅ | N/A | ✅ | Uses Glide.js, fixed CSS nesting, arrow positioning, swipe/drag |
 | Chart | ✅ | ✅ | N/A | ✅ | Custom component (Chart.js) |
 | Clipboard | ✅ | ✅ | ✅ | ✅ | Already Tailwind compliant |
-| Columns | ✅ | ✅ | ✅ | ❌ | Uses Tailwind grid (grid-cols-12) |
+| Columns | ✅ | ✅ | ✅ | ✅ | Switched to flexbox for dynamic layouts |
 | DataTable | ✅ | ✅ | ✅ | ❌ | Fixed Bulma columns→Tailwind grid in preview |
 | DeleteLink | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
 | Drawer | ✅ | ✅ | ✅ | ❌ | Hybrid JS approach with Tailwind utilities |
@@ -92,9 +92,9 @@ This document tracks the verification status of all Bali ViewComponents during t
 
 | Status | Automated | AI Visual | DaisyUI | Manual |
 |--------|:---------:|:---------:|:-------:|:------:|
-| ✅ Complete | 39 | 15 | 13 | 10 |
+| ✅ Complete | 39 | 15 | 13 | 11 |
 | ⚠️ Has Issues | 16 | 0 | 0 | 0 |
-| ❌ Not Started | 0 | 40 | 35 | 45 |
+| ❌ Not Started | 0 | 40 | 35 | 44 |
 | N/A | 0 | 0 | 7 | 0 |
 | **Total** | **55** | **55** | **55** | **55** |
 
@@ -191,6 +191,7 @@ bundle exec rubocop app/components/bali/
 
 | Date | Component | Change | By |
 |------|-----------|--------|-----|
+| 2026-01-14 | Columns | Switched from grid to flexbox, fixed narrow+expand layout | AI + Human |
 | 2026-01-14 | Chart, Clipboard | Manual verification completed | Human |
 | 2026-01-14 | Carousel | Fixed CSS nesting, arrow positioning, swipe/drag, slots | AI + Human |
 | 2026-01-14 | Carousel | Keep Glide.js for now, migrate to Embla post-Tailwind migration | AI |
