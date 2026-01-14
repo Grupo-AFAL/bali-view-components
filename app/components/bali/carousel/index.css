@@ -46,37 +46,26 @@
   }
 
   .glide__arrow {
-    @apply absolute block top-1/2 z-[2] text-white uppercase;
-    @apply bg-transparent border-2 border-white/50 rounded-full;
-    @apply opacity-100 cursor-pointer;
-    padding: 0.188rem;
+    @apply absolute flex items-center justify-center top-1/2 z-[2] text-white;
+    @apply bg-black/30 border-2 border-white/50 rounded-full;
+    @apply opacity-100 cursor-pointer w-10 h-10;
     box-shadow: 0 0.25em 0.5em 0 rgba(0, 0, 0, 0.1);
-    text-shadow: 0 0.25em 0.5em rgba(0, 0, 0, 0.1);
-    transition: opacity 150ms ease, border 300ms ease-in-out;
+    transition: opacity 150ms ease, border 300ms ease-in-out, background 300ms ease-in-out;
     transform: translateY(-50%);
-    line-height: 1;
 
     &:focus {
       @apply outline-none;
     }
     &:hover {
-      @apply border-white;
+      @apply border-white bg-black/50;
     }
 
     &--left {
-      left: -4rem;
-
-      @media (max-width: 768px) {
-        left: 2rem;
-      }
+      @apply left-4;
     }
 
     &--right {
-      right: -4rem;
-
-      @media (max-width: 768px) {
-        right: 2rem;
-      }
+      @apply right-4;
     }
 
     &--disabled {
