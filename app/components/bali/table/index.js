@@ -73,9 +73,9 @@ export class TableController extends Controller {
     if (!this.hasActionsContainerTarget) return
 
     if (this.selectedIdsValue.length > 0) {
-      this.actionsContainerTarget.classList.remove('is-hidden')
+      this.actionsContainerTarget.classList.remove('hidden')
     } else {
-      this.actionsContainerTarget.classList.add('is-hidden')
+      this.actionsContainerTarget.classList.add('hidden')
     }
   }
 

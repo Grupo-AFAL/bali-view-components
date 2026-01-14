@@ -10,7 +10,7 @@ export class TreeViewItemController extends Controller {
     this.caretTarget.classList.toggle('caret-down')
 
     if (this.hasChildrenTarget) {
-      this.childrenTarget.classList.toggle('is-hidden')
+      this.childrenTarget.classList.toggle('hidden')
     }
   }
 
