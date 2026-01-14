@@ -32,11 +32,11 @@ This document tracks the verification status of all Bali ViewComponents during t
 |-----------|:---------------:|:---------:|:------------------:|:-------------:|-------|
 | ActionsDropdown | ✅ | ✅ | ✅ | ✅ | Full DaisyUI dropdown with align/direction options, 11 previews |
 | Avatar | ✅ | ✅ | ✅ | ✅ | Full DaisyUI implementation |
-| BooleanIcon | ✅ | ❌ | ❌ | ❌ | |
-| Breadcrumb | ✅ | ❌ | ❌ | ❌ | |
-| BulkActions | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
-| Calendar | ✅ | ❌ | ❌ | ❌ | |
-| Card | ✅ | ❌ | ❌ | ❌ | |
+| BooleanIcon | ✅ | ✅ | ✅ | ❌ | Uses text-success/text-error correctly |
+| Breadcrumb | ✅ | ✅ | ✅ | ❌ | Proper DaisyUI breadcrumbs structure |
+| BulkActions | ✅ | ✅ | ✅ | ❌ | Fixed is-hidden→hidden, added checkbox support |
+| Calendar | ✅ | ✅ | ✅ | ❌ | Uses card, table, btn components correctly |
+| Card | ✅ | ✅ | ✅ | ❌ | Full DaisyUI card implementation |
 | Carousel | ✅ | ❌ | ❌ | ❌ | |
 | Chart | ✅ | ❌ | N/A | ❌ | Custom component |
 | Clipboard | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
@@ -78,50 +78,47 @@ This document tracks the verification status of all Bali ViewComponents during t
 | SideMenu | ✅ | ❌ | ❌ | ❌ | |
 | SortableList | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
 | Stepper | ✅ | ❌ | ❌ | ❌ | |
-| Table | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
+| Table | ✅ | ✅ | ✅ | ❌ | Fixed is-hidden→hidden, enhanced bulk actions preview |
 | Tabs | ✅ | ❌ | ❌ | ❌ | |
 | Tag | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
 | Tags | ✅ | ❌ | ❌ | ❌ | |
 | Timeago | ✅ | ❌ | ❌ | ❌ | |
 | Timeline | ✅ | ❌ | ❌ | ❌ | |
 | Tooltip | ✅ | ❌ | ❌ | ❌ | |
-| TreeView | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
+| TreeView | ✅ | ✅ | ✅ | ❌ | Fixed is-hidden→hidden in JS controller |
 | TurboNativeApp | ✅ | ❌ | N/A | ❌ | Custom component |
 
 ## Summary
 
 | Status | Automated | AI Visual | DaisyUI | Manual |
 |--------|:---------:|:---------:|:-------:|:------:|
-| ✅ Complete | 35 | 1 | 1 | 2 |
-| ⚠️ Has Issues | 20 | 0 | 0 | 0 |
-| ❌ Not Started | 0 | 54 | 48 | 53 |
+| ✅ Complete | 38 | 9 | 9 | 2 |
+| ⚠️ Has Issues | 17 | 0 | 0 | 0 |
+| ❌ Not Started | 0 | 46 | 40 | 53 |
 | N/A | 0 | 0 | 6 | 0 |
 | **Total** | **55** | **55** | **55** | **55** |
 
-## Components with RuboCop Issues (20)
+## Components with RuboCop Issues (17)
 
 These components have minor RuboCop offenses (mostly line length) that should be fixed:
 
-1. BulkActions
-2. Clipboard
-3. DeleteLink
-4. Heatmap
-5. ImageField
-6. ImageGrid
-7. InfoLevel
-8. Link
-9. List
-10. LocationsMap
-11. Notification
-12. PageHeader
-13. PropertiesTable
-14. Rate
-15. RecurrentEventRuleForm
-16. Reveal
-17. SortableList
-18. Table
-19. Tag
-20. TreeView
+1. Clipboard
+2. DeleteLink
+3. Heatmap
+4. ImageField
+5. ImageGrid
+6. InfoLevel
+7. Link
+8. List
+9. LocationsMap
+10. Notification
+11. PageHeader
+12. PropertiesTable
+13. Rate
+14. RecurrentEventRuleForm
+15. Reveal
+16. SortableList
+17. Tag
 
 Run `bundle exec rubocop app/components/bali/ --autocorrect-all` to fix autocorrectable issues.
 
@@ -133,15 +130,15 @@ Components with direct DaisyUI equivalents (Priority order):
 | Bali Component | DaisyUI Component | Status |
 |----------------|-------------------|--------|
 | Avatar | [Avatar](https://daisyui.com/components/avatar/) | ✅ Done |
-| Card | [Card](https://daisyui.com/components/card/) | ❌ |
+| Card | [Card](https://daisyui.com/components/card/) | ✅ Done |
 | Modal | [Modal](https://daisyui.com/components/modal/) | ❌ |
 | Dropdown | [Dropdown](https://daisyui.com/components/dropdown/) | ❌ |
 | Tabs | [Tabs](https://daisyui.com/components/tab/) | ❌ |
-| Table | [Table](https://daisyui.com/components/table/) | ❌ |
+| Table | [Table](https://daisyui.com/components/table/) | ✅ Done |
 | Navbar | [Navbar](https://daisyui.com/components/navbar/) | ❌ |
 | Drawer | [Drawer](https://daisyui.com/components/drawer/) | ❌ |
 | Notification | [Alert](https://daisyui.com/components/alert/) | ❌ |
-| Breadcrumb | [Breadcrumbs](https://daisyui.com/components/breadcrumbs/) | ❌ |
+| Breadcrumb | [Breadcrumbs](https://daisyui.com/components/breadcrumbs/) | ✅ Done |
 
 ### Medium Priority
 | Bali Component | DaisyUI Component | Status |
@@ -194,6 +191,13 @@ bundle exec rubocop app/components/bali/
 
 | Date | Component | Change | By |
 |------|-----------|--------|-----|
+| 2026-01-13 | BooleanIcon | AI visual and DaisyUI compliance verified | AI |
+| 2026-01-13 | Breadcrumb | AI visual and DaisyUI compliance verified | AI |
+| 2026-01-13 | BulkActions | Fixed is-hidden→hidden, added checkbox support, verified | AI |
+| 2026-01-13 | Calendar | AI visual and DaisyUI compliance verified | AI |
+| 2026-01-13 | Card | AI visual and DaisyUI compliance verified | AI |
+| 2026-01-13 | Table | Fixed is-hidden→hidden, enhanced bulk actions preview | AI |
+| 2026-01-13 | TreeView | Fixed is-hidden→hidden in JS controller | AI |
 | 2025-01-13 | Avatar | Full DaisyUI implementation with all variations | AI |
 | 2025-01-13 | ActionsDropdown | Manual verification completed | Human |
 | 2025-01-13 | - | Created verification status document | AI |
