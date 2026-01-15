@@ -47,51 +47,51 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Chart | ✅ | ✅ | N/A | ✅ | Custom (Chart.js) |
 | Clipboard | ✅ | ✅ | ✅ | ✅ | Tailwind compliant |
 | Columns | ✅ | ✅ | ✅ | ✅ | CSS Grid layout |
-| DataTable | ✅ | ✅ | ✅ | ❌ | Fixed Bulma→Tailwind grid |
-| DeleteLink | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
-| Drawer | ✅ | ✅ | ✅ | ❌ | Hybrid JS + Tailwind |
+| DataTable | ✅ | ✅ | ✅ | ❌ | Needs manual review |
+| DeleteLink | ✅ | ❌ | ❌ | ❌ | Needs verification |
+| Drawer | ✅ | ✅ | ✅ | ❌ | Needs manual review |
 | Dropdown | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | FieldGroupWrapper | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | Filters | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | FlashNotifications | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | Form | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | GanttChart | ✅ | ❌ | N/A | ❌ | Custom component |
-| Heatmap | ⚠️ | ❌ | N/A | ❌ | RuboCop issues, Custom |
+| Heatmap | ✅ | ❌ | N/A | ❌ | Custom component |
 | Hero | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | HoverCard | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | Icon | ✅ | ❌ | ❌ | ❌ | Needs verification |
-| ImageField | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
-| ImageGrid | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
-| InfoLevel | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
+| ImageField | ✅ | ❌ | ❌ | ❌ | Needs verification |
+| ImageGrid | ✅ | ❌ | ❌ | ❌ | Needs verification |
+| InfoLevel | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | LabelValue | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | Level | ✅ | ❌ | ❌ | ❌ | Needs verification |
-| Link | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
-| List | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
+| Link | ✅ | ❌ | ❌ | ❌ | Needs verification |
+| List | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | Loader | ✅ | ❌ | ❌ | ❌ | Needs verification |
-| LocationsMap | ⚠️ | ❌ | N/A | ❌ | RuboCop issues, Custom |
+| LocationsMap | ✅ | ❌ | N/A | ❌ | Custom component |
 | Message | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | Modal | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | Navbar | ✅ | ❌ | ❌ | ❌ | Needs verification |
-| Notification | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
-| PageHeader | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
+| Notification | ✅ | ❌ | ❌ | ❌ | Needs verification |
+| PageHeader | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | Progress | ✅ | ❌ | ❌ | ❌ | Needs verification |
-| PropertiesTable | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
-| Rate | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
-| RecurrentEventRuleForm | ⚠️ | ❌ | N/A | ❌ | RuboCop issues, Custom |
-| Reveal | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
+| PropertiesTable | ✅ | ❌ | ❌ | ❌ | Needs verification |
+| Rate | ✅ | ❌ | ❌ | ❌ | Needs verification |
+| RecurrentEventRuleForm | ✅ | ❌ | N/A | ❌ | Custom component |
+| Reveal | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | RichTextEditor | ✅ | ❌ | N/A | ❌ | Custom (TipTap) |
 | SearchInput | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | SideMenu | ✅ | ❌ | ❌ | ❌ | Needs verification |
-| SortableList | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
+| SortableList | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | Stepper | ✅ | ❌ | ❌ | ❌ | Needs verification |
-| Table | ✅ | ✅ | ✅ | ❌ | Fixed is-hidden→hidden |
+| Table | ✅ | ✅ | ✅ | ❌ | Needs manual review |
 | Tabs | ✅ | ❌ | ❌ | ❌ | Cypress tests fixed |
-| Tag | ⚠️ | ❌ | ❌ | ❌ | RuboCop issues |
+| Tag | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | Tags | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | Timeago | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | Timeline | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | Tooltip | ✅ | ❌ | ❌ | ❌ | Needs verification |
-| TreeView | ✅ | ✅ | ✅ | ❌ | Fixed is-hidden→hidden in JS |
+| TreeView | ✅ | ✅ | ✅ | ❌ | Needs manual review |
 | TurboNativeApp | ✅ | ❌ | N/A | ❌ | Custom component |
 
 ---
@@ -100,8 +100,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Status | Tests | AI Visual | DaisyUI | Manual |
 |--------|:-----:|:---------:|:-------:|:------:|
-| ✅ Complete | 40 | 16 | 14 | 12 |
-| ⚠️ Has Issues | 16 | 0 | 0 | 0 |
+| ✅ Complete | 56 | 16 | 14 | 12 |
 | ❌ Not Started | 0 | 40 | 35 | 44 |
 | N/A | 0 | 0 | 7 | 0 |
 | **Total** | **56** | **56** | **56** | **56** |
@@ -124,14 +123,6 @@ Components with ✅ in all applicable columns:
 10. **Chart** - Custom (Chart.js)
 11. **Clipboard** - Tailwind compliant
 12. **Columns** - CSS Grid layout
-
----
-
-## Components with RuboCop Issues (16)
-
-Run `bundle exec rubocop app/components/bali/ --autocorrect-all` to fix:
-
-DeleteLink, Heatmap, ImageField, ImageGrid, InfoLevel, Link, List, LocationsMap, Notification, PageHeader, PropertiesTable, Rate, RecurrentEventRuleForm, Reveal, SortableList, Tag
 
 ---
 
