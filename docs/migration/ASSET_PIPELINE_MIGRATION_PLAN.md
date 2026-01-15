@@ -1,5 +1,17 @@
 # Bali Asset Pipeline Migration Plan
 
+> **STATUS: ✅ COMPLETED** (2026-01-15)
+>
+> This plan has been fully implemented. The asset pipeline is now running on:
+> - Tailwind CSS 4 via `tailwindcss-rails`
+> - DaisyUI 5
+> - Vite for JavaScript bundling
+> - Propshaft for asset serving
+>
+> See [MIGRATION_STATUS.md](/MIGRATION_STATUS.md) for current component migration status.
+
+---
+
 ## Overview
 
 **Current Version**: 1.4.23
