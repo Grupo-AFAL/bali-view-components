@@ -14,10 +14,7 @@ jobs:
           bundler-cache: true
 
       - name: Run migrations
-        run: bin/rails db:migrate RAILS_ENV=development
-
-      - name: Install foreman gem
-        run: gem install foreman
+        run: cd spec/dummy && bin/rails db:migrate RAILS_ENV=development
 
       - name: Install dependencies
         run: |
@@ -26,13 +23,19 @@ jobs:
           cd spec/dummy && yarn install
 
       - name: Build Tailwind CSS
-        run: bin/rails app:tailwindcss:build
+        run: cd spec/dummy && bin/rails tailwindcss:build
 
       - name: Build Vite assets
-        run: bin/rails app:vite:build
+        run: cd spec/dummy && bin/vite build
 
       - name: Precompile assets
-        run: bin/rails app:assets:precompile
+        run: cd spec/dummy && bin/rails assets:precompile
 
-      - name: Start server and run tests
-        run: foreman start -f Procfile.dev
+      - name: Start server
+        run: cd spec/dummy && bin/rails server -p 3000 &
+
+      - name: Wait for server
+        run: npx wait-on http://localhost:3000 --timeout 60000
+
+      - name: Run Cypress tests
+        run: yarn cypress run
