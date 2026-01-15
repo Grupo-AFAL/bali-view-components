@@ -6,7 +6,7 @@ module Bali
       # @label Default
       # Basic advanced filters with common attribute types
       def default
-        render Component.new(
+        render AdvancedFilters::Component.new(
           url: '/users',
           available_attributes: sample_attributes
         )
@@ -31,7 +31,7 @@ module Bali
           }
         ]
 
-        render Component.new(
+        render AdvancedFilters::Component.new(
           url: '/users',
           available_attributes: sample_attributes,
           filter_groups: filter_groups,
@@ -89,7 +89,7 @@ module Bali
           }
         ]
 
-        render Component.new(
+        render AdvancedFilters::Component.new(
           url: '/users',
           available_attributes: sample_attributes,
           filter_groups: filter_groups,
@@ -145,7 +145,7 @@ module Bali
           }
         ]
 
-        render Component.new(
+        render AdvancedFilters::Component.new(
           url: '/users',
           available_attributes: attributes
         )
@@ -164,7 +164,7 @@ module Bali
           }
         ]
 
-        render Component.new(
+        render AdvancedFilters::Component.new(
           url: '/items',
           available_attributes: attributes
         )
