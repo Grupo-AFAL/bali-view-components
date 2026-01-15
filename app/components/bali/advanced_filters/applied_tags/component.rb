@@ -65,9 +65,24 @@ module Bali
         end
 
         def value_label(value, attr_config)
+          # Handle boolean type
+          if attr_config[:type].to_sym == :boolean
+            return value.to_s == 'true' ? I18n.t('bali.advanced_filters.yes', default: 'Yes') : I18n.t('bali.advanced_filters.no', default: 'No')
+          end
+
           return value unless attr_config[:type].to_sym == :select
 
-          option = attr_config[:options].find do |opt|
+          # Handle array values (for "is any of" operators)
+          if value.is_a?(Array)
+            labels = value.map { |v| find_option_label(v, attr_config[:options]) }
+            return labels.join(', ')
+          end
+
+          find_option_label(value, attr_config[:options])
+        end
+
+        def find_option_label(value, options)
+          option = options.find do |opt|
             opt_value = opt.is_a?(Array) ? opt[1] : opt
             opt_value.to_s == value.to_s
           end
