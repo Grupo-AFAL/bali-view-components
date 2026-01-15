@@ -55,52 +55,59 @@ import { registerAll as registerComponents } from './components/index'
 
 // Re-export individual controllers (excluding registerAll to avoid conflicts)
 export {
-  AutoPlayController,
+  AutoPlayAudioController,
   AutocompleteAddressController,
+  CheckboxRevealController,
   CheckboxToggleController,
   DatepickerController,
+  DrawingMapsController,
   DynamicFieldsController,
   ElementsOverlapController,
   FileInputController,
   FocusOnConnectController,
+  GeocoderMapsController,
   InputOnChangeController,
-  ModalController,
+  InteractController,
   PrintController,
+  RadioButtonsGroupController,
   RadioToggleController,
   SlimSelectController,
   StepNumberInputController,
   SubmitButtonController,
   SubmitOnChangeController,
+  TimePeriodFieldController,
   TrixAttachmentsController
 } from './controllers/index'
 export { registerAll as registerAllControllers } from './controllers/index'
 
 // Re-export all core component controllers (excludes heavy modules)
 export {
-  ActionsDropdownController,
   AdvancedFiltersController,
   AppliedTagsController,
+  AvatarController,
   BulkActionsController,
-  CalendarController,
   CarouselController,
   ClipboardController,
   ConditionController,
-  DataTableController,
   DrawerController,
   DropdownController,
   FilterGroupController,
-  HoverCardController,
+  HovercardController,
   ImageFieldController,
+  LocationsMapController,
+  ModalController,
   MultiSelectController,
   NavbarController,
+  NotificationController,
+  RateController,
+  RecurrentEventRuleController,
   RevealController,
-  SearchInputController,
   SideMenuController,
   SortableListController,
   TabsController,
   TableController,
-  TooltipController,
-  TreeViewController
+  TimeagoController,
+  TooltipController
 } from './components/index'
 export { registerAll as registerAllComponents } from './components/index'
 
