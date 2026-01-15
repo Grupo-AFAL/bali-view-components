@@ -51,22 +51,47 @@ export class FilterGroupController extends Controller {
   }
 
   /**
-   * Remove a condition from this group
+   * Remove a condition from this group.
+   * If this is the last condition:
+   *   - If multiple groups exist, remove the entire group
+   *   - If only one group exists, close the dropdown panel
    */
   removeCondition (conditionElement) {
     // Find the row containing this condition
     const row = conditionElement.closest('[data-filter-group-target="conditionRow"]')
 
+    // Check if this is the last condition in the group
+    const isLastCondition = this.conditionTargets.length === 1
+
+    if (isLastCondition) {
+      // Get the parent advanced-filters controller
+      const advancedFiltersElement = this.element.closest('[data-controller~="advanced-filters"]')
+      if (advancedFiltersElement) {
+        const controller = this.application.getControllerForElementAndIdentifier(
+          advancedFiltersElement,
+          'advanced-filters'
+        )
+
+        if (controller) {
+          const groupCount = controller.groupTargets.length
+
+          if (groupCount > 1) {
+            // Multiple groups: remove this entire group
+            controller.removeGroup(this.element)
+          } else {
+            // Only one group: close the dropdown panel
+            controller.closeDropdown()
+          }
+        }
+      }
+      return
+    }
+
+    // Not the last condition: just remove the row
     if (row) {
       row.remove()
     } else {
-      // Fallback: remove just the condition element
       conditionElement.remove()
-    }
-
-    // If no conditions left, add a default one
-    if (this.conditionTargets.length === 0) {
-      this.addCondition(new Event('click'))
     }
 
     // Keep focus inside dropdown to prevent it from closing

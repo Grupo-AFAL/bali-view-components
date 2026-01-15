@@ -1,18 +1,8 @@
-<div class="filter-group bg-base-200/50 rounded-xl p-4 relative"
+<div class="filter-group bg-base-200/50 rounded-xl p-4"
      data-controller="filter-group"
      data-filter-group-index-value="<%= index %>"
      data-filter-group-combinator-value="<%= combinator %>"
      data-advanced-filters-target="group">
-
-  <%# Remove group button (top right) %>
-  <% if removable %>
-    <button type="button"
-            class="absolute top-2 right-2 btn btn-ghost btn-xs btn-circle text-error hover:bg-error/10"
-            data-action="filter-group#removeGroup"
-            title="<%= t('bali.advanced_filters.remove_group', default: 'Remove group') %>">
-      <%= render Bali::Icon::Component.new('times', class: 'w-4 h-4') %>
-    </button>
-  <% end %>
 
   <%# Hidden field for group combinator %>
   <input type="hidden"
