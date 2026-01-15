@@ -9,8 +9,25 @@
      data-turbo-permanent>
 
   <% if popover %>
-    <%# Popover mode: trigger button + dropdown %>
+    <%# Popover mode: search input + trigger button + dropdown %>
     <div class="flex flex-wrap items-center gap-3">
+      <% if search_enabled? %>
+        <%# Quick search input %>
+        <%= form_with url: url, method: :get, class: 'contents', data: { turbo_action: 'replace' } do %>
+          <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg">
+            <input type="text"
+                   name="<%= search_field_name %>"
+                   value="<%= search_value %>"
+                   placeholder="<%= search_placeholder %>"
+                   class="input input-bordered join-item w-64 focus:outline-none focus:border-primary"
+                   data-advanced-filters-target="searchInput">
+            <button type="submit" class="btn btn-primary join-item">
+              <%= render Bali::Icon::Component.new('search', class: 'w-4 h-4') %>
+            </button>
+          </div>
+        <% end %>
+      <% end %>
+
       <%# Trigger button %>
       <div class="relative" data-advanced-filters-target="dropdown">
         <button type="button"
@@ -52,14 +69,23 @@
               <div data-advanced-filters-target="groupsContainer" class="space-y-4">
                 <% filter_groups.each_with_index do |group, group_idx| %>
                   <% if group_idx > 0 %>
-                    <div class="flex items-center justify-center gap-2">
+                    <div class="flex items-center justify-center gap-2 my-2">
                       <div class="flex-1 border-t border-base-300"></div>
-                      <select class="select select-sm select-bordered font-medium"
-                              name="q[m]"
-                              data-advanced-filters-target="groupCombinator">
-                        <option value="and" <%= 'selected' if combinator == 'and' %>>AND</option>
-                        <option value="or" <%= 'selected' if combinator == 'or' %>>OR</option>
-                      </select>
+                      <input type="hidden" name="q[m]" value="<%= combinator %>" data-advanced-filters-target="groupCombinator">
+                      <div class="join" data-advanced-filters-target="groupCombinatorToggle">
+                        <button type="button"
+                                class="join-item btn btn-xs w-10 <%= combinator == 'and' ? 'btn-primary' : 'btn-outline' %>"
+                                data-action="advanced-filters#setGroupCombinator"
+                                data-combinator="and">
+                          AND
+                        </button>
+                        <button type="button"
+                                class="join-item btn btn-xs w-10 <%= combinator == 'or' ? 'btn-primary' : 'btn-outline' %>"
+                                data-action="advanced-filters#setGroupCombinator"
+                                data-combinator="or">
+                          OR
+                        </button>
+                      </div>
                       <div class="flex-1 border-t border-base-300"></div>
                     </div>
                   <% end %>
@@ -144,14 +170,23 @@
           <div data-advanced-filters-target="groupsContainer" class="space-y-4">
             <% filter_groups.each_with_index do |group, group_idx| %>
               <% if group_idx > 0 %>
-                <div class="flex items-center justify-center gap-2">
+                <div class="flex items-center justify-center gap-2 my-2">
                   <div class="flex-1 border-t border-base-300"></div>
-                  <select class="select select-sm select-bordered font-medium"
-                          name="q[m]"
-                          data-advanced-filters-target="groupCombinator">
-                    <option value="and" <%= 'selected' if combinator == 'and' %>>AND</option>
-                    <option value="or" <%= 'selected' if combinator == 'or' %>>OR</option>
-                  </select>
+                  <input type="hidden" name="q[m]" value="<%= combinator %>" data-advanced-filters-target="groupCombinator">
+                  <div class="join" data-advanced-filters-target="groupCombinatorToggle">
+                    <button type="button"
+                            class="join-item btn btn-xs w-10 <%= combinator == 'and' ? 'btn-primary' : 'btn-outline' %>"
+                            data-action="advanced-filters#setGroupCombinator"
+                            data-combinator="and">
+                      AND
+                    </button>
+                    <button type="button"
+                            class="join-item btn btn-xs w-10 <%= combinator == 'or' ? 'btn-primary' : 'btn-outline' %>"
+                            data-action="advanced-filters#setGroupCombinator"
+                            data-combinator="or">
+                      OR
+                    </button>
+                  </div>
                   <div class="flex-1 border-t border-base-300"></div>
                 </div>
               <% end %>

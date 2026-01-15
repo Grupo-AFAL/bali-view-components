@@ -11,6 +11,7 @@ export class AdvancedFiltersController extends Controller {
     'groupTemplate',
     'group',
     'groupCombinator',
+    'groupCombinatorToggle',
     'addGroupButton',
     'applyButton',
     'clearButton',
@@ -220,6 +221,43 @@ export class AdvancedFiltersController extends Controller {
   }
 
   /**
+   * Set the group combinator (AND/OR between groups)
+   */
+  setGroupCombinator (event) {
+    event.preventDefault()
+    event.stopPropagation()
+
+    const newCombinator = event.currentTarget.dataset.combinator
+
+    // Update all hidden inputs
+    this.groupCombinatorTargets.forEach((input) => {
+      input.value = newCombinator
+    })
+
+    // Update all toggle buttons
+    this.groupCombinatorToggleTargets.forEach((toggle) => {
+      this.updateGroupCombinatorToggle(toggle, newCombinator)
+    })
+  }
+
+  /**
+   * Update toggle button states for group combinator
+   */
+  updateGroupCombinatorToggle (container, combinator) {
+    const buttons = container.querySelectorAll('[data-combinator]')
+    buttons.forEach((btn) => {
+      const btnCombinator = btn.dataset.combinator
+      if (btnCombinator === combinator) {
+        btn.classList.remove('btn-outline')
+        btn.classList.add('btn-primary')
+      } else {
+        btn.classList.remove('btn-primary')
+        btn.classList.add('btn-outline')
+      }
+    })
+  }
+
+  /**
    * Clear all filters and submit
    */
   clearAll (event) {
@@ -290,19 +328,33 @@ export class AdvancedFiltersController extends Controller {
   }
 
   /**
-   * Create a combinator divider element
+   * Create a combinator divider element with toggle buttons
    */
   createCombinatorDivider () {
+    // Get current combinator value from existing hidden input
+    const currentCombinator = this.hasGroupCombinatorTarget
+      ? this.groupCombinatorTarget.value
+      : 'and'
+
     const divider = document.createElement('div')
-    divider.className = 'flex items-center justify-center gap-2'
+    divider.className = 'flex items-center justify-center gap-2 my-2'
     divider.innerHTML = `
       <div class="flex-1 border-t border-base-300"></div>
-      <select class="select select-sm select-bordered font-medium"
-              name="q[m]"
-              data-advanced-filters-target="groupCombinator">
-        <option value="and" selected>AND</option>
-        <option value="or">OR</option>
-      </select>
+      <input type="hidden" name="q[m]" value="${currentCombinator}" data-advanced-filters-target="groupCombinator">
+      <div class="join" data-advanced-filters-target="groupCombinatorToggle">
+        <button type="button"
+                class="join-item btn btn-xs w-10 ${currentCombinator === 'and' ? 'btn-primary' : 'btn-outline'}"
+                data-action="advanced-filters#setGroupCombinator"
+                data-combinator="and">
+          AND
+        </button>
+        <button type="button"
+                class="join-item btn btn-xs w-10 ${currentCombinator === 'or' ? 'btn-primary' : 'btn-outline'}"
+                data-action="advanced-filters#setGroupCombinator"
+                data-combinator="or">
+          OR
+        </button>
+      </div>
       <div class="flex-1 border-t border-base-300"></div>
     `
     return divider

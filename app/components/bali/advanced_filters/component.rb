@@ -27,6 +27,9 @@ module Bali
       # @param max_groups [Integer] Maximum number of filter groups allowed
       # @param popover [Boolean] Whether to show filters in a popover (default: true)
       # @param button_text [String] Text for the popover trigger button
+      # @param search_fields [Array<Symbol>] Fields for quick search (e.g., [:name, :description])
+      # @param search_value [String] Current search value from URL params
+      # @param search_placeholder [String] Placeholder text for search input
       def initialize(
         url:,
         available_attributes:,
@@ -36,6 +39,9 @@ module Bali
         max_groups: 10,
         popover: true,
         button_text: nil,
+        search_fields: [],
+        search_value: nil,
+        search_placeholder: nil,
         **options
       )
         @url = url
@@ -46,6 +52,9 @@ module Bali
         @max_groups = max_groups
         @popover = popover
         @button_text = button_text
+        @search_fields = search_fields
+        @search_value = search_value
+        @search_placeholder = search_placeholder
         @id = options.delete(:id) || "advanced-filters-#{SecureRandom.hex(4)}"
 
         @options = options
@@ -65,6 +74,26 @@ module Bali
 
       def button_text
         @button_text || I18n.t('bali.advanced_filters.filters_button', default: 'Filters')
+      end
+
+      def search_enabled?
+        @search_fields.present?
+      end
+
+      def search_value
+        @search_value
+      end
+
+      def search_placeholder
+        @search_placeholder || I18n.t('bali.advanced_filters.search_placeholder', default: 'Search...')
+      end
+
+      # Build Ransack field name for multi-field search (e.g., "name_or_genre_cont")
+      def search_field_name
+        return nil unless search_enabled?
+
+        fields = @search_fields.map(&:to_s).join('_or_')
+        "q[#{fields}_cont]"
       end
 
       def active_filter_count

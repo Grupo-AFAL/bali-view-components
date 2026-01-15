@@ -59,6 +59,12 @@ class MoviesController < ApplicationController
     params.dig(:q, :m) || 'and'
   end
 
+  # Get the quick search value from params
+  helper_method :quick_search_value
+  def quick_search_value
+    params.dig(:q, :name_or_genre_cont)
+  end
+
   # Parse filter groups from URL params for advanced filters
   helper_method :filter_groups_from_params
   def filter_groups_from_params

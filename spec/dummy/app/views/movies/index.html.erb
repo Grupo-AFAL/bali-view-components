@@ -10,7 +10,10 @@
     <% data_table.with_advanced_filters_panel(
       available_attributes: available_filter_attributes,
       filter_groups: filter_groups_from_params,
-      combinator: group_combinator_from_params
+      combinator: group_combinator_from_params,
+      search_fields: [:name, :genre],
+      search_value: quick_search_value,
+      search_placeholder: 'Search name or genre...'
     ) do |filters| %>
       <% filters.with_applied_tags %>
     <% end %>

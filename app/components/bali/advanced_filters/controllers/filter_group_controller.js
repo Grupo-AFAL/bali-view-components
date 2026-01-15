@@ -9,12 +9,14 @@ export class FilterGroupController extends Controller {
     'conditionsContainer',
     'conditionTemplate',
     'condition',
+    'conditionRow',
     'combinator',
-    'combinatorBadge'
+    'combinatorToggle'
   ]
 
   static values = {
-    index: Number
+    index: Number,
+    combinator: { type: String, default: 'or' }
   }
 
   conditionIndex = 0
@@ -30,54 +32,37 @@ export class FilterGroupController extends Controller {
   addCondition (event) {
     event.preventDefault()
 
-    // Clone the template
+    // Clone the template (includes the row wrapper with toggle)
     const template = this.conditionTemplateTarget.content.cloneNode(true)
 
     // Update indices
     const newIndex = this.conditionIndex++
     this.updateConditionIndices(template, '__CONDITION_INDEX__', newIndex)
 
-    // Add OR badge before new condition (if not first)
-    if (this.conditionTargets.length > 0) {
-      const orBadge = this.createConditionDivider()
-      this.conditionsContainerTarget.appendChild(orBadge)
-    }
+    // Update toggle buttons to reflect current combinator
+    this.updateToggleButtons(template)
 
-    // Append the new condition
+    // Append the new condition row
     this.conditionsContainerTarget.appendChild(template)
 
     // Focus the attribute selector in the new condition
     const newCondition = this.conditionTargets[this.conditionTargets.length - 1]
     newCondition?.querySelector('select')?.focus()
-
-    // Show combinator selector if we have multiple conditions
-    this.updateCombinatorVisibility()
   }
 
   /**
    * Remove a condition from this group
    */
   removeCondition (conditionElement) {
-    const conditionIndex = this.conditionTargets.indexOf(conditionElement)
+    // Find the row containing this condition
+    const row = conditionElement.closest('[data-filter-group-target="conditionRow"]')
 
-    // Remove the OR badge
-    if (conditionIndex > 0) {
-      const prevSibling = conditionElement.previousElementSibling
-      if (prevSibling?.classList.contains('flex')) {
-        prevSibling.remove()
-      }
-    } else if (this.conditionTargets.length > 1) {
-      const nextSibling = conditionElement.nextElementSibling
-      if (nextSibling?.classList.contains('flex')) {
-        nextSibling.remove()
-      }
+    if (row) {
+      row.remove()
+    } else {
+      // Fallback: remove just the condition element
+      conditionElement.remove()
     }
-
-    // Remove the condition
-    conditionElement.remove()
-
-    // Update combinator visibility
-    this.updateCombinatorVisibility()
 
     // If no conditions left, add a default one
     if (this.conditionTargets.length === 0) {
@@ -85,7 +70,6 @@ export class FilterGroupController extends Controller {
     }
 
     // Keep focus inside dropdown to prevent it from closing
-    // DaisyUI dropdowns use :focus-within, so we need to maintain focus
     this.refocusDropdown()
   }
 
@@ -123,25 +107,50 @@ export class FilterGroupController extends Controller {
   }
 
   /**
-   * Toggle the combinator between AND/OR when clicking a badge
+   * Set the combinator to a specific value (AND or OR)
    */
-  toggleCombinator (event) {
+  setCombinator (event) {
     event.preventDefault()
+    event.stopPropagation()
 
-    // Get current combinator and toggle it
-    const currentCombinator = this.hasCombinatorTarget ? this.combinatorTarget.value : 'or'
-    const newCombinator = currentCombinator === 'or' ? 'and' : 'or'
+    const newCombinator = event.currentTarget.dataset.combinator
+
+    // Update the value
+    this.combinatorValue = newCombinator
 
     // Update the hidden field
     if (this.hasCombinatorTarget) {
       this.combinatorTarget.value = newCombinator
     }
 
-    // Update all combinator badges
-    this.combinatorBadgeTargets.forEach((badgeContainer) => {
-      const button = badgeContainer.querySelector('button')
-      if (button) {
-        button.textContent = newCombinator.toUpperCase()
+    // Update all toggle buttons in this group
+    this.updateAllToggleButtons()
+  }
+
+  /**
+   * Update toggle button states to reflect current combinator
+   */
+  updateAllToggleButtons () {
+    this.combinatorToggleTargets.forEach((toggle) => {
+      this.updateToggleButtons(toggle)
+    })
+  }
+
+  /**
+   * Update toggle buttons within a container to reflect current combinator
+   */
+  updateToggleButtons (container) {
+    const combinator = this.combinatorValue || 'or'
+    const buttons = container.querySelectorAll('[data-combinator]')
+
+    buttons.forEach((btn) => {
+      const btnCombinator = btn.dataset.combinator
+      if (btnCombinator === combinator) {
+        btn.classList.remove('btn-outline')
+        btn.classList.add('btn-primary')
+      } else {
+        btn.classList.remove('btn-primary')
+        btn.classList.add('btn-outline')
       }
     })
   }
@@ -150,9 +159,10 @@ export class FilterGroupController extends Controller {
    * Reset this group to default state
    */
   reset () {
-    // Remove all conditions except one
-    while (this.conditionTargets.length > 1) {
-      this.removeCondition(this.conditionTargets[this.conditionTargets.length - 1])
+    // Remove all condition rows except the first
+    const rows = this.conditionRowTargets
+    while (rows.length > 1) {
+      rows[rows.length - 1].remove()
     }
 
     // Reset the remaining condition
@@ -166,17 +176,11 @@ export class FilterGroupController extends Controller {
     }
 
     // Reset combinator
+    this.combinatorValue = 'or'
     if (this.hasCombinatorTarget) {
       this.combinatorTarget.value = 'or'
     }
-
-    // Reset all combinator badges to OR
-    this.combinatorBadgeTargets.forEach((badgeContainer) => {
-      const button = badgeContainer.querySelector('button')
-      if (button) {
-        button.textContent = 'OR'
-      }
-    })
+    this.updateAllToggleButtons()
   }
 
   /**
@@ -190,33 +194,5 @@ export class FilterGroupController extends Controller {
     template.querySelectorAll('[data-condition-index-value]').forEach((el) => {
       el.dataset.conditionIndexValue = newIndex
     })
-  }
-
-  /**
-   * Create a clickable combinator badge divider between conditions
-   */
-  createConditionDivider () {
-    const combinator = this.hasCombinatorTarget ? this.combinatorTarget.value : 'or'
-
-    const divider = document.createElement('div')
-    divider.className = 'flex items-center gap-2 pl-2'
-    divider.dataset.filterGroupTarget = 'combinatorBadge'
-    divider.innerHTML = `
-      <button type="button"
-              class="badge badge-sm badge-outline font-medium cursor-pointer hover:badge-primary transition-colors"
-              data-action="filter-group#toggleCombinator"
-              title="Click to toggle AND/OR">
-        ${combinator.toUpperCase()}
-      </button>
-    `
-    return divider
-  }
-
-  /**
-   * Show/hide the combinator selector based on condition count
-   */
-  updateCombinatorVisibility () {
-    // The combinator select is shown/hidden via CSS based on condition count
-    // This method can be used for additional logic if needed
   }
 }
