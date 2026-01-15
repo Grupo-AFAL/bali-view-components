@@ -14,9 +14,9 @@
  *   registerRichTextEditor(application)
  */
 
-export { RichTextEditorController } from '../../components/bali/rich_text_editor/index'
-
 import { RichTextEditorController } from '../../components/bali/rich_text_editor/index'
+
+export { RichTextEditorController } from '../../components/bali/rich_text_editor/index'
 
 /**
  * Register rich text editor controller with a Stimulus application

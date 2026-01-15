@@ -36,7 +36,9 @@ module Bali
             (group[:conditions] || []).each_with_index do |condition, condition_idx|
               next if condition[:attribute].blank? || condition[:value].blank?
 
-              attr_config = available_attributes.find { |a| a[:key].to_s == condition[:attribute].to_s }
+              attr_config = available_attributes.find do |a|
+                a[:key].to_s == condition[:attribute].to_s
+              end
               next unless attr_config
 
               filters << {
@@ -67,7 +69,10 @@ module Bali
         def value_label(value, attr_config)
           # Handle boolean type
           if attr_config[:type].to_sym == :boolean
-            return value.to_s == 'true' ? I18n.t('bali.advanced_filters.yes', default: 'Yes') : I18n.t('bali.advanced_filters.no', default: 'No')
+            return value.to_s == 'true' ? I18n.t('bali.advanced_filters.yes',
+                                                 default: 'Yes') : I18n.t(
+                                                   'bali.advanced_filters.no', default: 'No'
+                                                 )
           end
 
           return value unless attr_config[:type].to_sym == :select

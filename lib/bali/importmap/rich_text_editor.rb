@@ -45,19 +45,24 @@ module Bali
         end
 
         def pin_tiptap_core(importmap)
-          importmap.pin '@tiptap/core', to: "#{CDN_BASE}/@tiptap/core@#{TIPTAP_VERSION}/dist/index.min.js"
-          importmap.pin '@tiptap/suggestion', to: "#{CDN_BASE}/@tiptap/suggestion@#{TIPTAP_VERSION}/dist/index.min.js"
+          importmap.pin '@tiptap/core',
+                        to: "#{CDN_BASE}/@tiptap/core@#{TIPTAP_VERSION}/dist/index.min.js"
+          importmap.pin '@tiptap/suggestion',
+                        to: "#{CDN_BASE}/@tiptap/suggestion@#{TIPTAP_VERSION}/dist/index.min.js"
           importmap.pin '@tiptap/prosemirror-tables',
                         to: "#{CDN_BASE}/@tiptap/prosemirror-tables@#{PROSEMIRROR_TABLES_VERSION}/dist/index.cjs.min.js"
-          importmap.pin '@tiptap/starter-kit', to: "#{CDN_BASE}/@tiptap/starter-kit@#{TIPTAP_VERSION}/dist/index.min.js"
+          importmap.pin '@tiptap/starter-kit',
+                        to: "#{CDN_BASE}/@tiptap/starter-kit@#{TIPTAP_VERSION}/dist/index.min.js"
 
           # ProseMirror modules via TipTap
-          pm_modules = %w[commands dropcursor gapcursor history keymap model schema-list state tables transform view]
+          pm_modules = %w[commands dropcursor gapcursor history keymap model schema-list state
+                          tables transform view]
           pm_modules.each do |mod|
             importmap.pin "@tiptap/pm/#{mod}",
                           to: "#{CDN_BASE}/@tiptap/pm@#{TIPTAP_VERSION}/#{mod}/dist/index.js"
           end
-          importmap.pin '@tiptap/pm', to: "#{CDN_BASE}/@tiptap/pm@#{TIPTAP_VERSION}/state/dist/index.min.js"
+          importmap.pin '@tiptap/pm',
+                        to: "#{CDN_BASE}/@tiptap/pm@#{TIPTAP_VERSION}/state/dist/index.min.js"
         end
 
         def pin_tiptap_extensions(importmap)
@@ -120,7 +125,8 @@ module Bali
           importmap.pin 'crelt', to: "#{CDN_BASE}/crelt@1.0.6/index.min.js"
           importmap.pin '@remirror/core-constants',
                         to: "#{CDN_BASE}/@remirror/core-constants@3.0.0/dist/remirror-core-constants.js"
-          importmap.pin 'escape-string-regexp', to: "#{CDN_BASE}/escape-string-regexp@5.0.0/index.min.js"
+          importmap.pin 'escape-string-regexp',
+                        to: "#{CDN_BASE}/escape-string-regexp@5.0.0/index.min.js"
         end
 
         def pin_bali_rte(importmap)

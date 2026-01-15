@@ -5,7 +5,8 @@ module Bali
     class Component < ApplicationViewComponent
       include Utils::Url
 
-      attr_reader :url, :available_attributes, :apply_mode, :id, :popover
+      attr_reader :url, :available_attributes, :apply_mode, :id, :popover, :combinator,
+                  :filter_groups, :max_groups, :search_value
 
       # Renders the applied filter pills above the filter builder
       renders_one :applied_tags, ->(**options) do
@@ -60,18 +61,6 @@ module Bali
         @options = options
       end
 
-      def combinator
-        @combinator
-      end
-
-      def filter_groups
-        @filter_groups
-      end
-
-      def max_groups
-        @max_groups
-      end
-
       def button_text
         @button_text || I18n.t('bali.advanced_filters.filters_button', default: 'Filters')
       end
@@ -80,12 +69,9 @@ module Bali
         @search_fields.present?
       end
 
-      def search_value
-        @search_value
-      end
-
       def search_placeholder
-        @search_placeholder || I18n.t('bali.advanced_filters.search_placeholder', default: 'Search...')
+        @search_placeholder || I18n.t('bali.advanced_filters.search_placeholder',
+                                      default: 'Search...')
       end
 
       # Build Ransack field name for multi-field search (e.g., "name_or_genre_cont")
@@ -103,7 +89,7 @@ module Bali
       end
 
       def has_active_filters?
-        active_filter_count > 0
+        active_filter_count.positive?
       end
 
       # Serialize attributes for Stimulus controller
@@ -124,12 +110,20 @@ module Bali
         case type.to_sym
         when :text
           [
-            { value: 'cont', label: I18n.t('bali.advanced_filters.operators.contains', default: 'contains') },
-            { value: 'eq', label: I18n.t('bali.advanced_filters.operators.equals', default: 'is exactly') },
-            { value: 'start', label: I18n.t('bali.advanced_filters.operators.starts_with', default: 'starts with') },
-            { value: 'end', label: I18n.t('bali.advanced_filters.operators.ends_with', default: 'ends with') },
-            { value: 'not_cont', label: I18n.t('bali.advanced_filters.operators.not_contains', default: 'does not contain') },
-            { value: 'not_eq', label: I18n.t('bali.advanced_filters.operators.not_equals', default: 'is not') }
+            { value: 'cont',
+              label: I18n.t('bali.advanced_filters.operators.contains', default: 'contains') },
+            { value: 'eq',
+              label: I18n.t('bali.advanced_filters.operators.equals', default: 'is exactly') },
+            { value: 'start',
+              label: I18n.t('bali.advanced_filters.operators.starts_with',
+                            default: 'starts with') },
+            { value: 'end',
+              label: I18n.t('bali.advanced_filters.operators.ends_with', default: 'ends with') },
+            { value: 'not_cont',
+              label: I18n.t('bali.advanced_filters.operators.not_contains',
+                            default: 'does not contain') },
+            { value: 'not_eq',
+              label: I18n.t('bali.advanced_filters.operators.not_equals', default: 'is not') }
           ]
         when :number
           [
@@ -143,17 +137,26 @@ module Bali
         when :date, :datetime
           [
             { value: 'eq', label: I18n.t('bali.advanced_filters.operators.on', default: 'is') },
-            { value: 'gt', label: I18n.t('bali.advanced_filters.operators.after', default: 'after') },
-            { value: 'lt', label: I18n.t('bali.advanced_filters.operators.before', default: 'before') },
-            { value: 'gteq', label: I18n.t('bali.advanced_filters.operators.on_or_after', default: 'on or after') },
-            { value: 'lteq', label: I18n.t('bali.advanced_filters.operators.on_or_before', default: 'on or before') }
+            { value: 'gt',
+              label: I18n.t('bali.advanced_filters.operators.after', default: 'after') },
+            { value: 'lt',
+              label: I18n.t('bali.advanced_filters.operators.before', default: 'before') },
+            { value: 'gteq',
+              label: I18n.t('bali.advanced_filters.operators.on_or_after',
+                            default: 'on or after') },
+            { value: 'lteq',
+              label: I18n.t('bali.advanced_filters.operators.on_or_before',
+                            default: 'on or before') }
           ]
         when :select
           [
             { value: 'eq', label: I18n.t('bali.advanced_filters.operators.is', default: 'is') },
-            { value: 'not_eq', label: I18n.t('bali.advanced_filters.operators.is_not', default: 'is not') },
-            { value: 'in', label: I18n.t('bali.advanced_filters.operators.is_any_of', default: 'is any of'), multiple: true },
-            { value: 'not_in', label: I18n.t('bali.advanced_filters.operators.is_not_any_of', default: 'is not any of'), multiple: true }
+            { value: 'not_eq',
+              label: I18n.t('bali.advanced_filters.operators.is_not', default: 'is not') },
+            { value: 'in',
+              label: I18n.t('bali.advanced_filters.operators.is_any_of', default: 'is any of'), multiple: true },
+            { value: 'not_in',
+              label: I18n.t('bali.advanced_filters.operators.is_not_any_of', default: 'is not any of'), multiple: true }
           ]
         when :boolean
           [
@@ -161,8 +164,10 @@ module Bali
           ]
         else
           [
-            { value: 'eq', label: I18n.t('bali.advanced_filters.operators.equals', default: 'equals') },
-            { value: 'cont', label: I18n.t('bali.advanced_filters.operators.contains', default: 'contains') }
+            { value: 'eq',
+              label: I18n.t('bali.advanced_filters.operators.equals', default: 'equals') },
+            { value: 'cont',
+              label: I18n.t('bali.advanced_filters.operators.contains', default: 'contains') }
           ]
         end
       end

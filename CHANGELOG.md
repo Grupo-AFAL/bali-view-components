@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `Bali::AdvancedFilters::Component` for building complex filter UIs with Ransack groupings support.
+  - Supports multiple filter groups with AND/OR combinators between groups
+  - Supports multiple conditions within each group with AND/OR combinators
+  - Type-specific operators for text, number, date, select, and boolean fields
+  - Dynamic add/remove for both conditions and groups
+  - Pre-populated filters from URL params
+  - Quick search integration
+  - Reset functionality
+- `Bali::AdvancedFilterForm` helper class for parsing filter parameters in controllers.
+- Stimulus controllers: `advanced-filters`, `filter-group`, and `condition` for interactive filtering.
+
 ## [1.4.23] - 2025-12-12
 
 ### Changed

@@ -15,6 +15,36 @@
  */
 
 // Core components
+// Import all for registerAll (static imports)
+import { TableController } from '../../../components/bali/table/index'
+import { ModalController } from '../../../components/bali/modal/index'
+import { DrawerController } from '../../../components/bali/drawer/index'
+import { DropdownController } from '../../../components/bali/dropdown/index'
+import { TabsController } from '../../../components/bali/tabs/index'
+import { NavbarController } from '../../../components/bali/navbar/index'
+import { SideMenuController } from '../../../components/bali/side_menu/index'
+import { AvatarController } from '../../../components/bali/avatar/index'
+import { TimeagoController } from '../../../components/bali/timeago/index'
+import { RateController } from '../../../components/bali/rate/index'
+import { BulkActionsController } from '../../../components/bali/bulk_actions/index'
+import { CarouselController } from '../../../components/bali/carousel/index'
+import { ClipboardController } from '../../../components/bali/clipboard/index'
+import { HovercardController } from '../../../components/bali/hover_card/index'
+import { RevealController } from '../../../components/bali/reveal/index'
+import { SortableListController } from '../../../components/bali/sortable_list/index'
+import { TooltipController } from '../../../components/bali/tooltip/index'
+import { ImageFieldController } from '../../../components/bali/image_field/index'
+import { RecurrentEventRuleController } from '../../../components/bali/recurrent_event_rule_form/index'
+import { NotificationController } from '../../../components/bali/notification/index'
+import { LocationsMapController } from '../../../components/bali/locations_map/index'
+import {
+  AdvancedFiltersController,
+  FilterGroupController,
+  ConditionController,
+  AppliedTagsController,
+  MultiSelectController
+} from '../../../components/bali/advanced_filters/index'
+
 export { TableController } from '../../../components/bali/table/index'
 export { ModalController } from '../../../components/bali/modal/index'
 export { DrawerController } from '../../../components/bali/drawer/index'
@@ -49,36 +79,6 @@ export { LocationsMapController } from '../../../components/bali/locations_map/i
 
 // Advanced Filters (multiple controllers)
 export {
-  AdvancedFiltersController,
-  FilterGroupController,
-  ConditionController,
-  AppliedTagsController,
-  MultiSelectController
-} from '../../../components/bali/advanced_filters/index'
-
-// Import all for registerAll (static imports)
-import { TableController } from '../../../components/bali/table/index'
-import { ModalController } from '../../../components/bali/modal/index'
-import { DrawerController } from '../../../components/bali/drawer/index'
-import { DropdownController } from '../../../components/bali/dropdown/index'
-import { TabsController } from '../../../components/bali/tabs/index'
-import { NavbarController } from '../../../components/bali/navbar/index'
-import { SideMenuController } from '../../../components/bali/side_menu/index'
-import { AvatarController } from '../../../components/bali/avatar/index'
-import { TimeagoController } from '../../../components/bali/timeago/index'
-import { RateController } from '../../../components/bali/rate/index'
-import { BulkActionsController } from '../../../components/bali/bulk_actions/index'
-import { CarouselController } from '../../../components/bali/carousel/index'
-import { ClipboardController } from '../../../components/bali/clipboard/index'
-import { HovercardController } from '../../../components/bali/hover_card/index'
-import { RevealController } from '../../../components/bali/reveal/index'
-import { SortableListController } from '../../../components/bali/sortable_list/index'
-import { TooltipController } from '../../../components/bali/tooltip/index'
-import { ImageFieldController } from '../../../components/bali/image_field/index'
-import { RecurrentEventRuleController } from '../../../components/bali/recurrent_event_rule_form/index'
-import { NotificationController } from '../../../components/bali/notification/index'
-import { LocationsMapController } from '../../../components/bali/locations_map/index'
-import {
   AdvancedFiltersController,
   FilterGroupController,
   ConditionController,

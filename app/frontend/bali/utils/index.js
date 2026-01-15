@@ -21,8 +21,8 @@ export * from '../../../assets/javascripts/bali/utils/form'
 export * from '../../../assets/javascripts/bali/utils/time'
 
 // Stimulus mixins
-export * from '../../../assets/javascripts/bali/utils/use-click-outside'
-export * from '../../../assets/javascripts/bali/utils/use-dispatch'
+export { default as useClickOutside } from '../../../assets/javascripts/bali/utils/use-click-outside'
+export { default as useDispatch } from '../../../assets/javascripts/bali/utils/use-dispatch'
 
 // Google Maps loader (for maps-related components)
-export * from '../../../assets/javascripts/bali/utils/google-maps-loader'
+export { default as loadGoogleMapsApi } from '../../../assets/javascripts/bali/utils/google-maps-loader'

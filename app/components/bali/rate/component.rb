@@ -68,10 +68,10 @@ module Bali
           'rate-component flex flex-wrap',
           "[&_input[type='radio']]:hidden",
           '[&_.radio+.radio]:ml-0',
-          "[&_.icon_path]:fill-base-100 [&_.icon_path]:stroke-warning/80 [&_.icon_path]:[stroke-width:30]",
+          '[&_.icon_path]:fill-base-100 [&_.icon_path]:stroke-warning/80 [&_.icon_path]:[stroke-width:30]',
           '[&_.icon.solid_path]:fill-warning',
           '[&_button.star]:border-none [&_button.star]:bg-transparent [&_button.star]:cursor-pointer [&_button.star]:p-0',
-          "[&_label:last-child_.icon]:mr-0 [&_button:last-child_.icon]:mr-0 [&>.icon:last-child]:mr-0"
+          '[&_label:last-child_.icon]:mr-0 [&_button:last-child_.icon]:mr-0 [&>.icon:last-child]:mr-0'
         )
       end
 

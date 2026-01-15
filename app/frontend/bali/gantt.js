@@ -12,11 +12,11 @@
  *   registerGantt(application)
  */
 
-export { GanttChartController } from '../../components/bali/gantt_chart/index'
-export { GanttFoldableItemController } from '../../components/bali/gantt_chart/gantt_foldable_item'
-
 import { GanttChartController } from '../../components/bali/gantt_chart/index'
 import { GanttFoldableItemController } from '../../components/bali/gantt_chart/gantt_foldable_item'
+
+export { GanttChartController } from '../../components/bali/gantt_chart/index'
+export { GanttFoldableItemController } from '../../components/bali/gantt_chart/gantt_foldable_item'
 
 /**
  * Register gantt controllers with a Stimulus application

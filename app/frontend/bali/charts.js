@@ -11,9 +11,9 @@
  *   registerCharts(application)
  */
 
-export { ChartController } from '../../components/bali/chart/index'
-
 import { ChartController } from '../../components/bali/chart/index'
+
+export { ChartController } from '../../components/bali/chart/index'
 
 /**
  * Register chart controller with a Stimulus application

@@ -49,19 +49,63 @@
  */
 
 // Re-export all utility controllers
-export * from './controllers/index'
+// Import registerAll functions for the combined registerAll export
+import { registerAll as registerControllers } from './controllers/index'
+import { registerAll as registerComponents } from './components/index'
+
+// Re-export individual controllers (excluding registerAll to avoid conflicts)
+export {
+  AutoPlayController,
+  AutocompleteAddressController,
+  CheckboxToggleController,
+  DatepickerController,
+  DynamicFieldsController,
+  ElementsOverlapController,
+  FileInputController,
+  FocusOnConnectController,
+  InputOnChangeController,
+  ModalController,
+  PrintController,
+  RadioToggleController,
+  SlimSelectController,
+  StepNumberInputController,
+  SubmitButtonController,
+  SubmitOnChangeController,
+  TrixAttachmentsController
+} from './controllers/index'
 export { registerAll as registerAllControllers } from './controllers/index'
 
 // Re-export all core component controllers (excludes heavy modules)
-export * from './components/index'
+export {
+  ActionsDropdownController,
+  AdvancedFiltersController,
+  AppliedTagsController,
+  BulkActionsController,
+  CalendarController,
+  CarouselController,
+  ClipboardController,
+  ConditionController,
+  DataTableController,
+  DrawerController,
+  DropdownController,
+  FilterGroupController,
+  HoverCardController,
+  ImageFieldController,
+  MultiSelectController,
+  NavbarController,
+  RevealController,
+  SearchInputController,
+  SideMenuController,
+  SortableListController,
+  TabsController,
+  TableController,
+  TooltipController,
+  TreeViewController
+} from './components/index'
 export { registerAll as registerAllComponents } from './components/index'
 
 // Re-export utilities
 export * from './utils/index'
-
-// Import registerAll functions for the combined registerAll export
-import { registerAll as registerControllers } from './controllers/index'
-import { registerAll as registerComponents } from './components/index'
 
 /**
  * Register ALL core Bali controllers (utility + component controllers)
