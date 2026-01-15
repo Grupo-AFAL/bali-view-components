@@ -25,6 +25,12 @@ jobs:
           yarn install
           cd spec/dummy && yarn install
 
+      - name: Build Tailwind CSS
+        run: bin/rails app:tailwindcss:build
+
+      - name: Build Vite assets
+        run: bin/rails app:vite:build
+
       - name: Precompile assets
         run: bin/rails app:assets:precompile
 
