@@ -6,12 +6,12 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 # Specify your gem's dependencies in bali.gemspec.
 gemspec
 
-gem 'tailwindcss-rails', '~> 4.0'
 gem 'caxlsx', '~> 4.1'
 gem 'csv'
 gem 'device_detector'
-gem 'rrule', git: 'https://github.com/square/ruby-rrule'
 gem 'propshaft'
+gem 'rrule', git: 'https://github.com/square/ruby-rrule'
+gem 'tailwindcss-rails', '~> 4.0'
 
 gem 'lookbook'
 gem 'ransack'

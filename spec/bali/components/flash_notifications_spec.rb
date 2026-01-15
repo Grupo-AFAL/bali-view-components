@@ -22,7 +22,8 @@ RSpec.describe Bali::FlashNotifications::Component, type: :component do
       it 'renders a notification component' do
         render_inline(component)
 
-        expect(page).to have_css 'div.notification-component.alert-success', text: 'This is a notice'
+        expect(page).to have_css 'div.notification-component.alert-success',
+                                 text: 'This is a notice'
       end
     end
 
