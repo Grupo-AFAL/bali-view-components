@@ -5,6 +5,65 @@ AI agents should READ this at the start of each `/component-cycle` and APPEND af
 
 ---
 
+## AdvancedFilters - 2026-01-15 (NEW COMPONENT)
+
+**Status**: SUCCESS - New component built with DaisyUI from scratch
+**Type**: New component (not a migration)
+
+### Overview
+New complex filtering component for building Ransack groupings queries. Built entirely with DaisyUI classes - no Bulma migration needed.
+
+### Features
+- Multiple filter groups with AND/OR combinators between groups
+- Multiple conditions within each group with AND/OR combinators
+- Type-specific operators (text, number, date, select, boolean)
+- Dynamic add/remove for both conditions and groups
+- Pre-populated filters from URL params
+- Quick search integration
+- Reset functionality
+
+### Files Created
+- `app/components/bali/advanced_filters/component.rb` - Main component
+- `app/components/bali/advanced_filters/component.html.erb` - Template
+- `app/components/bali/advanced_filters/condition/component.rb` - Condition row
+- `app/components/bali/advanced_filters/condition/component.html.erb` - Condition template
+- `app/components/bali/advanced_filters/applied_tags/component.rb` - Filter pills
+- `app/components/bali/advanced_filters/applied_tags/component.html.erb` - Pills template
+- `app/components/bali/advanced_filters/preview.rb` - Lookbook preview
+- `app/components/bali/advanced_filters/controllers/advanced_filters_controller.js`
+- `app/components/bali/advanced_filters/controllers/filter_group_controller.js`
+- `app/components/bali/advanced_filters/controllers/condition_controller.js`
+- `lib/bali/advanced_filter_form.rb` - Helper class for parsing params
+- `spec/bali/components/advanced_filters/component_spec.rb` - 13 tests
+
+### DaisyUI Classes Used
+| Element | Classes |
+|---------|---------|
+| Container | `dropdown` |
+| Trigger button | `btn btn-outline gap-2` |
+| Badge count | `badge badge-primary badge-sm` |
+| Panel | `bg-base-100 rounded-box border border-base-200 shadow-xl` |
+| Form inputs | `input input-bordered input-sm` |
+| Select | `select select-bordered select-sm` |
+| Buttons | `btn btn-primary btn-sm`, `btn btn-ghost btn-xs` |
+| Combinator toggle | `join join-item` |
+| Divider | `border-t border-base-300` |
+
+### Stimulus Controllers
+1. `advanced-filters` - Main controller for dropdown, form submission, clear all
+2. `filter-group` - Manages conditions within a group, add/remove rows
+3. `condition` - Handles attribute/operator/value changes, dynamic inputs
+
+### Key Patterns
+1. **Nested Stimulus controllers**: Parent-child communication via `this.application.getControllerForElementAndIdentifier()`
+2. **Dynamic select options**: Operators change based on attribute type via `optionsValue`
+3. **Form without submit button**: Uses `requestSubmit()` for turbo-compatible submission
+
+### Tests
+- 13 RSpec examples covering rendering, filter groups, operators by type
+
+---
+
 ## Columns - 2026-01-11 21:30
 
 **Status**: SUCCESS

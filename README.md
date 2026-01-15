@@ -86,7 +86,9 @@ Update this table when making progress on any of the Components or when adding n
 
 | Component Name          |     In Project     |      Preview       |        Docs        |       Tests        | Notes |
 | ----------------------- | :----------------: | :----------------: | :----------------: | :----------------: | ----- |
+| ActionsDropdown         | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | AddToCalendar           |        :x:         |        :x:         |        :x:         |        :x:         |       |
+| AdvancedFilters         | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | New - Ransack integration |
 | Avatar                  | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
 | Box                     |        :x:         |        :x:         |        :x:         |        :x:         |       |
 | Breadcrumb              | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
@@ -140,6 +142,7 @@ Update this table when making progress on any of the Components or when adding n
 
 | Name                | Description                                                            | Tests |
 | ------------------- | ---------------------------------------------------------------------- | ----- |
+| AdvancedFilters     | Main controller for advanced filtering UI with Ransack                 | :x:   |
 | AutoPlay            | It plays audio automatically when the page is loaded                   | :x:   |
 | AutocompleteAddress | Autocompletes address using Google places API                          | :x:   |
 | CheckboxToggle      | Toggles ON and OFF different elements based on the state of a checkbox | :x:   |

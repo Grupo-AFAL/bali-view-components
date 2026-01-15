@@ -13,6 +13,7 @@
 | Component | Migration Status | Verified | Tests | Notes |
 |-----------|-----------------|----------|-------|-------|
 | **ActionsDropdown** | :white_check_mark: | :white_check_mark: | :white_check_mark: | **Fully verified** - DaisyUI menu |
+| **AdvancedFilters** | :white_check_mark: | :white_check_mark: | :white_check_mark: | **New component** - Built with DaisyUI, Ransack integration |
 | Avatar | :grey_question: | :x: | :white_check_mark: | - |
 | BooleanIcon | :large_orange_diamond: | :x: | :white_check_mark: | Migrated in fcae709 |
 | Breadcrumb | :grey_question: | :x: | :white_check_mark: | - |
@@ -74,10 +75,10 @@
 
 | Status | Count |
 |--------|-------|
-| :white_check_mark: Fully Verified | 2 |
+| :white_check_mark: Fully Verified | 3 |
 | :large_orange_diamond: Partially Migrated | 21 |
 | :grey_question: Unknown/Not Started | 34 |
-| **Total Components** | **57** |
+| **Total Components** | **58** |
 
 ## Verification Commands
 
@@ -98,9 +99,23 @@ To run full verify→fix→verify loop:
 
 ## Recently Verified
 
+### AdvancedFilters (2026-01-15) - NEW COMPONENT
+- **Status**: :white_check_mark: Complete
+- **Features**:
+  - Complex filter UI with Ransack groupings support
+  - Multiple filter groups with AND/OR combinators
+  - Type-specific operators (text, number, date, select, boolean)
+  - Dynamic add/remove for conditions and groups
+  - Pre-populated filters from URL params
+  - Quick search integration
+  - 3 Stimulus controllers: `advanced-filters`, `filter-group`, `condition`
+  - 13 RSpec tests passing
+  - Helper class: `Bali::AdvancedFilterForm`
+- **DaisyUI Classes**: btn, input, select, dropdown, badge, join
+
 ### Columns (2026-01-11)
 - **Status**: :white_check_mark: Complete
-- **Changes**: 
+- **Changes**:
   - Migrated from Bulma `is-*` classes to Tailwind CSS Grid
   - Container: `grid grid-cols-12 gap-4`
   - Added `size:` param (`:half`, `:third`, `:quarter`, etc.)

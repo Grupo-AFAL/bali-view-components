@@ -197,7 +197,12 @@ We are migrating all components from Bulma CSS to Tailwind + DaisyUI. This is a 
 
 ### Migration Status
 
-All 40+ components are currently **Pending** migration. Track progress in README.md.
+Migration is in progress. Current status:
+- **3 Fully Verified**: ActionsDropdown, AdvancedFilters (new), Columns
+- **21 Partially Migrated**: Most core components have initial DaisyUI migration
+- **34 Pending Verification**: Need visual/functional verification
+
+Track detailed progress in `MIGRATION_STATUS.md` and `README.md`.
 
 ### Class Mapping Reference
 
@@ -579,6 +584,7 @@ yarn run cy:run
 | Component | Purpose | DaisyUI Classes | Design System Pattern |
 |-----------|---------|-----------------|----------------------|
 | `Bali::ActionsDropdown` | Action menu | `dropdown menu` | daisyUI dropdown |
+| `Bali::AdvancedFilters` | Complex filter UI | `btn input select dropdown badge join` | Ransack groupings |
 | `Bali::BulkActions` | Bulk actions | Custom | — |
 | `Bali::Calendar` | Calendar picker | (Flatpickr) | — |
 | `Bali::Carousel` | Image carousel | `carousel carousel-item` | `nexus/interactions/carousel/` |
@@ -624,6 +630,7 @@ yarn run cy:run
 
 | Controller | Purpose | Usage |
 |------------|---------|-------|
+| `AdvancedFilters` | Main filter UI controller | `data-controller="advanced-filters"` |
 | `AutoPlay` | Auto-play audio | `data-controller="auto-play"` |
 | `AutocompleteAddress` | Google Places autocomplete | `data-controller="autocomplete-address"` |
 | `CheckboxToggle` | Toggle visibility with checkbox | `data-controller="checkbox-toggle"` |
