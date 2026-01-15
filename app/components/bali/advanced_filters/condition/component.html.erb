@@ -1,0 +1,173 @@
+<div class="condition flex gap-2 items-start"
+     data-controller="condition"
+     data-condition-group-index-value="<%= group_index %>"
+     data-condition-index-value="<%= condition_index %>"
+     data-condition-locale-value="<%= I18n.locale %>"
+     data-filter-group-target="condition">
+
+  <%# Attribute selector - fixed width %>
+  <div class="w-32 shrink-0">
+    <select class="select select-bordered select-sm w-full"
+            data-action="condition#attributeChanged"
+            data-condition-target="attribute">
+      <option value="">
+        <%= t('bali.advanced_filters.select_field', default: 'Select field...') %>
+      </option>
+      <% available_attributes.each do |attr| %>
+        <option value="<%= attr[:key] %>"
+                data-type="<%= attr[:type] %>"
+                data-options="<%= (attr[:options] || []).to_json %>"
+                <%= 'selected' if attr[:key].to_s == attribute %>>
+          <%= attr[:label] %>
+        </option>
+      <% end %>
+    </select>
+  </div>
+
+  <%# Operator selector - fixed width %>
+  <div class="w-24 shrink-0">
+    <select class="select select-bordered select-sm w-full"
+            data-action="condition#operatorChanged"
+            data-condition-target="operator">
+      <% operators_for_current_type.each do |op| %>
+        <option value="<%= op[:value] %>"
+                data-multiple="<%= op[:multiple] || false %>"
+                <%= 'selected' if op[:value] == operator %>>
+          <%= op[:label] %>
+        </option>
+      <% end %>
+    </select>
+  </div>
+
+  <%# Value input container - takes remaining space %>
+  <div class="flex-1 min-w-0" data-condition-target="valueContainer">
+    <% case attribute_type.to_sym %>
+    <% when :select %>
+      <% if multiple_operator? %>
+        <%# Multi-select dropdown for "is any of" / "is not any of" %>
+        <div class="relative w-full"
+             data-controller="multi-select"
+             data-condition-target="value">
+          <div tabindex="0"
+               role="button"
+               class="select select-bordered select-sm w-full flex items-center cursor-pointer"
+               data-action="click->multi-select#toggle"
+               data-multi-select-target="trigger">
+            <span class="flex-1 truncate text-left" data-multi-select-target="label">
+              <%= t('bali.advanced_filters.select_values', default: 'Select values...') %>
+            </span>
+          </div>
+          <div class="absolute left-0 top-full hidden z-[100] mt-1 p-2 shadow-lg bg-base-100 border border-base-300 rounded-lg w-full max-h-60 overflow-y-auto"
+               data-multi-select-target="dropdown">
+            <% attribute_options.each do |opt| %>
+              <% opt_label, opt_value = opt.is_a?(Array) ? opt : [opt, opt] %>
+              <% checked = Array(value).map(&:to_s).include?(opt_value.to_s) %>
+              <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-base-200 cursor-pointer">
+                <input type="checkbox"
+                       class="checkbox checkbox-sm checkbox-primary"
+                       name="<%= field_name %>[]"
+                       value="<%= opt_value %>"
+                       data-label="<%= opt_label %>"
+                       data-action="multi-select#updateSelection"
+                       <%= 'checked' if checked %>>
+                <span class="text-sm"><%= opt_label %></span>
+              </label>
+            <% end %>
+          </div>
+        </div>
+      <% else %>
+        <%# Single select for "is" / "is not" %>
+        <select class="select select-bordered select-sm w-full"
+                name="<%= field_name %>"
+                data-condition-target="value">
+          <option value="">
+            <%= t('bali.advanced_filters.select_value', default: 'Select...') %>
+          </option>
+          <% attribute_options.each do |opt| %>
+            <% opt_label, opt_value = opt.is_a?(Array) ? opt : [opt, opt] %>
+            <option value="<%= opt_value %>" <%= 'selected' if opt_value.to_s == value.to_s %>>
+              <%= opt_label %>
+            </option>
+          <% end %>
+        </select>
+      <% end %>
+
+    <% when :boolean %>
+      <select class="select select-bordered select-sm w-full"
+              name="<%= field_name %>"
+              data-condition-target="value">
+        <option value="">
+          <%= t('bali.advanced_filters.any', default: 'Any') %>
+        </option>
+        <option value="true" <%= 'selected' if value.to_s == 'true' %>>
+          <%= t('bali.advanced_filters.yes', default: 'Yes') %>
+        </option>
+        <option value="false" <%= 'selected' if value.to_s == 'false' %>>
+          <%= t('bali.advanced_filters.no', default: 'No') %>
+        </option>
+      </select>
+
+    <% when :date %>
+      <%# Date picker using Flatpickr %>
+      <input type="text"
+             class="input input-bordered input-sm w-full"
+             name="<%= field_name %>"
+             value="<%= value %>"
+             placeholder="<%= t('bali.advanced_filters.select_date', default: 'Select date...') %>"
+             data-controller="datepicker"
+             data-datepicker-locale-value="<%= I18n.locale %>"
+             data-datepicker-mode-value="single"
+             data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
+             data-condition-target="value">
+
+    <% when :datetime %>
+      <%# Datetime picker using Flatpickr %>
+      <input type="text"
+             class="input input-bordered input-sm w-full"
+             name="<%= field_name %>"
+             value="<%= value %>"
+             placeholder="<%= t('bali.advanced_filters.select_datetime', default: 'Select date & time...') %>"
+             data-controller="datepicker"
+             data-datepicker-locale-value="<%= I18n.locale %>"
+             data-datepicker-mode-value="single"
+             data-datepicker-enable-time-value="true"
+             data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
+             data-condition-target="value">
+
+    <% when :number %>
+      <input type="number"
+             class="input input-bordered input-sm w-full"
+             name="<%= field_name %>"
+             value="<%= value %>"
+             step="any"
+             placeholder="0"
+             data-condition-target="value">
+
+    <% else %>
+      <input type="text"
+             class="input input-bordered input-sm w-full"
+             name="<%= field_name %>"
+             value="<%= value %>"
+             placeholder="<%= t('bali.advanced_filters.enter_value', default: 'Enter value...') %>"
+             data-condition-target="value">
+    <% end %>
+  </div>
+
+  <%# Remove condition button %>
+  <div class="flex-shrink-0">
+    <button type="button"
+            class="btn btn-ghost btn-sm btn-circle text-base-content/50 hover:text-error hover:bg-error/10"
+            data-action="condition#remove"
+            title="<%= t('bali.advanced_filters.remove_condition', default: 'Remove condition') %>">
+      <%= render Bali::Icon::Component.new('times', class: 'w-4 h-4') %>
+    </button>
+  </div>
+
+  <%# Hidden fields to track attribute and operator for form building %>
+  <input type="hidden"
+         data-condition-target="attributeHidden"
+         value="<%= attribute %>">
+  <input type="hidden"
+         data-condition-target="operatorHidden"
+         value="<%= operator %>">
+</div>

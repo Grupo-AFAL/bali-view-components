@@ -17,6 +17,7 @@ Rails.application.routes.draw do
 
   get 'users', to: 'users#index'
 
+  resources :movies, only: [:index]
   resources :gantt_chart, only: %i[update]
 
   mount Lookbook::Engine, at: '/lookbook'

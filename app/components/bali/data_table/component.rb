@@ -32,6 +32,25 @@ module Bali
         )
       end
 
+      # Advanced filters panel for complex query building
+      # @param available_attributes [Array<Hash>] Filterable attributes with :key, :label, :type, :options
+      # @param filter_groups [Array<Hash>] Initial filter state from params
+      # @param apply_mode [Symbol] :batch (default) or :live
+      renders_one :advanced_filters_panel, ->(
+        available_attributes:,
+        filter_groups: [],
+        apply_mode: :batch,
+        **options
+      ) do
+        AdvancedFilters::Component.new(
+          url: @url,
+          available_attributes: available_attributes,
+          filter_groups: filter_groups,
+          apply_mode: apply_mode,
+          **options
+        )
+      end
+
       renders_one :summary
       renders_one :table
       renders_one :grid

@@ -1,103 +1,98 @@
-/* Filters component */
+/* Filters component - Modern DaisyUI styling */
 .filters-component {
-  .field.has-addons .control input {
-    @apply h-full;
-  }
-
-  .button {
-    &.is-text {
-      &:hover {
-        @apply bg-base-200 border border-base-300;
-      }
-    }
-
-    &.is-selected {
-      @apply bg-info text-info-content border border-info;
-
-      &:hover {
-        @apply bg-info/90 border-info/80;
-      }
-    }
-
-    .counter {
-      @apply pr-1;
+  /* Filter button styling */
+  .btn {
+    .badge {
+      @apply ml-1;
     }
   }
 
-  .popup-element {
+  /* Dropdown positioning */
+  .dropdown {
     @apply relative;
-
-    svg {
-      @apply size-4;
-    }
   }
 
   .filters-popup {
-    @apply absolute left-0 top-0 z-10 max-w-md w-max;
+    @apply min-w-80;
 
-    .close-button {
-      @apply absolute right-4 top-4 text-base-content/60 rounded-full;
+    /* Smooth entrance animation */
+    &:not(.hidden) {
+      animation: filterSlideIn 0.2s ease-out;
+    }
+
+    /* Filter options container */
+    .filter-options {
+      @apply overflow-y-auto max-h-56 space-y-1;
+    }
+
+    /* Filter option tags */
+    .filter-option {
+      @apply badge badge-lg cursor-pointer transition-all duration-150;
+      @apply bg-base-200 text-base-content border-base-300;
 
       &:hover {
-        @apply bg-base-200;
+        @apply bg-base-300;
+      }
+
+      &.selected,
+      &[data-selected="true"] {
+        @apply bg-primary text-primary-content border-primary;
       }
     }
 
-    .box {
-      @apply shadow-lg pt-8;
-      box-shadow: 0px 3px 18px rgba(0, 0, 0, 0.1), 0 0 0 5px rgba(0, 0, 0, 0.03);
+    /* Hide native checkbox/radio inputs when using custom styling */
+    input[type='checkbox'].filter-input,
+    input[type='radio'].filter-input {
+      @apply sr-only;
     }
 
-    .filter-options {
-      @apply overflow-y-auto max-h-56;
-    }
-
-    .tag:not(.is-white) {
-      @apply flex justify-start mb-1 cursor-pointer;
-      @apply bg-base-200 text-base-content;
-
-      &.is-selected {
-        @apply bg-info text-info-content;
-      }
-    }
-
-    input[type='checkbox'],
-    input[type='radio'] {
-      @apply hidden;
-    }
-
-    &.popin {
-      animation-duration: 0.2s;
-      animation-name: slidein;
-    }
-
+    /* Multiple text inputs container */
     .multiple-text-inputs-container {
-      @apply flex overflow-x-scroll gap-2;
+      @apply flex flex-col gap-2;
 
-      input,
-      .field.has-addons .control input {
-        @apply min-w-24 h-10;
+      .join {
+        @apply w-full;
       }
 
-      .field.has-addons {
-        @apply h-min;
+      input {
+        @apply input-sm;
       }
     }
 
+    /* Flatpickr calendar integration */
     .flatpickr-wrapper {
-      @apply w-full h-full;
+      @apply w-full;
     }
   }
 }
 
-@keyframes slidein {
-  from {
-    opacity: 0;
-    margin-top: -1rem;
+/* Filter option component styling */
+.filter-option-wrapper {
+  @apply inline-flex;
+
+  .filter-option {
+    @apply badge badge-lg gap-1 cursor-pointer transition-all;
+    @apply bg-base-200 text-base-content hover:bg-base-300;
+
+    &.selected {
+      @apply bg-primary text-primary-content;
+    }
   }
 
+  /* Hide the actual input */
+  input[type='checkbox'],
+  input[type='radio'] {
+    @apply sr-only;
+  }
+}
+
+@keyframes filterSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
   to {
     opacity: 1;
-    margin-top: 0;
+    transform: translateY(0);
   }
 }

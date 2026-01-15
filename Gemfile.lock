@@ -194,6 +194,10 @@ GEM
       prettyprint
     prettyprint (0.2.0)
     prism (1.4.0)
+    propshaft (1.3.1)
+      actionpack (>= 7.0.0)
+      activesupport (>= 7.0.0)
+      rack
     psych (5.2.6)
       date
       stringio
@@ -301,14 +305,6 @@ GEM
       simplecov_json_formatter (~> 0.1)
     simplecov-html (0.13.2)
     simplecov_json_formatter (0.1.4)
-    sprockets (4.2.2)
-      concurrent-ruby (~> 1.0)
-      logger
-      rack (>= 2.2.4, < 4)
-    sprockets-rails (3.5.2)
-      actionpack (>= 6.1)
-      activesupport (>= 6.1)
-      sprockets (>= 3.0.0)
     sqlite3 (2.7.3)
       mini_portile2 (~> 2.8.0)
     stimulus-rails (1.3.4)
@@ -360,6 +356,7 @@ DEPENDENCIES
   dotenv
   importmap-rails (~> 2.0)
   lookbook
+  propshaft
   puma (< 7)
   ransack
   rrule!
@@ -368,7 +365,6 @@ DEPENDENCIES
   rubocop-rails (~> 2)
   simple_command
   simplecov
-  sprockets-rails
   sqlite3 (~> 2.0)
   stimulus-rails (~> 1.3)
   tailwindcss-rails (~> 4.0)

@@ -25,6 +25,6 @@ RSpec.describe Bali::Filters::Component, type: :component do
     end
 
     expect(page).to have_css 'div.search-input-component'
-    expect(page).to have_css 'a[id="filters-button"]'
+    expect(page).to have_css 'button[id="filters-button"]'
   end
 end

@@ -10,6 +10,12 @@
     <% end %>
   <% end %>
 
+  <% if advanced_filters_panel.present? %>
+    <div class="mb-4">
+      <%= advanced_filters_panel %>
+    </div>
+  <% end %>
+
   <% if summary.present? %>
     <%= summary %>
   <% end %>

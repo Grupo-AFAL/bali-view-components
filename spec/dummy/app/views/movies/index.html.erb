@@ -1,0 +1,61 @@
+<div class="container mx-auto p-6">
+  <h1 class="text-2xl font-bold mb-6">Movies</h1>
+
+  <%= render Bali::DataTable::Component.new(
+    filter_form: @filter_form,
+    url: movies_path
+  ) do |data_table| %>
+
+    <%# Advanced Filters Panel %>
+    <% data_table.with_advanced_filters_panel(
+      available_attributes: available_filter_attributes,
+      filter_groups: filter_groups_from_params,
+      combinator: group_combinator_from_params
+    ) do |filters| %>
+      <% filters.with_applied_tags %>
+    <% end %>
+
+    <%# Data Table %>
+    <% data_table.with_table do %>
+      <%= render Bali::Table::Component.new do |table| %>
+        <% table.with_header(name: "ID", class: "w-12") %>
+        <% table.with_header(name: "Name") %>
+        <% table.with_header(name: "Genre") %>
+        <% table.with_header(name: "Status") %>
+        <% table.with_header(name: "Studio") %>
+        <% table.with_header(name: "Indie") %>
+        <% table.with_header(name: "Created") %>
+
+        <% @movies.each do |movie| %>
+          <% table.with_row do %>
+            <td><%= movie.id %></td>
+            <td><%= movie.name %></td>
+            <td><%= movie.genre %></td>
+            <td>
+              <span class="badge <%= movie.done? ? 'badge-success' : 'badge-warning' %>">
+                <%= movie.status.humanize %>
+              </span>
+            </td>
+            <td><%= movie.tenant&.name %></td>
+            <td>
+              <% if movie.indie %>
+                <span class="badge badge-info badge-sm">Yes</span>
+              <% else %>
+                <span class="badge badge-ghost badge-sm">No</span>
+              <% end %>
+            </td>
+            <td><%= movie.created_at.strftime('%Y-%m-%d') %></td>
+          <% end %>
+        <% end %>
+
+        <% if @movies.empty? %>
+          <% table.with_row do %>
+            <td colspan="7" class="text-center py-8 text-base-content/50">
+              No movies found. Try adjusting your filters.
+            </td>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

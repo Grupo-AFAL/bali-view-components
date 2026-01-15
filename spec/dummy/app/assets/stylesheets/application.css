@@ -1,20 +1,6 @@
 /*
- * This is a manifest file that'll be compiled into application.css, which will include all the files
- * listed below.
- *
- * Any CSS file within this directory, lib/assets/stylesheets, vendor/assets/stylesheets,
- * or any plugin's vendor/assets/stylesheets directory can be referenced here using a relative path.
- *
- * Styles in this file should be added after the last require_* statement.
- * It is generally better to create a new file per style scope.
- *
- *= require_tree .
- *= require_self
- */
-
-/*
- * All component styles are now imported via Tailwind CSS in:
+ * All component styles are imported via Tailwind CSS in:
  * app/assets/tailwind/application.css
  *
- * This file is kept for Sprockets compatibility.
+ * This file is kept for any additional custom styles.
  */
