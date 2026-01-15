@@ -185,9 +185,9 @@ export class FilterGroupController extends Controller {
    */
   reset () {
     // Remove all condition rows except the first
-    const rows = this.conditionRowTargets
-    while (rows.length > 1) {
-      rows[rows.length - 1].remove()
+    // Note: Must re-query targets each iteration since Stimulus returns new arrays
+    while (this.conditionRowTargets.length > 1) {
+      this.conditionRowTargets[this.conditionRowTargets.length - 1].remove()
     }
 
     // Reset the remaining condition
