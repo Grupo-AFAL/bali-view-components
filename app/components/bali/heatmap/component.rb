@@ -18,8 +18,25 @@ module Bali
         @data = data
         @color = color
         @gradient_colors = Bali::Utils::ColorPicker.gradient(@color)
-        @options = prepend_class_name(options,
-                                      'heatmap-component overflow-auto overflow-y-hidden max-w-full [&_table]:m-auto [&_.label-x]:text-[0.6rem] [&_.label-x]:text-ellipsis [&_.label-x]:overflow-hidden [&_.label-x]:text-center [&_.label-x]:border-t [&_.label-x]:border-base-300 [&_.label-x]:pt-4 [&_.label-x]:rotate-[-45deg] [&_.label-y]:text-[0.6rem] [&_.label-y]:text-ellipsis [&_.label-y]:overflow-hidden [&_.label-y]:text-center [&_.label-y]:align-middle [&_.label-y]:border-r [&_.label-y]:border-base-300 [&_.label-y]:pr-6 [&_.legend]:text-[0.6rem] [&_.legend]:w-max [&_.legend]:m-auto [&_.legend-colors]:flex [&_.legend-colors]:h-8 [&_.legend-labels]:flex [&_.legend-labels]:h-8')
+        @options = prepend_class_name(options, heatmap_classes)
+      end
+
+      private
+
+      def heatmap_classes
+        [
+          'heatmap-component overflow-auto overflow-y-hidden max-w-full',
+          '[&_table]:m-auto',
+          '[&_.label-x]:text-[0.6rem] [&_.label-x]:text-ellipsis [&_.label-x]:overflow-hidden',
+          '[&_.label-x]:text-center [&_.label-x]:border-t [&_.label-x]:border-base-300',
+          '[&_.label-x]:pt-4 [&_.label-x]:rotate-[-45deg]',
+          '[&_.label-y]:text-[0.6rem] [&_.label-y]:text-ellipsis [&_.label-y]:overflow-hidden',
+          '[&_.label-y]:text-center [&_.label-y]:align-middle',
+          '[&_.label-y]:border-r [&_.label-y]:border-base-300 [&_.label-y]:pr-6',
+          '[&_.legend]:text-[0.6rem] [&_.legend]:w-max [&_.legend]:m-auto',
+          '[&_.legend-colors]:flex [&_.legend-colors]:h-8',
+          '[&_.legend-labels]:flex [&_.legend-labels]:h-8'
+        ].join(' ')
       end
 
       def max_value

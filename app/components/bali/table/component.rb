@@ -34,10 +34,13 @@ module Bali
         @options = prepend_class_name(hyphenize_keys(options), 'table table-zebra w-full')
       end
 
+      STICKY_CLASSES = 'overflow-visible [&_table]:overflow-x-auto ' \
+                       '[&_thead_tr]:sticky [&_thead_tr]:bg-base-100 [&_thead_tr]:top-[3.75rem]'
+
       def table_container_classes
         class_names(
           'overflow-x-auto table-component',
-          @sticky_headers && 'overflow-visible [&_table]:overflow-x-auto [&_thead_tr]:sticky [&_thead_tr]:bg-base-100 [&_thead_tr]:top-[3.75rem]'
+          @sticky_headers && STICKY_CLASSES
         )
       end
 

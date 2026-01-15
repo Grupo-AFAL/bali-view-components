@@ -7,6 +7,7 @@ module Bali
 
       attr_reader :model, :skip_confirm, :icon, :options
 
+      # rubocop:disable Metrics/ParameterLists
       def initialize(
         model: nil,
         href: nil,
@@ -43,6 +44,7 @@ module Bali
 
         raise MissingURL, 'Need to provide either a :model or :href attribute'
       end
+      # rubocop:enable Metrics/ParameterLists
 
       def render?
         authorized?

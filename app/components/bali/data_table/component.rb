@@ -33,7 +33,8 @@ module Bali
       end
 
       # Advanced filters panel for complex query building
-      # @param available_attributes [Array<Hash>] Filterable attributes with :key, :label, :type, :options
+      # @param available_attributes [Array<Hash>] Filterable attributes
+      #   with :key, :label, :type, :options
       # @param filter_groups [Array<Hash>] Initial filter state from params
       # @param apply_mode [Symbol] :batch (default) or :live
       renders_one :advanced_filters_panel, ->(

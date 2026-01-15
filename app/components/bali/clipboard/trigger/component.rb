@@ -9,8 +9,10 @@ module Bali
         def initialize(text = '', **options)
           @text = text
 
-          @options = prepend_class_name(options,
-                                        'clipboard-trigger cursor-pointer border rounded-r-md px-3 py-2 border-base-300')
+          @options = prepend_class_name(
+            options,
+            'clipboard-trigger cursor-pointer border rounded-r-md px-3 py-2 border-base-300'
+          )
           @options = prepend_data_attribute(@options, 'clipboard-target', 'button')
           @options = prepend_action(@options, 'click->clipboard#copy')
           @options[:type] = :button

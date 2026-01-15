@@ -6,19 +6,23 @@ module Bali
       class Component < ApplicationViewComponent
         attr_reader :options
 
+        TITLE_CLASSES = 'title text-base font-semibold'
+        SUBTITLE_CLASSES = 'subtitle text-sm text-base-content/60'
+        ITEM_CLASSES = 'list-item-component flex items-center justify-between gap-4 ' \
+                       'py-2 px-4 border-b border-base-300 last:border-b-0'
+
         renders_one :title, ->(text = nil, **options, &block) do
-          tag.div(text || block.call, **prepend_class_name(options, 'title text-base font-semibold'))
+          tag.div(text || block.call, **prepend_class_name(options, TITLE_CLASSES))
         end
 
         renders_one :subtitle, ->(text = nil, **options, &block) do
-          tag.div(text || block.call, **prepend_class_name(options, 'subtitle text-sm text-base-content/60'))
+          tag.div(text || block.call, **prepend_class_name(options, SUBTITLE_CLASSES))
         end
 
         renders_many :actions
 
         def initialize(**options)
-          @options = prepend_class_name(options,
-                                        'list-item-component flex items-center justify-between gap-4 py-2 px-4 border-b border-base-300 last:border-b-0')
+          @options = prepend_class_name(options, ITEM_CLASSES)
         end
       end
     end

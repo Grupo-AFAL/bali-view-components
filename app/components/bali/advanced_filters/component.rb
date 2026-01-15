@@ -2,7 +2,7 @@
 
 module Bali
   module AdvancedFilters
-    class Component < ApplicationViewComponent
+    class Component < ApplicationViewComponent # rubocop:disable Metrics/ClassLength
       include Utils::Url
 
       attr_reader :url, :available_attributes, :apply_mode, :id, :popover, :combinator,
@@ -31,6 +31,7 @@ module Bali
       # @param search_fields [Array<Symbol>] Fields for quick search (e.g., [:name, :description])
       # @param search_value [String] Current search value from URL params
       # @param search_placeholder [String] Placeholder text for search input
+      # rubocop:disable Metrics/ParameterLists
       def initialize(
         url:,
         available_attributes:,
@@ -60,6 +61,7 @@ module Bali
 
         @options = options
       end
+      # rubocop:enable Metrics/ParameterLists
 
       def button_text
         @button_text || I18n.t('bali.advanced_filters.filters_button', default: 'Filters')
@@ -88,7 +90,7 @@ module Bali
         end
       end
 
-      def has_active_filters?
+      def active_filters?
         active_filter_count.positive?
       end
 
@@ -106,7 +108,7 @@ module Bali
       end
 
       # Build the default operators for each attribute type
-      def operators_for_type(type)
+      def operators_for_type(type) # rubocop:disable Metrics/MethodLength
         case type.to_sym
         when :text
           [
@@ -154,9 +156,12 @@ module Bali
             { value: 'not_eq',
               label: I18n.t('bali.advanced_filters.operators.is_not', default: 'is not') },
             { value: 'in',
-              label: I18n.t('bali.advanced_filters.operators.is_any_of', default: 'is any of'), multiple: true },
+              label: I18n.t('bali.advanced_filters.operators.is_any_of', default: 'is any of'),
+              multiple: true },
             { value: 'not_in',
-              label: I18n.t('bali.advanced_filters.operators.is_not_any_of', default: 'is not any of'), multiple: true }
+              label: I18n.t('bali.advanced_filters.operators.is_not_any_of',
+                            default: 'is not any of'),
+              multiple: true }
           ]
         when :boolean
           [

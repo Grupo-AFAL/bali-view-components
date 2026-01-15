@@ -35,7 +35,7 @@
                 data-action="click->advanced-filters#toggleDropdown">
           <%= render Bali::Icon::Component.new('filter', class: 'w-4 h-4') %>
           <%= button_text %>
-          <% if has_active_filters? %>
+          <% if active_filters? %>
             <span class="badge badge-primary badge-sm"><%= active_filter_count %></span>
           <% end %>
         </button>

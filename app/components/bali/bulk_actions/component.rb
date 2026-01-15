@@ -8,9 +8,11 @@ module Bali
       renders_many :actions, Action::Component
       renders_many :items, Item::Component
 
+      ITEM_SELECTED_CLASSES = '[&_.bulk-actions-component--item.selected]:border ' \
+                              '[&_.bulk-actions-component--item.selected]:border-info'
+
       def initialize(**options)
-        @options = prepend_class_name(options,
-                                      'bulk-actions-component [&_.bulk-actions-component--item.selected]:border [&_.bulk-actions-component--item.selected]:border-info')
+        @options = prepend_class_name(options, "bulk-actions-component #{ITEM_SELECTED_CLASSES}")
         @options = prepend_controller(@options, 'bulk-actions')
       end
     end

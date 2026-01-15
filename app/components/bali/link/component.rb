@@ -30,6 +30,7 @@ module Bali
       renders_one :icon, ->(name, **options) { Icon::Component.new(name, **options) }
       renders_one :icon_right, ->(name, **options) { Icon::Component.new(name, **options) }
 
+      # rubocop:disable Metrics/ParameterLists
       def initialize(href:,
                      name: nil,
                      type: nil,
@@ -61,6 +62,7 @@ module Bali
 
         build_options(disabled, match)
       end
+      # rubocop:enable Metrics/ParameterLists
 
       def render?
         authorized?
@@ -72,6 +74,8 @@ module Bali
 
       private
 
+      # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
+      # rubocop:disable Metrics/PerceivedComplexity
       def build_options(disabled, match)
         if disabled
           @options[:disabled] = true
@@ -106,6 +110,8 @@ module Bali
           @options = prepend_turbo_method(@options, @method.to_s)
         end
       end
+      # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity
+      # rubocop:enable Metrics/PerceivedComplexity
     end
   end
 end

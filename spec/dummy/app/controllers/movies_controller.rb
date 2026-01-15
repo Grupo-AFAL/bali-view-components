@@ -76,8 +76,10 @@ class MoviesController < ApplicationController
     groups.values.map do |group_params|
       conditions = group_params.to_unsafe_h.map do |key, value|
         next if key == 'm' # Skip the combinator/match mode param
+
         # Parse "field_operator" format
-        match = key.to_s.match(/^(.+)_(eq|cont|gt|lt|gteq|lteq|in|not_eq|not_cont|not_in|start|end)$/)
+        operators = 'eq|cont|gt|lt|gteq|lteq|in|not_eq|not_cont|not_in|start|end'
+        match = key.to_s.match(/^(.+)_(#{operators})$/)
         next unless match
 
         {

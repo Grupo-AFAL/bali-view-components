@@ -10,7 +10,7 @@ module Bali
 
         # image_ratio: aspect ratio class (aspect-[3/2], aspect-square, etc.)
         # column_size: kept for backwards compatibility but now ignored (grid handles column sizing)
-        def initialize(image_ratio: 'aspect-[3/2]', column_size: nil, **options)
+        def initialize(image_ratio: 'aspect-[3/2]', _column_size: nil, **options)
           @image_ratio = image_ratio
           @options = prepend_class_name(options, 'image-grid-item')
         end

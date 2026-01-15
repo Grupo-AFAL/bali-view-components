@@ -25,16 +25,27 @@ module Bali
         class_names(
           'image-field-component group relative w-fit',
           '[&_.image_img]:h-full',
-          '[&_.image-figure]:transition-all [&_.image-figure]:duration-500 [&_.image-figure]:[backface-visibility:hidden]',
-          '[&_.clear-image-button]:absolute [&_.clear-image-button]:rounded-full [&_.clear-image-button]:hidden [&_.clear-image-button]:justify-center [&_.clear-image-button]:items-center',
-          '[&_.clear-image-button]:bg-base-200 [&_.clear-image-button]:text-base-content [&_.clear-image-button]:opacity-80',
-          '[&_.clear-image-button]:-top-3 [&_.clear-image-button]:-right-3 [&_.clear-image-button]:size-8',
+          '[&_.image-figure]:transition-all [&_.image-figure]:duration-500',
+          '[&_.image-figure]:[backface-visibility:hidden]',
+          '[&_.clear-image-button]:absolute [&_.clear-image-button]:rounded-full',
+          '[&_.clear-image-button]:hidden [&_.clear-image-button]:justify-center',
+          '[&_.clear-image-button]:items-center',
+          '[&_.clear-image-button]:bg-base-200 [&_.clear-image-button]:text-base-content',
+          '[&_.clear-image-button]:opacity-80',
+          '[&_.clear-image-button]:-top-3 [&_.clear-image-button]:-right-3',
+          '[&_.clear-image-button]:size-8',
           'hover:[&_.clear-image-button]:flex max-md:[&_.clear-image-button]:flex',
-          '[&_.image-input-container]:absolute [&_.image-input-container]:inset-0 [&_.image-input-container]:flex [&_.image-input-container]:justify-center [&_.image-input-container]:items-center [&_.image-input-container]:cursor-pointer',
-          '[&_.image-input-container_.icon-component]:hidden [&_.image-input-container_.control]:hidden',
-          'hover:[&_.image-input-container]:bg-base-content/20 hover:[&_.image-input-container]:backdrop-blur-sm',
+          '[&_.image-input-container]:absolute [&_.image-input-container]:inset-0',
+          '[&_.image-input-container]:flex [&_.image-input-container]:justify-center',
+          '[&_.image-input-container]:items-center [&_.image-input-container]:cursor-pointer',
+          '[&_.image-input-container_.icon-component]:hidden',
+          '[&_.image-input-container_.control]:hidden',
+          'hover:[&_.image-input-container]:bg-base-content/20',
+          'hover:[&_.image-input-container]:backdrop-blur-sm',
           'hover:[&_.image-input-container_.icon-component]:flex',
-          'max-md:[&_.image-input-container]:bg-base-content/20 max-md:[&_.image-input-container]:backdrop-blur-sm max-md:[&_.image-input-container_.icon-component]:flex'
+          'max-md:[&_.image-input-container]:bg-base-content/20',
+          'max-md:[&_.image-input-container]:backdrop-blur-sm',
+          'max-md:[&_.image-input-container_.icon-component]:flex'
         )
       end
     end

@@ -7,7 +7,8 @@ module Bali
         attr_reader :options
 
         renders_one :heading, ->(text = nil, **options, &block) do
-          options = prepend_class_name(options, 'heading text-xs text-base-content/60 uppercase tracking-wide')
+          heading_classes = 'heading text-xs text-base-content/60 uppercase tracking-wide'
+          options = prepend_class_name(options, heading_classes)
 
           text.present? ? tag.p(text, **options) : tag.div(**options, &block)
         end

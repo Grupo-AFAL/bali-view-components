@@ -43,8 +43,10 @@ module Bali
         dash: 'badge-dash'
       }.freeze
 
+      # rubocop:disable Metrics/ParameterLists
       def initialize(text:, href: nil, color: nil, custom_color: nil, size: nil, style: nil,
                      light: false, rounded: false, **options)
+        # rubocop:enable Metrics/ParameterLists
         @text = text
         @href = href
         @color = color&.to_sym

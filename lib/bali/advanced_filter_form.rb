@@ -9,7 +9,8 @@ module Bali
   #     # Define available attributes for filtering
   #     filter_attribute :name, type: :text
   #     filter_attribute :email, type: :text
-  #     filter_attribute :status, type: :select, options: [['Active', 'active'], ['Inactive', 'inactive']]
+  #     filter_attribute :status, type: :select,
+  #                      options: [['Active', 'active'], ['Inactive', 'inactive']]
   #     filter_attribute :created_at, type: :date
   #     filter_attribute :age, type: :number
   #   end
@@ -31,7 +32,8 @@ module Bali
       # Define a filterable attribute
       #
       # @param key [Symbol] The attribute key (column name)
-      # @param type [Symbol] The attribute type (:text, :number, :date, :datetime, :select, :boolean)
+      # @param type [Symbol] The attribute type
+      #   (:text, :number, :date, :datetime, :select, :boolean)
       # @param label [String] Human-readable label (defaults to humanized key)
       # @param options [Array] For select types, the available options
       def filter_attribute(key, type: :text, label: nil, options: [])

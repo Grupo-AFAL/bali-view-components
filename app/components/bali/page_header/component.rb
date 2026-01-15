@@ -24,7 +24,8 @@ module Bali
       end
 
       renders_one :subtitle, ->(text = nil, tag: :h5, **options, &block) do
-        options = prepend_class_name(options, class_names('subtitle text-base-content/60', HEADING_SIZES[tag]))
+        subtitle_classes = class_names('subtitle text-base-content/60', HEADING_SIZES[tag])
+        options = prepend_class_name(options, subtitle_classes)
 
         heading_tag(text, tag, **options, &block)
       end

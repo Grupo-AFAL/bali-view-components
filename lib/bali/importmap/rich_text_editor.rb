@@ -16,7 +16,7 @@
 
 module Bali
   module Importmap
-    module RichTextEditor
+    module RichTextEditor # rubocop:disable Metrics/ModuleLength
       CDN_BASE = 'https://cdn.jsdelivr.net/npm'
       TIPTAP_VERSION = '3.0.7'
       PROSEMIRROR_TABLES_VERSION = '1.1.4'
@@ -49,8 +49,9 @@ module Bali
                         to: "#{CDN_BASE}/@tiptap/core@#{TIPTAP_VERSION}/dist/index.min.js"
           importmap.pin '@tiptap/suggestion',
                         to: "#{CDN_BASE}/@tiptap/suggestion@#{TIPTAP_VERSION}/dist/index.min.js"
-          importmap.pin '@tiptap/prosemirror-tables',
-                        to: "#{CDN_BASE}/@tiptap/prosemirror-tables@#{PROSEMIRROR_TABLES_VERSION}/dist/index.cjs.min.js"
+          pm_tables_url = "#{CDN_BASE}/@tiptap/prosemirror-tables" \
+                          "@#{PROSEMIRROR_TABLES_VERSION}/dist/index.cjs.min.js"
+          importmap.pin '@tiptap/prosemirror-tables', to: pm_tables_url
           importmap.pin '@tiptap/starter-kit',
                         to: "#{CDN_BASE}/@tiptap/starter-kit@#{TIPTAP_VERSION}/dist/index.min.js"
 
@@ -75,15 +76,16 @@ module Bali
           ]
 
           minified_extensions.each do |ext|
-            importmap.pin "@tiptap/extension-#{ext}",
-                          to: "#{CDN_BASE}/@tiptap/extension-#{ext}@#{TIPTAP_VERSION}/dist/index.min.js"
+            ext_url = "#{CDN_BASE}/@tiptap/extension-#{ext}@#{TIPTAP_VERSION}/dist/index.min.js"
+            importmap.pin "@tiptap/extension-#{ext}", to: ext_url
           end
 
           # Extensions with ESM or non-minified builds
           importmap.pin '@tiptap/extension-bubble-menu',
                         to: "#{CDN_BASE}/@tiptap/extension-bubble-menu@#{TIPTAP_VERSION}/+esm"
-          importmap.pin '@tiptap/extension-code-block-lowlight',
-                        to: "#{CDN_BASE}/@tiptap/extension-code-block-lowlight@#{TIPTAP_VERSION}/dist/index.js"
+          cbl_url = "#{CDN_BASE}/@tiptap/extension-code-block-lowlight" \
+                    "@#{TIPTAP_VERSION}/dist/index.js"
+          importmap.pin '@tiptap/extension-code-block-lowlight', to: cbl_url
           importmap.pin '@tiptap/extension-underline',
                         to: "#{CDN_BASE}/@tiptap/extension-underline@#{TIPTAP_VERSION}/+esm"
         end
@@ -111,7 +113,11 @@ module Bali
           }
 
           prosemirror_packages.each do |pkg, version|
-            suffix = pkg == 'prosemirror-trailing-node' ? 'prosemirror-trailing-node.js' : 'index.min.js'
+            suffix = if pkg == 'prosemirror-trailing-node'
+                       'prosemirror-trailing-node.js'
+                     else
+                       'index.min.js'
+                     end
             importmap.pin pkg, to: "#{CDN_BASE}/#{pkg}@#{version}/dist/#{suffix}"
           end
         end
@@ -123,8 +129,9 @@ module Bali
           importmap.pin 'rope-sequence', to: "#{CDN_BASE}/rope-sequence@1.3.4/dist/index.min.js"
           importmap.pin 'markdown-it', to: "#{CDN_BASE}/markdown-it@14.1.0/dist/markdown-it.min.js"
           importmap.pin 'crelt', to: "#{CDN_BASE}/crelt@1.0.6/index.min.js"
-          importmap.pin '@remirror/core-constants',
-                        to: "#{CDN_BASE}/@remirror/core-constants@3.0.0/dist/remirror-core-constants.js"
+          remirror_url = "#{CDN_BASE}/@remirror/core-constants@3.0.0/dist/" \
+                         'remirror-core-constants.js'
+          importmap.pin '@remirror/core-constants', to: remirror_url
           importmap.pin 'escape-string-regexp',
                         to: "#{CDN_BASE}/escape-string-regexp@5.0.0/index.min.js"
         end
@@ -134,7 +141,8 @@ module Bali
 
           # JavaScript modules
           js_modules = %w[
-            useDefaults useImage useLink useMarks useMention useNodes useSlashCommands useTable lowlight
+            useDefaults useImage useLink useMarks useMention useNodes
+            useSlashCommands useTable lowlight
           ]
           js_modules.each do |mod|
             importmap.pin "bali/rich_text_editor/#{mod}",
