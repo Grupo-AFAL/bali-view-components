@@ -79,8 +79,8 @@ export class FilterGroupController extends Controller {
             // Multiple groups: remove this entire group
             controller.removeGroup(this.element)
           } else {
-            // Only one group: close the dropdown panel
-            controller.closeDropdown()
+            // Only one group: close panel and apply (clear filters)
+            controller.clearFiltersAndClose()
           }
         }
       }

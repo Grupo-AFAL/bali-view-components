@@ -262,15 +262,25 @@ export class AdvancedFiltersController extends Controller {
    */
   clearAll (event) {
     event.preventDefault()
+    this.clearFiltersAndClose()
+  }
 
-    this.reset(event)
+  /**
+   * Clear filters, close dropdown, and navigate (can be called without event)
+   */
+  clearFiltersAndClose () {
+    // Close the dropdown first
+    this.closeDropdown()
 
-    // Navigate to URL without filters
+    // Navigate to URL without filters (use Turbo.visit for proper navigation)
     const url = new URL(this.urlValue, window.location.origin)
     url.searchParams.set('clear_filters', 'true')
 
-    this.pushHistory(url)
-    this.formTarget.requestSubmit()
+    if (window.Turbo) {
+      window.Turbo.visit(url.toString(), { action: 'replace' })
+    } else {
+      window.location.href = url.toString()
+    }
   }
 
   /**
