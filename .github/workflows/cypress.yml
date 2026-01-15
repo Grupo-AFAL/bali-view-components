@@ -19,10 +19,11 @@ jobs:
       - name: Install foreman gem
         run: gem install foreman
 
-      - name: Install yarn and build
+      - name: Install dependencies
         run: |
           npm install -g yarn
           yarn install
+          cd spec/dummy && yarn install
 
       - name: Precompile assets
         run: bin/rails app:assets:precompile
