@@ -4,7 +4,7 @@ module Bali
   module BooleanIcon
     class Preview < ApplicationViewComponentPreview
 
-      # @param value [Boolean] toggle
+      # @param value toggle
       def default(value: true)
         render Bali::BooleanIcon::Component.new(value: value)
       end

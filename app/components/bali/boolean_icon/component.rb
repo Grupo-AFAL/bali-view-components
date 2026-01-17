@@ -3,27 +3,31 @@
 module Bali
   module BooleanIcon
     class Component < ApplicationViewComponent
-      attr_reader :value, :options
+      ICONS = {
+        true => 'check-circle',
+        false => 'times-circle'
+      }.freeze
+
+      STATUS_CLASSES = {
+        true => 'text-success',
+        false => 'text-error'
+      }.freeze
 
       def initialize(value:, **options)
         @value = value
-
-        @options = prepend_class_name(
-          options,
-          class_names('boolean-icon-component inline-flex', status_class(value))
-        )
+        @options = prepend_class_name(options, component_classes)
       end
 
       def call
-        icon_name = @value ? 'check-circle' : 'times-circle'
-
         tag.div(**@options) do
-          render Bali::Icon::Component.new(icon_name, class: 'w-5 h-5')
+          render Bali::Icon::Component.new(ICONS[@value], class: 'w-5 h-5')
         end
       end
 
-      def status_class(value)
-        value ? 'text-success' : 'text-error'
+      private
+
+      def component_classes
+        class_names('boolean-icon-component inline-flex', STATUS_CLASSES[@value])
       end
     end
   end
