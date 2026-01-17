@@ -53,38 +53,10 @@
 
             <div class="p-4 space-y-4">
               <%# Filter groups container - no header for compact layout %>
-              <div data-advanced-filters-target="groupsContainer" class="space-y-4">
-                <% filter_groups.each_with_index do |group, group_idx| %>
-                  <% if group_idx > 0 %>
-                    <div class="flex items-center justify-center gap-2 my-2">
-                      <div class="flex-1 border-t border-base-300"></div>
-                      <input type="hidden" name="q[m]" value="<%= combinator %>" data-advanced-filters-target="groupCombinator">
-                      <div class="join" data-advanced-filters-target="groupCombinatorToggle">
-                        <button type="button"
-                                class="join-item btn btn-xs w-10 <%= combinator == 'and' ? 'btn-primary' : 'btn-outline' %>"
-                                data-action="advanced-filters#setGroupCombinator"
-                                data-combinator="and">
-                          AND
-                        </button>
-                        <button type="button"
-                                class="join-item btn btn-xs w-10 <%= combinator == 'or' ? 'btn-primary' : 'btn-outline' %>"
-                                data-action="advanced-filters#setGroupCombinator"
-                                data-combinator="or">
-                          OR
-                        </button>
-                      </div>
-                      <div class="flex-1 border-t border-base-300"></div>
-                    </div>
-                  <% end %>
-
-                  <%= render Bali::AdvancedFilters::FilterGroup::Component.new(
-                        group: group,
-                        index: group_idx,
-                        available_attributes: available_attributes,
-                        removable: filter_groups.size > 1
-                      ) %>
-                <% end %>
-              </div>
+              <%= render 'bali/advanced_filters/filter_groups',
+                    filter_groups: filter_groups,
+                    combinator: combinator,
+                    available_attributes: available_attributes %>
 
               <%# Compact footer: Clear all (left) | Add group + Reset + Apply (right) %>
               <div class="flex justify-between items-center gap-2 pt-3 border-t border-base-200">
@@ -161,38 +133,10 @@
           <div class="divider my-0"></div>
 
           <%# Filter groups container %>
-          <div data-advanced-filters-target="groupsContainer" class="space-y-4">
-            <% filter_groups.each_with_index do |group, group_idx| %>
-              <% if group_idx > 0 %>
-                <div class="flex items-center justify-center gap-2 my-2">
-                  <div class="flex-1 border-t border-base-300"></div>
-                  <input type="hidden" name="q[m]" value="<%= combinator %>" data-advanced-filters-target="groupCombinator">
-                  <div class="join" data-advanced-filters-target="groupCombinatorToggle">
-                    <button type="button"
-                            class="join-item btn btn-xs w-10 <%= combinator == 'and' ? 'btn-primary' : 'btn-outline' %>"
-                            data-action="advanced-filters#setGroupCombinator"
-                            data-combinator="and">
-                      AND
-                    </button>
-                    <button type="button"
-                            class="join-item btn btn-xs w-10 <%= combinator == 'or' ? 'btn-primary' : 'btn-outline' %>"
-                            data-action="advanced-filters#setGroupCombinator"
-                            data-combinator="or">
-                      OR
-                    </button>
-                  </div>
-                  <div class="flex-1 border-t border-base-300"></div>
-                </div>
-              <% end %>
-
-              <%= render Bali::AdvancedFilters::FilterGroup::Component.new(
-                    group: group,
-                    index: group_idx,
-                    available_attributes: available_attributes,
-                    removable: filter_groups.size > 1
-                  ) %>
-            <% end %>
-          </div>
+          <%= render 'bali/advanced_filters/filter_groups',
+                filter_groups: filter_groups,
+                combinator: combinator,
+                available_attributes: available_attributes %>
 
           <%# Add group button %>
           <button type="button"

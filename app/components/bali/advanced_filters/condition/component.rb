@@ -52,10 +52,7 @@ module Bali
         end
 
         def operators_for_current_type
-          Bali::AdvancedFilters::Component.new(
-            url: '',
-            available_attributes: []
-          ).operators_for_type(attribute_type)
+          Operators.for_type(attribute_type)
         end
 
         def multiple_operator?

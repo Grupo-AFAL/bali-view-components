@@ -58,12 +58,7 @@ module Bali
         end
 
         def operator_label(operator, type)
-          operators = Bali::AdvancedFilters::Component.new(
-            url: '',
-            available_attributes: []
-          ).operators_for_type(type)
-
-          operators.find { |o| o[:value] == operator }&.dig(:label) || operator
+          Operators.label_for(operator, type)
         end
 
         def value_label(value, attr_config)

@@ -17,6 +17,7 @@
         <option value="<%= attr[:key] %>"
                 data-type="<%= attr[:type] %>"
                 data-options="<%= (attr[:options] || []).to_json %>"
+                data-operators="<%= Bali::AdvancedFilters::Operators.for_type(attr[:type]).to_json %>"
                 <%= 'selected' if attr[:key].to_s == attribute %>>
           <%= attr[:label] %>
         </option>

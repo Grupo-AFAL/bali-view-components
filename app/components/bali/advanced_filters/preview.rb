@@ -4,17 +4,28 @@ module Bali
   module AdvancedFilters
     class Preview < Lookbook::Preview
       # @label Default
-      # Basic advanced filters with common attribute types
-      def default
+      # @param popover toggle "Show in popover vs inline"
+      # @param apply_mode select { choices: [batch, live] } "Batch applies on submit, live applies immediately"
+      # @param combinator select { choices: [and, or] } "How filter groups are combined"
+      # @param max_groups number "Maximum number of filter groups"
+      # Basic advanced filters with common attribute types.
+      # Supports text, number, date, boolean, and select fields.
+      def default(popover: true, apply_mode: :batch, combinator: :and, max_groups: 10)
         render AdvancedFilters::Component.new(
-          url: helpers.request.path,
-          available_attributes: sample_attributes
+          url: '/preview',
+          available_attributes: sample_attributes,
+          popover: popover,
+          apply_mode: apply_mode.to_sym,
+          combinator: combinator.to_sym,
+          max_groups: max_groups.to_i
         )
       end
 
       # @label With Initial Filters
-      # Shows the component with pre-populated filter groups
-      def with_initial_filters
+      # @param combinator select { choices: [and, or] }
+      # Shows the component with pre-populated filter groups.
+      # Useful for demonstrating the UI with active filters.
+      def with_initial_filters(combinator: :and)
         filter_groups = [
           {
             combinator: 'or',
@@ -32,15 +43,16 @@ module Bali
         ]
 
         render AdvancedFilters::Component.new(
-          url: helpers.request.path,
+          url: '/preview',
           available_attributes: sample_attributes,
           filter_groups: filter_groups,
-          combinator: :and
+          combinator: combinator.to_sym
         )
       end
 
       # @label With Applied Tags
-      # Shows applied filter tags above the filter builder
+      # Shows applied filter tags above the filter builder.
+      # Tags allow users to see and remove individual filters quickly.
       def with_applied_tags
         filter_groups = [
           {
@@ -55,51 +67,18 @@ module Bali
         render_with_template(
           template: 'bali/advanced_filters/previews/with_applied_tags',
           locals: {
-            url: helpers.request.path,
+            url: '/preview',
             available_attributes: sample_attributes,
             filter_groups: filter_groups
           }
         )
       end
 
-      # @label Multiple Groups
-      # Complex filtering with multiple groups and conditions
-      def multiple_groups
-        filter_groups = [
-          {
-            combinator: 'or',
-            conditions: [
-              { attribute: 'role', operator: 'eq', value: 'admin' },
-              { attribute: 'role', operator: 'eq', value: 'manager' }
-            ]
-          },
-          {
-            combinator: 'and',
-            conditions: [
-              { attribute: 'status', operator: 'eq', value: 'active' },
-              { attribute: 'verified', operator: 'eq', value: 'true' }
-            ]
-          },
-          {
-            combinator: 'or',
-            conditions: [
-              { attribute: 'created_at', operator: 'gteq', value: '2025-01-01' },
-              { attribute: 'created_at', operator: 'lteq', value: '2025-12-31' }
-            ]
-          }
-        ]
-
-        render AdvancedFilters::Component.new(
-          url: helpers.request.path,
-          available_attributes: sample_attributes,
-          filter_groups: filter_groups,
-          combinator: :and
-        )
-      end
-
       # @label All Field Types
-      # Demonstrates all available field types
-      def all_field_types
+      # @param popover toggle
+      # Demonstrates all available field types: text, number, date, datetime, boolean, and select.
+      # Each type has appropriate operators and input controls.
+      def all_field_types(popover: true)
         attributes = [
           { key: :name, label: 'Name', type: :text },
           { key: :email, label: 'Email Address', type: :text },
@@ -146,13 +125,15 @@ module Bali
         ]
 
         render AdvancedFilters::Component.new(
-          url: helpers.request.path,
-          available_attributes: attributes
+          url: '/preview',
+          available_attributes: attributes,
+          popover: popover
         )
       end
 
       # @label Compact (Few Attributes)
-      # Minimal configuration with only a few attributes
+      # Minimal configuration with only a few attributes.
+      # Useful for simple filtering scenarios.
       def compact
         attributes = [
           { key: :name, label: 'Name', type: :text },
@@ -165,7 +146,7 @@ module Bali
         ]
 
         render AdvancedFilters::Component.new(
-          url: helpers.request.path,
+          url: '/preview',
           available_attributes: attributes
         )
       end

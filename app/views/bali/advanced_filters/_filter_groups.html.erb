@@ -1,0 +1,14 @@
+<div data-advanced-filters-target="groupsContainer" class="space-y-4">
+  <% filter_groups.each_with_index do |group, group_idx| %>
+    <% if group_idx > 0 %>
+      <%= render 'bali/advanced_filters/group_combinator', combinator: combinator %>
+    <% end %>
+
+    <%= render Bali::AdvancedFilters::FilterGroup::Component.new(
+          group: group,
+          index: group_idx,
+          available_attributes: available_attributes,
+          removable: filter_groups.size > 1
+        ) %>
+  <% end %>
+</div>

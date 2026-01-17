@@ -30,14 +30,15 @@ export class ConditionController extends Controller {
     const attributeKey = select.value
     const type = selectedOption?.dataset?.type || 'text'
     const options = this.parseOptions(selectedOption?.dataset?.options)
+    const operators = this.parseOptions(selectedOption?.dataset?.operators)
 
     // Update hidden field
     if (this.hasAttributeHiddenTarget) {
       this.attributeHiddenTarget.value = attributeKey
     }
 
-    // Update operators for this type
-    this.updateOperators(type)
+    // Update operators for this type (from data attribute or fallback)
+    this.updateOperators(type, operators)
 
     // Get the current operator (may have changed)
     const operator = this.hasOperatorTarget ? this.operatorTarget.value : 'eq'
@@ -132,11 +133,16 @@ export class ConditionController extends Controller {
 
   /**
    * Update the operator dropdown based on attribute type
+   * @param {string} type - The attribute type
+   * @param {Array} operatorsFromData - Optional operators from data attribute (single source of truth)
    */
-  updateOperators (type) {
+  updateOperators (type, operatorsFromData = null) {
     if (!this.hasOperatorTarget) return
 
-    const operators = this.getOperatorsForType(type)
+    // Use operators from data attribute if provided, otherwise fall back to defaults
+    const operators = operatorsFromData?.length > 0
+      ? operatorsFromData
+      : this.getOperatorsForType(type)
     const currentValue = this.operatorTarget.value
 
     this.operatorTarget.innerHTML = operators
@@ -236,7 +242,9 @@ export class ConditionController extends Controller {
   }
 
   /**
-   * Get operators for a given type
+   * Get operators for a given type.
+   * NOTE: This is a fallback for dynamically created inputs.
+   * The primary source of truth is Ruby (Operators module), passed via data-operators attribute.
    */
   getOperatorsForType (type) {
     const operators = {

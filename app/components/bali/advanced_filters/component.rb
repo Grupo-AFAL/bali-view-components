@@ -2,11 +2,11 @@
 
 module Bali
   module AdvancedFilters
-    class Component < ApplicationViewComponent # rubocop:disable Metrics/ClassLength
+    class Component < ApplicationViewComponent
       include Utils::Url
 
       attr_reader :url, :available_attributes, :apply_mode, :id, :popover, :combinator,
-                  :filter_groups, :max_groups, :search_value
+                  :filter_groups, :max_groups
 
       # Renders the applied filter pills above the filter builder
       renders_one :applied_tags, ->(**options) do
@@ -28,9 +28,10 @@ module Bali
       # @param max_groups [Integer] Maximum number of filter groups allowed
       # @param popover [Boolean] Whether to show filters in a popover (default: true)
       # @param button_text [String] Text for the popover trigger button
-      # @param search_fields [Array<Symbol>] Fields for quick search (e.g., [:name, :description])
-      # @param search_value [String] Current search value from URL params
-      # @param search_placeholder [String] Placeholder text for search input
+      # @param search [Hash] Quick search configuration
+      #   - :fields [Array<Symbol>] Fields to search (e.g., [:name, :description])
+      #   - :value [String] Current search value from URL params
+      #   - :placeholder [String] Placeholder text for search input
       # rubocop:disable Metrics/ParameterLists
       def initialize(
         url:,
@@ -41,9 +42,7 @@ module Bali
         max_groups: 10,
         popover: true,
         button_text: nil,
-        search_fields: [],
-        search_value: nil,
-        search_placeholder: nil,
+        search: {},
         **options
       )
         @url = url
@@ -54,9 +53,7 @@ module Bali
         @max_groups = max_groups
         @popover = popover
         @button_text = button_text
-        @search_fields = search_fields
-        @search_value = search_value
-        @search_placeholder = search_placeholder
+        @search = search || {}
         @id = options.delete(:id) || "advanced-filters-#{SecureRandom.hex(4)}"
 
         @options = options
@@ -68,19 +65,23 @@ module Bali
       end
 
       def search_enabled?
-        @search_fields.present?
+        @search[:fields].present?
+      end
+
+      def search_value
+        @search[:value]
       end
 
       def search_placeholder
-        @search_placeholder || I18n.t('bali.advanced_filters.search_placeholder',
-                                      default: 'Search...')
+        @search[:placeholder] || I18n.t('bali.advanced_filters.search_placeholder',
+                                        default: 'Search...')
       end
 
       # Build Ransack field name for multi-field search (e.g., "name_or_genre_cont")
       def search_field_name
         return nil unless search_enabled?
 
-        fields = @search_fields.map(&:to_s).join('_or_')
+        fields = @search[:fields].map(&:to_s).join('_or_')
         "q[#{fields}_cont]"
       end
 
@@ -107,74 +108,10 @@ module Bali
         end.to_json
       end
 
-      # Build the default operators for each attribute type
-      def operators_for_type(type) # rubocop:disable Metrics/MethodLength
-        case type.to_sym
-        when :text
-          [
-            { value: 'cont',
-              label: I18n.t('bali.advanced_filters.operators.contains', default: 'contains') },
-            { value: 'eq',
-              label: I18n.t('bali.advanced_filters.operators.equals', default: 'is exactly') },
-            { value: 'start',
-              label: I18n.t('bali.advanced_filters.operators.starts_with',
-                            default: 'starts with') },
-            { value: 'end',
-              label: I18n.t('bali.advanced_filters.operators.ends_with', default: 'ends with') },
-            { value: 'not_cont',
-              label: I18n.t('bali.advanced_filters.operators.not_contains',
-                            default: 'does not contain') },
-            { value: 'not_eq',
-              label: I18n.t('bali.advanced_filters.operators.not_equals', default: 'is not') }
-          ]
-        when :number
-          [
-            { value: 'eq', label: '=' },
-            { value: 'not_eq', label: '≠' },
-            { value: 'gt', label: '>' },
-            { value: 'lt', label: '<' },
-            { value: 'gteq', label: '≥' },
-            { value: 'lteq', label: '≤' }
-          ]
-        when :date, :datetime
-          [
-            { value: 'eq', label: I18n.t('bali.advanced_filters.operators.on', default: 'is') },
-            { value: 'gt',
-              label: I18n.t('bali.advanced_filters.operators.after', default: 'after') },
-            { value: 'lt',
-              label: I18n.t('bali.advanced_filters.operators.before', default: 'before') },
-            { value: 'gteq',
-              label: I18n.t('bali.advanced_filters.operators.on_or_after',
-                            default: 'on or after') },
-            { value: 'lteq',
-              label: I18n.t('bali.advanced_filters.operators.on_or_before',
-                            default: 'on or before') }
-          ]
-        when :select
-          [
-            { value: 'eq', label: I18n.t('bali.advanced_filters.operators.is', default: 'is') },
-            { value: 'not_eq',
-              label: I18n.t('bali.advanced_filters.operators.is_not', default: 'is not') },
-            { value: 'in',
-              label: I18n.t('bali.advanced_filters.operators.is_any_of', default: 'is any of'),
-              multiple: true },
-            { value: 'not_in',
-              label: I18n.t('bali.advanced_filters.operators.is_not_any_of',
-                            default: 'is not any of'),
-              multiple: true }
-          ]
-        when :boolean
-          [
-            { value: 'eq', label: I18n.t('bali.advanced_filters.operators.is', default: 'is') }
-          ]
-        else
-          [
-            { value: 'eq',
-              label: I18n.t('bali.advanced_filters.operators.equals', default: 'equals') },
-            { value: 'cont',
-              label: I18n.t('bali.advanced_filters.operators.contains', default: 'contains') }
-          ]
-        end
+      # Build the default operators for each attribute type.
+      # Delegates to Operators module for centralized definitions.
+      def operators_for_type(type)
+        Operators.for_type(type)
       end
 
       private
