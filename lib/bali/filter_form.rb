@@ -5,7 +5,7 @@ module Bali
     include ActiveModel::Model
     include ActiveModel::Attributes
 
-    attr_reader :scope, :storage_id, :context, :clear_filters
+    attr_reader :scope, :storage_id, :context, :clear_filters, :groupings
 
     # Ransack attribute for receiving the sort parameters
     attribute :s
@@ -14,8 +14,15 @@ module Bali
       @scope = scope
       @storage_id = storage_id
       @context = context
-      attributes = params.fetch(:q, {}).permit(permitted_attributes)
+
+      q_params = params.fetch(:q, {})
+      attributes = q_params.permit(permitted_attributes)
       @clear_filters = params.fetch(:clear_filters, false)
+
+      # Store Ransack groupings (g) and combinator (m) for complex filters
+      # These are used by AdvancedFilters for AND/OR condition groups
+      @groupings = extract_groupings(q_params)
+      @combinator = q_params[:m]
 
       attributes = fetch_stored_attributes(attributes) if storage_id.present?
       super(attributes)
@@ -108,10 +115,31 @@ module Bali
     end
 
     def ransack_search
-      @ransack_search ||= scope.ransack(query_params)
+      @ransack_search ||= scope.ransack(ransack_params)
     end
 
     private
+
+    # Build params hash for Ransack including groupings if present
+    def ransack_params
+      params = query_params.dup
+
+      # Add groupings for AdvancedFilters complex conditions
+      params[:g] = @groupings if @groupings.present?
+      params[:m] = @combinator if @combinator.present?
+
+      params
+    end
+
+    # Extract Ransack groupings from params
+    # Groupings format: q[g][0][field_operator]=value, q[g][0][m]=or/and
+    def extract_groupings(q_params)
+      return nil unless q_params[:g].present?
+
+      # Convert ActionController::Parameters to a regular hash
+      # Ransack expects groupings as a hash with string keys
+      q_params[:g].to_unsafe_h
+    end
 
     def fetch_stored_attributes(attributes)
       return attributes unless Object.const_defined?('Rails')
