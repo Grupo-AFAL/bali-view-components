@@ -35,6 +35,12 @@ module Bali
         large: 48
       }.freeze
 
+      # SVG size classes for child elements
+      SIZE_SVG_CLASSES = {
+        medium: '*:h-8 *:w-8',
+        large: '*:h-12 *:w-12'
+      }.freeze
+
       # @param name [String, Symbol] Icon name (Bali name or Lucide name)
       # @param tag_name [Symbol] HTML tag to wrap the icon (:span, :div, etc.)
       # @param size [Symbol] Icon size (:small, :medium, :large)
@@ -83,17 +89,15 @@ module Bali
       # @param lucide_name [String] the Lucide icon name
       # @return [String] SVG markup
       def render_lucide_icon(lucide_name)
-        size = LUCIDE_SIZES[@size] || 16
+        pixel_size = LUCIDE_SIZES[@size] || 16
         svg_content = LucideRails::IconProvider.icon(lucide_name)
 
-        # Build the SVG with proper attributes
         tag.svg(
           svg_content.html_safe,
-          **LucideRails.default_options.merge(
-            width: size,
-            height: size,
-            class: 'lucide-icon'
-          )
+          **LucideRails.default_options,
+          width: pixel_size,
+          height: pixel_size,
+          class: 'lucide-icon'
         )
       end
 
@@ -113,8 +117,7 @@ module Bali
       # @param icon_name [String] the icon name to check
       # @return [Boolean]
       def legacy_icon_exists?(icon_name)
-        constant_name = icon_name.upcase.tr('-', '_')
-        DefaultIcons.const_defined?(constant_name)
+        DefaultIcons.const_defined?(normalize_constant_name(icon_name))
       rescue NameError
         false
       end
@@ -124,8 +127,15 @@ module Bali
       # @param icon_name [String] the icon name
       # @return [String] SVG markup
       def render_legacy_icon(icon_name)
-        constant_name = icon_name.upcase.tr('-', '_')
-        DefaultIcons.const_get(constant_name).html_safe
+        DefaultIcons.const_get(normalize_constant_name(icon_name))
+      end
+
+      # Converts icon name to Ruby constant format
+      #
+      # @param name [String] icon name like 'arrow-left'
+      # @return [String] constant name like 'ARROW_LEFT'
+      def normalize_constant_name(name)
+        name.to_s.upcase.tr('-', '_')
       end
 
       # Generates a helpful error message for missing icons
@@ -159,15 +169,8 @@ module Bali
           'inline-flex items-center justify-center',
           '*:inline-block *:h-4 *:w-4 *:overflow-visible',
           SIZES[@size],
-          size_svg_classes
+          SIZE_SVG_CLASSES[@size]
         )
-      end
-
-      def size_svg_classes
-        case @size
-        when :medium then '*:h-8 *:w-8'
-        when :large then '*:h-12 *:w-12'
-        end
       end
     end
   end

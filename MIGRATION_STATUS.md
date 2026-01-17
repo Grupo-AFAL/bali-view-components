@@ -70,7 +70,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Heatmap                |  ✅   |    ❌     |   N/A   |   ✅   |  9/10   | Frozen constants, required data:, validated dimensions, 26 tests |
 | Hero                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Private attr_reader, Hash#fetch, Bali::Button preview |
 | HoverCard              |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
-| Icon                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
+| Icon                   |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | Lucide integration, resolution pipeline            |
 | ImageField             |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | ImageGrid              |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | InfoLevel              |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
@@ -113,9 +113,9 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Status         | Tests  | AI Visual | DaisyUI | Manual | Quality |
 | -------------- | :----: | :-------: | :-----: | :----: | :-----: |
-| ✅ Complete    |   56   |    16     |   14    |   12   |    0    |
-| ⚠️ Partial     |   0    |     0     |    0    |    0   |    0    |
-| ❌ Not Started |   0    |    40     |   35    |   44   |   56    |
+| ✅ Complete    |   56   |    17     |   15    |   12   |   22    |
+| ⚠️ Partial     |   0    |     0     |    0    |    0   |    1    |
+| ❌ Not Started |   0    |    39     |   34    |   44   |   33    |
 | N/A            |   0    |     0     |    7    |    0   |    0    |
 | **Total**      | **56** |  **56**   | **56**  | **56** | **56**  |
 
@@ -123,7 +123,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Score Range | Count | Components |
 |-------------|-------|------------|
-| 9-10 (✅)   | 21    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Heatmap (9), Hero (9), Modal (9) |
+| 9-10 (✅)   | 22    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Heatmap (9), Hero (9), Icon (9), Modal (9) |
 | 7-8 (⚠️)    | 1     | Form (7) |
 | < 7 (❌)    | 0     | - |
 | Not scored  | 34    | Remaining components |
@@ -243,3 +243,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | GanttChart                   | Score 8: Bulma→DaisyUI (join, weekend), explicit action methods, 21 tests    | AI         |
 | 2026-01-17 | Hero                         | Score 9: Private attr_reader, Hash#fetch, preview uses Bali::Button          | AI         |
 | 2026-01-17 | Heatmap                      | Score 9: Frozen constants, required data:, validated dimensions, 26 tests    | AI         |
+| 2026-01-17 | Icon                         | Score 9: Lucide integration, SIZE_SVG_CLASSES const, normalize_constant_name helper, 41 tests | AI         |
