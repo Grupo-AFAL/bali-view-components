@@ -46,6 +46,8 @@ en:
         header:
           week: Week
           month: Month
+          previous: Previous
+          next: Next
       recurrent_event_rule_form:
         yearly: Yearly
         monthly: Monthly

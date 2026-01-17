@@ -46,6 +46,8 @@ es:
         header:
           week: Semana
           month: Mes
+          previous: Anterior
+          next: Siguiente
       recurrent_event_rule_form:
         yearly: Anualmente
         monthly: Mensualmente

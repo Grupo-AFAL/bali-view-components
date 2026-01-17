@@ -61,21 +61,23 @@ module Bali
                         end
       end
 
-      # @return [Array<String>] CSS classes for a week row
+      # @return [String] CSS classes for a week row
       def tr_classes_for(week)
-        classes = ['week']
-        classes << 'current-week' if week.include?(Date.current)
-        classes
+        class_names(
+          'week',
+          'current-week': week.include?(Date.current)
+        )
       end
 
-      # @return [Array<String>] CSS classes for a day cell
+      # @return [String] CSS classes for a day cell
       def td_classes_for(day)
-        classes = ['day']
-        classes << 'today' if today?(day)
-        classes << 'start-date' if day == start_date
-        classes << 'prev-month' if previous_month?(day)
-        classes << 'next-month' if next_month?(day)
-        classes
+        class_names(
+          'day',
+          today: today?(day),
+          'start-date': day == start_date,
+          'prev-month': previous_month?(day),
+          'next-month': next_month?(day)
+        )
       end
 
       # @return [Hash<Date, Array>] Events grouped by date
@@ -139,6 +141,14 @@ module Bali
       # @return [String, nil] Custom class for weekly title from options
       def weekly_title_class
         @options[:weekly_title_class]
+      end
+
+      # @return [String] CSS classes for date display
+      def date_display_classes
+        class_names(
+          month_view? ? 'font-semibold float-right text-lg' : 'text-2xl font-bold',
+          weekly_title_class
+        )
       end
 
       private

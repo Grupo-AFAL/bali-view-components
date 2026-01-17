@@ -1,7 +1,9 @@
 <div class="header mb-4 flex items-center justify-between">
   <div class="flex-none">
     <% if route_path.present? %>
-      <%= link_to render(Bali::Icon::Component.new('arrow-left')), route(extra_params(:prev)), class: 'btn btn-ghost', title: 'previous' %>
+      <%= render Bali::Link::Component.new(href: route(extra_params(:prev)), type: :ghost, aria: { label: t('view_components.bali.calendar.header.previous') }) do %>
+        <%= render Bali::Icon::Component.new('arrow-left') %>
+      <% end %>
     <% end %>
   </div>
   <div class="flex items-center gap-3">
@@ -9,13 +11,25 @@
       <%= t('date.month_names')[start_date.month] %> <%= start_date.year %>
     </h3>
     <% if period_switch && route_path.present? %>
-      <%= link_to t('view_components.bali.calendar.header.week'), route(extra_params(:week)), class: class_names('btn btn-primary', 'btn-outline': period == :month) %>
-      <%= link_to t('view_components.bali.calendar.header.month'), route(extra_params(:month)), class: class_names('btn btn-primary', 'btn-outline': period == :week) %>
+      <%= render Bali::Link::Component.new(
+            name: t('view_components.bali.calendar.header.week'),
+            href: route(extra_params(:week)),
+            type: :primary,
+            class: ('btn-outline' if period == :month)
+          ) %>
+      <%= render Bali::Link::Component.new(
+            name: t('view_components.bali.calendar.header.month'),
+            href: route(extra_params(:month)),
+            type: :primary,
+            class: ('btn-outline' if period == :week)
+          ) %>
     <% end %>
   </div>
   <div class="flex-none">
     <% if route_path.present? %>
-      <%= link_to render(Bali::Icon::Component.new('arrow-right')), route(extra_params(:next)), class: 'btn btn-ghost', title: 'next' %>
+      <%= render Bali::Link::Component.new(href: route(extra_params(:next)), type: :ghost, aria: { label: t('view_components.bali.calendar.header.next') }) do %>
+        <%= render Bali::Icon::Component.new('arrow-right') %>
+      <% end %>
     <% end %>
   </div>
 </div>

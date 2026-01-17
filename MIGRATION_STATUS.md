@@ -52,7 +52,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | BooleanIcon            |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Added nil handling, improved tests and preview     |
 | Breadcrumb             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Proper DaisyUI breadcrumbs, aria-label, BASE_CLASSES |
 | BulkActions            |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | CLASSES hash, tag.div template, ITEM_CLASSES const |
-| Calendar               |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Uses card, table, btn correctly                    |
+| Calendar               |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | class_names helpers, Link components, aria-labels  |
 | Card                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10  | Full DaisyUI card, fixed header badge positioning  |
 | Carousel               |  ✅   |    ✅     |   N/A   |   ✅   |    -    | Uses Glide.js, fixed CSS                           |
 | Chart                  |  ✅   |    ✅     |   N/A   |   ✅   |    -    | Custom (Chart.js)                                  |
@@ -123,10 +123,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Score Range | Count | Components |
 |-------------|-------|------------|
-| 9-10 (✅)   | 7     | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), Card (9), Modal (9) |
+| 9-10 (✅)   | 8     | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Modal (9) |
 | 7-8 (⚠️)    | 0     | - |
 | < 7 (❌)    | 0     | - |
-| Not scored  | 49    | Remaining components |
+| Not scored  | 48    | Remaining components |
 
 ---
 
@@ -227,3 +227,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | BooleanIcon                  | Score 9: Added nil value handling, improved tests, all_states preview        | AI         |
 | 2026-01-17 | Breadcrumb                   | Score 9: Added aria-label, BASE_CLASSES constant, private attr_readers       | AI         |
 | 2026-01-17 | BulkActions                  | Score 9: CLASSES hash, tag.div template, ITEM_CLASSES constant               | AI         |
+| 2026-01-17 | Calendar                     | Score 9: class_names helpers, Bali::Link components, aria-labels             | AI         |
