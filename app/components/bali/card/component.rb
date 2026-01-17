@@ -5,8 +5,8 @@ module Bali
     class Component < ApplicationViewComponent
       STYLES = {
         default: '',
-        bordered: 'card-border',
-        dash: 'card-dash'
+        bordered: 'card-border border-base-300',
+        dash: 'card-dash border-base-300'
       }.freeze
 
       SIZES = {
@@ -19,15 +19,22 @@ module Bali
 
       renders_one :header, Header::Component
 
-      renders_one :image, ->(src: nil, **options, &block) do
-        if src.present?
-          Image::Component.new(src: src, **options)
-        else
-          tag.slot(**options, &block)
-        end
+      renders_one :title, ->(text, **options) do
+        tag.h2(text, class: class_names('card-title', options[:class]), **options.except(:class))
       end
 
-      renders_many :footer_items, FooterItem::Component
+      renders_one :image,
+                  lambda { |src: nil, href: nil, alt: nil, figure_class: nil, **opts, &block|
+                    if src.present?
+                      Image::Component.new(
+                        src: src, href: href, alt: alt, figure_class: figure_class, **opts
+                      )
+                    else
+                      tag.figure(class: figure_class, **opts, &block)
+                    end
+                  }
+
+      renders_many :actions, Action::Component
 
       def initialize(style: :default, size: :md, side: false, image_full: false, shadow: true,
                      **options)
@@ -57,6 +64,10 @@ module Bali
           'image-full' => @image_full,
           'shadow-sm' => @shadow
         )
+      end
+
+      def render_body?
+        content.present? || header? || title? || actions.any?
       end
     end
   end

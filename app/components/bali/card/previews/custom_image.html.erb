@@ -1,17 +1,23 @@
 <%= render Bali::Card::Component.new(class: 'w-96') do |c| %>
-  <% c.with_image do %>
-    <div class="image-container group">
-      <%= render Bali::Card::Image::Component.new(src: 'https://img.daisyui.com/images/stock/photo-1635805737707-575885ab0820.webp', class: 'hidden group-hover:block') %>
-      <%= render Bali::Card::Image::Component.new(src: 'https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp', class: 'group-hover:hidden') %>
+  <% c.with_image(figure_class: 'overflow-hidden') do %>
+    <div class="group">
+      <%# Use image_tag directly since with_image block already wraps in figure %>
+      <%= image_tag 'https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp',
+          alt: 'Product image',
+          class: 'w-full transition-all duration-300 group-hover:scale-105 group-hover:brightness-110' %>
     </div>
   <% end %>
-  <% c.with_footer_item(href: '#') do %>
-    Footer item with link
+
+  <% c.with_title('Custom Image Card') %>
+
+  <% c.with_action(href: '#') do %>
+    Action with link
   <% end %>
-  <% c.with_footer_item do %>
-    Item with span
+  <% c.with_action do %>
+    Action without link
   <% end %>
+
   <div>
-    Card content
+    Card with custom hover effect on image.
   </div>
 <% end %>

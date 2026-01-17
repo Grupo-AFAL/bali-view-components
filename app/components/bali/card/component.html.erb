@@ -1,15 +1,14 @@
 <%= tag.div **@options do %>
-  <% if header? %>
-    <%= header %>
-  <% end %>
-  <%= image %>
-  <% if content.present? || footer_items.size.positive? %>
+  <%= image if image? %>
+  <% if render_body? %>
     <div class="card-body">
+      <%= header if header? %>
+      <%= title if title? %>
       <%= content %>
-      <% if footer_items.size.positive? %>
+      <% if actions.any? %>
         <div class="card-actions justify-end">
-          <% footer_items.each do |footer_item| %>
-            <%= footer_item %>
+          <% actions.each do |action| %>
+            <%= action %>
           <% end %>
         </div>
       <% end %>
