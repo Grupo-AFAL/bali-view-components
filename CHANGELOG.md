@@ -54,6 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Pre-populated filters from URL params
   - Quick search integration
   - Reset functionality
+  - Date range "between" operator uses Flatpickr range mode (single compact input)
+  - Locale-aware date formats: `M j, Y` for English, `j M Y` for Spanish
 - `Bali::AdvancedFilterForm` helper class for parsing filter parameters in controllers.
 - Stimulus controllers: `advanced-filters`, `filter-group`, and `condition` for interactive filtering.
 
