@@ -125,10 +125,45 @@ Run comprehensive code review:
    - DaisyUI usage patterns
    - Test coverage
 
-3. **Capture Issues** with severity:
+3. **Translation Verification** - Check i18n compliance:
+
+   **a) Scan for hardcoded strings** in templates and Ruby files:
+   ```bash
+   # Look for hardcoded user-facing strings in ERB templates
+   grep -E '>\s*[A-Z][a-z]+' app/components/bali/[name]/**/*.erb
+
+   # Look for hardcoded strings in Ruby (excluding comments, symbols, class names)
+   grep -E '"[A-Z][a-z].*"' app/components/bali/[name]/**/*.rb
+   ```
+
+   **Common hardcoded string patterns to flag:**
+   - Button labels: "Submit", "Cancel", "Save", "Delete"
+   - Status messages: "Loading...", "No results", "Error"
+   - Placeholder text: "Search...", "Enter name"
+   - Confirmation prompts: "Are you sure?"
+   - Table headers and labels
+
+   **b) Verify t() calls have translation keys** in both locales:
+   ```bash
+   # Extract all t() calls from the component
+   grep -ohE "t\(['\"][^'\"]+['\"]" app/components/bali/[name]/**/*.{rb,erb}
+
+   # Check each key exists in both locale files:
+   # - config/locales/view_components.en.yml
+   # - config/locales/view_components.es.yml
+   ```
+
+   **c) Translation key convention:**
+   ```ruby
+   # Use ViewComponent's built-in translation helper
+   # Keys should follow: view_components.bali.[component].[key]
+   t(".key_name")  # Resolves to view_components.bali.[component].key_name
+   ```
+
+4. **Capture Issues** with severity:
    - **Critical**: Broken functionality, security issues, failing tests
-   - **High**: Poor API design, missing constants, Rubocop errors
-   - **Medium**: Missing tests, preview issues, code style
+   - **High**: Poor API design, missing constants, Rubocop errors, **missing translations**
+   - **Medium**: Missing tests, preview issues, code style, **hardcoded strings**
    - **Low**: Minor suggestions, polish
 
 ### Phase 2: Fix Loop
@@ -153,6 +188,8 @@ For each iteration (max N):
    | Missing tests | Generate test cases |
    | Template logic | Move to helper methods |
    | Raw HTML | Replace with Bali components |
+   | Hardcoded strings | Replace with `t(".key")` helper |
+   | Missing translation | Add key to both `.en.yml` and `.es.yml` |
 
 3. **Verify Fixes**:
    ```bash
@@ -361,6 +398,89 @@ RSpec.describe Bali::[Name]::Component, type: :component do
   end
 end
 ```
+
+### Translation Fixes
+
+**Locale files location:**
+- English: `config/locales/view_components.en.yml`
+- Spanish: `config/locales/view_components.es.yml`
+
+**Step 1: Replace hardcoded strings with t() helper**
+
+```erb
+<%# Before - hardcoded string %>
+<button>Delete</button>
+<span>No records found</span>
+
+<%# After - using translation helper %>
+<button><%= t(".delete") %></button>
+<span><%= t(".no_records") %></span>
+```
+
+```ruby
+# In component.rb - Before
+def confirm_message
+  "Are you sure?"
+end
+
+# After
+def confirm_message
+  t(".confirm_message")
+end
+```
+
+**Step 2: Add translation keys to BOTH locale files**
+
+```yaml
+# config/locales/view_components.en.yml
+en:
+  view_components:
+    bali:
+      [component_name]:
+        delete: Delete
+        no_records: No records found
+        confirm_message: Are you sure?
+
+# config/locales/view_components.es.yml
+es:
+  view_components:
+    bali:
+      [component_name]:
+        delete: Eliminar
+        no_records: No se encontraron registros
+        confirm_message: ¿Estás seguro?
+```
+
+**Step 3: Verify translations work**
+
+```ruby
+# In RSpec test
+it "uses translations" do
+  I18n.with_locale(:en) do
+    render_inline(described_class.new)
+    expect(page).to have_text("Delete")
+  end
+
+  I18n.with_locale(:es) do
+    render_inline(described_class.new)
+    expect(page).to have_text("Eliminar")
+  end
+end
+```
+
+**Common translation patterns:**
+
+| English | Spanish | Key suggestion |
+|---------|---------|----------------|
+| Loading... | Cargando... | `loading` |
+| No results | Sin resultados | `no_results` |
+| Are you sure? | ¿Estás seguro? | `confirm_message` |
+| Delete | Eliminar | `delete` |
+| Cancel | Cancelar | `cancel` |
+| Save | Guardar | `save` |
+| Search... | Buscar... | `search_placeholder` |
+| Previous | Anterior | `previous` |
+| Next | Siguiente | `next` |
 
 ## Cycle Report Format
 
