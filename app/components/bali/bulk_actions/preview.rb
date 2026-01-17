@@ -9,10 +9,11 @@ module Bali
         { id: 3, name: 'Bob Wilson', email: 'bob@example.com' }
       ].freeze
 
+      # Click on items to select them. The floating action bar appears when items are selected.
       def default
         render Bali::BulkActions::Component.new do |c|
-          c.with_action(name: 'Archive', href: '/users/bulk_archive')
-          c.with_action(name: 'Delete', href: '/users/bulk_delete')
+          c.with_action(label: 'Archive', href: '/users/bulk_archive', variant: :info)
+          c.with_action(label: 'Delete', href: '/users/bulk_delete', variant: :error)
 
           RECORDS.each do |record|
             c.with_item(record_id: record[:id], class: 'flex items-center gap-3 p-3 rounded-lg hover:bg-base-200') do
