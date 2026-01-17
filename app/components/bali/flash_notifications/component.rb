@@ -3,12 +3,14 @@
 module Bali
   module FlashNotifications
     class Component < ApplicationViewComponent
-      attr_reader :notice, :alert
-
       def initialize(notice: nil, alert: nil)
         @notice = notice
         @alert = alert
       end
+
+      private
+
+      attr_reader :notice, :alert
     end
   end
 end

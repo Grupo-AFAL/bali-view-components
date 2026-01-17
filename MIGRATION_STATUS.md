@@ -64,8 +64,8 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Dropdown               |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | i18n aria-label, Trigger VARIANTS, 21 tests        |
 | FieldGroupWrapper      |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | DaisyUI form-control, class_names, 18 tests        |
 | Filters                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
-| FlashNotifications     |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
-| Form                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
+| FlashNotifications     |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | Private attr_readers, Lookbook params, 6 tests     |
+| Form                   |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
 | GanttChart             |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom component                                   |
 | Heatmap                |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom component                                   |
 | Hero                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
@@ -123,10 +123,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Score Range | Count | Components |
 |-------------|-------|------------|
-| 9-10 (✅)   | 18    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), Modal (9) |
+| 9-10 (✅)   | 19    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Modal (9) |
 | 7-8 (⚠️)    | 0     | - |
 | < 7 (❌)    | 0     | - |
-| Not scored  | 38    | Remaining components |
+| Not scored  | 37    | Remaining components |
 
 ---
 
@@ -236,3 +236,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Dropdown                     | Score 9: i18n aria-label, Trigger VARIANTS const, 21 tests                   | AI         |
 | 2026-01-17 | Drawer                       | Score 9: Unique IDs, POSITIONS const, header/footer slots, WCAG, 32 tests    | AI         |
 | 2026-01-17 | FieldGroupWrapper            | Score 9: DaisyUI form-control, class_names, no options mutation, 18 tests    | AI         |
+| 2026-01-17 | FlashNotifications           | Score 9: Private attr_readers, Lookbook params, 6 tests                      | AI         |
