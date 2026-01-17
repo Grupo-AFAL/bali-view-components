@@ -137,5 +137,64 @@ RSpec.describe Bali::Dropdown::Component, type: :component do
 
       expect(page).to have_css '[role="button"]', text: 'Trigger'
     end
+
+    it 'supports icon variant' do
+      render_inline(described_class.new) do |c|
+        c.with_trigger(variant: :icon) { 'Icon' }
+        c.with_item(href: '#') { 'Item' }
+      end
+
+      expect(page).to have_css '.btn.btn-ghost.btn-circle', text: 'Icon'
+    end
+
+    it 'supports ghost variant' do
+      render_inline(described_class.new) do |c|
+        c.with_trigger(variant: :ghost) { 'Ghost' }
+        c.with_item(href: '#') { 'Item' }
+      end
+
+      expect(page).to have_css '.btn.btn-ghost', text: 'Ghost'
+    end
+
+    it 'supports custom variant with no btn class' do
+      render_inline(described_class.new) do |c|
+        c.with_trigger(variant: :custom, class: 'my-custom-class') { 'Custom' }
+        c.with_item(href: '#') { 'Item' }
+      end
+
+      expect(page).to have_css '.my-custom-class', text: 'Custom'
+      expect(page).not_to have_css '.btn', text: 'Custom'
+    end
+  end
+
+  describe 'accessibility' do
+    it 'renders menu with aria-label' do
+      render_inline(described_class.new) do |c|
+        c.with_trigger { 'Trigger' }
+        c.with_item(href: '#') { 'Item' }
+      end
+
+      expect(page).to have_css 'ul[role="menu"][aria-label="Dropdown menu"]'
+    end
+
+    it 'renders items with proper roles' do
+      render_inline(described_class.new) do |c|
+        c.with_trigger { 'Trigger' }
+        c.with_item(href: '#') { 'Item 1' }
+        c.with_item(href: '#') { 'Item 2' }
+      end
+
+      expect(page).to have_css 'li[role="none"]', count: 2
+      expect(page).to have_css 'a[role="menuitem"]', count: 2
+    end
+
+    it 'renders trigger with aria-haspopup and aria-expanded' do
+      render_inline(described_class.new) do |c|
+        c.with_trigger { 'Trigger' }
+        c.with_item(href: '#') { 'Item' }
+      end
+
+      expect(page).to have_css '[aria-haspopup="true"][aria-expanded="false"]', text: 'Trigger'
+    end
   end
 end

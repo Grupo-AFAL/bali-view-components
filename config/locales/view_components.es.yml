@@ -27,6 +27,10 @@ es:
       clipboard:
         copied: ¡Copiado!
         copy_label: Copiar al portapapeles
+      drawer:
+        close_drawer: Cerrar panel
+      dropdown:
+        menu_label: Menú desplegable
       delete_link:
         generic_confirm_message: '¿Estás seguro(a)?'
         default_name: Eliminar

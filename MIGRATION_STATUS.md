@@ -161,7 +161,7 @@ Components with ✅ in all applicable columns:
 | Table        | [table](https://daisyui.com/components/table/)             | ✅ Done    |
 | Breadcrumb   | [breadcrumbs](https://daisyui.com/components/breadcrumbs/) | ✅ Done    |
 | Modal        | [modal](https://daisyui.com/components/modal/)             | ❌ Pending |
-| Dropdown     | [dropdown](https://daisyui.com/components/dropdown/)       | ❌ Pending |
+| Dropdown     | [dropdown](https://daisyui.com/components/dropdown/)       | ✅ Done    |
 | Tabs         | [tabs](https://daisyui.com/components/tab/)                | ❌ Pending |
 | Navbar       | [navbar](https://daisyui.com/components/navbar/)           | ❌ Pending |
 | Drawer       | [drawer](https://daisyui.com/components/drawer/)           | ❌ Pending |
@@ -233,3 +233,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Chart                        | Score 9: Explicit params, frozen constants, Dataset refactor, Tailwind title | AI         |
 | 2026-01-17 | Clipboard                    | Score 9: DaisyUI join pattern, BASE_CLASSES, aria-label, 18 tests            | AI         |
 | 2026-01-17 | DeleteLink                   | Score 9: SIZES const, class_names, explicit authorized param, 20 tests       | AI         |
+| 2026-01-17 | Dropdown                     | Score 9: i18n aria-label, Trigger VARIANTS const, 21 tests                   | AI         |

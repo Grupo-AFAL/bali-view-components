@@ -7,15 +7,20 @@ module Bali
 
       # Default Dropdown
       # ---------------
-      # Dropdown with a list of items
+      # Dropdown with a list of items. Trigger supports multiple variants:
+      # - `:button` (default) - Standard button
+      # - `:icon` - Ghost button with circle (for icon-only triggers)
+      # - `:ghost` - Ghost button (transparent background)
+      # - `:custom` - No base classes (fully customizable)
       # @param hoverable toggle
       # @param close_on_click toggle
       # @param align [Symbol] select [left, right, top, bottom, top_end, bottom_end]
       # @param wide toggle
-      def default(hoverable: false, close_on_click: true, align: :right, wide: false)
+      # @param trigger_variant [Symbol] select [button, icon, ghost, custom]
+      def default(hoverable: false, close_on_click: true, align: :right, wide: false, trigger_variant: :button)
         render(Dropdown::Component.new(hoverable: hoverable, close_on_click: close_on_click,
                                        align: align, wide: wide)) do |c|
-          c.with_trigger(class: 'btn-primary') { 'Click me' }
+          c.with_trigger(variant: trigger_variant.to_sym, class: 'btn-primary') { 'Click me' }
 
           c.with_item(href: '#') { 'Item 1' }
           c.with_item(href: '#') { 'Item 2' }

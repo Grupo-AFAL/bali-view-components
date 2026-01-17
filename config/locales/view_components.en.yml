@@ -27,6 +27,10 @@ en:
       clipboard:
         copied: Copied!
         copy_label: Copy to clipboard
+      drawer:
+        close_drawer: Close drawer
+      dropdown:
+        menu_label: Dropdown menu
       delete_link:
         generic_confirm_message: Are you sure?
         default_name: Delete

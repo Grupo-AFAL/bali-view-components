@@ -4,7 +4,15 @@ module Bali
   module Dropdown
     module Trigger
       class Component < ApplicationViewComponent
-        def initialize(**options)
+        VARIANTS = {
+          button: 'btn',
+          icon: 'btn btn-ghost btn-circle',
+          ghost: 'btn btn-ghost',
+          custom: ''
+        }.freeze
+
+        def initialize(variant: :button, **options)
+          @variant = variant.to_sym
           @options = options
           @options[:tabindex] ||= 0
           @options[:role] ||= 'button'
@@ -15,9 +23,17 @@ module Bali
         end
 
         def call
-          tag.div(**prepend_class_name(@options, 'btn')) do
+          tag.div(**prepend_class_name(@options, base_classes)) do
             content
           end
+        end
+
+        private
+
+        attr_reader :variant
+
+        def base_classes
+          VARIANTS.fetch(variant, VARIANTS[:button])
         end
       end
     end
