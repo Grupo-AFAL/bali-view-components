@@ -24,13 +24,13 @@
             <%# AND/OR toggle switch %>
             <div class="join" data-filter-group-target="combinatorToggle">
               <button type="button"
-                      class="join-item btn btn-xs w-10 <%= combinator == 'and' ? 'btn-primary' : 'btn-outline' %>"
+                      class="<%= and_button_classes %>"
                       data-action="filter-group#setCombinator"
                       data-combinator="and">
                 AND
               </button>
               <button type="button"
-                      class="join-item btn btn-xs w-10 <%= combinator == 'or' ? 'btn-primary' : 'btn-outline' %>"
+                      class="<%= or_button_classes %>"
                       data-action="filter-group#setCombinator"
                       data-combinator="or">
                 OR
@@ -66,13 +66,13 @@
       <div class="w-20 shrink-0 pt-1.5">
         <div class="join" data-filter-group-target="combinatorToggle">
           <button type="button"
-                  class="join-item btn btn-xs w-10 <%= combinator == 'and' ? 'btn-primary' : 'btn-outline' %>"
+                  class="<%= and_button_classes %>"
                   data-action="filter-group#setCombinator"
                   data-combinator="and">
             AND
           </button>
           <button type="button"
-                  class="join-item btn btn-xs w-10 <%= combinator == 'or' ? 'btn-primary' : 'btn-outline' %>"
+                  class="<%= or_button_classes %>"
                   data-action="filter-group#setCombinator"
                   data-combinator="or">
             OR

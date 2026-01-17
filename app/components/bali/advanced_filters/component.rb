@@ -54,9 +54,7 @@ module Bali
         @popover = popover
         @button_text = button_text
         @search = search || {}
-        @id = options.delete(:id) || "advanced-filters-#{SecureRandom.hex(4)}"
-
-        @options = options
+        @id = options[:id] || "advanced-filters-#{SecureRandom.hex(4)}"
       end
       # rubocop:enable Metrics/ParameterLists
 

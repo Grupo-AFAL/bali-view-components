@@ -46,7 +46,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Component              | Tests | AI Visual | DaisyUI | Manual | Quality | Notes                                              |
 | ---------------------- | :---: | :-------: | :-----: | :----: | :-----: | -------------------------------------------------- |
 | ActionsDropdown        |  ✅   |    ✅     |   ✅    |   ✅   | 9.5/10  | Full DaisyUI dropdown, semantic button+ARIA        |
-| AdvancedFilters        |  ✅   |    ✅     |   ✅    |   ✅   |    -    | **NEW** - Built with DaisyUI                       |
+| AdvancedFilters        |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Code quality improved, class_names helpers added   |
 | Avatar                 |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Full DaisyUI implementation                        |
 | BooleanIcon            |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Uses text-success/text-error                       |
 | Breadcrumb             |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Proper DaisyUI breadcrumbs                         |
@@ -122,10 +122,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Score Range | Count | Components |
 |-------------|-------|------------|
-| 9-10 (✅)   | 0     | - |
+| 9-10 (✅)   | 4     | ActionsDropdown (9.5), AdvancedFilters (9), Card (9), Modal (9) |
 | 7-8 (⚠️)    | 0     | - |
 | < 7 (❌)    | 0     | - |
-| Not scored  | 56    | All |
+| Not scored  | 52    | Remaining components |
 
 ---
 
@@ -221,3 +221,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Card                         | Score 8→9: Fixed header badge positioning, removed redundant border classes  | AI         |
 | 2026-01-17 | Modal                        | Score 7→9: Added header/body/actions slots, WCAG aria-describedby            | AI         |
 | 2026-01-17 | ActionsDropdown              | Score 9.5: Semantic button, ARIA attrs, consistent preview API               | AI         |
+| 2026-01-17 | AdvancedFilters              | Score 9: Removed unused @options, added class_names helpers, fixed trailing spaces | AI         |

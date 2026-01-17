@@ -30,6 +30,20 @@ module Bali
           "q[g][#{index}]"
         end
 
+        def and_button_classes
+          class_names(
+            'join-item btn btn-xs w-10',
+            combinator == 'and' ? 'btn-primary' : 'btn-outline'
+          )
+        end
+
+        def or_button_classes
+          class_names(
+            'join-item btn btn-xs w-10',
+            combinator == 'or' ? 'btn-primary' : 'btn-outline'
+          )
+        end
+
         private
 
         def default_group
