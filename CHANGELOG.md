@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING**: `Bali::Breadcrumb::Item::Component` API improved:
+  - `href` is now optional (was required). Items without `href` are automatically marked as active.
+  - Parameter order changed: `name:` is now the primary parameter.
+  - Links only show underline on hover (not by default).
+  - Active items render as non-clickable `<span>` elements with `cursor-default`.
+  - Removed legacy BEM classes (`breadcrumb-component`, `breadcrumb-item-component`).
+  - Added `aria-current="page"` to active items for accessibility.
+
+  Migration example:
+  ```ruby
+  # Before
+  c.with_item(href: '/page', name: 'Current', active: true)
+
+  # After (simplified - no href means auto-active)
+  c.with_item(name: 'Current')
+  ```
+
 ### Added
 
 - `Bali::DataTable::Component` now uses `AdvancedFilters` instead of the legacy `Filters` component.
