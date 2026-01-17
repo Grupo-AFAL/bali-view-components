@@ -14,7 +14,6 @@ module Bali
       def container_classes
         class_names(
           'breadcrumbs',
-          'breadcrumb-component',
           'text-sm',
           @options[:class]
         )

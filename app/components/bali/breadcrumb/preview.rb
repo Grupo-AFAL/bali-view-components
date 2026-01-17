@@ -3,19 +3,12 @@
 module Bali
   module Breadcrumb
     class Preview < ApplicationViewComponentPreview
-      def default
+      # @param show_icons toggle
+      def default(show_icons: false)
         render Breadcrumb::Component.new do |c|
-          c.with_item(href: '/home', name: 'Home')
-          c.with_item(href: '/home/section', name: 'Section')
-          c.with_item(href: '/home/section/page', name: 'Page', active: true)
-        end
-      end
-
-      def with_icons
-        render Breadcrumb::Component.new do |c|
-          c.with_item(href: '/home', name: 'Home', icon_name: 'home')
-          c.with_item(href: '/home/store', name: 'Store', icon_name: 'store')
-          c.with_item(href: '/home/store/product', name: 'Product', icon_name: 'camera', active: true)
+          c.with_item(name: 'Home', href: '/home', icon_name: show_icons ? 'home' : nil)
+          c.with_item(name: 'Section', href: '/home/section', icon_name: show_icons ? 'store' : nil)
+          c.with_item(name: 'Current Page', icon_name: show_icons ? 'camera' : nil)
         end
       end
     end
