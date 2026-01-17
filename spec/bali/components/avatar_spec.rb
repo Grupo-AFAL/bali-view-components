@@ -208,6 +208,22 @@ RSpec.describe Bali::Avatar::Component, type: :component do
       expect(page).to have_css '.avatar[data-test="value"][id="my-avatar"]'
     end
   end
+
+  describe 'accessibility' do
+    it 'uses alt text when provided' do
+      options.merge!(src: '/avatar.png', alt: 'User profile picture')
+      render_inline(component)
+
+      expect(page).to have_css 'img[alt="User profile picture"]'
+    end
+
+    it 'uses empty alt by default for decorative images' do
+      options.merge!(src: '/avatar.png')
+      render_inline(component)
+
+      expect(page).to have_css 'img[alt=""]'
+    end
+  end
 end
 
 RSpec.describe Bali::Avatar::Upload::Component, type: :component do
@@ -363,6 +379,16 @@ RSpec.describe Bali::Avatar::Group::Component, type: :component do
 
       expect(page).to have_css '.avatar .w-8'
       expect(page).not_to have_css '.avatar .w-24'
+    end
+  end
+
+  describe 'options passthrough' do
+    it 'passes extra options to container' do
+      render_inline(described_class.new(data: { testid: 'avatar-group' }, id: 'my-group')) do |group|
+        group.with_avatar(src: '/avatar.png', size: :sm)
+      end
+
+      expect(page).to have_css '.avatar-group[data-testid="avatar-group"][id="my-group"]'
     end
   end
 end

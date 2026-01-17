@@ -47,7 +47,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ---------------------- | :---: | :-------: | :-----: | :----: | :-----: | -------------------------------------------------- |
 | ActionsDropdown        |  ✅   |    ✅     |   ✅    |   ✅   | 9.5/10  | Full DaisyUI dropdown, semantic button+ARIA        |
 | AdvancedFilters        |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Code quality improved, class_names helpers added   |
-| Avatar                 |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Full DaisyUI implementation                        |
+| Avatar                 |  ✅   |    ✅     |   ✅    |   ✅   | 9.5/10  | Full DaisyUI, tag.div, alt text, options passthrough |
 | BooleanIcon            |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Uses text-success/text-error                       |
 | Breadcrumb             |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Proper DaisyUI breadcrumbs                         |
 | BulkActions            |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Fixed is-hidden→hidden                             |
@@ -222,3 +222,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Modal                        | Score 7→9: Added header/body/actions slots, WCAG aria-describedby            | AI         |
 | 2026-01-17 | ActionsDropdown              | Score 9.5: Semantic button, ARIA attrs, consistent preview API               | AI         |
 | 2026-01-17 | AdvancedFilters              | Score 9: Removed unused @options, added class_names helpers, fixed trailing spaces | AI         |
+| 2026-01-17 | Avatar                       | Score 9.5: Group tag.div+options, alt text support, fixed preview path       | AI         |

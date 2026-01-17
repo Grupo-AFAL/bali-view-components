@@ -5,7 +5,7 @@
     <% elsif picture? %>
       <%= picture %>
     <% elsif @src.present? %>
-      <%= image_tag @src, class: 'w-full h-full object-cover' %>
+      <%= image_tag @src, alt: @options[:alt] || '', class: 'w-full h-full object-cover' %>
     <% end %>
   <% end %>
 <% end %>

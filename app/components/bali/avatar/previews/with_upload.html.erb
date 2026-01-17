@@ -1,4 +1,4 @@
-<%= form_with(url: helpers.request.path, local: true) do |form| %>
+<%= form_with(url: '/lookbook', local: true) do |form| %>
   <%= render(Bali::Avatar::Upload::Component.new(
     form: form,
     method: :avatar,
