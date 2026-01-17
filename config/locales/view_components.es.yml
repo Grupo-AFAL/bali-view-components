@@ -6,6 +6,17 @@ es:
         no_results: Sin Resultados
       data_table:
         summary: "Mostrando %{from}-%{to} de %{count} %{item_name}"
+        default_item_name: elementos
+        column_selector:
+          button_label: Columnas
+          menu_title: Mostrar/Ocultar Columnas
+        export:
+          button_label: Exportar
+          formats:
+            csv: CSV
+            excel: Excel
+            pdf: PDF
+            json: JSON
       pagination:
         aria_label: Paginación
         previous_page: Página anterior

@@ -8,16 +8,24 @@ module Bali
         Column = Struct.new(:index, :label, :visible, keyword_init: true)
 
         # @param table_id [String] CSS selector for the target table (e.g., '#my-table')
-        # @param button_label [String] Label for the dropdown button (default: 'Columns')
+        # @param button_label [String] Label for the dropdown button (i18n default)
         # @param button_icon [String] Icon name (default: 'table')
-        def initialize(table_id:, button_label: 'Columns', button_icon: 'table')
+        def initialize(table_id:, button_label: nil, button_icon: 'table')
           @table_id = table_id.start_with?('#') ? table_id : "##{table_id}"
           @button_label = button_label
           @button_icon = button_icon
           @columns = []
         end
 
-        attr_reader :table_id, :button_label, :button_icon, :columns
+        attr_reader :table_id, :button_icon, :columns
+
+        def button_label
+          @button_label || t('.button_label')
+        end
+
+        def menu_title
+          t('.menu_title')
+        end
 
         # Add a column to the selector
         # @param index [Integer] Column index in the table (0-based)

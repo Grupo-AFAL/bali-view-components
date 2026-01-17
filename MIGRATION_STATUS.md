@@ -58,11 +58,11 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Chart                  |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | Refactored: explicit params, frozen constants, no mutation |
 | Clipboard              |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI join, BASE_CLASSES, aria-label, 18 tests   |
 | Columns                |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | CSS Grid refactor, gap param, col-span-* classes   |
-| DataTable              |  ✅   |    ✅     |   ✅    |   ✅   |   🔄    | Review in progress                                 |
-| DeleteLink             |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
-| Drawer                 |  ✅   |    ✅     |   ✅    |   ❌   |    -    | Needs manual review                                |
-| Dropdown               |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
-| FieldGroupWrapper      |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
+| DataTable              |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | i18n, class_names helpers, options hash pattern    |
+| DeleteLink             |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
+| Drawer                 |  ✅   |    ✅     |   ✅    |   ❌   |   🔄    | Review in progress                                 |
+| Dropdown               |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
+| FieldGroupWrapper      |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
 | Filters                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | FlashNotifications     |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | Form                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
@@ -123,10 +123,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Score Range | Count | Components |
 |-------------|-------|------------|
-| 9-10 (✅)   | 13    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), Modal (9) |
+| 9-10 (✅)   | 14    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), Modal (9) |
 | 7-8 (⚠️)    | 0     | - |
 | < 7 (❌)    | 0     | - |
-| Not scored  | 43    | Remaining components |
+| Not scored  | 42    | Remaining components |
 
 ---
 

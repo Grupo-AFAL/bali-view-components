@@ -1,33 +1,22 @@
 <div id="<%= id %>" class="data-table-component">
   <%# Toolbar: Filters (left) + Actions/Buttons (right) %>
-  <% if filters_panel? || toolbar_buttons? || column_selector? || export? || actions_panel? %>
+  <% if show_toolbar? %>
     <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
       <%# Left side: Filters %>
       <div class="flex-1 min-w-0">
-        <% if filters_panel? %>
-          <%= filters_panel %>
-        <% end %>
+        <%= filters_panel if filters_panel? %>
       </div>
 
       <%# Right side: Column selector + Export + Toolbar buttons + Actions panel %>
-      <% if toolbar_buttons? || column_selector? || export? || actions_panel? %>
+      <% if show_toolbar_right? %>
         <div class="flex items-center gap-2 flex-shrink-0">
-          <%# Built-in column selector %>
-          <% if column_selector? %>
-            <%= column_selector %>
-          <% end %>
-          <%# Built-in export dropdown %>
-          <% if export? %>
-            <%= export %>
-          <% end %>
-          <%# Custom toolbar buttons %>
+          <%= column_selector if column_selector? %>
+          <%= export if export? %>
           <% toolbar_buttons.each do |button| %>
             <%= button %>
           <% end %>
           <% if actions_panel? %>
-            <div class="hidden md:block">
-              <%= actions_panel %>
-            </div>
+            <div class="hidden md:block"><%= actions_panel %></div>
           <% end %>
         </div>
       <% end %>
@@ -49,7 +38,7 @@
   <% end %>
 
   <%# Content: Table or Grid %>
-  <% if @display_mode&.to_sym == :grid %>
+  <% if grid_mode? %>
     <%= grid %>
   <% else %>
     <%= tag.div class: table_wrapper_classes do %>

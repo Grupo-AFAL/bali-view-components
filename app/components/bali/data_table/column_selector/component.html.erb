@@ -6,7 +6,7 @@
     <%= button_label %>
   </button>
   <ul tabindex="0" class="dropdown-content z-50 menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-200">
-    <li class="menu-title">Show/Hide Columns</li>
+    <li class="menu-title"><%= menu_title %></li>
     <% columns.each do |column| %>
       <li>
         <label class="label cursor-pointer justify-start gap-3">

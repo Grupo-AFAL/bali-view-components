@@ -147,7 +147,7 @@ module Bali
       end
 
       # @label Complete Example (Live DB)
-      # @description Full DataTable with filters, sorting, pagination, and toolbar buttons.
+      # Full DataTable with filters, sorting, pagination, and toolbar buttons.
       def complete(q: {}, page: 1)
         filter_params = ActionController::Parameters.new(q: ActionController::Parameters.new(q), page: page)
         filter_form = Bali::FilterForm.new(Movie.all, filter_params)
