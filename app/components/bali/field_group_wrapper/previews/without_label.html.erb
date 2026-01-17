@@ -1,0 +1,9 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <p class="text-sm text-base-content/60 mb-4">
+    Label explicitly disabled with <code class="bg-base-200 px-1 rounded">label: false</code>
+  </p>
+
+  <%= render Bali::FieldGroupWrapper::Component.new(form, :email, label: false) do %>
+    <%= form.email_field :email, placeholder: 'user@example.com' %>
+  <% end %>
+<% end %>

@@ -3,47 +3,86 @@
 module Bali
   module FieldGroupWrapper
     class Component < ApplicationViewComponent
+      BASE_CLASSES = 'form-control w-full'
+      LABEL_CLASSES = 'label'
+      LABEL_TEXT_CLASSES = 'label-text flex items-center gap-2'
+
       def initialize(form, method, options = {})
         @form = form
         @method = method
-        @options = options
-
-        @label_options = options.delete(:label)
-        @label_options = { text: @label_options } unless @label_options.is_a?(Hash)
-
-        @field_class = options.delete(:field_class)
-        @data = options.delete(:field_data)
+        @label_options = normalize_label_options(options[:label])
+        @field_class = options[:field_class]
+        @field_data = options[:field_data]
+        @type = options[:type]
+        @custom_class = options[:class]
       end
 
       def call
-        field_id = "field-#{@method}"
-        class_name = "field-group-wrapper-component field #{@field_class}"
-
-        content_tag(:div, id: field_id, class: class_name, data: @data) do
-          safe_join([generate_label_html, content].compact)
+        tag.div(id: field_id, class: wrapper_classes, data: @field_data) do
+          safe_join([label_html, content].compact)
         end
       end
 
       private
 
-      def generate_label_html
-        return if @options[:type] == 'hidden' || @label_options[:text] == false
-        return @form.label(@method, @label_options[:text]) if @label_options[:tooltip].nil?
+      attr_reader :form, :method, :label_options, :field_class, :field_data, :type
 
-        label_class = @label_options[:class] || 'is-flex is-align-items-center'
-        @form.label(@method, class: ['label', label_class].join(' ')) do |translation|
-          safe_join([
-                      @label_options[:text] || translation,
-                      label_tooltip(@label_options[:tooltip])
-                    ])
+      def field_id
+        "field-#{@method}"
+      end
+
+      def wrapper_classes
+        class_names(BASE_CLASSES, @field_class, @custom_class)
+      end
+
+      def label_html
+        return if hidden_field? || label_disabled?
+        return simple_label if @label_options[:tooltip].blank?
+
+        label_with_tooltip
+      end
+
+      def simple_label
+        @form.label(@method, @label_options[:text], class: LABEL_CLASSES)
+      end
+
+      def label_with_tooltip
+        @form.label(@method, class: label_classes) do |translation|
+          tag.span(class: LABEL_TEXT_CLASSES) do
+            safe_join([
+                        @label_options[:text] || translation,
+                        tooltip_icon
+                      ])
+          end
         end
       end
 
-      def label_tooltip(content)
-        render(Bali::Tooltip::Component.new) do |c|
-          c.with_trigger { render(Bali::Icon::Component.new('info-circle')) }
+      def tooltip_icon
+        render(Bali::Tooltip::Component.new) do |tooltip|
+          tooltip.with_trigger do
+            render(Bali::Icon::Component.new('info-circle', class: 'size-4 text-base-content/60'))
+          end
+          @label_options[:tooltip]
+        end
+      end
 
-          content
+      def label_classes
+        class_names(LABEL_CLASSES, @label_options[:class])
+      end
+
+      def hidden_field?
+        @type.to_s == 'hidden'
+      end
+
+      def label_disabled?
+        @label_options[:text] == false
+      end
+
+      def normalize_label_options(label)
+        case label
+        when Hash then label
+        when nil then {}
+        else { text: label }
         end
       end
     end

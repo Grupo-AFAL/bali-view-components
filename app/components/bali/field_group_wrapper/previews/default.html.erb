@@ -1,6 +1,8 @@
 <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
-  <%= render Bali::FieldGroupWrapper::Component.new(
-              form, :email, label: { tooltip: 'Additional text help' }) do %>
-    <span>Field Input</span>
+  <% label_opts = show_tooltip ? { tooltip: 'Additional text help' } : {} %>
+  <% label_opts[:text] = label_text if label_text.present? %>
+
+  <%= render Bali::FieldGroupWrapper::Component.new(form, :email, label: label_opts) do %>
+    <%= form.email_field :email, placeholder: 'user@example.com' %>
   <% end %>
 <% end %>
