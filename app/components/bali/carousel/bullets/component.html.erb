@@ -1,7 +1,10 @@
-<%= tag.div **options do %>
+<%= tag.div **@options, role: "tablist", 'aria-label': "Slide navigation" do %>
   <% count.times do |index| %>
     <%= tag.button(
-        class: "slider__bullet glide__bullet", 'aria-label': "Carousel Item #{index + 1}", 
+        class: "glide__bullet",
+        role: "tab",
+        'aria-label': "Go to slide #{index + 1}",
+        'aria-selected': index.zero?,
         data: { 'glide-dir': "=#{index}" },
         type: 'button') %>
   <% end %>

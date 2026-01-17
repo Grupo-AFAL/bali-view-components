@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Bali
   module Carousel
     class Preview < ApplicationViewComponentPreview
@@ -9,76 +11,45 @@ module Bali
         { color: '8B5CF6', text: 'Slide 5' }
       ].freeze
 
-      # Carousel
-      # -------------
-      # Basic carousel with multiple slides - swipe or use arrows to navigate
-      def default
-        render(Carousel::Component.new) do |c|
+      # @param with_arrows toggle
+      # @param with_bullets toggle
+      # @param slides_per_view select { choices: [1, 2, 3] }
+      # @param autoplay select { choices: [disabled, slow, medium, fast] }
+      # @param gap select { choices: [0, 8, 16, 24] }
+      def default(with_arrows: true, with_bullets: true, slides_per_view: 1, autoplay: :disabled, gap: 0)
+        render(Carousel::Component.new(
+                 slides_per_view: slides_per_view.to_i,
+                 autoplay: autoplay.to_sym,
+                 gap: gap.to_i
+               )) do |c|
+          c.with_arrows if with_arrows
+          c.with_bullets if with_bullets
+
           SLIDES.each do |slide|
             c.with_item do
-              image_tag("https://placehold.co/600x400/#{slide[:color]}/FFFFFF?text=#{slide[:text]}", class: 'w-full')
+              image_tag("https://placehold.co/600x400/#{slide[:color]}/FFFFFF?text=#{slide[:text]}",
+                        class: 'w-full rounded-lg')
             end
           end
         end
       end
 
-      # Carousel with arrows
-      # -------------
-      # Carousel with navigation arrows
-      def with_arrows
-        render(Carousel::Component.new) do |c|
-          c.with_arrows
-
-          SLIDES.each do |slide|
-            c.with_item do
-              image_tag("https://placehold.co/600x400/#{slide[:color]}/FFFFFF?text=#{slide[:text]}", class: 'w-full')
-            end
-          end
-        end
-      end
-
-      # Carousel with bullets
-      # -------------
-      # Carousel with bullet pagination
-      def with_bullets
-        render(Carousel::Component.new) do |c|
-          c.with_bullets
-
-          SLIDES.each do |slide|
-            c.with_item do
-              image_tag("https://placehold.co/600x400/#{slide[:color]}/FFFFFF?text=#{slide[:text]}", class: 'w-full')
-            end
-          end
-        end
-      end
-
-      # Slider type
-      # -------------
-      # Shows multiple slides at once
+      # @label Slider (Multiple Visible)
+      # Shows multiple slides at once with slider type.
+      # Useful for product carousels or thumbnail galleries.
       def slider
-        render(Carousel::Component.new(data: { 'carousel-type-value': 'slider' })) do |c|
+        render(Carousel::Component.new(
+                 slides_per_view: 3,
+                 gap: 16,
+                 data: { 'carousel-type-value': 'slider' }
+               )) do |c|
           c.with_arrows
           c.with_bullets
 
           SLIDES.each do |slide|
             c.with_item do
-              image_tag("https://placehold.co/300x200/#{slide[:color]}/FFFFFF?text=#{slide[:text]}", class: 'w-full')
-            end
-          end
-        end
-      end
-
-      # Autoplay
-      # -------------
-      # Carousel with autoplay enabled
-      def autoplay
-        render(Carousel::Component.new(autoplay: 3000)) do |c|
-          c.with_arrows
-          c.with_bullets
-
-          SLIDES.each do |slide|
-            c.with_item do
-              image_tag("https://placehold.co/600x400/#{slide[:color]}/FFFFFF?text=#{slide[:text]}", class: 'w-full')
+              image_tag("https://placehold.co/300x200/#{slide[:color]}/FFFFFF?text=#{slide[:text]}",
+                        class: 'w-full rounded-lg')
             end
           end
         end

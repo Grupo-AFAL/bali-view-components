@@ -3,53 +3,87 @@
 module Bali
   module Carousel
     class Component < ApplicationViewComponent
-      renders_many :items
+      DEFAULTS = {
+        start_at: 0,
+        slides_per_view: 1,
+        gap: 0,
+        focus_at: :center
+      }.freeze
 
-      renders_one :bullets, Bullets::Component
+      AUTOPLAY_INTERVALS = {
+        disabled: false,
+        slow: 5000,
+        medium: 3000,
+        fast: 1500
+      }.freeze
+
+      renders_many :items
       renders_one :arrows, Arrows::Component
 
+      attr_reader :bullets_options
+
+      def with_bullets(hidden: false, **opts)
+        @bullets_options = { hidden: hidden, **opts }
+      end
+
+      def bullets?
+        @bullets_options.present?
+      end
+
+      # rubocop:disable Metrics/ParameterLists
       def initialize(
-        start_at: 0,
-        per_view: 1,
-        autoplay: false,
-        gap: 0,
-        focus_at: 0,
+        slides_per_view: DEFAULTS[:slides_per_view],
+        start_at: DEFAULTS[:start_at],
+        autoplay: :disabled,
+        gap: DEFAULTS[:gap],
+        focus_at: DEFAULTS[:focus_at],
+        breakpoints: nil,
+        peek: nil,
         **options
       )
+        @slides_per_view = slides_per_view
         @start_at = start_at
-        @per_view = per_view
-        @autoplay = autoplay
+        @autoplay = resolve_autoplay(autoplay)
         @gap = gap
-        @focus_at = focus_at
-        @breakpoints = options.delete(:breakpoints)
-        @peek = options.delete(:peek)
+        @focus_at = resolve_focus_at(focus_at)
+        @breakpoints = breakpoints
+        @peek = peek
+        @options = build_options(options)
+      end
+      # rubocop:enable Metrics/ParameterLists
 
-        @options = options
-        @options = prepend_class_name(@options, 'carousel-component glide')
-        @options = prepend_controller(@options, 'carousel')
-        @options = prepend_values(@options, 'carousel', controller_values)
+      def render?
+        items?
+      end
+
+      private
+
+      def resolve_autoplay(value)
+        return AUTOPLAY_INTERVALS[value] if value.is_a?(Symbol) && AUTOPLAY_INTERVALS.key?(value)
+
+        value # Allow raw integer for custom intervals
+      end
+
+      def resolve_focus_at(value)
+        value == :center ? 'center' : value
+      end
+
+      def build_options(options)
+        opts = prepend_class_name(options, 'carousel-component glide')
+        opts = prepend_controller(opts, 'carousel')
+        prepend_values(opts, 'carousel', controller_values)
       end
 
       def controller_values
         {
           start_at: @start_at,
-          per_view: @per_view,
+          per_view: @slides_per_view,
           autoplay: @autoplay,
           gap: @gap,
           focus_at: @focus_at,
           breakpoints: @breakpoints,
           peek: @peek
-        }
-      end
-
-      def before_render
-        return if bullets.blank?
-
-        bullets.count = items.size
-      end
-
-      def render?
-        items?
+        }.compact
       end
     end
   end

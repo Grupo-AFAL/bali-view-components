@@ -4,19 +4,29 @@ module Bali
   module Carousel
     module Arrows
       class Component < ApplicationViewComponent
-        attr_reader :hidden, :options, :previous_icon, :next_icon
+        ICONS = {
+          previous: 'arrow-left',
+          next: 'arrow-right'
+        }.freeze
 
-        def initialize(hidden: false, **options)
+        def initialize(hidden: false, previous_icon: nil, next_icon: nil, **options)
           @hidden = hidden
-          @previous_icon = options.delete(:previous_icon) || 'arrow-left'
-          @next_icon = options.delete(:next_icon) || 'arrow-right'
-
-          @options = prepend_class_name(options, 'glide__arrows')
-          @options = prepend_data_attribute(@options, 'glide-el', 'controls')
+          @previous_icon = previous_icon || ICONS[:previous]
+          @next_icon = next_icon || ICONS[:next]
+          @options = build_options(options)
         end
 
         def render?
-          !hidden
+          !@hidden
+        end
+
+        private
+
+        attr_reader :previous_icon, :next_icon
+
+        def build_options(options)
+          opts = prepend_class_name(options, 'glide__arrows')
+          prepend_data_attribute(opts, 'glide-el', 'controls')
         end
       end
     end
