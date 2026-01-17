@@ -51,7 +51,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Avatar                 |  ✅   |    ✅     |   ✅    |   ✅   | 9.5/10  | Full DaisyUI, tag.div, alt text, options passthrough |
 | BooleanIcon            |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Added nil handling, improved tests and preview     |
 | Breadcrumb             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Proper DaisyUI breadcrumbs, aria-label, BASE_CLASSES |
-| BulkActions            |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Fixed is-hidden→hidden                             |
+| BulkActions            |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | CLASSES hash, tag.div template, ITEM_CLASSES const |
 | Calendar               |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Uses card, table, btn correctly                    |
 | Card                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10  | Full DaisyUI card, fixed header badge positioning  |
 | Carousel               |  ✅   |    ✅     |   N/A   |   ✅   |    -    | Uses Glide.js, fixed CSS                           |
@@ -226,3 +226,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Avatar                       | Score 9.5: Group tag.div+options, alt text support, fixed preview path       | AI         |
 | 2026-01-17 | BooleanIcon                  | Score 9: Added nil value handling, improved tests, all_states preview        | AI         |
 | 2026-01-17 | Breadcrumb                   | Score 9: Added aria-label, BASE_CLASSES constant, private attr_readers       | AI         |
+| 2026-01-17 | BulkActions                  | Score 9: CLASSES hash, tag.div template, ITEM_CLASSES constant               | AI         |

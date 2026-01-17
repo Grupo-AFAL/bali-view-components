@@ -6,15 +6,15 @@
   <%= content %>
 
   <% if actions.any? %>
-    <div class="<%= floating_bar_classes %>" data-bulk-actions-target="actionsContainer">
-      <div class="<%= floating_bar_inner_classes %>">
-        <div class="<%= counter_classes %>" data-bulk-actions-target="selectedCount">0</div>
-        <div class="<%= actions_wrapper_classes %>">
+    <%= tag.div class: CLASSES[:floating_bar], data: { bulk_actions_target: 'actionsContainer' } do %>
+      <%= tag.div class: CLASSES[:floating_bar_inner] do %>
+        <%= tag.div '0', class: CLASSES[:counter], data: { bulk_actions_target: 'selectedCount' } %>
+        <%= tag.div class: CLASSES[:actions_wrapper] do %>
           <% actions.each do |action| %>
             <%= action %>
           <% end %>
-        </div>
-      </div>
-    </div>
+        <% end %>
+      <% end %>
+    <% end %>
   <% end %>
 <% end %>

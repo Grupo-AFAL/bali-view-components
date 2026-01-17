@@ -6,6 +6,14 @@ module Bali
       renders_many :actions, Action::Component
       renders_many :items, Item::Component
 
+      # Consolidated class definitions for floating action bar
+      CLASSES = {
+        floating_bar: 'fixed bottom-4 left-1/2 -translate-x-1/2 z-40 hidden',
+        floating_bar_inner: 'flex items-center shadow-xl rounded-lg overflow-hidden',
+        counter: 'bg-primary text-primary-content font-bold text-2xl px-4 py-2 rounded-l-lg',
+        actions_wrapper: 'flex gap-2 px-3 py-2 bg-base-100 rounded-r-lg'
+      }.freeze
+
       def initialize(**options)
         @options = options
       end
@@ -21,25 +29,6 @@ module Bali
           class: component_classes,
           data: merge_data_attributes(@options[:data], controller: 'bulk-actions')
         )
-      end
-
-      def floating_bar_classes
-        class_names(
-          'fixed bottom-4 left-1/2 -translate-x-1/2 z-40',
-          'hidden' # Stimulus toggles visibility
-        )
-      end
-
-      def floating_bar_inner_classes
-        'flex items-center shadow-xl rounded-lg overflow-hidden'
-      end
-
-      def counter_classes
-        'bg-primary text-primary-content font-bold text-2xl px-4 py-2 rounded-l-lg'
-      end
-
-      def actions_wrapper_classes
-        'flex gap-2 px-3 py-2 bg-base-100 rounded-r-lg'
       end
 
       def merge_data_attributes(existing, **new_attrs)
