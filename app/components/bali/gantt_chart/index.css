@@ -35,14 +35,10 @@
       }
     }
 
-    .buttons {
+    .join {
       @apply mb-0;
-    }
 
-    .button {
-      @apply py-1 px-2 mb-0 h-auto leading-none;
-
-      &.is-info {
+      .btn-info {
         background-color: var(--gantt-today-color);
       }
     }
@@ -276,7 +272,7 @@
     @apply absolute top-0 h-full;
     border-right: 1px solid oklch(var(--b3) / 0.5);
 
-    &.is-weekend {
+    &.weekend {
       @apply bg-base-200/40;
     }
   }

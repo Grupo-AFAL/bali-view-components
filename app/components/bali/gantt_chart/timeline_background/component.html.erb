@@ -4,7 +4,7 @@
       <% dates.each do |date| %>
         <%= tag.div class: class_names(
                       'gantt-chart-timeline-background-column',
-                      'is-weekend': date.saturday? || date.sunday?
+                      weekend: date.saturday? || date.sunday?
                     ),
                     style: "left: #{col_width * @position}px; width: #{col_width}px" %>
 

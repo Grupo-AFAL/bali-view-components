@@ -66,7 +66,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Filters                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | **DEPRECATED** - Use AdvancedFilters instead       |
 | FlashNotifications     |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | Private attr_readers, Lookbook params, 6 tests     |
 | Form                   |  ✅   |    ✅     |   N/A   |   ❌   |  7/10   | FormBuilder: i18n, safe_join, 117 tests pass       |
-| GanttChart             |  ✅   |    ❌     |   N/A   |   ❌   |   🔄    | Review in progress                                 |
+| GanttChart             |  ✅   |    ❌     |   N/A   |   ❌   |  8/10   | Bulma→DaisyUI, explicit action methods, 21 tests   |
 | Heatmap                |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom component                                   |
 | Hero                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | HoverCard              |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
@@ -240,3 +240,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Filters                      | **DEPRECATED**: Emits warning, recommend AdvancedFilters                     | AI         |
 | 2026-01-17 | AdvancedFilters              | Added date range support with `between` operator (dual inputs)               | AI         |
 | 2026-01-17 | Form (FormBuilder)           | Score 7: i18n translations, safe_join, fixed 15 test expectations, 117 tests | AI         |
+| 2026-01-17 | GanttChart                   | Score 8: Bulma→DaisyUI (join, weekend), explicit action methods, 21 tests    | AI         |
