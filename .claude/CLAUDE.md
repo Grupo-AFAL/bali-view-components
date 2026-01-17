@@ -447,11 +447,12 @@ module Bali
       # @param disabled toggle
       def default(variant: :primary, size: :md, loading: false, disabled: false)
         render Bali::Button::Component.new(
+          name: 'Button',
           variant: variant.to_sym,
           size: size.to_sym,
           loading: loading,
           disabled: disabled
-        ) { "Button" }
+        )
       end
     end
   end
@@ -673,14 +674,14 @@ Use the correct component based on **what the element does**, not how it looks:
 
 ```erb
 <%# ✅ CORRECT: Button for actions %>
-<%= render Bali::Button::Component.new(variant: :primary, data: { action: 'modal#close' }) { 'Cancel' } %>
-<%= render Bali::Button::Component.new(variant: :primary, type: :submit) { 'Save' } %>
+<%= render Bali::Button::Component.new(name: 'Cancel', variant: :ghost, data: { action: 'modal#close' }) %>
+<%= render Bali::Button::Component.new(name: 'Save', variant: :primary, type: :submit) %>
 
 <%# ✅ CORRECT: Link for navigation %>
-<%= render Bali::Link::Component.new(href: '/users', type: :primary) { 'View Users' } %>
+<%= render Bali::Link::Component.new(name: 'View Users', href: '/users', type: :primary) %>
 
 <%# ❌ WRONG: Link for action (accessibility issue) %>
-<%= render Bali::Link::Component.new(href: '#', data: { action: 'modal#close' }) { 'Cancel' } %>
+<%= render Bali::Link::Component.new(name: 'Cancel', href: '#', data: { action: 'modal#close' }) %>
 ```
 
 **Why this matters:**
