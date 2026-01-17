@@ -22,19 +22,7 @@ module Bali
       # @param active toggle
       # @param size [Symbol] select [~, sm, md, lg, xl, full]
       def with_slots(active: true, size: nil)
-        render Modal::Component.new(active: active, size: size) do |modal|
-          modal.with_header(title: 'Confirm Action', badge: 'Required', badge_color: :warning)
-          modal.with_body do
-            tag.p('Are you sure you want to proceed with this action? This cannot be undone.',
-                  class: 'text-base-content/80')
-          end
-          modal.with_actions do
-            safe_join([
-              render(Bali::Button::Component.new(variant: :ghost, data: { action: 'modal#close' })) { 'Cancel' },
-              render(Bali::Button::Component.new(variant: :primary)) { 'Confirm' }
-            ])
-          end
-        end
+        render_with_template(locals: { active: active, size: size })
       end
 
       # @label With Header Badge
@@ -60,33 +48,7 @@ module Bali
       # Example of a modal containing a form with action buttons.
       # @param active toggle
       def form_modal(active: true)
-        render Modal::Component.new(active: active, size: :md) do |modal|
-          modal.with_header(title: 'Create New Item')
-          modal.with_body do
-            tag.form class: 'space-y-4' do
-              safe_join([
-                tag.div(class: 'form-control') do
-                  safe_join([
-                    tag.label('Name', class: 'label', for: 'name'),
-                    tag.input(type: 'text', id: 'name', class: 'input input-bordered w-full', placeholder: 'Enter name')
-                  ])
-                end,
-                tag.div(class: 'form-control') do
-                  safe_join([
-                    tag.label('Description', class: 'label', for: 'description'),
-                    tag.textarea(id: 'description', class: 'textarea textarea-bordered w-full', placeholder: 'Enter description', rows: 3)
-                  ])
-                end
-              ])
-            end
-          end
-          modal.with_actions do
-            safe_join([
-              render(Bali::Button::Component.new(variant: :ghost, data: { action: 'modal#close' })) { 'Cancel' },
-              render(Bali::Button::Component.new(variant: :primary, data: { action: 'modal#submit' })) { 'Save' }
-            ])
-          end
-        end
+        render_with_template(locals: { active: active })
       end
     end
   end

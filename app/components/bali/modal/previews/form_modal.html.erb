@@ -1,0 +1,19 @@
+<%= render Bali::Modal::Component.new(active: active, size: :md) do |modal| %>
+  <% modal.with_header(title: 'Create New Item') %>
+  <% modal.with_body do %>
+    <form class="space-y-4">
+      <div class="form-control">
+        <label class="label" for="name">Name</label>
+        <input type="text" id="name" class="input input-bordered w-full" placeholder="Enter name">
+      </div>
+      <div class="form-control">
+        <label class="label" for="description">Description</label>
+        <textarea id="description" class="textarea textarea-bordered w-full" placeholder="Enter description" rows="3"></textarea>
+      </div>
+    </form>
+  <% end %>
+  <% modal.with_actions do %>
+    <%= render Bali::Button::Component.new(variant: :ghost, data: { action: 'modal#close' }) { 'Cancel' } %>
+    <%= render Bali::Button::Component.new(variant: :primary, type: :submit) { 'Save' } %>
+  <% end %>
+<% end %>
