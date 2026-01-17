@@ -4,7 +4,6 @@ module Bali
   module Avatar
     module Group
       class Component < ApplicationViewComponent
-        renders_many :avatars, Bali::Avatar::Component
         renders_one :counter
 
         SPACINGS = {
@@ -18,6 +17,11 @@ module Bali
           @size = size&.to_sym
           @options = options
         end
+
+        # Avatars inherit group's size by default, but can be overridden
+        renders_many :avatars, ->(size: nil, **opts) {
+          Bali::Avatar::Component.new(size: size || @size, **opts)
+        }
 
         def group_classes
           class_names(

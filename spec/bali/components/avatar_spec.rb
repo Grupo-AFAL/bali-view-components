@@ -275,6 +275,14 @@ RSpec.describe Bali::Avatar::Upload::Component, type: :component do
       expect(page).to have_css 'input[data-avatar-target="input"]'
       expect(page).to have_css 'input[data-action="change->avatar#showImage"]'
     end
+
+    it 'renders output target even without src for Stimulus controller' do
+      helper.form_with(url: '/') do |form|
+        render_inline(described_class.new(form: form, method: :avatar))
+      end
+
+      expect(page).to have_css 'img[data-avatar-target="output"]'
+    end
   end
 end
 
@@ -336,6 +344,25 @@ RSpec.describe Bali::Avatar::Group::Component, type: :component do
       end
 
       expect(page).to have_css '.avatar-placeholder .w-24'
+    end
+  end
+
+  describe 'size inheritance' do
+    it 'avatars inherit size from group by default' do
+      render_inline(described_class.new(size: :lg)) do |group|
+        group.with_avatar(src: '/avatar.png')
+      end
+
+      expect(page).to have_css '.avatar .w-24'
+    end
+
+    it 'avatars can override inherited size' do
+      render_inline(described_class.new(size: :lg)) do |group|
+        group.with_avatar(src: '/avatar.png', size: :xs)
+      end
+
+      expect(page).to have_css '.avatar .w-8'
+      expect(page).not_to have_css '.avatar .w-24'
     end
   end
 end

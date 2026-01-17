@@ -95,8 +95,6 @@ module Bali
         )
       end
 
-      attr_reader :size
-
       private
 
       def shape_classes

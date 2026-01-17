@@ -1,8 +1,6 @@
 <%= tag.div class: 'relative inline-block', data: { controller: 'avatar' } do %>
-  <%= render Bali::Avatar::Component.new(src: @src, **avatar_options) do |avatar| %>
-    <% if @src.present? %>
-      <% avatar.with_picture(image_url: @src, data: { avatar_target: 'output' }) %>
-    <% end %>
+  <%= render Bali::Avatar::Component.new(**avatar_options) do |avatar| %>
+    <% avatar.with_picture(image_url: @src || '', data: { avatar_target: 'output' }) %>
   <% end %>
 
   <%= tag.div class: button_classes do %>
