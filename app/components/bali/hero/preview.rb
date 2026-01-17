@@ -13,12 +13,12 @@ module Bali
         end
       end
 
-      # Hero with custom content
-      def with_content
+      # Hero with call-to-action button
+      def with_action_button
         render Hero::Component.new(color: :primary) do |c|
           c.with_title('Hello there')
           c.with_subtitle('Provident cupiditate voluptatem et in.')
-          tag.button('Get Started', class: 'btn btn-secondary')
+          render Bali::Button::Component.new(name: 'Get Started', variant: :secondary)
         end
       end
     end

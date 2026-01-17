@@ -17,8 +17,6 @@ module Bali
         neutral: 'bg-neutral text-neutral-content'
       }.freeze
 
-      attr_reader :options
-
       renders_one :title, ->(text, **options) do
         tag.h1(text, **prepend_class_name(options, 'text-5xl font-bold'))
       end
@@ -27,9 +25,9 @@ module Bali
         tag.p(text, **prepend_class_name(options, 'py-4'))
       end
 
-      def initialize(size: :md, color: nil, centered: true, **options)
-        @size = size&.to_sym
-        @color = color&.to_sym
+      def initialize(size: :md, color: :base, centered: true, **options)
+        @size = size.to_sym
+        @color = color.to_sym
         @centered = centered
         @options = options
       end
@@ -37,8 +35,8 @@ module Bali
       def hero_classes
         class_names(
           'hero',
-          SIZES[@size] || SIZES[:md],
-          COLORS[@color] || COLORS[:base],
+          SIZES.fetch(@size, SIZES[:md]),
+          COLORS.fetch(@color, COLORS[:base]),
           @options[:class]
         )
       end
@@ -49,6 +47,10 @@ module Bali
           @centered && 'text-center'
         )
       end
+
+      private
+
+      attr_reader :size, :color, :centered, :options
     end
   end
 end
