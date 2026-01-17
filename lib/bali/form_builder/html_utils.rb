@@ -11,7 +11,11 @@ module Bali
         pattern_type = options.delete(:pattern_type)
         options[:pattern] = pattern_types[pattern_type] if pattern_type
 
-        options[:class] = field_class_name(method, "input #{options[:class]}")
+        # Add join-item class when addons are present for proper DaisyUI join pattern
+        has_addons = options[:addon_left].present? || options[:addon_right].present?
+        base_class = has_addons ? 'input input-bordered join-item' : 'input input-bordered'
+
+        options[:class] = field_class_name(method, "#{base_class} #{options[:class]}")
         options.except(:addon_left, :addon_right)
       end
 
@@ -25,13 +29,17 @@ module Bali
         left_addon = options.delete(:addon_left)
         right_addon = options.delete(:addon_right)
 
-        wrapped_field = content_tag(:div, field,
-                                    class: "control #{options.delete(:control_class)}",
-                                    data: options.delete(:control_data))
+        # When addons exist, don't wrap in control div - use join pattern directly
+        if left_addon.present? || right_addon.present?
+          return field_with_addons(field, left: left_addon, right: right_addon) + help_message
+        end
 
-        return wrapped_field + help_message if left_addon.blank? && right_addon.blank?
+        control_class = ['control', options.delete(:control_class)].compact.join(' ')
+        wrapped_field = content_tag(
+          :div, field, class: control_class, data: options.delete(:control_data)
+        )
 
-        field_with_addons(wrapped_field, left: left_addon, right: right_addon) + help_message
+        wrapped_field + help_message
       end
 
       def field_class_name(method, class_name = 'input')
@@ -76,14 +84,8 @@ module Bali
 
       def field_with_addons(field, left:, right:)
         content_tag(:div, class: 'join') do
-          @template.safe_join(
-            [generate_addon_html(left), field, generate_addon_html(right)].compact
-          )
+          @template.safe_join([left, field, right].compact)
         end
-      end
-
-      def generate_addon_html(addon_content)
-        content_tag(:div, class: 'join-item') { addon_content } if addon_content.present?
       end
     end
   end
