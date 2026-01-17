@@ -10,6 +10,8 @@ export class ConditionController extends Controller {
     'operator',
     'valueContainer',
     'value',
+    'rangeStart',
+    'rangeEnd',
     'attributeHidden',
     'operatorHidden'
   ]
@@ -58,6 +60,7 @@ export class ConditionController extends Controller {
     const operator = event.target.value
     const selectedOption = event.target.options[event.target.selectedIndex]
     const isMultiple = selectedOption?.dataset?.multiple === 'true'
+    const isRange = selectedOption?.dataset?.range === 'true'
 
     // Update hidden field
     if (this.hasOperatorHiddenTarget) {
@@ -73,8 +76,11 @@ export class ConditionController extends Controller {
     const options = this.parseOptions(attributeOption?.dataset?.options)
 
     // Re-render value input if switching between single/multiple for select type
+    // or between single/range for date/datetime types
     if (type === 'select') {
-      this.renderValueInput(type, attributeKey, options, isMultiple)
+      this.renderValueInput(type, attributeKey, options, isMultiple, isRange)
+    } else if (type === 'date' || type === 'datetime') {
+      this.renderValueInput(type, attributeKey, options, isMultiple, isRange)
     }
 
     // Update the field name
@@ -132,6 +138,13 @@ export class ConditionController extends Controller {
   }
 
   /**
+   * Check if an operator requires range inputs (start + end)
+   */
+  isRangeOperator (operator) {
+    return operator === 'between'
+  }
+
+  /**
    * Update the operator dropdown based on attribute type
    * @param {string} type - The attribute type
    * @param {Array} operatorsFromData - Optional operators from data attribute (single source of truth)
@@ -148,7 +161,7 @@ export class ConditionController extends Controller {
     this.operatorTarget.innerHTML = operators
       .map(
         (op) =>
-          `<option value="${op.value}" data-multiple="${op.multiple || false}" ${op.value === currentValue ? 'selected' : ''}>${op.label}</option>`
+          `<option value="${op.value}" data-multiple="${op.multiple || false}" data-range="${op.range || false}" ${op.value === currentValue ? 'selected' : ''}>${op.label}</option>`
       )
       .join('')
 
@@ -164,10 +177,11 @@ export class ConditionController extends Controller {
   /**
    * Render the appropriate value input based on type
    */
-  renderValueInput (type, attributeKey, options, isMultiple = false) {
+  renderValueInput (type, attributeKey, options, isMultiple = false, isRange = false) {
     if (!this.hasValueContainerTarget) return
 
     const fieldName = this.buildFieldName(attributeKey)
+    const rangeFieldNames = this.buildRangeFieldNames(attributeKey)
     let html = ''
 
     switch (type) {
@@ -180,10 +194,14 @@ export class ConditionController extends Controller {
         html = this.buildBooleanInput(fieldName)
         break
       case 'date':
-        html = this.buildDateInput(fieldName)
+        html = isRange
+          ? this.buildDateRangeInput(rangeFieldNames)
+          : this.buildDateInput(fieldName)
         break
       case 'datetime':
-        html = this.buildDatetimeInput(fieldName)
+        html = isRange
+          ? this.buildDatetimeRangeInput(rangeFieldNames)
+          : this.buildDatetimeInput(fieldName)
         break
       case 'number':
         html = this.buildNumberInput(fieldName)
@@ -242,6 +260,23 @@ export class ConditionController extends Controller {
   }
 
   /**
+   * Build field names for range inputs (between operator)
+   * Returns { start: "..._gteq", end: "..._lteq" }
+   */
+  buildRangeFieldNames (attributeKey) {
+    if (!attributeKey) {
+      return {
+        start: `q[g][${this.groupIndexValue}][__ATTR___gteq]`,
+        end: `q[g][${this.groupIndexValue}][__ATTR___lteq]`
+      }
+    }
+    return {
+      start: `q[g][${this.groupIndexValue}][${attributeKey}_gteq]`,
+      end: `q[g][${this.groupIndexValue}][${attributeKey}_lteq]`
+    }
+  }
+
+  /**
    * Get operators for a given type.
    * NOTE: This is a fallback for dynamically created inputs.
    * The primary source of truth is Ruby (Operators module), passed via data-operators attribute.
@@ -266,6 +301,7 @@ export class ConditionController extends Controller {
       ],
       date: [
         { value: 'eq', label: 'is' },
+        { value: 'between', label: 'between', range: true },
         { value: 'gt', label: 'after' },
         { value: 'lt', label: 'before' },
         { value: 'gteq', label: 'on or after' },
@@ -273,6 +309,7 @@ export class ConditionController extends Controller {
       ],
       datetime: [
         { value: 'eq', label: 'is' },
+        { value: 'between', label: 'between', range: true },
         { value: 'gt', label: 'after' },
         { value: 'lt', label: 'before' },
         { value: 'gteq', label: 'on or after' },
@@ -351,6 +388,60 @@ export class ConditionController extends Controller {
              data-datepicker-enable-time-value="true"
              data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
              data-condition-target="value">
+    `
+  }
+
+  buildDateRangeInput (rangeFieldNames) {
+    return `
+      <div class="flex gap-2 items-center" data-condition-target="value">
+        <input type="text"
+               class="input input-bordered input-sm flex-1"
+               name="${rangeFieldNames.start}"
+               placeholder="Start date"
+               data-controller="datepicker"
+               data-datepicker-locale-value="${this.localeValue}"
+               data-datepicker-mode-value="single"
+               data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
+               data-condition-target="rangeStart">
+        <span class="text-base-content/50 text-sm">and</span>
+        <input type="text"
+               class="input input-bordered input-sm flex-1"
+               name="${rangeFieldNames.end}"
+               placeholder="End date"
+               data-controller="datepicker"
+               data-datepicker-locale-value="${this.localeValue}"
+               data-datepicker-mode-value="single"
+               data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
+               data-condition-target="rangeEnd">
+      </div>
+    `
+  }
+
+  buildDatetimeRangeInput (rangeFieldNames) {
+    return `
+      <div class="flex gap-2 items-center" data-condition-target="value">
+        <input type="text"
+               class="input input-bordered input-sm flex-1"
+               name="${rangeFieldNames.start}"
+               placeholder="Start"
+               data-controller="datepicker"
+               data-datepicker-locale-value="${this.localeValue}"
+               data-datepicker-mode-value="single"
+               data-datepicker-enable-time-value="true"
+               data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
+               data-condition-target="rangeStart">
+        <span class="text-base-content/50 text-sm">and</span>
+        <input type="text"
+               class="input input-bordered input-sm flex-1"
+               name="${rangeFieldNames.end}"
+               placeholder="End"
+               data-controller="datepicker"
+               data-datepicker-locale-value="${this.localeValue}"
+               data-datepicker-mode-value="single"
+               data-datepicker-enable-time-value="true"
+               data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
+               data-condition-target="rangeEnd">
+      </div>
     `
   }
 
