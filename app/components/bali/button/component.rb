@@ -29,8 +29,9 @@ module Bali
       renders_one :icon_right, ->(name, **options) { Icon::Component.new(name, **options) }
 
       # rubocop:disable Metrics/ParameterLists
-      def initialize(variant: nil, size: nil, icon_name: nil, type: :button,
+      def initialize(name: nil, variant: nil, size: nil, icon_name: nil, type: :button,
                      disabled: false, loading: false, **options)
+        @name = name
         @variant = variant&.to_sym
         @size = size&.to_sym
         @icon_name = icon_name

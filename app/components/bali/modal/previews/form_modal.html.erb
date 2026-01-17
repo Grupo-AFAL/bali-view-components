@@ -13,7 +13,7 @@
     </form>
   <% end %>
   <% modal.with_actions do %>
-    <%= render Bali::Button::Component.new(variant: :ghost, data: { action: 'modal#close' }) { 'Cancel' } %>
-    <%= render Bali::Button::Component.new(variant: :primary, type: :submit) { 'Save' } %>
+    <%= render Bali::Button::Component.new(name: 'Cancel', variant: :ghost, data: { action: 'modal#close' }) %>
+    <%= render Bali::Button::Component.new(name: 'Save', variant: :primary, type: :submit) %>
   <% end %>
 <% end %>

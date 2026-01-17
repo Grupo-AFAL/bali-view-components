@@ -7,7 +7,7 @@
     <%= render Bali::Icon::Component.new(@icon_name) %>
   <% end %>
 
-  <%= content %>
+  <%= @name || content %>
 
   <%= icon_right if icon_right.present? %>
 <% end %>

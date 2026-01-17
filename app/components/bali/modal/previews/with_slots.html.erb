@@ -4,7 +4,7 @@
     <p class="text-base-content/80">Are you sure you want to proceed with this action? This cannot be undone.</p>
   <% end %>
   <% modal.with_actions do %>
-    <%= render Bali::Button::Component.new(variant: :ghost, data: { action: 'modal#close' }) { 'Cancel' } %>
-    <%= render Bali::Button::Component.new(variant: :primary) { 'Confirm' } %>
+    <%= render Bali::Button::Component.new(name: 'Cancel', variant: :ghost, data: { action: 'modal#close' }) %>
+    <%= render Bali::Button::Component.new(name: 'Confirm', variant: :primary) %>
   <% end %>
 <% end %>

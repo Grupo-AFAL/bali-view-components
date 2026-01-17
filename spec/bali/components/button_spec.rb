@@ -22,6 +22,19 @@ RSpec.describe Bali::Button::Component, type: :component do
 
       expect(page).to have_css('button[type="submit"]')
     end
+
+    it 'renders with name parameter' do
+      render_inline(described_class.new(name: 'Click me'))
+
+      expect(page).to have_button('Click me')
+    end
+
+    it 'prefers name over block content' do
+      render_inline(described_class.new(name: 'Name wins')) { 'Block content' }
+
+      expect(page).to have_button('Name wins')
+      expect(page).not_to have_text('Block content')
+    end
   end
 
   describe 'variants' do
