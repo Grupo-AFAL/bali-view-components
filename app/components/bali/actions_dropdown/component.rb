@@ -5,6 +5,11 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :options
 
+      # Custom trigger slot - allows overriding the default ellipsis button
+      renders_one :trigger
+
+      # Items auto-select Link vs DeleteLink based on HTTP method.
+      # Use `method: :delete` to render DeleteLink with confirmation dialog.
       renders_many :items, ->(method: :get, **options) do
         component_klass = method&.to_sym == :delete ? DeleteLink::Component : Link::Component
         component_klass.new(method: method, plain: true, **options)
@@ -25,14 +30,19 @@ module Bali
         right: 'dropdown-right'
       }.freeze
 
-      def initialize(align: :start, direction: nil, **options)
+      def initialize(align: :start, direction: nil, icon: 'ellipsis-h', **options)
         @align = align&.to_sym
         @direction = direction&.to_sym
+        @icon = icon
         @options = prepend_class_name(options, dropdown_classes)
       end
 
       def render?
-        items? ? items.any?(&:authorized?) : content.present?
+        items? ? authorized_items.any? : content.present?
+      end
+
+      def authorized_items
+        @authorized_items ||= items.select(&:authorized?)
       end
 
       private
@@ -43,6 +53,10 @@ module Bali
           ALIGNMENTS[@align],
           DIRECTIONS[@direction]
         )
+      end
+
+      def trigger_classes
+        'btn btn-ghost btn-sm btn-circle text-neutral-600 hover:text-neutral-800'
       end
     end
   end

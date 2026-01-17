@@ -5,7 +5,8 @@ module Bali
     class Preview < ApplicationViewComponentPreview
       # Default Actions Dropdown
       # ---------------
-      # Dropdown menu for row-level actions with icon trigger
+      # Dropdown menu for row-level actions with icon trigger.
+      # Items with `method: :delete` automatically use DeleteLink with confirmation.
       def default
         render ActionsDropdown::Component.new do |c|
           c.with_item(name: 'Edit', icon_name: 'edit', href: '#')
@@ -14,89 +15,67 @@ module Bali
         end
       end
 
-      # With Custom Content
+      # @param align select { choices: [start, center, end] }
+      # @param direction select { choices: [~, top, bottom, left, right] }
+      # Playground
       # ---------------
-      # Custom HTML content inside the dropdown
-      def with_custom_content
+      # Explore different alignments and directions.
+      # **Alignment** controls horizontal position (start/center/end).
+      # **Direction** controls where menu opens (top/bottom/left/right).
+      def playground(align: :start, direction: nil)
+        render_with_template(locals: {
+          align: align.to_sym,
+          direction: direction.presence&.to_sym
+        })
+      end
+
+      # With Custom Trigger
+      # ---------------
+      # Override the default ellipsis icon with a custom trigger button.
+      # Use `with_trigger` slot to provide any element as the dropdown trigger.
+      def with_custom_trigger
         render ActionsDropdown::Component.new do |c|
-          c.safe_join([
-                        c.tag.li(c.render(Bali::Link::Component.new(
-                                            name: 'Create',
-                                            icon_name: 'plus-circle',
-                                            href: '#',
-                                            drawer: true
-                                          ))),
-                        c.tag.li(c.render(Bali::Link::Component.new(
-                                            name: 'Export',
-                                            icon_name: 'file-export',
-                                            href: '#',
-                                            drawer: true
-                                          )))
-                      ])
+          c.with_trigger do
+            tag.div('Actions ▾', tabindex: 0, role: 'button', class: 'btn btn-sm btn-outline')
+          end
+          c.with_item(name: 'Edit', icon_name: 'edit', href: '#')
+          c.with_item(name: 'Export', icon_name: 'file-export', href: '#')
+          c.with_item(name: 'Delete', icon: true, href: '#', method: :delete)
         end
       end
 
-      # Align Start (Default)
+      # With Custom Icon
       # ---------------
-      # Menu aligns to the start (left) of the trigger button
-      def align_start
-        render_with_template(template: 'bali/actions_dropdown/previews/align_start')
+      # Change the default trigger icon using the `icon` parameter.
+      # Useful when you want vertical ellipsis or another icon.
+      def with_custom_icon
+        render ActionsDropdown::Component.new(icon: 'more') do |c|
+          c.with_item(name: 'Edit', icon_name: 'edit', href: '#')
+          c.with_item(name: 'Delete', icon: true, href: '#', method: :delete)
+        end
       end
 
-      # Align Center
+      # With Custom Content
       # ---------------
-      # Menu aligns to the center of the trigger button
-      def align_center
-        render_with_template(template: 'bali/actions_dropdown/previews/align_center')
-      end
-
-      # Align End
-      # ---------------
-      # Menu aligns to the end (right) of the trigger button
-      def align_end
-        render_with_template(template: 'bali/actions_dropdown/previews/align_end')
-      end
-
-      # Direction Top
-      # ---------------
-      # Menu opens above the trigger button
-      def direction_top
-        render_with_template(template: 'bali/actions_dropdown/previews/direction_top')
-      end
-
-      # Direction Bottom
-      # ---------------
-      # Menu opens below the trigger button
-      def direction_bottom
-        render_with_template(template: 'bali/actions_dropdown/previews/direction_bottom')
-      end
-
-      # Direction Left
-      # ---------------
-      # Menu opens to the left of the trigger button
-      def direction_left
-        render_with_template(template: 'bali/actions_dropdown/previews/direction_left')
-      end
-
-      # Direction Right
-      # ---------------
-      # Menu opens to the right of the trigger button
-      def direction_right
-        render_with_template(template: 'bali/actions_dropdown/previews/direction_right')
-      end
-
-      # Top + End
-      # ---------------
-      # Menu opens above and aligns to the end
-      def top_end
-        render_with_template(template: 'bali/actions_dropdown/previews/top_end')
-      end
-
-      # Bottom + End
-      # ---------------
-      # Menu opens below and aligns to the end
-      def bottom_end
-        render_with_template(template: 'bali/actions_dropdown/previews/bottom_end')
+      # Pass block content directly for full control over menu items.
+      # Use this when items slot doesn't fit your needs.
+      def with_custom_content
+        render ActionsDropdown::Component.new do |c|
+          c.safe_join([
+            c.tag.li(c.render(Bali::Link::Component.new(
+              name: 'Create',
+              icon_name: 'plus-circle',
+              href: '#',
+              drawer: true
+            ))),
+            c.tag.li(c.render(Bali::Link::Component.new(
+              name: 'Export',
+              icon_name: 'file-export',
+              href: '#',
+              drawer: true
+            )))
+          ])
+        end
       end
     end
   end

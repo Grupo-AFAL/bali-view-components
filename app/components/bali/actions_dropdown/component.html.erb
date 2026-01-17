@@ -1,9 +1,13 @@
 <div <%= tag.attributes(**options) %>>
-  <div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-circle text-neutral-600 hover:text-neutral-800">
-    <%= render Bali::Icon::Component.new('ellipsis-h') %>
-  </div>
+  <% if trigger? %>
+    <%= trigger %>
+  <% else %>
+    <div tabindex="0" role="button" class="<%= trigger_classes %>">
+      <%= render Bali::Icon::Component.new(@icon) %>
+    </div>
+  <% end %>
   <ul tabindex="0" class="dropdown-content menu bg-base-100 text-neutral-800 rounded-box z-1 w-52 p-2 shadow-sm">
-    <% if (authorized_items = items.select(&:authorized?)).any? %>
+    <% if authorized_items.any? %>
       <% authorized_items.each do |item| %>
         <li><%= item %></li>
       <% end %>

@@ -37,6 +37,72 @@ RSpec.describe Bali::ActionsDropdown::Component, type: :component do
 
       expect(page).to have_css 'ul.menu li', count: 2
     end
+
+    it 'applies custom classes via options' do
+      render_inline(described_class.new(class: 'my-custom-class')) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css 'div.dropdown.my-custom-class'
+    end
+
+    it 'renders default ellipsis-h icon' do
+      render_inline(described_class.new) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css '[role="button"] svg'
+    end
+  end
+
+  describe 'custom icon' do
+    it 'allows changing the trigger icon' do
+      render_inline(described_class.new(icon: 'more')) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css '[role="button"] svg'
+    end
+  end
+
+  describe 'custom trigger' do
+    it 'renders custom trigger when provided' do
+      render_inline(described_class.new) do |c|
+        c.with_trigger do
+          '<button class="custom-trigger">Actions</button>'.html_safe
+        end
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css 'button.custom-trigger', text: 'Actions'
+      expect(page).not_to have_css '.btn.btn-ghost.btn-circle'
+    end
+  end
+
+  describe 'custom content fallback' do
+    it 'renders block content when no items provided' do
+      render_inline(described_class.new) do
+        '<li><a href="#">Custom Link</a></li>'.html_safe
+      end
+
+      expect(page).to have_css 'ul.menu li a', text: 'Custom Link'
+    end
+  end
+
+  describe 'render? behavior' do
+    it 'does not render when no items and no content' do
+      result = render_inline(described_class.new)
+
+      expect(result.to_html).to be_empty
+    end
+
+    it 'renders when content is provided without items' do
+      render_inline(described_class.new) do
+        '<li>Content</li>'.html_safe
+      end
+
+      expect(page).to have_css 'div.dropdown'
+    end
   end
 
   describe 'horizontal alignment' do
