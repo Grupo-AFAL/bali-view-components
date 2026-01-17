@@ -3,74 +3,110 @@
 module Bali
   module Heatmap
     class Component < ApplicationViewComponent
-      attr_reader :data, :width, :height, :gradient_colors, :options
+      CELL_CLASSES = 'heatmap-cell block'
+      LABEL_CLASSES = 'text-[0.625rem] text-center truncate'
+      X_LABEL_CLASSES = "#{LABEL_CLASSES} border-t border-base-300 pt-3 -rotate-45".freeze
+      Y_LABEL_CLASSES = "#{LABEL_CLASSES} border-r border-base-300 pr-4 align-middle".freeze
 
-      renders_one :hovercard_title, ->(text) { tag.p(text, class: 'text-xs font-bold mb-0') }
-      renders_one :legend_title, ->(text) { tag.p(text, class: 'text-xs font-bold') }
-      renders_one :y_axis_title, ->(text) { tag.p(text, class: 'text-xs font-bold pb-3') }
-      renders_one :x_axis_title, ->(text) {
-                                   tag.p(text, class: 'text-xs font-bold mt-2 text-center')
-                                 }
+      MIN_DIMENSION = 100
+      MAX_DIMENSION = 2000
 
-      def initialize(width: 480, height: 480, data: {}, color: '#008806', **options)
-        @width = width
-        @height = height
+      renders_one :x_axis_title, ->(text = nil, &block) {
+        content = text || (block ? capture(&block) : nil)
+        tag.span(content, class: 'text-xs font-bold')
+      }
+
+      renders_one :y_axis_title, ->(text = nil, &block) {
+        content = text || (block ? capture(&block) : nil)
+        tag.span(content, class: 'text-xs font-bold')
+      }
+
+      renders_one :legend_title, ->(text = nil, &block) {
+        content = text || (block ? capture(&block) : nil)
+        tag.span(content, class: 'font-bold')
+      }
+
+      renders_one :hovercard_title, ->(text = nil, &block) {
+        content = text || (block ? capture(&block) : nil)
+        tag.p(content, class: 'font-bold mb-1')
+      }
+
+      attr_reader :html_options
+
+      def initialize(data:, width: 480, height: 480, color: '#008806', **html_options)
         @data = data
+        @width = width.to_i.clamp(MIN_DIMENSION, MAX_DIMENSION)
+        @height = height.to_i.clamp(MIN_DIMENSION, MAX_DIMENSION)
         @color = color
-        @gradient_colors = Bali::Utils::ColorPicker.gradient(@color)
-        @options = prepend_class_name(options, heatmap_classes)
+        @html_options = prepend_class_name(html_options, component_classes)
+      end
+
+      # Public API for template
+      def x_labels
+        @x_labels ||= @data.keys
+      end
+
+      def y_labels
+        @y_labels ||= compute_y_labels
+      end
+
+      def gradient_colors
+        @gradient_colors ||= Bali::Utils::ColorPicker.gradient(@color)
+      end
+
+      def max_value
+        @max_value ||= all_values.max || 0
+      end
+
+      def value_at(x_label, y_label)
+        @data.dig(x_label, y_label) || 0
+      end
+
+      def cell_style(value)
+        {
+          width: "#{cell_width}px",
+          height: "#{cell_height}px",
+          background: color_for_value(value)
+        }
+      end
+
+      def legend_segment_style(color)
+        {
+          background: color,
+          width: "#{@width / gradient_colors.size}px"
+        }
       end
 
       private
 
-      def heatmap_classes
-        [
-          'heatmap-component overflow-auto overflow-y-hidden max-w-full',
-          '[&_table]:m-auto',
-          '[&_.label-x]:text-[0.6rem] [&_.label-x]:text-ellipsis [&_.label-x]:overflow-hidden',
-          '[&_.label-x]:text-center [&_.label-x]:border-t [&_.label-x]:border-base-300',
-          '[&_.label-x]:pt-4 [&_.label-x]:rotate-[-45deg]',
-          '[&_.label-y]:text-[0.6rem] [&_.label-y]:text-ellipsis [&_.label-y]:overflow-hidden',
-          '[&_.label-y]:text-center [&_.label-y]:align-middle',
-          '[&_.label-y]:border-r [&_.label-y]:border-base-300 [&_.label-y]:pr-6',
-          '[&_.legend]:text-[0.6rem] [&_.legend]:w-max [&_.legend]:m-auto',
-          '[&_.legend-colors]:flex [&_.legend-colors]:h-8',
-          '[&_.legend-labels]:flex [&_.legend-labels]:h-8'
-        ].join(' ')
+      def component_classes
+        'heatmap-component overflow-x-auto max-w-full'
       end
 
-      def max_value
-        @max_value ||= values.max
+      def compute_y_labels
+        keys = @data.values.flat_map(&:keys)
+        return [0] if keys.empty?
+
+        (keys.min..keys.max)
       end
 
-      def labels_x
-        @labels_x ||= data.keys
+      def all_values
+        @all_values ||= @data.values.flat_map(&:values)
       end
 
-      def labels_y
-        return @labels_y if defined? @labels_y
-
-        flatten_labels = data.values.flat_map(&:keys)
-        @labels_y = flatten_labels.size.positive? ? (flatten_labels.min..flatten_labels.max) : [0]
+      def cell_width
+        @cell_width ||= @width / (x_labels.size + 1)
       end
 
-      def values
-        @values ||= data.values.flat_map(&:values)
+      def cell_height
+        @cell_height ||= @height / y_labels.size
       end
 
-      def graph_item_width
-        @graph_item_width ||= width / (labels_x.size + 1)
-      end
-
-      def graph_item_height
-        @graph_item_height ||= height / labels_y.size
-      end
-
-      def color_by_value(value)
+      def color_for_value(value)
         return gradient_colors.first if max_value.zero?
 
-        color_index = (value * (gradient_colors.size - 1) / max_value.to_f).round
-        gradient_colors[color_index]
+        index = (value * (gradient_colors.size - 1) / max_value.to_f).round
+        gradient_colors[index]
       end
     end
   end

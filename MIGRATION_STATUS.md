@@ -67,7 +67,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | FlashNotifications     |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | Private attr_readers, Lookbook params, 6 tests     |
 | Form                   |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | FormBuilder: Full Bulma→DaisyUI, 117 tests pass    |
 | GanttChart             |  ✅   |    ❌     |   N/A   |   ❌   |  8/10   | Bulma→DaisyUI, explicit action methods, 21 tests   |
-| Heatmap                |  ✅   |    ❌     |   N/A   |   ❌   |   🔄    | Review in progress                                 |
+| Heatmap                |  ✅   |    ❌     |   N/A   |   ❌   |  9/10   | Frozen constants, required data:, validated dimensions, 26 tests |
 | Hero                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Private attr_reader, Hash#fetch, Bali::Button preview |
 | HoverCard              |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | Icon                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
@@ -123,10 +123,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Score Range | Count | Components |
 |-------------|-------|------------|
-| 9-10 (✅)   | 20    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Hero (9), Modal (9) |
+| 9-10 (✅)   | 21    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Heatmap (9), Hero (9), Modal (9) |
 | 7-8 (⚠️)    | 1     | Form (7) |
 | < 7 (❌)    | 0     | - |
-| Not scored  | 35    | Remaining components |
+| Not scored  | 34    | Remaining components |
 
 ---
 
@@ -242,3 +242,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Form (FormBuilder)           | Score 9: Full Bulma→DaisyUI migration across 12 modules, 117 tests           | AI         |
 | 2026-01-17 | GanttChart                   | Score 8: Bulma→DaisyUI (join, weekend), explicit action methods, 21 tests    | AI         |
 | 2026-01-17 | Hero                         | Score 9: Private attr_reader, Hash#fetch, preview uses Bali::Button          | AI         |
+| 2026-01-17 | Heatmap                      | Score 9: Frozen constants, required data:, validated dimensions, 26 tests    | AI         |
