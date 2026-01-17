@@ -491,17 +491,24 @@ end
 
 ### Lookbook Preview Best Practices
 
-**Form URLs**: Never use `url: '#'` in components with forms - it submits to root `/`. Use `request.path` instead:
+**URLs in Previews**: Use hardcoded paths like `/lookbook` for navigation URLs. Do NOT use `helpers.request.path` - it causes "undefined method" errors in preview context.
+
+```ruby
+# ❌ BAD - causes undefined method error
+c.with_header(route_path: helpers.request.path)
+
+# ✅ GOOD - hardcoded path works reliably
+c.with_header(route_path: '/lookbook')
+```
+
+**Form URLs in Templates**: In ERB templates (not previews), use `request.path` for form actions:
 
 ```erb
-<%# In template files %>
+<%# In template files - this works because templates have request context %>
 <%= render MyComponent.new(url: request.path) %>
 ```
 
-```ruby
-# In preview.rb files
-render MyComponent.new(url: helpers.request.path)
-```
+**Why this matters**: Lookbook previews run in a different context than normal Rails requests. The `helpers` proxy doesn't have access to `request` in all preview scenarios. Using hardcoded paths ensures previews always render.
 
 **Database Access**: Previews can access ActiveRecord models from the dummy app:
 

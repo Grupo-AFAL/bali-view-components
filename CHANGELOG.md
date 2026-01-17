@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `Bali::Calendar::Component` refactored with improved API (backward compatible):
+  - `start_date` now accepts `Date` objects directly (strings still work)
+  - New `weekdays_only:` parameter replaces confusing `all_week:` (deprecated but still works)
+  - Extracted `EventGrouper` class for cleaner event grouping logic
+  - Added helper methods: `month_view?`, `week_view?`, `show_weekends?`, `weekdays_only?`
+  - Preview consolidated from 7 methods to 3 with `@param` annotations
+  - Added 14 new tests (33 total)
+
 - **BREAKING**: `Bali::Breadcrumb::Item::Component` API improved:
   - `href` is now optional (was required). Items without `href` are automatically marked as active.
   - Parameter order changed: `name:` is now the primary parameter.

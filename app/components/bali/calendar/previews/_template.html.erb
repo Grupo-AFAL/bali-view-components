@@ -1,3 +1,3 @@
-<% events.each do |event| %>
-  <span class="badge badge-primary"><%= event.name %></span>
+<% events&.each do |event| %>
+  <%= render Bali::Tag::Component.new(text: event.name, color: :primary, size: :sm) %>
 <% end %>
