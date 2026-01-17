@@ -233,8 +233,20 @@ export class ConditionController extends Controller {
     const attribute = this.hasAttributeTarget ? this.attributeTarget.value : ''
     const operator = this.hasOperatorTarget ? this.operatorTarget.value : 'eq'
     const isMultiple = this.isMultipleOperator(operator)
+    const isRange = this.isRangeOperator(operator)
 
-    if (attribute) {
+    if (!attribute) return
+
+    // For range operators (between), use gteq/lteq suffixes for start/end inputs
+    if (isRange) {
+      const rangeFieldNames = this.buildRangeFieldNames(attribute)
+      if (this.hasRangeStartTarget) {
+        this.rangeStartTarget.name = rangeFieldNames.start
+      }
+      if (this.hasRangeEndTarget) {
+        this.rangeEndTarget.name = rangeFieldNames.end
+      }
+    } else {
       const fieldName = `q[g][${this.groupIndexValue}][${attribute}_${operator}]${isMultiple ? '[]' : ''}`
 
       // Update all value inputs
