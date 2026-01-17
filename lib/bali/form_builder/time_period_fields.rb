@@ -32,23 +32,22 @@ module Bali
       private
 
       def time_periods_select(method, select_options, selected_value)
-        tag.div(class: 'control mb-2') do
-          tag.div(class: 'select') do
-            @template.select_tag(
-              "#{method}_period", @template.options_for_select(select_options, selected_value),
-              data: {
-                time_period_field_target: 'select',
-                action: 'time-period-field#toggleDateInput time-period-field#setInputValue'
-              }
-            )
-          end
+        tag.div(class: 'mb-2') do
+          @template.select_tag(
+            "#{method}_period", @template.options_for_select(select_options, selected_value),
+            class: 'select select-bordered w-full',
+            data: {
+              time_period_field_target: 'select',
+              action: 'time-period-field#toggleDateInput time-period-field#setInputValue'
+            }
+          )
         end
       end
 
       def time_periods_date_field(method, value)
         date_field(
           "#{method}_date_range",
-          mode: 'range', alt_input: false, label: false, class: 'is-hidden',
+          mode: 'range', alt_input: false, label: false, class: 'hidden',
           value: value.presence || Time.zone.now.all_day,
           data: { time_period_field_target: 'dateInput', action: 'time-period-field#setInputValue' }
         )

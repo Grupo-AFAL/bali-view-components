@@ -10,7 +10,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
 
     it 'renders a div with a file-input controller' do
       expect(file_field_group).to have_css(
-        'div.file[data-controller="file-input"]' \
+        'div.flex[data-controller="file-input"]' \
         '[data-file-input-non-selected-text-value="No file selected"]'
       )
     end
@@ -22,7 +22,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'renders a label' do
-      expect(file_field_group).to have_css 'label.file-label', text: 'No file selected'
+      expect(file_field_group).to have_css 'label.cursor-pointer', text: 'No file selected'
     end
 
     it 'renders an icon' do

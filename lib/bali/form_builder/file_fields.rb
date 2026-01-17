@@ -37,7 +37,7 @@ module Bali
         file_icon_name = options.delete(:icon)
 
         @template.content_tag(:div, wrapper_options(non_selected_text, options)) do
-          @template.content_tag(:label, class: 'file-label') do
+          @template.content_tag(:label, class: 'cursor-pointer') do
             rails_file_field(method, options) +
               file_cta(file_icon_name, choose_file_text) +
               filename(non_selected_text)
@@ -49,7 +49,7 @@ module Bali
         file_class = options.delete(:file_class)
 
         {
-          class: class_names("file has-name #{file_class}".strip, 'is-boxed' => options[:multiple]),
+          class: ['flex items-center gap-2', file_class].compact.join(' '),
           data: {
             controller: 'file-input',
             file_input_non_selected_text_value: non_selected_text,
@@ -60,22 +60,19 @@ module Bali
 
       def filename(non_selected_text)
         @template.content_tag(
-          :span, non_selected_text, class: 'file-name', data: { 'file-input-target': 'value' }
+          :span, non_selected_text, class: 'truncate text-base-content/70',
+                                    data: { 'file-input-target': 'value' }
         )
       end
 
       def file_cta(file_icon_name, choose_file_text)
-        icon_class = class_names('file-icon', 'empty-text': !choose_file_text)
-
-        @template.content_tag(:span, class: 'file-cta') do
-          file_icon = @template.content_tag(:span, class: icon_class) do
-            @template.render(Bali::Icon::Component.new(file_icon_name))
-          end
+        @template.content_tag(:span, class: 'btn btn-ghost btn-sm gap-2') do
+          file_icon = @template.render(Bali::Icon::Component.new(file_icon_name))
 
           file_label = if choose_file_text == false
                          ''
                        else
-                         @template.content_tag(:span, choose_file_text, class: 'file-label')
+                         @template.content_tag(:span, choose_file_text)
                        end
 
           file_icon + file_label

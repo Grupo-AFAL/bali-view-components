@@ -38,7 +38,7 @@ module Bali
       end
 
       def clear_buttons
-        tag.div(class: 'is-flex is-justify-content-flex-end is-align-items-center mb-3') do
+        tag.div(class: 'flex justify-end items-center mb-3') do
           safe_join([clear_holes_button, clear_all_button])
         end
       end
@@ -46,14 +46,14 @@ module Bali
       def clear_holes_button
         tag.button(
           I18n.t('helpers.clear_holes.text'),
-          type: 'button', class: 'button is-text mr-4', data: { action: 'drawing-maps#clearHoles' }
+          type: 'button', class: 'btn btn-ghost mr-4', data: { action: 'drawing-maps#clearHoles' }
         )
       end
 
       def clear_all_button
         tag.button(
           I18n.t('helpers.clear.text'),
-          type: 'button', class: 'button is-text has-text-danger',
+          type: 'button', class: 'btn btn-ghost text-error',
           data: { action: 'drawing-maps#clear' }
         )
       end

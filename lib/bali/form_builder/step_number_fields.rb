@@ -13,7 +13,7 @@ module Bali
         options[:data] ||= {}
         options[:data]['step-number-input-target'] = 'input'
 
-        @template.content_tag(:div, class: 'field has-addons',
+        @template.content_tag(:div, class: 'join',
                                     data: { controller: 'step-number-input' }) do
           @template.safe_join([
                                 addon_left(options),
@@ -50,33 +50,29 @@ module Bali
       end
 
       def addon_button_class(options)
-        @addon_button_class ||= class_names(
-          ['button', options[:button_class]], 'is-static': options[:disabled]
-        )
+        @addon_button_class ||= [
+          'btn join-item',
+          options[:button_class],
+          (options[:disabled] ? 'btn-disabled pointer-events-none' : nil)
+        ].compact.join(' ')
       end
 
       def addon_left(options)
-        @template.content_tag(:div, class: 'control') do
-          @template.link_to @template.render(Bali::Icon::Component.new('minus')),
-                            '', class: addon_button_class(options), disabled: options[:disabled],
-                                data: options[:disabled] ? {} : subtract_button_data(options),
-                                title: 'subtract'
-        end
+        @template.link_to @template.render(Bali::Icon::Component.new('minus')),
+                          '', class: addon_button_class(options), disabled: options[:disabled],
+                              data: options[:disabled] ? {} : subtract_button_data(options),
+                              title: 'subtract'
       end
 
       def step_number_input(method, options)
-        @template.content_tag(:div, class: 'control') do
-          number_field(method, options)
-        end
+        number_field(method, options)
       end
 
       def addon_right(options)
-        @template.content_tag(:div, class: 'control') do
-          @template.link_to @template.render(Bali::Icon::Component.new('plus')),
-                            '', class: addon_button_class(options), disabled: options[:disabled],
-                                data: options[:disabled] ? {} : add_button_data(options),
-                                title: 'add'
-        end
+        @template.link_to @template.render(Bali::Icon::Component.new('plus')),
+                          '', class: addon_button_class(options), disabled: options[:disabled],
+                              data: options[:disabled] ? {} : add_button_data(options),
+                              title: 'add'
       end
     end
   end

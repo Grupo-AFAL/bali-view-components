@@ -9,7 +9,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     let(:boolean_field_group) { builder.boolean_field_group(:indie) }
 
     it 'renders a label and input within a field wrapper' do
-      expect(boolean_field_group).to have_css 'div.field'
+      expect(boolean_field_group).to have_css 'div.form-control'
     end
 
     it 'renders a label' do

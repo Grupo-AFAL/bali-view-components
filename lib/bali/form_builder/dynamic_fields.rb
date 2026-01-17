@@ -107,7 +107,7 @@ module Bali
       private
 
       def default_header_contents(method, options)
-        tag.div(class: 'level') do
+        tag.div(class: 'flex justify-between items-center') do
           safe_join([
                       label_tag(method, options),
                       add_link_tag(method, options)
@@ -121,8 +121,8 @@ module Bali
         )
         label_text = options[:label] || translated_label
 
-        tag.div(class: 'level-left') do
-          tag.label(label_text, class: 'label level-item')
+        tag.div(class: 'flex items-center') do
+          tag.label(label_text, class: 'label')
         end
       end
 
@@ -130,11 +130,11 @@ module Bali
         button_text = options[:button_text] || I18n.t('helpers.add.text')
         button_class = options[:button_class] || 'btn btn-primary'
 
-        tag.div(class: 'level-right') do
+        tag.div(class: 'flex items-center') do
           link_to_add_fields(
             button_text,
             method,
-            { class: button_class, wrapper_class: 'level-item' }
+            { class: button_class }
           )
         end
       end

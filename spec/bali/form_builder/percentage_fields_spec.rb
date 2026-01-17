@@ -17,7 +17,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'renders a % sign' do
-      expect(percentage_field_group).to have_css 'span.button.is-static', text: '%'
+      expect(percentage_field_group).to have_css 'span.btn.btn-disabled', text: '%'
     end
 
     it 'renders an input' do

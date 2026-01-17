@@ -5,24 +5,25 @@ module Bali
     module SharedDateUtils
       def date_field(method, options = {})
         clear_btn = if options.delete(:clear)
-                      content_tag(:div, class: 'control') do
-                        content_tag(:a, class: 'btn', data: { action: 'datepicker#clear' }) do
+                      content_tag(:div, class: 'join-item') do
+                        content_tag(:button, class: 'btn btn-ghost', type: 'button',
+                                             data: { action: 'datepicker#clear' }) do
                           @template.render(Bali::Icon::Component.new('times-circle'))
                         end
                       end
                     end
 
-        options[:control_class] = "is-fullwidth #{options[:control_class]}"
+        options[:control_class] = "w-full #{options[:control_class]}"
 
         wrapper_options = {
-          class: 'field flatpickr',
+          class: 'form-control flatpickr',
           data: {
             controller: 'datepicker', 'datepicker-period-value': options[:period],
             'datepicker-locale-value': I18n.locale
           }
         }.merge!(options.delete(:wrapper_options) || {})
 
-        wrapper_options[:class] += ' has-addons' if options[:manual]
+        wrapper_options[:class] += ' join' if options[:manual]
 
         prepend_values(wrapper_options, 'datepicker', controller_values(method, options))
 
@@ -68,7 +69,8 @@ module Bali
       def date_field_previous_btn
         content_tag(:button, @template.render(Bali::Icon::Component.new('arrow-back')),
                     {
-                      class: 'btn btn-ghost',
+                      class: 'btn btn-ghost join-item',
+                      type: 'button',
                       data: { action: 'datepicker#previousDate' }
                     })
       end
@@ -76,7 +78,8 @@ module Bali
       def date_field_next_btn
         content_tag(:button, @template.render(Bali::Icon::Component.new('arrow-forward')),
                     {
-                      class: 'btn btn-ghost',
+                      class: 'btn btn-ghost join-item',
+                      type: 'button',
                       data: { action: 'datepicker#nextDate' }
                     })
       end

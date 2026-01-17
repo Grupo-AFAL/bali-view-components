@@ -23,7 +23,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'renders buttons within a wrapper' do
-      expect(submit_actions).to have_css 'div.field.is-grouped.is-grouped-right'
+      expect(submit_actions).to have_css 'div.flex.items-center.justify-end.gap-2'
     end
 
     context 'when cancel path or cancel options is present' do

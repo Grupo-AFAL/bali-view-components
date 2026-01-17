@@ -28,7 +28,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
       it 'renders a label and input with addons' do
         expect(text_field_group).to have_css 'label[for="movie_name"]', text: 'Name'
         expect(text_field_group).to have_css 'input#movie_name[name="movie[name]"]'
-        expect(text_field_group).to have_css 'div.field.has-addons', text: 'Search'
+        expect(text_field_group).to have_css 'div.join', text: 'Search'
       end
     end
   end
@@ -49,9 +49,9 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     context 'with addons' do
       before { @options = { addon_right: '<button>Search</button>'.html_safe } }
 
-      it 'renders and input with addons' do
+      it 'renders an input with addons' do
         expect(text_field).to have_css 'input#movie_name[name="movie[name]"]'
-        expect(text_field).to have_css 'div.field.has-addons', text: 'Search'
+        expect(text_field).to have_css 'div.join', text: 'Search'
       end
     end
   end

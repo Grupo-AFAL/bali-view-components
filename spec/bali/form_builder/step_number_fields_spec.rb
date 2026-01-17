@@ -25,12 +25,12 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     let(:step_number_field) { builder.step_number_field(:duration) }
 
     it 'renders the field with the step-number-input controller' do
-      expect(step_number_field).to have_css '.field[data-controller="step-number-input"]'
+      expect(step_number_field).to have_css '.join[data-controller="step-number-input"]'
     end
 
     it 'renders the field with the subtract button' do
-      expect(step_number_field).to have_css '.button[data-action="step-number-input#subtract"]'
-      expect(step_number_field).to have_css '.button[data-step-number-input-target="subtract"]'
+      expect(step_number_field).to have_css '.btn[data-action="step-number-input#subtract"]'
+      expect(step_number_field).to have_css '.btn[data-step-number-input-target="subtract"]'
     end
 
     it 'renders the input' do
@@ -39,8 +39,8 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'renders the field with the add button' do
-      expect(step_number_field).to have_css '.button[data-action="step-number-input#add"]'
-      expect(step_number_field).to have_css '.button[data-step-number-input-target="add"]'
+      expect(step_number_field).to have_css '.btn[data-action="step-number-input#add"]'
+      expect(step_number_field).to have_css '.btn[data-step-number-input-target="add"]'
     end
   end
 end

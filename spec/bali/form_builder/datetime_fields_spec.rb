@@ -18,11 +18,13 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'renders a field with a datepicker controller' do
-      expect(datetime_field_group).to have_css 'div.field[data-controller="datepicker"]'
+      expect(datetime_field_group).to have_css 'div.form-control[data-controller="datepicker"]'
     end
 
     it 'renders a field with datepicker time enabled' do
-      expect(datetime_field_group).to have_css 'div.field[data-datepicker-enable-time-value="true"]'
+      expect(datetime_field_group).to have_css(
+        'div.form-control[data-datepicker-enable-time-value="true"]'
+      )
     end
 
     it 'renders a field with datepicker locale value' do
@@ -40,11 +42,13 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     let(:datetime_field) { builder.datetime_field(:release_date) }
 
     it 'renders a field with a datepicker controller' do
-      expect(datetime_field).to have_css 'div.field[data-controller="datepicker"]'
+      expect(datetime_field).to have_css 'div.form-control[data-controller="datepicker"]'
     end
 
     it 'renders a field with datepicker time enabled' do
-      expect(datetime_field).to have_css 'div.field[data-datepicker-enable-time-value="true"]'
+      expect(datetime_field).to have_css(
+        'div.form-control[data-datepicker-enable-time-value="true"]'
+      )
     end
 
     it 'renders a field with datepicker locale value' do

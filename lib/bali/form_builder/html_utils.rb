@@ -75,7 +75,7 @@ module Bali
       private
 
       def field_with_addons(field, left:, right:)
-        content_tag(:div, class: 'field has-addons') do
+        content_tag(:div, class: 'join') do
           @template.safe_join(
             [generate_addon_html(left), field, generate_addon_html(right)].compact
           )
@@ -83,7 +83,7 @@ module Bali
       end
 
       def generate_addon_html(addon_content)
-        content_tag(:div, class: 'control') { addon_content } if addon_content.present?
+        content_tag(:div, class: 'join-item') { addon_content } if addon_content.present?
       end
     end
   end

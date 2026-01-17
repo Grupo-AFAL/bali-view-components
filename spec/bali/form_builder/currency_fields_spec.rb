@@ -16,8 +16,8 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
       expect(currency_field_group).to have_css 'label[for="movie_budget"]', text: 'Budget'
     end
 
-    it 'renders a currency sign within a has-addons wrapper' do
-      expect(currency_field_group).to have_css 'div.field.has-addons', text: '$'
+    it 'renders a currency sign within a join wrapper' do
+      expect(currency_field_group).to have_css 'div.join', text: '$'
     end
 
     it 'renders an input' do

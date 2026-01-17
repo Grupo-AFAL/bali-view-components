@@ -34,9 +34,9 @@ module Bali
         field_data = options.delete(:field_data)
         field_id = options.delete(:field_id)
         field_class = options.delete(:field_class) ||
-                      'submit-actions field is-grouped is-grouped-right'
+                      'submit-actions flex items-center justify-end gap-2'
 
-        submit = @template.content_tag(:div, class: 'control') do
+        submit = @template.content_tag(:div, class: 'inline') do
           submit(value, options)
         end
 
@@ -56,7 +56,7 @@ module Bali
         options = prepend_action(options, 'drawer#close') if drawer
 
         options.with_defaults!(class: 'btn btn-secondary')
-        @template.content_tag(:div, class: 'control') do
+        @template.content_tag(:div, class: 'inline') do
           @template.link_to(cancel_button_label(options), path, options)
         end
       end

@@ -25,9 +25,7 @@ module Bali
           deselect_all_text: I18n.t('bali.form_builder.slim_select.deselect_all')
         )
 
-        html_options[:class] = class_names(
-          "select #{html_options[:class]}".strip, 'is-multiple': html_options[:multiple]
-        )
+        html_options[:class] = ['select select-bordered', html_options[:class]].compact.join(' ')
 
         field = content_tag(:div, slim_select_field_options(method, html_options, options)) do
           if options[:select_all]
