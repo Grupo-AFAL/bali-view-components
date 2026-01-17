@@ -1,20 +1,11 @@
-<div class="<%= container_classes %>" <%= "data-controller=#{stimulus_controller}" if uploadable? %>>
-  <div class="<%= avatar_inner_classes %> <%= placeholder_classes if placeholder? %>">
+<%= tag.div class: container_classes, **@options.except(:class) do %>
+  <%= tag.div class: [inner_classes, (placeholder_classes if placeholder?)].compact do %>
     <% if placeholder? %>
       <%= placeholder %>
-    <% else %>
-      <%= picture || default_picture %>
+    <% elsif picture? %>
+      <%= picture %>
+    <% elsif @src.present? %>
+      <%= image_tag @src, class: 'w-full h-full object-cover' %>
     <% end %>
-  </div>
-  <% if uploadable? %>
-    <div class="<%= upload_button_classes %>">
-      <label class="cursor-pointer flex items-center justify-center w-full h-full" aria-label="Upload avatar image">
-        <%= render Bali::Icon::Component.new('camera', size: :sm) %>
-        <div class="hidden">
-          <%= @form.file_field @method, accept: accepted_formats,
-                             data: { 'avatar-target': 'input', action: 'change->avatar#showImage' } %>
-        </div>
-      </label>
-    </div>
   <% end %>
-</div>
+<% end %>

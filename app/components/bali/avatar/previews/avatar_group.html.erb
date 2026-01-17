@@ -1,6 +1,6 @@
-<%= render(Bali::Avatar::Group::Component.new(spacing: spacing)) do |group| %>
-  <% group.with_avatar(placeholder_url: 'avatar.png', size: :md, shape: :circle) %>
-  <% group.with_avatar(placeholder_url: 'avatar.png', size: :md, shape: :circle) %>
-  <% group.with_avatar(placeholder_url: 'avatar.png', size: :md, shape: :circle) %>
-  <% group.with_avatar(placeholder_url: 'avatar.png', size: :md, shape: :circle) %>
+<%= render(Bali::Avatar::Group::Component.new(spacing: spacing, size: :sm)) do |group| %>
+  <% group.with_avatar(src: 'avatar.png', size: :sm, shape: :circle) %>
+  <% group.with_avatar(src: 'avatar.png', size: :sm, shape: :circle) %>
+  <% group.with_avatar(src: 'avatar.png', size: :sm, shape: :circle) %>
+  <% group.with_avatar(src: 'avatar.png', size: :sm, shape: :circle) %>
 <% end %>

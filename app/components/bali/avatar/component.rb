@@ -3,7 +3,9 @@
 module Bali
   module Avatar
     class Component < ApplicationViewComponent
-      renders_one :picture, Picture::Component
+      renders_one :picture, ->(image_url:, **options) {
+        Picture::Component.new(image_url: image_url, **options)
+      }
       renders_one :placeholder
 
       SIZES = {
@@ -12,6 +14,14 @@ module Bali
         md: 'w-16',
         lg: 'w-24',
         xl: 'w-32'
+      }.freeze
+
+      PLACEHOLDER_TEXT_SIZES = {
+        xs: 'text-xs',
+        sm: 'text-sm',
+        md: 'text-base',
+        lg: 'text-xl',
+        xl: 'text-3xl'
       }.freeze
 
       SHAPES = {
@@ -47,13 +57,10 @@ module Bali
       }.freeze
 
       # rubocop:disable Metrics/ParameterLists
-      def initialize(form: nil, method: nil, placeholder_url: nil, formats: %i[jpg jpeg png],
-                     size: :xl, shape: :square, mask: nil, status: nil, ring: nil, **options)
+      def initialize(src: nil, size: :md, shape: :circle, mask: nil,
+                     status: nil, ring: nil, **options)
         # rubocop:enable Metrics/ParameterLists
-        @form = form
-        @method = method
-        @formats = formats
-        @placeholder_url = placeholder_url
+        @src = src
         @size = size&.to_sym
         @shape = shape&.to_sym
         @mask = mask&.to_sym
@@ -64,87 +71,20 @@ module Bali
 
       def container_classes
         class_names(
-          'avatar-component',
           'avatar',
-          { 'relative' => uploadable? },
           STATUSES[@status],
-          { 'avatar-placeholder' => placeholder? },
+          placeholder? && 'avatar-placeholder',
           @options[:class]
         )
       end
 
-      def avatar_inner_classes
+      def inner_classes
         class_names(
           SIZES[@size],
           shape_classes,
-          { 'aspect-square' => !@mask },
+          @mask.nil? && 'aspect-square',
           ring_classes
         )
-      end
-
-      def shape_classes
-        return MASKS[@mask] if @mask
-
-        SHAPES[@shape] || SHAPES[:square]
-      end
-
-      def ring_classes
-        return unless @ring
-
-        class_names(
-          'ring-2',
-          'ring-offset-base-100',
-          'ring-offset-2',
-          RING_COLORS[@ring]
-        )
-      end
-
-      def accepted_formats
-        @formats.map { |f| ".#{f}" }.join(', ')
-      end
-
-      def default_picture
-        return unless @placeholder_url
-
-        image_tag(
-          @placeholder_url,
-          class: 'w-full h-full object-cover',
-          data: uploadable? ? { 'avatar-target': 'output' } : {}
-        )
-      end
-
-      def upload_button_classes
-        class_names(
-          'absolute',
-          '-bottom-1',
-          '-right-1',
-          'bg-base-200',
-          'rounded-full',
-          'w-10',
-          'h-10',
-          'flex',
-          'justify-center',
-          'items-center',
-          'cursor-pointer',
-          'hover:bg-base-300',
-          'focus-within:ring-2',
-          'focus-within:ring-primary',
-          'focus-within:ring-offset-2',
-          'transition-colors',
-          'duration-200'
-        )
-      end
-
-      def stimulus_controller
-        'avatar'
-      end
-
-      def uploadable?
-        @form.present? && @method.present?
-      end
-
-      def placeholder?
-        placeholder.present? && !picture? && !@placeholder_url
       end
 
       def placeholder_classes
@@ -155,16 +95,29 @@ module Bali
         )
       end
 
+      attr_reader :size
+
       private
 
+      def shape_classes
+        @mask ? MASKS[@mask] : SHAPES.fetch(@shape, SHAPES[:circle])
+      end
+
+      def ring_classes
+        return unless @ring
+
+        class_names(
+          'ring-2 ring-offset-base-100 ring-offset-2',
+          RING_COLORS[@ring]
+        )
+      end
+
+      def placeholder?
+        placeholder.present? && !picture? && @src.blank?
+      end
+
       def placeholder_text_size
-        case @size
-        when :xs then 'text-xs'
-        when :sm then 'text-sm'
-        when :md then 'text-base'
-        when :xl then 'text-3xl'
-        else 'text-xl' # :lg and default
-        end
+        PLACEHOLDER_TEXT_SIZES.fetch(@size, 'text-xl')
       end
     end
   end

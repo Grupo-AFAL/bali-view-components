@@ -1,8 +1,8 @@
-<%= form_with(url: '/', local: true) do |form| %>
-  <%= render(Bali::Avatar::Component.new(
+<%= form_with(url: helpers.request.path, local: true) do |form| %>
+  <%= render(Bali::Avatar::Upload::Component.new(
     form: form,
     method: :avatar,
-    placeholder_url: 'avatar.png',
+    src: 'avatar.png',
     size: size,
     shape: shape
   )) %>

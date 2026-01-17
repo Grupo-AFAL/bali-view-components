@@ -3,9 +3,9 @@
 module Bali
   module Avatar
     class Preview < ApplicationViewComponentPreview
-      # Default Avatar (Square)
+      # Default Avatar
       # ----------------
-      # Basic avatar with square shape (default)
+      # Basic avatar with circle shape (default)
       def default
         render_with_template(
           template: 'bali/avatar/previews/default'
@@ -55,7 +55,7 @@ module Bali
       # Avatar with text initials instead of image
       # @param initials text
       # @param size select [xs, sm, md, lg, xl]
-      def with_placeholder(initials: 'JD', size: :lg)
+      def with_placeholder(initials: 'JD', size: :md)
         render_with_template(
           template: 'bali/avatar/previews/with_placeholder',
           locals: { initials: initials, size: size.to_sym }
@@ -106,7 +106,7 @@ module Bali
 
       # With Custom Image
       # ----------------
-      # Avatar with a pre-loaded custom image
+      # Avatar with a pre-loaded custom image using the picture slot
       # @param image_url text
       def with_image(image_url: 'avatar.png')
         render_with_template(
@@ -126,7 +126,9 @@ module Bali
 
       # With Upload
       # ----------------
-      # Avatar with file upload functionality (requires form)
+      # Avatar with file upload functionality using `Avatar::Upload::Component`.
+      # Requires a form context. The upload component wraps the display Avatar
+      # and adds a camera button overlay.
       # @param size select [xs, sm, md, lg, xl]
       # @param shape select [square, rounded, circle]
       def with_upload(size: :xl, shape: :circle)
@@ -143,7 +145,7 @@ module Bali
       # @param shape select [square, rounded, circle]
       # @param ring select [~, primary, secondary, accent, success, error]
       # @param status select [~, online, offline]
-      def combined(size: :lg, shape: :circle, ring: nil, status: nil)
+      def combined(size: :md, shape: :circle, ring: nil, status: nil)
         render_with_template(
           template: 'bali/avatar/previews/combined',
           locals: {

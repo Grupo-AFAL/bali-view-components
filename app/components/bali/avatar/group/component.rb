@@ -13,8 +13,9 @@ module Bali
           loose: '-space-x-8'
         }.freeze
 
-        def initialize(spacing: :normal, **options)
+        def initialize(spacing: :normal, size: :sm, **options)
           @spacing = spacing&.to_sym
+          @size = size&.to_sym
           @options = options
         end
 
@@ -37,7 +38,7 @@ module Bali
           class_names(
             'bg-neutral',
             'text-neutral-content',
-            'w-12'
+            Bali::Avatar::Component::SIZES.fetch(@size, 'w-12')
           )
         end
       end

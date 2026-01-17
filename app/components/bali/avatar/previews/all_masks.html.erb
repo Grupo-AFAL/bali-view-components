@@ -2,7 +2,7 @@
   <% %i[heart squircle hexagon triangle diamond pentagon star].each do |mask| %>
     <div class="flex flex-col items-center gap-2">
       <%= render(Bali::Avatar::Component.new(
-        placeholder_url: 'avatar.png',
+        src: 'avatar.png',
         size: :lg,
         mask: mask
       )) %>

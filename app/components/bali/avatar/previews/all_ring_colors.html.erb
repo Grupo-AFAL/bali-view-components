@@ -2,7 +2,7 @@
   <% %i[primary secondary accent neutral success warning error info].each do |color| %>
     <div class="flex flex-col items-center gap-2">
       <%= render(Bali::Avatar::Component.new(
-        placeholder_url: 'avatar.png',
+        src: 'avatar.png',
         size: :lg,
         shape: :circle,
         ring: color
