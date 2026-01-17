@@ -1,0 +1,21 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "command": "./scripts/session-context.sh",
+        "timeout": 5000
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": {
+          "tool": "Bash",
+          "command_pattern": "git commit"
+        },
+        "command": "./scripts/pre-commit-check.sh",
+        "timeout": 60000,
+        "blocking": true
+      }
+    ]
+  }
+}
