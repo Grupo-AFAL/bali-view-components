@@ -661,6 +661,33 @@ yarn run cy:run
 2. If a component exists, use it even if it requires learning its API
 3. Only use raw HTML for truly custom layouts not covered by existing components
 
+### Button vs Link (CRITICAL)
+
+Use the correct component based on **what the element does**, not how it looks:
+
+| Use Case | Component | Renders | Example |
+|----------|-----------|---------|---------|
+| **Navigation** (goes to URL) | `Bali::Link::Component` | `<a>` | "View Details", "Go Back" |
+| **Action** (triggers behavior) | `Bali::Button::Component` | `<button>` | "Submit", "Cancel", "Close Modal" |
+| **Link styled as button** | `Bali::Link::Component` with `type:` | `<a class="btn">` | "Create New" (navigates to /new) |
+
+```erb
+<%# ✅ CORRECT: Button for actions %>
+<%= render Bali::Button::Component.new(variant: :primary, data: { action: 'modal#close' }) { 'Cancel' } %>
+<%= render Bali::Button::Component.new(variant: :primary, type: :submit) { 'Save' } %>
+
+<%# ✅ CORRECT: Link for navigation %>
+<%= render Bali::Link::Component.new(href: '/users', type: :primary) { 'View Users' } %>
+
+<%# ❌ WRONG: Link for action (accessibility issue) %>
+<%= render Bali::Link::Component.new(href: '#', data: { action: 'modal#close' }) { 'Cancel' } %>
+```
+
+**Why this matters:**
+- Screen readers announce buttons and links differently
+- Keyboard navigation: buttons activate with Space/Enter, links only with Enter
+- Links with `href="#"` are an accessibility anti-pattern
+
 ## Icons (CRITICAL - READ BEFORE USING)
 
 **ALWAYS check `app/components/bali/icon/options.rb` before using an icon.** The Bali icon system uses a curated set of SVG icons - NOT FontAwesome or Lucide icon names.
@@ -769,6 +796,7 @@ yarn run cy:run
 | `Bali::ActionsDropdown` | Action menu | `dropdown menu` | daisyUI dropdown |
 | `Bali::AdvancedFilters` | Complex filter UI | `btn input select dropdown badge join` | Ransack groupings |
 | `Bali::BulkActions` | Bulk actions | Custom | — |
+| `Bali::Button` | Action button | `btn btn-*` | daisyUI button |
 | `Bali::Calendar` | Calendar picker | (Flatpickr) | — |
 | `Bali::Carousel` | Image carousel | `carousel carousel-item` | `nexus/interactions/carousel/` |
 | `Bali::Clipboard` | Copy to clipboard | Custom + Stimulus | `nexus/interactions/clipboard/` |

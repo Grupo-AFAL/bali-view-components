@@ -1,0 +1,13 @@
+<%= tag.button **@options do %>
+  <% if @loading %>
+    <span class="loading loading-spinner loading-sm"></span>
+  <% elsif icon.present? %>
+    <%= icon %>
+  <% elsif @icon_name.present? %>
+    <%= render Bali::Icon::Component.new(@icon_name) %>
+  <% end %>
+
+  <%= content %>
+
+  <%= icon_right if icon_right.present? %>
+<% end %>
