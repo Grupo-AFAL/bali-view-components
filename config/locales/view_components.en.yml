@@ -42,6 +42,13 @@ en:
         sign_out:
           name: Sign out
           confirm: Are you sure?
+      carousel:
+        arrows:
+          previous_slide: Previous slide
+          next_slide: Next slide
+        bullets:
+          navigation: Slide navigation
+          go_to_slide: "Go to slide %{number}"
       calendar:
         header:
           week: Week

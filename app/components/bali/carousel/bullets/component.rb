@@ -7,7 +7,7 @@ module Bali
         def initialize(count:, hidden: false, **options)
           @count = count
           @hidden = hidden
-          @options = build_options(options)
+          @options = options
         end
 
         def render?
@@ -18,9 +18,19 @@ module Bali
 
         attr_reader :count
 
-        def build_options(options)
-          opts = prepend_class_name(options, 'glide__bullets')
-          prepend_data_attribute(opts, 'glide-el', 'controls[nav]')
+        def component_classes
+          class_names(
+            'glide__bullets',
+            @options[:class]
+          )
+        end
+
+        def component_data
+          { 'glide-el' => 'controls[nav]' }.merge(@options[:data] || {})
+        end
+
+        def html_options
+          @options.except(:class, :data)
         end
       end
     end

@@ -1,14 +1,14 @@
-<%= tag.div **@options do %>
+<%= tag.div class: component_classes, data: component_data, **html_options do %>
   <button type="button"
           class="glide__arrow glide__arrow--left"
           data-glide-dir="<"
-          aria-label="Previous slide">
+          aria-label="<%= t(".previous_slide") %>">
     <%= render Bali::Icon::Component.new(previous_icon) %>
   </button>
   <button type="button"
           class="glide__arrow glide__arrow--right"
           data-glide-dir=">"
-          aria-label="Next slide">
+          aria-label="<%= t(".next_slide") %>">
     <%= render Bali::Icon::Component.new(next_icon) %>
   </button>
 <% end %>

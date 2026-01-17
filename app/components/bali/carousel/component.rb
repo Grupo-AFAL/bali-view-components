@@ -20,6 +20,9 @@ module Bali
       renders_many :items
       renders_one :arrows, Arrows::Component
 
+      # NOTE: bullets uses a custom method instead of renders_one because it needs
+      # to know the item count at render time, which is only available after items
+      # are added. ViewComponent slot lambdas don't have access to the parent component.
       attr_reader :bullets_options
 
       def with_bullets(hidden: false, **opts)
@@ -48,7 +51,7 @@ module Bali
         @focus_at = resolve_focus_at(focus_at)
         @breakpoints = breakpoints
         @peek = peek
-        @options = build_options(options)
+        @options = options
       end
       # rubocop:enable Metrics/ParameterLists
 
@@ -58,32 +61,41 @@ module Bali
 
       private
 
+      def component_classes
+        class_names(
+          'carousel-component',
+          'glide',
+          @options[:class]
+        )
+      end
+
+      def component_data
+        base_data = {
+          controller: 'carousel',
+          'carousel-start-at-value' => @start_at,
+          'carousel-per-view-value' => @slides_per_view,
+          'carousel-autoplay-value' => @autoplay,
+          'carousel-gap-value' => @gap,
+          'carousel-focus-at-value' => @focus_at,
+          'carousel-breakpoints-value' => @breakpoints&.to_json,
+          'carousel-peek-value' => @peek
+        }.compact
+
+        base_data.merge(@options[:data] || {})
+      end
+
+      def html_options
+        @options.except(:class, :data)
+      end
+
       def resolve_autoplay(value)
         return AUTOPLAY_INTERVALS[value] if value.is_a?(Symbol) && AUTOPLAY_INTERVALS.key?(value)
 
-        value # Allow raw integer for custom intervals
+        value
       end
 
       def resolve_focus_at(value)
         value == :center ? 'center' : value
-      end
-
-      def build_options(options)
-        opts = prepend_class_name(options, 'carousel-component glide')
-        opts = prepend_controller(opts, 'carousel')
-        prepend_values(opts, 'carousel', controller_values)
-      end
-
-      def controller_values
-        {
-          start_at: @start_at,
-          per_view: @slides_per_view,
-          autoplay: @autoplay,
-          gap: @gap,
-          focus_at: @focus_at,
-          breakpoints: @breakpoints,
-          peek: @peek
-        }.compact
       end
     end
   end

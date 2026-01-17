@@ -199,4 +199,48 @@ RSpec.describe Bali::Carousel::Arrows::Component, type: :component do
     expect(described_class::ICONS).to be_frozen
     expect(described_class::ICONS).to eq(previous: 'arrow-left', next: 'arrow-right')
   end
+
+  it 'uses translations for accessibility labels' do
+    I18n.with_locale(:es) do
+      render_inline(described_class.new)
+
+      expect(page).to have_css 'button[aria-label="Diapositiva anterior"]'
+      expect(page).to have_css 'button[aria-label="Diapositiva siguiente"]'
+    end
+  end
+
+  it 'accepts custom classes' do
+    render_inline(described_class.new(class: 'custom-arrows'))
+
+    expect(page).to have_css '.glide__arrows.custom-arrows'
+  end
+
+  it 'accepts data attributes' do
+    render_inline(described_class.new(data: { testid: 'arrows' }))
+
+    expect(page).to have_css '[data-testid="arrows"]'
+  end
+end
+
+RSpec.describe Bali::Carousel::Bullets::Component, type: :component do
+  it 'uses translations for accessibility labels' do
+    I18n.with_locale(:es) do
+      render_inline(described_class.new(count: 3))
+
+      expect(page).to have_css '.glide__bullets[aria-label="Navegación de diapositivas"]'
+      expect(page).to have_css 'button[aria-label="Ir a diapositiva 1"]'
+    end
+  end
+
+  it 'accepts custom classes' do
+    render_inline(described_class.new(count: 3, class: 'custom-bullets'))
+
+    expect(page).to have_css '.glide__bullets.custom-bullets'
+  end
+
+  it 'accepts data attributes' do
+    render_inline(described_class.new(count: 3, data: { testid: 'bullets' }))
+
+    expect(page).to have_css '[data-testid="bullets"]'
+  end
 end

@@ -54,11 +54,11 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | BulkActions            |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | CLASSES hash, tag.div template, ITEM_CLASSES const |
 | Calendar               |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | class_names helpers, Link components, aria-labels  |
 | Card                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10  | Full DaisyUI card, fixed header badge positioning  |
-| Carousel               |  ✅   |    ✅     |   N/A   |   ✅   |    -    | Uses Glide.js, fixed CSS                           |
-| Chart                  |  ✅   |    ✅     |   N/A   |   ✅   |    -    | Custom (Chart.js)                                  |
-| Clipboard              |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Tailwind compliant                                 |
-| Columns                |  ✅   |    ✅     |   ✅    |   ✅   |    -    | CSS Grid layout                                    |
-| DataTable              |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Migrated to AdvancedFilters, added column selector |
+| Carousel               |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | class_names, i18n aria-labels, documented slots   |
+| Chart                  |  ✅   |    ✅     |   N/A   |   ✅   |   🔄    | Review in progress                                  |
+| Clipboard              |  ✅   |    ✅     |   ✅    |   ✅   |   🔄    | Review in progress                                 |
+| Columns                |  ✅   |    ✅     |   ✅    |   ✅   |   🔄    | Review in progress                                 |
+| DataTable              |  ✅   |    ✅     |   ✅    |   ✅   |   🔄    | Review in progress                                 |
 | DeleteLink             |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | Drawer                 |  ✅   |    ✅     |   ✅    |   ❌   |    -    | Needs manual review                                |
 | Dropdown               |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
@@ -123,7 +123,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Score Range | Count | Components |
 |-------------|-------|------------|
-| 9-10 (✅)   | 8     | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Modal (9) |
+| 9-10 (✅)   | 10    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Modal (9) |
 | 7-8 (⚠️)    | 0     | - |
 | < 7 (❌)    | 0     | - |
 | Not scored  | 48    | Remaining components |
@@ -228,3 +228,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Breadcrumb                   | Score 9: Added aria-label, BASE_CLASSES constant, private attr_readers       | AI         |
 | 2026-01-17 | BulkActions                  | Score 9: CLASSES hash, tag.div template, ITEM_CLASSES constant               | AI         |
 | 2026-01-17 | Calendar                     | Score 9: class_names helpers, Bali::Link components, aria-labels             | AI         |
+| 2026-01-17 | Carousel                     | Score 9: class_names refactor, i18n aria-labels, documented slots            | AI         |

@@ -42,6 +42,13 @@ es:
         sign_out:
           name: Cerrar sesión
           confirm: ¿Estás seguro?
+      carousel:
+        arrows:
+          previous_slide: Diapositiva anterior
+          next_slide: Diapositiva siguiente
+        bullets:
+          navigation: Navegación de diapositivas
+          go_to_slide: "Ir a diapositiva %{number}"
       calendar:
         header:
           week: Semana

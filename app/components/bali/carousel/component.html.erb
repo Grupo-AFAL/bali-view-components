@@ -1,10 +1,8 @@
-<%= tag.div **@options do %>
+<%= tag.div class: component_classes, data: component_data, **html_options do %>
   <div data-glide-el="track" class="glide__track">
     <ul class="glide__slides">
       <% items.each do |item| %>
-        <li class="glide__slide">
-          <%= item %>
-        </li>
+        <li class="glide__slide"><%= item %></li>
       <% end %>
     </ul>
   </div>
