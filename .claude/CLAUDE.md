@@ -689,38 +689,66 @@ Use the correct component based on **what the element does**, not how it looks:
 - Keyboard navigation: buttons activate with Space/Enter, links only with Enter
 - Links with `href="#"` are an accessibility anti-pattern
 
-## Icons (CRITICAL - READ BEFORE USING)
+## Icons
 
-**ALWAYS check `app/components/bali/icon/options.rb` before using an icon.** The Bali icon system uses a curated set of SVG icons - NOT FontAwesome or Lucide icon names.
+The Bali icon system uses **Lucide icons** as the primary source, with backwards compatibility for existing icon names.
 
-### Common Icon Mistakes to Avoid
+### Icon Resolution Pipeline
 
-| ❌ DON'T USE | ✅ USE INSTEAD |
-|--------------|----------------|
-| `eye` | `expand` or `search` |
-| `pencil` | `edit` |
-| `building` | `business` |
-| `folder` | `box-archive` |
-| `save` | `check` |
-| `close` | `times` |
-| `warning` | `alert` |
-| `error` | `times-circle` |
+When you use `Bali::Icon::Component.new('icon-name')`, the system resolves icons in this order:
 
-### Available Icons (Quick Reference)
+1. **Lucide mapping** - Old Bali names mapped to Lucide equivalents (e.g., `edit` → `pencil`)
+2. **Direct Lucide** - Use any [Lucide icon](https://lucide.dev/icons) name directly
+3. **Kept icons** - Brand logos, regional icons, custom domain icons
+4. **Legacy fallback** - Original Bali SVGs for full backwards compatibility
 
-**Navigation/Actions:** `arrow-left`, `arrow-right`, `arrow-back`, `arrow-forward`, `chevron-down`, `chevron-left`, `chevron-right`, `chevron-up`, `expand`, `external-link-alt`, `search`, `filter`, `home`
+### Using Icons
 
-**CRUD Operations:** `plus`, `plus-circle`, `edit`, `edit-alt`, `trash`, `trash-alt`, `copy`, `download`, `upload`, `check`, `times`
+```erb
+<%# Old Bali names still work (mapped to Lucide) %>
+<%= render Bali::Icon::Component.new('edit') %>
+<%= render Bali::Icon::Component.new('trash') %>
 
-**Content:** `image`, `images`, `comment`, `mail`, `attachment`, `link`, `bookmark`, `star`, `bell`, `notification`
+<%# Or use Lucide names directly (1,600+ icons available) %>
+<%= render Bali::Icon::Component.new('activity') %>
+<%= render Bali::Icon::Component.new('git-branch') %>
 
-**Users/Business:** `user`, `users`, `user-plus`, `business`, `store`, `wallet`, `credit-card`, `coins`, `receipt`
+<%# With size %>
+<%= render Bali::Icon::Component.new('check', size: :large) %>
+```
 
-**Status/Feedback:** `check-circle`, `times-circle`, `alert`, `alert-alt`, `info-circle`, `exclamation-circle`, `success`
+### Icon Categories
 
-**UI Elements:** `cog`, `ellipsis-h`, `more`, `grid`, `list`, `table`, `calendar-alt`, `clock`, `print`
+| Category | Source | Examples |
+|----------|--------|----------|
+| **UI Icons** | Lucide (via mapping) | `edit`, `trash`, `search`, `check`, `times` |
+| **Direct Lucide** | Lucide | Any icon from [lucide.dev/icons](https://lucide.dev/icons) |
+| **Payment Brands** | Kept SVGs | `visa`, `mastercard`, `american-express`, `paypal`, `oxxo` |
+| **Social Brands** | Kept SVGs | `whatsapp`, `facebook`, `youtube`, `twitter`, `linkedin` |
+| **Regional** | Kept SVGs | `mexico-flag`, `us-flag` |
+| **Custom Domain** | Kept SVGs | `recipe-book`, `diagnose`, `day`, `month`, `week` |
 
-**Full list:** See `app/components/bali/icon/options.rb` for all ~150 available icons.
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `app/components/bali/icon/lucide_mapping.rb` | Maps old Bali names → Lucide names |
+| `app/components/bali/icon/kept_icons.rb` | Brand, regional, and custom icons |
+| `app/components/bali/icon/component.rb` | Resolution pipeline |
+
+### Common Mappings
+
+| Old Bali Name | Lucide Name | Notes |
+|---------------|-------------|-------|
+| `edit` | `pencil` | |
+| `trash` | `trash-2` | |
+| `cog` | `settings` | |
+| `times` | `x` | |
+| `check-circle` | `circle-check` | |
+| `info-circle` | `info` | |
+| `alert` | `triangle-alert` | |
+
+**Full mapping:** See `app/components/bali/icon/lucide_mapping.rb`
 
 ## File Naming
 
@@ -802,7 +830,7 @@ Use the correct component based on **what the element does**, not how it looks:
 | `Bali::Carousel` | Image carousel | `carousel carousel-item` | `nexus/interactions/carousel/` |
 | `Bali::Clipboard` | Copy to clipboard | Custom + Stimulus | `nexus/interactions/clipboard/` |
 | `Bali::DeleteLink` | Delete confirmation | `btn btn-error` | — |
-| `Bali::Filters` | Filter controls | Custom | — |
+| `Bali::Filters` | Filter controls (DEPRECATED - use AdvancedFilters) | Custom | — |
 | `Bali::HoverCard` | Hover popup | Custom | — |
 | `Bali::Link` | Styled link | `link link-*` | daisyUI link |
 | `Bali::Reveal` | Show/hide content | Custom + Stimulus | — |

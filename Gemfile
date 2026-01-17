@@ -20,6 +20,9 @@ gem 'simple_command'
 gem 'view_component'
 gem 'view_component-contrib'
 
+# Icons
+gem 'lucide-rails'
+
 # Start debugger with binding.b [https://github.com/ruby/debug]
 gem 'debug', '>= 1.0.0'
 
