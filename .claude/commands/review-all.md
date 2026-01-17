@@ -300,9 +300,12 @@ Add missing permissions to `.claude/settings.local.json`. Required permissions:
       "Bash(git diff:*)",
       "Bash(git worktree:*)",
       "Bash(jq:*)",
-      "Bash(mkdir:*)",
-      "Bash(rm:*)",
-      "Bash(sed:*)",
+      "Bash(mkdir -p /tmp/:*)",
+      "Bash(mkdir -p /path/to/bali/:*)",
+      "Bash(rm -f /tmp/:*)",
+      "Bash(rm -f /path/to/bali/:*)",
+      "Bash(rmdir /tmp/:*)",
+      "Bash(sed -i.bak:*)",
       "Bash(cat:*)",
       "Bash(ruby -e:*)",
       "Bash(./scripts/:*)"
@@ -310,6 +313,8 @@ Add missing permissions to `.claude/settings.local.json`. Required permissions:
   }
 }
 ```
+
+**Note**: Scope `mkdir` and `rm` permissions to `/tmp/` and your project directory only.
 
 ### Memory issues
 - Reduce `--parallel` count
