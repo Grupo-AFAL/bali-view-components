@@ -63,18 +63,11 @@ module Bali
       end
 
       def cell_style(value)
-        {
-          width: "#{cell_width}px",
-          height: "#{cell_height}px",
-          background: color_for_value(value)
-        }
+        "width: #{cell_width}px; height: #{cell_height}px; background: #{color_for_value(value)}"
       end
 
       def legend_segment_style(color)
-        {
-          background: color,
-          width: "#{@width / gradient_colors.size}px"
-        }
+        "background: #{color}; width: #{@width / gradient_colors.size}px"
       end
 
       private

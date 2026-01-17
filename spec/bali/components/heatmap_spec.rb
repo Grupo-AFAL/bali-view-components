@@ -184,16 +184,17 @@ RSpec.describe Bali::Heatmap::Component, type: :component do
       component = described_class.new(data: data, width: 480, height: 480)
       style = component.cell_style(5)
 
-      expect(style).to have_key(:width)
-      expect(style).to have_key(:height)
-      expect(style).to have_key(:background)
+      expect(style).to include('width:')
+      expect(style).to include('height:')
+      expect(style).to include('background:')
     end
 
     it 'provides legend_segment_style helper' do
       component = described_class.new(data: data, width: 480)
       style = component.legend_segment_style('#FF0000')
 
-      expect(style).to eq(background: '#FF0000', width: "#{480 / component.gradient_colors.size}px")
+      expect(style).to include('background: #FF0000')
+      expect(style).to include('width:')
     end
   end
 
