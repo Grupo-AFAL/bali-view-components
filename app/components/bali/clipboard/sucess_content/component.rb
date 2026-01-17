@@ -4,20 +4,26 @@ module Bali
   module Clipboard
     module SucessContent
       class Component < ApplicationViewComponent
-        attr_reader :text, :options
+        BASE_CLASSES = 'clipboard-sucess-content hidden text-success'
 
         def initialize(text = '', **options)
           @text = text
-
-          @options = prepend_class_name(options, 'clipboard-sucess-content')
-          @options = prepend_data_attribute(@options, 'clipboard-target', 'successContent')
-          @options = prepend_class_name(@options, 'hidden')
+          @options = options
         end
 
         def call
-          return tag.div(text, **options) if text.present?
+          tag.span(**success_attributes) do
+            text.presence || content
+          end
+        end
 
-          tag.div(**options) { content }
+        private
+
+        attr_reader :text, :options
+
+        def success_attributes
+          opts = prepend_class_name(options, BASE_CLASSES)
+          prepend_data_attribute(opts, 'clipboard-target', 'successContent')
         end
       end
     end

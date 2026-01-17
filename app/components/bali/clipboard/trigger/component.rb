@@ -4,24 +4,34 @@ module Bali
   module Clipboard
     module Trigger
       class Component < ApplicationViewComponent
-        attr_reader :text, :options
+        BASE_CLASSES = 'btn btn-ghost clipboard-trigger join-item'
 
         def initialize(text = '', **options)
           @text = text
-
-          @options = prepend_class_name(
-            options,
-            'clipboard-trigger cursor-pointer border rounded-r-md px-3 py-2 border-base-300'
-          )
-          @options = prepend_data_attribute(@options, 'clipboard-target', 'button')
-          @options = prepend_action(@options, 'click->clipboard#copy')
-          @options[:type] = :button
+          @options = options
         end
 
         def call
-          return tag.button(text, **options) if text.present?
+          tag.button(**trigger_attributes) do
+            text.presence || content
+          end
+        end
 
-          tag.button(**options) { content }
+        private
+
+        attr_reader :text, :options
+
+        def trigger_attributes
+          opts = prepend_class_name(options, BASE_CLASSES)
+          opts = prepend_data_attribute(opts, 'clipboard-target', 'button')
+          opts = prepend_action(opts, 'click->clipboard#copy')
+          opts[:type] = :button
+          opts[:'aria-label'] ||= default_aria_label
+          opts
+        end
+
+        def default_aria_label
+          I18n.t('view_components.bali.clipboard.copy_label', default: 'Copy to clipboard')
         end
       end
     end

@@ -6,6 +6,17 @@ en:
         no_results: No Results
       data_table:
         summary: "Showing %{from}-%{to} of %{count} %{item_name}"
+        default_item_name: items
+        column_selector:
+          button_label: Columns
+          menu_title: Show/Hide Columns
+        export:
+          button_label: Export
+          formats:
+            csv: CSV
+            excel: Excel
+            pdf: PDF
+            json: JSON
       pagination:
         aria_label: Pagination
         previous_page: Previous page
@@ -15,6 +26,7 @@ en:
         loading: Loading...
       clipboard:
         copied: Copied!
+        copy_label: Copy to clipboard
       delete_link:
         generic_confirm_message: Are you sure?
         default_name: Delete

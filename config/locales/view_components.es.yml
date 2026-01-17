@@ -15,6 +15,7 @@ es:
         loading: Cargando...
       clipboard:
         copied: ¡Copiado!
+        copy_label: Copiar al portapapeles
       delete_link:
         generic_confirm_message: '¿Estás seguro(a)?'
         default_name: Eliminar
