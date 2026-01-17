@@ -55,7 +55,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Calendar               |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | class_names helpers, Link components, aria-labels  |
 | Card                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10  | Full DaisyUI card, fixed header badge positioning  |
 | Carousel               |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | class_names, i18n aria-labels, documented slots   |
-| Chart                  |  ✅   |    ✅     |   N/A   |   ✅   |   🔄    | Review in progress                                  |
+| Chart                  |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | Refactored: explicit params, frozen constants, no mutation |
 | Clipboard              |  ✅   |    ✅     |   ✅    |   ✅   |   🔄    | Review in progress                                 |
 | Columns                |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | CSS Grid refactor, gap param, col-span-* classes   |
 | DataTable              |  ✅   |    ✅     |   ✅    |   ✅   |   🔄    | Review in progress                                 |
@@ -123,10 +123,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Score Range | Count | Components |
 |-------------|-------|------------|
-| 9-10 (✅)   | 11    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Columns (9), Modal (9) |
+| 9-10 (✅)   | 12    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Columns (9), Modal (9) |
 | 7-8 (⚠️)    | 0     | - |
 | < 7 (❌)    | 0     | - |
-| Not scored  | 48    | Remaining components |
+| Not scored  | 44    | Remaining components |
 
 ---
 
@@ -230,3 +230,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Calendar                     | Score 9: class_names helpers, Bali::Link components, aria-labels             | AI         |
 | 2026-01-17 | Carousel                     | Score 9: class_names refactor, i18n aria-labels, documented slots            | AI         |
 | 2026-01-17 | Columns                      | Score 9: Flexbox→CSS Grid, gap param, col-span-* classes, narrow→auto        | AI         |
+| 2026-01-17 | Chart                        | Score 9: Explicit params, frozen constants, Dataset refactor, Tailwind title | AI         |

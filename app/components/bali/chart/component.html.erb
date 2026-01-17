@@ -1,14 +1,16 @@
-<div class='chart-component'>
-  <%= tag.h3 title, class: 'title is-3' if title %>
-  <%= tag.div(class: 'chart-container h-[250px]', **html_options) do %>
-    <%= tag.canvas(class: 'chart',
-        data: {
-          controller: 'chart',
-          'chart-type-value': type.first,
-          'chart-data-value': { labels: truncated_labels, datasets: datasets }.to_json,
-          'chart-labels-value': labels.to_json,
-          'chart-options-value': options.to_json,
-          'chart-display-percent-value': @display_percent }
+<div class="chart-component">
+  <%= tag.h3 title, class: 'text-lg font-semibold mb-2' if title %>
+  <%= tag.div(class: container_classes, **container_options) do %>
+    <%= tag.canvas(
+      class: 'chart',
+      data: {
+        controller: 'chart',
+        chart_type_value: chart_type,
+        chart_data_value: chart_data_json,
+        chart_labels_value: labels_json,
+        chart_options_value: options_json,
+        chart_display_percent_value: display_percent?
+      }
     ) do %>
       <%= t('.loading') %>
     <% end %>
