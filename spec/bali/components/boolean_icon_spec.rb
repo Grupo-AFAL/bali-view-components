@@ -13,7 +13,8 @@ RSpec.describe Bali::BooleanIcon::Component, type: :component do
     it 'renders check-circle icon' do
       render_inline(described_class.new(value: true))
 
-      expect(page).to have_css('.icon-component')
+      # Verify icon is rendered (SVG with path)
+      expect(page).to have_css('.icon-component svg')
     end
   end
 
@@ -27,7 +28,17 @@ RSpec.describe Bali::BooleanIcon::Component, type: :component do
     it 'renders times-circle icon' do
       render_inline(described_class.new(value: false))
 
-      expect(page).to have_css('.icon-component')
+      # Verify icon is rendered (SVG with path)
+      expect(page).to have_css('.icon-component svg')
+    end
+  end
+
+  describe 'with nil value' do
+    it 'treats nil as false' do
+      render_inline(described_class.new(value: nil))
+
+      expect(page).to have_css('div.boolean-icon-component.text-error')
+      expect(page).to have_css('.icon-component svg')
     end
   end
 
