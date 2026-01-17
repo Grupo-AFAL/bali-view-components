@@ -12,6 +12,7 @@ export class ConditionController extends Controller {
     'value',
     'rangeStart',
     'rangeEnd',
+    'rangeInput',
     'attributeHidden',
     'operatorHidden'
   ]
@@ -128,6 +129,37 @@ export class ConditionController extends Controller {
     // Reset to text input
     this.renderValueInput('text', '', [], false)
     this.updateOperators('text')
+  }
+
+  /**
+   * Sync the Flatpickr range dates to hidden fields for form submission.
+   * Flatpickr range mode returns dates separated by " to " in the input value,
+   * but we need separate _gteq and _lteq params for Ransack.
+   */
+  syncRangeDates (event) {
+    const input = event.target
+    // Get the Flatpickr instance to access selectedDates
+    const flatpickr = input._flatpickr
+
+    if (flatpickr && flatpickr.selectedDates.length === 2) {
+      // Format dates as YYYY-MM-DD for Ransack
+      const formatDate = (date) => {
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        return `${year}-${month}-${day}`
+      }
+
+      const startDate = formatDate(flatpickr.selectedDates[0])
+      const endDate = formatDate(flatpickr.selectedDates[1])
+
+      if (this.hasRangeStartTarget) {
+        this.rangeStartTarget.value = startDate
+      }
+      if (this.hasRangeEndTarget) {
+        this.rangeEndTarget.value = endDate
+      }
+    }
   }
 
   /**
@@ -374,6 +406,24 @@ export class ConditionController extends Controller {
     `
   }
 
+  /**
+   * Get concise date format based on locale
+   * English: "M j, Y" → "Nov 1, 2025"
+   * Spanish: "j M Y" → "1 nov 2025"
+   */
+  shortDateFormat () {
+    return this.localeValue === 'es' ? 'j M Y' : 'M j, Y'
+  }
+
+  /**
+   * Get concise datetime format based on locale
+   * English: "M j, Y H:i" → "Nov 1, 2025 14:30"
+   * Spanish: "j M Y H:i" → "1 nov 2025 14:30"
+   */
+  shortDatetimeFormat () {
+    return this.localeValue === 'es' ? 'j M Y H:i' : 'M j, Y H:i'
+  }
+
   buildDateInput (fieldName) {
     return `
       <input type="text"
@@ -383,6 +433,7 @@ export class ConditionController extends Controller {
              data-controller="datepicker"
              data-datepicker-locale-value="${this.localeValue}"
              data-datepicker-mode-value="single"
+             data-datepicker-alt-format-value="${this.shortDateFormat()}"
              data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
              data-condition-target="value">
     `
@@ -398,6 +449,7 @@ export class ConditionController extends Controller {
              data-datepicker-locale-value="${this.localeValue}"
              data-datepicker-mode-value="single"
              data-datepicker-enable-time-value="true"
+             data-datepicker-alt-format-value="${this.shortDatetimeFormat()}"
              data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
              data-condition-target="value">
     `
@@ -405,54 +457,39 @@ export class ConditionController extends Controller {
 
   buildDateRangeInput (rangeFieldNames) {
     return `
-      <div class="flex gap-2 items-center" data-condition-target="value">
+      <div class="w-full" data-condition-target="value">
         <input type="text"
-               class="input input-bordered input-sm flex-1"
-               name="${rangeFieldNames.start}"
-               placeholder="Start date"
+               class="input input-bordered input-sm w-full"
+               placeholder="Select date range..."
                data-controller="datepicker"
                data-datepicker-locale-value="${this.localeValue}"
-               data-datepicker-mode-value="single"
+               data-datepicker-mode-value="range"
+               data-datepicker-alt-format-value="${this.shortDateFormat()}"
                data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
-               data-condition-target="rangeStart">
-        <span class="text-base-content/50 text-sm">and</span>
-        <input type="text"
-               class="input input-bordered input-sm flex-1"
-               name="${rangeFieldNames.end}"
-               placeholder="End date"
-               data-controller="datepicker"
-               data-datepicker-locale-value="${this.localeValue}"
-               data-datepicker-mode-value="single"
-               data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
-               data-condition-target="rangeEnd">
+               data-action="change->condition#syncRangeDates"
+               data-condition-target="rangeInput">
+        <input type="hidden" name="${rangeFieldNames.start}" data-condition-target="rangeStart">
+        <input type="hidden" name="${rangeFieldNames.end}" data-condition-target="rangeEnd">
       </div>
     `
   }
 
   buildDatetimeRangeInput (rangeFieldNames) {
     return `
-      <div class="flex gap-2 items-center" data-condition-target="value">
+      <div class="w-full" data-condition-target="value">
         <input type="text"
-               class="input input-bordered input-sm flex-1"
-               name="${rangeFieldNames.start}"
-               placeholder="Start"
+               class="input input-bordered input-sm w-full"
+               placeholder="Select date & time range..."
                data-controller="datepicker"
                data-datepicker-locale-value="${this.localeValue}"
-               data-datepicker-mode-value="single"
+               data-datepicker-mode-value="range"
                data-datepicker-enable-time-value="true"
+               data-datepicker-alt-format-value="${this.shortDatetimeFormat()}"
                data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
-               data-condition-target="rangeStart">
-        <span class="text-base-content/50 text-sm">and</span>
-        <input type="text"
-               class="input input-bordered input-sm flex-1"
-               name="${rangeFieldNames.end}"
-               placeholder="End"
-               data-controller="datepicker"
-               data-datepicker-locale-value="${this.localeValue}"
-               data-datepicker-mode-value="single"
-               data-datepicker-enable-time-value="true"
-               data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
-               data-condition-target="rangeEnd">
+               data-action="change->condition#syncRangeDates"
+               data-condition-target="rangeInput">
+        <input type="hidden" name="${rangeFieldNames.start}" data-condition-target="rangeStart">
+        <input type="hidden" name="${rangeFieldNames.end}" data-condition-target="rangeEnd">
       </div>
     `
   }

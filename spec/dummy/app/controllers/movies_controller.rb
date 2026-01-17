@@ -76,7 +76,8 @@ class MoviesController < ApplicationController
     return [] unless groups.is_a?(ActionController::Parameters)
 
     groups.values.map do |group_params|
-      conditions = group_params.to_unsafe_h.map do |key, value|
+      raw_conditions = {}
+      group_params.to_unsafe_h.each do |key, value|
         next if key == 'm' # Skip the combinator/match mode param
 
         # Parse "field_operator" format
@@ -84,12 +85,30 @@ class MoviesController < ApplicationController
         match = key.to_s.match(/^(.+)_(#{operators})$/)
         next unless match
 
-        {
-          attribute: match[1],
-          operator: match[2],
-          value: value
-        }
-      end.compact
+        attribute = match[1]
+        operator = match[2]
+
+        # Collect gteq/lteq pairs for potential "between" consolidation
+        raw_conditions[attribute] ||= {}
+        raw_conditions[attribute][operator] = value
+      end
+
+      # Convert raw conditions to final format, combining gteq+lteq into "between"
+      conditions = raw_conditions.flat_map do |attribute, ops|
+        if ops['gteq'] && ops['lteq']
+          # Combine into a single "between" condition
+          [{
+            attribute: attribute,
+            operator: 'between',
+            value: { start: ops['gteq'], end: ops['lteq'] }
+          }]
+        else
+          # Keep as separate conditions
+          ops.map do |operator, value|
+            { attribute: attribute, operator: operator, value: value }
+          end
+        end
+      end
 
       {
         combinator: group_params[:m] || 'or',

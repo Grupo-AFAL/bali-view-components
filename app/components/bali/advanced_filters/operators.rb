@@ -60,6 +60,7 @@ module Bali
       def date_operators
         [
           { value: 'eq', label: t_op('on', 'is') },
+          { value: 'between', label: t_op('between', 'between'), range: true },
           { value: 'gt', label: t_op('after', 'after') },
           { value: 'lt', label: t_op('before', 'before') },
           { value: 'gteq', label: t_op('on_or_after', 'on or after') },

@@ -33,6 +33,7 @@
       <% operators_for_current_type.each do |op| %>
         <option value="<%= op[:value] %>"
                 data-multiple="<%= op[:multiple] || false %>"
+                data-range="<%= op[:range] || false %>"
                 <%= 'selected' if op[:value] == operator %>>
           <%= op[:label] %>
         </option>
@@ -109,31 +110,86 @@
       </select>
 
     <% when :date %>
-      <%# Date picker using Flatpickr %>
-      <input type="text"
-             class="input input-bordered input-sm w-full"
-             name="<%= field_name %>"
-             value="<%= value %>"
-             placeholder="<%= t('bali.advanced_filters.select_date', default: 'Select date...') %>"
-             data-controller="datepicker"
-             data-datepicker-locale-value="<%= I18n.locale %>"
-             data-datepicker-mode-value="single"
-             data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
-             data-condition-target="value">
+      <% if range_operator? %>
+        <%# Date range picker using Flatpickr range mode with hidden fields for Ransack %>
+        <div class="w-full" data-condition-target="value">
+          <input type="text"
+                 class="input input-bordered input-sm w-full"
+                 placeholder="<%= t('bali.advanced_filters.select_date_range', default: 'Select date range...') %>"
+                 data-controller="datepicker"
+                 data-datepicker-locale-value="<%= I18n.locale %>"
+                 data-datepicker-mode-value="range"
+                 data-datepicker-alt-format-value="<%= short_date_format %>"
+                 data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
+                 data-datepicker-default-dates-value="<%= [range_values[:start], range_values[:end]].compact.to_json %>"
+                 data-action="change->condition#syncRangeDates"
+                 data-condition-target="rangeInput">
+          <%# Hidden fields for Ransack gteq/lteq params %>
+          <input type="hidden"
+                 name="<%= range_field_names[:start] %>"
+                 value="<%= range_values[:start] %>"
+                 data-condition-target="rangeStart">
+          <input type="hidden"
+                 name="<%= range_field_names[:end] %>"
+                 value="<%= range_values[:end] %>"
+                 data-condition-target="rangeEnd">
+        </div>
+      <% else %>
+        <%# Single date picker using Flatpickr %>
+        <input type="text"
+               class="input input-bordered input-sm w-full"
+               name="<%= field_name %>"
+               value="<%= value %>"
+               placeholder="<%= t('bali.advanced_filters.select_date', default: 'Select date...') %>"
+               data-controller="datepicker"
+               data-datepicker-locale-value="<%= I18n.locale %>"
+               data-datepicker-mode-value="single"
+               data-datepicker-alt-format-value="<%= short_date_format %>"
+               data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
+               data-condition-target="value">
+      <% end %>
 
     <% when :datetime %>
-      <%# Datetime picker using Flatpickr %>
-      <input type="text"
-             class="input input-bordered input-sm w-full"
-             name="<%= field_name %>"
-             value="<%= value %>"
-             placeholder="<%= t('bali.advanced_filters.select_datetime', default: 'Select date & time...') %>"
-             data-controller="datepicker"
-             data-datepicker-locale-value="<%= I18n.locale %>"
-             data-datepicker-mode-value="single"
-             data-datepicker-enable-time-value="true"
-             data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
-             data-condition-target="value">
+      <% if range_operator? %>
+        <%# Datetime range picker using Flatpickr range mode with hidden fields for Ransack %>
+        <div class="w-full" data-condition-target="value">
+          <input type="text"
+                 class="input input-bordered input-sm w-full"
+                 placeholder="<%= t('bali.advanced_filters.select_datetime_range', default: 'Select date & time range...') %>"
+                 data-controller="datepicker"
+                 data-datepicker-locale-value="<%= I18n.locale %>"
+                 data-datepicker-mode-value="range"
+                 data-datepicker-enable-time-value="true"
+                 data-datepicker-alt-format-value="<%= short_datetime_format %>"
+                 data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
+                 data-datepicker-default-dates-value="<%= [range_values[:start], range_values[:end]].compact.to_json %>"
+                 data-action="change->condition#syncRangeDates"
+                 data-condition-target="rangeInput">
+          <%# Hidden fields for Ransack gteq/lteq params %>
+          <input type="hidden"
+                 name="<%= range_field_names[:start] %>"
+                 value="<%= range_values[:start] %>"
+                 data-condition-target="rangeStart">
+          <input type="hidden"
+                 name="<%= range_field_names[:end] %>"
+                 value="<%= range_values[:end] %>"
+                 data-condition-target="rangeEnd">
+        </div>
+      <% else %>
+        <%# Single datetime picker using Flatpickr %>
+        <input type="text"
+               class="input input-bordered input-sm w-full"
+               name="<%= field_name %>"
+               value="<%= value %>"
+               placeholder="<%= t('bali.advanced_filters.select_datetime', default: 'Select date & time...') %>"
+               data-controller="datepicker"
+               data-datepicker-locale-value="<%= I18n.locale %>"
+               data-datepicker-mode-value="single"
+               data-datepicker-enable-time-value="true"
+               data-datepicker-alt-format-value="<%= short_datetime_format %>"
+               data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
+               data-condition-target="value">
+      <% end %>
 
     <% when :number %>
       <input type="number"
