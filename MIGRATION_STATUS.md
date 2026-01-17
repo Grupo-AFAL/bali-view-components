@@ -34,6 +34,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Score | Meaning | Action |
 |-------|---------|--------|
+| **🔄** | Review cycle in progress | ⏳ Wait |
 | **9-10** | Excellent - Rails-worthy code | ✅ Ready |
 | **7-8** | Good - Minor improvements possible | ⚠️ Acceptable |
 | **5-6** | Needs work - Several issues | 🔄 Re-review |

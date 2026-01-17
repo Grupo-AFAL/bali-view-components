@@ -42,6 +42,11 @@ This command orchestrates a complete code quality improvement cycle:
 
 ```
 ┌─────────────────┐
+│  0. MARK STATUS │ ─── Update MIGRATION_STATUS.md with 🔄
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
 │  1. REVIEW      │ ─── Run /review (Rubocop, RSpec, DHH reviewer)
 └────────┬────────┘     Returns score 1-10
          │
@@ -84,6 +89,24 @@ This command orchestrates a complete code quality improvement cycle:
 ```
 
 ## Workflow
+
+### Phase 0: Mark Review In Progress
+
+**CRITICAL**: Before starting any review work, update `MIGRATION_STATUS.md` to indicate the review is in progress:
+
+1. **Update the Quality column** in the Component Verification Matrix:
+   ```markdown
+   | ComponentName |  ✅   |    ✅     |   ✅    |   ✅   |   🔄    | Review in progress |
+   ```
+
+2. **Use the 🔄 symbol** to indicate review is in progress (replaces `-` or previous score)
+
+3. **Update Notes column** to "Review in progress"
+
+This ensures:
+- Other agents/users know this component is being worked on
+- No duplicate review cycles are started for the same component
+- Progress is visible even if the cycle is interrupted
 
 ### Phase 1: Initial Review
 
@@ -431,6 +454,14 @@ User: /review-cycle Button
 
 AI: Starting code quality review cycle for Bali::Button::Component...
 Target: Score ≥ 9/10
+
+═══════════════════════════════════════════════════════════════
+                     MARKING REVIEW IN PROGRESS
+═══════════════════════════════════════════════════════════════
+
+Updating MIGRATION_STATUS.md...
+✓ Button quality column: `-` → `🔄`
+✓ Button notes: → "Review in progress"
 
 ═══════════════════════════════════════════════════════════════
                      ITERATION 1 OF 5
