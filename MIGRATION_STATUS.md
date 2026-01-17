@@ -239,6 +239,6 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | FlashNotifications           | Score 9: Private attr_readers, Lookbook params, 6 tests                      | AI         |
 | 2026-01-17 | Filters                      | **DEPRECATED**: Emits warning, recommend AdvancedFilters                     | AI         |
 | 2026-01-17 | AdvancedFilters              | Added date range support with `between` operator (dual inputs)               | AI         |
-| 2026-01-17 | Form (FormBuilder)           | Score 7: i18n translations, safe_join, fixed 15 test expectations, 117 tests | AI         |
+| 2026-01-17 | Form (FormBuilder)           | Score 9: Full Bulma→DaisyUI migration across 12 modules, 117 tests           | AI         |
 | 2026-01-17 | GanttChart                   | Score 8: Bulma→DaisyUI (join, weekend), explicit action methods, 21 tests    | AI         |
 | 2026-01-17 | Hero                         | Score 9: Private attr_reader, Hash#fetch, preview uses Bali::Button          | AI         |
