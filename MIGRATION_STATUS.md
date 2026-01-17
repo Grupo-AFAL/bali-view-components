@@ -49,7 +49,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | AdvancedFilters        |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Code quality improved, class_names helpers added   |
 | Avatar                 |  ✅   |    ✅     |   ✅    |   ✅   | 9.5/10  | Full DaisyUI, tag.div, alt text, options passthrough |
 | BooleanIcon            |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Added nil handling, improved tests and preview     |
-| Breadcrumb             |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Proper DaisyUI breadcrumbs                         |
+| Breadcrumb             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Proper DaisyUI breadcrumbs, aria-label, BASE_CLASSES |
 | BulkActions            |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Fixed is-hidden→hidden                             |
 | Calendar               |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Uses card, table, btn correctly                    |
 | Card                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10  | Full DaisyUI card, fixed header badge positioning  |
@@ -122,10 +122,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Score Range | Count | Components |
 |-------------|-------|------------|
-| 9-10 (✅)   | 6     | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Card (9), Modal (9) |
+| 9-10 (✅)   | 7     | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), Card (9), Modal (9) |
 | 7-8 (⚠️)    | 0     | - |
 | < 7 (❌)    | 0     | - |
-| Not scored  | 50    | Remaining components |
+| Not scored  | 49    | Remaining components |
 
 ---
 
@@ -224,3 +224,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | AdvancedFilters              | Score 9: Removed unused @options, added class_names helpers, fixed trailing spaces | AI         |
 | 2026-01-17 | Avatar                       | Score 9.5: Group tag.div+options, alt text support, fixed preview path       | AI         |
 | 2026-01-17 | BooleanIcon                  | Score 9: Added nil value handling, improved tests, all_states preview        | AI         |
+| 2026-01-17 | Breadcrumb                   | Score 9: Added aria-label, BASE_CLASSES constant, private attr_readers       | AI         |

@@ -4,7 +4,7 @@ module Bali
   module Breadcrumb
     module Item
       class Component < ApplicationViewComponent
-        attr_reader :href, :name, :icon_name
+        BASE_CLASSES = 'inline-flex items-center gap-1'
 
         def initialize(name:, href: nil, icon_name: nil, active: nil, **options)
           @name = name
@@ -24,23 +24,18 @@ module Bali
 
         private
 
+        attr_reader :href, :name, :icon_name
+
         def item_classes
           class_names(@options[:class])
         end
 
         def link_classes
-          class_names(
-            'inline-flex items-center gap-1',
-            'no-underline hover:underline'
-          )
+          class_names(BASE_CLASSES, 'no-underline hover:underline')
         end
 
         def current_classes
-          class_names(
-            'inline-flex items-center gap-1',
-            'cursor-default',
-            'no-underline hover:no-underline'
-          )
+          class_names(BASE_CLASSES, 'cursor-default no-underline hover:no-underline')
         end
       end
     end

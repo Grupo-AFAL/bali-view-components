@@ -36,6 +36,14 @@ RSpec.describe Bali::Breadcrumb::Component, type: :component do
   end
 
   describe 'accessibility' do
+    it 'has aria-label on nav element' do
+      render_inline(described_class.new) do |c|
+        c.with_item(name: 'Home', href: '/home')
+      end
+
+      expect(page).to have_css 'nav[aria-label="Breadcrumb"]'
+    end
+
     it 'adds aria-current="page" to active item' do
       render_inline(described_class.new) do |c|
         c.with_item(name: 'Home', href: '/home')
@@ -61,6 +69,7 @@ RSpec.describe Bali::Breadcrumb::Component, type: :component do
       end
 
       expect(page).to have_css 'li a', text: 'Home'
+      expect(page).to have_css 'li a svg'
     end
 
     it 'renders icon on non-link items' do
