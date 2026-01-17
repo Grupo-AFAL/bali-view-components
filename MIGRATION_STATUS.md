@@ -59,9 +59,9 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Clipboard              |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI join, BASE_CLASSES, aria-label, 18 tests   |
 | Columns                |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | CSS Grid refactor, gap param, col-span-* classes   |
 | DataTable              |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | i18n, class_names helpers, options hash pattern    |
-| DeleteLink             |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
+| DeleteLink             |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | SIZES const, class_names, explicit params, 20 tests |
 | Drawer                 |  ✅   |    ✅     |   ✅    |   ❌   |   🔄    | Review in progress                                 |
-| Dropdown               |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
+| Dropdown               |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | i18n aria-label, Trigger VARIANTS, 21 tests        |
 | FieldGroupWrapper      |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
 | Filters                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | FlashNotifications     |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
@@ -123,10 +123,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Score Range | Count | Components |
 |-------------|-------|------------|
-| 9-10 (✅)   | 14    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), Modal (9) |
+| 9-10 (✅)   | 16    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Dropdown (9), Modal (9) |
 | 7-8 (⚠️)    | 0     | - |
 | < 7 (❌)    | 0     | - |
-| Not scored  | 42    | Remaining components |
+| Not scored  | 40    | Remaining components |
 
 ---
 
@@ -232,3 +232,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Columns                      | Score 9: Flexbox→CSS Grid, gap param, col-span-* classes, narrow→auto        | AI         |
 | 2026-01-17 | Chart                        | Score 9: Explicit params, frozen constants, Dataset refactor, Tailwind title | AI         |
 | 2026-01-17 | Clipboard                    | Score 9: DaisyUI join pattern, BASE_CLASSES, aria-label, 18 tests            | AI         |
+| 2026-01-17 | DeleteLink                   | Score 9: SIZES const, class_names, explicit authorized param, 20 tests       | AI         |

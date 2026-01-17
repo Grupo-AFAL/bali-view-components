@@ -1,17 +1,16 @@
-<% if @disabled %>
-  <%= render Bali::HoverCard::Component.new(hover_url: @disabled_hover_url) do |c| %>
+<% if disabled? %>
+  <%= render Bali::HoverCard::Component.new(hover_url: disabled_hover_url) do |c| %>
     <% c.with_trigger do %>
-      <%= tag.a(name, disabled: true, class: 'btn btn-ghost btn-disabled text-error', **options.except(:class)) %>
+      <%= tag.a(name, disabled: true, class: button_classes, **button_options) %>
     <% end %>
   <% end %>
 <% else %>
   <%= button_to href, method: :delete,
-                      form: {
-                        data: { 'turbo-confirm': confirm }
-                      },
-                      form_class: @form_class,
-                      **options do %>
-    <%= render Bali::Icon::Component.new('trash', class: 'w-4 h-4') if icon %>
+                      form: { data: { 'turbo-confirm': confirm_message } },
+                      form_class: form_classes,
+                      class: button_classes,
+                      **button_options do %>
+    <%= render Bali::Icon::Component.new('trash', class: 'w-4 h-4') if icon? %>
     <span><%= name %></span>
   <% end %>
 <% end %>

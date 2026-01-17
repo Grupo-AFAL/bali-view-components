@@ -5,7 +5,16 @@ module Bali
     class Component < ApplicationViewComponent
       class MissingURL < StandardError; end
 
-      attr_reader :model, :skip_confirm, :icon, :options
+      SIZES = {
+        xs: 'btn-xs',
+        sm: 'btn-sm',
+        md: '',
+        lg: 'btn-lg'
+      }.freeze
+
+      BASE_CLASSES = 'btn btn-ghost text-error'
+
+      attr_reader :options, :disabled_hover_url
 
       # rubocop:disable Metrics/ParameterLists
       def initialize(
@@ -13,44 +22,32 @@ module Bali
         href: nil,
         name: nil,
         confirm: nil,
+        size: nil,
         disabled: false,
         disabled_hover_url: nil,
         skip_confirm: false,
         icon: false,
-        plain: false,
+        authorized: true,
         **options
       )
         @model = model
         @href = href
         @name = name
         @confirm = confirm
+        @size = size&.to_sym
         @disabled = disabled
         @disabled_hover_url = disabled_hover_url
         @skip_confirm = skip_confirm
         @icon = icon
-        @plain = plain
+        @authorized = authorized
         @form_class = class_names('inline-block', options.delete(:form_class))
+        @options = options
 
-        @options = if @plain
-                     # Minimal layout classes for menu items
-                     prepend_class_name(options, 'flex items-center gap-2 text-error')
-                   else
-                     prepend_class_name(options, default_classes)
-                   end
-
-        @authorized = @options.key?(:authorized) ? @options.delete(:authorized) : true
-
-        return unless @href.blank? && @model.blank?
-
-        raise MissingURL, 'Need to provide either a :model or :href attribute'
+        validate_url_presence!
       end
       # rubocop:enable Metrics/ParameterLists
 
       def render?
-        authorized?
-      end
-
-      def authorized?
         @authorized
       end
 
@@ -59,39 +56,62 @@ module Bali
       end
 
       def name
-        return @name if @name.present?
-        return content if content.present?
-
-        t('.default_name')
+        @name.presence || content.presence || t('.default_name')
       end
 
-      def confirm
-        return if skip_confirm
-        return @confirm if @confirm.present?
+      def confirm_message
+        return if @skip_confirm
 
-        if model.present?
-          t('.specific_confirm_message', **translation_attributes)
+        @confirm.presence || default_confirm_message
+      end
+
+      def icon?
+        @icon
+      end
+
+      def disabled?
+        @disabled
+      end
+
+      def button_classes
+        class_names(
+          BASE_CLASSES,
+          SIZES[@size],
+          { 'btn-disabled' => @disabled },
+          @options[:class]
+        )
+      end
+
+      def form_classes
+        @form_class
+      end
+
+      def button_options
+        @options.except(:class)
+      end
+
+      private
+
+      def default_confirm_message
+        if @model.present?
+          t('.specific_confirm_message', pronoun: pronoun, name: model_name)
         else
           t('.generic_confirm_message')
         end
       end
 
-      def default_classes
-        'delete-link-component btn btn-ghost text-error'
-      end
-
-      private
-
-      def translation_attributes
-        { pronoun: pronoun, name: model_name }
-      end
-
       def model_name
-        model.model_name.human
+        @model.model_name.human
       end
 
       def pronoun
-        t("activerecord.pronouns.#{model.model_name.i18n_key}")
+        t("activerecord.pronouns.#{@model.model_name.i18n_key}")
+      end
+
+      def validate_url_presence!
+        return if @href.present? || @model.present?
+
+        raise MissingURL, 'Provide either :model or :href'
       end
     end
   end
