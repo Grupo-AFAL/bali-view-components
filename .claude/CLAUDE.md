@@ -51,9 +51,26 @@ Reference documentation is maintained in `docs/` for use by both Claude Code and
 | Command | Description |
 |---------|-------------|
 | `/review [name]` | Code review against DHH standards |
+| `/review-cycle [name]` | Autonomous review→fix loop until score ≥ 9, then commit & push |
+| `/review-all` | Batch review multiple components in parallel |
 | `/a11y [name]` | Accessibility audit (WCAG 2.1) |
 | `/audit` | Full library status audit |
 | `/test [name]` | Run component tests |
+
+### Batch Processing (Shell Script)
+```bash
+# Review all components (code-only, parallel)
+./scripts/batch-review.sh
+
+# Review specific components
+./scripts/batch-review.sh Button Modal Card
+
+# With visual verification (slower, needs port coordination)
+./scripts/batch-review.sh --with-visual --parallel 4
+
+# Dry run to see what would happen
+./scripts/batch-review.sh --dry-run
+```
 
 ### Documentation & Release
 | Command | Description |
