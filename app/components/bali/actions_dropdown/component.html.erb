@@ -2,9 +2,9 @@
   <% if trigger? %>
     <%= trigger %>
   <% else %>
-    <div tabindex="0" role="button" class="<%= trigger_classes %>">
+    <button type="button" tabindex="0" class="<%= trigger_classes %>" aria-haspopup="true">
       <%= render Bali::Icon::Component.new(@icon) %>
-    </div>
+    </button>
   <% end %>
   <ul tabindex="0" class="<%= menu_classes %>">
     <% if authorized_items.any? %>

@@ -51,7 +51,7 @@ RSpec.describe Bali::ActionsDropdown::Component, type: :component do
         c.with_item(name: 'Edit', href: '#')
       end
 
-      expect(page).to have_css '[role="button"] svg'
+      expect(page).to have_css 'button[type="button"] svg'
     end
   end
 
@@ -61,7 +61,7 @@ RSpec.describe Bali::ActionsDropdown::Component, type: :component do
         c.with_item(name: 'Edit', href: '#')
       end
 
-      expect(page).to have_css '[role="button"] svg'
+      expect(page).to have_css 'button[type="button"] svg'
     end
   end
 
@@ -75,7 +75,17 @@ RSpec.describe Bali::ActionsDropdown::Component, type: :component do
       end
 
       expect(page).to have_css 'button.custom-trigger', text: 'Actions'
-      expect(page).not_to have_css '.btn.btn-ghost.btn-circle'
+      expect(page).not_to have_css 'button.btn-circle'
+    end
+  end
+
+  describe 'accessibility' do
+    it 'uses semantic button element for trigger' do
+      render_inline(described_class.new) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css 'button[type="button"][aria-haspopup="true"]'
     end
   end
 

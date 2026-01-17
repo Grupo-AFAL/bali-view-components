@@ -45,7 +45,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Component              | Tests | AI Visual | DaisyUI | Manual | Quality | Notes                                              |
 | ---------------------- | :---: | :-------: | :-----: | :----: | :-----: | -------------------------------------------------- |
-| ActionsDropdown        |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Full DaisyUI dropdown                              |
+| ActionsDropdown        |  ✅   |    ✅     |   ✅    |   ✅   | 9.5/10  | Full DaisyUI dropdown, semantic button+ARIA        |
 | AdvancedFilters        |  ✅   |    ✅     |   ✅    |   ✅   |    -    | **NEW** - Built with DaisyUI                       |
 | Avatar                 |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Full DaisyUI implementation                        |
 | BooleanIcon            |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Uses text-success/text-error                       |
@@ -220,3 +220,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Infrastructure               | Add parallel review tooling + quality score tracking                         | AI         |
 | 2026-01-17 | Card                         | Score 8→9: Fixed header badge positioning, removed redundant border classes  | AI         |
 | 2026-01-17 | Modal                        | Score 7→9: Added header/body/actions slots, WCAG aria-describedby            | AI         |
+| 2026-01-17 | ActionsDropdown              | Score 9.5: Semantic button, ARIA attrs, consistent preview API               | AI         |

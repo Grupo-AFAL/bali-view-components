@@ -11,7 +11,7 @@ module Bali
         render ActionsDropdown::Component.new do |c|
           c.with_item(name: 'Edit', icon_name: 'edit', href: '#')
           c.with_item(name: 'Export', icon_name: 'file-export', href: '#')
-          c.with_item(name: 'Delete', icon: true, href: '#', method: :delete)
+          c.with_item(name: 'Delete', icon_name: 'trash', href: '#', method: :delete)
         end
       end
 
@@ -39,11 +39,11 @@ module Bali
       def with_custom_trigger
         render ActionsDropdown::Component.new do |c|
           c.with_trigger do
-            tag.div('Actions ▾', tabindex: 0, role: 'button', class: 'btn btn-sm btn-outline')
+            tag.button('Actions ▾', type: 'button', tabindex: 0, class: 'btn btn-sm btn-outline')
           end
           c.with_item(name: 'Edit', icon_name: 'edit', href: '#')
           c.with_item(name: 'Export', icon_name: 'file-export', href: '#')
-          c.with_item(name: 'Delete', icon: true, href: '#', method: :delete)
+          c.with_item(name: 'Delete', icon_name: 'trash', href: '#', method: :delete)
         end
       end
 
@@ -54,7 +54,7 @@ module Bali
       def with_custom_icon
         render ActionsDropdown::Component.new(icon: 'more') do |c|
           c.with_item(name: 'Edit', icon_name: 'edit', href: '#')
-          c.with_item(name: 'Delete', icon: true, href: '#', method: :delete)
+          c.with_item(name: 'Delete', icon_name: 'trash', href: '#', method: :delete)
         end
       end
 
