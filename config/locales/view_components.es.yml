@@ -1,6 +1,16 @@
 es:
   view_components:
     bali:
+      table:
+        no_records: Sin Registros
+        no_results: Sin Resultados
+      data_table:
+        summary: "Mostrando %{from}-%{to} de %{count} %{item_name}"
+      pagination:
+        aria_label: Paginación
+        previous_page: Página anterior
+        next_page: Página siguiente
+        page: "Página %{page}"
       chart:
         loading: Cargando...
       clipboard:

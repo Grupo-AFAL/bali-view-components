@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
 class MoviesController < ApplicationController
-  def index
-    @q = Movie.ransack(search_params)
-    @movies = @q.result.includes(:tenant).limit(50)
+  include Pagy::Backend
 
-    # FilterForm requires scope and params
+  def index
+    # FilterForm handles Ransack search params and sorting
     @filter_form = Bali::FilterForm.new(Movie.all, params)
+
+    # Use Pagy for pagination on the filtered/sorted results
+    @pagy, @movies = pagy(@filter_form.result.includes(:tenant), items: 10)
 
     respond_to do |format|
       format.html

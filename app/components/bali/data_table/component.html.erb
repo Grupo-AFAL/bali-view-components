@@ -1,29 +1,54 @@
-<div id="<%= id %>"class='data-table-component'>
-  <% if filters_panel.present? %>
-    <%= render Bali::Level::Component.new do |c| %>
-      <%= c.with_left(class: filters_class) do%>
-        <%= filters_panel %>
-      <% end %>
-      <%= c.with_right(class: 'max-md:hidden') do %>
-        <%= actions_panel %>
-      <% end %>
-    <% end %>
-  <% end %>
+<div id="<%= id %>" class="data-table-component">
+  <%# Toolbar: Filters (left) + Actions/Buttons (right) %>
+  <% if filters_panel? || toolbar_buttons? || column_selector? || export? || actions_panel? %>
+    <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
+      <%# Left side: Filters %>
+      <div class="flex-1 min-w-0">
+        <% if filters_panel? %>
+          <%= filters_panel %>
+        <% end %>
+      </div>
 
-  <% if advanced_filters_panel.present? %>
-    <div class="mb-4">
-      <%= advanced_filters_panel %>
+      <%# Right side: Column selector + Export + Toolbar buttons + Actions panel %>
+      <% if toolbar_buttons? || column_selector? || export? || actions_panel? %>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <%# Built-in column selector %>
+          <% if column_selector? %>
+            <%= column_selector %>
+          <% end %>
+          <%# Built-in export dropdown %>
+          <% if export? %>
+            <%= export %>
+          <% end %>
+          <%# Custom toolbar buttons %>
+          <% toolbar_buttons.each do |button| %>
+            <%= button %>
+          <% end %>
+          <% if actions_panel? %>
+            <div class="hidden md:block">
+              <%= actions_panel %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
     </div>
   <% end %>
 
-  <% if summary.present? %>
-    <%= summary %>
+  <%# Custom summary slot (top position) or summary_position: :top %>
+  <% if summary? || show_summary_top? %>
+    <div class="mb-4 text-sm text-base-content/70">
+      <%= summary? ? summary : default_summary_text %>
+    </div>
   <% end %>
 
-  <div class='md:hidden flex items-center justify-end mb-3'>
-    <%= actions_panel %>
-  </div>
+  <%# Mobile actions %>
+  <% if actions_panel? %>
+    <div class="md:hidden flex items-center justify-end mb-3">
+      <%= actions_panel %>
+    </div>
+  <% end %>
 
+  <%# Content: Table or Grid %>
   <% if @display_mode&.to_sym == :grid %>
     <%= grid %>
   <% else %>
@@ -32,13 +57,26 @@
     <% end %>
   <% end %>
 
-  <% if @pagy %>
-    <% if custom_pagy_nav.present? %>
-      <%= custom_pagy_nav %>
-    <% else %>
-      <div id="pagy-nav" class="flex justify-center mt-4">
-        <%== pagy_nav(@pagy) %>
+  <%# Footer: Summary (left) + Pagination (right) %>
+  <% if show_footer? %>
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t border-base-200">
+      <%# Summary text %>
+      <div class="text-sm text-base-content/70 order-2 sm:order-1">
+        <% if show_summary_bottom? %>
+          <%= default_summary_text %>
+        <% end %>
       </div>
-    <% end %>
+
+      <%# Pagination %>
+      <% if pagy %>
+        <div class="order-1 sm:order-2">
+          <% if custom_pagy_nav? %>
+            <%= custom_pagy_nav %>
+          <% else %>
+            <%= render Bali::Pagination::Component.new(pagy: pagy) %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
   <% end %>
 </div>

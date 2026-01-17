@@ -1,0 +1,33 @@
+<nav class="pagy-nav-daisyui" aria-label="<%= aria_label %>">
+  <div class="join">
+    <%# Previous button %>
+    <% if prev_page %>
+      <%= link_to page_url(prev_page), class: btn_class, aria: { label: prev_aria_label } do %>
+        &laquo;
+      <% end %>
+    <% else %>
+      <button class="<%= btn_disabled_class %>" disabled aria-disabled="true">&laquo;</button>
+    <% end %>
+
+    <%# Page buttons %>
+    <% series.each do |item| %>
+      <% case item %>
+      <% when Integer %>
+        <%= link_to item, page_url(item), class: btn_class, aria: { label: page_aria_label(item) } %>
+      <% when String %>
+        <button class="<%= btn_active_class %>" aria-current="page"><%= item %></button>
+      <% when :gap %>
+        <button class="<%= btn_disabled_class %>" disabled>&hellip;</button>
+      <% end %>
+    <% end %>
+
+    <%# Next button %>
+    <% if next_page %>
+      <%= link_to page_url(next_page), class: btn_class, aria: { label: next_aria_label } do %>
+        &raquo;
+      <% end %>
+    <% else %>
+      <button class="<%= btn_disabled_class %>" disabled aria-disabled="true">&raquo;</button>
+    <% end %>
+  </div>
+</nav>

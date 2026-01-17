@@ -1,5 +1,10 @@
 <%= render Bali::DataTable::Component.new(url: request.path) do |c| %>
-  <% c.with_filters_panel(available_attributes: filter_attributes) %>
+  <%# Filters with quick search enabled %>
+  <% c.with_filters_panel(
+       available_attributes: filter_attributes,
+       search_fields: [:name],
+       search_placeholder: 'Search products...'
+     ) %>
 
   <% c.with_table do %>
     <%= render Bali::Table::Component.new do |ct| %>

@@ -417,13 +417,15 @@ end
 
 ### Lookbook Preview
 
+**Use Lookbook params to reduce the number of preview methods.** Instead of creating separate methods for each variant, use `@param` annotations to make previews interactive.
+
 ```ruby
 # app/components/bali/button/preview.rb
 module Bali
   module Button
     class Preview < Lookbook::Preview
-      # @param variant select [primary, secondary, success, warning, error, info, ghost, link, outline]
-      # @param size select [xs, sm, md, lg]
+      # @param variant select { choices: [primary, secondary, success, warning, error] }
+      # @param size select { choices: [xs, sm, md, lg] }
       # @param loading toggle
       # @param disabled toggle
       def default(variant: :primary, size: :md, loading: false, disabled: false)
@@ -434,13 +436,96 @@ module Bali
           disabled: disabled
         ) { "Button" }
       end
-
-      def all_variants
-        render_with_template
-      end
     end
   end
 end
+```
+
+#### Param Types
+
+| Type | Syntax | Example |
+|------|--------|---------|
+| Select dropdown | `@param name select { choices: [a, b, c] }` | `@param size select { choices: [sm, md, lg] }` |
+| Toggle (boolean) | `@param name toggle` | `@param loading toggle` |
+| Text input | `@param name text` | `@param label text` |
+| Number input | `@param name number` | `@param count number` |
+
+#### When to Create Separate Preview Methods
+
+Only create separate preview methods when:
+- The preview requires significantly different template markup
+- You need to demonstrate a specific integration (e.g., "with_sorting" needs real DB data)
+- The combination of params would be confusing in a single preview
+
+**❌ DON'T** create: `small_button`, `medium_button`, `large_button`, `primary_button`, etc.
+**✅ DO** use: One `default` method with `@param size` and `@param variant`
+
+### Lookbook Notes
+
+Comments (not tags) above preview methods are rendered as Markdown in the Notes panel. **Be critical** - only include notes that help developers use the component correctly.
+
+#### When to Add Notes
+
+**✅ DO add notes for:**
+- Required dependencies (JS libraries, backend setup)
+- Non-obvious behavior or gotchas
+- Accessibility requirements
+- Code examples showing usage
+
+**❌ DON'T add notes for:**
+- Implementation details consumers don't need
+- Obvious information clear from the preview
+- Internal development notes
+
+```ruby
+# @label With Sorting
+# Sorting requires a `Bali::FilterForm` instance:
+# ```ruby
+# filter_form = Bali::FilterForm.new(Movie.all, params)
+# ```
+# Add `sort: :column_name` to `with_header` to make columns sortable.
+def with_sorting(q: {})
+  # ...
+end
+```
+
+### Lookbook Preview Best Practices
+
+**Form URLs**: Never use `url: '#'` in components with forms - it submits to root `/`. Use `request.path` instead:
+
+```erb
+<%# In template files %>
+<%= render MyComponent.new(url: request.path) %>
+```
+
+```ruby
+# In preview.rb files
+render MyComponent.new(url: helpers.request.path)
+```
+
+**Database Access**: Previews can access ActiveRecord models from the dummy app:
+
+```ruby
+# preview.rb
+def with_real_data
+  filter_form = Bali::FilterForm.new(Movie.all, params)
+  pagy, records = pagy(filter_form.result, items: 5)
+
+  render_with_template(locals: { records: records, pagy: pagy })
+end
+```
+
+**Pagination**: Use Pagy (~> 8.0) - configured in `spec/dummy/config/initializers/pagy.rb`:
+- Include `Pagy::Backend` in ApplicationController
+- Include `Pagy::Frontend` in ApplicationHelper
+
+**Sorting**: Use Ransack's `sort_link` helper with `Bali::FilterForm`:
+
+```erb
+<%= render Bali::Table::Component.new(form: filter_form) do |t| %>
+  <%= t.with_header(name: 'Name', sort: :name) %>  <%# Sortable %>
+  <%= t.with_header(name: 'Status') %>              <%# Not sortable %>
+<% end %>
 ```
 
 ## Stimulus Controllers
@@ -510,6 +595,80 @@ yarn run cy:run
 | Skip preview updates | Always update Lookbook preview |
 | Skip tests | Always run RSpec after changes |
 | Use jQuery | Use vanilla JS or Stimulus |
+
+## Component Composition (CRITICAL)
+
+**ALWAYS use existing Bali components instead of raw HTML with DaisyUI classes.** This ensures consistency, maintainability, and leverages built-in accessibility features.
+
+### Common Composition Mistakes
+
+| ❌ DON'T USE | ✅ USE INSTEAD |
+|--------------|----------------|
+| `<div class="card">...</div>` | `<%= render Bali::Card::Component.new %>` |
+| `<span class="badge">text</span>` | `<%= render Bali::Tag::Component.new(text: 'text') %>` |
+| `<button class="btn">...</button>` | `<%= render Bali::Button::Component.new %>` |
+| `<a class="link">...</a>` | `<%= render Bali::Link::Component.new %>` |
+| `<div class="alert">...</div>` | `<%= render Bali::Notification::Component.new %>` |
+| `<table class="table">...</table>` | `<%= render Bali::Table::Component.new %>` |
+| `<div class="dropdown">...</div>` | `<%= render Bali::Dropdown::Component.new %>` |
+| `<dialog class="modal">...</dialog>` | `<%= render Bali::Modal::Component.new %>` |
+
+### Example: Building a Grid View
+
+```erb
+<%# ❌ BAD: Raw HTML %>
+<div class="card bg-base-100 shadow">
+  <div class="card-body">
+    <span class="badge badge-primary">Tag</span>
+  </div>
+</div>
+
+<%# ✅ GOOD: Using Bali components %>
+<%= render Bali::Card::Component.new(style: :bordered) do %>
+  <div class="card-body">
+    <%= render Bali::Tag::Component.new(text: 'Tag', color: :primary) %>
+  </div>
+<% end %>
+```
+
+### Before Writing Raw HTML
+
+1. Check the Component Catalog below for an existing component
+2. If a component exists, use it even if it requires learning its API
+3. Only use raw HTML for truly custom layouts not covered by existing components
+
+## Icons (CRITICAL - READ BEFORE USING)
+
+**ALWAYS check `app/components/bali/icon/options.rb` before using an icon.** The Bali icon system uses a curated set of SVG icons - NOT FontAwesome or Lucide icon names.
+
+### Common Icon Mistakes to Avoid
+
+| ❌ DON'T USE | ✅ USE INSTEAD |
+|--------------|----------------|
+| `eye` | `expand` or `search` |
+| `pencil` | `edit` |
+| `building` | `business` |
+| `folder` | `box-archive` |
+| `save` | `check` |
+| `close` | `times` |
+| `warning` | `alert` |
+| `error` | `times-circle` |
+
+### Available Icons (Quick Reference)
+
+**Navigation/Actions:** `arrow-left`, `arrow-right`, `arrow-back`, `arrow-forward`, `chevron-down`, `chevron-left`, `chevron-right`, `chevron-up`, `expand`, `external-link-alt`, `search`, `filter`, `home`
+
+**CRUD Operations:** `plus`, `plus-circle`, `edit`, `edit-alt`, `trash`, `trash-alt`, `copy`, `download`, `upload`, `check`, `times`
+
+**Content:** `image`, `images`, `comment`, `mail`, `attachment`, `link`, `bookmark`, `star`, `bell`, `notification`
+
+**Users/Business:** `user`, `users`, `user-plus`, `business`, `store`, `wallet`, `credit-card`, `coins`, `receipt`
+
+**Status/Feedback:** `check-circle`, `times-circle`, `alert`, `alert-alt`, `info-circle`, `exclamation-circle`, `success`
+
+**UI Elements:** `cog`, `ellipsis-h`, `more`, `grid`, `list`, `table`, `calendar-alt`, `clock`, `print`
+
+**Full list:** See `app/components/bali/icon/options.rb` for all ~150 available icons.
 
 ## File Naming
 

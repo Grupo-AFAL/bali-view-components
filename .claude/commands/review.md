@@ -94,6 +94,16 @@ Use the `dhh-code-reviewer` agent to analyze:
 - [ ] `tag.attributes` for options passthrough
 - [ ] Proper slot usage
 
+### Component Composition
+- [ ] Uses existing Bali components (Card, Tag, Button, etc.) instead of raw HTML
+- [ ] No raw `<div class="card">`, `<span class="badge">`, `<button class="btn">` when Bali equivalents exist
+- [ ] Check Component Catalog in CLAUDE.md for available components
+
+### Icons
+- [ ] All icons exist in `app/components/bali/icon/options.rb`
+- [ ] No guessed icon names (eye, pencil, building are NOT available)
+- [ ] Use correct alternatives: `expand` not `eye`, `edit` not `pencil`, `business` not `building`
+
 ### Tests
 - [ ] Tests all variants
 - [ ] Tests all sizes
@@ -101,9 +111,10 @@ Use the `dhh-code-reviewer` agent to analyze:
 - [ ] Tests edge cases (nil, empty)
 
 ### Preview
-- [ ] All variants demonstrated
-- [ ] Param controls for interactive testing
-- [ ] Grouped examples
+- [ ] Uses `@param` annotations for interactive testing (avoid separate methods for each variant)
+- [ ] Only creates separate preview methods when significantly different markup is needed
+- [ ] Includes Markdown comments for consumer-relevant info (dependencies, gotchas, code examples)
+- [ ] Notes are critical - only what helps consumers, not implementation details
 
 ## Example Execution
 

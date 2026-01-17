@@ -7,7 +7,7 @@ RSpec.describe Bali::Table::Component, type: :component do
 
   before { @options = {} }
 
-  it 'renders a table with headers' do
+  it 'renders a table with headers using array syntax' do
     render_inline(component) do |c|
       c.with_headers([
                        { name: 'name' },
@@ -18,6 +18,17 @@ RSpec.describe Bali::Table::Component, type: :component do
     expect(page).to have_css 'table'
     expect(page).to have_css 'tr th', text: 'name'
     expect(page).to have_css 'tr th', text: 'amount'
+  end
+
+  it 'renders a table with headers using singular syntax' do
+    render_inline(component) do |c|
+      c.with_header(name: 'name')
+      c.with_header(name: 'amount', class: 'text-right')
+    end
+
+    expect(page).to have_css 'table'
+    expect(page).to have_css 'tr th', text: 'name'
+    expect(page).to have_css 'tr th.text-right', text: 'amount'
   end
 
   it 'renders a table with rows' do

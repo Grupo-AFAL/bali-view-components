@@ -184,6 +184,7 @@ GEM
     nokogiri (1.18.9)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
+    pagy (8.6.3)
     parallel (1.27.0)
     parser (3.3.9.0)
       ast (~> 2.4.1)
@@ -362,6 +363,7 @@ DEPENDENCIES
   device_detector
   dotenv
   lookbook
+  pagy (~> 8.0)
   propshaft
   puma (< 7)
   ransack

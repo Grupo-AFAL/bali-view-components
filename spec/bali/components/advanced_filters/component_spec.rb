@@ -60,7 +60,8 @@ RSpec.describe Bali::AdvancedFilters::Component, type: :component do
                       available_attributes: available_attributes
                     ))
 
-      expect(page).to have_button('Add filter group')
+      # Icon-only button with tooltip in popover mode
+      expect(page).to have_css('[data-advanced-filters-target="addGroupButton"]')
     end
   end
 

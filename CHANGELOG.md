@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `Bali::DataTable::Component` now uses `AdvancedFilters` instead of the legacy `Filters` component.
+  - New `filters_panel` slot accepts `available_attributes:` for defining filterable fields
+  - New `toolbar_buttons` slot for right-aligned buttons (column selector, export, etc.)
+  - Added sorting examples using Ransack's `sort_link` helper
+  - Added pagination examples using Pagy
+- `ColumnSelectorController` Stimulus controller for toggling table column visibility.
+  - Supports hiding columns by default (remove `checked` attribute from checkbox)
+  - Works by column index, no coordination needed between selector and table cells
+- Added `pagy` gem (~> 8.0) for pagination support in previews and applications.
+
 - `Bali::AdvancedFilters::Component` for building complex filter UIs with Ransack groupings support.
   - Supports multiple filter groups with AND/OR combinators between groups
   - Supports multiple conditions within each group with AND/OR combinators

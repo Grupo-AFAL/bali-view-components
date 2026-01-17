@@ -29,7 +29,8 @@ module Bali
         end
 
         def build_url(query_params = {}, url: nil)
-          add_query_params(url || @url, { q: @filter_form.query_params }.merge(query_params))
+          base_params = @filter_form ? { q: @filter_form.query_params } : {}
+          add_query_params(url || @url, base_params.merge(query_params))
         end
       end
     end

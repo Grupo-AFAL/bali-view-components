@@ -18,10 +18,16 @@
 <% end %>
 <% if @grid_display_mode_enabled %>
   <%= tag.span('&#9474;'.html_safe, class: 'mx-2 text-base-content/30') if @export_formats.size.positive? %>
-  <%= render Bali::Link::Component.new(name: render(Bali::Icon::Component.new('list')),
-      href: build_url({ @display_mode_param_name => :table }),
-      type: :text, active: @display_mode&.to_sym == :table, data: { turbo_stream: true }) %>
-  <%= render Bali::Link::Component.new(name: render(Bali::Icon::Component.new('grid')),
-      href: build_url({ @display_mode_param_name => :grid }),
-      type: :text, active: @display_mode&.to_sym == :grid, data: { turbo_stream: true }) %>
+  <div class="join">
+    <%= link_to build_url({ @display_mode_param_name => :table }),
+        class: class_names('join-item btn btn-ghost btn-sm btn-square', 'btn-active' => @display_mode&.to_sym == :table),
+        data: { turbo_action: 'replace' } do %>
+      <%= render Bali::Icon::Component.new('list') %>
+    <% end %>
+    <%= link_to build_url({ @display_mode_param_name => :grid }),
+        class: class_names('join-item btn btn-ghost btn-sm btn-square', 'btn-active' => @display_mode&.to_sym == :grid),
+        data: { turbo_action: 'replace' } do %>
+      <%= render Bali::Icon::Component.new('grid') %>
+    <% end %>
+  </div>
 <% end %>

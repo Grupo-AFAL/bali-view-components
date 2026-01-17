@@ -44,6 +44,7 @@ import {
   AppliedTagsController,
   MultiSelectController
 } from '../../../components/bali/advanced_filters/index'
+import { ColumnSelectorController } from '../../../components/bali/data_table/index'
 
 export { TableController } from '../../../components/bali/table/index'
 export { ModalController } from '../../../components/bali/modal/index'
@@ -85,6 +86,9 @@ export {
   AppliedTagsController,
   MultiSelectController
 } from '../../../components/bali/advanced_filters/index'
+
+// DataTable components
+export { ColumnSelectorController } from '../../../components/bali/data_table/index'
 
 /**
  * Register all core Bali component controllers with a Stimulus application
@@ -136,4 +140,7 @@ export function registerAll (application) {
   application.register('condition', ConditionController)
   application.register('applied-tags', AppliedTagsController)
   application.register('multi-select', MultiSelectController)
+
+  // DataTable
+  application.register('column-selector', ColumnSelectorController)
 }

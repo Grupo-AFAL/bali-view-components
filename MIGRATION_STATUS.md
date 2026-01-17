@@ -47,7 +47,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Chart | ✅ | ✅ | N/A | ✅ | Custom (Chart.js) |
 | Clipboard | ✅ | ✅ | ✅ | ✅ | Tailwind compliant |
 | Columns | ✅ | ✅ | ✅ | ✅ | CSS Grid layout |
-| DataTable | ✅ | ✅ | ✅ | ❌ | Needs manual review |
+| DataTable | ✅ | ✅ | ✅ | ✅ | Migrated to AdvancedFilters, added column selector |
 | DeleteLink | ✅ | ❌ | ❌ | ❌ | Needs verification |
 | Drawer | ✅ | ✅ | ✅ | ❌ | Needs manual review |
 | Dropdown | ✅ | ❌ | ❌ | ❌ | Needs verification |
@@ -107,7 +107,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 ---
 
-## Fully Verified Components (12)
+## Fully Verified Components (13)
 
 Components with ✅ in all applicable columns:
 
@@ -123,6 +123,7 @@ Components with ✅ in all applicable columns:
 10. **Chart** - Custom (Chart.js)
 11. **Clipboard** - Tailwind compliant
 12. **Columns** - CSS Grid layout
+13. **DataTable** - Migrated to AdvancedFilters, column selector, sorting, pagination
 
 ---
 
@@ -186,6 +187,7 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 
 | Date | Component | Change | By |
 |------|-----------|--------|-----|
+| 2026-01-15 | DataTable | Migrated to AdvancedFilters, added column selector, sorting/pagination demos | AI + Human |
 | 2026-01-15 | AdvancedFilters | NEW: Complex filter UI with Ransack | AI |
 | 2026-01-15 | Tabs | Fixed Cypress selectors for DaisyUI | AI |
 | 2026-01-15 | CI | Fixed Cypress workflow | AI |

@@ -52,20 +52,7 @@
                 class: 'w-full' do |f| %>
 
             <div class="p-4 space-y-4">
-              <%# Compact header %>
-              <div class="flex justify-between items-center pb-2 border-b border-base-200">
-                <span class="font-semibold">
-                  <%= t('bali.advanced_filters.title', default: 'Advanced Filters') %>
-                </span>
-                <button type="button"
-                        class="btn btn-ghost btn-xs text-error"
-                        data-action="advanced-filters#clearAll"
-                        data-advanced-filters-target="clearButton">
-                  <%= t('bali.advanced_filters.clear_all', default: 'Clear all') %>
-                </button>
-              </div>
-
-              <%# Filter groups container %>
+              <%# Filter groups container - no header for compact layout %>
               <div data-advanced-filters-target="groupsContainer" class="space-y-4">
                 <% filter_groups.each_with_index do |group, group_idx| %>
                   <% if group_idx > 0 %>
@@ -99,28 +86,35 @@
                 <% end %>
               </div>
 
-              <%# Add group button %>
-              <button type="button"
-                      class="btn btn-ghost btn-sm gap-2 w-full text-primary hover:bg-primary/10"
-                      data-action="advanced-filters#addGroup"
-                      data-advanced-filters-target="addGroupButton">
-                <%= render Bali::Icon::Component.new('plus', class: 'w-4 h-4') %>
-                <%= t('bali.advanced_filters.add_group', default: 'Add filter group') %>
-              </button>
-
-              <%# Actions %>
-              <div class="flex justify-end gap-2 pt-2 border-t border-base-200">
+              <%# Compact footer: Clear all (left) | Add group + Reset + Apply (right) %>
+              <div class="flex justify-between items-center gap-2 pt-3 border-t border-base-200">
                 <button type="button"
-                        class="btn btn-ghost btn-sm"
-                        data-action="advanced-filters#reset">
-                  <%= t('bali.advanced_filters.reset', default: 'Reset') %>
+                        class="btn btn-ghost btn-xs text-error"
+                        data-action="advanced-filters#clearAll"
+                        data-advanced-filters-target="clearButton">
+                  <%= t('bali.advanced_filters.clear_all', default: 'Clear all') %>
                 </button>
-                <button type="submit"
-                        class="btn btn-primary btn-sm"
-                        data-action="advanced-filters#apply">
-                  <%= render Bali::Icon::Component.new('check', class: 'w-4 h-4') %>
-                  <%= t('bali.advanced_filters.apply', default: 'Apply') %>
-                </button>
+
+                <div class="flex items-center gap-2">
+                  <button type="button"
+                          class="btn btn-ghost btn-sm text-primary gap-1"
+                          data-action="advanced-filters#addGroup"
+                          data-advanced-filters-target="addGroupButton">
+                    <%= render Bali::Icon::Component.new('plus', class: 'w-4 h-4') %>
+                    <%= t('bali.advanced_filters.add_group', default: 'Add filter group') %>
+                  </button>
+                  <button type="button"
+                          class="btn btn-ghost btn-sm"
+                          data-action="advanced-filters#reset">
+                    <%= t('bali.advanced_filters.reset', default: 'Reset') %>
+                  </button>
+                  <button type="submit"
+                          class="btn btn-primary btn-sm"
+                          data-action="advanced-filters#apply">
+                    <%= render Bali::Icon::Component.new('check', class: 'w-4 h-4') %>
+                    <%= t('bali.advanced_filters.apply', default: 'Apply') %>
+                  </button>
+                </div>
               </div>
             </div>
           <% end %>

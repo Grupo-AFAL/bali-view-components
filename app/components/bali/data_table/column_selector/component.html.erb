@@ -1,0 +1,23 @@
+<div class="dropdown dropdown-end"
+     data-controller="column-selector"
+     data-column-selector-table-value="<%= table_id %>">
+  <button type="button" tabindex="0" class="btn btn-outline btn-sm gap-2">
+    <%= render Bali::Icon::Component.new(button_icon, class: 'w-4 h-4') %>
+    <%= button_label %>
+  </button>
+  <ul tabindex="0" class="dropdown-content z-50 menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-200">
+    <li class="menu-title">Show/Hide Columns</li>
+    <% columns.each do |column| %>
+      <li>
+        <label class="label cursor-pointer justify-start gap-3">
+          <input type="checkbox"
+                 <%= 'checked' if column.visible %>
+                 class="checkbox checkbox-sm checkbox-primary"
+                 data-action="column-selector#toggle"
+                 data-column-index="<%= column.index %>" />
+          <span class="label-text"><%= column.label %></span>
+        </label>
+      </li>
+    <% end %>
+  </ul>
+</div>

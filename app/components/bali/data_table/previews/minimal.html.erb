@@ -1,6 +1,5 @@
+<%# DataTable without filters - just a simple table %>
 <%= render Bali::DataTable::Component.new(url: request.path) do |c| %>
-  <% c.with_filters_panel(available_attributes: filter_attributes) %>
-
   <% c.with_table do %>
     <%= render Bali::Table::Component.new do |ct| %>
       <%= ct.with_headers(headers) %>

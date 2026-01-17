@@ -1,0 +1,35 @@
+<%# DataTable with sortable columns - click headers to sort %>
+<%= render Bali::DataTable::Component.new(url: request.path) do |c| %>
+  <% c.with_filters_panel(available_attributes: filter_attributes) %>
+
+  <% c.with_table do %>
+    <%= render Bali::Table::Component.new(form: filter_form) do |t| %>
+      <%# Sortable headers - pass sort: :attribute_name %>
+      <%= t.with_header(name: 'Name', sort: :name) %>
+      <%= t.with_header(name: 'Genre', sort: :genre) %>
+      <%= t.with_header(name: 'Studio') %>
+      <%= t.with_header(name: 'Status', sort: :status) %>
+      <%= t.with_header(name: 'Indie', sort: :indie) %>
+      <%= t.with_header(name: 'Created At', sort: :created_at) %>
+
+      <% movies.each do |movie| %>
+        <%= t.with_row do %>
+          <td class="font-medium"><%= movie.name %></td>
+          <td><%= movie.genre %></td>
+          <td class="text-sm text-base-content/70"><%= movie.tenant&.name %></td>
+          <td>
+            <span class="badge <%= movie.done? ? 'badge-success' : 'badge-warning' %>">
+              <%= movie.status.humanize %>
+            </span>
+          </td>
+          <td>
+            <%= render Bali::BooleanIcon::Component.new(value: movie.indie) %>
+          </td>
+          <td class="text-sm text-base-content/70">
+            <%= movie.created_at.strftime('%b %d, %Y') %>
+          </td>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
