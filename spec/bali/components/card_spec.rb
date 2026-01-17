@@ -120,8 +120,18 @@ RSpec.describe Bali::Card::Component, type: :component do
         end
       end
 
+      expect(page).to have_css '.flex.items-center.gap-3.justify-between'
       expect(page).to have_css 'h2.card-title', text: 'Notifications'
       expect(page).to have_text 'NEW'
+    end
+
+    it 'does not add justify-between without badge' do
+      render_inline(described_class.new) do |c|
+        c.with_header(title: 'No Badge')
+      end
+
+      expect(page).to have_css '.flex.items-center.gap-3'
+      expect(page).not_to have_css '.justify-between'
     end
 
     it 'renders header with icon, subtitle, and badge' do

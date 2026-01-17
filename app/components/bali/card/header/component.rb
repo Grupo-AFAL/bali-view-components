@@ -26,7 +26,11 @@ module Bali
         private
 
         def header_classes
-          class_names('flex items-center gap-3', @options[:class])
+          class_names(
+            'flex items-center gap-3',
+            @options[:class],
+            'justify-between' => badge?
+          )
         end
 
         def render_icon

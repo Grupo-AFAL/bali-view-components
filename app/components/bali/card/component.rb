@@ -5,8 +5,8 @@ module Bali
     class Component < ApplicationViewComponent
       STYLES = {
         default: '',
-        bordered: 'card-border border-base-300',
-        dash: 'card-dash border-base-300'
+        bordered: 'card-border',
+        dash: 'card-dash'
       }.freeze
 
       SIZES = {

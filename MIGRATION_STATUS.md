@@ -52,7 +52,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Breadcrumb             |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Proper DaisyUI breadcrumbs                         |
 | BulkActions            |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Fixed is-hidden→hidden                             |
 | Calendar               |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Uses card, table, btn correctly                    |
-| Card                   |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Full DaisyUI card                                  |
+| Card                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10  | Full DaisyUI card, fixed header badge positioning  |
 | Carousel               |  ✅   |    ✅     |   N/A   |   ✅   |    -    | Uses Glide.js, fixed CSS                           |
 | Chart                  |  ✅   |    ✅     |   N/A   |   ✅   |    -    | Custom (Chart.js)                                  |
 | Clipboard              |  ✅   |    ✅     |   ✅    |   ✅   |    -    | Tailwind compliant                                 |
@@ -80,7 +80,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Loader                 |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | LocationsMap           |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom component                                   |
 | Message                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
-| Modal                  |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
+| Modal                  |  ✅   |    ✅     |   ✅    |   ❌   |  9/10  | Slots for header/body/actions, WCAG accessibility  |
 | Navbar                 |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | Notification           |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | PageHeader             |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
@@ -218,3 +218,5 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-13 | Multiple (11)                | Manual verification                                                          | Human      |
 | 2026-01-13 | Table, TreeView, BulkActions | Fixed is-hidden→hidden                                                       | AI         |
 | 2026-01-17 | Infrastructure               | Add parallel review tooling + quality score tracking                         | AI         |
+| 2026-01-17 | Card                         | Score 8→9: Fixed header badge positioning, removed redundant border classes  | AI         |
+| 2026-01-17 | Modal                        | Score 7→9: Added header/body/actions slots, WCAG aria-describedby            | AI         |
