@@ -67,7 +67,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | FlashNotifications     |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | Private attr_readers, Lookbook params, 6 tests     |
 | Form                   |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | FormBuilder: Full Bulma→DaisyUI, 117 tests pass    |
 | GanttChart             |  ✅   |    ❌     |   N/A   |   ❌   |  8/10   | Bulma→DaisyUI, explicit action methods, 21 tests   |
-| Heatmap                |  ✅   |    ❌     |   N/A   |   ❌   |  9/10   | Frozen constants, required data:, validated dimensions, 26 tests |
+| Heatmap                |  ✅   |    ❌     |   N/A   |   ✅   |  9/10   | Frozen constants, required data:, validated dimensions, 26 tests |
 | Hero                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Private attr_reader, Hash#fetch, Bali::Button preview |
 | HoverCard              |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | Icon                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |

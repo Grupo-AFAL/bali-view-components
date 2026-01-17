@@ -272,7 +272,12 @@ After documentation review:
    git push origin HEAD
    ```
 
-4. **Generate Cycle Report** (see format below)
+4. **Wait for user visual confirmation**:
+   - The user will check the component in Lookbook
+   - When the user confirms it looks good (e.g., "looks good", "it works", "yes"), update the **Manual** column to ✅ in `MIGRATION_STATUS.md`
+   - This step completes the human verification loop
+
+5. **Generate Cycle Report** (see format below)
 
 ## Exit Conditions
 
