@@ -26,12 +26,13 @@ module Bali
       end
 
       # Disabled delete links can show a hover card explaining why deletion is not available.
+      # The `disabled_hover_url` should return content explaining why deletion is disabled.
       # @param disabled toggle
       def with_hovercard(disabled: true)
         render DeleteLink::Component.new(
           href: '/lookbook',
           disabled: disabled,
-          disabled_hover_url: '/lookbook'
+          disabled_hover_url: '/show-content-in-hovercard'
         )
       end
 
