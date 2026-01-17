@@ -17,15 +17,18 @@ module Bali
 
       # @param align select { choices: [start, center, end] }
       # @param direction select { choices: [~, top, bottom, left, right] }
+      # @param width select { choices: [sm, md, lg, xl] }
       # Playground
       # ---------------
-      # Explore different alignments and directions.
+      # Explore different alignments, directions, and widths.
       # **Alignment** controls horizontal position (start/center/end).
       # **Direction** controls where menu opens (top/bottom/left/right).
-      def playground(align: :start, direction: nil)
+      # **Width** controls menu width (sm=10rem, md=13rem, lg=16rem, xl=20rem).
+      def playground(align: :start, direction: nil, width: :md)
         render_with_template(locals: {
           align: align.to_sym,
-          direction: direction.presence&.to_sym
+          direction: direction.presence&.to_sym,
+          width: width.to_sym
         })
       end
 

@@ -30,10 +30,19 @@ module Bali
         right: 'dropdown-right'
       }.freeze
 
-      def initialize(align: :start, direction: nil, icon: 'ellipsis-h', **options)
+      # Menu width
+      WIDTHS = {
+        sm: 'w-40',
+        md: 'w-52',
+        lg: 'w-64',
+        xl: 'w-80'
+      }.freeze
+
+      def initialize(align: :start, direction: nil, icon: 'ellipsis-h', width: :md, **options)
         @align = align&.to_sym
         @direction = direction&.to_sym
         @icon = icon
+        @width = width&.to_sym
         @options = prepend_class_name(options, dropdown_classes)
       end
 
@@ -57,6 +66,13 @@ module Bali
 
       def trigger_classes
         'btn btn-ghost btn-sm btn-circle text-neutral-600 hover:text-neutral-800'
+      end
+
+      def menu_classes
+        class_names(
+          'dropdown-content menu bg-base-100 text-neutral-800 rounded-box z-1 p-2 shadow-sm',
+          WIDTHS[@width]
+        )
       end
     end
   end

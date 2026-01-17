@@ -174,4 +174,38 @@ RSpec.describe Bali::ActionsDropdown::Component, type: :component do
       expect(page).to have_css 'div.dropdown.dropdown-top.dropdown-end'
     end
   end
+
+  describe 'menu width' do
+    it 'uses medium width by default' do
+      render_inline(described_class.new) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css 'ul.dropdown-content.w-52'
+    end
+
+    it 'supports small width' do
+      render_inline(described_class.new(width: :sm)) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css 'ul.dropdown-content.w-40'
+    end
+
+    it 'supports large width' do
+      render_inline(described_class.new(width: :lg)) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css 'ul.dropdown-content.w-64'
+    end
+
+    it 'supports extra large width' do
+      render_inline(described_class.new(width: :xl)) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css 'ul.dropdown-content.w-80'
+    end
+  end
 end
