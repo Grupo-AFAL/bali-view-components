@@ -12,7 +12,17 @@ es:
       text: Limpiar agujeros
     generic_confirm_message:
       text: '¿Estas seguro(a)?'
-  bali: 
+  bali:
+    form_builder:
+      file:
+        choose_file: Seleccionar archivo
+        no_file_selected: Ningún archivo seleccionado
+      search:
+        placeholder: Buscar...
+      slim_select:
+        search_placeholder: Buscar
+        select_all: Seleccionar todo
+        deselect_all: Deseleccionar todo
     time_periods:
       yearly: Anual
       yesterday: Ayer

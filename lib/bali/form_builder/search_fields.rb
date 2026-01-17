@@ -5,7 +5,7 @@ module Bali
     module SearchFields
       def search_field_group(method, options = {})
         options.with_defaults!(
-          placeholder: 'Search...',
+          placeholder: I18n.t('bali.form_builder.search.placeholder'),
           addon_right: tag.button(
             @template.render(Bali::Icon::Component.new('search')),
             type: 'submit',

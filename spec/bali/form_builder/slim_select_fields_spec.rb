@@ -8,8 +8,8 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
   describe '#slim_select_group' do
     let(:slim_select_group) { builder.slim_select_group(:status, Movie.statuses.to_a) }
 
-    it 'render a label an input within a wrapper' do
-      expect(slim_select_group).to have_css 'div.field.field-group-wrapper-component'
+    it 'renders a label and input within a wrapper' do
+      expect(slim_select_group).to have_css 'div.form-control'
     end
 
     it 'renders a label' do

@@ -11,7 +11,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'renders a label and input within a field wrapper' do
-      expect(coordinates_polygon_field_group).to have_css 'div.field'
+      expect(coordinates_polygon_field_group).to have_css 'div.form-control'
     end
 
     it 'renders a label' do

@@ -12,7 +12,17 @@ en:
       text: Clear holes
     generic_confirm_message:
       text: Are you sure?
-  bali: 
+  bali:
+    form_builder:
+      file:
+        choose_file: Choose file
+        no_file_selected: No file selected
+      search:
+        placeholder: Search...
+      slim_select:
+        search_placeholder: Search
+        select_all: Select all
+        deselect_all: Deselect all
     time_periods:
       yearly: Yearly
       yesterday: Yesterday

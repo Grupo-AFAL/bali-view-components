@@ -8,8 +8,8 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
   describe '#number_field_group' do
     let(:number_field_group) { builder.number_field_group(:budget) }
 
-    it 'render a label an input within a wrapper' do
-      expect(number_field_group).to have_css 'div.field.field-group-wrapper-component'
+    it 'renders a label and input within a wrapper' do
+      expect(number_field_group).to have_css 'div.form-control'
     end
 
     it 'renders a label' do

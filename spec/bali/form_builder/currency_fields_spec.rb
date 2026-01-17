@@ -9,7 +9,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     let(:currency_field_group) { builder.currency_field_group(:budget) }
 
     it 'renders a label and input within a wrapper' do
-      expect(currency_field_group).to have_css 'div#field-budget.field-group-wrapper-component'
+      expect(currency_field_group).to have_css 'div#field-budget.form-control'
     end
 
     it 'renders a label' do

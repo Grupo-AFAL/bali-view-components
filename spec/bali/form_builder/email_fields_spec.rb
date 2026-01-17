@@ -9,7 +9,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     let(:email_field_group) { builder.email_field_group(:contact_email) }
 
     it 'renders a label and input within a wrapper' do
-      expect(email_field_group).to have_css 'div.field.field-group-wrapper-component'
+      expect(email_field_group).to have_css 'div.form-control'
     end
 
     it 'renders a label' do

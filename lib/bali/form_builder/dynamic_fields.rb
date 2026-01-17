@@ -127,7 +127,7 @@ module Bali
       end
 
       def add_link_tag(method, options)
-        button_text = options[:button_text] || 'Add'
+        button_text = options[:button_text] || I18n.t('helpers.add.text')
         button_class = options[:button_class] || 'btn btn-primary'
 
         tag.div(class: 'level-right') do

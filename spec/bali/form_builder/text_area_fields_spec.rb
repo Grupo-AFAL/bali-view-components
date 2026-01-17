@@ -8,8 +8,8 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
   describe '#text_area_group' do
     let(:text_area_group) { builder.text_area_group(:synopsis) }
 
-    it 'render a label an input within a wrapper' do
-      expect(text_area_group).to have_css 'div.field.field-group-wrapper-component'
+    it 'renders a label and input within a wrapper' do
+      expect(text_area_group).to have_css 'div.form-control'
     end
 
     it 'renders a label' do

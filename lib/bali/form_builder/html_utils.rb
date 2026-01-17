@@ -45,7 +45,7 @@ module Bali
       end
 
       def full_errors(method)
-        object.errors.full_messages_for(method).join(', ').html_safe
+        safe_join(object.errors.full_messages_for(method), ', ')
       end
 
       # rubocop:disable Style/OptionalBooleanParameter

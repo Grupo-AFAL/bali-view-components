@@ -21,12 +21,12 @@ module Bali
       private
 
       def custom_file_field(method, options = {})
-        options.with_defaults!({
-                                 choose_file_text: 'Choose file',
-                                 non_selected_text: 'No file selected',
-                                 icon: 'upload',
-                                 multiple: false
-                               })
+        options.with_defaults!(
+          choose_file_text: I18n.t('bali.form_builder.file.choose_file'),
+          non_selected_text: I18n.t('bali.form_builder.file.no_file_selected'),
+          icon: 'upload',
+          multiple: false
+        )
 
         options = prepend_class_name(options, 'file-input')
         options = prepend_action(options, 'file-input#onChange')

@@ -63,10 +63,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Drawer                 |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | Unique IDs, position param, header/footer slots, WCAG |
 | Dropdown               |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | i18n aria-label, Trigger VARIANTS, 21 tests        |
 | FieldGroupWrapper      |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | DaisyUI form-control, class_names, 18 tests        |
-| Filters                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
+| Filters                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | **DEPRECATED** - Use AdvancedFilters instead       |
 | FlashNotifications     |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | Private attr_readers, Lookbook params, 6 tests     |
-| Form                   |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
-| GanttChart             |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom component                                   |
+| Form                   |  ✅   |    ✅     |   N/A   |   ❌   |  7/10   | FormBuilder: i18n, safe_join, 117 tests pass       |
+| GanttChart             |  ✅   |    ❌     |   N/A   |   ❌   |   🔄    | Review in progress                                 |
 | Heatmap                |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom component                                   |
 | Hero                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | HoverCard              |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
@@ -124,9 +124,9 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Score Range | Count | Components |
 |-------------|-------|------------|
 | 9-10 (✅)   | 19    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Modal (9) |
-| 7-8 (⚠️)    | 0     | - |
+| 7-8 (⚠️)    | 1     | Form (7) |
 | < 7 (❌)    | 0     | - |
-| Not scored  | 37    | Remaining components |
+| Not scored  | 36    | Remaining components |
 
 ---
 
@@ -237,3 +237,6 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Drawer                       | Score 9: Unique IDs, POSITIONS const, header/footer slots, WCAG, 32 tests    | AI         |
 | 2026-01-17 | FieldGroupWrapper            | Score 9: DaisyUI form-control, class_names, no options mutation, 18 tests    | AI         |
 | 2026-01-17 | FlashNotifications           | Score 9: Private attr_readers, Lookbook params, 6 tests                      | AI         |
+| 2026-01-17 | Filters                      | **DEPRECATED**: Emits warning, recommend AdvancedFilters                     | AI         |
+| 2026-01-17 | AdvancedFilters              | Added date range support with `between` operator (dual inputs)               | AI         |
+| 2026-01-17 | Form (FormBuilder)           | Score 7: i18n translations, safe_join, fixed 15 test expectations, 117 tests | AI         |

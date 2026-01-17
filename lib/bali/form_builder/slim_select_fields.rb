@@ -16,13 +16,13 @@ module Bali
           add_items: false,
           show_content: 'auto',
           show_search: true,
-          search_placeholder: 'Buscar',
+          search_placeholder: I18n.t('bali.form_builder.slim_select.search_placeholder'),
           add_to_body: false,
           close_on_select: true,
           allow_deselect_option: false,
           select_all: false,
-          select_all_text: 'Select all',
-          deselect_all_text: 'Deselect all'
+          select_all_text: I18n.t('bali.form_builder.slim_select.select_all'),
+          deselect_all_text: I18n.t('bali.form_builder.slim_select.deselect_all')
         )
 
         html_options[:class] = class_names(

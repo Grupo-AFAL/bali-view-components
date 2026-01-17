@@ -9,7 +9,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     let(:time_group) { builder.time_field_group(:duration) }
 
     it 'renders the input and label within a wrapper' do
-      expect(time_group).to have_css '#field-duration.field-group-wrapper-component'
+      expect(time_group).to have_css '#field-duration.form-control'
     end
 
     it 'renders the label' do
