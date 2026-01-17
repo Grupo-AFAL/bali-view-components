@@ -282,8 +282,34 @@ For maximum parallelism and overnight runs:
 - In-session mode: ensure no uncommitted changes
 
 ### Permission prompts
-- Add missing permissions to `.claude/settings.local.json`
-- Or run with `claude --dangerously-skip-permissions` (shell script)
+Add missing permissions to `.claude/settings.local.json`. Required permissions:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Skill(review-cycle)",
+      "Skill(review)",
+      "Skill(review-all)",
+      "Bash(bundle exec rspec:*)",
+      "Bash(bundle exec rubocop:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git worktree:*)",
+      "Bash(jq:*)",
+      "Bash(mkdir:*)",
+      "Bash(rm:*)",
+      "Bash(sed:*)",
+      "Bash(cat:*)",
+      "Bash(ruby -e:*)",
+      "Bash(./scripts/:*)"
+    ]
+  }
+}
+```
 
 ### Memory issues
 - Reduce `--parallel` count
