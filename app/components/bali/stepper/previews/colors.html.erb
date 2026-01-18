@@ -1,0 +1,51 @@
+<div class="space-y-8">
+  <div>
+    <h3 class="text-sm font-semibold mb-2">Primary (default)</h3>
+    <%= render Bali::Stepper::Component.new(current: 2, color: :primary) do |c|
+      c.with_step(title: 'Step 1')
+      c.with_step(title: 'Step 2')
+      c.with_step(title: 'Step 3')
+      c.with_step(title: 'Step 4')
+    end %>
+  </div>
+
+  <div>
+    <h3 class="text-sm font-semibold mb-2">Secondary</h3>
+    <%= render Bali::Stepper::Component.new(current: 2, color: :secondary) do |c|
+      c.with_step(title: 'Step 1')
+      c.with_step(title: 'Step 2')
+      c.with_step(title: 'Step 3')
+      c.with_step(title: 'Step 4')
+    end %>
+  </div>
+
+  <div>
+    <h3 class="text-sm font-semibold mb-2">Accent</h3>
+    <%= render Bali::Stepper::Component.new(current: 2, color: :accent) do |c|
+      c.with_step(title: 'Step 1')
+      c.with_step(title: 'Step 2')
+      c.with_step(title: 'Step 3')
+      c.with_step(title: 'Step 4')
+    end %>
+  </div>
+
+  <div>
+    <h3 class="text-sm font-semibold mb-2">Success</h3>
+    <%= render Bali::Stepper::Component.new(current: 2, color: :success) do |c|
+      c.with_step(title: 'Step 1')
+      c.with_step(title: 'Step 2')
+      c.with_step(title: 'Step 3')
+      c.with_step(title: 'Step 4')
+    end %>
+  </div>
+
+  <div>
+    <h3 class="text-sm font-semibold mb-2">Error</h3>
+    <%= render Bali::Stepper::Component.new(current: 2, color: :error) do |c|
+      c.with_step(title: 'Step 1')
+      c.with_step(title: 'Step 2')
+      c.with_step(title: 'Step 3')
+      c.with_step(title: 'Step 4')
+    end %>
+  </div>
+</div>

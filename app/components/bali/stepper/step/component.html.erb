@@ -1,8 +1,3 @@
-<%= tag.div(**options) do %>
-  <div class="step-marker">
-    <%= render Bali::Icon::Component.new('check') if done? %>
-  </div>
-  <div class="step-details">
-    <p class="step-title"><%= title %></p>
-  </div>
+<%= tag.li(**step_options) do %>
+  <%= title %>
 <% end %>

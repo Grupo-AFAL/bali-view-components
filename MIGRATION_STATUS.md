@@ -118,7 +118,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | RichTextEditor         |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom (TipTap)                                                    |
 | SearchInput            |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Frozen constants, field: param, class_names, no mutation, 17 tests |
 | SideMenu               |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | MATCH_TYPES const, class_names, no mutation, auto-controller, 13 tests |
-| SortableList           |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
+| SortableList           |  ✅   |    ✅     |   N/A   |   ❌   |  9/10   | BASE_CLASSES, DEFAULTS, private attr, build_options helper, 21 tests |
 | Stepper                |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | DaisyUI steps, COLORS/ORIENTATIONS, class_names, 20 tests          |
 | Table                  |  ✅   |    ✅     |   ✅    |   ❌   |   🔄    | Review in progress                                                 |
 | Tabs                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Cypress tests fixed                                                |
