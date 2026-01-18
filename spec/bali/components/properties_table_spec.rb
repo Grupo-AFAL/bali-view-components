@@ -10,7 +10,7 @@ RSpec.describe Bali::PropertiesTable::Component, type: :component do
       end
 
       expect(page).to have_css 'table.properties-table-component'
-      expect(page).to have_css 'td.property-label', text: 'Label 1'
+      expect(page).to have_css 'th.property-label', text: 'Label 1'
       expect(page).to have_css 'td.property-value', text: 'Value 1'
     end
 
@@ -22,7 +22,7 @@ RSpec.describe Bali::PropertiesTable::Component, type: :component do
       end
 
       expect(page).to have_css 'tr.properties-table-property-component', count: 3
-      expect(page).to have_css 'td.property-label', text: 'Name'
+      expect(page).to have_css 'th.property-label', text: 'Name'
       expect(page).to have_css 'td.property-value', text: 'john@example.com'
     end
 
@@ -59,21 +59,22 @@ RSpec.describe Bali::PropertiesTable::Component, type: :component do
   end
 
   describe 'CSS classes' do
-    it 'applies base table classes' do
+    it 'applies DaisyUI table classes with zebra striping' do
       render_inline(described_class.new) do |c|
         c.with_property(label: 'Test', value: 'Value')
       end
 
       expect(page).to have_css 'table.table'
+      expect(page).to have_css 'table.table-zebra'
       expect(page).to have_css 'table.properties-table-component'
     end
 
-    it 'applies DaisyUI bg-base-200 to label cells' do
+    it 'uses th for label cells with scope="row"' do
       render_inline(described_class.new) do |c|
         c.with_property(label: 'Test', value: 'Value')
       end
 
-      expect(page).to have_css 'td.property-label.bg-base-200'
+      expect(page).to have_css 'th.property-label[scope="row"]'
     end
 
     it 'applies property row classes' do

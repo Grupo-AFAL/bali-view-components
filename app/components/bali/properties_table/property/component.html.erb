@@ -1,5 +1,5 @@
 <%= tag.tr(**row_attributes) do %>
-  <td class="<%= LABEL_CLASSES %>"><%= label %></td>
+  <th scope="row" class="<%= LABEL_CLASSES %>"><%= label %></th>
   <td class="<%= VALUE_CLASSES %>">
     <%= value || content %>
   </td>
