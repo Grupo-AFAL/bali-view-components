@@ -59,7 +59,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Clipboard              |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI join, BASE_CLASSES, aria-label, 18 tests   |
 | Columns                |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | CSS Grid refactor, gap param, col-span-* classes   |
 | DataTable              |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | i18n, class_names helpers, options hash pattern    |
-| DeleteLink             |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | SIZES const, class_names, explicit params, 20 tests |
+| DeleteLink             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | SIZES const, class_names, explicit params, 20 tests |
 | Drawer                 |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | Unique IDs, position param, header/footer slots, WCAG |
 | Dropdown               |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | i18n aria-label, Trigger VARIANTS, 21 tests        |
 | FieldGroupWrapper      |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | DaisyUI form-control, class_names, 18 tests        |
@@ -113,9 +113,9 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Status         | Tests  | AI Visual | DaisyUI | Manual | Quality |
 | -------------- | :----: | :-------: | :-----: | :----: | :-----: |
-| ✅ Complete    |   56   |    17     |   15    |   13   |   22    |
+| ✅ Complete    |   56   |    17     |   15    |   14   |   22    |
 | ⚠️ Partial     |   0    |     0     |    0    |    0   |    1    |
-| ❌ Not Started |   0    |    39     |   34    |   43   |   33    |
+| ❌ Not Started |   0    |    39     |   34    |   42   |   33    |
 | N/A            |   0    |     0     |    7    |    0   |    0    |
 | **Total**      | **56** |  **56**   | **56**  | **56** | **56**  |
 
@@ -130,7 +130,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 ---
 
-## Fully Verified Components (13)
+## Fully Verified Components (14)
 
 Components with ✅ in all applicable columns:
 
@@ -147,6 +147,7 @@ Components with ✅ in all applicable columns:
 11. **Clipboard** - Tailwind compliant
 12. **Columns** - CSS Grid layout
 13. **DataTable** - Migrated to AdvancedFilters, column selector, sorting, pagination
+14. **DeleteLink** - HoverCard confirmation with DaisyUI styling
 
 ---
 
@@ -244,3 +245,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Hero                         | Score 9: Private attr_reader, Hash#fetch, preview uses Bali::Button          | AI         |
 | 2026-01-17 | Heatmap                      | Score 9: Frozen constants, required data:, validated dimensions, 26 tests    | AI         |
 | 2026-01-17 | Icon                         | Score 9: Lucide integration, SIZE_SVG_CLASSES const, normalize_constant_name helper, 41 tests | AI         |
+| 2026-01-17 | DeleteLink                   | Manually verified: HoverCard confirmation renders correctly                  | Human      |
