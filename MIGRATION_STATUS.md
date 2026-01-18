@@ -83,7 +83,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ SearchFields         |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | btn-neutral default, private search_addon helper, 21 tests         |
 | ↳ SelectFields         |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, DaisyUI select-bordered, Lookbook preview, 13 tests  |
 | ↳ SlimSelectFields     |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Frozen constants, class_names, no mutation, 34 tests               |
-| ↳ StepNumberFields     |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Frozen constants, button_tag, i18n aria-labels, 34 tests           |
+| ↳ StepNumberFields     |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, button_tag, i18n aria-labels, 34 tests           |
 | ↳ SubmitFields         |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | VARIANTS/SIZES constants, variant:/size: options, 40 tests         |
 | ↳ SwitchFields         |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Toggle switch with DaisyUI toggle classes                          |
 | ↳ TextFields           |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Text input with DaisyUI input classes                              |
@@ -374,3 +374,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | RecurrentEventRuleForm         | Score 9: Keyword args, frozen constants, DaisyUI classes, Lookbook preview, 33 tests         | AI         |
 | 2026-01-17 | StepNumberFields (FormBuilder) | Score 9: Frozen constants, button_tag, i18n aria-labels, DaisyUI Stimulus, 34 tests          | AI         |
 | 2026-01-17 | SelectFields (FormBuilder)     | Manually verified: DaisyUI select styling, help text, error states render correctly          | Human      |
+| 2026-01-17 | StepNumberFields (FormBuilder) | Manually verified: +/- buttons work, constraints enforced, all previews render correctly     | Human      |
