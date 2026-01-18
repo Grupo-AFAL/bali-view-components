@@ -398,3 +398,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-18 | SearchInput                    | Score 9: Frozen constants, field: param (no method shadow), no hash mutation, 17 tests       | AI         |
 | 2026-01-18 | SideMenu                       | Score 9: MATCH_TYPES const, class_names helpers, no hash mutation, auto-controller, 13 tests | AI         |
 | 2026-01-18 | Stepper                        | Score 9: Full DaisyUI steps migration, COLORS/ORIENTATIONS constants, CHECKMARK, 20 tests    | AI         |
+| 2026-01-18 | SortableList                   | Score 9: BASE_CLASSES/DEFAULTS constants, private attr, build_options helper, 21 tests       | AI         |
