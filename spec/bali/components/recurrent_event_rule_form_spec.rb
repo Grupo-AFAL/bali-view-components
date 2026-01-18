@@ -186,7 +186,7 @@ RSpec.describe Bali::RecurrentEventRuleForm::Component, type: :component do
     it 'applies peer classes for label styling' do
       render_inline(component)
 
-      expect(page).to have_css 'input[type="checkbox"].peer.hidden'
+      expect(page).to have_css 'input[type="checkbox"].peer.sr-only'
     end
   end
 

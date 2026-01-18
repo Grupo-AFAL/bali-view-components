@@ -176,19 +176,22 @@
         data-rrule-freq-option="weekly_1">
         <% I18n.t('date.day_names').each_with_index do |day, index| %>
           <% day_value = index.zero? ? 6 : index - 1 %>
-          <%= check_box_tag "byweekday_#{unique_id}_[]", day_value, false,
-              id: "byweekday_#{unique_id}_#{day_value}",
-              disabled: disabled,
-              class: 'peer hidden',
-              data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' } %>
-          <%= label_tag "byweekday_#{unique_id}_#{day_value}", day.first,
-              disabled: disabled,
-              class: 'flex items-center justify-center w-10 h-10 rounded-full ' \
-                     'bg-base-300 text-base-content font-semibold text-sm ' \
-                     'cursor-pointer select-none transition-all duration-150 ' \
-                     'hover:bg-base-content/20 hover:scale-105 ' \
-                     'peer-checked:bg-primary peer-checked:text-primary-content peer-checked:shadow-md ' \
-                     'peer-disabled:opacity-50 peer-disabled:cursor-not-allowed' %>
+          <%# Wrap each checkbox-label pair to isolate peer relationship %>
+          <span class="inline-block">
+            <%= check_box_tag "byweekday_#{unique_id}_[]", day_value, false,
+                id: "byweekday_#{unique_id}_#{day_value}",
+                disabled: disabled,
+                class: 'peer sr-only',
+                data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' } %>
+            <%= label_tag "byweekday_#{unique_id}_#{day_value}", day.first,
+                disabled: disabled,
+                class: 'flex items-center justify-center w-10 h-10 rounded-full ' \
+                       'bg-base-300 text-base-content font-semibold text-sm ' \
+                       'cursor-pointer select-none transition-all duration-150 ' \
+                       'hover:bg-base-content/20 hover:scale-105 ' \
+                       'peer-checked:bg-primary peer-checked:text-primary-content peer-checked:shadow-md ' \
+                       'peer-disabled:opacity-50 peer-disabled:cursor-not-allowed' %>
+          </span>
         <% end %>
       </div>
     </fieldset>
