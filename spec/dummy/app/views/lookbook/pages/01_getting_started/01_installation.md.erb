@@ -1,0 +1,100 @@
+---
+title: Installation
+label: Installation
+---
+
+# Installation
+
+## Requirements
+
+- Ruby 3.2+
+- Rails 7.1+
+- Tailwind CSS 4.0+
+- Node.js (for asset pipeline)
+
+## Step 1: Add the Gem
+
+Add Bali to your Gemfile:
+
+```ruby
+gem 'bali'
+```
+
+Then install:
+
+```bash
+bundle install
+```
+
+## Step 2: Install Dependencies
+
+Bali requires Tailwind CSS and DaisyUI:
+
+```bash
+# Install Tailwind CSS
+bin/rails tailwindcss:install
+
+# Add DaisyUI to your package.json
+npm install daisyui
+```
+
+## Step 3: Configure Tailwind
+
+In your `tailwind.config.js`, add DaisyUI as a plugin:
+
+```javascript
+module.exports = {
+  content: [
+    './app/views/**/*.html.erb',
+    './app/components/**/*.{rb,erb}',
+    // Include Bali components
+    './node_modules/bali/**/*.{rb,erb}'
+  ],
+  plugins: [
+    require('daisyui')
+  ],
+  daisyui: {
+    themes: ['light', 'dark']
+  }
+}
+```
+
+## Step 4: Import Stylesheets
+
+In your application stylesheet:
+
+```css
+@import "tailwindcss";
+@import "bali";
+```
+
+## Step 5: Register Stimulus Controllers
+
+If using Stimulus (recommended), register Bali's controllers:
+
+```javascript
+// app/javascript/controllers/index.js
+import { application } from "./application"
+import { registerBaliControllers } from "bali"
+
+registerBaliControllers(application)
+```
+
+## Verify Installation
+
+Create a test view:
+
+```erb
+<%%= render Bali::Button::Component.new(
+  name: 'Test Button',
+  variant: :primary
+) %>
+```
+
+If you see a styled primary button, Bali is installed correctly!
+
+## Next Steps
+
+- Browse the [Component Previews](/lookbook/inspect)
+- Read the [Accessibility Guide](/lookbook/pages/02_guides/01_accessibility)
+- Learn [Component Patterns](/lookbook/pages/03_patterns/01_component_patterns)

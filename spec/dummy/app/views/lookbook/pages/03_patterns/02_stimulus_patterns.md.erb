@@ -1,0 +1,268 @@
+---
+title: Stimulus Patterns
+label: Stimulus
+---
+
+# Stimulus Controller Patterns
+
+Standard patterns for Stimulus controllers in Bali components.
+
+## Controller Anatomy
+
+```javascript
+import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller {
+  // 1. Targets - DOM element references
+  static targets = ["menu", "trigger"]
+
+  // 2. Values - Reactive state
+  static values = {
+    open: { type: Boolean, default: false }
+  }
+
+  // 3. Classes - CSS classes to toggle
+  static classes = ["active", "hidden"]
+
+  // 4. Outlets - References to other controllers
+  static outlets = ["modal"]
+
+  // 5. Lifecycle
+  connect() { }
+  disconnect() { }
+
+  // 6. Actions
+  toggle() { }
+
+  // 7. Value callbacks
+  openValueChanged(value) { }
+}
+```
+
+---
+
+## Common Controllers
+
+### Modal Controller
+
+```javascript
+export default class extends Controller {
+  static targets = ["dialog"]
+  static values = { open: Boolean }
+
+  open() {
+    this.dialogTarget.showModal()
+    this.openValue = true
+    this.trapFocus()
+  }
+
+  close() {
+    this.dialogTarget.close()
+    this.openValue = false
+    this.releaseFocus()
+  }
+
+  backdropClick(event) {
+    const rect = this.dialogTarget.getBoundingClientRect()
+    const isInDialog = (
+      rect.top <= event.clientY &&
+      event.clientY <= rect.top + rect.height &&
+      rect.left <= event.clientX &&
+      event.clientX <= rect.left + rect.width
+    )
+    if (!isInDialog) this.close()
+  }
+
+  trapFocus() {
+    this.previousActiveElement = document.activeElement
+    const focusable = this.dialogTarget.querySelectorAll(
+      'button, [href], input, select, textarea'
+    )
+    if (focusable.length) focusable[0].focus()
+  }
+
+  releaseFocus() {
+    this.previousActiveElement?.focus()
+  }
+}
+```
+
+### Dropdown Controller
+
+```javascript
+export default class extends Controller {
+  static targets = ["menu"]
+  static values = { open: { type: Boolean, default: false } }
+
+  connect() {
+    this.boundClickOutside = this.clickOutside.bind(this)
+  }
+
+  disconnect() {
+    document.removeEventListener("click", this.boundClickOutside)
+  }
+
+  toggle() {
+    this.openValue = !this.openValue
+  }
+
+  openValueChanged(isOpen) {
+    if (isOpen) {
+      this.menuTarget.classList.remove("hidden")
+      document.addEventListener("click", this.boundClickOutside)
+    } else {
+      this.menuTarget.classList.add("hidden")
+      document.removeEventListener("click", this.boundClickOutside)
+    }
+  }
+
+  clickOutside(event) {
+    if (!this.element.contains(event.target)) {
+      this.openValue = false
+    }
+  }
+}
+```
+
+---
+
+## Keyboard Navigation
+
+### Arrow Key Navigation
+
+```javascript
+keydown(event) {
+  switch (event.key) {
+    case "Escape":
+      this.close()
+      break
+    case "ArrowDown":
+      event.preventDefault()
+      this.focusNextItem()
+      break
+    case "ArrowUp":
+      event.preventDefault()
+      this.focusPreviousItem()
+      break
+  }
+}
+
+focusNextItem() {
+  const items = this.menuTarget.querySelectorAll("[role='menuitem']")
+  const current = document.activeElement
+  const index = Array.from(items).indexOf(current)
+  const next = items[index + 1] || items[0]
+  next?.focus()
+}
+```
+
+---
+
+## Focus Management
+
+### Focus Trap
+
+```javascript
+trapFocus(container) {
+  const focusable = container.querySelectorAll(
+    'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+  )
+
+  const first = focusable[0]
+  const last = focusable[focusable.length - 1]
+
+  container.addEventListener("keydown", (e) => {
+    if (e.key !== "Tab") return
+
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault()
+      last.focus()
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault()
+      first.focus()
+    }
+  })
+
+  first?.focus()
+}
+```
+
+---
+
+## Event Patterns
+
+### Dispatching Events
+
+```javascript
+// Dispatch from controller
+this.dispatch("select", {
+  detail: { value: selectedValue }
+})
+
+// Listen in parent
+<div data-action="dropdown:select->parent#handleSelect">
+```
+
+### Cross-Controller Communication
+
+```javascript
+// Using outlets
+static outlets = ["modal"]
+
+openConfirmation() {
+  this.modalOutlet.open()
+}
+
+// Using custom events
+document.dispatchEvent(new CustomEvent("bali:modal:open", {
+  detail: { id: "confirm-dialog" }
+}))
+```
+
+---
+
+## Anti-Patterns
+
+### Don't: Mix Concerns
+
+```javascript
+// BAD - Too many responsibilities
+export default class extends Controller {
+  static targets = ["modal", "dropdown", "tabs", "form"]
+}
+
+// GOOD - Single responsibility
+export default class extends Controller {
+  static targets = ["dialog"]
+  // Only modal logic
+}
+```
+
+### Don't: Forget Cleanup
+
+```javascript
+// BAD - Memory leak
+connect() {
+  document.addEventListener("click", this.handleClick)
+}
+
+// GOOD - Clean up
+connect() {
+  this.boundHandle = this.handleClick.bind(this)
+  document.addEventListener("click", this.boundHandle)
+}
+
+disconnect() {
+  document.removeEventListener("click", this.boundHandle)
+}
+```
+
+### Don't: Direct DOM Manipulation
+
+```javascript
+// BAD
+document.querySelector(".modal").classList.add("open")
+
+// GOOD - Use targets
+this.modalTarget.classList.add("open")
+```
