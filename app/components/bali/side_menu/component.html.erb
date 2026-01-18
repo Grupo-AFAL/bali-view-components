@@ -1,14 +1,18 @@
 <%= tag.div(**container_options) do %>
   <% if multiple_menus? %>
-    <div class="dropdown w-full mb-2">
-      <div tabindex="0" role="button" class="flex items-center gap-2 w-full p-2 rounded-lg hover:bg-base-300 cursor-pointer">
+    <div class="dropdown dropdown-bottom w-full mb-2">
+      <div tabindex="0" role="button" class="flex items-center w-full p-2 rounded-lg hover:bg-base-200 cursor-pointer border border-base-300 bg-base-100">
         <%= active_menu %>
-        <%= render Bali::Icon::Component.new('chevron-down', class: 'w-4 h-4 ml-auto') %>
+        <%= render Bali::Icon::Component.new('chevron-down', class: 'w-4 h-4 ml-auto shrink-0') %>
       </div>
-      <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-50 w-full p-2 shadow-lg">
+      <ul tabindex="0" class="dropdown-content z-50 w-full mt-1 p-1 shadow-lg bg-base-100 rounded-lg border border-base-300 flex flex-col">
         <% authorized_menus.each do |menu| %>
-          <li class="<%= 'disabled' if menu == active_menu %>">
-            <a href="<%= menu.href %>" class="<%= 'active' if menu == active_menu %>">
+          <li class="w-full list-none">
+            <a href="<%= menu.href %>" class="<%= class_names(
+              'flex items-center w-full p-2 rounded-md transition-colors',
+              'bg-primary/10 text-primary pointer-events-none': menu == active_menu,
+              'hover:bg-base-200': menu != active_menu
+            ) %>">
               <%= menu %>
             </a>
           </li>

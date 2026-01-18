@@ -208,6 +208,51 @@
   @apply block bg-black/50 opacity-100 pointer-events-auto;
 }
 
+/* Menu switcher dropdown styles */
+.side-menu-component .dropdown {
+  /* Ensure dropdown content appears below and stacks vertically */
+  .dropdown-content {
+    /* Override any inherited menu styles */
+    display: none;
+    flex-direction: column;
+    top: 100%;
+    left: 0;
+
+    li {
+      display: block;
+      width: 100%;
+
+      a {
+        display: flex;
+        width: 100%;
+      }
+    }
+  }
+
+  /* Show dropdown when focused */
+  &:focus-within .dropdown-content,
+  &:focus .dropdown-content {
+    display: flex;
+  }
+
+  /* Active menu item styling */
+  .menu-switch-active {
+    @apply bg-primary/10;
+
+    .side-menu-component--menu-switch-component {
+      @apply text-primary;
+
+      p {
+        @apply text-primary;
+      }
+
+      .text-base-content\/60 {
+        @apply text-primary/70;
+      }
+    }
+  }
+}
+
 .menu-switcher-tippy-wrapper {
   .tippy-svg-arrow {
     @apply hidden;
