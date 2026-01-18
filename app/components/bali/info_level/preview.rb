@@ -3,17 +3,22 @@
 module Bali
   module InfoLevel
     class Preview < ApplicationViewComponentPreview
-      # @param align select [left, center, right]
-      def default(align: 'center')
-        render InfoLevel::Component.new(align: align) do |c|
+      # @param align select { choices: [start, center, end, between] }
+      def default(align: :center)
+        render InfoLevel::Component.new(align: align.to_sym) do |c|
           c.with_item do |i|
-            i.with_heading('Heading 1')
-            i.with_title('Title 1')
+            i.with_heading('Posts')
+            i.with_title('128')
           end
 
           c.with_item do |i|
-            i.with_heading('Heading 2')
-            i.with_title('Title 2')
+            i.with_heading('Following')
+            i.with_title('2,456')
+          end
+
+          c.with_item do |i|
+            i.with_heading('Followers')
+            i.with_title('12.3K')
           end
         end
       end

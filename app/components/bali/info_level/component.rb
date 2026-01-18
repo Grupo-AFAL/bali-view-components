@@ -10,19 +10,23 @@ module Bali
         between: 'justify-between'
       }.freeze
 
-      attr_reader :options
+      BASE_CLASSES = 'info-level-component flex flex-wrap gap-8'
 
       renders_many :items, Item::Component
 
       def initialize(align: :center, **options)
-        @align = align&.to_sym
+        @align = align.to_sym
         @options = prepend_class_name(options, info_level_classes)
       end
 
+      private
+
+      attr_reader :options
+
       def info_level_classes
         class_names(
-          'info-level-component flex flex-wrap gap-8',
-          ALIGNMENTS[@align] || ALIGNMENTS[:center]
+          BASE_CLASSES,
+          ALIGNMENTS.fetch(@align, ALIGNMENTS[:center])
         )
       end
     end

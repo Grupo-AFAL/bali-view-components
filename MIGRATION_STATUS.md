@@ -99,7 +99,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Icon                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lucide integration, resolution pipeline            |
 | ImageField             |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | SIZES const, class_names, Button for clear, i18n, 31 tests |
 | ImageGrid              |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | COLUMNS/GAPS/ASPECT_RATIOS, class_names, 34 tests  |
-| InfoLevel              |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
+| InfoLevel              |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, ALIGNMENTS.fetch, private attr, 22 tests |
 | LabelValue             |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
 | Level                  |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | Link                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
@@ -277,3 +277,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Drawer                       | Manually verified: Fixed Tailwind JIT for open class, render_with_template for slots preview | Human      |
 | 2026-01-17 | HoverCard                    | Score 9: PLACEMENTS/TRIGGERS constants, class_names, data merge, 43 tests    | AI         |
 | 2026-01-17 | ImageField                   | Score 9: SIZES const, src: keyword, Button for clear action, i18n, memory cleanup, 31 tests | AI         |
+| 2026-01-17 | InfoLevel                    | Score 9: BASE_CLASSES, ALIGNMENTS.fetch, nav→div semantics, private attr, 22 tests | AI         |
