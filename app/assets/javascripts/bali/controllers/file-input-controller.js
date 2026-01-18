@@ -40,7 +40,13 @@ export class FileInputController extends Controller {
 
   onChange (event) {
     const newFiles = Array.from(event.target.files)
-    this.filesArray = this.filesArray.concat(newFiles)
+
+    // For single file mode, replace existing file; for multiple, append
+    if (this.multipleValue) {
+      this.filesArray = this.filesArray.concat(newFiles)
+    } else {
+      this.filesArray = newFiles
+    }
 
     this.updateFileList()
   }
@@ -78,7 +84,7 @@ export class FileInputController extends Controller {
 
   filesListUI () {
     return `
-      <ul>
+      <ul class="space-y-1 mt-2">
         ${this.filesArray.map(file => this.fileItemUI(file)).join('')}
       </ul>
     `
@@ -86,17 +92,21 @@ export class FileInputController extends Controller {
 
   fileItemUI (file) {
     return `
-      <li>
-        <span>${file.name}</span>
-        <a data-action="file-input#removeFile" data-file-input-name-param="${file.name}">
-          <span class="icon-component icon has-text-danger">
-            <svg viewBox="0 0 448 512" class="svg-inline">
-              <path fill="currentColor"
-                d="M268 416h24a12 12 0 0012-12V188a12 12 0 00-12-12h-24a12 12 0 00-12 12v216a12 12 0 0012 12zM432 80h-82.4l-34-56.7A48 48 0 00274.4 0H173.6a48 48 0 00-41.2 23.3L98.4 80H16A16 16 0 000 96v16a16 16 0 0016 16h16v336a48 48 0 0048 48h288a48 48 0 0048-48V128h16a16 16 0 0016-16V96a16 16 0 00-16-16zM171.8 51a6 6 0 015.2-3h94a6 6 0 015.2 3l17.4 29H154.4zM368 464H80V128h288zm-212-48h24a12 12 0 0012-12V188a12 12 0 00-12-12h-24a12 12 0 00-12 12v216a12 12 0 0012 12z"
-                class=""></path>
-            </svg>
-          </span>
-        </a>
+      <li class="flex items-center gap-2 text-sm">
+        <span class="truncate">${file.name}</span>
+        <button type="button"
+                class="btn btn-ghost btn-xs text-error hover:bg-error/10"
+                data-action="file-input#removeFile"
+                data-file-input-name-param="${file.name}"
+                aria-label="Remove ${file.name}">
+          <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h18"></path>
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+        </button>
       </li>
     `
   }

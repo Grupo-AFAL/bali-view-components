@@ -22,23 +22,28 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'renders a label with cursor-pointer class' do
-      expect(file_field_group).to have_css 'label.cursor-pointer', text: 'No file selected'
+      expect(file_field_group).to have_css 'label.cursor-pointer'
     end
 
     it 'renders an icon' do
       expect(file_field_group).to have_css 'span.icon-component'
     end
 
-    it 'renders with file-input class on the input' do
-      expect(file_field_group).to have_css 'input.file-input'
+    it 'renders with hidden class on the input (hidden but accessible)' do
+      expect(file_field_group).to have_css 'input.hidden'
     end
 
     it 'renders the CTA button with proper classes' do
-      expect(file_field_group).to have_css 'span.btn.btn-ghost.btn-sm.gap-2'
+      expect(file_field_group).to have_css 'span.btn.btn-soft.btn-primary.btn-sm.gap-2'
     end
 
     it 'renders the filename display with truncate class' do
       expect(file_field_group).to have_css 'span.truncate'
+    end
+
+    it 'renders filename display outside the label' do
+      # The status text should be a sibling of label, not inside it
+      expect(file_field_group).to have_css 'div > label + span.truncate'
     end
   end
 
@@ -51,8 +56,8 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
       )
     end
 
-    it 'renders with file-input class' do
-      expect(file_field).to have_css 'input.file-input'
+    it 'renders with hidden class (hidden but accessible)' do
+      expect(file_field).to have_css 'input.hidden'
     end
   end
 
@@ -70,8 +75,9 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
 
     it 'hides label when choose_file_text is false' do
       html = builder.file_field(:cover_photo, choose_file_text: false)
-      expect(html).to have_css 'span.btn.btn-ghost span.icon-component'
-      expect(html).not_to have_css 'span.btn.btn-ghost span:not(.icon-component)'
+      expect(html).to have_css 'span.btn.btn-soft span.icon-component'
+      # Only icon should be inside button, no text label
+      expect(html).not_to have_css 'span.btn.btn-soft > span:not(.icon-component)'
     end
 
     it 'accepts custom icon' do
@@ -123,9 +129,10 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
       expect(html).to have_css 'input[data-testid="file-upload"]'
     end
 
-    it 'merges custom classes with file-input class' do
+    it 'keeps input hidden even with custom class option' do
+      # Custom class is ignored since the input must be hidden
       html = builder.file_field(:cover_photo, class: 'custom-input')
-      expect(html).to have_css 'input.file-input.custom-input'
+      expect(html).to have_css 'input.hidden'
     end
   end
 
@@ -154,24 +161,24 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
   end
 
   describe 'constants' do
-    it 'has INPUT_CLASS constant' do
-      expect(described_class::FileFields::INPUT_CLASS).to eq('file-input')
+    it 'has INPUT_CLASS constant (hidden for accessibility)' do
+      expect(described_class::FileFields::INPUT_CLASS).to eq('hidden')
     end
 
     it 'has WRAPPER_CLASS constant' do
-      expect(described_class::FileFields::WRAPPER_CLASS).to eq('flex items-center gap-2')
+      expect(described_class::FileFields::WRAPPER_CLASS).to eq('flex items-center gap-3')
     end
 
     it 'has FILENAME_CLASS constant' do
-      expect(described_class::FileFields::FILENAME_CLASS).to eq('truncate text-base-content/70')
+      expect(described_class::FileFields::FILENAME_CLASS).to eq('text-sm text-base-content/60 truncate')
     end
 
     it 'has CTA_CLASS constant' do
-      expect(described_class::FileFields::CTA_CLASS).to eq('btn btn-ghost btn-sm gap-2')
+      expect(described_class::FileFields::CTA_CLASS).to eq('btn btn-soft btn-primary btn-sm gap-2')
     end
 
     it 'has LABEL_CLASS constant' do
-      expect(described_class::FileFields::LABEL_CLASS).to eq('cursor-pointer')
+      expect(described_class::FileFields::LABEL_CLASS).to eq('cursor-pointer inline-flex')
     end
 
     it 'has DEFAULT_ICON constant' do

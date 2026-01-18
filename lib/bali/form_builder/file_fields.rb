@@ -5,11 +5,12 @@ module Bali
     alias rails_file_field file_field
 
     module FileFields
-      INPUT_CLASS = 'file-input'
-      WRAPPER_CLASS = 'flex items-center gap-2'
-      FILENAME_CLASS = 'truncate text-base-content/70'
-      CTA_CLASS = 'btn btn-ghost btn-sm gap-2'
-      LABEL_CLASS = 'cursor-pointer'
+      # hidden class hides the native file input (consistent with ImageField)
+      INPUT_CLASS = 'hidden'
+      WRAPPER_CLASS = 'flex items-center gap-3'
+      FILENAME_CLASS = 'text-sm text-base-content/60 truncate'
+      CTA_CLASS = 'btn btn-soft btn-primary btn-sm gap-2'
+      LABEL_CLASS = 'cursor-pointer inline-flex'
       DEFAULT_ICON = 'upload'
 
       def file_field_group(method, options = {})
@@ -40,11 +41,8 @@ module Bali
         input_options = build_input_options(options)
 
         @template.content_tag(:div, wrapper_options(non_selected_text, multiple, file_class)) do
-          @template.content_tag(:label, class: LABEL_CLASS) do
-            rails_file_field(method, input_options) +
-              file_cta(file_icon_name, choose_file_text) +
-              filename_display(non_selected_text)
-          end
+          file_label(method, input_options, file_icon_name, choose_file_text) +
+            filename_display(non_selected_text)
         end
       end
 
@@ -56,8 +54,16 @@ module Bali
         end
       end
 
+      def file_label(method, input_options, file_icon_name, choose_file_text)
+        @template.content_tag(:label, class: LABEL_CLASS) do
+          rails_file_field(method, input_options) +
+            file_cta(file_icon_name, choose_file_text)
+        end
+      end
+
       def build_input_options(options)
-        opts = prepend_class_name(options, INPUT_CLASS)
+        # Override class completely - file input must be hidden (not styled as DaisyUI input)
+        opts = options.merge(class: INPUT_CLASS)
         opts = prepend_action(opts, 'file-input#onChange')
         prepend_data_attribute(opts, :file_input_target, :input)
       end

@@ -73,7 +73,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ DatetimeFields       |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen const, no mutation, Lookbook preview, 15 tests |
 | ↳ DynamicFields        |  ✅   |    ❌     |   N/A   |   ❌   |  9/10   | Frozen constants, Stimulus integration, 35 tests   |
 | ↳ EmailFields          |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lookbook preview, comprehensive tests (21)         |
-| ↳ FileFields           |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | Frozen constants, class_names, private helpers, 31 tests |
+| ↳ FileFields           |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, hidden input, JS icon fix, 32 tests |
 | ↳ NumberFields         |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Self-contained module, Lookbook preview, 23 tests  |
 | ↳ PasswordFields       |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lookbook preview, comprehensive tests (21)         |
 | ↳ PercentageFields     |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DEFAULT_SYMBOL const, symbol: option, Lookbook preview, 7 tests |
@@ -139,9 +139,9 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Status         | Tests  | AI Visual | DaisyUI | Manual | Quality |
 | -------------- | :----: | :-------: | :-----: | :----: | :-----: |
-| ✅ Complete    |   77   |    38     |   56    |   36   |   40    |
+| ✅ Complete    |   77   |    38     |   56    |   37   |   40    |
 | ⚠️ Partial     |   0    |     0     |    0    |    0   |    1    |
-| ❌ Not Started |   4    |    43     |   12    |   45   |   40    |
+| ❌ Not Started |   4    |    43     |   12    |   44   |   40    |
 | N/A            |   0    |     0     |   13    |    0   |    0    |
 | **Total**      | **81** |  **81**   | **81**  | **81** | **81**  |
 
@@ -342,3 +342,5 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | NumberFields (FormBuilder)   | Score 9: Self-contained module, Lookbook preview, 23 tests                   | AI         |
 | 2026-01-17 | NumberFields (FormBuilder)   | Manually verified: Default, addons, constraints, help text render correctly  | Human      |
 | 2026-01-17 | PercentageFields (FormBuilder) | Manually verified: Symbol options render correctly in Lookbook             | Human      |
+| 2026-01-17 | FileFields (FormBuilder)     | Score 9: Frozen constants, hidden input, JS file list icons, 32 tests        | AI         |
+| 2026-01-17 | FileFields (FormBuilder)     | Manually verified: Single/multiple modes, file list UI, remove buttons work  | Human      |
