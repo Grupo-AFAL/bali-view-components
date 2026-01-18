@@ -1,3 +1,4 @@
+<% right_content = content %>
 <%= render Bali::Level::Component.new(align: level_align, class: component_classes, **options.except(:class)) do |c| %>
   <%= c.with_left do |level| %>
     <% if render_back_button? %>
@@ -12,7 +13,9 @@
       </div>
     <% end %>
   <% end %>
-  <% c.with_right do %>
-    <%= content %>
+  <% if right_content.present? %>
+    <% c.with_right do %>
+      <%= right_content %>
+    <% end %>
   <% end %>
 <% end %>
