@@ -125,8 +125,8 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Tag                    |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Private attr, class_names, documented constants, 20 tests          |
 | Tags                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | GAPS const, class_names, flex container, 15 tests                  |
 | Timeago                |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | BASE_CLASSES, private attr, class_names, datetime attr, 21 tests   |
-| Timeline               |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review cycle in progress                                           |
-| Tooltip                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
+| Timeline               |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | DaisyUI timeline, COLORS/LINE_COLORS, ul/li semantics, 26 tests    |
+| Tooltip                |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review cycle in progress                                           |
 | TreeView               |  ✅   |    ✅     |   ✅    |   ❌   |    -    | Needs manual review                                                |
 | TurboNativeApp         |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom component                                                   |
 
@@ -412,3 +412,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-18 | Tag                            | Manually verified: All sizes, colors, styles, rounded, custom color with contrast           | Human      |
 | 2026-01-18 | Timeago                        | Manually verified: Relative time formatting, auto-refresh mode works correctly              | Human      |
 | 2026-01-18 | Tabs                           | Manually verified: Loading spinner on demand, full page nav works, styles/sizes apply       | Human      |
+| 2026-01-18 | Timeline                       | Score 9: Full DaisyUI migration, ul/li semantics, COLORS/LINE_COLORS, color: param, 26 tests | AI         |

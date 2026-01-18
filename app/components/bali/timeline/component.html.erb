@@ -1,5 +1,5 @@
-<%= tag.div(**options) do %>
-  <% tags.each do |tag| %>
-    <%= tag %>
+<ul <%= tag.attributes(**container_options) %>>
+  <% tags.each_with_index do |timeline_tag, index| %>
+    <%= timeline_tag %>
   <% end %>
-<% end %>
+</ul>

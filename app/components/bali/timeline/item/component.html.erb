@@ -1,11 +1,13 @@
-<%= tag.div(**options) do %>
-  <%= tag.div(class: class_names('timeline-marker', 'is-icon': icon.present?)) do %>
-    <%= render Bali::Icon::Component.new(icon) if icon.present? %>
-  <% end %>
-
-  <div class="timeline-content">
-    <%= tag.p(heading, class: 'heading') if heading.present? %>
-
+<li>
+  <hr class="<%= line_classes %>"/>
+  <div class="<%= marker_classes %>">
+    <%= render Bali::Icon::Component.new(display_icon, size: :small) %>
+  </div>
+  <div class="timeline-end timeline-box">
+    <% if heading.present? %>
+      <p class="font-semibold"><%= heading %></p>
+    <% end %>
     <%= content %>
   </div>
-<% end %>
+  <hr class="<%= line_classes %>"/>
+</li>
