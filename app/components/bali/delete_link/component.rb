@@ -51,6 +51,10 @@ module Bali
         @authorized
       end
 
+      def authorized?
+        @authorized
+      end
+
       def href
         @href || @model
       end
