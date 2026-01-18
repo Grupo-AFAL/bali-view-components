@@ -4,8 +4,6 @@ module Bali
   module Tabs
     module Trigger
       class Component < ApplicationViewComponent
-        attr_reader :index, :href, :icon, :title, :src, :reload, :active
-
         def initialize(tab, index = 0)
           @index = index
           @icon = tab.icon
@@ -17,6 +15,8 @@ module Bali
         end
 
         private
+
+        attr_reader :index, :href, :icon, :title, :src, :reload, :active
 
         def data
           return {} if href.present?

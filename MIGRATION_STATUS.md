@@ -121,10 +121,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | SortableList           |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | BASE_CLASSES, DEFAULTS, private attr, conditional cursor-grab, 23 tests |
 | Stepper                |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI steps, COLORS/ORIENTATIONS, class_names, 20 tests          |
 | Table                  |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, empty_state_content helper, typo fix, 30 tests   |
-| Tabs                   |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
-| Tag                    |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
-| Tags                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
-| Timeago                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
+| Tabs                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Hash#fetch, private attr, no mutation, ARIA attrs, 25 tests        |
+| Tag                    |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
+| Tags                   |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
+| Timeago                |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
 | Timeline               |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
 | Tooltip                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
 | TreeView               |  ✅   |    ✅     |   ✅    |   ❌   |    -    | Needs manual review                                                |
@@ -404,3 +404,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-18 | Stepper                        | Manually verified: Steps progress, color variants, vertical/horizontal orientations          | Human      |
 | 2026-01-18 | Table                          | Manually verified: Headers, rows, footers, bulk actions, sticky headers, empty states       | Human      |
 | 2026-01-18 | SearchInput                    | Manually verified: Input with join button, auto_submit mode, placeholder options            | Human      |
+| 2026-01-18 | Tabs                           | Score 9: Hash#fetch, private attr_readers, no mutation, explicit href param, 25 tests       | AI         |

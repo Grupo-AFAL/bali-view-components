@@ -1,4 +1,4 @@
-<%= tag.div **@options do %>
+<%= tag.div **options do %>
   <div role="tablist" class="<%= tabs_classes %>">
     <% tabs.each_with_index do |tab, index| %>
       <%= render Bali::Tabs::Trigger::Component.new(tab, index) %>

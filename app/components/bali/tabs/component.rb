@@ -29,11 +29,15 @@ module Bali
         @options = prepend_controller(@options, 'tabs')
       end
 
+      private
+
+      attr_reader :options
+
       def tabs_classes
         class_names(
           'tabs',
-          STYLES[@style],
-          SIZES[@size]
+          STYLES.fetch(@style, ''),
+          SIZES.fetch(@size, '')
         )
       end
     end
