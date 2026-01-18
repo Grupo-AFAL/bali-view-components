@@ -136,6 +136,7 @@ RSpec.describe Bali::SortableList::Item::Component, type: :component do
       expect(described_class::BASE_CLASSES).to include('sortable-item')
       expect(described_class::BASE_CLASSES).to include('bg-base-100')
       expect(described_class::BASE_CLASSES).to include('border')
+      expect(described_class::BASE_CLASSES).to include('cursor-grab')
     end
   end
 

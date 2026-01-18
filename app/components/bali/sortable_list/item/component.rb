@@ -6,7 +6,7 @@ module Bali
       class Component < ApplicationViewComponent
         renders_one :list, SortableList::Component
 
-        BASE_CLASSES = 'sortable-item p-2 bg-base-100 border border-base-300 ' \
+        BASE_CLASSES = 'sortable-item p-2 bg-base-100 border border-base-300 cursor-grab ' \
                        'first:rounded-t last:rounded-b ' \
                        '[&_.sortable-list-component]:pl-4 [&_.sortable-list-component]:pt-2'
 
