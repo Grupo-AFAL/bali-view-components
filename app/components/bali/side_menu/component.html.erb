@@ -1,4 +1,13 @@
 <%= tag.div(**container_options) do %>
+  <% if collapsable? %>
+    <div class="header mb-2">
+      <button type="button" class="btn btn-ghost btn-sm w-full justify-end text-base-content/70"
+              data-action="side-menu#toggleCollapse">
+        <%= render Bali::Icon::Component.new('panel-left-close', class: 'collapse-icon w-5 h-5') %>
+        <%= render Bali::Icon::Component.new('panel-left-open', class: 'expand-icon w-5 h-5') %>
+      </button>
+    </div>
+  <% end %>
   <% if multiple_menus? %>
     <div class="dropdown dropdown-bottom w-full mb-2">
       <div tabindex="0" role="button" class="flex items-center w-full p-2 rounded-lg hover:bg-base-200 cursor-pointer border border-base-300 bg-base-100">
@@ -23,19 +32,6 @@
   <ul class="menu bg-base-200 rounded-box w-56">
     <% if single_menu? %>
       <li class="menu-title"><%= authorized_menus.first %></li>
-    <% end %>
-    <% if collapsable? %>
-      <li>
-        <%= render Bali::Link::Component.new(href: nil, class: 'text-base-content/70',
-            data: { action: 'side-menu#toggleCollapse' }
-        ) do %>
-          <%= render Bali::Icon::Component.new('chevron-left', class: 'collapse-icon') %>
-          <%= render Bali::Icon::Component.new('chevron-right', class: 'expand-icon') %>
-        <% end %>
-      </li>
-    <% end %>
-    <% if show_divider? %>
-      <li class="divider"></li>
     <% end %>
     <% lists.each do |list| %>
       <%= list %>

@@ -101,14 +101,14 @@
   }
 
   .header {
-    @apply flex justify-center;
+    @apply flex justify-end;
 
     .expand-icon {
       @apply hidden;
     }
 
-    .link-component {
-      @apply flex justify-center items-center;
+    .collapse-icon {
+      @apply block;
     }
   }
 
@@ -117,70 +117,74 @@
   }
 
   &.is-collapsed {
-    @apply w-min;
-
-    .menu-switcher--trigger,
-    .menu-list .link-component,
-    .header .link-component {
-      @apply flex justify-center items-center;
-      @apply w-[2.625rem] h-[2.625rem];
-    }
+    width: auto !important;
+    @apply px-1;
 
     .header {
-      @apply flex-col-reverse;
-
-      .link-component:hover {
-        @apply rounded-sm bg-base-200;
-      }
+      @apply justify-center;
 
       .collapse-icon {
         @apply hidden;
       }
 
       .expand-icon {
-        @apply flex m-0;
+        @apply block;
       }
     }
 
-    .side-menu-component--menu-switch-component {
-      @apply justify-center;
+    /* Hide the dropdown menu switcher when collapsed */
+    .dropdown {
+      @apply hidden;
+    }
 
-      .icon {
-        @apply p-0 m-0;
+    /* Collapse the DaisyUI menu */
+    .menu {
+      @apply w-auto p-1 gap-0;
+
+      /* Hide menu titles */
+      .menu-title {
+        @apply hidden;
       }
 
-      .description {
+      /* Center all li items */
+      li {
+        @apply flex justify-center w-full;
+      }
+
+      /* Remove any default padding/margin from the ul inside details */
+      details ul {
         @apply hidden;
       }
     }
 
-    .menu-label {
-      @apply hidden;
-    }
-
-    .menu-list {
-      @apply w-min;
-    }
-
-    .menu-list .link-component {
-      @apply p-0 flex justify-center;
-
-      span:not(.icon),
-      &::after {
-        @apply hidden;
-      }
-
-      span.icon {
-        @apply m-0;
-      }
-    }
-
-    .menu-list ul {
-      @apply hidden;
-    }
-
+    /* Handle collapsed/expanded item visibility */
     .side-menu-component--item-component.is-collapsed {
-      @apply flex;
+      @apply flex justify-center w-full;
+
+      /* Style the tooltip trigger link as centered icon button */
+      .trigger {
+        @apply flex justify-center;
+
+        a {
+          @apply flex items-center justify-center w-10 h-10 rounded-lg;
+          @apply transition-colors;
+
+          &:hover {
+            @apply bg-base-200;
+          }
+
+          /* Remove any icon margins */
+          .icon-component,
+          .iconify {
+            @apply m-0;
+          }
+        }
+
+        /* Active state for icon button */
+        a.active {
+          @apply bg-base-200;
+        }
+      }
     }
 
     .side-menu-component--item-component.is-expanded {
@@ -291,4 +295,73 @@
   &:hover {
     @apply bg-base-200;
   }
+}
+
+/*
+ * DaisyUI Menu Override - Arrow Position & Hover Fix
+ * Using high specificity selectors to override DaisyUI defaults
+ */
+.side-menu-component .menu details > summary {
+  /* Hide native disclosure marker */
+  list-style: none !important;
+}
+
+.side-menu-component .menu details > summary::marker,
+.side-menu-component .menu details > summary::-webkit-details-marker {
+  display: none !important;
+}
+
+/* Arrow on the right side */
+.side-menu-component .menu details > summary::after {
+  content: '' !important;
+  display: inline-block !important;
+  width: 0.5rem !important;
+  height: 0.5rem !important;
+  border-right: 2px solid currentColor !important;
+  border-bottom: 2px solid currentColor !important;
+  border-left: none !important;
+  border-top: none !important;
+  transform: rotate(-45deg) !important;
+  opacity: 0.5 !important;
+  margin-left: auto !important;
+  flex-shrink: 0 !important;
+  transition: transform 0.2s !important;
+  position: static !important;
+}
+
+/* Rotate arrow when open */
+.side-menu-component .menu details[open] > summary::after {
+  transform: rotate(45deg) !important;
+}
+
+/*
+ * Fix double hover: parent should not show hover bg when open or when children are hovered
+ * DaisyUI applies hover bg to summary, we need to remove it in certain conditions
+ */
+
+/* When details is open, remove the default hover background from summary */
+.side-menu-component .menu li > details[open] > summary {
+  background-color: transparent !important;
+}
+
+/* Only apply hover to summary when directly hovered AND no children are hovered */
+.side-menu-component .menu li > details > summary:hover {
+  background-color: oklch(var(--b2, 0.961151 0 0)) !important;
+}
+
+/* Remove ALL hover states from parent summary when ANY child element is hovered */
+.side-menu-component .menu li:has(details ul li:hover) > details > summary {
+  background-color: transparent !important;
+}
+
+.side-menu-component .menu li:has(details ul li:hover) > details > summary:hover {
+  background-color: transparent !important;
+}
+
+/* Also handle when the child link/span is hovered directly */
+.side-menu-component .menu li:has(details ul a:hover) > details > summary,
+.side-menu-component .menu li:has(details ul a:hover) > details > summary:hover,
+.side-menu-component .menu li:has(details ul span:hover) > details > summary,
+.side-menu-component .menu li:has(details ul span:hover) > details > summary:hover {
+  background-color: transparent !important;
 }

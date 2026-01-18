@@ -1,36 +1,64 @@
 <li>
   <% unless subitems? %>
-    <%= render Bali::Link::Component.new(
-        name: @name, href: @href, icon_name: @icon, active_path: @current_path,
-        active: @active, class: item_classes, **link_options) %>
-    <%= render Bali::Tooltip::Component.new(class: 'side-menu-component--item-component is-collapsed') do |tooltip| %>
+    <%# Expanded state: full link with icon and name %>
+    <span class="side-menu-component--item-component is-expanded">
+      <%= render Bali::Link::Component.new(
+          name: @name, href: @href, icon_name: @icon, active_path: @current_path,
+          active: @active, class: item_classes, **link_options) %>
+    </span>
+    <%# Collapsed state: icon-only link with tooltip %>
+    <%= render Bali::Tooltip::Component.new(placement: :right, class: 'side-menu-component--item-component is-collapsed') do |tooltip| %>
       <% tooltip.with_trigger do %>
-        <%= render Bali::Link::Component.new(
-            name: @name, href: @href, icon_name: @icon, active_path: @current_path,
-            active: @active, class: @link_class, **link_options) %>
+        <a href="<%= @href %>" class="<%= 'active' if @active %>">
+          <% if @icon.present? %>
+            <%= render Bali::Icon::Component.new(@icon, class: 'w-5 h-5') %>
+          <% else %>
+            <span class="w-5 h-5 flex items-center justify-center text-xs font-medium">
+              <%= @name&.first&.upcase %>
+            </span>
+          <% end %>
+        </a>
       <% end %>
       <%= @name %>
     <% end %>
   <% else %>
-    <details <%= 'open' if active? %>>
-      <summary>
-        <% if @icon.present? %>
-          <%= render Bali::Icon::Component.new(@icon, class: 'w-5 h-5') %>
-        <% end %>
-        <%= @name %>
-      </summary>
-      <ul>
-        <% if @href.present? %>
-          <li>
-            <a href="<%= @href %>" class="<%= 'active' if @active %>">
-              <%= @name %>
-            </a>
-          </li>
-        <% end %>
-        <% items.each do |item| %>
-          <%= item %>
-        <% end %>
-      </ul>
-    </details>
+    <%# Expanded state: details/summary with subitems %>
+    <div class="side-menu-component--item-component is-expanded">
+      <details <%= 'open' if active? %>>
+        <summary>
+          <% if @icon.present? %>
+            <%= render Bali::Icon::Component.new(@icon, class: 'w-5 h-5') %>
+          <% end %>
+          <%= @name %>
+        </summary>
+        <ul>
+          <% if @href.present? %>
+            <li>
+              <a href="<%= @href %>" class="<%= 'active' if @active %>">
+                <%= @name %>
+              </a>
+            </li>
+          <% end %>
+          <% items.each do |item| %>
+            <%= item %>
+          <% end %>
+        </ul>
+      </details>
+    </div>
+    <%# Collapsed state: icon-only with tooltip %>
+    <%= render Bali::Tooltip::Component.new(placement: :right, class: 'side-menu-component--item-component is-collapsed') do |tooltip| %>
+      <% tooltip.with_trigger do %>
+        <a href="<%= @href.presence || '#' %>" class="<%= 'active' if @active %>">
+          <% if @icon.present? %>
+            <%= render Bali::Icon::Component.new(@icon, class: 'w-5 h-5') %>
+          <% else %>
+            <span class="w-5 h-5 flex items-center justify-center text-xs font-medium">
+              <%= @name&.first&.upcase %>
+            </span>
+          <% end %>
+        </a>
+      <% end %>
+      <%= @name %>
+    <% end %>
   <% end %>
 </li>
