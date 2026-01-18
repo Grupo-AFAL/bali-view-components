@@ -3,7 +3,15 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     alias rails_file_field file_field
+
     module FileFields
+      INPUT_CLASS = 'file-input'
+      WRAPPER_CLASS = 'flex items-center gap-2'
+      FILENAME_CLASS = 'truncate text-base-content/70'
+      CTA_CLASS = 'btn btn-ghost btn-sm gap-2'
+      LABEL_CLASS = 'cursor-pointer'
+      DEFAULT_ICON = 'upload'
+
       def file_field_group(method, options = {})
         @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
           file_field(method, options)
@@ -21,62 +29,73 @@ module Bali
       private
 
       def custom_file_field(method, options = {})
-        options.with_defaults!(
-          choose_file_text: I18n.t('bali.form_builder.file.choose_file'),
-          non_selected_text: I18n.t('bali.form_builder.file.no_file_selected'),
-          icon: 'upload',
-          multiple: false
-        )
+        choose_file_text = extract_option(options, :choose_file_text) { default_choose_text }
+        non_selected_text = extract_option(options, :non_selected_text) do
+          default_non_selected_text
+        end
+        file_icon_name = extract_option(options, :icon) || DEFAULT_ICON
+        multiple = options.fetch(:multiple, false)
+        file_class = extract_option(options, :file_class)
 
-        options = prepend_class_name(options, 'file-input')
-        options = prepend_action(options, 'file-input#onChange')
-        options = prepend_data_attribute(options, :file_input_target, :input)
+        input_options = build_input_options(options)
 
-        choose_file_text = options.delete(:choose_file_text)
-        non_selected_text = options.delete(:non_selected_text)
-        file_icon_name = options.delete(:icon)
-
-        @template.content_tag(:div, wrapper_options(non_selected_text, options)) do
-          @template.content_tag(:label, class: 'cursor-pointer') do
-            rails_file_field(method, options) +
+        @template.content_tag(:div, wrapper_options(non_selected_text, multiple, file_class)) do
+          @template.content_tag(:label, class: LABEL_CLASS) do
+            rails_file_field(method, input_options) +
               file_cta(file_icon_name, choose_file_text) +
-              filename(non_selected_text)
+              filename_display(non_selected_text)
           end
         end
       end
 
-      def wrapper_options(non_selected_text, options)
-        file_class = options.delete(:file_class)
+      def extract_option(options, key, &block)
+        if options.key?(key)
+          options.delete(key)
+        elsif block
+          block.call
+        end
+      end
 
+      def build_input_options(options)
+        opts = prepend_class_name(options, INPUT_CLASS)
+        opts = prepend_action(opts, 'file-input#onChange')
+        prepend_data_attribute(opts, :file_input_target, :input)
+      end
+
+      def wrapper_options(non_selected_text, multiple, file_class)
         {
-          class: ['flex items-center gap-2', file_class].compact.join(' '),
+          class: class_names(WRAPPER_CLASS, file_class => file_class.present?),
           data: {
             controller: 'file-input',
             file_input_non_selected_text_value: non_selected_text,
-            file_input_multiple_value: options[:multiple]
+            file_input_multiple_value: multiple
           }
         }
       end
 
-      def filename(non_selected_text)
+      def filename_display(non_selected_text)
         @template.content_tag(
-          :span, non_selected_text, class: 'truncate text-base-content/70',
-                                    data: { 'file-input-target': 'value' }
+          :span,
+          non_selected_text,
+          class: FILENAME_CLASS,
+          data: { 'file-input-target': 'value' }
         )
       end
 
-      def file_cta(file_icon_name, choose_file_text)
-        @template.content_tag(:span, class: 'btn btn-ghost btn-sm gap-2') do
-          file_icon = @template.render(Bali::Icon::Component.new(file_icon_name))
-
-          file_label = if choose_file_text == false
-                         ''
-                       else
-                         @template.content_tag(:span, choose_file_text)
-                       end
-
-          file_icon + file_label
+      def file_cta(icon_name, label_text)
+        @template.content_tag(:span, class: CTA_CLASS) do
+          icon = @template.render(Bali::Icon::Component.new(icon_name))
+          label = label_text && @template.content_tag(:span, label_text)
+          icon + (label || ''.html_safe)
         end
+      end
+
+      def default_choose_text
+        I18n.t('bali.form_builder.file.choose_file')
+      end
+
+      def default_non_selected_text
+        I18n.t('bali.form_builder.file.no_file_selected')
       end
     end
   end

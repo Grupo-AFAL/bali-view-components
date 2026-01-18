@@ -73,7 +73,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ DatetimeFields       |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen const, no mutation, Lookbook preview, 15 tests |
 | ↳ DynamicFields        |  ✅   |    ❌     |   N/A   |   ❌   |  9/10   | Frozen constants, Stimulus integration, 35 tests   |
 | ↳ EmailFields          |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lookbook preview, comprehensive tests (21)         |
-| ↳ FileFields           |  ✅   |    ❌     |   ✅    |   ❌   |   🔄    | Review in progress                                 |
+| ↳ FileFields           |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | Frozen constants, class_names, private helpers, 31 tests |
 | ↳ NumberFields         |  ✅   |    ❌     |   ✅    |   ❌   |   🔄    | Review in progress                                 |
 | ↳ PasswordFields       |  ✅   |    ❌     |   ✅    |   ❌   |   🔄    | Review in progress                                 |
 | ↳ PercentageFields     |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | DEFAULT_SYMBOL const, symbol: option, Lookbook preview, 7 tests |
