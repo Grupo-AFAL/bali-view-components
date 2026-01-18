@@ -4,34 +4,30 @@
     color: local_assigns[:color] || :base,
     class: 'sticky top-0 z-50'
 ) do |nav| %>
-  <% nav.with_brand { tag.a('LOGO', class: 'btn btn-ghost text-xl', href: '#') } %>
+  <% nav.with_brand do %>
+    <%= render Bali::Link::Component.new(name: 'LOGO', href: '#', variant: :ghost, class: 'text-xl') %>
+  <% end %>
   <% nav.with_menu do |menu| %>
     <% menu.with_start_item(name: 'Home', href: '#') %>
     <% menu.with_start_item(name: 'Documentation', href: '#') %>
-    <% menu.with_start_item(class: 'dropdown dropdown-hover') do %>
-      <div tabindex="0" role="button" class="btn btn-ghost">
-        More
-        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-          <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
-        </svg>
-      </div>
-      <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-        <li><a>About</a></li>
-        <li><a>Jobs</a></li>
-        <li><a>Contact</a></li>
-        <li class="divider"></li>
-        <li><a>Report an issue</a></li>
-      </ul>
+    <% menu.with_start_item(tag_name: :div) do %>
+      <%= render Bali::Dropdown::Component.new(align: :left) do |dropdown| %>
+        <% dropdown.with_trigger(variant: :menu) do %>
+          More
+          <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
+        <% end %>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Jobs</a></li>
+        <li><a href="#">Contact</a></li>
+        <li><a href="#">Report an issue</a></li>
+      <% end %>
     <% end %>
     <%= menu.with_end_item(tag_name: :div) do %>
-      <div class="flex gap-2">
-        <a class="btn btn-primary">Sign up</a>
-        <a class="btn btn-ghost">Log in</a>
+      <div class="flex items-center gap-2">
+        <%# Use neutral variant for contrast on all navbar colors %>
+        <%= render Bali::Link::Component.new(name: 'Sign up', href: '#', variant: :neutral) %>
+        <%= render Bali::Link::Component.new(name: 'Log in', href: '#', variant: :ghost) %>
       </div>
     <% end %>
   <% end %>
 <% end %>
-<div class="p-4">
-  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut 
-    labore et dolore magna aliqua. Sed pulvinar proin gravida hendrerit.</p>
-</div>

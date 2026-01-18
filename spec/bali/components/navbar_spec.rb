@@ -28,7 +28,8 @@ RSpec.describe Bali::Navbar::Component, type: :component do
       expect(page).to have_css 'a', text: 'Team'
       expect(page).to have_css 'a', text: 'Open Positions'
       expect(page).to have_css 'button.btn.btn-ghost'
-      expect(page).to have_css 'nav div.container'
+      # Non-fullscreen: centered with max-width constraint
+      expect(page).to have_css 'nav div.max-w-6xl.mx-auto'
     end
   end
 
@@ -46,7 +47,8 @@ RSpec.describe Bali::Navbar::Component, type: :component do
       expect(page).to have_css 'a.btn.btn-ghost', text: 'Bali'
       expect(page).to have_css 'a', text: 'Tech Stack'
       expect(page).to have_css 'button.btn.btn-ghost'
-      expect(page).not_to have_css 'nav div.container'
+      # Fullscreen: edge-to-edge, no max-width constraint
+      expect(page).not_to have_css 'nav div.max-w-6xl'
     end
   end
 
@@ -166,8 +168,8 @@ RSpec.describe Bali::Navbar::Component, type: :component do
     end
 
     it 'supports container_class option' do
-      render_inline(described_class.new(container_class: 'max-w-7xl'))
-      expect(page).to have_css 'nav div.container.max-w-7xl'
+      render_inline(described_class.new(container_class: 'custom-container'))
+      expect(page).to have_css 'nav div.custom-container'
     end
   end
 end
@@ -178,26 +180,33 @@ RSpec.describe Bali::Navbar::Menu::Component, type: :component do
       menu.with_start_item(name: 'Link', href: '#')
     end
 
-    expect(page).to have_css 'div.navbar-center.hidden'
-    expect(page).to have_css 'ul.menu.menu-horizontal'
+    # Outer wrapper is hidden on mobile, visible on desktop (lg:flex)
+    expect(page).to have_css 'div.hidden'
+    # Menu uses responsive horizontal classes
+    expect(page).to have_css 'ul.menu'
   end
 
-  it 'renders end items' do
+  it 'renders end items in flex container with ml-auto on desktop' do
     render_inline(described_class.new) do |menu|
       menu.with_end_item(name: 'End', href: '#')
     end
 
-    expect(page).to have_css 'a', text: 'End'
+    # ml-auto is responsive (lg:ml-auto)
+    expect(page).to have_css 'div[class*="lg:ml-auto"] a', text: 'End'
   end
 
-  it 'sets correct data-navbar-target for main menu' do
-    render_inline(described_class.new(type: :main))
-    expect(page).to have_css '[data-navbar-target="menu"]'
+  it 'sets correct data-navbar-target for main menu with start_items' do
+    render_inline(described_class.new(type: :main)) do |menu|
+      menu.with_start_item(name: 'Link', href: '#')
+    end
+    expect(page).to have_css 'div[data-navbar-target="menu"]'
   end
 
-  it 'sets correct data-navbar-target for alt menu' do
-    render_inline(described_class.new(type: :alt))
-    expect(page).to have_css '[data-navbar-target="altMenu"]'
+  it 'sets correct data-navbar-target for alt menu with end_items' do
+    render_inline(described_class.new(type: :alt)) do |menu|
+      menu.with_end_item(name: 'Action', href: '#')
+    end
+    expect(page).to have_css 'div[data-navbar-target="altMenu"]'
   end
 end
 

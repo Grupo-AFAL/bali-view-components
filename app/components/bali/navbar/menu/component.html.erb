@@ -1,14 +1,18 @@
-<%= tag.div(**options) do %>
-  <ul class="<%= menu_classes %>">
-    <% start_items.each do |start_item| %>
-      <li><%= start_item %></li>
-    <% end %>
-  </ul>
+<%= tag.div(**menu_wrapper_options) do %>
+  <% if start_items.any? %>
+    <div class="<%= start_items_classes %>">
+      <ul class="<%= menu_classes %>">
+        <% start_items.each do |start_item| %>
+          <li><%= start_item %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
   <% if end_items.any? %>
-    <ul class="<%= menu_classes %>">
+    <div class="<%= end_items_classes %>">
       <% end_items.each do |end_item| %>
-        <li><%= end_item %></li>
+        <%= end_item %>
       <% end %>
-    </ul>
+    </div>
   <% end %>
 <% end %>

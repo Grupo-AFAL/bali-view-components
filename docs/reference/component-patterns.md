@@ -546,3 +546,117 @@ VARIANTS = {
   error: "btn-error"  # Note: danger → error
 }.freeze
 ```
+
+---
+
+## Complex Component Patterns
+
+### Responsive Mobile/Desktop Layouts
+
+For components that need different layouts on mobile vs desktop (like navbars with dropdown menus):
+
+```ruby
+# Mobile: vertical stacking, hidden by default
+# Desktop: horizontal layout, always visible
+WRAPPER_CLASSES_MOBILE = %w[
+  hidden flex-col gap-4 absolute left-0 top-full
+  w-full bg-base-100 shadow-lg p-4 z-40
+].join(' ').freeze
+
+WRAPPER_CLASSES_DESKTOP = %w[
+  lg:flex lg:flex-1 lg:static lg:flex-row lg:items-center
+  lg:gap-4 lg:bg-transparent lg:shadow-none lg:p-0 lg:z-auto
+].join(' ').freeze
+
+def wrapper_classes
+  class_names(WRAPPER_CLASSES_MOBILE, WRAPPER_CLASSES_DESKTOP)
+end
+```
+
+### JavaScript Toggle Patterns (Tailwind)
+
+When toggling visibility with Stimulus, use Tailwind's `hidden`/`flex` classes instead of
+Bulma's `is-active` pattern:
+
+```javascript
+// BAD - Bulma pattern (doesn't work with Tailwind)
+toggleMenu() {
+  this.menuTarget.classList.toggle('is-active')
+}
+
+// GOOD - Tailwind pattern
+toggleVisibility(element) {
+  const isHidden = element.classList.contains('hidden')
+  if (isHidden) {
+    element.classList.remove('hidden')
+    element.classList.add('flex')
+  } else {
+    element.classList.add('hidden')
+    element.classList.remove('flex')
+  }
+}
+```
+
+### CSS Color Inheritance Fix
+
+When placing components inside colored containers (e.g., dropdowns inside colored navbars),
+explicitly set text color to prevent inheritance issues:
+
+```ruby
+# BAD - Text color inherited from parent (may be light on light background)
+def content_classes
+  class_names('dropdown-content', 'menu', 'bg-base-100')
+end
+
+# GOOD - Explicit text color ensures proper contrast
+def content_classes
+  class_names(
+    'dropdown-content',
+    'menu',
+    'bg-base-100',
+    'text-base-content'  # Reset text color for this container
+  )
+end
+```
+
+### Dropdown Trigger Variants for Navbars
+
+When using dropdowns inside navbar menus, the DaisyUI menu hover styles can cause issues.
+Use `!important` overrides sparingly but intentionally:
+
+```ruby
+# The `menu` variant is designed for navbar integration.
+# It uses !bg-transparent to override DaisyUI's menu hover styling.
+# DO NOT add `btn` classes - they break vertical alignment.
+VARIANTS = {
+  button: 'btn',
+  icon: 'btn btn-ghost btn-circle',
+  ghost: 'btn btn-ghost',
+  menu: 'flex items-center gap-1 cursor-pointer !bg-transparent hover:!bg-transparent',
+  custom: ''
+}.freeze
+```
+
+### Fullscreen vs Constrained Layout
+
+For layouts that support both edge-to-edge and centered content:
+
+```ruby
+# Container width constraint (1152px = max-w-6xl)
+def container_classes
+  base = 'flex items-center w-full relative px-4'
+  if @fullscreen
+    # Edge-to-edge: no max-width constraint
+    class_names(base, @container_class)
+  else
+    # Centered: constrained width with auto margins
+    class_names(base, 'max-w-6xl mx-auto', @container_class)
+  end
+end
+```
+
+**Important**: Choose a max-width that's visible in your preview environment. Common values:
+- `max-w-7xl` = 1280px (too wide for most Lookbook panels)
+- `max-w-6xl` = 1152px (good for wide screens)
+- `max-w-5xl` = 1024px (visible on most laptops)
+- `max-w-4xl` = 896px (visible in Lookbook panels)

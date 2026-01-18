@@ -29,6 +29,18 @@ module Bali
         @options = prepend_data_attribute(options, 'navbar-throttle-interval-value', 100)
       end
 
+      # Classes for the inner container wrapper
+      # - Fullscreen: edge-to-edge with padding, no width constraint
+      # - Non-fullscreen: centered with max-width constraint (max-w-6xl = 1152px)
+      def container_classes
+        base = 'flex items-center w-full relative px-4'
+        if @fullscreen
+          class_names(base, @container_class)
+        else
+          class_names(base, 'max-w-6xl mx-auto', @container_class)
+        end
+      end
+
       private
 
       attr_reader :transparency, :fullscreen, :options
