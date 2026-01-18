@@ -19,6 +19,8 @@ class Movie < ApplicationRecord
   attribute :cover_photo
   attribute :rating
   attribute :available_region
+  attribute :website_url
+  attribute :time_zone
 
   scope :active, -> { where(status: 0) }
 end
