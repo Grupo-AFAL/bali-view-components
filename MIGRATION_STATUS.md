@@ -67,7 +67,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | FlashNotifications     |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Private attr_readers, Lookbook params, 6 tests     |
 | **Form Fields**        |       |           |         |        |         | **FormBuilder field modules (see below)**          |
 | ↳ BooleanFields        |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, SIZES/COLORS, private helpers, 32 tests |
-| ↳ CoordinatesPolygon   |  ✅   |    ❌     |   N/A   |   ✅   |  9/10   | Frozen constants, Tailwind h-[400px], 7 tests      |
+| ↳ CoordinatesPolygon   |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | Frozen constants, Tailwind h-[400px], 7 tests      |
 | ↳ CurrencyFields       |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | DEFAULT_SYMBOL, symbol: option, ADDON_CLASSES, 7 tests |
 | ↳ DateFields           |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Frozen constants, private helpers, i18n aria, 29 tests |
 | ↳ DatetimeFields       |  ✅   |    ❌     |   ✅    |   ❌   |   🔄    | Review in progress                                 |
@@ -328,5 +328,6 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | BooleanFields (FormBuilder)  | Manually verified: All sizes and colors render correctly in Lookbook         | Human      |
 | 2026-01-17 | CoordinatesPolygon           | Score 9: Frozen constants, Tailwind h-[400px], fetch+except, 7 tests         | AI         |
 | 2026-01-17 | CoordinatesPolygon           | Manually verified: Map polygon drawing and clear buttons work correctly      | Human      |
+| 2026-01-17 | CoordinatesPolygon           | AI visual verified: Google Maps loads, buttons render, no console errors     | AI         |
 | 2026-01-17 | DateFields (FormBuilder)     | Score 9: Frozen constants, private helpers, i18n aria-labels, 29 tests       | AI         |
 | 2026-01-17 | DynamicFields (FormBuilder)  | Score 9: Frozen constants, Stimulus integration, private helpers, 35 tests   | AI         |
