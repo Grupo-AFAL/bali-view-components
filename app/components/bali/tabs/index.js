@@ -102,11 +102,24 @@ export class TabsController extends Controller {
 
     if (reload.toString() === 'false' && contentLoaded) return
 
+    // Show loading spinner
+    tabContentDiv.innerHTML = `
+      <div class="flex items-center justify-center py-8">
+        <span class="loading loading-spinner loading-lg"></span>
+      </div>
+    `
+
     const response = await get(src, { query: { layout: false } })
     if (response.ok) {
       const body = await response.text
       tabContentDiv.innerHTML = body
       tabElement.dataset.contentLoaded = true
+    } else {
+      tabContentDiv.innerHTML = `
+        <div class="alert alert-error">
+          <span>Failed to load content</span>
+        </div>
+      `
     }
   }
 }
