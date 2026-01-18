@@ -1,0 +1,13 @@
+<div class="space-y-6">
+  <% %i[none xs sm md lg].each do |gap| %>
+    <div>
+      <p class="text-sm font-medium mb-2">gap: :<%= gap %></p>
+      <%= render Bali::Tags::Component.new(gap: gap) do |c|
+        c.with_item(text: 'Tag 1', color: :primary)
+        c.with_item(text: 'Tag 2', color: :secondary)
+        c.with_item(text: 'Tag 3', color: :success)
+        c.with_item(text: 'Tag 4', color: :warning)
+      end %>
+    </div>
+  <% end %>
+</div>

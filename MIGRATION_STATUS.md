@@ -123,7 +123,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Table                  |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, empty_state_content helper, typo fix, 30 tests   |
 | Tabs                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Hash#fetch, private attr, no mutation, ARIA attrs, 25 tests        |
 | Tag                    |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
-| Tags                   |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
+| Tags                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | GAPS const, class_names, flex container, 15 tests                  |
 | Timeago                |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
 | Timeline               |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
 | Tooltip                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
@@ -405,3 +405,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-18 | Table                          | Manually verified: Headers, rows, footers, bulk actions, sticky headers, empty states       | Human      |
 | 2026-01-18 | SearchInput                    | Manually verified: Input with join button, auto_submit mode, placeholder options            | Human      |
 | 2026-01-18 | Tabs                           | Score 9: Hash#fetch, private attr_readers, no mutation, explicit href param, 25 tests       | AI         |
+| 2026-01-18 | Tags                           | Score 9: Bulma→Tailwind (flex container), GAPS const, gap: param, class_names, 15 tests     | AI         |
