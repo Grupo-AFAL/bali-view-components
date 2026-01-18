@@ -102,10 +102,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | InfoLevel              |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, ALIGNMENTS.fetch, private attr, 22 tests |
 | LabelValue             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | LABEL/VALUE_CLASSES, class_names, private options, 7 tests |
 | Level                  |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, private attr, ALIGNMENTS.fetch, 14 tests |
-| Link                   |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | VARIANTS/SIZES, class_names, variant param, 39 tests |
+| Link                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | VARIANTS/SIZES, class_names, variant param, 39 tests |
 | List                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | DaisyUI list/list-row, BASE_CLASSES, 19 tests      |
 | Loader                 |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, WCAG role/aria-label, options passthrough, 30 tests |
-| LocationsMap           |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom component                                   |
+| LocationsMap           |  ✅   |    ❌     |   N/A   |   ❌   |   🔄    | Review in progress                                 |
 | Message                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | Modal                  |  ✅   |    ✅     |   ✅    |   ❌   |  9/10  | Slots for header/body/actions, WCAG accessibility  |
 | Navbar                 |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
@@ -286,3 +286,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Level                        | Manually verified: Left/right sides, alignment options render correctly      | Human      |
 | 2026-01-17 | Link                         | Score 9: VARIANTS/SIZES constants, class_names, variant param (type deprecated), 39 tests | AI         |
 | 2026-01-17 | Loader                       | Score 9: BASE_CLASSES, WCAG role/aria-label, options passthrough, 30 tests   | AI         |
+| 2026-01-17 | Link                         | Manually verified: All variants, icons, sizes, and states render correctly   | Human      |

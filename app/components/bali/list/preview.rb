@@ -30,14 +30,13 @@ module Bali
         render List::Component.new do |c|
           c.with_item do |i|
             i.with_title('Item with delete action')
-            i.with_subtitle('Click the icon to delete')
+            i.with_subtitle('Click the button to delete')
             i.with_action do
               c.render(Bali::Button::Component.new(
-                name: '',
-                variant: :ghost,
+                name: 'Delete',
+                variant: :error,
                 size: :sm,
-                icon: 'trash',
-                data: { action: 'click->delete' }
+                icon: 'trash'
               ))
             end
           end
@@ -47,7 +46,7 @@ module Bali
             i.with_subtitle('Edit or delete this item')
             i.with_action do
               c.render(Bali::Button::Component.new(
-                name: '',
+                name: 'Edit',
                 variant: :ghost,
                 size: :sm,
                 icon: 'pencil'
@@ -55,9 +54,10 @@ module Bali
             end
             i.with_action do
               c.render(Bali::Button::Component.new(
-                name: '',
-                variant: :ghost,
+                name: 'Delete',
+                variant: :error,
                 size: :sm,
+                outline: true,
                 icon: 'trash'
               ))
             end
@@ -71,7 +71,12 @@ module Bali
             i.with_title('Item with additional content')
             i.with_subtitle('Main description')
             i.with_action do
-              c.render(Bali::Icon::Component.new('trash'))
+              c.render(Bali::Button::Component.new(
+                name: 'Delete',
+                variant: :ghost,
+                size: :sm,
+                icon: 'trash'
+              ))
             end
 
             tag.p('This is additional content that appears in the middle column')
@@ -81,7 +86,12 @@ module Bali
             i.with_title('Another item')
             i.with_subtitle('With extra details')
             i.with_action do
-              c.render(Bali::Icon::Component.new('trash'))
+              c.render(Bali::Button::Component.new(
+                name: 'Remove',
+                variant: :ghost,
+                size: :sm,
+                icon: 'x'
+              ))
             end
 
             tag.span('Extra information displayed here', class: 'badge badge-info')
