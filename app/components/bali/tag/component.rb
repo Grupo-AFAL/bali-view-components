@@ -5,8 +5,7 @@ module Bali
     class Component < ApplicationViewComponent
       include Utils::ColorCalculator
 
-      attr_reader :text, :href
-
+      # DaisyUI semantic colors
       COLORS = {
         neutral: 'badge-neutral',
         primary: 'badge-primary',
@@ -17,6 +16,7 @@ module Bali
         success: 'badge-success',
         warning: 'badge-warning',
         error: 'badge-error',
+        # Legacy Bulma mappings (deprecated, remove in v2.0)
         danger: 'badge-error',
         link: 'badge-primary',
         black: 'badge-neutral',
@@ -31,6 +31,7 @@ module Bali
         md: 'badge-md',
         lg: 'badge-lg',
         xl: 'badge-xl',
+        # Legacy Bulma mappings (deprecated, remove in v2.0)
         small: 'badge-sm',
         medium: 'badge-md',
         large: 'badge-lg',
@@ -44,8 +45,8 @@ module Bali
       }.freeze
 
       # rubocop:disable Metrics/ParameterLists
-      def initialize(text:, href: nil, color: nil, custom_color: nil, size: nil, style: nil,
-                     light: false, rounded: false, **options)
+      def initialize(text:, href: nil, color: nil, custom_color: nil, size: nil,
+                     style: nil, light: false, rounded: false, **options)
         # rubocop:enable Metrics/ParameterLists
         @text = text
         @href = href
@@ -60,30 +61,35 @@ module Bali
         warn_deprecation if light
       end
 
+      private
+
+      attr_reader :text, :href
+
       def tag_name
         href.present? ? :a : :div
       end
 
       def component_classes
         class_names(
-          'tag-component',
           'badge',
-          color_class,
-          size_class,
+          COLORS[@color],
+          SIZES[@size],
           style_class,
-          @rounded ? 'rounded-full' : nil,
+          @rounded && 'rounded-full',
           @options[:class]
         )
       end
 
       def custom_styles
-        return @options[:style] if @custom_color.blank?
+        styles = []
 
-        [
-          "background-color: #{@custom_color}",
-          "color: #{contrasting_text_color(@custom_color)}",
-          @options[:style]
-        ].compact.join('; ')
+        if @custom_color.present?
+          styles << "background-color: #{@custom_color}"
+          styles << "color: #{contrasting_text_color(@custom_color)}"
+        end
+
+        styles << @options[:style] if @options[:style].present?
+        styles.join('; ').presence
       end
 
       def html_attributes
@@ -91,16 +97,6 @@ module Bali
         attrs[:href] = href if href.present?
         attrs[:style] = custom_styles if custom_styles.present?
         attrs
-      end
-
-      private
-
-      def color_class
-        COLORS[@color]
-      end
-
-      def size_class
-        SIZES[@size]
       end
 
       def style_class

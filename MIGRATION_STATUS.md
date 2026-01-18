@@ -122,7 +122,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Stepper                |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI steps, COLORS/ORIENTATIONS, class_names, 20 tests          |
 | Table                  |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, empty_state_content helper, typo fix, 30 tests   |
 | Tabs                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Hash#fetch, private attr, no mutation, ARIA attrs, 25 tests        |
-| Tag                    |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
+| Tag                    |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Private attr, class_names, documented constants, 20 tests          |
 | Tags                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | GAPS const, class_names, flex container, 15 tests                  |
 | Timeago                |  ✅   |    ✅     |   N/A   |   ❌   |  9/10   | BASE_CLASSES, private attr, class_names, datetime attr, 21 tests   |
 | Timeline               |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |

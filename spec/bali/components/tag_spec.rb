@@ -7,13 +7,13 @@ RSpec.describe Bali::Tag::Component, type: :component do
     it 'renders a badge with text' do
       render_inline(described_class.new(text: 'Hello'))
 
-      expect(page).to have_css('div.tag-component.badge', text: 'Hello')
+      expect(page).to have_css('div.badge', text: 'Hello')
     end
 
     it 'renders as a link when href is provided' do
       render_inline(described_class.new(text: 'Click me', href: '/path'))
 
-      expect(page).to have_css('a.tag-component.badge[href="/path"]', text: 'Click me')
+      expect(page).to have_css('a.badge[href="/path"]', text: 'Click me')
     end
   end
 
@@ -119,6 +119,20 @@ RSpec.describe Bali::Tag::Component, type: :component do
     end
   end
 
+  describe 'rounded' do
+    it 'applies rounded-full class when rounded is true' do
+      render_inline(described_class.new(text: 'Tag', rounded: true))
+
+      expect(page).to have_css('div.badge.rounded-full')
+    end
+
+    it 'does not apply rounded-full class when rounded is false' do
+      render_inline(described_class.new(text: 'Tag', rounded: false))
+
+      expect(page).not_to have_css('div.badge.rounded-full')
+    end
+  end
+
   describe 'HTML attribute passthrough' do
     it 'passes additional attributes to the element' do
       render_inline(described_class.new(text: 'Tag', data: { testid: 'my-tag' }))
@@ -129,7 +143,7 @@ RSpec.describe Bali::Tag::Component, type: :component do
     it 'merges custom classes with component classes' do
       render_inline(described_class.new(text: 'Tag', class: 'my-custom-class'))
 
-      expect(page).to have_css('div.badge.tag-component.my-custom-class')
+      expect(page).to have_css('div.badge.my-custom-class')
     end
   end
 end
