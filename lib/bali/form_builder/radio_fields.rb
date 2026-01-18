@@ -4,13 +4,21 @@ module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module RadioFields # rubocop:disable Metrics/ModuleLength
       RADIO_CLASS = 'radio'
-      LABEL_CLASS = 'label cursor-pointer'
+      LABEL_CLASS = 'label cursor-pointer justify-start gap-3'
       LABEL_TEXT_CLASS = 'label-text'
       ERROR_CLASS = 'label-text-alt text-error'
-      TOGGLERS_CLASS = 'togglers'
-      TOGGLER_CLASS = 'toggler'
+      TOGGLERS_CLASS = 'join'
+      TOGGLER_CLASS = 'join-item btn btn-sm'
+      TOGGLER_ACTIVE_CLASS = 'btn-primary'
+      TOGGLER_INACTIVE_CLASS = 'btn-ghost'
       TOGGLER_TYPE = 'button'
       RADIO_BUTTONS_GROUP_CLASS = 'radio-buttons-group'
+      DEFAULT_ORIENTATION = :vertical
+
+      ORIENTATIONS = {
+        vertical: 'flex flex-col gap-1',
+        horizontal: 'flex flex-row flex-wrap gap-x-4 gap-y-1'
+      }.freeze
 
       SIZES = {
         xs: 'radio-xs',
@@ -40,13 +48,17 @@ module Bali
       def radio_field(method, values, options = {}, html_options = {})
         label_class = build_radio_label_class(html_options)
         radio_opts = build_radio_input_options(method, html_options)
+        orientation = html_options.fetch(:orientation, DEFAULT_ORIENTATION).to_sym
+        container_class = ORIENTATIONS.fetch(orientation, ORIENTATIONS[DEFAULT_ORIENTATION])
 
-        field = safe_join(render_radio_buttons(
-                            values,
-                            method: method,
-                            label_class: label_class,
-                            radio_options: radio_opts
-                          ))
+        radio_buttons = render_radio_buttons(
+          values,
+          method: method,
+          label_class: label_class,
+          radio_options: radio_opts
+        )
+
+        field = content_tag(:div, safe_join(radio_buttons), class: container_class)
         field_helper(method, field, options)
       end
 
@@ -63,7 +75,7 @@ module Bali
         control_options = build_control_options(options, current_value)
 
         field = safe_join(
-          [render_togglers(values, togglers_options),
+          [render_togglers(values, togglers_options, current_value),
            render_grouped_radios(method, values, radios_options)]
         )
 
@@ -90,7 +102,7 @@ module Bali
           custom_class
         ].compact.join(' ')
 
-        html_options.except(:radio_label_class, :size, :color, :class, :data)
+        html_options.except(:radio_label_class, :size, :color, :class, :data, :orientation)
                     .merge(class: radio_class)
       end
 
@@ -128,17 +140,22 @@ module Bali
         end
       end
 
-      def render_togglers(values, options)
+      def render_togglers(values, options, current_value)
         container_options = options.except(:toggler)
-        container_options[:class] = [TOGGLERS_CLASS, container_options[:class]].compact.join(' ')
-        toggler_opts = build_toggler_options(options)
+        container_options[:class] =
+          [TOGGLERS_CLASS, 'mb-3', container_options[:class]].compact.join(' ')
+        base_toggler_opts = build_toggler_options(options)
 
         content_tag(:div, **container_options) do
           safe_join(values.keys.map do |value|
-            item_opts = toggler_opts.merge(
-              disabled: values[value].blank?,
-              value: value
-            )
+            is_active = value.to_s == current_value.to_s
+            active_class = is_active ? TOGGLER_ACTIVE_CLASS : TOGGLER_INACTIVE_CLASS
+
+            item_opts = base_toggler_opts.dup
+            item_opts[:class] = [item_opts[:class], active_class].compact.join(' ')
+            item_opts[:disabled] = values[value].blank?
+            item_opts[:value] = value
+
             content_tag(:button, value, **item_opts)
           end)
         end
@@ -164,6 +181,8 @@ module Bali
 
         safe_join(values.map do |category, category_values|
           item_options = container_options.dup
+          item_options[:class] =
+            [ORIENTATIONS[DEFAULT_ORIENTATION], item_options[:class]].compact.join(' ')
           item_options[:data] = (item_options[:data] || {}).merge(
             "#{CONTROLLER_NAME}-value" => category
           )

@@ -109,6 +109,12 @@
   }
 }
 
+/* Fix for field_with_errors breaking flex layouts (radio groups, etc.) */
+.flex-row > .field_with_errors,
+.flex-col > .field_with_errors {
+  display: contents;
+}
+
 /* Fix for Rails field_with_errors wrapper breaking DaisyUI join pattern */
 .join > .field_with_errors {
   @apply flex flex-1;
@@ -116,7 +122,7 @@
 
 .label {
   .field_with_errors {
-    @apply inline;
+    display: contents;
   }
 
   .tooltip-component {

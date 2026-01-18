@@ -79,6 +79,41 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
         expect(radio_field).to have_css 'input.radio.custom-input', count: 3
       end
     end
+
+    context 'with vertical orientation (default)' do
+      let(:radio_field) { builder.radio_field(:status, values) }
+
+      it 'renders container with flex-col class' do
+        expect(radio_field).to have_css 'div.flex.flex-col.gap-1'
+      end
+    end
+
+    context 'with horizontal orientation' do
+      let(:radio_field) { builder.radio_field(:status, values, {}, { orientation: :horizontal }) }
+
+      it 'renders container with flex-row class' do
+        expect(radio_field).to have_css 'div.flex.flex-row.flex-wrap'
+      end
+    end
+  end
+
+  describe 'ORIENTATIONS constant' do
+    it 'includes vertical and horizontal options' do
+      expect(described_class::RadioFields::ORIENTATIONS.keys).to contain_exactly(:vertical,
+                                                                                 :horizontal)
+    end
+
+    it 'maps vertical to flex-col layout' do
+      expect(described_class::RadioFields::ORIENTATIONS[:vertical]).to include('flex-col')
+    end
+
+    it 'maps horizontal to flex-row layout' do
+      expect(described_class::RadioFields::ORIENTATIONS[:horizontal]).to include('flex-row')
+    end
+
+    it 'is frozen' do
+      expect(described_class::RadioFields::ORIENTATIONS).to be_frozen
+    end
   end
 
   describe 'SIZES constant' do
@@ -118,8 +153,9 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
       expect(described_class::RadioFields::RADIO_CLASS).to eq('radio')
     end
 
-    it 'defines LABEL_CLASS with cursor-pointer' do
-      expect(described_class::RadioFields::LABEL_CLASS).to eq('label cursor-pointer')
+    it 'defines LABEL_CLASS with cursor-pointer and spacing' do
+      expect(described_class::RadioFields::LABEL_CLASS)
+        .to eq('label cursor-pointer justify-start gap-3')
     end
 
     it 'defines LABEL_TEXT_CLASS' do

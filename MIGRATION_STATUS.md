@@ -77,7 +77,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ NumberFields         |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Self-contained module, Lookbook preview, 23 tests                  |
 | ↳ PasswordFields       |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lookbook preview, comprehensive tests (21)                         |
 | ↳ PercentageFields     |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DEFAULT_SYMBOL const, symbol: option, Lookbook preview, 7 tests    |
-| ↳ RadioFields          |  ✅   |    ❌     |   ✅    |   ❌   |   🔄    | Review in progress                                                 |
+| ↳ RadioFields          |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | SIZES/COLORS/ORIENTATIONS constants, DaisyUI join buttons, 28 tests |
 | ↳ RecurrentEventRule   |  ❌   |    ❌     |   N/A   |   ❌   |    -    | Recurrence rule input (no spec)                                    |
 | ↳ RichTextArea         |  ❌   |    ❌     |   N/A   |   ❌   |    -    | Rich text editor (Trix/TipTap, no spec)                            |
 | ↳ SearchFields         |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | btn-neutral default, private search_addon helper, 21 tests         |
@@ -371,6 +371,7 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | SubmitFields (FormBuilder)     | Score 9: VARIANTS/SIZES constants, variant:/size: options, button for modal/drawer cancel, 40 tests | AI         |
 | 2026-01-17 | SelectFields (FormBuilder)     | Score 9: BASE_CLASSES const, DaisyUI select-bordered on element, Lookbook preview, 13 tests  | AI         |
 | 2026-01-17 | RadioFields (FormBuilder)      | Score 9: Frozen constants, SIZES/COLORS, cursor-pointer labels, no hash mutation, 22 tests   | AI         |
+| 2026-01-18 | RadioFields (FormBuilder)      | Manually verified: ORIENTATIONS for vertical/horizontal, DaisyUI join togglers, field_with_errors CSS fix, 28 tests | Human      |
 | 2026-01-17 | RecurrentEventRuleForm         | Score 9: Keyword args, frozen constants, DaisyUI classes, Lookbook preview, 33 tests         | AI         |
 | 2026-01-17 | StepNumberFields (FormBuilder) | Score 9: Frozen constants, button_tag, i18n aria-labels, DaisyUI Stimulus, 34 tests          | AI         |
 | 2026-01-17 | SelectFields (FormBuilder)     | Manually verified: DaisyUI select styling, help text, error states render correctly          | Human      |
