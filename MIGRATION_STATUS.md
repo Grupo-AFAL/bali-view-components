@@ -65,7 +65,33 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | FieldGroupWrapper      |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | DaisyUI form-control, class_names, 18 tests        |
 | Filters                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | **DEPRECATED** - Use AdvancedFilters instead       |
 | FlashNotifications     |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Private attr_readers, Lookbook params, 6 tests     |
-| Form                   |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | FormBuilder: Full Bulma→DaisyUI, 117 tests pass    |
+| **Form Fields**        |       |           |         |        |         | **FormBuilder field modules (see below)**          |
+| ↳ BooleanFields        |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Checkbox/boolean inputs with DaisyUI               |
+| ↳ CoordinatesPolygon   |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom map polygon input                           |
+| ↳ CurrencyFields       |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Currency input with DaisyUI input classes          |
+| ↳ DateFields           |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Date picker with Flatpickr                         |
+| ↳ DatetimeFields       |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Datetime picker with Flatpickr                     |
+| ↳ DynamicFields        |  ❌   |    ❌     |   ❌    |   ❌   |    -    | Dynamic form fields (no spec)                      |
+| ↳ EmailFields          |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Email input with DaisyUI input classes             |
+| ↳ FileFields           |  ✅   |    ❌     |   ✅    |   ❌   |    -    | File upload input                                  |
+| ↳ NumberFields         |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Number input with DaisyUI input classes            |
+| ↳ PasswordFields       |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Password input with DaisyUI input classes          |
+| ↳ PercentageFields     |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Percentage input with addon                        |
+| ↳ RadioFields          |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Radio buttons with DaisyUI radio classes           |
+| ↳ RecurrentEventRule   |  ❌   |    ❌     |   N/A   |   ❌   |    -    | Recurrence rule input (no spec)                    |
+| ↳ RichTextArea         |  ❌   |    ❌     |   N/A   |   ❌   |    -    | Rich text editor (Trix/TipTap, no spec)            |
+| ↳ SearchFields         |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Search input with DaisyUI input classes            |
+| ↳ SelectFields         |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Native select with DaisyUI select classes          |
+| ↳ SlimSelectFields     |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Slim Select enhanced dropdown                      |
+| ↳ StepNumberFields     |  ✅   |    ❌     |   ✅    |   ❌   |    -    | +/- step number input                              |
+| ↳ SubmitFields         |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Submit button with DaisyUI btn classes             |
+| ↳ SwitchFields         |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Toggle switch with DaisyUI toggle classes          |
+| ↳ TextFields           |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Text input with DaisyUI input classes              |
+| ↳ TextAreaFields       |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Textarea with DaisyUI textarea classes             |
+| ↳ TimeFields           |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Time picker with Flatpickr                         |
+| ↳ TimePeriodFields     |  ❌   |    ❌     |   N/A   |   ❌   |    -    | Time period input (no spec)                        |
+| ↳ TimeZoneSelect       |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Time zone selector with DaisyUI select             |
+| ↳ UrlFields            |  ❌   |    ❌     |   ✅    |   ❌   |    -    | URL input (no spec)                                |
 | GanttChart             |  ✅   |    ❌     |   N/A   |   ❌   |  8/10   | Bulma→DaisyUI, explicit action methods, 21 tests   |
 | Heatmap                |  ✅   |    ❌     |   N/A   |   ✅   |  9/10   | Frozen constants, required data:, validated dimensions, 26 tests |
 | Hero                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Private attr_reader, Hash#fetch, Bali::Button preview |
@@ -113,20 +139,22 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Status         | Tests  | AI Visual | DaisyUI | Manual | Quality |
 | -------------- | :----: | :-------: | :-----: | :----: | :-----: |
-| ✅ Complete    |   56   |    17     |   15    |   14   |   22    |
+| ✅ Complete    |   76   |    17     |   36    |   14   |   22    |
 | ⚠️ Partial     |   0    |     0     |    0    |    0   |    1    |
-| ❌ Not Started |   0    |    39     |   34    |   42   |   33    |
-| N/A            |   0    |     0     |    7    |    0   |    0    |
-| **Total**      | **56** |  **56**   | **56**  | **56** | **56**  |
+| ❌ Not Started |   5    |    64     |   34    |   67   |   58    |
+| N/A            |   0    |     0     |   11    |    0   |    0    |
+| **Total**      | **81** |  **81**   | **81**  | **81** | **81**  |
+
+> **Note**: 81 = 56 original components - 1 (Form) + 26 form field modules
 
 ### Quality Score Summary
 
 | Score Range | Count | Components |
 |-------------|-------|------------|
 | 9-10 (✅)   | 22    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Heatmap (9), Hero (9), Icon (9), Modal (9) |
-| 7-8 (⚠️)    | 1     | Form (7) |
+| 7-8 (⚠️)    | 1     | GanttChart (8) |
 | < 7 (❌)    | 0     | - |
-| Not scored  | 34    | Remaining components |
+| Not scored  | 58    | Form fields (26), remaining components (32) |
 
 ---
 
