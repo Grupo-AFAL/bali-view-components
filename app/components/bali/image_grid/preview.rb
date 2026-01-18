@@ -3,40 +3,25 @@
 module Bali
   module ImageGrid
     class Preview < ApplicationViewComponentPreview
-      URL_3_2 = 'https://placehold.co/480x320'
-      URL_4_5 = 'https://placehold.co/480x600'
+      PLACEHOLDER_URL = 'https://placehold.co/480x320'
 
-      # Default Image Grid
-      # ------------------
-      # Render 4 images per row and 3/2 image ratio
-      def default
-        render(ImageGrid::Component.new) do |c|
-          9.times do
-            c.with_image { tag.img src: URL_3_2 }
+      # @param columns select { choices: [2, 3, 4, 5, 6] }
+      # @param gap select { choices: [none, sm, md, lg] }
+      # @param aspect_ratio select { choices: [square, video, 3/2, 4/3, 4/5, 16/9] }
+      # @param image_count number
+      def default(columns: 4, gap: :md, aspect_ratio: :'3/2', image_count: 9)
+        render(ImageGrid::Component.new(columns: columns.to_i, gap: gap.to_sym)) do |c|
+          image_count.to_i.times do
+            c.with_image(aspect_ratio: aspect_ratio.to_sym) { tag.img src: PLACEHOLDER_URL }
           end
         end
       end
 
-      # Custom image ratio
-      # ------------------
-      # Change the class on the figure element
-      def image_ratio
-        render(ImageGrid::Component.new) do |c|
-          9.times do
-            c.with_image(image_ratio: 'is-4by5') { tag.img src: URL_4_5 }
-          end
-        end
-      end
-
-      # Custom number of columns
-      # ---------------
-      # Change the class on the div.column element
-      def column_size
-        render(ImageGrid::Component.new) do |c|
-          9.times do
-            c.with_image(column_size: 'is-one-fifth') { tag.img src: URL_3_2 }
-          end
-        end
+      # With footer content on each image
+      # ----------------------------------
+      # Each image card can have a footer slot for captions or metadata.
+      def with_footer
+        render_with_template
       end
     end
   end

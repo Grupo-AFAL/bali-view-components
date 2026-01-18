@@ -1,13 +1,9 @@
-<%= tag.div **@options do %>
-  <div class="card">
-    <div class="card-image">
-      <figure class="image <%= image_ratio %> [&_img]:w-full [&_img]:h-full">
-        <%= content %>
-      </figure>
-    </div>
+<%= tag.div class: card_classes, **card_attributes do %>
+  <figure class="<%= aspect_class %> overflow-hidden [&_img]:w-full [&_img]:h-full [&_img]:object-cover">
+    <%= content %>
+  </figure>
 
-    <% if footer? %>
-      <%= footer %>
-    <% end %>
-  </div>
+  <% if footer? %>
+    <%= footer %>
+  <% end %>
 <% end %>

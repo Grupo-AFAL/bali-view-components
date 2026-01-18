@@ -95,12 +95,12 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | GanttChart             |  ✅   |    ❌     |   N/A   |   ❌   |  8/10   | Bulma→DaisyUI, explicit action methods, 21 tests   |
 | Heatmap                |  ✅   |    ❌     |   N/A   |   ✅   |  9/10   | Frozen constants, required data:, validated dimensions, 26 tests |
 | Hero                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Private attr_reader, Hash#fetch, Bali::Button preview |
-| HoverCard              |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
+| HoverCard              |  ✅   |    ❌     |   N/A   |   ❌   |  9/10   | PLACEMENTS const, class_names, data merge, 43 tests |
 | Icon                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lucide integration, resolution pipeline            |
 | ImageField             |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
-| ImageGrid              |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
-| InfoLevel              |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
-| LabelValue             |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
+| ImageGrid              |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | COLUMNS/GAPS/ASPECT_RATIOS, class_names, 34 tests  |
+| InfoLevel              |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
+| LabelValue             |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
 | Level                  |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | Link                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | List                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |

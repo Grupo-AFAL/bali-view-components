@@ -1,5 +1,5 @@
-<div class="image-grid-component grid grid-cols-4 gap-4">
-  <% images.each_with_index do |image, index| %>
+<%= tag.div class: grid_classes, **grid_attributes do %>
+  <% images.each do |image| %>
     <%= image %>
   <% end %>
-</div>
+<% end %>
