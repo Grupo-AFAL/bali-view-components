@@ -139,10 +139,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Status         | Tests  | AI Visual | DaisyUI | Manual | Quality |
 | -------------- | :----: | :-------: | :-----: | :----: | :-----: |
-| ✅ Complete    |   76   |    17     |   36    |   14   |   22    |
+| ✅ Complete    |   76   |    38     |   56    |   36   |   39    |
 | ⚠️ Partial     |   0    |     0     |    0    |    0   |    1    |
-| ❌ Not Started |   5    |    64     |   34    |   67   |   58    |
-| N/A            |   0    |     0     |   11    |    0   |    0    |
+| ❌ Not Started |   5    |    43     |   12    |   45   |   41    |
+| N/A            |   0    |     0     |   13    |    0   |    0    |
 | **Total**      | **81** |  **81**   | **81**  | **81** | **81**  |
 
 > **Note**: 81 = 56 original components - 1 (Form) + 26 form field modules
@@ -151,19 +151,19 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Score Range | Count | Components |
 |-------------|-------|------------|
-| 9-10 (✅)   | 35    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Heatmap (9), Hero (9), HoverCard (9), Icon (9), InfoLevel (9), LabelValue (9), Level (9), Link (9), List (9), Loader (9), Message (9), Modal (9), Navbar (9), Notification (9), Progress (9), PropertiesTable (9) |
+| 9-10 (✅)   | 39    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), BooleanFields (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Heatmap (9), Hero (9), HoverCard (9), Icon (9), ImageField (9), ImageGrid (9), InfoLevel (9), LabelValue (9), Level (9), Link (9), List (9), Loader (9), LocationsMap (9), Message (9), Modal (9), Navbar (9), Notification (9), PageHeader (9), Progress (9), PropertiesTable (9) |
 | 7-8 (⚠️)    | 1     | GanttChart (8) |
 | < 7 (❌)    | 0     | - |
-| Not scored  | 49    | Form fields (26), remaining components (23) |
+| Not scored  | 41    | Form fields (25), remaining components (16) |
 
 ---
 
-## Fully Verified Components (14)
+## Fully Verified Components (35)
 
 Components with ✅ in all applicable columns:
 
 1. **ActionsDropdown** - Full DaisyUI dropdown with align/direction
-2. **AdvancedFilters** - NEW, Ransack integration
+2. **AdvancedFilters** - Ransack integration
 3. **Avatar** - Full DaisyUI implementation
 4. **BooleanIcon** - Uses text-success/text-error
 5. **Breadcrumb** - Proper DaisyUI breadcrumbs
@@ -174,8 +174,29 @@ Components with ✅ in all applicable columns:
 10. **Chart** - Custom (Chart.js)
 11. **Clipboard** - Tailwind compliant
 12. **Columns** - CSS Grid layout
-13. **DataTable** - Migrated to AdvancedFilters, column selector, sorting, pagination
-14. **DeleteLink** - HoverCard confirmation with DaisyUI styling
+13. **DataTable** - AdvancedFilters, column selector, sorting
+14. **DeleteLink** - HoverCard confirmation
+15. **Drawer** - Position param, header/footer slots
+16. **Dropdown** - i18n aria-label, Trigger VARIANTS
+17. **FlashNotifications** - Private attr_readers, Lookbook params
+18. **Hero** - Actions slot, render_with_template
+19. **HoverCard** - PLACEMENTS const, async loading
+20. **Icon** - Lucide integration
+21. **ImageField** - SIZES const, Button for clear
+22. **ImageGrid** - COLUMNS/GAPS/ASPECT_RATIOS
+23. **InfoLevel** - BASE_CLASSES, ALIGNMENTS.fetch
+24. **LabelValue** - LABEL/VALUE_CLASSES
+25. **Level** - BASE_CLASSES, ALIGNMENTS.fetch
+26. **Link** - VARIANTS/SIZES constants
+27. **List** - DaisyUI list/list-row
+28. **Loader** - WCAG role/aria-label
+29. **LocationsMap** - DaisyUI card, template dedup
+30. **Message** - BASE_CLASSES, Hash#fetch
+31. **Modal** - Slots for header/body/actions
+32. **Notification** - i18n aria-label, fetch fallback
+33. **PageHeader** - ALIGNMENTS, Level delegation
+34. **Progress** - wrapper_classes, options passthrough
+35. **PropertiesTable** - DaisyUI table-zebra
 
 ---
 
