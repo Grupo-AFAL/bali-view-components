@@ -1,0 +1,5 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.text_field_group :text,
+      placeholder: 'Enter your text',
+      help: 'This is helper text that appears below the input.' %>
+<% end %>
