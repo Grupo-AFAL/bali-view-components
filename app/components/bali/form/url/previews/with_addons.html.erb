@@ -1,5 +1,5 @@
 <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
-  <%= form.url_field_group :website_url,
+  <%= form.url_field_group :url,
       addon_left: tag.span('https://', class: 'btn btn-disabled pointer-events-none join-item'),
       placeholder: 'example.com' %>
 <% end %>

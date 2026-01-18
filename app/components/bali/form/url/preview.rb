@@ -16,7 +16,7 @@ module Bali
         # @label With Errors
         # Shows the URL field with validation error styling.
         def with_errors
-          form_record.errors.add(:website_url, :invalid)
+          form_record.errors.add(:url, :invalid)
 
           render_with_template(
             template: 'bali/form/url/previews/default',
@@ -36,7 +36,7 @@ module Bali
         # @label With Addons and Errors
         # Shows URL field with addons and validation error.
         def with_addons_and_errors
-          form_record.errors.add(:website_url, :invalid)
+          form_record.errors.add(:url, :invalid)
 
           render_with_template(
             template: 'bali/form/url/previews/with_addons',
