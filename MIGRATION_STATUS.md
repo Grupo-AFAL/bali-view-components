@@ -70,7 +70,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ CoordinatesPolygon   |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | Frozen constants, Tailwind h-[400px], 7 tests      |
 | ↳ CurrencyFields       |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DEFAULT_SYMBOL, symbol: option, ADDON_CLASSES, 7 tests |
 | ↳ DateFields           |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, private helpers, i18n aria, 29 tests |
-| ↳ DatetimeFields       |  ✅   |    ❌     |   ✅    |   ❌   |   🔄    | Review in progress                                 |
+| ↳ DatetimeFields       |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen const, no mutation, Lookbook preview, 15 tests |
 | ↳ DynamicFields        |  ✅   |    ❌     |   N/A   |   ❌   |  9/10   | Frozen constants, Stimulus integration, 35 tests   |
 | ↳ EmailFields          |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lookbook preview, comprehensive tests (21)         |
 | ↳ FileFields           |  ✅   |    ❌     |   ✅    |   ❌   |   🔄    | Review in progress                                 |
@@ -335,3 +335,5 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | EmailFields (FormBuilder)    | Manually verified: Default, addons, errors, help text render correctly       | Human      |
 | 2026-01-17 | CurrencyFields (FormBuilder) | Manually verified: Currency symbol options render correctly in Lookbook      | Human      |
 | 2026-01-17 | PercentageFields (FormBuilder) | Score 9: DEFAULT_SYMBOL const, symbol: option, Lookbook preview, 7 tests   | AI         |
+| 2026-01-17 | DatetimeFields (FormBuilder) | Score 9: Frozen const, no options mutation, alias test, 15 tests             | AI         |
+| 2026-01-17 | DatetimeFields (FormBuilder) | Manually verified: Date+time picker renders correctly in Lookbook            | Human      |
