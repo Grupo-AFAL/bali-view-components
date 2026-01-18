@@ -78,6 +78,8 @@ en:
         toggle_menu: Toggle menu
         burger:
           toggle_menu: Toggle menu
+      notification:
+        close: Close notification
       recurrent_event_rule_form:
         yearly: Yearly
         monthly: Monthly

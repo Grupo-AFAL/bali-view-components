@@ -109,10 +109,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Message                |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, Hash#fetch, private attrs, 23 tests  |
 | Modal                  |  ✅   |    ✅     |   ✅    |   ❌   |  9/10  | Slots for header/body/actions, WCAG accessibility  |
 | Navbar                 |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, private attr, i18n aria-label, 34 tests |
-| Notification           |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review cycle in progress                           |
+| Notification           |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, i18n aria-label, fetch fallback, 19 tests |
 | PageHeader             |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
 | Progress               |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Private attr, wrapper_classes, options passthrough, 16 tests |
-| PropertiesTable        |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review cycle in progress                           |
+| PropertiesTable        |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, class_names, private attrs, 13 tests |
 | Rate                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | RecurrentEventRuleForm |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom component                                   |
 | Reveal                 |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
@@ -296,3 +296,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | List                         | Manually verified: Title/subtitle stacking, actions with buttons visible     | Human      |
 | 2026-01-17 | Navbar                       | Score 9: BASE_CLASSES, COLORS, private attr, i18n aria-labels, 34 tests      | AI         |
 | 2026-01-17 | Progress                     | Score 9: Private attr_reader, wrapper_classes, options passthrough, 16 tests | AI         |
+| 2026-01-17 | Notification                 | Score 9: BASE_CLASSES, i18n aria-label, fetch fallback, tag.div template, 19 tests | AI         |

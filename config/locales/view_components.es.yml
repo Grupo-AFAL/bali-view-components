@@ -78,6 +78,8 @@ es:
         toggle_menu: Alternar menú
         burger:
           toggle_menu: Alternar menú
+      notification:
+        close: Cerrar notificación
       recurrent_event_rule_form:
         yearly: Anualmente
         monthly: Mensualmente
