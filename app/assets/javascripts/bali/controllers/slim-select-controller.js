@@ -27,39 +27,53 @@ export class SlimSelectController extends Controller {
   static targets = ['select', 'selectAllButton', 'deselectAllButton']
 
   async connect () {
-    const { default: SlimSelect } = await import('slim-select')
+    try {
+      const { default: SlimSelect } = await import('slim-select')
 
-    const options = {
-      select: this.selectTarget,
-      settings: {
-        placeholderText: this.placeholderValue,
-        showSearch: this.showSearchValue,
-        openPosition:
-          this.showContentValue === 'undefined' ? 'down' : this.showContentValue,
-        searchPlaceholder: this.searchPlaceholderValue,
-        closeOnSelect: this.closeOnSelectValue,
-        allowDeselect: this.allowDeselectOptionValue
-      },
-      events: { }
+      const options = {
+        select: this.selectTarget,
+        settings: {
+          placeholderText: this.placeholderValue,
+          showSearch: this.showSearchValue,
+          openPosition:
+            this.showContentValue === 'undefined' ? 'down' : this.showContentValue,
+          searchPlaceholder: this.searchPlaceholderValue,
+          closeOnSelect: this.closeOnSelectValue,
+          allowDeselect: this.allowDeselectOptionValue
+        },
+        events: { }
+      }
+
+      if (this.hasInnerHTML()) {
+        options.data = this.dataWithHTML()
+      }
+
+      if (this.hasAjaxValues()) {
+        options.events.search = this.search
+      }
+
+      if (this.addItemsValue) {
+        options.events.addable = (value) => value
+      }
+
+      if (this.hasAfterChangeFetchUrlValue) {
+        options.events.afterChange = this.fetchAfterChange
+      }
+
+      this.select = new SlimSelect(options)
+
+      // Remove DaisyUI select classes from the dropdown content to prevent centering
+      // SlimSelect copies classes from the original select element, including DaisyUI's
+      // 'select' and 'select-bordered' classes which cause centering issues.
+      // Use DOM query since SlimSelect's internal API varies between versions.
+      const contentEl = this.element.querySelector('.ss-content') ||
+                        document.querySelector('.ss-content')
+      if (contentEl) {
+        contentEl.classList.remove('select', 'select-bordered')
+      }
+    } catch (error) {
+      console.error('[SlimSelect] Failed to initialize:', error)
     }
-
-    if (this.hasInnerHTML()) {
-      options.data = this.dataWithHTML()
-    }
-
-    if (this.hasAjaxValues()) {
-      options.events.search = this.search
-    }
-
-    if (this.addItemsValue) {
-      options.events.addable = (value) => value
-    }
-
-    if (this.hasAfterChangeFetchUrlValue) {
-      options.events.afterChange = this.fetchAfterChange
-    }
-
-    this.select = new SlimSelect(options)
   }
 
   disconnect () {
@@ -88,15 +102,25 @@ export class SlimSelectController extends Controller {
       option => option.value
     )
 
-    this.select.set(allValues)
-    this.selectAllButtonTarget.style.display = 'none'
-    this.deselectAllButtonTarget.style.display = 'block'
+    this.select.setSelected(allValues)
+
+    if (this.hasSelectAllButtonTarget) {
+      this.selectAllButtonTarget.classList.add('hidden')
+    }
+    if (this.hasDeselectAllButtonTarget) {
+      this.deselectAllButtonTarget.classList.remove('hidden')
+    }
   }
 
   deselectAll () {
-    this.select.set([])
-    this.deselectAllButtonTarget.style.display = 'none'
-    this.selectAllButtonTarget.style.display = 'block'
+    this.select.setSelected([])
+
+    if (this.hasDeselectAllButtonTarget) {
+      this.deselectAllButtonTarget.classList.add('hidden')
+    }
+    if (this.hasSelectAllButtonTarget) {
+      this.selectAllButtonTarget.classList.remove('hidden')
+    }
   }
 
   search = (search, currentData) => {

@@ -55,7 +55,7 @@ module Bali
       end
 
       def build_html_options(html_options)
-        { multiple: false, 'data-slim-select-target': 'select' }.merge(html_options)
+        { multiple: false, data: { slim_select_target: 'select' } }.merge(html_options)
       end
 
       def build_wrapper(method, options, html_options, select_class, &)
@@ -82,7 +82,7 @@ module Bali
       def toggle_button(action:, target:, text:, hidden: false)
         tag.a(text,
               class: class_names(BUTTON_CLASS, 'hidden' => hidden),
-              data: { action: action, 'slim-select-target': target })
+              data: { action: action, slim_select_target: target })
       end
 
       def wrapper_attributes(method, options, html_options, select_class)
@@ -96,23 +96,23 @@ module Bali
       def stimulus_data(options, html_options)
         {
           controller: 'slim-select',
-          'slim-select-close-on-select-value': options[:close_on_select],
-          'slim-select-allow-deselect-option-value': options[:allow_deselect_option],
-          'slim-select-placeholder-value': html_options[:placeholder],
-          'slim-select-add-items-value': options[:add_items],
-          'slim-select-show-content-value': options[:show_content],
-          'slim-select-show-search-value': options[:show_search],
-          'slim-select-search-placeholder-value': options[:search_placeholder],
-          'slim-select-add-to-body-value': options[:add_to_body],
-          'slim-select-select-all-text-value': options[:select_all_text],
-          'slim-select-deselect-all-text-value': options[:deselect_all_text],
-          'slim-select-ajax-param-name-value': options[:ajax_param_name],
-          'slim-select-ajax-value-name-value': options[:ajax_value_name],
-          'slim-select-ajax-text-name-value': options[:ajax_text_name],
-          'slim-select-ajax-url-value': options[:ajax_url],
-          'slim-select-ajax-placeholder-value': options[:ajax_placeholder],
-          'slim-select-after-change-fetch-url-value': options[:after_change_fetch_url],
-          'slim-select-after-change-fetch-method-value': options[:after_change_fetch_method]
+          slim_select_close_on_select_value: options[:close_on_select],
+          slim_select_allow_deselect_option_value: options[:allow_deselect_option],
+          slim_select_placeholder_value: html_options[:placeholder],
+          slim_select_add_items_value: options[:add_items],
+          slim_select_show_content_value: options[:show_content],
+          slim_select_show_search_value: options[:show_search],
+          slim_select_search_placeholder_value: options[:search_placeholder],
+          slim_select_add_to_body_value: options[:add_to_body],
+          slim_select_select_all_text_value: options[:select_all_text],
+          slim_select_deselect_all_text_value: options[:deselect_all_text],
+          slim_select_ajax_param_name_value: options[:ajax_param_name],
+          slim_select_ajax_value_name_value: options[:ajax_value_name],
+          slim_select_ajax_text_name_value: options[:ajax_text_name],
+          slim_select_ajax_url_value: options[:ajax_url],
+          slim_select_ajax_placeholder_value: options[:ajax_placeholder],
+          slim_select_after_change_fetch_url_value: options[:after_change_fetch_url],
+          slim_select_after_change_fetch_method_value: options[:after_change_fetch_method]
         }
       end
     end
