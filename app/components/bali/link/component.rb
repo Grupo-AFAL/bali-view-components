@@ -3,7 +3,7 @@
 module Bali
   module Link
     class Component < ApplicationViewComponent
-      COLORS = {
+      VARIANTS = {
         primary: 'btn-primary',
         secondary: 'btn-secondary',
         accent: 'btn-accent',
@@ -11,7 +11,6 @@ module Bali
         success: 'btn-success',
         warning: 'btn-warning',
         error: 'btn-error',
-        danger: 'btn-error',
         ghost: 'btn-ghost',
         link: 'btn-link',
         neutral: 'btn-neutral'
@@ -25,93 +24,130 @@ module Bali
         xl: 'btn-xl'
       }.freeze
 
-      attr_reader :name, :href, :type, :icon_name, :drawer, :modal, :options
+      attr_reader :name, :href, :icon_name
 
       renders_one :icon, ->(name, **options) { Icon::Component.new(name, **options) }
       renders_one :icon_right, ->(name, **options) { Icon::Component.new(name, **options) }
 
       # rubocop:disable Metrics/ParameterLists
-      def initialize(href:,
-                     name: nil,
-                     type: nil,
-                     size: nil,
-                     icon_name: nil,
-                     modal: false,
-                     drawer: false,
-                     active_path: nil,
-                     active: nil,
-                     match: :exact,
-                     method: nil,
-                     disabled: false,
-                     plain: false,
-                     **options)
+      def initialize(
+        href:,
+        name: nil,
+        variant: nil,
+        size: nil,
+        icon_name: nil,
+        active: nil,
+        active_path: nil,
+        match: :exact,
+        method: nil,
+        disabled: false,
+        plain: false,
+        modal: false,
+        drawer: false,
+        authorized: true,
+        type: nil, # DEPRECATED: Use `variant` instead
+        **options
+      )
+        # rubocop:enable Metrics/ParameterLists
         @name = name
         @href = href
-        @type = type&.to_sym
+        # Support deprecated `type` parameter for backwards compatibility
+        @variant = (variant || type)&.to_sym
         @size = size&.to_sym
         @icon_name = icon_name
-        @modal = modal
-        @active_path = active_path
         @active = active
-        @drawer = drawer
+        @active_path = active_path
+        @match = match
         @method = method
+        @disabled = disabled
         @plain = plain
+        @modal = modal
+        @drawer = drawer
+        @authorized = authorized
         @options = options
-
-        @authorized = @options.key?(:authorized) ? @options.delete(:authorized) : true
-
-        build_options(disabled, match)
       end
-      # rubocop:enable Metrics/ParameterLists
 
       def render?
-        authorized?
+        @authorized
       end
 
-      def authorized?
-        @authorized
+      def link_classes
+        class_names(
+          base_class,
+          variant_class,
+          size_class,
+          @options[:class],
+          { 'active' => active?, 'btn-disabled' => @disabled && button_style? }
+        )
+      end
+
+      def link_attributes
+        attrs = @options.except(:class)
+        attrs[:href] = @href unless @disabled
+        attrs[:disabled] = true if @disabled
+        attrs[:data] = build_data_attributes(attrs[:data])
+        attrs.compact
       end
 
       private
 
-      # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
-      # rubocop:disable Metrics/PerceivedComplexity
-      def build_options(disabled, match)
-        if disabled
-          @options[:disabled] = true
-          @options = prepend_class_name(@options, 'btn-disabled') if @type.present?
-        else
-          @options[:href] = @href
-        end
+      attr_reader :options
 
-        if @active == true || (@active.nil? && active_path?(@href, @active_path, match: match))
-          @options = prepend_class_name(@options, 'active')
-        end
-
-        if @type.present?
-          @options = prepend_class_name(@options, 'btn')
-          @options = prepend_class_name(@options, COLORS[@type]) if COLORS[@type]
-          @options = prepend_class_name(@options, SIZES[@size]) if @size && SIZES[@size]
+      def base_class
+        if button_style?
+          'btn'
         elsif @plain
-          # Minimal layout classes for menu items (icons + text need flex)
-          @options = prepend_class_name(@options, 'flex items-center gap-2')
+          'flex items-center gap-2'
         else
-          @options = prepend_class_name(@options, 'link inline-flex items-center gap-1')
-        end
-
-        unless Bali.native_app
-          @options = prepend_action(@options, 'modal#open') if @modal && !disabled
-          @options = prepend_action(@options, 'drawer#open') if @drawer && !disabled
-        end
-
-        if @method.to_s == 'get'
-          @options = prepend_data_attribute(@options, :method, 'get')
-        elsif @method.present?
-          @options = prepend_turbo_method(@options, @method.to_s)
+          'link inline-flex items-center gap-1'
         end
       end
-      # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity
-      # rubocop:enable Metrics/PerceivedComplexity
+
+      def variant_class
+        VARIANTS[@variant] if button_style?
+      end
+
+      def size_class
+        SIZES[@size] if button_style? && @size
+      end
+
+      def button_style?
+        @variant.present?
+      end
+
+      def active?
+        return @active unless @active.nil?
+
+        active_path?(@href, @active_path, match: @match)
+      end
+
+      def build_data_attributes(existing_data)
+        data = existing_data&.dup || {}
+        add_stimulus_actions(data)
+        add_method_attributes(data)
+        data.presence
+      end
+
+      def add_stimulus_actions(data)
+        return if Bali.native_app || @disabled
+
+        data[:action] = prepend_value(data[:action], 'modal#open') if @modal
+        data[:action] = prepend_value(data[:action], 'drawer#open') if @drawer
+      end
+
+      def add_method_attributes(data)
+        return if @method.blank?
+
+        if @method.to_s == 'get'
+          data[:method] = 'get'
+        else
+          data[:turbo_method] = @method.to_s
+        end
+      end
+
+      def prepend_value(existing, new_value)
+        [new_value, existing].compact.join(' ')
+      end
     end
   end
 end

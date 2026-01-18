@@ -102,7 +102,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | InfoLevel              |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, ALIGNMENTS.fetch, private attr, 22 tests |
 | LabelValue             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | LABEL/VALUE_CLASSES, class_names, private options, 7 tests |
 | Level                  |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, private attr, ALIGNMENTS.fetch, 14 tests |
-| Link                   |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
+| Link                   |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | VARIANTS/SIZES, class_names, variant param, 39 tests |
 | List                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | DaisyUI list/list-row, BASE_CLASSES, 19 tests      |
 | Loader                 |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
 | LocationsMap           |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom component                                   |
@@ -151,10 +151,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Score Range | Count | Components |
 |-------------|-------|------------|
-| 9-10 (✅)   | 26    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Heatmap (9), Hero (9), HoverCard (9), Icon (9), InfoLevel (9), LabelValue (9), Level (9), Modal (9) |
+| 9-10 (✅)   | 27    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Heatmap (9), Hero (9), HoverCard (9), Icon (9), InfoLevel (9), LabelValue (9), Level (9), Link (9), Modal (9) |
 | 7-8 (⚠️)    | 1     | GanttChart (8) |
 | < 7 (❌)    | 0     | - |
-| Not scored  | 54    | Form fields (26), remaining components (28) |
+| Not scored  | 53    | Form fields (26), remaining components (27) |
 
 ---
 
@@ -284,3 +284,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | List                         | Score 9: DaisyUI list/list-row, ul/li semantics, BASE_CLASSES, 19 tests      | AI         |
 | 2026-01-17 | Level                        | Score 9: BASE_CLASSES, private attr, ALIGNMENTS.fetch, preview params fixed, 14 tests | AI         |
 | 2026-01-17 | Level                        | Manually verified: Left/right sides, alignment options render correctly      | Human      |
+| 2026-01-17 | Link                         | Score 9: VARIANTS/SIZES constants, class_names, variant param (type deprecated), 39 tests | AI         |

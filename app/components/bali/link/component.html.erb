@@ -1,13 +1,10 @@
-<%= tag.a **options do %>
-  <% if icon.present? %>
+<%= tag.a class: link_classes, **link_attributes do %>
+  <% if icon? %>
     <%= icon %>
   <% elsif icon_name.present? %>
     <%= render Bali::Icon::Component.new(icon_name) %>
   <% end %>
-
-  <%= tag.span name if name.present? %>
-
-  <%= icon_right if icon_right.present? %>
-
+  <%= name %>
+  <%= icon_right if icon_right? %>
   <%= content %>
 <% end %>
