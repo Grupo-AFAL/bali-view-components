@@ -29,13 +29,15 @@ module Bali
       # Tabs with icon
       # --------------
       # Add an icon to make it easier to identify the tab.
-      def with_icons
-        render(Tabs::Component.new(style: :lift)) do |c|
-          c.with_tab(title: 'Tab 1', active: true, icon: 'poo') do
+      # @param style [Symbol] select [default, border, box, lift]
+      # @param size [Symbol] select [xs, sm, md, lg, xl]
+      def with_icons(style: :lift, size: :md)
+        render(Tabs::Component.new(style: style, size: size)) do |c|
+          c.with_tab(title: 'Tab 1', active: true, icon: 'home') do
             tag.p('Tab with icon')
           end
 
-          c.with_tab(icon: 'report') do
+          c.with_tab(title: 'Tab 2', icon: 'file') do
             tag.p('Tab with another icon')
           end
         end

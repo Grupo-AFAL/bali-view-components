@@ -6,6 +6,6 @@
          data: data,
          class: classes,
          **link_options) do %>
-  <%= render Bali::Icon::Component.new(icon) if icon %>
+  <%= render Bali::Icon::Component.new(icon, class: 'mr-1') if icon %>
   <span><%= title %></span>
 <% end %>
