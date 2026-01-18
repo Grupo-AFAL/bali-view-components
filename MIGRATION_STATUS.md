@@ -111,7 +111,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Navbar                 |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, private attr, i18n aria-label, 34 tests |
 | Notification           |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, i18n aria-label, fetch fallback, 19 tests |
 | PageHeader             |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, ALIGNMENTS, Level delegation, 20 tests |
-| Progress               |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Private attr, wrapper_classes, options passthrough, 16 tests |
+| Progress               |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Private attr, wrapper_classes, options passthrough, 16 tests |
 | PropertiesTable        |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI table-zebra, th scope=row, class_names, 13 tests |
 | Rate                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | RecurrentEventRuleForm |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom component                                   |
@@ -302,3 +302,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | PageHeader                   | Score 9: BASE_CLASSES, ALIGNMENTS→Level delegation, private helpers, 20 tests | AI         |
 | 2026-01-17 | Notification                 | Manually verified: All types render correctly, dismiss/fixed modes work      | Human      |
 | 2026-01-17 | BooleanFields (FormBuilder)  | Score 9: DaisyUI checkbox, SIZES/COLORS, private helpers, 32 tests           | AI         |
+| 2026-01-17 | Progress                     | Manually verified: All colors render, percentage display works               | Human      |
