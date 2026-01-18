@@ -113,7 +113,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | PageHeader             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, ALIGNMENTS, Level delegation, 20 tests               |
 | Progress               |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Private attr, wrapper_classes, options passthrough, 16 tests       |
 | PropertiesTable        |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI table-zebra, th scope=row, class_names, 13 tests           |
-| Rate                   |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | DaisyUI rating, SIZES/COLORS constants, i18n, ARIA attrs, 31 tests |
+| Rate                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI rating, SIZES/COLORS constants, i18n, ARIA attrs, 31 tests |
 | Reveal                 |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, class_names, no mutation, Trigger refactor, 14 tests |
 | RichTextEditor         |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom (TipTap)                                                    |
 | SearchInput            |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
@@ -391,4 +391,5 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-18 | TimeZoneSelect (FormBuilder)   | Manually verified: All previews render, priority zones and help text work correctly          | Human      |
 | 2026-01-18 | TimePeriodFields (FormBuilder) | Improved Lookbook: 4 use-case previews (quarterly, monthly, weekly, analytics) with docs     | AI + Human |
 | 2026-01-18 | Rate                           | Score 9: Full DaisyUI migration (mask-star-2), SIZES/COLORS constants, i18n, ARIA attrs, 31 tests | AI         |
+| 2026-01-18 | Rate                           | Manually verified: All sizes/colors render, readonly and auto_submit modes work correctly    | Human      |
 | 2026-01-18 | Reveal                         | Score 9: BASE_CLASSES constants, class_names, no hash mutation, Trigger refactor, 14 tests   | AI         |
