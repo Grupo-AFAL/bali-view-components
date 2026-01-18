@@ -47,7 +47,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'applies default button classes' do
-      expect(search_field_group).to have_css 'button.btn.btn-info'
+      expect(search_field_group).to have_css 'button.btn.btn-neutral'
     end
 
     context 'with custom placeholder' do
@@ -69,8 +69,8 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
         expect(search_field_group).to have_css 'button.btn.btn-primary'
       end
 
-      it 'does not apply default btn-info class' do
-        expect(search_field_group).not_to have_css 'button.btn-info'
+      it 'does not apply default btn-neutral class' do
+        expect(search_field_group).not_to have_css 'button.btn-neutral'
       end
     end
 
@@ -125,7 +125,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
 
   describe 'DEFAULT_BUTTON_CLASSES constant' do
     it 'is defined' do
-      expect(Bali::FormBuilder::SearchFields::DEFAULT_BUTTON_CLASSES).to eq 'btn btn-info'
+      expect(Bali::FormBuilder::SearchFields::DEFAULT_BUTTON_CLASSES).to eq 'btn btn-neutral'
     end
 
     it 'is frozen' do

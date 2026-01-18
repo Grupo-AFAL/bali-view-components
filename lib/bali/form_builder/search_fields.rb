@@ -3,7 +3,7 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module SearchFields
-      DEFAULT_BUTTON_CLASSES = 'btn btn-info'
+      DEFAULT_BUTTON_CLASSES = 'btn btn-neutral'
 
       def search_field_group(method, options = {})
         addon_class = options.delete(:addon_class) || DEFAULT_BUTTON_CLASSES
