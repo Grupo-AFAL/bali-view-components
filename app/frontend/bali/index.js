@@ -89,6 +89,7 @@ export {
   CarouselController,
   ClipboardController,
   ConditionController,
+  DirectUploadController,
   DrawerController,
   DropdownController,
   FilterGroupController,

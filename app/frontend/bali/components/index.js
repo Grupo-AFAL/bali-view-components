@@ -34,6 +34,7 @@ import { RevealController } from '../../../components/bali/reveal/index'
 import { SortableListController } from '../../../components/bali/sortable_list/index'
 import { TooltipController } from '../../../components/bali/tooltip/index'
 import { ImageFieldController } from '../../../components/bali/image_field/index'
+import { DirectUploadController } from '../../../components/bali/direct_upload/index'
 import { RecurrentEventRuleController } from '../../../components/bali/recurrent_event_rule_form/index'
 import { NotificationController } from '../../../components/bali/notification/index'
 import { LocationsMapController } from '../../../components/bali/locations_map/index'
@@ -70,6 +71,7 @@ export { TooltipController } from '../../../components/bali/tooltip/index'
 
 // Form components
 export { ImageFieldController } from '../../../components/bali/image_field/index'
+export { DirectUploadController } from '../../../components/bali/direct_upload/index'
 export { RecurrentEventRuleController } from '../../../components/bali/recurrent_event_rule_form/index'
 
 // Feedback components
@@ -126,6 +128,7 @@ export function registerAll (application) {
 
   // Form
   application.register('image-field', ImageFieldController)
+  application.register('direct-upload', DirectUploadController)
   application.register('recurrent-event-rule', RecurrentEventRuleController)
 
   // Feedback
