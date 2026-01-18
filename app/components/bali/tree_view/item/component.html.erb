@@ -1,15 +1,11 @@
-<%= tag.div **@options do %>
-  <%= tag.div class: class_names('item', 'is-childless': !items?, 'is-root': @root, 'is-active': active?) do %>
-    <%= tag.span(class: class_names('caret', 'caret-down': display_children?),
-                 data: { action: 'click->tree-view-item#toggle', 'tree-view-item-target': 'caret' }) %>
-    <%= link_to @name, @path, title: @name %>
-  <% end %>
+<%= tag.div(**wrapper_options) do %>
+  <div class="<%= item_classes %>">
+    <%= tag.span(class: caret_classes, data: caret_data) %>
+    <%= link_to name, path, title: name %>
+  </div>
 
   <% if items? %>
-    <%= tag.div(
-        class: class_names('children', 'hidden': !display_children?),
-        data: { 'tree-view-item-target': 'children' }
-    ) do %>
+    <%= tag.div(role: 'group', class: children_classes, data: children_data) do %>
       <% items.each do |item| %>
         <%= item %>
       <% end %>
