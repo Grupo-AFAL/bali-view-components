@@ -1,0 +1,5 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.email_field_group :email,
+      addon_left: tag.span('@', class: 'btn btn-neutral'),
+      placeholder: 'username' %>
+<% end %>

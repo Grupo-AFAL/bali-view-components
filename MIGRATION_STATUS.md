@@ -72,7 +72,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ DateFields           |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Frozen constants, private helpers, i18n aria, 29 tests |
 | ↳ DatetimeFields       |  ✅   |    ❌     |   ✅    |   ❌   |   🔄    | Review in progress                                 |
 | ↳ DynamicFields        |  ✅   |    ❌     |   N/A   |   ❌   |  9/10   | Frozen constants, Stimulus integration, 35 tests   |
-| ↳ EmailFields          |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Comprehensive tests: errors, addons, options (21)  |
+| ↳ EmailFields          |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lookbook preview, comprehensive tests (21)         |
 | ↳ FileFields           |  ✅   |    ❌     |   ✅    |   ❌   |    -    | File upload input                                  |
 | ↳ NumberFields         |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Number input with DaisyUI input classes            |
 | ↳ PasswordFields       |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Password input with DaisyUI input classes          |
@@ -331,3 +331,5 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | CoordinatesPolygon           | AI visual verified: Google Maps loads, buttons render, no console errors     | AI         |
 | 2026-01-17 | DateFields (FormBuilder)     | Score 9: Frozen constants, private helpers, i18n aria-labels, 29 tests       | AI         |
 | 2026-01-17 | DynamicFields (FormBuilder)  | Score 9: Frozen constants, Stimulus integration, private helpers, 35 tests   | AI         |
+| 2026-01-17 | DateFields (FormBuilder)     | Manually verified: Selected day visible, DaisyUI colors aligned             | Human      |
+| 2026-01-17 | EmailFields (FormBuilder)    | Manually verified: Default, addons, errors, help text render correctly       | Human      |
