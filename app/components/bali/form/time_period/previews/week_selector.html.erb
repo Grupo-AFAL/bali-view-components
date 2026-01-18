@@ -1,0 +1,15 @@
+<div class="max-w-md space-y-4">
+  <div class="text-sm text-base-content/70 mb-4">
+    <strong>Use case:</strong> Scheduling, availability, weekly planning
+  </div>
+
+  <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+    <%= form.time_period_field_group :date,
+        [
+          ['Next week', 1.week.from_now.all_week],
+          ['This week', Time.zone.now.all_week],
+          ['Last week', 1.week.ago.all_week]
+        ],
+        selected: Time.zone.now.all_week %>
+  <% end %>
+</div>

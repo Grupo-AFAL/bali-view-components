@@ -89,7 +89,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ TextFields           |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Self-contained module, Lookbook previews with docs, 21 tests       |
 | ↳ TextAreaFields       |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | textarea_field_options helper, consistent pattern, Lookbook, 13 tests |
 | ↳ TimeFields           |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, immutable options, time_24hr option, 18 tests    |
-| ↳ TimePeriodFields     |  ✅   |    ❌     |   N/A   |   ❌   |  9/10   | Frozen constants, immutable options, Stimulus integration, 35 tests |
+| ↳ TimePeriodFields     |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | Frozen constants, immutable options, Lookbook use-case previews, 35 tests |
 | ↳ TimeZoneSelect       |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, immutable options, private helpers, Lookbook, 12 tests |
 | ↳ UrlFields            |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Module docs, ADDON_CLASSES pattern, Lookbook preview, 22 tests     |
 | GanttChart             |  ✅   |    ❌     |   N/A   |   ❌   |  8/10   | Bulma→DaisyUI, explicit action methods, 21 tests                   |
@@ -113,7 +113,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | PageHeader             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, ALIGNMENTS, Level delegation, 20 tests               |
 | Progress               |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Private attr, wrapper_classes, options passthrough, 16 tests       |
 | PropertiesTable        |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI table-zebra, th scope=row, class_names, 13 tests           |
-| Rate                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
+| Rate                   |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
 | RecurrentEventRuleForm |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | Compact layout, Flatpickr datepicker, DaisyUI classes, 33 tests    |
 | Reveal                 |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
 | RichTextEditor         |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom (TipTap)                                                    |
@@ -389,3 +389,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-18 | TimeFields (FormBuilder)       | Manually verified: All previews render, time_24hr option works correctly                     | Human      |
 | 2026-01-18 | RecurrentEventRuleForm         | Manually verified: Compact layout, Flatpickr datepicker, RRULE examples with explanations    | Human      |
 | 2026-01-18 | TimeZoneSelect (FormBuilder)   | Manually verified: All previews render, priority zones and help text work correctly          | Human      |
+| 2026-01-18 | TimePeriodFields (FormBuilder) | Improved Lookbook: 4 use-case previews (quarterly, monthly, weekly, analytics) with docs     | AI + Human |

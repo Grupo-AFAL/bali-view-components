@@ -1,0 +1,9 @@
+<div class="max-w-md space-y-4">
+  <div class="text-sm text-base-content/70 mb-4">
+    <strong>Use case:</strong> Financial reports, business reviews
+  </div>
+
+  <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+    <%= form.time_period_field_group :date, Bali::TimePeriods::SelectOptions.yearly_quarter %>
+  <% end %>
+</div>

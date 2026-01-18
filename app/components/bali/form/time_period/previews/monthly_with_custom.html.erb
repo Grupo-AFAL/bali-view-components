@@ -1,0 +1,11 @@
+<div class="max-w-md space-y-4">
+  <div class="text-sm text-base-content/70 mb-4">
+    <strong>Use case:</strong> Monthly reports with option to pick custom date range.<br>
+    <em>Select "Custom" to reveal the date picker.</em>
+  </div>
+
+  <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+    <%= form.time_period_field_group :date, Bali::TimePeriods::SelectOptions.months,
+        include_blank: 'Custom' %>
+  <% end %>
+</div>
