@@ -95,7 +95,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | GanttChart             |  ✅   |    ❌     |   N/A   |   ❌   |  8/10   | Bulma→DaisyUI, explicit action methods, 21 tests   |
 | Heatmap                |  ✅   |    ❌     |   N/A   |   ✅   |  9/10   | Frozen constants, required data:, validated dimensions, 26 tests |
 | Hero                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Private attr_reader, Hash#fetch, Bali::Button preview |
-| HoverCard              |  ✅   |    ❌     |   N/A   |   ❌   |  9/10   | PLACEMENTS const, class_names, data merge, 43 tests |
+| HoverCard              |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | PLACEMENTS const, loading spinner for async, 43 tests |
 | Icon                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lucide integration, resolution pipeline            |
 | ImageField             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | SIZES const, class_names, Button for clear, i18n, 31 tests |
 | ImageGrid              |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | COLUMNS/GAPS/ASPECT_RATIOS, class_names, 34 tests  |
@@ -279,3 +279,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | ImageField                   | Score 9: SIZES const, src: keyword, Button for clear action, i18n, memory cleanup, 31 tests | AI         |
 | 2026-01-17 | InfoLevel                    | Score 9: BASE_CLASSES, ALIGNMENTS.fetch, nav→div semantics, private attr, 22 tests | AI         |
 | 2026-01-17 | LabelValue                   | Score 9: LABEL/VALUE_CLASSES, class_names, private options, 7 tests          | AI         |
+| 2026-01-17 | HoverCard                    | Manually verified: Loading spinner for async content, all placements work    | Human      |
