@@ -109,7 +109,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Message                |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, Hash#fetch, private attrs, 23 tests  |
 | Modal                  |  ✅   |    ✅     |   ✅    |   ❌   |  9/10  | Slots for header/body/actions, WCAG accessibility  |
 | Navbar                 |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, private attr, i18n aria-label, 34 tests |
-| Notification           |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, i18n aria-label, fetch fallback, 19 tests |
+| Notification           |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, i18n aria-label, fetch fallback, 19 tests |
 | PageHeader             |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, ALIGNMENTS, Level delegation, 20 tests |
 | Progress               |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Private attr, wrapper_classes, options passthrough, 16 tests |
 | PropertiesTable        |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, class_names, private attrs, 13 tests |
@@ -299,3 +299,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Notification                 | Score 9: BASE_CLASSES, i18n aria-label, fetch fallback, tag.div template, 19 tests | AI         |
 | 2026-01-17 | PropertiesTable              | Score 9: BASE_CLASSES, class_names, private attr_readers, tbody wrapper, 13 tests | AI         |
 | 2026-01-17 | PageHeader                   | Score 9: BASE_CLASSES, ALIGNMENTS→Level delegation, private helpers, 20 tests | AI         |
+| 2026-01-17 | Notification                 | Manually verified: All types render correctly, dismiss/fixed modes work      | Human      |
