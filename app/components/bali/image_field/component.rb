@@ -3,49 +3,82 @@
 module Bali
   module ImageField
     class Component < ApplicationViewComponent
+      # Default placeholder using data URI to avoid external dependency
+      DEFAULT_PLACEHOLDER_URL = 'https://placehold.jp/128x128.png'
+      private_constant :DEFAULT_PLACEHOLDER_URL
+
+      SIZES = {
+        xs: 'size-16',
+        sm: 'size-24',
+        md: 'size-32',
+        lg: 'size-40',
+        xl: 'size-48'
+      }.freeze
+
+      DEFAULT_SIZE = :md
+      private_constant :DEFAULT_SIZE
+
       renders_one :input, Bali::ImageField::Input::Component
       renders_one :clear_button
 
-      def initialize(
-        image_url = nil, placeholder_url: 'https://placehold.jp/128x128.png',
-        image_options: { class: 'image is-128x128' }, **options
-      )
-        @image_url = image_url || placeholder_url
+      attr_reader :size
+
+      def initialize(src: nil, placeholder_url: DEFAULT_PLACEHOLDER_URL, size: DEFAULT_SIZE,
+                     **options)
+        @src = src || placeholder_url
         @placeholder_url = placeholder_url
-
-        @options = prepend_class_name(options, image_field_classes)
-        @options = prepend_controller(@options, 'image-field')
-
-        @image_options = prepend_data_attribute(image_options, 'image-field-target', 'output')
+        @size = size&.to_sym || DEFAULT_SIZE
+        @options = options
       end
 
       private
 
-      def image_field_classes
+      attr_reader :src, :placeholder_url, :options
+
+      def container_classes
         class_names(
-          'image-field-component group relative w-fit',
-          '[&_.image_img]:h-full',
-          '[&_.image-figure]:transition-all [&_.image-figure]:duration-500',
-          '[&_.image-figure]:[backface-visibility:hidden]',
-          '[&_.clear-image-button]:absolute [&_.clear-image-button]:rounded-full',
-          '[&_.clear-image-button]:hidden [&_.clear-image-button]:justify-center',
-          '[&_.clear-image-button]:items-center',
-          '[&_.clear-image-button]:bg-base-200 [&_.clear-image-button]:text-base-content',
-          '[&_.clear-image-button]:opacity-80',
-          '[&_.clear-image-button]:-top-3 [&_.clear-image-button]:-right-3',
-          '[&_.clear-image-button]:size-8',
-          'hover:[&_.clear-image-button]:flex max-md:[&_.clear-image-button]:flex',
-          '[&_.image-input-container]:absolute [&_.image-input-container]:inset-0',
-          '[&_.image-input-container]:flex [&_.image-input-container]:justify-center',
-          '[&_.image-input-container]:items-center [&_.image-input-container]:cursor-pointer',
-          '[&_.image-input-container_.icon-component]:hidden',
-          '[&_.image-input-container_.control]:hidden',
-          'hover:[&_.image-input-container]:bg-base-content/20',
-          'hover:[&_.image-input-container]:backdrop-blur-sm',
-          'hover:[&_.image-input-container_.icon-component]:flex',
-          'max-md:[&_.image-input-container]:bg-base-content/20',
-          'max-md:[&_.image-input-container]:backdrop-blur-sm',
-          'max-md:[&_.image-input-container_.icon-component]:flex'
+          'image-field-component',
+          'group relative w-fit',
+          options[:class]
+        )
+      end
+
+      def container_options
+        opts = options.except(:class)
+        opts[:class] = container_classes
+        prepend_controller(opts, 'image-field')
+      end
+
+      def image_classes
+        class_names(
+          'rounded-lg object-cover',
+          SIZES[size]
+        )
+      end
+
+      def image_options
+        {
+          class: image_classes,
+          data: { image_field_target: 'output' },
+          alt: ''
+        }
+      end
+
+      def placeholder_options
+        {
+          class: 'hidden',
+          data: { image_field_target: 'placeholder' },
+          alt: ''
+        }
+      end
+
+      def clear_button_classes
+        class_names(
+          'clear-image-button',
+          'btn btn-circle btn-sm btn-ghost',
+          'absolute -top-2 -right-2',
+          'bg-base-200 text-base-content opacity-80',
+          'hidden group-hover:flex max-md:flex'
         )
       end
     end

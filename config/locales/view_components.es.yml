@@ -41,6 +41,8 @@ es:
         attributes:
           date_range:
             custom: Personalizado
+      image_field:
+        clear_image: Borrar imagen
       gantt_chart:
         task_header: Nombre
         today: Hoy

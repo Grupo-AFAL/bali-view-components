@@ -1,5 +1,5 @@
 <%= form_with(url: '/') do |f| %>
-  <%= render(Bali::ImageField::Component.new) do |c| %>
+  <%= render(Bali::ImageField::Component.new(size: :lg)) do |c| %>
     <% c.with_input(form: f, method: :avatar) %>
   <% end %>
 <% end %>
