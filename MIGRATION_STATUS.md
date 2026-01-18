@@ -61,7 +61,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | DataTable              |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | i18n, class_names helpers, options hash pattern    |
 | DeleteLink             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | SIZES const, class_names, explicit params, 20 tests |
 | Drawer                 |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Unique IDs, position param, header/footer slots, WCAG |
-| Dropdown               |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | i18n aria-label, Trigger VARIANTS, 21 tests        |
+| Dropdown               |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | i18n aria-label, Trigger VARIANTS, 21 tests        |
 | FieldGroupWrapper      |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | DaisyUI form-control, class_names, 18 tests        |
 | Filters                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | **DEPRECATED** - Use AdvancedFilters instead       |
 | FlashNotifications     |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Private attr_readers, Lookbook params, 6 tests     |
@@ -95,10 +95,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | GanttChart             |  ✅   |    ❌     |   N/A   |   ❌   |  8/10   | Bulma→DaisyUI, explicit action methods, 21 tests   |
 | Heatmap                |  ✅   |    ❌     |   N/A   |   ✅   |  9/10   | Frozen constants, required data:, validated dimensions, 26 tests |
 | Hero                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Private attr_reader, Hash#fetch, Bali::Button preview |
-| HoverCard              |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
+| HoverCard              |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
 | Icon                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lucide integration, resolution pipeline            |
-| ImageField             |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
-| ImageGrid              |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
+| ImageField             |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
+| ImageGrid              |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
 | InfoLevel              |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | LabelValue             |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | Level                  |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
