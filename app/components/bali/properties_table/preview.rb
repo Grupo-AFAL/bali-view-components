@@ -3,14 +3,23 @@
 module Bali
   module PropertiesTable
     class Preview < ApplicationViewComponentPreview
+      # @label Default
+      # Displays key-value pairs in a table format with alternating
+      # label/value columns. Useful for showing object attributes.
       def default
         render PropertiesTable::Component.new do |c|
-          c.with_property(label: 'Label 1', value: 'Value 1')
-          c.with_property(label: 'Label 2', value: 'Value 2')
-          c.with_property(label: 'Label 3', value: 'Value 3')
-          c.with_property(label: 'Label 4', value: 'Value 4')
-          c.with_property(label: 'Label 5', value: 'Value 5')
+          c.with_property(label: 'Name', value: 'John Doe')
+          c.with_property(label: 'Email', value: 'john@example.com')
+          c.with_property(label: 'Phone', value: '+1 555-1234')
+          c.with_property(label: 'Location', value: 'New York, USA')
+          c.with_property(label: 'Member Since', value: 'January 2024')
         end
+      end
+
+      # @label With Custom Content
+      # Properties can accept block content for rich values like tags or links.
+      def with_custom_content
+        render_with_template
       end
     end
   end

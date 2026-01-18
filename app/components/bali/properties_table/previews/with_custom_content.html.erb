@@ -1,0 +1,14 @@
+<%= render Bali::PropertiesTable::Component.new do |c| %>
+  <% c.with_property(label: 'Status') do %>
+    <%= render Bali::Tag::Component.new(text: 'Active', color: :success) %>
+  <% end %>
+  <% c.with_property(label: 'Website') do %>
+    <%= render Bali::Link::Component.new(name: 'example.com', href: 'https://example.com', target: '_blank') %>
+  <% end %>
+  <% c.with_property(label: 'Role') do %>
+    <%= render Bali::Tag::Component.new(text: 'Admin', color: :primary) %>
+  <% end %>
+  <% c.with_property(label: 'Verified') do %>
+    <%= render Bali::BooleanIcon::Component.new(value: true) %>
+  <% end %>
+<% end %>

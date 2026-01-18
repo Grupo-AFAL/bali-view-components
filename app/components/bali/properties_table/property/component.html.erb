@@ -1,6 +1,6 @@
-<%= tag.tr(**options) do %>
-  <td class="property-label bg-base-200"><%= label %></td>
-  <td class="property-value">
+<%= tag.tr(**row_attributes) do %>
+  <td class="<%= LABEL_CLASSES %>"><%= label %></td>
+  <td class="<%= VALUE_CLASSES %>">
     <%= value || content %>
   </td>
 <% end %>
