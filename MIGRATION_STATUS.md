@@ -75,7 +75,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ EmailFields          |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lookbook preview, comprehensive tests (21)         |
 | ↳ FileFields           |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | Frozen constants, class_names, private helpers, 31 tests |
 | ↳ NumberFields         |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | Self-contained module, Lookbook preview, 23 tests  |
-| ↳ PasswordFields       |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | Lookbook preview, comprehensive tests (21)         |
+| ↳ PasswordFields       |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lookbook preview, comprehensive tests (21)         |
 | ↳ PercentageFields     |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | DEFAULT_SYMBOL const, symbol: option, Lookbook preview, 7 tests |
 | ↳ RadioFields          |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Radio buttons with DaisyUI radio classes           |
 | ↳ RecurrentEventRule   |  ❌   |    ❌     |   N/A   |   ❌   |    -    | Recurrence rule input (no spec)                    |
@@ -338,3 +338,5 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | DatetimeFields (FormBuilder) | Score 9: Frozen const, no options mutation, alias test, 15 tests             | AI         |
 | 2026-01-17 | DatetimeFields (FormBuilder) | Manually verified: Date+time picker renders correctly in Lookbook            | Human      |
 | 2026-01-17 | PasswordFields (FormBuilder) | Score 9: Lookbook preview, comprehensive tests (21), parens fix              | AI         |
+| 2026-01-17 | PasswordFields (FormBuilder) | Manually verified: Default, errors, addons, help text render correctly       | Human      |
+| 2026-01-17 | NumberFields (FormBuilder)   | Score 9: Self-contained module, Lookbook preview, 23 tests                   | AI         |

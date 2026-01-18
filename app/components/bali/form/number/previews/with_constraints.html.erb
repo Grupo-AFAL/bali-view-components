@@ -1,0 +1,7 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.number_field_group :budget,
+      min: 0,
+      max: 1000000,
+      step: 100,
+      placeholder: 'Enter amount (0 - 1,000,000)' %>
+<% end %>

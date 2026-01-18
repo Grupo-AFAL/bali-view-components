@@ -13,10 +13,6 @@ module Bali
       def text_field(method, options = {})
         field_helper(method, super(method, field_options(method, options)), options)
       end
-
-      def number_field(method, options = {})
-        field_helper(method, super(method, field_options(method, options)), options)
-      end
     end
   end
 end
