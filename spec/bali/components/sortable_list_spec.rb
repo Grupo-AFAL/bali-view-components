@@ -124,6 +124,28 @@ RSpec.describe Bali::SortableList::Component, type: :component do
       expect(page).to have_css('div#my-sortable')
     end
   end
+
+  describe 'cursor styling' do
+    it 'adds cursor-grab to items when no handle is specified' do
+      render_inline(described_class.new) do |c|
+        c.with_item(update_url: '/items/1') { 'Item 1' }
+      end
+
+      # Parent should have the CSS class that targets items
+      expect(page).to have_css('div[class*="[&_.sortable-item]:cursor-grab"]')
+    end
+
+    it 'does not add cursor-grab to items when handle is specified' do
+      render_inline(described_class.new(handle: '.handle')) do |c|
+        c.with_item(update_url: '/items/1') { 'Item 1' }
+      end
+
+      # Parent should NOT have the item cursor class
+      expect(page).not_to have_css('div[class*="[&_.sortable-item]:cursor-grab"]')
+      # But should still have the handle cursor class
+      expect(page).to have_css('div[class*="[&_.handle]:cursor-grab"]')
+    end
+  end
 end
 
 RSpec.describe Bali::SortableList::Item::Component, type: :component do
@@ -136,7 +158,6 @@ RSpec.describe Bali::SortableList::Item::Component, type: :component do
       expect(described_class::BASE_CLASSES).to include('sortable-item')
       expect(described_class::BASE_CLASSES).to include('bg-base-100')
       expect(described_class::BASE_CLASSES).to include('border')
-      expect(described_class::BASE_CLASSES).to include('cursor-grab')
     end
   end
 

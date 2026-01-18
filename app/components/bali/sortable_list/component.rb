@@ -57,8 +57,15 @@ module Bali
 
       def build_options(opts)
         result = prepend_class_name(opts, BASE_CLASSES)
+        result = prepend_class_name(result, item_cursor_class) if item_cursor_class
         result = prepend_controller(result, 'sortable-list')
         prepend_values(result, 'sortable-list', controller_values)
+      end
+
+      def item_cursor_class
+        # When no handle is specified, items are draggable directly
+        # When a handle is specified, only the handle should show grab cursor
+        @handle.nil? ? '[&_.sortable-item]:cursor-grab' : nil
       end
 
       def controller_values
