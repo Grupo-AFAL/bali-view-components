@@ -71,7 +71,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ CurrencyFields       |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DEFAULT_SYMBOL, symbol: option, ADDON_CLASSES, 7 tests |
 | ↳ DateFields           |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, private helpers, i18n aria, 29 tests |
 | ↳ DatetimeFields       |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen const, no mutation, Lookbook preview, 15 tests |
-| ↳ DynamicFields        |  ✅   |    ❌     |   N/A   |   ❌   |  9/10   | Frozen constants, Stimulus integration, 35 tests   |
+| ↳ DynamicFields        |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | Frozen constants, Stimulus integration, Lookbook preview, 35 tests |
 | ↳ EmailFields          |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lookbook preview, comprehensive tests (21)         |
 | ↳ FileFields           |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, hidden input, JS icon fix, 32 tests |
 | ↳ NumberFields         |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Self-contained module, Lookbook preview, 23 tests  |
@@ -139,13 +139,14 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Status         | Tests  | AI Visual | DaisyUI | Manual | Quality |
 | -------------- | :----: | :-------: | :-----: | :----: | :-----: |
-| ✅ Complete    |   77   |    38     |   56    |   37   |   40    |
-| ⚠️ Partial     |   0    |     0     |    0    |    0   |    1    |
-| ❌ Not Started |   4    |    43     |   12    |   44   |   40    |
-| N/A            |   0    |     0     |   13    |    0   |    0    |
-| **Total**      | **81** |  **81**   | **81**  | **81** | **81**  |
+| ✅ Complete    |   79   |    49     |   56    |   47   |   50    |
+| ❌ Not Started |   4    |    34     |   13    |   36   |   33    |
+| N/A            |   -    |     -     |   14    |    -   |    -    |
+| **Total**      | **83** |  **83**   | **83**  | **83** | **83**  |
+| **% Done**     | **95%**| **59%**   | **81%** | **57%**| **60%** |
 
-> **Note**: 81 = 56 original components - 1 (Form) + 26 form field modules
+> **Note**: 83 = 57 original components - 1 (Form header) + 27 form field modules
+> **DaisyUI %**: Calculated against 69 applicable components (excluding 14 N/A)
 
 ### Quality Score Summary
 
@@ -344,3 +345,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | PercentageFields (FormBuilder) | Manually verified: Symbol options render correctly in Lookbook             | Human      |
 | 2026-01-17 | FileFields (FormBuilder)     | Score 9: Frozen constants, hidden input, JS file list icons, 32 tests        | AI         |
 | 2026-01-17 | FileFields (FormBuilder)     | Manually verified: Single/multiple modes, file list UI, remove buttons work  | Human      |
+| 2026-01-17 | DynamicFields (FormBuilder)  | Manually verified: Add/remove fields, Stimulus integration works            | Human      |
