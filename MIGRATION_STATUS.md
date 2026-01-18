@@ -77,14 +77,14 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ NumberFields         |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Self-contained module, Lookbook preview, 23 tests                  |
 | ↳ PasswordFields       |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lookbook preview, comprehensive tests (21)                         |
 | ↳ PercentageFields     |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DEFAULT_SYMBOL const, symbol: option, Lookbook preview, 7 tests    |
-| ↳ RadioFields          |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Radio buttons with DaisyUI radio classes                           |
+| ↳ RadioFields          |  ✅   |    ❌     |   ✅    |   ❌   |   🔄    | Review in progress                                                 |
 | ↳ RecurrentEventRule   |  ❌   |    ❌     |   N/A   |   ❌   |    -    | Recurrence rule input (no spec)                                    |
 | ↳ RichTextArea         |  ❌   |    ❌     |   N/A   |   ❌   |    -    | Rich text editor (Trix/TipTap, no spec)                            |
-| ↳ SearchFields         |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Search input with DaisyUI input classes                            |
-| ↳ SelectFields         |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Native select with DaisyUI select classes                          |
+| ↳ SearchFields         |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | DEFAULT_BUTTON_CLASSES, private search_addon helper, 21 tests      |
+| ↳ SelectFields         |  ✅   |    ❌     |   ✅    |   ❌   |   🔄    | Review in progress                                                 |
 | ↳ SlimSelectFields     |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Slim Select enhanced dropdown                                      |
-| ↳ StepNumberFields     |  ✅   |    ❌     |   ✅    |   ❌   |    -    | +/- step number input                                              |
-| ↳ SubmitFields         |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Submit button with DaisyUI btn classes                             |
+| ↳ StepNumberFields     |  ✅   |    ❌     |   ✅    |   ❌   |   🔄    | Review in progress                                                 |
+| ↳ SubmitFields         |  ✅   |    ❌     |   ✅    |   ❌   |   🔄    | Review in progress                                                 |
 | ↳ SwitchFields         |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Toggle switch with DaisyUI toggle classes                          |
 | ↳ TextFields           |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Text input with DaisyUI input classes                              |
 | ↳ TextAreaFields       |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Textarea with DaisyUI textarea classes                             |
@@ -114,7 +114,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Progress               |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Private attr, wrapper_classes, options passthrough, 16 tests       |
 | PropertiesTable        |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI table-zebra, th scope=row, class_names, 13 tests           |
 | Rate                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
-| RecurrentEventRuleForm |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom component                                                   |
+| RecurrentEventRuleForm |  ✅   |    ❌     |   N/A   |   ❌   |   🔄    | Review in progress                                                 |
 | Reveal                 |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
 | RichTextEditor         |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom (TipTap)                                                    |
 | SearchInput            |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
@@ -365,3 +365,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | DynamicFields (FormBuilder)    | Manually verified: Add/remove fields, Stimulus integration works                              | Human      |
 | 2026-01-17 | Navbar                         | Refactor: Responsive mobile menu, fullscreen toggle, color dropdown fix                       | AI         |
 | 2026-01-17 | Navbar                         | Manually verified: Mobile menu, fullscreen, all colors, dropdown contrast                     | Human      |
+| 2026-01-17 | SearchFields (FormBuilder)     | Score 9: DEFAULT_BUTTON_CLASSES const, private search_addon helper, Lookbook preview, 21 tests | AI         |
