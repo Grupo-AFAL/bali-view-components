@@ -1,0 +1,10 @@
+<%= form_with(model: model, url: '/lookbook', builder: Bali::FormBuilder) do |form| %>
+  <%= render Bali::RecurrentEventRuleForm::Component.new(
+    form: form,
+    method: :rule,
+    value: local_assigns[:value],
+    disabled: local_assigns[:disabled] || false,
+    skip_end_method: local_assigns[:skip_end_method] || false,
+    frequency_options: local_assigns[:frequency_options]
+  ) %>
+<% end %>

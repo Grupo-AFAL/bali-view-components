@@ -3,67 +3,91 @@
 module Bali
   module RecurrentEventRuleForm
     class Component < ApplicationViewComponent
-      def initialize(form, method, value, **options)
+      FREQUENCIES = {
+        yearly: 0,
+        monthly: 1,
+        weekly: 2,
+        daily: 3,
+        hourly: 4
+      }.freeze
+
+      DEFAULT_FREQUENCIES = %w[yearly monthly weekly daily hourly].freeze
+
+      BYSETPOS_VALUES = {
+        first: 1,
+        second: 2,
+        third: 3,
+        fourth: 4,
+        last: -1
+      }.freeze
+
+      BASE_CLASSES = 'recurrent-event-rule-form-component'
+
+      private_constant :FREQUENCIES, :DEFAULT_FREQUENCIES, :BYSETPOS_VALUES, :BASE_CLASSES
+
+      # rubocop:disable Metrics/ParameterLists -- Configuration options are explicit and self-documenting
+      def initialize(form:, method:, value: nil, disabled: false, skip_end_method: false,
+                     frequency_options: nil, **options)
+        # rubocop:enable Metrics/ParameterLists
         @form = form
         @method = method
         @value = value
-        @disabled = options.delete(:disabled) || false
-        @skip_end_method = options.delete(:skip_end_method) || false
-        @frequency_options = options.delete(:frequency_options)&.map(&:to_s) ||
-                             %w[yearly monthly weekly daily hourly]
-        form_classes = [
-          'recurrent-event-rule-form-component',
-          '[&_.weekday-checkboxes-container]:flex',
-          '[&_.weekday-checkboxes-container]:gap-4',
-          '[&_.weekday-checkboxes-container]:w-full',
-          '[&_.weekday-checkboxes-container]:overflow-x-scroll'
-        ].join(' ')
-        @options = prepend_class_name(options, form_classes)
-        @options = prepend_controller(options, 'recurrent-event-rule')
+        @disabled = disabled
+        @skip_end_method = skip_end_method
+        @allowed_frequencies = frequency_options&.map(&:to_s) || DEFAULT_FREQUENCIES
+        @options = options
       end
 
       private
 
-      def timestamp
-        @timestamp ||= Time.zone.now.to_f.to_s.gsub('.', '_')
+      attr_reader :form, :method, :value, :disabled, :skip_end_method, :allowed_frequencies,
+                  :options
+
+      def unique_id
+        @unique_id ||= SecureRandom.hex(4)
+      end
+
+      def component_classes
+        class_names(
+          BASE_CLASSES,
+          '[&_.weekday-checkboxes-container]:flex',
+          '[&_.weekday-checkboxes-container]:gap-4',
+          '[&_.weekday-checkboxes-container]:w-full',
+          '[&_.weekday-checkboxes-container]:overflow-x-scroll',
+          options[:class]
+        )
+      end
+
+      def component_data
+        prepend_controller(options, 'recurrent-event-rule').fetch(:data, {})
       end
 
       def frequency_options
-        [
-          [translate('yearly'), 0, { disabled: @frequency_options.exclude?('yearly') }],
-          [translate('monthly'), 1, { disabled: @frequency_options.exclude?('monthly') }],
-          [translate('weekly'), 2, { disabled: @frequency_options.exclude?('weekly') }],
-          [translate('daily'), 3, { disabled: @frequency_options.exclude?('daily') }],
-          [translate('hourly'), 4, { disabled: @frequency_options.exclude?('hourly') }]
-        ]
+        FREQUENCIES.map do |name, freq_value|
+          [t(".#{name}"), freq_value, { disabled: allowed_frequencies.exclude?(name.to_s) }]
+        end
       end
 
       def ending_options
         [
-          [translate('never'), ''],
-          [translate('after'), 'count'],
-          [translate('on_date'), 'until']
+          [t('.never'), ''],
+          [t('.after'), 'count'],
+          [t('.on_date'), 'until']
         ]
       end
 
       def bysetpos_options
-        [
-          [translate('first'), 1],
-          [translate('second'), 2],
-          [translate('fourth'), 4],
-          [translate('third'), 3],
-          [translate('last'), -1]
-        ]
+        BYSETPOS_VALUES.map { |name, pos_value| [t(".#{name}"), pos_value] }
       end
 
       def byweekday_options
-        options = I18n.t('date.day_names').map.with_index do |day, index|
+        day_options = I18n.t('date.day_names').map.with_index do |day, index|
           [day, index.zero? ? 6 : index - 1]
         end
-        options << [translate('day'), '6,0,1,2,3,4,5']
-        options << [translate('weekday'), '0,1,2,3,4']
-        options << [translate('weekend_day'), '6,5']
-        options
+        day_options << [t('.day'), '6,0,1,2,3,4,5']
+        day_options << [t('.weekday'), '0,1,2,3,4']
+        day_options << [t('.weekend_day'), '6,5']
+        day_options
       end
 
       def bymonth_options
@@ -72,8 +96,8 @@ module Bali
         end
       end
 
-      def translate(key)
-        I18n.t("view_components.bali.recurrent_event_rule_form.#{key}")
+      def bymonthday_options
+        (1..31).map(&:to_s)
       end
     end
   end
