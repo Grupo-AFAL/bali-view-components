@@ -101,7 +101,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ImageGrid              |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | COLUMNS/GAPS/ASPECT_RATIOS, class_names, 34 tests  |
 | InfoLevel              |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, ALIGNMENTS.fetch, private attr, 22 tests |
 | LabelValue             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | LABEL/VALUE_CLASSES, class_names, private options, 7 tests |
-| Level                  |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
+| Level                  |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, private attr, ALIGNMENTS.fetch, 14 tests |
 | Link                   |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
 | List                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | DaisyUI list/list-row, BASE_CLASSES, 19 tests      |
 | Loader                 |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
@@ -151,10 +151,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Score Range | Count | Components |
 |-------------|-------|------------|
-| 9-10 (✅)   | 24    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Heatmap (9), Hero (9), HoverCard (9), Icon (9), LabelValue (9), Modal (9) |
+| 9-10 (✅)   | 25    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Heatmap (9), Hero (9), HoverCard (9), Icon (9), InfoLevel (9), LabelValue (9), Modal (9) |
 | 7-8 (⚠️)    | 1     | GanttChart (8) |
 | < 7 (❌)    | 0     | - |
-| Not scored  | 56    | Form fields (26), remaining components (30) |
+| Not scored  | 55    | Form fields (26), remaining components (29) |
 
 ---
 
