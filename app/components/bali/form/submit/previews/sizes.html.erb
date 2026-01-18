@@ -1,0 +1,8 @@
+<%= form_with(model: model, url: '/lookbook', builder: Bali::FormBuilder) do |form| %>
+  <div class="flex flex-wrap items-end gap-4">
+    <%= form.submit 'Extra Small', size: :xs %>
+    <%= form.submit 'Small', size: :sm %>
+    <%= form.submit 'Medium (Default)', size: :md %>
+    <%= form.submit 'Large', size: :lg %>
+  </div>
+<% end %>

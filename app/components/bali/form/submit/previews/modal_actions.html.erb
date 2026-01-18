@@ -1,0 +1,9 @@
+<%# Modal actions use button elements for Cancel (no path needed) %>
+<%= form_with(model: model, url: '/lookbook', builder: Bali::FormBuilder) do |form| %>
+  <%= form.submit_actions 'Save', modal: true %>
+<% end %>
+
+<p class="text-sm text-base-content/70 mt-4">
+  Note: The Cancel button is a <code>&lt;button type="button"&gt;</code> with
+  <code>data-action="modal#close"</code> for closing modals without navigation.
+</p>
