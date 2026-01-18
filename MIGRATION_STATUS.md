@@ -116,7 +116,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Rate                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI rating, SIZES/COLORS constants, i18n, ARIA attrs, 31 tests |
 | Reveal                 |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, class_names, no mutation, Trigger refactor, 14 tests |
 | RichTextEditor         |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom (TipTap)                                                    |
-| SearchInput            |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Frozen constants, field: param, class_names, no mutation, 17 tests |
+| SearchInput            |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, field: param, class_names, no mutation, 17 tests |
 | SideMenu               |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | MATCH_TYPES const, class_names, no mutation, auto-controller, 13 tests |
 | SortableList           |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | BASE_CLASSES, DEFAULTS, private attr, conditional cursor-grab, 23 tests |
 | Stepper                |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI steps, COLORS/ORIENTATIONS, class_names, 20 tests          |
@@ -403,3 +403,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-18 | SortableList                   | Manually verified: Drag reorder, handle mode, shared lists, nested lists, conditional cursor-grab | Human      |
 | 2026-01-18 | Stepper                        | Manually verified: Steps progress, color variants, vertical/horizontal orientations          | Human      |
 | 2026-01-18 | Table                          | Manually verified: Headers, rows, footers, bulk actions, sticky headers, empty states       | Human      |
+| 2026-01-18 | SearchInput                    | Manually verified: Input with join button, auto_submit mode, placeholder options            | Human      |
