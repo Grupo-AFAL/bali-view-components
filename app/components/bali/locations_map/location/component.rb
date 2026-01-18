@@ -4,14 +4,17 @@ module Bali
   module LocationsMap
     module Location
       class Component < ApplicationViewComponent
-        attr_reader :latitude, :longitude, :label, :color, :border_color, :icon_url, :glyph_color,
-                    :name
-
         renders_one :info_view
 
-        # rubocop: disable Metrics/ParameterLists
+        # rubocop:disable Metrics/ParameterLists
         def initialize(
-          latitude:, longitude:, name: '', label: nil, color: nil, border_color: nil, icon_url: nil,
+          latitude:,
+          longitude:,
+          name: '',
+          label: nil,
+          color: nil,
+          border_color: nil,
+          icon_url: nil,
           glyph_color: nil
         )
           @name = name
@@ -23,7 +26,12 @@ module Bali
           @icon_url = icon_url
           @glyph_color = glyph_color
         end
-        # rubocop: enable Metrics/ParameterLists
+        # rubocop:enable Metrics/ParameterLists
+
+        private
+
+        attr_reader :name, :latitude, :longitude, :label, :color, :border_color, :icon_url,
+                    :glyph_color
 
         def data_attributes
           {
@@ -40,14 +48,8 @@ module Bali
           }.compact
         end
 
-        private
-
-        def unique_identifier
-          @unique_identifier ||= "#{SecureRandom.uuid}-#{DateTime.now.strftime('%Q')}"
-        end
-
         def info_view_id
-          "map-location-info-view-template-#{unique_identifier}"
+          @info_view_id ||= "map-location-info-view-template-#{SecureRandom.uuid}"
         end
       end
     end

@@ -289,3 +289,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Link                         | Manually verified: All variants, icons, sizes, and states render correctly   | Human      |
 | 2026-01-17 | Loader                       | Manually verified: All types, sizes, colors apply to spinner and text        | Human      |
 | 2026-01-17 | Message                      | Score 9: BASE_CLASSES, Hash#fetch, private attrs, 23 tests                   | AI         |
+| 2026-01-17 | LocationsMap                 | Score 9: BASE_CLASSES, private attr, DaisyUI card, template dedup, 19 tests  | AI         |
