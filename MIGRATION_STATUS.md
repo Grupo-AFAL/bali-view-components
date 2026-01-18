@@ -114,7 +114,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Progress               |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Private attr, wrapper_classes, options passthrough, 16 tests       |
 | PropertiesTable        |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI table-zebra, th scope=row, class_names, 13 tests           |
 | Rate                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
-| RecurrentEventRuleForm |  ✅   |    ❌     |   N/A   |   ❌   |  9/10   | Keyword args, frozen constants, DaisyUI classes, 33 tests          |
+| RecurrentEventRuleForm |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | Compact layout, Flatpickr datepicker, DaisyUI classes, 33 tests    |
 | Reveal                 |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
 | RichTextEditor         |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom (TipTap)                                                    |
 | SearchInput            |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
@@ -387,3 +387,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-18 | TimeZoneSelect (FormBuilder)   | Score 9: BASE_CLASSES const, immutable options (no hash mutation), private helpers, Lookbook preview, 12 tests | AI         |
 | 2026-01-18 | UrlFields (FormBuilder)        | Score 9: Module docs, ADDON_CLASSES pattern, Lookbook preview with all variants, 22 tests    | AI         |
 | 2026-01-18 | TimeFields (FormBuilder)       | Manually verified: All previews render, time_24hr option works correctly                     | Human      |
+| 2026-01-18 | RecurrentEventRuleForm         | Manually verified: Compact layout, Flatpickr datepicker, RRULE examples with explanations    | Human      |

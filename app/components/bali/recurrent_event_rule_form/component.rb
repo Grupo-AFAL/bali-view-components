@@ -54,8 +54,8 @@ module Bali
           '[&_.weekday-checkboxes-container]:flex-wrap',
           '[&_.weekday-checkboxes-container]:justify-center',
           '[&_.weekday-checkboxes-container]:sm:justify-start',
-          '[&_.weekday-checkboxes-container]:gap-2',
-          '[&_.weekday-checkboxes-container]:sm:gap-3',
+          '[&_.weekday-checkboxes-container]:gap-1.5',
+          '[&_.weekday-checkboxes-container]:sm:gap-2',
           options[:class]
         )
       end
