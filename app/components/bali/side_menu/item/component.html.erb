@@ -3,16 +3,14 @@
     <%= render Bali::Link::Component.new(
         name: @name, href: @href, icon_name: @icon, active_path: @current_path,
         active: @active, class: item_classes, **link_options) %>
-    <span class="side-menu-component--item-component is-collapsed">
-      <%= render Bali::Tooltip::Component.new do |tooltip| %>
-        <% tooltip.with_trigger do %>
-          <%= render Bali::Link::Component.new(
-              name: @name, href: @href, icon_name: @icon, active_path: @current_path,
-              active: @active, class: @link_class, **link_options) %>
-        <% end %>
-        <%= @name %>
+    <%= render Bali::Tooltip::Component.new(class: 'side-menu-component--item-component is-collapsed') do |tooltip| %>
+      <% tooltip.with_trigger do %>
+        <%= render Bali::Link::Component.new(
+            name: @name, href: @href, icon_name: @icon, active_path: @current_path,
+            active: @active, class: @link_class, **link_options) %>
       <% end %>
-    </span>
+      <%= @name %>
+    <% end %>
   <% else %>
     <details class="<%= class_names('collapse collapse-arrow', 'collapse-open': active?) %>" data-controller="reveal">
       <summary class="collapse-title">
