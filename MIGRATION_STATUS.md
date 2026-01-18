@@ -78,7 +78,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ PasswordFields       |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lookbook preview, comprehensive tests (21)                         |
 | ↳ PercentageFields     |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DEFAULT_SYMBOL const, symbol: option, Lookbook preview, 7 tests    |
 | ↳ RadioFields          |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | SIZES/COLORS/ORIENTATIONS constants, DaisyUI join buttons, 28 tests |
-| ↳ RecurrentEventRule   |  ❌   |    ❌     |   N/A   |   ❌   |    -    | Recurrence rule input (no spec)                                    |
+| ↳ RecurrentEventRule   |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | Compact layout, Flatpickr datepicker, DaisyUI classes, 33 tests    |
 | ↳ RichTextArea         |  ❌   |    ❌     |   N/A   |   ❌   |    -    | Rich text editor (Trix/TipTap, no spec)                            |
 | ↳ SearchFields         |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | btn-neutral default, private search_addon helper, 21 tests         |
 | ↳ SelectFields         |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, DaisyUI select-bordered, Lookbook preview, 13 tests  |
@@ -93,7 +93,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ TimeZoneSelect       |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, immutable options, private helpers, Lookbook, 12 tests |
 | ↳ UrlFields            |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Module docs, ADDON_CLASSES pattern, Lookbook preview, 22 tests     |
 | GanttChart             |  ✅   |    ❌     |   N/A   |   ❌   |  8/10   | Bulma→DaisyUI, explicit action methods, 21 tests                   |
-| Heatmap                |  ✅   |    ❌     |   N/A   |   ✅   |  9/10   | Frozen constants, required data:, validated dimensions, 26 tests   |
+| Heatmap                |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | Frozen constants, required data:, validated dimensions, 26 tests   |
 | Hero                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Added actions slot, render_with_template preview                   |
 | HoverCard              |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | PLACEMENTS const, loading spinner for async, 43 tests              |
 | Icon                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lucide integration, resolution pipeline                            |
@@ -114,8 +114,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Progress               |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Private attr, wrapper_classes, options passthrough, 16 tests       |
 | PropertiesTable        |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI table-zebra, th scope=row, class_names, 13 tests           |
 | Rate                   |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
-| RecurrentEventRuleForm |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | Compact layout, Flatpickr datepicker, DaisyUI classes, 33 tests    |
-| Reveal                 |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
+| Reveal                 |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
 | RichTextEditor         |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom (TipTap)                                                    |
 | SearchInput            |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
 | SideMenu               |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
@@ -249,7 +248,7 @@ Components with ✅ in all applicable columns (Tests, AI Visual, DaisyUI/N/A, Ma
 
 ### Custom (No DaisyUI equivalent)
 
-Chart, GanttChart, Heatmap, LocationsMap, RichTextEditor, RecurrentEventRuleForm
+Chart, GanttChart, LocationsMap, RichTextEditor
 
 ---
 
