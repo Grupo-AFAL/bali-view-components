@@ -46,6 +46,15 @@ module Bali
           ASPECT_RATIOS[@aspect_ratio] || "aspect-#{@aspect_ratio}"
         end
 
+        def figure_classes
+          class_names(
+            aspect_class,
+            'overflow-hidden',
+            '[&_img]:w-full [&_img]:h-full [&_img]:object-cover',
+            footer? ? 'rounded-t-2xl' : 'rounded-2xl'
+          )
+        end
+
         def card_classes
           class_names('card', 'bg-base-100', options[:class])
         end
