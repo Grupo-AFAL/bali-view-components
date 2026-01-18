@@ -94,7 +94,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ UrlFields            |  ❌   |    ❌     |   ✅    |   ❌   |    -    | URL input (no spec)                                |
 | GanttChart             |  ✅   |    ❌     |   N/A   |   ❌   |  8/10   | Bulma→DaisyUI, explicit action methods, 21 tests   |
 | Heatmap                |  ✅   |    ❌     |   N/A   |   ✅   |  9/10   | Frozen constants, required data:, validated dimensions, 26 tests |
-| Hero                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Private attr_reader, Hash#fetch, Bali::Button preview |
+| Hero                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Added actions slot, render_with_template preview   |
 | HoverCard              |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | PLACEMENTS const, loading spinner for async, 43 tests |
 | Icon                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lucide integration, resolution pipeline            |
 | ImageField             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | SIZES const, class_names, Button for clear, i18n, 31 tests |

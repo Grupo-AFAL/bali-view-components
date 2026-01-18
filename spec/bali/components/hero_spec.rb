@@ -24,6 +24,16 @@ RSpec.describe Bali::Hero::Component, type: :component do
 
       expect(page).to have_css 'div.hero.bg-base-200'
     end
+
+    it 'renders actions slot' do
+      render_inline(component) do |c|
+        c.with_title('Title')
+        c.with_actions { 'Action Button' }
+      end
+
+      expect(page).to have_css 'div.hero'
+      expect(page).to have_text 'Action Button'
+    end
   end
 
   describe 'sizes' do

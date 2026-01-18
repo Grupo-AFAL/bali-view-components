@@ -25,6 +25,8 @@ module Bali
         tag.p(text, **prepend_class_name(options, 'py-4'))
       end
 
+      renders_one :actions
+
       def initialize(size: :md, color: :base, centered: true, **options)
         @size = size.to_sym
         @color = color.to_sym
