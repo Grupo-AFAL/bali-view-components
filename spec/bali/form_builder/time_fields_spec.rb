@@ -21,6 +21,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
       it 'defines OPTION_TO_DATA_ATTRIBUTE mapping' do
         expect(described_class::TimeFields::OPTION_TO_DATA_ATTRIBUTE).to eq(
           seconds: 'data-datepicker-enable-seconds-value',
+          time_24hr: 'data-datepicker-time24hr-value',
           default_date: 'data-datepicker-default-date-value',
           min_time: 'data-datepicker-min-time-value',
           max_time: 'data-datepicker-max-time-value'
@@ -90,6 +91,11 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     it 'renders with datepicker max time' do
       @options.merge!(max_time: '23:00')
       expect(time_field).to have_css '.fieldset[data-datepicker-max-time-value="23:00"]'
+    end
+
+    it 'renders with 24-hour time format' do
+      @options.merge!(time_24hr: true)
+      expect(time_field).to have_css '.fieldset[data-datepicker-time24hr-value="true"]'
     end
 
     context 'with existing wrapper_options' do

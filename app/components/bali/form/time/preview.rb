@@ -44,6 +44,16 @@ module Bali
             locals: { model: record }
           )
         end
+
+        # @label 24-Hour Format
+        # Time picker using 24-hour format (e.g., 14:30 instead of 2:30 PM).
+        # Pass `time_24hr: true` to enable.
+        def time_24hr
+          render_with_template(
+            template: 'bali/form/time/previews/time_24hr',
+            locals: { model: form_record }
+          )
+        end
       end
     end
   end

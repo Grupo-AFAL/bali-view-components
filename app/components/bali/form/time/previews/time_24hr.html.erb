@@ -1,0 +1,3 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.time_field_group :time, time_24hr: true %>
+<% end %>
