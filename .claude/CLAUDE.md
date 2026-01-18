@@ -528,6 +528,37 @@ c.with_header(route_path: '/lookbook')
 
 **Why this matters**: Lookbook previews run in a different context than normal Rails requests. The `helpers` proxy doesn't have access to `request` in all preview scenarios. Using hardcoded paths ensures previews always render.
 
+**Avoid `safe_join` in Preview Blocks**: Using `safe_join` inside component blocks in previews often prints raw HTML instead of rendering it. Use `render_with_template` with an ERB file instead.
+
+```ruby
+# ❌ BAD - safe_join in blocks prints raw HTML
+def with_slots
+  render MyComponent.new do |c|
+    c.with_footer do
+      safe_join([
+        render(Bali::Button::Component.new(name: 'Cancel')),
+        render(Bali::Button::Component.new(name: 'Save'))
+      ])
+    end
+  end
+end
+
+# ✅ GOOD - use render_with_template with ERB file
+def with_slots
+  render_with_template(locals: { active: true })
+end
+```
+
+Template file at `previews/with_slots.html.erb`:
+```erb
+<%%= render MyComponent.new do |c| %>
+  <%% c.with_footer do %>
+    <%%= render Bali::Button::Component.new(name: 'Cancel') %>
+    <%%= render Bali::Button::Component.new(name: 'Save') %>
+  <%% end %>
+<%% end %>
+```
+
 **Database Access**: Previews can access ActiveRecord models from the dummy app:
 
 ```ruby

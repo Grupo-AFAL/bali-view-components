@@ -22,26 +22,9 @@ module Bali
       # ---
       # Use slots for custom header and footer content.
       # The header slot replaces the default title.
+      # @param active toggle
       def with_slots(active: true)
-        render Bali::Drawer::Component.new(active: active, size: :medium) do |drawer|
-          drawer.with_header do
-            tag.h2('Custom Header', class: 'text-lg font-bold')
-          end
-
-          drawer.with_footer do
-            safe_join([
-              render(Bali::Button::Component.new(name: 'Cancel', variant: :ghost, data: { action: 'drawer#close' })),
-              render(Bali::Button::Component.new(name: 'Save', variant: :primary))
-            ], ' ')
-          end
-
-          tag.div(class: 'space-y-4') do
-            safe_join([
-              tag.p('Main content goes here. Use slots to customize the drawer layout.'),
-              tag.p('The footer slot is perfect for action buttons.')
-            ])
-          end
-        end
+        render_with_template(locals: { active: active })
       end
 
       # All Sizes

@@ -1,0 +1,15 @@
+<%= render Bali::Drawer::Component.new(active: active, size: :medium) do |drawer| %>
+  <% drawer.with_header do %>
+    <h2 class="text-lg font-bold">Custom Header</h2>
+  <% end %>
+
+  <% drawer.with_footer do %>
+    <%= render Bali::Button::Component.new(name: 'Cancel', variant: :ghost, data: { action: 'drawer#close' }) %>
+    <%= render Bali::Button::Component.new(name: 'Save', variant: :primary) %>
+  <% end %>
+
+  <div class="space-y-4">
+    <p>Main content goes here. Use slots to customize the drawer layout.</p>
+    <p>The footer slot is perfect for action buttons.</p>
+  </div>
+<% end %>

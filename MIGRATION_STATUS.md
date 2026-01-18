@@ -60,7 +60,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Columns                |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | CSS Grid refactor, gap param, col-span-* classes   |
 | DataTable              |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | i18n, class_names helpers, options hash pattern    |
 | DeleteLink             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | SIZES const, class_names, explicit params, 20 tests |
-| Drawer                 |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | Unique IDs, position param, header/footer slots, WCAG |
+| Drawer                 |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Unique IDs, position param, header/footer slots, WCAG |
 | Dropdown               |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | i18n aria-label, Trigger VARIANTS, 21 tests        |
 | FieldGroupWrapper      |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | DaisyUI form-control, class_names, 18 tests        |
 | Filters                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | **DEPRECATED** - Use AdvancedFilters instead       |
@@ -246,3 +246,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Heatmap                      | Score 9: Frozen constants, required data:, validated dimensions, 26 tests    | AI         |
 | 2026-01-17 | Icon                         | Score 9: Lucide integration, SIZE_SVG_CLASSES const, normalize_constant_name helper, 41 tests | AI         |
 | 2026-01-17 | DeleteLink                   | Manually verified: HoverCard confirmation renders correctly                  | Human      |
+| 2026-01-17 | Drawer                       | Manually verified: Fixed Tailwind JIT for open class, render_with_template for slots preview | Human      |

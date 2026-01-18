@@ -3,7 +3,7 @@
        data-drawer-target="background"
        data-action="click->drawer#close"
        aria-hidden="true"></div>
-  <div class="<%= panel_classes %> group-[.drawer-open]:<%= panel_open_class %> max-md:group-[.drawer-open]:max-w-[85%]"
+  <div class="<%= panel_classes %> <%= panel_open_class %> max-md:group-[.drawer-open]:max-w-[85%]"
        data-drawer-target="wrapper"
        role="document">
     <% if title? %>
