@@ -90,7 +90,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ TextAreaFields       |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | textarea_field_options helper, consistent pattern, Lookbook, 13 tests |
 | ↳ TimeFields           |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, immutable options, time_24hr option, 18 tests    |
 | ↳ TimePeriodFields     |  ✅   |    ❌     |   N/A   |   ❌   |  9/10   | Frozen constants, immutable options, Stimulus integration, 35 tests |
-| ↳ TimeZoneSelect       |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, immutable options, private helpers, Lookbook, 12 tests |
+| ↳ TimeZoneSelect       |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, immutable options, private helpers, Lookbook, 12 tests |
 | ↳ UrlFields            |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Module docs, ADDON_CLASSES pattern, Lookbook preview, 22 tests     |
 | GanttChart             |  ✅   |    ❌     |   N/A   |   ❌   |  8/10   | Bulma→DaisyUI, explicit action methods, 21 tests                   |
 | Heatmap                |  ✅   |    ❌     |   N/A   |   ✅   |  9/10   | Frozen constants, required data:, validated dimensions, 26 tests   |
@@ -388,3 +388,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-18 | UrlFields (FormBuilder)        | Score 9: Module docs, ADDON_CLASSES pattern, Lookbook preview with all variants, 22 tests    | AI         |
 | 2026-01-18 | TimeFields (FormBuilder)       | Manually verified: All previews render, time_24hr option works correctly                     | Human      |
 | 2026-01-18 | RecurrentEventRuleForm         | Manually verified: Compact layout, Flatpickr datepicker, RRULE examples with explanations    | Human      |
+| 2026-01-18 | TimeZoneSelect (FormBuilder)   | Manually verified: All previews render, priority zones and help text work correctly          | Human      |
