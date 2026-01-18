@@ -122,10 +122,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Stepper                |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI steps, COLORS/ORIENTATIONS, class_names, 20 tests          |
 | Table                  |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, empty_state_content helper, typo fix, 30 tests   |
 | Tabs                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Hash#fetch, private attr, no mutation, ARIA attrs, 25 tests        |
-| Tag                    |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Private attr, class_names, documented constants, 20 tests          |
+| Tag                    |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Private attr, class_names, documented constants, 20 tests          |
 | Tags                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | GAPS const, class_names, flex container, 15 tests                  |
 | Timeago                |  ✅   |    ✅     |   N/A   |   ❌   |  9/10   | BASE_CLASSES, private attr, class_names, datetime attr, 21 tests   |
-| Timeline               |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
+| Timeline               |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review cycle in progress                                           |
 | Tooltip                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
 | TreeView               |  ✅   |    ✅     |   ✅    |   ❌   |    -    | Needs manual review                                                |
 | TurboNativeApp         |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom component                                                   |
@@ -242,7 +242,7 @@ Components with ✅ in all applicable columns (Tests, AI Visual, DaisyUI/N/A, Ma
 | Progress | [progress](https://daisyui.com/components/progress/) | ✅ Done    |
 | Rate     | [rating](https://daisyui.com/components/rating/)     | ❌ Pending |
 | Stepper  | [steps](https://daisyui.com/components/steps/)       | ✅ Done    |
-| Tag      | [badge](https://daisyui.com/components/badge/)       | ❌ Pending |
+| Tag      | [badge](https://daisyui.com/components/badge/)       | ✅ Done    |
 | Timeline | [timeline](https://daisyui.com/components/timeline/) | ❌ Pending |
 | Tooltip  | [tooltip](https://daisyui.com/components/tooltip/)   | ❌ Pending |
 
@@ -408,3 +408,5 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-18 | Tags                           | Score 9: Bulma→Tailwind (flex container), GAPS const, gap: param, class_names, 15 tests     | AI         |
 | 2026-01-18 | Timeago                        | Score 9: BASE_CLASSES, private attr, class_names, datetime HTML attr, 21 tests              | AI         |
 | 2026-01-18 | Tags                           | Manually verified: All gap options, mixed styles, link tags render correctly                | Human      |
+| 2026-01-18 | Tag                            | Score 9: Private attr, class_names, documented constants, improved custom_styles, 20 tests  | AI         |
+| 2026-01-18 | Tag                            | Manually verified: All sizes, colors, styles, rounded, custom color with contrast           | Human      |
