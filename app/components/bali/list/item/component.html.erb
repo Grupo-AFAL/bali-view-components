@@ -1,5 +1,5 @@
-<%= tag.div(**options) do %>
-  <div class="item-contents flex-1">
+<%= tag.li(**item_options) do %>
+  <div>
     <% if title? %>
       <%= title %>
     <% end %>
@@ -8,12 +8,12 @@
     <% end %>
   </div>
   <% if content.present? %>
-    <div class="item-contents flex-1">
+    <div class="<%= CONTENT_CLASSES %>">
       <%= content %>
     </div>
   <% end %>
   <% if actions? %>
-    <div class="item-actions flex items-center gap-2">
+    <div class="<%= ACTIONS_CLASSES %>">
       <% actions.each do |action| %>
         <%= action %>
       <% end %>

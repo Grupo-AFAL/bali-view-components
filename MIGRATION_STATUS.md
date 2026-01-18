@@ -99,11 +99,11 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Icon                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lucide integration, resolution pipeline            |
 | ImageField             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | SIZES const, class_names, Button for clear, i18n, 31 tests |
 | ImageGrid              |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | COLUMNS/GAPS/ASPECT_RATIOS, class_names, 34 tests  |
-| InfoLevel              |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, ALIGNMENTS.fetch, private attr, 22 tests |
+| InfoLevel              |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, ALIGNMENTS.fetch, private attr, 22 tests |
 | LabelValue             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | LABEL/VALUE_CLASSES, class_names, private options, 7 tests |
-| Level                  |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
-| Link                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
-| List                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
+| Level                  |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
+| Link                   |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
+| List                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | DaisyUI list/list-row, BASE_CLASSES, 19 tests      |
 | Loader                 |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | LocationsMap           |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom component                                   |
 | Message                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
@@ -280,3 +280,5 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | InfoLevel                    | Score 9: BASE_CLASSES, ALIGNMENTS.fetch, nav→div semantics, private attr, 22 tests | AI         |
 | 2026-01-17 | LabelValue                   | Score 9: LABEL/VALUE_CLASSES, class_names, private options, 7 tests          | AI         |
 | 2026-01-17 | HoverCard                    | Manually verified: Loading spinner for async content, all placements work    | Human      |
+| 2026-01-17 | InfoLevel                    | Manually verified: Alignment options, heading/title slots render correctly   | Human      |
+| 2026-01-17 | List                         | Score 9: DaisyUI list/list-row, ul/li semantics, BASE_CLASSES, 19 tests      | AI         |
