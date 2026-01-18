@@ -117,9 +117,9 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Reveal                 |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, class_names, no mutation, Trigger refactor, 14 tests |
 | RichTextEditor         |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom (TipTap)                                                    |
 | SearchInput            |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Frozen constants, field: param, class_names, no mutation, 17 tests |
-| SideMenu               |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
+| SideMenu               |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | MATCH_TYPES const, class_names, no mutation, auto-controller, 13 tests |
 | SortableList           |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
-| Stepper                |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
+| Stepper                |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | DaisyUI steps, COLORS/ORIENTATIONS, class_names, 20 tests          |
 | Table                  |  ✅   |    ✅     |   ✅    |   ❌   |   🔄    | Review in progress                                                 |
 | Tabs                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Cypress tests fixed                                                |
 | Tag                    |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
@@ -241,7 +241,7 @@ Components with ✅ in all applicable columns (Tests, AI Visual, DaisyUI/N/A, Ma
 | Loader   | [loading](https://daisyui.com/components/loading/)   | ✅ Done    |
 | Progress | [progress](https://daisyui.com/components/progress/) | ✅ Done    |
 | Rate     | [rating](https://daisyui.com/components/rating/)     | ❌ Pending |
-| Stepper  | [steps](https://daisyui.com/components/steps/)       | ❌ Pending |
+| Stepper  | [steps](https://daisyui.com/components/steps/)       | ✅ Done    |
 | Tag      | [badge](https://daisyui.com/components/badge/)       | ❌ Pending |
 | Timeline | [timeline](https://daisyui.com/components/timeline/) | ❌ Pending |
 | Tooltip  | [tooltip](https://daisyui.com/components/tooltip/)   | ❌ Pending |
@@ -396,3 +396,5 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-18 | Reveal                         | Manually verified: Click toggle works, icon rotation, border option, hidden content reveals  | Human      |
 | 2026-01-18 | TextAreaFields (FormBuilder)   | Added char_counter and auto_grow options with Stimulus controller, 7 Lookbook previews, 27 tests | AI         |
 | 2026-01-18 | SearchInput                    | Score 9: Frozen constants, field: param (no method shadow), no hash mutation, 17 tests       | AI         |
+| 2026-01-18 | SideMenu                       | Score 9: MATCH_TYPES const, class_names helpers, no hash mutation, auto-controller, 13 tests | AI         |
+| 2026-01-18 | Stepper                        | Score 9: Full DaisyUI steps migration, COLORS/ORIENTATIONS constants, CHECKMARK, 20 tests    | AI         |

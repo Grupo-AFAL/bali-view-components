@@ -1,13 +1,11 @@
-<%= tag.div **@options do %>
-  <% authorized_menus = menu_switches.select(&:authorized?) %>
+<%= tag.div(**container_options) do %>
   <ul class="menu bg-base-200 rounded-box w-56">
-    <% if authorized_menus.size == 1 %>
+    <% if single_menu? %>
       <li class="menu-title"><%= authorized_menus.first %></li>
-    <% elsif authorized_menus.size > 1 %>
-      <% active_menu = authorized_menus.find(&:active?) %>
+    <% elsif multiple_menus? %>
       <%= render Bali::HoverCard::Component.new(
-          z_index: 38, open_on_click: true, content_padding: false, placement: 'bottom-start', 
-          class: 'menu-switcher with-multiple-switches', 
+          z_index: HOVERCARD_Z_INDEX, open_on_click: true, content_padding: false, placement: 'bottom-start',
+          class: 'menu-switcher with-multiple-switches',
           data: { hovercard_content_class: 'hover-card-tippy-wrapper menu-switcher-tippy-wrapper' }
       ) do |c| %>
         <% c.with_trigger(class: 'menu-switcher--trigger') do %>
@@ -19,10 +17,10 @@
           ) do %>
             <%= menu %>
           <% end %>
-        <% end  %>
+        <% end %>
       <% end %>
     <% end %>
-    <% if @collapsable %>
+    <% if collapsable? %>
       <li>
         <%= render Bali::Link::Component.new(href: nil, class: 'text-base-content/70',
             data: { action: 'side-menu#toggleCollapse' }
@@ -32,7 +30,7 @@
         <% end %>
       </li>
     <% end %>
-    <% if @collapsable || authorized_menus.any? %>
+    <% if show_divider? %>
       <li class="divider"></li>
     <% end %>
     <% lists.each do |list| %>

@@ -20,11 +20,12 @@ module Bali
         def initialize(current_path:, title: nil, **options)
           @title = title
           @current_path = current_path
+          @title_class = options.delete(:title_class)
           @options = options
         end
 
-        def title_class
-          class_names('menu-title', @options.delete(:title_class))
+        def title_classes
+          class_names('menu-title', @title_class)
         end
       end
     end

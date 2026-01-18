@@ -19,11 +19,12 @@ module Bali
 
       # With multiple apps
       # -------------------
-      # Default menu with a section name and an item
+      # Menu switcher for switching between different application sections.
+      # When `collapsable: true`, the data-controller is automatically included.
       # @param title text
       def with_menu_switcher(title: 'Section Title')
         render(SideMenu::Component.new(
-                 current_path: '/inv/counts', collapsable: true, data: { controller: 'side-menu' }
+                 current_path: '/inv/counts', collapsable: true
                )) do |c|
           c.with_menu_switch(
             title: 'BoH', subtitle: 'Back of house', href: '/boh/dashboard',

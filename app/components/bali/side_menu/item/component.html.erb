@@ -1,16 +1,14 @@
 <li>
-  <% if items.blank? %>
-    <% link_class = @options.delete(:class) %>
+  <% unless subitems? %>
     <%= render Bali::Link::Component.new(
-        name: @name, href: @href, icon_name: @icon, active_path: current_path, 
-        active: @active, class: token_list(link_class, 'side-menu-component--item-component is-expanded'),
-        **@options) %>
+        name: @name, href: @href, icon_name: @icon, active_path: @current_path,
+        active: @active, class: item_classes, **link_options) %>
     <%= render Bali::Tooltip::Component.new do |tooltip| %>
       <% tooltip.with_trigger do %>
         <%= render Bali::Link::Component.new(
-            name: @name, href: @href, icon_name: @icon, active_path: current_path, 
-            active: @active, class: token_list(link_class, 'side-menu-component--item-component is-collapsed'),
-            **@options) %>
+            name: @name, href: @href, icon_name: @icon, active_path: @current_path,
+            active: @active, class: class_names(@link_class, 'side-menu-component--item-component is-collapsed'),
+            **link_options) %>
       <% end %>
       <%= @name %>
     <% end %>
@@ -26,7 +24,7 @@
         <% if @href.present? %>
           <li>
             <%= render Bali::Link::Component.new(
-                name: @name, href: @href, icon_name: @icon, active_path: current_path, active: @active) %>
+                name: @name, href: @href, icon_name: @icon, active_path: @current_path, active: @active) %>
           </li>
         <% end %>
         <% items.each do |item| %>
