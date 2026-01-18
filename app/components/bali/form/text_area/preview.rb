@@ -5,11 +5,24 @@ module Bali
     module TextArea
       class Preview < ApplicationViewComponentPreview
         # @label Default
-        # Shows a basic textarea field with DaisyUI styling.
-        def default
+        # @param rows number
+        # @param placeholder text
+        # @param char_counter toggle
+        # @param max_length number
+        # @param auto_grow toggle
+        # Interactive preview with all textarea options.
+        def default(rows: 3, placeholder: 'Enter text...', char_counter: false,
+                    max_length: 0, auto_grow: false)
           render_with_template(
             template: 'bali/form/text_area/previews/default',
-            locals: { model: form_record }
+            locals: {
+              model: form_record,
+              rows: rows,
+              placeholder: placeholder,
+              char_counter: char_counter,
+              max_length: max_length.to_i,
+              auto_grow: auto_grow
+            }
           )
         end
 
@@ -20,7 +33,14 @@ module Bali
 
           render_with_template(
             template: 'bali/form/text_area/previews/default',
-            locals: { model: form_record }
+            locals: {
+              model: form_record,
+              rows: 3,
+              placeholder: 'Enter text...',
+              char_counter: false,
+              max_length: 0,
+              auto_grow: false
+            }
           )
         end
 
@@ -33,41 +53,20 @@ module Bali
           )
         end
 
-        # @label With Custom Size
-        # Shows textarea with custom rows and CSS sizing.
-        def with_custom_size
+        # @label Character Counter Example
+        # Example showing character counter with 280 character limit (Twitter-style).
+        def char_counter_example
           render_with_template(
-            template: 'bali/form/text_area/previews/with_custom_size',
+            template: 'bali/form/text_area/previews/char_counter_example',
             locals: { model: form_record }
           )
         end
 
-        # @label With Character Counter
-        # Shows textarea with character counter. Displays current character count.
-        # Use `char_counter: true` for simple counter, or `char_counter: { max: 500 }`
-        # to show a maximum limit.
-        def with_char_counter
+        # @label Auto Grow Example
+        # Textarea that automatically expands as you type.
+        def auto_grow_example
           render_with_template(
-            template: 'bali/form/text_area/previews/with_char_counter',
-            locals: { model: form_record }
-          )
-        end
-
-        # @label With Auto Grow
-        # Textarea automatically expands as you type more content.
-        # The height adjusts to fit the content, eliminating the need for scrolling.
-        def with_auto_grow
-          render_with_template(
-            template: 'bali/form/text_area/previews/with_auto_grow',
-            locals: { model: form_record }
-          )
-        end
-
-        # @label With Both Features
-        # Combines character counter with maximum limit and auto-grow functionality.
-        def with_both_features
-          render_with_template(
-            template: 'bali/form/text_area/previews/with_both_features',
+            template: 'bali/form/text_area/previews/auto_grow_example',
             locals: { model: form_record }
           )
         end

@@ -1,3 +1,18 @@
+<%
+  # Build char_counter option based on params
+  char_counter_option = if char_counter && max_length > 0
+    { max: max_length }
+  elsif char_counter
+    true
+  else
+    false
+  end
+%>
+
 <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
-  <%= form.text_area_group :text %>
+  <%= form.text_area_group :text,
+      rows: rows,
+      placeholder: placeholder,
+      char_counter: char_counter_option,
+      auto_grow: auto_grow %>
 <% end %>

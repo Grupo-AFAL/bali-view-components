@@ -1,7 +1,0 @@
-<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
-  <%= form.text_area_group :text,
-      char_counter: { max: 280 },
-      auto_grow: true,
-      placeholder: 'Tweet-length textarea that grows and shows character count...',
-      help: 'Limited to 280 characters. Textarea expands as you type.' %>
-<% end %>

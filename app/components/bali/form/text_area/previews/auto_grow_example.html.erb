@@ -1,0 +1,7 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.text_area_group :text,
+      rows: 2,
+      auto_grow: true,
+      placeholder: 'Start typing... the textarea will expand automatically.',
+      help: 'The textarea grows to fit your content. No scrolling needed!' %>
+<% end %>
