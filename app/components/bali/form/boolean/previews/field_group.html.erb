@@ -1,0 +1,6 @@
+<div class="p-4">
+  <p class="text-sm text-base-content/60 mb-4">The <code class="bg-base-200 px-1 rounded">boolean_field_group</code> method wraps the checkbox in a fieldset for form grouping.</p>
+  <%= form_with model: model, url: '/lookbook', builder: Bali::FormBuilder do |f| %>
+    <%= f.boolean_field_group(:indie, label: 'This is an indie film') %>
+  <% end %>
+</div>

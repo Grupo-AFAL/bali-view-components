@@ -1,0 +1,11 @@
+<div class="max-w-md">
+  <p class="text-sm text-base-content/60 mb-4">Only accepts images and PDF files:</p>
+  <%= form_with(url: '/lookbook', method: :get) do |form| %>
+    <%= render Bali::DirectUpload::Component.new(
+      form: form,
+      method: :documents,
+      multiple: true,
+      accept: 'image/*,.pdf'
+    ) %>
+  <% end %>
+</div>

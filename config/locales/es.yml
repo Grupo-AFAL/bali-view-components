@@ -13,6 +13,31 @@ es:
     generic_confirm_message:
       text: '¿Estas seguro(a)?'
   bali:
+    direct_upload:
+      drop_zone:
+        title: Arrastra archivos aquí
+        or: o
+        browse: Seleccionar archivos
+        aria_label: Arrastra archivos aquí o haz clic para seleccionar
+      file_list:
+        aria_label: Archivos para subir
+      file_status:
+        pending: Esperando...
+        uploading: Subiendo...
+        completed: Subido
+        error: Error
+      status:
+        uploaded: Ya subido
+      errors:
+        too_many_files: "Máximo %{max} archivos permitidos"
+        file_too_large: "El archivo excede el límite de %{max}MB"
+        invalid_type: Tipo de archivo no aceptado
+      actions:
+        cancel: Cancelar
+        retry: Reintentar
+        remove: Eliminar
+        dismiss: Cerrar error
+        remove_file: "Eliminar %{filename}"
     form_builder:
       file:
         choose_file: Seleccionar archivo
