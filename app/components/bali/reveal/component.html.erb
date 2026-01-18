@@ -1,7 +1,7 @@
-<%= tag.div(**options) do %>
+<%= tag.div(**component_options) do %>
   <%= trigger %>
 
-  <%= tag.div(class: 'reveal-content mb-8 hidden group-[.is-revealed]:block') do %>
+  <%= tag.div(class: content_classes) do %>
     <%= content %>
   <% end %>
 <% end %>
