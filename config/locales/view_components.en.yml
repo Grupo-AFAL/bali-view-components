@@ -102,12 +102,16 @@ en:
         weekend_day: Weekend day
         repeat: Repeat
         every: every
-        month_s: Month (s)
-        week_s: Week (s)
-        day_s: Day (s)
-        hour_s: Hour (s)
+        month_s: month(s)
+        week_s: week(s)
+        day_s: day(s)
+        hour_s: hour(s)
         on_option: "On"
         on_the: On the
         on_day: On day
         end: End
-        ocurrence_s: ocurrence (s)
+        ocurrence_s: occurrence(s)
+        yearly_options: Yearly Options
+        monthly_options: Monthly Options
+        repeat_on_days: Repeat on Days
+        of: of

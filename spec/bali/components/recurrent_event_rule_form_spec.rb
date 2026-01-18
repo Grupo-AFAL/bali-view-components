@@ -83,7 +83,7 @@ RSpec.describe Bali::RecurrentEventRuleForm::Component, type: :component do
     it 'hides the end method section' do
       render_inline(component)
 
-      expect(page).to have_css 'div.hidden', text: /End|Termina/
+      expect(page).to have_css 'fieldset.hidden', text: /End|Termina/
     end
   end
 

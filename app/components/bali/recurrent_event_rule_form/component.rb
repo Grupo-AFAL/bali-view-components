@@ -51,9 +51,11 @@ module Bali
         class_names(
           BASE_CLASSES,
           '[&_.weekday-checkboxes-container]:flex',
-          '[&_.weekday-checkboxes-container]:gap-4',
-          '[&_.weekday-checkboxes-container]:w-full',
-          '[&_.weekday-checkboxes-container]:overflow-x-scroll',
+          '[&_.weekday-checkboxes-container]:flex-wrap',
+          '[&_.weekday-checkboxes-container]:justify-center',
+          '[&_.weekday-checkboxes-container]:sm:justify-start',
+          '[&_.weekday-checkboxes-container]:gap-2',
+          '[&_.weekday-checkboxes-container]:sm:gap-3',
           options[:class]
         )
       end

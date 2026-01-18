@@ -102,12 +102,16 @@ es:
         weekend_day: Fines de semana
         repeat: Repetir
         every: cada
-        month_s: Mes (es)
-        week_s: Semana (s)
-        day_s: Día (s)
-        hour_s: Hora (s)
+        month_s: mes(es)
+        week_s: semana(s)
+        day_s: día(s)
+        hour_s: hora(s)
         on_option: En
         on_the: El
         on_day: En el día
         end: Termina
-        ocurrence_s: ocurrencia (s)
+        ocurrence_s: ocurrencia(s)
+        yearly_options: Opciones Anuales
+        monthly_options: Opciones Mensuales
+        repeat_on_days: Repetir en Días
+        of: de
