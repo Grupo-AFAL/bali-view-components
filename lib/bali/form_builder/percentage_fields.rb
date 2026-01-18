@@ -6,7 +6,7 @@ module Bali
       def percentage_field_group(method, options = {})
         options.with_defaults!(
           placeholder: 0,
-          addon_right: tag.span('%', class: 'btn btn-disabled pointer-events-none join-item'),
+          addon_right: percentage_addon,
           step: '0.01',
           pattern_type: :number_with_commas
         )
@@ -14,6 +14,12 @@ module Bali
         @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
           text_field(method, options)
         end
+      end
+
+      private
+
+      def percentage_addon
+        tag.span('%', class: HtmlUtils::ADDON_CLASSES)
       end
     end
   end

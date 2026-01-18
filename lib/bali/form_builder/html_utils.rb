@@ -3,6 +3,9 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module HtmlUtils
+      # Shared class for input addons (currency $, percentage %, etc.)
+      ADDON_CLASSES = 'btn btn-disabled pointer-events-none join-item'
+
       def field_options(method, options)
         pattern_types = {
           number_with_commas: '^(\d+|\d{1,3}(,\d{3})*)(\.\d+)?$'
