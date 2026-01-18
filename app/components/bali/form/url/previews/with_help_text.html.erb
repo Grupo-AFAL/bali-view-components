@@ -1,4 +1,5 @@
 <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
   <%= form.url_field_group :website_url,
-      placeholder: 'https://example.com' %>
+      placeholder: 'https://example.com',
+      help: 'Enter a valid URL including the protocol (https://).' %>
 <% end %>
