@@ -13,7 +13,7 @@ module Bali
         end
 
         def with_errors
-          form_record.errors.add(:budget, :invalid)
+          form_record.errors.add(:percentage, :invalid)
 
           render_with_template(
             template: 'bali/form/percentage/previews/default',
