@@ -9,11 +9,11 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     let(:percentage_field_group) { builder.percentage_field_group(:budget) }
 
     it 'renders a label and input within a wrapper' do
-      expect(percentage_field_group).to have_css 'div.form-control'
+      expect(percentage_field_group).to have_css 'fieldset.fieldset'
     end
 
     it 'renders a label' do
-      expect(percentage_field_group).to have_css 'label[for="movie_budget"]', text: 'Budget'
+      expect(percentage_field_group).to have_css 'legend.fieldset-legend', text: 'Budget'
     end
 
     it 'renders a % sign' do

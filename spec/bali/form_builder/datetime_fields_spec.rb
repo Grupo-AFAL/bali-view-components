@@ -9,26 +9,26 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     let(:datetime_field_group) { builder.datetime_field_group(:release_date) }
 
     it 'renders a label and input within a wrapper' do
-      expect(datetime_field_group).to have_css 'div.form-control'
+      expect(datetime_field_group).to have_css '.fieldset'
     end
 
     it 'renders a label' do
-      expect(datetime_field_group).to have_css 'label[for="movie_release_date"]',
+      expect(datetime_field_group).to have_css 'legend.fieldset-legend',
                                                text: 'Release date'
     end
 
     it 'renders a field with a datepicker controller' do
-      expect(datetime_field_group).to have_css 'div.form-control[data-controller="datepicker"]'
+      expect(datetime_field_group).to have_css '.fieldset[data-controller="datepicker"]'
     end
 
     it 'renders a field with datepicker time enabled' do
       expect(datetime_field_group).to have_css(
-        'div.form-control[data-datepicker-enable-time-value="true"]'
+        '.fieldset[data-datepicker-enable-time-value="true"]'
       )
     end
 
     it 'renders a field with datepicker locale value' do
-      expect(datetime_field_group).to have_css 'div[data-datepicker-locale-value="en"]'
+      expect(datetime_field_group).to have_css '.fieldset[data-datepicker-locale-value="en"]'
     end
 
     it 'renders an input' do
@@ -42,17 +42,17 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     let(:datetime_field) { builder.datetime_field(:release_date) }
 
     it 'renders a field with a datepicker controller' do
-      expect(datetime_field).to have_css 'div.form-control[data-controller="datepicker"]'
+      expect(datetime_field).to have_css '.fieldset[data-controller="datepicker"]'
     end
 
     it 'renders a field with datepicker time enabled' do
       expect(datetime_field).to have_css(
-        'div.form-control[data-datepicker-enable-time-value="true"]'
+        '.fieldset[data-datepicker-enable-time-value="true"]'
       )
     end
 
     it 'renders a field with datepicker locale value' do
-      expect(datetime_field).to have_css 'div[data-datepicker-locale-value="en"]'
+      expect(datetime_field).to have_css '.fieldset[data-datepicker-locale-value="en"]'
     end
 
     it 'renders an input' do

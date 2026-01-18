@@ -3,9 +3,10 @@
 module Bali
   module FieldGroupWrapper
     class Component < ApplicationViewComponent
-      BASE_CLASSES = 'form-control w-full'
-      LABEL_CLASSES = 'label'
-      LABEL_TEXT_CLASSES = 'label-text flex items-center gap-2'
+      # DaisyUI 5 uses fieldset pattern for form groups
+      BASE_CLASSES = 'fieldset w-full'
+      LEGEND_CLASSES = 'fieldset-legend'
+      LEGEND_TEXT_CLASSES = 'flex items-center gap-2'
 
       def initialize(form, method, options = {})
         @form = form
@@ -18,8 +19,8 @@ module Bali
       end
 
       def call
-        tag.div(id: field_id, class: wrapper_classes, data: @field_data) do
-          safe_join([label_html, content].compact)
+        tag.fieldset(id: field_id, class: wrapper_classes, data: @field_data) do
+          safe_join([legend_html, content].compact)
         end
       end
 
@@ -35,24 +36,23 @@ module Bali
         class_names(BASE_CLASSES, @field_class, @custom_class)
       end
 
-      def label_html
+      def legend_html
         return if hidden_field? || label_disabled?
-        return simple_label if @label_options[:tooltip].blank?
+        return simple_legend if @label_options[:tooltip].blank?
 
-        label_with_tooltip
+        legend_with_tooltip
       end
 
-      def simple_label
-        @form.label(@method, @label_options[:text], class: LABEL_CLASSES)
+      def simple_legend
+        label_text = @label_options[:text] || @form.translate_attribute(@method)
+        tag.legend(label_text, class: LEGEND_CLASSES)
       end
 
-      def label_with_tooltip
-        @form.label(@method, class: label_classes) do |translation|
-          tag.span(class: LABEL_TEXT_CLASSES) do
-            safe_join([
-                        @label_options[:text] || translation,
-                        tooltip_icon
-                      ])
+      def legend_with_tooltip
+        tag.legend(class: legend_classes) do
+          tag.span(class: LEGEND_TEXT_CLASSES) do
+            label_text = @label_options[:text] || @form.translate_attribute(@method)
+            safe_join([label_text, tooltip_icon])
           end
         end
       end
@@ -66,8 +66,8 @@ module Bali
         end
       end
 
-      def label_classes
-        class_names(LABEL_CLASSES, @label_options[:class])
+      def legend_classes
+        class_names(LEGEND_CLASSES, @label_options[:class])
       end
 
       def hidden_field?

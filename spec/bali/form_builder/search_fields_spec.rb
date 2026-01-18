@@ -9,11 +9,11 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     let(:search_field_group) { builder.search_field_group(:name) }
 
     it 'renders a label and input within a wrapper' do
-      expect(search_field_group).to have_css 'div.form-control'
+      expect(search_field_group).to have_css 'fieldset.fieldset'
     end
 
     it 'renders a label' do
-      expect(search_field_group).to have_css 'label[for="movie_name"]', text: 'Name'
+      expect(search_field_group).to have_css 'legend.fieldset-legend', text: 'Name'
     end
 
     it 'renders an input' do

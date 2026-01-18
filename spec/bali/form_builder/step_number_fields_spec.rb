@@ -9,11 +9,11 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     let(:step_number_group) { builder.step_number_field_group(:duration) }
 
     it 'renders the input and label within a wrapper' do
-      expect(step_number_group).to have_css '#field-duration.form-control'
+      expect(step_number_group).to have_css '#field-duration.fieldset'
     end
 
     it 'renders the label' do
-      expect(step_number_group).to have_css '.label[for="movie_duration"]', text: 'Duration'
+      expect(step_number_group).to have_css 'legend.fieldset-legend', text: 'Duration'
     end
 
     it 'renders the input' do

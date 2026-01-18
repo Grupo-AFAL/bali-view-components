@@ -9,11 +9,11 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     let(:select_group) { builder.select_group(:status, Movie.statuses.to_a) }
 
     it 'renders a label and input within a wrapper' do
-      expect(select_group).to have_css 'div.form-control'
+      expect(select_group).to have_css 'fieldset.fieldset'
     end
 
     it 'renders a label' do
-      expect(select_group).to have_css 'label[for="movie_status"]', text: 'Status'
+      expect(select_group).to have_css 'legend.fieldset-legend', text: 'Status'
     end
 
     it 'renders a select' do

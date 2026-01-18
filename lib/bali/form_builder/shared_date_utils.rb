@@ -16,7 +16,7 @@ module Bali
         options[:control_class] = "w-full #{options[:control_class]}"
 
         wrapper_options = {
-          class: 'form-control flatpickr',
+          class: 'fieldset flatpickr',
           data: {
             controller: 'datepicker', 'datepicker-period-value': options[:period],
             'datepicker-locale-value': I18n.locale

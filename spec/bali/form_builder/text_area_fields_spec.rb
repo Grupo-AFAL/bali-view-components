@@ -9,11 +9,11 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     let(:text_area_group) { builder.text_area_group(:synopsis) }
 
     it 'renders a label and input within a wrapper' do
-      expect(text_area_group).to have_css 'div.form-control'
+      expect(text_area_group).to have_css 'fieldset.fieldset'
     end
 
     it 'renders a label' do
-      expect(text_area_group).to have_css 'label[for="movie_synopsis"]', text: 'Synopsis'
+      expect(text_area_group).to have_css 'legend.fieldset-legend', text: 'Synopsis'
     end
 
     it 'renders a text area' do

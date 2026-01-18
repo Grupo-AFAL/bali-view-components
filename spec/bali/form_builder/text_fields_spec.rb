@@ -11,11 +11,11 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     before { @options = {} }
 
     it 'renders a label and input within a wrapper' do
-      expect(text_field_group).to have_css 'div.form-control'
+      expect(text_field_group).to have_css 'fieldset.fieldset'
     end
 
     it 'renders a label' do
-      expect(text_field_group).to have_css 'label[for="movie_name"]', text: 'Name'
+      expect(text_field_group).to have_css 'legend.fieldset-legend', text: 'Name'
     end
 
     it 'renders an input' do
@@ -26,7 +26,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
       before { @options = { addon_right: '<button>Search</button>'.html_safe } }
 
       it 'renders a label and input with addons' do
-        expect(text_field_group).to have_css 'label[for="movie_name"]', text: 'Name'
+        expect(text_field_group).to have_css 'legend.fieldset-legend', text: 'Name'
         expect(text_field_group).to have_css 'input#movie_name[name="movie[name]"]'
         expect(text_field_group).to have_css 'div.join', text: 'Search'
       end

@@ -12,7 +12,7 @@ module Bali
                   tag.p(options.delete(:label), class: label_class)
                 end
 
-        tag.div(class: ['form-control', control_class].compact.join(' ')) do
+        tag.fieldset(class: ['fieldset', control_class].compact.join(' ')) do
           safe_join([
                       label,
                       switch_field(method, options, checked_value, unchecked_value)
@@ -24,7 +24,7 @@ module Bali
         unique_identifier = timestamp
         options.merge!(id: check_box_id(object, method, unique_identifier))
 
-        @template.content_tag(:div, class: 'form-control') do
+        @template.content_tag(:fieldset, class: 'fieldset') do
           safe_join([
                       check_box(method, options, checked_value, unchecked_value),
                       @template.label_tag(options[:id], '')

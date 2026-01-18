@@ -11,12 +11,12 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'renders a label and input within a field wrapper' do
-      expect(coordinates_polygon_field_group).to have_css 'div.form-control'
+      expect(coordinates_polygon_field_group).to have_css 'fieldset.fieldset'
     end
 
     it 'renders a label' do
       expect(coordinates_polygon_field_group).to have_css(
-        '.label[for="movie_available_region"]', text: 'Available region'
+        'legend.fieldset-legend', text: 'Available region'
       )
     end
 

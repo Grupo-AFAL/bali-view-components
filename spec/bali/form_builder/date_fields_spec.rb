@@ -9,11 +9,11 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     let(:date_field_group) { builder.date_field_group(:release_date) }
 
     it 'renders a label and input within a wrapper' do
-      expect(date_field_group).to have_css 'div.form-control'
+      expect(date_field_group).to have_css 'fieldset.fieldset'
     end
 
     it 'renders a label' do
-      expect(date_field_group).to have_css 'label[for="movie_release_date"]', text: 'Release date'
+      expect(date_field_group).to have_css 'legend.fieldset-legend', text: 'Release date'
     end
 
     it 'renders a field with datepicker controller' do
