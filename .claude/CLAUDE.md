@@ -559,6 +559,32 @@ Template file at `previews/with_slots.html.erb`:
 <%% end %>
 ```
 
+**Wrapper HTML for Interactive Components**: When previewing dropdowns, tooltips, or popovers, use `render_with_template` to add centering/padding so menus have space to expand. Do NOT use `tag.div` blocks in preview methods - they cause "no implicit conversion of Symbol into Integer" errors.
+
+```ruby
+# ❌ BAD - tag.div blocks fail in preview methods
+def default
+  tag.div(class: 'flex justify-center p-8') do
+    render Dropdown::Component.new { ... }
+  end
+end
+
+# ✅ GOOD - use render_with_template with ERB file
+def default
+  render_with_template
+end
+```
+
+Template file at `previews/default.html.erb`:
+```erb
+<div class="flex justify-center items-center min-h-[250px] p-8">
+  <%%= render Bali::Dropdown::Component.new do |c|
+    c.with_trigger { 'Click me' }
+    c.with_item(href: '#') { 'Item 1' }
+  end %>
+</div>
+```
+
 **Database Access**: Previews can access ActiveRecord models from the dummy app:
 
 ```ruby

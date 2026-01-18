@@ -1,0 +1,18 @@
+<div class="flex justify-center items-center min-h-[200px] p-8">
+  <%= render Bali::ActionsDropdown::Component.new do |c|
+    c.safe_join([
+      c.tag.li(c.render(Bali::Link::Component.new(
+        name: 'Create',
+        icon_name: 'plus-circle',
+        href: '#',
+        drawer: true
+      ))),
+      c.tag.li(c.render(Bali::Link::Component.new(
+        name: 'Export',
+        icon_name: 'file-export',
+        href: '#',
+        drawer: true
+      )))
+    ])
+  end %>
+</div>

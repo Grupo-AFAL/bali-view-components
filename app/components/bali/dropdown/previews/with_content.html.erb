@@ -1,0 +1,14 @@
+<div class="flex justify-center items-center min-h-[250px] p-8">
+  <%= render(Bali::Dropdown::Component.new(hoverable: hoverable, close_on_click: close_on_click,
+                                           align: align)) do |c|
+    c.with_trigger(class: 'btn-ghost') { 'Custom Content' }
+
+    c.tag.li do
+      c.tag.div(class: 'p-4') do
+        c.tag.h3('Dropdown Title', class: 'font-bold text-lg') +
+          c.tag.p('This is custom HTML content inside the dropdown.',
+                  class: 'text-sm opacity-70')
+      end
+    end
+  end %>
+</div>

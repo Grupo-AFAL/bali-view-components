@@ -8,11 +8,7 @@ module Bali
       # Dropdown menu for row-level actions with icon trigger.
       # Items with `method: :delete` automatically use DeleteLink with confirmation.
       def default
-        render ActionsDropdown::Component.new do |c|
-          c.with_item(name: 'Edit', icon_name: 'edit', href: '#')
-          c.with_item(name: 'Export', icon_name: 'file-export', href: '#')
-          c.with_item(name: 'Delete', icon_name: 'trash', href: '#', method: :delete)
-        end
+        render_with_template
       end
 
       # @param align select { choices: [start, center, end] }
@@ -37,14 +33,7 @@ module Bali
       # Override the default ellipsis icon with a custom trigger button.
       # Use `with_trigger` slot to provide any element as the dropdown trigger.
       def with_custom_trigger
-        render ActionsDropdown::Component.new do |c|
-          c.with_trigger do
-            tag.button('Actions ▾', type: 'button', tabindex: 0, class: 'btn btn-sm btn-outline')
-          end
-          c.with_item(name: 'Edit', icon_name: 'edit', href: '#')
-          c.with_item(name: 'Export', icon_name: 'file-export', href: '#')
-          c.with_item(name: 'Delete', icon_name: 'trash', href: '#', method: :delete)
-        end
+        render_with_template
       end
 
       # With Custom Icon
@@ -52,10 +41,7 @@ module Bali
       # Change the default trigger icon using the `icon` parameter.
       # Useful when you want vertical ellipsis or another icon.
       def with_custom_icon
-        render ActionsDropdown::Component.new(icon: 'more') do |c|
-          c.with_item(name: 'Edit', icon_name: 'edit', href: '#')
-          c.with_item(name: 'Delete', icon_name: 'trash', href: '#', method: :delete)
-        end
+        render_with_template
       end
 
       # With Custom Content
@@ -63,22 +49,7 @@ module Bali
       # Pass block content directly for full control over menu items.
       # Use this when items slot doesn't fit your needs.
       def with_custom_content
-        render ActionsDropdown::Component.new do |c|
-          c.safe_join([
-            c.tag.li(c.render(Bali::Link::Component.new(
-              name: 'Create',
-              icon_name: 'plus-circle',
-              href: '#',
-              drawer: true
-            ))),
-            c.tag.li(c.render(Bali::Link::Component.new(
-              name: 'Export',
-              icon_name: 'file-export',
-              href: '#',
-              drawer: true
-            )))
-          ])
-        end
+        render_with_template
       end
     end
   end
