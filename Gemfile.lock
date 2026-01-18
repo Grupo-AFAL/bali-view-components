@@ -382,6 +382,7 @@ DEPENDENCIES
   view_component
   view_component-contrib
   vite_rails (~> 3.0)
+  yard (~> 0.9)
 
 BUNDLED WITH
    2.3.13

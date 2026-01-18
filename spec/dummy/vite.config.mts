@@ -49,7 +49,8 @@ export default defineConfig({
       { find: '@rails/request.js', replacement: resolve(__dirname, 'node_modules/@rails/request.js') },
       { find: '@googlemaps/markerclusterer', replacement: resolve(__dirname, 'node_modules/@googlemaps/markerclusterer') },
       { find: 'slim-select', replacement: resolve(__dirname, 'node_modules/slim-select') },
-      { find: 'interactjs', replacement: resolve(__dirname, 'node_modules/interactjs') }
+      { find: 'interactjs', replacement: resolve(__dirname, 'node_modules/interactjs') },
+      { find: '@rails/activestorage', replacement: resolve(__dirname, 'node_modules/@rails/activestorage') }
     ],
     // Ensure dependencies used by Bali are resolved from dummy app's node_modules
     dedupe: [

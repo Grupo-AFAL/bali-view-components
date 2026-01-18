@@ -30,6 +30,7 @@ group :development do
   gem 'puma', '< 7'
   gem 'rubocop', '~> 1', require: false
   gem 'rubocop-rails', '~> 2'
+  gem 'yard', '~> 0.9'
 end
 
 group :test do

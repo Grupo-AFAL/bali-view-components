@@ -37,7 +37,17 @@ module Dummy
     config.autoload_paths << Rails.root.parent.parent.join('app/components')
     config.view_component.preview_paths << Rails.root.parent.parent.join('app/components')
 
-    config.lookbook.listen_extensions = %w[js scss]
+    # Watch Ruby/ERB files for preview changes (not JS/SCSS which trigger cascading rebuilds)
+    config.lookbook.listen_extensions = %w[rb erb]
     config.lookbook.preview_layout = 'lookbook_preview'
+
+    # Performance: disable live updates when not needed
+    if ENV['DISABLE_RELOADING']
+      config.lookbook.live_updates = false
+      config.lookbook.listen = false
+    end
+
+    # Documentation pages
+    config.lookbook.page_paths = [Rails.root.join("app/views/lookbook/pages")]
   end
 end
