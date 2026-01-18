@@ -82,9 +82,9 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ RichTextArea         |  ❌   |    ❌     |   N/A   |   ❌   |    -    | Rich text editor (Trix/TipTap, no spec)                            |
 | ↳ SearchFields         |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | DEFAULT_BUTTON_CLASSES, private search_addon helper, 21 tests      |
 | ↳ SelectFields         |  ✅   |    ❌     |   ✅    |   ❌   |   🔄    | Review in progress                                                 |
-| ↳ SlimSelectFields     |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Slim Select enhanced dropdown                                      |
+| ↳ SlimSelectFields     |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Frozen constants, class_names, no mutation, 34 tests               |
 | ↳ StepNumberFields     |  ✅   |    ❌     |   ✅    |   ❌   |   🔄    | Review in progress                                                 |
-| ↳ SubmitFields         |  ✅   |    ❌     |   ✅    |   ❌   |   🔄    | Review in progress                                                 |
+| ↳ SubmitFields         |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | VARIANTS/SIZES constants, variant:/size: options, 40 tests         |
 | ↳ SwitchFields         |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Toggle switch with DaisyUI toggle classes                          |
 | ↳ TextFields           |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Text input with DaisyUI input classes                              |
 | ↳ TextAreaFields       |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Textarea with DaisyUI textarea classes                             |
@@ -366,3 +366,5 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Navbar                         | Refactor: Responsive mobile menu, fullscreen toggle, color dropdown fix                       | AI         |
 | 2026-01-17 | Navbar                         | Manually verified: Mobile menu, fullscreen, all colors, dropdown contrast                     | Human      |
 | 2026-01-17 | SearchFields (FormBuilder)     | Score 9: DEFAULT_BUTTON_CLASSES const, private search_addon helper, Lookbook preview, 21 tests | AI         |
+| 2026-01-17 | SlimSelectFields (FormBuilder) | Score 9: Frozen constants, class_names helper, no hash mutation, DaisyUI hidden class, 34 tests | AI         |
+| 2026-01-17 | SubmitFields (FormBuilder)     | Score 9: VARIANTS/SIZES constants, variant:/size: options, button for modal/drawer cancel, 40 tests | AI         |
