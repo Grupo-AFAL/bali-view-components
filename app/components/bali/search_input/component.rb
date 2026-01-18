@@ -3,45 +3,70 @@
 module Bali
   module SearchInput
     class Component < ApplicationViewComponent
-      attr_reader :form, :method, :placeholder, :auto_submit
+      BASE_INPUT_CLASSES = 'input input-bordered'
+      BASE_BUTTON_CLASSES = 'btn btn-primary join-item'
+      CONTAINER_CLASS = 'search-input-component w-full'
 
-      def initialize(form:, method:, auto_submit: false, **options)
+      def initialize(form:, field:, auto_submit: false, placeholder: nil, **options)
         @form = form
-        @method = method
+        @field = field
         @auto_submit = auto_submit
-        @placeholder = options.delete(:placeholder)
-        @class = options.delete(:class)
-        @submit_options = prepend_class_name(options.delete(:submit) || {}, 'btn btn-primary')
+        @placeholder = placeholder
+        @options = options
       end
 
+      private
+
+      attr_reader :form, :field, :auto_submit, :placeholder, :options
+
       def value
-        form.send(method)
+        form.public_send(field)
       end
 
       def input_id
-        "#{form.model_name}_#{method}"
+        "#{form.model_name}_#{field}"
       end
 
       def input_name
-        "#{form.model_name}[#{method}]"
+        "#{form.model_name}[#{field}]"
       end
 
-      def input_class
-        class_names('input input-bordered', @class)
+      def input_classes
+        class_names(BASE_INPUT_CLASSES, options[:class])
       end
 
-      def field_class
-        class_names('form-control', join: !auto_submit)
+      def container_classes
+        class_names('form-control', show_submit_button? && 'join')
       end
 
-      def control_class
-        class_names('join-item': !auto_submit, 'flex-1': true)
+      def control_classes
+        class_names('flex-1', show_submit_button? && 'join-item')
+      end
+
+      def button_classes
+        class_names(BASE_BUTTON_CLASSES, submit_options[:class])
+      end
+
+      def button_attributes
+        submit_options.except(:class)
       end
 
       def input_data
         return {} unless auto_submit
 
         { action: 'submit-on-change#submit' }
+      end
+
+      def show_submit_button?
+        !auto_submit
+      end
+
+      def resolved_placeholder
+        placeholder || t('.placeholder')
+      end
+
+      def submit_options
+        @submit_options ||= options.fetch(:submit, {})
       end
     end
   end

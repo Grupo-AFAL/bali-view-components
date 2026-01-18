@@ -116,11 +116,11 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Rate                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI rating, SIZES/COLORS constants, i18n, ARIA attrs, 31 tests |
 | Reveal                 |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, class_names, no mutation, Trigger refactor, 14 tests |
 | RichTextEditor         |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom (TipTap)                                                    |
-| SearchInput            |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
+| SearchInput            |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Frozen constants, field: param, class_names, no mutation, 17 tests |
 | SideMenu               |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
 | SortableList           |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
-| Stepper                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
-| Table                  |  ✅   |    ✅     |   ✅    |   ❌   |    -    | Needs manual review                                                |
+| Stepper                |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
+| Table                  |  ✅   |    ✅     |   ✅    |   ❌   |   🔄    | Review in progress                                                 |
 | Tabs                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Cypress tests fixed                                                |
 | Tag                    |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
 | Tags                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
@@ -395,3 +395,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-18 | Reveal                         | Score 9: BASE_CLASSES constants, class_names, no hash mutation, Trigger refactor, 14 tests   | AI         |
 | 2026-01-18 | Reveal                         | Manually verified: Click toggle works, icon rotation, border option, hidden content reveals  | Human      |
 | 2026-01-18 | TextAreaFields (FormBuilder)   | Added char_counter and auto_grow options with Stimulus controller, 7 Lookbook previews, 27 tests | AI         |
+| 2026-01-18 | SearchInput                    | Score 9: Frozen constants, field: param (no method shadow), no hash mutation, 17 tests       | AI         |
