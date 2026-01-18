@@ -120,8 +120,8 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | SideMenu               |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | MATCH_TYPES const, class_names, no mutation, auto-controller, 13 tests |
 | SortableList           |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | BASE_CLASSES, DEFAULTS, private attr, conditional cursor-grab, 23 tests |
 | Stepper                |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI steps, COLORS/ORIENTATIONS, class_names, 20 tests          |
-| Table                  |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | Frozen constants, empty_state_content helper, typo fix, 30 tests   |
-| Tabs                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Cypress tests fixed                                                |
+| Table                  |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, empty_state_content helper, typo fix, 30 tests   |
+| Tabs                   |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
 | Tag                    |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
 | Tags                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
 | Timeago                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
@@ -402,3 +402,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-18 | Table                          | Score 9: TABLE_CLASSES/CONTAINER_CLASSES/STICKY_CLASSES constants, empty_state_content helper, visible_headers, typo fix (IncompatibleOptions), 30 tests | AI         |
 | 2026-01-18 | SortableList                   | Manually verified: Drag reorder, handle mode, shared lists, nested lists, conditional cursor-grab | Human      |
 | 2026-01-18 | Stepper                        | Manually verified: Steps progress, color variants, vertical/horizontal orientations          | Human      |
+| 2026-01-18 | Table                          | Manually verified: Headers, rows, footers, bulk actions, sticky headers, empty states       | Human      |
