@@ -100,7 +100,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ImageField             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | SIZES const, class_names, Button for clear, i18n, 31 tests |
 | ImageGrid              |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | COLUMNS/GAPS/ASPECT_RATIOS, class_names, 34 tests  |
 | InfoLevel              |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, ALIGNMENTS.fetch, private attr, 22 tests |
-| LabelValue             |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | LABEL/VALUE_CLASSES, class_names, private options, 7 tests |
+| LabelValue             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | LABEL/VALUE_CLASSES, class_names, private options, 7 tests |
 | Level                  |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | Link                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | List                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
