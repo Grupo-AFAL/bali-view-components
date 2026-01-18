@@ -1,0 +1,41 @@
+<div class="space-y-4">
+  <div class="flex items-center gap-4">
+    <span class="w-32 text-sm text-base-content/70">Just now:</span>
+    <%= render Bali::Timeago::Component.new(5.seconds.ago, add_suffix: true) %>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <span class="w-32 text-sm text-base-content/70">1 minute ago:</span>
+    <%= render Bali::Timeago::Component.new(1.minute.ago, add_suffix: true) %>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <span class="w-32 text-sm text-base-content/70">15 minutes ago:</span>
+    <%= render Bali::Timeago::Component.new(15.minutes.ago, add_suffix: true) %>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <span class="w-32 text-sm text-base-content/70">1 hour ago:</span>
+    <%= render Bali::Timeago::Component.new(1.hour.ago, add_suffix: true) %>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <span class="w-32 text-sm text-base-content/70">Yesterday:</span>
+    <%= render Bali::Timeago::Component.new(1.day.ago, add_suffix: true) %>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <span class="w-32 text-sm text-base-content/70">Last week:</span>
+    <%= render Bali::Timeago::Component.new(1.week.ago, add_suffix: true) %>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <span class="w-32 text-sm text-base-content/70">Last month:</span>
+    <%= render Bali::Timeago::Component.new(1.month.ago, add_suffix: true) %>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <span class="w-32 text-sm text-base-content/70">Last year:</span>
+    <%= render Bali::Timeago::Component.new(1.year.ago, add_suffix: true) %>
+  </div>
+</div>

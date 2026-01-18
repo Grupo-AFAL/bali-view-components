@@ -7,9 +7,9 @@ export class TimeagoController extends Controller {
   static values = {
     datetime: String,
     refreshInterval: Number,
-    includeSeconds: { default: true, type: Boolean },
-    addSuffix: { default: false, type: Boolean },
-    locale: { default: 'en', type: String }
+    includeSeconds: { type: Boolean, default: true },
+    addSuffix: { type: Boolean, default: false },
+    locale: { type: String, default: 'en' }
   }
 
   initialize () {
