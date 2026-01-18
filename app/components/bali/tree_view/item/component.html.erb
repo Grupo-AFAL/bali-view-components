@@ -1,7 +1,9 @@
 <%= tag.div(**wrapper_options) do %>
   <div class="<%= item_classes %>">
-    <%= tag.span(class: caret_classes, data: caret_data) %>
-    <%= link_to name, path, title: name %>
+    <span class="<%= caret_classes %>" data-action="click->tree-view-item#toggle" data-tree-view-item-target="caret">
+      <%= render Bali::Icon::Component.new('chevron-right', size: :small) %>
+    </span>
+    <%= link_to name, path, title: name, class: 'flex-1 truncate hover:underline' %>
   </div>
 
   <% if items? %>

@@ -3,8 +3,8 @@
 module Bali
   module TreeView
     class Component < ApplicationViewComponent
-      # Base class for the component wrapper
-      BASE_CLASSES = 'tree-view-component'
+      # Base class for the component wrapper - DaisyUI menu-inspired
+      BASE_CLASSES = 'tree-view-component bg-base-200 rounded-box p-2'
 
       renders_many :items, ->(name:, path:, **options) do
         Item::Component.new(

@@ -8,15 +8,15 @@ export class TreeViewItemController extends Controller {
     event.preventDefault()
     event.stopPropagation()
 
-    this.caretTarget.classList.toggle('caret-down')
-    this.caretTarget.classList.toggle('before:rotate-90')
+    // Toggle rotation on caret for smooth animation
+    this.caretTarget.classList.toggle('rotate-90')
 
     if (this.hasChildrenTarget) {
       this.childrenTarget.classList.toggle('hidden')
     }
 
     // Update aria-expanded for accessibility
-    const expanded = !this.childrenTarget?.classList.contains('hidden')
+    const expanded = this.caretTarget.classList.contains('rotate-90')
     this.element.setAttribute('aria-expanded', expanded)
   }
 

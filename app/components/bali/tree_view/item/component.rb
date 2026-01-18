@@ -8,22 +8,24 @@ module Bali
         BASE_CLASSES = 'tree-view-item-component'
         CONTROLLER_NAME = 'tree-view-item'
 
-        # Item styling classes
+        # Item styling classes - DaisyUI menu-inspired
         ITEM_CLASSES = %w[
-          py-1 px-2 cursor-pointer
-          text-ellipsis overflow-hidden whitespace-nowrap
+          flex items-center gap-2
+          py-1 px-2 rounded-lg cursor-pointer
+          text-sm
           hover:bg-base-200
+          transition-colors duration-150
         ].join(' ').freeze
 
-        # Caret styling classes
+        # Caret styling - chevron icon with smooth rotation
         CARET_CLASSES = %w[
-          cursor-pointer select-none p-1 mr-1 rounded text-sm
-          before:content-['▶'] before:text-base-content/80
-          before:inline-block hover:bg-base-300
+          inline-flex items-center justify-center
+          w-4 h-4 shrink-0
+          transition-transform duration-200 ease-out
         ].join(' ').freeze
 
-        # Children container indentation
-        CHILDREN_CLASSES = 'children pl-4'
+        # Children container indentation - matches DaisyUI menu nesting
+        CHILDREN_CLASSES = 'children ml-4 pl-2 border-l border-base-300'
 
         renders_many :items, ->(name:, path:, **options) do
           Item::Component.new(
@@ -86,7 +88,7 @@ module Bali
           class_names(
             'item',
             ITEM_CLASSES,
-            'bg-base-200': active?,
+            'bg-primary/10 text-primary font-medium': active?,
             'is-active': active?,
             'is-childless': !items?,
             'is-root': root
@@ -97,8 +99,8 @@ module Bali
           class_names(
             'caret',
             CARET_CLASSES,
-            'caret-down before:rotate-90': display_children?,
-            'before:text-base-content/30 hover:bg-base-200': !items?
+            'rotate-90': display_children?,
+            'opacity-0': !items?
           )
         end
 
