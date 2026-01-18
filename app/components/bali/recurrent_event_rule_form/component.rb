@@ -2,6 +2,47 @@
 
 module Bali
   module RecurrentEventRuleForm
+    # Recurrence Rule Form - Build RRULE strings (RFC 5545) for calendar applications.
+    #
+    # Generates standard iCalendar recurrence rules for scheduling recurring events.
+    # The UI provides intuitive controls for frequency, interval, weekday selection,
+    # and end conditions.
+    #
+    # == RRULE Format
+    #
+    # The component outputs RFC 5545 compliant strings like:
+    # - +FREQ=DAILY;INTERVAL=1+ (every day)
+    # - +FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,WE,FR+ (every 2 weeks on Mon/Wed/Fri)
+    # - +FREQ=MONTHLY;BYSETPOS=-1;BYDAY=FR+ (last Friday of each month)
+    # - +FREQ=YEARLY;BYMONTH=1;BYMONTHDAY=1+ (January 1st yearly)
+    #
+    # == Usage
+    #
+    #   # Basic usage with form builder
+    #   form.recurrent_event_rule_field :schedule
+    #
+    #   # With field group wrapper (includes label)
+    #   form.recurrent_event_rule_field_group :schedule
+    #
+    #   # Pre-populated with existing value
+    #   form.recurrent_event_rule_field :schedule, value: 'FREQ=WEEKLY;BYDAY=MO'
+    #
+    #   # Limit available frequencies
+    #   form.recurrent_event_rule_field :schedule, frequency_options: %w[daily weekly]
+    #
+    #   # Hide end date options (for rules that never end)
+    #   form.recurrent_event_rule_field :schedule, skip_end_method: true
+    #
+    # == Options
+    #
+    # [+form+]              Required. The form builder instance.
+    # [+method+]            Required. The attribute name (e.g., +:schedule+).
+    # [+value+]             Optional. Pre-populate with an existing RRULE string.
+    # [+disabled+]          Optional. Disable all form controls (default: false).
+    # [+skip_end_method+]   Optional. Hide the "End" section (default: false).
+    # [+frequency_options+] Optional. Array of allowed frequencies (default: all).
+    #                       Valid values: yearly, monthly, weekly, daily, hourly.
+    #
     class Component < ApplicationViewComponent
       FREQUENCIES = {
         yearly: 0,
