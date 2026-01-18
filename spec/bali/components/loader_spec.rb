@@ -79,10 +79,16 @@ RSpec.describe Bali::Loader::Component, type: :component do
 
   describe 'colors' do
     described_class::COLORS.each_key do |color|
-      it "renders #{color} color" do
+      it "renders #{color} color on spinner" do
         render_inline(described_class.new(color: color, hide_text: true))
 
         expect(page).to have_css "span.loading.text-#{color}"
+      end
+
+      it "renders #{color} color on text" do
+        render_inline(described_class.new(color: color))
+
+        expect(page).to have_css "p.text-#{color}"
       end
     end
   end

@@ -82,6 +82,13 @@ module Bali
       def aria_label
         display_text
       end
+
+      def text_classes
+        class_names(
+          'text-xl font-semibold text-center',
+          COLORS[@color]
+        )
+      end
     end
   end
 end

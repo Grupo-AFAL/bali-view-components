@@ -1,6 +1,6 @@
 <%= tag.div(**container_attributes) do %>
   <span class="<%= loading_classes %>" role="status" aria-label="<%= aria_label %>"></span>
   <% if show_text? %>
-    <p class="text-xl font-semibold text-center"><%= display_text %></p>
+    <p class="<%= text_classes %>"><%= display_text %></p>
   <% end %>
 <% end %>
