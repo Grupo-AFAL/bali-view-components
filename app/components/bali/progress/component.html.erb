@@ -1,5 +1,5 @@
-<div class="progress-component flex items-center gap-2">
-  <progress class="<%= progress_classes %>" value="<%= value %>" max="<%= max %>"></progress>
+<div class="<%= wrapper_classes %>" <%= tag.attributes(wrapper_attributes) %>>
+  <progress class="<%= progress_classes %>" value="<%= @value %>" max="<%= @max %>"></progress>
   <% if show_percentage? %>
     <span class="text-sm font-medium"><%= percentage_value %>%</span>
   <% end %>

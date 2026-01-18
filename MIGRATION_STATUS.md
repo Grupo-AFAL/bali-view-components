@@ -66,7 +66,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Filters                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | **DEPRECATED** - Use AdvancedFilters instead       |
 | FlashNotifications     |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Private attr_readers, Lookbook params, 6 tests     |
 | **Form Fields**        |       |           |         |        |         | **FormBuilder field modules (see below)**          |
-| ↳ BooleanFields        |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Checkbox/boolean inputs with DaisyUI               |
+| ↳ BooleanFields        |  ✅   |    ❌     |   ✅    |   ❌   |   🔄    | Review cycle in progress                           |
 | ↳ CoordinatesPolygon   |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom map polygon input                           |
 | ↳ CurrencyFields       |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Currency input with DaisyUI input classes          |
 | ↳ DateFields           |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Date picker with Flatpickr                         |
@@ -110,9 +110,9 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Modal                  |  ✅   |    ✅     |   ✅    |   ❌   |  9/10  | Slots for header/body/actions, WCAG accessibility  |
 | Navbar                 |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, private attr, i18n aria-label, 34 tests |
 | Notification           |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review cycle in progress                           |
-| PageHeader             |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
-| Progress               |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
-| PropertiesTable        |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
+| PageHeader             |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
+| Progress               |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Private attr, wrapper_classes, options passthrough, 16 tests |
+| PropertiesTable        |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review cycle in progress                           |
 | Rate                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | RecurrentEventRuleForm |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom component                                   |
 | Reveal                 |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
@@ -295,3 +295,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Documentation                | Added external-services.md guide for Google Maps API setup                   | AI         |
 | 2026-01-17 | List                         | Manually verified: Title/subtitle stacking, actions with buttons visible     | Human      |
 | 2026-01-17 | Navbar                       | Score 9: BASE_CLASSES, COLORS, private attr, i18n aria-labels, 34 tests      | AI         |
+| 2026-01-17 | Progress                     | Score 9: Private attr_reader, wrapper_classes, options passthrough, 16 tests | AI         |

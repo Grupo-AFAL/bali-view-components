@@ -7,7 +7,7 @@ RSpec.describe Bali::Progress::Component, type: :component do
     it 'renders progress component with DaisyUI classes' do
       render_inline(described_class.new(value: 50))
 
-      expect(page).to have_css 'div.progress-component'
+      expect(page).to have_css 'div.flex.items-center.gap-2'
       expect(page).to have_css 'progress.progress.w-full[value="50"][max="100"]'
     end
 
@@ -45,6 +45,26 @@ RSpec.describe Bali::Progress::Component, type: :component do
       render_inline(described_class.new(value: 25, max: 0))
 
       expect(page).to have_css 'span', text: '0%'
+    end
+  end
+
+  describe 'options passthrough' do
+    it 'passes custom classes to wrapper' do
+      render_inline(described_class.new(value: 50, class: 'my-custom'))
+
+      expect(page).to have_css 'div.my-custom'
+    end
+
+    it 'passes data attributes to wrapper' do
+      render_inline(described_class.new(value: 50, data: { testid: 'progress-bar' }))
+
+      expect(page).to have_css 'div[data-testid="progress-bar"]'
+    end
+
+    it 'passes id to wrapper' do
+      render_inline(described_class.new(value: 50, id: 'upload-progress'))
+
+      expect(page).to have_css 'div#upload-progress'
     end
   end
 end

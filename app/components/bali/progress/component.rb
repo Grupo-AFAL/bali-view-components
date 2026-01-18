@@ -3,8 +3,6 @@
 module Bali
   module Progress
     class Component < ApplicationViewComponent
-      attr_reader :value, :max
-
       COLORS = {
         primary: 'progress-primary',
         secondary: 'progress-secondary',
@@ -24,23 +22,37 @@ module Bali
         @options = options
       end
 
-      def progress_classes
-        class_names(
-          'progress',
-          'w-full',
-          COLORS[@color],
-          @options[:class]
-        )
-      end
-
       def show_percentage?
         @show_percentage
       end
 
       def percentage_value
-        return 0 if max.zero?
+        return 0 if @max.zero?
 
-        ((value.to_f / max) * 100).round
+        ((@value.to_f / @max) * 100).round
+      end
+
+      private
+
+      attr_reader :value, :max, :options
+
+      def wrapper_classes
+        class_names(
+          'flex items-center gap-2',
+          options[:class]
+        )
+      end
+
+      def wrapper_attributes
+        options.except(:class)
+      end
+
+      def progress_classes
+        class_names(
+          'progress',
+          'w-full',
+          COLORS[@color]
+        )
       end
     end
   end
