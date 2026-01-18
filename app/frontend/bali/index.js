@@ -75,6 +75,7 @@ export {
   StepNumberInputController,
   SubmitButtonController,
   SubmitOnChangeController,
+  TextareaController,
   TimePeriodFieldController,
   TrixAttachmentsController
 } from './controllers/index'

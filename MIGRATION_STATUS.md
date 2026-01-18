@@ -87,7 +87,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ SubmitFields         |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | VARIANTS/SIZES constants, variant:/size: options, 40 tests         |
 | ↳ SwitchFields         |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI toggle classes, SIZES/COLORS constants, 31 tests           |
 | ↳ TextFields           |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Self-contained module, Lookbook previews with docs, 21 tests       |
-| ↳ TextAreaFields       |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | textarea_field_options helper, consistent pattern, Lookbook, 13 tests |
+| ↳ TextAreaFields       |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | char_counter + auto_grow options, Stimulus controller, 27 tests    |
 | ↳ TimeFields           |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, immutable options, time_24hr option, 18 tests    |
 | ↳ TimePeriodFields     |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | Frozen constants, immutable options, Lookbook use-case previews, 35 tests |
 | ↳ TimeZoneSelect       |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, immutable options, private helpers, Lookbook, 12 tests |
@@ -116,9 +116,9 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Rate                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI rating, SIZES/COLORS constants, i18n, ARIA attrs, 31 tests |
 | Reveal                 |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, class_names, no mutation, Trigger refactor, 14 tests |
 | RichTextEditor         |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom (TipTap)                                                    |
-| SearchInput            |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
-| SideMenu               |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
-| SortableList           |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
+| SearchInput            |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
+| SideMenu               |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
+| SortableList           |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                                 |
 | Stepper                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                                 |
 | Table                  |  ✅   |    ✅     |   ✅    |   ❌   |    -    | Needs manual review                                                |
 | Tabs                   |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Cypress tests fixed                                                |
@@ -394,3 +394,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-18 | Rate                           | Manually verified: All sizes/colors render, readonly and auto_submit modes work correctly    | Human      |
 | 2026-01-18 | Reveal                         | Score 9: BASE_CLASSES constants, class_names, no hash mutation, Trigger refactor, 14 tests   | AI         |
 | 2026-01-18 | Reveal                         | Manually verified: Click toggle works, icon rotation, border option, hidden content reveals  | Human      |
+| 2026-01-18 | TextAreaFields (FormBuilder)   | Added char_counter and auto_grow options with Stimulus controller, 7 Lookbook previews, 27 tests | AI         |

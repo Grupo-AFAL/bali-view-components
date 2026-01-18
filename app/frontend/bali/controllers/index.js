@@ -33,6 +33,7 @@ import { SlimSelectController } from '../../../assets/javascripts/bali/controlle
 import { StepNumberInputController } from '../../../assets/javascripts/bali/controllers/step-number-input-controller'
 import { SubmitButtonController } from '../../../assets/javascripts/bali/controllers/submit-button-controller'
 import { SubmitOnChangeController } from '../../../assets/javascripts/bali/controllers/submit-on-change-controller'
+import { TextareaController } from '../../../assets/javascripts/bali/controllers/textarea-controller'
 import { TimePeriodFieldController } from '../../../assets/javascripts/bali/controllers/time-period-field-controller'
 import { TrixAttachmentsController } from '../../../assets/javascripts/bali/controllers/trix-attachments-controller'
 
@@ -56,6 +57,7 @@ export { SlimSelectController } from '../../../assets/javascripts/bali/controlle
 export { StepNumberInputController } from '../../../assets/javascripts/bali/controllers/step-number-input-controller'
 export { SubmitButtonController } from '../../../assets/javascripts/bali/controllers/submit-button-controller'
 export { SubmitOnChangeController } from '../../../assets/javascripts/bali/controllers/submit-on-change-controller'
+export { TextareaController } from '../../../assets/javascripts/bali/controllers/textarea-controller'
 export { TimePeriodFieldController } from '../../../assets/javascripts/bali/controllers/time-period-field-controller'
 export { TrixAttachmentsController } from '../../../assets/javascripts/bali/controllers/trix-attachments-controller'
 
@@ -84,6 +86,7 @@ export function registerAll (application) {
   application.register('step-number-input', StepNumberInputController)
   application.register('submit-button', SubmitButtonController)
   application.register('submit-on-change', SubmitOnChangeController)
+  application.register('textarea', TextareaController)
   application.register('time-period-field', TimePeriodFieldController)
   application.register('trix-attachments', TrixAttachmentsController)
 }

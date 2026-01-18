@@ -1,0 +1,18 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <div class="space-y-6">
+    <div>
+      <h4 class="text-sm font-medium mb-2">Simple Counter (no max)</h4>
+      <%= form.text_area_group :text,
+          char_counter: true,
+          placeholder: 'Type to see character count...' %>
+    </div>
+
+    <div>
+      <h4 class="text-sm font-medium mb-2">Counter with Maximum (500 chars)</h4>
+      <%= form.text_area_group :text,
+          char_counter: { max: 500 },
+          placeholder: 'Type to see counter with max limit...',
+          help: 'Counter shows red when you exceed the limit.' %>
+    </div>
+  </div>
+<% end %>

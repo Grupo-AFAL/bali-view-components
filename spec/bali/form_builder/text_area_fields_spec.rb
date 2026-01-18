@@ -83,5 +83,77 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
         expect(text_area).to have_css 'textarea[placeholder="Enter synopsis..."]'
       end
     end
+
+    context 'with char_counter: true' do
+      let(:text_area) { builder.text_area(:synopsis, char_counter: true) }
+
+      it 'wraps textarea in Stimulus controller div' do
+        expect(text_area).to have_css 'div[data-controller="textarea"]'
+      end
+
+      it 'adds textarea target to input' do
+        expect(text_area).to have_css 'textarea[data-textarea-target="input"]'
+      end
+
+      it 'adds input action to textarea' do
+        expect(text_area).to have_css 'textarea[data-action="input->textarea#onInput"]'
+      end
+
+      it 'renders counter element' do
+        expect(text_area).to have_css 'p[data-textarea-target="counter"]'
+      end
+
+      it 'sets max-length value to 0 when no max provided' do
+        expect(text_area).to have_css 'div[data-textarea-max-length-value="0"]'
+      end
+    end
+
+    context 'with char_counter: { max: 500 }' do
+      let(:text_area) { builder.text_area(:synopsis, char_counter: { max: 500 }) }
+
+      it 'sets max-length value from options' do
+        expect(text_area).to have_css 'div[data-textarea-max-length-value="500"]'
+      end
+
+      it 'renders counter element with correct class' do
+        expect(text_area).to have_css 'p.label-text-alt[data-textarea-target="counter"]'
+      end
+    end
+
+    context 'with auto_grow: true' do
+      let(:text_area) { builder.text_area(:synopsis, auto_grow: true) }
+
+      it 'wraps textarea in Stimulus controller div' do
+        expect(text_area).to have_css 'div[data-controller="textarea"]'
+      end
+
+      it 'sets auto-grow value to true' do
+        expect(text_area).to have_css 'div[data-textarea-auto-grow-value="true"]'
+      end
+
+      it 'adds textarea target to input' do
+        expect(text_area).to have_css 'textarea[data-textarea-target="input"]'
+      end
+
+      it 'does not render counter element' do
+        expect(text_area).not_to have_css '[data-textarea-target="counter"]'
+      end
+    end
+
+    context 'with both char_counter and auto_grow' do
+      let(:text_area) { builder.text_area(:synopsis, char_counter: { max: 200 }, auto_grow: true) }
+
+      it 'wraps textarea in Stimulus controller div' do
+        expect(text_area).to have_css 'div[data-controller="textarea"]'
+      end
+
+      it 'sets both max-length and auto-grow values' do
+        expect(text_area).to have_css 'div[data-textarea-max-length-value="200"][data-textarea-auto-grow-value="true"]'
+      end
+
+      it 'renders counter element' do
+        expect(text_area).to have_css 'p[data-textarea-target="counter"]'
+      end
+    end
   end
 end

@@ -22,9 +22,16 @@ module Bali
         options.except(:addon_left, :addon_right)
       end
 
-      def textarea_field_options(method, options)
+      def textarea_field_options(method, options, stimulus: false)
         base_class = 'textarea textarea-bordered'
         options[:class] = field_class_name(method, "#{base_class} #{options[:class]}")
+
+        if stimulus
+          options[:data] ||= {}
+          options[:data]['textarea-target'] = 'input'
+          options[:data][:action] = 'input->textarea#onInput'
+        end
+
         options
       end
 
