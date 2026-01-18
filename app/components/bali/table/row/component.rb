@@ -4,7 +4,7 @@ module Bali
   module Table
     module Row
       class Component < ApplicationViewComponent
-        class IncompatileOptions < StandardError; end
+        class IncompatibleOptions < StandardError; end
 
         def initialize(record_id: nil, skip_tr: false, bulk_actions: false, **options)
           @record_id = record_id
@@ -13,12 +13,12 @@ module Bali
           @options = hyphenize_keys(options)
 
           if @bulk_actions && @record_id.blank?
-            raise IncompatileOptions, 'record_id is required when bulk_actions is true'
+            raise IncompatibleOptions, 'record_id is required when bulk_actions is true'
           end
 
           return unless @skip_tr && @bulk_actions
 
-          raise IncompatileOptions, 'skip_tr and bulk_actions are mutually exclusive'
+          raise IncompatibleOptions, 'skip_tr and bulk_actions are mutually exclusive'
         end
       end
     end

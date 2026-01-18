@@ -1,36 +1,25 @@
-<%= tag.div id: id, **table_container_options do %>
+<%= tag.div id: container_id, **table_container_options do %>
   <%= tag.table **options do %>
     <thead>
       <tr>
-        <% if @bulk_actions.any? %>
+        <% if bulk_actions? %>
           <th>
             <%= tag.input type: 'checkbox', class: 'checkbox', data: { action: 'table#toggleAll', table_target: 'toggleAll' } %>
           </th>
         <% end %>
-        <% headers.each do |header| %>
-          <%= header unless header.hidden %>
+        <% visible_headers.each do |header| %>
+          <%= header %>
         <% end %>
       </tr>
     </thead>
     <%= tag.tbody(**tbody_options) do %>
       <% if rows.any? %>
-        <% rows.each do |row| %>
-          <%= row %>
-        <% end %>
+        <% rows.each do |row| %><%= row %><% end %>
       <% else %>
         <tr id="<%= empty_table_row_id %>">
           <td class="empty-table text-center py-8" colspan="<%= headers.count %>">
             <div class="flex flex-col items-center justify-center gap-4">
-              <% if form&.active_filters? %>
-                <%= no_results_notification || tag.p(t('.no_results'), class: 'text-base-content/60') %>
-              <% else %>
-                <% if no_records_notification.present? %>
-                  <%= no_records_notification %>
-                <% else %>
-                  <p class="text-base-content/60"><%= t('.no_records') %></p>
-                  <%= new_record_link %>
-                <% end %>
-              <% end %>
+              <%= empty_state_content %>
             </div>
           </td>
         </tr>
@@ -38,13 +27,11 @@
     <% end %>
     <% if footers.any? %>
       <tfoot>
-        <% footers.each do |footer| %>
-          <%= footer %>
-        <% end %>
+        <% footers.each do |footer| %><%= footer %><% end %>
       </tfoot>
     <% end %>
   <% end %>
-  <% if @bulk_actions.any? %>
+  <% if bulk_actions? %>
     <div class="bulk-actions-container fixed bottom-4 left-1/2 -translate-x-1/2 bg-base-300 rounded-box shadow-lg p-4 hidden z-50" data-table-target="actionsContainer">
       <div class="flex items-center gap-4">
         <span class="badge badge-primary" data-table-target="selectedCount">0</span>

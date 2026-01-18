@@ -63,7 +63,8 @@ module Bali
       end
 
       # @label Bulk Actions
-      # @description Select rows using checkboxes to see the floating action bar
+      # Select rows using checkboxes to see the floating action bar.
+      # The bulk actions container appears when at least one row is selected.
       def bulk_actions
         render_with_template(
           template: 'bali/table/previews/bulk_actions',
