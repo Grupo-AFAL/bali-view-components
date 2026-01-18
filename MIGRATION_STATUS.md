@@ -108,7 +108,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | LocationsMap           |  ✅   |    ❌     |   N/A   |   ❌   |  9/10   | BASE_CLASSES, private attr, DaisyUI card, 19 tests |
 | Message                |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, Hash#fetch, private attrs, 23 tests  |
 | Modal                  |  ✅   |    ✅     |   ✅    |   ❌   |  9/10  | Slots for header/body/actions, WCAG accessibility  |
-| Navbar                 |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
+| Navbar                 |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, private attr, i18n aria-label, 34 tests |
 | Notification           |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | PageHeader             |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | Progress               |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
@@ -151,10 +151,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Score Range | Count | Components |
 |-------------|-------|------------|
-| 9-10 (✅)   | 30    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Heatmap (9), Hero (9), HoverCard (9), Icon (9), InfoLevel (9), LabelValue (9), Level (9), Link (9), List (9), Loader (9), Message (9), Modal (9) |
+| 9-10 (✅)   | 31    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Heatmap (9), Hero (9), HoverCard (9), Icon (9), InfoLevel (9), LabelValue (9), Level (9), Link (9), List (9), Loader (9), Message (9), Modal (9), Navbar (9) |
 | 7-8 (⚠️)    | 1     | GanttChart (8) |
 | < 7 (❌)    | 0     | - |
-| Not scored  | 50    | Form fields (26), remaining components (24) |
+| Not scored  | 49    | Form fields (26), remaining components (23) |
 
 ---
 
@@ -292,3 +292,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Message                      | Manually verified: All colors, sizes, title/header variations render correctly | Human      |
 | 2026-01-17 | LocationsMap                 | Score 9: BASE_CLASSES, private attr, DaisyUI card, template dedup, 19 tests  | AI         |
 | 2026-01-17 | List                         | Manually verified: Title/subtitle stacking, actions with buttons visible     | Human      |
+| 2026-01-17 | Navbar                       | Score 9: BASE_CLASSES, COLORS, private attr, i18n aria-labels, 34 tests      | AI         |

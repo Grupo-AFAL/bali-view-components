@@ -3,6 +3,8 @@
 module Bali
   module Navbar
     class Component < ApplicationViewComponent
+      BASE_CLASSES = 'navbar shadow-sm'
+
       COLORS = {
         base: 'bg-base-100',
         primary: 'bg-primary text-primary-content',
@@ -10,8 +12,6 @@ module Bali
         accent: 'bg-accent text-accent-content',
         neutral: 'bg-neutral text-neutral-content'
       }.freeze
-
-      attr_reader :transparency, :fullscreen, :options
 
       renders_one :brand
       renders_many :burgers, Burger::Component
@@ -29,11 +29,26 @@ module Bali
         @options = prepend_data_attribute(options, 'navbar-throttle-interval-value', 100)
       end
 
+      def navbar_content
+        render_string = []
+        render_string << tag.div(class: 'navbar-start') do
+          safe_join([
+                      brand,
+                      burgers? ? safe_join(burgers) : render(Bali::Navbar::Burger::Component.new)
+                    ])
+        end
+        menus.each { |menu| render_string << menu }
+        safe_join(render_string)
+      end
+
+      private
+
+      attr_reader :transparency, :fullscreen, :options
+
       def navbar_classes
         class_names(
-          'navbar',
-          COLORS[@color] || COLORS[:base],
-          'shadow-sm',
+          BASE_CLASSES,
+          COLORS.fetch(@color, COLORS[:base]),
           @options[:class]
         )
       end

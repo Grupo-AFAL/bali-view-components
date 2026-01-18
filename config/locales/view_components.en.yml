@@ -73,6 +73,11 @@ en:
           month: Month
           previous: Previous
           next: Next
+      navbar:
+        main_navigation: Main navigation
+        toggle_menu: Toggle menu
+        burger:
+          toggle_menu: Toggle menu
       recurrent_event_rule_form:
         yearly: Yearly
         monthly: Monthly
