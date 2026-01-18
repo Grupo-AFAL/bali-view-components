@@ -29,18 +29,6 @@ module Bali
         @options = prepend_data_attribute(options, 'navbar-throttle-interval-value', 100)
       end
 
-      def navbar_content
-        render_string = []
-        render_string << tag.div(class: 'navbar-start') do
-          safe_join([
-                      brand,
-                      burgers? ? safe_join(burgers) : render(Bali::Navbar::Burger::Component.new)
-                    ])
-        end
-        menus.each { |menu| render_string << menu }
-        safe_join(render_string)
-      end
-
       private
 
       attr_reader :transparency, :fullscreen, :options

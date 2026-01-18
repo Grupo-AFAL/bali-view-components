@@ -1,9 +1,21 @@
 <%= tag.nav(role: 'navigation', 'aria-label': t('.main_navigation'), **options) do %>
   <% unless fullscreen %>
-    <%= tag.div(class: class_names('container', @container_class)) do %>
-      <%= navbar_content %>
+    <div class="<%= class_names('container', @container_class) %>">
+  <% end %>
+  <div class="navbar-start">
+    <%= brand %>
+    <% if burgers? %>
+      <% burgers.each do |burger| %>
+        <%= burger %>
+      <% end %>
+    <% else %>
+      <%= render Bali::Navbar::Burger::Component.new %>
     <% end %>
-  <% else %>
-    <%= navbar_content %>
+  </div>
+  <% menus.each do |menu| %>
+    <%= menu %>
+  <% end %>
+  <% unless fullscreen %>
+    </div>
   <% end %>
 <% end %>

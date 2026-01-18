@@ -1,14 +1,14 @@
 <%= tag.div(**options) do %>
-  <%= tag.ul(class: menu_classes) do %>
+  <ul class="<%= menu_classes %>">
     <% start_items.each do |start_item| %>
       <li><%= start_item %></li>
     <% end %>
-  <% end %>
+  </ul>
   <% if end_items.any? %>
-    <%= tag.ul(class: menu_classes) do %>
+    <ul class="<%= menu_classes %>">
       <% end_items.each do |end_item| %>
         <li><%= end_item %></li>
       <% end %>
-    <% end %>
+    </ul>
   <% end %>
 <% end %>

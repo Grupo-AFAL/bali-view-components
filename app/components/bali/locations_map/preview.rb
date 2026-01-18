@@ -15,8 +15,16 @@ module Bali
       ].freeze
 
       # @label Default
-      # Displays a Google Maps component with location markers.
-      # Requires `GOOGLE_MAPS_KEY` environment variable to be set.
+      # Displays an interactive Google Map with location markers.
+      #
+      # ## Setup Required
+      # This component requires a Google Maps JavaScript API key.
+      # Set the `GOOGLE_MAPS_KEY` environment variable:
+      # ```
+      # GOOGLE_MAPS_KEY=AIzaSy...your_key
+      # ```
+      # See [External Services Guide](/docs/guides/external-services.md) for setup instructions.
+      #
       # @param zoom number
       # @param clustered toggle
       def default(zoom: 12, clustered: false)
