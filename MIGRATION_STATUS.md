@@ -66,7 +66,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Filters                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | **DEPRECATED** - Use AdvancedFilters instead       |
 | FlashNotifications     |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Private attr_readers, Lookbook params, 6 tests     |
 | **Form Fields**        |       |           |         |        |         | **FormBuilder field modules (see below)**          |
-| ↳ BooleanFields        |  ✅   |    ❌     |   ✅    |   ❌   |   🔄    | Review cycle in progress                           |
+| ↳ BooleanFields        |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Frozen constants, SIZES/COLORS, private helpers, 32 tests |
 | ↳ CoordinatesPolygon   |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom map polygon input                           |
 | ↳ CurrencyFields       |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Currency input with DaisyUI input classes          |
 | ↳ DateFields           |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Date picker with Flatpickr                         |
@@ -300,3 +300,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | PropertiesTable              | Score 9: BASE_CLASSES, class_names, private attr_readers, tbody wrapper, 13 tests | AI         |
 | 2026-01-17 | PageHeader                   | Score 9: BASE_CLASSES, ALIGNMENTS→Level delegation, private helpers, 20 tests | AI         |
 | 2026-01-17 | Notification                 | Manually verified: All types render correctly, dismiss/fixed modes work      | Human      |
+| 2026-01-17 | BooleanFields (FormBuilder)  | Score 9: DaisyUI checkbox, SIZES/COLORS, private helpers, 32 tests           | AI         |
