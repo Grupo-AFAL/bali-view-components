@@ -10,6 +10,8 @@
 @source "../../../../public/*.html";
 /* Bali ViewComponents */
 @source "../../../../../app/components/**/*.{erb,rb}";
+/* Bali FormBuilder modules */
+@source "../../../../../lib/bali/**/*.rb";
 
 /* Bali Component Styles */
 @import "../../../../../app/assets/stylesheets/bali/variables.css";
