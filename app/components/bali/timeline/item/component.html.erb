@@ -1,9 +1,15 @@
 <li>
   <hr class="<%= line_classes %>"/>
+  <div class="timeline-start timeline-box timeline-content-box">
+    <% if heading.present? %>
+      <p class="font-semibold"><%= heading %></p>
+    <% end %>
+    <%= content %>
+  </div>
   <div class="<%= marker_classes %>">
     <%= render Bali::Icon::Component.new(display_icon, size: :small) %>
   </div>
-  <div class="timeline-end timeline-box">
+  <div class="timeline-end timeline-box timeline-content-box">
     <% if heading.present? %>
       <p class="font-semibold"><%= heading %></p>
     <% end %>

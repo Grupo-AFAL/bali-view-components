@@ -58,22 +58,28 @@ RSpec.describe Bali::Timeline::Component, type: :component do
 
       expect(page).to have_css('li', count: 1)
       expect(page).to have_css('.timeline-middle')
-      expect(page).to have_css('.timeline-end.timeline-box')
+      # Both timeline-start and timeline-end are rendered, CSS controls visibility
+      expect(page).to have_css('.timeline-start.timeline-box.timeline-content-box')
+      expect(page).to have_css('.timeline-end.timeline-box.timeline-content-box')
     end
 
-    it 'renders item heading' do
+    it 'renders item heading in both content boxes' do
       render_inline(described_class.new) do |c|
         c.with_tag_item(heading: 'January 2022') { 'Content' }
       end
 
+      # Heading appears in both content boxes (CSS hides one based on position)
+      expect(page).to have_css('.timeline-start p.font-semibold', text: 'January 2022')
       expect(page).to have_css('.timeline-end p.font-semibold', text: 'January 2022')
     end
 
-    it 'renders item content' do
+    it 'renders item content in both content boxes' do
       render_inline(described_class.new) do |c|
         c.with_tag_item { 'My timeline content' }
       end
 
+      # Content appears in both boxes (CSS hides one based on position)
+      expect(page).to have_css('.timeline-start', text: 'My timeline content')
       expect(page).to have_css('.timeline-end', text: 'My timeline content')
     end
 
