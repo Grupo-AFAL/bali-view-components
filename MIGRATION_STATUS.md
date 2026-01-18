@@ -101,10 +101,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ImageGrid              |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | COLUMNS/GAPS/ASPECT_RATIOS, class_names, 34 tests  |
 | InfoLevel              |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, ALIGNMENTS.fetch, private attr, 22 tests |
 | LabelValue             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | LABEL/VALUE_CLASSES, class_names, private options, 7 tests |
-| Level                  |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, private attr, ALIGNMENTS.fetch, 14 tests |
+| Level                  |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, private attr, ALIGNMENTS.fetch, 14 tests |
 | Link                   |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
 | List                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | DaisyUI list/list-row, BASE_CLASSES, 19 tests      |
-| Loader                 |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
+| Loader                 |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
 | LocationsMap           |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom component                                   |
 | Message                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | Modal                  |  ✅   |    ✅     |   ✅    |   ❌   |  9/10  | Slots for header/body/actions, WCAG accessibility  |
@@ -283,3 +283,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | InfoLevel                    | Manually verified: Alignment options, heading/title slots render correctly   | Human      |
 | 2026-01-17 | List                         | Score 9: DaisyUI list/list-row, ul/li semantics, BASE_CLASSES, 19 tests      | AI         |
 | 2026-01-17 | Level                        | Score 9: BASE_CLASSES, private attr, ALIGNMENTS.fetch, preview params fixed, 14 tests | AI         |
+| 2026-01-17 | Level                        | Manually verified: Left/right sides, alignment options render correctly      | Human      |
