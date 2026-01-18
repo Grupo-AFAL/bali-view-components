@@ -103,7 +103,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | LabelValue             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | LABEL/VALUE_CLASSES, class_names, private options, 7 tests |
 | Level                  |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, private attr, ALIGNMENTS.fetch, 14 tests |
 | Link                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | VARIANTS/SIZES, class_names, variant param, 39 tests |
-| List                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | DaisyUI list/list-row, BASE_CLASSES, 19 tests      |
+| List                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI list/list-row, BASE_CLASSES, 19 tests      |
 | Loader                 |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, WCAG role/aria-label, color on text, 38 tests |
 | LocationsMap           |  ✅   |    ❌     |   N/A   |   ❌   |  9/10   | BASE_CLASSES, private attr, DaisyUI card, 19 tests |
 | Message                |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, Hash#fetch, private attrs, 23 tests  |
@@ -290,3 +290,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Loader                       | Manually verified: All types, sizes, colors apply to spinner and text        | Human      |
 | 2026-01-17 | Message                      | Score 9: BASE_CLASSES, Hash#fetch, private attrs, 23 tests                   | AI         |
 | 2026-01-17 | LocationsMap                 | Score 9: BASE_CLASSES, private attr, DaisyUI card, template dedup, 19 tests  | AI         |
+| 2026-01-17 | List                         | Manually verified: Title/subtitle stacking, actions with buttons visible     | Human      |
