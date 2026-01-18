@@ -97,7 +97,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Hero                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Private attr_reader, Hash#fetch, Bali::Button preview |
 | HoverCard              |  ✅   |    ❌     |   N/A   |   ❌   |  9/10   | PLACEMENTS const, class_names, data merge, 43 tests |
 | Icon                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lucide integration, resolution pipeline            |
-| ImageField             |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
+| ImageField             |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | SIZES const, class_names, Button for clear, i18n, 31 tests |
 | ImageGrid              |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | COLUMNS/GAPS/ASPECT_RATIOS, class_names, 34 tests  |
 | InfoLevel              |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
 | LabelValue             |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
@@ -151,10 +151,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Score Range | Count | Components |
 |-------------|-------|------------|
-| 9-10 (✅)   | 22    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Heatmap (9), Hero (9), Icon (9), Modal (9) |
+| 9-10 (✅)   | 23    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Heatmap (9), Hero (9), HoverCard (9), Icon (9), Modal (9) |
 | 7-8 (⚠️)    | 1     | GanttChart (8) |
 | < 7 (❌)    | 0     | - |
-| Not scored  | 58    | Form fields (26), remaining components (32) |
+| Not scored  | 57    | Form fields (26), remaining components (31) |
 
 ---
 
@@ -275,3 +275,5 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Icon                         | Score 9: Lucide integration, SIZE_SVG_CLASSES const, normalize_constant_name helper, 41 tests | AI         |
 | 2026-01-17 | DeleteLink                   | Manually verified: HoverCard confirmation renders correctly                  | Human      |
 | 2026-01-17 | Drawer                       | Manually verified: Fixed Tailwind JIT for open class, render_with_template for slots preview | Human      |
+| 2026-01-17 | HoverCard                    | Score 9: PLACEMENTS/TRIGGERS constants, class_names, data merge, 43 tests    | AI         |
+| 2026-01-17 | ImageField                   | Score 9: SIZES const, src: keyword, Button for clear action, i18n, memory cleanup, 31 tests | AI         |
