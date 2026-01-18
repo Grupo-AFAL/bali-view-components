@@ -232,15 +232,15 @@ Components with ✅ in all applicable columns (Tests, AI Visual, DaisyUI/N/A, Ma
 | Dropdown     | [dropdown](https://daisyui.com/components/dropdown/)       | ✅ Done    |
 | Tabs         | [tabs](https://daisyui.com/components/tab/)                | ❌ Pending |
 | Navbar       | [navbar](https://daisyui.com/components/navbar/)           | ✅ Done    |
-| Drawer       | [drawer](https://daisyui.com/components/drawer/)           | ❌ Pending |
-| Notification | [alert](https://daisyui.com/components/alert/)             | ❌ Pending |
+| Drawer       | [drawer](https://daisyui.com/components/drawer/)           | ✅ Done    |
+| Notification | [alert](https://daisyui.com/components/alert/)             | ✅ Done    |
 
 ### Medium Priority
 
 | Bali     | DaisyUI                                              | Status     |
 | -------- | ---------------------------------------------------- | ---------- |
 | Loader   | [loading](https://daisyui.com/components/loading/)   | ✅ Done    |
-| Progress | [progress](https://daisyui.com/components/progress/) | ❌ Pending |
+| Progress | [progress](https://daisyui.com/components/progress/) | ✅ Done    |
 | Rate     | [rating](https://daisyui.com/components/rating/)     | ❌ Pending |
 | Stepper  | [steps](https://daisyui.com/components/steps/)       | ❌ Pending |
 | Tag      | [badge](https://daisyui.com/components/badge/)       | ❌ Pending |
