@@ -327,4 +327,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | PageHeader                   | Manually verified: Title, subtitle, back button, right content all render    | Human      |
 | 2026-01-17 | BooleanFields (FormBuilder)  | Manually verified: All sizes and colors render correctly in Lookbook         | Human      |
 | 2026-01-17 | CoordinatesPolygon           | Score 9: Frozen constants, Tailwind h-[400px], fetch+except, 7 tests         | AI         |
-| 2026-01-17 | CoordinatesPolygon           | Manually verified: Map polygon drawing and clear buttons work correctly      | Human      |
+| 2026-01-17 | CoordinatesPolygon           | Manually verified: Map polygon drawing and clear buttons work correctly      | Human      || 2026-01-17 | DateFields (FormBuilder)     | Score 9: Frozen constants, private helpers, i18n aria-labels, 29 tests       | AI         |
