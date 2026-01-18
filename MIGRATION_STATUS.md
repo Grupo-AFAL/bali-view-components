@@ -85,7 +85,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ SlimSelectFields     |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Frozen constants, class_names, no mutation, 34 tests               |
 | ↳ StepNumberFields     |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, button_tag, i18n aria-labels, 34 tests           |
 | ↳ SubmitFields         |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | VARIANTS/SIZES constants, variant:/size: options, 40 tests         |
-| ↳ SwitchFields         |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | DaisyUI toggle classes, SIZES/COLORS constants, 31 tests           |
+| ↳ SwitchFields         |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | DaisyUI toggle classes, SIZES/COLORS constants, 31 tests           |
 | ↳ TextFields           |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Self-contained module, Lookbook previews with docs, 21 tests       |
 | ↳ TextAreaFields       |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | textarea_field_options helper, consistent pattern, Lookbook, 13 tests |
 | ↳ TimeFields           |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Time picker with Flatpickr                                         |

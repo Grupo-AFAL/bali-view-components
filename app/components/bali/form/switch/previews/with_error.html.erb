@@ -1,0 +1,5 @@
+<div class="p-4">
+  <%= form_with model: model, url: '/lookbook', builder: Bali::FormBuilder do |f| %>
+    <%= f.switch_field(:indie, label: 'Accept terms and conditions') %>
+  <% end %>
+</div>

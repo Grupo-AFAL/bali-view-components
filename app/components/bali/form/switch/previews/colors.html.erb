@@ -1,0 +1,38 @@
+<div class="p-4 space-y-4">
+  <%= form_with model: model, url: '/lookbook', builder: Bali::FormBuilder do |f| %>
+    <div>
+      <span class="text-sm text-base-content/60 mb-1 block">Primary</span>
+      <%= f.switch_field(:indie, color: :primary, label: 'Primary toggle') %>
+    </div>
+
+    <div>
+      <span class="text-sm text-base-content/60 mb-1 block">Secondary</span>
+      <%= f.switch_field(:indie, color: :secondary, label: 'Secondary toggle') %>
+    </div>
+
+    <div>
+      <span class="text-sm text-base-content/60 mb-1 block">Accent</span>
+      <%= f.switch_field(:indie, color: :accent, label: 'Accent toggle') %>
+    </div>
+
+    <div>
+      <span class="text-sm text-base-content/60 mb-1 block">Success</span>
+      <%= f.switch_field(:indie, color: :success, label: 'Success toggle') %>
+    </div>
+
+    <div>
+      <span class="text-sm text-base-content/60 mb-1 block">Warning</span>
+      <%= f.switch_field(:indie, color: :warning, label: 'Warning toggle') %>
+    </div>
+
+    <div>
+      <span class="text-sm text-base-content/60 mb-1 block">Info</span>
+      <%= f.switch_field(:indie, color: :info, label: 'Info toggle') %>
+    </div>
+
+    <div>
+      <span class="text-sm text-base-content/60 mb-1 block">Error</span>
+      <%= f.switch_field(:indie, color: :error, label: 'Error toggle') %>
+    </div>
+  <% end %>
+</div>
