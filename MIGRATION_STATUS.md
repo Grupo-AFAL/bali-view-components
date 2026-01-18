@@ -87,7 +87,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ SubmitFields         |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | VARIANTS/SIZES constants, variant:/size: options, 40 tests         |
 | ↳ SwitchFields         |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI toggle classes, SIZES/COLORS constants, 31 tests           |
 | ↳ TextFields           |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Self-contained module, Lookbook previews with docs, 21 tests       |
-| ↳ TextAreaFields       |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | char_counter + auto_grow options, Stimulus controller, 27 tests    |
+| ↳ TextAreaFields       |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | char_counter + auto_grow options, Stimulus controller, 27 tests    |
 | ↳ TimeFields           |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, immutable options, time_24hr option, 18 tests    |
 | ↳ TimePeriodFields     |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | Frozen constants, immutable options, Lookbook use-case previews, 35 tests |
 | ↳ TimeZoneSelect       |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, immutable options, private helpers, Lookbook, 12 tests |

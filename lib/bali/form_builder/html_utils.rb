@@ -23,7 +23,7 @@ module Bali
       end
 
       def textarea_field_options(method, options, stimulus: false)
-        base_class = 'textarea textarea-bordered'
+        base_class = 'textarea textarea-bordered w-full'
         options[:class] = field_class_name(method, "#{base_class} #{options[:class]}")
 
         if stimulus

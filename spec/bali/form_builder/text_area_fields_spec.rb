@@ -37,7 +37,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'applies DaisyUI textarea classes' do
-      expect(text_area).to have_css 'textarea.textarea.textarea-bordered'
+      expect(text_area).to have_css 'textarea.textarea.textarea-bordered.w-full'
     end
 
     context 'with custom class' do
@@ -87,8 +87,8 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     context 'with char_counter: true' do
       let(:text_area) { builder.text_area(:synopsis, char_counter: true) }
 
-      it 'wraps textarea in Stimulus controller div' do
-        expect(text_area).to have_css 'div[data-controller="textarea"]'
+      it 'wraps textarea in Stimulus controller div with control class' do
+        expect(text_area).to have_css 'div.control[data-controller="textarea"]'
       end
 
       it 'adds textarea target to input' do
@@ -115,8 +115,8 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
         expect(text_area).to have_css 'div[data-textarea-max-length-value="500"]'
       end
 
-      it 'renders counter element with correct class' do
-        expect(text_area).to have_css 'p.label-text-alt[data-textarea-target="counter"]'
+      it 'renders counter element with alignment classes' do
+        expect(text_area).to have_css 'p.label-text-alt.text-end.w-full[data-textarea-target="counter"]'
       end
     end
 
