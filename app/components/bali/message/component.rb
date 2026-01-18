@@ -3,6 +3,8 @@
 module Bali
   module Message
     class Component < ApplicationViewComponent
+      BASE_CLASSES = 'alert message-component'
+
       COLORS = {
         primary: 'alert-info',
         secondary: 'alert',
@@ -20,8 +22,6 @@ module Bali
         large: 'text-lg'
       }.freeze
 
-      attr_reader :title, :options
-
       renders_one :header
 
       def initialize(title: nil, size: :regular, color: :primary, **options)
@@ -31,11 +31,15 @@ module Bali
         @options = prepend_class_name(options, message_classes)
       end
 
+      private
+
+      attr_reader :title, :options
+
       def message_classes
         class_names(
-          'alert message-component',
-          COLORS[@color] || COLORS[:primary],
-          SIZES[@size] || SIZES[:regular]
+          BASE_CLASSES,
+          COLORS.fetch(@color, COLORS[:primary]),
+          SIZES.fetch(@size, SIZES[:regular])
         )
       end
     end

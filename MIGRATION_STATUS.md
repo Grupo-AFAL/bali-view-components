@@ -105,8 +105,8 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Link                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | VARIANTS/SIZES, class_names, variant param, 39 tests |
 | List                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | DaisyUI list/list-row, BASE_CLASSES, 19 tests      |
 | Loader                 |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, WCAG role/aria-label, color on text, 38 tests |
-| LocationsMap           |  ✅   |    ❌     |   N/A   |   ❌   |   🔄    | Review in progress                                 |
-| Message                |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
+| LocationsMap           |  ✅   |    ❌     |   N/A   |   ❌   |  9/10   | BASE_CLASSES, private attr, DaisyUI card, 19 tests |
+| Message                |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, Hash#fetch, private attrs, 23 tests  |
 | Modal                  |  ✅   |    ✅     |   ✅    |   ❌   |  9/10  | Slots for header/body/actions, WCAG accessibility  |
 | Navbar                 |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | Notification           |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
@@ -151,10 +151,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Score Range | Count | Components |
 |-------------|-------|------------|
-| 9-10 (✅)   | 27    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Heatmap (9), Hero (9), HoverCard (9), Icon (9), InfoLevel (9), LabelValue (9), Level (9), Link (9), Modal (9) |
+| 9-10 (✅)   | 30    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Heatmap (9), Hero (9), HoverCard (9), Icon (9), InfoLevel (9), LabelValue (9), Level (9), Link (9), List (9), Loader (9), Message (9), Modal (9) |
 | 7-8 (⚠️)    | 1     | GanttChart (8) |
 | < 7 (❌)    | 0     | - |
-| Not scored  | 53    | Form fields (26), remaining components (27) |
+| Not scored  | 50    | Form fields (26), remaining components (24) |
 
 ---
 
@@ -288,3 +288,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Loader                       | Score 9: BASE_CLASSES, WCAG role/aria-label, options passthrough, 30 tests   | AI         |
 | 2026-01-17 | Link                         | Manually verified: All variants, icons, sizes, and states render correctly   | Human      |
 | 2026-01-17 | Loader                       | Manually verified: All types, sizes, colors apply to spinner and text        | Human      |
+| 2026-01-17 | Message                      | Score 9: BASE_CLASSES, Hash#fetch, private attrs, 23 tests                   | AI         |
