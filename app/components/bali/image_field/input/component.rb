@@ -26,6 +26,7 @@ module Bali
           class_names(
             'image-input-container',
             'absolute inset-0 flex justify-center items-center cursor-pointer',
+            'rounded-lg',
             'group-hover:bg-base-content/20 group-hover:backdrop-blur-sm',
             'max-md:bg-base-content/20 max-md:backdrop-blur-sm'
           )

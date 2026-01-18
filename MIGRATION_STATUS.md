@@ -97,8 +97,8 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Hero                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Private attr_reader, Hash#fetch, Bali::Button preview |
 | HoverCard              |  ✅   |    ❌     |   N/A   |   ❌   |  9/10   | PLACEMENTS const, class_names, data merge, 43 tests |
 | Icon                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lucide integration, resolution pipeline            |
-| ImageField             |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | SIZES const, class_names, Button for clear, i18n, 31 tests |
-| ImageGrid              |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | COLUMNS/GAPS/ASPECT_RATIOS, class_names, 34 tests  |
+| ImageField             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | SIZES const, class_names, Button for clear, i18n, 31 tests |
+| ImageGrid              |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | COLUMNS/GAPS/ASPECT_RATIOS, class_names, 34 tests  |
 | InfoLevel              |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, ALIGNMENTS.fetch, private attr, 22 tests |
 | LabelValue             |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | LABEL/VALUE_CLASSES, class_names, private options, 7 tests |
 | Level                  |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
