@@ -64,7 +64,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Dropdown               |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | i18n aria-label, Trigger VARIANTS, 21 tests        |
 | FieldGroupWrapper      |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | DaisyUI form-control, class_names, 18 tests        |
 | Filters                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | **DEPRECATED** - Use AdvancedFilters instead       |
-| FlashNotifications     |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | Private attr_readers, Lookbook params, 6 tests     |
+| FlashNotifications     |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Private attr_readers, Lookbook params, 6 tests     |
 | Form                   |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | FormBuilder: Full Bulma→DaisyUI, 117 tests pass    |
 | GanttChart             |  ✅   |    ❌     |   N/A   |   ❌   |  8/10   | Bulma→DaisyUI, explicit action methods, 21 tests   |
 | Heatmap                |  ✅   |    ❌     |   N/A   |   ✅   |  9/10   | Frozen constants, required data:, validated dimensions, 26 tests |
