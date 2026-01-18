@@ -190,7 +190,7 @@
 
   &:not(.is-collapsed) {
     .side-menu-component--item-component.is-collapsed {
-      @apply hidden;
+      display: none !important;
     }
 
     .side-menu-component--item-component.is-expanded {
