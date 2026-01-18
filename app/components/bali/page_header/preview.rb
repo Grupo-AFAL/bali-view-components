@@ -5,9 +5,7 @@ module Bali
     class Preview < ApplicationViewComponentPreview
       # @param title text
       def default(title: 'Title')
-        render PageHeader::Component.new(title: title) do
-          render Bali::Button::Component.new(name: 'Right action', href: '#', variant: :secondary)
-        end
+        render_with_template(locals: { title: title })
       end
 
       # @param title text
@@ -30,9 +28,7 @@ module Bali
       # @param title text
       # @param subtitle text
       def with_subtitle_as_param(title: 'Title', subtitle: 'Subtitle')
-        render PageHeader::Component.new(title: title, subtitle: subtitle) do
-          render Bali::Button::Component.new(name: 'Right action', href: '#', variant: :secondary)
-        end
+        render_with_template(locals: { title: title, subtitle: subtitle })
       end
 
       # @param title text
@@ -45,23 +41,20 @@ module Bali
         title: 'Title', title_tag: :h3, title_class: 'text-info',
         subtitle: 'Subtitle', subtitle_tag: :h5, subtitle_class: 'text-primary'
       )
-        render PageHeader::Component.new do |c|
-          c.with_title(title, tag: title_tag.to_sym, class: title_class)
-          c.with_subtitle(subtitle, tag: subtitle_tag.to_sym, class: subtitle_class)
-
-          render Bali::Button::Component.new(name: 'Right action', href: '#', variant: :secondary)
-        end
+        render_with_template(locals: {
+          title: title,
+          title_tag: title_tag,
+          title_class: title_class,
+          subtitle: subtitle,
+          subtitle_tag: subtitle_tag,
+          subtitle_class: subtitle_class
+        })
       end
 
       # @param title text
       # @param subtitle text
       def with_title_and_subtitle_as_block(title: 'Title', subtitle: 'Subtitle')
-        render PageHeader::Component.new do |c|
-          c.with_title { tag.h3(title, class: 'text-2xl font-bold') }
-          c.with_subtitle { tag.h5(subtitle, class: 'text-lg text-base-content/60') }
-
-          render Bali::Button::Component.new(name: 'Right action', href: '#', variant: :secondary)
-        end
+        render_with_template(locals: { title: title, subtitle: subtitle })
       end
     end
   end
