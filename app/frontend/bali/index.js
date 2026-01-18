@@ -109,7 +109,8 @@ export {
   TabsController,
   TableController,
   TimeagoController,
-  TooltipController
+  TooltipController,
+  TreeViewItemController
 } from './components/index'
 export { registerAll as registerAllComponents } from './components/index'
 

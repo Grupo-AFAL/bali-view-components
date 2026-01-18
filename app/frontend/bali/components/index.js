@@ -46,6 +46,7 @@ import {
   MultiSelectController
 } from '../../../components/bali/advanced_filters/index'
 import { ColumnSelectorController } from '../../../components/bali/data_table/index'
+import { TreeViewItemController } from '../../../components/bali/tree_view/item/index'
 
 export { TableController } from '../../../components/bali/table/index'
 export { ModalController } from '../../../components/bali/modal/index'
@@ -91,6 +92,9 @@ export {
 
 // DataTable components
 export { ColumnSelectorController } from '../../../components/bali/data_table/index'
+
+// Navigation components
+export { TreeViewItemController } from '../../../components/bali/tree_view/item/index'
 
 /**
  * Register all core Bali component controllers with a Stimulus application
@@ -146,4 +150,7 @@ export function registerAll (application) {
 
   // DataTable
   application.register('column-selector', ColumnSelectorController)
+
+  // Navigation
+  application.register('tree-view-item', TreeViewItemController)
 }
