@@ -88,8 +88,8 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ SwitchFields         |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI toggle classes, SIZES/COLORS constants, 31 tests           |
 | ↳ TextFields           |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Self-contained module, Lookbook previews with docs, 21 tests       |
 | ↳ TextAreaFields       |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | textarea_field_options helper, consistent pattern, Lookbook, 13 tests |
-| ↳ TimeFields           |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Time picker with Flatpickr                                         |
-| ↳ TimePeriodFields     |  ❌   |    ❌     |   N/A   |   ❌   |    -    | Time period input (no spec)                                        |
+| ↳ TimeFields           |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Frozen constants, immutable options, Lookbook preview, 17 tests    |
+| ↳ TimePeriodFields     |  ❌   |    ❌     |   N/A   |   ❌   |   🔄    | Review in progress                                                 |
 | ↳ TimeZoneSelect       |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Time zone selector with DaisyUI select                             |
 | ↳ UrlFields            |  ❌   |    ❌     |   ✅    |   ❌   |    -    | URL input (no spec)                                                |
 | GanttChart             |  ✅   |    ❌     |   N/A   |   ❌   |  8/10   | Bulma→DaisyUI, explicit action methods, 21 tests                   |
@@ -380,3 +380,5 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | TextAreaFields (FormBuilder)   | Score 9: textarea_field_options helper, consistent pattern with sibling modules, Lookbook preview, 13 tests | AI         |
 | 2026-01-18 | SwitchFields (FormBuilder)     | Score 9: DaisyUI toggle classes, SIZES/COLORS constants, Lookbook preview, 31 tests          | AI         |
 | 2026-01-18 | SwitchFields (FormBuilder)     | Manually verified: All toggle sizes/colors render correctly, error states work               | Human      |
+| 2026-01-18 | TimeFields (FormBuilder)       | Score 9: Frozen constants, immutable options pattern, Lookbook preview, 17 tests             | AI         |
+| 2026-01-18 | TimePeriodFields (FormBuilder) | Fix method collision: renamed build_wrapper_options to time_period_wrapper_options           | AI         |

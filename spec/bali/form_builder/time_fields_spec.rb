@@ -5,6 +5,34 @@ require 'rails_helper'
 RSpec.describe Bali::FormBuilder, type: :form_builder do
   include_context 'form builder'
 
+  describe 'TimeFields' do
+    describe 'constants' do
+      it 'defines TIME_WRAPPER_OPTIONS' do
+        expect(described_class::TimeFields::TIME_WRAPPER_OPTIONS).to eq(
+          'data-datepicker-enable-time-value': true,
+          'data-datepicker-no-calendar-value': true
+        )
+      end
+
+      it 'freezes TIME_WRAPPER_OPTIONS' do
+        expect(described_class::TimeFields::TIME_WRAPPER_OPTIONS).to be_frozen
+      end
+
+      it 'defines OPTION_TO_DATA_ATTRIBUTE mapping' do
+        expect(described_class::TimeFields::OPTION_TO_DATA_ATTRIBUTE).to eq(
+          seconds: 'data-datepicker-enable-seconds-value',
+          default_date: 'data-datepicker-default-date-value',
+          min_time: 'data-datepicker-min-time-value',
+          max_time: 'data-datepicker-max-time-value'
+        )
+      end
+
+      it 'freezes OPTION_TO_DATA_ATTRIBUTE' do
+        expect(described_class::TimeFields::OPTION_TO_DATA_ATTRIBUTE).to be_frozen
+      end
+    end
+  end
+
   describe '#time_field_group' do
     let(:time_group) { builder.time_field_group(:duration) }
 
@@ -62,6 +90,26 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     it 'renders with datepicker max time' do
       @options.merge!(max_time: '23:00')
       expect(time_field).to have_css '.fieldset[data-datepicker-max-time-value="23:00"]'
+    end
+
+    context 'with existing wrapper_options' do
+      subject(:time_field) do
+        builder.time_field(:duration, wrapper_options: { 'data-custom': 'value' })
+      end
+
+      it 'merges with time wrapper options' do
+        expect(time_field).to have_css '.fieldset[data-custom="value"]'
+        expect(time_field).to have_css '.fieldset[data-datepicker-enable-time-value="true"]'
+      end
+    end
+
+    context 'does not mutate input options' do
+      it 'preserves original options hash' do
+        original_options = { seconds: true }
+        options_copy = original_options.dup
+        builder.time_field(:duration, original_options)
+        expect(original_options).to eq(options_copy)
+      end
     end
   end
 end
