@@ -1,0 +1,19 @@
+<div class="p-4 max-w-2xl">
+  <h3 class="text-lg font-semibold mb-4">Custom Header Layout</h3>
+
+  <%= form_with model: model, url: '/lookbook', builder: Bali::FormBuilder do |f| %>
+    <%= f.dynamic_fields_group :characters do %>
+      <div class="flex items-center justify-between mb-4 p-4 bg-base-200 rounded-lg">
+        <div>
+          <h4 class="font-bold">Cast Members</h4>
+          <p class="text-sm text-base-content/70">Add characters for this movie</p>
+        </div>
+        <%= f.link_to_add_fields 'Add Cast Member', :characters, class: 'btn btn-secondary btn-sm' %>
+      </div>
+    <% end %>
+
+    <div class="mt-4">
+      <%= f.submit 'Save Movie', class: 'btn btn-primary' %>
+    </div>
+  <% end %>
+</div>

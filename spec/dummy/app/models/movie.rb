@@ -6,6 +6,8 @@ class Movie < ApplicationRecord
   has_many :characters
   # rubocop: enable Rails/HasManyOrHasOneDependent
 
+  accepts_nested_attributes_for :characters, allow_destroy: true
+
   enum :status, { draft: 0, done: 1 }
 
   attribute :indie, :boolean
