@@ -9,6 +9,13 @@ const ARROW_SVG = `
 </svg>
 `
 
+// DaisyUI loading spinner shown while fetching content
+const LOADING_SPINNER = `
+<div class="hover-card-content flex items-center justify-center p-6">
+  <span class="loading loading-spinner loading-md"></span>
+</div>
+`
+
 /*
   Hovercard controller:
     It generates a hovercard component to show some content
@@ -32,7 +39,8 @@ export class HovercardController extends Controller {
 
     this.contentLoaded = false
 
-    const content = this.hasTemplateTarget ? this.templateTarget.innerHTML : ''
+    // Use template content, or loading spinner if fetching from URL
+    const content = this.getInitialContent()
 
     const { default: tippy } = await import('tippy.js')
 
@@ -51,6 +59,19 @@ export class HovercardController extends Controller {
       onShow: this.onShow,
       onHide: this.onHide
     })
+  }
+
+  getInitialContent () {
+    if (this.hasTemplateTarget) {
+      return this.templateTarget.innerHTML
+    }
+
+    // Show loading spinner when content will be fetched from URL
+    if (this.hasUrlValue && this.urlValue.length > 0) {
+      return LOADING_SPINNER
+    }
+
+    return ''
   }
 
   appendToProp () {
