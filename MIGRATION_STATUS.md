@@ -106,9 +106,9 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | List                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI list/list-row, BASE_CLASSES, 19 tests      |
 | Loader                 |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, WCAG role/aria-label, color on text, 38 tests |
 | LocationsMap           |  ✅   |    ❌     |   N/A   |   ❌   |  9/10   | BASE_CLASSES, private attr, DaisyUI card, 19 tests |
-| Message                |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, Hash#fetch, private attrs, 23 tests  |
+| Message                |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, Hash#fetch, private attrs, 23 tests  |
 | Modal                  |  ✅   |    ✅     |   ✅    |   ❌   |  9/10  | Slots for header/body/actions, WCAG accessibility  |
-| Navbar                 |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
+| Navbar                 |  ✅   |    ❌     |   ❌    |   ❌   |   🔄    | Review in progress                                 |
 | Notification           |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | PageHeader             |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | Progress               |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
@@ -289,5 +289,6 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Link                         | Manually verified: All variants, icons, sizes, and states render correctly   | Human      |
 | 2026-01-17 | Loader                       | Manually verified: All types, sizes, colors apply to spinner and text        | Human      |
 | 2026-01-17 | Message                      | Score 9: BASE_CLASSES, Hash#fetch, private attrs, 23 tests                   | AI         |
+| 2026-01-17 | Message                      | Manually verified: All colors, sizes, title/header variations render correctly | Human      |
 | 2026-01-17 | LocationsMap                 | Score 9: BASE_CLASSES, private attr, DaisyUI card, template dedup, 19 tests  | AI         |
 | 2026-01-17 | List                         | Manually verified: Title/subtitle stacking, actions with buttons visible     | Human      |
