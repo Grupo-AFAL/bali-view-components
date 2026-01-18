@@ -12,18 +12,19 @@
       <%= @name %>
     <% end %>
   <% else %>
-    <details class="<%= class_names('collapse collapse-arrow', 'collapse-open': active?) %>" data-controller="reveal">
-      <summary class="collapse-title">
+    <details <%= 'open' if active? %>>
+      <summary>
         <% if @icon.present? %>
           <%= render Bali::Icon::Component.new(@icon, class: 'w-5 h-5') %>
         <% end %>
         <%= @name %>
       </summary>
-      <ul class="collapse-content pl-4" data-reveal-target="item">
+      <ul>
         <% if @href.present? %>
           <li>
-            <%= render Bali::Link::Component.new(
-                name: @name, href: @href, icon_name: @icon, active_path: @current_path, active: @active) %>
+            <a href="<%= @href %>" class="<%= 'active' if @active %>">
+              <%= @name %>
+            </a>
           </li>
         <% end %>
         <% items.each do |item| %>
