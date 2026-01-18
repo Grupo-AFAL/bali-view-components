@@ -70,7 +70,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Heatmap                |  ✅   |    ❌     |   N/A   |   ✅   |  9/10   | Frozen constants, required data:, validated dimensions, 26 tests |
 | Hero                   |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Private attr_reader, Hash#fetch, Bali::Button preview |
 | HoverCard              |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
-| Icon                   |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | Lucide integration, resolution pipeline            |
+| Icon                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Lucide integration, resolution pipeline            |
 | ImageField             |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | ImageGrid              |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
 | InfoLevel              |  ✅   |    ❌     |   ❌    |   ❌   |    -    | Needs verification                                 |
@@ -113,9 +113,9 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Status         | Tests  | AI Visual | DaisyUI | Manual | Quality |
 | -------------- | :----: | :-------: | :-----: | :----: | :-----: |
-| ✅ Complete    |   56   |    17     |   15    |   12   |   22    |
+| ✅ Complete    |   56   |    17     |   15    |   13   |   22    |
 | ⚠️ Partial     |   0    |     0     |    0    |    0   |    1    |
-| ❌ Not Started |   0    |    39     |   34    |   44   |   33    |
+| ❌ Not Started |   0    |    39     |   34    |   43   |   33    |
 | N/A            |   0    |     0     |    7    |    0   |    0    |
 | **Total**      | **56** |  **56**   | **56**  | **56** | **56**  |
 
