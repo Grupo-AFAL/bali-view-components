@@ -4,17 +4,25 @@ module Bali
   module Level
     module Item
       class Component < ApplicationViewComponent
-        attr_reader :options, :text
+        BASE_CLASSES = 'level-item flex items-center max-w-full'
 
         def initialize(text: nil, **options)
           @text = text
-          @options = prepend_class_name(options, 'level-item flex items-center max-w-full')
+          @options = options
         end
 
         def call
-          tag.div(**options) do
-            text || content
+          tag.div(class: item_classes, **options.except(:class)) do
+            @text || content
           end
+        end
+
+        private
+
+        attr_reader :options
+
+        def item_classes
+          class_names(BASE_CLASSES, options[:class])
         end
       end
     end

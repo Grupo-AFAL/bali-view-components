@@ -11,11 +11,11 @@ module Bali
         ACTIONS_CLASSES = 'flex items-center gap-2'
 
         renders_one :title, ->(text = nil, **options, &block) do
-          tag.span(text || block&.call, **prepend_class_name(options, TITLE_CLASSES))
+          tag.div(text || block&.call, **prepend_class_name(options, TITLE_CLASSES))
         end
 
         renders_one :subtitle, ->(text = nil, **options, &block) do
-          tag.span(text || block&.call, **prepend_class_name(options, SUBTITLE_CLASSES))
+          tag.div(text || block&.call, **prepend_class_name(options, SUBTITLE_CLASSES))
         end
 
         renders_many :actions

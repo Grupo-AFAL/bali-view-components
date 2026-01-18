@@ -129,7 +129,7 @@ RSpec.describe Bali::List::Component, type: :component do
         end
       end
 
-      expect(page).to have_css('span.font-semibold.text-primary', text: 'Custom Title')
+      expect(page).to have_css('div.font-semibold.text-primary', text: 'Custom Title')
     end
 
     it 'accepts custom classes on subtitle' do
@@ -139,7 +139,7 @@ RSpec.describe Bali::List::Component, type: :component do
         end
       end
 
-      expect(page).to have_css('span.text-sm.text-info', text: 'Custom Subtitle')
+      expect(page).to have_css('div.text-sm.text-info', text: 'Custom Subtitle')
     end
   end
 

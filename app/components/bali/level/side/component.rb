@@ -4,27 +4,30 @@ module Bali
   module Level
     module Side
       class Component < ApplicationViewComponent
-        attr_reader :position, :options
+        BASE_CLASSES = 'flex items-center gap-4 shrink'
 
         renders_many :items, Item::Component
 
         def initialize(position: :left, **options)
           @position = position
-          @options = prepend_class_name(options, side_classes)
+          @options = options
         end
 
         def call
-          tag.div(**options) do
-            items.size.positive? ? safe_join(items.map { |item| item }) : content
+          tag.div(class: side_classes, **options.except(:class)) do
+            items.any? ? safe_join(items) : content
           end
         end
 
         private
 
+        attr_reader :position, :options
+
         def side_classes
           class_names(
             "level-#{position}",
-            'flex items-center gap-4 shrink'
+            BASE_CLASSES,
+            options[:class]
           )
         end
       end

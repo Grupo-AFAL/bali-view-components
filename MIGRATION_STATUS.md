@@ -151,10 +151,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Score Range | Count | Components |
 |-------------|-------|------------|
-| 9-10 (✅)   | 25    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Heatmap (9), Hero (9), HoverCard (9), Icon (9), InfoLevel (9), LabelValue (9), Modal (9) |
+| 9-10 (✅)   | 26    | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), DataTable (9), DeleteLink (9), Drawer (9), Dropdown (9), FieldGroupWrapper (9), FlashNotifications (9), Heatmap (9), Hero (9), HoverCard (9), Icon (9), InfoLevel (9), LabelValue (9), Level (9), Modal (9) |
 | 7-8 (⚠️)    | 1     | GanttChart (8) |
 | < 7 (❌)    | 0     | - |
-| Not scored  | 55    | Form fields (26), remaining components (29) |
+| Not scored  | 54    | Form fields (26), remaining components (28) |
 
 ---
 
@@ -282,3 +282,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | HoverCard                    | Manually verified: Loading spinner for async content, all placements work    | Human      |
 | 2026-01-17 | InfoLevel                    | Manually verified: Alignment options, heading/title slots render correctly   | Human      |
 | 2026-01-17 | List                         | Score 9: DaisyUI list/list-row, ul/li semantics, BASE_CLASSES, 19 tests      | AI         |
+| 2026-01-17 | Level                        | Score 9: BASE_CLASSES, private attr, ALIGNMENTS.fetch, preview params fixed, 14 tests | AI         |
