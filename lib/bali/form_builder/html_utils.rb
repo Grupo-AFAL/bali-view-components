@@ -22,6 +22,12 @@ module Bali
         options.except(:addon_left, :addon_right)
       end
 
+      def textarea_field_options(method, options)
+        base_class = 'textarea textarea-bordered'
+        options[:class] = field_class_name(method, "#{base_class} #{options[:class]}")
+        options
+      end
+
       def field_helper(method, field, options = {})
         if errors?(method)
           help_message = content_tag(:p, full_errors(method), class: 'label-text-alt text-error')

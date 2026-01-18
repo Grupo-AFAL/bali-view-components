@@ -87,7 +87,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ SubmitFields         |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | VARIANTS/SIZES constants, variant:/size: options, 40 tests         |
 | ↳ SwitchFields         |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | DaisyUI toggle classes, SIZES/COLORS constants, 31 tests           |
 | ↳ TextFields           |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Self-contained module, Lookbook previews with docs, 21 tests       |
-| ↳ TextAreaFields       |  ✅   |    ❌     |   ✅    |   ❌   |   🔄    | Review in progress                                                 |
+| ↳ TextAreaFields       |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | textarea_field_options helper, consistent pattern, Lookbook, 13 tests |
 | ↳ TimeFields           |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Time picker with Flatpickr                                         |
 | ↳ TimePeriodFields     |  ❌   |    ❌     |   N/A   |   ❌   |    -    | Time period input (no spec)                                        |
 | ↳ TimeZoneSelect       |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Time zone selector with DaisyUI select                             |
@@ -376,3 +376,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | SelectFields (FormBuilder)     | Manually verified: DaisyUI select styling, help text, error states render correctly          | Human      |
 | 2026-01-17 | StepNumberFields (FormBuilder) | Manually verified: +/- buttons work, constraints enforced, all previews render correctly     | Human      |
 | 2026-01-17 | TextFields (FormBuilder)       | Score 9: Self-contained module with text_field override, Lookbook preview docs, 21 tests     | AI         |
+| 2026-01-17 | TextAreaFields (FormBuilder)   | Score 9: textarea_field_options helper, consistent pattern with sibling modules, Lookbook preview, 13 tests | AI         |

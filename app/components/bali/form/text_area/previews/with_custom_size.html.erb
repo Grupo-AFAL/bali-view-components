@@ -1,0 +1,6 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.text_area_group :synopsis,
+      rows: 8,
+      placeholder: 'Enter detailed content...',
+      class: 'min-h-48' %>
+<% end %>
