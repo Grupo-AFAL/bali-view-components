@@ -1,0 +1,8 @@
+<div class="flex flex-col gap-4">
+  <% Bali::Rate::Component::SIZES.each_key do |size| %>
+    <div class="flex items-center gap-4">
+      <span class="w-12 text-sm font-medium text-base-content/70"><%= size %></span>
+      <%= render Bali::Rate::Component.new(value: 3, size: size, readonly: true) %>
+    </div>
+  <% end %>
+</div>

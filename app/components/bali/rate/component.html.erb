@@ -1,19 +1,31 @@
-<%= tag.div(**options) do %>
-  <% scale.each_with_index do |rate, index| %>
-    <% if auto_submit %>
-      <%= tag.button star_icon(rate),
-                     value: rate,
-                     name: input_name,
-                     class: 'star',
-                     type: 'submit',
-                     title: "Review Star #{rate}" %>
-    <% elsif readonly? %>
-      <%= star_icon(rate) %>
-    <% else %>
-      <%= tag.label for: star_dom_id(rate), class: 'radio' do %>
-        <%= form.radio_button method, rate, **@radio_options, id: star_dom_id(rate) %>
-        <%= star_icon(rate) %>
-      <% end %>
+<div <%= tag.attributes(container_attributes) %>>
+  <% if readonly? %>
+    <%# Readonly: show disabled inputs with current value highlighted %>
+    <% scale.each do |rate| %>
+      <input type="radio"
+             class="<%= star_classes %>"
+             disabled
+             aria-label="<%= star_aria_label(rate) %>"
+             <%= 'checked' if value == rate %> />
+    <% end %>
+  <% elsif auto_submit? %>
+    <%# Auto-submit: buttons that submit the form on click %>
+    <% scale.each do |rate| %>
+      <button type="submit"
+              name="<%= input_name %>"
+              value="<%= rate %>"
+              class="<%= star_classes %>"
+              aria-label="<%= star_aria_label(rate) %>">
+      </button>
+    <% end %>
+  <% else %>
+    <%# Standard: radio buttons integrated with form builder %>
+    <% scale.each do |rate| %>
+      <%= form.radio_button method, rate,
+                            class: star_classes,
+                            id: star_id(rate),
+                            aria: { label: star_aria_label(rate) },
+                            checked: value == rate %>
     <% end %>
   <% end %>
-<% end %>
+</div>

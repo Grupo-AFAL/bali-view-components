@@ -1,20 +1,15 @@
 import { Controller } from '@hotwired/stimulus'
 
+/**
+ * RateController - Legacy controller for Rate component
+ *
+ * This controller is no longer used by the Rate component. DaisyUI's native
+ * rating component handles visual state through CSS `:checked` pseudo-class.
+ *
+ * Kept for backwards compatibility with consumers who may have registered it.
+ *
+ * @deprecated Will be removed in next major version
+ */
 export class RateController extends Controller {
-  static targets = ['star']
-
-  submit (event) {
-    const rating = parseInt(event.target.value)
-
-    this.starTargets.forEach(star => {
-      const starRating = parseInt(star.value)
-      const labelNode = star.closest('label')
-
-      if (rating >= starRating) {
-        labelNode.querySelector('.icon').classList.add('solid')
-      } else {
-        labelNode.querySelector('.icon').classList.remove('solid')
-      }
-    })
-  }
+  // No-op: DaisyUI handles rating visuals via CSS
 }

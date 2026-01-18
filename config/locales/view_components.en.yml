@@ -83,6 +83,9 @@ en:
       step_number_field:
         increase: Increase value
         decrease: Decrease value
+      rate:
+        label: Rating
+        star_rating: "%{number} stars"
       recurrent_event_rule_form:
         yearly: Yearly
         monthly: Monthly
