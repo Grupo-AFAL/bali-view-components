@@ -44,6 +44,7 @@ module Bali
           'dropdown-content',
           'menu',
           'bg-base-100',
+          'text-base-content', # Ensure proper text contrast regardless of parent colors
           'rounded-box',
           'z-50',
           'shadow-lg',

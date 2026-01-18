@@ -71,6 +71,10 @@ module Bali
         @authorized
       end
 
+      def authorized?
+        @authorized
+      end
+
       def link_classes
         class_names(
           base_class,

@@ -4,10 +4,15 @@ module Bali
   module Dropdown
     module Trigger
       class Component < ApplicationViewComponent
+        # IMPORTANT: The `menu` variant is designed for use inside navbar menus.
+        # It uses `!bg-transparent` to override DaisyUI's menu hover styling which
+        # adds dark backgrounds that look bad on colored navbar backgrounds.
+        # DO NOT add `btn` classes to `menu` variant - they break vertical alignment.
         VARIANTS = {
           button: 'btn',
           icon: 'btn btn-ghost btn-circle',
           ghost: 'btn btn-ghost',
+          menu: 'flex items-center gap-1 cursor-pointer !bg-transparent hover:!bg-transparent',
           custom: ''
         }.freeze
 
