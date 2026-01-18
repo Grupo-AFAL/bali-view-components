@@ -1,11 +1,8 @@
-<span class="<%= container_classes %>"
-      data-controller="<%= stimulus_controller %>"
-      data-tooltip-trigger-value="<%= stimulus_values[:trigger] %>"
-      data-tooltip-placement-value="<%= stimulus_values[:placement] %>">
+<%= tag.span class: container_classes, **container_attributes do %>
   <span class="<%= trigger_classes %>" data-tooltip-target="trigger">
     <%= trigger %>
   </span>
   <template data-tooltip-target="content">
     <%= content %>
   </template>
-</span>
+<% end %>

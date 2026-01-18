@@ -12,16 +12,12 @@ module Bali
         right: 'right'
       }.freeze
 
-      SIZES = {
-        sm: 'tooltip-sm',
-        md: 'tooltip-md',
-        lg: 'tooltip-lg'
-      }.freeze
+      CONTROLLER = 'tooltip'
 
-      def initialize(trigger: 'mouseenter focus', placement: :top, size: nil, **options)
+      # NOTE: The `trigger_event` parameter is named to avoid collision with the `trigger` slot
+      def initialize(placement: :top, trigger_event: 'mouseenter focus', **options)
         @placement = placement&.to_sym
-        @size = size&.to_sym
-        @trigger_event = trigger
+        @trigger_event = trigger_event
         @options = options
       end
 
@@ -29,26 +25,34 @@ module Bali
         class_names(
           'tooltip-component',
           'inline-block',
-          @options[:class]
+          options[:class]
+        )
+      end
+
+      def container_attributes
+        options.except(:class).merge(
+          data: stimulus_data.merge(options.fetch(:data, {}))
         )
       end
 
       def trigger_classes
-        class_names(
-          'trigger',
-          'cursor-pointer'
-        )
+        class_names('trigger', 'cursor-pointer')
       end
 
-      def stimulus_controller
-        'tooltip'
-      end
+      private
 
-      def stimulus_values
+      attr_reader :placement, :trigger_event, :options
+
+      def stimulus_data
         {
-          trigger: @trigger_event,
-          placement: POSITIONS[@placement] || 'top'
+          controller: CONTROLLER,
+          "#{CONTROLLER}-placement-value": placement_value,
+          "#{CONTROLLER}-trigger-value": trigger_event
         }
+      end
+
+      def placement_value
+        POSITIONS.fetch(placement, 'top')
       end
     end
   end
