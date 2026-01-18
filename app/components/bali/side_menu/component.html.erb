@@ -3,22 +3,23 @@
     <% if single_menu? %>
       <li class="menu-title"><%= authorized_menus.first %></li>
     <% elsif multiple_menus? %>
-      <%= render Bali::HoverCard::Component.new(
-          z_index: HOVERCARD_Z_INDEX, open_on_click: true, content_padding: false, placement: 'bottom-start',
-          class: 'menu-switcher with-multiple-switches',
-          data: { hovercard_content_class: 'hover-card-tippy-wrapper menu-switcher-tippy-wrapper' }
-      ) do |c| %>
-        <% c.with_trigger(class: 'menu-switcher--trigger') do %>
-          <%= active_menu %>
-        <% end %>
-        <% authorized_menus.each do |menu| %>
-          <%= render Bali::Link::Component.new(
-            href: menu.href, class: 'block px-4 py-2 hover:bg-base-300', disabled: menu == active_menu
-          ) do %>
-            <%= menu %>
-          <% end %>
-        <% end %>
-      <% end %>
+      <li>
+        <details class="dropdown w-full">
+          <summary class="flex items-center gap-2 w-full">
+            <%= active_menu %>
+            <%= render Bali::Icon::Component.new('chevron-down', class: 'w-4 h-4 ml-auto') %>
+          </summary>
+          <ul class="dropdown-content menu bg-base-100 rounded-box z-50 w-full p-2 shadow-lg">
+            <% authorized_menus.each do |menu| %>
+              <li class="<%= 'disabled' if menu == active_menu %>">
+                <a href="<%= menu.href %>" class="<%= 'active' if menu == active_menu %>">
+                  <%= menu %>
+                </a>
+              </li>
+            <% end %>
+          </ul>
+        </details>
+      </li>
     <% end %>
     <% if collapsable? %>
       <li>
