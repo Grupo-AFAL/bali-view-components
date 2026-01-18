@@ -1,14 +1,14 @@
-<%= render Bali::Level::Component.new(**options) do |c| %>
-  <%= c.with_left(**@left_options) do |level| %>
-    <% if @back_options[:href].present? %>
+<%= render Bali::Level::Component.new(align: level_align, class: component_classes, **options.except(:class)) do |c| %>
+  <%= c.with_left do |level| %>
+    <% if render_back_button? %>
       <% level.with_item do %>
-        <%= render Bali::Link::Component.new(icon_name: 'arrow-left', **@back_options) %>
+        <%= render Bali::Link::Component.new(icon_name: 'arrow-left', **back_button_options) %>
       <% end %>
     <% end %>
     <% level.with_item do %>
       <div>
-        <%= title || tag.h3(@title, class: 'title text-2xl font-bold mb-1') %>
-        <%= subtitle || tag.h5(@subtitle, class: 'subtitle text-lg text-base-content/60') %>
+        <%= title || tag.h3(@title, class: title_classes) %>
+        <%= subtitle || tag.h5(@subtitle, class: subtitle_classes) %>
       </div>
     <% end %>
   <% end %>
