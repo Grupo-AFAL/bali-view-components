@@ -66,7 +66,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Filters                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | **DEPRECATED** - Use AdvancedFilters instead       |
 | FlashNotifications     |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Private attr_readers, Lookbook params, 6 tests     |
 | **Form Fields**        |       |           |         |        |         | **FormBuilder field modules (see below)**          |
-| ↳ BooleanFields        |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Frozen constants, SIZES/COLORS, private helpers, 32 tests |
+| ↳ BooleanFields        |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, SIZES/COLORS, private helpers, 32 tests |
 | ↳ CoordinatesPolygon   |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom map polygon input                           |
 | ↳ CurrencyFields       |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Currency input with DaisyUI input classes          |
 | ↳ DateFields           |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Date picker with Flatpickr                         |
@@ -325,3 +325,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | BooleanFields (FormBuilder)  | Score 9: DaisyUI checkbox, SIZES/COLORS, private helpers, 32 tests           | AI         |
 | 2026-01-17 | Progress                     | Manually verified: All colors render, percentage display works               | Human      |
 | 2026-01-17 | PageHeader                   | Manually verified: Title, subtitle, back button, right content all render    | Human      |
+| 2026-01-17 | BooleanFields (FormBuilder)  | Manually verified: All sizes and colors render correctly in Lookbook         | Human      |
