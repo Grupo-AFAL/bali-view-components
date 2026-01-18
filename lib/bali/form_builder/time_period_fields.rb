@@ -16,7 +16,7 @@ module Bali
 
       def time_period_field(method, select_options, selected: nil, **options)
         include_blank = options.fetch(:include_blank, '')
-        wrapper_attrs = time_period_wrapper_options(options)
+        wrapper_attrs = time_period_wrapper_attrs(options)
         selected_value = selected || object.try(method)
 
         final_select_options = build_select_options(select_options, include_blank)
@@ -35,7 +35,7 @@ module Bali
 
       private
 
-      def time_period_wrapper_options(options)
+      def time_period_wrapper_attrs(options)
         prepend_controller(
           options.except(:include_blank),
           CONTROLLER_NAME

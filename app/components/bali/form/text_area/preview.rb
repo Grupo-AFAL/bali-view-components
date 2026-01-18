@@ -16,7 +16,7 @@ module Bali
         # @label With Errors
         # Shows the textarea with validation error styling.
         def with_errors
-          form_record.errors.add(:synopsis, :blank)
+          form_record.errors.add(:text, :blank)
 
           render_with_template(
             template: 'bali/form/text_area/previews/default',

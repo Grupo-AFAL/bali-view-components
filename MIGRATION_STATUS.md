@@ -89,7 +89,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ TextFields           |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Self-contained module, Lookbook previews with docs, 21 tests       |
 | ↳ TextAreaFields       |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | textarea_field_options helper, consistent pattern, Lookbook, 13 tests |
 | ↳ TimeFields           |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Frozen constants, immutable options, Lookbook preview, 17 tests    |
-| ↳ TimePeriodFields     |  ❌   |    ❌     |   N/A   |   ❌   |   🔄    | Review in progress                                                 |
+| ↳ TimePeriodFields     |  ✅   |    ❌     |   N/A   |   ❌   |  9/10   | Frozen constants, immutable options, Stimulus integration, 35 tests |
 | ↳ TimeZoneSelect       |  ✅   |    ❌     |   ✅    |   ❌   |    -    | Time zone selector with DaisyUI select                             |
 | ↳ UrlFields            |  ❌   |    ❌     |   ✅    |   ❌   |    -    | URL input (no spec)                                                |
 | GanttChart             |  ✅   |    ❌     |   N/A   |   ❌   |  8/10   | Bulma→DaisyUI, explicit action methods, 21 tests                   |
@@ -381,6 +381,6 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-18 | SwitchFields (FormBuilder)     | Score 9: DaisyUI toggle classes, SIZES/COLORS constants, Lookbook preview, 31 tests          | AI         |
 | 2026-01-18 | SwitchFields (FormBuilder)     | Manually verified: All toggle sizes/colors render correctly, error states work               | Human      |
 | 2026-01-18 | TimeFields (FormBuilder)       | Score 9: Frozen constants, immutable options pattern, Lookbook preview, 17 tests             | AI         |
-| 2026-01-18 | TimePeriodFields (FormBuilder) | Fix method collision: renamed build_wrapper_options to time_period_wrapper_options           | AI         |
+| 2026-01-18 | TimePeriodFields (FormBuilder) | Score 9: Frozen constants, immutable options, extracted helpers, Stimulus integration, 35 tests | AI         |
 | 2026-01-18 | TextFields (FormBuilder)       | Manually verified: All previews render correctly, help text and error states work            | Human      |
 | 2026-01-18 | SubmitFields (FormBuilder)     | Manually verified: All variants/sizes render, submit_actions and modal_actions work          | Human      |
