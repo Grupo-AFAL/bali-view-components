@@ -1,0 +1,5 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.password_field_group :password,
+      addon_right: tag.button('Show', class: 'btn btn-neutral', type: 'button'),
+      placeholder: 'Enter password' %>
+<% end %>

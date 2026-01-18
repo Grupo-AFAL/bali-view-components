@@ -1,0 +1,5 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.password_field_group :password,
+      placeholder: 'Enter password',
+      help: 'Minimum 8 characters, include uppercase and numbers.' %>
+<% end %>
