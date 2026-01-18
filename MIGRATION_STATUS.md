@@ -86,7 +86,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ StepNumberFields     |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, button_tag, i18n aria-labels, 34 tests           |
 | ↳ SubmitFields         |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | VARIANTS/SIZES constants, variant:/size: options, 40 tests         |
 | ↳ SwitchFields         |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI toggle classes, SIZES/COLORS constants, 31 tests           |
-| ↳ TextFields           |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Self-contained module, Lookbook previews with docs, 21 tests       |
+| ↳ TextFields           |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Self-contained module, Lookbook previews with docs, 21 tests       |
 | ↳ TextAreaFields       |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | textarea_field_options helper, consistent pattern, Lookbook, 13 tests |
 | ↳ TimeFields           |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Frozen constants, immutable options, Lookbook preview, 17 tests    |
 | ↳ TimePeriodFields     |  ❌   |    ❌     |   N/A   |   ❌   |   🔄    | Review in progress                                                 |
@@ -382,3 +382,4 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-18 | SwitchFields (FormBuilder)     | Manually verified: All toggle sizes/colors render correctly, error states work               | Human      |
 | 2026-01-18 | TimeFields (FormBuilder)       | Score 9: Frozen constants, immutable options pattern, Lookbook preview, 17 tests             | AI         |
 | 2026-01-18 | TimePeriodFields (FormBuilder) | Fix method collision: renamed build_wrapper_options to time_period_wrapper_options           | AI         |
+| 2026-01-18 | TextFields (FormBuilder)       | Manually verified: All previews render correctly, help text and error states work            | Human      |
