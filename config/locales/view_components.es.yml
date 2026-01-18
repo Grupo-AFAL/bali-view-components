@@ -80,6 +80,9 @@ es:
           toggle_menu: Alternar menú
       notification:
         close: Cerrar notificación
+      step_number_field:
+        increase: Aumentar valor
+        decrease: Disminuir valor
       recurrent_event_rule_form:
         yearly: Anualmente
         monthly: Mensualmente
