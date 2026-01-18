@@ -126,8 +126,8 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Tags                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | GAPS const, class_names, flex container, 15 tests                  |
 | Timeago                |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | BASE_CLASSES, private attr, class_names, datetime attr, 21 tests   |
 | Timeline               |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | DaisyUI timeline, COLORS/LINE_COLORS, ul/li semantics, 26 tests    |
-| Tooltip                |  ✅   |    ✅     |   N/A   |   ❌   |  9/10   | CONTROLLER const, class_names, options passthrough, 19 tests       |
-| TreeView               |  ✅   |    ✅     |   ✅    |   ❌   |   🔄    | Review cycle in progress                                           |
+| Tooltip                |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | CONTROLLER const, class_names, options passthrough, 19 tests       |
+| TreeView               |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, ARIA tree/treeitem/group roles, 24 tests             |
 | TurboNativeApp         |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom component                                                   |
 
 ---
@@ -414,3 +414,5 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-18 | Tabs                           | Manually verified: Loading spinner on demand, full page nav works, styles/sizes apply       | Human      |
 | 2026-01-18 | Timeline                       | Score 9: Full DaisyUI migration, ul/li semantics, COLORS/LINE_COLORS, color: param, 26 tests | AI         |
 | 2026-01-18 | Tooltip                        | Score 9: CONTROLLER const, trigger_event param, options passthrough, Lookbook params, 19 tests | AI         |
+| 2026-01-18 | Tooltip                        | Manually verified: Tippy.js tooltips render on hover, all placements work correctly          | Human      |
+| 2026-01-18 | TreeView                       | Score 9: BASE_CLASSES, ARIA tree/treeitem/group, fixed options mutation bug, 24 tests        | AI         |
