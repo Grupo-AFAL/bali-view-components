@@ -107,7 +107,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Loader                 |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, WCAG role/aria-label, color on text, 38 tests |
 | LocationsMap           |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | BASE_CLASSES, private attr, DaisyUI card, 19 tests |
 | Message                |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, Hash#fetch, private attrs, 23 tests  |
-| Modal                  |  ✅   |    ✅     |   ✅    |   ❌   |  9/10  | Slots for header/body/actions, WCAG accessibility  |
+| Modal                  |  ✅   |    ✅     |   ✅    |   ✅   |  9/10  | Slots for header/body/actions, WCAG accessibility  |
 | Navbar                 |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, private attr, i18n aria-label, 34 tests |
 | Notification           |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, i18n aria-label, fetch fallback, 19 tests |
 | PageHeader             |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | BASE_CLASSES, ALIGNMENTS, Level delegation, 20 tests |
@@ -189,7 +189,7 @@ Components with ✅ in all applicable columns:
 | Card         | [card](https://daisyui.com/components/card/)               | ✅ Done    |
 | Table        | [table](https://daisyui.com/components/table/)             | ✅ Done    |
 | Breadcrumb   | [breadcrumbs](https://daisyui.com/components/breadcrumbs/) | ✅ Done    |
-| Modal        | [modal](https://daisyui.com/components/modal/)             | ❌ Pending |
+| Modal        | [modal](https://daisyui.com/components/modal/)             | ✅ Done    |
 | Dropdown     | [dropdown](https://daisyui.com/components/dropdown/)       | ✅ Done    |
 | Tabs         | [tabs](https://daisyui.com/components/tab/)                | ❌ Pending |
 | Navbar       | [navbar](https://daisyui.com/components/navbar/)           | ❌ Pending |
