@@ -9,19 +9,45 @@ RSpec.describe Bali::Loader::Component, type: :component do
 
       expect(page).to have_css 'div.loader-component'
       expect(page).to have_css 'span.loading.loading-spinner.loading-lg'
-      expect(page).to have_css 'h2', text: 'Loading...'
+      expect(page).to have_css 'p', text: 'Loading...'
     end
 
     it 'renders loader with custom text' do
       render_inline(described_class.new(text: 'Cargando'))
 
-      expect(page).to have_css 'h2', text: 'Cargando'
+      expect(page).to have_css 'p', text: 'Cargando'
     end
 
     it 'hides text when hide_text option is true' do
       render_inline(described_class.new(hide_text: true))
 
-      expect(page).not_to have_css 'h2'
+      expect(page).not_to have_css 'p'
+    end
+
+    it 'shows default text when text is nil and hide_text is false' do
+      render_inline(described_class.new)
+
+      expect(page).to have_css 'p', text: 'Loading...'
+    end
+  end
+
+  describe 'accessibility' do
+    it 'adds role="status" to the spinner' do
+      render_inline(described_class.new)
+
+      expect(page).to have_css 'span.loading[role="status"]'
+    end
+
+    it 'adds aria-label with display text' do
+      render_inline(described_class.new(text: 'Processing...'))
+
+      expect(page).to have_css 'span.loading[aria-label="Processing..."]'
+    end
+
+    it 'uses default translation for aria-label when no text provided' do
+      render_inline(described_class.new)
+
+      expect(page).to have_css 'span.loading[aria-label="Loading..."]'
     end
   end
 
@@ -32,7 +58,7 @@ RSpec.describe Bali::Loader::Component, type: :component do
       expect(page).to have_css 'span.loading.loading-spinner'
     end
 
-    %i[spinner dots ring ball bars infinity].each do |type|
+    described_class::TYPES.each_key do |type|
       it "renders #{type} type" do
         render_inline(described_class.new(type: type, hide_text: true))
 
@@ -42,7 +68,7 @@ RSpec.describe Bali::Loader::Component, type: :component do
   end
 
   describe 'sizes' do
-    %i[xs sm md lg xl].each do |size|
+    described_class::SIZES.each_key do |size|
       it "renders #{size} size" do
         render_inline(described_class.new(size: size, hide_text: true))
 
@@ -52,12 +78,32 @@ RSpec.describe Bali::Loader::Component, type: :component do
   end
 
   describe 'colors' do
-    %i[primary secondary accent info success warning error].each do |color|
+    described_class::COLORS.each_key do |color|
       it "renders #{color} color" do
         render_inline(described_class.new(color: color, hide_text: true))
 
         expect(page).to have_css "span.loading.text-#{color}"
       end
+    end
+  end
+
+  describe 'options passthrough' do
+    it 'accepts custom classes on container' do
+      render_inline(described_class.new(class: 'my-custom-class'))
+
+      expect(page).to have_css 'div.loader-component.my-custom-class'
+    end
+
+    it 'accepts data attributes' do
+      render_inline(described_class.new(data: { testid: 'loader' }))
+
+      expect(page).to have_css 'div.loader-component[data-testid="loader"]'
+    end
+
+    it 'accepts custom id' do
+      render_inline(described_class.new(id: 'my-loader'))
+
+      expect(page).to have_css 'div#my-loader.loader-component'
     end
   end
 end
