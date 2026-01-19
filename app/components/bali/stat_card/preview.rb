@@ -18,12 +18,12 @@ module Bali
 
       # With footer showing a trend
       def with_trend
-        render_with_template
+        render_with_template(template: 'bali/stat_card/previews/with_trend')
       end
 
       # With footer showing status
       def with_status
-        render_with_template
+        render_with_template(template: 'bali/stat_card/previews/with_status')
       end
     end
   end
