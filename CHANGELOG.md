@@ -5,27 +5,55 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Unreleased] - Tailwind + DaisyUI Migration
 
-### Changed
+**This is a major release migrating all 60+ components from Bulma CSS to Tailwind + DaisyUI 5.**
 
-- `Bali::Calendar::Component` refactored with improved API (backward compatible):
-  - `start_date` now accepts `Date` objects directly (strings still work)
-  - New `weekdays_only:` parameter replaces confusing `all_week:` (deprecated but still works)
-  - Extracted `EventGrouper` class for cleaner event grouping logic
-  - Added helper methods: `month_view?`, `week_view?`, `show_weekends?`, `weekdays_only?`
-  - Preview consolidated from 7 methods to 3 with `@param` annotations
-  - Added 14 new tests (33 total)
+### Breaking Changes
 
-- **BREAKING**: `Bali::Breadcrumb::Item::Component` API improved:
-  - `href` is now optional (was required). Items without `href` are automatically marked as active.
-  - Parameter order changed: `name:` is now the primary parameter.
-  - Links only show underline on hover (not by default).
-  - Active items render as non-clickable `<span>` elements with `cursor-default`.
-  - Removed legacy BEM classes (`breadcrumb-component`, `breadcrumb-item-component`).
-  - Added `aria-current="page"` to active items for accessibility.
+- **`Bali::Link::Component`** - `type:` parameter deprecated. Use `variant:` instead.
+  - Added backwards compatibility: passing `type:` still works but logs deprecation
+  - New `variant:` supports: `:primary`, `:secondary`, `:accent`, `:info`, `:success`, `:warning`, `:error`, `:ghost`, `:link`, `:neutral`
+  - New `size:` parameter: `:xs`, `:sm`, `:md`, `:lg`, `:xl`
+  - New `plain:` parameter for links without button styling
+  - New `authorized:` parameter for permission-based rendering
 
-  Migration example:
+  ```ruby
+  # Before
+  render Bali::Link::Component.new(href: '/users', name: 'Users', type: :primary)
+
+  # After
+  render Bali::Link::Component.new(href: '/users', name: 'Users', variant: :primary)
+  ```
+
+- **`Bali::Card::Component`** - `footer_items` slot removed. Use `actions` slot instead.
+  - New slot structure: `header`, `title`, `image`, `actions`
+  - Actions render inside `card-actions` container with proper DaisyUI styling
+
+  ```ruby
+  # Before
+  render Bali::Card::Component.new do |c|
+    c.with_footer_item { render Bali::Button::Component.new(name: 'Save') }
+  end
+
+  # After
+  render Bali::Card::Component.new do |c|
+    c.with_action { render Bali::Button::Component.new(name: 'Save') }
+  end
+  ```
+
+- **`Bali::Filters::Component`** - **DEPRECATED**. Use `Bali::AdvancedFilters::Component` instead.
+  - Filters component still works but shows deprecation warning
+  - AdvancedFilters provides: multiple filter groups, AND/OR combinators, type-specific operators
+
+- **`Bali::Breadcrumb::Item::Component`** - `href` is now optional (was required).
+  - Items without `href` are automatically marked as active
+  - Parameter order changed: `name:` is now the primary parameter
+  - Links only show underline on hover (not by default)
+  - Active items render as non-clickable `<span>` elements with `cursor-default`
+  - Removed legacy BEM classes (`breadcrumb-component`, `breadcrumb-item-component`)
+  - Added `aria-current="page"` to active items for accessibility
+
   ```ruby
   # Before
   c.with_item(href: '/page', name: 'Current', active: true)
@@ -34,30 +62,154 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   c.with_item(name: 'Current')
   ```
 
+- **`Bali::Tag::Component`** - `tag_class:` parameter deprecated. Use `color:` instead.
+
+- **`Bali::Calendar::Component`** - `all_week:` parameter deprecated. Use `weekdays_only:` instead.
+
+- **CSS Class Changes** - All Bulma classes replaced with DaisyUI equivalents:
+  - `is-primary` → `btn-primary`, `badge-primary`, etc.
+  - `is-danger` → `*-error` (DaisyUI uses "error" not "danger")
+  - `is-small/medium/large` → `*-sm/md/lg`
+  - `columns` → `grid grid-cols-*`
+  - `card-content` → `card-body`
+  - `notification` → `alert`
+  - See `docs/migration/BREAKING_CHANGES.md` for complete mapping
+
 ### Added
 
-- `Bali::DataTable::Component` now uses `AdvancedFilters` instead of the legacy `Filters` component.
+- **`Bali::AdvancedFilters::Component`** - Complex filter UI with Ransack groupings support
+  - Multiple filter groups with AND/OR combinators between groups
+  - Multiple conditions within each group with AND/OR combinators
+  - Type-specific operators for text, number, date, select, and boolean fields
+  - Dynamic add/remove for both conditions and groups
+  - Pre-populated filters from URL params
+  - Quick search integration and reset functionality
+  - Date range "between" operator uses Flatpickr range mode
+  - Locale-aware date formats: `M j, Y` for English, `j M Y` for Spanish
+
+- **`Bali::AdvancedFilterForm`** - Helper class for parsing filter parameters in controllers
+
+- **`Bali::Button::Component`** - Proper ViewComponent (was previously a helper)
+  - Full DaisyUI button support with variants, sizes, states
+  - Loading state with spinner
+  - Icon support (left and right)
+  - Disabled state
+
+- **`Bali::Avatar::Group::Component`** - Display grouped avatars with overlap styling
+- **`Bali::Avatar::Upload::Component`** - Avatar with upload/edit functionality
+
+- **`Bali::Card::Action::Component`** - Card action button/link for footer actions
+
+- **`Bali::DataTable::ColumnSelector::Component`** - Toggle table column visibility
+  - Supports hiding columns by default
+  - Works by column index, no coordination needed between selector and table cells
+
+- **`Bali::DataTable::Export::Component`** - Export data table to various formats
+
+- **`Bali::DirectUpload::Component`** - Direct file upload with progress indication
+
+- **`Bali::Modal::Header::Component`** - Modal header slot component
+- **`Bali::Modal::Body::Component`** - Modal body slot component
+- **`Bali::Modal::Actions::Component`** - Modal actions/footer slot component
+
+- **`Bali::Pagination::Component`** - Standalone pagination component using Pagy
+
+- **Icon System Overhaul** - New Lucide-based icon resolution pipeline
+  - 1,600+ Lucide icons available directly
+  - Backwards compatible: old Bali icon names still work (mapped to Lucide equivalents)
+  - Kept icons: brand logos (Visa, Mastercard, PayPal), social (WhatsApp, Facebook), regional (flags)
+  - Custom icons: app-specific via `Bali.custom_icons`
+  - New `size:` parameter: `:small`, `:medium`, `:large`
+
+- **Stimulus Controllers**
+  - `advanced-filters` - Main filter UI controller
+  - `filter-group` - Filter group management
+  - `condition` - Individual condition management
+  - `column-selector` - Table column visibility toggle
+
+- **Dependencies**
+  - Added `pagy` gem (~> 8.0) for pagination
+  - Added `lucide-rails` gem for Lucide icon integration
+
+### Changed
+
+- **All 60+ Components** - Migrated from Bulma SCSS to Tailwind + DaisyUI 5
+  - Removed all `.scss` files, using `.css` with `@apply` or inline Tailwind classes
+  - Components now use DaisyUI semantic classes (`btn`, `card`, `modal`, etc.)
+  - Responsive design using Tailwind breakpoints
+
+- **`Bali::Calendar::Component`** - Refactored with improved API (backward compatible)
+  - `start_date` now accepts `Date` objects directly (strings still work)
+  - New `weekdays_only:` parameter replaces confusing `all_week:` (deprecated but still works)
+  - Extracted `EventGrouper` class for cleaner event grouping logic
+  - Added helper methods: `month_view?`, `week_view?`, `show_weekends?`, `weekdays_only?`
+  - Preview consolidated from 7 methods to 3 with `@param` annotations
+  - Added 14 new tests (33 total)
+
+- **`Bali::DataTable::Component`** - Now uses `AdvancedFilters` instead of legacy `Filters`
   - New `filters_panel` slot accepts `available_attributes:` for defining filterable fields
   - New `toolbar_buttons` slot for right-aligned buttons (column selector, export, etc.)
   - Added sorting examples using Ransack's `sort_link` helper
   - Added pagination examples using Pagy
-- `ColumnSelectorController` Stimulus controller for toggling table column visibility.
-  - Supports hiding columns by default (remove `checked` attribute from checkbox)
-  - Works by column index, no coordination needed between selector and table cells
-- Added `pagy` gem (~> 8.0) for pagination support in previews and applications.
 
-- `Bali::AdvancedFilters::Component` for building complex filter UIs with Ransack groupings support.
-  - Supports multiple filter groups with AND/OR combinators between groups
-  - Supports multiple conditions within each group with AND/OR combinators
-  - Type-specific operators for text, number, date, select, and boolean fields
-  - Dynamic add/remove for both conditions and groups
-  - Pre-populated filters from URL params
-  - Quick search integration
-  - Reset functionality
-  - Date range "between" operator uses Flatpickr range mode (single compact input)
-  - Locale-aware date formats: `M j, Y` for English, `j M Y` for Spanish
-- `Bali::AdvancedFilterForm` helper class for parsing filter parameters in controllers.
-- Stimulus controllers: `advanced-filters`, `filter-group`, and `condition` for interactive filtering.
+- **`Bali::Modal::Component`** - New slot-based API
+  - Uses native `<dialog>` element with DaisyUI modal styling
+  - New slots: `header`, `body`, `actions`
+  - Backdrop click to close
+  - Escape key to close
+
+- **`Bali::Dropdown::Component`** - Migrated to DaisyUI dropdown
+  - Uses `dropdown`, `dropdown-content`, `menu` classes
+  - Supports positioning: `dropdown-end`, `dropdown-top`, `dropdown-left`, `dropdown-right`
+
+- **`Bali::Table::Component`** - Migrated to DaisyUI table
+  - Uses `table`, `table-zebra`, `table-pin-rows`, `table-pin-cols` classes
+  - Sticky headers supported via `table-pin-rows`
+
+- **`Bali::Tabs::Component`** - Migrated to DaisyUI tabs
+  - Uses `tabs`, `tabs-box`, `tab`, `tab-active` classes
+
+- **`Bali::Tooltip::Component`** - Migrated to DaisyUI tooltip
+  - Uses `tooltip`, `tooltip-*` positioning classes
+  - Removed Tippy.js dependency for simple tooltips
+
+- **`Bali::Timeline::Component`** - Migrated to DaisyUI timeline
+  - Uses `timeline`, `timeline-start`, `timeline-middle`, `timeline-end` classes
+
+- **`Bali::Stepper::Component`** - Migrated to DaisyUI steps
+  - Uses `steps`, `step`, `step-primary/secondary/etc` classes
+
+- **`Bali::Progress::Component`** - Migrated to DaisyUI progress
+  - Uses `progress`, `progress-primary/secondary/etc` classes
+
+- **`Bali::Notification::Component`** - Migrated to DaisyUI alert
+  - Uses `alert`, `alert-info/success/warning/error` classes
+
+- **`Bali::Loader::Component`** - Migrated to DaisyUI loading
+  - Uses `loading`, `loading-spinner/dots/ring/ball/bars/infinity` classes
+
+- **`Bali::SideMenu::Component`** - Migrated to DaisyUI menu
+  - Uses `menu`, `menu-title`, DaisyUI collapse for nested items
+  - Improved collapsed state with tooltips
+
+- **Form Components** - All 27+ form field components migrated
+  - Inputs use `input`, `input-bordered`, `input-*` classes
+  - Selects use `select`, `select-bordered` classes
+  - Checkboxes use `checkbox`, `checkbox-*` classes
+  - File inputs use `file-input`, `file-input-bordered` classes
+
+### Removed
+
+- **SCSS Files** - All component `.scss` files removed (replaced with `.css` or inline Tailwind)
+- **Bulma Dependencies** - No longer requires Bulma CSS framework
+- **`Bali::Card::FooterItem::Component`** - Removed, use `actions` slot instead
+
+### Migration Guide
+
+See `docs/migration/BREAKING_CHANGES.md` for:
+- Complete Bulma → DaisyUI class mapping table
+- Per-component migration examples
+- Step-by-step upgrade instructions
 
 ## [1.4.23] - 2025-12-12
 
