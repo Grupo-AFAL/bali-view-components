@@ -10,7 +10,11 @@
                       form_class: form_classes,
                       class: button_classes,
                       **button_options do %>
-    <%= render Bali::Icon::Component.new('trash', class: 'w-4 h-4') if icon? %>
+    <% if icon_name.present? %>
+      <%= render Bali::Icon::Component.new(icon_name, size: :small) %>
+    <% elsif icon? %>
+      <%= render Bali::Icon::Component.new('trash', class: 'w-4 h-4') %>
+    <% end %>
     <span><%= name %></span>
   <% end %>
 <% end %>

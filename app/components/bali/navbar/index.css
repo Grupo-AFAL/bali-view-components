@@ -66,6 +66,12 @@
 }
 
 .navbar-brand {
+  @apply text-xl font-bold;
+
+  & > a {
+    @apply hover:opacity-80 transition-opacity;
+  }
+
   .navbar-item.app-logo {
     @apply hidden;
 

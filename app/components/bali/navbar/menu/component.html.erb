@@ -1,11 +1,14 @@
 <%= tag.div(**menu_wrapper_options) do %>
-  <% if start_items.any? %>
+  <% if start_items.any? || start_dropdown_items.any? %>
     <div class="<%= start_items_classes %>">
       <ul class="<%= menu_classes %>">
         <% start_items.each do |start_item| %>
           <li><%= start_item %></li>
         <% end %>
       </ul>
+      <% start_dropdown_items.each do |dropdown_item| %>
+        <%= dropdown_item %>
+      <% end %>
     </div>
   <% end %>
   <% if end_items.any? %>

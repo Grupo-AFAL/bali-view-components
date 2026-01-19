@@ -26,8 +26,13 @@ module Bali
           lg:gap-4 lg:bg-transparent lg:shadow-none lg:p-0 lg:z-auto
         ].join(' ').freeze
 
-        renders_many :start_items, Item::Component
-        renders_many :end_items, Item::Component
+        renders_many :start_items, Bali::Navbar::Item::Component
+        renders_many :start_dropdown_items, ->(name:, **options, &block) do
+          component = Bali::Navbar::DropdownItem::Component.new(name: name, **options)
+          block&.call(component)
+          component
+        end
+        renders_many :end_items, Bali::Navbar::Item::Component
 
         def initialize(type: :main, **options)
           @type = type

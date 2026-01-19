@@ -27,7 +27,9 @@ module Bali
         disabled_hover_url: nil,
         skip_confirm: false,
         icon: false,
+        icon_name: nil,
         authorized: true,
+        plain: false,
         **options
       )
         @model = model
@@ -39,7 +41,9 @@ module Bali
         @disabled_hover_url = disabled_hover_url
         @skip_confirm = skip_confirm
         @icon = icon
+        @icon_name = icon_name
         @authorized = authorized
+        @plain = plain
         @form_class = class_names('inline-block', options.delete(:form_class))
         @options = options
 
@@ -78,12 +82,20 @@ module Bali
       end
 
       def button_classes
-        class_names(
-          BASE_CLASSES,
-          SIZES[@size],
-          { 'btn-disabled' => @disabled },
-          @options[:class]
-        )
+        if @plain
+          class_names('flex items-center gap-2 text-error', @options[:class])
+        else
+          class_names(
+            BASE_CLASSES,
+            SIZES[@size],
+            { 'btn-disabled' => @disabled },
+            @options[:class]
+          )
+        end
+      end
+
+      def icon_name
+        @icon_name
       end
 
       def form_classes

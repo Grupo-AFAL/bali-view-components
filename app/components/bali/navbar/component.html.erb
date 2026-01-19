@@ -1,7 +1,9 @@
 <%= tag.nav(role: 'navigation', 'aria-label': t('.main_navigation'), **options) do %>
   <div class="<%= container_classes %>">
     <div class="flex items-center gap-2">
-      <%= brand %>
+      <div class="navbar-brand">
+        <%= brand %>
+      </div>
       <% if burgers? %>
         <% burgers.each do |burger| %>
           <%= burger %>

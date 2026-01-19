@@ -1,37 +1,32 @@
-<%= render Bali::Navbar::Component.new(
-  color: :base,
-  class: 'sticky top-0 z-50'
-) do |nav| %>
+<%# Navbar with sticky positioning (default), brand, menu items, and user dropdown %>
+<%= render Bali::Navbar::Component.new do |nav| %>
   <% nav.with_brand do %>
-    <%= render Bali::Link::Component.new(
-      name: 'MovieDB',
-      href: root_path,
-      variant: :ghost,
-      class: 'text-xl font-bold'
-    ) %>
+    <%= link_to 'MovieDB', root_path %>
   <% end %>
-
   <% nav.with_burger %>
 
   <% nav.with_menu do |menu| %>
-    <% menu.with_start_item(name: 'Dashboard', href: root_path, active: current_page?(root_path)) %>
-    <% menu.with_start_item(name: 'Movies', href: movies_path, active: request.path.start_with?('/movies')) %>
-    <% menu.with_start_item(name: 'Settings', href: settings_path, active: current_page?(settings_path)) %>
-    <% menu.with_start_item(tag_name: :div) do %>
-      <%= render Bali::Link::Component.new(
-        name: 'Lookbook',
-        href: '/lookbook',
-        variant: :ghost,
-        target: '_blank'
-      ) do %>
-        Lookbook
-        <%= render Bali::Icon::Component.new('external-link', size: :small) %>
-      <% end %>
+    <%# Standard navigation items %>
+    <% menu.with_start_item(name: 'Dashboard', href: root_path) %>
+    <% menu.with_start_item(name: 'Movies', href: movies_path) %>
+
+    <%# Dropdown menu item with nested navigation %>
+    <% menu.with_start_dropdown_item(name: 'Settings') do |dropdown| %>
+      <% dropdown.with_item(name: 'General', href: settings_path) %>
+      <% dropdown.with_item(name: 'Notifications', href: '#') %>
+      <% dropdown.with_item(name: 'Security', href: '#') %>
     <% end %>
 
+    <%# External link with icon %>
+    <% menu.with_start_item(name: 'Lookbook', href: '/lookbook', target: '_blank') do %>
+      Lookbook
+      <%= render Bali::Icon::Component.new('external-link', size: :small) %>
+    <% end %>
+
+    <%# User dropdown on the right side %>
     <% menu.with_end_item(tag_name: :div) do %>
       <%= render Bali::Dropdown::Component.new(align: :right) do |dropdown| %>
-        <% dropdown.with_trigger(variant: :ghost, class: 'gap-2') do %>
+        <% dropdown.with_trigger(variant: :ghost) do %>
           <%= render Bali::Avatar::Component.new(size: :xs) do |avatar| %>
             <% avatar.with_placeholder { 'AD' } %>
           <% end %>
