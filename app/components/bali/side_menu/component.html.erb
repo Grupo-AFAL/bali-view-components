@@ -1,46 +1,78 @@
+<%# Collapse checkbox - controls sidebar collapsed state via CSS %>
+<% if collapsable? %>
+  <input type="checkbox" id="<%= collapse_checkbox_id %>"
+         class="hidden side-menu-collapse-trigger"
+         aria-label="Toggle sidebar collapse" />
+<% end %>
+
 <%= tag.div(**container_options) do %>
-  <%# Collapse toggle button %>
+  <%# Header with collapse toggle %>
   <% if collapsable? %>
-    <div class="flex justify-end mb-2">
-      <button type="button" class="btn btn-ghost btn-sm text-base-content/70"
-              data-action="side-menu#toggleCollapse">
-        <%= render Bali::Icon::Component.new('panel-left-close', class: 'collapse-icon w-5 h-5') %>
-        <%= render Bali::Icon::Component.new('panel-left-open', class: 'expand-icon w-5 h-5 hidden') %>
-      </button>
+    <%# Expanded state header - toggle on the right %>
+    <div class="side-menu-expanded flex min-h-10 items-center gap-3 px-2.5 pt-3">
+      <% if brand? %>
+        <span class="side-menu-brand text-xl font-semibold grow"><%= brand %></span>
+      <% elsif collapsable? %>
+        <span class="grow"></span>
+      <% end %>
+      <label for="<%= collapse_checkbox_id %>"
+             title="Collapse sidebar"
+             class="menu-item p-2 cursor-pointer shrink-0">
+        <%= render Bali::Icon::Component.new('panel-left-close', class: 'size-4') %>
+      </label>
+    </div>
+    <%# Collapsed state header - toggle centered like menu items %>
+    <div class="side-menu-collapsed hidden px-1 py-3">
+      <label for="<%= collapse_checkbox_id %>"
+             title="Expand sidebar"
+             class="collapse-toggle menu-item justify-center cursor-pointer">
+        <%= render Bali::Icon::Component.new('panel-left-open',
+              class: 'size-4') %>
+      </label>
+    </div>
+  <% elsif brand? %>
+    <div class="flex min-h-10 items-center gap-3 px-2.5 py-3">
+      <% if brand? %>
+        <span class="side-menu-brand text-xl font-semibold"><%= brand %></span>
+      <% elsif collapsable? %>
+        <span class="grow"></span>
+      <% end %>
     </div>
   <% end %>
 
   <%# Menu switcher dropdown (when multiple menus) %>
   <% if multiple_menus? %>
-    <div class="dropdown dropdown-bottom w-full mb-2">
-      <div tabindex="0" role="button" class="flex items-center w-full p-2 rounded-lg hover:bg-base-200 cursor-pointer border border-base-300 bg-base-100">
-        <%= active_menu %>
-        <%= render Bali::Icon::Component.new('chevron-down', class: 'w-4 h-4 ml-auto shrink-0') %>
+    <div class="menu-switcher px-2.5 mb-3 mt-3">
+      <div class="dropdown dropdown-bottom w-full">
+        <div tabindex="0" role="button"
+             class="border-base-300 hover:bg-base-200 rounded-box flex cursor-pointer items-center gap-2 border p-2">
+          <%= active_menu %>
+          <%= render Bali::Icon::Component.new('chevrons-up-down', class: 'ml-auto size-4 text-base-content/50') %>
+        </div>
+        <ul tabindex="0"
+            class="dropdown-content menu bg-base-100 rounded-box z-50 mt-1 w-full p-2 shadow-lg">
+          <% authorized_menus.each do |menu| %>
+            <li>
+              <a href="<%= menu.href %>" class="<%= 'active' if menu == active_menu %>">
+                <%= menu %>
+              </a>
+            </li>
+          <% end %>
+        </ul>
       </div>
-      <ul tabindex="0" class="dropdown-content z-50 menu w-full mt-1 p-2 shadow-lg bg-base-100 rounded-box border border-base-300">
-        <% authorized_menus.each do |menu| %>
-          <li>
-            <a href="<%= menu.href %>" class="<%= 'active' if menu == active_menu %>">
-              <%= menu %>
-            </a>
-          </li>
-        <% end %>
-      </ul>
     </div>
   <% end %>
 
-  <%# Main menu %>
-  <ul class="menu bg-base-200 rounded-box w-full">
-    <% if single_menu? %>
-      <li class="menu-title"><%= authorized_menus.first %></li>
-    <% end %>
+  <%# Main menu content with scrolling %>
+  <div class="sidebar-menu custom-scrollbar grow overflow-auto">
     <% lists.each do |list| %>
       <%= list %>
     <% end %>
-  </ul>
+  </div>
 <% end %>
 
 <%# Overlay for mobile (only when fixed) %>
 <% if fixed? %>
-  <div class="side-menu-overlay" data-action="click->side-menu#close"></div>
+  <label for="<%= collapsable? ? collapse_checkbox_id : 'side-menu-mobile-trigger' %>"
+         class="side-menu-overlay"></label>
 <% end %>

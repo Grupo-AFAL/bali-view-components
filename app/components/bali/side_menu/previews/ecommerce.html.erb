@@ -1,0 +1,64 @@
+<div class="h-[700px] bg-base-200 p-4 flex gap-4">
+  <%= render Bali::SideMenu::Component.new(current_path: '/products', fixed: false, brand: 'ACME', collapsable: true) do |c|
+    c.with_menu_switch(
+      title: 'Store',
+      subtitle: 'E-commerce',
+      href: '/store',
+      icon: 'store',
+      active: true
+    )
+    c.with_menu_switch(
+      title: 'Analytics',
+      subtitle: 'Dashboard',
+      href: '/analytics',
+      icon: 'bar-chart-2'
+    )
+
+    c.with_list(title: 'Navigation') do |list|
+      list.with_item(name: 'Dashboard', href: '/dashboard', icon: 'monitor-dot')
+    end
+
+    c.with_list(title: 'Manage') do |list|
+      list.with_item(name: 'Products', icon: 'package') do |item|
+        item.with_item(name: 'All Products', href: '/products')
+        item.with_item(name: 'Add New', href: '/products/new')
+        item.with_item(name: 'Categories', href: '/categories')
+      end
+
+      list.with_item(name: 'Orders', icon: 'receipt-text') do |item|
+        item.with_item(name: 'All Orders', href: '/orders')
+        item.with_item(name: 'Returns', href: '/returns')
+      end
+
+      list.with_item(name: 'Customers', href: '/customers', icon: 'users')
+      list.with_item(name: 'Inventory', href: '/inventory', icon: 'warehouse')
+      list.with_item(name: 'Payouts', href: '/payouts', icon: 'dollar-sign')
+    end
+
+    c.with_list(title: 'Other') do |list|
+      list.with_item(name: 'Menu Levels', icon: 'align-center') do |item|
+        item.with_item(name: 'Level 1a', href: '/level1a')
+        item.with_item(name: 'Level 1b', icon: 'chevron-right') do |subitem|
+          subitem.with_item(name: 'Level 2a', href: '/level2a')
+          subitem.with_item(name: 'Level 2b', href: '/level2b')
+        end
+      end
+      list.with_item(name: 'External Link', href: 'https://google.com', icon: 'external-link')
+      list.with_item(name: 'Notifications', href: '/notifications', icon: 'award', badge: '+8', badge_color: :secondary)
+    end
+  end %>
+  <div class="flex-1 p-4">
+    <h2 class="text-xl font-bold mb-4">Ecommerce Sidebar</h2>
+    <p class="text-base-content/60 mb-4">
+      This example shows a full Nexus-style e-commerce sidebar with:
+    </p>
+    <ul class="list-disc list-inside text-base-content/70 space-y-1">
+      <li>Menu switcher (project selector)</li>
+      <li>Collapsible sidebar (click toggle button)</li>
+      <li>Expandable groups (click to expand)</li>
+      <li>Multi-level nesting</li>
+      <li>Notification badges</li>
+      <li>Section labels</li>
+    </ul>
+  </div>
+</div>

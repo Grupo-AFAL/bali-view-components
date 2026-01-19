@@ -23,11 +23,14 @@ module Bali
       # @param fixed [Boolean] Fixed to viewport (true) or inline flow (false). Default: true
       # @param collapsable [Boolean] Whether the sidebar can collapse to icon-only mode
       # @param group_behavior [Symbol] How nested items behave - :expandable (click) or :dropdown (hover)
-      def initialize(current_path:, fixed: true, collapsable: false, group_behavior: :expandable, **options)
+      # @param brand [String] Optional brand name shown in the header (e.g., "ACME")
+      def initialize(current_path:, fixed: true, collapsable: false, group_behavior: :expandable,
+                     brand: nil, **options)
         @current_path = current_path
         @fixed = fixed
         @collapsable = collapsable
         @group_behavior = GROUP_BEHAVIORS.include?(group_behavior) ? group_behavior : :expandable
+        @brand = brand
         @options = options
       end
 
@@ -56,13 +59,15 @@ module Bali
         class_names(
           'side-menu-component',
           { 'side-menu-component--fixed' => @fixed },
+          { 'side-menu-component--inline' => !@fixed },
           @options[:class]
         )
       end
 
       def container_data
         data = @options[:data] || {}
-        data[:controller] = class_names(data[:controller], { 'side-menu' => @collapsable || @fixed })
+        data[:controller] =
+          class_names(data[:controller], { 'side-menu' => @collapsable || @fixed })
         data[:side_menu_collapse_checkbox_value] = collapse_checkbox_id if @collapsable
         data
       end
@@ -89,6 +94,12 @@ module Bali
 
       def active_menu
         authorized_menus.find(&:active?)
+      end
+
+      attr_reader :brand
+
+      def brand?
+        @brand.present?
       end
     end
   end

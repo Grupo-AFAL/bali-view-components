@@ -5,34 +5,38 @@ module Bali
     module Item
       class Component < ApplicationViewComponent
         MATCH_TYPES = %i[exact partial starts_with crud].freeze
+        GROUP_BEHAVIORS = %i[expandable dropdown].freeze
 
-        renders_many :items, ->(href: nil, name: nil, icon: nil, authorized: true, **options) do
+        renders_many :items, ->(href: nil, name: nil, icon: nil, authorized: true, disabled: false, **options) do
           Item::Component.new(
             name: name,
             href: href,
             icon: icon,
             authorized: authorized,
+            disabled: disabled,
             current_path: @current_path,
+            group_behavior: @group_behavior,
             **options
           )
         end
 
-        def initialize(current_path:, href: nil, name: nil, icon: nil, authorized: true, **options)
+        attr_reader :name, :icon
+
+        def initialize(current_path:, href: nil, name: nil, icon: nil, authorized: true,
+                       group_behavior: :expandable, disabled: false, **options)
           @name = name
           @href = href
           @icon = icon
           @authorized = authorized
           @current_path = current_path
+          @group_behavior = GROUP_BEHAVIORS.include?(group_behavior) ? group_behavior : :expandable
+          @disabled = disabled
           @active = options.delete(:active)
           @match_type = MATCH_TYPES.include?(options[:match]) ? options.delete(:match) : :exact
+          @badge = options.delete(:badge)
+          @badge_color = options.delete(:badge_color) || :primary
           @link_class = options.delete(:class)
-          @options = prepend_data_attribute(options, :side_menu_target, 'link')
-        end
-
-        def before_render
-          super
-          @computed_classes = compute_item_classes
-          @computed_options = compute_link_options
+          @options = options
         end
 
         def render?
@@ -44,7 +48,7 @@ module Bali
         end
 
         def disabled?
-          @href.blank?
+          @disabled || @href.blank?
         end
 
         def active?
@@ -58,17 +62,60 @@ module Bali
           items.reject(&:disabled?).any?(&:active?)
         end
 
-        def item_classes
-          @computed_classes
+        def expandable_mode?
+          @group_behavior == :expandable
         end
 
-        def link_options
-          @computed_options
+        def dropdown_mode?
+          @group_behavior == :dropdown
+        end
+
+        # Unique ID for collapse checkbox
+        def collapse_id
+          @collapse_id ||= "side-menu-item-#{object_id}"
+        end
+
+        def menu_item_classes
+          class_names(
+            'menu-item',
+            'group',
+            { 'active' => active? && !subitems? },
+            @link_class
+          )
+        end
+
+        def collapse_title_classes
+          class_names(
+            'collapse-title',
+            'px-2.5',
+            'py-1.5',
+            { 'active' => active? }
+          )
+        end
+
+        def badge
+          @badge
+        end
+
+        def badge_classes
+          class_names(
+            'border',
+            'rounded-box',
+            'px-1.5',
+            'text-[12px]',
+            "border-#{@badge_color}/20",
+            "bg-#{@badge_color}/10",
+            "text-#{@badge_color}"
+          )
+        end
+
+        def href
+          @href
         end
 
         private
 
-        attr_reader :href, :current_path, :match_type
+        attr_reader :current_path, :match_type
 
         def parsed_path
           return nil if @href.blank?
@@ -76,22 +123,6 @@ module Bali
           URI.parse(@href).path
         rescue URI::InvalidURIError
           @href
-        end
-
-        def compute_item_classes
-          class_names(
-            @link_class,
-            'side-menu-component--item-component',
-            'is-expanded'
-          )
-        end
-
-        def compute_link_options
-          opts = @options.dup
-          opts[:class] = class_names(opts[:class], 'active') if active?
-          opts[:data] ||= {}
-          opts[:data][:action] = 'click->reveal#toggle' if subitems?
-          opts
         end
       end
     end

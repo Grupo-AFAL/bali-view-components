@@ -1,64 +1,109 @@
-<li>
-  <% unless subitems? %>
-    <%# Expanded state: full link with icon and name %>
-    <span class="side-menu-component--item-component is-expanded">
-      <%= render Bali::Link::Component.new(
-          name: @name, href: @href, icon_name: @icon, active_path: @current_path,
-          active: @active, class: item_classes, **link_options) %>
-    </span>
-    <%# Collapsed state: icon-only link with tooltip %>
-    <%= render Bali::Tooltip::Component.new(placement: :right, class: 'side-menu-component--item-component is-collapsed') do |tooltip| %>
-      <% tooltip.with_trigger do %>
-        <a href="<%= @href %>" class="<%= 'active' if @active %>">
-          <% if @icon.present? %>
-            <%= render Bali::Icon::Component.new(@icon, class: 'w-5 h-5') %>
-          <% else %>
-            <span class="w-5 h-5 flex items-center justify-center text-xs font-medium">
-              <%= @name&.first&.upcase %>
-            </span>
-          <% end %>
-        </a>
-      <% end %>
-      <%= @name %>
-    <% end %>
-  <% else %>
-    <%# Expanded state: details/summary with subitems %>
-    <div class="side-menu-component--item-component is-expanded">
-      <details <%= 'open' if active? %>>
-        <summary>
-          <% if @icon.present? %>
-            <%= render Bali::Icon::Component.new(@icon, class: 'w-5 h-5') %>
-          <% end %>
-          <%= @name %>
-        </summary>
-        <ul>
-          <% if @href.present? %>
-            <li>
-              <a href="<%= @href %>" class="<%= 'active' if @active %>">
-                <%= @name %>
-              </a>
-            </li>
+<% if subitems? %>
+  <% if expandable_mode? %>
+    <%# Expandable mode: DaisyUI collapse with checkbox %>
+    <%# Expanded state %>
+    <div class="collapse side-menu-expanded">
+      <input type="checkbox" aria-label="Toggle <%= name %>" class="peer"
+             <%= 'checked' if active? %> />
+      <div class="<%= collapse_title_classes %>">
+        <% if icon.present? %>
+          <%= render Bali::Icon::Component.new(icon, class: 'size-4') %>
+        <% end %>
+        <span class="grow"><%= name %></span>
+        <% if badge.present? %>
+          <div class="ms-auto inline-flex gap-2">
+            <div class="<%= badge_classes %>"><%= badge %></div>
+          </div>
+        <% end %>
+        <%= render Bali::Icon::Component.new('chevron-right', class: 'size-3.5 arrow-icon') %>
+      </div>
+      <div class="collapse-content ms-6.5 !p-0">
+        <div class="mt-0.5 space-y-0.5">
+          <% if href.present? %>
+            <a href="<%= href %>" class="menu-item <%= 'active' if active? && !active_child_items? %>">
+              <span class="grow"><%= name %></span>
+            </a>
           <% end %>
           <% items.each do |item| %>
             <%= item %>
           <% end %>
-        </ul>
-      </details>
+        </div>
+      </div>
     </div>
-    <%# Collapsed state: icon-only with tooltip %>
-    <%= render Bali::Tooltip::Component.new(placement: :right, class: 'side-menu-component--item-component is-collapsed') do |tooltip| %>
+    <%# Collapsed state: icon with tooltip %>
+    <%= render Bali::Tooltip::Component.new(placement: :right, class: 'side-menu-collapsed hidden') do |tooltip| %>
       <% tooltip.with_trigger do %>
-        <a href="<%= @href.presence || '#' %>" class="<%= 'active' if @active %>">
-          <% if @icon.present? %>
-            <%= render Bali::Icon::Component.new(@icon, class: 'w-5 h-5') %>
+        <a href="<%= href.presence || '#' %>" class="menu-item <%= 'active' if active? %>">
+          <% if icon.present? %>
+            <%= render Bali::Icon::Component.new(icon, class: 'size-4') %>
           <% else %>
-            <span class="w-5 h-5 flex items-center justify-center text-xs font-medium">
-              <%= @name&.first&.upcase %>
-            </span>
+            <span class="size-4 flex items-center justify-center text-xs font-medium"><%= name&.first&.upcase %></span>
           <% end %>
         </a>
       <% end %>
-      <%= @name %>
+      <%= name %>
+    <% end %>
+  <% else %>
+    <%# Dropdown mode: DaisyUI dropdown on hover %>
+    <div class="dropdown dropdown-right dropdown-hover">
+      <div tabindex="0" role="button" class="<%= menu_item_classes %>">
+        <% if icon.present? %>
+          <%= render Bali::Icon::Component.new(icon, class: 'size-4') %>
+        <% end %>
+        <span class="grow"><%= name %></span>
+        <% if badge.present? %>
+          <div class="ms-auto inline-flex gap-2">
+            <div class="<%= badge_classes %>"><%= badge %></div>
+          </div>
+        <% end %>
+        <%= render Bali::Icon::Component.new('chevron-right', class: 'size-3.5') %>
+      </div>
+      <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-50 w-48 p-2 shadow-lg">
+        <% if href.present? %>
+          <li>
+            <a href="<%= href %>" class="<%= 'active' if active? && !active_child_items? %>">
+              <%= name %>
+            </a>
+          </li>
+        <% end %>
+        <% items.each do |item| %>
+          <li>
+            <a href="<%= item.href %>" class="<%= 'active' if item.active? %>">
+              <% if item.icon.present? %>
+                <%= render Bali::Icon::Component.new(item.icon, class: 'size-4') %>
+              <% end %>
+              <%= item.name %>
+            </a>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+<% else %>
+  <%# Simple item: expanded and collapsed versions %>
+  <%# Expanded state %>
+  <%= tag.a(href: href.presence || '#', class: "#{menu_item_classes} side-menu-expanded", disabled: disabled? ? 'disabled' : nil) do %>
+    <% if icon.present? %>
+      <%= render Bali::Icon::Component.new(icon, class: 'size-4') %>
+    <% end %>
+    <span class="grow"><%= content || name %></span>
+    <% if badge.present? %>
+      <div class="ms-auto inline-flex gap-2">
+        <div class="<%= badge_classes %>"><%= badge %></div>
+      </div>
     <% end %>
   <% end %>
-</li>
+  <%# Collapsed state: icon with tooltip %>
+  <%= render Bali::Tooltip::Component.new(placement: :right, class: 'side-menu-collapsed hidden') do |tooltip| %>
+    <% tooltip.with_trigger do %>
+      <a href="<%= href.presence || '#' %>" class="menu-item <%= 'active' if active? %>" <%= 'disabled="disabled"' if disabled? %>>
+        <% if icon.present? %>
+          <%= render Bali::Icon::Component.new(icon, class: 'size-4') %>
+        <% else %>
+          <span class="size-4 flex items-center justify-center text-xs font-medium"><%= (content || name)&.to_s&.first&.upcase %></span>
+        <% end %>
+      </a>
+    <% end %>
+    <%= content || name %>
+  <% end %>
+<% end %>

@@ -1,6 +1,8 @@
 <% if title.present? %>
-  <li class="<%= title_classes %>"><%= title %></li>
+  <p class="<%= title_classes %>"><%= title %></p>
 <% end %>
-<% items.each do |item| %>
-  <%= item %>
-<% end %>
+<div class="space-y-0.5 px-2.5">
+  <% items.each do |item| %>
+    <%= item %>
+  <% end %>
+</div>

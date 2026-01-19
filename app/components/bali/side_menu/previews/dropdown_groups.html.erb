@@ -1,0 +1,22 @@
+<div class="h-[500px] bg-base-200 p-4">
+  <%= render Bali::SideMenu::Component.new(current_path: '/dashboard', fixed: false, group_behavior: :dropdown) do |c|
+    c.with_list(title: 'Navigation') do |list|
+      list.with_item(name: 'Dashboard', href: '/dashboard', icon: 'monitor-dot')
+    end
+
+    c.with_list(title: 'Manage') do |list|
+      list.with_item(name: 'Products', icon: 'package') do |item|
+        item.with_item(name: 'All Products', href: '/products/all')
+        item.with_item(name: 'Add New', href: '/products/new')
+        item.with_item(name: 'Categories', href: '/products/categories')
+      end
+
+      list.with_item(name: 'Orders', icon: 'receipt-text') do |item|
+        item.with_item(name: 'All Orders', href: '/orders')
+        item.with_item(name: 'Returns', href: '/orders/returns')
+      end
+
+      list.with_item(name: 'Customers', href: '/customers', icon: 'users')
+    end
+  end %>
+</div>

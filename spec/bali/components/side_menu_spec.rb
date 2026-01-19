@@ -14,8 +14,8 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
     end
 
     expect(page).to have_css('.side-menu-component')
-    expect(page).to have_css('li.menu-title', text: 'Comedor')
-    expect(page).to have_css('ul.menu')
+    expect(page).to have_css('p.menu-label', text: 'Comedor')
+    expect(page).to have_css('.sidebar-menu')
     expect(page).to have_css("a[href='/movies']", text: 'Item 1')
   end
 

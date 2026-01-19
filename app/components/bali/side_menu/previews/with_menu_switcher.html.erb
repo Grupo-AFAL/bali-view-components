@@ -1,0 +1,47 @@
+<div class="h-[600px] bg-base-200 p-4 flex gap-4">
+  <%= render Bali::SideMenu::Component.new(current_path: '/boh/dashboard', fixed: false) do |c|
+    c.with_menu_switch(
+      title: 'Back of House',
+      subtitle: 'Kitchen operations',
+      href: '/boh/dashboard',
+      icon: 'chef-hat',
+      active: true
+    )
+    c.with_menu_switch(
+      title: 'Logistics',
+      subtitle: 'Supply chain',
+      href: '/logistics/dashboard',
+      icon: 'truck'
+    )
+    c.with_menu_switch(
+      title: 'Accounting',
+      subtitle: 'Finance team',
+      href: '/acct/dashboard',
+      icon: 'calculator'
+    )
+
+    c.with_list(title: 'Operations') do |list|
+      list.with_item(name: 'Dashboard', href: '/boh/dashboard', icon: 'layout-dashboard')
+      list.with_item(name: 'Recipes', href: '/boh/recipes', icon: 'book-open')
+      list.with_item(name: 'Production', icon: 'factory') do |item|
+        item.with_item(name: 'Plans', href: '/production/plans')
+        item.with_item(name: 'Schedule', href: '/production/schedule')
+      end
+    end
+
+    c.with_list(title: 'Inventory') do |list|
+      list.with_item(name: 'Stock Counts', icon: 'clipboard-list') do |item|
+        item.with_item(name: 'Counts', href: '/inv/counts')
+        item.with_item(name: 'Waste', href: '/inv/waste')
+        item.with_item(name: 'Locations', href: '/inv/locations')
+      end
+      list.with_item(name: 'Configuration', href: '/configuration', icon: 'settings')
+    end
+  end %>
+  <div class="flex-1 p-4">
+    <h2 class="text-xl font-bold mb-4">Menu Switcher</h2>
+    <p class="text-base-content/60">
+      Use the dropdown at the top to switch between different application modules.
+    </p>
+  </div>
+</div>

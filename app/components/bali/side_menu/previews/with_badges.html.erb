@@ -1,0 +1,17 @@
+<div class="h-[500px] bg-base-200 p-4">
+  <%= render Bali::SideMenu::Component.new(current_path: '/inbox', fixed: false) do |c|
+    c.with_list(title: 'Messages') do |list|
+      list.with_item(name: 'Inbox', href: '/inbox', icon: 'inbox', badge: '12', badge_color: :primary)
+      list.with_item(name: 'Sent', href: '/sent', icon: 'send')
+      list.with_item(name: 'Drafts', href: '/drafts', icon: 'file-edit', badge: '3', badge_color: :warning)
+      list.with_item(name: 'Spam', href: '/spam', icon: 'shield-alert', badge: '99+', badge_color: :error)
+      list.with_item(name: 'Trash', href: '/trash', icon: 'trash-2')
+    end
+
+    c.with_list(title: 'Labels') do |list|
+      list.with_item(name: 'Work', href: '/labels/work', icon: 'briefcase', badge: 'New', badge_color: :success)
+      list.with_item(name: 'Personal', href: '/labels/personal', icon: 'heart')
+      list.with_item(name: 'Important', href: '/labels/important', icon: 'star', badge: '5', badge_color: :secondary)
+    end
+  end %>
+</div>
