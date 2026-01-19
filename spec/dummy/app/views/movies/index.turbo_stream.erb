@@ -5,7 +5,7 @@
   ) do |data_table| %>
 
     <%# Advanced Filters Panel %>
-    <% data_table.with_advanced_filters_panel(
+    <% data_table.with_filters_panel(
       available_attributes: available_filter_attributes,
       filter_groups: filter_groups_from_params
     ) do |filters| %>

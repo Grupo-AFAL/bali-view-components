@@ -1,5 +1,5 @@
-<div class="h-[700px] bg-base-200 p-4 flex gap-4">
-  <%= render Bali::SideMenu::Component.new(current_path: '/products', fixed: false, brand: 'ACME', collapsable: true) do |c|
+<div class="h-[700px] bg-base-200 p-4 flex gap-4 ml-64">
+  <%= render Bali::SideMenu::Component.new(current_path: '/products', fixed: true, brand: 'ACME', collapsable: true) do |c|
     c.with_menu_switch(
       title: 'Store',
       subtitle: 'E-commerce',
