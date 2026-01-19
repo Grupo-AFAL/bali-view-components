@@ -37,12 +37,13 @@ module Bali
       renders_many :actions, Action::Component
 
       def initialize(style: :default, size: :md, side: false, image_full: false, shadow: true,
-                     **options)
+                     body_class: nil, **options)
         @style = style&.to_sym
         @size = size&.to_sym
         @side = side
         @image_full = image_full
         @shadow = shadow
+        @body_class = body_class
         @options = options
 
         build_options
@@ -68,6 +69,10 @@ module Bali
 
       def render_body?
         content.present? || header? || title? || actions.any?
+      end
+
+      def body_classes
+        class_names('card-body', @body_class)
       end
     end
   end

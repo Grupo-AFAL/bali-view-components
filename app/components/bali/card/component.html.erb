@@ -1,7 +1,7 @@
 <%= tag.div **@options do %>
   <%= image if image? %>
   <% if render_body? %>
-    <div class="card-body">
+    <div class="<%= body_classes %>">
       <%= header if header? %>
       <%= title if title? %>
       <%= content %>

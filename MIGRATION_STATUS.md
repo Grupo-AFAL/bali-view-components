@@ -119,6 +119,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | SearchInput            |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, field: param, class_names, no mutation, 17 tests |
 | SideMenu               |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | MATCH_TYPES const, class_names, no mutation, auto-controller, 13 tests |
 | SortableList           |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | BASE_CLASSES, DEFAULTS, private attr, conditional cursor-grab, 23 tests |
+| StatCard               |  ✅   |    ✅     |   ✅    |   -    |  9/10   | COLORS const, class_names, private attr, options passthrough, 35 tests |
 | Stepper                |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI steps, COLORS/ORIENTATIONS, class_names, 20 tests          |
 | Table                  |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, empty_state_content helper, typo fix, 30 tests   |
 | Tabs                   |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Loading spinner, full page nav fix, trigger_attributes, 25 tests   |
