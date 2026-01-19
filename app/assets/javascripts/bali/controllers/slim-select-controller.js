@@ -108,7 +108,7 @@ export class SlimSelectController extends Controller {
       return {
         text: option.text,
         value: option.value,
-        innerHTML: option.dataset.innerHtml,
+        html: option.dataset.innerHtml, // SlimSelect v3 uses 'html' instead of 'innerHTML'
         selected: option.selected,
         disabled: option.disabled
       }

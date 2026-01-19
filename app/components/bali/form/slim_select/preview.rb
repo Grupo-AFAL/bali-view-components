@@ -18,13 +18,25 @@ module Bali
           'Dairy' => [%w[Milk milk], %w[Cheese cheese], %w[Yogurt yogurt]]
         }.freeze
 
+        # NOTE: Do NOT use html_safe on data-inner-html values - Rails must escape quotes for valid HTML attributes.
+        # SlimSelect will render the escaped HTML correctly via innerHTML.
         HTML_OPTIONS = [
-          ['<span class="flex items-center gap-2"><span class="badge badge-success badge-xs"></span> Active User1</span>'.html_safe,
-           'active', { 'data-inner-html' => '<span class="flex items-center gap-2"><span class="badge badge-success badge-xs"></span> Active User</span>'.html_safe }],
-          ['<span class="flex items-center gap-2"><span class="badge badge-warning badge-xs"></span> Pending User2</span>'.html_safe,
-           'pending', { 'data-inner-html' => '<span class="flex items-center gap-2"><span class="badge badge-warning badge-xs"></span> Pending User</span>'.html_safe }],
-          ['<span class="flex items-center gap-2"><span class="badge badge-error badge-xs"></span> Inactive User3</span>'.html_safe,
-           'inactive', { 'data-inner-html' => '<span class="flex items-center gap-2"><span class="badge badge-error badge-xs"></span> Inactive User</span>'.html_safe }]
+          ['Active User', 'active',
+           { 'data-inner-html' => '<span class="flex items-center gap-2"><span class="badge badge-success badge-xs"></span> Active User</span>' }],
+          ['Pending User', 'pending',
+           { 'data-inner-html' => '<span class="flex items-center gap-2"><span class="badge badge-warning badge-xs"></span> Pending User</span>' }],
+          ['Inactive User', 'inactive',
+           { 'data-inner-html' => '<span class="flex items-center gap-2"><span class="badge badge-error badge-xs"></span> Inactive User</span>' }]
+        ].freeze
+
+        # Team members with avatars and roles for the rich HTML demo
+        TEAM_MEMBERS = [
+          { name: 'Sarah Chen', role: 'Engineering Lead', initials: 'SC', color: 'bg-primary' },
+          { name: 'Marcus Johnson', role: 'Product Manager', initials: 'MJ', color: 'bg-secondary' },
+          { name: 'Elena Rodriguez', role: 'UX Designer', initials: 'ER', color: 'bg-accent' },
+          { name: 'David Kim', role: 'Backend Developer', initials: 'DK', color: 'bg-info' },
+          { name: 'Aisha Patel', role: 'Frontend Developer', initials: 'AP', color: 'bg-success' },
+          { name: 'James Wilson', role: 'DevOps Engineer', initials: 'JW', color: 'bg-warning' }
         ].freeze
 
         # @label Default
@@ -144,6 +156,15 @@ module Bali
           )
         end
 
+        # @label Team Member Selector
+        # Rich dropdown with avatars, names, and roles - demonstrates custom HTML capabilities
+        def team_member_selector
+          render_with_template(
+            template: 'bali/form/slim_select/previews/team_member_selector',
+            locals: { model: form_record, team_options: build_team_options }
+          )
+        end
+
         # @label Open Position Up
         # Dropdown opens upward instead of downward
         def open_position_up
@@ -151,6 +172,28 @@ module Bali
             template: 'bali/form/slim_select/previews/open_position_up',
             locals: { model: form_record, options: OPTIONS }
           )
+        end
+
+        private
+
+        def build_team_options
+          TEAM_MEMBERS.map do |member|
+            inner_html = <<~HTML.squish
+              <div class="flex items-center gap-3 py-1">
+                <div class="avatar placeholder">
+                  <div class="#{member[:color]} text-neutral-content w-8 h-8 rounded-full flex items-center justify-center">
+                    <span class="text-xs font-medium">#{member[:initials]}</span>
+                  </div>
+                </div>
+                <div class="flex flex-col">
+                  <span class="font-medium text-sm">#{member[:name]}</span>
+                  <span class="text-xs text-base-content/60">#{member[:role]}</span>
+                </div>
+              </div>
+            HTML
+
+            [member[:name], member[:name].parameterize, { 'data-inner-html' => inner_html }]
+          end
         end
       end
     end
