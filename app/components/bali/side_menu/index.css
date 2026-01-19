@@ -1,367 +1,104 @@
-/* Side menu component */
+/* Side Menu Component
+ * Uses DaisyUI menu as base, adds positioning and collapse functionality
+ */
+
 .side-menu-component {
   --side-menu-width: 15rem;
   --navbar-height: 3.75rem;
 
-  @apply fixed h-full p-4 bg-base-100 shadow-lg z-10;
+  /* Icon styling */
+  .iconify,
+  .icon-component {
+    @apply shrink-0 mr-2;
+  }
+}
+
+/* Fixed positioning variant - for full-page sidebars */
+.side-menu-component--fixed {
+  @apply fixed top-0 left-0 h-full p-4 bg-base-100 shadow-lg z-40;
   width: var(--side-menu-width);
-  top: var(--navbar-height);
-  left: calc(-1 * var(--side-menu-width));
-  transition: 0.2s ease-in-out;
+  padding-top: calc(var(--navbar-height) + 1rem);
+  transform: translateX(-100%);
+  transition: transform 0.2s ease-in-out;
 
+  /* Visible on desktop */
   @media (min-width: 1024px) {
-    left: 0;
+    transform: translateX(0);
   }
 
+  /* Active state (mobile menu open) */
   &.is-active {
-    left: 0;
+    transform: translateX(0);
+  }
+}
+
+/* Collapsed state - icon only */
+.side-menu-component.is-collapsed {
+  width: auto;
+  @apply px-2;
+
+  /* Toggle icon visibility */
+  .collapse-icon {
+    @apply hidden;
+  }
+  .expand-icon {
+    @apply block;
   }
 
-  .menu-label {
-    @apply text-xs pl-2;
-  }
-
+  /* Hide text, keep icons */
   .menu {
-    @apply h-full;
-  }
+    @apply w-auto p-1;
 
-  .menu-list {
-    @apply overflow-y-auto;
-
-    a {
-      @apply pl-2 flex items-center text-sm;
-
-      .icon {
-        @apply size-4;
-      }
-    }
-
-    .is-active {
-      @apply font-medium;
-
-      .icon > svg > * {
-        fill: currentColor !important;
-      }
-    }
-
-    .link-component {
-      @apply relative;
-
-      &.is-list::after {
-        @apply absolute top-1/2 right-2;
-        content: ' ';
-        @apply inline-block border-b-2 border-r-2 border-base-content/50;
-        @apply size-2 -translate-y-1/2 -rotate-45;
-
-        &.is-active {
-          @apply border-base-100;
-        }
-      }
-    }
-
-    .is-revealed .link-component.is-list::after {
-      @apply -translate-y-[65%] rotate-45 border-base-content/50;
-    }
-  }
-
-  .icon {
-    @apply mr-2;
-  }
-
-  &--menu-switch-component {
-    @apply flex items-center w-full;
-
-    .icon {
-      @apply m-0 mr-3;
-    }
-  }
-
-  .menu-switcher {
-    @apply w-full;
-
-    .menu-switcher--trigger {
-      @apply relative flex items-center w-full cursor-pointer;
-      @apply py-1 px-2 rounded-sm;
-
-      &:hover {
-        @apply bg-base-200;
-      }
-    }
-
-    &.with-multiple-switches .menu-switcher--trigger .side-menu-component--menu-switch-component .title-text::after {
-      @apply absolute top-1/2;
-      content: ' ';
-      @apply inline-block border-b-2 border-r-2 border-base-content/60;
-      @apply size-2 ml-2 -translate-y-[65%] rotate-45;
-    }
-
-    &.is-active .menu-switcher--trigger {
-      @apply bg-base-200;
-    }
-  }
-
-  .header {
-    @apply flex justify-end;
-
-    .expand-icon {
+    .menu-title {
       @apply hidden;
     }
 
-    .collapse-icon {
-      @apply block;
+    li > a,
+    li > span,
+    li > details > summary {
+      @apply justify-center px-2;
+
+      /* Hide text nodes - keep only icons */
+      > span:not(.iconify):not(.icon-component) {
+        @apply hidden;
+      }
+    }
+
+    /* Hide nested menus when collapsed */
+    details > ul {
+      @apply hidden;
     }
   }
 
-  .side-menu-component--item-component.is-list.is-collapsed {
+  /* Hide menu switcher dropdown when collapsed */
+  .dropdown {
     @apply hidden;
   }
-
-  &.is-collapsed {
-    width: auto !important;
-    @apply px-1;
-
-    .header {
-      @apply justify-center;
-
-      .collapse-icon {
-        @apply hidden;
-      }
-
-      .expand-icon {
-        @apply block;
-      }
-    }
-
-    /* Hide the dropdown menu switcher when collapsed */
-    .dropdown {
-      @apply hidden;
-    }
-
-    /* Collapse the DaisyUI menu */
-    .menu {
-      @apply w-auto p-1 gap-0;
-
-      /* Hide menu titles */
-      .menu-title {
-        @apply hidden;
-      }
-
-      /* Center all li items */
-      li {
-        @apply flex justify-center w-full;
-      }
-
-      /* Remove any default padding/margin from the ul inside details */
-      details ul {
-        @apply hidden;
-      }
-    }
-
-    /* Handle collapsed/expanded item visibility */
-    .side-menu-component--item-component.is-collapsed {
-      @apply flex justify-center w-full;
-
-      /* Style the tooltip trigger link as centered icon button */
-      .trigger {
-        @apply flex justify-center;
-
-        a {
-          @apply flex items-center justify-center w-10 h-10 rounded-lg;
-          @apply transition-colors;
-
-          &:hover {
-            @apply bg-base-200;
-          }
-
-          /* Remove any icon margins */
-          .icon-component,
-          .iconify {
-            @apply m-0;
-          }
-        }
-
-        /* Active state for icon button */
-        a.active {
-          @apply bg-base-200;
-        }
-      }
-    }
-
-    .side-menu-component--item-component.is-expanded {
-      @apply hidden;
-    }
-  }
-
-  &:not(.is-collapsed) {
-    .side-menu-component--item-component.is-collapsed {
-      display: none !important;
-    }
-
-    .side-menu-component--item-component.is-expanded {
-      @apply block;
-    }
-  }
 }
 
-.menu-overlay {
-  @apply fixed inset-0 z-[4] opacity-0 pointer-events-none hidden;
-  transition: 0.2s ease-in-out;
-}
-
-.side-menu-component.is-active ~ .menu-overlay {
-  @apply block bg-black/50 opacity-100 pointer-events-auto;
-}
-
-/* Menu switcher dropdown styles */
-.side-menu-component .dropdown {
-  /* Ensure dropdown content appears below and stacks vertically */
-  .dropdown-content {
-    /* Override any inherited menu styles */
-    display: none;
-    flex-direction: column;
-    top: 100%;
-    left: 0;
-
-    li {
-      display: block;
-      width: 100%;
-
-      a {
-        display: flex;
-        width: 100%;
-      }
-    }
+/* Expanded state - show text */
+.side-menu-component:not(.is-collapsed) {
+  .collapse-icon {
+    @apply block;
   }
-
-  /* Show dropdown when focused */
-  &:focus-within .dropdown-content,
-  &:focus .dropdown-content {
-    display: flex;
-  }
-
-  /* Active menu item styling */
-  .menu-switch-active {
-    @apply bg-primary/10;
-
-    .side-menu-component--menu-switch-component {
-      @apply text-primary;
-
-      p {
-        @apply text-primary;
-      }
-
-      .text-base-content\/60 {
-        @apply text-primary/70;
-      }
-    }
-  }
-}
-
-.menu-switcher-tippy-wrapper {
-  .tippy-svg-arrow {
+  .expand-icon {
     @apply hidden;
   }
+}
 
-  .tippy-content {
-    width: 15rem;
+/* Mobile overlay */
+.side-menu-overlay {
+  @apply fixed inset-0 bg-black/50 z-30 opacity-0 pointer-events-none;
+  transition: opacity 0.2s ease-in-out;
+}
 
-    :first-child {
-      @apply rounded-t;
-    }
+.side-menu-component--fixed.is-active ~ .side-menu-overlay {
+  @apply opacity-100 pointer-events-auto;
+}
 
-    :last-child {
-      @apply rounded-b;
-    }
-
-    .link-component.dropdown-item {
-      @apply flex items-center py-1.5 px-4;
-    }
+/* Hide overlay on desktop */
+@media (min-width: 1024px) {
+  .side-menu-overlay {
+    @apply hidden;
   }
-}
-
-.side-menu-component--item-component-tippy-wrapper .tooltip-component {
-  @apply hidden;
-}
-
-.side-menu-component--item-component-tippy-wrapper ul li .link-component {
-  @apply relative flex items-center text-base-content/70;
-  @apply text-sm leading-normal py-1.5 px-4;
-  @apply text-left whitespace-nowrap w-full;
-
-  .icon {
-    @apply mr-3;
-  }
-
-  &:hover {
-    @apply bg-base-200;
-  }
-}
-
-/*
- * DaisyUI Menu Override - Arrow Position & Hover Fix
- * Using high specificity selectors to override DaisyUI defaults
- */
-.side-menu-component .menu details > summary {
-  /* Hide native disclosure marker */
-  list-style: none !important;
-}
-
-.side-menu-component .menu details > summary::marker,
-.side-menu-component .menu details > summary::-webkit-details-marker {
-  display: none !important;
-}
-
-/* Arrow on the right side */
-.side-menu-component .menu details > summary::after {
-  content: '' !important;
-  display: inline-block !important;
-  width: 0.5rem !important;
-  height: 0.5rem !important;
-  border-right: 2px solid currentColor !important;
-  border-bottom: 2px solid currentColor !important;
-  border-left: none !important;
-  border-top: none !important;
-  transform: rotate(-45deg) !important;
-  opacity: 0.5 !important;
-  margin-left: auto !important;
-  flex-shrink: 0 !important;
-  transition: transform 0.2s !important;
-  position: static !important;
-}
-
-/* Rotate arrow when open */
-.side-menu-component .menu details[open] > summary::after {
-  transform: rotate(45deg) !important;
-}
-
-/*
- * Fix double hover: parent should not show hover bg when open or when children are hovered
- * DaisyUI applies hover bg to summary, we need to remove it in certain conditions
- */
-
-/* When details is open, remove the default hover background from summary */
-.side-menu-component .menu li > details[open] > summary {
-  background-color: transparent !important;
-}
-
-/* Only apply hover to summary when directly hovered AND no children are hovered */
-.side-menu-component .menu li > details > summary:hover {
-  background-color: oklch(var(--b2, 0.961151 0 0)) !important;
-}
-
-/* Remove ALL hover states from parent summary when ANY child element is hovered */
-.side-menu-component .menu li:has(details ul li:hover) > details > summary {
-  background-color: transparent !important;
-}
-
-.side-menu-component .menu li:has(details ul li:hover) > details > summary:hover {
-  background-color: transparent !important;
-}
-
-/* Also handle when the child link/span is hovered directly */
-.side-menu-component .menu li:has(details ul a:hover) > details > summary,
-.side-menu-component .menu li:has(details ul a:hover) > details > summary:hover,
-.side-menu-component .menu li:has(details ul span:hover) > details > summary,
-.side-menu-component .menu li:has(details ul span:hover) > details > summary:hover {
-  background-color: transparent !important;
 }

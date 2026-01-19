@@ -118,9 +118,10 @@ class MoviesController < ApplicationController
   end
 
   # Get the quick search value from params
+  # Searches across name, genre, and studio name (tenant_name via Ransack association)
   helper_method :quick_search_value
   def quick_search_value
-    params.dig(:q, :name_or_genre_cont)
+    params.dig(:q, :name_or_genre_or_tenant_name_cont)
   end
 
   # Parse filter groups from URL params for advanced filters

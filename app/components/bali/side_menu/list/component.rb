@@ -11,21 +11,23 @@ module Bali
             icon: icon,
             authorized: authorized,
             current_path: @current_path,
+            group_behavior: @group_behavior,
             **options
           )
         end
 
         attr_reader :title
 
-        def initialize(current_path:, title: nil, **options)
+        def initialize(current_path:, title: nil, group_behavior: :expandable, **options)
           @title = title
           @current_path = current_path
+          @group_behavior = group_behavior
           @title_class = options.delete(:title_class)
           @options = options
         end
 
         def title_classes
-          class_names('menu-title', @title_class)
+          class_names('menu-label', 'px-2.5', 'pt-3', 'pb-1.5', @title_class)
         end
       end
     end

@@ -1,27 +1,26 @@
 <%= tag.div(**container_options) do %>
+  <%# Collapse toggle button %>
   <% if collapsable? %>
-    <div class="header mb-2">
-      <button type="button" class="btn btn-ghost btn-sm w-full justify-end text-base-content/70"
+    <div class="flex justify-end mb-2">
+      <button type="button" class="btn btn-ghost btn-sm text-base-content/70"
               data-action="side-menu#toggleCollapse">
         <%= render Bali::Icon::Component.new('panel-left-close', class: 'collapse-icon w-5 h-5') %>
-        <%= render Bali::Icon::Component.new('panel-left-open', class: 'expand-icon w-5 h-5') %>
+        <%= render Bali::Icon::Component.new('panel-left-open', class: 'expand-icon w-5 h-5 hidden') %>
       </button>
     </div>
   <% end %>
+
+  <%# Menu switcher dropdown (when multiple menus) %>
   <% if multiple_menus? %>
     <div class="dropdown dropdown-bottom w-full mb-2">
       <div tabindex="0" role="button" class="flex items-center w-full p-2 rounded-lg hover:bg-base-200 cursor-pointer border border-base-300 bg-base-100">
         <%= active_menu %>
         <%= render Bali::Icon::Component.new('chevron-down', class: 'w-4 h-4 ml-auto shrink-0') %>
       </div>
-      <ul tabindex="0" class="dropdown-content z-50 w-full mt-1 p-1 shadow-lg bg-base-100 rounded-lg border border-base-300 flex flex-col">
+      <ul tabindex="0" class="dropdown-content z-50 menu w-full mt-1 p-2 shadow-lg bg-base-100 rounded-box border border-base-300">
         <% authorized_menus.each do |menu| %>
-          <li class="w-full list-none">
-            <a href="<%= menu.href %>" class="<%= class_names(
-              'flex items-center w-full p-2 rounded-md transition-colors',
-              'bg-primary/10 text-primary pointer-events-none': menu == active_menu,
-              'hover:bg-base-200': menu != active_menu
-            ) %>">
+          <li>
+            <a href="<%= menu.href %>" class="<%= 'active' if menu == active_menu %>">
               <%= menu %>
             </a>
           </li>
@@ -29,7 +28,9 @@
       </ul>
     </div>
   <% end %>
-  <ul class="menu bg-base-200 rounded-box w-56">
+
+  <%# Main menu %>
+  <ul class="menu bg-base-200 rounded-box w-full">
     <% if single_menu? %>
       <li class="menu-title"><%= authorized_menus.first %></li>
     <% end %>
@@ -38,4 +39,8 @@
     <% end %>
   </ul>
 <% end %>
-<div class="menu-overlay fixed inset-0 bg-black/50 z-40 hidden" data-side-menu-target="overlay"></div>
+
+<%# Overlay for mobile (only when fixed) %>
+<% if fixed? %>
+  <div class="side-menu-overlay" data-action="click->side-menu#close"></div>
+<% end %>

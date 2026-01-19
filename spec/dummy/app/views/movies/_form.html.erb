@@ -10,79 +10,74 @@
 <%= form_with model: movie, builder: Bali::FormBuilder, class: 'space-y-8' do |f| %>
   <%# Section 1: Basic Information %>
   <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <div class="card-body">
-      <h3 class="card-title text-lg mb-4">
-        <%= render Bali::Icon::Component.new('film', class: 'mr-2') %>
-        Basic Information
-      </h3>
+    <h3 class="card-title text-lg mb-4">
+      <%= render Bali::Icon::Component.new('film', class: 'mr-2') %>
+      Basic Information
+    </h3>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <%# Text Field %>
-        <%= f.text_field_group :name, label: 'Movie Title', required: true, placeholder: 'Enter movie title...' %>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <%# Text Field %>
+      <%= f.text_field_group :name, label: 'Movie Title', required: true, placeholder: 'Enter movie title...' %>
 
-        <%# Select Field - Genre %>
-        <% genres = ['Action', 'Adventure', 'Animation', 'Comedy', 'Drama', 'Horror', 'Sci-Fi', 'Thriller'].map { |g| [g, g] } %>
-        <%= f.select_group :genre, genres, { include_blank: 'Select a genre...' }, { label: 'Genre' } %>
+      <%# Select Field - Genre %>
+      <% genres = ['Action', 'Adventure', 'Animation', 'Comedy', 'Drama', 'Horror', 'Sci-Fi', 'Thriller'].map { |g| [g, g] } %>
+      <%= f.select_group :genre, genres, { include_blank: 'Select a genre...' }, { label: 'Genre' } %>
 
-        <%# Select Field - Studio %>
-        <% studios = Tenant.order(:name).pluck(:name, :id) %>
-        <%= f.select_group :tenant_id, studios, { include_blank: 'Select a studio...' }, { label: 'Studio' } %>
+      <%# Select Field - Studio %>
+      <% studios = Tenant.order(:name).pluck(:name, :id) %>
+      <%= f.select_group :tenant_id, studios, { include_blank: 'Select a studio...' }, { label: 'Studio' } %>
 
-        <%# Radio Field - Status %>
-        <% statuses = Movie.statuses.keys.map { |s| [s.humanize, s] } %>
-        <%= f.radio_field_group :status, statuses, { label: 'Status' }, { orientation: :horizontal, color: :primary } %>
-      </div>
+      <%# Radio Field - Status %>
+      <% statuses = Movie.statuses.keys.map { |s| [s.humanize, s] } %>
+      <%= f.radio_field_group :status, statuses, { label: 'Status' }, { orientation: :horizontal, color: :primary } %>
+    </div>
 
-      <%# Switch Field - Indie %>
-      <div class="mt-4">
-        <%= f.switch_field_group :indie, label: 'This is an independent film', color: :primary %>
-      </div>
+    <%# Switch Field - Indie %>
+    <div class="mt-4">
+      <%= f.switch_field_group :indie, label: 'This is an independent film', color: :primary %>
     </div>
   <% end %>
 
   <%# Section 2: Movie Details %>
   <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <div class="card-body">
-      <h3 class="card-title text-lg mb-4">
-        <%= render Bali::Icon::Component.new('file-text', class: 'mr-2') %>
-        Movie Details
-      </h3>
+    <h3 class="card-title text-lg mb-4">
+      <%= render Bali::Icon::Component.new('file-text', class: 'mr-2') %>
+      Movie Details
+    </h3>
 
-      <%# Text Area %>
-      <%= f.text_area_group :synopsis, label: 'Synopsis', rows: 4, placeholder: 'Enter movie synopsis...', char_counter: { max: 500 } %>
+    <%# Text Area %>
+    <%= f.text_area_group :synopsis, label: 'Synopsis', rows: 4, placeholder: 'Enter movie synopsis...', char_counter: { max: 500 } %>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        <%# Date Field %>
-        <%= f.date_field_group :release_date, label: 'Release Date' %>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+      <%# Date Field %>
+      <%= f.date_field_group :release_date, label: 'Release Date' %>
 
-        <%# Number Field (Currency) %>
-        <%= f.currency_field_group :budget, label: 'Budget', currency: 'USD', placeholder: '0.00' %>
-      </div>
+      <%# Number Field (Currency) %>
+      <%= f.currency_field_group :budget, label: 'Budget', currency: 'USD', placeholder: '0.00' %>
+    </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        <%# Email Field %>
-        <%= f.email_field_group :contact_email, label: 'Contact Email', placeholder: 'producer@studio.com' %>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+      <%# Email Field %>
+      <%= f.email_field_group :contact_email, label: 'Contact Email', placeholder: 'producer@studio.com' %>
 
-        <%# URL Field %>
-        <%= f.url_field_group :website_url, label: 'Website URL', placeholder: 'https://moviewebsite.com' %>
-      </div>
+      <%# URL Field %>
+      <%= f.url_field_group :website_url, label: 'Website URL', placeholder: 'https://moviewebsite.com' %>
     </div>
   <% end %>
 
   <%# Section 3: Media Upload (DirectUpload Demo) %>
   <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <div class="card-body">
-      <h3 class="card-title text-lg mb-4">
-        <%= render Bali::Icon::Component.new('image', class: 'mr-2') %>
-        Movie Poster
-      </h3>
+    <h3 class="card-title text-lg mb-4">
+      <%= render Bali::Icon::Component.new('image', class: 'mr-2') %>
+      Movie Poster
+    </h3>
 
-      <%= render Bali::Message::Component.new(color: :info, class: 'mb-4') do %>
-        <strong>DirectUpload:</strong> Files upload directly to storage without passing through the server.
-      <% end %>
+    <%= render Bali::Message::Component.new(color: :info, class: 'mb-4') do %>
+      <strong>DirectUpload:</strong> Files upload directly to storage without passing through the server.
+    <% end %>
 
-      <%# DirectUpload Component Demo %>
-      <%= render Bali::DirectUpload::Component.new(
+    <%# DirectUpload Component Demo %>
+    <%= render Bali::DirectUpload::Component.new(
         form: f,
         method: :poster,
         accept: 'image/*',
@@ -90,31 +85,28 @@
         drop_zone: true,
         auto_upload: true
       ) %>
-    </div>
   <% end %>
 
   <%# Section 4: Additional Settings %>
   <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <div class="card-body">
-      <h3 class="card-title text-lg mb-4">
-        <%= render Bali::Icon::Component.new('settings', class: 'mr-2') %>
-        Additional Settings
-      </h3>
+    <h3 class="card-title text-lg mb-4">
+      <%= render Bali::Icon::Component.new('settings', class: 'mr-2') %>
+      Additional Settings
+    </h3>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <%# Time Zone Select %>
-        <%= f.time_zone_select_group :time_zone, nil, { include_blank: 'Select timezone...' }, { label: 'Timezone' } %>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <%# Time Zone Select %>
+      <%= f.time_zone_select_group :time_zone, nil, { include_blank: 'Select timezone...' }, { label: 'Timezone' } %>
 
-        <%# Rating (Number with step) %>
-        <%= f.number_field_group :rating, label: 'Initial Rating', min: 0, max: 10, step: 0.5, placeholder: '0.0' %>
-      </div>
+      <%# Rating (Number with step) %>
+      <%= f.number_field_group :rating, label: 'Initial Rating', min: 0, max: 10, step: 0.5, placeholder: '0.0' %>
+    </div>
 
-      <%# Info Message %>
-      <div class="mt-4">
-        <%= render Bali::Message::Component.new(color: :info) do %>
-          <strong>Note:</strong> All fields marked with * are required. Additional settings are optional.
-        <% end %>
-      </div>
+    <%# Info Message %>
+    <div class="mt-4">
+      <%= render Bali::Message::Component.new(color: :info) do %>
+        <strong>Note:</strong> All fields marked with * are required. Additional settings are optional.
+      <% end %>
     </div>
   <% end %>
 

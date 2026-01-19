@@ -6,7 +6,7 @@
   </div>
   <% content_tabs = tabs.reject(&:href) %>
   <% if content_tabs.any? %>
-    <div class="tabs-content bg-base-100 p-4">
+    <div class="tabs-content pt-4">
       <% tabs.each_with_index do |tab, index| %>
         <% next if tab.href %>
         <%= tag.div **tab.options,
