@@ -44,8 +44,10 @@ RSpec.configure do |config|
   config.include Capybara::RSpecMatchers, type: :component
   config.include Capybara::RSpecMatchers, type: :form_builder
 
-  # Remove this line to enable support for ActiveRecord
-  config.use_active_record = false
+  # Enable ActiveRecord for request specs that need database access
+  # Component specs don't need it, but request specs do
+  config.use_active_record = true
+  config.use_transactional_fixtures = true
 
   # If you enable ActiveRecord support you should unncomment these lines,
   # note if you'd prefer not to run each example within a transaction, you

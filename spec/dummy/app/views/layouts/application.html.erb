@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html data-theme="light">
   <head>
-    <title>Dummy</title>
+    <title>MovieDB - Kitchen Sink Demo</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -10,9 +10,16 @@
     <%= vite_client_tag %>
     <%= vite_javascript_tag 'application' %>
   </head>
-  <body>
-    <section class="section">
+  <body class="min-h-screen bg-base-200">
+    <%= render 'layouts/navbar' %>
+
+    <main class="container mx-auto px-4 py-6 max-w-7xl">
+      <%= render Bali::FlashNotifications::Component.new(
+        notice: flash[:notice],
+        alert: flash[:alert]
+      ) %>
+
       <%= yield %>
-    </section>
+    </main>
   </body>
 </html>

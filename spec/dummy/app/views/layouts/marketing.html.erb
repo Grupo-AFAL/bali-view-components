@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html data-theme="light">
+  <head>
+    <title>MovieDB - The Ultimate Movie Database</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "application", media: 'all' %>
+    <%= vite_client_tag %>
+    <%= vite_javascript_tag 'application' %>
+  </head>
+  <body class="min-h-screen">
+    <%# Marketing Navbar - Transparent style %>
+    <%= render Bali::Navbar::Component.new(
+      color: :base,
+      transparency: true,
+      class: 'sticky top-0 z-50'
+    ) do |nav| %>
+      <% nav.with_brand do %>
+        <%= render Bali::Link::Component.new(
+          name: 'MovieDB',
+          href: landing_path,
+          variant: :ghost,
+          class: 'text-xl font-bold'
+        ) %>
+      <% end %>
+
+      <% nav.with_burger %>
+
+      <% nav.with_menu do |menu| %>
+        <% menu.with_start_item(name: 'Features', href: '#features') %>
+        <% menu.with_start_item(name: 'Testimonials', href: '#testimonials') %>
+        <% menu.with_start_item(name: 'Pricing', href: '#pricing') %>
+
+        <% menu.with_end_item(tag_name: :div) do %>
+          <div class="flex items-center gap-2">
+            <%= render Bali::Link::Component.new(name: 'Sign in', href: root_path, variant: :ghost) %>
+            <%= render Bali::Link::Component.new(name: 'Get Started', href: root_path, variant: :primary) %>
+          </div>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <%= yield %>
+
+    <%# Footer %>
+    <footer class="bg-neutral text-neutral-content p-10 mt-16">
+      <div class="container mx-auto max-w-6xl">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div>
+            <h3 class="text-lg font-bold mb-4">MovieDB</h3>
+            <p class="text-sm opacity-80">The ultimate movie database for studios, producers, and film enthusiasts.</p>
+          </div>
+          <div>
+            <h4 class="font-semibold mb-3">Product</h4>
+            <ul class="space-y-2 text-sm opacity-80">
+              <li><a href="#features" class="hover:opacity-100">Features</a></li>
+              <li><a href="#pricing" class="hover:opacity-100">Pricing</a></li>
+              <li><a href="#" class="hover:opacity-100">API</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-semibold mb-3">Company</h4>
+            <ul class="space-y-2 text-sm opacity-80">
+              <li><a href="#" class="hover:opacity-100">About</a></li>
+              <li><a href="#" class="hover:opacity-100">Blog</a></li>
+              <li><a href="#" class="hover:opacity-100">Careers</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-semibold mb-3">Legal</h4>
+            <ul class="space-y-2 text-sm opacity-80">
+              <li><a href="#" class="hover:opacity-100">Privacy</a></li>
+              <li><a href="#" class="hover:opacity-100">Terms</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="border-t border-neutral-content/20 mt-8 pt-8 text-sm opacity-60 text-center">
+          <p>&copy; 2024 MovieDB. Built with Bali ViewComponents.</p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

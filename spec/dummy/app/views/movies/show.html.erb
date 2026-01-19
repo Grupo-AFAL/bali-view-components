@@ -1,0 +1,337 @@
+<%# Movie Detail - Showcases: Breadcrumb, PageHeader, Tabs, Card, PropertiesTable, Avatar, Progress, Rate, List, Timeline, Tag, Tooltip, DeleteLink, Timeago %>
+
+<%# Breadcrumb %>
+<%= render Bali::Breadcrumb::Component.new do |breadcrumb| %>
+  <% breadcrumb.with_item(name: 'Dashboard', href: root_path, icon_name: 'home') %>
+  <% breadcrumb.with_item(name: 'Movies', href: movies_path) %>
+  <% breadcrumb.with_item(name: @movie.name) %>
+<% end %>
+
+<%# Page Header with actions %>
+<%= render Bali::PageHeader::Component.new(class: 'mt-4') do |header| %>
+  <% header.with_title do %>
+    <div class="flex items-center gap-3">
+      <%= @movie.name %>
+      <%= render Bali::Tag::Component.new(text: @movie.genre, style: :outline, size: :sm) %>
+      <%= render Bali::Tag::Component.new(
+        text: @movie.status.humanize,
+        color: @movie.done? ? :success : :warning,
+        size: :sm
+      ) %>
+    </div>
+  <% end %>
+  <% header.with_subtitle("Added #{time_ago_in_words(@movie.created_at)} ago") %>
+
+  <%# Action buttons on the right %>
+  <div class="flex items-center gap-2">
+    <%= render Bali::Link::Component.new(
+      name: 'Edit',
+      href: edit_movie_path(@movie),
+      variant: :ghost,
+      icon_name: 'pencil'
+    ) %>
+    <%= render Bali::DeleteLink::Component.new(
+      href: movie_path(@movie),
+      name: 'Delete',
+      confirm: "Are you sure you want to delete '#{@movie.name}'?",
+      size: :md
+    ) %>
+  </div>
+<% end %>
+
+<%# Tabs Container %>
+<div class="mt-6">
+  <%= render Bali::Tabs::Component.new(style: :box) do |tabs| %>
+    <%# Details Tab %>
+    <% tabs.with_tab(title: 'Details', icon: 'info', active: true) do %>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        <%# Main Info - Properties Table %>
+        <div class="lg:col-span-2">
+          <%= render Bali::Card::Component.new(style: :bordered) do %>
+            <div class="card-body">
+              <h3 class="card-title text-lg mb-4">Movie Information</h3>
+              <%= render Bali::PropertiesTable::Component.new do |table| %>
+                <% table.with_property(label: 'Title', value: @movie.name) %>
+                <% table.with_property(label: 'Genre') do %>
+                  <%= render Bali::Tag::Component.new(text: @movie.genre, style: :outline) %>
+                <% end %>
+                <% table.with_property(label: 'Status') do %>
+                  <%= render Bali::Tag::Component.new(
+                    text: @movie.status.humanize,
+                    color: @movie.done? ? :success : :warning
+                  ) %>
+                <% end %>
+                <% table.with_property(label: 'Indie Film') do %>
+                  <%= render Bali::BooleanIcon::Component.new(value: @movie.indie) %>
+                <% end %>
+                <% table.with_property(label: 'Created') do %>
+                  <%= render Bali::Timeago::Component.new(@movie.created_at, add_suffix: true) %>
+                <% end %>
+                <% table.with_property(label: 'Last Updated') do %>
+                  <%= render Bali::Timeago::Component.new(@movie.updated_at, add_suffix: true) %>
+                <% end %>
+              <% end %>
+
+              <%# LabelValue Demo - Additional movie info %>
+              <h4 class="font-semibold mt-6 mb-3">Additional Details</h4>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <%= render Bali::LabelValue::Component.new(label: 'Runtime', value: '2h 15m') %>
+                <%= render Bali::LabelValue::Component.new(label: 'Budget', value: '$50M') %>
+                <%= render Bali::LabelValue::Component.new(label: 'Box Office', value: '$150M') %>
+                <%= render Bali::LabelValue::Component.new(label: 'Release Year', value: '2024') %>
+              </div>
+            </div>
+          <% end %>
+
+          <%# ImageGrid Demo - Movie Stills Gallery %>
+          <%= render Bali::Card::Component.new(style: :bordered) do %>
+            <div class="card-body">
+              <h3 class="card-title text-lg mb-4">Movie Stills</h3>
+              <%= render Bali::ImageGrid::Component.new(columns: 3, gap: :md) do |grid| %>
+                <% grid.with_image(aspect_ratio: :video) do %>
+                  <img src="https://picsum.photos/seed/<%= @movie.id %>1/400/225" alt="Movie still 1" class="rounded" />
+                <% end %>
+                <% grid.with_image(aspect_ratio: :video) do %>
+                  <img src="https://picsum.photos/seed/<%= @movie.id %>2/400/225" alt="Movie still 2" class="rounded" />
+                <% end %>
+                <% grid.with_image(aspect_ratio: :video) do %>
+                  <img src="https://picsum.photos/seed/<%= @movie.id %>3/400/225" alt="Movie still 3" class="rounded" />
+                <% end %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+
+        <%# Sidebar - Studio Info & Stats %>
+        <div class="space-y-6">
+          <%# Studio Card with HoverCard %>
+          <%= render Bali::Card::Component.new(style: :bordered) do %>
+            <div class="card-body">
+              <h3 class="card-title text-lg mb-4">Studio</h3>
+              <% if @movie.tenant %>
+                <div class="flex items-center gap-4">
+                  <%= render Bali::Avatar::Component.new(size: :lg) do |avatar| %>
+                    <% avatar.with_placeholder do %>
+                      <%= @movie.tenant.name[0..1].upcase %>
+                    <% end %>
+                  <% end %>
+                  <div>
+                    <%# HoverCard Demo - hover to see studio details %>
+                    <%= render Bali::HoverCard::Component.new(placement: 'right') do |hc| %>
+                      <% hc.with_trigger do %>
+                        <p class="font-semibold cursor-pointer hover:text-primary underline decoration-dotted underline-offset-4"><%= @movie.tenant.name %></p>
+                      <% end %>
+                      <div class="p-2 min-w-[200px]">
+                        <p class="font-bold mb-2"><%= @movie.tenant.name %></p>
+                        <p class="text-sm text-base-content/70 mb-2">Partner Studio</p>
+                        <div class="flex gap-2">
+                          <%= render Bali::Tag::Component.new(text: 'Verified', color: :success, size: :xs) %>
+                          <%= render Bali::Tag::Component.new(text: 'Premium', color: :accent, size: :xs) %>
+                        </div>
+                      </div>
+                    <% end %>
+                    <p class="text-sm text-base-content/60">Partner Studio</p>
+                  </div>
+                </div>
+              <% else %>
+                <p class="text-base-content/60">No studio assigned</p>
+              <% end %>
+            </div>
+          <% end %>
+
+          <%# Stats Card with Progress and Rate %>
+          <%= render Bali::Card::Component.new(style: :bordered) do %>
+            <div class="card-body">
+              <h3 class="card-title text-lg mb-4">Statistics</h3>
+
+              <%# Demo Rating %>
+              <div class="mb-4">
+                <p class="text-sm text-base-content/60 mb-2">User Rating</p>
+                <%= render Bali::Rate::Component.new(
+                  value: 4,
+                  scale: 1..5,
+                  size: :md,
+                  color: :warning,
+                  readonly: true
+                ) %>
+                <p class="text-sm mt-1">4.0 / 5.0</p>
+              </div>
+
+              <%# Demo Progress %>
+              <div class="mb-4">
+                <p class="text-sm text-base-content/60 mb-2">Completion</p>
+                <%= render Bali::Progress::Component.new(
+                  value: @movie.done? ? 100 : 65,
+                  max: 100,
+                  color: @movie.done? ? :success : :primary,
+                  show_percentage: true
+                ) %>
+              </div>
+
+              <%# Another Progress Example %>
+              <div>
+                <p class="text-sm text-base-content/60 mb-2">Budget Used</p>
+                <%= render Bali::Progress::Component.new(
+                  value: 75,
+                  max: 100,
+                  color: :warning,
+                  show_percentage: true
+                ) %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <%# Characters Tab with SortableList %>
+    <% tabs.with_tab(title: 'Characters', icon: 'users') do %>
+      <div class="mt-6">
+        <%= render Bali::Card::Component.new(style: :bordered) do %>
+          <div class="card-body">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="card-title text-lg">Characters</h3>
+                <p class="text-sm text-base-content/60">Drag to reorder characters by importance</p>
+              </div>
+              <%= render Bali::Button::Component.new(
+                name: 'Add Character',
+                variant: :ghost,
+                size: :sm,
+                icon_name: 'plus'
+              ) %>
+            </div>
+
+            <% if @characters.any? %>
+              <%# SortableList Demo - drag characters to reorder %>
+              <%= render Bali::SortableList::Component.new(
+                resource_name: 'character',
+                handle: '.handle',
+                disabled: false
+              ) do |sortable| %>
+                <% @characters.each do |character| %>
+                  <% sortable.with_item(update_url: sortable_list_path) do %>
+                    <div class="flex items-center justify-between w-full">
+                      <div class="flex items-center gap-3">
+                        <%# Drag Handle %>
+                        <div class="handle cursor-grab active:cursor-grabbing text-base-content/40 hover:text-base-content">
+                          <%= render Bali::Icon::Component.new('grip-vertical', size: :small) %>
+                        </div>
+                        <%= render Bali::Avatar::Component.new(size: :sm) do |avatar| %>
+                          <% avatar.with_placeholder do %>
+                            <%= character.name[0..1].upcase %>
+                          <% end %>
+                        <% end %>
+                        <div>
+                          <p class="font-medium"><%= character.name %></p>
+                          <p class="text-sm text-base-content/60">Character</p>
+                        </div>
+                      </div>
+                      <%= render Bali::ActionsDropdown::Component.new(align: :right) do |dropdown| %>
+                        <% dropdown.with_item(href: '#') { 'Edit' } %>
+                        <% dropdown.with_item(href: '#', method: :delete) { 'Remove' } %>
+                      <% end %>
+                    </div>
+                  <% end %>
+                <% end %>
+              <% end %>
+            <% else %>
+              <%= render Bali::Message::Component.new(color: :info) do %>
+                No characters have been added to this movie yet.
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# Activity Tab %>
+    <% tabs.with_tab(title: 'Activity', icon: 'activity') do %>
+      <div class="mt-6">
+        <%= render Bali::Card::Component.new(style: :bordered) do %>
+          <div class="card-body">
+            <h3 class="card-title text-lg mb-4">Activity History</h3>
+
+            <%= render Bali::Timeline::Component.new(position: :left) do |timeline| %>
+              <% timeline.with_tag_header(text: 'Recent') %>
+
+              <% timeline.with_tag_item(
+                heading: 'Movie Updated',
+                icon: 'edit',
+                color: :info
+              ) do %>
+                <p class="text-sm">Details were modified</p>
+                <p class="text-xs text-base-content/60 mt-1">
+                  <%= render Bali::Timeago::Component.new(@movie.updated_at, add_suffix: true) %>
+                </p>
+              <% end %>
+
+              <% if @movie.done? %>
+                <% timeline.with_tag_item(
+                  heading: 'Marked as Done',
+                  icon: 'check',
+                  color: :success
+                ) do %>
+                  <p class="text-sm">Production completed</p>
+                  <p class="text-xs text-base-content/60 mt-1">Status changed to done</p>
+                <% end %>
+              <% end %>
+
+              <% timeline.with_tag_header(text: 'Earlier') %>
+
+              <% timeline.with_tag_item(
+                heading: 'Movie Created',
+                icon: 'plus',
+                color: :primary
+              ) do %>
+                <p class="text-sm">Added to the database</p>
+                <p class="text-xs text-base-content/60 mt-1">
+                  <%= render Bali::Timeago::Component.new(@movie.created_at, add_suffix: true) %>
+                </p>
+              <% end %>
+
+              <% if @movie.tenant %>
+                <% timeline.with_tag_item(
+                  heading: 'Studio Assigned',
+                  icon: 'building-2',
+                  color: :secondary
+                ) do %>
+                  <p class="text-sm">Linked to <%= @movie.tenant.name %></p>
+                <% end %>
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+</div>
+
+<%# Related Movies Section %>
+<div class="mt-8">
+  <h3 class="text-lg font-semibold mb-4">Related Movies</h3>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <% Movie.where(genre: @movie.genre).where.not(id: @movie.id).limit(4).each do |related| %>
+      <%= render Bali::Card::Component.new(style: :bordered) do %>
+        <div class="card-body p-4">
+          <h4 class="font-medium"><%= related.name %></h4>
+          <div class="flex items-center gap-2 mt-2">
+            <%= render Bali::Tag::Component.new(text: related.genre, size: :xs, style: :outline) %>
+            <%= render Bali::Tag::Component.new(
+              text: related.status.humanize,
+              size: :xs,
+              color: related.done? ? :success : :warning
+            ) %>
+          </div>
+          <%= render Bali::Link::Component.new(
+            name: 'View',
+            href: movie_path(related),
+            variant: :ghost,
+            size: :sm,
+            class: 'mt-3'
+          ) %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>

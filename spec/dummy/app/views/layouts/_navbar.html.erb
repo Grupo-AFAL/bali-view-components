@@ -1,0 +1,48 @@
+<%= render Bali::Navbar::Component.new(
+  color: :base,
+  class: 'sticky top-0 z-50'
+) do |nav| %>
+  <% nav.with_brand do %>
+    <%= render Bali::Link::Component.new(
+      name: 'MovieDB',
+      href: root_path,
+      variant: :ghost,
+      class: 'text-xl font-bold'
+    ) %>
+  <% end %>
+
+  <% nav.with_burger %>
+
+  <% nav.with_menu do |menu| %>
+    <% menu.with_start_item(name: 'Dashboard', href: root_path, active: current_page?(root_path)) %>
+    <% menu.with_start_item(name: 'Movies', href: movies_path, active: request.path.start_with?('/movies')) %>
+    <% menu.with_start_item(name: 'Settings', href: settings_path, active: current_page?(settings_path)) %>
+    <% menu.with_start_item(tag_name: :div) do %>
+      <%= render Bali::Link::Component.new(
+        name: 'Lookbook',
+        href: '/lookbook',
+        variant: :ghost,
+        target: '_blank'
+      ) do %>
+        Lookbook
+        <%= render Bali::Icon::Component.new('external-link', size: :small) %>
+      <% end %>
+    <% end %>
+
+    <% menu.with_end_item(tag_name: :div) do %>
+      <%= render Bali::Dropdown::Component.new(align: :right) do |dropdown| %>
+        <% dropdown.with_trigger(variant: :ghost, class: 'gap-2') do %>
+          <%= render Bali::Avatar::Component.new(size: :xs) do |avatar| %>
+            <% avatar.with_placeholder { 'AD' } %>
+          <% end %>
+          Admin
+          <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
+        <% end %>
+        <% dropdown.with_item(href: settings_path) { 'Settings' } %>
+        <% dropdown.with_item(href: '#') { 'Profile' } %>
+        <li class="divider my-1"></li>
+        <% dropdown.with_item(href: '#', class: 'text-error') { 'Sign out' } %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

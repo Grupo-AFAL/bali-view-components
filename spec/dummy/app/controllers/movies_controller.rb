@@ -3,6 +3,8 @@
 class MoviesController < ApplicationController
   include Pagy::Backend
 
+  before_action :set_movie, only: %i[show edit update destroy]
+
   def index
     # FilterForm handles Ransack search params and sorting
     @filter_form = Bali::FilterForm.new(Movie.all, params)
@@ -16,12 +18,66 @@ class MoviesController < ApplicationController
     end
   end
 
+  def show
+    @characters = @movie.characters
+  end
+
+  def new
+    @movie = Movie.new
+  end
+
+  def edit; end
+
+  def create
+    @movie = Movie.new(movie_params)
+
+    if @movie.save
+      redirect_to @movie, notice: 'Movie was successfully created.'
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  def update
+    if @movie.update(movie_params)
+      redirect_to @movie, notice: 'Movie was successfully updated.'
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    @movie.destroy
+    redirect_to movies_url, notice: 'Movie was successfully deleted.'
+  end
+
+  def bulk_action
+    action = params[:bulk_action]
+    movie_ids = params[:movie_ids]
+
+    case action
+    when 'delete'
+      Movie.where(id: movie_ids).destroy_all
+      flash[:notice] = "#{movie_ids.size} movie(s) deleted."
+    when 'mark_done'
+      Movie.where(id: movie_ids).update_all(status: :done)
+      flash[:notice] = "#{movie_ids.size} movie(s) marked as done."
+    when 'mark_draft'
+      Movie.where(id: movie_ids).update_all(status: :draft)
+      flash[:notice] = "#{movie_ids.size} movie(s) marked as draft."
+    end
+
+    redirect_to movies_path
+  end
+
   private
 
-  def search_params
-    # Ransack groupings (g) are deeply nested, so we need to permit them carefully
-    # The format is: q[g][0][field_operator]=value, q[g][0][m]=or/and
-    params.fetch(:q, {}).to_unsafe_h
+  def set_movie
+    @movie = Movie.find(params[:id])
+  end
+
+  def movie_params
+    params.require(:movie).permit(:name, :genre, :status, :tenant_id, :indie)
   end
 
   # Define filterable attributes for the advanced filters

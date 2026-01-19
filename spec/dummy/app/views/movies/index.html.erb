@@ -1,63 +1,110 @@
-<div class="container mx-auto p-6">
-  <h1 class="text-2xl font-bold mb-6">Movies</h1>
+<%# Movies Index - Showcases: Breadcrumb, PageHeader, DataTable, AdvancedFilters, Table, Tag, BooleanIcon, ActionsDropdown, Link %>
 
-  <%= render Bali::DataTable::Component.new(
-    filter_form: @filter_form,
-    url: movies_path,
-    pagy: @pagy,
-    item_name: 'movies'
-  ) do |data_table| %>
+<%# Breadcrumb %>
+<%= render Bali::Breadcrumb::Component.new do |breadcrumb| %>
+  <% breadcrumb.with_item(name: 'Dashboard', href: root_path, icon_name: 'home') %>
+  <% breadcrumb.with_item(name: 'Movies') %>
+<% end %>
 
-    <%# Advanced Filters Panel %>
-    <% data_table.with_filters_panel(
-      available_attributes: available_filter_attributes,
-      filter_groups: filter_groups_from_params,
-      search_fields: [:name, :genre],
-      search_value: quick_search_value
-    ) %>
+<%# Page Header with New Movie button %>
+<%= render Bali::PageHeader::Component.new(title: 'Movies', subtitle: 'Manage your movie catalog', class: 'mt-4 mb-6') do %>
+  <%= render Bali::Link::Component.new(
+    name: 'New Movie',
+    href: new_movie_path,
+    variant: :primary,
+    icon_name: 'plus'
+  ) %>
+<% end %>
 
-    <%# Data Table with sortable columns %>
-    <% data_table.with_table do %>
-      <%= render Bali::Table::Component.new(form: @filter_form) do |table| %>
-        <%# Sortable headers - click to sort by column %>
-        <% table.with_header(name: "ID", class: "w-12") %>
-        <% table.with_header(name: "Name", sort: :name) %>
-        <% table.with_header(name: "Genre", sort: :genre) %>
-        <% table.with_header(name: "Status", sort: :status) %>
-        <% table.with_header(name: "Studio") %>
-        <% table.with_header(name: "Indie", sort: :indie) %>
-        <% table.with_header(name: "Created", sort: :created_at) %>
+<%# Data Table with Filters %>
+<%= render Bali::DataTable::Component.new(
+  filter_form: @filter_form,
+  url: movies_path,
+  pagy: @pagy,
+  item_name: 'movies'
+) do |data_table| %>
 
-        <% @movies.each do |movie| %>
-          <% table.with_row do %>
-            <td><%= movie.id %></td>
-            <td class="font-medium"><%= movie.name %></td>
-            <td><span class="badge badge-outline"><%= movie.genre %></span></td>
-            <td>
-              <span class="badge <%= movie.done? ? 'badge-success' : 'badge-warning' %>">
-                <%= movie.status.humanize %>
-              </span>
-            </td>
-            <td class="text-sm text-base-content/70"><%= movie.tenant&.name %></td>
-            <td>
-              <% if movie.indie %>
-                <span class="badge badge-info badge-sm">Yes</span>
-              <% else %>
-                <span class="badge badge-ghost badge-sm">No</span>
-              <% end %>
-            </td>
-            <td class="text-sm text-base-content/70"><%= movie.created_at.strftime('%Y-%m-%d') %></td>
-          <% end %>
+  <%# Advanced Filters Panel %>
+  <% data_table.with_filters_panel(
+    available_attributes: available_filter_attributes,
+    filter_groups: filter_groups_from_params,
+    search_fields: [:name, :genre],
+    search_value: quick_search_value
+  ) %>
+
+  <%# Data Table with sortable columns %>
+  <% data_table.with_table do %>
+    <%= render Bali::Table::Component.new(form: @filter_form) do |table| %>
+      <%# Sortable headers - click to sort by column %>
+      <% table.with_header(name: '', class: 'w-8') %>
+      <% table.with_header(name: 'Name', sort: :name) %>
+      <% table.with_header(name: 'Genre', sort: :genre) %>
+      <% table.with_header(name: 'Status', sort: :status) %>
+      <% table.with_header(name: 'Studio') %>
+      <% table.with_header(name: 'Indie', sort: :indie, class: 'text-center') %>
+      <% table.with_header(name: 'Created', sort: :created_at) %>
+      <% table.with_header(name: '', class: 'w-12') %>
+
+      <% @movies.each do |movie| %>
+        <% table.with_row do %>
+          <td>
+            <input type="checkbox" class="checkbox checkbox-sm" name="movie_ids[]" value="<%= movie.id %>" />
+          </td>
+          <td class="font-medium">
+            <%= render Bali::Link::Component.new(name: movie.name, href: movie_path(movie)) %>
+          </td>
+          <td>
+            <%= render Bali::Tag::Component.new(text: movie.genre, style: :outline, size: :sm) %>
+          </td>
+          <td>
+            <%= render Bali::Tag::Component.new(
+              text: movie.status.humanize,
+              color: movie.done? ? :success : :warning,
+              size: :sm
+            ) %>
+          </td>
+          <td class="text-sm text-base-content/70"><%= movie.tenant&.name || '—' %></td>
+          <td class="text-center">
+            <%= render Bali::BooleanIcon::Component.new(value: movie.indie) %>
+          </td>
+          <td class="text-sm text-base-content/70">
+            <%= render Bali::Timeago::Component.new(movie.created_at, add_suffix: true) %>
+          </td>
+          <td>
+            <%= render Bali::ActionsDropdown::Component.new(align: :right) do |dropdown| %>
+              <% dropdown.with_item(href: movie_path(movie)) { 'View' } %>
+              <% dropdown.with_item(href: edit_movie_path(movie)) { 'Edit' } %>
+              <% dropdown.with_item(href: movie_path(movie), method: :delete) { 'Delete' } %>
+            <% end %>
+          </td>
         <% end %>
+      <% end %>
 
-        <% if @movies.empty? %>
-          <% table.with_row do %>
-            <td colspan="7" class="text-center py-8 text-base-content/50">
-              No movies found. Try adjusting your filters.
-            </td>
-          <% end %>
+      <%# No Records Message %>
+      <% table.with_no_records_notification do %>
+        <%= render Bali::Message::Component.new(color: :info) do %>
+          <strong>No movies found.</strong> Try adjusting your filters or
+          <%= render Bali::Link::Component.new(name: 'add a new movie', href: new_movie_path) %>.
         <% end %>
       <% end %>
     <% end %>
   <% end %>
-</div>
+
+  <%# Bulk Actions %>
+  <% data_table.with_actions_panel do %>
+    <%= form_with url: bulk_action_movies_path, method: :post, class: 'flex items-center gap-2' do %>
+      <select name="bulk_action" class="select select-bordered select-sm">
+        <option value="">Select action...</option>
+        <option value="mark_done">Mark as Done</option>
+        <option value="mark_draft">Mark as Draft</option>
+        <option value="delete">Delete Selected</option>
+      </select>
+      <%= render Bali::Button::Component.new(
+        name: 'Apply',
+        variant: :ghost,
+        size: :sm,
+        type: :submit
+      ) %>
+    <% end %>
+  <% end %>
+<% end %>

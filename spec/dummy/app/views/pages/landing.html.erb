@@ -1,0 +1,296 @@
+<%# Marketing Landing Page - Showcases: Hero, Card, Icon, Carousel, Avatar, Button, Link, Columns %>
+
+<%# Hero Section %>
+<%= render Bali::Hero::Component.new(size: :lg, color: :primary) do |hero| %>
+  <% hero.with_title('The Ultimate Movie Database') %>
+  <% hero.with_subtitle('Manage your entire film catalog with powerful filters, real-time analytics, and seamless collaboration. Built for studios, producers, and film enthusiasts.') %>
+  <% hero.with_actions do %>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <%= render Bali::Link::Component.new(
+        name: 'Get Started Free',
+        href: root_path,
+        variant: :secondary,
+        size: :lg,
+        icon_name: 'rocket'
+      ) %>
+      <%= render Bali::Link::Component.new(
+        name: 'View Demo',
+        href: movies_path,
+        variant: :ghost,
+        size: :lg,
+        icon_name: 'play'
+      ) %>
+    </div>
+  <% end %>
+<% end %>
+
+<%# Features Section %>
+<section id="features" class="py-16 bg-base-100">
+  <div class="container mx-auto px-4 max-w-6xl">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold">Powerful Features</h2>
+      <p class="text-base-content/60 mt-2">Everything you need to manage your movie catalog</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <%# Feature 1: Advanced Filters %>
+      <%= render Bali::Card::Component.new(style: :bordered) do %>
+        <div class="card-body text-center">
+          <div class="mx-auto p-4 bg-primary/10 rounded-full w-fit mb-4">
+            <%= render Bali::Icon::Component.new('filter', size: :large, class: 'text-primary') %>
+          </div>
+          <h3 class="card-title justify-center">Advanced Filters</h3>
+          <p class="text-base-content/60">Build complex queries with our intuitive filter builder. Search by genre, status, studio, and more.</p>
+        </div>
+      <% end %>
+
+      <%# Feature 2: Real-time Analytics %>
+      <%= render Bali::Card::Component.new(style: :bordered) do %>
+        <div class="card-body text-center">
+          <div class="mx-auto p-4 bg-secondary/10 rounded-full w-fit mb-4">
+            <%= render Bali::Icon::Component.new('bar-chart-2', size: :large, class: 'text-secondary') %>
+          </div>
+          <h3 class="card-title justify-center">Real-time Analytics</h3>
+          <p class="text-base-content/60">Track your catalog metrics with beautiful charts. Monitor progress, status, and genre distribution.</p>
+        </div>
+      <% end %>
+
+      <%# Feature 3: Collaboration %>
+      <%= render Bali::Card::Component.new(style: :bordered) do %>
+        <div class="card-body text-center">
+          <div class="mx-auto p-4 bg-accent/10 rounded-full w-fit mb-4">
+            <%= render Bali::Icon::Component.new('users', size: :large, class: 'text-accent') %>
+          </div>
+          <h3 class="card-title justify-center">Team Collaboration</h3>
+          <p class="text-base-content/60">Work together with your team. Assign movies to studios and track production status.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+<%# Stats Section %>
+<section class="py-16 bg-base-200">
+  <div class="container mx-auto px-4 max-w-6xl">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
+      <div>
+        <p class="text-4xl font-bold text-primary"><%= @movies_count * 50 %>+</p>
+        <p class="text-base-content/60 mt-2">Movies Managed</p>
+      </div>
+      <div>
+        <p class="text-4xl font-bold text-secondary"><%= @studios_count * 10 %>+</p>
+        <p class="text-base-content/60 mt-2">Partner Studios</p>
+      </div>
+      <div>
+        <p class="text-4xl font-bold text-accent">10K+</p>
+        <p class="text-base-content/60 mt-2">Active Users</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%# Testimonials Section %>
+<section id="testimonials" class="py-16 bg-base-100">
+  <div class="container mx-auto px-4 max-w-6xl">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold">What Our Users Say</h2>
+      <p class="text-base-content/60 mt-2">Trusted by studios and producers worldwide</p>
+    </div>
+
+    <%= render Bali::Carousel::Component.new(
+      slides_per_view: 1,
+      autoplay: :medium,
+      gap: 32
+    ) do |carousel| %>
+      <%# Testimonial 1 %>
+      <% carousel.with_item do %>
+        <%= render Bali::Card::Component.new(style: :bordered, class: 'max-w-2xl mx-auto') do %>
+          <div class="card-body text-center py-8">
+            <%= render Bali::Avatar::Component.new(size: :lg, class: 'mx-auto mb-4') do |avatar| %>
+              <% avatar.with_placeholder { 'JS' } %>
+            <% end %>
+            <p class="text-lg italic mb-4">
+              "MovieDB has completely transformed how we manage our film catalog. The filtering capabilities are incredible, and the analytics dashboard gives us insights we never had before."
+            </p>
+            <p class="font-semibold">Jane Smith</p>
+            <p class="text-sm text-base-content/60">Production Manager, Warner Bros</p>
+          </div>
+        <% end %>
+      <% end %>
+
+      <%# Testimonial 2 %>
+      <% carousel.with_item do %>
+        <%= render Bali::Card::Component.new(style: :bordered, class: 'max-w-2xl mx-auto') do %>
+          <div class="card-body text-center py-8">
+            <%= render Bali::Avatar::Component.new(size: :lg, class: 'mx-auto mb-4') do |avatar| %>
+              <% avatar.with_placeholder { 'MJ' } %>
+            <% end %>
+            <p class="text-lg italic mb-4">
+              "As an indie filmmaker, I needed something simple yet powerful. MovieDB delivers on both fronts. The interface is intuitive, and I can track all my projects in one place."
+            </p>
+            <p class="font-semibold">Michael Johnson</p>
+            <p class="text-sm text-base-content/60">Independent Filmmaker</p>
+          </div>
+        <% end %>
+      <% end %>
+
+      <%# Testimonial 3 %>
+      <% carousel.with_item do %>
+        <%= render Bali::Card::Component.new(style: :bordered, class: 'max-w-2xl mx-auto') do %>
+          <div class="card-body text-center py-8">
+            <%= render Bali::Avatar::Component.new(size: :lg, class: 'mx-auto mb-4') do |avatar| %>
+              <% avatar.with_placeholder { 'SC' } %>
+            <% end %>
+            <p class="text-lg italic mb-4">
+              "The collaboration features have made our workflow so much smoother. Our team can now see real-time updates on all our productions without endless email chains."
+            </p>
+            <p class="font-semibold">Sarah Chen</p>
+            <p class="text-sm text-base-content/60">Studio Director, A24</p>
+          </div>
+        <% end %>
+      <% end %>
+
+      <% carousel.with_arrows %>
+      <% carousel.with_bullets %>
+    <% end %>
+  </div>
+</section>
+
+<%# Pricing Section %>
+<section id="pricing" class="py-16 bg-base-200">
+  <div class="container mx-auto px-4 max-w-6xl">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold">Simple Pricing</h2>
+      <p class="text-base-content/60 mt-2">Choose the plan that works for you</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <%# Free Plan %>
+      <%= render Bali::Card::Component.new(style: :bordered) do %>
+        <div class="card-body">
+          <h3 class="card-title">Free</h3>
+          <p class="text-3xl font-bold mt-2">$0<span class="text-lg font-normal text-base-content/60">/mo</span></p>
+          <p class="text-base-content/60 mt-2">Perfect for getting started</p>
+          <ul class="mt-4 space-y-2">
+            <li class="flex items-center gap-2">
+              <%= render Bali::Icon::Component.new('check', size: :small, class: 'text-success') %>
+              Up to 50 movies
+            </li>
+            <li class="flex items-center gap-2">
+              <%= render Bali::Icon::Component.new('check', size: :small, class: 'text-success') %>
+              Basic analytics
+            </li>
+            <li class="flex items-center gap-2">
+              <%= render Bali::Icon::Component.new('check', size: :small, class: 'text-success') %>
+              1 team member
+            </li>
+          </ul>
+          <div class="card-actions mt-6">
+            <%= render Bali::Link::Component.new(
+              name: 'Get Started',
+              href: root_path,
+              variant: :ghost,
+              class: 'w-full justify-center'
+            ) %>
+          </div>
+        </div>
+      <% end %>
+
+      <%# Pro Plan (Featured) %>
+      <%= render Bali::Card::Component.new(style: :bordered, class: 'border-primary border-2') do %>
+        <div class="card-body">
+          <div class="flex justify-between items-start">
+            <h3 class="card-title">Pro</h3>
+            <%= render Bali::Tag::Component.new(text: 'Popular', color: :primary, size: :sm) %>
+          </div>
+          <p class="text-3xl font-bold mt-2">$29<span class="text-lg font-normal text-base-content/60">/mo</span></p>
+          <p class="text-base-content/60 mt-2">For growing studios</p>
+          <ul class="mt-4 space-y-2">
+            <li class="flex items-center gap-2">
+              <%= render Bali::Icon::Component.new('check', size: :small, class: 'text-success') %>
+              Unlimited movies
+            </li>
+            <li class="flex items-center gap-2">
+              <%= render Bali::Icon::Component.new('check', size: :small, class: 'text-success') %>
+              Advanced analytics
+            </li>
+            <li class="flex items-center gap-2">
+              <%= render Bali::Icon::Component.new('check', size: :small, class: 'text-success') %>
+              Up to 10 team members
+            </li>
+            <li class="flex items-center gap-2">
+              <%= render Bali::Icon::Component.new('check', size: :small, class: 'text-success') %>
+              Priority support
+            </li>
+          </ul>
+          <div class="card-actions mt-6">
+            <%= render Bali::Link::Component.new(
+              name: 'Start Free Trial',
+              href: root_path,
+              variant: :primary,
+              class: 'w-full justify-center'
+            ) %>
+          </div>
+        </div>
+      <% end %>
+
+      <%# Enterprise Plan %>
+      <%= render Bali::Card::Component.new(style: :bordered) do %>
+        <div class="card-body">
+          <h3 class="card-title">Enterprise</h3>
+          <p class="text-3xl font-bold mt-2">Custom</p>
+          <p class="text-base-content/60 mt-2">For large organizations</p>
+          <ul class="mt-4 space-y-2">
+            <li class="flex items-center gap-2">
+              <%= render Bali::Icon::Component.new('check', size: :small, class: 'text-success') %>
+              Everything in Pro
+            </li>
+            <li class="flex items-center gap-2">
+              <%= render Bali::Icon::Component.new('check', size: :small, class: 'text-success') %>
+              Unlimited team members
+            </li>
+            <li class="flex items-center gap-2">
+              <%= render Bali::Icon::Component.new('check', size: :small, class: 'text-success') %>
+              Custom integrations
+            </li>
+            <li class="flex items-center gap-2">
+              <%= render Bali::Icon::Component.new('check', size: :small, class: 'text-success') %>
+              Dedicated support
+            </li>
+          </ul>
+          <div class="card-actions mt-6">
+            <%= render Bali::Link::Component.new(
+              name: 'Contact Sales',
+              href: '#',
+              variant: :ghost,
+              class: 'w-full justify-center'
+            ) %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+<%# CTA Section %>
+<section class="py-16 bg-primary text-primary-content">
+  <div class="container mx-auto px-4 max-w-6xl text-center">
+    <h2 class="text-3xl font-bold">Ready to get started?</h2>
+    <p class="mt-4 text-lg opacity-90">Join thousands of studios already using MovieDB</p>
+    <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+      <%= render Bali::Link::Component.new(
+        name: 'Start Free Trial',
+        href: root_path,
+        variant: :secondary,
+        size: :lg
+      ) %>
+      <%= render Bali::Link::Component.new(
+        name: 'Contact Sales',
+        href: '#',
+        variant: :ghost,
+        size: :lg,
+        class: 'border border-primary-content/30'
+      ) %>
+    </div>
+  </div>
+</section>

@@ -38,7 +38,7 @@ module Dummy
     config.view_component.preview_paths << Rails.root.parent.parent.join('app/components')
 
     # Watch Ruby/ERB files for preview changes (not JS/SCSS which trigger cascading rebuilds)
-    config.lookbook.listen_extensions = %w[rb erb]
+    config.lookbook.listen_extensions = %w[js css rb erb]
     config.lookbook.preview_layout = 'lookbook_preview'
 
     # Performance: disable live updates when not needed

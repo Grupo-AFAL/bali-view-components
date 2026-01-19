@@ -1,0 +1,11 @@
+<%# Breadcrumb %>
+<%= render Bali::Breadcrumb::Component.new do |breadcrumb| %>
+  <% breadcrumb.with_item(name: 'Dashboard', href: root_path, icon_name: 'home') %>
+  <% breadcrumb.with_item(name: 'Movies', href: movies_path) %>
+  <% breadcrumb.with_item(name: 'New Movie') %>
+<% end %>
+
+<%# Page Header %>
+<%= render Bali::PageHeader::Component.new(title: 'New Movie', subtitle: 'Add a new movie to the database', class: 'mt-4 mb-6') %>
+
+<%= render 'form', movie: @movie %>

@@ -1,11 +1,19 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+  # Kitchen Sink Demo Routes
+  root 'dashboard#index'
 
-  # Defines the root path route ("/")
-  # root "articles#index"
+  resources :movies do
+    collection do
+      post :bulk_action
+    end
+  end
 
+  resource :settings, only: %i[show update]
+  get 'landing', to: 'pages#landing'
+
+  # Existing demo routes
   get 'show-content-in-hovercard', to: 'hovercard#show'
 
   get 'tab1', to: 'tabs#tab1'
@@ -17,7 +25,6 @@ Rails.application.routes.draw do
 
   get 'users', to: 'users#index'
 
-  resources :movies, only: [:index]
   resources :gantt_chart, only: %i[update]
 
   mount Lookbook::Engine, at: '/lookbook'
