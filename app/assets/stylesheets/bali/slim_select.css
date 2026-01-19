@@ -36,7 +36,7 @@
    Utility Classes (used by SlimSelect internally)
    ============================================================================= */
 .ss-hide {
-  display: none;
+  display: none !important;
 }
 
 /* =============================================================================
@@ -66,13 +66,6 @@
     }
   }
 
-  /* Button positioning (for select all / deselect all) */
-  .button {
-    position: absolute;
-    top: -2.4rem;
-    right: 0;
-  }
-
   /* Error state from Rails form validation */
   .field_with_errors .ss-main {
     border-color: var(--ss-error-color);
@@ -81,6 +74,30 @@
       border-color: var(--ss-error-color);
       outline-color: oklch(0.7176 0.221 22.18 / 0.2);
     }
+  }
+}
+
+/* =============================================================================
+   Select All / Deselect All Toggle Button
+   ============================================================================= */
+.ss-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ss-primary-color);
+  cursor: pointer;
+  padding: var(--ss-spacing-s) 0;
+  margin-bottom: var(--ss-spacing-s);
+  transition: opacity var(--ss-animation-timing) ease;
+
+  &:hover {
+    opacity: 0.7;
+    text-decoration: underline;
+  }
+
+  &.hidden {
+    display: none;
   }
 }
 
@@ -152,7 +169,7 @@
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--ss-spacing-m);
+  gap: var(--ss-spacing-s);
   flex: 1 1 100%;
   min-width: 0;
   max-width: 100%;
@@ -213,7 +230,7 @@
   align-items: center;
   width: fit-content;
   max-width: 100%;
-  height: auto;
+  height: 1.625rem;
   padding: 0;
   background-color: var(--ss-primary-color);
   border-radius: 1.5rem;
@@ -227,11 +244,11 @@
 .ss-main .ss-values .ss-value .ss-value-text {
   flex: 1;
   min-width: 0;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
-  line-height: 1;
+  line-height: 1.625rem;
   color: var(--ss-bg-color);
-  padding: var(--ss-spacing-s) var(--ss-spacing-m);
+  padding: 0 0.625rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -242,7 +259,7 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: var(--ss-spacing-s) var(--ss-spacing-m) var(--ss-spacing-s) 0;
+  padding: 0 0.5rem 0 0;
   cursor: pointer;
   opacity: 0.7;
   transition: opacity var(--ss-animation-timing) ease;
@@ -252,13 +269,13 @@
   }
 
   svg {
-    width: 0.75rem;
-    height: 0.75rem;
+    width: 0.625rem;
+    height: 0.625rem;
 
     path {
       fill: none;
       stroke: var(--ss-bg-color);
-      stroke-width: 2.5;
+      stroke-width: 20;
       stroke-linecap: round;
       stroke-linejoin: round;
     }

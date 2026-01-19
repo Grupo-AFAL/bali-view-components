@@ -1,0 +1,3 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.slim_select_field :name, options, { hide_selected: true }, { multiple: true } %>
+<% end %>

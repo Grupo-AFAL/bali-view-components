@@ -48,6 +48,8 @@ es:
         search_placeholder: Buscar
         select_all: Seleccionar todo
         deselect_all: Deseleccionar todo
+        no_results: Sin resultados
+        searching: Buscando...
     time_periods:
       yearly: Anual
       yesterday: Ayer
