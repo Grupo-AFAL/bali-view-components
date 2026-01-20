@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
-require 'ostruct'
-
 class PagesController < ApplicationController
   layout :choose_layout
+
+  # Simple struct for calendar event demo data
+  CalendarEvent = Struct.new(:start_time, :end_time, :title, keyword_init: true)
 
   private
 
@@ -26,9 +27,9 @@ class PagesController < ApplicationController
   def showcase
     # Calendar events demo data
     @calendar_events = [
-      OpenStruct.new(start_time: Date.current, end_time: Date.current, title: 'Today'),
-      OpenStruct.new(start_time: Date.current + 3.days, end_time: Date.current + 3.days, title: 'Meeting'),
-      OpenStruct.new(start_time: Date.current + 7.days, end_time: Date.current + 9.days, title: 'Conference')
+      CalendarEvent.new(start_time: Date.current, end_time: Date.current, title: 'Today'),
+      CalendarEvent.new(start_time: Date.current + 3.days, end_time: Date.current + 3.days, title: 'Meeting'),
+      CalendarEvent.new(start_time: Date.current + 7.days, end_time: Date.current + 9.days, title: 'Conference')
     ]
   end
 

@@ -16,7 +16,11 @@ module Bali
 
         # Add join-item class when addons are present for proper DaisyUI join pattern
         has_addons = options[:addon_left].present? || options[:addon_right].present?
-        base_class = has_addons ? 'input input-bordered join-item grow' : 'input input-bordered w-full'
+        base_class = if has_addons
+                       'input input-bordered join-item grow'
+                     else
+                       'input input-bordered w-full'
+                     end
 
         options[:class] = field_class_name(method, "#{base_class} #{options[:class]}")
         options.except(:addon_left, :addon_right)
