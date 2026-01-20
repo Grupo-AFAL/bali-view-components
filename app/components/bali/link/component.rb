@@ -135,8 +135,15 @@ module Bali
       def add_stimulus_actions(data)
         return if Bali.native_app || @disabled
 
-        data[:action] = prepend_value(data[:action], 'modal#open') if @modal
-        data[:action] = prepend_value(data[:action], 'drawer#open') if @drawer
+        if @modal
+          data[:action] = prepend_value(data[:action], 'modal#open')
+          data[:turbo] = false # Prevent Turbo Drive from also handling the click
+        end
+
+        return unless @drawer
+
+        data[:action] = prepend_value(data[:action], 'drawer#open')
+        data[:turbo] = false # Prevent Turbo Drive from also handling the click
       end
 
       def add_method_attributes(data)

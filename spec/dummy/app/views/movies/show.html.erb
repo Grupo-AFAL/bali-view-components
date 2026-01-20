@@ -7,6 +7,9 @@
   <% breadcrumb.with_item(name: @movie.name) %>
 <% end %>
 
+<%# Flash messages container for turbo stream updates %>
+<div id="flash-messages"></div>
+
 <%# Page Header with actions %>
 <%= render Bali::PageHeader::Component.new(class: 'mt-4') do |header| %>
   <% header.with_title do %>
@@ -184,52 +187,19 @@
             <h3 class="card-title text-lg">Characters</h3>
             <p class="text-sm text-base-content/60">Drag to reorder characters by importance</p>
           </div>
-          <%= render Bali::Button::Component.new(
+          <%= render Bali::Link::Component.new(
                 name: 'Add Character',
+                href: new_movie_character_path(@movie),
                 variant: :ghost,
                 size: :sm,
-                icon_name: 'plus'
+                icon_name: 'plus',
+                modal: true
               ) %>
         </div>
 
-        <% if @characters.any? %>
-          <%# SortableList Demo - drag characters to reorder %>
-          <%= render Bali::SortableList::Component.new(
-                resource_name: 'character',
-                handle: '.handle',
-                disabled: false
-              ) do |sortable| %>
-            <% @characters.each do |character| %>
-              <% sortable.with_item(update_url: sortable_list_path) do %>
-                <div class="flex items-center justify-between w-full">
-                  <div class="flex items-center gap-3">
-                    <%# Drag Handle %>
-                    <div class="handle cursor-grab active:cursor-grabbing text-base-content/40 hover:text-base-content">
-                      <%= render Bali::Icon::Component.new('grip-vertical', size: :small) %>
-                    </div>
-                    <%= render Bali::Avatar::Component.new(size: :sm) do |avatar| %>
-                      <% avatar.with_placeholder do %>
-                        <%= character.name[0..1].upcase %>
-                      <% end %>
-                    <% end %>
-                    <div>
-                      <p class="font-medium"><%= character.name %></p>
-                      <p class="text-sm text-base-content/60">Character</p>
-                    </div>
-                  </div>
-                  <%= render Bali::ActionsDropdown::Component.new(align: :right) do |dropdown| %>
-                    <% dropdown.with_item(href: '#') { 'Edit' } %>
-                    <% dropdown.with_item(href: '#', method: :delete) { 'Remove' } %>
-                  <% end %>
-                </div>
-              <% end %>
-            <% end %>
-          <% end %>
-        <% else %>
-          <%= render Bali::Message::Component.new(color: :info) do %>
-            No characters have been added to this movie yet.
-          <% end %>
-        <% end %>
+        <div id="characters-list">
+          <%= render partial: 'movies/characters_list', locals: { movie: @movie, characters: @characters } %>
+        </div>
       <% end %>
     <% end %>
 
@@ -317,3 +287,4 @@
     <% end %>
   </div>
 </div>
+

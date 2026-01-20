@@ -8,10 +8,17 @@ Rails.application.routes.draw do
     collection do
       post :bulk_action
     end
+    resources :characters, only: %i[new create destroy] do
+      collection do
+        patch :sort
+      end
+    end
   end
 
   resource :settings, only: %i[show update]
   get 'landing', to: 'pages#landing'
+  get 'showcase', to: 'pages#showcase'
+  get 'sidemenu-example', to: 'pages#sidemenu_example'
 
   # Existing demo routes
   get 'show-content-in-hovercard', to: 'hovercard#show'

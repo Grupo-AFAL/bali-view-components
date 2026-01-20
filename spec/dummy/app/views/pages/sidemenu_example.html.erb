@@ -1,0 +1,231 @@
+<%# Full Page Example: Fixed Collapsible SideMenu with Menu Switcher and Sub Items %>
+<%# This demonstrates a complete admin layout pattern %>
+
+<div class="min-h-screen bg-base-200 flex">
+  <%# Fixed Collapsible Sidebar with Menu Switcher %>
+  <%= render Bali::SideMenu::Component.new(
+    current_path: request.path,
+    fixed: true,
+    collapsable: true,
+    brand: 'ACME'
+  ) do |sidebar| %>
+    <%# Menu Switcher - switch between application modules %>
+    <% sidebar.with_menu_switch(
+      title: 'Admin Portal',
+      subtitle: 'Manage everything',
+      href: '/admin',
+      icon: 'shield',
+      active: true
+    ) %>
+    <% sidebar.with_menu_switch(
+      title: 'Store Front',
+      subtitle: 'Customer-facing',
+      href: '/store',
+      icon: 'store'
+    ) %>
+    <% sidebar.with_menu_switch(
+      title: 'Analytics',
+      subtitle: 'Reports & insights',
+      href: '/analytics',
+      icon: 'bar-chart-2'
+    ) %>
+
+    <%# Main Navigation %>
+    <% sidebar.with_list(title: 'Main') do |list| %>
+      <% list.with_item(name: 'Dashboard', href: root_path, icon: 'layout-dashboard') %>
+      <% list.with_item(name: 'Notifications', href: '#', icon: 'bell', badge: '12', badge_color: :error) %>
+    <% end %>
+
+    <%# E-commerce Section with Sub Items %>
+    <% sidebar.with_list(title: 'E-Commerce') do |list| %>
+      <%# Products with expandable sub-items %>
+      <% list.with_item(name: 'Products', icon: 'package') do |item| %>
+        <% item.with_item(name: 'All Products', href: movies_path) %>
+        <% item.with_item(name: 'Add New', href: new_movie_path) %>
+        <% item.with_item(name: 'Categories', href: '#') %>
+        <% item.with_item(name: 'Inventory', href: '#') %>
+      <% end %>
+
+      <%# Orders with expandable sub-items %>
+      <% list.with_item(name: 'Orders', icon: 'shopping-cart') do |item| %>
+        <% item.with_item(name: 'All Orders', href: '#') %>
+        <% item.with_item(name: 'Pending', href: '#') %>
+        <% item.with_item(name: 'Shipped', href: '#') %>
+        <% item.with_item(name: 'Returns', href: '#') %>
+      <% end %>
+
+      <% list.with_item(name: 'Customers', href: '#', icon: 'users') %>
+      <% list.with_item(name: 'Discounts', href: '#', icon: 'percent') %>
+    <% end %>
+
+    <%# Content Management %>
+    <% sidebar.with_list(title: 'Content') do |list| %>
+      <% list.with_item(name: 'Pages', icon: 'file-text') do |item| %>
+        <% item.with_item(name: 'All Pages', href: '#') %>
+        <% item.with_item(name: 'Create Page', href: '#') %>
+      <% end %>
+
+      <% list.with_item(name: 'Blog', icon: 'pen-tool') do |item| %>
+        <% item.with_item(name: 'Posts', href: '#') %>
+        <% item.with_item(name: 'Categories', href: '#') %>
+        <% item.with_item(name: 'Tags', href: '#') %>
+      <% end %>
+
+      <% list.with_item(name: 'Media Library', href: '#', icon: 'image') %>
+    <% end %>
+
+    <%# Settings Section %>
+    <% sidebar.with_list(title: 'Settings') do |list| %>
+      <% list.with_item(name: 'General', href: settings_path, icon: 'settings') %>
+      <% list.with_item(name: 'Users & Permissions', icon: 'user-cog') do |item| %>
+        <% item.with_item(name: 'Team Members', href: '#') %>
+        <% item.with_item(name: 'Roles', href: '#') %>
+        <% item.with_item(name: 'API Keys', href: '#') %>
+      <% end %>
+      <% list.with_item(name: 'Integrations', href: '#', icon: 'plug') %>
+    <% end %>
+  <% end %>
+
+  <%# Main Content Area %>
+  <main class="side-menu-main-content flex-1 p-6">
+    <%# Page Header %>
+    <%= render Bali::PageHeader::Component.new(class: 'mb-6') do |header| %>
+      <% header.with_title { 'Admin Dashboard' } %>
+      <% header.with_subtitle { 'Welcome back! Here\'s what\'s happening today.' } %>
+
+      <div class="flex items-center gap-2">
+        <%= render Bali::Button::Component.new(name: 'Export', variant: :ghost, icon_name: 'download') %>
+        <%= render Bali::Button::Component.new(name: 'New Item', variant: :primary, icon_name: 'plus') %>
+      </div>
+    <% end %>
+
+    <%# Stats Row %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <%= render Bali::StatCard::Component.new(
+        title: 'Total Revenue',
+        value: '$45,231.89',
+        change: '+20.1%',
+        change_direction: :up,
+        icon: 'dollar-sign'
+      ) %>
+      <%= render Bali::StatCard::Component.new(
+        title: 'Subscriptions',
+        value: '+2350',
+        change: '+180.1%',
+        change_direction: :up,
+        icon: 'users'
+      ) %>
+      <%= render Bali::StatCard::Component.new(
+        title: 'Sales',
+        value: '+12,234',
+        change: '+19%',
+        change_direction: :up,
+        icon: 'credit-card'
+      ) %>
+      <%= render Bali::StatCard::Component.new(
+        title: 'Active Now',
+        value: '+573',
+        change: '+201',
+        change_direction: :up,
+        icon: 'activity'
+      ) %>
+    </div>
+
+    <%# Content Cards %>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <%# Recent Orders %>
+      <%= render Bali::Card::Component.new(style: :bordered, class: 'lg:col-span-2') do %>
+        <h3 class="card-title text-lg mb-4">Recent Orders</h3>
+        <%= render Bali::Table::Component.new do |table| %>
+          <% table.with_header(name: 'Order') %>
+          <% table.with_header(name: 'Customer') %>
+          <% table.with_header(name: 'Status') %>
+          <% table.with_header(name: 'Amount') %>
+
+          <% table.with_row do %>
+            <td class="font-mono">#3210</td>
+            <td>Olivia Martin</td>
+            <td><%= render Bali::Tag::Component.new(text: 'Shipped', color: :info, size: :sm) %></td>
+            <td>$42.25</td>
+          <% end %>
+          <% table.with_row do %>
+            <td class="font-mono">#3209</td>
+            <td>Ava Johnson</td>
+            <td><%= render Bali::Tag::Component.new(text: 'Processing', color: :warning, size: :sm) %></td>
+            <td>$74.99</td>
+          <% end %>
+          <% table.with_row do %>
+            <td class="font-mono">#3208</td>
+            <td>Michael Chen</td>
+            <td><%= render Bali::Tag::Component.new(text: 'Delivered', color: :success, size: :sm) %></td>
+            <td>$125.00</td>
+          <% end %>
+          <% table.with_row do %>
+            <td class="font-mono">#3207</td>
+            <td>Sofia Davis</td>
+            <td><%= render Bali::Tag::Component.new(text: 'Delivered', color: :success, size: :sm) %></td>
+            <td>$89.50</td>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <%# Recent Activity %>
+      <%= render Bali::Card::Component.new(style: :bordered) do %>
+        <h3 class="card-title text-lg mb-4">Recent Activity</h3>
+        <%= render Bali::Timeline::Component.new(position: :left) do |timeline| %>
+          <% timeline.with_tag_item(
+            heading: 'New order received',
+            icon: 'shopping-cart',
+            color: :primary
+          ) do %>
+            <p class="text-sm text-base-content/60">Order #3210 from Olivia</p>
+          <% end %>
+
+          <% timeline.with_tag_item(
+            heading: 'Payment confirmed',
+            icon: 'credit-card',
+            color: :success
+          ) do %>
+            <p class="text-sm text-base-content/60">$125.00 processed</p>
+          <% end %>
+
+          <% timeline.with_tag_item(
+            heading: 'New user signup',
+            icon: 'user-plus',
+            color: :info
+          ) do %>
+            <p class="text-sm text-base-content/60">Michael joined</p>
+          <% end %>
+
+          <% timeline.with_tag_item(
+            heading: 'Product updated',
+            icon: 'package',
+            color: :warning
+          ) do %>
+            <p class="text-sm text-base-content/60">SKU-1234 inventory</p>
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
+
+    <%# Info about this example %>
+    <div class="mt-8">
+      <%= render Bali::Message::Component.new(color: :info) do %>
+        <div class="flex items-start gap-3">
+          <%= render Bali::Icon::Component.new('info', class: 'size-5 shrink-0 mt-0.5') %>
+          <div>
+            <strong>SideMenu Features Demonstrated:</strong>
+            <ul class="mt-2 space-y-1 text-sm">
+              <li><strong>fixed: true</strong> - Sidebar is fixed to viewport</li>
+              <li><strong>collapsable: true</strong> - Click the toggle to collapse to icon-only mode</li>
+              <li><strong>brand: 'ACME'</strong> - Brand name shown in header when expanded</li>
+              <li><strong>with_menu_switch</strong> - Dropdown at top to switch between app modules</li>
+              <li><strong>Nested with_item</strong> - Expandable sub-menus for Products, Orders, etc.</li>
+              <li><strong>badge</strong> - Notification count on Notifications item</li>
+            </ul>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </main>
+</div>
