@@ -17,7 +17,7 @@ module Bali
 
       ORIENTATIONS = {
         vertical: 'flex flex-col gap-1',
-        horizontal: 'flex flex-row flex-wrap gap-x-4 gap-y-1'
+        horizontal: 'flex flex-row flex-wrap gap-x-4 gap-y-1 py-2'
       }.freeze
 
       SIZES = {

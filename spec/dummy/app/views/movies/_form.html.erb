@@ -1,8 +1,9 @@
 <%# Movie Form - Showcases: FormBuilder (all field types), Stepper, Card, Button %>
 
 <%# Form Progress Stepper %>
-<%= render Bali::Stepper::Component.new(current: 0, color: :primary, class: 'mb-8') do |stepper| %>
+<%= render Bali::Stepper::Component.new(current: 0, color: :primary, class: 'mb-8 w-full') do |stepper| %>
   <% stepper.with_step(title: 'Basic Info') %>
+  <% stepper.with_step(title: 'Poster') %>
   <% stepper.with_step(title: 'Details') %>
   <% stepper.with_step(title: 'Settings') %>
 <% end %>

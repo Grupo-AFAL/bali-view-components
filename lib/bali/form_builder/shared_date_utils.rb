@@ -3,7 +3,7 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module SharedDateUtils
-      WRAPPER_CLASS = 'fieldset flatpickr'
+      WRAPPER_CLASS = 'flatpickr'
       BUTTON_CLASS = 'btn btn-ghost'
       JOIN_ITEM_CLASS = 'join-item'
       CLEAR_BUTTON_CLASS = "#{BUTTON_CLASS} #{JOIN_ITEM_CLASS}".freeze
@@ -81,9 +81,10 @@ module Bali
       end
 
       def alt_input_class(method, options)
-        return [options[:alt_input_class], 'input-error'].compact.join(' ') if errors?(method)
+        base_class = options[:alt_input_class] || 'input input-bordered w-full'
+        return "#{base_class} input-error" if errors?(method)
 
-        options[:alt_input_class]
+        base_class
       end
 
       def previous_date_button
