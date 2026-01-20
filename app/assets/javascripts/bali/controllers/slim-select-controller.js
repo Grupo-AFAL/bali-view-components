@@ -35,9 +35,6 @@ export class SlimSelectController extends Controller {
     try {
       const { default: SlimSelect } = await import('slim-select')
 
-      console.log('Initializing SlimSelect for', this.selectTarget)
-      console.log({ showSearch: this.showSearchValue })
-
       const options = {
         select: this.selectTarget,
         settings: {
