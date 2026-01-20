@@ -9,6 +9,17 @@ Rails.application.configure do
   config.enable_reloading = true
   config.eager_load = false
 
+  # Watch the gem's directories for changes (outside Rails.root)
+  gem_root = Rails.root.parent.parent
+  gem_components_path = gem_root.join('app/components')
+  gem_lib_path = gem_root.join('lib/bali')
+
+  config.autoload_paths << gem_components_path
+  config.autoload_paths << gem_lib_path
+  config.watchable_dirs[gem_components_path.to_s] = [:rb, :erb]
+  config.watchable_dirs[gem_lib_path.to_s] = [:rb]
+  # lib/bali reloading is handled by config/initializers/bali_lib_reloader.rb
+
   # Show full error reports.
   config.consider_all_requests_local = true
 
