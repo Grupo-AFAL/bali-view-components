@@ -37,7 +37,7 @@ RSpec.describe Bali::Notification::Component, type: :component do
 
   describe 'types' do
     described_class::TYPES.each_key do |type|
-      next if type == :danger || type == :primary # aliases
+      next if %i[danger primary].include?(type) # aliases
 
       it "renders #{type} type" do
         render_inline(described_class.new(type: type, fixed: false))

@@ -7,20 +7,22 @@ module Bali
         MATCH_TYPES = %i[exact partial starts_with crud].freeze
         GROUP_BEHAVIORS = %i[expandable dropdown].freeze
 
-        renders_many :items, ->(href: nil, name: nil, icon: nil, authorized: true, disabled: false, **options) do
-          Item::Component.new(
-            name: name,
-            href: href,
-            icon: icon,
-            authorized: authorized,
-            disabled: disabled,
-            current_path: @current_path,
-            group_behavior: @group_behavior,
-            **options
-          )
-        end
+        renders_many :items,
+                     lambda { |href: nil, name: nil, icon: nil,
+                               authorized: true, disabled: false, **options|
+                       Item::Component.new(
+                         name: name,
+                         href: href,
+                         icon: icon,
+                         authorized: authorized,
+                         disabled: disabled,
+                         current_path: @current_path,
+                         group_behavior: @group_behavior,
+                         **options
+                       )
+                     }
 
-        attr_reader :name, :icon
+        attr_reader :name, :icon, :badge, :href
 
         def initialize(current_path:, href: nil, name: nil, icon: nil, authorized: true,
                        group_behavior: :expandable, disabled: false, **options)
@@ -93,10 +95,6 @@ module Bali
           )
         end
 
-        def badge
-          @badge
-        end
-
         def badge_classes
           class_names(
             'border',
@@ -107,10 +105,6 @@ module Bali
             "bg-#{@badge_color}/10",
             "text-#{@badge_color}"
           )
-        end
-
-        def href
-          @href
         end
 
         private

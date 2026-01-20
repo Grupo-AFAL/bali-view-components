@@ -15,7 +15,7 @@ module Bali
 
       def step_number_field(method, options = {})
         button_opts = extract_button_options(options)
-        input_options = build_input_options(options)
+        input_options = build_step_number_input_options(options)
 
         @template.content_tag(:div, class: 'join', data: { controller: 'step-number-input' }) do
           @template.safe_join([
@@ -37,7 +37,7 @@ module Bali
         }
       end
 
-      def build_input_options(options)
+      def build_step_number_input_options(options)
         opts = options.dup
         opts[:data] ||= {}
         opts[:data]['step-number-input-target'] = 'input'

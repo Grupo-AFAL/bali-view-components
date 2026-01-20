@@ -134,7 +134,7 @@ module Bali
     # Extract Ransack groupings from params
     # Groupings format: q[g][0][field_operator]=value, q[g][0][m]=or/and
     def extract_groupings(q_params)
-      return nil unless q_params[:g].present?
+      return nil if q_params[:g].blank?
 
       # Convert ActionController::Parameters to a regular hash
       # Ransack expects groupings as a hash with string keys

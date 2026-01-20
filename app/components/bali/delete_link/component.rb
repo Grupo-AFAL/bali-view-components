@@ -14,7 +14,7 @@ module Bali
 
       BASE_CLASSES = 'btn btn-ghost text-error'
 
-      attr_reader :options, :disabled_hover_url
+      attr_reader :options, :disabled_hover_url, :icon_name
 
       # rubocop:disable Metrics/ParameterLists
       def initialize(
@@ -92,10 +92,6 @@ module Bali
             @options[:class]
           )
         end
-      end
-
-      def icon_name
-        @icon_name
       end
 
       def form_classes

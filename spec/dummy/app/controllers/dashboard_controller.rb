@@ -28,7 +28,7 @@ class DashboardController < ApplicationController
 
   # Build demo Gantt chart tasks from movies
   def build_gantt_tasks
-    Movie.limit(5).map.with_index do |movie, index|
+    Movie.limit(5).map.with_index do |movie, _index|
       start_date = movie.created_at.to_date
       end_date = movie.done? ? (start_date + rand(30..90).days) : (Date.current + rand(10..60).days)
 

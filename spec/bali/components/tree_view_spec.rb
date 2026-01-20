@@ -118,7 +118,7 @@ RSpec.describe Bali::TreeView::Component, type: :component do
   end
 
   describe 'nested levels' do
-    # Note: ViewComponent's renders_many with lambdas only supports 2 levels of nesting.
+    # NOTE: ViewComponent's renders_many with lambdas only supports 2 levels of nesting.
     # Three-level deep nesting requires a different architectural approach.
     it 'renders two levels deep when nested item is active' do
       render_inline(described_class.new(current_path: '/l1/l2')) do |c|

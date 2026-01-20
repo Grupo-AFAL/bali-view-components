@@ -66,11 +66,11 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
       end
 
       it 'renders select all button' do
-        expect(slim_select_field).to have_css 'a.btn.btn-sm[data-action="slim-select#selectAll"]'
+        expect(slim_select_field).to have_css 'a.ss-toggle-btn[data-action="slim-select#selectAll"]'
       end
 
       it 'renders deselect all button with hidden class' do
-        selector = 'a.btn.btn-sm.hidden[data-action="slim-select#deselectAll"]'
+        selector = 'a.ss-toggle-btn.hidden[data-action="slim-select#deselectAll"]'
         expect(slim_select_field).to have_css selector
       end
 
@@ -211,8 +211,8 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
         expect(Bali::FormBuilder::SlimSelectFields::SELECT_CLASS).to eq 'select select-bordered'
       end
 
-      it 'defines BUTTON_CLASS' do
-        expect(Bali::FormBuilder::SlimSelectFields::BUTTON_CLASS).to eq 'btn btn-sm'
+      it 'defines TOGGLE_BUTTON_CLASS' do
+        expect(Bali::FormBuilder::SlimSelectFields::TOGGLE_BUTTON_CLASS).to eq 'ss-toggle-btn'
       end
 
       it 'defines DEFAULT_OPTIONS as frozen' do

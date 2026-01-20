@@ -29,7 +29,7 @@ RSpec.describe Bali::Navbar::Component, type: :component do
       expect(page).to have_css 'a', text: 'Open Positions'
       expect(page).to have_css 'button.btn.btn-ghost'
       # Non-fullscreen: centered with max-width constraint
-      expect(page).to have_css 'nav div.max-w-6xl.mx-auto'
+      expect(page).to have_css 'nav div.max-w-7xl.mx-auto'
     end
   end
 

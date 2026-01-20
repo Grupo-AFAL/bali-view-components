@@ -12,7 +12,9 @@ RSpec.describe 'Kitchen Sink Demo Pages', type: :request do
 
   describe 'Movies' do
     let!(:tenant) { Tenant.create!(name: 'Test Studio') }
-    let!(:movie) { Movie.create!(name: 'Test Movie', genre: 'Action', status: :draft, tenant: tenant) }
+    let!(:movie) do
+      Movie.create!(name: 'Test Movie', genre: 'Action', status: :draft, tenant: tenant)
+    end
 
     describe 'GET /movies' do
       it 'renders the index page successfully' do

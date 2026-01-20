@@ -2,6 +2,9 @@
 
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 
+# IMPORTANT: Set RAILS_ENV BEFORE loading Rails environment
+ENV['RAILS_ENV'] ||= 'test'
+
 require 'simplecov'
 
 SimpleCov.start 'rails' do
@@ -16,7 +19,6 @@ end
 
 require File.expand_path('./dummy/config/environment', __dir__)
 require 'spec_helper'
-ENV['RAILS_ENV'] ||= 'test'
 
 # Prevent database truncation if the environment is production
 abort('The Rails environment is running in production mode!') if Rails.env.production?
@@ -43,6 +45,11 @@ RSpec.configure do |config|
   config.include ComponentTestHelpers, type: :component
   config.include Capybara::RSpecMatchers, type: :component
   config.include Capybara::RSpecMatchers, type: :form_builder
+
+  # Set default host for request specs
+  config.before(:each, type: :request) do
+    host! 'www.example.com'
+  end
 
   # Enable ActiveRecord for request specs that need database access
   # Component specs don't need it, but request specs do

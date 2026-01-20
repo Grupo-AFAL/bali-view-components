@@ -90,7 +90,8 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
       let(:step_number_field) { builder.step_number_field(:duration, disabled: true) }
 
       it 'renders disabled buttons with btn-disabled class' do
-        expect(step_number_field).to have_css 'button.btn-disabled.pointer-events-none[disabled]', count: 2
+        expect(step_number_field).to have_css 'button.btn-disabled.pointer-events-none[disabled]',
+                                              count: 2
       end
 
       it 'does not add data actions to disabled buttons' do

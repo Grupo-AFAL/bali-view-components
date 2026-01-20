@@ -16,7 +16,7 @@
 
 module Bali
   module Importmap
-    module RichTextEditor # rubocop:disable Metrics/ModuleLength
+    module RichTextEditor
       CDN_BASE = 'https://cdn.jsdelivr.net/npm'
       TIPTAP_VERSION = '3.0.7'
       PROSEMIRROR_TABLES_VERSION = '1.1.4'

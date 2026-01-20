@@ -7,11 +7,11 @@ class SettingsController < ApplicationController
       dark_mode: session[:dark_mode] || false,
       language: session[:language] || 'en',
       timezone: session[:timezone] || 'UTC',
-      email_notifications: session[:email_notifications].nil? ? true : session[:email_notifications],
+      email_notifications: session[:email_notifications].nil? || session[:email_notifications],
       push_notifications: session[:push_notifications] || false,
       notification_frequency: session[:notification_frequency] || 'daily',
-      profile_visible: session[:profile_visible].nil? ? true : session[:profile_visible],
-      show_activity: session[:show_activity].nil? ? true : session[:show_activity]
+      profile_visible: session[:profile_visible].nil? || session[:profile_visible],
+      show_activity: session[:show_activity].nil? || session[:show_activity]
     )
   end
 

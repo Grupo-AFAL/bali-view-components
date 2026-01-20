@@ -4,18 +4,20 @@ module Bali
   module SideMenu
     module List
       class Component < ApplicationViewComponent
-        renders_many :items, ->(href: nil, name: nil, icon: nil, authorized: true, disabled: false, **options) do
-          Item::Component.new(
-            name: name,
-            href: href,
-            icon: icon,
-            authorized: authorized,
-            disabled: disabled,
-            current_path: @current_path,
-            group_behavior: @group_behavior,
-            **options
-          )
-        end
+        renders_many :items,
+                     lambda { |href: nil, name: nil, icon: nil,
+                               authorized: true, disabled: false, **options|
+                       Item::Component.new(
+                         name: name,
+                         href: href,
+                         icon: icon,
+                         authorized: authorized,
+                         disabled: disabled,
+                         current_path: @current_path,
+                         group_behavior: @group_behavior,
+                         **options
+                       )
+                     }
 
         attr_reader :title
 

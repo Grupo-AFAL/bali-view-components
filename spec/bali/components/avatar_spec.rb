@@ -242,7 +242,8 @@ RSpec.describe Bali::Avatar::Upload::Component, type: :component do
 
     it 'wraps the Avatar component' do
       helper.form_with(url: '/') do |form|
-        render_inline(described_class.new(form: form, method: :avatar, src: '/avatar.png', size: :xl))
+        render_inline(described_class.new(form: form, method: :avatar, src: '/avatar.png',
+                                          size: :xl))
       end
 
       expect(page).to have_css '.avatar .w-32'
@@ -384,7 +385,8 @@ RSpec.describe Bali::Avatar::Group::Component, type: :component do
 
   describe 'options passthrough' do
     it 'passes extra options to container' do
-      render_inline(described_class.new(data: { testid: 'avatar-group' }, id: 'my-group')) do |group|
+      render_inline(described_class.new(data: { testid: 'avatar-group' },
+                                        id: 'my-group')) do |group|
         group.with_avatar(src: '/avatar.png', size: :sm)
       end
 
@@ -401,7 +403,8 @@ RSpec.describe Bali::Avatar::Picture::Component, type: :component do
   end
 
   it 'accepts additional options' do
-    render_inline(described_class.new(image_url: '/avatar.png', alt: 'User avatar', class: 'custom'))
+    render_inline(described_class.new(image_url: '/avatar.png', alt: 'User avatar',
+                                      class: 'custom'))
 
     expect(page).to have_css 'img[alt="User avatar"]'
     expect(page).to have_css 'img.custom'

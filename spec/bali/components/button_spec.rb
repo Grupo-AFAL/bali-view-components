@@ -38,7 +38,8 @@ RSpec.describe Bali::Button::Component, type: :component do
   end
 
   describe 'variants' do
-    %i[primary secondary accent info success warning error ghost link neutral outline].each do |variant|
+    %i[primary secondary accent info success warning error ghost link neutral
+       outline].each do |variant|
       it "renders #{variant} variant" do
         render_inline(described_class.new(variant: variant)) { 'Button' }
 

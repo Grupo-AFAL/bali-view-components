@@ -106,7 +106,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
 
     context 'with range mode and default values' do
       let(:date_field_group) do
-        builder.date_field_group(:release_date, mode: 'range', value: ['2024-01-01', '2024-01-31'])
+        builder.date_field_group(:release_date, mode: 'range', value: %w[2024-01-01 2024-01-31])
       end
 
       it 'passes default dates to datepicker controller' do

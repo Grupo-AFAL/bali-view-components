@@ -11,7 +11,7 @@
       <% if text_field.present? %>
         <div class="flex-shrink-0">
           <%= render Bali::SearchInput::Component.new(
-              form: form, method: text_field, auto_submit: auto_submit_search_input,
+              form: form, field: text_field, auto_submit: auto_submit_search_input,
               submit: { data: { action: 'filter-form#submit' } }) %>
         </div>
       <% end %>

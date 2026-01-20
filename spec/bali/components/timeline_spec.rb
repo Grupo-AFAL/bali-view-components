@@ -92,9 +92,7 @@ RSpec.describe Bali::Timeline::Component, type: :component do
     end
 
     it 'renders default circle icon when no icon specified' do
-      render_inline(described_class.new) do |c|
-        c.with_tag_item
-      end
+      render_inline(described_class.new, &:with_tag_item)
 
       expect(page).to have_css('.timeline-middle .icon-component')
     end
@@ -201,7 +199,8 @@ RSpec.describe Bali::Timeline::Header::Component, type: :component do
   describe 'constants' do
     it 'defines frozen COLORS hash' do
       expect(described_class::COLORS).to be_frozen
-      expect(described_class::COLORS.keys).to include(:default, :primary, :success, :error, :ghost, :outline)
+      expect(described_class::COLORS.keys).to include(:default, :primary, :success, :error, :ghost,
+                                                      :outline)
     end
 
     it 'defaults to badge-neutral' do

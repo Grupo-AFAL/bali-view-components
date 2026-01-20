@@ -100,7 +100,8 @@ RSpec.describe Bali::BulkActions::Component, type: :component do
 
         expect(page).to have_css "form[action='/delete']"
         expect(page).to have_button 'Delete'
-        expect(page).to have_css "input[name='selected_ids'][data-bulk-actions-target='bulkAction']", visible: false
+        expect(page).to have_css "input[name='selected_ids'][data-bulk-actions-target='bulkAction']",
+                                 visible: false
       end
 
       it 'applies variant classes to submit button' do

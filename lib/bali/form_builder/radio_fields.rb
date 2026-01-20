@@ -2,7 +2,7 @@
 
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
-    module RadioFields # rubocop:disable Metrics/ModuleLength
+    module RadioFields
       RADIO_CLASS = 'radio'
       LABEL_CLASS = 'label cursor-pointer justify-start gap-3'
       LABEL_TEXT_CLASS = 'label-text'

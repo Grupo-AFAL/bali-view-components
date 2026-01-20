@@ -10,10 +10,13 @@ module Bali
         extra_wide: 'max-w-4xl'
       }.freeze
 
-      # Tailwind safelist: group-[.drawer-open]:translate-x-0 max-md:group-[.drawer-open]:max-w-[85%]
+      # Tailwind safelist: group-[.drawer-open]:translate-x-0
+      # Tailwind safelist: max-md:group-[.drawer-open]:max-w-[85%]
       POSITIONS = {
-        left: { side: 'left-0', transform: '-translate-x-full', open_class: 'group-[.drawer-open]:translate-x-0' },
-        right: { side: 'right-0', transform: 'translate-x-full', open_class: 'group-[.drawer-open]:translate-x-0' }
+        left: { side: 'left-0', transform: '-translate-x-full',
+                open_class: 'group-[.drawer-open]:translate-x-0' },
+        right: { side: 'right-0', transform: 'translate-x-full',
+                 open_class: 'group-[.drawer-open]:translate-x-0' }
       }.freeze
 
       renders_one :header

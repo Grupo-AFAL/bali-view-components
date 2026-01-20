@@ -45,6 +45,7 @@ export class RadioButtonsGroupController extends Controller {
     current: String,
     keepSelection: { type: Boolean, default: false }
   }
+
   static classes = ['active', 'inactive']
 
   // Default DaisyUI classes if not specified via data attributes

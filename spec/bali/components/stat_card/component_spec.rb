@@ -41,7 +41,7 @@ RSpec.describe Bali::StatCard::Component, type: :component do
   describe 'colors' do
     described_class::COLORS.each_key do |color|
       it "applies #{color} color classes" do
-        render_inline(described_class.new(**default_attrs.merge(color: color)))
+        render_inline(described_class.new(**default_attrs, color: color))
 
         color_classes = described_class::COLORS[color]
         expect(page).to have_css(".#{color_classes[:bg].gsub('/', '\\/')}")
@@ -49,7 +49,7 @@ RSpec.describe Bali::StatCard::Component, type: :component do
     end
 
     it 'defaults to primary color' do
-      render_inline(described_class.new(**default_attrs.except(:color).merge(color: nil)))
+      render_inline(described_class.new(**default_attrs.except(:color), color: nil))
 
       # Should fallback to primary
       expect(page).to have_css('.bg-primary\\/10')
@@ -103,34 +103,34 @@ RSpec.describe Bali::StatCard::Component, type: :component do
 
   describe 'icon background classes' do
     it 'returns correct bg class for primary' do
-      component = described_class.new(**default_attrs.merge(color: :primary))
+      component = described_class.new(**default_attrs, color: :primary)
       expect(component.icon_bg_class).to eq('bg-primary/10')
     end
 
     it 'returns correct bg class for warning' do
-      component = described_class.new(**default_attrs.merge(color: :warning))
+      component = described_class.new(**default_attrs, color: :warning)
       expect(component.icon_bg_class).to eq('bg-warning/10')
     end
 
     it 'falls back to primary for unknown color' do
-      component = described_class.new(**default_attrs.merge(color: :unknown))
+      component = described_class.new(**default_attrs, color: :unknown)
       expect(component.icon_bg_class).to eq('bg-primary/10')
     end
   end
 
   describe 'icon text classes' do
     it 'returns correct text class for primary' do
-      component = described_class.new(**default_attrs.merge(color: :primary))
+      component = described_class.new(**default_attrs, color: :primary)
       expect(component.icon_text_class).to eq('text-primary')
     end
 
     it 'returns correct text class for success' do
-      component = described_class.new(**default_attrs.merge(color: :success))
+      component = described_class.new(**default_attrs, color: :success)
       expect(component.icon_text_class).to eq('text-success')
     end
 
     it 'falls back to primary for unknown color' do
-      component = described_class.new(**default_attrs.merge(color: :unknown))
+      component = described_class.new(**default_attrs, color: :unknown)
       expect(component.icon_text_class).to eq('text-primary')
     end
   end
@@ -155,12 +155,12 @@ RSpec.describe Bali::StatCard::Component, type: :component do
     end
 
     it 'passes through custom options' do
-      component = described_class.new(**default_attrs.merge(class: 'custom-class'))
+      component = described_class.new(**default_attrs, class: 'custom-class')
       expect(component.card_options).to include(class: 'custom-class')
     end
 
     it 'passes through data attributes' do
-      component = described_class.new(**default_attrs.merge(data: { testid: 'stat' }))
+      component = described_class.new(**default_attrs, data: { testid: 'stat' })
       expect(component.card_options).to include(data: { testid: 'stat' })
     end
   end
@@ -173,26 +173,26 @@ RSpec.describe Bali::StatCard::Component, type: :component do
     end
 
     it 'includes color-specific background class' do
-      component = described_class.new(**default_attrs.merge(color: :warning))
+      component = described_class.new(**default_attrs, color: :warning)
       expect(component.icon_container_classes).to include('bg-warning/10')
     end
   end
 
   describe 'numeric values' do
     it 'handles integer values' do
-      render_inline(described_class.new(**default_attrs.merge(value: 42)))
+      render_inline(described_class.new(**default_attrs, value: 42))
 
       expect(page).to have_text('42')
     end
 
     it 'handles formatted currency values' do
-      render_inline(described_class.new(**default_attrs.merge(value: '$1,234,567')))
+      render_inline(described_class.new(**default_attrs, value: '$1,234,567'))
 
       expect(page).to have_text('$1,234,567')
     end
 
     it 'handles percentage values' do
-      render_inline(described_class.new(**default_attrs.merge(value: '78%')))
+      render_inline(described_class.new(**default_attrs, value: '78%'))
 
       expect(page).to have_text('78%')
     end

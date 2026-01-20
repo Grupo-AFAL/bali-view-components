@@ -35,7 +35,8 @@ RSpec.describe Bali::Clipboard::Component, type: :component do
         c.with_source('Click button to copy me!')
       end
 
-      expect(page).to have_css 'div.clipboard-source.input.input-bordered', text: 'Click button to copy me!'
+      expect(page).to have_css 'div.clipboard-source.input.input-bordered',
+                               text: 'Click button to copy me!'
       expect(page).to have_css 'div[data-clipboard-target="source"]'
     end
   end

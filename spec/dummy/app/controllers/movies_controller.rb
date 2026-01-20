@@ -58,13 +58,13 @@ class MoviesController < ApplicationController
     case action
     when 'delete'
       Movie.where(id: movie_ids).destroy_all
-      flash[:notice] = "#{movie_ids.size} movie(s) deleted."
+      flash.now[:notice] = "#{movie_ids.size} movie(s) deleted."
     when 'mark_done'
       Movie.where(id: movie_ids).update_all(status: :done)
-      flash[:notice] = "#{movie_ids.size} movie(s) marked as done."
+      flash.now[:notice] = "#{movie_ids.size} movie(s) marked as done."
     when 'mark_draft'
       Movie.where(id: movie_ids).update_all(status: :draft)
-      flash[:notice] = "#{movie_ids.size} movie(s) marked as draft."
+      flash.now[:notice] = "#{movie_ids.size} movie(s) marked as draft."
     end
 
     redirect_to movies_path
@@ -77,7 +77,7 @@ class MoviesController < ApplicationController
   end
 
   def movie_params
-    params.require(:movie).permit(:name, :genre, :status, :tenant_id, :indie)
+    params.expect(movie: %i[name genre status tenant_id indie])
   end
 
   # Define filterable attributes for the advanced filters

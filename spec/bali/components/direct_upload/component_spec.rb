@@ -277,7 +277,8 @@ RSpec.describe Bali::DirectUpload::Component, type: :component do
     it 'renders error alert container' do
       render_component
 
-      expect(page).to have_css '[data-direct-upload-target="errorAlert"].alert.alert-error.hidden', visible: :all
+      expect(page).to have_css '[data-direct-upload-target="errorAlert"].alert.alert-error.hidden',
+                               visible: :all
     end
 
     it 'renders error message container' do

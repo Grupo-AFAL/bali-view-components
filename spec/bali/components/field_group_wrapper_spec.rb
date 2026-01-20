@@ -61,14 +61,19 @@ RSpec.describe Bali::FieldGroupWrapper::Component, type: :component do
 
   describe 'tooltip' do
     it 'renders tooltip with info icon when tooltip option provided' do
-      render_inline(described_class.new(builder, :name, label: { tooltip: 'Help text' })) { 'input' }
+      render_inline(described_class.new(builder, :name, label: { tooltip: 'Help text' })) do
+        'input'
+      end
 
       expect(page).to have_css 'legend.fieldset-legend'
       expect(page).to have_text 'Name'
     end
 
     it 'combines custom label text with tooltip' do
-      render_inline(described_class.new(builder, :name, label: { text: 'Email', tooltip: 'Required' })) { 'input' }
+      render_inline(described_class.new(builder, :name,
+                                        label: { text: 'Email', tooltip: 'Required' })) do
+        'input'
+      end
 
       expect(page).to have_text 'Email'
     end
@@ -88,7 +93,10 @@ RSpec.describe Bali::FieldGroupWrapper::Component, type: :component do
     end
 
     it 'applies custom label class' do
-      render_inline(described_class.new(builder, :name, label: { class: 'font-bold', tooltip: 'tip' })) { 'input' }
+      render_inline(described_class.new(builder, :name,
+                                        label: { class: 'font-bold', tooltip: 'tip' })) do
+        'input'
+      end
 
       expect(page).to have_css 'legend.fieldset-legend.font-bold'
     end
@@ -96,7 +104,9 @@ RSpec.describe Bali::FieldGroupWrapper::Component, type: :component do
 
   describe 'data attributes' do
     it 'applies field_data to the wrapper' do
-      render_inline(described_class.new(builder, :name, field_data: { testid: 'wrapper' })) { 'input' }
+      render_inline(described_class.new(builder, :name, field_data: { testid: 'wrapper' })) do
+        'input'
+      end
 
       expect(page).to have_css 'fieldset[data-testid="wrapper"]'
     end

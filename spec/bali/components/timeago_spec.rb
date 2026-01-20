@@ -29,7 +29,7 @@ RSpec.describe Bali::Timeago::Component, type: :component do
     it 'includes the standard datetime HTML attribute' do
       render_inline(component)
 
-      expect(page).to have_css("time[datetime]")
+      expect(page).to have_css('time[datetime]')
     end
 
     it 'sets the locale value from I18n' do

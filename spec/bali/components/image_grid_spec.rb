@@ -180,7 +180,9 @@ RSpec.describe Bali::ImageGrid::Image::Component, type: :component do
   end
 
   it 'passes through data attributes' do
-    render_inline(described_class.new(data: { image_id: '123' })) { '<img src="test.jpg">'.html_safe }
+    render_inline(described_class.new(data: { image_id: '123' })) do
+      '<img src="test.jpg">'.html_safe
+    end
 
     expect(page).to have_css('[data-image-id="123"]')
   end

@@ -38,7 +38,7 @@ module Bali
         multiple = options.fetch(:multiple, false)
         file_class = extract_option(options, :file_class)
 
-        input_options = build_input_options(options)
+        input_options = build_file_input_options(options)
 
         @template.content_tag(:div, wrapper_options(non_selected_text, multiple, file_class)) do
           file_label(method, input_options, file_icon_name, choose_file_text) +
@@ -61,7 +61,7 @@ module Bali
         end
       end
 
-      def build_input_options(options)
+      def build_file_input_options(options)
         # Override class completely - file input must be hidden (not styled as DaisyUI input)
         opts = options.merge(class: INPUT_CLASS)
         opts = prepend_action(opts, 'file-input#onChange')

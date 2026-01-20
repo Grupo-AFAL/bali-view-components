@@ -32,7 +32,8 @@ module Bali
         # Team members with avatars and roles for the rich HTML demo
         TEAM_MEMBERS = [
           { name: 'Sarah Chen', role: 'Engineering Lead', initials: 'SC', color: 'bg-primary' },
-          { name: 'Marcus Johnson', role: 'Product Manager', initials: 'MJ', color: 'bg-secondary' },
+          { name: 'Marcus Johnson', role: 'Product Manager', initials: 'MJ',
+            color: 'bg-secondary' },
           { name: 'Elena Rodriguez', role: 'UX Designer', initials: 'ER', color: 'bg-accent' },
           { name: 'David Kim', role: 'Backend Developer', initials: 'DK', color: 'bg-info' },
           { name: 'Aisha Patel', role: 'Frontend Developer', initials: 'AP', color: 'bg-success' },

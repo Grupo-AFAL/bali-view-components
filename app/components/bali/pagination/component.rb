@@ -22,7 +22,7 @@ module Bali
       private
 
       def btn_class
-        classes = ['join-item', 'btn']
+        classes = %w[join-item btn]
         classes << "btn-#{@size}" unless @size == :md
         classes << 'btn-outline' if @variant == :outline
         classes << 'btn-ghost' if @variant == :ghost

@@ -22,7 +22,7 @@ module Bali
       # @param current_path [String] The current request path for active state detection
       # @param fixed [Boolean] Fixed to viewport (true) or inline flow (false). Default: true
       # @param collapsable [Boolean] Whether the sidebar can collapse to icon-only mode
-      # @param group_behavior [Symbol] How nested items behave - :expandable (click) or :dropdown (hover)
+      # @param group_behavior [Symbol] How nested items behave - :expandable or :dropdown
       # @param brand [String] Optional brand name shown in the header (e.g., "ACME")
       def initialize(current_path:, fixed: true, collapsable: false, group_behavior: :expandable,
                      brand: nil, **options)

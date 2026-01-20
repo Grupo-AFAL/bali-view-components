@@ -136,7 +136,8 @@ RSpec.describe Bali::Card::Component, type: :component do
 
     it 'renders header with icon, subtitle, and badge' do
       render_inline(described_class.new) do |c|
-        c.with_header(title: 'Dashboard', subtitle: 'Overview of your data', icon: 'home') do |header|
+        c.with_header(title: 'Dashboard', subtitle: 'Overview of your data',
+                      icon: 'home') do |header|
           header.with_badge { 'Beta' }
         end
       end
