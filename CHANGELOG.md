@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.23] - 2025-12-12
+
+### Changed
+
+- `Bali::SideMenu::Item::Component` to display a tooltip when the menu is collapsed.
+
+## [1.4.22] - 2025-12-12
+
+### Changed
+
+- Update filter form submission to prevent default behavior, update URL, and enable custom search input button options.
+
+## [1.4.21] - 2025-11-28
+
+### Added
+
+- `Bali::DataTable::Action::Component` to encapsulate action rendering with optional description tooltips.
+
+### Changed
+
+- `Bali::DataTable::ActionsPanel::Component` now uses `Bali::DataTable::Action::Component` for rendering actions, enabling support for action descriptions via tooltips.
+
+## [1.4.20] - 2025-11-27
+
+### Added
+
+- `Rrule::EnglishHumanizer` service to convert RRule objects to human-readable English text.
+- `Rrule::SpanishHumanizer` service to convert RRule objects to human-readable Spanish text.
+- `Bali::Concerns::GlobalIdAccessors` concern to define GlobalID getter and setter methods for ActiveRecord associations.
+- `rrule` gem dependency for recurrence rule handling.
+
+### Changed
+
+- Updated `Bali::RecurrentEventRuleForm::Component` to display humanized recurrence rules in English and Spanish.
+- Added RRule override to support `humanize` method with locale parameter.
+
 ## [1.4.19] - 2025-11-25
 
 ### Added

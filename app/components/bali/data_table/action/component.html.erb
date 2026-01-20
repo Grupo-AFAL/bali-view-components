@@ -1,0 +1,11 @@
+<% if description? %>
+  <%= render Bali::Tooltip::Component.new do |c| %>
+    <% c.with_trigger do %>
+      <%= render link_klass.new(method: @method, href: @href, **@options) %>
+    <% end %>
+
+    <%= description %>
+  <% end %>
+<% else %>
+  <%= render link_klass.new(method: @method, href: @href, **@options) %>
+<% end %>

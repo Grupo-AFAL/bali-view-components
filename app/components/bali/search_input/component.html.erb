@@ -12,9 +12,9 @@
 
     <% if !auto_submit %>
       <div class="control search-control">
-        <button type="submit" class="button is-info">
+        <%= tag.button(type: :submit, **@submit_options.except(:type, 'type')) do %>
           <%= render Bali::Icon::Component.new('search') %>
-        </button>
+        <% end %>
       </div>
     <% end %>
   <% end %>

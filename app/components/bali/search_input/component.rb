@@ -11,6 +11,7 @@ module Bali
         @auto_submit = auto_submit
         @placeholder = options.delete(:placeholder)
         @class = options.delete(:class)
+        @submit_options = prepend_class_name(options.delete(:submit) || {}, 'button is-info')
       end
 
       def value

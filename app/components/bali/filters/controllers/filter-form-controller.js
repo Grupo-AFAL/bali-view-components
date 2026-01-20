@@ -5,9 +5,12 @@ export class FilterFormController extends Controller {
   static values = { textField: String }
   static targets = ['removeButton', 'filterCounter']
 
-  submit () {
+  submit (e) {
+    e.preventDefault()
+
     this.element.requestSubmit()
     this.updateButtons()
+    this.updateUrl(document.title, this._buildURL())
   }
 
   // Toggle the remove filters button and display the number of active filters
@@ -34,5 +37,25 @@ export class FilterFormController extends Controller {
 
     // Return unique values
     return [...new Set(filterNames)]
+  }
+
+  updateUrl (title, url) {
+    if (window.Turbo) {
+      window.Turbo.session.history.push(url)
+
+      // Makes the Back Button functional
+      window.Turbo.session.pageBecameInteractive()
+    } else {
+      history.pushState({}, title, url.toString())
+    }
+  }
+
+  _buildURL () {
+    const url = new URL(this.element.getAttribute('action'), window.location.origin)
+    for (const [key, value] of queryParams(this.element)) {
+      url.searchParams.set(key, value)
+    }
+
+    return url
   }
 }
