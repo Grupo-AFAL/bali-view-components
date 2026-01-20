@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **This is a major release migrating all 60+ components from Bulma CSS to Tailwind + DaisyUI 5.**
 
+### Infrastructure
+
+- Added Tailwind CSS build step to CI pipeline for proper asset compilation
+
 ### Breaking Changes
 
 - **`Bali::Link::Component`** - `type:` parameter deprecated. Use `variant:` instead.
