@@ -58,11 +58,11 @@ module Bali
         end
 
         def table_mode_url
-          build_url(@display_mode_param_name => :table)
+          build_url({ @display_mode_param_name => :table })
         end
 
         def grid_mode_url
-          build_url(@display_mode_param_name => :grid)
+          build_url({ @display_mode_param_name => :grid })
         end
 
         def table_button_classes
