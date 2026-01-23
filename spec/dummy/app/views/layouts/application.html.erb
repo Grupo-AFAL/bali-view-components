@@ -22,8 +22,12 @@
       <%= yield %>
     </main>
 
-    <%# Empty modal/drawer templates - content loads via fetch %>
-    <%= render Bali::Modal::Component.new(active: false, id: 'modal-template') %>
-    <%= render Bali::Drawer::Component.new(active: false, drawer_id: 'drawer-template') %>
+    <%# Modal/drawer templates with skeleton loading state - content replaces skeleton via fetch %>
+    <%= render Bali::Modal::Component.new(active: false, id: 'modal-template') do %>
+      <%= render Bali::Skeleton::Component.new(variant: :modal) %>
+    <% end %>
+    <%= render Bali::Drawer::Component.new(active: false, drawer_id: 'drawer-template') do %>
+      <%= render Bali::Skeleton::Component.new(variant: :list, lines: 4) %>
+    <% end %>
   </body>
 </html>

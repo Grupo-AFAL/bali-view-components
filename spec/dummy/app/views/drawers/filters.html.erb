@@ -1,0 +1,21 @@
+<div class="space-y-4">
+  <div class="form-control">
+    <label class="label"><span class="label-text">Category</span></label>
+    <select class="select select-bordered w-full">
+      <option>All Categories</option>
+      <option>Electronics</option>
+      <option>Clothing</option>
+    </select>
+  </div>
+  <div class="form-control">
+    <label class="label"><span class="label-text">Price Range</span></label>
+    <input type="range" min="0" max="100" value="50" class="range range-primary" />
+  </div>
+  <div class="form-control">
+    <label class="label cursor-pointer">
+      <span class="label-text">In Stock Only</span>
+      <input type="checkbox" class="toggle toggle-primary" />
+    </label>
+  </div>
+  <%= render Bali::Button::Component.new(name: 'Apply Filters', variant: :primary, class: 'w-full mt-4') %>
+</div>

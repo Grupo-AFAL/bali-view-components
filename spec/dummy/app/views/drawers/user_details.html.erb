@@ -1,0 +1,22 @@
+<div class="space-y-4">
+  <div class="flex items-center gap-4">
+    <%= render Bali::Avatar::Component.new(size: :lg) do |avatar| %>
+      <% avatar.with_placeholder { 'JD' } %>
+    <% end %>
+    <div>
+      <h3 class="font-semibold text-lg">John Doe</h3>
+      <p class="text-sm text-base-content/60">john@example.com</p>
+    </div>
+  </div>
+
+  <%= render Bali::PropertiesTable::Component.new do |table| %>
+    <% table.with_property(label: 'Role', value: 'Administrator') %>
+    <% table.with_property(label: 'Department', value: 'Engineering') %>
+    <% table.with_property(label: 'Status') do %>
+      <%= render Bali::Tag::Component.new(text: 'Active', color: :success) %>
+    <% end %>
+    <% table.with_property(label: 'Joined') do %>
+      <%= render Bali::Timeago::Component.new(2.months.ago) %>
+    <% end %>
+  <% end %>
+</div>

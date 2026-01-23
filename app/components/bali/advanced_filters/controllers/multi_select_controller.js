@@ -10,11 +10,57 @@ export class MultiSelectController extends Controller {
   connect () {
     this.updateLabel()
     this.boundCloseOnClickOutside = this.closeOnClickOutside.bind(this)
+    this.boundHandleKeydown = this.handleKeydown.bind(this)
     document.addEventListener('click', this.boundCloseOnClickOutside)
+    this.element.addEventListener('keydown', this.boundHandleKeydown)
+    this.focusedIndex = -1
   }
 
   disconnect () {
     document.removeEventListener('click', this.boundCloseOnClickOutside)
+    this.element.removeEventListener('keydown', this.boundHandleKeydown)
+  }
+
+  /**
+   * Handle keyboard navigation for accessibility (WCAG 2.1)
+   */
+  handleKeydown (event) {
+    const checkboxes = this.getCheckboxes()
+    if (checkboxes.length === 0) return
+
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault()
+        this.focusedIndex = Math.min(this.focusedIndex + 1, checkboxes.length - 1)
+        checkboxes[this.focusedIndex]?.focus()
+        break
+      case 'ArrowUp':
+        event.preventDefault()
+        this.focusedIndex = Math.max(this.focusedIndex - 1, 0)
+        checkboxes[this.focusedIndex]?.focus()
+        break
+      case 'Enter':
+      case ' ':
+        // Allow default checkbox behavior if a checkbox is focused
+        if (document.activeElement?.type === 'checkbox') {
+          // Enter doesn't toggle checkboxes by default, so we handle it
+          if (event.key === 'Enter') {
+            event.preventDefault()
+            document.activeElement.checked = !document.activeElement.checked
+            this.updateLabel()
+          }
+        }
+        break
+      case 'Escape':
+        event.preventDefault()
+        this.close()
+        this.triggerTarget?.focus()
+        break
+    }
+  }
+
+  getCheckboxes () {
+    return Array.from(this.element.querySelectorAll('input[type="checkbox"]'))
   }
 
   toggle (event) {

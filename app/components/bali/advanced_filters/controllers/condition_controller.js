@@ -372,6 +372,14 @@ export class ConditionController extends Controller {
   }
 
   /**
+   * Escape HTML to prevent XSS when inserting user-provided content
+   */
+  escapeHtml (text) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
+    return String(text).replace(/[&<>"']/g, ch => map[ch])
+  }
+
+  /**
    * Parse options from data attribute
    */
   parseOptions (optionsString) {
@@ -510,7 +518,7 @@ export class ConditionController extends Controller {
     const optionsHtml = options
       .map((opt) => {
         const [label, value] = Array.isArray(opt) ? opt : [opt, opt]
-        return `<option value="${value}">${label}</option>`
+        return `<option value="${this.escapeHtml(value)}">${this.escapeHtml(label)}</option>`
       })
       .join('')
 
@@ -528,15 +536,17 @@ export class ConditionController extends Controller {
     const optionsHtml = options
       .map((opt) => {
         const [label, value] = Array.isArray(opt) ? opt : [opt, opt]
+        const escapedLabel = this.escapeHtml(label)
+        const escapedValue = this.escapeHtml(value)
         return `
           <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-base-200 cursor-pointer">
             <input type="checkbox"
                    class="checkbox checkbox-sm checkbox-primary"
                    name="${fieldName}"
-                   value="${value}"
-                   data-label="${label}"
+                   value="${escapedValue}"
+                   data-label="${escapedLabel}"
                    data-action="multi-select#updateSelection">
-            <span class="text-sm">${label}</span>
+            <span class="text-sm">${escapedLabel}</span>
           </label>
         `
       })

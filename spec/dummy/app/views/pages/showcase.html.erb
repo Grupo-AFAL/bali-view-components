@@ -93,79 +93,28 @@
 
   <%= render Bali::Card::Component.new(style: :bordered) do %>
     <div class="flex flex-wrap gap-4">
-      <%# Modal Triggers %>
-      <%= render Bali::Button::Component.new(
+      <%# Modal Triggers - links that fetch content into the shared modal template %>
+      <%= render Bali::Link::Component.new(
         name: 'Open Basic Modal',
-        variant: :primary,
-        data: { action: 'click->modal#open', 'modal-id-param': 'demo-modal-basic' }
+        href: '/modals/basic',
+        type: :primary,
+        data: { action: 'modal#open' }
       ) %>
 
-      <%= render Bali::Button::Component.new(
+      <%= render Bali::Link::Component.new(
         name: 'Open Form Modal',
-        variant: :secondary,
-        data: { action: 'click->modal#open', 'modal-id-param': 'demo-modal-form' }
+        href: '/modals/form',
+        type: :secondary,
+        data: { action: 'modal#open' }
       ) %>
 
-      <%= render Bali::Button::Component.new(
+      <%= render Bali::Link::Component.new(
         name: 'Open Confirmation Modal',
-        variant: :error,
-        data: { action: 'click->modal#open', 'modal-id-param': 'demo-modal-confirm' }
+        href: '/modals/confirm',
+        type: :error,
+        data: { action: 'modal#open' }
       ) %>
     </div>
-  <% end %>
-
-  <%# Basic Modal %>
-  <%= render Bali::Modal::Component.new(id: 'demo-modal-basic', active: false, size: :md) do |modal| %>
-    <% modal.with_header(title: 'Welcome!', badge: 'New', badge_color: :primary) %>
-    <% modal.with_body do %>
-      <p>This is a basic modal with a header, body, and action buttons.</p>
-      <p class="mt-2 text-base-content/70">Modals are perfect for focusing user attention on important content or actions.</p>
-    <% end %>
-    <% modal.with_actions do %>
-      <%= render Bali::Button::Component.new(name: 'Close', variant: :ghost, data: { action: 'modal#close' }) %>
-      <%= render Bali::Button::Component.new(name: 'Got it!', variant: :primary, data: { action: 'modal#close' }) %>
-    <% end %>
-  <% end %>
-
-  <%# Form Modal %>
-  <%= render Bali::Modal::Component.new(id: 'demo-modal-form', active: false, size: :lg) do |modal| %>
-    <% modal.with_header(title: 'Create New Item') %>
-    <% modal.with_body do %>
-      <div class="space-y-4">
-        <div class="form-control">
-          <label class="label"><span class="label-text">Name</span></label>
-          <input type="text" class="input input-bordered" placeholder="Enter name..." />
-        </div>
-        <div class="form-control">
-          <label class="label"><span class="label-text">Description</span></label>
-          <textarea class="textarea textarea-bordered" rows="3" placeholder="Enter description..."></textarea>
-        </div>
-      </div>
-    <% end %>
-    <% modal.with_actions do %>
-      <%= render Bali::Button::Component.new(name: 'Cancel', variant: :ghost, data: { action: 'modal#close' }) %>
-      <%= render Bali::Button::Component.new(name: 'Create', variant: :primary) %>
-    <% end %>
-  <% end %>
-
-  <%# Confirmation Modal %>
-  <%= render Bali::Modal::Component.new(id: 'demo-modal-confirm', active: false, size: :sm) do |modal| %>
-    <% modal.with_header(title: 'Confirm Delete', close_button: false) %>
-    <% modal.with_body do %>
-      <div class="flex items-start gap-4">
-        <div class="bg-error/10 rounded-full p-3">
-          <%= render Bali::Icon::Component.new('triangle-alert', class: 'text-error size-6') %>
-        </div>
-        <div>
-          <p class="font-medium">Are you sure you want to delete this item?</p>
-          <p class="text-sm text-base-content/70 mt-1">This action cannot be undone.</p>
-        </div>
-      </div>
-    <% end %>
-    <% modal.with_actions do %>
-      <%= render Bali::Button::Component.new(name: 'Cancel', variant: :ghost, data: { action: 'modal#close' }) %>
-      <%= render Bali::Button::Component.new(name: 'Delete', variant: :error) %>
-    <% end %>
   <% end %>
 </section>
 
@@ -179,104 +128,28 @@
 
   <%= render Bali::Card::Component.new(style: :bordered) do %>
     <div class="flex flex-wrap gap-4">
-      <%= render Bali::Button::Component.new(
-        name: 'Open Right Drawer',
-        variant: :primary,
-        data: { action: 'click->drawer#open', 'drawer-id-param': 'demo-drawer-right' }
+      <%# Drawer Triggers - links that fetch content into the shared drawer template %>
+      <%= render Bali::Link::Component.new(
+        name: 'Open User Details',
+        href: '/drawers/user_details',
+        type: :primary,
+        data: { action: 'drawer#open' }
       ) %>
 
-      <%= render Bali::Button::Component.new(
-        name: 'Open Left Drawer',
-        variant: :secondary,
-        data: { action: 'click->drawer#open', 'drawer-id-param': 'demo-drawer-left' }
+      <%= render Bali::Link::Component.new(
+        name: 'Open Filters',
+        href: '/drawers/filters',
+        type: :secondary,
+        data: { action: 'drawer#open' }
       ) %>
 
-      <%= render Bali::Button::Component.new(
-        name: 'Open Wide Drawer',
-        variant: :accent,
-        data: { action: 'click->drawer#open', 'drawer-id-param': 'demo-drawer-wide' }
+      <%= render Bali::Link::Component.new(
+        name: 'Open Order History',
+        href: '/drawers/order_history',
+        type: :accent,
+        data: { action: 'drawer#open' }
       ) %>
     </div>
-  <% end %>
-
-  <%# Right Drawer %>
-  <%= render Bali::Drawer::Component.new(drawer_id: 'demo-drawer-right', title: 'User Details', position: :right, size: :medium) do %>
-    <div class="space-y-4">
-      <div class="flex items-center gap-4">
-        <%= render Bali::Avatar::Component.new(size: :lg) do |avatar| %>
-          <% avatar.with_placeholder { 'JD' } %>
-        <% end %>
-        <div>
-          <h3 class="font-semibold text-lg">John Doe</h3>
-          <p class="text-sm text-base-content/60">john@example.com</p>
-        </div>
-      </div>
-
-      <%= render Bali::PropertiesTable::Component.new do |table| %>
-        <% table.with_property(label: 'Role', value: 'Administrator') %>
-        <% table.with_property(label: 'Department', value: 'Engineering') %>
-        <% table.with_property(label: 'Status') do %>
-          <%= render Bali::Tag::Component.new(text: 'Active', color: :success) %>
-        <% end %>
-        <% table.with_property(label: 'Joined') do %>
-          <%= render Bali::Timeago::Component.new(2.months.ago) %>
-        <% end %>
-      <% end %>
-    </div>
-  <% end %>
-
-  <%# Left Drawer %>
-  <%= render Bali::Drawer::Component.new(drawer_id: 'demo-drawer-left', title: 'Filters', position: :left, size: :narrow) do %>
-    <div class="space-y-4">
-      <div class="form-control">
-        <label class="label"><span class="label-text">Category</span></label>
-        <select class="select select-bordered w-full">
-          <option>All Categories</option>
-          <option>Electronics</option>
-          <option>Clothing</option>
-        </select>
-      </div>
-      <div class="form-control">
-        <label class="label"><span class="label-text">Price Range</span></label>
-        <input type="range" min="0" max="100" value="50" class="range range-primary" />
-      </div>
-      <div class="form-control">
-        <label class="label cursor-pointer">
-          <span class="label-text">In Stock Only</span>
-          <input type="checkbox" class="toggle toggle-primary" />
-        </label>
-      </div>
-      <%= render Bali::Button::Component.new(name: 'Apply Filters', variant: :primary, class: 'w-full mt-4') %>
-    </div>
-  <% end %>
-
-  <%# Wide Drawer %>
-  <%= render Bali::Drawer::Component.new(drawer_id: 'demo-drawer-wide', title: 'Order History', position: :right, size: :wide) do %>
-    <%= render Bali::Table::Component.new do |table| %>
-      <% table.with_header(name: 'Order ID') %>
-      <% table.with_header(name: 'Date') %>
-      <% table.with_header(name: 'Status') %>
-      <% table.with_header(name: 'Total') %>
-
-      <% table.with_row do %>
-        <td class="font-mono">#ORD-001</td>
-        <td>Jan 15, 2024</td>
-        <td><%= render Bali::Tag::Component.new(text: 'Delivered', color: :success, size: :sm) %></td>
-        <td>$125.00</td>
-      <% end %>
-      <% table.with_row do %>
-        <td class="font-mono">#ORD-002</td>
-        <td>Jan 18, 2024</td>
-        <td><%= render Bali::Tag::Component.new(text: 'Shipped', color: :info, size: :sm) %></td>
-        <td>$89.50</td>
-      <% end %>
-      <% table.with_row do %>
-        <td class="font-mono">#ORD-003</td>
-        <td>Jan 20, 2024</td>
-        <td><%= render Bali::Tag::Component.new(text: 'Processing', color: :warning, size: :sm) %></td>
-        <td>$210.00</td>
-      <% end %>
-    <% end %>
   <% end %>
 </section>
 

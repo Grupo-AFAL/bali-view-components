@@ -1,0 +1,25 @@
+<%= render Bali::Table::Component.new do |table| %>
+  <% table.with_header(name: 'Order ID') %>
+  <% table.with_header(name: 'Date') %>
+  <% table.with_header(name: 'Status') %>
+  <% table.with_header(name: 'Total') %>
+
+  <% table.with_row do %>
+    <td class="font-mono">#ORD-001</td>
+    <td>Jan 15, 2024</td>
+    <td><%= render Bali::Tag::Component.new(text: 'Delivered', color: :success, size: :sm) %></td>
+    <td>$125.00</td>
+  <% end %>
+  <% table.with_row do %>
+    <td class="font-mono">#ORD-002</td>
+    <td>Jan 18, 2024</td>
+    <td><%= render Bali::Tag::Component.new(text: 'Shipped', color: :info, size: :sm) %></td>
+    <td>$89.50</td>
+  <% end %>
+  <% table.with_row do %>
+    <td class="font-mono">#ORD-003</td>
+    <td>Jan 20, 2024</td>
+    <td><%= render Bali::Tag::Component.new(text: 'Processing', color: :warning, size: :sm) %></td>
+    <td>$210.00</td>
+  <% end %>
+<% end %>

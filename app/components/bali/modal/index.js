@@ -30,6 +30,11 @@ export class ModalController extends Controller {
       )
     }
 
+    // Store original skeleton content for restoration on close
+    if (this.hasContentTarget) {
+      this._originalContent = this.contentTarget.innerHTML
+    }
+
     if (this.hasBackgroundTarget) {
       this.backgroundTarget.addEventListener('click', this._closeModal)
     }
@@ -70,6 +75,11 @@ export class ModalController extends Controller {
   }
 
   setOptionsAndOpenModal = event => {
+    // Only process if this controller has the required targets
+    // This allows multiple controllers to exist (e.g., on body and component)
+    // but only the one with targets will actually open the modal
+    if (!this.hasContentTarget || !this.hasTemplateTarget || !this.hasWrapperTarget) return
+
     this.setOptions(event.detail.options)
     this.openModal(event.detail.content)
   }
@@ -78,15 +88,19 @@ export class ModalController extends Controller {
     // Store the element that triggered the modal for focus restoration
     this.previouslyFocusedElement = document.activeElement
 
-    this.wrapperTarget.classList.add(...this.wrapperClasses)
+    if (this.wrapperClasses) {
+      this.wrapperTarget.classList.add(...this.wrapperClasses)
+    }
 
     this.templateTarget.classList.add('modal-open')
-    this.contentTarget.innerHTML = content
 
-    autoFocusInput(this.contentTarget)
-
-    // Set up focus trap
-    this.trapFocus()
+    // Only replace content if provided - allows showing skeleton first
+    if (content !== null && content !== undefined) {
+      this.contentTarget.innerHTML = content
+      autoFocusInput(this.contentTarget)
+      // Set up focus trap after content is loaded
+      this.trapFocus()
+    }
   }
 
   trapFocus () {
@@ -132,7 +146,13 @@ export class ModalController extends Controller {
     if (this.wrapperClasses) {
       this.wrapperTarget.classList.remove(...this.wrapperClasses)
     }
-    this.contentTarget.innerHTML = ''
+
+    // Restore original skeleton content for next open
+    if (this._originalContent) {
+      this.contentTarget.innerHTML = this._originalContent
+    } else {
+      this.contentTarget.innerHTML = ''
+    }
 
     // Clean up focus trap
     if (this.wrapperTarget) {
@@ -189,18 +209,37 @@ export class ModalController extends Controller {
     event.preventDefault()
     const target = event.currentTarget
 
-    this.wrapperClasses = this.normalizeClass(
+    const wrapperClasses = this.normalizeClass(
       target.getAttribute('data-wrapper-class')
     )
-    this.redirectTo = target.getAttribute('data-redirect-to')
-    this.skipRender = Boolean(target.getAttribute('data-skip-render'))
-    this.extraProps = JSON.parse(target.getAttribute('data-extra-props'))
+    const redirectTo = target.getAttribute('data-redirect-to')
+    const skipRender = Boolean(target.getAttribute('data-skip-render'))
+    const extraProps = JSON.parse(target.getAttribute('data-extra-props'))
 
+    // Show modal immediately with skeleton (content already in template)
+    document.dispatchEvent(new CustomEvent('openModal', {
+      detail: {
+        content: null, // Don't replace content - show existing skeleton
+        options: { wrapperClasses, redirectTo, skipRender, extraProps }
+      }
+    }))
+
+    // Fetch actual content
     const response = await fetch(this._buildURL(target.href))
     const body = await response.text()
-    if (!response.redirected) return this.openModal(body)
 
-    this._replaceBodyAndURL(body, response.url)
+    if (response.redirected) {
+      this._replaceBodyAndURL(body, response.url)
+      return
+    }
+
+    // Replace skeleton with actual content
+    document.dispatchEvent(new CustomEvent('openModal', {
+      detail: {
+        content: body,
+        options: { wrapperClasses, redirectTo, skipRender, extraProps }
+      }
+    }))
   }
 
   close = event => {

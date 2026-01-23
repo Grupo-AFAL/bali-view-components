@@ -114,8 +114,7 @@
           },
           class: 'w-full' do |f| %>
 
-      <div class="card bg-base-100 shadow-lg border border-base-200">
-        <div class="card-body p-4 sm:p-6 space-y-4">
+      <%= render Bali::Card::Component.new(style: :bordered, body_class: 'p-4 sm:p-6 space-y-4') do %>
           <%# Header %>
           <div class="flex justify-between items-center">
             <h3 class="font-semibold text-lg flex items-center gap-2">
@@ -164,8 +163,7 @@
               <%= t('bali.advanced_filters.apply', default: 'Apply Filters') %>
             </button>
           </div>
-        </div>
-      </div>
+      <% end %>
     <% end %>
   <% end %>
 

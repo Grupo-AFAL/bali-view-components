@@ -43,8 +43,7 @@
           <%# Dropdown content %>
           <div class="<%= class_names('filters-popup dropdown-content z-50 mt-2', 'hidden': !opened) %>"
                data-popup-target="container">
-            <div class="card bg-base-100 shadow-2xl border border-base-200 w-80 sm:w-96">
-              <div class="card-body p-4 space-y-4">
+            <%= render Bali::Card::Component.new(style: :bordered, body_class: 'p-4 space-y-4', class: 'shadow-2xl w-80 sm:w-96') do %>
                 <%# Header %>
                 <div class="flex items-center justify-between">
                   <h3 class="font-semibold text-lg flex items-center gap-2">
@@ -146,8 +145,7 @@
                         class: 'btn btn-primary flex-1',
                         data: { action: 'popup#close filter-form#submit' } %>
                 </div>
-              </div>
-            </div>
+            <% end %>
           </div>
         </div>
       <% end %>
