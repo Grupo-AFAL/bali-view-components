@@ -221,15 +221,19 @@ module Bali
         is_bar = BAR_TYPES.include?(dataset_type)
 
         Dataset.new(
-          color: colors_for_type(info[:type]),
+          color: colors_for_type(info[:type], info[:data]),
           rounded: is_bar,
           **info.compact
         ).to_h
       end
 
-      def colors_for_type(graph_type)
+      def colors_for_type(graph_type, data = [])
         if MULTI_COLOR_TYPES.include?(graph_type&.to_sym)
-          labels.map { @color_picker.next_color }
+          # For pie/doughnut/polarArea, need one color per data point
+          # Use labels count if available, otherwise count data points
+          color_count = labels.any? ? labels.size : Array.wrap(data).size
+          color_count = [color_count, 1].max # Ensure at least 1 color
+          color_count.times.map { @color_picker.next_color }
         else
           [@color_picker.next_color]
         end
