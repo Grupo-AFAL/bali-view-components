@@ -3,39 +3,31 @@
   themes: light --default, dark;
 }
 
-/* Source paths for Tailwind to scan */
+/* ==============================================
+   Source Paths - Tailwind class scanning
+   ============================================== */
+
+/* Dummy app sources */
 @source "../../../views/**/*.erb";
 @source "../../../helpers/**/*.rb";
 @source "../../../javascript/**/*.js";
 @source "../../../../public/*.html";
-/* Bali ViewComponents */
-@source "../../../../../app/components/**/*.{erb,rb}";
-/* Bali FormBuilder modules */
-@source "../../../../../lib/bali/**/*.rb";
 
-/* Bali Component Styles */
-@import "../../../../../app/assets/stylesheets/bali/variables.css";
-@import "../../../../../app/assets/stylesheets/bali/general.css";
-@import "../../../../../app/assets/stylesheets/bali/forms.css";
-@import "../../../../../app/assets/stylesheets/bali/datepicker.css";
-@import "../../../../../app/assets/stylesheets/bali/slim_select.css";
-@import "../../../../../app/assets/stylesheets/bali/code.css";
-@import "../../../../../app/assets/stylesheets/bali/switch.css";
-@import "../../../../../app/assets/stylesheets/bali/rich_text.css";
-@import "../../../../../app/assets/stylesheets/bali/box.css";
-@import "../../../../../app/assets/stylesheets/bali/panel.css";
-@import "../../../../../app/assets/stylesheets/bali/typography.css";
-@import "../../../../../app/assets/stylesheets/bali/container.css";
+/* Bali ViewComponents sources */
+@source "bali-view-components/app/components/**/*.{erb,rb}";
+@source "bali-view-components/lib/bali/**/*.rb";
 
-/* Bali Component CSS */
-@import "../../../../../app/components/bali/calendar/index.css";
-@import "../../../../../app/components/bali/carousel/index.css";
-@import "../../../../../app/components/bali/filters/index.css";
-@import "../../../../../app/components/bali/gantt_chart/index.css";
-@import "../../../../../app/components/bali/hover_card/index.css";
-@import "../../../../../app/components/bali/navbar/index.css";
-@import "../../../../../app/components/bali/rich_text_editor/index.css";
-@import "../../../../../app/components/bali/side_menu/index.css";
-@import "../../../../../app/components/bali/stepper/index.css";
-@import "../../../../../app/components/bali/timeline/index.css";
-@import "../../../../../app/components/bali/tooltip/index.css";
+/* ==============================================
+   Bali ViewComponents CSS
+   ==============================================
+   Production-ready imports using npm package resolution.
+
+   For apps using this gem, add to package.json:
+     "bali-view-components": "^1.4.19"
+
+   Then import in your Tailwind CSS:
+     @import "bali-view-components/css/bali.css";
+     @import "bali-view-components/css/components.css";
+*/
+@import "bali-view-components/css/bali.css";
+@import "bali-view-components/css/components.css";

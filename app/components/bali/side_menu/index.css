@@ -82,7 +82,8 @@
 .side-menu-component .collapse-title {
   @apply flex items-center gap-2 min-h-0 px-2.5 py-2 rounded-lg cursor-pointer;
   @apply text-base-content/80 hover:bg-base-200 hover:text-base-content;
-  @apply transition-all duration-200 after:hidden; /* Remove default DaisyUI arrow */
+  @apply transition-all duration-200 after:hidden;
+  /* Remove default DaisyUI arrow */
 
   &.active {
     @apply text-primary font-medium;
@@ -98,7 +99,7 @@
   @apply transition-transform duration-200 text-base-content/50;
 }
 
-.side-menu-component .collapse input:checked ~ .collapse-title .arrow-icon {
+.side-menu-component .collapse input:checked~.collapse-title .arrow-icon {
   @apply rotate-90;
 }
 
@@ -111,16 +112,18 @@
   .side-menu-collapsed {
     @apply !hidden;
   }
+
   .collapse-icon {
     @apply opacity-100;
   }
+
   .expand-icon {
     @apply opacity-0;
   }
 }
 
 /* When collapse checkbox is checked, collapse the sidebar */
-.side-menu-collapse-trigger:checked + .side-menu-component,
+.side-menu-collapse-trigger:checked+.side-menu-component,
 .side-menu-component.is-collapsed {
   width: var(--side-menu-collapsed-width);
 
@@ -128,6 +131,7 @@
   .collapse-icon {
     @apply opacity-0;
   }
+
   .expand-icon {
     @apply opacity-100;
   }
@@ -151,6 +155,7 @@
   .side-menu-expanded {
     @apply !hidden;
   }
+
   .side-menu-collapsed {
     @apply !block;
   }
@@ -181,7 +186,7 @@
 }
 
 /* Show overlay when sidebar is open on mobile */
-.side-menu-component--fixed.is-active ~ .side-menu-overlay {
+.side-menu-component--fixed.is-active~.side-menu-overlay {
   @apply opacity-100 pointer-events-auto;
 }
 

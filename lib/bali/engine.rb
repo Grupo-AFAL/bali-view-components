@@ -40,6 +40,7 @@ module Bali
       # Add Bali's JavaScript and component paths for both Propshaft and Sprockets
       app.config.assets.paths << root.join('app', 'components')
       app.config.assets.paths << root.join('app', 'assets', 'javascripts')
+      app.config.assets.paths << root.join('app', 'assets', 'stylesheets')
       # Add frontend path for Vite-based consuming apps
       app.config.assets.paths << root.join('app', 'frontend')
     end
