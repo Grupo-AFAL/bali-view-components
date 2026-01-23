@@ -5,8 +5,8 @@ module Bali
     class Dataset
       DEFAULT_TENSION = 0.3
       DEFAULT_BORDER_WIDTH = 2
-      DEFAULT_BORDER_OPACITY = 7
-      DEFAULT_BACKGROUND_OPACITY = 5
+      DEFAULT_BORDER_OPACITY = 0.8
+      DEFAULT_BACKGROUND_OPACITY = 0.5
       EXTRACTED_OPTIONS = %i[tension borderWidth borderColor backgroundColor].freeze
 
       def initialize(label: '', data: [], order: 1, type: :bar, color: [], **options)
@@ -42,11 +42,33 @@ module Bali
       end
 
       def background_colors
-        @colors.map { |c| Utils::ColorPicker.opacify(c, DEFAULT_BACKGROUND_OPACITY) }
+        @colors.map { |c| apply_alpha(c, DEFAULT_BACKGROUND_OPACITY) }
       end
 
       def border_colors
-        @colors.map { |c| Utils::ColorPicker.opacify(c, DEFAULT_BORDER_OPACITY) }
+        @colors.map { |c| apply_alpha(c, DEFAULT_BORDER_OPACITY) }
+      end
+
+      # Apply alpha to a color, handling hex, var(), and oklch formats
+      def apply_alpha(color, alpha)
+        if css_var_color?(color)
+          # For var(--color-*) format, use color-mix for transparency
+          "color-mix(in oklch, #{color} #{(alpha * 100).to_i}%, transparent)"
+        elsif oklch_color?(color)
+          # For oklch(var(...)) format, add alpha
+          color.sub(/\)$/, " / #{alpha})")
+        else
+          # Legacy hex color handling
+          Utils::ColorPicker.opacify(color, (alpha * 10).to_i)
+        end
+      end
+
+      def css_var_color?(color)
+        color.to_s.start_with?('var(')
+      end
+
+      def oklch_color?(color)
+        color.to_s.start_with?('oklch(')
       end
     end
   end

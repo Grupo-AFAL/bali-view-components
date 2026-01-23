@@ -12,26 +12,41 @@ module Bali
         datasets: [{ label: 'Beef', data: [10, 5] }, { label: 'Pork', data: [20, 10] }]
       }.freeze
 
+      # Richer sample data for demos
+      WEEKLY_DATA = {
+        labels: %w[Mon Tue Wed Thu Fri Sat Sun],
+        datasets: [
+          { label: 'Sales', data: [120, 190, 300, 250, 420, 380, 290] },
+          { label: 'Returns', data: [20, 30, 25, 35, 40, 25, 15] }
+        ]
+      }.freeze
+
       # @param type select { choices: [bar, line, pie, doughnut, polarArea] }
+      # @param card_style select { choices: [default, bordered, compact, none] }
+      # @param height select { choices: [sm, md, lg, xl] }
       # @param legend toggle
       # @param display_percent toggle
-      def default(type: :bar, legend: false, display_percent: false)
-        data = %w[pie doughnut polarArea].include?(type.to_s) ? SIMPLE_DATA : MULTI_SERIES_DATA
+      def default(type: :bar, card_style: :default, height: :md, legend: false, display_percent: false)
+        data = %w[pie doughnut polarArea].include?(type.to_s) ? SIMPLE_DATA : WEEKLY_DATA
 
         render Chart::Component.new(
           data: data,
           type: type.to_sym,
+          card_style: card_style.to_sym,
+          height: height.to_sym,
           legend: legend,
           display_percent: display_percent
         )
       end
 
       # @label With Title
+      # Chart wrapped in a card with a title header.
       def with_title
         render Chart::Component.new(
-          data: MULTI_SERIES_DATA,
+          data: WEEKLY_DATA,
           type: :bar,
-          title: 'Weekly Sales'
+          title: 'Weekly Sales Report',
+          legend: true
         )
       end
 

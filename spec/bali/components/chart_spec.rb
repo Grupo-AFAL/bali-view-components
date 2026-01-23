@@ -7,11 +7,12 @@ RSpec.describe Bali::Chart::Component, type: :component do
   let(:options) { { data: { chocolate: 3 } } }
 
   describe 'rendering' do
-    it 'renders a chart title with Tailwind classes' do
+    it 'renders a chart title with DaisyUI card classes' do
       render_inline(described_class.new(data: { chocolate: 3 }, title: 'Chocolate Sales',
                                         id: 'chocolate-sales'))
 
-      expect(page).to have_css 'h3.text-lg.font-semibold', text: 'Chocolate Sales'
+      expect(page).to have_css 'h3.card-title', text: 'Chocolate Sales'
+      expect(page).to have_css '.card.bg-base-100'
     end
 
     it 'renders a div with chart controller' do
@@ -97,6 +98,73 @@ RSpec.describe Bali::Chart::Component, type: :component do
                                         class: 'custom-class'))
 
       expect(page).to have_css '.chart-container#my-chart.custom-class'
+    end
+  end
+
+  describe 'card styles' do
+    it 'renders with default card style' do
+      render_inline(described_class.new(data: { chocolate: 3 }))
+
+      expect(page).to have_css '.card.bg-base-100.shadow-sm'
+    end
+
+    it 'renders with bordered card style' do
+      render_inline(described_class.new(data: { chocolate: 3 }, card_style: :bordered))
+
+      expect(page).to have_css '.card.bg-base-100.card-border'
+    end
+
+    it 'renders with compact card style' do
+      render_inline(described_class.new(data: { chocolate: 3 }, card_style: :compact))
+
+      expect(page).to have_css '.card.bg-base-100.card-compact'
+    end
+
+    it 'renders without card when style is none' do
+      render_inline(described_class.new(data: { chocolate: 3 }, card_style: :none))
+
+      expect(page).not_to have_css '.card'
+      expect(page).to have_css '.chart-component'
+    end
+  end
+
+  describe 'height presets' do
+    it 'renders with medium height by default' do
+      render_inline(described_class.new(data: { chocolate: 3 }))
+
+      expect(page).to have_css '.chart-container.h-\\[250px\\]'
+    end
+
+    it 'renders with small height' do
+      render_inline(described_class.new(data: { chocolate: 3 }, height: :sm))
+
+      expect(page).to have_css '.chart-container.h-\\[180px\\]'
+    end
+
+    it 'renders with large height' do
+      render_inline(described_class.new(data: { chocolate: 3 }, height: :lg))
+
+      expect(page).to have_css '.chart-container.h-\\[350px\\]'
+    end
+
+    it 'renders with extra large height' do
+      render_inline(described_class.new(data: { chocolate: 3 }, height: :xl))
+
+      expect(page).to have_css '.chart-container.h-\\[450px\\]'
+    end
+  end
+
+  describe 'theme colors' do
+    it 'sets use_theme_colors data attribute' do
+      render_inline(described_class.new(data: { chocolate: 3 }))
+
+      expect(page).to have_css 'canvas[data-chart-use-theme-colors-value="true"]'
+    end
+
+    it 'can disable theme colors' do
+      render_inline(described_class.new(data: { chocolate: 3 }, use_theme_colors: false))
+
+      expect(page).to have_css 'canvas[data-chart-use-theme-colors-value="false"]'
     end
   end
 end

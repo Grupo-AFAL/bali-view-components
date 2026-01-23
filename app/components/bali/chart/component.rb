@@ -19,6 +19,22 @@ module Bali
       MULTI_COLOR_TYPES = %i[pie doughnut polarArea].freeze
       DEFAULT_OPTIONS = { responsive: true, maintainAspectRatio: false }.freeze
 
+      # Card style variants
+      CARD_STYLES = {
+        default: 'card bg-base-100 shadow-sm',
+        bordered: 'card bg-base-100 card-border',
+        compact: 'card bg-base-100 card-compact shadow-sm',
+        none: '' # No card wrapper
+      }.freeze
+
+      # Chart height presets
+      HEIGHTS = {
+        sm: 'h-[180px]',
+        md: 'h-[250px]',
+        lg: 'h-[350px]',
+        xl: 'h-[450px]'
+      }.freeze
+
       attr_reader :title
 
       # rubocop:disable Metrics/ParameterLists
@@ -31,6 +47,9 @@ module Bali
         order: [],
         y_axis_ids: [],
         options: {},
+        card_style: :default,
+        height: :md,
+        use_theme_colors: true,
         **html_options
       )
         # rubocop:enable Metrics/ParameterLists
@@ -40,9 +59,12 @@ module Bali
         @display_percent = display_percent
         @order = order
         @y_axis_ids = y_axis_ids
+        @card_style = card_style.to_sym
+        @height = height.to_sym
+        @use_theme_colors = use_theme_colors
         @options = build_options(options, legend)
         @html_options = html_options
-        @color_picker = Bali::Utils::ColorPicker.new
+        @color_picker = Bali::Utils::ColorPicker.new(use_theme_colors: use_theme_colors)
       end
 
       def chart_type
@@ -65,26 +87,67 @@ module Bali
         @display_percent
       end
 
+      def card_classes
+        CARD_STYLES[@card_style]
+      end
+
+      def render_card?
+        @card_style != :none
+      end
+
       def container_classes
-        class_names('chart-container h-[250px]', @html_options[:class])
+        class_names(
+          'chart-container',
+          HEIGHTS[@height] || HEIGHTS[:md],
+          @html_options[:class]
+        )
       end
 
       def container_options
         @html_options.except(:class)
       end
 
+      def use_theme_colors?
+        @use_theme_colors
+      end
+
       private
 
       def build_options(custom_options, legend)
-        DEFAULT_OPTIONS
-          .merge(custom_options)
-          .tap { |opts| configure_legend(opts, legend) }
+        base_opts = DEFAULT_OPTIONS.deep_dup
+        configure_legend(base_opts, legend)
+        configure_theme_styling(base_opts) if @use_theme_colors
+
+        base_opts.deep_merge(custom_options)
       end
 
       def configure_legend(opts, display)
         opts[:plugins] ||= {}
         opts[:plugins][:legend] ||= {}
         opts[:plugins][:legend][:display] = display
+        opts[:plugins][:legend][:labels] ||= {}
+        # Use theme-aware text color for legend
+        opts[:plugins][:legend][:labels][:useThemeColors] = @use_theme_colors
+      end
+
+      def configure_theme_styling(opts)
+        # Configure scales with theme-aware colors
+        # These will be applied by the JS controller using CSS variables
+        opts[:scales] ||= {}
+
+        # Default x and y axis styling
+        %w[x y].each do |axis|
+          opts[:scales][axis] ||= {}
+          opts[:scales][axis][:grid] ||= {}
+          opts[:scales][axis][:grid][:useThemeColors] = true
+          opts[:scales][axis][:ticks] ||= {}
+          opts[:scales][axis][:ticks][:useThemeColors] = true
+        end
+
+        # Configure tooltip styling
+        opts[:plugins] ||= {}
+        opts[:plugins][:tooltip] ||= {}
+        opts[:plugins][:tooltip][:useThemeColors] = true
       end
 
       def labels
