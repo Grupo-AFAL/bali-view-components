@@ -5,6 +5,8 @@ module Bali
     class Preview < ApplicationViewComponentPreview
       FORM = Bali::Utils::DummyFilterForm.new
 
+      include ActionView::Helpers::FormHelper
+
       def default
         render Bali::Filters::Component.new(form: FORM, url: '#', text_field: :name)
       end
@@ -34,7 +36,7 @@ module Bali
           c.tag.div 'Additional filters', class: 'bg-gray-100 p-2'
 
           c.with_custom_filters do
-            c.fields_for :q, FORM, builder: Bali::FormBuilder do |f|
+            fields_for :q, FORM, builder: Bali::FormBuilder do |f|
               f.date_field :date, placeholder: 'Select dates', mode: 'range'
             end
           end
