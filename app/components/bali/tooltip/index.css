@@ -1,8 +1,10 @@
 /* Tooltip component - Tippy.js styling */
-.tooltip-component {
-  --arrow-size: 16px;
-  --half-arrow-size: 8px;
+:root {
+  --bali-tooltip-arrow-size: 16px;
+  --bali-tooltip-half-arrow-size: 8px;
+}
 
+.tooltip-component {
   &.help-tip {
     @apply size-6 inline-block;
 
@@ -30,48 +32,48 @@
       @apply opacity-0;
     }
 
-    &[data-placement^='top'] > .tippy-arrow {
+    &[data-placement^='top']>.tippy-arrow {
       @apply bottom-0;
     }
 
-    &[data-placement^='top'] > .tippy-arrow:before {
-      bottom: calc(-1 * var(--half-arrow-size) + 1px);
+    &[data-placement^='top']>.tippy-arrow:before {
+      bottom: calc(-1 * var(--bali-tooltip-half-arrow-size) + 1px);
       @apply left-0;
-      border-width: var(--half-arrow-size) var(--half-arrow-size) 0;
+      border-width: var(--bali-tooltip-half-arrow-size) var(--bali-tooltip-half-arrow-size) 0;
       border-top-color: initial;
       transform-origin: center top;
     }
 
-    &[data-placement^='bottom'] > .tippy-arrow {
+    &[data-placement^='bottom']>.tippy-arrow {
       @apply top-0;
     }
 
-    &[data-placement^='bottom'] > .tippy-arrow:before {
-      top: calc(-1 * var(--half-arrow-size) + 1px);
+    &[data-placement^='bottom']>.tippy-arrow:before {
+      top: calc(-1 * var(--bali-tooltip-half-arrow-size) + 1px);
       @apply left-0;
-      border-width: 0 var(--half-arrow-size) var(--half-arrow-size);
+      border-width: 0 var(--bali-tooltip-half-arrow-size) var(--bali-tooltip-half-arrow-size);
       border-bottom-color: initial;
       transform-origin: center bottom;
     }
 
-    &[data-placement^='left'] > .tippy-arrow {
+    &[data-placement^='left']>.tippy-arrow {
       @apply right-0;
     }
 
-    &[data-placement^='left'] > .tippy-arrow:before {
-      border-width: var(--half-arrow-size) 0 var(--half-arrow-size) var(--half-arrow-size);
+    &[data-placement^='left']>.tippy-arrow:before {
+      border-width: var(--bali-tooltip-half-arrow-size) 0 var(--bali-tooltip-half-arrow-size) var(--bali-tooltip-half-arrow-size);
       border-left-color: initial;
-      right: calc(-1 * var(--half-arrow-size) + 1px);
+      right: calc(-1 * var(--bali-tooltip-half-arrow-size) + 1px);
       transform-origin: center left;
     }
 
-    &[data-placement^='right'] > .tippy-arrow {
+    &[data-placement^='right']>.tippy-arrow {
       @apply left-0;
     }
 
-    &[data-placement^='right'] > .tippy-arrow:before {
-      left: calc(-1 * var(--half-arrow-size) + 1px);
-      border-width: var(--half-arrow-size) var(--half-arrow-size) var(--half-arrow-size) 0;
+    &[data-placement^='right']>.tippy-arrow:before {
+      left: calc(-1 * var(--bali-tooltip-half-arrow-size) + 1px);
+      border-width: var(--bali-tooltip-half-arrow-size) var(--bali-tooltip-half-arrow-size) var(--bali-tooltip-half-arrow-size) 0;
       border-right-color: initial;
       transform-origin: center right;
     }
@@ -82,8 +84,8 @@
   }
 
   .tippy-arrow {
-    width: var(--arrow-size);
-    height: var(--arrow-size);
+    width: var(--bali-tooltip-arrow-size);
+    height: var(--bali-tooltip-arrow-size);
     @apply text-neutral;
   }
 

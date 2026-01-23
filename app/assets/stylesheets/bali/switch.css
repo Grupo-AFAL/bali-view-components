@@ -1,26 +1,29 @@
 /* Switch toggle component */
-.switch {
-  --switch-width: 3.75rem;
-  --switch-height: 2rem;
-  --switch-padding: 0.1875rem;
-  --switch-slider-size: 1.62rem;
-  --switch-transition-time: 0.4s;
 
+:root {
+  --bali-switch-width: 3.75rem;
+  --bali-switch-height: 2rem;
+  --bali-switch-padding: 0.1875rem;
+  --bali-switch-slider-size: 1.62rem;
+  --bali-switch-transition-time: 0.4s;
+}
+
+.switch {
   label {
     @apply relative flex items-center bg-base-300 shadow-sm;
-    width: var(--switch-width);
-    height: var(--switch-height);
-    border-radius: var(--switch-height);
-    padding: var(--switch-padding);
-    transition: background-color var(--switch-transition-time);
+    width: var(--bali-switch-width);
+    height: var(--bali-switch-height);
+    border-radius: var(--bali-switch-height);
+    padding: var(--bali-switch-padding);
+    transition: background-color var(--bali-switch-transition-time);
 
     &::before {
       content: '';
       @apply rounded-full shadow-sm bg-base-100;
-      width: var(--switch-slider-size);
-      height: var(--switch-slider-size);
+      width: var(--bali-switch-slider-size);
+      height: var(--bali-switch-slider-size);
       transform: translateX(0%);
-      transition: transform var(--switch-transition-time);
+      transition: transform var(--bali-switch-transition-time);
     }
   }
 
@@ -28,7 +31,7 @@
     @apply absolute -left-4 opacity-0 outline-none select-none;
   }
 
-  input:checked + label {
+  input:checked+label {
     @apply bg-success;
 
     &::before {

@@ -1,11 +1,14 @@
 /* HoverCard component - Tippy.js styling */
+
+:root {
+  --bali-hover-card-arrow-size: 16px;
+}
+
 .hover-card-component {
   @apply w-max;
 }
 
 .hover-card-tippy-wrapper {
-  --hover-card-arrow-size: 16px;
-
   .hover-card-content {
     @apply p-3;
   }
@@ -24,7 +27,7 @@
       @apply opacity-0;
     }
 
-    &[data-placement^='top'] > .tippy-svg-arrow {
+    &[data-placement^='top']>.tippy-svg-arrow {
       @apply bottom-0;
 
       svg {
@@ -34,7 +37,7 @@
       }
     }
 
-    &[data-placement^='bottom'] > .tippy-svg-arrow {
+    &[data-placement^='bottom']>.tippy-svg-arrow {
       @apply top-0;
 
       svg {
@@ -43,7 +46,7 @@
       }
     }
 
-    &[data-placement^='left'] > .tippy-svg-arrow {
+    &[data-placement^='left']>.tippy-svg-arrow {
       @apply right-0;
 
       svg {
@@ -53,7 +56,7 @@
       }
     }
 
-    &[data-placement^='right'] > .tippy-svg-arrow {
+    &[data-placement^='right']>.tippy-svg-arrow {
       @apply left-0;
 
       svg {
@@ -69,8 +72,8 @@
   }
 
   .tippy-svg-arrow {
-    width: var(--hover-card-arrow-size);
-    height: var(--hover-card-arrow-size);
+    width: var(--bali-hover-card-arrow-size);
+    height: var(--bali-hover-card-arrow-size);
     @apply text-base-100;
 
     svg {

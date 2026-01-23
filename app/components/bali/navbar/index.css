@@ -1,9 +1,14 @@
 /* Navbar component */
+
+:root {
+  --bali-navbar-height: 3.75rem;
+}
+
 .navbar {
   @apply shadow-md;
   transition: background-color 1s;
 
-  & > .container {
+  &>.container {
     & .navbar-brand {
       @apply ml-0;
     }
@@ -68,7 +73,7 @@
 .navbar-brand {
   @apply text-xl font-bold;
 
-  & > a {
+  &>a {
     @apply hover:opacity-80 transition-opacity;
   }
 
