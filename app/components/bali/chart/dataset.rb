@@ -7,19 +7,27 @@ module Bali
       DEFAULT_BORDER_WIDTH = 2
       DEFAULT_BORDER_OPACITY = 0.8
       DEFAULT_BACKGROUND_OPACITY = 0.5
-      EXTRACTED_OPTIONS = %i[tension borderWidth borderColor backgroundColor].freeze
+      DEFAULT_BORDER_RADIUS = 6
+      DEFAULT_POINT_RADIUS = 4
+      DEFAULT_POINT_HOVER_RADIUS = 6
+      EXTRACTED_OPTIONS = %i[tension borderWidth borderColor backgroundColor rounded pointRadius
+                             pointHoverRadius].freeze
 
-      def initialize(label: '', data: [], order: 1, type: :bar, color: [], **options)
+      # rubocop:disable Metrics/ParameterLists
+      def initialize(label: '', data: [], order: 1, type: :bar, color: [], rounded: false,
+                     **options)
+        # rubocop:enable Metrics/ParameterLists
         @label = label
         @data = data
         @order = order
         @type = type
         @colors = Array.wrap(color)
+        @rounded = rounded
         @options = options
       end
 
       def to_h
-        {
+        result = {
           label: @label,
           data: @data,
           type: @type,
@@ -30,12 +38,33 @@ module Bali
           backgroundColor: @options.fetch(:backgroundColor, background_colors),
           **extra_options
         }
+
+        # Add rounded corners for bar charts
+        if @rounded
+          result[:borderRadius] = @options.fetch(:borderRadius, DEFAULT_BORDER_RADIUS)
+          result[:borderSkipped] = false # Round all corners
+        end
+
+        # Add point styling for line charts
+        if line_chart?
+          result[:pointRadius] = @options.fetch(:pointRadius, DEFAULT_POINT_RADIUS)
+          result[:pointHoverRadius] = @options.fetch(:pointHoverRadius, DEFAULT_POINT_HOVER_RADIUS)
+          result[:pointBackgroundColor] = @options.fetch(:pointBackgroundColor, border_colors.first)
+          result[:pointBorderColor] = '#ffffff'
+          result[:pointBorderWidth] = 2
+        end
+
+        result
       end
 
       # Alias for backwards compatibility
       alias result to_h
 
       private
+
+      def line_chart?
+        @type.to_sym == :line
+      end
 
       def extra_options
         @options.except(*EXTRACTED_OPTIONS)

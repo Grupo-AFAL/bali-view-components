@@ -25,6 +25,9 @@ export class ChartController extends Controller {
     '--color-error'
   ]
 
+  // System font stack matching DaisyUI/Tailwind
+  static FONT_FAMILY = 'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"'
+
   async connect () {
     const element = this.hasCanvasTarget ? this.canvasTarget : this.element
     const options = this.optionsValue || {}
@@ -178,7 +181,7 @@ export class ChartController extends Controller {
       }
     }
 
-    // Configure tooltip
+    // Configure tooltip with enhanced styling
     if (options.plugins?.tooltip?.useThemeColors) {
       options.plugins.tooltip.backgroundColor = tooltipBg
       options.plugins.tooltip.titleColor = tooltipText
@@ -186,7 +189,23 @@ export class ChartController extends Controller {
       options.plugins.tooltip.borderColor = tooltipBorder
       options.plugins.tooltip.borderWidth = 1
       options.plugins.tooltip.cornerRadius = 8
-      options.plugins.tooltip.padding = 12
+      options.plugins.tooltip.padding = { top: 10, bottom: 10, left: 14, right: 14 }
+      options.plugins.tooltip.boxPadding = 6
+      options.plugins.tooltip.displayColors = true
+      options.plugins.tooltip.usePointStyle = true
+      options.plugins.tooltip.titleFont = {
+        family: ChartController.FONT_FAMILY,
+        size: 13,
+        weight: '600'
+      }
+      options.plugins.tooltip.bodyFont = {
+        family: ChartController.FONT_FAMILY,
+        size: 12,
+        weight: '400'
+      }
+      options.plugins.tooltip.titleMarginBottom = 8
+      options.plugins.tooltip.caretSize = 6
+      options.plugins.tooltip.caretPadding = 8
       delete options.plugins.tooltip.useThemeColors
     }
 
@@ -194,13 +213,30 @@ export class ChartController extends Controller {
     if (options.plugins?.legend?.labels?.useThemeColors) {
       options.plugins.legend.labels.color = tickColor
       options.plugins.legend.labels.font = {
+        family: ChartController.FONT_FAMILY,
         size: 12,
         weight: '500'
       }
       options.plugins.legend.labels.padding = 16
       options.plugins.legend.labels.usePointStyle = true
       options.plugins.legend.labels.pointStyle = 'circle'
+      options.plugins.legend.labels.boxWidth = 8
+      options.plugins.legend.labels.boxHeight = 8
       delete options.plugins.legend.labels.useThemeColors
+    }
+
+    // Ensure ticks have proper font
+    if (options.scales) {
+      for (const scale in options.scales) {
+        const scaleConfig = options.scales[scale]
+        if (scaleConfig.ticks) {
+          scaleConfig.ticks.font = {
+            family: ChartController.FONT_FAMILY,
+            size: 12,
+            ...(scaleConfig.ticks.font || {})
+          }
+        }
+      }
     }
   }
 

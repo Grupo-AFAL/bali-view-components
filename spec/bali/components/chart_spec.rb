@@ -87,8 +87,14 @@ RSpec.describe Bali::Chart::Component, type: :component do
     end
 
     it 'has DEFAULT_OPTIONS constant' do
-      expect(described_class::DEFAULT_OPTIONS).to eq({ responsive: true,
-                                                       maintainAspectRatio: false })
+      expect(described_class::DEFAULT_OPTIONS).to eq({
+                                                       responsive: true,
+                                                       maintainAspectRatio: false,
+                                                       animation: {
+                                                         duration: 800,
+                                                         easing: 'easeOutQuart'
+                                                       }
+                                                     })
     end
   end
 

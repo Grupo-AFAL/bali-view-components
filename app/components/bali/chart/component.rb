@@ -14,10 +14,23 @@
 
 module Bali
   module Chart
+    # rubocop:disable Metrics/ClassLength
     class Component < ApplicationViewComponent
       MAX_LABEL_LENGTH = 16
       MULTI_COLOR_TYPES = %i[pie doughnut polarArea].freeze
-      DEFAULT_OPTIONS = { responsive: true, maintainAspectRatio: false }.freeze
+      BAR_TYPES = %i[bar].freeze
+
+      # System font stack matching DaisyUI/Tailwind
+      FONT_FAMILY = 'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"'
+
+      DEFAULT_OPTIONS = {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+          duration: 800,
+          easing: 'easeOutQuart'
+        }
+      }.freeze
 
       # Card style variants
       CARD_STYLES = {
@@ -131,23 +144,43 @@ module Bali
       end
 
       def configure_theme_styling(opts)
-        # Configure scales with theme-aware colors
-        # These will be applied by the JS controller using CSS variables
+        configure_scales_styling(opts)
+        configure_plugins_styling(opts)
+      end
+
+      def configure_scales_styling(opts)
         opts[:scales] ||= {}
 
-        # Default x and y axis styling
         %w[x y].each do |axis|
-          opts[:scales][axis] ||= {}
-          opts[:scales][axis][:grid] ||= {}
-          opts[:scales][axis][:grid][:useThemeColors] = true
-          opts[:scales][axis][:ticks] ||= {}
-          opts[:scales][axis][:ticks][:useThemeColors] = true
+          configure_axis_styling(opts[:scales], axis)
         end
+      end
 
-        # Configure tooltip styling
+      def configure_axis_styling(scales, axis)
+        scales[axis] ||= {}
+        axis_config = scales[axis]
+
+        # Grid: cleaner, more subtle - only show y-axis grid
+        axis_config[:grid] = { useThemeColors: true, drawBorder: false, display: (axis == 'y') }
+
+        # Ticks with proper font
+        axis_config[:ticks] = { useThemeColors: true, font: { family: FONT_FAMILY, size: 12 } }
+
+        # Hide axis border
+        axis_config[:border] = { display: false }
+      end
+
+      def configure_plugins_styling(opts)
         opts[:plugins] ||= {}
+
+        # Tooltip
         opts[:plugins][:tooltip] ||= {}
         opts[:plugins][:tooltip][:useThemeColors] = true
+
+        # Legend font
+        opts[:plugins][:legend] ||= {}
+        opts[:plugins][:legend][:labels] ||= {}
+        opts[:plugins][:legend][:labels][:font] = { family: FONT_FAMILY, size: 12, weight: '500' }
       end
 
       def labels
@@ -183,8 +216,13 @@ module Bali
         info[:order] ||= @order[index]
         info[:yAxisID] ||= @y_axis_ids[index]
 
+        # Add rounded corners for bar charts
+        dataset_type = info[:type]&.to_sym
+        is_bar = BAR_TYPES.include?(dataset_type)
+
         Dataset.new(
           color: colors_for_type(info[:type]),
+          rounded: is_bar,
           **info.compact
         ).to_h
       end
@@ -197,5 +235,6 @@ module Bali
         end
       end
     end
+    # rubocop:enable Metrics/ClassLength
   end
 end
