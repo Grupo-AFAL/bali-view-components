@@ -4,7 +4,9 @@ module Bali
   module Clipboard
     module Source
       class Component < ApplicationViewComponent
-        BASE_CLASSES = 'clipboard-source input input-bordered rounded-r-none pr-16 join-item'
+        BASE_CLASSES = 'clipboard-source bg-base-200 px-4 py-2 text-sm font-mono ' \
+                       'flex items-center min-w-0 flex-1 ' \
+                       'rounded-l-lg border border-r-0 border-base-300'
 
         def initialize(text = '', **options)
           @text = text
@@ -13,7 +15,9 @@ module Bali
 
         def call
           tag.div(**source_attributes) do
-            text.presence || content
+            tag.span(class: 'truncate') do
+              text.presence || content
+            end
           end
         end
 

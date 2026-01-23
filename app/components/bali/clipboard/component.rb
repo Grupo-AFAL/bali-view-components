@@ -3,7 +3,7 @@
 module Bali
   module Clipboard
     class Component < ApplicationViewComponent
-      BASE_CLASSES = 'clipboard-component join'
+      BASE_CLASSES = 'clipboard-component inline-flex items-stretch max-w-full'
 
       renders_one :trigger, Trigger::Component
       renders_one :source, Source::Component

@@ -9,17 +9,27 @@ module Bali
       # Customize duration with `data-clipboard-success-duration-value="3000"`.
       #
       # @param source_text text "Text to copy"
-      # @param use_icons toggle "Use icons instead of text labels"
-      def default(source_text: 'Click the button to copy me!', use_icons: false)
+      def default(source_text: 'https://example.com/api/v1/token/abc123xyz')
+        render_with_template(locals: { source_text: source_text })
+      end
+
+      # Text-based trigger variant
+      #
+      # Uses text labels instead of icons. Useful when the copy action needs
+      # to be more explicit for users.
+      def with_text_labels
         render Clipboard::Component.new do |c|
-          if use_icons
-            c.with_trigger { render Bali::Icon::Component.new('copy') }
-            c.with_success_content { render Bali::Icon::Component.new('check', class: 'text-success') }
-          else
-            c.with_trigger('Copy')
-          end
-          c.with_source(source_text)
+          c.with_trigger('Copy')
+          c.with_success_content('Copied!')
+          c.with_source('Click the button to copy me!')
         end
+      end
+
+      # Long text with truncation
+      #
+      # Demonstrates how long text is handled with truncation in the source area.
+      def long_text
+        render_with_template
       end
     end
   end

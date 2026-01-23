@@ -360,9 +360,7 @@
       <div>
         <label class="label"><span class="label-text font-medium">API Key</span></label>
         <%= render Bali::Clipboard::Component.new do |c| %>
-          <% c.with_source do %>
-            <input type="text" class="input input-bordered join-item font-mono w-full" value="sk_live_abc123xyz789" readonly />
-          <% end %>
+          <% c.with_source('sk_live_abc123xyz789') %>
           <% c.with_trigger do %>
             <%= render Bali::Icon::Component.new('copy', size: :small) %>
           <% end %>
@@ -376,14 +374,10 @@
       <div>
         <label class="label"><span class="label-text font-medium">Share URL</span></label>
         <%= render Bali::Clipboard::Component.new do |c| %>
-          <% c.with_source do %>
-            <input type="text" class="input input-bordered join-item w-full" value="https://example.com/share/abc123" readonly />
-          <% end %>
-          <% c.with_trigger do %>
-            Copy Link
-          <% end %>
+          <% c.with_source('https://example.com/share/abc123') %>
+          <% c.with_trigger('Copy Link', square: false) %>
           <% c.with_success_content do %>
-            Copied!
+            <span class="text-success">Copied!</span>
           <% end %>
         <% end %>
       </div>
@@ -392,9 +386,7 @@
       <div>
         <label class="label"><span class="label-text font-medium">Install Command</span></label>
         <%= render Bali::Clipboard::Component.new do |c| %>
-          <% c.with_source do %>
-            <code class="bg-base-200 px-4 py-2 rounded-l-lg font-mono text-sm join-item flex-1">bundle add bali_view_components</code>
-          <% end %>
+          <% c.with_source('bundle add bali_view_components') %>
           <% c.with_trigger do %>
             <%= render Bali::Icon::Component.new('copy', size: :small) %>
           <% end %>

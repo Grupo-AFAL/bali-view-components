@@ -4,30 +4,45 @@ module Bali
   module Clipboard
     module Trigger
       class Component < ApplicationViewComponent
-        BASE_CLASSES = 'btn btn-ghost clipboard-trigger join-item'
+        BASE_CLASSES = 'clipboard-trigger btn btn-ghost ' \
+                       'rounded-l-none rounded-r-lg border border-base-300 ' \
+                       'hover:bg-base-200 transition-colors'
 
-        def initialize(text = '', **options)
+        attr_reader :text
+
+        def initialize(text = nil, square: nil, **options)
           @text = text
+          @square = square
           @options = options
-        end
-
-        def call
-          tag.button(**trigger_attributes) do
-            text.presence || content
-          end
         end
 
         private
 
-        attr_reader :text, :options
+        attr_reader :options
+
+        def trigger_classes
+          class_names(
+            BASE_CLASSES,
+            { 'btn-square' => square? },
+            options[:class]
+          )
+        end
 
         def trigger_attributes
-          opts = prepend_class_name(options, BASE_CLASSES)
+          opts = options.except(:class)
+          opts[:class] = trigger_classes
           opts = prepend_data_attribute(opts, 'clipboard-target', 'button')
           opts = prepend_action(opts, 'click->clipboard#copy')
           opts[:type] = :button
           opts[:'aria-label'] ||= default_aria_label
           opts
+        end
+
+        # Auto-detect if button should be square (icon-only, no text)
+        def square?
+          return @square unless @square.nil?
+
+          text.blank?
         end
 
         def default_aria_label

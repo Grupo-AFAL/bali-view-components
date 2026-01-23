@@ -7,13 +7,13 @@ RSpec.describe Bali::Clipboard::Component, type: :component do
   let(:options) { {} }
 
   describe 'basic rendering' do
-    it 'renders clipboard component with DaisyUI join class' do
+    it 'renders clipboard component with inline-flex layout' do
       render_inline(component) do |c|
         c.with_trigger('Copy')
         c.with_source('Click button to copy me!')
       end
 
-      expect(page).to have_css 'div.clipboard-component.join'
+      expect(page).to have_css 'div.clipboard-component.inline-flex'
       expect(page).to have_css 'div.clipboard-component[data-controller="clipboard"]'
     end
 
@@ -29,13 +29,13 @@ RSpec.describe Bali::Clipboard::Component, type: :component do
       expect(page).to have_css 'button[type="button"]'
     end
 
-    it 'renders source with DaisyUI input classes' do
+    it 'renders source with appropriate container styling' do
       render_inline(component) do |c|
         c.with_trigger('Copy')
         c.with_source('Click button to copy me!')
       end
 
-      expect(page).to have_css 'div.clipboard-source.input.input-bordered',
+      expect(page).to have_css 'div.clipboard-source.bg-base-200',
                                text: 'Click button to copy me!'
       expect(page).to have_css 'div[data-clipboard-target="source"]'
     end
@@ -48,7 +48,7 @@ RSpec.describe Bali::Clipboard::Component, type: :component do
         c.with_source('Text')
       end
 
-      expect(page).to have_css 'span.clipboard-sucess-content.hidden.text-success', text: 'Copied!'
+      expect(page).to have_css 'span.clipboard-success-content.hidden.text-success', text: 'Copied!'
       expect(page).to have_css 'span[data-clipboard-target="successContent"]'
     end
 
@@ -59,7 +59,7 @@ RSpec.describe Bali::Clipboard::Component, type: :component do
         c.with_success_content('Done!')
       end
 
-      expect(page).to have_css 'span.clipboard-sucess-content', text: 'Done!'
+      expect(page).to have_css 'span.clipboard-success-content', text: 'Done!'
       expect(page).not_to have_text 'Copied!'
     end
 
@@ -70,7 +70,7 @@ RSpec.describe Bali::Clipboard::Component, type: :component do
         c.with_success_content { 'Custom success' }
       end
 
-      expect(page).to have_css 'span.clipboard-sucess-content', text: 'Custom success'
+      expect(page).to have_css 'span.clipboard-success-content', text: 'Custom success'
     end
   end
 
@@ -156,12 +156,13 @@ RSpec.describe Bali::Clipboard::Component, type: :component do
 
   describe 'BASE_CLASSES constants' do
     it 'defines BASE_CLASSES on main component' do
-      expect(described_class::BASE_CLASSES).to eq 'clipboard-component join'
+      expect(described_class::BASE_CLASSES).to include 'clipboard-component'
+      expect(described_class::BASE_CLASSES).to include 'inline-flex'
     end
 
     it 'defines BASE_CLASSES on Source component' do
       expect(Bali::Clipboard::Source::Component::BASE_CLASSES).to include 'clipboard-source'
-      expect(Bali::Clipboard::Source::Component::BASE_CLASSES).to include 'input'
+      expect(Bali::Clipboard::Source::Component::BASE_CLASSES).to include 'bg-base-200'
     end
 
     it 'defines BASE_CLASSES on Trigger component' do

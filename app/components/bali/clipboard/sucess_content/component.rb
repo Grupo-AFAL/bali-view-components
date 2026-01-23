@@ -4,7 +4,7 @@ module Bali
   module Clipboard
     module SucessContent
       class Component < ApplicationViewComponent
-        BASE_CLASSES = 'clipboard-sucess-content hidden text-success'
+        BASE_CLASSES = 'clipboard-success-content hidden text-success'
 
         def initialize(text = '', **options)
           @text = text

@@ -1,0 +1,9 @@
+<%= render Bali::Clipboard::Component.new(class: 'w-80') do |c| %>
+  <% c.with_trigger do %>
+    <%= render Bali::Icon::Component.new('copy', size: :small) %>
+  <% end %>
+  <% c.with_success_content do %>
+    <%= render Bali::Icon::Component.new('check', size: :small) %>
+  <% end %>
+  <% c.with_source('https://example.com/very/long/url/path/that/should/be/truncated/when/displayed') %>
+<% end %>
