@@ -3,7 +3,7 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module SharedDateUtils
-      WRAPPER_CLASS = 'flatpickr'
+      WRAPPER_CLASS = 'fieldset flatpickr'
       BUTTON_CLASS = 'btn btn-ghost'
       JOIN_ITEM_CLASS = 'join-item'
       CLEAR_BUTTON_CLASS = "#{BUTTON_CLASS} #{JOIN_ITEM_CLASS}".freeze
