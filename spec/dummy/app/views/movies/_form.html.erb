@@ -2,10 +2,10 @@
 
 <%# Form Progress Stepper %>
 <%= render Bali::Stepper::Component.new(current: 0, color: :primary, class: 'mb-8 w-full') do |stepper| %>
-  <% stepper.with_step(title: 'Basic Info') %>
-  <% stepper.with_step(title: 'Poster') %>
-  <% stepper.with_step(title: 'Details') %>
-  <% stepper.with_step(title: 'Settings') %>
+  <% stepper.with_step(title: t('movies.form.stepper.basic_info')) %>
+  <% stepper.with_step(title: t('movies.form.stepper.poster')) %>
+  <% stepper.with_step(title: t('movies.form.stepper.details')) %>
+  <% stepper.with_step(title: t('movies.form.stepper.settings')) %>
 <% end %>
 
 <%= form_with model: movie, builder: Bali::FormBuilder, class: 'space-y-8' do |f| %>
@@ -13,29 +13,29 @@
   <%= render Bali::Card::Component.new(style: :bordered) do %>
     <h3 class="card-title text-lg mb-4">
       <%= render Bali::Icon::Component.new('film', class: 'mr-2') %>
-      Basic Information
+      <%= t('movies.form.basic_info') %>
     </h3>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <%# Text Field %>
-      <%= f.text_field_group :name, label: 'Movie Title', required: true, placeholder: 'Enter movie title...' %>
+      <%= f.text_field_group :name, label: t('movies.form.movie_title'), required: true, placeholder: t('movies.form.enter_title') %>
 
       <%# Select Field - Genre %>
       <% genres = ['Action', 'Adventure', 'Animation', 'Comedy', 'Drama', 'Horror', 'Sci-Fi', 'Thriller'].map { |g| [g, g] } %>
-      <%= f.select_group :genre, genres, { include_blank: 'Select a genre...' }, { label: 'Genre' } %>
+      <%= f.select_group :genre, genres, { include_blank: t('movies.form.select_genre') }, { label: t('movies.form.genre') } %>
 
       <%# Select Field - Studio %>
       <% studios = Tenant.order(:name).pluck(:name, :id) %>
-      <%= f.select_group :tenant_id, studios, { include_blank: 'Select a studio...' }, { label: 'Studio' } %>
+      <%= f.select_group :tenant_id, studios, { include_blank: t('movies.form.select_studio') }, { label: t('movies.form.studio') } %>
 
       <%# Radio Field - Status %>
       <% statuses = Movie.statuses.keys.map { |s| [s.humanize, s] } %>
-      <%= f.radio_field_group :status, statuses, { label: 'Status' }, { orientation: :horizontal, color: :primary } %>
+      <%= f.radio_field_group :status, statuses, { label: t('movies.form.status') }, { orientation: :horizontal, color: :primary } %>
     </div>
 
     <%# Switch Field - Indie %>
     <div class="mt-4">
-      <%= f.switch_field_group :indie, label: 'This is an independent film', color: :primary %>
+      <%= f.switch_field_group :indie, label: t('movies.form.indie_film'), color: :primary %>
     </div>
   <% end %>
 
@@ -43,26 +43,26 @@
   <%= render Bali::Card::Component.new(style: :bordered) do %>
     <h3 class="card-title text-lg mb-4">
       <%= render Bali::Icon::Component.new('file-text', class: 'mr-2') %>
-      Movie Details
+      <%= t('movies.form.movie_details') %>
     </h3>
 
     <%# Text Area %>
-    <%= f.text_area_group :synopsis, label: 'Synopsis', rows: 4, placeholder: 'Enter movie synopsis...', char_counter: { max: 500 } %>
+    <%= f.text_area_group :synopsis, label: t('movies.form.synopsis'), rows: 4, placeholder: t('movies.form.enter_synopsis'), char_counter: { max: 500 } %>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
       <%# Date Field %>
-      <%= f.date_field_group :release_date, label: 'Release Date' %>
+      <%= f.date_field_group :release_date, label: t('movies.form.release_date') %>
 
       <%# Number Field (Currency) %>
-      <%= f.currency_field_group :budget, label: 'Budget', currency: 'USD', placeholder: '0.00' %>
+      <%= f.currency_field_group :budget, label: t('movies.form.budget'), currency: 'USD', placeholder: '0.00' %>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
       <%# Email Field %>
-      <%= f.email_field_group :contact_email, label: 'Contact Email', placeholder: 'producer@studio.com' %>
+      <%= f.email_field_group :contact_email, label: t('movies.form.contact_email'), placeholder: 'producer@studio.com' %>
 
       <%# URL Field %>
-      <%= f.url_field_group :website_url, label: 'Website URL', placeholder: 'https://moviewebsite.com' %>
+      <%= f.url_field_group :website_url, label: t('movies.form.website_url'), placeholder: 'https://moviewebsite.com' %>
     </div>
   <% end %>
 
@@ -70,11 +70,11 @@
   <%= render Bali::Card::Component.new(style: :bordered) do %>
     <h3 class="card-title text-lg mb-4">
       <%= render Bali::Icon::Component.new('image', class: 'mr-2') %>
-      Movie Poster
+      <%= t('movies.form.movie_poster') %>
     </h3>
 
     <%= render Bali::Message::Component.new(color: :info, class: 'mb-4') do %>
-      <strong>DirectUpload:</strong> Files upload directly to storage without passing through the server.
+      <%= raw t('movies.form.direct_upload_info') %>
     <% end %>
 
     <%# DirectUpload Component Demo %>
@@ -92,21 +92,21 @@
   <%= render Bali::Card::Component.new(style: :bordered) do %>
     <h3 class="card-title text-lg mb-4">
       <%= render Bali::Icon::Component.new('settings', class: 'mr-2') %>
-      Additional Settings
+      <%= t('movies.form.additional_settings') %>
     </h3>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <%# Time Zone Select %>
-      <%= f.time_zone_select_group :time_zone, nil, { include_blank: 'Select timezone...' }, { label: 'Timezone' } %>
+      <%= f.time_zone_select_group :time_zone, nil, { include_blank: t('movies.form.select_timezone') }, { label: t('movies.form.timezone') } %>
 
       <%# Rating (Number with step) %>
-      <%= f.number_field_group :rating, label: 'Initial Rating', min: 0, max: 10, step: 0.5, placeholder: '0.0' %>
+      <%= f.number_field_group :rating, label: t('movies.form.initial_rating'), min: 0, max: 10, step: 0.5, placeholder: '0.0' %>
     </div>
 
     <%# Info Message %>
     <div class="mt-4">
       <%= render Bali::Message::Component.new(color: :info) do %>
-        <strong>Note:</strong> All fields marked with * are required. Additional settings are optional.
+        <%= raw t('movies.form.required_fields_note') %>
       <% end %>
     </div>
   <% end %>
@@ -114,20 +114,20 @@
   <%# Form Actions %>
   <div class="flex items-center justify-between pt-4">
     <%= render Bali::Link::Component.new(
-      name: 'Cancel',
+      name: t('common.cancel'),
       href: movies_path,
       variant: :ghost
     ) %>
 
     <div class="flex items-center gap-2">
       <%= render Bali::Button::Component.new(
-        name: 'Save as Draft',
+        name: t('movies.form.save_draft'),
         variant: :ghost,
         type: :submit,
         icon_name: 'save'
       ) %>
       <%= render Bali::Button::Component.new(
-        name: movie.persisted? ? 'Update Movie' : 'Create Movie',
+        name: movie.persisted? ? t('movies.form.update_movie') : t('movies.form.create_movie'),
         variant: :primary,
         type: :submit,
         icon_name: 'check'

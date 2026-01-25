@@ -4,23 +4,23 @@
 <div class="max-w-4xl mx-auto">
   <%# Breadcrumb %>
   <%= render Bali::Breadcrumb::Component.new do |breadcrumb| %>
-    <% breadcrumb.with_item(name: 'Dashboard', href: root_path, icon_name: 'home') %>
-    <% breadcrumb.with_item(name: 'Settings') %>
+    <% breadcrumb.with_item(name: t('navbar.dashboard'), href: root_path, icon_name: 'home') %>
+    <% breadcrumb.with_item(name: t('settings.title')) %>
   <% end %>
 
   <%# Page Header %>
-  <%= render Bali::PageHeader::Component.new(title: 'Settings', subtitle: 'Manage your preferences and account settings', class: 'mt-4 mb-6') %>
+  <%= render Bali::PageHeader::Component.new(title: t('settings.title'), subtitle: t('settings.subtitle'), class: 'mt-4 mb-6') %>
 
   <%# Settings Layout: SideMenu + Content together %>
   <div class="flex flex-col lg:flex-row gap-6">
     <%# Settings Navigation - SideMenu (inline, not fixed) %>
     <div class="w-48 shrink-0">
       <%= render Bali::SideMenu::Component.new(current_path: request.path, fixed: false) do |menu| %>
-        <% menu.with_list(title: 'Settings') do |list| %>
-          <% list.with_item(href: '#general', icon: 'settings', name: 'General') %>
-          <% list.with_item(href: '#notifications', icon: 'bell', name: 'Notifications') %>
-          <% list.with_item(href: '#privacy', icon: 'shield', name: 'Privacy') %>
-          <% list.with_item(href: '#appearance', icon: 'palette', name: 'Appearance') %>
+        <% menu.with_list(title: t('settings.title')) do |list| %>
+          <% list.with_item(href: '#general', icon: 'settings', name: t('settings.general')) %>
+          <% list.with_item(href: '#notifications', icon: 'bell', name: t('settings.notifications')) %>
+          <% list.with_item(href: '#privacy', icon: 'shield', name: t('settings.privacy')) %>
+          <% list.with_item(href: '#appearance', icon: 'palette', name: t('settings.appearance')) %>
         <% end %>
       <% end %>
     </div>
@@ -32,23 +32,28 @@
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <h3 class="card-title text-lg">
           <%= render Bali::Icon::Component.new('settings', class: 'mr-2') %>
-          General Settings
+          <%= t('settings.general_settings') %>
         </h3>
-        <p class="text-base-content/60 text-sm mb-4">Configure your basic preferences</p>
+        <p class="text-base-content/60 text-sm mb-4"><%= t('settings.general_desc') %></p>
 
         <%= form_with model: @settings, url: settings_path, method: :patch, builder: Bali::FormBuilder, class: 'space-y-4' do |f| %>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <%# Language Select %>
-            <% languages = [['English', 'en'], ['Spanish', 'es'], ['French', 'fr'], ['German', 'de']] %>
-            <%= f.select_group :language, languages, {}, { label: 'Language' } %>
+            <% languages = [
+              [t('settings.languages.english'), 'en'],
+              [t('settings.languages.spanish'), 'es'],
+              [t('settings.languages.french'), 'fr'],
+              [t('settings.languages.german'), 'de']
+            ] %>
+            <%= f.select_group :language, languages, {}, { label: t('settings.language') } %>
 
             <%# Timezone Select %>
-            <%= f.time_zone_select_group :timezone, nil, {}, { label: 'Timezone' } %>
+            <%= f.time_zone_select_group :timezone, nil, {}, { label: t('settings.timezone') } %>
           </div>
 
           <div class="flex justify-end mt-4">
             <%= render Bali::Button::Component.new(
-                name: 'Save Changes',
+                name: t('settings.save_changes'),
                 variant: :primary,
                 type: :submit,
                 size: :sm
@@ -63,25 +68,29 @@
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <h3 class="card-title text-lg">
           <%= render Bali::Icon::Component.new('bell', class: 'mr-2') %>
-          Notification Preferences
+          <%= t('settings.notification_preferences') %>
         </h3>
-        <p class="text-base-content/60 text-sm mb-4">Choose how you want to be notified</p>
+        <p class="text-base-content/60 text-sm mb-4"><%= t('settings.notification_desc') %></p>
 
         <%= render Bali::Message::Component.new(color: :info, class: 'mb-4') do %>
-          <strong>Tip:</strong> Enable email notifications to stay updated on your movies.
+          <%= raw t('settings.notification_tip') %>
         <% end %>
 
         <%= form_with model: @settings, url: settings_path, method: :patch, builder: Bali::FormBuilder, class: 'space-y-4' do |f| %>
-          <%= f.switch_field_group :email_notifications, label: 'Email Notifications', color: :primary %>
-          <%= f.switch_field_group :push_notifications, label: 'Push Notifications', color: :primary %>
+          <%= f.switch_field_group :email_notifications, label: t('settings.email_notifications'), color: :primary %>
+          <%= f.switch_field_group :push_notifications, label: t('settings.push_notifications'), color: :primary %>
 
           <%# Notification Frequency %>
-          <% frequencies = [['Immediately', 'immediate'], ['Daily Digest', 'daily'], ['Weekly Summary', 'weekly']] %>
-          <%= f.select_group :notification_frequency, frequencies, {}, { label: 'Notification Frequency' } %>
+          <% frequencies = [
+            [t('settings.frequency_immediate'), 'immediate'],
+            [t('settings.frequency_daily'), 'daily'],
+            [t('settings.frequency_weekly'), 'weekly']
+          ] %>
+          <%= f.select_group :notification_frequency, frequencies, {}, { label: t('settings.notification_frequency') } %>
 
           <div class="flex justify-end mt-4">
             <%= render Bali::Button::Component.new(
-                name: 'Save Changes',
+                name: t('settings.save_changes'),
                 variant: :primary,
                 type: :submit,
                 size: :sm
@@ -96,21 +105,21 @@
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <h3 class="card-title text-lg">
           <%= render Bali::Icon::Component.new('shield', class: 'mr-2') %>
-          Privacy Settings
+          <%= t('settings.privacy_settings') %>
         </h3>
-        <p class="text-base-content/60 text-sm mb-4">Control your privacy and visibility</p>
+        <p class="text-base-content/60 text-sm mb-4"><%= t('settings.privacy_desc') %></p>
 
         <%= render Bali::Message::Component.new(color: :warning, class: 'mb-4') do %>
-          <strong>Privacy Notice:</strong> Your data is encrypted and never shared with third parties.
+          <%= raw t('settings.privacy_notice') %>
         <% end %>
 
         <%= form_with model: @settings, url: settings_path, method: :patch, builder: Bali::FormBuilder, class: 'space-y-4' do |f| %>
-          <%= f.switch_field_group :profile_visible, label: 'Make my profile visible to others', color: :primary %>
-          <%= f.switch_field_group :show_activity, label: 'Show my activity in the feed', color: :primary %>
+          <%= f.switch_field_group :profile_visible, label: t('settings.profile_visible'), color: :primary %>
+          <%= f.switch_field_group :show_activity, label: t('settings.show_activity'), color: :primary %>
 
           <div class="flex justify-end mt-4">
             <%= render Bali::Button::Component.new(
-                name: 'Save Changes',
+                name: t('settings.save_changes'),
                 variant: :primary,
                 type: :submit,
                 size: :sm
@@ -125,12 +134,12 @@
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <h3 class="card-title text-lg">
           <%= render Bali::Icon::Component.new('palette', class: 'mr-2') %>
-          Appearance
+          <%= t('settings.appearance_settings') %>
         </h3>
-        <p class="text-base-content/60 text-sm mb-4">Customize the look and feel</p>
+        <p class="text-base-content/60 text-sm mb-4"><%= t('settings.appearance_desc') %></p>
 
         <%= form_with model: @settings, url: settings_path, method: :patch, builder: Bali::FormBuilder, class: 'space-y-4' do |f| %>
-          <%= f.switch_field_group :dark_mode, label: 'Enable Dark Mode', color: :accent %>
+          <%= f.switch_field_group :dark_mode, label: t('settings.dark_mode'), color: :accent %>
 
           <%# Theme Preview Cards %>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
@@ -138,9 +147,9 @@
               <div class="card-body p-4">
                 <div class="flex items-center gap-2">
                   <%= render Bali::Icon::Component.new('sun', class: 'text-warning') %>
-                  <span class="font-medium">Light Mode</span>
+                  <span class="font-medium"><%= t('settings.light_mode') %></span>
                 </div>
-                <p class="text-sm text-base-content/60">Clean and bright interface</p>
+                <p class="text-sm text-base-content/60"><%= t('settings.light_mode_desc') %></p>
               </div>
             <% end %>
 
@@ -148,16 +157,16 @@
               <div class="card-body p-4">
                 <div class="flex items-center gap-2">
                   <%= render Bali::Icon::Component.new('moon', class: 'text-info') %>
-                  <span class="font-medium">Dark Mode</span>
+                  <span class="font-medium"><%= t('settings.dark_mode_title') %></span>
                 </div>
-                <p class="text-sm opacity-70">Easy on the eyes</p>
+                <p class="text-sm opacity-70"><%= t('settings.dark_mode_desc') %></p>
               </div>
             <% end %>
           </div>
 
           <div class="flex justify-end mt-4">
             <%= render Bali::Button::Component.new(
-                name: 'Save Changes',
+                name: t('settings.save_changes'),
                 variant: :primary,
                 type: :submit,
                 size: :sm
@@ -175,7 +184,7 @@
             <% trigger.with_title do %>
               <div class="flex items-center gap-2">
                 <%= render Bali::Icon::Component.new('sliders', class: 'text-base-content/70') %>
-                <span class="text-lg font-semibold">Advanced Settings</span>
+                <span class="text-lg font-semibold"><%= t('settings.advanced') %></span>
               </div>
             <% end %>
           <% end %>
@@ -183,26 +192,31 @@
           <%# Content revealed when clicked %>
           <div class="space-y-4">
             <%= render Bali::Message::Component.new(color: :warning, class: 'mb-4') do %>
-              <strong>Advanced:</strong> These settings are for power users. Modify with caution.
+              <%= raw t('settings.advanced_warning') %>
             <% end %>
 
             <%= form_with model: @settings, url: settings_path, method: :patch, builder: Bali::FormBuilder, class: 'space-y-4' do |f| %>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <%# Cache Duration %>
-                <% cache_options = [['1 hour', '1'], ['6 hours', '6'], ['24 hours', '24'], ['1 week', '168']] %>
-                <%= f.select_group :cache_duration, cache_options, {}, { label: 'Cache Duration' } %>
+                <% cache_options = [
+                  [t('settings.cache_1h'), '1'],
+                  [t('settings.cache_6h'), '6'],
+                  [t('settings.cache_24h'), '24'],
+                  [t('settings.cache_1w'), '168']
+                ] %>
+                <%= f.select_group :cache_duration, cache_options, {}, { label: t('settings.cache_duration') } %>
 
                 <%# API Rate Limit %>
                 <% rate_limits = [['100 req/min', '100'], ['500 req/min', '500'], ['1000 req/min', '1000']] %>
-                <%= f.select_group :api_rate_limit, rate_limits, {}, { label: 'API Rate Limit' } %>
+                <%= f.select_group :api_rate_limit, rate_limits, {}, { label: t('settings.api_rate_limit') } %>
               </div>
 
-              <%= f.switch_field_group :debug_mode, label: 'Enable Debug Mode', color: :warning %>
-              <%= f.switch_field_group :beta_features, label: 'Enable Beta Features', color: :info %>
+              <%= f.switch_field_group :debug_mode, label: t('settings.debug_mode'), color: :warning %>
+              <%= f.switch_field_group :beta_features, label: t('settings.beta_features'), color: :info %>
 
               <div class="flex justify-end mt-4">
                 <%= render Bali::Button::Component.new(
-                    name: 'Save Advanced Settings',
+                    name: t('settings.save_advanced'),
                     variant: :warning,
                     type: :submit,
                     size: :sm
@@ -219,19 +233,19 @@
       <%= render Bali::Card::Component.new(style: :bordered, class: 'border-error') do %>
         <h3 class="card-title text-lg text-error">
           <%= render Bali::Icon::Component.new('alert-triangle', class: 'mr-2') %>
-          Danger Zone
+          <%= t('settings.danger_zone') %>
         </h3>
-        <p class="text-base-content/60 text-sm mb-4">Irreversible actions - proceed with caution</p>
+        <p class="text-base-content/60 text-sm mb-4"><%= t('settings.danger_desc') %></p>
 
         <div class="flex flex-col sm:flex-row gap-4">
           <%= render Bali::Button::Component.new(
-              name: 'Export Data',
+              name: t('settings.export_data'),
               variant: :ghost,
               size: :sm,
               icon_name: 'download'
             ) %>
           <%= render Bali::Button::Component.new(
-              name: 'Delete Account',
+              name: t('settings.delete_account'),
               variant: :error,
               size: :sm,
               icon_name: 'trash-2'

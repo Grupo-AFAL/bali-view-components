@@ -1,60 +1,60 @@
 <%# Dashboard - Showcases: PageHeader, Card, Icon, Chart, Timeline, Notification, Tag, Button, Level, InfoLevel, GanttChart, Heatmap %>
 
 <%# Page Header %>
-<%= render Bali::PageHeader::Component.new(title: 'Dashboard', subtitle: 'Welcome back, Admin') do %>
+<%= render Bali::PageHeader::Component.new(title: t('dashboard.title'), subtitle: t('dashboard.welcome')) do %>
   <div class="flex gap-2">
-    <%= render Bali::Link::Component.new(name: 'New Movie', href: new_movie_path, variant: :primary, icon_name: 'plus') %>
-    <%= render Bali::Link::Component.new(name: 'Export', href: '#', variant: :ghost, icon_name: 'download') %>
+    <%= render Bali::Link::Component.new(name: t('dashboard.new_movie'), href: new_movie_path, variant: :primary, icon_name: 'plus') %>
+    <%= render Bali::Link::Component.new(name: t('dashboard.export'), href: '#', variant: :ghost, icon_name: 'download') %>
   </div>
 <% end %>
 
 <%# Stats Cards Row %>
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
   <%= render Bali::StatCard::Component.new(
-    title: 'Total Movies',
+    title: t('dashboard.total_movies'),
     value: @total_movies,
     icon_name: 'film',
     color: :primary
   ) do |card|
     card.with_footer do
       render(Bali::Icon::Component.new('trending-up', size: :small, class: 'text-success')) +
-      tag.span('+12% from last month', class: 'text-success')
+      tag.span(t('dashboard.from_last_month'), class: 'text-success')
     end
   end %>
 
   <%= render Bali::StatCard::Component.new(
-    title: 'In Production',
+    title: t('dashboard.in_production'),
     value: @active_productions,
     icon_name: 'clapperboard',
     color: :warning
   ) do |card|
     card.with_footer do
       render(Bali::Icon::Component.new('clock', size: :small, class: 'text-base-content/60')) +
-      tag.span('Currently in draft', class: 'text-base-content/60')
+      tag.span(t('dashboard.currently_in_draft'), class: 'text-base-content/60')
     end
   end %>
 
   <%= render Bali::StatCard::Component.new(
-    title: 'Studios',
+    title: t('dashboard.studios'),
     value: @studios_count,
     icon_name: 'building-2',
     color: :secondary
   ) do |card|
     card.with_footer do
       render(Bali::Icon::Component.new('users', size: :small, class: 'text-secondary')) +
-      tag.span('Partner studios', class: 'text-secondary')
+      tag.span(t('dashboard.partner_studios'), class: 'text-secondary')
     end
   end %>
 
   <%= render Bali::StatCard::Component.new(
-    title: 'Indie Films',
+    title: t('dashboard.indie_films'),
     value: @indie_count,
     icon_name: 'star',
     color: :accent
   ) do |card|
     card.with_footer do
       render(Bali::Icon::Component.new('award', size: :small, class: 'text-accent')) +
-      tag.span('Independent productions', class: 'text-accent')
+      tag.span(t('dashboard.independent_productions'), class: 'text-accent')
     end
   end %>
 </div>
@@ -63,7 +63,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
   <%# Movies by Genre Chart %>
   <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <h3 class="card-title text-lg">Movies by Genre</h3>
+    <h3 class="card-title text-lg"><%= t('dashboard.movies_by_genre') %></h3>
     <div class="mt-4">
       <%= render Bali::Chart::Component.new(
         type: :doughnut,
@@ -76,10 +76,10 @@
 
   <%# Recent Activity Timeline %>
   <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <h3 class="card-title text-lg">Recent Activity</h3>
+    <h3 class="card-title text-lg"><%= t('dashboard.recent_activity') %></h3>
     <div class="mt-4">
       <%= render Bali::Timeline::Component.new(position: :left) do |timeline| %>
-        <% timeline.with_tag_header(text: 'Today') %>
+        <% timeline.with_tag_header(text: t('dashboard.today')) %>
         <% @recent_movies.first(3).each do |movie| %>
           <% timeline.with_tag_item(
             heading: movie.name,
@@ -96,7 +96,7 @@
         <% end %>
       <% end %>
     </div>
-    <%= render Bali::Link::Component.new(name: 'View all activity', href: movies_path, class: 'mt-4') %>
+    <%= render Bali::Link::Component.new(name: t('dashboard.view_all_activity'), href: movies_path, class: 'mt-4') %>
   <% end %>
 </div>
 
@@ -104,7 +104,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
   <%# Movies by Status Chart %>
   <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <h3 class="card-title text-lg">Movies by Status</h3>
+    <h3 class="card-title text-lg"><%= t('dashboard.movies_by_status') %></h3>
     <div class="mt-4">
       <%= render Bali::Chart::Component.new(
         type: :bar,
@@ -117,22 +117,22 @@
 
   <%# Notifications Showcase %>
   <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <h3 class="card-title text-lg">Notifications Demo</h3>
+    <h3 class="card-title text-lg"><%= t('dashboard.notifications_demo') %></h3>
     <div class="mt-4 space-y-3">
       <%= render Bali::Notification::Component.new(type: :info, dismiss: false) do %>
-        <strong>New feature:</strong> Advanced filtering is now available!
+        <%= raw t('dashboard.new_feature') %>
       <% end %>
 
       <%= render Bali::Notification::Component.new(type: :success, dismiss: false) do %>
-        <strong>Success!</strong> Your changes have been saved.
+        <%= raw t('dashboard.success_message') %>
       <% end %>
 
       <%= render Bali::Notification::Component.new(type: :warning, dismiss: false) do %>
-        <strong>Warning:</strong> 3 movies are missing cover images.
+        <%= raw t('dashboard.warning_message') %>
       <% end %>
 
       <%= render Bali::Notification::Component.new(type: :error, dismiss: false) do %>
-        <strong>Error:</strong> Failed to sync with external API.
+        <%= raw t('dashboard.error_message') %>
       <% end %>
     </div>
   <% end %>
@@ -144,16 +144,16 @@
     <%= render Bali::Level::Component.new do |level| %>
       <% level.with_left do %>
         <div>
-          <h3 class="font-semibold">Quick Actions</h3>
-          <p class="text-sm text-base-content/60">Common tasks at your fingertips</p>
+          <h3 class="font-semibold"><%= t('dashboard.quick_actions') %></h3>
+          <p class="text-sm text-base-content/60"><%= t('dashboard.common_tasks') %></p>
         </div>
       <% end %>
       <% level.with_right do %>
         <div class="flex flex-wrap gap-2">
-          <%= render Bali::Link::Component.new(name: 'Add Movie', href: new_movie_path, variant: :primary, size: :sm) %>
-          <%= render Bali::Link::Component.new(name: 'View All Movies', href: movies_path, variant: :ghost, size: :sm) %>
-          <%= render Bali::Link::Component.new(name: 'Settings', href: settings_path, variant: :ghost, size: :sm) %>
-          <%= render Bali::Link::Component.new(name: 'Lookbook', href: '/lookbook', variant: :ghost, size: :sm, target: '_blank') %>
+          <%= render Bali::Link::Component.new(name: t('dashboard.add_movie'), href: new_movie_path, variant: :primary, size: :sm) %>
+          <%= render Bali::Link::Component.new(name: t('dashboard.view_all_movies'), href: movies_path, variant: :ghost, size: :sm) %>
+          <%= render Bali::Link::Component.new(name: t('navbar.settings'), href: settings_path, variant: :ghost, size: :sm) %>
+          <%= render Bali::Link::Component.new(name: t('navbar.lookbook'), href: '/lookbook', variant: :ghost, size: :sm, target: '_blank') %>
         </div>
       <% end %>
     <% end %>
@@ -163,13 +163,13 @@
 <%# BulkActions Demo - Click items to select, floating action bar appears %>
 <div class="mt-6">
   <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <h3 class="card-title text-lg mb-4">BulkActions Demo</h3>
-    <p class="text-sm text-base-content/60 mb-4">Click items to select them. A floating action bar appears at the bottom.</p>
+    <h3 class="card-title text-lg mb-4"><%= t('dashboard.bulk_actions_demo') %></h3>
+    <p class="text-sm text-base-content/60 mb-4"><%= t('dashboard.bulk_actions_help') %></p>
 
     <%= render Bali::BulkActions::Component.new do |bulk| %>
-      <% bulk.with_action(label: 'Mark Done', href: bulk_action_movies_path, variant: :success) %>
-      <% bulk.with_action(label: 'Archive', href: bulk_action_movies_path, variant: :info) %>
-      <% bulk.with_action(label: 'Delete', href: bulk_action_movies_path, variant: :error) %>
+      <% bulk.with_action(label: t('dashboard.mark_done'), href: bulk_action_movies_path, variant: :success) %>
+      <% bulk.with_action(label: t('dashboard.archive'), href: bulk_action_movies_path, variant: :info) %>
+      <% bulk.with_action(label: t('dashboard.delete'), href: bulk_action_movies_path, variant: :error) %>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <% @recent_movies.each do |movie| %>
@@ -198,22 +198,22 @@
 <%# InfoLevel Component Demo %>
 <div class="mt-6">
   <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <h3 class="card-title text-lg mb-4">InfoLevel Component</h3>
+    <h3 class="card-title text-lg mb-4"><%= t('dashboard.info_level') %></h3>
     <%= render Bali::InfoLevel::Component.new(align: :between) do |info| %>
       <% info.with_item do |i| %>
-        <% i.with_heading('Total Revenue') %>
+        <% i.with_heading(t('dashboard.total_revenue')) %>
         <% i.with_title('$1,234,567') %>
       <% end %>
       <% info.with_item do |i| %>
-        <% i.with_heading('Avg. Budget') %>
+        <% i.with_heading(t('dashboard.avg_budget')) %>
         <% i.with_title('$50,000') %>
       <% end %>
       <% info.with_item do |i| %>
-        <% i.with_heading('Completion Rate') %>
+        <% i.with_heading(t('dashboard.completion_rate')) %>
         <% i.with_title('78%') %>
       <% end %>
       <% info.with_item do |i| %>
-        <% i.with_heading('Active Users') %>
+        <% i.with_heading(t('dashboard.active_users')) %>
         <% i.with_title('1,234') %>
       <% end %>
     <% end %>
@@ -224,7 +224,7 @@
 <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
   <%# GanttChart - Production Timeline %>
   <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <h3 class="card-title text-lg mb-4">Production Timeline (GanttChart)</h3>
+    <h3 class="card-title text-lg mb-4"><%= t('dashboard.production_timeline') %></h3>
     <% if @gantt_tasks.any? %>
       <div class="overflow-x-auto">
         <%= render Bali::GanttChart::Component.new(
@@ -236,23 +236,23 @@
       </div>
     <% else %>
       <%= render Bali::Message::Component.new(color: :info) do %>
-        No movies to display in timeline. Add some movies first!
+        <%= t('dashboard.no_movies_timeline') %>
       <% end %>
     <% end %>
   <% end %>
 
   <%# Heatmap - Activity by Day/Hour %>
   <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <h3 class="card-title text-lg mb-4">Activity Heatmap</h3>
+    <h3 class="card-title text-lg mb-4"><%= t('dashboard.activity_heatmap') %></h3>
     <%= render Bali::Heatmap::Component.new(
       data: @heatmap_data,
       width: 400,
       height: 200,
       color: '#3b82f6'
     ) do |heatmap| %>
-      <% heatmap.with_x_axis_title('Day of Week') %>
-      <% heatmap.with_y_axis_title('Hour') %>
-      <% heatmap.with_legend_title('Activity') %>
+      <% heatmap.with_x_axis_title(t('dashboard.day_of_week')) %>
+      <% heatmap.with_y_axis_title(t('dashboard.hour')) %>
+      <% heatmap.with_legend_title(t('dashboard.activity')) %>
     <% end %>
   <% end %>
 </div>

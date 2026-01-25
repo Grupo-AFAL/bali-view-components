@@ -59,7 +59,7 @@ module Bali
           'bg-base-100 shadow-2xl',
           'transform transition-transform duration-300 ease-in-out',
           position_config[:transform],
-          'overflow-auto z-50'
+          'overflow-auto z-[9999]'
         )
       end
 

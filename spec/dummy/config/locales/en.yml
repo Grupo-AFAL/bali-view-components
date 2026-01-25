@@ -1,33 +1,363 @@
-# Files in the config/locales directory are used for internationalization
-# and are automatically loaded by Rails. If you want to use locales other
-# than English, add the necessary files in this directory.
-#
-# To use the locales, use `I18n.t`:
-#
-#     I18n.t "hello"
-#
-# In views, this is aliased to just `t`:
-#
-#     <%= t("hello") %>
-#
-# To use a different locale, set it with `I18n.locale`:
-#
-#     I18n.locale = :es
-#
-# This would use the information in config/locales/es.yml.
-#
-# The following keys must be escaped otherwise they will not be retrieved by
-# the default I18n backend:
-#
-# true, false, on, off, yes, no
-#
-# Instead, surround them with single quotes.
-#
-# en:
-#   "true": "foo"
-#
-# To learn more, please read the Rails Internationalization guide
-# available at https://guides.rubyonrails.org/i18n.html.
-
 en:
-  hello: "Hello world"
+  # Navigation
+  navbar:
+    dashboard: Dashboard
+    movies: Movies
+    showcase: Showcase
+    settings: Settings
+    lookbook: Lookbook
+    admin: Admin
+    profile: Profile
+    sign_out: Sign out
+
+  # Dashboard
+  dashboard:
+    title: Dashboard
+    welcome: Welcome back, Admin
+    new_movie: New Movie
+    export: Export
+    total_movies: Total Movies
+    in_production: In Production
+    studios: Studios
+    indie_films: Indie Films
+    from_last_month: "+12% from last month"
+    currently_in_draft: Currently in draft
+    partner_studios: Partner studios
+    independent_productions: Independent productions
+    movies_by_genre: Movies by Genre
+    recent_activity: Recent Activity
+    view_all_activity: View all activity
+    movies_by_status: Movies by Status
+    notifications_demo: Notifications Demo
+    new_feature: "New feature: Advanced filtering is now available!"
+    success_message: "Success! Your changes have been saved."
+    warning_message: "Warning: 3 movies are missing cover images."
+    error_message: "Error: Failed to sync with external API."
+    quick_actions: Quick Actions
+    common_tasks: Common tasks at your fingertips
+    add_movie: Add Movie
+    view_all_movies: View All Movies
+    bulk_actions_demo: BulkActions Demo
+    bulk_actions_help: Click items to select them. A floating action bar appears at the bottom.
+    mark_done: Mark Done
+    archive: Archive
+    delete: Delete
+    info_level: InfoLevel Component
+    total_revenue: Total Revenue
+    avg_budget: Avg. Budget
+    completion_rate: Completion Rate
+    active_users: Active Users
+    production_timeline: Production Timeline (GanttChart)
+    activity_heatmap: Activity Heatmap
+    day_of_week: Day of Week
+    hour: Hour
+    activity: Activity
+    no_movies_timeline: No movies to display in timeline. Add some movies first!
+    today: Today
+
+  # Movies
+  movies:
+    title: Movies
+    subtitle: Manage your movie catalog
+    new_movie: New Movie
+    search_placeholder: Search by name, genre, or studio...
+    columns:
+      name: Name
+      genre: Genre
+      status: Status
+      studio: Studio
+      indie: Indie
+      created: Created
+    actions:
+      view: View
+      edit: Edit
+      delete: Delete
+    bulk_actions:
+      select_action: Select action...
+      mark_done: Mark as Done
+      mark_draft: Mark as Draft
+      delete: Delete Selected
+      apply: Apply
+    no_movies: No movies found.
+    no_movies_help: Try adjusting your filters or
+    add_new_movie: add a new movie
+    form:
+      name: Name
+      genre: Genre
+      status: Status
+      studio: Studio
+      indie: Indie Film
+      save: Save Movie
+      cancel: Cancel
+      edit_title: Edit Movie
+      new_title: New Movie
+      subtitle_new: Add a new movie to the database
+      subtitle_edit: Update movie information
+      basic_info: Basic Information
+      movie_title: Movie Title
+      enter_title: Enter movie title...
+      select_genre: Select a genre...
+      select_studio: Select a studio...
+      indie_film: This is an independent film
+      movie_details: Movie Details
+      synopsis: Synopsis
+      enter_synopsis: Enter movie synopsis...
+      release_date: Release Date
+      budget: Budget
+      contact_email: Contact Email
+      website_url: Website URL
+      movie_poster: Movie Poster
+      direct_upload_info: "DirectUpload: Files upload directly to storage without passing through the server."
+      additional_settings: Additional Settings
+      timezone: Timezone
+      select_timezone: Select timezone...
+      initial_rating: Initial Rating
+      required_fields_note: "Note: All fields marked with * are required. Additional settings are optional."
+      save_draft: Save as Draft
+      update_movie: Update Movie
+      create_movie: Create Movie
+      stepper:
+        basic_info: Basic Info
+        poster: Poster
+        details: Details
+        settings: Settings
+
+  # Showcase page
+  showcase:
+    title: Component Showcase
+    subtitle: Demonstrating components not yet shown in other kitchen sink pages
+    flash_notifications: Flash Notifications
+    flash_notifications_desc: Toast-style notifications for success and error messages.
+    with_alert: With Alert
+    changes_saved: Your changes have been saved successfully!
+    error_processing: There was an error processing your request.
+    loader: Loader
+    loader_desc: Loading indicators with various types and colors.
+    sizes: Sizes
+    modal: Modal
+    modal_desc: Dialog windows for confirmations, forms, and alerts.
+    open_basic_modal: Open Basic Modal
+    open_form_modal: Open Form Modal
+    open_confirmation_modal: Open Confirmation Modal
+    drawer: Drawer
+    drawer_desc: Slide-out panels for detailed views or forms.
+    open_user_details: Open User Details
+    open_filters: Open Filters
+    open_order_history: Open Order History
+    tooltip: Tooltip
+    tooltip_desc: Contextual hints that appear on hover or focus.
+    top: Top
+    bottom: Bottom
+    left: Left
+    right: Right
+    tooltip_on_top: Tooltip on top
+    tooltip_on_bottom: Tooltip on bottom
+    tooltip_on_left: Tooltip on left
+    tooltip_on_right: Tooltip on right
+    with_icons: With Icons
+    field_required: This field is required
+    click_more_info: Click for more information
+    action_may_take_while: This action may take a while
+    clipboard: Clipboard
+    clipboard_desc: Copy text to clipboard with visual feedback.
+    api_key: API Key
+    share_url: Share URL
+    copy_link: Copy Link
+    copied: Copied!
+    install_command: Install Command
+    list: List
+    list_desc: Structured list display with titles, subtitles, and actions.
+    team_members: Team Members
+    lead_developer: Lead Developer
+    designer: Designer
+    product_manager: Product Manager
+    online: Online
+    away: Away
+    offline: Offline
+    recent_files: Recent Files
+    modified_hours_ago: Modified 2 hours ago
+    modified_yesterday: Modified yesterday
+    modified_days_ago: Modified 3 days ago
+    download: Download
+    share: Share
+    tags_collection: Tags (Collection)
+    tags_desc: Group multiple tags with consistent spacing.
+    skills: Skills
+    categories: Categories (with links)
+    different_sizes: Different Sizes
+    extra_small: Extra Small
+    small: Small
+    medium: Medium
+    large: Large
+    tree_view: TreeView
+    tree_view_desc: Hierarchical navigation with expandable/collapsible nodes.
+    file_browser: File Browser
+    organization_structure: Organization Structure
+    engineering: Engineering
+    frontend: Frontend
+    backend: Backend
+    react_team: React Team
+    mobile_team: Mobile Team
+    api_team: API Team
+    data_team: Data Team
+    design: Design
+    product_design: Product Design
+    brand_design: Brand Design
+    marketing: Marketing
+    image_field: ImageField
+    image_field_desc: Image upload field with preview and clear button.
+    placeholder: Placeholder
+    calendar: Calendar
+    calendar_desc: Monthly/weekly calendar view with event display.
+    search_input: SearchInput
+    search_input_desc: Search field with optional auto-submit functionality.
+    with_submit_button: With Submit Button
+    search_products: Search products...
+    auto_submit: Auto-submit (no button)
+    start_typing: Start typing to search...
+    recurrent_event_rule_form: RecurrentEventRuleForm
+    recurrent_event_rule_form_desc: Build RFC 5545 RRULE strings for recurring events.
+    generated_rrule: "Generated RRULE: The form above generates standard iCalendar recurrence rules (RFC 5545) that can be used with calendar applications."
+    locations_map: LocationsMap
+    locations_map_desc: Google Maps integration with location markers.
+    google_maps_required: "Google Maps API Key Required: Set the GOOGLE_MAPS_KEY environment variable to enable the LocationsMap component."
+    map_placeholder: Map placeholder
+    all_components_showcased: All Components Showcased!
+    showcase_summary: This page demonstrates the following components that were missing from the kitchen sink
+
+  # Settings
+  settings:
+    title: Settings
+    subtitle: Manage your preferences and account settings
+    general: General
+    notifications: Notifications
+    security: Security
+    privacy: Privacy
+    appearance: Appearance
+    advanced: Advanced Settings
+    danger_zone: Danger Zone
+    save_changes: Save Changes
+    # General section
+    general_settings: General Settings
+    general_desc: Configure your basic preferences
+    language: Language
+    timezone: Timezone
+    # Notifications section
+    notification_preferences: Notification Preferences
+    notification_desc: Choose how you want to be notified
+    notification_tip: "Tip: Enable email notifications to stay updated on your movies."
+    email_notifications: Email Notifications
+    push_notifications: Push Notifications
+    notification_frequency: Notification Frequency
+    frequency_immediate: Immediately
+    frequency_daily: Daily Digest
+    frequency_weekly: Weekly Summary
+    # Privacy section
+    privacy_settings: Privacy Settings
+    privacy_desc: Control your privacy and visibility
+    privacy_notice: "Privacy Notice: Your data is encrypted and never shared with third parties."
+    profile_visible: Make my profile visible to others
+    show_activity: Show my activity in the feed
+    # Appearance section
+    appearance_settings: Appearance
+    appearance_desc: Customize the look and feel
+    dark_mode: Enable Dark Mode
+    light_mode: Light Mode
+    light_mode_desc: Clean and bright interface
+    dark_mode_title: Dark Mode
+    dark_mode_desc: Easy on the eyes
+    # Advanced section
+    advanced_warning: "Advanced: These settings are for power users. Modify with caution."
+    cache_duration: Cache Duration
+    cache_1h: 1 hour
+    cache_6h: 6 hours
+    cache_24h: 24 hours
+    cache_1w: 1 week
+    api_rate_limit: API Rate Limit
+    debug_mode: Enable Debug Mode
+    beta_features: Enable Beta Features
+    save_advanced: Save Advanced Settings
+    # Danger zone
+    danger_desc: Irreversible actions - proceed with caution
+    export_data: Export Data
+    delete_account: Delete Account
+    # Languages
+    languages:
+      english: English
+      spanish: Spanish
+      french: French
+      german: German
+
+  # Modals
+  modals:
+    basic:
+      title: Welcome!
+      new: New
+      body: This is a basic modal with a header, body, and action buttons.
+      body_detail: Modals are perfect for focusing user attention on important content or actions.
+      close: Close
+      got_it: Got it!
+    form:
+      title: Create New Item
+      name: Name
+      name_placeholder: Enter name...
+      description: Description
+      description_placeholder: Enter description...
+      cancel: Cancel
+      create: Create
+    confirm:
+      title: Confirm Delete
+      message: Are you sure you want to delete this item?
+      warning: This action cannot be undone.
+      cancel: Cancel
+      delete: Delete
+
+  # Drawers
+  drawers:
+    user_details:
+      role: Role
+      department: Department
+      status: Status
+      joined: Joined
+      active: Active
+      administrator: Administrator
+      engineering: Engineering
+    filters:
+      category: Category
+      all_categories: All Categories
+      electronics: Electronics
+      clothing: Clothing
+      price_range: Price Range
+      in_stock_only: In Stock Only
+      apply_filters: Apply Filters
+    order_history:
+      order_id: Order ID
+      date: Date
+      status: Status
+      total: Total
+      delivered: Delivered
+      shipped: Shipped
+      processing: Processing
+
+  # Common
+  common:
+    save: Save
+    cancel: Cancel
+    delete: Delete
+    edit: Edit
+    view: View
+    create: Create
+    update: Update
+    search: Search
+    filter: Filter
+    clear: Clear
+    apply: Apply
+    reset: Reset
+    loading: Loading...
+    no_results: No results
+    actions: Actions
+    status: Status
+    name: Name
+    description: Description
+    created_at: Created
+    updated_at: Updated

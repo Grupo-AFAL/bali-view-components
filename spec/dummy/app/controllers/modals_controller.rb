@@ -3,12 +3,9 @@
 class ModalsController < ApplicationController
   layout false
 
-  def basic
-  end
+  def basic; end
 
-  def form
-  end
+  def form; end
 
-  def confirm
-  end
+  def confirm; end
 end

@@ -10,12 +10,12 @@
   </div>
 
   <%= render Bali::PropertiesTable::Component.new do |table| %>
-    <% table.with_property(label: 'Role', value: 'Administrator') %>
-    <% table.with_property(label: 'Department', value: 'Engineering') %>
-    <% table.with_property(label: 'Status') do %>
-      <%= render Bali::Tag::Component.new(text: 'Active', color: :success) %>
+    <% table.with_property(label: t('drawers.user_details.role'), value: t('drawers.user_details.administrator')) %>
+    <% table.with_property(label: t('drawers.user_details.department'), value: t('drawers.user_details.engineering')) %>
+    <% table.with_property(label: t('drawers.user_details.status')) do %>
+      <%= render Bali::Tag::Component.new(text: t('drawers.user_details.active'), color: :success) %>
     <% end %>
-    <% table.with_property(label: 'Joined') do %>
+    <% table.with_property(label: t('drawers.user_details.joined')) do %>
       <%= render Bali::Timeago::Component.new(2.months.ago) %>
     <% end %>
   <% end %>

@@ -30,8 +30,6 @@ module Bali
 
       def call
         case @variant
-        when :text
-          render_text
         when :paragraph
           render_paragraph
         when :card
@@ -44,7 +42,7 @@ module Bali
           render_modal
         when :list
           render_list
-        else
+        else # :text or unknown
           render_text
         end
       end
@@ -70,25 +68,24 @@ module Bali
       def render_card
         tag.div(class: 'space-y-4') do
           safe_join([
-            tag.div(class: skeleton_classes('h-6 w-1/3')), # Title
-            tag.div(class: 'space-y-2') do
-              safe_join([
-                tag.div(class: skeleton_classes('h-4 w-full')),
-                tag.div(class: skeleton_classes('h-4 w-full')),
-                tag.div(class: skeleton_classes('h-4 w-2/3'))
-              ])
-            end
-          ])
+                      tag.div(class: skeleton_classes('h-6 w-1/3')), # Title
+                      tag.div(class: 'space-y-2') do
+                        safe_join([
+                                    tag.div(class: skeleton_classes('h-4 w-full')),
+                                    tag.div(class: skeleton_classes('h-4 w-full')),
+                                    tag.div(class: skeleton_classes('h-4 w-2/3'))
+                                  ])
+                      end
+                    ])
         end
       end
 
       def render_avatar
         size_class = case @size
                      when :xs then 'w-8 h-8'
-                     when :sm then 'w-10 h-10'
                      when :md then 'w-12 h-12'
                      when :lg then 'w-16 h-16'
-                     else 'w-10 h-10'
+                     else 'w-10 h-10' # :sm or default
                      end
         tag.div(class: skeleton_classes("#{size_class} rounded-full"))
       end
@@ -100,24 +97,24 @@ module Bali
       def render_modal
         tag.div(class: 'space-y-4') do
           safe_join([
-            # Title
-            tag.div(class: skeleton_classes('h-7 w-1/2')),
-            # Content lines
-            tag.div(class: 'space-y-2 py-2') do
-              safe_join([
-                tag.div(class: skeleton_classes('h-4 w-full')),
-                tag.div(class: skeleton_classes('h-4 w-full')),
-                tag.div(class: skeleton_classes('h-4 w-3/4'))
-              ])
-            end,
-            # Action buttons
-            tag.div(class: 'flex justify-end gap-2 pt-4') do
-              safe_join([
-                tag.div(class: skeleton_classes('h-10 w-20 rounded-btn')),
-                tag.div(class: skeleton_classes('h-10 w-24 rounded-btn'))
-              ])
-            end
-          ])
+                      # Title
+                      tag.div(class: skeleton_classes('h-7 w-1/2')),
+                      # Content lines
+                      tag.div(class: 'space-y-2 py-2') do
+                        safe_join([
+                                    tag.div(class: skeleton_classes('h-4 w-full')),
+                                    tag.div(class: skeleton_classes('h-4 w-full')),
+                                    tag.div(class: skeleton_classes('h-4 w-3/4'))
+                                  ])
+                      end,
+                      # Action buttons
+                      tag.div(class: 'flex justify-end gap-2 pt-4') do
+                        safe_join([
+                                    tag.div(class: skeleton_classes('h-10 w-20 rounded-btn')),
+                                    tag.div(class: skeleton_classes('h-10 w-24 rounded-btn'))
+                                  ])
+                      end
+                    ])
         end
       end
 
@@ -127,14 +124,14 @@ module Bali
             @lines.times.map do
               tag.div(class: 'flex items-center gap-3') do
                 safe_join([
-                  tag.div(class: skeleton_classes('w-10 h-10 rounded-full shrink-0')),
-                  tag.div(class: 'flex-1 space-y-2') do
-                    safe_join([
-                      tag.div(class: skeleton_classes('h-4 w-1/3')),
-                      tag.div(class: skeleton_classes('h-3 w-1/2'))
-                    ])
-                  end
-                ])
+                            tag.div(class: skeleton_classes('w-10 h-10 rounded-full shrink-0')),
+                            tag.div(class: 'flex-1 space-y-2') do
+                              safe_join([
+                                          tag.div(class: skeleton_classes('h-4 w-1/3')),
+                                          tag.div(class: skeleton_classes('h-3 w-1/2'))
+                                        ])
+                            end
+                          ])
               end
             end
           )

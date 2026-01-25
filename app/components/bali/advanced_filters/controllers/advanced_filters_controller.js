@@ -24,7 +24,15 @@ export class AdvancedFiltersController extends Controller {
     attributes: Array,
     applyMode: { type: String, default: 'batch' },
     maxGroups: { type: Number, default: 10 },
-    popover: { type: Boolean, default: true }
+    popover: { type: Boolean, default: true },
+    translations: { type: Object, default: {} }
+  }
+
+  /**
+   * Getter for translations with fallback to empty object
+   */
+  get t () {
+    return this.translationsValue || {}
   }
 
   groupIndex = 0
@@ -346,6 +354,10 @@ export class AdvancedFiltersController extends Controller {
       ? this.groupCombinatorTarget.value
       : 'and'
 
+    // Get translated labels with fallbacks
+    const andLabel = this.t.combinators?.and || 'AND'
+    const orLabel = this.t.combinators?.or || 'OR'
+
     const divider = document.createElement('div')
     divider.className = 'flex items-center justify-center gap-2 my-2'
     divider.innerHTML = `
@@ -356,13 +368,13 @@ export class AdvancedFiltersController extends Controller {
                 class="join-item btn btn-xs w-10 ${currentCombinator === 'and' ? 'btn-primary' : 'btn-outline'}"
                 data-action="advanced-filters#setGroupCombinator"
                 data-combinator="and">
-          AND
+          ${andLabel}
         </button>
         <button type="button"
                 class="join-item btn btn-xs w-10 ${currentCombinator === 'or' ? 'btn-primary' : 'btn-outline'}"
                 data-action="advanced-filters#setGroupCombinator"
                 data-combinator="or">
-          OR
+          ${orLabel}
         </button>
       </div>
       <div class="flex-1 border-t border-base-300"></div>

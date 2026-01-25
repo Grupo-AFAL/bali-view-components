@@ -3,6 +3,7 @@
      data-condition-group-index-value="<%= group_index %>"
      data-condition-index-value="<%= condition_index %>"
      data-condition-locale-value="<%= I18n.locale %>"
+     data-condition-translations-value="<%= translations_json %>"
      data-filter-group-target="condition">
 
   <%# Attribute selector - fixed width %>
@@ -49,6 +50,7 @@
         <%# Multi-select dropdown for "is any of" / "is not any of" %>
         <div class="relative w-full"
              data-controller="multi-select"
+             data-multi-select-translations-value="<%= multi_select_translations_json %>"
              data-condition-target="value">
           <div tabindex="0"
                role="button"

@@ -173,7 +173,7 @@ module Bali
         render Card::Component.new(class: 'w-96') do |c|
           c.with_title('Button Actions')
 
-          c.with_action(class: 'btn-primary', data: { action: 'click->modal#open' }) do
+          c.with_action(class: 'btn-primary', data: { turbo: false, action: 'click->modal#open' }) do
             'Open Modal'
           end
 

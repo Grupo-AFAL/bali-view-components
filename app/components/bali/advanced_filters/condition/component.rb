@@ -95,6 +95,71 @@ module Bali
         def short_datetime_format
           I18n.locale == :es ? 'j M Y H:i' : 'M j, Y H:i'
         end
+
+        # Translations JSON for the condition Stimulus controller.
+        # These are used when dynamically building inputs in JavaScript.
+        def translations_json
+          {
+            operators: operators_translations,
+            placeholders: placeholders_translations,
+            boolean: boolean_translations,
+            selected_count: selected_count_translation
+          }.to_json
+        end
+
+        # Translations JSON for multi-select controller specifically
+        def multi_select_translations_json
+          {
+            select_values: placeholders_translations[:select_values],
+            selected_count: selected_count_translation
+          }.to_json
+        end
+
+        private
+
+        def operators_translations
+          {
+            text: Operators.for_type(:text),
+            number: Operators.for_type(:number),
+            date: Operators.for_type(:date),
+            datetime: Operators.for_type(:datetime),
+            select: Operators.for_type(:select),
+            boolean: Operators.for_type(:boolean)
+          }
+        end
+
+        def placeholders_translations
+          {
+            enter_value: t('bali.advanced_filters.placeholders.enter_value',
+                           default: 'Enter value...'),
+            number: t('bali.advanced_filters.placeholders.number', default: '0'),
+            select_date: t('bali.advanced_filters.placeholders.select_date',
+                           default: 'Select date...'),
+            select_datetime: t('bali.advanced_filters.placeholders.select_datetime',
+                               default: 'Select date & time...'),
+            select_date_range: t('bali.advanced_filters.placeholders.select_date_range',
+                                 default: 'Select date range...'),
+            select_datetime_range: t('bali.advanced_filters.placeholders.select_datetime_range',
+                                     default: 'Select date & time range...'),
+            select: t('bali.advanced_filters.placeholders.select', default: 'Select...'),
+            select_values: t('bali.advanced_filters.placeholders.select_values',
+                             default: 'Select values...')
+          }
+        end
+
+        def boolean_translations
+          {
+            any: t('bali.advanced_filters.boolean.any', default: 'Any'),
+            yes: t('bali.advanced_filters.boolean.yes', default: 'Yes'),
+            no: t('bali.advanced_filters.boolean.no', default: 'No')
+          }
+        end
+
+        # rubocop:disable Style/FormatStringToken -- %{count} is Rails I18n format
+        def selected_count_translation
+          t('bali.advanced_filters.selected_count', default: '%{count} selected')
+        end
+        # rubocop:enable Style/FormatStringToken
       end
     end
   end

@@ -9,6 +9,11 @@ module Bali
         @options = options
       end
 
+      # Translated aria-label for navigation
+      def aria_label
+        I18n.t('bali.breadcrumb.aria_label', default: 'Breadcrumb')
+      end
+
       private
 
       def container_classes

@@ -7,6 +7,17 @@ import { Controller } from '@hotwired/stimulus'
 export class MultiSelectController extends Controller {
   static targets = ['trigger', 'label', 'dropdown']
 
+  static values = {
+    translations: { type: Object, default: {} }
+  }
+
+  /**
+   * Getter for translations with fallback to empty object
+   */
+  get t () {
+    return this.translationsValue || {}
+  }
+
   connect () {
     this.updateLabel()
     this.boundCloseOnClickOutside = this.closeOnClickOutside.bind(this)
@@ -97,14 +108,19 @@ export class MultiSelectController extends Controller {
     const checkboxes = this.element.querySelectorAll('input[type="checkbox"]:checked')
     const labels = Array.from(checkboxes).map(cb => cb.dataset.label)
 
+    // Get translated strings with fallbacks
+    const selectValuesLabel = this.t.select_values || 'Select values...'
+    const selectedCountTemplate = this.t.selected_count || '%{count} selected'
+
     if (labels.length === 0) {
-      this.labelTarget.textContent = 'Select values...'
+      this.labelTarget.textContent = selectValuesLabel
       this.labelTarget.classList.add('text-base-content/50')
     } else if (labels.length <= 2) {
       this.labelTarget.textContent = labels.join(', ')
       this.labelTarget.classList.remove('text-base-content/50')
     } else {
-      this.labelTarget.textContent = `${labels.length} selected`
+      // Replace %{count} placeholder with actual count (Rails I18n style)
+      this.labelTarget.textContent = selectedCountTemplate.replace('%{count}', labels.length)
       this.labelTarget.classList.remove('text-base-content/50')
     }
   }

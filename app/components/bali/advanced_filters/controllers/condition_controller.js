@@ -20,7 +20,15 @@ export class ConditionController extends Controller {
   static values = {
     groupIndex: Number,
     index: Number,
-    locale: { type: String, default: 'en' }
+    locale: { type: String, default: 'en' },
+    translations: { type: Object, default: {} }
+  }
+
+  /**
+   * Getter for translations with fallback to empty object
+   */
+  get t () {
+    return this.translationsValue || {}
   }
 
   /**
@@ -322,11 +330,17 @@ export class ConditionController extends Controller {
 
   /**
    * Get operators for a given type.
-   * NOTE: This is a fallback for dynamically created inputs.
-   * The primary source of truth is Ruby (Operators module), passed via data-operators attribute.
+   * Uses translations from Ruby if available, falls back to hardcoded defaults.
    */
   getOperatorsForType (type) {
-    const operators = {
+    // Try to get operators from translations (provided by Ruby)
+    const translatedOperators = this.t.operators?.[type]
+    if (translatedOperators && translatedOperators.length > 0) {
+      return translatedOperators
+    }
+
+    // Fallback to hardcoded defaults (English)
+    const fallbackOperators = {
       text: [
         { value: 'cont', label: 'contains' },
         { value: 'eq', label: 'is exactly' },
@@ -368,7 +382,7 @@ export class ConditionController extends Controller {
       boolean: [{ value: 'eq', label: 'is' }]
     }
 
-    return operators[type] || operators.text
+    return fallbackOperators[type] || fallbackOperators.text
   }
 
   /**
@@ -394,22 +408,24 @@ export class ConditionController extends Controller {
   // Input builders
 
   buildTextInput (fieldName) {
+    const placeholder = this.t.placeholders?.enter_value || 'Enter value...'
     return `
       <input type="text"
              class="input input-bordered input-sm w-full"
              name="${fieldName}"
-             placeholder="Enter value..."
+             placeholder="${this.escapeHtml(placeholder)}"
              data-condition-target="value">
     `
   }
 
   buildNumberInput (fieldName) {
+    const placeholder = this.t.placeholders?.number || '0'
     return `
       <input type="number"
              class="input input-bordered input-sm w-full"
              name="${fieldName}"
              step="any"
-             placeholder="0"
+             placeholder="${this.escapeHtml(placeholder)}"
              data-condition-target="value">
     `
   }
@@ -433,11 +449,12 @@ export class ConditionController extends Controller {
   }
 
   buildDateInput (fieldName) {
+    const placeholder = this.t.placeholders?.select_date || 'Select date...'
     return `
       <input type="text"
              class="input input-bordered input-sm w-full"
              name="${fieldName}"
-             placeholder="Select date..."
+             placeholder="${this.escapeHtml(placeholder)}"
              data-controller="datepicker"
              data-datepicker-locale-value="${this.localeValue}"
              data-datepicker-mode-value="single"
@@ -448,11 +465,12 @@ export class ConditionController extends Controller {
   }
 
   buildDatetimeInput (fieldName) {
+    const placeholder = this.t.placeholders?.select_datetime || 'Select date & time...'
     return `
       <input type="text"
              class="input input-bordered input-sm w-full"
              name="${fieldName}"
-             placeholder="Select date & time..."
+             placeholder="${this.escapeHtml(placeholder)}"
              data-controller="datepicker"
              data-datepicker-locale-value="${this.localeValue}"
              data-datepicker-mode-value="single"
@@ -464,11 +482,12 @@ export class ConditionController extends Controller {
   }
 
   buildDateRangeInput (rangeFieldNames) {
+    const placeholder = this.t.placeholders?.select_date_range || 'Select date range...'
     return `
       <div class="w-full" data-condition-target="value">
         <input type="text"
                class="input input-bordered input-sm w-full"
-               placeholder="Select date range..."
+               placeholder="${this.escapeHtml(placeholder)}"
                data-controller="datepicker"
                data-datepicker-locale-value="${this.localeValue}"
                data-datepicker-mode-value="range"
@@ -483,11 +502,12 @@ export class ConditionController extends Controller {
   }
 
   buildDatetimeRangeInput (rangeFieldNames) {
+    const placeholder = this.t.placeholders?.select_datetime_range || 'Select date & time range...'
     return `
       <div class="w-full" data-condition-target="value">
         <input type="text"
                class="input input-bordered input-sm w-full"
-               placeholder="Select date & time range..."
+               placeholder="${this.escapeHtml(placeholder)}"
                data-controller="datepicker"
                data-datepicker-locale-value="${this.localeValue}"
                data-datepicker-mode-value="range"
@@ -503,18 +523,22 @@ export class ConditionController extends Controller {
   }
 
   buildBooleanInput (fieldName) {
+    const anyLabel = this.t.boolean?.any || 'Any'
+    const yesLabel = this.t.boolean?.yes || 'Yes'
+    const noLabel = this.t.boolean?.no || 'No'
     return `
       <select class="select select-bordered select-sm w-full"
               name="${fieldName}"
               data-condition-target="value">
-        <option value="">Any</option>
-        <option value="true">Yes</option>
-        <option value="false">No</option>
+        <option value="">${this.escapeHtml(anyLabel)}</option>
+        <option value="true">${this.escapeHtml(yesLabel)}</option>
+        <option value="false">${this.escapeHtml(noLabel)}</option>
       </select>
     `
   }
 
   buildSelectInput (fieldName, options) {
+    const placeholder = this.t.placeholders?.select || 'Select...'
     const optionsHtml = options
       .map((opt) => {
         const [label, value] = Array.isArray(opt) ? opt : [opt, opt]
@@ -526,13 +550,15 @@ export class ConditionController extends Controller {
       <select class="select select-bordered select-sm w-full"
               name="${fieldName}"
               data-condition-target="value">
-        <option value="">Select...</option>
+        <option value="">${this.escapeHtml(placeholder)}</option>
         ${optionsHtml}
       </select>
     `
   }
 
   buildMultiSelectInput (fieldName, options) {
+    const selectValuesLabel = this.t.placeholders?.select_values || 'Select values...'
+    const selectedCountTemplate = this.t.selected_count || '%{count} selected'
     const optionsHtml = options
       .map((opt) => {
         const [label, value] = Array.isArray(opt) ? opt : [opt, opt]
@@ -555,13 +581,17 @@ export class ConditionController extends Controller {
     return `
       <div class="dropdown w-full"
            data-controller="multi-select"
+           data-multi-select-translations-value='${JSON.stringify({
+             select_values: selectValuesLabel,
+             selected_count: selectedCountTemplate
+           })}'
            data-condition-target="value">
         <div tabindex="0"
              role="button"
              class="select select-bordered select-sm w-full flex items-center"
              data-multi-select-target="trigger">
           <span class="flex-1 truncate text-left text-base-content/50" data-multi-select-target="label">
-            Select values...
+            ${this.escapeHtml(selectValuesLabel)}
           </span>
         </div>
         <div tabindex="0"

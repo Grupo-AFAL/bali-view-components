@@ -2,7 +2,7 @@
 <% if collapsable? %>
   <input type="checkbox" id="<%= collapse_checkbox_id %>"
          class="hidden side-menu-collapse-trigger"
-         aria-label="Toggle sidebar collapse" />
+         aria-label="<%= toggle_collapse_label %>" />
 <% end %>
 
 <%= tag.div(**container_options) do %>
@@ -16,7 +16,7 @@
         <span class="grow"></span>
       <% end %>
       <label for="<%= collapse_checkbox_id %>"
-             title="Collapse sidebar"
+             title="<%= collapse_label %>"
              class="menu-item p-2 cursor-pointer shrink-0">
         <%= render Bali::Icon::Component.new('panel-left-close', class: 'size-4') %>
       </label>
@@ -24,7 +24,7 @@
     <%# Collapsed state header - toggle centered like menu items %>
     <div class="side-menu-collapsed hidden px-1 py-3">
       <label for="<%= collapse_checkbox_id %>"
-             title="Expand sidebar"
+             title="<%= expand_label %>"
              class="collapse-toggle menu-item justify-center cursor-pointer">
         <%= render Bali::Icon::Component.new('panel-left-open',
               class: 'size-4') %>

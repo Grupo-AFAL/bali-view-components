@@ -1,21 +1,34 @@
-<div class="space-y-4">
-  <div class="form-control">
-    <label class="label"><span class="label-text">Category</span></label>
-    <select class="select select-bordered w-full">
-      <option>All Categories</option>
-      <option>Electronics</option>
-      <option>Clothing</option>
-    </select>
+<%= form_with scope: :filters, url: '#', method: :get, builder: Bali::FormBuilder, local: true, class: 'space-y-6' do |f| %>
+  <%# Category Select %>
+  <% categories = [
+    [t('drawers.filters.all_categories'), ''],
+    [t('drawers.filters.electronics'), 'electronics'],
+    [t('drawers.filters.clothing'), 'clothing']
+  ] %>
+  <%= f.select_group :category, categories, {}, { label: t('drawers.filters.category') } %>
+
+  <%# Price Range Slider %>
+  <%= f.range_field_group :price_range,
+      label: t('drawers.filters.price_range'),
+      min: 0,
+      max: 1000,
+      step: 100,
+      color: :primary,
+      size: :sm,
+      show_ticks: true,
+      ticks: 3,
+      prefix: '$' %>
+
+  <%# In Stock Toggle %>
+  <%= f.switch_field_group :in_stock, label: t('drawers.filters.in_stock_only'), color: :primary %>
+
+  <%# Submit Button %>
+  <div class="pt-2">
+    <%= render Bali::Button::Component.new(
+      name: t('drawers.filters.apply_filters'),
+      variant: :primary,
+      type: :submit,
+      class: 'w-full'
+    ) %>
   </div>
-  <div class="form-control">
-    <label class="label"><span class="label-text">Price Range</span></label>
-    <input type="range" min="0" max="100" value="50" class="range range-primary" />
-  </div>
-  <div class="form-control">
-    <label class="label cursor-pointer">
-      <span class="label-text">In Stock Only</span>
-      <input type="checkbox" class="toggle toggle-primary" />
-    </label>
-  </div>
-  <%= render Bali::Button::Component.new(name: 'Apply Filters', variant: :primary, class: 'w-full mt-4') %>
-</div>
+<% end %>

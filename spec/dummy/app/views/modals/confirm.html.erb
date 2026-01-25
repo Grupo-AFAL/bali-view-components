@@ -1,18 +1,18 @@
 <div class="space-y-4">
-  <h3 class="text-lg font-semibold">Confirm Delete</h3>
+  <h3 class="text-lg font-semibold"><%= t('modals.confirm.title') %></h3>
 
   <div class="flex items-start gap-4">
     <div class="bg-error/10 rounded-full p-3">
       <%= render Bali::Icon::Component.new('triangle-alert', class: 'text-error size-6') %>
     </div>
     <div>
-      <p class="font-medium">Are you sure you want to delete this item?</p>
-      <p class="text-sm text-base-content/70 mt-1">This action cannot be undone.</p>
+      <p class="font-medium"><%= t('modals.confirm.message') %></p>
+      <p class="text-sm text-base-content/70 mt-1"><%= t('modals.confirm.warning') %></p>
     </div>
   </div>
 
   <div class="modal-action">
-    <%= render Bali::Button::Component.new(name: 'Cancel', variant: :ghost, data: { action: 'modal#close' }) %>
-    <%= render Bali::Button::Component.new(name: 'Delete', variant: :error) %>
+    <%= render Bali::Button::Component.new(name: t('modals.confirm.cancel'), variant: :ghost, data: { action: 'modal#close' }) %>
+    <%= render Bali::Button::Component.new(name: t('modals.confirm.delete'), variant: :error) %>
   </div>
 </div>

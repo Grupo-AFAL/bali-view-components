@@ -101,6 +101,21 @@ module Bali
       def brand?
         @brand.present?
       end
+
+      # Translated aria-label for collapse checkbox
+      def toggle_collapse_label
+        I18n.t('bali.side_menu.toggle_collapse', default: 'Toggle sidebar collapse')
+      end
+
+      # Translated title for collapse button
+      def collapse_label
+        I18n.t('bali.side_menu.collapse', default: 'Collapse sidebar')
+      end
+
+      # Translated title for expand button
+      def expand_label
+        I18n.t('bali.side_menu.expand', default: 'Expand sidebar')
+      end
     end
   end
 end

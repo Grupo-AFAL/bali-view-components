@@ -1,14 +1,14 @@
 <div class="space-y-4">
   <div class="flex items-center justify-between">
-    <h3 class="text-lg font-semibold">Welcome!</h3>
-    <%= render Bali::Tag::Component.new(text: 'New', color: :primary) %>
+    <h3 class="text-lg font-semibold"><%= t('modals.basic.title') %></h3>
+    <%= render Bali::Tag::Component.new(text: t('modals.basic.new'), color: :primary) %>
   </div>
 
-  <p>This is a basic modal with a header, body, and action buttons.</p>
-  <p class="text-base-content/70">Modals are perfect for focusing user attention on important content or actions.</p>
+  <p><%= t('modals.basic.body') %></p>
+  <p class="text-base-content/70"><%= t('modals.basic.body_detail') %></p>
 
   <div class="modal-action">
-    <%= render Bali::Button::Component.new(name: 'Close', variant: :ghost, data: { action: 'modal#close' }) %>
-    <%= render Bali::Button::Component.new(name: 'Got it!', variant: :primary, data: { action: 'modal#close' }) %>
+    <%= render Bali::Button::Component.new(name: t('modals.basic.close'), variant: :ghost, data: { action: 'modal#close' }) %>
+    <%= render Bali::Button::Component.new(name: t('modals.basic.got_it'), variant: :primary, data: { action: 'modal#close' }) %>
   </div>
 </div>
