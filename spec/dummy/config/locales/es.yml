@@ -55,6 +55,7 @@ es:
     dashboard: Panel
     movies: Peliculas
     showcase: Catalogo
+    landing: Inicio
     settings: Configuracion
     lookbook: Lookbook
     admin: Administrador

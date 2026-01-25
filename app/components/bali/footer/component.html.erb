@@ -1,0 +1,12 @@
+<%= tag.footer(**html_options) do %>
+  <div class="container mx-auto max-w-6xl">
+    <div class="footer <%= 'footer-center' if center? %>">
+      <%= brand if brand? %>
+      <% sections.each do |section| %>
+        <%= section %>
+      <% end %>
+      <%= content %>
+    </div>
+    <%= bottom if bottom? %>
+  </div>
+<% end %>

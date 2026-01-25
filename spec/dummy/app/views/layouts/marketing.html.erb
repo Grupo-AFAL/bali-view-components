@@ -44,42 +44,33 @@
 
     <%= yield %>
 
-    <%# Footer %>
-    <footer class="bg-neutral text-neutral-content p-10 mt-16">
-      <div class="container mx-auto max-w-6xl">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <h3 class="text-lg font-bold mb-4">MovieDB</h3>
-            <p class="text-sm opacity-80">The ultimate movie database for studios, producers, and film enthusiasts.</p>
-          </div>
-          <div>
-            <h4 class="font-semibold mb-3">Product</h4>
-            <ul class="space-y-2 text-sm opacity-80">
-              <li><a href="#features" class="hover:opacity-100">Features</a></li>
-              <li><a href="#pricing" class="hover:opacity-100">Pricing</a></li>
-              <li><a href="#" class="hover:opacity-100">API</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="font-semibold mb-3">Company</h4>
-            <ul class="space-y-2 text-sm opacity-80">
-              <li><a href="#" class="hover:opacity-100">About</a></li>
-              <li><a href="#" class="hover:opacity-100">Blog</a></li>
-              <li><a href="#" class="hover:opacity-100">Careers</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="font-semibold mb-3">Legal</h4>
-            <ul class="space-y-2 text-sm opacity-80">
-              <li><a href="#" class="hover:opacity-100">Privacy</a></li>
-              <li><a href="#" class="hover:opacity-100">Terms</a></li>
-            </ul>
-          </div>
-        </div>
-        <div class="border-t border-neutral-content/20 mt-8 pt-8 text-sm opacity-60 text-center">
-          <p>&copy; 2024 MovieDB. Built with Bali ViewComponents.</p>
-        </div>
-      </div>
-    </footer>
+    <%# Footer using Bali component %>
+    <%= render Bali::Footer::Component.new(color: :neutral, class: 'mt-16') do |footer| %>
+      <% footer.with_brand(
+        name: 'MovieDB',
+        description: 'The ultimate movie database for studios, producers, and film enthusiasts.'
+      ) %>
+
+      <% footer.with_section(title: 'Product') do |section| %>
+        <% section.with_link(name: 'Features', href: '#features') %>
+        <% section.with_link(name: 'Pricing', href: '#pricing') %>
+        <% section.with_link(name: 'API', href: '#') %>
+      <% end %>
+
+      <% footer.with_section(title: 'Company') do |section| %>
+        <% section.with_link(name: 'About', href: '#') %>
+        <% section.with_link(name: 'Blog', href: '#') %>
+        <% section.with_link(name: 'Careers', href: '#') %>
+      <% end %>
+
+      <% footer.with_section(title: 'Legal') do |section| %>
+        <% section.with_link(name: 'Privacy', href: '#') %>
+        <% section.with_link(name: 'Terms', href: '#') %>
+      <% end %>
+
+      <% footer.with_bottom do %>
+        <p>&copy; <%= Date.current.year %> MovieDB. Built with Bali ViewComponents.</p>
+      <% end %>
+    <% end %>
   </body>
 </html>
