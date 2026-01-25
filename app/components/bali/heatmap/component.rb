@@ -3,27 +3,35 @@
 module Bali
   module Heatmap
     class Component < ApplicationViewComponent
-      CELL_CLASSES = 'heatmap-cell block'
-      LABEL_CLASSES = 'text-[0.625rem] text-center truncate'
-      X_LABEL_CLASSES = "#{LABEL_CLASSES} border-t border-base-300 pt-3 -rotate-45".freeze
-      Y_LABEL_CLASSES = "#{LABEL_CLASSES} border-r border-base-300 pr-4 align-middle".freeze
+      CELL_CLASSES = 'heatmap-cell rounded-sm'
+      LABEL_CLASSES = 'text-xs text-center truncate text-base-content/70'
+      X_LABEL_CLASSES = "#{LABEL_CLASSES} pt-2".freeze
+      Y_LABEL_CLASSES = "#{LABEL_CLASSES} pr-3 text-right".freeze
 
-      MIN_DIMENSION = 100
-      MAX_DIMENSION = 2000
+      # DaisyUI color presets using theme variables
+      COLOR_PRESETS = {
+        primary: '#6366f1', # Will be converted to gradient
+        secondary: '#8b5cf6',
+        accent: '#f59e0b',
+        success: '#22c55e',
+        info: '#3b82f6',
+        warning: '#f59e0b',
+        error: '#ef4444'
+      }.freeze
 
       renders_one :x_axis_title, ->(text = nil, &block) {
         content = text || (block ? capture(&block) : nil)
-        tag.span(content, class: 'text-xs font-bold')
+        tag.span(content, class: 'text-xs font-medium text-base-content/70')
       }
 
       renders_one :y_axis_title, ->(text = nil, &block) {
         content = text || (block ? capture(&block) : nil)
-        tag.span(content, class: 'text-xs font-bold')
+        tag.span(content, class: 'text-xs font-medium text-base-content/70')
       }
 
       renders_one :legend_title, ->(text = nil, &block) {
         content = text || (block ? capture(&block) : nil)
-        tag.span(content, class: 'font-bold')
+        tag.span(content, class: 'text-xs font-medium')
       }
 
       renders_one :hovercard_title, ->(text = nil, &block) {
@@ -33,12 +41,24 @@ module Bali
 
       attr_reader :html_options
 
-      def initialize(data:, width: 480, height: 480, color: '#008806', **html_options)
+      # @param data [Hash] Heatmap data in format { x_label => { y_label => value } }
+      # @param color [String, Symbol] Base color (hex string or DaisyUI preset symbol)
+      # @param cell_size [Integer] Size of each cell in pixels (default: auto-calculated)
+      # @param responsive [Boolean] If true, stretches to fill container width
+      def initialize(data:, color: :primary, cell_size: nil, responsive: true, **html_options)
         @data = data
-        @width = width.to_i.clamp(MIN_DIMENSION, MAX_DIMENSION)
-        @height = height.to_i.clamp(MIN_DIMENSION, MAX_DIMENSION)
-        @color = color
+        @color = resolve_color(color)
+        @cell_size = cell_size
+        @responsive = responsive
         @html_options = prepend_class_name(html_options, component_classes)
+      end
+
+      def resolve_color(color)
+        if color.is_a?(Symbol) || COLOR_PRESETS.key?(color.to_sym)
+          return COLOR_PRESETS[color.to_sym]
+        end
+
+        color
       end
 
       # Public API for template
@@ -63,17 +83,26 @@ module Bali
       end
 
       def cell_style(value)
-        "width: #{cell_width}px; height: #{cell_height}px; background: #{color_for_value(value)}"
+        # Always include height for cells to render properly
+        "background: #{color_for_value(value)}; min-height: #{cell_size}px; height: #{cell_size}px"
       end
 
-      def legend_segment_style(color)
-        "background: #{color}; width: #{@width / gradient_colors.size}px"
+      def cell_size
+        @cell_size || 28
+      end
+
+      def responsive?
+        @responsive
+      end
+
+      def table_classes
+        'w-full border-separate table-fixed'
       end
 
       private
 
       def component_classes
-        'heatmap-component overflow-x-auto max-w-full'
+        'heatmap-component w-full'
       end
 
       def compute_y_labels
@@ -85,14 +114,6 @@ module Bali
 
       def all_values
         @all_values ||= @data.values.flat_map(&:values)
-      end
-
-      def cell_width
-        @cell_width ||= @width / (x_labels.size + 1)
-      end
-
-      def cell_height
-        @cell_height ||= @height / y_labels.size
       end
 
       def color_for_value(value)

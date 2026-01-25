@@ -1,8 +1,12 @@
 <%= tag.div(**html_options) do %>
-  <table class="m-auto">
+  <table class="<%= table_classes %>" style="border-spacing: 2px;">
+    <colgroup>
+      <col style="width: 48px;">
+      <% x_labels.each do |_| %><col><% end %>
+    </colgroup>
     <thead>
       <tr>
-        <th class="pb-3 text-right pr-4"><%= y_axis_title %></th>
+        <th class="pb-2 text-right align-bottom"><%= y_axis_title %></th>
         <% x_labels.each do |_| %><th></th><% end %>
       </tr>
     </thead>
@@ -10,12 +14,13 @@
     <tbody>
       <% y_labels.each do |y| %>
         <tr>
-          <td class="<%= Y_LABEL_CLASSES %>"><%= y %></td>
+          <td class="<%= Y_LABEL_CLASSES %>" style="height: <%= cell_size %>px;"><%= y %></td>
           <% x_labels.each do |x| %>
             <% value = value_at(x, y) %>
-            <td>
+            <td class="<%= CELL_CLASSES %> relative" style="<%= cell_style(value) %>">
               <%= render Bali::HoverCard::Component.new do |card| %>
-                <% card.with_trigger(class: CELL_CLASSES, style: cell_style(value)) %>
+                <% card.with_trigger(class: 'absolute inset-0 cursor-pointer') do %>
+                <% end %>
                 <div class="text-xs">
                   <%= hovercard_title if hovercard_title? %>
                   <p class="text-base-content/70"><%= x %> - <%= y %></p>
@@ -38,7 +43,7 @@
       <% if x_axis_title? %>
         <tr>
           <td></td>
-          <td colspan="<%= x_labels.size %>" class="text-center pt-2">
+          <td colspan="<%= x_labels.size %>" class="text-center pt-3">
             <%= x_axis_title %>
           </td>
         </tr>
@@ -46,18 +51,19 @@
     </tfoot>
   </table>
 
-  <div class="mt-4 w-fit mx-auto">
-    <div class="flex h-6">
+  <%# Legend %>
+  <div class="mt-4 flex items-center justify-center gap-2">
+    <span class="text-xs text-base-content/70">0</span>
+    <div class="flex h-4 rounded overflow-hidden flex-1 max-w-xs">
       <% gradient_colors.each do |color| %>
-        <%= tag.div(style: legend_segment_style(color)) %>
+        <%= tag.div(class: 'flex-1', style: "background: #{color}") %>
       <% end %>
     </div>
-    <div class="flex justify-between text-xs">
-      <span>0</span>
-      <% if legend_title? %>
-        <span class="font-bold"><%= legend_title %></span>
-      <% end %>
-      <span><%= max_value %></span>
-    </div>
+    <span class="text-xs text-base-content/70"><%= max_value %></span>
   </div>
+  <% if legend_title? %>
+    <div class="text-center mt-1">
+      <%= legend_title %>
+    </div>
+  <% end %>
 <% end %>

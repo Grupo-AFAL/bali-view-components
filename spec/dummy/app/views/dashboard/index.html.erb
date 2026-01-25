@@ -246,9 +246,7 @@
     <h3 class="card-title text-lg mb-4"><%= t('dashboard.activity_heatmap') %></h3>
     <%= render Bali::Heatmap::Component.new(
       data: @heatmap_data,
-      width: 400,
-      height: 200,
-      color: '#3b82f6'
+      color: :info
     ) do |heatmap| %>
       <% heatmap.with_x_axis_title(t('dashboard.day_of_week')) %>
       <% heatmap.with_y_axis_title(t('dashboard.hour')) %>
