@@ -15,6 +15,7 @@
     <% elsif icon? %>
       <%= render Bali::Icon::Component.new('trash', class: 'w-4 h-4') %>
     <% end %>
-    <span><%= name %></span>
+
+    <%= name %>
   <% end %>
 <% end %>
