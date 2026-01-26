@@ -10,12 +10,14 @@
     <% end %>
   <% elsif auto_submit? %>
     <%# Auto-submit: buttons that submit the form on click %>
+    <%# Stars up to current value are bright, rest are dimmed %>
     <% scale.each do |rate| %>
       <button type="submit"
               name="<%= input_name %>"
               value="<%= rate %>"
-              class="<%= star_classes %>"
-              aria-label="<%= star_aria_label(rate) %>">
+              class="<%= star_classes %> <%= 'opacity-30' if rate > value %>"
+              aria-label="<%= star_aria_label(rate) %>"
+              aria-pressed="<%= rate <= value %>">
       </button>
     <% end %>
   <% else %>
