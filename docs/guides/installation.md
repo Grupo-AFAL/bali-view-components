@@ -53,34 +53,44 @@ Create `app/assets/tailwind/application.css` (or similar):
 
 ```css
 @import "tailwindcss";
-@plugin "daisyui" {
-  themes: light --default, dark;
-}
+@plugin "daisyui";
 
 /* =============================================
-   Source Paths - Tailwind class scanning
+   Bali ViewComponents - Tailwind class scanning
    =============================================
-   Add Bali components to Tailwind's content scanning
-   so all component classes are included in the build.
+   IMPORTANT: Tailwind v4 needs to scan Bali's Ruby and ERB files
+   to detect utility classes used in components. The gem installs
+   to a system directory outside your project, but the npm package
+   mirrors all source files in node_modules.
 */
-
-/* Your app sources */
-@source "../../../views/**/*.erb";
-@source "../../../helpers/**/*.rb";
-@source "../../../javascript/**/*.js";
-
-/* Bali ViewComponents sources (via node_modules) */
-@source "../../../node_modules/bali-view-components/app/components/**/*.{erb,rb}";
-@source "../../../node_modules/bali-view-components/lib/bali/**/*.rb";
+@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb}";
 
 /* =============================================
    Bali CSS Imports
    =============================================
-   Import base styles and component-specific CSS.
+   - bali.css: Base styles, forms, typography, variables
+   - components.css: Component-specific CSS (navbar, calendar, etc.)
 */
 @import "bali-view-components/css/bali.css";
 @import "bali-view-components/css/components.css";
+
+/* =============================================
+   Dark Mode Configuration
+   =============================================
+   Enable proper dark mode support with DaisyUI themes.
+*/
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+:root {
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+}
 ```
+
+> **Note**: The `@source` path uses `app/**/*.{rb,erb}` to scan all Bali source files. This ensures responsive classes like `lg:hidden` and `lg:flex` are detected and included in your CSS build.
 
 ### DaisyUI Themes
 
@@ -254,11 +264,27 @@ Open browser console and look for:
 
 ## Troubleshooting
 
+### Responsive classes not working (e.g., `lg:hidden`)
+
+Bali components use Tailwind responsive classes in Ruby files (e.g., `'btn lg:hidden'`). If responsive behavior isn't working (e.g., navbar burger visible on desktop), Tailwind isn't scanning the component files.
+
+**Fix:** Ensure your `@source` directive scans the full `app/` directory:
+
+```css
+/* Correct - scans all Ruby and ERB files */
+@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb}";
+
+/* Wrong - too narrow, misses some files */
+@source "../../../node_modules/bali-view-components/app/components/**/*.erb";
+```
+
+**Verify:** After fixing, rebuild CSS and check that `lg:hidden` exists in your compiled stylesheet.
+
 ### "Component not styled"
 
 The Tailwind build isn't scanning Bali component files.
 
-**Fix:** Ensure `@source` paths in your CSS point to `node_modules/bali-view-components/app/components/**/*.{erb,rb}`.
+**Fix:** Ensure `@source` paths in your CSS point to `node_modules/bali-view-components/app/**/*.{rb,erb}`.
 
 ### "Unknown Stimulus controller"
 
@@ -279,6 +305,24 @@ Package not installed or wrong import path.
 Bali uses Lucide icons via Iconify.
 
 **Fix:** Ensure your app includes Iconify or the icon CSS is loaded. Icons should render as `<span class="iconify lucide--icon-name">`.
+
+### Modal or Drawer visible on page load
+
+By default, `Bali::Modal::Component` renders with `active: true` (open state). This is intentional for modals rendered in response to user actions. For "shell" modals that get populated dynamically, you need to start them closed.
+
+**Fix:** Pass `active: false` when rendering shell modals/drawers:
+
+```erb
+<%# Shell modal - closed by default, opened via Stimulus controller %>
+<%= render Bali::Modal::Component.new(id: "main-modal", active: false) do %>
+  <%= render Bali::Skeleton::Component.new(variant: :modal) %>
+<% end %>
+
+<%# Shell drawer - already defaults to active: false, but explicit is clearer %>
+<%= render Bali::Drawer::Component.new(drawer_id: "main-drawer", active: false) do %>
+  <%= render Bali::Skeleton::Component.new(variant: :list, lines: 5) %>
+<% end %>
+```
 
 ---
 
