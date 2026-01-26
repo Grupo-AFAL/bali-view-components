@@ -1,0 +1,44 @@
+/*
+ * Bali ViewComponents - Main CSS Entry Point
+ *
+ * Usage in your application's Tailwind CSS file:
+ *
+ *   @import "bali";
+ *
+ * Or import individual stylesheets:
+ *
+ *   @import "bali/variables.css";
+ *   @import "bali/general.css";
+ *   ... etc
+ *
+ * Note: This file should be imported AFTER your Tailwind directives
+ * and DaisyUI plugin configuration.
+ */
+
+/* ==============================================
+   Base Styles & Variables
+   ============================================== */
+@import "./bali/variables.css";
+@import "./bali/general.css";
+
+/* ==============================================
+   Form Styles
+   ============================================== */
+@import "./bali/forms.css";
+@import "./bali/datepicker.css";
+@import "./bali/slim_select.css";
+@import "./bali/switch.css";
+
+/* ==============================================
+   Typography & Layout
+   ============================================== */
+@import "./bali/typography.css";
+@import "./bali/container.css";
+@import "./bali/box.css";
+@import "./bali/panel.css";
+
+/* ==============================================
+   Code & Rich Text
+   ============================================== */
+@import "./bali/code.css";
+@import "./bali/rich_text.css";

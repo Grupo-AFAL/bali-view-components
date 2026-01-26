@@ -6,6 +6,11 @@
   "author": "Federico Gonzalez <fedegl@hey.com>",
   "license": "MIT",
   "private": false,
+  "exports": {
+    "./css/bali.css": "./app/assets/stylesheets/bali.css",
+    "./css/components.css": "./app/assets/stylesheets/bali/components.css",
+    "./css/*.css": "./app/assets/stylesheets/bali/*.css"
+  },
   "scripts": {
     "cy:open": "cypress open",
     "cy:run": "cypress run"
