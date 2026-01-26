@@ -40,14 +40,9 @@ module Bali
           SIZES[@size] || SIZES[:full]
         end
 
-        # :full columns grow to fill remaining space
-        # :auto columns shrink to fit content (no grow)
-        # Fixed sizes (half, third, etc.) maintain their basis
+        # All columns grow except :auto which shrinks to fit content
         def grow_class
-          return nil if @size == :auto
-          return 'grow' if @size.nil? || @size == :full
-
-          nil
+          @size == :auto ? nil : 'grow'
         end
       end
     end
