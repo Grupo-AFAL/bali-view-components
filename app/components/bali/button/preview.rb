@@ -24,12 +24,11 @@ module Bali
       # @label Button Group
       # Shows buttons grouped together with consistent spacing
       def button_group
-        tag.div(class: 'flex gap-2') do
-          safe_join([
-            render(Bali::Button::Component.new(name: 'Cancel', variant: :ghost)),
-            render(Bali::Button::Component.new(name: 'Confirm', variant: :primary))
-          ])
-        end
+        buttons = safe_join([
+          render(Bali::Button::Component.new(name: 'Cancel', variant: :ghost)),
+          render(Bali::Button::Component.new(name: 'Confirm', variant: :primary))
+        ])
+        %(<div class="flex gap-2">#{buttons}</div>).html_safe
       end
     end
   end
