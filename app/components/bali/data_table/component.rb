@@ -26,8 +26,10 @@ module Bali
       # Filters panel using AdvancedFilters component
       # @param available_attributes [Array<Hash>] Filterable attributes
       # @param filter_groups [Array<Hash>] Initial filter state from params (optional)
-      # @param search_fields [Array<Symbol>] Fields for quick search
-      # @param search_value [String] Current search value from URL params
+      # @param search [Hash] Quick search configuration
+      #   - :fields [Array<Symbol>] Fields to search (e.g., [:name, :description])
+      #   - :value [String] Current search value from URL params
+      #   - :placeholder [String] Placeholder text for search input
       # @param apply_mode [Symbol] :batch (default) or :live
       # @param popover [Boolean] Show filters in popover (default: true)
       renders_one :filters_panel, ->(available_attributes:, **options) do

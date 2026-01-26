@@ -2,7 +2,7 @@
 <%= render Bali::DataTable::Component.new(url: request.path, show_summary: false) do |c| %>
   <% c.with_filters_panel(
        available_attributes: filter_attributes,
-       search_fields: [:name]
+       search: { fields: [:name] }
      ) %>
 
   <%# Custom summary at top position - demonstrates the slot override %>

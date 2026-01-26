@@ -2,8 +2,10 @@
   <%# Filters with quick search enabled %>
   <% c.with_filters_panel(
        available_attributes: filter_attributes,
-       search_fields: [:name],
-       search_placeholder: 'Search products...'
+       search: {
+         fields: [:name],
+         placeholder: 'Search products...'
+       }
      ) %>
 
   <% c.with_table do %>
