@@ -24,3 +24,6 @@
 @import "../../../components/bali/advanced_filters/index.css";
 @import "../../../components/bali/rich_text_editor/index.css";
 @import "../../../components/bali/stepper/index.css";
+
+/* Layout Components */
+@import "../../../components/bali/drawer/index.css";
