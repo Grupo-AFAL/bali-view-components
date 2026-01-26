@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'view_component-contrib'
+require 'lucide-rails'
 
 module Bali
   class Engine < ::Rails::Engine
