@@ -8,7 +8,6 @@
 }
 
 .side-menu-component {
-
   @apply flex flex-col bg-base-100;
   width: var(--bali-side-menu-width);
   transition: width 0.2s ease-in-out;
