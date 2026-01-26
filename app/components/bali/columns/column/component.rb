@@ -12,7 +12,7 @@ module Bali
           two_thirds: 'basis-2/3',
           quarter: 'basis-1/4',
           three_quarters: 'basis-3/4',
-          auto: 'shrink-0'  # Don't shrink, just fit content
+          auto: 'shrink-0' # Don't shrink, just fit content
         }.freeze
 
         def initialize(size: nil, offset: nil, **options)
