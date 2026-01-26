@@ -13,9 +13,9 @@
 @source "../../../javascript/**/*.js";
 @source "../../../../public/*.html";
 
-/* Bali ViewComponents sources */
-@source "bali-view-components/app/components/**/*.{erb,rb}";
-@source "bali-view-components/lib/bali/**/*.rb";
+/* Bali ViewComponents sources (via node_modules symlink) */
+@source "../../../node_modules/bali-view-components/app/components/**/*.{erb,rb}";
+@source "../../../node_modules/bali-view-components/lib/bali/**/*.rb";
 
 /* ==============================================
    Bali ViewComponents CSS
