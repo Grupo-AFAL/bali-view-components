@@ -10,12 +10,12 @@
     <% end %>
   <% elsif auto_submit? %>
     <%# Auto-submit: buttons that submit the form on click %>
-    <%# Stars up to current value are bright, rest are dimmed %>
+    <%# Stars up to current value use color, rest use base-300 (gray) %>
     <% scale.each do |rate| %>
       <button type="submit"
               name="<%= input_name %>"
               value="<%= rate %>"
-              class="<%= star_classes %> <%= 'opacity-30' if rate > value %>"
+              class="mask mask-star-2 <%= rate <= value ? COLORS[color] : 'bg-base-300' %>"
               aria-label="<%= star_aria_label(rate) %>"
               aria-pressed="<%= rate <= value %>">
       </button>
