@@ -46,10 +46,11 @@ en:
         select_values: "Select values..."
 
       # Boolean (nested structure for JavaScript controller)
+      # Note: "yes" and "no" must be quoted - YAML interprets them as booleans otherwise
       boolean:
         any: "Any"
-        yes: "Yes"
-        no: "No"
+        "yes": "Yes"
+        "no": "No"
 
       # Operators
       operators:
