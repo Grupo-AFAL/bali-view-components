@@ -22,6 +22,7 @@ Gem::Specification.new do |spec|
   end
 
   spec.add_dependency 'caxlsx'
+  spec.add_dependency 'lucide-rails', '>= 0.3.0'
   spec.add_dependency 'rails', '>= 7.0', '< 9.0'
   spec.add_dependency 'ransack'
 
