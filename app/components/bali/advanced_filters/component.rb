@@ -112,6 +112,16 @@ module Bali
         Operators.for_type(type)
       end
 
+      # Translations JSON for Stimulus controllers (combinators only for main controller)
+      def translations_json
+        {
+          combinators: {
+            and: I18n.t('bali.advanced_filters.combinators.and', default: 'AND'),
+            or: I18n.t('bali.advanced_filters.combinators.or', default: 'OR')
+          }
+        }.to_json
+      end
+
       private
 
       def normalize_attributes(attributes)

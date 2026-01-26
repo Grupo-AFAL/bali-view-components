@@ -1,0 +1,415 @@
+es:
+  # Rails date/time translations
+  date:
+    day_names:
+      - Domingo
+      - Lunes
+      - Martes
+      - Miércoles
+      - Jueves
+      - Viernes
+      - Sábado
+    abbr_day_names:
+      - Dom
+      - Lun
+      - Mar
+      - Mié
+      - Jue
+      - Vie
+      - Sáb
+    month_names:
+      - ~
+      - Enero
+      - Febrero
+      - Marzo
+      - Abril
+      - Mayo
+      - Junio
+      - Julio
+      - Agosto
+      - Septiembre
+      - Octubre
+      - Noviembre
+      - Diciembre
+    abbr_month_names:
+      - ~
+      - Ene
+      - Feb
+      - Mar
+      - Abr
+      - May
+      - Jun
+      - Jul
+      - Ago
+      - Sep
+      - Oct
+      - Nov
+      - Dic
+    formats:
+      default: "%d/%m/%Y"
+      short: "%d de %b"
+      long: "%d de %B de %Y"
+
+  # Navigation
+  navbar:
+    dashboard: Panel
+    movies: Peliculas
+    showcase: Catalogo
+    landing: Inicio
+    settings: Configuracion
+    lookbook: Lookbook
+    admin: Administrador
+    profile: Perfil
+    sign_out: Cerrar sesion
+
+  # Dashboard
+  dashboard:
+    title: Panel
+    welcome: Bienvenido de nuevo, Administrador
+    new_movie: Nueva Pelicula
+    export: Exportar
+    total_movies: Total de Peliculas
+    in_production: En Produccion
+    studios: Estudios
+    indie_films: Peliculas Indie
+    from_last_month: "+12% desde el mes pasado"
+    currently_in_draft: Actualmente en borrador
+    partner_studios: Estudios asociados
+    independent_productions: Producciones independientes
+    movies_by_genre: Peliculas por Genero
+    recent_activity: Actividad Reciente
+    view_all_activity: Ver toda la actividad
+    movies_by_status: Peliculas por Estado
+    notifications_demo: Demo de Notificaciones
+    new_feature: "Nueva funcion: Los filtros avanzados ya estan disponibles!"
+    success_message: "Exito! Tus cambios han sido guardados."
+    warning_message: "Advertencia: 3 peliculas no tienen imagenes de portada."
+    error_message: "Error: Fallo la sincronizacion con la API externa."
+    quick_actions: Acciones Rapidas
+    common_tasks: Tareas comunes al alcance de tu mano
+    add_movie: Agregar Pelicula
+    view_all_movies: Ver Todas las Peliculas
+    bulk_actions_demo: Demo de Acciones Masivas
+    bulk_actions_help: Haz clic en los elementos para seleccionarlos. Una barra de acciones flotante aparecera abajo.
+    mark_done: Marcar Completado
+    archive: Archivar
+    delete: Eliminar
+    info_level: Componente InfoLevel
+    total_revenue: Ingresos Totales
+    avg_budget: Presupuesto Promedio
+    completion_rate: Tasa de Finalizacion
+    active_users: Usuarios Activos
+    production_timeline: Cronograma de Produccion (GanttChart)
+    activity_heatmap: Mapa de Calor de Actividad
+    day_of_week: Dia de la Semana
+    hour: Hora
+    activity: Actividad
+    no_movies_timeline: No hay peliculas para mostrar en el cronograma. Agrega algunas peliculas primero!
+    today: Hoy
+
+  # Movies
+  movies:
+    title: Peliculas
+    subtitle: Administra tu catalogo de peliculas
+    new_movie: Nueva Pelicula
+    search_placeholder: Buscar por nombre, genero o estudio...
+    columns:
+      name: Nombre
+      genre: Genero
+      status: Estado
+      studio: Estudio
+      indie: Indie
+      created: Creado
+    actions:
+      view: Ver
+      edit: Editar
+      delete: Eliminar
+    bulk_actions:
+      select_action: Seleccionar accion...
+      mark_done: Marcar como Completado
+      mark_draft: Marcar como Borrador
+      delete: Eliminar Seleccionados
+      apply: Aplicar
+    no_movies: No se encontraron peliculas.
+    no_movies_help: Intenta ajustar tus filtros o
+    add_new_movie: agrega una nueva pelicula
+    form:
+      name: Nombre
+      genre: Genero
+      status: Estado
+      studio: Estudio
+      indie: Pelicula Indie
+      save: Guardar Pelicula
+      cancel: Cancelar
+      edit_title: Editar Pelicula
+      new_title: Nueva Pelicula
+      subtitle_new: Agregar una nueva pelicula a la base de datos
+      subtitle_edit: Actualizar informacion de la pelicula
+      basic_info: Informacion Basica
+      movie_title: Titulo de la Pelicula
+      enter_title: Ingrese el titulo de la pelicula...
+      select_genre: Seleccione un genero...
+      select_studio: Seleccione un estudio...
+      indie_film: Esta es una pelicula independiente
+      movie_details: Detalles de la Pelicula
+      synopsis: Sinopsis
+      enter_synopsis: Ingrese la sinopsis de la pelicula...
+      release_date: Fecha de Estreno
+      budget: Presupuesto
+      contact_email: Email de Contacto
+      website_url: URL del Sitio Web
+      movie_poster: Poster de la Pelicula
+      direct_upload_info: "DirectUpload: Los archivos se suben directamente al almacenamiento sin pasar por el servidor."
+      additional_settings: Configuracion Adicional
+      timezone: Zona Horaria
+      select_timezone: Seleccione zona horaria...
+      initial_rating: Calificacion Inicial
+      required_fields_note: "Nota: Todos los campos marcados con * son obligatorios. La configuracion adicional es opcional."
+      save_draft: Guardar como Borrador
+      update_movie: Actualizar Pelicula
+      create_movie: Crear Pelicula
+      stepper:
+        basic_info: Info Basica
+        poster: Poster
+        details: Detalles
+        settings: Configuracion
+
+  # Showcase page
+  showcase:
+    title: Catalogo de Componentes
+    subtitle: Demostrando componentes no mostrados en otras paginas del kitchen sink
+    flash_notifications: Notificaciones Flash
+    flash_notifications_desc: Notificaciones estilo toast para mensajes de exito y error.
+    with_alert: Con Alerta
+    changes_saved: Tus cambios han sido guardados exitosamente!
+    error_processing: Hubo un error procesando tu solicitud.
+    loader: Cargador
+    loader_desc: Indicadores de carga con varios tipos y colores.
+    sizes: Tamanos
+    modal: Modal
+    modal_desc: Ventanas de dialogo para confirmaciones, formularios y alertas.
+    open_basic_modal: Abrir Modal Basico
+    open_form_modal: Abrir Modal de Formulario
+    open_confirmation_modal: Abrir Modal de Confirmacion
+    drawer: Panel Lateral
+    drawer_desc: Paneles deslizantes para vistas detalladas o formularios.
+    open_user_details: Abrir Detalles de Usuario
+    open_filters: Abrir Filtros
+    open_order_history: Abrir Historial de Pedidos
+    tooltip: Tooltip
+    tooltip_desc: Sugerencias contextuales que aparecen al pasar el cursor o enfocar.
+    top: Arriba
+    bottom: Abajo
+    left: Izquierda
+    right: Derecha
+    tooltip_on_top: Tooltip arriba
+    tooltip_on_bottom: Tooltip abajo
+    tooltip_on_left: Tooltip a la izquierda
+    tooltip_on_right: Tooltip a la derecha
+    with_icons: Con Iconos
+    field_required: Este campo es obligatorio
+    click_more_info: Haz clic para mas informacion
+    action_may_take_while: Esta accion puede tardar un rato
+    clipboard: Portapapeles
+    clipboard_desc: Copiar texto al portapapeles con retroalimentacion visual.
+    api_key: Clave API
+    share_url: URL para Compartir
+    copy_link: Copiar Enlace
+    copied: Copiado!
+    install_command: Comando de Instalacion
+    list: Lista
+    list_desc: Visualizacion de lista estructurada con titulos, subtitulos y acciones.
+    team_members: Miembros del Equipo
+    lead_developer: Desarrollador Principal
+    designer: Disenador
+    product_manager: Gerente de Producto
+    online: En linea
+    away: Ausente
+    offline: Desconectado
+    recent_files: Archivos Recientes
+    modified_hours_ago: Modificado hace 2 horas
+    modified_yesterday: Modificado ayer
+    modified_days_ago: Modificado hace 3 dias
+    download: Descargar
+    share: Compartir
+    tags_collection: Etiquetas (Coleccion)
+    tags_desc: Agrupa multiples etiquetas con espaciado consistente.
+    skills: Habilidades
+    categories: Categorias (con enlaces)
+    different_sizes: Diferentes Tamanos
+    extra_small: Extra Pequeno
+    small: Pequeno
+    medium: Mediano
+    large: Grande
+    tree_view: Vista de Arbol
+    tree_view_desc: Navegacion jerarquica con nodos expandibles/colapsables.
+    file_browser: Explorador de Archivos
+    organization_structure: Estructura de la Organizacion
+    engineering: Ingenieria
+    frontend: Frontend
+    backend: Backend
+    react_team: Equipo React
+    mobile_team: Equipo Movil
+    api_team: Equipo API
+    data_team: Equipo de Datos
+    design: Diseno
+    product_design: Diseno de Producto
+    brand_design: Diseno de Marca
+    marketing: Marketing
+    image_field: Campo de Imagen
+    image_field_desc: Campo de carga de imagen con vista previa y boton de limpiar.
+    placeholder: Marcador de Posicion
+    calendar: Calendario
+    calendar_desc: Vista de calendario mensual/semanal con visualizacion de eventos.
+    search_input: Campo de Busqueda
+    search_input_desc: Campo de busqueda con funcionalidad de envio automatico opcional.
+    with_submit_button: Con Boton de Enviar
+    search_products: Buscar productos...
+    auto_submit: Envio automatico (sin boton)
+    start_typing: Comienza a escribir para buscar...
+    recurrent_event_rule_form: Formulario de Regla de Evento Recurrente
+    recurrent_event_rule_form_desc: Construye cadenas RRULE RFC 5545 para eventos recurrentes.
+    generated_rrule: "RRULE Generado: El formulario de arriba genera reglas de recurrencia estandar iCalendar (RFC 5545) que pueden usarse con aplicaciones de calendario."
+    locations_map: Mapa de Ubicaciones
+    locations_map_desc: Integracion de Google Maps con marcadores de ubicacion.
+    google_maps_required: "Clave API de Google Maps Requerida: Establece la variable de entorno GOOGLE_MAPS_KEY para habilitar el componente LocationsMap."
+    map_placeholder: Marcador de posicion del mapa
+    all_components_showcased: Todos los Componentes Mostrados!
+    showcase_summary: Esta pagina demuestra los siguientes componentes que faltaban en el kitchen sink
+
+  # Settings
+  settings:
+    title: Configuración
+    subtitle: Administra tus preferencias y configuración de cuenta
+    general: General
+    notifications: Notificaciones
+    security: Seguridad
+    privacy: Privacidad
+    appearance: Apariencia
+    advanced: Configuración Avanzada
+    danger_zone: Zona de Peligro
+    save_changes: Guardar Cambios
+    # General section
+    general_settings: Configuración General
+    general_desc: Configura tus preferencias básicas
+    language: Idioma
+    timezone: Zona Horaria
+    # Notifications section
+    notification_preferences: Preferencias de Notificaciones
+    notification_desc: Elige cómo quieres recibir notificaciones
+    notification_tip: "Consejo: Activa las notificaciones por email para mantenerte actualizado sobre tus películas."
+    email_notifications: Notificaciones por Email
+    push_notifications: Notificaciones Push
+    notification_frequency: Frecuencia de Notificaciones
+    frequency_immediate: Inmediatamente
+    frequency_daily: Resumen Diario
+    frequency_weekly: Resumen Semanal
+    # Privacy section
+    privacy_settings: Configuración de Privacidad
+    privacy_desc: Controla tu privacidad y visibilidad
+    privacy_notice: "Aviso de Privacidad: Tus datos están encriptados y nunca se comparten con terceros."
+    profile_visible: Hacer mi perfil visible para otros
+    show_activity: Mostrar mi actividad en el feed
+    # Appearance section
+    appearance_settings: Apariencia
+    appearance_desc: Personaliza la apariencia
+    dark_mode: Activar Modo Oscuro
+    light_mode: Modo Claro
+    light_mode_desc: Interfaz limpia y brillante
+    dark_mode_title: Modo Oscuro
+    dark_mode_desc: Fácil para los ojos
+    # Advanced section
+    advanced_warning: "Avanzado: Estas configuraciones son para usuarios expertos. Modifica con precaución."
+    cache_duration: Duración de Caché
+    cache_1h: 1 hora
+    cache_6h: 6 horas
+    cache_24h: 24 horas
+    cache_1w: 1 semana
+    api_rate_limit: Límite de API
+    debug_mode: Activar Modo Debug
+    beta_features: Activar Funciones Beta
+    save_advanced: Guardar Configuración Avanzada
+    # Danger zone
+    danger_desc: Acciones irreversibles - procede con precaución
+    export_data: Exportar Datos
+    delete_account: Eliminar Cuenta
+    # Languages
+    languages:
+      english: Inglés
+      spanish: Español
+      french: Francés
+      german: Alemán
+
+  # Modals
+  modals:
+    basic:
+      title: "¡Bienvenido!"
+      new: Nuevo
+      body: Este es un modal basico con encabezado, cuerpo y botones de accion.
+      body_detail: Los modales son perfectos para enfocar la atencion del usuario en contenido o acciones importantes.
+      close: Cerrar
+      got_it: "¡Entendido!"
+    form:
+      title: Crear Nuevo Elemento
+      name: Nombre
+      name_placeholder: Ingrese el nombre...
+      description: Descripcion
+      description_placeholder: Ingrese la descripcion...
+      cancel: Cancelar
+      create: Crear
+    confirm:
+      title: Confirmar Eliminacion
+      message: "¿Esta seguro de que desea eliminar este elemento?"
+      warning: Esta accion no se puede deshacer.
+      cancel: Cancelar
+      delete: Eliminar
+
+  # Drawers
+  drawers:
+    user_details:
+      role: Rol
+      department: Departamento
+      status: Estado
+      joined: Se unio
+      active: Activo
+      administrator: Administrador
+      engineering: Ingenieria
+    filters:
+      category: Categoria
+      all_categories: Todas las Categorias
+      electronics: Electronica
+      clothing: Ropa
+      price_range: Rango de Precio
+      in_stock_only: Solo en Stock
+      apply_filters: Aplicar Filtros
+    order_history:
+      order_id: ID de Pedido
+      date: Fecha
+      status: Estado
+      total: Total
+      delivered: Entregado
+      shipped: Enviado
+      processing: Procesando
+
+  # Common
+  common:
+    save: Guardar
+    cancel: Cancelar
+    delete: Eliminar
+    edit: Editar
+    view: Ver
+    create: Crear
+    update: Actualizar
+    search: Buscar
+    filter: Filtrar
+    clear: Limpiar
+    apply: Aplicar
+    reset: Restablecer
+    loading: Cargando...
+    no_results: Sin resultados
+    actions: Acciones
+    status: Estado
+    name: Nombre
+    description: Descripcion
+    created_at: Creado
+    updated_at: Actualizado

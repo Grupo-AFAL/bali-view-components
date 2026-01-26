@@ -1,0 +1,9 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <div class="w-72">
+    <%= form.range_field_group :satisfaction,
+        min: 1,
+        max: 5,
+        tick_labels: %w[Bad Poor OK Good Great],
+        color: :accent %>
+  </div>
+<% end %>

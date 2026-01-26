@@ -25,7 +25,7 @@ module Bali
 
       def container_classes
         class_names(
-          'grid grid-cols-12',
+          'flex flex-wrap',
           GAPS[@gap] || GAPS[:md],
           options[:class]
         )

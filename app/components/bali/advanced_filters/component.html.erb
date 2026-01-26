@@ -6,6 +6,7 @@
      data-advanced-filters-apply-mode-value="<%= apply_mode %>"
      data-advanced-filters-max-groups-value="<%= max_groups %>"
      data-advanced-filters-popover-value="<%= popover %>"
+     data-advanced-filters-translations-value="<%= translations_json %>"
      data-turbo-permanent>
 
   <% if popover %>
@@ -53,10 +54,39 @@
 
             <div class="p-4 space-y-4">
               <%# Filter groups container - no header for compact layout %>
-              <%= render 'bali/advanced_filters/filter_groups',
-                    filter_groups: filter_groups,
-                    combinator: combinator,
-                    available_attributes: available_attributes %>
+              <div data-advanced-filters-target="groupsContainer" class="space-y-4">
+                <% filter_groups.each_with_index do |group, group_idx| %>
+                  <% if group_idx > 0 %>
+                    <%# Group combinator divider (AND/OR toggle between groups) %>
+                    <div class="flex items-center justify-center gap-2 my-2">
+                      <div class="flex-1 border-t border-base-300"></div>
+                      <input type="hidden" name="q[m]" value="<%= combinator %>" data-advanced-filters-target="groupCombinator">
+                      <div class="join" data-advanced-filters-target="groupCombinatorToggle">
+                        <button type="button"
+                                class="join-item btn btn-xs w-10 <%= combinator == 'and' ? 'btn-primary' : 'btn-outline' %>"
+                                data-action="advanced-filters#setGroupCombinator"
+                                data-combinator="and">
+                          <%= t('bali.advanced_filters.combinators.and', default: 'AND') %>
+                        </button>
+                        <button type="button"
+                                class="join-item btn btn-xs w-10 <%= combinator == 'or' ? 'btn-primary' : 'btn-outline' %>"
+                                data-action="advanced-filters#setGroupCombinator"
+                                data-combinator="or">
+                          <%= t('bali.advanced_filters.combinators.or', default: 'OR') %>
+                        </button>
+                      </div>
+                      <div class="flex-1 border-t border-base-300"></div>
+                    </div>
+                  <% end %>
+
+                  <%= render Bali::AdvancedFilters::FilterGroup::Component.new(
+                        group: group,
+                        index: group_idx,
+                        available_attributes: available_attributes,
+                        removable: filter_groups.size > 1
+                      ) %>
+                <% end %>
+              </div>
 
               <%# Compact footer: Clear all (left) | Add group + Reset + Apply (right) %>
               <div class="flex justify-between items-center gap-2 pt-3 border-t border-base-200">
@@ -114,58 +144,85 @@
           },
           class: 'w-full' do |f| %>
 
-      <div class="card bg-base-100 shadow-lg border border-base-200">
-        <div class="card-body p-4 sm:p-6 space-y-4">
-          <%# Header %>
-          <div class="flex justify-between items-center">
-            <h3 class="font-semibold text-lg flex items-center gap-2">
-              <%= render Bali::Icon::Component.new('filter', class: 'w-5 h-5') %>
-              <%= t('bali.advanced_filters.title', default: 'Advanced Filters') %>
-            </h3>
-            <button type="button"
+      <%= render Bali::Card::Component.new(style: :bordered, body_class: 'p-4 sm:p-6 space-y-4') do %>
+        <%# Header %>
+        <div class="flex justify-between items-center">
+          <h3 class="font-semibold text-lg flex items-center gap-2">
+            <%= render Bali::Icon::Component.new('filter', class: 'w-5 h-5') %>
+            <%= t('bali.advanced_filters.title', default: 'Advanced Filters') %>
+          </h3>
+          <button type="button"
                     class="btn btn-ghost btn-sm text-error"
                     data-action="advanced-filters#clearAll"
                     data-advanced-filters-target="clearButton">
-              <%= t('bali.advanced_filters.clear_all', default: 'Clear all') %>
-            </button>
-          </div>
+            <%= t('bali.advanced_filters.clear_all', default: 'Clear all') %>
+          </button>
+        </div>
 
-          <div class="divider my-0"></div>
+        <div class="divider my-0"></div>
 
-          <%# Filter groups container %>
-          <%= render 'bali/advanced_filters/filter_groups',
-                filter_groups: filter_groups,
-                combinator: combinator,
-                available_attributes: available_attributes %>
+        <%# Filter groups container %>
+        <div data-advanced-filters-target="groupsContainer" class="space-y-4">
+          <% filter_groups.each_with_index do |group, group_idx| %>
+            <% if group_idx > 0 %>
+              <%# Group combinator divider (AND/OR toggle between groups) %>
+              <div class="flex items-center justify-center gap-2 my-2">
+                <div class="flex-1 border-t border-base-300"></div>
+                <input type="hidden" name="q[m]" value="<%= combinator %>" data-advanced-filters-target="groupCombinator">
+                <div class="join" data-advanced-filters-target="groupCombinatorToggle">
+                  <button type="button"
+                                class="join-item btn btn-xs w-10 <%= combinator == 'and' ? 'btn-primary' : 'btn-outline' %>"
+                                data-action="advanced-filters#setGroupCombinator"
+                                data-combinator="and">
+                    <%= t('bali.advanced_filters.combinators.and', default: 'AND') %>
+                  </button>
+                  <button type="button"
+                                class="join-item btn btn-xs w-10 <%= combinator == 'or' ? 'btn-primary' : 'btn-outline' %>"
+                                data-action="advanced-filters#setGroupCombinator"
+                                data-combinator="or">
+                    <%= t('bali.advanced_filters.combinators.or', default: 'OR') %>
+                  </button>
+                </div>
+                <div class="flex-1 border-t border-base-300"></div>
+              </div>
+            <% end %>
 
-          <%# Add group button %>
-          <button type="button"
+            <%= render Bali::AdvancedFilters::FilterGroup::Component.new(
+                        group: group,
+                        index: group_idx,
+                        available_attributes: available_attributes,
+                        removable: filter_groups.size > 1
+                      ) %>
+          <% end %>
+        </div>
+
+        <%# Add group button %>
+        <button type="button"
                   class="btn btn-ghost btn-sm gap-2 w-full sm:w-auto text-primary hover:bg-primary/10"
                   data-action="advanced-filters#addGroup"
                   data-advanced-filters-target="addGroupButton">
-            <%= render Bali::Icon::Component.new('plus', class: 'w-4 h-4') %>
-            <%= t('bali.advanced_filters.add_group', default: 'Add filter group') %>
-          </button>
+          <%= render Bali::Icon::Component.new('plus', class: 'w-4 h-4') %>
+          <%= t('bali.advanced_filters.add_group', default: 'Add filter group') %>
+        </button>
 
-          <div class="divider my-0"></div>
+        <div class="divider my-0"></div>
 
-          <%# Actions %>
-          <div class="flex flex-col sm:flex-row justify-end gap-2">
-            <button type="button"
+        <%# Actions %>
+        <div class="flex flex-col sm:flex-row justify-end gap-2">
+          <button type="button"
                     class="btn btn-ghost order-2 sm:order-1"
                     data-action="advanced-filters#reset">
-              <%= t('bali.advanced_filters.reset', default: 'Reset') %>
-            </button>
-            <button type="submit"
+            <%= t('bali.advanced_filters.reset', default: 'Reset') %>
+          </button>
+          <button type="submit"
                     class="btn btn-primary order-1 sm:order-2"
                     data-action="advanced-filters#apply"
                     data-advanced-filters-target="applyButton">
-              <%= render Bali::Icon::Component.new('check', class: 'w-4 h-4') %>
-              <%= t('bali.advanced_filters.apply', default: 'Apply Filters') %>
-            </button>
-          </div>
+            <%= render Bali::Icon::Component.new('check', class: 'w-4 h-4') %>
+            <%= t('bali.advanced_filters.apply', default: 'Apply Filters') %>
+          </button>
         </div>
-      </div>
+      <% end %>
     <% end %>
   <% end %>
 

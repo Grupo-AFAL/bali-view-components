@@ -1,0 +1,17 @@
+<%
+  data = {
+    Mon: { 9 => 5, 10 => 8, 11 => 3, 12 => 7 },
+    Tue: { 9 => 3, 10 => 6, 11 => 9, 12 => 4 },
+    Wed: { 9 => 2, 10 => 4, 11 => 6, 12 => 8 }
+  }
+  colors = %i[primary secondary accent success info warning error]
+%>
+
+<div class="grid grid-cols-2 gap-6">
+  <% colors.each do |color| %>
+    <div>
+      <h3 class="text-sm font-semibold mb-2 capitalize"><%= color %></h3>
+      <%= render Bali::Heatmap::Component.new(data: data, color: color) %>
+    </div>
+  <% end %>
+</div>

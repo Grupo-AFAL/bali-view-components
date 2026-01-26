@@ -52,7 +52,7 @@ export class ChartController extends Controller {
 
     this.chart = new Chart(element.getContext('2d'), {
       type: this.typeValue,
-      data: data,
+      data,
       options
     })
   }
@@ -75,7 +75,7 @@ export class ChartController extends Controller {
   // Get computed CSS color from DaisyUI theme variables
   // DaisyUI 5 variables return full oklch values like "oklch(45% .24 277.023)"
   getThemeColor (varName, alpha = 1) {
-    const style = getComputedStyle(document.documentElement)
+    const style = window.getComputedStyle(document.documentElement)
     const colorValue = style.getPropertyValue(varName).trim()
 
     if (!colorValue) return null

@@ -1,0 +1,5 @@
+/* Layout constants as CSS custom properties */
+:root {
+  --navbar-height: 3.75rem;
+  --frame-padding-top: 6.25rem;
+}

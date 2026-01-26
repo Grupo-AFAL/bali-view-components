@@ -15,6 +15,7 @@ AllCops:
     - 'tmp/**/*'
     - 'script/**/*'
     - 'node_modules/**/*'
+    - 'spec/dummy/node_modules/**/*'
     - 'lib/tasks/bali_tasks.rake'
     - 'bin/**/*'
     - 'vendor/**/*'

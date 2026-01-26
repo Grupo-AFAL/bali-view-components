@@ -84,6 +84,11 @@ module Bali
       def description?
         body?
       end
+
+      # Translated label for close button (accessibility)
+      def close_label
+        I18n.t('bali.modal.close', default: 'Close modal')
+      end
     end
   end
 end

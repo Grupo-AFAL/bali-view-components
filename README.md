@@ -1,169 +1,255 @@
 # Bali ViewComponents
 
-Collection of UI components using the ViewComponent library for easily building interfaces.
+A collection of 48+ UI components built with [ViewComponent](https://viewcomponent.org/) for Rails applications. Styled with [Tailwind CSS](https://tailwindcss.com/) and [DaisyUI](https://daisyui.com/), powered by [Stimulus](https://stimulus.hotwired.dev/) controllers.
 
-Uses StimulusJS for javascript functionality and Tailwind CSS with DaisyUI for styling.
+## Features
 
-## Usage
+- **48+ Production-Ready Components** - Buttons, cards, modals, forms, tables, navigation, and more
+- **DaisyUI Styling** - Beautiful, consistent styling with theme support (light/dark)
+- **Stimulus Controllers** - Interactive behaviors without writing JavaScript
+- **FormBuilder Extensions** - Enhanced form helpers with validation and addons
+- **Accessible by Default** - WCAG 2.1 AA compliant components
+- **Lookbook Integration** - Interactive component documentation and previews
 
-Render Bali components in an erb template:
+## Quick Start
 
-```erb
-  <%= render Bali::Link::Component.new(name: 'Link', href: '/') %>
-```
+### 1. Install the Gem
 
-## Installation
-
-Add this line to your application's Gemfile:
+Add to your `Gemfile`:
 
 ```ruby
 gem "bali_view_components"
 ```
 
-And this to the package.json
+Then run:
 
 ```bash
+bundle install
+```
+
+### 2. Install JavaScript Dependencies
+
+Add to your `package.json`:
+
+```bash
+npm install bali-view-components
+# or
 yarn add bali-view-components
 ```
 
-To use a component add import the CSS styles and JS if required.
+### 3. Configure Tailwind CSS v4 + DaisyUI
 
-## Contributing
+In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 
-To create a new component run:
+```css
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: light --default, dark;
+}
 
-```bash
-rails g view_component hello_button name
+/* Add Bali components to Tailwind scanning */
+@source "../../../node_modules/bali-view-components/app/components/**/*.{erb,rb}";
+@source "../../../node_modules/bali-view-components/lib/bali/**/*.rb";
+
+/* Import Bali CSS */
+@import "bali-view-components/css/bali.css";
+@import "bali-view-components/css/components.css";
 ```
 
-We use [lookbook](https://github.com/allmarkedup/lookbook) to showcase the available components and develop new ones. To run the development server run:
+### 4. Use Components
+
+```erb
+<%# Basic button %>
+<%= render Bali::Button::Component.new(name: 'Save', variant: :primary) %>
+
+<%# Card with slots %>
+<%= render Bali::Card::Component.new do |c| %>
+  <% c.with_header { "Card Title" } %>
+  <% c.with_body { "Card content goes here" } %>
+  <% c.with_actions do %>
+    <%= render Bali::Button::Component.new(name: 'Action', variant: :ghost) %>
+  <% end %>
+<% end %>
+
+<%# Link styled as button %>
+<%= render Bali::Link::Component.new(name: 'View Details', href: '/items/1', type: :primary) %>
+```
+
+## Documentation
+
+| Guide | Description |
+|-------|-------------|
+| [Installation](docs/guides/installation.md) | Complete setup including Tailwind v4 |
+| [Components](docs/guides/components.md) | Component usage patterns and slots |
+| [FormBuilder](docs/guides/form-builder.md) | Enhanced form helpers |
+| [Accessibility](docs/guides/accessibility.md) | WCAG 2.1 compliance |
+| [Troubleshooting](docs/guides/troubleshooting.md) | Common issues and solutions |
+
+## Component Categories
+
+### Layout
+`Card`, `Columns`, `Drawer`, `Hero`, `Level`, `Modal`, `PageHeader`
+
+### Navigation
+`Breadcrumb`, `Dropdown`, `NavBar`, `SideMenu`, `Tabs`, `Stepper`
+
+### Data Display
+`Avatar`, `DataTable`, `Icon`, `List`, `Progress`, `Table`, `Tag`, `Timeline`, `TreeView`
+
+### Interactive
+`ActionsDropdown`, `AdvancedFilters`, `Button`, `Carousel`, `Clipboard`, `DeleteLink`, `HoverCard`, `Link`, `Reveal`, `SearchInput`, `SortableList`, `Tooltip`
+
+### Feedback
+`FlashNotifications`, `Loader`, `Message`, `Notification`
+
+### Forms
+`Calendar`, `ImageField`, `RichTextEditor`, plus 25+ FormBuilder extensions
+
+## FormBuilder Extensions
+
+Bali extends Rails' `FormBuilder` with DaisyUI-styled inputs:
+
+```erb
+<%= form_with model: @user, builder: Bali::FormBuilder do |f| %>
+  <%= f.text_field_group :name %>
+  <%= f.email_field_group :email %>
+  <%= f.slim_select_group :role, User.roles.keys.map { |r| [r.humanize, r] } %>
+  <%= f.switch_field :active, color: :primary %>
+  <%= f.date_field_group :birth_date %>
+  <%= f.rich_text_area_group :bio %>
+  <%= f.submit_button 'Save', variant: :primary %>
+<% end %>
+```
+
+## Development
+
+### Running the Preview Server
 
 ```bash
 cd spec/dummy && bin/dev
 ```
 
-This script uses the [foreman](https://github.com/ddollar/foreman) gem to run the following:
+Open [http://localhost:3001/lookbook](http://localhost:3001/lookbook) to browse component previews.
 
-- Rails server
-- Process for JS compilation in watch mode
-- Process for CSS/Tailwind compilation in watch mode
+### Running Tests
 
-Open your browser at: [http://localhost:3001/lookbook](http://localhost:3001/lookbook)
+```bash
+# RSpec tests
+bundle exec rspec
+
+# Cypress tests (requires server running on port 3001)
+yarn run cy:run   # Headless
+yarn run cy:open  # Interactive
+```
+
+### Creating New Components
+
+```bash
+rails g view_component bali/my_component name
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Write tests for your changes
+4. Ensure all tests pass (`bundle exec rspec`)
+5. Create Lookbook preview for new components
+6. Submit a pull request
+
+### Code Style
+
+- Run `bundle exec rubocop -a` before committing
+- Follow patterns in [Component Patterns](docs/reference/component-patterns.md)
+- Use DaisyUI classes (not Bulma)
+
+## JavaScript Debugging
+
+Some Stimulus controllers emit events for inter-controller communication. Enable debug logging:
+
+```javascript
+baliDispatchDebugEnabled = true
+```
 
 ## License
 
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
 
-## Javascript
+---
 
-Some javascript controllers emit events for communicating between controllers. To enable debugging this information run the following command on the javascript console. `baliDispatchDebugEnabled = true`
+## Component Status
 
-## Testing
+| Component | Preview | Docs | Tests |
+|-----------|:-------:|:----:|:-----:|
+| ActionsDropdown | ✓ | ✓ | ✓ |
+| AdvancedFilters | ✓ | ✓ | ✓ |
+| Avatar | ✓ | ✓ | ✓ |
+| Breadcrumb | ✓ | ✓ | ✓ |
+| BooleanIcon | ✓ | ✓ | ✓ |
+| Button | ✓ | ✓ | ✓ |
+| Calendar | ✓ | ✓ | ✓ |
+| Card | ✓ | ✓ | ✓ |
+| Carousel | ✓ | ✓ | ✓ |
+| Chart | ✓ | ~ | ✓ |
+| Clipboard | ✓ | ✓ | ✓ |
+| Columns | ✓ | ✓ | ✓ |
+| DataTable | ✓ | ✓ | ✓ |
+| DeleteLink | ✓ | ✓ | ✓ |
+| Drawer | ✓ | ✓ | ✓ |
+| Dropdown | ✓ | ✓ | ✓ |
+| Filters | ✓ | ✓ | ✓ |
+| GanttChart | ✓ | ✓ | - |
+| Heatmap | ✓ | ✓ | ✓ |
+| Hero | ✓ | ✓ | ✓ |
+| HoverCard | ✓ | ✓ | ✓ |
+| Icon | ✓ | ✓ | ✓ |
+| ImageGrid | ✓ | ✓ | ✓ |
+| InfoLevel | ✓ | ✓ | ✓ |
+| LabelValue | ✓ | ✓ | ✓ |
+| Level | ✓ | ✓ | ✓ |
+| Link | ✓ | ✓ | ✓ |
+| List | ✓ | ✓ | ✓ |
+| Loader | ✓ | ✓ | ✓ |
+| Modal | ✓ | ✓ | ✓ |
+| NavBar | ✓ | ✓ | ✓ |
+| Notification | ✓ | ✓ | ✓ |
+| PageHeader | ✓ | ~ | ✓ |
+| Progress | ✓ | ✓ | ✓ |
+| PropertiesTable | ✓ | ✓ | ✓ |
+| Rate | ✓ | ✓ | ✓ |
+| Reveal | ✓ | ✓ | ✓ |
+| RichTextEditor | ✓ | - | - |
+| SearchInput | ✓ | ✓ | ✓ |
+| SideMenu | ✓ | ✓ | ✓ |
+| SortableList | ✓ | ✓ | ✓ |
+| Stepper | ✓ | ✓ | ✓ |
+| Table | ✓ | ✓ | ✓ |
+| Tabs | ✓ | ✓ | ✓ |
+| Timeago | ✓ | ✓ | ✓ |
+| Timeline | ✓ | ✓ | ✓ |
+| Tooltip | ✓ | ✓ | ✓ |
+| TreeView | ✓ | ✓ | ✓ |
 
-### RSpec
+**Legend:** ✓ Complete | ~ Partial | - Missing
 
-To run ruby tests, run: `bundle exec rspec`
+## Stimulus Controllers
 
-### Cypress
-
-To run JavaScript tests:
-
-- Run `rails server -p 3001`. The `http://localhost:3001/rails/view_components` has been configured as the baseUrl, and tests will fail if the server is not running
-- Run `yarn run cy:run` to run tests in the terminal
-- Or run `yarn run cy:open` to open the tests in the browser
-
-# Lookbook
-
-Lookbook gives ViewComponent-based projects a ready-to-go development UI for navigating, inspecting and interacting with component previews.
-
-Project URL: https://github.com/allmarkedup/lookbook
-
-To add a component, just create a `preview.rb` file within the component folder. Lookbook will automatically detect component previews and display them in the sidebar.
-
-## Components' Status
-
-Update this table when making progress on any of the Components or when adding new ones.
-
-| Component Name          |     In Project     |      Preview       |        Docs        |       Tests        | Notes |
-| ----------------------- | :----------------: | :----------------: | :----------------: | :----------------: | ----- |
-| ActionsDropdown         | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| AddToCalendar           |        :x:         |        :x:         |        :x:         |        :x:         |       |
-| AdvancedFilters         | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | New - Ransack integration |
-| Avatar                  | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Box                     |        :x:         |        :x:         |        :x:         |        :x:         |       |
-| Breadcrumb              | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| BooleanIcon             | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Calendar                | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Carousel                | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Card                    | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Chart                   | :white_check_mark: | :white_check_mark: |    :wavy_dash:     | :white_check_mark: |       |
-| Clipboard               | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Columns                 | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| DataTable               | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| DeleteLink              | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| DisplayValue            |        :x:         |        :x:         |        :x:         |        :x:         |       |
-| Drawer                  | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Dropdown                | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Filters                 | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| GanttChart              | :white_check_mark: | :white_check_mark: | :white_check_mark: |        :x:         |       |
-| Heatmap                 | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Hero                    | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Hovercard               | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Icon                    | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| ImageGrid               | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| InfoLevel               | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| LabelValue              | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Level                   | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Link                    | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| List                    | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Loader                  | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Modal                   | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| NavBar                  | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Notification            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| PageHeader              | :white_check_mark: | :white_check_mark: |    :wavy_dash:     | :white_check_mark: |       |
-| Progress                | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| PropertiesTable         | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark  |       |
-| Rate                    | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Reveal                  | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| RichTextEditor          | :white_check_mark: | :white_check_mark: |        :x:         |        :x:         |       |
-| SearchInput             | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| SideMenu                | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| SortableList            | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Stepper                 | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Table                   | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Tabs                    | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Timeago                 | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Timeline                | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| Tooltip                 | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| TreeView                | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-| TurboNativeApp::SignOut | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |       |
-
-## Stimulus JS Controllers
-
-| Name                | Description                                                            | Tests |
-| ------------------- | ---------------------------------------------------------------------- | ----- |
-| AdvancedFilters     | Main controller for advanced filtering UI with Ransack                 | :x:   |
-| AutoPlay            | It plays audio automatically when the page is loaded                   | :x:   |
-| AutocompleteAddress | Autocompletes address using Google places API                          | :x:   |
-| CheckboxToggle      | Toggles ON and OFF different elements based on the state of a checkbox | :x:   |
-| Datepicker          | Uses the flatpickr library to render a Date Picker                     | :x:   |
-| DynamicFields       | Renders input fields dynamically                                       | :x:   |
-| ElementsOverlap     | Prevents a fixed elements overlaps a dynamic element                   | :x:   |
-| FileInput           | Displays the selected filename in the correct place                    | :x:   |
-| FocusOnConnect      | Scrolls an element into the visible area of the browser window         | :x:   |
-| InputOnChange       | It notifies the server when there is some change in the input          | :x:   |
-| Print               | Prints the current page                                                | :x:   |
-| RadioToggle         | Shows different elements based on the value of a radio button          | :x:   |
-| SlimSelect          | Uses Slim Select library to render a Select Input                      | :x:   |
-| StepNumberInput     | Provides step number functionality to inputs                           | :x:   |
-| SubmitButton        | Displays a loading button state when a form submission is started      | :x:   |
-| SubmitOnChange      | Automatically submits the form when the form element changes value     | :x:   |
-| TrixAttachments     | Allows to upload files with a certain size limit using the Trix editor | :x:   |
-
-### Legends
-
-| Icon               | Meaning          |
-| ------------------ | ---------------- |
-| :white_check_mark: | Is complete      |
-| :wavy_dash:        | Incomplete       |
-| :x:                | Missing entirely |
+| Controller | Description |
+|------------|-------------|
+| AdvancedFilters | Advanced filtering UI with Ransack integration |
+| AutoPlay | Auto-play audio on page load |
+| AutocompleteAddress | Google Places API autocomplete |
+| CheckboxToggle | Toggle element visibility with checkbox |
+| Datepicker | Flatpickr date picker integration |
+| DynamicFields | Dynamic form field rendering |
+| FileInput | File input display handling |
+| FocusOnConnect | Auto-focus/scroll on connect |
+| InputOnChange | Server notification on input change |
+| Modal | Modal dialog control |
+| Print | Print current page |
+| RadioToggle | Toggle visibility based on radio selection |
+| SlimSelect | Slim Select dropdown integration |
+| StepNumberInput | Increment/decrement number input |
+| SubmitButton | Loading state on form submission |
+| SubmitOnChange | Auto-submit form on value change |
+| TrixAttachments | Trix editor file attachments |

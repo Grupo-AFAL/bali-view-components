@@ -2,14 +2,13 @@
  * Nexus-style sidebar with DaisyUI collapse for expandable groups
  */
 
-:root {
-  --bali-side-menu-width: 16rem;
-  --bali-side-menu-collapsed-width: 3.5rem;
-}
-
 .side-menu-component {
+  --side-menu-width: 16rem;
+  --side-menu-collapsed-width: 3.5rem;
+  --navbar-height: 3.75rem;
+
   @apply flex flex-col bg-base-100;
-  width: var(--bali-side-menu-width);
+  width: var(--side-menu-width);
   transition: width 0.2s ease-in-out;
   overflow: visible;
 }
@@ -17,7 +16,7 @@
 /* Fixed positioning variant - for full-page sidebars */
 .side-menu-component--fixed {
   @apply fixed top-0 left-0 h-full shadow-lg z-40 bg-base-100;
-  width: var(--bali-side-menu-width);
+  width: var(--side-menu-width);
   transform: translateX(-100%);
   transition: transform 0.2s ease-in-out, width 0.2s ease-in-out;
 

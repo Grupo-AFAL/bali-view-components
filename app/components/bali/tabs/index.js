@@ -19,6 +19,8 @@ export class TabsController extends Controller {
 
   disconnect () {
     this.element.removeEventListener('keydown', this.handleKeydown)
+    // Cancel any pending request on disconnect
+    this.pendingRequest?.abort()
   }
 
   handleKeydown = (event) => {
@@ -109,17 +111,41 @@ export class TabsController extends Controller {
       </div>
     `
 
-    const response = await get(src, { query: { layout: false } })
-    if (response.ok) {
-      const body = await response.text
-      tabContentDiv.innerHTML = body
-      tabElement.dataset.contentLoaded = true
-    } else {
-      tabContentDiv.innerHTML = `
-        <div class="alert alert-error">
-          <span>Failed to load content</span>
-        </div>
-      `
+    // Cancel any pending request to prevent race conditions
+    this.pendingRequest?.abort()
+    this.pendingRequest = new AbortController()
+    const { signal } = this.pendingRequest
+
+    // Show loading spinner
+    tabContentDiv.innerHTML = `
+      <div class="flex items-center justify-center py-8">
+        <span class="loading loading-spinner loading-lg"></span>
+      </div>
+    `
+
+    try {
+      const response = await get(src, { query: { layout: false }, signal })
+
+      // Check if request was aborted before updating DOM
+      if (signal.aborted) return
+
+      if (response.ok) {
+        const body = await response.text
+        // Double-check abort status before updating DOM
+        if (signal.aborted) return
+        tabContentDiv.innerHTML = body
+        tabElement.dataset.contentLoaded = true
+      } else {
+        tabContentDiv.innerHTML = `
+          <div class="alert alert-error">
+            <span>Failed to load content</span>
+          </div>
+        `
+      }
+    } catch (error) {
+      // Ignore abort errors, they're expected when switching tabs rapidly
+      if (error.name === 'AbortError') return
+      throw error
     }
   }
 }

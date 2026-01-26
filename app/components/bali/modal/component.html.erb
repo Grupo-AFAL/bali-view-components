@@ -3,13 +3,13 @@
      role="dialog"
      aria-modal="true"
      aria-labelledby="<%= title_id %>"
-     <%= "aria-describedby=#{description_id}" if description? %>
+     <% if description? %>aria-describedby="<%= description_id %>"<% end %>
      data-modal-target="template"
      data-action="keydown.esc->modal#close">
   <div class="modal-backdrop fixed inset-0 bg-black/50" data-modal-target="background" data-action="click->modal#close" aria-hidden="true"></div>
   <div class="<%= box_classes %> relative bg-base-100 rounded-box p-6 shadow-xl w-11/12 max-h-[calc(100vh-5em)] overflow-y-auto" data-wrapper-class="<%= @wrapper_class %>" data-modal-target="wrapper">
     <% if render_standalone_close_button? %>
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" aria-label="Close modal" data-action="modal#close" type="button">✕</button>
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" aria-label="<%= close_label %>" data-action="modal#close" type="button">✕</button>
     <% end %>
     <% if header? %>
       <%= header %>

@@ -5,7 +5,7 @@
 <% if single_export? %>
   <%= render Bali::Link::Component.new(
     name: render(Bali::Icon::Component.new('download')),
-    href: build_url({ format: single_export_format }),
+    href: build_url(format: single_export_format),
     type: :text
   ) %>
 <% elsif multiple_exports? %>
@@ -16,7 +16,7 @@
     <% @export_formats.each_with_index do |export_format, index| %>
       <%= render Bali::Link::Component.new(
         name: export_format.upcase,
-        href: build_url({ format: export_format }),
+        href: build_url(format: export_format),
         class: 'w-full'
       ) %>
       <%= tag.div(class: 'divider my-0') if index < @export_formats.size - 1 %>

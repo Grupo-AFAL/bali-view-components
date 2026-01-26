@@ -17,8 +17,7 @@ module Bali
         component_klass = method&.to_sym == :delete ? DeleteLink::Component : Link::Component
         options[:role] ||= 'menuitem'
         component_klass.new(
-          method: method, href: href, plain: true,
-          **prepend_class_name(options, 'menu-item w-full text-left')
+          method: method, href: href, **prepend_class_name(options, 'menu-item w-full text-left')
         )
       end
 

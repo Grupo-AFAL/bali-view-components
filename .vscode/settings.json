@@ -12,5 +12,6 @@
   "[erb]": {
     "editor.defaultFormatter": "aliariff.vscode-erb-beautify"
   },
-  "vscode-erb-beautify.keepBlankLines": 1
+  "vscode-erb-beautify.keepBlankLines": 1,
+  "npm.packageManager": "yarn"
 }

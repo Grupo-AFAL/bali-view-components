@@ -6,22 +6,22 @@ RSpec.describe Bali::Columns::Component, type: :component do
   let(:component) { described_class.new }
 
   describe 'basic rendering' do
-    it 'renders container with CSS Grid classes' do
+    it 'renders container with flexbox classes' do
       render_inline(component) do |c|
         c.with_column { 'First' }
         c.with_column { 'Second' }
       end
 
-      expect(page).to have_css 'div.grid.grid-cols-12.gap-4'
+      expect(page).to have_css 'div.flex.flex-wrap.gap-4'
     end
 
-    it 'renders columns with default col-span-12 sizing' do
+    it 'renders columns with default basis-full and grow' do
       render_inline(component) do |c|
         c.with_column { 'First' }
         c.with_column { 'Second' }
       end
 
-      expect(page).to have_css 'div.col-span-12', count: 2
+      expect(page).to have_css 'div.basis-full.grow', count: 2
     end
   end
 
@@ -32,7 +32,7 @@ RSpec.describe Bali::Columns::Component, type: :component do
           c.with_column { 'Content' }
         end
 
-        expect(page).to have_css "div.grid.#{gap_class}"
+        expect(page).to have_css "div.flex.#{gap_class}"
       end
     end
 
@@ -41,42 +41,37 @@ RSpec.describe Bali::Columns::Component, type: :component do
         c.with_column { 'Content' }
       end
 
-      expect(page).to have_css 'div.grid.gap-4'
+      expect(page).to have_css 'div.flex.gap-4'
     end
   end
 
   describe 'column sizes' do
-    Bali::Columns::Column::Component::SIZES.each do |size_name, size_class|
-      it "applies #{size_name} size with #{size_class}" do
+    {
+      full: 'basis-full',
+      half: 'basis-1/2',
+      third: 'basis-1/3',
+      two_thirds: 'basis-2/3',
+      quarter: 'basis-1/4',
+      three_quarters: 'basis-3/4'
+    }.each do |size_name, size_class|
+      it "applies #{size_name} size with #{size_class} and grow" do
         render_inline(component) do |c|
           c.with_column(size: size_name) { "#{size_name} column" }
         end
 
-        expect(page).to have_css "div.#{size_class}"
+        # Escape the slash in class names for CSS selector
+        css_class = size_class.gsub('/', '\/')
+        expect(page).to have_css "div.#{css_class}.grow"
       end
     end
-  end
 
-  describe 'column offsets' do
-    Bali::Columns::Column::Component::OFFSETS.each do |offset_name, offset_class|
-      it "applies #{offset_name} offset with #{offset_class}" do
-        render_inline(component) do |c|
-          c.with_column(offset: offset_name) { "#{offset_name} offset" }
-        end
-
-        expect(page).to have_css "div.#{offset_class}"
-      end
-    end
-  end
-
-  describe 'combined size and offset' do
-    it 'applies both size and offset' do
+    it 'applies auto size with shrink-0 and no grow' do
       render_inline(component) do |c|
-        c.with_column(size: :half, offset: :quarter) { 'Combined' }
+        c.with_column(size: :auto) { 'auto column' }
       end
 
-      column = page.find('div.col-span-6')
-      expect(column[:class]).to include('col-start-4')
+      expect(page).to have_css 'div.shrink-0'
+      expect(page).not_to have_css 'div.shrink-0.grow'
     end
   end
 
@@ -86,7 +81,7 @@ RSpec.describe Bali::Columns::Component, type: :component do
         c.with_column { 'Content' }
       end
 
-      expect(page).to have_css 'div.grid.custom-container'
+      expect(page).to have_css 'div.flex.custom-container'
     end
 
     it 'accepts custom classes on column' do

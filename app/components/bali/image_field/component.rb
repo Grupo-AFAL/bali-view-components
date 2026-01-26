@@ -60,6 +60,8 @@ module Bali
         {
           class: image_classes,
           data: { image_field_target: 'output' },
+          loading: 'lazy',
+          decoding: 'async',
           alt: ''
         }
       end
@@ -68,6 +70,8 @@ module Bali
         {
           class: 'hidden',
           data: { image_field_target: 'placeholder' },
+          loading: 'lazy',
+          decoding: 'async',
           alt: ''
         }
       end

@@ -3,7 +3,7 @@
     <%# Expandable mode: DaisyUI collapse with checkbox %>
     <%# Expanded state %>
     <div class="collapse side-menu-expanded">
-      <input type="checkbox" aria-label="Toggle <%= name %>" class="peer"
+      <input type="checkbox" aria-label="<%= toggle_label %>" class="peer"
              <%= 'checked' if active? %> />
       <div class="<%= collapse_title_classes %>">
         <% if icon.present? %>
@@ -101,9 +101,9 @@
           <%= render Bali::Icon::Component.new(icon, class: 'size-4') %>
         <% else %>
           <span class="size-4 flex items-center justify-center text-xs font-medium"><%= (content || name)&.to_s&.first&.upcase %></span>
-        <% end %>
-      </a>
     <% end %>
-    <%= content || name %>
-  <% end %>
+  </a>
+<% end %>
+<%= content || name %>
+<% end %>
 <% end %>

@@ -27,13 +27,13 @@
                       class="<%= and_button_classes %>"
                       data-action="filter-group#setCombinator"
                       data-combinator="and">
-                AND
+                <%= t('bali.advanced_filters.combinators.and', default: 'AND') %>
               </button>
               <button type="button"
                       class="<%= or_button_classes %>"
                       data-action="filter-group#setCombinator"
                       data-combinator="or">
-                OR
+                <%= t('bali.advanced_filters.combinators.or', default: 'OR') %>
               </button>
             </div>
           <% end %>
@@ -69,13 +69,13 @@
                   class="<%= and_button_classes %>"
                   data-action="filter-group#setCombinator"
                   data-combinator="and">
-            AND
+            <%= t('bali.advanced_filters.combinators.and', default: 'AND') %>
           </button>
           <button type="button"
                   class="<%= or_button_classes %>"
                   data-action="filter-group#setCombinator"
                   data-combinator="or">
-            OR
+            <%= t('bali.advanced_filters.combinators.or', default: 'OR') %>
           </button>
         </div>
       </div>

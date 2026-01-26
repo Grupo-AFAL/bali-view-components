@@ -1,14 +1,11 @@
 /* HoverCard component - Tippy.js styling */
-
-:root {
-  --bali-hover-card-arrow-size: 16px;
-}
-
 .hover-card-component {
   @apply w-max;
 }
 
 .hover-card-tippy-wrapper {
+  --hover-card-arrow-size: 16px;
+
   .hover-card-content {
     @apply p-3;
   }
@@ -72,8 +69,8 @@
   }
 
   .tippy-svg-arrow {
-    width: var(--bali-hover-card-arrow-size);
-    height: var(--bali-hover-card-arrow-size);
+    width: var(--hover-card-arrow-size);
+    height: var(--hover-card-arrow-size);
     @apply text-base-100;
 
     svg {

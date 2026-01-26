@@ -17,7 +17,9 @@ export class TooltipController extends Controller {
       appendTo: 'parent',
       content: this.contentTarget.content,
       placement: this.placementValue,
-      trigger: this.triggerValue
+      trigger: this.triggerValue,
+      arrow: true,
+      offset: [0, 24]
     })
   }
 

@@ -1,9 +1,4 @@
 /* Navbar component */
-
-:root {
-  --bali-navbar-height: 3.75rem;
-}
-
 .navbar {
   @apply shadow-md;
   transition: background-color 1s;

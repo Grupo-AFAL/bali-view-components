@@ -196,7 +196,8 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
 
     it 'defines frozen INPUT_CLASSES constant' do
       expect(described_class::StepNumberFields::INPUT_CLASSES).to be_frozen
-      expect(described_class::StepNumberFields::INPUT_CLASSES).to eq 'input input-bordered join-item text-center'
+      expect(described_class::StepNumberFields::INPUT_CLASSES).to include('input input-bordered join-item text-center')
+      expect(described_class::StepNumberFields::INPUT_CLASSES).to include('[appearance:textfield]')
     end
   end
 end

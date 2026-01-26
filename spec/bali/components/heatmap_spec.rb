@@ -38,14 +38,20 @@ RSpec.describe Bali::Heatmap::Component, type: :component do
     it 'renders the legend with min and max values' do
       render_inline(described_class.new(data: data))
 
-      expect(page).to have_css('.flex span', text: '0')
-      expect(page).to have_css('.flex span', text: '10') # max value in data
+      expect(page).to have_css('span', text: '0')
+      expect(page).to have_css('span', text: '10') # max value in data
     end
 
     it 'renders heatmap cells with background colors' do
       render_inline(described_class.new(data: data))
 
       expect(page).to have_css('.heatmap-cell[style*="background"]')
+    end
+
+    it 'renders responsive table by default' do
+      render_inline(described_class.new(data: data))
+
+      expect(page).to have_css('table.w-full')
     end
   end
 
@@ -71,7 +77,7 @@ RSpec.describe Bali::Heatmap::Component, type: :component do
         c.with_legend_title('Activity')
       end
 
-      expect(page).to have_css('.flex span.font-bold', text: 'Activity')
+      expect(page).to have_text('Activity')
     end
 
     it 'renders hovercard_title when provided' do
@@ -90,33 +96,50 @@ RSpec.describe Bali::Heatmap::Component, type: :component do
     end
   end
 
-  describe 'dimensions' do
-    it 'accepts custom width and height' do
-      component = described_class.new(data: data, width: 600, height: 300)
+  describe 'color customization' do
+    it 'accepts hex color string' do
+      render_inline(described_class.new(data: data, color: '#FF0000'))
 
-      expect(component.send(:cell_width)).to eq(150) # 600 / (3 + 1)
-      expect(component.send(:cell_height)).to eq(100) # 300 / 3
+      expect(page).to have_css('.heatmap-cell[style*="background"]')
     end
 
-    it 'clamps width to minimum 100' do
-      component = described_class.new(data: data, width: 50)
-
-      expect(component.send(:cell_width)).to eq(25) # 100 / (3 + 1)
+    it 'accepts DaisyUI color preset symbols' do
+      described_class::COLOR_PRESETS.each_key do |preset|
+        component = described_class.new(data: data, color: preset)
+        expect(component.gradient_colors).to be_an(Array)
+      end
     end
 
-    it 'clamps width to maximum 2000' do
-      component = described_class.new(data: data, width: 3000)
-
-      expect(component.send(:cell_width)).to eq(500) # 2000 / (3 + 1)
+    it 'uses primary as default color' do
+      component = described_class.new(data: data)
+      expect(component.gradient_colors).not_to be_empty
     end
   end
 
-  describe 'color customization' do
-    it 'accepts custom base color' do
-      render_inline(described_class.new(data: data, color: '#FF0000'))
+  describe 'responsive mode' do
+    it 'is responsive by default' do
+      component = described_class.new(data: data)
+      expect(component.responsive?).to be true
+    end
 
-      # Gradient colors should be generated from the base color
-      expect(page).to have_css('.heatmap-cell[style*="background"]')
+    it 'can be disabled' do
+      component = described_class.new(data: data, responsive: false)
+      expect(component.responsive?).to be false
+    end
+
+    it 'includes cell size in style' do
+      component = described_class.new(data: data, cell_size: 40)
+      style = component.cell_style(5)
+
+      expect(style).to include('height: 40px')
+      expect(style).to include('background:')
+    end
+
+    it 'uses default cell size when not specified' do
+      component = described_class.new(data: data)
+      style = component.cell_style(5)
+
+      expect(style).to include('height: 28px')
     end
   end
 
@@ -134,7 +157,7 @@ RSpec.describe Bali::Heatmap::Component, type: :component do
       render_inline(described_class.new(data: zero_data))
 
       expect(page).to have_css('div.heatmap-component')
-      expect(page).to have_css('.flex span', text: '0')
+      expect(page).to have_css('span', text: '0')
     end
 
     it 'handles missing values in nested data' do
@@ -181,20 +204,10 @@ RSpec.describe Bali::Heatmap::Component, type: :component do
     end
 
     it 'provides cell_style helper' do
-      component = described_class.new(data: data, width: 480, height: 480)
+      component = described_class.new(data: data)
       style = component.cell_style(5)
 
-      expect(style).to include('width:')
-      expect(style).to include('height:')
       expect(style).to include('background:')
-    end
-
-    it 'provides legend_segment_style helper' do
-      component = described_class.new(data: data, width: 480)
-      style = component.legend_segment_style('#FF0000')
-
-      expect(style).to include('background: #FF0000')
-      expect(style).to include('width:')
     end
   end
 

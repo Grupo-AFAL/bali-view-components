@@ -1,0 +1,29 @@
+<div class="space-y-4">
+  <h3 class="text-lg font-semibold"><%= t('modals.form.title') %></h3>
+
+  <%= form_with url: '#', method: :post, builder: Bali::FormBuilder, local: true do |f| %>
+    <div class="space-y-4">
+      <%= f.text_field_group :name,
+          label: t('modals.form.name'),
+          placeholder: t('modals.form.name_placeholder') %>
+
+      <%= f.text_area_group :description,
+          label: t('modals.form.description'),
+          placeholder: t('modals.form.description_placeholder'),
+          rows: 3 %>
+    </div>
+
+    <div class="modal-action">
+      <%= render Bali::Button::Component.new(
+        name: t('modals.form.cancel'),
+        variant: :ghost,
+        data: { action: 'modal#close' }
+      ) %>
+      <%= render Bali::Button::Component.new(
+        name: t('modals.form.create'),
+        variant: :primary,
+        type: :submit
+      ) %>
+    </div>
+  <% end %>
+</div>

@@ -26,14 +26,12 @@ module Bali
       # @param size select [xs, sm, md, lg]
       # @param color select [warning, primary, secondary, accent, success, error, info]
       def auto_submit(value: 3, size: :md, color: :warning)
-        render Rate::Component.new(
-          form: form_builder,
-          method: :rating,
-          value: value,
-          size: size.to_sym,
-          color: color.to_sym,
-          auto_submit: true
-        )
+        render_with_template(locals: {
+                               model: Movie.new,
+                               value: value.to_i,
+                               size: size.to_sym,
+                               color: color.to_sym
+                             })
       end
 
       # @label Readonly

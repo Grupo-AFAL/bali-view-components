@@ -3,8 +3,10 @@
   <%# Advanced Filters with search %>
   <% c.with_filters_panel(
        available_attributes: filter_attributes,
-       search_fields: [:name, :genre],
-       search_placeholder: 'Search movies...'
+       search: {
+         fields: [:name, :genre],
+         placeholder: 'Search movies...'
+       }
      ) %>
 
   <%# Column selector - declarative API with some columns hidden by default %>
