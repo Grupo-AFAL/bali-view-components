@@ -4,22 +4,15 @@ module Bali
   module Columns
     module Column
       class Component < ApplicationViewComponent
-        # CSS Grid column spans - gap is handled automatically by parent grid
+        # Flexbox-based column sizes using basis and grow utilities
         SIZES = {
-          full: 'col-span-12',
-          half: 'col-span-6',
-          third: 'col-span-4',
-          two_thirds: 'col-span-8',
-          quarter: 'col-span-3',
-          three_quarters: 'col-span-9',
-          auto: 'col-auto'
-        }.freeze
-
-        # Grid column start positions for offsets
-        OFFSETS = {
-          quarter: 'col-start-4',
-          third: 'col-start-5',
-          half: 'col-start-7'
+          full: 'basis-full',
+          half: 'basis-1/2',
+          third: 'basis-1/3',
+          two_thirds: 'basis-2/3',
+          quarter: 'basis-1/4',
+          three_quarters: 'basis-3/4',
+          auto: 'shrink-0'  # Don't shrink, just fit content
         }.freeze
 
         def initialize(size: nil, offset: nil, **options)
@@ -37,8 +30,7 @@ module Bali
         def column_classes
           class_names(
             size_class,
-            OFFSETS[@offset],
-            # Prevents content from overflowing grid cell boundaries
+            grow_class,
             'min-w-0',
             @options[:class]
           )
@@ -46,6 +38,16 @@ module Bali
 
         def size_class
           SIZES[@size] || SIZES[:full]
+        end
+
+        # :full columns grow to fill remaining space
+        # :auto columns shrink to fit content (no grow)
+        # Fixed sizes (half, third, etc.) maintain their basis
+        def grow_class
+          return nil if @size == :auto
+          return 'grow' if @size.nil? || @size == :full
+
+          nil
         end
       end
     end
