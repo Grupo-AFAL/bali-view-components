@@ -21,8 +21,15 @@ module Bali
         render Bali::Button::Component.new(name: 'Add Item', variant: :primary, icon_name: 'plus')
       end
 
+      # @label Button Group
+      # Shows buttons grouped together with consistent spacing
       def button_group
-        render_with_template
+        tag.div(class: 'flex gap-2') do
+          safe_join([
+            render(Bali::Button::Component.new(name: 'Cancel', variant: :ghost)),
+            render(Bali::Button::Component.new(name: 'Confirm', variant: :primary))
+          ])
+        end
       end
     end
   end
