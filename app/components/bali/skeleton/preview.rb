@@ -2,7 +2,7 @@
 
 module Bali
   module Skeleton
-    class Preview < Lookbook::Preview
+    class Preview < ApplicationViewComponentPreview
       # @param variant select { choices: [text, paragraph, card, avatar, button, modal, list] }
       # @param size select { choices: [xs, sm, md, lg] }
       # @param lines number
