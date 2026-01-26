@@ -9,15 +9,16 @@ module Bali
       # @param loading toggle
       def default(variant: :primary, size: :md, disabled: false, loading: false)
         render Bali::Button::Component.new(
+          name: 'Button',
           variant: variant.to_sym,
           size: size.to_sym,
           disabled: disabled,
           loading: loading
-        ) { 'Button' }
+        )
       end
 
       def with_icon
-        render Bali::Button::Component.new(variant: :primary, icon_name: 'plus') { 'Add Item' }
+        render Bali::Button::Component.new(name: 'Add Item', variant: :primary, icon_name: 'plus')
       end
 
       def button_group
