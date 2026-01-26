@@ -2,7 +2,7 @@
 
 module Bali
   module Button
-    class Preview < Lookbook::Preview
+    class Preview < ApplicationViewComponentPreview
       # @param variant select { choices: [primary, secondary, accent, info, success, warning, error, ghost, link, neutral, outline] }
       # @param size select { choices: [xs, sm, md, lg, xl] }
       # @param disabled toggle
@@ -24,11 +24,7 @@ module Bali
       # @label Button Group
       # Shows buttons grouped together with consistent spacing
       def button_group
-        buttons = safe_join([
-          render(Bali::Button::Component.new(name: 'Cancel', variant: :ghost)),
-          render(Bali::Button::Component.new(name: 'Confirm', variant: :primary))
-        ])
-        %(<div class="flex gap-2">#{buttons}</div>).html_safe
+        render_with_template
       end
     end
   end
