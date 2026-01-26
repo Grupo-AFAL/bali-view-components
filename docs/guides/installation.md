@@ -90,7 +90,7 @@ Create `app/assets/tailwind/application.css` (or similar):
 }
 ```
 
-> **Note**: The `@source` path uses `app/**/*.{rb,erb}` to scan all Bali source files. This ensures responsive classes like `lg:hidden` and `lg:flex` are detected and included in your CSS build.
+> **Note**: The `@source` directive is required because Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-primary'`). Without it, Tailwind won't detect these classes and components will appear unstyled.
 
 ### DaisyUI Themes
 
@@ -264,21 +264,21 @@ Open browser console and look for:
 
 ## Troubleshooting
 
-### Responsive classes not working (e.g., `lg:hidden`)
+### Components unstyled or classes missing
 
-Bali components use Tailwind responsive classes in Ruby files (e.g., `'btn lg:hidden'`). If responsive behavior isn't working (e.g., navbar burger visible on desktop), Tailwind isn't scanning the component files.
+Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-primary'`). If components appear unstyled or specific classes aren't working, Tailwind isn't scanning the component files.
 
-**Fix:** Ensure your `@source` directive scans the full `app/` directory:
+**Fix:** Ensure your `@source` directive scans Bali's source files in node_modules:
 
 ```css
 /* Correct - scans all Ruby and ERB files */
 @source "../../../node_modules/bali-view-components/app/**/*.{rb,erb}";
 
-/* Wrong - too narrow, misses some files */
+/* Wrong - only scans ERB, misses Ruby files where most classes are defined */
 @source "../../../node_modules/bali-view-components/app/components/**/*.erb";
 ```
 
-**Verify:** After fixing, rebuild CSS and check that `lg:hidden` exists in your compiled stylesheet.
+**Verify:** After fixing, rebuild CSS (`bin/rails tailwindcss:build`) and check that expected classes exist in your compiled stylesheet.
 
 ### "Component not styled"
 

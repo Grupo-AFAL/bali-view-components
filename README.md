@@ -64,7 +64,7 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 }
 ```
 
-> **Important**: The `@source` directive scans Bali's Ruby files for Tailwind classes like `lg:hidden`. Without this, responsive behavior won't work correctly.
+> **Important**: The `@source` directive is required because Bali components define Tailwind classes in Ruby files. Without it, Tailwind won't detect these classes and they won't be included in your CSS build.
 
 ### 4. Use Components
 
