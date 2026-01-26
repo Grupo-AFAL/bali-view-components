@@ -62,7 +62,8 @@ en:
         not_contains: "does not contain"
         not_equals: "is not"
         # Date/time operators
-        on: "is"
+        # Note: "on" must be quoted - YAML interprets it as boolean otherwise
+        "on": "is"
         between: "between"
         after: "after"
         before: "before"
