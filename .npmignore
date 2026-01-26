@@ -1,0 +1,19 @@
+# Exclude Ruby bundle from npm package
+# Prevents RSpec from finding vendored gem specs via symlink
+vendor/
+
+# Development/test files not needed in npm package
+spec/
+cypress/
+coverage/
+.github/
+.bundle/
+.claude/
+.git/
+*.gem
+Gemfile
+Gemfile.lock
+Rakefile
+.rspec
+.rubocop.yml
+.ruby-version
