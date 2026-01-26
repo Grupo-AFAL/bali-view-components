@@ -61,30 +61,37 @@ RSpec.describe Bali::Rate::Component, type: :component do
   describe 'auto_submit mode' do
     before { options[:auto_submit] = true }
 
-    it 'renders button tags for each star' do
+    it 'renders radio inputs for visual feedback' do
       render_inline(component)
 
-      expect(page).to have_css 'button.mask.mask-star-2', count: 5
+      expect(page).to have_css 'input[type="radio"].mask.mask-star-2', count: 5
     end
 
-    it 'sets correct name and value on buttons' do
+    it 'adds Stimulus controller to container' do
       render_inline(component)
 
-      expect(page).to have_css 'button[name="movie[rating]"][value="1"]'
-      expect(page).to have_css 'button[name="movie[rating]"][value="5"]'
+      expect(page).to have_css 'div[data-controller="rate"]'
+      expect(page).to have_css 'div[data-rate-auto-submit-value="true"]'
     end
 
-    it 'sets buttons as submit type' do
+    it 'adds data-action for Stimulus submit' do
       render_inline(component)
 
-      expect(page).to have_css 'button[type="submit"]', count: 5
+      expect(page).to have_css 'input[data-action="change->rate#submit"]', count: 5
     end
 
-    it 'includes aria-label on buttons' do
+    it 'includes hidden input for form submission' do
       render_inline(component)
 
-      expect(page).to have_css 'button[aria-label="1 stars"]'
-      expect(page).to have_css 'button[aria-label="5 stars"]'
+      expect(page).to have_css 'input[type="hidden"][name="movie[rating]"][data-rate-target="input"]',
+                               visible: :hidden
+    end
+
+    it 'includes aria-label on radio inputs' do
+      render_inline(component)
+
+      expect(page).to have_css 'input[aria-label="1 stars"]'
+      expect(page).to have_css 'input[aria-label="5 stars"]'
     end
   end
 

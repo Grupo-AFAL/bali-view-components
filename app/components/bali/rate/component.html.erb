@@ -9,17 +9,19 @@
              <%= 'checked' if value == rate %> />
     <% end %>
   <% elsif auto_submit? %>
-    <%# Auto-submit: buttons that submit the form on click %>
-    <%# Stars up to current value use color, rest use base-300 (gray) %>
+    <%# Auto-submit: radio inputs with Stimulus controller for form submission %>
+    <%# Radio inputs give immediate visual feedback, JS handles the submit %>
     <% scale.each do |rate| %>
-      <button type="submit"
-              name="<%= input_name %>"
-              value="<%= rate %>"
-              class="mask mask-star-2 <%= rate <= value ? COLORS[color] : 'bg-base-300' %>"
-              aria-label="<%= star_aria_label(rate) %>"
-              aria-pressed="<%= rate <= value %>">
-      </button>
+      <input type="radio"
+             name="<%= input_name %>_display"
+             class="<%= star_classes %>"
+             aria-label="<%= star_aria_label(rate) %>"
+             <%= 'checked' if value == rate %>
+             data-rate="<%= rate %>"
+             data-action="change->rate#submit" />
     <% end %>
+    <%# Hidden input to hold the actual submitted value %>
+    <input type="hidden" name="<%= input_name %>" value="<%= value %>" data-rate-target="input" />
   <% else %>
     <%# Standard: radio buttons integrated with form builder %>
     <% scale.each do |rate| %>

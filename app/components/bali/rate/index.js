@@ -1,15 +1,28 @@
 import { Controller } from '@hotwired/stimulus'
 
 /**
- * RateController - Legacy controller for Rate component
+ * RateController - Handles auto-submit functionality for Rate component
  *
- * This controller is no longer used by the Rate component. DaisyUI's native
- * rating component handles visual state through CSS `:checked` pseudo-class.
- *
- * Kept for backwards compatibility with consumers who may have registered it.
- *
- * @deprecated Will be removed in next major version
+ * When autoSubmit is enabled, clicking a star will:
+ * 1. Update the hidden input with the selected value
+ * 2. Submit the parent form
  */
 export class RateController extends Controller {
-  // No-op: DaisyUI handles rating visuals via CSS
+  static targets = ['input']
+  static values = { autoSubmit: Boolean }
+
+  submit(event) {
+    if (!this.autoSubmitValue) return
+
+    const rate = event.target.dataset.rate
+    if (this.hasInputTarget) {
+      this.inputTarget.value = rate
+    }
+
+    // Submit the parent form
+    const form = this.element.closest('form')
+    if (form) {
+      form.requestSubmit()
+    }
+  }
 }

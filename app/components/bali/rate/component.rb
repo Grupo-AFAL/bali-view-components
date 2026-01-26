@@ -92,6 +92,7 @@ module Bali
         base_attrs = @options.except(:class).merge(class: rating_classes)
         base_attrs[:role] = 'radiogroup' unless readonly?
         base_attrs[:'aria-label'] = @options[:'aria-label'] || rating_label
+        base_attrs[:data] = { controller: 'rate', rate_auto_submit_value: true } if auto_submit?
         base_attrs
       end
     end
