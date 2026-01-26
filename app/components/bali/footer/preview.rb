@@ -45,19 +45,7 @@ module Bali
 
       # Minimal footer with just brand and copyright
       def minimal
-        render Bali::Footer::Component.new(color: :base, center: true) do |footer|
-          footer.with_brand do
-            safe_join([
-              render(Bali::Icon::Component.new('film', size: :large, class: 'mb-2')),
-              tag.p('MovieDB', class: 'font-bold text-lg'),
-              tag.p('Your ultimate movie database', class: 'text-sm opacity-70')
-            ])
-          end
-
-          footer.with_bottom do
-            tag.p("#{Date.current.year} MovieDB. Built with Bali ViewComponents.")
-          end
-        end
+        render_with_template
       end
 
       # Footer with social links and icons
