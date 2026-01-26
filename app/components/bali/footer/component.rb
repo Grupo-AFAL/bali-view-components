@@ -19,7 +19,8 @@ module Bali
       }
 
       renders_one :bottom, ->(&block) {
-        tag.div(class: 'border-t border-current/20 mt-8 pt-8 text-sm opacity-60 text-center', &block)
+        classes = 'border-t border-current/20 mt-8 pt-8 text-sm opacity-60 text-center'
+        tag.div(class: classes, &block)
       }
 
       attr_reader :html_options
