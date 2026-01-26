@@ -86,20 +86,20 @@
               data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs recurrent-event-rule#setRule' }) %>
           <span class="text-sm font-medium min-w-[2.5rem]"><%= t('.on_the') %></span>
 
-          <div class="flex flex-wrap items-center gap-1.5"
+          <div class="flex items-center gap-1.5"
             data-recurrent-event-rule-target="freqCustomizationInputs"
             data-rrule-freq-option="yearly_on_2">
             <%= select_tag :bysetpos, options_for_select(bysetpos_options),
-                class: 'select select-bordered select-sm',
+                class: 'select select-bordered select-sm w-24',
                 disabled: disabled,
                 data: { rrule_attr: 'bysetpos', action: 'recurrent-event-rule#setRule' } %>
             <%= select_tag :byweekday, options_for_select(byweekday_options),
-                class: 'select select-bordered select-sm',
+                class: 'select select-bordered select-sm w-28',
                 disabled: disabled,
                 data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' } %>
             <span class="text-sm text-base-content/70"><%= t('.of') %></span>
             <%= select_tag :bymonth, options_for_select(bymonth_options),
-                class: 'select select-bordered select-sm',
+                class: 'select select-bordered select-sm w-28',
                 disabled: disabled,
                 data: { rrule_attr: 'bymonth', action: 'recurrent-event-rule#setRule' } %>
           </div>
