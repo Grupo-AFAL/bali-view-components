@@ -168,7 +168,7 @@ RSpec.describe Bali::Card::Component, type: :component do
 
     it 'renders button with data attributes' do
       render_inline(described_class.new) do |c|
-        c.with_action(data: { action: 'click->modal#open' }) { 'Open Modal' }
+        c.with_action(data: { turbo: false, action: 'click->modal#open' }) { 'Open Modal' }
       end
 
       expect(page).to have_css '.card-actions button.btn[data-action="click->modal#open"]'

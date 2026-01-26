@@ -7,6 +7,8 @@ This document details all breaking changes in the Bulma → Tailwind + DaisyUI m
 - [Overview](#overview)
 - [CSS Framework Migration](#css-framework-migration)
 - [Component Breaking Changes](#component-breaking-changes)
+  - [Avatar Component](#avatar-component) ⚠️ **MAJOR**
+  - [Icon Component](#icon-component) ⚠️ **MAJOR**
   - [Link Component](#link-component)
   - [Card Component](#card-component)
   - [Filters Component](#filters-component)
@@ -14,6 +16,13 @@ This document details all breaking changes in the Bulma → Tailwind + DaisyUI m
   - [Tag Component](#tag-component)
   - [Calendar Component](#calendar-component)
   - [Modal Component](#modal-component)
+  - [Progress Component](#progress-component) ⚠️ **NEW**
+  - [Loader Component](#loader-component) ⚠️ **NEW**
+  - [Rate Component](#rate-component) ⚠️ **NEW**
+  - [Tabs Component](#tabs-component) ⚠️ **NEW**
+  - [Tooltip Component](#tooltip-component) ⚠️ **NEW**
+  - [ImageField Component](#imagefield-component) ⚠️ **NEW**
+  - [Notification Component](#notification-component) ⚠️ **NEW**
 - [Class Mapping Reference](#class-mapping-reference)
 - [AI-Assisted Migration](#ai-assisted-migration)
 
@@ -24,15 +33,17 @@ This document details all breaking changes in the Bulma → Tailwind + DaisyUI m
 | Metric | Value |
 |--------|-------|
 | **Total Components** | 60+ |
-| **Breaking Changes** | 6 components |
+| **Breaking Changes** | 14 components |
 | **New Components** | 15 |
-| **Commits** | 317 |
-| **Files Changed** | 533 |
+| **Commits** | 317+ |
+| **Files Changed** | 900+ |
 
 ### Migration Effort by Component
 
 | Component | Breaking? | Effort | Notes |
 |-----------|-----------|--------|-------|
+| **Avatar** | **Yes** | **High** | Complete API overhaul - now display-only component |
+| **Icon** | **Yes** | **High** | New Lucide-based resolution pipeline |
 | Link | Yes | Low | `type:` → `variant:` (backwards compat) |
 | Card | Yes | Medium | `footer_items` → `actions` slot |
 | Filters | Yes | High | Deprecated, use AdvancedFilters |
@@ -40,6 +51,13 @@ This document details all breaking changes in the Bulma → Tailwind + DaisyUI m
 | Tag | Yes | Low | `tag_class:` → `color:` |
 | Calendar | Yes | Low | `all_week:` → `weekdays_only:` |
 | Modal | Yes | Medium | New slot-based API |
+| **Progress** | **Yes** | **Medium** | `percentage:` → `show_percentage:`, `color_code:` → `color:` |
+| **Loader** | **Yes** | **Medium** | New `type:`, `size:`, `color:` parameters |
+| **Rate** | **Yes** | **Low** | Size values changed (`:medium` → `:md`) |
+| **Tabs** | **Yes** | **Low** | New `style:`, `size:` params; `tabs_class:` removed |
+| **Tooltip** | **Yes** | **Low** | `trigger:` → `trigger_event:`, `small:` removed |
+| **ImageField** | **Yes** | **Low** | Positional `image_url` → keyword `src:` |
+| **Notification** | **Yes** | **Low** | CSS classes changed (API compatible) |
 | All Others | No | Low | CSS classes auto-migrated |
 
 ---
@@ -358,6 +376,435 @@ end
 
 ---
 
+### Avatar Component
+
+**File:** `app/components/bali/avatar/component.rb`
+
+#### Status: MAJOR API CHANGE ⚠️
+
+The Avatar component has been completely redesigned. It was previously a **file upload** component; it is now a **display-only** component for showing user avatars.
+
+#### Changes
+
+| Parameter | Before | After | Breaking? |
+|-----------|--------|-------|-----------|
+| `form:` | Required for file upload | **REMOVED** | **Yes** |
+| `method:` | Required for file upload | **REMOVED** | **Yes** |
+| `placeholder_url:` | String URL | **REMOVED** (use placeholder slot) | **Yes** |
+| `formats:` | Accepted file formats | **REMOVED** | **Yes** |
+| `src:` | N/A | Image URL to display | New |
+| `size:` | N/A | `:xs`, `:sm`, `:md`, `:lg`, `:xl` | New |
+| `shape:` | N/A | `:square`, `:rounded`, `:circle` | New |
+| `mask:` | N/A | `:heart`, `:squircle`, `:hexagon`, etc. | New |
+| `status:` | N/A | `:online`, `:offline` | New |
+| `ring:` | N/A | DaisyUI color for ring | New |
+
+#### Migration
+
+```ruby
+# BEFORE: File upload component
+render Bali::Avatar::Component.new(
+  form: @form,
+  method: :avatar_url,
+  placeholder_url: 'default.png',
+  formats: %i[jpg jpeg png]
+)
+
+# AFTER: Display-only avatar
+render Bali::Avatar::Component.new(
+  src: user.avatar_url,
+  size: :md,
+  shape: :circle
+)
+
+# With placeholder slot (for initials)
+render Bali::Avatar::Component.new(size: :lg) do |c|
+  c.with_placeholder { "JD" }
+end
+
+# With picture slot
+render Bali::Avatar::Component.new(size: :md) do |c|
+  c.with_picture(image_url: user.avatar_url)
+end
+
+# With status indicator
+render Bali::Avatar::Component.new(
+  src: user.avatar_url,
+  status: :online,
+  ring: :success
+)
+```
+
+#### For File Upload Functionality
+
+If you need avatar file upload, use the new `Bali::Avatar::Upload::Component` (or create a custom implementation using `Bali::ImageField::Component`).
+
+---
+
+### Icon Component
+
+**File:** `app/components/bali/icon/component.rb`
+
+#### Status: MAJOR ARCHITECTURE CHANGE ⚠️
+
+The Icon component now uses **Lucide icons** as the primary source with backwards compatibility for legacy Bali icon names.
+
+#### Changes
+
+| Feature | Before | After | Breaking? |
+|---------|--------|-------|-----------|
+| **Icon source** | `Bali::Icon::Options::MAP` | Lucide icons + mapping | **Yes** |
+| **Resolution** | Single source | 5-level pipeline | **Yes** |
+| `size:` | N/A | `:small`, `:medium`, `:large` | New |
+| **Icon names** | Bali-specific | Lucide names (1600+ available) | Partial |
+
+#### New Resolution Pipeline
+
+1. **Lucide mapping** - Old Bali names → Lucide equivalents
+2. **Direct Lucide** - Use any [Lucide icon](https://lucide.dev/icons) directly
+3. **Kept icons** - Brand logos, regional icons, custom domain icons
+4. **Custom icons** - Via `Bali.custom_icons`
+5. **Legacy fallback** - Original DefaultIcons for backwards compatibility
+
+#### Key Icon Name Mappings
+
+| Old Bali Name | Lucide Name |
+|---------------|-------------|
+| `edit` | `pencil` |
+| `trash` | `trash-2` |
+| `cog` | `settings` |
+| `times` | `x` |
+| `check-circle` | `circle-check` |
+| `info-circle` | `info` |
+| `alert` | `triangle-alert` |
+| `user` | `user` |
+| `search` | `search` |
+
+See `app/components/bali/icon/lucide_mapping.rb` for full mapping.
+
+#### Migration
+
+```ruby
+# Old Bali names still work (via mapping)
+render Bali::Icon::Component.new('edit')    # → renders Lucide 'pencil'
+render Bali::Icon::Component.new('trash')   # → renders Lucide 'trash-2'
+
+# New: Use Lucide names directly (1600+ icons)
+render Bali::Icon::Component.new('activity')
+render Bali::Icon::Component.new('git-branch')
+render Bali::Icon::Component.new('cloud-download')
+
+# New: Size parameter
+render Bali::Icon::Component.new('check', size: :large)
+render Bali::Icon::Component.new('alert', size: :medium, class: 'text-error')
+```
+
+#### Brand Icons (Kept)
+
+Brand icons are NOT mapped to Lucide and remain as original Bali SVGs:
+`visa`, `mastercard`, `paypal`, `whatsapp`, `facebook`, `youtube`, `twitter`, `linkedin`, etc.
+
+---
+
+### Progress Component
+
+**File:** `app/components/bali/progress/component.rb`
+
+#### Changes
+
+| Parameter | Before | After | Breaking? |
+|-----------|--------|-------|-----------|
+| `value:` | Default `50` | Default `0` | Soft |
+| `percentage:` | Boolean | **REMOVED** → `show_percentage:` | **Yes** |
+| `color_code:` | CSS color string | **REMOVED** → `color:` (symbol) | **Yes** |
+| `max:` | N/A | Default `100` | New |
+| `color:` | N/A | DaisyUI semantic color | New |
+
+#### Migration
+
+```ruby
+# BEFORE
+render Bali::Progress::Component.new(
+  value: 75,
+  percentage: true,
+  color_code: 'hsl(196, 82%, 78%)'
+)
+
+# AFTER
+render Bali::Progress::Component.new(
+  value: 75,
+  max: 100,
+  show_percentage: true,
+  color: :info
+)
+```
+
+#### Available Colors
+
+`:primary`, `:secondary`, `:accent`, `:neutral`, `:info`, `:success`, `:warning`, `:error`
+
+#### Search & Replace Pattern
+
+```ruby
+# Find (regex)
+percentage:\s*(true|false)
+
+# Replace
+show_percentage: $1
+```
+
+---
+
+### Loader Component
+
+**File:** `app/components/bali/loader/component.rb`
+
+#### Changes
+
+| Parameter | Before | After | Breaking? |
+|-----------|--------|-------|-----------|
+| `text:` | Only parameter | Still supported | No |
+| `type:` | N/A | Loader animation type | New |
+| `size:` | N/A | Loader size | New |
+| `color:` | N/A | Loader color | New |
+| `hide_text:` | N/A | Hide text display | New |
+
+#### Migration
+
+```ruby
+# BEFORE: Simple text-only loader
+render Bali::Loader::Component.new(text: 'Loading...')
+
+# AFTER: Same API still works
+render Bali::Loader::Component.new(text: 'Loading...')
+
+# NEW: With type, size, and color options
+render Bali::Loader::Component.new(
+  text: 'Loading...',
+  type: :spinner,    # :spinner, :dots, :ring, :ball, :bars, :infinity
+  size: :lg,         # :xs, :sm, :md, :lg, :xl
+  color: :primary    # DaisyUI semantic colors
+)
+
+# Loader only (no text)
+render Bali::Loader::Component.new(
+  type: :dots,
+  size: :lg,
+  hide_text: true
+)
+```
+
+**Note:** The default behavior has changed. Old simple loaders will now render with the default `:spinner` type and `:lg` size, which may look different than before.
+
+---
+
+### Rate Component
+
+**File:** `app/components/bali/rate/component.rb`
+
+#### Changes
+
+| Parameter | Before | After | Breaking? |
+|-----------|--------|-------|-----------|
+| `size:` | `:medium` (Bulma) | `:md` (DaisyUI) | **Yes** |
+| `color:` | N/A | New parameter (default `:warning`) | New |
+
+| Method | Before | After | Breaking? |
+|--------|--------|-------|-----------|
+| `star_dom_id(rate)` | With unique identifier | `star_id(rate)` - simpler | **Yes** |
+
+#### Migration
+
+```ruby
+# BEFORE
+render Bali::Rate::Component.new(
+  value: 3,
+  form: @form,
+  method: :rating,
+  size: :medium
+)
+
+# AFTER
+render Bali::Rate::Component.new(
+  value: 3,
+  form: @form,
+  method: :rating,
+  size: :md,          # Changed from :medium
+  color: :warning     # New optional parameter
+)
+```
+
+#### Available Sizes
+
+`:xs`, `:sm`, `:md`, `:lg`
+
+#### Available Colors
+
+`:warning` (default), `:primary`, `:secondary`, `:accent`, `:success`, `:error`, `:info`
+
+#### Search & Replace Pattern
+
+```ruby
+# Find
+size: :medium
+
+# Replace
+size: :md
+```
+
+---
+
+### Tabs Component
+
+**File:** `app/components/bali/tabs/component.rb`
+
+#### Changes
+
+| Parameter | Before | After | Breaking? |
+|-----------|--------|-------|-----------|
+| `tabs_class:` | Custom class option | **REMOVED** | **Yes** |
+| `style:` | N/A | Tab style (default `:border`) | New |
+| `size:` | N/A | Tab size (default `:md`) | New |
+
+#### Migration
+
+```ruby
+# BEFORE
+render Bali::Tabs::Component.new(tabs_class: 'custom-tabs') do |t|
+  t.with_tab(name: 'Tab 1') { 'Content 1' }
+  t.with_tab(name: 'Tab 2') { 'Content 2' }
+end
+
+# AFTER
+render Bali::Tabs::Component.new(style: :border, size: :md, class: 'custom-tabs') do |t|
+  t.with_tab(name: 'Tab 1') { 'Content 1' }
+  t.with_tab(name: 'Tab 2') { 'Content 2' }
+end
+```
+
+#### Available Styles
+
+`:default`, `:border`, `:box`, `:lift`
+
+#### Available Sizes
+
+`:xs`, `:sm`, `:md`, `:lg`, `:xl`
+
+---
+
+### Tooltip Component
+
+**File:** `app/components/bali/tooltip/component.rb`
+
+#### Changes
+
+| Parameter | Before | After | Breaking? |
+|-----------|--------|-------|-----------|
+| `trigger:` | Event type string | **RENAMED** → `trigger_event:` | **Yes** |
+| `placement:` | String (`'top'`) | Symbol (`:top`) | **Yes** |
+| `small:` | Boolean for small size | **REMOVED** | **Yes** |
+
+#### Migration
+
+```ruby
+# BEFORE
+render Bali::Tooltip::Component.new(
+  trigger: 'mouseenter focus',
+  placement: 'top',
+  small: true
+) do |t|
+  t.with_trigger { 'Hover me' }
+end
+
+# AFTER
+render Bali::Tooltip::Component.new(
+  trigger_event: 'mouseenter focus',  # Renamed from trigger:
+  placement: :top                      # Symbol instead of string
+) do |t|
+  t.with_trigger { 'Hover me' }
+end
+```
+
+#### Available Placements
+
+`:top`, `:bottom`, `:left`, `:right`
+
+---
+
+### ImageField Component
+
+**File:** `app/components/bali/image_field/component.rb`
+
+#### Changes
+
+| Parameter | Before | After | Breaking? |
+|-----------|--------|-------|-----------|
+| `image_url` | **Positional** first argument | **REMOVED** → use `src:` | **Yes** |
+| `src:` | N/A | Keyword argument for image URL | New |
+| `image_options:` | Custom options hash | **REMOVED** (auto-generated) | **Yes** |
+| `size:` | N/A | `:xs`, `:sm`, `:md`, `:lg`, `:xl` | New |
+
+#### Migration
+
+```ruby
+# BEFORE: Positional argument
+render Bali::ImageField::Component.new(
+  'https://example.com/photo.jpg',              # Positional
+  placeholder_url: 'https://placehold.jp/128x128.png',
+  image_options: { class: 'image is-128x128' }
+)
+
+# AFTER: Keyword argument
+render Bali::ImageField::Component.new(
+  src: 'https://example.com/photo.jpg',         # Keyword
+  placeholder_url: 'https://placehold.jp/128x128.png',
+  size: :md                                     # New size parameter
+)
+```
+
+#### Available Sizes
+
+`:xs` (64px), `:sm` (96px), `:md` (128px), `:lg` (160px), `:xl` (192px)
+
+---
+
+### Notification Component
+
+**File:** `app/components/bali/notification/component.rb`
+
+#### Changes
+
+| Feature | Before | After | Breaking? |
+|---------|--------|-------|-----------|
+| **API** | Same | Same | No |
+| **CSS classes** | `notification is-{type}` | `alert alert-{type}` | Soft |
+| **HTML structure** | Bulma notification | DaisyUI alert | Soft |
+
+#### Migration
+
+```ruby
+# NO CODE CHANGES NEEDED - API is the same
+render Bali::Notification::Component.new(
+  type: :success,
+  delay: 3000,
+  fixed: true,
+  dismiss: true
+) { 'Success message' }
+```
+
+**Note:** While the API is unchanged, the underlying CSS classes have changed from Bulma to DaisyUI. If you have custom CSS targeting `.notification` or `.is-success`, update to `.alert` and `.alert-success`.
+
+#### CSS Class Changes
+
+| Before | After |
+|--------|-------|
+| `notification is-success` | `alert alert-success` |
+| `notification is-danger` | `alert alert-error` |
+| `notification is-warning` | `alert alert-warning` |
+| `notification is-info` | `alert alert-info` |
+
+---
+
 ## Class Mapping Reference
 
 ### Button Classes
@@ -511,6 +958,166 @@ This section provides structured data for AI agents to perform automated migrati
 }
 ```
 
+```json
+{
+  "component": "Bali::Avatar::Component",
+  "file": "app/components/bali/avatar/component.rb",
+  "breaking": true,
+  "severity": "major",
+  "changes": [
+    {
+      "type": "parameter_remove",
+      "name": "form",
+      "migration": "Use Bali::Avatar::Upload::Component for file upload"
+    },
+    {
+      "type": "parameter_remove",
+      "name": "method",
+      "migration": "Use Bali::Avatar::Upload::Component for file upload"
+    },
+    {
+      "type": "parameter_remove",
+      "name": "placeholder_url",
+      "migration": "Use placeholder slot instead"
+    },
+    {
+      "type": "parameter_remove",
+      "name": "formats",
+      "migration": "Use Bali::Avatar::Upload::Component for file upload"
+    },
+    {
+      "type": "parameter_add",
+      "name": "src",
+      "description": "Image URL to display"
+    },
+    {
+      "type": "parameter_add",
+      "name": "size",
+      "values": ["xs", "sm", "md", "lg", "xl"]
+    },
+    {
+      "type": "parameter_add",
+      "name": "shape",
+      "values": ["square", "rounded", "circle"]
+    }
+  ],
+  "note": "Component purpose changed from file upload to display-only"
+}
+```
+
+```json
+{
+  "component": "Bali::Progress::Component",
+  "file": "app/components/bali/progress/component.rb",
+  "breaking": true,
+  "changes": [
+    {
+      "type": "parameter_rename",
+      "old": "percentage",
+      "new": "show_percentage",
+      "backwards_compatible": false
+    },
+    {
+      "type": "parameter_remove",
+      "name": "color_code",
+      "migration": "Use color: with semantic DaisyUI colors"
+    },
+    {
+      "type": "parameter_add",
+      "name": "color",
+      "values": ["primary", "secondary", "accent", "neutral", "info", "success", "warning", "error"]
+    },
+    {
+      "type": "parameter_add",
+      "name": "max",
+      "default": 100
+    }
+  ],
+  "migration_patterns": [
+    {
+      "find": "percentage: true",
+      "replace": "show_percentage: true"
+    },
+    {
+      "find": "color_code: 'hsl(196, 82%, 78%)'",
+      "replace": "color: :info"
+    }
+  ]
+}
+```
+
+```json
+{
+  "component": "Bali::Rate::Component",
+  "file": "app/components/bali/rate/component.rb",
+  "breaking": true,
+  "changes": [
+    {
+      "type": "parameter_value_change",
+      "name": "size",
+      "old_values": ["small", "medium", "large"],
+      "new_values": ["xs", "sm", "md", "lg"]
+    },
+    {
+      "type": "parameter_add",
+      "name": "color",
+      "values": ["warning", "primary", "secondary", "accent", "success", "error", "info"],
+      "default": "warning"
+    }
+  ],
+  "migration_patterns": [
+    {
+      "find": "size: :medium",
+      "replace": "size: :md"
+    },
+    {
+      "find": "size: :small",
+      "replace": "size: :sm"
+    },
+    {
+      "find": "size: :large",
+      "replace": "size: :lg"
+    }
+  ]
+}
+```
+
+```json
+{
+  "component": "Bali::Tooltip::Component",
+  "file": "app/components/bali/tooltip/component.rb",
+  "breaking": true,
+  "changes": [
+    {
+      "type": "parameter_rename",
+      "old": "trigger",
+      "new": "trigger_event",
+      "backwards_compatible": false
+    },
+    {
+      "type": "parameter_type_change",
+      "name": "placement",
+      "old_type": "string",
+      "new_type": "symbol"
+    },
+    {
+      "type": "parameter_remove",
+      "name": "small"
+    }
+  ],
+  "migration_patterns": [
+    {
+      "find": "trigger:",
+      "replace": "trigger_event:"
+    },
+    {
+      "find": "placement: 'top'",
+      "replace": "placement: :top"
+    }
+  ]
+}
+```
+
 ### Automated Search & Replace
 
 For codemod tools, use these patterns:
@@ -531,6 +1138,34 @@ For codemod tools, use these patterns:
 # Calendar: all_week → weekdays_only
 # Regex: all_week:\s*(true|false)
 # Replace: weekdays_only: !$1 (invert boolean)
+
+# Progress: percentage → show_percentage
+# Regex: percentage:\s*(true|false)
+# Replace: show_percentage: $1
+
+# Progress: color_code → color (requires manual mapping)
+# Regex: color_code:\s*['"][^'"]+['"]
+# Replace: color: :info (or appropriate semantic color)
+
+# Rate: size :medium → :md
+# Regex: (Bali::Rate::Component\.new[^)]*size:\s*):medium
+# Replace: $1:md
+
+# Tooltip: trigger → trigger_event
+# Regex: (Bali::Tooltip::Component\.new[^)]*)\btrigger:
+# Replace: $1trigger_event:
+
+# Tooltip: placement string → symbol
+# Regex: (Bali::Tooltip::Component\.new[^)]*placement:\s*)['"](\w+)['"]
+# Replace: $1:$2
+
+# Tabs: tabs_class → class
+# Regex: (Bali::Tabs::Component\.new[^)]*)\btabs_class:
+# Replace: $1class:
+
+# ImageField: positional image_url → src keyword
+# Regex: Bali::ImageField::Component\.new\(\s*['"]([^'"]+)['"]
+# Replace: Bali::ImageField::Component.new(src: '$1'
 ```
 
 ### Component Manifest
@@ -541,13 +1176,26 @@ For codemod tools, use these patterns:
   "framework": "tailwind+daisyui",
   "components": {
     "breaking": [
+      "Bali::Avatar::Component",
+      "Bali::Icon::Component",
       "Bali::Link::Component",
       "Bali::Card::Component",
       "Bali::Filters::Component",
       "Bali::Breadcrumb::Item::Component",
       "Bali::Tag::Component",
       "Bali::Calendar::Component",
-      "Bali::Modal::Component"
+      "Bali::Modal::Component",
+      "Bali::Progress::Component",
+      "Bali::Loader::Component",
+      "Bali::Rate::Component",
+      "Bali::Tabs::Component",
+      "Bali::Tooltip::Component",
+      "Bali::ImageField::Component",
+      "Bali::Notification::Component"
+    ],
+    "major_breaking": [
+      "Bali::Avatar::Component",
+      "Bali::Icon::Component"
     ],
     "new": [
       "Bali::AdvancedFilters::Component",

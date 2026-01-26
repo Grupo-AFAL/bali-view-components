@@ -14,16 +14,6 @@ import {
   registerAllComponents
 } from 'bali'
 
-// ---------------------------------------------------------
-// Bali Optional Modules - Heavy dependencies, import separately
-// ---------------------------------------------------------
-
-// Charts (ApexCharts) - uncomment if needed
-import { registerCharts } from 'bali/charts'
-
-// Gantt Chart - uncomment if needed
-import { registerGantt } from 'bali/gantt'
-
 // Initialize Stimulus
 const application = Application.start()
 application.debug = false
@@ -40,8 +30,57 @@ registerControllers(application, localControllers)
 // Register all core Bali controllers (utility + component)
 registerAllControllers(application)
 registerAllComponents(application)
-registerCharts(application)
-registerGantt(application)
+
+// ---------------------------------------------------------
+// Bali Optional Modules - Lazy loaded for performance
+// Only import heavy dependencies when their elements exist
+// ---------------------------------------------------------
+
+// Track which modules have been loaded to avoid duplicate registration
+const loadedModules = { charts: false, gantt: false }
+
+/**
+ * Lazy load Charts module when chart elements are detected
+ * Reduces initial bundle by ~100KB when charts aren't used
+ */
+function loadChartsIfNeeded () {
+  if (loadedModules.charts) return
+  if (document.querySelector('[data-controller*="chart"]')) {
+    loadedModules.charts = true
+    import('bali/charts').then(({ registerCharts }) => {
+      registerCharts(application)
+    })
+  }
+}
+
+/**
+ * Lazy load Gantt module when gantt elements are detected
+ */
+function loadGanttIfNeeded () {
+  if (loadedModules.gantt) return
+  if (document.querySelector('[data-controller*="gantt"]')) {
+    loadedModules.gantt = true
+    import('bali/gantt').then(({ registerGantt }) => {
+      registerGantt(application)
+    })
+  }
+}
+
+// Check on initial page load
+loadChartsIfNeeded()
+loadGanttIfNeeded()
+
+// Re-check after Turbo navigations bring in new content
+document.addEventListener('turbo:load', () => {
+  loadChartsIfNeeded()
+  loadGanttIfNeeded()
+})
+
+// Also check after Turbo Frames/Streams update the DOM
+document.addEventListener('turbo:frame-load', () => {
+  loadChartsIfNeeded()
+  loadGanttIfNeeded()
+})
 
 // Rich Text Editor (TipTap) - WARNING: currently broken
 // import { registerRichTextEditor } from 'bali/rich-text-editor'

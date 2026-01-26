@@ -20,6 +20,14 @@ Rails.application.routes.draw do
   get 'showcase', to: 'pages#showcase'
   get 'sidemenu-example', to: 'pages#sidemenu_example'
 
+  # Modal/Drawer content routes (for remote loading)
+  get 'modals/basic', to: 'modals#basic'
+  get 'modals/form', to: 'modals#form'
+  get 'modals/confirm', to: 'modals#confirm'
+  get 'drawers/user_details', to: 'drawers#user_details'
+  get 'drawers/filters', to: 'drawers#filters'
+  get 'drawers/order_history', to: 'drawers#order_history'
+
   # Existing demo routes
   get 'show-content-in-hovercard', to: 'hovercard#show'
 

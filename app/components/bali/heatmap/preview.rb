@@ -8,23 +8,24 @@ module Bali
       # A data visualization that shows magnitude as color intensity across two dimensions.
       # Useful for displaying patterns in time-based data like activity by hour/day.
       #
-      # @param width number
-      # @param height number
-      # @param color text
-      def default(width: 480, height: 480, color: '#008806')
+      # By default, the heatmap is responsive and fills its container width.
+      # Use DaisyUI color presets (:primary, :secondary, :info, etc.) or hex colors.
+      #
+      # @param color select { choices: [primary, secondary, accent, success, info, warning, error] }
+      # @param responsive toggle
+      def default(color: :primary, responsive: true)
         data = {
-          Mon: { 0 => 5, 1 => 10, 2 => 3 },
-          Tue: { 0 => 3, 1 => 1, 2 => 6 },
-          Wed: { 0 => 2, 1 => 8, 2 => 4 },
-          Thu: { 0 => 7, 1 => 2, 2 => 5 },
-          Fri: { 0 => 4, 1 => 6, 2 => 9 }
+          Mon: { 9 => 5, 10 => 8, 11 => 3, 12 => 7 },
+          Tue: { 9 => 3, 10 => 6, 11 => 9, 12 => 4 },
+          Wed: { 9 => 2, 10 => 4, 11 => 6, 12 => 8 },
+          Thu: { 9 => 7, 10 => 5, 11 => 3, 12 => 6 },
+          Fri: { 9 => 4, 10 => 7, 11 => 8, 12 => 9 }
         }
 
         render Bali::Heatmap::Component.new(
           data: data,
-          width: width.to_i,
-          height: height.to_i,
-          color: color
+          color: color.to_sym,
+          responsive: responsive
         ) do |c|
           c.with_x_axis_title('Days')
           c.with_y_axis_title('Hours')
@@ -40,7 +41,7 @@ module Bali
           B: { 0 => 0, 1 => 0 }
         }
 
-        render Bali::Heatmap::Component.new(data: data) do |c|
+        render Bali::Heatmap::Component.new(data: data, color: :info) do |c|
           c.with_legend_title('Value')
         end
       end
@@ -54,13 +55,13 @@ module Bali
           Q4: { 2023 => 200, 2024 => 240, 2025 => 280 }
         }
 
-        render Bali::Heatmap::Component.new(data: data, color: '#3B82F6')
+        render Bali::Heatmap::Component.new(data: data, color: :info)
       end
 
-      # Larger dataset demonstrating scalability
+      # Larger dataset demonstrating full-week activity patterns
       def large_dataset
         days = %i[Sun Mon Tue Wed Thu Fri Sat]
-        hours = (0..23)
+        hours = (6..22)
 
         data = days.index_with do |_day|
           hours.index_with { |_hour| rand(0..100) }
@@ -68,15 +69,18 @@ module Bali
 
         render Bali::Heatmap::Component.new(
           data: data,
-          width: 800,
-          height: 400,
-          color: '#DC2626'
+          color: :error
         ) do |c|
           c.with_x_axis_title('Day of Week')
           c.with_y_axis_title('Hour')
           c.with_hovercard_title('Activity Level')
           c.with_legend_title('Activity')
         end
+      end
+
+      # Shows different color presets
+      def color_presets
+        render_with_template
       end
     end
   end

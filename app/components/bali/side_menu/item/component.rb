@@ -95,6 +95,11 @@ module Bali
           )
         end
 
+        # Translated aria-label for collapse toggle
+        def toggle_label
+          I18n.t('bali.side_menu.toggle_item', name: name, default: "Toggle #{name}")
+        end
+
         def badge_classes
           class_names(
             'border',

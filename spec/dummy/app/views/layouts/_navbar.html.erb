@@ -7,21 +7,39 @@
 
   <% nav.with_menu do |menu| %>
     <%# Standard navigation items %>
-    <% menu.with_start_item(name: 'Dashboard', href: root_path) %>
-    <% menu.with_start_item(name: 'Movies', href: movies_path) %>
-    <% menu.with_start_item(name: 'Showcase', href: showcase_path) %>
+    <% menu.with_start_item(name: t('navbar.dashboard'), href: root_path) %>
+    <% menu.with_start_item(name: t('navbar.movies'), href: movies_path) %>
+    <% menu.with_start_item(name: t('navbar.showcase'), href: showcase_path) %>
+    <% menu.with_start_item(name: t('navbar.landing'), href: landing_path) %>
 
     <%# Dropdown menu item with nested navigation %>
-    <% menu.with_start_dropdown_item(name: 'Settings') do |dropdown| %>
-      <% dropdown.with_item(name: 'General', href: settings_path) %>
-      <% dropdown.with_item(name: 'Notifications', href: '#') %>
-      <% dropdown.with_item(name: 'Security', href: '#') %>
+    <% menu.with_start_dropdown_item(name: t('navbar.settings')) do |dropdown| %>
+      <% dropdown.with_item(name: t('settings.general'), href: settings_path) %>
+      <% dropdown.with_item(name: t('settings.notifications'), href: '#') %>
+      <% dropdown.with_item(name: t('settings.security'), href: '#') %>
     <% end %>
 
     <%# External link with icon %>
-    <% menu.with_start_item(name: 'Lookbook', href: '/lookbook', target: '_blank') do %>
-      Lookbook
+    <% menu.with_start_item(name: t('navbar.lookbook'), href: '/lookbook', target: '_blank') do %>
+      <%= t('navbar.lookbook') %>
       <%= render Bali::Icon::Component.new('external-link', size: :small) %>
+    <% end %>
+
+    <%# Language Switcher %>
+    <% menu.with_end_item(tag_name: :div) do %>
+      <%= render Bali::Dropdown::Component.new(align: :right) do |dropdown| %>
+        <% dropdown.with_trigger(variant: :ghost, size: :sm) do %>
+          <%= render Bali::Icon::Component.new('globe', size: :small) %>
+          <%= I18n.locale.to_s.upcase %>
+          <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
+        <% end %>
+        <% dropdown.with_item(href: url_for(locale: 'en'), class: I18n.locale == :en ? 'active' : '') do %>
+          🇺🇸 English
+        <% end %>
+        <% dropdown.with_item(href: url_for(locale: 'es'), class: I18n.locale == :es ? 'active' : '') do %>
+          🇪🇸 Español
+        <% end %>
+      <% end %>
     <% end %>
 
     <%# User dropdown on the right side %>
@@ -31,13 +49,13 @@
           <%= render Bali::Avatar::Component.new(size: :xs) do |avatar| %>
             <% avatar.with_placeholder { 'AD' } %>
           <% end %>
-          Admin
+          <%= t('navbar.admin') %>
           <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
         <% end %>
-        <% dropdown.with_item(href: settings_path) { 'Settings' } %>
-        <% dropdown.with_item(href: '#') { 'Profile' } %>
+        <% dropdown.with_item(href: settings_path) { t('navbar.settings') } %>
+        <% dropdown.with_item(href: '#') { t('navbar.profile') } %>
         <li class="divider my-1"></li>
-        <% dropdown.with_item(href: '#', class: 'text-error') { 'Sign out' } %>
+        <% dropdown.with_item(href: '#', class: 'text-error') { t('navbar.sign_out') } %>
       <% end %>
     <% end %>
   <% end %>

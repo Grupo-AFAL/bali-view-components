@@ -6,14 +6,7 @@ module Bali
       # @param active toggle
       # @param size [Symbol] select [~, sm, md, lg, xl, full]
       def default(active: true, size: nil)
-        render Modal::Component.new(active: active, size: size) do
-          tag.div class: 'space-y-4' do
-            safe_join([
-                        tag.h3('Modal Title', class: 'text-lg font-bold'),
-                        tag.p('This is the modal content. You can put anything here.')
-                      ])
-          end
-        end
+        render_with_template(locals: { active: active, size: size })
       end
 
       # @label With Slots
@@ -28,20 +21,9 @@ module Bali
       # @label With Header Badge
       # Header slot supports badges that are right-aligned.
       # @param active toggle
-      # @param badge_color [Symbol] select [primary, secondary, accent, info, success, warning, error]
+      # @param badge_color select [primary, secondary, accent, info, success, warning, error]
       def with_header_badge(active: true, badge_color: :info)
-        render Modal::Component.new(active: active, size: :md) do |modal|
-          modal.with_header(title: 'User Details', badge: 'New', badge_color: badge_color)
-          modal.with_body do
-            tag.div class: 'space-y-2' do
-              safe_join([
-                tag.p('Name: John Doe'),
-                tag.p('Email: john@example.com'),
-                tag.p('Role: Administrator')
-              ])
-            end
-          end
-        end
+        render_with_template(locals: { active: active, badge_color: badge_color })
       end
 
       # @label Form Modal

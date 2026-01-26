@@ -10,7 +10,7 @@ RSpec.describe Bali::GanttChart::Component, type: :component do
       { id: 1, name: 'Task 1', start_date: @date, end_date: @date + 6.days,
         update_url: '/task/1', href: '/task/1' },
       { id: 2, name: 'Task 1.1', start_date: @date + 2.days, end_date: @date + 10.days,
-        update_url: '/task/2', parent_id: 1, href: '/task/2', data: { action: 'modal#open' } },
+        update_url: '/task/2', parent_id: 1, href: '/task/2', data: { turbo: false, action: 'modal#open' } },
       { id: 3, name: 'Task 1.2', start_date: @date + 2.days, end_date: @date + 10.days,
         update_url: '/task/3', parent_id: 1 },
       { id: 4, name: 'Task 1.2.1', start_date: @date + 6.days, end_date: @date + 12.days,

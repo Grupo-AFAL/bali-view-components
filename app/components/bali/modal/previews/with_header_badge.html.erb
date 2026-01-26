@@ -1,0 +1,10 @@
+<%= render Bali::Modal::Component.new(active: active, size: :md) do |modal|
+  modal.with_header(title: 'User Details', badge: 'New', badge_color: badge_color)
+  modal.with_body do %>
+    <div class="space-y-2">
+      <p>Name: John Doe</p>
+      <p>Email: john@example.com</p>
+      <p>Role: Administrator</p>
+    </div>
+  <% end
+end %>

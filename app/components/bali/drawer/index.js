@@ -4,6 +4,11 @@ import { autoFocusInput } from 'bali/utils/form'
 export class DrawerController extends ModalController {
   async connect () {
     this.setupListeners('openDrawer')
+
+    // Store original skeleton content for restoration on close
+    if (this.hasContentTarget) {
+      this._originalContent = this.contentTarget.innerHTML
+    }
   }
 
   disconnect () {
@@ -19,10 +24,13 @@ export class DrawerController extends ModalController {
     }
 
     this.templateTarget.classList.add('drawer-open')
-    this.contentTarget.innerHTML = content
 
-    autoFocusInput(this.contentTarget)
-    this.trapFocus()
+    // Only replace content if provided - allows showing skeleton first
+    if (content !== null && content !== undefined) {
+      this.contentTarget.innerHTML = content
+      autoFocusInput(this.contentTarget)
+      this.trapFocus()
+    }
   }
 
   _closeModal = () => {
@@ -30,7 +38,13 @@ export class DrawerController extends ModalController {
     if (this.wrapperClasses) {
       this.wrapperTarget.classList.remove(...this.wrapperClasses)
     }
-    this.contentTarget.innerHTML = ''
+
+    // Restore original skeleton content for next open
+    if (this._originalContent) {
+      this.contentTarget.innerHTML = this._originalContent
+    } else {
+      this.contentTarget.innerHTML = ''
+    }
 
     // Clean up focus trap
     if (this.wrapperTarget) {
@@ -47,5 +61,43 @@ export class DrawerController extends ModalController {
   close = (event) => {
     if (event) event.preventDefault()
     this._closeModal()
+  }
+
+  // Override open to dispatch 'openDrawer' event with skeleton shown first
+  open = async (event) => {
+    event.preventDefault()
+    const target = event.currentTarget
+
+    const wrapperClasses = this.normalizeClass(
+      target.getAttribute('data-wrapper-class')
+    )
+    const redirectTo = target.getAttribute('data-redirect-to')
+    const skipRender = Boolean(target.getAttribute('data-skip-render'))
+    const extraProps = JSON.parse(target.getAttribute('data-extra-props'))
+
+    // Show drawer immediately with skeleton (content already in template)
+    document.dispatchEvent(new CustomEvent('openDrawer', {
+      detail: {
+        content: null, // Don't replace content - show existing skeleton
+        options: { wrapperClasses, redirectTo, skipRender, extraProps }
+      }
+    }))
+
+    // Fetch actual content
+    const response = await fetch(this._buildURL(target.href))
+    const body = await response.text()
+
+    if (response.redirected) {
+      this._replaceBodyAndURL(body, response.url)
+      return
+    }
+
+    // Replace skeleton with actual content
+    document.dispatchEvent(new CustomEvent('openDrawer', {
+      detail: {
+        content: body,
+        options: { wrapperClasses, redirectTo, skipRender, extraProps }
+      }
+    }))
   }
 }

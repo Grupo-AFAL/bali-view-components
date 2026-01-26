@@ -1,0 +1,44 @@
+<div class="grid grid-cols-2 gap-8 p-4">
+  <div class="space-y-2">
+    <h4 class="font-semibold text-sm text-base-content/70">Text</h4>
+    <div class="p-4 bg-base-100 rounded-lg">
+      <%= render Bali::Skeleton::Component.new(variant: :text) %>
+    </div>
+  </div>
+
+  <div class="space-y-2">
+    <h4 class="font-semibold text-sm text-base-content/70">Paragraph</h4>
+    <div class="p-4 bg-base-100 rounded-lg">
+      <%= render Bali::Skeleton::Component.new(variant: :paragraph, lines: 4) %>
+    </div>
+  </div>
+
+  <div class="space-y-2">
+    <h4 class="font-semibold text-sm text-base-content/70">Card</h4>
+    <div class="p-4 bg-base-100 rounded-lg">
+      <%= render Bali::Skeleton::Component.new(variant: :card) %>
+    </div>
+  </div>
+
+  <div class="space-y-2">
+    <h4 class="font-semibold text-sm text-base-content/70">Modal</h4>
+    <div class="p-4 bg-base-100 rounded-lg">
+      <%= render Bali::Skeleton::Component.new(variant: :modal) %>
+    </div>
+  </div>
+
+  <div class="space-y-2">
+    <h4 class="font-semibold text-sm text-base-content/70">List</h4>
+    <div class="p-4 bg-base-100 rounded-lg">
+      <%= render Bali::Skeleton::Component.new(variant: :list, lines: 3) %>
+    </div>
+  </div>
+
+  <div class="space-y-2">
+    <h4 class="font-semibold text-sm text-base-content/70">Avatar & Button</h4>
+    <div class="p-4 bg-base-100 rounded-lg flex items-center gap-4">
+      <%= render Bali::Skeleton::Component.new(variant: :avatar, size: :lg) %>
+      <%= render Bali::Skeleton::Component.new(variant: :button) %>
+    </div>
+  </div>
+</div>

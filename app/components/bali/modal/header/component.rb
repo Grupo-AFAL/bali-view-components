@@ -57,7 +57,7 @@ module Bali
           tag.button(
             type: 'button',
             class: 'btn btn-sm btn-circle btn-ghost shrink-0',
-            'aria-label': 'Close modal',
+            'aria-label': I18n.t('bali.modal.close', default: 'Close modal'),
             'data-action': 'modal#close'
           ) { '✕' }
         end

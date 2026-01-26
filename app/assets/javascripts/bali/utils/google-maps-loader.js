@@ -25,7 +25,11 @@ export default function (options = {}) {
 
       // Prepare the `script` tag to be inserted into the page
       const scriptElement = document.createElement('script')
-      const params = [`callback=${CALLBACK_NAME}`]
+      scriptElement.async = true // Load asynchronously to not block rendering
+      const params = [
+        `callback=${CALLBACK_NAME}`,
+        'loading=async' // Google Maps recommended async loading parameter
+      ]
       optionsKeys.forEach(key => {
         if (options[key]) {
           params.push(`${key}=${options[key]}`)

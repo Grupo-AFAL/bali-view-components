@@ -36,6 +36,10 @@ module Bali
       ActiveModel::Type.register(:date_range, Bali::Types::DateRangeValue)
     end
 
+    initializer 'bali.add_locales' do |app|
+      app.config.i18n.load_path += Dir[root.join('config', 'locales', '*.yml')]
+    end
+
     initializer 'Bali add assets paths', before: :append_assets_path do |app|
       # Add Bali's JavaScript and component paths for both Propshaft and Sprockets
       app.config.assets.paths << root.join('app', 'components')

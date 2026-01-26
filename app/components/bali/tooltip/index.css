@@ -1,7 +1,5 @@
 /* Tooltip component - Tippy.js styling */
 .tooltip-component {
-  --arrow-size: 16px;
-  --half-arrow-size: 8px;
 
   &.help-tip {
     @apply size-6 inline-block;
@@ -35,9 +33,9 @@
     }
 
     &[data-placement^='top'] > .tippy-arrow:before {
-      bottom: calc(-1 * var(--half-arrow-size) + 1px);
+      bottom: -7px;
       @apply left-0;
-      border-width: var(--half-arrow-size) var(--half-arrow-size) 0;
+      border-width: 8px 8px 0;
       border-top-color: initial;
       transform-origin: center top;
     }
@@ -47,9 +45,9 @@
     }
 
     &[data-placement^='bottom'] > .tippy-arrow:before {
-      top: calc(-1 * var(--half-arrow-size) + 1px);
+      top: -7px;
       @apply left-0;
-      border-width: 0 var(--half-arrow-size) var(--half-arrow-size);
+      border-width: 0 8px 8px;
       border-bottom-color: initial;
       transform-origin: center bottom;
     }
@@ -59,9 +57,9 @@
     }
 
     &[data-placement^='left'] > .tippy-arrow:before {
-      border-width: var(--half-arrow-size) 0 var(--half-arrow-size) var(--half-arrow-size);
+      border-width: 8px 0 8px 8px;
       border-left-color: initial;
-      right: calc(-1 * var(--half-arrow-size) + 1px);
+      right: -7px;
       transform-origin: center left;
     }
 
@@ -70,8 +68,8 @@
     }
 
     &[data-placement^='right'] > .tippy-arrow:before {
-      left: calc(-1 * var(--half-arrow-size) + 1px);
-      border-width: var(--half-arrow-size) var(--half-arrow-size) var(--half-arrow-size) 0;
+      left: -7px;
+      border-width: 8px 8px 8px 0;
       border-right-color: initial;
       transform-origin: center right;
     }
@@ -82,9 +80,7 @@
   }
 
   .tippy-arrow {
-    width: var(--arrow-size);
-    height: var(--arrow-size);
-    @apply text-neutral;
+    @apply w-4 h-4 text-neutral;
   }
 
   .tippy-arrow:before {

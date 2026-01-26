@@ -62,9 +62,10 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | DeleteLink             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | SIZES const, class_names, explicit params, 20 tests                |
 | Drawer                 |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Unique IDs, position param, header/footer slots, WCAG              |
 | Dropdown               |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | i18n aria-label, Trigger VARIANTS, 21 tests                        |
-| FieldGroupWrapper      |  ✅   |    ✅     |   ✅    |   ❌   |  9/10   | DaisyUI form-control, class_names, 18 tests                        |
+| FieldGroupWrapper      |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI form-control, class_names, 18 tests                        |
 | Filters                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | **DEPRECATED** - Use AdvancedFilters instead                       |
 | FlashNotifications     |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Private attr_readers, Lookbook params, 6 tests                     |
+| Footer                 |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | NEW: DaisyUI footer, social links, responsive horizontal layout    |
 | **Form Fields**        |       |           |         |        |         | **FormBuilder field modules (see below)**                          |
 | ↳ BooleanFields        |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, SIZES/COLORS, private helpers, 32 tests          |
 | ↳ CoordinatesPolygon   |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | Frozen constants, Tailwind h-[400px], 7 tests                      |
@@ -82,7 +83,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | ↳ RichTextArea         |  ❌   |    ❌     |   N/A   |   ❌   |    -    | Rich text editor (Trix/TipTap, no spec)                            |
 | ↳ SearchFields         |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | btn-neutral default, private search_addon helper, 21 tests         |
 | ↳ SelectFields         |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, DaisyUI select-bordered, Lookbook preview, 13 tests  |
-| ↳ SlimSelectFields     |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | Frozen constants, class_names, no mutation, 34 tests               |
+| ↳ SlimSelectFields     |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, class_names, no mutation, 34 tests               |
 | ↳ StepNumberFields     |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, button_tag, i18n aria-labels, 34 tests           |
 | ↳ SubmitFields         |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | VARIANTS/SIZES constants, variant:/size: options, 40 tests         |
 | ↳ SwitchFields         |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI toggle classes, SIZES/COLORS constants, 31 tests           |
@@ -117,7 +118,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Reveal                 |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | BASE_CLASSES, class_names, no mutation, Trigger refactor, 14 tests |
 | RichTextEditor         |  ✅   |    ❌     |   N/A   |   ❌   |    -    | Custom (TipTap)                                                    |
 | SearchInput            |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Frozen constants, field: param, class_names, no mutation, 17 tests |
-| SideMenu               |  ✅   |    ❌     |   ✅    |   ❌   |  9/10   | MATCH_TYPES const, class_names, no mutation, auto-controller, 13 tests |
+| SideMenu               |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | MATCH_TYPES const, class_names, no mutation, auto-controller, 13 tests |
 | SortableList           |  ✅   |    ✅     |   N/A   |   ✅   |  9/10   | BASE_CLASSES, DEFAULTS, private attr, conditional cursor-grab, 23 tests |
 | StatCard               |  ✅   |    ✅     |   ✅    |   -    |  9/10   | COLORS const, class_names, private attr, options passthrough, 35 tests |
 | Stepper                |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI steps, COLORS/ORIENTATIONS, class_names, 20 tests          |
@@ -139,31 +140,31 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Status         |  Tests  | AI Visual | DaisyUI | Manual  | Quality |
 | -------------- | :-----: | :-------: | :-----: | :-----: | :-----: |
-| ✅ Complete    |   79    |    50     |   56    |   48    |   50    |
-| ❌ Not Started |    4    |    33     |   13    |   35    |   33    |
+| ✅ Complete    |   80    |    54     |   57    |   52    |   54    |
+| ❌ Not Started |    4    |    30     |   13    |   32    |   30    |
 | N/A            |    -    |     -     |   14    |    -    |    -    |
-| **Total**      | **83**  |  **83**   | **83**  | **83**  | **83**  |
-| **% Done**     | **95%** |  **60%**  | **81%** | **58%** | **60%** |
+| **Total**      | **84**  |  **84**   | **84**  | **84**  | **84**  |
+| **% Done**     | **95%** |  **64%**  | **81%** | **62%** | **64%** |
 
-> **Note**: 83 = 57 original components - 1 (Form header) + 27 form field modules
-> **DaisyUI %**: Calculated against 69 applicable components (excluding 14 N/A)
+> **Note**: 84 = 57 original components + 27 form field modules (includes new Footer component)
+> **DaisyUI %**: Calculated against 70 applicable components (excluding 14 N/A)
 
 ### Quality Score Summary
 
-| Score Range | Count | % of Scored | Components                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| ----------- | ----- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 9-10 (✅)   | 51    | 98%         | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), BooleanFields (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), CoordinatesPolygon (9), CurrencyFields (9), DataTable (9), DateFields (9), DatetimeFields (9), DeleteLink (9), Drawer (9), Dropdown (9), DynamicFields (9), EmailFields (9), FieldGroupWrapper (9), FileFields (9), FlashNotifications (9), Heatmap (9), Hero (9), HoverCard (9), Icon (9), ImageField (9), ImageGrid (9), InfoLevel (9), LabelValue (9), Level (9), Link (9), List (9), Loader (9), LocationsMap (9), Message (9), Modal (9), Navbar (9), Notification (9), NumberFields (9), PageHeader (9), PasswordFields (9), PercentageFields (9), Progress (9), PropertiesTable (9), RecurrentEventRuleForm (9), StepNumberFields (9) |
-| 7-8 (⚠️)    | 1     | 2%          | GanttChart (8)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| < 7 (❌)    | 0     | 0%          | -                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| Not scored  | 31    | -           | Form fields (12), remaining components (19)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Score Range | Count | % of Scored | Components                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ----------- | ----- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 9-10 (✅)   | 54    | 98%         | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), BooleanFields (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), CoordinatesPolygon (9), CurrencyFields (9), DataTable (9), DateFields (9), DatetimeFields (9), DeleteLink (9), Drawer (9), Dropdown (9), DynamicFields (9), EmailFields (9), FieldGroupWrapper (9), FileFields (9), FlashNotifications (9), Footer (9), Heatmap (9), Hero (9), HoverCard (9), Icon (9), ImageField (9), ImageGrid (9), InfoLevel (9), LabelValue (9), Level (9), Link (9), List (9), Loader (9), LocationsMap (9), Message (9), Modal (9), Navbar (9), Notification (9), NumberFields (9), PageHeader (9), PasswordFields (9), PercentageFields (9), Progress (9), PropertiesTable (9), RecurrentEventRuleForm (9), SideMenu (9), SlimSelectFields (9), StepNumberFields (9) |
+| 7-8 (⚠️)    | 1     | 2%          | GanttChart (8)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| < 7 (❌)    | 0     | 0%          | -                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Not scored  | 29    | -           | Form fields (10), remaining components (19)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 ---
 
-## Fully Verified Components (47)
+## Fully Verified Components (52)
 
 Components with ✅ in all applicable columns (Tests, AI Visual, DaisyUI/N/A, Manual):
 
-### Core Components (36)
+### Core Components (38)
 
 1. **ActionsDropdown** - Full DaisyUI dropdown with align/direction
 2. **AdvancedFilters** - Ransack integration
@@ -182,39 +183,44 @@ Components with ✅ in all applicable columns (Tests, AI Visual, DaisyUI/N/A, Ma
 15. **Drawer** - Position param, header/footer slots
 16. **Dropdown** - i18n aria-label, Trigger VARIANTS
 17. **FlashNotifications** - Private attr_readers, Lookbook params
-18. **Hero** - Actions slot, render_with_template
-19. **HoverCard** - PLACEMENTS const, async loading
-20. **Icon** - Lucide integration
-21. **ImageField** - SIZES const, Button for clear
-22. **ImageGrid** - COLUMNS/GAPS/ASPECT_RATIOS
-23. **InfoLevel** - BASE_CLASSES, ALIGNMENTS.fetch
-24. **LabelValue** - LABEL/VALUE_CLASSES
-25. **Level** - BASE_CLASSES, ALIGNMENTS.fetch
-26. **Link** - VARIANTS/SIZES constants
-27. **List** - DaisyUI list/list-row
-28. **Loader** - WCAG role/aria-label
-29. **LocationsMap** - DaisyUI card, template dedup
-30. **Message** - BASE_CLASSES, Hash#fetch
-31. **Modal** - Slots for header/body/actions
-32. **Navbar** - Responsive mobile menu, fullscreen toggle, color variants
-33. **Notification** - i18n aria-label, fetch fallback
-34. **PageHeader** - ALIGNMENTS, Level delegation
-35. **Progress** - wrapper_classes, options passthrough
-36. **PropertiesTable** - DaisyUI table-zebra
+18. **Footer** - NEW: DaisyUI footer, social links, responsive layout
+19. **Hero** - Actions slot, render_with_template
+20. **HoverCard** - PLACEMENTS const, async loading
+21. **Icon** - Lucide integration
+22. **ImageField** - SIZES const, Button for clear
+23. **ImageGrid** - COLUMNS/GAPS/ASPECT_RATIOS
+24. **InfoLevel** - BASE_CLASSES, ALIGNMENTS.fetch
+25. **LabelValue** - LABEL/VALUE_CLASSES
+26. **Level** - BASE_CLASSES, ALIGNMENTS.fetch
+27. **Link** - VARIANTS/SIZES constants
+28. **List** - DaisyUI list/list-row
+29. **Loader** - WCAG role/aria-label
+30. **LocationsMap** - DaisyUI card, template dedup
+31. **Message** - BASE_CLASSES, Hash#fetch
+32. **Modal** - Slots for header/body/actions
+33. **Navbar** - Responsive mobile menu, fullscreen toggle, color variants
+34. **Notification** - i18n aria-label, fetch fallback
+35. **PageHeader** - ALIGNMENTS, Level delegation
+36. **Progress** - wrapper_classes, options passthrough
+37. **PropertiesTable** - DaisyUI table-zebra
+38. **SideMenu** - MATCH_TYPES const, Nexus-style collapsable sidebar
 
-### Form Fields (11)
+### Form Fields (14)
 
-37. **BooleanFields** - DaisyUI checkbox, SIZES/COLORS constants
-38. **CoordinatesPolygon** - Google Maps polygon, Tailwind h-[400px]
-39. **CurrencyFields** - Currency symbol addon, DaisyUI join
-40. **DateFields** - Flatpickr integration, i18n aria-labels
-41. **DatetimeFields** - Combined date+time picker
-42. **DynamicFields** - Stimulus add/remove, frozen constants
-43. **EmailFields** - DaisyUI input with addons
-44. **FileFields** - Hidden input pattern, file list UI
-45. **NumberFields** - DaisyUI input with constraints
-46. **PasswordFields** - DaisyUI input with addons
-47. **PercentageFields** - Symbol addon, DaisyUI join
+39. **BooleanFields** - DaisyUI checkbox, SIZES/COLORS constants
+40. **CoordinatesPolygon** - Google Maps polygon, Tailwind h-[400px]
+41. **CurrencyFields** - Currency symbol addon, DaisyUI join
+42. **DateFields** - Flatpickr integration, i18n aria-labels
+43. **DatetimeFields** - Combined date+time picker
+44. **DynamicFields** - Stimulus add/remove, frozen constants
+45. **EmailFields** - DaisyUI input with addons
+46. **FieldGroupWrapper** - DaisyUI form-control, class_names
+47. **FileFields** - Hidden input pattern, file list UI
+48. **NumberFields** - DaisyUI input with constraints
+49. **PasswordFields** - DaisyUI input with addons
+50. **PercentageFields** - Symbol addon, DaisyUI join
+51. **SlimSelectFields** - Custom HTML rendering, frozen constants
+52. **TextAreaFields** - char_counter, auto_grow, Stimulus controller
 
 ---
 
@@ -230,7 +236,7 @@ Components with ✅ in all applicable columns (Tests, AI Visual, DaisyUI/N/A, Ma
 | Breadcrumb   | [breadcrumbs](https://daisyui.com/components/breadcrumbs/) | ✅ Done    |
 | Modal        | [modal](https://daisyui.com/components/modal/)             | ✅ Done    |
 | Dropdown     | [dropdown](https://daisyui.com/components/dropdown/)       | ✅ Done    |
-| Tabs         | [tabs](https://daisyui.com/components/tab/)                | ❌ Pending |
+| Tabs         | [tabs](https://daisyui.com/components/tab/)                | ✅ Done    |
 | Navbar       | [navbar](https://daisyui.com/components/navbar/)           | ✅ Done    |
 | Drawer       | [drawer](https://daisyui.com/components/drawer/)           | ✅ Done    |
 | Notification | [alert](https://daisyui.com/components/alert/)             | ✅ Done    |
@@ -241,11 +247,11 @@ Components with ✅ in all applicable columns (Tests, AI Visual, DaisyUI/N/A, Ma
 | -------- | ---------------------------------------------------- | ---------- |
 | Loader   | [loading](https://daisyui.com/components/loading/)   | ✅ Done    |
 | Progress | [progress](https://daisyui.com/components/progress/) | ✅ Done    |
-| Rate     | [rating](https://daisyui.com/components/rating/)     | ❌ Pending |
+| Rate     | [rating](https://daisyui.com/components/rating/)     | ✅ Done    |
 | Stepper  | [steps](https://daisyui.com/components/steps/)       | ✅ Done    |
 | Tag      | [badge](https://daisyui.com/components/badge/)       | ✅ Done    |
-| Timeline | [timeline](https://daisyui.com/components/timeline/) | ❌ Pending |
-| Tooltip  | [tooltip](https://daisyui.com/components/tooltip/)   | ❌ Pending |
+| Timeline | [timeline](https://daisyui.com/components/timeline/) | ✅ Done    |
+| Tooltip  | [tooltip](https://daisyui.com/components/tooltip/)   | ✅ Done    |
 
 ### Custom (No DaisyUI equivalent)
 
@@ -419,3 +425,14 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-18 | Tooltip                        | Manually verified: Tippy.js tooltips render on hover, all placements work correctly          | Human      |
 | 2026-01-18 | TreeView                       | Score 9: BASE_CLASSES, ARIA tree/treeitem/group, fixed options mutation bug, 24 tests        | AI         |
 | 2026-01-18 | TreeView                       | Manually verified: Chevron toggle, expand/collapse, nested sections work | Human      |
+| 2026-01-19 | Chart                          | DaisyUI styling, fixed black doughnut charts, visual refinements                             | AI         |
+| 2026-01-19 | Clipboard                      | Visual design refinements                                                                    | AI         |
+| 2026-01-20 | SideMenu                       | Manually verified: Nexus-style collapsable sidebar, menu switcher, all layouts work          | Human      |
+| 2026-01-20 | SlimSelectFields               | Manually verified: Custom HTML rendering, Team Member Selector preview works                 | Human      |
+| 2026-01-20 | FieldGroupWrapper              | Manually verified: DaisyUI form-control layout, error states, help text render correctly     | Human      |
+| 2026-01-21 | GanttChart                     | Fixed colors, DaisyUI join pattern for weekend display                                       | AI         |
+| 2026-01-21 | Heatmap                        | Responsive improvements for mobile display                                                   | AI         |
+| 2026-01-22 | Footer                         | NEW: DaisyUI footer component, social links, horizontal layout on desktop                    | AI         |
+| 2026-01-22 | Modal/Drawer                   | Performance optimizations, fixed duplicate request issues                                    | AI         |
+| 2026-01-23 | AdvancedFilters                | I18n translations, group combinator AND/OR buttons, quote fixes in locale files              | AI         |
+| 2026-01-25 | Documentation                  | Updated BREAKING_CHANGES.md with 7 additional breaking changes (14 total)                    | AI         |

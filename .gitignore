@@ -39,3 +39,5 @@ test-results/
 
 firebase-debug.log
 .claude/
+
+.mcp.json

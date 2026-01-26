@@ -73,6 +73,8 @@ module Bali
       end
 
       def full_errors(method)
+        return '' unless object.respond_to?(:errors)
+
         safe_join(object.errors.full_messages_for(method), ', ')
       end
 
@@ -96,8 +98,12 @@ module Bali
       end
 
       def translate_attribute(method)
-        model_name = object.model_name.i18n_key
-        I18n.t("activerecord.attributes.#{model_name}.#{method}", default: method.to_s.humanize)
+        if object.respond_to?(:model_name)
+          model_name = object.model_name.i18n_key
+          I18n.t("activerecord.attributes.#{model_name}.#{method}", default: method.to_s.humanize)
+        else
+          method.to_s.humanize
+        end
       end
 
       private
