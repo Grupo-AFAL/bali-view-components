@@ -1,0 +1,12 @@
+<%= tag.div class: group_classes, **@options.except(:class) do %>
+  <% avatars.each do |avatar| %>
+    <%= avatar %>
+  <% end %>
+  <% if counter? %>
+    <%= tag.div class: counter_classes do %>
+      <%= tag.div class: counter_inner_classes do %>
+        <%= counter %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

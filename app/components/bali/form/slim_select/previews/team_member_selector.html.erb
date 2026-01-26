@@ -1,0 +1,6 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <div class="form-control w-full max-w-md">
+    <%= form.label :assigned_to, 'Assign Team Member', class: 'label' %>
+    <%= form.slim_select_field :assigned_to, team_options, { allow_deselect_option: true }, { placeholder: 'Select a team member...' } %>
+  </div>
+<% end %>

@@ -1,0 +1,45 @@
+/* Timeline component - DaisyUI position variants */
+
+/* Base: Hide duplicate content boxes, show based on position */
+.timeline {
+  /* Default (left position): Show timeline-start, hide timeline-end */
+  .timeline-content-box.timeline-end {
+    @apply hidden;
+  }
+  .timeline-content-box.timeline-start {
+    @apply block;
+  }
+}
+
+/* Right position: Show timeline-end, hide timeline-start */
+.timeline.timeline-snap-icon {
+  .timeline-content-box.timeline-start {
+    @apply hidden;
+  }
+  .timeline-content-box.timeline-end {
+    @apply block;
+  }
+}
+
+/* Center position: Alternate items on both sides */
+.timeline.timeline-centered {
+  /* Odd items: content on left (timeline-start) */
+  li:nth-child(odd) {
+    .timeline-content-box.timeline-end {
+      @apply hidden;
+    }
+    .timeline-content-box.timeline-start {
+      @apply block text-right;
+    }
+  }
+
+  /* Even items: content on right (timeline-end) */
+  li:nth-child(even) {
+    .timeline-content-box.timeline-start {
+      @apply hidden;
+    }
+    .timeline-content-box.timeline-end {
+      @apply block text-left;
+    }
+  }
+}

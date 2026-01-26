@@ -1,0 +1,690 @@
+<%# Component Showcase - Missing components from Kitchen Sink %>
+<%# Showcases: Calendar, Clipboard, Drawer, FlashNotifications, ImageField, List, Loader, LocationsMap, Modal, SearchInput, Tags, Tooltip, TreeView, RecurrentEventRuleForm %>
+
+<%# Breadcrumb %>
+<%= render Bali::Breadcrumb::Component.new do |breadcrumb| %>
+  <% breadcrumb.with_item(name: t('navbar.dashboard'), href: root_path, icon_name: 'home') %>
+  <% breadcrumb.with_item(name: t('showcase.title')) %>
+<% end %>
+
+<%# Page Header %>
+<%= render Bali::PageHeader::Component.new(
+  title: t('showcase.title'),
+  subtitle: t('showcase.subtitle'),
+  class: 'mt-4 mb-6'
+) %>
+
+<%# Flash Notifications Demo %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('bell', class: 'text-primary') %>
+    <%= t('showcase.flash_notifications') %>
+  </h2>
+  <p class="text-base-content/70 mb-4"><%= t('showcase.flash_notifications_desc') %></p>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <div class="space-y-4">
+      <%# Simulated flash notifications %>
+      <%= render Bali::FlashNotifications::Component.new(
+        notice: t('showcase.changes_saved'),
+        alert: nil
+      ) %>
+
+      <div class="divider"><%= t('showcase.with_alert') %></div>
+
+      <%= render Bali::FlashNotifications::Component.new(
+        notice: nil,
+        alert: t('showcase.error_processing')
+      ) %>
+    </div>
+  <% end %>
+</section>
+
+<%# Loader Demo %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('loader', class: 'text-primary') %>
+    <%= t('showcase.loader') %>
+  </h2>
+  <p class="text-base-content/70 mb-4"><%= t('showcase.loader_desc') %></p>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
+      <%# Different loader types %>
+      <div class="text-center">
+        <%= render Bali::Loader::Component.new(type: :spinner, size: :lg, color: :primary, text: 'Spinner') %>
+      </div>
+      <div class="text-center">
+        <%= render Bali::Loader::Component.new(type: :dots, size: :lg, color: :secondary, text: 'Dots') %>
+      </div>
+      <div class="text-center">
+        <%= render Bali::Loader::Component.new(type: :ring, size: :lg, color: :accent, text: 'Ring') %>
+      </div>
+      <div class="text-center">
+        <%= render Bali::Loader::Component.new(type: :ball, size: :lg, color: :info, text: 'Ball') %>
+      </div>
+      <div class="text-center">
+        <%= render Bali::Loader::Component.new(type: :bars, size: :lg, color: :success, text: 'Bars') %>
+      </div>
+      <div class="text-center">
+        <%= render Bali::Loader::Component.new(type: :infinity, size: :lg, color: :warning, text: 'Infinity') %>
+      </div>
+    </div>
+
+    <div class="divider"><%= t('showcase.sizes') %></div>
+
+    <div class="flex items-end justify-center gap-8">
+      <%= render Bali::Loader::Component.new(type: :spinner, size: :xs, color: :primary, hide_text: true) %>
+      <%= render Bali::Loader::Component.new(type: :spinner, size: :sm, color: :primary, hide_text: true) %>
+      <%= render Bali::Loader::Component.new(type: :spinner, size: :md, color: :primary, hide_text: true) %>
+      <%= render Bali::Loader::Component.new(type: :spinner, size: :lg, color: :primary, hide_text: true) %>
+      <%= render Bali::Loader::Component.new(type: :spinner, size: :xl, color: :primary, hide_text: true) %>
+    </div>
+  <% end %>
+</section>
+
+<%# Modal Demo %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('square', class: 'text-primary') %>
+    <%= t('showcase.modal') %>
+  </h2>
+  <p class="text-base-content/70 mb-4"><%= t('showcase.modal_desc') %></p>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <div class="flex flex-wrap gap-4">
+      <%# Modal Triggers - links that fetch content into the shared modal template %>
+      <%= render Bali::Link::Component.new(
+        name: t('showcase.open_basic_modal'),
+        href: '/modals/basic',
+        type: :primary,
+        modal: true
+      ) %>
+
+      <%= render Bali::Link::Component.new(
+        name: t('showcase.open_form_modal'),
+        href: '/modals/form',
+        type: :secondary,
+        modal: true
+      ) %>
+
+      <%= render Bali::Link::Component.new(
+        name: t('showcase.open_confirmation_modal'),
+        href: '/modals/confirm',
+        type: :error,
+        modal: true
+      ) %>
+    </div>
+  <% end %>
+</section>
+
+<%# Drawer Demo %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('panel-right', class: 'text-primary') %>
+    <%= t('showcase.drawer') %>
+  </h2>
+  <p class="text-base-content/70 mb-4"><%= t('showcase.drawer_desc') %></p>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <div class="flex flex-wrap gap-4">
+      <%# Drawer Triggers - links that fetch content into the shared drawer template %>
+      <%= render Bali::Link::Component.new(
+        name: t('showcase.open_user_details'),
+        href: '/drawers/user_details',
+        type: :primary,
+        drawer: true
+      ) %>
+
+      <%= render Bali::Link::Component.new(
+        name: t('showcase.open_filters'),
+        href: '/drawers/filters',
+        type: :secondary,
+        drawer: true
+      ) %>
+
+      <%= render Bali::Link::Component.new(
+        name: t('showcase.open_order_history'),
+        href: '/drawers/order_history',
+        type: :accent,
+        drawer: true
+      ) %>
+    </div>
+  <% end %>
+</section>
+
+<%# Tooltip Demo %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('message-square', class: 'text-primary') %>
+    <%= t('showcase.tooltip') %>
+  </h2>
+  <p class="text-base-content/70 mb-4"><%= t('showcase.tooltip_desc') %></p>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <div class="flex flex-wrap items-center justify-center gap-8 py-8">
+      <%= render Bali::Tooltip::Component.new(placement: :top) do |tooltip| %>
+        <% tooltip.with_trigger do %>
+          <%= render Bali::Button::Component.new(name: t('showcase.top'), variant: :outline) %>
+        <% end %>
+        <span><%= t('showcase.tooltip_on_top') %></span>
+      <% end %>
+
+      <%= render Bali::Tooltip::Component.new(placement: :bottom) do |tooltip| %>
+        <% tooltip.with_trigger do %>
+          <%= render Bali::Button::Component.new(name: t('showcase.bottom'), variant: :outline) %>
+        <% end %>
+        <span><%= t('showcase.tooltip_on_bottom') %></span>
+      <% end %>
+
+      <%= render Bali::Tooltip::Component.new(placement: :left) do |tooltip| %>
+        <% tooltip.with_trigger do %>
+          <%= render Bali::Button::Component.new(name: t('showcase.left'), variant: :outline) %>
+        <% end %>
+        <span><%= t('showcase.tooltip_on_left') %></span>
+      <% end %>
+
+      <%= render Bali::Tooltip::Component.new(placement: :right) do |tooltip| %>
+        <% tooltip.with_trigger do %>
+          <%= render Bali::Button::Component.new(name: t('showcase.right'), variant: :outline) %>
+        <% end %>
+        <span><%= t('showcase.tooltip_on_right') %></span>
+      <% end %>
+    </div>
+
+    <div class="divider"><%= t('showcase.with_icons') %></div>
+
+    <div class="flex items-center justify-center gap-4 py-4">
+      <%= render Bali::Tooltip::Component.new(placement: :top) do |tooltip| %>
+        <% tooltip.with_trigger do %>
+          <%= render Bali::Icon::Component.new('info', class: 'text-info cursor-help') %>
+        <% end %>
+        <span><%= t('showcase.field_required') %></span>
+      <% end %>
+
+      <%= render Bali::Tooltip::Component.new(placement: :top) do |tooltip| %>
+        <% tooltip.with_trigger do %>
+          <%= render Bali::Icon::Component.new('help-circle', class: 'text-base-content/50 cursor-help') %>
+        <% end %>
+        <span><%= t('showcase.click_more_info') %></span>
+      <% end %>
+
+      <%= render Bali::Tooltip::Component.new(placement: :top) do |tooltip| %>
+        <% tooltip.with_trigger do %>
+          <%= render Bali::Icon::Component.new('triangle-alert', class: 'text-warning cursor-help') %>
+        <% end %>
+        <span><%= t('showcase.action_may_take_while') %></span>
+      <% end %>
+    </div>
+  <% end %>
+</section>
+
+<%# Clipboard Demo %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('clipboard', class: 'text-primary') %>
+    <%= t('showcase.clipboard') %>
+  </h2>
+  <p class="text-base-content/70 mb-4"><%= t('showcase.clipboard_desc') %></p>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <div class="space-y-6">
+      <%# API Key Example %>
+      <div>
+        <label class="label"><span class="label-text font-medium"><%= t('showcase.api_key') %></span></label>
+        <%= render Bali::Clipboard::Component.new do |c| %>
+          <% c.with_source('sk_live_abc123xyz789') %>
+          <% c.with_trigger do %>
+            <%= render Bali::Icon::Component.new('copy', size: :small) %>
+          <% end %>
+          <% c.with_success_content do %>
+            <%= render Bali::Icon::Component.new('check', size: :small, class: 'text-success') %>
+          <% end %>
+        <% end %>
+      </div>
+
+      <%# URL Example %>
+      <div>
+        <label class="label"><span class="label-text font-medium"><%= t('showcase.share_url') %></span></label>
+        <%= render Bali::Clipboard::Component.new do |c| %>
+          <% c.with_source('https://example.com/share/abc123') %>
+          <% c.with_trigger(t('showcase.copy_link'), square: false) %>
+          <% c.with_success_content do %>
+            <span class="text-success"><%= t('showcase.copied') %></span>
+          <% end %>
+        <% end %>
+      </div>
+
+      <%# Code Snippet Example %>
+      <div>
+        <label class="label"><span class="label-text font-medium"><%= t('showcase.install_command') %></span></label>
+        <%= render Bali::Clipboard::Component.new do |c| %>
+          <% c.with_source('bundle add bali_view_components') %>
+          <% c.with_trigger do %>
+            <%= render Bali::Icon::Component.new('copy', size: :small) %>
+          <% end %>
+          <% c.with_success_content do %>
+            <%= render Bali::Icon::Component.new('check', size: :small, class: 'text-success') %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</section>
+
+<%# List Demo %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('list', class: 'text-primary') %>
+    <%= t('showcase.list') %>
+  </h2>
+  <p class="text-base-content/70 mb-4"><%= t('showcase.list_desc') %></p>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <%# Basic List %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <h3 class="font-semibold mb-4"><%= t('showcase.team_members') %></h3>
+      <%= render Bali::List::Component.new do |list| %>
+        <% list.with_item do |item| %>
+          <%= render Bali::Avatar::Component.new(size: :sm) do |avatar| %>
+            <% avatar.with_placeholder { 'AJ' } %>
+          <% end %>
+          <div class="list-col-grow">
+            <% item.with_title('Alice Johnson') %>
+            <% item.with_subtitle(t('showcase.lead_developer')) %>
+          </div>
+          <% item.with_action do %>
+            <%= render Bali::Tag::Component.new(text: t('showcase.online'), color: :success, size: :sm) %>
+          <% end %>
+        <% end %>
+
+        <% list.with_item do |item| %>
+          <%= render Bali::Avatar::Component.new(size: :sm) do |avatar| %>
+            <% avatar.with_placeholder { 'BS' } %>
+          <% end %>
+          <div class="list-col-grow">
+            <% item.with_title('Bob Smith') %>
+            <% item.with_subtitle(t('showcase.designer')) %>
+          </div>
+          <% item.with_action do %>
+            <%= render Bali::Tag::Component.new(text: t('showcase.away'), color: :warning, size: :sm) %>
+          <% end %>
+        <% end %>
+
+        <% list.with_item do |item| %>
+          <%= render Bali::Avatar::Component.new(size: :sm) do |avatar| %>
+            <% avatar.with_placeholder { 'CD' } %>
+          <% end %>
+          <div class="list-col-grow">
+            <% item.with_title('Carol Davis') %>
+            <% item.with_subtitle(t('showcase.product_manager')) %>
+          </div>
+          <% item.with_action do %>
+            <%= render Bali::Tag::Component.new(text: t('showcase.offline'), color: :neutral, size: :sm) %>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <%# List with Actions %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <h3 class="font-semibold mb-4"><%= t('showcase.recent_files') %></h3>
+      <%= render Bali::List::Component.new(relaxed_spacing: true) do |list| %>
+        <% list.with_item do |item| %>
+          <%= render Bali::Icon::Component.new('file-text', class: 'text-primary') %>
+          <div class="list-col-grow">
+            <% item.with_title('Project Proposal.pdf') %>
+            <% item.with_subtitle(t('showcase.modified_hours_ago')) %>
+          </div>
+          <% item.with_action do %>
+            <%= render Bali::ActionsDropdown::Component.new(align: :end) do |dropdown| %>
+              <% dropdown.with_item(href: '#', icon_name: 'download') { t('showcase.download') } %>
+              <% dropdown.with_item(href: '#', icon_name: 'share-2') { t('showcase.share') } %>
+              <% dropdown.with_item(href: '#', icon_name: 'trash', class: 'text-error') { t('common.delete') } %>
+            <% end %>
+          <% end %>
+        <% end %>
+
+        <% list.with_item do |item| %>
+          <%= render Bali::Icon::Component.new('image', class: 'text-success') %>
+          <div class="list-col-grow">
+            <% item.with_title('Banner Design.png') %>
+            <% item.with_subtitle(t('showcase.modified_yesterday')) %>
+          </div>
+          <% item.with_action do %>
+            <%= render Bali::ActionsDropdown::Component.new(align: :end) do |dropdown| %>
+              <% dropdown.with_item(href: '#', icon_name: 'download') { t('showcase.download') } %>
+              <% dropdown.with_item(href: '#', icon_name: 'share-2') { t('showcase.share') } %>
+              <% dropdown.with_item(href: '#', icon_name: 'trash', class: 'text-error') { t('common.delete') } %>
+            <% end %>
+          <% end %>
+        <% end %>
+
+        <% list.with_item do |item| %>
+          <%= render Bali::Icon::Component.new('file-spreadsheet', class: 'text-info') %>
+          <div class="list-col-grow">
+            <% item.with_title('Q4 Report.xlsx') %>
+            <% item.with_subtitle(t('showcase.modified_days_ago')) %>
+          </div>
+          <% item.with_action do %>
+            <%= render Bali::ActionsDropdown::Component.new(align: :end) do |dropdown| %>
+              <% dropdown.with_item(href: '#', icon_name: 'download') { t('showcase.download') } %>
+              <% dropdown.with_item(href: '#', icon_name: 'share-2') { t('showcase.share') } %>
+              <% dropdown.with_item(href: '#', icon_name: 'trash', class: 'text-error') { t('common.delete') } %>
+            <% end %>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+</section>
+
+<%# Tags Demo %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('tags', class: 'text-primary') %>
+    <%= t('showcase.tags_collection') %>
+  </h2>
+  <p class="text-base-content/70 mb-4"><%= t('showcase.tags_desc') %></p>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <div class="space-y-6">
+      <div>
+        <h4 class="font-medium mb-2"><%= t('showcase.skills') %></h4>
+        <%= render Bali::Tags::Component.new(gap: :sm) do |tags| %>
+          <% tags.with_item(text: 'Ruby', color: :error) %>
+          <% tags.with_item(text: 'Rails', color: :error, style: :outline) %>
+          <% tags.with_item(text: 'JavaScript', color: :warning) %>
+          <% tags.with_item(text: 'TypeScript', color: :info) %>
+          <% tags.with_item(text: 'PostgreSQL', color: :primary) %>
+          <% tags.with_item(text: 'Redis', color: :error, style: :outline) %>
+        <% end %>
+      </div>
+
+      <div>
+        <h4 class="font-medium mb-2"><%= t('showcase.categories') %></h4>
+        <%= render Bali::Tags::Component.new(gap: :md) do |tags| %>
+          <% tags.with_item(text: 'Technology', href: '#', color: :primary) %>
+          <% tags.with_item(text: 'Design', href: '#', color: :secondary) %>
+          <% tags.with_item(text: 'Business', href: '#', color: :accent) %>
+          <% tags.with_item(text: 'Marketing', href: '#', color: :success) %>
+        <% end %>
+      </div>
+
+      <div>
+        <h4 class="font-medium mb-2"><%= t('showcase.different_sizes') %></h4>
+        <%= render Bali::Tags::Component.new do |tags| %>
+          <% tags.with_item(text: t('showcase.extra_small'), size: :xs, color: :neutral) %>
+          <% tags.with_item(text: t('showcase.small'), size: :sm, color: :neutral) %>
+          <% tags.with_item(text: t('showcase.medium'), size: :md, color: :neutral) %>
+          <% tags.with_item(text: t('showcase.large'), size: :lg, color: :neutral) %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</section>
+
+<%# TreeView Demo %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('folder-tree', class: 'text-primary') %>
+    <%= t('showcase.tree_view') %>
+  </h2>
+  <p class="text-base-content/70 mb-4"><%= t('showcase.tree_view_desc') %></p>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <h3 class="font-semibold mb-4"><%= t('showcase.file_browser') %></h3>
+      <%= render Bali::TreeView::Component.new(current_path: '/src/components') do |tree| %>
+        <% tree.with_item(name: 'src', path: '/src') do |folder| %>
+          <% folder.with_item(name: 'components', path: '/src/components') do |sub| %>
+            <% sub.with_item(name: 'Button.tsx', path: '/src/components/Button.tsx') %>
+            <% sub.with_item(name: 'Modal.tsx', path: '/src/components/Modal.tsx') %>
+            <% sub.with_item(name: 'Card.tsx', path: '/src/components/Card.tsx') %>
+          <% end %>
+          <% folder.with_item(name: 'utils', path: '/src/utils') do |sub| %>
+            <% sub.with_item(name: 'helpers.ts', path: '/src/utils/helpers.ts') %>
+            <% sub.with_item(name: 'constants.ts', path: '/src/utils/constants.ts') %>
+          <% end %>
+          <% folder.with_item(name: 'App.tsx', path: '/src/App.tsx') %>
+        <% end %>
+        <% tree.with_item(name: 'public', path: '/public') do |folder| %>
+          <% folder.with_item(name: 'index.html', path: '/public/index.html') %>
+          <% folder.with_item(name: 'favicon.ico', path: '/public/favicon.ico') %>
+        <% end %>
+        <% tree.with_item(name: 'package.json', path: '/package.json') %>
+      <% end %>
+    <% end %>
+
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <h3 class="font-semibold mb-4"><%= t('showcase.organization_structure') %></h3>
+      <%= render Bali::TreeView::Component.new(current_path: '/engineering/frontend') do |tree| %>
+        <% tree.with_item(name: t('showcase.engineering'), path: '/engineering') do |dept| %>
+          <% dept.with_item(name: t('showcase.frontend'), path: '/engineering/frontend') do |team| %>
+            <% team.with_item(name: t('showcase.react_team'), path: '/engineering/frontend/react') %>
+            <% team.with_item(name: t('showcase.mobile_team'), path: '/engineering/frontend/mobile') %>
+          <% end %>
+          <% dept.with_item(name: t('showcase.backend'), path: '/engineering/backend') do |team| %>
+            <% team.with_item(name: t('showcase.api_team'), path: '/engineering/backend/api') %>
+            <% team.with_item(name: t('showcase.data_team'), path: '/engineering/backend/data') %>
+          <% end %>
+        <% end %>
+        <% tree.with_item(name: t('showcase.design'), path: '/design') do |dept| %>
+          <% dept.with_item(name: t('showcase.product_design'), path: '/design/product') %>
+          <% dept.with_item(name: t('showcase.brand_design'), path: '/design/brand') %>
+        <% end %>
+        <% tree.with_item(name: t('showcase.marketing'), path: '/marketing') %>
+      <% end %>
+    <% end %>
+  </div>
+</section>
+
+<%# ImageField Demo %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('image', class: 'text-primary') %>
+    <%= t('showcase.image_field') %>
+  </h2>
+  <p class="text-base-content/70 mb-4"><%= t('showcase.image_field_desc') %></p>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <div class="flex flex-wrap items-end gap-8">
+      <%# Different sizes %>
+      <div class="text-center">
+        <p class="text-sm text-base-content/60 mb-2">XS</p>
+        <%= render Bali::ImageField::Component.new(
+          src: 'https://picsum.photos/seed/xs/100/100',
+          size: :xs
+        ) %>
+      </div>
+
+      <div class="text-center">
+        <p class="text-sm text-base-content/60 mb-2">SM</p>
+        <%= render Bali::ImageField::Component.new(
+          src: 'https://picsum.photos/seed/sm/100/100',
+          size: :sm
+        ) %>
+      </div>
+
+      <div class="text-center">
+        <p class="text-sm text-base-content/60 mb-2">MD (default)</p>
+        <%= render Bali::ImageField::Component.new(
+          src: 'https://picsum.photos/seed/md/200/200',
+          size: :md
+        ) %>
+      </div>
+
+      <div class="text-center">
+        <p class="text-sm text-base-content/60 mb-2">LG</p>
+        <%= render Bali::ImageField::Component.new(
+          src: 'https://picsum.photos/seed/lg/200/200',
+          size: :lg
+        ) %>
+      </div>
+
+      <div class="text-center">
+        <p class="text-sm text-base-content/60 mb-2"><%= t('showcase.placeholder') %></p>
+        <%= render Bali::ImageField::Component.new(size: :md) %>
+      </div>
+    </div>
+  <% end %>
+</section>
+
+<%# Calendar Demo %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('calendar', class: 'text-primary') %>
+    <%= t('showcase.calendar') %>
+  </h2>
+  <p class="text-base-content/70 mb-4"><%= t('showcase.calendar_desc') %></p>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <%= render Bali::Calendar::Component.new(
+      start_date: Date.current,
+      period: :month,
+      events: @calendar_events || [],
+      show_date: true
+    ) do |calendar| %>
+      <% calendar.with_header(route_path: '/pages/showcase', period_switch: true) %>
+    <% end %>
+  <% end %>
+</section>
+
+<%# SearchInput Demo %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('search', class: 'text-primary') %>
+    <%= t('showcase.search_input') %>
+  </h2>
+  <p class="text-base-content/70 mb-4"><%= t('showcase.search_input_desc') %></p>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <div class="space-y-6">
+      <div>
+        <h4 class="font-medium mb-2"><%= t('showcase.with_submit_button') %></h4>
+        <%= form_with url: '/pages/showcase', method: :get, local: true do |f| %>
+          <div class="max-w-md">
+            <%= render Bali::SearchInput::Component.new(
+              form: Struct.new(:model_name, :query).new(model_name: 'search', query: ''),
+              field: :query,
+              placeholder: t('showcase.search_products'),
+              auto_submit: false
+            ) %>
+          </div>
+        <% end %>
+      </div>
+
+      <div>
+        <h4 class="font-medium mb-2"><%= t('showcase.auto_submit') %></h4>
+        <%= form_with url: '/pages/showcase', method: :get, local: true, data: { controller: 'submit-on-change' } do |f| %>
+          <div class="max-w-md">
+            <%= render Bali::SearchInput::Component.new(
+              form: Struct.new(:model_name, :query).new(model_name: 'search', query: ''),
+              field: :query,
+              placeholder: t('showcase.start_typing'),
+              auto_submit: true
+            ) %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</section>
+
+<%# RecurrentEventRuleForm Demo %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('repeat', class: 'text-primary') %>
+    <%= t('showcase.recurrent_event_rule_form') %>
+  </h2>
+  <p class="text-base-content/70 mb-4"><%= t('showcase.recurrent_event_rule_form_desc') %></p>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <%= form_with url: '#', method: :post, builder: Bali::FormBuilder, local: true do |f| %>
+      <div class="max-w-2xl">
+        <%= render Bali::RecurrentEventRuleForm::Component.new(
+          form: f,
+          method: :recurrence_rule,
+          value: 'FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE,FR'
+        ) %>
+      </div>
+
+      <div class="mt-6">
+        <%= render Bali::Message::Component.new(color: :info) do %>
+          <%= raw t('showcase.generated_rrule') %>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+</section>
+
+<%# LocationsMap Demo (requires GOOGLE_MAPS_KEY) %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('map-pin', class: 'text-primary') %>
+    <%= t('showcase.locations_map') %>
+  </h2>
+  <p class="text-base-content/70 mb-4"><%= t('showcase.locations_map_desc') %></p>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <% if ENV['GOOGLE_MAPS_KEY'].present? %>
+      <%= render Bali::LocationsMap::Component.new(
+        center_latitude: 37.7749,
+        center_longitude: -122.4194,
+        zoom: 12,
+        clustered: true
+      ) do |map| %>
+        <% map.with_location(
+          latitude: 37.7749,
+          longitude: -122.4194
+        ) %>
+        <% map.with_location(
+          latitude: 37.7849,
+          longitude: -122.4094
+        ) %>
+      <% end %>
+    <% else %>
+      <%= render Bali::Message::Component.new(color: :warning) do %>
+        <%= raw t('showcase.google_maps_required') %>
+      <% end %>
+
+      <div class="bg-base-200 rounded-box h-[300px] flex items-center justify-center mt-4">
+        <div class="text-center text-base-content/50">
+          <%= render Bali::Icon::Component.new('map', class: 'size-16 mb-2') %>
+          <p><%= t('showcase.map_placeholder') %></p>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+</section>
+
+<%# Summary %>
+<section class="mb-12">
+  <%= render Bali::Message::Component.new(color: :success) do %>
+    <div class="flex items-start gap-3">
+      <%= render Bali::Icon::Component.new('check-circle', class: 'size-6 shrink-0 mt-0.5') %>
+      <div>
+        <strong><%= t('showcase.all_components_showcased') %></strong>
+        <p class="mt-1"><%= t('showcase.showcase_summary') %>:</p>
+        <div class="mt-2">
+          <%= render Bali::Tags::Component.new(gap: :xs) do |tags| %>
+            <% tags.with_item(text: 'Calendar', size: :sm) %>
+            <% tags.with_item(text: 'Clipboard', size: :sm) %>
+            <% tags.with_item(text: 'Drawer', size: :sm) %>
+            <% tags.with_item(text: 'FlashNotifications', size: :sm) %>
+            <% tags.with_item(text: 'ImageField', size: :sm) %>
+            <% tags.with_item(text: 'List', size: :sm) %>
+            <% tags.with_item(text: 'Loader', size: :sm) %>
+            <% tags.with_item(text: 'LocationsMap', size: :sm) %>
+            <% tags.with_item(text: 'Modal', size: :sm) %>
+            <% tags.with_item(text: 'RecurrentEventRuleForm', size: :sm) %>
+            <% tags.with_item(text: 'SearchInput', size: :sm) %>
+            <% tags.with_item(text: 'Tags', size: :sm) %>
+            <% tags.with_item(text: 'Tooltip', size: :sm) %>
+            <% tags.with_item(text: 'TreeView', size: :sm) %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</section>

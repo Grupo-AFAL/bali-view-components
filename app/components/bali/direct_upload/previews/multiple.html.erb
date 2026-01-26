@@ -1,0 +1,9 @@
+<%= form_with(url: '/lookbook', method: :get, class: 'max-w-md') do |form| %>
+  <%= render Bali::DirectUpload::Component.new(
+    form: form,
+    method: :attachments,
+    multiple: true,
+    max_files: 5,
+    max_file_size: 10
+  ) %>
+<% end %>

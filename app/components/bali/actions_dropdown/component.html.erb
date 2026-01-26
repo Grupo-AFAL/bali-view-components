@@ -1,14 +1,18 @@
-<%= render Bali::HoverCard::Component.new(**options) do |c| %>
-  <% c.with_trigger(class: 'actions-dropdown-trigger is-flex') do %>
-    <%= render Bali::Icon::Component.new('ellipsis-h') %>
-  <% end %>
-
-  <% if (authorized_items = items.select(&:authorized?)).any? %>
-    <% authorized_items.each_with_index do |item, index| %>
-      <%= item %>
-      <%= tag.div(class: 'dropdown-divider') if index < authorized_items.size - 1 %>
-    <% end %>
+<div <%= tag.attributes(**options) %>>
+  <% if trigger? %>
+    <%= trigger %>
   <% else %>
-    <%= content %>
+    <button type="button" tabindex="0" class="<%= trigger_classes %>" aria-haspopup="true">
+      <%= render Bali::Icon::Component.new(@icon) %>
+    </button>
   <% end %>
-<% end %>
+  <ul tabindex="0" class="<%= menu_classes %>">
+    <% if authorized_items.any? %>
+      <% authorized_items.each do |item| %>
+        <li><%= item %></li>
+      <% end %>
+    <% else %>
+      <%= content %>
+    <% end %>
+  </ul>
+</div>

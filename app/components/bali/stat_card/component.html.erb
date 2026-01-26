@@ -1,0 +1,18 @@
+<%= render Bali::Card::Component.new(**card_options) do %>
+  <div class="flex items-center justify-between">
+    <div>
+      <p class="text-base-content/60 text-xs font-medium tracking-wide uppercase">
+        <%= title %>
+      </p>
+      <p class="text-3xl font-bold mt-1"><%= value %></p>
+    </div>
+    <div class="<%= icon_container_classes %>">
+      <%= render Bali::Icon::Component.new(icon_name, size: :large, class: icon_text_class) %>
+    </div>
+  </div>
+  <% if footer? %>
+    <div class="flex items-center gap-1 text-sm">
+      <%= footer %>
+    </div>
+  <% end %>
+<% end %>

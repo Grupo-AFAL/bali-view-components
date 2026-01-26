@@ -3,80 +3,115 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module StepNumberFields
+      BUTTON_BASE_CLASSES = 'btn join-item'
+      BUTTON_DISABLED_CLASSES = 'btn-disabled pointer-events-none'
+      # Hide native number spinners since we provide +/- buttons
+      INPUT_CLASSES = 'input input-bordered join-item text-center w-16 ' \
+                      '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none ' \
+                      '[&::-webkit-inner-spin-button]:appearance-none'
+
       def step_number_field_group(method, options = {})
-        @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
+        @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
           step_number_field(method, options)
         end
       end
 
       def step_number_field(method, options = {})
-        options[:data] ||= {}
-        options[:data]['step-number-input-target'] = 'input'
+        button_opts = extract_button_options(options)
+        input_options = build_step_number_input_options(options)
 
-        @template.content_tag(:div, class: 'field has-addons',
-                                    data: { controller: 'step-number-input' }) do
+        @template.content_tag(:div, class: 'join', data: { controller: 'step-number-input' }) do
           @template.safe_join([
-                                addon_left(options),
-                                step_number_input(method, options),
-                                addon_right(options)
+                                subtract_button(button_opts),
+                                number_field(method, input_options),
+                                add_button(button_opts)
                               ])
         end
       end
 
       private
 
-      def subtract_button_data(options)
-        return @subtract_button_data if defined? @subtract_button_data
-
-        @subtract_button_data = options.delete(:subtract_data) || {}
-        @subtract_button_data['step-number-input-target'] = 'subtract'
-        @subtract_button_data[:action] = [
-          'step-number-input#subtract', @subtract_button_data[:action]
-        ].compact.join(' ')
-
-        @subtract_button_data
+      def extract_button_options(options)
+        {
+          subtract_data: options.delete(:subtract_data) || {},
+          add_data: options.delete(:add_data) || {},
+          button_class: options.delete(:button_class),
+          disabled: options[:disabled]
+        }
       end
 
-      def add_button_data(options)
-        return @add_button_data if defined? @add_button_data
-
-        @add_button_data = options.delete(:add_data) || {}
-        @add_button_data['step-number-input-target'] = 'add'
-        @add_button_data[:action] = [
-          'step-number-input#add', @add_button_data[:action]
-        ].compact.join(' ')
-
-        @add_button_data
+      def build_step_number_input_options(options)
+        opts = options.dup
+        opts[:data] ||= {}
+        opts[:data]['step-number-input-target'] = 'input'
+        opts[:class] = @template.class_names(INPUT_CLASSES, opts[:class])
+        opts
       end
 
-      def addon_button_class(options)
-        @addon_button_class ||= class_names(
-          ['button', options[:button_class]], 'is-static': options[:disabled]
+      def subtract_button(opts)
+        step_button(
+          icon: 'minus',
+          action: 'subtract',
+          target: 'subtract',
+          label: subtract_label,
+          extra_data: opts[:subtract_data],
+          button_class: opts[:button_class],
+          disabled: opts[:disabled]
         )
       end
 
-      def addon_left(options)
-        @template.content_tag(:div, class: 'control') do
-          @template.link_to @template.render(Bali::Icon::Component.new('minus')),
-                            '', class: addon_button_class(options), disabled: options[:disabled],
-                                data: options[:disabled] ? {} : subtract_button_data(options),
-                                title: 'subtract'
-        end
+      def add_button(opts)
+        step_button(
+          icon: 'plus',
+          action: 'add',
+          target: 'add',
+          label: add_label,
+          extra_data: opts[:add_data],
+          button_class: opts[:button_class],
+          disabled: opts[:disabled]
+        )
       end
 
-      def step_number_input(method, options)
-        @template.content_tag(:div, class: 'control') do
-          number_field(method, options)
-        end
+      def subtract_label
+        I18n.t('view_components.bali.step_number_field.decrease', default: 'Decrease value')
       end
 
-      def addon_right(options)
-        @template.content_tag(:div, class: 'control') do
-          @template.link_to @template.render(Bali::Icon::Component.new('plus')),
-                            '', class: addon_button_class(options), disabled: options[:disabled],
-                                data: options[:disabled] ? {} : add_button_data(options),
-                                title: 'add'
-        end
+      def add_label
+        I18n.t('view_components.bali.step_number_field.increase', default: 'Increase value')
+      end
+
+      def step_button(opts)
+        classes = @template.class_names(
+          BUTTON_BASE_CLASSES,
+          opts[:button_class],
+          BUTTON_DISABLED_CLASSES => opts[:disabled]
+        )
+
+        data = build_button_data(opts[:action], opts[:target], opts[:extra_data], opts[:disabled])
+
+        @template.button_tag(
+          @template.render(Bali::Icon::Component.new(opts[:icon])),
+          type: 'button',
+          class: classes,
+          disabled: opts[:disabled],
+          data: data,
+          'aria-label': opts[:label],
+          title: opts[:label]
+        )
+      end
+
+      def build_button_data(action, target, extra_data, disabled)
+        return {} if disabled
+
+        action_value = [
+          "step-number-input##{action}",
+          extra_data[:action]
+        ].compact.join(' ')
+
+        extra_data.merge(
+          'step-number-input-target' => target,
+          action: action_value
+        )
       end
     end
   end

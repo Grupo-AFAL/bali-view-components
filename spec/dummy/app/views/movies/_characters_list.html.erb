@@ -1,0 +1,37 @@
+<% if characters.any? %>
+  <%# SortableList Demo - drag characters to reorder %>
+  <%= render Bali::SortableList::Component.new(
+        resource_name: 'character',
+        handle: '.handle',
+        disabled: false
+      ) do |sortable| %>
+    <% characters.each do |character| %>
+      <% sortable.with_item(update_url: sort_movie_characters_path(movie)) do %>
+        <div class="flex items-center justify-between w-full">
+          <div class="flex items-center gap-3">
+            <%# Drag Handle %>
+            <div class="handle cursor-grab active:cursor-grabbing text-base-content/40 hover:text-base-content">
+              <%= render Bali::Icon::Component.new('grip-vertical', size: :small) %>
+            </div>
+            <%= render Bali::Avatar::Component.new(size: :sm) do |avatar| %>
+              <% avatar.with_placeholder do %>
+                <%= character.name[0..1].upcase %>
+              <% end %>
+            <% end %>
+            <div>
+              <p class="font-medium"><%= character.name %></p>
+              <p class="text-sm text-base-content/60">Character</p>
+            </div>
+          </div>
+          <%= render Bali::ActionsDropdown::Component.new(align: :end) do |dropdown| %>
+            <% dropdown.with_item(href: movie_character_path(movie, character), method: :delete, icon_name: 'trash', class: 'text-error') { 'Remove' } %>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  <% end %>
+<% else %>
+  <%= render Bali::Message::Component.new(color: :info) do %>
+    No characters have been added to this movie yet.
+  <% end %>
+<% end %>

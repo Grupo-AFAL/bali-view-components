@@ -1,0 +1,63 @@
+<%# Complete DataTable example with filters, sorting, pagination, and toolbar %>
+<%= render Bali::DataTable::Component.new(url: request.path, pagy: pagy, item_name: 'movies') do |c| %>
+  <%# Advanced Filters with search %>
+  <% c.with_filters_panel(
+       available_attributes: filter_attributes,
+       search: {
+         fields: [:name, :genre],
+         placeholder: 'Search movies...'
+       }
+     ) %>
+
+  <%# Column selector - declarative API with some columns hidden by default %>
+  <% c.with_column_selector(table_id: 'complete-demo-table') do |cs| %>
+    <% cs.with_column(index: 0, label: 'Name') %>
+    <% cs.with_column(index: 1, label: 'Genre') %>
+    <% cs.with_column(index: 2, label: 'Studio', visible: false) %>  <%# Hidden by default %>
+    <% cs.with_column(index: 3, label: 'Status') %>
+    <% cs.with_column(index: 4, label: 'Indie') %>
+    <% cs.with_column(index: 5, label: 'Created At', visible: false) %>  <%# Hidden by default %>
+  <% end %>
+
+  <%# Export - declarative API %>
+  <% c.with_export(formats: [:csv, :excel, :pdf]) %>
+
+  <%# Table with sortable headers %>
+  <% c.with_table do %>
+    <%= render Bali::Table::Component.new(form: filter_form, id: 'complete-demo-table') do |t| %>
+      <%= t.with_header(name: 'Name', sort: :name) %>
+      <%= t.with_header(name: 'Genre', sort: :genre) %>
+      <%= t.with_header(name: 'Studio') %>
+      <%= t.with_header(name: 'Status', sort: :status) %>
+      <%= t.with_header(name: 'Indie', sort: :indie) %>
+      <%= t.with_header(name: 'Created At', sort: :created_at) %>
+      <%= t.with_header(name: 'Actions') %>
+
+      <% movies.each do |movie| %>
+        <%= t.with_row do %>
+          <td class="font-medium"><%= movie.name %></td>
+          <td><span class="badge badge-outline"><%= movie.genre %></span></td>
+          <td class="text-sm text-base-content/70"><%= movie.tenant&.name %></td>
+          <td>
+            <span class="badge <%= movie.done? ? 'badge-success' : 'badge-warning' %>">
+              <%= movie.status.humanize %>
+            </span>
+          </td>
+          <td>
+            <%= render Bali::BooleanIcon::Component.new(value: movie.indie) %>
+          </td>
+          <td class="text-sm text-base-content/70">
+            <%= movie.created_at.strftime('%b %d, %Y') %>
+          </td>
+          <td>
+            <%= render Bali::ActionsDropdown::Component.new do |dropdown| %>
+              <% dropdown.with_item(label: 'View', icon: 'expand', href: '#') %>
+              <% dropdown.with_item(label: 'Edit', icon: 'edit', href: '#') %>
+              <% dropdown.with_item(label: 'Delete', icon: 'trash', href: '#', method: :delete, variant: :error) %>
+            <% end %>
+          </td>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

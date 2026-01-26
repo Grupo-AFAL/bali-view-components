@@ -1,0 +1,20 @@
+<div class="h-[500px] bg-base-200 p-4">
+  <%= render Bali::SideMenu::Component.new(current_path: '/dashboard', fixed: false) do |c|
+    c.with_list(title: 'Main') do |list|
+      list.with_item(name: 'Dashboard', href: '/dashboard', icon: 'layout-dashboard')
+      list.with_item(name: 'Projects', href: '/projects', icon: 'folder-kanban')
+      list.with_item(name: 'Team', href: '/team', icon: 'users')
+      list.with_item(name: 'Calendar', href: '/calendar', icon: 'calendar-days')
+      list.with_item(name: 'Documents', href: '/documents', icon: 'file-text')
+      list.with_item(name: 'Reports', href: '/reports', icon: 'chart-bar')
+    end
+
+    c.with_list(title: 'Settings') do |list|
+      list.with_item(name: 'Profile', href: '/profile', icon: 'user')
+      list.with_item(name: 'Notifications', href: '/notifications', icon: 'bell')
+      list.with_item(name: 'Security', href: '/security', icon: 'shield')
+      list.with_item(name: 'Preferences', href: '/preferences', icon: 'settings')
+      list.with_item(name: 'Help', href: '/help', icon: 'help-circle')
+    end
+  end %>
+</div>

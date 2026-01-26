@@ -1,0 +1,777 @@
+/*
+ * Bali SlimSelect - DaisyUI Native Styling
+ *
+ * Self-contained CSS for SlimSelect without vendor CSS dependency.
+ * Built from scratch using DaisyUI patterns and Tailwind utilities.
+ */
+
+/* =============================================================================
+   CSS Custom Properties
+   Using DaisyUI-compatible values, easily themeable
+   ============================================================================= */
+:root {
+  /* Colors - DaisyUI light theme */
+  --ss-primary-color: oklch(0.6569 0.196 275.75);    /* primary */
+  --ss-bg-color: oklch(1 0 0);                        /* base-100 */
+  --ss-font-color: oklch(0.278 0.033 256.8);          /* base-content */
+  --ss-placeholder-color: oklch(0.278 0.033 256.8 / 0.5);
+  --ss-disabled-color: oklch(0.95 0 0);
+  --ss-border-color: oklch(0.278 0.033 256.8 / 0.2);
+  --ss-highlight-color: oklch(0.879 0.169 91.6 / 0.3); /* warning with alpha */
+  --ss-success-color: oklch(0.648 0.15 160);          /* success */
+  --ss-error-color: oklch(0.7176 0.221 22.18);        /* error */
+
+  /* Dimensions */
+  --ss-main-height: 3rem;
+  --ss-content-height: 280px;
+  --ss-search-height: 2.5rem;
+  --ss-spacing-l: 0.75rem;
+  --ss-spacing-m: 0.5rem;
+  --ss-spacing-s: 0.25rem;
+  --ss-border-radius: 0.5rem;
+  --ss-animation-timing: 0.15s;
+}
+
+/* =============================================================================
+   Utility Classes (used by SlimSelect internally)
+   ============================================================================= */
+.ss-hide {
+  display: none !important;
+}
+
+/* =============================================================================
+   Wrapper Container (.slim-select)
+   ============================================================================= */
+.slim-select {
+  position: relative;
+
+  /* Hide the native select element - SlimSelect creates its own UI */
+  select,
+  select.select,
+  select.select-bordered {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+    appearance: none !important;
+    /* Hide any DaisyUI select arrow pseudo-element */
+    &::after,
+    &::before {
+      display: none !important;
+    }
+  }
+
+  /* Error state from Rails form validation */
+  .field_with_errors .ss-main {
+    border-color: var(--ss-error-color);
+
+    &:focus {
+      border-color: var(--ss-error-color);
+      outline-color: oklch(0.7176 0.221 22.18 / 0.2);
+    }
+  }
+}
+
+/* =============================================================================
+   Select All / Deselect All Toggle Button
+   ============================================================================= */
+.ss-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ss-primary-color);
+  cursor: pointer;
+  padding: var(--ss-spacing-s) 0;
+  margin-bottom: var(--ss-spacing-s);
+  transition: opacity var(--ss-animation-timing) ease;
+
+  &:hover {
+    opacity: 0.7;
+    text-decoration: underline;
+  }
+
+  &.hidden {
+    display: none;
+  }
+}
+
+/* =============================================================================
+   Main Trigger Element (.ss-main)
+   The clickable element that looks like an input/select
+   ============================================================================= */
+.ss-main {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  position: relative;
+  user-select: none;
+  color: var(--ss-font-color);
+  min-height: var(--ss-main-height);
+  width: 100%;
+  padding: var(--ss-spacing-s) var(--ss-spacing-l);
+  cursor: pointer;
+  border: 1px solid var(--ss-border-color);
+  border-radius: var(--ss-border-radius);
+  background-color: var(--ss-bg-color);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color var(--ss-animation-timing) ease,
+              box-shadow var(--ss-animation-timing) ease;
+  overflow: hidden;
+
+
+  /* Focus state - DaisyUI style outline */
+  &:focus {
+    outline: 2px solid oklch(0.6569 0.196 275.75 / 0.2);
+    outline-offset: 2px;
+    border-color: var(--ss-primary-color);
+  }
+
+  /* Hover state */
+  &:hover:not(.ss-disabled) {
+    border-color: oklch(0.278 0.033 256.8 / 0.4);
+  }
+
+  /* Disabled state */
+  &.ss-disabled {
+    background-color: var(--ss-disabled-color);
+    cursor: not-allowed;
+    opacity: 0.7;
+
+    .ss-values .ss-value .ss-value-delete {
+      cursor: not-allowed;
+    }
+  }
+
+  /* Direction states - connect border radius to dropdown */
+  &.ss-dir-above {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+  &.ss-dir-below {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+/* =============================================================================
+   Values Container (.ss-values)
+   Holds placeholder, single value, or multi-select tags
+   ============================================================================= */
+.ss-main .ss-values {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ss-spacing-s);
+  flex: 1 1 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Placeholder text */
+.ss-main .ss-values .ss-placeholder {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: var(--ss-spacing-s) 0;
+  margin: auto 0;
+  line-height: 1.25;
+  font-size: 0.875rem;
+  color: var(--ss-placeholder-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Single selected value */
+.ss-main .ss-values .ss-single {
+  display: block;
+  margin: auto 0 auto var(--ss-spacing-s);
+  min-width: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--ss-font-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto;
+  max-width: calc(100% - 20px);
+}
+
+/* Max selected indicator */
+.ss-main .ss-values .ss-max {
+  display: flex;
+  user-select: none;
+  align-items: center;
+  width: fit-content;
+  font-size: 0.75rem;
+  line-height: 1;
+  padding: var(--ss-spacing-s) var(--ss-spacing-m);
+  background-color: oklch(0.278 0.033 256.8);
+  color: var(--ss-bg-color);
+  border-radius: 1.5rem;
+}
+
+/* =============================================================================
+   Multi-Select Tags (.ss-value)
+   Styled as DaisyUI badges
+   ============================================================================= */
+.ss-main .ss-values .ss-value {
+  display: inline-flex;
+  user-select: none;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  height: 1.625rem;
+  padding: 0;
+  background-color: var(--ss-primary-color);
+  border-radius: 1.5rem;
+  animation: ss-valueIn var(--ss-animation-timing) ease-out both;
+
+  &.ss-value-out {
+    animation: ss-valueOut var(--ss-animation-timing) ease-out;
+  }
+}
+
+.ss-main .ss-values .ss-value .ss-value-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.625rem;
+  color: var(--ss-bg-color);
+  padding: 0 0.625rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ss-main .ss-values .ss-value .ss-value-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 0.5rem 0 0;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity var(--ss-animation-timing) ease;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  svg {
+    width: 0.625rem;
+    height: 0.625rem;
+
+    path {
+      fill: none;
+      stroke: var(--ss-bg-color);
+      stroke-width: 20;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  }
+}
+
+/* =============================================================================
+   Deselect (Clear All) Button
+   ============================================================================= */
+.ss-main .ss-deselect {
+  flex: 0 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  height: auto;
+  padding: 0 var(--ss-spacing-m);
+  opacity: 0.5;
+  transition: opacity var(--ss-animation-timing) ease;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  svg {
+    width: 0.75rem;
+    height: 0.75rem;
+
+    path {
+      fill: none;
+      stroke: var(--ss-font-color);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  }
+}
+
+/* =============================================================================
+   Dropdown Arrow
+   ============================================================================= */
+.ss-main .ss-arrow {
+  flex: 0 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin: auto var(--ss-spacing-m);
+
+  path {
+    fill: none;
+    stroke: oklch(0.278 0.033 256.8 / 0.6);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform var(--ss-animation-timing) ease-out;
+  }
+}
+
+/* =============================================================================
+   Dropdown Content Container (.ss-content)
+   ============================================================================= */
+.ss-content {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  height: auto;
+  width: auto;
+  max-height: var(--ss-content-height);
+  box-sizing: border-box;
+  border: 1px solid var(--ss-border-color);
+  background-color: var(--ss-bg-color);
+  box-shadow: 0 4px 12px oklch(0 0 0 / 0.15);
+  overflow: hidden;
+  z-index: 10000;
+  opacity: 0;
+  transform: scaleY(0);
+  transition: transform var(--ss-animation-timing) ease,
+              opacity var(--ss-animation-timing) ease;
+
+  /* Position variants */
+  &.ss-relative {
+    position: relative;
+    height: 100%;
+  }
+
+  &.ss-fixed {
+    position: fixed;
+  }
+
+  /* Direction: above trigger */
+  &.ss-dir-above {
+    transform-origin: center bottom;
+    flex-direction: column-reverse;
+    border-top-left-radius: var(--ss-border-radius);
+    border-top-right-radius: var(--ss-border-radius);
+    margin-bottom: -1px;
+    border-bottom: none;
+  }
+
+  /* Direction: below trigger */
+  &.ss-dir-below {
+    transform-origin: center top;
+    border-bottom-left-radius: var(--ss-border-radius);
+    border-bottom-right-radius: var(--ss-border-radius);
+    margin-top: -1px;
+    border-top: none;
+  }
+
+  /* Open state */
+  &.ss-open {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+/* =============================================================================
+   Search Input
+   ============================================================================= */
+.ss-content .ss-search {
+  flex: 0 1 auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: var(--ss-spacing-l);
+  border-bottom: 1px solid oklch(0.278 0.033 256.8 / 0.1);
+  background-color: oklch(0.95 0 0 / 0.5);
+
+  input {
+    display: inline-flex;
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    height: var(--ss-search-height);
+    padding: 0 var(--ss-spacing-l);
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: inherit;
+    color: var(--ss-font-color);
+    background-color: var(--ss-bg-color);
+    border: 1px solid var(--ss-border-color);
+    border-radius: var(--ss-border-radius);
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color var(--ss-animation-timing) ease,
+                outline var(--ss-animation-timing) ease;
+
+    &::placeholder {
+      color: var(--ss-placeholder-color);
+    }
+
+    &:focus {
+      outline: 2px solid oklch(0.6569 0.196 275.75 / 0.2);
+      outline-offset: 2px;
+      border-color: var(--ss-primary-color);
+    }
+  }
+
+  /* Addable button (add new option) */
+  .ss-addable {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    flex: 0 0 auto;
+    height: var(--ss-search-height);
+    margin-left: var(--ss-spacing-m);
+    padding: 0 var(--ss-spacing-l);
+    background-color: var(--ss-primary-color);
+    border: none;
+    border-radius: var(--ss-border-radius);
+    transition: opacity var(--ss-animation-timing) ease;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    svg {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 1rem;
+      height: 1rem;
+
+      path {
+        fill: none;
+        stroke: #ffffff;
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+    }
+  }
+}
+
+/* Search when dropdown opens above */
+.ss-content.ss-dir-above .ss-search {
+  border-bottom: none;
+  border-top: 1px solid oklch(0.278 0.033 256.8 / 0.1);
+}
+
+/* =============================================================================
+   Options List (.ss-list)
+   ============================================================================= */
+.ss-content .ss-list {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  height: auto;
+  padding: var(--ss-spacing-m);
+  max-height: 240px;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  /* Custom scrollbar */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: oklch(0.278 0.033 256.8 / 0.2);
+    border-radius: 3px;
+
+    &:hover {
+      background: oklch(0.278 0.033 256.8 / 0.3);
+    }
+  }
+
+  /* Error message */
+  .ss-error {
+    padding: var(--ss-spacing-l);
+    color: var(--ss-error-color);
+    font-size: 0.875rem;
+  }
+
+  /* Searching/loading message */
+  .ss-searching {
+    padding: var(--ss-spacing-l);
+    color: oklch(0.278 0.033 256.8 / 0.6);
+    font-size: 0.875rem;
+  }
+}
+
+/* =============================================================================
+   Individual Option (.ss-option)
+   ============================================================================= */
+.ss-content .ss-list .ss-option {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: auto;
+  padding: 0.625rem var(--ss-spacing-l);
+  margin: 1px 0;
+  font-size: 0.875rem;
+  color: var(--ss-font-color);
+  background-color: transparent;
+  border-radius: var(--ss-border-radius);
+  cursor: pointer;
+  user-select: none;
+  white-space: normal;
+  transition: background-color var(--ss-animation-timing) ease;
+
+  /* Hover state */
+  &:hover:not(.ss-disabled) {
+    background-color: oklch(0.95 0 0);
+  }
+
+  /* Keyboard highlighted */
+  &.ss-highlighted {
+    background-color: oklch(0.95 0 0);
+  }
+
+  /* Selected state - subtle primary tint */
+  &.ss-selected {
+    background-color: oklch(0.6569 0.196 275.75 / 0.1);
+    color: var(--ss-primary-color);
+    font-weight: 500;
+
+    &:hover {
+      background-color: oklch(0.6569 0.196 275.75 / 0.15);
+    }
+  }
+
+  /* Disabled state */
+  &.ss-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    &:hover {
+      background-color: transparent;
+    }
+  }
+
+  /* Search highlight */
+  .ss-search-highlight {
+    display: inline-block;
+    background-color: var(--ss-highlight-color);
+    padding: 0 2px;
+    border-radius: 2px;
+  }
+}
+
+/* =============================================================================
+   Option Groups (.ss-optgroup)
+   ============================================================================= */
+.ss-content .ss-list .ss-optgroup {
+  /* Options inside groups have collapse animation */
+  .ss-option {
+    padding-left: calc(var(--ss-spacing-l) * 2);
+    transition: max-height var(--ss-animation-timing) ease,
+                opacity var(--ss-animation-timing) ease,
+                padding-top var(--ss-animation-timing) ease,
+                padding-bottom var(--ss-animation-timing) ease;
+  }
+
+  /* Open state - options visible */
+  &.ss-open .ss-option {
+    max-height: 100px;
+    opacity: 1;
+    overflow: visible;
+  }
+
+  /* Closed state - options hidden */
+  &.ss-close .ss-option {
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+  }
+}
+
+/* Optgroup label */
+.ss-content .ss-list .ss-optgroup .ss-optgroup-label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--ss-spacing-m) var(--ss-spacing-l);
+  margin-top: var(--ss-spacing-m);
+  border-bottom: 1px solid oklch(0.278 0.033 256.8 / 0.1);
+
+  &:has(.ss-arrow) {
+    cursor: pointer;
+  }
+
+  .ss-optgroup-label-text {
+    flex: 1 1 auto;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: oklch(0.278 0.033 256.8 / 0.5);
+  }
+}
+
+/* First optgroup - no top margin */
+.ss-content .ss-list .ss-optgroup:first-child .ss-optgroup-label {
+  margin-top: 0;
+}
+
+/* Optgroup actions (select all, collapse) */
+.ss-content .ss-list .ss-optgroup .ss-optgroup-label .ss-optgroup-actions {
+  flex: 0 1 auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ss-spacing-m);
+
+  /* Select all */
+  .ss-selectall {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: row;
+    cursor: pointer;
+
+    &:hover {
+      opacity: 0.5;
+    }
+
+    span {
+      flex: 0 1 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60%;
+      padding-right: var(--ss-spacing-s);
+    }
+
+    svg {
+      flex: 0 1 auto;
+      width: 13px;
+      height: 13px;
+
+      path {
+        fill: none;
+        stroke: var(--ss-success-color);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      &:first-child {
+        stroke-width: 5;
+      }
+
+      &:last-child {
+        stroke-width: 11;
+      }
+    }
+
+    &.ss-selected svg path {
+      stroke: var(--ss-error-color);
+    }
+  }
+
+  /* Collapsible arrow */
+  .ss-closable {
+    flex: 0 1 auto;
+    display: flex;
+    flex-direction: row;
+    cursor: pointer;
+
+    .ss-arrow {
+      flex: 1 1 auto;
+      width: 10px;
+      height: 10px;
+
+      path {
+        fill: none;
+        stroke: oklch(0.278 0.033 256.8 / 0.5);
+        stroke-width: 18;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        transition: transform var(--ss-animation-timing) ease-out;
+      }
+    }
+  }
+}
+
+/* =============================================================================
+   Animations
+   ============================================================================= */
+@keyframes ss-valueIn {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes ss-valueOut {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+}
+
+/* =============================================================================
+   Shorter Variant (compact lists)
+   ============================================================================= */
+.ss-main.is-shorter + .ss-content .ss-list {
+  max-height: 160px;
+}
+
+/* =============================================================================
+   DaisyUI Override
+   SlimSelect copies classes from native select, so we must override DaisyUI's
+   select arrow background-image when applied to .ss-main
+   DaisyUI uses @layer utilities, so we must also use utilities layer
+   ============================================================================= */
+@layer utilities {
+  .ss-main.select,
+  .ss-main.select.select-bordered,
+  div.ss-main.select,
+  div.ss-main.select.select-bordered {
+    background-image: none !important;
+    background-position: unset !important;
+    padding-right: var(--ss-spacing-l) !important;
+  }
+}

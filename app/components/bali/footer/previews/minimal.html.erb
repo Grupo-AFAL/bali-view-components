@@ -1,0 +1,13 @@
+<%= render Bali::Footer::Component.new(color: :base, center: true) do |footer| %>
+  <% footer.with_brand do %>
+    <div class="flex flex-col items-center">
+      <%= render Bali::Icon::Component.new('film', size: :large, class: 'mb-2') %>
+      <p class="font-bold text-lg">MovieDB</p>
+      <p class="text-sm opacity-70">Your ultimate movie database</p>
+    </div>
+  <% end %>
+
+  <% footer.with_bottom do %>
+    <p><%= Date.current.year %> MovieDB. Built with Bali ViewComponents.</p>
+  <% end %>
+<% end %>

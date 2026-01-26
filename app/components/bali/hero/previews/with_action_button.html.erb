@@ -1,0 +1,7 @@
+<%= render Bali::Hero::Component.new(color: :primary) do |c| %>
+  <% c.with_title('Hello there') %>
+  <% c.with_subtitle('Provident cupiditate voluptatem et in.') %>
+  <% c.with_actions do %>
+    <%= render Bali::Button::Component.new(name: 'Get Started', variant: :secondary) %>
+  <% end %>
+<% end %>

@@ -4,43 +4,43 @@
             content_padding: false,
             **task.hover_card_options
 ) do |c| %>
-  <% c.with_trigger(class: 'is-flex') do %>
+  <% c.with_trigger(class: 'flex') do %>
     <%= render Bali::Icon::Component.new('more', class: 'gantt-chart-task-dropdown') %>
   <% end %>
-  <% if task.info_action? %>
+  <% if task.action?(:info) %>
     <%= render Bali::Link::Component.new(
               name: t('.open_details'),
               icon_name: 'info-circle',
-              class: 'is-flex dropdown-item',
-              **task.info_action_options) %>
+              class: 'flex w-full px-4 py-2 hover:bg-base-200',
+              **task.action_options(:info)) %>
   <% end %>
-  <% if task.complete_action? && !task.complete? %>
+  <% if task.action?(:complete) && !task.complete? %>
     <%= render Bali::Link::Component.new(
               name: t('.complete_task'),
               icon_name: 'checklist',
-              class: 'is-flex dropdown-item',
-              **task.complete_action_options) %>
+              class: 'flex w-full px-4 py-2 hover:bg-base-200',
+              **task.action_options(:complete)) %>
   <% end %>
-  <% if task.indent_action? && !task.first? %>
+  <% if task.action?(:indent) && !task.first? %>
     <%= render Bali::Link::Component.new(
               name: t('.indent_task'),
               icon_name: 'indent',
-              class: 'is-flex dropdown-item',
-              **task.indent_action_options) %>
+              class: 'flex w-full px-4 py-2 hover:bg-base-200',
+              **task.action_options(:indent)) %>
   <% end %>
-  <% if task.outdent_action? && task.child? %>
+  <% if task.action?(:outdent) && task.child? %>
     <%= render Bali::Link::Component.new(
               name: t('.outdent_task'),
               icon_name: 'outdent',
-              class: 'is-flex dropdown-item',
-              **task.outdent_action_options) %>
+              class: 'flex w-full px-4 py-2 hover:bg-base-200',
+              **task.action_options(:outdent)) %>
   <% end %>
-  <% if task.delete_action? %>
-    <div class="dropdown-divider"></div>
+  <% if task.action?(:delete) %>
+    <div class="divider my-0"></div>
     <%= render Bali::Link::Component.new(
               name: t('.delete_task'),
               icon_name: 'trash',
-              class: 'is-flex dropdown-item has-text-danger',
-              **task.delete_action_options) %>
+              class: 'flex w-full px-4 py-2 hover:bg-base-200 text-error',
+              **task.action_options(:delete)) %>
   <% end %>
 <% end %>

@@ -1,0 +1,69 @@
+---
+title: Bali ViewComponents
+label: Home
+---
+
+# Bali ViewComponents Library
+
+**AFAL's open-source ViewComponent library** providing 40+ reusable UI components for Rails applications.
+
+## Quick Start
+
+Add to your Gemfile:
+
+```ruby
+gem 'bali'
+```
+
+Then in your view:
+
+```erb
+<%%= render Bali::Button::Component.new(name: 'Save', variant: :primary) %>
+```
+
+---
+
+## Component Categories
+
+### Layout Components
+Cards, Columns, Drawer, Modal, PageHeader, Hero
+
+### Navigation Components
+NavBar, SideMenu, Breadcrumb, Tabs, Dropdown, Stepper
+
+### Data Display Components
+Table, DataTable, List, Timeline, Progress, Avatar, Tag
+
+### Interactive Components
+Button, Link, SearchInput, Carousel, Tooltip, Calendar
+
+### Form Components
+All form elements with consistent styling
+
+### Feedback Components
+Notification, FlashNotifications, Loader, Message
+
+---
+
+## Technology Stack
+
+| Technology | Purpose |
+|------------|---------|
+| **ViewComponent** | Ruby component framework |
+| **Tailwind CSS** | Utility-first CSS |
+| **DaisyUI** | Tailwind component library |
+| **Stimulus** | JavaScript framework |
+| **Lookbook** | Component preview & docs |
+
+---
+
+## Browse Components
+
+Use the sidebar to explore all available components with interactive previews.
+
+## Learn More
+
+- [Installation](/lookbook/pages/01_getting_started/01_installation)
+- [Accessibility Guide](/lookbook/pages/02_guides/01_accessibility)
+- [Component Patterns](/lookbook/pages/03_patterns/01_component_patterns)
+- [Stimulus Patterns](/lookbook/pages/03_patterns/02_stimulus_patterns)

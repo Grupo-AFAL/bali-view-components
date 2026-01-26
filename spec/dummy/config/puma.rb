@@ -24,7 +24,9 @@
 # Any libraries that use a connection pool or another resource pool should
 # be configured to provide at least as many connections as the number of
 # threads. This includes Active Record's `pool` parameter in `database.yml`.
-threads_count = ENV.fetch("RAILS_MAX_THREADS", 3)
+# Increase threads in development to handle many importmap requests
+# In production, HTTP/2 handles this more efficiently
+threads_count = ENV.fetch("RAILS_MAX_THREADS") { Rails.env.development? ? 10 : 3 }
 threads threads_count, threads_count
 
 # Specifies the `port` that Puma will listen on to receive requests; default is 3000.

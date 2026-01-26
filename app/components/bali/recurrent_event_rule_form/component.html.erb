@@ -1,214 +1,258 @@
-<%= tag.div(**@options, disabled: @disabled) do %>
-  <%= @form.hidden_field @method, value: @value, data: { recurrent_event_rule_target: 'input' },
-      disabled: @disabled %>
+<%= tag.div(class: component_classes, data: component_data, disabled: disabled) do %>
+  <%= form.hidden_field method, value: value, data: { recurrent_event_rule_target: 'input' },
+      disabled: disabled %>
 
-  <div class="is-flex is-align-items-center mb-3">
-    <p class="mr-4"><b><%= t('.repeat') %></b></p>
+  <div class="space-y-3">
+    <%# === FREQUENCY SECTION === %>
+    <fieldset class="fieldset bg-base-100 border border-base-300 rounded-box p-3">
+      <legend class="fieldset-legend px-2 text-sm font-semibold text-base-content/70">
+        <%= render Bali::Icon::Component.new('repeat', class: 'w-4 h-4 inline-block mr-1 align-text-bottom') %>
+        <%= t('.repeat') %>
+      </legend>
 
-    <div class="control">
-      <div class="select">
-        <%= select_tag :freq, options_for_select(frequency_options), disabled: @disabled,
-            data: { rrule_attr: 'freq', input_active: true, 
-            action: 'recurrent-event-rule#toggleFreqCustomizationInputsContainer ' \
-                    'recurrent-event-rule#toggleIntervalInputContainer ' \
-                    'recurrent-event-rule#toggleFreqHelperText ' \
-                    'recurrent-event-rule#setRule' } %>
-      </div>
-    </div>
-
-    <div class="is-flex is-align-items-center" data-recurrent-event-rule-target="intervalInputContainer">
-      <p class="mx-4"><b><%= t('.every') %></b></p>
-
-      <div class="control">
-        <%= number_field_tag :interval, 1, min: 1, class: 'input', disabled: @disabled,
-            data: {  rrule_attr: 'interval', action: 'recurrent-event-rule#setRule' } %>
-      </div>
-
-      <p class="ml-4">
-        <b>
-          <span class="is-hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="0"></span>
-          <span class="is-hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="1"><%= t('.month_s') %></span>
-          <span class="is-hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="2"><%= t('.week_s') %></span>
-          <span class="is-hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="3"><%= t('.day_s') %></span>
-          <span class="is-hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="4"><%= t('.hour_s') %></span>
-        </b>
-      </p>
-    </div>
-  </div>
-
-  <div class="pl-5 is-hidden"
-    data-recurrent-event-rule-target="freqCustomizationInputsContainer"
-    data-rrule-freq="0"
-  >
-    <div class="is-flex is-align-items-center mb-2">
-      <%= radio_button_tag("#{timestamp}_yearly_on", 1, true, checked: true, class: 'mr-1', disabled: @disabled,
-          data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs ' \
-                          'recurrent-event-rule#setRule' }) %>
-
-      <%= label_tag "#{timestamp}_yearly_on_1", t('.on_option'), disabled: @disabled %>
-
-      <div class="is-flex is-align-items-center ml-4"
-        data-recurrent-event-rule-target="freqCustomizationInputs" 
-        data-rrule-freq-option="yearly_on_1"
-      >
-        <div class="control">
-          <div class="select">
-            <%= select_tag :bymonth, options_for_select(bymonth_options), disabled: @disabled,
-                data: { rrule_attr: 'bymonth', action: 'recurrent-event-rule#setRule' } %>
-          </div>
+      <div class="flex flex-wrap items-center gap-3">
+        <%# Frequency selector %>
+        <div class="form-control">
+          <%= select_tag :freq, options_for_select(frequency_options),
+              class: 'select select-bordered select-sm',
+              disabled: disabled,
+              data: { rrule_attr: 'freq', input_active: true,
+              action: 'recurrent-event-rule#toggleFreqCustomizationInputsContainer ' \
+                      'recurrent-event-rule#toggleIntervalInputContainer ' \
+                      'recurrent-event-rule#toggleFreqHelperText ' \
+                      'recurrent-event-rule#setRule' } %>
         </div>
 
-        <div class="control ml-4">
-          <div class="select">
-            <%= select_tag :bymonthday, options_for_select((1..31).map(&:to_s)), 
+        <%# Interval input group %>
+        <div class="flex items-center gap-2" data-recurrent-event-rule-target="intervalInputContainer">
+          <span class="text-sm font-medium text-base-content/70"><%= t('.every') %></span>
+
+          <div class="join">
+            <%= number_field_tag :interval, 1, min: 1,
+                class: 'input input-bordered input-sm join-item w-14 text-center',
+                disabled: disabled,
+                data: { rrule_attr: 'interval', action: 'recurrent-event-rule#setRule' } %>
+            <span class="btn btn-sm join-item btn-disabled pointer-events-none bg-base-200 border-base-300 text-base-content/70 min-w-[4rem]">
+              <span class="hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="0"></span>
+              <span class="hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="1"><%= t('.month_s') %></span>
+              <span class="hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="2"><%= t('.week_s') %></span>
+              <span class="hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="3"><%= t('.day_s') %></span>
+              <span class="hidden" data-recurrent-event-rule-target="freqHelperText" data-rrule-freq="4"><%= t('.hour_s') %></span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    <%# === YEARLY CUSTOMIZATION === %>
+    <fieldset class="fieldset bg-base-200/30 border border-base-300 rounded-box p-3 hidden"
+      data-recurrent-event-rule-target="freqCustomizationInputsContainer"
+      data-rrule-freq="0">
+      <legend class="fieldset-legend px-2 text-sm font-semibold text-base-content/70">
+        <%= render Bali::Icon::Component.new('calendar', class: 'w-4 h-4 inline-block mr-1 align-text-bottom') %>
+        <%= t('.yearly_options') %>
+      </legend>
+
+      <div class="space-y-2">
+        <%# Option 1: On specific date %>
+        <label class="flex items-center gap-2 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-200/50 transition-colors">
+          <%= radio_button_tag("#{unique_id}_yearly_on", 1, true, checked: true,
+              class: 'radio radio-sm radio-primary',
+              disabled: disabled,
+              data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs recurrent-event-rule#setRule' }) %>
+          <span class="text-sm font-medium min-w-[2.5rem]"><%= t('.on_option') %></span>
+
+          <div class="flex items-center gap-1.5"
+            data-recurrent-event-rule-target="freqCustomizationInputs"
+            data-rrule-freq-option="yearly_on_1">
+            <%= select_tag :bymonth, options_for_select(bymonth_options),
+                class: 'select select-bordered select-sm',
+                disabled: disabled,
+                data: { rrule_attr: 'bymonth', action: 'recurrent-event-rule#setRule' } %>
+            <%= select_tag :bymonthday, options_for_select(bymonthday_options),
+                class: 'select select-bordered select-sm w-20',
+                disabled: disabled,
                 data: { rrule_attr: 'bymonthday', action: 'recurrent-event-rule#setRule' } %>
           </div>
-        </div>
-      </div>
-    </div>
+        </label>
 
-    <div class="is-flex is-align-items-center">
-      <%= radio_button_tag("#{timestamp}_yearly_on", 2, true, checked: true, class: 'mr-1', disabled: @disabled,
-            data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs ' \
-                            'recurrent-event-rule#setRule' }) %>
+        <div class="divider my-0 h-px"></div>
 
-      <%= label_tag "#{timestamp}_yearly_on_2", t('.on_the'), disabled: @disabled %>
+        <%# Option 2: On the Nth weekday %>
+        <label class="flex items-center gap-2 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-200/50 transition-colors">
+          <%= radio_button_tag("#{unique_id}_yearly_on", 2, false,
+              class: 'radio radio-sm radio-primary',
+              disabled: disabled,
+              data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs recurrent-event-rule#setRule' }) %>
+          <span class="text-sm font-medium min-w-[2.5rem]"><%= t('.on_the') %></span>
 
-      <div class="is-flex is-align-items-center ml-4" 
-        data-recurrent-event-rule-target="freqCustomizationInputs" 
-        data-rrule-freq-option="yearly_on_2"
-      >
-        <div class="control mr-4">
-          <div class="select">
-            <%= select_tag :bysetpos, options_for_select(bysetpos_options), disabled: @disabled,
+          <div class="flex items-center gap-1.5"
+            data-recurrent-event-rule-target="freqCustomizationInputs"
+            data-rrule-freq-option="yearly_on_2">
+            <%= select_tag :bysetpos, options_for_select(bysetpos_options),
+                class: 'select select-bordered select-sm w-24',
+                disabled: disabled,
                 data: { rrule_attr: 'bysetpos', action: 'recurrent-event-rule#setRule' } %>
-          </div>
-        </div>
-
-        <div class="control mr-4">
-          <div class="select">
-            <%= select_tag :byweekday, options_for_select(byweekday_options), disabled: @disabled,
-              data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' } %>
-          </div>
-        </div>
-
-        <div class="control">
-          <div class="select">
-            <%= select_tag :bymonth, options_for_select(bymonth_options), disabled: @disabled,
+            <%= select_tag :byweekday, options_for_select(byweekday_options),
+                class: 'select select-bordered select-sm w-28',
+                disabled: disabled,
+                data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' } %>
+            <span class="text-sm text-base-content/70"><%= t('.of') %></span>
+            <%= select_tag :bymonth, options_for_select(bymonth_options),
+                class: 'select select-bordered select-sm w-28',
+                disabled: disabled,
                 data: { rrule_attr: 'bymonth', action: 'recurrent-event-rule#setRule' } %>
           </div>
-        </div>
+        </label>
       </div>
-    </div>
-  </div>
+    </fieldset>
 
-  <div class="pl-5 is-hidden"
-    data-recurrent-event-rule-target="freqCustomizationInputsContainer"
-    data-rrule-freq="1"
-  >
-    <div class="is-flex is-align-items-center mb-2">
-      <%= radio_button_tag("#{timestamp}_monthly_on", 1, true, checked: true, class: 'mr-1', disabled: @disabled,
-          data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs ' \
-                          'recurrent-event-rule#setRule' }) %>
+    <%# === MONTHLY CUSTOMIZATION === %>
+    <fieldset class="fieldset bg-base-200/30 border border-base-300 rounded-box p-3 hidden"
+      data-recurrent-event-rule-target="freqCustomizationInputsContainer"
+      data-rrule-freq="1">
+      <legend class="fieldset-legend px-2 text-sm font-semibold text-base-content/70">
+        <%= render Bali::Icon::Component.new('calendar-days', class: 'w-4 h-4 inline-block mr-1 align-text-bottom') %>
+        <%= t('.monthly_options') %>
+      </legend>
 
-      <%= label_tag "#{timestamp}_monthly_on_1", t('.on_day'), disabled: @disabled %>
+      <div class="space-y-2">
+        <%# Option 1: On specific day of month %>
+        <label class="flex items-center gap-2 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-200/50 transition-colors">
+          <%= radio_button_tag("#{unique_id}_monthly_on", 1, true, checked: true,
+              class: 'radio radio-sm radio-primary',
+              disabled: disabled,
+              data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs recurrent-event-rule#setRule' }) %>
+          <span class="text-sm font-medium min-w-[2.5rem]"><%= t('.on_day') %></span>
 
-      <div class="is-flex is-align-items-center ml-4"
-        data-recurrent-event-rule-target="freqCustomizationInputs" 
-        data-rrule-freq-option="monthly_on_1"
-      >
-        <div class="control">
-          <div class="select">
-            <%= select_tag :bymonthday, options_for_select((1..31).map(&:to_s)), disabled: @disabled,
+          <div class="flex items-center gap-1.5"
+            data-recurrent-event-rule-target="freqCustomizationInputs"
+            data-rrule-freq-option="monthly_on_1">
+            <%= select_tag :bymonthday, options_for_select(bymonthday_options),
+                class: 'select select-bordered select-sm w-20',
+                disabled: disabled,
                 data: { rrule_attr: 'bymonthday', action: 'recurrent-event-rule#setRule' } %>
-
           </div>
-        </div>
-      </div>
-    </div>
+        </label>
 
-    <div class="is-flex is-align-items-center">
-      <%= radio_button_tag("#{timestamp}_monthly_on", 2, true, checked: true, class: 'mr-1', disabled: @disabled,
-          data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs ' \
-                          'recurrent-event-rule#setRule' }) %>
+        <div class="divider my-0 h-px"></div>
 
-      <%= label_tag "#{timestamp}_monthly_on_2", t('.on_the'), disabled: @disabled %>
+        <%# Option 2: On the Nth weekday %>
+        <label class="flex items-center gap-2 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-200/50 transition-colors">
+          <%= radio_button_tag("#{unique_id}_monthly_on", 2, false,
+              class: 'radio radio-sm radio-primary',
+              disabled: disabled,
+              data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs recurrent-event-rule#setRule' }) %>
+          <span class="text-sm font-medium min-w-[2.5rem]"><%= t('.on_the') %></span>
 
-      <div class="is-flex is-align-items-center ml-4"
-        data-recurrent-event-rule-target="freqCustomizationInputs"
-        data-rrule-freq-option="monthly_on_2"
-      >
-        <div class="control mr-4">
-          <div class="select">
-            <%= select_tag :bysetpos, options_for_select(bysetpos_options), disabled: @disabled,
+          <div class="flex items-center gap-1.5"
+            data-recurrent-event-rule-target="freqCustomizationInputs"
+            data-rrule-freq-option="monthly_on_2">
+            <%= select_tag :bysetpos, options_for_select(bysetpos_options),
+                class: 'select select-bordered select-sm',
+                disabled: disabled,
                 data: { rrule_attr: 'bysetpos', action: 'recurrent-event-rule#setRule' } %>
-
-          </div>
-        </div>
-
-        <div class="control">
-          <div class="select">
-            <%= select_tag :byweekday, options_for_select(byweekday_options), disabled: @disabled,
+            <%= select_tag :byweekday, options_for_select(byweekday_options),
+                class: 'select select-bordered select-sm',
+                disabled: disabled,
                 data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' } %>
           </div>
+        </label>
+      </div>
+    </fieldset>
+
+    <%# === WEEKLY CUSTOMIZATION (Weekday Selector) === %>
+    <fieldset class="fieldset bg-base-200/30 border border-base-300 rounded-box p-3 hidden"
+      data-recurrent-event-rule-target="freqCustomizationInputsContainer"
+      data-rrule-freq="2">
+      <legend class="fieldset-legend px-2 text-sm font-semibold text-base-content/70">
+        <%= render Bali::Icon::Component.new('calendar-range', class: 'w-4 h-4 inline-block mr-1 align-text-bottom') %>
+        <%= t('.repeat_on_days') %>
+      </legend>
+
+      <%= radio_button_tag "#{unique_id}_weekly", 1, false, checked: true, class: 'hidden' %>
+      <div class="weekday-checkboxes-container py-1"
+        data-recurrent-event-rule-target="freqCustomizationInputs"
+        data-rrule-freq-option="weekly_1">
+        <% I18n.t('date.day_names').each_with_index do |day, index| %>
+          <% day_value = index.zero? ? 6 : index - 1 %>
+          <%# Wrap each checkbox-label pair to isolate peer relationship %>
+          <span class="inline-block">
+            <%= check_box_tag "byweekday_#{unique_id}_[]", day_value, false,
+                id: "byweekday_#{unique_id}_#{day_value}",
+                disabled: disabled,
+                class: 'peer sr-only',
+                data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' } %>
+            <%= label_tag "byweekday_#{unique_id}_#{day_value}", day.first,
+                disabled: disabled,
+                class: 'flex items-center justify-center w-8 h-8 rounded-full ' \
+                       'bg-base-300 text-base-content font-semibold text-xs ' \
+                       'cursor-pointer select-none transition-all duration-150 ' \
+                       'hover:bg-base-content/20 hover:scale-105 ' \
+                       'peer-checked:bg-primary peer-checked:text-primary-content peer-checked:shadow-md ' \
+                       'peer-checked:hover:bg-primary/80 peer-checked:hover:shadow-lg ' \
+                       'peer-disabled:opacity-50 peer-disabled:cursor-not-allowed' %>
+          </span>
+        <% end %>
+      </div>
+    </fieldset>
+
+    <%# === DAILY/HOURLY (No customization needed) === %>
+    <div class="hidden"
+      data-recurrent-event-rule-target="freqCustomizationInputsContainer"
+      data-rrule-freq="3,4">
+    </div>
+
+    <%# === END CONDITION SECTION === %>
+    <fieldset class="<%= class_names('fieldset bg-base-100 border border-base-300 rounded-box p-3', 'hidden': skip_end_method) %>">
+      <legend class="fieldset-legend px-2 text-sm font-semibold text-base-content/70">
+        <%= render Bali::Icon::Component.new('flag', class: 'w-4 h-4 inline-block mr-1 align-text-bottom') %>
+        <%= t('.end') %>
+      </legend>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="form-control">
+          <%= select_tag :end, options_for_select(ending_options),
+              class: 'select select-bordered select-sm',
+              disabled: disabled,
+              data: {
+                recurrent_event_rule_target: 'endMethodSelect',
+                action: 'recurrent-event-rule#toggleEndCustomizationInputsContainer recurrent-event-rule#setRule'
+              } %>
+        </div>
+
+        <%# Never (empty) %>
+        <div class="hidden" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="">
+        </div>
+
+        <%# After X occurrences %>
+        <div class="hidden items-center gap-2" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="count">
+          <div class="join">
+            <%= number_field_tag :count, 1, min: 1,
+                class: 'input input-bordered input-sm join-item w-14 text-center',
+                disabled: disabled,
+                data: { rrule_attr: 'count', action: 'recurrent-event-rule#setRule' } %>
+            <span class="btn btn-sm join-item btn-disabled pointer-events-none bg-base-200 border-base-300 text-base-content/70">
+              <%= t('.ocurrence_s') %>
+            </span>
+          </div>
+        </div>
+
+        <%# On specific date %>
+        <div class="hidden items-center gap-2" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="until">
+          <%= text_field_tag :until, 6.months.from_now.to_date,
+              class: 'input input-bordered input-sm w-36 text-sm',
+              disabled: disabled,
+              data: {
+                controller: 'datepicker',
+                datepicker_min_date_value: Date.current.to_s,
+                datepicker_alt_input_class_value: 'input-sm text-sm h-8',
+                rrule_attr: 'until',
+                recurrent_event_rule_target: 'untilInput',
+                action: 'recurrent-event-rule#setRule'
+              } %>
         </div>
       </div>
-    </div>
-  </div>
-
-  <div class="pl-5 is-hidden"
-    data-recurrent-event-rule-target="freqCustomizationInputsContainer"
-    data-rrule-freq="2"
-  >
-    <%= radio_button_tag "#{timestamp}_weekly", 1, false, checked: true, class: 'is-hidden' %>
-    <div class="weekday-checkboxes-container"
-      data-recurrent-event-rule-target="freqCustomizationInputs" 
-      data-rrule-freq-option="weekly_1"
-    >
-      <% I18n.t('date.day_names').each_with_index do |day, index| %>
-        <% value = index.zero? ? 6 : index - 1 %>
-        <%= check_box_tag "byweekday_#{timestamp}_[]", value, false, id: "byweekday_#{timestamp}_#{value}", disabled: @disabled,
-            data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' } %>
-        <%= label_tag "byweekday_#{timestamp}_#{value}", day.first, disabled: @disabled %>
-      <% end %>
-    </div>
-  </div>
-
-  <div class="pl-5 is-hidden"
-    data-recurrent-event-rule-target="freqCustomizationInputsContainer"
-    data-rrule-freq="3,4"
-  ></div>
-
-  <div class="<%= class_names('is-flex is-align-items-center mt-5', 'is-hidden': @skip_end_method) %>">
-    <p class="mr-4"><b><%= t('.end') %></b></p>
-
-    <div class="control">
-      <div class="select">
-        <%= select_tag :end, options_for_select(ending_options), disabled: @disabled,
-          data: { 
-            recurrent_event_rule_target: 'endMethodSelect', 
-            action: 'recurrent-event-rule#toggleEndCustomizationInputsContainer ' \
-                    'recurrent-event-rule#setRule'
-          } %>
-      </div>
-    </div>
-
-    <div class="is-hidden ml-4" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="">
-    </div>
-
-    <div class="is-hidden is-flex is-align-items-center ml-4" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="count">
-      <div class="control">
-        <%= number_field_tag :count, 1, min: 1, class: 'input', disabled: @disabled,
-            data: { rrule_attr: 'count', action: 'recurrent-event-rule#setRule' } %>
-      </div>
-      <p class="ml-4"><b><%= t('.ocurrence_s') %></b></p>
-    </div>
-
-    <div class="is-hidden ml-4" data-recurrent-event-rule-target="endCustomizationInputsContainer" data-end-value="until">
-      <div class="control">
-        <%= date_field_tag :until, 6.months.from_now.to_date, class: 'input', disabled: @disabled,
-            data: { rrule_attr: 'until', recurrent_event_rule_target: 'untilInput', action: 'recurrent-event-rule#setRule' } %>
-      </div>
-    </div>
+    </fieldset>
   </div>
 <% end %>

@@ -1,0 +1,11 @@
+<%# Update the characters list %>
+<%= turbo_stream.replace 'characters-list' do %>
+  <%= render partial: 'movies/characters_list', locals: { movie: @movie, characters: @movie.characters.reload } %>
+<% end %>
+
+<%# Show success notification %>
+<%= turbo_stream.prepend 'flash-messages' do %>
+  <%= render Bali::Notification::Component.new(color: :success, dismissible: true, class: 'mb-4') do %>
+    Character removed successfully.
+  <% end %>
+<% end %>

@@ -3,144 +3,48 @@
 module Bali
   module Tags
     class Preview < ApplicationViewComponentPreview
-      # Tag view
-      # ---------------
-      # Basic tag view with text.
-      #
-      # @param size [Symbol] select [normal, medium, large]
-      # @param light toggle
-      # @param rounded toggle
-      def tags(size: :normal, light: false, rounded: false)
-        render Tags::Component.new(
-          size: size,
-          light: light,
-          rounded: rounded
-        ) do |c|
-          c.with_item(
-            text: 'Tag item with text'
-          )
-
-          c.with_item(
-            text: 'Tag item with text',
-            color: :black
-          )
-
-          c.with_item(
-            text: 'Tag item with text',
-            color: :light
-          )
-
-          c.with_item(
-            text: 'Tag item with text',
-            color: :white
-          )
-
-          c.with_item(
-            text: 'Tag item with text',
-            color: :primary
-          )
-
-          c.with_item(
-            text: 'Tag item with text',
-            color: :link
-          )
-
-          c.with_item(
-            text: 'Tag item with text',
-            color: :info
-          )
-
-          c.with_item(
-            text: 'Tag item with text',
-            color: :success
-          )
-
-          c.with_item(
-            text: 'Tag item with text',
-            color: :warning
-          )
-
-          c.with_item(
-            text: 'Tag item with text',
-            color: :danger
-          )
+      # @param gap select { choices: [none, xs, sm, md, lg] }
+      def default(gap: :sm)
+        render Tags::Component.new(gap: gap.to_sym) do |c|
+          c.with_item(text: 'Primary', color: :primary)
+          c.with_item(text: 'Secondary', color: :secondary)
+          c.with_item(text: 'Success', color: :success)
+          c.with_item(text: 'Warning', color: :warning)
+          c.with_item(text: 'Error', color: :error)
+          c.with_item(text: 'Info', color: :info)
         end
       end
 
-      # Tag view
+      # Mixed styles
       # ---------------
-      # Tags with class `has-addons` on main container,
-      # this allow us to group all tags side by side.
-      #
-      # @param size [Symbol] select [normal, medium, large]
-      # @param light toggle
-      # @param rounded toggle
-      def tags_with_addons(size: :normal, light: false, rounded: false)
-        render Tags::Component.new(
-          size: size,
-          light: light,
-          rounded: rounded,
-          class: 'has-addons'
-        ) do |c|
-          c.with_item(
-            text: 'Tag item with text'
-          )
-
-          c.with_item(
-            text: 'Tag item with text',
-            color: :primary
-          )
-
-          c.with_item(
-            text: 'Tag item with text',
-            color: :link
-          )
-
-          c.with_item(
-            text: 'Tag item with text',
-            color: :info
-          )
-
-          c.with_item(
-            text: 'Tag item with text',
-            color: :success
-          )
-
-          c.with_item(
-            text: 'Tag item with text',
-            color: :warning
-          )
-
-          c.with_item(
-            text: 'Tag item with text',
-            color: :danger
-          )
+      # Each tag can have independent styling - color, style, size, and rounded.
+      def mixed_styles
+        render Tags::Component.new do |c|
+          c.with_item(text: 'Solid', color: :primary)
+          c.with_item(text: 'Outline', color: :primary, style: :outline)
+          c.with_item(text: 'Soft', color: :primary, style: :soft)
+          c.with_item(text: 'Rounded', color: :success, rounded: true)
+          c.with_item(text: 'Large', color: :warning, size: :lg)
+          c.with_item(text: 'Small', color: :error, size: :sm)
         end
       end
 
-      # Tag view
+      # Link tags
       # ---------------
-      # Link tag view with text.
-      #
-      # @param size [Symbol] select [normal, medium, large]
-      # @param light toggle
-      # @param rounded toggle
-      def link_tag(size: :normal, light: false, rounded: false)
-        render Tags::Component.new(
-          size: size,
-          light: light,
-          rounded: rounded
-        ) do |c|
-          c.with_item(
-            text: 'Tag item with text',
-            href: '#'
-          )
-
-          c.with_item(
-            text: 'Tag item with text',
-            href: '#'
-          )
+      # Tags can be links when `href` is provided.
+      def with_links
+        render Tags::Component.new do |c|
+          c.with_item(text: 'Documentation', href: '/lookbook', color: :info)
+          c.with_item(text: 'GitHub', href: '/lookbook', color: :neutral)
+          c.with_item(text: 'API Reference', href: '/lookbook', color: :primary, style: :outline)
         end
+      end
+
+      # Custom gap spacing
+      # ---------------
+      # Use the `gap` parameter to control spacing between tags.
+      def gaps
+        render_with_template
       end
     end
   end

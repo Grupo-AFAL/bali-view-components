@@ -1,54 +1,69 @@
-<%= tag.div(**options) do %>
-  <div class='heatmap table-container'>
-    <table>
-      <thead>
-        <th><%= y_axis_title %></th>
-        <% labels_x.each do |label| %>
-          <th></th>
-        <% end %>
-      </thead>
-      <tbody>
-        <% labels_y.each do |label_y| %>
-          <tr>
-            <td class='label-y'><%= label_y %></td>
-            <% labels_x.each do |label_x| %>
-              <td style="width: <%= graph_item_width %>px">
-                <% value = data[label_x][label_y] || 0 %>
-                <%= render Bali::HoverCard::Component.new do |c| %>
-                  <% c.with_trigger(class: 'heatmap-item', style: "width: #{graph_item_width}px; height: #{graph_item_height}px; background: #{color_by_value(value)}") %>
-                  <%= hovercard_title %>
-                  <p class='mt-0'><%= "#{label_x} - #{label_y}" %></p>
-                  <p><%= value %></p>
-                <% end %>
-              </td>
-            <% end %>
-          </tr>
-        <% end %>
-      </tbody>
-      <tfoot>
+<%= tag.div(**html_options) do %>
+  <table class="<%= table_classes %>" style="border-spacing: 2px;">
+    <colgroup>
+      <col style="width: 48px;">
+      <% x_labels.each do |_| %><col><% end %>
+    </colgroup>
+    <thead>
+      <tr>
+        <th class="pb-2 text-right align-bottom"><%= y_axis_title %></th>
+        <% x_labels.each do |_| %><th></th><% end %>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% y_labels.each do |y| %>
         <tr>
-          <td></td>
-          <% labels_x.each do |label_x| %>
-            <td class='label-x'>
-              <%= label_x %>
+          <td class="<%= Y_LABEL_CLASSES %>" style="height: <%= cell_size %>px;"><%= y %></td>
+          <% x_labels.each do |x| %>
+            <% value = value_at(x, y) %>
+            <td class="<%= CELL_CLASSES %> relative" style="<%= cell_style(value) %>">
+              <%= render Bali::HoverCard::Component.new do |card| %>
+                <% card.with_trigger(class: 'absolute inset-0 cursor-pointer') do %>
+                <% end %>
+                <div class="text-xs">
+                  <%= hovercard_title if hovercard_title? %>
+                  <p class="text-base-content/70"><%= x %> - <%= y %></p>
+                  <p class="font-semibold"><%= value %></p>
+                </div>
+              <% end %>
             </td>
           <% end %>
         </tr>
-      </tfoot>
-    </table>
-    <%= x_axis_title %>
-  </div>
-  <div class='legend mt-4' >
-    <div class='legend-colors'>
+      <% end %>
+    </tbody>
+
+    <tfoot>
+      <tr>
+        <td></td>
+        <% x_labels.each do |x| %>
+          <td class="<%= X_LABEL_CLASSES %>"><%= x %></td>
+        <% end %>
+      </tr>
+      <% if x_axis_title? %>
+        <tr>
+          <td></td>
+          <td colspan="<%= x_labels.size %>" class="text-center pt-3">
+            <%= x_axis_title %>
+          </td>
+        </tr>
+      <% end %>
+    </tfoot>
+  </table>
+
+  <%# Legend %>
+  <div class="mt-4 flex items-center justify-center gap-2">
+    <span class="text-xs text-base-content/70">0</span>
+    <div class="flex h-4 rounded overflow-hidden flex-1 max-w-xs">
       <% gradient_colors.each do |color| %>
-        <%= tag.div(style: "background: #{color}; 
-                    width: #{(width) / gradient_colors.size}px") %>
+        <%= tag.div(class: 'flex-1', style: "background: #{color}") %>
       <% end %>
     </div>
-    <div class='legend-labels is-flex is-justify-content-space-between'>
-      <p>0</p>
-      <%= legend_title %>
-      <p><%= max_value %></p>
-    </div>
+    <span class="text-xs text-base-content/70"><%= max_value %></span>
   </div>
+  <% if legend_title? %>
+    <div class="text-center mt-1">
+      <%= legend_title %>
+    </div>
+  <% end %>
 <% end %>

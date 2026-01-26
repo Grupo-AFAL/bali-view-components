@@ -1,64 +1,39 @@
 <%= render Bali::Navbar::Component.new(
     fullscreen: fullscreen,
     transparency: transparency,
-    class: 'is-fixed-top'
+    color: local_assigns[:color] || :base,
+    class: 'fixed top-0 left-0 right-0 z-50'
 ) do |nav| %>
   <% nav.with_brand do %>
-    <%= tag.a('LOGO', class: 'navbar-item is-centered', href: '#', style: 'position: absolute; left: 50%;') %>
+    <%= render Bali::Link::Component.new(name: 'LOGO', href: '#', variant: :ghost, class: 'text-xl') %>
   <% end %>
   <% nav.with_burger(class: 'left-burger') %>
-  <% nav.with_burger(class: 'is-flex is-justify-content-center is-align-items-center is-hidden-desktop', type: :alt) do %>
+  <% nav.with_burger(class: 'flex justify-center items-center lg:hidden', type: :alt) do %>
     <%= render Bali::Icon::Component.new('user', tag_name: :div) %>
   <% end %>
   <% nav.with_menu do |menu| %>
-    <% menu.with_start_item(name: 'Home') %>
+    <% menu.with_start_item(name: 'Home', href: '#') %>
     <% menu.with_start_item(name: 'Documentation', href: '#') %>
-    <% menu.with_start_item(class: 'has-dropdown is-hoverable', tag_name: :div) do %>
-      <a class="navbar-link">
-        More
-      </a>
-      <div class='navbar-dropdown'>
-        <a class='navbar-item'>About</a>
-        <a class='navbar-item'>Jobs</a>
-        <a class='navbar-item'>Contact</a>
-        <hr class='navbar-divider' />
-        <a class='navbar-item'>Report an issue</a>
-      </div>
+    <% menu.with_start_item(tag_name: :div) do %>
+      <%= render Bali::Dropdown::Component.new(align: :left) do |dropdown| %>
+        <% dropdown.with_trigger(variant: :menu) do %>
+          More
+          <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
+        <% end %>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Jobs</a></li>
+        <li><a href="#">Contact</a></li>
+        <li><a href="#">Report an issue</a></li>
+      <% end %>
     <% end %>
   <% end %>
   <% nav.with_menu(type: :alt) do |menu| %>
     <% menu.with_end_item(tag_name: :div) do %>
-      <div class='buttons'>
-        <a class='button is-primary'>Sign up</a>
-        <a class='button is-light'>Log in</a>
+      <div class="flex items-center gap-2">
+        <%# Use neutral variant for contrast on all navbar colors %>
+        <%= render Bali::Link::Component.new(name: 'Sign up', href: '#', variant: :neutral) %>
+        <%= render Bali::Link::Component.new(name: 'Log in', href: '#', variant: :ghost) %>
       </div>
     <% end %>
   <% end %>
 <% end %>
-<div>
-  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut 
-  labore et dolore magna aliqua. Sed pulvinar proin gravida hendrerit. Ante in nibh mauris cursus 
-  mattis. Vel elit scelerisque mauris pellentesque pulvinar. Pretium viverra suspendisse potenti 
-  nullam ac. Quis blandit turpis cursus in hac habitasse platea. Id aliquet risus feugiat in ante 
-  metus dictum. Scelerisque felis imperdiet proin fermentum leo vel. Lorem dolor sed viverra ipsum 
-  nunc aliquet. Quis commodo odio aenean sed. Pharetra vel turpis nunc eget lorem dolor sed viverra 
-  ipsum. Feugiat in fermentum posuere urna. Cursus metus aliquam eleifend mi in nulla.
-  Ridiculus mus mauris vitae ultricies leo. Lectus nulla at volutpat diam ut venenatis tellus. 
-  Ut venenatis tellus in metus vulputate eu scelerisque. Imperdiet proin fermentum leo vel orci 
-  porta non. Sagittis orci a scelerisque purus semper eget duis at tellus. In nisl nisi scelerisque 
-  eu. Amet risus nullam eget felis eget nunc lobortis. In pellentesque massa placerat duis ultricies 
-  lacus sed. Blandit aliquam etiam erat velit scelerisque in dictum. Enim nunc faucibus a pellentesque 
-  sit amet. Viverra aliquet eget sit amet tellus cras adipiscing. Netus et malesuada fames ac turpis 
-  egestas sed. Nulla facilisi nullam vehicula ipsum a arcu cursus vitae congue. Odio tempor orci dapibus
-  ultrices in iaculis nunc sed augue. Amet consectetur adipiscing elit ut aliquam purus sit.
-  Pellentesque eu tincidunt tortor aliquam nulla facilisi cras fermentum odio. Vitae proin sagittis
-  nisl rhoncus mattis. Diam sit amet nisl suscipit adipiscing bibendum est ultricies. Facilisis leo 
-  vel fringilla est ullamcorper.
-  Vitae et leo duis ut diam quam nulla porttitor. Dui ut ornare lectus sit amet est placerat. 
-  Urna condimentum mattis pellentesque id nibh tortor. Justo donec enim diam vulputate. Massa placerat
-  duis ultricies lacus sed turpis tincidunt id. Sed augue lacus viverra vitae congue eu. Commodo 
-  elit at imperdiet dui. Nunc lobortis mattis aliquam faucibus. Quis imperdiet massa tincidunt nunc 
-  pulvinar sapien et ligula ullamcorper. Euismod in pellentesque massa placerat duis ultricies lacus 
-  sed turpis. Ut sem viverra aliquet eget sit amet tellus cras. Vitae tempus quam pellentesque nec. 
-  Varius duis at consectetur lorem donec massa sapien.
-</div>

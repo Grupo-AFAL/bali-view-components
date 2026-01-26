@@ -1,0 +1,5 @@
+<%= render Bali::PageHeader::Component.new do |c| %>
+  <% c.with_title(title, tag: title_tag.to_sym, class: title_class) %>
+  <% c.with_subtitle(subtitle, tag: subtitle_tag.to_sym, class: subtitle_class) %>
+  <%= render Bali::Button::Component.new(name: 'Right action', href: '#', variant: :secondary) %>
+<% end %>

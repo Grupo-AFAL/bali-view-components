@@ -3,100 +3,69 @@
 module Bali
   module Calendar
     class Preview < ApplicationViewComponentPreview
-      # Basic calendar
-      # -------------
-      def default
-        render(Calendar::Component.new(
-                 start_date: Date.current.to_s,
-                 all_week: false,
-                 show_date: true
-               )) do |c|
-          c.with_header(start_date: Date.current.to_s, route_path: '/lookbook')
-        end
-      end
-
-      # Calendar with week view
-      # ----------------------
-      def week
-        render(
-          Calendar::Component.new(start_date: Date.current.to_s,
-                                  all_week: false,
-                                  period: :week,
-                                  show_date: true)
-        ) do |c|
-          c.with_header(start_date: Date.current.to_s, route_path: '/lookbook')
-        end
-      end
-
-      # Calendar without period options
+      # Interactive calendar preview
       # ---------------------------
-      # This will hide the month and week options.
-      def without_period
-        render(Calendar::Component.new(start_date: Date.current.to_s,
-                                       all_week: false,
-                                       period: :month,
-                                       show_date: true)) do |c|
-          c.with_header(start_date: Date.current.to_s, route_path: '/lookbook', period_switch: false)
-        end
-      end
+      # Use the controls to explore different calendar configurations.
+      #
+      # @param period select { choices: [month, week] }
+      # @param weekdays_only toggle "Show only Monday-Friday"
+      # @param show_date toggle "Display day numbers"
+      # @param with_events toggle "Display sample events"
+      def default(period: :month, weekdays_only: false, show_date: true, with_events: false)
+        events = with_events ? sample_events : []
+        event_template = with_events ? 'bali/calendar/previews/template' : nil
 
-      # Calendar without date
-      # -------------------
-      # This will hide the day date.
-      def without_date
-        render(Calendar::Component.new(start_date: Date.current.to_s,
-                                       all_week: false,
-                                       period: :month,
-                                       show_date: false)) do |c|
-          c.with_header(start_date: Date.current.to_s, route_path: '/lookbook')
-        end
-      end
-
-      # Calendar with all week
-      # ---------------------
-      # This will display the entire week.
-      def all_week
-        render(Calendar::Component.new(start_date: Date.current.to_s,
-                                       all_week: true,
-                                       period: :month,
-                                       show_date: true)) do |c|
-          c.with_header(start_date: Date.current.to_s, route_path: '/lookbook')
-        end
-      end
-
-      # Calendar with events
-      # -------------------
-      # This will display the events in the calendar.
-      def with_events
-        events = [
-          Calendar::Previews::Event.new(start_time: Date.current, name: 'Event 2'),
-          Calendar::Previews::Event.new(start_time: Date.current - 1.day, name: 'Event 1')
-        ]
-
-        render(Calendar::Component.new(start_date: Date.current.to_s,
-                                       all_week: false,
-                                       period: :month,
-                                       show_date: true,
-                                       template: 'bali/calendar/previews/template',
-                                       events: events)) do |c|
-          c.with_header(start_date: Date.current.to_s, route_path: '/lookbook')
+        render(Calendar::Component.new(
+                 start_date: Date.current,
+                 period: period.to_sym,
+                 weekdays_only: ActiveModel::Type::Boolean.new.cast(weekdays_only),
+                 show_date: ActiveModel::Type::Boolean.new.cast(show_date),
+                 events: events,
+                 template: event_template
+               )) do |c|
+          c.with_header(route_path: '/lookbook')
         end
       end
 
       # Calendar with footer
-      # -------------------
-      # This will display custom content in the footer.
+      # --------------------
+      # Demonstrates the footer slot for custom content below the calendar.
       def with_footer
-        render(Calendar::Component.new(start_date: Date.current.to_s,
-                                       all_week: false,
-                                       period: :month,
-                                       show_date: true,
-                                       footer: true)) do |c|
-          c.with_header(start_date: Date.current.to_s, route_path: '/lookbook')
+        render(Calendar::Component.new(
+                 start_date: Date.current,
+                 weekdays_only: true,
+                 period: :month,
+                 show_date: true
+               )) do |c|
+          c.with_header(route_path: '/lookbook')
           c.with_footer do
-            '<span class="tag is-primary">This is the footer<spam>'.html_safe
+            render(Bali::Tag::Component.new(text: 'Custom footer content', color: :primary))
           end
         end
+      end
+
+      # Calendar without navigation
+      # ---------------------------
+      # Shows calendar without the header navigation controls.
+      # Useful when embedding in contexts where navigation is handled externally.
+      def without_header
+        render(Calendar::Component.new(
+                 start_date: Date.current,
+                 weekdays_only: true,
+                 period: :month,
+                 show_date: true
+               ))
+      end
+
+      private
+
+      def sample_events
+        [
+          Calendar::Previews::Event.new(start_time: Date.current, name: 'Today Event'),
+          Calendar::Previews::Event.new(start_time: Date.current - 1.day, name: 'Yesterday'),
+          Calendar::Previews::Event.new(start_time: Date.current + 2.days, name: 'Upcoming'),
+          Calendar::Previews::Event.new(start_time: Date.current - 3.days, name: 'Past Event')
+        ]
       end
     end
   end

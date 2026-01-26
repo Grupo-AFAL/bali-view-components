@@ -1,0 +1,106 @@
+import { defineConfig } from 'vite'
+import { resolve, dirname } from 'path'
+import { fileURLToPath } from 'url'
+import RubyPlugin from 'vite-plugin-ruby'
+import StimulusHMR from 'vite-plugin-stimulus-hmr'
+import FullReload from 'vite-plugin-full-reload'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+// Bali gem is 2 levels up from spec/dummy
+const baliGemPath = resolve(__dirname, '../..')
+
+export default defineConfig({
+  plugins: [
+    RubyPlugin(),
+    StimulusHMR(),
+    FullReload([
+      'app/views/**/*.erb',
+      'app/components/**/*.erb',
+      `${baliGemPath}/app/components/**/*.erb`
+    ])
+  ],
+  resolve: {
+    alias: [
+      // Internal Bali paths - MUST come before 'bali' catch-all (order matters!)
+      { find: 'bali/utils', replacement: resolve(baliGemPath, 'app/assets/javascripts/bali/utils') },
+      { find: 'bali/modal', replacement: resolve(baliGemPath, 'app/components/bali/modal/index.js') },
+      { find: 'bali/gantt-chart/connection-line', replacement: resolve(baliGemPath, 'app/components/bali/gantt_chart/connection_line.js') },
+      { find: 'bali/gantt-chart', replacement: resolve(baliGemPath, 'app/components/bali/gantt_chart') },
+      { find: 'bali/rich_text_editor', replacement: resolve(baliGemPath, 'app/components/bali/rich_text_editor/javascript') },
+      // Optional modules (heavy dependencies)
+      { find: 'bali/charts', replacement: resolve(baliGemPath, 'app/frontend/bali/charts.js') },
+      { find: 'bali/gantt', replacement: resolve(baliGemPath, 'app/frontend/bali/gantt.js') },
+      { find: 'bali/rich-text-editor', replacement: resolve(baliGemPath, 'app/frontend/bali/rich-text-editor.js') },
+      // Main Bali entry point (must come AFTER more specific paths)
+      { find: 'bali', replacement: resolve(baliGemPath, 'app/frontend/bali') },
+      // Legacy aliases for direct component/controller imports
+      { find: 'bali-components', replacement: resolve(baliGemPath, 'app/components/bali') },
+      { find: 'bali-controllers', replacement: resolve(baliGemPath, 'app/assets/javascripts/bali/controllers') },
+      // Explicit npm package aliases (needed for imports from gem path)
+      { find: 'tippy.js', replacement: resolve(__dirname, 'node_modules/tippy.js') },
+      { find: 'sortablejs', replacement: resolve(__dirname, 'node_modules/sortablejs') },
+      { find: 'chart.js', replacement: resolve(__dirname, 'node_modules/chart.js') },
+      { find: '@glidejs/glide', replacement: resolve(__dirname, 'node_modules/@glidejs/glide') },
+      { find: '@popperjs/core', replacement: resolve(__dirname, 'node_modules/@popperjs/core') },
+      { find: 'date-fns', replacement: resolve(__dirname, 'node_modules/date-fns') },
+      { find: 'rrule', replacement: resolve(__dirname, 'node_modules/rrule') },
+      { find: 'lodash.debounce', replacement: resolve(__dirname, 'node_modules/lodash.debounce') },
+      { find: 'lodash.throttle', replacement: resolve(__dirname, 'node_modules/lodash.throttle') },
+      { find: '@rails/request.js', replacement: resolve(__dirname, 'node_modules/@rails/request.js') },
+      { find: '@googlemaps/markerclusterer', replacement: resolve(__dirname, 'node_modules/@googlemaps/markerclusterer') },
+      { find: 'slim-select', replacement: resolve(__dirname, 'node_modules/slim-select') },
+      { find: 'interactjs', replacement: resolve(__dirname, 'node_modules/interactjs') },
+      { find: '@rails/activestorage', replacement: resolve(__dirname, 'node_modules/@rails/activestorage') }
+    ],
+    // Ensure dependencies used by Bali are resolved from dummy app's node_modules
+    dedupe: [
+      '@hotwired/stimulus',
+      '@hotwired/turbo',
+      'flatpickr',
+      'chart.js',
+      'sortablejs',
+      'lodash.debounce',
+      'lodash.throttle',
+      '@rails/request.js',
+      'date-fns',
+      'rrule',
+      'tippy.js',
+      '@popperjs/core',
+      '@glidejs/glide'
+    ]
+  },
+  // Optimize dependencies that Bali uses
+  optimizeDeps: {
+    include: [
+      '@hotwired/stimulus',
+      '@hotwired/turbo',
+      'flatpickr',
+      'chart.js',
+      'sortablejs',
+      'lodash.debounce',
+      'lodash.throttle',
+      '@rails/request.js',
+      'date-fns',
+      'rrule',
+      'tippy.js',
+      '@popperjs/core',
+      '@glidejs/glide'
+    ]
+  },
+  build: {
+    // Allow dynamic imports from gem path to resolve npm packages
+    commonjsOptions: {
+      include: [/node_modules/]
+    }
+  },
+  server: {
+    // Allow serving files from the Bali gem
+    fs: {
+      allow: [
+        '.',
+        baliGemPath
+      ]
+    }
+  }
+})

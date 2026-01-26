@@ -1,0 +1,428 @@
+/* Rich text editor component */
+
+/* === Content Styles === */
+.rich-editor-content {
+  --selected-cell-bg: oklch(var(--p) / 0.2);
+  --resize-handle-color: oklch(var(--p));
+
+  p {
+    @apply min-h-6;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-bold;
+  }
+
+  h1 {
+    @apply text-2xl;
+  }
+
+  h2 {
+    @apply text-xl;
+  }
+
+  h3 {
+    @apply text-base;
+  }
+
+  ul {
+    list-style: disc outside;
+    @apply ml-8 mt-4;
+
+    ul {
+      list-style: circle outside;
+      @apply mt-0;
+
+      ul {
+        list-style: square outside;
+
+        ul {
+          list-style: disc outside;
+
+          ul {
+            list-style: circle outside;
+          }
+        }
+      }
+    }
+  }
+
+  li {
+    @apply list-item py-0.5 px-0.5;
+
+    p:not(:last-child) {
+      @apply mb-0;
+    }
+  }
+
+  ol {
+    @apply list-decimal ml-8 mt-4;
+  }
+
+  blockquote {
+    @apply bg-base-200 border-l-4 border-base-300 py-5 px-6;
+  }
+
+  table {
+    @apply border-collapse table-fixed w-full m-0 overflow-hidden;
+
+    td,
+    th {
+      @apply min-w-4 border-2 border-base-200 py-1 px-1.5;
+      @apply align-top box-border relative;
+
+      > * {
+        @apply mb-0;
+      }
+    }
+
+    th {
+      @apply font-bold text-left bg-base-200;
+    }
+
+    .selectedCell:after {
+      @apply z-[2] absolute inset-0 pointer-events-none;
+      content: '';
+      background: var(--selected-cell-bg);
+    }
+
+    .column-resize-handle {
+      @apply absolute -right-0.5 top-0 -bottom-0.5 w-1 pointer-events-none;
+      background-color: var(--resize-handle-color);
+    }
+
+    p {
+      @apply m-0;
+    }
+  }
+
+  .suggestion {
+    @apply text-info border border-info rounded-md py-0.5 px-1 cursor-pointer;
+    box-decoration-break: clone;
+  }
+
+  blockquote:not(:last-child),
+  dl:not(:last-child),
+  ol:not(:last-child),
+  p:not(:last-child),
+  pre:not(:last-child),
+  table:not(:last-child),
+  ul:not(:last-child) {
+    @apply mb-4;
+  }
+
+  pre {
+    @apply bg-neutral rounded-lg text-neutral-content p-3;
+    font-family: 'JetBrainsMono', monospace;
+
+    code {
+      @apply bg-transparent text-inherit text-sm p-0;
+    }
+
+    code.hljs {
+      @apply block overflow-x-auto p-4;
+    }
+
+    .hljs {
+      color: #abb2bf;
+      background: #282c34;
+    }
+
+    .hljs::selection,
+    .hljs ::selection {
+      background-color: #3e4451;
+      color: #abb2bf;
+    }
+
+    .hljs-comment {
+      color: #545862;
+    }
+
+    .hljs-tag {
+      color: #565c64;
+    }
+
+    .hljs-subst,
+    .hljs-punctuation,
+    .hljs-operator {
+      color: #abb2bf;
+    }
+
+    .hljs-operator {
+      @apply opacity-70;
+    }
+
+    .hljs-bullet,
+    .hljs-variable,
+    .hljs-template-variable,
+    .hljs-selector-tag,
+    .hljs-name,
+    .hljs-deletion {
+      color: #e06c75;
+    }
+
+    .hljs-symbol,
+    .hljs-number,
+    .hljs-link,
+    .hljs-attr,
+    .hljs-variable.constant_,
+    .hljs-literal {
+      color: #d19a66;
+    }
+
+    .hljs-title,
+    .hljs-class .hljs-title,
+    .hljs-title.class_ {
+      color: #e5c07b;
+    }
+
+    .hljs-strong {
+      @apply font-bold;
+      color: #e5c07b;
+    }
+
+    .hljs-code,
+    .hljs-addition,
+    .hljs-title.class_.inherited__,
+    .hljs-string {
+      color: #98c379;
+    }
+
+    .hljs-built_in,
+    .hljs-doctag,
+    .hljs-quote,
+    .hljs-keyword.hljs-atrule,
+    .hljs-regexp {
+      color: #56b6c2;
+    }
+
+    .hljs-function .hljs-title,
+    .hljs-attribute,
+    .ruby .hljs-property,
+    .hljs-title.function_,
+    .hljs-section {
+      color: #61afef;
+    }
+
+    .hljs-type,
+    .hljs-template-tag,
+    .diff .hljs-meta,
+    .hljs-keyword {
+      color: #c678dd;
+    }
+
+    .hljs-emphasis {
+      color: #c678dd;
+      @apply italic;
+    }
+
+    .hljs-meta,
+    .hljs-meta .hljs-keyword,
+    .hljs-meta .hljs-string {
+      color: #be5046;
+    }
+
+    .hljs-meta .hljs-keyword,
+    .hljs-meta-keyword {
+      @apply font-bold;
+    }
+  }
+}
+
+/* === Bubble Menu Styles === */
+.rich-text-editor-menu {
+  --menu-border-radius: 0.25rem;
+  --menu-dropdown-icon-size: 0.75em;
+  --menu-box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --selected-shadow: 0 0 0 2px oklch(var(--p) / 0.5);
+
+  @apply flex text-center w-fit;
+  box-shadow: var(--menu-box-shadow);
+  border-radius: var(--menu-border-radius);
+
+  .toolbar-link.is-active {
+    @apply text-primary;
+
+    path {
+      fill: oklch(var(--p));
+    }
+  }
+
+  .dropdown-icon {
+    .svg-inline {
+      width: var(--menu-dropdown-icon-size);
+      height: var(--menu-dropdown-icon-size);
+
+      path {
+        @apply fill-base-300;
+      }
+    }
+  }
+
+  .image-grid-component {
+    @apply py-2 px-4 w-[25rem];
+
+    .column {
+      @apply p-1;
+    }
+
+    .card {
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+
+      &:hover {
+        box-shadow: var(--selected-shadow);
+      }
+    }
+  }
+
+  .dropdown-menu {
+    @apply min-w-0;
+  }
+
+  .dropdown-trigger {
+    a {
+      @apply w-max;
+    }
+  }
+
+  > :first-child,
+  > :first-child a {
+    border-radius: var(--menu-border-radius) 0 0 var(--menu-border-radius);
+  }
+
+  > :last-child {
+    border-radius: 0 var(--menu-border-radius) var(--menu-border-radius) 0;
+    @apply border-r-0;
+  }
+
+  a.toolbar-link {
+    @apply inline-block text-base-content bg-base-100 border-r border-base-200;
+    @apply py-1 px-1;
+
+    &,
+    &.table {
+      @apply mb-0;
+    }
+
+    &.mark {
+      @apply p-1 w-max;
+    }
+
+    &.disabled {
+      @apply opacity-20 cursor-not-allowed;
+    }
+
+    &:hover {
+      @apply bg-base-200;
+    }
+  }
+
+  .dropdown-item {
+    @apply block border-none w-full text-left py-1 px-4 m-0;
+
+    &.is-active {
+      @apply bg-base-100 text-base-content font-bold underline;
+    }
+
+    &:hover {
+      @apply bg-base-200;
+    }
+  }
+
+  .link-panel {
+    @apply w-72 px-2 text-left text-sm;
+
+    .input {
+      @apply inline-block text-left overflow-hidden;
+      overflow-wrap: normal;
+    }
+
+    [contenteditable='true']:empty:before {
+      @apply text-base-300 block pointer-events-none;
+      content: attr(placeholder);
+    }
+
+    .tabs {
+      @apply mb-2;
+
+      ul {
+        @apply list-none m-0;
+      }
+
+      li {
+        @apply block p-0;
+      }
+    }
+
+    .page-link {
+      @apply block border-none;
+    }
+  }
+
+  .page-selection {
+    @apply max-h-[200px] overflow-auto;
+  }
+
+  .color-selector {
+    @apply h-auto w-8 p-1.5 border-none bg-base-100;
+
+    &::-webkit-color-swatch-wrapper {
+      @apply p-0;
+    }
+
+    &::-webkit-color-swatch {
+      @apply p-0 m-0 border-none rounded-r;
+    }
+  }
+}
+
+/* === Main Component === */
+.tippy-box .dropdown-item {
+  &.is-active {
+    @apply bg-base-200;
+  }
+}
+
+.rich-text-editor-component {
+  &.input {
+    @apply h-auto min-h-20 block;
+
+    &[data-rich-text-editor-editable-value='false'] {
+      @apply border-none shadow-none p-0;
+    }
+  }
+
+  .ProseMirror {
+    @apply outline-none min-h-64;
+
+    .is-empty:before {
+      content: attr(data-placeholder);
+      @apply float-left text-base-content/40 pointer-events-none h-0;
+    }
+
+    img.ProseMirror-selectednode {
+      box-shadow: 0 0 0 3px oklch(var(--p) / 0.5);
+    }
+  }
+
+  .tableWrapper {
+    @apply overflow-x-auto;
+
+    blockquote:not(:last-child),
+    dl:not(:last-child),
+    ol:not(:last-child),
+    p:not(:last-child),
+    pre:not(:last-child),
+    table:not(:last-child),
+    ul:not(:last-child) {
+      @apply mb-0;
+    }
+  }
+
+  .resize-cursor {
+    cursor: ew-resize;
+    cursor: col-resize;
+  }
+}

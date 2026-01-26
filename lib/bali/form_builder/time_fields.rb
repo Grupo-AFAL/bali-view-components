@@ -3,63 +3,52 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module TimeFields
+      TIME_WRAPPER_OPTIONS = {
+        'data-datepicker-enable-time-value': true,
+        'data-datepicker-no-calendar-value': true
+      }.freeze
+
+      OPTION_TO_DATA_ATTRIBUTE = {
+        seconds: 'data-datepicker-enable-seconds-value',
+        time_24hr: 'data-datepicker-time24hr-value',
+        default_date: 'data-datepicker-default-date-value',
+        min_time: 'data-datepicker-min-time-value',
+        max_time: 'data-datepicker-max-time-value'
+      }.freeze
+
       def time_field_group(method, options = {})
-        @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
+        @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
           time_field(method, options)
         end
       end
 
       def time_field(method, options = {})
-        options[:wrapper_options] = {
-          'data-datepicker-enable-time-value': true,
-          'data-datepicker-no-calendar-value': true
-        }
+        merged_options = options.merge(
+          wrapper_options: merged_time_options(options),
+          value: formatted_time_value(method, options[:value])
+        )
 
-        enable_seconds(options)
-        datepicker_default_date(options)
-        datepicker_min_time(options)
-        datepicker_max_time(options)
-
-        value = object.send(method)
-        value = value.strftime('%Y-%m-%d %H:%M:%S') if value.respond_to?(:strftime)
-
-        # Adds a date if already doesn't include one (it will detect the date by an empty space),
-        # so that the time_field_group can display its time value correctly
-        options[:value] = [Date.current, value].join(' ') if value&.exclude?(' ')
-
-        date_field(method, options)
+        date_field(method, merged_options)
       end
 
       private
 
-      def enable_seconds(options)
-        return unless options[:seconds]
+      def merged_time_options(options)
+        base_options = TIME_WRAPPER_OPTIONS.merge(options[:wrapper_options] || {})
 
-        options[:wrapper_options].merge!('data-datepicker-enable-seconds-value': true)
+        OPTION_TO_DATA_ATTRIBUTE.each_with_object(base_options.dup) do |(key, attr), result|
+          result[attr] = options[key] if options[key].present?
+        end
       end
 
-      def datepicker_default_date(options)
-        return if options[:default_date].blank?
+      def formatted_time_value(method, explicit_value)
+        value = explicit_value || object&.public_send(method)
+        return nil if value.blank?
 
-        options[:wrapper_options].merge!(
-          'data-datepicker-default-date-value': options[:default_date]
-        )
-      end
+        formatted = value.respond_to?(:strftime) ? value.strftime('%H:%M:%S') : value.to_s
 
-      def datepicker_min_time(options)
-        return if options[:min_time].blank?
-
-        options[:wrapper_options].merge!(
-          'data-datepicker-min-time-value': options[:min_time]
-        )
-      end
-
-      def datepicker_max_time(options)
-        return if options[:max_time].blank?
-
-        options[:wrapper_options].merge!(
-          'data-datepicker-max-time-value': options[:max_time]
-        )
+        # Flatpickr requires a date component for time-only fields
+        formatted.include?(' ') ? formatted : "#{Date.current} #{formatted}"
       end
     end
   end

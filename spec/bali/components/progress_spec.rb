@@ -3,49 +3,68 @@
 require 'rails_helper'
 
 RSpec.describe Bali::Progress::Component, type: :component do
-  let(:options) { {} }
-  let(:component) { Bali::Progress::Component.new(**options) }
+  describe 'basic rendering' do
+    it 'renders progress component with DaisyUI classes' do
+      render_inline(described_class.new(value: 50))
 
-  it 'renders progress component' do
-    render_inline(component)
+      expect(page).to have_css 'div.flex.items-center.gap-2'
+      expect(page).to have_css 'progress.progress.w-full[value="50"][max="100"]'
+    end
 
-    expect(page).to have_css 'div.progress-component > progress'
-  end
+    it 'renders percentage by default' do
+      render_inline(described_class.new(value: 75))
 
-  context 'when no color code is given' do
-    it 'renders progress bar with default color' do
-      render_inline(component)
+      expect(page).to have_css 'span', text: '75%'
+    end
 
-      expect(page).to have_css 'progress[style="--progress-value-bar-color: hsl(196, 82%, 78%);"]'
+    it 'hides percentage when show_percentage is false' do
+      render_inline(described_class.new(value: 50, show_percentage: false))
+
+      expect(page).not_to have_css 'span'
     end
   end
 
-  context 'when custom color code is given' do
-    before { options.merge!(color_code: '#52BE80') }
+  describe 'colors' do
+    %i[primary secondary accent neutral info success warning error].each do |color|
+      it "renders #{color} color" do
+        render_inline(described_class.new(value: 50, color: color))
 
-    it 'renders progress bar with default color' do
-      render_inline(component)
-
-      expect(page).to have_css 'progress[style="--progress-value-bar-color: #52BE80;"]'
+        expect(page).to have_css "progress.progress.progress-#{color}"
+      end
     end
   end
 
-  context 'when display percentage is enabled' do
-    before { options.merge!(value: 75) }
-    it 'renders percentage value' do
-      render_inline(component)
+  describe 'percentage calculation' do
+    it 'calculates percentage from value and max' do
+      render_inline(described_class.new(value: 25, max: 50))
 
-      expect(page).to have_css 'small'
+      expect(page).to have_css 'span', text: '50%'
+    end
+
+    it 'handles zero max without error' do
+      render_inline(described_class.new(value: 25, max: 0))
+
+      expect(page).to have_css 'span', text: '0%'
     end
   end
 
-  context 'when display percentage is disabled' do
-    before { options.merge!(value: 35, percentage: false) }
+  describe 'options passthrough' do
+    it 'passes custom classes to wrapper' do
+      render_inline(described_class.new(value: 50, class: 'my-custom'))
 
-    it 'renders percentage value' do
-      render_inline(component)
+      expect(page).to have_css 'div.my-custom'
+    end
 
-      expect(page).not_to have_css 'small'
+    it 'passes data attributes to wrapper' do
+      render_inline(described_class.new(value: 50, data: { testid: 'progress-bar' }))
+
+      expect(page).to have_css 'div[data-testid="progress-bar"]'
+    end
+
+    it 'passes id to wrapper' do
+      render_inline(described_class.new(value: 50, id: 'upload-progress'))
+
+      expect(page).to have_css 'div#upload-progress'
     end
   end
 end

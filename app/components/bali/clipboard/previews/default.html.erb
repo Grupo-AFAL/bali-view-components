@@ -1,0 +1,9 @@
+<%= render Bali::Clipboard::Component.new do |c| %>
+  <% c.with_trigger do %>
+    <%= render Bali::Icon::Component.new('copy', size: :small) %>
+  <% end %>
+  <% c.with_success_content do %>
+    <%= render Bali::Icon::Component.new('check', size: :small) %>
+  <% end %>
+  <% c.with_source(source_text) %>
+<% end %>

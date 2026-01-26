@@ -1,4 +1,4 @@
-<%= tag.div **options do %>
+<%= tag.div class: level_classes, **options.except(:class) do %>
   <%= left %>
   <%= right %>
   <% items.each do |item| %>

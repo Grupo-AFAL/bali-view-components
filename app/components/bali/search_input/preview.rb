@@ -3,14 +3,16 @@
 module Bali
   module SearchInput
     class Preview < ApplicationViewComponentPreview
-      FORM = Bali::Utils::DummyFilterForm.new
-
-      def default
-        render Bali::SearchInput::Component.new(form: FORM, method: :name)
-      end
-
-      def auto_submit
-        render Bali::SearchInput::Component.new(form: FORM, method: :name, auto_submit: true)
+      # @param auto_submit toggle "Auto-submit on input change"
+      # @param placeholder text "Custom placeholder text"
+      def default(auto_submit: false, placeholder: nil)
+        form = Bali::Utils::DummyFilterForm.new
+        render Bali::SearchInput::Component.new(
+          form: form,
+          field: :name,
+          auto_submit: auto_submit,
+          placeholder: placeholder.presence
+        )
       end
     end
   end

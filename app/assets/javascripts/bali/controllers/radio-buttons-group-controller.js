@@ -46,6 +46,17 @@ export class RadioButtonsGroupController extends Controller {
     keepSelection: { type: Boolean, default: false }
   }
 
+  static classes = ['active', 'inactive']
+
+  // Default DaisyUI classes if not specified via data attributes
+  get activeClass () {
+    return this.hasActiveClass ? this.activeClasses : ['btn-primary']
+  }
+
+  get inactiveClass () {
+    return this.hasInactiveClass ? this.inactiveClasses : ['btn-ghost']
+  }
+
   connect () {
     this.activeToggler(this.currentValue)
     this.toggleTargets(this.currentValue)
@@ -72,9 +83,11 @@ export class RadioButtonsGroupController extends Controller {
   activeToggler (value) {
     this.togglerTargets.forEach(element => {
       if (element.value === value) {
-        element.classList.add('is-active')
+        element.classList.remove(...this.inactiveClass)
+        element.classList.add(...this.activeClass)
       } else {
-        element.classList.remove('is-active')
+        element.classList.remove(...this.activeClass)
+        element.classList.add(...this.inactiveClass)
       }
     })
   }
@@ -84,10 +97,10 @@ export class RadioButtonsGroupController extends Controller {
       const valuesProperties = element.dataset.radioButtonsGroupValue.split(',')
 
       if (valuesProperties.includes(value)) {
-        element.classList.remove('is-hidden')
+        element.classList.remove('hidden')
         this.activeTogglerContent = element
       } else {
-        element.classList.add('is-hidden')
+        element.classList.add('hidden')
         this.uncheckedRadioButtons(element)
       }
     })

@@ -1,128 +1,180 @@
-<%= form_with(model: form, url: url, method: :get,**@options) do |f| %>
-  <div class="level filters-component is-mobile width-inherit mb-0">
-    <div class="level-left">
+<%= form_with(model: form, url: url, method: :get, **@options) do |f| %>
+  <div class="filters-component flex flex-col gap-2 w-full">
+    <%# Main filter bar %>
+    <div class="flex items-center gap-3 flex-wrap">
+      <%# Additional query params %>
       <% additional_query_params.each do |query_param| %>
         <%= query_param %>
       <% end %>
 
+      <%# Search input %>
       <% if text_field.present? %>
-        <div class="level-item">
+        <div class="flex-shrink-0">
           <%= render Bali::SearchInput::Component.new(
-              form: form, method: text_field, auto_submit: auto_submit_search_input,
+              form: form, field: text_field, auto_submit: auto_submit_search_input,
               submit: { data: { action: 'filter-form#submit' } }) %>
         </div>
       <% end %>
 
+      <%# Filters dropdown %>
       <% if attributes? || content.present? %>
-        <div class="level-item popup-element" data-controller="popup" data-popup-opened-value="<%= opened %>">
-          <%= tag.a id: 'filters-button',
-              class: class_names('button is-text', 'is-selected': opened),
-              data: { action: 'popup#toggle', 'popup-target': 'button' } do %>
-
-            <%= render Bali::Icon::Component.new('filter') %>
-
-            <%= tag.span "#{active_filters_count > 0 ? "(#{active_filters_count}) " : nil}",
-                class: 'counter is-size-7-mobile',
-                data: { 'filter-form-target': 'filterCounter' } %>
-
-            <%= tag.span t('.filters'), class: 'text is-hidden-mobile' %>
-          <% end %>
+        <div class="dropdown dropdown-end" data-controller="popup" data-popup-opened-value="<%= opened %>">
+          <button type="button"
+                  id="filters-button"
+                  tabindex="0"
+                  class="<%= class_names('btn btn-ghost gap-2', 'btn-active': opened) %>"
+                  data-action="popup#toggle"
+                  data-popup-target="button">
+            <%= render Bali::Icon::Component.new('filter', class: 'w-4 h-4') %>
+            <span class="hidden sm:inline"><%= t('.filters') %></span>
+            <% if active_filters_count > 0 %>
+              <span class="badge badge-primary badge-sm"
+                    data-filter-form-target="filterCounter">
+                <%= active_filters_count %>
+              </span>
+            <% else %>
+              <span class="badge badge-sm hidden"
+                    data-filter-form-target="filterCounter"></span>
+            <% end %>
+          </button>
 
           <%= hidden_field_tag :opened, opened, data: { 'popup-target': 'openedInput' } %>
 
-          <%= tag.div class: class_names('filters-popup', 'is-hidden': !opened), data: { 'popup-target': 'container' } do %>
-            <div class="box">
-              <%= render Bali::Link::Component.new(icon_name: 'times', href: nil, data: { action: 'popup#close' },
-                  class: 'close-button') %>
+          <%# Dropdown content %>
+          <div class="<%= class_names('filters-popup dropdown-content z-50 mt-2', 'hidden': !opened) %>"
+               data-popup-target="container">
+            <%= render Bali::Card::Component.new(style: :bordered, body_class: 'p-4 space-y-4', class: 'shadow-2xl w-80 sm:w-96') do %>
+                <%# Header %>
+                <div class="flex items-center justify-between">
+                  <h3 class="font-semibold text-lg flex items-center gap-2">
+                    <%= render Bali::Icon::Component.new('filter', class: 'w-5 h-5 text-primary') %>
+                    <%= t('.filters') %>
+                  </h3>
+                  <button type="button"
+                          class="btn btn-ghost btn-sm btn-circle"
+                          data-action="popup#close">
+                    <%= render Bali::Icon::Component.new('times', class: 'w-4 h-4') %>
+                  </button>
+                </div>
 
-              <% if content.present? %>
-                <%= content %>
-              <% else %>
-                <% date_range_atributes = attributes.select { |attr| attr.date_range_field? || attr.datetime_field? } %>
-                <% if date_range_atributes.any? %>
-                  <div class="mb-5">
-                    <% date_range_atributes.each do |attribute| %>
-                      <div class="mb-2"><%= attribute %></div>
-                    <% end %>
+                <div class="divider my-0"></div>
+
+                <%# Filter content %>
+                <% if content.present? %>
+                  <div class="space-y-4">
+                    <%= content %>
                   </div>
-                <% end %>
-
-                <% text_or_number_attributes = attributes.select(&:text_field?) %>
-                <% if text_or_number_attributes.any? %>
-                  <% block_displayed = text_or_number_attributes.select(&:display_block?) %>
-                  <% flex_displayed = text_or_number_attributes.select(&:display_flex?) %>
-
-                  <div class="mb-5">
-                    <% block_displayed.each do |attribute| %>
-                      <div class="mb-2"><%= attribute %></div>
-                    <% end %>
-
-                    <% if flex_displayed.any? %>
-                      <div class="columns is-multiline">
-                        <% flex_displayed.each do |attribute| %>
-                          <div class="column"><%= attribute %></div>
+                <% else %>
+                  <div class="space-y-4 max-h-[60vh] overflow-y-auto">
+                    <%# Date range filters %>
+                    <% date_range_atributes = attributes.select { |attr| attr.date_range_field? || attr.datetime_field? } %>
+                    <% if date_range_atributes.any? %>
+                      <div class="space-y-3">
+                        <% date_range_atributes.each do |attribute| %>
+                          <%= attribute %>
                         <% end %>
                       </div>
                     <% end %>
-                  </div>
-                <% end %>
 
-                <% check_box_attributes = attributes.select(&:check_box_field?) %>
-                <% if check_box_attributes.any? %>
-                  <div class="columns is-multiline mb-5">
-                    <% check_box_attributes.each do |attribute| %>
-                      <div class="column"><%= attribute %> </div>
+                    <%# Text/Number filters %>
+                    <% text_or_number_attributes = attributes.select(&:text_field?) %>
+                    <% if text_or_number_attributes.any? %>
+                      <% block_displayed = text_or_number_attributes.select(&:display_block?) %>
+                      <% flex_displayed = text_or_number_attributes.select(&:display_flex?) %>
+                      <div class="space-y-3">
+                        <% block_displayed.each do |attribute| %>
+                          <%= attribute %>
+                        <% end %>
+                        <% if flex_displayed.any? %>
+                          <div class="grid grid-cols-2 gap-3">
+                            <% flex_displayed.each do |attribute| %>
+                              <div><%= attribute %></div>
+                            <% end %>
+                          </div>
+                        <% end %>
+                      </div>
                     <% end %>
-                  </div>
-                <% end %>
 
-                <% collection_attributes = attributes.select(&:collection_field?) %>
-                <% if collection_attributes.any? %>
-                  <% with_many_options = collection_attributes.select { |attr| attr.collection_options.size > 5 } %>
-                  <% with_few_options = collection_attributes.select { |attr| attr.collection_options.size <= 5 } %>
+                    <%# Checkbox filters %>
+                    <% check_box_attributes = attributes.select(&:check_box_field?) %>
+                    <% if check_box_attributes.any? %>
+                      <div class="grid grid-cols-2 gap-3">
+                        <% check_box_attributes.each do |attribute| %>
+                          <div><%= attribute %></div>
+                        <% end %>
+                      </div>
+                    <% end %>
 
-                  <% if with_many_options.present? %>
-                    <div class="mb-4">
-                      <% with_many_options.each do |attribute| %>
-                        <div class="mb-2"><%= attribute %></div>
+                    <%# Collection filters %>
+                    <% collection_attributes = attributes.select(&:collection_field?) %>
+                    <% if collection_attributes.any? %>
+                      <% with_many_options = collection_attributes.select { |attr| attr.collection_options.size > 5 } %>
+                      <% with_few_options = collection_attributes.select { |attr| attr.collection_options.size <= 5 } %>
+
+                      <% if with_many_options.present? %>
+                        <div class="space-y-3">
+                          <% with_many_options.each do |attribute| %>
+                            <%= attribute %>
+                          <% end %>
+                        </div>
                       <% end %>
-                    </div>
-                  <% end %>
 
-                  <div class="columns is-multiline">
-                    <% with_few_options.each do |attribute| %>
-                      <%= attribute %>
+                      <% if with_few_options.any? %>
+                        <div class="space-y-3">
+                          <% with_few_options.each do |attribute| %>
+                            <%= attribute %>
+                          <% end %>
+                        </div>
+                      <% end %>
                     <% end %>
                   </div>
                 <% end %>
-              <% end %>
 
-              <%= f.submit t('helpers.apply.text'), class:'button is-primary is-fullwidth mt-5',
-                  data: { action: 'popup#close filter-form#submit' } %>
-            </div>
-          <% end %>
+                <div class="divider my-0"></div>
+
+                <%# Actions %>
+                <div class="flex gap-2">
+                  <% if active_filters? %>
+                    <%= link_to clear_filters_url,
+                          class: 'btn btn-ghost flex-1',
+                          data: { 'filter-form-target': 'removeButton' } do %>
+                      <%= t('.remove_filters') %>
+                    <% end %>
+                  <% end %>
+                  <%= f.submit t('helpers.apply.text'),
+                        class: 'btn btn-primary flex-1',
+                        data: { action: 'popup#close filter-form#submit' } %>
+                </div>
+            <% end %>
+          </div>
         </div>
       <% end %>
 
+      <%# Custom filters slot %>
       <% if custom_filters.present? %>
-        <div class="level-item width-inherit">
-          <%= custom_filters %>
-        </div>
+        <%= custom_filters %>
       <% end %>
 
-      <% if attributes? || custom_filters.present? %>
-        <div class="level-item">
-          <%= link_to t('.remove_filters'), clear_filters_url,
-              class: class_names('is-hidden-mobile', 'is-hidden': !active_filters?),
-              data: { 'filter-form-target': 'removeButton' } %>
-        </div>
+      <%# Clear filters link (desktop) %>
+      <% if (attributes? || custom_filters.present?) && active_filters? %>
+        <%= link_to clear_filters_url,
+              class: 'link link-hover link-error text-sm hidden sm:inline-flex items-center gap-1',
+              data: { 'filter-form-target': 'removeButton' } do %>
+          <%= render Bali::Icon::Component.new('times', class: 'w-3 h-3') %>
+          <%= t('.remove_filters') %>
+        <% end %>
       <% end %>
     </div>
-  </div>
 
-  <div class="has-text-centered is-hidden-tablet">
-    <%= link_to t('.remove_filters'), clear_filters_url,
-        class: class_names('is-hidden': !active_filters?),
-        data: { 'filter-form-target': 'removeButton' } %>
+    <%# Clear filters link (mobile) %>
+    <% if (attributes? || custom_filters.present?) && active_filters? %>
+      <div class="sm:hidden text-center">
+        <%= link_to clear_filters_url,
+              class: 'link link-hover link-error text-sm',
+              data: { 'filter-form-target': 'removeButton' } do %>
+          <%= t('.remove_filters') %>
+        <% end %>
+      </div>
+    <% end %>
   </div>
 <% end %>

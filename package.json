@@ -1,11 +1,16 @@
 {
   "name": "bali-view-components",
-  "version": "1.4.19",
+  "version": "2.0.0",
   "description": "Bali ViewComponents",
   "repository": "git@github.com:Grupo-AFAL/bali.git",
   "author": "Federico Gonzalez <fedegl@hey.com>",
   "license": "MIT",
   "private": false,
+  "exports": {
+    "./css/bali.css": "./app/assets/stylesheets/bali.css",
+    "./css/components.css": "./app/assets/stylesheets/bali/components.css",
+    "./css/*.css": "./app/assets/stylesheets/bali/*.css"
+  },
   "scripts": {
     "cy:open": "cypress open",
     "cy:run": "cypress run"
@@ -16,6 +21,7 @@
     "@babel/plugin-proposal-class-properties": "^7.16.7",
     "@babel/preset-env": "^7.17.10",
     "cypress": "^13.6.4",
+    "playwright": "^1.57.0",
     "standard": "^17.0.0"
   },
   "standard": {
@@ -35,5 +41,8 @@
       "localStorage",
       "DataTransfer"
     ]
+  },
+  "dependencies": {
+    "daisyui": "^5.5.14"
   }
 }

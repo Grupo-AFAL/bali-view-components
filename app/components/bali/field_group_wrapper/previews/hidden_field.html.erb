@@ -1,0 +1,13 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <p class="text-sm text-base-content/60 mb-4">
+    The wrapper below contains a hidden field - no label is rendered.
+  </p>
+
+  <%= render Bali::FieldGroupWrapper::Component.new(form, :token, type: 'hidden') do %>
+    <%= form.hidden_field :token, value: 'abc123' %>
+  <% end %>
+
+  <p class="text-sm text-success mt-2">
+    ✓ Hidden field rendered (inspect HTML to verify)
+  </p>
+<% end %>

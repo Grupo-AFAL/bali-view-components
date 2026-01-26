@@ -1,4 +1,4 @@
-<%= tag.div(**options) do %>
+<%= tag.ul(**component_options, role: 'list') do %>
   <% items.each do |item| %>
     <%= item %>
   <% end %>

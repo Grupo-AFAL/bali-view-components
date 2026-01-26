@@ -1,0 +1,78 @@
+<%# DataTable with Grid/Table toggle - demonstrates display_mode switching %>
+<%= render Bali::DataTable::Component.new(
+      url: request.path,
+      pagy: pagy,
+      item_name: 'movies',
+      display_mode: display_mode
+    ) do |c| %>
+
+  <%# Actions panel with grid mode toggle enabled %>
+  <% c.with_actions_panel(grid_display_mode_enabled: true) %>
+
+  <%# Table view %>
+  <% c.with_table do %>
+    <%= render Bali::Table::Component.new(form: filter_form, id: 'grid-mode-demo-table') do |t| %>
+      <%= t.with_header(name: 'Name', sort: :name) %>
+      <%= t.with_header(name: 'Genre') %>
+      <%= t.with_header(name: 'Status', sort: :status) %>
+      <%= t.with_header(name: 'Indie') %>
+
+      <% movies.each do |movie| %>
+        <%= t.with_row do %>
+          <td class="font-medium"><%= movie.name %></td>
+          <td><span class="badge badge-outline"><%= movie.genre %></span></td>
+          <td>
+            <span class="badge <%= movie.done? ? 'badge-success' : 'badge-warning' %>">
+              <%= movie.status.humanize %>
+            </span>
+          </td>
+          <td>
+            <%= render Bali::BooleanIcon::Component.new(value: movie.indie) %>
+          </td>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <%# Grid view - card-based layout using Bali components %>
+  <% c.with_grid do %>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <% movies.each do |movie| %>
+        <%= render Bali::Card::Component.new(style: :bordered, class: 'hover:shadow-md transition-shadow') do |card| %>
+          <div class="card-body p-4">
+            <h3 class="card-title text-base">
+              <%= movie.name %>
+              <% if movie.indie %>
+                <%= render Bali::Tag::Component.new(text: 'Indie', color: :secondary, size: :sm) %>
+              <% end %>
+            </h3>
+
+            <div class="flex flex-wrap gap-2 mt-2">
+              <%= render Bali::Tag::Component.new(text: movie.genre, style: :outline) %>
+              <%= render Bali::Tag::Component.new(
+                    text: movie.status.humanize,
+                    color: movie.done? ? :success : :warning
+                  ) %>
+            </div>
+
+            <% if movie.tenant %>
+              <p class="text-sm text-base-content/60 mt-2">
+                <%= render Bali::Icon::Component.new('business', class: 'w-4 h-4 inline') %>
+                <%= movie.tenant.name %>
+              </p>
+            <% end %>
+
+            <div class="card-actions justify-end mt-3">
+              <button class="btn btn-ghost btn-sm">
+                <%= render Bali::Icon::Component.new('expand', class: 'w-4 h-4') %>
+              </button>
+              <button class="btn btn-ghost btn-sm">
+                <%= render Bali::Icon::Component.new('edit', class: 'w-4 h-4') %>
+              </button>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

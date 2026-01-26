@@ -1,0 +1,144 @@
+---
+title: JavaScript Integration
+label: JavaScript
+---
+
+# JavaScript Integration
+
+Bali uses **Stimulus** for JavaScript functionality. Components ship with pre-built controllers that you can use out of the box.
+
+## Available Controllers
+
+| Controller | Purpose | Component |
+|------------|---------|-----------|
+| `modal` | Dialog control | Modal |
+| `dropdown` | Menu toggle | Dropdown, ActionsDropdown |
+| `tabs` | Tab navigation | Tabs |
+| `clipboard` | Copy to clipboard | Clipboard |
+| `datepicker` | Date selection | Calendar |
+| `slim-select` | Enhanced selects | SlimSelect |
+| `submit-on-change` | Auto-submit forms | Various |
+
+## Using Stimulus Actions
+
+Connect component events to your own controllers:
+
+```erb
+<%%= render Bali::Button::Component.new(
+  name: 'Save',
+  data: {
+    action: 'click->form#submit'
+  }
+) %>
+```
+
+## Controller Patterns
+
+### Standard Structure
+
+```javascript
+import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller {
+  // Targets (DOM elements to reference)
+  static targets = ["menu", "trigger"]
+
+  // Values (reactive state)
+  static values = {
+    open: { type: Boolean, default: false }
+  }
+
+  // Lifecycle
+  connect() {
+    this.boundClickOutside = this.clickOutside.bind(this)
+  }
+
+  disconnect() {
+    document.removeEventListener("click", this.boundClickOutside)
+  }
+
+  // Actions
+  toggle() {
+    this.openValue = !this.openValue
+  }
+
+  // Value change callbacks
+  openValueChanged(value) {
+    if (value) {
+      this.show()
+    } else {
+      this.hide()
+    }
+  }
+}
+```
+
+## Event Communication
+
+### Dispatching Custom Events
+
+Components dispatch events you can listen to:
+
+```javascript
+// In your controller
+handleSelect(event) {
+  const { value } = event.detail
+  console.log("Selected:", value)
+}
+```
+
+```erb
+<div data-action="dropdown:select->myController#handleSelect">
+  <%%= render Bali::Dropdown::Component.new(...) %>
+</div>
+```
+
+### Cross-Controller Communication
+
+```javascript
+// Via custom events
+document.dispatchEvent(new CustomEvent("bali:modal:open", {
+  detail: { id: "confirm-dialog" }
+}))
+
+// Via Stimulus outlets
+static outlets = ["modal"]
+
+openModal() {
+  this.modalOutlet.open()
+}
+```
+
+## Tailwind Toggle Patterns
+
+When toggling visibility, use Tailwind's hidden/flex classes:
+
+```javascript
+// GOOD - Tailwind pattern
+toggleVisibility(element) {
+  const isHidden = element.classList.contains('hidden')
+  if (isHidden) {
+    element.classList.remove('hidden')
+    element.classList.add('flex')
+  } else {
+    element.classList.add('hidden')
+    element.classList.remove('flex')
+  }
+}
+```
+
+## Debug Mode
+
+Enable debugging in development:
+
+```javascript
+// In browser console
+window.baliDebugEnabled = true
+```
+
+## Best Practices
+
+1. **Single responsibility** - Each controller handles one concern
+2. **Clean up listeners** - Remove event listeners in `disconnect()`
+3. **Use values for state** - Don't store state in the DOM
+4. **Dispatch events** - Let parent components react to changes

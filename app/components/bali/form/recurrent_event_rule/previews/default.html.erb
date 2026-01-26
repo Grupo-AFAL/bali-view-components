@@ -1,17 +1,42 @@
 <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
-  <%= form.recurrent_event_rule_field_group :rule %>
+  <div class="space-y-8">
+    <%# Example 1: Default (no value) %>
+    <div class="p-4 border border-base-300 rounded-lg bg-base-100">
+      <p class="text-sm text-base-content/70 mb-1">Default (no value provided)</p>
+      <p class="text-xs text-base-content/50 mb-3">When no RRULE is specified, defaults to yearly on January 1st.</p>
+      <%= form.recurrent_event_rule_field_group :rule %>
+    </div>
 
-  <hr>
+    <%# Example 2: Monthly on the last Monday %>
+    <div class="p-4 border border-base-300 rounded-lg bg-base-100">
+      <p class="text-sm text-base-content/70 mb-1">Monthly on the last Monday</p>
+      <p class="text-xs text-base-content/50 mb-3">
+        <code class="bg-base-200 px-1 rounded">FREQ=MONTHLY;INTERVAL=5;BYSETPOS=-1;BYDAY=MO</code>
+        — Every 5 months, on the last Monday of the month.
+      </p>
+      <%= form.recurrent_event_rule_field :rule,
+          value: 'RRULE:INTERVAL=5;FREQ=MONTHLY;BYSETPOS=-1;BYDAY=MO' %>
+    </div>
 
-  <%= form.recurrent_event_rule_field :rule, 
-      value: 'RRULE:INTERVAL=5;FREQ=MONTHLY;BYSETPOS=-1;BYDAY=MO' %>
+    <%# Example 3: Weekly on specific days with count %>
+    <div class="p-4 border border-base-300 rounded-lg bg-base-100">
+      <p class="text-sm text-base-content/70 mb-1">Weekly on specific days with occurrence limit</p>
+      <p class="text-xs text-base-content/50 mb-3">
+        <code class="bg-base-200 px-1 rounded">FREQ=WEEKLY;INTERVAL=5;BYDAY=SU,TU,TH;COUNT=3</code>
+        — Every 5 weeks on Sun/Tue/Thu, stops after 3 occurrences.
+      </p>
+      <%= form.recurrent_event_rule_field :rule,
+          value: 'RRULE:INTERVAL=5;FREQ=WEEKLY;BYDAY=SU,TU,TH;COUNT=3' %>
+    </div>
 
-  <hr>
-
-  <%= form.recurrent_event_rule_field :rule, 
-      value: 'RRULE:INTERVAL=5;FREQ=WEEKLY;BYDAY=SU,TU,TH;COUNT=3' %>
-
-  <hr>
-
-  <%= form.recurrent_event_rule_field :rule, value: 'FREQ=DAILY;INTERVAL=1;UNTIL=20250831T000000Z' %>
+    <%# Example 4: Daily until a specific date %>
+    <div class="p-4 border border-base-300 rounded-lg bg-base-100">
+      <p class="text-sm text-base-content/70 mb-1">Daily until a specific date</p>
+      <p class="text-xs text-base-content/50 mb-3">
+        <code class="bg-base-200 px-1 rounded">FREQ=DAILY;INTERVAL=1;UNTIL=20250831</code>
+        — Every day until August 31, 2025.
+      </p>
+      <%= form.recurrent_event_rule_field :rule, value: 'FREQ=DAILY;INTERVAL=1;UNTIL=20250831T000000Z' %>
+    </div>
+  </div>
 <% end %>

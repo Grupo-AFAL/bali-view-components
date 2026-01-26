@@ -1,0 +1,16 @@
+<div class="flex items-center gap-6">
+  <div class="flex items-center gap-2">
+    <span class="text-sm font-medium">true:</span>
+    <%= render Bali::BooleanIcon::Component.new(value: true) %>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <span class="text-sm font-medium">false:</span>
+    <%= render Bali::BooleanIcon::Component.new(value: false) %>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <span class="text-sm font-medium">nil:</span>
+    <%= render Bali::BooleanIcon::Component.new(value: nil) %>
+  </div>
+</div>

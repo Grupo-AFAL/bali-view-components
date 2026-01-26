@@ -1,0 +1,14 @@
+--markup markdown
+--markup-provider redcarpet
+--output-dir spec/dummy/public/api-docs
+--title "Bali ViewComponents API"
+--protected
+--no-private
+--embed-mixins
+--readme README.md
+--exclude spec/
+--exclude handbook/
+--exclude docs/
+app/components/**/*.rb
+lib/bali/**/*.rb
+lib/bali_view_components/**/*.rb

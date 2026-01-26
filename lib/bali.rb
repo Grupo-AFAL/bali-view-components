@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'bali/filter_form'
+require 'bali/advanced_filter_form'
 require 'bali/form_builder/html_utils'
 require 'bali/form_builder/shared_utils'
 require 'bali/form_builder/shared_date_utils'
@@ -41,6 +42,10 @@ module Bali
   mattr_accessor :ios_native_app_user_agent, default: /Turbo Native \(iOS\)/
   mattr_accessor :android_native_app_user_agent, default: /Turbo Native \(Android\)/
   mattr_accessor :sketcky_request_usernames, default: %w[admin cnadmin]
+
+  # Rich Text Editor configuration
+  # Set to true to enable the Rich Text Editor component (requires TipTap dependencies)
+  mattr_accessor :rich_text_editor_enabled, default: false
 
   def self.add_icon(name, svg_str)
     custom_icons[name.to_s] = svg_str

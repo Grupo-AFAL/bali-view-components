@@ -3,6 +3,9 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module HtmlUtils
+      # Shared class for input addons (currency $, percentage %, etc.)
+      ADDON_CLASSES = 'btn btn-disabled pointer-events-none join-item'
+
       def field_options(method, options)
         pattern_types = {
           number_with_commas: '^(\d+|\d{1,3}(,\d{3})*)(\.\d+)?$'
@@ -11,33 +14,58 @@ module Bali
         pattern_type = options.delete(:pattern_type)
         options[:pattern] = pattern_types[pattern_type] if pattern_type
 
-        options[:class] = field_class_name(method, "input #{options[:class]}")
+        # Add join-item class when addons are present for proper DaisyUI join pattern
+        has_addons = options[:addon_left].present? || options[:addon_right].present?
+        base_class = if has_addons
+                       'input input-bordered join-item grow'
+                     else
+                       'input input-bordered w-full'
+                     end
+
+        options[:class] = field_class_name(method, "#{base_class} #{options[:class]}")
         options.except(:addon_left, :addon_right)
+      end
+
+      def textarea_field_options(method, options, stimulus: false)
+        base_class = 'textarea textarea-bordered w-full'
+        options[:class] = field_class_name(method, "#{base_class} #{options[:class]}")
+
+        if stimulus
+          options[:data] ||= {}
+          options[:data]['textarea-target'] = 'input'
+          options[:data][:action] = 'input->textarea#onInput'
+        end
+
+        options
       end
 
       def field_helper(method, field, options = {})
         if errors?(method)
-          help_message = content_tag(:p, full_errors(method), class: 'help is-danger')
+          help_message = content_tag(:p, full_errors(method), class: 'label-text-alt text-error')
         elsif options[:help]
-          help_message = content_tag(:p, options[:help], class: 'help')
+          help_message = content_tag(:p, options[:help], class: 'label-text-alt')
         end
 
         left_addon = options.delete(:addon_left)
         right_addon = options.delete(:addon_right)
 
-        wrapped_field = content_tag(:div, field,
-                                    class: "control #{options.delete(:control_class)}",
-                                    data: options.delete(:control_data))
+        # When addons exist, don't wrap in control div - use join pattern directly
+        if left_addon.present? || right_addon.present?
+          return field_with_addons(field, left: left_addon, right: right_addon) + help_message
+        end
 
-        return wrapped_field + help_message if left_addon.blank? && right_addon.blank?
+        control_class = ['control', options.delete(:control_class)].compact.join(' ')
+        wrapped_field = content_tag(
+          :div, field, class: control_class, data: options.delete(:control_data)
+        )
 
-        field_with_addons(wrapped_field, left: left_addon, right: right_addon) + help_message
+        wrapped_field + help_message
       end
 
       def field_class_name(method, class_name = 'input')
         return class_name unless errors?(method)
 
-        "#{class_name} is-danger"
+        "#{class_name} input-error"
       end
 
       def errors?(method)
@@ -45,7 +73,9 @@ module Bali
       end
 
       def full_errors(method)
-        object.errors.full_messages_for(method).join(', ').html_safe
+        return '' unless object.respond_to?(:errors)
+
+        safe_join(object.errors.full_messages_for(method), ', ')
       end
 
       # rubocop:disable Style/OptionalBooleanParameter
@@ -68,22 +98,20 @@ module Bali
       end
 
       def translate_attribute(method)
-        model_name = object.model_name.i18n_key
-        I18n.t("activerecord.attributes.#{model_name}.#{method}", default: method.to_s.humanize)
+        if object.respond_to?(:model_name)
+          model_name = object.model_name.i18n_key
+          I18n.t("activerecord.attributes.#{model_name}.#{method}", default: method.to_s.humanize)
+        else
+          method.to_s.humanize
+        end
       end
 
       private
 
       def field_with_addons(field, left:, right:)
-        content_tag(:div, class: 'field has-addons') do
-          @template.safe_join(
-            [generate_addon_html(left), field, generate_addon_html(right)].compact
-          )
+        content_tag(:div, class: 'join w-full') do
+          @template.safe_join([left, field, right].compact)
         end
-      end
-
-      def generate_addon_html(addon_content)
-        content_tag(:div, class: 'control') { addon_content } if addon_content.present?
       end
     end
   end

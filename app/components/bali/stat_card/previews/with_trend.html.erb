@@ -1,0 +1,11 @@
+<%= render Bali::StatCard::Component.new(
+  title: 'Total Revenue',
+  value: '$45,231',
+  icon_name: 'dollar-sign',
+  color: :success
+) do |card| %>
+  <% card.with_footer do %>
+    <%= render Bali::Icon::Component.new('trending-up', size: :small, class: 'text-success') %>
+    <span class="text-success">+12% from last month</span>
+  <% end %>
+<% end %>

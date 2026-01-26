@@ -3,110 +3,199 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module RadioFields
+      RADIO_CLASS = 'radio'
+      LABEL_CLASS = 'label cursor-pointer justify-start gap-3'
+      LABEL_TEXT_CLASS = 'label-text'
+      ERROR_CLASS = 'label-text-alt text-error'
+      TOGGLERS_CLASS = 'join'
+      TOGGLER_CLASS = 'join-item btn btn-sm'
+      TOGGLER_ACTIVE_CLASS = 'btn-primary'
+      TOGGLER_INACTIVE_CLASS = 'btn-ghost'
+      TOGGLER_TYPE = 'button'
+      RADIO_BUTTONS_GROUP_CLASS = 'radio-buttons-group'
+      DEFAULT_ORIENTATION = :vertical
+
+      ORIENTATIONS = {
+        vertical: 'flex flex-col gap-1',
+        horizontal: 'flex flex-row flex-wrap gap-x-4 gap-y-1 py-2'
+      }.freeze
+
+      SIZES = {
+        xs: 'radio-xs',
+        sm: 'radio-sm',
+        md: 'radio-md',
+        lg: 'radio-lg'
+      }.freeze
+
+      COLORS = {
+        primary: 'radio-primary',
+        secondary: 'radio-secondary',
+        accent: 'radio-accent',
+        success: 'radio-success',
+        warning: 'radio-warning',
+        info: 'radio-info',
+        error: 'radio-error'
+      }.freeze
+
+      CONTROLLER_NAME = 'radio-buttons-group'
+
       def radio_field_group(method, values, options = {}, html_options = {})
-        @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
+        @template.render Bali::FieldGroupWrapper::Component.new(self, method, options) do
           radio_field(method, values, options, html_options)
         end
       end
 
       def radio_field(method, values, options = {}, html_options = {})
-        label_class = class_names(['radio', html_options.delete(:radio_label_class)])
+        label_class = build_radio_label_class(html_options)
+        radio_opts = build_radio_input_options(method, html_options)
+        orientation = html_options.fetch(:orientation, DEFAULT_ORIENTATION).to_sym
+        container_class = ORIENTATIONS.fetch(orientation, ORIENTATIONS[DEFAULT_ORIENTATION])
 
-        field = @template.safe_join(tags(values, html_options, method, label_class))
+        radio_buttons = render_radio_buttons(
+          values,
+          method: method,
+          label_class: label_class,
+          radio_options: radio_opts
+        )
+
+        field = content_tag(:div, safe_join(radio_buttons), class: container_class)
         field_helper(method, field, options)
       end
 
-      def radio_buttons_group(
-        method, values, options = {}, togglers_options = {}, radios_options = {}
-      )
-        @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
-          radio_buttons_field(
-            method, values, options, togglers_options, radios_options
-          )
+      def radio_buttons_group(method, values, options = {}, togglers_options = {},
+                              radios_options = {})
+        @template.render Bali::FieldGroupWrapper::Component.new(self, method, options) do
+          radio_buttons_field(method, values, options, togglers_options, radios_options)
         end
       end
 
-      def radio_buttons_field(
-        method, values, options = {}, togglers_options = {}, radios_options = {}
-      )
-        current_value = options.delete(:current_value) ||
-                        values.find { |key, _| values[key].present? }&.first
+      def radio_buttons_field(method, values, options = {}, togglers_options = {},
+                              radios_options = {})
+        current_value = extract_current_value(values, options)
+        control_options = build_control_options(options, current_value)
 
-        options[:control_class] = "radio-buttons-group #{options[:control_class] || ''}"
-        options[:control_data] ||= {}
-        options[:control_data].merge!(
-          controller: 'radio-buttons-group',
-          'radio-buttons-group-current-value': current_value,
-          'radio-buttons-group-keep-selection-value': options.delete(:keep_selection)
+        field = safe_join(
+          [render_togglers(values, togglers_options, current_value),
+           render_grouped_radios(method, values, radios_options)]
         )
 
-        field = safe_join([
-                            togglers(values, togglers_options),
-                            radio_buttons(method, values, radios_options)
-                          ])
-
-        field_helper(method, field, options)
+        field_helper(method, field, control_options)
       end
 
       private
 
-      def togglers(values, options)
-        options = prepend_class_name(options, 'togglers')
-        toggler_opts = toggler_options(options)
+      def build_radio_label_class(html_options)
+        custom_class = html_options[:radio_label_class]
+        [LABEL_CLASS, custom_class].compact.join(' ')
+      end
 
-        tag.div(**options) do
+      def build_radio_input_options(method, html_options)
+        size = html_options[:size]
+        color = html_options[:color]
+        custom_class = html_options[:class]
+
+        radio_class = [
+          RADIO_CLASS,
+          SIZES[size],
+          COLORS[color],
+          (errors?(method) ? 'radio-error' : nil),
+          custom_class
+        ].compact.join(' ')
+
+        html_options.except(:radio_label_class, :size, :color, :class, :data, :orientation)
+                    .merge(class: radio_class)
+      end
+
+      def extract_current_value(values, options)
+        options[:current_value] || values.find { |key, _| values[key].present? }&.first
+      end
+
+      def build_control_options(options, current_value)
+        keep_selection = options[:keep_selection]
+
+        control_class = [RADIO_BUTTONS_GROUP_CLASS, options[:control_class]].compact.join(' ')
+        control_data = (options[:control_data] || {}).merge(
+          controller: CONTROLLER_NAME,
+          "#{CONTROLLER_NAME}-current-value": current_value,
+          "#{CONTROLLER_NAME}-keep-selection-value": keep_selection
+        )
+
+        options.except(:current_value, :keep_selection)
+               .merge(control_class: control_class, control_data: control_data)
+      end
+
+      def render_radio_buttons(values, method:, label_class:, radio_options:)
+        data = radio_options[:data]
+
+        values.map do |display_value|
+          display, value, item_options = display_value
+          merged_options = radio_options.merge(item_options || {}).merge(data: data)
+
+          label(method, class: label_class, value: value) do
+            safe_join(
+              [radio_button(method, value, merged_options),
+               content_tag(:span, display, class: LABEL_TEXT_CLASS)]
+            )
+          end
+        end
+      end
+
+      def render_togglers(values, options, current_value)
+        container_options = options.except(:toggler)
+        container_options[:class] =
+          [TOGGLERS_CLASS, 'mb-3', container_options[:class]].compact.join(' ')
+        base_toggler_opts = build_toggler_options(options)
+
+        content_tag(:div, **container_options) do
           safe_join(values.keys.map do |value|
-            toggler_opts[:disabled] = values[value].blank?
-            toggler_opts[:value] = value
+            is_active = value.to_s == current_value.to_s
+            active_class = is_active ? TOGGLER_ACTIVE_CLASS : TOGGLER_INACTIVE_CLASS
 
-            tag.button(value, **toggler_opts)
+            item_opts = base_toggler_opts.dup
+            item_opts[:class] = [item_opts[:class], active_class].compact.join(' ')
+            item_opts[:disabled] = values[value].blank?
+            item_opts[:value] = value
+
+            content_tag(:button, value, **item_opts)
           end)
         end
       end
 
-      def toggler_options(options)
-        opts = options.delete(:toggler) || {}
-        opts = prepend_class_name(opts, 'toggler')
-        opts = prepend_action(opts, 'radio-buttons-group#change')
-        opts = prepend_data_attribute(opts, 'radio-buttons-group-target', 'toggler')
-        opts[:type] = 'button'
-
+      def build_toggler_options(options)
+        opts = (options[:toggler] || {}).dup
+        opts[:class] = [TOGGLER_CLASS, opts[:class]].compact.join(' ')
+        opts = prepend_action(opts, "#{CONTROLLER_NAME}#change")
+        opts = prepend_data_attribute(opts, "#{CONTROLLER_NAME}-target", 'toggler')
+        opts[:type] = TOGGLER_TYPE
         opts
       end
 
-      def radio_buttons(method, values, options)
-        options = prepend_data_attribute(options, 'radio-buttons-group-target', 'element')
+      def render_grouped_radios(method, values, options)
+        container_options = prepend_data_attribute(
+          options.except(:label),
+          "#{CONTROLLER_NAME}-target",
+          'element'
+        )
 
-        label_options = options.delete(:label) || {}
-        label_options = prepend_class_name(label_options, 'radio')
+        label_class = [LABEL_CLASS, options.dig(:label, :class)].compact.join(' ')
 
         safe_join(values.map do |category, category_values|
-          options[:data]['radio-buttons-group-value'] = category
+          item_options = container_options.dup
+          item_options[:class] =
+            [ORIENTATIONS[DEFAULT_ORIENTATION], item_options[:class]].compact.join(' ')
+          item_options[:data] = (item_options[:data] || {}).merge(
+            "#{CONTROLLER_NAME}-value" => category
+          )
 
-          tag.div(**options) do
-            safe_join(
-              tags(
-                category_values,
-                { data: { action: 'click->radio-buttons-group#select' } },
-                method, label_options[:class]
-              )
-            )
+          content_tag(:div, **item_options) do
+            safe_join(render_radio_buttons(
+                        category_values,
+                        method: method,
+                        label_class: label_class,
+                        radio_options: { data: { action: "click->#{CONTROLLER_NAME}#select" } }
+                      ))
           end
         end)
-      end
-
-      def tags(values, html_options, method, label_class)
-        data = html_options.delete(:data)
-
-        values.map do |display_value|
-          display, value, radio_options = display_value
-          radio_options ||= {}
-          radio_options.merge!(html_options)
-
-          label(method, class: label_class, value: value) do
-            radio_button(method, value, radio_options.merge(data: data)) + display
-          end
-        end
       end
     end
   end

@@ -1,3 +1,7 @@
-<%= tag.div(**options) do %>
-  <%= tag.span(text, class: "tag #{tag_class}") %>
-<% end %>
+<li>
+  <hr/>
+  <div class="timeline-middle py-2">
+    <span class="<%= badge_classes %>"><%= text %></span>
+  </div>
+  <hr/>
+</li>

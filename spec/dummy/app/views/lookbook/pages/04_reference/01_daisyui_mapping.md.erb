@@ -1,0 +1,142 @@
+---
+title: DaisyUI Class Mapping
+label: DaisyUI Mapping
+---
+
+# DaisyUI Class Mapping
+
+Reference for migrating from Bulma to DaisyUI classes.
+
+## Color Variants
+
+| Bulma | DaisyUI | Notes |
+|-------|---------|-------|
+| `is-primary` | `*-primary` | |
+| `is-secondary` | `*-secondary` | |
+| `is-success` | `*-success` | |
+| `is-warning` | `*-warning` | |
+| `is-danger` | `*-error` | **"danger" → "error"** |
+| `is-info` | `*-info` | |
+| `is-light` | `*-ghost` | |
+| `is-dark` | `*-neutral` | |
+
+## Size Modifiers
+
+| Bulma | DaisyUI | Notes |
+|-------|---------|-------|
+| `is-small` | `*-sm` | |
+| `is-medium` | `*-md` | |
+| `is-large` | `*-lg` | |
+
+---
+
+## Component Classes
+
+### Buttons
+
+| Bulma | DaisyUI |
+|-------|---------|
+| `button` | `btn` |
+| `button is-primary` | `btn btn-primary` |
+| `button is-outlined` | `btn btn-outline` |
+| `button is-loading` | `btn` + `<span class="loading">` |
+
+### Cards
+
+| Bulma | DaisyUI |
+|-------|---------|
+| `card` | `card bg-base-100` |
+| `card-content` | `card-body` |
+| `card-header` | `div` inside `card-body` |
+| `card-footer` | `card-actions` |
+
+### Forms
+
+| Bulma | DaisyUI |
+|-------|---------|
+| `input` | `input input-bordered` |
+| `textarea` | `textarea textarea-bordered` |
+| `select` | `select select-bordered` |
+| `checkbox` | `checkbox` |
+| `radio` | `radio` |
+
+### Layout
+
+| Bulma | DaisyUI/Tailwind |
+|-------|------------------|
+| `columns` | `grid grid-cols-12` |
+| `column` | `col-span-*` |
+| `container` | `container mx-auto` |
+
+### Navigation
+
+| Bulma | DaisyUI |
+|-------|---------|
+| `navbar` | `navbar` |
+| `navbar-brand` | `navbar-start` |
+| `navbar-menu` | `navbar-center` / `navbar-end` |
+| `tabs` | `tabs` |
+| `tab` | `tab` |
+| `is-active` (tab) | `tab-active` |
+
+### Feedback
+
+| Bulma | DaisyUI |
+|-------|---------|
+| `notification` | `alert` |
+| `notification is-danger` | `alert alert-error` |
+| `modal` | `modal` |
+| `modal-card` | `modal-box` |
+
+---
+
+## Utility Classes
+
+| Purpose | Bulma | Tailwind |
+|---------|-------|----------|
+| Spacing | `mt-5`, `px-3` | `mt-5`, `px-3` |
+| Text align | `has-text-centered` | `text-center` |
+| Display | `is-hidden` | `hidden` |
+| Flex | `is-flex` | `flex` |
+| Font weight | `has-text-weight-bold` | `font-bold` |
+
+---
+
+## Icons
+
+Bali uses **Lucide icons** (via Iconify):
+
+```erb
+<%%= render Bali::Icon::Component.new('pencil') %>
+<%%= render Bali::Icon::Component.new('trash-2') %>
+<%%= render Bali::Icon::Component.new('settings') %>
+```
+
+### Common Mappings
+
+| Old Name | Lucide Name |
+|----------|-------------|
+| `edit` | `pencil` |
+| `trash` | `trash-2` |
+| `cog` | `settings` |
+| `times` | `x` |
+| `check-circle` | `circle-check` |
+
+---
+
+## Semantic Colors
+
+DaisyUI uses semantic color names that adapt to themes:
+
+```erb
+<%# Base colors %>
+<p class="text-base-content">Regular text</p>
+<p class="bg-base-100">Background</p>
+
+<%# Semantic colors %>
+<p class="text-primary">Primary accent</p>
+<p class="text-error">Error message</p>
+<p class="text-success">Success message</p>
+```
+
+Always prefer semantic colors over hardcoded values for theme compatibility.

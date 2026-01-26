@@ -1,0 +1,3 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.select_group :status, Movie.statuses.to_a %>
+<% end %>

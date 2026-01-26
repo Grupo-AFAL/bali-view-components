@@ -1,0 +1,17 @@
+<%= tag.div class: 'relative inline-block', data: { controller: 'avatar' } do %>
+  <%= render Bali::Avatar::Component.new(**avatar_options) do |avatar| %>
+    <% avatar.with_picture(image_url: @src || '', data: { avatar_target: 'output' }) %>
+  <% end %>
+
+  <%= tag.div class: button_classes do %>
+    <%= tag.label class: 'cursor-pointer flex items-center justify-center w-full h-full',
+                  aria: { label: 'Upload avatar image' } do %>
+      <%= render Bali::Icon::Component.new('camera', size: :sm) %>
+      <div class="hidden">
+        <%= @form.file_field @method,
+              accept: accepted_formats,
+              data: { avatar_target: 'input', action: 'change->avatar#showImage' } %>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>

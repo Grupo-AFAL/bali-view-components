@@ -1,0 +1,11 @@
+<%= form_with(model: model, url: '/lookbook', builder: Bali::FormBuilder) do |form| %>
+  <div class="flex flex-wrap gap-4">
+    <%= form.submit 'Primary', variant: :primary %>
+    <%= form.submit 'Secondary', variant: :secondary %>
+    <%= form.submit 'Accent', variant: :accent %>
+    <%= form.submit 'Success', variant: :success %>
+    <%= form.submit 'Warning', variant: :warning %>
+    <%= form.submit 'Error', variant: :error %>
+    <%= form.submit 'Ghost', variant: :ghost %>
+  </div>
+<% end %>

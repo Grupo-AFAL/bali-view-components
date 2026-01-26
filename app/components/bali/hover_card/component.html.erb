@@ -1,13 +1,9 @@
-<%= tag.div **options do %>
+<%= tag.div(**wrapper_options) do %>
   <%= trigger %>
 
   <% if content.present? %>
-    <template data-hovercard-target='template'>
-      <% if content_padding %>
-        <div class="hover-card-content"><%= content %></div>
-      <% else %>
-        <%= content %>
-      <% end %>
+    <template data-hovercard-target="template">
+      <%= wrapped_content %>
     </template>
   <% end %>
 <% end %>

@@ -47,9 +47,9 @@ module Bali
 
         [
           {
-            id: 1, name: 'Task 1', start_date: date, end_date: date + 16.days, update_url: '/gantt_chart/1', href: '/gantt_chart/1', data: { action: 'modal#open' },
+            id: 1, name: 'Task 1', start_date: date, end_date: date + 16.days, update_url: '/gantt_chart/1', href: '/gantt_chart/1', data: { turbo: false, action: 'modal#open' },
             actions: {
-              info: { href: '/gantt_chart/1/edit', data: { action: 'modal#open' } },
+              info: { href: '/gantt_chart/1/edit', data: { turbo: false, action: 'modal#open' } },
               complete: { href: '/gantt_chart/1/complete', data: { 'turbo-method': 'patch' } },
               indent: { href: '/gantt_chart/1/indent', data: { 'turbo-method': 'patch' } },
               outdent: { href: '/gantt_chart/1/outdent', data: { 'turbo-method': 'patch' } },
@@ -58,7 +58,7 @@ module Bali
           },
           {
             id: 2, name: 'Task 1.1', start_date: date, end_date: date + 10.days,
-            update_url: '/gantt_chart/2', parent_id: 1, href: '/gantt_chart/2', data: { action: 'modal#open' }
+            update_url: '/gantt_chart/2', parent_id: 1, href: '/gantt_chart/2', data: { turbo: false, action: 'modal#open' }
           },
           {
             id: 3, name: 'Task 1.2', start_date: date + 2.days, end_date: date + 6.days,

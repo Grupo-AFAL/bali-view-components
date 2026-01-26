@@ -9,6 +9,13 @@ const ARROW_SVG = `
 </svg>
 `
 
+// DaisyUI loading spinner shown while fetching content
+const LOADING_SPINNER = `
+<div class="hover-card-content flex items-center justify-center p-6">
+  <span class="loading loading-spinner loading-md"></span>
+</div>
+`
+
 /*
   Hovercard controller:
     It generates a hovercard component to show some content
@@ -23,7 +30,8 @@ export class HovercardController extends Controller {
     trigger: { type: String, default: 'mouseenter focus' },
     contentPadding: { type: Boolean, default: true },
     appendTo: { type: String, default: 'body' },
-    zIndex: { type: Number, default: 9999 }
+    zIndex: { type: Number, default: 9999 },
+    arrow: { type: Boolean, default: true }
   }
 
   async connect () {
@@ -31,13 +39,14 @@ export class HovercardController extends Controller {
 
     this.contentLoaded = false
 
-    const content = this.hasTemplateTarget ? this.templateTarget.innerHTML : ''
+    // Use template content, or loading spinner if fetching from URL
+    const content = this.getInitialContent()
 
     const { default: tippy } = await import('tippy.js')
 
     this.tippy = tippy(this.triggerTarget, {
       allowHTML: true,
-      arrow: ARROW_SVG,
+      arrow: this.arrowValue ? ARROW_SVG : false,
       duration: 100,
       appendTo: this.appendToProp(),
       content,
@@ -52,6 +61,19 @@ export class HovercardController extends Controller {
     })
   }
 
+  getInitialContent () {
+    if (this.hasTemplateTarget) {
+      return this.templateTarget.innerHTML
+    }
+
+    // Show loading spinner when content will be fetched from URL
+    if (this.hasUrlValue && this.urlValue.length > 0) {
+      return LOADING_SPINNER
+    }
+
+    return ''
+  }
+
   appendToProp () {
     if (this.appendToValue === 'body') return () => document.body
     if (this.appendToValue === 'parent') return 'parent'
@@ -64,10 +86,12 @@ export class HovercardController extends Controller {
   }
 
   onCreate = instance => {
+    // ALWAYS add base wrapper class for arrow/shadow styling
+    instance.popper.classList.add('hover-card-tippy-wrapper')
+
+    // THEN add any custom content classes (e.g., DaisyUI menu classes)
     if (this.hasContentClass) {
       instance.popper.classList.add(...this.contentClasses)
-    } else {
-      instance.popper.classList.add('hover-card-tippy-wrapper')
     }
   }
 

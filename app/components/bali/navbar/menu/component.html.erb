@@ -1,13 +1,21 @@
-<%= tag.div(**options) do %>
-  <div class='navbar-start'>
-    <% start_items.each do |start_item| %>
-      <%= start_item %>
-    <% end %>
-  </div>
-
-  <div class='navbar-end'>
-    <% end_items.each do |end_item| %>
-      <%= end_item %>
-    <% end %>
-  </div>
+<%= tag.div(**menu_wrapper_options) do %>
+  <% if start_items.any? || start_dropdown_items.any? %>
+    <div class="<%= start_items_classes %>">
+      <ul class="<%= menu_classes %>">
+        <% start_items.each do |start_item| %>
+          <li><%= start_item %></li>
+        <% end %>
+      </ul>
+      <% start_dropdown_items.each do |dropdown_item| %>
+        <%= dropdown_item %>
+      <% end %>
+    </div>
+  <% end %>
+  <% if end_items.any? %>
+    <div class="<%= end_items_classes %>">
+      <% end_items.each do |end_item| %>
+        <%= end_item %>
+      <% end %>
+    </div>
+  <% end %>
 <% end %>

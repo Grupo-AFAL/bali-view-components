@@ -41,7 +41,7 @@ export class PopupController extends Controller {
   }
 
   open () {
-    this.containerTarget.classList.remove('is-hidden')
+    this.containerTarget.classList.remove('hidden')
     this.containerTarget.classList.add('popin')
     this.buttonTarget.classList.add('is-selected')
     this.openedInputTarget.value = true
@@ -50,7 +50,7 @@ export class PopupController extends Controller {
   }
 
   close () {
-    this.containerTarget.classList.add('is-hidden')
+    this.containerTarget.classList.add('hidden')
     this.containerTarget.classList.remove('popin')
     this.buttonTarget.classList.remove('is-selected')
     this.openedInputTarget.value = false

@@ -1,0 +1,3 @@
+<%= form_with(model: model, url: '/lookbook', builder: Bali::FormBuilder) do |form| %>
+  <%= form.submit_actions 'Save Changes', cancel_path: '/lookbook', cancel_options: { label: 'Cancel' } %>
+<% end %>

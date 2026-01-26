@@ -1,7 +1,6 @@
-<%= tag.div(**options) do %>
-  <label class="has-text-weight-bold is-size-7"><%= label %></label>
-
-  <div class="label-value">
+<%= tag.div(**component_attributes) do %>
+  <label class="<%= LABEL_CLASSES %>"><%= label %></label>
+  <div class="<%= VALUE_CLASSES %>">
     <%= value || content %>
   </div>
 <% end %>

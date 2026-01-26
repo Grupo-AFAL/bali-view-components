@@ -1,5 +1,7 @@
 /.bundle/
 /doc/
+.yardoc/
+**/doc/
 /log/*.log
 /pkg/
 /tmp/
@@ -30,3 +32,12 @@ yarn-debug.log*
 /vendor
 
 .DS_Store
+
+firebase-debug.log
+.playwright-mcp/
+test-results/
+
+firebase-debug.log
+.claude/
+
+.mcp.json

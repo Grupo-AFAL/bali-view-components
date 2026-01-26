@@ -4,8 +4,6 @@ module Bali
   module Tabs
     module Trigger
       class Component < ApplicationViewComponent
-        attr_reader :index, :href, :icon, :title, :src, :reload, :active
-
         def initialize(tab, index = 0)
           @index = index
           @icon = tab.icon
@@ -18,29 +16,43 @@ module Bali
 
         private
 
-        def data
-          return {} if href.present?
+        attr_reader :index, :href, :icon, :title, :src, :reload, :active
 
-          {
-            'tabs-target': 'tab',
-            'tabs-index-param': index,
-            'tabs-src-param': src,
-            'tabs-reload-param': reload,
-            action: 'click->tabs#open'
+        def trigger_attributes
+          base = {
+            role: 'tab',
+            id: "tab-#{index}",
+            class: classes
           }
+
+          if href.present?
+            # Full page navigation - regular link behavior
+            base.merge(
+              href: href,
+              'aria-selected': active_path?(request.fullpath, href)
+            )
+          else
+            # Client-side tab switching
+            base.merge(
+              'aria-selected': active,
+              'aria-controls': "tabpanel-#{index}",
+              tabindex: active ? 0 : -1,
+              data: {
+                'tabs-target': 'tab',
+                'tabs-index-param': index,
+                'tabs-src-param': src,
+                'tabs-reload-param': reload,
+                action: 'click->tabs#open'
+              }
+            )
+          end
         end
 
         def classes
           class_names(
-            'tabs-trigger-component',
-            'is-active': href.present? ? active_path?(request.fullpath, href) : active
+            'tab',
+            'tab-active' => (href.present? ? active_path?(request.fullpath, href) : active)
           )
-        end
-
-        def link_options
-          return { href: href } if href.present?
-
-          {}
         end
       end
     end

@@ -1,0 +1,378 @@
+{
+  "version": "2.0.0",
+  "migration_name": "Bulma to Tailwind + DaisyUI 5",
+  "generated_at": "2026-01-18",
+  "statistics": {
+    "total_commits": 317,
+    "total_files_changed": 533,
+    "total_components": 60,
+    "breaking_changes": 7,
+    "new_components": 15,
+    "deprecated_components": 1,
+    "removed_components": 1
+  },
+  "framework_changes": {
+    "before": {
+      "css": "Bulma",
+      "preprocessor": "SCSS",
+      "bundler": "dartsass-rails"
+    },
+    "after": {
+      "css": "Tailwind + DaisyUI 5",
+      "preprocessor": "PostCSS",
+      "bundler": "tailwindcss-rails"
+    }
+  },
+  "components": {
+    "breaking": [
+      {
+        "name": "Bali::Link::Component",
+        "file": "app/components/bali/link/component.rb",
+        "severity": "low",
+        "backwards_compatible": true,
+        "changes": [
+          {
+            "type": "parameter_deprecation",
+            "parameter": "type",
+            "replacement": "variant",
+            "mapping": {
+              "primary": "primary",
+              "secondary": "secondary",
+              "success": "success",
+              "danger": "error",
+              "warning": "warning",
+              "info": "info",
+              "link": "link"
+            }
+          },
+          {
+            "type": "parameter_add",
+            "parameter": "size",
+            "values": ["xs", "sm", "md", "lg", "xl"]
+          },
+          {
+            "type": "parameter_add",
+            "parameter": "plain",
+            "description": "Renders link without button styling"
+          },
+          {
+            "type": "parameter_add",
+            "parameter": "authorized",
+            "description": "Permission-based rendering"
+          }
+        ]
+      },
+      {
+        "name": "Bali::Card::Component",
+        "file": "app/components/bali/card/component.rb",
+        "severity": "medium",
+        "backwards_compatible": false,
+        "changes": [
+          {
+            "type": "slot_rename",
+            "old_slot": "footer_items",
+            "new_slot": "actions"
+          },
+          {
+            "type": "slot_add",
+            "slot": "title"
+          },
+          {
+            "type": "css_change",
+            "old_class": "card-footer",
+            "new_class": "card-actions justify-end"
+          }
+        ]
+      },
+      {
+        "name": "Bali::Filters::Component",
+        "file": "app/components/bali/filters/component.rb",
+        "severity": "high",
+        "backwards_compatible": true,
+        "changes": [
+          {
+            "type": "deprecation",
+            "replacement": "Bali::AdvancedFilters::Component",
+            "reason": "AdvancedFilters provides filter groups, AND/OR combinators, type-specific operators"
+          }
+        ]
+      },
+      {
+        "name": "Bali::Breadcrumb::Item::Component",
+        "file": "app/components/bali/breadcrumb/item/component.rb",
+        "severity": "low",
+        "backwards_compatible": true,
+        "changes": [
+          {
+            "type": "parameter_optional",
+            "parameter": "href",
+            "was": "required",
+            "now": "optional",
+            "behavior": "Items without href are automatically marked as active"
+          },
+          {
+            "type": "rendering_change",
+            "description": "Active items now render as <span> instead of <a>"
+          },
+          {
+            "type": "accessibility_add",
+            "attribute": "aria-current=\"page\"",
+            "on": "active items"
+          }
+        ]
+      },
+      {
+        "name": "Bali::Tag::Component",
+        "file": "app/components/bali/tag/component.rb",
+        "severity": "low",
+        "backwards_compatible": true,
+        "changes": [
+          {
+            "type": "parameter_deprecation",
+            "parameter": "tag_class",
+            "replacement": "color",
+            "mapping": {
+              "is-primary": "primary",
+              "is-secondary": "secondary",
+              "is-success": "success",
+              "is-danger": "error",
+              "is-warning": "warning",
+              "is-info": "info"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Bali::Calendar::Component",
+        "file": "app/components/bali/calendar/component.rb",
+        "severity": "low",
+        "backwards_compatible": true,
+        "changes": [
+          {
+            "type": "parameter_deprecation",
+            "parameter": "all_week",
+            "replacement": "weekdays_only",
+            "invert_boolean": true
+          },
+          {
+            "type": "parameter_enhancement",
+            "parameter": "start_date",
+            "change": "Now accepts Date objects directly (strings still work)"
+          }
+        ]
+      },
+      {
+        "name": "Bali::Modal::Component",
+        "file": "app/components/bali/modal/component.rb",
+        "severity": "medium",
+        "backwards_compatible": false,
+        "changes": [
+          {
+            "type": "element_change",
+            "old_element": "div with custom structure",
+            "new_element": "native <dialog>"
+          },
+          {
+            "type": "slot_add",
+            "slots": ["header", "body", "actions"]
+          },
+          {
+            "type": "css_change",
+            "old_class": "modal-content",
+            "new_class": "modal-box"
+          }
+        ]
+      }
+    ],
+    "new": [
+      {
+        "name": "Bali::AdvancedFilters::Component",
+        "file": "app/components/bali/advanced_filters/component.rb",
+        "description": "Complex filter UI with Ransack groupings support",
+        "features": [
+          "Multiple filter groups with AND/OR combinators",
+          "Multiple conditions per group with AND/OR combinators",
+          "Type-specific operators (text, number, date, select, boolean)",
+          "Dynamic add/remove for conditions and groups",
+          "Pre-populated from URL params",
+          "Quick search integration",
+          "Date range with Flatpickr"
+        ]
+      },
+      {
+        "name": "Bali::Button::Component",
+        "file": "app/components/bali/button/component.rb",
+        "description": "Proper ViewComponent (was previously a helper)"
+      },
+      {
+        "name": "Bali::Avatar::Group::Component",
+        "file": "app/components/bali/avatar/group/component.rb",
+        "description": "Display grouped avatars with overlap styling"
+      },
+      {
+        "name": "Bali::Avatar::Upload::Component",
+        "file": "app/components/bali/avatar/upload/component.rb",
+        "description": "Avatar with upload/edit functionality"
+      },
+      {
+        "name": "Bali::Card::Action::Component",
+        "file": "app/components/bali/card/action/component.rb",
+        "description": "Card action button/link for footer actions"
+      },
+      {
+        "name": "Bali::DataTable::ColumnSelector::Component",
+        "file": "app/components/bali/data_table/column_selector/component.rb",
+        "description": "Toggle table column visibility"
+      },
+      {
+        "name": "Bali::DataTable::Export::Component",
+        "file": "app/components/bali/data_table/export/component.rb",
+        "description": "Export data table to various formats"
+      },
+      {
+        "name": "Bali::DirectUpload::Component",
+        "file": "app/components/bali/direct_upload/component.rb",
+        "description": "Direct file upload with progress indication"
+      },
+      {
+        "name": "Bali::Modal::Header::Component",
+        "file": "app/components/bali/modal/header/component.rb",
+        "description": "Modal header slot component"
+      },
+      {
+        "name": "Bali::Modal::Body::Component",
+        "file": "app/components/bali/modal/body/component.rb",
+        "description": "Modal body slot component"
+      },
+      {
+        "name": "Bali::Modal::Actions::Component",
+        "file": "app/components/bali/modal/actions/component.rb",
+        "description": "Modal actions/footer slot component"
+      },
+      {
+        "name": "Bali::Pagination::Component",
+        "file": "app/components/bali/pagination/component.rb",
+        "description": "Standalone pagination component using Pagy"
+      }
+    ],
+    "deprecated": [
+      {
+        "name": "Bali::Filters::Component",
+        "replacement": "Bali::AdvancedFilters::Component",
+        "still_works": true,
+        "removal_version": "3.0.0"
+      }
+    ],
+    "removed": [
+      {
+        "name": "Bali::Card::FooterItem::Component",
+        "replacement": "Use actions slot with Bali::Card::Action::Component"
+      }
+    ]
+  },
+  "class_mappings": {
+    "buttons": {
+      "button": "btn",
+      "is-primary": "btn-primary",
+      "is-secondary": "btn-secondary",
+      "is-success": "btn-success",
+      "is-danger": "btn-error",
+      "is-warning": "btn-warning",
+      "is-info": "btn-info",
+      "is-link": "btn-link",
+      "is-outlined": "btn-outline",
+      "is-small": "btn-sm",
+      "is-medium": "btn-md",
+      "is-large": "btn-lg",
+      "is-loading": "loading loading-spinner"
+    },
+    "cards": {
+      "card": "card bg-base-100",
+      "card-content": "card-body",
+      "card-footer": "card-actions"
+    },
+    "forms": {
+      "input": "input input-bordered",
+      "select": "select select-bordered",
+      "textarea": "textarea textarea-bordered",
+      "checkbox": "checkbox",
+      "radio": "radio",
+      "is-danger": "input-error"
+    },
+    "alerts": {
+      "notification": "alert",
+      "is-primary": "alert-info",
+      "is-success": "alert-success",
+      "is-warning": "alert-warning",
+      "is-danger": "alert-error"
+    },
+    "layout": {
+      "columns": "grid grid-cols-12",
+      "column": "col-span-*",
+      "is-half": "col-span-6",
+      "is-one-third": "col-span-4",
+      "is-two-thirds": "col-span-8",
+      "is-flex": "flex",
+      "is-hidden": "hidden"
+    },
+    "text": {
+      "has-text-centered": "text-center",
+      "has-text-weight-bold": "font-bold",
+      "has-text-grey": "text-base-content/60",
+      "has-text-danger": "text-error",
+      "has-text-success": "text-success"
+    }
+  },
+  "migration_patterns": [
+    {
+      "description": "Link type to variant",
+      "find_regex": "Bali::Link::Component\\.new\\([^)]*type:\\s*:(\\w+)",
+      "context": "Ruby files",
+      "action": "Replace type: with variant:, map :danger to :error"
+    },
+    {
+      "description": "Card footer_items to actions",
+      "find_regex": "\\.with_footer_item\\b",
+      "replace": ".with_action",
+      "context": "Ruby/ERB files"
+    },
+    {
+      "description": "Tag tag_class to color",
+      "find_regex": "tag_class:\\s*['\"]is-(\\w+)['\"]",
+      "replace": "color: :$1",
+      "context": "Ruby files"
+    },
+    {
+      "description": "Calendar all_week to weekdays_only",
+      "find_regex": "all_week:\\s*(true|false)",
+      "action": "Replace with weekdays_only: and invert boolean",
+      "context": "Ruby files"
+    },
+    {
+      "description": "Bulma is-* button classes",
+      "find_regex": "class=['\"][^'\"]*is-(primary|secondary|success|danger|warning|info)",
+      "action": "Replace is-X with btn-X (danger becomes error)",
+      "context": "ERB templates"
+    }
+  ],
+  "dependencies": {
+    "added": [
+      {
+        "name": "pagy",
+        "version": "~> 8.0",
+        "purpose": "Pagination"
+      },
+      {
+        "name": "lucide-rails",
+        "version": "latest",
+        "purpose": "Lucide icon integration"
+      }
+    ],
+    "removed": [
+      {
+        "name": "bulma",
+        "reason": "Replaced by Tailwind + DaisyUI"
+      }
+    ]
+  }
+}

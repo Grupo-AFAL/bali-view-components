@@ -1,0 +1,38 @@
+<div class="p-4 space-y-4">
+  <%= form_with model: model, url: '/lookbook', builder: Bali::FormBuilder do |f| %>
+    <div>
+      <span class="text-sm text-base-content/60 mb-1 block">Primary</span>
+      <%= f.boolean_field(:indie, color: :primary, label: 'Primary checkbox') %>
+    </div>
+
+    <div>
+      <span class="text-sm text-base-content/60 mb-1 block">Secondary</span>
+      <%= f.boolean_field(:indie, color: :secondary, label: 'Secondary checkbox') %>
+    </div>
+
+    <div>
+      <span class="text-sm text-base-content/60 mb-1 block">Accent</span>
+      <%= f.boolean_field(:indie, color: :accent, label: 'Accent checkbox') %>
+    </div>
+
+    <div>
+      <span class="text-sm text-base-content/60 mb-1 block">Success</span>
+      <%= f.boolean_field(:indie, color: :success, label: 'Success checkbox') %>
+    </div>
+
+    <div>
+      <span class="text-sm text-base-content/60 mb-1 block">Warning</span>
+      <%= f.boolean_field(:indie, color: :warning, label: 'Warning checkbox') %>
+    </div>
+
+    <div>
+      <span class="text-sm text-base-content/60 mb-1 block">Info</span>
+      <%= f.boolean_field(:indie, color: :info, label: 'Info checkbox') %>
+    </div>
+
+    <div>
+      <span class="text-sm text-base-content/60 mb-1 block">Error</span>
+      <%= f.boolean_field(:indie, color: :error, label: 'Error checkbox') %>
+    </div>
+  <% end %>
+</div>

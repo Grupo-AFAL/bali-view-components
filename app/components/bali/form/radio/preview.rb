@@ -22,6 +22,8 @@ module Bali
           ]
         }.freeze
 
+        SIMPLE_VALUES = [['One', 1], ['Two', 2], ['Three', 3]].freeze
+
         # @param keep_selection toggle
         def radio_buttons_field_group(keep_selection: false)
           render_with_template(
@@ -38,20 +40,30 @@ module Bali
           )
         end
 
-        def radio_field_group
+        # @param orientation select { choices: [vertical, horizontal] }
+        def radio_field_group(orientation: :vertical)
           render_with_template(
-            template: 'bali/form/radio/previews/field_group_with_errors',
-            locals: { model: Workout.new, values: [['One', 1], ['Two', 2]] }
+            template: 'bali/form/radio/previews/field_group',
+            locals: {
+              model: Workout.new,
+              values: SIMPLE_VALUES,
+              orientation: orientation.to_sym
+            }
           )
         end
 
-        def radio_field_group_with_errors
+        # @param orientation select { choices: [vertical, horizontal] }
+        def radio_field_group_with_errors(orientation: :vertical)
           model = Workout.new(validate_name: true)
           model.valid?
 
           render_with_template(
             template: 'bali/form/radio/previews/field_group_with_errors',
-            locals: { model: model, values: [['One', 1], ['Two', 2]] }
+            locals: {
+              model: model,
+              values: SIMPLE_VALUES,
+              orientation: orientation.to_sym
+            }
           )
         end
       end

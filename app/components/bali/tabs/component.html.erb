@@ -1,19 +1,26 @@
-<%= tag.div **@options do %>
-  <%= tag.div class: class_names('tabs', @tabs_class) do %>
-    <ul>
-      <% tabs.each_with_index do |tab, index| %>
-        <%= render Bali::Tabs::Trigger::Component.new(tab, index)  %>
-      <% end %>
-    </ul>
-  <% end %>
-
-  <div class="tabs-content">
+<%= tag.div **options do %>
+  <div role="tablist" class="<%= tabs_classes %>">
     <% tabs.each_with_index do |tab, index| %>
-      <%= tag.div **tab.options, data: {
-            'tabs-target': 'tabContent',
-            'tabs-index-param': index } do %>
-        <%= tab %>
-      <% end %>
+      <%= render Bali::Tabs::Trigger::Component.new(tab, index) %>
     <% end %>
   </div>
+  <% content_tabs = tabs.reject(&:href) %>
+  <% if content_tabs.any? %>
+    <div class="tabs-content pt-4">
+      <% tabs.each_with_index do |tab, index| %>
+        <% next if tab.href %>
+        <%= tag.div **tab.options,
+              id: "tabpanel-#{index}",
+              role: 'tabpanel',
+              'aria-labelledby': "tab-#{index}",
+              tabindex: 0,
+              data: {
+                'tabs-target': 'tabContent',
+                'tabs-index-param': index
+              } do %>
+          <%= tab %>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
 <% end %>

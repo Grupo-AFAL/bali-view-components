@@ -1,0 +1,14 @@
+/* Typography styling */
+.title {
+  & > .icon {
+    margin-left: 1rem;
+  }
+}
+
+a.title {
+  display: block;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

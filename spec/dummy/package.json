@@ -1,5 +1,32 @@
 {
   "name": "app",
   "private": "true",
-  "devDependencies": {}
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "vite-plugin-ruby": "5.1.1"
+  },
+  "dependencies": {
+    "bali-view-components": "file:../..",
+    "@glidejs/glide": "^3.7.1",
+    "@googlemaps/markerclusterer": "^2.6.2",
+    "@hotwired/stimulus": "^3.2.2",
+    "@hotwired/turbo-rails": "^8.0.20",
+    "@popperjs/core": "^2.11.8",
+    "@rails/activestorage": "^8.1.200",
+    "@rails/request.js": "^0.0.13",
+    "chart.js": "^4.5.1",
+    "daisyui": "^5.0.0",
+    "date-fns": "^4.1.0",
+    "flatpickr": "^4.6.13",
+    "interactjs": "^1.10.27",
+    "lodash.debounce": "^4.0.8",
+    "lodash.throttle": "^4.1.1",
+    "rrule": "^2.8.1",
+    "slim-select": "^3.3.0",
+    "sortablejs": "^1.15.6",
+    "stimulus-vite-helpers": "^3.1.0",
+    "tippy.js": "^6.3.7",
+    "vite-plugin-full-reload": "^1.2.0",
+    "vite-plugin-stimulus-hmr": "^3.0.0"
+  }
 }

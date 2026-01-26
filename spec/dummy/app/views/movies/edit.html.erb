@@ -1,0 +1,17 @@
+<%# Breadcrumb %>
+<%= render Bali::Breadcrumb::Component.new do |breadcrumb| %>
+  <% breadcrumb.with_item(name: t('navbar.dashboard'), href: root_path, icon_name: 'home') %>
+  <% breadcrumb.with_item(name: t('navbar.movies'), href: movies_path) %>
+  <% breadcrumb.with_item(name: @movie.name, href: movie_path(@movie)) %>
+  <% breadcrumb.with_item(name: t('common.edit')) %>
+<% end %>
+
+<%# Page Header %>
+<%= render Bali::PageHeader::Component.new(class: 'mt-4 mb-6') do |header| %>
+  <% header.with_title do %>
+    <%= t('movies.form.edit_title') %>: <%= @movie.name %>
+  <% end %>
+  <% header.with_subtitle(t('movies.form.subtitle_edit')) %>
+<% end %>
+
+<%= render 'form', movie: @movie %>

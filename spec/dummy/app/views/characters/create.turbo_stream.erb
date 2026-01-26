@@ -1,0 +1,16 @@
+<%# Close modal by replacing with empty modal %>
+<%= turbo_stream.replace 'modal-template' do %>
+  <%= render Bali::Modal::Component.new(active: false, id: 'modal-template') %>
+<% end %>
+
+<%# Update the characters list %>
+<%= turbo_stream.replace 'characters-list' do %>
+  <%= render partial: 'movies/characters_list', locals: { movie: @movie, characters: @movie.characters.reload } %>
+<% end %>
+
+<%# Show success notification %>
+<%= turbo_stream.prepend 'flash-messages' do %>
+  <%= render Bali::Notification::Component.new(color: :success, dismissible: true, class: 'mb-4') do %>
+    Character "<%= @character.name %>" added successfully!
+  <% end %>
+<% end %>

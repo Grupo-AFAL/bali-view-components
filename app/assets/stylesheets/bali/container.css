@@ -1,0 +1,24 @@
+/* Container layout styling */
+#app-frame {
+  padding-top: var(--frame-padding-top, 6.25rem);
+
+  &.with-side-bar {
+    @media (min-width: 1024px) {
+      padding-left: calc(15rem + 1.5rem);
+    }
+  }
+}
+
+.container.is-not-fluid {
+  @media (min-width: 1024px) {
+    max-width: 960px;
+  }
+
+  @media (min-width: 1216px) {
+    max-width: 960px;
+  }
+
+  @media (min-width: 1408px) {
+    max-width: 960px;
+  }
+}

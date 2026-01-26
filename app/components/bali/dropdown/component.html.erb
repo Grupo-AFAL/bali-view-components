@@ -1,22 +1,12 @@
-<%= tag.div(
-    'data-dropdown-hoverable-value': @hoverable,
-    'data-dropdown-close-on-click-value': @close_on_click,
-    **@options
-) do %>
-  <div class="dropdown-trigger is-flex">
-    <%= trigger %>
-  </div>
-
-  <div class="dropdown-menu">
-    <div class="dropdown-content">
-      <% if (authorized_items = items.select(&:authorized?)).any? %>
-        <% authorized_items.each_with_index do |item, index| %>
-          <%= item %>
-          <%= tag.div(class: 'dropdown-divider') if index < authorized_items.size - 1 %>
-        <% end %>
-      <% else %>
-        <%= content %>
+<%= tag.div(**@options) do %>
+  <%= trigger %>
+  <ul tabindex="-1" class="<%= content_classes %>" role="menu" aria-label="<%= t('.menu_label') %>" data-dropdown-target="menu">
+    <% if (authorized_items = items.select(&:authorized?)).any? %>
+      <% authorized_items.each do |item| %>
+        <li role="none"><%= item %></li>
       <% end %>
-    </div>
-  </div>
+    <% else %>
+      <%= content %>
+    <% end %>
+  </ul>
 <% end %>

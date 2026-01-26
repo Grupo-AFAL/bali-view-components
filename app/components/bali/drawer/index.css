@@ -1,0 +1,12 @@
+/* Drawer component styles */
+
+/* Overlay styles - group-variant classes for when parent has .drawer-open */
+.drawer-component.drawer-open .drawer-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Panel slide-in styles - applied when drawer is open */
+.drawer-component.drawer-open .drawer-panel {
+  transform: translateX(0);
+}

@@ -3,15 +3,23 @@
 module Bali
   module Clipboard
     class Component < ApplicationViewComponent
-      attr_reader :options
+      BASE_CLASSES = 'clipboard-component inline-flex items-stretch max-w-full'
 
       renders_one :trigger, Trigger::Component
       renders_one :source, Source::Component
       renders_one :success_content, SucessContent::Component
 
       def initialize(**options)
-        @options = prepend_class_name(options, 'clipboard-component')
-        @options = prepend_controller(@options, 'clipboard')
+        @options = options
+      end
+
+      private
+
+      attr_reader :options
+
+      def component_attributes
+        opts = prepend_class_name(options, BASE_CLASSES)
+        prepend_controller(opts, 'clipboard')
       end
     end
   end

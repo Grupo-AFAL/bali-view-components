@@ -6,11 +6,16 @@ export class SlimSelectController extends Controller {
   static values = {
     addItems: Boolean,
     showContent: String,
-    showSearch: Boolean,
+    showSearch: { type: Boolean, default: true },
     searchPlaceholder: String,
     addToBody: Boolean,
-    closeOnSelect: Boolean,
+    closeOnSelect: { type: Boolean, default: true },
     allowDeselectOption: Boolean,
+    disabled: Boolean,
+    hideSelected: Boolean,
+    searchHighlight: Boolean,
+    noResultsText: { type: String, default: 'No results' },
+    searchingText: { type: String, default: 'Searching...' },
     ajaxParamName: String,
     ajaxValueName: String,
     ajaxTextName: String,
@@ -27,39 +32,68 @@ export class SlimSelectController extends Controller {
   static targets = ['select', 'selectAllButton', 'deselectAllButton']
 
   async connect () {
-    const { default: SlimSelect } = await import('slim-select')
+    try {
+      const { default: SlimSelect } = await import('slim-select')
 
-    const options = {
-      select: this.selectTarget,
-      settings: {
-        placeholderText: this.placeholderValue,
-        showSearch: this.showSearchValue,
-        openPosition:
-          this.showContentValue === 'undefined' ? 'down' : this.showContentValue,
-        searchPlaceholder: this.searchPlaceholderValue,
-        closeOnSelect: this.closeOnSelectValue,
-        allowDeselect: this.allowDeselectOptionValue
-      },
-      events: { }
+      const options = {
+        select: this.selectTarget,
+        settings: {
+          placeholderText: this.placeholderValue,
+          showSearch: this.showSearchValue,
+          openPosition:
+            this.showContentValue === 'undefined'
+              ? 'down'
+              : this.showContentValue,
+          searchPlaceholder: this.searchPlaceholderValue,
+          closeOnSelect: this.closeOnSelectValue,
+          allowDeselect: this.allowDeselectOptionValue,
+          disabled: this.disabledValue,
+          hideSelected: this.hideSelectedValue,
+          searchHighlight: this.searchHighlightValue,
+          searchText: this.noResultsTextValue,
+          searchingText: this.searchingTextValue
+        },
+        events: {}
+      }
+
+      if (this.hasInnerHTML()) {
+        options.data = this.dataWithHTML()
+      }
+
+      if (this.hasAjaxValues()) {
+        options.events.search = this.search
+      }
+
+      if (this.addItemsValue) {
+        options.events.addable = value => value
+      }
+
+      if (this.hasAfterChangeFetchUrlValue) {
+        options.events.afterChange = this.fetchAfterChange
+      }
+
+      this.select = new SlimSelect(options)
+
+      // Disable the select if disabled value is set
+      // Note: settings.disabled in constructor doesn't work reliably,
+      // so we call disable() explicitly after initialization
+      if (this.disabledValue) {
+        this.select.disable()
+      }
+
+      // Remove DaisyUI select classes from the dropdown content to prevent centering
+      // SlimSelect copies classes from the original select element, including DaisyUI's
+      // 'select' and 'select-bordered' classes which cause centering issues.
+      // Use DOM query since SlimSelect's internal API varies between versions.
+      const contentEl =
+        this.element.querySelector('.ss-content') ||
+        document.querySelector('.ss-content')
+      if (contentEl) {
+        contentEl.classList.remove('select', 'select-bordered')
+      }
+    } catch (error) {
+      console.error('[SlimSelect] Failed to initialize:', error)
     }
-
-    if (this.hasInnerHTML()) {
-      options.data = this.dataWithHTML()
-    }
-
-    if (this.hasAjaxValues()) {
-      options.events.search = this.search
-    }
-
-    if (this.addItemsValue) {
-      options.events.addable = (value) => value
-    }
-
-    if (this.hasAfterChangeFetchUrlValue) {
-      options.events.afterChange = this.fetchAfterChange
-    }
-
-    this.select = new SlimSelect(options)
   }
 
   disconnect () {
@@ -71,7 +105,7 @@ export class SlimSelectController extends Controller {
       return {
         text: option.text,
         value: option.value,
-        innerHTML: option.dataset.innerHtml,
+        html: option.dataset.innerHtml, // SlimSelect v3 uses 'html' instead of 'innerHTML'
         selected: option.selected,
         disabled: option.disabled
       }
@@ -88,15 +122,25 @@ export class SlimSelectController extends Controller {
       option => option.value
     )
 
-    this.select.set(allValues)
-    this.selectAllButtonTarget.style.display = 'none'
-    this.deselectAllButtonTarget.style.display = 'block'
+    this.select.setSelected(allValues)
+
+    if (this.hasSelectAllButtonTarget) {
+      this.selectAllButtonTarget.classList.add('hidden')
+    }
+    if (this.hasDeselectAllButtonTarget) {
+      this.deselectAllButtonTarget.classList.remove('hidden')
+    }
   }
 
   deselectAll () {
-    this.select.set([])
-    this.deselectAllButtonTarget.style.display = 'none'
-    this.selectAllButtonTarget.style.display = 'block'
+    this.select.setSelected([])
+
+    if (this.hasDeselectAllButtonTarget) {
+      this.deselectAllButtonTarget.classList.add('hidden')
+    }
+    if (this.hasSelectAllButtonTarget) {
+      this.selectAllButtonTarget.classList.remove('hidden')
+    }
   }
 
   search = (search, currentData) => {
@@ -105,10 +149,12 @@ export class SlimSelectController extends Controller {
         return reject(this.ajaxPlaceholderValue)
       }
 
-      get(
-        this.ajaxUrlValue, { query: { [this.ajaxParamNameValue]: search }, responseKind: 'json' }
-      ).then((response) => response.json)
-        .then((data) => {
+      get(this.ajaxUrlValue, {
+        query: { [this.ajaxParamNameValue]: search },
+        responseKind: 'json'
+      })
+        .then(response => response.json)
+        .then(data => {
           const options = data.map(record => {
             return {
               text: record[this.ajaxTextNameValue],
@@ -131,15 +177,23 @@ export class SlimSelectController extends Controller {
     )
   }
 
-  fetchAfterChange = (newValues) => {
-    const params = { [this.select.select.select.name]: newValues.map(val => val.value) }
+  fetchAfterChange = newValues => {
+    const params = {
+      [this.select.select.select.name]: newValues.map(val => val.value)
+    }
 
     // POST request is needed to send an array of values. With a GET request the multiple
     // values are sent as a serialized array string, instead of an actual array.
     if (this.afterChangeFetchMethodValue === 'post') {
-      post(this.afterChangeFetchUrlValue, { body: params, responseKind: 'turbo-stream' })
+      post(this.afterChangeFetchUrlValue, {
+        body: params,
+        responseKind: 'turbo-stream'
+      })
     } else {
-      get(this.afterChangeFetchUrlValue, { query: params, responseKind: 'turbo-stream' })
+      get(this.afterChangeFetchUrlValue, {
+        query: params,
+        responseKind: 'turbo-stream'
+      })
     }
   }
 }

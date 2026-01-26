@@ -1,14 +1,14 @@
-<%= tag.div **@options do %>
+<%= tag.div class: component_classes, data: component_data, **html_options do %>
   <div data-glide-el="track" class="glide__track">
     <ul class="glide__slides">
       <% items.each do |item| %>
-        <li class="glide__slide">
-          <%= item %>
-        </li>
+        <li class="glide__slide"><%= item %></li>
       <% end %>
     </ul>
   </div>
 
-  <%= bullets || render(Bali::Carousel::Bullets::Component.new(count: items.size)) %>
-  <%= arrows || render(Bali::Carousel::Arrows::Component.new) %>
+  <% if bullets? %>
+    <%= render Bali::Carousel::Bullets::Component.new(count: items.size, **bullets_options) %>
+  <% end %>
+  <%= arrows if arrows? %>
 <% end %>

@@ -1,6 +1,4 @@
-<%= tag.li(data: data, class: classes) do %>
-  <%= tag.a(**link_options) do %>
-    <%= render Bali::Icon::Component.new(icon) if icon %>
-    <span><%= title %></span>
-  <% end %>
+<%= tag.a(**trigger_attributes) do %>
+  <%= render Bali::Icon::Component.new(icon, class: 'mr-1') if icon %>
+  <span><%= title %></span>
 <% end %>

@@ -1,0 +1,10 @@
+<div class="flex justify-center items-center gap-16 p-16">
+  <% %i[top right bottom left].each do |placement| %>
+    <%= render Bali::Tooltip::Component.new(placement: placement) do |c| %>
+      <% c.with_trigger do %>
+        <span class="btn btn-sm"><%= placement %></span>
+      <% end %>
+      <p>Tooltip on <%= placement %></p>
+    <% end %>
+  <% end %>
+</div>

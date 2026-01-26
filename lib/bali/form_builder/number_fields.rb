@@ -4,9 +4,13 @@ module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module NumberFields
       def number_field_group(method, options = {})
-        @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
+        @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
           number_field(method, options)
         end
+      end
+
+      def number_field(method, options = {})
+        field_helper(method, super(method, field_options(method, options)), options)
       end
     end
   end

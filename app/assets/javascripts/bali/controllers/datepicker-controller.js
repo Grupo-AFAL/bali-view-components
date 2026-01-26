@@ -20,6 +20,7 @@ export class DatepickerController extends Controller {
     noCalendar: { type: Boolean, default: false },
     enableSeconds: { type: Boolean, default: false },
     disableWeekends: { type: Boolean, default: false },
+    time24hr: { type: Boolean, default: false },
     locale: { type: String, default: 'es' },
     defaultDate: String,
     defaultDates: Array,
@@ -55,6 +56,7 @@ export class DatepickerController extends Controller {
       enableTime: this.enableTimeValue,
       noCalendar: this.noCalendarValue,
       enableSeconds: this.enableSecondsValue,
+      time_24hr: this.time24hrValue,
       locale: await this.setLocale(this.localeValue),
       defaultDate: this.defaultDates(),
       minDate: this.minDateValue,
@@ -104,9 +106,9 @@ export class DatepickerController extends Controller {
 
     if (this.noCalendarValue || this.enableTimeValue) {
       if (this.enableSecondsValue) {
-        format = this.time_24hr ? 'H:i:S' : 'h:i:S K'
+        format = this.time24hrValue ? 'H:i:S' : 'h:i:S K'
       } else {
-        format = this.time_24hr ? 'H:i' : 'h:i K'
+        format = this.time24hrValue ? 'H:i' : 'h:i K'
       }
     }
 

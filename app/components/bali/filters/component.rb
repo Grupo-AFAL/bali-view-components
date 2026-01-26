@@ -19,6 +19,12 @@ module Bali
       renders_one :custom_filters
 
       def initialize(form:, url:, text_field: nil, opened: false, **options)
+        ActiveSupport::Deprecation.new('3.0', 'Bali').warn(
+          'Bali::Filters is deprecated and will be removed in Bali 3.0. ' \
+          'Use Bali::AdvancedFilters instead, which provides date range support ' \
+          'and a more flexible filtering experience.'
+        )
+
         @form = form
         @url = url
         @text_field = text_field

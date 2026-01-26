@@ -18,10 +18,10 @@
       <%= render Bali::Icon::Component.new('link') %>
     <% end %>
     <div class="link-panel">
-      <%= render(Bali::Tabs::Component.new(class: 'is-small')) do |c| %>
+      <%= render(Bali::Tabs::Component.new(class: 'tabs-sm')) do |c| %>
         <%= c.with_tab(title: 'URL', active: true) do %>
           <div contenteditable="true"
-                class="input is-small"
+                class="input input-sm"
                 placeholder="Ingresa la URL"
                 data-rich-text-editor-target="linkInput"
                 data-action="keydown->rich-text-editor#saveLinkUrl">
@@ -40,7 +40,7 @@
   <% if images_url.present? %>
     <%= render Bali::Dropdown::Component.new(data: { 'rich-text-editor-target': 'imagePanel' }) do |c| %>
       <% c.with_trigger(class: 'toolbar-link', data: { action: 'rich-text-editor#toggleImagePanel' }) do %>
-        <div class="is-flex is-align-items-center">
+        <div class="flex items-center">
           <%= render Bali::Icon::Component.new('image') %>
         </div>
       <% end %>

@@ -1,11 +1,8 @@
 <% if title.present? %>
-  <%= tag.p class: title_class do %>
-    <%= title %>
-  <% end %>
+  <p class="<%= title_classes %>"><%= title %></p>
 <% end %>
-
-<%= tag.ul class: list_class do %>
+<div class="space-y-0.5 px-2.5">
   <% items.each do |item| %>
     <%= item %>
   <% end %>
-<% end %>
+</div>

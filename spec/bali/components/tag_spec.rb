@@ -3,48 +3,147 @@
 require 'rails_helper'
 
 RSpec.describe Bali::Tag::Component, type: :component do
-  before { @options = {} }
-  let(:component) { Bali::Tag::Component.new(**@options) }
+  describe 'basic rendering' do
+    it 'renders a badge with text' do
+      render_inline(described_class.new(text: 'Hello'))
 
-  describe 'rendering tag with' do
-    before { @options.merge!(text: 'Tag item with text') }
-
-    it 'single item text' do
-      render_inline(component)
-
-      expect(page).to have_css 'div.tag-component.tag', text: 'Tag item with text'
+      expect(page).to have_css('div.badge', text: 'Hello')
     end
 
-    before { @options.merge!(text: 'Tag item with text', color: :black) }
+    it 'renders as a link when href is provided' do
+      render_inline(described_class.new(text: 'Click me', href: '/path'))
 
-    it 'single item color' do
-      render_inline(component)
+      expect(page).to have_css('a.badge[href="/path"]', text: 'Click me')
+    end
+  end
 
-      expect(page).to have_css 'div.is-black.tag-component.tag', text: 'Tag item with text'
+  describe 'colors' do
+    it 'applies DaisyUI color classes' do
+      render_inline(described_class.new(text: 'Tag', color: :primary))
+
+      expect(page).to have_css('div.badge.badge-primary')
     end
 
-    before { @options.merge!(text: 'Tag item with text', size: :small) }
+    it 'maps legacy Bulma colors to DaisyUI equivalents' do
+      render_inline(described_class.new(text: 'Tag', color: :danger))
 
-    it 'single item size' do
-      render_inline(component)
-
-      expect(page).to have_css 'div.tag-component.tag.is-small', text: 'Tag item with text'
+      expect(page).to have_css('div.badge.badge-error')
     end
 
-    before { @options.merge!(text: 'Tag item with text', light: true) }
+    it 'maps black to neutral' do
+      render_inline(described_class.new(text: 'Tag', color: :black))
 
-    it 'single item light' do
-      render_inline(component)
+      expect(page).to have_css('div.badge.badge-neutral')
+    end
+  end
 
-      expect(page).to have_css 'div.tag-component.tag.is-light', text: 'Tag item with text'
+  describe 'sizes' do
+    it 'applies DaisyUI size classes' do
+      render_inline(described_class.new(text: 'Tag', size: :lg))
+
+      expect(page).to have_css('div.badge.badge-lg')
     end
 
-    before { @options.merge!(text: 'Tag item with text', rounded: true) }
+    it 'maps legacy Bulma sizes to DaisyUI equivalents' do
+      render_inline(described_class.new(text: 'Tag', size: :small))
 
-    it 'single item rounded' do
-      render_inline(component)
+      expect(page).to have_css('div.badge.badge-sm')
+    end
 
-      expect(page).to have_css 'div.tag-component.tag.is-rounded', text: 'Tag item with text'
+    it 'supports all DaisyUI sizes' do
+      %i[xs sm md lg xl].each do |size|
+        render_inline(described_class.new(text: 'Tag', size: size))
+
+        expect(page).to have_css("div.badge.badge-#{size}")
+      end
+    end
+  end
+
+  describe 'styles' do
+    it 'applies outline style' do
+      render_inline(described_class.new(text: 'Tag', style: :outline))
+
+      expect(page).to have_css('div.badge.badge-outline')
+    end
+
+    it 'applies soft style' do
+      render_inline(described_class.new(text: 'Tag', style: :soft))
+
+      expect(page).to have_css('div.badge.badge-soft')
+    end
+
+    it 'applies dash style' do
+      render_inline(described_class.new(text: 'Tag', style: :dash))
+
+      expect(page).to have_css('div.badge.badge-dash')
+    end
+
+    it 'combines style with color' do
+      render_inline(described_class.new(text: 'Tag', style: :outline, color: :primary))
+
+      expect(page).to have_css('div.badge.badge-outline.badge-primary')
+    end
+  end
+
+  describe 'legacy light parameter' do
+    it 'applies outline style for backward compatibility' do
+      allow(Rails.logger).to receive(:warn)
+
+      render_inline(described_class.new(text: 'Tag', light: true))
+
+      expect(page).to have_css('div.badge.badge-outline')
+    end
+
+    it 'emits deprecation warning' do
+      expect(Rails.logger).to receive(:warn).with(/light.*deprecated.*style: :outline/)
+
+      render_inline(described_class.new(text: 'Tag', light: true))
+    end
+
+    it 'style parameter takes precedence over light' do
+      allow(Rails.logger).to receive(:warn)
+
+      render_inline(described_class.new(text: 'Tag', light: true, style: :soft))
+
+      expect(page).to have_css('div.badge.badge-soft')
+      expect(page).not_to have_css('div.badge.badge-outline')
+    end
+  end
+
+  describe 'custom color' do
+    it 'applies custom background color with contrasting text' do
+      render_inline(described_class.new(text: 'Tag', custom_color: '#ff0000'))
+
+      expect(page).to have_css('div.badge[style*="background-color: #ff0000"]')
+      expect(page).to have_css('div.badge[style*="color:"]')
+    end
+  end
+
+  describe 'rounded' do
+    it 'applies rounded-full class when rounded is true' do
+      render_inline(described_class.new(text: 'Tag', rounded: true))
+
+      expect(page).to have_css('div.badge.rounded-full')
+    end
+
+    it 'does not apply rounded-full class when rounded is false' do
+      render_inline(described_class.new(text: 'Tag', rounded: false))
+
+      expect(page).not_to have_css('div.badge.rounded-full')
+    end
+  end
+
+  describe 'HTML attribute passthrough' do
+    it 'passes additional attributes to the element' do
+      render_inline(described_class.new(text: 'Tag', data: { testid: 'my-tag' }))
+
+      expect(page).to have_css('div.badge[data-testid="my-tag"]')
+    end
+
+    it 'merges custom classes with component classes' do
+      render_inline(described_class.new(text: 'Tag', class: 'my-custom-class'))
+
+      expect(page).to have_css('div.badge.my-custom-class')
     end
   end
 end

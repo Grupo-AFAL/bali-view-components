@@ -3,19 +3,118 @@
 module Bali
   module SideMenu
     class Component < ApplicationViewComponent
+      # Group behavior modes for nested menu items
+      # - :expandable - Click to expand/collapse using DaisyUI collapse (default)
+      # - :dropdown - Show submenu in dropdown on hover
+      GROUP_BEHAVIORS = %i[expandable dropdown].freeze
+
       renders_many :menu_switches, Bali::SideMenu::MenuSwitch::Component
 
       renders_many :lists, ->(title: nil, **options) do
-        List::Component.new(title: title, current_path: @current_path, **options)
+        List::Component.new(
+          title: title,
+          current_path: @current_path,
+          group_behavior: @group_behavior,
+          **options
+        )
       end
 
-      def initialize(current_path:, collapsable: false, **options)
+      # @param current_path [String] The current request path for active state detection
+      # @param fixed [Boolean] Fixed to viewport (true) or inline flow (false). Default: true
+      # @param collapsable [Boolean] Whether the sidebar can collapse to icon-only mode
+      # @param group_behavior [Symbol] How nested items behave - :expandable or :dropdown
+      # @param brand [String] Optional brand name shown in the header (e.g., "ACME")
+      def initialize(current_path:, fixed: true, collapsable: false, group_behavior: :expandable,
+                     brand: nil, **options)
         @current_path = current_path
+        @fixed = fixed
         @collapsable = collapsable
+        @group_behavior = GROUP_BEHAVIORS.include?(group_behavior) ? group_behavior : :expandable
+        @brand = brand
         @options = options
-        @options = prepend_class_name(@options, 'side-menu-component')
-        @options = prepend_data_attribute(@options, :side_menu_target, 'container')
-        @options = prepend_data_attribute(@options, :collapsable, @collapsable)
+      end
+
+      def fixed?
+        @fixed
+      end
+
+      def collapsable?
+        @collapsable
+      end
+
+      def expandable_groups?
+        @group_behavior == :expandable
+      end
+
+      def dropdown_groups?
+        @group_behavior == :dropdown
+      end
+
+      # Unique ID for the collapse checkbox (needed for CSS selectors)
+      def collapse_checkbox_id
+        @collapse_checkbox_id ||= "side-menu-collapse-#{object_id}"
+      end
+
+      def container_classes
+        class_names(
+          'side-menu-component',
+          { 'side-menu-component--fixed' => @fixed },
+          { 'side-menu-component--inline' => !@fixed },
+          @options[:class]
+        )
+      end
+
+      def container_data
+        data = @options[:data] || {}
+        data[:controller] =
+          class_names(data[:controller], { 'side-menu' => @collapsable || @fixed })
+        data[:side_menu_collapse_checkbox_value] = collapse_checkbox_id if @collapsable
+        data
+      end
+
+      def container_options
+        opts = @options.except(:class, :data)
+        opts[:class] = container_classes
+        opts[:data] = container_data
+        opts
+      end
+
+      # Menu switch helpers
+      def authorized_menus
+        @authorized_menus ||= menu_switches.select(&:authorized?)
+      end
+
+      def single_menu?
+        authorized_menus.size == 1
+      end
+
+      def multiple_menus?
+        authorized_menus.size > 1
+      end
+
+      def active_menu
+        authorized_menus.find(&:active?)
+      end
+
+      attr_reader :brand
+
+      def brand?
+        @brand.present?
+      end
+
+      # Translated aria-label for collapse checkbox
+      def toggle_collapse_label
+        I18n.t('bali.side_menu.toggle_collapse', default: 'Toggle sidebar collapse')
+      end
+
+      # Translated title for collapse button
+      def collapse_label
+        I18n.t('bali.side_menu.collapse', default: 'Collapse sidebar')
+      end
+
+      # Translated title for expand button
+      def expand_label
+        I18n.t('bali.side_menu.expand', default: 'Expand sidebar')
       end
     end
   end

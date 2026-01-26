@@ -1,0 +1,88 @@
+/* HoverCard component - Tippy.js styling */
+.hover-card-component {
+  @apply w-max;
+}
+
+.hover-card-tippy-wrapper {
+  --hover-card-arrow-size: 16px;
+
+  .hover-card-content {
+    @apply p-3;
+  }
+
+  .tippy-box {
+    @apply relative bg-base-100 text-base-content rounded;
+    @apply whitespace-normal outline-none;
+    @apply text-sm tracking-normal normal-case;
+    line-height: 1.4;
+    transition-property: transform, visibility, opacity;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -2px rgba(0, 0, 0, 0.1),
+      0 0 0 1px rgba(0, 0, 0, 0.05);
+
+    &[data-animation='fade'][data-state='hidden'] {
+      @apply opacity-0;
+    }
+
+    &[data-placement^='top'] > .tippy-svg-arrow {
+      @apply bottom-0;
+
+      svg {
+        transform: rotate(180deg);
+        left: 1px;
+        top: 16px;
+      }
+    }
+
+    &[data-placement^='bottom'] > .tippy-svg-arrow {
+      @apply top-0;
+
+      svg {
+        left: 1px;
+        top: -8px;
+      }
+    }
+
+    &[data-placement^='left'] > .tippy-svg-arrow {
+      @apply right-0;
+
+      svg {
+        transform: rotate(90deg);
+        left: 13px;
+        top: 4px;
+      }
+    }
+
+    &[data-placement^='right'] > .tippy-svg-arrow {
+      @apply left-0;
+
+      svg {
+        transform: rotate(270deg);
+        left: -11px;
+        top: 4px;
+      }
+    }
+
+    &[data-inertia][data-state='visible'] {
+      transition-timing-function: cubic-bezier(0.54, 1.5, 0.38, 1.11);
+    }
+  }
+
+  .tippy-svg-arrow {
+    width: var(--hover-card-arrow-size);
+    height: var(--hover-card-arrow-size);
+    @apply text-base-100;
+
+    svg {
+      @apply absolute;
+    }
+  }
+
+  .tippy-content {
+    @apply relative z-[1];
+  }
+
+  .dropdown-item {
+    @apply flex items-center;
+  }
+}

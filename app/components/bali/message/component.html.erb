@@ -1,15 +1,14 @@
-<%= tag.div(**options) do %>
-  <% if title.present? %>
-    <div class="message-header">
-      <p><%= title %></p>
+<%= tag.div(role: 'alert', **options) do %>
+  <% if title.present? || header? %>
+    <div class="flex flex-col gap-1">
+      <% if title.present? %>
+        <span class="font-bold"><%= title %></span>
+      <% elsif header? %>
+        <%= header %>
+      <% end %>
+      <span><%= content %></span>
     </div>
-  <% elsif header? %>
-    <div class="message-header">
-      <%= header %>
-    </div>
+  <% else %>
+    <span><%= content %></span>
   <% end %>
-
-  <div class="message-body">
-    <%= content %>
-  </div>
 <% end %>

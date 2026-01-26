@@ -3,140 +3,134 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module DynamicFields
-      # TODO: Add tests (Issue: #160)
+      # CSS Classes (DaisyUI + Tailwind)
+      HEADER_CLASS = 'flex justify-between items-center'
+      LABEL_WRAPPER_CLASS = 'flex items-center'
+      LABEL_CLASS = 'label'
+      BUTTON_WRAPPER_CLASS = 'flex items-center'
+      DEFAULT_BUTTON_CLASS = 'btn btn-primary'
+      DESTROY_FLAG_CLASS = 'destroy-flag'
 
-      # Field helper to add associated records in a form, it generates a label and a link
+      # Stimulus Controller
+      CONTROLLER_NAME = 'dynamic-fields'
+      CHILD_INDEX_PLACEHOLDER = 'new_record'
+
+      # Field helper to add associated records in a form. Generates a label and link
       # to dynamically add additional associated records.
       #
-      #   <%= form_for @product do |f| %>
-      #     <%= f.dynamic_fields_group :items,
-      #         label: 'Product Items', button_text: 'Add product item' %>
-      #     <%= f.submit %>
-      #   <% end %>
+      # @example Basic usage
+      #   <%= f.dynamic_fields_group :items, label: 'Items', button_text: 'Add item' %>
       #
-      # The label and button HTML can be customized by passing a block:
-      #
+      # @example With custom block
       #   <%= f.dynamic_fields_group :items do %>
-      #     <label>Items</label>
       #     <%= f.link_to_add_fields "Add Item", :items %>
       #   <% end %>
       #
-      # Requirements:
-      # - Partial for the associated fields with the name:
-      #     "_#{singular_association_name}_fields.html.erb"
-      # - The template needs to have a top level element with the class:
-      #     "#{singular_association_name}-fields"
-      # - Add "accepts_nested_attributes_for :association, allow_destroy: true"
-      # - Allow nested attributes in the controller
-      #
       # @param method [Symbol] Name of the association
-      # @param options [Hash] options to customize the display
-      # @option options [String] :label text for the label tag
-      # @option options [String] :button_text for the button to add a new associated record
-      def dynamic_fields_group(method, options = {}, &)
-        object = self.object
+      # @param options [Hash] Options to customize the display
+      def dynamic_fields_group(method, options = {}, &block)
         singular = method.to_s.singularize
+        container = build_fields_container(method, singular)
+        header = block ? @template.capture(&block) : default_header_contents(method, options)
+
+        tag.div(data: controller_data_attributes(method, singular)) do
+          safe_join([header, container])
+        end
+      end
+
+      # Creates a link to add new nested fields
+      # @param name [String] Link text
+      # @param association [Symbol] Association name
+      # @param html_options [Hash] HTML attributes for the link
+      def link_to_add_fields(name, association, html_options = {})
+        partial = "#{association.to_s.singularize}_fields"
+        form_object, builder = resolve_form_builder
+        fields = render_template_fields(builder, association, partial, form_object)
+        wrapper_class = html_options.delete(:wrapper_class)
+
+        tag.div(class: wrapper_class) do
+          tag.a(name, **build_add_link_options(html_options)) +
+            tag.template(fields, data: { "#{CONTROLLER_NAME}-target": 'template' })
+        end
+      end
+
+      # Creates a link to remove nested fields
+      # @param name [String] Link text
+      # @param html_options [Hash] HTML attributes (:soft_delete for soft delete)
+      def link_to_remove_fields(name, html_options = {})
+        soft_delete = html_options.delete(:soft_delete)
+        destroy_attribute = soft_delete ? :_soft_delete : :_destroy
+
+        tag.a(name, **build_remove_link_options(html_options)) +
+          hidden_field(destroy_attribute, class: DESTROY_FLAG_CLASS)
+      end
+
+      private
+
+      def build_fields_container(method, singular)
         container_id = [object.model_name.singular, singular, 'container'].join('_')
 
-        container = tag.div(id: container_id, data: { 'dynamic-fields-target': 'container' }) do
+        tag.div(id: container_id, data: { "#{CONTROLLER_NAME}-target": 'container' }) do
           safe_join(object.send(method).map do |child_object|
             fields_for method, child_object do |nested_builder|
               @template.render "#{singular}_fields", f: nested_builder, object: object
             end
           end)
         end
-
-        contents = if block_given?
-                     @template.capture(&)
-                   else
-                     default_header_contents(method, options)
-                   end
-
-        tag.div(
-          data: {
-            controller: 'dynamic-fields',
-            'dynamic-fields-size-value': object.send(method).size,
-            'dynamic-fields-fields-selector-value': ".#{singular}-fields"
-          }
-        ) do
-          safe_join([contents, container].compact)
-        end
       end
 
-      def link_to_add_fields(name, association, html_options = {})
-        partial = "#{association.to_s.singularize}_fields"
-
-        # When the form.object is a not an ActiveRecord object the nested attributes
-        # don't include the sufix "_attributes", so we need to create a new form
-        # builder with the original ActiveRecord object to get the same results.
-        if object.respond_to?(:original_object)
-          object = self.object.original_object
-          form_builder = Bulma::FormBuilder.new(object.model_name.param_key, object, @template, {})
-        else
-          object = self.object
-          form_builder = self
-        end
-
-        # Render the form fields from a file with the association name provided
-        new_object = object.class.reflect_on_association(association).klass.new
-        options = { child_index: 'new_record' }
-        fields = form_builder.fields_for(association, new_object, options) do |builder|
-          @template.render(partial, f: builder, object: object)
-        end
-
-        html_options['href'] = '#'
-        html_options['data-dynamic-fields-target'] = 'button'
-        html_options = prepend_action(html_options, 'dynamic-fields#addFields')
-
-        tag.div(class: html_options.delete(:wrapper_class)) do
-          tag.a(name, **html_options) +
-            tag.template(fields, data: { 'dynamic-fields-target': 'template' })
-        end
+      def controller_data_attributes(method, singular)
+        {
+          controller: CONTROLLER_NAME,
+          "#{CONTROLLER_NAME}-size-value": object.send(method).size,
+          "#{CONTROLLER_NAME}-fields-selector-value": ".#{singular}-fields"
+        }
       end
-
-      def link_to_remove_fields(name, html_options = {})
-        html_options['href'] = '#'
-        html_options = prepend_action(html_options, 'dynamic-fields#removeFields')
-
-        remove_type = html_options[:soft_delete] ? :_soft_delete : :_destroy
-
-        tag.a(name, **html_options) +
-          hidden_field(remove_type, class: 'destroy-flag')
-      end
-
-      private
 
       def default_header_contents(method, options)
-        tag.div(class: 'level') do
-          safe_join([
-                      label_tag(method, options),
-                      add_link_tag(method, options)
-                    ])
+        label_text = options[:label] || translate_association_label(method)
+        button_text = options[:button_text] || I18n.t('helpers.add.text')
+        button_class = options[:button_class] || DEFAULT_BUTTON_CLASS
+
+        tag.div(class: HEADER_CLASS) do
+          tag.div(class: LABEL_WRAPPER_CLASS) { tag.label(label_text, class: LABEL_CLASS) } +
+            tag.div(class: BUTTON_WRAPPER_CLASS) do
+              link_to_add_fields(button_text, method, class: button_class)
+            end
         end
       end
 
-      def label_tag(method, options)
-        translated_label = I18n.t(
-          "activerecord.attributes.#{object.model_name.i18n_key}.#{method}"
+      def translate_association_label(method)
+        I18n.t("activerecord.attributes.#{object.model_name.i18n_key}.#{method}")
+      end
+
+      def resolve_form_builder
+        if object.respond_to?(:original_object)
+          form_object = object.original_object
+          [form_object, Bali::FormBuilder.new(form_object.model_name.param_key,
+                                              form_object, @template, {})]
+        else
+          [object, self]
+        end
+      end
+
+      def render_template_fields(builder, association, partial, form_object)
+        new_object = form_object.class.reflect_on_association(association).klass.new
+        builder.fields_for(association, new_object,
+                           child_index: CHILD_INDEX_PLACEHOLDER) do |nested|
+          @template.render(partial, f: nested, object: form_object)
+        end
+      end
+
+      def build_add_link_options(html_options)
+        prepend_action(
+          html_options.merge(href: '#', data: { "#{CONTROLLER_NAME}-target": 'button' }),
+          "#{CONTROLLER_NAME}#addFields"
         )
-        label_text = options[:label] || translated_label
-
-        tag.div(class: 'level-left') do
-          tag.label(label_text, class: 'label level-item')
-        end
       end
 
-      def add_link_tag(method, options)
-        button_text = options[:button_text] || 'Add'
-        button_class = options[:button_class] || 'button is-primary'
-
-        tag.div(class: 'level-right') do
-          link_to_add_fields(
-            button_text,
-            method,
-            { class: button_class, wrapper_class: 'level-item' }
-          )
-        end
+      def build_remove_link_options(html_options)
+        prepend_action(html_options.merge(href: '#'), "#{CONTROLLER_NAME}#removeFields")
       end
     end
   end

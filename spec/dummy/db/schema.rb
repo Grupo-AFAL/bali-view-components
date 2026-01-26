@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_20_213844) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_19_000000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -44,6 +44,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_20_213844) do
     t.integer "movie_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "position", default: 0
     t.index ["movie_id"], name: "index_characters_on_movie_id"
   end
 
@@ -73,6 +74,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_20_213844) do
     t.integer "tenant_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "indie"
     t.index ["tenant_id"], name: "index_movies_on_tenant_id"
   end
 

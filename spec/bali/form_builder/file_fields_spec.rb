@@ -10,7 +10,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
 
     it 'renders a div with a file-input controller' do
       expect(file_field_group).to have_css(
-        'div.file[data-controller="file-input"]' \
+        'div.flex[data-controller="file-input"]' \
         '[data-file-input-non-selected-text-value="No file selected"]'
       )
     end
@@ -21,12 +21,29 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
       )
     end
 
-    it 'renders a label' do
-      expect(file_field_group).to have_css 'label.file-label', text: 'No file selected'
+    it 'renders a label with cursor-pointer class' do
+      expect(file_field_group).to have_css 'label.cursor-pointer'
     end
 
     it 'renders an icon' do
-      expect(file_field_group).to have_css 'span.icon.icon-component'
+      expect(file_field_group).to have_css 'span.icon-component'
+    end
+
+    it 'renders with hidden class on the input (hidden but accessible)' do
+      expect(file_field_group).to have_css 'input.hidden'
+    end
+
+    it 'renders the CTA button with proper classes' do
+      expect(file_field_group).to have_css 'span.btn.btn-soft.btn-primary.btn-sm.gap-2'
+    end
+
+    it 'renders the filename display with truncate class' do
+      expect(file_field_group).to have_css 'span.truncate'
+    end
+
+    it 'renders filename display outside the label' do
+      # The status text should be a sibling of label, not inside it
+      expect(file_field_group).to have_css 'div > label + span.truncate'
     end
   end
 
@@ -37,6 +54,135 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
       expect(file_field).to have_css(
         'input#movie_cover_photo[name="movie[cover_photo]"]'
       )
+    end
+
+    it 'renders with hidden class (hidden but accessible)' do
+      expect(file_field).to have_css 'input.hidden'
+    end
+  end
+
+  describe 'customization options' do
+    it 'accepts custom choose_file_text' do
+      html = builder.file_field(:cover_photo, choose_file_text: 'Upload Image')
+      expect(html).to have_css 'span', text: 'Upload Image'
+    end
+
+    it 'accepts custom non_selected_text' do
+      html = builder.file_field(:cover_photo, non_selected_text: 'No image')
+      expect(html).to have_css 'span', text: 'No image'
+      expect(html).to have_css '[data-file-input-non-selected-text-value="No image"]'
+    end
+
+    it 'hides label when choose_file_text is false' do
+      html = builder.file_field(:cover_photo, choose_file_text: false)
+      expect(html).to have_css 'span.btn.btn-soft span.icon-component'
+      # Only icon should be inside button, no text label
+      expect(html).not_to have_css 'span.btn.btn-soft > span:not(.icon-component)'
+    end
+
+    it 'accepts custom icon' do
+      html = builder.file_field(:cover_photo, icon: 'camera')
+      expect(html).to have_css 'span.icon-component'
+    end
+
+    it 'accepts file_class for wrapper styling' do
+      html = builder.file_field(:cover_photo, file_class: 'custom-wrapper')
+      expect(html).to have_css 'div.custom-wrapper'
+    end
+
+    it 'preserves wrapper base classes when file_class is provided' do
+      html = builder.file_field(:cover_photo, file_class: 'custom-wrapper')
+      expect(html).to have_css 'div.flex.custom-wrapper'
+    end
+  end
+
+  describe 'multiple file selection' do
+    it 'sets multiple attribute on input' do
+      html = builder.file_field(:cover_photo, multiple: true)
+      expect(html).to have_css 'input[multiple]'
+    end
+
+    it 'passes multiple value to Stimulus controller' do
+      html = builder.file_field(:cover_photo, multiple: true)
+      expect(html).to have_css '[data-file-input-multiple-value="true"]'
+    end
+
+    it 'sets multiple value to false by default' do
+      html = builder.file_field(:cover_photo)
+      expect(html).to have_css '[data-file-input-multiple-value="false"]'
+    end
+  end
+
+  describe 'HTML attributes passthrough' do
+    it 'accepts accept attribute for file types' do
+      html = builder.file_field(:cover_photo, accept: '.jpg,.png')
+      expect(html).to have_css 'input[accept=".jpg,.png"]'
+    end
+
+    it 'accepts required attribute' do
+      html = builder.file_field(:cover_photo, required: true)
+      expect(html).to have_css 'input[required]'
+    end
+
+    it 'accepts custom data attributes' do
+      html = builder.file_field(:cover_photo, data: { testid: 'file-upload' })
+      expect(html).to have_css 'input[data-testid="file-upload"]'
+    end
+
+    it 'keeps input hidden even with custom class option' do
+      # Custom class is ignored since the input must be hidden
+      html = builder.file_field(:cover_photo, class: 'custom-input')
+      expect(html).to have_css 'input.hidden'
+    end
+  end
+
+  describe 'i18n' do
+    it 'uses translated choose_file_text by default' do
+      I18n.with_locale(:en) do
+        html = builder.file_field(:cover_photo)
+        expect(html).to have_css 'span', text: 'Choose file'
+      end
+    end
+
+    it 'uses translated non_selected_text by default' do
+      I18n.with_locale(:en) do
+        html = builder.file_field(:cover_photo)
+        expect(html).to have_css 'span', text: 'No file selected'
+      end
+    end
+
+    it 'supports Spanish locale' do
+      I18n.with_locale(:es) do
+        html = builder.file_field(:cover_photo)
+        expect(html).to have_css 'span', text: 'Seleccionar archivo'
+        expect(html).to have_css 'span', text: 'Ningún archivo seleccionado'
+      end
+    end
+  end
+
+  describe 'constants' do
+    it 'has INPUT_CLASS constant (hidden for accessibility)' do
+      expect(described_class::FileFields::INPUT_CLASS).to eq('hidden')
+    end
+
+    it 'has WRAPPER_CLASS constant' do
+      expect(described_class::FileFields::WRAPPER_CLASS).to eq('flex items-center gap-3')
+    end
+
+    it 'has FILENAME_CLASS constant' do
+      expect(described_class::FileFields::FILENAME_CLASS).to eq('text-sm text-base-content/60 truncate')
+    end
+
+    it 'has CTA_CLASS constant' do
+      expect(described_class::FileFields::CTA_CLASS).to eq('btn btn-soft btn-primary btn-sm gap-2')
+    end
+
+    it 'has LABEL_CLASS constant' do
+      expect(described_class::FileFields::LABEL_CLASS).to eq('cursor-pointer inline-flex')
+    end
+
+    it 'has DEFAULT_ICON constant' do
+      expect(described_class::FileFields::DEFAULT_ICON).to eq('upload')
     end
   end
 end

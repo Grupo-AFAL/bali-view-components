@@ -1,0 +1,13 @@
+<div class="p-4 max-w-2xl">
+  <h3 class="text-lg font-semibold mb-4">Empty State (No Characters)</h3>
+
+  <%= form_with model: model, url: '/lookbook', builder: Bali::FormBuilder do |f| %>
+    <%= f.dynamic_fields_group :characters,
+        label: 'Characters',
+        button_text: 'Add Your First Character' %>
+
+    <div class="mt-4">
+      <%= f.submit 'Save Movie', class: 'btn btn-primary' %>
+    </div>
+  <% end %>
+</div>

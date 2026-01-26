@@ -3,24 +3,36 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module SelectFields
+      # DaisyUI base classes for select elements
+      BASE_CLASSES = 'select select-bordered w-full'
+
       def select_group(method, values, options = {}, html_options = {})
-        @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
+        @template.render Bali::FieldGroupWrapper::Component.new(self, method, options) do
           select_field(method, values, options, html_options)
         end
       end
 
-      # Uses the native HTML <select> element.
-      #
+      # Uses the native HTML <select> element with DaisyUI styling.
       def select_field(method, values, options = {}, html_options = {})
-        select_class = field_class_name(method, "select #{html_options.delete(:select_class)}")
-        select_data = html_options.delete(:select_data)
-        select_id = "#{method}_select_div"
+        html_options[:class] = select_classes(method, html_options[:class])
 
-        field = content_tag(:div, id: select_id, class: select_class, data: select_data) do
-          select(method, values, options, html_options.except(:control_data, :control_class))
-        end
+        field = select(method, values, options, html_options.except(:control_data, :control_class))
+        field_helper(method, field, select_field_options(method, html_options))
+      end
 
-        field_helper(method, field, field_options(method, html_options))
+      private
+
+      def select_classes(method, additional_classes = nil)
+        base = field_class_name(method, BASE_CLASSES)
+        [base, additional_classes].compact.join(' ')
+      end
+
+      def select_field_options(_method, html_options)
+        {
+          control_data: html_options[:control_data],
+          control_class: html_options[:control_class],
+          help: html_options[:help]
+        }
       end
     end
   end

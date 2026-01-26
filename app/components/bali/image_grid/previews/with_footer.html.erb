@@ -1,0 +1,11 @@
+<%= render(Bali::ImageGrid::Component.new(columns: 3, gap: :md)) do |c| %>
+  <% 6.times do |i| %>
+    <% c.with_image(aspect_ratio: :'3/2') do |image| %>
+      <% image.with_footer do %>
+        <p class="text-sm font-medium">Image <%= i + 1 %></p>
+        <p class="text-xs text-base-content/60">Caption text</p>
+      <% end %>
+      <%= tag.img src: "https://placehold.co/480x320?text=Image+#{i + 1}", alt: "Sample image #{i + 1}" %>
+    <% end %>
+  <% end %>
+<% end %>

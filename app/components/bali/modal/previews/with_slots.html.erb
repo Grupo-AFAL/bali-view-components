@@ -1,0 +1,10 @@
+<%= render Bali::Modal::Component.new(active: active, size: size) do |modal| %>
+  <% modal.with_header(title: 'Confirm Action', badge: 'Required', badge_color: :warning) %>
+  <% modal.with_body do %>
+    <p class="text-base-content/80">Are you sure you want to proceed with this action? This cannot be undone.</p>
+  <% end %>
+  <% modal.with_actions do %>
+    <%= render Bali::Button::Component.new(name: 'Cancel', variant: :ghost, data: { action: 'modal#close' }) %>
+    <%= render Bali::Button::Component.new(name: 'Confirm', variant: :primary) %>
+  <% end %>
+<% end %>

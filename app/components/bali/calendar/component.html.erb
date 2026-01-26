@@ -1,44 +1,37 @@
 <div class="calendar-component">
-  <div class="box <%= period == :month ? 'month-view' : 'week-view' %>">
-    <%= header %>
-
-    <div class="table-container">
-      <table class="table is-fullwidth">
-        <thead>
-          <tr>
-            <% date_range.slice(0, all_week ? 7 : 5).each do |day| %>
-              <th class="has-text-centered has-text-grey-dark has-text-weight-normal is-size-4">
-                <%= t('date.day_names')[day.wday] %>
-              </th>
-            <% end %>
-          </tr>
-        </thead>
-
-        <tbody>
-          <% date_range.each_slice(7) do |week| %>
-            <%= content_tag :tr, class: tr_classes_for(week) do %>
-              <% filter_week(week).each do |day| %>
-                <%= content_tag :td, class: td_classes_for(day) do %>
-                  <% if show_date %>
-                    <% if period == :month %>
-                      <div class="has-text-weight-semibold is-pulled-right is-size-5">
-                        <%= day.day %>
-                      </div>
-                    <% else %>
-                      <h3 class="title is-3 <%= @options[:weekly_title_class] %>"><%= day.day %></h3>
+  <div class="card bg-base-100 shadow <%= month_view? ? 'month-view' : 'week-view' %>">
+    <div class="card-body">
+      <%= header %>
+      <div class="overflow-x-auto">
+        <table class="table table-fixed w-full">
+          <thead>
+            <tr>
+              <% date_range.first(header_day_count).each do |day| %>
+                <th class="text-center text-base-content/70 font-normal text-lg">
+                  <%= t('date.day_names')[day.wday] %>
+                </th>
+              <% end %>
+            </tr>
+          </thead>
+          <tbody>
+            <% date_range.each_slice(7) do |week| %>
+              <%= content_tag :tr, class: tr_classes_for(week) do %>
+                <% filter_week(week).each do |day| %>
+                  <%= content_tag :td, class: td_classes_for(day) do %>
+                    <% if show_date %>
+                      <div class="<%= date_display_classes %>"><%= day.day %></div>
                     <% end %>
-                  <% end %>
-                  <% if template.present? %>
-                    <%= render template, events: sorted_events[day], period: period, day: day %>
+                    <% if template.present? %>
+                      <%= render template, events: sorted_events[day], period: period, day: day %>
+                    <% end %>
                   <% end %>
                 <% end %>
               <% end %>
             <% end %>
-          <% end %>
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
+      <%= footer %>
     </div>
-
-    <%= footer %>
   </div>
 </div>

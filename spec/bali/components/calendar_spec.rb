@@ -19,11 +19,11 @@ describe Bali::Calendar::Component, type: :component do
 
     expect(page).to have_css '.calendar-component'
     expect(page).to have_css '.month-view'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Monday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Friday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Saturday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Sunday'
-    expect(page).to have_css '.header > .columns > .column > h3.title',
+    expect(page).to have_css 'tr > th.text-center', text: 'Monday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Friday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Saturday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Sunday'
+    expect(page).to have_css '.header h3.text-2xl',
                              text: 'January 2020'
   end
 
@@ -32,13 +32,13 @@ describe Bali::Calendar::Component, type: :component do
     render_inline(component)
 
     expect(page).to have_css '.calendar-component'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Monday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Tuesday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Wednesday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Thursday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Friday'
-    expect(page).not_to have_css 'tr > th.has-text-centered', text: 'Saturday'
-    expect(page).not_to have_css 'tr > th.has-text-centered', text: 'Sunday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Monday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Tuesday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Wednesday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Thursday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Friday'
+    expect(page).not_to have_css 'tr > th.text-center', text: 'Saturday'
+    expect(page).not_to have_css 'tr > th.text-center', text: 'Sunday'
   end
 
   it 'renders the calendar component hiding the calendar view options' do
@@ -48,11 +48,11 @@ describe Bali::Calendar::Component, type: :component do
     end
 
     expect(page).to have_css '.calendar-component'
-    expect(page).to have_css '.header > .columns > .column > h3.title',
+    expect(page).to have_css '.header h3.text-2xl',
                              text: 'January 2020'
-    expect(page).not_to have_css '.header > .columns > .column > a.button',
+    expect(page).not_to have_css '.header a.btn',
                                  text: 'Week'
-    expect(page).not_to have_css '.header > .columns > .column > a.button',
+    expect(page).not_to have_css '.header a.btn',
                                  text: 'Month'
   end
 
@@ -62,13 +62,13 @@ describe Bali::Calendar::Component, type: :component do
 
     expect(page).to have_css '.calendar-component'
     expect(page).to have_css '.week-view'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Monday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Tuesday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Wednesday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Thursday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Friday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Saturday'
-    expect(page).to have_css 'tr > th.has-text-centered', text: 'Sunday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Monday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Tuesday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Wednesday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Thursday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Friday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Saturday'
+    expect(page).to have_css 'tr > th.text-center', text: 'Sunday'
   end
 
   describe '#prev_day' do
@@ -233,6 +233,132 @@ describe Bali::Calendar::Component, type: :component do
 
       expect(component.sorted_events.keys).to eq([Date.parse('2020-02-01'),
                                                   Date.parse('2020-02-02')])
+    end
+  end
+
+  describe 'start_date parameter' do
+    it 'accepts a Date object directly' do
+      date = Date.parse('2020-05-15')
+      @options.merge!(start_date: date)
+
+      expect(component.start_date).to eq(date)
+    end
+
+    it 'accepts a String and parses it' do
+      @options.merge!(start_date: '2020-05-15')
+
+      expect(component.start_date).to eq(Date.parse('2020-05-15'))
+    end
+
+    it 'defaults to current date when nil' do
+      expect(component.start_date).to eq(Date.current)
+    end
+
+    it 'defaults to current date when blank' do
+      @options.merge!(start_date: '')
+
+      expect(component.start_date).to eq(Date.current)
+    end
+  end
+
+  describe 'weekdays_only parameter' do
+    it 'accepts weekdays_only: true to hide weekends' do
+      @options.merge!(start_date: '2020-01-01', weekdays_only: true)
+      render_inline(component)
+
+      expect(page).to have_css 'tr > th.text-center', text: 'Monday'
+      expect(page).to have_css 'tr > th.text-center', text: 'Friday'
+      expect(page).not_to have_css 'tr > th.text-center', text: 'Saturday'
+      expect(page).not_to have_css 'tr > th.text-center', text: 'Sunday'
+    end
+
+    it 'maintains backward compatibility with all_week: false' do
+      @options.merge!(start_date: '2020-01-01', all_week: false)
+      render_inline(component)
+
+      expect(page).not_to have_css 'tr > th.text-center', text: 'Saturday'
+      expect(page).not_to have_css 'tr > th.text-center', text: 'Sunday'
+    end
+
+    it 'weekdays_only takes precedence over all_week' do
+      @options.merge!(start_date: '2020-01-01', weekdays_only: false, all_week: false)
+      render_inline(component)
+
+      # weekdays_only: false should show weekends even though all_week: false
+      expect(page).to have_css 'tr > th.text-center', text: 'Saturday'
+      expect(page).to have_css 'tr > th.text-center', text: 'Sunday'
+    end
+  end
+
+  describe 'helper methods' do
+    it '#month_view? returns true for month period' do
+      @options.merge!(period: :month)
+
+      expect(component.month_view?).to be true
+      expect(component.week_view?).to be false
+    end
+
+    it '#week_view? returns true for week period' do
+      @options.merge!(period: :week)
+
+      expect(component.month_view?).to be false
+      expect(component.week_view?).to be true
+    end
+
+    it '#show_weekends? returns inverse of weekdays_only' do
+      @options.merge!(weekdays_only: true)
+
+      expect(component.show_weekends?).to be false
+      expect(component.weekdays_only?).to be true
+    end
+  end
+
+  describe Bali::Calendar::EventGrouper do
+    let(:event_class) { Struct.new(:start_time, :end_time) }
+
+    it 'groups single-day events by date' do
+      events = [
+        event_class.new(Date.parse('2020-02-01'), nil),
+        event_class.new(Date.parse('2020-02-01'), nil)
+      ]
+
+      grouper = described_class.new(events)
+
+      expect(grouper.by_date[Date.parse('2020-02-01')].size).to eq(2)
+    end
+
+    it 'spreads multi-day events across all dates' do
+      events = [
+        event_class.new(Date.parse('2020-02-01'), Date.parse('2020-02-03'))
+      ]
+
+      grouper = described_class.new(events)
+
+      expect(grouper.by_date.keys).to contain_exactly(
+        Date.parse('2020-02-01'),
+        Date.parse('2020-02-02'),
+        Date.parse('2020-02-03')
+      )
+    end
+
+    it 'filters out events with nil start_time' do
+      events = [
+        event_class.new(nil, nil),
+        event_class.new(Date.parse('2020-02-01'), nil)
+      ]
+
+      grouper = described_class.new(events)
+
+      expect(grouper.by_date.values.flatten.size).to eq(1)
+    end
+
+    it 'handles custom attribute methods' do
+      custom_class = Struct.new(:begins_at, :ends_at)
+      events = [custom_class.new(Date.parse('2020-02-01'), nil)]
+
+      grouper = described_class.new(events, start_method: :begins_at, end_method: :ends_at)
+
+      expect(grouper.by_date[Date.parse('2020-02-01')].size).to eq(1)
     end
   end
 end

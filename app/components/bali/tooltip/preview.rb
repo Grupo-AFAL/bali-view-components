@@ -3,69 +3,36 @@
 module Bali
   module Tooltip
     class Preview < ApplicationViewComponentPreview
-      # Default Tooltip
-      # ---------------
-      # Content on the top by default
-      def default
-        render Tooltip::Component.new do |c|
-          c.with_trigger { tag.a 'Link with tooltip' }
-
+      # @param placement select { choices: [top, bottom, left, right] }
+      # @param trigger_event select { choices: [mouseenter focus, click, manual] }
+      def default(placement: :top, trigger_event: 'mouseenter focus')
+        render Tooltip::Component.new(placement: placement, trigger_event: trigger_event) do |c|
+          c.with_trigger { tag.span 'Hover me', class: 'link link-primary' }
           tag.p 'Hi, this is the tooltip content'
         end
       end
 
-      def empty_tootip
+      # Shows tooltip behavior when content is empty (no tooltip appears)
+      def empty_tooltip
         render Tooltip::Component.new do |c|
-          c.with_trigger { tag.a 'Link without tooltip' }
+          c.with_trigger { tag.span 'Link without tooltip', class: 'link' }
         end
       end
 
-      # @!group HelpTip
-
-      # Default Help Tip
-      # ---------------
-      # Content on the top by default
-      def top
+      # Common pattern: help icon with tooltip explanation
+      def help_tip
         render Tooltip::Component.new(class: 'help-tip') do |c|
-          c.with_trigger { tag.span '?' }
-
+          c.with_trigger do
+            tag.span '?',
+                     class: 'w-6 h-6 rounded-full border border-neutral flex items-center justify-center text-sm'
+          end
           tag.p 'Hi, this is the help tip content'
         end
       end
 
-      # Bottom Content
-      # ---------------
-      # Content on the bottom
-      def bottom
-        render Tooltip::Component.new(placement: 'bottom', class: 'help-tip') do |c|
-          c.with_trigger { tag.span '?' }
-
-          tag.p 'Hi, this is the help tip content'
-        end
+      def all_placements
+        render_with_template
       end
-
-      # Right Content
-      # ---------------
-      # Content on the right
-      def right
-        render Tooltip::Component.new(placement: 'right', class: 'help-tip') do |c|
-          c.with_trigger { tag.span '?' }
-
-          tag.p 'Hi, this is the help tip content'
-        end
-      end
-
-      # Left Content
-      # ---------------
-      # Content on the left
-      def left
-        render Tooltip::Component.new(placement: 'left', class: 'help-tip') do |c|
-          c.with_trigger { tag.span '?' }
-
-          tag.p 'Hi, this is the help tip content'
-        end
-      end
-      # @!endgroup
     end
   end
 end

@@ -1,0 +1,28 @@
+<%= render Bali::DataTable::Component.new(url: request.path) do |c| %>
+  <%# Filters with quick search enabled %>
+  <% c.with_filters_panel(
+       available_attributes: filter_attributes,
+       search: {
+         fields: [:name],
+         placeholder: 'Search products...'
+       }
+     ) %>
+
+  <% c.with_table do %>
+    <%= render Bali::Table::Component.new do |ct| %>
+      <%= ct.with_headers(headers) %>
+      <% records.each do |record| %>
+        <%= ct.with_row do %>
+          <td><%= record[:name] %></td>
+          <td>
+            <span class="badge <%= record[:status] == 'active' ? 'badge-success' : record[:status] == 'pending' ? 'badge-warning' : 'badge-ghost' %>">
+              <%= record[:status].capitalize %>
+            </span>
+          </td>
+          <td class="text-right font-mono">$<%= number_with_delimiter(record[:amount]) %></td>
+          <td class="text-sm text-base-content/70"><%= record[:created_at] %></td>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

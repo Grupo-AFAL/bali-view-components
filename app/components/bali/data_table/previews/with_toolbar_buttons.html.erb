@@ -1,0 +1,39 @@
+<%= render Bali::DataTable::Component.new(url: request.path) do |c| %>
+  <%# Filters with search %>
+  <% c.with_filters_panel(
+       available_attributes: filter_attributes,
+       search: {
+         fields: [:name],
+         placeholder: 'Search products...'
+       }
+     ) %>
+
+  <%# Column selector - declarative API %>
+  <% c.with_column_selector(table_id: 'toolbar-demo-table') do |cs| %>
+    <% cs.with_column(index: 0, label: 'Name') %>
+    <% cs.with_column(index: 1, label: 'Status') %>
+    <% cs.with_column(index: 2, label: 'Amount') %>
+    <% cs.with_column(index: 3, label: 'Created At') %>
+  <% end %>
+
+  <%# Export - declarative API %>
+  <% c.with_export(formats: [:csv, :excel, :pdf]) %>
+
+  <% c.with_table do %>
+    <%= render Bali::Table::Component.new(id: 'toolbar-demo-table') do |ct| %>
+      <%= ct.with_headers(headers) %>
+      <% records.each do |record| %>
+        <%= ct.with_row do %>
+          <td><%= record[:name] %></td>
+          <td>
+            <span class="badge <%= record[:status] == 'active' ? 'badge-success' : record[:status] == 'pending' ? 'badge-warning' : 'badge-ghost' %>">
+              <%= record[:status].capitalize %>
+            </span>
+          </td>
+          <td class="text-right font-mono">$<%= number_with_delimiter(record[:amount]) %></td>
+          <td class="text-sm text-base-content/70"><%= record[:created_at] %></td>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

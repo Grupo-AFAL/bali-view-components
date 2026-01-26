@@ -1,0 +1,210 @@
+---
+title: Component Patterns
+label: Components
+---
+
+# Component Patterns
+
+Standard patterns for creating and using Bali ViewComponents.
+
+## Component Structure
+
+Every component follows this file structure:
+
+```
+app/components/bali/[name]/
+├── component.rb           # Ruby class
+├── component.html.erb     # Template
+├── component.scss         # Styles (optional)
+├── preview.rb             # Lookbook preview
+└── [subcomponent]/        # Nested components
+```
+
+---
+
+## Variants and Sizes
+
+### Defining Variants
+
+```ruby
+module Bali
+  module Button
+    class Component < ApplicationComponent
+      VARIANTS = {
+        primary: "btn-primary",
+        secondary: "btn-secondary",
+        success: "btn-success",
+        warning: "btn-warning",
+        error: "btn-error",
+        ghost: "btn-ghost"
+      }.freeze
+
+      SIZES = {
+        xs: "btn-xs",
+        sm: "btn-sm",
+        md: "btn-md",
+        lg: "btn-lg"
+      }.freeze
+    end
+  end
+end
+```
+
+### Using Variants
+
+```erb
+<%# Different variants %>
+<%%= render Bali::Button::Component.new(name: 'Primary', variant: :primary) %>
+<%%= render Bali::Button::Component.new(name: 'Error', variant: :error) %>
+
+<%# Different sizes %>
+<%%= render Bali::Button::Component.new(name: 'Small', size: :sm) %>
+<%%= render Bali::Button::Component.new(name: 'Large', size: :lg) %>
+```
+
+---
+
+## Slots
+
+Slots allow flexible content composition.
+
+### Simple Slots
+
+```ruby
+# In component.rb
+renders_one :header
+renders_one :footer
+renders_many :items
+```
+
+```erb
+<%# Usage %>
+<%%= render MyComponent.new do |c| %>
+  <%% c.with_header { "Title" } %>
+  <%% c.with_item { "Item 1" } %>
+  <%% c.with_item { "Item 2" } %>
+  <%% c.with_footer { "Footer content" } %>
+<%% end %>
+```
+
+### Slots with Parameters
+
+```ruby
+renders_one :image, ->(src:, alt: "") do
+  tag.figure do
+    image_tag(src, alt: alt, class: "w-full")
+  end
+end
+```
+
+```erb
+<%%= render CardComponent.new do |c| %>
+  <%% c.with_image(src: "/photo.jpg", alt: "Description") %>
+<%% end %>
+```
+
+---
+
+## Composition
+
+**Always use existing Bali components instead of raw HTML.**
+
+### Good Composition
+
+```erb
+<%%= render Bali::Card::Component.new do |c| %>
+  <%% c.with_header { "User Profile" } %>
+  <%% c.with_body do %>
+    <%%= render Bali::Avatar::Component.new(src: user.avatar_url) %>
+    <h3><%%= user.name %></h3>
+    <%%= render Bali::Tag::Component.new(text: user.role, color: :primary) %>
+  <%% end %>
+  <%% c.with_footer do %>
+    <%%= render Bali::Button::Component.new(name: 'Edit', variant: :ghost) %>
+  <%% end %>
+<%% end %>
+```
+
+### Component Mapping
+
+| Don't Use | Use Instead |
+|-----------|-------------|
+| `<div class="card">` | `Bali::Card::Component` |
+| `<span class="badge">` | `Bali::Tag::Component` |
+| `<button class="btn">` | `Bali::Button::Component` |
+| `<a class="link">` | `Bali::Link::Component` |
+| `<div class="alert">` | `Bali::Notification::Component` |
+
+---
+
+## Button vs Link
+
+Use the correct component based on **what the element does**:
+
+| Use Case | Component | Renders |
+|----------|-----------|---------|
+| Navigation | `Bali::Link::Component` | `<a>` |
+| Action/Submit | `Bali::Button::Component` | `<button>` |
+| Link styled as button | `Bali::Link::Component` with `type:` | `<a class="btn">` |
+
+```erb
+<%# Button for actions %>
+<%%= render Bali::Button::Component.new(
+  name: 'Save',
+  type: :submit
+) %>
+
+<%# Link for navigation %>
+<%%= render Bali::Link::Component.new(
+  name: 'View Details',
+  href: user_path(@user)
+) %>
+
+<%# Link styled as button (still navigates) %>
+<%%= render Bali::Link::Component.new(
+  name: 'Create New',
+  href: new_user_path,
+  type: :primary
+) %>
+```
+
+---
+
+## Options Passthrough
+
+Always accept and pass through HTML options:
+
+```ruby
+def initialize(variant: :primary, **options)
+  @variant = variant
+  @options = options
+end
+
+def component_classes
+  class_names("btn", VARIANTS[@variant], @options[:class])
+end
+
+def component_attributes
+  @options.except(:class)
+end
+```
+
+```erb
+<%# In template %>
+<button class="<%%= component_classes %>" <%%= tag.attributes(component_attributes) %>>
+  <%%= content %>
+</button>
+```
+
+Usage:
+
+```erb
+<%%= render Bali::Button::Component.new(
+  name: 'Submit',
+  variant: :primary,
+  class: 'my-custom-class',
+  id: 'submit-btn',
+  data: { turbo: false },
+  'aria-label': 'Submit the form'
+) %>
+```

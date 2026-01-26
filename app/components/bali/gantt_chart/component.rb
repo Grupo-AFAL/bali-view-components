@@ -36,9 +36,11 @@ module Bali
 
         @start_date = start_date
 
+        # Default colors - using solid colors that work in linear-gradient
+        # These match DaisyUI's primary color palette
         @task_colors = options.delete(:colors) || {
-          default: 'hsl(196, 82%, 62%)',  # blue-4
-          completed: 'hsl(196, 82%, 46%)' # blue-6
+          default: '#7dd3fc',   # sky-300 - lighter shade for incomplete
+          completed: '#0ea5e9'  # sky-500 - full color for completed
         }
         @tasks = tasks.map { |task| Task.new(**task) }
         @tasks = setup_parent_child_relationships(@tasks)

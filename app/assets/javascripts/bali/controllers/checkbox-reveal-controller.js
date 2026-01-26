@@ -5,7 +5,7 @@ export class CheckboxRevealController extends Controller {
   static classes = ['hidden']
 
   connect () {
-    this.class = this.hasHiddenClass ? this.hiddenClass : 'is-hidden'
+    this.class = this.hasHiddenClass ? this.hiddenClass : 'hidden'
     this.toggle()
   }
 

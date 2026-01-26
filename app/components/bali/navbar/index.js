@@ -55,12 +55,9 @@ export class NavbarController extends Controller {
   toggleMenu (event) {
     event.preventDefault()
     this.menuActive = !this.menuActive
-    if (!this.altMenuActive) {
-      this.element.classList.toggle('is-active')
-    }
 
     if (this.hasMenuTarget) {
-      this.menuTarget.classList.toggle('is-active')
+      this.toggleVisibility(this.menuTarget)
     }
 
     if (this.hasBurgerTarget) {
@@ -68,15 +65,23 @@ export class NavbarController extends Controller {
     }
   }
 
+  toggleVisibility (element) {
+    const isHidden = element.classList.contains('hidden')
+    if (isHidden) {
+      element.classList.remove('hidden')
+      element.classList.add('flex')
+    } else {
+      element.classList.add('hidden')
+      element.classList.remove('flex')
+    }
+  }
+
   toggleAltMenu (event) {
     event.preventDefault()
     this.altMenuActive = !this.altMenuActive
-    if (!this.menuActive) {
-      this.element.classList.toggle('is-active')
-    }
 
     if (this.hasAltMenuTarget) {
-      this.altMenuTarget.classList.toggle('is-active')
+      this.toggleVisibility(this.altMenuTarget)
     }
 
     if (this.hasAltBurgerTarget) {

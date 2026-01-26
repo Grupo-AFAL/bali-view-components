@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html data-theme="light">
+  <head>
+    <title>MovieDB - The Ultimate Movie Database</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "application", media: 'all' %>
+    <%= vite_client_tag %>
+    <%= vite_javascript_tag 'application' %>
+  </head>
+  <body class="min-h-screen">
+    <%# Marketing Navbar - Transparent style %>
+    <%= render Bali::Navbar::Component.new(
+      color: :base,
+      transparency: true,
+      class: 'sticky top-0 z-50'
+    ) do |nav| %>
+      <% nav.with_brand do %>
+        <%= render Bali::Link::Component.new(
+          name: 'MovieDB',
+          href: landing_path,
+          variant: :ghost,
+          class: 'text-xl font-bold'
+        ) %>
+      <% end %>
+
+      <% nav.with_burger %>
+
+      <% nav.with_menu do |menu| %>
+        <% menu.with_start_item(name: 'Features', href: '#features') %>
+        <% menu.with_start_item(name: 'Testimonials', href: '#testimonials') %>
+        <% menu.with_start_item(name: 'Pricing', href: '#pricing') %>
+
+        <% menu.with_end_item(tag_name: :div) do %>
+          <div class="flex items-center gap-2">
+            <%= render Bali::Link::Component.new(name: 'Sign in', href: root_path, variant: :ghost) %>
+            <%= render Bali::Link::Component.new(name: 'Get Started', href: root_path, variant: :primary) %>
+          </div>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <%= yield %>
+
+    <%# Footer using Bali component %>
+    <%= render Bali::Footer::Component.new(color: :neutral, class: 'mt-16') do |footer| %>
+      <% footer.with_brand(
+        name: 'MovieDB',
+        description: 'The ultimate movie database for studios, producers, and film enthusiasts.'
+      ) %>
+
+      <% footer.with_section(title: 'Product') do |section| %>
+        <% section.with_link(name: 'Features', href: '#features') %>
+        <% section.with_link(name: 'Pricing', href: '#pricing') %>
+        <% section.with_link(name: 'API', href: '#') %>
+      <% end %>
+
+      <% footer.with_section(title: 'Company') do |section| %>
+        <% section.with_link(name: 'About', href: '#') %>
+        <% section.with_link(name: 'Blog', href: '#') %>
+        <% section.with_link(name: 'Careers', href: '#') %>
+      <% end %>
+
+      <% footer.with_section(title: 'Legal') do |section| %>
+        <% section.with_link(name: 'Privacy', href: '#') %>
+        <% section.with_link(name: 'Terms', href: '#') %>
+      <% end %>
+
+      <% footer.with_bottom do %>
+        <p>&copy; <%= Date.current.year %> MovieDB. Built with Bali ViewComponents.</p>
+      <% end %>
+    <% end %>
+  </body>
+</html>

@@ -1,0 +1,9 @@
+<%= form_with(url: '/lookbook', local: true) do |form| %>
+  <%= render(Bali::Avatar::Upload::Component.new(
+    form: form,
+    method: :avatar,
+    src: 'avatar.png',
+    size: size,
+    shape: shape
+  )) %>
+<% end %>

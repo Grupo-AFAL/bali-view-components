@@ -1,11 +1,34 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+  # Kitchen Sink Demo Routes
+  root 'dashboard#index'
 
-  # Defines the root path route ("/")
-  # root "articles#index"
+  resources :movies do
+    collection do
+      post :bulk_action
+    end
+    resources :characters, only: %i[new create destroy] do
+      collection do
+        patch :sort
+      end
+    end
+  end
 
+  resource :settings, only: %i[show update]
+  get 'landing', to: 'pages#landing'
+  get 'showcase', to: 'pages#showcase'
+  get 'sidemenu-example', to: 'pages#sidemenu_example'
+
+  # Modal/Drawer content routes (for remote loading)
+  get 'modals/basic', to: 'modals#basic'
+  get 'modals/form', to: 'modals#form'
+  get 'modals/confirm', to: 'modals#confirm'
+  get 'drawers/user_details', to: 'drawers#user_details'
+  get 'drawers/filters', to: 'drawers#filters'
+  get 'drawers/order_history', to: 'drawers#order_history'
+
+  # Existing demo routes
   get 'show-content-in-hovercard', to: 'hovercard#show'
 
   get 'tab1', to: 'tabs#tab1'

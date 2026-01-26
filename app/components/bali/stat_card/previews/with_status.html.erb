@@ -1,0 +1,11 @@
+<%= render Bali::StatCard::Component.new(
+  title: 'Active Tasks',
+  value: '8',
+  icon_name: 'clipboard-list',
+  color: :warning
+) do |card| %>
+  <% card.with_footer do %>
+    <%= render Bali::Icon::Component.new('clock', size: :small, class: 'text-base-content/60') %>
+    <span class="text-base-content/60">3 due today</span>
+  <% end %>
+<% end %>

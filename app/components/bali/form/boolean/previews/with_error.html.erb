@@ -1,0 +1,6 @@
+<div class="p-4">
+  <p class="text-sm text-base-content/60 mb-4">When a validation error is present, the checkbox gets an error border and displays the error message below.</p>
+  <%= form_with model: model, url: '/lookbook', builder: Bali::FormBuilder do |f| %>
+    <%= f.boolean_field(:indie, label: 'I accept the terms and conditions') %>
+  <% end %>
+</div>

@@ -3,49 +3,62 @@
 module Bali
   module Rate
     class Preview < ApplicationViewComponentPreview
-      # Default Rate
-      # --------------
-      # Renders radio buttons displayed as stars
-      # @param value [Integer] select [1, 2, 3, 4, 5]
-      # @param size select [small, medium, large]
-      def default(value: 1, size: :medium)
+      # @label Default
+      # Uses DaisyUI's native rating component with star-shaped radio buttons.
+      # Integrates with Rails form builders for form submissions.
+      # @param value select [1, 2, 3, 4, 5]
+      # @param size select [xs, sm, md, lg]
+      # @param color select [warning, primary, secondary, accent, success, error, info]
+      def default(value: 3, size: :md, color: :warning)
         render Rate::Component.new(
           form: form_builder,
           method: :rating,
           value: value,
-          scale: 1..5,
-          size: size
+          size: size.to_sym,
+          color: color.to_sym
         )
       end
 
-      # Auto submit on click
-      # --------------
-      # Renders submit buttons as stars
-      # @param value [Integer] select [1, 2, 3, 4, 5]
-      # @param size select [small, medium, large]
-      def auto_submit(value: 1, size: :medium)
-        render Rate::Component.new(
-          form: form_builder,
-          method: :rating,
-          value: value,
-          scale: 1..5,
-          size: size,
-          auto_submit: true
-        )
+      # @label Auto Submit
+      # Renders submit buttons instead of radio inputs. Clicking a star
+      # immediately submits the form with that rating value.
+      # @param value select [1, 2, 3, 4, 5]
+      # @param size select [xs, sm, md, lg]
+      # @param color select [warning, primary, secondary, accent, success, error, info]
+      def auto_submit(value: 3, size: :md, color: :warning)
+        render_with_template(locals: {
+                               model: Movie.new,
+                               value: value.to_i,
+                               size: size.to_sym,
+                               color: color.to_sym
+                             })
       end
 
-      # Readonly for display purposes
-      # --------------
-      # Renders stars only
-      # @param value [Integer] select [1, 2, 3, 4, 5]
-      # @param size select [small, medium, large]
-      def readonly(value: 1, size: :medium)
+      # @label Readonly
+      # Display-only mode for showing existing ratings. Uses disabled
+      # inputs with no form integration.
+      # @param value select [1, 2, 3, 4, 5]
+      # @param size select [xs, sm, md, lg]
+      # @param color select [warning, primary, secondary, accent, success, error, info]
+      def readonly(value: 4, size: :md, color: :warning)
         render Rate::Component.new(
           value: value,
-          scale: 1..5,
-          size: size,
+          size: size.to_sym,
+          color: color.to_sym,
           readonly: true
         )
+      end
+
+      # @label All Sizes
+      # Comparison of all available sizes from extra-small to large.
+      def all_sizes
+        render_with_template
+      end
+
+      # @label All Colors
+      # Comparison of all available color variants.
+      def all_colors
+        render_with_template
       end
 
       private

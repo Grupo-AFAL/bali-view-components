@@ -1,0 +1,33 @@
+/* Rich text (Trix) styling */
+@import './vendor/trix.css';
+
+trix-editor {
+  @apply bg-base-100 min-h-40;
+
+  &.input {
+    @apply block h-auto;
+  }
+}
+
+.trix-content {
+  @apply py-2 px-4;
+
+  ul {
+    list-style: disc;
+  }
+
+  .attachment-gallery {
+    > action-text-attachment,
+    > .attachment {
+      @apply flex-[1_0_33%] px-2 max-w-[33%];
+    }
+
+    &.attachment-gallery--2,
+    &.attachment-gallery--4 {
+      > action-text-attachment,
+      > .attachment {
+        @apply flex-[0_0_50%] max-w-[50%];
+      }
+    }
+  }
+}

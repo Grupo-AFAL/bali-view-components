@@ -1,0 +1,13 @@
+<%= render Bali::Reveal::Component.new(opened: opened) do |c| %>
+  <% c.with_trigger(show_border: show_border) do |trigger| %>
+    <% trigger.with_title do %>
+      <span class="text-lg font-semibold">Click to see contents</span>
+    <% end %>
+  <% end %>
+
+  <div class="prose">
+    <h3>Revealed Contents</h3>
+    <p>This content is hidden until you click the trigger above.</p>
+    <p>The chevron icon rotates to indicate the reveal state.</p>
+  </div>
+<% end %>

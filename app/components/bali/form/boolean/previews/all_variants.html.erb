@@ -1,0 +1,38 @@
+<div class="p-4 space-y-8">
+  <%= form_with model: model, url: '/lookbook', builder: Bali::FormBuilder do |f| %>
+    <%# Sizes Section %>
+    <section>
+      <h3 class="text-lg font-semibold mb-4">Sizes</h3>
+      <div class="flex flex-wrap gap-6 items-center">
+        <%= f.boolean_field(:indie, size: :xs, label: 'XS') %>
+        <%= f.boolean_field(:indie, size: :sm, label: 'SM') %>
+        <%= f.boolean_field(:indie, size: :md, label: 'MD') %>
+        <%= f.boolean_field(:indie, size: :lg, label: 'LG') %>
+      </div>
+    </section>
+
+    <%# Colors Section %>
+    <section>
+      <h3 class="text-lg font-semibold mb-4">Colors</h3>
+      <div class="flex flex-wrap gap-6 items-center">
+        <%= f.boolean_field(:indie, color: :primary, label: 'Primary') %>
+        <%= f.boolean_field(:indie, color: :secondary, label: 'Secondary') %>
+        <%= f.boolean_field(:indie, color: :accent, label: 'Accent') %>
+        <%= f.boolean_field(:indie, color: :success, label: 'Success') %>
+        <%= f.boolean_field(:indie, color: :warning, label: 'Warning') %>
+        <%= f.boolean_field(:indie, color: :info, label: 'Info') %>
+        <%= f.boolean_field(:indie, color: :error, label: 'Error') %>
+      </div>
+    </section>
+
+    <%# Combined Section %>
+    <section>
+      <h3 class="text-lg font-semibold mb-4">Combined (Size + Color)</h3>
+      <div class="flex flex-wrap gap-6 items-center">
+        <%= f.boolean_field(:indie, size: :lg, color: :primary, label: 'Large Primary') %>
+        <%= f.boolean_field(:indie, size: :sm, color: :success, label: 'Small Success') %>
+        <%= f.boolean_field(:indie, size: :xs, color: :warning, label: 'XS Warning') %>
+      </div>
+    </section>
+  <% end %>
+</div>

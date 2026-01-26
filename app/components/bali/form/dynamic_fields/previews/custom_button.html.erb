@@ -1,0 +1,14 @@
+<div class="p-4 max-w-2xl">
+  <h3 class="text-lg font-semibold mb-4">Custom Button Styling</h3>
+
+  <%= form_with model: model, url: '/lookbook', builder: Bali::FormBuilder do |f| %>
+    <%= f.dynamic_fields_group :characters,
+        label: 'Characters',
+        button_text: '+ New Character',
+        button_class: 'btn btn-success btn-outline' %>
+
+    <div class="mt-4">
+      <%= f.submit 'Save Movie', class: 'btn btn-primary' %>
+    </div>
+  <% end %>
+</div>

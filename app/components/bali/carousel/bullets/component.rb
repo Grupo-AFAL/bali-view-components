@@ -4,19 +4,33 @@ module Bali
   module Carousel
     module Bullets
       class Component < ApplicationViewComponent
-        attr_reader :hidden, :options
-        attr_accessor :count
-
-        def initialize(hidden: false, count: 0, **options)
-          @hidden = hidden
+        def initialize(count:, hidden: false, **options)
           @count = count
-
-          @options = prepend_class_name(options, 'glide__bullets')
-          @options = prepend_data_attribute(@options, 'glide-el', 'controls[nav]')
+          @hidden = hidden
+          @options = options
         end
 
         def render?
-          !hidden
+          !@hidden && @count.positive?
+        end
+
+        private
+
+        attr_reader :count
+
+        def component_classes
+          class_names(
+            'glide__bullets',
+            @options[:class]
+          )
+        end
+
+        def component_data
+          { 'glide-el' => 'controls[nav]' }.merge(@options[:data] || {})
+        end
+
+        def html_options
+          @options.except(:class, :data)
         end
       end
     end

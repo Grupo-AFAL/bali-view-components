@@ -1,0 +1,5 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.number_field_group :budget,
+      placeholder: '0.00',
+      help: 'Enter the budget amount in dollars.' %>
+<% end %>

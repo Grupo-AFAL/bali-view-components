@@ -1,16 +1,21 @@
-<%= tag.div **@options do %>
-  <%= image_tag(@image_url, **@image_options) %>
+<%= tag.div **container_options do %>
+  <%= image_tag(src, **image_options) %>
 
   <% if input? %>
-    <%= image_tag(@placeholder_url, class: 'is-hidden', data: { image_field_target: 'placeholder' }) %>
+    <%= image_tag(placeholder_url, **placeholder_options) %>
 
     <%= input %>
 
     <% if clear_button? %>
       <%= clear_button %>
     <% else %>
-      <%= render Bali::Link::Component.new(icon_name: :times,
-          href: nil, data: { action: 'image-field#clear' }, class: 'button clear-image-button') %>
+      <%= render Bali::Button::Component.new(
+            icon_name: :x,
+            type: :button,
+            class: clear_button_classes,
+            data: { action: 'image-field#clear' },
+            aria: { label: t('.clear_image') }
+          ) %>
     <% end %>
   <% end %>
 <% end %>

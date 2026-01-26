@@ -1,8 +1,33 @@
-<%= tag.div(id: 'drawer-template', **@options) do %>
-  <div class="drawer-background" data-drawer-target="background"></div>
-  <div class="drawer-content box" data-drawer-target="wrapper">
-    <div class="drawer-inner" data-drawer-target="content">
+<%= tag.div(**html_attributes) do %>
+  <div class="drawer-overlay fixed inset-0 bg-black/50 z-[60] opacity-0 pointer-events-none transition-opacity duration-300 group-[.drawer-open]:opacity-100 group-[.drawer-open]:pointer-events-auto"
+       data-drawer-target="background"
+       data-action="click->drawer#close"
+       aria-hidden="true"></div>
+  <div class="<%= panel_classes %> <%= panel_open_class %> max-md:group-[.drawer-open]:max-w-[85%]"
+       data-drawer-target="wrapper"
+       role="document">
+    <% if title? %>
+      <div class="drawer-header flex items-center justify-between p-4 border-b border-base-200">
+        <% if header? %>
+          <div id="<%= title_id %>"><%= header %></div>
+        <% elsif title %>
+          <h2 id="<%= title_id %>" class="text-lg font-semibold"><%= title %></h2>
+        <% end %>
+        <button type="button"
+                class="btn btn-sm btn-circle btn-ghost"
+                data-action="drawer#close"
+                aria-label="<%= close_button_label %>">
+          <%= render Bali::Icon::Component.new('times') %>
+        </button>
+      </div>
+    <% end %>
+    <div class="drawer-inner p-6" data-drawer-target="content">
       <%= content %>
     </div>
+    <% if footer? %>
+      <div class="drawer-footer p-4 border-t border-base-200">
+        <%= footer %>
+      </div>
+    <% end %>
   </div>
 <% end %>

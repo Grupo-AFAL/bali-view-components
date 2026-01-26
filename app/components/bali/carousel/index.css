@@ -1,0 +1,129 @@
+/* Carousel component - Glide.js styling */
+.carousel-component.glide {
+  @apply relative w-full box-border;
+}
+
+.carousel-component.glide * {
+  box-sizing: inherit;
+}
+
+.carousel-component.glide .glide__track {
+  @apply overflow-hidden;
+}
+
+.carousel-component.glide .glide__slides {
+  @apply relative w-full list-none m-0 p-0;
+  @apply whitespace-nowrap flex flex-nowrap will-change-transform;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  touch-action: pan-Y;
+  overflow: hidden;
+}
+
+.carousel-component.glide .glide__slide {
+  @apply m-auto w-full h-full shrink-0 whitespace-normal select-none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.carousel-component.glide .glide__slide a {
+  @apply select-none;
+  -webkit-user-drag: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.carousel-component.glide .glide__slide--active {
+  @apply z-[1];
+}
+
+.carousel-component.glide .glide__slide--active .image-center {
+  @apply block m-auto;
+}
+
+.carousel-component.glide .glide__arrows {
+  -webkit-touch-callout: none;
+  @apply select-none;
+}
+
+.carousel-component.glide .glide__arrow {
+  @apply absolute flex items-center justify-center top-1/2 z-[2] text-white;
+  @apply bg-black/30 border-2 border-white/50 rounded-full;
+  @apply opacity-100 cursor-pointer w-10 h-10;
+  box-shadow: 0 0.25em 0.5em 0 rgba(0, 0, 0, 0.1);
+  transition: opacity 150ms ease, border 300ms ease-in-out, background 300ms ease-in-out;
+  transform: translateY(-50%);
+}
+
+.carousel-component.glide .glide__arrow:focus {
+  @apply outline-none;
+}
+
+.carousel-component.glide .glide__arrow:hover {
+  @apply border-white bg-black/50;
+}
+
+.carousel-component.glide .glide__arrow--left {
+  left: 1rem;
+}
+
+.carousel-component.glide .glide__arrow--right {
+  right: 1rem;
+  left: auto;
+}
+
+.carousel-component.glide .glide__arrow--disabled {
+  @apply opacity-30;
+}
+
+.carousel-component.glide .glide__bullets {
+  -webkit-touch-callout: none;
+  @apply select-none absolute z-[2] left-1/2 inline-flex list-none;
+  bottom: 2em;
+  transform: translateX(-50%);
+}
+
+.carousel-component.glide .glide__bullet {
+  @apply w-2.5 h-2.5 p-0 rounded-full border-2 border-transparent cursor-pointer;
+  background-color: rgba(255, 255, 255, 0.5);
+  transition: all 300ms ease-in-out;
+  line-height: 0;
+  box-shadow: 0 0.25em 0.5em 0 rgba(0, 0, 0, 0.1);
+  margin: 0 0.25em;
+}
+
+.carousel-component.glide .glide__bullet:focus {
+  @apply outline-none;
+}
+
+.carousel-component.glide .glide__bullet:hover,
+.carousel-component.glide .glide__bullet:focus {
+  @apply border-2 border-white;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.carousel-component.glide .glide__bullet--active {
+  @apply bg-white;
+}
+
+.carousel-component.glide .glide__expand-link {
+  @apply absolute z-[1] rounded-full;
+  bottom: 1.25rem;
+  right: 1.25rem;
+}
+
+.carousel-component.glide .glide__expand-link path {
+  @apply fill-white;
+}
+
+.carousel-component.glide--swipeable {
+  @apply cursor-grab;
+}
+
+.carousel-component.glide--dragging {
+  @apply cursor-grabbing;
+}
+
+.carousel-component.glide--rtl {
+  direction: rtl;
+}

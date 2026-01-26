@@ -1,0 +1,34 @@
+<div class="p-4 space-y-6">
+  <%= form_with model: model, url: '/lookbook', builder: Bali::FormBuilder do |f| %>
+    <div>
+      <h3 class="text-lg font-semibold mb-2">Sizes</h3>
+      <div class="space-y-2">
+        <%= f.switch_field(:indie, size: :xs, label: 'Extra small toggle') %>
+        <%= f.switch_field(:indie, size: :sm, label: 'Small toggle') %>
+        <%= f.switch_field(:indie, size: :md, label: 'Medium toggle') %>
+        <%= f.switch_field(:indie, size: :lg, label: 'Large toggle') %>
+      </div>
+    </div>
+
+    <div>
+      <h3 class="text-lg font-semibold mb-2">Colors</h3>
+      <div class="space-y-2">
+        <%= f.switch_field(:indie, color: :primary, label: 'Primary') %>
+        <%= f.switch_field(:indie, color: :secondary, label: 'Secondary') %>
+        <%= f.switch_field(:indie, color: :accent, label: 'Accent') %>
+        <%= f.switch_field(:indie, color: :success, label: 'Success') %>
+        <%= f.switch_field(:indie, color: :warning, label: 'Warning') %>
+        <%= f.switch_field(:indie, color: :info, label: 'Info') %>
+        <%= f.switch_field(:indie, color: :error, label: 'Error') %>
+      </div>
+    </div>
+
+    <div>
+      <h3 class="text-lg font-semibold mb-2">Combined Size and Color</h3>
+      <div class="space-y-2">
+        <%= f.switch_field(:indie, size: :lg, color: :primary, label: 'Large Primary Toggle') %>
+        <%= f.switch_field(:indie, size: :sm, color: :success, label: 'Small Success Toggle') %>
+      </div>
+    </div>
+  <% end %>
+</div>

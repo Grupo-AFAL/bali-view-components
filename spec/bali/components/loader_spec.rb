@@ -3,23 +3,113 @@
 require 'rails_helper'
 
 RSpec.describe Bali::Loader::Component, type: :component do
-  let(:component) { Bali::Loader::Component.new(**@options) }
+  describe 'basic rendering' do
+    it 'renders loader with default options' do
+      render_inline(described_class.new)
 
-  before { @options = {} }
+      expect(page).to have_css 'div.loader-component'
+      expect(page).to have_css 'span.loading.loading-spinner.loading-lg'
+      expect(page).to have_css 'p', text: 'Loading...'
+    end
 
-  it 'renders loader with default options' do
-    render_inline(component)
+    it 'renders loader with custom text' do
+      render_inline(described_class.new(text: 'Cargando'))
 
-    expect(page).to have_css 'div.loader-component'
-    expect(page).to have_css 'h2.title.is-4.has-text-centered', text: 'Loading...'
+      expect(page).to have_css 'p', text: 'Cargando'
+    end
+
+    it 'hides text when hide_text option is true' do
+      render_inline(described_class.new(hide_text: true))
+
+      expect(page).not_to have_css 'p'
+    end
+
+    it 'shows default text when text is nil and hide_text is false' do
+      render_inline(described_class.new)
+
+      expect(page).to have_css 'p', text: 'Loading...'
+    end
   end
 
-  it 'renders loader with custom text' do
-    @options.merge!(text: 'Cargando')
+  describe 'accessibility' do
+    it 'adds role="status" to the spinner' do
+      render_inline(described_class.new)
 
-    render_inline(component)
+      expect(page).to have_css 'span.loading[role="status"]'
+    end
 
-    expect(page).to have_css 'div.loader-component'
-    expect(page).to have_css 'h2.title.is-4.has-text-centered', text: 'Cargando'
+    it 'adds aria-label with display text' do
+      render_inline(described_class.new(text: 'Processing...'))
+
+      expect(page).to have_css 'span.loading[aria-label="Processing..."]'
+    end
+
+    it 'uses default translation for aria-label when no text provided' do
+      render_inline(described_class.new)
+
+      expect(page).to have_css 'span.loading[aria-label="Loading..."]'
+    end
+  end
+
+  describe 'types' do
+    it 'renders spinner type by default' do
+      render_inline(described_class.new)
+
+      expect(page).to have_css 'span.loading.loading-spinner'
+    end
+
+    described_class::TYPES.each_key do |type|
+      it "renders #{type} type" do
+        render_inline(described_class.new(type: type, hide_text: true))
+
+        expect(page).to have_css "span.loading.loading-#{type}"
+      end
+    end
+  end
+
+  describe 'sizes' do
+    described_class::SIZES.each_key do |size|
+      it "renders #{size} size" do
+        render_inline(described_class.new(size: size, hide_text: true))
+
+        expect(page).to have_css "span.loading.loading-#{size}"
+      end
+    end
+  end
+
+  describe 'colors' do
+    described_class::COLORS.each_key do |color|
+      it "renders #{color} color on spinner" do
+        render_inline(described_class.new(color: color, hide_text: true))
+
+        expect(page).to have_css "span.loading.text-#{color}"
+      end
+
+      it "renders #{color} color on text" do
+        render_inline(described_class.new(color: color))
+
+        expect(page).to have_css "p.text-#{color}"
+      end
+    end
+  end
+
+  describe 'options passthrough' do
+    it 'accepts custom classes on container' do
+      render_inline(described_class.new(class: 'my-custom-class'))
+
+      expect(page).to have_css 'div.loader-component.my-custom-class'
+    end
+
+    it 'accepts data attributes' do
+      render_inline(described_class.new(data: { testid: 'loader' }))
+
+      expect(page).to have_css 'div.loader-component[data-testid="loader"]'
+    end
+
+    it 'accepts custom id' do
+      render_inline(described_class.new(id: 'my-loader'))
+
+      expect(page).to have_css 'div#my-loader.loader-component'
+    end
   end
 end

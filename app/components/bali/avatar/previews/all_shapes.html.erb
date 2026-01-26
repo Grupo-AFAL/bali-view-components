@@ -1,0 +1,12 @@
+<div class="flex items-center gap-6">
+  <% %i[square rounded circle].each do |shape| %>
+    <div class="flex flex-col items-center gap-2">
+      <%= render(Bali::Avatar::Component.new(
+        src: 'avatar.png',
+        size: :lg,
+        shape: shape
+      )) %>
+      <span class="text-sm text-base-content/70"><%= shape %></span>
+    </div>
+  <% end %>
+</div>

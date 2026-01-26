@@ -1,4 +1,6 @@
-<div class="loader-component">
-  <div class="spinner"></div>
-  <h2 class="title is-4 has-text-centered"><%= @text || I18n.t('view_components.bali.loader.loading') %></h2>
-</div>
+<%= tag.div(**container_attributes) do %>
+  <span class="<%= loading_classes %>" role="status" aria-label="<%= aria_label %>"></span>
+  <% if show_text? %>
+    <p class="<%= text_classes %>"><%= display_text %></p>
+  <% end %>
+<% end %>

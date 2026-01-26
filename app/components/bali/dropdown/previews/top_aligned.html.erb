@@ -1,0 +1,8 @@
+<div class="flex justify-center items-center min-h-[250px] p-8">
+  <%= render(Bali::Dropdown::Component.new(align: :top)) do |c|
+    c.with_trigger(class: 'btn-accent') { 'Open Up' }
+
+    c.with_item(href: '#') { 'Item 1' }
+    c.with_item(href: '#') { 'Item 2' }
+  end %>
+</div>

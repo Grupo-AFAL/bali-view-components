@@ -1,13 +1,9 @@
-<%= tag.div **@options do %>
-  <div class="card">
-    <div class="card-image">
-      <figure class="image <%= image_ratio %>">
-        <%= content %>
-      </figure>
-    </div>
+<%= tag.div class: card_classes, **card_attributes do %>
+  <figure class="<%= figure_classes %>">
+    <%= content %>
+  </figure>
 
-    <% if footer? %>
-      <%= footer %>
-    <% end %>
-  </div>
+  <% if footer? %>
+    <%= footer %>
+  <% end %>
 <% end %>

@@ -1,0 +1,82 @@
+/* Navbar component */
+.navbar {
+  @apply shadow-md;
+  transition: background-color 1s;
+
+  & > .container {
+    & .navbar-brand {
+      @apply ml-0;
+    }
+
+    & .navbar-menu {
+      @apply mr-0;
+    }
+  }
+
+  &.is-transparent {
+    @apply bg-transparent shadow-none;
+    transition: background-color 1s;
+  }
+
+  @media (max-width: 1023px) {
+    &.is-transparent.is-active {
+      @apply shadow-none;
+      transition: background-color 1s;
+
+      a,
+      .dropdown-item,
+      .dropdown-link {
+        @apply text-base-content;
+      }
+
+      .navbar-menu {
+        transition: background-color 1s;
+      }
+    }
+  }
+}
+
+.navbar-link.navbar-link-with-contents {
+  @apply pr-14;
+}
+
+.user-icon {
+  @apply size-[1.62rem] rounded-full mr-3 text-center;
+  @apply bg-accent;
+
+  &:hover {
+    @apply bg-accent/80;
+  }
+
+  &.navbar-burger {
+    @apply mt-[0.815rem] mr-[0.815rem];
+  }
+}
+
+.left-burger {
+  @apply mr-auto ml-0;
+}
+
+.navbar-link-title {
+  @apply text-sm;
+}
+
+.navbar-link-subtitle {
+  @apply text-xs;
+}
+
+.navbar-brand {
+  @apply text-xl font-bold;
+
+  & > a {
+    @apply hover:opacity-80 transition-opacity;
+  }
+
+  .navbar-item.app-logo {
+    @apply hidden;
+
+    @media (min-width: 1024px) {
+      @apply flex;
+    }
+  }
+}

@@ -7,7 +7,7 @@ export class RevealController extends Controller {
   openedClass = 'is-revealed'
 
   connect () {
-    this.class = this.hasHiddenClass ? this.hiddenClass : 'is-hidden'
+    this.class = this.hasHiddenClass ? this.hiddenClass : 'hidden'
   }
 
   toggle () {

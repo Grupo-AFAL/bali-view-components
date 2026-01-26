@@ -1,14 +1,42 @@
-<%= render(Bali::Table::Component.new(
-    bulk_actions: [
-      { name: 'Archivar', href: '/table/bulk_action' }
-    ]
-)) do |c| %>
-  <%= c.with_headers(headers) %>
-  <% records.each do |record| %>
-    <%= c.with_row(record_id: record[:id]) do %>
-      <td><%= record[:name] %></td>
-      <td><%= record[:amount] %></td>
+<div class="p-4">
+  <div class="mb-4">
+    <h2 class="text-lg font-semibold">Product Inventory</h2>
+    <p class="text-sm text-base-content/60">Select products to perform bulk actions</p>
+  </div>
+
+  <%= render(Bali::Table::Component.new(
+      bulk_actions: [
+        { name: 'Archive', href: '/products/bulk_archive', method: :post },
+        { name: 'Delete', href: '/products/bulk_delete', method: :delete },
+        { name: 'Export CSV', href: '/products/export', method: :get }
+      ]
+  )) do |c| %>
+    <%= c.with_headers(headers) %>
+    <% records.each do |record| %>
+      <%= c.with_row(record_id: record[:id]) do %>
+        <td class="font-medium"><%= record[:product] %></td>
+        <td class="font-mono text-sm text-base-content/70"><%= record[:sku] %></td>
+        <td><%= record[:price] %></td>
+        <td>
+          <% if record[:stock] == 0 %>
+            <span class="text-error font-medium">Out of stock</span>
+          <% elsif record[:stock] < 20 %>
+            <span class="text-warning font-medium"><%= record[:stock] %> units</span>
+          <% else %>
+            <span class="text-success"><%= record[:stock] %> units</span>
+          <% end %>
+        </td>
+        <td>
+          <% case record[:status] %>
+          <% when 'active' %>
+            <span class="badge badge-success badge-sm">Active</span>
+          <% when 'out_of_stock' %>
+            <span class="badge badge-error badge-sm">Out of Stock</span>
+          <% when 'low_stock' %>
+            <span class="badge badge-warning badge-sm">Low Stock</span>
+          <% end %>
+        </td>
+      <% end %>
     <% end %>
   <% end %>
-  <%= c.with_new_record_link name: 'Nuevo registro', href: '#' %>
-<% end %>
+</div>

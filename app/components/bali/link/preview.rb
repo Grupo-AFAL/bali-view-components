@@ -3,119 +3,138 @@
 module Bali
   module Link
     class Preview < ApplicationViewComponentPreview
-      # Basic link
-      # --------------
-      # This will return a basic link with the name and href.
+      # @!group Basic
+
+      # Default Link
+      # ---------------
+      # Basic link with underline style. Uses DaisyUI `link` class with
+      # `inline-flex` for proper icon alignment.
       def default
         render Bali::Link::Component.new(name: 'Click me!', href: '#')
       end
 
-      # Basic usage
-      # -------------
-      # This will add the class `button`, `is-primary` and the size to the link.
-      # @param type select [primary, success, danger, warning, info, link]
-      # @param size select [small, normal, medium, large]
-      def basic(type: :primary, size: :normal)
-        render Bali::Link::Component.new(name: 'Click me!', href: '#', type: type,
-                                         class: "is-#{size}")
+      # Button Link
+      # ---------------
+      # Link styled as a button using DaisyUI btn classes.
+      # Use `variant` for color and `size` for dimensions.
+      # @param variant [Symbol] select [primary, secondary, accent, info, success, warning, error, ghost, link, neutral]
+      # @param size [Symbol] select [xs, sm, md, lg, xl]
+      def button_link(variant: :primary, size: :md)
+        render Bali::Link::Component.new(name: 'Click me!', href: '#', variant: variant, size: size)
       end
 
-      # Link with icon
-      # --------------
-      # This will add an icon to the left of the link name
-      # @param type select [primary, success, danger, warning, info, link]
-      # @param size select [small, normal, medium, large]
-      def with_icon(type: :primary, size: :normal)
+      # @!endgroup
+
+      # @!group With Icons
+
+      # With Icon
+      # ---------------
+      # Link with an icon on the left using `icon_name` parameter.
+      # @param variant [Symbol] select [primary, secondary, accent, info, success, warning, error, ghost, link]
+      # @param size [Symbol] select [xs, sm, md, lg, xl]
+      def with_icon(variant: :primary, size: :md)
         render Bali::Link::Component.new(
-          name: 'Click me!', href: '#', icon_name: 'books', type: type, class: "is-#{size}"
+          name: 'Click me!', href: '#', icon_name: 'book', variant: variant, size: size
         )
       end
 
-      # Link with icon
-      # --------------
-      # This will add an icon to the link and pass additional options
-      # @param type select [primary, success, danger, warning, info, link]
-      # @param size select [small, normal, medium, large]
-      def with_icon_customized(type: :primary, size: :large)
+      # With Icon Slot
+      # ---------------
+      # Link with icon using the `with_icon` slot for more control over icon options.
+      # @param variant [Symbol] select [primary, secondary, accent, info, success, warning, error]
+      def with_icon_slot(variant: :primary)
         render Bali::Link::Component.new(
-          name: 'Click me!', href: '#', type: type, class: "is-#{size}"
+          name: 'Click me!', href: '#', variant: variant, size: :lg
         ) do |c|
-          c.with_icon('books', class: "is-#{size}")
+          c.with_icon('book')
         end
       end
 
-      # Link with just an icon
-      # --------------
-      # This will add an icon to the link but no text.
-      # @param type select [primary, success, danger, warning, info, link]
-      # @param size select [small, normal, medium, large]
-      def link_with_just_icon(type: :primary, size: :normal)
+      # Icon Only
+      # ---------------
+      # Button link with just an icon, no text. Useful for icon buttons.
+      # @param variant [Symbol] select [primary, secondary, accent, info, success, warning, error, ghost]
+      # @param size [Symbol] select [xs, sm, md, lg, xl]
+      def with_icon_only(variant: :primary, size: :md)
         render Bali::Link::Component.new(
-          href: '#', type: type, icon_name: 'address-book', class: "is-#{size}"
+          href: '#', variant: variant, icon_name: 'user', size: size
         )
       end
 
-      # Link with icon in the right side
-      # --------------
-      # This will add an icon to the right of the link name
-      # @param type select [primary, success, danger, warning, info, link]
-      # @param size select [small, normal, medium, large]
-      def with_icon_in_right_side(type: :primary, size: :normal)
+      # Icon Right
+      # ---------------
+      # Link with icon on the right side using `with_icon_right` slot.
+      # @param variant [Symbol] select [primary, secondary, accent, info, success, warning, error]
+      def with_icon_right(variant: :primary)
         render Bali::Link::Component.new(
-          name: 'Click me!', href: '#', type: type, class: "is-#{size}"
+          name: 'Click me!', href: '#', variant: variant
         ) do |c|
-          c.with_icon_right('address-book')
+          c.with_icon_right('chevron-right')
         end
       end
 
-      # Link with `is-active` class
-      # --------------
-      # This will add the `is-active` class if the `active_path` is the same as the href.
-      # @param type select [primary, success, danger, warning, info, link]
-      # @param size select [small, normal, medium, large]
-      def is_active(type: :primary, size: :normal)
+      # @!endgroup
+
+      # @!group States
+
+      # Active Link
+      # ---------------
+      # Link with `active` class applied. Can be set explicitly or auto-detected
+      # from the current path using `active_path`.
+      # @param variant [Symbol] select [primary, secondary, accent, info, success, warning, error]
+      def active_link(variant: :primary)
         render Bali::Link::Component.new(
-          name: 'Click me!', href: '#', active_path: '#', type: type, class: "is-#{size}"
+          name: 'Active Link', href: '#', active_path: '#', variant: variant
         )
       end
 
-      # Link with `data-turbo-method` attribute
-      # --------------
-      # This will add the `data-turbo-method` attribute to the link.
-      # @param type select [primary, success, danger, warning, info, link]
-      # @param size select [small, normal, medium, large]
-      def data_turbo_method(type: :primary, size: :normal)
+      # Disabled Link
+      # ---------------
+      # Disabled button link. Removes `href` and adds `btn-disabled` class.
+      # Only applies disabled styling when `variant` is set.
+      # @param variant [Symbol] select [primary, secondary, accent, info, success, warning, error]
+      def disabled(variant: :primary)
         render Bali::Link::Component.new(
-          name: 'Click me!', href: '#', method: :post, type: type, class: "is-#{size}"
-        )
-      end
-
-      # Link with custom content
-      # --------------
-      # This will add custom content to the link.
-      # @param type select [primary, success, danger, warning, info, link]
-      # @param size select [small, normal, medium, large]
-      def custom_content(type: :primary, size: :normal)
-        render Bali::Link::Component.new(href: '#', type: type, class: "is-#{size}") do |c|
-          c.tag.p('custom content')
-        end
-      end
-
-      # Disabled link
-      # --------------
-      # It will omit the href attribute to disable the link
-      #
-      # @param type select [primary, success, danger, warning, info, link]
-      # @param size select [small, normal, medium, large]
-      def disabled(type: :primary, size: :normal)
-        render Bali::Link::Component.new(
-          name: 'Click does not work',
+          name: 'Disabled',
           href: '/',
-          type: type,
-          class: "is-#{size}",
+          variant: variant,
           disabled: true
         )
       end
+
+      # @!endgroup
+
+      # @!group Special Modes
+
+      # Plain Link
+      # ---------------
+      # Link without DaisyUI styling, just flex alignment for menu items.
+      # Useful in navigation menus or dropdown items.
+      def plain
+        render Bali::Link::Component.new(
+          name: 'Menu Item', href: '#', icon_name: 'home', plain: true
+        )
+      end
+
+      # With Turbo Method
+      # ---------------
+      # Link with `data-turbo-method` for non-GET requests (POST, DELETE, etc.).
+      # @param variant [Symbol] select [primary, secondary, accent, info, success, warning, error]
+      def with_turbo_method(variant: :primary)
+        render Bali::Link::Component.new(
+          name: 'POST Request', href: '#', method: :post, variant: variant
+        )
+      end
+
+      # Custom Content
+      # ---------------
+      # Link with custom HTML content using a block.
+      # @param variant [Symbol] select [primary, secondary, accent, info, success, warning, error]
+      def with_custom_content(variant: :primary)
+        render_with_template(locals: { variant: variant })
+      end
+
+      # @!endgroup
     end
   end
 end

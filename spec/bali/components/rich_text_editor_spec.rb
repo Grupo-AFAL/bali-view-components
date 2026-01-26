@@ -6,6 +6,10 @@ RSpec.describe Bali::RichTextEditor::Component, type: :component do
   let(:options) { {} }
   let(:component) { Bali::RichTextEditor::Component.new(**options) }
 
+  before do
+    allow(Bali).to receive(:rich_text_editor_enabled).and_return(true)
+  end
+
   it 'renders richtexteditor component' do
     render_inline(component)
 

@@ -1,0 +1,94 @@
+/* Tooltip component - Tippy.js styling */
+.tooltip-component {
+
+  &.help-tip {
+    @apply size-6 inline-block;
+
+    &.is-small {
+      @apply size-4;
+
+      .trigger {
+        @apply size-4 text-xs;
+      }
+    }
+
+    .trigger {
+      @apply size-6 rounded-full border border-base-content;
+      @apply inline-flex justify-center items-center text-base;
+    }
+  }
+
+  .tippy-box {
+    @apply relative bg-neutral text-neutral-content rounded;
+    @apply text-sm tracking-normal normal-case leading-relaxed;
+    @apply whitespace-normal outline-none;
+    transition-property: transform, visibility, opacity;
+
+    &[data-animation='fade'][data-state='hidden'] {
+      @apply opacity-0;
+    }
+
+    &[data-placement^='top'] > .tippy-arrow {
+      @apply bottom-0;
+    }
+
+    &[data-placement^='top'] > .tippy-arrow:before {
+      bottom: -7px;
+      @apply left-0;
+      border-width: 8px 8px 0;
+      border-top-color: initial;
+      transform-origin: center top;
+    }
+
+    &[data-placement^='bottom'] > .tippy-arrow {
+      @apply top-0;
+    }
+
+    &[data-placement^='bottom'] > .tippy-arrow:before {
+      top: -7px;
+      @apply left-0;
+      border-width: 0 8px 8px;
+      border-bottom-color: initial;
+      transform-origin: center bottom;
+    }
+
+    &[data-placement^='left'] > .tippy-arrow {
+      @apply right-0;
+    }
+
+    &[data-placement^='left'] > .tippy-arrow:before {
+      border-width: 8px 0 8px 8px;
+      border-left-color: initial;
+      right: -7px;
+      transform-origin: center left;
+    }
+
+    &[data-placement^='right'] > .tippy-arrow {
+      @apply left-0;
+    }
+
+    &[data-placement^='right'] > .tippy-arrow:before {
+      left: -7px;
+      border-width: 8px 8px 8px 0;
+      border-right-color: initial;
+      transform-origin: center right;
+    }
+
+    &[data-inertia][data-state='visible'] {
+      transition-timing-function: cubic-bezier(0.54, 1.5, 0.38, 1.11);
+    }
+  }
+
+  .tippy-arrow {
+    @apply w-4 h-4 text-neutral;
+  }
+
+  .tippy-arrow:before {
+    content: '';
+    @apply absolute border-transparent border-solid;
+  }
+
+  .tippy-content {
+    @apply relative py-1.5 px-2 z-[1];
+  }
+}

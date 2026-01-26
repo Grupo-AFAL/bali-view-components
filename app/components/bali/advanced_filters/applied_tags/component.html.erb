@@ -1,0 +1,46 @@
+<% if any_filters? %>
+  <div class="applied-filters flex flex-wrap items-center gap-1.5"
+       data-controller="applied-tags">
+
+    <span class="text-xs text-base-content/50">
+      <%= t('bali.advanced_filters.active_filters', default: 'Active filters:') %>
+    </span>
+
+    <% applied_filters.each do |filter| %>
+      <div class="badge gap-1 badge-outline bg-base-100 pr-0.5 text-xs"
+           data-applied-tags-target="tag"
+           data-group-index="<%= filter[:group_index] %>"
+           data-condition-index="<%= filter[:condition_index] %>">
+
+        <span class="font-medium text-primary">
+          <%= filter[:attribute_label] %>
+        </span>
+
+        <span class="text-base-content/50">
+          <%= filter[:operator_label] %>
+        </span>
+
+        <span class="font-medium max-w-24 truncate" title="<%= filter[:value_label] %>">
+          <%= filter[:value_label] %>
+        </span>
+
+        <button type="button"
+                class="btn btn-ghost btn-xs btn-circle h-5 w-5 min-h-0 hover:bg-error/20 hover:text-error"
+                data-action="applied-tags#removeFilter"
+                data-group-index="<%= filter[:group_index] %>"
+                data-condition-index="<%= filter[:condition_index] %>"
+                title="<%= t('bali.advanced_filters.remove_filter', default: 'Remove filter') %>">
+          <%= render Bali::Icon::Component.new('times', class: 'w-2.5 h-2.5') %>
+        </button>
+      </div>
+    <% end %>
+
+    <% if applied_filters.size > 1 %>
+      <%= link_to clear_all_url,
+            class: 'link link-hover text-sm text-error ml-2',
+            data: { turbo_action: 'replace' } do %>
+        <%= t('bali.advanced_filters.clear_all', default: 'Clear all') %>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

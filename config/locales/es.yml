@@ -12,7 +12,120 @@ es:
       text: Limpiar agujeros
     generic_confirm_message:
       text: '¿Estas seguro(a)?'
-  bali: 
+  bali:
+    advanced_filters:
+      # Button and UI labels
+      filters_button: Filtros
+      search_placeholder: Buscar...
+      title: Filtros Avanzados
+      select_field: Seleccionar campo...
+      clear_all: Limpiar todo
+      add_group: Agregar grupo de filtros
+      reset: Restablecer
+      apply: Aplicar
+      apply_filters: Aplicar Filtros
+      remove_condition: Eliminar condición
+      # Operators - text
+      operators:
+        contains: contiene
+        equals: es exactamente
+        starts_with: comienza con
+        ends_with: termina con
+        not_contains: no contiene
+        not_equals: no es
+        # Operators - date/time
+        on: es
+        is: es
+        is_not: no es
+        between: entre
+        after: después de
+        before: antes de
+        on_or_after: en o después de
+        on_or_before: en o antes de
+        # Operators - select
+        is_any_of: es cualquiera de
+        is_not_any_of: no es ninguno de
+      # Placeholders
+      placeholders:
+        enter_value: Ingresa un valor...
+        number: "0"
+        select_date: Seleccionar fecha...
+        select_datetime: Seleccionar fecha y hora...
+        select_date_range: Seleccionar rango de fechas...
+        select_datetime_range: Seleccionar rango de fecha y hora...
+        select: Seleccionar...
+        select_values: Seleccionar valores...
+      # Boolean options
+      boolean:
+        any: Cualquiera
+        yes: "Sí"
+        no: "No"
+      # Combinators for filter groups
+      combinators:
+        and: "Y"
+        or: "O"
+      # Multi-select label
+      selected_count: "%{count} seleccionados"
+      # Legacy keys (for backwards compatibility)
+      select_value: Seleccionar...
+      select_values: Seleccionar valores...
+      any: Cualquiera
+      yes: "Sí"
+      no: "No"
+      enter_value: Ingresa un valor...
+      select_date: Seleccionar fecha...
+      select_datetime: Seleccionar fecha y hora...
+      select_date_range: Seleccionar rango de fechas...
+      select_datetime_range: Seleccionar rango de fecha y hora...
+    # Modal component
+    modal:
+      close: Cerrar modal
+    # Side menu component
+    side_menu:
+      toggle_collapse: Alternar colapso de barra lateral
+      collapse: Colapsar barra lateral
+      expand: Expandir barra lateral
+      toggle_item: "Alternar %{name}"
+    # Breadcrumb component
+    breadcrumb:
+      aria_label: Migas de pan
+    direct_upload:
+      drop_zone:
+        title: Arrastra archivos aquí
+        or: o
+        browse: Seleccionar archivos
+        aria_label: Arrastra archivos aquí o haz clic para seleccionar
+      file_list:
+        aria_label: Archivos para subir
+      file_status:
+        pending: Esperando...
+        uploading: Subiendo...
+        completed: Subido
+        error: Error
+      status:
+        uploaded: Ya subido
+      errors:
+        too_many_files: "Máximo %{max} archivos permitidos"
+        file_too_large: "El archivo excede el límite de %{max}MB"
+        invalid_type: Tipo de archivo no aceptado
+      actions:
+        cancel: Cancelar
+        retry: Reintentar
+        remove: Eliminar
+        dismiss: Cerrar error
+        remove_file: "Eliminar %{filename}"
+    form_builder:
+      file:
+        choose_file: Seleccionar archivo
+        no_file_selected: Ningún archivo seleccionado
+      search:
+        placeholder: Buscar...
+      slim_select:
+        search_placeholder: Buscar
+        select_all: Seleccionar todo
+        deselect_all: Deseleccionar todo
+        no_results: Sin resultados
+        searching: Buscando...
     time_periods:
       yearly: Anual
       yesterday: Ayer

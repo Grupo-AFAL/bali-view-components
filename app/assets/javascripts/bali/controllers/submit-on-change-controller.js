@@ -39,7 +39,7 @@ export class SubmitOnChangeController extends Controller {
   createSubmitterNode () {
     const input = document.createElement('input')
     input.type = 'submit'
-    input.className = 'is-hidden'
+    input.className = 'hidden'
     input.setAttribute('formaction', this.formAction)
     input.setAttribute('formmethod', this.formMethod)
     return input

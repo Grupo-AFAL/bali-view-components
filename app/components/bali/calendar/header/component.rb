@@ -53,13 +53,15 @@ module Bali
         end
 
         def extra_params(type)
-          parameters = {}
-          parameters.merge!(start_attribute => prev_start_date, period: period) if type == :prev
-          parameters.merge!(start_attribute => next_start_date, period: period) if type == :next
-          parameters.merge!(period: 'week', start_attribute => start_date) if type == :week
-          parameters.merge!(period: 'month', start_attribute => start_date) if type == :month
-          parameters.merge!(@options[:extra_params]) if @options[:extra_params].present?
-          parameters
+          base_params = case type
+                        when :prev then { start_attribute => prev_start_date, period: period }
+                        when :next then { start_attribute => next_start_date, period: period }
+                        when :week then { period: 'week', start_attribute => start_date }
+                        when :month then { period: 'month', start_attribute => start_date }
+                        else {}
+                        end
+
+          base_params.merge(@options[:extra_params] || {})
         end
       end
     end

@@ -1,20 +1,28 @@
 import { Controller } from '@hotwired/stimulus'
 
+/**
+ * RateController - Handles auto-submit functionality for Rate component
+ *
+ * When autoSubmit is enabled, clicking a star will:
+ * 1. Update the hidden input with the selected value
+ * 2. Submit the parent form
+ */
 export class RateController extends Controller {
-  static targets = ['star']
+  static targets = ['input']
+  static values = { autoSubmit: Boolean }
 
   submit (event) {
-    const rating = parseInt(event.target.value)
+    if (!this.autoSubmitValue) return
 
-    this.starTargets.forEach(star => {
-      const starRating = parseInt(star.value)
-      const labelNode = star.closest('label')
+    const rate = event.target.dataset.rate
+    if (this.hasInputTarget) {
+      this.inputTarget.value = rate
+    }
 
-      if (rating >= starRating) {
-        labelNode.querySelector('.icon').classList.add('solid')
-      } else {
-        labelNode.querySelector('.icon').classList.remove('solid')
-      }
-    })
+    // Submit the parent form
+    const form = this.element.closest('form')
+    if (form) {
+      form.requestSubmit()
+    }
   }
 }

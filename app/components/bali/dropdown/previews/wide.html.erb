@@ -1,0 +1,9 @@
+<div class="flex justify-center items-center min-h-[250px] p-8">
+  <%= render(Bali::Dropdown::Component.new(wide: true)) do |c|
+    c.with_trigger(class: 'btn-warning') { 'Wide Menu' }
+
+    c.with_item(href: '#') { 'This is a longer menu item' }
+    c.with_item(href: '#') { 'Another longer menu item here' }
+    c.with_item(href: '#') { 'Third item with more text' }
+  end %>
+</div>

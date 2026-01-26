@@ -3,127 +3,242 @@
 require 'rails_helper'
 
 RSpec.describe Bali::Link::Component, type: :component do
-  let(:component) { Bali::Link::Component.new(**@options) }
-
-  before { @options = { name: 'Click me!', href: '#' } }
-
-  context 'default' do
-    it 'renders' do
-      render_inline(component)
+  describe 'default' do
+    it 'renders a basic link' do
+      render_inline(described_class.new(name: 'Click me!', href: '#'))
 
       expect(page).to have_css 'a', text: 'Click me!'
       expect(page).to have_css 'a[href="#"]'
     end
+
+    it 'renders with DaisyUI link class' do
+      render_inline(described_class.new(name: 'Click me!', href: '#'))
+
+      expect(page).to have_css 'a.link'
+    end
+
+    it 'includes inline-flex for icon alignment' do
+      render_inline(described_class.new(name: 'Click me!', href: '#'))
+
+      expect(page).to have_css 'a.inline-flex'
+    end
   end
 
-  %i[primary secondary success danger warning].each do |button_type|
-    context "#{button_type} button type" do
-      before { @options.merge!(type: button_type) }
+  describe 'variants' do
+    described_class::VARIANTS.each_key do |variant|
+      it "renders #{variant} variant" do
+        render_inline(described_class.new(name: 'Click', href: '#', variant: variant))
 
-      it 'renders' do
-        render_inline(component)
-
-        expect(page).to have_css "a.button.is-#{button_type}", text: 'Click me!'
+        expect(page).to have_css "a.btn.#{described_class::VARIANTS[variant]}", text: 'Click'
         expect(page).to have_css 'a[href="#"]'
       end
     end
   end
 
-  context 'with icon' do
-    it 'renders a link without class button' do
-      render_inline(component) do |c|
-        c.with_icon('poo')
-      end
+  describe 'sizes' do
+    it 'renders small button' do
+      render_inline(described_class.new(name: 'Small', href: '#', variant: :primary, size: :sm))
 
-      expect(page).to have_css 'a', text: 'Click me!'
-      expect(page).to have_css 'a[href="#"]'
-      expect(page).to have_css 'span.icon'
+      expect(page).to have_css 'a.btn.btn-sm'
     end
 
-    it 'renders a link with class button' do
-      @options.merge!(class: 'button')
+    it 'renders large button' do
+      render_inline(described_class.new(name: 'Large', href: '#', variant: :primary, size: :lg))
 
-      render_inline(component) do |c|
-        c.with_icon('poo')
-      end
+      expect(page).to have_css 'a.btn.btn-lg'
+    end
 
-      expect(page).to have_css 'a.button', text: 'Click me!'
-      expect(page).to have_css 'a[href="#"]'
-      expect(page).to have_css 'span.icon'
+    it 'ignores size without variant' do
+      render_inline(described_class.new(name: 'Link', href: '#', size: :lg))
+
+      expect(page).not_to have_css 'a.btn-lg'
+      expect(page).to have_css 'a.link'
     end
   end
 
-  context 'active indicator' do
+  describe 'with icon slot' do
+    it 'renders icon via slot' do
+      render_inline(described_class.new(name: 'Click', href: '#')) do |c|
+        c.with_icon('star')
+      end
+
+      expect(page).to have_css 'a', text: 'Click'
+      expect(page).to have_css 'span.icon-component'
+    end
+
+    it 'renders icon with button variant' do
+      render_inline(described_class.new(name: 'Click', href: '#', variant: :primary)) do |c|
+        c.with_icon('star')
+      end
+
+      expect(page).to have_css 'a.btn', text: 'Click'
+      expect(page).to have_css 'span.icon-component'
+    end
+  end
+
+  describe 'with icon_name parameter' do
+    it 'renders icon from icon_name' do
+      render_inline(described_class.new(name: 'Click', href: '#', icon_name: 'star'))
+
+      expect(page).to have_css 'span.icon-component'
+    end
+  end
+
+  describe 'with icon_right slot' do
+    it 'renders icon on the right' do
+      render_inline(described_class.new(name: 'Next', href: '#', variant: :primary)) do |c|
+        c.with_icon_right('chevron-right')
+      end
+
+      expect(page).to have_css 'a.btn', text: 'Next'
+      expect(page).to have_css 'span.icon-component'
+    end
+  end
+
+  describe 'active indicator' do
     context 'when current path is active' do
-      before { @options.merge!(href: '/items', active_path: '/items') }
+      it 'does not add the active class when active is false' do
+        render_inline(described_class.new(name: 'Link', href: '/items', active_path: '/items',
+                                          active: false))
 
-      it 'does not add the is-active class when active is false' do
-        @options.merge!(active: false)
-        render_inline(component)
-
-        expect(page).not_to have_css 'a.is-active'
+        expect(page).not_to have_css 'a.active'
       end
 
-      it 'adds the is-active class when active is true' do
-        @options.merge!(active: true)
-        render_inline(component)
+      it 'adds the active class when active is true' do
+        render_inline(described_class.new(name: 'Link', href: '/items', active_path: '/items',
+                                          active: true))
 
-        expect(page).to have_css 'a.is-active'
+        expect(page).to have_css 'a.active'
       end
 
-      it 'adds the is-active class when active is nil' do
-        render_inline(component)
+      it 'adds the active class when active is nil (auto-detect)' do
+        render_inline(described_class.new(name: 'Link', href: '/items', active_path: '/items'))
 
-        expect(page).to have_css 'a.is-active'
+        expect(page).to have_css 'a.active'
       end
     end
 
     context 'when current path is not active' do
-      before { @options.merge!(href: '/items', active_path: '/movies') }
+      it 'adds the active class when active is true (forced)' do
+        render_inline(described_class.new(name: 'Link', href: '/items', active_path: '/movies',
+                                          active: true))
 
-      it 'adds the is-active class when active is true' do
-        @options.merge!(active: true)
-        render_inline(component)
-
-        expect(page).to have_css 'a.is-active'
+        expect(page).to have_css 'a.active'
       end
 
-      it 'does not add the is-active class when active is false' do
-        @options.merge!(active: false)
-        render_inline(component)
+      it 'does not add the active class when active is false' do
+        render_inline(described_class.new(name: 'Link', href: '/items', active_path: '/movies',
+                                          active: false))
 
-        expect(page).not_to have_css 'a.is-active'
+        expect(page).not_to have_css 'a.active'
       end
 
-      it 'does not add the is-active class when active is nil' do
-        render_inline(component)
+      it 'does not add the active class when active is nil (auto-detect)' do
+        render_inline(described_class.new(name: 'Link', href: '/items', active_path: '/movies'))
 
-        expect(page).not_to have_css 'a.is-active'
+        expect(page).not_to have_css 'a.active'
       end
     end
   end
 
-  context 'with the method parameter' do
-    context 'when the method is not get' do
-      it 'renders a link with turbo method' do
-        @options.merge!(method: :post)
+  describe 'method parameter' do
+    it 'renders turbo method for non-GET requests' do
+      render_inline(described_class.new(name: 'Delete', href: '#', method: :post))
 
-        render_inline(component)
-
-        expect(page).to have_css 'a[data-turbo-method="post"]', text: 'Click me!'
-      end
+      expect(page).to have_css 'a[data-turbo-method="post"]', text: 'Delete'
     end
 
-    context 'when the method is get' do
-      it 'renders a link without turbo method' do
-        @options.merge!(method: :get)
+    it 'renders data-method for GET requests' do
+      render_inline(described_class.new(name: 'Fetch', href: '#', method: :get))
 
-        render_inline(component)
+      expect(page).to have_css 'a.link', text: 'Fetch'
+      expect(page).not_to have_css 'a[data-turbo-method="get"]'
+      expect(page).to have_css 'a[data-method="get"]'
+    end
+  end
 
-        expect(page).to have_css 'a.link-component', text: 'Click me!'
-        expect(page).not_to have_css 'a[data-turbo-method="get"]'
-        expect(page).to have_css 'a[data-method="get"]'
+  describe 'disabled' do
+    it 'adds btn-disabled class when disabled with variant' do
+      render_inline(described_class.new(name: 'Disabled', href: '/', variant: :primary,
+                                        disabled: true))
+
+      expect(page).to have_css 'a.btn-disabled'
+      expect(page).not_to have_css 'a[href]'
+    end
+
+    it 'does not add btn-disabled class for plain disabled link' do
+      render_inline(described_class.new(name: 'Disabled', href: '/', disabled: true))
+
+      expect(page).not_to have_css 'a.btn-disabled'
+      expect(page).not_to have_css 'a[href]'
+    end
+  end
+
+  describe 'plain mode' do
+    it 'renders with flex classes for menu items' do
+      render_inline(described_class.new(name: 'Menu Item', href: '#', plain: true))
+
+      expect(page).to have_css 'a.flex.items-center.gap-2'
+      expect(page).not_to have_css 'a.link'
+    end
+  end
+
+  describe 'authorization' do
+    it 'renders when authorized' do
+      render_inline(described_class.new(name: 'Link', href: '#', authorized: true))
+
+      expect(page).to have_css 'a', text: 'Link'
+    end
+
+    it 'does not render when not authorized' do
+      render_inline(described_class.new(name: 'Link', href: '#', authorized: false))
+
+      expect(page).not_to have_css 'a'
+    end
+  end
+
+  describe 'custom options passthrough' do
+    it 'accepts custom classes' do
+      render_inline(described_class.new(name: 'Link', href: '#', class: 'custom-class'))
+
+      expect(page).to have_css 'a.custom-class'
+    end
+
+    it 'accepts data attributes' do
+      render_inline(described_class.new(name: 'Link', href: '#', data: { testid: 'test-link' }))
+
+      expect(page).to have_css 'a[data-testid="test-link"]'
+    end
+
+    it 'accepts id attribute' do
+      render_inline(described_class.new(name: 'Link', href: '#', id: 'my-link'))
+
+      expect(page).to have_css 'a#my-link'
+    end
+  end
+
+  describe 'content block' do
+    it 'renders custom content' do
+      render_inline(described_class.new(href: '#', variant: :primary)) do
+        'Custom Content'
       end
+
+      expect(page).to have_css 'a.btn', text: 'Custom Content'
+    end
+  end
+
+  describe 'deprecated type parameter' do
+    it 'supports type for backwards compatibility' do
+      render_inline(described_class.new(name: 'Button', href: '#', type: :primary))
+
+      expect(page).to have_css 'a.btn.btn-primary', text: 'Button'
+    end
+
+    it 'prefers variant over type when both are provided' do
+      render_inline(described_class.new(name: 'Button', href: '#', variant: :error, type: :primary))
+
+      expect(page).to have_css 'a.btn.btn-error', text: 'Button'
+      expect(page).not_to have_css 'a.btn-primary'
     end
   end
 end

@@ -12,20 +12,26 @@ module Bali
           @active = active
           @href = href
 
-          @options = prepend_class_name(
-            options,
-            class_names('button is-small', 'is-selected is-info': @active)
-          )
+          @options = options
         end
 
         def call
-          tag.a @label, href: href, class: @options[:class]
+          tag.a @label, href: href, class: button_classes
         end
 
         private
 
         def href
           add_query_param(@href.to_s, :zoom, @zoom)
+        end
+
+        def button_classes
+          class_names(
+            'btn btn-sm join-item',
+            @options[:class],
+            'btn-info' => @active,
+            'btn-ghost' => !@active
+          )
         end
       end
     end

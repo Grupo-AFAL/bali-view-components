@@ -5,70 +5,32 @@ module Bali
     class Preview < ApplicationViewComponentPreview
       # Default
       # --------
+      # A hoverable popup that displays content when triggered by mouse hover or click.
+      # Uses Tippy.js for positioning and display.
       #
       # @param placement select [auto, auto-start, auto-end, top, top-start, top-end, bottom, bottom-start, bottom-end, right, right-start, right-end, left, left-start, left-end]
       # @param open_on_click toggle
       # @param content_padding toggle
-      def default(placement: 'auto', open_on_click: false, content_padding: true)
+      # @param arrow toggle
+      def default(placement: 'auto', open_on_click: false, content_padding: true, arrow: true)
         render HoverCard::Component.new(
           placement: placement,
           open_on_click: open_on_click,
-          content_padding: content_padding
+          content_padding: content_padding,
+          arrow: arrow
         ) do |c|
           c.with_trigger do
-            tag.p('Hover me!', class: 'has-text-centered')
+            tag.button('Hover me!', class: 'btn btn-primary')
           end
 
-          c.tag.p('Hovercard content!')
+          tag.p('This is the hovercard content. It can contain any HTML.')
         end
       end
-
-      # @!group Placements
-      def top
-        render HoverCard::Component.new(placement: 'top') do |c|
-          c.with_trigger do
-            tag.p('Hover me!', class: 'has-text-centered')
-          end
-
-          c.tag.p('Hovercard content!')
-        end
-      end
-
-      def right
-        render HoverCard::Component.new(placement: 'right') do |c|
-          c.with_trigger do
-            tag.p('Hover me!', class: 'has-text-centered')
-          end
-
-          c.tag.p('Hovercard content!')
-        end
-      end
-
-      def bottom
-        render HoverCard::Component.new(placement: 'bottom') do |c|
-          c.with_trigger do
-            tag.p('Hover me!', class: 'has-text-centered')
-          end
-
-          c.tag.p('Hovercard content!')
-        end
-      end
-
-      def left
-        render HoverCard::Component.new(placement: 'left') do |c|
-          c.with_trigger do
-            tag.p('Hover me!', class: 'has-text-centered')
-          end
-
-          c.tag.p('Hovercard content!')
-        end
-      end
-
-      # @!endgroup
 
       # With Hover URL
       # --------------
-      # Content is loading asyncronously from the provided url
+      # Content is loaded asynchronously from the provided URL.
+      # Useful for lazy-loading content or fetching data on demand.
       #
       # @param placement select [auto, auto-start, auto-end, top, top-start, top-end, bottom, bottom-start, bottom-end, right, right-start, right-end, left, left-start, left-end]
       # @param open_on_click toggle
@@ -82,7 +44,7 @@ module Bali
           content_padding: content_padding
         ) do |c|
           c.with_trigger do
-            tag.p('Hover me!', class: 'has-text-centered')
+            tag.button('Hover to load content', class: 'btn btn-secondary')
           end
         end
       end

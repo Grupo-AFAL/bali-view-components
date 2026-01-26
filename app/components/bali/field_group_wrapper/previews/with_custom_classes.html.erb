@@ -1,0 +1,15 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <p class="text-sm text-base-content/60 mb-4">
+    Custom classes applied: <code class="bg-base-200 px-1 rounded">field_class: 'max-w-md'</code>
+  </p>
+
+  <%= render Bali::FieldGroupWrapper::Component.new(
+        form,
+        :email,
+        label: { text: 'Email Address', tooltip: 'We will never share your email' },
+        field_class: 'max-w-md',
+        field_data: { testid: 'email-wrapper' }
+      ) do %>
+    <%= form.email_field :email, placeholder: 'user@example.com' %>
+  <% end %>
+<% end %>

@@ -36,8 +36,17 @@ module Bali
       ActiveModel::Type.register(:date_range, Bali::Types::DateRangeValue)
     end
 
-    initializer 'Bali add app/components to assets paths' do |app|
-      app.config.assets.paths << "#{root}/app/components"
+    initializer 'bali.add_locales' do |app|
+      app.config.i18n.load_path += Dir[root.join('config', 'locales', '*.yml')]
+    end
+
+    initializer 'Bali add assets paths', before: :append_assets_path do |app|
+      # Add Bali's JavaScript and component paths for both Propshaft and Sprockets
+      app.config.assets.paths << root.join('app', 'components')
+      app.config.assets.paths << root.join('app', 'assets', 'javascripts')
+      app.config.assets.paths << root.join('app', 'assets', 'stylesheets')
+      # Add frontend path for Vite-based consuming apps
+      app.config.assets.paths << root.join('app', 'frontend')
     end
 
     initializer 'Bali precompile hook' do |app|

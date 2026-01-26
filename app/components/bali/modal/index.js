@@ -30,6 +30,11 @@ export class ModalController extends Controller {
       )
     }
 
+    // Store original skeleton content for restoration on close
+    if (this.hasContentTarget) {
+      this._originalContent = this.contentTarget.innerHTML
+    }
+
     if (this.hasBackgroundTarget) {
       this.backgroundTarget.addEventListener('click', this._closeModal)
     }
@@ -70,17 +75,63 @@ export class ModalController extends Controller {
   }
 
   setOptionsAndOpenModal = event => {
+    // Only process if this controller has the required targets
+    // This allows multiple controllers to exist (e.g., on body and component)
+    // but only the one with targets will actually open the modal
+    if (!this.hasContentTarget || !this.hasTemplateTarget || !this.hasWrapperTarget) return
+
     this.setOptions(event.detail.options)
     this.openModal(event.detail.content)
   }
 
   openModal (content) {
-    this.wrapperTarget.classList.add(...this.wrapperClasses)
+    // Store the element that triggered the modal for focus restoration
+    this.previouslyFocusedElement = document.activeElement
 
-    this.templateTarget.classList.add('is-active')
-    this.contentTarget.innerHTML = content
+    if (this.wrapperClasses) {
+      this.wrapperTarget.classList.add(...this.wrapperClasses)
+    }
 
-    autoFocusInput(this.contentTarget)
+    this.templateTarget.classList.add('modal-open')
+
+    // Only replace content if provided - allows showing skeleton first
+    if (content !== null && content !== undefined) {
+      this.contentTarget.innerHTML = content
+      autoFocusInput(this.contentTarget)
+      // Set up focus trap after content is loaded
+      this.trapFocus()
+    }
+  }
+
+  trapFocus () {
+    const focusableElements = this.wrapperTarget.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )
+    if (focusableElements.length === 0) return
+
+    this.firstFocusable = focusableElements[0]
+    this.lastFocusable = focusableElements[focusableElements.length - 1]
+
+    // Focus first element
+    this.firstFocusable.focus()
+
+    this.wrapperTarget.addEventListener('keydown', this.handleTabKey)
+  }
+
+  handleTabKey = (event) => {
+    if (event.key !== 'Tab') return
+
+    if (event.shiftKey) {
+      if (document.activeElement === this.firstFocusable) {
+        event.preventDefault()
+        this.lastFocusable.focus()
+      }
+    } else {
+      if (document.activeElement === this.lastFocusable) {
+        event.preventDefault()
+        this.firstFocusable.focus()
+      }
+    }
   }
 
   setOptions (options) {
@@ -91,11 +142,28 @@ export class ModalController extends Controller {
   }
 
   _closeModal = () => {
-    this.templateTarget.classList.remove('is-active')
+    this.templateTarget.classList.remove('modal-open')
     if (this.wrapperClasses) {
       this.wrapperTarget.classList.remove(...this.wrapperClasses)
     }
-    this.contentTarget.innerHTML = ''
+
+    // Restore original skeleton content for next open
+    if (this._originalContent) {
+      this.contentTarget.innerHTML = this._originalContent
+    } else {
+      this.contentTarget.innerHTML = ''
+    }
+
+    // Clean up focus trap
+    if (this.wrapperTarget) {
+      this.wrapperTarget.removeEventListener('keydown', this.handleTabKey)
+    }
+
+    // Restore focus to the element that triggered the modal
+    if (this.previouslyFocusedElement) {
+      this.previouslyFocusedElement.focus()
+      this.previouslyFocusedElement = null
+    }
   }
 
   _buildURL = (path, redirectTo = null) => {
@@ -141,18 +209,37 @@ export class ModalController extends Controller {
     event.preventDefault()
     const target = event.currentTarget
 
-    this.wrapperClasses = this.normalizeClass(
+    const wrapperClasses = this.normalizeClass(
       target.getAttribute('data-wrapper-class')
     )
-    this.redirectTo = target.getAttribute('data-redirect-to')
-    this.skipRender = Boolean(target.getAttribute('data-skip-render'))
-    this.extraProps = JSON.parse(target.getAttribute('data-extra-props'))
+    const redirectTo = target.getAttribute('data-redirect-to')
+    const skipRender = Boolean(target.getAttribute('data-skip-render'))
+    const extraProps = JSON.parse(target.getAttribute('data-extra-props'))
 
+    // Show modal immediately with skeleton (content already in template)
+    document.dispatchEvent(new CustomEvent('openModal', {
+      detail: {
+        content: null, // Don't replace content - show existing skeleton
+        options: { wrapperClasses, redirectTo, skipRender, extraProps }
+      }
+    }))
+
+    // Fetch actual content
     const response = await fetch(this._buildURL(target.href))
     const body = await response.text()
-    if (!response.redirected) return this.openModal(body)
 
-    this._replaceBodyAndURL(body, response.url)
+    if (response.redirected) {
+      this._replaceBodyAndURL(body, response.url)
+      return
+    }
+
+    // Replace skeleton with actual content
+    document.dispatchEvent(new CustomEvent('openModal', {
+      detail: {
+        content: body,
+        options: { wrapperClasses, redirectTo, skipRender, extraProps }
+      }
+    }))
   }
 
   close = event => {
@@ -177,12 +264,12 @@ export class ModalController extends Controller {
    */
   submit = event => {
     event.preventDefault()
-    event.target.classList.add('is-loading')
+    event.target.classList.add('loading')
     event.target.setAttribute('disabled', '')
 
     const form = event.target.closest('form')
     if (!form.checkValidity()) {
-      event.target.classList.remove('is-loading')
+      event.target.classList.remove('loading')
       event.target.removeAttribute('disabled')
       form.querySelectorAll('input').forEach(input => { input.reportValidity() })
       return

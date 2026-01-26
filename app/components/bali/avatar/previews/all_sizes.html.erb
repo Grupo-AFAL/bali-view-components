@@ -1,0 +1,12 @@
+<div class="flex items-end gap-6 flex-wrap">
+  <% %i[xs sm md lg xl].each do |size| %>
+    <div class="flex flex-col items-center gap-2">
+      <%= render(Bali::Avatar::Component.new(
+        src: 'avatar.png',
+        size: size,
+        shape: :circle
+      )) %>
+      <span class="text-sm text-base-content/70"><%= size %></span>
+    </div>
+  <% end %>
+</div>

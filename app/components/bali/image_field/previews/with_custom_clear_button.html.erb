@@ -1,9 +1,15 @@
 <%= form_with(url: '/') do |f| %>
-  <%= render(Bali::ImageField::Component.new) do |c| %>
+  <%= render(Bali::ImageField::Component.new(size: :lg)) do |c| %>
     <% c.with_input(form: f, method: :avatar) %>
     <% c.with_clear_button do %>
-      <%= render Bali::Link::Component.new(icon_name: :trash,
-          href: nil, data: { action: 'image-field#clear' }, class: 'button clear-image-button') %>
+      <%= render Bali::Button::Component.new(
+            icon_name: :trash,
+            type: :button,
+            variant: :error,
+            class: 'btn-circle btn-sm absolute -top-2 -right-2 hidden group-hover:flex max-md:flex',
+            data: { action: 'image-field#clear' },
+            aria: { label: 'Delete image' }
+          ) %>
     <% end %>
   <% end %>
 <% end %>

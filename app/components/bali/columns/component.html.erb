@@ -1,4 +1,4 @@
-<%= tag.div **options do %>
+<%= tag.div class: container_classes, **options.except(:class) do %>
   <% columns.each do |column| %>
     <%= column %>
   <% end %>

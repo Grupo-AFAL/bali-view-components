@@ -4,16 +4,37 @@ module Bali
   module Card
     module Image
       class Component < ApplicationViewComponent
-        attr_reader :src, :options
-
-        def initialize(src:, **options)
+        def initialize(src:, href: nil, alt: nil, figure_class: nil, **options)
           @src = src
-          @figure_class = options.delete(:figure_class) || 'is-2by1'
-          @options = prepend_class_name(options, 'card-image')
+          @href = href
+          @alt = alt
+          @figure_class = figure_class
+          @options = options
         end
 
-        def tag_name
-          options[:href].present? ? :a : :div
+        def call
+          tag.figure(class: @figure_class) do
+            if @href.present?
+              link_to @href do
+                render_image
+              end
+            else
+              render_image
+            end
+          end
+        end
+
+        private
+
+        def render_image
+          image_tag @src, **image_attributes
+        end
+
+        def image_attributes
+          @options.merge(
+            alt: @alt,
+            class: class_names('w-full', @options[:class])
+          )
         end
       end
     end

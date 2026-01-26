@@ -1,5 +1,7 @@
-<%= tag.table(**options) do %>
-  <% properties.each do |property| %>
-    <%= property %>
-  <% end %>
+<%= tag.table(**table_attributes) do %>
+  <tbody>
+    <% properties.each do |property| %>
+      <%= property %>
+    <% end %>
+  </tbody>
 <% end %>

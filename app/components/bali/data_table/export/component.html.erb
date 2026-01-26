@@ -1,0 +1,16 @@
+<div class="dropdown dropdown-end">
+  <button type="button" tabindex="0" class="btn btn-outline btn-sm gap-2">
+    <%= render Bali::Icon::Component.new(button_icon, class: 'w-4 h-4') %>
+    <%= button_label %>
+  </button>
+  <ul tabindex="0" class="dropdown-content z-50 menu p-2 shadow-lg bg-base-100 rounded-box w-40 border border-base-200">
+    <% export_items.each do |item| %>
+      <li>
+        <%= link_to item[:url], method: method, class: 'flex items-center gap-2' do %>
+          <%= render Bali::Icon::Component.new(item[:icon], class: 'w-4 h-4') %>
+          <%= item[:label] %>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+</div>

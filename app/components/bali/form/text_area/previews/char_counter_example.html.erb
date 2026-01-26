@@ -1,0 +1,7 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.text_area_group :text,
+      rows: 4,
+      char_counter: { max: 280 },
+      placeholder: 'What\'s happening?',
+      help: 'Character limit: 280. Counter turns red when exceeded.' %>
+<% end %>

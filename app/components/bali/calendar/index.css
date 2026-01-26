@@ -1,0 +1,66 @@
+/* Calendar component */
+.calendar-component {
+  /* Override DaisyUI table styles for calendar grid */
+  .table {
+    th {
+      @apply text-center text-base-content/70 font-normal text-lg p-2 border-none;
+    }
+
+    td {
+      @apply p-2 align-top bg-base-200/50 border border-base-300;
+    }
+
+    /* Remove DaisyUI's default zebra/hover styles */
+    tbody tr {
+      @apply bg-transparent;
+    }
+  }
+
+  .day {
+    @apply relative w-full;
+
+    .hover-card-component {
+      width: unset;
+    }
+  }
+
+  .today {
+    @apply !bg-base-300/70 border-2 !border-base-content/30;
+  }
+
+  .prev-month,
+  .next-month {
+    @apply !bg-base-100 opacity-60;
+  }
+
+  .header {
+    .unselected {
+      @apply bg-base-100 border border-primary text-primary;
+
+      svg > rect {
+        @apply stroke-primary;
+      }
+    }
+  }
+
+  .month-view {
+    td {
+      /* Use height instead of min-h for table cells */
+      height: 6.5rem;
+    }
+
+    td.today {
+      @apply border-2;
+    }
+  }
+
+  .week-view {
+    td {
+      height: 50vh;
+
+      @media (max-width: 768px) {
+        width: 75vw;
+      }
+    }
+  }
+}

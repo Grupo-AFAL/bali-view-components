@@ -1,22 +1,19 @@
-<%= tag.div(**options) do %>
-  <div class="item-contents">
+<%= tag.li(**item_options) do %>
+  <div>
     <% if title? %>
       <%= title %>
     <% end %>
-
     <% if subtitle? %>
       <%= subtitle %>
     <% end %>
   </div>
-
   <% if content.present? %>
-    <div class="item-contents">
+    <div class="<%= CONTENT_CLASSES %>">
       <%= content %>
     </div>
   <% end %>
-
   <% if actions? %>
-    <div class="item-actions">
+    <div class="<%= ACTIONS_CLASSES %>">
       <% actions.each do |action| %>
         <%= action %>
       <% end %>

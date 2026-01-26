@@ -1,7 +1,7 @@
-<%= tag.nav(**options) do %>
+<nav class="<%= container_classes %>" aria-label="<%= aria_label %>">
   <ul>
     <% items.each do |item| %>
       <%= item %>
     <% end %>
   </ul>
-<% end %>
+</nav>

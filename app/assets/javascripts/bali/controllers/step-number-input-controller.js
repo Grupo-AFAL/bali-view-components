@@ -1,71 +1,62 @@
 import { Controller } from '@hotwired/stimulus'
 
-// TODO: Add tests (Issue: #158)
-
 export class StepNumberInputController extends Controller {
   static targets = ['input', 'add', 'subtract']
 
   connect () {
     this.value = parseFloat(this.inputTarget.value) || 0
-    this.minValue = parseInt(this.inputTarget.min) || 0
-    this.maxValue = parseInt(this.inputTarget.max) || 10
+    this.minValue = parseFloat(this.inputTarget.min) || 0
+    this.maxValue = parseFloat(this.inputTarget.max) || Infinity
     this.step = parseFloat(this.inputTarget.step) || 1
-    this.setValue()
+    this.updateValue()
 
-    this.inputTarget.addEventListener('change', this.updateValue)
+    this.inputTarget.addEventListener('change', this.handleInputChange)
   }
 
   disconnect () {
-    this.inputTarget.removeEventListener('change', this.updateValue)
+    this.inputTarget.removeEventListener('change', this.handleInputChange)
   }
 
-  add (e) {
-    e.preventDefault()
+  add (event) {
+    event.preventDefault()
     this.value += this.step
-    this.setValue()
-    this.triggerChangeEvent()
+    this.updateValue()
+    this.dispatchChange()
   }
 
-  subtract (e) {
-    e.preventDefault()
+  subtract (event) {
+    event.preventDefault()
     this.value -= this.step
-    this.setValue()
-    this.triggerChangeEvent()
+    this.updateValue()
+    this.dispatchChange()
   }
 
-  setValue () {
+  updateValue () {
     this.value = Math.max(Math.min(this.value, this.maxValue), this.minValue)
     this.inputTarget.value = this.value
 
-    if (this.hasAddTarget) {
-      if (this.value === this.maxValue) {
-        this.addTarget.classList.add('is-static')
-      } else {
-        this.addTarget.classList.remove('is-static')
-      }
-    }
-
-    if (this.hasSubtractTarget) {
-      if (this.value === this.minValue) {
-        this.subtractTarget.classList.add('is-static')
-      } else {
-        this.subtractTarget.classList.remove('is-static')
-      }
-    }
+    this.updateButtonState(this.addTarget, this.value >= this.maxValue)
+    this.updateButtonState(this.subtractTarget, this.value <= this.minValue)
   }
 
-  updateValue = event => {
+  updateButtonState (button, atLimit) {
+    if (!button) return
+
+    button.classList.toggle('btn-disabled', atLimit)
+    button.classList.toggle('pointer-events-none', atLimit)
+    button.disabled = atLimit
+  }
+
+  // Arrow function preserves `this` binding when used as event listener
+  handleInputChange = (event) => {
     const newValue = parseFloat(event.target.value) || 0
-
-    if (newValue === this.value) return
-
-    this.value = newValue
-    this.setValue()
+    if (newValue !== this.value) {
+      this.value = newValue
+      this.updateValue()
+    }
   }
 
-  triggerChangeEvent () {
-    const event = document.createEvent('HTMLEvents')
-    event.initEvent('change', false, true)
-    this.inputTarget.dispatchEvent(event)
+  dispatchChange () {
+    this.inputTarget.dispatchEvent(new Event('change', { bubbles: true }))
   }
 }

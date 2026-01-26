@@ -4,7 +4,7 @@ module Bali
   module Table
     module Footer
       class Component < ApplicationViewComponent
-        def initialize(options = {})
+        def initialize(**options)
           @options = hyphenize_keys(options)
         end
 

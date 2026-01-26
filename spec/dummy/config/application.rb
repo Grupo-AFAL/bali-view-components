@@ -1,6 +1,6 @@
-require_relative "boot"
+require_relative 'boot'
 
-require "rails/all"
+require 'rails/all'
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -30,13 +30,32 @@ module Dummy
     config.time_zone = 'Tijuana'
     # config.eager_load_paths << Rails.root.join("extras")
 
+    # I18n configuration
+    config.i18n.available_locales = %i[en es]
+    config.i18n.default_locale = :en
+    config.i18n.fallbacks = true
+
     # Don't generate system test files.
     config.generators.system_tests = nil
 
     # ViewComponents
-    config.autoload_paths << Rails.root.parent.parent.join('app', 'components')
-    config.view_component.preview_paths << Rails.root.parent.parent.join('app', 'components')
+    config.autoload_paths << Rails.root.parent.parent.join('app/components')
+    config.view_component.preview_paths << Rails.root.parent.parent.join('app/components')
 
-    config.lookbook.listen_extensions = %w[js scss]
+    config.lookbook.preview_layout = 'lookbook_preview'
+
+    # Live updates: enable by default, disable with DISABLE_RELOADING=1 for performance
+    if ENV['DISABLE_RELOADING']
+      config.lookbook.live_updates = false
+      config.lookbook.listen = false
+    else
+      config.lookbook.live_updates = true
+      config.lookbook.listen = true
+      # Watch Ruby and ERB files for changes (exclude JS/SCSS which trigger cascading rebuilds)
+      config.lookbook.listen_extensions = %w[rb erb]
+    end
+
+    # Documentation pages
+    config.lookbook.page_paths = [Rails.root.join("app/views/lookbook/pages")]
   end
 end

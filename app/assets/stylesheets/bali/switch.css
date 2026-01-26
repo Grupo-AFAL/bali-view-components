@@ -1,0 +1,38 @@
+/* Switch toggle component */
+.switch {
+  --switch-width: 3.75rem;
+  --switch-height: 2rem;
+  --switch-padding: 0.1875rem;
+  --switch-slider-size: 1.62rem;
+  --switch-transition-time: 0.4s;
+
+  label {
+    @apply relative flex items-center bg-base-300 shadow-sm;
+    width: var(--switch-width);
+    height: var(--switch-height);
+    border-radius: var(--switch-height);
+    padding: var(--switch-padding);
+    transition: background-color var(--switch-transition-time);
+
+    &::before {
+      content: '';
+      @apply rounded-full shadow-sm bg-base-100;
+      width: var(--switch-slider-size);
+      height: var(--switch-slider-size);
+      transform: translateX(0%);
+      transition: transform var(--switch-transition-time);
+    }
+  }
+
+  input {
+    @apply absolute -left-4 opacity-0 outline-none select-none;
+  }
+
+  input:checked + label {
+    @apply bg-success;
+
+    &::before {
+      transform: translateX(100%);
+    }
+  }
+}

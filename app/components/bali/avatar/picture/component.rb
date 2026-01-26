@@ -6,8 +6,7 @@ module Bali
       class Component < ApplicationViewComponent
         def initialize(image_url:, **options)
           @image_url = image_url
-          @options = prepend_class_name(options, 'is-rounded')
-          @options = prepend_data_attribute(@options, :avatar_target, 'output')
+          @options = prepend_class_name(options, 'w-full h-full object-cover')
         end
 
         def call

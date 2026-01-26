@@ -1,10 +1,36 @@
 en:
   view_components:
     bali:
+      table:
+        no_records: No Records
+        no_results: No Results
+      data_table:
+        summary: "Showing %{from}-%{to} of %{count} %{item_name}"
+        default_item_name: items
+        column_selector:
+          button_label: Columns
+          menu_title: Show/Hide Columns
+        export:
+          button_label: Export
+          formats:
+            csv: CSV
+            excel: Excel
+            pdf: PDF
+            json: JSON
+      pagination:
+        aria_label: Pagination
+        previous_page: Previous page
+        next_page: Next page
+        page: "Page %{page}"
       chart:
         loading: Loading...
       clipboard:
         copied: Copied!
+        copy_label: Copy to clipboard
+      drawer:
+        close_drawer: Close drawer
+      dropdown:
+        menu_label: Dropdown menu
       delete_link:
         generic_confirm_message: Are you sure?
         default_name: Delete
@@ -15,6 +41,8 @@ en:
         attributes:
           date_range:
             custom: Custom
+      image_field:
+        clear_image: Clear image
       gantt_chart:
         task_header: Name
         today: Today
@@ -32,10 +60,32 @@ en:
         sign_out:
           name: Sign out
           confirm: Are you sure?
+      carousel:
+        arrows:
+          previous_slide: Previous slide
+          next_slide: Next slide
+        bullets:
+          navigation: Slide navigation
+          go_to_slide: "Go to slide %{number}"
       calendar:
         header:
           week: Week
           month: Month
+          previous: Previous
+          next: Next
+      navbar:
+        main_navigation: Main navigation
+        toggle_menu: Toggle menu
+        burger:
+          toggle_menu: Toggle menu
+      notification:
+        close: Close notification
+      step_number_field:
+        increase: Increase value
+        decrease: Decrease value
+      rate:
+        label: Rating
+        star_rating: "%{number} stars"
       recurrent_event_rule_form:
         yearly: Yearly
         monthly: Monthly
@@ -55,12 +105,16 @@ en:
         weekend_day: Weekend day
         repeat: Repeat
         every: every
-        month_s: Month (s)
-        week_s: Week (s)
-        day_s: Day (s)
-        hour_s: Hour (s)
+        month_s: month(s)
+        week_s: week(s)
+        day_s: day(s)
+        hour_s: hour(s)
         on_option: "On"
         on_the: On the
         on_day: On day
         end: End
-        ocurrence_s: ocurrence (s)
+        ocurrence_s: occurrence(s)
+        yearly_options: Yearly Options
+        monthly_options: Monthly Options
+        repeat_on_days: Repeat on Days
+        of: of

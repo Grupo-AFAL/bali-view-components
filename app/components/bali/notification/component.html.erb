@@ -1,4 +1,4 @@
-<%= tag.div **options do %>
-  <%= tag.button class: 'delete', data: { action: 'notification#close'} %>
-  <%= content %>
+<%= tag.div class: alert_classes, data: stimulus_attributes do %>
+  <button class="btn btn-sm btn-circle btn-ghost" data-action="notification#close" aria-label="<%= close_button_label %>">✕</button>
+  <span class="notification-content-component"><%= content %></span>
 <% end %>

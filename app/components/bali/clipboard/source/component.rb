@@ -4,19 +4,30 @@ module Bali
   module Clipboard
     module Source
       class Component < ApplicationViewComponent
-        attr_reader :text, :options
+        BASE_CLASSES = 'clipboard-source bg-base-200 px-4 py-2 text-sm font-mono ' \
+                       'flex items-center min-w-0 flex-1 ' \
+                       'rounded-l-lg border border-r-0 border-base-300'
 
         def initialize(text = '', **options)
           @text = text
-
-          @options = prepend_class_name(options, 'clipboard-source')
-          @options = prepend_data_attribute(@options, 'clipboard-target', 'source')
+          @options = options
         end
 
         def call
-          return tag.div(text, **options) if text.present?
+          tag.div(**source_attributes) do
+            tag.span(class: 'truncate') do
+              text.presence || content
+            end
+          end
+        end
 
-          tag.div(**options) { content }
+        private
+
+        attr_reader :text, :options
+
+        def source_attributes
+          opts = prepend_class_name(options, BASE_CLASSES)
+          prepend_data_attribute(opts, 'clipboard-target', 'source')
         end
       end
     end

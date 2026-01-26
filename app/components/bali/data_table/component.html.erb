@@ -1,24 +1,44 @@
-<div id="<%= id %>"class='data-table-component'>
-  <% if filters_panel.present? %>
-    <%= render Bali::Level::Component.new do |c| %>
-      <%= c.with_left(class: filters_class) do%>
-        <%= filters_panel %>
+<div id="<%= id %>" class="data-table-component">
+  <%# Toolbar: Filters (left) + Actions/Buttons (right) %>
+  <% if show_toolbar? %>
+    <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
+      <%# Left side: Filters %>
+      <div class="flex-1 min-w-0">
+        <%= filters_panel if filters_panel? %>
+      </div>
+
+      <%# Right side: Column selector + Export + Toolbar buttons + Actions panel %>
+      <% if show_toolbar_right? %>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <%= column_selector if column_selector? %>
+          <%= export if export? %>
+          <% toolbar_buttons.each do |button| %>
+            <%= button %>
+          <% end %>
+          <% if actions_panel? %>
+            <div class="hidden md:block"><%= actions_panel %></div>
+          <% end %>
+        </div>
       <% end %>
-      <%= c.with_right(class: 'is-hidden-mobile') do %>
-        <%= actions_panel %>
-      <% end %>
-    <% end %>
+    </div>
   <% end %>
 
-  <% if summary.present? %>
-    <%= summary %>
+  <%# Custom summary slot (top position) or summary_position: :top %>
+  <% if summary? || show_summary_top? %>
+    <div class="mb-4 text-sm text-base-content/70">
+      <%= summary? ? summary : default_summary_text %>
+    </div>
   <% end %>
 
-  <div class='is-hidden-tablet is-flex is-align-items-center is-justify-content-flex-end mb-3'>
-    <%= actions_panel %>
-  </div>
+  <%# Mobile actions %>
+  <% if actions_panel? %>
+    <div class="md:hidden flex items-center justify-end mb-3">
+      <%= actions_panel %>
+    </div>
+  <% end %>
 
-  <% if @display_mode&.to_sym == :grid %>
+  <%# Content: Table or Grid %>
+  <% if grid_mode? %>
     <%= grid %>
   <% else %>
     <%= tag.div class: table_wrapper_classes do %>
@@ -26,13 +46,26 @@
     <% end %>
   <% end %>
 
-  <% if @pagy %>
-    <% if custom_pagy_nav.present? %>
-      <%= custom_pagy_nav %>
-    <% else %>
-      <div id="pagy-bulma-nav">
-        <%== pagy_bulma_nav(@pagy) %>
+  <%# Footer: Summary (left) + Pagination (right) %>
+  <% if show_footer? %>
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t border-base-200">
+      <%# Summary text %>
+      <div class="text-sm text-base-content/70 order-2 sm:order-1">
+        <% if show_summary_bottom? %>
+          <%= default_summary_text %>
+        <% end %>
       </div>
-    <% end %>
+
+      <%# Pagination %>
+      <% if pagy %>
+        <div class="order-1 sm:order-2">
+          <% if custom_pagy_nav? %>
+            <%= custom_pagy_nav %>
+          <% else %>
+            <%= render Bali::Pagination::Component.new(pagy: pagy) %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
   <% end %>
 </div>

@@ -1,0 +1,33 @@
+<%# DataTable with custom summary slot - use when you need custom content beyond the default %>
+<%= render Bali::DataTable::Component.new(url: request.path, show_summary: false) do |c| %>
+  <% c.with_filters_panel(
+       available_attributes: filter_attributes,
+       search: { fields: [:name] }
+     ) %>
+
+  <%# Custom summary at top position - demonstrates the slot override %>
+  <% c.with_summary do %>
+    <div class="alert alert-info">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      <span><%= summary %></span>
+    </div>
+  <% end %>
+
+  <% c.with_table do %>
+    <%= render Bali::Table::Component.new do |ct| %>
+      <%= ct.with_headers(headers) %>
+      <% records.each do |record| %>
+        <%= ct.with_row do %>
+          <td><%= record[:name] %></td>
+          <td>
+            <span class="badge <%= record[:status] == 'active' ? 'badge-success' : record[:status] == 'pending' ? 'badge-warning' : 'badge-ghost' %>">
+              <%= record[:status].capitalize %>
+            </span>
+          </td>
+          <td class="text-right font-mono">$<%= number_with_delimiter(record[:amount]) %></td>
+          <td class="text-sm text-base-content/70"><%= record[:created_at] %></td>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

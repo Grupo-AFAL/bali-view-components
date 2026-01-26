@@ -2,32 +2,38 @@
   <%= action %>
 <% end %>
 
-<% if @export_formats.size == 1 %>
-  <%= render Bali::Link::Component.new(name: render(Bali::Icon::Component.new('download')),
-      href: build_url({ format: @export_formats.last }), type: :text) %>
-<% elsif @export_formats.size.positive? %>
+<% if single_export? %>
+  <%= render Bali::Link::Component.new(
+    name: render(Bali::Icon::Component.new('download')),
+    href: build_url(format: single_export_format),
+    type: :text
+  ) %>
+<% elsif multiple_exports? %>
   <%= render Bali::Dropdown::Component.new(class: 'ml-4') do |c| %>
-    <% c.with_trigger(class: 'dropdown-link button is-text is-arrowless') do %>
+    <% c.with_trigger(class: 'btn btn-ghost') do %>
       <%= render Bali::Icon::Component.new('download') %>
     <% end %>
-
     <% @export_formats.each_with_index do |export_format, index| %>
       <%= render Bali::Link::Component.new(
-          name: export_format.upcase, href: build_url({ format: export_format }), class: "dropdown-item") %>
-
-      <%= tag.div(class: 'dropdown-divider') if index < @export_formats.size - 1 %>
+        name: export_format.upcase,
+        href: build_url(format: export_format),
+        class: 'w-full'
+      ) %>
+      <%= tag.div(class: 'divider my-0') if index < @export_formats.size - 1 %>
     <% end %>
   <% end %>
 <% end %>
 
 <% if @grid_display_mode_enabled %>
-  <%= tag.span('&#9474;'.html_safe, class: 'mx-2 has-text-grey-light') if @export_formats.size.positive? %>
-
-  <%= render Bali::Link::Component.new(name: render(Bali::Icon::Component.new('list')),
-      href: build_url({ @display_mode_param_name => :table }),
-      type: :text, active: @display_mode&.to_sym == :table, data: { turbo_stream: true }) %>
-
-  <%= render Bali::Link::Component.new(name: render(Bali::Icon::Component.new('grid')),
-      href: build_url({ @display_mode_param_name => :grid }),
-      type: :text, active: @display_mode&.to_sym == :grid, data: { turbo_stream: true }) %>
+  <% if show_display_mode_separator? %>
+    <span class="divider divider-horizontal mx-1 h-6"></span>
+  <% end %>
+  <div class="join">
+    <%= link_to table_mode_url, class: table_button_classes, data: { turbo_action: 'replace' } do %>
+      <%= render Bali::Icon::Component.new('list') %>
+    <% end %>
+    <%= link_to grid_mode_url, class: grid_button_classes, data: { turbo_action: 'replace' } do %>
+      <%= render Bali::Icon::Component.new('grid') %>
+    <% end %>
+  </div>
 <% end %>

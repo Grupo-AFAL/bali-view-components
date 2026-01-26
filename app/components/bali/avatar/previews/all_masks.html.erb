@@ -1,0 +1,12 @@
+<div class="flex items-center gap-6 flex-wrap">
+  <% %i[heart squircle hexagon triangle diamond pentagon star].each do |mask| %>
+    <div class="flex flex-col items-center gap-2">
+      <%= render(Bali::Avatar::Component.new(
+        src: 'avatar.png',
+        size: :lg,
+        mask: mask
+      )) %>
+      <span class="text-sm text-base-content/70"><%= mask %></span>
+    </div>
+  <% end %>
+</div>

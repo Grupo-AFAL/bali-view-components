@@ -1,10 +1,36 @@
 es:
   view_components:
     bali:
+      table:
+        no_records: Sin Registros
+        no_results: Sin Resultados
+      data_table:
+        summary: "Mostrando %{from}-%{to} de %{count} %{item_name}"
+        default_item_name: elementos
+        column_selector:
+          button_label: Columnas
+          menu_title: Mostrar/Ocultar Columnas
+        export:
+          button_label: Exportar
+          formats:
+            csv: CSV
+            excel: Excel
+            pdf: PDF
+            json: JSON
+      pagination:
+        aria_label: Paginación
+        previous_page: Página anterior
+        next_page: Página siguiente
+        page: "Página %{page}"
       chart:
         loading: Cargando...
       clipboard:
         copied: ¡Copiado!
+        copy_label: Copiar al portapapeles
+      drawer:
+        close_drawer: Cerrar panel
+      dropdown:
+        menu_label: Menú desplegable
       delete_link:
         generic_confirm_message: '¿Estás seguro(a)?'
         default_name: Eliminar
@@ -15,6 +41,8 @@ es:
         attributes:
           date_range:
             custom: Personalizado
+      image_field:
+        clear_image: Borrar imagen
       gantt_chart:
         task_header: Nombre
         today: Hoy
@@ -32,10 +60,32 @@ es:
         sign_out:
           name: Cerrar sesión
           confirm: ¿Estás seguro?
+      carousel:
+        arrows:
+          previous_slide: Diapositiva anterior
+          next_slide: Diapositiva siguiente
+        bullets:
+          navigation: Navegación de diapositivas
+          go_to_slide: "Ir a diapositiva %{number}"
       calendar:
         header:
           week: Semana
           month: Mes
+          previous: Anterior
+          next: Siguiente
+      navbar:
+        main_navigation: Navegación principal
+        toggle_menu: Alternar menú
+        burger:
+          toggle_menu: Alternar menú
+      notification:
+        close: Cerrar notificación
+      step_number_field:
+        increase: Aumentar valor
+        decrease: Disminuir valor
+      rate:
+        label: Calificación
+        star_rating: "%{number} estrellas"
       recurrent_event_rule_form:
         yearly: Anualmente
         monthly: Mensualmente
@@ -55,12 +105,16 @@ es:
         weekend_day: Fines de semana
         repeat: Repetir
         every: cada
-        month_s: Mes (es)
-        week_s: Semana (s)
-        day_s: Día (s)
-        hour_s: Hora (s)
+        month_s: mes(es)
+        week_s: semana(s)
+        day_s: día(s)
+        hour_s: hora(s)
         on_option: En
         on_the: El
         on_day: En el día
         end: Termina
-        ocurrence_s: ocurrencia (s)
+        ocurrence_s: ocurrencia(s)
+        yearly_options: Opciones Anuales
+        monthly_options: Opciones Mensuales
+        repeat_on_days: Repetir en Días
+        of: de

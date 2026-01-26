@@ -1,0 +1,208 @@
+/* Form styling */
+.input.is-very-short,
+.select.is-very-short {
+  @apply w-16;
+}
+
+.input.is-short,
+.select.is-short {
+  width: 100px;
+}
+
+.input.is-medium-short,
+.select.is-medium-short {
+  width: 140px;
+}
+
+.input.is-long,
+.select.is-long {
+  @apply w-64;
+}
+
+.input.is-very-long,
+.select.is-very-long {
+  @apply w-80;
+}
+
+.select.full-width {
+  @apply w-full;
+
+  select {
+    @apply !w-full;
+  }
+}
+
+.control.is-small {
+  @apply w-40;
+}
+
+.inline-label {
+  @apply mr-3;
+  line-height: 32px;
+
+  &:not(:first-child) {
+    @apply ml-6;
+  }
+}
+
+.field-body > .field {
+  @apply flex-1;
+}
+
+.field-body > .field.flex-2 {
+  @apply flex-[2];
+}
+
+.delete-column {
+  @apply pt-5;
+}
+
+.control.inline {
+  @apply mr-2;
+}
+
+.control > .v-center {
+  @apply self-center;
+}
+
+.control > .is-5 {
+  @apply mt-1.5;
+}
+
+.radio {
+  input {
+    @apply mr-1.5;
+  }
+
+  .field_with_errors {
+    @apply w-auto inline-block;
+  }
+}
+
+.block-radio {
+  @apply block;
+
+  .radio {
+    @apply block;
+  }
+
+  .radio + .radio {
+    @apply m-0;
+  }
+}
+
+.large-radio-group {
+  .radio {
+    @apply !text-base !mb-4;
+
+    input {
+      @apply mr-4;
+    }
+  }
+}
+
+.field_with_errors {
+  @apply w-full;
+
+  & > label.label {
+    @apply mb-2;
+  }
+}
+
+/* Fix for field_with_errors breaking flex layouts (radio groups, etc.) */
+.flex-row > .field_with_errors,
+.flex-col > .field_with_errors {
+  display: contents;
+}
+
+/* Fix for Rails field_with_errors wrapper breaking DaisyUI join pattern */
+.join > .field_with_errors {
+  @apply flex flex-1;
+}
+
+.label {
+  .field_with_errors {
+    display: contents;
+  }
+
+  .tooltip-component {
+    @apply h-6;
+
+    .tippy-content {
+      @apply font-normal;
+    }
+  }
+}
+
+.file-icon.empty-text {
+  @apply mr-0;
+}
+
+.file-label {
+  .field_with_errors {
+    @apply w-auto;
+  }
+}
+
+.file.is-boxed {
+  &.is-fullwidth {
+    .file-label {
+      @apply text-center;
+    }
+  }
+
+  .file-name {
+    @apply h-auto max-w-none;
+
+    ul {
+      @apply m-0;
+    }
+
+    li {
+      @apply flex justify-between;
+    }
+
+    a {
+      @apply ml-4;
+    }
+  }
+}
+
+.radio-buttons-group {
+  .field_with_errors {
+    @apply w-auto;
+  }
+
+  &.is-left {
+    @apply text-left;
+  }
+
+  &.is-center {
+    @apply text-center;
+  }
+
+  &.is-right {
+    @apply text-right;
+  }
+
+  .togglers {
+    margin-bottom: 1.5rem;
+  }
+
+  .toggler {
+    @apply bg-transparent border border-base-content cursor-pointer;
+    padding: 1rem;
+
+    &:not(:last-child) {
+      margin-right: 1rem;
+    }
+
+    &.is-active {
+      @apply bg-primary text-primary-content;
+    }
+
+    &:disabled {
+      @apply text-base-300 border-base-300;
+    }
+  }
+}

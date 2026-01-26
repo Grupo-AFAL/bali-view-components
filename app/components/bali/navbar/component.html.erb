@@ -1,21 +1,19 @@
-<%= tag.nav(role: 'navigation', 'aria-label': 'Main', **options) do %>
-  <%= "<div class='container #{@container_class}'>".html_safe unless fullscreen %>
-
-  <div class="navbar-brand">
-    <%= brand %>
-
-    <% if burgers? %>
-      <% burgers.each do |burger| %>
-        <%= burger %>
+<%= tag.nav(role: 'navigation', 'aria-label': t('.main_navigation'), **options) do %>
+  <div class="<%= container_classes %>">
+    <div class="flex items-center gap-2">
+      <div class="navbar-brand">
+        <%= brand %>
+      </div>
+      <% if burgers? %>
+        <% burgers.each do |burger| %>
+          <%= burger %>
+        <% end %>
+      <% else %>
+        <%= render Bali::Navbar::Burger::Component.new %>
       <% end %>
-    <% else %>
-      <%= render Bali::Navbar::Burger::Component.new %>
+    </div>
+    <% menus.each do |menu| %>
+      <%= menu %>
     <% end %>
   </div>
-
-  <% menus.each do |menu| %>
-    <%= menu %>
-  <% end %>
-
-  <%= '</div>'.html_safe unless fullscreen %>
 <% end %>

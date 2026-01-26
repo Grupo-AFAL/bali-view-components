@@ -1,25 +1,17 @@
-<% if cards? %>
-  <%= tag.div(**options) do %>
-    <div class="locations-map-component--cards">
+<%= tag.div(**component_options) do %>
+  <% if cards? %>
+    <div class="<%= CARDS_WRAPPER_CLASSES %>">
       <% cards.each do |card| %>
         <%= card %>
       <% end %>
     </div>
 
-    <div class='locations-map-component--locations'>
-      <% locations.each do |location| %>
-        <%= location %>
-      <% end %>
-
-      <div class="location-map" data-locations-map-target="map"></div>
+    <div class="<%= LOCATIONS_WRAPPER_CLASSES %>">
+      <%= render_locations %>
+      <%= render_map %>
     </div>
-  <% end %>
-<% else %>
-  <%= tag.div(**options) do %>
-    <% locations.each do |location| %>
-      <%= location %>
-    <% end %>
-
-    <div class="location-map" data-locations-map-target="map"></div>
+  <% else %>
+    <%= render_locations %>
+    <%= render_map %>
   <% end %>
 <% end %>

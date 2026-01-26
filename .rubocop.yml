@@ -6,6 +6,7 @@ AllCops:
   SuggestExtensions: false
   Exclude:
     - 'app/components/bali/*/preview.rb'
+    - 'app/components/bali/*/*/preview.rb'
     - 'coverage/**/*'
     - 'log/*'
     - 'config/**/*'
@@ -14,6 +15,7 @@ AllCops:
     - 'tmp/**/*'
     - 'script/**/*'
     - 'node_modules/**/*'
+    - 'spec/dummy/node_modules/**/*'
     - 'lib/tasks/bali_tasks.rake'
     - 'bin/**/*'
     - 'vendor/**/*'
@@ -28,27 +30,54 @@ Gemspec/RequiredRubyVersion:
 
 Layout/LineLength:
   Max: 100
+  Exclude:
+    - 'spec/**/*'
 
 Layout/SpaceBeforeBrackets:
   Enabled: false
 
 Metrics/AbcSize:
   Max: 30
+  Exclude:
+    - 'spec/dummy/app/controllers/**/*'
+    - 'lib/bali/form_builder/**/*'
 
 Metrics/ClassLength:
   Max: 150
 
 Metrics/CyclomaticComplexity:
   Max: 8
+  Exclude:
+    - 'spec/dummy/app/controllers/**/*'
+    - 'lib/bali/form_builder/**/*'
 
 Metrics/MethodLength:
   Max: 30
+  Exclude:
+    - 'spec/dummy/app/controllers/**/*'
 
 Metrics/ParameterLists:
   Max: 6
+  Exclude:
+    - 'app/components/bali/side_menu/**/*'
+    - 'app/components/bali/card/**/*'
 
 Metrics/PerceivedComplexity:
   Max: 10
+  Exclude:
+    - 'spec/dummy/app/controllers/**/*'
+
+Metrics/ModuleLength:
+  Max: 150
+  Exclude:
+    - 'lib/bali/form_builder/**/*'
+
+Metrics/BlockLength:
+  AllowedMethods: ['describe', 'context', 'it', 'before', 'included']
+  Exclude:
+    - 'spec/**/*'
+    - 'lib/tasks/*'
+    - 'spec/dummy/app/controllers/**/*'
 
 Style/Documentation:
   Enabled: false
@@ -68,6 +97,9 @@ Style/HashSyntax:
 Style/Lambda:
   Enabled: false
 
+Style/RedundantBegin:
+  Enabled: false
+
 Rails:
   Enabled: true
 
@@ -80,11 +112,9 @@ Rails/SkipsModelValidations:
 Rails/HasAndBelongsToMany:
   Enabled: false
 
-Metrics/BlockLength:
-  AllowedMethods: ['describe', 'context', 'it', 'before', 'included']
+Rails/I18nLocaleTexts:
   Exclude:
-    - spec/*
-    - lib/tasks/*
+    - 'spec/dummy/**/*'
 
 Naming/VariableNumber:
   Enabled: false
@@ -99,6 +129,3 @@ Lint/EmptyBlock:
 Lint/MissingSuper:
   Exclude:
     - app/components/**/*
-
-Style/RedundantBegin:
-  Enabled: false

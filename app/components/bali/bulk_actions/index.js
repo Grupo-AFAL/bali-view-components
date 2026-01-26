@@ -31,11 +31,16 @@ export class BulkActionsController extends Controller {
     if (item) { this.toggle(item) }
   }
 
-  toggle = (item) => {
+  toggle = (eventOrItem) => {
+    const item = eventOrItem.currentTarget || eventOrItem
     if (!item.dataset.recordId) return
 
     const selected = item.classList.toggle('selected')
     const recordId = toInt(item.dataset.recordId)
+
+    // Sync checkbox state if present
+    const checkbox = item.querySelector('input[type="checkbox"]')
+    if (checkbox) checkbox.checked = selected
 
     if (selected) {
       this.selectedIdsValue = this.selectedIdsValue.concat(recordId)
@@ -71,9 +76,9 @@ export class BulkActionsController extends Controller {
     if (!this.hasActionsContainerTarget) return
 
     if (this.selectedIdsValue.length > 0) {
-      this.actionsContainerTarget.classList.remove('is-hidden')
+      this.actionsContainerTarget.classList.remove('hidden')
     } else {
-      this.actionsContainerTarget.classList.add('is-hidden')
+      this.actionsContainerTarget.classList.add('hidden')
     }
   }
 

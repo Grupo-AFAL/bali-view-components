@@ -1,16 +1,47 @@
-<div class='chart-component'>
-  <%= tag.h3 title, class: 'title is-3' if title %>
-  <%= tag.div(class: 'chart-container', **html_options) do %>
-    <%= tag.canvas(class: 'chart',
+<% if render_card? %>
+  <div class="<%= card_classes %>">
+    <div class="card-body">
+      <% if title %>
+        <h3 class="card-title text-base font-semibold text-base-content"><%= title %></h3>
+      <% end %>
+      <%= tag.div(class: container_classes, **container_options) do %>
+        <%= tag.canvas(
+          class: 'chart',
+          data: {
+            controller: 'chart',
+            chart_type_value: chart_type,
+            chart_data_value: chart_data_json,
+            chart_labels_value: labels_json,
+            chart_options_value: options_json,
+            chart_display_percent_value: display_percent?,
+            chart_use_theme_colors_value: use_theme_colors?
+          }
+        ) do %>
+          <span class="loading loading-spinner loading-md text-primary"></span>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+<% else %>
+  <div class="chart-component">
+    <% if title %>
+      <h3 class="text-base font-semibold text-base-content mb-3"><%= title %></h3>
+    <% end %>
+    <%= tag.div(class: container_classes, **container_options) do %>
+      <%= tag.canvas(
+        class: 'chart',
         data: {
           controller: 'chart',
-          'chart-type-value': type.first,
-          'chart-data-value': { labels: truncated_labels, datasets: datasets }.to_json,
-          'chart-labels-value': labels.to_json,
-          'chart-options-value': options.to_json,
-          'chart-display-percent-value': @display_percent }
-    ) do %>
-      <%= t('.loading') %>
+          chart_type_value: chart_type,
+          chart_data_value: chart_data_json,
+          chart_labels_value: labels_json,
+          chart_options_value: options_json,
+          chart_display_percent_value: display_percent?,
+          chart_use_theme_colors_value: use_theme_colors?
+        }
+      ) do %>
+        <span class="loading loading-spinner loading-md text-primary"></span>
+      <% end %>
     <% end %>
-  <% end %>
-</div>
+  </div>
+<% end %>

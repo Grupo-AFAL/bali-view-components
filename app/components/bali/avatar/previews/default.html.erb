@@ -1,3 +1,6 @@
-<%= form_with(url: '/') do |form| %>
-  <%= render(Bali::Avatar::Component.new(form: form, method: :avatar, placeholder_url: 'bulma-default.png')) %>
-<% end %>
+<%# Default avatar with circle shape (display only) %>
+<%= render(Bali::Avatar::Component.new(
+  src: 'avatar.png',
+  size: :lg,
+  shape: :circle
+)) %>

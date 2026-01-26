@@ -13,19 +13,34 @@ jobs:
         with:
           bundler-cache: true
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
       - name: Run migrations
-        run: bin/rails db:migrate RAILS_ENV=development
+        run: cd spec/dummy && bin/rails db:migrate RAILS_ENV=development
 
-      - name: Install foreman gem
-        run: gem install foreman
-
-      - name: Install yarn and build
+      - name: Install dependencies
         run: |
-          npm install -g yarn
           yarn install
+          cd spec/dummy && yarn install
+
+      - name: Build Tailwind CSS
+        run: cd spec/dummy && bin/rails tailwindcss:build
+
+      - name: Build Vite assets
+        run: cd spec/dummy && bin/vite build
 
       - name: Precompile assets
-        run: bin/rails app:assets:precompile
+        run: cd spec/dummy && bin/rails assets:precompile
 
-      - name: Start server and run tests
-        run: foreman start -f Procfile.dev
+      - name: Start server
+        run: cd spec/dummy && bin/rails server -p 3000 &
+
+      - name: Wait for server
+        run: npx wait-on http://localhost:3000 --timeout 60000
+
+      - name: Run Cypress tests
+        run: yarn cypress run --browser chrome

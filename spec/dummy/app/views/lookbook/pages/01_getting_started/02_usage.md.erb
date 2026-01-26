@@ -1,0 +1,125 @@
+---
+title: Basic Usage
+label: Usage
+---
+
+# Basic Usage
+
+## Rendering Components
+
+All Bali components follow the same pattern:
+
+```erb
+<%%= render Bali::ComponentName::Component.new(options) do %>
+  Content goes here
+<%% end %>
+```
+
+## Common Options
+
+Most components accept these standard options:
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `variant` | Symbol | Visual style (`:primary`, `:secondary`, etc.) |
+| `size` | Symbol | Component size (`:xs`, `:sm`, `:md`, `:lg`, `:xl`) |
+| `class` | String | Additional CSS classes |
+| `data` | Hash | Data attributes for Stimulus |
+
+## Example: Button
+
+```erb
+<%%= render Bali::Button::Component.new(
+  name: 'Save Changes',
+  variant: :primary,
+  size: :md,
+  class: 'my-custom-class',
+  data: { action: 'click->form#submit' }
+) %>
+```
+
+## Using Slots
+
+Many components use slots for flexible content:
+
+```erb
+<%%= render Bali::Card::Component.new do |c| %>
+  <%% c.with_header { "Card Title" } %>
+  <%% c.with_body do %>
+    <p>Card content goes here.</p>
+  <%% end %>
+  <%% c.with_footer do %>
+    <%%= render Bali::Button::Component.new(name: 'Action') %>
+  <%% end %>
+<%% end %>
+```
+
+## Composing Components
+
+Bali components are designed to work together:
+
+```erb
+<%%= render Bali::Modal::Component.new(id: 'confirm') do |m| %>
+  <%% m.with_title { "Confirm Action" } %>
+  <%% m.with_body do %>
+    <p>Are you sure you want to proceed?</p>
+  <%% end %>
+  <%% m.with_actions do %>
+    <%%= render Bali::Button::Component.new(
+      name: 'Cancel',
+      variant: :ghost,
+      data: { action: 'modal#close' }
+    ) %>
+    <%%= render Bali::Button::Component.new(
+      name: 'Confirm',
+      variant: :primary
+    ) %>
+  <%% end %>
+<%% end %>
+```
+
+## Form Helpers
+
+Bali integrates with Rails form helpers:
+
+```erb
+<%%= form_with model: @user do |f| %>
+  <%%= f.bali_text_field :name, label: 'Full Name' %>
+  <%%= f.bali_email_field :email, label: 'Email Address' %>
+  <%%= f.bali_select :role, options_for_select(@roles), label: 'Role' %>
+
+  <%%= render Bali::Button::Component.new(
+    name: 'Create User',
+    variant: :primary,
+    type: :submit
+  ) %>
+<%% end %>
+```
+
+## Customization
+
+### Adding Custom Classes
+
+```erb
+<%%= render Bali::Button::Component.new(
+  name: 'Custom',
+  class: 'shadow-lg hover:scale-105 transition-transform'
+) %>
+```
+
+### Passing HTML Attributes
+
+```erb
+<%%= render Bali::Button::Component.new(
+  name: 'Submit',
+  id: 'submit-btn',
+  'aria-label': 'Submit the form',
+  form: 'my-form'
+) %>
+```
+
+## Next Steps
+
+- Explore individual [Component Previews](/lookbook/inspect)
+- Learn about [Accessibility](/lookbook/pages/02_guides/01_accessibility)
+- Understand [Stimulus Integration](/lookbook/pages/02_guides/02_javascript_integration)
