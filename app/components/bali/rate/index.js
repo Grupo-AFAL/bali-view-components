@@ -11,7 +11,7 @@ export class RateController extends Controller {
   static targets = ['input']
   static values = { autoSubmit: Boolean }
 
-  submit(event) {
+  submit (event) {
     if (!this.autoSubmitValue) return
 
     const rate = event.target.dataset.rate
