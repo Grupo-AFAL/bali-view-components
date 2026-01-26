@@ -1,5 +1,5 @@
 <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
-  <div class="w-32">
+  <div class="w-40">
     <%= form.step_number_field :duration, min: 0, max: 10, step: 1, value: 5 %>
   </div>
   <p class="text-sm text-base-content/60 mt-2">Value range: 0 - 10, step: 1</p>
