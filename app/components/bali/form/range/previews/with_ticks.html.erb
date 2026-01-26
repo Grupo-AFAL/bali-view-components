@@ -1,0 +1,11 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <div class="w-80">
+    <%= form.range_field_group :price,
+        min: 0,
+        max: 1000,
+        step: 100,
+        show_ticks: true,
+        prefix: '$',
+        color: :primary %>
+  </div>
+<% end %>
