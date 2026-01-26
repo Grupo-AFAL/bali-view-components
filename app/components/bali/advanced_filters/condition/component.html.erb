@@ -101,13 +101,13 @@
               name="<%= field_name %>"
               data-condition-target="value">
         <option value="">
-          <%= t('bali.advanced_filters.any', default: 'Any') %>
+          <%= t('bali.advanced_filters.boolean.any', default: 'Any') %>
         </option>
         <option value="true" <%= 'selected' if value.to_s == 'true' %>>
-          <%= t('bali.advanced_filters.yes', default: 'Yes') %>
+          <%= t('bali.advanced_filters.boolean.yes', default: 'Yes') %>
         </option>
         <option value="false" <%= 'selected' if value.to_s == 'false' %>>
-          <%= t('bali.advanced_filters.no', default: 'No') %>
+          <%= t('bali.advanced_filters.boolean.no', default: 'No') %>
         </option>
       </select>
 

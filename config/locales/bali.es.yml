@@ -2,6 +2,7 @@ es:
   bali:
     advanced_filters:
       # UI Labels (used in ERB templates)
+      where: "Donde"
       filters_button: "Filtros"
       search_placeholder: "Buscar..."
       select_field: "Seleccionar campo..."
