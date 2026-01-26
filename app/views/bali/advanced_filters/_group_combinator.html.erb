@@ -6,13 +6,13 @@
             class="join-item btn btn-xs w-10 <%= combinator == 'and' ? 'btn-primary' : 'btn-outline' %>"
             data-action="advanced-filters#setGroupCombinator"
             data-combinator="and">
-      AND
+      <%= t('bali.advanced_filters.combinators.and', default: 'AND') %>
     </button>
     <button type="button"
             class="join-item btn btn-xs w-10 <%= combinator == 'or' ? 'btn-primary' : 'btn-outline' %>"
             data-action="advanced-filters#setGroupCombinator"
             data-combinator="or">
-      OR
+      <%= t('bali.advanced_filters.combinators.or', default: 'OR') %>
     </button>
   </div>
   <div class="flex-1 border-t border-base-300"></div>
