@@ -13,12 +13,17 @@ jobs:
         with:
           bundler-cache: true
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
       - name: Run migrations
         run: cd spec/dummy && bin/rails db:migrate RAILS_ENV=development
 
       - name: Install dependencies
         run: |
-          npm install -g yarn
           yarn install
           cd spec/dummy && yarn install
 
