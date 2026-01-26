@@ -1,0 +1,15 @@
+<%# Auto-submit requires a form wrapper for the submit buttons to work %>
+<%= form_with(model: model, url: '/lookbook', method: :get, class: 'inline-block') do |f| %>
+  <%= render Bali::Rate::Component.new(
+        form: f,
+        method: :rating,
+        value: value,
+        size: size,
+        color: color,
+        auto_submit: true
+      ) %>
+<% end %>
+
+<p class="text-sm text-base-content/60 mt-4">
+  Click a star to submit the form with that rating value.
+</p>
