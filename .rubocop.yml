@@ -23,6 +23,7 @@ AllCops:
     - 'spec/dummy/bin/*'
     - 'spec/dummy/config/**/*'
     - 'spec/dummy/db/**/*'
+    - 'spec/dummy/public/**/*'
     - !ruby/regexp /old_and_unused\.rb$/
 
 Gemspec/RequiredRubyVersion:
