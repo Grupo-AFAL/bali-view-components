@@ -268,7 +268,7 @@ RSpec.describe Bali::ActionsDropdown::Component, type: :component do
         c.with_item(name: 'Delete', href: '#delete', method: :delete)
       end
 
-      expect(result.to_html.scan(/<li>/).count).to eq 2
+      expect(result.to_html.scan('<li>').count).to eq 2
     end
 
     it 'does not render CSS dropdown wrapper in popover mode' do
