@@ -19,6 +19,10 @@ es:
       apply_filters: "Aplicar Filtros"
       reset: "Restablecer"
       active_filters: "Filtros activos:"
+      auto_saved: "Auto-guardado"
+      filters_saved: "Los filtros se guardan automáticamente"
+      persistence_enabled: "Los filtros se están guardando. Haz clic para desactivar."
+      persistence_disabled: "Los filtros no se guardan. Haz clic para activar."
 
       # Date/time placeholders
       select_date: "Seleccionar fecha..."

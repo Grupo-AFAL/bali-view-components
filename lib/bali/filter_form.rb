@@ -104,19 +104,24 @@ module Bali
     # @param context [String] Optional context for cache key namespacing
     # @param search_fields [Array<Symbol>] Fields for quick text search (alternative to DSL)
     # @param search_placeholder [String] Placeholder text for search input
+    # @param persist_enabled [Boolean] Whether user has opted into filter persistence
+    #   (default: false). When false, filters are saved but not restored.
+    # rubocop:disable Metrics/ParameterLists
     def initialize(scope, params = {}, storage_id: nil, context: nil, search_fields: nil,
-                   search_placeholder: nil)
+                   search_placeholder: nil, persist_enabled: false)
+      # rubocop:enable Metrics/ParameterLists
       @scope = scope
       @storage_id = storage_id
       @context = context
       @instance_search_fields = search_fields&.map(&:to_sym)
       @search_placeholder = search_placeholder
+      @persist_enabled = persist_enabled
+      @clear_filters = params.fetch(:clear_filters, false)
 
       q_params = params.fetch(:q, {})
       attributes = q_params.permit(permitted_attributes)
-      @clear_filters = params.fetch(:clear_filters, false)
 
-      # Store Ransack groupings (g) and combinator (m) for complex filters
+      # Extract Ransack groupings (g) and combinator (m) for complex filters
       # These are used by Filters for AND/OR condition groups
       @groupings = extract_groupings(q_params)
       @combinator = q_params[:m]
@@ -124,8 +129,19 @@ module Bali
       # Capture quick search value from params
       @search_value = extract_search_value(q_params)
 
-      attributes = fetch_stored_attributes(attributes) if storage_id.present?
+      # Persist/restore all filter state (attributes, groupings, combinator, search)
+      if storage_id.present?
+        attributes, @groupings, @combinator, @search_value = fetch_stored_filter_state(
+          attributes, @groupings, @combinator, @search_value
+        )
+      end
+
       super(attributes)
+    end
+
+    # Check if user has opted into filter persistence
+    def persist_enabled?
+      @persist_enabled
     end
 
     def permitted_attributes
@@ -366,19 +382,48 @@ module Bali
       q_params[search_field_name] || q_params[search_field_name.to_sym]
     end
 
-    def fetch_stored_attributes(attributes)
-      return attributes unless Object.const_defined?('Rails')
+    # Persist or restore complete filter state including groupings, combinator, and search.
+    # Returns [attributes, groupings, combinator, search_value] tuple.
+    #
+    # Behavior depends on @persist_enabled:
+    # - Always saves filters when user submits new ones (so they're available if user enables later)
+    # - Only restores filters when @persist_enabled is true
+    def fetch_stored_filter_state(attributes, groupings, combinator, search_value)
+      return [attributes, groupings, combinator, search_value] unless Object.const_defined?('Rails')
 
-      if attributes.present?
-        Rails.cache.write(cache_key, attributes)
+      has_filter_params = attributes.present? || groupings.present? || search_value.present?
+
+      if has_filter_params
+        # User submitted new filters → always save complete state
+        Rails.cache.write(cache_key, {
+                            attributes: attributes.to_h,
+                            groupings: groupings,
+                            combinator: combinator,
+                            search_value: search_value
+                          })
+        [attributes, groupings, combinator, search_value]
       elsif @clear_filters
+        # User clicked "Clear all" → delete stored filters
         Rails.cache.delete(cache_key)
-        attributes = {}
+        [{}, nil, nil, nil]
+      elsif @persist_enabled
+        # No filters in URL and persistence enabled → restore from cache
+        stored = Rails.cache.fetch(cache_key)
+        if stored.is_a?(Hash) && stored[:attributes]
+          [
+            stored[:attributes] || {},
+            stored[:groupings],
+            stored[:combinator],
+            stored[:search_value]
+          ]
+        else
+          # Legacy format (just attributes) or empty
+          [stored || {}, nil, nil, nil]
+        end
       else
-        attributes = Rails.cache.fetch(cache_key) || {}
+        # Persistence not enabled → don't restore, return empty
+        [{}, nil, nil, nil]
       end
-
-      attributes
     end
 
     def array_predicates

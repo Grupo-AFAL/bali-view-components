@@ -165,4 +165,110 @@ RSpec.describe Bali::Filters::Component, type: :component do
       expect(operators.map { |o| o[:value] }).to eq(['eq'])
     end
   end
+
+  describe 'persistence toggle' do
+    it 'returns false for persistence_available? when no storage_id' do
+      component = described_class.new(
+        url: '/users',
+        available_attributes: available_attributes
+      )
+
+      expect(component.persistence_available?).to be false
+    end
+
+    it 'returns true for persistence_available? when storage_id is present' do
+      component = described_class.new(
+        url: '/users',
+        available_attributes: available_attributes,
+        storage_id: 'users_filters'
+      )
+
+      expect(component.persistence_available?).to be true
+    end
+
+    it 'returns false for persist_enabled? by default' do
+      component = described_class.new(
+        url: '/users',
+        available_attributes: available_attributes,
+        storage_id: 'users_filters'
+      )
+
+      expect(component.persist_enabled?).to be false
+    end
+
+    it 'returns true for persist_enabled? when explicitly enabled' do
+      component = described_class.new(
+        url: '/users',
+        available_attributes: available_attributes,
+        storage_id: 'users_filters',
+        persist_enabled: true
+      )
+
+      expect(component.persist_enabled?).to be true
+    end
+
+    it 'does not render persistence toggle when storage_id is absent' do
+      render_inline(described_class.new(
+                      url: '/users',
+                      available_attributes: available_attributes
+                    ))
+
+      expect(page).not_to have_css('[data-controller="filter-persistence"]')
+    end
+
+    it 'renders persistence toggle when storage_id is present' do
+      render_inline(described_class.new(
+                      url: '/users',
+                      available_attributes: available_attributes,
+                      storage_id: 'users_filters'
+                    ))
+
+      expect(page).to have_css('[data-controller="filter-persistence"]')
+    end
+
+    it 'shows disabled icon by default' do
+      render_inline(described_class.new(
+                      url: '/users',
+                      available_attributes: available_attributes,
+                      storage_id: 'users_filters'
+                    ))
+
+      expect(page).to have_css('[data-filter-persistence-target="iconDisabled"]:not(.hidden)')
+      expect(page).to have_css('[data-filter-persistence-target="iconEnabled"].hidden')
+    end
+
+    it 'shows enabled icon when persist_enabled is true' do
+      render_inline(described_class.new(
+                      url: '/users',
+                      available_attributes: available_attributes,
+                      storage_id: 'users_filters',
+                      persist_enabled: true
+                    ))
+
+      expect(page).to have_css('[data-filter-persistence-target="iconEnabled"]:not(.hidden)')
+      expect(page).to have_css('[data-filter-persistence-target="iconDisabled"].hidden')
+    end
+
+    it 'renders auto-saved text in footer only when persistence is enabled' do
+      render_inline(described_class.new(
+                      url: '/users',
+                      available_attributes: available_attributes,
+                      storage_id: 'users_filters',
+                      persist_enabled: true
+                    ))
+
+      expect(page).to have_text('Auto-saved')
+    end
+
+    it 'does not render auto-saved text when persistence is disabled' do
+      render_inline(described_class.new(
+                      url: '/users',
+                      available_attributes: available_attributes,
+                      storage_id: 'users_filters',
+                      persist_enabled: false
+                    ))
+
+      expect(page).not_to have_text('Auto-saved')
+    end
+  end
 end

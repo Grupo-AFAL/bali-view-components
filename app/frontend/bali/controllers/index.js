@@ -22,6 +22,7 @@ import { DrawingMapsController } from '../../../assets/javascripts/bali/controll
 import { DynamicFieldsController } from '../../../assets/javascripts/bali/controllers/dynamic-fields-controller'
 import { ElementsOverlapController } from '../../../assets/javascripts/bali/controllers/elements-overlap-controller'
 import { FileInputController } from '../../../assets/javascripts/bali/controllers/file-input-controller'
+import { FilterPersistenceController } from '../../../assets/javascripts/bali/controllers/filter-persistence-controller'
 import { FocusOnConnectController } from '../../../assets/javascripts/bali/controllers/focus-on-connect-controller'
 import { GeocoderMapsController } from '../../../assets/javascripts/bali/controllers/geocoder-maps-controller'
 import { InputOnChangeController } from '../../../assets/javascripts/bali/controllers/input-on-change-controller'
@@ -46,6 +47,7 @@ export { DrawingMapsController } from '../../../assets/javascripts/bali/controll
 export { DynamicFieldsController } from '../../../assets/javascripts/bali/controllers/dynamic-fields-controller'
 export { ElementsOverlapController } from '../../../assets/javascripts/bali/controllers/elements-overlap-controller'
 export { FileInputController } from '../../../assets/javascripts/bali/controllers/file-input-controller'
+export { FilterPersistenceController } from '../../../assets/javascripts/bali/controllers/filter-persistence-controller'
 export { FocusOnConnectController } from '../../../assets/javascripts/bali/controllers/focus-on-connect-controller'
 export { GeocoderMapsController } from '../../../assets/javascripts/bali/controllers/geocoder-maps-controller'
 export { InputOnChangeController } from '../../../assets/javascripts/bali/controllers/input-on-change-controller'
@@ -75,6 +77,7 @@ export function registerAll (application) {
   application.register('dynamic-fields', DynamicFieldsController)
   application.register('elements-overlap', ElementsOverlapController)
   application.register('file-input', FileInputController)
+  application.register('filter-persistence', FilterPersistenceController)
   application.register('focus-on-connect', FocusOnConnectController)
   application.register('geocoder-maps', GeocoderMapsController)
   application.register('input-on-change', InputOnChangeController)

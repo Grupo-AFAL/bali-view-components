@@ -61,6 +61,14 @@ module Bali
           options[:filter_groups] = @filter_form&.filter_groups
         end
 
+        # Auto-populate storage_id from filter_form unless explicitly provided
+        options[:storage_id] ||= @filter_form&.storage_id if @filter_form.respond_to?(:storage_id)
+
+        # Auto-populate persist_enabled from filter_form unless explicitly provided
+        if !options.key?(:persist_enabled) && @filter_form.respond_to?(:persist_enabled?)
+          options[:persist_enabled] = @filter_form.persist_enabled?
+        end
+
         # Auto-populate search config from filter_form, merging with explicit overrides
         filter_form_search = if @filter_form && @filter_form.respond_to?(:search_config)
                                @filter_form.search_config

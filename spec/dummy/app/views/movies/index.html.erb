@@ -87,7 +87,7 @@
             <%= render Bali::Timeago::Component.new(movie.created_at, add_suffix: true) %>
           </td>
           <td>
-            <%= render Bali::ActionsDropdown::Component.new(align: :end) do |dropdown| %>
+            <%= render Bali::ActionsDropdown::Component.new(align: :end, popover: true) do |dropdown| %>
               <% dropdown.with_item(href: movie_path(movie), icon_name: 'eye') { t('movies.actions.view') } %>
               <% dropdown.with_item(href: edit_movie_path(movie), icon_name: 'pencil') { t('movies.actions.edit') } %>
               <% dropdown.with_item(href: movie_path(movie), method: :delete, icon_name: 'trash') { t('movies.actions.delete') } %>

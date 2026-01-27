@@ -29,17 +29,18 @@
         <% end %>
       <% end %>
 
-      <%# Trigger button %>
-      <div class="relative" data-filters-target="dropdown">
-        <button type="button"
-                class="btn btn-outline gap-2"
-                data-action="click->filters#toggleDropdown">
-          <%= render Bali::Icon::Component.new('filter', class: 'w-4 h-4') %>
-          <%= button_text %>
-          <% if active_filters? %>
-            <span class="badge badge-primary badge-sm"><%= active_filter_count %></span>
-          <% end %>
-        </button>
+      <%# Trigger button with persistence indicator %>
+      <div class="flex items-center gap-1">
+        <div class="relative" data-filters-target="dropdown">
+          <button type="button"
+                  class="btn btn-outline gap-2"
+                  data-action="click->filters#toggleDropdown">
+            <%= render Bali::Icon::Component.new('filter', class: 'w-4 h-4') %>
+            <%= button_text %>
+            <% if active_filters? %>
+              <span class="badge badge-primary badge-sm"><%= active_filter_count %></span>
+            <% end %>
+          </button>
 
         <%# Dropdown content - hidden by default, shown via JS %>
         <div class="absolute left-0 top-full hidden z-50 mt-2 shadow-xl bg-base-100 rounded-box border border-base-200 w-[40rem] max-w-[calc(100vw-2rem)]"
@@ -88,7 +89,7 @@
                 <% end %>
               </div>
 
-              <%# Compact footer: Clear all (left) | Add group + Reset + Apply (right) %>
+              <%# Compact footer: Clear all (left) | Auto-saved + Add group + Reset + Apply (right) %>
               <div class="flex justify-between items-center gap-2 pt-3 border-t border-base-200">
                 <button type="button"
                         class="btn btn-ghost btn-xs text-error"
@@ -98,6 +99,12 @@
                 </button>
 
                 <div class="flex items-center gap-2">
+                  <% if persistence_available? && persist_enabled? %>
+                    <span class="text-xs text-base-content/50 flex items-center gap-1">
+                      <%= render Bali::Icon::Component.new('bookmark-check', class: 'w-3 h-3') %>
+                      <%= t('bali.filters.auto_saved', default: 'Auto-saved') %>
+                    </span>
+                  <% end %>
                   <button type="button"
                           class="btn btn-ghost btn-sm text-primary gap-1"
                           data-action="filters#addGroup"
@@ -121,6 +128,31 @@
             </div>
           <% end %>
         </div>
+        </div>
+
+        <%# Persistence toggle (bookmark icon) %>
+        <% if persistence_available? %>
+          <div data-controller="filter-persistence"
+               data-filter-persistence-storage-id-value="<%= storage_id %>"
+               data-filter-persistence-enabled-value="<%= persist_enabled? %>">
+            <button type="button"
+                    class="tooltip tooltip-bottom btn btn-ghost btn-sm btn-square"
+                    data-action="filter-persistence#toggle"
+                    data-filter-persistence-target="button"
+                    data-filter-persistence-enabled-tooltip="<%= t('bali.filters.persistence_enabled', default: 'Filters are being saved. Click to disable.') %>"
+                    data-filter-persistence-disabled-tooltip="<%= t('bali.filters.persistence_disabled', default: 'Filters are not saved. Click to enable.') %>"
+                    data-tip="<%= persist_enabled? ? t('bali.filters.persistence_enabled', default: 'Filters are being saved. Click to disable.') : t('bali.filters.persistence_disabled', default: 'Filters are not saved. Click to enable.') %>">
+              <%# Filled bookmark when enabled %>
+              <span data-filter-persistence-target="iconEnabled" class="<%= 'hidden' unless persist_enabled? %>">
+                <%= render Bali::Icon::Component.new('bookmark-check', class: 'w-5 h-5 text-primary') %>
+              </span>
+              <%# Outline bookmark when disabled %>
+              <span data-filter-persistence-target="iconDisabled" class="<%= 'hidden' if persist_enabled? %>">
+                <%= render Bali::Icon::Component.new('bookmark', class: 'w-5 h-5 text-base-content/40') %>
+              </span>
+            </button>
+          </div>
+        <% end %>
       </div>
 
       <%# Applied filter tags (shown inline with button) %>

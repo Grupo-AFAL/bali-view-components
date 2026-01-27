@@ -419,4 +419,108 @@ RSpec.describe Bali::FilterForm do
       expect(results.pluck(:name)).not_to include('Snatch')
     end
   end
+
+  describe 'filter state persistence' do
+    # Use memory store for these tests since test env uses null_store by default
+    around do |example|
+      original_cache = Rails.cache
+      Rails.cache = ActiveSupport::Cache::MemoryStore.new
+      example.run
+      Rails.cache = original_cache
+    end
+
+    before do
+      Rails.cache.clear
+    end
+
+    def cache_key_for(form_class)
+      "#{form_class.name.tableize};;movies"
+    end
+
+    it 'stores complete filter state including groupings' do
+      filter_params = {
+        g: {
+          '0' => { name_cont: 'Iron', genre_eq: 'action', m: 'or' }
+        },
+        m: 'and'
+      }
+      AdvancedMovieFilterForm.new(Movie.all, params(filter_params), storage_id: 'movies')
+
+      stored = Rails.cache.read(cache_key_for(AdvancedMovieFilterForm))
+      expect(stored).to be_a(Hash)
+      expect(stored[:groupings]).to be_present
+      expect(stored[:groupings]['0']['name_cont']).to eq('Iron')
+      expect(stored[:combinator]).to eq('and')
+    end
+
+    it 'stores search value' do
+      filter_params = { name_or_genre_or_tenant_name_cont: 'Iron' }
+      SearchableMovieFilterForm.new(Movie.all, params(filter_params), storage_id: 'movies')
+
+      stored = Rails.cache.read(cache_key_for(SearchableMovieFilterForm))
+      expect(stored[:search_value]).to eq('Iron')
+    end
+
+    it 'restores complete filter state when persist_enabled is true' do
+      # First, store some filters (persist_enabled doesn't affect saving)
+      filter_params = {
+        g: {
+          '0' => { name_cont: 'Iron', m: 'or' }
+        },
+        m: 'and',
+        name_or_genre_or_tenant_name_cont: 'Iron'
+      }
+      SearchableMovieFilterForm.new(Movie.all, params(filter_params), storage_id: 'movies')
+
+      # Now create a new form with no params and persist_enabled: true - should restore from cache
+      form = SearchableMovieFilterForm.new(Movie.all, params({}), storage_id: 'movies', persist_enabled: true)
+
+      expect(form.filter_groups).to be_present
+      expect(form.filter_groups[0][:conditions].first[:attribute]).to eq('name')
+      expect(form.combinator).to eq('and')
+      expect(form.search_value).to eq('Iron')
+    end
+
+    it 'does not restore filter state when persist_enabled is false' do
+      # First, store some filters
+      filter_params = {
+        g: {
+          '0' => { name_cont: 'Iron', m: 'or' }
+        },
+        m: 'and',
+        name_or_genre_or_tenant_name_cont: 'Iron'
+      }
+      SearchableMovieFilterForm.new(Movie.all, params(filter_params), storage_id: 'movies')
+
+      # Now create a new form with no params and persist_enabled: false - should NOT restore
+      form = SearchableMovieFilterForm.new(Movie.all, params({}), storage_id: 'movies', persist_enabled: false)
+
+      expect(form.filter_groups).to eq([])
+      expect(form.search_value).to be_nil
+    end
+
+    it 'clears all filter state when clear_filters is true' do
+      # First, store some filters
+      filter_params = {
+        g: { '0' => { name_cont: 'Iron' } },
+        name_or_genre_or_tenant_name_cont: 'Iron'
+      }
+      SearchableMovieFilterForm.new(Movie.all, params(filter_params), storage_id: 'movies')
+
+      # Now clear filters
+      clear_params = ActionController::Parameters.new(q: {}, clear_filters: true)
+      form = SearchableMovieFilterForm.new(Movie.all, clear_params, storage_id: 'movies')
+
+      expect(form.filter_groups).to eq([])
+      expect(form.search_value).to be_nil
+      expect(Rails.cache.read(cache_key_for(SearchableMovieFilterForm))).to be_nil
+    end
+
+    it 'does not persist when storage_id is not provided' do
+      filter_params = { g: { '0' => { name_cont: 'Iron' } } }
+      AdvancedMovieFilterForm.new(Movie.all, params(filter_params))
+
+      expect(Rails.cache.read(cache_key_for(AdvancedMovieFilterForm))).to be_nil
+    end
+  end
 end

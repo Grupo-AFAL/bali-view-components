@@ -48,12 +48,19 @@ export class FiltersController extends Controller {
     if (this.popoverValue && this.hasDropdownTarget) {
       this.boundCloseOnClickOutside = this.closeOnClickOutside.bind(this)
       window.addEventListener('click', this.boundCloseOnClickOutside)
+
+      // Close dropdown before Turbo caches the page (prevents stale open state on back navigation)
+      this.boundCloseBeforeCache = this.closeDropdown.bind(this)
+      document.addEventListener('turbo:before-cache', this.boundCloseBeforeCache)
     }
   }
 
   disconnect () {
     if (this.boundCloseOnClickOutside) {
       window.removeEventListener('click', this.boundCloseOnClickOutside)
+    }
+    if (this.boundCloseBeforeCache) {
+      document.removeEventListener('turbo:before-cache', this.boundCloseBeforeCache)
     }
   }
 

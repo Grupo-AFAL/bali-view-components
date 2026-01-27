@@ -8,10 +8,14 @@ class MoviesController < ApplicationController
   def index
     # FilterForm handles Ransack search params, sorting, and filter_groups parsing
     # search_fields enables quick text search across multiple columns
+    # storage_id enables filter persistence across page visits
+    # persist_enabled is controlled by user preference (stored in cookie)
     @filter_form = Bali::FilterForm.new(
       Movie.all,
       params,
-      search_fields: %i[name genre tenant_name]
+      search_fields: %i[name genre tenant_name],
+      storage_id: 'movies',
+      persist_enabled: cookies['bali_persist_movies'] == '1'
     )
 
     # Use Pagy for pagination on the filtered/sorted results

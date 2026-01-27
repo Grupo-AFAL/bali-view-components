@@ -6,7 +6,7 @@ module Bali
       include Utils::Url
 
       attr_reader :url, :available_attributes, :apply_mode, :id, :popover, :combinator,
-                  :filter_groups, :max_groups
+                  :filter_groups, :max_groups, :storage_id, :persist_enabled
 
       # Renders the applied filter pills above the filter builder
       renders_one :applied_tags, ->(**options) do
@@ -32,6 +32,8 @@ module Bali
       #   - :fields [Array<Symbol>] Fields to search (e.g., [:name, :description])
       #   - :value [String] Current search value from URL params
       #   - :placeholder [String] Placeholder text for search input
+      # @param storage_id [String] Optional storage ID indicating filters can be persisted
+      # @param persist_enabled [Boolean] Whether user has opted into filter persistence
       # rubocop:disable Metrics/ParameterLists
       def initialize(
         url:,
@@ -43,6 +45,8 @@ module Bali
         popover: true,
         button_text: nil,
         search: {},
+        storage_id: nil,
+        persist_enabled: false,
         **options
       )
         @url = url
@@ -54,9 +58,21 @@ module Bali
         @popover = popover
         @button_text = button_text
         @search = search || {}
+        @storage_id = storage_id
+        @persist_enabled = persist_enabled
         @id = options[:id] || "filters-#{SecureRandom.hex(4)}"
       end
       # rubocop:enable Metrics/ParameterLists
+
+      # Returns true if persistence is available (storage_id is configured)
+      def persistence_available?
+        @storage_id.present?
+      end
+
+      # Returns true if user has enabled persistence
+      def persist_enabled?
+        @persist_enabled
+      end
 
       def button_text
         @button_text || I18n.t('bali.filters.filters_button', default: 'Filters')

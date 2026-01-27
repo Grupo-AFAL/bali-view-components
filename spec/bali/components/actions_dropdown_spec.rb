@@ -218,4 +218,86 @@ RSpec.describe Bali::ActionsDropdown::Component, type: :component do
       expect(page).to have_css 'ul.dropdown-content.w-80'
     end
   end
+
+  describe 'popover mode' do
+    it 'renders HoverCard component when popover: true' do
+      render_inline(described_class.new(popover: true)) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css '.hover-card-component[data-controller="hovercard"]'
+    end
+
+    it 'uses click trigger in popover mode' do
+      render_inline(described_class.new(popover: true)) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css '[data-hovercard-trigger-value="click"]'
+    end
+
+    it 'appends to body in popover mode' do
+      render_inline(described_class.new(popover: true)) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css '[data-hovercard-append-to-value="body"]'
+    end
+
+    it 'does not show arrow in popover mode' do
+      render_inline(described_class.new(popover: true)) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css '[data-hovercard-arrow-value="false"]'
+    end
+
+    it 'renders menu inside template for Tippy' do
+      result = render_inline(described_class.new(popover: true)) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(result.to_html).to include('data-hovercard-target="template"')
+      expect(result.to_html).to include('ul')
+      expect(result.to_html).to include('menu')
+    end
+
+    it 'renders items correctly in popover mode' do
+      result = render_inline(described_class.new(popover: true)) do |c|
+        c.with_item(name: 'Edit', href: '#edit')
+        c.with_item(name: 'Delete', href: '#delete', method: :delete)
+      end
+
+      expect(result.to_html.scan(/<li>/).count).to eq 2
+    end
+
+    it 'does not render CSS dropdown wrapper in popover mode' do
+      render_inline(described_class.new(popover: true)) do |c|
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).not_to have_css 'div.dropdown'
+    end
+
+    it 'maps direction and align to tippy placement' do
+      component = described_class.new(popover: true, direction: :top, align: :end)
+      expect(component.tippy_placement).to eq 'top-end'
+    end
+
+    it 'defaults placement to bottom-start' do
+      component = described_class.new(popover: true)
+      expect(component.tippy_placement).to eq 'bottom-start'
+    end
+
+    it 'supports custom trigger in popover mode' do
+      render_inline(described_class.new(popover: true)) do |c|
+        c.with_trigger do
+          '<button class="custom-trigger">Actions</button>'.html_safe
+        end
+        c.with_item(name: 'Edit', href: '#')
+      end
+
+      expect(page).to have_css '[data-hovercard-target="trigger"] button.custom-trigger', text: 'Actions'
+    end
+  end
 end

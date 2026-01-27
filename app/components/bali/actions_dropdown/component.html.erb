@@ -1,18 +1,48 @@
-<div <%= tag.attributes(**options) %>>
-  <% if trigger? %>
-    <%= trigger %>
-  <% else %>
-    <button type="button" tabindex="0" class="<%= trigger_classes %>" aria-haspopup="true">
-      <%= render Bali::Icon::Component.new(@icon) %>
-    </button>
-  <% end %>
-  <ul tabindex="0" class="<%= menu_classes %>">
-    <% if authorized_items.any? %>
-      <% authorized_items.each do |item| %>
-        <li><%= item %></li>
+<% if popover? %>
+  <%= render Bali::HoverCard::Component.new(
+    open_on_click: true,
+    placement: tippy_placement,
+    append_to: 'body',
+    content_padding: false,
+    arrow: false
+  ) do |hc| %>
+    <% hc.with_trigger do %>
+      <% if trigger? %>
+        <%= trigger %>
+      <% else %>
+        <button type="button" tabindex="0" class="<%= trigger_classes %>" aria-haspopup="true">
+          <%= render Bali::Icon::Component.new(@icon) %>
+        </button>
       <% end %>
-    <% else %>
-      <%= content %>
     <% end %>
-  </ul>
-</div>
+
+    <ul tabindex="0" class="<%= menu_classes %>">
+      <% if authorized_items.any? %>
+        <% authorized_items.each do |item| %>
+          <li><%= item %></li>
+        <% end %>
+      <% else %>
+        <%= content %>
+      <% end %>
+    </ul>
+  <% end %>
+<% else %>
+  <div <%= tag.attributes(**options) %>>
+    <% if trigger? %>
+      <%= trigger %>
+    <% else %>
+      <button type="button" tabindex="0" class="<%= trigger_classes %>" aria-haspopup="true">
+        <%= render Bali::Icon::Component.new(@icon) %>
+      </button>
+    <% end %>
+    <ul tabindex="0" class="<%= menu_classes %>">
+      <% if authorized_items.any? %>
+        <% authorized_items.each do |item| %>
+          <li><%= item %></li>
+        <% end %>
+      <% else %>
+        <%= content %>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
