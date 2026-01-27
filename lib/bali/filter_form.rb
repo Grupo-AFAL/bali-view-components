@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require_relative 'filter_form/search_configuration'
+require_relative 'filter_form/filter_group_parser'
+
 module Bali
   # FilterForm provides a unified interface for Ransack-based filtering with support
   # for both simple filters and complex AND/OR grouped conditions.
@@ -38,6 +41,8 @@ module Bali
   class FilterForm
     include ActiveModel::Model
     include ActiveModel::Attributes
+    include SearchConfiguration
+    include FilterGroupParser
 
     attr_reader :scope, :storage_id, :context, :clear_filters, :groupings
 
@@ -48,23 +53,6 @@ module Bali
       # Storage for filter attribute definitions used by Filters UI
       def filter_attributes
         @filter_attributes ||= []
-      end
-
-      # Storage for search field definitions used for quick text search
-      def defined_search_fields
-        @defined_search_fields ||= []
-      end
-
-      # Define quick search fields for text search across multiple columns.
-      # This generates a Ransack predicate like "name_or_email_cont".
-      #
-      # @param fields [Array<Symbol>] Field names to search across
-      #
-      # @example
-      #   search_fields :name, :email, :description
-      #   # Generates: q[name_or_email_or_description_cont]
-      def search_fields(*fields)
-        @defined_search_fields = fields.flatten.map(&:to_sym)
       end
 
       # Define a filterable attribute for the Filters component.
@@ -90,11 +78,11 @@ module Bali
         }
       end
 
-      # Inherit filter_attributes and search_fields from parent class
+      # Inherit filter_attributes from parent class
+      # Note: search_fields inheritance is handled by SearchConfiguration concern
       def inherited(subclass)
         super
         subclass.instance_variable_set(:@filter_attributes, filter_attributes.dup)
-        subclass.instance_variable_set(:@defined_search_fields, defined_search_fields.dup)
       end
     end
 
@@ -117,6 +105,7 @@ module Bali
       @search_placeholder = search_placeholder
       @persist_enabled = persist_enabled
       @clear_filters = params.fetch(:clear_filters, false)
+      @clear_search = params.fetch(:clear_search, false)
 
       q_params = params.fetch(:q, {})
       attributes = q_params.permit(permitted_attributes)
@@ -186,12 +175,8 @@ module Bali
       @id ||= scope.cache_key
     end
 
-    def name
-      @name ||= self.class.name.tableize
-    end
-
     def cache_key
-      @cache_key ||= "#{name};#{context};#{storage_id}"
+      @cache_key ||= "#{self.class.name.tableize};#{context};#{storage_id}"
     end
 
     def active_filters_count
@@ -212,116 +197,6 @@ module Bali
     # @return [Array<Hash>] Array of attribute definitions with :key, :type, :label, :options
     def available_attributes
       self.class.filter_attributes
-    end
-
-    # Get the search fields for quick text search.
-    # Prefers instance-level search_fields over class-level DSL.
-    #
-    # @return [Array<Symbol>] Field names to search across
-    def search_fields
-      @instance_search_fields.presence || self.class.defined_search_fields
-    end
-
-    # Check if quick search is enabled
-    #
-    # @return [Boolean]
-    def search_enabled?
-      search_fields.present?
-    end
-
-    # Get the current search value from params
-    #
-    # @return [String, nil]
-    attr_reader :search_value
-
-    # Get the placeholder text for search input
-    #
-    # @return [String]
-    def search_placeholder
-      @search_placeholder || I18n.t('bali.filters.search_placeholder', default: 'Search...')
-    end
-
-    # Build the Ransack field name for multi-field search.
-    # e.g., [:name, :genre, :tenant_name] => "name_or_genre_or_tenant_name_cont"
-    #
-    # @return [String, nil]
-    def search_field_name
-      return nil unless search_enabled?
-
-      "#{search_fields.map(&:to_s).join('_or_')}_cont"
-    end
-
-    # Get the full configuration hash for Filters component.
-    # Used by DataTable to auto-configure the filters_panel.
-    #
-    # @return [Hash, nil] Search configuration or nil if not enabled
-    def search_config
-      return nil unless search_enabled?
-
-      {
-        fields: search_fields,
-        value: search_value,
-        placeholder: search_placeholder
-      }
-    end
-
-    # Parse the current filter state into a structure for Filters component.
-    # Automatically extracts filter groups from Ransack grouping params (q[g][...]).
-    #
-    # @return [Array<Hash>] Array of filter groups, each with :combinator and :conditions
-    # @example Return structure
-    #   [
-    #     {
-    #       combinator: 'or',
-    #       conditions: [
-    #         { attribute: 'name', operator: 'cont', value: 'john' },
-    #         { attribute: 'status', operator: 'eq', value: 'active' }
-    #       ]
-    #     }
-    #   ]
-    def filter_groups
-      return [] if @groupings.blank?
-
-      @groupings.map do |_index, group_params|
-        parse_filter_group(group_params.deep_symbolize_keys)
-      end
-    end
-
-    # Get the top-level combinator that determines how filter groups are combined.
-    #
-    # @return [String] 'and' or 'or'
-    def combinator
-      @combinator || 'and'
-    end
-
-    # Get detailed information about each active filter condition.
-    # Useful for displaying filter pills/tags with human-readable labels.
-    #
-    # @return [Array<Hash>] Array of filter details with metadata
-    def active_filter_details
-      details = []
-      filter_groups.each_with_index do |group, group_idx|
-        group[:conditions].each_with_index do |condition, condition_idx|
-          next if condition[:value].blank?
-
-          attr_config = available_attributes.find { |a| a[:key].to_s == condition[:attribute].to_s }
-
-          details << {
-            group_index: group_idx,
-            condition_index: condition_idx,
-            attribute: condition[:attribute],
-            attribute_label: attr_config&.dig(:label) || condition[:attribute].to_s.humanize,
-            operator: condition[:operator],
-            value: condition[:value],
-            value_label: format_filter_value(condition[:value], attr_config)
-          }
-        end
-      end
-      details
-    end
-
-    def non_date_range_attribute_names
-      attribute_names - date_range_attributes
     end
 
     def query_params
@@ -350,6 +225,10 @@ module Bali
 
     private
 
+    def non_date_range_attribute_names
+      attribute_names - date_range_attributes
+    end
+
     # Build params hash for Ransack including groupings and search
     def ransack_params
       params = query_params.dup
@@ -374,20 +253,13 @@ module Bali
       q_params[:g].to_unsafe_h
     end
 
-    # Extract quick search value from params based on configured search_fields
-    # Looks for q[name_or_genre_or_tenant_name_cont] based on search_fields config
-    def extract_search_value(q_params)
-      return nil unless search_enabled?
-
-      q_params[search_field_name] || q_params[search_field_name.to_sym]
-    end
-
     # Persist or restore complete filter state including groupings, combinator, and search.
     # Returns [attributes, groupings, combinator, search_value] tuple.
     #
     # Behavior depends on @persist_enabled:
     # - Always saves filters when user submits new ones (so they're available if user enables later)
     # - Only restores filters when @persist_enabled is true
+    # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
     def fetch_stored_filter_state(attributes, groupings, combinator, search_value)
       return [attributes, groupings, combinator, search_value] unless Object.const_defined?('Rails')
 
@@ -406,6 +278,15 @@ module Bali
         # User clicked "Clear all" → delete stored filters
         Rails.cache.delete(cache_key)
         [{}, nil, nil, nil]
+      elsif @clear_search
+        # User clicked search clear button → clear just the search from storage
+        stored = Rails.cache.fetch(cache_key)
+        if stored.is_a?(Hash)
+          Rails.cache.write(cache_key, stored.merge(search_value: nil))
+          [stored[:attributes] || {}, stored[:groupings], stored[:combinator], nil]
+        else
+          [{}, nil, nil, nil]
+        end
       elsif @persist_enabled
         # No filters in URL and persistence enabled → restore from cache
         stored = Rails.cache.fetch(cache_key)
@@ -425,80 +306,10 @@ module Bali
         [{}, nil, nil, nil]
       end
     end
+    # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
     def array_predicates
       %w[_any _all _not_in _in]
-    end
-
-    # Parse a single filter group from Ransack params into component structure.
-    # Consolidates gteq/lteq pairs into 'between' operator for better UX.
-    def parse_filter_group(group_params)
-      raw_conditions = {}
-
-      group_params.each do |key, value|
-        next if key == :m # Skip combinator
-
-        attr, operator = parse_condition_key(key.to_s)
-        next unless attr
-
-        raw_conditions[attr] ||= {}
-        raw_conditions[attr][operator] = value
-      end
-
-      # Convert raw conditions, consolidating gteq+lteq into 'between'
-      conditions = raw_conditions.flat_map do |attribute, ops|
-        if ops['gteq'] && ops['lteq']
-          # Combine into a single 'between' condition for date ranges
-          [{
-            attribute: attribute,
-            operator: 'between',
-            value: { start: ops['gteq'], end: ops['lteq'] }
-          }]
-        else
-          ops.map do |operator, value|
-            { attribute: attribute, operator: operator, value: value }
-          end
-        end
-      end
-
-      {
-        combinator: group_params[:m] || 'or',
-        conditions: conditions.presence || [default_filter_condition]
-      }
-    end
-
-    # Parse a Ransack condition key like "name_cont" or "created_at_gteq"
-    # into [attribute, operator] pair.
-    def parse_condition_key(key)
-      # Ordered by specificity (longer operators first to avoid partial matches)
-      operators = %w[not_cont not_eq not_in gteq lteq cont start end matches eq gt lt in]
-
-      operators.each do |op|
-        if key.end_with?("_#{op}")
-          attr = key.sub(/_#{op}$/, '')
-          return [attr, op]
-        end
-      end
-
-      nil
-    end
-
-    # Default empty condition for new filter groups
-    def default_filter_condition
-      { attribute: '', operator: 'cont', value: '' }
-    end
-
-    # Format a filter value for display, resolving select option labels
-    def format_filter_value(value, attr_config)
-      return value if attr_config.nil?
-      return value unless attr_config[:type]&.to_sym == :select
-
-      option = attr_config[:options]&.find do |opt|
-        opt_value = opt.is_a?(Array) ? opt[1] : opt
-        opt_value.to_s == value.to_s
-      end
-
-      option.is_a?(Array) ? option[0] : (option || value)
     end
   end
 end

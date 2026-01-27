@@ -13,15 +13,26 @@
     <%# Popover mode: search input + trigger button + dropdown %>
     <div class="flex flex-wrap items-center gap-3">
       <% if search_enabled? %>
-        <%# Quick search input %>
-        <%= form_with url: url, method: :get, class: 'contents', data: { turbo_action: 'replace' } do %>
+        <%# Quick search input with clear button %>
+        <%= form_with url: url, method: :get, class: 'contents', data: { turbo_action: 'replace', filters_target: 'searchForm' } do %>
           <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg">
-            <input type="text"
-                   name="<%= search_field_name %>"
-                   value="<%= search_value %>"
-                   placeholder="<%= search_placeholder %>"
-                   class="input input-bordered join-item w-64"
-                   data-filters-target="searchInput">
+            <label class="input input-bordered join-item w-64 flex items-center gap-2">
+              <input type="text"
+                     name="<%= search_field_name %>"
+                     value="<%= search_value %>"
+                     placeholder="<%= search_placeholder %>"
+                     class="grow bg-transparent outline-none"
+                     data-filters-target="searchInput"
+                     data-action="input->filters#toggleSearchClear">
+              <%# Clear button - shown when search has value %>
+              <button type="button"
+                      class="cursor-pointer p-0 w-4 h-4 flex items-center justify-center text-base-content/40 hover:text-base-content/70 <%= 'hidden' if search_value.blank? %>"
+                      data-filters-target="searchClearButton"
+                      data-action="click->filters#clearSearch"
+                      aria-label="<%= t('bali.filters.clear_search', default: 'Clear search') %>">
+                <%= render Bali::Icon::Component.new('x', class: 'w-4 h-4') %>
+              </button>
+            </label>
             <button type="submit" class="btn btn-primary join-item">
               <%= render Bali::Icon::Component.new('search', class: 'w-4 h-4') %>
             </button>

@@ -16,7 +16,10 @@ export class FiltersController extends Controller {
     'applyButton',
     'clearButton',
     'dropdown',
-    'dropdownContent'
+    'dropdownContent',
+    'searchForm',
+    'searchInput',
+    'searchClearButton'
   ]
 
   static values = {
@@ -397,5 +400,44 @@ export class FiltersController extends Controller {
       this.addGroupButtonTarget.disabled =
         this.groupTargets.length >= this.maxGroupsValue
     }
+  }
+
+  /**
+   * Toggle the search clear button visibility based on input value
+   */
+  toggleSearchClear () {
+    if (!this.hasSearchClearButtonTarget || !this.hasSearchInputTarget) {
+      return
+    }
+
+    const hasValue = this.searchInputTarget.value.trim() !== ''
+    this.searchClearButtonTarget.classList.toggle('hidden', !hasValue)
+  }
+
+  /**
+   * Clear the search input and navigate with clear_search param
+   */
+  clearSearch (event) {
+    event.preventDefault()
+
+    if (!this.hasSearchInputTarget) {
+      return
+    }
+
+    // Clear the input
+    this.searchInputTarget.value = ''
+
+    // Hide the clear button
+    if (this.hasSearchClearButtonTarget) {
+      this.searchClearButtonTarget.classList.add('hidden')
+    }
+
+    // Navigate to URL with clear_search param (bypasses persistence restore)
+    // Use standard navigation to ensure fresh server response
+    const url = new URL(this.urlValue, window.location.origin)
+    url.searchParams.set('clear_search', 'true')
+
+    // Use window.location for reliable navigation that avoids Turbo caching
+    window.location.href = url.toString()
   }
 }

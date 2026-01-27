@@ -18,6 +18,7 @@ es:
       apply: "Aplicar"
       apply_filters: "Aplicar Filtros"
       reset: "Restablecer"
+      clear_search: "Limpiar búsqueda"
       active_filters: "Filtros activos:"
       auto_saved: "Auto-guardado"
       filters_saved: "Los filtros se guardan automáticamente"
