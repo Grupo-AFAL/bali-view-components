@@ -24,15 +24,12 @@
   item_name: 'movies'
 ) do |data_table| %>
 
-  <%# Advanced Filters Panel with search across name, genre, and studio %>
+  <%# Advanced Filters Panel %>
+  <%# search is auto-configured from @filter_form.search_config %>
   <%# filter_groups is auto-populated from @filter_form.filter_groups %>
   <% data_table.with_filters_panel(
     available_attributes: available_filter_attributes,
-    search: {
-      fields: [:name, :genre, :tenant_name],
-      value: quick_search_value,
-      placeholder: t('movies.search_placeholder')
-    }
+    search: { placeholder: t('movies.search_placeholder') }
   ) %>
 
   <%# Column Selector - allows users to show/hide table columns (0-indexed) %>

@@ -6,6 +6,9 @@ module Bali
   #
   # @example Basic usage with attribute DSL
   #   class UsersFilterForm < Bali::FilterForm
+  #     # Declare quick search fields (searches across multiple columns)
+  #     search_fields :name, :email
+  #
   #     # Declare filterable attributes for Filters UI
   #     filter_attribute :name, type: :text
   #     filter_attribute :email, type: :text
@@ -22,10 +25,14 @@ module Bali
   #   @filter_form = UsersFilterForm.new(User.all, params, storage_id: 'users')
   #   @users = @filter_form.result
   #
-  #   # In view - filter_groups auto-populated for Filters
-  #   data_table.with_filters_panel(
-  #     available_attributes: @filter_form.available_attributes,
-  #     filter_groups: @filter_form.filter_groups
+  #   # In view - everything auto-configured from FilterForm
+  #   data_table.with_filters_panel
+  #
+  # @example Using search_fields without subclassing
+  #   @filter_form = Bali::FilterForm.new(
+  #     Movie.all,
+  #     params,
+  #     search_fields: [:name, :genre, :tenant_name]
   #   )
   #
   class FilterForm
@@ -41,6 +48,23 @@ module Bali
       # Storage for filter attribute definitions used by Filters UI
       def filter_attributes
         @filter_attributes ||= []
+      end
+
+      # Storage for search field definitions used for quick text search
+      def defined_search_fields
+        @defined_search_fields ||= []
+      end
+
+      # Define quick search fields for text search across multiple columns.
+      # This generates a Ransack predicate like "name_or_email_cont".
+      #
+      # @param fields [Array<Symbol>] Field names to search across
+      #
+      # @example
+      #   search_fields :name, :email, :description
+      #   # Generates: q[name_or_email_or_description_cont]
+      def search_fields(*fields)
+        @defined_search_fields = fields.flatten.map(&:to_sym)
       end
 
       # Define a filterable attribute for the Filters component.
@@ -64,17 +88,26 @@ module Bali
         }
       end
 
-      # Inherit filter_attributes from parent class
+      # Inherit filter_attributes and search_fields from parent class
       def inherited(subclass)
         super
         subclass.instance_variable_set(:@filter_attributes, filter_attributes.dup)
+        subclass.instance_variable_set(:@defined_search_fields, defined_search_fields.dup)
       end
     end
 
-    def initialize(scope, params = {}, storage_id: nil, context: nil)
+    # @param scope [ActiveRecord::Relation] The base scope to filter
+    # @param params [Hash, ActionController::Parameters] Request params containing q[...]
+    # @param storage_id [String] Optional cache key for persisting filters
+    # @param context [String] Optional context for cache key namespacing
+    # @param search_fields [Array<Symbol>] Fields for quick text search (alternative to DSL)
+    # @param search_placeholder [String] Placeholder text for search input
+    def initialize(scope, params = {}, storage_id: nil, context: nil, search_fields: nil, search_placeholder: nil)
       @scope = scope
       @storage_id = storage_id
       @context = context
+      @instance_search_fields = search_fields&.map(&:to_sym)
+      @search_placeholder = search_placeholder
 
       q_params = params.fetch(:q, {})
       attributes = q_params.permit(permitted_attributes)
@@ -84,6 +117,9 @@ module Bali
       # These are used by Filters for AND/OR condition groups
       @groupings = extract_groupings(q_params)
       @combinator = q_params[:m]
+
+      # Capture quick search value from params
+      @search_value = extract_search_value(q_params)
 
       attributes = fetch_stored_attributes(attributes) if storage_id.present?
       super(attributes)
@@ -157,6 +193,59 @@ module Bali
     # @return [Array<Hash>] Array of attribute definitions with :key, :type, :label, :options
     def available_attributes
       self.class.filter_attributes
+    end
+
+    # Get the search fields for quick text search.
+    # Prefers instance-level search_fields over class-level DSL.
+    #
+    # @return [Array<Symbol>] Field names to search across
+    def search_fields
+      @instance_search_fields.presence || self.class.defined_search_fields
+    end
+
+    # Check if quick search is enabled
+    #
+    # @return [Boolean]
+    def search_enabled?
+      search_fields.present?
+    end
+
+    # Get the current search value from params
+    #
+    # @return [String, nil]
+    def search_value
+      @search_value
+    end
+
+    # Get the placeholder text for search input
+    #
+    # @return [String]
+    def search_placeholder
+      @search_placeholder || I18n.t('bali.filters.search_placeholder', default: 'Search...')
+    end
+
+    # Build the Ransack field name for multi-field search.
+    # e.g., [:name, :genre, :tenant_name] => "name_or_genre_or_tenant_name_cont"
+    #
+    # @return [String, nil]
+    def search_field_name
+      return nil unless search_enabled?
+
+      search_fields.map(&:to_s).join('_or_') + '_cont'
+    end
+
+    # Get the full configuration hash for Filters component.
+    # Used by DataTable to auto-configure the filters_panel.
+    #
+    # @return [Hash, nil] Search configuration or nil if not enabled
+    def search_config
+      return nil unless search_enabled?
+
+      {
+        fields: search_fields,
+        value: search_value,
+        placeholder: search_placeholder
+      }
     end
 
     # Parse the current filter state into a structure for Filters component.
@@ -244,13 +333,18 @@ module Bali
 
     private
 
-    # Build params hash for Ransack including groupings if present
+    # Build params hash for Ransack including groupings and search
     def ransack_params
       params = query_params.dup
 
       # Add groupings for Filters complex conditions
       params[:g] = @groupings if @groupings.present?
       params[:m] = @combinator if @combinator.present?
+
+      # Add quick search parameter
+      if search_enabled? && @search_value.present?
+        params[search_field_name] = @search_value
+      end
 
       params
     end
@@ -263,6 +357,14 @@ module Bali
       # Convert ActionController::Parameters to a regular hash
       # Ransack expects groupings as a hash with string keys
       q_params[:g].to_unsafe_h
+    end
+
+    # Extract quick search value from params based on configured search_fields
+    # Looks for q[name_or_genre_or_tenant_name_cont] based on search_fields config
+    def extract_search_value(q_params)
+      return nil unless search_enabled?
+
+      q_params[search_field_name] || q_params[search_field_name.to_sym]
     end
 
     def fetch_stored_attributes(attributes)

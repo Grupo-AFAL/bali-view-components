@@ -28,6 +28,14 @@ class ExtendedMovieFilterForm < AdvancedMovieFilterForm
   filter_attribute :rating, type: :number
 end
 
+# Test form with search_fields DSL
+class SearchableMovieFilterForm < Bali::FilterForm
+  search_fields :name, :genre, :tenant_name
+
+  filter_attribute :name, type: :text
+  filter_attribute :genre, type: :select, options: [%w[Action action], %w[Comedy comedy]]
+end
+
 RSpec.describe Bali::FilterForm do
   let(:tenant) { Tenant.create(name: 'Test') }
   let(:form) { MovieFilterForm.new(tenant.movies, params({ name_i_cont: 'Iron' })) }
@@ -293,6 +301,122 @@ RSpec.describe Bali::FilterForm do
       detail = form.active_filter_details.first
       expect(detail[:value]).to eq('action')
       expect(detail[:value_label]).to eq('Action')
+    end
+  end
+
+  describe '.search_fields DSL' do
+    it 'stores search fields defined in the class' do
+      expect(SearchableMovieFilterForm.defined_search_fields).to eq([:name, :genre, :tenant_name])
+    end
+
+    it 'returns search fields via instance method' do
+      form = SearchableMovieFilterForm.new(Movie.all, params({}))
+      expect(form.search_fields).to eq([:name, :genre, :tenant_name])
+    end
+
+    it 'returns empty array for forms without search_fields' do
+      form = MovieFilterForm.new(tenant.movies, params({}))
+      expect(form.search_fields).to eq([])
+    end
+  end
+
+  describe '#search_enabled?' do
+    it 'returns true when search_fields defined' do
+      form = SearchableMovieFilterForm.new(Movie.all, params({}))
+      expect(form.search_enabled?).to be true
+    end
+
+    it 'returns false when no search_fields' do
+      form = MovieFilterForm.new(tenant.movies, params({}))
+      expect(form.search_enabled?).to be false
+    end
+  end
+
+  describe '#search_field_name' do
+    it 'builds Ransack field name from search_fields' do
+      form = SearchableMovieFilterForm.new(Movie.all, params({}))
+      expect(form.search_field_name).to eq('name_or_genre_or_tenant_name_cont')
+    end
+
+    it 'returns nil when no search_fields' do
+      form = MovieFilterForm.new(tenant.movies, params({}))
+      expect(form.search_field_name).to be_nil
+    end
+  end
+
+  describe '#search_value' do
+    it 'extracts search value from params' do
+      filter_params = { name_or_genre_or_tenant_name_cont: 'Iron' }
+      form = SearchableMovieFilterForm.new(Movie.all, params(filter_params))
+      expect(form.search_value).to eq('Iron')
+    end
+
+    it 'returns nil when no search value in params' do
+      form = SearchableMovieFilterForm.new(Movie.all, params({}))
+      expect(form.search_value).to be_nil
+    end
+  end
+
+  describe '#search_config' do
+    it 'returns complete search configuration' do
+      filter_params = { name_or_genre_or_tenant_name_cont: 'Iron' }
+      form = SearchableMovieFilterForm.new(Movie.all, params(filter_params))
+
+      config = form.search_config
+      expect(config[:fields]).to eq([:name, :genre, :tenant_name])
+      expect(config[:value]).to eq('Iron')
+      expect(config[:placeholder]).to eq('Search...')
+    end
+
+    it 'returns nil when search not enabled' do
+      form = MovieFilterForm.new(tenant.movies, params({}))
+      expect(form.search_config).to be_nil
+    end
+  end
+
+  describe 'search_fields via initialize parameter' do
+    it 'accepts search_fields as initialize parameter' do
+      form = Bali::FilterForm.new(Movie.all, params({}), search_fields: [:name, :description])
+      expect(form.search_fields).to eq([:name, :description])
+      expect(form.search_field_name).to eq('name_or_description_cont')
+    end
+
+    it 'extracts search value with dynamic search_fields' do
+      filter_params = { name_or_description_cont: 'Test' }
+      form = Bali::FilterForm.new(Movie.all, params(filter_params), search_fields: [:name, :description])
+      expect(form.search_value).to eq('Test')
+    end
+
+    it 'prefers instance search_fields over class DSL' do
+      filter_params = { name_or_email_cont: 'test@example.com' }
+      form = SearchableMovieFilterForm.new(Movie.all, params(filter_params), search_fields: [:name, :email])
+
+      expect(form.search_fields).to eq([:name, :email])
+      expect(form.search_value).to eq('test@example.com')
+    end
+  end
+
+  describe 'search integration with Ransack' do
+    it 'includes search value in ransack_params' do
+      filter_params = { name_or_genre_or_tenant_name_cont: 'Iron' }
+      form = SearchableMovieFilterForm.new(Movie.all, params(filter_params))
+
+      # Access private method for testing
+      ransack_params = form.send(:ransack_params)
+      expect(ransack_params['name_or_genre_or_tenant_name_cont']).to eq('Iron')
+    end
+
+    it 'filters results using search value' do
+      tenant = Tenant.create(name: 'Test Studio')
+      tenant.movies.create(name: 'Iron Man', genre: 'Action')
+      tenant.movies.create(name: 'Snatch', genre: 'Comedy')
+
+      filter_params = { name_or_genre_cont: 'Iron' }
+      form = Bali::FilterForm.new(Movie.all, params(filter_params), search_fields: [:name, :genre])
+
+      results = form.result
+      expect(results.pluck(:name)).to include('Iron Man')
+      expect(results.pluck(:name)).not_to include('Snatch')
     end
   end
 end

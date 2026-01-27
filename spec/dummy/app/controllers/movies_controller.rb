@@ -7,8 +7,12 @@ class MoviesController < ApplicationController
 
   def index
     # FilterForm handles Ransack search params, sorting, and filter_groups parsing
-    # filter_groups is auto-populated for Filters component
-    @filter_form = Bali::FilterForm.new(Movie.all, params)
+    # search_fields enables quick text search across multiple columns
+    @filter_form = Bali::FilterForm.new(
+      Movie.all,
+      params,
+      search_fields: [:name, :genre, :tenant_name]
+    )
 
     # Use Pagy for pagination on the filtered/sorted results
     @pagy, @movies = pagy(@filter_form.result.includes(:tenant), items: 10)
@@ -99,14 +103,7 @@ class MoviesController < ApplicationController
     ]
   end
 
-  # Get the quick search value from params
-  # Searches across name, genre, and studio name (tenant_name via Ransack association)
-  helper_method :quick_search_value
-  def quick_search_value
-    params.dig(:q, :name_or_genre_or_tenant_name_cont)
-  end
-
-  # NOTE: filter_groups_from_params helper has been removed.
-  # FilterForm.filter_groups now handles parsing automatically.
-  # DataTable auto-populates filter_groups from @filter_form when available.
+  # NOTE: quick_search_value helper has been removed.
+  # FilterForm now handles search via search_fields parameter.
+  # DataTable auto-populates search config from @filter_form.
 end
