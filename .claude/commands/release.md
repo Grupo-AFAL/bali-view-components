@@ -163,7 +163,47 @@ git push origin v[NEW_VERSION]
 
 Note: Use `--no-verify` to skip pre-push hooks since tests already passed.
 
-### Step 9: Generate Release Summary
+### Step 9: Create GitHub Release
+
+Create a GitHub release with the changelog entry as release notes:
+
+```bash
+gh release create v[NEW_VERSION] --title "v[NEW_VERSION]" --notes "[CHANGELOG_ENTRY]"
+```
+
+The release notes should include:
+- Changes section (from CHANGELOG)
+- Installation instructions for both Ruby and JavaScript
+
+Example:
+```bash
+gh release create v2.0.1 --title "v2.0.1" --notes "$(cat <<'EOF'
+## Changes
+
+### Changed
+- [Changes from CHANGELOG]
+
+### Fixed
+- [Fixes from CHANGELOG]
+
+## Installation
+
+### Ruby (Gemfile)
+
+\`\`\`ruby
+gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v2.0.1"
+\`\`\`
+
+### JavaScript (package.json)
+
+\`\`\`json
+"bali-view-components": "github:Grupo-AFAL/bali-view-components#v2.0.1"
+\`\`\`
+EOF
+)"
+```
+
+### Step 10: Generate Release Summary
 
 ```markdown
 # Release v[NEW_VERSION] Complete!
@@ -275,6 +315,7 @@ New version: 2.0.1
 6. Tag: v2.0.1
 7. Push to origin/main
 8. Push tag v2.0.1
+9. Create GitHub release with notes
 
 This is a dry run. No changes were made.
 To proceed with release, run: /release patch
@@ -326,6 +367,10 @@ Running yarn install... ✓
 
 ✓ Pushed main branch
 ✓ Pushed tag v2.0.1
+
+## GitHub Release
+
+✓ Created release: https://github.com/Grupo-AFAL/bali-view-components/releases/tag/v2.0.1
 
 ---
 
