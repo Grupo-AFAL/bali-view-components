@@ -62,11 +62,14 @@ module Bali
         end
 
         # Auto-populate search config from filter_form, merging with explicit overrides
-        resolved_search = if @filter_form&.search_config && search
+        filter_form_search = if @filter_form&.respond_to?(:search_config)
+                               @filter_form.search_config
+                             end
+        resolved_search = if filter_form_search && search
                             # Merge: filter_form provides base, explicit search overrides
-                            @filter_form.search_config.merge(search)
+                            filter_form_search.merge(search)
                           else
-                            search || @filter_form&.search_config
+                            search || filter_form_search
                           end
 
         Filters::Component.new(
