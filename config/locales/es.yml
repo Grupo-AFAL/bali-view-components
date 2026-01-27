@@ -126,6 +126,7 @@ es:
         deselect_all: Deseleccionar todo
         no_results: Sin resultados
         searching: Buscando...
+        results: Resultados
     time_periods:
       yearly: Anual
       yesterday: Ayer

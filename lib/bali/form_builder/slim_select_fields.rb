@@ -59,6 +59,9 @@ module Bali
           end,
           searching_text: options.fetch(:searching_text) do
             I18n.t('bali.form_builder.slim_select.searching')
+          end,
+          results_text: options.fetch(:results_text) do
+            I18n.t('bali.form_builder.slim_select.results')
           end
         )
       end
@@ -112,6 +115,7 @@ module Bali
           slim_select_deselect_all_text_value: options[:deselect_all_text],
           slim_select_no_results_text_value: options[:no_results_text],
           slim_select_searching_text_value: options[:searching_text],
+          slim_select_results_text_value: options[:results_text],
           slim_select_ajax_param_name_value: options[:ajax_param_name],
           slim_select_ajax_value_name_value: options[:ajax_value_name],
           slim_select_ajax_text_name_value: options[:ajax_text_name],
