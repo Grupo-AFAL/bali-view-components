@@ -667,6 +667,15 @@ class MoviesFilterForm < Bali::FilterForm
 end
 ```
 
+### FilterForm Architecture
+
+FilterForm is organized into focused concerns for maintainability:
+
+| Concern | File | Responsibility |
+|---------|------|----------------|
+| `SearchConfiguration` | `lib/bali/filter_form/search_configuration.rb` | Search DSL and methods |
+| `FilterGroupParser` | `lib/bali/filter_form/filter_group_parser.rb` | Ransack grouping parsing |
+
 ### FilterForm Methods
 
 | Method | Returns | Description |
@@ -678,6 +687,22 @@ end
 | `search_config` | `Hash` | Full config for Filters component |
 | `available_attributes` | `Array<Hash>` | Filter attributes from DSL |
 | `filter_groups` | `Array<Hash>` | Parsed filter groups from params |
+| `combinator` | `String` | Top-level combinator ('and' or 'or') |
+| `active_filter_details` | `Array<Hash>` | Detailed info about active filters |
+
+### FilterForm Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `scope` | `ActiveRecord::Relation` | Required | Base scope to filter |
+| `params` | `Hash` | `{}` | Request params containing `q[...]` |
+| `storage_id` | `String` | `nil` | Cache key for filter persistence |
+| `context` | `String` | `nil` | Context for cache key namespacing |
+| `search_fields` | `Array<Symbol>` | `nil` | Fields for quick text search |
+| `search_placeholder` | `String` | `nil` | Placeholder text for search input |
+| `persist_enabled` | `Boolean` | `false` | Whether to restore persisted filters |
+| `clear_filters` | `Boolean` | `false` | Clear all persisted filters (via params) |
+| `clear_search` | `Boolean` | `false` | Clear only persisted search (via params) |
 
 ### DataTable Auto-Configuration
 
