@@ -62,7 +62,7 @@ module Bali
         end
 
         # Auto-populate search config from filter_form, merging with explicit overrides
-        filter_form_search = if @filter_form&.respond_to?(:search_config)
+        filter_form_search = if @filter_form && @filter_form.respond_to?(:search_config)
                                @filter_form.search_config
                              end
         resolved_search = if filter_form_search && search
