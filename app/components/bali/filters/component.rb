@@ -5,76 +5,165 @@ module Bali
     class Component < ApplicationViewComponent
       include Utils::Url
 
-      attr_reader :form, :url, :text_field, :opened, :auto_submit_search_input
+      attr_reader :url, :available_attributes, :apply_mode, :id, :popover, :combinator,
+                  :filter_groups, :max_groups, :storage_id, :persist_enabled
 
-      delegate :query_params, to: :form
-
-      renders_many :attributes, ->(title:, attribute:, **options) do
-        Bali::Filters::Attribute::Component.new(
-          form: @form, title: title, attribute: attribute, **options
+      # Renders the applied filter pills above the filter builder
+      renders_one :applied_tags, ->(**options) do
+        AppliedTags::Component.new(
+          filter_groups: @filter_groups,
+          available_attributes: @available_attributes,
+          url: @url,
+          **options
         )
       end
 
-      renders_many :additional_query_params
-      renders_one :custom_filters
-
-      def initialize(form:, url:, text_field: nil, opened: false, **options)
-        ActiveSupport::Deprecation.new('3.0', 'Bali').warn(
-          'Bali::Filters is deprecated and will be removed in Bali 3.0. ' \
-          'Use Bali::AdvancedFilters instead, which provides date range support ' \
-          'and a more flexible filtering experience.'
-        )
-
-        @form = form
+      # @param url [String] The URL to submit filters to
+      # @param available_attributes [Array<Hash>] Available filterable attributes
+      #   Each hash should have: { key:, label:, type:, options: (for select) }
+      #   Types: :text, :number, :date, :datetime, :select, :boolean
+      # @param filter_groups [Array<Hash>] Initial filter state (from URL params)
+      # @param apply_mode [Symbol] :batch (default) or :live
+      # @param combinator [Symbol] :and (default) or :or - how groups are combined
+      # @param max_groups [Integer] Maximum number of filter groups allowed
+      # @param popover [Boolean] Whether to show filters in a popover (default: true)
+      # @param button_text [String] Text for the popover trigger button
+      # @param search [Hash] Quick search configuration
+      #   - :fields [Array<Symbol>] Fields to search (e.g., [:name, :description])
+      #   - :value [String] Current search value from URL params
+      #   - :placeholder [String] Placeholder text for search input
+      # @param storage_id [String] Optional storage ID indicating filters can be persisted
+      # @param persist_enabled [Boolean] Whether user has opted into filter persistence
+      # rubocop:disable Metrics/ParameterLists
+      def initialize(
+        url:,
+        available_attributes:,
+        filter_groups: [],
+        apply_mode: :batch,
+        combinator: :and,
+        max_groups: 10,
+        popover: true,
+        button_text: nil,
+        search: {},
+        storage_id: nil,
+        persist_enabled: false,
+        **options
+      )
         @url = url
-        @text_field = text_field
-        @opened = filters_opened?(opened)
-        @auto_submit_search_input = options.delete(:auto_submit_search_input)
+        @available_attributes = normalize_attributes(available_attributes)
+        @filter_groups = filter_groups.presence || [default_filter_group]
+        @apply_mode = apply_mode
+        @combinator = combinator.to_s
+        @max_groups = max_groups
+        @popover = popover
+        @button_text = button_text
+        @search = search || {}
+        @storage_id = storage_id
+        @persist_enabled = persist_enabled
+        @id = options[:id] || "filters-#{SecureRandom.hex(4)}"
+      end
+      # rubocop:enable Metrics/ParameterLists
 
-        @options = prepend_class_name(options, 'width-inherit')
-        @options = prepend_controller(@options, 'filter-form')
-        @options = prepend_data_attribute(@options, 'filter-form-text-field-value', text_field)
-        @options = prepend_data_attribute(@options, 'turbo-stream', true)
-
-        add_auto_submit_data_to_options if @auto_submit_search_input
+      # Returns true if persistence is available (storage_id is configured)
+      def persistence_available?
+        @storage_id.present?
       end
 
-      def filters_opened?(opened)
-        !!ActiveRecord::Type::Boolean.new.cast(opened)
+      # Returns true if user has enabled persistence
+      def persist_enabled?
+        @persist_enabled
       end
 
-      def active_filters_count
-        @active_filters_count ||= (active_filters.keys & attribute_names).size
+      def button_text
+        @button_text || I18n.t('bali.filters.filters_button', default: 'Filters')
+      end
+
+      def search_enabled?
+        @search[:fields].present?
+      end
+
+      def search_value
+        @search[:value]
+      end
+
+      def search_placeholder
+        @search[:placeholder] || I18n.t('bali.filters.search_placeholder',
+                                        default: 'Search...')
+      end
+
+      # Build Ransack field name for multi-field search (e.g., "name_or_genre_cont")
+      def search_field_name
+        return nil unless search_enabled?
+
+        fields = @search[:fields].map(&:to_s).join('_or_')
+        "q[#{fields}_cont]"
+      end
+
+      def active_filter_count
+        @filter_groups.sum do |group|
+          group[:conditions]&.count { |c| c[:attribute].present? && c[:value].present? } || 0
+        end
       end
 
       def active_filters?
-        active_filters_count.positive?
+        active_filter_count.positive?
       end
 
-      def add_auto_submit_data_to_options
-        @options = prepend_controller(@options, 'submit-on-change')
-        @options = prepend_data_attribute(@options, 'submit-on-change-delay-value', 800)
-        @options = prepend_data_attribute(
-          @options, 'submit-on-change-response-kind-value', 'turbo-stream'
-        )
+      # Serialize attributes for Stimulus controller
+      def attributes_json
+        @available_attributes.map do |attr|
+          {
+            key: attr[:key].to_s,
+            label: attr[:label],
+            type: attr[:type].to_s,
+            options: attr[:options] || [],
+            operators: operators_for_type(attr[:type])
+          }
+        end.to_json
       end
 
-      def clear_filters_url
-        add_query_param(url, :clear_filters, true)
+      # Build the default operators for each attribute type.
+      # Delegates to Operators module for centralized definitions.
+      def operators_for_type(type)
+        Operators.for_type(type)
+      end
+
+      # Translations JSON for Stimulus controllers (combinators only for main controller)
+      def translations_json
+        {
+          combinators: {
+            and: I18n.t('bali.filters.combinators.and', default: 'AND'),
+            or: I18n.t('bali.filters.combinators.or', default: 'OR')
+          }
+        }.to_json
       end
 
       private
 
-      def attributes?
-        attributes.any?
+      def normalize_attributes(attributes)
+        attributes.map do |attr|
+          {
+            key: attr[:key],
+            label: attr[:label] || attr[:key].to_s.humanize,
+            type: attr[:type] || :text,
+            options: attr[:options] || []
+          }
+        end
       end
 
-      def active_filters
-        @active_filters || query_params.except('s').compact_blank
+      def default_filter_group
+        {
+          combinator: 'or',
+          conditions: [default_condition]
+        }
       end
 
-      def attribute_names
-        attributes.map { |a| a.attribute.to_s }
+      def default_condition
+        {
+          attribute: '',
+          operator: 'cont',
+          value: ''
+        }
       end
     end
   end

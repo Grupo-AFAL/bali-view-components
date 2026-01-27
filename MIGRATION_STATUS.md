@@ -47,7 +47,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Component              | Tests | AI Visual | DaisyUI | Manual | Quality | Notes                                                              |
 | ---------------------- | :---: | :-------: | :-----: | :----: | :-----: | ------------------------------------------------------------------ |
 | ActionsDropdown        |  ✅   |    ✅     |   ✅    |   ✅   | 9.5/10  | Full DaisyUI dropdown, semantic button+ARIA                        |
-| AdvancedFilters        |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Code quality improved, class_names helpers added                   |
+| Filters                |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Consolidated filter component with Ransack groupings               |
 | Avatar                 |  ✅   |    ✅     |   ✅    |   ✅   | 9.5/10  | Full DaisyUI, tag.div, alt text, options passthrough               |
 | BooleanIcon            |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Added nil handling, improved tests and preview                     |
 | Breadcrumb             |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Proper DaisyUI breadcrumbs, aria-label, BASE_CLASSES               |
@@ -63,7 +63,6 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 | Drawer                 |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Unique IDs, position param, header/footer slots, WCAG              |
 | Dropdown               |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | i18n aria-label, Trigger VARIANTS, 21 tests                        |
 | FieldGroupWrapper      |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | DaisyUI form-control, class_names, 18 tests                        |
-| Filters                |  ✅   |    ❌     |   ❌    |   ❌   |    -    | **DEPRECATED** - Use AdvancedFilters instead                       |
 | FlashNotifications     |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | Private attr_readers, Lookbook params, 6 tests                     |
 | Footer                 |  ✅   |    ✅     |   ✅    |   ✅   |  9/10   | NEW: DaisyUI footer, social links, responsive horizontal layout    |
 | **Form Fields**        |       |           |         |        |         | **FormBuilder field modules (see below)**                          |
@@ -153,7 +152,7 @@ This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migrat
 
 | Score Range | Count | % of Scored | Components                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ----------- | ----- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 9-10 (✅)   | 54    | 98%         | ActionsDropdown (9.5), AdvancedFilters (9), Avatar (9.5), BooleanIcon (9), BooleanFields (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), CoordinatesPolygon (9), CurrencyFields (9), DataTable (9), DateFields (9), DatetimeFields (9), DeleteLink (9), Drawer (9), Dropdown (9), DynamicFields (9), EmailFields (9), FieldGroupWrapper (9), FileFields (9), FlashNotifications (9), Footer (9), Heatmap (9), Hero (9), HoverCard (9), Icon (9), ImageField (9), ImageGrid (9), InfoLevel (9), LabelValue (9), Level (9), Link (9), List (9), Loader (9), LocationsMap (9), Message (9), Modal (9), Navbar (9), Notification (9), NumberFields (9), PageHeader (9), PasswordFields (9), PercentageFields (9), Progress (9), PropertiesTable (9), RecurrentEventRuleForm (9), SideMenu (9), SlimSelectFields (9), StepNumberFields (9) |
+| 9-10 (✅)   | 54    | 98%         | ActionsDropdown (9.5), Filters (9), Avatar (9.5), BooleanIcon (9), BooleanFields (9), Breadcrumb (9), BulkActions (9), Calendar (9), Card (9), Carousel (9), Chart (9), Clipboard (9), Columns (9), CoordinatesPolygon (9), CurrencyFields (9), DataTable (9), DateFields (9), DatetimeFields (9), DeleteLink (9), Drawer (9), Dropdown (9), DynamicFields (9), EmailFields (9), FieldGroupWrapper (9), FileFields (9), FlashNotifications (9), Footer (9), Heatmap (9), Hero (9), HoverCard (9), Icon (9), ImageField (9), ImageGrid (9), InfoLevel (9), LabelValue (9), Level (9), Link (9), List (9), Loader (9), LocationsMap (9), Message (9), Modal (9), Navbar (9), Notification (9), NumberFields (9), PageHeader (9), PasswordFields (9), PercentageFields (9), Progress (9), PropertiesTable (9), RecurrentEventRuleForm (9), SideMenu (9), SlimSelectFields (9), StepNumberFields (9) |
 | 7-8 (⚠️)    | 1     | 2%          | GanttChart (8)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | < 7 (❌)    | 0     | 0%          | -                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | Not scored  | 29    | -           | Form fields (10), remaining components (19)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
@@ -167,7 +166,7 @@ Components with ✅ in all applicable columns (Tests, AI Visual, DaisyUI/N/A, Ma
 ### Core Components (38)
 
 1. **ActionsDropdown** - Full DaisyUI dropdown with align/direction
-2. **AdvancedFilters** - Ransack integration
+2. **Filters** - Ransack integration
 3. **Avatar** - Full DaisyUI implementation
 4. **BooleanIcon** - Uses text-success/text-error
 5. **Breadcrumb** - Proper DaisyUI breadcrumbs
@@ -178,7 +177,7 @@ Components with ✅ in all applicable columns (Tests, AI Visual, DaisyUI/N/A, Ma
 10. **Chart** - Custom (Chart.js)
 11. **Clipboard** - Tailwind compliant
 12. **Columns** - CSS Grid layout
-13. **DataTable** - AdvancedFilters, column selector, sorting
+13. **DataTable** - Filters, column selector, sorting
 14. **DeleteLink** - HoverCard confirmation
 15. **Drawer** - Position param, header/footer slots
 16. **Dropdown** - i18n aria-label, Trigger VARIANTS
@@ -284,8 +283,8 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 
 | Date       | Component                      | Change                                                                                        | By         |
 | ---------- | ------------------------------ | --------------------------------------------------------------------------------------------- | ---------- |
-| 2026-01-15 | DataTable                      | Migrated to AdvancedFilters, added column selector, sorting/pagination demos                  | AI + Human |
-| 2026-01-15 | AdvancedFilters                | NEW: Complex filter UI with Ransack                                                           | AI         |
+| 2026-01-15 | DataTable                      | Migrated to Filters, added column selector, sorting/pagination demos                  | AI + Human |
+| 2026-01-15 | Filters                | NEW: Complex filter UI with Ransack                                                           | AI         |
 | 2026-01-15 | Tabs                           | Fixed Cypress selectors for DaisyUI                                                           | AI         |
 | 2026-01-15 | CI                             | Fixed Cypress workflow                                                                        | AI         |
 | 2026-01-14 | Columns                        | Flexbox layout fix                                                                            | AI + Human |
@@ -296,7 +295,7 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Card                           | Score 8→9: Fixed header badge positioning, removed redundant border classes                   | AI         |
 | 2026-01-17 | Modal                          | Score 7→9: Added header/body/actions slots, WCAG aria-describedby                             | AI         |
 | 2026-01-17 | ActionsDropdown                | Score 9.5: Semantic button, ARIA attrs, consistent preview API                                | AI         |
-| 2026-01-17 | AdvancedFilters                | Score 9: Removed unused @options, added class_names helpers, fixed trailing spaces            | AI         |
+| 2026-01-17 | Filters                | Score 9: Removed unused @options, added class_names helpers, fixed trailing spaces            | AI         |
 | 2026-01-17 | Avatar                         | Score 9.5: Group tag.div+options, alt text support, fixed preview path                        | AI         |
 | 2026-01-17 | BooleanIcon                    | Score 9: Added nil value handling, improved tests, all_states preview                         | AI         |
 | 2026-01-17 | Breadcrumb                     | Score 9: Added aria-label, BASE_CLASSES constant, private attr_readers                        | AI         |
@@ -311,8 +310,8 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-17 | Drawer                         | Score 9: Unique IDs, POSITIONS const, header/footer slots, WCAG, 32 tests                     | AI         |
 | 2026-01-17 | FieldGroupWrapper              | Score 9: DaisyUI form-control, class_names, no options mutation, 18 tests                     | AI         |
 | 2026-01-17 | FlashNotifications             | Score 9: Private attr_readers, Lookbook params, 6 tests                                       | AI         |
-| 2026-01-17 | Filters                        | **DEPRECATED**: Emits warning, recommend AdvancedFilters                                      | AI         |
-| 2026-01-17 | AdvancedFilters                | Date range: Flatpickr range mode, locale-aware formats, fix "between" reload                  | AI         |
+| 2026-01-17 | Filters                        | **DEPRECATED**: Emits warning, recommend Filters                                      | AI         |
+| 2026-01-17 | Filters                | Date range: Flatpickr range mode, locale-aware formats, fix "between" reload                  | AI         |
 | 2026-01-17 | Form (FormBuilder)             | Score 9: Full Bulma→DaisyUI migration across 12 modules, 117 tests                            | AI         |
 | 2026-01-17 | GanttChart                     | Score 8: Bulma→DaisyUI (join, weekend), explicit action methods, 21 tests                     | AI         |
 | 2026-01-17 | Hero                           | Score 9: Private attr_reader, Hash#fetch, preview uses Bali::Button                           | AI         |
@@ -434,5 +433,5 @@ bundle exec rubocop app/components/bali/ --autocorrect-all
 | 2026-01-21 | Heatmap                        | Responsive improvements for mobile display                                                   | AI         |
 | 2026-01-22 | Footer                         | NEW: DaisyUI footer component, social links, horizontal layout on desktop                    | AI         |
 | 2026-01-22 | Modal/Drawer                   | Performance optimizations, fixed duplicate request issues                                    | AI         |
-| 2026-01-23 | AdvancedFilters                | I18n translations, group combinator AND/OR buttons, quote fixes in locale files              | AI         |
+| 2026-01-23 | Filters                | I18n translations, group combinator AND/OR buttons, quote fixes in locale files              | AI         |
 | 2026-01-25 | Documentation                  | Updated BREAKING_CHANGES.md with 7 additional breaking changes (14 total)                    | AI         |

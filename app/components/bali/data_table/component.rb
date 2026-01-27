@@ -23,19 +23,67 @@ module Bali
         )
       end
 
-      # Filters panel using AdvancedFilters component
+      # Filters panel using Filters component.
+      #
+      # When a filter_form is provided to DataTable, everything is automatically
+      # populated from the form: available_attributes, filter_groups, and search config.
+      #
       # @param available_attributes [Array<Hash>] Filterable attributes
-      # @param filter_groups [Array<Hash>] Initial filter state from params (optional)
+      #   (auto-populated from filter_form if not provided)
+      # @param filter_groups [Array<Hash>] Initial filter state
+      #   (auto-populated from filter_form if not provided)
       # @param search [Hash] Quick search configuration
+      #   (auto-populated from filter_form if not provided)
       #   - :fields [Array<Symbol>] Fields to search (e.g., [:name, :description])
       #   - :value [String] Current search value from URL params
       #   - :placeholder [String] Placeholder text for search input
       # @param apply_mode [Symbol] :batch (default) or :live
       # @param popover [Boolean] Show filters in popover (default: true)
-      renders_one :filters_panel, ->(available_attributes:, **options) do
-        AdvancedFilters::Component.new(
+      #
+      # @example Minimal usage (everything auto-configured from FilterForm)
+      #   data_table.with_filters_panel
+      #
+      # @example Override search placeholder
+      #   data_table.with_filters_panel(search: { placeholder: 'Search movies...' })
+      #
+      # @example Full control
+      #   data_table.with_filters_panel(
+      #     available_attributes: [{ key: :name, type: :text }, ...],
+      #     filter_groups: @filter_form.filter_groups,
+      #     search: { fields: [:name], value: '...', placeholder: '...' }
+      #   )
+      renders_one :filters_panel, ->(available_attributes: nil, search: nil, **options) do
+        # Auto-populate from filter_form if not explicitly provided
+        resolved_attributes = available_attributes || @filter_form&.available_attributes || []
+
+        # Auto-populate filter_groups from filter_form unless explicitly provided
+        if !options.key?(:filter_groups) && @filter_form.respond_to?(:filter_groups)
+          options[:filter_groups] = @filter_form&.filter_groups
+        end
+
+        # Auto-populate storage_id from filter_form unless explicitly provided
+        options[:storage_id] ||= @filter_form&.storage_id if @filter_form.respond_to?(:storage_id)
+
+        # Auto-populate persist_enabled from filter_form unless explicitly provided
+        if !options.key?(:persist_enabled) && @filter_form.respond_to?(:persist_enabled?)
+          options[:persist_enabled] = @filter_form.persist_enabled?
+        end
+
+        # Auto-populate search config from filter_form, merging with explicit overrides
+        filter_form_search = if @filter_form && @filter_form.respond_to?(:search_config)
+                               @filter_form.search_config
+                             end
+        resolved_search = if filter_form_search && search
+                            # Merge: filter_form provides base, explicit search overrides
+                            filter_form_search.merge(search)
+                          else
+                            search || filter_form_search
+                          end
+
+        Filters::Component.new(
           url: @url,
-          available_attributes: available_attributes,
+          available_attributes: resolved_attributes,
+          search: resolved_search,
           **options
         )
       end

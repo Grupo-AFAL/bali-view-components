@@ -170,7 +170,7 @@ _No major issues - Tabs, PropertiesTable, Timeline, and Rate components worked w
 | Page | Components Used |
 |------|----------------|
 | **Dashboard** | Navbar, PageHeader, Card, Icon, Chart, Timeline, Notification, Tag, Button, Level, Link, Avatar, Dropdown, Timeago, InfoLevel, GanttChart, Heatmap, BulkActions |
-| **Movies List** | Breadcrumb, PageHeader, DataTable, AdvancedFilters, Table, Tag, BooleanIcon, ActionsDropdown, Link, Message, Timeago |
+| **Movies List** | Breadcrumb, PageHeader, DataTable, Filters, Table, Tag, BooleanIcon, ActionsDropdown, Link, Message, Timeago |
 | **Movie Detail** | Breadcrumb, PageHeader, Tabs, Card, PropertiesTable, Avatar, Progress, Rate, SortableList, Timeline, Tag, BooleanIcon, Timeago, DeleteLink, ActionsDropdown, Message, Link, HoverCard, ImageGrid, LabelValue |
 | **Movie Form** | Breadcrumb, PageHeader, Stepper, Card, FormBuilder (10+ field types), Button, Link, Message, Icon, DirectUpload |
 | **Settings** | Breadcrumb, PageHeader, SideMenu, Card, FormBuilder, Message, Button, Icon, Reveal |

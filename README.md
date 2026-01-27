@@ -107,7 +107,7 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 `Avatar`, `DataTable`, `Icon`, `List`, `Progress`, `Table`, `Tag`, `Timeline`, `TreeView`
 
 ### Interactive
-`ActionsDropdown`, `AdvancedFilters`, `Button`, `Carousel`, `Clipboard`, `DeleteLink`, `HoverCard`, `Link`, `Reveal`, `SearchInput`, `SortableList`, `Tooltip`
+`ActionsDropdown`, `Filters`, `Button`, `Carousel`, `Clipboard`, `DeleteLink`, `HoverCard`, `Link`, `Reveal`, `SearchInput`, `SortableList`, `Tooltip`
 
 ### Feedback
 `FlashNotifications`, `Loader`, `Message`, `Notification`
@@ -192,7 +192,7 @@ The gem is available as open source under the terms of the [MIT License](https:/
 | Component | Preview | Docs | Tests |
 |-----------|:-------:|:----:|:-----:|
 | ActionsDropdown | ✓ | ✓ | ✓ |
-| AdvancedFilters | ✓ | ✓ | ✓ |
+| Filters | ✓ | ✓ | ✓ |
 | Avatar | ✓ | ✓ | ✓ |
 | Breadcrumb | ✓ | ✓ | ✓ |
 | BooleanIcon | ✓ | ✓ | ✓ |
@@ -246,7 +246,7 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 | Controller | Description |
 |------------|-------------|
-| AdvancedFilters | Advanced filtering UI with Ransack integration |
+| Filters | Filtering UI with Ransack integration |
 | AutoPlay | Auto-play audio on page load |
 | AutocompleteAddress | Google Places API autocomplete |
 | CheckboxToggle | Toggle element visibility with checkbox |

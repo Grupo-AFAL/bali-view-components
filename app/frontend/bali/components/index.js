@@ -39,12 +39,12 @@ import { RecurrentEventRuleController } from '../../../components/bali/recurrent
 import { NotificationController } from '../../../components/bali/notification/index'
 import { LocationsMapController } from '../../../components/bali/locations_map/index'
 import {
-  AdvancedFiltersController,
+  FiltersController,
   FilterGroupController,
   ConditionController,
   AppliedTagsController,
   MultiSelectController
-} from '../../../components/bali/advanced_filters/index'
+} from '../../../components/bali/filters/index'
 import { ColumnSelectorController } from '../../../components/bali/data_table/index'
 import { TreeViewItemController } from '../../../components/bali/tree_view/item/index'
 
@@ -81,14 +81,14 @@ export { NotificationController } from '../../../components/bali/notification/in
 // Map components
 export { LocationsMapController } from '../../../components/bali/locations_map/index'
 
-// Advanced Filters (multiple controllers)
+// Filters (multiple controllers)
 export {
-  AdvancedFiltersController,
+  FiltersController,
   FilterGroupController,
   ConditionController,
   AppliedTagsController,
   MultiSelectController
-} from '../../../components/bali/advanced_filters/index'
+} from '../../../components/bali/filters/index'
 
 // DataTable components
 export { ColumnSelectorController } from '../../../components/bali/data_table/index'
@@ -141,8 +141,8 @@ export function registerAll (application) {
   // Map
   application.register('locations-map', LocationsMapController)
 
-  // Advanced Filters
-  application.register('advanced-filters', AdvancedFiltersController)
+  // Filters
+  application.register('filters', FiltersController)
   application.register('filter-group', FilterGroupController)
   application.register('condition', ConditionController)
   application.register('applied-tags', AppliedTagsController)

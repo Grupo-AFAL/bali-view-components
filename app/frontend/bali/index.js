@@ -83,7 +83,7 @@ export { registerAll as registerAllControllers } from './controllers/index'
 
 // Re-export all core component controllers (excludes heavy modules)
 export {
-  AdvancedFiltersController,
+  FiltersController,
   AppliedTagsController,
   AvatarController,
   BulkActionsController,

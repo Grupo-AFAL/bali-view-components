@@ -46,9 +46,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   end
   ```
 
-- **`Bali::Filters::Component`** - **DEPRECATED**. Use `Bali::AdvancedFilters::Component` instead.
-  - Filters component still works but shows deprecation warning
-  - AdvancedFilters provides: multiple filter groups, AND/OR combinators, type-specific operators
+- **`Bali::Filters::Component`** - Consolidated filter component (replaces old Filters and AdvancedFilters)
+  - Multiple filter groups with AND/OR combinators between groups
+  - Multiple conditions within each group with AND/OR combinators
+  - Type-specific operators for text, number, date, select, and boolean fields
 
 - **`Bali::Breadcrumb::Item::Component`** - `href` is now optional (was required).
   - Items without `href` are automatically marked as active
@@ -81,17 +82,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`Bali::AdvancedFilters::Component`** - Complex filter UI with Ransack groupings support
-  - Multiple filter groups with AND/OR combinators between groups
-  - Multiple conditions within each group with AND/OR combinators
-  - Type-specific operators for text, number, date, select, and boolean fields
+- **`Bali::FilterForm`** - Enhanced filter form with Ransack groupings support
   - Dynamic add/remove for both conditions and groups
   - Pre-populated filters from URL params
   - Quick search integration and reset functionality
   - Date range "between" operator uses Flatpickr range mode
   - Locale-aware date formats: `M j, Y` for English, `j M Y` for Spanish
-
-- **`Bali::AdvancedFilterForm`** - Helper class for parsing filter parameters in controllers
 
 - **`Bali::Button::Component`** - Proper ViewComponent (was previously a helper)
   - Full DaisyUI button support with variants, sizes, states
@@ -150,7 +146,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Preview consolidated from 7 methods to 3 with `@param` annotations
   - Added 14 new tests (33 total)
 
-- **`Bali::DataTable::Component`** - Now uses `AdvancedFilters` instead of legacy `Filters`
+- **`Bali::DataTable::Component`** - Uses consolidated `Filters` component with Ransack groupings support
   - New `filters_panel` slot accepts `available_attributes:` for defining filterable fields
   - New `toolbar_buttons` slot for right-aligned buttons (column selector, export, etc.)
   - Added sorting examples using Ransack's `sort_link` helper

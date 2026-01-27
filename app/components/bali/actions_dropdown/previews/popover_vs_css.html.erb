@@ -1,0 +1,61 @@
+<div class="grid grid-cols-2 gap-8 p-4">
+  <%# CSS Dropdown (gets clipped) %>
+  <div>
+    <p class="text-sm font-medium mb-2">CSS Dropdown <span class="text-error">(clipped)</span></p>
+    <div class="overflow-x-auto border border-base-300 rounded-lg" style="max-height: 120px;">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Status</th>
+            <th class="w-16">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Item 1</td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td>
+              <%= render Bali::ActionsDropdown::Component.new do |c|
+                c.with_item(name: 'Edit', href: '#')
+                c.with_item(name: 'Export', href: '#')
+                c.with_item(name: 'Delete', href: '#', method: :delete)
+              end %>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="text-xs text-base-content/60 mt-1">Menu opens inside the overflow container</p>
+  </div>
+
+  <%# Popover Mode (escapes overflow) %>
+  <div>
+    <p class="text-sm font-medium mb-2">Popover Mode <span class="text-success">(escapes overflow)</span></p>
+    <div class="overflow-x-auto border border-base-300 rounded-lg" style="max-height: 120px;">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Status</th>
+            <th class="w-16">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Item 1</td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td>
+              <%= render Bali::ActionsDropdown::Component.new(popover: true) do |c|
+                c.with_item(name: 'Edit', href: '#')
+                c.with_item(name: 'Export', href: '#')
+                c.with_item(name: 'Delete', href: '#', method: :delete)
+              end %>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="text-xs text-base-content/60 mt-1">Menu appends to body, displays above container</p>
+  </div>
+</div>

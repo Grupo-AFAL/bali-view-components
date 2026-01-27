@@ -1,0 +1,31 @@
+# Lefthook configuration for git hooks
+# https://github.com/evilmartians/lefthook
+
+pre-commit:
+  parallel: true
+  commands:
+    rubocop:
+      glob: "*.rb"
+      run: bundle exec rubocop --force-exclusion {staged_files}
+      stage_fixed: true
+
+    standard:
+      glob: "*.js"
+      run: yarn standard {staged_files}
+
+pre-push:
+  commands:
+    rspec:
+      run: bundle exec rspec --fail-fast
+      tags:
+        - backend
+
+    cypress:
+      run: yarn cy:run
+      tags:
+        - frontend
+
+# Skip specific hooks with LEFTHOOK_EXCLUDE=tag1,tag2
+# Example: LEFTHOOK_EXCLUDE=frontend git push (skips cypress)
+#
+# Skip all hooks: LEFTHOOK=0 git commit
