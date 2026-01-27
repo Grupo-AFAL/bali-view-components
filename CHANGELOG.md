@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-01-27
+
+### Changed
+
+- **Filters Component** - Consolidated `AdvancedFilters` and `Filters` into a single unified `Filters` component
+  - Removed separate `AdvancedFilters` component (functionality merged into `Filters`)
+  - Added search input with clear button (x) for easy clearing of persisted search
+  - Improved filter persistence handling with `clear_search` parameter
+
+### Fixed
+
+- **FilterForm** - Refactored into focused concerns for better maintainability
+  - Extracted `SearchConfiguration` concern for search DSL and methods
+  - Extracted `FilterGroupParser` concern for Ransack grouping parsing
+  - Fixed search persistence bug where clearing search text didn't clear persisted value
+
+### Dependencies
+
+- Added `lucide-rails` as runtime dependency for icon rendering
+- Updated `@source` directive documentation for Tailwind v4 configuration
+
 ## [2.0.0] - 2026-01-26 - Tailwind + DaisyUI Migration
 
 **This is a major release migrating all 60+ components from Bulma CSS to Tailwind + DaisyUI 5.**
