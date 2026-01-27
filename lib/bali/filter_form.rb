@@ -1,6 +1,33 @@
 # frozen_string_literal: true
 
 module Bali
+  # FilterForm provides a unified interface for Ransack-based filtering with support
+  # for both simple filters and complex AND/OR grouped conditions.
+  #
+  # @example Basic usage with attribute DSL
+  #   class UsersFilterForm < Bali::FilterForm
+  #     # Declare filterable attributes for Filters UI
+  #     filter_attribute :name, type: :text
+  #     filter_attribute :email, type: :text
+  #     filter_attribute :status, type: :select,
+  #                      options: [['Active', 'active'], ['Inactive', 'inactive']]
+  #     filter_attribute :created_at, type: :date
+  #
+  #     # Standard Ransack attributes for simple filtering
+  #     attribute :name_cont
+  #     attribute :status_eq
+  #   end
+  #
+  #   # In controller
+  #   @filter_form = UsersFilterForm.new(User.all, params, storage_id: 'users')
+  #   @users = @filter_form.result
+  #
+  #   # In view - filter_groups auto-populated for Filters
+  #   data_table.with_filters_panel(
+  #     available_attributes: @filter_form.available_attributes,
+  #     filter_groups: @filter_form.filter_groups
+  #   )
+  #
   class FilterForm
     include ActiveModel::Model
     include ActiveModel::Attributes
@@ -9,6 +36,40 @@ module Bali
 
     # Ransack attribute for receiving the sort parameters
     attribute :s
+
+    class << self
+      # Storage for filter attribute definitions used by Filters UI
+      def filter_attributes
+        @filter_attributes ||= []
+      end
+
+      # Define a filterable attribute for the Filters component.
+      # This is used to generate the filter UI and provide labels/options.
+      #
+      # @param key [Symbol] The attribute key (column name or Ransack association path)
+      # @param type [Symbol] The attribute type (:text, :number, :date, :datetime, :select, :boolean)
+      # @param label [String] Human-readable label (defaults to humanized key)
+      # @param options [Array] For select types, array of [label, value] pairs
+      #
+      # @example
+      #   filter_attribute :name, type: :text
+      #   filter_attribute :status, type: :select, options: [['Active', 'active'], ['Inactive', 'inactive']]
+      #   filter_attribute :created_at, type: :date, label: 'Created Date'
+      def filter_attribute(key, type: :text, label: nil, options: [])
+        filter_attributes << {
+          key: key,
+          type: type,
+          label: label || key.to_s.humanize,
+          options: options
+        }
+      end
+
+      # Inherit filter_attributes from parent class
+      def inherited(subclass)
+        super
+        subclass.instance_variable_set(:@filter_attributes, filter_attributes.dup)
+      end
+    end
 
     def initialize(scope, params = {}, storage_id: nil, context: nil)
       @scope = scope
@@ -20,7 +81,7 @@ module Bali
       @clear_filters = params.fetch(:clear_filters, false)
 
       # Store Ransack groupings (g) and combinator (m) for complex filters
-      # These are used by AdvancedFilters for AND/OR condition groups
+      # These are used by Filters for AND/OR condition groups
       @groupings = extract_groupings(q_params)
       @combinator = q_params[:m]
 
@@ -90,6 +151,69 @@ module Bali
       @active_filters || query_params.except('s').compact_blank
     end
 
+    # Get the available filter attributes defined via filter_attribute DSL.
+    # Used by Filters component for rendering the filter UI.
+    #
+    # @return [Array<Hash>] Array of attribute definitions with :key, :type, :label, :options
+    def available_attributes
+      self.class.filter_attributes
+    end
+
+    # Parse the current filter state into a structure for Filters component.
+    # Automatically extracts filter groups from Ransack grouping params (q[g][...]).
+    #
+    # @return [Array<Hash>] Array of filter groups, each with :combinator and :conditions
+    # @example Return structure
+    #   [
+    #     {
+    #       combinator: 'or',
+    #       conditions: [
+    #         { attribute: 'name', operator: 'cont', value: 'john' },
+    #         { attribute: 'status', operator: 'eq', value: 'active' }
+    #       ]
+    #     }
+    #   ]
+    def filter_groups
+      return [] if @groupings.blank?
+
+      @groupings.map do |_index, group_params|
+        parse_filter_group(group_params.deep_symbolize_keys)
+      end
+    end
+
+    # Get the top-level combinator that determines how filter groups are combined.
+    #
+    # @return [String] 'and' or 'or'
+    def combinator
+      @combinator || 'and'
+    end
+
+    # Get detailed information about each active filter condition.
+    # Useful for displaying filter pills/tags with human-readable labels.
+    #
+    # @return [Array<Hash>] Array of filter details with metadata
+    def active_filter_details
+      details = []
+      filter_groups.each_with_index do |group, group_idx|
+        group[:conditions].each_with_index do |condition, condition_idx|
+          next if condition[:value].blank?
+
+          attr_config = available_attributes.find { |a| a[:key].to_s == condition[:attribute].to_s }
+
+          details << {
+            group_index: group_idx,
+            condition_index: condition_idx,
+            attribute: condition[:attribute],
+            attribute_label: attr_config&.dig(:label) || condition[:attribute].to_s.humanize,
+            operator: condition[:operator],
+            value: condition[:value],
+            value_label: format_filter_value(condition[:value], attr_config)
+          }
+        end
+      end
+      details
+    end
+
     def non_date_range_attribute_names
       attribute_names - date_range_attributes
     end
@@ -124,7 +248,7 @@ module Bali
     def ransack_params
       params = query_params.dup
 
-      # Add groupings for AdvancedFilters complex conditions
+      # Add groupings for Filters complex conditions
       params[:g] = @groupings if @groupings.present?
       params[:m] = @combinator if @combinator.present?
 
@@ -158,6 +282,77 @@ module Bali
 
     def array_predicates
       %w[_any _all _not_in _in]
+    end
+
+    # Parse a single filter group from Ransack params into component structure.
+    # Consolidates gteq/lteq pairs into 'between' operator for better UX.
+    def parse_filter_group(group_params)
+      raw_conditions = {}
+
+      group_params.each do |key, value|
+        next if key == :m # Skip combinator
+
+        attr, operator = parse_condition_key(key.to_s)
+        next unless attr
+
+        raw_conditions[attr] ||= {}
+        raw_conditions[attr][operator] = value
+      end
+
+      # Convert raw conditions, consolidating gteq+lteq into 'between'
+      conditions = raw_conditions.flat_map do |attribute, ops|
+        if ops['gteq'] && ops['lteq']
+          # Combine into a single 'between' condition for date ranges
+          [{
+            attribute: attribute,
+            operator: 'between',
+            value: { start: ops['gteq'], end: ops['lteq'] }
+          }]
+        else
+          ops.map do |operator, value|
+            { attribute: attribute, operator: operator, value: value }
+          end
+        end
+      end
+
+      {
+        combinator: group_params[:m] || 'or',
+        conditions: conditions.presence || [default_filter_condition]
+      }
+    end
+
+    # Parse a Ransack condition key like "name_cont" or "created_at_gteq"
+    # into [attribute, operator] pair.
+    def parse_condition_key(key)
+      # Ordered by specificity (longer operators first to avoid partial matches)
+      operators = %w[not_cont not_eq not_in gteq lteq cont start end matches eq gt lt in]
+
+      operators.each do |op|
+        if key.end_with?("_#{op}")
+          attr = key.sub(/_#{op}$/, '')
+          return [attr, op]
+        end
+      end
+
+      nil
+    end
+
+    # Default empty condition for new filter groups
+    def default_filter_condition
+      { attribute: '', operator: 'cont', value: '' }
+    end
+
+    # Format a filter value for display, resolving select option labels
+    def format_filter_value(value, attr_config)
+      return value if attr_config.nil?
+      return value unless attr_config[:type]&.to_sym == :select
+
+      option = attr_config[:options]&.find do |opt|
+        opt_value = opt.is_a?(Array) ? opt[1] : opt
+        opt_value.to_s == value.to_s
+      end
+
+      option.is_a?(Array) ? option[0] : (option || value)
     end
   end
 end

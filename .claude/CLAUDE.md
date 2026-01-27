@@ -215,7 +215,7 @@ We are migrating all components from Bulma CSS to Tailwind + DaisyUI. This is a 
 ### Migration Status
 
 Migration is in progress. Current status:
-- **3 Fully Verified**: ActionsDropdown, AdvancedFilters (new), Columns
+- **3 Fully Verified**: ActionsDropdown, Filters, Columns
 - **21 Partially Migrated**: Most core components have initial DaisyUI migration
 - **34 Pending Verification**: Need visual/functional verification
 
@@ -880,14 +880,13 @@ When you use `Bali::Icon::Component.new('icon-name')`, the system resolves icons
 | Component | Purpose | DaisyUI Classes | Design System Pattern |
 |-----------|---------|-----------------|----------------------|
 | `Bali::ActionsDropdown` | Action menu | `dropdown menu` | daisyUI dropdown |
-| `Bali::AdvancedFilters` | Complex filter UI | `btn input select dropdown badge join` | Ransack groupings |
 | `Bali::BulkActions` | Bulk actions | Custom | — |
 | `Bali::Button` | Action button | `btn btn-*` | daisyUI button |
 | `Bali::Calendar` | Calendar picker | (Flatpickr) | — |
 | `Bali::Carousel` | Image carousel | `carousel carousel-item` | `nexus/interactions/carousel/` |
 | `Bali::Clipboard` | Copy to clipboard | Custom + Stimulus | `nexus/interactions/clipboard/` |
 | `Bali::DeleteLink` | Delete confirmation | `btn btn-error` | — |
-| `Bali::Filters` | Filter controls (DEPRECATED - use AdvancedFilters) | Custom | — |
+| `Bali::Filters` | Complex filter UI | `btn input select dropdown badge join` | Ransack groupings |
 | `Bali::HoverCard` | Hover popup | Custom | — |
 | `Bali::Link` | Styled link | `link link-*` | daisyUI link |
 | `Bali::Reveal` | Show/hide content | Custom + Stimulus | — |
@@ -927,7 +926,7 @@ When you use `Bali::Icon::Component.new('icon-name')`, the system resolves icons
 
 | Controller | Purpose | Usage |
 |------------|---------|-------|
-| `AdvancedFilters` | Main filter UI controller | `data-controller="advanced-filters"` |
+| `Filters` | Main filter UI controller | `data-controller="filters"` |
 | `AutoPlay` | Auto-play audio | `data-controller="auto-play"` |
 | `AutocompleteAddress` | Google Places autocomplete | `data-controller="autocomplete-address"` |
 | `CheckboxToggle` | Toggle visibility with checkbox | `data-controller="checkbox-toggle"` |

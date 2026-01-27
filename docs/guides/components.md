@@ -348,12 +348,12 @@ Contextual information on hover.
 
 ### Form Components
 
-#### Filters / AdvancedFilters
+#### Filters
 
 Filter controls for data tables (integrates with Ransack).
 
 ```erb
-<%= render Bali::AdvancedFilters::Component.new(
+<%= render Bali::Filters::Component.new(
   url: products_path,
   filter_form: @filter_form
 ) %>

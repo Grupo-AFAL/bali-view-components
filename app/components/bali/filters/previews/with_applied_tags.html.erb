@@ -1,0 +1,15 @@
+<div class="space-y-4">
+  <%# Applied tags (shown separately from the filter builder) %>
+  <%= render Bali::Filters::AppliedTags::Component.new(
+        filter_groups: filter_groups,
+        available_attributes: available_attributes,
+        url: url
+      ) %>
+
+  <%# The filter builder %>
+  <%= render Bali::Filters::Component.new(
+        url: url,
+        available_attributes: available_attributes,
+        filter_groups: filter_groups
+      ) %>
+</div>

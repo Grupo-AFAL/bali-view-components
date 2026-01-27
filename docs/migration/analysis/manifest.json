@@ -87,13 +87,12 @@
       {
         "name": "Bali::Filters::Component",
         "file": "app/components/bali/filters/component.rb",
-        "severity": "high",
+        "severity": "medium",
         "backwards_compatible": true,
         "changes": [
           {
-            "type": "deprecation",
-            "replacement": "Bali::AdvancedFilters::Component",
-            "reason": "AdvancedFilters provides filter groups, AND/OR combinators, type-specific operators"
+            "type": "enhancement",
+            "reason": "Consolidated filter component with Ransack groupings, AND/OR combinators, type-specific operators"
           }
         ]
       },
@@ -186,20 +185,6 @@
     ],
     "new": [
       {
-        "name": "Bali::AdvancedFilters::Component",
-        "file": "app/components/bali/advanced_filters/component.rb",
-        "description": "Complex filter UI with Ransack groupings support",
-        "features": [
-          "Multiple filter groups with AND/OR combinators",
-          "Multiple conditions per group with AND/OR combinators",
-          "Type-specific operators (text, number, date, select, boolean)",
-          "Dynamic add/remove for conditions and groups",
-          "Pre-populated from URL params",
-          "Quick search integration",
-          "Date range with Flatpickr"
-        ]
-      },
-      {
         "name": "Bali::Button::Component",
         "file": "app/components/bali/button/component.rb",
         "description": "Proper ViewComponent (was previously a helper)"
@@ -255,14 +240,7 @@
         "description": "Standalone pagination component using Pagy"
       }
     ],
-    "deprecated": [
-      {
-        "name": "Bali::Filters::Component",
-        "replacement": "Bali::AdvancedFilters::Component",
-        "still_works": true,
-        "removal_version": "3.0.0"
-      }
-    ],
+    "deprecated": [],
     "removed": [
       {
         "name": "Bali::Card::FooterItem::Component",

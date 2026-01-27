@@ -46,7 +46,7 @@ This document details all breaking changes in the Bulma → Tailwind + DaisyUI m
 | **Icon** | **Yes** | **High** | New Lucide-based resolution pipeline |
 | Link | Yes | Low | `type:` → `variant:` (backwards compat) |
 | Card | Yes | Medium | `footer_items` → `actions` slot |
-| Filters | Yes | High | Deprecated, use AdvancedFilters |
+| Filters | Yes | Medium | Consolidated with advanced features |
 | Breadcrumb::Item | Yes | Low | `href:` now optional |
 | Tag | Yes | Low | `tag_class:` → `color:` |
 | Calendar | Yes | Low | `all_week:` → `weekdays_only:` |
@@ -187,21 +187,30 @@ c.with_action
 
 **File:** `app/components/bali/filters/component.rb`
 
-#### Status: DEPRECATED
+#### Status: CONSOLIDATED
 
-The `Bali::Filters::Component` is deprecated in favor of `Bali::AdvancedFilters::Component`.
+The `Bali::Filters::Component` now includes all advanced filtering features:
 
-#### Migration
+- Multiple filter groups with AND/OR combinators
+- Multiple conditions within each group
+- Type-specific operators for text, number, date, select, and boolean fields
+- Dynamic add/remove for conditions and groups
+- Date range "between" operator with Flatpickr
+- Integration with `Bali::FilterForm` for Ransack groupings
+
+#### Usage
 
 ```ruby
-# Before: Filters with simple attributes
-render Bali::Filters::Component.new(form: filter_form) do |f|
-  f.with_attribute(name: 'name_cont', title: 'Name')
-  f.with_attribute(name: 'status_eq', title: 'Status', collection: Status.all)
+# Controller
+class MoviesController < ApplicationController
+  def index
+    @filter_form = Bali::FilterForm.new(Movie.all, params)
+    @movies = @filter_form.result
+  end
 end
 
-# After: AdvancedFilters with typed conditions
-render Bali::AdvancedFilters::Component.new(
+# View
+render Bali::Filters::Component.new(
   url: movies_path,
   available_attributes: [
     { key: 'name', label: 'Name', type: 'text' },
@@ -210,35 +219,15 @@ render Bali::AdvancedFilters::Component.new(
 )
 ```
 
-#### Controller Changes
+#### Features
 
-```ruby
-# Before
-class MoviesController < ApplicationController
-  def index
-    @filter_form = Bali::FilterForm.new(Movie.all, params)
-    @movies = @filter_form.result
-  end
-end
-
-# After
-class MoviesController < ApplicationController
-  def index
-    @filter_form = Bali::AdvancedFilterForm.new(Movie.all, params)
-    @movies = @filter_form.result
-  end
-end
-```
-
-#### Key Differences
-
-| Feature | Filters | AdvancedFilters |
-|---------|---------|-----------------|
-| Filter groups | No | Yes (AND/OR) |
-| Conditions per group | 1 | Multiple (AND/OR) |
-| Type-specific operators | Limited | Full set per type |
-| Dynamic add/remove | No | Yes |
-| Date range "between" | Manual | Built-in with Flatpickr |
+| Feature | Support |
+|---------|---------|
+| Filter groups | Yes (AND/OR) |
+| Conditions per group | Multiple (AND/OR) |
+| Type-specific operators | Full set per type |
+| Dynamic add/remove | Yes |
+| Date range "between" | Built-in with Flatpickr |
 
 ---
 
@@ -1198,7 +1187,6 @@ For codemod tools, use these patterns:
       "Bali::Icon::Component"
     ],
     "new": [
-      "Bali::AdvancedFilters::Component",
       "Bali::Button::Component",
       "Bali::Avatar::Group::Component",
       "Bali::Avatar::Upload::Component",
@@ -1214,9 +1202,7 @@ For codemod tools, use these patterns:
     "removed": [
       "Bali::Card::FooterItem::Component"
     ],
-    "deprecated": [
-      "Bali::Filters::Component"
-    ]
+    "deprecated": []
   }
 }
 ```

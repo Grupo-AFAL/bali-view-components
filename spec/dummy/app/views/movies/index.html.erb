@@ -1,4 +1,4 @@
-<%# Movies Index - Showcases: Breadcrumb, PageHeader, DataTable, AdvancedFilters, Table, Tag, BooleanIcon, ActionsDropdown, Link %>
+<%# Movies Index - Showcases: Breadcrumb, PageHeader, DataTable, Filters, Table, Tag, BooleanIcon, ActionsDropdown, Link %>
 
 <%# Breadcrumb %>
 <%= render Bali::Breadcrumb::Component.new do |breadcrumb| %>
@@ -25,9 +25,9 @@
 ) do |data_table| %>
 
   <%# Advanced Filters Panel with search across name, genre, and studio %>
+  <%# filter_groups is auto-populated from @filter_form.filter_groups %>
   <% data_table.with_filters_panel(
     available_attributes: available_filter_attributes,
-    filter_groups: filter_groups_from_params,
     search: {
       fields: [:name, :genre, :tenant_name],
       value: quick_search_value,

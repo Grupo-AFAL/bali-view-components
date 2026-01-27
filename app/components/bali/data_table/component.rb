@@ -23,19 +23,41 @@ module Bali
         )
       end
 
-      # Filters panel using AdvancedFilters component
-      # @param available_attributes [Array<Hash>] Filterable attributes
-      # @param filter_groups [Array<Hash>] Initial filter state from params (optional)
+      # Filters panel using Filters component.
+      #
+      # When a filter_form is provided to DataTable, filter_groups and available_attributes
+      # are automatically populated from the form, eliminating manual parsing.
+      #
+      # @param available_attributes [Array<Hash>] Filterable attributes (auto-populated from filter_form if not provided)
+      # @param filter_groups [Array<Hash>] Initial filter state (auto-populated from filter_form if not provided)
       # @param search [Hash] Quick search configuration
       #   - :fields [Array<Symbol>] Fields to search (e.g., [:name, :description])
       #   - :value [String] Current search value from URL params
       #   - :placeholder [String] Placeholder text for search input
       # @param apply_mode [Symbol] :batch (default) or :live
       # @param popover [Boolean] Show filters in popover (default: true)
-      renders_one :filters_panel, ->(available_attributes:, **options) do
-        AdvancedFilters::Component.new(
+      #
+      # @example Minimal usage (attributes defined in FilterForm)
+      #   data_table.with_filters_panel(search: { fields: [:name], value: params.dig(:q, :name_cont) })
+      #
+      # @example Full control
+      #   data_table.with_filters_panel(
+      #     available_attributes: [{ key: :name, type: :text }, ...],
+      #     filter_groups: @filter_form.filter_groups,
+      #     search: { ... }
+      #   )
+      renders_one :filters_panel, ->(available_attributes: nil, **options) do
+        # Auto-populate from filter_form if not explicitly provided
+        resolved_attributes = available_attributes || @filter_form&.available_attributes || []
+
+        # Auto-populate filter_groups from filter_form unless explicitly provided
+        unless options.key?(:filter_groups)
+          options[:filter_groups] = @filter_form&.filter_groups if @filter_form&.respond_to?(:filter_groups)
+        end
+
+        Filters::Component.new(
           url: @url,
-          available_attributes: available_attributes,
+          available_attributes: resolved_attributes,
           **options
         )
       end

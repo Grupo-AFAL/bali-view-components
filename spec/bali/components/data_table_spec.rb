@@ -21,7 +21,7 @@ RSpec.describe Bali::DataTable::Component, type: :component do
     end
 
     expect(page).to have_css 'div.data-table-component'
-    expect(page).to have_css 'div.advanced-filters'
+    expect(page).to have_css 'div.filters'
     expect(page).to have_css 'div.table-component'
   end
 
@@ -35,7 +35,7 @@ RSpec.describe Bali::DataTable::Component, type: :component do
     end
 
     expect(page).to have_css 'div.data-table-component'
-    expect(page).to have_css 'div.advanced-filters'
+    expect(page).to have_css 'div.filters'
     expect(page).to have_css 'div.table-component'
     expect(page).to have_css 'p', text: 'Summary'
   end
@@ -46,7 +46,7 @@ RSpec.describe Bali::DataTable::Component, type: :component do
     end
 
     expect(page).to have_css 'div.data-table-component'
-    expect(page).not_to have_css 'div.advanced-filters'
+    expect(page).not_to have_css 'div.filters'
     expect(page).to have_css 'div.table-component'
   end
 
