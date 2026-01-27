@@ -83,10 +83,16 @@ module Bali
       end
 
       def menu_classes
-        class_names(
-          'dropdown-content menu bg-base-100 text-neutral-800 rounded-box z-1 p-2 shadow-sm',
-          WIDTHS[@width]
-        )
+        if @popover
+          # Popover mode: tippy-box provides bg/shadow/rounded, menu just needs layout
+          class_names('menu p-2 text-neutral-800', WIDTHS[@width])
+        else
+          # CSS dropdown: menu needs all styling
+          class_names(
+            'dropdown-content menu bg-base-100 text-neutral-800 rounded-box z-1 p-2 shadow-sm',
+            WIDTHS[@width]
+          )
+        end
       end
     end
   end

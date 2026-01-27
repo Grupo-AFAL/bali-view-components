@@ -14,7 +14,7 @@
     @apply relative bg-base-100 text-base-content rounded-box;
     @apply whitespace-normal outline-none;
     @apply text-sm tracking-normal normal-case;
-    @apply shadow-md;
+    @apply shadow-sm;
     line-height: 1.4;
     transition-property: transform, visibility, opacity;
 
