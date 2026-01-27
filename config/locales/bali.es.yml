@@ -1,5 +1,88 @@
 es:
   bali:
+    filters:
+      # UI Labels
+      title: "Filtros Avanzados"
+      where: "Donde"
+      filters_button: "Filtros"
+      search_placeholder: "Buscar..."
+      select_field: "Seleccionar campo..."
+      select_value: "Seleccionar..."
+      select_values: "Seleccionar valores..."
+      enter_value: "Ingrese valor..."
+      remove_condition: "Eliminar condición"
+      remove_filter: "Eliminar filtro"
+      add_condition: "Agregar condición"
+      add_group: "Agregar grupo de filtros"
+      clear_all: "Limpiar todo"
+      apply: "Aplicar"
+      reset: "Restablecer"
+      active_filters: "Filtros activos:"
+
+      # Date/time placeholders
+      select_date: "Seleccionar fecha..."
+      select_datetime: "Seleccionar fecha y hora..."
+      select_date_range: "Seleccionar rango de fechas..."
+      select_datetime_range: "Seleccionar rango de fecha y hora..."
+
+      # Boolean values
+      any: "Cualquiera"
+      "yes": "Sí"
+      "no": "No"
+
+      # Group combinators
+      combinators:
+        and: "Y"
+        or: "O"
+
+      # Selected count for multi-select
+      selected_count: "%{count} seleccionados"
+
+      # Placeholders (nested structure for JavaScript controller)
+      placeholders:
+        enter_value: "Ingrese valor..."
+        number: "0"
+        select_date: "Seleccionar fecha..."
+        select_datetime: "Seleccionar fecha y hora..."
+        select_date_range: "Seleccionar rango de fechas..."
+        select_datetime_range: "Seleccionar rango de fecha y hora..."
+        select: "Seleccionar..."
+        select_values: "Seleccionar valores..."
+
+      # Boolean (nested structure for JavaScript controller)
+      boolean:
+        any: "Cualquiera"
+        "yes": "Sí"
+        "no": "No"
+
+      # Operators
+      operators:
+        # Text operators
+        contains: "contiene"
+        equals: "es exactamente"
+        starts_with: "comienza con"
+        ends_with: "termina con"
+        not_contains: "no contiene"
+        not_equals: "no es"
+        # Date/time operators
+        "on": "es"
+        between: "entre"
+        after: "después de"
+        before: "antes de"
+        on_or_after: "en o después de"
+        on_or_before: "en o antes de"
+        # Select operators
+        is: "es"
+        is_not: "no es"
+        is_any_of: "es cualquiera de"
+        is_not_any_of: "no es ninguno de"
+        # Number operators
+        greater_than: "mayor que"
+        less_than: "menor que"
+        greater_than_or_equal: "mayor o igual que"
+        less_than_or_equal: "menor o igual que"
+
+    # Legacy - keep for backwards compatibility
     advanced_filters:
       # UI Labels (used in ERB templates)
       where: "Donde"
