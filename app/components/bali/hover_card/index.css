@@ -11,14 +11,12 @@
   }
 
   .tippy-box {
-    @apply relative bg-base-100 text-base-content rounded;
+    @apply relative bg-base-100 text-base-content rounded-box;
     @apply whitespace-normal outline-none;
     @apply text-sm tracking-normal normal-case;
+    @apply shadow-md;
     line-height: 1.4;
     transition-property: transform, visibility, opacity;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-      0 2px 4px -2px rgba(0, 0, 0, 0.1),
-      0 0 0 1px rgba(0, 0, 0, 0.05);
 
     &[data-animation='fade'][data-state='hidden'] {
       @apply opacity-0;
