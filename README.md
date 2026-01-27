@@ -246,7 +246,7 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 | Controller | Description |
 |------------|-------------|
-| Filters | Advanced filtering UI with Ransack integration |
+| Filters | Filtering UI with Ransack integration |
 | AutoPlay | Auto-play audio on page load |
 | AutocompleteAddress | Google Places API autocomplete |
 | CheckboxToggle | Toggle element visibility with checkbox |

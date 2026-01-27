@@ -8,7 +8,7 @@ module Bali
       # @param apply_mode select { choices: [batch, live] } "Batch applies on submit, live applies immediately"
       # @param combinator select { choices: [and, or] } "How filter groups are combined"
       # @param max_groups number "Maximum number of filter groups"
-      # Basic advanced filters with common attribute types.
+      # Basic filters with common attribute types.
       # Supports text, number, date, boolean, and select fields.
       def default(popover: true, apply_mode: :batch, combinator: :and, max_groups: 10)
         render Filters::Component.new(

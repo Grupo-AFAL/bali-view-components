@@ -13,11 +13,11 @@ en:
     generic_confirm_message:
       text: Are you sure?
   bali:
-    advanced_filters:
+    filters:
       # Button and UI labels
       filters_button: Filters
       search_placeholder: Search...
-      title: Advanced Filters
+      title: Filters
       select_field: Select field...
       clear_all: Clear all
       add_group: Add filter group

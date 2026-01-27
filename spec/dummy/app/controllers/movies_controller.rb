@@ -85,7 +85,7 @@ class MoviesController < ApplicationController
     params.expect(movie: %i[name genre status tenant_id indie])
   end
 
-  # Define filterable attributes for the advanced filters.
+  # Define filterable attributes for the filters.
   # Dynamic options (genres, studios) are built at runtime from the database.
   # For static options, you can use the filter_attribute DSL in a FilterForm subclass.
   helper_method :available_filter_attributes

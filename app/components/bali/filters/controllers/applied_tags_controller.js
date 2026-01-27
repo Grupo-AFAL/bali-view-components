@@ -17,19 +17,19 @@ export class AppliedTagsController extends Controller {
     const groupIndex = button.dataset.groupIndex
     const conditionIndex = button.dataset.conditionIndex
 
-    // Find the advanced filters component and remove the condition
-    const advancedFiltersElement = document.querySelector(
+    // Find the filters component and remove the condition
+    const filtersElement = document.querySelector(
       '[data-controller~="filters"]'
     )
 
-    if (advancedFiltersElement) {
-      const advancedFiltersController = this.application.getControllerForElementAndIdentifier(
-        advancedFiltersElement,
+    if (filtersElement) {
+      const filtersController = this.application.getControllerForElementAndIdentifier(
+        filtersElement,
         'filters'
       )
 
       // Find the specific condition to remove
-      const groups = advancedFiltersElement.querySelectorAll(
+      const groups = filtersElement.querySelectorAll(
         '[data-filters-target="group"]'
       )
       const group = groups[groupIndex]
@@ -49,7 +49,7 @@ export class AppliedTagsController extends Controller {
           filterGroupController.removeCondition(condition)
 
           // Resubmit the form
-          advancedFiltersController?.apply(event)
+          filtersController?.apply(event)
         }
       }
     }

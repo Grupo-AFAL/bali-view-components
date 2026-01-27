@@ -2,7 +2,7 @@ en:
   bali:
     filters:
       # UI Labels
-      title: "Advanced Filters"
+      title: "Filters"
       where: "Where"
       filters_button: "Filters"
       search_placeholder: "Search..."
@@ -81,82 +81,6 @@ en:
         less_than: "less than"
         greater_than_or_equal: "greater than or equal"
         less_than_or_equal: "less than or equal"
-
-    # Legacy - keep for backwards compatibility
-    advanced_filters:
-      # UI Labels (used in ERB templates)
-      where: "Where"
-      filters_button: "Filters"
-      search_placeholder: "Search..."
-      select_field: "Select field..."
-      select_value: "Select..."
-      select_values: "Select values..."
-      enter_value: "Enter value..."
-      remove_condition: "Remove condition"
-      add_condition: "Add condition"
-      add_group: "Add filter group"
-      clear_all: "Clear all"
-      apply: "Apply"
-
-      # Date/time placeholders (used in ERB templates)
-      select_date: "Select date..."
-      select_datetime: "Select date & time..."
-      select_date_range: "Select date range..."
-      select_datetime_range: "Select date & time range..."
-
-      # Boolean values (used in ERB templates)
-      any: "Any"
-      yes: "Yes"
-      no: "No"
-
-      # Group combinators
-      combinators:
-        and: "AND"
-        or: "OR"
-
-      # Selected count for multi-select
-      selected_count: "%{count} selected"
-
-      # Placeholders (nested structure for JavaScript controller)
-      placeholders:
-        enter_value: "Enter value..."
-        number: "0"
-        select_date: "Select date..."
-        select_datetime: "Select date & time..."
-        select_date_range: "Select date range..."
-        select_datetime_range: "Select date & time range..."
-        select: "Select..."
-        select_values: "Select values..."
-
-      # Boolean (nested structure for JavaScript controller)
-      # Note: "yes" and "no" must be quoted - YAML interprets them as booleans otherwise
-      boolean:
-        any: "Any"
-        "yes": "Yes"
-        "no": "No"
-
-      # Operators
-      operators:
-        # Text operators
-        contains: "contains"
-        equals: "is exactly"
-        starts_with: "starts with"
-        ends_with: "ends with"
-        not_contains: "does not contain"
-        not_equals: "is not"
-        # Date/time operators
-        # Note: "on" must be quoted - YAML interprets it as boolean otherwise
-        "on": "is"
-        between: "between"
-        after: "after"
-        before: "before"
-        on_or_after: "on or after"
-        on_or_before: "on or before"
-        # Select operators
-        is: "is"
-        is_not: "is not"
-        is_any_of: "is any of"
-        is_not_any_of: "is not any of"
 
     # File input
     file_input:

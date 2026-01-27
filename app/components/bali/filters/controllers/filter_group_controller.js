@@ -65,10 +65,10 @@ export class FilterGroupController extends Controller {
 
     if (isLastCondition) {
       // Get the parent filters controller
-      const advancedFiltersElement = this.element.closest('[data-controller~="filters"]')
-      if (advancedFiltersElement) {
+      const filtersElement = this.element.closest('[data-controller~="filters"]')
+      if (filtersElement) {
         const controller = this.application.getControllerForElementAndIdentifier(
-          advancedFiltersElement,
+          filtersElement,
           'filters'
         )
 
@@ -121,10 +121,10 @@ export class FilterGroupController extends Controller {
     event.preventDefault()
 
     // Find the parent filters controller and call removeGroup
-    const advancedFiltersElement = this.element.closest('[data-controller~="filters"]')
-    if (advancedFiltersElement) {
+    const filtersElement = this.element.closest('[data-controller~="filters"]')
+    if (filtersElement) {
       const controller = this.application.getControllerForElementAndIdentifier(
-        advancedFiltersElement,
+        filtersElement,
         'filters'
       )
       controller?.removeGroup(this.element)

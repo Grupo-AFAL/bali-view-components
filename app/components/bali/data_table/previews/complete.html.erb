@@ -1,6 +1,6 @@
 <%# Complete DataTable example with filters, sorting, pagination, and toolbar %>
 <%= render Bali::DataTable::Component.new(url: request.path, pagy: pagy, item_name: 'movies') do |c| %>
-  <%# Advanced Filters with search %>
+  <%# Filters with search %>
   <% c.with_filters_panel(
        available_attributes: filter_attributes,
        search: {

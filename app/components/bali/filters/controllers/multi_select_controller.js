@@ -1,7 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 
 /**
- * Controller for multi-select dropdown in advanced filters.
+ * Controller for multi-select dropdown in filters.
  * Uses custom dropdown with checkboxes for consistent styling.
  */
 export class MultiSelectController extends Controller {

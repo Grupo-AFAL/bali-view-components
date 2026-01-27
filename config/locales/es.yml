@@ -13,11 +13,11 @@ es:
     generic_confirm_message:
       text: '¿Estas seguro(a)?'
   bali:
-    advanced_filters:
+    filters:
       # Button and UI labels
       filters_button: Filtros
       search_placeholder: Buscar...
-      title: Filtros Avanzados
+      title: Filtros
       select_field: Seleccionar campo...
       clear_all: Limpiar todo
       add_group: Agregar grupo de filtros
