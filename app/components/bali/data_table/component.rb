@@ -28,9 +28,12 @@ module Bali
       # When a filter_form is provided to DataTable, everything is automatically
       # populated from the form: available_attributes, filter_groups, and search config.
       #
-      # @param available_attributes [Array<Hash>] Filterable attributes (auto-populated from filter_form if not provided)
-      # @param filter_groups [Array<Hash>] Initial filter state (auto-populated from filter_form if not provided)
-      # @param search [Hash] Quick search configuration (auto-populated from filter_form if not provided)
+      # @param available_attributes [Array<Hash>] Filterable attributes
+      #   (auto-populated from filter_form if not provided)
+      # @param filter_groups [Array<Hash>] Initial filter state
+      #   (auto-populated from filter_form if not provided)
+      # @param search [Hash] Quick search configuration
+      #   (auto-populated from filter_form if not provided)
       #   - :fields [Array<Symbol>] Fields to search (e.g., [:name, :description])
       #   - :value [String] Current search value from URL params
       #   - :placeholder [String] Placeholder text for search input
@@ -54,8 +57,8 @@ module Bali
         resolved_attributes = available_attributes || @filter_form&.available_attributes || []
 
         # Auto-populate filter_groups from filter_form unless explicitly provided
-        unless options.key?(:filter_groups)
-          options[:filter_groups] = @filter_form&.filter_groups if @filter_form&.respond_to?(:filter_groups)
+        if !options.key?(:filter_groups) && @filter_form.respond_to?(:filter_groups)
+          options[:filter_groups] = @filter_form&.filter_groups
         end
 
         # Auto-populate search config from filter_form, merging with explicit overrides

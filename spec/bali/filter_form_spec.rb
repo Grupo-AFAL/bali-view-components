@@ -306,12 +306,12 @@ RSpec.describe Bali::FilterForm do
 
   describe '.search_fields DSL' do
     it 'stores search fields defined in the class' do
-      expect(SearchableMovieFilterForm.defined_search_fields).to eq([:name, :genre, :tenant_name])
+      expect(SearchableMovieFilterForm.defined_search_fields).to eq(%i[name genre tenant_name])
     end
 
     it 'returns search fields via instance method' do
       form = SearchableMovieFilterForm.new(Movie.all, params({}))
-      expect(form.search_fields).to eq([:name, :genre, :tenant_name])
+      expect(form.search_fields).to eq(%i[name genre tenant_name])
     end
 
     it 'returns empty array for forms without search_fields' do
@@ -363,7 +363,7 @@ RSpec.describe Bali::FilterForm do
       form = SearchableMovieFilterForm.new(Movie.all, params(filter_params))
 
       config = form.search_config
-      expect(config[:fields]).to eq([:name, :genre, :tenant_name])
+      expect(config[:fields]).to eq(%i[name genre tenant_name])
       expect(config[:value]).to eq('Iron')
       expect(config[:placeholder]).to eq('Search...')
     end
@@ -376,22 +376,22 @@ RSpec.describe Bali::FilterForm do
 
   describe 'search_fields via initialize parameter' do
     it 'accepts search_fields as initialize parameter' do
-      form = Bali::FilterForm.new(Movie.all, params({}), search_fields: [:name, :description])
-      expect(form.search_fields).to eq([:name, :description])
+      form = Bali::FilterForm.new(Movie.all, params({}), search_fields: %i[name description])
+      expect(form.search_fields).to eq(%i[name description])
       expect(form.search_field_name).to eq('name_or_description_cont')
     end
 
     it 'extracts search value with dynamic search_fields' do
       filter_params = { name_or_description_cont: 'Test' }
-      form = Bali::FilterForm.new(Movie.all, params(filter_params), search_fields: [:name, :description])
+      form = Bali::FilterForm.new(Movie.all, params(filter_params), search_fields: %i[name description])
       expect(form.search_value).to eq('Test')
     end
 
     it 'prefers instance search_fields over class DSL' do
       filter_params = { name_or_email_cont: 'test@example.com' }
-      form = SearchableMovieFilterForm.new(Movie.all, params(filter_params), search_fields: [:name, :email])
+      form = SearchableMovieFilterForm.new(Movie.all, params(filter_params), search_fields: %i[name email])
 
-      expect(form.search_fields).to eq([:name, :email])
+      expect(form.search_fields).to eq(%i[name email])
       expect(form.search_value).to eq('test@example.com')
     end
   end
@@ -412,7 +412,7 @@ RSpec.describe Bali::FilterForm do
       tenant.movies.create(name: 'Snatch', genre: 'Comedy')
 
       filter_params = { name_or_genre_cont: 'Iron' }
-      form = Bali::FilterForm.new(Movie.all, params(filter_params), search_fields: [:name, :genre])
+      form = Bali::FilterForm.new(Movie.all, params(filter_params), search_fields: %i[name genre])
 
       results = form.result
       expect(results.pluck(:name)).to include('Iron Man')

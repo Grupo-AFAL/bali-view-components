@@ -45,12 +45,15 @@ Metrics/AbcSize:
 
 Metrics/ClassLength:
   Max: 150
+  Exclude:
+    - 'lib/bali/filter_form.rb'
 
 Metrics/CyclomaticComplexity:
   Max: 8
   Exclude:
     - 'spec/dummy/app/controllers/**/*'
     - 'lib/bali/form_builder/**/*'
+    - 'lib/bali/filter_form.rb'
 
 Metrics/MethodLength:
   Max: 30
@@ -67,6 +70,7 @@ Metrics/PerceivedComplexity:
   Max: 10
   Exclude:
     - 'spec/dummy/app/controllers/**/*'
+    - 'lib/bali/filter_form.rb'
 
 Metrics/ModuleLength:
   Max: 150

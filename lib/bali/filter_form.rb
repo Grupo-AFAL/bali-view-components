@@ -70,14 +70,16 @@ module Bali
       # Define a filterable attribute for the Filters component.
       # This is used to generate the filter UI and provide labels/options.
       #
-      # @param key [Symbol] The attribute key (column name or Ransack association path)
-      # @param type [Symbol] The attribute type (:text, :number, :date, :datetime, :select, :boolean)
+      # @param key [Symbol] Attribute key (column name or Ransack association path)
+      # @param type [Symbol] Attribute type: :text, :number, :date, :datetime,
+      #   :select, :boolean
       # @param label [String] Human-readable label (defaults to humanized key)
       # @param options [Array] For select types, array of [label, value] pairs
       #
       # @example
       #   filter_attribute :name, type: :text
-      #   filter_attribute :status, type: :select, options: [['Active', 'active'], ['Inactive', 'inactive']]
+      #   filter_attribute :status, type: :select,
+      #     options: [['Active', 'active'], ['Inactive', 'inactive']]
       #   filter_attribute :created_at, type: :date, label: 'Created Date'
       def filter_attribute(key, type: :text, label: nil, options: [])
         filter_attributes << {
@@ -102,7 +104,8 @@ module Bali
     # @param context [String] Optional context for cache key namespacing
     # @param search_fields [Array<Symbol>] Fields for quick text search (alternative to DSL)
     # @param search_placeholder [String] Placeholder text for search input
-    def initialize(scope, params = {}, storage_id: nil, context: nil, search_fields: nil, search_placeholder: nil)
+    def initialize(scope, params = {}, storage_id: nil, context: nil, search_fields: nil,
+                   search_placeholder: nil)
       @scope = scope
       @storage_id = storage_id
       @context = context
@@ -213,9 +216,7 @@ module Bali
     # Get the current search value from params
     #
     # @return [String, nil]
-    def search_value
-      @search_value
-    end
+    attr_reader :search_value
 
     # Get the placeholder text for search input
     #
@@ -231,7 +232,7 @@ module Bali
     def search_field_name
       return nil unless search_enabled?
 
-      search_fields.map(&:to_s).join('_or_') + '_cont'
+      "#{search_fields.map(&:to_s).join('_or_')}_cont"
     end
 
     # Get the full configuration hash for Filters component.
@@ -342,9 +343,7 @@ module Bali
       params[:m] = @combinator if @combinator.present?
 
       # Add quick search parameter
-      if search_enabled? && @search_value.present?
-        params[search_field_name] = @search_value
-      end
+      params[search_field_name] = @search_value if search_enabled? && @search_value.present?
 
       params
     end

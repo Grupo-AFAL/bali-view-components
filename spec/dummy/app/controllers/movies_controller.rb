@@ -11,7 +11,7 @@ class MoviesController < ApplicationController
     @filter_form = Bali::FilterForm.new(
       Movie.all,
       params,
-      search_fields: [:name, :genre, :tenant_name]
+      search_fields: %i[name genre tenant_name]
     )
 
     # Use Pagy for pagination on the filtered/sorted results
