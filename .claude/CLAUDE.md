@@ -610,6 +610,94 @@ end
 <% end %>
 ```
 
+## FilterForm + DataTable + Filters Integration
+
+The `Bali::FilterForm`, `Bali::DataTable`, and `Bali::Filters` components work together to provide a complete data filtering solution with minimal configuration.
+
+### Quick Search with `search_fields`
+
+Configure quick text search across multiple columns:
+
+```ruby
+# Controller
+@filter_form = Bali::FilterForm.new(
+  Movie.all,
+  params,
+  search_fields: [:name, :genre, :tenant_name]  # Searches across these columns
+)
+@pagy, @movies = pagy(@filter_form.result)
+
+# View - search auto-configured from filter_form
+<%= render Bali::DataTable::Component.new(
+  filter_form: @filter_form,
+  url: movies_path,
+  pagy: @pagy
+) do |dt| %>
+  <% dt.with_filters_panel(
+    available_attributes: available_filter_attributes,
+    search: { placeholder: 'Search movies...' }  # Only override what you need
+  ) %>
+  <% dt.with_table do %>
+    <%= render Bali::Table::Component.new(form: @filter_form) do |t| %>
+      ...
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+### FilterForm DSL
+
+For reusable filter forms, use the class-level DSL:
+
+```ruby
+class MoviesFilterForm < Bali::FilterForm
+  # Quick search across multiple columns
+  search_fields :name, :genre, :tenant_name
+
+  # Filterable attributes for advanced filters UI
+  filter_attribute :name, type: :text
+  filter_attribute :genre, type: :select, options: [['Action', 'action'], ...]
+  filter_attribute :status, type: :select, label: 'Movie Status'
+  filter_attribute :created_at, type: :date
+  filter_attribute :indie, type: :boolean
+
+  # Standard Ransack attributes
+  attribute :name_cont
+  attribute :genre_eq
+end
+```
+
+### FilterForm Methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `search_fields` | `Array<Symbol>` | Configured search field names |
+| `search_enabled?` | `Boolean` | True if search is configured |
+| `search_value` | `String` | Current search value from params |
+| `search_field_name` | `String` | Ransack field name (e.g., `name_or_genre_cont`) |
+| `search_config` | `Hash` | Full config for Filters component |
+| `available_attributes` | `Array<Hash>` | Filter attributes from DSL |
+| `filter_groups` | `Array<Hash>` | Parsed filter groups from params |
+
+### DataTable Auto-Configuration
+
+When a `filter_form` is provided to DataTable, `with_filters_panel` auto-populates:
+
+- `available_attributes` from `filter_form.available_attributes`
+- `filter_groups` from `filter_form.filter_groups`
+- `search` from `filter_form.search_config`
+
+```erb
+<%# Minimal - everything auto-configured %>
+<% dt.with_filters_panel %>
+
+<%# Override specific options %>
+<% dt.with_filters_panel(
+  available_attributes: custom_attributes,  # Override attributes
+  search: { placeholder: 'Custom...' }      # Merge with auto-config
+) %>
+```
+
 ## Stimulus Controllers
 
 ### Controller Structure
