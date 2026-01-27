@@ -16,6 +16,7 @@ es:
       add_group: "Agregar grupo de filtros"
       clear_all: "Limpiar todo"
       apply: "Aplicar"
+      apply_filters: "Aplicar Filtros"
       reset: "Restablecer"
       active_filters: "Filtros activos:"
 
@@ -66,14 +67,14 @@ es:
         not_equals: "no es"
         # Date/time operators
         "on": "es"
+        is: "es"
+        is_not: "no es"
         between: "entre"
         after: "después de"
         before: "antes de"
         on_or_after: "en o después de"
         on_or_before: "en o antes de"
         # Select operators
-        is: "es"
-        is_not: "no es"
         is_any_of: "es cualquiera de"
         is_not_any_of: "no es ninguno de"
         # Number operators
@@ -100,3 +101,53 @@ es:
     # Breadcrumb
     breadcrumb:
       aria_label: "Navegación de migas de pan"
+
+    # Direct upload
+    direct_upload:
+      drop_zone:
+        title: "Arrastra archivos aquí"
+        or: "o"
+        browse: "Seleccionar archivos"
+        aria_label: "Arrastra archivos aquí o haz clic para seleccionar"
+      file_list:
+        aria_label: "Archivos para subir"
+      file_status:
+        pending: "Esperando..."
+        uploading: "Subiendo..."
+        completed: "Subido"
+        error: "Error"
+      status:
+        uploaded: "Ya subido"
+      errors:
+        too_many_files: "Máximo %{max} archivos permitidos"
+        file_too_large: "El archivo excede el límite de %{max}MB"
+        invalid_type: "Tipo de archivo no aceptado"
+      actions:
+        cancel: "Cancelar"
+        retry: "Reintentar"
+        remove: "Eliminar"
+        dismiss: "Cerrar error"
+        remove_file: "Eliminar %{filename}"
+
+    # Form builder
+    form_builder:
+      file:
+        choose_file: "Seleccionar archivo"
+        no_file_selected: "Ningún archivo seleccionado"
+      search:
+        placeholder: "Buscar..."
+      slim_select:
+        search_placeholder: "Buscar"
+        select_all: "Seleccionar todo"
+        deselect_all: "Deseleccionar todo"
+        no_results: "Sin resultados"
+        searching: "Buscando..."
+
+    # Time periods
+    time_periods:
+      yearly: "Anual"
+      yesterday: "Ayer"
+      last_7_days: "Últimos 7 días"
+      last_30_days: "Últimos 30 días"
+      last_12_weeks: "Últimas 12 semanas"
+      last_12_months: "Últimos 12 meses"
