@@ -38,6 +38,6 @@ firebase-debug.log
 test-results/
 
 firebase-debug.log
-.claude/
+.claude/settings.local.json
 
 .mcp.json

@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(mkdir *)",
+      "Bash(ls *)",
+      "Bash(wc *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(cat *)",
+      "Bash(sed *)",
+      "Bash(cut *)",
+      "Bash(sort *)",
+      "Bash(grep *)",
+      "Bash(echo *)",
+      "Bash(find *)",
+      "Edit",
+      "Write(docs/*)",
+      "Write(CHANGELOG.md)"
+    ]
+  }
+}
