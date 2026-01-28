@@ -6,7 +6,7 @@ module Bali
       include Utils::Url
 
       attr_reader :url, :available_attributes, :apply_mode, :id, :popover, :combinator,
-                  :filter_groups, :max_groups, :storage_id, :persist_enabled
+                  :filter_groups, :max_groups, :storage_id, :persist_enabled, :turbo_stream
 
       # Renders the applied filter pills above the filter builder
       renders_one :applied_tags, ->(**options) do
@@ -34,6 +34,9 @@ module Bali
       #   - :placeholder [String] Placeholder text for search input
       # @param storage_id [String] Optional storage ID indicating filters can be persisted
       # @param persist_enabled [Boolean] Whether user has opted into filter persistence
+      # @param turbo_stream [Boolean] Whether to accept Turbo Stream responses (default: false)
+      #   When true, forms will include data-turbo-stream="true" to accept stream responses.
+      #   The URL is still updated via JavaScript before form submission.
       # rubocop:disable Metrics/ParameterLists
       def initialize(
         url:,
@@ -47,6 +50,7 @@ module Bali
         search: {},
         storage_id: nil,
         persist_enabled: false,
+        turbo_stream: false,
         **options
       )
         @url = url
@@ -60,6 +64,7 @@ module Bali
         @search = search || {}
         @storage_id = storage_id
         @persist_enabled = persist_enabled
+        @turbo_stream = turbo_stream
         @id = options[:id] || "filters-#{SecureRandom.hex(4)}"
       end
       # rubocop:enable Metrics/ParameterLists
