@@ -22,21 +22,11 @@ export default defineConfig({
   ],
   resolve: {
     alias: [
-      // Internal Bali paths - MUST come before 'bali' catch-all (order matters!)
-      { find: 'bali/utils', replacement: resolve(baliGemPath, 'app/assets/javascripts/bali/utils') },
-      { find: 'bali/modal', replacement: resolve(baliGemPath, 'app/components/bali/modal/index.js') },
-      { find: 'bali/gantt-chart/connection-line', replacement: resolve(baliGemPath, 'app/components/bali/gantt_chart/connection_line.js') },
-      { find: 'bali/gantt-chart', replacement: resolve(baliGemPath, 'app/components/bali/gantt_chart') },
-      { find: 'bali/rich_text_editor', replacement: resolve(baliGemPath, 'app/components/bali/rich_text_editor/javascript') },
-      // Optional modules (heavy dependencies)
+      // Main Bali entry points - uses package.json exports
+      { find: 'bali', replacement: resolve(baliGemPath, 'app/frontend/bali') },
       { find: 'bali/charts', replacement: resolve(baliGemPath, 'app/frontend/bali/charts.js') },
       { find: 'bali/gantt', replacement: resolve(baliGemPath, 'app/frontend/bali/gantt.js') },
       { find: 'bali/rich-text-editor', replacement: resolve(baliGemPath, 'app/frontend/bali/rich-text-editor.js') },
-      // Main Bali entry point (must come AFTER more specific paths)
-      { find: 'bali', replacement: resolve(baliGemPath, 'app/frontend/bali') },
-      // Legacy aliases for direct component/controller imports
-      { find: 'bali-components', replacement: resolve(baliGemPath, 'app/components/bali') },
-      { find: 'bali-controllers', replacement: resolve(baliGemPath, 'app/assets/javascripts/bali/controllers') },
       // Explicit npm package aliases (needed for imports from gem path)
       { find: 'tippy.js', replacement: resolve(__dirname, 'node_modules/tippy.js') },
       { find: 'sortablejs', replacement: resolve(__dirname, 'node_modules/sortablejs') },

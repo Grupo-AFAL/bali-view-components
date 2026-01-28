@@ -5,7 +5,7 @@
  * Import separately to keep the main bundle lightweight.
  *
  * Usage:
- *   import { ChartController, registerCharts } from 'bali/charts'
+ *   import { ChartController, registerCharts } from 'bali-view-components/charts'
  *   application.register('chart', ChartController)
  *   // OR
  *   registerCharts(application)

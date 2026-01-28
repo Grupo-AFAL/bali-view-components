@@ -257,11 +257,16 @@ export class ConditionController extends Controller {
   }
 
   /**
-   * Initialize Stimulus controllers in dynamically added content
+   * Initialize Stimulus controllers in dynamically added content.
+   *
+   * When HTML is inserted via innerHTML, Stimulus's MutationObserver detects
+   * the new elements and connects controllers automatically. This method is
+   * a placeholder for any additional initialization that may be needed.
    */
   initializeControllers () {
-    // Trigger Stimulus to scan for new controllers
-    // The controllers (datepicker, slim-select) will auto-connect
+    // Stimulus's MutationObserver handles controller connection automatically.
+    // No manual intervention needed - controllers connect when elements are
+    // added to the DOM via innerHTML.
   }
 
   /**

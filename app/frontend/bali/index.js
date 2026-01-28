@@ -1,49 +1,51 @@
 /**
- * Bali ViewComponents - JavaScript Entry Point for Vite
+ * Bali ViewComponents - JavaScript Entry Point
  *
- * This is the main entry point for consuming Bali's JavaScript with Vite.
+ * This is the main entry point for consuming Bali's JavaScript.
  * It provides access to all Stimulus controllers and utilities.
  *
- * ## Package Structure
+ * ## Quick Start
  *
- * Core (lightweight, always needed):
- *   import { DatepickerController, TableController } from 'bali'
+ *   import { registerAll } from 'bali-view-components'
+ *   registerAll(application)
+ *
+ * ## Selective Imports (tree-shaking)
+ *
+ * Core controllers:
+ *   import { DatepickerController, TableController } from 'bali-view-components'
  *
  * Optional modules (import separately to reduce bundle size):
- *   import { ChartController, registerCharts } from 'bali/charts'
- *   import { GanttChartController, registerGantt } from 'bali/gantt'
- *   import { RichTextEditorController } from 'bali/rich-text-editor'  // WARNING: broken
+ *   import { ChartController, registerCharts } from 'bali-view-components/charts'
+ *   import { GanttChartController, registerGantt } from 'bali-view-components/gantt'
+ *   import { RichTextEditorController } from 'bali-view-components/rich-text-editor'
  *
- * ## Setup in consuming app's vite.config.mts:
+ * ## Setup in consuming app
  *
- *   import { resolve, dirname } from 'path'
- *   import { fileURLToPath } from 'url'
+ * No bundler configuration needed. Just install the package and import.
  *
- *   const __dirname = dirname(fileURLToPath(import.meta.url))
- *   const baliGemPath = resolve(__dirname, 'vendor/bundle/ruby/3.x.x/gems/bali_view_components-x.x.x')
- *   // Or dynamically: execSync('bundle show bali_view_components').toString().trim()
+ * ### esbuild (Rails default)
  *
- *   export default defineConfig({
- *     resolve: {
- *       alias: {
- *         'bali': resolve(baliGemPath, 'app/frontend/bali')
- *       }
- *     },
- *     server: {
- *       fs: { allow: ['.', baliGemPath] }
- *     }
- *   })
+ *   // application.js
+ *   import { Application } from '@hotwired/stimulus'
+ *   import { registerAll } from 'bali-view-components'
+ *
+ *   const application = Application.start()
+ *   registerAll(application)
+ *
+ * ### Vite
+ *
+ *   // Same imports work with Vite. May need fs.allow for gem path:
+ *   server: { fs: { allow: ['.', baliGemPath] } }
  *
  * ## Usage in application.js:
  *
  *   // Register all core controllers at once
- *   import { registerAllControllers, registerAllComponents } from 'bali'
- *   registerAllControllers(application)
- *   registerAllComponents(application)
+ *   import { registerAll } from 'bali-view-components'
+ *   registerAll(application)
  *
  *   // Add optional modules as needed
- *   import { registerCharts } from 'bali/charts'
- *   import { registerGantt } from 'bali/gantt'
+ *   import { registerCharts } from 'bali-view-components/charts'
+ *   import { registerGantt } from 'bali-view-components/gantt'
  *   registerCharts(application)
  *   registerGantt(application)
  */
@@ -121,9 +123,9 @@ export * from './utils/index'
  * Register ALL core Bali controllers (utility + component controllers)
  *
  * NOTE: Heavy/optional modules are NOT included. Import them separately:
- *   - import { registerCharts } from 'bali/charts'
- *   - import { registerGantt } from 'bali/gantt'
- *   - import { registerRichTextEditor } from 'bali/rich-text-editor'
+ *   - import { registerCharts } from 'bali-view-components/charts'
+ *   - import { registerGantt } from 'bali-view-components/gantt'
+ *   - import { registerRichTextEditor } from 'bali-view-components/rich-text-editor'
  *
  * @param {Application} application - Stimulus application instance
  */

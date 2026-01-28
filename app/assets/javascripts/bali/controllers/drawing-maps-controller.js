@@ -14,7 +14,7 @@ export class DrawingMapsController extends Controller {
   }
 
   async connect () {
-    const { default: GoogleMapsLoader } = await import('bali/utils/google-maps-loader')
+    const { default: GoogleMapsLoader } = await import('../utils/google-maps-loader.js')
 
     this.drawnPolygons = []
 

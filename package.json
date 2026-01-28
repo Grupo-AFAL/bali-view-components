@@ -7,6 +7,13 @@
   "license": "MIT",
   "private": false,
   "exports": {
+    ".": "./app/frontend/bali/index.js",
+    "./charts": "./app/frontend/bali/charts.js",
+    "./gantt": "./app/frontend/bali/gantt.js",
+    "./rich-text-editor": "./app/frontend/bali/rich-text-editor.js",
+    "./controllers": "./app/frontend/bali/controllers/index.js",
+    "./components": "./app/frontend/bali/components/index.js",
+    "./utils": "./app/frontend/bali/utils/index.js",
     "./css/bali.css": "./app/assets/stylesheets/bali.css",
     "./css/components.css": "./app/assets/stylesheets/bali/components.css",
     "./css/*.css": "./app/assets/stylesheets/bali/*.css"
