@@ -75,7 +75,7 @@ module Bali
           COLORS[@color],
           SIZES[@size],
           style_class,
-          @rounded && 'rounded-xl',
+          @rounded && 'rounded-full',
           @options[:class]
         )
       end
