@@ -147,6 +147,7 @@ en:
         deselect_all: "Deselect all"
         no_results: "No results"
         searching: "Searching..."
+        results: "Results"
 
     # Time periods
     time_periods:
