@@ -33,13 +33,13 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <%# Feature 1: Advanced Filters %>
+      <%# Feature 1: Filters %>
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <div class="card-body text-center">
           <div class="mx-auto p-4 bg-primary/10 rounded-full w-fit mb-4">
             <%= render Bali::Icon::Component.new('filter', size: :large, class: 'text-primary') %>
           </div>
-          <h3 class="card-title justify-center">Advanced Filters</h3>
+          <h3 class="card-title justify-center">Filters</h3>
           <p class="text-base-content/60">Build complex queries with our intuitive filter builder. Search by genre, status, studio, and more.</p>
         </div>
       <% end %>

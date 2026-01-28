@@ -38,12 +38,26 @@ module Bali
         xl: 'w-80'
       }.freeze
 
-      def initialize(align: :start, direction: nil, icon: 'ellipsis-h', width: :md, **options)
+      # @param popover [Boolean] Use Tippy.js popover instead of CSS dropdown.
+      #   Enables menu to escape overflow containers (e.g., tables with overflow-x-auto).
+      def initialize(align: :start, direction: nil, icon: 'ellipsis-h', width: :md, popover: false,
+                     **options)
         @align = align&.to_sym
         @direction = direction&.to_sym
         @icon = icon
         @width = width&.to_sym
+        @popover = popover
         @options = prepend_class_name(options, dropdown_classes)
+      end
+
+      def popover?
+        @popover
+      end
+
+      def tippy_placement
+        vertical = @direction == :top ? 'top' : 'bottom'
+        horizontal = @align == :end ? 'end' : 'start'
+        "#{vertical}-#{horizontal}"
       end
 
       def render?
@@ -69,10 +83,16 @@ module Bali
       end
 
       def menu_classes
-        class_names(
-          'dropdown-content menu bg-base-100 text-neutral-800 rounded-box z-1 p-2 shadow-sm',
-          WIDTHS[@width]
-        )
+        if @popover
+          # Popover mode: tippy-box provides bg/shadow/rounded, menu just needs layout
+          class_names('menu p-2 text-neutral-800', WIDTHS[@width])
+        else
+          # CSS dropdown: menu needs all styling
+          class_names(
+            'dropdown-content menu bg-base-100 text-neutral-800 rounded-box z-1 p-2 shadow-sm',
+            WIDTHS[@width]
+          )
+        end
       end
     end
   end

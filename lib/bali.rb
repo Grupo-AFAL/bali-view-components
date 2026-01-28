@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'bali/filter_form'
-require 'bali/advanced_filter_form'
 require 'bali/form_builder/html_utils'
 require 'bali/form_builder/shared_utils'
 require 'bali/form_builder/shared_date_utils'

@@ -215,7 +215,7 @@ We are migrating all components from Bulma CSS to Tailwind + DaisyUI. This is a 
 ### Migration Status
 
 Migration is in progress. Current status:
-- **3 Fully Verified**: ActionsDropdown, AdvancedFilters (new), Columns
+- **3 Fully Verified**: ActionsDropdown, Filters, Columns
 - **21 Partially Migrated**: Most core components have initial DaisyUI migration
 - **34 Pending Verification**: Need visual/functional verification
 
@@ -610,6 +610,119 @@ end
 <% end %>
 ```
 
+## FilterForm + DataTable + Filters Integration
+
+The `Bali::FilterForm`, `Bali::DataTable`, and `Bali::Filters` components work together to provide a complete data filtering solution with minimal configuration.
+
+### Quick Search with `search_fields`
+
+Configure quick text search across multiple columns:
+
+```ruby
+# Controller
+@filter_form = Bali::FilterForm.new(
+  Movie.all,
+  params,
+  search_fields: [:name, :genre, :tenant_name]  # Searches across these columns
+)
+@pagy, @movies = pagy(@filter_form.result)
+
+# View - search auto-configured from filter_form
+<%= render Bali::DataTable::Component.new(
+  filter_form: @filter_form,
+  url: movies_path,
+  pagy: @pagy
+) do |dt| %>
+  <% dt.with_filters_panel(
+    available_attributes: available_filter_attributes,
+    search: { placeholder: 'Search movies...' }  # Only override what you need
+  ) %>
+  <% dt.with_table do %>
+    <%= render Bali::Table::Component.new(form: @filter_form) do |t| %>
+      ...
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+### FilterForm DSL
+
+For reusable filter forms, use the class-level DSL:
+
+```ruby
+class MoviesFilterForm < Bali::FilterForm
+  # Quick search across multiple columns
+  search_fields :name, :genre, :tenant_name
+
+  # Filterable attributes for advanced filters UI
+  filter_attribute :name, type: :text
+  filter_attribute :genre, type: :select, options: [['Action', 'action'], ...]
+  filter_attribute :status, type: :select, label: 'Movie Status'
+  filter_attribute :created_at, type: :date
+  filter_attribute :indie, type: :boolean
+
+  # Standard Ransack attributes
+  attribute :name_cont
+  attribute :genre_eq
+end
+```
+
+### FilterForm Architecture
+
+FilterForm is organized into focused concerns for maintainability:
+
+| Concern | File | Responsibility |
+|---------|------|----------------|
+| `SearchConfiguration` | `lib/bali/filter_form/search_configuration.rb` | Search DSL and methods |
+| `FilterGroupParser` | `lib/bali/filter_form/filter_group_parser.rb` | Ransack grouping parsing |
+
+### FilterForm Methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `search_fields` | `Array<Symbol>` | Configured search field names |
+| `search_enabled?` | `Boolean` | True if search is configured |
+| `search_value` | `String` | Current search value from params |
+| `search_field_name` | `String` | Ransack field name (e.g., `name_or_genre_cont`) |
+| `search_config` | `Hash` | Full config for Filters component |
+| `available_attributes` | `Array<Hash>` | Filter attributes from DSL |
+| `filter_groups` | `Array<Hash>` | Parsed filter groups from params |
+| `combinator` | `String` | Top-level combinator ('and' or 'or') |
+| `active_filter_details` | `Array<Hash>` | Detailed info about active filters |
+
+### FilterForm Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `scope` | `ActiveRecord::Relation` | Required | Base scope to filter |
+| `params` | `Hash` | `{}` | Request params containing `q[...]` |
+| `storage_id` | `String` | `nil` | Cache key for filter persistence |
+| `context` | `String` | `nil` | Context for cache key namespacing |
+| `search_fields` | `Array<Symbol>` | `nil` | Fields for quick text search |
+| `search_placeholder` | `String` | `nil` | Placeholder text for search input |
+| `persist_enabled` | `Boolean` | `false` | Whether to restore persisted filters |
+| `clear_filters` | `Boolean` | `false` | Clear all persisted filters (via params) |
+| `clear_search` | `Boolean` | `false` | Clear only persisted search (via params) |
+
+### DataTable Auto-Configuration
+
+When a `filter_form` is provided to DataTable, `with_filters_panel` auto-populates:
+
+- `available_attributes` from `filter_form.available_attributes`
+- `filter_groups` from `filter_form.filter_groups`
+- `search` from `filter_form.search_config`
+
+```erb
+<%# Minimal - everything auto-configured %>
+<% dt.with_filters_panel %>
+
+<%# Override specific options %>
+<% dt.with_filters_panel(
+  available_attributes: custom_attributes,  # Override attributes
+  search: { placeholder: 'Custom...' }      # Merge with auto-config
+) %>
+```
+
 ## Stimulus Controllers
 
 ### Controller Structure
@@ -880,14 +993,13 @@ When you use `Bali::Icon::Component.new('icon-name')`, the system resolves icons
 | Component | Purpose | DaisyUI Classes | Design System Pattern |
 |-----------|---------|-----------------|----------------------|
 | `Bali::ActionsDropdown` | Action menu | `dropdown menu` | daisyUI dropdown |
-| `Bali::AdvancedFilters` | Complex filter UI | `btn input select dropdown badge join` | Ransack groupings |
 | `Bali::BulkActions` | Bulk actions | Custom | — |
 | `Bali::Button` | Action button | `btn btn-*` | daisyUI button |
 | `Bali::Calendar` | Calendar picker | (Flatpickr) | — |
 | `Bali::Carousel` | Image carousel | `carousel carousel-item` | `nexus/interactions/carousel/` |
 | `Bali::Clipboard` | Copy to clipboard | Custom + Stimulus | `nexus/interactions/clipboard/` |
 | `Bali::DeleteLink` | Delete confirmation | `btn btn-error` | — |
-| `Bali::Filters` | Filter controls (DEPRECATED - use AdvancedFilters) | Custom | — |
+| `Bali::Filters` | Complex filter UI | `btn input select dropdown badge join` | Ransack groupings |
 | `Bali::HoverCard` | Hover popup | Custom | — |
 | `Bali::Link` | Styled link | `link link-*` | daisyUI link |
 | `Bali::Reveal` | Show/hide content | Custom + Stimulus | — |
@@ -927,7 +1039,7 @@ When you use `Bali::Icon::Component.new('icon-name')`, the system resolves icons
 
 | Controller | Purpose | Usage |
 |------------|---------|-------|
-| `AdvancedFilters` | Main filter UI controller | `data-controller="advanced-filters"` |
+| `Filters` | Main filter UI controller | `data-controller="filters"` |
 | `AutoPlay` | Auto-play audio | `data-controller="auto-play"` |
 | `AutocompleteAddress` | Google Places autocomplete | `data-controller="autocomplete-address"` |
 | `CheckboxToggle` | Toggle visibility with checkbox | `data-controller="checkbox-toggle"` |

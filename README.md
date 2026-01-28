@@ -43,18 +43,28 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 
 ```css
 @import "tailwindcss";
-@plugin "daisyui" {
-  themes: light --default, dark;
-}
+@plugin "daisyui";
 
-/* Add Bali components to Tailwind scanning */
-@source "../../../node_modules/bali-view-components/app/components/**/*.{erb,rb}";
-@source "../../../node_modules/bali-view-components/lib/bali/**/*.rb";
+/* Scan Bali ViewComponents for Tailwind classes */
+@source "../../../node_modules/bali-view-components/app/**/*.{rb,erb}";
 
 /* Import Bali CSS */
 @import "bali-view-components/css/bali.css";
 @import "bali-view-components/css/components.css";
+
+/* Dark mode support */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+:root {
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+}
 ```
+
+> **Important**: The `@source` directive is required because Bali components define Tailwind classes in Ruby files. Without it, Tailwind won't detect these classes and they won't be included in your CSS build.
 
 ### 4. Use Components
 
@@ -97,7 +107,7 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 `Avatar`, `DataTable`, `Icon`, `List`, `Progress`, `Table`, `Tag`, `Timeline`, `TreeView`
 
 ### Interactive
-`ActionsDropdown`, `AdvancedFilters`, `Button`, `Carousel`, `Clipboard`, `DeleteLink`, `HoverCard`, `Link`, `Reveal`, `SearchInput`, `SortableList`, `Tooltip`
+`ActionsDropdown`, `Filters`, `Button`, `Carousel`, `Clipboard`, `DeleteLink`, `HoverCard`, `Link`, `Reveal`, `SearchInput`, `SortableList`, `Tooltip`
 
 ### Feedback
 `FlashNotifications`, `Loader`, `Message`, `Notification`
@@ -182,7 +192,7 @@ The gem is available as open source under the terms of the [MIT License](https:/
 | Component | Preview | Docs | Tests |
 |-----------|:-------:|:----:|:-----:|
 | ActionsDropdown | ✓ | ✓ | ✓ |
-| AdvancedFilters | ✓ | ✓ | ✓ |
+| Filters | ✓ | ✓ | ✓ |
 | Avatar | ✓ | ✓ | ✓ |
 | Breadcrumb | ✓ | ✓ | ✓ |
 | BooleanIcon | ✓ | ✓ | ✓ |
@@ -236,7 +246,7 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 | Controller | Description |
 |------------|-------------|
-| AdvancedFilters | Advanced filtering UI with Ransack integration |
+| Filters | Filtering UI with Ransack integration |
 | AutoPlay | Auto-play audio on page load |
 | AutocompleteAddress | Google Places API autocomplete |
 | CheckboxToggle | Toggle element visibility with checkbox |

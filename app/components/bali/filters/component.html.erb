@@ -1,180 +1,281 @@
-<%= form_with(model: form, url: url, method: :get, **@options) do |f| %>
-  <div class="filters-component flex flex-col gap-2 w-full">
-    <%# Main filter bar %>
-    <div class="flex items-center gap-3 flex-wrap">
-      <%# Additional query params %>
-      <% additional_query_params.each do |query_param| %>
-        <%= query_param %>
+<div id="<%= id %>"
+     class="filters"
+     data-controller="filters"
+     data-filters-url-value="<%= url %>"
+     data-filters-attributes-value="<%= attributes_json %>"
+     data-filters-apply-mode-value="<%= apply_mode %>"
+     data-filters-max-groups-value="<%= max_groups %>"
+     data-filters-popover-value="<%= popover %>"
+     data-filters-translations-value="<%= translations_json %>"
+     data-turbo-permanent>
+
+  <% if popover %>
+    <%# Popover mode: search input + trigger button + dropdown %>
+    <div class="flex flex-wrap items-center gap-3">
+      <% if search_enabled? %>
+        <%# Quick search input with clear button %>
+        <%= form_with url: url, method: :get, class: 'contents', data: { turbo_action: 'replace', filters_target: 'searchForm' } do %>
+          <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg">
+            <label class="input input-bordered join-item w-64 flex items-center gap-2">
+              <input type="text"
+                     name="<%= search_field_name %>"
+                     value="<%= search_value %>"
+                     placeholder="<%= search_placeholder %>"
+                     class="grow bg-transparent outline-none"
+                     data-filters-target="searchInput"
+                     data-action="input->filters#toggleSearchClear">
+              <%# Clear button - shown when search has value %>
+              <button type="button"
+                      class="cursor-pointer p-0 w-4 h-4 flex items-center justify-center text-base-content/40 hover:text-base-content/70 <%= 'hidden' if search_value.blank? %>"
+                      data-filters-target="searchClearButton"
+                      data-action="click->filters#clearSearch"
+                      aria-label="<%= t('bali.filters.clear_search', default: 'Clear search') %>">
+                <%= render Bali::Icon::Component.new('x', class: 'w-4 h-4') %>
+              </button>
+            </label>
+            <button type="submit" class="btn btn-primary join-item">
+              <%= render Bali::Icon::Component.new('search', class: 'w-4 h-4') %>
+            </button>
+          </div>
+        <% end %>
       <% end %>
 
-      <%# Search input %>
-      <% if text_field.present? %>
-        <div class="flex-shrink-0">
-          <%= render Bali::SearchInput::Component.new(
-              form: form, field: text_field, auto_submit: auto_submit_search_input,
-              submit: { data: { action: 'filter-form#submit' } }) %>
-        </div>
-      <% end %>
-
-      <%# Filters dropdown %>
-      <% if attributes? || content.present? %>
-        <div class="dropdown dropdown-end" data-controller="popup" data-popup-opened-value="<%= opened %>">
+      <%# Trigger button with persistence indicator %>
+      <div class="flex items-center gap-1">
+        <div class="relative" data-filters-target="dropdown">
           <button type="button"
-                  id="filters-button"
-                  tabindex="0"
-                  class="<%= class_names('btn btn-ghost gap-2', 'btn-active': opened) %>"
-                  data-action="popup#toggle"
-                  data-popup-target="button">
+                  class="btn btn-outline gap-2"
+                  data-action="click->filters#toggleDropdown">
             <%= render Bali::Icon::Component.new('filter', class: 'w-4 h-4') %>
-            <span class="hidden sm:inline"><%= t('.filters') %></span>
-            <% if active_filters_count > 0 %>
-              <span class="badge badge-primary badge-sm"
-                    data-filter-form-target="filterCounter">
-                <%= active_filters_count %>
-              </span>
-            <% else %>
-              <span class="badge badge-sm hidden"
-                    data-filter-form-target="filterCounter"></span>
+            <%= button_text %>
+            <% if active_filters? %>
+              <span class="badge badge-primary badge-sm"><%= active_filter_count %></span>
             <% end %>
           </button>
 
-          <%= hidden_field_tag :opened, opened, data: { 'popup-target': 'openedInput' } %>
+        <%# Dropdown content - hidden by default, shown via JS %>
+        <div class="absolute left-0 top-full hidden z-50 mt-2 shadow-xl bg-base-100 rounded-box border border-base-200 w-[40rem] max-w-[calc(100vw-2rem)]"
+             data-filters-target="dropdownContent">
 
-          <%# Dropdown content %>
-          <div class="<%= class_names('filters-popup dropdown-content z-50 mt-2', 'hidden': !opened) %>"
-               data-popup-target="container">
-            <%= render Bali::Card::Component.new(style: :bordered, body_class: 'p-4 space-y-4', class: 'shadow-2xl w-80 sm:w-96') do %>
-                <%# Header %>
-                <div class="flex items-center justify-between">
-                  <h3 class="font-semibold text-lg flex items-center gap-2">
-                    <%= render Bali::Icon::Component.new('filter', class: 'w-5 h-5 text-primary') %>
-                    <%= t('.filters') %>
-                  </h3>
+          <%= form_with url: url, method: :get,
+                data: {
+                  filters_target: 'form',
+                  turbo_action: 'replace'
+                },
+                class: 'w-full' do |f| %>
+
+            <div class="p-4 space-y-4">
+              <%# Filter groups container - no header for compact layout %>
+              <div data-filters-target="groupsContainer" class="space-y-4">
+                <% filter_groups.each_with_index do |group, group_idx| %>
+                  <% if group_idx > 0 %>
+                    <%# Group combinator divider (AND/OR toggle between groups) %>
+                    <div class="flex items-center justify-center gap-2 my-2">
+                      <div class="flex-1 border-t border-base-300"></div>
+                      <input type="hidden" name="q[m]" value="<%= combinator %>" data-filters-target="groupCombinator">
+                      <div class="join" data-filters-target="groupCombinatorToggle">
+                        <button type="button"
+                                class="join-item btn btn-xs w-10 <%= combinator == 'and' ? 'btn-primary' : 'btn-outline' %>"
+                                data-action="filters#setGroupCombinator"
+                                data-combinator="and">
+                          <%= t('bali.filters.combinators.and', default: 'AND') %>
+                        </button>
+                        <button type="button"
+                                class="join-item btn btn-xs w-10 <%= combinator == 'or' ? 'btn-primary' : 'btn-outline' %>"
+                                data-action="filters#setGroupCombinator"
+                                data-combinator="or">
+                          <%= t('bali.filters.combinators.or', default: 'OR') %>
+                        </button>
+                      </div>
+                      <div class="flex-1 border-t border-base-300"></div>
+                    </div>
+                  <% end %>
+
+                  <%= render Bali::Filters::FilterGroup::Component.new(
+                        group: group,
+                        index: group_idx,
+                        available_attributes: available_attributes,
+                        removable: filter_groups.size > 1
+                      ) %>
+                <% end %>
+              </div>
+
+              <%# Compact footer: Clear all (left) | Auto-saved + Add group + Reset + Apply (right) %>
+              <div class="flex justify-between items-center gap-2 pt-3 border-t border-base-200">
+                <button type="button"
+                        class="btn btn-ghost btn-xs text-error"
+                        data-action="filters#clearAll"
+                        data-filters-target="clearButton">
+                  <%= t('bali.filters.clear_all', default: 'Clear all') %>
+                </button>
+
+                <div class="flex items-center gap-2">
+                  <% if persistence_available? && persist_enabled? %>
+                    <span class="text-xs text-base-content/50 flex items-center gap-1">
+                      <%= render Bali::Icon::Component.new('bookmark-check', class: 'w-3 h-3') %>
+                      <%= t('bali.filters.auto_saved', default: 'Auto-saved') %>
+                    </span>
+                  <% end %>
                   <button type="button"
-                          class="btn btn-ghost btn-sm btn-circle"
-                          data-action="popup#close">
-                    <%= render Bali::Icon::Component.new('times', class: 'w-4 h-4') %>
+                          class="btn btn-ghost btn-sm text-primary gap-1"
+                          data-action="filters#addGroup"
+                          data-filters-target="addGroupButton">
+                    <%= render Bali::Icon::Component.new('plus', class: 'w-4 h-4') %>
+                    <%= t('bali.filters.add_group', default: 'Add filter group') %>
+                  </button>
+                  <button type="button"
+                          class="btn btn-ghost btn-sm"
+                          data-action="filters#reset">
+                    <%= t('bali.filters.reset', default: 'Reset') %>
+                  </button>
+                  <button type="submit"
+                          class="btn btn-primary btn-sm"
+                          data-action="filters#apply">
+                    <%= render Bali::Icon::Component.new('check', class: 'w-4 h-4') %>
+                    <%= t('bali.filters.apply', default: 'Apply') %>
                   </button>
                 </div>
-
-                <div class="divider my-0"></div>
-
-                <%# Filter content %>
-                <% if content.present? %>
-                  <div class="space-y-4">
-                    <%= content %>
-                  </div>
-                <% else %>
-                  <div class="space-y-4 max-h-[60vh] overflow-y-auto">
-                    <%# Date range filters %>
-                    <% date_range_atributes = attributes.select { |attr| attr.date_range_field? || attr.datetime_field? } %>
-                    <% if date_range_atributes.any? %>
-                      <div class="space-y-3">
-                        <% date_range_atributes.each do |attribute| %>
-                          <%= attribute %>
-                        <% end %>
-                      </div>
-                    <% end %>
-
-                    <%# Text/Number filters %>
-                    <% text_or_number_attributes = attributes.select(&:text_field?) %>
-                    <% if text_or_number_attributes.any? %>
-                      <% block_displayed = text_or_number_attributes.select(&:display_block?) %>
-                      <% flex_displayed = text_or_number_attributes.select(&:display_flex?) %>
-                      <div class="space-y-3">
-                        <% block_displayed.each do |attribute| %>
-                          <%= attribute %>
-                        <% end %>
-                        <% if flex_displayed.any? %>
-                          <div class="grid grid-cols-2 gap-3">
-                            <% flex_displayed.each do |attribute| %>
-                              <div><%= attribute %></div>
-                            <% end %>
-                          </div>
-                        <% end %>
-                      </div>
-                    <% end %>
-
-                    <%# Checkbox filters %>
-                    <% check_box_attributes = attributes.select(&:check_box_field?) %>
-                    <% if check_box_attributes.any? %>
-                      <div class="grid grid-cols-2 gap-3">
-                        <% check_box_attributes.each do |attribute| %>
-                          <div><%= attribute %></div>
-                        <% end %>
-                      </div>
-                    <% end %>
-
-                    <%# Collection filters %>
-                    <% collection_attributes = attributes.select(&:collection_field?) %>
-                    <% if collection_attributes.any? %>
-                      <% with_many_options = collection_attributes.select { |attr| attr.collection_options.size > 5 } %>
-                      <% with_few_options = collection_attributes.select { |attr| attr.collection_options.size <= 5 } %>
-
-                      <% if with_many_options.present? %>
-                        <div class="space-y-3">
-                          <% with_many_options.each do |attribute| %>
-                            <%= attribute %>
-                          <% end %>
-                        </div>
-                      <% end %>
-
-                      <% if with_few_options.any? %>
-                        <div class="space-y-3">
-                          <% with_few_options.each do |attribute| %>
-                            <%= attribute %>
-                          <% end %>
-                        </div>
-                      <% end %>
-                    <% end %>
-                  </div>
-                <% end %>
-
-                <div class="divider my-0"></div>
-
-                <%# Actions %>
-                <div class="flex gap-2">
-                  <% if active_filters? %>
-                    <%= link_to clear_filters_url,
-                          class: 'btn btn-ghost flex-1',
-                          data: { 'filter-form-target': 'removeButton' } do %>
-                      <%= t('.remove_filters') %>
-                    <% end %>
-                  <% end %>
-                  <%= f.submit t('helpers.apply.text'),
-                        class: 'btn btn-primary flex-1',
-                        data: { action: 'popup#close filter-form#submit' } %>
-                </div>
-            <% end %>
-          </div>
+              </div>
+            </div>
+          <% end %>
         </div>
-      <% end %>
+        </div>
 
-      <%# Custom filters slot %>
-      <% if custom_filters.present? %>
-        <%= custom_filters %>
-      <% end %>
-
-      <%# Clear filters link (desktop) %>
-      <% if (attributes? || custom_filters.present?) && active_filters? %>
-        <%= link_to clear_filters_url,
-              class: 'link link-hover link-error text-sm hidden sm:inline-flex items-center gap-1',
-              data: { 'filter-form-target': 'removeButton' } do %>
-          <%= render Bali::Icon::Component.new('times', class: 'w-3 h-3') %>
-          <%= t('.remove_filters') %>
+        <%# Persistence toggle (bookmark icon) %>
+        <% if persistence_available? %>
+          <div data-controller="filter-persistence"
+               data-filter-persistence-storage-id-value="<%= storage_id %>"
+               data-filter-persistence-enabled-value="<%= persist_enabled? %>">
+            <button type="button"
+                    class="tooltip tooltip-bottom btn btn-ghost btn-sm btn-square"
+                    data-action="filter-persistence#toggle"
+                    data-filter-persistence-target="button"
+                    data-filter-persistence-enabled-tooltip="<%= t('bali.filters.persistence_enabled', default: 'Filters are being saved. Click to disable.') %>"
+                    data-filter-persistence-disabled-tooltip="<%= t('bali.filters.persistence_disabled', default: 'Filters are not saved. Click to enable.') %>"
+                    data-tip="<%= persist_enabled? ? t('bali.filters.persistence_enabled', default: 'Filters are being saved. Click to disable.') : t('bali.filters.persistence_disabled', default: 'Filters are not saved. Click to enable.') %>">
+              <%# Filled bookmark when enabled %>
+              <span data-filter-persistence-target="iconEnabled" class="<%= 'hidden' unless persist_enabled? %>">
+                <%= render Bali::Icon::Component.new('bookmark-check', class: 'w-5 h-5 text-primary') %>
+              </span>
+              <%# Outline bookmark when disabled %>
+              <span data-filter-persistence-target="iconDisabled" class="<%= 'hidden' if persist_enabled? %>">
+                <%= render Bali::Icon::Component.new('bookmark', class: 'w-5 h-5 text-base-content/40') %>
+              </span>
+            </button>
+          </div>
         <% end %>
+      </div>
+
+      <%# Applied filter tags (shown inline with button) %>
+      <% if applied_tags? %>
+        <%= applied_tags %>
       <% end %>
     </div>
 
-    <%# Clear filters link (mobile) %>
-    <% if (attributes? || custom_filters.present?) && active_filters? %>
-      <div class="sm:hidden text-center">
-        <%= link_to clear_filters_url,
-              class: 'link link-hover link-error text-sm',
-              data: { 'filter-form-target': 'removeButton' } do %>
-          <%= t('.remove_filters') %>
-        <% end %>
+  <% else %>
+    <%# Inline mode: original layout %>
+    <% if applied_tags? %>
+      <div class="mb-4">
+        <%= applied_tags %>
       </div>
     <% end %>
-  </div>
-<% end %>
+
+    <%= form_with url: url, method: :get,
+          data: {
+            filters_target: 'form',
+            turbo_action: 'replace'
+          },
+          class: 'w-full' do |f| %>
+
+      <%= render Bali::Card::Component.new(style: :bordered, body_class: 'p-4 sm:p-6 space-y-4') do %>
+          <%# Header %>
+          <div class="flex justify-between items-center">
+            <h3 class="font-semibold text-lg flex items-center gap-2">
+              <%= render Bali::Icon::Component.new('filter', class: 'w-5 h-5') %>
+              <%= t('bali.filters.title', default: 'Filters') %>
+            </h3>
+            <button type="button"
+                    class="btn btn-ghost btn-sm text-error"
+                    data-action="filters#clearAll"
+                    data-filters-target="clearButton">
+              <%= t('bali.filters.clear_all', default: 'Clear all') %>
+            </button>
+          </div>
+
+          <div class="divider my-0"></div>
+
+          <%# Filter groups container %>
+              <div data-filters-target="groupsContainer" class="space-y-4">
+                <% filter_groups.each_with_index do |group, group_idx| %>
+                  <% if group_idx > 0 %>
+                    <%# Group combinator divider (AND/OR toggle between groups) %>
+                    <div class="flex items-center justify-center gap-2 my-2">
+                      <div class="flex-1 border-t border-base-300"></div>
+                      <input type="hidden" name="q[m]" value="<%= combinator %>" data-filters-target="groupCombinator">
+                      <div class="join" data-filters-target="groupCombinatorToggle">
+                        <button type="button"
+                                class="join-item btn btn-xs w-10 <%= combinator == 'and' ? 'btn-primary' : 'btn-outline' %>"
+                                data-action="filters#setGroupCombinator"
+                                data-combinator="and">
+                          <%= t('bali.filters.combinators.and', default: 'AND') %>
+                        </button>
+                        <button type="button"
+                                class="join-item btn btn-xs w-10 <%= combinator == 'or' ? 'btn-primary' : 'btn-outline' %>"
+                                data-action="filters#setGroupCombinator"
+                                data-combinator="or">
+                          <%= t('bali.filters.combinators.or', default: 'OR') %>
+                        </button>
+                      </div>
+                      <div class="flex-1 border-t border-base-300"></div>
+                    </div>
+                  <% end %>
+
+                  <%= render Bali::Filters::FilterGroup::Component.new(
+                        group: group,
+                        index: group_idx,
+                        available_attributes: available_attributes,
+                        removable: filter_groups.size > 1
+                      ) %>
+                <% end %>
+              </div>
+
+          <%# Add group button %>
+          <button type="button"
+                  class="btn btn-ghost btn-sm gap-2 w-full sm:w-auto text-primary hover:bg-primary/10"
+                  data-action="filters#addGroup"
+                  data-filters-target="addGroupButton">
+            <%= render Bali::Icon::Component.new('plus', class: 'w-4 h-4') %>
+            <%= t('bali.filters.add_group', default: 'Add filter group') %>
+          </button>
+
+          <div class="divider my-0"></div>
+
+          <%# Actions %>
+          <div class="flex flex-col sm:flex-row justify-end gap-2">
+            <button type="button"
+                    class="btn btn-ghost order-2 sm:order-1"
+                    data-action="filters#reset">
+              <%= t('bali.filters.reset', default: 'Reset') %>
+            </button>
+            <button type="submit"
+                    class="btn btn-primary order-1 sm:order-2"
+                    data-action="filters#apply"
+                    data-filters-target="applyButton">
+              <%= render Bali::Icon::Component.new('check', class: 'w-4 h-4') %>
+              <%= t('bali.filters.apply', default: 'Apply Filters') %>
+            </button>
+          </div>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <%# Template for new filter group (used by Stimulus) %>
+  <template data-filters-target="groupTemplate">
+    <%= render Bali::Filters::FilterGroup::Component.new(
+          group: { combinator: 'or', conditions: [{ attribute: '', operator: 'cont', value: '' }] },
+          index: '__GROUP_INDEX__',
+          available_attributes: available_attributes,
+          removable: true
+        ) %>
+  </template>
+</div>

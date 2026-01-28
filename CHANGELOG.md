@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-01-27
+
+### Changed
+
+- **Filters Component** - Consolidated `AdvancedFilters` and `Filters` into a single unified `Filters` component
+  - Removed separate `AdvancedFilters` component (functionality merged into `Filters`)
+  - Added search input with clear button (x) for easy clearing of persisted search
+  - Improved filter persistence handling with `clear_search` parameter
+
+### Fixed
+
+- **FilterForm** - Refactored into focused concerns for better maintainability
+  - Extracted `SearchConfiguration` concern for search DSL and methods
+  - Extracted `FilterGroupParser` concern for Ransack grouping parsing
+  - Fixed search persistence bug where clearing search text didn't clear persisted value
+
+### Dependencies
+
+- Added `lucide-rails` as runtime dependency for icon rendering
+- Updated `@source` directive documentation for Tailwind v4 configuration
+
 ## [2.0.0] - 2026-01-26 - Tailwind + DaisyUI Migration
 
 **This is a major release migrating all 60+ components from Bulma CSS to Tailwind + DaisyUI 5.**
@@ -46,9 +67,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   end
   ```
 
-- **`Bali::Filters::Component`** - **DEPRECATED**. Use `Bali::AdvancedFilters::Component` instead.
-  - Filters component still works but shows deprecation warning
-  - AdvancedFilters provides: multiple filter groups, AND/OR combinators, type-specific operators
+- **`Bali::Filters::Component`** - Consolidated filter component (replaces old Filters and AdvancedFilters)
+  - Multiple filter groups with AND/OR combinators between groups
+  - Multiple conditions within each group with AND/OR combinators
+  - Type-specific operators for text, number, date, select, and boolean fields
 
 - **`Bali::Breadcrumb::Item::Component`** - `href` is now optional (was required).
   - Items without `href` are automatically marked as active
@@ -81,17 +103,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`Bali::AdvancedFilters::Component`** - Complex filter UI with Ransack groupings support
-  - Multiple filter groups with AND/OR combinators between groups
-  - Multiple conditions within each group with AND/OR combinators
-  - Type-specific operators for text, number, date, select, and boolean fields
+- **`Bali::FilterForm`** - Enhanced filter form with Ransack groupings support
   - Dynamic add/remove for both conditions and groups
   - Pre-populated filters from URL params
   - Quick search integration and reset functionality
   - Date range "between" operator uses Flatpickr range mode
   - Locale-aware date formats: `M j, Y` for English, `j M Y` for Spanish
-
-- **`Bali::AdvancedFilterForm`** - Helper class for parsing filter parameters in controllers
 
 - **`Bali::Button::Component`** - Proper ViewComponent (was previously a helper)
   - Full DaisyUI button support with variants, sizes, states
@@ -150,7 +167,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Preview consolidated from 7 methods to 3 with `@param` annotations
   - Added 14 new tests (33 total)
 
-- **`Bali::DataTable::Component`** - Now uses `AdvancedFilters` instead of legacy `Filters`
+- **`Bali::DataTable::Component`** - Uses consolidated `Filters` component with Ransack groupings support
   - New `filters_panel` slot accepts `available_attributes:` for defining filterable fields
   - New `toolbar_buttons` slot for right-aligned buttons (column selector, export, etc.)
   - Added sorting examples using Ransack's `sort_link` helper

@@ -1,6 +1,6 @@
 # Release Command
 
-Automate the release process for the Bali ViewComponents gem.
+Automate the release process for the Bali ViewComponents library (Ruby gem + npm package).
 
 ## Usage
 
@@ -22,8 +22,17 @@ Where `$ARGUMENTS` is:
 
 Before running release:
 - Working directory must be clean (no uncommitted changes)
-- Must be on `main` or `tailwind-migration` branch
+- Must be on `main` branch
 - All tests must pass
+
+## Version Files
+
+This library has **two version files** that must stay in sync:
+
+| File | Purpose |
+|------|---------|
+| `lib/bali/version.rb` | Ruby gem version |
+| `package.json` | npm package version |
 
 ## Workflow
 
@@ -52,18 +61,30 @@ module Bali
 end
 ```
 
+Verify `package.json` has the same version. If they differ, abort with error.
+
 Calculate new version based on argument:
 - `patch`: 1.2.3 → 1.2.4
 - `minor`: 1.2.3 → 1.3.0
 - `major`: 1.2.3 → 2.0.0
 
-### Step 3: Update Version File
+### Step 3: Update Version Files
+
+Update **both** version files:
 
 ```ruby
 # lib/bali/version.rb
 module Bali
   VERSION = "[NEW_VERSION]"
 end
+```
+
+```json
+// package.json
+{
+  "version": "[NEW_VERSION]",
+  ...
+}
 ```
 
 ### Step 4: Update CHANGELOG
@@ -89,30 +110,42 @@ Generate changelog entry:
 ### Fixed
 - [Fix from commit messages]
 
-### Migration
-- [Migration-related changes]
+### Dependencies
+- [Dependency updates]
 ```
 
 **Commit Message Parsing:**
 - `feat:` or `add:` → Added
 - `fix:` → Fixed
 - `change:` or `update:` → Changed
-- `migrate:` → Migration
-- `docs:` → Documentation
+- `deps:` or dependency updates → Dependencies
+- `docs:` → Documentation (include if significant)
 - `test:` → (skip, internal)
 - `chore:` → (skip, internal)
 
-### Step 5: Update Gemfile.lock
+### Step 5: Update Lock Files
+
+Update **both** lock files:
 
 ```bash
+# Ruby dependencies
 bundle install
+
+# JavaScript dependencies
+yarn install
+# or: npm install
 ```
 
 ### Step 6: Commit Version Bump
 
 ```bash
-git add lib/bali/version.rb CHANGELOG.md Gemfile.lock
-git commit -m "Release v[NEW_VERSION]"
+git add lib/bali/version.rb package.json CHANGELOG.md Gemfile.lock yarn.lock
+git commit -m "Release v[NEW_VERSION]
+
+Changes:
+- [Brief summary of changes]
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
 ```
 
 ### Step 7: Create Git Tag
@@ -124,20 +157,56 @@ git tag -a v[NEW_VERSION] -m "Release v[NEW_VERSION]"
 ### Step 8: Push to Remote
 
 ```bash
-git push origin [BRANCH]
+git push origin main --no-verify
 git push origin v[NEW_VERSION]
 ```
 
-### Step 9: Build Gem (Optional)
+Note: Use `--no-verify` to skip pre-push hooks since tests already passed.
+
+### Step 9: Create GitHub Release
+
+Create a GitHub release with the changelog entry as release notes:
 
 ```bash
-gem build bali_view_components.gemspec
+gh release create v[NEW_VERSION] --title "v[NEW_VERSION]" --notes "[CHANGELOG_ENTRY]"
+```
+
+The release notes should include:
+- Changes section (from CHANGELOG)
+- Installation instructions for both Ruby and JavaScript
+
+Example:
+```bash
+gh release create v2.0.1 --title "v2.0.1" --notes "$(cat <<'EOF'
+## Changes
+
+### Changed
+- [Changes from CHANGELOG]
+
+### Fixed
+- [Fixes from CHANGELOG]
+
+## Installation
+
+### Ruby (Gemfile)
+
+\`\`\`ruby
+gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v2.0.1"
+\`\`\`
+
+### JavaScript (package.json)
+
+\`\`\`json
+"bali-view-components": "github:Grupo-AFAL/bali-view-components#v2.0.1"
+\`\`\`
+EOF
+)"
 ```
 
 ### Step 10: Generate Release Summary
 
 ```markdown
-# Release v[NEW_VERSION]
+# Release v[NEW_VERSION] Complete!
 
 ## Changes
 
@@ -145,25 +214,31 @@ gem build bali_view_components.gemspec
 
 ## Installation
 
-Update your Gemfile:
+### Ruby (Gemfile)
 
 ```ruby
-gem "bali_view_components", "~> [NEW_VERSION]"
+gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v[NEW_VERSION]"
 ```
-
-Then run:
 
 ```bash
 bundle update bali_view_components
 ```
 
-## Migration Notes
+### JavaScript (package.json)
 
-[Any breaking changes or migration steps]
+```json
+"bali-view-components": "github:Grupo-AFAL/bali-view-components#v[NEW_VERSION]"
+```
 
-## Full Changelog
+```bash
+yarn upgrade bali-view-components
+```
 
-[Link to CHANGELOG.md]
+## Next Steps
+
+1. Create GitHub release with notes (optional)
+2. Notify team of new release
+3. Update dependent applications
 ```
 
 ## Version Bump Rules
@@ -175,6 +250,7 @@ Use for:
 - Performance improvements
 - Documentation updates
 - Internal refactoring (no API changes)
+- Dependency updates (non-breaking)
 
 ### Minor (X.MINOR.0)
 
@@ -198,55 +274,57 @@ Use for:
 ### Dry Run
 
 ```
-User: /release minor --dry-run
+User: /release patch --dry-run
 
 AI: Checking release prerequisites...
 
 ✓ Git working directory is clean
 ✓ On branch: main
-✓ Running tests...
-✓ All 342 examples passed
+✓ Running tests... (2171 examples, 0 failures)
+✓ Version files in sync: 2.0.0
 
-Current version: 1.2.3
-New version: 1.3.0
+Current version: 2.0.0
+New version: 2.0.1
 
-## Changes since v1.2.3
-
-### Added
-- Migrate Button component to DaisyUI (a89f03a)
-- Add Tooltip component (b12c45d)
+## Changes since v2.0.0
 
 ### Changed
-- Update Card component slots API (c23d56e)
+- Consolidate AdvancedFilters into Filters component
 
 ### Fixed
-- Fix Dropdown keyboard navigation (d34e67f)
-- Fix Modal focus trap (e45f78g)
+- Fix search persistence when clearing search text
+
+### Dependencies
+- Add lucide-rails as runtime dependency
 
 ## Files that would be modified
 
-- lib/bali/version.rb (1.2.3 → 1.3.0)
+- lib/bali/version.rb (2.0.0 → 2.0.1)
+- package.json (2.0.0 → 2.0.1)
 - CHANGELOG.md (new section added)
 - Gemfile.lock (version updated)
+- yarn.lock (no changes expected)
 
-## Git operations that would run
+## Operations that would run
 
-```bash
-git add lib/bali/version.rb CHANGELOG.md Gemfile.lock
-git commit -m "Release v1.3.0"
-git tag -a v1.3.0 -m "Release v1.3.0"
-git push origin main
-git push origin v1.3.0
-```
+1. Update version files
+2. Update CHANGELOG.md
+3. Run `bundle install`
+4. Run `yarn install`
+5. Commit: "Release v2.0.1"
+6. Tag: v2.0.1
+7. Push to origin/main
+8. Push tag v2.0.1
+9. Create GitHub release with notes
 
 This is a dry run. No changes were made.
-To proceed with release, run: /release minor
+To proceed with release, run: /release patch
 ```
 
 ### Actual Release
 
 ```
-User: /release minor
+User: /release patch
 
 AI: Starting release process...
 
@@ -254,88 +332,89 @@ AI: Starting release process...
 
 ✓ Git working directory is clean
 ✓ On branch: main
-✓ Running tests... (342 examples, 0 failures)
+✓ Running tests... (2171 examples, 0 failures)
+✓ Version files in sync: 2.0.0
 
 ## Version Update
 
-Current: 1.2.3
-New: 1.3.0
+Current: 2.0.0
+New: 2.0.1
 
-Updating lib/bali/version.rb...
-✓ Version updated
+Updating lib/bali/version.rb... ✓
+Updating package.json... ✓
 
 ## Changelog Update
 
-Analyzing commits since v1.2.3...
-Found 12 commits
+Analyzing commits since v2.0.0...
+Found 5 commits
 
-Updating CHANGELOG.md...
-✓ Changelog updated
+Updating CHANGELOG.md... ✓
 
-## Bundle Update
+## Lock File Updates
 
-Running bundle install...
-✓ Gemfile.lock updated
+Running bundle install... ✓
+Running yarn install... ✓
 
 ## Git Commit
 
-```bash
-git add lib/bali/version.rb CHANGELOG.md Gemfile.lock
-git commit -m "Release v1.3.0"
-```
-✓ Committed
+✓ Committed: Release v2.0.1
 
 ## Git Tag
 
-```bash
-git tag -a v1.3.0 -m "Release v1.3.0"
-```
-✓ Tagged
+✓ Tagged: v2.0.1
 
 ## Push to Remote
 
-```bash
-git push origin main
-git push origin v1.3.0
-```
-✓ Pushed
+✓ Pushed main branch
+✓ Pushed tag v2.0.1
+
+## GitHub Release
+
+✓ Created release: https://github.com/Grupo-AFAL/bali-view-components/releases/tag/v2.0.1
 
 ---
 
-# Release v1.3.0 Complete!
-
-## Summary
-
-- Version: 1.2.3 → 1.3.0
-- Commits included: 12
-- New features: 2
-- Bug fixes: 2
-
-## Next Steps
-
-1. Create GitHub release with notes (optional)
-2. Notify team of new release
-3. Update dependent applications
+# Release v2.0.1 Complete!
 
 ## Installation
 
+### Ruby (Gemfile)
+
 ```ruby
-gem "bali_view_components", "~> 1.3.0"
+gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v2.0.1"
+```
+
+### JavaScript (package.json)
+
+```json
+"bali-view-components": "github:Grupo-AFAL/bali-view-components#v2.0.1"
 ```
 ```
 
 ## Error Handling
+
+### Version Mismatch
+
+```
+ERROR: Version files are out of sync!
+
+- lib/bali/version.rb: 2.0.0
+- package.json: 1.9.0
+
+Please sync versions before releasing:
+1. Decide which version is correct
+2. Update both files to match
+3. Commit the fix
+4. Run /release again
+```
 
 ### Uncommitted Changes
 
 ```
 ERROR: Working directory has uncommitted changes.
 
-Please commit or stash your changes before releasing:
-
 Modified files:
 - app/components/bali/button/component.rb
-- spec/bali/components/button_spec.rb
 
 Options:
 1. Commit changes: git add . && git commit -m "..."
@@ -359,23 +438,48 @@ Fix the failing tests before releasing.
 Run: bundle exec rspec --only-failures
 ```
 
-### Wrong Branch
+### Protected Branch
 
 ```
-WARNING: You are on branch 'feature/new-button'.
+WARNING: Cannot push directly to main (protected branch).
 
-Releases should typically be made from 'main' or 'tailwind-migration'.
+The release commit and tag have been created locally.
+To complete the release:
 
-Options:
-1. Switch to main: git checkout main
-2. Proceed anyway: /release minor --force
-
-Proceeding on a feature branch is not recommended.
+1. Push via PR or with admin bypass
+2. Then push the tag: git push origin v2.0.1
 ```
 
-## Integration with CI/CD
+## Manual Release Steps
 
-For automated releases via GitHub Actions:
+If you need to release manually (e.g., automation failed partway):
+
+```bash
+# 1. Update versions
+# Edit lib/bali/version.rb
+# Edit package.json
+
+# 2. Update lock files
+bundle install
+yarn install
+
+# 3. Update CHANGELOG.md manually
+
+# 4. Commit
+git add lib/bali/version.rb package.json CHANGELOG.md Gemfile.lock yarn.lock
+git commit -m "Release v[VERSION]"
+
+# 5. Tag
+git tag -a v[VERSION] -m "Release v[VERSION]"
+
+# 6. Push
+git push origin main --no-verify
+git push origin v[VERSION]
+```
+
+## CI/CD Integration
+
+For automated tag creation via GitHub Actions:
 
 ```yaml
 # .github/workflows/release.yml
@@ -387,14 +491,22 @@ on:
       - 'v*'
 
 jobs:
-  release:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
       - run: bundle exec rspec
-      - run: gem build bali_view_components.gemspec
-      # Add publishing steps if needed
+
+  create-release:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          generate_release_notes: true
 ```

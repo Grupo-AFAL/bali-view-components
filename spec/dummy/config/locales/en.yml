@@ -30,7 +30,7 @@ en:
     view_all_activity: View all activity
     movies_by_status: Movies by Status
     notifications_demo: Notifications Demo
-    new_feature: "New feature: Advanced filtering is now available!"
+    new_feature: "New feature: Filtering is now available!"
     success_message: "Success! Your changes have been saved."
     warning_message: "Warning: 3 movies are missing cover images."
     error_message: "Error: Failed to sync with external API."

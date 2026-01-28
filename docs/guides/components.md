@@ -348,16 +348,48 @@ Contextual information on hover.
 
 ### Form Components
 
-#### Filters / AdvancedFilters
+#### Filters
 
-Filter controls for data tables (integrates with Ransack).
+Advanced filter controls for data tables with Ransack integration.
 
 ```erb
-<%= render Bali::AdvancedFilters::Component.new(
+<%= render Bali::Filters::Component.new(
   url: products_path,
-  filter_form: @filter_form
+  filter_form: @filter_form,
+  available_attributes: [
+    { key: :name, label: 'Name', type: :text },
+    { key: :status, label: 'Status', type: :select, options: Status.options }
+  ]
 ) %>
 ```
+
+**Features:**
+- Multiple filter groups with AND/OR combinators
+- Type-specific operators (text, number, date, select, boolean)
+- Quick search with clear button (x) for easy clearing
+- Filter persistence with bookmark toggle
+- Date range "between" operator with Flatpickr
+
+**Modes:**
+- `popover: true` (default) - Compact dropdown with search input
+- `popover: false` - Inline card layout
+
+**Search Clear Button:**
+
+The search input includes a clear button (x) that appears when text is entered. Clicking it:
+- Clears the search input
+- Submits `clear_search=1` to clear persisted search
+- Preserves other filters
+
+**Options:**
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `url` | String | Required | Form action URL |
+| `filter_form` | FilterForm | Required | FilterForm instance |
+| `available_attributes` | Array | `[]` | Filterable attributes |
+| `popover` | Boolean | `true` | Use popover mode |
+| `storage_id` | String | `nil` | Enable persistence |
 
 #### SearchInput
 
