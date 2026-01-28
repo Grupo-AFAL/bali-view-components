@@ -4,14 +4,14 @@
  * These controllers are bundled with ViewComponents and provide
  * interactivity for the component templates.
  *
- * Usage with Vite:
- *   import { TableController, ModalController } from 'bali/components'
+ * Usage:
+ *   import { TableController, ModalController } from 'bali-view-components'
  *   application.register('table', TableController)
  *
  * Heavy/Optional modules (import separately):
- *   - Charts:          import { ChartController } from 'bali/charts'
- *   - Gantt:           import { GanttChartController } from 'bali/gantt'
- *   - Rich Text Editor: import { RichTextEditorController } from 'bali/rich-text-editor'
+ *   - Charts:           import { ChartController } from 'bali-view-components/charts'
+ *   - Gantt:            import { GanttChartController } from 'bali-view-components/gantt'
+ *   - Rich Text Editor: import { RichTextEditorController } from 'bali-view-components/rich-text-editor'
  */
 
 // Core components
@@ -100,9 +100,9 @@ export { TreeViewItemController } from '../../../components/bali/tree_view/item/
  * Register all core Bali component controllers with a Stimulus application
  *
  * NOTE: Heavy/optional modules are NOT included. Import them separately:
- *   - Charts:           import { registerCharts } from 'bali/charts'
- *   - Gantt:            import { registerGantt } from 'bali/gantt'
- *   - Rich Text Editor: import { registerRichTextEditor } from 'bali/rich-text-editor'
+ *   - Charts:           import { registerCharts } from 'bali-view-components/charts'
+ *   - Gantt:            import { registerGantt } from 'bali-view-components/gantt'
+ *   - Rich Text Editor: import { registerRichTextEditor } from 'bali-view-components/rich-text-editor'
  *
  * @param {Application} application - Stimulus application instance
  */

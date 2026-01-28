@@ -1,6 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { patch } from '@rails/request.js'
-import useDispatch from 'bali/utils/use-dispatch'
+import useDispatch from '../../../assets/javascripts/bali/utils/use-dispatch.js'
 
 export class SortableListController extends Controller {
   static values = {

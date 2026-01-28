@@ -1,5 +1,5 @@
-import { ModalController } from 'bali/modal'
-import { autoFocusInput } from 'bali/utils/form'
+import { ModalController } from '../modal/index.js'
+import { autoFocusInput } from '../../../assets/javascripts/bali/utils/form.js'
 
 export class DrawerController extends ModalController {
   async connect () {

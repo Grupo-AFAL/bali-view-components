@@ -5,7 +5,7 @@
  * Import separately to keep the main bundle lightweight.
  *
  * Usage:
- *   import { GanttChartController, GanttFoldableItemController, registerGantt } from 'bali/gantt'
+ *   import { GanttChartController, GanttFoldableItemController, registerGantt } from 'bali-view-components/gantt'
  *   application.register('gantt-chart', GanttChartController)
  *   application.register('gantt-foldable-item', GanttFoldableItemController)
  *   // OR

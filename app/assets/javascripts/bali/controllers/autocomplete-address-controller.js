@@ -17,7 +17,7 @@ export class AutocompleteAddressController extends Controller {
   ]
 
   async connect () {
-    const { default: GoogleMapsLoader } = await import('bali/utils/google-maps-loader')
+    const { default: GoogleMapsLoader } = await import('../utils/google-maps-loader.js')
 
     try {
       this.googleMaps = await GoogleMapsLoader({

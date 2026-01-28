@@ -3,153 +3,81 @@
 This guide explains how to integrate Bali's JavaScript controllers into your Rails application.
 
 Bali supports two approaches:
-1. **Bundler** (Vite, Webpack, esbuild, etc.) - For apps with Node.js (recommended)
+1. **Bundler** (Vite, esbuild, Webpack, etc.) - For apps with Node.js (recommended)
 2. **Import Maps** - For apps without Node.js
 
 ## Option 1: Bundler Integration (Recommended)
 
-Best for apps using any JavaScript bundler: **Vite**, **Webpack**, **esbuild**, **Rollup**, etc.
+Best for apps using any JavaScript bundler: **Vite**, **esbuild**, **Webpack**, **Rollup**, etc.
 
-The key requirement is configuring your bundler to resolve the `bali` import path to the gem's directory. The examples below use Vite, but the same concept applies to any bundler.
-
-### Step 1: Configure Your Bundler
-
-#### Vite Example
-
-Add Bali's path to your `vite.config.mts`:
-
-```typescript
-import { defineConfig } from 'vite'
-import { resolve, dirname } from 'path'
-import { fileURLToPath } from 'url'
-import { execSync } from 'child_process'
-
-const __dirname = dirname(fileURLToPath(import.meta.url))
-
-// Get Bali gem path dynamically
-const baliGemPath = execSync('bundle show bali_view_components').toString().trim()
-
-export default defineConfig({
-  resolve: {
-    alias: [
-      // Core Bali entry point
-      { find: 'bali', replacement: resolve(baliGemPath, 'app/frontend/bali') },
-
-      // Optional modules (import separately for smaller bundles)
-      { find: 'bali/charts', replacement: resolve(baliGemPath, 'app/frontend/bali/charts.js') },
-      { find: 'bali/gantt', replacement: resolve(baliGemPath, 'app/frontend/bali/gantt.js') },
-
-      // Internal paths (needed for Bali's internal imports)
-      { find: 'bali/utils', replacement: resolve(baliGemPath, 'app/assets/javascripts/bali/utils') },
-      { find: 'bali/modal', replacement: resolve(baliGemPath, 'app/components/bali/modal/index.js') },
-      { find: 'bali/gantt-chart/connection-line', replacement: resolve(baliGemPath, 'app/components/bali/gantt_chart/connection_line.js') },
-      { find: 'bali/gantt-chart', replacement: resolve(baliGemPath, 'app/components/bali/gantt_chart') },
-
-      // NPM dependencies (needed for imports from gem path)
-      { find: 'tippy.js', replacement: resolve(__dirname, 'node_modules/tippy.js') },
-      { find: 'sortablejs', replacement: resolve(__dirname, 'node_modules/sortablejs') },
-      { find: 'chart.js', replacement: resolve(__dirname, 'node_modules/chart.js') },
-      { find: '@glidejs/glide', replacement: resolve(__dirname, 'node_modules/@glidejs/glide') },
-      { find: '@popperjs/core', replacement: resolve(__dirname, 'node_modules/@popperjs/core') },
-      { find: 'date-fns', replacement: resolve(__dirname, 'node_modules/date-fns') },
-      { find: 'rrule', replacement: resolve(__dirname, 'node_modules/rrule') },
-      { find: 'lodash.throttle', replacement: resolve(__dirname, 'node_modules/lodash.throttle') },
-      { find: '@rails/request.js', replacement: resolve(__dirname, 'node_modules/@rails/request.js') },
-      { find: 'slim-select', replacement: resolve(__dirname, 'node_modules/slim-select') },
-      { find: 'interactjs', replacement: resolve(__dirname, 'node_modules/interactjs') },
-    ]
-  },
-  server: {
-    fs: {
-      allow: ['.', baliGemPath]
-    }
-  }
-})
-```
-
-#### Webpack Example
-
-For Webpack users (e.g., `jsbundling-rails` with Webpack):
-
-```javascript
-// webpack.config.js
-const { execSync } = require('child_process')
-const path = require('path')
-
-const baliGemPath = execSync('bundle show bali_view_components').toString().trim()
-
-module.exports = {
-  resolve: {
-    alias: {
-      'bali': path.resolve(baliGemPath, 'app/frontend/bali'),
-      'bali/charts': path.resolve(baliGemPath, 'app/frontend/bali/charts.js'),
-      'bali/gantt': path.resolve(baliGemPath, 'app/frontend/bali/gantt.js'),
-      'bali/utils': path.resolve(baliGemPath, 'app/assets/javascripts/bali/utils'),
-      // Add other aliases as needed...
-    }
-  }
-}
-```
-
-#### esbuild Example
-
-For esbuild users:
-
-```javascript
-// esbuild.config.mjs
-import { execSync } from 'child_process'
-import path from 'path'
-
-const baliGemPath = execSync('bundle show bali_view_components').toString().trim()
-
-await esbuild.build({
-  // ... other config
-  alias: {
-    'bali': path.resolve(baliGemPath, 'app/frontend/bali'),
-    'bali/charts': path.resolve(baliGemPath, 'app/frontend/bali/charts.js'),
-    'bali/gantt': path.resolve(baliGemPath, 'app/frontend/bali/gantt.js'),
-  }
-})
-```
-
-### Step 2: Install Dependencies
+### Step 1: Install Dependencies
 
 ```bash
-yarn add @hotwired/stimulus @hotwired/turbo flatpickr tippy.js sortablejs \
-         chart.js @glidejs/glide @popperjs/core date-fns rrule \
-         lodash.throttle @rails/request.js slim-select interactjs
+yarn add bali-view-components @hotwired/stimulus @hotwired/turbo flatpickr \
+         tippy.js sortablejs chart.js @glidejs/glide @popperjs/core date-fns \
+         rrule lodash.throttle @rails/request.js slim-select interactjs
 ```
 
-### Step 3: Register Controllers
+### Step 2: Register Controllers
 
 In your `application.js`:
 
 ```javascript
 import { Application } from '@hotwired/stimulus'
+import { registerAll } from 'bali-view-components'
 
 const application = Application.start()
 
-// Option A: Register all controllers at once (simplest)
-import { registerAllControllers, registerAllComponents } from 'bali'
-registerAllControllers(application)
-registerAllComponents(application)
+// Register all core controllers at once (simplest)
+registerAll(application)
 
-// Option B: Import individual controllers (smallest bundle)
-import { DatepickerController, TableController } from 'bali'
+// Or register only what you need (smaller bundle, better tree-shaking)
+import { DatepickerController, TableController } from 'bali-view-components'
 application.register('datepicker', DatepickerController)
 application.register('table', TableController)
 ```
 
-### Step 4: Add Optional Modules (if needed)
+### Step 3: Add Optional Modules (if needed)
 
 ```javascript
 // Charts (requires chart.js - adds ~208KB)
-import { registerCharts } from 'bali/charts'
+import { registerCharts } from 'bali-view-components/charts'
 registerCharts(application)
 
 // Gantt Chart (requires sortablejs, lodash.throttle)
-import { registerGantt } from 'bali/gantt'
+import { registerGantt } from 'bali-view-components/gantt'
 registerGantt(application)
+```
+
+### Bundler Configuration (Only If Needed)
+
+**For esbuild users**: No configuration needed. Just import and go.
+
+**For Vite users** loading from the gem path (not npm): Add `fs.allow`:
+
+```typescript
+// vite.config.mts
+import { execSync } from 'child_process'
+
+const baliGemPath = execSync('bundle show bali_view_components').toString().trim()
+
+export default defineConfig({
+  resolve: {
+    alias: [
+      // Main entry points
+      { find: 'bali', replacement: resolve(baliGemPath, 'app/frontend/bali') },
+      { find: 'bali/charts', replacement: resolve(baliGemPath, 'app/frontend/bali/charts.js') },
+      { find: 'bali/gantt', replacement: resolve(baliGemPath, 'app/frontend/bali/gantt.js') },
+      // NPM dependencies (needed when loading from gem path)
+      { find: 'tippy.js', replacement: resolve(__dirname, 'node_modules/tippy.js') },
+      { find: 'sortablejs', replacement: resolve(__dirname, 'node_modules/sortablejs') },
+      // ... other npm packages as needed
+    ]
+  },
+  server: {
+    fs: { allow: ['.', baliGemPath] }
+  }
+})
 ```
 
 ---
@@ -229,55 +157,55 @@ application.register("dropdown", DropdownController)
 
 ## Available Controllers
 
-### Utility Controllers (from `bali/controllers/`)
+### Utility Controllers
 
-| Controller | Import Path | Description |
-|------------|-------------|-------------|
-| `DatepickerController` | `bali/controllers/datepicker-controller` | Flatpickr date picker |
-| `SubmitButtonController` | `bali/controllers/submit-button-controller` | Loading state on submit |
-| `SubmitOnChangeController` | `bali/controllers/submit-on-change-controller` | Auto-submit on change |
-| `DynamicFieldsController` | `bali/controllers/dynamic-fields-controller` | Add/remove form fields |
-| `CheckboxToggleController` | `bali/controllers/checkbox-toggle-controller` | Toggle visibility with checkbox |
-| `RadioToggleController` | `bali/controllers/radio-toggle-controller` | Toggle visibility with radio |
-| `FileInputController` | `bali/controllers/file-input-controller` | File input display |
-| `FocusOnConnectController` | `bali/controllers/focus-on-connect-controller` | Auto-focus on connect |
-| `PrintController` | `bali/controllers/print-controller` | Print current page |
-| `SlimSelectController` | `bali/controllers/slim-select-controller` | Slim Select dropdown |
-| `StepNumberInputController` | `bali/controllers/step-number-input-controller` | Number increment/decrement |
-| `InteractController` | `bali/controllers/interact-controller` | Drag/resize with interact.js |
+| Controller | Description |
+|------------|-------------|
+| `DatepickerController` | Flatpickr date picker |
+| `SubmitButtonController` | Loading state on submit |
+| `SubmitOnChangeController` | Auto-submit on change |
+| `DynamicFieldsController` | Add/remove form fields |
+| `CheckboxToggleController` | Toggle visibility with checkbox |
+| `RadioToggleController` | Toggle visibility with radio |
+| `FileInputController` | File input display |
+| `FocusOnConnectController` | Auto-focus on connect |
+| `PrintController` | Print current page |
+| `SlimSelectController` | Slim Select dropdown |
+| `StepNumberInputController` | Number increment/decrement |
+| `InteractController` | Drag/resize with interact.js |
 
-### Component Controllers (from `bali/components/`)
+### Component Controllers
 
-| Controller | Import Path | Description |
-|------------|-------------|-------------|
-| `TableController` | `bali/table` | Data table with sorting |
-| `ModalController` | `bali/modal` | Modal dialogs |
-| `DrawerController` | `bali/drawer` | Side panel drawer |
-| `DropdownController` | `bali/dropdown` | Dropdown menus |
-| `TabsController` | `bali/tabs` | Tab navigation |
-| `TooltipController` | `bali/tooltip` | Tooltips (tippy.js) |
-| `HovercardController` | `bali/hover_card` | Hover popups |
-| `CarouselController` | `bali/carousel` | Image carousel (Glide.js) |
-| `ClipboardController` | `bali/clipboard` | Copy to clipboard |
-| `NotificationController` | `bali/notification` | Toast notifications |
-| `RevealController` | `bali/reveal` | Show/hide content |
-| `SortableListController` | `bali/sortable_list` | Drag-drop sorting |
-| `NavbarController` | `bali/navbar` | Navigation bar |
-| `SideMenuController` | `bali/side_menu` | Sidebar menu |
-| `TimeagoController` | `bali/timeago` | Relative time display |
-| `RateController` | `bali/rate` | Star rating |
-| `AvatarController` | `bali/avatar` | User avatars |
-| `BulkActionsController` | `bali/bulk_actions` | Bulk selection actions |
-| `ImageFieldController` | `bali/image_field` | Image upload field |
-| `LocationsMapController` | `bali/locations_map` | Google Maps display |
+| Controller | Description |
+|------------|-------------|
+| `TableController` | Data table with sorting |
+| `ModalController` | Modal dialogs |
+| `DrawerController` | Side panel drawer |
+| `DropdownController` | Dropdown menus |
+| `TabsController` | Tab navigation |
+| `TooltipController` | Tooltips (tippy.js) |
+| `HovercardController` | Hover popups |
+| `CarouselController` | Image carousel (Glide.js) |
+| `ClipboardController` | Copy to clipboard |
+| `NotificationController` | Toast notifications |
+| `RevealController` | Show/hide content |
+| `SortableListController` | Drag-drop sorting |
+| `NavbarController` | Navigation bar |
+| `SideMenuController` | Sidebar menu |
+| `TimeagoController` | Relative time display |
+| `RateController` | Star rating |
+| `AvatarController` | User avatars |
+| `BulkActionsController` | Bulk selection actions |
+| `ImageFieldController` | Image upload field |
+| `LocationsMapController` | Google Maps display |
 
 ### Optional Modules (Heavy Dependencies)
 
 | Module | Import Path | Dependencies | Size |
 |--------|-------------|--------------|------|
-| Charts | `bali/charts` | chart.js | ~208KB |
-| Gantt | `bali/gantt` | sortablejs, lodash.throttle | ~50KB |
-| Rich Text Editor | `bali/rich-text-editor` | TipTap (broken) | N/A |
+| Charts | `bali-view-components/charts` | chart.js | ~208KB |
+| Gantt | `bali-view-components/gantt` | sortablejs, lodash.throttle | ~50KB |
+| Rich Text Editor | `bali-view-components/rich-text-editor` | TipTap | N/A |
 
 ---
 
@@ -289,11 +217,11 @@ Modern bundlers (Vite, Webpack, esbuild) automatically remove unused code. Impor
 
 ```javascript
 // Good: Import specific controllers
-import { DatepickerController, TableController } from 'bali'
+import { DatepickerController, TableController } from 'bali-view-components'
 
 // Avoid: Register all if you only need a few
-import { registerAllControllers } from 'bali'
-registerAllControllers(application)  // Includes all 40+ controllers
+import { registerAll } from 'bali-view-components'
+registerAll(application)  // Includes all 40+ controllers
 ```
 
 ### Code Splitting
@@ -304,12 +232,9 @@ Some bundlers (like Vite) automatically split large dependencies into separate c
 
 ## Troubleshooting
 
-### "Cannot find module 'bali'"
+### "Cannot find module 'bali-view-components'"
 
-Ensure your bundler config has the correct alias pointing to the gem path. Verify with:
-```bash
-bundle show bali_view_components
-```
+Ensure you've installed the package: `yarn add bali-view-components`
 
 ### "Module not found: tippy.js"
 
@@ -331,10 +256,9 @@ Pin the missing module in `config/importmap.rb`. Check the asset path exists.
 
 If you're migrating from importmaps to a bundler:
 
-1. **Choose a bundler**: Vite (`vite_rails`), Webpack (`jsbundling-rails`), or esbuild
-2. **Configure aliases**: Point `bali` to the gem's `app/frontend/bali` directory
-3. **Install npm dependencies**: See Step 2 above
+1. **Choose a bundler**: Vite (`vite_rails`), esbuild (`jsbundling-rails`), or Webpack
+2. **Install bali-view-components**: `yarn add bali-view-components`
+3. **Update application.js**: Use ES module imports from `'bali-view-components'`
 4. **Update layout**: Replace `javascript_importmap_tags` with your bundler's tag
-5. **Update application.js**: Use ES module imports
 
 The Bali controllers work identically with any bundler or import maps.

@@ -1,5 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
-import { toInt } from 'bali/utils/formatters'
+import { toInt } from '../../../assets/javascripts/bali/utils/formatters.js'
 
 export class TableController extends Controller {
   static targets = [

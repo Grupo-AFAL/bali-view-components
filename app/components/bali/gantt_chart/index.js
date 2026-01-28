@@ -1,11 +1,11 @@
 import { Controller } from '@hotwired/stimulus'
 import Sortable from 'sortablejs'
 import throttle from 'lodash.throttle'
-import useDispatch from 'bali/utils/use-dispatch'
-import { toBool, toInt } from 'bali/utils/formatters'
-import { addDaysToDate } from 'bali/utils/time'
+import useDispatch from '../../../assets/javascripts/bali/utils/use-dispatch.js'
+import { toBool, toInt } from '../../../assets/javascripts/bali/utils/formatters.js'
+import { addDaysToDate } from '../../../assets/javascripts/bali/utils/time.js'
 import { patch } from '@rails/request.js'
-import ConnectionLine from 'bali/gantt-chart/connection-line'
+import ConnectionLine from './connection_line.js'
 
 const TASK_NAME_PADDING = 8
 const UPDATE_SCROLL_FREQUENCY = 500

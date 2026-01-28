@@ -1,5 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
-import useDispatch from 'bali/utils/use-dispatch'
+import useDispatch from '../../../assets/javascripts/bali/utils/use-dispatch.js'
 
 export class GanttFoldableItemController extends Controller {
   static values = {
