@@ -22,12 +22,19 @@ module Bali
         large: 'text-lg'
       }.freeze
 
+      STYLES = {
+        soft: 'alert-soft',
+        outline: 'alert-outline',
+        dash: 'alert-dash'
+      }.freeze
+
       renders_one :header
 
-      def initialize(title: nil, size: :regular, color: :primary, **options)
+      def initialize(title: nil, size: :regular, color: :primary, style: nil, **options)
         @title = title
         @size = size&.to_sym
         @color = color&.to_sym
+        @style = style&.to_sym
         @options = prepend_class_name(options, message_classes)
       end
 
@@ -39,7 +46,8 @@ module Bali
         class_names(
           BASE_CLASSES,
           COLORS.fetch(@color, COLORS[:primary]),
-          SIZES.fetch(@size, SIZES[:regular])
+          SIZES.fetch(@size, SIZES[:regular]),
+          STYLES[@style]
         )
       end
     end

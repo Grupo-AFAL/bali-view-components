@@ -7,7 +7,6 @@
  *
  * Or import individual stylesheets:
  *
- *   @import "bali/variables.css";
  *   @import "bali/general.css";
  *   ... etc
  *
@@ -18,7 +17,6 @@
 /* ==============================================
    Base Styles & Variables
    ============================================== */
-@import "./bali/variables.css";
 @import "./bali/general.css";
 
 /* ==============================================

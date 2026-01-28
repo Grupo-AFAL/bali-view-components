@@ -1,8 +1,8 @@
 <%= tag.div(**html_attributes) do %>
-  <div class="drawer-overlay fixed inset-0 bg-black/50 z-[60] opacity-0 pointer-events-none transition-opacity duration-300 group-[.drawer-open]:opacity-100 group-[.drawer-open]:pointer-events-auto"
+  <div class="drawer-overlay fixed inset-0 bg-black/50 z-[100] opacity-0 transition-opacity duration-300 group-[.drawer-open]:opacity-100 group-[.drawer-open]:pointer-events-auto"
        data-drawer-target="background"
        data-action="click->drawer#close"
-       aria-hidden="true"></div>
+    aria-hidden="true"></div>
   <div class="<%= panel_classes %> <%= panel_open_class %> max-md:group-[.drawer-open]:max-w-[85%]"
        data-drawer-target="wrapper"
        role="document">

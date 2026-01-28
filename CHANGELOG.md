@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2] - 2026-01-28
+
+### Added
+
+- **Link Component** - Added `soft` and `outline` styles to `Bali::Link::Component`
+- **Message Component** - Added style variants (`soft`, `outline`, `dash`) to `Bali::Message::Component`
+- **Notification Component** - Added `style` options and updated tag's rounded class
+- **Tag Component** - Added a new preview page showcasing all variations and combinations
+- **SlimSelect** - Added `results_text` support and `resultsText` option for grouping AJAX results
+- **Utility** - Added `.box` utility class
+- **Translations** - Added "results" translation key for select menu in English and Spanish
+
+### Changed
+
+- **Drawer Component** - Refactored overlay visibility and z-index
+- **Tag Component** - Made `text` attribute optional, falling back to content
+- **Dropdown Component** - Render dropdown menu items as plain links
+- **Internal** - Relocated component-specific CSS variables to `bali-` prefixed variables and updated `build_url` calls
+
+
 ## [2.0.1] - 2026-01-27
 
 ### Changed

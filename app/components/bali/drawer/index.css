@@ -1,7 +1,13 @@
 /* Drawer component styles */
 
 /* Overlay styles - group-variant classes for when parent has .drawer-open */
+.drawer-component .drawer-overlay {
+  display: none;
+  pointer-events: none;
+}
+
 .drawer-component.drawer-open .drawer-overlay {
+  display: block;
   opacity: 1;
   pointer-events: auto;
 }

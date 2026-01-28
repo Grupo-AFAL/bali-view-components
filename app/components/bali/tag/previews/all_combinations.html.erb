@@ -1,0 +1,102 @@
+<div class="space-y-8 p-4">
+  <!-- Colors Section -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Colors</h3>
+    <div class="flex flex-wrap gap-2">
+      <% %i[neutral primary secondary accent ghost info success warning error].each do |color| %>
+        <%= render Bali::Tag::Component.new(text: color.to_s, color: color) %>
+      <% end %>
+    </div>
+  </section>
+
+  <!-- Sizes Section -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Sizes</h3>
+    <div class="flex flex-wrap items-center gap-2">
+      <% %i[xs sm md lg xl].each do |size| %>
+        <%= render Bali::Tag::Component.new(text: size.to_s, color: :primary, size: size) %>
+      <% end %>
+    </div>
+  </section>
+
+  <!-- Styles Section -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Styles</h3>
+    <div class="space-y-3">
+      <% %i[outline soft dash].each do |style| %>
+        <div>
+          <div class="text-sm text-base-content/60 mb-1"><%= style %></div>
+          <div class="flex flex-wrap gap-2">
+            <% %i[neutral primary secondary accent info success warning error].each do |color| %>
+              <%= render Bali::Tag::Component.new(text: color.to_s, color: color, style: style) %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <!-- Rounded Section -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Rounded</h3>
+    <div class="flex flex-wrap gap-2">
+      <% %i[primary secondary accent info success warning error].each do |color| %>
+        <%= render Bali::Tag::Component.new(text: color.to_s, color: color, rounded: true) %>
+      <% end %>
+    </div>
+  </section>
+
+  <!-- With Link Section -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Clickable (with href)</h3>
+    <div class="flex flex-wrap gap-2">
+      <%= render Bali::Tag::Component.new(text: "Primary Link", color: :primary, href: "#") %>
+      <%= render Bali::Tag::Component.new(text: "Info Link", color: :info, href: "#") %>
+      <%= render Bali::Tag::Component.new(text: "Outline Link", color: :secondary, style: :outline, href: "#") %>
+    </div>
+  </section>
+
+  <!-- Custom Colors Section -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Custom Colors (auto-contrast text)</h3>
+    <div class="flex flex-wrap gap-2">
+      <%= render Bali::Tag::Component.new(text: "#3b82f6", custom_color: "#3b82f6") %>
+      <%= render Bali::Tag::Component.new(text: "#10b981", custom_color: "#10b981") %>
+      <%= render Bali::Tag::Component.new(text: "#f59e0b", custom_color: "#f59e0b") %>
+      <%= render Bali::Tag::Component.new(text: "#ef4444", custom_color: "#ef4444") %>
+      <%= render Bali::Tag::Component.new(text: "#8b5cf6", custom_color: "#8b5cf6") %>
+      <%= render Bali::Tag::Component.new(text: "#ec4899", custom_color: "#ec4899") %>
+      <%= render Bali::Tag::Component.new(text: "#1e293b", custom_color: "#1e293b") %>
+      <%= render Bali::Tag::Component.new(text: "#fef3c7", custom_color: "#fef3c7") %>
+    </div>
+  </section>
+
+  <!-- Full Matrix: Colors x Styles -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Full Matrix (Colors x Styles)</h3>
+    <div class="overflow-x-auto">
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Color</th>
+            <th>Default</th>
+            <th>Outline</th>
+            <th>Soft</th>
+            <th>Dash</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% %i[neutral primary secondary accent ghost info success warning error].each do |color| %>
+            <tr>
+              <td class="font-mono text-xs"><%= color %></td>
+              <td><%= render Bali::Tag::Component.new(text: "Tag", color: color) %></td>
+              <td><%= render Bali::Tag::Component.new(text: "Tag", color: color, style: :outline) %></td>
+              <td><%= render Bali::Tag::Component.new(text: "Tag", color: color, style: :soft) %></td>
+              <td><%= render Bali::Tag::Component.new(text: "Tag", color: color, style: :dash) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

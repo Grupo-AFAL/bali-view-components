@@ -24,6 +24,11 @@ module Bali
         xl: 'btn-xl'
       }.freeze
 
+      STYLES = {
+        outline: 'btn-outline',
+        soft: 'btn-soft'
+      }.freeze
+
       attr_reader :name, :href, :icon_name
 
       renders_one :icon, ->(name, **options) { Icon::Component.new(name, **options) }
@@ -34,6 +39,7 @@ module Bali
         href:,
         name: nil,
         variant: nil,
+        style: nil,
         size: nil,
         icon_name: nil,
         active: nil,
@@ -53,6 +59,7 @@ module Bali
         @href = href
         # Support deprecated `type` parameter for backwards compatibility
         @variant = (variant || type)&.to_sym
+        @style = style&.to_sym
         @size = size&.to_sym
         @icon_name = icon_name
         @active = active
@@ -79,6 +86,7 @@ module Bali
         class_names(
           base_class,
           variant_class,
+          style_class,
           size_class,
           @options[:class],
           { 'active' => active?, 'btn-disabled' => @disabled && button_style? }
@@ -115,8 +123,12 @@ module Bali
         SIZES[@size] if button_style? && @size
       end
 
+      def style_class
+        STYLES[@style] if button_style? && @style
+      end
+
       def button_style?
-        @variant.present?
+        @variant.present? || @style.present?
       end
 
       def active?

@@ -69,7 +69,7 @@ RSpec.describe Bali::DeleteLink::Component, type: :component do
       render_inline(component)
 
       expect(page).to have_css 'button .icon-component'
-      expect(page).to have_css 'button span', text: 'Delete'
+      expect(page).to have_css 'button', text: 'Delete'
     end
 
     it 'does not render icon by default' do
@@ -108,7 +108,7 @@ RSpec.describe Bali::DeleteLink::Component, type: :component do
     it 'uses block content as name' do
       render_inline(component) { 'Remove Item' }
 
-      expect(page).to have_css 'button span', text: 'Remove Item'
+      expect(page).to have_css 'button', text: 'Remove Item'
     end
   end
 

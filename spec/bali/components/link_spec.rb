@@ -56,6 +56,33 @@ RSpec.describe Bali::Link::Component, type: :component do
     end
   end
 
+  describe 'styles' do
+    it 'renders outline style' do
+      render_inline(described_class.new(name: 'Outline', href: '#', variant: :primary, style: :outline))
+
+      expect(page).to have_css 'a.btn.btn-primary.btn-outline'
+    end
+
+    it 'renders soft style' do
+      render_inline(described_class.new(name: 'Soft', href: '#', variant: :primary, style: :soft))
+
+      expect(page).to have_css 'a.btn.btn-primary.btn-soft'
+    end
+
+    it 'applies style as button when used without variant' do
+      render_inline(described_class.new(name: 'Outline', href: '#', style: :outline))
+
+      expect(page).to have_css 'a.btn.btn-outline'
+      expect(page).not_to have_css 'a.link'
+    end
+
+    it 'combines style with size' do
+      render_inline(described_class.new(name: 'Small Outline', href: '#', variant: :primary, style: :outline, size: :sm))
+
+      expect(page).to have_css 'a.btn.btn-primary.btn-outline.btn-sm'
+    end
+  end
+
   describe 'with icon slot' do
     it 'renders icon via slot' do
       render_inline(described_class.new(name: 'Click', href: '#')) do |c|

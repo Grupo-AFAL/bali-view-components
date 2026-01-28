@@ -16,11 +16,12 @@ module Bali
       # Button Link
       # ---------------
       # Link styled as a button using DaisyUI btn classes.
-      # Use `variant` for color and `size` for dimensions.
+      # Use `variant` for color, `style` for appearance, and `size` for dimensions.
       # @param variant [Symbol] select [primary, secondary, accent, info, success, warning, error, ghost, link, neutral]
+      # @param style [Symbol] select [~, outline, soft]
       # @param size [Symbol] select [xs, sm, md, lg, xl]
-      def button_link(variant: :primary, size: :md)
-        render Bali::Link::Component.new(name: 'Click me!', href: '#', variant: variant, size: size)
+      def button_link(variant: :primary, style: nil, size: :md)
+        render Bali::Link::Component.new(name: 'Click me!', href: '#', variant: variant, style: style, size: size)
       end
 
       # @!endgroup
@@ -132,6 +133,17 @@ module Bali
       # @param variant [Symbol] select [primary, secondary, accent, info, success, warning, error]
       def with_custom_content(variant: :primary)
         render_with_template(locals: { variant: variant })
+      end
+
+      # @!endgroup
+
+      # @!group Reference
+
+      # All Combinations
+      # ---------------
+      # Complete visual reference showing all variants, sizes, states, and icon options.
+      def all_combinations
+        render_with_template
       end
 
       # @!endgroup

@@ -16,6 +16,7 @@ export class SlimSelectController extends Controller {
     searchHighlight: Boolean,
     noResultsText: { type: String, default: 'No results' },
     searchingText: { type: String, default: 'Searching...' },
+    resultsText: { type: String, default: 'Results' },
     ajaxParamName: String,
     ajaxValueName: String,
     ajaxTextName: String,
@@ -163,7 +164,7 @@ export class SlimSelectController extends Controller {
             }
           })
 
-          resolve(options)
+          resolve([{ label: this.resultsTextValue, options: options }])
         })
     })
   }

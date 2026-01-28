@@ -15,8 +15,10 @@
 # See https://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 
 RSpec.configure do |config|
-  # Exclude specs from node_modules (npm symlink includes vendor/bundle specs)
-  config.exclude_pattern = '**/node_modules/**/*_spec.rb'
+  # Only look for specs in the spec/ directory at the project root,
+  # excluding node_modules and vendor directories which may contain gem specs
+  # (the npm symlink at spec/dummy/node_modules/bali-view-components points to project root)
+  config.pattern = 'spec/{bali,components,helpers,lib,models,requests,system}/**/*_spec.rb'
 
   # rspec-expectations config goes here. You can use an alternate
   # assertion/expectation library such as wrong or the stdlib/minitest
