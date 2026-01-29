@@ -18,16 +18,16 @@ module Bali
       renders_many :columns, Column::Component
 
       # @param gap [Symbol] Gap size (:none, :px, :xs, :sm, :md, :lg, :xl, :'2xl')
-      # @param multiline [Boolean] Allow columns to wrap to multiple lines (Bulma: is-multiline)
-      # @param centered [Boolean] Center columns horizontally (Bulma: is-centered)
-      # @param vcentered [Boolean] Center columns vertically (Bulma: is-vcentered)
-      # @param mobile [Boolean] Keep columns on mobile instead of stacking (Bulma: is-mobile)
-      def initialize(gap: :md, multiline: false, centered: false,
-                     vcentered: false, mobile: false, **options)
+      # @param wrap [Boolean] Allow columns to wrap to multiple lines
+      # @param center [Boolean] Center columns horizontally
+      # @param middle [Boolean] Center columns vertically
+      # @param mobile [Boolean] Keep columns on mobile instead of stacking
+      def initialize(gap: :md, wrap: false, center: false,
+                     middle: false, mobile: false, **options)
         @gap = gap&.to_sym
-        @multiline = multiline
-        @centered = centered
-        @vcentered = vcentered
+        @wrap = wrap
+        @center = center
+        @middle = middle
         @mobile = mobile
         @options = options
       end
@@ -40,10 +40,10 @@ module Bali
         class_names(
           'columns',
           GAPS[@gap] || GAPS[:md],
-          { 'is-multiline' => @multiline },
-          { 'is-centered' => @centered },
-          { 'is-vcentered' => @vcentered },
-          { 'is-mobile' => @mobile },
+          { 'columns-wrap' => @wrap },
+          { 'columns-center' => @center },
+          { 'columns-middle' => @middle },
+          { 'columns-mobile' => @mobile },
           options[:class]
         )
       end

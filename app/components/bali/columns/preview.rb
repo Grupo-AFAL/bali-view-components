@@ -30,14 +30,14 @@ module Bali
         end
       end
 
-      # Narrow (Auto Width)
-      # -------------------
-      # A column that only takes the width of its content (Bulma: is-narrow)
-      def narrow
+      # Auto Width
+      # ----------
+      # A column that only takes the width of its content (col-auto)
+      def auto_width
         render Columns::Component.new do |c|
-          c.with_column(narrow: true) do
+          c.with_column(auto: true) do
             tag.div(class: 'bg-primary text-primary-content p-4 rounded-lg') do
-              tag.p 'Narrow'
+              tag.p 'Auto'
             end
           end
 
@@ -128,18 +128,18 @@ module Bali
 
       # Numeric Sizes
       # -------------
-      # Use numeric sizes 1-12 like Bulma's is-4, is-8
+      # Use numeric sizes 1-12 (col-4, col-8, etc.)
       def numeric_sizes
         render Columns::Component.new do |c|
           c.with_column(size: 4) do
             tag.div(class: 'bg-primary text-primary-content p-4 rounded-lg') do
-              tag.p 'size: 4 (is-4)'
+              tag.p 'size: 4 (col-4)'
             end
           end
 
           c.with_column(size: 8) do
             tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'size: 8 (is-8)'
+              tag.p 'size: 8 (col-8)'
             end
           end
         end
@@ -147,7 +147,7 @@ module Bali
 
       # Offset
       # ------
-      # A column with left offset (Bulma: is-offset-*)
+      # A column with left offset (offset-*)
       def offset
         render Columns::Component.new do |c|
           c.with_column(size: :half, offset: :one_quarter) do
@@ -160,7 +160,7 @@ module Bali
 
       # Numeric Offset
       # --------------
-      # Using numeric offset like Bulma's is-offset-3
+      # Using numeric offset (offset-3)
       def numeric_offset
         render Columns::Component.new do |c|
           c.with_column(size: 6, offset: 3) do
@@ -230,7 +230,7 @@ module Bali
 
       # Fifths
       # ------
-      # Columns with fifth-based widths (Bulma: is-one-fifth, etc.)
+      # Columns with fifth-based widths (col-fifth, col-4-fifths, etc.)
       def fifths
         render Columns::Component.new do |c|
           c.with_column(size: :one_fifth) do
@@ -251,11 +251,11 @@ module Bali
 
       # @!group Alignment
 
-      # Centered
-      # --------
-      # Horizontally centered columns (Bulma: is-centered)
-      def centered
-        render Columns::Component.new(centered: true) do |c|
+      # Center
+      # ------
+      # Horizontally centered columns (columns-center)
+      def center
+        render Columns::Component.new(center: true) do |c|
           c.with_column(size: :half) do
             tag.div(class: 'bg-primary text-primary-content p-4 rounded-lg') do
               tag.p 'Centered half-width column'
@@ -264,11 +264,11 @@ module Bali
         end
       end
 
-      # Vertically Centered
-      # -------------------
-      # Vertically centered columns (Bulma: is-vcentered)
-      def vcentered
-        render Columns::Component.new(vcentered: true) do |c|
+      # Middle
+      # ------
+      # Vertically centered columns (columns-middle)
+      def middle
+        render Columns::Component.new(middle: true) do |c|
           c.with_column(size: :half) do
             tag.div(class: 'bg-base-200 p-4 rounded-lg', style: 'height: 150px;') do
               tag.p 'Tall column'
@@ -285,7 +285,7 @@ module Bali
 
       # Mobile
       # ------
-      # Columns that stay horizontal on mobile (Bulma: is-mobile)
+      # Columns that stay horizontal on mobile (columns-mobile)
       def mobile
         render Columns::Component.new(mobile: true) do |c|
           c.with_column do
@@ -312,11 +312,11 @@ module Bali
 
       # @!group Multi-row
 
-      # Multiline
-      # ---------
-      # Columns that wrap to multiple lines (Bulma: is-multiline)
-      def multiline
-        render Columns::Component.new(multiline: true) do |c|
+      # Wrap
+      # ----
+      # Columns that wrap to multiple lines (columns-wrap)
+      def wrap
+        render Columns::Component.new(wrap: true) do |c|
           c.with_column(size: :half) do
             tag.div(class: 'bg-base-200 p-4 rounded-lg') do
               tag.p '1st (half)'

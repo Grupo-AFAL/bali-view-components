@@ -4,50 +4,50 @@ module Bali
   module Columns
     module Column
       class Component < ApplicationViewComponent
-        # Numeric sizes (Bulma: is-1 through is-12)
-        NUMERIC_SIZES = (1..12).index_with { |n| "is-#{n}" }.freeze
+        # Numeric sizes (col-1 through col-12)
+        NUMERIC_SIZES = (1..12).index_with { |n| "col-#{n}" }.freeze
 
-        # Fractional sizes (Bulma: is-half, is-one-third, etc.)
+        # Fractional sizes
         SYMBOLIC_SIZES = {
-          full: 'is-full',
-          half: 'is-half',
-          one_third: 'is-one-third',
-          third: 'is-one-third',
-          two_thirds: 'is-two-thirds',
-          one_quarter: 'is-one-quarter',
-          quarter: 'is-one-quarter',
-          three_quarters: 'is-three-quarters',
-          one_fifth: 'is-one-fifth',
-          two_fifths: 'is-two-fifths',
-          three_fifths: 'is-three-fifths',
-          four_fifths: 'is-four-fifths'
+          full: 'col-full',
+          half: 'col-half',
+          one_third: 'col-third',
+          third: 'col-third',
+          two_thirds: 'col-2-thirds',
+          one_quarter: 'col-quarter',
+          quarter: 'col-quarter',
+          three_quarters: 'col-3-quarters',
+          one_fifth: 'col-fifth',
+          two_fifths: 'col-2-fifths',
+          three_fifths: 'col-3-fifths',
+          four_fifths: 'col-4-fifths'
         }.freeze
 
-        # Numeric offsets (Bulma: is-offset-1 through is-offset-11)
-        NUMERIC_OFFSETS = (1..11).index_with { |n| "is-offset-#{n}" }.freeze
+        # Numeric offsets (offset-1 through offset-11)
+        NUMERIC_OFFSETS = (1..11).index_with { |n| "offset-#{n}" }.freeze
 
-        # Fractional offsets (Bulma: is-offset-half, is-offset-one-third, etc.)
+        # Fractional offsets
         SYMBOLIC_OFFSETS = {
-          half: 'is-offset-half',
-          one_third: 'is-offset-one-third',
-          third: 'is-offset-one-third',
-          two_thirds: 'is-offset-two-thirds',
-          one_quarter: 'is-offset-one-quarter',
-          quarter: 'is-offset-one-quarter',
-          three_quarters: 'is-offset-three-quarters',
-          one_fifth: 'is-offset-one-fifth',
-          two_fifths: 'is-offset-two-fifths',
-          three_fifths: 'is-offset-three-fifths',
-          four_fifths: 'is-offset-four-fifths'
+          half: 'offset-half',
+          one_third: 'offset-third',
+          third: 'offset-third',
+          two_thirds: 'offset-2-thirds',
+          one_quarter: 'offset-quarter',
+          quarter: 'offset-quarter',
+          three_quarters: 'offset-3-quarters',
+          one_fifth: 'offset-fifth',
+          two_fifths: 'offset-2-fifths',
+          three_fifths: 'offset-3-fifths',
+          four_fifths: 'offset-4-fifths'
         }.freeze
 
         # @param size [Symbol, Integer, nil] Column width - symbolic or numeric (1-12)
         # @param offset [Symbol, Integer, nil] Column offset - symbolic or numeric (1-11)
-        # @param narrow [Boolean] Make column only as wide as its content (Bulma: is-narrow)
-        def initialize(size: nil, offset: nil, narrow: false, **options)
+        # @param auto [Boolean] Make column only as wide as its content
+        def initialize(size: nil, offset: nil, auto: false, **options)
           @size = size
           @offset = offset
-          @narrow = narrow
+          @auto = auto
           @options = options
         end
 
@@ -62,7 +62,7 @@ module Bali
             'column',
             size_class,
             offset_class,
-            { 'is-narrow' => @narrow },
+            { 'col-auto' => @auto },
             @options[:class]
           )
         end
