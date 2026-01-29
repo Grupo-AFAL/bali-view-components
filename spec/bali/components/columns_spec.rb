@@ -25,25 +25,31 @@ RSpec.describe Bali::Columns::Component, type: :component do
     end
   end
 
-  describe 'gapless modifier (Bulma: is-gapless)' do
-    it 'applies is-gapless class when gapless: true' do
-      render_inline(described_class.new(gapless: true)) do |c|
+  describe 'gap sizes (Tailwind-like)' do
+    it 'applies default gap-md class' do
+      render_inline(component) do |c|
         c.with_column { 'Content' }
       end
 
-      expect(page).to have_css 'div.columns.is-gapless'
+      expect(page).to have_css 'div.columns.gap-md'
     end
-  end
 
-  describe 'variable gap sizes (Bulma: is-variable is-N)' do
-    (0..8).each do |gap_size|
-      it "applies is-variable and is-#{gap_size} for gap: #{gap_size}" do
-        render_inline(described_class.new(gap: gap_size)) do |c|
+    described_class::GAPS.each do |gap_name, gap_class|
+      it "applies #{gap_class} for gap: :#{gap_name}" do
+        render_inline(described_class.new(gap: gap_name)) do |c|
           c.with_column { 'Content' }
         end
 
-        expect(page).to have_css "div.columns.is-variable.is-#{gap_size}"
+        expect(page).to have_css "div.columns.#{gap_class}"
       end
+    end
+
+    it 'falls back to gap-md for invalid gap' do
+      render_inline(described_class.new(gap: :invalid)) do |c|
+        c.with_column { 'Content' }
+      end
+
+      expect(page).to have_css 'div.columns.gap-md'
     end
   end
 

@@ -53,11 +53,11 @@ module Bali
 
       # @!group Gap Sizes
 
-      # Gapless
-      # -------
-      # Columns with no gap between them (Bulma: is-gapless)
-      def gapless
-        render Columns::Component.new(gapless: true) do |c|
+      # Gap None
+      # --------
+      # Columns with no gap between them
+      def gap_none
+        render Columns::Component.new(gap: :none) do |c|
           c.with_column(size: :one_third) do
             tag.div(class: 'bg-primary text-primary-content p-4') do
               tag.p 'No gap'
@@ -78,20 +78,45 @@ module Bali
         end
       end
 
-      # Variable Gap
-      # ------------
-      # Columns with custom gap size using gap: 0-8 (Bulma: is-variable is-N)
-      def variable_gap
-        render Columns::Component.new(gap: 8) do |c|
+      # Gap Extra Large
+      # ---------------
+      # Columns with extra large gap (gap: :xl = 1.5rem)
+      def gap_xl
+        render Columns::Component.new(gap: :xl) do |c|
           c.with_column(size: :half) do
             tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'Large gap (8)'
+              tag.p 'Large gap (xl)'
             end
           end
 
           c.with_column(size: :half) do
             tag.div(class: 'bg-base-200 p-4 rounded-lg') do
               tag.p 'Between columns'
+            end
+          end
+        end
+      end
+
+      # Gap Small
+      # ---------
+      # Columns with small gap (gap: :sm = 0.5rem)
+      def gap_sm
+        render Columns::Component.new(gap: :sm) do |c|
+          c.with_column(size: :one_third) do
+            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
+              tag.p 'Small gap'
+            end
+          end
+
+          c.with_column(size: :one_third) do
+            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
+              tag.p 'Between'
+            end
+          end
+
+          c.with_column(size: :one_third) do
+            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
+              tag.p 'Columns'
             end
           end
         end

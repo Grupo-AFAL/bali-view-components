@@ -3,33 +3,28 @@
 module Bali
   module Columns
     class Component < ApplicationViewComponent
-      # Variable gap sizes (used with is-variable class)
+      # Gap sizes using Tailwind-like naming
       GAPS = {
-        0 => 'is-0',
-        1 => 'is-1',
-        2 => 'is-2',
-        3 => 'is-3',
-        4 => 'is-4',
-        5 => 'is-5',
-        6 => 'is-6',
-        7 => 'is-7',
-        8 => 'is-8'
+        none: 'gap-none',  # 0
+        px: 'gap-px',      # 1px
+        xs: 'gap-xs',      # 0.25rem (gap-1)
+        sm: 'gap-sm',      # 0.5rem (gap-2)
+        md: 'gap-md',      # 0.75rem (gap-3) - default
+        lg: 'gap-lg',      # 1rem (gap-4)
+        xl: 'gap-xl',      # 1.5rem (gap-6)
+        '2xl': 'gap-2xl'   # 2rem (gap-8)
       }.freeze
 
       renders_many :columns, Column::Component
 
-      # @param gapless [Boolean] Remove all gaps between columns (Bulma: is-gapless)
-      # @param gap [Integer, nil] Variable gap size 0-8 (Bulma: is-variable is-N)
+      # @param gap [Symbol] Gap size (:none, :px, :xs, :sm, :md, :lg, :xl, :'2xl')
       # @param multiline [Boolean] Allow columns to wrap to multiple lines (Bulma: is-multiline)
       # @param centered [Boolean] Center columns horizontally (Bulma: is-centered)
       # @param vcentered [Boolean] Center columns vertically (Bulma: is-vcentered)
       # @param mobile [Boolean] Keep columns on mobile instead of stacking (Bulma: is-mobile)
-      # rubocop:disable Metrics/ParameterLists -- Bulma columns have many modifiers
-      def initialize(gapless: false, gap: nil, multiline: false, centered: false,
+      def initialize(gap: :md, multiline: false, centered: false,
                      vcentered: false, mobile: false, **options)
-        # rubocop:enable Metrics/ParameterLists
-        @gapless = gapless
-        @gap = gap
+        @gap = gap&.to_sym
         @multiline = multiline
         @centered = centered
         @vcentered = vcentered
@@ -44,9 +39,7 @@ module Bali
       def container_classes
         class_names(
           'columns',
-          { 'is-gapless' => @gapless },
-          { 'is-variable' => @gap.present? },
-          GAPS[@gap],
+          GAPS[@gap] || GAPS[:md],
           { 'is-multiline' => @multiline },
           { 'is-centered' => @centered },
           { 'is-vcentered' => @vcentered },

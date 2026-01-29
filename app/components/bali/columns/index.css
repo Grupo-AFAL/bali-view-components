@@ -50,41 +50,35 @@
 }
 
 /* ==============================================
-   Gap Modifiers
+   Gap Modifiers (Tailwind-like naming)
    ============================================== */
-.columns.is-gapless {
+.columns.gap-none { --columns-gap: 0; }
+.columns.gap-px { --columns-gap: 1px; }
+.columns.gap-xs { --columns-gap: 0.25rem; }   /* gap-1 */
+.columns.gap-sm { --columns-gap: 0.5rem; }    /* gap-2 */
+.columns.gap-md { --columns-gap: 0.75rem; }   /* gap-3 - default */
+.columns.gap-lg { --columns-gap: 1rem; }      /* gap-4 */
+.columns.gap-xl { --columns-gap: 1.5rem; }    /* gap-6 */
+.columns.gap-2xl { --columns-gap: 2rem; }     /* gap-8 */
+
+/* Gapless shorthand (alias for gap-none) */
+.columns.gap-none > .column {
+  padding: 0;
+}
+
+.columns.gap-none {
   margin-left: 0;
   margin-right: 0;
   margin-top: 0;
 }
 
-.columns.is-gapless > .column {
-  margin: 0;
-  padding: 0;
-}
-
-.columns.is-gapless:not(:last-child) {
+.columns.gap-none:not(:last-child) {
   margin-bottom: 1.5rem;
 }
 
-.columns.is-gapless:last-child {
+.columns.gap-none:last-child {
   margin-bottom: 0;
 }
-
-/* Variable gap sizes */
-.columns.is-variable {
-  --columns-gap: 0.75rem;
-}
-
-.columns.is-variable.is-0 { --columns-gap: 0; }
-.columns.is-variable.is-1 { --columns-gap: 0.25rem; }
-.columns.is-variable.is-2 { --columns-gap: 0.5rem; }
-.columns.is-variable.is-3 { --columns-gap: 0.75rem; }
-.columns.is-variable.is-4 { --columns-gap: 1rem; }
-.columns.is-variable.is-5 { --columns-gap: 1.25rem; }
-.columns.is-variable.is-6 { --columns-gap: 1.5rem; }
-.columns.is-variable.is-7 { --columns-gap: 1.75rem; }
-.columns.is-variable.is-8 { --columns-gap: 2rem; }
 
 /* ==============================================
    Alignment Modifiers
