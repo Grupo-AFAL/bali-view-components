@@ -1,15 +1,29 @@
-/* Datepicker styling for Flatpickr - DaisyUI aligned */
-@import './vendor/flatpickr.css';
+/*
+ * Bali Datepicker - Flatpickr DaisyUI Integration
+ *
+ * This file imports the custom Flatpickr CSS (no vendor dependency)
+ * and adds any DaisyUI-specific theme overrides.
+ *
+ * The base flatpickr.css is self-contained (~400 lines vs ~900 vendor)
+ * and uses CSS custom properties for easy theming.
+ */
 
-/* Calendar container */
+@import './flatpickr.css';
+
+/* =============================================================================
+   DaisyUI Theme Overrides
+   These use @apply for Tailwind utilities where appropriate
+   ============================================================================= */
+
+/* Calendar container - enhanced with DaisyUI tokens */
 .flatpickr-calendar {
   @apply bg-base-100 shadow-lg rounded-lg border border-base-300;
   font-family: inherit;
 }
 
-/* Month header */
+/* Month header - primary background */
 .flatpickr-months {
-  @apply py-2.5 bg-primary rounded-t-lg;
+  @apply bg-primary rounded-t-lg;
 
   .flatpickr-month {
     @apply text-primary-content;
@@ -17,7 +31,7 @@
 
   .flatpickr-next-month,
   .flatpickr-prev-month {
-    @apply p-5 fill-primary-content;
+    @apply fill-primary-content;
 
     &:hover svg {
       @apply fill-primary-content/80;
@@ -25,9 +39,8 @@
   }
 }
 
+/* Current month text */
 .flatpickr-current-month {
-  @apply pt-1 pb-0 px-0;
-
   .flatpickr-monthDropdown-months,
   input.cur-year {
     @apply text-primary-content font-semibold;
@@ -42,7 +55,7 @@
   }
 }
 
-/* Arrow pointing to input */
+/* Arrow pointing to input - match header color */
 .flatpickr-calendar.arrowTop:before {
   border-bottom-color: oklch(var(--p));
 }
@@ -75,7 +88,7 @@ span.flatpickr-weekday {
   }
 }
 
-/* Selected day - THE FIX: ensure text is visible */
+/* Selected day */
 .flatpickr-day.selected,
 .flatpickr-day.startRange,
 .flatpickr-day.endRange,
@@ -133,18 +146,5 @@ span.flatpickr-weekday {
   .flatpickr-am-pm:hover,
   .flatpickr-am-pm:focus {
     @apply bg-base-200;
-  }
-}
-
-/* Custom flatpickr wrapper styles */
-.flatpickr {
-  .is-transparent {
-    @apply bg-transparent border-transparent;
-  }
-
-  &.is-horizontal {
-    @media (max-width: 768px) {
-      @apply flex;
-    }
   }
 }
