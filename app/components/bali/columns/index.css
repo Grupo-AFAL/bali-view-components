@@ -1,0 +1,303 @@
+/*
+ * Bali Columns - Bulma-compatible column system using Tailwind
+ *
+ * Replicates Bulma's columns functionality with CSS custom properties
+ * for gap control and flexbox-based layout.
+ *
+ * Usage:
+ *   <div class="columns">
+ *     <div class="column is-half">...</div>
+ *     <div class="column is-half">...</div>
+ *   </div>
+ */
+
+/* ==============================================
+   CSS Custom Properties
+   ============================================== */
+:root {
+  --columns-gap: 0.75rem;
+}
+
+/* ==============================================
+   Container: .columns
+   ============================================== */
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: calc(var(--columns-gap) * -1);
+  margin-right: calc(var(--columns-gap) * -1);
+  margin-top: calc(var(--columns-gap) * -1);
+}
+
+.columns:last-child {
+  margin-bottom: calc(var(--columns-gap) * -1);
+}
+
+.columns:not(:last-child) {
+  margin-bottom: calc(var(--columns-gap) - var(--columns-gap) * 2);
+}
+
+/* ==============================================
+   Column: .column
+   ============================================== */
+.column {
+  display: block;
+  flex-basis: 0;
+  flex-grow: 1;
+  flex-shrink: 1;
+  padding: var(--columns-gap);
+  min-width: 0; /* Prevent content overflow */
+}
+
+/* ==============================================
+   Gap Modifiers
+   ============================================== */
+.columns.is-gapless {
+  margin-left: 0;
+  margin-right: 0;
+  margin-top: 0;
+}
+
+.columns.is-gapless > .column {
+  margin: 0;
+  padding: 0;
+}
+
+.columns.is-gapless:not(:last-child) {
+  margin-bottom: 1.5rem;
+}
+
+.columns.is-gapless:last-child {
+  margin-bottom: 0;
+}
+
+/* Variable gap sizes */
+.columns.is-variable {
+  --columns-gap: 0.75rem;
+}
+
+.columns.is-variable.is-0 { --columns-gap: 0; }
+.columns.is-variable.is-1 { --columns-gap: 0.25rem; }
+.columns.is-variable.is-2 { --columns-gap: 0.5rem; }
+.columns.is-variable.is-3 { --columns-gap: 0.75rem; }
+.columns.is-variable.is-4 { --columns-gap: 1rem; }
+.columns.is-variable.is-5 { --columns-gap: 1.25rem; }
+.columns.is-variable.is-6 { --columns-gap: 1.5rem; }
+.columns.is-variable.is-7 { --columns-gap: 1.75rem; }
+.columns.is-variable.is-8 { --columns-gap: 2rem; }
+
+/* ==============================================
+   Alignment Modifiers
+   ============================================== */
+.columns.is-centered {
+  justify-content: center;
+}
+
+.columns.is-vcentered {
+  align-items: center;
+}
+
+.columns.is-multiline {
+  flex-wrap: wrap;
+}
+
+/* ==============================================
+   Responsive Modifiers
+   ============================================== */
+.columns.is-mobile {
+  display: flex;
+}
+
+/* Desktop only columns (stacked on mobile by default) */
+@media screen and (max-width: 768px) {
+  .columns:not(.is-mobile) {
+    display: block;
+  }
+
+  .columns:not(.is-mobile) > .column {
+    width: 100% !important;
+    flex: none;
+  }
+}
+
+@media screen and (min-width: 769px) {
+  .columns:not(.is-mobile) {
+    display: flex;
+  }
+}
+
+/* ==============================================
+   Narrow Column
+   ============================================== */
+.column.is-narrow {
+  flex: none;
+  width: unset;
+}
+
+/* ==============================================
+   12-Column Grid Sizes
+   ============================================== */
+.column.is-1 { flex: none; width: 8.33333%; }
+.column.is-2 { flex: none; width: 16.66667%; }
+.column.is-3 { flex: none; width: 25%; }
+.column.is-4 { flex: none; width: 33.33333%; }
+.column.is-5 { flex: none; width: 41.66667%; }
+.column.is-6 { flex: none; width: 50%; }
+.column.is-7 { flex: none; width: 58.33333%; }
+.column.is-8 { flex: none; width: 66.66667%; }
+.column.is-9 { flex: none; width: 75%; }
+.column.is-10 { flex: none; width: 83.33333%; }
+.column.is-11 { flex: none; width: 91.66667%; }
+.column.is-12 { flex: none; width: 100%; }
+
+/* ==============================================
+   Fractional Sizes
+   ============================================== */
+.column.is-full { flex: none; width: 100%; }
+.column.is-half { flex: none; width: 50%; }
+
+/* Thirds */
+.column.is-one-third { flex: none; width: 33.33333%; }
+.column.is-two-thirds { flex: none; width: 66.66667%; }
+
+/* Quarters */
+.column.is-one-quarter { flex: none; width: 25%; }
+.column.is-three-quarters { flex: none; width: 75%; }
+
+/* Fifths */
+.column.is-one-fifth { flex: none; width: 20%; }
+.column.is-two-fifths { flex: none; width: 40%; }
+.column.is-three-fifths { flex: none; width: 60%; }
+.column.is-four-fifths { flex: none; width: 80%; }
+
+/* ==============================================
+   Offset Classes
+   ============================================== */
+.column.is-offset-1 { margin-left: 8.33333%; }
+.column.is-offset-2 { margin-left: 16.66667%; }
+.column.is-offset-3 { margin-left: 25%; }
+.column.is-offset-4 { margin-left: 33.33333%; }
+.column.is-offset-5 { margin-left: 41.66667%; }
+.column.is-offset-6 { margin-left: 50%; }
+.column.is-offset-7 { margin-left: 58.33333%; }
+.column.is-offset-8 { margin-left: 66.66667%; }
+.column.is-offset-9 { margin-left: 75%; }
+.column.is-offset-10 { margin-left: 83.33333%; }
+.column.is-offset-11 { margin-left: 91.66667%; }
+
+/* Fractional Offsets */
+.column.is-offset-half { margin-left: 50%; }
+.column.is-offset-one-third { margin-left: 33.33333%; }
+.column.is-offset-two-thirds { margin-left: 66.66667%; }
+.column.is-offset-one-quarter { margin-left: 25%; }
+.column.is-offset-three-quarters { margin-left: 75%; }
+.column.is-offset-one-fifth { margin-left: 20%; }
+.column.is-offset-two-fifths { margin-left: 40%; }
+.column.is-offset-three-fifths { margin-left: 60%; }
+.column.is-offset-four-fifths { margin-left: 80%; }
+
+/* ==============================================
+   Responsive Size Classes (Tablet and up)
+   ============================================== */
+@media screen and (min-width: 769px) {
+  .column.is-1-tablet { flex: none; width: 8.33333%; }
+  .column.is-2-tablet { flex: none; width: 16.66667%; }
+  .column.is-3-tablet { flex: none; width: 25%; }
+  .column.is-4-tablet { flex: none; width: 33.33333%; }
+  .column.is-5-tablet { flex: none; width: 41.66667%; }
+  .column.is-6-tablet { flex: none; width: 50%; }
+  .column.is-7-tablet { flex: none; width: 58.33333%; }
+  .column.is-8-tablet { flex: none; width: 66.66667%; }
+  .column.is-9-tablet { flex: none; width: 75%; }
+  .column.is-10-tablet { flex: none; width: 83.33333%; }
+  .column.is-11-tablet { flex: none; width: 91.66667%; }
+  .column.is-12-tablet { flex: none; width: 100%; }
+
+  .column.is-half-tablet { flex: none; width: 50%; }
+  .column.is-one-third-tablet { flex: none; width: 33.33333%; }
+  .column.is-two-thirds-tablet { flex: none; width: 66.66667%; }
+  .column.is-one-quarter-tablet { flex: none; width: 25%; }
+  .column.is-three-quarters-tablet { flex: none; width: 75%; }
+
+  .column.is-narrow-tablet { flex: none; width: unset; }
+}
+
+/* ==============================================
+   Responsive Size Classes (Desktop and up)
+   ============================================== */
+@media screen and (min-width: 1024px) {
+  .column.is-1-desktop { flex: none; width: 8.33333%; }
+  .column.is-2-desktop { flex: none; width: 16.66667%; }
+  .column.is-3-desktop { flex: none; width: 25%; }
+  .column.is-4-desktop { flex: none; width: 33.33333%; }
+  .column.is-5-desktop { flex: none; width: 41.66667%; }
+  .column.is-6-desktop { flex: none; width: 50%; }
+  .column.is-7-desktop { flex: none; width: 58.33333%; }
+  .column.is-8-desktop { flex: none; width: 66.66667%; }
+  .column.is-9-desktop { flex: none; width: 75%; }
+  .column.is-10-desktop { flex: none; width: 83.33333%; }
+  .column.is-11-desktop { flex: none; width: 91.66667%; }
+  .column.is-12-desktop { flex: none; width: 100%; }
+
+  .column.is-half-desktop { flex: none; width: 50%; }
+  .column.is-one-third-desktop { flex: none; width: 33.33333%; }
+  .column.is-two-thirds-desktop { flex: none; width: 66.66667%; }
+  .column.is-one-quarter-desktop { flex: none; width: 25%; }
+  .column.is-three-quarters-desktop { flex: none; width: 75%; }
+
+  .column.is-narrow-desktop { flex: none; width: unset; }
+}
+
+/* ==============================================
+   Responsive Size Classes (Widescreen and up)
+   ============================================== */
+@media screen and (min-width: 1216px) {
+  .column.is-1-widescreen { flex: none; width: 8.33333%; }
+  .column.is-2-widescreen { flex: none; width: 16.66667%; }
+  .column.is-3-widescreen { flex: none; width: 25%; }
+  .column.is-4-widescreen { flex: none; width: 33.33333%; }
+  .column.is-5-widescreen { flex: none; width: 41.66667%; }
+  .column.is-6-widescreen { flex: none; width: 50%; }
+  .column.is-7-widescreen { flex: none; width: 58.33333%; }
+  .column.is-8-widescreen { flex: none; width: 66.66667%; }
+  .column.is-9-widescreen { flex: none; width: 75%; }
+  .column.is-10-widescreen { flex: none; width: 83.33333%; }
+  .column.is-11-widescreen { flex: none; width: 91.66667%; }
+  .column.is-12-widescreen { flex: none; width: 100%; }
+
+  .column.is-half-widescreen { flex: none; width: 50%; }
+  .column.is-narrow-widescreen { flex: none; width: unset; }
+}
+
+/* ==============================================
+   Mobile-specific Size Classes
+   ============================================== */
+@media screen and (max-width: 768px) {
+  .column.is-1-mobile { flex: none; width: 8.33333%; }
+  .column.is-2-mobile { flex: none; width: 16.66667%; }
+  .column.is-3-mobile { flex: none; width: 25%; }
+  .column.is-4-mobile { flex: none; width: 33.33333%; }
+  .column.is-5-mobile { flex: none; width: 41.66667%; }
+  .column.is-6-mobile { flex: none; width: 50%; }
+  .column.is-7-mobile { flex: none; width: 58.33333%; }
+  .column.is-8-mobile { flex: none; width: 66.66667%; }
+  .column.is-9-mobile { flex: none; width: 75%; }
+  .column.is-10-mobile { flex: none; width: 83.33333%; }
+  .column.is-11-mobile { flex: none; width: 91.66667%; }
+  .column.is-12-mobile { flex: none; width: 100%; }
+
+  .column.is-half-mobile { flex: none; width: 50%; }
+  .column.is-one-third-mobile { flex: none; width: 33.33333%; }
+  .column.is-two-thirds-mobile { flex: none; width: 66.66667%; }
+  .column.is-one-quarter-mobile { flex: none; width: 25%; }
+  .column.is-three-quarters-mobile { flex: none; width: 75%; }
+
+  .column.is-narrow-mobile { flex: none; width: unset; }
+
+  .column.is-offset-1-mobile { margin-left: 8.33333%; }
+  .column.is-offset-2-mobile { margin-left: 16.66667%; }
+  .column.is-offset-3-mobile { margin-left: 25%; }
+  .column.is-offset-4-mobile { margin-left: 33.33333%; }
+  .column.is-offset-5-mobile { margin-left: 41.66667%; }
+  .column.is-offset-6-mobile { margin-left: 50%; }
+}

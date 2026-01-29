@@ -7,37 +7,43 @@ module Bali
 
       # Default
       # -------
-      # Two equal-width columns using size: :half
+      # Columns without size specifications will automatically fill available space equally.
       def default
         render Columns::Component.new do |c|
-          c.with_column(size: :half) do
+          c.with_column do
             tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'First Column (half)'
-            end
-          end
-
-          c.with_column(size: :half) do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'Second Column (half)'
-            end
-          end
-        end
-      end
-
-      # Auto Width
-      # ----------
-      # A column that only takes the width of its content
-      def auto_width
-        render Columns::Component.new do |c|
-          c.with_column(size: :auto) do
-            tag.div(class: 'bg-primary text-primary-content p-4 rounded-lg') do
-              tag.p 'Auto'
+              tag.p 'First Column'
             end
           end
 
           c.with_column do
             tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'This column takes remaining space (full width)'
+              tag.p 'Second Column'
+            end
+          end
+
+          c.with_column do
+            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
+              tag.p 'Third Column'
+            end
+          end
+        end
+      end
+
+      # Narrow (Auto Width)
+      # -------------------
+      # A column that only takes the width of its content (Bulma: is-narrow)
+      def narrow
+        render Columns::Component.new do |c|
+          c.with_column(narrow: true) do
+            tag.div(class: 'bg-primary text-primary-content p-4 rounded-lg') do
+              tag.p 'Narrow'
+            end
+          end
+
+          c.with_column do
+            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
+              tag.p 'This column fills remaining space'
             end
           end
         end
@@ -47,24 +53,24 @@ module Bali
 
       # @!group Gap Sizes
 
-      # Gap None
-      # --------
-      # Columns with no gap between them
-      def gap_none
-        render Columns::Component.new(gap: :none) do |c|
-          c.with_column(size: :third) do
+      # Gapless
+      # -------
+      # Columns with no gap between them (Bulma: is-gapless)
+      def gapless
+        render Columns::Component.new(gapless: true) do |c|
+          c.with_column(size: :one_third) do
             tag.div(class: 'bg-primary text-primary-content p-4') do
               tag.p 'No gap'
             end
           end
 
-          c.with_column(size: :third) do
+          c.with_column(size: :one_third) do
             tag.div(class: 'bg-secondary text-secondary-content p-4') do
               tag.p 'Between'
             end
           end
 
-          c.with_column(size: :third) do
+          c.with_column(size: :one_third) do
             tag.div(class: 'bg-accent text-accent-content p-4') do
               tag.p 'Columns'
             end
@@ -72,14 +78,14 @@ module Bali
         end
       end
 
-      # Gap Large
-      # ---------
-      # Columns with large gap (gap-6)
-      def gap_large
-        render Columns::Component.new(gap: :lg) do |c|
+      # Variable Gap
+      # ------------
+      # Columns with custom gap size using gap: 0-8 (Bulma: is-variable is-N)
+      def variable_gap
+        render Columns::Component.new(gap: 8) do |c|
           c.with_column(size: :half) do
             tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'Large gap'
+              tag.p 'Large gap (8)'
             end
           end
 
@@ -95,14 +101,65 @@ module Bali
 
       # @!group Sizing
 
+      # Numeric Sizes
+      # -------------
+      # Use numeric sizes 1-12 like Bulma's is-4, is-8
+      def numeric_sizes
+        render Columns::Component.new do |c|
+          c.with_column(size: 4) do
+            tag.div(class: 'bg-primary text-primary-content p-4 rounded-lg') do
+              tag.p 'size: 4 (is-4)'
+            end
+          end
+
+          c.with_column(size: 8) do
+            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
+              tag.p 'size: 8 (is-8)'
+            end
+          end
+        end
+      end
+
       # Offset
       # ------
-      # A column with left offset using CSS Grid col-start
+      # A column with left offset (Bulma: is-offset-*)
       def offset
         render Columns::Component.new do |c|
-          c.with_column(size: :half, offset: :quarter) do
+          c.with_column(size: :half, offset: :one_quarter) do
             tag.div(class: 'bg-secondary text-secondary-content p-4 rounded-lg') do
               tag.p 'Half width with quarter offset'
+            end
+          end
+        end
+      end
+
+      # Numeric Offset
+      # --------------
+      # Using numeric offset like Bulma's is-offset-3
+      def numeric_offset
+        render Columns::Component.new do |c|
+          c.with_column(size: 6, offset: 3) do
+            tag.div(class: 'bg-accent text-accent-content p-4 rounded-lg') do
+              tag.p 'size: 6, offset: 3'
+            end
+          end
+        end
+      end
+
+      # Halves
+      # ------
+      # Two columns of equal width using size: :half
+      def halves
+        render Columns::Component.new do |c|
+          c.with_column(size: :half) do
+            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
+              tag.p 'First half'
+            end
+          end
+
+          c.with_column(size: :half) do
+            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
+              tag.p 'Second half'
             end
           end
         end
@@ -113,7 +170,7 @@ module Bali
       # Columns with one-third and two-thirds widths
       def thirds
         render Columns::Component.new do |c|
-          c.with_column(size: :third) do
+          c.with_column(size: :one_third) do
             tag.div(class: 'bg-accent text-accent-content p-4 rounded-lg') do
               tag.p '1/3 width'
             end
@@ -132,7 +189,7 @@ module Bali
       # Columns with quarter widths
       def quarters
         render Columns::Component.new do |c|
-          c.with_column(size: :quarter) do
+          c.with_column(size: :one_quarter) do
             tag.div(class: 'bg-info text-info-content p-4 rounded-lg') do
               tag.p '1/4'
             end
@@ -146,15 +203,95 @@ module Bali
         end
       end
 
+      # Fifths
+      # ------
+      # Columns with fifth-based widths (Bulma: is-one-fifth, etc.)
+      def fifths
+        render Columns::Component.new do |c|
+          c.with_column(size: :one_fifth) do
+            tag.div(class: 'bg-primary text-primary-content p-4 rounded-lg') do
+              tag.p '1/5'
+            end
+          end
+
+          c.with_column(size: :four_fifths) do
+            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
+              tag.p '4/5 width'
+            end
+          end
+        end
+      end
+
+      # @!endgroup
+
+      # @!group Alignment
+
+      # Centered
+      # --------
+      # Horizontally centered columns (Bulma: is-centered)
+      def centered
+        render Columns::Component.new(centered: true) do |c|
+          c.with_column(size: :half) do
+            tag.div(class: 'bg-primary text-primary-content p-4 rounded-lg') do
+              tag.p 'Centered half-width column'
+            end
+          end
+        end
+      end
+
+      # Vertically Centered
+      # -------------------
+      # Vertically centered columns (Bulma: is-vcentered)
+      def vcentered
+        render Columns::Component.new(vcentered: true) do |c|
+          c.with_column(size: :half) do
+            tag.div(class: 'bg-base-200 p-4 rounded-lg', style: 'height: 150px;') do
+              tag.p 'Tall column'
+            end
+          end
+
+          c.with_column(size: :half) do
+            tag.div(class: 'bg-secondary text-secondary-content p-4 rounded-lg') do
+              tag.p 'Vertically centered'
+            end
+          end
+        end
+      end
+
+      # Mobile
+      # ------
+      # Columns that stay horizontal on mobile (Bulma: is-mobile)
+      def mobile
+        render Columns::Component.new(mobile: true) do |c|
+          c.with_column do
+            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
+              tag.p 'Column 1'
+            end
+          end
+
+          c.with_column do
+            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
+              tag.p 'Column 2'
+            end
+          end
+
+          c.with_column do
+            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
+              tag.p 'Column 3'
+            end
+          end
+        end
+      end
+
       # @!endgroup
 
       # @!group Multi-row
 
       # Multiline
       # ---------
-      # Columns that span multiple rows in the grid
+      # Columns that wrap to multiple lines (Bulma: is-multiline)
       def multiline
-        render Columns::Component.new do |c|
+        render Columns::Component.new(multiline: true) do |c|
           c.with_column(size: :half) do
             tag.div(class: 'bg-base-200 p-4 rounded-lg') do
               tag.p '1st (half)'
@@ -167,7 +304,7 @@ module Bali
             end
           end
 
-          c.with_column(size: :third) do
+          c.with_column(size: :one_third) do
             tag.div(class: 'bg-base-300 p-4 rounded-lg') do
               tag.p '3rd (third)'
             end
@@ -183,22 +320,22 @@ module Bali
 
       # Equal Thirds
       # ------------
-      # Three columns of equal width using size: :third
+      # Three columns of equal width using size: :one_third
       def equal_thirds
         render Columns::Component.new do |c|
-          c.with_column(size: :third) do
+          c.with_column(size: :one_third) do
             tag.div(class: 'bg-success text-success-content p-4 rounded-lg') do
               tag.p 'Column 1 (1/3)'
             end
           end
 
-          c.with_column(size: :third) do
+          c.with_column(size: :one_third) do
             tag.div(class: 'bg-warning text-warning-content p-4 rounded-lg') do
               tag.p 'Column 2 (1/3)'
             end
           end
 
-          c.with_column(size: :third) do
+          c.with_column(size: :one_third) do
             tag.div(class: 'bg-error text-error-content p-4 rounded-lg') do
               tag.p 'Column 3 (1/3)'
             end
@@ -208,30 +345,45 @@ module Bali
 
       # Equal Quarters
       # --------------
-      # Four columns of equal width using size: :quarter
+      # Four columns of equal width using size: :one_quarter
       def equal_quarters
         render Columns::Component.new do |c|
-          c.with_column(size: :quarter) do
+          c.with_column(size: :one_quarter) do
             tag.div(class: 'bg-primary text-primary-content p-4 rounded-lg') do
               tag.p '1/4'
             end
           end
 
-          c.with_column(size: :quarter) do
+          c.with_column(size: :one_quarter) do
             tag.div(class: 'bg-secondary text-secondary-content p-4 rounded-lg') do
               tag.p '1/4'
             end
           end
 
-          c.with_column(size: :quarter) do
+          c.with_column(size: :one_quarter) do
             tag.div(class: 'bg-accent text-accent-content p-4 rounded-lg') do
               tag.p '1/4'
             end
           end
 
-          c.with_column(size: :quarter) do
+          c.with_column(size: :one_quarter) do
             tag.div(class: 'bg-neutral text-neutral-content p-4 rounded-lg') do
               tag.p '1/4'
+            end
+          end
+        end
+      end
+
+      # 12 Column Grid
+      # --------------
+      # Demonstrating the full 12-column grid with numeric sizes
+      def twelve_column_grid
+        render Columns::Component.new(mobile: true) do |c|
+          12.times do |i|
+            c.with_column(size: 1) do
+              tag.div(class: 'bg-base-300 p-2 rounded text-center text-xs') do
+                tag.p((i + 1).to_s)
+              end
             end
           end
         end
