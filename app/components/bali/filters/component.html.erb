@@ -15,6 +15,7 @@
       <% if search_enabled? %>
         <%# Quick search input with clear button %>
         <%= form_with url: url, method: :get, class: 'contents', data: { turbo_stream: turbo_stream, turbo_action: 'replace', filters_target: 'searchForm' } do %>
+          <%= preserved_params_hidden_fields %>
           <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg">
             <label class="input input-bordered join-item w-64 flex items-center gap-2">
               <input type="text"
@@ -64,7 +65,7 @@
                   turbo_action: 'replace'
                 },
                 class: 'w-full' do |f| %>
-
+              <%= preserved_params_hidden_fields %>
               <div class="p-4 space-y-4">
                 <%# Filter groups container - no header for compact layout %>
                 <div data-filters-target="groupsContainer" class="space-y-4">
@@ -188,7 +189,7 @@
             turbo_action: 'replace'
           },
           class: 'w-full' do |f| %>
-
+      <%= preserved_params_hidden_fields %>
       <%= render Bali::Card::Component.new(style: :bordered, body_class: 'p-4 sm:p-6 space-y-4') do %>
         <%# Header %>
         <div class="flex justify-between items-center">

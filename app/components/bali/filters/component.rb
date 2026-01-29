@@ -3,7 +3,7 @@
 module Bali
   module Filters
     class Component < ApplicationViewComponent
-      include Utils::Url
+      EXCLUDED_PARAMS = %w[q clear_filters clear_search].freeze
 
       attr_reader :url, :available_attributes, :apply_mode, :id, :popover, :combinator,
                   :filter_groups, :max_groups, :storage_id, :persist_enabled, :turbo_stream
@@ -143,7 +143,38 @@ module Bali
         }.to_json
       end
 
+      # Extract non-filter query params from the URL to preserve them when submitting.
+      # Returns an array of [name, value] pairs suitable for hidden_field_tag.
+      def preserved_query_params
+        query_string = URI.parse(url).query
+        return [] if query_string.blank?
+
+        params = Rack::Utils.parse_nested_query(query_string)
+        flatten_params(params.except(*EXCLUDED_PARAMS))
+      end
+
+      # Render hidden fields for preserved params (call from template)
+      def preserved_params_hidden_fields
+        safe_join(
+          preserved_query_params.map { |name, value| helpers.hidden_field_tag(name, value) }
+        )
+      end
+
       private
+
+      # Recursively flatten nested params hash into [name, value] pairs.
+      # e.g., {"sort" => {"column" => "name"}} becomes [["sort[column]", "name"]]
+      def flatten_params(params, prefix = nil)
+        params.flat_map do |key, value|
+          field_name = prefix ? "#{prefix}[#{key}]" : key.to_s
+
+          case value
+          when Hash  then flatten_params(value, field_name)
+          when Array then value.map { |v| ["#{field_name}[]", v] }
+          else            [[field_name, value]]
+          end
+        end
+      end
 
       def normalize_attributes(attributes)
         attributes.map do |attr|
