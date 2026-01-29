@@ -1,0 +1,143 @@
+<div class="space-y-8 p-4">
+  <!-- Variants Section -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Variants (Button Style)</h3>
+    <div class="flex flex-wrap gap-2">
+      <% %i[primary secondary accent info success warning error ghost link neutral].each do |variant| %>
+        <%= render Bali::Link::Component.new(name: variant.to_s, href: '#', variant: variant) %>
+      <% end %>
+    </div>
+  </section>
+
+  <!-- Styles Section -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Styles</h3>
+    <div class="space-y-3">
+      <% %i[outline soft].each do |style| %>
+        <div>
+          <div class="text-sm text-base-content/60 mb-1"><%= style %></div>
+          <div class="flex flex-wrap gap-2">
+            <% %i[primary secondary accent info success warning error neutral].each do |variant| %>
+              <%= render Bali::Link::Component.new(name: variant.to_s, href: '#', variant: variant, style: style) %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <!-- Sizes Section -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Sizes</h3>
+    <div class="flex flex-wrap items-center gap-2">
+      <% %i[xs sm md lg xl].each do |size| %>
+        <%= render Bali::Link::Component.new(name: size.to_s, href: '#', variant: :primary, size: size) %>
+      <% end %>
+    </div>
+  </section>
+
+  <!-- Plain Link Section -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Link Styles</h3>
+    <div class="flex flex-wrap items-center gap-4">
+      <div class="flex flex-col gap-1">
+        <span class="text-sm text-base-content/60">Default (underlined)</span>
+        <%= render Bali::Link::Component.new(name: 'Default link', href: '#') %>
+      </div>
+      <div class="flex flex-col gap-1">
+        <span class="text-sm text-base-content/60">Plain (no styling)</span>
+        <%= render Bali::Link::Component.new(name: 'Plain link', href: '#', plain: true) %>
+      </div>
+    </div>
+  </section>
+
+  <!-- With Icons Section -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">With Icons</h3>
+    <div class="flex flex-wrap items-center gap-2">
+      <%= render Bali::Link::Component.new(name: 'Icon left', href: '#', variant: :primary, icon_name: 'arrow-left') %>
+      <%= render Bali::Link::Component.new(href: '#', variant: :secondary, icon_name: 'settings') %>
+      <%= render Bali::Link::Component.new(name: 'Icon right', href: '#', variant: :accent) do |c|
+        c.with_icon_right('arrow-right')
+      end %>
+      <%= render Bali::Link::Component.new(name: 'Both sides', href: '#', variant: :info) do |c|
+        c.with_icon('download')
+        c.with_icon_right('external-link')
+      end %>
+    </div>
+  </section>
+
+  <!-- States Section -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">States</h3>
+    <div class="flex flex-wrap items-center gap-2">
+      <%= render Bali::Link::Component.new(name: 'Normal', href: '#', variant: :primary) %>
+      <%= render Bali::Link::Component.new(name: 'Active', href: '#', variant: :primary, active: true) %>
+      <%= render Bali::Link::Component.new(name: 'Disabled', href: '#', variant: :primary, disabled: true) %>
+    </div>
+  </section>
+
+  <!-- Disabled Variants Section -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Disabled (all variants)</h3>
+    <div class="flex flex-wrap gap-2">
+      <% %i[primary secondary accent info success warning error ghost link neutral].each do |variant| %>
+        <%= render Bali::Link::Component.new(name: variant.to_s, href: '#', variant: variant, disabled: true) %>
+      <% end %>
+    </div>
+  </section>
+
+  <!-- Full Matrix: Variants x Styles -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Full Matrix (Variants x Styles)</h3>
+    <div class="overflow-x-auto">
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Variant</th>
+            <th>Default</th>
+            <th>Outline</th>
+            <th>Soft</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% %i[primary secondary accent info success warning error ghost link neutral].each do |variant| %>
+            <tr>
+              <td class="font-mono text-xs"><%= variant %></td>
+              <td><%= render Bali::Link::Component.new(name: 'Link', href: '#', variant: variant) %></td>
+              <td><%= render Bali::Link::Component.new(name: 'Link', href: '#', variant: variant, style: :outline) %></td>
+              <td><%= render Bali::Link::Component.new(name: 'Link', href: '#', variant: variant, style: :soft) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Full Matrix: Variants x Sizes -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Full Matrix (Variants x Sizes)</h3>
+    <div class="overflow-x-auto">
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Variant</th>
+            <% %i[xs sm md lg xl].each do |size| %>
+              <th><%= size %></th>
+            <% end %>
+          </tr>
+        </thead>
+        <tbody>
+          <% %i[primary secondary accent info success warning error ghost link neutral].each do |variant| %>
+            <tr>
+              <td class="font-mono text-xs"><%= variant %></td>
+              <% %i[xs sm md lg xl].each do |size| %>
+                <td><%= render Bali::Link::Component.new(name: 'Link', href: '#', variant: variant, size: size) %></td>
+              <% end %>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

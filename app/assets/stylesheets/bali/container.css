@@ -1,6 +1,11 @@
 /* Container layout styling */
+
+:root {
+  --bali-frame-padding-top: 6.25rem;
+}
+
 #app-frame {
-  padding-top: var(--frame-padding-top, 6.25rem);
+  padding-top: var(--bali-frame-padding-top);
 
   &.with-side-bar {
     @media (min-width: 1024px) {

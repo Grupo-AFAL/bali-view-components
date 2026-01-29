@@ -45,7 +45,7 @@ module Bali
       }.freeze
 
       # rubocop:disable Metrics/ParameterLists
-      def initialize(text:, href: nil, color: nil, custom_color: nil, size: nil,
+      def initialize(text: nil, href: nil, color: nil, custom_color: nil, size: nil,
                      style: nil, light: false, rounded: false, **options)
         # rubocop:enable Metrics/ParameterLists
         @text = text

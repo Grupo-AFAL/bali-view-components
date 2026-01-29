@@ -38,6 +38,13 @@ module Bali
           custom_color: custom_color
         )
       end
+
+      # @label All Combinations
+      # Shows all tag variants organized by category: colors, sizes, styles,
+      # rounded, clickable, custom colors, and a full color x style matrix.
+      def all_combinations
+        render_with_template
+      end
     end
   end
 end

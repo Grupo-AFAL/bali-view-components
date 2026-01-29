@@ -1,0 +1,89 @@
+<div class="space-y-8 p-4">
+  <!-- Colors Section -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Colors</h3>
+    <div class="space-y-2">
+      <% %i[primary success danger warning info].each do |color| %>
+        <%= render Bali::Message::Component.new(title: color.to_s.titleize, color: color) do %>
+          This is a <%= color %> message.
+        <% end %>
+      <% end %>
+    </div>
+  </section>
+
+  <!-- Sizes Section -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Sizes</h3>
+    <div class="space-y-2">
+      <% %i[small regular medium large].each do |size| %>
+        <%= render Bali::Message::Component.new(title: size.to_s.titleize, color: :info, size: size) do %>
+          This is a <%= size %> message.
+        <% end %>
+      <% end %>
+    </div>
+  </section>
+
+  <!-- Styles Section -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Styles</h3>
+    <div class="space-y-4">
+      <% %i[soft outline dash].each do |style| %>
+        <div>
+          <div class="text-sm text-base-content/60 mb-2"><%= style %></div>
+          <div class="space-y-2">
+            <% %i[primary success danger warning info].each do |color| %>
+              <%= render Bali::Message::Component.new(title: "#{color.to_s.titleize} #{style}", color: color, style: style) do %>
+                This is a <%= color %> message with <%= style %> style.
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <!-- Full Matrix: Colors x Styles -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Full Matrix (Colors x Styles)</h3>
+    <div class="overflow-x-auto">
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Color</th>
+            <th>Default</th>
+            <th>Soft</th>
+            <th>Outline</th>
+            <th>Dash</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% %i[primary success danger warning info].each do |color| %>
+            <tr>
+              <td class="font-mono text-xs align-top pt-4"><%= color %></td>
+              <td class="min-w-64">
+                <%= render Bali::Message::Component.new(color: color) do %>
+                  Default style message
+                <% end %>
+              </td>
+              <td class="min-w-64">
+                <%= render Bali::Message::Component.new(color: color, style: :soft) do %>
+                  Soft style message
+                <% end %>
+              </td>
+              <td class="min-w-64">
+                <%= render Bali::Message::Component.new(color: color, style: :outline) do %>
+                  Outline style message
+                <% end %>
+              </td>
+              <td class="min-w-64">
+                <%= render Bali::Message::Component.new(color: color, style: :dash) do %>
+                  Dash style message
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

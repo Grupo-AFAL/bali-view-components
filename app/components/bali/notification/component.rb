@@ -17,11 +17,18 @@ module Bali
         primary: 'alert-info'
       }.freeze
 
-      def initialize(type: :success, delay: 3000, fixed: true, dismiss: true, **options)
+      STYLES = {
+        soft: 'alert-soft',
+        outline: 'alert-outline',
+        dash: 'alert-dash'
+      }.freeze
+
+      def initialize(type: :success, delay: 3000, fixed: true, dismiss: true, style: nil, **options)
         @type = type&.to_sym
         @delay = delay
         @fixed = fixed
         @dismiss = dismiss
+        @style = style&.to_sym
         @options = options
       end
 
@@ -31,6 +38,7 @@ module Bali
           SHADOW_CLASSES,
           UNCLOSABLE_CLASSES,
           type_class,
+          style_class,
           fixed_classes,
           options[:class]
         )
@@ -51,10 +59,14 @@ module Bali
 
       private
 
-      attr_reader :type, :delay, :fixed, :dismiss, :options
+      attr_reader :type, :delay, :fixed, :dismiss, :style, :options
 
       def type_class
         TYPES.fetch(type, TYPES[:success])
+      end
+
+      def style_class
+        STYLES[style]
       end
 
       def fixed_classes

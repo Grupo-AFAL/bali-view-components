@@ -8,7 +8,8 @@ module.exports = defineConfig({
       return require('./cypress/plugins/index.js')(on, config)
     },
     baseUrl: 'http://localhost:3000/rails/view_components',
-    // Prevent Electron renderer crashes in CI
-    experimentalMemoryManagement: true
+    // Prevent Electron renderer crashes
+    experimentalMemoryManagement: true,
+    numTestsKeptInMemory: 0
   }
 })
