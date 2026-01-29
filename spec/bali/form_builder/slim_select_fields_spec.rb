@@ -103,6 +103,21 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
       end
     end
 
+    describe 'custom data attributes' do
+      it 'merges custom data attributes with slim_select_target' do
+        field = builder.slim_select_field(:status, Movie.statuses.to_a, {},
+                                          { data: { turbo_frame: '_top', custom: 'value' } })
+        expect(field).to have_css 'select[data-slim-select-target="select"]'
+        expect(field).to have_css 'select[data-turbo-frame="_top"]'
+        expect(field).to have_css 'select[data-custom="value"]'
+      end
+
+      it 'preserves slim_select_target when no custom data provided' do
+        field = builder.slim_select_field(:status, Movie.statuses.to_a)
+        expect(field).to have_css 'select[data-slim-select-target="select"]'
+      end
+    end
+
     describe 'multiple select' do
       let(:slim_select_field) do
         builder.slim_select_field(:status, Movie.statuses.to_a, {}, { multiple: true })
