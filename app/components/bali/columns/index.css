@@ -41,7 +41,7 @@
    Column: .column
    ============================================== */
 .column {
-  display: block;
+  /* Note: no display property set, allowing utility classes (flex, grid) to work */
   flex-basis: 0;
   flex-grow: 1;
   flex-shrink: 1;
