@@ -28,6 +28,7 @@
   --ss-spacing-l: 0.75rem;
   --ss-spacing-m: 0.5rem;
   --ss-spacing-s: 0.25rem;
+  --ss-spacing-xs: 0.125rem;
   --ss-border-radius: 0.5rem;
   --ss-animation-timing: 0.15s;
 }
@@ -108,7 +109,7 @@
 .ss-main {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
   position: relative;
   user-select: none;
   color: var(--ss-font-color);
@@ -123,7 +124,6 @@
   box-sizing: border-box;
   transition: border-color var(--ss-animation-timing) ease,
               box-shadow var(--ss-animation-timing) ease;
-  overflow: hidden;
 
 
   /* Focus state - subtle border change, no outline */
@@ -169,10 +169,11 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--ss-spacing-s);
+  row-gap: var(--ss-spacing-s);
   flex: 1 1 100%;
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
+  padding: var(--ss-spacing-xs) 0;
 }
 
 /* Placeholder text */
@@ -285,10 +286,11 @@
    Deselect (Clear All) Button
    ============================================================================= */
 .ss-main .ss-deselect {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
+  align-self: center;
   width: fit-content;
   height: auto;
   padding: 0 var(--ss-spacing-m);
@@ -317,13 +319,14 @@
    Dropdown Arrow
    ============================================================================= */
 .ss-main .ss-arrow {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  align-self: center;
   width: 0.75rem;
   height: 0.75rem;
-  margin: auto var(--ss-spacing-m);
+  margin: 0 var(--ss-spacing-m);
 
   path {
     fill: none;
