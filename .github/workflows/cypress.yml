@@ -37,10 +37,10 @@ jobs:
         run: cd spec/dummy && bin/rails assets:precompile
 
       - name: Start server
-        run: cd spec/dummy && bin/rails server -p 3000 &
+        run: cd spec/dummy && bin/rails server -p 3001 &
 
       - name: Wait for server
-        run: npx wait-on http://localhost:3000 --timeout 60000
+        run: npx wait-on http://localhost:3001/lookbook/preview --timeout 60000
 
       - name: Run Cypress tests
         run: yarn cypress run --browser chrome
