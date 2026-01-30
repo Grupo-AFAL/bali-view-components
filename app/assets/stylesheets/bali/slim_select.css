@@ -774,15 +774,21 @@
    ============================================================================= */
 .ss-main.select,
 .ss-main.select-bordered,
+div.ss-main.select,
+div.ss-main.select-bordered {
+  background-image: none !important;
+  background-position: unset !important;
+  padding-right: var(--ss-spacing-l) !important;
+}
+
+/* ss-content should have NO padding from DaisyUI select classes */
 .ss-content.select,
 .ss-content.select-bordered,
-div.ss-main.select,
-div.ss-main.select-bordered,
 div.ss-content.select,
 div.ss-content.select-bordered {
   background-image: none !important;
   background-position: unset !important;
-  padding-right: var(--ss-spacing-l) !important;
+  padding: 0 !important;
 }
 
 /* Remove any DaisyUI select styling that might leak into the dropdown content */
