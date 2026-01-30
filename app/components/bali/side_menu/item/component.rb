@@ -9,23 +9,24 @@ module Bali
 
         renders_many :items,
                      lambda { |href: nil, name: nil, icon: nil,
-                               authorized: true, disabled: false, **options|
+                               authorized: true, disabled: false, target: nil, **options|
                        Item::Component.new(
                          name: name,
                          href: href,
                          icon: icon,
                          authorized: authorized,
                          disabled: disabled,
+                         target: target,
                          current_path: @current_path,
                          group_behavior: @group_behavior,
                          **options
                        )
                      }
 
-        attr_reader :name, :icon, :badge, :href
+        attr_reader :name, :icon, :badge, :href, :target
 
         def initialize(current_path:, href: nil, name: nil, icon: nil, authorized: true,
-                       group_behavior: :expandable, disabled: false, **options)
+                       group_behavior: :expandable, disabled: false, target: nil, **options)
           @name = name
           @href = href
           @icon = icon
@@ -33,6 +34,7 @@ module Bali
           @current_path = current_path
           @group_behavior = GROUP_BEHAVIORS.include?(group_behavior) ? group_behavior : :expandable
           @disabled = disabled
+          @target = target
           @active = options.delete(:active)
           @match_type = MATCH_TYPES.include?(options[:match]) ? options.delete(:match) : :exact
           @badge = options.delete(:badge)
@@ -110,6 +112,11 @@ module Bali
             "bg-#{@badge_color}/10",
             "text-#{@badge_color}"
           )
+        end
+
+        # Returns rel attribute for security when opening in new tab
+        def rel
+          'noopener noreferrer' if @target == '_blank'
         end
 
         private

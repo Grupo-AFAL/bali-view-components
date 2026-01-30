@@ -1,4 +1,6 @@
 <%= tag.label class: container_classes do %>
-  <%= render Bali::Icon::Component.new(icon_name, class: icon_classes) %>
-  <%= form.file_field field_name, **input_options %>
+  <%= tag.span class: icon_wrapper_classes do %>
+    <%= render Bali::Icon::Component.new(icon_name) %>
+  <% end %>
+  <%= raw_file_field %>
 <% end %>

@@ -67,7 +67,10 @@ module Bali
       end
 
       def build_html_options(html_options)
-        { multiple: false, data: { slim_select_target: 'select' } }.merge(html_options)
+        default_data = { slim_select_target: 'select' }
+        user_data = html_options[:data] || {}
+
+        { multiple: false, data: default_data.merge(user_data) }.merge(html_options.except(:data))
       end
 
       def build_wrapper(method, options, html_options, select_class, &)

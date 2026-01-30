@@ -396,16 +396,63 @@ RSpec.describe Bali::FilterForm do
     end
   end
 
-  describe 'search integration with Ransack' do
-    it 'includes search value in ransack_params' do
+  describe '#ransack_params' do
+    it 'includes basic query params' do
+      form = MovieFilterForm.new(tenant.movies, params({ name_i_cont: 'Iron' }))
+
+      expect(form.ransack_params['name_i_cont']).to eq('Iron')
+    end
+
+    it 'includes search value when search is enabled' do
       filter_params = { name_or_genre_or_tenant_name_cont: 'Iron' }
       form = SearchableMovieFilterForm.new(Movie.all, params(filter_params))
 
-      # Access private method for testing
-      ransack_params = form.send(:ransack_params)
-      expect(ransack_params['name_or_genre_or_tenant_name_cont']).to eq('Iron')
+      expect(form.ransack_params['name_or_genre_or_tenant_name_cont']).to eq('Iron')
     end
 
+    it 'includes groupings when present' do
+      filter_params = {
+        g: {
+          '0' => { name_cont: 'Iron', m: 'or' }
+        }
+      }
+      form = AdvancedMovieFilterForm.new(Movie.all, params(filter_params))
+
+      expect(form.ransack_params[:g]).to be_present
+      expect(form.ransack_params[:g]['0']['name_cont']).to eq('Iron')
+    end
+
+    it 'includes combinator when present' do
+      filter_params = {
+        g: {
+          '0' => { name_cont: 'Iron' },
+          '1' => { genre_eq: 'action' }
+        },
+        m: 'or'
+      }
+      form = AdvancedMovieFilterForm.new(Movie.all, params(filter_params))
+
+      expect(form.ransack_params[:m]).to eq('or')
+    end
+
+    it 'returns complete params for Ransack' do
+      filter_params = {
+        name_or_genre_or_tenant_name_cont: 'Iron',
+        g: {
+          '0' => { name_cont: 'Man', m: 'and' }
+        },
+        m: 'and'
+      }
+      form = SearchableMovieFilterForm.new(Movie.all, params(filter_params))
+
+      ransack_params = form.ransack_params
+      expect(ransack_params['name_or_genre_or_tenant_name_cont']).to eq('Iron')
+      expect(ransack_params[:g]).to be_present
+      expect(ransack_params[:m]).to eq('and')
+    end
+  end
+
+  describe 'search integration with Ransack' do
     it 'filters results using search value' do
       tenant = Tenant.create(name: 'Test Studio')
       tenant.movies.create(name: 'Iron Man', genre: 'Action')

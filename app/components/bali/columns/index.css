@@ -1,0 +1,296 @@
+/*
+ * Bali Columns - Tailwind-like column system
+ *
+ * A flexbox-based column layout with CSS custom properties for gap control.
+ *
+ * Usage:
+ *   <div class="columns">
+ *     <div class="column col-half">...</div>
+ *     <div class="column col-half">...</div>
+ *   </div>
+ */
+
+/* ==============================================
+   CSS Custom Properties
+   ============================================== */
+:root {
+  --columns-gap: 0.75rem;
+}
+
+/* ==============================================
+   Container: .columns
+   ============================================== */
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: calc(var(--columns-gap) * -1);
+  margin-right: calc(var(--columns-gap) * -1);
+  margin-top: calc(var(--columns-gap) * -1);
+}
+
+.columns:last-child {
+  margin-bottom: calc(var(--columns-gap) * -1);
+}
+
+.columns:not(:last-child) {
+  margin-bottom: calc(var(--columns-gap) - var(--columns-gap) * 2);
+}
+
+/* ==============================================
+   Column: .column
+   ============================================== */
+.column {
+  /* Note: no display property set, allowing utility classes (flex, grid) to work */
+  flex-basis: 0;
+  flex-grow: 1;
+  flex-shrink: 1;
+  padding: var(--columns-gap);
+  min-width: 0; /* Prevent content overflow */
+}
+
+/* ==============================================
+   Gap Modifiers (Tailwind-like naming)
+   ============================================== */
+.columns.gap-none { --columns-gap: 0; }
+.columns.gap-px { --columns-gap: 1px; }
+.columns.gap-xs { --columns-gap: 0.25rem; }   /* gap-1 */
+.columns.gap-sm { --columns-gap: 0.5rem; }    /* gap-2 */
+.columns.gap-md { --columns-gap: 0.75rem; }   /* gap-3 - default */
+.columns.gap-lg { --columns-gap: 1rem; }      /* gap-4 */
+.columns.gap-xl { --columns-gap: 1.5rem; }    /* gap-6 */
+.columns.gap-2xl { --columns-gap: 2rem; }     /* gap-8 */
+
+/* Gapless shorthand (alias for gap-none) */
+.columns.gap-none > .column {
+  padding: 0;
+}
+
+.columns.gap-none {
+  margin-left: 0;
+  margin-right: 0;
+  margin-top: 0;
+}
+
+.columns.gap-none:not(:last-child) {
+  margin-bottom: 1.5rem;
+}
+
+.columns.gap-none:last-child {
+  margin-bottom: 0;
+}
+
+/* ==============================================
+   Alignment Modifiers
+   ============================================== */
+.columns.columns-center {
+  justify-content: center;
+}
+
+.columns.columns-middle {
+  align-items: center;
+}
+
+.columns.columns-wrap {
+  flex-wrap: wrap;
+}
+
+/* ==============================================
+   Responsive Modifiers
+   ============================================== */
+.columns.columns-mobile {
+  display: flex;
+}
+
+/* Desktop only columns (stacked on mobile by default) */
+@media screen and (max-width: 768px) {
+  .columns:not(.columns-mobile) {
+    display: block;
+  }
+
+  .columns:not(.columns-mobile) > .column {
+    width: 100% !important;
+    flex: none;
+  }
+}
+
+@media screen and (min-width: 769px) {
+  .columns:not(.columns-mobile) {
+    display: flex;
+  }
+}
+
+/* ==============================================
+   Auto-width Column (narrow)
+   ============================================== */
+.column.col-auto {
+  flex: none;
+  width: unset;
+}
+
+/* ==============================================
+   12-Column Grid Sizes
+   ============================================== */
+.column.col-1 { flex: none; width: 8.33333%; }
+.column.col-2 { flex: none; width: 16.66667%; }
+.column.col-3 { flex: none; width: 25%; }
+.column.col-4 { flex: none; width: 33.33333%; }
+.column.col-5 { flex: none; width: 41.66667%; }
+.column.col-6 { flex: none; width: 50%; }
+.column.col-7 { flex: none; width: 58.33333%; }
+.column.col-8 { flex: none; width: 66.66667%; }
+.column.col-9 { flex: none; width: 75%; }
+.column.col-10 { flex: none; width: 83.33333%; }
+.column.col-11 { flex: none; width: 91.66667%; }
+.column.col-12 { flex: none; width: 100%; }
+
+/* ==============================================
+   Fractional Sizes
+   ============================================== */
+.column.col-full { flex: none; width: 100%; }
+.column.col-half { flex: none; width: 50%; }
+
+/* Thirds */
+.column.col-third { flex: none; width: 33.33333%; }
+.column.col-2-thirds { flex: none; width: 66.66667%; }
+
+/* Quarters */
+.column.col-quarter { flex: none; width: 25%; }
+.column.col-3-quarters { flex: none; width: 75%; }
+
+/* Fifths */
+.column.col-fifth { flex: none; width: 20%; }
+.column.col-2-fifths { flex: none; width: 40%; }
+.column.col-3-fifths { flex: none; width: 60%; }
+.column.col-4-fifths { flex: none; width: 80%; }
+
+/* ==============================================
+   Offset Classes
+   ============================================== */
+.column.offset-1 { margin-left: 8.33333%; }
+.column.offset-2 { margin-left: 16.66667%; }
+.column.offset-3 { margin-left: 25%; }
+.column.offset-4 { margin-left: 33.33333%; }
+.column.offset-5 { margin-left: 41.66667%; }
+.column.offset-6 { margin-left: 50%; }
+.column.offset-7 { margin-left: 58.33333%; }
+.column.offset-8 { margin-left: 66.66667%; }
+.column.offset-9 { margin-left: 75%; }
+.column.offset-10 { margin-left: 83.33333%; }
+.column.offset-11 { margin-left: 91.66667%; }
+
+/* Fractional Offsets */
+.column.offset-half { margin-left: 50%; }
+.column.offset-third { margin-left: 33.33333%; }
+.column.offset-2-thirds { margin-left: 66.66667%; }
+.column.offset-quarter { margin-left: 25%; }
+.column.offset-3-quarters { margin-left: 75%; }
+.column.offset-fifth { margin-left: 20%; }
+.column.offset-2-fifths { margin-left: 40%; }
+.column.offset-3-fifths { margin-left: 60%; }
+.column.offset-4-fifths { margin-left: 80%; }
+
+/* ==============================================
+   Responsive Size Classes (Tablet and up)
+   ============================================== */
+@media screen and (min-width: 769px) {
+  .column.col-1-tablet { flex: none; width: 8.33333%; }
+  .column.col-2-tablet { flex: none; width: 16.66667%; }
+  .column.col-3-tablet { flex: none; width: 25%; }
+  .column.col-4-tablet { flex: none; width: 33.33333%; }
+  .column.col-5-tablet { flex: none; width: 41.66667%; }
+  .column.col-6-tablet { flex: none; width: 50%; }
+  .column.col-7-tablet { flex: none; width: 58.33333%; }
+  .column.col-8-tablet { flex: none; width: 66.66667%; }
+  .column.col-9-tablet { flex: none; width: 75%; }
+  .column.col-10-tablet { flex: none; width: 83.33333%; }
+  .column.col-11-tablet { flex: none; width: 91.66667%; }
+  .column.col-12-tablet { flex: none; width: 100%; }
+
+  .column.col-half-tablet { flex: none; width: 50%; }
+  .column.col-third-tablet { flex: none; width: 33.33333%; }
+  .column.col-2-thirds-tablet { flex: none; width: 66.66667%; }
+  .column.col-quarter-tablet { flex: none; width: 25%; }
+  .column.col-3-quarters-tablet { flex: none; width: 75%; }
+
+  .column.col-auto-tablet { flex: none; width: unset; }
+}
+
+/* ==============================================
+   Responsive Size Classes (Desktop and up)
+   ============================================== */
+@media screen and (min-width: 1024px) {
+  .column.col-1-desktop { flex: none; width: 8.33333%; }
+  .column.col-2-desktop { flex: none; width: 16.66667%; }
+  .column.col-3-desktop { flex: none; width: 25%; }
+  .column.col-4-desktop { flex: none; width: 33.33333%; }
+  .column.col-5-desktop { flex: none; width: 41.66667%; }
+  .column.col-6-desktop { flex: none; width: 50%; }
+  .column.col-7-desktop { flex: none; width: 58.33333%; }
+  .column.col-8-desktop { flex: none; width: 66.66667%; }
+  .column.col-9-desktop { flex: none; width: 75%; }
+  .column.col-10-desktop { flex: none; width: 83.33333%; }
+  .column.col-11-desktop { flex: none; width: 91.66667%; }
+  .column.col-12-desktop { flex: none; width: 100%; }
+
+  .column.col-half-desktop { flex: none; width: 50%; }
+  .column.col-third-desktop { flex: none; width: 33.33333%; }
+  .column.col-2-thirds-desktop { flex: none; width: 66.66667%; }
+  .column.col-quarter-desktop { flex: none; width: 25%; }
+  .column.col-3-quarters-desktop { flex: none; width: 75%; }
+
+  .column.col-auto-desktop { flex: none; width: unset; }
+}
+
+/* ==============================================
+   Responsive Size Classes (Widescreen and up)
+   ============================================== */
+@media screen and (min-width: 1216px) {
+  .column.col-1-widescreen { flex: none; width: 8.33333%; }
+  .column.col-2-widescreen { flex: none; width: 16.66667%; }
+  .column.col-3-widescreen { flex: none; width: 25%; }
+  .column.col-4-widescreen { flex: none; width: 33.33333%; }
+  .column.col-5-widescreen { flex: none; width: 41.66667%; }
+  .column.col-6-widescreen { flex: none; width: 50%; }
+  .column.col-7-widescreen { flex: none; width: 58.33333%; }
+  .column.col-8-widescreen { flex: none; width: 66.66667%; }
+  .column.col-9-widescreen { flex: none; width: 75%; }
+  .column.col-10-widescreen { flex: none; width: 83.33333%; }
+  .column.col-11-widescreen { flex: none; width: 91.66667%; }
+  .column.col-12-widescreen { flex: none; width: 100%; }
+
+  .column.col-half-widescreen { flex: none; width: 50%; }
+  .column.col-auto-widescreen { flex: none; width: unset; }
+}
+
+/* ==============================================
+   Mobile-specific Size Classes
+   ============================================== */
+@media screen and (max-width: 768px) {
+  .column.col-1-mobile { flex: none; width: 8.33333%; }
+  .column.col-2-mobile { flex: none; width: 16.66667%; }
+  .column.col-3-mobile { flex: none; width: 25%; }
+  .column.col-4-mobile { flex: none; width: 33.33333%; }
+  .column.col-5-mobile { flex: none; width: 41.66667%; }
+  .column.col-6-mobile { flex: none; width: 50%; }
+  .column.col-7-mobile { flex: none; width: 58.33333%; }
+  .column.col-8-mobile { flex: none; width: 66.66667%; }
+  .column.col-9-mobile { flex: none; width: 75%; }
+  .column.col-10-mobile { flex: none; width: 83.33333%; }
+  .column.col-11-mobile { flex: none; width: 91.66667%; }
+  .column.col-12-mobile { flex: none; width: 100%; }
+
+  .column.col-half-mobile { flex: none; width: 50%; }
+  .column.col-third-mobile { flex: none; width: 33.33333%; }
+  .column.col-2-thirds-mobile { flex: none; width: 66.66667%; }
+  .column.col-quarter-mobile { flex: none; width: 25%; }
+  .column.col-3-quarters-mobile { flex: none; width: 75%; }
+
+  .column.col-auto-mobile { flex: none; width: unset; }
+
+  .column.offset-1-mobile { margin-left: 8.33333%; }
+  .column.offset-2-mobile { margin-left: 16.66667%; }
+  .column.offset-3-mobile { margin-left: 25%; }
+  .column.offset-4-mobile { margin-left: 33.33333%; }
+  .column.offset-5-mobile { margin-left: 41.66667%; }
+  .column.offset-6-mobile { margin-left: 50%; }
+}
