@@ -4,9 +4,9 @@ module Bali
   module Drawer
     class Preview < ApplicationViewComponentPreview
       # @param active toggle
-      # @param size select [narrow, medium, wide, extra_wide]
+      # @param size select [sm, md, lg, xl, full]
       # @param position select [left, right]
-      def default(active: true, size: :medium, position: :right)
+      def default(active: true, size: :md, position: :right)
         render Bali::Drawer::Component.new(
           active: active,
           size: size.to_sym,
@@ -29,13 +29,13 @@ module Bali
 
       # All Sizes
       # ---
-      # Available sizes: narrow, medium, wide, extra_wide.
-      # @param size select [narrow, medium, wide, extra_wide]
-      def sizes(size: :medium)
+      # Available sizes: sm, md, lg, xl, full.
+      # @param size select [sm, md, lg, xl, full]
+      def sizes(size: :md)
         render Bali::Drawer::Component.new(
           active: true,
           size: size.to_sym,
-          title: "#{size.to_s.titleize} Drawer"
+          title: "#{size.to_s.upcase} Drawer"
         ) do
           tag.p("This drawer uses the #{size} size (#{Bali::Drawer::Component::SIZES[size.to_sym]}).",
                 class: 'text-base-content')

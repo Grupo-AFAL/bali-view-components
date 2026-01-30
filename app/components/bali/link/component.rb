@@ -69,7 +69,9 @@ module Bali
         @disabled = disabled
         @plain = plain
         @modal = modal
+        @modal_options = normalize_options(modal)
         @drawer = drawer
+        @drawer_options = normalize_options(drawer)
         @authorized = authorized
         @options = options
       end
@@ -147,15 +149,17 @@ module Bali
       def add_stimulus_actions(data)
         return if Bali.native_app || @disabled
 
-        if @modal
+        if modal_enabled?
           data[:action] = prepend_value(data[:action], 'modal#open')
           data[:turbo] = false # Prevent Turbo Drive from also handling the click
+          data[:modal_size] = @modal_options[:size] if @modal_options[:size]
         end
 
-        return unless @drawer
+        return unless drawer_enabled?
 
         data[:action] = prepend_value(data[:action], 'drawer#open')
         data[:turbo] = false # Prevent Turbo Drive from also handling the click
+        data[:drawer_size] = @drawer_options[:size] if @drawer_options[:size]
       end
 
       def add_method_attributes(data)
@@ -171,6 +175,12 @@ module Bali
       def prepend_value(existing, new_value)
         [new_value, existing].compact.join(' ')
       end
+
+      def modal_enabled? = @modal.present?
+      def drawer_enabled? = @drawer.present?
+
+      # Normalize option to hash format. Supports: true, { size: :lg }
+      def normalize_options(value) = value.is_a?(Hash) ? value.symbolize_keys : {}
     end
   end
 end

@@ -97,22 +97,22 @@
       <%= render Bali::Link::Component.new(
         name: t('showcase.open_basic_modal'),
         href: '/modals/basic',
-        type: :primary,
-        modal: true
+        variant: :primary,
+        modal: { size: :sm }
       ) %>
 
       <%= render Bali::Link::Component.new(
         name: t('showcase.open_form_modal'),
         href: '/modals/form',
-        type: :secondary,
-        modal: true
+        variant: :secondary,
+        modal: { size: :lg }
       ) %>
 
       <%= render Bali::Link::Component.new(
         name: t('showcase.open_confirmation_modal'),
         href: '/modals/confirm',
-        type: :error,
-        modal: true
+        variant: :error,
+        modal: { size: :xl }
       ) %>
     </div>
   <% end %>
@@ -132,22 +132,22 @@
       <%= render Bali::Link::Component.new(
         name: t('showcase.open_user_details'),
         href: '/drawers/user_details',
-        type: :primary,
-        drawer: true
+        variant: :primary,
+        drawer: { size: :lg }
       ) %>
 
       <%= render Bali::Link::Component.new(
         name: t('showcase.open_filters'),
         href: '/drawers/filters',
-        type: :secondary,
-        drawer: true
+        variant: :secondary,
+        drawer: { size: :sm }
       ) %>
 
       <%= render Bali::Link::Component.new(
         name: t('showcase.open_order_history'),
         href: '/drawers/order_history',
-        type: :accent,
-        drawer: true
+        variant: :accent,
+        drawer: { size: :xl }
       ) %>
     </div>
   <% end %>
