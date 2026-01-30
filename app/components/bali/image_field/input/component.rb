@@ -32,11 +32,10 @@ module Bali
           )
         end
 
-        def icon_classes
+        def icon_wrapper_classes
           class_names(
             'hidden',
-            'group-hover:flex max-md:flex',
-            'text-base-content'
+            'group-hover:flex max-md:flex'
           )
         end
 
