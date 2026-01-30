@@ -1,14 +1,14 @@
 /**
  * Bali Rich Text Editor - Optional Module
  *
- * WARNING: This module is currently broken and requires TipTap dependencies.
+ * WARNING: This module requires TipTap dependencies.
  * Import separately and only if you need rich text editing functionality.
  *
  * Required dependencies (install in your app):
  *   yarn add @tiptap/core @tiptap/starter-kit @tiptap/extension-link ...
  *
  * Usage:
- *   import { RichTextEditorController, registerRichTextEditor } from 'bali/rich-text-editor'
+ *   import { RichTextEditorController, registerRichTextEditor } from 'bali-view-components/rich-text-editor'
  *   application.register('rich-text-editor', RichTextEditorController)
  *   // OR
  *   registerRichTextEditor(application)

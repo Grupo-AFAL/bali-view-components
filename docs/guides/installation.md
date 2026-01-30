@@ -231,7 +231,7 @@ Add to your layout:
 ```bash
 bundle exec rails console
 > Bali::VERSION
-=> "1.4.19"  # or current version
+=> "2.0.3"  # or current version
 ```
 
 ### 2. Check Component Rendering

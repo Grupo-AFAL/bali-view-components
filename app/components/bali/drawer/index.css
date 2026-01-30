@@ -1,18 +1,18 @@
 /* Drawer component styles */
 
-/* Overlay styles - group-variant classes for when parent has .drawer-open */
+/* Overlay - hidden by default, visible when drawer is open */
 .drawer-component .drawer-overlay {
-  display: none;
-  pointer-events: none;
+  display: none !important;
+  pointer-events: none !important;
 }
 
 .drawer-component.drawer-open .drawer-overlay {
-  display: block;
+  display: block !important;
   opacity: 1;
-  pointer-events: auto;
+  pointer-events: auto !important;
 }
 
-/* Panel slide-in styles - applied when drawer is open */
+/* Panel slide-in animation when drawer is open */
 .drawer-component.drawer-open .drawer-panel {
-  transform: translateX(0);
+  transform: translateX(0) !important;
 }

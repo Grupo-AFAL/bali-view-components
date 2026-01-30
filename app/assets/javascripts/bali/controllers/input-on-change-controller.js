@@ -1,6 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { get, post } from '@rails/request.js'
-import { getTimestamp } from 'bali/utils/time'
+import { getTimestamp } from '../utils/time.js'
 
 /**
  * InputOnChange Controller

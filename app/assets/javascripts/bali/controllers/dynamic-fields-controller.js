@@ -1,11 +1,11 @@
 import { Controller } from '@hotwired/stimulus'
-import { getTimestamp } from 'bali/utils/time'
+import { getTimestamp } from '../utils/time.js'
 import {
   replaceInFragment,
   removeNonHiddenFormElements,
   previousSibling,
   nextSibling
-} from 'bali/utils/domHelpers'
+} from '../utils/domHelpers.js'
 
 // TODO: Add tests (Issue: #155)
 

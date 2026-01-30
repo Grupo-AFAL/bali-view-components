@@ -4,9 +4,9 @@
  * These are utility controllers that can be used independently of ViewComponents.
  * Import individual controllers or use the registerAll helper.
  *
- * Usage with Vite:
- *   import { DatepickerController, registerAll } from 'bali/controllers'
- *   registerAll(application) // Register all controllers
+ * Usage:
+ *   import { DatepickerController, registerAllControllers } from 'bali-view-components'
+ *   registerAllControllers(application) // Register all controllers
  *   // OR
  *   application.register('datepicker', DatepickerController)
  */
