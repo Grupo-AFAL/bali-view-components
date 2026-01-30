@@ -1,4 +1,11 @@
-<%= tag.div(**html_attributes) do %>
+<div id="<%= drawer_id %>"
+     class="<%= drawer_classes %> hidden [&.drawer-open]:block"
+     role="dialog"
+     aria-modal="true"
+     <%= "aria-labelledby=#{title_id}" if title? %>
+     data-controller="drawer"
+     data-drawer-target="template"
+     data-action="keydown.esc->drawer#close">
   <div class="drawer-overlay fixed inset-0 bg-black/50 z-[100]"
        data-drawer-target="background"
        data-action="click->drawer#close"
@@ -30,4 +37,4 @@
       </div>
     <% end %>
   </div>
-<% end %>
+</div>

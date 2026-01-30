@@ -40,11 +40,9 @@ module Bali
         @options = options
       end
 
-      # Tailwind safelist: [&.drawer-open]:block
       def drawer_classes
         class_names(
           'drawer-component',
-          'hidden [&.drawer-open]:block',
           @active && 'drawer-open',
           @options[:class]
         )
