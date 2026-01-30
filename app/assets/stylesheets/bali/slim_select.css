@@ -109,7 +109,7 @@
 .ss-main {
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
+  align-items: center;
   position: relative;
   user-select: none;
   color: var(--ss-font-color);
@@ -290,7 +290,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  align-self: center;
   width: fit-content;
   height: auto;
   padding: 0 var(--ss-spacing-m);
@@ -323,7 +322,6 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  align-self: center;
   width: 0.75rem;
   height: 0.75rem;
   margin: 0 var(--ss-spacing-m);
