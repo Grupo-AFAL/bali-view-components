@@ -176,7 +176,7 @@
   text-align: center;
   position: relative;
   user-select: none;
-  overflow: hidden;
+  overflow: visible;
   color: var(--fp-primary-content);
   fill: var(--fp-primary-content);
   display: flex;
@@ -282,8 +282,9 @@
   font-weight: 600;
   cursor: text;
   padding: 0.25rem;
+  padding-right: 1rem;
   margin: 0;
-  width: 4.5ch;
+  width: 5.5ch;
   height: auto;
   line-height: inherit;
   vertical-align: middle;
@@ -330,9 +331,10 @@
   padding: 0 4px 0 2px;
   height: 50%;
   line-height: 50%;
-  opacity: 0;
+  opacity: 0.7;
   cursor: pointer;
   box-sizing: border-box;
+  transition: opacity 0.15s ease;
 }
 
 .numInputWrapper:hover span {
