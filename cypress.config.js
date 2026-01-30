@@ -7,7 +7,7 @@ module.exports = defineConfig({
     setupNodeEvents (on, config) {
       return require('./cypress/plugins/index.js')(on, config)
     },
-    baseUrl: 'http://localhost:3000/rails/view_components',
+    baseUrl: 'http://localhost:3001/lookbook/preview',
     // Prevent Electron renderer crashes
     experimentalMemoryManagement: true,
     numTestsKeptInMemory: 0

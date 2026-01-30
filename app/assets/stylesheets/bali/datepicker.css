@@ -55,13 +55,10 @@
   }
 }
 
-/* Arrow pointing to input - match header color */
-.flatpickr-calendar.arrowTop:before {
-  border-bottom-color: oklch(var(--p));
-}
-
-.flatpickr-calendar.arrowTop:after {
-  border-bottom-color: oklch(var(--p));
+/* Hide the arrow pointing to input - cleaner look matching other dropdowns */
+.flatpickr-calendar:before,
+.flatpickr-calendar:after {
+  display: none !important;
 }
 
 /* Weekday labels */

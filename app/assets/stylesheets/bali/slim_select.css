@@ -126,10 +126,9 @@
   overflow: hidden;
 
 
-  /* Focus state - DaisyUI style outline */
+  /* Focus state - subtle border change, no outline */
   &:focus {
-    outline: 2px solid oklch(0.6569 0.196 275.75 / 0.2);
-    outline-offset: 2px;
+    outline: none;
     border-color: var(--ss-primary-color);
   }
 
@@ -402,9 +401,10 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding: var(--ss-spacing-l);
+  padding: var(--ss-spacing-m);
   border-bottom: 1px solid oklch(0.278 0.033 256.8 / 0.1);
   background-color: oklch(0.95 0 0 / 0.5);
+  margin: -1px -1px 0 -1px; /* Extend to cover any gap with parent border */
 
   input {
     display: inline-flex;
@@ -430,8 +430,7 @@
     }
 
     &:focus {
-      outline: 2px solid oklch(0.6569 0.196 275.75 / 0.2);
-      outline-offset: 2px;
+      outline: none;
       border-color: var(--ss-primary-color);
     }
   }
@@ -477,6 +476,13 @@
 .ss-content.ss-dir-above .ss-search {
   border-bottom: none;
   border-top: 1px solid oklch(0.278 0.033 256.8 / 0.1);
+  margin: 0 -1px -1px -1px; /* Extend to cover any gap with parent border */
+  border-radius: var(--ss-border-radius) var(--ss-border-radius) 0 0;
+}
+
+/* Search when dropdown opens below - rounded top corners to match trigger */
+.ss-content.ss-dir-below .ss-search {
+  border-radius: 0;
 }
 
 /* =============================================================================
@@ -489,7 +495,7 @@
   align-items: stretch;
   width: 100%;
   height: auto;
-  padding: var(--ss-spacing-m);
+  padding: var(--ss-spacing-s) var(--ss-spacing-m);
   max-height: 240px;
   overflow-x: hidden;
   overflow-y: auto;
@@ -762,16 +768,36 @@
 /* =============================================================================
    DaisyUI Override
    SlimSelect copies classes from native select, so we must override DaisyUI's
-   select arrow background-image when applied to .ss-main
-   DaisyUI uses @layer utilities, so we must also use utilities layer
+   select arrow background-image when applied to .ss-main and .ss-content
    ============================================================================= */
-@layer utilities {
-  .ss-main.select,
-  .ss-main.select.select-bordered,
-  div.ss-main.select,
-  div.ss-main.select.select-bordered {
-    background-image: none !important;
-    background-position: unset !important;
-    padding-right: var(--ss-spacing-l) !important;
+.ss-main.select,
+.ss-main.select-bordered,
+.ss-content.select,
+.ss-content.select-bordered,
+div.ss-main.select,
+div.ss-main.select-bordered,
+div.ss-content.select,
+div.ss-content.select-bordered {
+  background-image: none !important;
+  background-position: unset !important;
+  padding-right: var(--ss-spacing-l) !important;
+}
+
+/* Remove any DaisyUI select styling that might leak into the dropdown content */
+.ss-content {
+  /* Override DaisyUI .select appearance */
+  appearance: none !important;
+  -webkit-appearance: none !important;
+
+  /* Remove any background arrows */
+  &::after,
+  &::before {
+    display: none !important;
+    content: none !important;
   }
+}
+
+/* Remove black border/outline from dropdown content */
+.ss-content.ss-open {
+  outline: none !important;
 }

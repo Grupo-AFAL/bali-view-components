@@ -2,7 +2,8 @@ import { defineConfig } from 'vite'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import RubyPlugin from 'vite-plugin-ruby'
-import StimulusHMR from 'vite-plugin-stimulus-hmr'
+// StimulusHMR disabled - causes "application is not defined" errors with Bali's export strategy
+// import StimulusHMR from 'vite-plugin-stimulus-hmr'
 import FullReload from 'vite-plugin-full-reload'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -13,7 +14,7 @@ const baliGemPath = resolve(__dirname, '../..')
 export default defineConfig({
   plugins: [
     RubyPlugin(),
-    StimulusHMR(),
+    // StimulusHMR disabled - causes "application is not defined" errors
     FullReload([
       'app/views/**/*.erb',
       'app/components/**/*.erb',
