@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **Release Skill** - Rewritten with two-phase PR workflow
+  - Phase 1: Creates release prep PR with changelog updates for review
+  - Phase 2: After merge, bumps version, tags, and publishes GitHub release
+  - New `--continue` flag to run Phase 2 after PR is merged
+  - State persistence via `.release-pending.json` between phases
+
 ## [2.0.4] - 2026-01-30
 
 ### Added
