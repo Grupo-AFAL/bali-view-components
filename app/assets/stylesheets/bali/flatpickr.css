@@ -162,14 +162,16 @@
    ============================================================================= */
 .flatpickr-months {
   display: flex;
-  padding: 0.625rem;
+  align-items: center;
+  padding: 0;
   background: var(--fp-primary-color);
   border-radius: var(--fp-border-radius) var(--fp-border-radius) 0 0;
+  height: var(--fp-header-height);
 }
 
 .flatpickr-months .flatpickr-month {
   flex: 1;
-  height: var(--fp-header-height);
+  height: 100%;
   line-height: 1;
   text-align: center;
   position: relative;
@@ -177,21 +179,26 @@
   overflow: hidden;
   color: var(--fp-primary-content);
   fill: var(--fp-primary-content);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Navigation arrows */
 .flatpickr-months .flatpickr-prev-month,
 .flatpickr-months .flatpickr-next-month {
-  position: absolute;
-  top: 0;
-  height: var(--fp-header-height);
-  padding: 0.75rem 1rem;
+  position: relative;
+  flex-shrink: 0;
+  height: 100%;
+  padding: 0 1rem;
   z-index: 3;
   cursor: pointer;
   text-decoration: none;
   color: var(--fp-primary-content);
   fill: var(--fp-primary-content);
   transition: opacity var(--fp-animation-timing) ease;
+  display: flex;
+  align-items: center;
 }
 
 .flatpickr-months .flatpickr-prev-month:hover,
@@ -204,12 +211,10 @@
   display: none;
 }
 
-.flatpickr-months .flatpickr-prev-month.flatpickr-prev-month {
-  left: 0;
-}
-
+/* Arrows are now flex items, no absolute positioning needed */
+.flatpickr-months .flatpickr-prev-month.flatpickr-prev-month,
 .flatpickr-months .flatpickr-next-month.flatpickr-next-month {
-  right: 0;
+  /* No positioning needed - flexbox handles order */
 }
 
 .flatpickr-months .flatpickr-prev-month svg,
@@ -228,11 +233,9 @@
    Current Month Display
    ============================================================================= */
 .flatpickr-current-month {
-  position: absolute;
-  width: 75%;
-  left: 12.5%;
-  padding-top: 0.5rem;
-  height: var(--fp-header-height);
+  position: relative;
+  width: 100%;
+  height: 100%;
   display: inline-flex;
   align-items: center;
   justify-content: center;

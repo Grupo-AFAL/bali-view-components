@@ -404,7 +404,10 @@
   padding: var(--ss-spacing-m);
   border-bottom: 1px solid oklch(0.278 0.033 256.8 / 0.1);
   background-color: oklch(0.95 0 0 / 0.5);
-  margin: -1px -1px 0 -1px; /* Extend to cover any gap with parent border */
+  /* Remove padding on sides and use negative margin to extend to container edges */
+  padding-left: 0;
+  padding-right: 0;
+  margin: 0;
 
   input {
     display: inline-flex;
@@ -413,7 +416,7 @@
     min-width: 0;
     height: var(--ss-search-height);
     padding: 0 var(--ss-spacing-l);
-    margin: 0;
+    margin: 0 var(--ss-spacing-m);
     font-size: 0.875rem;
     line-height: inherit;
     color: var(--ss-font-color);
@@ -476,11 +479,10 @@
 .ss-content.ss-dir-above .ss-search {
   border-bottom: none;
   border-top: 1px solid oklch(0.278 0.033 256.8 / 0.1);
-  margin: 0 -1px -1px -1px; /* Extend to cover any gap with parent border */
   border-radius: var(--ss-border-radius) var(--ss-border-radius) 0 0;
 }
 
-/* Search when dropdown opens below - rounded top corners to match trigger */
+/* Search when dropdown opens below - no rounded corners */
 .ss-content.ss-dir-below .ss-search {
   border-radius: 0;
 }
