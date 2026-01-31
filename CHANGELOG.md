@@ -15,6 +15,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - New `--continue` flag to run Phase 2 after PR is merged
   - State persistence via `.release-pending.json` between phases
 
+### Dependencies
+
+- **ViewComponent** - Upgraded from 3.x to 4.2.0
+  - Updated preview configuration: `config.view_component.preview_paths` → `config.view_component.previews.paths`
+
+- **Pagy** - Upgraded from 8.x to 43.2.8 (major API redesign)
+  - `Pagy::Backend`/`Pagy::Frontend` modules → `Pagy::Method`
+  - `Pagy.new()` → `Pagy::Offset.new()`
+  - `items:` parameter → `limit:`
+  - `pagy.prev` → `pagy.previous`
+  - `Pagy::DEFAULT` → `Pagy.options`
+  - Added fallback URL builder for contexts without request object (e.g., Lookbook previews)
+  - Updated `Pagination::Component` and `DataTable` previews for new API
+
 ## [2.0.4] - 2026-01-30
 
 ### Added
