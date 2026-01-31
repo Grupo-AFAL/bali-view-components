@@ -26,7 +26,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'rails', '>= 7.0', '< 9.0'
   spec.add_dependency 'ransack'
 
-  spec.add_dependency 'view_component', ['>= 2.0.0', '< 4.0']
+  spec.add_dependency 'view_component', ['>= 4.0.0', '< 5.0']
   spec.add_dependency 'view_component-contrib'
 
   spec.metadata['rubygems_mfa_required'] = 'true'
