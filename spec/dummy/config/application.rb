@@ -40,7 +40,8 @@ module Dummy
 
     # ViewComponents
     config.autoload_paths << Rails.root.parent.parent.join('app/components')
-    config.view_component.preview_paths << Rails.root.parent.parent.join('app/components')
+    # ViewComponent 4.x uses namespaced preview configuration
+    config.view_component.previews.paths << Rails.root.parent.parent.join('app/components')
 
     config.lookbook.preview_layout = 'lookbook_preview'
 

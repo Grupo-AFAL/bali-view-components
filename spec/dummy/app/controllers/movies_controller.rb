@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class MoviesController < ApplicationController
-  include Pagy::Backend
+  # Pagy 43+ uses Pagy::Method (included in ApplicationController)
 
   before_action :set_movie, only: %i[show edit update destroy]
 

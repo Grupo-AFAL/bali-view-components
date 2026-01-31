@@ -3,7 +3,8 @@
 module Bali
   module DataTable
     class Preview < ApplicationViewComponentPreview
-      include Pagy::Backend
+      # Pagy 43.x Pagy::Method requires a request object which previews don't have
+      # Use Pagy::Offset.new directly instead
 
       HEADERS = [
         { name: 'Name', sortable: true, sort_key: 'name' },
@@ -121,25 +122,28 @@ module Bali
       end
 
       # @label With Pagination (Live DB)
-      # Requires **Pagy (~> 8.0)**:
-      # - Include `Pagy::Backend` in your controller
-      # - Include `Pagy::Frontend` in ApplicationHelper
+      # Requires **Pagy (>= 43.0)**:
+      # - Include `Pagy::Method` in your controller
       #
       # Pass the `pagy` object to DataTable:
       # ```ruby
-      # pagy, records = pagy(scope, items: 10)
+      # pagy, records = pagy(:offset, scope, limit: 10)
       # Bali::DataTable::Component.new(pagy: pagy, ...)
       # ```
       def with_pagination(q: {}, page: 1)
         filter_params = ActionController::Parameters.new(q: ActionController::Parameters.new(q), page: page)
         filter_form = Bali::FilterForm.new(Movie.all, filter_params)
-        pagy, movies = pagy(filter_form.result.includes(:tenant), items: 5, page: page)
+        collection = filter_form.result.includes(:tenant)
+        count = collection.count
+        limit = 5
+        pagy_obj = Pagy::Offset.new(count: count, page: page.to_i, limit: limit)
+        movies = collection.offset(pagy_obj.offset).limit(limit)
 
         render_with_template(
           template: 'bali/data_table/previews/with_pagination',
           locals: {
             filter_form: filter_form,
-            pagy: pagy,
+            pagy: pagy_obj,
             movies: movies,
             filter_attributes: MOVIE_FILTER_ATTRIBUTES
           }
@@ -151,13 +155,17 @@ module Bali
       def complete(q: {}, page: 1)
         filter_params = ActionController::Parameters.new(q: ActionController::Parameters.new(q), page: page)
         filter_form = Bali::FilterForm.new(Movie.all, filter_params)
-        pagy, movies = pagy(filter_form.result.includes(:tenant), items: 5, page: page)
+        collection = filter_form.result.includes(:tenant)
+        count = collection.count
+        limit = 5
+        pagy_obj = Pagy::Offset.new(count: count, page: page.to_i, limit: limit)
+        movies = collection.offset(pagy_obj.offset).limit(limit)
 
         render_with_template(
           template: 'bali/data_table/previews/complete',
           locals: {
             filter_form: filter_form,
-            pagy: pagy,
+            pagy: pagy_obj,
             movies: movies,
             filter_attributes: MOVIE_FILTER_ATTRIBUTES
           }
@@ -177,13 +185,17 @@ module Bali
 
         filter_params = ActionController::Parameters.new(q: ActionController::Parameters.new(q), page: page)
         filter_form = Bali::FilterForm.new(Movie.all, filter_params)
-        pagy, movies = pagy(filter_form.result.includes(:tenant), items: 6, page: page)
+        collection = filter_form.result.includes(:tenant)
+        count = collection.count
+        limit = 6
+        pagy_obj = Pagy::Offset.new(count: count, page: page.to_i, limit: limit)
+        movies = collection.offset(pagy_obj.offset).limit(limit)
 
         render_with_template(
           template: 'bali/data_table/previews/with_grid_mode',
           locals: {
             filter_form: filter_form,
-            pagy: pagy,
+            pagy: pagy_obj,
             movies: movies,
             filter_attributes: MOVIE_FILTER_ATTRIBUTES,
             display_mode: actual_display_mode
