@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **DirectUpload Component** - Auto-clear files on successful Turbo form submission
+  - Listens for `turbo:submit-end` event on parent form
+  - Clears file list when `event.detail.success` is true (2xx response)
+  - Files remain on failed submissions so users can retry
+
 ### Changed
 
 - **Release Skill** - Rewritten with two-phase PR workflow
