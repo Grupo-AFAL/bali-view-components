@@ -42,6 +42,7 @@ export class DirectUploadController extends Controller {
   connect () {
     this.dragCounter = 0
     this.setupFormGuard()
+    this.setupAutoReset()
   }
 
   disconnect () {
@@ -58,9 +59,21 @@ export class DirectUploadController extends Controller {
     }
   }
 
+  setupAutoReset () {
+    if (this.form) {
+      this.boundFormSuccess = this.handleFormSuccess.bind(this)
+      this.form.addEventListener('turbo:submit-end', this.boundFormSuccess)
+    }
+  }
+
   teardownFormGuard () {
-    if (this.form && this.boundFormSubmit) {
-      this.form.removeEventListener('submit', this.boundFormSubmit)
+    if (this.form) {
+      if (this.boundFormSubmit) {
+        this.form.removeEventListener('submit', this.boundFormSubmit)
+      }
+      if (this.boundFormSuccess) {
+        this.form.removeEventListener('turbo:submit-end', this.boundFormSuccess)
+      }
     }
   }
 
@@ -71,6 +84,13 @@ export class DirectUploadController extends Controller {
       event.stopPropagation()
       this.showError(`Please wait for ${uploading} upload(s) to complete`)
       this.announce(`Upload in progress. Please wait for ${uploading} file(s) to finish uploading.`)
+    }
+  }
+
+  handleFormSuccess (event) {
+    // Clear files only on successful submission (2xx response)
+    if (event.detail.success) {
+      this.clearAllFiles()
     }
   }
 
