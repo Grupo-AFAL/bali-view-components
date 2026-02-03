@@ -2,7 +2,7 @@
   <%= render Bali::PageHeader::Component.new(
     title: 'DirectUpload Test',
     subtitle: 'form_with url: (no model)',
-    back: showcase_path
+    back: { href: showcase_path }
   ) %>
 
   <%= render Bali::Message::Component.new(color: :info, class: 'mb-6') do %>
