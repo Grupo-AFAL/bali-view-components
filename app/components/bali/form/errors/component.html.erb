@@ -1,0 +1,7 @@
+<%= render Bali::Message::Component.new(title: title, color: :danger, **component_options) do %>
+  <ul class="list-disc list-inside">
+    <% error_messages.each do |message| %>
+      <li><%= message %></li>
+    <% end %>
+  </ul>
+<% end %>

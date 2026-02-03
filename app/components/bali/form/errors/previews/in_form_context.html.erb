@@ -1,0 +1,9 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |f| %>
+  <%= f.error_summary %>
+
+  <%= f.text_field_group :name %>
+  <%= f.email_field_group :email %>
+  <%= f.password_field_group :password %>
+
+  <%= f.submit_actions 'Save' %>
+<% end %>
