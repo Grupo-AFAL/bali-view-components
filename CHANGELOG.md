@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Form::Errors Component** - New component for displaying form validation error summaries
+  - Renders error list using `Bali::Message::Component` with error styling
+  - Only renders when model has errors (`render?` returns false otherwise)
+  - Supports optional `title` parameter for custom header text
+  - FormBuilder integration via `f.error_summary` helper method
+
 - **DirectUpload Component** - Auto-clear files on successful Turbo form submission
   - Listens for `turbo:submit-end` event on parent form
   - Clears file list when `event.detail.success` is true (2xx response)
