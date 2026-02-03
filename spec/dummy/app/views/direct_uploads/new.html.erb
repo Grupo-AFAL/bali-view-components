@@ -1,14 +1,17 @@
 <div class="container mx-auto p-8 max-w-2xl">
-  <h1 class="text-2xl font-bold mb-6">DirectUpload Test: form_with url: (no model)</h1>
+  <%= render Bali::PageHeader::Component.new(
+    title: 'DirectUpload Test',
+    subtitle: 'form_with url: (no model)',
+    back: showcase_path
+  ) %>
 
-  <div class="alert alert-info mb-6">
-    <span>
-      This form tests that DirectUpload generates correct field names when using
-      <code class="badge badge-ghost">form_with url:</code> without a model.
-      The field should be <code class="badge badge-ghost">evidences[]</code>,
-      not <code class="badge badge-error">[evidences][]</code>.
-    </span>
-  </div>
+  <%= render Bali::Message::Component.new(color: :info, class: 'mb-6') do %>
+    This form tests that DirectUpload generates correct field names when using
+    <%= render Bali::Tag::Component.new(text: 'form_with url:', color: :ghost) %>
+    without a model.
+    The field should be <%= render Bali::Tag::Component.new(text: 'evidences[]', color: :ghost) %>,
+    not <%= render Bali::Tag::Component.new(text: '[evidences][]', color: :error) %>.
+  <% end %>
 
   <div id="result" class="mb-6"></div>
 
@@ -51,14 +54,16 @@
 
   <div class="divider my-8"></div>
 
-  <div class="prose">
-    <h2>What to verify:</h2>
-    <ol>
-      <li>Open browser DevTools (Network tab)</li>
-      <li>Upload some files</li>
-      <li>Submit the form</li>
-      <li>Check the form data - field should be <code>evidences[]</code></li>
-      <li>After success, files should auto-clear (Turbo integration)</li>
-    </ol>
-  </div>
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <div class="card-body prose">
+      <h3>What to verify:</h3>
+      <ol>
+        <li>Open browser DevTools (Network tab)</li>
+        <li>Upload some files</li>
+        <li>Submit the form</li>
+        <li>Check the form data - field should be <%= render Bali::Tag::Component.new(text: 'evidences[]', color: :success) %></li>
+        <li>After success, files should auto-clear (Turbo integration)</li>
+      </ol>
+    </div>
+  <% end %>
 </div>

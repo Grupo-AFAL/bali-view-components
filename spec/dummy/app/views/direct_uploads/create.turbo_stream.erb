@@ -1,49 +1,46 @@
 <%= turbo_stream.update "result" do %>
-  <div class="alert alert-success">
+  <%= render Bali::Message::Component.new(color: :success, class: 'mb-4') do %>
     <div>
       <h3 class="font-bold">Form submitted successfully!</h3>
       <p class="text-sm">Files should auto-clear above (Turbo integration working).</p>
     </div>
-  </div>
+  <% end %>
 
-  <div class="card bg-base-200 mt-4">
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
     <div class="card-body">
       <h4 class="card-title text-sm">Received Parameters:</h4>
 
-      <div class="overflow-x-auto">
-        <table class="table table-sm">
-          <thead>
-            <tr>
-              <th>Field Name</th>
-              <th>Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @field_names.each do |key| %>
-              <% next if key.in?(%w[controller action authenticity_token]) %>
-              <tr>
-                <td><code class="badge badge-ghost"><%= key %></code></td>
-                <td class="max-w-xs truncate"><%= params[key].inspect %></td>
-              </tr>
+      <%= render Bali::Table::Component.new(size: :sm) do |table| %>
+        <% table.with_header(name: 'Field Name') %>
+        <% table.with_header(name: 'Value') %>
+
+        <% @field_names.each do |key| %>
+          <% next if key.in?(%w[controller action authenticity_token]) %>
+          <% table.with_body_row do |row| %>
+            <% row.with_cell do %>
+              <%= render Bali::Tag::Component.new(text: key, color: :ghost) %>
             <% end %>
-          </tbody>
-        </table>
-      </div>
+            <% row.with_cell(class: 'max-w-xs truncate') { params[key].inspect } %>
+          <% end %>
+        <% end %>
+      <% end %>
 
       <% if @evidences.present? %>
         <div class="mt-4">
-          <p class="text-success font-medium">
-            Field name is correct: <code class="badge badge-success">evidences[]</code>
-          </p>
-          <p class="text-sm text-base-content/60">
-            Received <%= @evidences.is_a?(Array) ? @evidences.length : 1 %> file(s)
-          </p>
+          <%= render Bali::Message::Component.new(color: :success, size: :small) do %>
+            Field name is correct: <%= render Bali::Tag::Component.new(text: 'evidences[]', color: :success) %>
+            <span class="text-sm ml-2">
+              (Received <%= @evidences.is_a?(Array) ? @evidences.length : 1 %> file(s))
+            </span>
+          <% end %>
         </div>
       <% else %>
         <div class="mt-4">
-          <p class="text-warning">No evidences received. Upload files first.</p>
+          <%= render Bali::Message::Component.new(color: :warning, size: :small) do %>
+            No evidences received. Upload files first.
+          <% end %>
         </div>
       <% end %>
     </div>
-  </div>
+  <% end %>
 <% end %>

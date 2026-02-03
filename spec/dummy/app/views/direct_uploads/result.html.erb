@@ -1,43 +1,41 @@
 <div class="container mx-auto p-8 max-w-2xl">
-  <h1 class="text-2xl font-bold mb-6">DirectUpload Test Result</h1>
+  <%= render Bali::PageHeader::Component.new(
+    title: 'DirectUpload Test Result',
+    back: new_direct_upload_path
+  ) %>
 
-  <div class="alert alert-success mb-6">
-    <span>Form submitted successfully!</span>
-  </div>
+  <%= render Bali::Message::Component.new(color: :success, class: 'mb-6') do %>
+    Form submitted successfully!
+  <% end %>
 
-  <div class="card bg-base-200">
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
     <div class="card-body">
       <h4 class="card-title">Received Parameters:</h4>
 
-      <div class="overflow-x-auto">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Field Name</th>
-              <th>Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @field_names.each do |key| %>
-              <% next if key.in?(%w[controller action authenticity_token]) %>
-              <tr>
-                <td><code class="badge badge-ghost"><%= key %></code></td>
-                <td class="max-w-xs truncate"><%= params[key].inspect %></td>
-              </tr>
+      <%= render Bali::Table::Component.new do |table| %>
+        <% table.with_header(name: 'Field Name') %>
+        <% table.with_header(name: 'Value') %>
+
+        <% @field_names.each do |key| %>
+          <% next if key.in?(%w[controller action authenticity_token]) %>
+          <% table.with_body_row do |row| %>
+            <% row.with_cell do %>
+              <%= render Bali::Tag::Component.new(text: key, color: :ghost) %>
             <% end %>
-          </tbody>
-        </table>
-      </div>
+            <% row.with_cell(class: 'max-w-xs truncate') { params[key].inspect } %>
+          <% end %>
+        <% end %>
+      <% end %>
 
       <% if @evidences.present? %>
         <div class="mt-4">
-          <p class="text-success font-medium">
-            Field name is correct: <code class="badge badge-success">evidences[]</code>
-          </p>
+          <%= render Bali::Message::Component.new(color: :success) do %>
+            Field name is correct: <%= render Bali::Tag::Component.new(text: 'evidences[]', color: :success) %>
+          <% end %>
         </div>
       <% end %>
     </div>
-  </div>
+  <% end %>
 
   <div class="mt-6">
     <%= render Bali::Link::Component.new(
