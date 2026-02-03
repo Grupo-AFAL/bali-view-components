@@ -14,6 +14,216 @@
   class: 'mt-4 mb-6'
 ) %>
 
+<%# DirectUpload Test (form_with url: without model) %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('upload', class: 'text-primary') %>
+    DirectUpload Test
+  </h2>
+  <p class="text-base-content/70 mb-4">
+    Test DirectUpload component with <code class="badge badge-ghost">form_with url:</code> (no model).
+    Validates field name generation fix and Turbo auto-reset feature.
+  </p>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="font-medium">What this tests:</p>
+        <ul class="list-disc list-inside text-sm text-base-content/70 mt-2">
+          <li>Field names: <code>evidences[]</code> not <code>[evidences][]</code></li>
+          <li>Auto-clear files after successful Turbo submission</li>
+          <li>Multiple file upload without a model</li>
+        </ul>
+      </div>
+      <%= render Bali::Link::Component.new(
+        name: 'Open Test Page',
+        href: new_direct_upload_path,
+        type: :primary
+      ) %>
+    </div>
+  <% end %>
+</section>
+
+<%# SlimSelect with Complex HTML Demo %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('users', class: 'text-primary') %>
+    SlimSelect with Rich HTML
+  </h2>
+  <p class="text-base-content/70 mb-4">
+    SlimSelect supports custom HTML in options for rich, visually appealing dropdowns.
+    Use <code class="badge badge-ghost badge-sm">data-inner-html</code> on option tags.
+  </p>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <div class="grid md:grid-cols-2 gap-8">
+      <%# Team Member Selector %>
+      <div>
+        <h3 class="font-semibold mb-4">Assign Team Members</h3>
+        <%= form_with url: '#', method: :get, builder: Bali::FormBuilder do |f| %>
+          <%
+            team_members = [
+              { value: '1', name: 'Sarah Chen', role: 'Engineering Lead', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=sarah', status: 'online' },
+              { value: '2', name: 'Marcus Johnson', role: 'Senior Developer', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=marcus', status: 'online' },
+              { value: '3', name: 'Elena Rodriguez', role: 'Product Designer', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=elena', status: 'away' },
+              { value: '4', name: 'James Wilson', role: 'DevOps Engineer', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=james', status: 'offline' },
+              { value: '5', name: 'Aisha Patel', role: 'QA Engineer', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=aisha', status: 'online' }
+            ]
+
+            status_colors = { 'online' => 'bg-success', 'away' => 'bg-warning', 'offline' => 'bg-base-300' }
+
+            team_options = team_members.map do |member|
+              html = <<~HTML
+                <div class="flex items-center gap-3 py-1">
+                  <div class="avatar #{member[:status] == 'online' ? 'online' : (member[:status] == 'away' ? 'away' : '')}">
+                    <div class="w-8 rounded-full ring ring-base-200 ring-offset-base-100 ring-offset-1">
+                      <img src="#{member[:avatar]}" alt="#{member[:name]}" />
+                    </div>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="font-medium text-sm truncate">#{member[:name]}</div>
+                    <div class="text-xs text-base-content/60 truncate">#{member[:role]}</div>
+                  </div>
+                  <div class="w-2 h-2 rounded-full #{status_colors[member[:status]]}"></div>
+                </div>
+              HTML
+              [member[:name], member[:value], { 'data-inner-html' => html }]
+            end
+          %>
+          <%= f.slim_select_group :assignees,
+            options_for_select(team_options),
+            { label: 'Team Members', include_blank: 'Select team members...', hide_selected: true },
+            { multiple: true, placeholder: 'Search team members...' } %>
+        <% end %>
+      </div>
+
+      <%# Priority Selector %>
+      <div>
+        <h3 class="font-semibold mb-4">Set Priority</h3>
+        <%= form_with url: '#', method: :get, builder: Bali::FormBuilder do |f| %>
+          <%
+            priorities = [
+              { value: 'critical', label: 'Critical', icon: 'alert-triangle', color: 'text-error', bg: 'bg-error/10', desc: 'Immediate attention required' },
+              { value: 'high', label: 'High', icon: 'arrow-up', color: 'text-warning', bg: 'bg-warning/10', desc: 'Should be addressed soon' },
+              { value: 'medium', label: 'Medium', icon: 'minus', color: 'text-info', bg: 'bg-info/10', desc: 'Normal priority' },
+              { value: 'low', label: 'Low', icon: 'arrow-down', color: 'text-success', bg: 'bg-success/10', desc: 'Can wait' }
+            ]
+
+            priority_options = priorities.map do |p|
+              html = <<~HTML
+                <div class="flex items-center gap-3 py-1">
+                  <div class="p-2 rounded-lg #{p[:bg]}">
+                    <svg class="w-4 h-4 #{p[:color]}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      #{p[:icon] == 'alert-triangle' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>' : ''}
+                      #{p[:icon] == 'arrow-up' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>' : ''}
+                      #{p[:icon] == 'minus' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>' : ''}
+                      #{p[:icon] == 'arrow-down' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>' : ''}
+                    </svg>
+                  </div>
+                  <div class="flex-1">
+                    <div class="font-medium text-sm #{p[:color]}">#{p[:label]}</div>
+                    <div class="text-xs text-base-content/60">#{p[:desc]}</div>
+                  </div>
+                </div>
+              HTML
+              [p[:label], p[:value], { 'data-inner-html' => html }]
+            end
+          %>
+          <%= f.slim_select_group :priority,
+            options_for_select(priority_options, 'medium'),
+            { label: 'Priority Level', allow_deselect_option: true },
+            { placeholder: 'Select priority...' } %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="divider">Usage</div>
+
+    <div class="mockup-code text-sm">
+      <pre data-prefix="1"><code>&lt;%# Define options with data-inner-html for custom rendering %&gt;</code></pre>
+      <pre data-prefix="2"><code>options = users.map do |user|</code></pre>
+      <pre data-prefix="3" class="text-warning"><code>  html = "&lt;div class='flex items-center'&gt;...&lt;/div&gt;"</code></pre>
+      <pre data-prefix="4" class="text-success"><code>  [user.name, user.id, { 'data-inner-html' => html }]</code></pre>
+      <pre data-prefix="5"><code>end</code></pre>
+      <pre data-prefix="6"><code></code></pre>
+      <pre data-prefix="7"><code>&lt;%= f.slim_select_group :user_id, options_for_select(options) %&gt;</code></pre>
+    </div>
+  <% end %>
+</section>
+
+<%# Form Error Summary Demo %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('alert-circle', class: 'text-primary') %>
+    <%= t('showcase.form_errors') %>
+  </h2>
+  <p class="text-base-content/70 mb-4"><%= t('showcase.form_errors_desc') %></p>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <h3 class="font-semibold mb-4"><%= t('showcase.form_errors_demo_title') %></h3>
+
+    <%
+      # Create a model with validation errors for demonstration
+      demo_record = FormRecord.new
+      demo_record.errors.add(:name, "can't be blank")
+      demo_record.errors.add(:email, "is invalid")
+      demo_record.errors.add(:password, "is too short (minimum is 8 characters)")
+      demo_record.errors.add(:password_confirmation, "doesn't match Password")
+      demo_record.errors.add(:terms, "must be accepted")
+    %>
+
+    <%= form_with model: demo_record, url: '#', builder: Bali::FormBuilder, local: true, class: 'space-y-4' do |f| %>
+      <%# Error Summary - the new component %>
+      <%= f.error_summary(title: 'Please fix the following errors:') %>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <%# Text fields %>
+        <%= f.text_field_group :name, label: t('showcase.full_name'), placeholder: 'John Doe' %>
+        <%= f.email_field_group :email, label: t('showcase.email'), placeholder: 'john@example.com' %>
+
+        <%# Password fields %>
+        <%= f.password_field_group :password, label: t('showcase.password') %>
+        <%= f.password_field_group :password_confirmation, label: t('showcase.password_confirmation') %>
+
+        <%# Number and URL %>
+        <%= f.number_field_group :age, label: t('showcase.age'), min: 18, max: 120 %>
+        <%= f.url_field_group :website, label: t('showcase.website'), placeholder: 'https://example.com' %>
+      </div>
+
+      <%# Select %>
+      <%= f.select_group :experience_level,
+        [[t('showcase.experience_levels.beginner'), 'beginner'],
+         [t('showcase.experience_levels.intermediate'), 'intermediate'],
+         [t('showcase.experience_levels.advanced'), 'advanced'],
+         [t('showcase.experience_levels.expert'), 'expert']],
+        { include_blank: t('showcase.select_level') },
+        label: t('showcase.experience_level') %>
+
+      <%# Text area %>
+      <%= f.text_area_group :bio, label: t('showcase.bio'), rows: 3, placeholder: 'Tell us about yourself...' %>
+
+      <%# Boolean fields %>
+      <div class="space-y-2">
+        <%= f.switch_field_group :newsletter, label: t('showcase.newsletter') %>
+        <%= f.boolean_field_group :terms, label: t('showcase.terms') %>
+      </div>
+
+      <%# Submit %>
+      <%= f.submit_actions t('showcase.register'), cancel_path: '#' %>
+    <% end %>
+
+    <div class="divider">Usage</div>
+
+    <div class="mockup-code text-sm">
+      <pre data-prefix="1"><code>&lt;%= form_with model: @user, builder: Bali::FormBuilder do |f| %&gt;</code></pre>
+      <pre data-prefix="2" class="text-success"><code>  &lt;%= f.error_summary %&gt;</code></pre>
+      <pre data-prefix="3"><code>  &lt;%= f.text_field_group :name %&gt;</code></pre>
+      <pre data-prefix="4"><code>  ...</code></pre>
+      <pre data-prefix="5"><code>&lt;% end %&gt;</code></pre>
+    </div>
+  <% end %>
+</section>
+
 <%# Flash Notifications Demo %>
 <section class="mb-12">
   <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
@@ -672,6 +882,7 @@
             <% tags.with_item(text: 'Clipboard', size: :sm) %>
             <% tags.with_item(text: 'Drawer', size: :sm) %>
             <% tags.with_item(text: 'FlashNotifications', size: :sm) %>
+            <% tags.with_item(text: 'Form::Errors', size: :sm, color: :primary) %>
             <% tags.with_item(text: 'ImageField', size: :sm) %>
             <% tags.with_item(text: 'List', size: :sm) %>
             <% tags.with_item(text: 'Loader', size: :sm) %>

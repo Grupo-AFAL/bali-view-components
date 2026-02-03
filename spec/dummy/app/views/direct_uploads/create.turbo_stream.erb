@@ -1,0 +1,44 @@
+<%= turbo_stream.update "result" do %>
+  <%= render Bali::Message::Component.new(color: :success, class: 'mb-4') do %>
+    <div>
+      <h3 class="font-bold">Form submitted successfully!</h3>
+      <p class="text-sm">Files should auto-clear above (Turbo integration working).</p>
+    </div>
+  <% end %>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <div class="card-body">
+      <h4 class="card-title text-sm">Received Parameters:</h4>
+
+      <%= render Bali::Table::Component.new do |table| %>
+        <% table.with_header(name: 'Field Name') %>
+        <% table.with_header(name: 'Value') %>
+
+        <% @field_names.each do |key| %>
+          <% next if key.in?(%w[controller action authenticity_token]) %>
+          <% table.with_row do %>
+            <td><%= render Bali::Tag::Component.new(text: key, color: :ghost) %></td>
+            <td class="max-w-xs truncate"><%= params[key].inspect %></td>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <% if @evidences.present? %>
+        <div class="mt-4">
+          <%= render Bali::Message::Component.new(color: :success, size: :small) do %>
+            Field name is correct: <%= render Bali::Tag::Component.new(text: 'evidences[]', color: :success) %>
+            <span class="text-sm ml-2">
+              (Received <%= @evidences.is_a?(Array) ? @evidences.length : 1 %> file(s))
+            </span>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="mt-4">
+          <%= render Bali::Message::Component.new(color: :warning, size: :small) do %>
+            No evidences received. Upload files first.
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

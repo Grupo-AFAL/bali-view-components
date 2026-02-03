@@ -859,6 +859,16 @@ Use the correct component based on **what the element does**, not how it looks:
 - Keyboard navigation: buttons activate with Space/Enter, links only with Enter
 - Links with `href="#"` are an accessibility anti-pattern
 
+### Common API Gotchas
+
+| Component | Wrong | Correct |
+|-----------|-------|---------|
+| `PageHeader` back | `back: path` | `back: { href: path }` |
+| `Table` rows | `with_body_row` / `with_cell` | `with_row do` + raw `<td>` tags |
+| `FormBuilder` select | `select_field_group` | `select_group` |
+| `FormBuilder` textarea | `text_area_field_group` | `text_area_group` |
+| `SlimSelect` HTML | inline HTML | `data-inner-html` attribute on options |
+
 ## Icons
 
 The Bali icon system uses **Lucide icons** as the primary source, with backwards compatibility for existing icon names.

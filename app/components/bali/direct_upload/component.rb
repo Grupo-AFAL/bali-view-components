@@ -134,17 +134,21 @@ module Bali
       end
 
       def field_name
-        if multiple?
-          "#{form.object_name}[#{method}][]"
+        if form.object_name.present?
+          multiple? ? "#{form.object_name}[#{method}][]" : "#{form.object_name}[#{method}]"
         else
-          "#{form.object_name}[#{method}]"
+          multiple? ? "#{method}[]" : method.to_s
         end
       end
 
       # Field name for marking existing attachments for removal.
       # Used when user clicks remove on an existing attachment.
       def remove_field_name
-        "#{form.object_name}[remove_#{method}][]"
+        if form.object_name.present?
+          "#{form.object_name}[remove_#{method}][]"
+        else
+          "remove_#{method}[]"
+        end
       end
 
       def input_options

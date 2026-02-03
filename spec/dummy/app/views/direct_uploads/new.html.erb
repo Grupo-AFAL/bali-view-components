@@ -1,0 +1,69 @@
+<div class="container mx-auto p-8 max-w-2xl">
+  <%= render Bali::PageHeader::Component.new(
+    title: 'DirectUpload Test',
+    subtitle: 'form_with url: (no model)',
+    back: { href: showcase_path }
+  ) %>
+
+  <%= render Bali::Message::Component.new(color: :info, class: 'mb-6') do %>
+    This form tests that DirectUpload generates correct field names when using
+    <%= render Bali::Tag::Component.new(text: 'form_with url:', color: :ghost) %>
+    without a model.
+    The field should be <%= render Bali::Tag::Component.new(text: 'evidences[]', color: :ghost) %>,
+    not <%= render Bali::Tag::Component.new(text: '[evidences][]', color: :error) %>.
+  <% end %>
+
+  <div id="result" class="mb-6"></div>
+
+  <%= form_with url: direct_uploads_path, method: :post, class: 'space-y-6', data: { turbo_frame: '_top' } do |form| %>
+    <div class="form-control">
+      <label class="label">
+        <span class="label-text font-medium">Upload Evidence Files (multiple)</span>
+      </label>
+
+      <%= render Bali::DirectUpload::Component.new(
+        form: form,
+        method: :evidences,
+        multiple: true,
+        max_files: 5,
+        max_file_size: 10,
+        accept: 'image/*,application/pdf'
+      ) %>
+
+      <label class="label">
+        <span class="label-text-alt text-base-content/60">
+          Select multiple files to upload. Check browser DevTools to verify field names.
+        </span>
+      </label>
+    </div>
+
+    <div class="flex gap-4">
+      <%= render Bali::Button::Component.new(
+        name: 'Submit Form',
+        type: :submit,
+        variant: :primary
+      ) %>
+
+      <%= render Bali::Link::Component.new(
+        name: 'Back to Showcase',
+        href: showcase_path,
+        type: :ghost
+      ) %>
+    </div>
+  <% end %>
+
+  <div class="divider my-8"></div>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <div class="card-body prose">
+      <h3>What to verify:</h3>
+      <ol>
+        <li>Open browser DevTools (Network tab)</li>
+        <li>Upload some files</li>
+        <li>Submit the form</li>
+        <li>Check the form data - field should be <%= render Bali::Tag::Component.new(text: 'evidences[]', color: :success) %></li>
+        <li>After success, files should auto-clear (Turbo integration)</li>
+      </ol>
+    </div>
+  <% end %>
+</div>

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **DirectUpload Component** - Auto-clear files on successful Turbo form submission
+  - Listens for `turbo:submit-end` event on parent form
+  - Clears file list when `event.detail.success` is true (2xx response)
+  - Files remain on failed submissions so users can retry
+
+### Fixed
+
+- **DirectUpload Component** - Fixed field name generation when using `form_with url:` without a model
+  - Previously generated `[method][]` instead of `method[]` when `form.object_name` was empty
+  - Now correctly handles empty object names for both single and multiple file modes
+
 ### Changed
 
 - **Release Skill** - Rewritten with two-phase PR workflow
