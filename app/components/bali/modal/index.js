@@ -1,5 +1,14 @@
 import { Controller } from '@hotwired/stimulus'
-import { autoFocusInput } from 'bali/utils/form'
+import { autoFocusInput } from '../../../assets/javascripts/bali/utils/form.js'
+
+// Size classes matching Modal::Component::SIZES
+const SIZE_CLASSES = {
+  sm: 'max-w-sm',
+  md: 'max-w-md',
+  lg: 'max-w-lg',
+  xl: 'max-w-xl',
+  full: 'max-w-full'
+}
 
 /**
  * Loads remote content into a modal window and handles form submission
@@ -92,6 +101,11 @@ export class ModalController extends Controller {
       this.wrapperTarget.classList.add(...this.wrapperClasses)
     }
 
+    // Apply dynamic size class if specified
+    if (this.modalSize && SIZE_CLASSES[this.modalSize]) {
+      this._applySize(this.modalSize)
+    }
+
     this.templateTarget.classList.add('modal-open')
 
     // Only replace content if provided - allows showing skeleton first
@@ -100,6 +114,27 @@ export class ModalController extends Controller {
       autoFocusInput(this.contentTarget)
       // Set up focus trap after content is loaded
       this.trapFocus()
+    }
+  }
+
+  _applySize (size) {
+    const sizeClass = SIZE_CLASSES[size]
+    if (!sizeClass || !this.hasWrapperTarget) return
+
+    // Remove all size classes first
+    Object.values(SIZE_CLASSES).forEach(cls => {
+      this.wrapperTarget.classList.remove(cls)
+    })
+
+    // Apply the new size class
+    this.wrapperTarget.classList.add(sizeClass)
+    this._currentSizeClass = sizeClass
+  }
+
+  _restoreDefaultSize () {
+    if (this._currentSizeClass && this.hasWrapperTarget) {
+      this.wrapperTarget.classList.remove(this._currentSizeClass)
+      this._currentSizeClass = null
     }
   }
 
@@ -146,6 +181,9 @@ export class ModalController extends Controller {
     if (this.wrapperClasses) {
       this.wrapperTarget.classList.remove(...this.wrapperClasses)
     }
+
+    // Restore default size
+    this._restoreDefaultSize()
 
     // Restore original skeleton content for next open
     if (this._originalContent) {
@@ -215,12 +253,13 @@ export class ModalController extends Controller {
     const redirectTo = target.getAttribute('data-redirect-to')
     const skipRender = Boolean(target.getAttribute('data-skip-render'))
     const extraProps = JSON.parse(target.getAttribute('data-extra-props'))
+    const modalSize = target.getAttribute('data-modal-size')
 
     // Show modal immediately with skeleton (content already in template)
     document.dispatchEvent(new CustomEvent('openModal', {
       detail: {
         content: null, // Don't replace content - show existing skeleton
-        options: { wrapperClasses, redirectTo, skipRender, extraProps }
+        options: { wrapperClasses, redirectTo, skipRender, extraProps, modalSize }
       }
     }))
 
@@ -237,7 +276,7 @@ export class ModalController extends Controller {
     document.dispatchEvent(new CustomEvent('openModal', {
       detail: {
         content: body,
-        options: { wrapperClasses, redirectTo, skipRender, extraProps }
+        options: { wrapperClasses, redirectTo, skipRender, extraProps, modalSize }
       }
     }))
   }

@@ -1,15 +1,25 @@
 {
   "name": "bali-view-components",
-  "version": "2.0.1",
+  "version": "2.0.5",
   "description": "Bali ViewComponents",
+  "type": "module",
+  "main": "./app/frontend/bali/index.js",
   "repository": "git@github.com:Grupo-AFAL/bali.git",
   "author": "Federico Gonzalez <fedegl@hey.com>",
   "license": "MIT",
   "private": false,
   "exports": {
+    ".": "./app/frontend/bali/index.js",
+    "./charts": "./app/frontend/bali/charts.js",
+    "./gantt": "./app/frontend/bali/gantt.js",
+    "./rich-text-editor": "./app/frontend/bali/rich-text-editor.js",
+    "./controllers": "./app/frontend/bali/controllers/index.js",
+    "./components": "./app/frontend/bali/components/index.js",
+    "./utils": "./app/frontend/bali/utils/index.js",
     "./css/bali.css": "./app/assets/stylesheets/bali.css",
     "./css/components.css": "./app/assets/stylesheets/bali/components.css",
-    "./css/*.css": "./app/assets/stylesheets/bali/*.css"
+    "./css/*.css": "./app/assets/stylesheets/bali/*.css",
+    "./package.json": "./package.json"
   },
   "scripts": {
     "cy:open": "cypress open",

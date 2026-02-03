@@ -4,8 +4,8 @@
  * Shared utilities used by Bali controllers.
  * Can also be used directly in consuming applications.
  *
- * Usage with Vite:
- *   import { toInt, toFloat, debounce } from 'bali/utils'
+ * Usage:
+ *   import { toInt, toFloat, autoFocusInput } from 'bali-view-components'
  */
 
 // DOM Helpers

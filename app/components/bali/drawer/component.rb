@@ -4,10 +4,11 @@ module Bali
   module Drawer
     class Component < ApplicationViewComponent
       SIZES = {
-        narrow: 'max-w-sm',
-        medium: 'max-w-lg',
-        wide: 'max-w-2xl',
-        extra_wide: 'max-w-4xl'
+        sm: 'max-w-sm',
+        md: 'max-w-lg',
+        lg: 'max-w-2xl',
+        xl: 'max-w-4xl',
+        full: 'max-w-full'
       }.freeze
 
       # Tailwind safelist: group-[.drawer-open]:translate-x-0
@@ -26,7 +27,7 @@ module Bali
 
       def initialize(
         active: false,
-        size: :medium,
+        size: :md,
         position: :right,
         drawer_id: nil,
         title: nil,
@@ -55,7 +56,7 @@ module Bali
           'drawer-panel',
           'fixed top-0 h-full w-full',
           position_config[:side],
-          SIZES.fetch(@size, SIZES[:medium]),
+          SIZES.fetch(@size, SIZES[:md]),
           'bg-base-100 shadow-2xl',
           'transform transition-transform duration-300 ease-in-out',
           position_config[:transform],

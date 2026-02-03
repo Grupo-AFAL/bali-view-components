@@ -5,6 +5,62 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v2.0.5] - 2026-02-03
+
+### Added
+
+- **Form::Errors Component** - New component for displaying form validation error summaries
+  - Renders error list using `Bali::Message::Component` with error styling
+  - Only renders when model has errors (`render?` returns false otherwise)
+  - Supports optional `title` parameter for custom header text
+  - FormBuilder integration via `f.error_summary` helper method
+
+- **DirectUpload Component** - Auto-clear files on successful Turbo form submission
+  - Listens for `turbo:submit-end` event on parent form
+  - Clears file list when `event.detail.success` is true (2xx response)
+  - Files remain on failed submissions so users can retry
+
+### Fixed
+
+- **DirectUpload Component** - Fixed field name generation when using `form_with url:` without a model
+  - Previously generated `[method][]` instead of `method[]` when `form.object_name` was empty
+  - Now correctly handles empty object names for both single and multiple file modes
+
+### Changed
+
+- **Release Skill** - Rewritten with two-phase PR workflow
+  - Phase 1: Creates release prep PR with changelog updates for review
+  - Phase 2: After merge, bumps version, tags, and publishes GitHub release
+  - New `--continue` flag to run Phase 2 after PR is merged
+  - State persistence via `.release-pending.json` between phases
+
+## [2.0.4] - 2026-01-30
+
+### Added
+
+- **Link Component** - Dynamic size support for Modal and Drawer
+  - New nested options syntax: `modal: { size: :lg }` and `drawer: { size: :lg }`
+  - Backward compatible: `modal: true` and `drawer: true` still work with default sizes
+
+### Changed
+
+- **Drawer Component** - Standardized size names to match other Bali components
+  - `narrow` → `sm`
+  - `medium` → `md` (default)
+  - `wide` → `lg`
+  - `extra_wide` → `xl`
+  - Added `full` size option
+
+## [2.0.3] - 2026-01-30
+
+### Changed
+
+- **JavaScript Imports** - Redesigned import strategy for standard npm package usage
+  - Converted all internal `bali/...` imports to relative paths
+  - Added `exports` field to package.json for proper module resolution
+  - Consuming apps no longer need complex bundler alias configuration
+  - Import from `'bali-view-components'` instead of internal paths
+
 ## [2.0.2] - 2026-01-28
 
 ### Added
