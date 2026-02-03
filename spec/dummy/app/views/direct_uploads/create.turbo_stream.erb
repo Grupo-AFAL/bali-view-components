@@ -10,17 +10,15 @@
     <div class="card-body">
       <h4 class="card-title text-sm">Received Parameters:</h4>
 
-      <%= render Bali::Table::Component.new(size: :sm) do |table| %>
+      <%= render Bali::Table::Component.new do |table| %>
         <% table.with_header(name: 'Field Name') %>
         <% table.with_header(name: 'Value') %>
 
         <% @field_names.each do |key| %>
           <% next if key.in?(%w[controller action authenticity_token]) %>
-          <% table.with_body_row do |row| %>
-            <% row.with_cell do %>
-              <%= render Bali::Tag::Component.new(text: key, color: :ghost) %>
-            <% end %>
-            <% row.with_cell(class: 'max-w-xs truncate') { params[key].inspect } %>
+          <% table.with_row do %>
+            <td><%= render Bali::Tag::Component.new(text: key, color: :ghost) %></td>
+            <td class="max-w-xs truncate"><%= params[key].inspect %></td>
           <% end %>
         <% end %>
       <% end %>
