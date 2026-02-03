@@ -207,13 +207,15 @@ export class FiltersController extends Controller {
    */
   apply (event) {
     event.preventDefault()
+    this._submit(this.formTarget)
+  }
 
-    // Update URL for history
-    const url = this.buildUrl()
-    this.pushHistory(url)
-
-    // Submit the form (Turbo will handle the response with morphing)
-    this.formTarget.requestSubmit()
+  /**
+   * Submit search - submit the form
+   */
+  submitSearch (event) {
+    event.preventDefault()
+    this._submit(this.searchFormTarget)
   }
 
   /**
@@ -307,6 +309,7 @@ export class FiltersController extends Controller {
   buildUrl () {
     const url = new URL(this.urlValue, window.location.origin)
     const formData = new FormData(this.formTarget)
+    const searchFormData = new FormData(this.searchFormTarget)
 
     // Clear existing q params
     for (const key of [...url.searchParams.keys()]) {
@@ -317,6 +320,13 @@ export class FiltersController extends Controller {
 
     // Add form params (only non-empty values)
     for (const [key, value] of formData) {
+      if (value && value.trim() !== '') {
+        url.searchParams.append(key, value)
+      }
+    }
+
+    // Add form params (only non-empty values)
+    for (const [key, value] of searchFormData) {
       if (value && value.trim() !== '') {
         url.searchParams.append(key, value)
       }
@@ -439,5 +449,17 @@ export class FiltersController extends Controller {
 
     // Use window.location for reliable navigation that avoids Turbo caching
     window.location.href = url.toString()
+  }
+
+  /**
+   * Private: Submit a form, updating URL and history
+   */
+  _submit (form) {
+    // Update URL for history
+    const url = this.buildUrl()
+    this.pushHistory(url)
+
+    // Submit the form (Turbo will handle the response with morphing)
+    form.requestSubmit()
   }
 }
