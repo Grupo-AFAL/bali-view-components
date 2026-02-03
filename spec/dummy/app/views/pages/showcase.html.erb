@@ -44,6 +44,79 @@
   <% end %>
 </section>
 
+<%# Form Error Summary Demo %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('alert-circle', class: 'text-primary') %>
+    <%= t('showcase.form_errors') %>
+  </h2>
+  <p class="text-base-content/70 mb-4"><%= t('showcase.form_errors_desc') %></p>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <h3 class="font-semibold mb-4"><%= t('showcase.form_errors_demo_title') %></h3>
+
+    <%
+      # Create a model with validation errors for demonstration
+      demo_record = FormRecord.new
+      demo_record.errors.add(:name, "can't be blank")
+      demo_record.errors.add(:email, "is invalid")
+      demo_record.errors.add(:password, "is too short (minimum is 8 characters)")
+      demo_record.errors.add(:password_confirmation, "doesn't match Password")
+      demo_record.errors.add(:terms, "must be accepted")
+    %>
+
+    <%= form_with model: demo_record, url: '#', builder: Bali::FormBuilder, local: true, class: 'space-y-4' do |f| %>
+      <%# Error Summary - the new component %>
+      <%= f.error_summary(title: 'Please fix the following errors:') %>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <%# Text fields %>
+        <%= f.text_field_group :name, label: t('showcase.full_name'), placeholder: 'John Doe' %>
+        <%= f.email_field_group :email, label: t('showcase.email'), placeholder: 'john@example.com' %>
+
+        <%# Password fields %>
+        <%= f.password_field_group :password, label: t('showcase.password') %>
+        <%= f.password_field_group :password_confirmation, label: t('showcase.password_confirmation') %>
+
+        <%# Number and URL %>
+        <%= f.number_field_group :age, label: t('showcase.age'), min: 18, max: 120 %>
+        <%= f.url_field_group :website, label: t('showcase.website'), placeholder: 'https://example.com' %>
+      </div>
+
+      <%# Select %>
+      <%= f.select_group :experience_level,
+        [[t('showcase.experience_levels.beginner'), 'beginner'],
+         [t('showcase.experience_levels.intermediate'), 'intermediate'],
+         [t('showcase.experience_levels.advanced'), 'advanced'],
+         [t('showcase.experience_levels.expert'), 'expert']],
+        { include_blank: t('showcase.select_level') },
+        label: t('showcase.experience_level') %>
+
+      <%# Text area %>
+      <%= f.text_area_group :bio, label: t('showcase.bio'), rows: 3, placeholder: 'Tell us about yourself...' %>
+
+      <%# Boolean fields %>
+      <div class="space-y-2">
+        <%= f.switch_field_group :newsletter, label: t('showcase.newsletter') %>
+        <%= f.boolean_field_group :terms, label: t('showcase.terms') %>
+      </div>
+
+      <%# Submit %>
+      <%= f.submit_actions t('showcase.register'), cancel_path: '#' %>
+    <% end %>
+
+    <div class="divider">Usage</div>
+
+    <div class="mockup-code text-sm">
+      <pre data-prefix="1"><code>&lt;%= form_with model: @user, builder: Bali::FormBuilder do |f| %&gt;</code></pre>
+      <pre data-prefix="2" class="text-success"><code>  &lt;%= f.error_summary %&gt;</code></pre>
+      <pre data-prefix="3"><code>  &lt;%= f.text_field_group :name %&gt;</code></pre>
+      <pre data-prefix="4"><code>  ...</code></pre>
+      <pre data-prefix="5"><code>&lt;% end %&gt;</code></pre>
+    </div>
+  <% end %>
+</section>
+
 <%# Flash Notifications Demo %>
 <section class="mb-12">
   <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
@@ -702,6 +775,7 @@
             <% tags.with_item(text: 'Clipboard', size: :sm) %>
             <% tags.with_item(text: 'Drawer', size: :sm) %>
             <% tags.with_item(text: 'FlashNotifications', size: :sm) %>
+            <% tags.with_item(text: 'Form::Errors', size: :sm, color: :primary) %>
             <% tags.with_item(text: 'ImageField', size: :sm) %>
             <% tags.with_item(text: 'List', size: :sm) %>
             <% tags.with_item(text: 'Loader', size: :sm) %>
