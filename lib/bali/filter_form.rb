@@ -2,6 +2,7 @@
 
 require_relative 'filter_form/search_configuration'
 require_relative 'filter_form/filter_group_parser'
+require_relative 'filter_form/simple_filters_configuration'
 
 module Bali
   # FilterForm provides a unified interface for Ransack-based filtering with support
@@ -43,6 +44,7 @@ module Bali
     include ActiveModel::Attributes
     include SearchConfiguration
     include FilterGroupParser
+    include SimpleFiltersConfiguration
 
     attr_reader :scope, :storage_id, :context, :clear_filters, :groupings
 
@@ -94,20 +96,23 @@ module Bali
     # @param search_placeholder [String] Placeholder text for search input
     # @param persist_enabled [Boolean] Whether user has opted into filter persistence
     #   (default: false). When false, filters are saved but not restored.
+    # @param simple_filters [Array<Hash>] Simple inline filters (alternative to DSL)
     # rubocop:disable Metrics/ParameterLists
     def initialize(scope, params = {}, storage_id: nil, context: nil, search_fields: nil,
-                   search_placeholder: nil, persist_enabled: false)
+                   search_placeholder: nil, persist_enabled: false, simple_filters: nil)
       # rubocop:enable Metrics/ParameterLists
       @scope = scope
       @storage_id = storage_id
       @context = context
       @instance_search_fields = search_fields&.map(&:to_sym)
+      @instance_simple_filters = simple_filters
       @search_placeholder = search_placeholder
       @persist_enabled = persist_enabled
       @clear_filters = params.fetch(:clear_filters, false)
       @clear_search = params.fetch(:clear_search, false)
 
       q_params = params.fetch(:q, {})
+      @q_params = q_params # Store for simple_filters value extraction
       attributes = q_params.permit(permitted_attributes)
 
       # Extract Ransack groupings (g) and combinator (m) for complex filters
@@ -233,6 +238,9 @@ module Bali
 
       # Add quick search parameter
       params[search_field_name] = @search_value if search_enabled? && @search_value.present?
+
+      # Add simple filter parameters
+      add_simple_filter_params(params) if simple_filters_enabled?
 
       params
     end

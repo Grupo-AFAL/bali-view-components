@@ -36,6 +36,27 @@ class SearchableMovieFilterForm < Bali::FilterForm
   filter_attribute :genre, type: :select, options: [%w[Action action], %w[Comedy comedy]]
 end
 
+# Test form with simple_filter DSL
+class SimpleFilterableMovieFilterForm < Bali::FilterForm
+  simple_filter :genre,
+                collection: [%w[Action action], %w[Comedy comedy], %w[Drama drama]],
+                blank: 'All Genres'
+
+  simple_filter :status,
+                collection: [%w[Done done], %w[Draft draft]],
+                blank: 'All',
+                label: 'Movie Status',
+                default: 'done'
+end
+
+# Test simple_filter inheritance
+class ExtendedSimpleFilterForm < SimpleFilterableMovieFilterForm
+  simple_filter :indie,
+                collection: [[true, true], [false, false]],
+                blank: 'Any',
+                label: 'Indie Film'
+end
+
 RSpec.describe Bali::FilterForm do
   let(:tenant) { Tenant.create(name: 'Test') }
   let(:form) { MovieFilterForm.new(tenant.movies, params({ name_i_cont: 'Iron' })) }
@@ -568,6 +589,178 @@ RSpec.describe Bali::FilterForm do
       AdvancedMovieFilterForm.new(Movie.all, params(filter_params))
 
       expect(Rails.cache.read(cache_key_for(AdvancedMovieFilterForm))).to be_nil
+    end
+  end
+
+  describe '.simple_filter DSL' do
+    it 'stores simple filters defined in the class' do
+      expect(SimpleFilterableMovieFilterForm.defined_simple_filters.size).to eq(2)
+    end
+
+    it 'stores attribute, collection, blank, label, and default' do
+      status_filter = SimpleFilterableMovieFilterForm.defined_simple_filters.find { |f| f[:attribute] == :status }
+      expect(status_filter[:collection]).to eq([%w[Done done], %w[Draft draft]])
+      expect(status_filter[:blank]).to eq('All')
+      expect(status_filter[:label]).to eq('Movie Status')
+      expect(status_filter[:default]).to eq('done')
+    end
+
+    it 'uses nil for optional fields when not specified' do
+      genre_filter = SimpleFilterableMovieFilterForm.defined_simple_filters.find { |f| f[:attribute] == :genre }
+      expect(genre_filter[:label]).to be_nil
+      expect(genre_filter[:default]).to be_nil
+    end
+  end
+
+  describe '.simple_filter inheritance' do
+    it 'inherits simple_filters from parent class' do
+      expect(ExtendedSimpleFilterForm.defined_simple_filters.size).to eq(3)
+    end
+
+    it 'includes parent simple_filters' do
+      attributes = ExtendedSimpleFilterForm.defined_simple_filters.map { |f| f[:attribute] }
+      expect(attributes).to contain_exactly(:genre, :status, :indie)
+    end
+
+    it 'does not modify parent class simple_filters' do
+      expect(SimpleFilterableMovieFilterForm.defined_simple_filters.size).to eq(2)
+    end
+  end
+
+  describe '#simple_filters' do
+    it 'returns simple_filters from class DSL' do
+      form = SimpleFilterableMovieFilterForm.new(Movie.all, params({}))
+      expect(form.simple_filters.size).to eq(2)
+    end
+
+    it 'returns empty array for forms without simple_filter definitions' do
+      form = MovieFilterForm.new(tenant.movies, params({}))
+      expect(form.simple_filters).to eq([])
+    end
+  end
+
+  describe '#simple_filters_enabled?' do
+    it 'returns true when simple_filters defined' do
+      form = SimpleFilterableMovieFilterForm.new(Movie.all, params({}))
+      expect(form.simple_filters_enabled?).to be true
+    end
+
+    it 'returns false when no simple_filters' do
+      form = MovieFilterForm.new(tenant.movies, params({}))
+      expect(form.simple_filters_enabled?).to be false
+    end
+  end
+
+  describe '#simple_filters_config' do
+    it 'returns complete configuration for each filter' do
+      form = SimpleFilterableMovieFilterForm.new(Movie.all, params({}))
+
+      config = form.simple_filters_config
+      expect(config.size).to eq(2)
+
+      genre_config = config.find { |c| c[:attribute] == :genre }
+      expect(genre_config[:collection]).to eq([%w[Action action], %w[Comedy comedy], %w[Drama drama]])
+      expect(genre_config[:blank]).to eq('All Genres')
+      expect(genre_config[:label]).to eq('Genre') # inferred from attribute
+      expect(genre_config[:value]).to be_nil
+    end
+
+    it 'includes current value from params' do
+      filter_params = { genre_eq: 'action' }
+      form = SimpleFilterableMovieFilterForm.new(Movie.all, params(filter_params))
+
+      config = form.simple_filters_config
+      genre_config = config.find { |c| c[:attribute] == :genre }
+      expect(genre_config[:value]).to eq('action')
+    end
+
+    it 'includes default value' do
+      form = SimpleFilterableMovieFilterForm.new(Movie.all, params({}))
+
+      config = form.simple_filters_config
+      status_config = config.find { |c| c[:attribute] == :status }
+      expect(status_config[:default]).to eq('done')
+    end
+
+    it 'uses custom label when provided' do
+      form = SimpleFilterableMovieFilterForm.new(Movie.all, params({}))
+
+      config = form.simple_filters_config
+      status_config = config.find { |c| c[:attribute] == :status }
+      expect(status_config[:label]).to eq('Movie Status')
+    end
+
+    it 'returns nil when simple_filters not enabled' do
+      form = MovieFilterForm.new(tenant.movies, params({}))
+      expect(form.simple_filters_config).to be_nil
+    end
+  end
+
+  describe '#simple_filters_active?' do
+    it 'returns false when no filter values in params' do
+      form = SimpleFilterableMovieFilterForm.new(Movie.all, params({}))
+      expect(form.simple_filters_active?).to be false
+    end
+
+    it 'returns true when filter value present in params' do
+      filter_params = { genre_eq: 'action' }
+      form = SimpleFilterableMovieFilterForm.new(Movie.all, params(filter_params))
+      expect(form.simple_filters_active?).to be true
+    end
+
+    it 'returns true with multiple active filters' do
+      filter_params = { genre_eq: 'action', status_eq: 'done' }
+      form = SimpleFilterableMovieFilterForm.new(Movie.all, params(filter_params))
+      expect(form.simple_filters_active?).to be true
+    end
+  end
+
+  describe 'simple_filters via initialize parameter' do
+    it 'accepts simple_filters as initialize parameter' do
+      simple_filters_config = [
+        { attribute: :category, collection: [%w[A a], %w[B b]], blank: 'All' }
+      ]
+      form = Bali::FilterForm.new(Movie.all, params({}), simple_filters: simple_filters_config)
+
+      expect(form.simple_filters.size).to eq(1)
+      expect(form.simple_filters.first[:attribute]).to eq(:category)
+    end
+
+    it 'prefers instance simple_filters over class DSL' do
+      custom_filters = [
+        { attribute: :custom, collection: [%w[X x]], blank: 'All Custom' }
+      ]
+      form = SimpleFilterableMovieFilterForm.new(Movie.all, params({}), simple_filters: custom_filters)
+
+      expect(form.simple_filters.size).to eq(1)
+      expect(form.simple_filters.first[:attribute]).to eq(:custom)
+    end
+
+    it 'extracts current values from params' do
+      simple_filters_config = [
+        { attribute: :category, collection: [%w[A a], %w[B b]], blank: 'All' }
+      ]
+      filter_params = { category_eq: 'a' }
+      form = Bali::FilterForm.new(Movie.all, params(filter_params), simple_filters: simple_filters_config)
+
+      config = form.simple_filters_config
+      expect(config.first[:value]).to eq('a')
+    end
+  end
+
+  describe 'simple_filter with callable collection' do
+    it 'resolves proc collections at config time' do
+      simple_filters_config = [
+        {
+          attribute: :dynamic,
+          collection: -> { [%w[Dynamic dynamic]] },
+          blank: 'All'
+        }
+      ]
+      form = Bali::FilterForm.new(Movie.all, params({}), simple_filters: simple_filters_config)
+
+      config = form.simple_filters_config
+      expect(config.first[:collection]).to eq([%w[Dynamic dynamic]])
     end
   end
 end

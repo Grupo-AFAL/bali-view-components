@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_19_000000) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_03_215443) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -76,6 +76,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_19_000000) do
     t.datetime "updated_at", null: false
     t.boolean "indie"
     t.index ["tenant_id"], name: "index_movies_on_tenant_id"
+  end
+
+  create_table "studios", force: :cascade do |t|
+    t.string "name"
+    t.string "country"
+    t.integer "status"
+    t.string "size"
+    t.integer "founded_year"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "tenants", force: :cascade do |t|

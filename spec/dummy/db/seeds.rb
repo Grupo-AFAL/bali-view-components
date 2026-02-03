@@ -49,4 +49,44 @@ movies_data.each_with_index do |data, index|
 end
 
 puts "Created #{Movie.count} movies"
+
+# Create studios for SimpleFilters showcase
+studios_data = [
+  { name: 'Warner Bros Pictures', country: 'USA', status: :active, size: 'enterprise', founded_year: 1923 },
+  { name: 'Universal Pictures', country: 'USA', status: :active, size: 'enterprise', founded_year: 1912 },
+  { name: 'Paramount Pictures', country: 'USA', status: :active, size: 'enterprise', founded_year: 1912 },
+  { name: 'Walt Disney Studios', country: 'USA', status: :active, size: 'enterprise', founded_year: 1923 },
+  { name: 'A24', country: 'USA', status: :active, size: 'medium', founded_year: 2012 },
+  { name: 'Studio Ghibli', country: 'Japan', status: :active, size: 'medium', founded_year: 1985 },
+  { name: 'Toho', country: 'Japan', status: :active, size: 'large', founded_year: 1932 },
+  { name: 'Pinewood Studios', country: 'UK', status: :active, size: 'large', founded_year: 1936 },
+  { name: 'Working Title Films', country: 'UK', status: :active, size: 'medium', founded_year: 1983 },
+  { name: 'Gaumont', country: 'France', status: :active, size: 'large', founded_year: 1895 },
+  { name: 'Pathe', country: 'France', status: :active, size: 'large', founded_year: 1896 },
+  { name: 'Bavaria Film', country: 'Germany', status: :active, size: 'medium', founded_year: 1919 },
+  { name: 'Constantin Film', country: 'Germany', status: :active, size: 'medium', founded_year: 1950 },
+  { name: 'Yash Raj Films', country: 'India', status: :active, size: 'large', founded_year: 1970 },
+  { name: 'Dharma Productions', country: 'India', status: :active, size: 'medium', founded_year: 1976 },
+  { name: 'Village Roadshow', country: 'Australia', status: :active, size: 'medium', founded_year: 1954 },
+  { name: 'Entertainment One', country: 'Canada', status: :inactive, size: 'large', founded_year: 1973 },
+  { name: 'Lionsgate Films', country: 'Canada', status: :active, size: 'large', founded_year: 1997 },
+  { name: 'Blumhouse Productions', country: 'USA', status: :active, size: 'medium', founded_year: 2000 },
+  { name: 'Legendary Pictures', country: 'USA', status: :active, size: 'large', founded_year: 2000 },
+  { name: 'New Line Cinema', country: 'USA', status: :pending, size: 'large', founded_year: 1967 },
+  { name: 'Focus Features', country: 'USA', status: :active, size: 'medium', founded_year: 2002 },
+  { name: 'Searchlight Pictures', country: 'USA', status: :active, size: 'medium', founded_year: 1994 },
+  { name: 'Hammer Films', country: 'UK', status: :inactive, size: 'small', founded_year: 1934 },
+  { name: 'Film4 Productions', country: 'UK', status: :active, size: 'small', founded_year: 1982 }
+]
+
+studios_data.each do |data|
+  Studio.find_or_create_by!(name: data[:name]) do |studio|
+    studio.country = data[:country]
+    studio.status = data[:status]
+    studio.size = data[:size]
+    studio.founded_year = data[:founded_year]
+  end
+end
+
+puts "Created #{Studio.count} studios"
 puts "Seed data complete!"

@@ -1,0 +1,94 @@
+<div class="mb-6">
+  <%= render Bali::PageHeader::Component.new(title: 'Studios') do %>
+    <%= render Bali::Link::Component.new(
+      name: 'New Studio',
+      href: new_studio_path,
+      variant: :primary,
+      size: :sm
+    ) do |link| %>
+      <% link.with_icon('plus') %>
+    <% end %>
+  <% end %>
+</div>
+
+<div class="space-y-4">
+  <%# Filters Card %>
+  <%= render Bali::Card::Component.new do %>
+    <%= render Bali::DataTable::SimpleFilters::Component.new(
+      url: studios_path,
+      filters: @filter_form.simple_filters_config,
+      show_clear: @filter_form.simple_filters_active?
+    ) %>
+  <% end %>
+
+  <%# Table Card %>
+  <%= render Bali::Card::Component.new do %>
+    <%= render Bali::Table::Component.new(form: @filter_form) do |t| %>
+      <% t.with_header(name: 'Name', sort: :name) %>
+      <% t.with_header(name: 'Country', sort: :country) %>
+      <% t.with_header(name: 'Status') %>
+      <% t.with_header(name: 'Size') %>
+      <% t.with_header(name: 'Founded', sort: :founded_year) %>
+      <% t.with_header(name: 'Actions', align: :right) %>
+
+      <% @studios.each do |studio| %>
+        <% t.with_row do %>
+          <td class="font-medium">
+            <%= link_to studio.name, studio, class: 'link link-hover link-primary' %>
+          </td>
+          <td>
+            <%= render Bali::Tag::Component.new(text: studio.country, size: :sm, variant: :outline) %>
+          </td>
+          <td>
+            <%= render Bali::Tag::Component.new(
+                text: studio.status.humanize,
+                color: case studio.status
+                       when 'active' then :success
+                       when 'inactive' then :error
+                       else :warning
+                       end,
+                size: :sm
+              ) %>
+          </td>
+          <td><%= studio.size&.humanize %></td>
+          <td><%= studio.founded_year %></td>
+          <td>
+            <div class="flex justify-end">
+              <%= render Bali::ActionsDropdown::Component.new(popover: true, align: :end) do |dropdown| %>
+                <% dropdown.with_item(href: studio_path(studio)) do %>
+                  <%= render Bali::Icon::Component.new('eye', size: :small) %>
+                  <span>View</span>
+                <% end %>
+                <% dropdown.with_item(href: edit_studio_path(studio)) do %>
+                  <%= render Bali::Icon::Component.new('pencil', size: :small) %>
+                  <span>Edit</span>
+                <% end %>
+                <% dropdown.with_item(
+                  href: studio_path(studio),
+                  method: :delete,
+                  data: { turbo_confirm: "Are you sure you want to delete #{studio.name}?" },
+                  class: 'text-error'
+                ) do %>
+                  <%= render Bali::Icon::Component.new('trash', size: :small) %>
+                  <span>Delete</span>
+                <% end %>
+              <% end %>
+            </div>
+          </td>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <%# Pagination %>
+  <% if @pagy.pages > 1 %>
+    <div class="flex justify-center py-4 border-t border-base-200">
+      <%= render Bali::Pagination::Component.new(pagy: @pagy) %>
+    </div>
+  <% end %>
+
+  <%# Summary %>
+  <div class="text-sm text-base-content/70 text-center">
+    Showing <%= @pagy.from %>-<%= @pagy.to %> of <%= @pagy.count %> studios
+  </div>
+</div>
