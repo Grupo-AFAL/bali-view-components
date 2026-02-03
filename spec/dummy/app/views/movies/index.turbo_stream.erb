@@ -1,4 +1,4 @@
-<%= turbo_stream.replace "data-table-movies" do %>
+<%= turbo_stream.replace "data-table-#{@filter_form.id}" do %>
   <%= render Bali::DataTable::Component.new(
     filter_form: @filter_form,
     url: movies_path

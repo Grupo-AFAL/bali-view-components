@@ -3007,7 +3007,7 @@ lazy-ass@^1.6.0:
 
 lefthook-darwin-arm64@2.0.16:
   version "2.0.16"
-  resolved "https://registry.yarnpkg.com/lefthook-darwin-arm64/-/lefthook-darwin-arm64-2.0.16.tgz#3291bb1a3730c9cc0b1ba8a748c7df501b58532b"
+  resolved "https://registry.npmjs.org/lefthook-darwin-arm64/-/lefthook-darwin-arm64-2.0.16.tgz"
   integrity sha512-kjVHkD7rfPa7M0aKJSx/yatdV9uC6o3cJyzM9zk7cg5HD7alSwchFalgF/P0w6nt7C02rAUx8C05qiWCDWaKeA==
 
 lefthook-darwin-x64@2.0.16:
@@ -3057,7 +3057,7 @@ lefthook-windows-x64@2.0.16:
 
 lefthook@^2.0.16:
   version "2.0.16"
-  resolved "https://registry.yarnpkg.com/lefthook/-/lefthook-2.0.16.tgz#e34240668fe185c1174258a20d96f080abee2c5d"
+  resolved "https://registry.npmjs.org/lefthook/-/lefthook-2.0.16.tgz"
   integrity sha512-ABs3M5V9c4nqxFnZO509HXuQTu8GM8hmqc9ruV0acQ81yKlxEq70MRoYP5Z1dr5le326X8vA5qj3arJA36yE3A==
   optionalDependencies:
     lefthook-darwin-arm64 "2.0.16"
