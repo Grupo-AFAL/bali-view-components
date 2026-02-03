@@ -1,0 +1,49 @@
+<%= turbo_stream.update "result" do %>
+  <div class="alert alert-success">
+    <div>
+      <h3 class="font-bold">Form submitted successfully!</h3>
+      <p class="text-sm">Files should auto-clear above (Turbo integration working).</p>
+    </div>
+  </div>
+
+  <div class="card bg-base-200 mt-4">
+    <div class="card-body">
+      <h4 class="card-title text-sm">Received Parameters:</h4>
+
+      <div class="overflow-x-auto">
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Field Name</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @field_names.each do |key| %>
+              <% next if key.in?(%w[controller action authenticity_token]) %>
+              <tr>
+                <td><code class="badge badge-ghost"><%= key %></code></td>
+                <td class="max-w-xs truncate"><%= params[key].inspect %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <% if @evidences.present? %>
+        <div class="mt-4">
+          <p class="text-success font-medium">
+            Field name is correct: <code class="badge badge-success">evidences[]</code>
+          </p>
+          <p class="text-sm text-base-content/60">
+            Received <%= @evidences.is_a?(Array) ? @evidences.length : 1 %> file(s)
+          </p>
+        </div>
+      <% else %>
+        <div class="mt-4">
+          <p class="text-warning">No evidences received. Upload files first.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>

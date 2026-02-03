@@ -1,0 +1,49 @@
+<div class="container mx-auto p-8 max-w-2xl">
+  <h1 class="text-2xl font-bold mb-6">DirectUpload Test Result</h1>
+
+  <div class="alert alert-success mb-6">
+    <span>Form submitted successfully!</span>
+  </div>
+
+  <div class="card bg-base-200">
+    <div class="card-body">
+      <h4 class="card-title">Received Parameters:</h4>
+
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Field Name</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @field_names.each do |key| %>
+              <% next if key.in?(%w[controller action authenticity_token]) %>
+              <tr>
+                <td><code class="badge badge-ghost"><%= key %></code></td>
+                <td class="max-w-xs truncate"><%= params[key].inspect %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <% if @evidences.present? %>
+        <div class="mt-4">
+          <p class="text-success font-medium">
+            Field name is correct: <code class="badge badge-success">evidences[]</code>
+          </p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="mt-6">
+    <%= render Bali::Link::Component.new(
+      name: 'Try Again',
+      href: new_direct_upload_path,
+      type: :primary
+    ) %>
+  </div>
+</div>

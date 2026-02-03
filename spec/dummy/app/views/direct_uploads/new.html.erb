@@ -1,0 +1,64 @@
+<div class="container mx-auto p-8 max-w-2xl">
+  <h1 class="text-2xl font-bold mb-6">DirectUpload Test: form_with url: (no model)</h1>
+
+  <div class="alert alert-info mb-6">
+    <span>
+      This form tests that DirectUpload generates correct field names when using
+      <code class="badge badge-ghost">form_with url:</code> without a model.
+      The field should be <code class="badge badge-ghost">evidences[]</code>,
+      not <code class="badge badge-error">[evidences][]</code>.
+    </span>
+  </div>
+
+  <div id="result" class="mb-6"></div>
+
+  <%= form_with url: direct_uploads_path, method: :post, class: 'space-y-6', data: { turbo_frame: '_top' } do |form| %>
+    <div class="form-control">
+      <label class="label">
+        <span class="label-text font-medium">Upload Evidence Files (multiple)</span>
+      </label>
+
+      <%= render Bali::DirectUpload::Component.new(
+        form: form,
+        method: :evidences,
+        multiple: true,
+        max_files: 5,
+        max_file_size: 10,
+        accept: 'image/*,application/pdf'
+      ) %>
+
+      <label class="label">
+        <span class="label-text-alt text-base-content/60">
+          Select multiple files to upload. Check browser DevTools to verify field names.
+        </span>
+      </label>
+    </div>
+
+    <div class="flex gap-4">
+      <%= render Bali::Button::Component.new(
+        name: 'Submit Form',
+        type: :submit,
+        variant: :primary
+      ) %>
+
+      <%= render Bali::Link::Component.new(
+        name: 'Back to Showcase',
+        href: showcase_path,
+        type: :ghost
+      ) %>
+    </div>
+  <% end %>
+
+  <div class="divider my-8"></div>
+
+  <div class="prose">
+    <h2>What to verify:</h2>
+    <ol>
+      <li>Open browser DevTools (Network tab)</li>
+      <li>Upload some files</li>
+      <li>Submit the form</li>
+      <li>Check the form data - field should be <code>evidences[]</code></li>
+      <li>After success, files should auto-clear (Turbo integration)</li>
+    </ol>
+  </div>
+</div>

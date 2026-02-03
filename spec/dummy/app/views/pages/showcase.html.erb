@@ -14,6 +14,36 @@
   class: 'mt-4 mb-6'
 ) %>
 
+<%# DirectUpload Test (form_with url: without model) %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('upload', class: 'text-primary') %>
+    DirectUpload Test
+  </h2>
+  <p class="text-base-content/70 mb-4">
+    Test DirectUpload component with <code class="badge badge-ghost">form_with url:</code> (no model).
+    Validates field name generation fix and Turbo auto-reset feature.
+  </p>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="font-medium">What this tests:</p>
+        <ul class="list-disc list-inside text-sm text-base-content/70 mt-2">
+          <li>Field names: <code>evidences[]</code> not <code>[evidences][]</code></li>
+          <li>Auto-clear files after successful Turbo submission</li>
+          <li>Multiple file upload without a model</li>
+        </ul>
+      </div>
+      <%= render Bali::Link::Component.new(
+        name: 'Open Test Page',
+        href: new_direct_upload_path,
+        type: :primary
+      ) %>
+    </div>
+  <% end %>
+</section>
+
 <%# Flash Notifications Demo %>
 <section class="mb-12">
   <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
