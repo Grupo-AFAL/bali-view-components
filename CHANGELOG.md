@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v2.0.6] - 2026-02-03
+
+### Added
+
+- **Columns Component** - Added Bulma-compatible column system with Tailwind implementation
+  - Tailwind display utilities support on Column component
+- **Filters Component** - Added preserved query params support for maintaining URL state
+- **Filters Component** - Added turbo_stream support and refactored controller submission logic
+- **FilterForm** - Made `ransack_params` public for component access
+- **SideMenu Component** - Added `target` and `rel` attributes support for menu items
+
+### Changed
+
+- **ImageField Component** - Render input using `raw_file_field` to bypass custom form builder wrappers
+- **ImageField Component** - Wrap icon in span and remove `text-base-content` class from icon styling
+
+### Fixed
+
+- **Drawer & Modal Components** - Adjusted z-index values and positioning to improve layering behavior
+- **SlimSelect** - Fixed `slim_select_field` to deep merge data attributes instead of overwriting
+
 ## [v2.0.5] - 2026-02-03
 
 ### Added
