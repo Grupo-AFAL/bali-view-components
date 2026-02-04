@@ -1,13 +1,5 @@
 <%= form_with model: studio, class: 'space-y-4', builder: Bali::FormBuilder do |f| %>
-  <% if studio.errors.any? %>
-    <%= render Bali::Notification::Component.new(type: :error, dismissible: true) do %>
-      <ul class="list-disc list-inside">
-        <% studio.errors.full_messages.each do |message| %>
-          <li><%= message %></li>
-        <% end %>
-      </ul>
-    <% end %>
-  <% end %>
+  <%= f.error_summary %>
 
   <%= render Bali::Card::Component.new do %>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
