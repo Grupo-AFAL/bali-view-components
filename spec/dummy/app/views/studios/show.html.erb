@@ -13,30 +13,28 @@
 <% end %>
 
 <%= render Bali::Card::Component.new do %>
-  <div class="card-body">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <%= render Bali::LabelValue::Component.new(label: 'Name', value: @studio.name) %>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <%= render Bali::LabelValue::Component.new(label: 'Name', value: @studio.name) %>
 
-      <%= render Bali::LabelValue::Component.new(label: 'Country') do %>
-        <%= render Bali::Tag::Component.new(text: @studio.country, size: :sm, variant: :outline) %>
-      <% end %>
+    <%= render Bali::LabelValue::Component.new(label: 'Country') do %>
+      <%= render Bali::Tag::Component.new(text: @studio.country, size: :sm, variant: :outline) %>
+    <% end %>
 
-      <%= render Bali::LabelValue::Component.new(label: 'Status') do %>
-        <%= render Bali::Tag::Component.new(
-          text: @studio.status.humanize,
-          color: case @studio.status
-                 when 'active' then :success
-                 when 'inactive' then :error
-                 else :warning
-                 end,
-          size: :sm
-        ) %>
-      <% end %>
+    <%= render Bali::LabelValue::Component.new(label: 'Status') do %>
+      <%= render Bali::Tag::Component.new(
+        text: @studio.status.humanize,
+        color: case @studio.status
+               when 'active' then :success
+               when 'inactive' then :error
+               else :warning
+               end,
+        size: :sm
+      ) %>
+    <% end %>
 
-      <%= render Bali::LabelValue::Component.new(label: 'Size', value: @studio.size&.humanize) %>
-      <%= render Bali::LabelValue::Component.new(label: 'Founded', value: @studio.founded_year) %>
-      <%= render Bali::LabelValue::Component.new(label: 'Created', value: l(@studio.created_at, format: :long)) %>
-    </div>
+    <%= render Bali::LabelValue::Component.new(label: 'Size', value: @studio.size&.humanize) %>
+    <%= render Bali::LabelValue::Component.new(label: 'Founded', value: @studio.founded_year) %>
+    <%= render Bali::LabelValue::Component.new(label: 'Created', value: l(@studio.created_at, format: :long)) %>
   </div>
 <% end %>
 
