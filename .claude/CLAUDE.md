@@ -1068,6 +1068,28 @@ When you use `Bali::Icon::Component.new('icon-name')`, the system resolves icons
 | `SubmitOnChange` | Auto-submit on change | `data-controller="submit-on-change"` |
 | `TrixAttachments` | Trix file attachments | `data-controller="trix-attachments"` |
 
+---
+
+## Pagy 43+ Compatibility
+
+- Use `Pagy::Method` (not `Pagy::Backend`) - included in ApplicationController
+- Don't add redundant includes in child controllers
+
+## FormBuilder Quick Reference
+
+| Helper | Purpose |
+|--------|---------|
+| `text_field_group` | Text input with label |
+| `select_group` | Select with label |
+| `number_field_group` | Number input with label |
+| `error_summary` | Form validation errors display |
+
+Use `builder: Bali::FormBuilder` in `form_with` to enable these.
+
+## Known Issues
+
+- **Flaky Cypress test**: `DirectUploadController` "before each" hook fails intermittently. Use `--no-verify` if blocking legitimate pushes.
+
 
 <claude-mem-context>
 # Recent Activity
