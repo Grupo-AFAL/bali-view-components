@@ -37,7 +37,7 @@
             <%= render Bali::Link::Component.new(
               name: studio.name,
               href: studio_path(studio),
-              variant: :primary
+              variant: :link
             ) %>
           </td>
           <td>
@@ -84,15 +84,13 @@
     <% end %>
   <% end %>
 
-  <%# Pagination %>
-  <% if @pagy.pages > 1 %>
-    <div class="flex justify-center py-4 border-t border-base-200">
-      <%= render Bali::Pagination::Component.new(pagy: @pagy) %>
+  <%# Pagination & Summary %>
+  <div class="flex items-center justify-between py-4">
+    <div class="text-sm text-base-content/70">
+      Showing <%= @pagy.from %>-<%= @pagy.to %> of <%= @pagy.count %> studios
     </div>
-  <% end %>
-
-  <%# Summary %>
-  <div class="text-sm text-base-content/70 text-center">
-    Showing <%= @pagy.from %>-<%= @pagy.to %> of <%= @pagy.count %> studios
+    <% if @pagy.pages > 1 %>
+      <%= render Bali::Pagination::Component.new(pagy: @pagy) %>
+    <% end %>
   </div>
 </div>
