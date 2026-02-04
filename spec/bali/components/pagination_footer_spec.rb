@@ -3,7 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe Bali::PaginationFooter::Component, type: :component do
-  let(:pagy) { Pagy.new(count: 47, page: 1, items: 10) }
+  # Pagy 43.x uses Pagy::Offset class with `limit` instead of `items`
+  let(:pagy) { Pagy::Offset.new(count: 47, page: 1, limit: 10) }
 
   it 'renders summary text' do
     render_inline(described_class.new(pagy: pagy))
@@ -18,7 +19,7 @@ RSpec.describe Bali::PaginationFooter::Component, type: :component do
   end
 
   it 'hides pagination when single page' do
-    single_page_pagy = Pagy.new(count: 5, page: 1, items: 10)
+    single_page_pagy = Pagy::Offset.new(count: 5, page: 1, limit: 10)
     render_inline(described_class.new(pagy: single_page_pagy))
 
     expect(page).not_to have_css('.join')
@@ -55,14 +56,14 @@ RSpec.describe Bali::PaginationFooter::Component, type: :component do
   end
 
   it 'shows correct page range on page 2' do
-    page_2_pagy = Pagy.new(count: 47, page: 2, items: 10)
+    page_2_pagy = Pagy::Offset.new(count: 47, page: 2, limit: 10)
     render_inline(described_class.new(pagy: page_2_pagy))
 
     expect(page).to have_text('Showing 11-20 of 47 items')
   end
 
   it 'shows correct range on last page' do
-    last_page_pagy = Pagy.new(count: 47, page: 5, items: 10)
+    last_page_pagy = Pagy::Offset.new(count: 47, page: 5, limit: 10)
     render_inline(described_class.new(pagy: last_page_pagy))
 
     expect(page).to have_text('Showing 41-47 of 47 items')
