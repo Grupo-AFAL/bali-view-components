@@ -1,6 +1,7 @@
 <%= render Bali::PageHeader::Component.new(
   title: @studio.name,
-  back: { href: studios_path }
+  back: { href: studios_path },
+  class: 'mb-6'
 ) do %>
   <%= render Bali::Link::Component.new(
     name: 'Edit',
