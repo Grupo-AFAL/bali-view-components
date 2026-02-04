@@ -18,6 +18,9 @@ Rails.application.routes.draw do
   resource :settings, only: %i[show update]
   get 'landing', to: 'pages#landing'
   get 'showcase', to: 'pages#showcase'
+
+  # DirectUpload test (form_with url: without model)
+  resources :direct_uploads, only: %i[new create]
   get 'sidemenu-example', to: 'pages#sidemenu_example'
 
   # Modal/Drawer content routes (for remote loading)

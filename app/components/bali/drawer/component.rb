@@ -43,7 +43,7 @@ module Bali
 
       def drawer_classes
         class_names(
-          'drawer-component group',
+          'drawer-component group z-[60] fixed',
           @active && 'drawer-open',
           @options[:class]
         )

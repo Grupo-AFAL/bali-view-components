@@ -1,0 +1,45 @@
+<div class="container mx-auto p-8 max-w-2xl">
+  <%= render Bali::PageHeader::Component.new(
+    title: 'DirectUpload Test Result',
+    back: { href: new_direct_upload_path }
+  ) %>
+
+  <%= render Bali::Message::Component.new(color: :success, class: 'mb-6') do %>
+    Form submitted successfully!
+  <% end %>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <div class="card-body">
+      <h4 class="card-title">Received Parameters:</h4>
+
+      <%= render Bali::Table::Component.new do |table| %>
+        <% table.with_header(name: 'Field Name') %>
+        <% table.with_header(name: 'Value') %>
+
+        <% @field_names.each do |key| %>
+          <% next if key.in?(%w[controller action authenticity_token]) %>
+          <% table.with_row do %>
+            <td><%= render Bali::Tag::Component.new(text: key, color: :ghost) %></td>
+            <td class="max-w-xs truncate"><%= params[key].inspect %></td>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <% if @evidences.present? %>
+        <div class="mt-4">
+          <%= render Bali::Message::Component.new(color: :success) do %>
+            Field name is correct: <%= render Bali::Tag::Component.new(text: 'evidences[]', color: :success) %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="mt-6">
+    <%= render Bali::Link::Component.new(
+      name: 'Try Again',
+      href: new_direct_upload_path,
+      type: :primary
+    ) %>
+  </div>
+</div>

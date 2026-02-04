@@ -271,4 +271,92 @@ RSpec.describe Bali::Filters::Component, type: :component do
       expect(page).not_to have_text('Auto-saved')
     end
   end
+
+  describe '#preserved_query_params' do
+    it 'extracts non-filter params from URL' do
+      component = described_class.new(
+        url: '/users?page=2&per=25&q[name_cont]=test',
+        available_attributes: available_attributes
+      )
+
+      expect(component.preserved_query_params).to contain_exactly(
+        %w[page 2],
+        %w[per 25]
+      )
+    end
+
+    it 'handles nested params' do
+      component = described_class.new(
+        url: '/users?sort[column]=name&sort[direction]=asc',
+        available_attributes: available_attributes
+      )
+
+      expect(component.preserved_query_params).to contain_exactly(
+        ['sort[column]', 'name'],
+        ['sort[direction]', 'asc']
+      )
+    end
+
+    it 'handles array params' do
+      component = described_class.new(
+        url: '/users?ids[]=1&ids[]=2&ids[]=3',
+        available_attributes: available_attributes
+      )
+
+      expect(component.preserved_query_params).to contain_exactly(
+        ['ids[]', '1'],
+        ['ids[]', '2'],
+        ['ids[]', '3']
+      )
+    end
+
+    it 'returns empty array when URL has no query params' do
+      component = described_class.new(
+        url: '/users',
+        available_attributes: available_attributes
+      )
+
+      expect(component.preserved_query_params).to eq([])
+    end
+
+    it 'excludes q params' do
+      component = described_class.new(
+        url: '/users?page=2&q[name_cont]=test&q[status_eq]=active',
+        available_attributes: available_attributes
+      )
+
+      expect(component.preserved_query_params).to contain_exactly(%w[page 2])
+    end
+
+    it 'excludes clear_filters and clear_search params' do
+      component = described_class.new(
+        url: '/users?page=2&clear_filters=true&clear_search=true',
+        available_attributes: available_attributes
+      )
+
+      expect(component.preserved_query_params).to contain_exactly(%w[page 2])
+    end
+  end
+
+  describe '#preserved_params_hidden_fields' do
+    it 'renders hidden fields for preserved params' do
+      render_inline(described_class.new(
+                      url: '/users?page=2&per=25',
+                      available_attributes: available_attributes
+                    ))
+
+      expect(page).to have_css('input[type="hidden"][name="page"][value="2"]', visible: :hidden)
+      expect(page).to have_css('input[type="hidden"][name="per"][value="25"]', visible: :hidden)
+    end
+
+    it 'does not render hidden fields for filter params' do
+      render_inline(described_class.new(
+                      url: '/users?page=2&q[name_cont]=test',
+                      available_attributes: available_attributes
+                    ))
+
+      expect(page).to have_css('input[type="hidden"][name="page"][value="2"]', visible: :hidden)
+      expect(page).not_to have_css('input[type="hidden"][name="q[name_cont]"]', visible: :hidden)
+    end
+  end
 end

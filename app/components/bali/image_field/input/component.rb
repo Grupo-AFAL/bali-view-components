@@ -32,11 +32,10 @@ module Bali
           )
         end
 
-        def icon_classes
+        def icon_wrapper_classes
           class_names(
             'hidden',
-            'group-hover:flex max-md:flex',
-            'text-base-content'
+            'group-hover:flex max-md:flex'
           )
         end
 
@@ -53,6 +52,15 @@ module Bali
 
         def accepted_formats
           formats.map { |f| ".#{f}" }.join(', ')
+        end
+
+        # Use raw Rails file_field to avoid Bali::FormBuilder's custom wrapper
+        def raw_file_field
+          if form.respond_to?(:rails_file_field)
+            form.rails_file_field(field_name, **input_options)
+          else
+            form.file_field(field_name, **input_options)
+          end
         end
       end
     end

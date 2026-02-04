@@ -20,7 +20,7 @@
       <div class="collapse-content ms-6.5 !p-0">
         <div class="mt-0.5 space-y-0.5">
           <% if href.present? %>
-            <a href="<%= href %>" class="menu-item <%= 'active' if active? && !active_child_items? %>">
+            <a href="<%= href %>" class="menu-item <%= 'active' if active? && !active_child_items? %>" <%= "target=\"#{target}\"" if target %> <%= "rel=\"#{rel}\"" if rel %>>
               <span class="grow"><%= name %></span>
             </a>
           <% end %>
@@ -33,7 +33,7 @@
     <%# Collapsed state: icon with tooltip %>
     <%= render Bali::Tooltip::Component.new(placement: :right, class: 'side-menu-collapsed hidden') do |tooltip| %>
       <% tooltip.with_trigger do %>
-        <a href="<%= href.presence || '#' %>" class="menu-item <%= 'active' if active? %>">
+        <a href="<%= href.presence || '#' %>" class="menu-item <%= 'active' if active? %>" <%= "target=\"#{target}\"" if target %> <%= "rel=\"#{rel}\"" if rel %>>
           <% if icon.present? %>
             <%= render Bali::Icon::Component.new(icon, class: 'size-4') %>
           <% else %>
@@ -61,14 +61,14 @@
       <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-50 w-48 p-2 shadow-lg">
         <% if href.present? %>
           <li>
-            <a href="<%= href %>" class="<%= 'active' if active? && !active_child_items? %>">
+            <a href="<%= href %>" class="<%= 'active' if active? && !active_child_items? %>" <%= "target=\"#{target}\"" if target %> <%= "rel=\"#{rel}\"" if rel %>>
               <%= name %>
             </a>
           </li>
         <% end %>
         <% items.each do |item| %>
           <li>
-            <a href="<%= item.href %>" class="<%= 'active' if item.active? %>">
+            <a href="<%= item.href %>" class="<%= 'active' if item.active? %>" <%= "target=\"#{item.target}\"" if item.target %> <%= "rel=\"#{item.rel}\"" if item.rel %>>
               <% if item.icon.present? %>
                 <%= render Bali::Icon::Component.new(item.icon, class: 'size-4') %>
               <% end %>
@@ -82,7 +82,7 @@
 <% else %>
   <%# Simple item: expanded and collapsed versions %>
   <%# Expanded state %>
-  <%= tag.a(href: href.presence || '#', class: "#{menu_item_classes} side-menu-expanded", disabled: disabled? ? 'disabled' : nil) do %>
+  <%= tag.a(href: href.presence || '#', class: "#{menu_item_classes} side-menu-expanded", disabled: disabled? ? 'disabled' : nil, target: target, rel: rel) do %>
     <% if icon.present? %>
       <%= render Bali::Icon::Component.new(icon, class: 'size-4') %>
     <% end %>
@@ -96,7 +96,7 @@
   <%# Collapsed state: icon with tooltip %>
   <%= render Bali::Tooltip::Component.new(placement: :right, class: 'side-menu-collapsed hidden') do |tooltip| %>
     <% tooltip.with_trigger do %>
-      <a href="<%= href.presence || '#' %>" class="menu-item <%= 'active' if active? %>" <%= 'disabled="disabled"' if disabled? %>>
+      <a href="<%= href.presence || '#' %>" class="menu-item <%= 'active' if active? %>" <%= 'disabled="disabled"' if disabled? %> <%= "target=\"#{target}\"" if target %> <%= "rel=\"#{rel}\"" if rel %>>
         <% if icon.present? %>
           <%= render Bali::Icon::Component.new(icon, class: 'size-4') %>
         <% else %>

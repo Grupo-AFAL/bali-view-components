@@ -223,12 +223,6 @@ module Bali
       @ransack_search ||= scope.ransack(ransack_params)
     end
 
-    private
-
-    def non_date_range_attribute_names
-      attribute_names - date_range_attributes
-    end
-
     # Build params hash for Ransack including groupings and search
     def ransack_params
       params = query_params.dup
@@ -241,6 +235,12 @@ module Bali
       params[search_field_name] = @search_value if search_enabled? && @search_value.present?
 
       params
+    end
+
+    private
+
+    def non_date_range_attribute_names
+      attribute_names - date_range_attributes
     end
 
     # Extract Ransack groupings from params

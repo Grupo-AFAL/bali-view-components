@@ -127,6 +127,28 @@ en:
   showcase:
     title: Component Showcase
     subtitle: Demonstrating components not yet shown in other kitchen sink pages
+    # Form Errors section
+    form_errors: Form Error Summary
+    form_errors_desc: Display validation errors at the top of forms with consistent styling.
+    form_errors_demo_title: Registration Form (with errors)
+    full_name: Full Name
+    email: Email Address
+    password: Password
+    password_confirmation: Confirm Password
+    phone: Phone Number
+    bio: Bio
+    website: Website
+    age: Age
+    experience_level: Experience Level
+    select_level: Select level...
+    experience_levels:
+      beginner: Beginner
+      intermediate: Intermediate
+      advanced: Advanced
+      expert: Expert
+    newsletter: Subscribe to newsletter
+    terms: I agree to the terms and conditions
+    register: Register
     flash_notifications: Flash Notifications
     flash_notifications_desc: Toast-style notifications for success and error messages.
     with_alert: With Alert
