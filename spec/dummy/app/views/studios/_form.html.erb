@@ -1,62 +1,19 @@
-<%= form_with model: studio, class: 'space-y-4' do |f| %>
-  <% if studio.errors.any? %>
-    <%= render Bali::Notification::Component.new(type: :error, dismissible: true) do %>
-      <ul class="list-disc list-inside">
-        <% studio.errors.full_messages.each do |message| %>
-          <li><%= message %></li>
-        <% end %>
-      </ul>
-    <% end %>
-  <% end %>
+<%= form_with model: studio, class: 'space-y-4', builder: Bali::FormBuilder do |f| %>
+  <%= f.error_summary %>
 
   <%= render Bali::Card::Component.new do %>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="form-control w-full">
-        <%= f.label :name, class: 'label' do %>
-          <span class="label-text">Name</span>
-        <% end %>
-        <%= f.text_field :name, class: 'input input-bordered w-full', required: true %>
-      </div>
-
-      <div class="form-control w-full">
-        <%= f.label :country, class: 'label' do %>
-          <span class="label-text">Country</span>
-        <% end %>
-        <%= f.select :country,
-          options_for_select(Studio::COUNTRIES.map { |c| [c, c] }, studio.country),
-          { include_blank: 'Select country...' },
-          class: 'select select-bordered w-full' %>
-      </div>
-
-      <div class="form-control w-full">
-        <%= f.label :status, class: 'label' do %>
-          <span class="label-text">Status</span>
-        <% end %>
-        <%= f.select :status,
-          options_for_select(Studio.statuses.keys.map { |s| [s.humanize, s] }, studio.status),
-          { include_blank: 'Select status...' },
-          class: 'select select-bordered w-full' %>
-      </div>
-
-      <div class="form-control w-full">
-        <%= f.label :size, class: 'label' do %>
-          <span class="label-text">Size</span>
-        <% end %>
-        <%= f.select :size,
-          options_for_select(Studio::SIZES.map { |s| [s.humanize, s] }, studio.size),
-          { include_blank: 'Select size...' },
-          class: 'select select-bordered w-full' %>
-      </div>
-
-      <div class="form-control w-full">
-        <%= f.label :founded_year, class: 'label' do %>
-          <span class="label-text">Founded Year</span>
-        <% end %>
-        <%= f.number_field :founded_year,
-          class: 'input input-bordered w-full',
-          min: 1800,
-          max: Date.current.year %>
-      </div>
+      <%= f.text_field_group :name, required: true %>
+      <%= f.select_group :country,
+            Studio::COUNTRIES.map { |c| [c, c] },
+            { include_blank: 'Select country...' } %>
+      <%= f.select_group :status,
+            Studio.statuses.keys.map { |s| [s.humanize, s] },
+            { include_blank: 'Select status...' } %>
+      <%= f.select_group :size,
+            Studio::SIZES.map { |s| [s.humanize, s] },
+            { include_blank: 'Select size...' } %>
+      <%= f.number_field_group :founded_year, min: 1800, max: Date.current.year %>
     </div>
   <% end %>
 
