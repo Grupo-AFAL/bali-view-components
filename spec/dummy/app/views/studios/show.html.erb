@@ -17,19 +17,27 @@
     <%= render Bali::LabelValue::Component.new(label: 'Name', value: @studio.name) %>
 
     <%= render Bali::LabelValue::Component.new(label: 'Country') do %>
-      <%= render Bali::Tag::Component.new(text: @studio.country, size: :sm, variant: :outline) %>
+      <% if @studio.country.present? %>
+        <%= render Bali::Tag::Component.new(text: @studio.country, size: :sm, variant: :outline) %>
+      <% else %>
+        <span class="text-base-content/50">—</span>
+      <% end %>
     <% end %>
 
     <%= render Bali::LabelValue::Component.new(label: 'Status') do %>
-      <%= render Bali::Tag::Component.new(
-        text: @studio.status.humanize,
-        color: case @studio.status
-               when 'active' then :success
-               when 'inactive' then :error
-               else :warning
-               end,
-        size: :sm
-      ) %>
+      <% if @studio.status.present? %>
+        <%= render Bali::Tag::Component.new(
+          text: @studio.status.humanize,
+          color: case @studio.status
+                 when 'active' then :success
+                 when 'inactive' then :error
+                 else :warning
+                 end,
+          size: :sm
+        ) %>
+      <% else %>
+        <span class="text-base-content/50">—</span>
+      <% end %>
     <% end %>
 
     <%= render Bali::LabelValue::Component.new(label: 'Size', value: @studio.size&.humanize) %>
