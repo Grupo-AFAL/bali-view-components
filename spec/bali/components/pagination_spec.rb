@@ -3,10 +3,13 @@
 require 'rails_helper'
 
 RSpec.describe Bali::Pagination::Component, type: :component do
-  let(:pagy) { Pagy.new(count: 100, page: 3, items: 10) }
+  # Pagy 43.x uses Pagy::Offset class with `limit` instead of `items`
+  let(:pagy) { Pagy::Offset.new(count: 100, page: 3, limit: 10) }
+  # Provide a URL for tests since there's no request context
+  let(:test_url) { '/test' }
 
   it 'renders pagination with multiple pages' do
-    render_inline(described_class.new(pagy: pagy))
+    render_inline(described_class.new(pagy: pagy, url: test_url))
 
     expect(page).to have_css 'nav.pagy-nav-daisyui'
     expect(page).to have_css '.join'
@@ -14,47 +17,47 @@ RSpec.describe Bali::Pagination::Component, type: :component do
   end
 
   it 'renders previous and next buttons' do
-    render_inline(described_class.new(pagy: pagy))
+    render_inline(described_class.new(pagy: pagy, url: test_url))
 
     expect(page).to have_css 'a.join-item', text: '«'
     expect(page).to have_css 'a.join-item', text: '»'
   end
 
   it 'marks current page as active' do
-    render_inline(described_class.new(pagy: pagy))
+    render_inline(described_class.new(pagy: pagy, url: test_url))
 
     expect(page).to have_css 'button.btn-active', text: '3'
   end
 
   it 'does not render when only one page' do
-    single_page = Pagy.new(count: 5, page: 1, items: 10)
-    render_inline(described_class.new(pagy: single_page))
+    single_page = Pagy::Offset.new(count: 5, page: 1, limit: 10)
+    render_inline(described_class.new(pagy: single_page, url: test_url))
 
     expect(page).not_to have_css 'nav'
   end
 
   it 'disables previous button on first page' do
-    first_page = Pagy.new(count: 100, page: 1, items: 10)
-    render_inline(described_class.new(pagy: first_page))
+    first_page = Pagy::Offset.new(count: 100, page: 1, limit: 10)
+    render_inline(described_class.new(pagy: first_page, url: test_url))
 
     expect(page).to have_css 'button.btn-disabled[disabled]', text: '«'
   end
 
   it 'disables next button on last page' do
-    last_page = Pagy.new(count: 100, page: 10, items: 10)
-    render_inline(described_class.new(pagy: last_page))
+    last_page = Pagy::Offset.new(count: 100, page: 10, limit: 10)
+    render_inline(described_class.new(pagy: last_page, url: test_url))
 
     expect(page).to have_css 'button.btn-disabled[disabled]', text: '»'
   end
 
   it 'applies size classes' do
-    render_inline(described_class.new(pagy: pagy, size: :sm))
+    render_inline(described_class.new(pagy: pagy, size: :sm, url: test_url))
 
     expect(page).to have_css '.btn-sm'
   end
 
   it 'applies variant classes' do
-    render_inline(described_class.new(pagy: pagy, variant: :outline))
+    render_inline(described_class.new(pagy: pagy, variant: :outline, url: test_url))
 
     expect(page).to have_css '.btn-outline'
   end

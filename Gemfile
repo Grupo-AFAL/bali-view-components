@@ -14,7 +14,7 @@ gem 'rrule', git: 'https://github.com/square/ruby-rrule'
 gem 'tailwindcss-rails', '~> 4.0'
 
 gem 'lookbook'
-gem 'pagy', '~> 8.0'
+gem 'pagy', '>= 43.0'
 gem 'ransack'
 gem 'simple_command'
 gem 'view_component'
