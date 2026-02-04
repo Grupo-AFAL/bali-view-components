@@ -34,7 +34,11 @@
       <% @studios.each do |studio| %>
         <% t.with_row do %>
           <td class="font-medium">
-            <%= link_to studio.name, studio, class: 'link link-hover link-primary' %>
+            <%= render Bali::Link::Component.new(
+              name: studio.name,
+              href: studio_path(studio),
+              variant: :primary
+            ) %>
           </td>
           <td>
             <%= render Bali::Tag::Component.new(text: studio.country, size: :sm, variant: :outline) %>
