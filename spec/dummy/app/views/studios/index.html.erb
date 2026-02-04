@@ -84,13 +84,5 @@
     <% end %>
   <% end %>
 
-  <%# Pagination & Summary %>
-  <div class="flex items-center justify-between py-4">
-    <div class="text-sm text-base-content/70">
-      Showing <%= @pagy.from %>-<%= @pagy.to %> of <%= @pagy.count %> studios
-    </div>
-    <% if @pagy.pages > 1 %>
-      <%= render Bali::Pagination::Component.new(pagy: @pagy) %>
-    <% end %>
-  </div>
+  <%= render Bali::PaginationFooter::Component.new(pagy: @pagy, item_name: 'studios') %>
 </div>
