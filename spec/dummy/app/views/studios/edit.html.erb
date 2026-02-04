@@ -1,0 +1,6 @@
+<%= render Bali::PageHeader::Component.new(
+  title: "Edit #{@studio.name}",
+  back: { href: studio_path(@studio) }
+) %>
+
+<%= render 'form', studio: @studio %>

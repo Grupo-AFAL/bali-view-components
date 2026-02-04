@@ -1,13 +1,12 @@
-<%= turbo_stream.replace "data-table-movies" do %>
+<%= turbo_stream.replace "data-table-#{@filter_form.id}" do %>
   <%= render Bali::DataTable::Component.new(
     filter_form: @filter_form,
     url: movies_path
   ) do |data_table| %>
 
-    <%# Filters Panel %>
+    <%# Filters Panel - filter_groups auto-populated from @filter_form %>
     <% data_table.with_filters_panel(
-      available_attributes: available_filter_attributes,
-      filter_groups: filter_groups_from_params
+      available_attributes: available_filter_attributes
     ) do |filters| %>
       <% filters.with_applied_tags %>
     <% end %>

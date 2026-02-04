@@ -15,6 +15,8 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :studios
+
   resource :settings, only: %i[show update]
   get 'landing', to: 'pages#landing'
   get 'showcase', to: 'pages#showcase'

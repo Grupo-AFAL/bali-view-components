@@ -8,7 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 ### Added
-  
+
+- **DataTable SimpleFilters** - New lightweight inline filter UI for CRUD views
+  - Alternative to complex Filters component for simple filtering needs
+  - Renders inline select dropdowns without AND/OR groupings, popovers, or badges
+  - Auto-configures from FilterForm via `with_simple_filters` slot
+  - New `SimpleFiltersConfiguration` concern for FilterForm DSL support
+  - Supports instance-level configuration via `simple_filters:` parameter
+  - Includes `simple_filters_config`, `simple_filters_enabled?`, `simple_filters_active?` methods
+
+- **PaginationFooter Component** - Standardized pagination footer with summary and controls
+  - Combines summary text (e.g., "Showing 1-10 of 100 items") with pagination controls
+  - Summary on left, pagination buttons on right
+  - Supports custom `item_name`, `show_summary`, and `show_pagination` options
+  - Auto-hides pagination when only one page exists
+
 - **Columns Component** - Added Bulma-compatible column system with Tailwind implementation
   - Tailwind display utilities support on Column component
 - **Filters Component** - Added preserved query params support for maintaining URL state

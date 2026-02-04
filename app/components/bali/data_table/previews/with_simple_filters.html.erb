@@ -1,0 +1,37 @@
+<%= render Bali::DataTable::Component.new(
+  filter_form: filter_form,
+  url: '/lookbook',
+  pagy: pagy
+) do |dt| %>
+  <% dt.with_simple_filters %>
+
+  <% dt.with_table do %>
+    <%= render Bali::Table::Component.new(form: filter_form) do |t| %>
+      <% t.with_header(name: 'Name', sort: :name) %>
+      <% t.with_header(name: 'Country', sort: :country) %>
+      <% t.with_header(name: 'Status') %>
+      <% t.with_header(name: 'Size') %>
+      <% t.with_header(name: 'Founded', sort: :founded_year) %>
+
+      <% studios.each do |studio| %>
+        <% t.with_row do %>
+          <td class="font-medium"><%= studio.name %></td>
+          <td><%= render Bali::Tag::Component.new(text: studio.country, size: :sm, variant: :outline) %></td>
+          <td>
+            <%= render Bali::Tag::Component.new(
+              text: studio.status.humanize,
+              color: case studio.status
+                     when 'active' then :success
+                     when 'inactive' then :error
+                     else :warning
+                     end,
+              size: :sm
+            ) %>
+          </td>
+          <td><%= studio.size&.humanize %></td>
+          <td><%= studio.founded_year %></td>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

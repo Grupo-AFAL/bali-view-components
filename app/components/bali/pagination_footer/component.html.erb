@@ -1,0 +1,13 @@
+<div class="flex items-center justify-between py-4">
+  <% if show_summary? %>
+    <div class="text-sm text-base-content/70">
+      <%= summary_text %>
+    </div>
+  <% else %>
+    <div></div>
+  <% end %>
+
+  <% if show_pagination? %>
+    <%= render Bali::Pagination::Component.new(pagy: @pagy) %>
+  <% end %>
+</div>

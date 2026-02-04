@@ -18,5 +18,8 @@
       "Write(docs/*)",
       "Write(CHANGELOG.md)"
     ]
+  },
+  "enabledPlugins": {
+    "claude-mem@thedotmack": true
   }
 }

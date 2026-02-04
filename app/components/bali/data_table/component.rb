@@ -88,6 +88,33 @@ module Bali
         )
       end
 
+      # Simple inline filters (alternative to filters_panel).
+      # Use this for CRUD views that only need 2-4 dropdown filters without
+      # AND/OR groupings, popovers, or badges.
+      #
+      # Mutually exclusive with filters_panel - use one or the other.
+      #
+      # @param filters [Array<Hash>] Filter definitions (auto-populated from filter_form)
+      #   Each filter hash should have: :attribute, :collection, :blank, :label, :value, :default
+      #
+      # @example Minimal (auto-configured from FilterForm)
+      #   data_table.with_simple_filters
+      #
+      # @example With explicit filters
+      #   data_table.with_simple_filters(filters: [
+      #     { attribute: :status, collection: [["Active", "active"]], blank: "All" }
+      #   ])
+      renders_one :simple_filters, ->(filters: nil) do
+        resolved_filters = filters || @filter_form&.simple_filters_config || []
+        show_clear = @filter_form&.simple_filters_active? || false
+
+        SimpleFilters::Component.new(
+          url: @url,
+          filters: resolved_filters,
+          show_clear: show_clear
+        )
+      end
+
       renders_one :summary
       renders_one :table
       renders_one :grid
@@ -172,7 +199,8 @@ module Bali
       end
 
       def show_toolbar?
-        filters_panel? || toolbar_buttons? || column_selector? || export? || actions_panel?
+        filters_panel? || simple_filters? || toolbar_buttons? ||
+          column_selector? || export? || actions_panel?
       end
 
       def show_toolbar_right?

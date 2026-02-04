@@ -42,3 +42,7 @@ firebase-debug.log
 
 .mcp.json
 .release-pending.json
+
+# Claude Code / oh-my-claudecode runtime
+.omc/
+docs/plans/

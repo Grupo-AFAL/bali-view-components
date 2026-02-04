@@ -1,0 +1,32 @@
+<%= form_with model: studio, class: 'space-y-4', builder: Bali::FormBuilder do |f| %>
+  <%= f.error_summary %>
+
+  <%= render Bali::Card::Component.new do %>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <%= f.text_field_group :name, required: true %>
+      <%= f.select_group :country,
+            Studio::COUNTRIES.map { |c| [c, c] },
+            { include_blank: 'Select country...' } %>
+      <%= f.select_group :status,
+            Studio.statuses.keys.map { |s| [s.humanize, s] },
+            { include_blank: 'Select status...' } %>
+      <%= f.select_group :size,
+            Studio::SIZES.map { |s| [s.humanize, s] },
+            { include_blank: 'Select size...' } %>
+      <%= f.number_field_group :founded_year, min: 1800, max: Date.current.year %>
+    </div>
+  <% end %>
+
+  <div class="flex gap-2 justify-end mt-6">
+    <%= render Bali::Link::Component.new(
+      name: 'Cancel',
+      href: studio.persisted? ? studio_path(studio) : studios_path,
+      variant: :ghost
+    ) %>
+    <%= render Bali::Button::Component.new(
+      name: studio.persisted? ? 'Update Studio' : 'Create Studio',
+      type: :submit,
+      variant: :primary
+    ) %>
+  </div>
+<% end %>

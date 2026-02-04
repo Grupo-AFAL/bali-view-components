@@ -172,6 +172,68 @@ module Bali
         )
       end
 
+      # @label With Simple Filters (Studios)
+      # Simple inline dropdown filters - a lightweight alternative to the full Filters component.
+      # Use for CRUD views that only need 2-4 dropdown filters without AND/OR groupings.
+      #
+      # This example shows Studios filtered by country, status, and size.
+      #
+      # Configure via FilterForm:
+      # ```ruby
+      # filter_form = Bali::FilterForm.new(Studio.all, params, simple_filters: [
+      #   { attribute: :country, collection: [...], blank: "All Countries" },
+      #   { attribute: :status, collection: [...], blank: "All Statuses" }
+      # ])
+      # ```
+      # @param country select { choices: ["", USA, UK, France, Germany, Japan, India, Australia, Canada] }
+      # @param status select { choices: ["", active, inactive, pending] }
+      # @param size select { choices: ["", small, medium, large, enterprise] }
+      def with_simple_filters(q: {}, page: 1, country: '', status: '', size: '')
+        # Merge simple filter values into q params
+        q_with_filters = q.to_h.dup
+        q_with_filters['country_eq'] = country if country.present?
+        q_with_filters['status_eq'] = status if status.present?
+        q_with_filters['size_eq'] = size if size.present?
+
+        filter_params = ActionController::Parameters.new(
+          q: ActionController::Parameters.new(q_with_filters),
+          page: page
+        )
+
+        simple_filters_config = [
+          {
+            attribute: :country,
+            collection: Studio::COUNTRIES.map { |c| [c, c] },
+            blank: 'All Countries',
+            label: 'Country'
+          },
+          {
+            attribute: :status,
+            collection: Studio.statuses.keys.map { |s| [s.humanize, s] },
+            blank: 'All Statuses',
+            label: 'Status'
+          },
+          {
+            attribute: :size,
+            collection: Studio::SIZES.map { |s| [s.humanize, s] },
+            blank: 'All Sizes',
+            label: 'Size'
+          }
+        ]
+
+        filter_form = Bali::FilterForm.new(Studio.all, filter_params, simple_filters: simple_filters_config)
+        pagy, studios = pagy(filter_form.result.order(:name), items: 10, page: page)
+
+        render_with_template(
+          template: 'bali/data_table/previews/with_simple_filters',
+          locals: {
+            filter_form: filter_form,
+            pagy: pagy,
+            studios: studios
+          }
+        )
+      end
+
       # @label With Grid Mode (Live DB)
       # Toggle between table and card-based grid layouts.
       #

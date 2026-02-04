@@ -1,0 +1,40 @@
+<%= form_with url: @url, method: :get, data: { turbo_frame: "_top" } do |f| %>
+  <div class="flex flex-wrap gap-4 items-end">
+    <% @filters.each do |filter| %>
+      <div class="form-control w-full max-w-xs">
+        <label class="label">
+          <span class="label-text"><%= filter[:label] %></span>
+        </label>
+        <%= f.select(
+          filter_field_name(filter[:attribute]),
+          options_for_select(
+            filter[:collection],
+            filter[:value] || filter[:default]
+          ),
+          { include_blank: filter[:blank] },
+          class: "select select-bordered select-sm w-full"
+        ) %>
+      </div>
+    <% end %>
+
+    <div class="form-control">
+      <%= render Bali::Button::Component.new(
+        name: apply_button_text,
+        type: :submit,
+        variant: :primary,
+        size: :sm
+      ) %>
+    </div>
+
+    <% if show_clear_button? %>
+      <div class="form-control">
+        <%= render Bali::Link::Component.new(
+          name: clear_button_text,
+          href: @url,
+          variant: :ghost,
+          size: :sm
+        ) %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
