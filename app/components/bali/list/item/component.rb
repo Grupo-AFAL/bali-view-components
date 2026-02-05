@@ -8,7 +8,7 @@ module Bali
         TITLE_CLASSES = 'font-semibold'
         SUBTITLE_CLASSES = 'text-sm text-base-content/60'
         CONTENT_CLASSES = 'list-col-grow'
-        ACTIONS_CLASSES = 'flex items-center gap-2'
+        ACTIONS_CLASSES = 'flex items-center gap-2 ml-auto'
 
         renders_one :title, ->(text = nil, **options, &block) do
           tag.div(text || block&.call, **prepend_class_name(options, TITLE_CLASSES))
