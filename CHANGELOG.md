@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **SideMenu + Navbar** - Fixed mobile sidebar toggle from Navbar hamburger
+  - SideMenu Stimulus controller was scoped to its own element, unreachable from Navbar burger
+  - Overlay referenced a non-existent checkbox ID for non-collapsable fixed menus
+  - Introduced checkbox+label pattern (matching DaisyUI drawer convention) for cross-component toggling
+  - Added `type: :sidebar` burger variant that renders a `<label>` targeting the mobile trigger checkbox
+  - Added global window events (`bali:side-menu:toggle`, `bali:side-menu:open`, `bali:side-menu:close`) for programmatic control
+  - Added `mobile_trigger_id` parameter to SideMenu for custom checkbox IDs
+  - Backwards compatible: existing `is-active` class approach still works
+
 ## [v2.1.0] - 2026-02-04
 
 ### Added
