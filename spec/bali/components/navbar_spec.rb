@@ -121,9 +121,16 @@ RSpec.describe Bali::Navbar::Component, type: :component do
       expect(page).to have_css 'nav.navbar.bg-base-100'
     end
 
-    it 'falls back to base for invalid color' do
+    it 'skips color classes for unknown symbol' do
       render_inline(described_class.new(color: :invalid))
-      expect(page).to have_css 'nav.navbar.bg-base-100'
+      expect(page).to have_css 'nav.navbar'
+      expect(page).not_to have_css 'nav.navbar.bg-base-100'
+    end
+
+    it 'skips color classes when color is nil, allowing custom class' do
+      render_inline(described_class.new(color: nil, class: 'bg-indigo-600 text-white'))
+      expect(page).to have_css 'nav.navbar.bg-indigo-600.text-white'
+      expect(page).not_to have_css 'nav.navbar.bg-base-100'
     end
   end
 

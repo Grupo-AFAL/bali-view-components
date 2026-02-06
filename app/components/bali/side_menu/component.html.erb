@@ -1,3 +1,10 @@
+<%# Mobile trigger checkbox - toggles sidebar visibility on mobile %>
+<% if fixed? %>
+  <input type="checkbox" id="<%= mobile_trigger_id %>"
+         class="hidden side-menu-mobile-trigger"
+         aria-label="<%= toggle_mobile_label %>" />
+<% end %>
+
 <%# Collapse checkbox - controls sidebar collapsed state via CSS %>
 <% if collapsable? %>
   <input type="checkbox" id="<%= collapse_checkbox_id %>"
@@ -73,6 +80,6 @@
 
 <%# Overlay for mobile (only when fixed) %>
 <% if fixed? %>
-  <label for="<%= collapsable? ? collapse_checkbox_id : 'side-menu-mobile-trigger' %>"
+  <label for="<%= mobile_trigger_id %>"
          class="side-menu-overlay"></label>
 <% end %>

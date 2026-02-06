@@ -23,7 +23,8 @@ module Bali
       # @param sticky [Boolean] Make navbar sticky at top (default: true)
       # @param transparency [Boolean] Enable transparent mode
       # @param fullscreen [Boolean] Full-width navbar without max-width constraint
-      # @param color [Symbol] Background color (:base, :primary, :secondary, :accent, :neutral)
+      # @param color [Symbol, nil] Background color preset (:base, :primary, :secondary, :accent,
+      #   :neutral). Pass nil to skip color classes and use your own via the class: option.
       def initialize(sticky: true, transparency: false, fullscreen: false, color: :base, **options)
         @sticky = sticky
         @transparency = transparency.present?
@@ -53,10 +54,14 @@ module Bali
 
       attr_reader :transparency, :fullscreen, :sticky, :options
 
+      def color_classes
+        COLORS.fetch(@color, nil)
+      end
+
       def navbar_classes
         class_names(
           BASE_CLASSES,
-          COLORS.fetch(@color, COLORS[:base]),
+          color_classes,
           @sticky && STICKY_CLASSES,
           @options[:class]
         )

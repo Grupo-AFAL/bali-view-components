@@ -19,18 +19,22 @@ module Bali
         )
       end
 
+      MOBILE_TRIGGER_ID = 'side-menu-mobile-trigger'
+
       # @param current_path [String] The current request path for active state detection
       # @param fixed [Boolean] Fixed to viewport (true) or inline flow (false). Default: true
       # @param collapsable [Boolean] Whether the sidebar can collapse to icon-only mode
       # @param group_behavior [Symbol] How nested items behave - :expandable or :dropdown
       # @param brand [String] Optional brand name shown in the header (e.g., "ACME")
+      # @param mobile_trigger_id [String] Mobile trigger checkbox ID
       def initialize(current_path:, fixed: true, collapsable: false, group_behavior: :expandable,
-                     brand: nil, **options)
+                     brand: nil, mobile_trigger_id: MOBILE_TRIGGER_ID, **options)
         @current_path = current_path
         @fixed = fixed
         @collapsable = collapsable
         @group_behavior = GROUP_BEHAVIORS.include?(group_behavior) ? group_behavior : :expandable
         @brand = brand
+        @mobile_trigger_id = mobile_trigger_id
         @options = options
       end
 
@@ -69,6 +73,7 @@ module Bali
         data[:controller] =
           class_names(data[:controller], { 'side-menu' => @collapsable || @fixed })
         data[:side_menu_collapse_checkbox_value] = collapse_checkbox_id if @collapsable
+        data[:side_menu_mobile_trigger_value] = @mobile_trigger_id if @fixed
         data
       end
 
@@ -96,10 +101,15 @@ module Bali
         authorized_menus.find(&:active?)
       end
 
-      attr_reader :brand
+      attr_reader :brand, :mobile_trigger_id
 
       def brand?
         @brand.present?
+      end
+
+      # Translated aria-label for mobile trigger checkbox
+      def toggle_mobile_label
+        I18n.t('bali.side_menu.toggle_mobile', default: 'Toggle sidebar')
       end
 
       # Translated aria-label for collapse checkbox

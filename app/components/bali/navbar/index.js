@@ -88,4 +88,10 @@ export class NavbarController extends Controller {
       this.altBurgerTarget.classList.toggle('is-active')
     }
   }
+
+  // Toggle the side menu via global event (for cross-component communication)
+  toggleSideMenu (event) {
+    event.preventDefault()
+    window.dispatchEvent(new CustomEvent('bali:side-menu:toggle'))
+  }
 }
