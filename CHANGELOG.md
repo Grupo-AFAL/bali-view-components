@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Navbar** - Allow custom background colors via `color: nil` with `class:` option
+  - Pass `color: nil` to skip preset color classes, then provide custom classes via `class:`
+  - Example: `Bali::Navbar::Component.new(color: nil, class: 'bg-indigo-600 text-white')`
+
 ### Fixed
 
 - **SideMenu + Navbar** - Fixed mobile sidebar toggle from Navbar hamburger
