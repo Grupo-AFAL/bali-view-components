@@ -272,4 +272,33 @@ RSpec.describe Bali::Navbar::Burger::Component, type: :component do
     render_inline(described_class.new(class: 'custom-burger'))
     expect(page).to have_css 'button.btn.btn-ghost.custom-burger'
   end
+
+  context 'with href' do
+    it 'renders as a link' do
+      render_inline(described_class.new(href: '/menu'))
+      expect(page).to have_css 'a.btn.btn-ghost[href="/menu"]'
+      expect(page).to have_no_css 'button'
+    end
+
+    it 'renders with default icon' do
+      render_inline(described_class.new(href: '/menu'))
+      expect(page).to have_css 'a svg'
+    end
+
+    it 'renders custom content' do
+      render_inline(described_class.new(href: '/menu')) { 'Menu' }
+      expect(page).to have_css 'a', text: 'Menu'
+    end
+
+    it 'has aria-label for accessibility' do
+      render_inline(described_class.new(href: '/menu'))
+      expect(page).to have_css 'a[aria-label]'
+    end
+
+    it 'does not add stimulus data attributes' do
+      render_inline(described_class.new(href: '/menu', type: :main))
+      expect(page).to have_no_css '[data-navbar-target]'
+      expect(page).to have_no_css '[data-action]'
+    end
+  end
 end

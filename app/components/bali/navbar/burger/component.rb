@@ -15,18 +15,25 @@ module Bali
 
         # @param type [Symbol] :main (navbar menu), :alt, :sidebar (side menu)
         # @param trigger_id [String] Checkbox ID for :sidebar type
+        # @param href [String] When provided, renders as a simple link instead of a button
         def initialize(type: :main,
                        trigger_id: Bali::SideMenu::Component::MOBILE_TRIGGER_ID,
+                       href: nil,
                        **options)
           @type = type
           @trigger_id = trigger_id
+          @href = href
           @options = prepend_class_name(options, BASE_CLASSES)
 
-          configure_attrs unless type.nil?
+          configure_attrs unless type.nil? || @href
         end
 
         def call
-          if sidebar?
+          if @href
+            tag.a(href: @href, 'aria-label': t('.toggle_menu'), **@options) do
+              content.presence || default_icon
+            end
+          elsif sidebar?
             tag.label(for: @trigger_id, role: 'button', tabindex: '0',
                       'aria-label': t('.toggle_menu'), **@options) do
               content.presence || default_icon
