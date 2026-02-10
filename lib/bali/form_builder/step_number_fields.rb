@@ -81,7 +81,7 @@ module Bali
       end
 
       def step_button(opts)
-        classes = @template.class_names(
+        classes = @template.token_list(
           BUTTON_BASE_CLASSES,
           opts[:button_class],
           BUTTON_DISABLED_CLASSES => opts[:disabled]
