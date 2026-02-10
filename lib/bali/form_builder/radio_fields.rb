@@ -102,7 +102,7 @@ module Bali
           custom_class
         ].compact.join(' ')
 
-        html_options.except(:radio_label_class, :size, :color, :class, :data, :orientation)
+        html_options.except(:radio_label_class, :size, :color, :class, :orientation)
                     .merge(class: radio_class)
       end
 
@@ -125,11 +125,13 @@ module Bali
       end
 
       def render_radio_buttons(values, method:, label_class:, radio_options:)
-        data = radio_options[:data]
+        shared_data = radio_options[:data] || {}
 
         values.map do |display_value|
           display, value, item_options = display_value
-          merged_options = radio_options.merge(item_options || {}).merge(data: data)
+          item_opts = item_options || {}
+          merged_data = shared_data.merge(item_opts[:data] || {})
+          merged_options = radio_options.merge(item_opts.except(:data)).merge(data: merged_data)
 
           label(method, class: label_class, value: value) do
             safe_join(
