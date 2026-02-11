@@ -138,30 +138,14 @@
   <%# ── Form Inputs ── %>
   <section>
     <h2 class="text-xl font-bold mb-4">Form Inputs</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
-      <div class="form-control">
-        <label class="label"><span class="label-text">Driver Name</span></label>
-        <input type="text" placeholder="Enter name" class="input input-bordered" />
+    <%= form_with(model: model, url: '/lookbook', builder: Bali::FormBuilder) do |form| %>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+        <%= form.text_field_group :name, placeholder: 'Enter name' %>
+        <%= form.select_group :genre, [['Action', 'action'], ['Drama', 'drama'], ['Comedy', 'comedy']] %>
+        <%= form.date_field_group :created_at %>
+        <%= form.boolean_field :indie %>
       </div>
-      <div class="form-control">
-        <label class="label"><span class="label-text">Route</span></label>
-        <select class="select select-bordered">
-          <option>Guadalajara - Monterrey</option>
-          <option>CDMX - Queretaro</option>
-          <option>Tijuana - Ensenada</option>
-        </select>
-      </div>
-      <div class="form-control">
-        <label class="label"><span class="label-text">Departure Date</span></label>
-        <input type="date" class="input input-bordered" />
-      </div>
-      <div class="form-control">
-        <label class="label cursor-pointer justify-start gap-2">
-          <input type="checkbox" class="checkbox checkbox-primary" checked />
-          <span class="label-text">GPS Tracking Enabled</span>
-        </label>
-      </div>
-    </div>
+    <% end %>
   </section>
 
   <%# ── Progress Bars ── %>

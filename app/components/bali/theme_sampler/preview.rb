@@ -11,7 +11,7 @@ module Bali
       # Shows buttons, cards, alerts, badges, and form inputs
       # rendered under the Costa Norte brand theme.
       def costa_norte
-        render_with_template
+        render_with_template(locals: { model: Movie.new })
       end
     end
   end
