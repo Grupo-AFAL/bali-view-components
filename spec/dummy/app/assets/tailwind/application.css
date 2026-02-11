@@ -31,3 +31,6 @@
 */
 @import "bali-view-components/css/bali.css";
 @import "bali-view-components/css/components.css";
+
+/* Bali custom themes */
+@import "bali-view-components/css/themes/costa-norte.css";

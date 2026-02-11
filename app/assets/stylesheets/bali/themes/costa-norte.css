@@ -1,0 +1,58 @@
+/*
+ * Costa Norte Theme for DaisyUI 5
+ *
+ * Light variant optimized for daily-use business applications.
+ * Brand: Costa Norte (logistics arm of Grupo AFAL)
+ *
+ * Usage:
+ *   @import "bali-view-components/css/themes/costa-norte.css";
+ *   <html data-theme="costa-norte">
+ */
+[data-theme="costa-norte"] {
+  color-scheme: light;
+
+  /* Base: warm white surfaces with brand-tinted text */
+  --color-base-100: oklch(1 0 0);
+  --color-base-200: oklch(0.97 0.005 80);
+  --color-base-300: oklch(0.93 0.008 80);
+  --color-base-content: oklch(0.2493 0.0385 215.27);
+
+  /* Primary: Teal - main actions, links, buttons */
+  --color-primary: oklch(0.388 0.066 197.73);
+  --color-primary-content: oklch(1 0 0);
+
+  /* Secondary: Golden Yellow - highlights, secondary actions */
+  --color-secondary: oklch(0.7909 0.1712 70.15);
+  --color-secondary-content: oklch(0.2493 0.0385 215.27);
+
+  /* Accent: Tan/Caramel - subtle warm accents */
+  --color-accent: oklch(0.7417 0.0864 72.83);
+  --color-accent-content: oklch(0.2493 0.0385 215.27);
+
+  /* Neutral: Dark Teal - sidebars, navbars, chrome */
+  --color-neutral: oklch(0.2493 0.0385 215.27);
+  --color-neutral-content: oklch(0.95 0.01 80);
+
+  /* Status colors */
+  --color-info: oklch(0.74 0.16 232.661);
+  --color-info-content: oklch(0.29 0.066 243.157);
+
+  --color-success: oklch(0.76 0.177 163.223);
+  --color-success-content: oklch(0.37 0.077 168.94);
+
+  --color-warning: oklch(0.7364 0.184 54.26);
+  --color-warning-content: oklch(0.2493 0.0385 215.27);
+
+  --color-error: oklch(0.71 0.194 13.428);
+  --color-error-content: oklch(0.27 0.105 12.094);
+
+  /* Design tokens */
+  --radius-selector: 0.5rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
