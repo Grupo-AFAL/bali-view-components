@@ -7,11 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Navbar Burger** - Allow burger to render as a link when `href` is provided
+  - Renders an `<a>` tag instead of a `<button>` for navigation use cases
+
 ### Changed
 
 - **Navbar** - Allow custom background colors via `color: nil` with `class:` option
   - Pass `color: nil` to skip preset color classes, then provide custom classes via `class:`
   - Example: `Bali::Navbar::Component.new(color: nil, class: 'bg-indigo-600 text-white')`
+- **FormBuilder** - Replace `class_names` with `token_list` in step number fields
 
 ### Fixed
 
@@ -23,6 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added global window events (`bali:side-menu:toggle`, `bali:side-menu:open`, `bali:side-menu:close`) for programmatic control
   - Added `mobile_trigger_id` parameter to SideMenu for custom checkbox IDs
   - Backwards compatible: existing `is-active` class approach still works
+- **SubmitButton** - Use a spinner `<span>` element instead of adding loading classes directly to the button, avoiding style conflicts
+- **FormBuilder RadioFields** - Fix data attribute merging to properly support both shared and per-item data attributes
+- **Utils** - Add nil-safety to `conditional_classes` when no conditional names are passed
 
 ## [v2.1.0] - 2026-02-04
 
