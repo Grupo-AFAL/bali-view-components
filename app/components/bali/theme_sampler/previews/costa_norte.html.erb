@@ -24,9 +24,9 @@
   <section>
     <h2 class="text-xl font-bold mb-4">Buttons</h2>
     <div class="flex flex-wrap gap-2">
-      <%= render Bali::Button::Component.new(name: 'Primary', variant: :primary) %>
-      <%= render Bali::Button::Component.new(name: 'Secondary', variant: :secondary) %>
-      <%= render Bali::Button::Component.new(name: 'Accent', variant: :accent) %>
+      <%= render Bali::Button::Component.new(name: 'Primary', color: :primary) %>
+      <%= render Bali::Button::Component.new(name: 'Secondary', color: :secondary) %>
+      <%= render Bali::Button::Component.new(name: 'Accent', color: :accent) %>
       <%= render Bali::Button::Component.new(name: 'Neutral', variant: :neutral) %>
       <%= render Bali::Button::Component.new(name: 'Ghost', variant: :ghost) %>
       <%= render Bali::Button::Component.new(name: 'Link', variant: :link) %>
@@ -64,10 +64,10 @@
   <section>
     <h2 class="text-xl font-bold mb-4">Alerts</h2>
     <div class="space-y-2">
-      <%= render Bali::Message::Component.new(type: :info) { 'This is an informational message.' } %>
-      <%= render Bali::Message::Component.new(type: :success) { 'Operation completed successfully.' } %>
-      <%= render Bali::Message::Component.new(type: :warning) { 'Please review before continuing.' } %>
-      <%= render Bali::Message::Component.new(type: :error) { 'Something went wrong. Please try again.' } %>
+      <%= render Bali::Message::Component.new(color: :info) { 'This is an informational message.' } %>
+      <%= render Bali::Message::Component.new(color: :success) { 'Operation completed successfully.' } %>
+      <%= render Bali::Message::Component.new(color: :warning) { 'Please review before continuing.' } %>
+      <%= render Bali::Message::Component.new(color: :danger) { 'Something went wrong. Please try again.' } %>
     </div>
   </section>
 
@@ -95,7 +95,7 @@
             <%= render Bali::Tag::Component.new(text: '1 Maintenance', color: :error) %>
           </div>
           <div class="mt-2">
-            <%= render Bali::Progress::Component.new(value: 75, variant: :primary) %>
+            <%= render Bali::Progress::Component.new(value: 75, color: :primary) %>
           </div>
         </div>
       <% end %>
@@ -168,9 +168,9 @@
   <section>
     <h2 class="text-xl font-bold mb-4">Progress</h2>
     <div class="space-y-2 max-w-md">
-      <%= render Bali::Progress::Component.new(value: 85, variant: :primary) %>
-      <%= render Bali::Progress::Component.new(value: 60, variant: :secondary) %>
-      <%= render Bali::Progress::Component.new(value: 40, variant: :accent) %>
+      <%= render Bali::Progress::Component.new(value: 85, color: :primary) %>
+      <%= render Bali::Progress::Component.new(value: 60, color: :secondary) %>
+      <%= render Bali::Progress::Component.new(value: 40, color: :accent) %>
     </div>
   </section>
 </div>
