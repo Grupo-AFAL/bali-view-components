@@ -19,7 +19,10 @@ export class SubmitButtonController extends Controller {
     const button = event.detail.formSubmission.submitter
     if (!button) return
 
-    button.classList.add('loading', 'loading-spinner')
+    const spinner = document.createElement('span')
+    spinner.classList.add('loading', 'loading-spinner')
+    spinner.setAttribute('data-submit-button-spinner', '')
+    button.insertBefore(spinner, button.firstChild)
     button.setAttribute('disabled', '')
   }
 
@@ -27,7 +30,9 @@ export class SubmitButtonController extends Controller {
     const button = event.detail.formSubmission.submitter
     if (!button) return
 
-    button.classList.remove('loading', 'loading-spinner')
+    const spinner = button.querySelector('[data-submit-button-spinner]')
+    if (spinner) spinner.remove()
+
     button.removeAttribute('disabled')
   }
 }

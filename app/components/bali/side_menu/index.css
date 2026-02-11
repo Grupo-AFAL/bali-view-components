@@ -178,6 +178,15 @@
 }
 
 /* ========================================
+   Mobile Toggle (checkbox-driven)
+   ======================================== */
+
+/* Show sidebar when mobile trigger is checked */
+.side-menu-mobile-trigger:checked~.side-menu-component--fixed {
+  transform: translateX(0);
+}
+
+/* ========================================
    Mobile Overlay
    ======================================== */
 
@@ -186,7 +195,8 @@
   transition: opacity 0.2s ease-in-out;
 }
 
-/* Show overlay when sidebar is open on mobile */
+/* Show overlay when sidebar is open on mobile (checkbox or legacy is-active) */
+.side-menu-mobile-trigger:checked~.side-menu-overlay,
 .side-menu-component--fixed.is-active~.side-menu-overlay {
   @apply opacity-100 pointer-events-auto;
 }

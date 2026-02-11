@@ -10,7 +10,7 @@ module Bali
         classes = Array(names)
       end
 
-      conditional_names.each do |key, condition|
+      (conditional_names || {}).each do |key, condition|
         classes.push(key) if condition
       end
       classes.join(' ').strip

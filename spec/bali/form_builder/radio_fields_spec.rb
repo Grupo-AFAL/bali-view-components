@@ -95,6 +95,56 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
         expect(radio_field).to have_css 'div.flex.flex-row.flex-wrap'
       end
     end
+
+    context 'with shared data attributes' do
+      let(:radio_field) do
+        builder.radio_field(:status, values, {}, { data: { action: 'change->form#submit' } })
+      end
+
+      it 'applies shared data attributes to all radio inputs' do
+        expect(radio_field).to have_css 'input[data-action="change->form#submit"]', count: 3
+      end
+    end
+
+    context 'with per-item custom data attributes' do
+      let(:values) do
+        [
+          ['One', '1', { data: { price: '100' } }],
+          ['Two', '2', { data: { price: '200' } }],
+          %w[Three 3]
+        ]
+      end
+
+      it 'applies custom data to individual radio inputs' do
+        expect(radio_field).to have_css 'input[data-price="100"]', count: 1
+        expect(radio_field).to have_css 'input[data-price="200"]', count: 1
+      end
+
+      it 'does not add data to items without custom data' do
+        expect(radio_field).not_to have_css 'input[value="3"][data-price]'
+      end
+    end
+
+    context 'with shared and per-item data attributes merged' do
+      let(:values) do
+        [
+          ['One', '1', { data: { price: '100' } }],
+          %w[Two 2]
+        ]
+      end
+      let(:radio_field) do
+        builder.radio_field(:status, values, {}, { data: { controller: 'pricing' } })
+      end
+
+      it 'merges shared data with per-item data' do
+        expect(radio_field).to have_css 'input[data-controller="pricing"][data-price="100"]',
+                                        count: 1
+      end
+
+      it 'applies shared data to items without custom data' do
+        expect(radio_field).to have_css 'input[value="2"][data-controller="pricing"]'
+      end
+    end
   end
 
   describe 'ORIENTATIONS constant' do
