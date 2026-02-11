@@ -34,22 +34,18 @@
           Theme
           <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
         <% end %>
-        <li>
-          <button type="button" role="menuitem"
-            data-controller="theme-switcher"
-            data-theme-switcher-name-value="light"
-            data-action="click->theme-switcher#switch">
-            Light (Default)
-          </button>
-        </li>
-        <li>
-          <button type="button" role="menuitem"
-            data-controller="theme-switcher"
-            data-theme-switcher-name-value="costa-norte"
-            data-action="click->theme-switcher#switch">
-            Costa Norte
-          </button>
-        </li>
+        <% dropdown.with_item(
+          tag: :button,
+          data: { controller: 'theme-switcher', theme_switcher_name_value: 'light', action: 'click->theme-switcher#switch' }
+        ) do %>
+          Light (Default)
+        <% end %>
+        <% dropdown.with_item(
+          tag: :button,
+          data: { controller: 'theme-switcher', theme_switcher_name_value: 'costa-norte', action: 'click->theme-switcher#switch' }
+        ) do %>
+          Costa Norte
+        <% end %>
       <% end %>
     <% end %>
 
