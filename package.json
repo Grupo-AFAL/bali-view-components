@@ -1,6 +1,6 @@
 {
   "name": "bali-view-components",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Bali ViewComponents",
   "type": "module",
   "main": "./app/frontend/bali/index.js",
