@@ -13,13 +13,17 @@ module Bali
       }.freeze
 
       renders_one :trigger, Trigger::Component
-      renders_many :items, ->(method: :get, href: nil, **options) do
-        component_klass = method&.to_sym == :delete ? DeleteLink::Component : Link::Component
-        options[:role] ||= 'menuitem'
-        component_klass.new(
-          method: method, href: href, plain: true,
-          **prepend_class_name(options, 'menu-item w-full text-left')
-        )
+      renders_many :items, ->(method: :get, href: nil, tag: :link, **options) do
+        if tag == :button
+          ActionItem::Component.new(**options)
+        else
+          component_klass = method&.to_sym == :delete ? DeleteLink::Component : Link::Component
+          options[:role] ||= 'menuitem'
+          component_klass.new(
+            method: method, href: href, plain: true,
+            **prepend_class_name(options, 'menu-item w-full text-left')
+          )
+        end
       end
 
       def initialize(hoverable: false, close_on_click: true, align: :right, wide: false, **options)

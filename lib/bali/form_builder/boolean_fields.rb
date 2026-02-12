@@ -7,7 +7,6 @@ module Bali
       LABEL_CLASS = 'label cursor-pointer'
       LABEL_TEXT_CLASS = 'label-text'
       ERROR_CLASS = 'label-text-alt text-error'
-      FIELDSET_CLASS = 'fieldset'
 
       SIZES = {
         xs: 'checkbox-xs',
@@ -27,7 +26,7 @@ module Bali
       }.freeze
 
       def boolean_field_group(method, options = {}, checked_value = '1', unchecked_value = '0')
-        @template.content_tag(:fieldset, class: FIELDSET_CLASS) do
+        @template.render Bali::FieldGroupWrapper::Component.new(self, method, options) do
           boolean_field(method, options, checked_value, unchecked_value)
         end
       end

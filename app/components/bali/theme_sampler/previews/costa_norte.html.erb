@@ -1,0 +1,160 @@
+<div class="space-y-8">
+  <%# ── Color Palette ── %>
+  <section>
+    <h2 class="text-xl font-bold mb-4">Color Palette</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+      <% %w[primary secondary accent neutral info success warning error].each do |color| %>
+        <div>
+          <div class="bg-<%= color %> text-<%= color %>-content rounded-lg p-4 text-center text-sm font-medium">
+            <%= color %>
+          </div>
+        </div>
+      <% end %>
+      <% %w[base-100 base-200 base-300].each do |base| %>
+        <div>
+          <div class="bg-<%= base %> border border-base-300 text-base-content rounded-lg p-4 text-center text-sm font-medium">
+            <%= base %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <%# ── Buttons ── %>
+  <section>
+    <h2 class="text-xl font-bold mb-4">Buttons</h2>
+    <div class="flex flex-wrap gap-2">
+      <%= render Bali::Button::Component.new(name: 'Primary', color: :primary) %>
+      <%= render Bali::Button::Component.new(name: 'Secondary', color: :secondary) %>
+      <%= render Bali::Button::Component.new(name: 'Accent', color: :accent) %>
+      <%= render Bali::Button::Component.new(name: 'Neutral', variant: :neutral) %>
+      <%= render Bali::Button::Component.new(name: 'Ghost', variant: :ghost) %>
+      <%= render Bali::Button::Component.new(name: 'Link', variant: :link) %>
+    </div>
+    <div class="flex flex-wrap gap-2 mt-3">
+      <%= render Bali::Button::Component.new(name: 'Info', variant: :info) %>
+      <%= render Bali::Button::Component.new(name: 'Success', variant: :success) %>
+      <%= render Bali::Button::Component.new(name: 'Warning', variant: :warning) %>
+      <%= render Bali::Button::Component.new(name: 'Error', variant: :error) %>
+    </div>
+    <div class="flex flex-wrap gap-2 mt-3">
+      <%= render Bali::Button::Component.new(name: 'Small', variant: :primary, size: :sm) %>
+      <%= render Bali::Button::Component.new(name: 'Medium', variant: :primary, size: :md) %>
+      <%= render Bali::Button::Component.new(name: 'Large', variant: :primary, size: :lg) %>
+      <%= render Bali::Button::Component.new(name: 'Disabled', variant: :primary, disabled: true) %>
+      <%= render Bali::Button::Component.new(name: 'Loading', variant: :primary, loading: true) %>
+    </div>
+  </section>
+
+  <%# ── Badges / Tags ── %>
+  <section>
+    <h2 class="text-xl font-bold mb-4">Tags / Badges</h2>
+    <div class="flex flex-wrap gap-2">
+      <%= render Bali::Tag::Component.new(text: 'Primary', color: :primary) %>
+      <%= render Bali::Tag::Component.new(text: 'Secondary', color: :secondary) %>
+      <%= render Bali::Tag::Component.new(text: 'Accent', color: :accent) %>
+      <%= render Bali::Tag::Component.new(text: 'Info', color: :info) %>
+      <%= render Bali::Tag::Component.new(text: 'Success', color: :success) %>
+      <%= render Bali::Tag::Component.new(text: 'Warning', color: :warning) %>
+      <%= render Bali::Tag::Component.new(text: 'Error', color: :error) %>
+    </div>
+  </section>
+
+  <%# ── Alerts ── %>
+  <section>
+    <h2 class="text-xl font-bold mb-4">Alerts</h2>
+    <div class="space-y-2">
+      <%= render Bali::Message::Component.new(color: :info) { 'This is an informational message.' } %>
+      <%= render Bali::Message::Component.new(color: :success) { 'Operation completed successfully.' } %>
+      <%= render Bali::Message::Component.new(color: :warning) { 'Please review before continuing.' } %>
+      <%= render Bali::Message::Component.new(color: :danger) { 'Something went wrong. Please try again.' } %>
+    </div>
+  </section>
+
+  <%# ── Card ── %>
+  <section>
+    <h2 class="text-xl font-bold mb-4">Card</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <%= render Bali::Card::Component.new do |card| %>
+        <div class="card-body">
+          <h3 class="card-title">Shipment #4821</h3>
+          <p>Guadalajara to Monterrey via Highway 40D. Estimated arrival in 6 hours.</p>
+          <div class="card-actions justify-end">
+            <%= render Bali::Button::Component.new(name: 'Track', variant: :primary, size: :sm) %>
+            <%= render Bali::Button::Component.new(name: 'Details', variant: :ghost, size: :sm) %>
+          </div>
+        </div>
+      <% end %>
+
+      <%= render Bali::Card::Component.new do |card| %>
+        <div class="card-body">
+          <h3 class="card-title">Fleet Status</h3>
+          <div class="flex gap-2 flex-wrap">
+            <%= render Bali::Tag::Component.new(text: '12 Active', color: :success) %>
+            <%= render Bali::Tag::Component.new(text: '3 Idle', color: :warning) %>
+            <%= render Bali::Tag::Component.new(text: '1 Maintenance', color: :error) %>
+          </div>
+          <div class="mt-2">
+            <%= render Bali::Progress::Component.new(value: 75, color: :primary) %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <%# ── Navbar (primary) ── %>
+  <section>
+    <h2 class="text-xl font-bold mb-4">Navbar (primary)</h2>
+    <%= render Bali::Navbar::Component.new(color: :primary, sticky: false, fullscreen: true) do |nav| %>
+      <% nav.with_brand do %>
+        <%= render Bali::Link::Component.new(name: 'Costa Norte', href: '#', variant: :ghost, class: 'text-xl') %>
+      <% end %>
+      <% nav.with_menu do |menu| %>
+        <% menu.with_start_item(name: 'Dashboard', href: '#') %>
+        <% menu.with_start_item(name: 'Shipments', href: '#') %>
+        <% menu.with_start_item(name: 'Fleet', href: '#') %>
+        <%= menu.with_end_item(tag_name: :div) do %>
+          <%= render Bali::Button::Component.new(name: 'New Shipment', variant: :secondary, size: :sm) %>
+        <% end %>
+      <% end %>
+    <% end %>
+  </section>
+
+  <%# ── Navbar (neutral) ── %>
+  <section>
+    <h2 class="text-xl font-bold mb-4">Navbar (neutral)</h2>
+    <%= render Bali::Navbar::Component.new(color: :neutral, sticky: false, fullscreen: true) do |nav| %>
+      <% nav.with_brand do %>
+        <%= render Bali::Link::Component.new(name: 'Costa Norte', href: '#', variant: :ghost, class: 'text-xl') %>
+      <% end %>
+      <% nav.with_menu do |menu| %>
+        <% menu.with_start_item(name: 'Dashboard', href: '#') %>
+        <% menu.with_start_item(name: 'Shipments', href: '#') %>
+        <% menu.with_start_item(name: 'Fleet', href: '#') %>
+      <% end %>
+    <% end %>
+  </section>
+
+  <%# ── Form Inputs ── %>
+  <section>
+    <h2 class="text-xl font-bold mb-4">Form Inputs</h2>
+    <%= form_with(model: model, url: '/lookbook', builder: Bali::FormBuilder) do |form| %>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+        <%= form.text_field_group :name, placeholder: 'Enter name' %>
+        <%= form.select_group :genre, [['Action', 'action'], ['Drama', 'drama'], ['Comedy', 'comedy']] %>
+        <%= form.date_field_group :created_at %>
+        <%= form.boolean_field_group :indie %>
+      </div>
+    <% end %>
+  </section>
+
+  <%# ── Progress Bars ── %>
+  <section>
+    <h2 class="text-xl font-bold mb-4">Progress</h2>
+    <div class="space-y-2 max-w-md">
+      <%= render Bali::Progress::Component.new(value: 85, color: :primary) %>
+      <%= render Bali::Progress::Component.new(value: 60, color: :secondary) %>
+      <%= render Bali::Progress::Component.new(value: 40, color: :accent) %>
+    </div>
+  </section>
+</div>

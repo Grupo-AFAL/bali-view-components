@@ -1,5 +1,5 @@
 <%# Navbar with sticky positioning (default), brand, menu items, and user dropdown %>
-<%= render Bali::Navbar::Component.new do |nav| %>
+<%= render Bali::Navbar::Component.new(color: :primary) do |nav| %>
   <% nav.with_brand do %>
     <%= link_to 'MovieDB', root_path %>
   <% end %>
@@ -24,6 +24,29 @@
     <% menu.with_start_item(name: t('navbar.lookbook'), href: '/lookbook', target: '_blank') do %>
       <%= t('navbar.lookbook') %>
       <%= render Bali::Icon::Component.new('external-link', size: :small) %>
+    <% end %>
+
+    <%# Theme Switcher %>
+    <% menu.with_end_item(tag_name: :div) do %>
+      <%= render Bali::Dropdown::Component.new(align: :right) do |dropdown| %>
+        <% dropdown.with_trigger(variant: :ghost, size: :sm) do %>
+          <%= render Bali::Icon::Component.new('palette', size: :small) %>
+          Theme
+          <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
+        <% end %>
+        <% dropdown.with_item(
+          tag: :button,
+          data: { controller: 'theme-switcher', theme_switcher_name_value: 'light', action: 'click->theme-switcher#switch' }
+        ) do %>
+          Light (Default)
+        <% end %>
+        <% dropdown.with_item(
+          tag: :button,
+          data: { controller: 'theme-switcher', theme_switcher_name_value: 'costa-norte', action: 'click->theme-switcher#switch' }
+        ) do %>
+          Costa Norte
+        <% end %>
+      <% end %>
     <% end %>
 
     <%# Language Switcher %>

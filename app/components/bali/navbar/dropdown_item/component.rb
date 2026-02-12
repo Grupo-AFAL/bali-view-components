@@ -5,8 +5,8 @@ module Bali
     module DropdownItem
       class Component < ApplicationViewComponent
         WRAPPER_CLASSES = 'dropdown dropdown-hover'
-        TRIGGER_CLASSES = 'flex items-center gap-1'
-        MENU_CLASSES = 'menu bg-base-100 rounded-box z-50 w-52 p-2 shadow-lg'
+        TRIGGER_CLASSES = 'flex items-center gap-1 text-sm'
+        MENU_CLASSES = 'menu bg-base-100 text-base-content rounded-box z-50 w-52 p-2 shadow-lg'
 
         # Simple struct for dropdown menu items
         Item = Struct.new(:name, :href, :options, keyword_init: true)

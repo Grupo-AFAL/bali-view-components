@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Costa Norte Theme** - Custom DaisyUI 5 theme for Costa Norte brand (teal/gold palette)
+  - Opt-in CSS file at `css/themes/costa-norte.css` with all 18 DaisyUI color variables in OKLCH
+  - npm package export `./css/themes/*.css` for consumer apps
+  - Lookbook theme sampler preview and dedicated layout
+  - Usage documentation in `docs/guides/custom-themes.md`
 - **Navbar Burger** - Allow burger to render as a link when `href` is provided
   - Renders an `<a>` tag instead of a `<button>` for navigation use cases
 

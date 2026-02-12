@@ -12,6 +12,10 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
       expect(boolean_field_group).to have_css 'fieldset.fieldset'
     end
 
+    it 'renders a legend label' do
+      expect(boolean_field_group).to have_css 'legend.fieldset-legend', text: 'Indie'
+    end
+
     it 'renders a label with cursor-pointer class' do
       expect(boolean_field_group).to have_css 'label.label.cursor-pointer'
     end
