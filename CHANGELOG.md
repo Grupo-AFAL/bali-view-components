@@ -38,6 +38,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **FormBuilder RadioFields** - Fix data attribute merging to properly support both shared and per-item data attributes
 - **Utils** - Add nil-safety to `conditional_classes` when no conditional names are passed
 
+### Chores
+
+- Add dangerous command deny list to `.claude/settings.json`
+- Add CLAUDE.md context files for components, views, config directories
+
 ## [v2.1.0] - 2026-02-04
 
 ### Added
