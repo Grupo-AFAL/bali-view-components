@@ -143,9 +143,7 @@
         <%= form.text_field_group :name, placeholder: 'Enter name' %>
         <%= form.select_group :genre, [['Action', 'action'], ['Drama', 'drama'], ['Comedy', 'comedy']] %>
         <%= form.date_field_group :created_at %>
-        <div class="self-end pb-2">
-          <%= form.boolean_field :indie %>
-        </div>
+        <%= form.boolean_field_group :indie %>
       </div>
     <% end %>
   </section>
