@@ -6,6 +6,9 @@ import { registerControllers } from 'stimulus-vite-helpers'
 import * as Turbo from '@hotwired/turbo'
 import * as ActiveStorage from '@rails/activestorage'
 
+// Rich Text Editor (Lexxy) - Basecamp's Lexical-based editor
+import '@37signals/lexxy'
+
 // ---------------------------------------------------------
 // Bali Controllers - Core Bundle
 // ---------------------------------------------------------
@@ -82,7 +85,7 @@ document.addEventListener('turbo:frame-load', () => {
   loadGanttIfNeeded()
 })
 
-// Rich Text Editor (TipTap) - WARNING: currently broken
+// Rich Text Editor (TipTap) - DEPRECATED: use Lexxy instead
 // import { registerRichTextEditor } from 'bali/rich-text-editor'
 // registerRichTextEditor(application)
 

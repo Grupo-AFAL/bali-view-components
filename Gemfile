@@ -20,6 +20,9 @@ gem 'simple_command'
 gem 'view_component'
 gem 'view_component-contrib'
 
+# Rich Text Editor
+gem 'lexxy', '~> 0.7.4.beta'
+
 # Icons
 gem 'lucide-rails'
 

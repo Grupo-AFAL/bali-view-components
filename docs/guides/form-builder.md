@@ -413,6 +413,26 @@ Recurring event schedule builder.
 <%= f.recurrent_event_rule_field :schedule %>
 ```
 
+### lexxy_editor_group
+
+Rich text editor powered by [Lexxy](https://github.com/basecamp/lexxy) (Basecamp's Lexical-based editor). Replaces `rich_text_area_group`.
+
+```erb
+<%= f.lexxy_editor_group :body, placeholder: "Write something..." %>
+```
+
+With mentions:
+
+```erb
+<%= f.lexxy_editor_group :body do |editor| %>
+  <% editor.with_prompt(trigger: "@", name: "mention", src: "/people") %>
+<% end %>
+```
+
+Options: `placeholder`, `toolbar`, `attachments`, `markdown`, `multi_line`, `rich_text`, `required`, `disabled`, `autofocus`, `preset`.
+
+See the full [Lexxy Editor Guide](./lexxy-editor.md) for details.
+
 ---
 
 ## Common Options
@@ -493,7 +513,7 @@ Many fields automatically integrate with Stimulus controllers:
     <%= f.text_field_group :sku, help: "Stock keeping unit" %>
   </div>
 
-  <%= f.rich_text_area_group :description %>
+  <%= f.lexxy_editor_group :description, placeholder: "Product description..." %>
 
   <div class="grid grid-cols-3 gap-4">
     <%= f.currency_field_group :price %>
