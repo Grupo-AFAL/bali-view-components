@@ -142,6 +142,8 @@ GEM
       reline (>= 0.4.2)
     json (2.13.2)
     language_server-protocol (3.17.0.5)
+    lexxy (0.7.4.beta)
+      rails (>= 8.0.2)
     lint_roller (1.1.0)
     logger (1.7.0)
     loofah (2.25.0)
@@ -367,6 +369,7 @@ DEPENDENCIES
   debug (>= 1.0.0)
   device_detector
   dotenv
+  lexxy (~> 0.7.4.beta)
   lookbook
   lucide-rails
   pagy (>= 43.0)

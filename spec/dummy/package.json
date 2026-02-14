@@ -6,7 +6,7 @@
     "vite-plugin-ruby": "5.1.1"
   },
   "dependencies": {
-    "bali-view-components": "file:../..",
+    "@37signals/lexxy": "^0.7.4-beta",
     "@glidejs/glide": "^3.7.1",
     "@googlemaps/markerclusterer": "^2.6.2",
     "@hotwired/stimulus": "^3.2.2",
@@ -14,6 +14,7 @@
     "@popperjs/core": "^2.11.8",
     "@rails/activestorage": "^8.1.200",
     "@rails/request.js": "^0.0.13",
+    "bali-view-components": "file:../..",
     "chart.js": "^4.5.1",
     "daisyui": "^5.0.0",
     "date-fns": "^4.1.0",

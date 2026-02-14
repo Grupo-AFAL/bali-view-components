@@ -46,8 +46,8 @@
       <%= t('movies.form.movie_details') %>
     </h3>
 
-    <%# Text Area %>
-    <%= f.text_area_group :synopsis, label: t('movies.form.synopsis'), rows: 4, placeholder: t('movies.form.enter_synopsis'), char_counter: { max: 500 } %>
+    <%# Rich Text Editor (Lexxy) %>
+    <%= f.lexxy_editor_group :synopsis, placeholder: t('movies.form.enter_synopsis') %>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
       <%# Date Field %>

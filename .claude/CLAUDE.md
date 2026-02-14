@@ -1032,7 +1032,8 @@ When you use `Bali::Icon::Component.new('icon-name')`, the system resolves icons
 |-----------|---------|-----------------|----------------------|
 | `Bali::Form::*` | Form elements | `input select textarea checkbox radio` | daisyUI form elements |
 | `Bali::ImageField` | Image upload | Custom | `nexus/interactions/file-upload/` |
-| `Bali::RichTextEditor` | Rich text | (Trix) | `nexus/interactions/text-editor/` |
+| `Bali::Lexxy` | Rich text editor | `lexxy-editor` (Lexxy) | `nexus/interactions/text-editor/` |
+| `Bali::RichTextEditor` | Rich text (deprecated) | (TipTap) | `nexus/interactions/text-editor/` |
 
 ### Utility Components
 
