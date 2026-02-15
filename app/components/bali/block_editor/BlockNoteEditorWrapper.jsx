@@ -421,7 +421,7 @@ export default function BlockNoteEditorWrapper ({
           if (block.content?.type === 'tableContent') {
             for (const row of block.content.rows) {
               for (const cell of row.cells) {
-                for (const inline of cell) {
+                for (const inline of (cell.content || cell)) {
                   if (inline.type === 'entityReference' && inline.props?.entityId) {
                     refs.push({
                       entityType: inline.props.entityType,
