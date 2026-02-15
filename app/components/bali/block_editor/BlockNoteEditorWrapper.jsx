@@ -6,7 +6,14 @@ import './index.css'
 import { BlockNoteSchema, defaultBlockSpecs, createCodeBlockSpec, combineByGroup } from '@blocknote/core'
 import * as coreLocales from '@blocknote/core/locales'
 import { BlockNoteView } from '@blocknote/mantine'
-import { useCreateBlockNote, SuggestionMenuController, getDefaultReactSlashMenuItems } from '@blocknote/react'
+import {
+  useCreateBlockNote,
+  SuggestionMenuController,
+  getDefaultReactSlashMenuItems,
+  FormattingToolbarController,
+  FormattingToolbar,
+  getFormattingToolbarItems
+} from '@blocknote/react'
 import { useEffect, useCallback, useRef, useMemo } from 'react'
 import {
   withMultiColumn,
@@ -61,10 +68,13 @@ export default function BlockNoteEditorWrapper ({
   imagesUrl,
   outputElement,
   onEditorReady,
-  theme = 'light'
+  theme = 'light',
+  aiUrl,
+  ai
 }) {
   const htmlParsed = useRef(false)
   const ready = useRef(!htmlContent)
+  const aiEnabled = !!(aiUrl && ai)
 
   const uploadFile = useCallback(async (file) => {
     if (!imagesUrl) throw new Error('File uploads are not configured')
@@ -133,22 +143,38 @@ export default function BlockNoteEditorWrapper ({
     }
   })), [])
 
+  const aiExtension = useMemo(() => {
+    if (!aiEnabled) return null
+    return ai.AIExtension({
+      transport: new ai.DefaultChatTransport({ api: aiUrl })
+    })
+  }, [aiEnabled, aiUrl, ai])
+
   const editor = useCreateBlockNote({
     schema,
     dropCursor: multiColumnDropCursor,
-    dictionary: { ...coreLocales.en, multi_column: multiColumnLocales.en },
+    dictionary: {
+      ...coreLocales.en,
+      multi_column: multiColumnLocales.en,
+      ...(aiEnabled ? { ai: ai.aiLocales.en } : {})
+    },
     initialContent: parsedContent,
     uploadFile: imagesUrl ? uploadFile : undefined,
-    placeholders: placeholder ? { default: placeholder } : undefined
+    placeholders: placeholder ? { default: placeholder } : undefined,
+    extensions: aiExtension ? [aiExtension] : undefined
   })
 
-  // Combine default + multi-column slash menu items
+  // Combine default + multi-column + AI slash menu items
   const getSlashMenuItems = useMemo(() => {
     return async (query) => {
-      const items = combineByGroup(
+      const groups = [
         getDefaultReactSlashMenuItems(editor),
         getMultiColumnSlashMenuItems(editor)
-      )
+      ]
+      if (aiEnabled) {
+        groups.push(ai.getAISlashMenuItems(editor))
+      }
+      const items = combineByGroup(...groups)
       if (!query) return items
       const q = query.toLowerCase()
       return items.filter(item =>
@@ -156,7 +182,7 @@ export default function BlockNoteEditorWrapper ({
         item.aliases?.some(a => a.toLowerCase().includes(q))
       )
     }
-  }, [editor])
+  }, [editor, aiEnabled, ai])
 
   // Expose editor instance to the parent (Stimulus controller) for export functionality
   useEffect(() => {
@@ -209,11 +235,23 @@ export default function BlockNoteEditorWrapper ({
       theme={theme}
       onChange={handleChange}
       slashMenu={false}
+      formattingToolbar={aiEnabled ? false : undefined}
     >
       <SuggestionMenuController
         triggerCharacter="/"
         getItems={getSlashMenuItems}
       />
+      {aiEnabled && (
+        <FormattingToolbarController
+          formattingToolbar={() => (
+            <FormattingToolbar>
+              {getFormattingToolbarItems()}
+              <ai.AIToolbarButton key="aiButton" />
+            </FormattingToolbar>
+          )}
+        />
+      )}
+      {aiEnabled && <ai.AIMenuController />}
     </BlockNoteView>
   )
 }

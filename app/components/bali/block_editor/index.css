@@ -163,3 +163,21 @@
 .block-editor-component .bn-block-content[data-content-type="codeBlock"] pre .shiki span {
   background-color: transparent !important;
 }
+
+/* AI menu - match DaisyUI theming for xl-ai components */
+.block-editor-component .bn-ai-menu {
+  background-color: var(--color-base-100) !important;
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
+  box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
+  border-radius: var(--radius-box, 0.5rem);
+}
+
+/* AI suggestion changes - highlight with primary color */
+.block-editor-component .bn-suggestion-mark-add {
+  background-color: color-mix(in oklch, var(--color-success) 20%, transparent);
+}
+
+.block-editor-component .bn-suggestion-mark-delete {
+  background-color: color-mix(in oklch, var(--color-error) 20%, transparent);
+  text-decoration: line-through;
+}

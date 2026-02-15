@@ -17,6 +17,7 @@ module Bali
         theme: :light,
         export: false,
         export_filename: 'document',
+        ai_url: nil,
         **options
       )
         # rubocop:enable Metrics/ParameterLists
@@ -31,6 +32,7 @@ module Bali
         @theme = theme
         @export = export
         @export_filename = export_filename
+        @ai_url = ai_url
 
         @options = prepend_class_name(options, 'block-editor-component')
         @options = prepend_controller(@options, 'block-editor')
@@ -81,7 +83,8 @@ module Bali
           placeholder: @placeholder || '',
           images_url: @images_url,
           theme: @theme.to_s,
-          export_filename: @export_filename
+          export_filename: @export_filename,
+          ai_url: @ai_url || ''
         }
       end
 

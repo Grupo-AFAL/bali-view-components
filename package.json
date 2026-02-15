@@ -63,8 +63,10 @@
     "@blocknote/react": ">=0.46.0",
     "@blocknote/mantine": ">=0.46.0",
     "@blocknote/xl-multi-column": ">=0.46.0",
+    "@blocknote/xl-ai": ">=0.46.0",
     "@mantine/core": ">=8.3.0",
     "@mantine/hooks": ">=8.3.0",
+    "ai": ">=6.0.0",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
   },
@@ -73,8 +75,10 @@
     "@blocknote/react": { "optional": true },
     "@blocknote/mantine": { "optional": true },
     "@blocknote/xl-multi-column": { "optional": true },
+    "@blocknote/xl-ai": { "optional": true },
     "@mantine/core": { "optional": true },
     "@mantine/hooks": { "optional": true },
+    "ai": { "optional": true },
     "react": { "optional": true },
     "react-dom": { "optional": true }
   },

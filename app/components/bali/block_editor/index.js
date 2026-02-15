@@ -11,7 +11,8 @@ export class BlockEditorController extends Controller {
     editable: { type: Boolean, default: true },
     imagesUrl: String,
     theme: { type: String, default: 'light' },
-    exportFilename: { type: String, default: 'document' }
+    exportFilename: { type: String, default: 'document' },
+    aiUrl: { type: String, default: '' }
   }
 
   async connect () {
@@ -24,19 +25,43 @@ export class BlockEditorController extends Controller {
 
       this.root = createRoot(this.editorTarget)
 
-      this.root.render(
-        createElement(BlockNoteEditorWrapper, {
-          initialContent: this.initialContentValue || undefined,
-          htmlContent: this.htmlContentValue || undefined,
-          editable: this.editableValue,
-          placeholder: this.placeholderValue || undefined,
-          format: this.formatValue,
-          imagesUrl: this.imagesUrlValue || undefined,
-          outputElement: this.hasOutputTarget ? this.outputTarget : null,
-          onEditorReady: (editor) => { this.blockNoteEditor = editor },
-          theme: this.themeValue
-        })
-      )
+      const props = {
+        initialContent: this.initialContentValue || undefined,
+        htmlContent: this.htmlContentValue || undefined,
+        editable: this.editableValue,
+        placeholder: this.placeholderValue || undefined,
+        format: this.formatValue,
+        imagesUrl: this.imagesUrlValue || undefined,
+        outputElement: this.hasOutputTarget ? this.outputTarget : null,
+        onEditorReady: (editor) => { this.blockNoteEditor = editor },
+        theme: this.themeValue,
+        aiUrl: this.aiUrlValue || undefined
+      }
+
+      // Dynamically load AI modules when ai_url is configured
+      if (props.aiUrl) {
+        try {
+          const [xlAi, , aiLocales, aiSdk] = await Promise.all([
+            import('@blocknote/xl-ai'),
+            import('@blocknote/xl-ai/style.css'),
+            import('@blocknote/xl-ai/locales'),
+            import('ai')
+          ])
+
+          props.ai = {
+            AIExtension: xlAi.AIExtension,
+            AIMenuController: xlAi.AIMenuController,
+            AIToolbarButton: xlAi.AIToolbarButton,
+            getAISlashMenuItems: xlAi.getAISlashMenuItems,
+            aiLocales: aiLocales,
+            DefaultChatTransport: aiSdk.DefaultChatTransport
+          }
+        } catch (error) {
+          console.error('BlockEditor: Failed to load AI modules:', error)
+        }
+      }
+
+      this.root.render(createElement(BlockNoteEditorWrapper, props))
 
       // Clean up React DOM before Turbo caches the page
       this._boundCleanCache = () => {

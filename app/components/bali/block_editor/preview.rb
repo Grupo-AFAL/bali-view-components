@@ -34,6 +34,19 @@ module Bali
         )
       end
 
+      # Requires the AI chat server running:
+      #   cd spec/dummy && ANTHROPIC_API_KEY=sk-ant-... node server/ai-chat.mjs
+      #
+      # Type `/ai` in the editor or select text and click the AI button in the toolbar.
+      # @param placeholder text
+      def with_ai(placeholder: 'Type /ai to use AI assistance...')
+        render BlockEditor::Component.new(
+          editable: true,
+          placeholder: placeholder,
+          ai_url: 'http://localhost:3456/api/ai/chat'
+        )
+      end
+
       private
 
       # rubocop:disable Metrics/MethodLength
