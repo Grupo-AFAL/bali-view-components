@@ -95,6 +95,18 @@
   box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
 }
 
+/* Compact suggestion menu items */
+.block-editor-component .bn-suggestion-menu-item {
+  padding: 0.25rem 0.5rem !important;
+  min-height: unset !important;
+  gap: 0.35rem !important;
+}
+
+.block-editor-component .bn-suggestion-menu-label {
+  padding: 0.25rem 0.5rem 0.15rem !important;
+  font-size: 0.7rem;
+}
+
 /* Mantine dropdown menus (toolbar color picker, link input, etc.) */
 .block-editor-component .mantine-Menu-dropdown,
 .block-editor-component .mantine-Popover-dropdown {
