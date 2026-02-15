@@ -53,7 +53,7 @@ export class BlockEditorController extends Controller {
             AIMenuController: xlAi.AIMenuController,
             AIToolbarButton: xlAi.AIToolbarButton,
             getAISlashMenuItems: xlAi.getAISlashMenuItems,
-            aiLocales: aiLocales,
+            aiLocales,
             DefaultChatTransport: aiSdk.DefaultChatTransport
           }
         } catch (error) {
