@@ -1,8 +1,8 @@
 /* BlockEditor: DaisyUI 5 theme integration for BlockNote + Mantine
  *
- * This CSS is loaded via TWO paths:
- * 1. Tailwind pipeline: @import in components.css (for production asset compilation)
- * 2. Vite: imported in BlockNoteEditorWrapper.jsx AFTER BlockNote CSS (correct load order)
+ * Loaded ONLY via Vite: imported in BlockNoteEditorWrapper.jsx AFTER BlockNote CSS.
+ * NOT included in the global Tailwind pipeline (components.css) to avoid loading
+ * heavy editor styles on pages that don't use the BlockEditor.
  *
  * IMPORTANT: Do NOT use @apply or other Tailwind directives here.
  * This file must work as plain CSS when loaded via Vite.
