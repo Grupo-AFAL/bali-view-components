@@ -36,7 +36,6 @@
     "@babel/preset-env": "^7.17.10",
     "cypress": "^13.6.4",
     "lefthook": "^2.0.16",
-    "lefthook-linux-arm64": "^2.1.1",
     "playwright": "^1.57.0",
     "standard": "^17.0.0"
   },
@@ -81,6 +80,9 @@
     "ai": { "optional": true },
     "react": { "optional": true },
     "react-dom": { "optional": true }
+  },
+  "optionalDependencies": {
+    "lefthook-linux-arm64": "^2.1.1"
   },
   "dependencies": {
     "daisyui": "^5.5.14"
