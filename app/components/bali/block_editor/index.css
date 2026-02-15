@@ -176,6 +176,49 @@
   cursor: default;
 }
 
+/* Entity reference chips - styled inline elements for #references.
+ * Each chip sets --entity-ref-color inline via JS for per-type coloring.
+ * Host apps define colors via references_config Ruby param. */
+.block-editor-component .bn-entity-reference {
+  --entity-ref-color: var(--color-secondary);
+  background-color: color-mix(in oklch, var(--entity-ref-color) 15%, transparent);
+  color: var(--entity-ref-color);
+  border-radius: 0.25rem;
+  padding: 0.1em 0.35em;
+  font-weight: 500;
+  font-size: 0.95em;
+  white-space: nowrap;
+  cursor: default;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2em;
+}
+
+.block-editor-component .bn-entity-reference-icon {
+  font-size: 0.85em;
+  opacity: 0.7;
+}
+
+.block-editor-component .bn-entity-reference-label {
+  opacity: 0.7;
+  font-size: 0.9em;
+}
+
+.block-editor-component .bn-entity-reference-label::after {
+  content: ':';
+  margin-right: 0.15em;
+}
+
+.block-editor-component .bn-entity-reference-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.block-editor-component .bn-entity-reference-link:hover .bn-entity-reference {
+  background-color: color-mix(in oklch, var(--entity-ref-color) 25%, transparent);
+  cursor: pointer;
+}
+
 /* Table extend buttons (add row / add column) - override BlockNote's
  * resize cursors with pointer since these are click targets, not drag handles */
 .block-editor-component .bn-extend-button-add-remove-columns,

@@ -63,6 +63,23 @@ module Bali
         )
       end
 
+      # @label Entity References
+      # Type `#` to reference entities like tasks, projects, or documents.
+      # Pass `references_url:` pointing to a JSON API that accepts `?q=`
+      # and returns `[{entityType:, entityId:, entityName:}, ...]`.
+      # Pass `references_resolve_url:` for batch name resolution on load.
+      #
+      # This preview uses the dummy app's `/entity_references` endpoint.
+      # @param placeholder text
+      def with_entity_references(placeholder: 'Type # to reference an entity...')
+        render BlockEditor::Component.new(
+          editable: true,
+          placeholder: placeholder,
+          references_url: '/entity_references',
+          references_resolve_url: '/entity_references/resolve'
+        )
+      end
+
       # Full-featured editor with all capabilities enabled.
       # Includes: rich text, code blocks, multi-column, tables,
       # mentions, export, and form integration.
@@ -78,6 +95,8 @@ module Bali
           export: true,
           export_filename: 'my-document',
           mentions_url: '/users',
+          references_url: '/entity_references',
+          references_resolve_url: '/entity_references/resolve',
           initial_content: full_featured_content.to_json
         )
       end
@@ -309,6 +328,18 @@ module Bali
             type: 'checkListItem',
             content: [{ type: 'text', text: 'Implement core editor features', styles: {} }],
             props: { checked: true }
+          },
+          {
+            type: 'paragraph',
+            content: [
+              { type: 'text', text: 'Related to ', styles: {} },
+              { type: 'entityReference',
+                props: { entityType: 'project', entityId: '1', entityName: 'Q4 Release' } },
+              { type: 'text', text: ' and ', styles: {} },
+              { type: 'entityReference',
+                props: { entityType: 'task', entityId: '3', entityName: 'Fix login bug' } },
+              { type: 'text', text: '.', styles: {} }
+            ]
           },
           {
             type: 'checkListItem',

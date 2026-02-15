@@ -78,10 +78,71 @@ const Mention = createReactInlineContentSpec(
   },
   {
     render: (props) => (
-      <span className="bn-mention" data-mention-id={props.inlineContent.props.id}>
+      <span className='bn-mention' data-mention-id={props.inlineContent.props.id}>
         @{props.inlineContent.props.user}
       </span>
     )
+  }
+)
+
+// Default entity type display configuration.
+// Host apps can override via the referencesConfig prop (from references_config: in Ruby).
+// Colors use DaisyUI semantic names which are resolved to CSS vars at render time.
+const DEFAULT_ENTITY_TYPE_CONFIG = {
+  task: { icon: '\u2610', label: 'Task', color: 'info' },
+  project: { icon: '\u25C8', label: 'Project', color: 'accent' },
+  document: { icon: '\u25E7', label: 'Document', color: 'success' },
+  default: { icon: '#', label: '', color: 'secondary' }
+}
+
+// Module-level config ref that the static render function can access.
+// Updated by the component when referencesConfig prop is provided.
+let activeEntityConfig = DEFAULT_ENTITY_TYPE_CONFIG
+
+// Resolve a color name to a CSS variable reference.
+// Accepts DaisyUI names ('info'), full var() refs, hex, or rgb values.
+const resolveColor = (color) => {
+  if (!color) return undefined
+  if (color.startsWith('var(') || color.startsWith('#') || color.startsWith('rgb')) return color
+  return `var(--color-${color})`
+}
+
+// Entity reference inline content - renders as a styled chip with type icon and label
+const EntityReference = createReactInlineContentSpec(
+  {
+    type: 'entityReference',
+    propSchema: {
+      entityType: { default: '' },
+      entityId: { default: '' },
+      entityName: { default: '' },
+      url: { default: '' }
+    },
+    content: 'none'
+  },
+  {
+    render: (props) => {
+      const { entityType, entityName, url, entityId } = props.inlineContent.props
+      const config = activeEntityConfig[entityType] || activeEntityConfig.default
+      const display = entityName || `${entityType}:${entityId}`
+      const typeLabel = config.label || (entityType ? entityType.charAt(0).toUpperCase() + entityType.slice(1) : '')
+      const chip = (
+        <span
+          className='bn-entity-reference'
+          data-entity-type={entityType}
+          data-entity-id={entityId}
+          style={config.color ? { '--entity-ref-color': resolveColor(config.color) } : undefined}
+        >
+          <span className='bn-entity-reference-icon'>{config.icon}</span>
+          {typeLabel && <span className='bn-entity-reference-label'>{typeLabel}</span>}
+          {display}
+        </span>
+      )
+
+      if (url) {
+        return <a href={url} className='bn-entity-reference-link'>{chip}</a>
+      }
+      return chip
+    }
   }
 )
 
@@ -98,12 +159,29 @@ export default function BlockNoteEditorWrapper ({
   aiUrl,
   ai,
   mentionsUrl,
-  mentions: staticMentions
+  mentions: staticMentions,
+  referencesUrl,
+  referencesResolveUrl,
+  referencesConfig
 }) {
   const htmlParsed = useRef(false)
   const ready = useRef(!htmlContent)
   const aiEnabled = !!(aiUrl && ai)
   const mentionsEnabled = !!(mentionsUrl || (staticMentions && staticMentions.length > 0))
+  const referencesEnabled = !!referencesUrl
+
+  // Merge host-provided entity type config with defaults
+  useMemo(() => {
+    if (!referencesConfig || Object.keys(referencesConfig).length === 0) {
+      activeEntityConfig = DEFAULT_ENTITY_TYPE_CONFIG
+      return
+    }
+    const merged = { ...DEFAULT_ENTITY_TYPE_CONFIG }
+    for (const [type, overrides] of Object.entries(referencesConfig)) {
+      merged[type] = { ...(DEFAULT_ENTITY_TYPE_CONFIG[type] || DEFAULT_ENTITY_TYPE_CONFIG.default), ...overrides }
+    }
+    activeEntityConfig = merged
+  }, [referencesConfig])
 
   const uploadFile = useCallback(async (file) => {
     if (!imagesUrl) throw new Error('File uploads are not configured')
@@ -172,7 +250,8 @@ export default function BlockNoteEditorWrapper ({
     },
     inlineContentSpecs: {
       ...defaultInlineContentSpecs,
-      mention: Mention
+      mention: Mention,
+      entityReference: EntityReference
     }
   })), [])
 
@@ -257,6 +336,45 @@ export default function BlockNoteEditorWrapper ({
     return items.filter(item => item.title.toLowerCase().includes(q))
   }, [editor, mentionsUrl, staticMentions])
 
+  // Fetch entity reference suggestions from server
+  const getEntityReferenceItems = useCallback(async (query) => {
+    if (!referencesUrl) return []
+
+    try {
+      const url = new URL(referencesUrl, window.location.origin)
+      if (query) url.searchParams.set('q', query)
+      const response = await fetch(url, {
+        headers: { Accept: 'application/json' }
+      })
+      if (!response.ok) return []
+      const refs = await response.json()
+
+      return refs.map((ref) => {
+        const config = activeEntityConfig[ref.entityType] || activeEntityConfig.default
+        return {
+          title: ref.entityName,
+          subtext: config.label,
+          onItemClick: () => {
+            editor.insertInlineContent([
+              {
+                type: 'entityReference',
+                props: {
+                  entityType: ref.entityType,
+                  entityId: String(ref.entityId),
+                  entityName: ref.entityName
+                }
+              },
+              ' '
+            ])
+          }
+        }
+      })
+    } catch (error) {
+      console.error('BlockEditor: Failed to fetch entity references:', error)
+      return []
+    }
+  }, [editor, referencesUrl])
+
   // Expose editor instance to the parent (Stimulus controller) for export functionality
   useEffect(() => {
     if (editor && onEditorReady) {
@@ -279,6 +397,111 @@ export default function BlockNoteEditorWrapper ({
       })
     }
   }, [editor, htmlContent, parsedContent])
+
+  // Resolve entity reference display names on document load
+  useEffect(() => {
+    if (!referencesResolveUrl || !editor) return
+
+    const resolveEntityReferences = async () => {
+      // Collect all entity reference nodes from the document
+      const refs = []
+      const collectRefs = (blocks) => {
+        for (const block of blocks) {
+          if (Array.isArray(block.content)) {
+            for (const inline of block.content) {
+              if (inline.type === 'entityReference' && inline.props?.entityId) {
+                refs.push({
+                  entityType: inline.props.entityType,
+                  entityId: inline.props.entityId
+                })
+              }
+            }
+          }
+          // Handle table content structure
+          if (block.content?.type === 'tableContent') {
+            for (const row of block.content.rows) {
+              for (const cell of row.cells) {
+                for (const inline of cell) {
+                  if (inline.type === 'entityReference' && inline.props?.entityId) {
+                    refs.push({
+                      entityType: inline.props.entityType,
+                      entityId: inline.props.entityId
+                    })
+                  }
+                }
+              }
+            }
+          }
+          if (block.children) collectRefs(block.children)
+        }
+      }
+
+      collectRefs(editor.document)
+      if (refs.length === 0) return
+
+      // Deduplicate by entityType:entityId
+      const uniqueRefs = Array.from(
+        new Map(refs.map(r => [`${r.entityType}:${r.entityId}`, r])).values()
+      )
+
+      try {
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]')
+        const response = await fetch(referencesResolveUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            ...(csrfMeta ? { 'X-CSRF-Token': csrfMeta.content } : {})
+          },
+          body: JSON.stringify({ refs: uniqueRefs })
+        })
+
+        if (!response.ok) return
+        const resolved = await response.json()
+
+        // Build lookup map
+        const resolvedMap = new Map(
+          resolved.map(r => [`${r.entityType}:${r.entityId}`, r])
+        )
+
+        // Update entity reference nodes in-place
+        const updateBlocks = (blocks) => {
+          for (const block of blocks) {
+            if (Array.isArray(block.content)) {
+              let needsUpdate = false
+              const updatedContent = block.content.map((inline) => {
+                if (inline.type !== 'entityReference') return inline
+                const key = `${inline.props.entityType}:${inline.props.entityId}`
+                const data = resolvedMap.get(key)
+                if (!data) return inline
+                needsUpdate = true
+                return {
+                  ...inline,
+                  props: {
+                    ...inline.props,
+                    entityName: data.entityName || inline.props.entityName,
+                    url: data.url || ''
+                  }
+                }
+              })
+              if (needsUpdate) {
+                editor.updateBlock(block, { content: updatedContent })
+              }
+            }
+            if (block.children) updateBlocks(block.children)
+          }
+        }
+
+        updateBlocks(editor.document)
+      } catch (error) {
+        console.error('BlockEditor: Failed to resolve entity references:', error)
+      }
+    }
+
+    // Small delay to ensure document is fully loaded (accounts for HTML parse path)
+    const timer = setTimeout(resolveEntityReferences, 100)
+    return () => clearTimeout(timer)
+  }, [editor, referencesResolveUrl])
 
   // Sync content to hidden input on changes (debounced)
   const pendingUpdate = useRef(null)
@@ -311,13 +534,19 @@ export default function BlockNoteEditorWrapper ({
       formattingToolbar={aiEnabled ? false : undefined}
     >
       <SuggestionMenuController
-        triggerCharacter="/"
+        triggerCharacter='/'
         getItems={getSlashMenuItems}
       />
       {mentionsEnabled && (
         <SuggestionMenuController
-          triggerCharacter="@"
+          triggerCharacter='@'
           getItems={getMentionItems}
+        />
+      )}
+      {referencesEnabled && (
+        <SuggestionMenuController
+          triggerCharacter='#'
+          getItems={getEntityReferenceItems}
         />
       )}
       {aiEnabled && (
@@ -325,7 +554,7 @@ export default function BlockNoteEditorWrapper ({
           formattingToolbar={() => (
             <FormattingToolbar>
               {getFormattingToolbarItems()}
-              <ai.AIToolbarButton key="aiButton" />
+              <ai.AIToolbarButton key='aiButton' />
             </FormattingToolbar>
           )}
         />

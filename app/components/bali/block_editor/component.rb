@@ -20,6 +20,9 @@ module Bali
         ai_url: nil,
         mentions_url: nil,
         mentions: nil,
+        references_url: nil,
+        references_resolve_url: nil,
+        references_config: nil,
         **options
       )
         # rubocop:enable Metrics/ParameterLists
@@ -37,6 +40,9 @@ module Bali
         @ai_url = ai_url
         @mentions_url = mentions_url
         @mentions = mentions
+        @references_url = references_url
+        @references_resolve_url = references_resolve_url
+        @references_config = references_config
 
         @options = prepend_class_name(options, 'block-editor-component')
         @options = prepend_controller(@options, 'block-editor')
@@ -90,7 +96,10 @@ module Bali
           export_filename: @export_filename,
           ai_url: @ai_url || '',
           mentions_url: @mentions_url || '',
-          mentions: serialized_mentions
+          mentions: serialized_mentions,
+          references_url: @references_url || '',
+          references_resolve_url: @references_resolve_url || '',
+          references_config: serialized_references_config
         }
       end
 
@@ -109,6 +118,12 @@ module Bali
         else
           ''
         end
+      end
+
+      def serialized_references_config
+        return '{}' if @references_config.blank?
+
+        @references_config.transform_keys(&:to_s).to_json
       end
 
       def serialized_mentions

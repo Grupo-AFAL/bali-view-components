@@ -14,7 +14,10 @@ export class BlockEditorController extends Controller {
     exportFilename: { type: String, default: 'document' },
     aiUrl: { type: String, default: '' },
     mentionsUrl: { type: String, default: '' },
-    mentions: { type: Array, default: [] }
+    mentions: { type: Array, default: [] },
+    referencesUrl: { type: String, default: '' },
+    referencesResolveUrl: { type: String, default: '' },
+    referencesConfig: { type: Object, default: {} }
   }
 
   async connect () {
@@ -39,7 +42,10 @@ export class BlockEditorController extends Controller {
         theme: this.themeValue,
         aiUrl: this.aiUrlValue || undefined,
         mentionsUrl: this.mentionsUrlValue || undefined,
-        mentions: this.mentionsValue.length > 0 ? this.mentionsValue : undefined
+        mentions: this.mentionsValue.length > 0 ? this.mentionsValue : undefined,
+        referencesUrl: this.referencesUrlValue || undefined,
+        referencesResolveUrl: this.referencesResolveUrlValue || undefined,
+        referencesConfig: Object.keys(this.referencesConfigValue).length > 0 ? this.referencesConfigValue : undefined
       }
 
       // Dynamically load AI modules when ai_url is configured
