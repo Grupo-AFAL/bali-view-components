@@ -2,8 +2,23 @@
 
 module Bali
   class BlockEditorUploadsController < ApplicationController
-    ALLOWED_CONTENT_TYPES = %w[image/jpeg image/png image/gif image/webp].freeze
-    ALLOWED_EXTENSIONS = %w[.jpg .jpeg .png .gif .webp].freeze
+    ALLOWED_CONTENT_TYPES = [
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'application/pdf',
+      'text/plain', 'text/markdown', 'text/csv',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'application/zip'
+    ].freeze
+
+    BLOCKED_EXTENSIONS = %w[
+      .exe .bat .cmd .com .msi .scr .pif .vbs .vbe .js .jse .wsf .wsh .ps1 .sh .rb .py .pl
+    ].freeze
+
     MAX_FILE_SIZE = 10.megabytes
 
     def create
@@ -68,7 +83,7 @@ module Bali
       end
 
       ext = File.extname(file.original_filename).downcase
-      unless ALLOWED_EXTENSIONS.include?(ext)
+      if BLOCKED_EXTENSIONS.include?(ext)
         raise UploadError, "File extension '#{ext}' is not allowed"
       end
 

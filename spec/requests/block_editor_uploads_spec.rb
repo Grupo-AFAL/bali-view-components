@@ -36,17 +36,33 @@ RSpec.describe 'Block Editor Uploads', type: :request do
       expect(json['error']).to include('file')
     end
 
-    it 'rejects disallowed content types' do
-      text_file = Rack::Test::UploadedFile.new(
+    it 'rejects files with disallowed MIME types' do
+      ruby_file = Rack::Test::UploadedFile.new(
         Rails.root.join('config/routes.rb'),
-        'text/plain'
+        'application/x-ruby'
       )
 
-      post bali.block_editor_uploads_path, params: { file: text_file }
+      post bali.block_editor_uploads_path, params: { file: ruby_file }
 
       expect(response).to have_http_status(:unprocessable_entity)
       json = response.parsed_body
       expect(json['error']).to include('not allowed')
+    end
+
+    it 'rejects files with blocked extensions' do
+      file = Tempfile.new(['script', '.sh'])
+      file.write('#!/bin/bash')
+      file.rewind
+      shell_file = Rack::Test::UploadedFile.new(file.path, 'text/plain')
+
+      post bali.block_editor_uploads_path, params: { file: shell_file }
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      json = response.parsed_body
+      expect(json['error']).to include('not allowed')
+    ensure
+      file&.close
+      file&.unlink
     end
 
     it 'rejects files exceeding max size' do

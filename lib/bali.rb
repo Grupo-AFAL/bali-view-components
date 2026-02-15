@@ -64,7 +64,8 @@ module Bali
   mattr_accessor :block_editor_upload_handler, default: nil
 
   # Allowed upload content types (array of MIME type strings).
-  # Default: %w[image/jpeg image/png image/gif image/webp]
+  # Default includes images, PDFs, text, Office documents, and zip files.
+  # See BlockEditorUploadsController::ALLOWED_CONTENT_TYPES for the full list.
   mattr_accessor :block_editor_allowed_upload_types, default: nil
 
   # Maximum upload file size in bytes. Default: 10.megabytes
