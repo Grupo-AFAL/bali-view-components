@@ -109,13 +109,39 @@ export class BlockEditorController extends Controller {
     try {
       const [
         { PDFExporter, pdfDefaultSchemaMappings },
-        { pdf }
+        reactPdf,
+        { createElement }
       ] = await Promise.all([
         import('@blocknote/xl-pdf-exporter'),
-        import('@react-pdf/renderer')
+        import('@react-pdf/renderer'),
+        import('react')
       ])
 
-      const exporter = new PDFExporter(this.blockNoteEditor.schema, pdfDefaultSchemaMappings)
+      const { pdf, Text, View } = reactPdf
+      const mappings = {
+        ...pdfDefaultSchemaMappings,
+        blockMapping: {
+          ...pdfDefaultSchemaMappings.blockMapping,
+          // Override toggleListItem to avoid upstream SVG bug (fill="undefined" causes Infinity)
+          toggleListItem: (block, transformer) => createElement(
+            View,
+            { style: { flexDirection: 'row', marginBottom: 2 }, key: 'toggle-' + block.id },
+            createElement(View, { style: { width: 18, paddingTop: 2 } },
+              createElement(Text, { style: { fontSize: 8 } }, '\u25B8')
+            ),
+            createElement(Text, { style: { flex: 1 } },
+              ...transformer.transformInlineContent(block.content)
+            )
+          )
+        },
+        inlineContentMapping: {
+          ...pdfDefaultSchemaMappings.inlineContentMapping,
+          mention: (ic) => createElement(Text, { key: 'mention-' + ic.props.id }, '@' + ic.props.user),
+          entityReference: (ic) => createElement(Text, { key: 'ref-' + ic.props.entityId }, '#' + ic.props.entityName)
+        }
+      }
+
+      const exporter = new PDFExporter(this.blockNoteEditor.schema, mappings)
       const pdfDocument = await exporter.toReactPDFDocument(this.blockNoteEditor.document)
       const blob = await pdf(pdfDocument).toBlob()
       this._downloadBlob(blob, `${this.exportFilenameValue}.pdf`)
@@ -130,15 +156,24 @@ export class BlockEditorController extends Controller {
     try {
       const [
         { DOCXExporter, docxDefaultSchemaMappings },
-        { Packer }
+        docx
       ] = await Promise.all([
         import('@blocknote/xl-docx-exporter'),
         import('docx')
       ])
 
-      const exporter = new DOCXExporter(this.blockNoteEditor.schema, docxDefaultSchemaMappings)
+      const mappings = {
+        ...docxDefaultSchemaMappings,
+        inlineContentMapping: {
+          ...docxDefaultSchemaMappings.inlineContentMapping,
+          mention: (ic) => new docx.TextRun({ text: '@' + ic.props.user }),
+          entityReference: (ic) => new docx.TextRun({ text: '#' + ic.props.entityName })
+        }
+      }
+
+      const exporter = new DOCXExporter(this.blockNoteEditor.schema, mappings)
       const docxDocument = await exporter.toDocxJsDocument(this.blockNoteEditor.document)
-      const blob = await Packer.toBlob(docxDocument)
+      const blob = await docx.Packer.toBlob(docxDocument)
       this._downloadBlob(blob, `${this.exportFilenameValue}.docx`)
     } catch (error) {
       console.error('BlockEditor: DOCX export failed:', error)
