@@ -351,9 +351,23 @@ export default function BlockNoteEditorWrapper ({
 
       return refs.map((ref) => {
         const config = activeEntityConfig[ref.entityType] || activeEntityConfig.default
+        const color = resolveColor(config.color)
         return {
           title: ref.entityName,
-          subtext: config.label,
+          group: config.label || ref.entityType,
+          icon: (
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                backgroundColor: color,
+                display: 'inline-block',
+                flexShrink: 0
+              }}
+            />
+          ),
+          badge: config.icon,
           onItemClick: () => {
             editor.insertInlineContent([
               {
