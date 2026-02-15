@@ -3,11 +3,18 @@ import '@blocknote/mantine/style.css'
 // Our DaisyUI overrides - MUST load AFTER BlockNote CSS for correct cascade
 import './index.css'
 
-import { BlockNoteSchema, defaultBlockSpecs, createCodeBlockSpec, combineByGroup } from '@blocknote/core'
+import {
+  BlockNoteSchema,
+  defaultBlockSpecs,
+  defaultInlineContentSpecs,
+  createCodeBlockSpec,
+  combineByGroup
+} from '@blocknote/core'
 import * as coreLocales from '@blocknote/core/locales'
 import { BlockNoteView } from '@blocknote/mantine'
 import {
   useCreateBlockNote,
+  createReactInlineContentSpec,
   SuggestionMenuController,
   getDefaultReactSlashMenuItems,
   FormattingToolbarController,
@@ -59,6 +66,25 @@ const PRELOADED_LANGS = [
   'javascript', 'typescript', 'python', 'ruby', 'html', 'css', 'json', 'bash', 'sql'
 ]
 
+// Mention inline content - renders as a styled chip with @ prefix
+const Mention = createReactInlineContentSpec(
+  {
+    type: 'mention',
+    propSchema: {
+      user: { default: '' },
+      id: { default: '' }
+    },
+    content: 'none'
+  },
+  {
+    render: (props) => (
+      <span className="bn-mention" data-mention-id={props.inlineContent.props.id}>
+        @{props.inlineContent.props.user}
+      </span>
+    )
+  }
+)
+
 export default function BlockNoteEditorWrapper ({
   initialContent,
   htmlContent,
@@ -70,11 +96,14 @@ export default function BlockNoteEditorWrapper ({
   onEditorReady,
   theme = 'light',
   aiUrl,
-  ai
+  ai,
+  mentionsUrl,
+  mentions: staticMentions
 }) {
   const htmlParsed = useRef(false)
   const ready = useRef(!htmlContent)
   const aiEnabled = !!(aiUrl && ai)
+  const mentionsEnabled = !!(mentionsUrl || (staticMentions && staticMentions.length > 0))
 
   const uploadFile = useCallback(async (file) => {
     if (!imagesUrl) throw new Error('File uploads are not configured')
@@ -116,7 +145,7 @@ export default function BlockNoteEditorWrapper ({
     }
   }, [initialContent])
 
-  // Build schema with syntax highlighting and multi-column support
+  // Build schema with syntax highlighting, multi-column, and mentions support
   const schema = useMemo(() => withMultiColumn(BlockNoteSchema.create({
     blockSpecs: {
       ...defaultBlockSpecs,
@@ -140,6 +169,10 @@ export default function BlockNoteEditorWrapper ({
           }
         }
       })
+    },
+    inlineContentSpecs: {
+      ...defaultInlineContentSpecs,
+      mention: Mention
     }
   })), [])
 
@@ -183,6 +216,46 @@ export default function BlockNoteEditorWrapper ({
       )
     }
   }, [editor, aiEnabled, ai])
+
+  // Fetch mention suggestions from server or filter static list
+  const getMentionItems = useCallback(async (query) => {
+    let users = []
+
+    if (mentionsUrl) {
+      try {
+        const url = new URL(mentionsUrl, window.location.origin)
+        if (query) url.searchParams.set('q', query)
+        const response = await fetch(url, {
+          headers: { Accept: 'application/json' }
+        })
+        if (response.ok) {
+          users = await response.json()
+        }
+      } catch (error) {
+        console.error('BlockEditor: Failed to fetch mentions:', error)
+      }
+    } else if (staticMentions) {
+      users = staticMentions
+    }
+
+    const items = users.map((user) => {
+      const name = typeof user === 'string' ? user : user.name
+      const id = typeof user === 'string' ? user : (user.id || user.name)
+      return {
+        title: name,
+        onItemClick: () => {
+          editor.insertInlineContent([
+            { type: 'mention', props: { user: name, id: String(id) } },
+            ' '
+          ])
+        }
+      }
+    })
+
+    if (!query) return items
+    const q = query.toLowerCase()
+    return items.filter(item => item.title.toLowerCase().includes(q))
+  }, [editor, mentionsUrl, staticMentions])
 
   // Expose editor instance to the parent (Stimulus controller) for export functionality
   useEffect(() => {
@@ -241,6 +314,12 @@ export default function BlockNoteEditorWrapper ({
         triggerCharacter="/"
         getItems={getSlashMenuItems}
       />
+      {mentionsEnabled && (
+        <SuggestionMenuController
+          triggerCharacter="@"
+          getItems={getMentionItems}
+        />
+      )}
       {aiEnabled && (
         <FormattingToolbarController
           formattingToolbar={() => (

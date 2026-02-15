@@ -164,6 +164,25 @@
   background-color: transparent !important;
 }
 
+/* Mention chips - styled inline elements for @mentions */
+.block-editor-component .bn-mention {
+  background-color: color-mix(in oklch, var(--color-primary) 15%, transparent);
+  color: var(--color-primary);
+  border-radius: 0.25rem;
+  padding: 0.1em 0.35em;
+  font-weight: 500;
+  font-size: 0.95em;
+  white-space: nowrap;
+  cursor: default;
+}
+
+/* Table extend buttons (add row / add column) - override BlockNote's
+ * resize cursors with pointer since these are click targets, not drag handles */
+.block-editor-component .bn-extend-button-add-remove-columns,
+.block-editor-component .bn-extend-button-add-remove-rows {
+  cursor: pointer;
+}
+
 /* AI menu - match DaisyUI theming for xl-ai components */
 .block-editor-component .bn-ai-menu {
   background-color: var(--color-base-100) !important;

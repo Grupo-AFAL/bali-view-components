@@ -18,6 +18,8 @@ module Bali
         export: false,
         export_filename: 'document',
         ai_url: nil,
+        mentions_url: nil,
+        mentions: nil,
         **options
       )
         # rubocop:enable Metrics/ParameterLists
@@ -33,6 +35,8 @@ module Bali
         @export = export
         @export_filename = export_filename
         @ai_url = ai_url
+        @mentions_url = mentions_url
+        @mentions = mentions
 
         @options = prepend_class_name(options, 'block-editor-component')
         @options = prepend_controller(@options, 'block-editor')
@@ -84,7 +88,9 @@ module Bali
           images_url: @images_url,
           theme: @theme.to_s,
           export_filename: @export_filename,
-          ai_url: @ai_url || ''
+          ai_url: @ai_url || '',
+          mentions_url: @mentions_url || '',
+          mentions: serialized_mentions
         }
       end
 
@@ -103,6 +109,18 @@ module Bali
         else
           ''
         end
+      end
+
+      def serialized_mentions
+        return '[]' if @mentions.blank?
+
+        Array(@mentions).map do |m|
+          case m
+          when String then { name: m }
+          when Hash then m
+          else m.respond_to?(:to_h) ? m.to_h : { name: m.to_s }
+          end
+        end.to_json
       end
     end
   end

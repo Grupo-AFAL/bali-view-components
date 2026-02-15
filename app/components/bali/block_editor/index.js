@@ -12,7 +12,9 @@ export class BlockEditorController extends Controller {
     imagesUrl: String,
     theme: { type: String, default: 'light' },
     exportFilename: { type: String, default: 'document' },
-    aiUrl: { type: String, default: '' }
+    aiUrl: { type: String, default: '' },
+    mentionsUrl: { type: String, default: '' },
+    mentions: { type: Array, default: [] }
   }
 
   async connect () {
@@ -35,7 +37,9 @@ export class BlockEditorController extends Controller {
         outputElement: this.hasOutputTarget ? this.outputTarget : null,
         onEditorReady: (editor) => { this.blockNoteEditor = editor },
         theme: this.themeValue,
-        aiUrl: this.aiUrlValue || undefined
+        aiUrl: this.aiUrlValue || undefined,
+        mentionsUrl: this.mentionsUrlValue || undefined,
+        mentions: this.mentionsValue.length > 0 ? this.mentionsValue : undefined
       }
 
       // Dynamically load AI modules when ai_url is configured
