@@ -8,9 +8,8 @@ import { BlockNoteView } from '@blocknote/mantine'
 import { useCreateBlockNote } from '@blocknote/react'
 import { useEffect, useCallback, useRef, useMemo } from 'react'
 
-// Client-side validation for UX only. The server endpoint MUST independently
+// Client-side max size check for UX only. The server endpoint MUST independently
 // validate file type (via magic bytes), file size, and file extension.
-const ALLOWED_UPLOAD_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
 const MAX_UPLOAD_SIZE = 10 * 1024 * 1024 // 10MB
 
 // Languages supported in the code block language selector.
@@ -60,11 +59,8 @@ export default function BlockNoteEditorWrapper ({
   const ready = useRef(!htmlContent)
 
   const uploadFile = useCallback(async (file) => {
-    if (!imagesUrl) throw new Error('Image uploads are not configured')
+    if (!imagesUrl) throw new Error('File uploads are not configured')
 
-    if (!ALLOWED_UPLOAD_TYPES.includes(file.type)) {
-      throw new Error('This file type is not supported. Accepted formats: JPEG, PNG, GIF, WebP.')
-    }
     if (file.size > MAX_UPLOAD_SIZE) {
       throw new Error('File size exceeds maximum of 10MB')
     }
