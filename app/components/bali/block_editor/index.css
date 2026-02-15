@@ -115,16 +115,51 @@
   color: color-mix(in oklch, var(--color-base-content) 30%, transparent);
 }
 
-/* Code block styling */
-.block-editor-component .bn-editor pre {
-  background-color: var(--color-base-200);
-  border-radius: var(--radius-box, 0.5rem);
-  padding: 1rem;
-  overflow-x: auto;
+/* Links - DaisyUI resets anchor styles; restore them inside the editor */
+.block-editor-component .bn-editor a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  cursor: pointer;
 }
 
-.block-editor-component .bn-editor pre code {
+.block-editor-component .bn-editor a:hover {
+  color: color-mix(in oklch, var(--color-primary) 80%, black);
+}
+
+/* Code block styling - override BlockNote's default dark bg (rgb(22 22 22))
+ * to integrate with DaisyUI theming. Target the [data-content-type] wrapper
+ * so the background is consistent with the inner <pre> element. */
+.block-editor-component .bn-block-content[data-content-type="codeBlock"] {
+  background-color: var(--color-base-200);
+  border-radius: var(--radius-box, 0.5rem);
+  color: var(--color-base-content);
+}
+
+.block-editor-component .bn-block-content[data-content-type="codeBlock"] > pre {
+  background-color: transparent;
+  border-radius: 0;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  margin: 0;
+}
+
+.block-editor-component .bn-block-content[data-content-type="codeBlock"] pre code {
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   font-size: 0.875rem;
   line-height: 1.5;
+}
+
+/* Language selector - adapt to light background */
+.block-editor-component .bn-block-content[data-content-type="codeBlock"] > div > select {
+  color: var(--color-base-content);
+}
+
+.block-editor-component .bn-block-content[data-content-type="codeBlock"] > div > select > option {
+  color: var(--color-base-content);
+}
+
+/* Override shiki theme backgrounds so they don't clash with our wrapper */
+.block-editor-component .bn-block-content[data-content-type="codeBlock"] pre .shiki,
+.block-editor-component .bn-block-content[data-content-type="codeBlock"] pre .shiki span {
+  background-color: transparent !important;
 }
