@@ -22,6 +22,7 @@
 /* Form Components */
 @import "../../../components/bali/filters/index.css";
 @import "../../../components/bali/rich_text_editor/index.css";
+@import "../../../components/bali/block_editor/index.css";
 @import "../../../components/bali/stepper/index.css";
 
 /* Layout Components */

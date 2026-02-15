@@ -868,6 +868,103 @@
   <% end %>
 </section>
 
+<%# BlockEditor Demo %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('text-cursor-input', class: 'text-primary') %>
+    <%= t('showcase.block_editor') %>
+  </h2>
+  <p class="text-base-content/70 mb-4"><%= t('showcase.block_editor_desc') %></p>
+
+  <%
+    showcase_content = [
+      { type: 'heading', content: [{ type: 'text', text: 'Block Editor Showcase', styles: {} }], props: { level: 1 } },
+      { type: 'heading', content: [{ type: 'text', text: 'Text Formatting', styles: {} }], props: { level: 2 } },
+      { type: 'paragraph', content: [
+        { type: 'text', text: 'This is ', styles: {} },
+        { type: 'text', text: 'bold', styles: { bold: true } },
+        { type: 'text', text: ', ', styles: {} },
+        { type: 'text', text: 'italic', styles: { italic: true } },
+        { type: 'text', text: ', ', styles: {} },
+        { type: 'text', text: 'underlined', styles: { underline: true } },
+        { type: 'text', text: ', ', styles: {} },
+        { type: 'text', text: 'strikethrough', styles: { strike: true } },
+        { type: 'text', text: ', and ', styles: {} },
+        { type: 'text', text: 'inline code', styles: { code: true } },
+        { type: 'text', text: ' text.', styles: {} }
+      ] },
+      { type: 'heading', content: [{ type: 'text', text: 'Lists', styles: {} }], props: { level: 3 } },
+      { type: 'bulletListItem', content: [{ type: 'text', text: 'First bullet item', styles: {} }] },
+      { type: 'bulletListItem', content: [{ type: 'text', text: 'Second bullet item with ', styles: {} },
+                                           { type: 'text', text: 'bold text', styles: { bold: true } }] },
+      { type: 'numberedListItem', content: [{ type: 'text', text: 'First numbered item', styles: {} }] },
+      { type: 'numberedListItem', content: [{ type: 'text', text: 'Second numbered item', styles: {} }] },
+      { type: 'checkListItem', content: [{ type: 'text', text: 'Completed task', styles: {} }], props: { checked: true } },
+      { type: 'checkListItem', content: [{ type: 'text', text: 'Pending task', styles: {} }], props: { checked: false } },
+      { type: 'heading', content: [{ type: 'text', text: 'Blockquote', styles: {} }], props: { level: 3 } },
+      { type: 'quote', content: [
+        { type: 'text', text: 'The best way to predict the future is to invent it.', styles: { italic: true } },
+        { type: 'text', text: ' — Alan Kay', styles: {} }
+      ] },
+      { type: 'divider' },
+      { type: 'heading', content: [{ type: 'text', text: 'Code Block', styles: {} }], props: { level: 3 } },
+      { type: 'codeBlock', content: [{ type: 'text', text: "function greet(name) {\n  return `Hello, ${name}!`;\n}\n\nconsole.log(greet('World'));", styles: {} }], props: { language: 'javascript' } },
+      { type: 'heading', content: [{ type: 'text', text: 'Table', styles: {} }], props: { level: 3 } },
+      { type: 'table', content: {
+        type: 'tableContent',
+        rows: [
+          { cells: [[{ type: 'text', text: 'Feature', styles: { bold: true } }],
+                     [{ type: 'text', text: 'Status', styles: { bold: true } }],
+                     [{ type: 'text', text: 'Notes', styles: { bold: true } }]] },
+          { cells: [[{ type: 'text', text: 'Rich Text', styles: {} }],
+                     [{ type: 'text', text: 'Supported', styles: {} }],
+                     [{ type: 'text', text: 'Bold, italic, underline, code', styles: {} }]] },
+          { cells: [[{ type: 'text', text: 'Code Blocks', styles: {} }],
+                     [{ type: 'text', text: 'Supported', styles: {} }],
+                     [{ type: 'text', text: 'With syntax highlighting', styles: {} }]] }
+        ]
+      } },
+      { type: 'heading', content: [{ type: 'text', text: 'Toggle List', styles: {} }], props: { level: 3 } },
+      { type: 'toggleListItem', content: [{ type: 'text', text: 'Click to expand this toggle', styles: {} }] },
+      { type: 'toggleListItem', content: [{ type: 'text', text: 'Another collapsible section', styles: {} }] },
+      { type: 'paragraph', content: [
+        { type: 'text', text: 'Type ', styles: {} },
+        { type: 'text', text: '/', styles: { code: true } },
+        { type: 'text', text: ' to see the slash command menu.', styles: {} }
+      ] }
+    ]
+  %>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <h3 class="font-semibold mb-3"><%= t('showcase.block_editor_editable') %></h3>
+    <%= render Bali::BlockEditor::Component.new(
+      initial_content: showcase_content,
+      editable: true,
+      placeholder: t('showcase.block_editor_placeholder'),
+      input_name: 'demo[content]'
+    ) %>
+  <% end %>
+
+  <%= render Bali::Card::Component.new(style: :bordered, class: 'mt-4') do %>
+    <h3 class="font-semibold mb-3">With Export Buttons</h3>
+    <p class="text-sm text-base-content/60 mb-3">Export content as PDF (via print dialog) or DOCX file.</p>
+    <%= render Bali::BlockEditor::Component.new(
+      initial_content: showcase_content,
+      editable: true,
+      export: true,
+      export_filename: 'block-editor-demo'
+    ) %>
+  <% end %>
+
+  <%= render Bali::Card::Component.new(style: :bordered, class: 'mt-4') do %>
+    <h3 class="font-semibold mb-3"><%= t('showcase.block_editor_readonly') %></h3>
+    <%= render Bali::BlockEditor::Component.new(
+      initial_content: showcase_content,
+      editable: false
+    ) %>
+  <% end %>
+</section>
+
 <%# Summary %>
 <section class="mb-12">
   <%= render Bali::Message::Component.new(color: :success) do %>
@@ -893,6 +990,7 @@
             <% tags.with_item(text: 'Tags', size: :sm) %>
             <% tags.with_item(text: 'Tooltip', size: :sm) %>
             <% tags.with_item(text: 'TreeView', size: :sm) %>
+            <% tags.with_item(text: 'BlockEditor', size: :sm, color: :accent) %>
           <% end %>
         </div>
       </div>

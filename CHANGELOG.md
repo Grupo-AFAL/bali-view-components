@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **BlockEditor V2** - New rich text editor powered by BlockNote + React
+  - Syntax-highlighted code blocks via Shiki
+  - Multi-column layout support via `@blocknote/xl-multi-column`
+  - PDF and DOCX export via `@blocknote/xl-pdf-exporter` and `@blocknote/xl-docx-exporter`
+  - File upload support with Active Storage integration
+  - AI assistance via `@blocknote/xl-ai` (optional, requires `ai_url` configuration)
+
+### Fixed
+
+- **lefthook-linux-arm64** - Moved to `optionalDependencies` to prevent CI failures on x64 runners
+
 ## [v2.1.1] - 2026-02-12
 
 ### Added

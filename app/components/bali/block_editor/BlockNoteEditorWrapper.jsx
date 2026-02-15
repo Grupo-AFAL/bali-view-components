@@ -1,0 +1,257 @@
+import '@blocknote/core/fonts/inter.css'
+import '@blocknote/mantine/style.css'
+// Our DaisyUI overrides - MUST load AFTER BlockNote CSS for correct cascade
+import './index.css'
+
+import { BlockNoteSchema, defaultBlockSpecs, createCodeBlockSpec, combineByGroup } from '@blocknote/core'
+import * as coreLocales from '@blocknote/core/locales'
+import { BlockNoteView } from '@blocknote/mantine'
+import {
+  useCreateBlockNote,
+  SuggestionMenuController,
+  getDefaultReactSlashMenuItems,
+  FormattingToolbarController,
+  FormattingToolbar,
+  getFormattingToolbarItems
+} from '@blocknote/react'
+import { useEffect, useCallback, useRef, useMemo } from 'react'
+import {
+  withMultiColumn,
+  multiColumnDropCursor,
+  getMultiColumnSlashMenuItems,
+  locales as multiColumnLocales
+} from '@blocknote/xl-multi-column'
+
+// Client-side max size check for UX only. The server endpoint MUST independently
+// validate file type (via magic bytes), file size, and file extension.
+const MAX_UPLOAD_SIZE = 10 * 1024 * 1024 // 10MB
+
+// Languages supported in the code block language selector.
+// This list also controls which languages shiki will highlight.
+const SUPPORTED_LANGUAGES = {
+  javascript: { name: 'JavaScript', aliases: ['js', 'jsx'] },
+  typescript: { name: 'TypeScript', aliases: ['ts', 'tsx'] },
+  python: { name: 'Python', aliases: ['py'] },
+  ruby: { name: 'Ruby', aliases: ['rb'] },
+  html: { name: 'HTML' },
+  css: { name: 'CSS' },
+  json: { name: 'JSON' },
+  bash: { name: 'Bash', aliases: ['sh', 'shell', 'zsh'] },
+  sql: { name: 'SQL' },
+  yaml: { name: 'YAML', aliases: ['yml'] },
+  markdown: { name: 'Markdown', aliases: ['md'] },
+  xml: { name: 'XML' },
+  java: { name: 'Java' },
+  go: { name: 'Go', aliases: ['golang'] },
+  rust: { name: 'Rust', aliases: ['rs'] },
+  php: { name: 'PHP' },
+  c: { name: 'C' },
+  cpp: { name: 'C++', aliases: ['c++'] },
+  csharp: { name: 'C#', aliases: ['cs', 'c#'] },
+  swift: { name: 'Swift' },
+  kotlin: { name: 'Kotlin', aliases: ['kt'] },
+  text: { name: 'Plain Text', aliases: ['txt', 'plaintext', 'none'] }
+}
+
+// Languages to pre-load in the highlighter for instant highlighting.
+// Other supported languages will be lazy-loaded on first use.
+const PRELOADED_LANGS = [
+  'javascript', 'typescript', 'python', 'ruby', 'html', 'css', 'json', 'bash', 'sql'
+]
+
+export default function BlockNoteEditorWrapper ({
+  initialContent,
+  htmlContent,
+  editable = true,
+  placeholder,
+  format = 'json',
+  imagesUrl,
+  outputElement,
+  onEditorReady,
+  theme = 'light',
+  aiUrl,
+  ai
+}) {
+  const htmlParsed = useRef(false)
+  const ready = useRef(!htmlContent)
+  const aiEnabled = !!(aiUrl && ai)
+
+  const uploadFile = useCallback(async (file) => {
+    if (!imagesUrl) throw new Error('File uploads are not configured')
+
+    if (file.size > MAX_UPLOAD_SIZE) {
+      throw new Error('File size exceeds maximum of 10MB')
+    }
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]')
+    if (!csrfMeta) {
+      throw new Error('CSRF token meta tag not found. Ensure csrf_meta_tags is in your layout.')
+    }
+
+    const response = await fetch(imagesUrl, {
+      method: 'POST',
+      body: formData,
+      headers: { 'X-CSRF-Token': csrfMeta.content }
+    })
+
+    if (!response.ok) throw new Error('Upload failed')
+
+    const data = await response.json()
+    if (data.url && (data.url.startsWith('/') || /^https?:\/\//i.test(data.url))) {
+      return data.url
+    }
+    throw new Error('Invalid URL returned from upload endpoint')
+  }, [imagesUrl])
+
+  const parsedContent = useMemo(() => {
+    if (!initialContent) return undefined
+    try {
+      const parsed = typeof initialContent === 'string' ? JSON.parse(initialContent) : initialContent
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : undefined
+    } catch {
+      return undefined
+    }
+  }, [initialContent])
+
+  // Build schema with syntax highlighting and multi-column support
+  const schema = useMemo(() => withMultiColumn(BlockNoteSchema.create({
+    blockSpecs: {
+      ...defaultBlockSpecs,
+      codeBlock: createCodeBlockSpec({
+        supportedLanguages: SUPPORTED_LANGUAGES,
+        defaultLanguage: 'text',
+        createHighlighter: async () => {
+          try {
+            const [{ createHighlighter }, { createJavaScriptRegexEngine }] = await Promise.all([
+              import('shiki'),
+              import('shiki/engine/javascript')
+            ])
+            return createHighlighter({
+              themes: ['github-light', 'github-dark'],
+              langs: PRELOADED_LANGS,
+              engine: createJavaScriptRegexEngine()
+            })
+          } catch (error) {
+            console.error('BlockEditor: Failed to initialize syntax highlighter:', error)
+            throw error
+          }
+        }
+      })
+    }
+  })), [])
+
+  const aiExtension = useMemo(() => {
+    if (!aiEnabled) return null
+    return ai.AIExtension({
+      transport: new ai.DefaultChatTransport({ api: aiUrl })
+    })
+  }, [aiEnabled, aiUrl, ai])
+
+  const editor = useCreateBlockNote({
+    schema,
+    dropCursor: multiColumnDropCursor,
+    dictionary: {
+      ...coreLocales.en,
+      multi_column: multiColumnLocales.en,
+      ...(aiEnabled ? { ai: ai.aiLocales.en } : {})
+    },
+    initialContent: parsedContent,
+    uploadFile: imagesUrl ? uploadFile : undefined,
+    placeholders: placeholder ? { default: placeholder } : undefined,
+    extensions: aiExtension ? [aiExtension] : undefined
+  })
+
+  // Combine default + multi-column + AI slash menu items
+  const getSlashMenuItems = useMemo(() => {
+    return async (query) => {
+      const groups = [
+        getDefaultReactSlashMenuItems(editor),
+        getMultiColumnSlashMenuItems(editor)
+      ]
+      if (aiEnabled) {
+        groups.push(ai.getAISlashMenuItems(editor))
+      }
+      const items = combineByGroup(...groups)
+      if (!query) return items
+      const q = query.toLowerCase()
+      return items.filter(item =>
+        item.title.toLowerCase().includes(q) ||
+        item.aliases?.some(a => a.toLowerCase().includes(q))
+      )
+    }
+  }, [editor, aiEnabled, ai])
+
+  // Expose editor instance to the parent (Stimulus controller) for export functionality
+  useEffect(() => {
+    if (editor && onEditorReady) {
+      onEditorReady(editor)
+    }
+  }, [editor, onEditorReady])
+
+  // Load HTML content after mount if no JSON content was provided
+  useEffect(() => {
+    if (!parsedContent && htmlContent && editor && !htmlParsed.current) {
+      htmlParsed.current = true
+      editor.tryParseHTMLToBlocks(htmlContent).then((blocks) => {
+        if (blocks && blocks.length > 0) {
+          editor.replaceBlocks(editor.document, blocks)
+        }
+      }).catch((error) => {
+        console.error('BlockEditor: Failed to parse HTML content:', error)
+      }).finally(() => {
+        ready.current = true
+      })
+    }
+  }, [editor, htmlContent, parsedContent])
+
+  // Sync content to hidden input on changes (debounced)
+  const pendingUpdate = useRef(null)
+  const handleChange = useCallback(() => {
+    if (!outputElement || !editor || !ready.current) return
+
+    if (pendingUpdate.current) clearTimeout(pendingUpdate.current)
+
+    pendingUpdate.current = setTimeout(async () => {
+      try {
+        if (format === 'html') {
+          const html = await editor.blocksToHTMLLossy(editor.document)
+          outputElement.value = html
+        } else {
+          outputElement.value = JSON.stringify(editor.document)
+        }
+      } catch (error) {
+        console.error('BlockEditor: Failed to serialize content:', error)
+      }
+    }, 300)
+  }, [editor, outputElement, format])
+
+  return (
+    <BlockNoteView
+      editor={editor}
+      editable={editable}
+      theme={theme}
+      onChange={handleChange}
+      slashMenu={false}
+      formattingToolbar={aiEnabled ? false : undefined}
+    >
+      <SuggestionMenuController
+        triggerCharacter="/"
+        getItems={getSlashMenuItems}
+      />
+      {aiEnabled && (
+        <FormattingToolbarController
+          formattingToolbar={() => (
+            <FormattingToolbar>
+              {getFormattingToolbarItems()}
+              <ai.AIToolbarButton key="aiButton" />
+            </FormattingToolbar>
+          )}
+        />
+      )}
+      {aiEnabled && <ai.AIMenuController />}
+    </BlockNoteView>
+  )
+}

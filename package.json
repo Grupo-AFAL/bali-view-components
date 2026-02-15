@@ -12,6 +12,7 @@
     ".": "./app/frontend/bali/index.js",
     "./charts": "./app/frontend/bali/charts.js",
     "./gantt": "./app/frontend/bali/gantt.js",
+    "./block-editor": "./app/frontend/bali/block-editor.js",
     "./rich-text-editor": "./app/frontend/bali/rich-text-editor.js",
     "./controllers": "./app/frontend/bali/controllers/index.js",
     "./components": "./app/frontend/bali/components/index.js",
@@ -40,6 +41,9 @@
   },
   "standard": {
     "parser": "@babel/eslint-parser",
+    "ignore": [
+      "**/*.jsx"
+    ],
     "globals": [
       "cy",
       "it",
@@ -55,6 +59,33 @@
       "localStorage",
       "DataTransfer"
     ]
+  },
+  "peerDependencies": {
+    "@blocknote/core": ">=0.46.0",
+    "@blocknote/react": ">=0.46.0",
+    "@blocknote/mantine": ">=0.46.0",
+    "@blocknote/xl-multi-column": ">=0.46.0",
+    "@blocknote/xl-ai": ">=0.46.0",
+    "@mantine/core": ">=8.3.0",
+    "@mantine/hooks": ">=8.3.0",
+    "ai": ">=6.0.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@blocknote/core": { "optional": true },
+    "@blocknote/react": { "optional": true },
+    "@blocknote/mantine": { "optional": true },
+    "@blocknote/xl-multi-column": { "optional": true },
+    "@blocknote/xl-ai": { "optional": true },
+    "@mantine/core": { "optional": true },
+    "@mantine/hooks": { "optional": true },
+    "ai": { "optional": true },
+    "react": { "optional": true },
+    "react-dom": { "optional": true }
+  },
+  "optionalDependencies": {
+    "lefthook-linux-arm64": "^2.1.1"
   },
   "dependencies": {
     "daisyui": "^5.5.14"

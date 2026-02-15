@@ -1,0 +1,183 @@
+/* BlockEditor: DaisyUI 5 theme integration for BlockNote + Mantine
+ *
+ * This CSS is loaded via TWO paths:
+ * 1. Tailwind pipeline: @import in components.css (for production asset compilation)
+ * 2. Vite: imported in BlockNoteEditorWrapper.jsx AFTER BlockNote CSS (correct load order)
+ *
+ * IMPORTANT: Do NOT use @apply or other Tailwind directives here.
+ * This file must work as plain CSS when loaded via Vite.
+ *
+ * DaisyUI 5 variable reference:
+ *   --color-base-100   = base background (white in light theme)
+ *   --color-base-200   = slightly darker background
+ *   --color-base-300   = even darker background
+ *   --color-base-content = text color on base
+ *   --color-primary    = primary accent color
+ *   --color-primary-content = text on primary
+ *   Values are complete oklch() colors, use var() directly (do NOT wrap in oklch()).
+ *   For opacity: color-mix(in oklch, var(--color-base-content) 30%, transparent)
+ */
+
+.block-editor-component {
+  position: relative;
+}
+
+/* Override BlockNote's default theme variables with DaisyUI colors.
+ * .block-editor-component .bn-container (0,2,0) beats BlockNote's .bn-container (0,1,0) */
+.block-editor-component .bn-container {
+  --bn-colors-editor-text: var(--color-base-content);
+  --bn-colors-editor-background: var(--color-base-100);
+  --bn-colors-menu-text: var(--color-base-content);
+  --bn-colors-menu-background: var(--color-base-100);
+  --bn-colors-tooltip-text: var(--color-base-content);
+  --bn-colors-tooltip-background: var(--color-base-200);
+  --bn-colors-hovered-text: var(--color-base-content);
+  --bn-colors-hovered-background: var(--color-base-200);
+  --bn-colors-selected-text: var(--color-primary-content);
+  --bn-colors-selected-background: var(--color-primary);
+  --bn-colors-disabled-text: color-mix(in oklch, var(--color-base-content) 40%, transparent);
+  --bn-colors-disabled-background: var(--color-base-200);
+  --bn-colors-border: color-mix(in oklch, var(--color-base-content) 15%, transparent);
+  --bn-colors-side-menu: color-mix(in oklch, var(--color-base-content) 30%, transparent);
+  --bn-colors-highlight-colors-gray-background: var(--color-base-200);
+  --bn-colors-shadow: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+  --bn-border-radius: var(--radius-box, 0.5rem);
+  --bn-font-family: inherit;
+}
+
+/* Editor content area */
+.block-editor-content {
+  min-height: 200px;
+  width: 100%;
+}
+
+/* Editor body: white background, remove default padding */
+.block-editor-component .bn-editor {
+  background-color: var(--color-base-100);
+  padding: 0;
+}
+
+/* Table cell borders - BlockNote hardcodes #ddd, override for DaisyUI theming */
+.block-editor-component .bn-editor table td,
+.block-editor-component .bn-editor table th {
+  border-color: color-mix(in oklch, var(--color-base-content) 20%, transparent);
+}
+
+/* Read-only mode: no border, no padding, transparent background */
+.block-editor-component[data-block-editor-editable-value="false"] .bn-editor {
+  border: none;
+  padding: 0;
+  background-color: transparent;
+}
+
+/* Placeholder styling - must be clearly lighter than real text */
+.block-editor-component .bn-editor .bn-inline-content:has(> .ProseMirror-trailingBreak):before {
+  color: color-mix(in oklch, var(--color-base-content) 30%, transparent) !important;
+}
+
+/* -------------------------------------------------------
+ * Menu/toolbar overrides - explicit background + shadow
+ * These use !important to ensure they override BlockNote's
+ * Vite-loaded styles regardless of CSS load order.
+ * ------------------------------------------------------- */
+
+/* Floating formatting toolbar */
+.block-editor-component .bn-toolbar {
+  background-color: var(--color-base-100) !important;
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
+  box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
+}
+
+/* Slash menu and suggestion menus */
+.block-editor-component .bn-suggestion-menu {
+  background-color: var(--color-base-100) !important;
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
+  box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
+}
+
+/* Mantine dropdown menus (toolbar color picker, link input, etc.) */
+.block-editor-component .mantine-Menu-dropdown,
+.block-editor-component .mantine-Popover-dropdown {
+  background-color: var(--color-base-100) !important;
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
+  box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
+}
+
+/* Form popovers (link editor, etc.) */
+.block-editor-component .bn-form-popover {
+  background-color: var(--color-base-100) !important;
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
+  box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
+}
+
+/* Side menu (drag handle + plus button) */
+.block-editor-component .bn-side-menu {
+  color: color-mix(in oklch, var(--color-base-content) 30%, transparent);
+}
+
+/* Links - DaisyUI resets anchor styles; restore them inside the editor */
+.block-editor-component .bn-editor a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.block-editor-component .bn-editor a:hover {
+  color: color-mix(in oklch, var(--color-primary) 80%, black);
+}
+
+/* Code block styling - override BlockNote's default dark bg (rgb(22 22 22))
+ * to integrate with DaisyUI theming. Target the [data-content-type] wrapper
+ * so the background is consistent with the inner <pre> element. */
+.block-editor-component .bn-block-content[data-content-type="codeBlock"] {
+  background-color: var(--color-base-200);
+  border-radius: var(--radius-box, 0.5rem);
+  color: var(--color-base-content);
+}
+
+.block-editor-component .bn-block-content[data-content-type="codeBlock"] > pre {
+  background-color: transparent;
+  border-radius: 0;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  margin: 0;
+}
+
+.block-editor-component .bn-block-content[data-content-type="codeBlock"] pre code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Language selector - adapt to light background */
+.block-editor-component .bn-block-content[data-content-type="codeBlock"] > div > select {
+  color: var(--color-base-content);
+}
+
+.block-editor-component .bn-block-content[data-content-type="codeBlock"] > div > select > option {
+  color: var(--color-base-content);
+}
+
+/* Override shiki theme backgrounds so they don't clash with our wrapper */
+.block-editor-component .bn-block-content[data-content-type="codeBlock"] pre .shiki,
+.block-editor-component .bn-block-content[data-content-type="codeBlock"] pre .shiki span {
+  background-color: transparent !important;
+}
+
+/* AI menu - match DaisyUI theming for xl-ai components */
+.block-editor-component .bn-ai-menu {
+  background-color: var(--color-base-100) !important;
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
+  box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
+  border-radius: var(--radius-box, 0.5rem);
+}
+
+/* AI suggestion changes - highlight with primary color */
+.block-editor-component .bn-suggestion-mark-add {
+  background-color: color-mix(in oklch, var(--color-success) 20%, transparent);
+}
+
+.block-editor-component .bn-suggestion-mark-delete {
+  background-color: color-mix(in oklch, var(--color-error) 20%, transparent);
+  text-decoration: line-through;
+}
