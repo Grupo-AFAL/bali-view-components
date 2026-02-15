@@ -97,7 +97,7 @@ RSpec.describe Bali::BlockEditor::Component, type: :component do
     expect(page).to have_css '[data-controller="block-editor"]'
   end
 
-  it 'applies images_url data value' do
+  it 'applies images_url data value when explicitly set' do
     render_inline(described_class.new(images_url: '/uploads'))
 
     expect(page).to have_css '[data-block-editor-images-url-value="/uploads"]'
@@ -107,5 +107,29 @@ RSpec.describe Bali::BlockEditor::Component, type: :component do
     render_inline(described_class.new(html_content: '<p>Hello</p>'))
 
     expect(page).to have_css '[data-block-editor-html-content-value]'
+  end
+
+  context 'with auto images_url' do
+    it 'resolves from Bali.block_editor_upload_url config' do
+      allow(Bali).to receive(:block_editor_upload_url).and_return('/bali/block_editor/uploads')
+
+      render_inline(described_class.new)
+
+      expect(page).to have_css '[data-block-editor-images-url-value="/bali/block_editor/uploads"]'
+    end
+
+    it 'does not set images_url when not editable' do
+      allow(Bali).to receive(:block_editor_upload_url).and_return('/bali/block_editor/uploads')
+
+      render_inline(described_class.new(editable: false))
+
+      expect(page).not_to have_css '[data-block-editor-images-url-value]'
+    end
+
+    it 'does not set images_url when images_url is nil' do
+      render_inline(described_class.new(images_url: nil))
+
+      expect(page).not_to have_css '[data-block-editor-images-url-value]'
+    end
   end
 end

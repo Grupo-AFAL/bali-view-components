@@ -13,7 +13,7 @@ module Bali
         format: :json,
         editable: true,
         placeholder: nil,
-        images_url: nil,
+        images_url: :auto,
         theme: :light,
         **options
       )
@@ -24,12 +24,26 @@ module Bali
         @format = format
         @editable = editable
         @placeholder = placeholder
-        @images_url = images_url
+        @images_url_auto = (images_url == :auto)
+        @images_url = images_url == :auto ? nil : images_url
         @theme = theme
 
         @options = prepend_class_name(options, 'block-editor-component')
         @options = prepend_controller(@options, 'block-editor')
         @options = prepend_values(@options, 'block-editor', controller_values)
+      end
+
+      # Resolve images_url at render time (not in initialize) because
+      # engine route helpers require the view context which is only available here.
+      def before_render
+        return unless @images_url_auto && editable?
+
+        resolved = Bali.block_editor_upload_url || resolve_engine_upload_path
+        return unless resolved
+
+        @images_url = resolved
+        @options[:data] ||= {}
+        @options[:data][:'block-editor-images-url-value'] = resolved
       end
 
       def editable?
@@ -52,6 +66,12 @@ module Bali
           images_url: @images_url,
           theme: @theme.to_s
         }
+      end
+
+      def resolve_engine_upload_path
+        helpers.bali.block_editor_uploads_path
+      rescue NoMethodError
+        nil
       end
 
       def serialized_content

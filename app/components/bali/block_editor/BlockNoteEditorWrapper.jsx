@@ -86,7 +86,7 @@ export default function BlockNoteEditorWrapper ({
     if (!response.ok) throw new Error('Upload failed')
 
     const data = await response.json()
-    if (data.url && /^https?:\/\//i.test(data.url)) {
+    if (data.url && (data.url.startsWith('/') || /^https?:\/\//i.test(data.url))) {
       return data.url
     }
     throw new Error('Invalid URL returned from upload endpoint')

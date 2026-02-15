@@ -50,6 +50,31 @@ module Bali
   # Set to true to enable the Block Editor component (requires @blocknote/core)
   mattr_accessor :block_editor_enabled, default: false
 
+  # Block Editor upload configuration
+  # Authorization lambda: receives the controller instance, must return truthy to allow upload.
+  # Example: ->(controller) { controller.current_user.present? }
+  mattr_accessor :block_editor_upload_authorize, default: nil
+
+  # Custom upload handler lambda: receives (uploaded_file, controller), must return a URL string.
+  # When nil, defaults to Active Storage (creates unattached blob).
+  # Note: Default Active Storage handler creates unattached blobs. Configure a purge job
+  # (e.g., ActiveStorage::Blob.unattached.where(created_at: ..2.days.ago).find_each(&:purge_later))
+  # or use a custom handler for production workloads.
+  # Example: ->(file, controller) { MyUploader.upload(file) }
+  mattr_accessor :block_editor_upload_handler, default: nil
+
+  # Allowed upload content types (array of MIME type strings).
+  # Default: %w[image/jpeg image/png image/gif image/webp]
+  mattr_accessor :block_editor_allowed_upload_types, default: nil
+
+  # Maximum upload file size in bytes. Default: 10.megabytes
+  mattr_accessor :block_editor_max_upload_size, default: nil
+
+  # Explicit upload URL path. When set, the component uses this instead of
+  # auto-resolving from engine routes. Useful if you don't mount the engine.
+  # Example: '/api/block_editor/uploads'
+  mattr_accessor :block_editor_upload_url, default: nil
+
   def self.add_icon(name, svg_str)
     custom_icons[name.to_s] = svg_str
   end

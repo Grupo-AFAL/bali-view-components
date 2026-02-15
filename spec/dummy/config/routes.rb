@@ -47,5 +47,6 @@ Rails.application.routes.draw do
 
   resources :gantt_chart, only: %i[update]
 
+  mount Bali::Engine, at: '/bali'
   mount Lookbook::Engine, at: '/lookbook'
 end
