@@ -879,6 +879,15 @@
   <%
     showcase_content = [
       { type: 'heading', content: [{ type: 'text', text: 'Block Editor Showcase', styles: {} }], props: { level: 1 } },
+      { type: 'paragraph', content: [
+        { type: 'text', text: 'A full-featured editor with ', styles: {} },
+        { type: 'text', text: 'rich text', styles: { bold: true } },
+        { type: 'text', text: ', mentions (', styles: {} },
+        { type: 'mention', props: { user: 'Alice Johnson', id: '1' } },
+        { type: 'text', text: '), entity references (', styles: {} },
+        { type: 'entityReference', props: { entityType: 'project', entityId: '1', entityName: 'Q4 Release' } },
+        { type: 'text', text: '), and more.', styles: {} }
+      ] },
       { type: 'heading', content: [{ type: 'text', text: 'Text Formatting', styles: {} }], props: { level: 2 } },
       { type: 'paragraph', content: [
         { type: 'text', text: 'This is ', styles: {} },
@@ -901,6 +910,16 @@
       { type: 'numberedListItem', content: [{ type: 'text', text: 'Second numbered item', styles: {} }] },
       { type: 'checkListItem', content: [{ type: 'text', text: 'Completed task', styles: {} }], props: { checked: true } },
       { type: 'checkListItem', content: [{ type: 'text', text: 'Pending task', styles: {} }], props: { checked: false } },
+      { type: 'heading', content: [{ type: 'text', text: 'Mentions & References', styles: {} }], props: { level: 3 } },
+      { type: 'paragraph', content: [
+        { type: 'text', text: 'Assigned to ', styles: {} },
+        { type: 'mention', props: { user: 'Bob Smith', id: '2' } },
+        { type: 'text', text: ' — related to ', styles: {} },
+        { type: 'entityReference', props: { entityType: 'task', entityId: '3', entityName: 'Fix login bug' } },
+        { type: 'text', text: ' and ', styles: {} },
+        { type: 'entityReference', props: { entityType: 'document', entityId: '1', entityName: 'Architecture Decision Record' } },
+        { type: 'text', text: '.', styles: {} }
+      ] },
       { type: 'heading', content: [{ type: 'text', text: 'Blockquote', styles: {} }], props: { level: 3 } },
       { type: 'quote', content: [
         { type: 'text', text: 'The best way to predict the future is to invent it.', styles: { italic: true } },
@@ -908,20 +927,23 @@
       ] },
       { type: 'divider' },
       { type: 'heading', content: [{ type: 'text', text: 'Code Block', styles: {} }], props: { level: 3 } },
-      { type: 'codeBlock', content: [{ type: 'text', text: "function greet(name) {\n  return `Hello, ${name}!`;\n}\n\nconsole.log(greet('World'));", styles: {} }], props: { language: 'javascript' } },
+      { type: 'codeBlock', content: [{ type: 'text', text: "render Bali::BlockEditor::Component.new(\n  mentions_url: '/users',\n  references_url: '/entity_references',\n  references_resolve_url: '/entity_references/resolve',\n  export: true\n)", styles: {} }], props: { language: 'ruby' } },
       { type: 'heading', content: [{ type: 'text', text: 'Table', styles: {} }], props: { level: 3 } },
       { type: 'table', content: {
         type: 'tableContent',
         rows: [
           { cells: [[{ type: 'text', text: 'Feature', styles: { bold: true } }],
-                     [{ type: 'text', text: 'Status', styles: { bold: true } }],
+                     [{ type: 'text', text: 'Trigger', styles: { bold: true } }],
                      [{ type: 'text', text: 'Notes', styles: { bold: true } }]] },
-          { cells: [[{ type: 'text', text: 'Rich Text', styles: {} }],
-                     [{ type: 'text', text: 'Supported', styles: {} }],
-                     [{ type: 'text', text: 'Bold, italic, underline, code', styles: {} }]] },
-          { cells: [[{ type: 'text', text: 'Code Blocks', styles: {} }],
-                     [{ type: 'text', text: 'Supported', styles: {} }],
-                     [{ type: 'text', text: 'With syntax highlighting', styles: {} }]] }
+          { cells: [[{ type: 'text', text: 'Slash menu', styles: {} }],
+                     [{ type: 'text', text: '/', styles: { code: true } }],
+                     [{ type: 'text', text: 'Insert blocks, columns, toggles', styles: {} }]] },
+          { cells: [[{ type: 'text', text: 'Mentions', styles: {} }],
+                     [{ type: 'text', text: '@', styles: { code: true } }],
+                     [{ type: 'text', text: 'Reference people', styles: {} }]] },
+          { cells: [[{ type: 'text', text: 'Entity references', styles: {} }],
+                     [{ type: 'text', text: '#', styles: { code: true } }],
+                     [{ type: 'text', text: 'Reference tasks, projects, docs', styles: {} }]] }
         ]
       } },
       { type: 'heading', content: [{ type: 'text', text: 'Toggle List', styles: {} }], props: { level: 3 } },
@@ -930,37 +952,26 @@
       { type: 'paragraph', content: [
         { type: 'text', text: 'Type ', styles: {} },
         { type: 'text', text: '/', styles: { code: true } },
-        { type: 'text', text: ' to see the slash command menu.', styles: {} }
+        { type: 'text', text: ' for slash menu, ', styles: {} },
+        { type: 'text', text: '@', styles: { code: true } },
+        { type: 'text', text: ' for mentions, ', styles: {} },
+        { type: 'text', text: '#', styles: { code: true } },
+        { type: 'text', text: ' for entity references. Use the export buttons below.', styles: {} }
       ] }
     ]
   %>
 
   <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <h3 class="font-semibold mb-3"><%= t('showcase.block_editor_editable') %></h3>
     <%= render Bali::BlockEditor::Component.new(
       initial_content: showcase_content,
       editable: true,
       placeholder: t('showcase.block_editor_placeholder'),
-      input_name: 'demo[content]'
-    ) %>
-  <% end %>
-
-  <%= render Bali::Card::Component.new(style: :bordered, class: 'mt-4') do %>
-    <h3 class="font-semibold mb-3">With Export Buttons</h3>
-    <p class="text-sm text-base-content/60 mb-3">Export content as PDF (via print dialog) or DOCX file.</p>
-    <%= render Bali::BlockEditor::Component.new(
-      initial_content: showcase_content,
-      editable: true,
+      input_name: 'demo[content]',
       export: true,
-      export_filename: 'block-editor-demo'
-    ) %>
-  <% end %>
-
-  <%= render Bali::Card::Component.new(style: :bordered, class: 'mt-4') do %>
-    <h3 class="font-semibold mb-3"><%= t('showcase.block_editor_readonly') %></h3>
-    <%= render Bali::BlockEditor::Component.new(
-      initial_content: showcase_content,
-      editable: false
+      export_filename: 'block-editor-showcase',
+      mentions_url: '/users',
+      references_url: '/entity_references',
+      references_resolve_url: '/entity_references/resolve'
     ) %>
   <% end %>
 </section>
