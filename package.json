@@ -12,6 +12,7 @@
     ".": "./app/frontend/bali/index.js",
     "./charts": "./app/frontend/bali/charts.js",
     "./gantt": "./app/frontend/bali/gantt.js",
+    "./block-editor": "./app/frontend/bali/block-editor.js",
     "./rich-text-editor": "./app/frontend/bali/rich-text-editor.js",
     "./controllers": "./app/frontend/bali/controllers/index.js",
     "./components": "./app/frontend/bali/components/index.js",
@@ -35,6 +36,7 @@
     "@babel/preset-env": "^7.17.10",
     "cypress": "^13.6.4",
     "lefthook": "^2.0.16",
+    "lefthook-linux-arm64": "^2.1.1",
     "playwright": "^1.57.0",
     "standard": "^17.0.0"
   },
@@ -55,6 +57,24 @@
       "localStorage",
       "DataTransfer"
     ]
+  },
+  "peerDependencies": {
+    "@blocknote/core": ">=0.46.0",
+    "@blocknote/react": ">=0.46.0",
+    "@blocknote/mantine": ">=0.46.0",
+    "@mantine/core": ">=8.3.0",
+    "@mantine/hooks": ">=8.3.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@blocknote/core": { "optional": true },
+    "@blocknote/react": { "optional": true },
+    "@blocknote/mantine": { "optional": true },
+    "@mantine/core": { "optional": true },
+    "@mantine/hooks": { "optional": true },
+    "react": { "optional": true },
+    "react-dom": { "optional": true }
   },
   "dependencies": {
     "daisyui": "^5.5.14"

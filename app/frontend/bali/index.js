@@ -125,6 +125,7 @@ export * from './utils/index'
  * NOTE: Heavy/optional modules are NOT included. Import them separately:
  *   - import { registerCharts } from 'bali-view-components/charts'
  *   - import { registerGantt } from 'bali-view-components/gantt'
+ *   - import { registerBlockEditor } from 'bali-view-components/block-editor'
  *   - import { registerRichTextEditor } from 'bali-view-components/rich-text-editor'
  *
  * @param {Application} application - Stimulus application instance

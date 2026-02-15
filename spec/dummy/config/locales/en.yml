@@ -103,6 +103,8 @@ en:
       movie_details: Movie Details
       synopsis: Synopsis
       enter_synopsis: Enter movie synopsis...
+      rich_description: Rich Description
+      enter_rich_description: Write a detailed description with formatting...
       release_date: Release Date
       budget: Budget
       contact_email: Contact Email
@@ -245,6 +247,11 @@ en:
     locations_map_desc: Google Maps integration with location markers.
     google_maps_required: "Google Maps API Key Required: Set the GOOGLE_MAPS_KEY environment variable to enable the LocationsMap component."
     map_placeholder: Map placeholder
+    block_editor: BlockEditor
+    block_editor_desc: Block-based rich text editor powered by BlockNote. Supports headings, lists, code blocks, and more.
+    block_editor_editable: Editable Block Editor
+    block_editor_readonly: Read-Only Block Editor
+    block_editor_placeholder: "Type '/' for commands, or start writing..."
     all_components_showcased: All Components Showcased!
     showcase_summary: This page demonstrates the following components that were missing from the kitchen sink
 

@@ -46,6 +46,10 @@ module Bali
   # Set to true to enable the Rich Text Editor component (requires TipTap dependencies)
   mattr_accessor :rich_text_editor_enabled, default: false
 
+  # Block Editor configuration
+  # Set to true to enable the Block Editor component (requires @blocknote/core)
+  mattr_accessor :block_editor_enabled, default: false
+
   def self.add_icon(name, svg_str)
     custom_icons[name.to_s] = svg_str
   end

@@ -1,0 +1,10 @@
+<%= tag.div(**options) do %>
+  <div data-block-editor-target="editor" class="block-editor-content"></div>
+
+  <% if editable? && input_name.present? %>
+    <input type="hidden"
+           data-block-editor-target="output"
+           name="<%= input_name %>"
+           value="<%= serialized_content %>" />
+  <% end %>
+<% end %>

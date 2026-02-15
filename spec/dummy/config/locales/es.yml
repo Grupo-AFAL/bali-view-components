@@ -154,6 +154,8 @@ es:
       movie_details: Detalles de la Pelicula
       synopsis: Sinopsis
       enter_synopsis: Ingrese la sinopsis de la pelicula...
+      rich_description: Descripcion Detallada
+      enter_rich_description: Escribe una descripcion detallada con formato...
       release_date: Fecha de Estreno
       budget: Presupuesto
       contact_email: Email de Contacto
@@ -274,6 +276,11 @@ es:
     locations_map_desc: Integracion de Google Maps con marcadores de ubicacion.
     google_maps_required: "Clave API de Google Maps Requerida: Establece la variable de entorno GOOGLE_MAPS_KEY para habilitar el componente LocationsMap."
     map_placeholder: Marcador de posicion del mapa
+    block_editor: Editor de Bloques
+    block_editor_desc: Editor de texto enriquecido basado en bloques impulsado por BlockNote. Soporta encabezados, listas, bloques de codigo y mas.
+    block_editor_editable: Editor de Bloques Editable
+    block_editor_readonly: Editor de Bloques Solo Lectura
+    block_editor_placeholder: "Escribe '/' para comandos, o comienza a escribir..."
     all_components_showcased: Todos los Componentes Mostrados!
     showcase_summary: Esta pagina demuestra los siguientes componentes que faltaban en el kitchen sink
 
