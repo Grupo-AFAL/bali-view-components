@@ -141,7 +141,9 @@ export class BlockEditorController extends Controller {
         }
       }
 
-      const exporter = new PDFExporter(this.blockNoteEditor.schema, mappings)
+      const exporter = new PDFExporter(this.blockNoteEditor.schema, mappings, {
+        resolveFileUrl: this._resolveFileUrl
+      })
       const pdfDocument = await exporter.toReactPDFDocument(this.blockNoteEditor.document)
       const blob = await pdf(pdfDocument).toBlob()
       this._downloadBlob(blob, `${this.exportFilenameValue}.pdf`)
@@ -171,7 +173,9 @@ export class BlockEditorController extends Controller {
         }
       }
 
-      const exporter = new DOCXExporter(this.blockNoteEditor.schema, mappings)
+      const exporter = new DOCXExporter(this.blockNoteEditor.schema, mappings, {
+        resolveFileUrl: this._resolveFileUrl
+      })
       const docxDocument = await exporter.toDocxJsDocument(this.blockNoteEditor.document)
       const blob = await docx.Packer.toBlob(docxDocument)
       this._downloadBlob(blob, `${this.exportFilenameValue}.docx`)
@@ -181,6 +185,15 @@ export class BlockEditorController extends Controller {
   }
 
   // --- Private helpers ---
+
+  async _resolveFileUrl (url) {
+    if (!url) return url
+    // Blob and data URLs work as-is
+    if (url.startsWith('blob:') || url.startsWith('data:')) return url
+    // Convert relative URLs to absolute (e.g. Rails Active Storage paths)
+    const absoluteUrl = url.startsWith('http') ? url : window.location.origin + (url.startsWith('/') ? '' : '/') + url
+    return absoluteUrl
+  }
 
   _downloadBlob (blob, filename) {
     const url = URL.createObjectURL(blob instanceof Blob ? blob : new Blob([blob]))
