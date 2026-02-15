@@ -3,10 +3,17 @@ import '@blocknote/mantine/style.css'
 // Our DaisyUI overrides - MUST load AFTER BlockNote CSS for correct cascade
 import './index.css'
 
-import { BlockNoteSchema, defaultBlockSpecs, createCodeBlockSpec } from '@blocknote/core'
+import { BlockNoteSchema, defaultBlockSpecs, createCodeBlockSpec, combineByGroup } from '@blocknote/core'
+import * as coreLocales from '@blocknote/core/locales'
 import { BlockNoteView } from '@blocknote/mantine'
-import { useCreateBlockNote } from '@blocknote/react'
+import { useCreateBlockNote, SuggestionMenuController, getDefaultReactSlashMenuItems } from '@blocknote/react'
 import { useEffect, useCallback, useRef, useMemo } from 'react'
+import {
+  withMultiColumn,
+  multiColumnDropCursor,
+  getMultiColumnSlashMenuItems,
+  locales as multiColumnLocales
+} from '@blocknote/xl-multi-column'
 
 // Client-side max size check for UX only. The server endpoint MUST independently
 // validate file type (via magic bytes), file size, and file extension.
@@ -99,8 +106,8 @@ export default function BlockNoteEditorWrapper ({
     }
   }, [initialContent])
 
-  // Build schema with syntax highlighting support (shiki is optional - degrades gracefully)
-  const schema = useMemo(() => BlockNoteSchema.create({
+  // Build schema with syntax highlighting and multi-column support
+  const schema = useMemo(() => withMultiColumn(BlockNoteSchema.create({
     blockSpecs: {
       ...defaultBlockSpecs,
       codeBlock: createCodeBlockSpec({
@@ -124,14 +131,32 @@ export default function BlockNoteEditorWrapper ({
         }
       })
     }
-  }), [])
+  })), [])
 
   const editor = useCreateBlockNote({
     schema,
+    dropCursor: multiColumnDropCursor,
+    dictionary: { ...coreLocales.en, multi_column: multiColumnLocales.en },
     initialContent: parsedContent,
     uploadFile: imagesUrl ? uploadFile : undefined,
     placeholders: placeholder ? { default: placeholder } : undefined
   })
+
+  // Combine default + multi-column slash menu items
+  const getSlashMenuItems = useMemo(() => {
+    return async (query) => {
+      const items = combineByGroup(
+        getDefaultReactSlashMenuItems(editor),
+        getMultiColumnSlashMenuItems(editor)
+      )
+      if (!query) return items
+      const q = query.toLowerCase()
+      return items.filter(item =>
+        item.title.toLowerCase().includes(q) ||
+        item.aliases?.some(a => a.toLowerCase().includes(q))
+      )
+    }
+  }, [editor])
 
   // Expose editor instance to the parent (Stimulus controller) for export functionality
   useEffect(() => {
@@ -183,6 +208,12 @@ export default function BlockNoteEditorWrapper ({
       editable={editable}
       theme={theme}
       onChange={handleChange}
-    />
+      slashMenu={false}
+    >
+      <SuggestionMenuController
+        triggerCharacter="/"
+        getItems={getSlashMenuItems}
+      />
+    </BlockNoteView>
   )
 }

@@ -5,7 +5,7 @@
  * Import separately and only if you need block-based editing functionality.
  *
  * Required dependencies (install in your app):
- *   yarn add @blocknote/react @blocknote/mantine @mantine/core @mantine/hooks react react-dom
+ *   yarn add @blocknote/react @blocknote/mantine @blocknote/xl-multi-column @mantine/core @mantine/hooks react react-dom
  *
  * Usage:
  *   import { BlockEditorController, registerBlockEditor } from 'bali-view-components/block-editor'

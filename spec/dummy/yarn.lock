@@ -93,7 +93,7 @@
     docx "^9.5.1"
     image-meta "^0.2.2"
 
-"@blocknote/xl-multi-column@0.46.2":
+"@blocknote/xl-multi-column@0.46.2", "@blocknote/xl-multi-column@^0.46.0":
   version "0.46.2"
   resolved "https://registry.yarnpkg.com/@blocknote/xl-multi-column/-/xl-multi-column-0.46.2.tgz#b858fcbca1a4416e396bf3d5a3f9f8d333a5ea09"
   integrity sha512-J1NYQXINff6qI4HfEvZ937DbXtXdH6OvlQ5AD5KoQ4ApLfzc9cCk2+FVgjKPmpQ1yhqbuwyTBK0MekjPIkqHSg==

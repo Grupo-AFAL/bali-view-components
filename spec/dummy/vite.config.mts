@@ -55,9 +55,11 @@ export default defineConfig({
       // BlockNote/Mantine: use regex exact-match so sub-path exports (e.g. @blocknote/core/comments)
       // resolve normally through node_modules instead of being intercepted by prefix matching
       { find: /^@blocknote\/core$/, replacement: resolve(__dirname, 'node_modules/@blocknote/core') },
+      { find: '@blocknote/core/locales', replacement: resolve(__dirname, 'node_modules/@blocknote/core/dist/locales.js') },
       { find: /^@blocknote\/react$/, replacement: resolve(__dirname, 'node_modules/@blocknote/react') },
       { find: /^@blocknote\/mantine$/, replacement: resolve(__dirname, 'node_modules/@blocknote/mantine') },
       { find: /^@blocknote\/xl-docx-exporter$/, replacement: resolve(__dirname, 'node_modules/@blocknote/xl-docx-exporter') },
+      { find: /^@blocknote\/xl-multi-column$/, replacement: resolve(__dirname, 'node_modules/@blocknote/xl-multi-column') },
       { find: /^@blocknote\/xl-pdf-exporter$/, replacement: resolve(__dirname, 'node_modules/@blocknote/xl-pdf-exporter') },
       { find: /^@react-pdf\/renderer$/, replacement: resolve(__dirname, 'node_modules/@react-pdf/renderer') },
       { find: /^docx$/, replacement: resolve(__dirname, 'node_modules/docx') },
