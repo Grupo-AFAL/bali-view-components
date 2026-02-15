@@ -946,6 +946,17 @@
   <% end %>
 
   <%= render Bali::Card::Component.new(style: :bordered, class: 'mt-4') do %>
+    <h3 class="font-semibold mb-3">With Export Buttons</h3>
+    <p class="text-sm text-base-content/60 mb-3">Export content as PDF (via print dialog) or DOCX file.</p>
+    <%= render Bali::BlockEditor::Component.new(
+      initial_content: showcase_content,
+      editable: true,
+      export: true,
+      export_filename: 'block-editor-demo'
+    ) %>
+  <% end %>
+
+  <%= render Bali::Card::Component.new(style: :bordered, class: 'mt-4') do %>
     <h3 class="font-semibold mb-3"><%= t('showcase.block_editor_readonly') %></h3>
     <%= render Bali::BlockEditor::Component.new(
       initial_content: showcase_content,

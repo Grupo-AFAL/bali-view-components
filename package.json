@@ -65,7 +65,8 @@
     "@mantine/core": ">=8.3.0",
     "@mantine/hooks": ">=8.3.0",
     "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "react-dom": ">=18.0.0",
+    "html-to-docx": ">=1.8.0"
   },
   "peerDependenciesMeta": {
     "@blocknote/core": { "optional": true },
@@ -74,7 +75,8 @@
     "@mantine/core": { "optional": true },
     "@mantine/hooks": { "optional": true },
     "react": { "optional": true },
-    "react-dom": { "optional": true }
+    "react-dom": { "optional": true },
+    "html-to-docx": { "optional": true }
   },
   "dependencies": {
     "daisyui": "^5.5.14"

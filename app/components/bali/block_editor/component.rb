@@ -15,6 +15,8 @@ module Bali
         placeholder: nil,
         images_url: :auto,
         theme: :light,
+        export: false,
+        export_filename: 'document',
         **options
       )
         # rubocop:enable Metrics/ParameterLists
@@ -27,6 +29,8 @@ module Bali
         @images_url_auto = (images_url == :auto)
         @images_url = images_url == :auto ? nil : images_url
         @theme = theme
+        @export = export
+        @export_filename = export_filename
 
         @options = prepend_class_name(options, 'block-editor-component')
         @options = prepend_controller(@options, 'block-editor')
@@ -50,6 +54,18 @@ module Bali
         @editable
       end
 
+      def export_enabled?
+        @export.present? && @export != false
+      end
+
+      def export_pdf?
+        @export == true || Array(@export).map(&:to_sym).include?(:pdf)
+      end
+
+      def export_docx?
+        @export == true || Array(@export).map(&:to_sym).include?(:docx)
+      end
+
       def render?
         Bali.block_editor_enabled
       end
@@ -64,7 +80,8 @@ module Bali
           editable: @editable,
           placeholder: @placeholder || '',
           images_url: @images_url,
-          theme: @theme.to_s
+          theme: @theme.to_s,
+          export_filename: @export_filename
         }
       end
 

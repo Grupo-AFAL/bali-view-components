@@ -1,6 +1,27 @@
 <%= tag.div(**options) do %>
   <div data-block-editor-target="editor" class="block-editor-content"></div>
 
+  <% if export_enabled? %>
+    <div class="flex justify-end mt-2 gap-2">
+      <% if export_pdf? %>
+        <button type="button"
+                class="btn btn-sm btn-ghost gap-1"
+                data-action="block-editor#exportPdf">
+          <%= render Bali::Icon::Component.new('file-text', size: :small) %>
+          Export PDF
+        </button>
+      <% end %>
+      <% if export_docx? %>
+        <button type="button"
+                class="btn btn-sm btn-ghost gap-1"
+                data-action="block-editor#exportDocx">
+          <%= render Bali::Icon::Component.new('file-down', size: :small) %>
+          Export DOCX
+        </button>
+      <% end %>
+    </div>
+  <% end %>
+
   <% if editable? && input_name.present? %>
     <input type="hidden"
            data-block-editor-target="output"

@@ -132,4 +132,48 @@ RSpec.describe Bali::BlockEditor::Component, type: :component do
       expect(page).not_to have_css '[data-block-editor-images-url-value]'
     end
   end
+
+  context 'export functionality' do
+    it 'does not render export buttons by default' do
+      render_inline(described_class.new)
+
+      expect(page).not_to have_css '[data-action*="exportPdf"]'
+      expect(page).not_to have_css '[data-action*="exportDocx"]'
+    end
+
+    it 'renders both export buttons when export: true' do
+      render_inline(described_class.new(export: true))
+
+      expect(page).to have_css 'button[data-action="block-editor#exportPdf"]'
+      expect(page).to have_css 'button[data-action="block-editor#exportDocx"]'
+      expect(page).to have_text 'Export PDF'
+      expect(page).to have_text 'Export DOCX'
+    end
+
+    it 'renders only PDF button when export: [:pdf]' do
+      render_inline(described_class.new(export: [:pdf]))
+
+      expect(page).to have_css 'button[data-action="block-editor#exportPdf"]'
+      expect(page).not_to have_css '[data-action*="exportDocx"]'
+    end
+
+    it 'renders only DOCX button when export: [:docx]' do
+      render_inline(described_class.new(export: [:docx]))
+
+      expect(page).not_to have_css '[data-action*="exportPdf"]'
+      expect(page).to have_css 'button[data-action="block-editor#exportDocx"]'
+    end
+
+    it 'applies export_filename data value' do
+      render_inline(described_class.new(export_filename: 'my-report'))
+
+      expect(page).to have_css '[data-block-editor-export-filename-value="my-report"]'
+    end
+
+    it 'defaults export_filename to document' do
+      render_inline(described_class.new)
+
+      expect(page).to have_css '[data-block-editor-export-filename-value="document"]'
+    end
+  end
 end

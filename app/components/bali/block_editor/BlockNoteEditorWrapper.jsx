@@ -53,6 +53,7 @@ export default function BlockNoteEditorWrapper ({
   format = 'json',
   imagesUrl,
   outputElement,
+  onEditorReady,
   theme = 'light'
 }) {
   const htmlParsed = useRef(false)
@@ -131,6 +132,13 @@ export default function BlockNoteEditorWrapper ({
     uploadFile: imagesUrl ? uploadFile : undefined,
     placeholders: placeholder ? { default: placeholder } : undefined
   })
+
+  // Expose editor instance to the parent (Stimulus controller) for export functionality
+  useEffect(() => {
+    if (editor && onEditorReady) {
+      onEditorReady(editor)
+    }
+  }, [editor, onEditorReady])
 
   // Load HTML content after mount if no JSON content was provided
   useEffect(() => {
