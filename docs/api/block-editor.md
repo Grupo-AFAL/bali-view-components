@@ -183,7 +183,7 @@ JavaScript, TypeScript, Python, Ruby, HTML, CSS, JSON, Bash, SQL, YAML, Markdown
 
 ## File Uploads
 
-File uploads allow users to drag-and-drop or paste images and files into the editor.
+File uploads allow users to drag-and-drop or paste images, videos, audio, and other files into the editor.
 
 ### Option A: Engine Routes (Recommended)
 
@@ -196,7 +196,7 @@ mount Bali::Engine => '/bali'
 
 The engine provides `POST /bali/block_editor/uploads` which:
 - Validates file type via MIME type detection (not just extension)
-- Validates file size (default 10MB max)
+- Validates file size (default 50MB max)
 - Blocks dangerous extensions (`.exe`, `.bat`, `.sh`, etc.)
 - Creates an Active Storage unattached blob and returns `{ url: "..." }`
 

@@ -3,7 +3,13 @@
 module Bali
   class BlockEditorUploadsController < ApplicationController
     ALLOWED_CONTENT_TYPES = [
-      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      # Images
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+      # Video
+      'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime',
+      # Audio
+      'audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/x-wav', 'audio/webm', 'audio/aac', 'audio/mp4',
+      # Documents
       'application/pdf',
       'text/plain', 'text/markdown', 'text/csv',
       'application/msword',
@@ -19,7 +25,7 @@ module Bali
       .exe .bat .cmd .com .msi .scr .pif .vbs .vbe .js .jse .wsf .wsh .ps1 .sh .rb .py .pl
     ].freeze
 
-    MAX_FILE_SIZE = 10.megabytes
+    MAX_FILE_SIZE = 50.megabytes
 
     def create
       authorize_upload!

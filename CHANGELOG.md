@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Syntax-highlighted code blocks via Shiki
   - Multi-column layout support via `@blocknote/xl-multi-column`
   - PDF and DOCX export via `@blocknote/xl-pdf-exporter` and `@blocknote/xl-docx-exporter`
-  - File upload support with Active Storage integration (images and general files)
+  - File upload support with Active Storage integration (images, video, audio, and general files)
   - AI assistance via `@blocknote/xl-ai` (optional, requires `ai_url` configuration)
   - **@mentions** support with configurable user search endpoint (`mentions_url`)
   - **#entity references** with per-type color differentiation (tasks, projects, documents, etc.)
@@ -37,6 +37,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **BlockEditor** - Resolved relative URLs for images in PDF/DOCX export
 - **BlockEditor** - Improved code block and link styling
 - **BlockEditor** - Removed client-side file type restriction for uploads
+- **BlockEditor** - Added video, audio, and SVG MIME types to upload allowlist
+- **BlockEditor** - Increased default max upload size from 10MB to 50MB for video/audio support
+- **BlockEditor** - Upload errors now show descriptive toast messages instead of generic failure
 - **lefthook-linux-arm64** - Moved to `optionalDependencies` to prevent CI failures on x64 runners
 
 ## [v2.1.1] - 2026-02-12

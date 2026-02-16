@@ -1,6 +1,6 @@
 // Client-side max size check for UX only. The server endpoint MUST independently
 // validate file type (via magic bytes), file size, and file extension.
-export const MAX_UPLOAD_SIZE = 10 * 1024 * 1024 // 10MB
+export const MAX_UPLOAD_SIZE = 50 * 1024 * 1024 // 50MB
 
 // Languages supported in the code block language selector.
 // This list also controls which languages shiki will highlight.
