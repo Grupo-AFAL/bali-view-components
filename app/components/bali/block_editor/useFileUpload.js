@@ -1,9 +1,9 @@
 import { useCallback } from 'react'
 import { MAX_UPLOAD_SIZE } from './constants'
 
-export function useFileUpload (imagesUrl) {
+export function useFileUpload (uploadUrl) {
   return useCallback(async (file) => {
-    if (!imagesUrl) throw new Error('File uploads are not configured')
+    if (!uploadUrl) throw new Error('File uploads are not configured')
 
     if (file.size > MAX_UPLOAD_SIZE) {
       throw new Error('File size exceeds maximum of 10MB')
@@ -17,7 +17,7 @@ export function useFileUpload (imagesUrl) {
       throw new Error('CSRF token meta tag not found. Ensure csrf_meta_tags is in your layout.')
     }
 
-    const response = await fetch(imagesUrl, {
+    const response = await fetch(uploadUrl, {
       method: 'POST',
       body: formData,
       headers: { 'X-CSRF-Token': csrfMeta.content }
@@ -30,5 +30,5 @@ export function useFileUpload (imagesUrl) {
       return data.url
     }
     throw new Error('Invalid URL returned from upload endpoint')
-  }, [imagesUrl])
+  }, [uploadUrl])
 }

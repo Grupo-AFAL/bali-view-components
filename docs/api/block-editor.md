@@ -137,7 +137,7 @@ If you have existing HTML content (e.g., from a legacy Trix editor), use `html_c
 | `format` | `Symbol` | `:json` | Serialization format: `:json` or `:html` |
 | `editable` | `Boolean` | `true` | Whether the editor is editable |
 | `placeholder` | `String` | `nil` | Placeholder text shown when editor is empty |
-| `images_url` | `String`, `:auto` | `:auto` | Upload endpoint URL. `:auto` resolves from engine routes |
+| `upload_url` | `String`, `:auto` | `:auto` | Upload endpoint URL. `:auto` resolves from engine routes |
 | `theme` | `Symbol` | `:light` | Editor theme: `:light` or `:dark` |
 | `export` | `Boolean`, `Array` | `false` | Enable export buttons. `true` for both, or `[:pdf]`, `[:docx]`, `[:pdf, :docx]` |
 | `export_filename` | `String` | `'document'` | Base filename for exported files (without extension) |
@@ -234,7 +234,7 @@ Point to your own endpoint:
 
 ```erb
 <%= render Bali::BlockEditor::Component.new(
-  images_url: '/api/uploads'
+  upload_url: '/api/uploads'
 ) %>
 ```
 
@@ -256,7 +256,7 @@ end
 
 ```erb
 <%= render Bali::BlockEditor::Component.new(
-  images_url: nil
+  upload_url: nil
 ) %>
 ```
 
@@ -616,7 +616,7 @@ An editor with all capabilities enabled:
   placeholder: 'Start writing...',
 
   # File uploads (auto-resolved from engine routes)
-  images_url: :auto,
+  upload_url: :auto,
 
   # Mentions
   mentions_url: '/api/users/search',

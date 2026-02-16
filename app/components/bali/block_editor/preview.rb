@@ -272,7 +272,7 @@ module Bali
                           [{ type: 'text', text: 'With syntax highlighting', styles: {} }]] },
                 { cells: [[{ type: 'text', text: 'Images', styles: {} }],
                           [{ type: 'text', text: 'Optional', styles: {} }],
-                          [{ type: 'text', text: 'Requires images_url config', styles: {} }]] }
+                          [{ type: 'text', text: 'Requires upload_url config', styles: {} }]] }
               ]
             }
           },

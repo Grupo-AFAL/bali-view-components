@@ -35,7 +35,7 @@ export default function BlockNoteEditorWrapper ({
   editable = true,
   placeholder,
   format = 'json',
-  imagesUrl,
+  uploadUrl,
   outputElement,
   onEditorReady,
   theme = 'light',
@@ -54,7 +54,7 @@ export default function BlockNoteEditorWrapper ({
   const mentionsEnabled = !!(mentionsUrl || (staticMentions && staticMentions.length > 0))
   const referencesEnabled = !!referencesUrl
 
-  const uploadFile = useFileUpload(imagesUrl)
+  const uploadFile = useFileUpload(uploadUrl)
 
   const parsedContent = useMemo(() => {
     if (!initialContent) return undefined
@@ -117,7 +117,7 @@ export default function BlockNoteEditorWrapper ({
       ...(aiEnabled ? { ai: ai.aiLocales.en } : {})
     },
     initialContent: parsedContent,
-    uploadFile: imagesUrl ? uploadFile : undefined,
+    uploadFile: uploadUrl ? uploadFile : undefined,
     placeholders: placeholder ? { default: placeholder } : undefined,
     extensions: aiExtension ? [aiExtension] : undefined
   })

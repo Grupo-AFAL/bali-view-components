@@ -3,7 +3,7 @@
 module Bali
   module BlockEditor
     class Component < ApplicationViewComponent
-      attr_reader :input_name, :images_url, :options
+      attr_reader :input_name, :upload_url, :options
 
       # rubocop:disable Metrics/ParameterLists
       def initialize(
@@ -13,7 +13,7 @@ module Bali
         format: :json,
         editable: true,
         placeholder: nil,
-        images_url: :auto,
+        upload_url: :auto,
         theme: :light,
         export: false,
         export_filename: 'document',
@@ -33,8 +33,8 @@ module Bali
         @format = format
         @editable = editable
         @placeholder = placeholder
-        @images_url_auto = (images_url == :auto)
-        @images_url = images_url == :auto ? nil : images_url
+        @upload_url_auto = (upload_url == :auto)
+        @upload_url = upload_url == :auto ? nil : upload_url
         @theme = theme
         @export = export
         @export_filename = export_filename
@@ -51,17 +51,17 @@ module Bali
         @options = prepend_values(@options, 'block-editor', controller_values)
       end
 
-      # Resolve images_url at render time (not in initialize) because
+      # Resolve upload_url at render time (not in initialize) because
       # engine route helpers require the view context which is only available here.
       def before_render
-        return unless @images_url_auto && editable?
+        return unless @upload_url_auto && editable?
 
         resolved = Bali.block_editor_upload_url || resolve_engine_upload_path
         return unless resolved
 
-        @images_url = resolved
+        @upload_url = resolved
         @options[:data] ||= {}
-        @options[:data][:'block-editor-images-url-value'] = resolved
+        @options[:data][:'block-editor-upload-url-value'] = resolved
       end
 
       def editable?
@@ -97,7 +97,7 @@ module Bali
           format: @format.to_s,
           editable: @editable,
           placeholder: @placeholder || '',
-          images_url: @images_url,
+          upload_url: @upload_url,
           theme: @theme.to_s,
           export_filename: @export_filename,
           ai_url: @ai_url || '',
