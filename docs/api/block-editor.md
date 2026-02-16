@@ -8,16 +8,42 @@ A rich text editor powered by [BlockNote](https://www.blocknotejs.org/) and Reac
 
 ```bash
 yarn add @blocknote/core @blocknote/react @blocknote/mantine react react-dom
-yarn add @blocknote/xl-multi-column  # Multi-column layouts (required)
+yarn add @blocknote/xl-multi-column  # Multi-column layouts (XL package)
 yarn add shiki                       # Syntax highlighting for code blocks
 
-# Optional - for export functionality
+# Optional - for export functionality (XL packages)
 yarn add @blocknote/xl-pdf-exporter @react-pdf/renderer
 yarn add @blocknote/xl-docx-exporter docx
 
-# Optional - for AI assistance
+# Optional - for AI assistance (XL package)
 yarn add @blocknote/xl-ai ai
 ```
+
+### BlockNote XL Package Licensing
+
+The BlockEditor relies on several **BlockNote XL** packages for advanced features. These packages are **dual-licensed** and may require a paid subscription depending on your project:
+
+| Package | Feature | License |
+|---------|---------|---------|
+| `@blocknote/core`, `@blocknote/react`, `@blocknote/mantine` | Core editor | **MPL 2.0** -- Free for all projects, including commercial and closed-source |
+| `@blocknote/xl-multi-column` | Multi-column layouts | **GPL-3.0** or Commercial |
+| `@blocknote/xl-pdf-exporter` | PDF export | **GPL-3.0** or Commercial |
+| `@blocknote/xl-docx-exporter` | DOCX export | **GPL-3.0** or Commercial |
+| `@blocknote/xl-ai` | AI assistance | **GPL-3.0** or Commercial |
+
+**What this means for your application:**
+
+- **Open-source projects (GPL-3.0 compatible):** XL packages are free to use under GPL-3.0.
+- **Closed-source / proprietary applications:** You must purchase a [BlockNote Business subscription](https://www.blocknotejs.org/pricing) ($390/month) for a commercial license to use any XL package.
+
+**Commercial license terms:**
+- Covers **one application** (single production domain) per license
+- Includes **5 developer seats**
+- Auto-renews monthly; XL packages must not be used in production if the subscription lapses
+
+**Startup/non-profit discounts** are available for seed-stage startups and non-profits with fewer than 5 employees. See [BlockNote Pricing](https://www.blocknotejs.org/pricing) for details.
+
+> **Note:** Since the BlockEditor component uses `@blocknote/xl-multi-column` by default for multi-column layouts, any closed-source application using this component will need a commercial license. If you want to avoid the subscription, you would need to fork the component and remove the multi-column dependency -- but this also removes multi-column layout support from the slash menu.
 
 ### Rails Configuration
 
@@ -133,7 +159,7 @@ These features work out of the box with zero configuration:
 - **Blockquotes**
 - **Tables** -- Resizable with header rows
 - **Code blocks** -- Syntax highlighting via Shiki for 20+ languages
-- **Multi-column layouts** -- 2 and 3 column layouts via slash menu
+- **Multi-column layouts** -- 2 and 3 column layouts via slash menu (XL package -- see [Licensing](#blocknote-xl-package-licensing))
 - **Dividers**
 - **Slash menu** -- Type `/` to access all block types
 
@@ -454,6 +480,8 @@ Entity references are stored in BlockNote JSON as inline content:
 
 ## PDF and DOCX Export
 
+> **Licensing:** PDF and DOCX export use XL packages (`@blocknote/xl-pdf-exporter`, `@blocknote/xl-docx-exporter`). Free for open-source projects under GPL-3.0; closed-source applications require a [BlockNote Business subscription](https://www.blocknotejs.org/pricing). See [Licensing](#blocknote-xl-package-licensing).
+
 Add export buttons below the editor:
 
 ```erb
@@ -494,6 +522,8 @@ These are dynamically imported only when the user clicks an export button.
 ---
 
 ## AI Assistance
+
+> **Licensing:** AI features use the XL package `@blocknote/xl-ai`. Free for open-source projects under GPL-3.0; closed-source applications require a [BlockNote Business subscription](https://www.blocknotejs.org/pricing). See [Licensing](#blocknote-xl-package-licensing).
 
 AI features add an AI button to the formatting toolbar and an `/ai` slash command. Requires a chat endpoint compatible with the AI SDK.
 
@@ -675,5 +705,7 @@ app/components/bali/block_editor/
 ## See Also
 
 - [BlockNote Documentation](https://www.blocknotejs.org/docs)
+- [BlockNote Pricing & XL Licensing](https://www.blocknotejs.org/pricing)
+- [BlockNote XL Commercial License Terms](https://www.blocknotejs.org/legal/blocknote-xl-commercial-license)
 - [DaisyUI Components](https://daisyui.com/components/)
 - [Lookbook Preview](/lookbook/inspect/bali/block_editor)
