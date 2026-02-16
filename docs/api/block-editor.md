@@ -8,8 +8,10 @@ A rich text editor powered by [BlockNote](https://www.blocknotejs.org/) and Reac
 
 ```bash
 yarn add @blocknote/core @blocknote/react @blocknote/mantine react react-dom
-yarn add @blocknote/xl-multi-column  # Multi-column layouts (XL package)
 yarn add shiki                       # Syntax highlighting for code blocks
+
+# Optional - for multi-column layouts (XL package, requires license for closed-source)
+yarn add @blocknote/xl-multi-column
 
 # Optional - for export functionality (XL packages)
 yarn add @blocknote/xl-pdf-exporter @react-pdf/renderer
@@ -43,7 +45,7 @@ The BlockEditor relies on several **BlockNote XL** packages for advanced feature
 
 **Startup/non-profit discounts** are available for seed-stage startups and non-profits with fewer than 5 employees. See [BlockNote Pricing](https://www.blocknotejs.org/pricing) for details.
 
-> **Note:** Since the BlockEditor component uses `@blocknote/xl-multi-column` by default for multi-column layouts, any closed-source application using this component will need a commercial license. If you want to avoid the subscription, you would need to fork the component and remove the multi-column dependency -- but this also removes multi-column layout support from the slash menu.
+> **Note:** The base BlockEditor component works without any XL packages and requires no commercial license. Multi-column layouts are opt-in via `multi_column: true`, which dynamically loads `@blocknote/xl-multi-column`. Only enable XL features if your project is GPL-3.0 compatible or you have a commercial license.
 
 ### Rails Configuration
 
@@ -145,6 +147,7 @@ If you have existing HTML content (e.g., from a legacy Trix editor), use `html_c
 | `references_url` | `String` | `nil` | Entity reference search endpoint URL |
 | `references_resolve_url` | `String` | `nil` | Batch entity reference resolution endpoint URL |
 | `references_config` | `Hash` | `nil` | Custom entity type display configuration |
+| `multi_column` | `Boolean` | `false` | Enable multi-column layouts (requires `@blocknote/xl-multi-column`) |
 | `**options` | `Hash` | `{}` | Additional HTML attributes passed to the wrapper div |
 
 ---
@@ -159,9 +162,18 @@ These features work out of the box with zero configuration:
 - **Blockquotes**
 - **Tables** -- Resizable with header rows
 - **Code blocks** -- Syntax highlighting via Shiki for 20+ languages
-- **Multi-column layouts** -- 2 and 3 column layouts via slash menu (XL package -- see [Licensing](#blocknote-xl-package-licensing))
 - **Dividers**
 - **Slash menu** -- Type `/` to access all block types
+
+### Opt-in Features (XL Packages)
+
+These features require explicit opt-in and use XL packages (see [Licensing](#blocknote-xl-package-licensing)):
+
+- **Multi-column layouts** -- 2 and 3 column layouts via slash menu (`multi_column: true`)
+- **PDF/DOCX export** -- Export editor content to PDF or DOCX files (`export: true`)
+- **AI assistance** -- AI-powered text generation and editing (`ai_url: '...'`)
+
+All XL packages are dynamically imported only when their feature is enabled, keeping the base bundle lean and license-free.
 
 ### Supported Code Languages
 
@@ -517,7 +529,7 @@ yarn add @blocknote/xl-pdf-exporter @react-pdf/renderer
 yarn add @blocknote/xl-docx-exporter docx
 ```
 
-These are dynamically imported only when the user clicks an export button.
+These are dynamically imported only when `export:` is enabled and the user clicks an export button. If `export: false` (the default), the XL packages are never loaded.
 
 ---
 
@@ -618,6 +630,9 @@ An editor with all capabilities enabled:
     document: { icon: "\u25E7", label: 'Document', color: 'success' }
   },
 
+  # Multi-column layouts (XL package)
+  multi_column: true,
+
   # Export
   export: true,
   export_filename: 'project-update',
@@ -656,7 +671,7 @@ The BlockEditor uses a **custom Stimulus controller** that manages a React compo
 2. **Turbo cleanup** -- Listens for `turbo:before-cache` to unmount the React root before Turbo caches the page
 3. **Disconnect** -- Unmounts the React root on Stimulus `disconnect()`
 
-AI modules (`@blocknote/xl-ai`, `ai`) are only imported when `ai_url` is configured, keeping the base bundle lean.
+XL modules (multi-column, AI) are only imported when their respective features are enabled, keeping the base bundle lean and license-free.
 
 ### File Structure
 

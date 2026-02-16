@@ -82,18 +82,25 @@ module Bali
 
       # Full-featured editor with all capabilities enabled.
       # Includes: rich text, code blocks, multi-column, tables,
-      # mentions, export, and form integration.
+      # mentions, entity references, export, AI, and form integration.
+      #
+      # Multi-column and AI require XL packages (see docs for licensing).
+      # AI requires the chat server running:
+      #   cd spec/dummy && ANTHROPIC_API_KEY=sk-ant-... node server/ai-chat.mjs
       #
       # @param placeholder text
       # @param format select { choices: [json, html] }
-      def full_featured(placeholder: 'Start writing...', format: :json)
+      # @param multi_column toggle
+      def full_featured(placeholder: 'Start writing...', format: :json, multi_column: true)
         render BlockEditor::Component.new(
           editable: true,
           placeholder: placeholder,
           input_name: 'document[content]',
           format: format.to_sym,
+          multi_column: multi_column,
           export: true,
           export_filename: 'my-document',
+          ai_url: 'http://localhost:3456/api/ai/chat',
           mentions_url: '/users',
           references_url: '/entity_references',
           references_resolve_url: '/entity_references/resolve',

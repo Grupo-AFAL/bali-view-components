@@ -21,12 +21,6 @@ import {
   getFormattingToolbarItems
 } from '@blocknote/react'
 import { useEffect, useRef, useMemo } from 'react'
-import {
-  withMultiColumn,
-  multiColumnDropCursor,
-  getMultiColumnSlashMenuItems,
-  locales as multiColumnLocales
-} from '@blocknote/xl-multi-column'
 
 import { SUPPORTED_LANGUAGES, PRELOADED_LANGS } from './constants'
 import { Mention, EntityReference } from './inlineContent'
@@ -47,6 +41,7 @@ export default function BlockNoteEditorWrapper ({
   theme = 'light',
   aiUrl,
   ai,
+  multiColumn,
   mentionsUrl,
   mentions: staticMentions,
   referencesUrl,
@@ -71,37 +66,40 @@ export default function BlockNoteEditorWrapper ({
     }
   }, [initialContent])
 
-  // Build schema with syntax highlighting, multi-column, and mentions support
-  const schema = useMemo(() => withMultiColumn(BlockNoteSchema.create({
-    blockSpecs: {
-      ...defaultBlockSpecs,
-      codeBlock: createCodeBlockSpec({
-        supportedLanguages: SUPPORTED_LANGUAGES,
-        defaultLanguage: 'text',
-        createHighlighter: async () => {
-          try {
-            const [{ createHighlighter }, { createJavaScriptRegexEngine }] = await Promise.all([
-              import('shiki'),
-              import('shiki/engine/javascript')
-            ])
-            return createHighlighter({
-              themes: ['github-light', 'github-dark'],
-              langs: PRELOADED_LANGS,
-              engine: createJavaScriptRegexEngine()
-            })
-          } catch (error) {
-            console.error('BlockEditor: Failed to initialize syntax highlighter:', error)
-            throw error
+  // Build schema with syntax highlighting, optional multi-column, and mentions support
+  const schema = useMemo(() => {
+    const base = BlockNoteSchema.create({
+      blockSpecs: {
+        ...defaultBlockSpecs,
+        codeBlock: createCodeBlockSpec({
+          supportedLanguages: SUPPORTED_LANGUAGES,
+          defaultLanguage: 'text',
+          createHighlighter: async () => {
+            try {
+              const [{ createHighlighter }, { createJavaScriptRegexEngine }] = await Promise.all([
+                import('shiki'),
+                import('shiki/engine/javascript')
+              ])
+              return createHighlighter({
+                themes: ['github-light', 'github-dark'],
+                langs: PRELOADED_LANGS,
+                engine: createJavaScriptRegexEngine()
+              })
+            } catch (error) {
+              console.error('BlockEditor: Failed to initialize syntax highlighter:', error)
+              throw error
+            }
           }
-        }
-      })
-    },
-    inlineContentSpecs: {
-      ...defaultInlineContentSpecs,
-      mention: Mention,
-      entityReference: EntityReference
-    }
-  })), [])
+        })
+      },
+      inlineContentSpecs: {
+        ...defaultInlineContentSpecs,
+        mention: Mention,
+        entityReference: EntityReference
+      }
+    })
+    return multiColumn ? multiColumn.withMultiColumn(base) : base
+  }, [multiColumn])
 
   const aiExtension = useMemo(() => {
     if (!aiEnabled) return null
@@ -112,10 +110,10 @@ export default function BlockNoteEditorWrapper ({
 
   const editor = useCreateBlockNote({
     schema,
-    dropCursor: multiColumnDropCursor,
+    dropCursor: multiColumn?.multiColumnDropCursor,
     dictionary: {
       ...coreLocales.en,
-      multi_column: multiColumnLocales.en,
+      ...(multiColumn ? { multi_column: multiColumn.locales.en } : {}),
       ...(aiEnabled ? { ai: ai.aiLocales.en } : {})
     },
     initialContent: parsedContent,
@@ -124,12 +122,12 @@ export default function BlockNoteEditorWrapper ({
     extensions: aiExtension ? [aiExtension] : undefined
   })
 
-  // Combine default + multi-column + AI slash menu items
+  // Combine default + optional multi-column + AI slash menu items
   const getSlashMenuItems = useMemo(() => {
     return async (query) => {
       const groups = [
         getDefaultReactSlashMenuItems(editor),
-        getMultiColumnSlashMenuItems(editor)
+        ...(multiColumn ? [multiColumn.getMultiColumnSlashMenuItems(editor)] : [])
       ]
       if (aiEnabled) {
         groups.push(ai.getAISlashMenuItems(editor))
@@ -142,7 +140,7 @@ export default function BlockNoteEditorWrapper ({
         item.aliases?.some(a => a.toLowerCase().includes(q))
       )
     }
-  }, [editor, aiEnabled, ai])
+  }, [editor, multiColumn, aiEnabled, ai])
 
   const getMentionItems = useMentions(editor, mentionsUrl, staticMentions)
   const { getEntityReferenceItems } = useEntityReferences(editor, {

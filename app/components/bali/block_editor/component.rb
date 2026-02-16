@@ -23,6 +23,7 @@ module Bali
         references_url: nil,
         references_resolve_url: nil,
         references_config: nil,
+        multi_column: false,
         **options
       )
         # rubocop:enable Metrics/ParameterLists
@@ -43,6 +44,7 @@ module Bali
         @references_url = references_url
         @references_resolve_url = references_resolve_url
         @references_config = references_config
+        @multi_column = multi_column
 
         @options = prepend_class_name(options, 'block-editor-component')
         @options = prepend_controller(@options, 'block-editor')
@@ -85,6 +87,10 @@ module Bali
       private
 
       def controller_values
+        base_values.merge(export_values)
+      end
+
+      def base_values
         {
           initial_content: serialized_content,
           html_content: @html_content || '',
@@ -99,7 +105,15 @@ module Bali
           mentions: serialized_mentions,
           references_url: @references_url || '',
           references_resolve_url: @references_resolve_url || '',
-          references_config: serialized_references_config
+          references_config: serialized_references_config,
+          multi_column: @multi_column
+        }
+      end
+
+      def export_values
+        {
+          export_pdf: export_enabled? && export_pdf?,
+          export_docx: export_enabled? && export_docx?
         }
       end
 

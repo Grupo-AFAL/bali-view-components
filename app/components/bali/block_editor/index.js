@@ -17,7 +17,10 @@ export class BlockEditorController extends Controller {
     mentions: { type: Array, default: [] },
     referencesUrl: { type: String, default: '' },
     referencesResolveUrl: { type: String, default: '' },
-    referencesConfig: { type: Object, default: {} }
+    referencesConfig: { type: Object, default: {} },
+    multiColumn: { type: Boolean, default: false },
+    exportPdf: { type: Boolean, default: false },
+    exportDocx: { type: Boolean, default: false }
   }
 
   async connect () {
@@ -46,6 +49,21 @@ export class BlockEditorController extends Controller {
         referencesUrl: this.referencesUrlValue || undefined,
         referencesResolveUrl: this.referencesResolveUrlValue || undefined,
         referencesConfig: Object.keys(this.referencesConfigValue).length > 0 ? this.referencesConfigValue : undefined
+      }
+
+      // Dynamically load multi-column module when enabled
+      if (this.multiColumnValue) {
+        try {
+          const mc = await import('@blocknote/xl-multi-column')
+          props.multiColumn = {
+            withMultiColumn: mc.withMultiColumn,
+            multiColumnDropCursor: mc.multiColumnDropCursor,
+            getMultiColumnSlashMenuItems: mc.getMultiColumnSlashMenuItems,
+            locales: mc.locales
+          }
+        } catch (error) {
+          console.error('BlockEditor: Failed to load multi-column module:', error)
+        }
       }
 
       // Dynamically load AI modules when ai_url is configured
@@ -104,7 +122,7 @@ export class BlockEditorController extends Controller {
   }
 
   async exportPdf () {
-    if (!this.blockNoteEditor) return
+    if (!this.blockNoteEditor || !this.exportPdfValue) return
 
     try {
       const [
@@ -153,7 +171,7 @@ export class BlockEditorController extends Controller {
   }
 
   async exportDocx () {
-    if (!this.blockNoteEditor) return
+    if (!this.blockNoteEditor || !this.exportDocxValue) return
 
     try {
       const [
