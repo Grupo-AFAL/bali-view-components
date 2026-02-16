@@ -37,7 +37,7 @@ registerAllComponents(application)
 // ---------------------------------------------------------
 
 // Track which modules have been loaded to avoid duplicate registration
-const loadedModules = { charts: false, gantt: false }
+const loadedModules = { charts: false, gantt: false, blockEditor: false }
 
 /**
  * Lazy load Charts module when chart elements are detected
@@ -66,20 +66,36 @@ function loadGanttIfNeeded () {
   }
 }
 
+/**
+ * Lazy load Block Editor module when block-editor elements are detected
+ */
+function loadBlockEditorIfNeeded () {
+  if (loadedModules.blockEditor) return
+  if (document.querySelector('[data-controller*="block-editor"]')) {
+    loadedModules.blockEditor = true
+    import('bali/block-editor').then(({ registerBlockEditor }) => {
+      registerBlockEditor(application)
+    })
+  }
+}
+
 // Check on initial page load
 loadChartsIfNeeded()
 loadGanttIfNeeded()
+loadBlockEditorIfNeeded()
 
 // Re-check after Turbo navigations bring in new content
 document.addEventListener('turbo:load', () => {
   loadChartsIfNeeded()
   loadGanttIfNeeded()
+  loadBlockEditorIfNeeded()
 })
 
 // Also check after Turbo Frames/Streams update the DOM
 document.addEventListener('turbo:frame-load', () => {
   loadChartsIfNeeded()
   loadGanttIfNeeded()
+  loadBlockEditorIfNeeded()
 })
 
 // Rich Text Editor (TipTap) - WARNING: currently broken

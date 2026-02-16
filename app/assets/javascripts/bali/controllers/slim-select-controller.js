@@ -164,7 +164,7 @@ export class SlimSelectController extends Controller {
             }
           })
 
-          resolve([{ label: this.resultsTextValue, options: options }])
+          resolve([{ label: this.resultsTextValue, options }])
         })
     })
   }

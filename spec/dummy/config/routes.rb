@@ -44,8 +44,11 @@ Rails.application.routes.draw do
   post 'table/bulk_action', to: 'table#bulk_action'
 
   get 'users', to: 'users#index'
+  get 'entity_references', to: 'entity_references#index'
+  post 'entity_references/resolve', to: 'entity_references#resolve'
 
   resources :gantt_chart, only: %i[update]
 
+  mount Bali::Engine, at: '/bali'
   mount Lookbook::Engine, at: '/lookbook'
 end

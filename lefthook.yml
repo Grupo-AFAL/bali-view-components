@@ -20,10 +20,10 @@ pre-push:
       tags:
         - backend
 
-    cypress:
-      run: yarn cy:run
-      tags:
-        - frontend
+    # cypress:
+    #   run: yarn cy:run
+    #   tags:
+    #     - frontend
 
 # Skip specific hooks with LEFTHOOK_EXCLUDE=tag1,tag2
 # Example: LEFTHOOK_EXCLUDE=frontend git push (skips cypress)

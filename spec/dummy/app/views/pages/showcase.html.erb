@@ -868,6 +868,116 @@
   <% end %>
 </section>
 
+<%# BlockEditor Demo %>
+<section class="mb-12">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+    <%= render Bali::Icon::Component.new('text-cursor-input', class: 'text-primary') %>
+    <%= t('showcase.block_editor') %>
+  </h2>
+  <p class="text-base-content/70 mb-4"><%= t('showcase.block_editor_desc') %></p>
+
+  <%
+    showcase_content = [
+      { type: 'heading', content: [{ type: 'text', text: 'Block Editor Showcase', styles: {} }], props: { level: 1 } },
+      { type: 'paragraph', content: [
+        { type: 'text', text: 'A full-featured editor with ', styles: {} },
+        { type: 'text', text: 'rich text', styles: { bold: true } },
+        { type: 'text', text: ', mentions (', styles: {} },
+        { type: 'mention', props: { user: 'Alice Johnson', id: '1' } },
+        { type: 'text', text: '), entity references (', styles: {} },
+        { type: 'entityReference', props: { entityType: 'project', entityId: '1', entityName: 'Q4 Release' } },
+        { type: 'text', text: '), and more.', styles: {} }
+      ] },
+      { type: 'heading', content: [{ type: 'text', text: 'Text Formatting', styles: {} }], props: { level: 2 } },
+      { type: 'paragraph', content: [
+        { type: 'text', text: 'This is ', styles: {} },
+        { type: 'text', text: 'bold', styles: { bold: true } },
+        { type: 'text', text: ', ', styles: {} },
+        { type: 'text', text: 'italic', styles: { italic: true } },
+        { type: 'text', text: ', ', styles: {} },
+        { type: 'text', text: 'underlined', styles: { underline: true } },
+        { type: 'text', text: ', ', styles: {} },
+        { type: 'text', text: 'strikethrough', styles: { strike: true } },
+        { type: 'text', text: ', and ', styles: {} },
+        { type: 'text', text: 'inline code', styles: { code: true } },
+        { type: 'text', text: ' text.', styles: {} }
+      ] },
+      { type: 'heading', content: [{ type: 'text', text: 'Lists', styles: {} }], props: { level: 3 } },
+      { type: 'bulletListItem', content: [{ type: 'text', text: 'First bullet item', styles: {} }] },
+      { type: 'bulletListItem', content: [{ type: 'text', text: 'Second bullet item with ', styles: {} },
+                                           { type: 'text', text: 'bold text', styles: { bold: true } }] },
+      { type: 'numberedListItem', content: [{ type: 'text', text: 'First numbered item', styles: {} }] },
+      { type: 'numberedListItem', content: [{ type: 'text', text: 'Second numbered item', styles: {} }] },
+      { type: 'checkListItem', content: [{ type: 'text', text: 'Completed task', styles: {} }], props: { checked: true } },
+      { type: 'checkListItem', content: [{ type: 'text', text: 'Pending task', styles: {} }], props: { checked: false } },
+      { type: 'heading', content: [{ type: 'text', text: 'Mentions & References', styles: {} }], props: { level: 3 } },
+      { type: 'paragraph', content: [
+        { type: 'text', text: 'Assigned to ', styles: {} },
+        { type: 'mention', props: { user: 'Bob Smith', id: '2' } },
+        { type: 'text', text: ' — related to ', styles: {} },
+        { type: 'entityReference', props: { entityType: 'task', entityId: '3', entityName: 'Fix login bug' } },
+        { type: 'text', text: ' and ', styles: {} },
+        { type: 'entityReference', props: { entityType: 'document', entityId: '1', entityName: 'Architecture Decision Record' } },
+        { type: 'text', text: '.', styles: {} }
+      ] },
+      { type: 'heading', content: [{ type: 'text', text: 'Blockquote', styles: {} }], props: { level: 3 } },
+      { type: 'quote', content: [
+        { type: 'text', text: 'The best way to predict the future is to invent it.', styles: { italic: true } },
+        { type: 'text', text: ' — Alan Kay', styles: {} }
+      ] },
+      { type: 'divider' },
+      { type: 'heading', content: [{ type: 'text', text: 'Code Block', styles: {} }], props: { level: 3 } },
+      { type: 'codeBlock', content: [{ type: 'text', text: "render Bali::BlockEditor::Component.new(\n  mentions_url: '/users',\n  references_url: '/entity_references',\n  references_resolve_url: '/entity_references/resolve',\n  export: true\n)", styles: {} }], props: { language: 'ruby' } },
+      { type: 'heading', content: [{ type: 'text', text: 'Table', styles: {} }], props: { level: 3 } },
+      { type: 'table', content: {
+        type: 'tableContent',
+        rows: [
+          { cells: [[{ type: 'text', text: 'Feature', styles: { bold: true } }],
+                     [{ type: 'text', text: 'Trigger', styles: { bold: true } }],
+                     [{ type: 'text', text: 'Notes', styles: { bold: true } }]] },
+          { cells: [[{ type: 'text', text: 'Slash menu', styles: {} }],
+                     [{ type: 'text', text: '/', styles: { code: true } }],
+                     [{ type: 'text', text: 'Insert blocks, columns, toggles', styles: {} }]] },
+          { cells: [[{ type: 'text', text: 'Mentions', styles: {} }],
+                     [{ type: 'text', text: '@', styles: { code: true } }],
+                     [{ type: 'text', text: 'Reference people', styles: {} }]] },
+          { cells: [[{ type: 'text', text: 'Entity references', styles: {} }],
+                     [{ type: 'text', text: '#', styles: { code: true } }],
+                     [{ type: 'text', text: 'Reference tasks, projects, docs', styles: {} }]] }
+        ]
+      } },
+      { type: 'heading', content: [{ type: 'text', text: 'Toggle List', styles: {} }], props: { level: 3 } },
+      { type: 'toggleListItem', content: [{ type: 'text', text: 'Click to expand this toggle', styles: {} }] },
+      { type: 'toggleListItem', content: [{ type: 'text', text: 'Another collapsible section', styles: {} }] },
+      { type: 'paragraph', content: [
+        { type: 'text', text: 'Type ', styles: {} },
+        { type: 'text', text: '/', styles: { code: true } },
+        { type: 'text', text: ' for slash menu, ', styles: {} },
+        { type: 'text', text: '@', styles: { code: true } },
+        { type: 'text', text: ' for mentions, ', styles: {} },
+        { type: 'text', text: '#', styles: { code: true } },
+        { type: 'text', text: ' for entity references. Use the export buttons below.', styles: {} }
+      ] }
+    ]
+  %>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <%= render Bali::BlockEditor::Component.new(
+      initial_content: showcase_content,
+      editable: true,
+      placeholder: t('showcase.block_editor_placeholder'),
+      input_name: 'demo[content]',
+      multi_column: true,
+      export: true,
+      export_filename: 'block-editor-showcase',
+      ai_url: 'http://localhost:3456/api/ai/chat',
+      mentions_url: '/users',
+      references_url: '/entity_references',
+      references_resolve_url: '/entity_references/resolve'
+    ) %>
+  <% end %>
+</section>
+
 <%# Summary %>
 <section class="mb-12">
   <%= render Bali::Message::Component.new(color: :success) do %>
@@ -893,6 +1003,7 @@
             <% tags.with_item(text: 'Tags', size: :sm) %>
             <% tags.with_item(text: 'Tooltip', size: :sm) %>
             <% tags.with_item(text: 'TreeView', size: :sm) %>
+            <% tags.with_item(text: 'BlockEditor', size: :sm, color: :accent) %>
           <% end %>
         </div>
       </div>

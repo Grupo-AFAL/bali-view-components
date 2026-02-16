@@ -49,6 +49,16 @@
     <%# Text Area %>
     <%= f.text_area_group :synopsis, label: t('movies.form.synopsis'), rows: 4, placeholder: t('movies.form.enter_synopsis'), char_counter: { max: 500 } %>
 
+    <%# Block Editor - Rich Description %>
+    <div class="mt-4">
+      <label class="label"><span class="label-text font-medium"><%= t('movies.form.rich_description') %></span></label>
+      <%= render Bali::BlockEditor::Component.new(
+        editable: true,
+        input_name: 'movie[rich_description]',
+        placeholder: t('movies.form.enter_rich_description')
+      ) %>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
       <%# Date Field %>
       <%= f.date_field_group :release_date, label: t('movies.form.release_date') %>

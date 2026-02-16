@@ -46,3 +46,5 @@ firebase-debug.log
 # Claude Code / oh-my-claudecode runtime
 .omc/
 docs/plans/
+spec/dummy/log/test.log.0
+/screenshots
