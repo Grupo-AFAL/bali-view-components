@@ -8,7 +8,7 @@ GIT
 PATH
   remote: .
   specs:
-    bali_view_components (2.1.1)
+    bali_view_components (2.2.0)
       caxlsx
       lucide-rails (>= 0.3.0)
       rails (>= 7.0, < 9.0)
@@ -173,7 +173,7 @@ GEM
     mini_portile2 (2.8.9)
     minitest (5.27.0)
     mutex_m (0.3.0)
-    net-imap (0.6.2)
+    net-imap (0.6.3)
       date
       net-protocol
     net-pop (0.1.2)
