@@ -45,7 +45,10 @@ export class ModalController extends Controller {
     }
 
     if (this.hasBackgroundTarget) {
-      this.backgroundTarget.addEventListener('click', this._closeModal)
+      // Track mousedown origin to prevent closing when clicking autocomplete
+      // options that disappear before mouseup, causing mouseup to land on backdrop
+      this.backgroundTarget.addEventListener('mousedown', this._onBackdropMousedown)
+      this.backgroundTarget.addEventListener('click', this._onBackdropClick)
     }
 
     if (this.hasCloseBtnTarget) {
@@ -61,7 +64,8 @@ export class ModalController extends Controller {
 
   removeListeners = eventName => {
     if (this.hasBackgroundTarget) {
-      this.backgroundTarget.removeEventListener('click', this._closeModal)
+      this.backgroundTarget.removeEventListener('mousedown', this._onBackdropMousedown)
+      this.backgroundTarget.removeEventListener('click', this._onBackdropClick)
     }
 
     if (this.hasCloseBtnTarget) {
@@ -74,13 +78,15 @@ export class ModalController extends Controller {
   templateTargetConnected () {
     if (!this.hasBackgroundTarget) return
 
-    this.backgroundTarget.addEventListener('click', this._closeModal)
+    this.backgroundTarget.addEventListener('mousedown', this._onBackdropMousedown)
+    this.backgroundTarget.addEventListener('click', this._onBackdropClick)
   }
 
   templateTargetDisconnected () {
     if (!this.hasBackgroundTarget) return
 
-    this.backgroundTarget.removeEventListener('click', this._closeModal)
+    this.backgroundTarget.removeEventListener('mousedown', this._onBackdropMousedown)
+    this.backgroundTarget.removeEventListener('click', this._onBackdropClick)
   }
 
   setOptionsAndOpenModal = event => {
@@ -174,6 +180,21 @@ export class ModalController extends Controller {
     keys.forEach((key, _i) => {
       this[key] = options[key]
     })
+  }
+
+  _onBackdropMousedown = (event) => {
+    // Record that the mousedown originated on the backdrop itself
+    this._mousedownOnBackdrop = event.target === this.backgroundTarget
+  }
+
+  _onBackdropClick = (event) => {
+    // Only close if both mousedown AND click (mouseup) happened on the backdrop.
+    // This prevents closing when browser autocomplete options disappear on click,
+    // causing the mouseup to land on the backdrop behind them.
+    if (this._mousedownOnBackdrop && event.target === this.backgroundTarget) {
+      this._closeModal()
+    }
+    this._mousedownOnBackdrop = false
   }
 
   _closeModal = () => {
