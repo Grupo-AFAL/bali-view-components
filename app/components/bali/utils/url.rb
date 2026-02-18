@@ -9,7 +9,7 @@ module Bali
 
       def add_query_params(url, values = {})
         uri = URI(url)
-        query_params = CGI.parse(uri.query.to_s).merge(values)
+        query_params = Rack::Utils.parse_query(uri.query.to_s).merge(values)
         query_params.each do |key, value|
           query_params[key] = value.first if !array_query_params?(key) && value.is_a?(Array)
         end

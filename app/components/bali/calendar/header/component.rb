@@ -49,7 +49,7 @@ module Bali
         end
 
         def query_params
-          @query_params ||= CGI.parse(uri.query.to_s)
+          @query_params ||= Rack::Utils.parse_query(uri.query.to_s)
         end
 
         def extra_params(type)
