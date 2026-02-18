@@ -38,7 +38,9 @@ describe('TabsController', () => {
         'data-content-loaded'
       )
 
+      cy.intercept('GET', '/tab3*').as('loadTab3')
       cy.get('[role="tablist"] .tab:nth-child(3)').first().click()
+      cy.wait('@loadTab3')
       cy.get('[role="tablist"] .tab:nth-child(3)').first().should('have.attr', 'data-content-loaded')
     })
   })
