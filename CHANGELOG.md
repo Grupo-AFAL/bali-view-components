@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Ruby 4.0 compatibility** - Replace removed `CGI.parse` with `Rack::Utils.parse_query` in `Utils::Url` and `Calendar::Header`
+- **Ruby version** - Updated development Ruby version to 4.0.1
+
 ### Added
 
 - **BlockEditor V2** - New rich text editor powered by BlockNote + React
