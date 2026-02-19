@@ -10,6 +10,22 @@ module Bali
 
       renders_many :menu_switches, Bali::SideMenu::MenuSwitch::Component
 
+      renders_many :bottom_items,
+                   lambda { |href: nil, name: nil, icon: nil,
+                              authorized: true, disabled: false, target: nil, **options|
+                     Item::Component.new(
+                       name: name,
+                       href: href,
+                       icon: icon,
+                       authorized: authorized,
+                       disabled: disabled,
+                       target: target,
+                       current_path: @current_path,
+                       group_behavior: @group_behavior,
+                       **options
+                     )
+                   }
+
       renders_many :lists, ->(title: nil, **options) do
         List::Component.new(
           title: title,

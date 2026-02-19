@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Modal** - Prevent modal from closing when clicking browser autocomplete options inside modal forms
 
+## [v2.3.0] - 2026-02-18
+
+### Added
+
+- **SideMenu** - New `with_bottom_item` slot to pin items at the bottom of the sidebar, outside the scrollable area. Useful for user profile, logout, and account settings links. Supports multiple items and the full `Item::Component` API (icon, badge, authorized, active state, disabled, target, match type). Works in both fixed and collapsable sidebar modes.
+- **BlockEditor** - New `table_of_contents:` option renders a sticky sidebar extracted from the document's heading blocks (H1–H3). Updates in real-time as headings are added or edited. Clicking any entry smooth-scrolls to that heading. Layout collapses to a vertical list on narrow viewports.
+
 ## [v2.2.0] - 2026-02-18
 
 ### Added
