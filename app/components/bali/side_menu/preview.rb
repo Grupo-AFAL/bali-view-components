@@ -58,6 +58,17 @@ module Bali
       def with_badges
         render_with_template(template: 'bali/side_menu/previews/with_badges')
       end
+
+      # @label With Bottom Items
+      # Use `with_bottom_item` to pin items to the bottom of the sidebar — useful for user profile,
+      # logout, or account settings links. Bottom items are fixed outside the scrollable area.
+      # @param collapsable toggle
+      def with_bottom_items(collapsable: false)
+        render_with_template(
+          template: 'bali/side_menu/previews/with_bottom_items',
+          locals: { collapsable: collapsable }
+        )
+      end
     end
   end
 end
