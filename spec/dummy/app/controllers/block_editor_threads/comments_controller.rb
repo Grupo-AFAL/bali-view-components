@@ -41,7 +41,10 @@ module BlockEditorThreads
     end
 
     def comment_params
-      params.permit(:body, metadata: {})
+      # body is a BlockNote JSON object, not a scalar — must extract outside strong params
+      result = { body: permit_json(params[:body]) }
+      result[:metadata] = permit_json(params[:metadata]) || {} if params.key?(:metadata)
+      result
     end
   end
 end

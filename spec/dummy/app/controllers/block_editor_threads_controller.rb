@@ -14,12 +14,12 @@ class BlockEditorThreadsController < ApplicationController
   def create
     thread = BlockEditorThread.new(metadata: thread_params[:metadata] || {})
 
-    if thread_params[:initial_comment].present?
-      ic = thread_params[:initial_comment]
+    if params[:initial_comment].present?
+      ic = params[:initial_comment]
       thread.block_editor_comments.build(
         user_id: current_user_id,
-        body: ic[:body],
-        metadata: ic[:metadata] || {}
+        body: permit_json(ic[:body]),
+        metadata: permit_json(ic[:metadata]) || {}
       )
     end
 
@@ -46,6 +46,6 @@ class BlockEditorThreadsController < ApplicationController
   end
 
   def thread_params
-    params.permit(:resolved, metadata: {}, initial_comment: [:body, { metadata: {} }])
+    params.permit(:resolved, metadata: {})
   end
 end
