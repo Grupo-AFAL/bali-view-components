@@ -6,10 +6,18 @@ class BlockEditorComment < ApplicationRecord
 
   scope :active, -> { where(deleted_at: nil) }
 
+  validates :body, presence: true, unless: :soft_deleted?
+
+  def soft_deleted?
+    deleted_at.present?
+  end
+
   def soft_delete!
     update!(body: nil, deleted_at: Time.current)
   end
 
+  # NOTE: Production apps should use Blueprinter for serialization instead of as_json overrides.
+  # as_json is used here to keep this reference implementation dependency-free.
   def as_json(_options = {})
     {
       id: id,

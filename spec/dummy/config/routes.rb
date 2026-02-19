@@ -50,16 +50,10 @@ Rails.application.routes.draw do
   resources :gantt_chart, only: %i[update]
 
   # BlockEditor comment threads REST API (matches RESTThreadStore.js contract)
-  scope 'block_editor_comments', controller: 'block_editor_comments' do
-    get    '/',                                       action: :index, as: :block_editor_comments
-    post   '/',                                       action: :create
-    patch  '/:id',                                    action: :update, as: :block_editor_comment
-    delete '/:id',                                    action: :destroy
-    post   '/:id/comments',                           action: :create_comment,   as: :block_editor_thread_comments
-    patch  '/:id/comments/:comment_id',               action: :update_comment,   as: :block_editor_thread_comment
-    delete '/:id/comments/:comment_id',               action: :destroy_comment
-    post   '/:id/comments/:comment_id/reactions',     action: :create_reaction, as: :block_editor_comment_reactions
-    delete '/:id/comments/:comment_id/reactions',     action: :destroy_reaction
+  resources :block_editor_threads, path: 'block_editor_comments', only: %i[index create update destroy] do
+    resources :comments, controller: 'block_editor_threads/comments', only: %i[create update destroy] do
+      resource :reactions, controller: 'block_editor_threads/comments/reactions', only: %i[create destroy]
+    end
   end
 
   mount Bali::Engine, at: '/bali'
