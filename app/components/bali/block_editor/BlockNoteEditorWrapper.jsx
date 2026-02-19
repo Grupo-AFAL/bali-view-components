@@ -20,7 +20,7 @@ import {
   FormattingToolbar,
   getFormattingToolbarItems
 } from '@blocknote/react'
-import { useEffect, useRef, useMemo } from 'react'
+import { useEffect, useRef, useMemo, useState, useCallback } from 'react'
 
 import { SUPPORTED_LANGUAGES, PRELOADED_LANGS } from './constants'
 import { Mention, EntityReference } from './inlineContent'
@@ -28,6 +28,26 @@ import { useFileUpload } from './useFileUpload'
 import { useContentSync } from './useContentSync'
 import { useMentions } from './useMentions'
 import { useEntityReferences } from './useEntityReferences'
+import TableOfContents from './TableOfContents'
+
+function extractTextFromContent (content) {
+  if (!Array.isArray(content)) return ''
+  return content.filter(item => item.type === 'text').map(item => item.text ?? '').join('')
+}
+
+function collectHeadings (blocks, result = []) {
+  if (!Array.isArray(blocks)) return result
+  for (const block of blocks) {
+    if (block.type === 'heading') {
+      const text = extractTextFromContent(block.content)
+      if (text.trim()) result.push({ id: block.id, level: block.props?.level ?? 1, text })
+    }
+    if (Array.isArray(block.children) && block.children.length > 0) {
+      collectHeadings(block.children, result)
+    }
+  }
+  return result
+}
 
 export default function BlockNoteEditorWrapper ({
   initialContent,
@@ -46,7 +66,8 @@ export default function BlockNoteEditorWrapper ({
   mentions: staticMentions,
   referencesUrl,
   referencesResolveUrl,
-  referencesConfig
+  referencesConfig,
+  tableOfContents = false
 }) {
   const htmlParsed = useRef(false)
   const ready = useRef(!htmlContent)
@@ -150,6 +171,21 @@ export default function BlockNoteEditorWrapper ({
   })
   const handleChange = useContentSync(editor, outputElement, format, ready)
 
+  const [tocHeadings, setTocHeadings] = useState(() =>
+    tableOfContents ? collectHeadings(editor.document) : []
+  )
+  const tocTimeout = useRef(null)
+
+  const handleChangeWithToc = useCallback(() => {
+    handleChange()
+    if (tableOfContents) {
+      if (tocTimeout.current) clearTimeout(tocTimeout.current)
+      tocTimeout.current = setTimeout(() => {
+        setTocHeadings(collectHeadings(editor.document))
+      }, 300)
+    }
+  }, [handleChange, tableOfContents, editor])
+
   // Expose editor instance to the parent (Stimulus controller) for export functionality
   useEffect(() => {
     if (editor && onEditorReady) {
@@ -173,12 +209,12 @@ export default function BlockNoteEditorWrapper ({
     }
   }, [editor, htmlContent, parsedContent])
 
-  return (
+  const editorView = (
     <BlockNoteView
       editor={editor}
       editable={editable}
       theme={theme}
-      onChange={handleChange}
+      onChange={handleChangeWithToc}
       slashMenu={false}
       formattingToolbar={aiEnabled ? false : undefined}
     >
@@ -211,4 +247,15 @@ export default function BlockNoteEditorWrapper ({
       {aiEnabled && <ai.AIMenuController />}
     </BlockNoteView>
   )
+
+  if (tableOfContents) {
+    return (
+      <div className='bn-toc-layout'>
+        <TableOfContents headings={tocHeadings} />
+        <div className='bn-toc-editor-wrapper'>{editorView}</div>
+      </div>
+    )
+  }
+
+  return editorView
 }
