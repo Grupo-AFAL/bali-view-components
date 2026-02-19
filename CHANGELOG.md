@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **SideMenu** - New `with_bottom_item` slot to pin items at the bottom of the sidebar, outside the scrollable area. Useful for user profile, logout, and account settings links. Supports multiple items and the full `Item::Component` API (icon, badge, authorized, active state, disabled, target, match type). Works in both fixed and collapsable sidebar modes.
+
 ## [v2.2.0] - 2026-02-18
 
 ### Added
