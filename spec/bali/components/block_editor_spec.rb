@@ -155,14 +155,14 @@ RSpec.describe Bali::BlockEditor::Component, type: :component do
     end
 
     it 'sets comments value to true when enabled' do
-      render_inline(described_class.new(comments: true, comments_user: { id: '1', username: 'Alice' }))
+      render_inline(described_class.new(comments: { user: { id: '1', username: 'Alice' } }))
 
       expect(page).to have_css '[data-block-editor-comments-value="true"]'
     end
 
     it 'serializes comments_user as JSON' do
       user = { id: '1', username: 'Alice', avatar_url: '' }
-      render_inline(described_class.new(comments: true, comments_user: user))
+      render_inline(described_class.new(comments: { user: user }))
 
       expect(page).to have_css '[data-block-editor-comments-user-value]'
       el = page.find('[data-block-editor-comments-user-value]')
@@ -176,7 +176,7 @@ RSpec.describe Bali::BlockEditor::Component, type: :component do
         { id: '1', username: 'Alice' },
         { id: '2', username: 'Bob' }
       ]
-      render_inline(described_class.new(comments: true, comments_user: { id: '1', username: 'Alice' }, comments_users: users))
+      render_inline(described_class.new(comments: { user: { id: '1', username: 'Alice' }, users: users }))
 
       el = page.find('[data-block-editor-comments-users-value]')
       parsed = JSON.parse(el[:'data-block-editor-comments-users-value'])
@@ -186,19 +186,19 @@ RSpec.describe Bali::BlockEditor::Component, type: :component do
     end
 
     it 'applies comments_users_url data value' do
-      render_inline(described_class.new(comments: true, comments_user: { id: '1', username: 'Alice' }, comments_users_url: '/api/users'))
+      render_inline(described_class.new(comments: { user: { id: '1', username: 'Alice' }, users_url: '/api/users' }))
 
       expect(page).to have_css '[data-block-editor-comments-users-url-value="/api/users"]'
     end
 
     it 'applies comments_url data value for REST persistence' do
-      render_inline(described_class.new(comments: true, comments_user: { id: '1', username: 'Alice' }, comments_url: '/block_editor_comments'))
+      render_inline(described_class.new(comments: { url: '/block_editor_comments', user: { id: '1', username: 'Alice' } }))
 
       expect(page).to have_css '[data-block-editor-comments-url-value="/block_editor_comments"]'
     end
 
     it 'defaults comments_url to empty string' do
-      render_inline(described_class.new(comments: true, comments_user: { id: '1', username: 'Alice' }))
+      render_inline(described_class.new(comments: { user: { id: '1', username: 'Alice' } }))
 
       expect(page).to have_css '[data-block-editor-comments-url-value=""]'
     end

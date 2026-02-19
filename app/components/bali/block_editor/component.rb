@@ -6,7 +6,7 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :input_name, :upload_url, :options
 
-      # rubocop:disable Metrics/ParameterLists
+      # rubocop:disable Metrics/ParameterLists, Metrics/AbcSize
       def initialize(
         initial_content: nil,
         html_content: nil,
@@ -27,13 +27,9 @@ module Bali
         multi_column: false,
         table_of_contents: false,
         comments: false,
-        comments_url: nil,
-        comments_user: nil,
-        comments_users: nil,
-        comments_users_url: nil,
         **options
       )
-        # rubocop:enable Metrics/ParameterLists
+        # rubocop:enable Metrics/ParameterLists, Metrics/AbcSize
         @initial_content = initial_content
         @html_content = html_content
         @input_name = input_name
@@ -53,11 +49,13 @@ module Bali
         @references_config = references_config
         @multi_column = multi_column
         @table_of_contents = table_of_contents
-        @comments = comments
-        @comments_url = comments_url
-        @comments_user = comments_user
-        @comments_users = comments_users
-        @comments_users_url = comments_users_url
+
+        comments_config = comments.is_a?(Hash) ? comments.transform_keys(&:to_sym) : nil
+        @comments       = comments_config.present?
+        @comments_url   = comments_config&.fetch(:url, nil)
+        @comments_user  = comments_config&.fetch(:user, nil)
+        @comments_users = comments_config&.fetch(:users, nil)
+        @comments_users_url = comments_config&.fetch(:users_url, nil)
 
         @options = prepend_class_name(options, 'block-editor-component')
         @options = prepend_controller(@options, 'block-editor')

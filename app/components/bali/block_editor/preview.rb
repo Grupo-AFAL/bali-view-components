@@ -96,6 +96,12 @@ module Bali
       # @param comments toggle
       def full_featured(placeholder: 'Start writing...', format: :json, multi_column: true,
                         table_of_contents: false, comments: false)
+        comments_config = if comments
+                            { url: '/block_editor_comments', user: sample_comments_user,
+                              users: sample_comments_users }
+                          else
+                            false
+                          end
         render BlockEditor::Component.new(
           editable: true,
           placeholder: placeholder,
@@ -103,10 +109,7 @@ module Bali
           format: format.to_sym,
           multi_column: multi_column,
           table_of_contents: table_of_contents,
-          comments: comments,
-          comments_url: comments ? '/block_editor_comments' : nil,
-          comments_user: comments ? sample_comments_user : nil,
-          comments_users: comments ? sample_comments_users : nil,
+          comments: comments_config,
           export: true,
           export_filename: 'my-document',
           ai_url: 'http://localhost:3456/api/ai/chat',
@@ -140,9 +143,7 @@ module Bali
       def with_comments(editable: true)
         render BlockEditor::Component.new(
           editable: editable,
-          comments: true,
-          comments_user: sample_comments_user,
-          comments_users: sample_comments_users,
+          comments: { user: sample_comments_user, users: sample_comments_users },
           initial_content: sample_content.to_json
         )
       end
@@ -159,10 +160,8 @@ module Bali
       def with_persistent_comments(editable: true)
         render BlockEditor::Component.new(
           editable: editable,
-          comments: true,
-          comments_url: '/block_editor_comments',
-          comments_user: sample_comments_user,
-          comments_users: sample_comments_users,
+          comments: { url: '/block_editor_comments', user: sample_comments_user,
+                      users: sample_comments_users },
           initial_content: sample_content.to_json
         )
       end
