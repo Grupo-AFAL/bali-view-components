@@ -973,7 +973,12 @@
       ai_url: 'http://localhost:3456/api/ai/chat',
       mentions_url: '/users',
       references_url: '/entity_references',
-      references_resolve_url: '/entity_references/resolve'
+      references_resolve_url: '/entity_references/resolve',
+      comments: {
+        url: '/block_editor_comments',
+        user: { id: '1', username: 'Demo User' },
+        users_url: '/users'
+      }
     ) %>
   <% end %>
 </section>
