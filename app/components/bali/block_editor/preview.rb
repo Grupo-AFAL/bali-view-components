@@ -82,7 +82,7 @@ module Bali
 
       # Full-featured editor with all capabilities enabled.
       # Includes: rich text, code blocks, multi-column, tables,
-      # mentions, entity references, export, AI, and form integration.
+      # mentions, entity references, comments, export, AI, and form integration.
       #
       # Multi-column and AI require XL packages (see docs for licensing).
       # AI requires the chat server running:
@@ -92,7 +92,8 @@ module Bali
       # @param format select { choices: [json, html] }
       # @param multi_column toggle
       # @param table_of_contents toggle
-      def full_featured(placeholder: 'Start writing...', format: :json, multi_column: true, table_of_contents: false)
+      # @param comments toggle
+      def full_featured(placeholder: 'Start writing...', format: :json, multi_column: true, table_of_contents: false, comments: false) # rubocop:disable Metrics/MethodLength
         render BlockEditor::Component.new(
           editable: true,
           placeholder: placeholder,
@@ -100,6 +101,10 @@ module Bali
           format: format.to_sym,
           multi_column: multi_column,
           table_of_contents: table_of_contents,
+          comments: comments,
+          comments_url: comments ? '/block_editor_comments' : nil,
+          comments_user: comments ? sample_comments_user : nil,
+          comments_users: comments ? sample_comments_users : nil,
           export: true,
           export_filename: 'my-document',
           ai_url: 'http://localhost:3456/api/ai/chat',
@@ -119,6 +124,43 @@ module Bali
         render BlockEditor::Component.new(
           editable: editable,
           table_of_contents: true,
+          initial_content: sample_content.to_json
+        )
+      end
+
+      # @label With Comments (In-Memory)
+      # Enables inline commenting with in-memory storage.
+      # Comments are lost on page reload — useful for quick demos.
+      #
+      # Select text and click the comment button in the toolbar
+      # to start a thread. The sidebar shows all threads.
+      # @param editable toggle
+      def with_comments(editable: true)
+        render BlockEditor::Component.new(
+          editable: editable,
+          comments: true,
+          comments_user: sample_comments_user,
+          comments_users: sample_comments_users,
+          initial_content: sample_content.to_json
+        )
+      end
+
+      # @label With Comments (Persistent)
+      # Enables inline commenting with database persistence via REST API.
+      # Comments survive page reloads. Requires the dummy app server
+      # running (`cd spec/dummy && bin/dev`) and the migration applied
+      # (`cd spec/dummy && bin/rails db:migrate`).
+      #
+      # The `comments_url` param points to the REST endpoint that
+      # implements the ThreadStore contract (see RESTThreadStore.js).
+      # @param editable toggle
+      def with_persistent_comments(editable: true)
+        render BlockEditor::Component.new(
+          editable: editable,
+          comments: true,
+          comments_url: '/block_editor_comments',
+          comments_user: sample_comments_user,
+          comments_users: sample_comments_users,
           initial_content: sample_content.to_json
         )
       end
@@ -148,6 +190,19 @@ module Bali
           { id: 6, name: 'Federico Martinez' },
           { id: 7, name: 'Grace Chen' },
           { id: 8, name: 'Hugo Nakamura' }
+        ]
+      end
+
+      def sample_comments_user
+        { id: '1', username: 'Alice Johnson', avatar_url: '' }
+      end
+
+      def sample_comments_users
+        [
+          { id: '1', username: 'Alice Johnson', avatar_url: '' },
+          { id: '2', username: 'Bob Smith', avatar_url: '' },
+          { id: '3', username: 'Carlos Rivera', avatar_url: '' },
+          { id: '4', username: 'Diana Park', avatar_url: '' }
         ]
       end
 

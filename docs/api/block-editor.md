@@ -148,6 +148,12 @@ If you have existing HTML content (e.g., from a legacy Trix editor), use `html_c
 | `references_resolve_url` | `String` | `nil` | Batch entity reference resolution endpoint URL |
 | `references_config` | `Hash` | `nil` | Custom entity type display configuration |
 | `multi_column` | `Boolean` | `false` | Enable multi-column layouts (requires `@blocknote/xl-multi-column`) |
+| `table_of_contents` | `Boolean` | `false` | Enable table of contents sidebar |
+| `comments` | `Boolean` | `false` | Enable inline comments with threads sidebar |
+| `comments_url` | `String` | `nil` | REST API base URL for persistent thread storage (uses in-memory when nil) |
+| `comments_user` | `Hash` | `nil` | Current user: `{ id:, username:, avatar_url: }` (required when `comments: true`) |
+| `comments_users` | `Array` | `nil` | Static user list for resolution: `[{ id:, username:, avatar_url: }, ...]` |
+| `comments_users_url` | `String` | `nil` | Remote endpoint for user resolution |
 | `**options` | `Hash` | `{}` | Additional HTML attributes passed to the wrapper div |
 
 ---
@@ -490,6 +496,152 @@ Entity references are stored in BlockNote JSON as inline content:
 
 ---
 
+## Comments
+
+Inline commenting allows users to select text and attach comment threads, similar to Google Docs. Comments use BlockNote's built-in comments extension (free, MPL 2.0 license -- no XL package required).
+
+### Basic Setup
+
+```erb
+<%%= render Bali::BlockEditor::Component.new(
+  comments: true,
+  comments_user: { id: current_user.id, username: current_user.name, avatar_url: current_user.avatar_url }
+) %>
+```
+
+The `comments_user` parameter identifies the current user for authoring comments. It requires `id` and `username`; `avatar_url` is optional.
+
+### User Resolution
+
+When displaying comments, the editor needs to resolve user IDs into display names and avatars. Two approaches are available:
+
+#### Static User List
+
+Pass a list of users directly. Best for small teams or preview contexts.
+
+```erb
+<%%= render Bali::BlockEditor::Component.new(
+  comments: true,
+  comments_user: { id: '1', username: 'Alice', avatar_url: '' },
+  comments_users: [
+    { id: '1', username: 'Alice', avatar_url: '/avatars/alice.jpg' },
+    { id: '2', username: 'Bob', avatar_url: '/avatars/bob.jpg' },
+    { id: '3', username: 'Carlos', avatar_url: '/avatars/carlos.jpg' }
+  ]
+) %>
+```
+
+#### Remote User Resolution
+
+For larger user bases, point to an endpoint that resolves user IDs:
+
+```erb
+<%%= render Bali::BlockEditor::Component.new(
+  comments: true,
+  comments_user: { id: current_user.id, username: current_user.name, avatar_url: current_user.avatar_url },
+  comments_users_url: '/api/users/resolve'
+) %>
+```
+
+**Your endpoint must:**
+1. Accept `GET` with `?ids[]=1&ids[]=2` query parameters
+2. Return JSON: `[{ "id": "1", "username": "Alice", "avatarUrl": "/avatars/alice.jpg" }, ...]`
+
+**Example Rails controller:**
+
+```ruby
+class Api::UsersController < ApplicationController
+  def resolve
+    users = User.where(id: params[:ids])
+    render json: users.map { |u|
+      { id: u.id.to_s, username: u.name, avatarUrl: url_for(u.avatar) }
+    }
+  end
+end
+```
+
+### How Comments Work
+
+1. **Creating a comment**: Select text in the editor and click the comment button in the formatting toolbar. A floating composer appears to write the initial comment.
+2. **Viewing threads**: Click on highlighted (commented) text to see the thread in a floating popover. The threads sidebar on the right shows all comment threads.
+3. **Replying**: Click a thread to expand it and add replies.
+4. **Resolving**: Mark threads as resolved when the discussion is complete. Resolved threads are dimmed in the sidebar.
+5. **Reactions**: Add emoji reactions to individual comments.
+
+### Storage
+
+#### In-Memory (Default)
+
+When `comments_url` is not provided, comments are stored **in-memory** -- they exist only for the duration of the editor session and are lost on page reload. This is suitable for previews, demos, and single-session review workflows.
+
+#### REST Persistence
+
+Pass `comments_url` to persist comments to a database via REST API:
+
+```erb
+<%%= render Bali::BlockEditor::Component.new(
+  comments: true,
+  comments_url: '/api/comments',
+  comments_user: { id: current_user.id, username: current_user.name, avatar_url: current_user.avatar_url }
+) %>
+```
+
+The `RESTThreadStore` will:
+- Load existing threads on mount
+- Poll for updates every 5 seconds
+- Persist all CRUD operations (create/update/delete threads, comments, and reactions)
+- Include CSRF tokens for Rails compatibility
+
+#### REST API Contract
+
+Your server must implement these endpoints (all relative to `comments_url`):
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/` | List all threads with nested comments and reactions |
+| `POST` | `/` | Create thread with `initial_comment` |
+| `PATCH` | `/:threadId` | Update thread (resolve/unresolve) |
+| `DELETE` | `/:threadId` | Delete thread |
+| `POST` | `/:threadId/comments` | Add comment to thread |
+| `PATCH` | `/:threadId/comments/:id` | Update comment body |
+| `DELETE` | `/:threadId/comments/:id` | Soft-delete comment |
+| `POST` | `/:threadId/comments/:id/reactions` | Add emoji reaction |
+| `DELETE` | `/:threadId/comments/:id/reactions` | Remove emoji reaction (emoji in body) |
+
+**Response format** (thread with nested comments):
+
+```json
+{
+  "id": 1,
+  "resolved": false,
+  "resolved_by": null,
+  "metadata": {},
+  "created_at": "2026-01-15T10:30:00Z",
+  "updated_at": "2026-01-15T10:30:00Z",
+  "comments": [
+    {
+      "id": 1,
+      "user_id": "1",
+      "body": { "type": "doc", "content": [...] },
+      "metadata": {},
+      "created_at": "2026-01-15T10:30:00Z",
+      "updated_at": "2026-01-15T10:30:00Z",
+      "reactions": [
+        { "emoji": "👍", "created_at": "2026-01-15T10:31:00Z", "user_ids": ["1", "2"] }
+      ]
+    }
+  ]
+}
+```
+
+Both `snake_case` and `camelCase` response keys are accepted.
+
+### Comments Data
+
+Comment thread positions are stored as marks in the ProseMirror document. The thread content (comments, replies, reactions) is managed by the ThreadStore independently of the document content.
+
+---
+
 ## PDF and DOCX Export
 
 > **Licensing:** PDF and DOCX export use XL packages (`@blocknote/xl-pdf-exporter`, `@blocknote/xl-docx-exporter`). Free for open-source projects under GPL-3.0; closed-source applications require a [BlockNote Business subscription](https://www.blocknotejs.org/pricing). See [Licensing](#blocknote-xl-package-licensing).
@@ -633,6 +785,11 @@ An editor with all capabilities enabled:
   # Multi-column layouts (XL package)
   multi_column: true,
 
+  # Comments
+  comments: true,
+  comments_user: { id: current_user.id, username: current_user.name, avatar_url: current_user.avatar_url },
+  comments_users_url: '/api/users/resolve',
+
   # Export
   export: true,
   export_filename: 'project-update',
@@ -686,6 +843,9 @@ app/components/bali/block_editor/
   useContentSync.js             # Hidden input sync hook (debounced 300ms)
   useMentions.js                # @mentions suggestion hook
   useEntityReferences.jsx       # #entity references suggestion + resolution hook
+  useComments.js                # Comments extension setup hook
+  InMemoryThreadStore.js        # In-memory ThreadStore for comments (no persistence)
+  RESTThreadStore.js            # REST-backed ThreadStore for persistent comments
   constants.js                  # Supported languages, max upload size
   index.css                     # DaisyUI overrides for BlockNote/Mantine
   preview.rb                    # Lookbook previews
@@ -705,6 +865,8 @@ app/components/bali/block_editor/
 | Mentions (Remote) | `/lookbook/inspect/bali/block_editor/with_remote_mentions` | Server search |
 | Entity References | `/lookbook/inspect/bali/block_editor/with_entity_references` | #references |
 | Full Featured | `/lookbook/inspect/bali/block_editor/full_featured` | All features enabled |
+| With Comments (In-Memory) | `/lookbook/inspect/bali/block_editor/with_comments` | Inline comments (session-only) |
+| With Comments (Persistent) | `/lookbook/inspect/bali/block_editor/with_persistent_comments` | Inline comments with REST persistence |
 | With AI | `/lookbook/inspect/bali/block_editor/with_ai` | AI assistance |
 
 ---
