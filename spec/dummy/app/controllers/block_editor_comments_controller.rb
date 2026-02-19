@@ -108,7 +108,7 @@ class BlockEditorCommentsController < ApplicationController
   end
 
   def thread_params
-    params.permit(:resolved, metadata: {}, initial_comment: [:body, metadata: {}])
+    params.permit(:resolved, metadata: {}, initial_comment: [:body, { metadata: {} }])
   end
 
   def comment_params

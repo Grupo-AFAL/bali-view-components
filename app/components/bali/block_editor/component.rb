@@ -2,6 +2,7 @@
 
 module Bali
   module BlockEditor
+    # rubocop:disable Metrics/ClassLength
     class Component < ApplicationViewComponent
       attr_reader :input_name, :upload_url, :options
 
@@ -102,6 +103,7 @@ module Bali
         base_values.merge(export_values)
       end
 
+      # rubocop:disable Metrics/CyclomaticComplexity
       def base_values
         {
           initial_content: serialized_content,
@@ -127,6 +129,7 @@ module Bali
           comments_users_url: @comments_users_url || ''
         }
       end
+      # rubocop:enable Metrics/CyclomaticComplexity
 
       def export_values
         {
@@ -187,5 +190,6 @@ module Bali
         end.to_json
       end
     end
+    # rubocop:enable Metrics/ClassLength
   end
 end
