@@ -164,4 +164,58 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
 
     expect(page).to have_css 'a[disabled="disabled"]', text: 'Item'
   end
+
+  context 'with bottom items' do
+    it 'renders bottom items outside the scrollable area' do
+      render_inline(component) do |c|
+        c.with_list do |list|
+          list.with_item(name: 'Dashboard', href: '/dashboard')
+        end
+        c.with_bottom_item(name: 'Profile', href: '/profile')
+        c.with_bottom_item(name: 'Sign Out', href: '/sign_out')
+      end
+
+      expect(page).to have_css 'a', text: 'Profile'
+      expect(page).to have_css 'a', text: 'Sign Out'
+    end
+
+    it 'renders bottom items with icons' do
+      render_inline(component) do |c|
+        c.with_bottom_item(name: 'Profile', href: '/profile', icon: 'user')
+      end
+
+      expect(page).to have_css 'a', text: 'Profile'
+    end
+
+    it 'does not render bottom section when no bottom items are given' do
+      render_inline(component) do |c|
+        c.with_list do |list|
+          list.with_item(name: 'Dashboard', href: '/dashboard')
+        end
+      end
+
+      expect(page).not_to have_css '.border-t.border-base-200.shrink-0'
+    end
+
+    it 'skips unauthorized bottom items' do
+      render_inline(component) do |c|
+        c.with_bottom_item(name: 'Profile', href: '/profile', authorized: true)
+        c.with_bottom_item(name: 'Admin', href: '/admin', authorized: false)
+      end
+
+      expect(page).to have_css 'a', text: 'Profile'
+      expect(page).not_to have_css 'a', text: 'Admin'
+    end
+
+    it 'marks active bottom item based on current_path' do
+      @options[:current_path] = '/profile'
+      render_inline(component) do |c|
+        c.with_bottom_item(name: 'Profile', href: '/profile')
+        c.with_bottom_item(name: 'Sign Out', href: '/sign_out')
+      end
+
+      expect(page).to have_css 'a.active', text: 'Profile'
+      expect(page).not_to have_css 'a.active', text: 'Sign Out'
+    end
+  end
 end
