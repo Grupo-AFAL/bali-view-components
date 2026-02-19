@@ -2,6 +2,7 @@
 
 module Bali
   module BlockEditor
+    # rubocop:disable Metrics/ClassLength
     class Preview < ApplicationViewComponentPreview
       # @param editable toggle
       # @param placeholder text
@@ -93,7 +94,8 @@ module Bali
       # @param multi_column toggle
       # @param table_of_contents toggle
       # @param comments toggle
-      def full_featured(placeholder: 'Start writing...', format: :json, multi_column: true, table_of_contents: false, comments: false) # rubocop:disable Metrics/MethodLength
+      def full_featured(placeholder: 'Start writing...', format: :json, multi_column: true,
+                        table_of_contents: false, comments: false)
         render BlockEditor::Component.new(
           editable: true,
           placeholder: placeholder,
@@ -461,5 +463,6 @@ module Bali
         ]
       end
     end
+    # rubocop:enable Metrics/ClassLength
   end
 end
