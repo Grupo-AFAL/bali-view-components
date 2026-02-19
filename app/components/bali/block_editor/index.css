@@ -421,10 +421,12 @@
   max-width: 20rem;
 }
 
-/* The FloatingComposer Save button already has text "Save" — hide its Mantine tooltip
- * (withinPortal=false means it renders inline and inherits our popover styles,
- * making it appear as a second button) */
-.block-editor-component .bn-floating-composer .bn-tooltip {
+/* The "Save" button in comment action toolbars already has text — hide its redundant Mantine
+ * tooltip. withinPortal=false renders the tooltip inline inside .bn-comment-actions, where
+ * our .mantine-Popover-dropdown styles give it a visible border/background, making it look
+ * like a second button. We use :has([data-test="save"]) so only toolbars with a Save text
+ * button are affected — icon-only toolbars (resolve, delete, emoji) keep their tooltips. */
+.block-editor-component .bn-comment-actions:has([data-test="save"]) .bn-tooltip {
   display: none !important;
 }
 
