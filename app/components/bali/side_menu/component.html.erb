@@ -76,6 +76,15 @@
       <%= list %>
     <% end %>
   </div>
+
+  <%# Bottom pinned items %>
+  <% if bottom_items? %>
+    <div class="border-t border-base-200 shrink-0 space-y-0.5 px-2.5 py-2">
+      <% bottom_items.each do |item| %>
+        <%= item %>
+      <% end %>
+    </div>
+  <% end %>
 <% end %>
 
 <%# Overlay for mobile (only when fixed) %>

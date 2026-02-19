@@ -24,6 +24,7 @@ module Bali
         references_resolve_url: nil,
         references_config: nil,
         multi_column: false,
+        table_of_contents: false,
         **options
       )
         # rubocop:enable Metrics/ParameterLists
@@ -45,6 +46,7 @@ module Bali
         @references_resolve_url = references_resolve_url
         @references_config = references_config
         @multi_column = multi_column
+        @table_of_contents = table_of_contents
 
         @options = prepend_class_name(options, 'block-editor-component')
         @options = prepend_controller(@options, 'block-editor')
@@ -106,7 +108,8 @@ module Bali
           references_url: @references_url || '',
           references_resolve_url: @references_resolve_url || '',
           references_config: serialized_references_config,
-          multi_column: @multi_column
+          multi_column: @multi_column,
+          table_of_contents: @table_of_contents
         }
       end
 

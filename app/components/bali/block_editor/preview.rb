@@ -91,13 +91,15 @@ module Bali
       # @param placeholder text
       # @param format select { choices: [json, html] }
       # @param multi_column toggle
-      def full_featured(placeholder: 'Start writing...', format: :json, multi_column: true)
+      # @param table_of_contents toggle
+      def full_featured(placeholder: 'Start writing...', format: :json, multi_column: true, table_of_contents: false)
         render BlockEditor::Component.new(
           editable: true,
           placeholder: placeholder,
           input_name: 'document[content]',
           format: format.to_sym,
           multi_column: multi_column,
+          table_of_contents: table_of_contents,
           export: true,
           export_filename: 'my-document',
           ai_url: 'http://localhost:3456/api/ai/chat',
@@ -105,6 +107,19 @@ module Bali
           references_url: '/entity_references',
           references_resolve_url: '/entity_references/resolve',
           initial_content: full_featured_content.to_json
+        )
+      end
+
+      # @label With Table of Contents
+      # Renders a TOC sidebar extracted from the document's headings.
+      # The TOC updates in real-time as headings are added or edited.
+      # Clicking any item scrolls the editor to that heading.
+      # @param editable toggle
+      def with_table_of_contents(editable: true)
+        render BlockEditor::Component.new(
+          editable: editable,
+          table_of_contents: true,
+          initial_content: sample_content.to_json
         )
       end
 
