@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_03_215443) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_19_000000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -37,6 +37,36 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_03_215443) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "block_editor_comments", force: :cascade do |t|
+    t.integer "block_editor_thread_id", null: false
+    t.string "user_id", null: false
+    t.json "body"
+    t.json "metadata", default: {}
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["block_editor_thread_id"], name: "index_block_editor_comments_on_block_editor_thread_id"
+  end
+
+  create_table "block_editor_reactions", force: :cascade do |t|
+    t.integer "block_editor_comment_id", null: false
+    t.string "user_id", null: false
+    t.string "emoji", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["block_editor_comment_id", "user_id", "emoji"], name: "idx_reactions_comment_user_emoji", unique: true
+    t.index ["block_editor_comment_id"], name: "index_block_editor_reactions_on_block_editor_comment_id"
+  end
+
+  create_table "block_editor_threads", force: :cascade do |t|
+    t.boolean "resolved", default: false, null: false
+    t.string "resolved_by"
+    t.datetime "resolved_updated_at"
+    t.json "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "characters", force: :cascade do |t|
@@ -103,6 +133,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_03_215443) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "block_editor_comments", "block_editor_threads"
+  add_foreign_key "block_editor_reactions", "block_editor_comments"
   add_foreign_key "characters", "movies"
   add_foreign_key "movies", "tenants"
 end

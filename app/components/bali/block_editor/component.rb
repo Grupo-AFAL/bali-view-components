@@ -2,10 +2,11 @@
 
 module Bali
   module BlockEditor
+    # rubocop:disable Metrics/ClassLength
     class Component < ApplicationViewComponent
       attr_reader :input_name, :upload_url, :options
 
-      # rubocop:disable Metrics/ParameterLists
+      # rubocop:disable Metrics/ParameterLists, Metrics/AbcSize
       def initialize(
         initial_content: nil,
         html_content: nil,
@@ -25,9 +26,10 @@ module Bali
         references_config: nil,
         multi_column: false,
         table_of_contents: false,
+        comments: false,
         **options
       )
-        # rubocop:enable Metrics/ParameterLists
+        # rubocop:enable Metrics/ParameterLists, Metrics/AbcSize
         @initial_content = initial_content
         @html_content = html_content
         @input_name = input_name
@@ -47,6 +49,13 @@ module Bali
         @references_config = references_config
         @multi_column = multi_column
         @table_of_contents = table_of_contents
+
+        comments_config = comments.is_a?(Hash) ? comments.transform_keys(&:to_sym) : nil
+        @comments       = comments_config.present?
+        @comments_url   = comments_config&.fetch(:url, nil)
+        @comments_user  = comments_config&.fetch(:user, nil)
+        @comments_users = comments_config&.fetch(:users, nil)
+        @comments_users_url = comments_config&.fetch(:users_url, nil)
 
         @options = prepend_class_name(options, 'block-editor-component')
         @options = prepend_controller(@options, 'block-editor')
@@ -92,6 +101,7 @@ module Bali
         base_values.merge(export_values)
       end
 
+      # rubocop:disable Metrics/CyclomaticComplexity
       def base_values
         {
           initial_content: serialized_content,
@@ -109,9 +119,15 @@ module Bali
           references_resolve_url: @references_resolve_url || '',
           references_config: serialized_references_config,
           multi_column: @multi_column,
-          table_of_contents: @table_of_contents
+          table_of_contents: @table_of_contents,
+          comments: @comments,
+          comments_url: @comments_url || '',
+          comments_user: serialized_comments_user,
+          comments_users: serialized_comments_users,
+          comments_users_url: @comments_users_url || ''
         }
       end
+      # rubocop:enable Metrics/CyclomaticComplexity
 
       def export_values
         {
@@ -154,6 +170,24 @@ module Bali
           end
         end.to_json
       end
+
+      def serialized_comments_user
+        return '{}' if @comments_user.blank?
+
+        @comments_user.transform_keys(&:to_s).to_json
+      end
+
+      def serialized_comments_users
+        return '[]' if @comments_users.blank?
+
+        Array(@comments_users).map do |u|
+          case u
+          when Hash then u
+          else u.respond_to?(:to_h) ? u.to_h : { id: u.to_s, username: u.to_s }
+          end
+        end.to_json
+      end
     end
+    # rubocop:enable Metrics/ClassLength
   end
 end

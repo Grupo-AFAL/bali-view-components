@@ -356,3 +356,147 @@
   background-color: color-mix(in oklch, var(--color-error) 20%, transparent);
   text-decoration: line-through;
 }
+
+/* -------------------------------------------------------
+ * Comments
+ * ------------------------------------------------------- */
+
+/* When comments are enabled, the ThreadsSidebar lives inside BlockNoteView
+ * (required for React context). We apply flex layout to .bn-container so
+ * the editor and sidebar sit side-by-side. */
+.bn-with-comments .bn-container {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+/* Editor takes remaining space */
+.bn-with-comments .bn-container > .bn-editor {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Comments sidebar - fixed width, sticky */
+.bn-with-comments .bn-threads-sidebar {
+  width: 18rem;
+  flex-shrink: 0;
+  position: sticky;
+  top: 1rem;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* Thread card styling - DaisyUI integration */
+.block-editor-component .bn-thread {
+  background-color: var(--color-base-100);
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 12%, transparent);
+  border-radius: var(--radius-box, 0.5rem);
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  transition: border-color 0.15s;
+}
+
+.block-editor-component .bn-thread:hover,
+.block-editor-component .bn-thread.selected {
+  border-color: color-mix(in oklch, var(--color-primary) 40%, transparent);
+}
+
+/* Comment text highlight in editor (marks where threads are anchored) */
+.block-editor-component .bn-comment-mark {
+  background-color: color-mix(in oklch, var(--color-warning) 20%, transparent);
+  border-bottom: 2px solid color-mix(in oklch, var(--color-warning) 50%, transparent);
+}
+
+.block-editor-component .bn-comment-mark.selected {
+  background-color: color-mix(in oklch, var(--color-warning) 35%, transparent);
+}
+
+/* Floating composer and thread popovers */
+.block-editor-component .bn-floating-composer,
+.block-editor-component .bn-floating-thread {
+  background-color: var(--color-base-100) !important;
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
+  box-shadow: 0 4px 16px color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
+  border-radius: var(--radius-box, 0.5rem);
+  max-width: 20rem;
+}
+
+/* The "Save" button in comment action toolbars already has text — hide its redundant Mantine
+ * tooltip. withinPortal=false renders the tooltip inline inside .bn-comment-actions, where
+ * our .mantine-Popover-dropdown styles give it a visible border/background, making it look
+ * like a second button. We use :has([data-test="save"]) so only toolbars with a Save text
+ * button are affected — icon-only toolbars (resolve, delete, emoji) keep their tooltips. */
+.block-editor-component .bn-comment-actions:has([data-test="save"]) .bn-tooltip {
+  display: none !important;
+}
+
+/* Comment author info */
+.block-editor-component .bn-comment-author {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--color-base-content);
+}
+
+.block-editor-component .bn-comment-time {
+  font-size: 0.75rem;
+  color: color-mix(in oklch, var(--color-base-content) 50%, transparent);
+}
+
+/* Comment body text */
+.block-editor-component .bn-comment-body {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-base-content);
+}
+
+/* Comment actions (resolve, delete, reply) */
+.block-editor-component .bn-comment-actions button {
+  font-size: 0.75rem;
+  color: color-mix(in oklch, var(--color-base-content) 50%, transparent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+}
+
+.block-editor-component .bn-comment-actions button:hover {
+  background-color: color-mix(in oklch, var(--color-base-content) 8%, transparent);
+  color: var(--color-base-content);
+}
+
+/* Thread reference text snippet */
+.block-editor-component .bn-thread-reference-text {
+  font-size: 0.8rem;
+  font-style: italic;
+  color: color-mix(in oklch, var(--color-base-content) 50%, transparent);
+  border-left: 2px solid color-mix(in oklch, var(--color-warning) 50%, transparent);
+  padding-left: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Resolved thread styling */
+.block-editor-component .bn-thread.resolved {
+  opacity: 0.6;
+}
+
+/* Avatar styling */
+.block-editor-component .bn-comment-avatar {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+
+/* Collapse comments sidebar on narrow viewports */
+@media (max-width: 768px) {
+  .bn-with-comments .bn-container {
+    flex-direction: column;
+  }
+
+  .bn-with-comments .bn-threads-sidebar {
+    width: 100%;
+    position: static;
+    max-height: none;
+  }
+}

@@ -18,7 +18,8 @@ import {
   getDefaultReactSlashMenuItems,
   FormattingToolbarController,
   FormattingToolbar,
-  getFormattingToolbarItems
+  getFormattingToolbarItems,
+  ThreadsSidebar
 } from '@blocknote/react'
 import { useEffect, useRef, useMemo, useState, useCallback } from 'react'
 
@@ -28,6 +29,7 @@ import { useFileUpload } from './useFileUpload'
 import { useContentSync } from './useContentSync'
 import { useMentions } from './useMentions'
 import { useEntityReferences } from './useEntityReferences'
+import { useComments } from './useComments'
 import TableOfContents from './TableOfContents'
 
 function extractTextFromContent (content) {
@@ -67,7 +69,12 @@ export default function BlockNoteEditorWrapper ({
   referencesUrl,
   referencesResolveUrl,
   referencesConfig,
-  tableOfContents = false
+  tableOfContents = false,
+  comments: commentsEnabled = false,
+  commentsUrl,
+  commentsUser,
+  commentsUsers,
+  commentsUsersUrl
 }) {
   const htmlParsed = useRef(false)
   const ready = useRef(!htmlContent)
@@ -129,6 +136,20 @@ export default function BlockNoteEditorWrapper ({
     })
   }, [aiEnabled, aiUrl, ai])
 
+  const commentsResult = useComments({
+    commentsUser: commentsEnabled ? commentsUser : undefined,
+    commentsUsers: commentsEnabled ? commentsUsers : undefined,
+    commentsUsersUrl: commentsEnabled ? commentsUsersUrl : undefined,
+    commentsUrl: commentsEnabled ? commentsUrl : undefined
+  })
+
+  const extensions = useMemo(() => {
+    const exts = []
+    if (aiExtension) exts.push(aiExtension)
+    if (commentsResult?.extension) exts.push(commentsResult.extension)
+    return exts.length > 0 ? exts : undefined
+  }, [aiExtension, commentsResult])
+
   const editor = useCreateBlockNote({
     schema,
     dropCursor: multiColumn?.multiColumnDropCursor,
@@ -140,7 +161,7 @@ export default function BlockNoteEditorWrapper ({
     initialContent: parsedContent,
     uploadFile: uploadUrl ? uploadFile : undefined,
     placeholders: placeholder ? { default: placeholder } : undefined,
-    extensions: aiExtension ? [aiExtension] : undefined
+    extensions
   })
 
   // Combine default + optional multi-column + AI slash menu items
@@ -209,15 +230,13 @@ export default function BlockNoteEditorWrapper ({
     }
   }, [editor, htmlContent, parsedContent])
 
-  const editorView = (
-    <BlockNoteView
-      editor={editor}
-      editable={editable}
-      theme={theme}
-      onChange={handleChangeWithToc}
-      slashMenu={false}
-      formattingToolbar={aiEnabled ? false : undefined}
-    >
+  // Only need a custom toolbar when AI is enabled (to add AI button).
+  // Comments button is already included by getFormattingToolbarItems()
+  // and BlockNoteView handles FloatingComposer/FloatingThread via comments prop.
+  const needsCustomToolbar = aiEnabled
+
+  const editorChildren = (
+    <>
       <SuggestionMenuController
         triggerCharacter='/'
         getItems={getSlashMenuItems}
@@ -234,18 +253,38 @@ export default function BlockNoteEditorWrapper ({
           getItems={getEntityReferenceItems}
         />
       )}
-      {aiEnabled && (
+      {needsCustomToolbar && (
         <FormattingToolbarController
           formattingToolbar={() => (
             <FormattingToolbar>
               {getFormattingToolbarItems()}
-              <ai.AIToolbarButton key='aiButton' />
+              {aiEnabled && <ai.AIToolbarButton key='aiButton' />}
             </FormattingToolbar>
           )}
         />
       )}
       {aiEnabled && <ai.AIMenuController />}
-    </BlockNoteView>
+    </>
+  )
+
+  // ThreadsSidebar must be a child of BlockNoteView for access to the
+  // BlockNote context. We wrap the view in a CSS class so that
+  // .bn-container gains flex layout to place the sidebar beside the editor.
+  const editorView = (
+    <div className={commentsEnabled ? 'bn-with-comments' : undefined}>
+      <BlockNoteView
+        editor={editor}
+        editable={editable}
+        theme={theme}
+        onChange={handleChangeWithToc}
+        slashMenu={false}
+        formattingToolbar={needsCustomToolbar ? false : undefined}
+        comments={commentsEnabled}
+      >
+        {editorChildren}
+        {commentsEnabled && <ThreadsSidebar />}
+      </BlockNoteView>
+    </div>
   )
 
   if (tableOfContents) {

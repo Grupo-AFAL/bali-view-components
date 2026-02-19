@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **BlockEditor** - New `comments:` option enables inline commenting via BlockNote's built-in comments extension. Supports in-memory mode (session-only, default) and REST-backed mode (`comments_url:`) for database persistence. Configure the current user with `comments_user:` and collaborators with `comments_users:` or `comments_users_url:`.
+
 ### Fixed
 
 - **Modal** - Prevent modal from closing when clicking browser autocomplete options inside modal forms
