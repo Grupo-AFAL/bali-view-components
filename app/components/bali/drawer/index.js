@@ -103,6 +103,8 @@ export class DrawerController extends ModalController {
   }
 
   close = (event) => {
+    if (event && event.type === 'keydown' && event.key !== 'Escape') return
+
     if (event) event.preventDefault()
     this._closeModal()
   }
