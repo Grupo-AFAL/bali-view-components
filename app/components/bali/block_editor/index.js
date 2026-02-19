@@ -20,7 +20,8 @@ export class BlockEditorController extends Controller {
     referencesConfig: { type: Object, default: {} },
     multiColumn: { type: Boolean, default: false },
     exportPdf: { type: Boolean, default: false },
-    exportDocx: { type: Boolean, default: false }
+    exportDocx: { type: Boolean, default: false },
+    tableOfContents: { type: Boolean, default: false }
   }
 
   async connect () {
@@ -48,7 +49,8 @@ export class BlockEditorController extends Controller {
         mentions: this.mentionsValue.length > 0 ? this.mentionsValue : undefined,
         referencesUrl: this.referencesUrlValue || undefined,
         referencesResolveUrl: this.referencesResolveUrlValue || undefined,
-        referencesConfig: Object.keys(this.referencesConfigValue).length > 0 ? this.referencesConfigValue : undefined
+        referencesConfig: Object.keys(this.referencesConfigValue).length > 0 ? this.referencesConfigValue : undefined,
+        tableOfContents: this.tableOfContentsValue
       }
 
       // Dynamically load multi-column module when enabled

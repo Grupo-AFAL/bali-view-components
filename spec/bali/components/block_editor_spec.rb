@@ -133,6 +133,20 @@ RSpec.describe Bali::BlockEditor::Component, type: :component do
     end
   end
 
+  context 'with table_of_contents' do
+    it 'sets table_of_contents value to false by default' do
+      render_inline(described_class.new)
+
+      expect(page).to have_css '[data-block-editor-table-of-contents-value="false"]'
+    end
+
+    it 'sets table_of_contents value to true when enabled' do
+      render_inline(described_class.new(table_of_contents: true))
+
+      expect(page).to have_css '[data-block-editor-table-of-contents-value="true"]'
+    end
+  end
+
   context 'export functionality' do
     it 'does not render export buttons by default' do
       render_inline(described_class.new)
