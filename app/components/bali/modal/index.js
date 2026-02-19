@@ -44,8 +44,12 @@ export class ModalController extends Controller {
       this._originalContent = this.contentTarget.innerHTML
     }
 
-    if (this.hasBackgroundTarget) {
-      this.backgroundTarget.addEventListener('click', this._closeModal)
+    if (this.hasTemplateTarget) {
+      // Listen on the template (overlay) instead of the backdrop because DaisyUI 5's
+      // modal-backdrop has z-index: -1 which can prevent clicks from reaching it.
+      // We detect clicks outside the wrapper to close the modal.
+      this.templateTarget.addEventListener('mousedown', this._onOverlayMousedown)
+      this.templateTarget.addEventListener('click', this._onOverlayClick)
     }
 
     if (this.hasCloseBtnTarget) {
@@ -60,8 +64,9 @@ export class ModalController extends Controller {
   }
 
   removeListeners = eventName => {
-    if (this.hasBackgroundTarget) {
-      this.backgroundTarget.removeEventListener('click', this._closeModal)
+    if (this.hasTemplateTarget) {
+      this.templateTarget.removeEventListener('mousedown', this._onOverlayMousedown)
+      this.templateTarget.removeEventListener('click', this._onOverlayClick)
     }
 
     if (this.hasCloseBtnTarget) {
@@ -72,15 +77,13 @@ export class ModalController extends Controller {
   }
 
   templateTargetConnected () {
-    if (!this.hasBackgroundTarget) return
-
-    this.backgroundTarget.addEventListener('click', this._closeModal)
+    this.templateTarget.addEventListener('mousedown', this._onOverlayMousedown)
+    this.templateTarget.addEventListener('click', this._onOverlayClick)
   }
 
   templateTargetDisconnected () {
-    if (!this.hasBackgroundTarget) return
-
-    this.backgroundTarget.removeEventListener('click', this._closeModal)
+    this.templateTarget.removeEventListener('mousedown', this._onOverlayMousedown)
+    this.templateTarget.removeEventListener('click', this._onOverlayClick)
   }
 
   setOptionsAndOpenModal = event => {
@@ -174,6 +177,21 @@ export class ModalController extends Controller {
     keys.forEach((key, _i) => {
       this[key] = options[key]
     })
+  }
+
+  _onOverlayMousedown = (event) => {
+    const insideWrapper = this.hasWrapperTarget && this.wrapperTarget.contains(event.target)
+    this._mousedownOnOverlay = !insideWrapper
+  }
+
+  _onOverlayClick = (event) => {
+    const insideWrapper = this.hasWrapperTarget && this.wrapperTarget.contains(event.target)
+
+    // Close only if both mousedown AND click were outside the wrapper
+    if (this._mousedownOnOverlay && !insideWrapper) {
+      this._closeModal()
+    }
+    this._mousedownOnOverlay = false
   }
 
   _closeModal = () => {
@@ -282,6 +300,11 @@ export class ModalController extends Controller {
   }
 
   close = event => {
+    // Ignore synthetic keydown events from browser autocomplete selections.
+    // When a user selects a browser autocomplete suggestion, some browsers fire
+    // a keydown event with key: undefined, which Stimulus may not filter out.
+    if (event.type === 'keydown' && event.key !== 'Escape') return
+
     event.preventDefault()
     this._closeModal()
   }

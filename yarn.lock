@@ -3027,12 +3027,12 @@ lefthook-freebsd-x64@2.0.16:
 
 lefthook-linux-arm64@2.0.16:
   version "2.0.16"
-  resolved "https://registry.npmjs.org/lefthook-linux-arm64/-/lefthook-linux-arm64-2.0.16.tgz"
+  resolved "https://registry.yarnpkg.com/lefthook-linux-arm64/-/lefthook-linux-arm64-2.0.16.tgz#6cd6061c50b57c715aa8d96a0ded089faa625ec5"
   integrity sha512-U355elz4Z0AHSVqxfcglN09TGR86ov/GtYlliDknci2mmz6EWLiD3dTYnqJiwa4dYxqmuCDc/DvAL9rgb3YJiQ==
 
 lefthook-linux-arm64@^2.1.1:
   version "2.1.1"
-  resolved "https://registry.npmjs.org/lefthook-linux-arm64/-/lefthook-linux-arm64-2.1.1.tgz"
+  resolved "https://registry.yarnpkg.com/lefthook-linux-arm64/-/lefthook-linux-arm64-2.1.1.tgz#6b44c7d5f406b697512472e89e66b6cb976ab4db"
   integrity sha512-mI2ljFgPEqHxI8vrN9nKgnVu63Rz1KisDbPwlvs7BTYNwq3sncdK5ukpGR4zzWdh6saNJ5tCtHEtep5GQI11nw==
 
 lefthook-linux-x64@2.0.16:
@@ -3469,17 +3469,17 @@ pkg-conf@^3.1.0:
     find-up "^3.0.0"
     load-json-file "^5.2.0"
 
-playwright-core@1.57.0:
-  version "1.57.0"
-  resolved "https://registry.npmjs.org/playwright-core/-/playwright-core-1.57.0.tgz"
-  integrity sha512-agTcKlMw/mjBWOnD6kFZttAAGHgi/Nw0CZ2o6JqWSbMlI219lAFLZZCyqByTsvVAJq5XA5H8cA6PrvBRpBWEuQ==
+playwright-core@1.58.2:
+  version "1.58.2"
+  resolved "https://registry.npmjs.org/playwright-core/-/playwright-core-1.58.2.tgz"
+  integrity sha512-yZkEtftgwS8CsfYo7nm0KE8jsvm6i/PTgVtB8DL726wNf6H2IMsDuxCpJj59KDaxCtSnrWan2AeDqM7JBaultg==
 
 playwright@^1.57.0:
-  version "1.57.0"
-  resolved "https://registry.npmjs.org/playwright/-/playwright-1.57.0.tgz"
-  integrity sha512-ilYQj1s8sr2ppEJ2YVadYBN0Mb3mdo9J0wQ+UuDhzYqURwSoW4n1Xs5vs7ORwgDGmyEh33tRMeS8KhdkMoLXQw==
+  version "1.58.2"
+  resolved "https://registry.npmjs.org/playwright/-/playwright-1.58.2.tgz"
+  integrity sha512-vA30H8Nvkq/cPBnNw4Q8TWz1EJyqgpuinBcHET0YVJVFldr8JDNiU9LaWAE1KqSkRYazuaBhTpB5ZzShOezQ6A==
   dependencies:
-    playwright-core "1.57.0"
+    playwright-core "1.58.2"
   optionalDependencies:
     fsevents "2.3.2"
 
