@@ -421,6 +421,13 @@
   max-width: 20rem;
 }
 
+/* The FloatingComposer Save button already has text "Save" — hide its Mantine tooltip
+ * (withinPortal=false means it renders inline and inherits our popover styles,
+ * making it appear as a second button) */
+.block-editor-component .bn-floating-composer .bn-tooltip {
+  display: none !important;
+}
+
 /* Comment author info */
 .block-editor-component .bn-comment-author {
   font-weight: 600;
