@@ -155,6 +155,16 @@ RSpec.describe Bali::SideMenu::Component, type: :component do
     end
   end
 
+  it 'passes data attributes through to the anchor tag' do
+    render_inline(component) do |c|
+      c.with_list do |list|
+        list.with_item(name: 'Sign Out', href: '/logout', data: { turbo_method: :delete })
+      end
+    end
+
+    expect(page).to have_css 'a[data-turbo-method="delete"]', text: 'Sign Out'
+  end
+
   it 'renders a disabled link' do
     render_inline(component) do |c|
       c.with_list(title: 'Section title') do |list|
