@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **FormBuilder** - `submit_actions` button row now has consistent top margin (`mt-6`) to prevent buttons from appearing flush against the last form field
 - **Modal** - Prevent modal from closing when clicking browser autocomplete options inside modal forms
 
 ## [v2.3.0] - 2026-02-18
