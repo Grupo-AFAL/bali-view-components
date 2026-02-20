@@ -761,6 +761,27 @@ export default class extends Controller {
 }
 ```
 
+## Engine Gotchas
+
+### Zeitwerk and preview files
+
+Use `do_not_eager_load` NOT `ignore` when excluding preview files from eager loading in the engine:
+
+```ruby
+autoloader.do_not_eager_load(Dir[root.join('app/components/**/preview.rb')])
+```
+
+- `ignore` = completely invisible to Zeitwerk → breaks Lookbook on-demand autoloading → 500 errors on preview URLs
+- `do_not_eager_load` = skips during `eager_load!` but still autoloads on demand ✓
+
+### Preview file base class
+
+All preview files must inherit from `ApplicationViewComponentPreview`. Do NOT use `Lookbook::Preview` (unavailable in consuming apps without Lookbook) or `ViewComponent::Preview` (inconsistent with the rest of the codebase).
+
+### Cypress tests use Lookbook preview URLs
+
+Cypress tests render Stimulus controllers by visiting `http://localhost:3001/lookbook/preview/bali/[name]/[variant]`. Any change that breaks preview file loading will fail Cypress even if RSpec passes — so check both test suites when touching engine autoloading config.
+
 ## Pre-Commit Checklist
 
 Before committing changes:
