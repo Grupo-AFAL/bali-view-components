@@ -17,6 +17,12 @@ module Bali
     )
     config.to_prepare { Dir.glob(overrides).each { |override| load override } }
 
+    initializer 'bali.exclude_previews_from_eager_load' do
+      Rails.autoloaders.each do |autoloader|
+        autoloader.do_not_eager_load(Dir[root.join('app/components/**/preview.rb')])
+      end
+    end
+
     config.generators do |g|
       g.test_framework :rspec, fixture: true
       g.view_specs      false

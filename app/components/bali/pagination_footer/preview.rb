@@ -2,7 +2,7 @@
 
 module Bali
   module PaginationFooter
-    class Preview < Lookbook::Preview
+    class Preview < ApplicationViewComponentPreview
       # @param item_name text
       # @param show_summary toggle
       # @param show_pagination toggle

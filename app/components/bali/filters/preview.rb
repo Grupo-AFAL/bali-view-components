@@ -2,7 +2,7 @@
 
 module Bali
   module Filters
-    class Preview < Lookbook::Preview
+    class Preview < ApplicationViewComponentPreview
       # @label Default
       # @param popover toggle "Show in popover vs inline"
       # @param apply_mode select { choices: [batch, live] } "Batch applies on submit, live applies immediately"
