@@ -1,6 +1,6 @@
 {
   "name": "bali-view-components",
-  "version": "2.4.1",
+  "version": "2.4.2",
   "description": "Bali ViewComponents",
   "type": "module",
   "main": "./app/frontend/bali/index.js",
@@ -73,16 +73,36 @@
     "react-dom": ">=18.0.0"
   },
   "peerDependenciesMeta": {
-    "@blocknote/core": { "optional": true },
-    "@blocknote/react": { "optional": true },
-    "@blocknote/mantine": { "optional": true },
-    "@blocknote/xl-multi-column": { "optional": true },
-    "@blocknote/xl-ai": { "optional": true },
-    "@mantine/core": { "optional": true },
-    "@mantine/hooks": { "optional": true },
-    "ai": { "optional": true },
-    "react": { "optional": true },
-    "react-dom": { "optional": true }
+    "@blocknote/core": {
+      "optional": true
+    },
+    "@blocknote/react": {
+      "optional": true
+    },
+    "@blocknote/mantine": {
+      "optional": true
+    },
+    "@blocknote/xl-multi-column": {
+      "optional": true
+    },
+    "@blocknote/xl-ai": {
+      "optional": true
+    },
+    "@mantine/core": {
+      "optional": true
+    },
+    "@mantine/hooks": {
+      "optional": true
+    },
+    "ai": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
   },
   "optionalDependencies": {
     "lefthook-linux-arm64": "^2.1.1"
