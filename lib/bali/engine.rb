@@ -17,9 +17,9 @@ module Bali
     )
     config.to_prepare { Dir.glob(overrides).each { |override| load override } }
 
-    initializer 'bali.ignore_previews_from_autoloader' do
+    initializer 'bali.exclude_previews_from_eager_load' do
       Rails.autoloaders.each do |autoloader|
-        autoloader.ignore(Dir[root.join('app/components/**/preview.rb')])
+        autoloader.do_not_eager_load(Dir[root.join('app/components/**/preview.rb')])
       end
     end
 
