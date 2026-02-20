@@ -16,7 +16,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
 
     it 'defines SUBMIT_ACTIONS_CLASS' do
       expect(described_class::SubmitFields::SUBMIT_ACTIONS_CLASS).to eq(
-        'submit-actions flex items-center justify-end gap-2'
+        'submit-actions flex items-center justify-end gap-2 mt-6'
       )
     end
 

@@ -5,7 +5,7 @@ module Bali
     module SubmitFields
       BUTTON_BASE_CLASS = 'btn'
       WRAPPER_CLASS = 'inline'
-      SUBMIT_ACTIONS_CLASS = 'submit-actions flex items-center justify-end gap-2'
+      SUBMIT_ACTIONS_CLASS = 'submit-actions flex items-center justify-end gap-2 mt-6'
 
       VARIANTS = {
         primary: 'btn-primary',
