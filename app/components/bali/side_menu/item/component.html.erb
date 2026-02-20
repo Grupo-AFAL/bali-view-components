@@ -82,7 +82,7 @@
 <% else %>
   <%# Simple item: expanded and collapsed versions %>
   <%# Expanded state %>
-  <%= tag.a(href: href.presence || '#', class: "#{menu_item_classes} side-menu-expanded", disabled: disabled? ? 'disabled' : nil, target: target, rel: rel) do %>
+  <%= tag.a(href: href.presence || '#', class: "#{menu_item_classes} side-menu-expanded", disabled: disabled? ? 'disabled' : nil, target: target, rel: rel, **@options) do %>
     <% if icon.present? %>
       <%= render Bali::Icon::Component.new(icon, class: 'size-4') %>
     <% end %>
@@ -96,13 +96,13 @@
   <%# Collapsed state: icon with tooltip %>
   <%= render Bali::Tooltip::Component.new(placement: :right, class: 'side-menu-collapsed hidden') do |tooltip| %>
     <% tooltip.with_trigger do %>
-      <a href="<%= href.presence || '#' %>" class="menu-item <%= 'active' if active? %>" <%= 'disabled="disabled"' if disabled? %> <%= "target=\"#{target}\"" if target %> <%= "rel=\"#{rel}\"" if rel %>>
+      <%= tag.a(href: href.presence || '#', class: "menu-item #{'active' if active?}", disabled: disabled? ? 'disabled' : nil, target: target, rel: rel, **@options) do %>
         <% if icon.present? %>
           <%= render Bali::Icon::Component.new(icon, class: 'size-4') %>
         <% else %>
           <span class="size-4 flex items-center justify-center text-xs font-medium"><%= (content || name)&.to_s&.first&.upcase %></span>
         <% end %>
-      </a>
+      <% end %>
     <% end %>
     <%= content || name %>
   <% end %>
