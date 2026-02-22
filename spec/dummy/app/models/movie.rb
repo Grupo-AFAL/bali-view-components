@@ -13,17 +13,10 @@ class Movie < ApplicationRecord
 
   enum :status, { draft: 0, done: 1 }
 
-  attribute :indie, :boolean
-  attribute :synopsis
+  # Virtual attributes (not persisted)
   attribute :duration, default: -> { "#{Date.current} 00:00:00" }
-  attribute :release_date
-  attribute :budget
-  attribute :contact_email
   attribute :cover_photo
-  attribute :rating
   attribute :available_region
-  attribute :website_url
-  attribute :time_zone
 
   scope :active, -> { where(status: 0) }
 end

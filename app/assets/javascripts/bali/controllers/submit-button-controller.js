@@ -19,20 +19,36 @@ export class SubmitButtonController extends Controller {
     const button = event.detail.formSubmission.submitter
     if (!button) return
 
-    const spinner = document.createElement('span')
-    spinner.classList.add('loading', 'loading-spinner')
-    spinner.setAttribute('data-submit-button-spinner', '')
-    button.insertBefore(spinner, button.firstChild)
+    // Capture styles BEFORE disabling. DaisyUI 5 overrides --btn-fg to
+    // near-transparent on :disabled, turning the button gray and hiding
+    // the spinner. We preserve the original colors for a polished look.
+    const styles = window.getComputedStyle(button)
+    const spinnerColor = styles.color
+    const bgColor = styles.backgroundColor
+
+    button.style.width = `${button.offsetWidth}px`
+    button.setAttribute('data-submit-button-original-html', button.innerHTML)
+    button.innerHTML = `<span class="loading loading-spinner loading-sm" style="color: ${spinnerColor}"></span>`
     button.setAttribute('disabled', '')
+
+    // Override DaisyUI's disabled styling to keep the primary tone
+    button.style.backgroundColor = bgColor
+    button.style.opacity = '0.7'
   }
 
   enableButton = event => {
     const button = event.detail.formSubmission.submitter
     if (!button) return
 
-    const spinner = button.querySelector('[data-submit-button-spinner]')
-    if (spinner) spinner.remove()
+    const originalHtml = button.getAttribute('data-submit-button-original-html')
+    if (originalHtml !== null) {
+      button.innerHTML = originalHtml
+      button.removeAttribute('data-submit-button-original-html')
+    }
 
+    button.style.width = ''
+    button.style.backgroundColor = ''
+    button.style.opacity = ''
     button.removeAttribute('disabled')
   }
 }

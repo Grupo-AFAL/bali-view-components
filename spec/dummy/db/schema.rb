@@ -10,26 +10,26 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_19_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_22_163654) do
   create_table "active_storage_attachments", force: :cascade do |t|
-    t.string "name", null: false
-    t.string "record_type", null: false
-    t.bigint "record_id", null: false
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.bigint "record_id", null: false
+    t.string "record_type", null: false
     t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
     t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
   end
 
   create_table "active_storage_blobs", force: :cascade do |t|
-    t.string "key", null: false
-    t.string "filename", null: false
-    t.string "content_type"
-    t.text "metadata"
-    t.string "service_name", null: false
     t.bigint "byte_size", null: false
     t.string "checksum"
+    t.string "content_type"
     t.datetime "created_at", null: false
+    t.string "filename", null: false
+    t.string "key", null: false
+    t.text "metadata"
+    t.string "service_name", null: false
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
@@ -41,94 +41,102 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_19_000000) do
 
   create_table "block_editor_comments", force: :cascade do |t|
     t.integer "block_editor_thread_id", null: false
-    t.string "user_id", null: false
     t.json "body"
-    t.json "metadata", default: {}
-    t.datetime "deleted_at"
     t.datetime "created_at", null: false
+    t.datetime "deleted_at"
+    t.json "metadata", default: {}
     t.datetime "updated_at", null: false
+    t.string "user_id", null: false
     t.index ["block_editor_thread_id"], name: "index_block_editor_comments_on_block_editor_thread_id"
   end
 
   create_table "block_editor_reactions", force: :cascade do |t|
     t.integer "block_editor_comment_id", null: false
-    t.string "user_id", null: false
-    t.string "emoji", null: false
     t.datetime "created_at", null: false
+    t.string "emoji", null: false
     t.datetime "updated_at", null: false
+    t.string "user_id", null: false
     t.index ["block_editor_comment_id", "user_id", "emoji"], name: "idx_reactions_comment_user_emoji", unique: true
     t.index ["block_editor_comment_id"], name: "index_block_editor_reactions_on_block_editor_comment_id"
   end
 
   create_table "block_editor_threads", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.json "metadata", default: {}
     t.boolean "resolved", default: false, null: false
     t.string "resolved_by"
     t.datetime "resolved_updated_at"
-    t.json "metadata", default: {}
-    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
 
   create_table "characters", force: :cascade do |t|
-    t.string "name"
-    t.integer "movie_id", null: false
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.integer "movie_id", null: false
+    t.string "name"
     t.integer "position", default: 0
+    t.datetime "updated_at", null: false
     t.index ["movie_id"], name: "index_characters_on_movie_id"
   end
 
   create_table "form_records", force: :cascade do |t|
     t.boolean "boolean"
+    t.datetime "created_at", null: false
     t.decimal "currency"
     t.date "date"
     t.datetime "datetime"
-    t.date "end_date"
     t.string "email"
+    t.date "end_date"
     t.decimal "number"
     t.string "password"
     t.decimal "percentage"
-    t.text "text"
+    t.json "polygon_data", default: {}
     t.integer "select"
+    t.text "text"
     t.integer "time"
-    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "url"
-    t.json "polygon_data", default: {}
   end
 
   create_table "movies", force: :cascade do |t|
-    t.string "name"
-    t.string "genre"
-    t.integer "status", default: 0
-    t.integer "tenant_id", null: false
+    t.decimal "budget"
+    t.string "contact_email"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.string "genre"
     t.boolean "indie"
+    t.string "name"
+    t.decimal "rating"
+    t.date "release_date"
+    t.text "rich_description"
+    t.integer "status", default: 0
+    t.text "synopsis"
+    t.integer "tenant_id", null: false
+    t.string "time_zone"
+    t.datetime "updated_at", null: false
+    t.string "website_url"
     t.index ["tenant_id"], name: "index_movies_on_tenant_id"
   end
 
   create_table "studios", force: :cascade do |t|
-    t.string "name"
     t.string "country"
-    t.integer "status"
-    t.string "size"
-    t.integer "founded_year"
     t.datetime "created_at", null: false
+    t.integer "founded_year"
+    t.string "name"
+    t.string "size"
+    t.integer "status"
     t.datetime "updated_at", null: false
   end
 
   create_table "tenants", force: :cascade do |t|
-    t.string "name"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.string "name"
+    t.datetime "updated_at", null: false
   end
 
   create_table "workouts", force: :cascade do |t|
-    t.integer "workout_start_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "workout_start_at"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"

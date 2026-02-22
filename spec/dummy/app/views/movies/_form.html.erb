@@ -1,4 +1,5 @@
-<%# Movie Form - Showcases: FormBuilder (all field types), Stepper, Card, Button %>
+<%# Movie Form - Reference Implementation for Bali FormBuilder %>
+<%# Showcases: FormBuilder fields, submit_actions, BlockEditor (JSON round-trip), DirectUpload %>
 
 <%# Form Progress Stepper %>
 <%= render Bali::Stepper::Component.new(current: 0, color: :primary, class: 'mb-8 w-full') do |stepper| %>
@@ -49,12 +50,13 @@
     <%# Text Area %>
     <%= f.text_area_group :synopsis, label: t('movies.form.synopsis'), rows: 4, placeholder: t('movies.form.enter_synopsis'), char_counter: { max: 500 } %>
 
-    <%# Block Editor - Rich Description %>
+    <%# Block Editor - Rich Description with JSON round-trip %>
     <div class="mt-4">
       <label class="label"><span class="label-text font-medium"><%= t('movies.form.rich_description') %></span></label>
       <%= render Bali::BlockEditor::Component.new(
         editable: true,
         input_name: 'movie[rich_description]',
+        initial_content: movie.rich_description,
         placeholder: t('movies.form.enter_rich_description')
       ) %>
     </div>
@@ -121,27 +123,10 @@
     </div>
   <% end %>
 
-  <%# Form Actions %>
-  <div class="flex items-center justify-between pt-4">
-    <%= render Bali::Link::Component.new(
-      name: t('common.cancel'),
-      href: movies_path,
-      variant: :ghost
-    ) %>
-
-    <div class="flex items-center gap-2">
-      <%= render Bali::Button::Component.new(
-        name: t('movies.form.save_draft'),
-        variant: :ghost,
-        type: :submit,
-        icon_name: 'save'
-      ) %>
-      <%= render Bali::Button::Component.new(
-        name: movie.persisted? ? t('movies.form.update_movie') : t('movies.form.create_movie'),
-        variant: :primary,
-        type: :submit,
-        icon_name: 'check'
-      ) %>
-    </div>
-  </div>
+  <%# Form Actions - Using submit_actions for reference implementation %>
+  <%= f.submit_actions(
+    movie.persisted? ? t('movies.form.update_movie') : t('movies.form.create_movie'),
+    cancel_path: movies_path,
+    variant: :primary
+  ) %>
 <% end %>
