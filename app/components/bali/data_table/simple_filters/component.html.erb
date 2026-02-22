@@ -1,7 +1,7 @@
 <%= form_with url: @url, method: :get, data: { turbo_frame: "_top" } do |f| %>
   <div class="flex flex-wrap gap-4 items-end">
     <% if search_enabled? %>
-      <div class="form-control flex-1 min-w-72">
+      <div class="form-control flex-[2] min-w-48">
         <label class="label">
           <span class="label-text"><%= search_label %></span>
         </label>
