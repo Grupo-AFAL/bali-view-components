@@ -17,7 +17,8 @@
     <%= render Bali::DataTable::SimpleFilters::Component.new(
       url: studios_path,
       filters: @filter_form.simple_filters_config,
-      show_clear: @filter_form.simple_filters_active?
+      show_clear: @filter_form.simple_filters_active? || @filter_form.search_value.present?,
+      search: @filter_form.simple_search_config
     ) %>
   <% end %>
 
