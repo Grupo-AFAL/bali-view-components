@@ -19,9 +19,14 @@ export class SubmitButtonController extends Controller {
     const button = event.detail.formSubmission.submitter
     if (!button) return
 
+    // Capture the button's visible text color BEFORE disabling.
+    // DaisyUI 5 sets --btn-fg to near-transparent on :disabled,
+    // which makes the loading spinner invisible via currentColor.
+    const spinnerColor = getComputedStyle(button).color
+
     button.style.width = `${button.offsetWidth}px`
     button.setAttribute('data-submit-button-original-html', button.innerHTML)
-    button.innerHTML = '<span class="loading loading-spinner loading-sm"></span>'
+    button.innerHTML = `<span class="loading loading-spinner loading-sm" style="color: ${spinnerColor}"></span>`
     button.setAttribute('disabled', '')
   }
 
