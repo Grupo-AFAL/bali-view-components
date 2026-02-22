@@ -168,15 +168,6 @@
   }
 }
 
-/*
- * Fix: DaisyUI 5 disabled buttons set --btn-fg to near-transparent,
- * which hides .loading spinners (they use background-color: currentColor).
- * Override to keep the spinner visible against the disabled grey background.
- */
-.btn:disabled .loading,
-.btn[disabled] .loading {
-  color: var(--color-base-content);
-}
 
 .radio-buttons-group {
   .field_with_errors {
