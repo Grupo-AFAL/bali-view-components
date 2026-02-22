@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **SimpleFilters** - Optional search input with `search:` parameter for quick text search
+- **FilterForm** - New `simple_search_config` convenience method for SimpleFilters integration
+- **PageHeader** - Default `mb-6` margin for consistent spacing
+
+### Fixed
+
+- **Tabs::Trigger** - Now respects explicit `active:` parameter when `href` is present
+- **PathHelper** - `active_path?` strips query params from both path arguments symmetrically
+
 ## [v2.4.2] - 2026-02-20
 
 ### Fixed

@@ -1,0 +1,29 @@
+# Dockerfile.sandbox
+# Project-specific sandbox image for bali-view-components
+#
+# Extends the shared AFAL dev-sandbox base image which includes Ruby, Node,
+# PostgreSQL client, rbenv, brakeman, and git auth setup.
+# See: https://github.com/Grupo-AFAL/dev-sandbox
+#
+# Build:
+#   docker build -t bali-view-components-claude:v1 -f docker/Dockerfile.sandbox .
+#
+# Run with docker sandbox:
+#   docker sandbox run -t bali-view-components-claude:v1 claude /path/to/project
+
+FROM dev-sandbox-ruby:latest
+
+LABEL description="bali-view-components - Claude Code Sandbox"
+
+# Default environment for sandbox
+# PostgreSQL runs inside the sandbox (self-contained, auto-started via profile.d)
+ENV DATABASE_HOST=localhost
+ENV DATABASE_PORT=5432
+ENV DATABASE_USERNAME=developer
+ENV DATABASE_PASSWORD=developer
+ENV RAILS_ENV=development
+
+# Add project-specific system packages here if needed
+# USER root
+# RUN apt-get update && apt-get install -y <package> && rm -rf /var/lib/apt/lists/*
+# USER agent

@@ -1,0 +1,32 @@
+# docker-compose.claude.yml
+# Supporting services for Claude Code Docker sandbox
+#
+# IMPORTANT: Use bin/docker-claude helper script instead of docker compose directly.
+# docker compose run has TTY allocation issues on Docker Desktop.
+#
+# Usage:
+#   bin/docker-claude up         # Start postgres in background
+#   bin/docker-claude sandbox    # Run Claude interactively (TTY works!)
+#   bin/docker-claude autonomous # Run autonomous mode unattended
+#   bin/docker-claude down       # Stop all services
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: developer
+      POSTGRES_PASSWORD: developer
+      POSTGRES_DB: bali_view_components_development
+    ports:
+      - "5433:5432"  # Use 5433 to avoid conflict with host PostgreSQL on 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U developer"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

@@ -16,7 +16,7 @@ module Bali
       return false if current_path.nil?
 
       path_without_params = path.split('?').first
-      current_request_path = current_path.gsub(/\.html$/, '')
+      current_request_path = current_path.split('?').first.gsub(/\.html$/, '')
 
       case match
       when :crud

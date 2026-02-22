@@ -1,15 +1,13 @@
-<div class="mb-6">
-  <%= render Bali::PageHeader::Component.new(title: 'Studios') do %>
-    <%= render Bali::Link::Component.new(
-      name: 'New Studio',
-      href: new_studio_path,
-      variant: :primary,
-      size: :sm
-    ) do |link| %>
-      <% link.with_icon('plus') %>
-    <% end %>
+<%= render Bali::PageHeader::Component.new(title: 'Studios') do %>
+  <%= render Bali::Link::Component.new(
+    name: 'New Studio',
+    href: new_studio_path,
+    variant: :primary,
+    size: :sm
+  ) do |link| %>
+    <% link.with_icon('plus') %>
   <% end %>
-</div>
+<% end %>
 
 <div class="space-y-4">
   <%# Filters Card %>
@@ -17,7 +15,8 @@
     <%= render Bali::DataTable::SimpleFilters::Component.new(
       url: studios_path,
       filters: @filter_form.simple_filters_config,
-      show_clear: @filter_form.simple_filters_active?
+      show_clear: @filter_form.simple_filters_active? || @filter_form.search_value.present?,
+      search: @filter_form.simple_search_config
     ) %>
   <% end %>
 

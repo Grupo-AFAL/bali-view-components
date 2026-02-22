@@ -7,7 +7,7 @@
 <% end %>
 
 <%# Page Header %>
-<%= render Bali::PageHeader::Component.new(class: 'mt-4 mb-6') do |header| %>
+<%= render Bali::PageHeader::Component.new(class: 'mt-4') do |header| %>
   <% header.with_title do %>
     <%= t('movies.form.edit_title') %>: <%= @movie.name %>
   <% end %>

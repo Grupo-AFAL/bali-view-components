@@ -6,6 +6,6 @@
 <% end %>
 
 <%# Page Header %>
-<%= render Bali::PageHeader::Component.new(title: t('movies.form.new_title'), subtitle: t('movies.form.subtitle_new'), class: 'mt-4 mb-6') %>
+<%= render Bali::PageHeader::Component.new(title: t('movies.form.new_title'), subtitle: t('movies.form.subtitle_new'), class: 'mt-4') %>
 
 <%= render 'form', movie: @movie %>
