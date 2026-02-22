@@ -51,12 +51,12 @@ module Bali
         render json: { url: url }
       else
         render json: { error: 'File uploads are not available' },
-               status: :unprocessable_entity
+               status: :unprocessable_content
       end
     rescue ActionController::ParameterMissing
-      render json: { error: 'No file provided' }, status: :unprocessable_entity
+      render json: { error: 'No file provided' }, status: :unprocessable_content
     rescue UploadError => e
-      render json: { error: e.message }, status: :unprocessable_entity
+      render json: { error: e.message }, status: :unprocessable_content
     rescue NotAuthorizedError
       render json: { error: 'Not authorized' }, status: :forbidden
     end

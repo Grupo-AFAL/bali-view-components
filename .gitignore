@@ -48,3 +48,9 @@ firebase-debug.log
 docs/plans/
 spec/dummy/log/test.log.0
 /screenshots
+
+# AI session memory (local, not committed)
+.ai-sessions/*.md
+
+# Sandbox environment secrets (written by bin/docker-claude, read once by container)
+.sandbox-env

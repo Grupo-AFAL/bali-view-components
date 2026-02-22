@@ -61,11 +61,13 @@ module Bali
         search_fields.present?
       end
 
-      # Get the placeholder text for search input
+      # Get the placeholder text for search input.
+      # Auto-generates from field names if no custom placeholder is set.
+      # e.g., search_fields [:name, :email] => "Search by name, email..."
       #
       # @return [String]
       def search_placeholder
-        @search_placeholder || I18n.t('bali.filters.search_placeholder', default: 'Search...')
+        @search_placeholder || default_search_placeholder
       end
 
       # Build the Ransack field name for multi-field search.
@@ -92,7 +94,33 @@ module Bali
         }
       end
 
+      # Get the search configuration hash for SimpleFilters component.
+      # Returns a hash compatible with SimpleFilters::Component's search parameter.
+      #
+      # @return [Hash, nil] Search configuration or nil if not enabled
+      def simple_search_config
+        return nil unless search_enabled?
+
+        {
+          field_name: "q[#{search_field_name}]",
+          value: search_value,
+          placeholder: search_placeholder
+        }
+      end
+
       private
+
+      # Generate a descriptive placeholder from search field names.
+      # e.g., [:name] => "Search by name..."
+      # e.g., [:name, :email] => "Search by name, email..."
+      def default_search_placeholder
+        unless search_enabled?
+          return I18n.t('bali.filters.search_placeholder', default: 'Search...')
+        end
+
+        field_labels = search_fields.map { |f| f.to_s.humanize(capitalize: false) }
+        "Search by #{field_labels.join(', ')}..."
+      end
 
       # Extract quick search value from params based on configured search_fields
       # Looks for q[name_or_genre_or_tenant_name_cont] based on search_fields config

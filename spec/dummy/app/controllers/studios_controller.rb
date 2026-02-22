@@ -29,7 +29,7 @@ class StudiosController < ApplicationController
     if @studio.save
       redirect_to @studio, notice: 'Studio was successfully created.'
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -37,7 +37,7 @@ class StudiosController < ApplicationController
     if @studio.update(studio_params)
       redirect_to @studio, notice: 'Studio was successfully updated.'
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

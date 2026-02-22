@@ -118,7 +118,7 @@ RSpec.describe Bali::Filters::Component, type: :component do
 
       operators = component.operators_for_type(:text)
 
-      expect(operators.map { |o| o[:value] }).to include('cont', 'eq', 'start', 'end')
+      expect(operators.pluck(:value)).to include('cont', 'eq', 'start', 'end')
     end
 
     it 'provides correct operators for number type' do
@@ -129,7 +129,7 @@ RSpec.describe Bali::Filters::Component, type: :component do
 
       operators = component.operators_for_type(:number)
 
-      expect(operators.map { |o| o[:value] }).to include('eq', 'gt', 'lt', 'gteq', 'lteq')
+      expect(operators.pluck(:value)).to include('eq', 'gt', 'lt', 'gteq', 'lteq')
     end
 
     it 'provides correct operators for date type' do
@@ -140,7 +140,7 @@ RSpec.describe Bali::Filters::Component, type: :component do
 
       operators = component.operators_for_type(:date)
 
-      expect(operators.map { |o| o[:value] }).to include('eq', 'gt', 'lt', 'gteq', 'lteq')
+      expect(operators.pluck(:value)).to include('eq', 'gt', 'lt', 'gteq', 'lteq')
     end
 
     it 'provides correct operators for select type' do
@@ -151,7 +151,7 @@ RSpec.describe Bali::Filters::Component, type: :component do
 
       operators = component.operators_for_type(:select)
 
-      expect(operators.map { |o| o[:value] }).to include('eq', 'not_eq')
+      expect(operators.pluck(:value)).to include('eq', 'not_eq')
     end
 
     it 'provides correct operators for boolean type' do
@@ -162,7 +162,7 @@ RSpec.describe Bali::Filters::Component, type: :component do
 
       operators = component.operators_for_type(:boolean)
 
-      expect(operators.map { |o| o[:value] }).to eq(['eq'])
+      expect(operators.pluck(:value)).to eq(['eq'])
     end
   end
 

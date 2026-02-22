@@ -3,7 +3,7 @@
 module Bali
   module PageHeader
     class Component < ApplicationViewComponent
-      BASE_CLASSES = 'page-header-component'
+      BASE_CLASSES = 'page-header-component mb-6'
 
       HEADING_SIZES = {
         h1: 'text-4xl',

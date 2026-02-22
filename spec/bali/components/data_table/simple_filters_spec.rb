@@ -118,4 +118,87 @@ RSpec.describe Bali::DataTable::SimpleFilters::Component, type: :component do
 
     expect(page).to have_css('form[data-turbo-frame="_top"]')
   end
+
+  describe 'search parameter' do
+    let(:search) do
+      {
+        field_name: 'q[name_cont]',
+        value: nil,
+        placeholder: 'Search by name...'
+      }
+    end
+
+    it 'renders search input when search is provided' do
+      render_inline(described_class.new(url: '/test', filters: filters, search: search))
+
+      expect(page).to have_css("input[type='text'][name='q[name_cont]']")
+      expect(page).to have_css("input[placeholder='Search by name...']")
+    end
+
+    it 'does not render search input when search is nil' do
+      render_inline(described_class.new(url: '/test', filters: filters))
+
+      expect(page).not_to have_css("input[type='text']")
+    end
+
+    it 'renders search input before filter selects' do
+      render_inline(described_class.new(url: '/test', filters: filters, search: search))
+
+      # Search input and filter select should both be present in the form
+      expect(page).to have_css("input[type='text'][name='q[name_cont]']")
+      expect(page).to have_css("select[name='q[status_eq]']")
+    end
+
+    it 'preserves search value after submission' do
+      search_with_value = search.merge(value: 'SAP')
+      render_inline(described_class.new(url: '/test', filters: filters, search: search_with_value))
+
+      expect(page).to have_css("input[value='SAP']")
+    end
+
+    it 'renders search label' do
+      render_inline(described_class.new(url: '/test', filters: filters, search: search))
+
+      expect(page).to have_css('.label-text', text: 'Search')
+    end
+
+    it 'renders custom search label' do
+      search_with_label = search.merge(label: 'Find records')
+      render_inline(described_class.new(url: '/test', filters: filters, search: search_with_label))
+
+      expect(page).to have_css('.label-text', text: 'Find records')
+    end
+
+    it 'shows clear button when show_clear is true with search' do
+      search_with_value = search.merge(value: 'test')
+      render_inline(described_class.new(url: '/test', filters: filters, search: search_with_value, show_clear: true))
+
+      expect(page).to have_link(href: '/test')
+    end
+
+    it 'does not show clear button when show_clear is false even with search value' do
+      search_with_value = search.merge(value: 'test')
+      render_inline(described_class.new(url: '/test', filters: filters, search: search_with_value))
+
+      expect(page).not_to have_link(text: /Clear/i)
+    end
+
+    it 'renders with search only and no filters' do
+      render_inline(described_class.new(url: '/test', filters: [], search: search))
+
+      expect(page).to have_css('form')
+      expect(page).to have_css("input[type='text'][name='q[name_cont]']")
+      expect(page).not_to have_css('select')
+    end
+
+    it 'submits search and filters together in one form' do
+      render_inline(described_class.new(url: '/test', filters: filters, search: search))
+
+      # Both inputs are inside the same form
+      expect(page).to have_css('form') do |form|
+        expect(form).to have_css("input[name='q[name_cont]']")
+        expect(form).to have_css("select[name='q[status_eq]']")
+      end
+    end
+  end
 end

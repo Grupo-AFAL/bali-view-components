@@ -21,7 +21,7 @@ class CharactersController < ApplicationController
     else
       respond_to do |format|
         format.html { redirect_to @movie, alert: 'Failed to add character.' }
-        format.turbo_stream { render :new, status: :unprocessable_entity }
+        format.turbo_stream { render :new, status: :unprocessable_content }
       end
     end
   end

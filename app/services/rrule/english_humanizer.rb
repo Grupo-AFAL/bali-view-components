@@ -116,7 +116,7 @@ module Rrule
       else
         add 'on' if bymonthday_option || bymonth_option
         add list(options.fetch(:bymonth), method(:monthtext), 'and') if bymonth_option
-        add list (bymonthday_option.map { |o| nth(o) }), :to_s, 'and' if bymonthday_option
+        add list bymonthday_option.map { |o| nth(o) }, :to_s, 'and' if bymonthday_option
       end
     end
 
@@ -193,7 +193,7 @@ module Rrule
 
     def _bymonthday
       add 'in the'
-      add list (bymonthday_option.map { |o| nth(o) }), :to_s, 'y'
+      add list bymonthday_option.map { |o| nth(o) }, :to_s, 'y'
       add 'of month'
     end
 

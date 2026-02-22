@@ -20,18 +20,32 @@ module Bali
         # @param url [String] Form submission URL
         # @param filters [Array<Hash>] Filter configurations
         # @param show_clear [Boolean] Show clear button
-        def initialize(url:, filters:, show_clear: false)
+        # @param search [Hash, nil] Search input configuration
+        #   - :field_name [String] Ransack param name (e.g., "q[name_cont]")
+        #   - :value [String, nil] Current search value
+        #   - :placeholder [String, nil] Placeholder text
+        #   - :label [String, nil] Custom label (defaults to I18n)
+        def initialize(url:, filters: [], show_clear: false, search: nil)
           @url = url
-          @filters = filters || []
+          @filters = filters
           @show_clear = show_clear
+          @search = search
         end
 
         def render?
-          @filters.any?
+          @filters.any? || search_enabled?
         end
 
         def show_clear_button?
           @show_clear
+        end
+
+        def search_enabled?
+          @search.present? && @search[:field_name].present?
+        end
+
+        def search_label
+          @search[:label] || I18n.t('bali.simple_filters.search', default: 'Search')
         end
 
         def filter_field_name(attribute)

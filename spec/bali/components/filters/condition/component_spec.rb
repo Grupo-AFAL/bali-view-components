@@ -194,7 +194,7 @@ RSpec.describe Bali::Filters::Condition::Component, type: :component do
       )
 
       operators = component.operators_for_current_type
-      expect(operators.map { |o| o[:value] }).to include('eq', 'gt', 'lt')
+      expect(operators.pluck(:value)).to include('eq', 'gt', 'lt')
     end
 
     it 'defaults to text operators when no attribute selected' do
@@ -206,7 +206,7 @@ RSpec.describe Bali::Filters::Condition::Component, type: :component do
       )
 
       operators = component.operators_for_current_type
-      expect(operators.map { |o| o[:value] }).to include('cont', 'eq')
+      expect(operators.pluck(:value)).to include('cont', 'eq')
     end
   end
 

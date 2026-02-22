@@ -115,7 +115,7 @@ module Rrule
         add list(options.fetch(:bymonth), method(:monthtext), 'y')
       else
         add 'el' if bymonthday_option || bymonth_option
-        add list (bymonthday_option.map { |o| nth(o) }), :to_s, 'y' if bymonthday_option
+        add list bymonthday_option.map { |o| nth(o) }, :to_s, 'y' if bymonthday_option
         add list(options.fetch(:bymonth), method(:monthtext), 'y') if bymonth_option
       end
     end
@@ -193,7 +193,7 @@ module Rrule
 
     def _bymonthday
       add 'en el'
-      add list (bymonthday_option.map { |o| nth(o) }), :to_s, 'y'
+      add list bymonthday_option.map { |o| nth(o) }, :to_s, 'y'
       add 'del mes'
     end
 

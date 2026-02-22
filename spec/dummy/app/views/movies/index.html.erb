@@ -7,7 +7,7 @@
 <% end %>
 
 <%# Page Header with New Movie button %>
-<%= render Bali::PageHeader::Component.new(title: t('movies.title'), subtitle: t('movies.subtitle'), class: 'mt-4 mb-6') do %>
+<%= render Bali::PageHeader::Component.new(title: t('movies.title'), subtitle: t('movies.subtitle'), class: 'mt-4') do %>
   <%= render Bali::Link::Component.new(
     name: t('movies.new_movie'),
     href: new_movie_path,
