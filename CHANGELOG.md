@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **SubmitButton** - Loading spinner is now visible on form submission. Fixed two issues: `Bali::FormHelper` was not included in the dummy app (controller never connected), and DaisyUI 5's disabled button styling made the spinner invisible. The button now preserves its primary color at reduced opacity during loading.
 - **Tabs::Trigger** - Now respects explicit `active:` parameter when `href` is present
 - **PathHelper** - `active_path?` strips query params from both path arguments symmetrically
 

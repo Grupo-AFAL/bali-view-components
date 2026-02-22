@@ -22,7 +22,7 @@ export class SubmitButtonController extends Controller {
     // Capture styles BEFORE disabling. DaisyUI 5 overrides --btn-fg to
     // near-transparent on :disabled, turning the button gray and hiding
     // the spinner. We preserve the original colors for a polished look.
-    const styles = getComputedStyle(button)
+    const styles = window.getComputedStyle(button)
     const spinnerColor = styles.color
     const bgColor = styles.backgroundColor
 
