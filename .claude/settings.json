@@ -56,7 +56,7 @@
     ]
   },
   "enabledPlugins": {
-    "rails-tools@claude-plugins": true,
+    "rails-tools@afal-plugins": true,
     "oh-my-claudecode@omc": true,
     "frontend-design@claude-plugins-official": true,
     "superpowers@claude-plugins-official": true,
