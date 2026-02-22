@@ -771,7 +771,7 @@ RSpec.describe Bali::FilterForm do
       config = form.simple_search_config
       expect(config).to be_a(Hash)
       expect(config[:field_name]).to eq('q[name_or_genre_cont]')
-      expect(config[:placeholder]).to eq('Search...')
+      expect(config[:placeholder]).to eq('Search by name, genre...')
     end
 
     it 'includes current search value from params' do
