@@ -21,7 +21,7 @@ export class SubmitButtonController extends Controller {
 
     button.style.width = `${button.offsetWidth}px`
     button.setAttribute('data-submit-button-original-html', button.innerHTML)
-    button.innerHTML = '<span class="loading loading-spinner"></span>'
+    button.innerHTML = '<span class="loading loading-spinner loading-sm"></span>'
     button.setAttribute('disabled', '')
   }
 
