@@ -5,7 +5,7 @@ module Bali
     module Tab
       class Component < ApplicationViewComponent
         # Public accessors needed by Trigger::Component
-        attr_reader :active, :icon, :title, :src, :reload, :href, :options
+        attr_reader :active, :icon, :title, :src, :reload, :href, :options, :explicit_active
 
         # @param active [Boolean] Whether the tab is active
         # @param icon [String] The name of the icon to use
@@ -15,9 +15,10 @@ module Bali
         #                             when the tab is clicked
         # @param href [String] Full page navigation URL (mutually exclusive with src)
         # rubocop:disable Metrics/ParameterLists
-        def initialize(active: false, icon: nil, title: '', src: nil, reload: false, href: nil,
-                       **options)
-          @active = active
+        def initialize(active: NOT_PROVIDED, icon: nil, title: '', src: nil, reload: false,
+                       href: nil, **options)
+          @explicit_active = active != NOT_PROVIDED
+          @active = @explicit_active ? active : false
           @icon = icon
           @title = title
           @src = src
@@ -28,6 +29,9 @@ module Bali
           @options = prepend_class_name(@options, 'hidden') unless @active
         end
         # rubocop:enable Metrics/ParameterLists
+
+        NOT_PROVIDED = Object.new.freeze
+        private_constant :NOT_PROVIDED
 
         def call
           content
