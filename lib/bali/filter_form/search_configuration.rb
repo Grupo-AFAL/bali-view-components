@@ -92,6 +92,20 @@ module Bali
         }
       end
 
+      # Get the search configuration hash for SimpleFilters component.
+      # Returns a hash compatible with SimpleFilters::Component's search parameter.
+      #
+      # @return [Hash, nil] Search configuration or nil if not enabled
+      def simple_search_config
+        return nil unless search_enabled?
+
+        {
+          field_name: "q[#{search_field_name}]",
+          value: search_value,
+          placeholder: search_placeholder
+        }
+      end
+
       private
 
       # Extract quick search value from params based on configured search_fields

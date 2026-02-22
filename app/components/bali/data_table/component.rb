@@ -104,14 +104,17 @@ module Bali
       #   data_table.with_simple_filters(filters: [
       #     { attribute: :status, collection: [["Active", "active"]], blank: "All" }
       #   ])
-      renders_one :simple_filters, ->(filters: nil) do
+      renders_one :simple_filters, ->(filters: nil, search: nil) do
         resolved_filters = filters || @filter_form&.simple_filters_config || []
-        show_clear = @filter_form&.simple_filters_active? || false
+        resolved_search = search || @filter_form&.simple_search_config
+        filters_active = @filter_form&.simple_filters_active? || false
+        search_active = resolved_search&.dig(:value).present?
 
         SimpleFilters::Component.new(
           url: @url,
           filters: resolved_filters,
-          show_clear: show_clear
+          show_clear: filters_active || search_active,
+          search: resolved_search
         )
       end
 

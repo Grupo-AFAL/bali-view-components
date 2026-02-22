@@ -15,14 +15,15 @@ module Bali
           filters = [
             {
               attribute: :status,
-              collection: [['Active', 'active'], ['Inactive', 'inactive']],
+              collection: [%w[Active active], %w[Inactive inactive]],
               blank: 'All Statuses',
               label: 'Status',
               value: status.presence
             },
             {
               attribute: :category,
-              collection: [['Electronics', 'electronics'], ['Books', 'books'], ['Clothing', 'clothing']],
+              collection: [%w[Electronics electronics], %w[Books books],
+                           %w[Clothing clothing]],
               blank: 'All Categories',
               label: 'Category',
               value: category.presence
@@ -42,7 +43,7 @@ module Bali
           filters = [
             {
               attribute: :status,
-              collection: [['Active', 'active'], ['Inactive', 'inactive'], ['Pending', 'pending']],
+              collection: [%w[Active active], %w[Inactive inactive], %w[Pending pending]],
               blank: 'All Statuses',
               label: 'Status',
               default: 'active',
@@ -50,7 +51,7 @@ module Bali
             },
             {
               attribute: :priority,
-              collection: [['High', 'high'], ['Medium', 'medium'], ['Low', 'low']],
+              collection: [%w[High high], %w[Medium medium], %w[Low low]],
               blank: 'All Priorities',
               label: 'Priority',
               default: nil,
@@ -72,7 +73,7 @@ module Bali
           filters = [
             {
               attribute: :status,
-              collection: [['Active', 'active'], ['Inactive', 'inactive'], ['Pending', 'pending']],
+              collection: [%w[Active active], %w[Inactive inactive], %w[Pending pending]],
               blank: 'All',
               label: 'Status',
               value: status.presence
@@ -83,6 +84,65 @@ module Bali
             url: '/lookbook',
             filters: filters,
             show_clear: status.present?
+          )
+        end
+
+        # @label With Search
+        # Combines a text search input with dropdown filters.
+        # The search input renders before the dropdowns and submits together
+        # in a single GET request.
+        #
+        # @param search_text text
+        # @param status select { choices: ["", active, inactive] }
+        # @param category select { choices: ["", electronics, books, clothing] }
+        def with_search(search_text: '', status: '', category: '')
+          filters = [
+            {
+              attribute: :status,
+              collection: [%w[Active active], %w[Inactive inactive]],
+              blank: 'All Statuses',
+              label: 'Status',
+              value: status.presence
+            },
+            {
+              attribute: :category,
+              collection: [%w[Electronics electronics], %w[Books books],
+                           %w[Clothing clothing]],
+              blank: 'All Categories',
+              label: 'Category',
+              value: category.presence
+            }
+          ]
+
+          search = {
+            field_name: 'q[name_cont]',
+            value: search_text.presence,
+            placeholder: 'Search by name...'
+          }
+
+          render Component.new(
+            url: '/lookbook',
+            filters: filters,
+            show_clear: search_text.present? || status.present? || category.present?,
+            search: search
+          )
+        end
+
+        # @label Search Only
+        # SimpleFilters can render with just a search input and no dropdowns.
+        #
+        # @param search_text text
+        def search_only(search_text: '')
+          search = {
+            field_name: 'q[name_cont]',
+            value: search_text.presence,
+            placeholder: 'Search records...'
+          }
+
+          render Component.new(
+            url: '/lookbook',
+            filters: [],
+            search: search
           )
         end
       end

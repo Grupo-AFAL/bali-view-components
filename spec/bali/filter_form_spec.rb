@@ -763,4 +763,40 @@ RSpec.describe Bali::FilterForm do
       expect(config.first[:collection]).to eq([%w[Dynamic dynamic]])
     end
   end
+
+  describe '#simple_search_config' do
+    it 'returns search config hash when search_fields configured' do
+      form = Bali::FilterForm.new(Movie.all, params({}), search_fields: %i[name genre])
+
+      config = form.simple_search_config
+      expect(config).to be_a(Hash)
+      expect(config[:field_name]).to eq('q[name_or_genre_cont]')
+      expect(config[:placeholder]).to eq('Search...')
+    end
+
+    it 'includes current search value from params' do
+      filter_params = { name_or_genre_cont: 'SAP' }
+      form = Bali::FilterForm.new(Movie.all, params(filter_params), search_fields: %i[name genre])
+
+      config = form.simple_search_config
+      expect(config[:value]).to eq('SAP')
+    end
+
+    it 'returns nil when search_fields not configured' do
+      form = Bali::FilterForm.new(Movie.all, params({}))
+
+      expect(form.simple_search_config).to be_nil
+    end
+
+    it 'uses custom placeholder when provided' do
+      form = Bali::FilterForm.new(
+        Movie.all, params({}),
+        search_fields: %i[name],
+        search_placeholder: 'Find movies...'
+      )
+
+      config = form.simple_search_config
+      expect(config[:placeholder]).to eq('Find movies...')
+    end
+  end
 end
