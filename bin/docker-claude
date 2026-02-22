@@ -113,7 +113,9 @@ configure_sandbox_proxy() {
     --allow-host index.rubygems.org \
     --allow-host api.rubygems.org \
     --allow-host codeload.github.com \
-    --allow-host api.github.com >/dev/null 2>&1 || true
+    --allow-host api.github.com \
+    --allow-host registry.yarnpkg.com \
+    --allow-host registry.npmjs.org >/dev/null 2>&1 || true
 }
 
 case "${1:-help}" in
