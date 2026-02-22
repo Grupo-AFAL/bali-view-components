@@ -114,7 +114,9 @@ module Bali
       # e.g., [:name] => "Search by name..."
       # e.g., [:name, :email] => "Search by name, email..."
       def default_search_placeholder
-        return I18n.t('bali.filters.search_placeholder', default: 'Search...') unless search_enabled?
+        unless search_enabled?
+          return I18n.t('bali.filters.search_placeholder', default: 'Search...')
+        end
 
         field_labels = search_fields.map { |f| f.to_s.humanize(capitalize: false) }
         "Search by #{field_labels.join(', ')}..."

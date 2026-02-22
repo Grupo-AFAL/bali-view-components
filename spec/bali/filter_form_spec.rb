@@ -386,7 +386,7 @@ RSpec.describe Bali::FilterForm do
       config = form.search_config
       expect(config[:fields]).to eq(%i[name genre tenant_name])
       expect(config[:value]).to eq('Iron')
-      expect(config[:placeholder]).to eq('Search...')
+      expect(config[:placeholder]).to eq('Search by name, genre, tenant name...')
     end
 
     it 'returns nil when search not enabled' do
