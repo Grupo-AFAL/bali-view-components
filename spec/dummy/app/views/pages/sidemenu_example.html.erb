@@ -89,7 +89,7 @@
   <%# Main Content Area %>
   <main class="side-menu-main-content flex-1 p-6">
     <%# Page Header %>
-    <%= render Bali::PageHeader::Component.new(class: 'mb-6') do |header| %>
+    <%= render Bali::PageHeader::Component.new do |header| %>
       <% header.with_title { 'Admin Dashboard' } %>
       <% header.with_subtitle { 'Welcome back! Here\'s what\'s happening today.' } %>
 

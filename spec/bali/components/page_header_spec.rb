@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe Bali::PageHeader::Component, type: :component do
   describe 'constants' do
     it 'defines BASE_CLASSES' do
-      expect(described_class::BASE_CLASSES).to eq('page-header-component')
+      expect(described_class::BASE_CLASSES).to eq('page-header-component mb-6')
     end
 
     it 'defines frozen HEADING_SIZES' do
