@@ -19,10 +19,9 @@ export class SubmitButtonController extends Controller {
     const button = event.detail.formSubmission.submitter
     if (!button) return
 
-    const spinner = document.createElement('span')
-    spinner.classList.add('loading', 'loading-spinner')
-    spinner.setAttribute('data-submit-button-spinner', '')
-    button.insertBefore(spinner, button.firstChild)
+    button.style.width = `${button.offsetWidth}px`
+    button.setAttribute('data-submit-button-original-html', button.innerHTML)
+    button.innerHTML = '<span class="loading loading-spinner"></span>'
     button.setAttribute('disabled', '')
   }
 
@@ -30,9 +29,13 @@ export class SubmitButtonController extends Controller {
     const button = event.detail.formSubmission.submitter
     if (!button) return
 
-    const spinner = button.querySelector('[data-submit-button-spinner]')
-    if (spinner) spinner.remove()
+    const originalHtml = button.getAttribute('data-submit-button-original-html')
+    if (originalHtml !== null) {
+      button.innerHTML = originalHtml
+      button.removeAttribute('data-submit-button-original-html')
+    }
 
+    button.style.width = ''
     button.removeAttribute('disabled')
   }
 }

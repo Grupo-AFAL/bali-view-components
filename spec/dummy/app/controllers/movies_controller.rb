@@ -86,7 +86,11 @@ class MoviesController < ApplicationController
   end
 
   def movie_params
-    params.expect(movie: %i[name genre status tenant_id indie])
+    params.expect(movie: %i[
+                    name genre status tenant_id indie
+                    synopsis rich_description release_date budget
+                    contact_email website_url time_zone rating poster
+                  ])
   end
 
   # Define filterable attributes for the filters.
