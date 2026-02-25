@@ -44,5 +44,5 @@ group :development, :test do
   gem "dotenv"
   gem "rspec-rails", "~> 8"
   gem "turbo-rails", "~> 2"
-  gem "vite_rails", "~> 3.0"
+  gem "jsbundling-rails"
 end

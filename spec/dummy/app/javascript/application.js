@@ -1,18 +1,16 @@
-// Vite entry point for Bali dummy app
-// This replaces the importmap-based application.js
-
+// esbuild entry point for Bali dummy app
 import { Application } from '@hotwired/stimulus'
-import { registerControllers } from 'stimulus-vite-helpers'
 import * as Turbo from '@hotwired/turbo'
 import * as ActiveStorage from '@rails/activestorage'
 
-// ---------------------------------------------------------
 // Bali Controllers - Core Bundle
-// ---------------------------------------------------------
 import {
   registerAllControllers,
   registerAllComponents
 } from 'bali'
+
+// Local controllers
+import ThemeSwitcherController from './controllers/theme_switcher_controller'
 
 // Initialize Stimulus
 const application = Application.start()
@@ -23,9 +21,8 @@ window.Turbo = Turbo
 // Start ActiveStorage
 ActiveStorage.start()
 
-// Auto-register local controllers (if any exist in app/javascript/controllers)
-const localControllers = import.meta.glob('../controllers/**/*_controller.js', { eager: true })
-registerControllers(application, localControllers)
+// Register local controllers
+application.register('theme-switcher', ThemeSwitcherController)
 
 // Register all core Bali controllers (utility + component)
 registerAllControllers(application)
@@ -36,13 +33,8 @@ registerAllComponents(application)
 // Only import heavy dependencies when their elements exist
 // ---------------------------------------------------------
 
-// Track which modules have been loaded to avoid duplicate registration
 const loadedModules = { charts: false, gantt: false, blockEditor: false }
 
-/**
- * Lazy load Charts module when chart elements are detected
- * Reduces initial bundle by ~100KB when charts aren't used
- */
 function loadChartsIfNeeded () {
   if (loadedModules.charts) return
   if (document.querySelector('[data-controller*="chart"]')) {
@@ -53,9 +45,6 @@ function loadChartsIfNeeded () {
   }
 }
 
-/**
- * Lazy load Gantt module when gantt elements are detected
- */
 function loadGanttIfNeeded () {
   if (loadedModules.gantt) return
   if (document.querySelector('[data-controller*="gantt"]')) {
@@ -66,9 +55,6 @@ function loadGanttIfNeeded () {
   }
 }
 
-/**
- * Lazy load Block Editor module when block-editor elements are detected
- */
 function loadBlockEditorIfNeeded () {
   if (loadedModules.blockEditor) return
   if (document.querySelector('[data-controller*="block-editor"]')) {
@@ -91,15 +77,10 @@ document.addEventListener('turbo:load', () => {
   loadBlockEditorIfNeeded()
 })
 
-// Also check after Turbo Frames/Streams update the DOM
 document.addEventListener('turbo:frame-load', () => {
   loadChartsIfNeeded()
   loadGanttIfNeeded()
   loadBlockEditorIfNeeded()
 })
 
-// Rich Text Editor (TipTap) - WARNING: currently broken
-// import { registerRichTextEditor } from 'bali/rich-text-editor'
-// registerRichTextEditor(application)
-
-console.log('Vite + Stimulus HMR ready')
+console.log('esbuild + Stimulus ready')

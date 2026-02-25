@@ -30,8 +30,8 @@ jobs:
       - name: Build Tailwind CSS
         run: cd spec/dummy && bin/rails tailwindcss:build
 
-      - name: Build Vite assets
-        run: cd spec/dummy && bin/vite build
+      - name: Build JS assets
+        run: cd spec/dummy && yarn build
 
       - name: Precompile assets
         run: cd spec/dummy && bin/rails assets:precompile

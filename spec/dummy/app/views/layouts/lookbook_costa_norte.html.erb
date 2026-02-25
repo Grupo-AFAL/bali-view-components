@@ -5,8 +5,7 @@
     <%= csrf_meta_tags %>
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag "application", media: 'all' %>
-    <%= vite_client_tag %>
-    <%= vite_javascript_tag 'application' %>
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
   </head>
   <body class="p-4 bg-base-100">
     <%= yield %>
