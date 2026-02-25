@@ -38,7 +38,7 @@ firebase-debug.log
 test-results/
 
 firebase-debug.log
-.claude/settings.local.json
+.claude/
 
 .mcp.json
 .release-pending.json
