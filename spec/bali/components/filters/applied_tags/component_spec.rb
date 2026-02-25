@@ -7,7 +7,7 @@ RSpec.describe Bali::Filters::AppliedTags::Component, type: :component do
     [
       { key: :name, label: 'Name', type: :text },
       { key: :status, label: 'Status', type: :select,
-        options: [%w[Active active], %w[Inactive inactive]] },
+        options: [ %w[Active active], %w[Inactive inactive] ] },
       { key: :verified, label: 'Verified', type: :boolean }
     ]
   end
@@ -27,7 +27,7 @@ RSpec.describe Bali::Filters::AppliedTags::Component, type: :component do
       filter_groups = [
         {
           combinator: 'or',
-          conditions: [{ attribute: 'name', operator: 'cont', value: '' }]
+          conditions: [ { attribute: 'name', operator: 'cont', value: '' } ]
         }
       ]
 
@@ -132,7 +132,7 @@ RSpec.describe Bali::Filters::AppliedTags::Component, type: :component do
       single_filter = [
         {
           combinator: 'or',
-          conditions: [{ attribute: 'name', operator: 'cont', value: 'John' }]
+          conditions: [ { attribute: 'name', operator: 'cont', value: 'John' } ]
         }
       ]
 
@@ -151,7 +151,7 @@ RSpec.describe Bali::Filters::AppliedTags::Component, type: :component do
       filter_groups = [
         {
           combinator: 'or',
-          conditions: [{ attribute: 'status', operator: 'eq', value: 'active' }]
+          conditions: [ { attribute: 'status', operator: 'eq', value: 'active' } ]
         }
       ]
 
@@ -169,7 +169,7 @@ RSpec.describe Bali::Filters::AppliedTags::Component, type: :component do
       filter_groups = [
         {
           combinator: 'or',
-          conditions: [{ attribute: 'verified', operator: 'eq', value: 'true' }]
+          conditions: [ { attribute: 'verified', operator: 'eq', value: 'true' } ]
         }
       ]
 
@@ -188,7 +188,7 @@ RSpec.describe Bali::Filters::AppliedTags::Component, type: :component do
       filter_groups = [
         {
           combinator: 'or',
-          conditions: [{ attribute: 'name', operator: 'cont', value: 'John' }]
+          conditions: [ { attribute: 'name', operator: 'cont', value: 'John' } ]
         }
       ]
 
@@ -205,7 +205,7 @@ RSpec.describe Bali::Filters::AppliedTags::Component, type: :component do
       filter_groups = [
         {
           combinator: 'or',
-          conditions: [{ attribute: 'name', operator: 'cont', value: '' }]
+          conditions: [ { attribute: 'name', operator: 'cont', value: '' } ]
         }
       ]
 

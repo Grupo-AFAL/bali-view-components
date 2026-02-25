@@ -9,11 +9,11 @@ module Bali
       }.freeze
 
       OPTION_TO_DATA_ATTRIBUTE = {
-        seconds: 'data-datepicker-enable-seconds-value',
-        time_24hr: 'data-datepicker-time24hr-value',
-        default_date: 'data-datepicker-default-date-value',
-        min_time: 'data-datepicker-min-time-value',
-        max_time: 'data-datepicker-max-time-value'
+        seconds: "data-datepicker-enable-seconds-value",
+        time_24hr: "data-datepicker-time24hr-value",
+        default_date: "data-datepicker-default-date-value",
+        min_time: "data-datepicker-min-time-value",
+        max_time: "data-datepicker-max-time-value"
       }.freeze
 
       def time_field_group(method, options = {})
@@ -45,10 +45,10 @@ module Bali
         value = explicit_value || object&.public_send(method)
         return nil if value.blank?
 
-        formatted = value.respond_to?(:strftime) ? value.strftime('%H:%M:%S') : value.to_s
+        formatted = value.respond_to?(:strftime) ? value.strftime("%H:%M:%S") : value.to_s
 
         # Flatpickr requires a date component for time-only fields
-        formatted.include?(' ') ? formatted : "#{Date.current} #{formatted}"
+        formatted.include?(" ") ? formatted : "#{Date.current} #{formatted}"
       end
     end
   end

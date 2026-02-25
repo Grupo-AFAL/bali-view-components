@@ -7,11 +7,11 @@ module Bali
       DEFAULT_CENTER_LAT = 32.5036383
       DEFAULT_CENTER_LNG = -117.0308968
 
-      BASE_CLASSES = 'locations-map-component flex max-md:flex-col'
-      MAP_CLASSES = 'location-map flex-1 h-[450px]'
-      CARDS_WRAPPER_CLASSES = 'locations-map-component--cards flex-1 mr-3 max-md:mr-0'
-      LOCATIONS_WRAPPER_CLASSES = 'locations-map-component--locations flex-1 ml-3 ' \
-                                  'max-md:ml-0 max-md:mt-6'
+      BASE_CLASSES = "locations-map-component flex max-md:flex-col"
+      MAP_CLASSES = "location-map flex-1 h-[450px]"
+      CARDS_WRAPPER_CLASSES = "locations-map-component--cards flex-1 mr-3 max-md:mr-0"
+      LOCATIONS_WRAPPER_CLASSES = "locations-map-component--locations flex-1 ml-3 " \
+                                  "max-md:ml-0 max-md:mt-6"
 
       renders_many :cards, Card::Component
       renders_many :locations, Location::Component
@@ -36,13 +36,13 @@ module Bali
 
       def component_options
         opts = prepend_class_name(options, BASE_CLASSES)
-        opts = prepend_controller(opts, 'locations-map')
-        prepend_values(opts, 'locations-map', controller_values)
+        opts = prepend_controller(opts, "locations-map")
+        prepend_values(opts, "locations-map", controller_values)
       end
 
       def controller_values
         {
-          api_key: ENV.fetch('GOOGLE_MAPS_KEY', nil),
+          api_key: ENV.fetch("GOOGLE_MAPS_KEY", nil),
           enable_clustering: clustered,
           zoom: zoom,
           center_latitude: center_latitude,
@@ -56,7 +56,7 @@ module Bali
       end
 
       def render_map
-        tag.div(class: MAP_CLASSES, data: { locations_map_target: 'map' })
+        tag.div(class: MAP_CLASSES, data: { locations_map_target: "map" })
       end
     end
   end

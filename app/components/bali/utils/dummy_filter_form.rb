@@ -19,7 +19,7 @@ module Bali
       attribute :date, :date_range
 
       def model_name
-        @model_name ||= ActiveModel::Name.new(self, nil, 'q')
+        @model_name ||= ActiveModel::Name.new(self, nil, "q")
       end
 
       def id

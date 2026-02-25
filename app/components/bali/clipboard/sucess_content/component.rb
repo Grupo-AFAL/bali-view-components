@@ -4,9 +4,9 @@ module Bali
   module Clipboard
     module SucessContent
       class Component < ApplicationViewComponent
-        BASE_CLASSES = 'clipboard-success-content hidden text-success'
+        BASE_CLASSES = "clipboard-success-content hidden text-success"
 
-        def initialize(text = '', **options)
+        def initialize(text = "", **options)
           @text = text
           @options = options
         end
@@ -23,7 +23,7 @@ module Bali
 
         def success_attributes
           opts = prepend_class_name(options, BASE_CLASSES)
-          prepend_data_attribute(opts, 'clipboard-target', 'successContent')
+          prepend_data_attribute(opts, "clipboard-target", "successContent")
         end
       end
     end

@@ -17,18 +17,18 @@ module Bali
         attr_reader :options
 
         def footer_options
-          options.merge(class: class_names('card-body', 'p-3', options[:class]))
+          options.merge(class: class_names("card-body", "p-3", options[:class]))
         end
       end
 
       class Component < ApplicationViewComponent
         ASPECT_RATIOS = {
-          square: 'aspect-square',
-          video: 'aspect-video',
-          '3/2': 'aspect-[3/2]',
-          '4/3': 'aspect-[4/3]',
-          '4/5': 'aspect-[4/5]',
-          '16/9': 'aspect-[16/9]'
+          square: "aspect-square",
+          video: "aspect-video",
+          '3/2': "aspect-[3/2]",
+          '4/3': "aspect-[4/3]",
+          '4/5': "aspect-[4/5]",
+          '16/9': "aspect-[16/9]"
         }.freeze
 
         renders_one :footer, FooterComponent
@@ -49,14 +49,14 @@ module Bali
         def figure_classes
           class_names(
             aspect_class,
-            'overflow-hidden',
-            '[&_img]:w-full [&_img]:h-full [&_img]:object-cover',
-            footer? ? 'rounded-t-2xl' : 'rounded-2xl'
+            "overflow-hidden",
+            "[&_img]:w-full [&_img]:h-full [&_img]:object-cover",
+            footer? ? "rounded-t-2xl" : "rounded-2xl"
           )
         end
 
         def card_classes
-          class_names('card', 'bg-base-100', options[:class])
+          class_names("card", "bg-base-100", options[:class])
         end
 
         def card_attributes

@@ -4,12 +4,12 @@ module Bali
   module Dropdown
     class Component < ApplicationViewComponent
       ALIGNMENTS = {
-        left: '',
-        right: 'dropdown-end',
-        top: 'dropdown-top',
-        bottom: 'dropdown-bottom',
-        top_end: 'dropdown-top dropdown-end',
-        bottom_end: 'dropdown-bottom dropdown-end'
+        left: "",
+        right: "dropdown-end",
+        top: "dropdown-top",
+        bottom: "dropdown-bottom",
+        top_end: "dropdown-top dropdown-end",
+        bottom_end: "dropdown-bottom dropdown-end"
       }.freeze
 
       renders_one :trigger, Trigger::Component
@@ -18,10 +18,10 @@ module Bali
           ActionItem::Component.new(**options)
         else
           component_klass = method&.to_sym == :delete ? DeleteLink::Component : Link::Component
-          options[:role] ||= 'menuitem'
+          options[:role] ||= "menuitem"
           component_klass.new(
             method: method, href: href, plain: true,
-            **prepend_class_name(options, 'menu-item w-full text-left')
+            **prepend_class_name(options, "menu-item w-full text-left")
           )
         end
       end
@@ -38,23 +38,23 @@ module Bali
 
       def dropdown_classes
         class_names(
-          'dropdown',
+          "dropdown",
           ALIGNMENTS[@align],
-          'dropdown-hover' => @hoverable
+          "dropdown-hover" => @hoverable
         )
       end
 
       def content_classes
         class_names(
-          'dropdown-content',
-          'menu',
-          'bg-base-100',
-          'text-base-content', # Ensure proper text contrast regardless of parent colors
-          'rounded-box',
-          'z-50',
-          'shadow-lg',
-          'p-2',
-          @wide ? 'w-80' : 'w-52'
+          "dropdown-content",
+          "menu",
+          "bg-base-100",
+          "text-base-content", # Ensure proper text contrast regardless of parent colors
+          "rounded-box",
+          "z-50",
+          "shadow-lg",
+          "p-2",
+          @wide ? "w-80" : "w-52"
         )
       end
 
@@ -66,7 +66,7 @@ module Bali
 
       def build_options
         @options = prepend_class_name(@options, dropdown_classes)
-        @options = prepend_controller(@options, 'dropdown') unless @hoverable
+        @options = prepend_controller(@options, "dropdown") unless @hoverable
         @options[:data] ||= {}
         @options[:data][:dropdown_close_on_click_value] = @close_on_click unless @hoverable
       end

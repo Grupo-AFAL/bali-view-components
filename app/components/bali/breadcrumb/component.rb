@@ -11,15 +11,15 @@ module Bali
 
       # Translated aria-label for navigation
       def aria_label
-        I18n.t('bali.breadcrumb.aria_label', default: 'Breadcrumb')
+        I18n.t("bali.breadcrumb.aria_label", default: "Breadcrumb")
       end
 
       private
 
       def container_classes
         class_names(
-          'breadcrumbs',
-          'text-sm',
+          "breadcrumbs",
+          "text-sm",
           @options[:class]
         )
       end

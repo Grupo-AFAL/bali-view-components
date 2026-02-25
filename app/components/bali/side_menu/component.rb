@@ -35,7 +35,7 @@ module Bali
         )
       end
 
-      MOBILE_TRIGGER_ID = 'side-menu-mobile-trigger'
+      MOBILE_TRIGGER_ID = "side-menu-mobile-trigger"
 
       # @param current_path [String] The current request path for active state detection
       # @param fixed [Boolean] Fixed to viewport (true) or inline flow (false). Default: true
@@ -77,9 +77,9 @@ module Bali
 
       def container_classes
         class_names(
-          'side-menu-component',
-          { 'side-menu-component--fixed' => @fixed },
-          { 'side-menu-component--inline' => !@fixed },
+          "side-menu-component",
+          { "side-menu-component--fixed" => @fixed },
+          { "side-menu-component--inline" => !@fixed },
           @options[:class]
         )
       end
@@ -87,7 +87,7 @@ module Bali
       def container_data
         data = @options[:data] || {}
         data[:controller] =
-          class_names(data[:controller], { 'side-menu' => @collapsable || @fixed })
+          class_names(data[:controller], { "side-menu" => @collapsable || @fixed })
         data[:side_menu_collapse_checkbox_value] = collapse_checkbox_id if @collapsable
         data[:side_menu_mobile_trigger_value] = @mobile_trigger_id if @fixed
         data
@@ -125,22 +125,22 @@ module Bali
 
       # Translated aria-label for mobile trigger checkbox
       def toggle_mobile_label
-        I18n.t('bali.side_menu.toggle_mobile', default: 'Toggle sidebar')
+        I18n.t("bali.side_menu.toggle_mobile", default: "Toggle sidebar")
       end
 
       # Translated aria-label for collapse checkbox
       def toggle_collapse_label
-        I18n.t('bali.side_menu.toggle_collapse', default: 'Toggle sidebar collapse')
+        I18n.t("bali.side_menu.toggle_collapse", default: "Toggle sidebar collapse")
       end
 
       # Translated title for collapse button
       def collapse_label
-        I18n.t('bali.side_menu.collapse', default: 'Collapse sidebar')
+        I18n.t("bali.side_menu.collapse", default: "Collapse sidebar")
       end
 
       # Translated title for expand button
       def expand_label
-        I18n.t('bali.side_menu.expand', default: 'Expand sidebar')
+        I18n.t("bali.side_menu.expand", default: "Expand sidebar")
       end
     end
   end

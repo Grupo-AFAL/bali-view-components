@@ -10,7 +10,7 @@ module Bali
         def initialize(
           latitude:,
           longitude:,
-          name: '',
+          name: "",
           label: nil,
           color: nil,
           border_color: nil,
@@ -35,7 +35,7 @@ module Bali
 
         def data_attributes
           {
-            locations_map_target: 'location',
+            locations_map_target: "location",
             info_view_id: info_view_id,
             name: name,
             lat: latitude,

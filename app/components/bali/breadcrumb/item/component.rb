@@ -4,7 +4,7 @@ module Bali
   module Breadcrumb
     module Item
       class Component < ApplicationViewComponent
-        BASE_CLASSES = 'inline-flex items-center gap-1'
+        BASE_CLASSES = "inline-flex items-center gap-1"
 
         def initialize(name:, href: nil, icon_name: nil, active: nil, **options)
           @name = name
@@ -31,11 +31,11 @@ module Bali
         end
 
         def link_classes
-          class_names(BASE_CLASSES, 'no-underline hover:underline')
+          class_names(BASE_CLASSES, "no-underline hover:underline")
         end
 
         def current_classes
-          class_names(BASE_CLASSES, 'cursor-default no-underline hover:no-underline')
+          class_names(BASE_CLASSES, "cursor-default no-underline hover:no-underline")
         end
       end
     end

@@ -16,7 +16,7 @@ module Bali
       private
 
       def normalize_date(value)
-        value += '-01' if value.is_a?(String) && value.length == 7
+        value += "-01" if value.is_a?(String) && value.length == 7
         value
       end
     end

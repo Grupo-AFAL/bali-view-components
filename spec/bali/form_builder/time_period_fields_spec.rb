@@ -29,7 +29,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
   end
 
   describe '#time_period_field_group' do
-    let(:select_options) { [['This week', Time.zone.now.all_week]] }
+    let(:select_options) { [ [ 'This week', Time.zone.now.all_week ] ] }
     let(:result) { builder.time_period_field_group(:release_date, select_options) }
 
     it 'renders within a FieldGroupWrapper' do
@@ -47,7 +47,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
 
   describe '#time_period_field' do
     let(:select_options) do
-      [['This week', Time.zone.now.all_week], ['Last week', 1.week.ago.all_week]]
+      [ [ 'This week', Time.zone.now.all_week ], [ 'Last week', 1.week.ago.all_week ] ]
     end
     let(:result) { builder.time_period_field(:release_date, select_options) }
 

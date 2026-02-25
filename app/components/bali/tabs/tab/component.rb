@@ -15,7 +15,7 @@ module Bali
         #                             when the tab is clicked
         # @param href [String] Full page navigation URL (mutually exclusive with src)
         # rubocop:disable Metrics/ParameterLists
-        def initialize(active: NOT_PROVIDED, icon: nil, title: '', src: nil, reload: false,
+        def initialize(active: NOT_PROVIDED, icon: nil, title: "", src: nil, reload: false,
                        href: nil, **options)
           @explicit_active = active != NOT_PROVIDED
           @active = @explicit_active ? active : false
@@ -26,7 +26,7 @@ module Bali
           @href = href
 
           @options = options.except(:href)
-          @options = prepend_class_name(@options, 'hidden') unless @active
+          @options = prepend_class_name(@options, "hidden") unless @active
         end
         # rubocop:enable Metrics/ParameterLists
 

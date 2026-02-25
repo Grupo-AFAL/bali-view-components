@@ -84,7 +84,7 @@ module Bali
           end
 
           # Delegate to DefaultIcons for the actual SVG
-          constant_name = name_str.upcase.tr('-', '_')
+          constant_name = name_str.upcase.tr("-", "_")
           DefaultIcons.const_get(constant_name).html_safe
         end
 

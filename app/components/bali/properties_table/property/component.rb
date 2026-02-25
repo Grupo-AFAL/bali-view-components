@@ -4,11 +4,11 @@ module Bali
   module PropertiesTable
     module Property
       class Component < ApplicationViewComponent
-        BASE_CLASSES = 'properties-table-property-component'
+        BASE_CLASSES = "properties-table-property-component"
         # Use th for label cell - semantically correct for row headers
         # font-medium for subtle emphasis, text-base-content/70 for hierarchy
-        LABEL_CLASSES = 'property-label font-medium text-base-content/70 w-1/3'
-        VALUE_CLASSES = 'property-value'
+        LABEL_CLASSES = "property-label font-medium text-base-content/70 w-1/3"
+        VALUE_CLASSES = "property-value"
 
         def initialize(label:, value: nil, **options)
           @label = label

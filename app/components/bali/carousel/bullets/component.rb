@@ -20,13 +20,13 @@ module Bali
 
         def component_classes
           class_names(
-            'glide__bullets',
+            "glide__bullets",
             @options[:class]
           )
         end
 
         def component_data
-          { 'glide-el' => 'controls[nav]' }.merge(@options[:data] || {})
+          { "glide-el" => "controls[nav]" }.merge(@options[:data] || {})
         end
 
         def html_options

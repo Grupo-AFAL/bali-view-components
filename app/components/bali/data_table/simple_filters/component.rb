@@ -45,7 +45,7 @@ module Bali
         end
 
         def search_label
-          @search[:label] || I18n.t('bali.simple_filters.search', default: 'Search')
+          @search[:label] || I18n.t("bali.simple_filters.search", default: "Search")
         end
 
         def filter_field_name(attribute)
@@ -53,11 +53,11 @@ module Bali
         end
 
         def apply_button_text
-          I18n.t('bali.simple_filters.apply', default: 'Filter')
+          I18n.t("bali.simple_filters.apply", default: "Filter")
         end
 
         def clear_button_text
-          I18n.t('bali.simple_filters.clear', default: 'Clear')
+          I18n.t("bali.simple_filters.clear", default: "Clear")
         end
       end
     end

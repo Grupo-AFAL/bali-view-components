@@ -3,40 +3,40 @@
 module Bali
   module Heatmap
     class Component < ApplicationViewComponent
-      CELL_CLASSES = 'heatmap-cell rounded-sm'
-      LABEL_CLASSES = 'text-xs text-center truncate text-base-content/70'
+      CELL_CLASSES = "heatmap-cell rounded-sm"
+      LABEL_CLASSES = "text-xs text-center truncate text-base-content/70"
       X_LABEL_CLASSES = "#{LABEL_CLASSES} pt-2".freeze
       Y_LABEL_CLASSES = "#{LABEL_CLASSES} pr-3 text-right".freeze
 
       # DaisyUI color presets using theme variables
       COLOR_PRESETS = {
-        primary: '#6366f1', # Will be converted to gradient
-        secondary: '#8b5cf6',
-        accent: '#f59e0b',
-        success: '#22c55e',
-        info: '#3b82f6',
-        warning: '#f59e0b',
-        error: '#ef4444'
+        primary: "#6366f1", # Will be converted to gradient
+        secondary: "#8b5cf6",
+        accent: "#f59e0b",
+        success: "#22c55e",
+        info: "#3b82f6",
+        warning: "#f59e0b",
+        error: "#ef4444"
       }.freeze
 
       renders_one :x_axis_title, ->(text = nil, &block) {
         content = text || (block ? capture(&block) : nil)
-        tag.span(content, class: 'text-xs font-medium text-base-content/70')
+        tag.span(content, class: "text-xs font-medium text-base-content/70")
       }
 
       renders_one :y_axis_title, ->(text = nil, &block) {
         content = text || (block ? capture(&block) : nil)
-        tag.span(content, class: 'text-xs font-medium text-base-content/70')
+        tag.span(content, class: "text-xs font-medium text-base-content/70")
       }
 
       renders_one :legend_title, ->(text = nil, &block) {
         content = text || (block ? capture(&block) : nil)
-        tag.span(content, class: 'text-xs font-medium')
+        tag.span(content, class: "text-xs font-medium")
       }
 
       renders_one :hovercard_title, ->(text = nil, &block) {
         content = text || (block ? capture(&block) : nil)
-        tag.p(content, class: 'font-bold mb-1')
+        tag.p(content, class: "font-bold mb-1")
       }
 
       attr_reader :html_options
@@ -96,18 +96,18 @@ module Bali
       end
 
       def table_classes
-        'w-full border-separate table-fixed'
+        "w-full border-separate table-fixed"
       end
 
       private
 
       def component_classes
-        'heatmap-component w-full'
+        "heatmap-component w-full"
       end
 
       def compute_y_labels
         keys = @data.values.flat_map(&:keys)
-        return [0] if keys.empty?
+        return [ 0 ] if keys.empty?
 
         (keys.min..keys.max)
       end

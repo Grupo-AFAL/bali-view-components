@@ -72,13 +72,13 @@ module Bali
         # Auto-populate search config from filter_form, merging with explicit overrides
         filter_form_search = if @filter_form && @filter_form.respond_to?(:search_config)
                                @filter_form.search_config
-                             end
+        end
         resolved_search = if filter_form_search && search
                             # Merge: filter_form provides base, explicit search overrides
                             filter_form_search.merge(search)
-                          else
+        else
                             search || filter_form_search
-                          end
+        end
 
         Filters::Component.new(
           url: @url,
@@ -165,7 +165,7 @@ module Bali
       end
 
       def table_wrapper_classes
-        @table_wrapper_class || 'overflow-x-auto'
+        @table_wrapper_class || "overflow-x-auto"
       end
 
       def id
@@ -174,10 +174,10 @@ module Bali
 
       # Auto-generated summary text from Pagy using I18n
       def default_summary_text
-        return '' unless @pagy
+        return "" unless @pagy
 
         I18n.t(
-          'view_components.bali.data_table.summary',
+          "view_components.bali.data_table.summary",
           from: @pagy.from,
           to: @pagy.to,
           count: @pagy.count,
@@ -213,7 +213,7 @@ module Bali
       private
 
       def item_name
-        @item_name || I18n.t('view_components.bali.data_table.default_item_name')
+        @item_name || I18n.t("view_components.bali.data_table.default_item_name")
       end
 
       def validate_summary_position(position)

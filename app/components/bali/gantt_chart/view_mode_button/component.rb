@@ -27,10 +27,10 @@ module Bali
 
         def button_classes
           class_names(
-            'btn btn-sm join-item',
+            "btn btn-sm join-item",
             @options[:class],
-            'btn-info' => @active,
-            'btn-ghost' => !@active
+            "btn-info" => @active,
+            "btn-ghost" => !@active
           )
         end
       end

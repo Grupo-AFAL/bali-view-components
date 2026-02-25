@@ -50,7 +50,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     end
 
     it 'accepts custom value option' do
-      field = builder.coordinates_polygon_field(:available_region, value: [[1, 2], [3, 4]])
+      field = builder.coordinates_polygon_field(:available_region, value: [ [ 1, 2 ], [ 3, 4 ] ])
       expect(field).to have_css(
         'input#movie_available_region[value="[[1,2],[3,4]]"]', visible: false
       )

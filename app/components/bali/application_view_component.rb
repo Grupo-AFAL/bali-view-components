@@ -8,7 +8,7 @@ module Bali
     private
 
     def identifier
-      @identifier ||= self.class.name.sub('::Component', '').underscore.split('/').join('--')
+      @identifier ||= self.class.name.sub("::Component", "").underscore.split("/").join("--")
     end
   end
 end

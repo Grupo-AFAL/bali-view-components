@@ -1,9 +1,9 @@
-plugins: rubocop-rails
+inherit_gem:
+  rubocop-rails-omakase: rubocop.yml
 
 AllCops:
-  TargetRubyVersion: 3.3.7
+  TargetRubyVersion: 4.0
   NewCops: enable
-  SuggestExtensions: false
   Exclude:
     - 'app/components/bali/*/preview.rb'
     - 'app/components/bali/*/*/preview.rb'
@@ -24,90 +24,8 @@ AllCops:
     - 'spec/dummy/config/**/*'
     - 'spec/dummy/db/**/*'
     - 'spec/dummy/public/**/*'
-    - !ruby/regexp /old_and_unused\.rb$/
 
-Gemspec/RequiredRubyVersion:
-  Enabled: false
-
-Layout/LineLength:
-  Max: 100
-  Exclude:
-    - 'spec/**/*'
-
-Layout/SpaceBeforeBrackets:
-  Enabled: false
-
-Metrics/AbcSize:
-  Max: 30
-  Exclude:
-    - 'spec/dummy/app/controllers/**/*'
-    - 'lib/bali/form_builder/**/*'
-
-Metrics/ClassLength:
-  Max: 150
-  Exclude:
-    - 'lib/bali/filter_form.rb'
-
-Metrics/CyclomaticComplexity:
-  Max: 8
-  Exclude:
-    - 'spec/dummy/app/controllers/**/*'
-    - 'lib/bali/form_builder/**/*'
-    - 'lib/bali/filter_form.rb'
-
-Metrics/MethodLength:
-  Max: 30
-  Exclude:
-    - 'spec/dummy/app/controllers/**/*'
-
-Metrics/ParameterLists:
-  Max: 6
-  Exclude:
-    - 'app/components/bali/side_menu/**/*'
-    - 'app/components/bali/card/**/*'
-
-Metrics/PerceivedComplexity:
-  Max: 10
-  Exclude:
-    - 'spec/dummy/app/controllers/**/*'
-    - 'lib/bali/filter_form.rb'
-
-Metrics/ModuleLength:
-  Max: 150
-  Exclude:
-    - 'lib/bali/form_builder/**/*'
-
-Metrics/BlockLength:
-  AllowedMethods: ['describe', 'context', 'it', 'before', 'included']
-  Exclude:
-    - 'spec/**/*'
-    - 'lib/tasks/*'
-    - 'spec/dummy/app/controllers/**/*'
-
-Style/Documentation:
-  Enabled: false
-
-Style/HashEachMethods:
-  Enabled: true
-
-Style/HashTransformKeys:
-  Enabled: true
-
-Style/HashTransformValues:
-  Enabled: true
-
-Style/HashSyntax:
-  EnforcedShorthandSyntax: never
-
-Style/Lambda:
-  Enabled: false
-
-Style/RedundantBegin:
-  Enabled: false
-
-Rails:
-  Enabled: true
-
+# Gem-specific: component library needs html_safe for rendering
 Rails/OutputSafety:
   Enabled: false
 
@@ -121,16 +39,13 @@ Rails/I18nLocaleTexts:
   Exclude:
     - 'spec/dummy/**/*'
 
-Naming/VariableNumber:
-  Enabled: false
-
-Naming/RescuedExceptionsVariableName:
-  Enabled: false
-
-Lint/EmptyBlock:
+# Complex filter/form modules have legitimate complexity
+Metrics/PerceivedComplexity:
   Exclude:
-    - spec/**/*
+    - 'lib/bali/filter_form/**/*'
+    - 'lib/bali/form_builder/**/*'
 
+# ViewComponent#initialize intentionally doesn't call super
 Lint/MissingSuper:
   Exclude:
     - app/components/**/*

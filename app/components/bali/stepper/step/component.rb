@@ -6,14 +6,14 @@ module Bali
       class Component < ApplicationViewComponent
         # DaisyUI step color classes (applied to completed/active steps)
         COLORS = {
-          primary: 'step-primary',
-          secondary: 'step-secondary',
-          accent: 'step-accent',
-          neutral: 'step-neutral',
-          info: 'step-info',
-          success: 'step-success',
-          warning: 'step-warning',
-          error: 'step-error'
+          primary: "step-primary",
+          secondary: "step-secondary",
+          accent: "step-accent",
+          neutral: "step-neutral",
+          info: "step-info",
+          success: "step-success",
+          warning: "step-warning",
+          error: "step-error"
         }.freeze
 
         # Unicode checkmark for completed steps
@@ -54,7 +54,7 @@ module Bali
 
         def step_classes
           class_names(
-            'step',
+            "step",
             completed_color_class,
             options[:class]
           )

@@ -4,25 +4,25 @@ module Bali
   module Hero
     class Component < ApplicationViewComponent
       SIZES = {
-        sm: 'min-h-48',
-        md: 'min-h-80',
-        lg: 'min-h-screen'
+        sm: "min-h-48",
+        md: "min-h-80",
+        lg: "min-h-screen"
       }.freeze
 
       COLORS = {
-        base: 'bg-base-200',
-        primary: 'bg-primary text-primary-content',
-        secondary: 'bg-secondary text-secondary-content',
-        accent: 'bg-accent text-accent-content',
-        neutral: 'bg-neutral text-neutral-content'
+        base: "bg-base-200",
+        primary: "bg-primary text-primary-content",
+        secondary: "bg-secondary text-secondary-content",
+        accent: "bg-accent text-accent-content",
+        neutral: "bg-neutral text-neutral-content"
       }.freeze
 
       renders_one :title, ->(text, **options) do
-        tag.h1(text, **prepend_class_name(options, 'text-5xl font-bold'))
+        tag.h1(text, **prepend_class_name(options, "text-5xl font-bold"))
       end
 
       renders_one :subtitle, ->(text, **options) do
-        tag.p(text, **prepend_class_name(options, 'py-4'))
+        tag.p(text, **prepend_class_name(options, "py-4"))
       end
 
       renders_one :actions
@@ -36,7 +36,7 @@ module Bali
 
       def hero_classes
         class_names(
-          'hero',
+          "hero",
           SIZES.fetch(@size, SIZES[:md]),
           COLORS.fetch(@color, COLORS[:base]),
           @options[:class]
@@ -45,8 +45,8 @@ module Bali
 
       def content_classes
         class_names(
-          'hero-content',
-          @centered && 'text-center'
+          "hero-content",
+          @centered && "text-center"
         )
       end
 

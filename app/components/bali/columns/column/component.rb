@@ -9,18 +9,18 @@ module Bali
 
         # Fractional sizes
         SYMBOLIC_SIZES = {
-          full: 'col-full',
-          half: 'col-half',
-          one_third: 'col-third',
-          third: 'col-third',
-          two_thirds: 'col-2-thirds',
-          one_quarter: 'col-quarter',
-          quarter: 'col-quarter',
-          three_quarters: 'col-3-quarters',
-          one_fifth: 'col-fifth',
-          two_fifths: 'col-2-fifths',
-          three_fifths: 'col-3-fifths',
-          four_fifths: 'col-4-fifths'
+          full: "col-full",
+          half: "col-half",
+          one_third: "col-third",
+          third: "col-third",
+          two_thirds: "col-2-thirds",
+          one_quarter: "col-quarter",
+          quarter: "col-quarter",
+          three_quarters: "col-3-quarters",
+          one_fifth: "col-fifth",
+          two_fifths: "col-2-fifths",
+          three_fifths: "col-3-fifths",
+          four_fifths: "col-4-fifths"
         }.freeze
 
         # Numeric offsets (offset-1 through offset-11)
@@ -28,17 +28,17 @@ module Bali
 
         # Fractional offsets
         SYMBOLIC_OFFSETS = {
-          half: 'offset-half',
-          one_third: 'offset-third',
-          third: 'offset-third',
-          two_thirds: 'offset-2-thirds',
-          one_quarter: 'offset-quarter',
-          quarter: 'offset-quarter',
-          three_quarters: 'offset-3-quarters',
-          one_fifth: 'offset-fifth',
-          two_fifths: 'offset-2-fifths',
-          three_fifths: 'offset-3-fifths',
-          four_fifths: 'offset-4-fifths'
+          half: "offset-half",
+          one_third: "offset-third",
+          third: "offset-third",
+          two_thirds: "offset-2-thirds",
+          one_quarter: "offset-quarter",
+          quarter: "offset-quarter",
+          three_quarters: "offset-3-quarters",
+          one_fifth: "offset-fifth",
+          two_fifths: "offset-2-fifths",
+          three_fifths: "offset-3-fifths",
+          four_fifths: "offset-4-fifths"
         }.freeze
 
         # @param size [Symbol, Integer, nil] Column width - symbolic or numeric (1-12)
@@ -59,10 +59,10 @@ module Bali
 
         def column_classes
           class_names(
-            'column',
+            "column",
             size_class,
             offset_class,
-            { 'col-auto' => @auto },
+            { "col-auto" => @auto },
             @options[:class]
           )
         end

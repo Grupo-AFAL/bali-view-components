@@ -14,18 +14,18 @@ module Bali
         end
 
         def call
-          options[:class] ||= 'btn btn-ghost btn-sm'
+          options[:class] ||= "btn btn-ghost btn-sm"
 
           if method == :get
             options[:data] ||= {}
-            options[:data][:table_target] = 'bulkAction'
+            options[:data][:table_target] = "bulkAction"
 
             render(Bali::Link::Component.new(name: name, href: href, method: method, **options))
           else
             form_with(url: href, method: method) do |form|
               safe_join(
                 [
-                  form.hidden_field(:selected_ids, value: [], data: { table_target: 'bulkAction' }),
+                  form.hidden_field(:selected_ids, value: [], data: { table_target: "bulkAction" }),
                   form.submit(name, **options)
                 ]
               )

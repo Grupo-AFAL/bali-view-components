@@ -26,7 +26,7 @@ module Bali
         end
 
         def component_options
-          prepend_class_name(@options, 'mb-4')
+          prepend_class_name(@options, "mb-4")
         end
       end
     end

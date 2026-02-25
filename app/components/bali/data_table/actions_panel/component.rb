@@ -67,15 +67,15 @@ module Bali
 
         def table_button_classes
           class_names(
-            'join-item btn btn-ghost btn-sm btn-square',
-            'btn-active' => table_mode_active?
+            "join-item btn btn-ghost btn-sm btn-square",
+            "btn-active" => table_mode_active?
           )
         end
 
         def grid_button_classes
           class_names(
-            'join-item btn btn-ghost btn-sm btn-square',
-            'btn-active' => grid_mode_active?
+            "join-item btn btn-ghost btn-sm btn-square",
+            "btn-active" => grid_mode_active?
           )
         end
       end

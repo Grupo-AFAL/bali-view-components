@@ -3,8 +3,8 @@
 module Bali
   module LabelValue
     class Component < ApplicationViewComponent
-      LABEL_CLASSES = 'font-bold text-xs text-base-content/70'
-      VALUE_CLASSES = 'min-h-6'
+      LABEL_CLASSES = "font-bold text-xs text-base-content/70"
+      VALUE_CLASSES = "min-h-6"
 
       attr_reader :label, :value
 
@@ -19,7 +19,7 @@ module Bali
       attr_reader :options
 
       def component_classes
-        class_names('mb-2', options[:class])
+        class_names("mb-2", options[:class])
       end
 
       def component_attributes

@@ -7,7 +7,7 @@ RSpec.describe Bali::Filters::Component, type: :component do
     [
       { key: :name, label: 'Name', type: :text },
       { key: :status, label: 'Status', type: :select,
-        options: [%w[Active active], %w[Inactive inactive]] },
+        options: [ %w[Active active], %w[Inactive inactive] ] },
       { key: :age, label: 'Age', type: :number },
       { key: :created_at, label: 'Created', type: :date },
       { key: :verified, label: 'Verified', type: :boolean }
@@ -90,8 +90,8 @@ RSpec.describe Bali::Filters::Component, type: :component do
     it 'renders multiple groups with combinator' do
       filter_groups = [
         { combinator: 'or',
-          conditions: [{ attribute: 'status', operator: 'eq', value: 'active' }] },
-        { combinator: 'and', conditions: [{ attribute: 'name', operator: 'cont', value: 'test' }] }
+          conditions: [ { attribute: 'status', operator: 'eq', value: 'active' } ] },
+        { combinator: 'and', conditions: [ { attribute: 'name', operator: 'cont', value: 'test' } ] }
       ]
 
       render_inline(described_class.new(
@@ -113,7 +113,7 @@ RSpec.describe Bali::Filters::Component, type: :component do
     it 'provides correct operators for text type' do
       component = described_class.new(
         url: '/users',
-        available_attributes: [{ key: :name, type: :text }]
+        available_attributes: [ { key: :name, type: :text } ]
       )
 
       operators = component.operators_for_type(:text)
@@ -124,7 +124,7 @@ RSpec.describe Bali::Filters::Component, type: :component do
     it 'provides correct operators for number type' do
       component = described_class.new(
         url: '/users',
-        available_attributes: [{ key: :age, type: :number }]
+        available_attributes: [ { key: :age, type: :number } ]
       )
 
       operators = component.operators_for_type(:number)
@@ -135,7 +135,7 @@ RSpec.describe Bali::Filters::Component, type: :component do
     it 'provides correct operators for date type' do
       component = described_class.new(
         url: '/users',
-        available_attributes: [{ key: :created_at, type: :date }]
+        available_attributes: [ { key: :created_at, type: :date } ]
       )
 
       operators = component.operators_for_type(:date)
@@ -146,7 +146,7 @@ RSpec.describe Bali::Filters::Component, type: :component do
     it 'provides correct operators for select type' do
       component = described_class.new(
         url: '/users',
-        available_attributes: [{ key: :status, type: :select }]
+        available_attributes: [ { key: :status, type: :select } ]
       )
 
       operators = component.operators_for_type(:select)
@@ -157,12 +157,12 @@ RSpec.describe Bali::Filters::Component, type: :component do
     it 'provides correct operators for boolean type' do
       component = described_class.new(
         url: '/users',
-        available_attributes: [{ key: :verified, type: :boolean }]
+        available_attributes: [ { key: :verified, type: :boolean } ]
       )
 
       operators = component.operators_for_type(:boolean)
 
-      expect(operators.pluck(:value)).to eq(['eq'])
+      expect(operators.pluck(:value)).to eq([ 'eq' ])
     end
   end
 
@@ -292,8 +292,8 @@ RSpec.describe Bali::Filters::Component, type: :component do
       )
 
       expect(component.preserved_query_params).to contain_exactly(
-        ['sort[column]', 'name'],
-        ['sort[direction]', 'asc']
+        [ 'sort[column]', 'name' ],
+        [ 'sort[direction]', 'asc' ]
       )
     end
 
@@ -304,9 +304,9 @@ RSpec.describe Bali::Filters::Component, type: :component do
       )
 
       expect(component.preserved_query_params).to contain_exactly(
-        ['ids[]', '1'],
-        ['ids[]', '2'],
-        ['ids[]', '3']
+        [ 'ids[]', '1' ],
+        [ 'ids[]', '2' ],
+        [ 'ids[]', '3' ]
       )
     end
 

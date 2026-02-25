@@ -22,7 +22,7 @@ module Bali
         end
 
         def operator
-          @condition[:operator] || 'cont'
+          @condition[:operator] || "cont"
         end
 
         def value
@@ -60,7 +60,7 @@ module Bali
         end
 
         def range_operator?
-          operator == 'between'
+          operator == "between"
         end
 
         # Build field names for range operators (between)
@@ -79,21 +79,21 @@ module Bali
         def range_values
           return {} unless value.is_a?(Hash)
 
-          { start: value[:start] || value['start'], end: value[:end] || value['end'] }
+          { start: value[:start] || value["start"], end: value[:end] || value["end"] }
         end
 
         # Returns a concise, locale-aware date format for Flatpickr
         # English: "M j, Y" → "Nov 1, 2025"
         # Spanish: "j M Y" → "1 nov 2025"
         def short_date_format
-          I18n.locale == :es ? 'j M Y' : 'M j, Y'
+          I18n.locale == :es ? "j M Y" : "M j, Y"
         end
 
         # Returns a concise, locale-aware datetime format for Flatpickr
         # English: "M j, Y H:i" → "Nov 1, 2025 14:30"
         # Spanish: "j M Y H:i" → "1 nov 2025 14:30"
         def short_datetime_format
-          I18n.locale == :es ? 'j M Y H:i' : 'M j, Y H:i'
+          I18n.locale == :es ? "j M Y H:i" : "M j, Y H:i"
         end
 
         # Translations JSON for the condition Stimulus controller.
@@ -130,34 +130,34 @@ module Bali
 
         def placeholders_translations
           {
-            enter_value: t('bali.filters.placeholders.enter_value',
-                           default: 'Enter value...'),
-            number: t('bali.filters.placeholders.number', default: '0'),
-            select_date: t('bali.filters.placeholders.select_date',
-                           default: 'Select date...'),
-            select_datetime: t('bali.filters.placeholders.select_datetime',
-                               default: 'Select date & time...'),
-            select_date_range: t('bali.filters.placeholders.select_date_range',
-                                 default: 'Select date range...'),
-            select_datetime_range: t('bali.filters.placeholders.select_datetime_range',
-                                     default: 'Select date & time range...'),
-            select: t('bali.filters.placeholders.select', default: 'Select...'),
-            select_values: t('bali.filters.placeholders.select_values',
-                             default: 'Select values...')
+            enter_value: t("bali.filters.placeholders.enter_value",
+                           default: "Enter value..."),
+            number: t("bali.filters.placeholders.number", default: "0"),
+            select_date: t("bali.filters.placeholders.select_date",
+                           default: "Select date..."),
+            select_datetime: t("bali.filters.placeholders.select_datetime",
+                               default: "Select date & time..."),
+            select_date_range: t("bali.filters.placeholders.select_date_range",
+                                 default: "Select date range..."),
+            select_datetime_range: t("bali.filters.placeholders.select_datetime_range",
+                                     default: "Select date & time range..."),
+            select: t("bali.filters.placeholders.select", default: "Select..."),
+            select_values: t("bali.filters.placeholders.select_values",
+                             default: "Select values...")
           }
         end
 
         def boolean_translations
           {
-            any: t('bali.filters.boolean.any', default: 'Any'),
-            yes: t('bali.filters.boolean.yes', default: 'Yes'),
-            no: t('bali.filters.boolean.no', default: 'No')
+            any: t("bali.filters.boolean.any", default: "Any"),
+            yes: t("bali.filters.boolean.yes", default: "Yes"),
+            no: t("bali.filters.boolean.no", default: "No")
           }
         end
 
         # rubocop:disable Style/FormatStringToken -- %{count} is Rails I18n format
         def selected_count_translation
-          t('bali.filters.selected_count', default: '%{count} selected')
+          t("bali.filters.selected_count", default: "%{count} selected")
         end
         # rubocop:enable Style/FormatStringToken
       end

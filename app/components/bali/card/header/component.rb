@@ -27,22 +27,22 @@ module Bali
 
         def header_classes
           class_names(
-            'flex items-center gap-3',
+            "flex items-center gap-3",
             @options[:class],
-            'justify-between' => badge?
+            "justify-between" => badge?
           )
         end
 
         def render_icon
           return unless @icon
 
-          render Bali::Icon::Component.new(@icon, class: 'size-6 shrink-0')
+          render Bali::Icon::Component.new(@icon, class: "size-6 shrink-0")
         end
 
         def render_titles
           tag.div do
             safe_join([
-              tag.h2(@title, class: 'card-title'),
+              tag.h2(@title, class: "card-title"),
               render_subtitle
             ].compact)
           end
@@ -51,7 +51,7 @@ module Bali
         def render_subtitle
           return unless @subtitle
 
-          tag.p(@subtitle, class: 'text-sm text-base-content/70')
+          tag.p(@subtitle, class: "text-sm text-base-content/70")
         end
       end
     end

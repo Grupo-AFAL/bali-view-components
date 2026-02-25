@@ -4,7 +4,7 @@ module Bali
   module PropertiesTable
     class Component < ApplicationViewComponent
       # Clean DaisyUI table with zebra striping - no heavy borders
-      BASE_CLASSES = 'table table-zebra properties-table-component'
+      BASE_CLASSES = "table table-zebra properties-table-component"
 
       renders_many :properties, Bali::PropertiesTable::Property::Component
 

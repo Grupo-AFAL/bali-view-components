@@ -33,7 +33,7 @@ module Bali
         def image_attributes
           @options.merge(
             alt: @alt,
-            class: class_names('w-full', @options[:class])
+            class: class_names("w-full", @options[:class])
           )
         end
       end

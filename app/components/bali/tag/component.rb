@@ -7,41 +7,41 @@ module Bali
 
       # DaisyUI semantic colors
       COLORS = {
-        neutral: 'badge-neutral',
-        primary: 'badge-primary',
-        secondary: 'badge-secondary',
-        accent: 'badge-accent',
-        ghost: 'badge-ghost',
-        info: 'badge-info',
-        success: 'badge-success',
-        warning: 'badge-warning',
-        error: 'badge-error',
+        neutral: "badge-neutral",
+        primary: "badge-primary",
+        secondary: "badge-secondary",
+        accent: "badge-accent",
+        ghost: "badge-ghost",
+        info: "badge-info",
+        success: "badge-success",
+        warning: "badge-warning",
+        error: "badge-error",
         # Legacy Bulma mappings (deprecated, remove in v2.0)
-        danger: 'badge-error',
-        link: 'badge-primary',
-        black: 'badge-neutral',
-        dark: 'badge-neutral',
-        light: 'badge-ghost',
-        white: 'badge-ghost'
+        danger: "badge-error",
+        link: "badge-primary",
+        black: "badge-neutral",
+        dark: "badge-neutral",
+        light: "badge-ghost",
+        white: "badge-ghost"
       }.freeze
 
       SIZES = {
-        xs: 'badge-xs',
-        sm: 'badge-sm',
-        md: 'badge-md',
-        lg: 'badge-lg',
-        xl: 'badge-xl',
+        xs: "badge-xs",
+        sm: "badge-sm",
+        md: "badge-md",
+        lg: "badge-lg",
+        xl: "badge-xl",
         # Legacy Bulma mappings (deprecated, remove in v2.0)
-        small: 'badge-sm',
-        medium: 'badge-md',
-        large: 'badge-lg',
+        small: "badge-sm",
+        medium: "badge-md",
+        large: "badge-lg",
         normal: nil
       }.freeze
 
       STYLES = {
-        outline: 'badge-outline',
-        soft: 'badge-soft',
-        dash: 'badge-dash'
+        outline: "badge-outline",
+        soft: "badge-soft",
+        dash: "badge-dash"
       }.freeze
 
       # rubocop:disable Metrics/ParameterLists
@@ -71,11 +71,11 @@ module Bali
 
       def component_classes
         class_names(
-          'badge',
+          "badge",
           COLORS[@color],
           SIZES[@size],
           style_class,
-          @rounded && 'rounded-full',
+          @rounded && "rounded-full",
           @options[:class]
         )
       end
@@ -89,7 +89,7 @@ module Bali
         end
 
         styles << @options[:style] if @options[:style].present?
-        styles.join('; ').presence
+        styles.join("; ").presence
       end
 
       def html_attributes
@@ -102,13 +102,13 @@ module Bali
       def style_class
         return STYLES[@style] if @style.present?
 
-        'badge-outline' if @light
+        "badge-outline" if @light
       end
 
       def warn_deprecation
         Rails.logger.warn(
-          '[DEPRECATION] Bali::Tag::Component `light` parameter is deprecated. ' \
-          'Use `style: :outline` instead.'
+          "[DEPRECATION] Bali::Tag::Component `light` parameter is deprecated. " \
+          "Use `style: :outline` instead."
         )
       end
     end

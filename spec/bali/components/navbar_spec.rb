@@ -40,7 +40,7 @@ RSpec.describe Bali::Navbar::Component, type: :component do
       render_inline(component) do |c|
         c.with_brand { '<a class="btn btn-ghost text-xl">Bali</a>'.html_safe }
         c.with_menu do |menu|
-          menu.with_start_items([{ name: 'Tech Stack', href: '#' }])
+          menu.with_start_items([ { name: 'Tech Stack', href: '#' } ])
         end
       end
 
@@ -59,7 +59,7 @@ RSpec.describe Bali::Navbar::Component, type: :component do
       render_inline(component) do |c|
         c.with_brand { '<a class="btn btn-ghost text-xl">Bali</a>'.html_safe }
         c.with_menu do |menu|
-          menu.with_start_items([{ name: 'Tech Stack', href: '#' }])
+          menu.with_start_items([ { name: 'Tech Stack', href: '#' } ])
         end
       end
 
@@ -74,7 +74,7 @@ RSpec.describe Bali::Navbar::Component, type: :component do
         c.with_brand { '<a class="btn btn-ghost text-xl">Bali</a>'.html_safe }
         c.with_burger(class: 'custom-burger')
         c.with_menu do |menu|
-          menu.with_start_items([{ name: 'Tech Stack', href: '#' }])
+          menu.with_start_items([ { name: 'Tech Stack', href: '#' } ])
         end
       end
 
@@ -90,11 +90,11 @@ RSpec.describe Bali::Navbar::Component, type: :component do
         c.with_burger(class: 'custom-burger')
         c.with_burger(type: :alt)
         c.with_menu do |menu|
-          menu.with_start_items([{ name: 'Tech Stack', href: '#' }])
+          menu.with_start_items([ { name: 'Tech Stack', href: '#' } ])
         end
 
         c.with_menu(type: :alt) do |menu|
-          menu.with_end_items([{ name: 'About us', href: '#' }])
+          menu.with_end_items([ { name: 'About us', href: '#' } ])
         end
       end
 

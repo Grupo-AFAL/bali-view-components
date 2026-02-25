@@ -19,7 +19,7 @@ RSpec.describe Bali::FormHelper, type: :form_builder do
   describe '#form_for' do
     it 'renders a form with submit-button controller' do
       expect(
-        helper.form_for(Movie.new, url: '/') {}
+        helper.form_for(Movie.new, url: '/') { }
       ).to have_css 'form[data-controller="submit-button"]'
     end
   end

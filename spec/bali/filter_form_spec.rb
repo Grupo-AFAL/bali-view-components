@@ -14,7 +14,7 @@ end
 # Test form with filter_attribute DSL
 class AdvancedMovieFilterForm < Bali::FilterForm
   filter_attribute :name, type: :text
-  filter_attribute :genre, type: :select, options: [%w[Action action], %w[Comedy comedy]]
+  filter_attribute :genre, type: :select, options: [ %w[Action action], %w[Comedy comedy] ]
   filter_attribute :status, type: :select, label: 'Movie Status'
   filter_attribute :created_at, type: :date, label: 'Created Date'
   filter_attribute :indie, type: :boolean
@@ -33,17 +33,17 @@ class SearchableMovieFilterForm < Bali::FilterForm
   search_fields :name, :genre, :tenant_name
 
   filter_attribute :name, type: :text
-  filter_attribute :genre, type: :select, options: [%w[Action action], %w[Comedy comedy]]
+  filter_attribute :genre, type: :select, options: [ %w[Action action], %w[Comedy comedy] ]
 end
 
 # Test form with simple_filter DSL
 class SimpleFilterableMovieFilterForm < Bali::FilterForm
   simple_filter :genre,
-                collection: [%w[Action action], %w[Comedy comedy], %w[Drama drama]],
+                collection: [ %w[Action action], %w[Comedy comedy], %w[Drama drama] ],
                 blank: 'All Genres'
 
   simple_filter :status,
-                collection: [%w[Done done], %w[Draft draft]],
+                collection: [ %w[Done done], %w[Draft draft] ],
                 blank: 'All',
                 label: 'Movie Status',
                 default: 'done'
@@ -52,7 +52,7 @@ end
 # Test simple_filter inheritance
 class ExtendedSimpleFilterForm < SimpleFilterableMovieFilterForm
   simple_filter :indie,
-                collection: [[true, true], [false, false]],
+                collection: [ [ true, true ], [ false, false ] ],
                 blank: 'Any',
                 label: 'Indie Film'
 end
@@ -82,20 +82,20 @@ RSpec.describe Bali::FilterForm do
   describe '#permitted_attributes' do
     it 'returns an array of permitted attributes' do
       expect(form.permitted_attributes).to eql(
-        ['s', 'name_i_cont', { 'genre_in' => [] }]
+        [ 's', 'name_i_cont', { 'genre_in' => [] } ]
       )
     end
   end
 
   describe '#array_attributes' do
     it 'returns an array of array attributes' do
-      expect(form.array_attributes).to eql(['genre_in'])
+      expect(form.array_attributes).to eql([ 'genre_in' ])
     end
   end
 
   describe '#active_filters_count' do
     it 'returns the number of active filters' do
-      form = MovieFilterForm.new(tenant.movies, params({ genre_in: ['Action'] }))
+      form = MovieFilterForm.new(tenant.movies, params({ genre_in: [ 'Action' ] }))
       expect(form.active_filters_count).to eql(1)
     end
   end
@@ -107,7 +107,7 @@ RSpec.describe Bali::FilterForm do
     end
 
     it 'returns true with movie genre filter' do
-      form = MovieFilterForm.new(tenant.movies, params({ genre_in: ['Action'] }))
+      form = MovieFilterForm.new(tenant.movies, params({ genre_in: [ 'Action' ] }))
       expect(form.active_filters?).to be true
     end
 
@@ -148,7 +148,7 @@ RSpec.describe Bali::FilterForm do
       genre_attr = AdvancedMovieFilterForm.filter_attributes.find { |a| a[:key] == :genre }
       expect(genre_attr[:type]).to eq(:select)
       expect(genre_attr[:label]).to eq('Genre')
-      expect(genre_attr[:options]).to eq([%w[Action action], %w[Comedy comedy]])
+      expect(genre_attr[:options]).to eq([ %w[Action action], %w[Comedy comedy] ])
     end
 
     it 'uses humanized key as default label' do
@@ -599,7 +599,7 @@ RSpec.describe Bali::FilterForm do
 
     it 'stores attribute, collection, blank, label, and default' do
       status_filter = SimpleFilterableMovieFilterForm.defined_simple_filters.find { |f| f[:attribute] == :status }
-      expect(status_filter[:collection]).to eq([%w[Done done], %w[Draft draft]])
+      expect(status_filter[:collection]).to eq([ %w[Done done], %w[Draft draft] ])
       expect(status_filter[:blank]).to eq('All')
       expect(status_filter[:label]).to eq('Movie Status')
       expect(status_filter[:default]).to eq('done')
@@ -659,7 +659,7 @@ RSpec.describe Bali::FilterForm do
       expect(config.size).to eq(2)
 
       genre_config = config.find { |c| c[:attribute] == :genre }
-      expect(genre_config[:collection]).to eq([%w[Action action], %w[Comedy comedy], %w[Drama drama]])
+      expect(genre_config[:collection]).to eq([ %w[Action action], %w[Comedy comedy], %w[Drama drama] ])
       expect(genre_config[:blank]).to eq('All Genres')
       expect(genre_config[:label]).to eq('Genre') # inferred from attribute
       expect(genre_config[:value]).to be_nil
@@ -718,7 +718,7 @@ RSpec.describe Bali::FilterForm do
   describe 'simple_filters via initialize parameter' do
     it 'accepts simple_filters as initialize parameter' do
       simple_filters_config = [
-        { attribute: :category, collection: [%w[A a], %w[B b]], blank: 'All' }
+        { attribute: :category, collection: [ %w[A a], %w[B b] ], blank: 'All' }
       ]
       form = Bali::FilterForm.new(Movie.all, params({}), simple_filters: simple_filters_config)
 
@@ -728,7 +728,7 @@ RSpec.describe Bali::FilterForm do
 
     it 'prefers instance simple_filters over class DSL' do
       custom_filters = [
-        { attribute: :custom, collection: [%w[X x]], blank: 'All Custom' }
+        { attribute: :custom, collection: [ %w[X x] ], blank: 'All Custom' }
       ]
       form = SimpleFilterableMovieFilterForm.new(Movie.all, params({}), simple_filters: custom_filters)
 
@@ -738,7 +738,7 @@ RSpec.describe Bali::FilterForm do
 
     it 'extracts current values from params' do
       simple_filters_config = [
-        { attribute: :category, collection: [%w[A a], %w[B b]], blank: 'All' }
+        { attribute: :category, collection: [ %w[A a], %w[B b] ], blank: 'All' }
       ]
       filter_params = { category_eq: 'a' }
       form = Bali::FilterForm.new(Movie.all, params(filter_params), simple_filters: simple_filters_config)
@@ -753,14 +753,14 @@ RSpec.describe Bali::FilterForm do
       simple_filters_config = [
         {
           attribute: :dynamic,
-          collection: -> { [%w[Dynamic dynamic]] },
+          collection: -> { [ %w[Dynamic dynamic] ] },
           blank: 'All'
         }
       ]
       form = Bali::FilterForm.new(Movie.all, params({}), simple_filters: simple_filters_config)
 
       config = form.simple_filters_config
-      expect(config.first[:collection]).to eq([%w[Dynamic dynamic]])
+      expect(config.first[:collection]).to eq([ %w[Dynamic dynamic] ])
     end
   end
 

@@ -35,12 +35,12 @@ module Bali
 
       def summary_text
         I18n.t(
-          'view_components.bali.pagination_footer.summary',
+          "view_components.bali.pagination_footer.summary",
           from: @pagy.from,
           to: @pagy.to,
           count: @pagy.count,
           item_name: item_name,
-          default: 'Showing %<from>s-%<to>s of %<count>s %<item_name>s'
+          default: "Showing %<from>s-%<to>s of %<count>s %<item_name>s"
         )
       end
 
@@ -55,8 +55,8 @@ module Bali
       private
 
       def item_name
-        @item_name || I18n.t('view_components.bali.pagination_footer.default_item_name',
-                             default: 'items')
+        @item_name || I18n.t("view_components.bali.pagination_footer.default_item_name",
+                             default: "items")
       end
     end
   end

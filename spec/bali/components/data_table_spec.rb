@@ -9,7 +9,7 @@ RSpec.describe Bali::DataTable::Component, type: :component do
   let(:filter_attributes) do
     [
       { key: :name, label: 'Name', type: :text },
-      { key: :status, label: 'Status', type: :select, options: [%w[Active active]] }
+      { key: :status, label: 'Status', type: :select, options: [ %w[Active active] ] }
     ]
   end
 

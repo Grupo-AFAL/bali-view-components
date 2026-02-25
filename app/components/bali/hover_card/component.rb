@@ -13,14 +13,14 @@ module Bali
       ].freeze
 
       TRIGGERS = {
-        hover: 'mouseenter focus',
-        click: 'click'
+        hover: "mouseenter focus",
+        click: "click"
       }.freeze
 
       DEFAULT_Z_INDEX = 9999
 
       renders_one :trigger, ->(**options, &block) do
-        tag.div(**options.merge(data: { hovercard_target: 'trigger' }), &block)
+        tag.div(**options.merge(data: { hovercard_target: "trigger" }), &block)
       end
 
       # @param hover_url [String] URL to fetch content from asynchronously
@@ -33,9 +33,9 @@ module Bali
       # rubocop:disable Metrics/ParameterLists
       def initialize(
         hover_url: nil,
-        placement: 'auto',
+        placement: "auto",
         open_on_click: false,
-        append_to: 'body',
+        append_to: "body",
         z_index: DEFAULT_Z_INDEX,
         content_padding: true,
         arrow: true,
@@ -62,13 +62,13 @@ module Bali
       def wrapped_content
         return content unless @content_padding
 
-        tag.div(content, class: 'hover-card-content')
+        tag.div(content, class: "hover-card-content")
       end
 
       private
 
       def component_classes
-        class_names('hover-card-component', @options[:class])
+        class_names("hover-card-component", @options[:class])
       end
 
       def merged_data_attributes
@@ -77,7 +77,7 @@ module Bali
 
       def stimulus_data
         {
-          controller: 'hovercard',
+          controller: "hovercard",
           hovercard_placement_value: @placement,
           hovercard_url_value: @hover_url,
           hovercard_content_padding_value: @content_padding,
@@ -95,7 +95,7 @@ module Bali
       def validate_placement(placement)
         return placement if PLACEMENTS.include?(placement.to_s)
 
-        'auto'
+        "auto"
       end
     end
   end

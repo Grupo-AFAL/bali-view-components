@@ -7,7 +7,7 @@ RSpec.describe Bali::Filters::Condition::Component, type: :component do
     [
       { key: :name, label: 'Name', type: :text },
       { key: :status, label: 'Status', type: :select,
-        options: [%w[Active active], %w[Inactive inactive]] },
+        options: [ %w[Active active], %w[Inactive inactive] ] },
       { key: :age, label: 'Age', type: :number },
       { key: :created_at, label: 'Created', type: :date },
       { key: :verified, label: 'Verified', type: :boolean }

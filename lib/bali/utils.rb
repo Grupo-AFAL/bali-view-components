@@ -13,7 +13,7 @@ module Bali
       (conditional_names || {}).each do |key, condition|
         classes.push(key) if condition
       end
-      classes.join(' ').strip
+      classes.join(" ").strip
     end
 
     def custom_dom_id(model)
@@ -24,11 +24,11 @@ module Bali
       return unless params
 
       test_id = case params
-                when ActiveRecord::Base
+      when ActiveRecord::Base
                   custom_dom_id(params)
-                when String
+      when String
                   params
-                end
+      end
 
       "test-id=\"#{test_id}\"".html_safe
     end

@@ -6,8 +6,8 @@ module Bali
       attr_reader :tasks, :row_height, :col_width, :zoom, :readonly, :resource_name,
                   :list_param_name, :options
 
-      renders_one :list_footer, ->(&block) { tag.div(class: 'gantt-chart-list-footer', &block) }
-      renders_one :footer, ->(&block) { tag.div(class: 'gantt-chart-footer', &block) }
+      renders_one :list_footer, ->(&block) { tag.div(class: "gantt-chart-list-footer", &block) }
+      renders_one :footer, ->(&block) { tag.div(class: "gantt-chart-footer", &block) }
       renders_many :view_mode_buttons, ViewModeButton::Component
 
       # rubocop:disable Metrics/ParameterLists
@@ -19,7 +19,7 @@ module Bali
         readonly: false,
         offset: nil,
         resource_name: nil,
-        list_param_name: 'list_id',
+        list_param_name: "list_id",
         start_date: nil,
         **options
       )
@@ -39,8 +39,8 @@ module Bali
         # Default colors - using solid colors that work in linear-gradient
         # These match DaisyUI's primary color palette
         @task_colors = options.delete(:colors) || {
-          default: '#7dd3fc',   # sky-300 - lighter shade for incomplete
-          completed: '#0ea5e9'  # sky-500 - full color for completed
+          default: "#7dd3fc",   # sky-300 - lighter shade for incomplete
+          completed: "#0ea5e9"  # sky-500 - full color for completed
         }
         @tasks = tasks.map { |task| Task.new(**task) }
         @tasks = setup_parent_child_relationships(@tasks)
@@ -67,15 +67,15 @@ module Bali
 
       def setup_options(options)
         @options = prepend_class_name(options, "gantt-chart-component #{@zoom}-zoom")
-        @options = prepend_controller(@options, 'gantt-chart')
-        @options = prepend_action(@options, 'sortable-list:onEnd->gantt-chart#onItemReordered')
-        @options = prepend_action(@options, 'interact:onResizing->gantt-chart#onItemResizing')
-        @options = prepend_action(@options, 'interact:onResizeEnd->gantt-chart#onItemResized')
-        @options = prepend_action(@options, 'interact:onDragging->gantt-chart#onItemDragging')
-        @options = prepend_action(@options, 'interact:onDragEnd->gantt-chart#onItemDragged')
-        @options = prepend_action(@options, 'gantt-foldable-item:toggle->gantt-chart#onFold')
-        @options = prepend_action(@options, 'hovercard:show->gantt-chart#onActionsOpen')
-        @options = prepend_values(@options, 'gantt-chart', controller_values)
+        @options = prepend_controller(@options, "gantt-chart")
+        @options = prepend_action(@options, "sortable-list:onEnd->gantt-chart#onItemReordered")
+        @options = prepend_action(@options, "interact:onResizing->gantt-chart#onItemResizing")
+        @options = prepend_action(@options, "interact:onResizeEnd->gantt-chart#onItemResized")
+        @options = prepend_action(@options, "interact:onDragging->gantt-chart#onItemDragging")
+        @options = prepend_action(@options, "interact:onDragEnd->gantt-chart#onItemDragged")
+        @options = prepend_action(@options, "gantt-foldable-item:toggle->gantt-chart#onFold")
+        @options = prepend_action(@options, "hovercard:show->gantt-chart#onActionsOpen")
+        @options = prepend_values(@options, "gantt-chart", controller_values)
       end
 
       def controller_values
@@ -142,11 +142,11 @@ module Bali
       end
 
       def min_date
-        @min_date ||= [earliest_task&.start_date, Date.current].compact.min
+        @min_date ||= [ earliest_task&.start_date, Date.current ].compact.min
       end
 
       def max_date
-        @max_date ||= [latest_task&.end_date, Date.current].compact.max
+        @max_date ||= [ latest_task&.end_date, Date.current ].compact.max
       end
 
       def earliest_task

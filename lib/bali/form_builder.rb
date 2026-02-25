@@ -8,8 +8,8 @@ module Bali
     include Utils
     include HtmlUtils
 
-    Dir.glob(File.join(File.dirname(__FILE__), 'form_builder', '*.rb')) do |file|
-      include FormBuilder.const_get(File.basename(file, '.rb').camelize)
+    Dir.glob(File.join(File.dirname(__FILE__), "form_builder", "*.rb")) do |file|
+      include FormBuilder.const_get(File.basename(file, ".rb").camelize)
     end
   end
 end

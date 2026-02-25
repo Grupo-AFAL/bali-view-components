@@ -3,8 +3,8 @@
 module Bali
   module List
     class Component < ApplicationViewComponent
-      BASE_CLASSES = 'list'
-      BORDERED_CLASSES = 'border border-base-300 rounded-box'
+      BASE_CLASSES = "list"
+      BORDERED_CLASSES = "border border-base-300 rounded-box"
 
       renders_many :items, Item::Component
 
@@ -22,7 +22,7 @@ module Bali
         class_names(
           BASE_CLASSES,
           BORDERED_CLASSES => !@borderless,
-          '[&_.list-row]:py-4' => @relaxed_spacing
+          "[&_.list-row]:py-4" => @relaxed_spacing
         )
       end
 

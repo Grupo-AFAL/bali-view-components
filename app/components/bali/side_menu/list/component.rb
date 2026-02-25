@@ -31,7 +31,7 @@ module Bali
         end
 
         def title_classes
-          class_names('menu-label', 'px-2.5', 'pt-3', 'pb-1.5', @title_class)
+          class_names("menu-label", "px-2.5", "pt-3", "pb-1.5", @title_class)
         end
       end
     end

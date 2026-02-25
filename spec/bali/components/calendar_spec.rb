@@ -228,11 +228,11 @@ describe Bali::Calendar::Component, type: :component do
       value1 = key1.new(Date.parse('2020-02-02'))
       value2 = key2.new(Date.parse('2020-02-01'))
 
-      events = [value1, value2]
+      events = [ value1, value2 ]
       @options.merge!(events: events)
 
-      expect(component.sorted_events.keys).to eq([Date.parse('2020-02-01'),
-                                                  Date.parse('2020-02-02')])
+      expect(component.sorted_events.keys).to eq([ Date.parse('2020-02-01'),
+                                                  Date.parse('2020-02-02') ])
     end
   end
 
@@ -354,7 +354,7 @@ describe Bali::Calendar::Component, type: :component do
 
     it 'handles custom attribute methods' do
       custom_class = Struct.new(:begins_at, :ends_at)
-      events = [custom_class.new(Date.parse('2020-02-01'), nil)]
+      events = [ custom_class.new(Date.parse('2020-02-01'), nil) ]
 
       grouper = described_class.new(events, start_method: :begins_at, end_method: :ends_at)
 

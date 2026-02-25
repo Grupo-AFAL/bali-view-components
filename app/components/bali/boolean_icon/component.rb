@@ -4,13 +4,13 @@ module Bali
   module BooleanIcon
     class Component < ApplicationViewComponent
       ICONS = {
-        true => 'check-circle',
-        false => 'times-circle'
+        true => "check-circle",
+        false => "times-circle"
       }.freeze
 
       STATUS_CLASSES = {
-        true => 'text-success',
-        false => 'text-error'
+        true => "text-success",
+        false => "text-error"
       }.freeze
 
       # @param value [Boolean, nil] The boolean value to display
@@ -22,7 +22,7 @@ module Bali
 
       def call
         tag.div(**@options) do
-          render Bali::Icon::Component.new(icon_name, class: 'w-5 h-5')
+          render Bali::Icon::Component.new(icon_name, class: "w-5 h-5")
         end
       end
 
@@ -41,7 +41,7 @@ module Bali
       end
 
       def component_classes
-        class_names('boolean-icon-component inline-flex', STATUS_CLASSES[@value])
+        class_names("boolean-icon-component inline-flex", STATUS_CLASSES[@value])
       end
     end
   end

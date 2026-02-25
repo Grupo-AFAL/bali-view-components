@@ -29,7 +29,7 @@ module Bali
 
         def trigger_attributes
           base = {
-            role: 'tab',
+            role: "tab",
             id: "tab-#{index}",
             class: classes
           }
@@ -47,11 +47,11 @@ module Bali
               'aria-controls': "tabpanel-#{index}",
               tabindex: active ? 0 : -1,
               data: {
-                'tabs-target': 'tab',
+                'tabs-target': "tab",
                 'tabs-index-param': index,
                 'tabs-src-param': src,
                 'tabs-reload-param': reload,
-                action: 'click->tabs#open'
+                action: "click->tabs#open"
               }
             )
           end
@@ -59,8 +59,8 @@ module Bali
 
         def classes
           class_names(
-            'tab',
-            'tab-active' => active?
+            "tab",
+            "tab-active" => active?
           )
         end
       end

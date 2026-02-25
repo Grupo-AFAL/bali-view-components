@@ -5,8 +5,8 @@ module Bali
     module Item
       class Component < ApplicationViewComponent
         # Component constants
-        BASE_CLASSES = 'tree-view-item-component'
-        CONTROLLER_NAME = 'tree-view-item'
+        BASE_CLASSES = "tree-view-item-component"
+        CONTROLLER_NAME = "tree-view-item"
 
         # Item styling classes - DaisyUI menu-inspired
         ITEM_CLASSES = %w[
@@ -15,17 +15,17 @@ module Bali
           text-sm
           hover:bg-base-200
           transition-colors duration-150
-        ].join(' ').freeze
+        ].join(" ").freeze
 
         # Caret styling - chevron icon with smooth rotation
         CARET_CLASSES = %w[
           inline-flex items-center justify-center
           w-4 h-4 shrink-0
           transition-transform duration-200 ease-out
-        ].join(' ').freeze
+        ].join(" ").freeze
 
         # Children container indentation - matches DaisyUI menu nesting
-        CHILDREN_CLASSES = 'children ml-4 pl-2 border-l border-base-300'
+        CHILDREN_CLASSES = "children ml-4 pl-2 border-l border-base-300"
 
         renders_many :items, ->(name:, path:, **options) do
           Item::Component.new(
@@ -65,7 +65,7 @@ module Bali
         def wrapper_options
           {
             class: wrapper_classes,
-            role: 'treeitem',
+            role: "treeitem",
             data: wrapper_data
           }.tap do |opts|
             opts[:'aria-expanded'] = display_children? if items?
@@ -86,7 +86,7 @@ module Bali
 
         def item_classes
           class_names(
-            'item',
+            "item",
             ITEM_CLASSES,
             'bg-primary/10 text-primary font-medium': active?,
             'is-active': active?,
@@ -97,7 +97,7 @@ module Bali
 
         def caret_classes
           class_names(
-            'caret',
+            "caret",
             CARET_CLASSES,
             'rotate-90': display_children?,
             'opacity-0': !items?
@@ -107,7 +107,7 @@ module Bali
         def caret_data
           {
             action: "click->#{CONTROLLER_NAME}#toggle",
-            "#{CONTROLLER_NAME}-target": 'caret'
+            "#{CONTROLLER_NAME}-target": "caret"
           }
         end
 
@@ -116,7 +116,7 @@ module Bali
         end
 
         def children_data
-          { "#{CONTROLLER_NAME}-target": 'children' }
+          { "#{CONTROLLER_NAME}-target": "children" }
         end
       end
     end

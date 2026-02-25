@@ -19,14 +19,14 @@ module Bali
     #   end
     class Component < ApplicationViewComponent
       GAPS = {
-        none: 'gap-0',
-        xs: 'gap-1',
-        sm: 'gap-2',
-        md: 'gap-3',
-        lg: 'gap-4'
+        none: "gap-0",
+        xs: "gap-1",
+        sm: "gap-2",
+        md: "gap-3",
+        lg: "gap-4"
       }.freeze
 
-      BASE_CLASSES = 'tags-component flex flex-wrap items-center'
+      BASE_CLASSES = "tags-component flex flex-wrap items-center"
 
       renders_many :items, ->(text: nil, href: nil, **options) do
         Bali::Tag::Component.new(text: text, href: href, **options)

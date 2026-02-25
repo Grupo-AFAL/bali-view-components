@@ -50,7 +50,7 @@ RSpec.describe 'Block Editor Uploads', type: :request do
     end
 
     it 'rejects files with blocked extensions' do
-      file = Tempfile.new(['script', '.sh'])
+      file = Tempfile.new([ 'script', '.sh' ])
       file.write('#!/bin/bash')
       file.rewind
       shell_file = Rack::Test::UploadedFile.new(file.path, 'text/plain')
@@ -108,7 +108,7 @@ RSpec.describe 'Block Editor Uploads', type: :request do
       end
 
       it 'returns error when handler returns nil' do
-        handler = ->(_file, _controller) {}
+        handler = ->(_file, _controller) { }
         allow(Bali).to receive(:block_editor_upload_handler).and_return(handler)
 
         post bali.block_editor_uploads_path, params: { file: valid_image }

@@ -8,6 +8,9 @@ ENV['RAILS_ENV'] ||= 'test'
 require 'simplecov'
 
 SimpleCov.start 'rails' do
+  minimum_coverage line: 80
+  enable_coverage :branch
+
   add_filter 'spec/'
   add_filter '.github/'
   add_filter 'lib/bali/version'

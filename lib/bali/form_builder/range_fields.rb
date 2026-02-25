@@ -3,26 +3,26 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module RangeFields
-      RANGE_CLASS = 'range'
-      FIELDSET_CLASS = 'fieldset'
-      LEGEND_CLASS = 'fieldset-legend text-sm font-medium'
-      TICKS_CLASS = 'flex justify-between text-xs text-base-content/60 px-0.5 mt-1'
+      RANGE_CLASS = "range"
+      FIELDSET_CLASS = "fieldset"
+      LEGEND_CLASS = "fieldset-legend text-sm font-medium"
+      TICKS_CLASS = "flex justify-between text-xs text-base-content/60 px-0.5 mt-1"
 
       SIZES = {
-        xs: 'range-xs',
-        sm: 'range-sm',
-        md: 'range-md',
-        lg: 'range-lg'
+        xs: "range-xs",
+        sm: "range-sm",
+        md: "range-md",
+        lg: "range-lg"
       }.freeze
 
       COLORS = {
-        primary: 'range-primary',
-        secondary: 'range-secondary',
-        accent: 'range-accent',
-        success: 'range-success',
-        warning: 'range-warning',
-        info: 'range-info',
-        error: 'range-error'
+        primary: "range-primary",
+        secondary: "range-secondary",
+        accent: "range-accent",
+        success: "range-success",
+        warning: "range-warning",
+        info: "range-info",
+        error: "range-error"
       }.freeze
 
       # Renders a range slider with label, optional tick marks, and value display
@@ -79,7 +79,7 @@ module Bali
         field_html = @template.range_field(object_name, method, range_options)
 
         if errors?(method)
-          error_html = content_tag(:p, full_errors(method), class: 'label-text-alt text-error mt-1')
+          error_html = content_tag(:p, full_errors(method), class: "label-text-alt text-error mt-1")
           field_html + error_html
         else
           field_html
@@ -102,12 +102,12 @@ module Bali
 
         range_class = [
           RANGE_CLASS,
-          'w-full',
+          "w-full",
           SIZES[size],
           COLORS[color],
-          (errors?(method) ? 'range-error' : nil),
+          (errors?(method) ? "range-error" : nil),
           custom_class
-        ].compact.join(' ')
+        ].compact.join(" ")
 
         # Set defaults
         options[:min] ||= 0
@@ -135,18 +135,18 @@ module Bali
         step = options[:step] || 1
         ticks_count = options[:ticks] || calculate_ticks_count(min, max, step)
 
-        generate_tick_labels(min, max, ticks_count, options[:prefix] || '', options[:suffix] || '')
+        generate_tick_labels(min, max, ticks_count, options[:prefix] || "", options[:suffix] || "")
       end
 
       def calculate_ticks_count(min, max, step)
         # Calculate reasonable number of ticks (max 11 for readability)
         range = max - min
         steps = (range / step).to_i
-        [steps + 1, 11].min
+        [ steps + 1, 11 ].min
       end
 
       def generate_tick_labels(min, max, count, prefix, suffix)
-        return ["#{prefix}#{min}#{suffix}", "#{prefix}#{max}#{suffix}"] if count <= 2
+        return [ "#{prefix}#{min}#{suffix}", "#{prefix}#{max}#{suffix}" ] if count <= 2
 
         step = (max - min).to_f / (count - 1)
         (0...count).map do |i|

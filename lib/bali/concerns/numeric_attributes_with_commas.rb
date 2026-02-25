@@ -28,7 +28,7 @@ module Bali
 
         def define_numeric_attribute_setter(name)
           define_method "#{name}=" do |value|
-            value = value.gsub(',', '').to_d if value.is_a?(String)
+            value = value.gsub(",", "").to_d if value.is_a?(String)
 
             if respond_to?(:write_attribute)
               write_attribute(name.to_sym, value)

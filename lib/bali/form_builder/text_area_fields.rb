@@ -3,7 +3,7 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module TextAreaFields
-      COUNTER_CLASS = 'label-text-alt text-base-content/70 text-end w-full'
+      COUNTER_CLASS = "label-text-alt text-base-content/70 text-end w-full"
 
       def text_area_group(method, options = {})
         @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
@@ -33,9 +33,9 @@ module Bali
         max_length = char_counter.is_a?(Hash) ? char_counter[:max] : 0
 
         wrapper_options = {
-          class: 'control',
+          class: "control",
           data: {
-            controller: 'textarea',
+            controller: "textarea",
             'textarea-max-length-value': max_length,
             'textarea-auto-grow-value': auto_grow.present?
           }
@@ -43,12 +43,12 @@ module Bali
 
         content_tag(:div, wrapper_options) do
           counter = build_counter_element if char_counter
-          safe_join([textarea, counter].compact)
+          safe_join([ textarea, counter ].compact)
         end
       end
 
       def build_counter_element
-        content_tag(:p, '', class: COUNTER_CLASS, data: { 'textarea-target': 'counter' })
+        content_tag(:p, "", class: COUNTER_CLASS, data: { 'textarea-target': "counter" })
       end
     end
   end

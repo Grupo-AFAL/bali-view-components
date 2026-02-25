@@ -64,7 +64,7 @@ RSpec.describe Bali::BlockEditor::Component, type: :component do
   end
 
   it 'serializes hash content to JSON' do
-    blocks = [{ type: 'paragraph', content: [{ type: 'text', text: 'Hello' }] }]
+    blocks = [ { type: 'paragraph', content: [ { type: 'text', text: 'Hello' } ] } ]
     render_inline(described_class.new(initial_content: blocks, input_name: 'post[content]'))
 
     input = page.find('input[type="hidden"]', visible: false)
@@ -222,14 +222,14 @@ RSpec.describe Bali::BlockEditor::Component, type: :component do
     end
 
     it 'renders only PDF button when export: [:pdf]' do
-      render_inline(described_class.new(export: [:pdf]))
+      render_inline(described_class.new(export: [ :pdf ]))
 
       expect(page).to have_css 'button[data-action="block-editor#exportPdf"]'
       expect(page).not_to have_css '[data-action*="exportDocx"]'
     end
 
     it 'renders only DOCX button when export: [:docx]' do
-      render_inline(described_class.new(export: [:docx]))
+      render_inline(described_class.new(export: [ :docx ]))
 
       expect(page).not_to have_css '[data-action*="exportPdf"]'
       expect(page).to have_css 'button[data-action="block-editor#exportDocx"]'

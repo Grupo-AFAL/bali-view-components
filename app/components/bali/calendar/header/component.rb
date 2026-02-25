@@ -13,7 +13,7 @@ module Bali
         # @param start_attribute [Symbol] Method to be called on each event object for the
         #  start_date.
 
-        def initialize(start_date:, period: :month, route_path: '', period_switch: true,
+        def initialize(start_date:, period: :month, route_path: "", period_switch: true,
                        start_attribute: :start_time, **options)
           @start_date = Date.parse(start_date.presence || Date.current.to_s)
           @period = (period || :month).to_sym
@@ -54,12 +54,12 @@ module Bali
 
         def extra_params(type)
           base_params = case type
-                        when :prev then { start_attribute => prev_start_date, period: period }
-                        when :next then { start_attribute => next_start_date, period: period }
-                        when :week then { period: 'week', start_attribute => start_date }
-                        when :month then { period: 'month', start_attribute => start_date }
-                        else {}
-                        end
+          when :prev then { start_attribute => prev_start_date, period: period }
+          when :next then { start_attribute => next_start_date, period: period }
+          when :week then { period: "week", start_attribute => start_date }
+          when :month then { period: "month", start_attribute => start_date }
+          else {}
+          end
 
           base_params.merge(@options[:extra_params] || {})
         end

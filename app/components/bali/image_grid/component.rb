@@ -4,18 +4,18 @@ module Bali
   module ImageGrid
     class Component < ApplicationViewComponent
       COLUMNS = {
-        2 => 'grid-cols-2',
-        3 => 'grid-cols-3',
-        4 => 'grid-cols-4',
-        5 => 'grid-cols-5',
-        6 => 'grid-cols-6'
+        2 => "grid-cols-2",
+        3 => "grid-cols-3",
+        4 => "grid-cols-4",
+        5 => "grid-cols-5",
+        6 => "grid-cols-6"
       }.freeze
 
       GAPS = {
-        none: 'gap-0',
-        sm: 'gap-2',
-        md: 'gap-4',
-        lg: 'gap-6'
+        none: "gap-0",
+        sm: "gap-2",
+        md: "gap-4",
+        lg: "gap-6"
       }.freeze
 
       renders_many :images, Image::Component
@@ -32,7 +32,7 @@ module Bali
 
       def grid_classes
         class_names(
-          'grid',
+          "grid",
           COLUMNS[columns],
           GAPS[gap],
           options[:class]

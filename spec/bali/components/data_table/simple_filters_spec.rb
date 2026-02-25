@@ -7,7 +7,7 @@ RSpec.describe Bali::DataTable::SimpleFilters::Component, type: :component do
     [
       {
         attribute: :status,
-        collection: [%w[Active active], %w[Inactive inactive]],
+        collection: [ %w[Active active], %w[Inactive inactive] ],
         blank: 'All',
         label: 'Status',
         value: nil
@@ -58,7 +58,7 @@ RSpec.describe Bali::DataTable::SimpleFilters::Component, type: :component do
     filters_with_value = [
       {
         attribute: :status,
-        collection: [%w[Active active], %w[Inactive inactive]],
+        collection: [ %w[Active active], %w[Inactive inactive] ],
         blank: 'All',
         label: 'Status',
         value: 'active'
@@ -74,7 +74,7 @@ RSpec.describe Bali::DataTable::SimpleFilters::Component, type: :component do
     filters_with_default = [
       {
         attribute: :status,
-        collection: [%w[Active active], %w[Inactive inactive]],
+        collection: [ %w[Active active], %w[Inactive inactive] ],
         blank: 'All',
         label: 'Status',
         value: nil,
@@ -91,14 +91,14 @@ RSpec.describe Bali::DataTable::SimpleFilters::Component, type: :component do
     multi_filters = [
       {
         attribute: :status,
-        collection: [%w[Active active]],
+        collection: [ %w[Active active] ],
         blank: 'All Statuses',
         label: 'Status',
         value: nil
       },
       {
         attribute: :category,
-        collection: [%w[Electronics electronics]],
+        collection: [ %w[Electronics electronics] ],
         blank: 'All Categories',
         label: 'Category',
         value: nil

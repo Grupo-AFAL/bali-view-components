@@ -33,7 +33,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
   end
 
   describe '#radio_field' do
-    let(:values) { [%w[One 1], %w[Two 2], %w[Three 3]] }
+    let(:values) { [ %w[One 1], %w[Two 2], %w[Three 3] ] }
     let(:radio_field) { builder.radio_field(:status, values) }
 
     it 'renders radio inputs for each value' do
@@ -109,8 +109,8 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     context 'with per-item custom data attributes' do
       let(:values) do
         [
-          ['One', '1', { data: { price: '100' } }],
-          ['Two', '2', { data: { price: '200' } }],
+          [ 'One', '1', { data: { price: '100' } } ],
+          [ 'Two', '2', { data: { price: '200' } } ],
           %w[Three 3]
         ]
       end
@@ -128,7 +128,7 @@ RSpec.describe Bali::FormBuilder, type: :form_builder do
     context 'with shared and per-item data attributes merged' do
       let(:values) do
         [
-          ['One', '1', { data: { price: '100' } }],
+          [ 'One', '1', { data: { price: '100' } } ],
           %w[Two 2]
         ]
       end

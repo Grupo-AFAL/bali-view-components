@@ -134,7 +134,7 @@ RSpec.describe Bali::Table::Component, type: :component do
 
   describe 'bulk actions' do
     it 'renders checkboxes when bulk_actions provided' do
-      @options = { bulk_actions: [{ name: 'Delete', href: '/delete' }] }
+      @options = { bulk_actions: [ { name: 'Delete', href: '/delete' } ] }
       render_inline(component) do |c|
         c.with_header(name: 'Name')
         c.with_row(record_id: 1) { '<td>Row 1</td>'.html_safe }
@@ -145,7 +145,7 @@ RSpec.describe Bali::Table::Component, type: :component do
     end
 
     it 'renders bulk actions container' do
-      @options = { bulk_actions: [{ name: 'Delete', href: '/delete' }] }
+      @options = { bulk_actions: [ { name: 'Delete', href: '/delete' } ] }
       render_inline(component) do |c|
         c.with_header(name: 'Name')
       end
@@ -155,7 +155,7 @@ RSpec.describe Bali::Table::Component, type: :component do
     end
 
     it 'renders bulk action buttons' do
-      @options = { bulk_actions: [{ name: 'Delete Selected', href: '/bulk_delete' }] }
+      @options = { bulk_actions: [ { name: 'Delete Selected', href: '/bulk_delete' } ] }
       render_inline(component) do |c|
         c.with_header(name: 'Name')
       end
@@ -260,7 +260,7 @@ RSpec.describe Bali::Table::Component, type: :component do
 
   describe '#bulk_actions?' do
     it 'returns true when bulk_actions provided' do
-      component = described_class.new(bulk_actions: [{ name: 'Delete', href: '/delete' }])
+      component = described_class.new(bulk_actions: [ { name: 'Delete', href: '/delete' } ])
       expect(component.bulk_actions?).to be true
     end
 

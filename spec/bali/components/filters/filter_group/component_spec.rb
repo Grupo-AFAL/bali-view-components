@@ -7,14 +7,14 @@ RSpec.describe Bali::Filters::FilterGroup::Component, type: :component do
     [
       { key: :name, label: 'Name', type: :text },
       { key: :status, label: 'Status', type: :select,
-        options: [%w[Active active], %w[Inactive inactive]] }
+        options: [ %w[Active active], %w[Inactive inactive] ] }
     ]
   end
 
   let(:default_group) do
     {
       combinator: 'or',
-      conditions: [{ attribute: '', operator: 'cont', value: '' }]
+      conditions: [ { attribute: '', operator: 'cont', value: '' } ]
     }
   end
 
@@ -112,7 +112,7 @@ RSpec.describe Bali::Filters::FilterGroup::Component, type: :component do
   describe 'combinator' do
     it 'defaults to or' do
       component = described_class.new(
-        group: { conditions: [{ attribute: '', operator: 'cont', value: '' }] },
+        group: { conditions: [ { attribute: '', operator: 'cont', value: '' } ] },
         index: 0,
         available_attributes: available_attributes
       )

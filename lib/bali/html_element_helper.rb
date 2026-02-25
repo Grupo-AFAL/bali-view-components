@@ -49,7 +49,7 @@ module Bali
     end
 
     def hyphenize(key)
-      key.to_s.gsub('_', '-').to_sym
+      key.to_s.gsub("_", "-").to_sym
     end
 
     private
