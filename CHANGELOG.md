@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Testing** - Migrated entire test suite from RSpec to Minitest (2,331 tests), aligning with AFAL handbook standards
+- **Build** - Replaced Vite with esbuild (jsbundling-rails) for JavaScript bundling in dummy app
+- **Security** - Added Brakeman and bundler-audit for security scanning, Dependabot configuration
+- **CI** - Added security scanning workflow, updated action versions to v4 and Node 20
+- **RuboCop** - Switched from rubocop-rails to rubocop-rails-omakase base configuration
+- **Engine** - Added CSRF protection to `Bali::ApplicationController`
+
 ## [v2.5.0] - 2026-02-22
 
 ### Added
