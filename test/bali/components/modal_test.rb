@@ -2,30 +2,35 @@
 
 require "test_helper"
 
-class Bali_Modal_ComponentTest < ComponentTestCase
+class BaliModalComponentTest < ComponentTestCase
   #
 
   def test_basic_rendering_renders_with_modal_open_when_active_is_true
     render_inline(Bali::Modal::Component.new(active: true))
     assert_selector("div.modal.modal-open")
   end
+
   def test_basic_rendering_renders_without_modal_open_when_active_is_false
     render_inline(Bali::Modal::Component.new(active: false))
     assert_selector("div.modal")
     assert_no_selector("div.modal-open")
   end
+
   def test_basic_rendering_renders_with_modal_box
     render_inline(Bali::Modal::Component.new)
     assert_selector("div.modal-box")
   end
+
   def test_basic_rendering_renders_close_button
     render_inline(Bali::Modal::Component.new)
     assert_selector('button[aria-label="Close modal"]')
   end
+
   def test_basic_rendering_generates_unique_modal_id
     render_inline(Bali::Modal::Component.new)
     assert_selector('div.modal[id^="modal-"]')
   end
+
   def test_basic_rendering_uses_custom_modal_id_when_provided
     render_inline(Bali::Modal::Component.new(id: "custom-modal"))
     assert_selector("div.modal#custom-modal")
@@ -36,14 +41,17 @@ class Bali_Modal_ComponentTest < ComponentTestCase
     render_inline(Bali::Modal::Component.new)
     assert_selector('div.modal[role="dialog"]')
   end
+
   def test_accessibility_has_aria_modal_attribute
     render_inline(Bali::Modal::Component.new)
     assert_selector('div.modal[aria-modal="true"]')
   end
+
   def test_accessibility_has_aria_labelledby_pointing_to_title
     render_inline(Bali::Modal::Component.new(id: "test-modal"))
     assert_selector('div.modal[aria-labelledby="test-modal-title"]')
   end
+
   def test_accessibility_has_aria_describedby_when_body_slot_is_used
     render_inline(Bali::Modal::Component.new(id: "test-modal")) do |modal|
     modal.with_header(title: "Test")
@@ -52,6 +60,7 @@ class Bali_Modal_ComponentTest < ComponentTestCase
     assert_selector('div.modal[aria-describedby="test-modal-description"]')
     assert_selector("#test-modal-description", text: "Body content")
   end
+
   def test_accessibility_does_not_have_aria_describedby_when_body_slot_is_not_used
     render_inline(Bali::Modal::Component.new) do
     "Just content"
@@ -73,21 +82,25 @@ class Bali_Modal_ComponentTest < ComponentTestCase
 
     assert_selector("div.modal-box.max-w-#{:sm}")
   end
+
   def test_sizes_renders_md_size
     render_inline(Bali::Modal::Component.new(size: :md))
 
     assert_selector("div.modal-box.max-w-#{:md}")
   end
+
   def test_sizes_renders_lg_size
     render_inline(Bali::Modal::Component.new(size: :lg))
 
     assert_selector("div.modal-box.max-w-#{:lg}")
   end
+
   def test_sizes_renders_xl_size
     render_inline(Bali::Modal::Component.new(size: :xl))
 
     assert_selector("div.modal-box.max-w-#{:xl}")
   end
+
   def test_sizes_renders_full_size
     render_inline(Bali::Modal::Component.new(size: :full))
 
@@ -107,6 +120,7 @@ class Bali_Modal_ComponentTest < ComponentTestCase
     end
     assert_selector("h3#test-modal-title", text: "My Title")
   end
+
   def test_header_slot_renders_header_with_badge
     render_inline(Bali::Modal::Component.new) do |modal|
     modal.with_header(title: "Title", badge: "New", badge_color: :info)
@@ -114,6 +128,7 @@ class Bali_Modal_ComponentTest < ComponentTestCase
     assert_selector("h3", text: "Title")
     assert_selector(".badge", text: "New")
   end
+
   def test_header_slot_positions_badge_correctly_in_header
     render_inline(Bali::Modal::Component.new) do |modal|
     modal.with_header(title: "Title", badge: "Badge")
@@ -121,12 +136,14 @@ class Bali_Modal_ComponentTest < ComponentTestCase
     # Header should have flex layout with justify-between for proper badge positioning
     assert_selector(".flex.items-center.justify-between")
   end
+
   def test_header_slot_includes_close_button_in_header_by_default
     render_inline(Bali::Modal::Component.new) do |modal|
     modal.with_header(title: "Title")
     end
     assert_selector('button[aria-label="Close modal"]')
   end
+
   def test_header_slot_can_hide_close_button_in_header
     render_inline(Bali::Modal::Component.new) do |modal|
     modal.with_header(title: "Title", close_button: false)
@@ -135,6 +152,7 @@ class Bali_Modal_ComponentTest < ComponentTestCase
     # Note: the standalone close button is also hidden when header is present
     assert_no_selector('button[aria-label="Close modal"]')
   end
+
   def test_header_slot_hides_standalone_close_button_when_header_is_present
     render_inline(Bali::Modal::Component.new) do |modal|
     modal.with_header(title: "Title")
@@ -151,6 +169,7 @@ class Bali_Modal_ComponentTest < ComponentTestCase
     end
     assert_selector(".modal-body", text: "Body content here")
   end
+
   def test_body_slot_has_description_id_for_accessibility
     render_inline(Bali::Modal::Component.new(id: "test-modal")) do |modal|
     modal.with_body { "Description text" }
@@ -167,6 +186,7 @@ class Bali_Modal_ComponentTest < ComponentTestCase
     end
     assert_selector(".modal-action button.btn", text: "Save")
   end
+
   def test_actions_slot_has_proper_styling_for_actions
     render_inline(Bali::Modal::Component.new) do |modal|
     modal.with_actions do

@@ -6,7 +6,7 @@ class UtilsHelperContext < ActionView::Base
   include Bali::Utils
 end
 
-class Bali_UtilsTest < ActiveSupport::TestCase
+class BaliUtilsTest < ActiveSupport::TestCase
   def setup
     @helper = UtilsHelperContext.new(ActionView::LookupContext.new(ActionView::PathSet.new), {}, nil)
   end

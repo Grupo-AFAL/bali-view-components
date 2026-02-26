@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class Bali_Icon_LucideMappingTest < ActiveSupport::TestCase
+class BaliIconLucideMappingTest < ActiveSupport::TestCase
   #
 
   def test_find_returns_lucide_name_for_mapped_bali_icon
@@ -10,10 +10,12 @@ class Bali_Icon_LucideMappingTest < ActiveSupport::TestCase
     assert_equal("trash-2", Bali::Icon::LucideMapping.find("trash"))
     assert_equal("settings", Bali::Icon::LucideMapping.find("cog"))
   end
+
   def test_find_returns_nil_for_unmapped_icons
     assert_nil(Bali::Icon::LucideMapping.find("visa"))
     assert_nil(Bali::Icon::LucideMapping.find("nonexistent"))
   end
+
   def test_find_accepts_symbols
     assert_equal("pencil", Bali::Icon::LucideMapping.find(:edit))
   end
@@ -23,6 +25,7 @@ class Bali_Icon_LucideMappingTest < ActiveSupport::TestCase
     assert(Bali::Icon::LucideMapping.mapped?("user"))
     assert(Bali::Icon::LucideMapping.mapped?("check"))
   end
+
   def test_mapped_returns_false_for_unmapped_icons
     refute(Bali::Icon::LucideMapping.mapped?("visa"))
     refute(Bali::Icon::LucideMapping.mapped?("whatsapp"))
@@ -53,9 +56,11 @@ class Bali_Icon_LucideMappingTest < ActiveSupport::TestCase
   def test_mapping_constant_is_frozen
     assert(Bali::Icon::LucideMapping::MAPPING.frozen?)
   end
+
   def test_mapping_constant_has_string_keys
     assert(Bali::Icon::LucideMapping::MAPPING.keys.all? { |e| e.is_a?(String) })
   end
+
   def test_mapping_constant_has_string_values
     assert(Bali::Icon::LucideMapping::MAPPING.values.all? { |e| e.is_a?(String) })
   end

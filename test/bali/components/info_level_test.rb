@@ -2,10 +2,11 @@
 
 require "test_helper"
 
-class Bali_InfoLevel_ComponentTest < ComponentTestCase
+class BaliInfoLevelComponentTest < ComponentTestCase
   def setup
     @component = Bali::InfoLevel::Component.new
   end
+
 
   def render_with_item(component = @component)
     render_inline(component) do |c|
@@ -16,15 +17,18 @@ class Bali_InfoLevel_ComponentTest < ComponentTestCase
     end
   end
 
+
   def test_basic_rendering_renders_a_div_container
     render_with_item
     assert_selector("div.info-level-component")
   end
 
+
   def test_basic_rendering_renders_with_base_classes
     render_with_item
     assert_selector(".info-level-component.flex.flex-wrap.gap-8")
   end
+
 
   def test_basic_rendering_renders_heading_and_title
     render_with_item
@@ -40,10 +44,12 @@ class Bali_InfoLevel_ComponentTest < ComponentTestCase
     end
   end
 
+
   def test_defaults_to_center_alignment
     render_with_item
     assert_selector(".info-level-component.justify-center")
   end
+
 
   def test_options_passthrough_accepts_custom_classes
     component = Bali::InfoLevel::Component.new(class: "custom-class")
@@ -51,17 +57,20 @@ class Bali_InfoLevel_ComponentTest < ComponentTestCase
     assert_selector(".info-level-component.custom-class")
   end
 
+
   def test_options_passthrough_accepts_data_attributes
     component = Bali::InfoLevel::Component.new(data: { testid: "info-level" })
     render_with_item(component)
     assert_selector('[data-testid="info-level"]')
   end
 
+
   def test_options_passthrough_accepts_id_attribute
     component = Bali::InfoLevel::Component.new(id: "my-info-level")
     render_with_item(component)
     assert_selector("#my-info-level.info-level-component")
   end
+
 
   def test_multiple_items_renders_multiple_items
     render_inline(@component) do |c|
@@ -79,6 +88,7 @@ class Bali_InfoLevel_ComponentTest < ComponentTestCase
     assert_selector(".title", count: 2)
   end
 
+
   def test_multiple_titles_per_item_renders_multiple_titles
     render_inline(@component) do |c|
       c.with_item do |ci|
@@ -92,6 +102,7 @@ class Bali_InfoLevel_ComponentTest < ComponentTestCase
     assert_selector(".title", text: "Title 2")
   end
 
+
   def test_custom_heading_block_renders_custom_heading_content
     render_inline(@component) do |c|
       c.with_item do |ci|
@@ -101,6 +112,7 @@ class Bali_InfoLevel_ComponentTest < ComponentTestCase
     end
     assert_selector(".heading", text: "My custom heading")
   end
+
 
   def test_custom_title_block_renders_custom_title_content
     render_inline(@component) do |c|
@@ -113,7 +125,7 @@ class Bali_InfoLevel_ComponentTest < ComponentTestCase
   end
 end
 
-class Bali_InfoLevel_Item_ComponentTest < ComponentTestCase
+class BaliInfoLevelItemComponentTest < ComponentTestCase
   def test_base_classes_renders_with_level_item_and_text_center_classes
     render_inline(Bali::InfoLevel::Item::Component.new) do |c|
       c.with_heading("H")
@@ -121,6 +133,7 @@ class Bali_InfoLevel_Item_ComponentTest < ComponentTestCase
     end
     assert_selector(".level-item.text-center")
   end
+
 
   def test_heading_slot_renders_heading_with_proper_classes
     render_inline(Bali::InfoLevel::Item::Component.new) do |c|
@@ -130,6 +143,7 @@ class Bali_InfoLevel_Item_ComponentTest < ComponentTestCase
     assert_selector(".heading.text-xs.uppercase.tracking-wide", text: "My Heading")
   end
 
+
   def test_heading_slot_allows_custom_classes_on_heading
     render_inline(Bali::InfoLevel::Item::Component.new) do |c|
       c.with_heading("H", class: "extra-class")
@@ -137,6 +151,7 @@ class Bali_InfoLevel_Item_ComponentTest < ComponentTestCase
     end
     assert_selector(".heading.extra-class")
   end
+
 
   def test_title_slot_renders_title_with_proper_classes
     render_inline(Bali::InfoLevel::Item::Component.new) do |c|
@@ -146,6 +161,7 @@ class Bali_InfoLevel_Item_ComponentTest < ComponentTestCase
     assert_selector(".title.text-2xl.font-bold", text: "My Title")
   end
 
+
   def test_title_slot_allows_custom_classes_on_title
     render_inline(Bali::InfoLevel::Item::Component.new) do |c|
       c.with_heading("H")
@@ -154,6 +170,7 @@ class Bali_InfoLevel_Item_ComponentTest < ComponentTestCase
     assert_selector(".title.extra-class")
   end
 
+
   def test_options_passthrough_accepts_custom_classes_on_item
     render_inline(Bali::InfoLevel::Item::Component.new(class: "custom-item")) do |c|
       c.with_heading("H")
@@ -161,6 +178,7 @@ class Bali_InfoLevel_Item_ComponentTest < ComponentTestCase
     end
     assert_selector(".level-item.custom-item")
   end
+
 
   def test_options_passthrough_accepts_data_attributes_on_item
     render_inline(Bali::InfoLevel::Item::Component.new(data: { testid: "item" })) do |c|

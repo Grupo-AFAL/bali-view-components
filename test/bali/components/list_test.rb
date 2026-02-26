@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class Bali_List_ComponentTest < ComponentTestCase
+class BaliListComponentTest < ComponentTestCase
   #
 
   def test_rendering_renders_with_daisyui_list_class
@@ -14,6 +14,7 @@ class Bali_List_ComponentTest < ComponentTestCase
     assert_selector('ul.list[role="list"]')
     assert_selector("li.list-row")
   end
+
   def test_rendering_renders_list_item_with_text_arguments
     render_inline(Bali::List::Component.new) do |c|
     c.with_item do |i|
@@ -24,6 +25,7 @@ class Bali_List_ComponentTest < ComponentTestCase
     assert_selector(".font-semibold", text: "Item 1")
     assert_selector(".text-sm", text: "Subtitle 1")
   end
+
   def test_rendering_renders_list_item_with_block_arguments
     render_inline(Bali::List::Component.new) do |c|
     c.with_item do |i|
@@ -34,6 +36,7 @@ class Bali_List_ComponentTest < ComponentTestCase
     assert_selector(".font-semibold", text: "Item 1")
     assert_selector(".text-sm", text: "Subtitle 1")
   end
+
   def test_rendering_renders_list_item_actions
     render_inline(Bali::List::Component.new) do |c|
     c.with_item do |i|
@@ -52,6 +55,7 @@ class Bali_List_ComponentTest < ComponentTestCase
     end
     assert_selector("ul.list.border.border-base-300")
   end
+
   def test_borderless_option_removes_border_when_borderless_true
     render_inline(Bali::List::Component.new(borderless: true)) do |c|
     c.with_item { |i| i.with_title("Item") }
@@ -75,6 +79,7 @@ class Bali_List_ComponentTest < ComponentTestCase
     end
     assert_selector("ul.list.custom-list")
   end
+
   def test_options_passthrough_accepts_data_attributes
     render_inline(Bali::List::Component.new(data: { testid: "my-list" })) do |c|
     c.with_item { |i| i.with_title("Item") }
@@ -91,6 +96,7 @@ class Bali_List_ComponentTest < ComponentTestCase
     end
     assert_selector("li.list-row.highlighted")
   end
+
   def test_item_options_passthrough_accepts_data_attributes_on_items
     render_inline(Bali::List::Component.new) do |c|
     c.with_item(data: { item: "first" }) do |i|
@@ -109,6 +115,7 @@ class Bali_List_ComponentTest < ComponentTestCase
     end
     assert_selector("div.font-semibold.text-primary", text: "Custom Title")
   end
+
   def test_title_and_subtitle_options_accepts_custom_classes_on_subtitle
     render_inline(Bali::List::Component.new) do |c|
     c.with_item do |i|
@@ -134,6 +141,7 @@ class Bali_List_ComponentTest < ComponentTestCase
   def test_constants_has_base_classes_constant
     assert_equal("list", Bali::List::Component::BASE_CLASSES)
   end
+
   def test_constants_has_bordered_classes_constant
     assert_equal("border border-base-300 rounded-box", Bali::List::Component::BORDERED_CLASSES)
   end
@@ -142,9 +150,11 @@ class Bali_List_ComponentTest < ComponentTestCase
   def test_item_constants_has_base_classes_constant
     assert_equal("list-row", Bali::List::Item::Component::BASE_CLASSES)
   end
+
   def test_item_constants_has_title_classes_constant
     assert_equal("font-semibold", Bali::List::Item::Component::TITLE_CLASSES)
   end
+
   def test_item_constants_has_subtitle_classes_constant
     assert_equal("text-sm text-base-content/60", Bali::List::Item::Component::SUBTITLE_CLASSES)
   end

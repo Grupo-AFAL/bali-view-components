@@ -2,10 +2,11 @@
 
 require "test_helper"
 
-class Bali_Level_ComponentTest < ComponentTestCase
+class BaliLevelComponentTest < ComponentTestCase
   def setup
     @component = Bali::Level::Component.new
   end
+
 
   def test_renders
     render_inline(@component) do |c|
@@ -21,6 +22,7 @@ class Bali_Level_ComponentTest < ComponentTestCase
     assert_selector("div.level-item", text: "Right")
   end
 
+
   def test_with_level_items_renders
     render_inline(@component) do |c|
       c.with_item(text: "Item 1")
@@ -31,12 +33,14 @@ class Bali_Level_ComponentTest < ComponentTestCase
     assert_selector("div.level-item", text: "Item 2")
   end
 
+
   def test_alignments_applies_start_alignment
     render_inline(Bali::Level::Component.new(align: :start)) do |c|
       c.with_left { "Left content" }
     end
     assert_selector(".level.items-start")
   end
+
 
   def test_alignments_applies_center_alignment_by_default
     render_inline(Bali::Level::Component.new) do |c|
@@ -45,12 +49,14 @@ class Bali_Level_ComponentTest < ComponentTestCase
     assert_selector(".level.items-center")
   end
 
+
   def test_alignments_applies_end_alignment
     render_inline(Bali::Level::Component.new(align: :end)) do |c|
       c.with_left { "Left content" }
     end
     assert_selector(".level.items-end")
   end
+
 
   def test_alignments_defaults_to_center_alignment_for_invalid_values
     render_inline(Bali::Level::Component.new(align: :invalid)) do |c|
@@ -59,6 +65,7 @@ class Bali_Level_ComponentTest < ComponentTestCase
     assert_selector(".level.items-center")
   end
 
+
   def test_options_passthrough_accepts_custom_classes
     render_inline(Bali::Level::Component.new(class: "custom-class")) do |c|
       c.with_item(text: "Item")
@@ -66,12 +73,14 @@ class Bali_Level_ComponentTest < ComponentTestCase
     assert_selector(".level.custom-class")
   end
 
+
   def test_options_passthrough_accepts_data_attributes
     render_inline(Bali::Level::Component.new(data: { testid: "level-test" })) do |c|
       c.with_item(text: "Item")
     end
     assert_selector('[data-testid="level-test"]')
   end
+
 
   def test_side_component_renders_left_side_with_items
     render_inline(@component) do |c|
@@ -85,6 +94,7 @@ class Bali_Level_ComponentTest < ComponentTestCase
     assert_selector(".level-item", text: "Left 2")
   end
 
+
   def test_side_component_renders_right_side_with_items
     render_inline(@component) do |c|
       c.with_right do |side|
@@ -95,6 +105,7 @@ class Bali_Level_ComponentTest < ComponentTestCase
     assert_selector(".level-item", text: "Right 1")
   end
 
+
   def test_side_component_accepts_custom_classes_on_side
     render_inline(@component) do |c|
       c.with_left(class: "custom-side") do
@@ -104,6 +115,7 @@ class Bali_Level_ComponentTest < ComponentTestCase
     assert_selector(".level-left.custom-side")
   end
 
+
   def test_item_component_renders_item_with_text_param
     render_inline(@component) do |c|
       c.with_item(text: "Text param")
@@ -111,12 +123,14 @@ class Bali_Level_ComponentTest < ComponentTestCase
     assert_selector(".level-item", text: "Text param")
   end
 
+
   def test_item_component_renders_item_with_block_content
     render_inline(@component) do |c|
       c.with_item { "Block content" }
     end
     assert_selector(".level-item", text: "Block content")
   end
+
 
   def test_item_component_accepts_custom_classes_on_item
     render_inline(@component) do |c|

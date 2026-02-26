@@ -2,12 +2,13 @@
 
 require "test_helper"
 
-class Bali_SortableList_ComponentTest < ComponentTestCase
+class BaliSortableListComponentTest < ComponentTestCase
   #
 
   def test_base_classes_constant_is_frozen
     assert(Bali::SortableList::Component::BASE_CLASSES.frozen?)
   end
+
   def test_base_classes_constant_contains_expected_classes
     assert_includes(Bali::SortableList::Component::BASE_CLASSES, "sortable-list-component")
     assert_includes(Bali::SortableList::Component::BASE_CLASSES, "p-0")
@@ -17,6 +18,7 @@ class Bali_SortableList_ComponentTest < ComponentTestCase
   def test_defaults_constant_is_frozen
     assert(Bali::SortableList::Component::DEFAULTS.frozen?)
   end
+
   def test_defaults_constant_contains_default_values
     assert_equal("position", Bali::SortableList::Component::DEFAULTS[:position_param_name])
     assert_equal("list_id", Bali::SortableList::Component::DEFAULTS[:list_param_name])
@@ -32,6 +34,7 @@ class Bali_SortableList_ComponentTest < ComponentTestCase
     assert_selector('div[data-controller="sortable-list"]')
     assert_selector('div[data-sortable-list-disabled-value="false"]')
   end
+
   def test_rendering_renders_with_content_block
     render_inline(Bali::SortableList::Component.new) { "Custom content" }
     assert_text("Custom content")
@@ -42,6 +45,7 @@ class Bali_SortableList_ComponentTest < ComponentTestCase
     render_inline(Bali::SortableList::Component.new(disabled: true))
     assert_selector('div[data-sortable-list-disabled-value="true"]')
   end
+
   def test_disabled_option_renders_enabled_by_default
     render_inline(Bali::SortableList::Component.new)
     assert_selector('div[data-sortable-list-disabled-value="false"]')
@@ -93,10 +97,12 @@ class Bali_SortableList_ComponentTest < ComponentTestCase
     render_inline(Bali::SortableList::Component.new(class: "custom-class"))
     assert_selector("div.sortable-list-component.custom-class")
   end
+
   def test_options_passthrough_accepts_data_attributes
     render_inline(Bali::SortableList::Component.new(data: { testid: "sortable-test" }))
     assert_selector('div[data-testid="sortable-test"]')
   end
+
   def test_options_passthrough_accepts_id_attribute
     render_inline(Bali::SortableList::Component.new(id: "my-sortable"))
     assert_selector("div#my-sortable")
@@ -110,6 +116,7 @@ class Bali_SortableList_ComponentTest < ComponentTestCase
     # Parent should have the CSS class that targets items
     assert_selector('div[class*="[&_.sortable-item]:cursor-grab"]')
   end
+
   def test_cursor_styling_does_not_add_cursor_grab_to_items_when_handle_is_specified
     render_inline(Bali::SortableList::Component.new(handle: ".handle")) do |c|
     c.with_item(update_url: "/items/1") { "Item 1" }
@@ -121,12 +128,13 @@ class Bali_SortableList_ComponentTest < ComponentTestCase
   end
 end
 
-class Bali_SortableList_Item_ComponentTest < ComponentTestCase
+class BaliSortableListItemComponentTest < ComponentTestCase
   #
 
   def test_base_classes_constant_is_frozen
     assert(Bali::SortableList::Item::Component::BASE_CLASSES.frozen?)
   end
+
   def test_base_classes_constant_contains_expected_classes
     assert_includes(Bali::SortableList::Item::Component::BASE_CLASSES, "sortable-item")
     assert_includes(Bali::SortableList::Item::Component::BASE_CLASSES, "bg-base-100")
@@ -140,10 +148,12 @@ class Bali_SortableList_Item_ComponentTest < ComponentTestCase
     assert_selector('div[data-sortable-update-url="/items/1"]')
     assert_text("Item content")
   end
+
   def test_rendering_sets_item_pull_to_true_by_default
     render_inline(Bali::SortableList::Item::Component.new(update_url: "/items/1"))
     assert_selector('div[data-sortable-item-pull="true"]')
   end
+
   def test_rendering_allows_disabling_item_pull
     render_inline(Bali::SortableList::Item::Component.new(update_url: "/items/1", item_pull: false))
     assert_selector('div[data-sortable-item-pull="false"]')
@@ -167,6 +177,7 @@ class Bali_SortableList_Item_ComponentTest < ComponentTestCase
     render_inline(Bali::SortableList::Item::Component.new(update_url: "/items/1", class: "custom-item"))
     assert_selector("div.sortable-item.custom-item")
   end
+
   def test_options_passthrough_accepts_data_attributes
     render_inline(Bali::SortableList::Item::Component.new(update_url: "/items/1", data: { testid: "item-test" }))
     assert_selector('div[data-testid="item-test"]')

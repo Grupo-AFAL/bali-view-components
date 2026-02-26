@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class Bali_Calendar_ComponentTest < ComponentTestCase
+class BaliCalendarComponentTest < ComponentTestCase
   def setup
     @options = {}
   end
@@ -13,9 +13,11 @@ class Bali_Calendar_ComponentTest < ComponentTestCase
     Bali::Calendar::Component.new(**@options)
   end
 
+
   def monday
     Date.current.prev_occurring(:monday)
   end
+
 
   def friday
     Date.current.prev_occurring(:friday)
@@ -38,6 +40,7 @@ class Bali_Calendar_ComponentTest < ComponentTestCase
     assert_selector("tr > th.text-center", text: "Sunday")
     assert_selector(".header h3.text-2xl", text: "January 2020")
   end
+
   def test_renders_calendar_component_from_monday_to_friday
     @options.merge!(start_date: "2020-01-01", all_week: false)
     render_inline(component)
@@ -52,6 +55,7 @@ class Bali_Calendar_ComponentTest < ComponentTestCase
     assert_no_selector("tr > th.text-center", text: "Saturday")
     assert_no_selector("tr > th.text-center", text: "Sunday")
   end
+
   def test_renders_the_calendar_component_hiding_the_calendar_view_options
     @options.merge!(start_date: "2020-01-01", period_switch: false)
     render_inline(component) do |c|
@@ -64,6 +68,7 @@ class Bali_Calendar_ComponentTest < ComponentTestCase
     assert_no_selector(".header a.btn", text: "Week")
     assert_no_selector(".header a.btn", text: "Month")
   end
+
   def test_renders_the_calendar_component_with_week_view
     @options.merge!(start_date: "2020-01-01", period: :week)
     render_inline(component)
@@ -85,10 +90,12 @@ class Bali_Calendar_ComponentTest < ComponentTestCase
     @options.merge!(start_date: monday.to_s, all_week: true)
     assert_equal({ start_time: monday - 1.day }, component.prev_day)
   end
+
   def test_prev_day_all_week_false_returns_the_previous_friday
     @options.merge!(start_date: monday.to_s, all_week: false)
     assert_equal({ start_time: monday - 3.days }, component.prev_day)
   end
+
   def test_prev_day_not_monday_returns_the_previous_day
     @options.merge!(start_date: friday.to_s)
     assert_equal({ start_time: friday - 1.day }, component.prev_day)
@@ -99,10 +106,12 @@ class Bali_Calendar_ComponentTest < ComponentTestCase
     @options.merge!(start_date: friday.to_s, all_week: true)
     assert_equal({ start_time: friday + 1.day }, component.next_day)
   end
+
   def test_next_day_all_week_false_returns_the_next_monday
     @options.merge!(start_date: friday.to_s, all_week: false)
     assert_equal({ start_time: friday + 3.days }, component.next_day)
   end
+
   def test_next_day_not_friday_returns_the_next_day
     @options.merge!(start_date: monday.to_s)
     assert_equal({ start_time: monday + 1.day }, component.next_day)
@@ -116,6 +125,7 @@ class Bali_Calendar_ComponentTest < ComponentTestCase
     end
     assert_equal(Date.parse("2020-02-01"), prev_date)
   end
+
   def test_prev_start_date_week_returns_first_date_of_previous_week
     prev_date = Date.current
     render_inline(component) do |c|
@@ -132,6 +142,7 @@ class Bali_Calendar_ComponentTest < ComponentTestCase
     end
     assert_equal(Date.parse("2020-04-01"), next_date)
   end
+
   def test_next_start_date_week_returns_first_date_of_next_week
     next_date = Date.current
     render_inline(component) do |c|
@@ -148,6 +159,7 @@ class Bali_Calendar_ComponentTest < ComponentTestCase
     end
     assert_equal({ start_time: Date.parse("2020-01-01"), period: :month }, params)
   end
+
   def test_extra_params_returns_params_for_going_forward
     params = {}
     render_inline(component) do |c|
@@ -155,6 +167,7 @@ class Bali_Calendar_ComponentTest < ComponentTestCase
     end
     assert_equal({ start_time: Date.parse("2020-03-01"), period: :month }, params)
   end
+
   def test_extra_params_returns_params_for_month_view
     params = {}
     render_inline(component) do |c|
@@ -162,6 +175,7 @@ class Bali_Calendar_ComponentTest < ComponentTestCase
     end
     assert_equal({ start_time: Date.parse("2020-02-02"), period: "month" }, params)
   end
+
   def test_extra_params_returns_params_for_week_view
     params = {}
     render_inline(component) do |c|
@@ -189,13 +203,16 @@ class Bali_Calendar_ComponentTest < ComponentTestCase
     @options.merge!(start_date: date)
     assert_equal(date, component.start_date)
   end
+
   def test_start_date_accepts_a_string_and_parses_it
     @options.merge!(start_date: "2020-05-15")
     assert_equal(Date.parse("2020-05-15"), component.start_date)
   end
+
   def test_start_date_defaults_to_current_date_when_nil
     assert_equal(Date.current, component.start_date)
   end
+
   def test_start_date_defaults_to_current_date_when_blank
     @options.merge!(start_date: "")
     assert_equal(Date.current, component.start_date)
@@ -212,6 +229,7 @@ class Bali_Calendar_ComponentTest < ComponentTestCase
     assert_no_selector("tr > th.text-center", text: "Saturday")
     assert_no_selector("tr > th.text-center", text: "Sunday")
   end
+
   def test_weekdays_only_backward_compatibility_with_all_week_false
     @options.merge!(start_date: "2020-01-01", all_week: false)
     render_inline(component)
@@ -220,6 +238,7 @@ class Bali_Calendar_ComponentTest < ComponentTestCase
 
     assert_no_selector("tr > th.text-center", text: "Sunday")
   end
+
   def test_weekdays_only_takes_precedence_over_all_week
     @options.merge!(start_date: "2020-01-01", weekdays_only: false, all_week: false)
     render_inline(component)
@@ -235,11 +254,13 @@ class Bali_Calendar_ComponentTest < ComponentTestCase
     assert(component.month_view?)
     refute(component.week_view?)
   end
+
   def test_week_view_returns_true_for_week_period
     @options.merge!(period: :week)
     refute(component.month_view?)
     assert(component.week_view?)
   end
+
   def test_show_weekends_returns_inverse_of_weekdays_only
     @options.merge!(weekdays_only: true)
     refute(component.show_weekends?)
@@ -247,15 +268,17 @@ class Bali_Calendar_ComponentTest < ComponentTestCase
   end
 end
 
-class Bali_Calendar_EventGrouperTest < ActiveSupport::TestCase
+class BaliCalendarEventGrouperTest < ActiveSupport::TestCase
   def setup
     # Ensure the Component file is loaded so EventGrouper (defined in same file) is available
     Bali::Calendar::Component
   end
 
+
   def event_class
     Struct.new(:start_time, :end_time)
   end
+
 
   def test_groups_single_day_events_by_date
     events = [
@@ -267,6 +290,7 @@ class Bali_Calendar_EventGrouperTest < ActiveSupport::TestCase
     assert_equal(2, grouper.by_date[Date.parse("2020-02-01")].size)
   end
 
+
   def test_spreads_multi_day_events_across_all_dates
     events = [
       event_class.new(Date.parse("2020-02-01"), Date.parse("2020-02-03"))
@@ -277,6 +301,7 @@ class Bali_Calendar_EventGrouperTest < ActiveSupport::TestCase
     assert_equal(expected.sort, grouper.by_date.keys.sort)
   end
 
+
   def test_filters_out_events_with_nil_start_time
     events = [
       event_class.new(nil, nil),
@@ -286,6 +311,7 @@ class Bali_Calendar_EventGrouperTest < ActiveSupport::TestCase
     grouper = Bali::Calendar::EventGrouper.new(events)
     assert_equal(1, grouper.by_date.values.flatten.size)
   end
+
 
   def test_handles_custom_attribute_methods
     custom_class = Struct.new(:begins_at, :ends_at)

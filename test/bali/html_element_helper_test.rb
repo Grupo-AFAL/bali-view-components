@@ -6,7 +6,7 @@ class TestHelperComponent
   include Bali::HtmlElementHelper
 end
 
-class Bali_HtmlElementHelperTest < ActiveSupport::TestCase
+class BaliHtmlElementHelperTest < ActiveSupport::TestCase
   def setup
     @helper = TestHelperComponent.new
   end
@@ -29,6 +29,7 @@ class Bali_HtmlElementHelperTest < ActiveSupport::TestCase
     options = @helper.prepend_values({}, "list", { param_name: "position" })
     assert_equal("position", options[:data]["list-param-name-value"])
   end
+
   def test_prepend_values_does_not_override_other_values_in_data
     options = { data: { controller: "list" } }
     options = @helper.prepend_values(options, "list", { param_name: "position" })
@@ -47,6 +48,7 @@ class Bali_HtmlElementHelperTest < ActiveSupport::TestCase
     options = @helper.prepend_class_name({}, "is-active")
     assert_equal("is-active", options[:class])
   end
+
   def test_prepend_class_name_prepends_the_class_name_to_the_existing_class
     options = @helper.prepend_class_name({ class: "list" }, "is-active")
     assert_equal("is-active list", options[:class])

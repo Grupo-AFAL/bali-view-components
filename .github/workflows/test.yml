@@ -25,6 +25,8 @@ jobs:
         run: cd spec/dummy && yarn install
       - name: Set up database schema
         run: bin/rails db:schema:load
+        env:
+          RAILS_ENV: test
       - name: Build assets
         run: cd spec/dummy && bin/rails tailwindcss:build && yarn build
       - name: Run tests

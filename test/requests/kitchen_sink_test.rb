@@ -8,6 +8,7 @@ class KitchenSinkDemoPagesTest < ActionDispatch::IntegrationTest
     @movie = @tenant.movies.create!(name: "Test Movie", status: 0)
   end
 
+
   def movie
     @movie
   end
@@ -28,6 +29,7 @@ class KitchenSinkDemoPagesTest < ActionDispatch::IntegrationTest
     get movies_path
     assert_response :ok
   end
+
 
 
   def test_movies_get_movies_renders_with_filter_params

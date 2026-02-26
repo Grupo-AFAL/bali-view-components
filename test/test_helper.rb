@@ -34,8 +34,10 @@ require "capybara/minitest"
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
 class ActiveSupport::TestCase
-  # Run tests in parallel with specified workers
-  parallelize(workers: :number_of_processors)
+  # Parallelization disabled until SimpleCov collation is configured.
+  # Without collation, each forked worker reports partial coverage,
+  # producing an inaccurate merged result in CI.
+  # parallelize(workers: :number_of_processors)
 end
 
 class ComponentTestCase < ViewComponent::TestCase

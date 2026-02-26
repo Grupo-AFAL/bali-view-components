@@ -2,11 +2,12 @@
 
 require "test_helper"
 
-class Bali_Message_ComponentTest < ComponentTestCase
+class BaliMessageComponentTest < ComponentTestCase
   def test_renders_message_component_with_alert_role
     render_inline(Bali::Message::Component.new) { "Message content" }
     assert_selector('div.message-component.alert[role="alert"]', text: "Message content")
   end
+
   def test_applies_base_classes
     render_inline(Bali::Message::Component.new) { "Content" }
     assert_selector("div.alert.message-component")
@@ -30,20 +31,24 @@ class Bali_Message_ComponentTest < ComponentTestCase
     render_inline(Bali::Message::Component.new(size: :small)) { "Content" }
     assert_selector("div.alert.text-sm")
   end
+
   def test_sizes_renders_regular_size_no_extra_class
     render_inline(Bali::Message::Component.new(size: :regular)) { "Content" }
     assert_selector("div.alert")
     assert_no_selector("div.text-sm")
     assert_no_selector("div.text-lg")
   end
+
   def test_sizes_renders_medium_size
     render_inline(Bali::Message::Component.new(size: :medium)) { "Content" }
     assert_selector("div.alert.text-base")
   end
+
   def test_sizes_renders_large_size
     render_inline(Bali::Message::Component.new(size: :large)) { "Content" }
     assert_selector("div.alert.text-lg")
   end
+
   def test_sizes_falls_back_to_regular_for_unknown_size
     render_inline(Bali::Message::Component.new(size: :unknown)) { "Content" }
     assert_selector("div.alert")
@@ -55,6 +60,7 @@ class Bali_Message_ComponentTest < ComponentTestCase
     assert_selector("span.font-bold", text: "My Title")
     assert_selector("div.flex.flex-col.gap-1")
   end
+
   def test_with_title_renders_content_alongside_title
     render_inline(Bali::Message::Component.new(title: "Header")) { "Body text" }
     assert_selector("span.font-bold", text: "Header")
@@ -71,6 +77,7 @@ class Bali_Message_ComponentTest < ComponentTestCase
     assert_text("Custom Header")
     assert_text("Body content")
   end
+
   def test_with_header_slot_prefers_title_over_header_slot
     render_inline(Bali::Message::Component.new(title: "Title wins")) do |c|
     c.with_header { "Header slot" }
@@ -92,10 +99,12 @@ class Bali_Message_ComponentTest < ComponentTestCase
     render_inline(Bali::Message::Component.new(class: "custom-class")) { "Content" }
     assert_selector("div.alert.custom-class")
   end
+
   def test_options_passthrough_accepts_data_attributes
     render_inline(Bali::Message::Component.new(data: { testid: "my-message" })) { "Content" }
     assert_selector('div.alert[data-testid="my-message"]')
   end
+
   def test_options_passthrough_accepts_id_attribute
     render_inline(Bali::Message::Component.new(id: "unique-message")) { "Content" }
     assert_selector("div.alert#unique-message")

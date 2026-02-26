@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class Bali_FlashNotifications_ComponentTest < ComponentTestCase
+class BaliFlashNotificationsComponentTest < ComponentTestCase
   #
 
   #
@@ -37,6 +37,7 @@ class Bali_FlashNotifications_ComponentTest < ComponentTestCase
     assert_selector(".alert-success")
     assert_no_selector(".alert-error")
   end
+
   def test_flash_type_mapping_maps_alert_to_error_type
     render_inline(Bali::FlashNotifications::Component.new(alert: "Bad news"))
     assert_selector(".alert-error")

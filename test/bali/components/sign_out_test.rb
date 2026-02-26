@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class Bali_TurboNativeApp_SignOut_ComponentTest < ComponentTestCase
+class BaliTurboNativeAppSignOutComponentTest < ComponentTestCase
   def test_render_default_renders
     render_inline(Bali::TurboNativeApp::SignOut::Component.new)
     assert_selector("button.turbo-native-app-sign-out-component", text: "Sign out")
@@ -14,6 +14,7 @@ class Bali_TurboNativeApp_SignOut_ComponentTest < ComponentTestCase
     )
   end
 
+
   def test_render_with_custom_name_renders
     render_inline(Bali::TurboNativeApp::SignOut::Component.new(name: "Log out"))
     assert_selector("button.turbo-native-app-sign-out-component", text: "Log out")
@@ -24,6 +25,7 @@ class Bali_TurboNativeApp_SignOut_ComponentTest < ComponentTestCase
       '"Are you sure?"]'
     )
   end
+
 
   def test_render_with_custom_confirmation_message_renders
     render_inline(Bali::TurboNativeApp::SignOut::Component.new(confirm: "are u sure?"))

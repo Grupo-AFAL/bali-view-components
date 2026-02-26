@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class Bali_Navbar_ComponentTest < ComponentTestCase
+class BaliNavbarComponentTest < ComponentTestCase
   #
 
 
@@ -97,15 +97,18 @@ class Bali_Navbar_ComponentTest < ComponentTestCase
   end
 
 
+
   def test_renders_base_color_by_default
     render_inline(Bali::Navbar::Component.new)
     assert_selector("nav.navbar.bg-base-100")
   end
+
   def test_skips_color_classes_for_unknown_symbol
     render_inline(Bali::Navbar::Component.new(color: :invalid))
     assert_selector("nav.navbar")
     assert_no_selector("nav.navbar.bg-base-100")
   end
+
   def test_skips_color_classes_when_color_is_nil_allowing_custom_class
     render_inline(Bali::Navbar::Component.new(color: nil, class: "bg-indigo-600 text-white"))
     assert_selector("nav.navbar.bg-indigo-600.text-white")
@@ -119,10 +122,12 @@ class Bali_Navbar_ComponentTest < ComponentTestCase
     render_inline(Bali::Navbar::Component.new)
     assert_selector('nav[role="navigation"]')
   end
+
   def test_accessibility_has_aria_label
     render_inline(Bali::Navbar::Component.new)
     assert_selector("nav[aria-label]")
   end
+
   def test_accessibility_burger_button_has_aria_label
     render_inline(Bali::Navbar::Component.new)
     assert_selector("button[aria-label]")
@@ -133,6 +138,7 @@ class Bali_Navbar_ComponentTest < ComponentTestCase
     render_inline(Bali::Navbar::Component.new)
     assert_selector('nav[data-controller="navbar"]')
   end
+
   def test_data_attributes_includes_throttle_interval_value
     render_inline(Bali::Navbar::Component.new)
     assert_selector('nav[data-navbar-throttle-interval-value="100"]')
@@ -143,17 +149,19 @@ class Bali_Navbar_ComponentTest < ComponentTestCase
     render_inline(Bali::Navbar::Component.new(class: "custom-navbar"))
     assert_selector("nav.navbar.custom-navbar")
   end
+
   def test_custom_options_passes_through_data_attributes
     render_inline(Bali::Navbar::Component.new(data: { testid: "nav" }))
     assert_selector('nav[data-testid="nav"]')
   end
+
   def test_custom_options_supports_container_class_option
     render_inline(Bali::Navbar::Component.new(container_class: "custom-container"))
     assert_selector("nav div.custom-container")
   end
 end
 
-class Bali_Navbar_Menu_ComponentTest < ComponentTestCase
+class BaliNavbarMenuComponentTest < ComponentTestCase
   def test_renders_with_daisyui_menu_classes
     render_inline(Bali::Navbar::Menu::Component.new) do |menu|
     menu.with_start_item(name: "Link", href: "#")
@@ -163,6 +171,7 @@ class Bali_Navbar_Menu_ComponentTest < ComponentTestCase
     # Menu uses responsive horizontal classes
     assert_selector("ul.menu")
   end
+
   def test_renders_end_items_in_flex_container_with_ml_auto_on_desktop
     render_inline(Bali::Navbar::Menu::Component.new) do |menu|
     menu.with_end_item(name: "End", href: "#")
@@ -170,12 +179,14 @@ class Bali_Navbar_Menu_ComponentTest < ComponentTestCase
     # ml-auto is responsive (lg:ml-auto)
     assert_selector('div[class*="lg:ml-auto"] a', text: "End")
   end
+
   def test_sets_correct_data_navbar_target_for_main_menu_with_start_items
     render_inline(Bali::Navbar::Menu::Component.new(type: :main)) do |menu|
     menu.with_start_item(name: "Link", href: "#")
     end
     assert_selector('div[data-navbar-target="menu"]')
   end
+
   def test_sets_correct_data_navbar_target_for_alt_menu_with_end_items
     render_inline(Bali::Navbar::Menu::Component.new(type: :alt)) do |menu|
     menu.with_end_item(name: "Action", href: "#")
@@ -184,49 +195,57 @@ class Bali_Navbar_Menu_ComponentTest < ComponentTestCase
   end
 end
 
-class Bali_Navbar_Item_ComponentTest < ComponentTestCase
+class BaliNavbarItemComponentTest < ComponentTestCase
   def test_renders_as_anchor_by_default
     render_inline(Bali::Navbar::Item::Component.new(name: "Link", href: "#"))
     assert_selector('a[href="#"]', text: "Link")
   end
+
   def test_renders_with_custom_tag
     render_inline(Bali::Navbar::Item::Component.new(tag_name: :div, name: "Div"))
     assert_selector("div", text: "Div")
   end
+
   def test_renders_content_block
     render_inline(Bali::Navbar::Item::Component.new(tag_name: :div)) { "Block content" }
     assert_selector("div", text: "Block content")
   end
+
   def test_passes_through_custom_attributes
     render_inline(Bali::Navbar::Item::Component.new(name: "Link", href: "#", class: "custom"))
     assert_selector("a.custom")
   end
 end
 
-class Bali_Navbar_Burger_ComponentTest < ComponentTestCase
+class BaliNavbarBurgerComponentTest < ComponentTestCase
   def test_renders_button_with_default_icon
     render_inline(Bali::Navbar::Burger::Component.new)
     assert_selector("button.btn.btn-ghost")
     assert_selector("svg")
   end
+
   def test_has_aria_label_for_accessibility
     render_inline(Bali::Navbar::Burger::Component.new)
     assert_selector("button[aria-label]")
   end
+
   def test_sets_correct_data_attributes_for_main_type
     render_inline(Bali::Navbar::Burger::Component.new(type: :main))
     assert_selector('[data-navbar-target="burger"]')
     assert_selector('[data-action*="navbar#toggleMenu"]')
   end
+
   def test_sets_correct_data_attributes_for_alt_type
     render_inline(Bali::Navbar::Burger::Component.new(type: :alt))
     assert_selector('[data-navbar-target="altBurger"]')
     assert_selector('[data-action*="navbar#toggleAltMenu"]')
   end
+
   def test_renders_custom_content
     render_inline(Bali::Navbar::Burger::Component.new) { "Custom icon" }
     assert_selector("button", text: "Custom icon")
   end
+
   def test_passes_through_custom_classes
     render_inline(Bali::Navbar::Burger::Component.new(class: "custom-burger"))
     assert_selector("button.btn.btn-ghost.custom-burger")
@@ -238,18 +257,22 @@ class Bali_Navbar_Burger_ComponentTest < ComponentTestCase
     assert_selector('a.btn.btn-ghost[href="/menu"]')
     assert_no_selector("button")
   end
+
   def test_with_href_renders_with_default_icon
     render_inline(Bali::Navbar::Burger::Component.new(href: "/menu"))
     assert_selector("a svg")
   end
+
   def test_with_href_renders_custom_content
     render_inline(Bali::Navbar::Burger::Component.new(href: "/menu")) { "Menu" }
     assert_selector("a", text: "Menu")
   end
+
   def test_with_href_has_aria_label_for_accessibility
     render_inline(Bali::Navbar::Burger::Component.new(href: "/menu"))
     assert_selector("a[aria-label]")
   end
+
   def test_with_href_does_not_add_stimulus_data_attributes
     render_inline(Bali::Navbar::Burger::Component.new(href: "/menu", type: :main))
     assert_no_selector("[data-navbar-target]")

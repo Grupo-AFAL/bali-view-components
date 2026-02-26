@@ -6,7 +6,7 @@ class CustomApplicationController < ApplicationController
   include Bali::LayoutConcern
 end
 
-class Bali_LayoutConcernTest < ActiveSupport::TestCase
+class BaliLayoutConcernTest < ActiveSupport::TestCase
   def setup
     @controller = CustomApplicationController.new
   end

@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class Bali_Icon_ComponentTest < ComponentTestCase
+class BaliIconComponentTest < ComponentTestCase
   #
 
   def test_basic_rendering_renders_with_icon_component_class
@@ -10,6 +10,7 @@ class Bali_Icon_ComponentTest < ComponentTestCase
     render_inline(Bali::Icon::Component.new("snowflake"))
     assert_selector("span.icon-component")
   end
+
   def test_basic_rendering_renders_with_custom_id_and_classes
     render_inline(Bali::Icon::Component.new("snowflake", id: "my-icon", class: "text-info"))
     assert_selector("span.icon-component.text-info")
@@ -21,10 +22,12 @@ class Bali_Icon_ComponentTest < ComponentTestCase
     render_inline(Bali::Icon::Component.new("snowflake", size: :small))
     assert_selector("span.icon-component.size-4")
   end
+
   def test_sizes_renders_with_medium_size_class
     render_inline(Bali::Icon::Component.new("snowflake", size: :medium))
     assert_selector("span.icon-component.size-8")
   end
+
   def test_sizes_renders_with_large_size_class
     render_inline(Bali::Icon::Component.new("snowflake", size: :large))
     assert_selector("span.icon-component.size-12")
@@ -39,6 +42,7 @@ class Bali_Icon_ComponentTest < ComponentTestCase
     assert_selector("span.icon-component")
     assert_selector("svg")
   end
+
   def test_resolution_pipeline_with_lucide_mapped_icons_renders_edit_as_pencil_from_lucide
     render_inline(Bali::Icon::Component.new("edit"))
     assert_selector("span.icon-component")
@@ -51,6 +55,7 @@ class Bali_Icon_ComponentTest < ComponentTestCase
     assert_selector("span.icon-component")
     assert_selector("svg")
   end
+
   def test_resolution_pipeline_with_kept_icons_brands_renders_social_media_icons_from_kept_set
     render_inline(Bali::Icon::Component.new("whatsapp"))
     assert_selector("span.icon-component")
