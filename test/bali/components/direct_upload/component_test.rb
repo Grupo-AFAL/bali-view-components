@@ -19,36 +19,30 @@ class BaliDirectUploadComponentTest < ActionView::TestCase
     assert_selector('.direct-upload-component[data-controller="direct-upload"]')
   end
 
-
   def test_default_rendering_renders_hidden_file_input
     render_component
     assert_selector('input[type="file"].hidden', visible: :all)
   end
-
 
   def test_default_rendering_renders_drop_zone_by_default
     render_component
     assert_selector('[data-direct-upload-target="dropzone"]')
   end
 
-
   def test_default_rendering_renders_browse_button
     render_component
     assert_selector(".btn", text: "Browse Files")
   end
-
 
   def test_default_rendering_renders_file_list_container
     render_component
     assert_selector('[data-direct-upload-target="fileList"]')
   end
 
-
   def test_default_rendering_renders_hidden_fields_container
     render_component
     assert_selector('[data-direct-upload-target="hiddenFields"]')
   end
-
 
   def test_default_rendering_renders_template_for_file_items
     render_component
@@ -62,36 +56,30 @@ class BaliDirectUploadComponentTest < ActionView::TestCase
     assert_selector("[data-direct-upload-url-value]")
   end
 
-
   def test_stimulus_data_values_sets_multiple_value_to_false_by_default
     render_component
     assert_selector('[data-direct-upload-multiple-value="false"]')
   end
-
 
   def test_stimulus_data_values_sets_max_files_value_to_10_by_default
     render_component
     assert_selector('[data-direct-upload-max-files-value="10"]')
   end
 
-
   def test_stimulus_data_values_sets_max_file_size_value_to_10_by_default
     render_component
     assert_selector('[data-direct-upload-max-file-size-value="10"]')
   end
-
 
   def test_stimulus_data_values_sets_accept_value_to_by_default
     render_component
     assert_selector('[data-direct-upload-accept-value="*"]')
   end
 
-
   def test_stimulus_data_values_sets_auto_upload_value_to_true_by_default
     render_component
     assert_selector('[data-direct-upload-auto-upload-value="true"]')
   end
-
 
   def test_stimulus_data_values_sets_field_name_value_based_on_form_object
     render_component
@@ -105,12 +93,10 @@ class BaliDirectUploadComponentTest < ActionView::TestCase
     assert_selector('[data-direct-upload-multiple-value="true"]')
   end
 
-
   def test_multiple_file_mode_sets_multiple_attribute_on_file_input
     render_component(multiple: true)
     assert_selector('input[type="file"][multiple]', visible: :all)
   end
-
 
   def test_multiple_file_mode_appends_to_field_name
     render_component(multiple: true)
@@ -124,18 +110,15 @@ class BaliDirectUploadComponentTest < ActionView::TestCase
     assert_selector('[data-direct-upload-max-files-value="5"]')
   end
 
-
   def test_max_file_size_configuration_sets_custom_max_file_size_value
     render_component(max_file_size: 20)
     assert_selector('[data-direct-upload-max-file-size-value="20"]')
   end
 
-
   def test_accept_filter_configuration_sets_custom_accept_value
     render_component(accept: "image/*,.pdf")
     assert_selector('[data-direct-upload-accept-value="image/*,.pdf"]')
   end
-
 
   def test_accept_filter_configuration_sets_accept_attribute_on_file_input
     render_component(accept: "image/*,.pdf")
@@ -149,12 +132,10 @@ class BaliDirectUploadComponentTest < ActionView::TestCase
     assert_no_selector('[data-direct-upload-target="dropzone"]')
   end
 
-
   def test_without_drop_zone_renders_browse_button
     render_component(drop_zone: false)
     assert_selector("button.btn", text: "Browse Files")
   end
-
 
   def test_without_drop_zone_browse_button_has_open_file_picker_action
     render_component(drop_zone: false)
@@ -179,7 +160,6 @@ class BaliDirectUploadComponentTest < ActionView::TestCase
     assert_includes(dropzone["data-action"], "drop->direct-upload#drop")
   end
 
-
   def test_drop_zone_interactions_has_click_handler_to_open_file_picker
     render_component
     dropzone = page.find('[data-direct-upload-target="dropzone"]')
@@ -192,7 +172,6 @@ class BaliDirectUploadComponentTest < ActionView::TestCase
     render_component
     assert_selector('input[data-direct-upload-target="input"]', visible: :all)
   end
-
 
   def test_file_input_attributes_has_select_files_action
     render_component
@@ -222,12 +201,10 @@ class BaliDirectUploadComponentTest < ActionView::TestCase
     assert_equal("0", dropzone["tabindex"])
   end
 
-
   def test_accessibility_renders_dropzone_with_aria_label
     render_component
     assert_selector('[data-direct-upload-target="dropzone"][aria-label]')
   end
-
 
   def test_accessibility_renders_file_list_with_role_list_and_aria_label
     render_component
@@ -236,7 +213,6 @@ class BaliDirectUploadComponentTest < ActionView::TestCase
     assert(file_list["aria-label"].present?)
   end
 
-
   def test_accessibility_renders_announcer_live_region_for_screen_readers
     render_component
     announcer = page.find('[data-direct-upload-target="announcer"]', visible: :all)
@@ -244,7 +220,6 @@ class BaliDirectUploadComponentTest < ActionView::TestCase
     assert_equal("polite", announcer["aria-live"])
     assert_includes(announcer.native["class"], "sr-only")
   end
-
 
   def test_accessibility_has_keyboard_support_handler_on_dropzone
     render_component
@@ -259,12 +234,10 @@ class BaliDirectUploadComponentTest < ActionView::TestCase
     assert_selector('[data-direct-upload-target="errorAlert"].alert.alert-error.hidden', visible: :all)
   end
 
-
   def test_error_alert_renders_error_message_container
     render_component
     assert_selector('[data-direct-upload-target="errorMessage"]', visible: :all)
   end
-
 
   def test_error_alert_renders_dismiss_button_with_action
     render_component
@@ -277,7 +250,6 @@ class BaliDirectUploadComponentTest < ActionView::TestCase
     render_component
     assert_selector("[data-direct-upload-remove-field-name-value]")
   end
-
 
   def test_remove_field_name_value_remove_field_name_includes_the_method_name
     render_component

@@ -10,18 +10,15 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_html(result, "fieldset.fieldset")
   end
 
-
   def test_slim_select_group_renders_a_label
     result = builder.slim_select_group(:status, Movie.statuses.to_a)
     assert_html(result, "legend.fieldset-legend", text: "Status")
   end
 
-
   def test_slim_select_group_renders_a_div_with_a_slim_select_controller
     result = builder.slim_select_group(:status, Movie.statuses.to_a)
     assert_html(result, 'div[data-controller="slim-select"]')
   end
-
 
   def test_slim_select_group_renders_a_select
     result = builder.slim_select_group(:status, Movie.statuses.to_a)
@@ -38,12 +35,10 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_html(result, "div.control")
   end
 
-
   def test_slim_select_field_renders_a_div_with_a_slim_select_controller
     result = builder.slim_select_field(:status, Movie.statuses.to_a)
     assert_html(result, 'div[data-controller="slim-select"]')
   end
-
 
   def test_slim_select_field_renders_a_select
     result = builder.slim_select_field(:status, Movie.statuses.to_a)
@@ -53,12 +48,10 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     end
   end
 
-
   def test_slim_select_field_applies_daisyui_select_classes
     result = builder.slim_select_field(:status, Movie.statuses.to_a)
     assert_html(result, "select.select.select-bordered")
   end
-
 
   def test_slim_select_field_applies_the_slim_select_wrapper_class
     result = builder.slim_select_field(:status, Movie.statuses.to_a)
@@ -72,19 +65,16 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_html(result, 'a.ss-toggle-btn[data-action="slim-select#selectAll"]')
   end
 
-
   def test_slim_select_field_select_all_option_renders_deselect_all_button_with_hidden_class
     result = builder.slim_select_field(:status, Movie.statuses.to_a, select_all: true)
     assert_html(result, 'a.ss-toggle-btn.hidden[data-action="slim-select#deselectAll"]')
   end
-
 
   def test_slim_select_field_select_all_option_sets_data_targets_on_buttons
     result = builder.slim_select_field(:status, Movie.statuses.to_a, select_all: true)
     assert_html(result, 'a[data-slim-select-target="selectAllButton"]')
     assert_html(result, 'a[data-slim-select-target="deselectAllButton"]')
   end
-
 
   def test_slim_select_field_select_all_option_uses_i18n_for_button_text
     I18n.with_locale(:en) do
@@ -103,7 +93,6 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_html(result, "select.select.select-bordered.custom-class")
   end
 
-
   def test_slim_select_field_custom_classes_applies_select_class_to_wrapper
     result = builder.slim_select_field(:status, Movie.statuses.to_a, {}, { select_class: "wrapper-class" })
     assert_html(result, "div.slim-select.wrapper-class")
@@ -118,7 +107,6 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_html(result, 'select[data-turbo-frame="_top"]')
     assert_html(result, 'select[data-custom="value"]')
   end
-
 
   def test_slim_select_field_custom_data_attributes_preserves_slim_select_target_when_no_custom_data_provided
     result = builder.slim_select_field(:status, Movie.statuses.to_a)
@@ -139,36 +127,30 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_html(result, 'div[data-slim-select-close-on-select-value="false"]')
   end
 
-
   def test_slim_select_field_stimulus_data_values_sets_allow_deselect_option_value
     result = builder.slim_select_field(:status, Movie.statuses.to_a, allow_deselect_option: true)
     assert_html(result, 'div[data-slim-select-allow-deselect-option-value="true"]')
   end
-
 
   def test_slim_select_field_stimulus_data_values_sets_placeholder_value
     result = builder.slim_select_field(:status, Movie.statuses.to_a, {}, { placeholder: "Choose one" })
     assert_html(result, 'div[data-slim-select-placeholder-value="Choose one"]')
   end
 
-
   def test_slim_select_field_stimulus_data_values_sets_add_items_value
     result = builder.slim_select_field(:status, Movie.statuses.to_a, add_items: true)
     assert_html(result, 'div[data-slim-select-add-items-value="true"]')
   end
-
 
   def test_slim_select_field_stimulus_data_values_sets_show_search_value
     result = builder.slim_select_field(:status, Movie.statuses.to_a, show_search: false)
     assert_html(result, 'div[data-slim-select-show-search-value="false"]')
   end
 
-
   def test_slim_select_field_stimulus_data_values_sets_custom_search_placeholder
     result = builder.slim_select_field(:status, Movie.statuses.to_a, search_placeholder: "Find...")
     assert_html(result, 'div[data-slim-select-search-placeholder-value="Find..."]')
   end
-
 
   def test_slim_select_field_stimulus_data_values_sets_add_to_body_value
     result = builder.slim_select_field(:status, Movie.statuses.to_a, add_to_body: true)
@@ -187,7 +169,6 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_html(result, 'div[data-slim-select-ajax-url-value="/api/search"]')
   end
 
-
   def test_slim_select_field_ajax_options_sets_ajax_param_name_value
     result = builder.slim_select_field(:status, Movie.statuses.to_a,
                                        ajax_url: "/api/search",
@@ -195,20 +176,17 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_html(result, 'div[data-slim-select-ajax-param-name-value="query"]')
   end
 
-
   def test_slim_select_field_ajax_options_sets_ajax_value_name_value
     result = builder.slim_select_field(:status, Movie.statuses.to_a,
                                        ajax_value_name: "id")
     assert_html(result, 'div[data-slim-select-ajax-value-name-value="id"]')
   end
 
-
   def test_slim_select_field_ajax_options_sets_ajax_text_name_value
     result = builder.slim_select_field(:status, Movie.statuses.to_a,
                                        ajax_text_name: "name")
     assert_html(result, 'div[data-slim-select-ajax-text-name-value="name"]')
   end
-
 
   def test_slim_select_field_ajax_options_sets_ajax_placeholder_value
     result = builder.slim_select_field(:status, Movie.statuses.to_a,
@@ -225,7 +203,6 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_html(result, 'div[data-slim-select-after-change-fetch-url-value="/api/update"]')
   end
 
-
   def test_slim_select_field_after_change_fetch_options_sets_after_change_fetch_method_value
     result = builder.slim_select_field(:status, Movie.statuses.to_a,
                                        after_change_fetch_url: "/api/update",
@@ -239,16 +216,13 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_equal "slim-select", Bali::FormBuilder::SlimSelectFields::WRAPPER_CLASS
   end
 
-
   def test_slim_select_field_constants_defines_select_class
     assert_equal "select select-bordered", Bali::FormBuilder::SlimSelectFields::SELECT_CLASS
   end
 
-
   def test_slim_select_field_constants_defines_toggle_button_class
     assert_equal "ss-toggle-btn", Bali::FormBuilder::SlimSelectFields::TOGGLE_BUTTON_CLASS
   end
-
 
   def test_slim_select_field_constants_defines_default_options_as_frozen
     assert Bali::FormBuilder::SlimSelectFields::DEFAULT_OPTIONS.frozen?

@@ -3,8 +3,6 @@
 require "test_helper"
 
 class BaliLoaderComponentTest < ComponentTestCase
-  #
-
   def test_basic_rendering_renders_loader_with_default_options
     render_inline(Bali::Loader::Component.new)
     assert_selector("div.loader-component")
@@ -26,8 +24,6 @@ class BaliLoaderComponentTest < ComponentTestCase
     render_inline(Bali::Loader::Component.new)
     assert_selector("p", text: "Loading...")
   end
-  #
-
   def test_accessibility_adds_role_status_to_the_spinner
     render_inline(Bali::Loader::Component.new)
     assert_selector('span.loading[role="status"]')
@@ -42,8 +38,6 @@ class BaliLoaderComponentTest < ComponentTestCase
     render_inline(Bali::Loader::Component.new)
     assert_selector('span.loading[aria-label="Loading..."]')
   end
-  #
-
   def test_types_renders_spinner_type_by_default
     render_inline(Bali::Loader::Component.new)
     assert_selector("span.loading.loading-spinner")
@@ -55,16 +49,12 @@ class BaliLoaderComponentTest < ComponentTestCase
     end
   end
 
-  #
-
   Bali::Loader::Component::SIZES.each_key do |size|
     define_method("test_sizes_renders_#{size}_size") do
       render_inline(Bali::Loader::Component.new(size: size, hide_text: true))
       assert_selector("span.loading.loading-#{size}")
     end
   end
-
-  #
 
   Bali::Loader::Component::COLORS.each_key do |color|
     define_method("test_colors_renders_#{color}_color_on_spinner") do
@@ -76,8 +66,6 @@ class BaliLoaderComponentTest < ComponentTestCase
       assert_selector("p.text-#{color}")
     end
   end
-
-  #
 
   def test_options_passthrough_accepts_custom_classes_on_container
     render_inline(Bali::Loader::Component.new(class: "my-custom-class"))

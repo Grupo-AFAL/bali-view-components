@@ -11,8 +11,6 @@ class BaliStatCardComponentTest < ComponentTestCase
 
   public
 
-  #
-
   def test_basic_rendering_renders_a_card_with_the_title
     render_inline(Bali::StatCard::Component.new(**default_attrs))
     assert_text("Total Users")
@@ -28,14 +26,10 @@ class BaliStatCardComponentTest < ComponentTestCase
     assert_selector("svg") # Lucide icon
   end
 
-
-
   def test_basic_rendering_renders_inside_a_card_component
     render_inline(Bali::StatCard::Component.new(**default_attrs))
     assert_selector(".card")
   end
-  #
-
   Bali::StatCard::Component::COLORS.each_key do |color|
     define_method("test_colors_applies_#{color}_color_classes") do
       render_inline(Bali::StatCard::Component.new(**default_attrs, color: color))
@@ -44,18 +38,15 @@ class BaliStatCardComponentTest < ComponentTestCase
     end
   end
 
-
   def test_defaults_to_primary_color
     render_inline(Bali::StatCard::Component.new(**default_attrs.except(:color), color: nil))
     # Should fallback to primary
     assert_selector(".bg-primary\\/10")
   end
 
-  #
-
   def test_footer_slot_renders_the_footer_when_provided
     render_inline(Bali::StatCard::Component.new(**default_attrs)) do |card|
-    card.with_footer { "Footer content" }
+      card.with_footer { "Footer content" }
     end
     assert_text("Footer content")
   end
@@ -66,8 +57,6 @@ class BaliStatCardComponentTest < ComponentTestCase
     assert_selector(".card")
     assert_no_selector(".mt-3.flex.items-center.gap-1.text-sm")
   end
-  #
-
   def test_private_attribute_readers_has_private_title_reader
     component = Bali::StatCard::Component.new(**default_attrs)
     assert_includes(component.private_methods, :title)
@@ -92,8 +81,6 @@ class BaliStatCardComponentTest < ComponentTestCase
     component = Bali::StatCard::Component.new(**default_attrs)
     assert_includes(component.private_methods, :options)
   end
-  #
-
   def test_icon_background_classes_returns_correct_bg_class_for_primary
     component = Bali::StatCard::Component.new(**default_attrs, color: :primary)
     assert_equal("bg-primary/10", component.icon_bg_class)
@@ -108,8 +95,6 @@ class BaliStatCardComponentTest < ComponentTestCase
     component = Bali::StatCard::Component.new(**default_attrs, color: :unknown)
     assert_equal("bg-primary/10", component.icon_bg_class)
   end
-  #
-
   def test_icon_text_classes_returns_correct_text_class_for_primary
     component = Bali::StatCard::Component.new(**default_attrs, color: :primary)
     assert_equal("text-primary", component.icon_text_class)
@@ -124,62 +109,53 @@ class BaliStatCardComponentTest < ComponentTestCase
     component = Bali::StatCard::Component.new(**default_attrs, color: :unknown)
     assert_equal("text-primary", component.icon_text_class)
   end
-  #
-
   def test_colors_constant_is_frozen
     assert(Bali::StatCard::Component::COLORS.frozen?)
   end
 
   def test_colors_constant_has_bg_and_text_keys_for_each_color
     Bali::StatCard::Component::COLORS.each_value do |classes|
-    assert(classes.key?(:bg))
-    assert(classes.key?(:text))
+      assert(classes.key?(:bg))
+      assert(classes.key?(:text))
   end
   end
-
-
-  #
 
   def test_card_options_includes_bordered_style
-    component = Bali::StatCard::Component.new(**default_attrs)
-    assert_equal(:bordered, component.card_options[:style])
+      component = Bali::StatCard::Component.new(**default_attrs)
+      assert_equal(:bordered, component.card_options[:style])
   end
 
   def test_card_options_passes_through_custom_options
-    component = Bali::StatCard::Component.new(**default_attrs, class: "custom-class")
-    assert_equal("custom-class", component.card_options[:class])
+      component = Bali::StatCard::Component.new(**default_attrs, class: "custom-class")
+      assert_equal("custom-class", component.card_options[:class])
   end
 
   def test_card_options_passes_through_data_attributes
-    component = Bali::StatCard::Component.new(**default_attrs, data: { testid: "stat" })
-    assert_equal({ testid: "stat" }, component.card_options[:data])
+      component = Bali::StatCard::Component.new(**default_attrs, data: { testid: "stat" })
+      assert_equal({ testid: "stat" }, component.card_options[:data])
   end
-  #
-
   def test_icon_container_classes_includes_base_classes
-    component = Bali::StatCard::Component.new(**default_attrs)
-    assert_includes(component.icon_container_classes, "p-3")
-    assert_includes(component.icon_container_classes, "rounded-full")
+      component = Bali::StatCard::Component.new(**default_attrs)
+      assert_includes(component.icon_container_classes, "p-3")
+      assert_includes(component.icon_container_classes, "rounded-full")
   end
 
   def test_icon_container_classes_includes_color_specific_background_class
-    component = Bali::StatCard::Component.new(**default_attrs, color: :warning)
-    assert_includes(component.icon_container_classes, "bg-warning/10")
+      component = Bali::StatCard::Component.new(**default_attrs, color: :warning)
+      assert_includes(component.icon_container_classes, "bg-warning/10")
   end
-  #
-
   def test_numeric_values_handles_integer_values
-    render_inline(Bali::StatCard::Component.new(**default_attrs, value: 42))
-    assert_text("42")
+      render_inline(Bali::StatCard::Component.new(**default_attrs, value: 42))
+      assert_text("42")
   end
 
   def test_numeric_values_handles_formatted_currency_values
-    render_inline(Bali::StatCard::Component.new(**default_attrs, value: "$1,234,567"))
-    assert_text("$1,234,567")
+      render_inline(Bali::StatCard::Component.new(**default_attrs, value: "$1,234,567"))
+      assert_text("$1,234,567")
   end
 
   def test_numeric_values_handles_percentage_values
-    render_inline(Bali::StatCard::Component.new(**default_attrs, value: "78%"))
-    assert_text("78%")
+      render_inline(Bali::StatCard::Component.new(**default_attrs, value: "78%"))
+      assert_text("78%")
   end
 end

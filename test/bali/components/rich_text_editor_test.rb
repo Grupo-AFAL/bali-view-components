@@ -9,11 +9,9 @@ class BaliRichTextEditorComponentTest < ComponentTestCase
     Bali.rich_text_editor_enabled = true
   end
 
-
   def teardown
     Bali.rich_text_editor_enabled = @original_enabled
   end
-
 
   def test_renders_richtexteditor_component
     render_inline(Bali::RichTextEditor::Component.new(**@options))

@@ -3,8 +3,6 @@
 require "test_helper"
 
 class BaliImageGridComponentTest < ComponentTestCase
-  #
-
   def test_grid_configuration_renders_a_4_column_grid_by_default
     render_inline(Bali::ImageGrid::Component.new)
     assert_selector(".grid.grid-cols-4.gap-4")
@@ -34,16 +32,12 @@ class BaliImageGridComponentTest < ComponentTestCase
     render_inline(Bali::ImageGrid::Component.new(data: { testid: "image-grid" }))
     assert_selector('[data-testid="image-grid"]')
   end
-  #
-
   Bali::ImageGrid::Component::COLUMNS.each do |count, css_class|
   define_method("test_column_variants_renders_#{count}_column_grid_with_#{css_class}") do
     render_inline(Bali::ImageGrid::Component.new(columns: count))
     assert_selector(".#{css_class}")
   end
   end
-
-  #
 
   Bali::ImageGrid::Component::GAPS.each do |size, css_class|
   define_method("test_gap_variants_renders_size_gap_with_#{css_class}") do
@@ -52,11 +46,9 @@ class BaliImageGridComponentTest < ComponentTestCase
   end
   end
 
-  #
-
   def test_with_images_renders_image_cards
     render_inline(Bali::ImageGrid::Component.new) do |c|
-    c.with_image { '<img src="test.jpg">'.html_safe }
+      c.with_image { '<img src="test.jpg">'.html_safe }
     end
     assert_selector(".card")
     assert_selector('img[src="test.jpg"]')
@@ -65,7 +57,7 @@ class BaliImageGridComponentTest < ComponentTestCase
   def test_with_images_renders_multiple_images
     render_inline(Bali::ImageGrid::Component.new) do |c|
     4.times do
-    c.with_image { '<img src="test.jpg">'.html_safe }
+      c.with_image { '<img src="test.jpg">'.html_safe }
     end
     end
     assert_selector(".card", count: 4)
@@ -73,31 +65,29 @@ class BaliImageGridComponentTest < ComponentTestCase
 
   def test_with_images_applies_default_aspect_ratio
     render_inline(Bali::ImageGrid::Component.new) do |c|
-    c.with_image { '<img src="test.jpg">'.html_safe }
+      c.with_image { '<img src="test.jpg">'.html_safe }
     end
     assert_selector("figure.aspect-\\[3\\/2\\]")
   end
 
   def test_with_images_accepts_custom_aspect_ratio_symbol
     render_inline(Bali::ImageGrid::Component.new) do |c|
-    c.with_image(aspect_ratio: :square) { '<img src="test.jpg">'.html_safe }
+      c.with_image(aspect_ratio: :square) { '<img src="test.jpg">'.html_safe }
     end
     assert_selector("figure.aspect-square")
   end
 
   def test_with_images_accepts_aspect_ratio_as_string
     render_inline(Bali::ImageGrid::Component.new) do |c|
-    c.with_image(aspect_ratio: "video") { '<img src="test.jpg">'.html_safe }
+      c.with_image(aspect_ratio: "video") { '<img src="test.jpg">'.html_safe }
     end
     assert_selector("figure.aspect-video")
   end
-  #
-
   def test_image_with_footer_renders_footer_when_provided
     render_inline(Bali::ImageGrid::Component.new) do |c|
     c.with_image do |image|
-    image.with_footer { "Caption text" }
-    '<img src="test.jpg">'.html_safe
+      image.with_footer { "Caption text" }
+      '<img src="test.jpg">'.html_safe
     end
     end
     assert_selector(".card-body", text: "Caption text")
@@ -105,15 +95,13 @@ class BaliImageGridComponentTest < ComponentTestCase
 
   def test_image_with_footer_does_not_render_footer_element_when_not_provided
     render_inline(Bali::ImageGrid::Component.new) do |c|
-    c.with_image { '<img src="test.jpg">'.html_safe }
+      c.with_image { '<img src="test.jpg">'.html_safe }
     end
     assert_no_selector(".card-body")
   end
 end
 
 class BaliImageGridImageComponentTest < ComponentTestCase
-  #
-
   def test_aspect_ratios_renders_square_aspect_ratio
     render_inline(Bali::ImageGrid::Image::Component.new(aspect_ratio: :square)) { '<img src="test.jpg">'.html_safe }
     assert_selector("figure.aspect-square")
@@ -156,7 +144,7 @@ class BaliImageGridImageComponentTest < ComponentTestCase
 
   def test_passes_through_data_attributes
     render_inline(Bali::ImageGrid::Image::Component.new(data: { image_id: "123" })) do
-    '<img src="test.jpg">'.html_safe
+      '<img src="test.jpg">'.html_safe
     end
     assert_selector('[data-image-id="123"]')
   end

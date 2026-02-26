@@ -17,7 +17,6 @@ class BlockEditorUploadsTest < ActionDispatch::IntegrationTest
     Bali.block_editor_max_upload_size       = nil
   end
 
-
   def teardown
     Bali.block_editor_enabled               = @orig_enabled
     Bali.block_editor_upload_authorize      = @orig_authorize
@@ -26,15 +25,12 @@ class BlockEditorUploadsTest < ActionDispatch::IntegrationTest
     Bali.block_editor_max_upload_size       = @orig_max_size
   end
 
-
   def valid_image
     Rack::Test::UploadedFile.new(
       Rails.root.join("app/assets/images/avatar.png"),
       "image/png"
     )
   end
-
-  #
 
   def test_post_bali_block_editor_uploads_uploads_a_file_via_active_storage_and_returns_a_url
     post bali.block_editor_uploads_path, params: { file: valid_image }
@@ -75,8 +71,6 @@ class BlockEditorUploadsTest < ActionDispatch::IntegrationTest
     file&.unlink
   end
 
-
-
   def test_post_bali_block_editor_uploads_rejects_files_exceeding_max_size
     Bali.block_editor_max_upload_size = 1.byte
     post bali.block_editor_uploads_path, params: { file: valid_image }
@@ -84,24 +78,17 @@ class BlockEditorUploadsTest < ActionDispatch::IntegrationTest
     json = response.parsed_body
     assert_includes(json["error"], "exceeds")
   end
-  #
-
   def test_post_bali_block_editor_uploads_with_authorization_returns_forbidden_when_authorize_lambda_returns_false
     Bali.block_editor_upload_authorize = ->(_controller) { false }
     post bali.block_editor_uploads_path, params: { file: valid_image }
     assert_response :forbidden
   end
 
-
-
   def test_post_bali_block_editor_uploads_with_authorization_allows_upload_when_authorize_lambda_returns_true
     Bali.block_editor_upload_authorize = ->(_controller) { true }
     post bali.block_editor_uploads_path, params: { file: valid_image }
     assert_response :ok
   end
-
-
-  #
 
   def test_post_bali_block_editor_uploads_with_custom_upload_handler_uses_the_custom_handler_and_returns_its_url
     handler = ->(file, _controller) { "/custom/uploads/#{file.original_filename}" }

@@ -8,11 +8,9 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     Bali.block_editor_enabled = true
   end
 
-
   def teardown
     Bali.block_editor_enabled = @original_enabled
   end
-
 
   def test_renders_block_editor_component
     render_inline(Bali::BlockEditor::Component.new)
@@ -98,8 +96,6 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     render_inline(Bali::BlockEditor::Component.new(html_content: "<p>Hello</p>"))
     assert_selector("[data-block-editor-html-content-value]")
   end
-  #
-
   def test_with_auto_upload_url_resolves_from_bali_block_editor_upload_url_config
     original = Bali.block_editor_upload_url
     Bali.block_editor_upload_url = "/bali/block_editor/uploads"
@@ -122,8 +118,6 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     render_inline(Bali::BlockEditor::Component.new(upload_url: nil))
     assert_no_selector("[data-block-editor-upload-url-value]")
   end
-  #
-
   def test_with_table_of_contents_sets_table_of_contents_value_to_false_by_default
     render_inline(Bali::BlockEditor::Component.new)
     assert_selector('[data-block-editor-table-of-contents-value="false"]')
@@ -133,8 +127,6 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     render_inline(Bali::BlockEditor::Component.new(table_of_contents: true))
     assert_selector('[data-block-editor-table-of-contents-value="true"]')
   end
-  #
-
   def test_with_comments_sets_comments_value_to_false_by_default
     render_inline(Bali::BlockEditor::Component.new)
     assert_selector('[data-block-editor-comments-value="false"]')
@@ -181,8 +173,6 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     render_inline(Bali::BlockEditor::Component.new(comments: { user: { id: "1", username: "Alice" } }))
     assert_selector('[data-block-editor-comments-url-value=""]')
   end
-  #
-
   def test_export_functionality_does_not_render_export_buttons_by_default
     render_inline(Bali::BlockEditor::Component.new)
     assert_no_selector('[data-action*="exportPdf"]')

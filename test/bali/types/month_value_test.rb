@@ -20,7 +20,6 @@ class BaliTypesMonthValueTest < ActiveSupport::TestCase
     assert_nil(@subject.cast(""))
   end
 
-
   def test_cast_returns_a_date_object
     assert_equal(Date.parse("2022-08-01"), @subject.cast("2022-08"))
   end
@@ -30,7 +29,6 @@ class BaliTypesMonthValueTest < ActiveSupport::TestCase
   def test_serialize_returns_value_if_is_blank
     assert_equal("", @subject.serialize(""))
   end
-
 
   def test_serialize_returns_a_normalized_date
     assert_equal("2022-08-01", @subject.serialize("2022-08"))

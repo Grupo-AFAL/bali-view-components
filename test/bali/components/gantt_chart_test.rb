@@ -24,11 +24,9 @@ class BaliGanttChartComponentTest < ComponentTestCase
     @options = { tasks: @tasks }
   end
 
-
   def component
     Bali::GanttChart::Component.new(**@options)
   end
-
 
   def month_name(number)
     I18n.t("date.month_names")[number]

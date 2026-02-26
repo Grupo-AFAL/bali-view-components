@@ -3,8 +3,6 @@
 require "test_helper"
 
 class BaliLinkComponentTest < ComponentTestCase
-  #
-
   def test_default_renders_a_basic_link
     render_inline(Bali::Link::Component.new(name: "Click me!", href: "#"))
     assert_selector("a", text: "Click me!")
@@ -20,8 +18,6 @@ class BaliLinkComponentTest < ComponentTestCase
     render_inline(Bali::Link::Component.new(name: "Click me!", href: "#"))
     assert_selector("a.inline-flex")
   end
-  #
-
   Bali::Link::Component::VARIANTS.each_key do |variant|
     define_method("test_variants_renders_#{variant}_variant") do
       render_inline(Bali::Link::Component.new(name: "Click", href: "#", variant: variant))
@@ -29,8 +25,6 @@ class BaliLinkComponentTest < ComponentTestCase
       assert_selector('a[href="#"]')
     end
   end
-
-  #
 
   def test_sizes_renders_small_button
     render_inline(Bali::Link::Component.new(name: "Small", href: "#", variant: :primary, size: :sm))
@@ -47,8 +41,6 @@ class BaliLinkComponentTest < ComponentTestCase
     assert_no_selector("a.btn-lg")
     assert_selector("a.link")
   end
-  #
-
   def test_styles_renders_outline_style
     render_inline(Bali::Link::Component.new(name: "Outline", href: "#", variant: :primary, style: :outline))
     assert_selector("a.btn.btn-primary.btn-outline")
@@ -69,11 +61,9 @@ class BaliLinkComponentTest < ComponentTestCase
     render_inline(Bali::Link::Component.new(name: "Small Outline", href: "#", variant: :primary, style: :outline, size: :sm))
     assert_selector("a.btn.btn-primary.btn-outline.btn-sm")
   end
-  #
-
   def test_with_icon_slot_renders_icon_via_slot
     render_inline(Bali::Link::Component.new(name: "Click", href: "#")) do |c|
-    c.with_icon("star")
+      c.with_icon("star")
     end
     assert_selector("a", text: "Click")
     assert_selector("span.icon-component")
@@ -81,30 +71,22 @@ class BaliLinkComponentTest < ComponentTestCase
 
   def test_with_icon_slot_renders_icon_with_button_variant
     render_inline(Bali::Link::Component.new(name: "Click", href: "#", variant: :primary)) do |c|
-    c.with_icon("star")
+      c.with_icon("star")
     end
     assert_selector("a.btn", text: "Click")
     assert_selector("span.icon-component")
   end
-  #
-
   def test_with_icon_name_parameter_renders_icon_from_icon_name
     render_inline(Bali::Link::Component.new(name: "Click", href: "#", icon_name: "star"))
     assert_selector("span.icon-component")
   end
-  #
-
   def test_with_icon_right_slot_renders_icon_on_the_right
     render_inline(Bali::Link::Component.new(name: "Next", href: "#", variant: :primary)) do |c|
-    c.with_icon_right("chevron-right")
+      c.with_icon_right("chevron-right")
     end
     assert_selector("a.btn", text: "Next")
     assert_selector("span.icon-component")
   end
-  #
-
-  #
-
   def test_active_indicator_when_current_path_is_active_does_not_add_the_active_class_when_active_is_false
     render_inline(Bali::Link::Component.new(name: "Link", href: "/items", active_path: "/items", active: false))
     assert_no_selector("a.active")
@@ -119,8 +101,6 @@ class BaliLinkComponentTest < ComponentTestCase
     render_inline(Bali::Link::Component.new(name: "Link", href: "/items", active_path: "/items"))
     assert_selector("a.active")
   end
-  #
-
   def test_active_indicator_when_current_path_is_not_active_adds_the_active_class_when_active_is_true_forced
     render_inline(Bali::Link::Component.new(name: "Link", href: "/items", active_path: "/movies", active: true))
     assert_selector("a.active")
@@ -135,8 +115,6 @@ class BaliLinkComponentTest < ComponentTestCase
     render_inline(Bali::Link::Component.new(name: "Link", href: "/items", active_path: "/movies"))
     assert_no_selector("a.active")
   end
-  #
-
   def test_method_parameter_renders_turbo_method_for_non_get_requests
     render_inline(Bali::Link::Component.new(name: "Delete", href: "#", method: :post))
     assert_selector('a[data-turbo-method="post"]', text: "Delete")
@@ -148,8 +126,6 @@ class BaliLinkComponentTest < ComponentTestCase
     assert_no_selector('a[data-turbo-method="get"]')
     assert_selector('a[data-method="get"]')
   end
-  #
-
   def test_disabled_adds_btn_disabled_class_when_disabled_with_variant
     render_inline(Bali::Link::Component.new(name: "Disabled", href: "/", variant: :primary, disabled: true))
     assert_selector("a.btn-disabled")
@@ -161,15 +137,11 @@ class BaliLinkComponentTest < ComponentTestCase
     assert_no_selector("a.btn-disabled")
     assert_no_selector("a[href]")
   end
-  #
-
   def test_plain_mode_renders_with_flex_classes_for_menu_items
     render_inline(Bali::Link::Component.new(name: "Menu Item", href: "#", plain: true))
     assert_selector("a.flex.items-center.gap-2")
     assert_no_selector("a.link")
   end
-  #
-
   def test_authorization_renders_when_authorized
     render_inline(Bali::Link::Component.new(name: "Link", href: "#", authorized: true))
     assert_selector("a", text: "Link")
@@ -179,8 +151,6 @@ class BaliLinkComponentTest < ComponentTestCase
     render_inline(Bali::Link::Component.new(name: "Link", href: "#", authorized: false))
     assert_no_selector("a")
   end
-  #
-
   def test_custom_options_passthrough_accepts_custom_classes
     render_inline(Bali::Link::Component.new(name: "Link", href: "#", class: "custom-class"))
     assert_selector("a.custom-class")
@@ -195,16 +165,12 @@ class BaliLinkComponentTest < ComponentTestCase
     render_inline(Bali::Link::Component.new(name: "Link", href: "#", id: "my-link"))
     assert_selector("a#my-link")
   end
-  #
-
   def test_content_block_renders_custom_content
     render_inline(Bali::Link::Component.new(href: "#", variant: :primary)) do
-    "Custom Content"
+      "Custom Content"
     end
     assert_selector("a.btn", text: "Custom Content")
   end
-  #
-
   def test_deprecated_type_parameter_supports_type_for_backwards_compatibility
     render_inline(Bali::Link::Component.new(name: "Button", href: "#", type: :primary))
     assert_selector("a.btn.btn-primary", text: "Button")

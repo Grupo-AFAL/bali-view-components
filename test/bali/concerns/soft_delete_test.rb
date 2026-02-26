@@ -14,7 +14,6 @@ class BaliConcernsSoftDeleteTest < ActiveSupport::TestCase
     assert_includes(Tenant.active_and_deleted, @tenant)
   end
 
-
   def test_active_and_deleted_includes_soft_deleted_tenant
     assert_includes(Tenant.active_and_deleted, @soft_deleted_tenant)
   end
@@ -24,7 +23,6 @@ class BaliConcernsSoftDeleteTest < ActiveSupport::TestCase
   def test_active_includes_active_tenant
     assert_includes(Tenant.active, @tenant)
   end
-
 
   def test_active_excludes_soft_deleted_tenant
     refute_includes(Tenant.active, @soft_deleted_tenant)
@@ -36,7 +34,6 @@ class BaliConcernsSoftDeleteTest < ActiveSupport::TestCase
     refute_includes(Tenant.soft_deleted, @tenant)
   end
 
-
   def test_soft_deleted_includes_soft_deleted_tenant
     assert_includes(Tenant.soft_deleted, @soft_deleted_tenant)
   end
@@ -47,7 +44,6 @@ class BaliConcernsSoftDeleteTest < ActiveSupport::TestCase
     assert(@tenant.active?)
   end
 
-
   def test_soft_deleted_tenant_is_not_active
     refute(@soft_deleted_tenant.active?)
   end
@@ -57,7 +53,6 @@ class BaliConcernsSoftDeleteTest < ActiveSupport::TestCase
   def test_active_tenant_is_not_soft_deleted
     refute(@tenant.soft_deleted?)
   end
-
 
   def test_soft_deleted_tenant_is_soft_deleted
     assert(@soft_deleted_tenant.soft_deleted?)

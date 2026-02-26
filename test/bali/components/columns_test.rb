@@ -7,7 +7,6 @@ class BaliColumnsComponentTest < ComponentTestCase
     @component = Bali::Columns::Component.new
   end
 
-
   def test_basic_rendering_renders_container_with_columns_class
     render_inline(@component) do |c|
       c.with_column { "First" }
@@ -16,7 +15,6 @@ class BaliColumnsComponentTest < ComponentTestCase
     assert_selector("div.columns")
   end
 
-
   def test_basic_rendering_renders_columns_with_column_class
     render_inline(@component) do |c|
       c.with_column { "First" }
@@ -24,7 +22,6 @@ class BaliColumnsComponentTest < ComponentTestCase
     end
     assert_selector("div.column", count: 2)
   end
-
 
   def test_gap_sizes_tailwind_like_applies_default_gap_md_class
     render_inline(@component) do |c|
@@ -42,14 +39,12 @@ class BaliColumnsComponentTest < ComponentTestCase
     end
   end
 
-
   def test_falls_back_to_gap_md_for_invalid_gap
     render_inline(Bali::Columns::Component.new(gap: :invalid)) do |c|
       c.with_column { "Content" }
     end
     assert_selector("div.columns.gap-md")
   end
-
 
   def test_wrap_modifier_applies_columns_wrap_class_when_wrap_true
     render_inline(Bali::Columns::Component.new(wrap: true)) do |c|
@@ -58,7 +53,6 @@ class BaliColumnsComponentTest < ComponentTestCase
     assert_selector("div.columns.columns-wrap")
   end
 
-
   def test_alignment_modifiers_applies_columns_center_when_center_true
     render_inline(Bali::Columns::Component.new(center: true)) do |c|
       c.with_column(size: :half) { "Centered" }
@@ -66,14 +60,12 @@ class BaliColumnsComponentTest < ComponentTestCase
     assert_selector("div.columns.columns-center")
   end
 
-
   def test_alignment_modifiers_applies_columns_middle_when_middle_true
     render_inline(Bali::Columns::Component.new(middle: true)) do |c|
       c.with_column { "Middle" }
     end
     assert_selector("div.columns.columns-middle")
   end
-
 
   def test_mobile_modifier_applies_columns_mobile_when_mobile_true
     render_inline(Bali::Columns::Component.new(mobile: true)) do |c|
@@ -113,7 +105,6 @@ class BaliColumnsComponentTest < ComponentTestCase
     end
   end
 
-
   def test_auto_width_columns_applies_col_auto_class_when_auto_true
     render_inline(@component) do |c|
       c.with_column(auto: true) { "Auto" }
@@ -151,14 +142,12 @@ class BaliColumnsComponentTest < ComponentTestCase
     end
   end
 
-
   def test_custom_classes_passthrough_accepts_custom_classes_on_container
     render_inline(Bali::Columns::Component.new(class: "custom-container")) do |c|
       c.with_column { "Content" }
     end
     assert_selector("div.columns.custom-container")
   end
-
 
   def test_custom_classes_passthrough_accepts_custom_classes_on_column
     render_inline(@component) do |c|
@@ -167,14 +156,12 @@ class BaliColumnsComponentTest < ComponentTestCase
     assert_selector("div.column.custom-column")
   end
 
-
   def test_custom_classes_passthrough_accepts_data_attributes_on_container
     render_inline(Bali::Columns::Component.new(data: { testid: "columns" })) do |c|
       c.with_column { "Content" }
     end
     assert_selector('div.columns[data-testid="columns"]')
   end
-
 
   def test_custom_classes_passthrough_accepts_data_attributes_on_column
     render_inline(@component) do |c|
@@ -183,7 +170,6 @@ class BaliColumnsComponentTest < ComponentTestCase
     assert_selector('div.column[data-testid="column"]')
   end
 
-
   def test_real_world_layouts_renders_two_half_columns_correctly
     render_inline(@component) do |c|
       c.with_column(size: :half) { "Left" }
@@ -191,7 +177,6 @@ class BaliColumnsComponentTest < ComponentTestCase
     end
     assert_selector("div.column.col-half", count: 2)
   end
-
 
   def test_real_world_layouts_renders_4_8_split_with_col_4_and_col_8
     render_inline(@component) do |c|
@@ -202,7 +187,6 @@ class BaliColumnsComponentTest < ComponentTestCase
     assert_selector("div.column.col-8")
   end
 
-
   def test_real_world_layouts_renders_three_equal_columns
     render_inline(@component) do |c|
       c.with_column(size: :one_third) { "One" }
@@ -211,7 +195,6 @@ class BaliColumnsComponentTest < ComponentTestCase
     end
     assert_selector("div.column.col-third", count: 3)
   end
-
 
   def test_real_world_layouts_renders_centered_half_width_column
     render_inline(Bali::Columns::Component.new(center: true)) do |c|

@@ -23,18 +23,15 @@ class BaliConcernsDateRangeAttributeActiveModelTest < ActiveSupport::TestCase
     @model = ModelWithDateRangeAttribute.new
   end
 
-
   def test_date_range_returns_assigned_range
     @model.date_range = Time.zone.now.all_day
     assert_equal(Time.zone.now.all_day, @model.date_range)
   end
 
-
   def test_date_range_setter_with_range_object
     @model.date_range = Time.zone.now.all_day
     assert_equal(Time.zone.now.all_day, @model.date_range)
   end
-
 
   def test_date_range_setter_with_valid_date_range_string
     range = Time.zone.local(2023, 3, 1)..Time.zone.local(2023, 3, 10).end_of_day
@@ -42,13 +39,11 @@ class BaliConcernsDateRangeAttributeActiveModelTest < ActiveSupport::TestCase
     assert_equal(range, @model.date_range)
   end
 
-
   def test_date_range_setter_with_single_day_string
     range = Time.zone.local(2023, 3, 1)..Time.zone.local(2023, 3, 1).end_of_day
     @model.date_range = "2023-03-01"
     assert_equal(range, @model.date_range)
   end
-
 
   def test_date_range_setter_with_empty_string
     @model.date_range = ""
@@ -70,14 +65,12 @@ class BaliConcernsDateRangeAttributeWorkingPeriodTest < ActiveSupport::TestCase
     assert_equal(Time.zone.now.end_of_day, @model.workout_end_at)
   end
 
-
   def test_working_period_setter_with_range_object
     @model.working_period = Time.zone.now.all_day
     assert_equal(Time.zone.now.all_day, @model.working_period)
     assert_equal(Time.zone.now.beginning_of_day, @model.workout_start_at)
     assert_equal(Time.zone.now.end_of_day, @model.workout_end_at)
   end
-
 
   def test_working_period_setter_with_valid_date_range_string
     range_start = Time.zone.local(2023, 3, 1)
@@ -88,7 +81,6 @@ class BaliConcernsDateRangeAttributeWorkingPeriodTest < ActiveSupport::TestCase
     assert_equal(range_end, @model.workout_end_at)
   end
 
-
   def test_working_period_setter_with_single_day_string
     range_start = Time.zone.local(2023, 3, 1)
     range_end = Time.zone.local(2023, 3, 1).end_of_day
@@ -97,7 +89,6 @@ class BaliConcernsDateRangeAttributeWorkingPeriodTest < ActiveSupport::TestCase
     assert_equal(range_start, @model.workout_start_at)
     assert_equal(range_end, @model.workout_end_at)
   end
-
 
   def test_working_period_setter_with_empty_string
     @model.working_period = ""
@@ -115,14 +106,12 @@ class BaliConcernsDateRangeAttributeWorkingPeriodTest < ActiveSupport::TestCase
     assert_equal(Time.zone.now.end_of_day, @model.available_to)
   end
 
-
   def test_available_period_setter_with_range_object
     @model.available_period = Time.zone.now.all_day
     assert_equal(Time.zone.now.all_day, @model.available_period)
     assert_equal(Time.zone.now.beginning_of_day, @model.available_from)
     assert_equal(Time.zone.now.end_of_day, @model.available_to)
   end
-
 
   def test_available_period_setter_with_valid_date_range_string
     range_start = Time.zone.local(2023, 3, 1)
@@ -133,7 +122,6 @@ class BaliConcernsDateRangeAttributeWorkingPeriodTest < ActiveSupport::TestCase
     assert_equal(range_end, @model.available_to)
   end
 
-
   def test_available_period_setter_with_single_day_string
     range_start = Time.zone.local(2023, 3, 1)
     range_end = Time.zone.local(2023, 3, 1).end_of_day
@@ -142,7 +130,6 @@ class BaliConcernsDateRangeAttributeWorkingPeriodTest < ActiveSupport::TestCase
     assert_equal(range_start, @model.available_from)
     assert_equal(range_end, @model.available_to)
   end
-
 
   def test_available_period_setter_with_empty_string
     @model.available_period = ""

@@ -3,8 +3,6 @@
 require "test_helper"
 
 class BaliSortableListComponentTest < ComponentTestCase
-  #
-
   def test_base_classes_constant_is_frozen
     assert(Bali::SortableList::Component::BASE_CLASSES.frozen?)
   end
@@ -13,8 +11,6 @@ class BaliSortableListComponentTest < ComponentTestCase
     assert_includes(Bali::SortableList::Component::BASE_CLASSES, "sortable-list-component")
     assert_includes(Bali::SortableList::Component::BASE_CLASSES, "p-0")
   end
-  #
-
   def test_defaults_constant_is_frozen
     assert(Bali::SortableList::Component::DEFAULTS.frozen?)
   end
@@ -26,8 +22,6 @@ class BaliSortableListComponentTest < ComponentTestCase
     assert_equal(false, Bali::SortableList::Component::DEFAULTS[:disabled])
     assert_equal(150, Bali::SortableList::Component::DEFAULTS[:animation])
   end
-  #
-
   def test_rendering_renders_a_sortable_component_with_base_classes
     render_inline(Bali::SortableList::Component.new)
     assert_selector("div.sortable-list-component")
@@ -39,8 +33,6 @@ class BaliSortableListComponentTest < ComponentTestCase
     render_inline(Bali::SortableList::Component.new) { "Custom content" }
     assert_text("Custom content")
   end
-  #
-
   def test_disabled_option_renders_disabled_sortable_component
     render_inline(Bali::SortableList::Component.new(disabled: true))
     assert_selector('div[data-sortable-list-disabled-value="true"]')
@@ -50,13 +42,11 @@ class BaliSortableListComponentTest < ComponentTestCase
     render_inline(Bali::SortableList::Component.new)
     assert_selector('div[data-sortable-list-disabled-value="false"]')
   end
-  #
-
   def test_items_slot_renders_sortable_component_with_items
     render_inline(Bali::SortableList::Component.new) do |c|
-    c.with_item(update_url: "/items/1") { "Item 1" }
-    c.with_item(update_url: "/items/2") { "Item 2" }
-    c.with_item(update_url: "/items/3", item_pull: false) { "Item 3" }
+      c.with_item(update_url: "/items/1") { "Item 1" }
+      c.with_item(update_url: "/items/2") { "Item 2" }
+      c.with_item(update_url: "/items/3", item_pull: false) { "Item 3" }
     end
     assert_selector("div.sortable-item", count: 3)
     assert_selector('div.sortable-item[data-sortable-update-url="/items/1"]')
@@ -65,9 +55,6 @@ class BaliSortableListComponentTest < ComponentTestCase
     assert_selector('div.sortable-item[data-sortable-item-pull="true"]', count: 2)
     assert_selector('div.sortable-item[data-sortable-item-pull="false"]', count: 1)
   end
-  #
-
-
   def test_all_stimulus_values_passes_all_values_to_stimulus_controller
     options = {
       animation: 200,
@@ -91,8 +78,6 @@ class BaliSortableListComponentTest < ComponentTestCase
     assert_selector('div[data-sortable-list-response-kind-value="turbo_stream"]')
     assert_selector('div[data-sortable-list-position-param-name-value="custom_position"]')
   end
-  #
-
   def test_options_passthrough_accepts_custom_classes
     render_inline(Bali::SortableList::Component.new(class: "custom-class"))
     assert_selector("div.sortable-list-component.custom-class")
@@ -107,11 +92,9 @@ class BaliSortableListComponentTest < ComponentTestCase
     render_inline(Bali::SortableList::Component.new(id: "my-sortable"))
     assert_selector("div#my-sortable")
   end
-  #
-
   def test_cursor_styling_adds_cursor_grab_to_items_when_no_handle_is_specified
     render_inline(Bali::SortableList::Component.new) do |c|
-    c.with_item(update_url: "/items/1") { "Item 1" }
+      c.with_item(update_url: "/items/1") { "Item 1" }
     end
     # Parent should have the CSS class that targets items
     assert_selector('div[class*="[&_.sortable-item]:cursor-grab"]')
@@ -119,7 +102,7 @@ class BaliSortableListComponentTest < ComponentTestCase
 
   def test_cursor_styling_does_not_add_cursor_grab_to_items_when_handle_is_specified
     render_inline(Bali::SortableList::Component.new(handle: ".handle")) do |c|
-    c.with_item(update_url: "/items/1") { "Item 1" }
+      c.with_item(update_url: "/items/1") { "Item 1" }
     end
     # Parent should NOT have the item cursor class
     assert_no_selector('div[class*="[&_.sortable-item]:cursor-grab"]')
@@ -129,8 +112,6 @@ class BaliSortableListComponentTest < ComponentTestCase
 end
 
 class BaliSortableListItemComponentTest < ComponentTestCase
-  #
-
   def test_base_classes_constant_is_frozen
     assert(Bali::SortableList::Item::Component::BASE_CLASSES.frozen?)
   end
@@ -140,8 +121,6 @@ class BaliSortableListItemComponentTest < ComponentTestCase
     assert_includes(Bali::SortableList::Item::Component::BASE_CLASSES, "bg-base-100")
     assert_includes(Bali::SortableList::Item::Component::BASE_CLASSES, "border")
   end
-  #
-
   def test_rendering_renders_an_item_with_update_url
     render_inline(Bali::SortableList::Item::Component.new(update_url: "/items/1")) { "Item content" }
     assert_selector("div.sortable-item")
@@ -158,21 +137,17 @@ class BaliSortableListItemComponentTest < ComponentTestCase
     render_inline(Bali::SortableList::Item::Component.new(update_url: "/items/1", item_pull: false))
     assert_selector('div[data-sortable-item-pull="false"]')
   end
-  #
-
   def test_nested_list_slot_renders_with_nested_sortable_list
     render_inline(Bali::SortableList::Item::Component.new(update_url: "/items/1")) do |item|
     item.with_list(list_id: "nested") do |nested|
-    nested.with_item(update_url: "/items/nested/1") { "Nested item" }
+      nested.with_item(update_url: "/items/nested/1") { "Nested item" }
     end
-    "Parent item"
+      "Parent item"
     end
     assert_selector("div.sortable-item div.sortable-list-component")
     assert_text("Parent item")
     assert_text("Nested item")
   end
-  #
-
   def test_options_passthrough_accepts_custom_classes
     render_inline(Bali::SortableList::Item::Component.new(update_url: "/items/1", class: "custom-item"))
     assert_selector("div.sortable-item.custom-item")

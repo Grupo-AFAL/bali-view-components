@@ -13,11 +13,9 @@ class BaliCalendarComponentTest < ComponentTestCase
     Bali::Calendar::Component.new(**@options)
   end
 
-
   def monday
     Date.current.prev_occurring(:monday)
   end
-
 
   def friday
     Date.current.prev_occurring(:friday)
@@ -274,11 +272,9 @@ class BaliCalendarEventGrouperTest < ActiveSupport::TestCase
     Bali::Calendar::Component
   end
 
-
   def event_class
     Struct.new(:start_time, :end_time)
   end
-
 
   def test_groups_single_day_events_by_date
     events = [
@@ -290,7 +286,6 @@ class BaliCalendarEventGrouperTest < ActiveSupport::TestCase
     assert_equal(2, grouper.by_date[Date.parse("2020-02-01")].size)
   end
 
-
   def test_spreads_multi_day_events_across_all_dates
     events = [
       event_class.new(Date.parse("2020-02-01"), Date.parse("2020-02-03"))
@@ -301,7 +296,6 @@ class BaliCalendarEventGrouperTest < ActiveSupport::TestCase
     assert_equal(expected.sort, grouper.by_date.keys.sort)
   end
 
-
   def test_filters_out_events_with_nil_start_time
     events = [
       event_class.new(nil, nil),
@@ -311,7 +305,6 @@ class BaliCalendarEventGrouperTest < ActiveSupport::TestCase
     grouper = Bali::Calendar::EventGrouper.new(events)
     assert_equal(1, grouper.by_date.values.flatten.size)
   end
-
 
   def test_handles_custom_attribute_methods
     custom_class = Struct.new(:begins_at, :ends_at)

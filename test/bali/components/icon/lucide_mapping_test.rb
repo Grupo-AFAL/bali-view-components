@@ -3,8 +3,6 @@
 require "test_helper"
 
 class BaliIconLucideMappingTest < ActiveSupport::TestCase
-  #
-
   def test_find_returns_lucide_name_for_mapped_bali_icon
     assert_equal("pencil", Bali::Icon::LucideMapping.find("edit"))
     assert_equal("trash-2", Bali::Icon::LucideMapping.find("trash"))
@@ -19,8 +17,6 @@ class BaliIconLucideMappingTest < ActiveSupport::TestCase
   def test_find_accepts_symbols
     assert_equal("pencil", Bali::Icon::LucideMapping.find(:edit))
   end
-  #
-
   def test_mapped_returns_true_for_mapped_icons
     assert(Bali::Icon::LucideMapping.mapped?("user"))
     assert(Bali::Icon::LucideMapping.mapped?("check"))
@@ -30,8 +26,6 @@ class BaliIconLucideMappingTest < ActiveSupport::TestCase
     refute(Bali::Icon::LucideMapping.mapped?("visa"))
     refute(Bali::Icon::LucideMapping.mapped?("whatsapp"))
   end
-  #
-
   def test_bali_names_returns_all_bali_icon_names_that_have_mappings
     names = Bali::Icon::LucideMapping.bali_names
     assert_includes(names, "edit")
@@ -41,8 +35,6 @@ class BaliIconLucideMappingTest < ActiveSupport::TestCase
     refute_includes(names, "visa")
     refute_includes(names, "whatsapp")
   end
-  #
-
   def test_lucide_names_returns_unique_lucide_names_used_in_mappings
     names = Bali::Icon::LucideMapping.lucide_names
     assert_includes(names, "pencil")
@@ -51,8 +43,6 @@ class BaliIconLucideMappingTest < ActiveSupport::TestCase
     assert_includes(names, "check")
     assert_equal(names.size, names.uniq.size)
   end
-  #
-
   def test_mapping_constant_is_frozen
     assert(Bali::Icon::LucideMapping::MAPPING.frozen?)
   end

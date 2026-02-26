@@ -8,24 +8,20 @@ class BaliFormBuilderRangeFieldGroupTest < FormBuilderTestCase
     assert_html(result, "fieldset.fieldset")
   end
 
-
   def test_renders_a_legend_with_translated_label
     result = builder.range_field_group(:rating)
     assert_html(result, "fieldset legend.fieldset-legend", text: "Rating")
   end
-
 
   def test_renders_a_range_input
     result = builder.range_field_group(:rating)
     assert_html(result, 'input[type="range"].range')
   end
 
-
   def test_sets_default_min_max_step_values
     result = builder.range_field_group(:rating)
     assert_html(result, 'input[min="0"][max="100"][step="1"]')
   end
-
 
   def test_applies_w_full_class_for_full_width
     result = builder.range_field_group(:rating)
@@ -78,7 +74,6 @@ class BaliFormBuilderRangeFieldGroupTest < FormBuilderTestCase
     assert_html(result, "div.flex.justify-between")
   end
 
-
   def test_with_show_ticks_renders_tick_labels
     result = builder.range_field_group(:rating, min: 0, max: 100, show_ticks: true, ticks: 3)
     assert_html(result, "div span", count: 3)
@@ -111,7 +106,6 @@ class BaliFormBuilderRangeFieldGroupTest < FormBuilderTestCase
     result = builder.range_field_group(:rating)
     assert_html(result, "input.range.range-error")
   end
-
 
   def test_with_validation_errors_renders_error_message
     resource.errors.add(:rating, "is invalid")

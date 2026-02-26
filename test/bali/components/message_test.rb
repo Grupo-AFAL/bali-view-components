@@ -12,8 +12,6 @@ class BaliMessageComponentTest < ComponentTestCase
     render_inline(Bali::Message::Component.new) { "Content" }
     assert_selector("div.alert.message-component")
   end
-  #
-
   Bali::Message::Component::COLORS.each do |color, css_class|
   define_method("test_colors_renders_#{color}_#{color}_with_#{css_class}") do
     render_inline(Bali::Message::Component.new(color: color)) { "Content" }
@@ -24,8 +22,6 @@ class BaliMessageComponentTest < ComponentTestCase
     assert_selector("div.alert.alert-info")
   end
   end
-
-  #
 
   def test_sizes_renders_small_size
     render_inline(Bali::Message::Component.new(size: :small)) { "Content" }
@@ -53,8 +49,6 @@ class BaliMessageComponentTest < ComponentTestCase
     render_inline(Bali::Message::Component.new(size: :unknown)) { "Content" }
     assert_selector("div.alert")
   end
-  #
-
   def test_with_title_renders_title_in_bold_span
     render_inline(Bali::Message::Component.new(title: "My Title")) { "Content" }
     assert_selector("span.font-bold", text: "My Title")
@@ -66,12 +60,10 @@ class BaliMessageComponentTest < ComponentTestCase
     assert_selector("span.font-bold", text: "Header")
     assert_text("Body text")
   end
-  #
-
   def test_with_header_slot_renders_custom_header
     render_inline(Bali::Message::Component.new) do |c|
-    c.with_header { "Custom Header" }
-    "Body content"
+      c.with_header { "Custom Header" }
+      "Body content"
     end
     assert_selector("div.flex.flex-col.gap-1")
     assert_text("Custom Header")
@@ -80,21 +72,17 @@ class BaliMessageComponentTest < ComponentTestCase
 
   def test_with_header_slot_prefers_title_over_header_slot
     render_inline(Bali::Message::Component.new(title: "Title wins")) do |c|
-    c.with_header { "Header slot" }
-    "Content"
+      c.with_header { "Header slot" }
+      "Content"
     end
     assert_selector("span.font-bold", text: "Title wins")
     assert_no_text("Header slot")
   end
-  #
-
   def test_without_title_or_header_renders_content_directly
     render_inline(Bali::Message::Component.new) { "Simple message" }
     assert_selector("div.alert > span", text: "Simple message")
     assert_no_selector("div.flex.flex-col")
   end
-  #
-
   def test_options_passthrough_accepts_custom_classes
     render_inline(Bali::Message::Component.new(class: "custom-class")) { "Content" }
     assert_selector("div.alert.custom-class")

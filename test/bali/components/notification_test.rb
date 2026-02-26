@@ -3,11 +3,9 @@
 require "test_helper"
 
 class BaliNotificationComponentTest < ComponentTestCase
-  #
-
   def test_basic_rendering_renders_alert_with_default_success_type
     render_inline(Bali::Notification::Component.new) do
-    "Hello World!"
+      "Hello World!"
     end
     assert_selector("div.notification-component.alert", text: "Hello World!")
     assert_selector("div.alert-success")
@@ -30,8 +28,6 @@ class BaliNotificationComponentTest < ComponentTestCase
     render_inline(Bali::Notification::Component.new(fixed: false))
     assert_selector("div.notification-component.alert")
   end
-  #
-
   Bali::Notification::Component::TYPES.each_key do |type|
     next if %i[danger primary].include?(type) # aliases
 
@@ -41,25 +37,20 @@ class BaliNotificationComponentTest < ComponentTestCase
     end
   end
 
-
   def test_maps_danger_to_error
     render_inline(Bali::Notification::Component.new(type: :danger, fixed: false))
     assert_selector("div.alert.alert-error")
   end
-
 
   def test_maps_primary_to_info
     render_inline(Bali::Notification::Component.new(type: :primary, fixed: false))
     assert_selector("div.alert.alert-info")
   end
 
-
   def test_falls_back_to_success_for_unknown_types
     render_inline(Bali::Notification::Component.new(type: :unknown, fixed: false))
     assert_selector("div.alert.alert-success")
   end
-
-  #
 
   def test_fixed_positioning_renders_fixed_classes_when_fixed_is_true
     render_inline(Bali::Notification::Component.new(fixed: true))
@@ -70,8 +61,6 @@ class BaliNotificationComponentTest < ComponentTestCase
     render_inline(Bali::Notification::Component.new(fixed: false))
     assert_no_selector("div.fixed")
   end
-  #
-
   def test_dismiss_configuration_sets_dismiss_value_to_true
     render_inline(Bali::Notification::Component.new(dismiss: true))
     assert_selector('[data-notification-dismiss-value="true"]')
@@ -81,20 +70,14 @@ class BaliNotificationComponentTest < ComponentTestCase
     render_inline(Bali::Notification::Component.new(dismiss: false))
     assert_selector('[data-notification-dismiss-value="false"]')
   end
-  #
-
   def test_custom_delay_sets_custom_delay_value
     render_inline(Bali::Notification::Component.new(delay: 5000))
     assert_selector('[data-notification-delay-value="5000"]')
   end
-  #
-
   def test_options_passthrough_accepts_custom_classes
     render_inline(Bali::Notification::Component.new(fixed: false, class: "my-custom-class"))
     assert_selector("div.notification-component.my-custom-class")
   end
-  #
-
   def test_constants_has_frozen_types_constant
     assert(Bali::Notification::Component::TYPES.frozen?)
   end

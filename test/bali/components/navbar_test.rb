@@ -3,17 +3,14 @@
 require "test_helper"
 
 class BaliNavbarComponentTest < ComponentTestCase
-  #
-
-
   def test_without_fullscreen_renders_navbar_component
     render_inline(Bali::Navbar::Component.new(fullscreen: false)) do |c|
-    c.with_brand { '<a class="btn btn-ghost text-xl">Bali</a>'.html_safe }
-    c.with_menu do |menu|
-    menu.with_start_items([
-    { name: "Tech Stack", href: "#" }, { name: "Projects", href: "#" }, { name: "Team", href: "#" }, { name: "Open Positions", href: "#" }
-    ])
-    end
+      c.with_brand { '<a class="btn btn-ghost text-xl">Bali</a>'.html_safe }
+      c.with_menu do |menu|
+        menu.with_start_items([
+          { name: "Tech Stack", href: "#" }, { name: "Projects", href: "#" }, { name: "Team", href: "#" }, { name: "Open Positions", href: "#" }
+        ])
+      end
     end
     assert_selector("a.btn.btn-ghost", text: "Bali")
     assert_selector("a", text: "Tech Stack")
@@ -24,15 +21,13 @@ class BaliNavbarComponentTest < ComponentTestCase
     # Non-fullscreen: centered with max-width constraint
     assert_selector("nav div.max-w-7xl.mx-auto")
   end
-  #
-
 
   def test_with_fullscreen_renders_navbar_component_with_fullscreen
     render_inline(Bali::Navbar::Component.new(fullscreen: true)) do |c|
-    c.with_brand { '<a class="btn btn-ghost text-xl">Bali</a>'.html_safe }
-    c.with_menu do |menu|
-    menu.with_start_items([ { name: "Tech Stack", href: "#" } ])
-    end
+      c.with_brand { '<a class="btn btn-ghost text-xl">Bali</a>'.html_safe }
+      c.with_menu do |menu|
+        menu.with_start_items([ { name: "Tech Stack", href: "#" } ])
+      end
     end
     assert_selector("a.btn.btn-ghost", text: "Bali")
     assert_selector("a", text: "Tech Stack")
@@ -40,45 +35,41 @@ class BaliNavbarComponentTest < ComponentTestCase
     # Fullscreen: edge-to-edge, no max-width constraint
     assert_no_selector("nav div.max-w-6xl")
   end
-  #
-
 
   def test_with_transparency_enabled_renders_navbar_component_with_transparency_data_attribute
     render_inline(Bali::Navbar::Component.new(transparency: true)) do |c|
-    c.with_brand { '<a class="btn btn-ghost text-xl">Bali</a>'.html_safe }
-    c.with_menu do |menu|
-    menu.with_start_items([ { name: "Tech Stack", href: "#" } ])
-    end
+      c.with_brand { '<a class="btn btn-ghost text-xl">Bali</a>'.html_safe }
+      c.with_menu do |menu|
+        menu.with_start_items([ { name: "Tech Stack", href: "#" } ])
+      end
     end
     assert_selector("a.btn.btn-ghost", text: "Bali")
     assert_selector('[data-navbar-allow-transparency-value="true"]')
   end
-  #
 
   def test_with_custom_burger_button_renders_navbar_component_with_custom_burger
     render_inline(Bali::Navbar::Component.new) do |c|
-    c.with_brand { '<a class="btn btn-ghost text-xl">Bali</a>'.html_safe }
-    c.with_burger(class: "custom-burger")
-    c.with_menu do |menu|
-    menu.with_start_items([ { name: "Tech Stack", href: "#" } ])
-    end
+      c.with_brand { '<a class="btn btn-ghost text-xl">Bali</a>'.html_safe }
+      c.with_burger(class: "custom-burger")
+      c.with_menu do |menu|
+        menu.with_start_items([ { name: "Tech Stack", href: "#" } ])
+      end
     end
     assert_selector("a.btn.btn-ghost", text: "Bali")
     assert_selector("button.btn.btn-ghost.custom-burger")
   end
-  #
 
   def test_with_multiple_menu_and_burgers_renders_navbar_component_with_multiple_menus
     render_inline(Bali::Navbar::Component.new) do |c|
-    c.with_brand { '<a class="btn btn-ghost text-xl">Bali</a>'.html_safe }
-    c.with_burger(class: "custom-burger")
-    c.with_burger(type: :alt)
-    c.with_menu do |menu|
-    menu.with_start_items([ { name: "Tech Stack", href: "#" } ])
-    end
-    c.with_menu(type: :alt) do |menu|
-    menu.with_end_items([ { name: "About us", href: "#" } ])
-    end
+      c.with_brand { '<a class="btn btn-ghost text-xl">Bali</a>'.html_safe }
+      c.with_burger(class: "custom-burger")
+      c.with_burger(type: :alt)
+      c.with_menu do |menu|
+        menu.with_start_items([ { name: "Tech Stack", href: "#" } ])
+      end
+      c.with_menu(type: :alt) do |menu|
+        menu.with_end_items([ { name: "About us", href: "#" } ])
+      end
     end
     assert_selector("a.btn.btn-ghost", text: "Bali")
     assert_selector('[data-navbar-target="burger"]')
@@ -86,17 +77,15 @@ class BaliNavbarComponentTest < ComponentTestCase
     assert_selector('[data-navbar-target="menu"]')
     assert_selector('[data-navbar-target="altMenu"]')
   end
-  #
 
   Bali::Navbar::Component::COLORS.each do |color, classes|
-  define_method("test_with_colors_renders_#{color}_#{color}") do
-    render_inline(Bali::Navbar::Component.new(color: color))
-    classes.split.each do |css_class|
-    assert_selector("nav.navbar.#{css_class}")
+    define_method("test_with_colors_renders_#{color}_#{color}") do
+      render_inline(Bali::Navbar::Component.new(color: color))
+      classes.split.each do |css_class|
+        assert_selector("nav.navbar.#{css_class}")
+      end
+    end
   end
-  end
-
-
 
   def test_renders_base_color_by_default
     render_inline(Bali::Navbar::Component.new)
@@ -114,9 +103,6 @@ class BaliNavbarComponentTest < ComponentTestCase
     assert_selector("nav.navbar.bg-indigo-600.text-white")
     assert_no_selector("nav.navbar.bg-base-100")
   end
-  end
-
-  #
 
   def test_accessibility_has_navigation_role
     render_inline(Bali::Navbar::Component.new)
@@ -132,7 +118,6 @@ class BaliNavbarComponentTest < ComponentTestCase
     render_inline(Bali::Navbar::Component.new)
     assert_selector("button[aria-label]")
   end
-  #
 
   def test_data_attributes_includes_stimulus_controller
     render_inline(Bali::Navbar::Component.new)
@@ -143,7 +128,6 @@ class BaliNavbarComponentTest < ComponentTestCase
     render_inline(Bali::Navbar::Component.new)
     assert_selector('nav[data-navbar-throttle-interval-value="100"]')
   end
-  #
 
   def test_custom_options_passes_through_custom_classes
     render_inline(Bali::Navbar::Component.new(class: "custom-navbar"))
@@ -164,7 +148,7 @@ end
 class BaliNavbarMenuComponentTest < ComponentTestCase
   def test_renders_with_daisyui_menu_classes
     render_inline(Bali::Navbar::Menu::Component.new) do |menu|
-    menu.with_start_item(name: "Link", href: "#")
+      menu.with_start_item(name: "Link", href: "#")
     end
     # Outer wrapper is hidden on mobile, visible on desktop (lg:flex)
     assert_selector("div.hidden")
@@ -174,7 +158,7 @@ class BaliNavbarMenuComponentTest < ComponentTestCase
 
   def test_renders_end_items_in_flex_container_with_ml_auto_on_desktop
     render_inline(Bali::Navbar::Menu::Component.new) do |menu|
-    menu.with_end_item(name: "End", href: "#")
+      menu.with_end_item(name: "End", href: "#")
     end
     # ml-auto is responsive (lg:ml-auto)
     assert_selector('div[class*="lg:ml-auto"] a', text: "End")
@@ -182,14 +166,14 @@ class BaliNavbarMenuComponentTest < ComponentTestCase
 
   def test_sets_correct_data_navbar_target_for_main_menu_with_start_items
     render_inline(Bali::Navbar::Menu::Component.new(type: :main)) do |menu|
-    menu.with_start_item(name: "Link", href: "#")
+      menu.with_start_item(name: "Link", href: "#")
     end
     assert_selector('div[data-navbar-target="menu"]')
   end
 
   def test_sets_correct_data_navbar_target_for_alt_menu_with_end_items
     render_inline(Bali::Navbar::Menu::Component.new(type: :alt)) do |menu|
-    menu.with_end_item(name: "Action", href: "#")
+      menu.with_end_item(name: "Action", href: "#")
     end
     assert_selector('div[data-navbar-target="altMenu"]')
   end
@@ -250,7 +234,6 @@ class BaliNavbarBurgerComponentTest < ComponentTestCase
     render_inline(Bali::Navbar::Burger::Component.new(class: "custom-burger"))
     assert_selector("button.btn.btn-ghost.custom-burger")
   end
-  #
 
   def test_with_href_renders_as_a_link
     render_inline(Bali::Navbar::Burger::Component.new(href: "/menu"))

@@ -7,12 +7,9 @@ class BaliImageFieldComponentTest < ComponentTestCase
     @options = {}
   end
 
-
   def component
     Bali::ImageField::Component.new(**@options)
   end
-
-  #
 
   def test_default_rendering_renders_with_placeholder_image_by_default
     render_inline(component)
@@ -34,8 +31,6 @@ class BaliImageFieldComponentTest < ComponentTestCase
     render_inline(component)
     assert_selector("img.size-32")
   end
-  #
-
   def test_with_custom_src_renders_the_provided_image
     render_inline(Bali::ImageField::Component.new(src: "https://example.com/avatar.png"))
     assert_selector('img[src="https://example.com/avatar.png"]')
@@ -46,22 +41,16 @@ class BaliImageFieldComponentTest < ComponentTestCase
     render_inline(component)
     assert_selector('img[src="https://example.com/placeholder.png"]')
   end
-  #
-
   def test_with_custom_placeholder_url_uses_custom_placeholder
     render_inline(Bali::ImageField::Component.new(placeholder_url: "https://example.com/my-placeholder.png"))
     assert_selector('img[src="https://example.com/my-placeholder.png"]')
   end
-  #
-
   Bali::ImageField::Component::SIZES.each do |size, expected_class|
   define_method("test_sizes_renders_#{size}_with_#{expected_class}") do
     render_inline(Bali::ImageField::Component.new(size: size))
     assert_selector("img.#{expected_class}")
   end
   end
-
-  #
 
   def test_image_styling_applies_rounded_and_object_cover_classes
     render_inline(component)
@@ -72,14 +61,10 @@ class BaliImageFieldComponentTest < ComponentTestCase
     render_inline(component)
     assert_selector('img[alt=""]')
   end
-  #
-
   def test_styling_classes_applies_base_component_classes
     render_inline(component)
     assert_selector(".image-field-component.group.relative.w-fit")
   end
-  #
-
   def test_options_passthrough_passes_extra_options_to_container
     @options.merge!(data: { test: "value" }, id: "my-image-field")
     render_inline(component)
@@ -104,11 +89,9 @@ class BaliImageFieldInputComponentTest < ComponentTestCase
     @helper ||= TestHelper.new(ActionView::LookupContext.new(ActionView::PathSet.new), {}, nil)
   end
 
-  #
-
   def test_basic_rendering_renders_file_input_with_label_container
     helper.form_with(url: "/") do |form|
-    render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar))
+      render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar))
     end
     assert_selector("label.image-input-container")
     assert_selector('input[type="file"]')
@@ -116,29 +99,27 @@ class BaliImageFieldInputComponentTest < ComponentTestCase
 
   def test_basic_rendering_renders_camera_icon_by_default
     helper.form_with(url: "/") do |form|
-    render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar))
+      render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar))
     end
     assert_selector("label svg", visible: :all)
   end
 
   def test_basic_rendering_applies_hover_overlay_classes
     helper.form_with(url: "/") do |form|
-    render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar))
+      render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar))
     end
     assert_selector("label.absolute.inset-0.flex.cursor-pointer")
   end
 
   def test_basic_rendering_hides_the_file_input_visually
     helper.form_with(url: "/") do |form|
-    render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar))
+      render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar))
     end
     assert_selector('input[type="file"].hidden')
   end
-  #
-
   def test_file_formats_accepts_default_formats
     helper.form_with(url: "/") do |form|
-    render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar))
+      render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar))
     end
     input = page.find('input[type="file"]')
     assert_equal(".jpg, .jpeg, .png, .webp", input[:accept])
@@ -146,31 +127,27 @@ class BaliImageFieldInputComponentTest < ComponentTestCase
 
   def test_file_formats_accepts_custom_formats
     helper.form_with(url: "/") do |form|
-    render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar, formats: %i[gif png]))
+      render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar, formats: %i[gif png]))
     end
     input = page.find('input[type="file"]')
     assert_equal(".gif, .png", input[:accept])
   end
-  #
-
   def test_custom_icon_renders_custom_icon
     helper.form_with(url: "/") do |form|
-    render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar, icon_name: "upload"))
+      render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar, icon_name: "upload"))
     end
     assert_selector("label svg", visible: :all)
   end
-  #
-
   def test_stimulus_data_attributes_adds_input_target
     helper.form_with(url: "/") do |form|
-    render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar))
+      render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar))
     end
     assert_selector('input[data-image-field-target="input"]')
   end
 
   def test_stimulus_data_attributes_adds_change_action
     helper.form_with(url: "/") do |form|
-    render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar))
+      render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar))
     end
     assert_selector('input[data-action="change->image-field#show"]')
   end
@@ -181,12 +158,10 @@ class ImageFieldwithinputslotTest < ComponentTestCase
     @helper ||= TestHelper.new(ActionView::LookupContext.new(ActionView::PathSet.new), {}, nil)
   end
 
-  #
-
   def test_with_input_slot_renders_input_and_placeholder_image
     helper.form_with(url: "/") do |form|
     render_inline(Bali::ImageField::Component.new) do |c|
-    c.with_input(form: form, method: :avatar)
+      c.with_input(form: form, method: :avatar)
     end
     end
     assert_selector('img[data-image-field-target="output"]')
@@ -197,29 +172,25 @@ class ImageFieldwithinputslotTest < ComponentTestCase
   def test_with_input_slot_renders_default_clear_button_using_bali_button
     helper.form_with(url: "/") do |form|
     render_inline(Bali::ImageField::Component.new) do |c|
-    c.with_input(form: form, method: :avatar)
+      c.with_input(form: form, method: :avatar)
     end
     end
     assert_selector(".clear-image-button")
     assert_selector('button.btn[data-action="image-field#clear"]')
     assert_selector("button[aria-label]")
   end
-  #
-
   def test_with_custom_clear_button_renders_custom_clear_button_when_provided
     helper.form_with(url: "/") do |form|
     render_inline(Bali::ImageField::Component.new) do |c|
-    c.with_input(form: form, method: :avatar)
+      c.with_input(form: form, method: :avatar)
     c.with_clear_button do
-    '<button class="custom-clear">Clear</button>'.html_safe
+      '<button class="custom-clear">Clear</button>'.html_safe
     end
     end
     end
     assert_selector(".custom-clear")
     assert_text("Clear")
   end
-  #
-
   def test_without_input_slot_does_not_render_placeholder_input_or_clear_button
     render_inline(Bali::ImageField::Component.new)
     assert_no_selector('img[data-image-field-target="placeholder"]')

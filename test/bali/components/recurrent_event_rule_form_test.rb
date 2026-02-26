@@ -9,7 +9,6 @@ class BaliRecurrentEventRuleFormComponentTest < ComponentTestCase
     @builder = Bali::FormBuilder.new(:movie, @resource, @helper, {})
   end
 
-
   def component(options = {})
     Bali::RecurrentEventRuleForm::Component.new(form: @builder, method: :rule, **options)
   end

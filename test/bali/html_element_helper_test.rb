@@ -11,20 +11,14 @@ class BaliHtmlElementHelperTest < ActiveSupport::TestCase
     @helper = TestHelperComponent.new
   end
 
-  #
-
   def test_prepend_action_adds_a_stimulus_controller_action
     options = @helper.prepend_action({}, "modal#open")
     assert_equal("modal#open", options[:data][:action])
   end
-  #
-
   def test_prepend_controller_adds_a_stimulus_controller
     options = @helper.prepend_controller({}, "modal")
     assert_equal("modal", options[:data][:controller])
   end
-  #
-
   def test_prepend_values_adds_values_for_a_stimulus_controller
     options = @helper.prepend_values({}, "list", { param_name: "position" })
     assert_equal("position", options[:data]["list-param-name-value"])
@@ -36,14 +30,10 @@ class BaliHtmlElementHelperTest < ActiveSupport::TestCase
     assert_equal("list", options[:data][:controller])
     assert_equal("position", options[:data]["list-param-name-value"])
   end
-  #
-
   def test_prepend_values_when_value_is_a_hash_adds_values_for_a_stimulus_controller
     options = @helper.prepend_values({}, "list", { params: { name: "position" } })
     assert_equal('{"name":"position"}', options[:data]["list-params-value"])
   end
-  #
-
   def test_prepend_class_name_adds_a_class_to_options_hash
     options = @helper.prepend_class_name({}, "is-active")
     assert_equal("is-active", options[:class])

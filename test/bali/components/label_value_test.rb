@@ -11,14 +11,14 @@ class BaliLabelValueComponentTest < ComponentTestCase
 
   def test_renders_with_block_content_instead_of_value
     render_inline(Bali::LabelValue::Component.new(label: "URL")) do
-    "Custom link content"
+      "Custom link content"
     end
     assert_selector("div.min-h-6", text: "Custom link content")
   end
 
   def test_prefers_value_over_block_content_when_both_provided
     render_inline(Bali::LabelValue::Component.new(label: "Name", value: "From value")) do
-    "From block"
+      "From block"
     end
     assert_selector("div.min-h-6", text: "From value")
     assert_no_text("From block")
