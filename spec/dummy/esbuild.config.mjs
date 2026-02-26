@@ -59,16 +59,26 @@ const config = {
     'bali/charts': path.join(baliGemPath, 'app/frontend/bali/charts.js'),
     'bali/gantt': path.join(baliGemPath, 'app/frontend/bali/gantt.js'),
     'bali/block-editor': path.join(baliGemPath, 'app/frontend/bali/block-editor.js'),
-    'bali/rich-text-editor': path.join(baliGemPath, 'app/frontend/bali/rich-text-editor.js')
+    'bali/rich-text-editor': path.join(baliGemPath, 'app/frontend/bali/rich-text-editor.js'),
+    // Force a single React instance — @blocknote/xl-ai bundles react 19 as a
+    // direct dependency which creates a duplicate nested copy. Without these
+    // aliases, hooks and context break at runtime ("invalid hook call").
+    react: path.join(__dirname, 'node_modules/react'),
+    'react-dom': path.join(__dirname, 'node_modules/react-dom'),
+    'react/jsx-runtime': path.join(__dirname, 'node_modules/react/jsx-runtime'),
+    'react/jsx-dev-runtime': path.join(__dirname, 'node_modules/react/jsx-dev-runtime')
   },
   // flatpickr npm package is broken (missing JS files, only .d.ts).
   // The datepicker controller uses dynamic import() so it gracefully degrades at runtime.
   external: ['flatpickr', 'flatpickr/*'],
   loader: {
-    '.woff': 'file',
-    '.woff2': 'file',
-    '.ttf': 'file',
-    '.eot': 'file'
+    // Inline fonts as data URIs — Propshaft's digest-based path resolution
+    // misinterprets esbuild's content hash as its own digest, stripping it and
+    // returning 404 for the mangled path. Data URIs bypass this entirely.
+    '.woff': 'dataurl',
+    '.woff2': 'dataurl',
+    '.ttf': 'dataurl',
+    '.eot': 'dataurl'
   }
 }
 
