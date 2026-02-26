@@ -784,6 +784,27 @@ All preview files must inherit from `ApplicationViewComponentPreview`. Do NOT us
 
 Cypress tests render Stimulus controllers by visiting `http://localhost:3001/lookbook/preview/bali/[name]/[variant]`. Any change that breaks preview file loading will fail Cypress even if Minitest passes — so check both test suites when touching engine autoloading config.
 
+## Dependency Version Alignment
+
+Bali must stay on the latest Tailwind CSS and daisyUI to keep all AFAL apps aligned. A **SessionStart hook** (`.claude/hooks/check-dependency-versions.sh`) automatically checks versions at the start of every session and warns if either is behind.
+
+| Dependency | Source | Spec location |
+|------------|--------|---------------|
+| **Tailwind CSS** | `tailwindcss-rails` gem | `Gemfile` |
+| **daisyUI** | `daisyui` npm package | `package.json` |
+
+When the hook reports outdated versions, update before doing other work:
+
+```bash
+# Update Tailwind CSS (gem)
+bundle update tailwindcss-rails
+
+# Update daisyUI (npm)
+yarn upgrade daisyui
+```
+
+After updating, run the full test suite to confirm nothing breaks.
+
 ## Pre-Commit Checklist
 
 Before committing changes:
