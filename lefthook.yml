@@ -15,8 +15,8 @@ pre-commit:
 
 pre-push:
   commands:
-    rspec:
-      run: bundle exec rspec --fail-fast
+    test:
+      run: bundle exec rails test
       tags:
         - backend
 

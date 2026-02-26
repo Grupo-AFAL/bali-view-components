@@ -42,7 +42,6 @@ group :development, :test do
   gem "brakeman", require: false
   gem "bundler-audit", require: false
   gem "dotenv"
-  gem "rspec-rails", "~> 8"
   gem "turbo-rails", "~> 2"
   gem "jsbundling-rails"
 end
