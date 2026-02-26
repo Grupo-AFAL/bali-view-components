@@ -16,10 +16,9 @@ SimpleCov.start "rails" do
 
   add_filter(/preview.rb/)
 
-  # TODO: Re-enable minimum coverage once SimpleCov collation is configured
-  # for parallel minitest. Individual workers only see partial coverage,
-  # so the merged result underreports until proper collation is set up.
-  # minimum_coverage line: 80
+  # Current: ~53% line coverage. Target: 80% per AFAL handbook.
+  # Ratchet this up as coverage improves — never let it drop below.
+  minimum_coverage line: 50
 end
 
 require File.expand_path("../spec/dummy/config/environment", __dir__)
@@ -34,10 +33,18 @@ require "capybara/minitest"
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
 class ActiveSupport::TestCase
-  # Parallelization disabled until SimpleCov collation is configured.
-  # Without collation, each forked worker reports partial coverage,
-  # producing an inaccurate merged result in CI.
-  # parallelize(workers: :number_of_processors)
+  parallelize(workers: :number_of_processors)
+
+  # Give each parallel worker a unique SimpleCov command name so partial
+  # results don't overwrite each other. SimpleCov merges all entries in
+  # .resultset.json automatically when generating the final report.
+  parallelize_setup do |worker|
+    SimpleCov.command_name "#{SimpleCov.command_name}-#{worker}"
+  end
+
+  parallelize_teardown do |_worker|
+    SimpleCov.result
+  end
 end
 
 class ComponentTestCase < ViewComponent::TestCase
