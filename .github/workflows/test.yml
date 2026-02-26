@@ -34,8 +34,9 @@ jobs:
         env:
           COVERAGE: '1'
       - name: Coverage summary
-        if: always() && hashFiles('coverage/.last_run.json') != ''
+        if: always()
         run: |
+          [ -f coverage/.last_run.json ] || exit 0
           LINE=$(ruby -rjson -e "puts JSON.parse(File.read('coverage/.last_run.json'))['result']['line']")
           BRANCH=$(ruby -rjson -e "puts JSON.parse(File.read('coverage/.last_run.json'))['result']['branch']")
 
@@ -51,7 +52,7 @@ jobs:
             echo "> **Line coverage is below 80% minimum.** Add tests to increase coverage." >> $GITHUB_STEP_SUMMARY
           fi
       - name: Comment coverage on PR
-        if: github.event_name == 'pull_request' && always() && hashFiles('coverage/.last_run.json') != ''
+        if: github.event_name == 'pull_request' && always()
         uses: actions/github-script@v7
         with:
           script: |

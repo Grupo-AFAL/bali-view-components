@@ -33,6 +33,7 @@ class BaliModalComponentTest < ComponentTestCase
     render_inline(Bali::Modal::Component.new(id: "custom-modal"))
     assert_selector("div.modal#custom-modal")
   end
+
   def test_accessibility_has_role_dialog
     render_inline(Bali::Modal::Component.new)
     assert_selector('div.modal[role="dialog"]')
@@ -63,12 +64,14 @@ class BaliModalComponentTest < ComponentTestCase
     end
     assert_no_selector("div.modal[aria-describedby]")
   end
+
   def test_content_renders_custom_content
     render_inline(Bali::Modal::Component.new) do
       "<p>Hello World!</p>".html_safe
     end
     assert_selector("p", text: "Hello World!")
   end
+
   def test_sizes_renders_sm_size
     render_inline(Bali::Modal::Component.new(size: :sm))
 
@@ -98,10 +101,12 @@ class BaliModalComponentTest < ComponentTestCase
 
     assert_selector("div.modal-box.max-w-full")
   end
+
   def test_custom_classes_merges_custom_classes
     render_inline(Bali::Modal::Component.new(class: "custom-class"))
     assert_selector("div.modal-component.custom-class")
   end
+
   def test_header_slot_renders_header_with_title
     render_inline(Bali::Modal::Component.new(id: "test-modal")) do |modal|
       modal.with_header(title: "My Title")
@@ -149,6 +154,7 @@ class BaliModalComponentTest < ComponentTestCase
     assert_selector('button[aria-label="Close modal"]', count: 1)
     assert_no_selector("button.absolute")
   end
+
   def test_body_slot_renders_body_content
     render_inline(Bali::Modal::Component.new) do |modal|
       modal.with_body { "Body content here" }
@@ -162,6 +168,7 @@ class BaliModalComponentTest < ComponentTestCase
     end
     assert_selector("#test-modal-description", text: "Description text")
   end
+
   def test_actions_slot_renders_actions
     render_inline(Bali::Modal::Component.new) do |modal|
     modal.with_actions do
@@ -179,6 +186,7 @@ class BaliModalComponentTest < ComponentTestCase
     end
     assert_selector(".modal-action.flex.justify-end")
   end
+
   def test_combined_slots_renders_all_slots_together
     render_inline(Bali::Modal::Component.new(id: "full-modal")) do |modal|
       modal.with_header(title: "Full Modal", badge: "Important")

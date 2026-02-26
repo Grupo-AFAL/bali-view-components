@@ -42,6 +42,7 @@ class BaliSearchInputComponentTest < ComponentTestCase
     render_component
     assert_selector('input[name="q[name]"]')
   end
+
   def test_with_auto_submit_true_hides_the_submit_button
     render_component(auto_submit: true)
     assert_no_selector("button")
@@ -57,6 +58,7 @@ class BaliSearchInputComponentTest < ComponentTestCase
     render_component(auto_submit: true)
     assert_selector('input[data-action="submit-on-change#submit"]')
   end
+
   def test_placeholder_uses_i18n_default_placeholder
     render_component
     assert_selector("input[placeholder]")
@@ -66,10 +68,12 @@ class BaliSearchInputComponentTest < ComponentTestCase
     render_component(placeholder: "Find users...")
     assert_selector('input[placeholder="Find users..."]')
   end
+
   def test_custom_classes_allows_adding_custom_input_classes
     render_component(class: "w-64")
     assert_selector("input.input.input-bordered.w-64")
   end
+
   def test_submit_button_options_accepts_custom_submit_button_classes
     render_component(submit: { class: "btn-lg" })
     assert_selector("button.btn.btn-primary.join-item.btn-lg")
@@ -79,6 +83,7 @@ class BaliSearchInputComponentTest < ComponentTestCase
     render_component(submit: { data: { testid: "search-btn" } })
     assert_selector('button[data-testid="search-btn"]')
   end
+
   def test_frozen_constants_defines_base_input_classes
     assert_equal("input input-bordered", Bali::SearchInput::Component::BASE_INPUT_CLASSES)
   end

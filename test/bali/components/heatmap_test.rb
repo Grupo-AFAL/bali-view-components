@@ -50,6 +50,7 @@ class BaliHeatmapComponentTest < ComponentTestCase
       render_inline(Bali::Heatmap::Component.new(data: data))
       assert_selector("table.w-full")
   end
+
   def test_slots_renders_x_axis_title_when_provided
     render_inline(Bali::Heatmap::Component.new(data: data)) do |c|
       c.with_x_axis_title("Days")
@@ -83,6 +84,7 @@ class BaliHeatmapComponentTest < ComponentTestCase
       render_inline(Bali::Heatmap::Component.new(data: data))
       assert_no_selector("tfoot tr td[colspan]")
   end
+
   def test_color_customization_accepts_hex_color_string
       render_inline(Bali::Heatmap::Component.new(data: data, color: "#FF0000"))
       assert_selector('.heatmap-cell[style*="background"]')
@@ -99,6 +101,7 @@ class BaliHeatmapComponentTest < ComponentTestCase
       component = Bali::Heatmap::Component.new(data: data)
       refute_empty(component.gradient_colors)
   end
+
   def test_responsive_mode_is_responsive_by_default
       component = Bali::Heatmap::Component.new(data: data)
       assert(component.responsive?)
@@ -121,6 +124,7 @@ class BaliHeatmapComponentTest < ComponentTestCase
       style = component.cell_style(5)
       assert_includes(style, "height: 28px")
   end
+
   def test_edge_cases_handles_empty_data_gracefully
       render_inline(Bali::Heatmap::Component.new(data: {}))
       assert_selector("div.heatmap-component")
@@ -141,6 +145,7 @@ class BaliHeatmapComponentTest < ComponentTestCase
       assert_equal(0, component.value_at(:A, 1))
       assert_equal(0, component.value_at(:B, 0))
   end
+
   def test_public_api_exposes_x_labels
       component = Bali::Heatmap::Component.new(data: data)
       assert_equal(%i[Mon Tue Wed], component.x_labels)
@@ -173,6 +178,7 @@ class BaliHeatmapComponentTest < ComponentTestCase
       style = component.cell_style(5)
       assert_includes(style, "background:")
   end
+
   def test_options_passthrough_accepts_custom_classes
       render_inline(Bali::Heatmap::Component.new(data: data, class: "custom-class"))
       assert_selector("div.heatmap-component.custom-class")

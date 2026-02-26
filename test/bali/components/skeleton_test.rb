@@ -37,6 +37,7 @@ class BaliSkeletonComponentTest < ComponentTestCase
     render_inline(Bali::Skeleton::Component.new(variant: :list, lines: 4))
     assert_selector(".skeleton", minimum: 4)
   end
+
   def test_sizes_renders_xs_size_for_avatar
     render_inline(Bali::Skeleton::Component.new(variant: :avatar, size: :xs))
     assert_selector(".skeleton.w-8.h-8")
@@ -56,6 +57,7 @@ class BaliSkeletonComponentTest < ComponentTestCase
     render_inline(Bali::Skeleton::Component.new(variant: :avatar, size: :lg))
     assert_selector(".skeleton.w-16.h-16")
   end
+
   def test_custom_options_accepts_custom_classes
     render_inline(Bali::Skeleton::Component.new(class: "my-custom-class"))
     assert_selector(".skeleton.my-custom-class")

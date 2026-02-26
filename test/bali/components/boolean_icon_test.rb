@@ -13,6 +13,7 @@ class BaliBooleanIconComponentTest < ComponentTestCase
     # Verify icon is rendered (SVG with path)
     assert_selector(".icon-component svg")
   end
+
   def test_with_false_value_renders_error_styling
     render_inline(Bali::BooleanIcon::Component.new(value: false))
     assert_selector("div.boolean-icon-component.text-error")
@@ -23,11 +24,13 @@ class BaliBooleanIconComponentTest < ComponentTestCase
     # Verify icon is rendered (SVG with path)
     assert_selector(".icon-component svg")
   end
+
   def test_with_nil_value_treats_nil_as_false
     render_inline(Bali::BooleanIcon::Component.new(value: nil))
     assert_selector("div.boolean-icon-component.text-error")
     assert_selector(".icon-component svg")
   end
+
   def test_options_passthrough_merges_custom_classes
     render_inline(Bali::BooleanIcon::Component.new(value: true, class: "custom-class"))
     assert_selector("div.boolean-icon-component.custom-class")

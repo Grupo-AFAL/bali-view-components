@@ -25,6 +25,7 @@ class BaliStepperComponentTest < ComponentTestCase
     end
     assert_selector("ul.steps.steps-vertical")
   end
+
   def test_step_states_renders_first_step_as_active_with_color_class
     render_inline(Bali::Stepper::Component.new(current: 0)) do |c|
       c.with_step(title: "Step One")

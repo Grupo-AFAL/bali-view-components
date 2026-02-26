@@ -43,6 +43,7 @@ class BaliTagsComponentTest < ComponentTestCase
     end
     assert_selector('div.tags-component[data-testid="tags"]')
   end
+
   def test_tag_items_renders_multiple_tags
     render_inline(Bali::Tags::Component.new) do |c|
       c.with_item(text: "First")
@@ -100,6 +101,7 @@ class BaliTagsComponentTest < ComponentTestCase
     assert_selector(".badge-error.badge-outline", text: "Error Outline")
     assert_selector(".badge-success.rounded-full", text: "Success Rounded")
   end
+
   def test_gaps_constant_has_frozen_hash
     assert(Bali::Tags::Component::GAPS.frozen?)
   end

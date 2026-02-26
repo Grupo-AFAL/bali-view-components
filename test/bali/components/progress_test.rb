@@ -18,6 +18,7 @@ class BaliProgressComponentTest < ComponentTestCase
     render_inline(Bali::Progress::Component.new(value: 50, show_percentage: false))
     assert_no_selector("span")
   end
+
   def test_colors_renders_primary_color
     render_inline(Bali::Progress::Component.new(value: 50, color: :primary))
 
@@ -65,6 +66,7 @@ class BaliProgressComponentTest < ComponentTestCase
 
     assert_selector("progress.progress.progress-error")
   end
+
   def test_percentage_calculation_calculates_percentage_from_value_and_max
     render_inline(Bali::Progress::Component.new(value: 25, max: 50))
     assert_selector("span", text: "50%")
@@ -74,6 +76,7 @@ class BaliProgressComponentTest < ComponentTestCase
     render_inline(Bali::Progress::Component.new(value: 25, max: 0))
     assert_selector("span", text: "0%")
   end
+
   def test_options_passthrough_passes_custom_classes_to_wrapper
     render_inline(Bali::Progress::Component.new(value: 50, class: "my-custom"))
     assert_selector("div.my-custom")

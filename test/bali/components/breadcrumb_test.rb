@@ -29,6 +29,7 @@ class BaliBreadcrumbComponentTest < ComponentTestCase
     assert_selector("li span.cursor-default", text: "Current Page")
     assert_no_selector("li a")
   end
+
   def test_accessibility_has_aria_label_on_nav_element
     render_inline(Bali::Breadcrumb::Component.new) do |c|
       c.with_item(name: "Home", href: "/home")
@@ -50,6 +51,7 @@ class BaliBreadcrumbComponentTest < ComponentTestCase
     end
     assert_selector('li span[aria-current="page"]', text: "Page")
   end
+
   def test_with_icons_renders_breadcrumb_items_with_icons
     render_inline(Bali::Breadcrumb::Component.new) do |c|
       c.with_item(name: "Home", href: "/home", icon_name: "home")
@@ -65,6 +67,7 @@ class BaliBreadcrumbComponentTest < ComponentTestCase
     assert_selector("li span", text: "Current")
     assert_selector("li span svg")
   end
+
   def test_custom_classes_merges_custom_classes_on_container
     render_inline(Bali::Breadcrumb::Component.new(class: "my-custom-class")) do |c|
       c.with_item(name: "Home", href: "/home")
@@ -78,6 +81,7 @@ class BaliBreadcrumbComponentTest < ComponentTestCase
     end
     assert_selector("li.item-custom")
   end
+
   def test_link_behavior_renders_as_link_when_href_provided_and_not_active
     render_inline(Bali::Breadcrumb::Component.new) do |c|
       c.with_item(name: "Section", href: "/section")

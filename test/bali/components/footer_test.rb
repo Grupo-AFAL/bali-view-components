@@ -22,6 +22,7 @@ class BaliFooterComponentTest < ComponentTestCase
     render_inline(Bali::Footer::Component.new(center: true))
     assert_selector(".footer-center")
   end
+
   def test_brand_slot_renders_brand_with_name_and_description
     render_inline(Bali::Footer::Component.new) do |footer|
       footer.with_brand(name: "ACME", description: "Building the future")
@@ -36,6 +37,7 @@ class BaliFooterComponentTest < ComponentTestCase
     end
     assert_selector("aside", text: "Custom brand content")
   end
+
   def test_sections_slot_renders_section_with_title
     render_inline(Bali::Footer::Component.new) do |footer|
     footer.with_section(title: "Company") do |section|
@@ -69,12 +71,14 @@ class BaliFooterComponentTest < ComponentTestCase
     assert_selector(".footer-title", text: "Product")
     assert_selector(".footer-title", text: "Company")
   end
+
   def test_bottom_slot_renders_bottom_content
     render_inline(Bali::Footer::Component.new) do |footer|
       footer.with_bottom { "Copyright 2024" }
     end
     assert_selector("div.border-t", text: "Copyright 2024")
   end
+
   def test_options_passthrough_accepts_custom_classes
     render_inline(Bali::Footer::Component.new(class: "custom-footer"))
     assert_selector("footer.footer-component.custom-footer")

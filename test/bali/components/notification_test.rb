@@ -61,6 +61,7 @@ class BaliNotificationComponentTest < ComponentTestCase
     render_inline(Bali::Notification::Component.new(fixed: false))
     assert_no_selector("div.fixed")
   end
+
   def test_dismiss_configuration_sets_dismiss_value_to_true
     render_inline(Bali::Notification::Component.new(dismiss: true))
     assert_selector('[data-notification-dismiss-value="true"]')
@@ -70,14 +71,17 @@ class BaliNotificationComponentTest < ComponentTestCase
     render_inline(Bali::Notification::Component.new(dismiss: false))
     assert_selector('[data-notification-dismiss-value="false"]')
   end
+
   def test_custom_delay_sets_custom_delay_value
     render_inline(Bali::Notification::Component.new(delay: 5000))
     assert_selector('[data-notification-delay-value="5000"]')
   end
+
   def test_options_passthrough_accepts_custom_classes
     render_inline(Bali::Notification::Component.new(fixed: false, class: "my-custom-class"))
     assert_selector("div.notification-component.my-custom-class")
   end
+
   def test_constants_has_frozen_types_constant
     assert(Bali::Notification::Component::TYPES.frozen?)
   end

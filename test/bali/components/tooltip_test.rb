@@ -14,6 +14,7 @@ class BaliTooltipComponentTest < ComponentTestCase
   def test_constants_has_controller_constant
     assert_equal("tooltip", Bali::Tooltip::Component::CONTROLLER)
   end
+
   def test_basic_rendering_renders_tooltip_with_trigger_content
     render_inline(Bali::Tooltip::Component.new) do |c|
       c.with_trigger { c.tag.span "?" }
@@ -74,6 +75,7 @@ class BaliTooltipComponentTest < ComponentTestCase
     end
     assert_selector('[data-tooltip-trigger-value="mouseenter focus"]')
   end
+
   def test_options_passthrough_accepts_custom_class_via_options
     render_inline(Bali::Tooltip::Component.new(class: "help-tip")) do |c|
       c.with_trigger { c.tag.span "?" }
@@ -101,6 +103,7 @@ class BaliTooltipComponentTest < ComponentTestCase
     end
     assert_selector('#tooltip-1[role="tooltip"]')
   end
+
   def test_trigger_slot_renders_custom_trigger_content
     render_inline(Bali::Tooltip::Component.new) do |c|
       c.with_trigger { c.tag.button "Click me", class: "btn btn-primary" }

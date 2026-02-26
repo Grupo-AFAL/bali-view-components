@@ -29,6 +29,7 @@ class BaliPropertiesTableComponentTest < ComponentTestCase
     end
     assert_selector("table > tbody > tr")
   end
+
   def test_property_content_accepts_content_block_instead_of_value_param
     render_inline(Bali::PropertiesTable::Component.new) do |c|
     c.with_property(label: "Status") do
@@ -47,6 +48,7 @@ class BaliPropertiesTableComponentTest < ComponentTestCase
     assert_selector("td.property-value", text: "Preferred")
     assert_no_text("Ignored")
   end
+
   def test_css_classes_applies_daisyui_table_classes_with_zebra_striping
     render_inline(Bali::PropertiesTable::Component.new) do |c|
       c.with_property(label: "Test", value: "Value")
@@ -69,6 +71,7 @@ class BaliPropertiesTableComponentTest < ComponentTestCase
     end
     assert_selector("tr.properties-table-property-component")
   end
+
   def test_options_passthrough_passes_custom_options_to_table_element
     render_inline(Bali::PropertiesTable::Component.new(id: "my-table", data: { testid: "props-table" })) do |c|
       c.with_property(label: "Test", value: "Value")
@@ -98,6 +101,7 @@ class BaliPropertiesTableComponentTest < ComponentTestCase
     end
     assert_selector("tr.properties-table-property-component.highlight")
   end
+
   def test_empty_state_renders_empty_table_when_no_properties_provided
     render_inline(Bali::PropertiesTable::Component.new)
     assert_selector("table.properties-table-component")

@@ -29,12 +29,13 @@ class BaliButtonComponentTest < ComponentTestCase
     assert_button("Name wins")
     assert_no_text("Block content")
   end
+
   %i[primary secondary accent info success warning error ghost link neutral
-  outline].each do |variant|
-  define_method("test_variants_renders_#{variant}_#{variant}") do
-    render_inline(Bali::Button::Component.new(variant: variant)) { "Button" }
-    assert_selector("button.btn.btn-#{variant}")
-  end
+     outline].each do |variant|
+    define_method("test_variants_renders_#{variant}_variant") do
+      render_inline(Bali::Button::Component.new(variant: variant)) { "Button" }
+      assert_selector("button.btn.btn-#{variant}")
+    end
   end
 
   def test_sizes_renders_xs_size
@@ -66,15 +67,18 @@ class BaliButtonComponentTest < ComponentTestCase
     assert_selector("button.btn")
     assert_no_selector("button.btn-md")
   end
+
   def test_disabled_state_renders_with_disabled_attribute
     render_inline(Bali::Button::Component.new(disabled: true)) { "Disabled" }
     assert_selector("button.btn.btn-disabled[disabled]")
   end
+
   def test_loading_state_renders_with_loading_spinner
     render_inline(Bali::Button::Component.new(loading: true)) { "Loading" }
     assert_selector("button.btn.loading")
     assert_selector("button .loading-spinner")
   end
+
   def test_icons_renders_with_icon_name
     render_inline(Bali::Button::Component.new(icon_name: "plus")) { "Add" }
     assert_selector("button.btn")
@@ -96,6 +100,7 @@ class BaliButtonComponentTest < ComponentTestCase
     end
     assert_selector("button.btn")
   end
+
   def test_custom_attributes_passes_data_attributes
     render_inline(Bali::Button::Component.new(data: { action: "modal#close" })) { "Close" }
     assert_selector('button.btn[data-action="modal#close"]')

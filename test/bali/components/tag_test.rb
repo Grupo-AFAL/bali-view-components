@@ -12,6 +12,7 @@ class BaliTagComponentTest < ComponentTestCase
     render_inline(Bali::Tag::Component.new(text: "Click me", href: "/path"))
     assert_selector('a.badge[href="/path"]', text: "Click me")
   end
+
   def test_colors_applies_daisyui_color_classes
     render_inline(Bali::Tag::Component.new(text: "Tag", color: :primary))
     assert_selector("div.badge.badge-primary")
@@ -26,6 +27,7 @@ class BaliTagComponentTest < ComponentTestCase
     render_inline(Bali::Tag::Component.new(text: "Tag", color: :black))
     assert_selector("div.badge.badge-neutral")
   end
+
   def test_sizes_applies_daisyui_size_classes
     render_inline(Bali::Tag::Component.new(text: "Tag", size: :lg))
     assert_selector("div.badge.badge-lg")
@@ -62,6 +64,7 @@ class BaliTagComponentTest < ComponentTestCase
       render_inline(Bali::Tag::Component.new(text: "Tag", style: :outline, color: :primary))
       assert_selector("div.badge.badge-outline.badge-primary")
   end
+
   def test_legacy_light_parameter_applies_outline_style_for_backward_compatibility
       render_inline(Bali::Tag::Component.new(text: "Tag", light: true))
       assert_selector("div.badge.badge-outline")
@@ -79,11 +82,13 @@ class BaliTagComponentTest < ComponentTestCase
       assert_selector("div.badge.badge-soft")
       assert_no_selector("div.badge.badge-outline")
   end
+
   def test_custom_color_applies_custom_background_color_with_contrasting_text
       render_inline(Bali::Tag::Component.new(text: "Tag", custom_color: "#ff0000"))
       assert_selector('div.badge[style*="background-color: #ff0000"]')
       assert_selector('div.badge[style*="color:"]')
   end
+
   def test_rounded_applies_rounded_full_class_when_rounded_is_true
       render_inline(Bali::Tag::Component.new(text: "Tag", rounded: true))
       assert_selector("div.badge.rounded-full")
@@ -93,6 +98,7 @@ class BaliTagComponentTest < ComponentTestCase
       render_inline(Bali::Tag::Component.new(text: "Tag", rounded: false))
       assert_no_selector("div.badge.rounded-full")
   end
+
   def test_html_attribute_passthrough_passes_additional_attributes_to_the_element
       render_inline(Bali::Tag::Component.new(text: "Tag", data: { testid: "my-tag" }))
       assert_selector('div.badge[data-testid="my-tag"]')

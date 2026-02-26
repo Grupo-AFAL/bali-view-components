@@ -24,7 +24,9 @@ jobs:
           cache: 'yarn'
 
       - name: Setup database
-        run: cd spec/dummy && bin/rails db:schema:load RAILS_ENV=test
+        run: cd spec/dummy && bin/rails db:schema:load
+        env:
+          RAILS_ENV: test
 
       - name: Install dependencies
         run: |

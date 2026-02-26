@@ -11,6 +11,7 @@ class KitchenSinkDemoPagesTest < ActionDispatch::IntegrationTest
   def movie
     @movie
   end
+
   def test_dashboard_renders_the_dashboard_page_successfully
     get root_path
     assert_response :ok

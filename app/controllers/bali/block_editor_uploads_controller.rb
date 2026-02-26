@@ -79,9 +79,9 @@ module Bali
       # Use magic-byte detection via Marcel (bundled with Active Storage) when available,
       # falling back to client-declared content_type
       detected_type = if defined?(Marcel)
-                        Marcel::MimeType.for(file.tempfile, name: file.original_filename)
+        Marcel::MimeType.for(file.tempfile, name: file.original_filename)
       else
-                        file.content_type
+        file.content_type
       end
 
       unless allowed.include?(detected_type)

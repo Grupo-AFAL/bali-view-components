@@ -115,13 +115,13 @@ class BaliFormBuilderLinkToRemoveFieldsTest < FormBuilderTestCase
 end
 
 class BaliFormBuilderDynamicFieldsGroupTest < FormBuilderTestCase
-  # #dynamic_fields_group - skipped: requires RSpec mocking (allow/receive) for association setup
-  # These tests depend on mock_template receiving :render and :capture, which requires mocha or similar.
-  # TODO: Add mocha gem and convert these tests.
+  def test_dynamic_fields_group_pending_mock_migration
+    skip "Requires mocha gem for association mocking (was RSpec allow/receive)"
+  end
 end
 
 class BaliFormBuilderLinkToAddFieldsTest < FormBuilderTestCase
-  # #link_to_add_fields - skipped: requires RSpec mocking (allow/receive) for association reflection
-  # These tests depend on mocking Movie.reflect_on_association and template.render, which requires mocha.
-  # TODO: Add mocha gem and convert these tests.
+  def test_link_to_add_fields_pending_mock_migration
+    skip "Requires mocha gem for association reflection mocking (was RSpec allow/receive)"
+  end
 end

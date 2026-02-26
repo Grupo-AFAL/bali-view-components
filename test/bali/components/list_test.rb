@@ -45,6 +45,7 @@ class BaliListComponentTest < ComponentTestCase
     end
     assert_selector('a[href="/link-1"]', text: "Link 1")
   end
+
   def test_borderless_option_renders_with_border_by_default
     render_inline(Bali::List::Component.new) do |c|
       c.with_item { |i| i.with_title("Item") }
@@ -59,12 +60,14 @@ class BaliListComponentTest < ComponentTestCase
     assert_selector("ul.list")
     assert_no_selector("ul.border")
   end
+
   def test_relaxed_spacing_option_applies_relaxed_spacing_class
     render_inline(Bali::List::Component.new(relaxed_spacing: true)) do |c|
       c.with_item { |i| i.with_title("Item") }
     end
     assert_selector('ul[class*="py-4"]')
   end
+
   def test_options_passthrough_accepts_custom_classes
     render_inline(Bali::List::Component.new(class: "custom-list")) do |c|
       c.with_item { |i| i.with_title("Item") }
@@ -78,6 +81,7 @@ class BaliListComponentTest < ComponentTestCase
     end
     assert_selector('ul[data-testid="my-list"]')
   end
+
   def test_item_options_passthrough_accepts_custom_classes_on_items
     render_inline(Bali::List::Component.new) do |c|
     c.with_item(class: "highlighted") do |i|
@@ -95,6 +99,7 @@ class BaliListComponentTest < ComponentTestCase
     end
     assert_selector('li[data-item="first"]')
   end
+
   def test_title_and_subtitle_options_accepts_custom_classes_on_title
     render_inline(Bali::List::Component.new) do |c|
     c.with_item do |i|
@@ -112,6 +117,7 @@ class BaliListComponentTest < ComponentTestCase
     end
     assert_selector("div.text-sm.text-info", text: "Custom Subtitle")
   end
+
   def test_content_slot_renders_additional_content
     render_inline(Bali::List::Component.new) do |c|
     c.with_item do |i|
@@ -122,6 +128,7 @@ class BaliListComponentTest < ComponentTestCase
     assert_text("Additional content")
     assert_selector(".list-col-grow")
   end
+
   def test_constants_has_base_classes_constant
     assert_equal("list", Bali::List::Component::BASE_CLASSES)
   end
@@ -129,6 +136,7 @@ class BaliListComponentTest < ComponentTestCase
   def test_constants_has_bordered_classes_constant
     assert_equal("border border-base-300 rounded-box", Bali::List::Component::BORDERED_CLASSES)
   end
+
   def test_item_constants_has_base_classes_constant
     assert_equal("list-row", Bali::List::Item::Component::BASE_CLASSES)
   end

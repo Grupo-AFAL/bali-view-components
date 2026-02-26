@@ -68,11 +68,13 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
     render_inline(component)
     assert_no_selector(".icon-component")
   end
+
   def test_skip_confirm_skips_confirmation_when_skip_confirm_true
     @options.merge!(skip_confirm: true)
     render_inline(component)
     assert_no_selector("[data-turbo-confirm]")
   end
+
   def test_authorization_does_not_render_when_authorized_false
     @options.merge!(authorized: false)
     render_inline(component)
@@ -84,10 +86,12 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
     render_inline(component)
     assert_selector("button")
   end
+
   def test_block_content_uses_block_content_as_name
     render_inline(component) { "Remove Item" }
     assert_selector("button", text: "Remove Item")
   end
+
   def test_with_active_record_model_renders_a_delete_link
     render_inline(component)
     assert_selector("button.text-error.btn-ghost", text: "Delete")
@@ -99,6 +103,7 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
     render_inline(component)
     assert_selector("[action='/delete-url']")
   end
+
   def test_when_the_hover_card_link_component_is_in_use_renders_a_delete_link_disabled
     @options.merge!(disabled: true)
     render_inline(component)

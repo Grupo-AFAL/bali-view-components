@@ -33,6 +33,7 @@ class BaliIconKeptIconsTest < ActiveSupport::TestCase
   def test_exists_accepts_symbols
     assert(Bali::Icon::KeptIcons.exists?(:visa))
   end
+
   def test_find_returns_svg_markup_for_kept_icons
     svg = Bali::Icon::KeptIcons.find("visa")
     assert_includes(svg, "<svg")
@@ -54,6 +55,7 @@ class BaliIconKeptIconsTest < ActiveSupport::TestCase
     refute(Bali::Icon::KeptIcons.brand?("mexico-flag"))
     refute(Bali::Icon::KeptIcons.brand?("recipe-book"))
   end
+
   def test_find_regional_returns_true_for_regional_icons
     assert(Bali::Icon::KeptIcons.regional?("mexico-flag"))
     assert(Bali::Icon::KeptIcons.regional?("us-flag"))
@@ -62,6 +64,7 @@ class BaliIconKeptIconsTest < ActiveSupport::TestCase
   def test_find_regional_returns_false_for_non_regional_icons
     refute(Bali::Icon::KeptIcons.regional?("visa"))
   end
+
   def test_find_custom_returns_true_for_custom_domain_icons
     assert(Bali::Icon::KeptIcons.custom?("recipe-book"))
     assert(Bali::Icon::KeptIcons.custom?("diagnose"))
@@ -70,6 +73,7 @@ class BaliIconKeptIconsTest < ActiveSupport::TestCase
   def test_find_custom_returns_false_for_non_custom_icons
     refute(Bali::Icon::KeptIcons.custom?("visa"))
   end
+
   def test_find_constants_has_frozen_brand_payment
     assert(Bali::Icon::KeptIcons::BRAND_PAYMENT.frozen?)
   end

@@ -24,10 +24,8 @@ module Bali
     end
 
     config.generators do |g|
-      g.test_framework :rspec, fixture: true
-      g.view_specs      false
-      g.routing_specs   false
-      g.helper          false
+      g.test_framework :minitest, fixture: true
+      g.helper false
     end
 
     ActiveSupport.on_load(:view_component) do

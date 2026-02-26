@@ -46,12 +46,14 @@ class BaliActionsDropdownComponentTest < ComponentTestCase
     end
     assert_selector('button[type="button"] svg')
   end
+
   def test_custom_icon_allows_changing_the_trigger_icon
     render_inline(Bali::ActionsDropdown::Component.new(icon: "more")) do |c|
       c.with_item(name: "Edit", href: "#")
     end
     assert_selector('button[type="button"] svg')
   end
+
   def test_custom_trigger_renders_custom_trigger_when_provided
     render_inline(Bali::ActionsDropdown::Component.new) do |c|
     c.with_trigger do
@@ -62,18 +64,21 @@ class BaliActionsDropdownComponentTest < ComponentTestCase
     assert_selector("button.custom-trigger", text: "Actions")
     assert_no_selector("button.btn-circle")
   end
+
   def test_accessibility_uses_semantic_button_element_for_trigger
     render_inline(Bali::ActionsDropdown::Component.new) do |c|
       c.with_item(name: "Edit", href: "#")
     end
     assert_selector('button[type="button"][aria-haspopup="true"]')
   end
+
   def test_custom_content_fallback_renders_block_content_when_no_items_provided
     render_inline(Bali::ActionsDropdown::Component.new) do
       '<li><a href="#">Custom Link</a></li>'.html_safe
     end
     assert_selector("ul.menu li a", text: "Custom Link")
   end
+
   def test_render_behavior_does_not_render_when_no_items_and_no_content
     result = render_inline(Bali::ActionsDropdown::Component.new)
     assert_empty(result.to_html)
@@ -85,6 +90,7 @@ class BaliActionsDropdownComponentTest < ComponentTestCase
     end
     assert_selector("div.dropdown")
   end
+
   def test_horizontal_alignment_supports_align_start_default
     render_inline(Bali::ActionsDropdown::Component.new(align: :start)) do |c|
       c.with_item(name: "Edit", href: "#")
@@ -105,6 +111,7 @@ class BaliActionsDropdownComponentTest < ComponentTestCase
     end
     assert_selector("div.dropdown.dropdown-end")
   end
+
   def test_vertical_direction_supports_direction_top
     render_inline(Bali::ActionsDropdown::Component.new(direction: :top)) do |c|
       c.with_item(name: "Edit", href: "#")
@@ -132,12 +139,14 @@ class BaliActionsDropdownComponentTest < ComponentTestCase
     end
     assert_selector("div.dropdown.dropdown-right")
   end
+
   def test_combined_positions_supports_direction_and_alignment_together
     render_inline(Bali::ActionsDropdown::Component.new(direction: :top, align: :end)) do |c|
       c.with_item(name: "Edit", href: "#")
     end
     assert_selector("div.dropdown.dropdown-top.dropdown-end")
   end
+
   def test_menu_width_uses_medium_width_by_default
     render_inline(Bali::ActionsDropdown::Component.new) do |c|
       c.with_item(name: "Edit", href: "#")
@@ -165,6 +174,7 @@ class BaliActionsDropdownComponentTest < ComponentTestCase
     end
     assert_selector("ul.dropdown-content.w-80")
   end
+
   def test_popover_mode_renders_hovercard_component_when_popover_true
     render_inline(Bali::ActionsDropdown::Component.new(popover: true)) do |c|
       c.with_item(name: "Edit", href: "#")

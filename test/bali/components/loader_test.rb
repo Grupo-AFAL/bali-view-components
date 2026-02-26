@@ -24,6 +24,7 @@ class BaliLoaderComponentTest < ComponentTestCase
     render_inline(Bali::Loader::Component.new)
     assert_selector("p", text: "Loading...")
   end
+
   def test_accessibility_adds_role_status_to_the_spinner
     render_inline(Bali::Loader::Component.new)
     assert_selector('span.loading[role="status"]')
@@ -38,6 +39,7 @@ class BaliLoaderComponentTest < ComponentTestCase
     render_inline(Bali::Loader::Component.new)
     assert_selector('span.loading[aria-label="Loading..."]')
   end
+
   def test_types_renders_spinner_type_by_default
     render_inline(Bali::Loader::Component.new)
     assert_selector("span.loading.loading-spinner")

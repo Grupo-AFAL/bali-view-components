@@ -23,6 +23,7 @@ class BaliTableComponentTest < ComponentTestCase
   def test_constants_defines_sticky_classes
     assert_includes(Bali::Table::Component::STICKY_CLASSES, "overflow-visible")
   end
+
   def test_headers_renders_a_table_with_headers_using_array_syntax
     render_inline(component) do |c|
       c.with_headers([
@@ -52,12 +53,14 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector("tr th", text: "visible")
     assert_no_selector("tr th", text: "hidden")
   end
+
   def test_rows_renders_a_table_with_rows
     render_inline(component) do |c|
       c.with_row { "<td>Hola</td>".html_safe }
     end
     assert_selector("tr td", text: "Hola")
   end
+
   def test_footer_renders_a_table_with_footer
     render_inline(component) do |c|
       c.with_footer { "<td>Total</td>".html_safe }
@@ -65,6 +68,7 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector("table")
     assert_selector("tfoot tr td", text: "Total")
   end
+
   def test_empty_states_renders_no_results_message_when_filters_are_active
     active_form = Struct.new(:active_filters?, :id).new(true, "1")
     @options = { form: active_form }
@@ -84,6 +88,7 @@ class BaliTableComponentTest < ComponentTestCase
     end
     assert_selector("a", text: "Add New Record")
   end
+
   def test_empty_states_with_custom_no_records_notification_renders_custom_message
     @options = { form: @filter_form }
     render_inline(component) do |c|
@@ -91,6 +96,7 @@ class BaliTableComponentTest < ComponentTestCase
     end
     assert_selector(".empty-table", text: "So sorry, no records found!")
   end
+
   def test_empty_states_with_custom_no_results_notification_renders_custom_message_when_filters_active
     active_form = Struct.new(:active_filters?, :id).new(true, "1")
     @options = { form: active_form }
@@ -99,6 +105,7 @@ class BaliTableComponentTest < ComponentTestCase
     end
     assert_selector(".empty-table", text: "So sorry, no results!")
   end
+
   def test_bulk_actions_renders_checkboxes_when_bulk_actions_provided
     @options = { bulk_actions: [ { name: "Delete", href: "/delete" } ] }
     render_inline(component) do |c|
@@ -133,6 +140,7 @@ class BaliTableComponentTest < ComponentTestCase
     end
     assert_no_selector('input[type="checkbox"][data-table-target="toggleAll"]')
   end
+
   def test_sticky_headers_applies_sticky_classes_when_enabled
     @options = { sticky_headers: true }
     render_inline(component) do |c|
@@ -147,6 +155,7 @@ class BaliTableComponentTest < ComponentTestCase
     end
     assert_no_selector(".overflow-visible")
   end
+
   def test_daisyui_classes_applies_table_and_table_zebra_classes
     render_inline(component) do |c|
       c.with_header(name: "Name")
@@ -160,6 +169,7 @@ class BaliTableComponentTest < ComponentTestCase
     end
     assert_selector(".overflow-x-auto.table-component")
   end
+
   def test_options_passthrough_accepts_custom_id
     @options = { id: "my-table" }
     render_inline(component)
@@ -183,6 +193,7 @@ class BaliTableComponentTest < ComponentTestCase
     render_inline(component)
     assert_selector("div.custom-container")
   end
+
   def test_container_id_returns_custom_id_when_provided
     c = Bali::Table::Component.new(id: "custom-id")
     assert_equal("custom-id", c.container_id)
@@ -198,6 +209,7 @@ class BaliTableComponentTest < ComponentTestCase
     c = Bali::Table::Component.new
     assert_nil(c.container_id)
   end
+
   def test_bulk_actions_returns_true_when_bulk_actions_provided
     c = Bali::Table::Component.new(bulk_actions: [ { name: "Delete", href: "/delete" } ])
     assert(c.bulk_actions?)

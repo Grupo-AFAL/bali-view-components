@@ -17,6 +17,7 @@ class BaliTimelineComponentTest < ComponentTestCase
     render_inline(Bali::Timeline::Component.new(data: { testid: "my-timeline" }))
     assert_selector('ul.timeline[data-testid="my-timeline"]')
   end
+
   def test_position_variants_renders_left_position_by_default
     render_inline(Bali::Timeline::Component.new)
     assert_selector("ul.timeline.timeline-vertical")
@@ -37,6 +38,7 @@ class BaliTimelineComponentTest < ComponentTestCase
     render_inline(Bali::Timeline::Component.new(position: "center"))
     assert_selector("ul.timeline.timeline-centered")
   end
+
   def test_timeline_items_renders_items_with_daisyui_structure
     render_inline(Bali::Timeline::Component.new) do |c|
       c.with_tag_item(heading: "January 2022") { "Content" }
@@ -91,6 +93,7 @@ class BaliTimelineComponentTest < ComponentTestCase
     end
     assert_selector("hr.bg-primary", count: 2)
   end
+
   def test_timeline_headers_renders_headers_with_daisyui_badge
     render_inline(Bali::Timeline::Component.new) do |c|
       c.with_tag_header(text: "Start")
@@ -120,6 +123,7 @@ class BaliTimelineComponentTest < ComponentTestCase
     end
     assert_selector(".badge.badge-outline.badge-secondary", text: "Legacy")
   end
+
   def test_multiple_items_renders_multiple_items_and_headers
     render_inline(Bali::Timeline::Component.new) do |c|
       c.with_tag_header(text: "Start")
@@ -131,6 +135,7 @@ class BaliTimelineComponentTest < ComponentTestCase
     assert_selector(".badge", count: 2)
     assert_selector(".timeline-end.timeline-box", count: 2)
   end
+
   def test_constants_defines_base_classes
     assert_equal("timeline timeline-vertical", Bali::Timeline::Component::BASE_CLASSES)
   end

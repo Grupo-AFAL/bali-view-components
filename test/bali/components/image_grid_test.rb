@@ -32,18 +32,19 @@ class BaliImageGridComponentTest < ComponentTestCase
     render_inline(Bali::ImageGrid::Component.new(data: { testid: "image-grid" }))
     assert_selector('[data-testid="image-grid"]')
   end
+
   Bali::ImageGrid::Component::COLUMNS.each do |count, css_class|
-  define_method("test_column_variants_renders_#{count}_column_grid_with_#{css_class}") do
-    render_inline(Bali::ImageGrid::Component.new(columns: count))
-    assert_selector(".#{css_class}")
-  end
+    define_method("test_column_variants_renders_#{count}_column_grid_with_#{css_class}") do
+      render_inline(Bali::ImageGrid::Component.new(columns: count))
+      assert_selector(".#{css_class}")
+    end
   end
 
   Bali::ImageGrid::Component::GAPS.each do |size, css_class|
-  define_method("test_gap_variants_renders_size_gap_with_#{css_class}") do
-    render_inline(Bali::ImageGrid::Component.new(gap: size))
-    assert_selector(".#{css_class}")
-  end
+    define_method("test_gap_variants_renders_size_gap_with_#{css_class}") do
+      render_inline(Bali::ImageGrid::Component.new(gap: size))
+      assert_selector(".#{css_class}")
+    end
   end
 
   def test_with_images_renders_image_cards
@@ -83,6 +84,7 @@ class BaliImageGridComponentTest < ComponentTestCase
     end
     assert_selector("figure.aspect-video")
   end
+
   def test_image_with_footer_renders_footer_when_provided
     render_inline(Bali::ImageGrid::Component.new) do |c|
     c.with_image do |image|

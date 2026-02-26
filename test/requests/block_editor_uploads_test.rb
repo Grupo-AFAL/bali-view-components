@@ -49,7 +49,7 @@ class BlockEditorUploadsTest < ActionDispatch::IntegrationTest
 
   def test_post_bali_block_editor_uploads_rejects_files_with_disallowed_mime_types
     ruby_file = Rack::Test::UploadedFile.new(
-    Rails.root.join("config/routes.rb"), "application/x-ruby"
+      Rails.root.join("config/routes.rb"), "application/x-ruby"
     )
     post bali.block_editor_uploads_path, params: { file: ruby_file }
     assert_response :unprocessable_entity
@@ -78,6 +78,7 @@ class BlockEditorUploadsTest < ActionDispatch::IntegrationTest
     json = response.parsed_body
     assert_includes(json["error"], "exceeds")
   end
+
   def test_post_bali_block_editor_uploads_with_authorization_returns_forbidden_when_authorize_lambda_returns_false
     Bali.block_editor_upload_authorize = ->(_controller) { false }
     post bali.block_editor_uploads_path, params: { file: valid_image }

@@ -14,6 +14,7 @@ class BaliIconComponentTest < ComponentTestCase
     assert_selector("span.icon-component.text-info")
     assert_selector('span[id="my-icon"]')
   end
+
   def test_sizes_renders_with_small_size_class
     render_inline(Bali::Icon::Component.new("snowflake", size: :small))
     assert_selector("span.icon-component.size-4")
@@ -28,6 +29,7 @@ class BaliIconComponentTest < ComponentTestCase
     render_inline(Bali::Icon::Component.new("snowflake", size: :large))
     assert_selector("span.icon-component.size-12")
   end
+
   def test_resolution_pipeline_with_lucide_mapped_icons_renders_mapped_icons_through_lucide
     # "user" is mapped to Lucide"s "user' icon
     render_inline(Bali::Icon::Component.new("user"))
@@ -40,6 +42,7 @@ class BaliIconComponentTest < ComponentTestCase
     assert_selector("span.icon-component")
     assert_selector("svg")
   end
+
   def test_resolution_pipeline_with_kept_icons_brands_renders_brand_icons_from_kept_set
     render_inline(Bali::Icon::Component.new("visa"))
     assert_selector("span.icon-component")
@@ -51,12 +54,14 @@ class BaliIconComponentTest < ComponentTestCase
     assert_selector("span.icon-component")
     assert_selector("svg")
   end
+
   def test_resolution_pipeline_with_legacy_icons_falls_back_to_legacy_icons_when_not_in_lucide_or_kept
     # "poo" is a legacy icon that might not be mapped
     render_inline(Bali::Icon::Component.new("poo"))
     assert_selector("span.icon-component")
     assert_selector("svg")
   end
+
   def test_resolution_pipeline_with_invalid_icon_name_raises_iconnotavailable_error
     assert_raises(Bali::Icon::Options::IconNotAvailable) do
       render_inline(Bali::Icon::Component.new("definitely-not-an-icon-xyz"))

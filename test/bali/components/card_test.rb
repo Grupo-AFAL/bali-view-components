@@ -17,6 +17,7 @@ class BaliCardComponentTest < ComponentTestCase
     end
     assert_selector(".card.shadow-sm")
   end
+
   def test_image_renders_a_card_with_a_clickable_image
     render_inline(Bali::Card::Component.new) do |c|
       c.with_image(src: "/image.png", href: "/path/to/page")
@@ -53,6 +54,7 @@ class BaliCardComponentTest < ComponentTestCase
     end
     assert_selector('figure img[data-controller="lightbox"][loading="lazy"]')
   end
+
   def test_title_slot_renders_a_card_with_title_slot
     render_inline(Bali::Card::Component.new) do |c|
       c.with_title("Card Title")
@@ -67,6 +69,7 @@ class BaliCardComponentTest < ComponentTestCase
     end
     assert_selector("h2.card-title.text-primary")
   end
+
   def test_header_slot_renders_header_with_title_inside_card_body
     render_inline(Bali::Card::Component.new) do |c|
       c.with_header(title: "Header Title")
@@ -121,6 +124,7 @@ class BaliCardComponentTest < ComponentTestCase
     assert_selector("p.text-sm", text: "Overview of your data")
     assert_text("Beta")
   end
+
   def test_actions_renders_link_actions_with_btn_class
     render_inline(Bali::Card::Component.new) do |c|
       c.with_action(href: "/path", class: "btn-primary") { "Link to path" }
@@ -141,6 +145,7 @@ class BaliCardComponentTest < ComponentTestCase
     end
     assert_selector('.card-actions button.btn[data-action="click->modal#open"]')
   end
+
   def test_custom_image_slot_renders_a_card_with_custom_image_content
     render_inline(Bali::Card::Component.new) do |c|
     c.with_image do
@@ -151,6 +156,7 @@ class BaliCardComponentTest < ComponentTestCase
     end
     assert_selector("figure .image-content", text: "Custom content in image")
   end
+
   def test_styles_renders_bordered_style
     render_inline(Bali::Card::Component.new(style: :bordered)) do
       "Content"
@@ -164,6 +170,7 @@ class BaliCardComponentTest < ComponentTestCase
     end
     assert_selector(".card.card-dash")
   end
+
   def test_layouts_renders_side_layout
     render_inline(Bali::Card::Component.new(side: true)) do
       "Content"
@@ -177,6 +184,7 @@ class BaliCardComponentTest < ComponentTestCase
     end
     assert_selector(".card.image-full")
   end
+
   def test_sizes_renders_small_size
     render_inline(Bali::Card::Component.new(size: :sm)) do
       "Content"

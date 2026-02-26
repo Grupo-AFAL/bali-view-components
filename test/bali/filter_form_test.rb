@@ -77,16 +77,20 @@ class BaliFilterFormTest < ActiveSupport::TestCase
   def test_initialize_initializes_a_form_with_provided_attributes
     assert_equal("Iron", @form.name_i_cont)
   end
+
   def test_permitted_attributes_returns_an_array_of_permitted_attributes
     assert_equal([ "s", "name_i_cont", { "genre_in" => [] } ], @form.permitted_attributes)
   end
+
   def test_array_attributes_returns_an_array_of_array_attributes
     assert_equal([ "genre_in" ], @form.array_attributes)
   end
+
   def test_active_filters_count_returns_the_number_of_active_filters
     @form = MovieFilterForm.new(@tenant.movies, params({ genre_in: [ "Action" ] }))
     assert_equal(1, @form.active_filters_count)
   end
+
   def test_active_filters_returns_true_with_movie_name_filter
     @form = MovieFilterForm.new(@tenant.movies, params({ name_i_cont: "Iron" }))
     assert(@form.active_filters?)
@@ -101,9 +105,11 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     @form = MovieFilterForm.new(@tenant.movies, params({}))
     refute(@form.active_filters?)
   end
+
   def test_query_params_returns_a_hash_of_attributes_and_values
     assert_equal({ "genre_in" => nil, "name_i_cont" => "Iron", "s" => nil }, @form.query_params)
   end
+
   def test_result_returns_records_matching_the_query_and_default_scope
     assert_equal(2, @records.size)
     assert_includes(@records.map(&:name), "Iron man 1", "Iron man 2")
@@ -113,6 +119,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     assert_equal(@iron_man_1, @records.first)
     assert_equal(@iron_man_2, @records.last)
   end
+
   def test_filter_attribute_dsl_stores_filter_attributes_defined_in_the_class
     assert_equal(5, AdvancedMovieFilterForm.filter_attributes.size)
   end
@@ -133,6 +140,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     status_attr = AdvancedMovieFilterForm.filter_attributes.find { |a| a[:key] == :status }
     assert_equal("Movie Status", status_attr[:label])
   end
+
   def test_filter_attribute_inheritance_inherits_filter_attributes_from_parent_class
     assert_equal(6, ExtendedMovieFilterForm.filter_attributes.size)
   end
@@ -150,6 +158,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
   def test_filter_attribute_inheritance_does_not_modify_parent_class_attributes
     assert_equal(5, AdvancedMovieFilterForm.filter_attributes.size)
   end
+
   def test_available_attributes_returns_the_filter_attributes_from_the_class
     @form = AdvancedMovieFilterForm.new(Movie.all, params({}))
     assert_equal(AdvancedMovieFilterForm.filter_attributes, @form.available_attributes)
@@ -159,6 +168,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     @form = MovieFilterForm.new(@tenant.movies, params({}))
     assert_equal([], @form.available_attributes)
   end
+
   def test_filter_groups_returns_empty_array_when_no_groupings_present
     @form = AdvancedMovieFilterForm.new(Movie.all, params({}))
     assert_equal([], @form.filter_groups)
@@ -211,6 +221,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     @form = AdvancedMovieFilterForm.new(Movie.all, params(filter_params))
     assert_equal(2, @form.filter_groups.size)
   end
+
   def test_combinator_returns_and_as_default
     @form = AdvancedMovieFilterForm.new(Movie.all, params({}))
     assert_equal("and", @form.combinator)
@@ -221,6 +232,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     @form = AdvancedMovieFilterForm.new(Movie.all, params(filter_params))
     assert_equal("or", @form.combinator)
   end
+
   def test_active_filter_details_returns_empty_array_when_no_filters_active
     @form = AdvancedMovieFilterForm.new(Movie.all, params({}))
     assert_equal([], @form.active_filter_details)
@@ -257,6 +269,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     assert_equal("action", detail[:value])
     assert_equal("Action", detail[:value_label])
   end
+
   def test_search_fields_dsl_stores_search_fields_defined_in_the_class
     assert_equal(%i[name genre tenant_name], SearchableMovieFilterForm.defined_search_fields)
   end
@@ -270,6 +283,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     @form = MovieFilterForm.new(@tenant.movies, params({}))
     assert_equal([], @form.search_fields)
   end
+
   def test_search_enabled_returns_true_when_search_fields_defined
     @form = SearchableMovieFilterForm.new(Movie.all, params({}))
     assert(@form.search_enabled?)
@@ -279,6 +293,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     @form = MovieFilterForm.new(@tenant.movies, params({}))
     refute(@form.search_enabled?)
   end
+
   def test_search_field_name_builds_ransack_field_name_from_search_fields
     @form = SearchableMovieFilterForm.new(Movie.all, params({}))
     assert_equal("name_or_genre_or_tenant_name_cont", @form.search_field_name)
@@ -288,6 +303,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     @form = MovieFilterForm.new(@tenant.movies, params({}))
     assert_nil(@form.search_field_name)
   end
+
   def test_search_value_extracts_search_value_from_params
     filter_params = { name_or_genre_or_tenant_name_cont: "Iron" }
     @form = SearchableMovieFilterForm.new(Movie.all, params(filter_params))
@@ -298,6 +314,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     @form = SearchableMovieFilterForm.new(Movie.all, params({}))
     assert_nil(@form.search_value)
   end
+
   def test_search_config_returns_complete_search_configuration
     filter_params = { name_or_genre_or_tenant_name_cont: "Iron" }
     @form = SearchableMovieFilterForm.new(Movie.all, params(filter_params))
@@ -311,6 +328,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     @form = MovieFilterForm.new(@tenant.movies, params({}))
     assert_nil(@form.search_config)
   end
+
   def test_search_fields_via_initialize_parameter_accepts_search_fields_as_initialize_parameter
     @form = Bali::FilterForm.new(Movie.all, params({}), search_fields: %i[name description])
     assert_equal(%i[name description], @form.search_fields)
@@ -329,6 +347,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     assert_equal(%i[name email], @form.search_fields)
     assert_equal("test@example.com", @form.search_value)
   end
+
   def test_ransack_params_includes_basic_query_params
     @form = MovieFilterForm.new(@tenant.movies, params({ name_i_cont: "Iron" }))
     assert_equal("Iron", @form.ransack_params["name_i_cont"])
@@ -370,6 +389,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     assert(ransack_params[:g].present?)
     assert_equal("and", ransack_params[:m])
   end
+
   def test_search_integration_with_ransack_filters_results_using_search_value
     @tenant = Tenant.create(name: "Test Studio")
     @tenant.movies.create(name: "Iron Man", genre: "Action")
@@ -487,6 +507,7 @@ class BaliFilterFormTestSimpleFilters < ActiveSupport::TestCase
     assert_nil(genre_filter[:label])
     assert_nil(genre_filter[:default])
   end
+
   def test_simple_filter_inheritance_inherits_simple_filters_from_parent_class
     assert_equal(3, ExtendedSimpleFilterForm.defined_simple_filters.size)
   end
@@ -499,6 +520,7 @@ class BaliFilterFormTestSimpleFilters < ActiveSupport::TestCase
   def test_simple_filter_inheritance_does_not_modify_parent_class_simple_filters
     assert_equal(2, SimpleFilterableMovieFilterForm.defined_simple_filters.size)
   end
+
   def test_simple_filters_returns_simple_filters_from_class_dsl
     @form = SimpleFilterableMovieFilterForm.new(Movie.all, params({}))
     assert_equal(2, @form.simple_filters.size)
@@ -508,6 +530,7 @@ class BaliFilterFormTestSimpleFilters < ActiveSupport::TestCase
     @form = MovieFilterForm.new(@tenant.movies, params({}))
     assert_equal([], @form.simple_filters)
   end
+
   def test_simple_filters_enabled_returns_true_when_simple_filters_defined
     @form = SimpleFilterableMovieFilterForm.new(Movie.all, params({}))
     assert(@form.simple_filters_enabled?)
@@ -517,6 +540,7 @@ class BaliFilterFormTestSimpleFilters < ActiveSupport::TestCase
     @form = MovieFilterForm.new(@tenant.movies, params({}))
     refute(@form.simple_filters_enabled?)
   end
+
   def test_simple_filters_config_returns_complete_configuration_for_each_filter
     @form = SimpleFilterableMovieFilterForm.new(Movie.all, params({}))
     config = @form.simple_filters_config
@@ -554,6 +578,7 @@ class BaliFilterFormTestSimpleFilters < ActiveSupport::TestCase
     @form = MovieFilterForm.new(@tenant.movies, params({}))
     assert_nil(@form.simple_filters_config)
   end
+
   def test_simple_filters_active_returns_false_when_no_filter_values_in_params
     @form = SimpleFilterableMovieFilterForm.new(Movie.all, params({}))
     refute(@form.simple_filters_active?)
@@ -570,6 +595,7 @@ class BaliFilterFormTestSimpleFilters < ActiveSupport::TestCase
     @form = SimpleFilterableMovieFilterForm.new(Movie.all, params(filter_params))
     assert(@form.simple_filters_active?)
   end
+
   def test_simple_filters_via_initialize_parameter_accepts_simple_filters_as_initialize_parameter
     simple_filters_config = [
     { attribute: :category, collection: [ %w[A a], %w[B b] ], blank: "All" }
@@ -597,6 +623,7 @@ class BaliFilterFormTestSimpleFilters < ActiveSupport::TestCase
     config = @form.simple_filters_config
     assert_equal("a", config.first[:value])
   end
+
   def test_simple_filter_with_callable_collection_resolves_proc_collections_at_config_time
     simple_filters_config = [
     { attribute: :dynamic, collection: -> { [ %w[Dynamic dynamic] ] }, blank: "All"
@@ -606,6 +633,7 @@ class BaliFilterFormTestSimpleFilters < ActiveSupport::TestCase
     config = @form.simple_filters_config
     assert_equal([ %w[Dynamic dynamic] ], config.first[:collection])
   end
+
   def test_simple_search_config_returns_search_config_hash_when_search_fields_configured
     @form = Bali::FilterForm.new(Movie.all, params({}), search_fields: %i[name genre])
     config = @form.simple_search_config

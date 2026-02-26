@@ -43,6 +43,7 @@ class BaliTabsComponentTest < ComponentTestCase
     end
     assert_selector('[data-controller="tabs"]')
   end
+
   def test_styles_renders_border_style_by_default
     render_inline(Bali::Tabs::Component.new) do |c|
       c.with_tab(title: "Tab", active: true) { "Content" }
@@ -80,6 +81,7 @@ class BaliTabsComponentTest < ComponentTestCase
     end
     assert_selector(".tabs")
   end
+
   def test_sizes_renders_xs_size
     render_inline(Bali::Tabs::Component.new(size: :xs)) do |c|
       c.with_tab(title: "Tab", active: true) { "Content" }
@@ -122,6 +124,7 @@ class BaliTabsComponentTest < ComponentTestCase
     end
     assert_selector(".tabs")
   end
+
   def test_with_icons_renders_tabs_with_icon
     render_inline(Bali::Tabs::Component.new) do |c|
       c.with_tab(title: "Tab", active: true, icon: "alert") { "<p>Tab content</p>".html_safe }
@@ -136,6 +139,7 @@ class BaliTabsComponentTest < ComponentTestCase
     assert_selector("a.tab span.icon-component")
     assert_selector("a.tab span", text: "")
   end
+
   def test_with_href_full_page_navigation_renders_tabs_with_href_for_full_page_navigation
     render_inline(Bali::Tabs::Component.new) do |c|
       c.with_tab(title: "Tab", href: "/")
@@ -150,6 +154,7 @@ class BaliTabsComponentTest < ComponentTestCase
     assert_selector('a.tab[href="/page"]')
     assert_no_selector("a.tab[data-action]")
   end
+
   def test_with_src_on_demand_loading_renders_tabs_with_src_for_lazy_loading
     render_inline(Bali::Tabs::Component.new) do |c|
       c.with_tab(title: "Tab", src: "/content", active: true)
@@ -170,6 +175,7 @@ class BaliTabsComponentTest < ComponentTestCase
     end
     assert_selector('a.tab[data-tabs-reload-param="false"]')
   end
+
   def test_options_passthrough_passes_custom_class_to_container
     render_inline(Bali::Tabs::Component.new(class: "custom-tabs")) do |c|
       c.with_tab(title: "Tab", active: true) { "Content" }
