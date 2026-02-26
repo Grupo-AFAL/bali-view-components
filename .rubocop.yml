@@ -19,7 +19,6 @@ AllCops:
     - 'lib/tasks/bali_tasks.rake'
     - 'bin/**/*'
     - 'vendor/**/*'
-    - 'spec/spec_helper.rb'
     - 'spec/dummy/bin/*'
     - 'spec/dummy/config/**/*'
     - 'spec/dummy/db/**/*'
@@ -48,4 +47,4 @@ Metrics/PerceivedComplexity:
 # ViewComponent#initialize intentionally doesn't call super
 Lint/MissingSuper:
   Exclude:
-    - app/components/**/*
+    - 'app/components/**/*'
