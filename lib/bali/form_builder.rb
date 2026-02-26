@@ -8,8 +8,34 @@ module Bali
     include Utils
     include HtmlUtils
 
-    Dir.glob(File.join(File.dirname(__FILE__), "form_builder", "*.rb")) do |file|
-      include FormBuilder.const_get(File.basename(file, ".rb").camelize)
-    end
+    include BooleanFields
+    include CoordinatesPolygonFields
+    include CurrencyFields
+    include DateFields
+    include DatetimeFields
+    include DirectUploadFields
+    include DynamicFields
+    include EmailFields
+    include ErrorSummaryFields
+    include FileFields
+    include NumberFields
+    include PasswordFields
+    include PercentageFields
+    include RadioFields
+    include RangeFields
+    include RecurrentEventRuleFields
+    include RichTextAreaFields
+    include SearchFields
+    include SelectFields
+    include SlimSelectFields
+    include StepNumberFields
+    include SubmitFields
+    include SwitchFields
+    include TextAreaFields
+    include TextFields
+    include TimeFields
+    include TimePeriodFields
+    include TimeZoneSelectFields
+    include UrlFields
   end
 end

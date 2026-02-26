@@ -25,6 +25,7 @@ yarn-debug.log*
 /spec/dummy/db/*.sqlite3_*
 /spec/dummy/log/*.log
 /spec/dummy/node_modules/
+/spec/dummy/coverage/
 /spec/dummy/storage/
 /spec/dummy/tmp/
 /spec/dummy/tmp/development_secret.txt

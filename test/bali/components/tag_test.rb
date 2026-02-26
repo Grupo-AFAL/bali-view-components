@@ -46,66 +46,64 @@ class BaliTagComponentTest < ComponentTestCase
   end
 
   def test_styles_applies_outline_style
-      render_inline(Bali::Tag::Component.new(text: "Tag", style: :outline))
-      assert_selector("div.badge.badge-outline")
+    render_inline(Bali::Tag::Component.new(text: "Tag", style: :outline))
+    assert_selector("div.badge.badge-outline")
   end
 
   def test_styles_applies_soft_style
-      render_inline(Bali::Tag::Component.new(text: "Tag", style: :soft))
-      assert_selector("div.badge.badge-soft")
+    render_inline(Bali::Tag::Component.new(text: "Tag", style: :soft))
+    assert_selector("div.badge.badge-soft")
   end
 
   def test_styles_applies_dash_style
-      render_inline(Bali::Tag::Component.new(text: "Tag", style: :dash))
-      assert_selector("div.badge.badge-dash")
+    render_inline(Bali::Tag::Component.new(text: "Tag", style: :dash))
+    assert_selector("div.badge.badge-dash")
   end
 
   def test_styles_combines_style_with_color
-      render_inline(Bali::Tag::Component.new(text: "Tag", style: :outline, color: :primary))
-      assert_selector("div.badge.badge-outline.badge-primary")
+    render_inline(Bali::Tag::Component.new(text: "Tag", style: :outline, color: :primary))
+    assert_selector("div.badge.badge-outline.badge-primary")
   end
 
   def test_legacy_light_parameter_applies_outline_style_for_backward_compatibility
-      render_inline(Bali::Tag::Component.new(text: "Tag", light: true))
-      assert_selector("div.badge.badge-outline")
+    render_inline(Bali::Tag::Component.new(text: "Tag", light: true))
+    assert_selector("div.badge.badge-outline")
   end
 
-  def test_legacy_light_parameter_emits_deprecation_warning
-      # RSpec mock converted to assert_output pattern
-      render_inline(Bali::Tag::Component.new(text: "Tag", light: true))
-      # The deprecation warning is logged but we can verify the component still renders
-      assert_selector(".badge")
+  def test_legacy_light_parameter_renders_badge
+    render_inline(Bali::Tag::Component.new(text: "Tag", light: true))
+    assert_selector(".badge")
   end
 
   def test_legacy_light_parameter_style_parameter_takes_precedence_over_light
-      render_inline(Bali::Tag::Component.new(text: "Tag", light: true, style: :soft))
-      assert_selector("div.badge.badge-soft")
-      assert_no_selector("div.badge.badge-outline")
+    render_inline(Bali::Tag::Component.new(text: "Tag", light: true, style: :soft))
+    assert_selector("div.badge.badge-soft")
+    assert_no_selector("div.badge.badge-outline")
   end
 
   def test_custom_color_applies_custom_background_color_with_contrasting_text
-      render_inline(Bali::Tag::Component.new(text: "Tag", custom_color: "#ff0000"))
-      assert_selector('div.badge[style*="background-color: #ff0000"]')
-      assert_selector('div.badge[style*="color:"]')
+    render_inline(Bali::Tag::Component.new(text: "Tag", custom_color: "#ff0000"))
+    assert_selector('div.badge[style*="background-color: #ff0000"]')
+    assert_selector('div.badge[style*="color:"]')
   end
 
   def test_rounded_applies_rounded_full_class_when_rounded_is_true
-      render_inline(Bali::Tag::Component.new(text: "Tag", rounded: true))
-      assert_selector("div.badge.rounded-full")
+    render_inline(Bali::Tag::Component.new(text: "Tag", rounded: true))
+    assert_selector("div.badge.rounded-full")
   end
 
   def test_rounded_does_not_apply_rounded_full_class_when_rounded_is_false
-      render_inline(Bali::Tag::Component.new(text: "Tag", rounded: false))
-      assert_no_selector("div.badge.rounded-full")
+    render_inline(Bali::Tag::Component.new(text: "Tag", rounded: false))
+    assert_no_selector("div.badge.rounded-full")
   end
 
   def test_html_attribute_passthrough_passes_additional_attributes_to_the_element
-      render_inline(Bali::Tag::Component.new(text: "Tag", data: { testid: "my-tag" }))
-      assert_selector('div.badge[data-testid="my-tag"]')
+    render_inline(Bali::Tag::Component.new(text: "Tag", data: { testid: "my-tag" }))
+    assert_selector('div.badge[data-testid="my-tag"]')
   end
 
   def test_html_attribute_passthrough_merges_custom_classes_with_component_classes
-      render_inline(Bali::Tag::Component.new(text: "Tag", class: "my-custom-class"))
-      assert_selector("div.badge.my-custom-class")
+    render_inline(Bali::Tag::Component.new(text: "Tag", class: "my-custom-class"))
+    assert_selector("div.badge.my-custom-class")
   end
 end

@@ -50,7 +50,7 @@ module Bali
       app.config.assets.paths << root.join("app", "components")
       app.config.assets.paths << root.join("app", "assets", "javascripts")
       app.config.assets.paths << root.join("app", "assets", "stylesheets")
-      # Add frontend path for Vite-based consuming apps
+      # Add frontend path for consuming apps using bundlers (esbuild, Vite, etc.)
       app.config.assets.paths << root.join("app", "frontend")
     end
 

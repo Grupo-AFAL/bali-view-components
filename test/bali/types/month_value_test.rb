@@ -4,7 +4,7 @@ require "test_helper"
 
 class BaliTypesMonthValueTest < ActiveSupport::TestCase
   def setup
-    @subject = Bali::Types::MonthValue.new
+    @type = Bali::Types::MonthValue.new
   end
 
   # integration
@@ -17,20 +17,20 @@ class BaliTypesMonthValueTest < ActiveSupport::TestCase
   # cast
 
   def test_cast_return_a_nil_if_value_is_blank
-    assert_nil(@subject.cast(""))
+    assert_nil(@type.cast(""))
   end
 
   def test_cast_returns_a_date_object
-    assert_equal(Date.parse("2022-08-01"), @subject.cast("2022-08"))
+    assert_equal(Date.parse("2022-08-01"), @type.cast("2022-08"))
   end
 
   # serialize
 
   def test_serialize_returns_value_if_is_blank
-    assert_equal("", @subject.serialize(""))
+    assert_equal("", @type.serialize(""))
   end
 
   def test_serialize_returns_a_normalized_date
-    assert_equal("2022-08-01", @subject.serialize("2022-08"))
+    assert_equal("2022-08-01", @type.serialize("2022-08"))
   end
 end

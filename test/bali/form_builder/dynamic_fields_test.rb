@@ -115,13 +115,9 @@ class BaliFormBuilderLinkToRemoveFieldsTest < FormBuilderTestCase
 end
 
 class BaliFormBuilderDynamicFieldsGroupTest < FormBuilderTestCase
-  def test_dynamic_fields_group_pending_mock_migration
-    skip "Requires mocha gem for association mocking (was RSpec allow/receive)"
-  end
+  # TODO: Add tests for #dynamic_fields_group (requires mocha for association mocking)
 end
 
 class BaliFormBuilderLinkToAddFieldsTest < FormBuilderTestCase
-  def test_link_to_add_fields_pending_mock_migration
-    skip "Requires mocha gem for association reflection mocking (was RSpec allow/receive)"
-  end
+  # TODO: Add tests for #link_to_add_fields (requires mocha for association reflection mocking)
 end

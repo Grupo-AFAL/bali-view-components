@@ -45,14 +45,12 @@ module Bali
         @shadow = shadow
         @body_class = body_class
         @options = options
-
-        build_options
       end
 
       private
 
-      def build_options
-        @options = prepend_class_name(@options, card_classes)
+      def card_attributes
+        @options.merge(class: class_names(card_classes, @options[:class]))
       end
 
       def card_classes

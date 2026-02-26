@@ -40,7 +40,7 @@ module Bali
         end
 
         def sketchy_username?
-          Bali.sketcky_request_usernames.include?(params.dig(:user, :email))
+          Bali.sketchy_request_usernames.include?(params.dig(:user, :email))
         end
 
         def native_app?

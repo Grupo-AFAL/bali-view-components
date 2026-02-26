@@ -35,7 +35,6 @@ class FormBuilderTestCase < ViewComponent::TestCase
   include Capybara::Minitest::Assertions
 
   # Assert that an HTML string contains an element matching a CSS selector.
-  # Mirrors RSpec's `expect(html).to have_css(selector, **options)`.
   def assert_html(html, selector, text: nil, count: nil, visible: nil, **_opts)
     node = Capybara.string(html)
     opts = {}

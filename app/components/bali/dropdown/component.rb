@@ -32,16 +32,6 @@ module Bali
         @align = align&.to_sym
         @wide = wide
         @options = options
-
-        build_options
-      end
-
-      def dropdown_classes
-        class_names(
-          "dropdown",
-          ALIGNMENTS[@align],
-          "dropdown-hover" => @hoverable
-        )
       end
 
       def content_classes
@@ -64,11 +54,23 @@ module Bali
 
       private
 
-      def build_options
-        @options = prepend_class_name(@options, dropdown_classes)
-        @options = prepend_controller(@options, "dropdown") unless @hoverable
-        @options[:data] ||= {}
-        @options[:data][:dropdown_close_on_click_value] = @close_on_click unless @hoverable
+      def dropdown_classes
+        class_names(
+          "dropdown",
+          ALIGNMENTS[@align],
+          "dropdown-hover" => @hoverable
+        )
+      end
+
+      def dropdown_attributes
+        attrs = @options.merge(class: class_names(dropdown_classes, @options[:class]))
+        unless @hoverable
+          attrs[:data] = (attrs[:data] || {}).merge(
+            controller: [ "dropdown", attrs.dig(:data, :controller) ].compact.join(" "),
+            dropdown_close_on_click_value: @close_on_click
+          )
+        end
+        attrs
       end
     end
   end

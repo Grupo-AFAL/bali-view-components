@@ -30,7 +30,7 @@ module Bali
                   params
       end
 
-      "test-id=\"#{test_id}\"".html_safe
+      "test-id=\"#{ERB::Util.html_escape(test_id)}\"".html_safe
     end
 
     # The last module parent is always "Object", which means the one before to last
