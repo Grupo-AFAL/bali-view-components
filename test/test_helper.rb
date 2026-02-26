@@ -2,24 +2,8 @@
 
 ENV["RAILS_ENV"] ||= "test"
 
-require "simplecov"
-
-SimpleCov.start "rails" do
-  enable_coverage :branch
-
-  add_filter "test/"
-  add_filter "spec/"
-  add_filter ".github/"
-  add_filter "lib/bali/version"
-
-  add_group "Components", "app/components/bali"
-
-  add_filter(/preview.rb/)
-
-  # Current: ~53% line coverage. Target: 80% per AFAL handbook.
-  # Ratchet this up as coverage improves — never let it drop below.
-  minimum_coverage line: 50
-end
+# SimpleCov is started in spec/dummy/config/boot.rb (before gems load)
+# so that Coverage.start tracks lib/ files loaded during Rails boot.
 
 require File.expand_path("../spec/dummy/config/environment", __dir__)
 
@@ -33,17 +17,11 @@ require "capybara/minitest"
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
 class ActiveSupport::TestCase
-  parallelize(workers: :number_of_processors)
-
-  # Give each parallel worker a unique SimpleCov command name so partial
-  # results don't overwrite each other. SimpleCov merges all entries in
-  # .resultset.json automatically when generating the final report.
-  parallelize_setup do |worker|
-    SimpleCov.command_name "#{SimpleCov.command_name}-#{worker}"
-  end
-
-  parallelize_teardown do |_worker|
-    SimpleCov.result
+  # Process-based parallelization loses SimpleCov coverage for files loaded
+  # during Rails boot (before fork). Skip parallelization for coverage runs;
+  # default to parallel for speed during development.
+  unless ENV["COVERAGE"]
+    parallelize(workers: :number_of_processors)
   end
 end
 

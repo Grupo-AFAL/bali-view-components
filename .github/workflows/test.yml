@@ -29,8 +29,10 @@ jobs:
           RAILS_ENV: test
       - name: Build assets
         run: cd spec/dummy && bin/rails tailwindcss:build && yarn build
-      - name: Run tests
+      - name: Run tests with coverage
         run: bundle exec rails test
+        env:
+          COVERAGE: '1'
       - name: Publish code coverage
         uses: qltysh/qlty-action/coverage@v1
         with:
