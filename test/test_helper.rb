@@ -14,9 +14,10 @@ require "view_component/test_helpers"
 require "view_component/test_case"
 require "capybara/minitest"
 
-Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
+require_relative "support/component_test_helpers"
 
 class ActiveSupport::TestCase
+  # TODO: Investigate thread-based parallelization to preserve coverage accuracy.
   # Process-based parallelization loses SimpleCov coverage for files loaded
   # during Rails boot (before fork). Skip parallelization for coverage runs;
   # default to parallel for speed during development.
@@ -53,15 +54,11 @@ class FormBuilderTestCase < ViewComponent::TestCase
 
   private
 
-  def helper
-    @helper ||= TestHelper.new(ActionView::LookupContext.new(ActionView::PathSet.new), {}, nil)
-  end
-
   def resource
     @resource ||= Movie.new
   end
 
   def builder
-    @builder ||= Bali::FormBuilder.new(:movie, resource, helper, {})
+    @builder ||= movie_form_builder(resource)
   end
 end

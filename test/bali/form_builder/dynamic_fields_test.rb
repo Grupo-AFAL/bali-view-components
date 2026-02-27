@@ -94,7 +94,7 @@ class BaliFormBuilderLinkToRemoveFieldsTest < FormBuilderTestCase
   def test_with_soft_delete_true_renders_hidden_field_for_soft_delete_instead_of_destroy
     soft_delete_resource = Movie.new
     soft_delete_resource.define_singleton_method(:_soft_delete) { nil }
-    soft_delete_builder = Bali::FormBuilder.new(:movie, soft_delete_resource, helper, {})
+    soft_delete_builder = movie_form_builder(soft_delete_resource)
     result = soft_delete_builder.link_to_remove_fields("Remove", soft_delete: true)
     assert_includes(result, "_soft_delete")
   end
@@ -102,7 +102,7 @@ class BaliFormBuilderLinkToRemoveFieldsTest < FormBuilderTestCase
   def test_with_soft_delete_true_does_not_render_destroy_hidden_field
     soft_delete_resource = Movie.new
     soft_delete_resource.define_singleton_method(:_soft_delete) { nil }
-    soft_delete_builder = Bali::FormBuilder.new(:movie, soft_delete_resource, helper, {})
+    soft_delete_builder = movie_form_builder(soft_delete_resource)
     result = soft_delete_builder.link_to_remove_fields("Remove", soft_delete: true)
     refute_includes(result, "_destroy")
   end
