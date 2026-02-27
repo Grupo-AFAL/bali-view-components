@@ -7,7 +7,7 @@ module Bali
 
       renders_one :trigger, Trigger::Component
       renders_one :source, Source::Component
-      renders_one :success_content, SucessContent::Component
+      renders_one :success_content, SuccessContent::Component
 
       def initialize(**options)
         @options = options

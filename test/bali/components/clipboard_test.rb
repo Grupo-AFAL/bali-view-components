@@ -143,8 +143,8 @@ class BaliClipboardComponentTest < ComponentTestCase
     assert_includes(Bali::Clipboard::Trigger::Component::BASE_CLASSES, "clipboard-trigger")
   end
 
-  def test_base_classes_constants_defines_base_classes_on_sucesscontent_component
-    assert_includes(Bali::Clipboard::SucessContent::Component::BASE_CLASSES, "hidden")
-    assert_includes(Bali::Clipboard::SucessContent::Component::BASE_CLASSES, "text-success")
+  def test_base_classes_constants_defines_base_classes_on_success_content_component
+    assert_includes(Bali::Clipboard::SuccessContent::Component::BASE_CLASSES, "hidden")
+    assert_includes(Bali::Clipboard::SuccessContent::Component::BASE_CLASSES, "text-success")
   end
 end

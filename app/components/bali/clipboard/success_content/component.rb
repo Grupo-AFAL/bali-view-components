@@ -2,7 +2,7 @@
 
 module Bali
   module Clipboard
-    module SucessContent
+    module SuccessContent
       class Component < ApplicationViewComponent
         BASE_CLASSES = "clipboard-success-content hidden text-success"
 
@@ -27,5 +27,9 @@ module Bali
         end
       end
     end
+
+    # Backwards compatibility for the misspelled module name.
+    # Deprecated: use Bali::Clipboard::SuccessContent instead.
+    SucessContent = SuccessContent
   end
 end
