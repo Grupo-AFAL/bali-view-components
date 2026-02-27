@@ -27,7 +27,7 @@
     "cy:open": "cypress open",
     "cy:run": "cypress run --browser chrome",
     "cy:run:electron": "cypress run",
-    "prepare": "[ -d .git ] && lefthook install || true"
+    "prepare": "[ -d .git ] && git config core.hooksPath .githooks || true"
   },
   "devDependencies": {
     "@babel/core": "^7.17.10",
@@ -35,7 +35,6 @@
     "@babel/plugin-proposal-class-properties": "^7.16.7",
     "@babel/preset-env": "^7.17.10",
     "cypress": "^15.11.0",
-    "lefthook": "^2.0.16",
     "playwright": "^1.57.0",
     "standard": "^17.0.0"
   },
@@ -103,9 +102,6 @@
     "react-dom": {
       "optional": true
     }
-  },
-  "optionalDependencies": {
-    "lefthook-linux-arm64": "^2.1.1"
   },
   "resolutions": {
     "qs": ">=6.14.2",
