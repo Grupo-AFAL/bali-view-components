@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **BlockEditor** - AI endpoint concern (`BlocknoteAi`) for proxying AI chat requests in Rails apps
+- **BlockEditor** - Integration documentation for setting up AI features (`docs/blocknote-ai-rails-integration.md`)
+
+### Fixed
+
+- **BlockEditor** - Prevent page scroll jump when opening AI menu via slash command or formatting toolbar on long pages
+
 ### Changed
 
 - **Testing** - Migrated entire test suite from RSpec to Minitest (2,331 tests), aligning with AFAL handbook standards
