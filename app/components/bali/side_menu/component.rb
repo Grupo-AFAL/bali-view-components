@@ -26,6 +26,16 @@ module Bali
                      )
                    }
 
+      renders_many :bottom_groups,
+                   lambda { |name:, icon: nil, **options|
+                     BottomGroup::Component.new(
+                       name: name,
+                       icon: icon,
+                       current_path: @current_path,
+                       **options
+                     )
+                   }
+
       renders_many :lists, ->(title: nil, **options) do
         List::Component.new(
           title: title,

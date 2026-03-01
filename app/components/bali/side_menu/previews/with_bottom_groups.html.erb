@@ -1,0 +1,17 @@
+<div class="h-[500px] bg-base-200 p-4 ml-64">
+  <%= render Bali::SideMenu::Component.new(current_path: '/dashboard', fixed: true, collapsable: collapsable) do |c|
+    c.with_list(title: 'Principal') do |list|
+      list.with_item(name: 'Dashboard', href: '/dashboard', icon: 'layout-dashboard')
+      list.with_item(name: 'Projects', href: '/projects', icon: 'folder-open')
+      list.with_item(name: 'Team', href: '/team', icon: 'users')
+    end
+
+    c.with_bottom_item(name: 'Ana García', href: '/profile', icon: 'circle-user')
+    c.with_bottom_group(name: 'Configuration', icon: 'settings') do |group|
+      group.with_item(name: 'Profile', href: '/profile', icon: 'circle-user')
+      group.with_item(name: 'Settings', href: '/settings', icon: 'settings')
+      group.with_item(name: 'Documentation', href: '/docs', icon: 'book-open')
+      group.with_item(name: 'Log Out', href: '/logout', icon: 'log-out')
+    end
+  end %>
+</div>

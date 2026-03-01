@@ -77,11 +77,14 @@
     <% end %>
   </div>
 
-  <%# Bottom pinned items %>
-  <% if bottom_items? %>
+  <%# Bottom pinned items and groups %>
+  <% if bottom_items? || bottom_groups? %>
     <div class="border-t border-base-200 shrink-0 space-y-0.5 px-2.5 py-2">
       <% bottom_items.each do |item| %>
         <%= item %>
+      <% end %>
+      <% bottom_groups.each do |group| %>
+        <%= group %>
       <% end %>
     </div>
   <% end %>

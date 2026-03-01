@@ -69,6 +69,18 @@ module Bali
           locals: { collapsable: collapsable }
         )
       end
+
+      # @label With Bottom Groups
+      # Use `with_bottom_group` to add a collapsible dropdown at the bottom of the sidebar.
+      # Useful for grouping configuration, profile, and logout items to save vertical space.
+      # The dropdown opens **upward** so it doesn't overflow below the sidebar.
+      # @param collapsable toggle
+      def with_bottom_groups(collapsable: false)
+        render_with_template(
+          template: 'bali/side_menu/previews/with_bottom_groups',
+          locals: { collapsable: collapsable }
+        )
+      end
     end
   end
 end
