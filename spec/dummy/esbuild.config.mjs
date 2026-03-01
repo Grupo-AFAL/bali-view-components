@@ -68,9 +68,6 @@ const config = {
     'react/jsx-runtime': path.join(__dirname, 'node_modules/react/jsx-runtime'),
     'react/jsx-dev-runtime': path.join(__dirname, 'node_modules/react/jsx-dev-runtime')
   },
-  // flatpickr npm package is broken (missing JS files, only .d.ts).
-  // The datepicker controller uses dynamic import() so it gracefully degrades at runtime.
-  external: ['flatpickr', 'flatpickr/*'],
   loader: {
     // Inline fonts as data URIs — Propshaft's digest-based path resolution
     // misinterprets esbuild's content hash as its own digest, stripping it and
