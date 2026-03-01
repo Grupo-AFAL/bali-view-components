@@ -56,6 +56,8 @@ Rails.application.routes.draw do
     end
   end
 
+  post 'block_editor/ai', to: 'block_editor_ai#create'
+
   mount Bali::Engine, at: '/bali'
   mount Lookbook::Engine, at: '/lookbook'
 end
