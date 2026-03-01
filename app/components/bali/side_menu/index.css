@@ -185,6 +185,19 @@
       bottom: 0;
       top: auto;
       right: auto;
+
+      /* Override collapsed-state rules inside the dropdown */
+      .side-menu-expanded {
+        @apply !flex;
+      }
+
+      .side-menu-collapsed {
+        @apply !hidden;
+      }
+
+      .menu-item {
+        @apply justify-start px-2.5 py-2;
+      }
     }
   }
 }
