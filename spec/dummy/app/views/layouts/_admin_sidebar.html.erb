@@ -1,0 +1,23 @@
+<%= render Bali::SideMenu::Component.new(current_path: request.path, collapsable: true, brand: 'MovieDB') do |menu| %>
+  <% menu.with_menu_switch(name: 'MovieDB', icon: 'clapperboard', href: admin_root_path, active: true) %>
+  <% menu.with_menu_switch(name: 'Analytics', icon: 'bar-chart-3', href: '#') %>
+
+  <% menu.with_list(title: 'Main') do |list| %>
+    <% list.with_item(name: 'Dashboard', href: admin_root_path, icon: 'layout-dashboard', match: :exact) %>
+    <% list.with_item(name: 'Movies', href: admin_movies_path, icon: 'film', match: :crud) %>
+    <% list.with_item(name: 'Studios', href: admin_studios_path, icon: 'building-2', match: :crud) %>
+  <% end %>
+
+  <% menu.with_list(title: 'Reports') do |list| %>
+    <% list.with_item(name: 'Analytics', href: '#', icon: 'bar-chart-3') %>
+    <% list.with_item(name: 'Revenue', href: '#', icon: 'dollar-sign') %>
+  <% end %>
+
+  <% menu.with_bottom_item(name: 'Ana García', href: '#', icon: 'circle-user') %>
+  <% menu.with_bottom_group(name: 'Configuration', icon: 'settings') do |group| %>
+    <% group.with_item(name: 'Profile', href: '#', icon: 'circle-user') %>
+    <% group.with_item(name: 'Settings', href: admin_settings_path, icon: 'settings') %>
+    <% group.with_item(name: 'Documentation', href: '/lookbook', icon: 'book-open', target: '_blank') %>
+    <% group.with_item(name: 'Log Out', href: '#', icon: 'log-out') %>
+  <% end %>
+<% end %>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html data-theme="light">
+  <head>
+    <title>MovieDB Admin</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
+  </head>
+  <body class="min-h-screen" data-controller="modal drawer theme-switcher">
+    <%= render Bali::AppLayout::Component.new do |layout| %>
+      <% layout.with_sidebar do %>
+        <%= render 'layouts/admin_sidebar' %>
+      <% end %>
+
+      <% layout.with_body do %>
+        <%= render Bali::FlashNotifications::Component.new(
+          notice: flash[:notice],
+          alert: flash[:alert]
+        ) %>
+
+        <%= yield %>
+      <% end %>
+    <% end %>
+
+    <%# Modal/drawer templates %>
+    <%= render Bali::Modal::Component.new(active: false, id: 'modal-template') do %>
+      <%= render Bali::Skeleton::Component.new(variant: :modal) %>
+    <% end %>
+    <%= render Bali::Drawer::Component.new(active: false, drawer_id: 'drawer-template') do %>
+      <%= render Bali::Skeleton::Component.new(variant: :list, lines: 4) %>
+    <% end %>
+  </body>
+</html>
