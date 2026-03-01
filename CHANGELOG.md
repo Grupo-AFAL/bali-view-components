@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **SideMenu** - `bottom_group` slot for upward-expanding dropdown menus at sidebar bottom
+- **AppLayout** - New layout component wrapping SideMenu + content area for sidebar-based admin layouts
+- **IndexPage** - Page layout component for standard list/table pages with breadcrumbs, header, and actions
+- **ShowPage** - Page layout component for detail pages with optional sidebar
+- **FormPage** - Page layout component for new/edit form pages with card wrapper
+- **DashboardPage** - Page layout component with configurable stat cards grid
 - **BlockEditor** - AI endpoint concern (`BlocknoteAi`) for proxying AI chat requests in Rails apps
 - **BlockEditor** - Integration documentation for setting up AI features (`docs/blocknote-ai-rails-integration.md`)
 
