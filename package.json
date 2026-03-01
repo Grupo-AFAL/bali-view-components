@@ -108,6 +108,6 @@
     "js-yaml": ">=4.1.1"
   },
   "dependencies": {
-    "daisyui": "^5.5.14"
+    "daisyui": "^5.5.19"
   }
 }
