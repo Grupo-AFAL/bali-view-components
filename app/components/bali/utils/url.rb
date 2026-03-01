@@ -20,7 +20,7 @@ module Bali
       private
 
       def array_query_params?(query_param_name)
-        query_param_name.ends_with?('[]') ||
+        query_param_name.ends_with?("[]") ||
           %w[_in _not_in].any? { |predicate| query_param_name.ends_with?(predicate) }
       end
     end

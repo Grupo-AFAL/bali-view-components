@@ -15,7 +15,7 @@ module Bali
         error_message = options.dig(:attachments, :error_message) || default_error_msg
 
         options.with_defaults!(
-          'data-controller': 'trix-attachments',
+          'data-controller': "trix-attachments",
           'data-trix-attachments-max-size-value': max_attachments_size,
           'data-trix-attachments-error-message-value': error_message
         )

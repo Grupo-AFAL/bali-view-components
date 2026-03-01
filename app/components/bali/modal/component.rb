@@ -4,11 +4,11 @@ module Bali
   module Modal
     class Component < ApplicationViewComponent
       SIZES = {
-        sm: 'max-w-sm',
-        md: 'max-w-md',
-        lg: 'max-w-lg',
-        xl: 'max-w-xl',
-        full: 'max-w-full'
+        sm: "max-w-sm",
+        md: "max-w-md",
+        lg: "max-w-lg",
+        xl: "max-w-xl",
+        full: "max-w-full"
       }.freeze
 
       # Slot for modal header with title, optional badge, and close button
@@ -56,23 +56,23 @@ module Bali
 
       def modal_classes
         class_names(
-          'modal-component',
-          'modal',
-          @active && 'modal-open',
+          "modal-component",
+          "modal",
+          @active && "modal-open",
           @options[:class]
         )
       end
 
       def box_classes
         class_names(
-          'modal-box',
+          "modal-box",
           SIZES[@size],
           @wrapper_class
         )
       end
 
       def stimulus_controller
-        'modal'
+        "modal"
       end
 
       # Check if we should render standalone close button (when no header slot)
@@ -87,7 +87,7 @@ module Bali
 
       # Translated label for close button (accessibility)
       def close_label
-        I18n.t('bali.modal.close', default: 'Close modal')
+        I18n.t("bali.modal.close", default: "Close modal")
       end
     end
   end

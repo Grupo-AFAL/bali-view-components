@@ -44,7 +44,7 @@ module Bali
       #
       # @return [String] 'and' or 'or'
       def combinator
-        @combinator || 'and'
+        @combinator || "and"
       end
 
       # Get detailed information about each active filter condition.
@@ -95,13 +95,13 @@ module Bali
 
         # Convert raw conditions, consolidating gteq+lteq into 'between'
         conditions = raw_conditions.flat_map do |attribute, ops|
-          if ops['gteq'] && ops['lteq']
+          if ops["gteq"] && ops["lteq"]
             # Combine into a single 'between' condition for date ranges
-            [{
+            [ {
               attribute: attribute,
-              operator: 'between',
-              value: { start: ops['gteq'], end: ops['lteq'] }
-            }]
+              operator: "between",
+              value: { start: ops["gteq"], end: ops["lteq"] }
+            } ]
           else
             ops.map do |operator, value|
               { attribute: attribute, operator: operator, value: value }
@@ -110,8 +110,8 @@ module Bali
         end
 
         {
-          combinator: group_params[:m] || 'or',
-          conditions: conditions.presence || [default_filter_condition]
+          combinator: group_params[:m] || "or",
+          conditions: conditions.presence || [ default_filter_condition ]
         }
       end
       # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
@@ -121,8 +121,8 @@ module Bali
       def parse_condition_key(key)
         RANSACK_OPERATORS.each do |op|
           if key.end_with?("_#{op}")
-            attr = key.sub(/_#{op}$/, '')
-            return [attr, op]
+            attr = key.sub(/_#{op}$/, "")
+            return [ attr, op ]
           end
         end
 
@@ -131,7 +131,7 @@ module Bali
 
       # Default empty condition for new filter groups
       def default_filter_condition
-        { attribute: '', operator: 'cont', value: '' }
+        { attribute: "", operator: "cont", value: "" }
       end
 
       # Format a filter value for display, resolving select option labels

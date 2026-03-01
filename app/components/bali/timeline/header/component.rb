@@ -16,16 +16,16 @@ module Bali
       class Component < ApplicationViewComponent
         # Badge color variants
         COLORS = {
-          default: 'badge-neutral',
-          primary: 'badge-primary',
-          secondary: 'badge-secondary',
-          accent: 'badge-accent',
-          success: 'badge-success',
-          warning: 'badge-warning',
-          error: 'badge-error',
-          info: 'badge-info',
-          ghost: 'badge-ghost',
-          outline: 'badge-outline'
+          default: "badge-neutral",
+          primary: "badge-primary",
+          secondary: "badge-secondary",
+          accent: "badge-accent",
+          success: "badge-success",
+          warning: "badge-warning",
+          error: "badge-error",
+          info: "badge-info",
+          ghost: "badge-ghost",
+          outline: "badge-outline"
         }.freeze
 
         # @param text [String] Text to display in the header badge
@@ -46,9 +46,9 @@ module Bali
         def badge_classes
           # Support legacy tag_class for backwards compatibility
           if tag_class.present?
-            class_names('badge', tag_class)
+            class_names("badge", tag_class)
           else
-            class_names('badge', COLORS.fetch(color, COLORS[:default]))
+            class_names("badge", COLORS.fetch(color, COLORS[:default]))
           end
         end
       end

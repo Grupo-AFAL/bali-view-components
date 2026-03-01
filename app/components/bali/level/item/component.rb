@@ -4,7 +4,7 @@ module Bali
   module Level
     module Item
       class Component < ApplicationViewComponent
-        BASE_CLASSES = 'level-item flex items-center max-w-full'
+        BASE_CLASSES = "level-item flex items-center max-w-full"
 
         def initialize(text: nil, **options)
           @text = text

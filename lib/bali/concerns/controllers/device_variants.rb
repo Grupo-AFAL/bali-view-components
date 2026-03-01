@@ -24,7 +24,7 @@ module Bali
         end
 
         def mobile?
-          device_detector.device_type == 'smartphone'
+          device_detector.device_type == "smartphone"
         end
 
         def tablet?
@@ -32,7 +32,7 @@ module Bali
         end
 
         def desktop?
-          device_detector.device_type == 'desktop'
+          device_detector.device_type == "desktop"
         end
 
         def empty_device_info?
@@ -40,7 +40,7 @@ module Bali
         end
 
         def sketchy_username?
-          Bali.sketcky_request_usernames.include?(params.dig(:user, :email))
+          Bali.sketchy_request_usernames.include?(params.dig(:user, :email))
         end
 
         def native_app?

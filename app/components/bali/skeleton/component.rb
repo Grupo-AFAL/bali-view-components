@@ -15,10 +15,10 @@ module Bali
       }.freeze
 
       SIZES = {
-        xs: { height: 'h-3', width: 'w-full' },
-        sm: { height: 'h-4', width: 'w-full' },
-        md: { height: 'h-6', width: 'w-full' },
-        lg: { height: 'h-8', width: 'w-full' }
+        xs: { height: "h-3", width: "w-full" },
+        sm: { height: "h-4", width: "w-full" },
+        md: { height: "h-6", width: "w-full" },
+        lg: { height: "h-8", width: "w-full" }
       }.freeze
 
       def initialize(variant: :text, size: :sm, lines: 3, **options)
@@ -54,11 +54,11 @@ module Bali
       end
 
       def render_paragraph
-        tag.div(class: 'space-y-2') do
+        tag.div(class: "space-y-2") do
           safe_join(
             @lines.times.map do |i|
               # Last line is shorter for natural look
-              width = i == @lines - 1 ? 'w-3/4' : 'w-full'
+              width = i == @lines - 1 ? "w-3/4" : "w-full"
               tag.div(class: skeleton_classes(width))
             end
           )
@@ -66,14 +66,14 @@ module Bali
       end
 
       def render_card
-        tag.div(class: 'space-y-4') do
+        tag.div(class: "space-y-4") do
           safe_join([
-                      tag.div(class: skeleton_classes('h-6 w-1/3')), # Title
-                      tag.div(class: 'space-y-2') do
+                      tag.div(class: skeleton_classes("h-6 w-1/3")), # Title
+                      tag.div(class: "space-y-2") do
                         safe_join([
-                                    tag.div(class: skeleton_classes('h-4 w-full')),
-                                    tag.div(class: skeleton_classes('h-4 w-full')),
-                                    tag.div(class: skeleton_classes('h-4 w-2/3'))
+                                    tag.div(class: skeleton_classes("h-4 w-full")),
+                                    tag.div(class: skeleton_classes("h-4 w-full")),
+                                    tag.div(class: skeleton_classes("h-4 w-2/3"))
                                   ])
                       end
                     ])
@@ -82,36 +82,36 @@ module Bali
 
       def render_avatar
         size_class = case @size
-                     when :xs then 'w-8 h-8'
-                     when :md then 'w-12 h-12'
-                     when :lg then 'w-16 h-16'
-                     else 'w-10 h-10' # :sm or default
-                     end
+        when :xs then "w-8 h-8"
+        when :md then "w-12 h-12"
+        when :lg then "w-16 h-16"
+        else "w-10 h-10" # :sm or default
+        end
         tag.div(class: skeleton_classes("#{size_class} rounded-full"))
       end
 
       def render_button
-        tag.div(class: skeleton_classes('h-10 w-24 rounded-btn'))
+        tag.div(class: skeleton_classes("h-10 w-24 rounded-btn"))
       end
 
       def render_modal
-        tag.div(class: 'space-y-4') do
+        tag.div(class: "space-y-4") do
           safe_join([
                       # Title
-                      tag.div(class: skeleton_classes('h-7 w-1/2')),
+                      tag.div(class: skeleton_classes("h-7 w-1/2")),
                       # Content lines
-                      tag.div(class: 'space-y-2 py-2') do
+                      tag.div(class: "space-y-2 py-2") do
                         safe_join([
-                                    tag.div(class: skeleton_classes('h-4 w-full')),
-                                    tag.div(class: skeleton_classes('h-4 w-full')),
-                                    tag.div(class: skeleton_classes('h-4 w-3/4'))
+                                    tag.div(class: skeleton_classes("h-4 w-full")),
+                                    tag.div(class: skeleton_classes("h-4 w-full")),
+                                    tag.div(class: skeleton_classes("h-4 w-3/4"))
                                   ])
                       end,
                       # Action buttons
-                      tag.div(class: 'flex justify-end gap-2 pt-4') do
+                      tag.div(class: "flex justify-end gap-2 pt-4") do
                         safe_join([
-                                    tag.div(class: skeleton_classes('h-10 w-20 rounded-btn')),
-                                    tag.div(class: skeleton_classes('h-10 w-24 rounded-btn'))
+                                    tag.div(class: skeleton_classes("h-10 w-20 rounded-btn")),
+                                    tag.div(class: skeleton_classes("h-10 w-24 rounded-btn"))
                                   ])
                       end
                     ])
@@ -119,16 +119,16 @@ module Bali
       end
 
       def render_list
-        tag.div(class: 'space-y-3') do
+        tag.div(class: "space-y-3") do
           safe_join(
             @lines.times.map do
-              tag.div(class: 'flex items-center gap-3') do
+              tag.div(class: "flex items-center gap-3") do
                 safe_join([
-                            tag.div(class: skeleton_classes('w-10 h-10 rounded-full shrink-0')),
-                            tag.div(class: 'flex-1 space-y-2') do
+                            tag.div(class: skeleton_classes("w-10 h-10 rounded-full shrink-0")),
+                            tag.div(class: "flex-1 space-y-2") do
                               safe_join([
-                                          tag.div(class: skeleton_classes('h-4 w-1/3')),
-                                          tag.div(class: skeleton_classes('h-3 w-1/2'))
+                                          tag.div(class: skeleton_classes("h-4 w-1/3")),
+                                          tag.div(class: skeleton_classes("h-3 w-1/2"))
                                         ])
                             end
                           ])
@@ -139,15 +139,15 @@ module Bali
       end
 
       def skeleton_classes(*additional)
-        class_names('skeleton', height_class, *additional, @options[:class])
+        class_names("skeleton", height_class, *additional, @options[:class])
       end
 
       def height_class
-        SIZES.dig(@size, :height) || 'h-4'
+        SIZES.dig(@size, :height) || "h-4"
       end
 
       def width_class
-        @options[:width] || SIZES.dig(@size, :width) || 'w-full'
+        @options[:width] || SIZES.dig(@size, :width) || "w-full"
       end
     end
   end

@@ -1,9 +1,12 @@
 {
   "name": "app",
   "private": "true",
+  "scripts": {
+    "build": "node esbuild.config.mjs",
+    "build:watch": "node esbuild.config.mjs --watch"
+  },
   "devDependencies": {
-    "vite": "^5.0.0",
-    "vite-plugin-ruby": "5.1.1"
+    "esbuild": "^0.27.0"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.44",
@@ -17,7 +20,7 @@
     "@glidejs/glide": "^3.7.1",
     "@googlemaps/markerclusterer": "^2.6.2",
     "@hotwired/stimulus": "^3.2.2",
-    "@hotwired/turbo-rails": "^8.0.20",
+    "@hotwired/turbo-rails": "^8.0.21",
     "@mantine/core": "^8.3.11",
     "@mantine/hooks": "^8.3.11",
     "@mantine/utils": "^6.0.22",
@@ -41,10 +44,7 @@
     "shiki": "^3.22.0",
     "slim-select": "^3.3.0",
     "sortablejs": "^1.15.6",
-    "stimulus-vite-helpers": "^3.1.0",
     "tippy.js": "^6.3.7",
-    "vite-plugin-full-reload": "^1.2.0",
-    "vite-plugin-stimulus-hmr": "^3.0.0",
     "zod": "^4.3.6"
   }
 }

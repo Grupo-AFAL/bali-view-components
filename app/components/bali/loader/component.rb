@@ -4,34 +4,34 @@ module Bali
   module Loader
     class Component < ApplicationViewComponent
       TYPES = {
-        spinner: 'loading-spinner',
-        dots: 'loading-dots',
-        ring: 'loading-ring',
-        ball: 'loading-ball',
-        bars: 'loading-bars',
-        infinity: 'loading-infinity'
+        spinner: "loading-spinner",
+        dots: "loading-dots",
+        ring: "loading-ring",
+        ball: "loading-ball",
+        bars: "loading-bars",
+        infinity: "loading-infinity"
       }.freeze
 
       SIZES = {
-        xs: 'loading-xs',
-        sm: 'loading-sm',
-        md: 'loading-md',
-        lg: 'loading-lg',
-        xl: 'loading-xl'
+        xs: "loading-xs",
+        sm: "loading-sm",
+        md: "loading-md",
+        lg: "loading-lg",
+        xl: "loading-xl"
       }.freeze
 
       COLORS = {
-        primary: 'text-primary',
-        secondary: 'text-secondary',
-        accent: 'text-accent',
-        neutral: 'text-neutral',
-        info: 'text-info',
-        success: 'text-success',
-        warning: 'text-warning',
-        error: 'text-error'
+        primary: "text-primary",
+        secondary: "text-secondary",
+        accent: "text-accent",
+        neutral: "text-neutral",
+        info: "text-info",
+        success: "text-success",
+        warning: "text-warning",
+        error: "text-error"
       }.freeze
 
-      BASE_CLASSES = 'loader-component flex flex-col items-center gap-4'
+      BASE_CLASSES = "loader-component flex flex-col items-center gap-4"
 
       # @param text [String, nil] Optional text to display below the loader
       # @param type [Symbol] Loader animation type (:spinner, :dots, :ring, :ball, :bars, :infinity)
@@ -53,7 +53,7 @@ module Bali
 
       def loading_classes
         class_names(
-          'loading',
+          "loading",
           TYPES[@type],
           SIZES[@size],
           COLORS[@color]
@@ -76,7 +76,7 @@ module Bali
       end
 
       def display_text
-        text || I18n.t('view_components.bali.loader.loading')
+        text || I18n.t("view_components.bali.loader.loading")
       end
 
       def aria_label
@@ -85,7 +85,7 @@ module Bali
 
       def text_classes
         class_names(
-          'text-xl font-semibold text-center',
+          "text-xl font-semibold text-center",
           COLORS[@color]
         )
       end

@@ -62,7 +62,7 @@ module Bali
         last: -1
       }.freeze
 
-      BASE_CLASSES = 'recurrent-event-rule-form-component'
+      BASE_CLASSES = "recurrent-event-rule-form-component"
 
       private_constant :FREQUENCIES, :DEFAULT_FREQUENCIES, :BYSETPOS_VALUES, :BASE_CLASSES
 
@@ -91,51 +91,51 @@ module Bali
       def component_classes
         class_names(
           BASE_CLASSES,
-          '[&_.weekday-checkboxes-container]:flex',
-          '[&_.weekday-checkboxes-container]:flex-wrap',
-          '[&_.weekday-checkboxes-container]:justify-center',
-          '[&_.weekday-checkboxes-container]:sm:justify-start',
-          '[&_.weekday-checkboxes-container]:gap-1.5',
-          '[&_.weekday-checkboxes-container]:sm:gap-2',
+          "[&_.weekday-checkboxes-container]:flex",
+          "[&_.weekday-checkboxes-container]:flex-wrap",
+          "[&_.weekday-checkboxes-container]:justify-center",
+          "[&_.weekday-checkboxes-container]:sm:justify-start",
+          "[&_.weekday-checkboxes-container]:gap-1.5",
+          "[&_.weekday-checkboxes-container]:sm:gap-2",
           options[:class]
         )
       end
 
       def component_data
-        prepend_controller(options, 'recurrent-event-rule').fetch(:data, {})
+        prepend_controller(options, "recurrent-event-rule").fetch(:data, {})
       end
 
       def frequency_options
         FREQUENCIES.map do |name, freq_value|
-          [t(".#{name}"), freq_value, { disabled: allowed_frequencies.exclude?(name.to_s) }]
+          [ t(".#{name}"), freq_value, { disabled: allowed_frequencies.exclude?(name.to_s) } ]
         end
       end
 
       def ending_options
         [
-          [t('.never'), ''],
-          [t('.after'), 'count'],
-          [t('.on_date'), 'until']
+          [ t(".never"), "" ],
+          [ t(".after"), "count" ],
+          [ t(".on_date"), "until" ]
         ]
       end
 
       def bysetpos_options
-        BYSETPOS_VALUES.map { |name, pos_value| [t(".#{name}"), pos_value] }
+        BYSETPOS_VALUES.map { |name, pos_value| [ t(".#{name}"), pos_value ] }
       end
 
       def byweekday_options
-        day_options = I18n.t('date.day_names').map.with_index do |day, index|
-          [day, index.zero? ? 6 : index - 1]
+        day_options = I18n.t("date.day_names").map.with_index do |day, index|
+          [ day, index.zero? ? 6 : index - 1 ]
         end
-        day_options << [t('.day'), '6,0,1,2,3,4,5']
-        day_options << [t('.weekday'), '0,1,2,3,4']
-        day_options << [t('.weekend_day'), '6,5']
+        day_options << [ t(".day"), "6,0,1,2,3,4,5" ]
+        day_options << [ t(".weekday"), "0,1,2,3,4" ]
+        day_options << [ t(".weekend_day"), "6,5" ]
         day_options
       end
 
       def bymonth_options
-        I18n.t('date.month_names').compact.map.with_index do |month, index|
-          [month, index + 1]
+        I18n.t("date.month_names").compact.map.with_index do |month, index|
+          [ month, index + 1 ]
         end
       end
 

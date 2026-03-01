@@ -18,7 +18,7 @@ module Bali
 
         def actions_classes
           class_names(
-            'modal-action flex justify-end gap-2 pt-4',
+            "modal-action flex justify-end gap-2 pt-4",
             @options[:class]
           )
         end

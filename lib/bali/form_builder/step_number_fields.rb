@@ -3,12 +3,12 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module StepNumberFields
-      BUTTON_BASE_CLASSES = 'btn join-item'
-      BUTTON_DISABLED_CLASSES = 'btn-disabled pointer-events-none'
+      BUTTON_BASE_CLASSES = "btn join-item"
+      BUTTON_DISABLED_CLASSES = "btn-disabled pointer-events-none"
       # Hide native number spinners since we provide +/- buttons
-      INPUT_CLASSES = 'input input-bordered join-item text-center w-16 ' \
-                      '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none ' \
-                      '[&::-webkit-inner-spin-button]:appearance-none'
+      INPUT_CLASSES = "input input-bordered join-item text-center w-16 " \
+                      "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none " \
+                      "[&::-webkit-inner-spin-button]:appearance-none"
 
       def step_number_field_group(method, options = {})
         @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
@@ -20,7 +20,7 @@ module Bali
         button_opts = extract_button_options(options)
         input_options = build_step_number_input_options(options)
 
-        @template.content_tag(:div, class: 'join', data: { controller: 'step-number-input' }) do
+        @template.content_tag(:div, class: "join", data: { controller: "step-number-input" }) do
           @template.safe_join([
                                 subtract_button(button_opts),
                                 number_field(method, input_options),
@@ -43,16 +43,16 @@ module Bali
       def build_step_number_input_options(options)
         opts = options.dup
         opts[:data] ||= {}
-        opts[:data]['step-number-input-target'] = 'input'
+        opts[:data]["step-number-input-target"] = "input"
         opts[:class] = @template.class_names(INPUT_CLASSES, opts[:class])
         opts
       end
 
       def subtract_button(opts)
         step_button(
-          icon: 'minus',
-          action: 'subtract',
-          target: 'subtract',
+          icon: "minus",
+          action: "subtract",
+          target: "subtract",
           label: subtract_label,
           extra_data: opts[:subtract_data],
           button_class: opts[:button_class],
@@ -62,9 +62,9 @@ module Bali
 
       def add_button(opts)
         step_button(
-          icon: 'plus',
-          action: 'add',
-          target: 'add',
+          icon: "plus",
+          action: "add",
+          target: "add",
           label: add_label,
           extra_data: opts[:add_data],
           button_class: opts[:button_class],
@@ -73,11 +73,11 @@ module Bali
       end
 
       def subtract_label
-        I18n.t('view_components.bali.step_number_field.decrease', default: 'Decrease value')
+        I18n.t("view_components.bali.step_number_field.decrease", default: "Decrease value")
       end
 
       def add_label
-        I18n.t('view_components.bali.step_number_field.increase', default: 'Increase value')
+        I18n.t("view_components.bali.step_number_field.increase", default: "Increase value")
       end
 
       def step_button(opts)
@@ -91,7 +91,7 @@ module Bali
 
         @template.button_tag(
           @template.render(Bali::Icon::Component.new(opts[:icon])),
-          type: 'button',
+          type: "button",
           class: classes,
           disabled: opts[:disabled],
           data: data,
@@ -106,10 +106,10 @@ module Bali
         action_value = [
           "step-number-input##{action}",
           extra_data[:action]
-        ].compact.join(' ')
+        ].compact.join(" ")
 
         extra_data.merge(
-          'step-number-input-target' => target,
+          "step-number-input-target" => target,
           action: action_value
         )
       end

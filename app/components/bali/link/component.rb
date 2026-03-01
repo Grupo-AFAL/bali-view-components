@@ -4,29 +4,29 @@ module Bali
   module Link
     class Component < ApplicationViewComponent
       VARIANTS = {
-        primary: 'btn-primary',
-        secondary: 'btn-secondary',
-        accent: 'btn-accent',
-        info: 'btn-info',
-        success: 'btn-success',
-        warning: 'btn-warning',
-        error: 'btn-error',
-        ghost: 'btn-ghost',
-        link: 'btn-link',
-        neutral: 'btn-neutral'
+        primary: "btn-primary",
+        secondary: "btn-secondary",
+        accent: "btn-accent",
+        info: "btn-info",
+        success: "btn-success",
+        warning: "btn-warning",
+        error: "btn-error",
+        ghost: "btn-ghost",
+        link: "btn-link",
+        neutral: "btn-neutral"
       }.freeze
 
       SIZES = {
-        xs: 'btn-xs',
-        sm: 'btn-sm',
-        md: '',
-        lg: 'btn-lg',
-        xl: 'btn-xl'
+        xs: "btn-xs",
+        sm: "btn-sm",
+        md: "",
+        lg: "btn-lg",
+        xl: "btn-xl"
       }.freeze
 
       STYLES = {
-        outline: 'btn-outline',
-        soft: 'btn-soft'
+        outline: "btn-outline",
+        soft: "btn-soft"
       }.freeze
 
       attr_reader :name, :href, :icon_name
@@ -91,7 +91,7 @@ module Bali
           style_class,
           size_class,
           @options[:class],
-          { 'active' => active?, 'btn-disabled' => @disabled && button_style? }
+          { "active" => active?, "btn-disabled" => @disabled && button_style? }
         )
       end
 
@@ -109,11 +109,11 @@ module Bali
 
       def base_class
         if button_style?
-          'btn'
+          "btn"
         elsif @plain
-          'flex items-center gap-2'
+          "flex items-center gap-2"
         else
-          'link inline-flex items-center gap-1'
+          "link inline-flex items-center gap-1"
         end
       end
 
@@ -150,14 +150,14 @@ module Bali
         return if Bali.native_app || @disabled
 
         if modal_enabled?
-          data[:action] = prepend_value(data[:action], 'modal#open')
+          data[:action] = prepend_value(data[:action], "modal#open")
           data[:turbo] = false # Prevent Turbo Drive from also handling the click
           data[:modal_size] = @modal_options[:size] if @modal_options[:size]
         end
 
         return unless drawer_enabled?
 
-        data[:action] = prepend_value(data[:action], 'drawer#open')
+        data[:action] = prepend_value(data[:action], "drawer#open")
         data[:turbo] = false # Prevent Turbo Drive from also handling the click
         data[:drawer_size] = @drawer_options[:size] if @drawer_options[:size]
       end
@@ -165,15 +165,15 @@ module Bali
       def add_method_attributes(data)
         return if @method.blank?
 
-        if @method.to_s == 'get'
-          data[:method] = 'get'
+        if @method.to_s == "get"
+          data[:method] = "get"
         else
           data[:turbo_method] = @method.to_s
         end
       end
 
       def prepend_value(existing, new_value)
-        [new_value, existing].compact.join(' ')
+        [ new_value, existing ].compact.join(" ")
       end
 
       def modal_enabled? = @modal.present?

@@ -3,8 +3,8 @@
 module Bali
   module Reveal
     class Component < ApplicationViewComponent
-      BASE_CLASSES = 'reveal-component select-none group'
-      OPENED_CLASS = 'is-revealed'
+      BASE_CLASSES = "reveal-component select-none group"
+      OPENED_CLASS = "is-revealed"
 
       renders_one :trigger, Reveal::Trigger::Component
 
@@ -29,11 +29,11 @@ module Bali
         options
           .except(:class)
           .merge(class: component_classes)
-          .tap { |opts| prepend_controller(opts, 'reveal') }
+          .tap { |opts| prepend_controller(opts, "reveal") }
       end
 
       def content_classes
-        'reveal-content mb-8 hidden group-[.is-revealed]:block'
+        "reveal-content mb-8 hidden group-[.is-revealed]:block"
       end
     end
   end

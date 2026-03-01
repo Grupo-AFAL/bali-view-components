@@ -3,41 +3,41 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module RadioFields
-      RADIO_CLASS = 'radio'
-      LABEL_CLASS = 'label cursor-pointer justify-start gap-3'
-      LABEL_TEXT_CLASS = 'label-text'
-      ERROR_CLASS = 'label-text-alt text-error'
-      TOGGLERS_CLASS = 'join'
-      TOGGLER_CLASS = 'join-item btn btn-sm'
-      TOGGLER_ACTIVE_CLASS = 'btn-primary'
-      TOGGLER_INACTIVE_CLASS = 'btn-ghost'
-      TOGGLER_TYPE = 'button'
-      RADIO_BUTTONS_GROUP_CLASS = 'radio-buttons-group'
+      RADIO_CLASS = "radio"
+      LABEL_CLASS = "label cursor-pointer justify-start gap-3"
+      LABEL_TEXT_CLASS = "label-text"
+      ERROR_CLASS = "label-text-alt text-error"
+      TOGGLERS_CLASS = "join"
+      TOGGLER_CLASS = "join-item btn btn-sm"
+      TOGGLER_ACTIVE_CLASS = "btn-primary"
+      TOGGLER_INACTIVE_CLASS = "btn-ghost"
+      TOGGLER_TYPE = "button"
+      RADIO_BUTTONS_GROUP_CLASS = "radio-buttons-group"
       DEFAULT_ORIENTATION = :vertical
 
       ORIENTATIONS = {
-        vertical: 'flex flex-col gap-1',
-        horizontal: 'flex flex-row flex-wrap gap-x-4 gap-y-1 py-2'
+        vertical: "flex flex-col gap-1",
+        horizontal: "flex flex-row flex-wrap gap-x-4 gap-y-1 py-2"
       }.freeze
 
       SIZES = {
-        xs: 'radio-xs',
-        sm: 'radio-sm',
-        md: 'radio-md',
-        lg: 'radio-lg'
+        xs: "radio-xs",
+        sm: "radio-sm",
+        md: "radio-md",
+        lg: "radio-lg"
       }.freeze
 
       COLORS = {
-        primary: 'radio-primary',
-        secondary: 'radio-secondary',
-        accent: 'radio-accent',
-        success: 'radio-success',
-        warning: 'radio-warning',
-        info: 'radio-info',
-        error: 'radio-error'
+        primary: "radio-primary",
+        secondary: "radio-secondary",
+        accent: "radio-accent",
+        success: "radio-success",
+        warning: "radio-warning",
+        info: "radio-info",
+        error: "radio-error"
       }.freeze
 
-      CONTROLLER_NAME = 'radio-buttons-group'
+      CONTROLLER_NAME = "radio-buttons-group"
 
       def radio_field_group(method, values, options = {}, html_options = {})
         @template.render Bali::FieldGroupWrapper::Component.new(self, method, options) do
@@ -75,8 +75,8 @@ module Bali
         control_options = build_control_options(options, current_value)
 
         field = safe_join(
-          [render_togglers(values, togglers_options, current_value),
-           render_grouped_radios(method, values, radios_options)]
+          [ render_togglers(values, togglers_options, current_value),
+           render_grouped_radios(method, values, radios_options) ]
         )
 
         field_helper(method, field, control_options)
@@ -86,7 +86,7 @@ module Bali
 
       def build_radio_label_class(html_options)
         custom_class = html_options[:radio_label_class]
-        [LABEL_CLASS, custom_class].compact.join(' ')
+        [ LABEL_CLASS, custom_class ].compact.join(" ")
       end
 
       def build_radio_input_options(method, html_options)
@@ -98,9 +98,9 @@ module Bali
           RADIO_CLASS,
           SIZES[size],
           COLORS[color],
-          (errors?(method) ? 'radio-error' : nil),
+          (errors?(method) ? "radio-error" : nil),
           custom_class
-        ].compact.join(' ')
+        ].compact.join(" ")
 
         html_options.except(:radio_label_class, :size, :color, :class, :orientation)
                     .merge(class: radio_class)
@@ -113,7 +113,7 @@ module Bali
       def build_control_options(options, current_value)
         keep_selection = options[:keep_selection]
 
-        control_class = [RADIO_BUTTONS_GROUP_CLASS, options[:control_class]].compact.join(' ')
+        control_class = [ RADIO_BUTTONS_GROUP_CLASS, options[:control_class] ].compact.join(" ")
         control_data = (options[:control_data] || {}).merge(
           controller: CONTROLLER_NAME,
           "#{CONTROLLER_NAME}-current-value": current_value,
@@ -135,8 +135,8 @@ module Bali
 
           label(method, class: label_class, value: value) do
             safe_join(
-              [radio_button(method, value, merged_options),
-               content_tag(:span, display, class: LABEL_TEXT_CLASS)]
+              [ radio_button(method, value, merged_options),
+               content_tag(:span, display, class: LABEL_TEXT_CLASS) ]
             )
           end
         end
@@ -145,7 +145,7 @@ module Bali
       def render_togglers(values, options, current_value)
         container_options = options.except(:toggler)
         container_options[:class] =
-          [TOGGLERS_CLASS, 'mb-3', container_options[:class]].compact.join(' ')
+          [ TOGGLERS_CLASS, "mb-3", container_options[:class] ].compact.join(" ")
         base_toggler_opts = build_toggler_options(options)
 
         content_tag(:div, **container_options) do
@@ -154,7 +154,7 @@ module Bali
             active_class = is_active ? TOGGLER_ACTIVE_CLASS : TOGGLER_INACTIVE_CLASS
 
             item_opts = base_toggler_opts.dup
-            item_opts[:class] = [item_opts[:class], active_class].compact.join(' ')
+            item_opts[:class] = [ item_opts[:class], active_class ].compact.join(" ")
             item_opts[:disabled] = values[value].blank?
             item_opts[:value] = value
 
@@ -165,9 +165,9 @@ module Bali
 
       def build_toggler_options(options)
         opts = (options[:toggler] || {}).dup
-        opts[:class] = [TOGGLER_CLASS, opts[:class]].compact.join(' ')
+        opts[:class] = [ TOGGLER_CLASS, opts[:class] ].compact.join(" ")
         opts = prepend_action(opts, "#{CONTROLLER_NAME}#change")
-        opts = prepend_data_attribute(opts, "#{CONTROLLER_NAME}-target", 'toggler')
+        opts = prepend_data_attribute(opts, "#{CONTROLLER_NAME}-target", "toggler")
         opts[:type] = TOGGLER_TYPE
         opts
       end
@@ -176,15 +176,15 @@ module Bali
         container_options = prepend_data_attribute(
           options.except(:label),
           "#{CONTROLLER_NAME}-target",
-          'element'
+          "element"
         )
 
-        label_class = [LABEL_CLASS, options.dig(:label, :class)].compact.join(' ')
+        label_class = [ LABEL_CLASS, options.dig(:label, :class) ].compact.join(" ")
 
         safe_join(values.map do |category, category_values|
           item_options = container_options.dup
           item_options[:class] =
-            [ORIENTATIONS[DEFAULT_ORIENTATION], item_options[:class]].compact.join(' ')
+            [ ORIENTATIONS[DEFAULT_ORIENTATION], item_options[:class] ].compact.join(" ")
           item_options[:data] = (item_options[:data] || {}).merge(
             "#{CONTROLLER_NAME}-value" => category
           )

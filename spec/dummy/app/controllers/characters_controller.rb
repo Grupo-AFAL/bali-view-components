@@ -53,6 +53,6 @@ class CharactersController < ApplicationController
   end
 
   def character_params
-    params.expect(character: [:name])
+    params.expect(character: [ :name ])
   end
 end

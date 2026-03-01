@@ -15,11 +15,11 @@ module Bali
           @options = prepend_class_name(task.cell_options, component_class_names)
           @options[:style] = "left: #{task.position_left}px; width: #{task.width}px"
 
-          @options = prepend_controller(@options, 'interact')
-          @options = prepend_data_attribute(@options, 'task-id', task.id)
-          @options = prepend_data_attribute(@options, 'parent-id', task.parent_id)
-          @options = prepend_values(@options, 'interact', interact_controller_values)
-          @options = prepend_data_attribute(@options, 'gantt-chart-target', 'timelineCell')
+          @options = prepend_controller(@options, "interact")
+          @options = prepend_data_attribute(@options, "task-id", task.id)
+          @options = prepend_data_attribute(@options, "parent-id", task.parent_id)
+          @options = prepend_values(@options, "interact", interact_controller_values)
+          @options = prepend_data_attribute(@options, "gantt-chart-target", "timelineCell")
           @options = prepend_class_name(@options, class_names(complete: task.complete?))
         end
 
@@ -35,7 +35,7 @@ module Bali
 
         def component_class_names
           class_names(
-            'gantt-chart-cell',
+            "gantt-chart-cell",
             milestone: task.milestone?,
             'has-children': task.children.any?,
             critical: task.critical?

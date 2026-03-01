@@ -55,16 +55,16 @@ module Bali
       # @return [Array<Date>] All dates to display in the calendar
       def date_range
         @date_range ||= case period
-                        when :month then month_date_range
-                        when :week then start_date.all_week.to_a
-                        else [start_date]
-                        end
+        when :month then month_date_range
+        when :week then start_date.all_week.to_a
+        else [ start_date ]
+        end
       end
 
       # @return [String] CSS classes for a week row
       def tr_classes_for(week)
         class_names(
-          'week',
+          "week",
           'current-week': week.include?(Date.current)
         )
       end
@@ -72,7 +72,7 @@ module Bali
       # @return [String] CSS classes for a day cell
       def td_classes_for(day)
         class_names(
-          'day',
+          "day",
           today: today?(day),
           'start-date': day == start_date,
           'prev-month': previous_month?(day),
@@ -146,7 +146,7 @@ module Bali
       # @return [String] CSS classes for date display
       def date_display_classes
         class_names(
-          month_view? ? 'font-semibold float-right text-lg' : 'text-2xl font-bold',
+          month_view? ? "font-semibold float-right text-lg" : "text-2xl font-bold",
           weekly_title_class
         )
       end

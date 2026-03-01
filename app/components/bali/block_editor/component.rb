@@ -17,7 +17,7 @@ module Bali
         upload_url: :auto,
         theme: :light,
         export: false,
-        export_filename: 'document',
+        export_filename: "document",
         ai_url: nil,
         mentions_url: nil,
         mentions: nil,
@@ -57,9 +57,9 @@ module Bali
         @comments_users = comments_config&.fetch(:users, nil)
         @comments_users_url = comments_config&.fetch(:users_url, nil)
 
-        @options = prepend_class_name(options, 'block-editor-component')
-        @options = prepend_controller(@options, 'block-editor')
-        @options = prepend_values(@options, 'block-editor', controller_values)
+        @options = prepend_class_name(options, "block-editor-component")
+        @options = prepend_controller(@options, "block-editor")
+        @options = prepend_values(@options, "block-editor", controller_values)
       end
 
       # Resolve upload_url at render time (not in initialize) because
@@ -105,26 +105,26 @@ module Bali
       def base_values
         {
           initial_content: serialized_content,
-          html_content: @html_content || '',
+          html_content: @html_content || "",
           format: @format.to_s,
           editable: @editable,
-          placeholder: @placeholder || '',
+          placeholder: @placeholder || "",
           upload_url: @upload_url,
           theme: @theme.to_s,
           export_filename: @export_filename,
-          ai_url: @ai_url || '',
-          mentions_url: @mentions_url || '',
+          ai_url: @ai_url || "",
+          mentions_url: @mentions_url || "",
           mentions: serialized_mentions,
-          references_url: @references_url || '',
-          references_resolve_url: @references_resolve_url || '',
+          references_url: @references_url || "",
+          references_resolve_url: @references_resolve_url || "",
           references_config: serialized_references_config,
           multi_column: @multi_column,
           table_of_contents: @table_of_contents,
           comments: @comments,
-          comments_url: @comments_url || '',
+          comments_url: @comments_url || "",
           comments_user: serialized_comments_user,
           comments_users: serialized_comments_users,
-          comments_users_url: @comments_users_url || ''
+          comments_users_url: @comments_users_url || ""
         }
       end
       # rubocop:enable Metrics/CyclomaticComplexity
@@ -149,18 +149,18 @@ module Bali
         when String
           @initial_content
         else
-          ''
+          ""
         end
       end
 
       def serialized_references_config
-        return '{}' if @references_config.blank?
+        return "{}" if @references_config.blank?
 
         @references_config.transform_keys(&:to_s).to_json
       end
 
       def serialized_mentions
-        return '[]' if @mentions.blank?
+        return "[]" if @mentions.blank?
 
         Array(@mentions).map do |m|
           case m
@@ -172,13 +172,13 @@ module Bali
       end
 
       def serialized_comments_user
-        return '{}' if @comments_user.blank?
+        return "{}" if @comments_user.blank?
 
         @comments_user.transform_keys(&:to_s).to_json
       end
 
       def serialized_comments_users
-        return '[]' if @comments_users.blank?
+        return "[]" if @comments_users.blank?
 
         Array(@comments_users).map do |u|
           case u

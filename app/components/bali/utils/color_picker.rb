@@ -18,35 +18,35 @@ module Bali
       # Mapping from semantic color names to DaisyUI 5 CSS variable names
       # DaisyUI 5 uses full variable names like --color-primary instead of --p
       CSS_VAR_MAP = {
-        'primary' => '--color-primary',
-        'secondary' => '--color-secondary',
-        'accent' => '--color-accent',
-        'info' => '--color-info',
-        'success' => '--color-success',
-        'warning' => '--color-warning',
-        'error' => '--color-error',
-        'base-content' => '--color-base-content',
-        'base-100' => '--color-base-100',
-        'base-200' => '--color-base-200',
-        'base-300' => '--color-base-300'
+        "primary" => "--color-primary",
+        "secondary" => "--color-secondary",
+        "accent" => "--color-accent",
+        "info" => "--color-info",
+        "success" => "--color-success",
+        "warning" => "--color-warning",
+        "error" => "--color-error",
+        "base-content" => "--color-base-content",
+        "base-100" => "--color-base-100",
+        "base-200" => "--color-base-200",
+        "base-300" => "--color-base-300"
       }.freeze
 
       # Fallback hex colors (used when CSS variables are not available)
       # These match common DaisyUI theme defaults
       FALLBACK_COLORS = {
-        'primary' => '#570df8',
-        'secondary' => '#f000b8',
-        'accent' => '#37cdbe',
-        'info' => '#3abff8',
-        'success' => '#36d399',
-        'warning' => '#fbbd23',
-        'error' => '#f87272'
+        "primary" => "#570df8",
+        "secondary" => "#f000b8",
+        "accent" => "#37cdbe",
+        "info" => "#3abff8",
+        "success" => "#36d399",
+        "warning" => "#fbbd23",
+        "error" => "#f87272"
       }.freeze
 
       class << self
         def opacify(color, opacity = 5)
           # Handle CSS variable references
-          return css_color_with_alpha(color, opacity) if color.start_with?('var(')
+          return css_color_with_alpha(color, opacity) if color.start_with?("var(")
 
           "#{color}#{(opacity * 255 / 10).to_fs(16)}"
         end
@@ -119,9 +119,9 @@ module Bali
       def colors
         @colors ||= if @use_theme_colors
                       theme_aware_colors
-                    else
+        else
                       legacy_colors
-                    end
+        end
       end
 
       # DaisyUI theme-aware colors (CSS variables)
@@ -132,16 +132,16 @@ module Bali
       # Legacy hex colors (for backwards compatibility)
       def legacy_colors
         [
-          '#22AA99', # turquoise
-          '#3366CC', # blue
-          '#DC3912', # red
-          '#FF9900', # yellow
-          '#109618', # green
-          '#990099', # purple
-          '#DD4477', # pink
-          '#66AA00', # light_green
-          '#E67300', # dark_yellow
-          '#AAAA11' # olive
+          "#22AA99", # turquoise
+          "#3366CC", # blue
+          "#DC3912", # red
+          "#FF9900", # yellow
+          "#109618", # green
+          "#990099", # purple
+          "#DD4477", # pink
+          "#66AA00", # light_green
+          "#E67300", # dark_yellow
+          "#AAAA11" # olive
         ]
       end
     end

@@ -17,30 +17,30 @@ module Bali
 
       # Horizontal alignment
       ALIGNMENTS = {
-        start: 'dropdown-start',
-        center: 'dropdown-center',
-        end: 'dropdown-end'
+        start: "dropdown-start",
+        center: "dropdown-center",
+        end: "dropdown-end"
       }.freeze
 
       # Vertical direction
       DIRECTIONS = {
-        top: 'dropdown-top',
-        bottom: 'dropdown-bottom',
-        left: 'dropdown-left',
-        right: 'dropdown-right'
+        top: "dropdown-top",
+        bottom: "dropdown-bottom",
+        left: "dropdown-left",
+        right: "dropdown-right"
       }.freeze
 
       # Menu width
       WIDTHS = {
-        sm: 'w-40',
-        md: 'w-52',
-        lg: 'w-64',
-        xl: 'w-80'
+        sm: "w-40",
+        md: "w-52",
+        lg: "w-64",
+        xl: "w-80"
       }.freeze
 
       # @param popover [Boolean] Use Tippy.js popover instead of CSS dropdown.
       #   Enables menu to escape overflow containers (e.g., tables with overflow-x-auto).
-      def initialize(align: :start, direction: nil, icon: 'ellipsis-h', width: :md, popover: false,
+      def initialize(align: :start, direction: nil, icon: "ellipsis-h", width: :md, popover: false,
                      **options)
         @align = align&.to_sym
         @direction = direction&.to_sym
@@ -55,8 +55,8 @@ module Bali
       end
 
       def tippy_placement
-        vertical = @direction == :top ? 'top' : 'bottom'
-        horizontal = @align == :end ? 'end' : 'start'
+        vertical = @direction == :top ? "top" : "bottom"
+        horizontal = @align == :end ? "end" : "start"
         "#{vertical}-#{horizontal}"
       end
 
@@ -72,24 +72,24 @@ module Bali
 
       def dropdown_classes
         class_names(
-          'dropdown',
+          "dropdown",
           ALIGNMENTS[@align],
           DIRECTIONS[@direction]
         )
       end
 
       def trigger_classes
-        'btn btn-ghost btn-sm btn-circle text-neutral-600 hover:text-neutral-800'
+        "btn btn-ghost btn-sm btn-circle text-neutral-600 hover:text-neutral-800"
       end
 
       def menu_classes
         if @popover
           # Popover mode: tippy-box provides bg/shadow/rounded, menu just needs layout
-          class_names('menu p-2 text-neutral-800', WIDTHS[@width])
+          class_names("menu p-2 text-neutral-800", WIDTHS[@width])
         else
           # CSS dropdown: menu needs all styling
           class_names(
-            'dropdown-content menu bg-base-100 text-neutral-800 rounded-box z-1 p-2 shadow-sm',
+            "dropdown-content menu bg-base-100 text-neutral-800 rounded-box z-1 p-2 shadow-sm",
             WIDTHS[@width]
           )
         end

@@ -149,7 +149,7 @@ module Bali
       def action_options(name)
         return {} unless action?(name)
 
-        prepend_data_attribute(actions[name].dup, 'gantt-chart-target', 'taskLink')
+        prepend_data_attribute(actions[name].dup, "gantt-chart-target", "taskLink")
       end
 
       def actions_enabled?
@@ -158,7 +158,7 @@ module Bali
 
       def hover_card_options
         @actions[:hover_card] || {
-          append_to: '.gantt-chart-component', # Root component element
+          append_to: ".gantt-chart-component", # Root component element
           z_index: 38                          # Under the modal/drawer
         }
       end

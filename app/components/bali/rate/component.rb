@@ -19,20 +19,20 @@ module Bali
     #
     class Component < ApplicationViewComponent
       SIZES = {
-        xs: 'rating-xs',
-        sm: 'rating-sm',
-        md: 'rating-md',
-        lg: 'rating-lg'
+        xs: "rating-xs",
+        sm: "rating-sm",
+        md: "rating-md",
+        lg: "rating-lg"
       }.freeze
 
       COLORS = {
-        warning: 'bg-warning',
-        primary: 'bg-primary',
-        secondary: 'bg-secondary',
-        accent: 'bg-accent',
-        success: 'bg-success',
-        error: 'bg-error',
-        info: 'bg-info'
+        warning: "bg-warning",
+        primary: "bg-primary",
+        secondary: "bg-secondary",
+        accent: "bg-accent",
+        success: "bg-success",
+        error: "bg-error",
+        info: "bg-info"
       }.freeze
 
       attr_reader :value, :scale, :size, :color, :form, :method
@@ -64,18 +64,18 @@ module Bali
       end
 
       def star_aria_label(rate)
-        t('.star_rating', number: rate)
+        t(".star_rating", number: rate)
       end
 
       def rating_label
-        t('.label')
+        t(".label")
       end
 
       private
 
       def rating_classes
         class_names(
-          'rating',
+          "rating",
           SIZES[size],
           @options[:class]
         )
@@ -83,16 +83,16 @@ module Bali
 
       def star_classes
         class_names(
-          'mask mask-star-2',
+          "mask mask-star-2",
           COLORS[color]
         )
       end
 
       def container_attributes
         base_attrs = @options.except(:class).merge(class: rating_classes)
-        base_attrs[:role] = 'radiogroup' unless readonly?
+        base_attrs[:role] = "radiogroup" unless readonly?
         base_attrs[:'aria-label'] = @options[:'aria-label'] || rating_label
-        base_attrs[:data] = { controller: 'rate', rate_auto_submit_value: true } if auto_submit?
+        base_attrs[:data] = { controller: "rate", rate_auto_submit_value: true } if auto_submit?
         base_attrs
       end
     end

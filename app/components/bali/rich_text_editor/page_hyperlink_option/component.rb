@@ -11,10 +11,10 @@ module Bali
           @id = id
           @url = url
 
-          @options = prepend_class_name(options, 'page-link')
-          @options = prepend_action(@options, 'click->rich-text-editor#savePageLink')
-          @options = prepend_data_attribute(@options, 'id', id)
-          @options = prepend_data_attribute(@options, 'url', url)
+          @options = prepend_class_name(options, "page-link")
+          @options = prepend_action(@options, "click->rich-text-editor#savePageLink")
+          @options = prepend_data_attribute(@options, "id", id)
+          @options = prepend_data_attribute(@options, "url", url)
         end
 
         def call

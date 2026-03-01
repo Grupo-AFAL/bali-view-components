@@ -3,10 +3,10 @@
 module Bali
   module Table
     class Component < ApplicationViewComponent
-      TABLE_CLASSES = 'table table-zebra w-full'
-      CONTAINER_CLASSES = 'overflow-x-auto table-component'
-      STICKY_CLASSES = 'overflow-visible [&_table]:overflow-x-auto ' \
-                       '[&_thead_tr]:sticky [&_thead_tr]:bg-base-100 [&_thead_tr]:top-[3.75rem]'
+      TABLE_CLASSES = "table table-zebra w-full"
+      CONTAINER_CLASSES = "overflow-x-auto table-component"
+      STICKY_CLASSES = "overflow-visible [&_table]:overflow-x-auto " \
+                       "[&_thead_tr]:sticky [&_thead_tr]:bg-base-100 [&_thead_tr]:top-[3.75rem]"
 
       class MissingFilterForm < StandardError; end
 
@@ -52,12 +52,12 @@ module Bali
 
       def empty_state_content
         if @form&.active_filters?
-          no_results_notification || tag.p(t('.no_results'), class: 'text-base-content/60')
+          no_results_notification || tag.p(t(".no_results"), class: "text-base-content/60")
         elsif no_records_notification.present?
           no_records_notification
         else
           safe_join([
-            tag.p(t('.no_records'), class: 'text-base-content/60'),
+            tag.p(t(".no_records"), class: "text-base-content/60"),
             new_record_link
           ].compact)
         end
@@ -67,7 +67,7 @@ module Bali
 
       def build_container_options(options)
         opts = prepend_class_name(options, container_classes)
-        prepend_controller(opts, 'table')
+        prepend_controller(opts, "table")
       end
 
       def container_classes
@@ -75,7 +75,7 @@ module Bali
       end
 
       def empty_table_row_id
-        [container_id, 'empty-table-row'].compact.join('-')
+        [ container_id, "empty-table-row" ].compact.join("-")
       end
     end
   end

@@ -46,14 +46,14 @@ module Rrule
     end
 
     def to_s
-      @buffer = 'every'
+      @buffer = "every"
 
       send freq_option.downcase
 
       if count_option
-        add 'for'
+        add "for"
         add count_option
-        add plural?(count_option) ? 'times' : 'time'
+        add plural?(count_option) ? "times" : "time"
       end
 
       if until_option
@@ -79,13 +79,13 @@ module Rrule
 
     protected
 
-    def list(arr, formatter, final_delimiter = nil, delimiter: ',')
+    def list(arr, formatter, final_delimiter = nil, delimiter: ",")
       *rest, middle, tail = arr.map(&formatter)
 
       if final_delimiter
-        [*rest, [middle, tail].compact.join(" #{final_delimiter} ")].join("#{delimiter} ")
+        [ *rest, [ middle, tail ].compact.join(" #{final_delimiter} ") ].join("#{delimiter} ")
       else
-        [*rest, middle, tail].compact.join("#{delimiter} ")
+        [ *rest, middle, tail ].compact.join("#{delimiter} ")
       end
     end
 
@@ -100,44 +100,44 @@ module Rrule
     def daily
       add interval_option if interval_option != 1
 
-      add plural?(interval_option) ? 'days' : 'day'
+      add plural?(interval_option) ? "days" : "day"
     end
 
     def yearly
       add interval_option if interval_option != 1
-      add plural?(interval_option) ? 'years' : 'year'
+      add plural?(interval_option) ? "years" : "year"
 
       if bysetpos_option
-        add 'on the'
+        add "on the"
         add _bybysetpos
         add list(byweekday_option, method(:weekdaytext))
-        add 'of'
-        add list(options.fetch(:bymonth), method(:monthtext), 'and')
+        add "of"
+        add list(options.fetch(:bymonth), method(:monthtext), "and")
       else
-        add 'on' if bymonthday_option || bymonth_option
-        add list(options.fetch(:bymonth), method(:monthtext), 'and') if bymonth_option
-        add list bymonthday_option.map { |o| nth(o) }, :to_s, 'and' if bymonthday_option
+        add "on" if bymonthday_option || bymonth_option
+        add list(options.fetch(:bymonth), method(:monthtext), "and") if bymonth_option
+        add list bymonthday_option.map { |o| nth(o) }, :to_s, "and" if bymonthday_option
       end
     end
 
     def weekly
       add interval_option if interval_option != 1
-      add plural?(interval_option) ? 'weeks' : 'week'
+      add plural?(interval_option) ? "weeks" : "week"
 
       if byweekday_option && weekdays?
-        add 'on weekdays'
+        add "on weekdays"
       elsif byweekday_option && every_day?
-        add 'everyday'
+        add "everyday"
       else
         if bymonth_option
-          add 'on'
+          add "on"
           _bymonth
         end
 
         if bymonthday_option
           _bymonthday
         elsif byweekday_option
-          add 'on'
+          add "on"
           _byweekday
         end
       end
@@ -145,20 +145,20 @@ module Rrule
 
     def monthly
       add interval_option if interval_option != 1
-      add plural?(interval_option) ? 'months' : 'month'
+      add plural?(interval_option) ? "months" : "month"
       add "on #{_bybysetpos}" if bysetpos_option
 
       if bymonthday_option
         _bymonthday
       elsif byweekday_option && weekdays?
-        add 'on weekdays'
+        add "on weekdays"
       elsif byweekday_option || bynweekday_option
         _byweekday
       end
     end
 
     def weekdaytext(day)
-      [day.ordinal && nth(day.ordinal), DAY_NAMES[day.index]].compact.join(' ')
+      [ day.ordinal && nth(day.ordinal), DAY_NAMES[day.index] ].compact.join(" ")
     end
 
     def monthtext(month)
@@ -182,7 +182,7 @@ module Rrule
     end
 
     def _bymonth
-      add list(options.fetch(:bymonth), method(:monthtext), 'y')
+      add list(options.fetch(:bymonth), method(:monthtext), "y")
     end
 
     def _byweekday
@@ -192,29 +192,29 @@ module Rrule
     end
 
     def _bymonthday
-      add 'in the'
-      add list bymonthday_option.map { |o| nth(o) }, :to_s, 'y'
-      add 'of month'
+      add "in the"
+      add list bymonthday_option.map { |o| nth(o) }, :to_s, "y"
+      add "of month"
     end
 
     def nth(ordinal)
-      return 'last' if ordinal == -1
+      return "last" if ordinal == -1
 
       nth = ordinal.abs
       ordinal.negative? ? "#{nth} last" : nth
     end
 
     def bysetpostext(value)
-      value.to_i == -1 ? 'last' : "#{value}º"
+      value.to_i == -1 ? "last" : "#{value}º"
     end
 
     def _bybysetpos
-      list(bysetpos_option, method(:bysetpostext), 'y')
+      list(bysetpos_option, method(:bysetpostext), "y")
     end
 
     def hourly
       add interval_option if interval_option != 1
-      add plural?(interval_option) ? 'hours' : 'hour'
+      add plural?(interval_option) ? "hours" : "hour"
     end
   end
 end

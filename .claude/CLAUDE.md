@@ -96,7 +96,7 @@ Reference documentation is maintained in `docs/` for use by both Claude Code and
 | **Current CSS** | Bulma (SCSS) |
 | **Target CSS** | Tailwind + DaisyUI |
 | **JavaScript** | Stimulus controllers |
-| **Testing** | RSpec + Cypress |
+| **Testing** | Minitest + Cypress |
 | **Preview** | Lookbook |
 
 ## Project Structure
@@ -111,20 +111,22 @@ bali/
 │   └── helpers/
 ├── lib/
 │   └── bali_view_components/  # Gem configuration
+├── test/
+│   ├── bali/                  # Minitest component & form builder tests
+│   └── support/               # Test helpers
 ├── spec/
-│   ├── components/            # RSpec component tests
-│   └── dummy/                 # Dummy Rails app for testing
+│   └── dummy/                 # Dummy Rails app for testing & Lookbook
 └── cypress/                   # JavaScript/integration tests
 ```
 
 ## Development Commands
 
 ```bash
-# Run RSpec tests
-bundle exec rspec
+# Run Minitest tests
+bundle exec rails test
 
 # Run specific component test
-bundle exec rspec spec/components/bali/button_spec.rb
+bundle exec rails test test/bali/components/button_test.rb
 
 # Start Lookbook preview server
 cd spec/dummy && bin/dev
@@ -160,8 +162,8 @@ We are migrating all components from Bulma CSS to Tailwind + DaisyUI. This is a 
    - Update spec expectations for new DaisyUI classes
    - DO NOT delete tests to make them pass
 
-4. RUN RSPEC (BLOCKING)
-   bundle exec rspec spec/bali/components/[name]_spec.rb
+4. RUN TESTS (BLOCKING)
+   bundle exec rails test test/bali/components/[name]_test.rb
    └─ FAIL? → Fix code, re-run. Do NOT proceed until green.
 
 5. RUN RUBOCOP
@@ -185,7 +187,7 @@ We are migrating all components from Bulma CSS to Tailwind + DaisyUI. This is a 
    - [List changes made]
    
    Verification:
-   - RSpec: ✓ N examples, 0 failures
+   - Tests: ✓ N runs, 0 failures
    - Rubocop: ✓ 0 offenses
    - Visual: ✓ Lookbook renders correctly"
 
@@ -245,7 +247,7 @@ When migrating a component:
 4. **Update ERB template** - Apply new classes
 5. **Update SCSS** - Remove/migrate custom styles
 6. **Update preview** - Ensure Lookbook preview works
-7. **Run tests** - `bundle exec rspec spec/components/bali/[component]_spec.rb`
+7. **Run tests** - `bundle exec rails test test/bali/components/[component]_test.rb`
 8. **Visual verification** - Check in Lookbook
 
 ### Migration Example
@@ -400,34 +402,34 @@ end
 
 ## Testing
 
-### RSpec Component Test
+### Minitest Component Test
 
 ```ruby
-# spec/components/bali/button/component_spec.rb
-RSpec.describe Bali::Button::Component, type: :component do
-  it "renders a button with default classes" do
-    render_inline(described_class.new) { "Click me" }
-    
-    expect(page).to have_css("button.btn")
-    expect(page).to have_text("Click me")
+# test/bali/components/button_test.rb
+class Bali_Button_ComponentTest < ComponentTestCase
+  def test_renders_a_button_with_default_classes
+    render_inline(Bali::Button::Component.new) { "Click me" }
+
+    assert_selector("button.btn")
+    assert_text("Click me")
   end
 
-  it "applies primary variant" do
-    render_inline(described_class.new(variant: :primary)) { "Save" }
-    
-    expect(page).to have_css("button.btn.btn-primary")
+  def test_applies_primary_variant
+    render_inline(Bali::Button::Component.new(variant: :primary)) { "Save" }
+
+    assert_selector("button.btn.btn-primary")
   end
 
-  it "applies size classes" do
-    render_inline(described_class.new(size: :lg)) { "Large" }
-    
-    expect(page).to have_css("button.btn.btn-lg")
+  def test_applies_size_classes
+    render_inline(Bali::Button::Component.new(size: :lg)) { "Large" }
+
+    assert_selector("button.btn.btn-lg")
   end
 
-  it "shows loading state" do
-    render_inline(described_class.new(loading: true)) { "Loading" }
-    
-    expect(page).to have_css("button.loading")
+  def test_shows_loading_state
+    render_inline(Bali::Button::Component.new(loading: true)) { "Loading" }
+
+    assert_selector("button.loading")
   end
 end
 ```
@@ -780,15 +782,36 @@ All preview files must inherit from `ApplicationViewComponentPreview`. Do NOT us
 
 ### Cypress tests use Lookbook preview URLs
 
-Cypress tests render Stimulus controllers by visiting `http://localhost:3001/lookbook/preview/bali/[name]/[variant]`. Any change that breaks preview file loading will fail Cypress even if RSpec passes — so check both test suites when touching engine autoloading config.
+Cypress tests render Stimulus controllers by visiting `http://localhost:3001/lookbook/preview/bali/[name]/[variant]`. Any change that breaks preview file loading will fail Cypress even if Minitest passes — so check both test suites when touching engine autoloading config.
+
+## Dependency Version Alignment
+
+Bali must stay on the latest Tailwind CSS and daisyUI to keep all AFAL apps aligned. A **SessionStart hook** (`.claude/hooks/check-dependency-versions.sh`) automatically checks versions at the start of every session and warns if either is behind.
+
+| Dependency | Source | Spec location |
+|------------|--------|---------------|
+| **Tailwind CSS** | `tailwindcss-rails` gem | `Gemfile` |
+| **daisyUI** | `daisyui` npm package | `package.json` |
+
+When the hook reports outdated versions, update before doing other work:
+
+```bash
+# Update Tailwind CSS (gem)
+bundle update tailwindcss-rails
+
+# Update daisyUI (npm)
+yarn upgrade daisyui
+```
+
+After updating, run the full test suite to confirm nothing breaks.
 
 ## Pre-Commit Checklist
 
 Before committing changes:
 
 ```bash
-# 1. Run RSpec tests
-bundle exec rspec
+# 1. Run tests
+bundle exec rails test
 
 # 2. Run Rubocop
 bundle exec rubocop -a
@@ -809,7 +832,7 @@ yarn run cy:run
 | Create complex Stimulus controllers | Keep controllers focused |
 | Mix Bulma and DaisyUI classes | Fully migrate to DaisyUI |
 | Skip preview updates | Always update Lookbook preview |
-| Skip tests | Always run RSpec after changes |
+| Skip tests | Always run tests after changes |
 | Use jQuery | Use vanilla JS or Stimulus |
 
 ## Component Composition (CRITICAL)
@@ -959,7 +982,7 @@ When you use `Bali::Icon::Component.new('icon-name')`, the system resolves icons
 | Template | `component.html.erb` | `component.html.erb` |
 | Styles | `component.scss` | `component.scss` |
 | Preview | `preview.rb` | `preview.rb` |
-| Test | `component_spec.rb` | `button/component_spec.rb` |
+| Test | `*_test.rb` | `button_test.rb` |
 | Controller | `[name]_controller.js` | `modal_controller.js` |
 
 ## Resources

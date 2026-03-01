@@ -19,7 +19,7 @@ module Bali
         end
 
         def utm_medium
-          "#{self.class.name} #{action_name.humanize.titlecase}".gsub(/::|(?<=[a-z])(?=[A-Z])/, ' ')
+          "#{self.class.name} #{action_name.humanize.titlecase}".gsub(/::|(?<=[a-z])(?=[A-Z])/, " ")
         end
       end
     end

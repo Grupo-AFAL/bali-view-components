@@ -3,9 +3,9 @@
 module Bali
   module SearchInput
     class Component < ApplicationViewComponent
-      BASE_INPUT_CLASSES = 'input input-bordered'
-      BASE_BUTTON_CLASSES = 'btn btn-primary join-item'
-      CONTAINER_CLASS = 'search-input-component w-full'
+      BASE_INPUT_CLASSES = "input input-bordered"
+      BASE_BUTTON_CLASSES = "btn btn-primary join-item"
+      CONTAINER_CLASS = "search-input-component w-full"
 
       def initialize(form:, field:, auto_submit: false, placeholder: nil, **options)
         @form = form
@@ -36,11 +36,11 @@ module Bali
       end
 
       def container_classes
-        class_names('form-control', show_submit_button? && 'join')
+        class_names("form-control", show_submit_button? && "join")
       end
 
       def control_classes
-        class_names('flex-1', show_submit_button? && 'join-item')
+        class_names("flex-1", show_submit_button? && "join-item")
       end
 
       def button_classes
@@ -54,7 +54,7 @@ module Bali
       def input_data
         return {} unless auto_submit
 
-        { action: 'submit-on-change#submit' }
+        { action: "submit-on-change#submit" }
       end
 
       def show_submit_button?
@@ -62,7 +62,7 @@ module Bali
       end
 
       def resolved_placeholder
-        placeholder || t('.placeholder')
+        placeholder || t(".placeholder")
       end
 
       def submit_options

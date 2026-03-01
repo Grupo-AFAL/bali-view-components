@@ -19,11 +19,11 @@ module Bali
         end
 
         def combinator
-          @group[:combinator] || 'or'
+          @group[:combinator] || "or"
         end
 
         def conditions
-          @group[:conditions] || [default_condition]
+          @group[:conditions] || [ default_condition ]
         end
 
         def group_field_prefix
@@ -32,15 +32,15 @@ module Bali
 
         def and_button_classes
           class_names(
-            'join-item btn btn-xs w-10',
-            combinator == 'and' ? 'btn-primary' : 'btn-outline'
+            "join-item btn btn-xs w-10",
+            combinator == "and" ? "btn-primary" : "btn-outline"
           )
         end
 
         def or_button_classes
           class_names(
-            'join-item btn btn-xs w-10',
-            combinator == 'or' ? 'btn-primary' : 'btn-outline'
+            "join-item btn btn-xs w-10",
+            combinator == "or" ? "btn-primary" : "btn-outline"
           )
         end
 
@@ -48,16 +48,16 @@ module Bali
 
         def default_group
           {
-            combinator: 'or',
-            conditions: [default_condition]
+            combinator: "or",
+            conditions: [ default_condition ]
           }
         end
 
         def default_condition
           {
-            attribute: '',
-            operator: 'cont',
-            value: ''
+            attribute: "",
+            operator: "cont",
+            value: ""
           }
         end
       end

@@ -4,9 +4,9 @@ module Bali
   module InfoLevel
     module Item
       class Component < ApplicationViewComponent
-        BASE_CLASSES = 'level-item text-center'
-        HEADING_CLASSES = 'heading text-xs text-base-content/60 uppercase tracking-wide'
-        TITLE_CLASSES = 'title text-2xl font-bold'
+        BASE_CLASSES = "level-item text-center"
+        HEADING_CLASSES = "heading text-xs text-base-content/60 uppercase tracking-wide"
+        TITLE_CLASSES = "title text-2xl font-bold"
 
         renders_one :heading, ->(text = nil, **options, &block) do
           options = prepend_class_name(options, HEADING_CLASSES)
@@ -24,7 +24,7 @@ module Bali
 
         def call
           tag.div(**options) do
-            safe_join([heading, titles])
+            safe_join([ heading, titles ])
           end
         end
 

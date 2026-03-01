@@ -20,17 +20,17 @@ module Bali
         # rubocop:enable Metrics/ParameterLists
 
         def accepted_formats
-          @formats.map { |f| f.to_s.start_with?('.') ? f : ".#{f}" }.join(', ')
+          @formats.map { |f| f.to_s.start_with?(".") ? f : ".#{f}" }.join(", ")
         end
 
         def button_classes
           class_names(
-            'absolute -bottom-1 -right-1',
-            'w-10 h-10 rounded-full',
-            'flex justify-center items-center',
-            'bg-base-200 hover:bg-base-300 cursor-pointer',
-            'transition-colors duration-200',
-            'focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2'
+            "absolute -bottom-1 -right-1",
+            "w-10 h-10 rounded-full",
+            "flex justify-center items-center",
+            "bg-base-200 hover:bg-base-300 cursor-pointer",
+            "transition-colors duration-200",
+            "focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2"
           )
         end
 

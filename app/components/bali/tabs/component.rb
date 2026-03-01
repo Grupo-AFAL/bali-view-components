@@ -4,18 +4,18 @@ module Bali
   module Tabs
     class Component < ApplicationViewComponent
       STYLES = {
-        default: '',
-        border: 'tabs-border',
-        box: 'tabs-box',
-        lift: 'tabs-lift'
+        default: "",
+        border: "tabs-border",
+        box: "tabs-box",
+        lift: "tabs-lift"
       }.freeze
 
       SIZES = {
-        xs: 'tabs-xs',
-        sm: 'tabs-sm',
-        md: '',
-        lg: 'tabs-lg',
-        xl: 'tabs-xl'
+        xs: "tabs-xs",
+        sm: "tabs-sm",
+        md: "",
+        lg: "tabs-lg",
+        xl: "tabs-xl"
       }.freeze
 
       renders_many :tabs, Tab::Component
@@ -25,8 +25,8 @@ module Bali
         @size = size&.to_sym
         @options = options
 
-        @options = prepend_class_name(@options, 'tabs-component')
-        @options = prepend_controller(@options, 'tabs')
+        @options = prepend_class_name(@options, "tabs-component")
+        @options = prepend_controller(@options, "tabs")
       end
 
       private
@@ -35,9 +35,9 @@ module Bali
 
       def tabs_classes
         class_names(
-          'tabs',
-          STYLES.fetch(@style, ''),
-          SIZES.fetch(@size, '')
+          "tabs",
+          STYLES.fetch(@style, ""),
+          SIZES.fetch(@size, "")
         )
       end
     end

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -e
+
+# Skip hooks with: SKIP_HOOKS=1 git commit
+if [ "${SKIP_HOOKS:-0}" = "1" ]; then
+  exit 0
+fi
+
+# Run RuboCop on staged .rb files (with auto-fix + re-stage)
+STAGED_RB=$(git diff --cached --name-only --diff-filter=ACM -- '*.rb')
+if [ -n "$STAGED_RB" ]; then
+  echo "Running RuboCop on staged Ruby files..."
+  bundle exec rubocop --force-exclusion -a $STAGED_RB
+  git add $STAGED_RB
+fi
+
+# Run StandardJS on staged .js files
+STAGED_JS=$(git diff --cached --name-only --diff-filter=ACM -- '*.js')
+if [ -n "$STAGED_JS" ]; then
+  echo "Running StandardJS on staged JS files..."
+  yarn standard $STAGED_JS
+fi

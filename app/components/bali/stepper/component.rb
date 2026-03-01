@@ -3,11 +3,11 @@
 module Bali
   module Stepper
     class Component < ApplicationViewComponent
-      BASE_CLASSES = 'steps'
+      BASE_CLASSES = "steps"
 
       ORIENTATIONS = {
-        horizontal: 'steps-horizontal',
-        vertical: 'steps-vertical'
+        horizontal: "steps-horizontal",
+        vertical: "steps-vertical"
       }.freeze
 
       renders_many :steps, ->(title:, **options) do

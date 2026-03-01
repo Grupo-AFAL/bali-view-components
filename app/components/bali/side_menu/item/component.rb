@@ -81,33 +81,33 @@ module Bali
 
         def menu_item_classes
           class_names(
-            'menu-item',
-            'group',
-            { 'active' => active? && !subitems? },
+            "menu-item",
+            "group",
+            { "active" => active? && !subitems? },
             @link_class
           )
         end
 
         def collapse_title_classes
           class_names(
-            'collapse-title',
-            'px-2.5',
-            'py-1.5',
-            { 'active' => active? }
+            "collapse-title",
+            "px-2.5",
+            "py-1.5",
+            { "active" => active? }
           )
         end
 
         # Translated aria-label for collapse toggle
         def toggle_label
-          I18n.t('bali.side_menu.toggle_item', name: name, default: "Toggle #{name}")
+          I18n.t("bali.side_menu.toggle_item", name: name, default: "Toggle #{name}")
         end
 
         def badge_classes
           class_names(
-            'border',
-            'rounded-box',
-            'px-1.5',
-            'text-[12px]',
+            "border",
+            "rounded-box",
+            "px-1.5",
+            "text-[12px]",
             "border-#{@badge_color}/20",
             "bg-#{@badge_color}/10",
             "text-#{@badge_color}"
@@ -116,7 +116,7 @@ module Bali
 
         # Returns rel attribute for security when opening in new tab
         def rel
-          'noopener noreferrer' if @target == '_blank'
+          "noopener noreferrer" if @target == "_blank"
         end
 
         private

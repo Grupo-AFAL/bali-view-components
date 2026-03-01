@@ -3,29 +3,29 @@
 module Bali
   module Message
     class Component < ApplicationViewComponent
-      BASE_CLASSES = 'alert message-component'
+      BASE_CLASSES = "alert message-component"
 
       COLORS = {
-        primary: 'alert-info',
-        secondary: 'alert',
-        success: 'alert-success',
-        danger: 'alert-error',
-        warning: 'alert-warning',
-        info: 'alert-info',
-        link: 'alert-info'
+        primary: "alert-info",
+        secondary: "alert",
+        success: "alert-success",
+        danger: "alert-error",
+        warning: "alert-warning",
+        info: "alert-info",
+        link: "alert-info"
       }.freeze
 
       SIZES = {
-        small: 'text-sm',
-        regular: '',
-        medium: 'text-base',
-        large: 'text-lg'
+        small: "text-sm",
+        regular: "",
+        medium: "text-base",
+        large: "text-lg"
       }.freeze
 
       STYLES = {
-        soft: 'alert-soft',
-        outline: 'alert-outline',
-        dash: 'alert-dash'
+        soft: "alert-soft",
+        outline: "alert-outline",
+        dash: "alert-dash"
       }.freeze
 
       renders_one :header

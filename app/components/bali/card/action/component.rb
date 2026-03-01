@@ -13,14 +13,14 @@ module Bali
           if @href.present?
             tag.a(href: @href, class: action_classes, **@options.except(:class)) { content }
           else
-            tag.button(type: 'button', class: action_classes, **@options.except(:class)) { content }
+            tag.button(type: "button", class: action_classes, **@options.except(:class)) { content }
           end
         end
 
         private
 
         def action_classes
-          class_names('btn', @options[:class])
+          class_names("btn", @options[:class])
         end
       end
     end

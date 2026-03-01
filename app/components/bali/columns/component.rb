@@ -5,14 +5,14 @@ module Bali
     class Component < ApplicationViewComponent
       # Gap sizes using Tailwind-like naming
       GAPS = {
-        none: 'gap-none',  # 0
-        px: 'gap-px',      # 1px
-        xs: 'gap-xs',      # 0.25rem (gap-1)
-        sm: 'gap-sm',      # 0.5rem (gap-2)
-        md: 'gap-md',      # 0.75rem (gap-3) - default
-        lg: 'gap-lg',      # 1rem (gap-4)
-        xl: 'gap-xl',      # 1.5rem (gap-6)
-        '2xl': 'gap-2xl'   # 2rem (gap-8)
+        none: "gap-none",  # 0
+        px: "gap-px",      # 1px
+        xs: "gap-xs",      # 0.25rem (gap-1)
+        sm: "gap-sm",      # 0.5rem (gap-2)
+        md: "gap-md",      # 0.75rem (gap-3) - default
+        lg: "gap-lg",      # 1rem (gap-4)
+        xl: "gap-xl",      # 1.5rem (gap-6)
+        '2xl': "gap-2xl"   # 2rem (gap-8)
       }.freeze
 
       renders_many :columns, Column::Component
@@ -38,12 +38,12 @@ module Bali
 
       def container_classes
         class_names(
-          'columns',
+          "columns",
           GAPS[@gap] || GAPS[:md],
-          { 'columns-wrap' => @wrap },
-          { 'columns-center' => @center },
-          { 'columns-middle' => @middle },
-          { 'columns-mobile' => @mobile },
+          { "columns-wrap" => @wrap },
+          { "columns-center" => @center },
+          { "columns-middle" => @middle },
+          { "columns-mobile" => @mobile },
           options[:class]
         )
       end

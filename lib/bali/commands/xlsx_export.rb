@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'caxlsx'
-require 'simple_command'
+require "caxlsx"
+require "simple_command"
 
 module Bali
   module Commands
@@ -64,7 +64,7 @@ module Bali
         end
 
         xlsx.use_shared_strings = true
-        [@filename || default_filename, xlsx.to_stream.string]
+        [ @filename || default_filename, xlsx.to_stream.string ]
       end
 
       private
@@ -106,8 +106,8 @@ module Bali
 
       def format_codes
         {
-          currency: { format_code: '$#,##0_);($#,##0)' },
-          percentage: { format_code: '0%' }
+          currency: { format_code: "$#,##0_);($#,##0)" },
+          percentage: { format_code: "0%" }
         }
       end
     end

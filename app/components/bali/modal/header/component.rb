@@ -27,13 +27,13 @@ module Bali
 
         def header_classes
           class_names(
-            'flex items-center justify-between gap-4 mb-4',
+            "flex items-center justify-between gap-4 mb-4",
             @options[:class]
           )
         end
 
         def render_title_section
-          tag.div(class: 'flex items-center gap-3 flex-1 min-w-0') do
+          tag.div(class: "flex items-center gap-3 flex-1 min-w-0") do
             safe_join([
               render_title,
               render_badge
@@ -42,7 +42,7 @@ module Bali
         end
 
         def render_title
-          tag.h3(@title, id: title_id, class: 'text-lg font-bold truncate')
+          tag.h3(@title, id: title_id, class: "text-lg font-bold truncate")
         end
 
         def render_badge
@@ -55,11 +55,11 @@ module Bali
           return unless @close_button
 
           tag.button(
-            type: 'button',
-            class: 'btn btn-sm btn-circle btn-ghost shrink-0',
-            'aria-label': I18n.t('bali.modal.close', default: 'Close modal'),
-            'data-action': 'modal#close'
-          ) { '✕' }
+            type: "button",
+            class: "btn btn-sm btn-circle btn-ghost shrink-0",
+            'aria-label': I18n.t("bali.modal.close", default: "Close modal"),
+            'data-action': "modal#close"
+          ) { "✕" }
         end
 
         def title_id

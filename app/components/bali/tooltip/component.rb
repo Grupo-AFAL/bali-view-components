@@ -6,16 +6,16 @@ module Bali
       renders_one :trigger
 
       POSITIONS = {
-        top: 'top',
-        bottom: 'bottom',
-        left: 'left',
-        right: 'right'
+        top: "top",
+        bottom: "bottom",
+        left: "left",
+        right: "right"
       }.freeze
 
-      CONTROLLER = 'tooltip'
+      CONTROLLER = "tooltip"
 
       # NOTE: The `trigger_event` parameter is named to avoid collision with the `trigger` slot
-      def initialize(placement: :top, trigger_event: 'mouseenter focus', **options)
+      def initialize(placement: :top, trigger_event: "mouseenter focus", **options)
         @placement = placement&.to_sym
         @trigger_event = trigger_event
         @options = options
@@ -23,8 +23,8 @@ module Bali
 
       def container_classes
         class_names(
-          'tooltip-component',
-          'inline-block',
+          "tooltip-component",
+          "inline-block",
           options[:class]
         )
       end
@@ -36,7 +36,7 @@ module Bali
       end
 
       def trigger_classes
-        class_names('trigger', 'cursor-pointer')
+        class_names("trigger", "cursor-pointer")
       end
 
       private
@@ -52,7 +52,7 @@ module Bali
       end
 
       def placement_value
-        POSITIONS.fetch(placement, 'top')
+        POSITIONS.fetch(placement, "top")
       end
     end
   end

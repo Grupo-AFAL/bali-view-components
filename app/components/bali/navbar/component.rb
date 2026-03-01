@@ -3,15 +3,15 @@
 module Bali
   module Navbar
     class Component < ApplicationViewComponent
-      BASE_CLASSES = 'navbar shadow-sm'
-      STICKY_CLASSES = 'sticky top-0 z-50'
+      BASE_CLASSES = "navbar shadow-sm"
+      STICKY_CLASSES = "sticky top-0 z-50"
 
       COLORS = {
-        base: 'bg-base-100',
-        primary: 'bg-primary text-primary-content',
-        secondary: 'bg-secondary text-secondary-content',
-        accent: 'bg-accent text-accent-content',
-        neutral: 'bg-neutral text-neutral-content'
+        base: "bg-base-100",
+        primary: "bg-primary text-primary-content",
+        secondary: "bg-secondary text-secondary-content",
+        accent: "bg-accent text-accent-content",
+        neutral: "bg-neutral text-neutral-content"
       }.freeze
 
       # Brand slot - accepts content block or name parameter
@@ -32,21 +32,21 @@ module Bali
         @color = color&.to_sym
         @container_class = options.delete(:container_class)
 
-        @options = prepend_controller(options, 'navbar')
+        @options = prepend_controller(options, "navbar")
         @options = prepend_class_name(options, navbar_classes)
-        @options = prepend_data_attribute(options, 'navbar-allow-transparency-value', @transparency)
-        @options = prepend_data_attribute(options, 'navbar-throttle-interval-value', 100)
+        @options = prepend_data_attribute(options, "navbar-allow-transparency-value", @transparency)
+        @options = prepend_data_attribute(options, "navbar-throttle-interval-value", 100)
       end
 
       # Classes for the inner container wrapper
       # - Fullscreen: edge-to-edge with padding, no width constraint
       # - Non-fullscreen: centered with max-width constraint (max-w-7xl = 1280px)
       def container_classes
-        base = 'flex items-center w-full relative px-4'
+        base = "flex items-center w-full relative px-4"
         if @fullscreen
           class_names(base, @container_class)
         else
-          class_names(base, 'max-w-7xl mx-auto', @container_class)
+          class_names(base, "max-w-7xl mx-auto", @container_class)
         end
       end
 

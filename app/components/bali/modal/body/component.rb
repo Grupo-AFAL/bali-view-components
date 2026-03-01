@@ -19,7 +19,7 @@ module Bali
 
         def body_classes
           class_names(
-            'modal-body py-4',
+            "modal-body py-4",
             @options[:class]
           )
         end
