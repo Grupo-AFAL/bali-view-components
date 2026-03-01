@@ -19,9 +19,8 @@ require "bali/time_periods/select_options"
 # Core concerns (used by components/form builder)
 require "bali/concerns/date_range_attribute"
 
-# Non-UI concerns: opt-in via `require "bali/extras"`
-# See lib/bali/extras.rb for: GlobalIdAccessors, SoftDelete,
-# NumericAttributesWithCommas, DeviceVariants, mailer concerns
+# Non-UI concerns (SoftDelete, GlobalIdAccessors, etc.) are opt-in.
+# See lib/bali/extras.rb
 
 # Form builder field modules
 require "bali/form_builder/boolean_fields"
@@ -66,9 +65,6 @@ require "bali/engine"
 module Bali
   mattr_accessor :native_app, default: false
   mattr_accessor :custom_icons, default: {}
-  mattr_accessor :ios_native_app_user_agent, default: /Turbo Native \(iOS\)/
-  mattr_accessor :android_native_app_user_agent, default: /Turbo Native \(Android\)/
-  mattr_accessor :sketchy_request_usernames, default: %w[admin cnadmin]
 
   # Rich Text Editor configuration
   # Set to true to enable the Rich Text Editor component (requires TipTap dependencies)

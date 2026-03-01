@@ -10,6 +10,11 @@
 #   require "bali/concerns/soft_delete"
 #   require "bali/concerns/global_id_accessors"
 
+# Configuration for DeviceVariants concern
+Bali.mattr_accessor :ios_native_app_user_agent, default: /Turbo Native \(iOS\)/
+Bali.mattr_accessor :android_native_app_user_agent, default: /Turbo Native \(Android\)/
+Bali.mattr_accessor :sketchy_request_usernames, default: %w[admin cnadmin]
+
 require "bali/concerns/controllers/device_variants"
 require "bali/concerns/global_id_accessors"
 require "bali/concerns/mailers/recipients_sanitizer"

@@ -23,7 +23,7 @@ class ActiveSupport::TestCase
   # during Rails boot (before fork). Skip parallelization for coverage runs;
   # default to parallel for speed during development.
   unless ENV["COVERAGE"]
-    parallelize(workers: ENV["PARALLEL_WORKERS"]&.to_i || :number_of_processors)
+    parallelize(workers: ENV.fetch("PARALLEL_WORKERS", 1).to_i)
   end
 end
 
