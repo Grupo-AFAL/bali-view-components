@@ -251,13 +251,16 @@ module Bali
       attribute_names - date_range_attributes
     end
 
-    # Extract Ransack groupings from params
+    # Extract Ransack groupings from params.
     # Groupings format: q[g][0][field_operator]=value, q[g][0][m]=or/and
+    #
+    # Safety: to_unsafe_h is required because Ransack expects a plain nested hash
+    # for its grouping structure. Ransack performs its own attribute authorization
+    # via `ransackable_attributes` / `ransackable_associations` on the model,
+    # so arbitrary keys are rejected at the Ransack layer, not here.
     def extract_groupings(q_params)
       return nil if q_params[:g].blank?
 
-      # Convert ActionController::Parameters to a regular hash
-      # Ransack expects groupings as a hash with string keys
       q_params[:g].to_unsafe_h
     end
 

@@ -61,10 +61,10 @@ module Bali
       render json: { error: "Not authorized" }, status: :forbidden
     end
 
-    private
-
     class UploadError < StandardError; end
     class NotAuthorizedError < StandardError; end
+
+    private
 
     def authorize_upload!
       return unless Bali.block_editor_upload_authorize

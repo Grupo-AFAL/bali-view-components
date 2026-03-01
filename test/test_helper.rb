@@ -6,6 +6,7 @@ ENV["RAILS_ENV"] ||= "test"
 # so that Coverage.start tracks lib/ files loaded during Rails boot.
 
 require File.expand_path("../spec/dummy/config/environment", __dir__)
+require "bali/extras" # Load opt-in concerns needed by dummy app models and concern tests
 
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 
@@ -22,7 +23,7 @@ class ActiveSupport::TestCase
   # during Rails boot (before fork). Skip parallelization for coverage runs;
   # default to parallel for speed during development.
   unless ENV["COVERAGE"]
-    parallelize(workers: :number_of_processors)
+    parallelize(workers: ENV["PARALLEL_WORKERS"]&.to_i || :number_of_processors)
   end
 end
 

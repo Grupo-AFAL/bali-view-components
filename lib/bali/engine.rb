@@ -33,10 +33,6 @@ module Bali
       ViewComponent::Preview.extend ViewComponentContrib::Preview::Abstract
     end
 
-    ActiveSupport.on_load(:active_record) do
-      include Bali::Concerns::GlobalIdAccessors
-    end
-
     initializer "Register Bali ActiveModel::Types" do
       ActiveModel::Type.register(:date_range, Bali::Types::DateRangeValue)
     end

@@ -16,14 +16,12 @@ require "bali/auto_submit_select_helper"
 require "bali/icon_tag_helper"
 require "bali/time_periods/select_options"
 
-# Concerns
-require "bali/concerns/controllers/device_variants"
+# Core concerns (used by components/form builder)
 require "bali/concerns/date_range_attribute"
-require "bali/concerns/global_id_accessors"
-require "bali/concerns/mailers/recipients_sanitizer"
-require "bali/concerns/mailers/utm_params"
-require "bali/concerns/numeric_attributes_with_commas"
-require "bali/concerns/soft_delete"
+
+# Non-UI concerns: opt-in via `require "bali/extras"`
+# See lib/bali/extras.rb for: GlobalIdAccessors, SoftDelete,
+# NumericAttributesWithCommas, DeviceVariants, mailer concerns
 
 # Form builder field modules
 require "bali/form_builder/boolean_fields"
@@ -71,24 +69,6 @@ module Bali
   mattr_accessor :ios_native_app_user_agent, default: /Turbo Native \(iOS\)/
   mattr_accessor :android_native_app_user_agent, default: /Turbo Native \(Android\)/
   mattr_accessor :sketchy_request_usernames, default: %w[admin cnadmin]
-
-  # Deprecation alias for typo in original API
-  DEPRECATOR = ActiveSupport::Deprecation.new("2.0", "Bali")
-  private_constant :DEPRECATOR
-
-  def self.sketcky_request_usernames
-    DEPRECATOR.warn(
-      "Bali.sketcky_request_usernames is deprecated. Use Bali.sketchy_request_usernames instead."
-    )
-    sketchy_request_usernames
-  end
-
-  def self.sketcky_request_usernames=(value)
-    DEPRECATOR.warn(
-      "Bali.sketcky_request_usernames= is deprecated. Use Bali.sketchy_request_usernames= instead."
-    )
-    self.sketchy_request_usernames = value
-  end
 
   # Rich Text Editor configuration
   # Set to true to enable the Rich Text Editor component (requires TipTap dependencies)

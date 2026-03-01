@@ -8,6 +8,7 @@ require 'view_component'
 
 Bundler.require(*Rails.groups)
 require 'bali'
+require 'bali/extras' # Dummy app uses SoftDelete, GlobalIdAccessors, etc.
 
 module Dummy
   class Application < Rails::Application
