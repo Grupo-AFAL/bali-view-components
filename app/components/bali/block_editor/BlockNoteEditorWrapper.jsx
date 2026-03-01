@@ -214,6 +214,52 @@ export default function BlockNoteEditorWrapper ({
     }
   }, [editor, onEditorReady])
 
+  // Prevent BlockNote's AI menu from jumping page scroll when the editor is already visible.
+  // Two scroll sources cause this:
+  //   1. xl-ai's openAIMenuAtBlock() calls Element.scrollIntoView({ block: "center" })
+  //   2. ProseMirror transactions with .scrollIntoView() manipulate scrollTop directly
+  // We suppress #1 via prototype override, and catch #2 by saving/restoring scroll position.
+  useEffect(() => {
+    if (!editor) return
+
+    let savedScrollY = null
+    let restoreId = null
+
+    const scheduleRestore = () => {
+      if (restoreId) cancelAnimationFrame(restoreId)
+      restoreId = requestAnimationFrame(() => {
+        restoreId = requestAnimationFrame(() => {
+          if (savedScrollY !== null && window.scrollY !== savedScrollY) {
+            window.scrollTo(0, savedScrollY)
+          }
+          savedScrollY = null
+          restoreId = null
+        })
+      })
+    }
+
+    const original = Element.prototype.scrollIntoView
+    Element.prototype.scrollIntoView = function (opts) {
+      const editorEl = editor.domElement
+      if (editorEl && editorEl.contains(this)) {
+        const rect = this.getBoundingClientRect()
+        if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
+          // Element is visible — suppress and lock scroll position to catch
+          // any ProseMirror transaction-level scrolling in the same frame
+          if (savedScrollY === null) savedScrollY = window.scrollY
+          scheduleRestore()
+          return
+        }
+      }
+      original.call(this, opts)
+    }
+
+    return () => {
+      Element.prototype.scrollIntoView = original
+      if (restoreId) cancelAnimationFrame(restoreId)
+    }
+  }, [editor])
+
   // Load HTML content after mount if no JSON content was provided
   useEffect(() => {
     if (!parsedContent && htmlContent && editor && !htmlParsed.current) {
