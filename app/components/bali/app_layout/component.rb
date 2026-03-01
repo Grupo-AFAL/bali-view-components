@@ -7,7 +7,8 @@ module Bali
       renders_one :topbar
       renders_one :body
 
-      def initialize(**options)
+      def initialize(fixed_sidebar: false, **options)
+        @fixed_sidebar = fixed_sidebar
         @options = options
       end
 
@@ -16,6 +17,7 @@ module Bali
           "app-layout",
           "flex",
           "min-h-screen",
+          { "app-layout--has-fixed-sidebar" => @fixed_sidebar },
           @options[:class]
         )
       end

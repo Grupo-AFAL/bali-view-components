@@ -29,7 +29,7 @@
     "@rails/request.js": "^0.0.13",
     "@react-pdf/renderer": "^4.3.0",
     "ai": "^6.0.5",
-    "bali-view-components": "file:../..",
+    "bali-view-components": "link:../..",
     "chart.js": "^4.5.1",
     "daisyui": "^5.0.0",
     "date-fns": "^4.1.0",

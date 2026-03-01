@@ -10,7 +10,7 @@
     <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
   </head>
   <body class="min-h-screen" data-controller="modal drawer theme-switcher">
-    <%= render Bali::AppLayout::Component.new do |layout| %>
+    <%= render Bali::AppLayout::Component.new(fixed_sidebar: true) do |layout| %>
       <% layout.with_sidebar do %>
         <%= render 'layouts/admin_sidebar' %>
       <% end %>

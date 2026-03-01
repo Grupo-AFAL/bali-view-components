@@ -55,4 +55,18 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     end
     assert_selector(".app-layout.custom-class")
   end
+
+  def test_applies_fixed_sidebar_class
+    render_inline(Bali::AppLayout::Component.new(fixed_sidebar: true)) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector(".app-layout.app-layout--has-fixed-sidebar")
+  end
+
+  def test_does_not_apply_fixed_sidebar_class_by_default
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector(".app-layout--has-fixed-sidebar")
+  end
 end
