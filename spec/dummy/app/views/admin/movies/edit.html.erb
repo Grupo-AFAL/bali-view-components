@@ -1,0 +1,18 @@
+<%# Admin Edit Movie - Showcases: FormPage wrapping the movie form %>
+
+<%= render Bali::FormPage::Component.new(
+  title: "#{t('movies.form.edit_title')}: #{@movie.name}",
+  subtitle: t('movies.form.subtitle_edit'),
+  breadcrumbs: [
+    { name: t('navbar.dashboard'), href: admin_root_path, icon_name: 'home' },
+    { name: t('navbar.movies'), href: admin_movies_path },
+    { name: @movie.name, href: admin_movie_path(@movie) },
+    { name: t('common.edit') }
+  ],
+  back: { href: admin_movie_path(@movie) },
+  max_width: 'max-w-5xl'
+) do |page| %>
+  <% page.with_body do %>
+    <%= render 'form', movie: @movie %>
+  <% end %>
+<% end %>

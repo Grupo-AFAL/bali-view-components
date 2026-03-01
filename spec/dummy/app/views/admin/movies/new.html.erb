@@ -1,0 +1,17 @@
+<%# Admin New Movie - Showcases: FormPage wrapping the movie form %>
+
+<%= render Bali::FormPage::Component.new(
+  title: t('movies.form.new_title'),
+  subtitle: t('movies.form.subtitle_new'),
+  breadcrumbs: [
+    { name: t('navbar.dashboard'), href: admin_root_path, icon_name: 'home' },
+    { name: t('navbar.movies'), href: admin_movies_path },
+    { name: t('movies.form.new_title') }
+  ],
+  back: { href: admin_movies_path },
+  max_width: 'max-w-5xl'
+) do |page| %>
+  <% page.with_body do %>
+    <%= render 'form', movie: @movie %>
+  <% end %>
+<% end %>

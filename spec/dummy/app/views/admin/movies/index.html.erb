@@ -1,0 +1,129 @@
+<%# Admin Movies Index - Showcases: IndexPage, DataTable, Filters, Table, Tag, BooleanIcon, ActionsDropdown, Link %>
+
+<%= render Bali::IndexPage::Component.new(
+  title: t('movies.title'),
+  subtitle: t('movies.subtitle'),
+  breadcrumbs: [
+    { name: t('navbar.dashboard'), href: admin_root_path, icon_name: 'home' },
+    { name: t('movies.title') }
+  ]
+) do |page| %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(
+      name: t('movies.new_movie'),
+      href: new_admin_movie_path,
+      variant: :primary,
+      icon_name: 'plus'
+    ) %>
+  <% end %>
+
+  <% page.with_body do %>
+    <%= render Bali::DataTable::Component.new(
+      filter_form: @filter_form,
+      url: admin_movies_path,
+      pagy: @pagy,
+      item_name: 'movies'
+    ) do |data_table| %>
+
+      <%# Filters Panel %>
+      <%# search is auto-configured from @filter_form.search_config %>
+      <%# filter_groups is auto-populated from @filter_form.filter_groups %>
+      <% data_table.with_filters_panel(
+        available_attributes: available_filter_attributes,
+        search: { placeholder: t('movies.search_placeholder') }
+      ) %>
+
+      <%# Column Selector - allows users to show/hide table columns (0-indexed) %>
+      <% data_table.with_column_selector(table_id: '#movies-table') do |cs| %>
+        <% cs.with_column(index: 1, label: t('movies.columns.name')) %>
+        <% cs.with_column(index: 2, label: t('movies.columns.genre')) %>
+        <% cs.with_column(index: 3, label: t('movies.columns.status')) %>
+        <% cs.with_column(index: 4, label: t('movies.columns.studio')) %>
+        <% cs.with_column(index: 5, label: t('movies.columns.indie')) %>
+        <% cs.with_column(index: 6, label: t('movies.columns.created')) %>
+      <% end %>
+
+      <%# Export dropdown with common formats %>
+      <% data_table.with_export(
+        formats: [:csv, :excel, :pdf],
+        url: admin_movies_path
+      ) %>
+
+      <%# Data Table with sortable columns %>
+      <% data_table.with_table do %>
+        <%= render Bali::Table::Component.new(form: @filter_form, id: 'movies-table') do |table| %>
+          <%# Sortable headers - click to sort by column %>
+          <% table.with_header(name: '', class: 'w-8') %>
+          <% table.with_header(name: t('movies.columns.name'), sort: :name) %>
+          <% table.with_header(name: t('movies.columns.genre'), sort: :genre) %>
+          <% table.with_header(name: t('movies.columns.status'), sort: :status) %>
+          <% table.with_header(name: t('movies.columns.studio')) %>
+          <% table.with_header(name: t('movies.columns.indie'), sort: :indie, class: 'text-center') %>
+          <% table.with_header(name: t('movies.columns.created'), sort: :created_at) %>
+          <% table.with_header(name: '', class: 'w-12') %>
+
+          <% @movies.each do |movie| %>
+            <% table.with_row do %>
+              <td>
+                <input type="checkbox" class="checkbox checkbox-sm" name="movie_ids[]" value="<%= movie.id %>" />
+              </td>
+              <td class="font-medium">
+                <%= render Bali::Link::Component.new(name: movie.name, href: admin_movie_path(movie)) %>
+              </td>
+              <td>
+                <%= render Bali::Tag::Component.new(text: movie.genre, style: :outline, size: :sm) %>
+              </td>
+              <td>
+                <%= render Bali::Tag::Component.new(
+                  text: movie.status.humanize,
+                  color: movie.done? ? :success : :warning,
+                  size: :sm
+                ) %>
+              </td>
+              <td class="text-sm text-base-content/70"><%= movie.tenant&.name || '—' %></td>
+              <td class="text-center">
+                <%= render Bali::BooleanIcon::Component.new(value: movie.indie) %>
+              </td>
+              <td class="text-sm text-base-content/70">
+                <%= render Bali::Timeago::Component.new(movie.created_at, add_suffix: true) %>
+              </td>
+              <td>
+                <%= render Bali::ActionsDropdown::Component.new(align: :end, popover: true) do |dropdown| %>
+                  <% dropdown.with_item(href: admin_movie_path(movie), icon_name: 'eye') { t('movies.actions.view') } %>
+                  <% dropdown.with_item(href: edit_admin_movie_path(movie), icon_name: 'pencil') { t('movies.actions.edit') } %>
+                  <% dropdown.with_item(href: admin_movie_path(movie), method: :delete, icon_name: 'trash') { t('movies.actions.delete') } %>
+                <% end %>
+              </td>
+            <% end %>
+          <% end %>
+
+          <%# No Records Message %>
+          <% table.with_no_records_notification do %>
+            <%= render Bali::Message::Component.new(color: :info) do %>
+              <strong><%= t('movies.no_movies') %></strong> <%= t('movies.no_movies_help') %>
+              <%= render Bali::Link::Component.new(name: t('movies.add_new_movie'), href: new_admin_movie_path) %>.
+            <% end %>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <%# Bulk Actions %>
+      <% data_table.with_actions_panel do %>
+        <%= form_with url: bulk_action_admin_movies_path, method: :post, class: 'flex items-center gap-2' do %>
+          <select name="bulk_action" class="select select-bordered select-sm">
+            <option value=""><%= t('movies.bulk_actions.select_action') %></option>
+            <option value="mark_done"><%= t('movies.bulk_actions.mark_done') %></option>
+            <option value="mark_draft"><%= t('movies.bulk_actions.mark_draft') %></option>
+            <option value="delete"><%= t('movies.bulk_actions.delete') %></option>
+          </select>
+          <%= render Bali::Button::Component.new(
+            name: t('movies.bulk_actions.apply'),
+            variant: :ghost,
+            size: :sm,
+            type: :submit
+          ) %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
