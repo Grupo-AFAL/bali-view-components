@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Dependencies** - Batch update: @babel/core, @babel/eslint-parser, @babel/preset-env, standard, daisyui; add minimatch resolution (security)
+- **Dependencies** - Batch update: @babel/core, @babel/eslint-parser, @babel/preset-env, standard, daisyui, brakeman, minitest, pagy, rubocop, sqlite3, view_component; add minimatch resolution (security)
 - **CI** - Bump GitHub Actions: checkout v6, setup-node v6, upload-artifact v7, github-script v8
 - **Testing** - Migrated entire test suite from RSpec to Minitest (2,331 tests), aligning with AFAL handbook standards
 - **Build** - Replaced Vite with esbuild (jsbundling-rails) for JavaScript bundling in dummy app
