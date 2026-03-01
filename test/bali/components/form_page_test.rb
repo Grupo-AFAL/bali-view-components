@@ -38,4 +38,14 @@ class BaliFormPageComponentTest < ComponentTestCase
     end
     assert_selector("a[href='/movies/1']")
   end
+
+  def test_renders_sidebar_layout
+    render_inline(Bali::FormPage::Component.new(title: "New Movie")) do |page|
+      page.with_body { "Form content" }
+      page.with_sidebar { "Sidebar help" }
+    end
+    assert_selector(".grid")
+    assert_text("Form content")
+    assert_text("Sidebar help")
+  end
 end

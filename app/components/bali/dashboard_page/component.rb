@@ -8,6 +8,16 @@ module Bali
 
       Stat = Struct.new(:label, :value, :icon, :change, :color, keyword_init: true)
 
+      STAT_ICON_COLORS = {
+        primary: "text-primary",
+        secondary: "text-secondary",
+        accent: "text-accent",
+        success: "text-success",
+        warning: "text-warning",
+        error: "text-error",
+        info: "text-info"
+      }.freeze
+
       def initialize(title:, subtitle: nil, breadcrumbs: [], stats_columns: 4, **options)
         @title = title
         @subtitle = subtitle

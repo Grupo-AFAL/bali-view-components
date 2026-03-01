@@ -24,7 +24,7 @@
 
         <%= render Bali::LabelValue::Component.new(label: 'Country') do %>
           <% if @studio.country.present? %>
-            <%= render Bali::Tag::Component.new(text: @studio.country, size: :sm, variant: :outline) %>
+            <%= render Bali::Tag::Component.new(text: @studio.country, size: :sm, style: :outline) %>
           <% else %>
             <span class="text-base-content/50">—</span>
           <% end %>
@@ -57,7 +57,7 @@
         name: 'Delete Studio',
         href: admin_studio_path(@studio),
         variant: :outline,
-        confirm_message: "Are you sure you want to delete #{@studio.name}?"
+        confirm: "Are you sure you want to delete #{@studio.name}?"
       ) %>
     </div>
   <% end %>

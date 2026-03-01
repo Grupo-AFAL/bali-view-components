@@ -34,6 +34,7 @@
   <% end %>
 
   <%# Content: two-column if sidebar, full-width otherwise %>
+  <% if body? %>
   <div class="mt-6">
     <% if sidebar? %>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -48,4 +49,5 @@
       <%= body %>
     <% end %>
   </div>
+  <% end %>
 </div>

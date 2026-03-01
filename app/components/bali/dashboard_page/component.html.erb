@@ -37,7 +37,7 @@
               <% end %>
             </div>
             <% if stat.icon.present? %>
-              <%= render Bali::Icon::Component.new(stat.icon, class: "size-8 text-#{stat.color}") %>
+              <%= render Bali::Icon::Component.new(stat.icon, class: "size-8 #{Bali::DashboardPage::Component::STAT_ICON_COLORS[stat.color]}") %>
             <% end %>
           </div>
         <% end %>
