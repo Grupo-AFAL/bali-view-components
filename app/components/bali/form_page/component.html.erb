@@ -1,0 +1,38 @@
+<div class="form-page-component">
+  <%# Breadcrumbs %>
+  <% if breadcrumbs.any? %>
+    <%= render Bali::Breadcrumb::Component.new do |bc| %>
+      <% breadcrumbs.each do |crumb| %>
+        <% bc.with_item(**crumb.symbolize_keys) %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <%# Page Header %>
+  <%= render Bali::PageHeader::Component.new(
+    title: title,
+    subtitle: subtitle,
+    back: back,
+    class: breadcrumbs.any? ? 'mt-4' : nil
+  ) %>
+
+  <%# Form content %>
+  <div class="mt-6 <%= max_width %>">
+    <% if sidebar? %>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2">
+          <%= render Bali::Card::Component.new(style: :bordered) do %>
+            <%= body %>
+          <% end %>
+        </div>
+        <div class="space-y-6">
+          <%= sidebar %>
+        </div>
+      </div>
+    <% else %>
+      <%= render Bali::Card::Component.new(style: :bordered) do %>
+        <%= body %>
+      <% end %>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,48 @@
+<%= render Bali::FormPage::Component.new(
+  title: "Edit Movie",
+  subtitle: "Update movie details",
+  breadcrumbs: [
+    { name: "Dashboard", href: "/admin", icon_name: "home" },
+    { name: "Movies", href: "/admin/movies" },
+    { name: "Inception", href: "/admin/movies/1" },
+    { name: "Edit" }
+  ],
+  back: { href: "/admin/movies/1" },
+  max_width: "max-w-5xl"
+) do |page| %>
+  <% page.with_body do %>
+    <div class="card-body space-y-4">
+      <div class="form-control">
+        <label class="label"><span class="label-text">Title</span></label>
+        <input type="text" value="Inception" class="input input-bordered w-full" />
+      </div>
+      <div class="form-control">
+        <label class="label"><span class="label-text">Genre</span></label>
+        <select class="select select-bordered w-full">
+          <option>Sci-Fi</option>
+        </select>
+      </div>
+      <div class="form-control">
+        <label class="label"><span class="label-text">Description</span></label>
+        <textarea class="textarea textarea-bordered h-24">A mind-bending thriller about dream infiltration.</textarea>
+      </div>
+      <div class="flex justify-end gap-2 pt-4">
+        <%= render Bali::Link::Component.new(name: "Cancel", href: "/admin/movies/1", type: :ghost) %>
+        <%= render Bali::Button::Component.new(name: "Update Movie", variant: :primary, type: :submit) %>
+      </div>
+    </div>
+  <% end %>
+
+  <% page.with_sidebar do %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <div class="card-body">
+        <h3 class="card-title text-sm">Tips</h3>
+        <ul class="text-sm text-base-content/70 space-y-2">
+          <li>Use a descriptive title that's easy to search</li>
+          <li>Select the primary genre for the movie</li>
+          <li>Add a detailed description for better discoverability</li>
+        </ul>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>
