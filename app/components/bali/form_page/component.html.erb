@@ -1,4 +1,4 @@
-<div class="form-page-component">
+<div class="form-page-component mx-auto <%= max_width %>">
   <%# Breadcrumbs %>
   <% if breadcrumbs.any? %>
     <%= render Bali::Breadcrumb::Component.new do |bc| %>
@@ -17,7 +17,7 @@
   ) %>
 
   <%# Form content %>
-  <div class="mt-6 <%= max_width %>">
+  <div class="mt-6">
     <% if sidebar? %>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2">
