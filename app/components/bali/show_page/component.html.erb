@@ -1,0 +1,51 @@
+<div class="show-page-component">
+  <%# Breadcrumbs %>
+  <% if breadcrumbs.any? %>
+    <%= render Bali::Breadcrumb::Component.new do |bc| %>
+      <% breadcrumbs.each do |crumb| %>
+        <% bc.with_item(**crumb.symbolize_keys) %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <%# Page Header %>
+  <%= render Bali::PageHeader::Component.new(back: back, class: breadcrumbs.any? ? 'mt-4' : nil) do |header| %>
+    <% header.with_title do %>
+      <div class="flex items-center gap-3">
+        <%= title %>
+        <% if title_tags? %>
+          <% title_tags.each do |tag| %>
+            <%= tag %>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+    <% if subtitle.present? %>
+      <% header.with_subtitle(subtitle) %>
+    <% end %>
+
+    <% if actions? %>
+      <div class="flex items-center gap-2">
+        <% actions.each do |action| %>
+          <%= action %>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <%# Content: two-column if sidebar, full-width otherwise %>
+  <div class="mt-6">
+    <% if sidebar? %>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2">
+          <%= body %>
+        </div>
+        <div class="show-page-sidebar space-y-6">
+          <%= sidebar %>
+        </div>
+      </div>
+    <% else %>
+      <%= body %>
+    <% end %>
+  </div>
+</div>

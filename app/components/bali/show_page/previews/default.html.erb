@@ -1,0 +1,40 @@
+<%= render Bali::ShowPage::Component.new(
+  title: 'The Matrix',
+  subtitle: 'Added 2 days ago',
+  breadcrumbs: [
+    { name: 'Dashboard', href: '/lookbook', icon_name: 'home' },
+    { name: 'Movies', href: '/lookbook' },
+    { name: 'The Matrix' }
+  ],
+  back: { href: '/lookbook' }
+) do |page| %>
+  <% page.with_title_tag do %>
+    <%= render Bali::Tag::Component.new(text: 'Action', style: :outline, size: :sm) %>
+  <% end %>
+  <% page.with_title_tag do %>
+    <%= render Bali::Tag::Component.new(text: 'Released', color: :success, size: :sm) %>
+  <% end %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(name: 'Edit', href: '#', variant: :ghost, icon_name: 'pencil') %>
+  <% end %>
+  <% page.with_body do %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <h3 class="card-title text-lg mb-4">Movie Information</h3>
+      <p class="text-base-content/60">Properties table and details would go here.</p>
+    <% end %>
+    <%= render Bali::Card::Component.new(style: :bordered, class: 'mt-6') do %>
+      <h3 class="card-title text-lg mb-4">Synopsis</h3>
+      <p class="text-base-content/80">A computer hacker learns about the true nature of his reality.</p>
+    <% end %>
+  <% end %>
+  <% page.with_sidebar do %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <h3 class="card-title text-lg mb-4">Studio</h3>
+      <p class="text-base-content/60">Warner Bros.</p>
+    <% end %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <h3 class="card-title text-lg mb-4">Statistics</h3>
+      <p class="text-base-content/60">Rating: 4.5/5</p>
+    <% end %>
+  <% end %>
+<% end %>

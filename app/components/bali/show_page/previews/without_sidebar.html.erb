@@ -1,0 +1,17 @@
+<%= render Bali::ShowPage::Component.new(
+  title: 'The Matrix',
+  subtitle: 'Full width layout',
+  breadcrumbs: [
+    { name: 'Dashboard', href: '/lookbook', icon_name: 'home' },
+    { name: 'Movies', href: '/lookbook' },
+    { name: 'The Matrix' }
+  ],
+  back: { href: '/lookbook' }
+) do |page| %>
+  <% page.with_body do %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <h3 class="card-title text-lg mb-4">Full Width Content</h3>
+      <p class="text-base-content/60">When no sidebar is provided, the body takes the full width.</p>
+    <% end %>
+  <% end %>
+<% end %>
