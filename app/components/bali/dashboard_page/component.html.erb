@@ -1,0 +1,52 @@
+<div class="dashboard-page-component">
+  <%# Breadcrumbs %>
+  <% if breadcrumbs.any? %>
+    <%= render Bali::Breadcrumb::Component.new do |bc| %>
+      <% breadcrumbs.each do |crumb| %>
+        <% bc.with_item(**crumb.symbolize_keys) %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <%# Page Header %>
+  <%= render Bali::PageHeader::Component.new(
+    title: title,
+    subtitle: subtitle,
+    class: breadcrumbs.any? ? 'mt-4' : nil
+  ) do |header| %>
+    <% if actions? %>
+      <div class="flex items-center gap-2">
+        <% actions.each do |action| %>
+          <%= action %>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <%# Stat Cards %>
+  <% if stats? %>
+    <div class="<%= stats_grid_classes %> mb-6">
+      <% stats.each do |stat| %>
+        <%= render Bali::Card::Component.new(style: :bordered, body_class: 'p-4') do %>
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-base-content/60"><%= stat.label %></p>
+              <p class="text-2xl font-bold"><%= stat.value %></p>
+              <% if stat.change.present? %>
+                <p class="text-xs text-success mt-1"><%= stat.change %></p>
+              <% end %>
+            </div>
+            <% if stat.icon.present? %>
+              <%= render Bali::Icon::Component.new(stat.icon, class: "size-8 text-#{stat.color}") %>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <%# Body %>
+  <% if body? %>
+    <%= body %>
+  <% end %>
+</div>
