@@ -10,7 +10,7 @@ module Admin
 
       @revenue_by_genre = build_revenue_by_genre
       @monthly_revenue = build_monthly_revenue
-      @top_movies = Movie.where.not(budget: nil).order(budget: :desc).limit(10)
+      @top_movies = Movie.includes(:tenant).where.not(budget: nil).order(budget: :desc).limit(10)
       @budget_by_status = Movie.where.not(budget: nil)
                                .group(:status)
                                .sum(:budget)

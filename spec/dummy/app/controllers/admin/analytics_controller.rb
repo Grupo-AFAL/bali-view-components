@@ -13,7 +13,8 @@ module Admin
       @monthly_production = build_monthly_production
       @genre_ratings = build_genre_ratings
       @heatmap_data = build_heatmap_data
-      @top_movies = Movie.order(rating: :desc).limit(5)
+      @top_movies = Movie.includes(:tenant).order(rating: :desc).limit(5)
+      @gantt_tasks = build_gantt_tasks
     end
 
     private
@@ -30,6 +31,19 @@ module Admin
            .group(:genre)
            .average(:rating)
            .transform_values { |v| v.round(1) }
+    end
+
+    def build_gantt_tasks
+      Movie.limit(5).map do |movie|
+        start_date = movie.created_at.to_date
+        end_date = movie.done? ? (start_date + rand(30..90).days) : (Date.current + rand(10..60).days)
+        {
+          id: movie.id, name: movie.name,
+          start_date: start_date, end_date: end_date,
+          progress: movie.done? ? 100 : rand(20..80),
+          color: movie.done? ? "hsl(142, 76%, 36%)" : "hsl(38, 92%, 50%)"
+        }
+      end
     end
 
     def build_heatmap_data

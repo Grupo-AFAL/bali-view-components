@@ -1,4 +1,5 @@
-<%# Admin Revenue - Showcases: DashboardPage, Chart, InfoLevel, Table, PropertiesTable %>
+<%# Admin Revenue - Showcases: DashboardPage, Chart (bar/doughnut), InfoLevel, Table, Progress,
+    Tag, Tooltip, Tabs, Notification, PropertiesTable, Clipboard, Level, BooleanIcon %>
 
 <%= render Bali::DashboardPage::Component.new(
   title: 'Revenue',
@@ -10,41 +11,64 @@
   <% page.with_stat(label: 'Funded Movies', value: @funded_count.to_s, icon: 'film', color: :primary) %>
 
   <% page.with_body do %>
-    <%# Revenue Charts %>
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <%= render Bali::Card::Component.new(style: :bordered) do %>
-        <h3 class="card-title text-lg">Monthly Revenue Trend</h3>
-        <div class="mt-4">
-          <%= render Bali::Chart::Component.new(
-            type: :bar,
-            data: @monthly_revenue,
-            legend: false,
-            class: 'h-[280px]'
-          ) %>
-        </div>
-      <% end %>
+    <%# Notifications - warning about data %>
+    <% if @funded_count < 5 %>
+      <div class="mb-6">
+        <%= render Bali::Notification::Component.new(type: :warning, dismiss: true) do %>
+          <strong>Limited data:</strong> Only <%= @funded_count %> movies have budget data. Add budgets to see more detailed reports.
+        <% end %>
+      </div>
+    <% end %>
 
-      <%= render Bali::Card::Component.new(style: :bordered) do %>
-        <h3 class="card-title text-lg">Budget by Genre</h3>
-        <div class="mt-4">
-          <% if @revenue_by_genre.any? %>
+    <%# Revenue Charts with Tabs %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <%= render Bali::Tabs::Component.new(style: :box) do |tabs| %>
+        <% tabs.with_tab(title: 'Monthly Trend', active: true) do %>
+          <div class="p-4">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-lg font-semibold">Monthly Revenue</h3>
+                <p class="text-sm text-base-content/60">Revenue trend over the last 7 months</p>
+              </div>
+              <%= render Bali::Clipboard::Component.new(
+                text: @monthly_revenue.map { |m, v| "#{m}: $#{v}" }.join("\n"),
+                class: 'btn btn-ghost btn-sm'
+              ) do %>
+                <%= render Bali::Icon::Component.new('copy', size: :small) %>
+                <span class="ml-1">Export</span>
+              <% end %>
+            </div>
             <%= render Bali::Chart::Component.new(
-              type: :doughnut,
-              data: @revenue_by_genre,
-              legend: true,
-              class: 'h-[280px]'
+              type: :bar,
+              data: @monthly_revenue,
+              legend: false,
+              class: 'h-[300px]'
             ) %>
-          <% else %>
-            <%= render Bali::Message::Component.new(color: :info) do %>
-              No budget data available.
+          </div>
+        <% end %>
+        <% tabs.with_tab(title: 'By Genre') do %>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold mb-2">Budget Allocation by Genre</h3>
+            <p class="text-sm text-base-content/60 mb-4">How budgets are distributed across genres</p>
+            <% if @revenue_by_genre.any? %>
+              <%= render Bali::Chart::Component.new(
+                type: :doughnut,
+                data: @revenue_by_genre,
+                legend: true,
+                class: 'h-[300px]'
+              ) %>
+            <% else %>
+              <%= render Bali::Message::Component.new(color: :info) do %>
+                No budget data available.
+              <% end %>
             <% end %>
-          <% end %>
-        </div>
+          </div>
+        <% end %>
       <% end %>
-    </div>
+    <% end %>
 
-    <%# Budget by Status %>
-    <div class="mt-6">
+    <%# Budget by Status - InfoLevel + PropertiesTable %>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <h3 class="card-title text-lg mb-4">Budget by Production Status</h3>
         <%= render Bali::InfoLevel::Component.new(align: :between) do |info| %>
@@ -56,12 +80,52 @@
           <% end %>
         <% end %>
       <% end %>
+
+      <%# Financial Summary - PropertiesTable %>
+      <%= render Bali::Card::Component.new(style: :bordered) do %>
+        <h3 class="card-title text-lg mb-4">Financial Summary</h3>
+        <%= render Bali::PropertiesTable::Component.new do |pt| %>
+          <% pt.with_row(label: 'Total Budget') do %>
+            <span class="font-semibold text-success"><%= number_to_currency(@total_revenue, precision: 0) %></span>
+          <% end %>
+          <% pt.with_row(label: 'Average Budget') do %>
+            <%= number_to_currency(@avg_budget, precision: 0) %>
+          <% end %>
+          <% pt.with_row(label: 'Highest Budget') do %>
+            <div class="flex items-center gap-2">
+              <%= number_to_currency(@top_budget, precision: 0) %>
+              <%= render Bali::Tooltip::Component.new(text: 'Highest single movie budget', position: :left) do %>
+                <%= render Bali::Icon::Component.new('info', size: :small, class: 'text-base-content/40 cursor-help') %>
+              <% end %>
+            </div>
+          <% end %>
+          <% pt.with_row(label: 'Movies with Budget') do %>
+            <div class="flex items-center gap-2">
+              <%= @funded_count %> / <%= Movie.count %>
+              <%= render Bali::Progress::Component.new(
+                value: Movie.count.positive? ? (@funded_count * 100 / Movie.count) : 0,
+                max: 100,
+                color: :info,
+                class: 'w-24'
+              ) %>
+            </div>
+          <% end %>
+          <% pt.with_row(label: 'Budget Data Complete') do %>
+            <%= render Bali::BooleanIcon::Component.new(@funded_count == Movie.count) %>
+          <% end %>
+        <% end %>
+      <% end %>
     </div>
 
     <%# Top Movies by Budget %>
     <div class="mt-6">
       <%= render Bali::Card::Component.new(style: :bordered) do %>
-        <h3 class="card-title text-lg mb-4">Top Movies by Budget</h3>
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="card-title text-lg">Top Movies by Budget</h3>
+          <%= render Bali::Tooltip::Component.new(text: 'Top 10 movies ranked by budget allocation', position: :left) do %>
+            <%= render Bali::Icon::Component.new('info', size: :small, class: 'text-base-content/40 cursor-help') %>
+          <% end %>
+        </div>
         <% if @top_movies.any? %>
           <%= render Bali::Table::Component.new do |t| %>
             <% t.with_header(name: '#') %>
@@ -69,6 +133,7 @@
             <% t.with_header(name: 'Studio') %>
             <% t.with_header(name: 'Genre') %>
             <% t.with_header(name: 'Status') %>
+            <% t.with_header(name: 'Indie') %>
             <% t.with_header(name: 'Budget', align: :right) %>
 
             <% @top_movies.each_with_index do |movie, i| %>
@@ -96,6 +161,9 @@
                     size: :sm
                   ) %>
                 </td>
+                <td>
+                  <%= render Bali::BooleanIcon::Component.new(movie.indie?) %>
+                </td>
                 <td class="text-right font-medium">
                   <%= number_to_currency(movie.budget, precision: 0) %>
                 </td>
@@ -110,20 +178,31 @@
       <% end %>
     </div>
 
-    <%# Budget Distribution Progress Bars %>
+    <%# Budget Distribution Progress Bars with Level header %>
     <div class="mt-6">
       <%= render Bali::Card::Component.new(style: :bordered) do %>
-        <h3 class="card-title text-lg mb-4">Budget Distribution by Genre</h3>
+        <%= render Bali::Level::Component.new(class: 'mb-4') do |level| %>
+          <% level.with_left do %>
+            <h3 class="card-title text-lg">Budget Distribution by Genre</h3>
+          <% end %>
+          <% level.with_right do %>
+            <div class="flex items-center gap-2 text-sm text-base-content/60">
+              <%= render Bali::Icon::Component.new('pie-chart', size: :small) %>
+              <span>Total: <%= number_to_currency(@total_revenue, precision: 0) %></span>
+            </div>
+          <% end %>
+        <% end %>
         <div class="space-y-4">
           <% total = @revenue_by_genre.values.sum.to_f %>
-          <% @revenue_by_genre.sort_by { |_, v| -v }.each do |genre, amount| %>
+          <% colors = %i[success info warning primary secondary accent error] %>
+          <% @revenue_by_genre.sort_by { |_, v| -v }.each_with_index do |(genre, amount), i| %>
             <% pct = total.positive? ? (amount / total * 100).round : 0 %>
             <div>
               <div class="flex justify-between mb-1">
                 <span class="text-sm font-medium"><%= genre %></span>
                 <span class="text-sm text-base-content/60"><%= number_to_currency(amount, precision: 0) %> (<%= pct %>%)</span>
               </div>
-              <%= render Bali::Progress::Component.new(value: pct, max: 100, color: :success) %>
+              <%= render Bali::Progress::Component.new(value: pct, max: 100, color: colors[i % colors.length]) %>
             </div>
           <% end %>
         </div>
