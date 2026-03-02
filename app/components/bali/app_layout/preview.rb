@@ -4,7 +4,8 @@ module Bali
   module AppLayout
     class Preview < ApplicationViewComponentPreview
       # @label Default
-      # Full admin layout with fixed sidebar, collapsible menu, app switcher, and bottom configuration group.
+      # Full admin layout with sidebar, collapsible menu, app switcher, and bottom configuration group.
+      # In production, use `fixed: true` on the SideMenu and `fixed_sidebar: true` on AppLayout for a fixed sidebar.
       # @param collapsible toggle
       def default(collapsible: true)
         render_with_template(
