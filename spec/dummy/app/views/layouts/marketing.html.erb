@@ -32,10 +32,13 @@
         <% menu.with_start_item(name: 'Testimonials', href: '#testimonials') %>
         <% menu.with_start_item(name: 'Pricing', href: '#pricing') %>
 
+        <% menu.with_start_item(name: 'Dashboard', href: root_path) %>
+        <% menu.with_start_item(name: 'Admin', href: admin_root_path) %>
+
         <% menu.with_end_item(tag_name: :div) do %>
           <div class="flex items-center gap-2">
             <%= render Bali::Link::Component.new(name: 'Sign in', href: root_path, variant: :ghost) %>
-            <%= render Bali::Link::Component.new(name: 'Get Started', href: root_path, variant: :primary) %>
+            <%= render Bali::Link::Component.new(name: 'Get Started', href: admin_root_path, variant: :primary) %>
           </div>
         <% end %>
       <% end %>
