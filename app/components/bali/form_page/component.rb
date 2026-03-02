@@ -21,7 +21,9 @@ module Bali
         @subtitle = subtitle
         @breadcrumbs = parse_breadcrumbs(breadcrumbs)
         @back = back
-        @max_width = MAX_WIDTHS.fetch(max_width)
+        @max_width = MAX_WIDTHS.fetch(max_width) do
+          raise ArgumentError, "Unknown max_width: #{max_width.inspect}. Valid: #{MAX_WIDTHS.keys.join(', ')}"
+        end
         @card = card
       end
 

@@ -44,6 +44,9 @@ module Bali
                      brand: nil, mobile_trigger_id: MOBILE_TRIGGER_ID, **options)
         @current_path = current_path
         @fixed = fixed
+        unless collapsable.nil?
+          ActiveSupport::Deprecation.warn("`collapsable:` is deprecated, use `collapsible:` instead", caller)
+        end
         @collapsible = collapsable.nil? ? collapsible : collapsable
         @group_behavior = GROUP_BEHAVIORS.include?(group_behavior) ? group_behavior : :expandable
         @brand = brand
@@ -71,7 +74,7 @@ module Bali
 
       # Unique ID for the collapse checkbox (needed for CSS selectors)
       def collapse_checkbox_id
-        @collapse_checkbox_id ||= "side-menu-collapse-#{object_id}"
+        @collapse_checkbox_id ||= "side-menu-collapse-#{SecureRandom.alphanumeric(8)}"
       end
 
       def container_classes
@@ -84,7 +87,7 @@ module Bali
       end
 
       def container_data
-        data = @options[:data] || {}
+        data = (@options[:data] || {}).dup
         data[:controller] =
           class_names(data[:controller], { "side-menu" => @collapsible || @fixed })
         data[:side_menu_collapse_checkbox_value] = collapse_checkbox_id if @collapsible

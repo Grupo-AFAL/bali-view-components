@@ -3,8 +3,8 @@
 <%= render Bali::ShowPage::Component.new(
   title: @movie.name,
   breadcrumbs: [
-    { name: 'Dashboard', href: admin_root_path, icon_name: 'home' },
-    { name: 'Movies', href: admin_movies_path },
+    { name: t('movies.show.dashboard'), href: admin_root_path, icon_name: 'home' },
+    { name: t('movies.title'), href: admin_movies_path },
     { name: @movie.name }
   ],
   back: { href: admin_movies_path }
@@ -15,14 +15,14 @@
   <% page.with_title_tag do %>
     <%= render Bali::Tag::Component.new(
       text: @movie.status.humanize,
-      color: @movie.done? ? :success : :warning,
+      color: movie_status_color(@movie),
       size: :sm
     ) %>
   <% end %>
 
   <% page.with_action do %>
     <%= render Bali::Link::Component.new(
-      name: 'Edit',
+      name: t('movies.show.edit'),
       href: edit_admin_movie_path(@movie),
       variant: :ghost,
       icon_name: 'pencil'
@@ -31,8 +31,8 @@
   <% page.with_action do %>
     <%= render Bali::DeleteLink::Component.new(
       href: admin_movie_path(@movie),
-      name: 'Delete',
-      confirm: "Are you sure you want to delete '#{@movie.name}'?",
+      name: t('movies.show.delete'),
+      confirm: t('movies.show.confirm_delete', name: @movie.name),
       size: :md
     ) %>
   <% end %>
@@ -41,44 +41,34 @@
     <div id="flash-messages"></div>
 
     <%= render Bali::Tabs::Component.new(style: :border) do |tabs| %>
-      <%# Details Tab %>
-      <% tabs.with_tab(title: 'Details', icon: 'info', active: true) do %>
+      <% tabs.with_tab(title: t('movies.show.details'), icon: 'info', active: true) do %>
         <%= render partial: 'admin/movies/details_tab', locals: { movie: @movie } %>
       <% end %>
 
-      <%# Characters Tab %>
-      <% tabs.with_tab(title: 'Characters', icon: 'users') do %>
+      <% tabs.with_tab(title: t('movies.show.characters'), icon: 'users') do %>
         <%= render partial: 'admin/movies/characters_tab', locals: { movie: @movie, characters: @characters } %>
       <% end %>
 
-      <%# Activity Tab %>
-      <% tabs.with_tab(title: 'Activity', icon: 'activity') do %>
+      <% tabs.with_tab(title: t('movies.show.activity'), icon: 'activity') do %>
         <%= render partial: 'admin/movies/activity_tab', locals: { movie: @movie } %>
       <% end %>
     <% end %>
 
     <%# Related Movies Section %>
     <div class="mt-8">
-      <h3 class="text-lg font-semibold mb-4">Related Movies</h3>
+      <h3 class="text-lg font-semibold mb-4"><%= t('movies.show.related_movies') %></h3>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <% @related_movies.each do |related| %>
           <%= render Bali::Card::Component.new(style: :bordered, body_class: 'p-4') do %>
-            <h4 class="font-medium text-base"><%= related.name %></h4>
+            <%= render Bali::Link::Component.new(name: related.name, href: admin_movie_path(related), class: 'font-medium text-base') %>
             <div class="flex items-center gap-2 mt-2">
               <%= render Bali::Tag::Component.new(text: related.genre, size: :xs, style: :outline) %>
               <%= render Bali::Tag::Component.new(
                 text: related.status.humanize,
                 size: :xs,
-                color: related.done? ? :success : :warning
+                color: movie_status_color(related)
               ) %>
             </div>
-            <%= render Bali::Link::Component.new(
-              name: 'View',
-              href: admin_movie_path(related),
-              variant: :ghost,
-              size: :sm,
-              class: 'mt-3'
-            ) %>
           <% end %>
         <% end %>
       </div>

@@ -2,6 +2,8 @@
 
 module Bali
   module DashboardPage
+    Stat = Data.define(:label, :value, :icon, :change, :color)
+
     class Component < ApplicationViewComponent
       include PageComponents::Shared
 
@@ -10,8 +12,6 @@ module Bali
         Stat.new(label: label, value: value, icon: icon, change: change, color: color)
       end
       renders_one :body
-
-      Stat = Struct.new(:label, :value, :icon, :change, :color, keyword_init: true)
 
       STAT_ICON_COLORS = {
         primary: "text-primary",

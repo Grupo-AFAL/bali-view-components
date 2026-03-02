@@ -71,14 +71,14 @@
           <% end %>
         </div>
         <% if @top_movies.any? %>
-          <%= render Bali::Table::Component.new do |t| %>
-            <% t.with_header(name: t('analytics.columns.rank')) %>
-            <% t.with_header(name: t('analytics.columns.movie')) %>
-            <% t.with_header(name: t('analytics.columns.genre')) %>
-            <% t.with_header(name: t('analytics.columns.rating'), align: :right) %>
+          <%= render Bali::Table::Component.new do |table| %>
+            <% table.with_header(name: t('analytics.columns.rank')) %>
+            <% table.with_header(name: t('analytics.columns.movie')) %>
+            <% table.with_header(name: t('analytics.columns.genre')) %>
+            <% table.with_header(name: t('analytics.columns.rating'), align: :right) %>
 
             <% @top_movies.each_with_index do |movie, i| %>
-              <% t.with_row do %>
+              <% table.with_row do %>
                 <td class="text-base-content/60"><%= i + 1 %></td>
                 <td class="font-medium">
                   <%= render Bali::Tooltip::Component.new(text: "#{movie.status.humanize} — #{movie.genre}", position: :top) do %>
@@ -175,7 +175,7 @@
                 </div>
                 <%= render Bali::Tag::Component.new(
                   text: movie.status.humanize,
-                  color: movie.done? ? :success : :warning,
+                  color: movie_status_color(movie),
                   size: :sm
                 ) %>
               </div>

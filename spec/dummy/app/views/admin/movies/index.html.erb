@@ -76,7 +76,7 @@
               <td>
                 <%= render Bali::Tag::Component.new(
                   text: movie.status.humanize,
-                  color: movie.done? ? :success : :warning,
+                  color: movie_status_color(movie),
                   size: :sm
                 ) %>
               </td>
@@ -110,12 +110,15 @@
       <%# Bulk Actions %>
       <% data_table.with_actions_panel do %>
         <%= form_with url: admin_movies_bulk_actions_path, method: :post, class: 'flex items-center gap-2' do %>
-          <select name="bulk_action" class="select select-bordered select-sm">
-            <option value=""><%= t('movies.bulk_actions.select_action') %></option>
-            <option value="mark_done"><%= t('movies.bulk_actions.mark_done') %></option>
-            <option value="mark_draft"><%= t('movies.bulk_actions.mark_draft') %></option>
-            <option value="delete"><%= t('movies.bulk_actions.delete') %></option>
-          </select>
+          <%= label_tag :bulk_action, t('movies.bulk_actions.select_action'), class: 'sr-only' %>
+          <%= select_tag :bulk_action,
+            options_for_select([
+              [t('movies.bulk_actions.select_action'), ''],
+              [t('movies.bulk_actions.mark_done'), 'mark_done'],
+              [t('movies.bulk_actions.mark_draft'), 'mark_draft'],
+              [t('movies.bulk_actions.delete'), 'delete']
+            ]),
+            class: 'select select-bordered select-sm' %>
           <%= render Bali::Button::Component.new(
             name: t('movies.bulk_actions.apply'),
             variant: :ghost,

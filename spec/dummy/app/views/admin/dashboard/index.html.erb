@@ -30,7 +30,7 @@
               <% timeline.with_tag_item(
                 heading: movie.name,
                 icon: movie.done? ? 'check' : 'edit',
-                color: movie.done? ? :success : :warning
+                color: movie_status_color(movie)
               ) do %>
                 <div class="flex items-center gap-2">
                   <%= render Bali::Tag::Component.new(text: movie.genre, size: :sm, style: :outline) %>

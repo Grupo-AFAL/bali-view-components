@@ -7,7 +7,7 @@ module Admin
 
     def new
       @character = @movie.characters.build
-      render layout: params[:layout] != 'false'
+      render layout: !drawer_request?
     end
 
     def create
@@ -35,11 +35,7 @@ module Admin
     end
 
     def sort
-      ActiveRecord::Base.transaction do
-        params[:character].each_with_index do |id, index|
-          @movie.characters.where(id: id).update_all(position: index)
-        end
-      end
+      @movie.reorder_characters(params[:character])
       head :ok
     end
 

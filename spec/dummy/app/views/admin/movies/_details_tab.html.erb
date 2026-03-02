@@ -11,7 +11,7 @@
         <% table.with_property(label: 'Status') do %>
           <%= render Bali::Tag::Component.new(
               text: movie.status.humanize,
-              color: movie.done? ? :success : :warning
+              color: movie_status_color(movie)
             ) %>
         <% end %>
         <% table.with_property(label: 'Indie Film') do %>
@@ -44,7 +44,7 @@
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <%= render Bali::LabelValue::Component.new(label: 'Budget', value: movie.budget.present? ? number_to_currency(movie.budget) : '—') %>
         <%= render Bali::LabelValue::Component.new(label: 'Rating', value: movie.rating.present? ? "#{movie.rating} / 10" : '—') %>
-        <%= render Bali::LabelValue::Component.new(label: 'Release Date', value: movie.release_date.present? ? movie.release_date.strftime('%Y') : '—') %>
+        <%= render Bali::LabelValue::Component.new(label: 'Release Year', value: movie.release_date.present? ? movie.release_date.strftime('%Y') : '—') %>
         <%= render Bali::LabelValue::Component.new(label: 'Status', value: movie.status.humanize) %>
       </div>
     <% end %>

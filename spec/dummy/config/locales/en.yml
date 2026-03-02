@@ -82,6 +82,16 @@ en:
     characters:
       role: Character
       empty: No characters have been added to this movie yet.
+    show:
+      dashboard: Dashboard
+      edit: Edit
+      delete: Delete
+      confirm_delete: "Are you sure you want to delete '%{name}'?"
+      details: Details
+      characters: Characters
+      activity: Activity
+      related_movies: Related Movies
+      view: View
     no_movies: No movies found.
     no_movies_help: Try adjusting your filters or
     add_new_movie: add a new movie
@@ -221,6 +231,18 @@ en:
       edit: Edit
       delete: Delete
     confirm_delete: "Are you sure you want to delete %{name}?"
+    show:
+      dashboard: Dashboard
+      edit: Edit
+      name: Name
+      country: Country
+      status: Status
+      size: Size
+      founded: Founded
+      created: Created
+      delete_studio: Delete Studio
+      confirm_delete: "Are you sure you want to delete %{name}?"
+      no_value: "—"
 
   # Showcase page
   showcase:

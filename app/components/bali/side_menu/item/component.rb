@@ -115,15 +115,23 @@ module Bali
           end
         end
 
+        BADGE_COLOR_CLASSES = {
+          primary: "border-primary/20 bg-primary/10 text-primary",
+          secondary: "border-secondary/20 bg-secondary/10 text-secondary",
+          accent: "border-accent/20 bg-accent/10 text-accent",
+          success: "border-success/20 bg-success/10 text-success",
+          warning: "border-warning/20 bg-warning/10 text-warning",
+          error: "border-error/20 bg-error/10 text-error",
+          info: "border-info/20 bg-info/10 text-info"
+        }.freeze
+
         def badge_classes
           class_names(
             "border",
             "rounded-box",
             "px-1.5",
             "text-[12px]",
-            "border-#{@badge_color}/20",
-            "bg-#{@badge_color}/10",
-            "text-#{@badge_color}"
+            BADGE_COLOR_CLASSES[@badge_color]
           )
         end
 

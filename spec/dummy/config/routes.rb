@@ -29,10 +29,11 @@ Rails.application.routes.draw do
   end
 
   # === Existing routes (keep for Cypress tests) ===
+  namespace :movies do
+    resource :bulk_actions, only: :create
+  end
+
   resources :movies do
-    collection do
-      post :bulk_action
-    end
     resources :characters, only: %i[new create destroy] do
       collection do
         patch :sort

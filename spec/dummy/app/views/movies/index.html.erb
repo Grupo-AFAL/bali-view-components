@@ -108,7 +108,7 @@
 
   <%# Bulk Actions %>
   <% data_table.with_actions_panel do %>
-    <%= form_with url: bulk_action_movies_path, method: :post, class: 'flex items-center gap-2' do %>
+    <%= form_with url: movies_bulk_actions_path, method: :post, class: 'flex items-center gap-2' do %>
       <select name="bulk_action" class="select select-bordered select-sm">
         <option value=""><%= t('movies.bulk_actions.select_action') %></option>
         <option value="mark_done"><%= t('movies.bulk_actions.mark_done') %></option>

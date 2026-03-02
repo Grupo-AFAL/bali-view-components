@@ -167,9 +167,9 @@
     <p class="text-sm text-base-content/60 mb-4"><%= t('dashboard.bulk_actions_help') %></p>
 
     <%= render Bali::BulkActions::Component.new do |bulk| %>
-      <% bulk.with_action(label: t('dashboard.mark_done'), href: bulk_action_movies_path, variant: :success) %>
-      <% bulk.with_action(label: t('dashboard.archive'), href: bulk_action_movies_path, variant: :info) %>
-      <% bulk.with_action(label: t('dashboard.delete'), href: bulk_action_movies_path, variant: :error) %>
+      <% bulk.with_action(label: t('dashboard.mark_done'), href: movies_bulk_actions_path, variant: :success) %>
+      <% bulk.with_action(label: t('dashboard.archive'), href: movies_bulk_actions_path, variant: :info) %>
+      <% bulk.with_action(label: t('dashboard.delete'), href: movies_bulk_actions_path, variant: :error) %>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <% @recent_movies.each do |movie| %>

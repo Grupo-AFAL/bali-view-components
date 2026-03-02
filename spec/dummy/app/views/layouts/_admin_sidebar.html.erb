@@ -13,7 +13,7 @@
     <% list.with_item(name: 'Revenue', href: admin_revenue_index_path, icon: 'dollar-sign') %>
   <% end %>
 
-  <% menu.with_bottom_item(name: 'Ana García', href: '#', icon: 'circle-user') %>
+  <% menu.with_bottom_item(name: t('navbar.profile'), href: '#', icon: 'circle-user') %>
   <% menu.with_bottom_group(name: 'Configuration', icon: 'settings') do |group| %>
     <% group.with_item(name: 'Profile', href: '#', icon: 'circle-user') %>
     <% group.with_item(name: 'Settings', href: admin_settings_path, icon: 'settings') %>

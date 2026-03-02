@@ -6,7 +6,11 @@
     subtitle: subtitle,
     class: breadcrumb_spacer_class
   ) do |header| %>
-    <%= render_actions_bar %>
+    <% if actions? %>
+      <div class="flex items-center gap-2">
+        <% actions.each do |action| %><%= action %><% end %>
+      </div>
+    <% end %>
   <% end %>
 
   <% if stats? %>
@@ -18,7 +22,7 @@
               <p class="text-sm text-base-content/60"><%= stat.label %></p>
               <p class="text-2xl font-bold"><%= stat.value %></p>
               <% if stat.change.present? %>
-                <p class="text-xs text-success mt-1"><%= stat.change %></p>
+                <p class="text-xs <%= stat_icon_color(stat.color) %> mt-1"><%= stat.change %></p>
               <% end %>
             </div>
             <% if stat.icon.present? %>

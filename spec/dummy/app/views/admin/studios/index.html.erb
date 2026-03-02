@@ -50,11 +50,7 @@
               <td>
                 <%= render Bali::Tag::Component.new(
                   text: studio.status.humanize,
-                  color: case studio.status
-                         when 'active' then :success
-                         when 'inactive' then :error
-                         else :warning
-                         end,
+                  color: studio_status_color(studio),
                   size: :sm
                 ) %>
               </td>
