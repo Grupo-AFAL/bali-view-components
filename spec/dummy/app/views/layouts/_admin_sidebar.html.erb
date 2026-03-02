@@ -1,6 +1,6 @@
 <%= render Bali::SideMenu::Component.new(current_path: request.path, collapsable: true, brand: 'MovieDB') do |menu| %>
   <% menu.with_menu_switch(title: 'MovieDB', icon: 'clapperboard', href: admin_root_path, active: true) %>
-  <% menu.with_menu_switch(title: 'Analytics', icon: 'bar-chart-3', href: admin_analytics_path) %>
+  <% menu.with_menu_switch(title: 'Reports', icon: 'bar-chart-3', href: admin_analytics_path) %>
 
   <% menu.with_list(title: 'Main') do |list| %>
     <% list.with_item(name: 'Dashboard', href: admin_root_path, icon: 'layout-dashboard', match: :exact) %>

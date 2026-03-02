@@ -3,6 +3,7 @@
 module Admin
   class MoviesController < BaseController
     before_action :set_movie, only: %i[show edit update destroy]
+    helper_method :available_filter_attributes
 
     def index
       @filter_form = Bali::FilterForm.new(
@@ -53,22 +54,26 @@ module Admin
     end
 
     def bulk_action
-      action = params[:bulk_action]
       movie_ids = params[:movie_ids]
 
-      case action
-      when 'delete'
-        Movie.where(id: movie_ids).destroy_all
-        flash.now[:notice] = "#{movie_ids.size} movie(s) deleted."
-      when 'mark_done'
-        Movie.where(id: movie_ids).update_all(status: :done)
-        flash.now[:notice] = "#{movie_ids.size} movie(s) marked as done."
-      when 'mark_draft'
-        Movie.where(id: movie_ids).update_all(status: :draft)
-        flash.now[:notice] = "#{movie_ids.size} movie(s) marked as draft."
+      if movie_ids.blank?
+        redirect_to admin_movies_path, alert: "No movies selected."
+        return
       end
 
-      redirect_to admin_movies_path
+      notice = case params[:bulk_action]
+      when "delete"
+                 Movie.where(id: movie_ids).destroy_all
+                 "#{movie_ids.size} movie(s) deleted."
+      when "mark_done"
+                 Movie.where(id: movie_ids).update_all(status: :done)
+                 "#{movie_ids.size} movie(s) marked as done."
+      when "mark_draft"
+                 Movie.where(id: movie_ids).update_all(status: :draft)
+                 "#{movie_ids.size} movie(s) marked as draft."
+      end
+
+      redirect_to admin_movies_path, notice: notice
     end
 
     private
@@ -85,7 +90,6 @@ module Admin
       ])
     end
 
-    helper_method :available_filter_attributes
     def available_filter_attributes
       genres = Movie.distinct.pluck(:genre).compact.sort.map { |g| [ g, g ] }
       studios = Tenant.order(:name).pluck(:name, :id)

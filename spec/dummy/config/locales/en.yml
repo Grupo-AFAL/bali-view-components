@@ -125,6 +125,100 @@ en:
         details: Details
         settings: Settings
 
+  # Analytics
+  analytics:
+    title: Analytics
+    subtitle: Movie production insights and trends
+    total_movies: Total Movies
+    total_views: Total Views
+    avg_rating: Avg Rating
+    completion: Completion
+    pro_tip: "Pro tip: Use the tabs below to switch between different chart views."
+    tabs:
+      trend: Trend
+      by_genre: By Genre
+      by_status: By Status
+    monthly_trend: Monthly Production Trend
+    monthly_trend_desc: Movies added per month over the last 7 months
+    genre_distribution: Distribution by Genre
+    genre_distribution_desc: Breakdown of movies across genres
+    production_status: Production Status
+    production_status_desc: Current status of all movies in the database
+    top_rated: Top Rated Movies
+    top_rated_tooltip: Movies sorted by rating, highest first
+    columns:
+      rank: "#"
+      movie: Movie
+      genre: Genre
+      rating: Rating
+    no_movies: No movies to display.
+    heatmap_title: Activity Heatmap
+    heatmap_tooltip: Shows user activity intensity by day and hour
+    heatmap_x_axis: Day of Week
+    heatmap_y_axis: Hour
+    heatmap_legend: Activity
+    genre_distribution_title: Genre Distribution
+    copy: Copy
+    recent_activity: Recent Activity
+    timeline_title: Production Timeline
+    no_timeline: No movies with timeline data.
+
+  # Revenue
+  revenue:
+    title: Revenue
+    subtitle: Budget tracking and financial overview
+    total_budget: Total Budget
+    avg_budget: Avg Budget
+    top_budget: Top Budget
+    funded_movies: Funded Movies
+    limited_data_html: "<strong>Limited data:</strong> Only %{count} movies have budget data. Add budgets to see more detailed reports."
+    tabs:
+      monthly_trend: Monthly Trend
+      by_genre: By Genre
+    monthly_revenue: Monthly Revenue
+    monthly_revenue_desc: Revenue trend over the last 7 months
+    export: Export
+    genre_allocation: Budget Allocation by Genre
+    genre_allocation_desc: How budgets are distributed across genres
+    no_budget_data: No budget data available.
+    budget_by_status: Budget by Production Status
+    financial_summary: Financial Summary
+    total_budget_label: Total Budget
+    average_budget: Average Budget
+    highest_budget: Highest Budget
+    highest_budget_tooltip: Highest single movie budget
+    movies_with_budget: Movies with Budget
+    budget_complete: Budget Data Complete
+    top_movies: Top Movies by Budget
+    top_movies_tooltip: Top 10 movies ranked by budget allocation
+    columns:
+      rank: "#"
+      movie: Movie
+      studio: Studio
+      genre: Genre
+      status: Status
+      indie: Indie
+      budget: Budget
+    no_budget_movies: No movies with budget data.
+    genre_budget_distribution: Budget Distribution by Genre
+
+  # Studios
+  studios:
+    title: Studios
+    new_studio: New Studio
+    columns:
+      name: Name
+      country: Country
+      status: Status
+      size: Size
+      founded: Founded
+      actions: Actions
+    actions:
+      view: View
+      edit: Edit
+      delete: Delete
+    confirm_delete: "Are you sure you want to delete %{name}?"
+
   # Showcase page
   showcase:
     title: Component Showcase

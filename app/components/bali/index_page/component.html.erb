@@ -3,7 +3,7 @@
   <% if breadcrumbs.any? %>
     <%= render Bali::Breadcrumb::Component.new do |bc| %>
       <% breadcrumbs.each do |crumb| %>
-        <% bc.with_item(**crumb.symbolize_keys) %>
+        <% bc.with_item(**crumb) %>
       <% end %>
     <% end %>
   <% end %>

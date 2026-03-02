@@ -1,16 +1,16 @@
 <%= render Bali::DashboardPage::Component.new(
-  title: 'Dashboard',
-  subtitle: 'Welcome back, Ana'
+  title: t('dashboard.title'),
+  subtitle: t('dashboard.welcome')
 ) do |page| %>
-  <% page.with_stat(label: 'Total Movies', value: @total_movies.to_s, icon: 'film', color: :primary) %>
-  <% page.with_stat(label: 'In Production', value: @active_productions.to_s, icon: 'clapperboard', color: :warning) %>
-  <% page.with_stat(label: 'Studios', value: @studios_count.to_s, icon: 'building-2', color: :secondary) %>
-  <% page.with_stat(label: 'Indie Films', value: @indie_count.to_s, icon: 'star', color: :accent) %>
+  <% page.with_stat(label: t('dashboard.total_movies'), value: @total_movies.to_s, icon: 'film', color: :primary) %>
+  <% page.with_stat(label: t('dashboard.in_production'), value: @active_productions.to_s, icon: 'clapperboard', color: :warning) %>
+  <% page.with_stat(label: t('dashboard.studios'), value: @studios_count.to_s, icon: 'building-2', color: :secondary) %>
+  <% page.with_stat(label: t('dashboard.indie_films'), value: @indie_count.to_s, icon: 'star', color: :accent) %>
 
   <% page.with_body do %>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <%= render Bali::Card::Component.new(style: :bordered) do %>
-        <h3 class="card-title text-lg">Movies by Genre</h3>
+        <h3 class="card-title text-lg"><%= t('dashboard.movies_by_genre') %></h3>
         <div class="mt-4">
           <%= render Bali::Chart::Component.new(
             type: :doughnut,
@@ -22,10 +22,10 @@
       <% end %>
 
       <%= render Bali::Card::Component.new(style: :bordered) do %>
-        <h3 class="card-title text-lg">Recent Activity</h3>
+        <h3 class="card-title text-lg"><%= t('dashboard.recent_activity') %></h3>
         <div class="mt-4">
           <%= render Bali::Timeline::Component.new(position: :left) do |timeline| %>
-            <% timeline.with_tag_header(text: 'Today') %>
+            <% timeline.with_tag_header(text: t('dashboard.today')) %>
             <% @recent_movies.first(3).each do |movie| %>
               <% timeline.with_tag_item(
                 heading: movie.name,

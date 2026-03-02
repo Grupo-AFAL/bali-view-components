@@ -6,12 +6,20 @@ module Bali
       renders_one :body
       renders_one :sidebar
 
-      def initialize(title:, subtitle: nil, breadcrumbs: [], back: nil, max_width: "max-w-3xl", card: true, **options)
+      MAX_WIDTHS = {
+        sm: "max-w-xl",
+        md: "max-w-3xl",
+        lg: "max-w-5xl",
+        xl: "max-w-7xl",
+        full: "max-w-full"
+      }.freeze
+
+      def initialize(title:, subtitle: nil, breadcrumbs: [], back: nil, max_width: :md, card: true, **options)
         @title = title
         @subtitle = subtitle
-        @breadcrumbs = breadcrumbs
+        @breadcrumbs = breadcrumbs.map(&:symbolize_keys)
         @back = back
-        @max_width = max_width
+        @max_width = MAX_WIDTHS.fetch(max_width, max_width.to_s)
         @card = card
         @options = options
       end

@@ -21,22 +21,14 @@ module Bali
       def initialize(title:, subtitle: nil, breadcrumbs: [], stats_columns: 4, **options)
         @title = title
         @subtitle = subtitle
-        @breadcrumbs = breadcrumbs
+        @breadcrumbs = breadcrumbs.map(&:symbolize_keys)
         @stats_columns = stats_columns
         @options = options
         @stats = []
       end
 
-      def with_stat(label:, value:, icon: nil, change: nil, color: :primary, **options)
-        @stats << Stat.new(label: label, value: value, icon: icon, change: change, color: color, **options)
-      end
-
-      def stats
-        @stats
-      end
-
-      def stats?
-        @stats.any?
+      def with_stat(label:, value:, icon: nil, change: nil, color: :primary)
+        @stats << Stat.new(label: label, value: value, icon: icon, change: change, color: color)
       end
 
       def stats_grid_classes
@@ -47,6 +39,18 @@ module Bali
       private
 
       attr_reader :title, :subtitle, :breadcrumbs
+
+      def stats
+        @stats
+      end
+
+      def stats?
+        @stats.any?
+      end
+
+      def stat_icon_color(color)
+        STAT_ICON_COLORS[color]
+      end
     end
   end
 end

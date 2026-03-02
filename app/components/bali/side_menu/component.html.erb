@@ -39,11 +39,7 @@
     </div>
   <% elsif brand? %>
     <div class="flex min-h-10 items-center gap-3 px-2.5 py-3">
-      <% if brand? %>
-        <span class="side-menu-brand text-xl font-semibold"><%= brand %></span>
-      <% elsif collapsable? %>
-        <span class="grow"></span>
-      <% end %>
+      <span class="side-menu-brand text-xl font-semibold"><%= brand %></span>
     </div>
   <% end %>
 
@@ -79,7 +75,7 @@
 
   <%# Bottom pinned items and groups %>
   <% if bottom_items? || bottom_groups? %>
-    <div class="border-t border-base-200 shrink-0 space-y-0.5 px-2.5 py-2">
+    <div class="side-menu-bottom-section border-t border-base-200 shrink-0 space-y-0.5 px-2.5 py-2">
       <% bottom_items.each do |item| %>
         <%= item %>
       <% end %>

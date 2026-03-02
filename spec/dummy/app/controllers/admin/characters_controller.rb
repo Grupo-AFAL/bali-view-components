@@ -7,7 +7,7 @@ module Admin
 
     def new
       @character = @movie.characters.build
-      render layout: !request.xhr? && params[:layout] != 'false'
+      render layout: params[:layout] != 'false'
     end
 
     def create

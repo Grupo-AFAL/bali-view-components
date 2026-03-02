@@ -14,10 +14,8 @@
     <% end %>
 
     <%# Body %>
-    <% if body? %>
-      <main class="flex-1 p-6">
-        <%= body %>
-      </main>
-    <% end %>
+    <main class="flex-1 p-6">
+      <%= body? ? body : content %>
+    </main>
   </div>
 </div>

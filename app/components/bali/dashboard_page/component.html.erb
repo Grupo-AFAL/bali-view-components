@@ -3,7 +3,7 @@
   <% if breadcrumbs.any? %>
     <%= render Bali::Breadcrumb::Component.new do |bc| %>
       <% breadcrumbs.each do |crumb| %>
-        <% bc.with_item(**crumb.symbolize_keys) %>
+        <% bc.with_item(**crumb) %>
       <% end %>
     <% end %>
   <% end %>
@@ -37,7 +37,7 @@
               <% end %>
             </div>
             <% if stat.icon.present? %>
-              <%= render Bali::Icon::Component.new(stat.icon, class: "size-8 #{Bali::DashboardPage::Component::STAT_ICON_COLORS[stat.color]}") %>
+              <%= render Bali::Icon::Component.new(stat.icon, class: "size-8 #{stat_icon_color(stat.color)}") %>
             <% end %>
           </div>
         <% end %>

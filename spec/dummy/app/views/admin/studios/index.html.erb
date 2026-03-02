@@ -1,13 +1,13 @@
 <%= render Bali::IndexPage::Component.new(
-  title: 'Studios',
+  title: t('studios.title'),
   breadcrumbs: [
-    { name: 'Dashboard', href: admin_root_path, icon_name: 'home' },
-    { name: 'Studios' }
+    { name: t('dashboard.title'), href: admin_root_path, icon_name: 'home' },
+    { name: t('studios.title') }
   ]
 ) do |page| %>
   <% page.with_action do %>
     <%= render Bali::Link::Component.new(
-      name: 'New Studio',
+      name: t('studios.new_studio'),
       href: new_admin_studio_path,
       variant: :primary,
       icon_name: 'plus',
@@ -28,12 +28,12 @@
 
       <%= render Bali::Card::Component.new do %>
         <%= render Bali::Table::Component.new(form: @filter_form) do |t| %>
-          <% t.with_header(name: 'Name', sort: :name) %>
-          <% t.with_header(name: 'Country', sort: :country) %>
-          <% t.with_header(name: 'Status') %>
-          <% t.with_header(name: 'Size') %>
-          <% t.with_header(name: 'Founded', sort: :founded_year) %>
-          <% t.with_header(name: 'Actions', align: :right) %>
+          <% t.with_header(name: t('studios.columns.name'), sort: :name) %>
+          <% t.with_header(name: t('studios.columns.country'), sort: :country) %>
+          <% t.with_header(name: t('studios.columns.status')) %>
+          <% t.with_header(name: t('studios.columns.size')) %>
+          <% t.with_header(name: t('studios.columns.founded'), sort: :founded_year) %>
+          <% t.with_header(name: t('studios.columns.actions'), align: :right) %>
 
           <% @studios.each do |studio| %>
             <% t.with_row do %>
@@ -63,14 +63,14 @@
               <td>
                 <div class="flex justify-end">
                   <%= render Bali::ActionsDropdown::Component.new(popover: true, align: :end) do |dropdown| %>
-                    <% dropdown.with_item(name: 'View', href: admin_studio_path(studio), icon_name: 'eye') %>
-                    <% dropdown.with_item(name: 'Edit', href: edit_admin_studio_path(studio), icon_name: 'pencil', data: { action: 'drawer#open', drawer_size: 'lg' }) %>
+                    <% dropdown.with_item(name: t('studios.actions.view'), href: admin_studio_path(studio), icon_name: 'eye') %>
+                    <% dropdown.with_item(name: t('studios.actions.edit'), href: edit_admin_studio_path(studio), icon_name: 'pencil', data: { action: 'drawer#open', drawer_size: 'lg' }) %>
                     <% dropdown.with_item(
-                      name: 'Delete',
+                      name: t('studios.actions.delete'),
                       href: admin_studio_path(studio),
                       icon_name: 'trash',
                       method: :delete,
-                      data: { turbo_confirm: "Are you sure you want to delete #{studio.name}?" },
+                      data: { turbo_confirm: t('studios.confirm_delete', name: studio.name) },
                       class: 'text-error'
                     ) %>
                   <% end %>

@@ -166,8 +166,8 @@
     @apply justify-center p-2;
   }
 
-  /* Reduce list padding */
-  .space-y-0\.5.px-2\.5 {
+  /* Reduce bottom section padding */
+  .side-menu-bottom-section {
     @apply px-1;
   }
 
