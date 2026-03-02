@@ -6,6 +6,13 @@ module ApplicationHelper
   include Bali::ApplicationHelper
   include Bali::FormHelper
 
+  def distribution_rows(data, colors: %i[primary secondary accent info success warning error])
+    total = data.values.sum.to_f
+    data.sort_by { |_, v| -v }.each_with_index.map do |(label, amount), i|
+      { label: label, amount: amount, pct: total.positive? ? (amount / total * 100).round : 0, color: colors[i % colors.length] }
+    end
+  end
+
   def movie_filter_attributes
     genres = Movie.distinct.pluck(:genre).compact.sort.map { |g| [ g, g ] }
     studios = Tenant.order(:name).pluck(:name, :id)
