@@ -22,6 +22,8 @@ Rails.application.routes.draw do
     end
 
     resources :studios
+    resources :analytics, only: :index
+    resources :revenue, only: :index
     resource :settings, only: %i[show update]
   end
 
