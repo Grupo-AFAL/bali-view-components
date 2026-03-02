@@ -22,7 +22,7 @@ module Admin
     end
 
     def show
-      @characters = @movie.characters
+      @characters = @movie.characters.positioned
       @related_movies = Movie.where(genre: @movie.genre).where.not(id: @movie.id).limit(4)
     end
 
@@ -52,29 +52,6 @@ module Admin
     def destroy
       @movie.destroy
       redirect_to admin_movies_url, notice: 'Movie was successfully deleted.'
-    end
-
-    def bulk_action
-      movie_ids = params[:movie_ids]
-
-      if movie_ids.blank?
-        redirect_to admin_movies_path, alert: "No movies selected."
-        return
-      end
-
-      notice = case params[:bulk_action]
-      when "delete"
-                 Movie.where(id: movie_ids).destroy_all
-                 "#{movie_ids.size} movie(s) deleted."
-      when "mark_done"
-                 Movie.where(id: movie_ids).update_all(status: :done)
-                 "#{movie_ids.size} movie(s) marked as done."
-      when "mark_draft"
-                 Movie.where(id: movie_ids).update_all(status: :draft)
-                 "#{movie_ids.size} movie(s) marked as draft."
-      end
-
-      redirect_to admin_movies_path, notice: notice
     end
 
     private

@@ -18,7 +18,7 @@
             <% end %>
             <div>
               <p class="font-medium"><%= character.name %></p>
-              <p class="text-sm text-base-content/60">Character</p>
+              <p class="text-sm text-base-content/60"><%= t('movies.characters.role') %></p>
             </div>
           </div>
           <%= render Bali::ActionsDropdown::Component.new(align: :end) do |dropdown| %>
@@ -30,6 +30,6 @@
   <% end %>
 <% else %>
   <%= render Bali::Message::Component.new(color: :info) do %>
-    No characters have been added to this movie yet.
+    <%= t('movies.characters.empty') %>
   <% end %>
 <% end %>

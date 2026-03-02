@@ -1,6 +1,6 @@
 <%= render Bali::AppLayout::Component.new do |layout|
   layout.with_sidebar do %>
-    <%= render Bali::SideMenu::Component.new(current_path: '/admin', fixed: true, collapsable: collapsable, brand: 'MovieDB') do |menu|
+    <%= render Bali::SideMenu::Component.new(current_path: '/admin', fixed: true, collapsible: collapsible, brand: 'MovieDB') do |menu|
       menu.with_menu_switch(name: 'MovieDB', icon: 'clapperboard', href: '/admin', active: true)
       menu.with_menu_switch(name: 'Analytics', icon: 'bar-chart-3', href: '#')
 

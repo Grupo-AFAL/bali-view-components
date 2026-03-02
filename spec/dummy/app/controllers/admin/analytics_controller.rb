@@ -2,18 +2,18 @@
 
 module Admin
   class AnalyticsController < BaseController
-    include DemoChartData
+    include DemoChartHelper
 
     DEMO_TOTAL_VIEWS = 142_857
 
     def index
       @total_movies = Movie.count
       @total_views = DEMO_TOTAL_VIEWS
-      @avg_rating = Movie.where.not(rating: nil).average(:rating)&.round(1) || 0
+      @avg_rating = Movie.average_rating
       @completion_rate = @total_movies.zero? ? 0 : (Movie.done.count * 100.0 / @total_movies).round
 
-      @movies_by_genre = Movie.group(:genre).count
-      @movies_by_status = Movie.group(:status).count.transform_keys(&:humanize)
+      @movies_by_genre = Movie.by_genre_count
+      @movies_by_status = Movie.by_status_count
       @monthly_production = build_monthly_data(range: 3..15, seed: 44)
       @genre_ratings = build_genre_ratings
       @heatmap_data = build_heatmap_data

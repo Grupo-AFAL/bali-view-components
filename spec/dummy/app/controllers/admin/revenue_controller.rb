@@ -2,7 +2,7 @@
 
 module Admin
   class RevenueController < BaseController
-    include DemoChartData
+    include DemoChartHelper
 
     def index
       @total_revenue = Movie.sum(:budget)

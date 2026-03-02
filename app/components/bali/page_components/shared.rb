@@ -28,6 +28,19 @@ module Bali
 
         tag.div(class: "flex items-center gap-2") { safe_join(actions) }
       end
+
+      def render_sidebar_layout(main_content, sidebar_content = nil)
+        if sidebar_content
+          tag.div(class: "grid grid-cols-1 lg:grid-cols-3 gap-6") do
+            safe_join([
+              tag.div(main_content, class: "lg:col-span-2"),
+              tag.div(sidebar_content, class: "space-y-6")
+            ])
+          end
+        else
+          main_content
+        end
+      end
     end
   end
 end

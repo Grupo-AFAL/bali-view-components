@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
-module DemoChartData
-  extend ActiveSupport::Concern
-
-  private
-
+module DemoChartHelper
   def build_gantt_tasks(limit: 5)
     rng = Random.new(42)
     Movie.limit(limit).map do |movie|

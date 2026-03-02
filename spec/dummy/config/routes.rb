@@ -11,14 +11,15 @@ Rails.application.routes.draw do
     root 'dashboard#index'
 
     resources :movies do
-      collection do
-        post :bulk_action
-      end
       resources :characters, only: %i[new create destroy] do
         collection do
           patch :sort
         end
       end
+    end
+
+    namespace :movies do
+      resource :bulk_actions, only: :create
     end
 
     resources :studios

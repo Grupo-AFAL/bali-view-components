@@ -7,9 +7,9 @@ class Character < ApplicationRecord
 
   attribute :birth_month, MonthValue.new
 
-  before_create :set_position
+  scope :positioned, -> { order(:position) }
 
-  default_scope { order(:position) }
+  before_create :set_position
 
   private
 

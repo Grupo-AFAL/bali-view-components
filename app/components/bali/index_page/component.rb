@@ -8,9 +8,6 @@ module Bali
       renders_many :actions
       renders_one :body
 
-      # @param title [String] Page title
-      # @param subtitle [String] Optional subtitle
-      # @param breadcrumbs [Array<Hash>] Array of { name:, href:, icon_name: }
       def initialize(title:, subtitle: nil, breadcrumbs: [])
         @title = title
         @subtitle = subtitle

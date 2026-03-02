@@ -10,21 +10,7 @@ module Bali
 
       renders_many :menu_switches, Bali::SideMenu::MenuSwitch::Component
 
-      renders_many :bottom_items,
-                   lambda { |href: nil, name: nil, icon: nil,
-                              authorized: true, disabled: false, target: nil, **options|
-                     Item::Component.new(
-                       name: name,
-                       href: href,
-                       icon: icon,
-                       authorized: authorized,
-                       disabled: disabled,
-                       target: target,
-                       current_path: @current_path,
-                       group_behavior: @group_behavior,
-                       **options
-                     )
-                   }
+      renders_many :bottom_items, Item::Component.renderable
 
       renders_many :bottom_groups,
                    lambda { |name:, icon: nil, **options|
@@ -49,15 +35,16 @@ module Bali
 
       # @param current_path [String] The current request path for active state detection
       # @param fixed [Boolean] Fixed to viewport (true) or inline flow (false). Default: true
-      # @param collapsable [Boolean] Whether the sidebar can collapse to icon-only mode
+      # @param collapsible [Boolean] Whether the sidebar can collapse to icon-only mode
       # @param group_behavior [Symbol] How nested items behave - :expandable or :dropdown
       # @param brand [String] Optional brand name shown in the header (e.g., "ACME")
       # @param mobile_trigger_id [String] Mobile trigger checkbox ID
-      def initialize(current_path:, fixed: true, collapsable: false, group_behavior: :expandable,
+      def initialize(current_path:, fixed: true, collapsible: false, collapsable: nil,
+                     group_behavior: :expandable,
                      brand: nil, mobile_trigger_id: MOBILE_TRIGGER_ID, **options)
         @current_path = current_path
         @fixed = fixed
-        @collapsable = collapsable
+        @collapsible = collapsable.nil? ? collapsible : collapsable
         @group_behavior = GROUP_BEHAVIORS.include?(group_behavior) ? group_behavior : :expandable
         @brand = brand
         @mobile_trigger_id = mobile_trigger_id
@@ -68,9 +55,11 @@ module Bali
         @fixed
       end
 
-      def collapsable?
-        @collapsable
+      def collapsible?
+        @collapsible
       end
+
+      alias collapsable? collapsible?
 
       def expandable_groups?
         @group_behavior == :expandable
@@ -97,8 +86,8 @@ module Bali
       def container_data
         data = @options[:data] || {}
         data[:controller] =
-          class_names(data[:controller], { "side-menu" => @collapsable || @fixed })
-        data[:side_menu_collapse_checkbox_value] = collapse_checkbox_id if @collapsable
+          class_names(data[:controller], { "side-menu" => @collapsible || @fixed })
+        data[:side_menu_collapse_checkbox_value] = collapse_checkbox_id if @collapsible
         data[:side_menu_mobile_trigger_value] = @mobile_trigger_id if @fixed
         data
       end

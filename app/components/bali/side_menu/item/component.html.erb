@@ -10,11 +10,7 @@
           <%= render Bali::Icon::Component.new(icon, class: 'size-4') %>
         <% end %>
         <span class="grow"><%= name %></span>
-        <% if badge.present? %>
-          <div class="ms-auto inline-flex gap-2">
-            <div class="<%= badge_classes %>"><%= badge %></div>
-          </div>
-        <% end %>
+        <%= render_badge %>
         <%= render Bali::Icon::Component.new('chevron-right', class: 'size-3.5 arrow-icon') %>
       </div>
       <div class="collapse-content ms-6.5 !p-0">
@@ -51,11 +47,7 @@
           <%= render Bali::Icon::Component.new(icon, class: 'size-4') %>
         <% end %>
         <span class="grow"><%= name %></span>
-        <% if badge.present? %>
-          <div class="ms-auto inline-flex gap-2">
-            <div class="<%= badge_classes %>"><%= badge %></div>
-          </div>
-        <% end %>
+        <%= render_badge %>
         <%= render Bali::Icon::Component.new('chevron-right', class: 'size-3.5') %>
       </div>
       <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-50 w-48 p-2 shadow-lg">

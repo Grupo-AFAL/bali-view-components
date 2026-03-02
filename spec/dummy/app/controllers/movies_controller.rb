@@ -28,7 +28,7 @@ class MoviesController < ApplicationController
   end
 
   def show
-    @characters = @movie.characters
+    @characters = @movie.characters.positioned
   end
 
   def new

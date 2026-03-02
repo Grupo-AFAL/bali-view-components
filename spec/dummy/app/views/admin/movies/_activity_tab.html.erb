@@ -1,0 +1,52 @@
+<%= render Bali::Card::Component.new(style: :bordered, class: 'mt-2') do %>
+  <h3 class="card-title text-lg mb-4">Activity History</h3>
+
+  <%= render Bali::Timeline::Component.new(position: :left) do |timeline| %>
+    <% timeline.with_tag_header(text: 'Recent') %>
+
+    <% timeline.with_tag_item(
+        heading: 'Movie Updated',
+        icon: 'edit',
+        color: :info
+      ) do %>
+      <p class="text-sm">Details were modified</p>
+      <p class="text-xs text-base-content/60 mt-1">
+        <%= render Bali::Timeago::Component.new(movie.updated_at, add_suffix: true) %>
+      </p>
+    <% end %>
+
+    <% if movie.done? %>
+      <% timeline.with_tag_item(
+          heading: 'Marked as Done',
+          icon: 'check',
+          color: :success
+        ) do %>
+        <p class="text-sm">Production completed</p>
+        <p class="text-xs text-base-content/60 mt-1">Status changed to done</p>
+      <% end %>
+    <% end %>
+
+    <% timeline.with_tag_header(text: 'Earlier') %>
+
+    <% timeline.with_tag_item(
+        heading: 'Movie Created',
+        icon: 'plus',
+        color: :primary
+      ) do %>
+      <p class="text-sm">Added to the database</p>
+      <p class="text-xs text-base-content/60 mt-1">
+        <%= render Bali::Timeago::Component.new(movie.created_at, add_suffix: true) %>
+      </p>
+    <% end %>
+
+    <% if movie.tenant %>
+      <% timeline.with_tag_item(
+          heading: 'Studio Assigned',
+          icon: 'building-2',
+          color: :secondary
+        ) do %>
+        <p class="text-sm">Linked to <%= movie.tenant.name %></p>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

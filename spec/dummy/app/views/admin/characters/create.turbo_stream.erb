@@ -1,3 +1,3 @@
 <%= turbo_stream.replace 'characters-list' do %>
-  <%= render partial: 'admin/movies/characters_list', locals: { movie: @movie, characters: @movie.characters } %>
+  <%= render partial: 'admin/movies/characters_list', locals: { movie: @movie, characters: @movie.characters.positioned } %>
 <% end %>

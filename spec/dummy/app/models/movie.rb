@@ -2,9 +2,7 @@
 
 class Movie < ApplicationRecord
   belongs_to :tenant
-  # rubocop: disable Rails/HasManyOrHasOneDependent
-  has_many :characters
-  # rubocop: enable Rails/HasManyOrHasOneDependent
+  has_many :characters, dependent: :destroy
 
   # Active Storage attachment for DirectUpload demo
   has_one_attached :poster
@@ -20,5 +18,11 @@ class Movie < ApplicationRecord
   attribute :cover_photo
   attribute :available_region
 
-  scope :active, -> { where(status: 0) }
+  scope :active, -> { draft }
+  scope :by_genre_count, -> { group(:genre).count }
+  scope :by_status_count, -> { group(:status).count.transform_keys(&:humanize) }
+
+  def self.average_rating
+    where.not(rating: nil).average(:rating)&.round(1) || 0
+  end
 end

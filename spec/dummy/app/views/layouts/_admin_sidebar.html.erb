@@ -1,4 +1,4 @@
-<%= render Bali::SideMenu::Component.new(current_path: request.path, collapsable: true, brand: 'MovieDB') do |menu| %>
+<%= render Bali::SideMenu::Component.new(current_path: request.path, collapsible: true, brand: 'MovieDB') do |menu| %>
   <% menu.with_menu_switch(title: 'MovieDB', icon: 'clapperboard', href: admin_root_path, active: true) %>
   <% menu.with_menu_switch(title: 'Reports', icon: 'bar-chart-3', href: admin_analytics_path) %>
 

@@ -4,21 +4,7 @@ module Bali
   module SideMenu
     module BottomGroup
       class Component < ApplicationViewComponent
-        renders_many :items,
-                     lambda { |href: nil, name: nil, icon: nil,
-                               authorized: true, disabled: false, target: nil, **options|
-                       Item::Component.new(
-                         name: name,
-                         href: href,
-                         icon: icon,
-                         authorized: authorized,
-                         disabled: disabled,
-                         target: target,
-                         current_path: @current_path,
-                         group_behavior: :expandable,
-                         **options
-                       )
-                     }
+        renders_many :items, Item::Component.renderable(group_behavior: :expandable)
 
         attr_reader :name, :icon
 

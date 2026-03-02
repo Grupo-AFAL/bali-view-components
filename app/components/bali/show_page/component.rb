@@ -10,10 +10,6 @@ module Bali
       renders_one :body
       renders_one :sidebar
 
-      # @param title [String] Page title
-      # @param subtitle [String] Optional subtitle
-      # @param breadcrumbs [Array<Hash>] Array of { name:, href:, icon_name: }
-      # @param back [Hash] Back button { href: }
       def initialize(title:, subtitle: nil, breadcrumbs: [], back: nil)
         @title = title
         @subtitle = subtitle

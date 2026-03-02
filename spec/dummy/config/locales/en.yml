@@ -79,6 +79,9 @@ en:
       mark_draft: Mark as Draft
       delete: Delete Selected
       apply: Apply
+    characters:
+      role: Character
+      empty: No characters have been added to this movie yet.
     no_movies: No movies found.
     no_movies_help: Try adjusting your filters or
     add_new_movie: add a new movie

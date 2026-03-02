@@ -21,18 +21,7 @@
 
   <% if body? %>
   <div class="mt-6">
-    <% if sidebar? %>
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2">
-          <%= body %>
-        </div>
-        <div class="show-page-sidebar space-y-6">
-          <%= sidebar %>
-        </div>
-      </div>
-    <% else %>
-      <%= body %>
-    <% end %>
+    <%= render_sidebar_layout(body, sidebar? ? sidebar : nil) %>
   </div>
   <% end %>
 </div>
