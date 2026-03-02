@@ -133,7 +133,7 @@
         <div class="flex items-center justify-between mb-4">
           <h3 class="card-title text-lg"><%= t('analytics.genre_distribution_title') %></h3>
           <%= render Bali::Clipboard::Component.new(
-            text: @movies_by_genre.map { |g, c| "#{g}: #{c}" }.join(', '),
+            text: @movies_by_genre.map { |g, c| "#{g}: #{c}" }.join("\n"),
             class: 'btn btn-ghost btn-xs'
           ) do %>
             <%= render Bali::Icon::Component.new('copy', size: :small) %>
@@ -141,16 +141,13 @@
           <% end %>
         </div>
         <div class="space-y-4">
-          <% total = @movies_by_genre.values.sum.to_f %>
-          <% colors = %i[primary secondary accent info success warning error] %>
-          <% @movies_by_genre.sort_by { |_, v| -v }.each_with_index do |(genre, count), i| %>
-            <% pct = total.positive? ? (count / total * 100).round : 0 %>
+          <% distribution_rows(@movies_by_genre).each do |row| %>
             <div>
               <div class="flex justify-between mb-1">
-                <span class="text-sm font-medium"><%= genre %></span>
-                <span class="text-sm text-base-content/60"><%= count %> (<%= pct %>%)</span>
+                <span class="text-sm font-medium"><%= row[:label] %></span>
+                <span class="text-sm text-base-content/60"><%= row[:amount] %> (<%= row[:pct] %>%)</span>
               </div>
-              <%= render Bali::Progress::Component.new(value: pct, max: 100, color: colors[i % colors.length]) %>
+              <%= render Bali::Progress::Component.new(value: row[:pct], max: 100, color: row[:color]) %>
             </div>
           <% end %>
         </div>

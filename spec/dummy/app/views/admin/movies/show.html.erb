@@ -38,8 +38,6 @@
   <% end %>
 
   <% page.with_body do %>
-    <div id="flash-messages"></div>
-
     <%= render Bali::Tabs::Component.new(style: :border) do |tabs| %>
       <% tabs.with_tab(title: t('movies.show.details'), icon: 'info', active: true) do %>
         <%= render partial: 'admin/movies/details_tab', locals: { movie: @movie } %>

@@ -1,4 +1,7 @@
 en:
+  app:
+    name: MovieDB
+
   # Navigation
   navbar:
     dashboard: Dashboard

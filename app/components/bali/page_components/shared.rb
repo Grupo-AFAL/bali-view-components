@@ -8,14 +8,14 @@ module Bali
       private
 
       def breadcrumb_spacer_class
-        "mt-4" unless @breadcrumbs.empty?
+        "mt-4" unless breadcrumbs.empty?
       end
 
       def render_breadcrumbs
-        return if @breadcrumbs.empty?
+        return if breadcrumbs.empty?
 
         render(Bali::Breadcrumb::Component.new) do |bc|
-          @breadcrumbs.each { |crumb| bc.with_item(**crumb) }
+          breadcrumbs.each { |crumb| bc.with_item(**crumb) }
         end
       end
 

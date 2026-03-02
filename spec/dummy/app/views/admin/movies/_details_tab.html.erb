@@ -18,7 +18,7 @@
           <%= render Bali::BooleanIcon::Component.new(value: movie.indie) %>
         <% end %>
         <% if movie.release_date.present? %>
-          <% table.with_property(label: t('movies.show.release_date'), value: movie.release_date.strftime('%B %d, %Y')) %>
+          <% table.with_property(label: t('movies.show.release_date'), value: l(movie.release_date, format: :long)) %>
         <% end %>
         <% if movie.contact_email.present? %>
           <% table.with_property(label: t('movies.show.contact_email'), value: movie.contact_email) %>
@@ -132,40 +132,44 @@
     <%= render Bali::Card::Component.new(style: :bordered) do %>
       <h3 class="card-title text-lg mb-4"><%= t('movies.show.statistics') %></h3>
 
-      <%# Demo Rating %>
+      <%# Rating %>
       <div class="mb-4">
         <p class="text-sm text-base-content/60 mb-2"><%= t('movies.show.user_rating') %></p>
+        <% rating_value = movie.rating.present? ? (movie.rating / 2.0).round : 0 %>
         <%= render Bali::Rate::Component.new(
-            value: 4,
+            value: rating_value,
             scale: 1..5,
             size: :md,
             color: :warning,
             readonly: true
           ) %>
-        <p class="text-sm mt-1">4.0 / 5.0</p>
+        <p class="text-sm mt-1"><%= movie.rating.present? ? "#{movie.rating} / 10" : '—' %></p>
       </div>
 
-      <%# Demo Progress %>
+      <%# Completion Progress %>
       <div class="mb-4">
         <p class="text-sm text-base-content/60 mb-2"><%= t('movies.show.completion') %></p>
         <%= render Bali::Progress::Component.new(
-            value: movie.done? ? 100 : 65,
+            value: movie.done? ? 100 : 50,
             max: 100,
             color: movie.done? ? :success : :primary,
             show_percentage: true
           ) %>
       </div>
 
-      <%# Another Progress Example %>
-      <div>
-        <p class="text-sm text-base-content/60 mb-2"><%= t('movies.show.budget_used') %></p>
-        <%= render Bali::Progress::Component.new(
-            value: 75,
-            max: 100,
-            color: :warning,
-            show_percentage: true
-          ) %>
-      </div>
+      <%# Budget Used %>
+      <% if movie.budget.present? && movie.budget.positive? %>
+        <div>
+          <p class="text-sm text-base-content/60 mb-2"><%= t('movies.show.budget_used') %></p>
+          <% budget_pct = movie.done? ? 100 : (movie.budget > 100_000 ? 75 : 40) %>
+          <%= render Bali::Progress::Component.new(
+              value: budget_pct,
+              max: 100,
+              color: budget_pct > 80 ? :warning : :info,
+              show_percentage: true
+            ) %>
+        </div>
+      <% end %>
     <% end %>
   </div>
 </div>

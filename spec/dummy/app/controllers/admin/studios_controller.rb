@@ -8,7 +8,7 @@ module Admin
       @filter_form = Bali::FilterForm.new(
         Studio.all,
         params,
-        simple_filters: simple_filters_config,
+        simple_filters: Studio.filter_options,
         search_fields: %i[name]
       )
       @pagy, @studios = pagy(@filter_form.result.order(:name), items: 10)
@@ -55,14 +55,6 @@ module Admin
 
     def studio_params
       params.expect(studio: %i[name country status size founded_year])
-    end
-
-    def simple_filters_config
-      [
-        { attribute: :country, collection: Studio::COUNTRIES.map { |c| [ c, c ] }, blank: 'All Countries', label: 'Country' },
-        { attribute: :status, collection: Studio.statuses.map { |s, v| [ s.humanize, v ] }, blank: 'All Statuses', label: 'Status' },
-        { attribute: :size, collection: Studio::SIZES.map { |s| [ s.humanize, s ] }, blank: 'All Sizes', label: 'Size' }
-      ]
     end
   end
 end

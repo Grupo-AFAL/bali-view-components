@@ -118,7 +118,8 @@
               [t('movies.bulk_actions.mark_draft'), 'mark_draft'],
               [t('movies.bulk_actions.delete'), 'delete']
             ]),
-            class: 'select select-bordered select-sm' %>
+            class: 'select select-bordered select-sm',
+            'aria-label': t('movies.bulk_actions.select_action') %>
           <%= render Bali::Button::Component.new(
             name: t('movies.bulk_actions.apply'),
             variant: :ghost,

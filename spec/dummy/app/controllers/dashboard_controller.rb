@@ -6,7 +6,7 @@ class DashboardController < ApplicationController
     @total_movies = Movie.count
     @active_productions = Movie.draft.count
     @studios_count = Tenant.count
-    @indie_count = Movie.where(indie: true).count
+    @indie_count = Movie.indie.count
 
     # Chart data - Movies by genre
     @movies_by_genre = Movie.group(:genre).count

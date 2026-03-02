@@ -1,5 +1,5 @@
-<%= render Bali::SideMenu::Component.new(current_path: request.path, collapsible: true, brand: 'MovieDB') do |menu| %>
-  <% menu.with_menu_switch(title: 'MovieDB', icon: 'clapperboard', href: admin_root_path, active: true) %>
+<%= render Bali::SideMenu::Component.new(current_path: request.path, collapsible: true, brand: t('app.name')) do |menu| %>
+  <% menu.with_menu_switch(title: t('app.name'), icon: 'clapperboard', href: admin_root_path) %>
   <% menu.with_menu_switch(title: t('sidebar.reports'), icon: 'bar-chart-3', href: admin_analytics_path) %>
 
   <% menu.with_list(title: t('sidebar.main')) do |list| %>
@@ -13,7 +13,6 @@
     <% list.with_item(name: t('sidebar.revenue'), href: admin_revenue_index_path, icon: 'dollar-sign') %>
   <% end %>
 
-  <% menu.with_bottom_item(name: t('navbar.profile'), href: '#', icon: 'circle-user') %>
   <% menu.with_bottom_group(name: t('sidebar.configuration'), icon: 'settings') do |group| %>
     <% group.with_item(name: t('navbar.profile'), href: '#', icon: 'circle-user') %>
     <% group.with_item(name: t('navbar.settings'), href: admin_settings_path, icon: 'settings') %>

@@ -5,11 +5,7 @@
     <% header.with_title do %>
       <div class="flex items-center gap-3">
         <%= title %>
-        <% if title_tags? %>
-          <% title_tags.each do |tag| %>
-            <%= tag %>
-          <% end %>
-        <% end %>
+        <% title_tags.each { |tag| concat(tag) } %>
       </div>
     <% end %>
     <% if subtitle.present? %>
@@ -20,7 +16,7 @@
   <% end %>
 
   <% if body? %>
-  <div class="mt-6">
+    <div class="mt-6">
     <% if sidebar? %>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2"><%= body %></div>

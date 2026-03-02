@@ -31,7 +31,7 @@
                 <p class="text-sm text-base-content/60"><%= t('revenue.monthly_revenue_desc') %></p>
               </div>
               <%= render Bali::Clipboard::Component.new(
-                text: @monthly_revenue.map { |m, v| "#{m}: $#{v}" }.join("\n"),
+                text: @monthly_revenue.map { |m, v| "#{m}: #{number_to_currency(v, precision: 0)}" }.join("\n"),
                 class: 'btn btn-ghost btn-sm'
               ) do %>
                 <%= render Bali::Icon::Component.new('copy', size: :small) %>
@@ -189,16 +189,13 @@
           <% end %>
         <% end %>
         <div class="space-y-4">
-          <% total = @revenue_by_genre.values.sum.to_f %>
-          <% colors = %i[success info warning primary secondary accent error] %>
-          <% @revenue_by_genre.sort_by { |_, v| -v }.each_with_index do |(genre, amount), i| %>
-            <% pct = total.positive? ? (amount / total * 100).round : 0 %>
+          <% distribution_rows(@revenue_by_genre).each do |row| %>
             <div>
               <div class="flex justify-between mb-1">
-                <span class="text-sm font-medium"><%= genre %></span>
-                <span class="text-sm text-base-content/60"><%= number_to_currency(amount, precision: 0) %> (<%= pct %>%)</span>
+                <span class="text-sm font-medium"><%= row[:label] %></span>
+                <span class="text-sm text-base-content/60"><%= number_to_currency(row[:amount], precision: 0) %> (<%= row[:pct] %>%)</span>
               </div>
-              <%= render Bali::Progress::Component.new(value: pct, max: 100, color: colors[i % colors.length]) %>
+              <%= render Bali::Progress::Component.new(value: row[:pct], max: 100, color: row[:color]) %>
             </div>
           <% end %>
         </div>

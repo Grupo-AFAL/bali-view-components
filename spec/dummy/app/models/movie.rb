@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 class Movie < ApplicationRecord
-  belongs_to :tenant
-  belongs_to :studio, class_name: "Tenant", foreign_key: "tenant_id", optional: true
+  belongs_to :studio, class_name: "Tenant", foreign_key: "tenant_id"
+  alias_method :tenant, :studio
+
   has_many :characters, dependent: :destroy
 
   # Active Storage attachment for DirectUpload demo
@@ -19,17 +20,22 @@ class Movie < ApplicationRecord
   attribute :cover_photo
   attribute :available_region
 
-  scope :in_production, -> { draft }
+  scope :budgeted, -> { where(budget: 1..) }
+  scope :indie, -> { where(indie: true) }
+  scope :top_rated, ->(limit: 5) { includes(:studio).order(rating: :desc).limit(limit) }
 
-  def status_color
-    done? ? :success : :warning
-  end
-  scope :by_genre_count, -> { group(:genre).count }
-  scope :by_status_count, -> { group(:status).count.transform_keys(&:humanize) }
-  scope :budgeted, -> { where("budget > 0") }
+  def self.by_genre_count = group(:genre).count
+  def self.by_status_count = group(:status).count.transform_keys(&:humanize)
 
   def self.average_rating
     where.not(rating: nil).average(:rating)&.round(1) || 0
+  end
+
+  def self.completion_rate
+    total = count
+    return 0 if total.zero?
+
+    (done.count * 100.0 / total).round
   end
 
   def self.ratings_by_genre
@@ -37,14 +43,18 @@ class Movie < ApplicationRecord
   end
 
   def self.budget_by_genre
-    where.not(budget: nil).group(:genre).sum(:budget)
+    budgeted.group(:genre).sum(:budget)
   end
 
   def self.budget_by_status
-    where.not(budget: nil)
+    budgeted
       .group(:status)
       .sum(:budget)
       .transform_keys(&:humanize)
+  end
+
+  def status_color
+    done? ? :success : :warning
   end
 
   def reorder_characters(ordered_ids)

@@ -183,7 +183,7 @@
                   <%= render Bali::Tag::Component.new(
                     text: movie.status.humanize,
                     size: :xs,
-                    color: movie.done? ? :success : :warning
+                    color: movie.status_color
                   ) %>
                 </div>
               </div>

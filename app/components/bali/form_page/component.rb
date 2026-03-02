@@ -34,6 +34,12 @@ module Bali
       private
 
       attr_reader :title, :subtitle, :breadcrumbs, :back, :max_width
+
+      def body_content
+        return body unless card?
+
+        render(Bali::Card::Component.new(style: :bordered)) { body }
+      end
     end
   end
 end

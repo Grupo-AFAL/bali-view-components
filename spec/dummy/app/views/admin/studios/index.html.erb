@@ -77,7 +77,7 @@
         <% end %>
       <% end %>
 
-      <%= render Bali::PaginationFooter::Component.new(pagy: @pagy, item_name: 'studios') %>
+      <%= render Bali::PaginationFooter::Component.new(pagy: @pagy, item_name: t('sidebar.studios').downcase) %>
     </div>
   <% end %>
 <% end %>
