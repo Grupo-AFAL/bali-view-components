@@ -161,7 +161,7 @@
         <h3 class="card-title text-lg mb-4">Recent Activity</h3>
         <%= render Bali::List::Component.new do |list| %>
           <% @top_movies.each do |movie| %>
-            <% list.with_row do %>
+            <% list.with_item do %>
               <div class="flex items-center gap-4 w-full">
                 <%= render Bali::Avatar::Component.new(
                   name: movie.name,
