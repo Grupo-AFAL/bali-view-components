@@ -85,13 +85,13 @@
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <h3 class="card-title text-lg mb-4"><%= t('revenue.financial_summary') %></h3>
         <%= render Bali::PropertiesTable::Component.new do |pt| %>
-          <% pt.with_row(label: t('revenue.total_budget_label')) do %>
+          <% pt.with_property(label: t('revenue.total_budget_label')) do %>
             <span class="font-semibold text-success"><%= number_to_currency(@stats[:total_revenue], precision: 0) %></span>
           <% end %>
-          <% pt.with_row(label: t('revenue.average_budget')) do %>
+          <% pt.with_property(label: t('revenue.average_budget')) do %>
             <%= number_to_currency(@stats[:avg_budget], precision: 0) %>
           <% end %>
-          <% pt.with_row(label: t('revenue.highest_budget')) do %>
+          <% pt.with_property(label: t('revenue.highest_budget')) do %>
             <div class="flex items-center gap-2">
               <%= number_to_currency(@stats[:top_budget], precision: 0) %>
               <%= render Bali::Tooltip::Component.new(text: t('revenue.highest_budget_tooltip'), position: :left) do %>
@@ -99,7 +99,7 @@
               <% end %>
             </div>
           <% end %>
-          <% pt.with_row(label: t('revenue.movies_with_budget')) do %>
+          <% pt.with_property(label: t('revenue.movies_with_budget')) do %>
             <div class="flex items-center gap-2">
               <%= @stats[:funded_count] %> / <%= @stats[:total_movies] %>
               <%= render Bali::Progress::Component.new(
@@ -110,7 +110,7 @@
               ) %>
             </div>
           <% end %>
-          <% pt.with_row(label: t('revenue.budget_complete')) do %>
+          <% pt.with_property(label: t('revenue.budget_complete')) do %>
             <%= render Bali::BooleanIcon::Component.new(value: @stats[:funded_count] == @stats[:total_movies]) %>
           <% end %>
         <% end %>
