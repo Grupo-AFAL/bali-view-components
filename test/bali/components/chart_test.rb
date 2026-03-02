@@ -78,9 +78,10 @@ class BaliChartComponentTest < ComponentTestCase
     assert_selector(".chart-container#my-chart.custom-class")
   end
 
-  def test_card_styles_renders_with_default_card_style
+  def test_card_styles_renders_without_card_by_default
     render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }))
-    assert_selector(".card.bg-base-100.shadow-sm")
+    assert_no_selector(".card")
+    assert_selector(".chart-component")
   end
 
   def test_card_styles_renders_with_bordered_card_style

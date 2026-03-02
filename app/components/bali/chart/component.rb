@@ -60,7 +60,7 @@ module Bali
         order: [],
         y_axis_ids: [],
         options: {},
-        card_style: :default,
+        card_style: :none,
         height: :md,
         use_theme_colors: true,
         **html_options
