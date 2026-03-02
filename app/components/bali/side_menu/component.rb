@@ -116,7 +116,7 @@ module Bali
       end
 
       def active_menu
-        authorized_menus.find(&:active?)
+        authorized_menus.find(&:active?) || authorized_menus.first
       end
 
       attr_reader :brand, :mobile_trigger_id
