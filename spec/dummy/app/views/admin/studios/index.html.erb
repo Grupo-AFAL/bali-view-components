@@ -45,17 +45,25 @@
                 ) %>
               </td>
               <td>
-                <%= render Bali::Tag::Component.new(text: studio.country, size: :sm, style: :outline) %>
+                <% if studio.country.present? %>
+                  <%= render Bali::Tag::Component.new(text: studio.country, size: :sm, style: :outline) %>
+                <% else %>
+                  <span class="text-base-content/40">&mdash;</span>
+                <% end %>
               </td>
               <td>
-                <%= render Bali::Tag::Component.new(
-                  text: studio.status.humanize,
-                  color: studio.status_color,
-                  size: :sm
-                ) %>
+                <% if studio.respond_to?(:status) && studio.status.present? %>
+                  <%= render Bali::Tag::Component.new(
+                    text: studio.status.humanize,
+                    color: studio.status_color,
+                    size: :sm
+                  ) %>
+                <% else %>
+                  <span class="text-base-content/40">&mdash;</span>
+                <% end %>
               </td>
-              <td><%= studio.size&.humanize %></td>
-              <td><%= studio.founded_year %></td>
+              <td><%= studio.try(:size)&.humanize || '—' %></td>
+              <td><%= studio.try(:founded_year) || '—' %></td>
               <td>
                 <div class="flex justify-end">
                   <%= render Bali::ActionsDropdown::Component.new(popover: true, align: :end) do |dropdown| %>
