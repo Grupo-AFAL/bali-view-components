@@ -12,20 +12,7 @@
   <% if stats? %>
     <div class="<%= stats_grid_classes %> mb-6">
       <% stats.each do |stat| %>
-        <%= render Bali::Card::Component.new(style: :bordered, body_class: 'p-4') do %>
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm text-base-content/60"><%= stat.label %></p>
-              <p class="text-2xl font-bold"><%= stat.value %></p>
-              <% if stat.change.present? %>
-                <p class="text-xs <%= stat_icon_color(stat.color) %> mt-1"><%= stat.change %></p>
-              <% end %>
-            </div>
-            <% if stat.icon.present? %>
-              <%= render Bali::Icon::Component.new(stat.icon, class: "size-8 #{stat_icon_color(stat.color)}") %>
-            <% end %>
-          </div>
-        <% end %>
+        <%= render 'bali/dashboard_page/stat_card', stat: stat %>
       <% end %>
     </div>
   <% end %>

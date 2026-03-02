@@ -11,7 +11,7 @@ module Bali
       def initialize(title:, subtitle: nil, breadcrumbs: [])
         @title = title
         @subtitle = subtitle
-        @breadcrumbs = parse_breadcrumbs(breadcrumbs)
+        @breadcrumbs = breadcrumbs.map(&:symbolize_keys)
       end
 
       private

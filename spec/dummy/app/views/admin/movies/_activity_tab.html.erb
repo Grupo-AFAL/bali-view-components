@@ -39,13 +39,13 @@
       </p>
     <% end %>
 
-    <% if movie.tenant %>
+    <% if movie.studio %>
       <% timeline.with_tag_item(
           heading: t('movies.show.studio_assigned'),
           icon: 'building-2',
           color: :secondary
         ) do %>
-        <p class="text-sm"><%= t('movies.show.linked_to', name: movie.tenant.name) %></p>
+        <p class="text-sm"><%= t('movies.show.linked_to', name: movie.studio.name) %></p>
       <% end %>
     <% end %>
   <% end %>

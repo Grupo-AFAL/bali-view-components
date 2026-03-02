@@ -7,7 +7,7 @@ class MovieFilterForm < Bali::FilterForm
   attribute :genre_in, default: []
 
   def scope
-    @scope.active.order("UPPER(name) ASC")
+    @scope.order("UPPER(name) ASC")
   end
 end
 

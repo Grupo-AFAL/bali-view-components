@@ -5,17 +5,17 @@
   title: t('revenue.title'),
   subtitle: t('revenue.subtitle')
 ) do |page| %>
-  <% page.with_stat(label: t('revenue.total_budget'), value: number_to_currency(@total_revenue, precision: 0), icon: 'dollar-sign', color: :success) %>
-  <% page.with_stat(label: t('revenue.avg_budget'), value: number_to_currency(@avg_budget, precision: 0), icon: 'trending-up', color: :info) %>
-  <% page.with_stat(label: t('revenue.top_budget'), value: number_to_currency(@top_budget, precision: 0), icon: 'award', color: :warning) %>
-  <% page.with_stat(label: t('revenue.funded_movies'), value: @funded_count.to_s, icon: 'film', color: :primary) %>
+  <% page.with_stat(label: t('revenue.total_budget'), value: number_to_currency(@stats[:total_revenue], precision: 0), icon: 'dollar-sign', color: :success) %>
+  <% page.with_stat(label: t('revenue.avg_budget'), value: number_to_currency(@stats[:avg_budget], precision: 0), icon: 'trending-up', color: :info) %>
+  <% page.with_stat(label: t('revenue.top_budget'), value: number_to_currency(@stats[:top_budget], precision: 0), icon: 'award', color: :warning) %>
+  <% page.with_stat(label: t('revenue.funded_movies'), value: @stats[:funded_count].to_s, icon: 'film', color: :primary) %>
 
   <% page.with_body do %>
     <%# Notifications - warning about data %>
-    <% if @funded_count < 5 %>
+    <% if @stats[:funded_count] < 5 %>
       <div class="mb-6">
         <%= render Bali::Notification::Component.new(type: :warning, dismiss: true) do %>
-          <%= t('revenue.limited_data_html', count: @funded_count) %>
+          <%= t('revenue.limited_data_html', count: @stats[:funded_count]) %>
         <% end %>
       </div>
     <% end %>
@@ -86,14 +86,14 @@
         <h3 class="card-title text-lg mb-4"><%= t('revenue.financial_summary') %></h3>
         <%= render Bali::PropertiesTable::Component.new do |pt| %>
           <% pt.with_row(label: t('revenue.total_budget_label')) do %>
-            <span class="font-semibold text-success"><%= number_to_currency(@total_revenue, precision: 0) %></span>
+            <span class="font-semibold text-success"><%= number_to_currency(@stats[:total_revenue], precision: 0) %></span>
           <% end %>
           <% pt.with_row(label: t('revenue.average_budget')) do %>
-            <%= number_to_currency(@avg_budget, precision: 0) %>
+            <%= number_to_currency(@stats[:avg_budget], precision: 0) %>
           <% end %>
           <% pt.with_row(label: t('revenue.highest_budget')) do %>
             <div class="flex items-center gap-2">
-              <%= number_to_currency(@top_budget, precision: 0) %>
+              <%= number_to_currency(@stats[:top_budget], precision: 0) %>
               <%= render Bali::Tooltip::Component.new(text: t('revenue.highest_budget_tooltip'), position: :left) do %>
                 <%= render Bali::Icon::Component.new('info', size: :small, class: 'text-base-content/40 cursor-help') %>
               <% end %>
@@ -101,9 +101,9 @@
           <% end %>
           <% pt.with_row(label: t('revenue.movies_with_budget')) do %>
             <div class="flex items-center gap-2">
-              <%= @funded_count %> / <%= @total_movies %>
+              <%= @stats[:funded_count] %> / <%= @stats[:total_movies] %>
               <%= render Bali::Progress::Component.new(
-                value: @total_movies.positive? ? (@funded_count * 100 / @total_movies) : 0,
+                value: @stats[:total_movies].positive? ? (@stats[:funded_count] * 100 / @stats[:total_movies]) : 0,
                 max: 100,
                 color: :info,
                 class: 'w-24'
@@ -111,7 +111,7 @@
             </div>
           <% end %>
           <% pt.with_row(label: t('revenue.budget_complete')) do %>
-            <%= render Bali::BooleanIcon::Component.new(value: @funded_count == @total_movies) %>
+            <%= render Bali::BooleanIcon::Component.new(value: @stats[:funded_count] == @stats[:total_movies]) %>
           <% end %>
         <% end %>
       <% end %>
@@ -146,14 +146,14 @@
                     variant: :link
                   ) %>
                 </td>
-                <td><%= movie.tenant&.name || '—' %></td>
+                <td><%= movie.studio&.name || '—' %></td>
                 <td>
                   <%= render Bali::Tag::Component.new(text: movie.genre, size: :sm, style: :outline) %>
                 </td>
                 <td>
                   <%= render Bali::Tag::Component.new(
                     text: movie.status.humanize,
-                    color: movie_status_color(movie),
+                    color: movie.status_color,
                     size: :sm
                   ) %>
                 </td>
@@ -184,7 +184,7 @@
           <% level.with_right do %>
             <div class="flex items-center gap-2 text-sm text-base-content/60">
               <%= render Bali::Icon::Component.new('pie-chart', size: :small) %>
-              <span><%= number_to_currency(@total_revenue, precision: 0) %></span>
+              <span><%= number_to_currency(@stats[:total_revenue], precision: 0) %></span>
             </div>
           <% end %>
         <% end %>

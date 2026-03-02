@@ -2,6 +2,7 @@
 
 class Movie < ApplicationRecord
   belongs_to :tenant
+  belongs_to :studio, class_name: "Tenant", foreign_key: "tenant_id", optional: true
   has_many :characters, dependent: :destroy
 
   # Active Storage attachment for DirectUpload demo
@@ -19,6 +20,10 @@ class Movie < ApplicationRecord
   attribute :available_region
 
   scope :in_production, -> { draft }
+
+  def status_color
+    done? ? :success : :warning
+  end
   scope :by_genre_count, -> { group(:genre).count }
   scope :by_status_count, -> { group(:status).count.transform_keys(&:humanize) }
   scope :budgeted, -> { where("budget > 0") }
@@ -48,18 +53,5 @@ class Movie < ApplicationRecord
         characters.where(id: id).update_all(position: index)
       end
     end
-  end
-
-  def self.filter_attributes
-    genres = distinct.pluck(:genre).compact.sort.map { |g| [ g, g ] }
-    studios = Tenant.order(:name).pluck(:name, :id)
-    [
-      { key: :name, label: "Name", type: :text },
-      { key: :genre, label: "Genre", type: :select, options: genres },
-      { key: :tenant_id, label: "Studio", type: :select, options: studios },
-      { key: :status, label: "Status", type: :select, options: statuses.map { |k, _v| [ k.humanize, k ] } },
-      { key: :created_at, label: "Created Date", type: :date },
-      { key: :indie, label: "Indie Film", type: :boolean }
-    ]
   end
 end

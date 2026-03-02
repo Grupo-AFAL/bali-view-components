@@ -158,7 +158,8 @@ class BaliSideMenuComponentTest < ComponentTestCase
     end
     # Bottom section should not render when no bottom items are given
     assert_selector("a", text: "Dashboard")
-    assert_equal 1, page.all("a").size
+    # Each item renders 2 <a> tags: expanded state + collapsed tooltip
+    assert_no_selector(".side-menu-bottom-section")
   end
 
   def test_with_bottom_items_skips_unauthorized_bottom_items

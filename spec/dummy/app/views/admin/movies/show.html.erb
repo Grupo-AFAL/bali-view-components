@@ -15,7 +15,7 @@
   <% page.with_title_tag do %>
     <%= render Bali::Tag::Component.new(
       text: @movie.status.humanize,
-      color: movie_status_color(@movie),
+      color: @movie.status_color,
       size: :sm
     ) %>
   <% end %>
@@ -66,7 +66,7 @@
               <%= render Bali::Tag::Component.new(
                 text: related.status.humanize,
                 size: :xs,
-                color: movie_status_color(related)
+                color: related.status_color
               ) %>
             </div>
           <% end %>

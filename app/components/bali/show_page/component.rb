@@ -13,7 +13,7 @@ module Bali
       def initialize(title:, subtitle: nil, breadcrumbs: [], back: nil)
         @title = title
         @subtitle = subtitle
-        @breadcrumbs = parse_breadcrumbs(breadcrumbs)
+        @breadcrumbs = breadcrumbs.map(&:symbolize_keys)
         @back = back
       end
 

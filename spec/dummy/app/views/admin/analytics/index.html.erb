@@ -5,10 +5,10 @@
   title: t('analytics.title'),
   subtitle: t('analytics.subtitle')
 ) do |page| %>
-  <% page.with_stat(label: t('analytics.total_movies'), value: @total_movies.to_s, icon: 'film', color: :primary) %>
-  <% page.with_stat(label: t('analytics.total_views'), value: number_with_delimiter(@total_views), icon: 'eye', color: :info) %>
-  <% page.with_stat(label: t('analytics.avg_rating'), value: @avg_rating.to_s, icon: 'star', color: :warning) %>
-  <% page.with_stat(label: t('analytics.completion'), value: "#{@completion_rate}%", icon: 'check-circle', color: :success) %>
+  <% page.with_stat(label: t('analytics.total_movies'), value: @stats[:total_movies].to_s, icon: 'film', color: :primary) %>
+  <% page.with_stat(label: t('analytics.total_views'), value: number_with_delimiter(@stats[:total_views]), icon: 'eye', color: :info) %>
+  <% page.with_stat(label: t('analytics.avg_rating'), value: @stats[:avg_rating].to_s, icon: 'star', color: :warning) %>
+  <% page.with_stat(label: t('analytics.completion'), value: "#{@stats[:completion_rate]}%", icon: 'check-circle', color: :success) %>
 
   <% page.with_body do %>
     <%# Notifications - different types %>
@@ -175,7 +175,7 @@
                 </div>
                 <%= render Bali::Tag::Component.new(
                   text: movie.status.humanize,
-                  color: movie_status_color(movie),
+                  color: movie.status_color,
                   size: :sm
                 ) %>
               </div>

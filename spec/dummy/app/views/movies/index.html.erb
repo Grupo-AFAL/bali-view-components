@@ -28,7 +28,7 @@
   <%# search is auto-configured from @filter_form.search_config %>
   <%# filter_groups is auto-populated from @filter_form.filter_groups %>
   <% data_table.with_filters_panel(
-    available_attributes: available_filter_attributes,
+    available_attributes: movie_filter_attributes,
     search: { placeholder: t('movies.search_placeholder') }
   ) %>
 
@@ -79,7 +79,7 @@
               size: :sm
             ) %>
           </td>
-          <td class="text-sm text-base-content/70"><%= movie.tenant&.name || '—' %></td>
+          <td class="text-sm text-base-content/70"><%= movie.studio&.name || '—' %></td>
           <td class="text-center">
             <%= render Bali::BooleanIcon::Component.new(value: movie.indie) %>
           </td>

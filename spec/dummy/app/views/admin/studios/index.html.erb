@@ -50,7 +50,7 @@
               <td>
                 <%= render Bali::Tag::Component.new(
                   text: studio.status.humanize,
-                  color: studio_status_color(studio),
+                  color: studio.status_color,
                   size: :sm
                 ) %>
               </td>

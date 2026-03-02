@@ -19,7 +19,7 @@ class MoviesController < ApplicationController
     )
 
     # Use Pagy for pagination on the filtered/sorted results
-    @pagy, @movies = pagy(@filter_form.result.includes(:tenant), items: 10)
+    @pagy, @movies = pagy(@filter_form.result.includes(:studio), items: 10)
 
     respond_to do |format|
       format.html
@@ -72,11 +72,6 @@ class MoviesController < ApplicationController
                     synopsis rich_description release_date budget
                     contact_email website_url time_zone rating poster
                   ])
-  end
-
-  helper_method :available_filter_attributes
-  def available_filter_attributes
-    @available_filter_attributes ||= Movie.filter_attributes
   end
 
   # NOTE: quick_search_value helper has been removed.

@@ -7,16 +7,12 @@ module Bali
 
       private
 
-      def parse_breadcrumbs(breadcrumbs)
-        breadcrumbs.map(&:symbolize_keys)
-      end
-
       def breadcrumb_spacer_class
-        "mt-4" if @breadcrumbs.any?
+        "mt-4" unless @breadcrumbs.empty?
       end
 
       def render_breadcrumbs
-        return unless @breadcrumbs.any?
+        return if @breadcrumbs.empty?
 
         render(Bali::Breadcrumb::Component.new) do |bc|
           @breadcrumbs.each { |crumb| bc.with_item(**crumb) }
@@ -28,15 +24,6 @@ module Bali
 
         helpers.tag.div(class: "flex items-center gap-2") do
           helpers.safe_join(actions)
-        end
-      end
-
-      def render_sidebar_layout(main_content, side_content)
-        helpers.tag.div(class: "grid grid-cols-1 lg:grid-cols-3 gap-6") do
-          helpers.safe_join([
-            helpers.tag.div(main_content, class: "lg:col-span-2"),
-            helpers.tag.div(side_content, class: "space-y-6")
-          ])
         end
       end
     end

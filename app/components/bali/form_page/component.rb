@@ -19,7 +19,7 @@ module Bali
       def initialize(title:, subtitle: nil, breadcrumbs: [], back: nil, max_width: :md, card: true)
         @title = title
         @subtitle = subtitle
-        @breadcrumbs = parse_breadcrumbs(breadcrumbs)
+        @breadcrumbs = breadcrumbs.map(&:symbolize_keys)
         @back = back
         @max_width = MAX_WIDTHS.fetch(max_width) do
           raise ArgumentError, "Unknown max_width: #{max_width.inspect}. Valid: #{MAX_WIDTHS.keys.join(', ')}"
@@ -34,14 +34,6 @@ module Bali
       private
 
       attr_reader :title, :subtitle, :breadcrumbs, :back, :max_width
-
-      def render_body_content
-        if card?
-          render(Bali::Card::Component.new(style: :bordered)) { body }
-        else
-          body
-        end
-      end
     end
   end
 end

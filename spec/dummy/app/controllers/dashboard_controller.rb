@@ -15,7 +15,7 @@ class DashboardController < ApplicationController
     @movies_by_status = Movie.group(:status).count.transform_keys(&:humanize)
 
     # Recent activity
-    @recent_movies = Movie.includes(:tenant).order(created_at: :desc).limit(5)
+    @recent_movies = Movie.includes(:studio).order(created_at: :desc).limit(5)
 
     # GanttChart data - Movie production timeline (demo data)
     @gantt_tasks = build_gantt_tasks

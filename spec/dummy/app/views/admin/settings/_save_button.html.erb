@@ -1,0 +1,8 @@
+<div class="flex justify-end mt-4">
+  <%= render Bali::Button::Component.new(
+      name: name,
+      variant: local_assigns.fetch(:variant, :primary),
+      type: :submit,
+      size: :sm
+    ) %>
+</div>

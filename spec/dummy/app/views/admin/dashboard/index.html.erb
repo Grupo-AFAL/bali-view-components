@@ -2,10 +2,10 @@
   title: t('dashboard.title'),
   subtitle: t('dashboard.welcome')
 ) do |page| %>
-  <% page.with_stat(label: t('dashboard.total_movies'), value: @total_movies.to_s, icon: 'film', color: :primary) %>
-  <% page.with_stat(label: t('dashboard.in_production'), value: @active_productions.to_s, icon: 'clapperboard', color: :warning) %>
-  <% page.with_stat(label: t('dashboard.studios'), value: @studios_count.to_s, icon: 'building-2', color: :secondary) %>
-  <% page.with_stat(label: t('dashboard.indie_films'), value: @indie_count.to_s, icon: 'star', color: :accent) %>
+  <% page.with_stat(label: t('dashboard.total_movies'), value: @stats[:total_movies].to_s, icon: 'film', color: :primary) %>
+  <% page.with_stat(label: t('dashboard.in_production'), value: @stats[:active_productions].to_s, icon: 'clapperboard', color: :warning) %>
+  <% page.with_stat(label: t('dashboard.studios'), value: @stats[:studios_count].to_s, icon: 'building-2', color: :secondary) %>
+  <% page.with_stat(label: t('dashboard.indie_films'), value: @stats[:indie_count].to_s, icon: 'star', color: :accent) %>
 
   <% page.with_body do %>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -30,7 +30,7 @@
               <% timeline.with_tag_item(
                 heading: movie.name,
                 icon: movie.done? ? 'check' : 'edit',
-                color: movie_status_color(movie)
+                color: movie.status_color
               ) do %>
                 <div class="flex items-center gap-2">
                   <%= render Bali::Tag::Component.new(text: movie.genre, size: :sm, style: :outline) %>

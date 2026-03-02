@@ -8,6 +8,14 @@ class Studio < ApplicationRecord
 
   validates :name, presence: true
 
+  def status_color
+    case status
+    when "active" then :success
+    when "inactive" then :error
+    else :warning
+    end
+  end
+
   scope :by_country, ->(country) { where(country: country) if country.present? }
   scope :by_size, ->(size) { where(size: size) if size.present? }
 end

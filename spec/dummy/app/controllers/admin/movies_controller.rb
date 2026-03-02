@@ -3,7 +3,6 @@
 module Admin
   class MoviesController < BaseController
     before_action :set_movie, only: %i[show edit update destroy]
-    helper_method :available_filter_attributes
 
     def index
       @filter_form = Bali::FilterForm.new(
@@ -13,7 +12,7 @@ module Admin
         storage_id: 'admin_movies',
         persist_enabled: cookies['bali_persist_admin_movies'] == '1'
       )
-      @pagy, @movies = pagy(@filter_form.result.includes(:tenant), items: 10)
+      @pagy, @movies = pagy(@filter_form.result.includes(:studio), items: 10)
 
       respond_to do |format|
         format.html
@@ -66,10 +65,6 @@ module Admin
         synopsis rich_description release_date budget
         contact_email website_url time_zone rating poster
       ])
-    end
-
-    def available_filter_attributes
-      @available_filter_attributes ||= Movie.filter_attributes
     end
   end
 end

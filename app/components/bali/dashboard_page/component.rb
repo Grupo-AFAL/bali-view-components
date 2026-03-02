@@ -26,7 +26,7 @@ module Bali
       def initialize(title:, subtitle: nil, breadcrumbs: [], stats_columns: 4)
         @title = title
         @subtitle = subtitle
-        @breadcrumbs = parse_breadcrumbs(breadcrumbs)
+        @breadcrumbs = breadcrumbs.map(&:symbolize_keys)
         @stats_columns = stats_columns
       end
 
