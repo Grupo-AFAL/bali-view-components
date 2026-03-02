@@ -127,17 +127,17 @@
           <% end %>
         </div>
         <% if @top_movies.any? %>
-          <%= render Bali::Table::Component.new do |t| %>
-            <% t.with_header(name: t('revenue.columns.rank')) %>
-            <% t.with_header(name: t('revenue.columns.movie')) %>
-            <% t.with_header(name: t('revenue.columns.studio')) %>
-            <% t.with_header(name: t('revenue.columns.genre')) %>
-            <% t.with_header(name: t('revenue.columns.status')) %>
-            <% t.with_header(name: t('revenue.columns.indie')) %>
-            <% t.with_header(name: t('revenue.columns.budget'), align: :right) %>
+          <%= render Bali::Table::Component.new do |table| %>
+            <% table.with_header(name: t('revenue.columns.rank')) %>
+            <% table.with_header(name: t('revenue.columns.movie')) %>
+            <% table.with_header(name: t('revenue.columns.studio')) %>
+            <% table.with_header(name: t('revenue.columns.genre')) %>
+            <% table.with_header(name: t('revenue.columns.status')) %>
+            <% table.with_header(name: t('revenue.columns.indie')) %>
+            <% table.with_header(name: t('revenue.columns.budget'), align: :right) %>
 
             <% @top_movies.each_with_index do |movie, i| %>
-              <% t.with_row do %>
+              <% table.with_row do %>
                 <td class="text-base-content/60"><%= i + 1 %></td>
                 <td class="font-medium">
                   <%= render Bali::Link::Component.new(

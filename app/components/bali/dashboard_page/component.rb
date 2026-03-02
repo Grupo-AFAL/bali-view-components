@@ -10,6 +10,13 @@ module Bali
       renders_many :actions
       renders_one :body
 
+      MAX_WIDTHS = {
+        lg: "max-w-5xl",
+        xl: "max-w-7xl",
+        "2xl": "max-w-screen-2xl",
+        full: "max-w-full"
+      }.freeze
+
       STAT_ICON_COLORS = {
         primary: "text-primary",
         secondary: "text-secondary",
@@ -20,11 +27,14 @@ module Bali
         info: "text-info"
       }.freeze
 
-      def initialize(title:, subtitle: nil, breadcrumbs: [], stats_columns: 4)
+      def initialize(title:, subtitle: nil, breadcrumbs: [], stats_columns: 4, max_width: :"2xl")
         @title = title
         @subtitle = subtitle
         @breadcrumbs = breadcrumbs.map(&:symbolize_keys)
         @stats_columns = stats_columns
+        @max_width = MAX_WIDTHS.fetch(max_width) do
+          raise ArgumentError, "Unknown max_width: #{max_width.inspect}. Valid: #{MAX_WIDTHS.keys.join(', ')}"
+        end
         @stat_items = []
       end
 
@@ -34,7 +44,7 @@ module Bali
 
       private
 
-      attr_reader :title, :subtitle, :breadcrumbs, :stat_items
+      attr_reader :title, :subtitle, :breadcrumbs, :stat_items, :max_width
 
       def stats_grid_classes
         cols = { 2 => "sm:grid-cols-2", 3 => "sm:grid-cols-3", 4 => "sm:grid-cols-2 lg:grid-cols-4" }

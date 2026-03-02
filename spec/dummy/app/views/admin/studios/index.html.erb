@@ -27,16 +27,16 @@
       <% end %>
 
       <%= render Bali::Card::Component.new do %>
-        <%= render Bali::Table::Component.new(form: @filter_form) do |t| %>
-          <% t.with_header(name: t('studios.columns.name'), sort: :name) %>
-          <% t.with_header(name: t('studios.columns.country'), sort: :country) %>
-          <% t.with_header(name: t('studios.columns.status')) %>
-          <% t.with_header(name: t('studios.columns.size')) %>
-          <% t.with_header(name: t('studios.columns.founded'), sort: :founded_year) %>
-          <% t.with_header(name: t('studios.columns.actions'), align: :right) %>
+        <%= render Bali::Table::Component.new(form: @filter_form) do |table| %>
+          <% table.with_header(name: t('studios.columns.name'), sort: :name) %>
+          <% table.with_header(name: t('studios.columns.country'), sort: :country) %>
+          <% table.with_header(name: t('studios.columns.status')) %>
+          <% table.with_header(name: t('studios.columns.size')) %>
+          <% table.with_header(name: t('studios.columns.founded'), sort: :founded_year) %>
+          <% table.with_header(name: t('studios.columns.actions'), align: :right) %>
 
           <% @studios.each do |studio| %>
-            <% t.with_row do %>
+            <% table.with_row do %>
               <td class="font-medium">
                 <%= render Bali::Link::Component.new(
                   name: studio.name,
