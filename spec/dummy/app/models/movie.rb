@@ -35,6 +35,13 @@ class Movie < ApplicationRecord
     where.not(budget: nil).group(:genre).sum(:budget)
   end
 
+  def self.budget_by_status
+    where.not(budget: nil)
+      .group(:status)
+      .sum(:budget)
+      .transform_keys(&:humanize)
+  end
+
   def reorder_characters(ordered_ids)
     transaction do
       ordered_ids.each_with_index do |id, index|

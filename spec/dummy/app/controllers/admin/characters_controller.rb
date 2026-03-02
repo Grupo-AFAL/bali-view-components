@@ -26,17 +26,17 @@ module Admin
       end
     end
 
+    def sort
+      @movie.reorder_characters(params[:character])
+      head :ok
+    end
+
     def destroy
       @character.destroy
       respond_to do |format|
         format.html { redirect_to admin_movie_path(@movie), notice: 'Character removed.' }
         format.turbo_stream
       end
-    end
-
-    def sort
-      @movie.reorder_characters(params[:character])
-      head :ok
     end
 
     private

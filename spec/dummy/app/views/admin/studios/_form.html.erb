@@ -5,32 +5,32 @@
     <%= f.text_field_group :name, required: true %>
     <%= f.select_group :country,
           Studio::COUNTRIES.map { |c| [c, c] },
-          { include_blank: 'Select country...' } %>
+          { include_blank: t('studios.form.select_country') } %>
     <%= f.select_group :status,
           Studio.statuses.keys.map { |s| [s.humanize, s] },
-          { include_blank: 'Select status...' } %>
+          { include_blank: t('studios.form.select_status') } %>
     <%= f.select_group :size,
           Studio::SIZES.map { |s| [s.humanize, s] },
-          { include_blank: 'Select size...' } %>
+          { include_blank: t('studios.form.select_size') } %>
     <%= f.number_field_group :founded_year, min: 1800, max: Date.current.year %>
   </div>
 
   <div class="flex gap-2 justify-end mt-6">
     <% if params[:layout] == 'false' %>
       <%= render Bali::Button::Component.new(
-        name: 'Cancel',
+        name: t('common.cancel'),
         variant: :ghost,
         data: { action: 'drawer#close' }
       ) %>
     <% else %>
       <%= render Bali::Link::Component.new(
-        name: 'Cancel',
+        name: t('common.cancel'),
         href: studio.persisted? ? admin_studio_path(studio) : admin_studios_path,
         variant: :ghost
       ) %>
     <% end %>
     <%= render Bali::Button::Component.new(
-      name: studio.persisted? ? 'Update Studio' : 'Create Studio',
+      name: studio.persisted? ? t('studios.form.update') : t('studios.form.create'),
       type: :submit,
       variant: :primary
     ) %>

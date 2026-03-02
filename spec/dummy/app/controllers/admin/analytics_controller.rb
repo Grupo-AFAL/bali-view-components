@@ -2,8 +2,6 @@
 
 module Admin
   class AnalyticsController < BaseController
-    include DemoChartHelper
-
     DEMO_TOTAL_VIEWS = 142_857
 
     def index
@@ -14,11 +12,17 @@ module Admin
 
       @movies_by_genre = Movie.by_genre_count
       @movies_by_status = Movie.by_status_count
-      @monthly_production = build_monthly_data(range: 3..15, seed: 44)
+      @monthly_production = demo_charts.monthly_data(range: 3..15, seed: 44)
       @genre_ratings = Movie.ratings_by_genre
-      @heatmap_data = build_heatmap_data
+      @heatmap_data = demo_charts.heatmap_data
       @top_movies = Movie.includes(:tenant).order(rating: :desc).limit(5)
-      @gantt_tasks = build_gantt_tasks
+      @gantt_tasks = demo_charts.gantt_tasks
+    end
+
+    private
+
+    def demo_charts
+      @demo_charts ||= DemoChartData.new
     end
   end
 end

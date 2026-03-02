@@ -2,11 +2,7 @@
   <%= render_breadcrumbs %>
 
   <%= render Bali::PageHeader::Component.new(title: title, subtitle: subtitle, class: breadcrumb_spacer_class) do |header| %>
-    <% if actions? %>
-      <div class="flex items-center gap-2">
-        <% actions.each do |action| %><%= action %><% end %>
-      </div>
-    <% end %>
+    <%= render_actions_bar %>
   <% end %>
 
   <% if body? %>

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-module DemoChartHelper
-  def build_gantt_tasks(limit: 5)
+class DemoChartData
+  def gantt_tasks(limit: 5)
     rng = Random.new(42)
     Movie.limit(limit).map do |movie|
       start_date = movie.created_at.to_date
@@ -15,13 +15,13 @@ module DemoChartHelper
     end
   end
 
-  def build_heatmap_data
+  def heatmap_data
     rng = Random.new(43)
     days = %w[Mon Tue Wed Thu Fri Sat Sun]
     days.index_with { |_day| (9..17).index_with { |_hour| rng.rand(0..10) } }
   end
 
-  def build_monthly_data(range:, seed: 44)
+  def monthly_data(range:, seed: 44)
     rng = Random.new(seed)
     6.downto(0).each_with_object({}) do |months_ago, hash|
       month = months_ago.months.ago.strftime("%b %Y")

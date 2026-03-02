@@ -115,6 +115,36 @@ module Bali
           end
         end
 
+        def render_icon
+          return unless icon.present?
+
+          render Bali::Icon::Component.new(icon, class: "size-4")
+        end
+
+        def render_initial_icon
+          tag.span(
+            (content || name)&.to_s&.first&.upcase,
+            class: "size-4 flex items-center justify-center text-xs font-medium"
+          )
+        end
+
+        def render_icon_or_initial
+          icon.present? ? render_icon : render_initial_icon
+        end
+
+        def render_collapsed_tooltip(tooltip_href: nil)
+          render Bali::Tooltip::Component.new(placement: :right, class: "side-menu-collapsed hidden") do |tooltip|
+            tooltip.with_trigger do
+              tag.a(
+                href: tooltip_href || href.presence || "#",
+                class: class_names("menu-item", "active" => active?),
+                target: target, rel: rel
+              ) { render_icon_or_initial }
+            end
+            content || name
+          end
+        end
+
         BADGE_COLOR_CLASSES = {
           primary: "border-primary/20 bg-primary/10 text-primary",
           secondary: "border-secondary/20 bg-secondary/10 text-secondary",

@@ -16,20 +16,13 @@
       <% header.with_subtitle(subtitle) %>
     <% end %>
 
-    <% if actions? %>
-      <div class="flex items-center gap-2">
-        <% actions.each do |action| %><%= action %><% end %>
-      </div>
-    <% end %>
+    <%= render_actions_bar %>
   <% end %>
 
   <% if body? %>
   <div class="mt-6">
     <% if sidebar? %>
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2"><%= body %></div>
-        <div class="space-y-6"><%= sidebar %></div>
-      </div>
+      <%= render_sidebar_layout(body, sidebar) %>
     <% else %>
       <%= body %>
     <% end %>

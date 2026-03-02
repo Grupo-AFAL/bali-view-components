@@ -111,7 +111,7 @@
             </div>
           <% end %>
           <% pt.with_row(label: t('revenue.budget_complete')) do %>
-            <%= render Bali::BooleanIcon::Component.new(@funded_count == @total_movies) %>
+            <%= render Bali::BooleanIcon::Component.new(value: @funded_count == @total_movies) %>
           <% end %>
         <% end %>
       <% end %>
@@ -153,16 +153,12 @@
                 <td>
                   <%= render Bali::Tag::Component.new(
                     text: movie.status.humanize,
-                    color: case movie.status
-                           when 'done' then :success
-                           when 'draft' then :warning
-                           else :info
-                           end,
+                    color: movie_status_color(movie),
                     size: :sm
                   ) %>
                 </td>
                 <td>
-                  <%= render Bali::BooleanIcon::Component.new(movie.indie?) %>
+                  <%= render Bali::BooleanIcon::Component.new(value: movie.indie?) %>
                 </td>
                 <td class="text-right font-medium">
                   <%= number_to_currency(movie.budget, precision: 0) %>

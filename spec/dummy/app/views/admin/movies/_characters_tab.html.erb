@@ -1,11 +1,11 @@
 <%= render Bali::Card::Component.new(style: :bordered, class: 'mt-2') do %>
   <div class="flex items-center justify-between mb-4">
     <div>
-      <h3 class="card-title text-lg">Characters</h3>
-      <p class="text-sm text-base-content/60">Drag to reorder characters by importance</p>
+      <h3 class="card-title text-lg"><%= t('movies.show.characters') %></h3>
+      <p class="text-sm text-base-content/60"><%= t('movies.show.drag_to_reorder') %></p>
     </div>
     <%= render Bali::Link::Component.new(
-          name: 'Add Character',
+          name: t('movies.show.add_character'),
           href: new_admin_movie_character_path(movie),
           variant: :ghost,
           size: :sm,

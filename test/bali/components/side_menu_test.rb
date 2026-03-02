@@ -45,52 +45,27 @@ class BaliSideMenuComponentTest < ComponentTestCase
   end
 
   def test_with_crud_match_renders_as_active_when_current_path_is_the_new_path
-    @options[:current_path] = "/items/new"
-    render_inline(component) do |c|
-      c.with_list do |list|
-        list.with_item(name: "items", href: "/items", match: :crud)
-      end
-    end
+    render_menu_with_crud_item("/items/new")
     assert_selector("a.active", text: "items")
   end
 
   def test_with_crud_match_renders_as_active_when_current_path_is_the_item_show_path
-    @options[:current_path] = "/items/123"
-    render_inline(component) do |c|
-      c.with_list do |list|
-        list.with_item(name: "items", href: "/items", match: :crud)
-      end
-    end
+    render_menu_with_crud_item("/items/123")
     assert_selector("a.active", text: "items")
   end
 
   def test_with_crud_match_renders_as_active_when_current_path_is_the_item_edit_path
-    @options[:current_path] = "/items/123/edit"
-    render_inline(component) do |c|
-      c.with_list do |list|
-        list.with_item(name: "items", href: "/items", match: :crud)
-      end
-    end
+    render_menu_with_crud_item("/items/123/edit")
     assert_selector("a.active", text: "items")
   end
 
   def test_with_crud_match_renders_as_active_when_current_path_is_the_item_index_path
-    @options[:current_path] = "/items"
-    render_inline(component) do |c|
-      c.with_list do |list|
-        list.with_item(name: "items", href: "/items", match: :crud)
-      end
-    end
+    render_menu_with_crud_item("/items")
     assert_selector("a.active", text: "items")
   end
 
   def test_with_crud_match_renders_as_inactive_when_current_path_is_not_a_crud_action
-    @options[:current_path] = "/items/dashboard"
-    render_inline(component) do |c|
-      c.with_list do |list|
-        list.with_item(name: "items", href: "/items", match: :crud)
-      end
-    end
+    render_menu_with_crud_item("/items/dashboard")
     assert_no_selector("a.active", text: "items")
   end
 
@@ -181,7 +156,9 @@ class BaliSideMenuComponentTest < ComponentTestCase
         list.with_item(name: "Dashboard", href: "/dashboard")
       end
     end
-    assert_no_selector(".border-t.border-base-200.shrink-0")
+    # Bottom section should not render when no bottom items are given
+    assert_selector("a", text: "Dashboard")
+    assert_equal 1, page.all("a").size
   end
 
   def test_with_bottom_items_skips_unauthorized_bottom_items
@@ -248,5 +225,16 @@ class BaliSideMenuComponentTest < ComponentTestCase
       end
     end
     assert_selector(".dropdown.dropdown-top.dropdown-end")
+  end
+
+  private
+
+  def render_menu_with_crud_item(current_path)
+    @options[:current_path] = current_path
+    render_inline(component) do |c|
+      c.with_list do |list|
+        list.with_item(name: "items", href: "/items", match: :crud)
+      end
+    end
   end
 end

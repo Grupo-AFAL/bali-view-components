@@ -11,6 +11,16 @@ en:
     profile: Profile
     sign_out: Sign out
 
+  sidebar:
+    main: Main
+    reports: Reports
+    studios: Studios
+    analytics: Analytics
+    revenue: Revenue
+    configuration: Configuration
+    documentation: Documentation
+    log_out: Log Out
+
   # Dashboard
   dashboard:
     title: Dashboard
@@ -92,6 +102,44 @@ en:
       activity: Activity
       related_movies: Related Movies
       view: View
+      movie_information: Movie Information
+      title_label: Title
+      indie_film: Indie Film
+      release_date: Release Date
+      contact_email: Contact Email
+      website: Website
+      time_zone: Time Zone
+      last_updated: Last Updated
+      additional_details: Additional Details
+      budget: Budget
+      rating: Rating
+      release_year: Release Year
+      synopsis: Synopsis
+      rich_description: Rich Description
+      movie_poster: Movie Poster
+      movie_stills: Movie Stills
+      no_studio: No studio assigned
+      partner_studio: Partner Studio
+      verified: Verified
+      premium: Premium
+      statistics: Statistics
+      user_rating: User Rating
+      completion: Completion
+      budget_used: Budget Used
+      activity_history: Activity History
+      recent: Recent
+      movie_updated: Movie Updated
+      details_modified: Details were modified
+      marked_done: Marked as Done
+      production_completed: Production completed
+      status_changed_done: Status changed to done
+      earlier: Earlier
+      movie_created: Movie Created
+      added_to_database: Added to the database
+      studio_assigned: Studio Assigned
+      linked_to: "Linked to %{name}"
+      drag_to_reorder: Drag to reorder characters by importance
+      add_character: Add Character
     no_movies: No movies found.
     no_movies_help: Try adjusting your filters or
     add_new_movie: add a new movie
@@ -219,6 +267,15 @@ en:
   studios:
     title: Studios
     new_studio: New Studio
+    form:
+      new_title: New Studio
+      edit_title: "Edit %{name}"
+      new_breadcrumb: New
+      select_country: Select country...
+      select_status: Select status...
+      select_size: Select size...
+      update: Update Studio
+      create: Create Studio
     columns:
       name: Name
       country: Country

@@ -120,19 +120,19 @@
     <h3 class="card-title text-lg"><%= t('dashboard.notifications_demo') %></h3>
     <div class="mt-4 space-y-3">
       <%= render Bali::Notification::Component.new(type: :info, dismiss: false) do %>
-        <%= raw t('dashboard.new_feature') %>
+        <%= t('dashboard.new_feature') %>
       <% end %>
 
       <%= render Bali::Notification::Component.new(type: :success, dismiss: false) do %>
-        <%= raw t('dashboard.success_message') %>
+        <%= t('dashboard.success_message') %>
       <% end %>
 
       <%= render Bali::Notification::Component.new(type: :warning, dismiss: false) do %>
-        <%= raw t('dashboard.warning_message') %>
+        <%= t('dashboard.warning_message') %>
       <% end %>
 
       <%= render Bali::Notification::Component.new(type: :error, dismiss: false) do %>
-        <%= raw t('dashboard.error_message') %>
+        <%= t('dashboard.error_message') %>
       <% end %>
     </div>
   <% end %>

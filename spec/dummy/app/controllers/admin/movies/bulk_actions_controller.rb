@@ -3,29 +3,12 @@
 module Admin
   module Movies
     class BulkActionsController < BaseController
-      def create
-        movie_ids = params[:movie_ids]
+      include BulkActionable
 
-        if movie_ids.blank?
-          redirect_to admin_movies_path, alert: "No movies selected."
-          return
-        end
+      private
 
-        movies = Movie.where(id: movie_ids)
-
-        notice = case params[:bulk_action]
-        when "delete"
-                   movies.destroy_all
-                   "#{movie_ids.size} movie(s) deleted."
-        when "mark_done"
-                   movies.update_all(status: :done)
-                   "#{movie_ids.size} movie(s) marked as done."
-        when "mark_draft"
-                   movies.update_all(status: :draft)
-                   "#{movie_ids.size} movie(s) marked as draft."
-        end
-
-        redirect_to admin_movies_path, notice: notice
+      def after_bulk_action_path
+        admin_movies_path
       end
     end
   end
