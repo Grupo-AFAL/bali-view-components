@@ -45,52 +45,27 @@ class BaliSideMenuComponentTest < ComponentTestCase
   end
 
   def test_with_crud_match_renders_as_active_when_current_path_is_the_new_path
-    @options[:current_path] = "/items/new"
-    render_inline(component) do |c|
-      c.with_list do |list|
-        list.with_item(name: "items", href: "/items", match: :crud)
-      end
-    end
+    render_menu_with_crud_item("/items/new")
     assert_selector("a.active", text: "items")
   end
 
   def test_with_crud_match_renders_as_active_when_current_path_is_the_item_show_path
-    @options[:current_path] = "/items/123"
-    render_inline(component) do |c|
-      c.with_list do |list|
-        list.with_item(name: "items", href: "/items", match: :crud)
-      end
-    end
+    render_menu_with_crud_item("/items/123")
     assert_selector("a.active", text: "items")
   end
 
   def test_with_crud_match_renders_as_active_when_current_path_is_the_item_edit_path
-    @options[:current_path] = "/items/123/edit"
-    render_inline(component) do |c|
-      c.with_list do |list|
-        list.with_item(name: "items", href: "/items", match: :crud)
-      end
-    end
+    render_menu_with_crud_item("/items/123/edit")
     assert_selector("a.active", text: "items")
   end
 
   def test_with_crud_match_renders_as_active_when_current_path_is_the_item_index_path
-    @options[:current_path] = "/items"
-    render_inline(component) do |c|
-      c.with_list do |list|
-        list.with_item(name: "items", href: "/items", match: :crud)
-      end
-    end
+    render_menu_with_crud_item("/items")
     assert_selector("a.active", text: "items")
   end
 
   def test_with_crud_match_renders_as_inactive_when_current_path_is_not_a_crud_action
-    @options[:current_path] = "/items/dashboard"
-    render_inline(component) do |c|
-      c.with_list do |list|
-        list.with_item(name: "items", href: "/items", match: :crud)
-      end
-    end
+    render_menu_with_crud_item("/items/dashboard")
     assert_no_selector("a.active", text: "items")
   end
 
@@ -181,7 +156,10 @@ class BaliSideMenuComponentTest < ComponentTestCase
         list.with_item(name: "Dashboard", href: "/dashboard")
       end
     end
-    assert_no_selector(".border-t.border-base-200.shrink-0")
+    # Bottom section should not render when no bottom items are given
+    assert_selector("a", text: "Dashboard")
+    # Each item renders 2 <a> tags: expanded state + collapsed tooltip
+    assert_no_selector(".side-menu-bottom-section")
   end
 
   def test_with_bottom_items_skips_unauthorized_bottom_items
@@ -201,5 +179,63 @@ class BaliSideMenuComponentTest < ComponentTestCase
     end
     assert_selector("a.active", text: "Profile")
     assert_no_selector("a.active", text: "Sign Out")
+  end
+
+  def test_with_bottom_group_renders_a_dropdown_trigger
+    render_inline(component) do |c|
+      c.with_list do |list|
+        list.with_item(name: "Dashboard", href: "/dashboard")
+      end
+      c.with_bottom_group(name: "Configuration", icon: "settings") do |group|
+        group.with_item(name: "Profile", href: "/profile")
+        group.with_item(name: "Log Out", href: "/logout")
+      end
+    end
+    assert_selector(".side-menu-bottom-group")
+    assert_selector(".side-menu-bottom-group [role='button']", text: "Configuration")
+  end
+
+  def test_with_bottom_group_renders_nested_items_in_dropdown_content
+    render_inline(component) do |c|
+      c.with_bottom_group(name: "Configuration", icon: "settings") do |group|
+        group.with_item(name: "Profile", href: "/profile")
+        group.with_item(name: "Documentation", href: "/docs")
+        group.with_item(name: "Log Out", href: "/logout")
+      end
+    end
+    assert_selector(".dropdown-content a", text: "Profile")
+    assert_selector(".dropdown-content a", text: "Documentation")
+    assert_selector(".dropdown-content a", text: "Log Out")
+  end
+
+  def test_with_bottom_group_skips_unauthorized_items
+    render_inline(component) do |c|
+      c.with_bottom_group(name: "Configuration", icon: "settings") do |group|
+        group.with_item(name: "Profile", href: "/profile", authorized: true)
+        group.with_item(name: "Admin", href: "/admin", authorized: false)
+      end
+    end
+    assert_selector(".dropdown-content a", text: "Profile")
+    assert_no_selector(".dropdown-content a", text: "Admin")
+  end
+
+  def test_with_bottom_group_uses_dropdown_top_positioning
+    render_inline(component) do |c|
+      c.with_bottom_group(name: "Settings", icon: "settings") do |group|
+        group.with_item(name: "Profile", href: "/profile")
+      end
+    end
+    assert_selector(".dropdown.dropdown-top.dropdown-end")
+  end
+
+  private
+
+  def render_menu_with_crud_item(current_path)
+    @options[:current_path] = current_path
+    render_inline(component) do |c|
+      c.with_list do |list|
+        list.with_item(name: "items", href: "/items", match: :crud)
+      end
+    end
   end
 end

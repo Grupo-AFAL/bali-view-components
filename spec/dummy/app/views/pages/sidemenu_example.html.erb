@@ -6,7 +6,7 @@
   <%= render Bali::SideMenu::Component.new(
     current_path: request.path,
     fixed: true,
-    collapsable: true,
+    collapsible: true,
     brand: 'ACME'
   ) do |sidebar| %>
     <%# Menu Switcher - switch between application modules %>
@@ -217,7 +217,7 @@
             <strong>SideMenu Features Demonstrated:</strong>
             <ul class="mt-2 space-y-1 text-sm">
               <li><strong>fixed: true</strong> - Sidebar is fixed to viewport</li>
-              <li><strong>collapsable: true</strong> - Click the toggle to collapse to icon-only mode</li>
+              <li><strong>collapsible: true</strong> - Click the toggle to collapse to icon-only mode</li>
               <li><strong>brand: 'ACME'</strong> - Brand name shown in header when expanded</li>
               <li><strong>with_menu_switch</strong> - Dropdown at top to switch between app modules</li>
               <li><strong>Nested with_item</strong> - Expandable sub-menus for Products, Orders, etc.</li>

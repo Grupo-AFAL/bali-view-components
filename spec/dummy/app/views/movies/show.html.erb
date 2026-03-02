@@ -147,21 +147,21 @@
           <%# Studio Card with HoverCard %>
           <%= render Bali::Card::Component.new(style: :bordered) do %>
             <h3 class="card-title text-lg mb-4">Studio</h3>
-            <% if @movie.tenant %>
+            <% if @movie.studio %>
               <div class="flex items-center gap-4">
                 <%= render Bali::Avatar::Component.new(size: :lg) do |avatar| %>
                   <% avatar.with_placeholder do %>
-                    <%= @movie.tenant.name[0..1].upcase %>
+                    <%= @movie.studio.name[0..1].upcase %>
                   <% end %>
                 <% end %>
                 <div>
                   <%# HoverCard Demo - hover to see studio details %>
                   <%= render Bali::HoverCard::Component.new(placement: 'right') do |hc| %>
                     <% hc.with_trigger do %>
-                      <p class="font-semibold cursor-pointer hover:text-primary underline decoration-dotted underline-offset-4"><%= @movie.tenant.name %></p>
+                      <p class="font-semibold cursor-pointer hover:text-primary underline decoration-dotted underline-offset-4"><%= @movie.studio.name %></p>
                     <% end %>
                     <div class="p-2 min-w-[200px]">
-                      <p class="font-bold mb-2"><%= @movie.tenant.name %></p>
+                      <p class="font-bold mb-2"><%= @movie.studio.name %></p>
                       <p class="text-sm text-base-content/70 mb-2">Partner Studio</p>
                       <div class="flex gap-2">
                         <%= render Bali::Tag::Component.new(text: 'Verified', color: :success, size: :xs) %>
@@ -287,13 +287,13 @@
             </p>
           <% end %>
 
-          <% if @movie.tenant %>
+          <% if @movie.studio %>
             <% timeline.with_tag_item(
                 heading: 'Studio Assigned',
                 icon: 'building-2',
                 color: :secondary
               ) do %>
-              <p class="text-sm">Linked to <%= @movie.tenant.name %></p>
+              <p class="text-sm">Linked to <%= @movie.studio.name %></p>
             <% end %>
           <% end %>
         <% end %>

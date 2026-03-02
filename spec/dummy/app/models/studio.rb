@@ -10,4 +10,20 @@ class Studio < ApplicationRecord
 
   scope :by_country, ->(country) { where(country: country) if country.present? }
   scope :by_size, ->(size) { where(size: size) if size.present? }
+
+  def self.filter_options
+    [
+      { attribute: :country, collection: COUNTRIES.map { |c| [ c, c ] }, blank: "All Countries", label: "Country" },
+      { attribute: :status, collection: statuses.map { |s, v| [ s.humanize, v ] }, blank: "All Statuses", label: "Status" },
+      { attribute: :size, collection: SIZES.map { |s| [ s.humanize, s ] }, blank: "All Sizes", label: "Size" }
+    ]
+  end
+
+  def status_color
+    case status
+    when "active" then :success
+    when "inactive" then :error
+    else :warning
+    end
+  end
 end

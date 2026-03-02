@@ -86,8 +86,7 @@ module Bali
       # mentions, entity references, comments, export, AI, and form integration.
       #
       # Multi-column and AI require XL packages (see docs for licensing).
-      # AI requires the chat server running:
-      #   cd spec/dummy && ANTHROPIC_API_KEY=sk-ant-... node server/ai-chat.mjs
+      # AI requires ANTHROPIC_API_KEY environment variable set on the Rails server.
       #
       # @param placeholder text
       # @param format select { choices: [json, html] }
@@ -112,7 +111,7 @@ module Bali
           comments: comments_config,
           export: true,
           export_filename: 'my-document',
-          ai_url: 'http://localhost:3456/api/ai/chat',
+          ai_url: '/block_editor/ai',
           mentions_url: '/users',
           references_url: '/entity_references',
           references_resolve_url: '/entity_references/resolve',
@@ -166,8 +165,7 @@ module Bali
         )
       end
 
-      # Requires the AI chat server running:
-      #   cd spec/dummy && ANTHROPIC_API_KEY=sk-ant-... node server/ai-chat.mjs
+      # Requires ANTHROPIC_API_KEY environment variable set on the Rails server.
       #
       # Type `/ai` in the editor or select text and click the AI button in the toolbar.
       # @param placeholder text
@@ -175,7 +173,7 @@ module Bali
         render BlockEditor::Component.new(
           editable: true,
           placeholder: placeholder,
-          ai_url: 'http://localhost:3456/api/ai/chat'
+          ai_url: '/block_editor/ai'
         )
       end
 

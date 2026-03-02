@@ -19,7 +19,7 @@ class MoviesController < ApplicationController
     )
 
     # Use Pagy for pagination on the filtered/sorted results
-    @pagy, @movies = pagy(@filter_form.result.includes(:tenant), items: 10)
+    @pagy, @movies = pagy(@filter_form.result.includes(:studio), items: 10)
 
     respond_to do |format|
       format.html
@@ -28,7 +28,7 @@ class MoviesController < ApplicationController
   end
 
   def show
-    @characters = @movie.characters
+    @characters = @movie.characters.positioned
   end
 
   def new
@@ -60,25 +60,6 @@ class MoviesController < ApplicationController
     redirect_to movies_url, notice: 'Movie was successfully deleted.'
   end
 
-  def bulk_action
-    action = params[:bulk_action]
-    movie_ids = params[:movie_ids]
-
-    case action
-    when 'delete'
-      Movie.where(id: movie_ids).destroy_all
-      flash.now[:notice] = "#{movie_ids.size} movie(s) deleted."
-    when 'mark_done'
-      Movie.where(id: movie_ids).update_all(status: :done)
-      flash.now[:notice] = "#{movie_ids.size} movie(s) marked as done."
-    when 'mark_draft'
-      Movie.where(id: movie_ids).update_all(status: :draft)
-      flash.now[:notice] = "#{movie_ids.size} movie(s) marked as draft."
-    end
-
-    redirect_to movies_path
-  end
-
   private
 
   def set_movie
@@ -91,24 +72,6 @@ class MoviesController < ApplicationController
                     synopsis rich_description release_date budget
                     contact_email website_url time_zone rating poster
                   ])
-  end
-
-  # Define filterable attributes for the filters.
-  # Dynamic options (genres, studios) are built at runtime from the database.
-  # For static options, you can use the filter_attribute DSL in a FilterForm subclass.
-  helper_method :available_filter_attributes
-  def available_filter_attributes
-    genres = Movie.distinct.pluck(:genre).compact.sort.map { |g| [ g, g ] }
-    studios = Tenant.order(:name).pluck(:name, :id)
-
-    [
-      { key: :name, label: 'Name', type: :text },
-      { key: :genre, label: 'Genre', type: :select, options: genres },
-      { key: :tenant_id, label: 'Studio', type: :select, options: studios },
-      { key: :status, label: 'Status', type: :select, options: Movie.statuses.map { |k, _v| [ k.humanize, k ] } },
-      { key: :created_at, label: 'Created Date', type: :date },
-      { key: :indie, label: 'Indie Film', type: :boolean }
-    ]
   end
 
   # NOTE: quick_search_value helper has been removed.

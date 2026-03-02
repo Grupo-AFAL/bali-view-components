@@ -37,7 +37,7 @@
         <%= t.with_row do %>
           <td class="font-medium"><%= movie.name %></td>
           <td><span class="badge badge-outline"><%= movie.genre %></span></td>
-          <td class="text-sm text-base-content/70"><%= movie.tenant&.name %></td>
+          <td class="text-sm text-base-content/70"><%= movie.studio&.name %></td>
           <td>
             <span class="badge <%= movie.done? ? 'badge-success' : 'badge-warning' %>">
               <%= movie.status.humanize %>

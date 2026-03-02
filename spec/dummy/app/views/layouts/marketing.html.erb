@@ -32,10 +32,13 @@
         <% menu.with_start_item(name: 'Testimonials', href: '#testimonials') %>
         <% menu.with_start_item(name: 'Pricing', href: '#pricing') %>
 
+        <% menu.with_start_item(name: 'Dashboard', href: root_path) %>
+        <% menu.with_start_item(name: 'Admin', href: admin_root_path) %>
+
         <% menu.with_end_item(tag_name: :div) do %>
           <div class="flex items-center gap-2">
             <%= render Bali::Link::Component.new(name: 'Sign in', href: root_path, variant: :ghost) %>
-            <%= render Bali::Link::Component.new(name: 'Get Started', href: root_path, variant: :primary) %>
+            <%= render Bali::Link::Component.new(name: 'Get Started', href: admin_root_path, variant: :primary) %>
           </div>
         <% end %>
       <% end %>
@@ -53,18 +56,18 @@
       <% footer.with_section(title: 'Product') do |section| %>
         <% section.with_link(name: 'Features', href: '#features') %>
         <% section.with_link(name: 'Pricing', href: '#pricing') %>
-        <% section.with_link(name: 'API', href: '#') %>
+        <% section.with_link(name: 'API', href: landing_path) %>
       <% end %>
 
       <% footer.with_section(title: 'Company') do |section| %>
-        <% section.with_link(name: 'About', href: '#') %>
-        <% section.with_link(name: 'Blog', href: '#') %>
-        <% section.with_link(name: 'Careers', href: '#') %>
+        <% section.with_link(name: 'About', href: landing_path) %>
+        <% section.with_link(name: 'Blog', href: landing_path) %>
+        <% section.with_link(name: 'Careers', href: landing_path) %>
       <% end %>
 
       <% footer.with_section(title: 'Legal') do |section| %>
-        <% section.with_link(name: 'Privacy', href: '#') %>
-        <% section.with_link(name: 'Terms', href: '#') %>
+        <% section.with_link(name: 'Privacy', href: landing_path) %>
+        <% section.with_link(name: 'Terms', href: landing_path) %>
       <% end %>
 
       <% footer.with_bottom do %>

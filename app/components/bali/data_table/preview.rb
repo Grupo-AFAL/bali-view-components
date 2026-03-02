@@ -115,7 +115,7 @@ module Bali
           template: 'bali/data_table/previews/with_sorting',
           locals: {
             filter_form: filter_form,
-            movies: filter_form.result.includes(:tenant).limit(10),
+            movies: filter_form.result.includes(:studio).limit(10),
             filter_attributes: MOVIE_FILTER_ATTRIBUTES
           }
         )
@@ -133,7 +133,7 @@ module Bali
       def with_pagination(q: {}, page: 1)
         filter_params = ActionController::Parameters.new(q: ActionController::Parameters.new(q), page: page)
         filter_form = Bali::FilterForm.new(Movie.all, filter_params)
-        collection = filter_form.result.includes(:tenant)
+        collection = filter_form.result.includes(:studio)
         count = collection.count
         limit = 5
         pagy_obj = Pagy::Offset.new(count: count, page: page.to_i, limit: limit)
@@ -155,7 +155,7 @@ module Bali
       def complete(q: {}, page: 1)
         filter_params = ActionController::Parameters.new(q: ActionController::Parameters.new(q), page: page)
         filter_form = Bali::FilterForm.new(Movie.all, filter_params)
-        collection = filter_form.result.includes(:tenant)
+        collection = filter_form.result.includes(:studio)
         count = collection.count
         limit = 5
         pagy_obj = Pagy::Offset.new(count: count, page: page.to_i, limit: limit)
@@ -253,7 +253,7 @@ module Bali
 
         filter_params = ActionController::Parameters.new(q: ActionController::Parameters.new(q), page: page)
         filter_form = Bali::FilterForm.new(Movie.all, filter_params)
-        collection = filter_form.result.includes(:tenant)
+        collection = filter_form.result.includes(:studio)
         count = collection.count
         limit = 6
         pagy_obj = Pagy::Offset.new(count: count, page: page.to_i, limit: limit)

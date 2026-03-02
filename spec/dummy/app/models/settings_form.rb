@@ -15,6 +15,10 @@ class SettingsForm
   attribute :profile_visible, :boolean, default: true
   attribute :show_activity, :boolean, default: true
 
+  def self.defaults
+    new.attributes.symbolize_keys.freeze
+  end
+
   def model_name
     ActiveModel::Name.new(self.class, nil, 'Settings')
   end

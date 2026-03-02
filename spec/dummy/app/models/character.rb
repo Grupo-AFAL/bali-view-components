@@ -7,5 +7,13 @@ class Character < ApplicationRecord
 
   attribute :birth_month, MonthValue.new
 
-  default_scope { order(:position) }
+  scope :positioned, -> { order(:position) }
+
+  before_create :set_position
+
+  private
+
+  def set_position
+    self.position = movie.characters.maximum(:position).to_i + 1
+  end
 end

@@ -1,5 +1,5 @@
 <div class="h-[700px] bg-base-200 flex gap-4">
-  <%= render Bali::SideMenu::Component.new(current_path: '/dashboard', fixed: true, collapsable: true) do |c|
+  <%= render Bali::SideMenu::Component.new(current_path: '/dashboard', fixed: true, collapsible: true) do |c|
     c.with_list(title: 'Navigation') do |list|
       list.with_item(name: 'Dashboard', href: '/dashboard', icon: 'layout-dashboard')
       list.with_item(name: 'Projects', href: '/projects', icon: 'folder-open')
@@ -16,6 +16,6 @@
   end %>
   <div class="flex-1 p-4">
     <p class="text-base-content/60">A simple collapsible sidebar with navigation items.</p>
-    <p class="text-base-content/60 mt-2">For collapsable sidebars, use <code class="text-primary">fixed: true, collapsable: true</code> in a full-page layout.</p>
+    <p class="text-base-content/60 mt-2">For collapsible sidebars, use <code class="text-primary">fixed: true, collapsible: true</code> in a full-page layout.</p>
   </div>
 </div>

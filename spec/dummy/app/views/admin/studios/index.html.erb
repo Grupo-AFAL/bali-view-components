@@ -1,0 +1,91 @@
+<%= render Bali::IndexPage::Component.new(
+  title: t('studios.title'),
+  breadcrumbs: [
+    { name: t('dashboard.title'), href: admin_root_path, icon_name: 'home' },
+    { name: t('studios.title') }
+  ]
+) do |page| %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(
+      name: t('studios.new_studio'),
+      href: new_admin_studio_path,
+      variant: :primary,
+      icon_name: 'plus',
+      data: { action: 'drawer#open', drawer_size: 'lg' }
+    ) %>
+  <% end %>
+
+  <% page.with_body do %>
+    <div class="space-y-4">
+      <%= render Bali::Card::Component.new do %>
+        <%= render Bali::DataTable::SimpleFilters::Component.new(
+          url: admin_studios_path,
+          filters: @filter_form.simple_filters_config,
+          show_clear: @filter_form.simple_filters_active? || @filter_form.search_value.present?,
+          search: @filter_form.simple_search_config
+        ) %>
+      <% end %>
+
+      <%= render Bali::Card::Component.new do %>
+        <%= render Bali::Table::Component.new(form: @filter_form) do |table| %>
+          <% table.with_header(name: t('studios.columns.name'), sort: :name) %>
+          <% table.with_header(name: t('studios.columns.country'), sort: :country) %>
+          <% table.with_header(name: t('studios.columns.status')) %>
+          <% table.with_header(name: t('studios.columns.size')) %>
+          <% table.with_header(name: t('studios.columns.founded'), sort: :founded_year) %>
+          <% table.with_header(name: t('studios.columns.actions'), align: :right) %>
+
+          <% @studios.each do |studio| %>
+            <% table.with_row do %>
+              <td class="font-medium">
+                <%= render Bali::Link::Component.new(
+                  name: studio.name,
+                  href: admin_studio_path(studio),
+                  variant: :link
+                ) %>
+              </td>
+              <td>
+                <% if studio.country.present? %>
+                  <%= render Bali::Tag::Component.new(text: studio.country, size: :sm, style: :outline) %>
+                <% else %>
+                  <span class="text-base-content/40">&mdash;</span>
+                <% end %>
+              </td>
+              <td>
+                <% if studio.respond_to?(:status) && studio.status.present? %>
+                  <%= render Bali::Tag::Component.new(
+                    text: studio.status.humanize,
+                    color: studio.status_color,
+                    size: :sm
+                  ) %>
+                <% else %>
+                  <span class="text-base-content/40">&mdash;</span>
+                <% end %>
+              </td>
+              <td><%= studio.try(:size)&.humanize || '—' %></td>
+              <td><%= studio.try(:founded_year) || '—' %></td>
+              <td>
+                <div class="flex justify-end">
+                  <%= render Bali::ActionsDropdown::Component.new(popover: true, align: :end) do |dropdown| %>
+                    <% dropdown.with_item(name: t('studios.actions.view'), href: admin_studio_path(studio), icon_name: 'eye') %>
+                    <% dropdown.with_item(name: t('studios.actions.edit'), href: edit_admin_studio_path(studio), icon_name: 'pencil', data: { action: 'drawer#open', drawer_size: 'lg' }) %>
+                    <% dropdown.with_item(
+                      name: t('studios.actions.delete'),
+                      href: admin_studio_path(studio),
+                      icon_name: 'trash',
+                      method: :delete,
+                      data: { turbo_confirm: t('studios.confirm_delete', name: studio.name) },
+                      class: 'text-error'
+                    ) %>
+                  <% end %>
+                </div>
+              </td>
+            <% end %>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <%= render Bali::PaginationFooter::Component.new(pagy: @pagy, item_name: t('sidebar.studios').downcase) %>
+    </div>
+  <% end %>
+<% end %>

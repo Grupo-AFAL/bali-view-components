@@ -1,0 +1,17 @@
+<%= render Bali::IndexPage::Component.new(
+  title: 'Movies',
+  subtitle: '24 movies total',
+  breadcrumbs: [
+    { name: 'Dashboard', href: '/lookbook', icon_name: 'home' },
+    { name: 'Movies' }
+  ]
+) do |page| %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(name: 'New Movie', href: '#', variant: :primary, icon_name: 'plus') %>
+  <% end %>
+  <% page.with_body do %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <p class="text-base-content/60">DataTable would go here.</p>
+    <% end %>
+  <% end %>
+<% end %>

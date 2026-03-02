@@ -1,0 +1,22 @@
+<%= render Bali::SideMenu::Component.new(current_path: request.path, collapsible: true, brand: t('app.name')) do |menu| %>
+  <% menu.with_menu_switch(title: t('app.name'), icon: 'clapperboard', href: admin_root_path) %>
+  <% menu.with_menu_switch(title: t('sidebar.reports'), icon: 'bar-chart-3', href: admin_analytics_path) %>
+
+  <% menu.with_list(title: t('sidebar.main')) do |list| %>
+    <% list.with_item(name: t('navbar.dashboard'), href: admin_root_path, icon: 'layout-dashboard', match: :exact) %>
+    <% list.with_item(name: t('navbar.movies'), href: admin_movies_path, icon: 'film', match: :crud) %>
+    <% list.with_item(name: t('sidebar.studios'), href: admin_studios_path, icon: 'building-2', match: :crud) %>
+  <% end %>
+
+  <% menu.with_list(title: t('sidebar.reports')) do |list| %>
+    <% list.with_item(name: t('sidebar.analytics'), href: admin_analytics_path, icon: 'bar-chart-3') %>
+    <% list.with_item(name: t('sidebar.revenue'), href: admin_revenue_index_path, icon: 'dollar-sign') %>
+  <% end %>
+
+  <% menu.with_bottom_group(name: t('sidebar.configuration'), icon: 'settings') do |group| %>
+    <% group.with_item(name: t('navbar.profile'), href: admin_settings_path, icon: 'circle-user') %>
+    <% group.with_item(name: t('navbar.settings'), href: admin_settings_path, icon: 'settings') %>
+    <% group.with_item(name: t('sidebar.documentation'), href: '/lookbook', icon: 'book-open', target: '_blank') %>
+    <% group.with_item(name: t('sidebar.log_out'), href: root_path, icon: 'log-out') %>
+  <% end %>
+<% end %>

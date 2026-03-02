@@ -8,9 +8,15 @@ class BaliChartComponentTest < ComponentTestCase
   end
 
   def test_rendering_renders_a_chart_title_with_daisyui_card_classes
-    render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }, title: "Chocolate Sales", id: "chocolate-sales"))
+    render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }, title: "Chocolate Sales", id: "chocolate-sales", card_style: :default))
     assert_selector("h3.card-title", text: "Chocolate Sales")
     assert_selector(".card.bg-base-100")
+  end
+
+  def test_rendering_renders_title_without_card_by_default
+    render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }, title: "Chocolate Sales"))
+    assert_selector("h3", text: "Chocolate Sales")
+    assert_no_selector(".card")
   end
 
   def test_rendering_renders_a_div_with_chart_controller
@@ -78,9 +84,10 @@ class BaliChartComponentTest < ComponentTestCase
     assert_selector(".chart-container#my-chart.custom-class")
   end
 
-  def test_card_styles_renders_with_default_card_style
+  def test_card_styles_renders_without_card_by_default
     render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }))
-    assert_selector(".card.bg-base-100.shadow-sm")
+    assert_no_selector(".card")
+    assert_selector(".chart-component")
   end
 
   def test_card_styles_renders_with_bordered_card_style

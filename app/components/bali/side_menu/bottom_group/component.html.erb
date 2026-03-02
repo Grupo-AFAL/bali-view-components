@@ -1,0 +1,27 @@
+<div class="side-menu-bottom-group dropdown dropdown-top dropdown-end w-full">
+  <div tabindex="0" role="button"
+       class="menu-item side-menu-expanded w-full">
+    <% if icon.present? %>
+      <%= render Bali::Icon::Component.new(icon, class: 'size-4') %>
+    <% end %>
+    <span class="grow"><%= name %></span>
+    <%= render Bali::Icon::Component.new('chevron-up', class: 'size-3.5') %>
+  </div>
+  <%# Collapsed state trigger %>
+  <%= render Bali::Tooltip::Component.new(placement: :right, class: 'side-menu-collapsed hidden') do |tooltip| %>
+    <% tooltip.with_trigger do %>
+      <div tabindex="0" role="button" class="menu-item">
+        <% if icon.present? %>
+          <%= render Bali::Icon::Component.new(icon, class: 'size-4') %>
+        <% end %>
+      </div>
+    <% end %>
+    <%= name %>
+  <% end %>
+  <ul tabindex="0"
+      class="dropdown-content menu bg-base-100 rounded-box z-50 mb-2 w-56 p-2 shadow-lg">
+    <% items.each do |item| %>
+      <li><%= item %></li>
+    <% end %>
+  </ul>
+</div>

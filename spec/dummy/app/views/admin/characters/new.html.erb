@@ -1,0 +1,12 @@
+<%# Admin New Character - Modal form for adding a character to a movie %>
+
+<%= render Bali::Card::Component.new(style: :bordered) do %>
+  <h3 class="card-title text-lg mb-4">Add Character</h3>
+  <%= form_with model: [@movie, @character], url: admin_movie_characters_path(@movie), builder: Bali::FormBuilder, class: 'space-y-4' do |f| %>
+    <%= f.text_field_group :name, required: true, placeholder: 'Character name...' %>
+    <div class="flex justify-end gap-2">
+      <%= render Bali::Button::Component.new(name: 'Cancel', variant: :ghost, data: { action: 'modal#close' }) %>
+      <%= render Bali::Button::Component.new(name: 'Add Character', variant: :primary, type: :submit) %>
+    </div>
+  <% end %>
+<% end %>

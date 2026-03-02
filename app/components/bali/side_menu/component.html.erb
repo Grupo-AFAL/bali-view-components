@@ -6,7 +6,7 @@
 <% end %>
 
 <%# Collapse checkbox - controls sidebar collapsed state via CSS %>
-<% if collapsable? %>
+<% if collapsible? %>
   <input type="checkbox" id="<%= collapse_checkbox_id %>"
          class="hidden side-menu-collapse-trigger"
          aria-label="<%= toggle_collapse_label %>" />
@@ -14,12 +14,12 @@
 
 <%= tag.div(**container_options) do %>
   <%# Header with collapse toggle %>
-  <% if collapsable? %>
+  <% if collapsible? %>
     <%# Expanded state header - toggle on the right %>
     <div class="side-menu-expanded flex min-h-10 items-center gap-3 px-2.5 pt-3">
       <% if brand? %>
         <span class="side-menu-brand text-xl font-semibold grow"><%= brand %></span>
-      <% elsif collapsable? %>
+      <% elsif collapsible? %>
         <span class="grow"></span>
       <% end %>
       <label for="<%= collapse_checkbox_id %>"
@@ -39,11 +39,7 @@
     </div>
   <% elsif brand? %>
     <div class="flex min-h-10 items-center gap-3 px-2.5 py-3">
-      <% if brand? %>
-        <span class="side-menu-brand text-xl font-semibold"><%= brand %></span>
-      <% elsif collapsable? %>
-        <span class="grow"></span>
-      <% end %>
+      <span class="side-menu-brand text-xl font-semibold"><%= brand %></span>
     </div>
   <% end %>
 
@@ -77,11 +73,14 @@
     <% end %>
   </div>
 
-  <%# Bottom pinned items %>
-  <% if bottom_items? %>
-    <div class="border-t border-base-200 shrink-0 space-y-0.5 px-2.5 py-2">
+  <%# Bottom pinned items and groups %>
+  <% if bottom_items? || bottom_groups? %>
+    <div class="side-menu-bottom-section border-t border-base-200 shrink-0 space-y-0.5 px-2.5 py-2">
       <% bottom_items.each do |item| %>
         <%= item %>
+      <% end %>
+      <% bottom_groups.each do |group| %>
+        <%= group %>
       <% end %>
     </div>
   <% end %>

@@ -1,0 +1,20 @@
+<%= render Bali::Card::Component.new(style: :bordered, class: 'mt-2') do %>
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h3 class="card-title text-lg"><%= t('movies.show.characters') %></h3>
+      <p class="text-sm text-base-content/60"><%= t('movies.show.drag_to_reorder') %></p>
+    </div>
+    <%= render Bali::Link::Component.new(
+          name: t('movies.show.add_character'),
+          href: new_admin_movie_character_path(movie),
+          variant: :ghost,
+          size: :sm,
+          icon_name: 'plus',
+          modal: true
+        ) %>
+  </div>
+
+  <div id="characters-list">
+    <%= render partial: 'admin/movies/characters_list', locals: { movie: movie, characters: characters } %>
+  </div>
+<% end %>
