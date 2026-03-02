@@ -1,13 +1,18 @@
-<%= render Bali::FormPage::Component.new(
-  title: 'New Studio',
-  breadcrumbs: [
-    { name: 'Dashboard', href: admin_root_path, icon_name: 'home' },
-    { name: 'Studios', href: admin_studios_path },
-    { name: 'New' }
-  ],
-  back: { href: admin_studios_path }
-) do |page| %>
-  <% page.with_body do %>
-    <%= render 'form', studio: @studio %>
+<% if params[:layout] == 'false' %>
+  <h2 class="text-lg font-semibold mb-4">New Studio</h2>
+  <%= render 'form', studio: @studio %>
+<% else %>
+  <%= render Bali::FormPage::Component.new(
+    title: 'New Studio',
+    breadcrumbs: [
+      { name: 'Dashboard', href: admin_root_path, icon_name: 'home' },
+      { name: 'Studios', href: admin_studios_path },
+      { name: 'New' }
+    ],
+    back: { href: admin_studios_path }
+  ) do |page| %>
+    <% page.with_body do %>
+      <%= render 'form', studio: @studio %>
+    <% end %>
   <% end %>
 <% end %>

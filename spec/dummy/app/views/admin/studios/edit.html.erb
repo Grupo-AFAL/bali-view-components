@@ -1,14 +1,19 @@
-<%= render Bali::FormPage::Component.new(
-  title: "Edit #{@studio.name}",
-  breadcrumbs: [
-    { name: 'Dashboard', href: admin_root_path, icon_name: 'home' },
-    { name: 'Studios', href: admin_studios_path },
-    { name: @studio.name, href: admin_studio_path(@studio) },
-    { name: 'Edit' }
-  ],
-  back: { href: admin_studio_path(@studio) }
-) do |page| %>
-  <% page.with_body do %>
-    <%= render 'form', studio: @studio %>
+<% if params[:layout] == 'false' %>
+  <h2 class="text-lg font-semibold mb-4">Edit <%= @studio.name %></h2>
+  <%= render 'form', studio: @studio %>
+<% else %>
+  <%= render Bali::FormPage::Component.new(
+    title: "Edit #{@studio.name}",
+    breadcrumbs: [
+      { name: 'Dashboard', href: admin_root_path, icon_name: 'home' },
+      { name: 'Studios', href: admin_studios_path },
+      { name: @studio.name, href: admin_studio_path(@studio) },
+      { name: 'Edit' }
+    ],
+    back: { href: admin_studio_path(@studio) }
+  ) do |page| %>
+    <% page.with_body do %>
+      <%= render 'form', studio: @studio %>
+    <% end %>
   <% end %>
 <% end %>

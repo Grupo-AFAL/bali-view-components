@@ -10,7 +10,8 @@
       name: 'New Studio',
       href: new_admin_studio_path,
       variant: :primary,
-      icon_name: 'plus'
+      icon_name: 'plus',
+      data: { action: 'drawer#open', drawer_size: 'lg' }
     ) %>
   <% end %>
 
@@ -63,7 +64,7 @@
                 <div class="flex justify-end">
                   <%= render Bali::ActionsDropdown::Component.new(popover: true, align: :end) do |dropdown| %>
                     <% dropdown.with_item(name: 'View', href: admin_studio_path(studio), icon_name: 'eye') %>
-                    <% dropdown.with_item(name: 'Edit', href: edit_admin_studio_path(studio), icon_name: 'pencil') %>
+                    <% dropdown.with_item(name: 'Edit', href: edit_admin_studio_path(studio), icon_name: 'pencil', data: { action: 'drawer#open', drawer_size: 'lg' }) %>
                     <% dropdown.with_item(
                       name: 'Delete',
                       href: admin_studio_path(studio),
