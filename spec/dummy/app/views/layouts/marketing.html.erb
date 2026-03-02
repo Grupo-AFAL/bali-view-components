@@ -53,18 +53,18 @@
       <% footer.with_section(title: 'Product') do |section| %>
         <% section.with_link(name: 'Features', href: '#features') %>
         <% section.with_link(name: 'Pricing', href: '#pricing') %>
-        <% section.with_link(name: 'API', href: '#') %>
+        <% section.with_link(name: 'API', href: landing_path) %>
       <% end %>
 
       <% footer.with_section(title: 'Company') do |section| %>
-        <% section.with_link(name: 'About', href: '#') %>
-        <% section.with_link(name: 'Blog', href: '#') %>
-        <% section.with_link(name: 'Careers', href: '#') %>
+        <% section.with_link(name: 'About', href: landing_path) %>
+        <% section.with_link(name: 'Blog', href: landing_path) %>
+        <% section.with_link(name: 'Careers', href: landing_path) %>
       <% end %>
 
       <% footer.with_section(title: 'Legal') do |section| %>
-        <% section.with_link(name: 'Privacy', href: '#') %>
-        <% section.with_link(name: 'Terms', href: '#') %>
+        <% section.with_link(name: 'Privacy', href: landing_path) %>
+        <% section.with_link(name: 'Terms', href: landing_path) %>
       <% end %>
 
       <% footer.with_bottom do %>

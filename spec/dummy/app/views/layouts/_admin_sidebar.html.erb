@@ -14,9 +14,9 @@
   <% end %>
 
   <% menu.with_bottom_group(name: t('sidebar.configuration'), icon: 'settings') do |group| %>
-    <% group.with_item(name: t('navbar.profile'), href: '#', icon: 'circle-user') %>
+    <% group.with_item(name: t('navbar.profile'), href: admin_settings_path, icon: 'circle-user') %>
     <% group.with_item(name: t('navbar.settings'), href: admin_settings_path, icon: 'settings') %>
     <% group.with_item(name: t('sidebar.documentation'), href: '/lookbook', icon: 'book-open', target: '_blank') %>
-    <% group.with_item(name: t('sidebar.log_out'), href: '#', icon: 'log-out') %>
+    <% group.with_item(name: t('sidebar.log_out'), href: root_path, icon: 'log-out') %>
   <% end %>
 <% end %>
