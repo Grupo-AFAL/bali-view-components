@@ -23,6 +23,7 @@ module Admin
 
     def show
       @characters = @movie.characters
+      @related_movies = Movie.where(genre: @movie.genre).where.not(id: @movie.id).limit(4)
     end
 
     def new
@@ -91,17 +92,19 @@ module Admin
     end
 
     def available_filter_attributes
-      genres = Movie.distinct.pluck(:genre).compact.sort.map { |g| [ g, g ] }
-      studios = Tenant.order(:name).pluck(:name, :id)
+      @available_filter_attributes ||= begin
+        genres = Movie.distinct.pluck(:genre).compact.sort.map { |g| [ g, g ] }
+        studios = Tenant.order(:name).pluck(:name, :id)
 
-      [
-        { key: :name, label: 'Name', type: :text },
-        { key: :genre, label: 'Genre', type: :select, options: genres },
-        { key: :tenant_id, label: 'Studio', type: :select, options: studios },
-        { key: :status, label: 'Status', type: :select, options: Movie.statuses.map { |k, _v| [ k.humanize, k ] } },
-        { key: :created_at, label: 'Created Date', type: :date },
-        { key: :indie, label: 'Indie Film', type: :boolean }
-      ]
+        [
+          { key: :name, label: 'Name', type: :text },
+          { key: :genre, label: 'Genre', type: :select, options: genres },
+          { key: :tenant_id, label: 'Studio', type: :select, options: studios },
+          { key: :status, label: 'Status', type: :select, options: Movie.statuses.map { |k, _v| [ k.humanize, k ] } },
+          { key: :created_at, label: 'Created Date', type: :date },
+          { key: :indie, label: 'Indie Film', type: :boolean }
+        ]
+      end
     end
   end
 end

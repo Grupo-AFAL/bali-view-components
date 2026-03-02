@@ -235,7 +235,7 @@
           </div>
 
           <div id="characters-list">
-            <%= render partial: 'movies/characters_list', locals: { movie: @movie, characters: @characters } %>
+            <%= render partial: 'admin/movies/characters_list', locals: { movie: @movie, characters: @characters } %>
           </div>
         <% end %>
       <% end %>
@@ -301,7 +301,7 @@
     <div class="mt-8">
       <h3 class="text-lg font-semibold mb-4">Related Movies</h3>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <% Movie.where(genre: @movie.genre).where.not(id: @movie.id).limit(4).each do |related| %>
+        <% @related_movies.each do |related| %>
           <%= render Bali::Card::Component.new(style: :bordered, body_class: 'p-4') do %>
             <h4 class="font-medium text-base"><%= related.name %></h4>
             <div class="flex items-center gap-2 mt-2">

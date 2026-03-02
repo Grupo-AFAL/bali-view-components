@@ -11,6 +11,8 @@ class Movie < ApplicationRecord
 
   accepts_nested_attributes_for :characters, allow_destroy: true
 
+  GENRES = %w[Action Adventure Animation Comedy Crime Documentary Drama Fantasy Horror Musical Romance Sci-Fi Thriller Western].freeze
+
   enum :status, { draft: 0, done: 1 }
 
   # Virtual attributes (not persisted)

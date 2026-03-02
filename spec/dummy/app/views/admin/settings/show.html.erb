@@ -73,7 +73,7 @@
         <p class="text-base-content/60 text-sm mb-4"><%= t('settings.notification_desc') %></p>
 
         <%= render Bali::Message::Component.new(color: :info, class: 'mb-4') do %>
-          <%= raw t('settings.notification_tip') %>
+          <%= t('settings.notification_tip') %>
         <% end %>
 
         <%= form_with model: @settings, url: admin_settings_path, method: :patch, builder: Bali::FormBuilder, class: 'space-y-4' do |f| %>
@@ -110,7 +110,7 @@
         <p class="text-base-content/60 text-sm mb-4"><%= t('settings.privacy_desc') %></p>
 
         <%= render Bali::Message::Component.new(color: :warning, class: 'mb-4') do %>
-          <%= raw t('settings.privacy_notice') %>
+          <%= t('settings.privacy_notice') %>
         <% end %>
 
         <%= form_with model: @settings, url: admin_settings_path, method: :patch, builder: Bali::FormBuilder, class: 'space-y-4' do |f| %>
@@ -192,7 +192,7 @@
           <%# Content revealed when clicked %>
           <div class="space-y-4">
             <%= render Bali::Message::Component.new(color: :warning, class: 'mb-4') do %>
-              <%= raw t('settings.advanced_warning') %>
+              <%= t('settings.advanced_warning') %>
             <% end %>
 
             <%= form_with model: @settings, url: admin_settings_path, method: :patch, builder: Bali::FormBuilder, class: 'space-y-4' do |f| %>

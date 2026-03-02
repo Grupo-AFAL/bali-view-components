@@ -3,5 +3,11 @@
 module Admin
   class BaseController < ApplicationController
     layout 'admin'
+
+    private
+
+    def drawer_request?
+      params[:layout] == "false"
+    end
   end
 end

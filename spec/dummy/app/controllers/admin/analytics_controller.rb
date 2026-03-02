@@ -4,9 +4,11 @@ module Admin
   class AnalyticsController < BaseController
     include DemoChartData
 
+    DEMO_TOTAL_VIEWS = 142_857
+
     def index
       @total_movies = Movie.count
-      @total_views = 142_857
+      @total_views = DEMO_TOTAL_VIEWS
       @avg_rating = Movie.where.not(rating: nil).average(:rating)&.round(1) || 0
       @completion_rate = @total_movies.zero? ? 0 : (Movie.done.count * 100.0 / @total_movies).round
 

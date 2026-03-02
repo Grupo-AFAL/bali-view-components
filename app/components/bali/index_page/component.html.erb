@@ -1,25 +1,10 @@
 <div class="index-page-component">
-  <%# Breadcrumbs %>
-  <% if breadcrumbs.any? %>
-    <%= render Bali::Breadcrumb::Component.new do |bc| %>
-      <% breadcrumbs.each do |crumb| %>
-        <% bc.with_item(**crumb) %>
-      <% end %>
-    <% end %>
+  <%= render_breadcrumbs %>
+
+  <%= render Bali::PageHeader::Component.new(title: title, subtitle: subtitle, class: breadcrumb_spacer_class) do |header| %>
+    <%= render_actions_bar %>
   <% end %>
 
-  <%# Page Header %>
-  <%= render Bali::PageHeader::Component.new(title: title, subtitle: subtitle, class: breadcrumbs.any? ? 'mt-4' : nil) do |header| %>
-    <% if actions? %>
-      <div class="flex items-center gap-2">
-        <% actions.each do |action| %>
-          <%= action %>
-        <% end %>
-      </div>
-    <% end %>
-  <% end %>
-
-  <%# Body %>
   <% if body? %>
     <div class="mt-6">
       <%= body %>

@@ -3,17 +3,18 @@
 module Bali
   module IndexPage
     class Component < ApplicationViewComponent
+      include PageComponents::Shared
+
       renders_many :actions
       renders_one :body
 
       # @param title [String] Page title
       # @param subtitle [String] Optional subtitle
       # @param breadcrumbs [Array<Hash>] Array of { name:, href:, icon_name: }
-      def initialize(title:, subtitle: nil, breadcrumbs: [], **options)
+      def initialize(title:, subtitle: nil, breadcrumbs: [])
         @title = title
         @subtitle = subtitle
-        @breadcrumbs = breadcrumbs.map(&:symbolize_keys)
-        @options = options
+        @breadcrumbs = parse_breadcrumbs(breadcrumbs)
       end
 
       private

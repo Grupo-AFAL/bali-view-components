@@ -22,7 +22,7 @@
       <%= f.text_field_group :name, label: t('movies.form.movie_title'), required: true, placeholder: t('movies.form.enter_title') %>
 
       <%# Select Field - Genre %>
-      <% genres = ['Action', 'Adventure', 'Animation', 'Comedy', 'Drama', 'Horror', 'Sci-Fi', 'Thriller'].map { |g| [g, g] } %>
+      <% genres = Movie::GENRES.map { |g| [g, g] } %>
       <%= f.select_group :genre, genres, { include_blank: t('movies.form.select_genre') }, { label: t('movies.form.genre') } %>
 
       <%# Select Field - Studio %>
@@ -86,7 +86,7 @@
     </h3>
 
     <%= render Bali::Message::Component.new(color: :info, class: 'mb-4') do %>
-      <%= raw t('movies.form.direct_upload_info') %>
+      <%= t('movies.form.direct_upload_info') %>
     <% end %>
 
     <%# DirectUpload Component Demo %>
@@ -118,7 +118,7 @@
     <%# Info Message %>
     <div class="mt-4">
       <%= render Bali::Message::Component.new(color: :info) do %>
-        <%= raw t('movies.form.required_fields_note') %>
+        <%= t('movies.form.required_fields_note') %>
       <% end %>
     </div>
   <% end %>

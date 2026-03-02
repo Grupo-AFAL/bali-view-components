@@ -3,7 +3,12 @@
 module Bali
   module DashboardPage
     class Component < ApplicationViewComponent
+      include PageComponents::Shared
+
       renders_many :actions
+      renders_many :stats, ->(label:, value:, icon: nil, change: nil, color: :primary) do
+        Stat.new(label: label, value: value, icon: icon, change: change, color: color)
+      end
       renders_one :body
 
       Stat = Struct.new(:label, :value, :icon, :change, :color, keyword_init: true)
@@ -18,34 +23,20 @@ module Bali
         info: "text-info"
       }.freeze
 
-      def initialize(title:, subtitle: nil, breadcrumbs: [], stats_columns: 4, **options)
+      def initialize(title:, subtitle: nil, breadcrumbs: [], stats_columns: 4)
         @title = title
         @subtitle = subtitle
-        @breadcrumbs = breadcrumbs.map(&:symbolize_keys)
+        @breadcrumbs = parse_breadcrumbs(breadcrumbs)
         @stats_columns = stats_columns
-        @options = options
-        @stats = []
-      end
-
-      def with_stat(label:, value:, icon: nil, change: nil, color: :primary)
-        @stats << Stat.new(label: label, value: value, icon: icon, change: change, color: color)
-      end
-
-      def stats_grid_classes
-        cols = { 2 => "sm:grid-cols-2", 3 => "sm:grid-cols-3", 4 => "sm:grid-cols-2 lg:grid-cols-4" }
-        "grid grid-cols-1 #{cols[@stats_columns] || cols[4]} gap-4"
       end
 
       private
 
       attr_reader :title, :subtitle, :breadcrumbs
 
-      def stats
-        @stats
-      end
-
-      def stats?
-        @stats.any?
+      def stats_grid_classes
+        cols = { 2 => "sm:grid-cols-2", 3 => "sm:grid-cols-3", 4 => "sm:grid-cols-2 lg:grid-cols-4" }
+        "grid grid-cols-1 #{cols[@stats_columns] || cols[4]} gap-4"
       end
 
       def stat_icon_color(color)

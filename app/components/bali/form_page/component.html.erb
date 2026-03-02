@@ -1,46 +1,25 @@
 <div class="form-page-component mx-auto <%= max_width %>">
-  <%# Breadcrumbs %>
-  <% if breadcrumbs.any? %>
-    <%= render Bali::Breadcrumb::Component.new do |bc| %>
-      <% breadcrumbs.each do |crumb| %>
-        <% bc.with_item(**crumb) %>
-      <% end %>
-    <% end %>
-  <% end %>
+  <%= render_breadcrumbs %>
 
-  <%# Page Header %>
   <%= render Bali::PageHeader::Component.new(
     title: title,
     subtitle: subtitle,
     back: back,
-    class: breadcrumbs.any? ? 'mt-4' : nil
+    class: breadcrumb_spacer_class
   ) %>
 
-  <%# Form content %>
   <div class="mt-6">
     <% if sidebar? %>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2">
-          <% if card? %>
-            <%= render Bali::Card::Component.new(style: :bordered) do %>
-              <%= body %>
-            <% end %>
-          <% else %>
-            <%= body %>
-          <% end %>
+          <%= render_body_content %>
         </div>
         <div class="space-y-6">
           <%= sidebar %>
         </div>
       </div>
     <% else %>
-      <% if card? %>
-        <%= render Bali::Card::Component.new(style: :bordered) do %>
-          <%= body %>
-        <% end %>
-      <% else %>
-        <%= body %>
-      <% end %>
+      <%= render_body_content %>
     <% end %>
   </div>
 </div>

@@ -3,24 +3,19 @@
 module Admin
   class SettingsController < BaseController
     def show
-      @settings = SettingsForm.new(
-        dark_mode: session[:dark_mode] || false,
-        language: session[:language] || 'en',
-        timezone: session[:timezone] || 'UTC',
-        email_notifications: session[:email_notifications].nil? || session[:email_notifications],
-        push_notifications: session[:push_notifications] || false,
-        notification_frequency: session[:notification_frequency] || 'daily',
-        profile_visible: session[:profile_visible].nil? || session[:profile_visible],
-        show_activity: session[:show_activity].nil? || session[:show_activity]
-      )
+      @settings = SettingsForm.new(stored_settings)
     end
 
     def update
-      settings_params.each { |key, value| session[key] = value }
+      session[:settings] = stored_settings.merge(settings_params.to_h.symbolize_keys)
       redirect_to admin_settings_path, notice: 'Settings saved successfully!'
     end
 
     private
+
+    def stored_settings
+      (session[:settings] || {}).symbolize_keys.reverse_merge(SettingsForm.defaults)
+    end
 
     def settings_params
       params.permit(

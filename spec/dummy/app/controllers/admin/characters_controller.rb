@@ -12,7 +12,6 @@ module Admin
 
     def create
       @character = @movie.characters.build(character_params)
-      @character.position = @movie.characters.maximum(:position).to_i + 1
 
       if @character.save
         respond_to do |format|
@@ -36,8 +35,10 @@ module Admin
     end
 
     def sort
-      params[:character].each_with_index do |id, index|
-        @movie.characters.find(id).update(position: index)
+      ActiveRecord::Base.transaction do
+        params[:character].each_with_index do |id, index|
+          @movie.characters.where(id: id).update_all(position: index)
+        end
       end
       head :ok
     end

@@ -53,10 +53,6 @@ module Admin
       @studio = Studio.find(params[:id])
     end
 
-    def drawer_request?
-      params[:layout] == "false"
-    end
-
     def studio_params
       params.expect(studio: %i[name country status size founded_year])
     end

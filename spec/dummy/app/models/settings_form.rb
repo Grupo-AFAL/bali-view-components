@@ -15,6 +15,19 @@ class SettingsForm
   attribute :profile_visible, :boolean, default: true
   attribute :show_activity, :boolean, default: true
 
+  def self.defaults
+    {
+      dark_mode: false,
+      language: 'en',
+      timezone: 'UTC',
+      email_notifications: true,
+      push_notifications: false,
+      notification_frequency: 'daily',
+      profile_visible: true,
+      show_activity: true
+    }.freeze
+  end
+
   def model_name
     ActiveModel::Name.new(self.class, nil, 'Settings')
   end

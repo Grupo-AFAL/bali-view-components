@@ -3,6 +3,8 @@
 module Bali
   module ShowPage
     class Component < ApplicationViewComponent
+      include PageComponents::Shared
+
       renders_many :title_tags
       renders_many :actions
       renders_one :body
@@ -12,12 +14,11 @@ module Bali
       # @param subtitle [String] Optional subtitle
       # @param breadcrumbs [Array<Hash>] Array of { name:, href:, icon_name: }
       # @param back [Hash] Back button { href: }
-      def initialize(title:, subtitle: nil, breadcrumbs: [], back: nil, **options)
+      def initialize(title:, subtitle: nil, breadcrumbs: [], back: nil)
         @title = title
         @subtitle = subtitle
-        @breadcrumbs = breadcrumbs.map(&:symbolize_keys)
+        @breadcrumbs = parse_breadcrumbs(breadcrumbs)
         @back = back
-        @options = options
       end
 
       private
