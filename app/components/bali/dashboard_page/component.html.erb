@@ -9,9 +9,9 @@
     <%= render_actions_bar %>
   <% end %>
 
-  <% if stats? %>
+  <% if stat_items.any? %>
     <div class="<%= stats_grid_classes %> mb-6">
-      <% stats.each do |stat| %>
+      <% stat_items.each do |stat| %>
         <%= render Bali::Card::Component.new(style: :bordered, body_class: 'p-4') do %>
           <div class="flex items-center justify-between">
             <div>

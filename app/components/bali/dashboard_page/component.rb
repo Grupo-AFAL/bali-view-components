@@ -8,9 +8,6 @@ module Bali
       include PageComponents::Shared
 
       renders_many :actions
-      renders_many :stats, ->(label:, value:, icon: nil, change: nil, color: :primary) do
-        Stat.new(label: label, value: value, icon: icon, change: change, color: color)
-      end
       renders_one :body
 
       STAT_ICON_COLORS = {
@@ -28,11 +25,16 @@ module Bali
         @subtitle = subtitle
         @breadcrumbs = breadcrumbs.map(&:symbolize_keys)
         @stats_columns = stats_columns
+        @stat_items = []
+      end
+
+      def with_stat(label:, value:, icon: nil, change: nil, color: :primary)
+        @stat_items << Stat.new(label: label, value: value, icon: icon, change: change, color: color)
       end
 
       private
 
-      attr_reader :title, :subtitle, :breadcrumbs
+      attr_reader :title, :subtitle, :breadcrumbs, :stat_items
 
       def stats_grid_classes
         cols = { 2 => "sm:grid-cols-2", 3 => "sm:grid-cols-3", 4 => "sm:grid-cols-2 lg:grid-cols-4" }
