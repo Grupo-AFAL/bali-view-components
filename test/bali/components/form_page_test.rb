@@ -48,4 +48,23 @@ class BaliFormPageComponentTest < ComponentTestCase
     assert_text("Form content")
     assert_text("Sidebar help")
   end
+
+  def test_card_false_renders_body_without_card
+    render_inline(Bali::FormPage::Component.new(title: "New Movie", card: false)) do |page|
+      page.with_body { "Form content" }
+    end
+    assert_no_selector(".card")
+    assert_text("Form content")
+  end
+
+  def test_card_false_with_sidebar
+    render_inline(Bali::FormPage::Component.new(title: "New Movie", card: false)) do |page|
+      page.with_body { "Form content" }
+      page.with_sidebar { "Sidebar help" }
+    end
+    assert_selector(".grid")
+    assert_no_selector(".grid .card")
+    assert_text("Form content")
+    assert_text("Sidebar help")
+  end
 end

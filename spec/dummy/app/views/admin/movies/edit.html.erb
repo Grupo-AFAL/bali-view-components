@@ -10,7 +10,8 @@
     { name: t('common.edit') }
   ],
   back: { href: admin_movie_path(@movie) },
-  max_width: 'max-w-5xl'
+  max_width: 'max-w-5xl',
+  card: false
 ) do |page| %>
   <% page.with_body do %>
     <%= render 'form', movie: @movie %>
