@@ -1,59 +1,52 @@
-<div class="<%= container_classes %>" <%= tag.attributes(container_data_attributes) %>>
-  <%# Banner (impersonation, maintenance, beta) %>
+<body class="<%= container_classes %>" <%= tag.attributes(container_data_attributes) %>>
+  <%# 1. Banner (impersonation, maintenance, beta) %>
   <% if banner? %>
     <div class="app-layout-banner"><%= banner %></div>
   <% end %>
 
-  <%# Navbar (full-width) %>
+  <%# 2. Navbar (full-width) %>
   <% if navbar? %>
     <div class="app-layout-navbar"><%= navbar %></div>
   <% end %>
 
-  <%# Sidebar %>
-  <% if sidebar? %>
-    <%= sidebar %>
-  <% end %>
+  <%# 3. Main area: sidebar + content %>
+  <div class="app-layout-main flex flex-1 min-h-0">
+    <% if sidebar? %><%= sidebar %><% end %>
 
-  <%# Main content area %>
-  <div class="app-layout-content flex-1 min-w-0 flex flex-col min-h-screen bg-base-200">
-    <%# Optional topbar %>
-    <% if topbar? %>
-      <div class="app-layout-topbar">
-        <%= topbar %>
-      </div>
-    <% end %>
-
-    <%# Toast notifications - above body, outside scroll context %>
-    <% if render_toast? %>
-      <div id="toast-notifications">
-        <%= render Bali::FlashNotifications::Component.new(
-          notice: flash_notice,
-          alert: flash_alert
-        ) %>
-      </div>
-    <% end %>
-
-    <%# Body with optional Stimulus controllers for modal/drawer %>
-    <main class="flex-1 p-6"<% if main_controller.present? %> data-controller="<%= main_controller %>"<% end %>>
-      <%= body? ? body : content %>
-
-      <%# Modal shell - loaded on demand via Turbo Frame %>
-      <% if render_modal? %>
-        <%= render Bali::Modal::Component.new(id: "main-modal", active: false, size: @modal[:size]) do %>
-          <%= render Bali::Skeleton::Component.new(variant: :modal) %>
-        <% end %>
+    <div class="app-layout-content flex-1 min-w-0 flex flex-col">
+      <% if topbar? %>
+        <div class="app-layout-topbar"><%= topbar %></div>
       <% end %>
 
-      <%# Drawer shell - loaded on demand via Turbo Frame %>
-      <% if render_drawer? %>
-        <%= render Bali::Drawer::Component.new(
-          drawer_id: "main-drawer",
-          size: @drawer[:size],
-          active: false
-        ) do %>
-          <%= render Bali::Skeleton::Component.new(variant: :list, lines: 5) %>
+      <main class="flex-1 p-6"<% if main_controller.present? %> data-controller="<%= main_controller %>"<% end %>>
+        <%= body? ? body : content %>
+
+        <% if render_modal? %>
+          <%= render Bali::Modal::Component.new(id: "main-modal", active: false, size: @modal[:size]) do %>
+            <%= render Bali::Skeleton::Component.new(variant: :modal) %>
+          <% end %>
         <% end %>
-      <% end %>
-    </main>
+
+        <% if render_drawer? %>
+          <%= render Bali::Drawer::Component.new(
+            drawer_id: "main-drawer",
+            size: @drawer[:size],
+            active: false
+          ) do %>
+            <%= render Bali::Skeleton::Component.new(variant: :list, lines: 5) %>
+          <% end %>
+        <% end %>
+      </main>
+    </div>
   </div>
-</div>
+
+  <%# 4. Toast notifications (fixed bottom-right, stacking upward) %>
+  <% if render_toast? %>
+    <div id="toast-notifications" class="fixed bottom-4 right-4 z-50 flex flex-col-reverse gap-2">
+      <%= render Bali::FlashNotifications::Component.new(
+        notice: flash_notice,
+        alert: flash_alert
+      ) %>
+    </div>
+  <% end %>
+</body>

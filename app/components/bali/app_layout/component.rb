@@ -22,10 +22,11 @@ module Bali
       def container_classes
         class_names(
           "app-layout",
-          "flex",
+          "flex flex-col",
           "min-h-screen",
-          { "app-layout--has-fixed-sidebar" => @fixed_sidebar },
+          { "app-layout--has-fixed-sidebar" => @fixed_sidebar && sidebar? },
           { "app-layout--has-navbar" => navbar? },
+          { "app-layout--has-sidebar" => sidebar? },
           @body_class,
           @options[:class]
         )

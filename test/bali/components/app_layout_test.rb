@@ -56,11 +56,19 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_selector(".app-layout.custom-class")
   end
 
-  def test_applies_fixed_sidebar_class
+  def test_applies_fixed_sidebar_class_when_sidebar_present
     render_inline(Bali::AppLayout::Component.new(fixed_sidebar: true)) do |layout|
+      layout.with_sidebar { "Sidebar" }
       layout.with_body { "Content" }
     end
     assert_selector(".app-layout.app-layout--has-fixed-sidebar")
+  end
+
+  def test_does_not_apply_fixed_sidebar_class_without_sidebar
+    render_inline(Bali::AppLayout::Component.new(fixed_sidebar: true)) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector(".app-layout--has-fixed-sidebar")
   end
 
   def test_does_not_apply_fixed_sidebar_class_by_default
@@ -143,6 +151,29 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_no_selector("main[data-controller]")
   end
 
+  def test_renders_navbar_when_provided
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_navbar { "Navigation bar" }
+      layout.with_body { "Content" }
+    end
+    assert_selector(".app-layout-navbar", text: "Navigation bar")
+  end
+
+  def test_does_not_render_navbar_when_not_provided
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector(".app-layout-navbar")
+  end
+
+  def test_applies_has_navbar_class_when_navbar_provided
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_navbar { "Nav" }
+      layout.with_body { "Content" }
+    end
+    assert_selector(".app-layout--has-navbar")
+  end
+
   def test_renders_banner_when_provided
     render_inline(Bali::AppLayout::Component.new) do |layout|
       layout.with_banner { "You are impersonating John" }
@@ -183,5 +214,65 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     # theme-switcher should be on the container, modal/drawer on main
     assert_selector(".app-layout[data-controller='theme-switcher']")
     assert_selector("main[data-controller='modal drawer']")
+  end
+
+  def test_renders_body_tag_as_root
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector("body.app-layout")
+  end
+
+  def test_renders_full_layout_with_all_slots
+    render_inline(Bali::AppLayout::Component.new(flash: { notice: "OK" })) do |layout|
+      layout.with_banner { "Impersonating" }
+      layout.with_navbar { "Nav" }
+      layout.with_sidebar { "Sidebar" }
+      layout.with_topbar { "Breadcrumbs" }
+      layout.with_body { "Main content" }
+    end
+    assert_selector("body.app-layout")
+    assert_selector(".app-layout-banner", text: "Impersonating")
+    assert_selector(".app-layout-navbar", text: "Nav")
+    assert_selector(".app-layout-main", text: "Sidebar")
+    assert_selector(".app-layout-topbar", text: "Breadcrumbs")
+    assert_text("Main content")
+    assert_selector("#toast-notifications")
+  end
+
+  def test_applies_has_sidebar_class_when_sidebar_present
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_sidebar { "Sidebar" }
+      layout.with_body { "Content" }
+    end
+    assert_selector(".app-layout--has-sidebar")
+  end
+
+  def test_does_not_apply_has_sidebar_class_without_sidebar
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector(".app-layout--has-sidebar")
+  end
+
+  def test_toast_notifications_are_fixed_bottom_right
+    render_inline(Bali::AppLayout::Component.new(flash: { notice: "Saved!" })) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector("#toast-notifications.fixed.bottom-4.right-4.z-50")
+  end
+
+  def test_uses_flex_col_direction
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector("body.app-layout.flex.flex-col")
+  end
+
+  def test_main_area_wrapper_exists
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector(".app-layout-main.flex.flex-1")
   end
 end
