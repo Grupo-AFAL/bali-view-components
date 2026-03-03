@@ -1,4 +1,14 @@
 <div class="<%= container_classes %>">
+  <%# Banner (impersonation, maintenance, beta) %>
+  <% if banner? %>
+    <div class="app-layout-banner"><%= banner %></div>
+  <% end %>
+
+  <%# Navbar (full-width) %>
+  <% if navbar? %>
+    <div class="app-layout-navbar"><%= navbar %></div>
+  <% end %>
+
   <%# Sidebar %>
   <% if sidebar? %>
     <%= sidebar %>

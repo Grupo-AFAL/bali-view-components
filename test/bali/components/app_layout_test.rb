@@ -142,4 +142,19 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     end
     assert_no_selector("main[data-controller]")
   end
+
+  def test_renders_banner_when_provided
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_banner { "You are impersonating John" }
+      layout.with_body { "Content" }
+    end
+    assert_selector(".app-layout-banner", text: "You are impersonating John")
+  end
+
+  def test_does_not_render_banner_when_not_provided
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector(".app-layout-banner")
+  end
 end

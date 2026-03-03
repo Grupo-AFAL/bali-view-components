@@ -3,6 +3,8 @@
 module Bali
   module AppLayout
     class Component < ApplicationViewComponent
+      renders_one :banner
+      renders_one :navbar
       renders_one :sidebar
       renders_one :topbar
       renders_one :body
@@ -21,6 +23,7 @@ module Bali
           "flex",
           "min-h-screen",
           { "app-layout--has-fixed-sidebar" => @fixed_sidebar },
+          { "app-layout--has-navbar" => navbar? },
           @options[:class]
         )
       end
