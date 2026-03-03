@@ -1,0 +1,33 @@
+<%# transform creates a containing block that traps position:fixed elements inside the preview pane %>
+<div style="transform: translateZ(0); position: relative; height: 100vh; overflow: hidden;">
+<%= render Bali::AppLayout::Component.new(
+  flash: flash_notice.present? ? { notice: flash_notice } : nil,
+  modal: false,
+  drawer: false,
+  body_class: "bg-base-200"
+) do |layout|
+  layout.with_body do %>
+    <div class="flex items-center justify-center min-h-[80vh]">
+      <%= render Bali::Card::Component.new(style: :bordered, body_class: "p-8") do %>
+        <div class="w-80">
+          <h2 class="text-2xl font-bold text-center mb-6">Sign In</h2>
+          <div class="space-y-4">
+            <div class="form-control">
+              <label class="label"><span class="label-text">Email</span></label>
+              <input type="email" placeholder="you@example.com" class="input input-bordered w-full" />
+            </div>
+            <div class="form-control">
+              <label class="label"><span class="label-text">Password</span></label>
+              <input type="password" placeholder="••••••••" class="input input-bordered w-full" />
+            </div>
+            <%= render Bali::Button::Component.new(name: "Sign In", variant: :primary, class: "w-full") %>
+            <p class="text-center text-sm text-base-content/60">
+              Don't have an account? <%= render Bali::Link::Component.new(name: "Sign up", href: "/lookbook") %>
+            </p>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end
+end %>
+</div>
