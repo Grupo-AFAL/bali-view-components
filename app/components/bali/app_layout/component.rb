@@ -61,6 +61,7 @@ module Bali
         case value
         when true then {}
         when Hash then value
+        when false then false
         end
       end
 

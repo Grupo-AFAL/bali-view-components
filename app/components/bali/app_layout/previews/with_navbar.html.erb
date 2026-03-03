@@ -6,8 +6,8 @@
   modal: modal,
   drawer: drawer
 ) do |layout|
-  layout.with_banner do %>
-    <% if show_banner %>
+  if show_banner
+    layout.with_banner do %>
       <div class="bg-warning text-warning-content px-4 py-2 text-sm flex items-center justify-between">
         <div class="flex items-center gap-2">
           <%= render Bali::Icon::Component.new("eye", class: "size-4") %>
@@ -15,8 +15,8 @@
         </div>
         <%= render Bali::Button::Component.new(name: "Stop Impersonating", variant: :ghost, size: :sm) %>
       </div>
-    <% end %>
-  <% end
+    <% end
+  end
 
   layout.with_navbar do %>
     <%= render Bali::Navbar::Component.new(sticky: false, color: :base) do |nav|
