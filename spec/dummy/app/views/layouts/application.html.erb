@@ -22,10 +22,10 @@
     </main>
 
     <%# Modal/drawer templates with skeleton loading state - content replaces skeleton via fetch %>
-    <%= render Bali::Modal::Component.new(active: false, id: 'modal-template') do %>
+    <%= render Bali::Modal::Component.new(active: false, id: 'main-modal') do %>
       <%= render Bali::Skeleton::Component.new(variant: :modal) %>
     <% end %>
-    <%= render Bali::Drawer::Component.new(active: false, drawer_id: 'drawer-template') do %>
+    <%= render Bali::Drawer::Component.new(active: false, drawer_id: 'main-drawer') do %>
       <%= render Bali::Skeleton::Component.new(variant: :list, lines: 4) %>
     <% end %>
   </body>
