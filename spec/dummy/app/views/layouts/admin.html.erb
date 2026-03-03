@@ -10,27 +10,14 @@
     <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
   </head>
   <body class="min-h-screen">
-    <%= render Bali::AppLayout::Component.new(fixed_sidebar: true) do |layout| %>
+    <%= render Bali::AppLayout::Component.new(fixed_sidebar: true, flash: flash, modal: true, drawer: true) do |layout| %>
       <% layout.with_sidebar do %>
         <%= render 'layouts/admin_sidebar' %>
       <% end %>
 
       <% layout.with_body do %>
-        <%= render Bali::FlashNotifications::Component.new(
-          notice: flash[:notice],
-          alert: flash[:alert]
-        ) %>
-
         <%= yield %>
       <% end %>
-    <% end %>
-
-    <%# Modal/drawer templates %>
-    <%= render Bali::Modal::Component.new(active: false, id: 'modal-template') do %>
-      <%= render Bali::Skeleton::Component.new(variant: :modal) %>
-    <% end %>
-    <%= render Bali::Drawer::Component.new(active: false, drawer_id: 'drawer-template') do %>
-      <%= render Bali::Skeleton::Component.new(variant: :list, lines: 4) %>
     <% end %>
   </body>
 </html>
