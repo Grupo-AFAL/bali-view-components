@@ -9,24 +9,21 @@
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
   </head>
-  <body class="min-h-screen bg-base-200" data-controller="modal drawer theme-switcher">
-    <%= render 'layouts/navbar' %>
-
-    <main class="container mx-auto px-4 py-6 max-w-7xl">
-      <%= render Bali::FlashNotifications::Component.new(
-        notice: flash[:notice],
-        alert: flash[:alert]
-      ) %>
-
-      <%= yield %>
-    </main>
-
-    <%# Modal/drawer templates with skeleton loading state - content replaces skeleton via fetch %>
-    <%= render Bali::Modal::Component.new(active: false, id: 'main-modal') do %>
-      <%= render Bali::Skeleton::Component.new(variant: :modal) %>
+  <%= render Bali::AppLayout::Component.new(
+    flash: flash,
+    modal: true,
+    drawer: true,
+    body_class: "bg-base-200",
+    data: { controller: "theme-switcher" }
+  ) do |layout| %>
+    <% layout.with_navbar do %>
+      <%= render 'layouts/navbar' %>
     <% end %>
-    <%= render Bali::Drawer::Component.new(active: false, drawer_id: 'main-drawer') do %>
-      <%= render Bali::Skeleton::Component.new(variant: :list, lines: 4) %>
+
+    <% layout.with_body do %>
+      <div class="container mx-auto max-w-7xl">
+        <%= yield %>
+      </div>
     <% end %>
-  </body>
+  <% end %>
 </html>
