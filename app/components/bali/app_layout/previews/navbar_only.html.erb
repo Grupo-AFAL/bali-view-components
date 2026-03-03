@@ -7,21 +7,21 @@
   body_class: "bg-base-200"
 ) do |layout|
   layout.with_navbar do %>
-    <%= render Bali::NavBar::Component.new(sticky: false, color: :base) do |nav|
+    <%= render Bali::Navbar::Component.new(sticky: false, color: :base) do |nav|
       nav.with_brand do %>
         <span class="text-lg font-bold">MovieDB</span>
       <% end
-      nav.with_menus do |menus|
-        menus.with_start do %>
+
+      nav.with_menu do |menu|
+        menu.with_start_item(name: 'Home', href: '/lookbook')
+        menu.with_start_item(name: 'Features', href: '/lookbook')
+        menu.with_start_item(name: 'Pricing', href: '/lookbook')
+
+        menu.with_end_item(tag_name: :div) do %>
           <div class="flex gap-2">
-            <%= render Bali::Link::Component.new(name: "Home", href: "/lookbook") %>
-            <%= render Bali::Link::Component.new(name: "Features", href: "/lookbook") %>
-            <%= render Bali::Link::Component.new(name: "Pricing", href: "/lookbook") %>
+            <%= render Bali::Button::Component.new(name: "Sign In", variant: :ghost, size: :sm) %>
+            <%= render Bali::Button::Component.new(name: "Get Started", variant: :primary, size: :sm) %>
           </div>
-        <% end
-        menus.with_end do %>
-          <%= render Bali::Button::Component.new(name: "Sign In", variant: :ghost, size: :sm) %>
-          <%= render Bali::Button::Component.new(name: "Get Started", variant: :primary, size: :sm) %>
         <% end
       end
     end %>
@@ -29,18 +29,14 @@
 
   layout.with_body do %>
     <div class="container mx-auto max-w-7xl">
-      <%= render Bali::Hero::Component.new do |hero|
-        hero.with_body do %>
-          <div class="text-center py-20">
-            <h1 class="text-5xl font-bold mb-4">Welcome to MovieDB</h1>
-            <p class="text-xl text-base-content/70 mb-8">Your complete movie database management platform</p>
-            <div class="flex gap-4 justify-center">
-              <%= render Bali::Button::Component.new(name: "Get Started", variant: :primary, size: :lg) %>
-              <%= render Bali::Button::Component.new(name: "Learn More", variant: :ghost, size: :lg) %>
-            </div>
-          </div>
-        <% end
-      end %>
+      <div class="text-center py-20">
+        <h1 class="text-5xl font-bold mb-4">Welcome to MovieDB</h1>
+        <p class="text-xl text-base-content/70 mb-8">Your complete movie database management platform</p>
+        <div class="flex gap-4 justify-center">
+          <%= render Bali::Button::Component.new(name: "Get Started", variant: :primary, size: :lg) %>
+          <%= render Bali::Button::Component.new(name: "Learn More", variant: :ghost, size: :lg) %>
+        </div>
+      </div>
     </div>
   <% end
 end %>

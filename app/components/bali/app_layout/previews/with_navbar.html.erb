@@ -19,19 +19,20 @@
   <% end
 
   layout.with_navbar do %>
-    <%= render Bali::NavBar::Component.new(sticky: false, color: :base) do |nav|
+    <%= render Bali::Navbar::Component.new(sticky: false, color: :base) do |nav|
       nav.with_brand do %>
         <span class="text-lg font-bold">MovieDB</span>
       <% end
-      nav.with_menus do |menus|
-        menus.with_start do %>
-          <div class="flex gap-2">
-            <%= render Bali::Link::Component.new(name: "Dashboard", href: "/lookbook") %>
-            <%= render Bali::Link::Component.new(name: "Movies", href: "/lookbook") %>
-          </div>
-        <% end
-        menus.with_end do %>
-          <%= render Bali::Avatar::Component.new(name: "Ana García", size: :sm) %>
+
+      nav.with_menu do |menu|
+        menu.with_start_item(name: 'Dashboard', href: '/lookbook')
+        menu.with_start_item(name: 'Movies', href: '/lookbook')
+        menu.with_start_item(name: 'Studios', href: '/lookbook')
+
+        menu.with_end_item(tag_name: :div) do %>
+          <%= render Bali::Avatar::Component.new(size: :xs) do |avatar|
+            avatar.with_placeholder { 'AG' }
+          end %>
         <% end
       end
     end %>
