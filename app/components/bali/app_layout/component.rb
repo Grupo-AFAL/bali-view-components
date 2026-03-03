@@ -9,11 +9,13 @@ module Bali
       renders_one :topbar
       renders_one :body
 
-      def initialize(fixed_sidebar: false, flash: nil, modal: true, drawer: true, **options)
+      def initialize(fixed_sidebar: false, flash: nil, modal: true, drawer: true, body_class: nil, data: {}, **options)
         @fixed_sidebar = fixed_sidebar
         @flash = flash
         @modal = normalize_shell_option(modal)
         @drawer = normalize_shell_option(drawer)
+        @body_class = body_class
+        @data = data
         @options = options
       end
 
@@ -24,8 +26,13 @@ module Bali
           "min-h-screen",
           { "app-layout--has-fixed-sidebar" => @fixed_sidebar },
           { "app-layout--has-navbar" => navbar? },
+          @body_class,
           @options[:class]
         )
+      end
+
+      def container_data_attributes
+        @data.present? ? { data: @data } : {}
       end
 
       def render_toast?

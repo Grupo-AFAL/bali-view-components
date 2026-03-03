@@ -157,4 +157,31 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     end
     assert_no_selector(".app-layout-banner")
   end
+
+  def test_applies_body_class_param
+    render_inline(Bali::AppLayout::Component.new(body_class: "bg-base-200")) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector(".app-layout.bg-base-200")
+  end
+
+  def test_applies_data_attributes
+    render_inline(Bali::AppLayout::Component.new(data: { controller: "theme-switcher" })) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector(".app-layout[data-controller*='theme-switcher']")
+  end
+
+  def test_merges_data_controller_with_modal_drawer
+    render_inline(Bali::AppLayout::Component.new(
+      modal: true,
+      drawer: true,
+      data: { controller: "theme-switcher" }
+    )) do |layout|
+      layout.with_body { "Content" }
+    end
+    # theme-switcher should be on the container, modal/drawer on main
+    assert_selector(".app-layout[data-controller='theme-switcher']")
+    assert_selector("main[data-controller='modal drawer']")
+  end
 end

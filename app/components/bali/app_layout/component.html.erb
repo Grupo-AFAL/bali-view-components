@@ -1,4 +1,4 @@
-<div class="<%= container_classes %>">
+<div class="<%= container_classes %>" <%= tag.attributes(container_data_attributes) %>>
   <%# Banner (impersonation, maintenance, beta) %>
   <% if banner? %>
     <div class="app-layout-banner"><%= banner %></div>
