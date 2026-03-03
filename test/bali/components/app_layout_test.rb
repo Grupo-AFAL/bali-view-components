@@ -69,4 +69,77 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     end
     assert_no_selector(".app-layout--has-fixed-sidebar")
   end
+
+  def test_renders_toast_notifications_when_flash_is_provided
+    render_inline(Bali::AppLayout::Component.new(flash: { notice: "Saved!" })) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector("#toast-notifications")
+    assert_text("Saved!")
+  end
+
+  def test_does_not_render_toast_container_when_flash_is_nil
+    render_inline(Bali::AppLayout::Component.new(flash: nil)) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector("#toast-notifications")
+  end
+
+  def test_renders_modal_shell_by_default
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector("#main-modal")
+  end
+
+  def test_renders_drawer_shell_by_default
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector("#main-drawer")
+  end
+
+  def test_does_not_render_modal_when_disabled
+    render_inline(Bali::AppLayout::Component.new(modal: false)) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector("#main-modal")
+  end
+
+  def test_does_not_render_drawer_when_disabled
+    render_inline(Bali::AppLayout::Component.new(drawer: false)) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector("#main-drawer")
+  end
+
+  def test_modal_hash_option_renders_with_size
+    render_inline(Bali::AppLayout::Component.new(modal: { size: :lg })) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector("#main-modal")
+    assert_selector(".modal-box.max-w-lg")
+  end
+
+  def test_drawer_hash_option_renders_with_size
+    render_inline(Bali::AppLayout::Component.new(drawer: { size: :sm })) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector("#main-drawer")
+    assert_selector(".drawer-panel.max-w-sm")
+  end
+
+  def test_adds_modal_and_drawer_stimulus_controllers_to_main
+    render_inline(Bali::AppLayout::Component.new(modal: true, drawer: true)) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector("main[data-controller='modal drawer']")
+  end
+
+  def test_no_data_controller_when_both_modal_and_drawer_disabled
+    render_inline(Bali::AppLayout::Component.new(modal: false, drawer: false)) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector("main[data-controller]")
+  end
 end

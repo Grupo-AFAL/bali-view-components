@@ -13,9 +13,37 @@
       </div>
     <% end %>
 
-    <%# Body %>
-    <main class="flex-1 p-6">
+    <%# Toast notifications - above body, outside scroll context %>
+    <% if render_toast? %>
+      <div id="toast-notifications">
+        <%= render Bali::FlashNotifications::Component.new(
+          notice: flash_notice,
+          alert: flash_alert
+        ) %>
+      </div>
+    <% end %>
+
+    <%# Body with optional Stimulus controllers for modal/drawer %>
+    <main class="flex-1 p-6"<% if main_controller.present? %> data-controller="<%= main_controller %>"<% end %>>
       <%= body? ? body : content %>
+
+      <%# Modal shell - loaded on demand via Turbo Frame %>
+      <% if render_modal? %>
+        <%= render Bali::Modal::Component.new(id: "main-modal", active: false, size: @modal[:size]) do %>
+          <%= render Bali::Skeleton::Component.new(variant: :modal) %>
+        <% end %>
+      <% end %>
+
+      <%# Drawer shell - loaded on demand via Turbo Frame %>
+      <% if render_drawer? %>
+        <%= render Bali::Drawer::Component.new(
+          drawer_id: "main-drawer",
+          size: @drawer[:size],
+          active: false
+        ) do %>
+          <%= render Bali::Skeleton::Component.new(variant: :list, lines: 5) %>
+        <% end %>
+      <% end %>
     </main>
   </div>
 </div>

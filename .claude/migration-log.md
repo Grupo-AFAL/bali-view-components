@@ -371,3 +371,61 @@ Pending
 
 ### Next Steps
 - Commit changes to tailwind-migration branch
+
+---
+
+## AppLayout - 2026-03-03 (ENHANCEMENT)
+
+**Status**: SUCCESS
+**Iterations**: 1 of 1
+**Type**: New feature addition (not a migration)
+
+### Overview
+Enhanced `Bali::AppLayout::Component` with integrated toast, modal, and drawer infrastructure. Eliminates ~30 lines of boilerplate from every admin layout file.
+
+### New Parameters Added
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `flash:` | Hash | `nil` | Rails flash object → renders `#toast-notifications` |
+| `modal:` | Boolean | `true` | Renders `#main-modal` shell with skeleton |
+| `drawer:` | Boolean | `true` | Renders `#main-drawer` shell with skeleton |
+| `drawer_size:` | Symbol | `:lg` | Drawer size: `:sm`, `:md`, `:lg`, `:xl` |
+
+### Implementation
+
+1. **component.rb** — Added 4 new `initialize` params + helper methods (`render_toast?`, `render_modal?`, `render_drawer?`, `main_controller`, `flash_notice`, `flash_alert`)
+
+2. **component.html.erb** — Added:
+   - `#toast-notifications` div with `FlashNotifications` component (conditional on `flash.present?`)
+   - `data-controller="modal drawer"` on `<main>` (space-joined, omitted when both disabled)
+   - `#main-modal` shell with `Skeleton::Component.new(variant: :modal)` inside
+   - `#main-drawer` shell with `Skeleton::Component.new(variant: :list, lines: 5)` inside
+
+3. **preview.rb** — Added `@param` annotations for `flash_notice`, `modal`, `drawer`, `drawer_size`; updated locals passed to template
+
+4. **previews/default.html.erb** — Passes new locals through to `AppLayout::Component.new`
+
+### Files Modified
+- `app/components/bali/app_layout/component.rb`
+- `app/components/bali/app_layout/component.html.erb`
+- `app/components/bali/app_layout/preview.rb`
+- `app/components/bali/app_layout/previews/default.html.erb`
+- `test/bali/components/app_layout_test.rb` (+8 tests)
+- `spec/dummy/config/database.yml` (fixed SQLite WAL crash on ARM64: added `journal_mode: delete` pragma)
+
+### Tests
+- Added: 8 new tests
+- Total: 16 tests (8 pre-existing + 8 new)
+- Status: All 16 passing, 0 failures
+
+### Before/After
+**Before**: Consuming apps needed ~50 lines for toast + modal + drawer boilerplate in every layout
+**After**: `flash: flash, modal: true, drawer: true` on AppLayout — ~3 params replace 30 lines
+
+### Commit
+Not committed
+
+### Next Steps
+- Bump to v2.6.0 (minor feature addition, fully backward-compatible)
+- Update `afal-claude-plugins` app-layout.md reference with new params
