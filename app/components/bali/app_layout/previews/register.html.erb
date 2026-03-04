@@ -1,0 +1,70 @@
+<%# transform creates a containing block that traps position:fixed elements inside the preview pane %>
+<div style="transform: translateZ(0); position: relative; height: 100vh; overflow: hidden;">
+<%= render Bali::AppLayout::Component.new(
+  flash: flash_notice.present? ? { notice: flash_notice } : nil,
+  modal: false,
+  drawer: false,
+  body_class: "bg-base-200",
+  body_container: :narrow
+) do |layout|
+  layout.with_body do %>
+    <div class="flex items-center justify-center min-h-screen py-8">
+      <%= render Bali::Card::Component.new(style: :bordered, body_class: "p-8") do %>
+        <div class="w-80">
+          <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold">Create an account</h1>
+            <p class="text-sm text-base-content/60 mt-1">Start your MovieDB journey</p>
+          </div>
+
+          <form class="space-y-4">
+            <div class="form-control">
+              <label class="label"><span class="label-text">Full name</span></label>
+              <label class="input input-bordered flex items-center gap-2 w-full">
+                <%= render Bali::Icon::Component.new('user', size: :small, class: 'text-base-content/40') %>
+                <input type="text" placeholder="Jane Doe" class="grow" />
+              </label>
+            </div>
+
+            <div class="form-control">
+              <label class="label"><span class="label-text">Email</span></label>
+              <label class="input input-bordered flex items-center gap-2 w-full">
+                <%= render Bali::Icon::Component.new('mail', size: :small, class: 'text-base-content/40') %>
+                <input type="email" placeholder="you@example.com" class="grow" />
+              </label>
+            </div>
+
+            <div class="form-control">
+              <label class="label"><span class="label-text">Password</span></label>
+              <label class="input input-bordered flex items-center gap-2 w-full">
+                <%= render Bali::Icon::Component.new('lock', size: :small, class: 'text-base-content/40') %>
+                <input type="password" placeholder="••••••••" class="grow" />
+              </label>
+            </div>
+
+            <div class="form-control">
+              <label class="label"><span class="label-text">Confirm password</span></label>
+              <label class="input input-bordered flex items-center gap-2 w-full">
+                <%= render Bali::Icon::Component.new('lock', size: :small, class: 'text-base-content/40') %>
+                <input type="password" placeholder="••••••••" class="grow" />
+              </label>
+            </div>
+
+            <%= render Bali::Button::Component.new(name: 'Create account', variant: :primary, type: :submit, class: 'w-full') %>
+          </form>
+
+          <div class="divider text-xs text-base-content/40 my-6">OR</div>
+
+          <div class="space-y-2">
+            <%= render Bali::Button::Component.new(name: 'Sign up with Google', variant: :outline, class: 'w-full') %>
+          </div>
+
+          <p class="text-center text-sm text-base-content/60 mt-6">
+            Already have an account?
+            <%= render Bali::Link::Component.new(name: 'Sign in', href: '/lookbook') %>
+          </p>
+        </div>
+      <% end %>
+    </div>
+  <% end
+end %>
+</div>

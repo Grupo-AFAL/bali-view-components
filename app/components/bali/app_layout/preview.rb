@@ -10,14 +10,16 @@ module Bali
       # @param flash_notice text
       # @param modal toggle
       # @param drawer toggle
-      def default(collapsible: true, flash_notice: "", modal: true, drawer: true)
+      # @param body_container select { choices: [wide, contained, narrow, full] }
+      def default(collapsible: true, flash_notice: "", modal: true, drawer: true, body_container: "wide")
         render_with_template(
           template: "bali/app_layout/previews/default",
           locals: {
             collapsible: collapsible,
             flash_notice: flash_notice.presence,
             modal: modal,
-            drawer: drawer ? { size: :lg } : false
+            drawer: drawer ? { size: :lg } : false,
+            body_container: body_container.to_sym
           }
         )
       end
@@ -29,7 +31,8 @@ module Bali
       # @param flash_notice text
       # @param modal toggle
       # @param drawer toggle
-      def with_navbar(collapsible: true, show_banner: false, flash_notice: "", modal: true, drawer: true)
+      # @param body_container select { choices: [wide, contained, narrow, full] }
+      def with_navbar(collapsible: true, show_banner: false, flash_notice: "", modal: true, drawer: true, body_container: "wide")
         render_with_template(
           template: "bali/app_layout/previews/with_navbar",
           locals: {
@@ -37,7 +40,8 @@ module Bali
             show_banner: show_banner,
             flash_notice: flash_notice.presence,
             modal: modal,
-            drawer: drawer ? { size: :lg } : false
+            drawer: drawer ? { size: :lg } : false,
+            body_container: body_container.to_sym
           }
         )
       end
@@ -45,11 +49,13 @@ module Bali
       # @label Navbar + Content
       # Config C: Public/marketing layout with top navbar and full-width content.
       # @param flash_notice text
-      def navbar_only(flash_notice: "")
+      # @param body_container select { choices: [contained, wide, narrow, full] }
+      def navbar_only(flash_notice: "", body_container: "contained")
         render_with_template(
           template: "bali/app_layout/previews/navbar_only",
           locals: {
-            flash_notice: flash_notice.presence
+            flash_notice: flash_notice.presence,
+            body_container: body_container.to_sym
           }
         )
       end
@@ -57,9 +63,35 @@ module Bali
       # @label Content Only
       # Config D: Minimal layout for login, error, or onboarding pages.
       # @param flash_notice text
-      def content_only(flash_notice: "")
+      # @param body_container select { choices: [narrow, contained, wide, full] }
+      def content_only(flash_notice: "", body_container: "narrow")
         render_with_template(
           template: "bali/app_layout/previews/content_only",
+          locals: {
+            flash_notice: flash_notice.presence,
+            body_container: body_container.to_sym
+          }
+        )
+      end
+
+      # @label Login Page
+      # Config D reference: a realistic login page using content-only layout with Bali components.
+      # @param flash_notice text
+      def login(flash_notice: "")
+        render_with_template(
+          template: "bali/app_layout/previews/login",
+          locals: {
+            flash_notice: flash_notice.presence
+          }
+        )
+      end
+
+      # @label Registration Page
+      # Config D reference: a realistic registration page using content-only layout with Bali components.
+      # @param flash_notice text
+      def register(flash_notice: "")
+        render_with_template(
+          template: "bali/app_layout/previews/register",
           locals: {
             flash_notice: flash_notice.presence
           }

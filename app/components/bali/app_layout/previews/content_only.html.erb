@@ -4,7 +4,8 @@
   flash: flash_notice.present? ? { notice: flash_notice } : nil,
   modal: false,
   drawer: false,
-  body_class: "bg-base-200"
+  body_class: "bg-base-200",
+  body_container: body_container
 ) do |layout|
   layout.with_body do %>
     <div class="flex items-center justify-center min-h-[80vh]">

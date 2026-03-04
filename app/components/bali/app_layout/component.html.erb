@@ -18,8 +18,10 @@
         <div class="app-layout-topbar"><%= topbar %></div>
       <% end %>
 
-      <main class="flex-1 p-6"<% if main_controller.present? %> data-controller="<%= main_controller %>"<% end %>>
-        <%= body? ? body : content %>
+      <main class="flex-1"<% if main_controller.present? %> data-controller="<%= main_controller %>"<% end %>>
+        <div class="<%= body_container_classes %>">
+          <%= body? ? body : content %>
+        </div>
 
         <% if render_modal? %>
           <%= render Bali::Modal::Component.new(id: "main-modal", active: false, size: @modal[:size]) do %>
