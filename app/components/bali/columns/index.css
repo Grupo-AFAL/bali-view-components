@@ -22,7 +22,7 @@
    ============================================== */
 .columns {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   margin-left: calc(var(--columns-gap) * -1);
   margin-right: calc(var(--columns-gap) * -1);
   margin-top: calc(var(--columns-gap) * -1);

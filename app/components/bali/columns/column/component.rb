@@ -41,8 +41,6 @@ module Bali
           four_fifths: "offset-4-fifths"
         }.freeze
 
-        BREAKPOINTS = %i[tablet desktop widescreen].freeze
-
         # @param size [Symbol, Integer, nil] Column width - symbolic or numeric (1-12)
         # @param tablet [Symbol, Integer, nil] Column width at tablet breakpoint (769px+)
         # @param desktop [Symbol, Integer, nil] Column width at desktop breakpoint (1024px+)

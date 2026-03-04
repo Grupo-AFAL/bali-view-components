@@ -104,7 +104,9 @@ module Bali
         case value
         when true then {}
         when Hash then value
-        when false then false
+        when false, nil then false
+        else
+          raise ArgumentError, "Expected true, false, or Hash, got #{value.inspect}"
         end
       end
 
