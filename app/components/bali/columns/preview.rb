@@ -415,6 +415,55 @@ module Bali
       end
 
       # @!endgroup
+
+      # @!group Responsive
+
+      # Responsive Stat Cards
+      # ---------------------
+      # 4 stat cards: stacked on mobile, 2-up on tablet (769px+), 4-up on desktop (1024px+).
+      # Uses `tablet: :half` and `desktop: :one_quarter` on each column.
+      def responsive_stat_cards
+        render_with_template
+      end
+
+      # Responsive Main + Sidebar
+      # -------------------------
+      # Stacked on mobile, 2/3 + 1/3 split on desktop (1024px+).
+      # Uses `desktop: :two_thirds` and `desktop: :one_third`.
+      def responsive_main_sidebar
+        render_with_template
+      end
+
+      # Responsive Three Breakpoints
+      # -----------------------------
+      # 6 items: 2-up on mobile, 3-up on tablet, 4-up on desktop.
+      # Uses `size: :half`, `tablet: :one_third`, `desktop: :one_quarter`.
+      def responsive_three_breakpoints
+        render_with_template
+      end
+
+      # @!endgroup
+
+      # @!group Grid Mode
+
+      # Grid Auto-Flow
+      # ---------------
+      # Use `cols:` to enable CSS Grid auto-flow mode. Children render directly
+      # without needing `with_column` wrappers — ideal for forms and card grids.
+      # Resize the browser to see responsive breakpoints.
+      def grid_auto_flow
+        render_with_template
+      end
+
+      # Grid Form Layout
+      # -----------------
+      # Common pattern: form fields in a 2-column grid on tablet+.
+      # Uses `cols: 1, cols_tablet: 2` for stacked → side-by-side.
+      def grid_form_layout
+        render_with_template
+      end
+
+      # @!endgroup
     end
   end
 end

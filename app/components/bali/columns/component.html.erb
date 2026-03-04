@@ -1,5 +1,9 @@
 <%= tag.div class: container_classes, **options.except(:class) do %>
-  <% columns.each do |column| %>
-    <%= column %>
+  <% if grid_mode? %>
+    <%= content %>
+  <% else %>
+    <% columns.each do |column| %>
+      <%= column %>
+    <% end %>
   <% end %>
 <% end %>

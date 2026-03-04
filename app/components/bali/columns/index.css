@@ -294,3 +294,84 @@
   .column.offset-5-mobile { margin-left: 41.66667%; }
   .column.offset-6-mobile { margin-left: 50%; }
 }
+
+/* ==============================================
+   Grid Auto-Flow Mode (.columns-grid)
+   Children auto-arrange without column wrappers.
+   ============================================== */
+.columns-grid {
+  display: grid;
+  gap: calc(var(--columns-gap) * 2);
+}
+
+/* Grid gap sizes reuse the same custom property */
+.columns-grid.gap-none { --columns-gap: 0; }
+.columns-grid.gap-px { --columns-gap: 1px; }
+.columns-grid.gap-xs { --columns-gap: 0.25rem; }
+.columns-grid.gap-sm { --columns-gap: 0.5rem; }
+.columns-grid.gap-md { --columns-gap: 0.75rem; }
+.columns-grid.gap-lg { --columns-gap: 1rem; }
+.columns-grid.gap-xl { --columns-gap: 1.5rem; }
+.columns-grid.gap-2xl { --columns-gap: 2rem; }
+
+/* Base column counts (mobile-first: single column default) */
+.columns-grid.cols-1 { grid-template-columns: repeat(1, 1fr); }
+.columns-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.columns-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.columns-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.columns-grid.cols-5 { grid-template-columns: repeat(5, 1fr); }
+.columns-grid.cols-6 { grid-template-columns: repeat(6, 1fr); }
+.columns-grid.cols-7 { grid-template-columns: repeat(7, 1fr); }
+.columns-grid.cols-8 { grid-template-columns: repeat(8, 1fr); }
+.columns-grid.cols-9 { grid-template-columns: repeat(9, 1fr); }
+.columns-grid.cols-10 { grid-template-columns: repeat(10, 1fr); }
+.columns-grid.cols-11 { grid-template-columns: repeat(11, 1fr); }
+.columns-grid.cols-12 { grid-template-columns: repeat(12, 1fr); }
+
+/* Tablet (769px+) */
+@media screen and (min-width: 769px) {
+  .columns-grid.cols-1-tablet { grid-template-columns: repeat(1, 1fr); }
+  .columns-grid.cols-2-tablet { grid-template-columns: repeat(2, 1fr); }
+  .columns-grid.cols-3-tablet { grid-template-columns: repeat(3, 1fr); }
+  .columns-grid.cols-4-tablet { grid-template-columns: repeat(4, 1fr); }
+  .columns-grid.cols-5-tablet { grid-template-columns: repeat(5, 1fr); }
+  .columns-grid.cols-6-tablet { grid-template-columns: repeat(6, 1fr); }
+  .columns-grid.cols-7-tablet { grid-template-columns: repeat(7, 1fr); }
+  .columns-grid.cols-8-tablet { grid-template-columns: repeat(8, 1fr); }
+  .columns-grid.cols-9-tablet { grid-template-columns: repeat(9, 1fr); }
+  .columns-grid.cols-10-tablet { grid-template-columns: repeat(10, 1fr); }
+  .columns-grid.cols-11-tablet { grid-template-columns: repeat(11, 1fr); }
+  .columns-grid.cols-12-tablet { grid-template-columns: repeat(12, 1fr); }
+}
+
+/* Desktop (1024px+) */
+@media screen and (min-width: 1024px) {
+  .columns-grid.cols-1-desktop { grid-template-columns: repeat(1, 1fr); }
+  .columns-grid.cols-2-desktop { grid-template-columns: repeat(2, 1fr); }
+  .columns-grid.cols-3-desktop { grid-template-columns: repeat(3, 1fr); }
+  .columns-grid.cols-4-desktop { grid-template-columns: repeat(4, 1fr); }
+  .columns-grid.cols-5-desktop { grid-template-columns: repeat(5, 1fr); }
+  .columns-grid.cols-6-desktop { grid-template-columns: repeat(6, 1fr); }
+  .columns-grid.cols-7-desktop { grid-template-columns: repeat(7, 1fr); }
+  .columns-grid.cols-8-desktop { grid-template-columns: repeat(8, 1fr); }
+  .columns-grid.cols-9-desktop { grid-template-columns: repeat(9, 1fr); }
+  .columns-grid.cols-10-desktop { grid-template-columns: repeat(10, 1fr); }
+  .columns-grid.cols-11-desktop { grid-template-columns: repeat(11, 1fr); }
+  .columns-grid.cols-12-desktop { grid-template-columns: repeat(12, 1fr); }
+}
+
+/* Widescreen (1216px+) */
+@media screen and (min-width: 1216px) {
+  .columns-grid.cols-1-widescreen { grid-template-columns: repeat(1, 1fr); }
+  .columns-grid.cols-2-widescreen { grid-template-columns: repeat(2, 1fr); }
+  .columns-grid.cols-3-widescreen { grid-template-columns: repeat(3, 1fr); }
+  .columns-grid.cols-4-widescreen { grid-template-columns: repeat(4, 1fr); }
+  .columns-grid.cols-5-widescreen { grid-template-columns: repeat(5, 1fr); }
+  .columns-grid.cols-6-widescreen { grid-template-columns: repeat(6, 1fr); }
+  .columns-grid.cols-7-widescreen { grid-template-columns: repeat(7, 1fr); }
+  .columns-grid.cols-8-widescreen { grid-template-columns: repeat(8, 1fr); }
+  .columns-grid.cols-9-widescreen { grid-template-columns: repeat(9, 1fr); }
+  .columns-grid.cols-10-widescreen { grid-template-columns: repeat(10, 1fr); }
+  .columns-grid.cols-11-widescreen { grid-template-columns: repeat(11, 1fr); }
+  .columns-grid.cols-12-widescreen { grid-template-columns: repeat(12, 1fr); }
+}

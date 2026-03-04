@@ -41,11 +41,20 @@ module Bali
           four_fifths: "offset-4-fifths"
         }.freeze
 
+        BREAKPOINTS = %i[tablet desktop widescreen].freeze
+
         # @param size [Symbol, Integer, nil] Column width - symbolic or numeric (1-12)
+        # @param tablet [Symbol, Integer, nil] Column width at tablet breakpoint (769px+)
+        # @param desktop [Symbol, Integer, nil] Column width at desktop breakpoint (1024px+)
+        # @param widescreen [Symbol, Integer, nil] Column width at widescreen breakpoint (1216px+)
         # @param offset [Symbol, Integer, nil] Column offset - symbolic or numeric (1-11)
         # @param auto [Boolean] Make column only as wide as its content
-        def initialize(size: nil, offset: nil, auto: false, **options)
+        def initialize(size: nil, tablet: nil, desktop: nil, widescreen: nil,
+                       offset: nil, auto: false, **options)
           @size = size
+          @tablet = tablet
+          @desktop = desktop
+          @widescreen = widescreen
           @offset = offset
           @auto = auto
           @options = options
@@ -60,19 +69,26 @@ module Bali
         def column_classes
           class_names(
             "column",
-            size_class,
+            resolve_size(@size),
+            resolve_size(@tablet, :tablet),
+            resolve_size(@desktop, :desktop),
+            resolve_size(@widescreen, :widescreen),
             offset_class,
             { "col-auto" => @auto },
             @options[:class]
           )
         end
 
-        def size_class
-          case @size
+        def resolve_size(value, breakpoint = nil)
+          suffix = breakpoint ? "-#{breakpoint}" : ""
+
+          case value
           when Integer
-            NUMERIC_SIZES[@size]
+            base = NUMERIC_SIZES[value]
+            "#{base}#{suffix}" if base
           when Symbol
-            SYMBOLIC_SIZES[@size]
+            base = SYMBOLIC_SIZES[value]
+            "#{base}#{suffix}" if base
           end
         end
 

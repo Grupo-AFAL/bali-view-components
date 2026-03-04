@@ -170,6 +170,173 @@ class BaliColumnsComponentTest < ComponentTestCase
     assert_selector('div.column[data-testid="column"]')
   end
 
+  # === Responsive sizes ===
+
+  def test_responsive_tablet_numeric_size
+    render_inline(Bali::Columns::Component.new) do |c|
+      c.with_column(tablet: 6) { "Tablet 6" }
+    end
+    assert_selector("div.column.col-6-tablet")
+  end
+
+  def test_responsive_tablet_symbolic_size
+    render_inline(Bali::Columns::Component.new) do |c|
+      c.with_column(tablet: :half) { "Tablet half" }
+    end
+    assert_selector("div.column.col-half-tablet")
+  end
+
+  def test_responsive_desktop_numeric_size
+    render_inline(Bali::Columns::Component.new) do |c|
+      c.with_column(desktop: 4) { "Desktop 4" }
+    end
+    assert_selector("div.column.col-4-desktop")
+  end
+
+  def test_responsive_desktop_symbolic_size
+    render_inline(Bali::Columns::Component.new) do |c|
+      c.with_column(desktop: :one_third) { "Desktop third" }
+    end
+    assert_selector("div.column.col-third-desktop")
+  end
+
+  def test_responsive_widescreen_numeric_size
+    render_inline(Bali::Columns::Component.new) do |c|
+      c.with_column(widescreen: 3) { "Widescreen 3" }
+    end
+    assert_selector("div.column.col-3-widescreen")
+  end
+
+  def test_responsive_widescreen_symbolic_size
+    render_inline(Bali::Columns::Component.new) do |c|
+      c.with_column(widescreen: :half) { "Widescreen half" }
+    end
+    assert_selector("div.column.col-half-widescreen")
+  end
+
+  def test_responsive_combined_base_and_desktop
+    render_inline(Bali::Columns::Component.new) do |c|
+      c.with_column(size: :half, desktop: :one_quarter) { "Combined" }
+    end
+    assert_selector("div.column.col-half.col-quarter-desktop")
+  end
+
+  def test_responsive_all_breakpoints_together
+    render_inline(Bali::Columns::Component.new) do |c|
+      c.with_column(size: :full, tablet: :half, desktop: :one_third, widescreen: :one_quarter) { "All" }
+    end
+    assert_selector("div.column.col-full.col-half-tablet.col-third-desktop.col-quarter-widescreen")
+  end
+
+  def test_responsive_nil_values_add_no_classes
+    render_inline(Bali::Columns::Component.new) do |c|
+      c.with_column(size: :half, tablet: nil, desktop: nil, widescreen: nil) { "No responsive" }
+    end
+    html = page.native.inner_html
+    assert_selector("div.column.col-half")
+    refute_match(/tablet/, html)
+    refute_match(/desktop/, html)
+    refute_match(/widescreen/, html)
+  end
+
+  def test_responsive_stat_cards_pattern
+    render_inline(Bali::Columns::Component.new(mobile: true, gap: :lg)) do |c|
+      4.times { c.with_column(tablet: :half, desktop: :one_quarter) { "Stat" } }
+    end
+    assert_selector("div.column.col-half-tablet.col-quarter-desktop", count: 4)
+  end
+
+  def test_responsive_main_sidebar_pattern
+    render_inline(Bali::Columns::Component.new) do |c|
+      c.with_column(desktop: :two_thirds) { "Main" }
+      c.with_column(desktop: :one_third) { "Sidebar" }
+    end
+    assert_selector("div.column.col-2-thirds-desktop")
+    assert_selector("div.column.col-third-desktop")
+  end
+
+  def test_responsive_with_numeric_mixed_breakpoints
+    render_inline(Bali::Columns::Component.new) do |c|
+      c.with_column(tablet: 6, desktop: 4, widescreen: 3) { "Shrinking" }
+    end
+    assert_selector("div.column.col-6-tablet.col-4-desktop.col-3-widescreen")
+  end
+
+  # === Grid auto-flow mode (cols:) ===
+
+  def test_grid_mode_renders_columns_grid_class
+    render_inline(Bali::Columns::Component.new(cols: 2)) { "Content" }
+    assert_selector("div.columns-grid")
+    assert_no_selector("div.columns")
+  end
+
+  def test_grid_mode_applies_cols_class
+    render_inline(Bali::Columns::Component.new(cols: 3)) { "Content" }
+    assert_selector("div.columns-grid.cols-3")
+  end
+
+  def test_grid_mode_renders_content_directly
+    render_inline(Bali::Columns::Component.new(cols: 2)) { "<p>Direct child</p>".html_safe }
+    assert_selector("div.columns-grid > p", text: "Direct child")
+    assert_no_selector("div.column")
+  end
+
+  def test_grid_mode_applies_gap
+    render_inline(Bali::Columns::Component.new(cols: 2, gap: :xl)) { "Content" }
+    assert_selector("div.columns-grid.gap-xl")
+  end
+
+  def test_grid_mode_with_tablet_breakpoint
+    render_inline(Bali::Columns::Component.new(cols: 1, cols_tablet: 2)) { "Content" }
+    assert_selector("div.columns-grid.cols-1.cols-2-tablet")
+  end
+
+  def test_grid_mode_with_desktop_breakpoint
+    render_inline(Bali::Columns::Component.new(cols: 1, cols_desktop: 3)) { "Content" }
+    assert_selector("div.columns-grid.cols-1.cols-3-desktop")
+  end
+
+  def test_grid_mode_with_widescreen_breakpoint
+    render_inline(Bali::Columns::Component.new(cols: 1, cols_widescreen: 4)) { "Content" }
+    assert_selector("div.columns-grid.cols-1.cols-4-widescreen")
+  end
+
+  def test_grid_mode_all_breakpoints
+    render_inline(Bali::Columns::Component.new(cols: 1, cols_tablet: 2, cols_desktop: 3, cols_widescreen: 4)) { "Content" }
+    assert_selector("div.columns-grid.cols-1.cols-2-tablet.cols-3-desktop.cols-4-widescreen")
+  end
+
+  def test_grid_mode_with_custom_class
+    render_inline(Bali::Columns::Component.new(cols: 2, class: "mt-6")) { "Content" }
+    assert_selector("div.columns-grid.mt-6")
+  end
+
+  def test_slots_override_grid_mode
+    render_inline(Bali::Columns::Component.new(cols: 2)) do |c|
+      c.with_column(size: :half) { "Slot content" }
+    end
+    assert_selector("div.columns")
+    assert_no_selector("div.columns-grid")
+    assert_selector("div.column.col-half")
+  end
+
+  def test_grid_mode_form_pattern
+    render_inline(Bali::Columns::Component.new(cols: 1, cols_tablet: 2, gap: :lg)) {
+      '<input type="text"><input type="text"><input type="text"><input type="text">'.html_safe
+    }
+    assert_selector("div.columns-grid.cols-1.cols-2-tablet.gap-lg")
+    assert_selector("div.columns-grid > input", count: 4)
+  end
+
+  def test_grid_mode_stat_cards_pattern
+    render_inline(Bali::Columns::Component.new(cols: 1, cols_tablet: 2, cols_desktop: 4, gap: :lg)) {
+      "<div>Stat</div><div>Stat</div><div>Stat</div><div>Stat</div>".html_safe
+    }
+    assert_selector("div.columns-grid.cols-1.cols-2-tablet.cols-4-desktop.gap-lg")
+  end
+
+  # === Real-world layouts ===
+
   def test_real_world_layouts_renders_two_half_columns_correctly
     render_inline(@component) do |c|
       c.with_column(size: :half) { "Left" }
