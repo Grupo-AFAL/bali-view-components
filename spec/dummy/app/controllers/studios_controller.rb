@@ -15,29 +15,34 @@ class StudiosController < ApplicationController
     @pagy, @studios = pagy(@filter_form.result.order(:name), items: 10)
   end
 
-  def show; end
+  def show
+    render layout: !drawer_request?
+  end
 
   def new
     @studio = Studio.new
+    render layout: !drawer_request?
   end
 
-  def edit; end
+  def edit
+    render layout: !drawer_request?
+  end
 
   def create
     @studio = Studio.new(studio_params)
 
     if @studio.save
-      redirect_to @studio, notice: 'Studio was successfully created.'
+      redirect_to studios_path, notice: 'Studio was successfully created.'
     else
-      render :new, status: :unprocessable_content
+      render :new, layout: !drawer_request?, status: :unprocessable_content
     end
   end
 
   def update
     if @studio.update(studio_params)
-      redirect_to @studio, notice: 'Studio was successfully updated.'
+      redirect_to studios_path, notice: 'Studio was successfully updated.'
     else
-      render :edit, status: :unprocessable_content
+      render :edit, layout: !drawer_request?, status: :unprocessable_content
     end
   end
 
@@ -50,6 +55,10 @@ class StudiosController < ApplicationController
 
   def set_studio
     @studio = Studio.find(params[:id])
+  end
+
+  def drawer_request?
+    params[:layout] == "false"
   end
 
   def studio_params

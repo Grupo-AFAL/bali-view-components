@@ -55,7 +55,7 @@
     <%# Related Movies Section %>
     <div class="mt-8">
       <h3 class="text-lg font-semibold mb-4"><%= t('movies.show.related_movies') %></h3>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <%= render Bali::Columns::Component.new(cols: 1, cols_tablet: 2, cols_desktop: 4, gap: :lg) do %>
         <% @related_movies.each do |related| %>
           <%= render Bali::Card::Component.new(style: :bordered, body_class: 'p-4') do %>
             <%= render Bali::Link::Component.new(name: related.name, href: admin_movie_path(related), class: 'font-medium text-base') %>
@@ -69,7 +69,7 @@
             </div>
           <% end %>
         <% end %>
-      </div>
+      <% end %>
     </div>
   <% end %>
 <% end %>

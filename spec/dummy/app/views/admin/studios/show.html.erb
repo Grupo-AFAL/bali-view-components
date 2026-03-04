@@ -19,7 +19,7 @@
 
   <% page.with_body do %>
     <%= render Bali::Card::Component.new do %>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <%= render Bali::Columns::Component.new(cols: 1, cols_tablet: 2, gap: :xl) do %>
         <%= render Bali::LabelValue::Component.new(label: t('studios.show.name'), value: @studio.name) %>
 
         <%= render Bali::LabelValue::Component.new(label: t('studios.show.country')) do %>
@@ -45,7 +45,7 @@
         <%= render Bali::LabelValue::Component.new(label: t('studios.show.size'), value: @studio.size&.humanize) %>
         <%= render Bali::LabelValue::Component.new(label: t('studios.show.founded'), value: @studio.founded_year) %>
         <%= render Bali::LabelValue::Component.new(label: t('studios.show.created'), value: l(@studio.created_at, format: :long)) %>
-      </div>
+      <% end %>
     <% end %>
 
     <div class="mt-6">

@@ -3,7 +3,8 @@
     name: 'New Studio',
     href: new_studio_path,
     variant: :primary,
-    size: :sm
+    size: :sm,
+    data: { action: 'drawer#open', drawer_size: 'lg' }
   ) do |link| %>
     <% link.with_icon('plus') %>
   <% end %>
@@ -36,7 +37,8 @@
             <%= render Bali::Link::Component.new(
               name: studio.name,
               href: studio_path(studio),
-              variant: :link
+              variant: :link,
+              data: { action: 'modal#open', modal_size: 'lg' }
             ) %>
           </td>
           <td>
@@ -58,8 +60,8 @@
           <td>
             <div class="flex justify-end">
               <%= render Bali::ActionsDropdown::Component.new(popover: true, align: :end) do |dropdown| %>
-                <% dropdown.with_item(name: 'View', href: studio_path(studio), icon_name: 'eye') %>
-                <% dropdown.with_item(name: 'Edit', href: edit_studio_path(studio), icon_name: 'pencil') %>
+                <% dropdown.with_item(name: 'Quick View', href: studio_path(studio), icon_name: 'eye', data: { action: 'modal#open', modal_size: 'lg' }) %>
+                <% dropdown.with_item(name: 'Edit', href: edit_studio_path(studio), icon_name: 'pencil', data: { action: 'drawer#open', drawer_size: 'lg' }) %>
                 <% dropdown.with_item(
                   name: 'Delete',
                   href: studio_path(studio),

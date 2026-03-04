@@ -176,7 +176,7 @@
       <%# Error Summary - the new component %>
       <%= f.error_summary(title: 'Please fix the following errors:') %>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <%= render Bali::Columns::Component.new(cols: 1, cols_tablet: 2, gap: :lg) do %>
         <%# Text fields %>
         <%= f.text_field_group :name, label: t('showcase.full_name'), placeholder: 'John Doe' %>
         <%= f.email_field_group :email, label: t('showcase.email'), placeholder: 'john@example.com' %>
@@ -188,7 +188,7 @@
         <%# Number and URL %>
         <%= f.number_field_group :age, label: t('showcase.age'), min: 18, max: 120 %>
         <%= f.url_field_group :website, label: t('showcase.website'), placeholder: 'https://example.com' %>
-      </div>
+      <% end %>
 
       <%# Select %>
       <%= f.select_group :experience_level,
@@ -259,7 +259,7 @@
   <p class="text-base-content/70 mb-4"><%= t('showcase.loader_desc') %></p>
 
   <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
+    <%= render Bali::Columns::Component.new(cols: 2, cols_tablet: 3, cols_desktop: 6, gap: :'2xl') do %>
       <%# Different loader types %>
       <div class="text-center">
         <%= render Bali::Loader::Component.new(type: :spinner, size: :lg, color: :primary, text: 'Spinner') %>
@@ -279,7 +279,7 @@
       <div class="text-center">
         <%= render Bali::Loader::Component.new(type: :infinity, size: :lg, color: :warning, text: 'Infinity') %>
       </div>
-    </div>
+    <% end %>
 
     <div class="divider"><%= t('showcase.sizes') %></div>
 
@@ -490,7 +490,7 @@
   </h2>
   <p class="text-base-content/70 mb-4"><%= t('showcase.list_desc') %></p>
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <%= render Bali::Columns::Component.new(cols: 1, cols_desktop: 2, gap: :xl) do %>
     <%# Basic List %>
     <%= render Bali::Card::Component.new(style: :bordered) do %>
       <h3 class="font-semibold mb-4"><%= t('showcase.team_members') %></h3>
@@ -586,7 +586,7 @@
         <% end %>
       <% end %>
     <% end %>
-  </div>
+  <% end %>
 </section>
 
 <%# Tags Demo %>
@@ -642,7 +642,7 @@
   </h2>
   <p class="text-base-content/70 mb-4"><%= t('showcase.tree_view_desc') %></p>
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <%= render Bali::Columns::Component.new(cols: 1, cols_desktop: 2, gap: :xl) do %>
     <%= render Bali::Card::Component.new(style: :bordered) do %>
       <h3 class="font-semibold mb-4"><%= t('showcase.file_browser') %></h3>
       <%= render Bali::TreeView::Component.new(current_path: '/src/components') do |tree| %>
@@ -686,7 +686,7 @@
         <% tree.with_item(name: t('showcase.marketing'), path: '/marketing') %>
       <% end %>
     <% end %>
-  </div>
+  <% end %>
 </section>
 
 <%# ImageField Demo %>

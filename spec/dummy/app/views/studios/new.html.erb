@@ -1,6 +1,11 @@
-<%= render Bali::PageHeader::Component.new(
-  title: 'New Studio',
-  back: { href: studios_path }
-) %>
+<% if params[:layout] == 'false' %>
+  <h2 class="text-lg font-semibold mb-4">New Studio</h2>
+  <%= render 'form', studio: @studio %>
+<% else %>
+  <%= render Bali::PageHeader::Component.new(
+    title: 'New Studio',
+    back: { href: studios_path }
+  ) %>
 
-<%= render 'form', studio: @studio %>
+  <%= render 'form', studio: @studio %>
+<% end %>

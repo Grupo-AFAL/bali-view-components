@@ -47,9 +47,9 @@
   <%= render Bali::Tabs::Component.new(style: :border) do |tabs| %>
     <%# Details Tab %>
     <% tabs.with_tab(title: 'Details', icon: 'info', active: true) do %>
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-2">
+      <%= render Bali::Columns::Component.new(gap: :xl, class: 'mt-2') do |c| %>
         <%# Main Info - Properties Table %>
-        <div class="lg:col-span-2">
+        <% c.with_column(desktop: :two_thirds) do %>
           <%= render Bali::Card::Component.new(style: :bordered) do %>
             <h3 class="card-title text-lg mb-4">Movie Information</h3>
             <%= render Bali::PropertiesTable::Component.new do |table| %>
@@ -90,12 +90,12 @@
 
             <%# LabelValue Demo - Numeric details %>
             <h4 class="font-semibold mt-6 mb-3">Additional Details</h4>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <%= render Bali::Columns::Component.new(cols: 2, cols_tablet: 4, gap: :lg) do %>
               <%= render Bali::LabelValue::Component.new(label: 'Budget', value: @movie.budget.present? ? number_to_currency(@movie.budget) : '—') %>
               <%= render Bali::LabelValue::Component.new(label: 'Rating', value: @movie.rating.present? ? "#{@movie.rating} / 10" : '—') %>
               <%= render Bali::LabelValue::Component.new(label: 'Release Date', value: @movie.release_date.present? ? @movie.release_date.strftime('%Y') : '—') %>
               <%= render Bali::LabelValue::Component.new(label: 'Status', value: @movie.status.humanize) %>
-            </div>
+            <% end %>
           <% end %>
 
           <%# Synopsis %>
@@ -140,10 +140,10 @@
               <% end %>
             <% end %>
           <% end %>
-        </div>
+        <% end %>
 
         <%# Sidebar - Studio Info & Stats %>
-        <div class="space-y-6">
+        <% c.with_column(desktop: :one_third, class: 'space-y-6') do %>
           <%# Studio Card with HoverCard %>
           <%= render Bali::Card::Component.new(style: :bordered) do %>
             <h3 class="card-title text-lg mb-4">Studio</h3>
@@ -216,8 +216,8 @@
                 ) %>
             </div>
           <% end %>
-        </div>
-      </div>
+        <% end %>
+      <% end %>
     <% end %>
 
     <%# Characters Tab with SortableList %>
@@ -305,7 +305,7 @@
 <%# Related Movies Section %>
 <div class="mt-8">
   <h3 class="text-lg font-semibold mb-4">Related Movies</h3>
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  <%= render Bali::Columns::Component.new(cols: 1, cols_tablet: 2, cols_desktop: 4, gap: :lg) do %>
     <% Movie.where(genre: @movie.genre).where.not(id: @movie.id).limit(4).each do |related| %>
       <%= render Bali::Card::Component.new(style: :bordered, body_class: 'p-4') do %>
         <h4 class="font-medium text-base"><%= related.name %></h4>
@@ -326,6 +326,6 @@
         ) %>
       <% end %>
     <% end %>
-  </div>
+  <% end %>
 </div>
 
