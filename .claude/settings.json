@@ -1,5 +1,33 @@
 {
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
   "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(mkdir *)",
+      "Bash(ls *)",
+      "Bash(wc *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(cat *)",
+      "Bash(sed *)",
+      "Bash(cut *)",
+      "Bash(sort *)",
+      "Bash(grep *)",
+      "Bash(echo *)",
+      "Bash(find *)",
+      "Bash(bundle *)",
+      "Bash(agent-browser *)",
+      "Bash(foreman *)",
+      "Bash(sleep *)",
+      "Bash(bin/dev)",
+      "Bash(cd * && bundle *)",
+      "Bash(cd * && bin/dev)",
+      "Edit",
+      "Write(docs/*)",
+      "Write(CHANGELOG.md)"
+    ],
     "deny": [
       "Bash(rm -rf /)",
       "Bash(rm -rf ~*)",
@@ -28,42 +56,7 @@
       "Bash(mkfs*)",
       "Bash(dd if=*)",
       "Bash(> /dev/*)"
-    ],
-    "allow": [
-      "Bash(git *)",
-      "Bash(mkdir *)",
-      "Bash(ls *)",
-      "Bash(wc *)",
-      "Bash(head *)",
-      "Bash(tail *)",
-      "Bash(cat *)",
-      "Bash(sed *)",
-      "Bash(cut *)",
-      "Bash(sort *)",
-      "Bash(grep *)",
-      "Bash(echo *)",
-      "Bash(find *)",
-      "Bash(bundle *)",
-      "Bash(agent-browser *)",
-      "Bash(foreman *)",
-      "Bash(sleep *)",
-      "Bash(bin/dev)",
-      "Bash(cd * && bundle *)",
-      "Bash(cd * && bin/dev)",
-      "Edit",
-      "Write(docs/*)",
-      "Write(CHANGELOG.md)"
     ]
-  },
-  "enabledPlugins": {
-    "rails-tools@afal-plugins": true,
-    "oh-my-claudecode@omc": true,
-    "frontend-design@claude-plugins-official": true,
-    "superpowers@claude-plugins-official": true,
-    "claude-mem@thedotmack": true
-  },
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
   "hooks": {
     "SessionStart": [
@@ -78,5 +71,12 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "rails-tools@afal-plugins": true,
+    "oh-my-claudecode@omc": true,
+    "frontend-design@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
+    "claude-mem@thedotmack": true
   }
 }
