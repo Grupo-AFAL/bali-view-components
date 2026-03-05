@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **SideMenu** - `bottom_group` slot for upward-expanding dropdown menus at sidebar bottom
-- **AppLayout** - New layout component wrapping SideMenu + content area for sidebar-based admin layouts
+- **AppLayout** - New layout component with flash messages, modal, and drawer infrastructure
+- **AppLayout** - Login/register preview layouts and body_container presets
 - **IndexPage** - Page layout component for standard list/table pages with breadcrumbs, header, and actions
 - **ShowPage** - Page layout component for detail pages with optional sidebar
 - **FormPage** - Page layout component for new/edit form pages with card wrapper
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Columns** - Refactored to use Tailwind flex/grid classes with responsive breakpoints, removing custom CSS
 - **Dependencies** - Batch update: @babel/core, @babel/eslint-parser, @babel/preset-env, standard, daisyui, brakeman, minitest, pagy, rubocop, sqlite3, view_component; add minimatch resolution (security)
 - **CI** - Bump GitHub Actions: checkout v6, setup-node v6, upload-artifact v7, github-script v8
 - **Testing** - Migrated entire test suite from RSpec to Minitest (2,331 tests), aligning with AFAL handbook standards
