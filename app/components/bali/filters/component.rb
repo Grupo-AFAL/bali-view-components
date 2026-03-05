@@ -55,7 +55,7 @@ module Bali
       )
         @url = url
         @available_attributes = normalize_attributes(available_attributes)
-        @filter_groups = filter_groups.presence || [default_filter_group]
+        @filter_groups = filter_groups.presence || [ default_filter_group ]
         @apply_mode = apply_mode
         @combinator = combinator.to_s
         @max_groups = max_groups
@@ -80,7 +80,7 @@ module Bali
       end
 
       def button_text
-        @button_text || I18n.t('bali.filters.filters_button', default: 'Filters')
+        @button_text || I18n.t("bali.filters.filters_button", default: "Filters")
       end
 
       def search_enabled?
@@ -92,15 +92,15 @@ module Bali
       end
 
       def search_placeholder
-        @search[:placeholder] || I18n.t('bali.filters.search_placeholder',
-                                        default: 'Search...')
+        @search[:placeholder] || I18n.t("bali.filters.search_placeholder",
+                                        default: "Search...")
       end
 
       # Build Ransack field name for multi-field search (e.g., "name_or_genre_cont")
       def search_field_name
         return nil unless search_enabled?
 
-        fields = @search[:fields].map(&:to_s).join('_or_')
+        fields = @search[:fields].map(&:to_s).join("_or_")
         "q[#{fields}_cont]"
       end
 
@@ -137,8 +137,8 @@ module Bali
       def translations_json
         {
           combinators: {
-            and: I18n.t('bali.filters.combinators.and', default: 'AND'),
-            or: I18n.t('bali.filters.combinators.or', default: 'OR')
+            and: I18n.t("bali.filters.combinators.and", default: "AND"),
+            or: I18n.t("bali.filters.combinators.or", default: "OR")
           }
         }.to_json
       end
@@ -170,8 +170,8 @@ module Bali
 
           case value
           when Hash  then flatten_params(value, field_name)
-          when Array then value.map { |v| ["#{field_name}[]", v] }
-          else            [[field_name, value]]
+          when Array then value.map { |v| [ "#{field_name}[]", v ] }
+          else            [ [ field_name, value ] ]
           end
         end
       end
@@ -189,16 +189,16 @@ module Bali
 
       def default_filter_group
         {
-          combinator: 'or',
-          conditions: [default_condition]
+          combinator: "or",
+          conditions: [ default_condition ]
         }
       end
 
       def default_condition
         {
-          attribute: '',
-          operator: 'cont',
-          value: ''
+          attribute: "",
+          operator: "cont",
+          value: ""
         }
       end
     end

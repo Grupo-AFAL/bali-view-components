@@ -16,8 +16,8 @@ module Bali
     #   render Bali::Timeago::Component.new(last_seen_at, refresh_interval: 30000)
     #
     class Component < ApplicationViewComponent
-      BASE_CLASSES = 'timeago-component'
-      CONTROLLER = 'timeago'
+      BASE_CLASSES = "timeago-component"
+      CONTROLLER = "timeago"
 
       def initialize(datetime, add_suffix: false, refresh_interval: nil, include_seconds: true,
                      **options)

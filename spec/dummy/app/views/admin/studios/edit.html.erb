@@ -1,0 +1,19 @@
+<% if params[:layout] == 'false' %>
+  <h2 class="text-lg font-semibold mb-4"><%= t('studios.form.edit_title', name: @studio.name) %></h2>
+  <%= render 'form', studio: @studio %>
+<% else %>
+  <%= render Bali::FormPage::Component.new(
+    title: t('studios.form.edit_title', name: @studio.name),
+    breadcrumbs: [
+      { name: t('navbar.dashboard'), href: admin_root_path, icon_name: 'home' },
+      { name: t('studios.title'), href: admin_studios_path },
+      { name: @studio.name, href: admin_studio_path(@studio) },
+      { name: t('common.edit') }
+    ],
+    back: { href: admin_studio_path(@studio) }
+  ) do |page| %>
+    <% page.with_body do %>
+      <%= render 'form', studio: @studio %>
+    <% end %>
+  <% end %>
+<% end %>

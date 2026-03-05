@@ -1,0 +1,65 @@
+# frozen_string_literal: true
+
+ENV["RAILS_ENV"] ||= "test"
+
+# SimpleCov is started in spec/dummy/config/boot.rb (before gems load)
+# so that Coverage.start tracks lib/ files loaded during Rails boot.
+
+require File.expand_path("../spec/dummy/config/environment", __dir__)
+require "bali/extras" # Load opt-in concerns needed by dummy app models and concern tests
+
+abort("The Rails environment is running in production mode!") if Rails.env.production?
+
+require "rails/test_help"
+require "view_component/test_helpers"
+require "view_component/test_case"
+require "capybara/minitest"
+
+require_relative "support/component_test_helpers"
+
+class ActiveSupport::TestCase
+  # TODO: Investigate thread-based parallelization to preserve coverage accuracy.
+  # Process-based parallelization loses SimpleCov coverage for files loaded
+  # during Rails boot (before fork). Skip parallelization for coverage runs;
+  # default to parallel for speed during development.
+  unless ENV["COVERAGE"]
+    parallelize(workers: ENV.fetch("PARALLEL_WORKERS", 1).to_i)
+  end
+end
+
+class ComponentTestCase < ViewComponent::TestCase
+  include ComponentTestHelpers
+  include Capybara::Minitest::Assertions
+end
+
+class FormBuilderTestCase < ViewComponent::TestCase
+  include ComponentTestHelpers
+  include Capybara::Minitest::Assertions
+
+  # Assert that an HTML string contains an element matching a CSS selector.
+  def assert_html(html, selector, text: nil, count: nil, visible: nil, **_opts)
+    node = Capybara.string(html)
+    opts = {}
+    opts[:text] = text if text
+    opts[:count] = count if count
+    opts[:visible] = visible unless visible.nil?
+    assert node.has_css?(selector, **opts),
+      "Expected to find '#{selector}'#{text ? " with text '#{text}'" : ""} in:\n#{html&.[](0, 300)}"
+  end
+
+  def refute_html(html, selector, **opts)
+    node = Capybara.string(html)
+    refute node.has_css?(selector, **opts),
+      "Expected NOT to find '#{selector}' in:\n#{html&.[](0, 300)}"
+  end
+
+  private
+
+  def resource
+    @resource ||= Movie.new
+  end
+
+  def builder
+    @builder ||= movie_form_builder(resource)
+  end
+end

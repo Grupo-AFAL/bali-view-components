@@ -4,25 +4,25 @@ module Bali
   module Button
     class Component < ApplicationViewComponent
       VARIANTS = {
-        primary: 'btn-primary',
-        secondary: 'btn-secondary',
-        accent: 'btn-accent',
-        info: 'btn-info',
-        success: 'btn-success',
-        warning: 'btn-warning',
-        error: 'btn-error',
-        ghost: 'btn-ghost',
-        link: 'btn-link',
-        neutral: 'btn-neutral',
-        outline: 'btn-outline'
+        primary: "btn-primary",
+        secondary: "btn-secondary",
+        accent: "btn-accent",
+        info: "btn-info",
+        success: "btn-success",
+        warning: "btn-warning",
+        error: "btn-error",
+        ghost: "btn-ghost",
+        link: "btn-link",
+        neutral: "btn-neutral",
+        outline: "btn-outline"
       }.freeze
 
       SIZES = {
-        xs: 'btn-xs',
-        sm: 'btn-sm',
-        md: '',
-        lg: 'btn-lg',
-        xl: 'btn-xl'
+        xs: "btn-xs",
+        sm: "btn-sm",
+        md: "",
+        lg: "btn-lg",
+        xl: "btn-xl"
       }.freeze
 
       renders_one :icon, ->(name, **options) { Icon::Component.new(name, **options) }
@@ -39,25 +39,27 @@ module Bali
         @disabled = disabled
         @loading = loading
         @options = options
-
-        build_options
       end
       # rubocop:enable Metrics/ParameterLists
 
       private
 
-      def build_options
-        @options = prepend_class_name(@options, 'btn')
-        if @variant && VARIANTS[@variant]
-          @options = prepend_class_name(@options,
-                                        VARIANTS[@variant])
-        end
-        @options = prepend_class_name(@options, SIZES[@size]) if @size && SIZES[@size]
-        @options = prepend_class_name(@options, 'btn-disabled') if @disabled
-        @options = prepend_class_name(@options, 'loading loading-spinner') if @loading
+      def button_classes
+        class_names(
+          "btn",
+          VARIANTS[@variant],
+          SIZES[@size],
+          "btn-disabled" => @disabled,
+          "loading loading-spinner" => @loading
+        )
+      end
 
-        @options[:type] = @type
-        @options[:disabled] = true if @disabled
+      def button_attributes
+        @options.merge(
+          class: class_names(button_classes, @options[:class]),
+          type: @type,
+          disabled: @disabled || nil
+        ).compact
       end
     end
   end

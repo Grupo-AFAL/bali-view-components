@@ -1,0 +1,30 @@
+<div class="show-page-component">
+  <%= render_breadcrumbs %>
+
+  <%= render Bali::PageHeader::Component.new(back: back, class: breadcrumb_spacer_class) do |header| %>
+    <% header.with_title do %>
+      <div class="flex items-center gap-3">
+        <%= title %>
+        <% title_tags.each { |tag| concat(tag) } %>
+      </div>
+    <% end %>
+    <% if subtitle.present? %>
+      <% header.with_subtitle(subtitle) %>
+    <% end %>
+
+    <%= render_actions_bar %>
+  <% end %>
+
+  <% if body? %>
+    <div class="mt-6">
+    <% if sidebar? %>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2"><%= body %></div>
+        <div class="space-y-6"><%= sidebar %></div>
+      </div>
+    <% else %>
+      <%= body %>
+    <% end %>
+  </div>
+  <% end %>
+</div>

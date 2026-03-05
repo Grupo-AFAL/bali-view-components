@@ -16,7 +16,7 @@ module Bali
       #   <%= f.error_summary(title: "Please fix the following errors:") %>
       #
       def error_summary(title: nil, **)
-        return ''.html_safe unless object&.errors&.any?
+        return "".html_safe unless object&.errors&.any?
 
         @template.render(
           Bali::Form::Errors::Component.new(

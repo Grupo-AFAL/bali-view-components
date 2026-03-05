@@ -21,7 +21,12 @@ export class BlockEditorController extends Controller {
     multiColumn: { type: Boolean, default: false },
     exportPdf: { type: Boolean, default: false },
     exportDocx: { type: Boolean, default: false },
-    tableOfContents: { type: Boolean, default: false }
+    tableOfContents: { type: Boolean, default: false },
+    comments: { type: Boolean, default: false },
+    commentsUrl: { type: String, default: '' },
+    commentsUser: { type: Object, default: {} },
+    commentsUsers: { type: Array, default: [] },
+    commentsUsersUrl: { type: String, default: '' }
   }
 
   async connect () {
@@ -50,7 +55,12 @@ export class BlockEditorController extends Controller {
         referencesUrl: this.referencesUrlValue || undefined,
         referencesResolveUrl: this.referencesResolveUrlValue || undefined,
         referencesConfig: Object.keys(this.referencesConfigValue).length > 0 ? this.referencesConfigValue : undefined,
-        tableOfContents: this.tableOfContentsValue
+        tableOfContents: this.tableOfContentsValue,
+        comments: this.commentsValue,
+        commentsUrl: this.commentsUrlValue || undefined,
+        commentsUser: Object.keys(this.commentsUserValue).length > 0 ? this.commentsUserValue : undefined,
+        commentsUsers: this.commentsUsersValue.length > 0 ? this.commentsUsersValue : undefined,
+        commentsUsersUrl: this.commentsUsersUrlValue || undefined
       }
 
       // Dynamically load multi-column module when enabled

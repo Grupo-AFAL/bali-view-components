@@ -23,9 +23,9 @@ module Bali
       attr_reader :name, :tag_name, :options
 
       SIZES = {
-        small: 'size-4',
-        medium: 'size-8',
-        large: 'size-12'
+        small: "size-4",
+        medium: "size-8",
+        large: "size-12"
       }.freeze
 
       # Size mappings for Lucide icons (in pixels)
@@ -37,8 +37,8 @@ module Bali
 
       # SVG size classes for child elements
       SIZE_SVG_CLASSES = {
-        medium: '*:h-8 *:w-8',
-        large: '*:h-12 *:w-12'
+        medium: "*:h-8 *:w-8",
+        large: "*:h-12 *:w-12"
       }.freeze
 
       # @param name [String, Symbol] Icon name (Bali name or Lucide name)
@@ -97,7 +97,7 @@ module Bali
           **LucideRails.default_options,
           width: pixel_size,
           height: pixel_size,
-          class: 'lucide-icon'
+          class: "lucide-icon"
         )
       end
 
@@ -135,7 +135,7 @@ module Bali
       # @param name [String] icon name like 'arrow-left'
       # @return [String] constant name like 'ARROW_LEFT'
       def normalize_constant_name(name)
-        name.to_s.upcase.tr('-', '_')
+        name.to_s.upcase.tr("-", "_")
       end
 
       # Generates a helpful error message for missing icons
@@ -147,9 +147,9 @@ module Bali
 
         msg += if suggestions.any?
                  " Did you mean: #{suggestions.join(', ')}?"
-               else
-                 ' Check available icons at: https://lucide.dev/icons'
-               end
+        else
+                 " Check available icons at: https://lucide.dev/icons"
+        end
 
         msg
       end
@@ -165,9 +165,9 @@ module Bali
 
       def component_classes
         class_names(
-          'icon-component',
-          'inline-flex items-center justify-center',
-          '*:inline-block *:h-4 *:w-4 *:overflow-visible',
+          "icon-component",
+          "inline-flex items-center justify-center",
+          "*:inline-block *:h-4 *:w-4 *:overflow-visible",
           SIZES[@size],
           SIZE_SVG_CLASSES[@size]
         )

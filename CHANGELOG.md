@@ -7,8 +7,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **SideMenu** - `bottom_group` slot for upward-expanding dropdown menus at sidebar bottom
+- **AppLayout** - New layout component with flash messages, modal, and drawer infrastructure
+- **AppLayout** - Login/register preview layouts and body_container presets
+- **IndexPage** - Page layout component for standard list/table pages with breadcrumbs, header, and actions
+- **ShowPage** - Page layout component for detail pages with optional sidebar
+- **FormPage** - Page layout component for new/edit form pages with card wrapper
+- **DashboardPage** - Page layout component with configurable stat cards grid
+- **BlockEditor** - AI endpoint concern (`BlocknoteAi`) for proxying AI chat requests in Rails apps
+- **BlockEditor** - Integration documentation for setting up AI features (`docs/blocknote-ai-rails-integration.md`)
+
 ### Fixed
 
+- **BlockEditor** - Prevent page scroll jump when opening AI menu via slash command or formatting toolbar on long pages
+
+### Changed
+
+- **Columns** - Refactored to use Tailwind flex/grid classes with responsive breakpoints, removing custom CSS
+- **Dependencies** - Batch update: @babel/core, @babel/eslint-parser, @babel/preset-env, standard, daisyui, brakeman, minitest, pagy, rubocop, sqlite3, view_component; add minimatch resolution (security)
+- **CI** - Bump GitHub Actions: checkout v6, setup-node v6, upload-artifact v7, github-script v8
+- **Testing** - Migrated entire test suite from RSpec to Minitest (2,331 tests), aligning with AFAL handbook standards
+- **Build** - Replaced Vite with esbuild (jsbundling-rails) for JavaScript bundling in dummy app
+- **Security** - Added Brakeman and bundler-audit for security scanning, Dependabot configuration
+- **CI** - Added security scanning workflow, updated action versions to v4 and Node 20
+- **RuboCop** - Switched from rubocop-rails to rubocop-rails-omakase base configuration
+- **Engine** - Added CSRF protection to `Bali::ApplicationController`
+
+## [v2.5.0] - 2026-02-22
+
+### Added
+
+- **SimpleFilters** - Optional search input with `search:` parameter for quick text search
+- **FilterForm** - New `simple_search_config` convenience method for SimpleFilters integration
+- **PageHeader** - Default `mb-6` margin for consistent spacing
+
+### Fixed
+
+- **SubmitButton** - Loading spinner is now visible on form submission. Fixed two issues: `Bali::FormHelper` was not included in the dummy app (controller never connected), and DaisyUI 5's disabled button styling made the spinner invisible. The button now preserves its primary color at reduced opacity during loading.
+- **Tabs::Trigger** - Now respects explicit `active:` parameter when `href` is present
+- **PathHelper** - `active_path?` strips query params from both path arguments symmetrically
+
+## [v2.4.2] - 2026-02-20
+
+### Fixed
+
+- **Engine** - Preview files (`preview.rb`) are now excluded from Zeitwerk autoloading, preventing `uninitialized constant` errors when eager loading is enabled in consuming apps that don't have Lookbook installed. Preview discovery by Lookbook is unaffected.
+
+## [v2.4.1] - 2026-02-19
+
+### Fixed
+
+- **SideMenu::Item** - Data attributes (e.g. `data: { turbo_method: :delete }`) passed to `with_item` are now correctly forwarded to the rendered anchor tag in both expanded and collapsed states
+
+## [v2.4.0] - 2026-02-19
+
+### Added
+
+- **BlockEditor** - New `comments:` option enables inline commenting via BlockNote's built-in comments extension. Supports in-memory mode (session-only, default) and REST-backed mode (`comments_url:`) for database persistence. Configure the current user with `comments_user:` and collaborators with `comments_users:` or `comments_users_url:`.
+
+### Fixed
+
+- **FormBuilder** - `submit_actions` button row now has consistent top margin (`mt-6`) to prevent buttons from appearing flush against the last form field
 - **Modal** - Prevent modal from closing when clicking browser autocomplete options inside modal forms
 - **StepNumberInput** - Guard `disconnect()` with `hasInputTarget` check to prevent error when target element is already removed from DOM ([ENJOY-KITCHEN-JS-B](https://enjoy-kitchen.sentry.io/issues/ENJOY-KITCHEN-JS-B))
 

@@ -1,0 +1,51 @@
+<%# transform creates a containing block that traps position:fixed elements inside the preview pane %>
+<div style="transform: translateZ(0); position: relative; height: 100vh; overflow: hidden;">
+<%= render Bali::AppLayout::Component.new(
+  flash: flash_notice.present? ? { notice: flash_notice } : nil,
+  modal: false,
+  drawer: false,
+  body_container: body_container
+) do |layout|
+  layout.with_body do %>
+    <%= render Bali::PageHeader::Component.new(title: 'Account Settings', subtitle: 'Manage your profile and preferences') %>
+
+    <%= render Bali::Columns::Component.new(cols: 1, cols_lg: 3, gap: :lg) do %>
+      <div class="lg:col-span-1">
+        <%= render Bali::Card::Component.new(style: :bordered) do %>
+          <div class="flex flex-col items-center text-center">
+            <%= render Bali::Avatar::Component.new(size: :lg, class: 'mb-3') do |avatar|
+              avatar.with_placeholder { "AG" }
+            end %>
+            <h3 class="font-bold text-lg">Ana García</h3>
+            <p class="text-sm text-base-content/60">ana@example.com</p>
+            <%= render Bali::Tag::Component.new(text: 'Admin', color: :primary, class: 'mt-2') %>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="lg:col-span-2">
+        <%= render Bali::Card::Component.new(style: :bordered) do |card| %>
+          <% card.with_title('Profile Information') %>
+          <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :md) do %>
+            <%= render Bali::LabelValue::Component.new(label: 'Full Name', value: 'Ana García') %>
+            <%= render Bali::LabelValue::Component.new(label: 'Email', value: 'ana@example.com') %>
+            <%= render Bali::LabelValue::Component.new(label: 'Role', value: 'Administrator') %>
+            <%= render Bali::LabelValue::Component.new(label: 'Timezone', value: 'America/Tijuana') %>
+          <% end %>
+          <div class="mt-4">
+            <%= render Bali::Button::Component.new(name: 'Edit Profile', variant: :primary, size: :sm) %>
+          </div>
+        <% end %>
+
+        <%= render Bali::Card::Component.new(style: :bordered, class: 'mt-4') do |card| %>
+          <% card.with_title('Notifications') %>
+          <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :md) do %>
+            <%= render Bali::LabelValue::Component.new(label: 'Email Notifications', value: 'Enabled') %>
+            <%= render Bali::LabelValue::Component.new(label: 'Weekly Digest', value: 'Every Monday') %>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  <% end
+end %>
+</div>

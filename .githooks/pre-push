@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -e
+
+# Skip hooks with: SKIP_HOOKS=1 git push
+if [ "${SKIP_HOOKS:-0}" = "1" ]; then
+  exit 0
+fi
+
+echo "Running test suite before push..."
+bundle exec rails test

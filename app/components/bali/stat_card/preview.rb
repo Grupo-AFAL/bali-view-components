@@ -2,7 +2,7 @@
 
 module Bali
   module StatCard
-    class Preview < Lookbook::Preview
+    class Preview < ApplicationViewComponentPreview
       # @param title text
       # @param value text
       # @param icon_name text

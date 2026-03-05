@@ -1,0 +1,175 @@
+<%= render Bali::Columns::Component.new(gap: :xl, class: 'mt-2') do |c| %>
+  <%# Main Info - Properties Table %>
+  <% c.with_column(lg: :two_thirds) do %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <h3 class="card-title text-lg mb-4"><%= t('movies.show.movie_information') %></h3>
+      <%= render Bali::PropertiesTable::Component.new do |table| %>
+        <% table.with_property(label: t('movies.show.title_label'), value: movie.name) %>
+        <% table.with_property(label: t('movies.columns.genre')) do %>
+          <%= render Bali::Tag::Component.new(text: movie.genre, style: :outline) %>
+        <% end %>
+        <% table.with_property(label: t('movies.columns.status')) do %>
+          <%= render Bali::Tag::Component.new(
+              text: movie.status.humanize,
+              color: movie.status_color
+            ) %>
+        <% end %>
+        <% table.with_property(label: t('movies.show.indie_film')) do %>
+          <%= render Bali::BooleanIcon::Component.new(value: movie.indie) %>
+        <% end %>
+        <% if movie.release_date.present? %>
+          <% table.with_property(label: t('movies.show.release_date'), value: l(movie.release_date, format: :long)) %>
+        <% end %>
+        <% if movie.contact_email.present? %>
+          <% table.with_property(label: t('movies.show.contact_email'), value: movie.contact_email) %>
+        <% end %>
+        <% if movie.website_url.present? %>
+          <% table.with_property(label: t('movies.show.website')) do %>
+            <%= render Bali::Link::Component.new(name: movie.website_url, href: movie.website_url, target: '_blank') %>
+          <% end %>
+        <% end %>
+        <% if movie.time_zone.present? %>
+          <% table.with_property(label: t('movies.show.time_zone'), value: movie.time_zone) %>
+        <% end %>
+        <% table.with_property(label: t('common.created_at')) do %>
+          <%= render Bali::Timeago::Component.new(movie.created_at, add_suffix: true) %>
+        <% end %>
+        <% table.with_property(label: t('movies.show.last_updated')) do %>
+          <%= render Bali::Timeago::Component.new(movie.updated_at, add_suffix: true) %>
+        <% end %>
+      <% end %>
+
+      <%# LabelValue Demo - Numeric details %>
+      <h4 class="font-semibold mt-6 mb-3"><%= t('movies.show.additional_details') %></h4>
+      <%= render Bali::Columns::Component.new(cols: 2, cols_md: 4, gap: :lg) do %>
+        <%= render Bali::LabelValue::Component.new(label: t('movies.show.budget'), value: movie.budget.present? ? number_to_currency(movie.budget) : '—') %>
+        <%= render Bali::LabelValue::Component.new(label: t('movies.show.rating'), value: movie.rating.present? ? "#{movie.rating} / 10" : '—') %>
+        <%= render Bali::LabelValue::Component.new(label: t('movies.show.release_year'), value: movie.release_date.present? ? movie.release_date.strftime('%Y') : '—') %>
+        <%= render Bali::LabelValue::Component.new(label: t('movies.columns.status'), value: movie.status.humanize) %>
+      <% end %>
+    <% end %>
+
+    <%# Synopsis %>
+    <% if movie.synopsis.present? %>
+      <%= render Bali::Card::Component.new(style: :bordered, class: 'mt-6') do %>
+        <h3 class="card-title text-lg mb-4"><%= t('movies.show.synopsis') %></h3>
+        <p class="text-base-content/80 whitespace-pre-wrap"><%= movie.synopsis %></p>
+      <% end %>
+    <% end %>
+
+    <%# Rich Description (BlockEditor JSON content) %>
+    <% if movie.rich_description.present? %>
+      <%= render Bali::Card::Component.new(style: :bordered, class: 'mt-6') do %>
+        <h3 class="card-title text-lg mb-4"><%= t('movies.show.rich_description') %></h3>
+        <%= render Bali::BlockEditor::Component.new(
+          editable: false,
+          initial_content: movie.rich_description
+        ) %>
+      <% end %>
+    <% end %>
+
+    <%# Poster (ActiveStorage attachment) %>
+    <% if movie.poster.attached? %>
+      <%= render Bali::Card::Component.new(style: :bordered, class: 'mt-6') do %>
+        <h3 class="card-title text-lg mb-4"><%= t('movies.show.movie_poster') %></h3>
+        <%= image_tag movie.poster, class: 'rounded-lg max-w-full h-auto' %>
+      <% end %>
+    <% end %>
+
+    <%# ImageGrid Demo - Movie Stills Gallery %>
+    <%= render Bali::Card::Component.new(style: :bordered, class: 'mt-6') do %>
+      <h3 class="card-title text-lg mb-4"><%= t('movies.show.movie_stills') %></h3>
+      <%= render Bali::ImageGrid::Component.new(columns: 3, gap: :md) do |grid| %>
+        <% grid.with_image(aspect_ratio: :video) do %>
+          <img src="https://picsum.photos/seed/<%= movie.id %>1/400/225" alt="Movie still 1" class="rounded" />
+        <% end %>
+        <% grid.with_image(aspect_ratio: :video) do %>
+          <img src="https://picsum.photos/seed/<%= movie.id %>2/400/225" alt="Movie still 2" class="rounded" />
+        <% end %>
+        <% grid.with_image(aspect_ratio: :video) do %>
+          <img src="https://picsum.photos/seed/<%= movie.id %>3/400/225" alt="Movie still 3" class="rounded" />
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <%# Sidebar - Studio Info & Stats %>
+  <% c.with_column(lg: :one_third, class: 'space-y-6') do %>
+    <%# Studio Card with HoverCard %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <h3 class="card-title text-lg mb-4"><%= t('movies.columns.studio') %></h3>
+      <% if movie.studio %>
+        <div class="flex items-center gap-4">
+          <%= render Bali::Avatar::Component.new(size: :lg) do |avatar| %>
+            <% avatar.with_placeholder do %>
+              <%= movie.studio.name[0..1].upcase %>
+            <% end %>
+          <% end %>
+          <div>
+            <%# HoverCard Demo - hover to see studio details %>
+            <%= render Bali::HoverCard::Component.new(placement: 'right') do |hc| %>
+              <% hc.with_trigger do %>
+                <p class="font-semibold cursor-pointer hover:text-primary underline decoration-dotted underline-offset-4"><%= movie.studio.name %></p>
+              <% end %>
+              <div class="p-2 min-w-[200px]">
+                <p class="font-bold mb-2"><%= movie.studio.name %></p>
+                <p class="text-sm text-base-content/70 mb-2"><%= t('movies.show.partner_studio') %></p>
+                <div class="flex gap-2">
+                  <%= render Bali::Tag::Component.new(text: t('movies.show.verified'), color: :success, size: :xs) %>
+                  <%= render Bali::Tag::Component.new(text: t('movies.show.premium'), color: :accent, size: :xs) %>
+                </div>
+              </div>
+            <% end %>
+            <p class="text-sm text-base-content/60"><%= t('movies.show.partner_studio') %></p>
+          </div>
+        </div>
+      <% else %>
+        <p class="text-base-content/60"><%= t('movies.show.no_studio') %></p>
+      <% end %>
+    <% end %>
+
+    <%# Stats Card with Progress and Rate %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <h3 class="card-title text-lg mb-4"><%= t('movies.show.statistics') %></h3>
+
+      <%# Rating %>
+      <div class="mb-4">
+        <p class="text-sm text-base-content/60 mb-2"><%= t('movies.show.user_rating') %></p>
+        <% rating_value = movie.rating.present? ? (movie.rating / 2.0).round : 0 %>
+        <%= render Bali::Rate::Component.new(
+            value: rating_value,
+            scale: 1..5,
+            size: :md,
+            color: :warning,
+            readonly: true
+          ) %>
+        <p class="text-sm mt-1"><%= movie.rating.present? ? "#{movie.rating} / 10" : '—' %></p>
+      </div>
+
+      <%# Completion Progress %>
+      <div class="mb-4">
+        <p class="text-sm text-base-content/60 mb-2"><%= t('movies.show.completion') %></p>
+        <%= render Bali::Progress::Component.new(
+            value: movie.done? ? 100 : 50,
+            max: 100,
+            color: movie.done? ? :success : :primary,
+            show_percentage: true
+          ) %>
+      </div>
+
+      <%# Budget Used %>
+      <% if movie.budget.present? && movie.budget.positive? %>
+        <div>
+          <p class="text-sm text-base-content/60 mb-2"><%= t('movies.show.budget_used') %></p>
+          <% budget_pct = movie.done? ? 100 : (movie.budget > 100_000 ? 75 : 40) %>
+          <%= render Bali::Progress::Component.new(
+              value: budget_pct,
+              max: 100,
+              color: budget_pct > 80 ? :warning : :info,
+              show_percentage: true
+            ) %>
+        </div>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

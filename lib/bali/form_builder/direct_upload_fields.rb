@@ -51,7 +51,7 @@ module Bali
           multiple: options.fetch(:multiple, false),
           max_files: options.fetch(:max_files, 10),
           max_file_size: options.fetch(:max_file_size, 10),
-          accept: options.fetch(:accept, '*'),
+          accept: options.fetch(:accept, "*"),
           drop_zone: options.fetch(:drop_zone, true),
           auto_upload: options.fetch(:auto_upload, true),
           class: options[:class]

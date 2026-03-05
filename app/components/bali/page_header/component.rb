@@ -3,15 +3,15 @@
 module Bali
   module PageHeader
     class Component < ApplicationViewComponent
-      BASE_CLASSES = 'page-header-component'
+      BASE_CLASSES = "page-header-component mb-6"
 
       HEADING_SIZES = {
-        h1: 'text-4xl',
-        h2: 'text-3xl',
-        h3: 'text-2xl',
-        h4: 'text-xl',
-        h5: 'text-lg',
-        h6: 'text-base'
+        h1: "text-4xl",
+        h2: "text-3xl",
+        h3: "text-2xl",
+        h4: "text-xl",
+        h5: "text-lg",
+        h6: "text-base"
       }.freeze
 
       # Maps PageHeader alignment values to Level alignment values
@@ -21,15 +21,15 @@ module Bali
         bottom: :end
       }.freeze
 
-      BACK_BUTTON_CLASSES = 'back-button btn btn-ghost size-9 text-primary'
+      BACK_BUTTON_CLASSES = "back-button btn btn-ghost size-9 text-primary"
 
-      TITLE_CLASSES = 'title text-2xl font-bold mb-1'
-      SUBTITLE_CLASSES = 'subtitle text-lg text-base-content/60'
+      TITLE_CLASSES = "title text-2xl font-bold mb-1"
+      SUBTITLE_CLASSES = "subtitle text-lg text-base-content/60"
 
       renders_one :title, ->(text = nil, tag: :h3, **options, &block) do
         options = prepend_class_name(
           options,
-          class_names('title font-bold mb-1', HEADING_SIZES[tag])
+          class_names("title font-bold mb-1", HEADING_SIZES[tag])
         )
         heading_tag(text, tag, **options, &block)
       end
@@ -37,7 +37,7 @@ module Bali
       renders_one :subtitle, ->(text = nil, tag: :h5, **options, &block) do
         options = prepend_class_name(
           options,
-          class_names('subtitle text-base-content/60', HEADING_SIZES[tag])
+          class_names("subtitle text-base-content/60", HEADING_SIZES[tag])
         )
         heading_tag(text, tag, **options, &block)
       end

@@ -3,13 +3,13 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module SlimSelectFields
-      WRAPPER_CLASS = 'slim-select'
-      SELECT_CLASS = 'select select-bordered'
-      TOGGLE_BUTTON_CLASS = 'ss-toggle-btn'
+      WRAPPER_CLASS = "slim-select"
+      SELECT_CLASS = "select select-bordered"
+      TOGGLE_BUTTON_CLASS = "ss-toggle-btn"
 
       DEFAULT_OPTIONS = {
         add_items: false,
-        show_content: 'auto',
+        show_content: "auto",
         show_search: true,
         add_to_body: false,
         close_on_select: true,
@@ -32,7 +32,7 @@ module Bali
 
         select_class = merged_html.delete(:select_class)
         custom_class = merged_html[:class]
-        merged_html[:class] = class_names([SELECT_CLASS, custom_class].compact)
+        merged_html[:class] = class_names([ SELECT_CLASS, custom_class ].compact)
 
         field = build_wrapper(method, merged_options, merged_html, select_class) do
           build_select_content(method, values, merged_options, merged_html)
@@ -46,28 +46,28 @@ module Bali
       def build_options(options)
         DEFAULT_OPTIONS.merge(options).merge(
           search_placeholder: options.fetch(:search_placeholder) do
-            I18n.t('bali.form_builder.slim_select.search_placeholder')
+            I18n.t("bali.form_builder.slim_select.search_placeholder")
           end,
           select_all_text: options.fetch(:select_all_text) do
-            I18n.t('bali.form_builder.slim_select.select_all')
+            I18n.t("bali.form_builder.slim_select.select_all")
           end,
           deselect_all_text: options.fetch(:deselect_all_text) do
-            I18n.t('bali.form_builder.slim_select.deselect_all')
+            I18n.t("bali.form_builder.slim_select.deselect_all")
           end,
           no_results_text: options.fetch(:no_results_text) do
-            I18n.t('bali.form_builder.slim_select.no_results')
+            I18n.t("bali.form_builder.slim_select.no_results")
           end,
           searching_text: options.fetch(:searching_text) do
-            I18n.t('bali.form_builder.slim_select.searching')
+            I18n.t("bali.form_builder.slim_select.searching")
           end,
           results_text: options.fetch(:results_text) do
-            I18n.t('bali.form_builder.slim_select.results')
+            I18n.t("bali.form_builder.slim_select.results")
           end
         )
       end
 
       def build_html_options(html_options)
-        default_data = { slim_select_target: 'select' }
+        default_data = { slim_select_target: "select" }
         user_data = html_options[:data] || {}
 
         { multiple: false, data: default_data.merge(user_data) }.merge(html_options.except(:data))
@@ -88,29 +88,29 @@ module Bali
       end
 
       def select_all_buttons(options)
-        toggle_button(action: 'slim-select#selectAll', target: 'selectAllButton',
+        toggle_button(action: "slim-select#selectAll", target: "selectAllButton",
                       text: options[:select_all_text]) +
-          toggle_button(action: 'slim-select#deselectAll', target: 'deselectAllButton',
+          toggle_button(action: "slim-select#deselectAll", target: "deselectAllButton",
                         text: options[:deselect_all_text], hidden: true)
       end
 
       def toggle_button(action:, target:, text:, hidden: false)
         tag.a(text,
-              class: class_names(TOGGLE_BUTTON_CLASS, 'hidden' => hidden),
+              class: class_names(TOGGLE_BUTTON_CLASS, "hidden" => hidden),
               data: { action: action, slim_select_target: target })
       end
 
       def wrapper_attributes(method, options, html_options, select_class)
         {
           id: "#{method}_select_div",
-          class: class_names([WRAPPER_CLASS, select_class].compact),
+          class: class_names([ WRAPPER_CLASS, select_class ].compact),
           data: stimulus_data(options, html_options)
         }
       end
 
       def stimulus_data(options, html_options)
         data = {
-          controller: 'slim-select',
+          controller: "slim-select",
           slim_select_placeholder_value: html_options[:placeholder],
           slim_select_show_content_value: options[:show_content],
           slim_select_search_placeholder_value: options[:search_placeholder],

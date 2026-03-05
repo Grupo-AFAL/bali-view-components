@@ -5,7 +5,7 @@ module Bali
     module Input
       class Component < ApplicationViewComponent
         DEFAULT_FORMATS = %i[jpg jpeg png webp].freeze
-        DEFAULT_ICON = 'camera'
+        DEFAULT_ICON = "camera"
         private_constant :DEFAULT_FORMATS, :DEFAULT_ICON
 
         attr_reader :form, :field_name, :icon_name
@@ -24,34 +24,34 @@ module Bali
 
         def container_classes
           class_names(
-            'image-input-container',
-            'absolute inset-0 flex justify-center items-center cursor-pointer',
-            'rounded-lg',
-            'group-hover:bg-base-content/20 group-hover:backdrop-blur-sm',
-            'max-md:bg-base-content/20 max-md:backdrop-blur-sm'
+            "image-input-container",
+            "absolute inset-0 flex justify-center items-center cursor-pointer",
+            "rounded-lg",
+            "group-hover:bg-base-content/20 group-hover:backdrop-blur-sm",
+            "max-md:bg-base-content/20 max-md:backdrop-blur-sm"
           )
         end
 
         def icon_wrapper_classes
           class_names(
-            'hidden',
-            'group-hover:flex max-md:flex'
+            "hidden",
+            "group-hover:flex max-md:flex"
           )
         end
 
         def input_options
           opts = options.dup
           opts[:accept] = accepted_formats
-          opts[:class] = class_names('hidden', options[:class])
+          opts[:class] = class_names("hidden", options[:class])
           prepend_data_attribute(
-            prepend_action(opts, 'change->image-field#show'),
-            'image-field-target',
-            'input'
+            prepend_action(opts, "change->image-field#show"),
+            "image-field-target",
+            "input"
           )
         end
 
         def accepted_formats
-          formats.map { |f| ".#{f}" }.join(', ')
+          formats.map { |f| ".#{f}" }.join(", ")
         end
 
         # Use raw Rails file_field to avoid Bali::FormBuilder's custom wrapper

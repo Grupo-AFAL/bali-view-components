@@ -1,0 +1,265 @@
+#!/bin/bash
+# bin/docker-claude
+# Helper script for running Claude Code in Docker with proper TTY support
+#
+# Uses Docker Sandbox for interactive sessions (proper TTY handling)
+# Uses docker-compose for PostgreSQL database
+#
+# Usage:
+#   bin/docker-claude up         # Start postgres in background
+#   bin/docker-claude sandbox    # Run Claude (resumes existing sandbox, or creates new)
+#   bin/docker-claude autonomous # Run autonomous mode unattended
+#   bin/docker-claude down       # Stop services, preserve sandbox state for next run
+#   bin/docker-claude reset      # Remove sandbox + stop all services (fresh start)
+#   bin/docker-claude logs       # View postgres logs
+#   bin/docker-claude status     # Check service status
+#   bin/docker-claude build      # Rebuild sandbox template
+
+set -e
+
+COMPOSE_FILE="docker/docker-compose.claude.yml"
+SANDBOX_TEMPLATE="bali-view-components-claude:v1"
+SANDBOX_BASE="dev-sandbox-ruby:latest"
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SANDBOX_NAME="claude-$(basename "$PROJECT_DIR")"
+# Override the autonomous prompt via AUTONOMOUS_PROMPT env var
+AUTONOMOUS_PROMPT="${AUTONOMOUS_PROMPT:-/omc-rails-autopilot: next}"
+
+cd "$PROJECT_DIR"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+info()  { echo -e "${GREEN}==>${NC} $1"; }
+warn()  { echo -e "${YELLOW}Warning:${NC} $1"; }
+error() { echo -e "${RED}Error:${NC} $1" >&2; exit 1; }
+
+# Write .sandbox-env file with host environment variables for the sandbox.
+# The base image's /etc/profile.d/00-sandbox-env.sh sources and deletes this file on login.
+# Written fresh on every sandbox start (including resume) so tokens stay current.
+write_sandbox_env() {
+  local env_file="$PROJECT_DIR/.sandbox-env"
+  rm -f "$env_file"
+
+  [ -n "$GH_TOKEN" ] && echo "GH_TOKEN=$GH_TOKEN" >> "$env_file"
+  [ -n "$ANTHROPIC_API_KEY" ] && echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" >> "$env_file"
+
+  # Add other env vars to forward here:
+  # [ -n "$SOME_VAR" ] && echo "SOME_VAR=$SOME_VAR" >> "$env_file"
+
+  if [ -f "$env_file" ]; then
+    chmod 600 "$env_file"
+    info "Environment forwarded via .sandbox-env"
+  fi
+}
+
+# Remove .sandbox-env on exit (safety net — container also deletes it after reading)
+cleanup_env() {
+  rm -f "$PROJECT_DIR/.sandbox-env"
+}
+trap cleanup_env EXIT
+
+# Check if postgres is running and healthy
+postgres_ready() {
+  docker compose -f "$COMPOSE_FILE" exec -T postgres pg_isready -U developer >/dev/null 2>&1
+}
+
+# Start postgres if not running
+ensure_postgres() {
+  if ! postgres_ready; then
+    info "Starting PostgreSQL..."
+    docker compose -f "$COMPOSE_FILE" up -d postgres
+
+    info "Waiting for PostgreSQL to be ready..."
+    local max_attempts=30
+    local attempt=1
+    while [ $attempt -le $max_attempts ]; do
+      if postgres_ready; then
+        info "PostgreSQL is ready"
+        return 0
+      fi
+      echo -n "."
+      sleep 1
+      attempt=$((attempt + 1))
+    done
+    error "PostgreSQL failed to start after ${max_attempts}s"
+  fi
+}
+
+# Check if sandbox template exists
+template_exists() {
+  docker image inspect "$SANDBOX_TEMPLATE" >/dev/null 2>&1
+}
+
+# Check if our named sandbox already exists (running or stopped)
+sandbox_exists() {
+  docker sandbox ls --json 2>/dev/null | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+for vm in data.get('vms', []):
+    if vm.get('name') == '$SANDBOX_NAME':
+        print('exists')
+        break
+" 2>/dev/null | grep -q 'exists'
+}
+
+# Allow package registries through the sandbox proxy (deny-by-default)
+configure_sandbox_proxy() {
+  docker sandbox network proxy "$SANDBOX_NAME" \
+    --allow-host rubygems.org \
+    --allow-host index.rubygems.org \
+    --allow-host api.rubygems.org \
+    --allow-host codeload.github.com \
+    --allow-host api.github.com \
+    --allow-host registry.yarnpkg.com \
+    --allow-host registry.npmjs.org >/dev/null 2>&1 || true
+}
+
+case "${1:-help}" in
+  up)
+    ensure_postgres
+    info "PostgreSQL is running"
+    echo ""
+    echo "Next steps:"
+    echo "  bin/docker-claude sandbox    # Run Claude interactively"
+    echo "  bin/docker-claude autonomous # Run autonomous mode"
+    ;;
+
+  sandbox)
+    ensure_postgres
+    write_sandbox_env
+
+    if sandbox_exists; then
+      info "Resuming existing sandbox: $SANDBOX_NAME"
+      configure_sandbox_proxy
+      docker sandbox run "$SANDBOX_NAME"
+    else
+      if ! template_exists; then
+        error "Sandbox template '$SANDBOX_TEMPLATE' not found. Run: bin/docker-claude build"
+      fi
+      info "Creating new sandbox: $SANDBOX_NAME"
+      echo "  Workspace: $PROJECT_DIR"
+      echo "  Template:  $SANDBOX_TEMPLATE"
+      echo ""
+      docker sandbox create \
+        -t "$SANDBOX_TEMPLATE" \
+        --name "$SANDBOX_NAME" \
+        claude "$PROJECT_DIR"
+      configure_sandbox_proxy
+      docker sandbox run "$SANDBOX_NAME"
+    fi
+    ;;
+
+  autonomous)
+    ensure_postgres
+    write_sandbox_env
+
+    if sandbox_exists; then
+      info "Resuming sandbox in autonomous mode: $SANDBOX_NAME"
+      configure_sandbox_proxy
+      docker sandbox run "$SANDBOX_NAME" \
+        -- -p "$AUTONOMOUS_PROMPT" --dangerously-skip-permissions
+    else
+      if ! template_exists; then
+        error "Sandbox template '$SANDBOX_TEMPLATE' not found. Run: bin/docker-claude build"
+      fi
+      info "Running autonomous mode..."
+      docker sandbox create \
+        -t "$SANDBOX_TEMPLATE" \
+        --name "$SANDBOX_NAME" \
+        claude "$PROJECT_DIR"
+      configure_sandbox_proxy
+      docker sandbox run "$SANDBOX_NAME" \
+        -- -p "$AUTONOMOUS_PROMPT" --dangerously-skip-permissions
+    fi
+    ;;
+
+  down)
+    info "Stopping services (sandbox state preserved)..."
+    if sandbox_exists; then
+      docker sandbox stop "$SANDBOX_NAME" >/dev/null 2>&1 || true
+    fi
+    docker compose -f "$COMPOSE_FILE" down
+    info "Stopped. Run 'bin/docker-claude sandbox' to resume."
+    ;;
+
+  reset)
+    info "Removing sandbox and stopping all services..."
+    if sandbox_exists; then
+      docker sandbox rm "$SANDBOX_NAME" >/dev/null 2>&1 || true
+      info "Sandbox removed"
+    fi
+    docker compose -f "$COMPOSE_FILE" down
+    info "Reset complete. Run 'bin/docker-claude sandbox' to start fresh."
+    ;;
+
+  logs)
+    shift || true
+    docker compose -f "$COMPOSE_FILE" logs "$@"
+    ;;
+
+  status)
+    info "PostgreSQL status:"
+    docker compose -f "$COMPOSE_FILE" ps postgres
+    echo ""
+    info "Sandbox status:"
+    docker sandbox ls 2>/dev/null || echo "No sandbox running"
+    ;;
+
+  build)
+    # Build the shared base image(s) from sibling repo (local-only, no GHCR)
+    BASE_REPO="${DEVSANDBOX:-$(cd "$PROJECT_DIR/.." && pwd)/dev-sandbox}"
+    if [ -f "$BASE_REPO/Dockerfile" ]; then
+      info "Building base image(s) from $BASE_REPO..."
+      docker build --pull --build-arg CACHE_BUST=$(date +%s) -t dev-sandbox-ruby:latest "$BASE_REPO"
+      # JRuby: build the jruby layer on top of the ruby base
+      [ "$SANDBOX_BASE" = "dev-sandbox-jruby:latest" ] && \
+        docker build -t dev-sandbox-jruby:latest -f "$BASE_REPO/Dockerfile.jruby" "$BASE_REPO"
+    else
+      warn "dev-sandbox repo not found at $BASE_REPO"
+      echo "  Set DEVSANDBOX=/path/to/dev-sandbox or clone it as a sibling directory"
+      if ! docker image inspect "$SANDBOX_BASE" >/dev/null 2>&1; then
+        error "No local $SANDBOX_BASE image found. Cannot continue."
+      fi
+      warn "Using existing local $SANDBOX_BASE image"
+    fi
+
+    info "Building sandbox template..."
+    docker build -t "$SANDBOX_TEMPLATE" -f docker/Dockerfile.sandbox .
+    info "Build complete: $SANDBOX_TEMPLATE"
+    ;;
+
+  help|--help|-h|*)
+    echo "Docker Claude Helper - Run Claude Code in Docker sandbox"
+    echo ""
+    echo "Usage: bin/docker-claude <command>"
+    echo ""
+    echo "Commands:"
+    echo "  up         Start PostgreSQL in background"
+    echo "  sandbox    Run Claude (resumes existing sandbox, or creates new)"
+    echo "  autonomous Run autonomous mode (resumes existing sandbox, or creates new)"
+    echo "  down       Stop services, preserve sandbox state for next run"
+    echo "  reset      Remove sandbox + stop all services (fresh start)"
+    echo "  logs       View PostgreSQL logs (pass -f to follow)"
+    echo "  status     Check PostgreSQL and sandbox status"
+    echo "  build      Build/rebuild the sandbox template"
+    echo ""
+    echo "Environment variables:"
+    echo "  GH_TOKEN           GitHub personal access token (required for git push)"
+    echo "                     Generate at: https://github.com/settings/tokens (classic, 'repo' scope)"
+    echo "  ANTHROPIC_API_KEY  Anthropic API key (forwarded into sandbox automatically)"
+    echo "  AUTONOMOUS_PROMPT  Override the autonomous mode prompt"
+    echo ""
+    echo "First time setup:"
+    echo "  bin/docker-claude build   # Build the sandbox template"
+    echo "  bin/docker-claude up      # Start PostgreSQL"
+    echo "  bin/docker-claude sandbox # Run Claude interactively"
+    echo ""
+    echo "Autonomous mode:"
+    echo "  export GH_TOKEN=ghp_your_token"
+    echo "  bin/docker-claude autonomous"
+    ;;
+esac

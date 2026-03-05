@@ -1,0 +1,89 @@
+import * as esbuild from 'esbuild'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// Bali gem is 2 levels up from spec/dummy
+const baliGemPath = path.resolve(__dirname, '../..')
+
+// Plugin: resolve bare specifiers from gem source via dummy app's node_modules.
+// When Bali's JS source (at ../../app/) imports packages like '@blocknote/core/extensions',
+// esbuild can't find them because the gem has no node_modules. This plugin intercepts
+// those and re-resolves from the dummy app's directory instead.
+const resolveGemImports = {
+  name: 'resolve-gem-imports',
+  setup (build) {
+    build.onResolve({ filter: /.*/ }, async (args) => {
+      // Prevent infinite recursion
+      if (args.pluginData?.resolvedFromDummy) return null
+
+      // Only intercept bare specifiers (not relative/absolute paths)
+      if (args.path.startsWith('.') || args.path.startsWith('/')) return null
+
+      // Skip bali paths — handled by aliases
+      if (args.path.startsWith('bali')) return null
+
+      // Only intercept imports originating from gem source (not node_modules)
+      if (!args.resolveDir.startsWith(baliGemPath)) return null
+      if (args.resolveDir.includes('node_modules')) return null
+
+      // Re-resolve from the dummy app directory
+      const result = await build.resolve(args.path, {
+        resolveDir: __dirname,
+        kind: args.kind,
+        pluginData: { resolvedFromDummy: true }
+      })
+
+      if (result.errors.length > 0) return null
+      return result
+    })
+  }
+}
+
+const config = {
+  entryPoints: ['app/javascript/application.js'],
+  bundle: true,
+  sourcemap: true,
+  format: 'esm',
+  outdir: path.join(__dirname, 'app/assets/builds'),
+  publicPath: '/assets',
+  target: ['es2022', 'chrome100', 'firefox100', 'safari15'],
+  jsx: 'automatic',
+  // Enable "style" condition for packages that export CSS via conditions
+  conditions: ['style'],
+  plugins: [resolveGemImports],
+  alias: {
+    // Bali entry points - resolve to local gem source
+    bali: path.join(baliGemPath, 'app/frontend/bali'),
+    'bali/charts': path.join(baliGemPath, 'app/frontend/bali/charts.js'),
+    'bali/gantt': path.join(baliGemPath, 'app/frontend/bali/gantt.js'),
+    'bali/block-editor': path.join(baliGemPath, 'app/frontend/bali/block-editor.js'),
+    'bali/rich-text-editor': path.join(baliGemPath, 'app/frontend/bali/rich-text-editor.js'),
+    // Force a single React instance — @blocknote/xl-ai bundles react 19 as a
+    // direct dependency which creates a duplicate nested copy. Without these
+    // aliases, hooks and context break at runtime ("invalid hook call").
+    react: path.join(__dirname, 'node_modules/react'),
+    'react-dom': path.join(__dirname, 'node_modules/react-dom'),
+    'react/jsx-runtime': path.join(__dirname, 'node_modules/react/jsx-runtime'),
+    'react/jsx-dev-runtime': path.join(__dirname, 'node_modules/react/jsx-dev-runtime')
+  },
+  loader: {
+    // Inline fonts as data URIs — Propshaft's digest-based path resolution
+    // misinterprets esbuild's content hash as its own digest, stripping it and
+    // returning 404 for the mangled path. Data URIs bypass this entirely.
+    '.woff': 'dataurl',
+    '.woff2': 'dataurl',
+    '.ttf': 'dataurl',
+    '.eot': 'dataurl'
+  }
+}
+
+if (process.argv.includes('--watch')) {
+  const ctx = await esbuild.context(config)
+  await ctx.watch()
+  console.log('esbuild: watching for changes...')
+} else {
+  await esbuild.build(config)
+  console.log('esbuild: build complete')
+}

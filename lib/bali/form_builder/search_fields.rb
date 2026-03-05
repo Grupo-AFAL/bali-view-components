@@ -3,13 +3,13 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module SearchFields
-      DEFAULT_BUTTON_CLASSES = 'btn btn-neutral'
+      DEFAULT_BUTTON_CLASSES = "btn btn-neutral"
 
       def search_field_group(method, options = {})
         addon_class = options.delete(:addon_class) || DEFAULT_BUTTON_CLASSES
 
         options.with_defaults!(
-          placeholder: I18n.t('bali.form_builder.search.placeholder'),
+          placeholder: I18n.t("bali.form_builder.search.placeholder"),
           addon_right: search_addon(addon_class)
         )
 
@@ -22,8 +22,8 @@ module Bali
 
       def search_addon(button_class)
         tag.button(
-          @template.render(Bali::Icon::Component.new('search')),
-          type: 'submit',
+          @template.render(Bali::Icon::Component.new("search")),
+          type: "submit",
           class: button_class
         )
       end

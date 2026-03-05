@@ -6,7 +6,7 @@
   <%= render Bali::SideMenu::Component.new(
     current_path: request.path,
     fixed: true,
-    collapsable: true,
+    collapsible: true,
     brand: 'ACME'
   ) do |sidebar| %>
     <%# Menu Switcher - switch between application modules %>
@@ -89,7 +89,7 @@
   <%# Main Content Area %>
   <main class="side-menu-main-content flex-1 p-6">
     <%# Page Header %>
-    <%= render Bali::PageHeader::Component.new(class: 'mb-6') do |header| %>
+    <%= render Bali::PageHeader::Component.new do |header| %>
       <% header.with_title { 'Admin Dashboard' } %>
       <% header.with_subtitle { 'Welcome back! Here\'s what\'s happening today.' } %>
 
@@ -100,7 +100,7 @@
     <% end %>
 
     <%# Stats Row %>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, cols_lg: 4, gap: :xl, class: 'mb-8') do %>
       <%= render Bali::StatCard::Component.new(
         title: 'Total Revenue',
         value: '$45,231.89',
@@ -129,12 +129,12 @@
         change_direction: :up,
         icon: 'activity'
       ) %>
-    </div>
+    <% end %>
 
     <%# Content Cards %>
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <%= render Bali::Columns::Component.new(gap: :xl) do |c| %>
       <%# Recent Orders %>
-      <%= render Bali::Card::Component.new(style: :bordered, class: 'lg:col-span-2') do %>
+      <% c.with_column(lg: :two_thirds) do %>
         <h3 class="card-title text-lg mb-4">Recent Orders</h3>
         <%= render Bali::Table::Component.new do |table| %>
           <% table.with_header(name: 'Order') %>
@@ -168,8 +168,10 @@
           <% end %>
         <% end %>
       <% end %>
+      <% end %>
 
       <%# Recent Activity %>
+      <% c.with_column(lg: :one_third) do %>
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <h3 class="card-title text-lg mb-4">Recent Activity</h3>
         <%= render Bali::Timeline::Component.new(position: :left) do |timeline| %>
@@ -206,7 +208,8 @@
           <% end %>
         <% end %>
       <% end %>
-    </div>
+      <% end %>
+    <% end %>
 
     <%# Info about this example %>
     <div class="mt-8">
@@ -217,7 +220,7 @@
             <strong>SideMenu Features Demonstrated:</strong>
             <ul class="mt-2 space-y-1 text-sm">
               <li><strong>fixed: true</strong> - Sidebar is fixed to viewport</li>
-              <li><strong>collapsable: true</strong> - Click the toggle to collapse to icon-only mode</li>
+              <li><strong>collapsible: true</strong> - Click the toggle to collapse to icon-only mode</li>
               <li><strong>brand: 'ACME'</strong> - Brand name shown in header when expanded</li>
               <li><strong>with_menu_switch</strong> - Dropdown at top to switch between app modules</li>
               <li><strong>Nested with_item</strong> - Expandable sub-menus for Products, Orders, etc.</li>

@@ -6,7 +6,7 @@ module Bali
       class Component < ApplicationViewComponent
         DEFAULT_TAG = :a
 
-        def initialize(tag_name: DEFAULT_TAG, name: '', **options)
+        def initialize(tag_name: DEFAULT_TAG, name: "", **options)
           @tag_name = tag_name
           @name = name
           @options = options

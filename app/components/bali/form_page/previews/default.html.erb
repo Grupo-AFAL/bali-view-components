@@ -1,0 +1,40 @@
+<%= render Bali::FormPage::Component.new(
+  title: "New Movie",
+  breadcrumbs: [
+    { name: "Dashboard", href: "/admin", icon_name: "home" },
+    { name: "Movies", href: "/admin/movies" },
+    { name: "New" }
+  ],
+  back: { href: "/admin/movies" }
+) do |page| %>
+  <% page.with_body do %>
+    <div class="card-body space-y-4">
+      <div class="form-control">
+        <label class="label"><span class="label-text">Title</span></label>
+        <input type="text" placeholder="Enter movie title" class="input input-bordered w-full" />
+      </div>
+      <div class="form-control">
+        <label class="label"><span class="label-text">Genre</span></label>
+        <select class="select select-bordered w-full">
+          <option disabled selected>Select genre</option>
+          <option>Action</option>
+          <option>Comedy</option>
+          <option>Drama</option>
+          <option>Sci-Fi</option>
+        </select>
+      </div>
+      <div class="form-control">
+        <label class="label"><span class="label-text">Description</span></label>
+        <textarea class="textarea textarea-bordered h-24" placeholder="Movie description..."></textarea>
+      </div>
+      <div class="form-control">
+        <label class="label"><span class="label-text">Release Date</span></label>
+        <input type="date" class="input input-bordered w-full" />
+      </div>
+      <div class="flex justify-end gap-2 pt-4">
+        <%= render Bali::Link::Component.new(name: "Cancel", href: "/admin/movies", type: :ghost) %>
+        <%= render Bali::Button::Component.new(name: "Create Movie", variant: :primary, type: :submit) %>
+      </div>
+    </div>
+  <% end %>
+<% end %>

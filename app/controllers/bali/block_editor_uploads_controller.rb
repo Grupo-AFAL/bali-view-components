@@ -4,21 +4,21 @@ module Bali
   class BlockEditorUploadsController < ApplicationController
     ALLOWED_CONTENT_TYPES = [
       # Images
-      'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+      "image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml",
       # Video
-      'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime',
+      "video/mp4", "video/webm", "video/ogg", "video/quicktime",
       # Audio
-      'audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/x-wav', 'audio/webm', 'audio/aac', 'audio/mp4',
+      "audio/mpeg", "audio/ogg", "audio/wav", "audio/x-wav", "audio/webm", "audio/aac", "audio/mp4",
       # Documents
-      'application/pdf',
-      'text/plain', 'text/markdown', 'text/csv',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-powerpoint',
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      'application/zip'
+      "application/pdf",
+      "text/plain", "text/markdown", "text/csv",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-powerpoint",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "application/zip"
     ].freeze
 
     BLOCKED_EXTENSIONS = %w[
@@ -34,9 +34,9 @@ module Bali
 
       if Bali.block_editor_upload_handler
         url = Bali.block_editor_upload_handler.call(file, self)
-        raise UploadError, 'Upload handler returned no URL' if url.blank?
-        unless url.is_a?(String) && (url.start_with?('/') || url.match?(%r{\Ahttps?://}i))
-          raise UploadError, 'Upload handler returned an invalid URL'
+        raise UploadError, "Upload handler returned no URL" if url.blank?
+        unless url.is_a?(String) && (url.start_with?("/") || url.match?(%r{\Ahttps?://}i))
+          raise UploadError, "Upload handler returned an invalid URL"
         end
 
         render json: { url: url }
@@ -50,21 +50,21 @@ module Bali
         url = main_app.rails_blob_path(blob, disposition: :inline)
         render json: { url: url }
       else
-        render json: { error: 'File uploads are not available' },
-               status: :unprocessable_entity
+        render json: { error: "File uploads are not available" },
+               status: :unprocessable_content
       end
     rescue ActionController::ParameterMissing
-      render json: { error: 'No file provided' }, status: :unprocessable_entity
+      render json: { error: "No file provided" }, status: :unprocessable_content
     rescue UploadError => e
-      render json: { error: e.message }, status: :unprocessable_entity
+      render json: { error: e.message }, status: :unprocessable_content
     rescue NotAuthorizedError
-      render json: { error: 'Not authorized' }, status: :forbidden
+      render json: { error: "Not authorized" }, status: :forbidden
     end
-
-    private
 
     class UploadError < StandardError; end
     class NotAuthorizedError < StandardError; end
+
+    private
 
     def authorize_upload!
       return unless Bali.block_editor_upload_authorize
@@ -79,10 +79,10 @@ module Bali
       # Use magic-byte detection via Marcel (bundled with Active Storage) when available,
       # falling back to client-declared content_type
       detected_type = if defined?(Marcel)
-                        Marcel::MimeType.for(file.tempfile, name: file.original_filename)
-                      else
-                        file.content_type
-                      end
+        Marcel::MimeType.for(file.tempfile, name: file.original_filename)
+      else
+        file.content_type
+      end
 
       unless allowed.include?(detected_type)
         raise UploadError, "File type '#{detected_type}' is not allowed"

@@ -1,0 +1,13 @@
+<div class="index-page-component">
+  <%= render_breadcrumbs %>
+
+  <%= render Bali::PageHeader::Component.new(title: title, subtitle: subtitle, class: breadcrumb_spacer_class) do |header| %>
+    <%= render_actions_bar %>
+  <% end %>
+
+  <% if body? %>
+    <div class="mt-6">
+      <%= body %>
+    </div>
+  <% end %>
+</div>

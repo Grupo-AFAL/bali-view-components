@@ -5,8 +5,8 @@ module Bali
     module Arrows
       class Component < ApplicationViewComponent
         ICONS = {
-          previous: 'arrow-left',
-          next: 'arrow-right'
+          previous: "arrow-left",
+          next: "arrow-right"
         }.freeze
 
         def initialize(hidden: false, previous_icon: nil, next_icon: nil, **options)
@@ -26,13 +26,13 @@ module Bali
 
         def component_classes
           class_names(
-            'glide__arrows',
+            "glide__arrows",
             @options[:class]
           )
         end
 
         def component_data
-          { 'glide-el' => 'controls' }.merge(@options[:data] || {})
+          { "glide-el" => "controls" }.merge(@options[:data] || {})
         end
 
         def html_options

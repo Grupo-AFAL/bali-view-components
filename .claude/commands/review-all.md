@@ -234,7 +234,7 @@ Batch 1 complete: 5 passed, 1 partial
 ## Files Updated
 
 - MIGRATION_STATUS.md - Updated review status
-- 26 commits pushed to origin/tailwind-migration
+- 26 commits pushed to origin/HEAD
 
 ## Next Steps
 

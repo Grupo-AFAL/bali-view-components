@@ -7,9 +7,9 @@ module Bali
         renders_one :counter
 
         SPACINGS = {
-          tight: '-space-x-4',
-          normal: '-space-x-6',
-          loose: '-space-x-8'
+          tight: "-space-x-4",
+          normal: "-space-x-6",
+          loose: "-space-x-8"
         }.freeze
 
         def initialize(spacing: :normal, size: :sm, **options)
@@ -25,7 +25,7 @@ module Bali
 
         def group_classes
           class_names(
-            'avatar-group',
+            "avatar-group",
             SPACINGS[@spacing] || SPACINGS[:normal],
             @options[:class]
           )
@@ -33,16 +33,16 @@ module Bali
 
         def counter_classes
           class_names(
-            'avatar',
-            'avatar-placeholder'
+            "avatar",
+            "avatar-placeholder"
           )
         end
 
         def counter_inner_classes
           class_names(
-            'bg-neutral',
-            'text-neutral-content',
-            Bali::Avatar::Component::SIZES.fetch(@size, 'w-12')
+            "bg-neutral",
+            "text-neutral-content",
+            Bali::Avatar::Component::SIZES.fetch(@size, "w-12")
           )
         end
       end

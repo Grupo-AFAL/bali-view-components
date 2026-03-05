@@ -64,9 +64,9 @@ module Bali
         def value_label(value, attr_config)
           # Handle boolean type
           if attr_config[:type].to_sym == :boolean
-            return value.to_s == 'true' ? I18n.t('bali.filters.yes',
-                                                 default: 'Yes') : I18n.t(
-                                                   'bali.filters.no', default: 'No'
+            return value.to_s == "true" ? I18n.t("bali.filters.yes",
+                                                 default: "Yes") : I18n.t(
+                                                   "bali.filters.no", default: "No"
                                                  )
           end
 
@@ -75,7 +75,7 @@ module Bali
           # Handle array values (for "is any of" operators)
           if value.is_a?(Array)
             labels = value.map { |v| find_option_label(v, attr_config[:options]) }
-            return labels.join(', ')
+            return labels.join(", ")
           end
 
           find_option_label(value, attr_config[:options])

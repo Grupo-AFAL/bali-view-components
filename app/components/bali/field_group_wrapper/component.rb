@@ -4,9 +4,9 @@ module Bali
   module FieldGroupWrapper
     class Component < ApplicationViewComponent
       # DaisyUI 5 uses fieldset pattern for form groups
-      BASE_CLASSES = 'fieldset w-full'
-      LEGEND_CLASSES = 'fieldset-legend'
-      LEGEND_TEXT_CLASSES = 'flex items-center gap-2'
+      BASE_CLASSES = "fieldset w-full"
+      LEGEND_CLASSES = "fieldset-legend"
+      LEGEND_TEXT_CLASSES = "flex items-center gap-2"
 
       def initialize(form, method, options = {})
         @form = form
@@ -20,7 +20,7 @@ module Bali
 
       def call
         tag.fieldset(id: field_id, class: wrapper_classes, data: @field_data) do
-          safe_join([legend_html, content].compact)
+          safe_join([ legend_html, content ].compact)
         end
       end
 
@@ -52,7 +52,7 @@ module Bali
         tag.legend(class: legend_classes) do
           tag.span(class: LEGEND_TEXT_CLASSES) do
             label_text = @label_options[:text] || @form.translate_attribute(@method)
-            safe_join([label_text, tooltip_icon])
+            safe_join([ label_text, tooltip_icon ])
           end
         end
       end
@@ -60,7 +60,7 @@ module Bali
       def tooltip_icon
         render(Bali::Tooltip::Component.new) do |tooltip|
           tooltip.with_trigger do
-            render(Bali::Icon::Component.new('info-circle', class: 'size-4 text-base-content/60'))
+            render(Bali::Icon::Component.new("info-circle", class: "size-4 text-base-content/60"))
           end
           @label_options[:tooltip]
         end
@@ -71,7 +71,7 @@ module Bali
       end
 
       def hidden_field?
-        @type.to_s == 'hidden'
+        @type.to_s == "hidden"
       end
 
       def label_disabled?

@@ -4,7 +4,7 @@ module Bali
   module Level
     module Side
       class Component < ApplicationViewComponent
-        BASE_CLASSES = 'flex items-center gap-4 shrink'
+        BASE_CLASSES = "flex items-center gap-4 shrink"
 
         renders_many :items, Item::Component
 

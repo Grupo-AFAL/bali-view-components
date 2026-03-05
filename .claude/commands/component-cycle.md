@@ -14,61 +14,6 @@ Where `$ARGUMENTS` is:
 - `--auto-commit` - Commit after successful cycle
 - `--strict` - Fail on any warning, not just errors
 
-## CRITICAL: Migration Log (MUST DO)
-
-**At the START of every cycle**, read the migration log to understand context:
-```bash
-cat .claude/migration-log.md
-```
-
-**At the END of every cycle**, append an entry to the log:
-```bash
-# Use the Write tool to append to .claude/migration-log.md
-```
-
-### Log Entry Format (append after each cycle):
-
-```markdown
----
-
-## [ComponentName] - [YYYY-MM-DD HH:MM]
-
-**Status**: SUCCESS | PARTIAL | BLOCKED
-**Iterations**: X of N
-**UX Score**: X/10
-
-### Issues Found
-- [Severity] Issue description
-
-### Fixes Applied
-- Description of fix
-- Files modified: `path/to/file.rb`
-
-### Class Mappings
-| Old (Bulma) | New (Tailwind) |
-|-------------|----------------|
-| `old-class` | `new-class` |
-
-### Tests
-- Added/Modified: X tests
-- Status: All passing / X failures
-
-### Remaining Issues (if any)
-- Issue that couldn't be fixed
-
-### Commit
-`[hash]` Commit message (or "Not committed")
-
-### Next Steps
-- Recommendation for follow-up work
-```
-
-**WHY THIS MATTERS**: The log provides:
-1. Context for future AI sessions about what's been done
-2. Patterns that worked (reusable for similar components)
-3. Track record of migration progress
-4. Quick reference for class mappings
-
 ## Overview
 
 This command orchestrates a complete component improvement cycle:
@@ -131,20 +76,18 @@ Capture:
 - Visual issues
 - JS functionality status
 - Test coverage
-- UX score
 
 ### Phase 2: Fix Loop
 
 For each iteration (max N):
 
 1. **Analyze Issues** - Prioritize by severity:
-   - Critical: Broken functionality, dead classes
+   - Critical: Broken functionality, incorrect classes
    - High: Missing DaisyUI patterns, JS bugs
    - Medium: Missing tests, preview issues
    - Low: Polish, minor UX improvements
 
 2. **Apply Fixes** - Use `/fix-component` patterns:
-   - Map Bulma → Tailwind classes
    - Add missing DaisyUI classes
    - Fix Stimulus controllers
    - Generate missing tests
@@ -243,9 +186,8 @@ When all checks pass:
 5. **Optional Auto-Commit** (if `--auto-commit`):
    ```bash
    git add app/components/bali/[name]/ spec/components/bali/[name]/
-   git commit -m "Fix [ComponentName] - complete Tailwind/DaisyUI migration
+   git commit -m "Fix [ComponentName] - improve component quality
 
-   - Map Bulma classes to Tailwind equivalents
    - Add proper DaisyUI semantic classes
    - Update preview examples
    - Add/update component tests
@@ -295,7 +237,7 @@ This prevents shipping components with poor UX "because we ran out of iterations
 
 ### Iteration 1
 **Issues Found**: 5
-- [Critical] Dead Bulma classes in preview
+- [Critical] Incorrect classes in preview
 - [High] Missing SIZES constant
 - [Medium] No tests
 - [Medium] Preview uses wrong API
@@ -359,7 +301,7 @@ This prevents shipping components with poor UX "because we ran out of iterations
 
 ## Commit (if --auto-commit)
 ```
-[commit hash] Fix Columns - complete Tailwind/DaisyUI migration
+[commit hash] Fix Columns - improve component quality
 ```
 ```
 
@@ -368,7 +310,7 @@ This prevents shipping components with poor UX "because we ran out of iterations
 ```
 User: /component-cycle Columns --max-iterations:3
 
-AI: Starting component improvement cycle for Bali::Columns::Component...
+AI: Starting component quality cycle for Bali::Columns::Component...
 
 ═══════════════════════════════════════════════════════════════
                      ITERATION 1 OF 3
@@ -381,10 +323,10 @@ Running /verify-component Columns...
 ### Issues Found (5)
 | # | Severity | Issue |
 |---|----------|-------|
-| 1 | Critical | Dead Bulma classes: is-half, is-narrow, is-offset-* |
+| 1 | Critical | Incorrect DaisyUI classes in template |
 | 2 | High | No size/offset params in Column component |
 | 3 | Medium | No tests exist |
-| 4 | Medium | Preview uses Bulma API |
+| 4 | Medium | Preview uses incorrect API |
 | 5 | Low | `box` class unstyled |
 
 ## Phase 2: Applying Fixes
@@ -472,7 +414,7 @@ Delegating to frontend-ui-ux-engineer...
 
 Ready to commit? Use --auto-commit or run:
 git add app/components/bali/columns/ spec/components/bali/columns/
-git commit -m "Fix Columns - complete Tailwind/DaisyUI migration"
+git commit -m "Fix Columns - improve component quality"
 ```
 
 ## Troubleshooting

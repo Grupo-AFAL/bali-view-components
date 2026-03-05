@@ -4,16 +4,16 @@ module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module DynamicFields
       # CSS Classes (DaisyUI + Tailwind)
-      HEADER_CLASS = 'flex justify-between items-center'
-      LABEL_WRAPPER_CLASS = 'flex items-center'
-      LABEL_CLASS = 'label'
-      BUTTON_WRAPPER_CLASS = 'flex items-center'
-      DEFAULT_BUTTON_CLASS = 'btn btn-primary'
-      DESTROY_FLAG_CLASS = 'destroy-flag'
+      HEADER_CLASS = "flex justify-between items-center"
+      LABEL_WRAPPER_CLASS = "flex items-center"
+      LABEL_CLASS = "label"
+      BUTTON_WRAPPER_CLASS = "flex items-center"
+      DEFAULT_BUTTON_CLASS = "btn btn-primary"
+      DESTROY_FLAG_CLASS = "destroy-flag"
 
       # Stimulus Controller
-      CONTROLLER_NAME = 'dynamic-fields'
-      CHILD_INDEX_PLACEHOLDER = 'new_record'
+      CONTROLLER_NAME = "dynamic-fields"
+      CHILD_INDEX_PLACEHOLDER = "new_record"
 
       # Field helper to add associated records in a form. Generates a label and link
       # to dynamically add additional associated records.
@@ -34,7 +34,7 @@ module Bali
         header = block ? @template.capture(&block) : default_header_contents(method, options)
 
         tag.div(data: controller_data_attributes(method, singular)) do
-          safe_join([header, container])
+          safe_join([ header, container ])
         end
       end
 
@@ -50,7 +50,7 @@ module Bali
 
         tag.div(class: wrapper_class) do
           tag.a(name, **build_add_link_options(html_options)) +
-            tag.template(fields, data: { "#{CONTROLLER_NAME}-target": 'template' })
+            tag.template(fields, data: { "#{CONTROLLER_NAME}-target": "template" })
         end
       end
 
@@ -68,9 +68,9 @@ module Bali
       private
 
       def build_fields_container(method, singular)
-        container_id = [object.model_name.singular, singular, 'container'].join('_')
+        container_id = [ object.model_name.singular, singular, "container" ].join("_")
 
-        tag.div(id: container_id, data: { "#{CONTROLLER_NAME}-target": 'container' }) do
+        tag.div(id: container_id, data: { "#{CONTROLLER_NAME}-target": "container" }) do
           safe_join(object.send(method).map do |child_object|
             fields_for method, child_object do |nested_builder|
               @template.render "#{singular}_fields", f: nested_builder, object: object
@@ -89,7 +89,7 @@ module Bali
 
       def default_header_contents(method, options)
         label_text = options[:label] || translate_association_label(method)
-        button_text = options[:button_text] || I18n.t('helpers.add.text')
+        button_text = options[:button_text] || I18n.t("helpers.add.text")
         button_class = options[:button_class] || DEFAULT_BUTTON_CLASS
 
         tag.div(class: HEADER_CLASS) do
@@ -107,10 +107,10 @@ module Bali
       def resolve_form_builder
         if object.respond_to?(:original_object)
           form_object = object.original_object
-          [form_object, Bali::FormBuilder.new(form_object.model_name.param_key,
-                                              form_object, @template, {})]
+          [ form_object, Bali::FormBuilder.new(form_object.model_name.param_key,
+                                              form_object, @template, {}) ]
         else
-          [object, self]
+          [ object, self ]
         end
       end
 
@@ -124,13 +124,13 @@ module Bali
 
       def build_add_link_options(html_options)
         prepend_action(
-          html_options.merge(href: '#', data: { "#{CONTROLLER_NAME}-target": 'button' }),
+          html_options.merge(href: "#", data: { "#{CONTROLLER_NAME}-target": "button" }),
           "#{CONTROLLER_NAME}#addFields"
         )
       end
 
       def build_remove_link_options(html_options)
-        prepend_action(html_options.merge(href: '#'), "#{CONTROLLER_NAME}#removeFields")
+        prepend_action(html_options.merge(href: "#"), "#{CONTROLLER_NAME}#removeFields")
       end
     end
   end

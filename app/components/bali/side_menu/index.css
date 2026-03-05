@@ -166,14 +166,39 @@
     @apply justify-center p-2;
   }
 
-  /* Reduce list padding */
-  .space-y-0\.5.px-2\.5 {
+  /* Reduce bottom section padding */
+  .side-menu-bottom-section {
     @apply px-1;
   }
 
   /* Style the collapse toggle like a menu item in collapsed state */
   .collapse-toggle {
     @apply justify-center p-2;
+  }
+
+  /* Bottom group dropdown: open right instead of up when collapsed */
+  .side-menu-bottom-group.dropdown {
+    position: static;
+
+    .dropdown-content {
+      left: var(--bali-side-menu-collapsed-width);
+      bottom: 0;
+      top: auto;
+      right: auto;
+
+      /* Override collapsed-state rules inside the dropdown */
+      .side-menu-expanded {
+        @apply !flex;
+      }
+
+      .side-menu-collapsed {
+        @apply !hidden;
+      }
+
+      .menu-item {
+        @apply justify-start px-2.5 py-2;
+      }
+    }
   }
 }
 

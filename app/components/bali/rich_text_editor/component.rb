@@ -21,16 +21,16 @@ module Bali
         @page_hyperlink_options = options.delete(:page_hyperlink_options) || []
 
         @options = prepend_class_name(options,
-                                      'rich-text-editor-component rich-editor-content input')
-        @options = prepend_controller(@options, 'rich-text-editor')
-        @options = prepend_values(@options, 'rich-text-editor', controller_values)
+                                      "rich-text-editor-component rich-editor-content input")
+        @options = prepend_controller(@options, "rich-text-editor")
+        @options = prepend_values(@options, "rich-text-editor", controller_values)
       end
 
       def controller_values
         {
-          content: @html_content || '',
+          content: @html_content || "",
           editable: @editable,
-          placeholder: @placeholder || 'Start typing...',
+          placeholder: @placeholder || "Start typing...",
           images_url: @images_url
         }
       end

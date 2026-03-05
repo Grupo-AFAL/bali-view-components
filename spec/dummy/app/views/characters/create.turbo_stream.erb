@@ -1,11 +1,11 @@
 <%# Close modal by replacing with empty modal %>
-<%= turbo_stream.replace 'modal-template' do %>
-  <%= render Bali::Modal::Component.new(active: false, id: 'modal-template') %>
+<%= turbo_stream.replace 'main-modal' do %>
+  <%= render Bali::Modal::Component.new(active: false, id: 'main-modal') %>
 <% end %>
 
 <%# Update the characters list %>
 <%= turbo_stream.replace 'characters-list' do %>
-  <%= render partial: 'movies/characters_list', locals: { movie: @movie, characters: @movie.characters.reload } %>
+  <%= render partial: 'movies/characters_list', locals: { movie: @movie, characters: @movie.characters.reload.positioned } %>
 <% end %>
 
 <%# Show success notification %>

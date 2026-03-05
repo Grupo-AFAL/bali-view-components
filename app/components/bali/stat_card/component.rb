@@ -4,13 +4,13 @@ module Bali
   module StatCard
     class Component < ApplicationViewComponent
       COLORS = {
-        primary: { bg: 'bg-primary/10', text: 'text-primary' },
-        secondary: { bg: 'bg-secondary/10', text: 'text-secondary' },
-        accent: { bg: 'bg-accent/10', text: 'text-accent' },
-        success: { bg: 'bg-success/10', text: 'text-success' },
-        warning: { bg: 'bg-warning/10', text: 'text-warning' },
-        error: { bg: 'bg-error/10', text: 'text-error' },
-        info: { bg: 'bg-info/10', text: 'text-info' }
+        primary: { bg: "bg-primary/10", text: "text-primary" },
+        secondary: { bg: "bg-secondary/10", text: "text-secondary" },
+        accent: { bg: "bg-accent/10", text: "text-accent" },
+        success: { bg: "bg-success/10", text: "text-success" },
+        warning: { bg: "bg-warning/10", text: "text-warning" },
+        error: { bg: "bg-error/10", text: "text-error" },
+        info: { bg: "bg-info/10", text: "text-info" }
       }.freeze
 
       renders_one :footer
@@ -28,7 +28,7 @@ module Bali
       end
 
       def icon_container_classes
-        class_names('p-3 rounded-full', icon_bg_class)
+        class_names("p-3 rounded-full", icon_bg_class)
       end
 
       def icon_bg_class

@@ -1,0 +1,206 @@
+<%# Admin Analytics - Showcases: DashboardPage, Chart (line/doughnut/bar), Progress, Heatmap,
+    Table, Tag, Tooltip, Tabs, Notification, List, GanttChart, Clipboard, Loader %>
+
+<%= render Bali::DashboardPage::Component.new(
+  title: t('analytics.title'),
+  subtitle: t('analytics.subtitle')
+) do |page| %>
+  <% page.with_stat(label: t('analytics.total_movies'), value: @stats[:total_movies].to_s, icon: 'film', color: :primary) %>
+  <% page.with_stat(label: t('analytics.total_views'), value: number_with_delimiter(@stats[:total_views]), icon: 'eye', color: :info) %>
+  <% page.with_stat(label: t('analytics.avg_rating'), value: @stats[:avg_rating].to_s, icon: 'star', color: :warning) %>
+  <% page.with_stat(label: t('analytics.completion'), value: "#{@stats[:completion_rate]}%", icon: 'check-circle', color: :success) %>
+
+  <% page.with_body do %>
+    <%# Notifications - different types %>
+    <div class="space-y-2 mb-6">
+      <%= render Bali::Notification::Component.new(type: :info, dismiss: true) do %>
+        <strong>Pro tip:</strong> <%= t('analytics.pro_tip') %>
+      <% end %>
+    </div>
+
+    <%# Tabs - Production overview with different chart types %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <%= render Bali::Tabs::Component.new(style: :lifted) do |tabs| %>
+        <% tabs.with_tab(title: t('analytics.tabs.trend'), active: true) do %>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold mb-2"><%= t('analytics.monthly_trend') %></h3>
+            <p class="text-sm text-base-content/60 mb-4"><%= t('analytics.monthly_trend_desc') %></p>
+            <%= render Bali::Chart::Component.new(
+              type: :line,
+              data: @monthly_production,
+              legend: false,
+              class: 'h-[300px]'
+            ) %>
+          </div>
+        <% end %>
+        <% tabs.with_tab(title: t('analytics.tabs.by_genre')) do %>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold mb-2"><%= t('analytics.genre_distribution') %></h3>
+            <p class="text-sm text-base-content/60 mb-4"><%= t('analytics.genre_distribution_desc') %></p>
+            <%= render Bali::Chart::Component.new(
+              type: :doughnut,
+              data: @movies_by_genre,
+              legend: true,
+              class: 'h-[300px]'
+            ) %>
+          </div>
+        <% end %>
+        <% tabs.with_tab(title: t('analytics.tabs.by_status')) do %>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold mb-2"><%= t('analytics.production_status') %></h3>
+            <p class="text-sm text-base-content/60 mb-4"><%= t('analytics.production_status_desc') %></p>
+            <%= render Bali::Chart::Component.new(
+              type: :bar,
+              data: @movies_by_status,
+              legend: false,
+              class: 'h-[300px]'
+            ) %>
+          </div>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <%# Top Movies and Heatmap Row %>
+    <%= render Bali::Columns::Component.new(cols: 1, cols_xl: 2, gap: :xl, class: 'mt-6') do %>
+      <%# Top Rated Movies with Tooltips %>
+      <%= render Bali::Card::Component.new(style: :bordered) do %>
+        <div class="flex items-center gap-2 mb-4">
+          <h3 class="card-title text-lg"><%= t('analytics.top_rated') %></h3>
+          <%= render Bali::Tooltip::Component.new(text: t('analytics.top_rated_tooltip'), position: :right) do %>
+            <%= render Bali::Icon::Component.new('info', size: :small, class: 'text-base-content/40 cursor-help') %>
+          <% end %>
+        </div>
+        <% if @top_movies.any? %>
+          <%= render Bali::Table::Component.new do |table| %>
+            <% table.with_header(name: t('analytics.columns.rank')) %>
+            <% table.with_header(name: t('analytics.columns.movie')) %>
+            <% table.with_header(name: t('analytics.columns.genre')) %>
+            <% table.with_header(name: t('analytics.columns.rating'), align: :right) %>
+
+            <% @top_movies.each_with_index do |movie, i| %>
+              <% table.with_row do %>
+                <td class="text-base-content/60"><%= i + 1 %></td>
+                <td class="font-medium">
+                  <%= render Bali::Tooltip::Component.new(text: "#{movie.status.humanize} — #{movie.genre}", position: :top) do %>
+                    <%= movie.name %>
+                  <% end %>
+                </td>
+                <td>
+                  <%= render Bali::Tag::Component.new(text: movie.genre, size: :sm, style: :outline) %>
+                </td>
+                <td class="text-right">
+                  <% if movie.rating %>
+                    <div class="flex items-center justify-end gap-1">
+                      <%= render Bali::Icon::Component.new('star', size: :small, class: 'text-warning') %>
+                      <span class="font-medium"><%= movie.rating %></span>
+                    </div>
+                  <% else %>
+                    <span class="text-base-content/40">&mdash;</span>
+                  <% end %>
+                </td>
+              <% end %>
+            <% end %>
+          <% end %>
+        <% else %>
+          <%= render Bali::Message::Component.new(color: :info) do %>
+            <%= t('analytics.no_movies') %>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <%# Activity Heatmap %>
+      <%= render Bali::Card::Component.new(style: :bordered) do %>
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="card-title text-lg"><%= t('analytics.heatmap_title') %></h3>
+          <%= render Bali::Tooltip::Component.new(text: t('analytics.heatmap_tooltip'), position: :left) do %>
+            <%= render Bali::Icon::Component.new('info', size: :small, class: 'text-base-content/40 cursor-help') %>
+          <% end %>
+        </div>
+        <%= render Bali::Heatmap::Component.new(
+          data: @heatmap_data,
+          color: :info
+        ) do |heatmap| %>
+          <% heatmap.with_x_axis_title(t('analytics.heatmap_x_axis')) %>
+          <% heatmap.with_y_axis_title(t('analytics.heatmap_y_axis')) %>
+          <% heatmap.with_legend_title(t('analytics.heatmap_legend')) %>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <%# Genre Distribution with Progress + Clipboard %>
+    <%= render Bali::Columns::Component.new(cols: 1, cols_lg: 2, gap: :xl, class: 'mt-6') do %>
+      <%= render Bali::Card::Component.new(style: :bordered) do %>
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="card-title text-lg"><%= t('analytics.genre_distribution_title') %></h3>
+          <%= render Bali::Clipboard::Component.new(
+            text: @movies_by_genre.map { |g, c| "#{g}: #{c}" }.join("\n"),
+            class: 'btn btn-ghost btn-xs'
+          ) do %>
+            <%= render Bali::Icon::Component.new('copy', size: :small) %>
+            <span class="ml-1"><%= t('analytics.copy') %></span>
+          <% end %>
+        </div>
+        <div class="space-y-4">
+          <% distribution_rows(@movies_by_genre).each do |row| %>
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="text-sm font-medium"><%= row[:label] %></span>
+                <span class="text-sm text-base-content/60"><%= row[:amount] %> (<%= row[:pct] %>%)</span>
+              </div>
+              <%= render Bali::Progress::Component.new(value: row[:pct], max: 100, color: row[:color]) %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <%# Recent Activity List %>
+      <%= render Bali::Card::Component.new(style: :bordered) do %>
+        <h3 class="card-title text-lg mb-4"><%= t('analytics.recent_activity') %></h3>
+        <%= render Bali::List::Component.new do |list| %>
+          <% @top_movies.each do |movie| %>
+            <% list.with_item do %>
+              <div class="flex items-center gap-4 w-full">
+                <%= render Bali::Avatar::Component.new(
+                  name: movie.name,
+                  size: :sm
+                ) %>
+                <div class="flex-1 min-w-0">
+                  <p class="font-medium truncate"><%= movie.name %></p>
+                  <p class="text-sm text-base-content/60">
+                    <%= movie.genre %> &middot; <%= render Bali::Timeago::Component.new(movie.updated_at, add_suffix: true) %>
+                  </p>
+                </div>
+                <%= render Bali::Tag::Component.new(
+                  text: movie.status.humanize,
+                  color: movie.status_color,
+                  size: :sm
+                ) %>
+              </div>
+            <% end %>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <%# Production Timeline - GanttChart %>
+    <div class="mt-6">
+      <%= render Bali::Card::Component.new(style: :bordered) do %>
+        <h3 class="card-title text-lg mb-4"><%= t('analytics.timeline_title') %></h3>
+        <% if @gantt_tasks.any? %>
+          <div class="overflow-x-auto">
+            <%= render Bali::GanttChart::Component.new(
+              tasks: @gantt_tasks,
+              zoom: :week,
+              readonly: true,
+              row_height: 40
+            ) %>
+          </div>
+        <% else %>
+          <%= render Bali::Message::Component.new(color: :info) do %>
+            <%= t('analytics.no_timeline') %>
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

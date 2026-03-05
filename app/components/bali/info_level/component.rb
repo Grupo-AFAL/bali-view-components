@@ -4,13 +4,13 @@ module Bali
   module InfoLevel
     class Component < ApplicationViewComponent
       ALIGNMENTS = {
-        start: 'justify-start',
-        center: 'justify-center',
-        end: 'justify-end',
-        between: 'justify-between'
+        start: "justify-start",
+        center: "justify-center",
+        end: "justify-end",
+        between: "justify-between"
       }.freeze
 
-      BASE_CLASSES = 'info-level-component flex flex-wrap gap-8'
+      BASE_CLASSES = "info-level-component flex flex-wrap gap-8"
 
       renders_many :items, Item::Component
 

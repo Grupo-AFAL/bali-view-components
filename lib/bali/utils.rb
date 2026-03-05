@@ -13,7 +13,7 @@ module Bali
       (conditional_names || {}).each do |key, condition|
         classes.push(key) if condition
       end
-      classes.join(' ').strip
+      classes.join(" ").strip
     end
 
     def custom_dom_id(model)
@@ -24,13 +24,11 @@ module Bali
       return unless params
 
       test_id = case params
-                when ActiveRecord::Base
-                  custom_dom_id(params)
-                when String
-                  params
-                end
+      when ActiveRecord::Base then custom_dom_id(params)
+      when String then params
+      end
 
-      "test-id=\"#{test_id}\"".html_safe
+      tag.attributes("test-id" => test_id)
     end
 
     # The last module parent is always "Object", which means the one before to last

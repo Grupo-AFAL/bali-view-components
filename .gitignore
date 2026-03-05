@@ -22,8 +22,10 @@ yarn-debug.log*
 /spec/dummy/app/assets/builds/
 /spec/dummy/db/*.sqlite3
 /spec/dummy/db/*.sqlite3-*
+/spec/dummy/db/*.sqlite3_*
 /spec/dummy/log/*.log
 /spec/dummy/node_modules/
+/spec/dummy/coverage/
 /spec/dummy/storage/
 /spec/dummy/tmp/
 /spec/dummy/tmp/development_secret.txt
@@ -38,7 +40,7 @@ firebase-debug.log
 test-results/
 
 firebase-debug.log
-.claude/settings.local.json
+.claude/
 
 .mcp.json
 .release-pending.json
@@ -48,3 +50,9 @@ firebase-debug.log
 docs/plans/
 spec/dummy/log/test.log.0
 /screenshots
+
+# AI session memory (local, not committed)
+.ai-sessions/*.md
+
+# Sandbox environment secrets (written by bin/docker-claude, read once by container)
+.sandbox-env

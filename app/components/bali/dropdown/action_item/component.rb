@@ -12,9 +12,9 @@ module Bali
         def initialize(authorized: true, **options)
           @authorized = authorized
           @options = options
-          @options[:type] ||= 'button'
-          @options[:role] ||= 'menuitem'
-          @options = prepend_class_name(@options, 'menu-item w-full text-left')
+          @options[:type] ||= "button"
+          @options[:role] ||= "menuitem"
+          @options = prepend_class_name(@options, "menu-item w-full text-left")
         end
 
         def authorized?

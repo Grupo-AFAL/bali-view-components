@@ -27,9 +27,9 @@ module Bali
       def btn_class
         classes = %w[join-item btn]
         classes << "btn-#{@size}" unless @size == :md
-        classes << 'btn-outline' if @variant == :outline
-        classes << 'btn-ghost' if @variant == :ghost
-        classes.join(' ')
+        classes << "btn-outline" if @variant == :outline
+        classes << "btn-ghost" if @variant == :ghost
+        classes.join(" ")
       end
 
       def btn_active_class
@@ -68,27 +68,27 @@ module Bali
         base = @url || helpers.request.path
         # Build URL with page param
         uri = URI.parse(base)
-        params = Rack::Utils.parse_nested_query(uri.query || '')
-        page_key = @pagy.options[:page_key] || 'page'
+        params = Rack::Utils.parse_nested_query(uri.query || "")
+        page_key = @pagy.options[:page_key] || "page"
         params[page_key] = page
         uri.query = Rack::Utils.build_nested_query(params)
         uri.to_s
       end
 
       def aria_label
-        I18n.t('view_components.bali.pagination.aria_label')
+        I18n.t("view_components.bali.pagination.aria_label")
       end
 
       def prev_aria_label
-        I18n.t('view_components.bali.pagination.previous_page')
+        I18n.t("view_components.bali.pagination.previous_page")
       end
 
       def next_aria_label
-        I18n.t('view_components.bali.pagination.next_page')
+        I18n.t("view_components.bali.pagination.next_page")
       end
 
       def page_aria_label(page)
-        I18n.t('view_components.bali.pagination.page', page: page)
+        I18n.t("view_components.bali.pagination.page", page: page)
       end
     end
   end

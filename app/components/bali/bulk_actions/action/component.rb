@@ -7,15 +7,15 @@ module Bali
         attr_reader :label, :href, :method, :variant
 
         VARIANTS = {
-          primary: 'btn-primary',
-          secondary: 'btn-secondary',
-          accent: 'btn-accent',
-          info: 'btn-info',
-          success: 'btn-success',
-          warning: 'btn-warning',
-          error: 'btn-error',
-          ghost: 'btn-ghost',
-          neutral: 'btn-neutral'
+          primary: "btn-primary",
+          secondary: "btn-secondary",
+          accent: "btn-accent",
+          info: "btn-info",
+          success: "btn-success",
+          warning: "btn-warning",
+          error: "btn-error",
+          ghost: "btn-ghost",
+          neutral: "btn-neutral"
         }.freeze
 
         def initialize(label:, href:, method: :post, variant: :secondary, **options)
@@ -46,13 +46,13 @@ module Bali
             href: href,
             type: variant,
             size: :sm,
-            data: { bulk_actions_target: 'bulkAction' },
+            data: { bulk_actions_target: "bulkAction" },
             **@options
           )
         end
 
         def render_form_action
-          helpers.form_with(url: href, method: method, class: 'contents', **@options) do |form|
+          helpers.form_with(url: href, method: method, class: "contents", **@options) do |form|
             safe_join(
               [
                 form.hidden_field(:selected_ids, value: [], data: bulk_action_data),
@@ -63,11 +63,11 @@ module Bali
         end
 
         def bulk_action_data
-          { bulk_actions_target: 'bulkAction' }
+          { bulk_actions_target: "bulkAction" }
         end
 
         def button_classes
-          class_names('btn btn-sm', VARIANTS[variant])
+          class_names("btn btn-sm", VARIANTS[variant])
         end
       end
     end

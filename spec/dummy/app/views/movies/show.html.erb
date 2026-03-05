@@ -47,9 +47,9 @@
   <%= render Bali::Tabs::Component.new(style: :border) do |tabs| %>
     <%# Details Tab %>
     <% tabs.with_tab(title: 'Details', icon: 'info', active: true) do %>
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-2">
+      <%= render Bali::Columns::Component.new(gap: :xl, class: 'mt-2') do |c| %>
         <%# Main Info - Properties Table %>
-        <div class="lg:col-span-2">
+        <% c.with_column(lg: :two_thirds) do %>
           <%= render Bali::Card::Component.new(style: :bordered) do %>
             <h3 class="card-title text-lg mb-4">Movie Information</h3>
             <%= render Bali::PropertiesTable::Component.new do |table| %>
@@ -66,6 +66,20 @@
               <% table.with_property(label: 'Indie Film') do %>
                 <%= render Bali::BooleanIcon::Component.new(value: @movie.indie) %>
               <% end %>
+              <% if @movie.release_date.present? %>
+                <% table.with_property(label: 'Release Date', value: @movie.release_date.strftime('%B %d, %Y')) %>
+              <% end %>
+              <% if @movie.contact_email.present? %>
+                <% table.with_property(label: 'Contact Email', value: @movie.contact_email) %>
+              <% end %>
+              <% if @movie.website_url.present? %>
+                <% table.with_property(label: 'Website') do %>
+                  <%= render Bali::Link::Component.new(name: @movie.website_url, href: @movie.website_url, target: '_blank') %>
+                <% end %>
+              <% end %>
+              <% if @movie.time_zone.present? %>
+                <% table.with_property(label: 'Time Zone', value: @movie.time_zone) %>
+              <% end %>
               <% table.with_property(label: 'Created') do %>
                 <%= render Bali::Timeago::Component.new(@movie.created_at, add_suffix: true) %>
               <% end %>
@@ -74,14 +88,41 @@
               <% end %>
             <% end %>
 
-            <%# LabelValue Demo - Additional movie info %>
+            <%# LabelValue Demo - Numeric details %>
             <h4 class="font-semibold mt-6 mb-3">Additional Details</h4>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <%= render Bali::LabelValue::Component.new(label: 'Runtime', value: '2h 15m') %>
-              <%= render Bali::LabelValue::Component.new(label: 'Budget', value: '$50M') %>
-              <%= render Bali::LabelValue::Component.new(label: 'Box Office', value: '$150M') %>
-              <%= render Bali::LabelValue::Component.new(label: 'Release Year', value: '2024') %>
-            </div>
+            <%= render Bali::Columns::Component.new(cols: 2, cols_md: 4, gap: :lg) do %>
+              <%= render Bali::LabelValue::Component.new(label: 'Budget', value: @movie.budget.present? ? number_to_currency(@movie.budget) : '—') %>
+              <%= render Bali::LabelValue::Component.new(label: 'Rating', value: @movie.rating.present? ? "#{@movie.rating} / 10" : '—') %>
+              <%= render Bali::LabelValue::Component.new(label: 'Release Date', value: @movie.release_date.present? ? @movie.release_date.strftime('%Y') : '—') %>
+              <%= render Bali::LabelValue::Component.new(label: 'Status', value: @movie.status.humanize) %>
+            <% end %>
+          <% end %>
+
+          <%# Synopsis %>
+          <% if @movie.synopsis.present? %>
+            <%= render Bali::Card::Component.new(style: :bordered, class: 'mt-6') do %>
+              <h3 class="card-title text-lg mb-4">Synopsis</h3>
+              <p class="text-base-content/80 whitespace-pre-wrap"><%= @movie.synopsis %></p>
+            <% end %>
+          <% end %>
+
+          <%# Rich Description (BlockEditor JSON content) %>
+          <% if @movie.rich_description.present? %>
+            <%= render Bali::Card::Component.new(style: :bordered, class: 'mt-6') do %>
+              <h3 class="card-title text-lg mb-4">Rich Description</h3>
+              <%= render Bali::BlockEditor::Component.new(
+                editable: false,
+                initial_content: @movie.rich_description
+              ) %>
+            <% end %>
+          <% end %>
+
+          <%# Poster (ActiveStorage attachment) %>
+          <% if @movie.poster.attached? %>
+            <%= render Bali::Card::Component.new(style: :bordered, class: 'mt-6') do %>
+              <h3 class="card-title text-lg mb-4">Movie Poster</h3>
+              <%= image_tag @movie.poster, class: 'rounded-lg max-w-full h-auto' %>
+            <% end %>
           <% end %>
 
           <%# ImageGrid Demo - Movie Stills Gallery %>
@@ -99,28 +140,28 @@
               <% end %>
             <% end %>
           <% end %>
-        </div>
+        <% end %>
 
         <%# Sidebar - Studio Info & Stats %>
-        <div class="space-y-6">
+        <% c.with_column(lg: :one_third, class: 'space-y-6') do %>
           <%# Studio Card with HoverCard %>
           <%= render Bali::Card::Component.new(style: :bordered) do %>
             <h3 class="card-title text-lg mb-4">Studio</h3>
-            <% if @movie.tenant %>
+            <% if @movie.studio %>
               <div class="flex items-center gap-4">
                 <%= render Bali::Avatar::Component.new(size: :lg) do |avatar| %>
                   <% avatar.with_placeholder do %>
-                    <%= @movie.tenant.name[0..1].upcase %>
+                    <%= @movie.studio.name[0..1].upcase %>
                   <% end %>
                 <% end %>
                 <div>
                   <%# HoverCard Demo - hover to see studio details %>
                   <%= render Bali::HoverCard::Component.new(placement: 'right') do |hc| %>
                     <% hc.with_trigger do %>
-                      <p class="font-semibold cursor-pointer hover:text-primary underline decoration-dotted underline-offset-4"><%= @movie.tenant.name %></p>
+                      <p class="font-semibold cursor-pointer hover:text-primary underline decoration-dotted underline-offset-4"><%= @movie.studio.name %></p>
                     <% end %>
                     <div class="p-2 min-w-[200px]">
-                      <p class="font-bold mb-2"><%= @movie.tenant.name %></p>
+                      <p class="font-bold mb-2"><%= @movie.studio.name %></p>
                       <p class="text-sm text-base-content/70 mb-2">Partner Studio</p>
                       <div class="flex gap-2">
                         <%= render Bali::Tag::Component.new(text: 'Verified', color: :success, size: :xs) %>
@@ -175,8 +216,8 @@
                 ) %>
             </div>
           <% end %>
-        </div>
-      </div>
+        <% end %>
+      <% end %>
     <% end %>
 
     <%# Characters Tab with SortableList %>
@@ -246,13 +287,13 @@
             </p>
           <% end %>
 
-          <% if @movie.tenant %>
+          <% if @movie.studio %>
             <% timeline.with_tag_item(
                 heading: 'Studio Assigned',
                 icon: 'building-2',
                 color: :secondary
               ) do %>
-              <p class="text-sm">Linked to <%= @movie.tenant.name %></p>
+              <p class="text-sm">Linked to <%= @movie.studio.name %></p>
             <% end %>
           <% end %>
         <% end %>
@@ -264,7 +305,7 @@
 <%# Related Movies Section %>
 <div class="mt-8">
   <h3 class="text-lg font-semibold mb-4">Related Movies</h3>
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, cols_lg: 4, gap: :lg) do %>
     <% Movie.where(genre: @movie.genre).where.not(id: @movie.id).limit(4).each do |related| %>
       <%= render Bali::Card::Component.new(style: :bordered, body_class: 'p-4') do %>
         <h4 class="font-medium text-base"><%= related.name %></h4>
@@ -285,6 +326,6 @@
         ) %>
       <% end %>
     <% end %>
-  </div>
+  <% end %>
 </div>
 

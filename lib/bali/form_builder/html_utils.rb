@@ -4,7 +4,7 @@ module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module HtmlUtils
       # Shared class for input addons (currency $, percentage %, etc.)
-      ADDON_CLASSES = 'btn btn-disabled pointer-events-none join-item'
+      ADDON_CLASSES = "btn btn-disabled pointer-events-none join-item"
 
       def field_options(method, options)
         pattern_types = {
@@ -17,23 +17,23 @@ module Bali
         # Add join-item class when addons are present for proper DaisyUI join pattern
         has_addons = options[:addon_left].present? || options[:addon_right].present?
         base_class = if has_addons
-                       'input input-bordered join-item grow'
-                     else
-                       'input input-bordered w-full'
-                     end
+                       "input input-bordered join-item grow"
+        else
+                       "input input-bordered w-full"
+        end
 
         options[:class] = field_class_name(method, "#{base_class} #{options[:class]}")
         options.except(:addon_left, :addon_right)
       end
 
       def textarea_field_options(method, options, stimulus: false)
-        base_class = 'textarea textarea-bordered w-full'
+        base_class = "textarea textarea-bordered w-full"
         options[:class] = field_class_name(method, "#{base_class} #{options[:class]}")
 
         if stimulus
           options[:data] ||= {}
-          options[:data]['textarea-target'] = 'input'
-          options[:data][:action] = 'input->textarea#onInput'
+          options[:data]["textarea-target"] = "input"
+          options[:data][:action] = "input->textarea#onInput"
         end
 
         options
@@ -41,9 +41,9 @@ module Bali
 
       def field_helper(method, field, options = {})
         if errors?(method)
-          help_message = content_tag(:p, full_errors(method), class: 'label-text-alt text-error')
+          help_message = content_tag(:p, full_errors(method), class: "label-text-alt text-error")
         elsif options[:help]
-          help_message = content_tag(:p, options[:help], class: 'label-text-alt')
+          help_message = content_tag(:p, options[:help], class: "label-text-alt")
         end
 
         left_addon = options.delete(:addon_left)
@@ -54,7 +54,7 @@ module Bali
           return field_with_addons(field, left: left_addon, right: right_addon) + help_message
         end
 
-        control_class = ['control', options.delete(:control_class)].compact.join(' ')
+        control_class = [ "control", options.delete(:control_class) ].compact.join(" ")
         wrapped_field = content_tag(
           :div, field, class: control_class, data: options.delete(:control_data)
         )
@@ -62,7 +62,7 @@ module Bali
         wrapped_field + help_message
       end
 
-      def field_class_name(method, class_name = 'input')
+      def field_class_name(method, class_name = "input")
         return class_name unless errors?(method)
 
         "#{class_name} input-error"
@@ -73,9 +73,9 @@ module Bali
       end
 
       def full_errors(method)
-        return '' unless object.respond_to?(:errors)
+        return "" unless object.respond_to?(:errors)
 
-        safe_join(object.errors.full_messages_for(method), ', ')
+        safe_join(object.errors.full_messages_for(method), ", ")
       end
 
       # rubocop:disable Style/OptionalBooleanParameter
@@ -109,8 +109,8 @@ module Bali
       private
 
       def field_with_addons(field, left:, right:)
-        content_tag(:div, class: 'join w-full') do
-          @template.safe_join([left, field, right].compact)
+        content_tag(:div, class: "join w-full") do
+          @template.safe_join([ left, field, right ].compact)
         end
       end
     end

@@ -4,20 +4,20 @@ module Bali
   module Drawer
     class Component < ApplicationViewComponent
       SIZES = {
-        sm: 'max-w-sm',
-        md: 'max-w-lg',
-        lg: 'max-w-2xl',
-        xl: 'max-w-4xl',
-        full: 'max-w-full'
+        sm: "max-w-sm",
+        md: "max-w-lg",
+        lg: "max-w-2xl",
+        xl: "max-w-4xl",
+        full: "max-w-full"
       }.freeze
 
       # Tailwind safelist: group-[.drawer-open]:translate-x-0
       # Tailwind safelist: max-md:group-[.drawer-open]:max-w-[85%]
       POSITIONS = {
-        left: { side: 'left-0', transform: '-translate-x-full',
-                open_class: 'group-[.drawer-open]:translate-x-0' },
-        right: { side: 'right-0', transform: 'translate-x-full',
-                 open_class: 'group-[.drawer-open]:translate-x-0' }
+        left: { side: "left-0", transform: "-translate-x-full",
+                open_class: "group-[.drawer-open]:translate-x-0" },
+        right: { side: "right-0", transform: "translate-x-full",
+                 open_class: "group-[.drawer-open]:translate-x-0" }
       }.freeze
 
       renders_one :header
@@ -43,8 +43,8 @@ module Bali
 
       def drawer_classes
         class_names(
-          'drawer-component group z-[60] fixed',
-          @active && 'drawer-open',
+          "drawer-component group z-[60] fixed",
+          @active && "drawer-open",
           @options[:class]
         )
       end
@@ -53,14 +53,14 @@ module Bali
         position_config = position_settings
 
         class_names(
-          'drawer-panel',
-          'fixed top-0 h-full w-full',
+          "drawer-panel",
+          "fixed top-0 h-full w-full",
           position_config[:side],
           SIZES.fetch(@size, SIZES[:md]),
-          'bg-base-100 shadow-2xl',
-          'transform transition-transform duration-300 ease-in-out',
+          "bg-base-100 shadow-2xl",
+          "transform transition-transform duration-300 ease-in-out",
           position_config[:transform],
-          'overflow-auto z-[9999]'
+          "overflow-auto z-[9999]"
         )
       end
 
@@ -77,7 +77,7 @@ module Bali
       end
 
       def close_button_label
-        t('.close_drawer')
+        t(".close_drawer")
       end
 
       private
@@ -92,8 +92,8 @@ module Bali
         {
           id: drawer_id,
           class: drawer_classes,
-          role: 'dialog',
-          'aria-modal': 'true',
+          role: "dialog",
+          'aria-modal': "true",
           'aria-labelledby': title? ? title_id : nil,
           data: default_data_attributes.merge(options.fetch(:data, {}))
         }.compact
@@ -101,9 +101,9 @@ module Bali
 
       def default_data_attributes
         {
-          controller: 'drawer',
-          drawer_target: 'template',
-          action: 'keydown.esc->drawer#close'
+          controller: "drawer",
+          drawer_target: "template",
+          action: "keydown.esc->drawer#close"
         }
       end
     end

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html data-theme="light">
+  <head>
+    <% content_for(:title) { "#{t('app.name')} Admin" } %>
+    <%= render "layouts/head" %>
+  </head>
+  <%= render Bali::AppLayout::Component.new(fixed_sidebar: true, flash: flash) do |layout| %>
+    <% layout.with_sidebar do %>
+      <%= render 'layouts/admin_sidebar' %>
+    <% end %>
+
+    <% layout.with_body do %>
+      <%= yield %>
+    <% end %>
+  <% end %>
+</html>

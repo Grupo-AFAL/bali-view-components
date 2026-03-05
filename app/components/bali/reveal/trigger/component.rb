@@ -4,9 +4,9 @@ module Bali
   module Reveal
     module Trigger
       class Component < ApplicationViewComponent
-        BASE_CLASSES = 'reveal-trigger flex justify-between items-center pb-6 mb-6'
-        BORDER_CLASSES = 'border-b border-base-content/20'
-        ICON_BASE_CLASSES = 'trigger-icon h-3.5 rotate-[270deg] group-[.is-revealed]:rotate-0'
+        BASE_CLASSES = "reveal-trigger flex justify-between items-center pb-6 mb-6"
+        BORDER_CLASSES = "border-b border-base-content/20"
+        ICON_BASE_CLASSES = "trigger-icon h-3.5 rotate-[270deg] group-[.is-revealed]:rotate-0"
 
         renders_one :title
 
@@ -32,7 +32,7 @@ module Bali
           options
             .except(:class)
             .merge(class: trigger_classes)
-            .tap { |opts| prepend_action(opts, 'click->reveal#toggle') }
+            .tap { |opts| prepend_action(opts, "click->reveal#toggle") }
         end
 
         def icon_classes

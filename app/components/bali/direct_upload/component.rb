@@ -53,7 +53,7 @@ module Bali
       #
       # rubocop:disable Metrics/ParameterLists
       def initialize(form:, method:, multiple: false, max_files: DEFAULT_MAX_FILES,
-                     max_file_size: DEFAULT_MAX_FILE_SIZE_MB, accept: '*', drop_zone: true,
+                     max_file_size: DEFAULT_MAX_FILE_SIZE_MB, accept: "*", drop_zone: true,
                      auto_upload: true, **options)
         @form = form
         @method = method
@@ -93,7 +93,7 @@ module Bali
         if attachment.respond_to?(:each)
           attachment.to_a
         else
-          [attachment]
+          [ attachment ]
         end
       end
 
@@ -110,14 +110,14 @@ module Bali
 
       def container_classes
         class_names(
-          'direct-upload-component',
+          "direct-upload-component",
           options[:class]
         )
       end
 
       def container_data
         {
-          controller: 'direct-upload',
+          controller: "direct-upload",
           direct_upload_url_value: direct_upload_url,
           direct_upload_multiple_value: multiple?,
           direct_upload_max_files_value: max_files,
@@ -153,36 +153,36 @@ module Bali
 
       def input_options
         {
-          type: 'file',
+          type: "file",
           multiple: multiple?,
           accept: accept,
-          class: 'hidden',
+          class: "hidden",
           data: {
-            direct_upload_target: 'input',
-            action: 'direct-upload#selectFiles'
+            direct_upload_target: "input",
+            action: "direct-upload#selectFiles"
           }
         }
       end
 
       def dropzone_classes
         class_names(
-          'border-2 border-dashed border-base-300 rounded-box p-8 text-center',
-          'hover:border-primary hover:bg-base-200/50 transition-colors cursor-pointer',
-          'dropzone-active:border-primary dropzone-active:bg-primary/10'
+          "border-2 border-dashed border-base-300 rounded-box p-8 text-center",
+          "hover:border-primary hover:bg-base-200/50 transition-colors cursor-pointer",
+          "dropzone-active:border-primary dropzone-active:bg-primary/10"
         )
       end
 
       def dropzone_data
         {
-          direct_upload_target: 'dropzone',
+          direct_upload_target: "dropzone",
           action: [
-            'dragenter->direct-upload#dragenter',
-            'dragover->direct-upload#dragover',
-            'dragleave->direct-upload#dragleave',
-            'drop->direct-upload#drop',
-            'click->direct-upload#openFilePicker',
-            'keydown->direct-upload#dropzoneKeydown'
-          ].join(' ')
+            "dragenter->direct-upload#dragenter",
+            "dragover->direct-upload#dragover",
+            "dragleave->direct-upload#dragleave",
+            "drop->direct-upload#drop",
+            "click->direct-upload#openFilePicker",
+            "keydown->direct-upload#dropzoneKeydown"
+          ].join(" ")
         }
       end
     end

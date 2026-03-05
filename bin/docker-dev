@@ -1,0 +1,163 @@
+#!/bin/bash
+# bin/docker-dev
+# Helper script for running Claude Code in Docker Sandbox
+#
+# Usage:
+#   bin/docker-dev build      # Build sandbox template
+#   bin/docker-dev dev        # Run Claude interactively
+#   bin/docker-dev setup      # Install plugins + dependencies inside sandbox
+#   bin/docker-dev autonomous # Run OMC autopilot unattended
+#   bin/docker-dev down       # Stop sandbox
+#   bin/docker-dev status     # Check sandbox status
+
+set -e
+
+SANDBOX_TEMPLATE="bali-claude:v1"
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+cd "$PROJECT_DIR"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+info() {
+  echo -e "${GREEN}==>${NC} $1"
+}
+
+warn() {
+  echo -e "${YELLOW}Warning:${NC} $1"
+}
+
+error() {
+  echo -e "${RED}Error:${NC} $1" >&2
+  exit 1
+}
+
+# Check if sandbox template exists
+template_exists() {
+  docker image inspect "$SANDBOX_TEMPLATE" >/dev/null 2>&1
+}
+
+# Clean up any existing sandbox for this workspace
+cleanup_sandbox() {
+  local existing=$(docker sandbox ls -q --filter "workspace=$PROJECT_DIR" 2>/dev/null)
+  if [ -n "$existing" ]; then
+    info "Cleaning up existing sandbox..."
+    docker sandbox rm "$existing" >/dev/null 2>&1 || true
+  fi
+}
+
+case "${1:-help}" in
+  dev)
+    if ! template_exists; then
+      error "Sandbox template '$SANDBOX_TEMPLATE' not found. Run: bin/docker-dev build"
+    fi
+
+    cleanup_sandbox
+
+    info "Starting Claude in sandbox..."
+    echo "  Workspace: $PROJECT_DIR"
+    echo "  Template: $SANDBOX_TEMPLATE"
+    echo ""
+
+    # Warn if GH_TOKEN is not set
+    if [ -z "$GH_TOKEN" ]; then
+      warn "GH_TOKEN not set - git push will not work. Export GH_TOKEN to enable."
+      echo "  To fix: export GH_TOKEN=ghp_your_token && bin/docker-dev dev"
+      echo ""
+    else
+      info "GH_TOKEN detected - GitHub auth will auto-configure on first shell."
+    fi
+
+    docker sandbox run \
+      -t "$SANDBOX_TEMPLATE" \
+      -w "$PROJECT_DIR" \
+      -e GH_TOKEN="${GH_TOKEN:-}" \
+      claude
+    ;;
+
+  setup)
+    # Run the setup script inside an existing sandbox
+    local sandbox_id=$(docker sandbox ls -q --filter "workspace=$PROJECT_DIR" 2>/dev/null | head -1)
+    if [ -z "$sandbox_id" ]; then
+      error "No sandbox running. Start one first with: bin/docker-dev dev"
+    fi
+    info "Running setup inside sandbox..."
+    docker exec -it "$sandbox_id" bash -lc "bash docker/sandbox-setup.sh"
+    ;;
+
+  autonomous)
+    if ! template_exists; then
+      error "Sandbox template '$SANDBOX_TEMPLATE' not found. Run: bin/docker-dev build"
+    fi
+
+    cleanup_sandbox
+
+    info "Running autonomous mode (OMC autopilot)..."
+
+    if [ -z "$GH_TOKEN" ]; then
+      warn "GH_TOKEN not set - git push will not work. Export GH_TOKEN to enable."
+    fi
+
+    # Run in detached mode
+    docker sandbox run \
+      -t "$SANDBOX_TEMPLATE" \
+      -w "$PROJECT_DIR" \
+      -d \
+      -e GH_TOKEN="${GH_TOKEN:-}" \
+      claude
+
+    # Get the sandbox container and exec the autonomous command
+    local sandbox_id=$(docker sandbox ls -q --filter "workspace=$PROJECT_DIR" 2>/dev/null | head -1)
+    if [ -n "$sandbox_id" ]; then
+      docker exec "$sandbox_id" bash -lc \
+        "bash docker/sandbox-setup.sh && claude -p '/omc-rails-autopilot: next' --dangerously-skip-permissions"
+    else
+      error "Failed to find sandbox container"
+    fi
+    ;;
+
+  down)
+    info "Stopping services..."
+    cleanup_sandbox
+    info "Services stopped"
+    ;;
+
+  status)
+    info "Sandbox status:"
+    docker sandbox ls --filter "workspace=$PROJECT_DIR" 2>/dev/null || echo "No sandbox running"
+    ;;
+
+  build)
+    info "Building sandbox template..."
+    docker build -t "$SANDBOX_TEMPLATE" -f docker/Dockerfile.sandbox .
+    info "Build complete: $SANDBOX_TEMPLATE"
+    ;;
+
+  help|--help|-h|*)
+    echo "Docker Dev - Run Claude Code in Docker Sandbox"
+    echo ""
+    echo "Usage: bin/docker-dev <command>"
+    echo ""
+    echo "Commands:"
+    echo "  dev        Run Claude in sandbox (interactive)"
+    echo "  setup      Install plugins + dependencies inside running sandbox"
+    echo "  autonomous Run OMC autopilot unattended"
+    echo "  down       Stop all services and sandbox"
+    echo "  status     Check sandbox status"
+    echo "  build      Build/rebuild the sandbox template"
+    echo ""
+    echo "Environment variables:"
+    echo "  GH_TOKEN   GitHub personal access token for git push"
+    echo "             Generate at: https://github.com/settings/tokens (classic, 'repo' scope)"
+    echo ""
+    echo "First time setup:"
+    echo "  bin/docker-dev build   # Build the bali-claude:v1 template"
+    echo "  bin/docker-dev dev     # Run Claude interactively"
+    echo "  # Then inside sandbox:"
+    echo "  bash docker/sandbox-setup.sh  # Install plugins + deps"
+    ;;
+esac

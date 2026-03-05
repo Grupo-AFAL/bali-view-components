@@ -15,16 +15,16 @@ module Bali
     #
     class Component < ApplicationViewComponent
       # Base classes for the timeline container
-      BASE_CLASSES = 'timeline timeline-vertical'
+      BASE_CLASSES = "timeline timeline-vertical"
 
       # Position modifiers for timeline layout
       # - :left   - Default, items on left side
       # - :center - Alternating items on both sides
       # - :right  - Items on right side (uses snap-icon modifier)
       POSITIONS = {
-        left: '',
-        center: '',
-        right: 'timeline-snap-icon'
+        left: "",
+        center: "",
+        right: "timeline-snap-icon"
       }.freeze
 
       renders_many :tags, types: {
@@ -46,9 +46,9 @@ module Bali
       def component_classes
         class_names(
           BASE_CLASSES,
-          POSITIONS.fetch(position, ''),
+          POSITIONS.fetch(position, ""),
           options[:class],
-          'timeline-centered' => position == :center
+          "timeline-centered" => position == :center
         )
       end
 

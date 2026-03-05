@@ -21,30 +21,30 @@ module Bali
       #
       class Component < ApplicationViewComponent
         # Base classes for the timeline item marker
-        MARKER_BASE_CLASSES = 'timeline-middle'
+        MARKER_BASE_CLASSES = "timeline-middle"
 
         # Color variants for the marker icon
         COLORS = {
-          default: 'text-base-content',
-          primary: 'text-primary',
-          secondary: 'text-secondary',
-          accent: 'text-accent',
-          success: 'text-success',
-          warning: 'text-warning',
-          error: 'text-error',
-          info: 'text-info'
+          default: "text-base-content",
+          primary: "text-primary",
+          secondary: "text-secondary",
+          accent: "text-accent",
+          success: "text-success",
+          warning: "text-warning",
+          error: "text-error",
+          info: "text-info"
         }.freeze
 
         # Color variants for the connecting line (hr element)
         LINE_COLORS = {
-          default: '',
-          primary: 'bg-primary',
-          secondary: 'bg-secondary',
-          accent: 'bg-accent',
-          success: 'bg-success',
-          warning: 'bg-warning',
-          error: 'bg-error',
-          info: 'bg-info'
+          default: "",
+          primary: "bg-primary",
+          secondary: "bg-secondary",
+          accent: "bg-accent",
+          success: "bg-success",
+          warning: "bg-warning",
+          error: "bg-error",
+          info: "bg-info"
         }.freeze
 
         # @param heading [String, nil] Optional heading text for the item
@@ -71,11 +71,11 @@ module Bali
         end
 
         def line_classes
-          LINE_COLORS.fetch(color, '')
+          LINE_COLORS.fetch(color, "")
         end
 
         def default_icon
-          'circle'
+          "circle"
         end
 
         def display_icon

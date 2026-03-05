@@ -1,0 +1,75 @@
+<%# Admin Movie Detail - Showcases: ShowPage, Tabs, Card, PropertiesTable, Avatar, Progress, Rate, Timeline, Tag, HoverCard, ImageGrid, DeleteLink, Timeago %>
+
+<%= render Bali::ShowPage::Component.new(
+  title: @movie.name,
+  breadcrumbs: [
+    { name: t('movies.show.dashboard'), href: admin_root_path, icon_name: 'home' },
+    { name: t('movies.title'), href: admin_movies_path },
+    { name: @movie.name }
+  ],
+  back: { href: admin_movies_path }
+) do |page| %>
+  <% page.with_title_tag do %>
+    <%= render Bali::Tag::Component.new(text: @movie.genre, style: :outline, size: :sm) %>
+  <% end %>
+  <% page.with_title_tag do %>
+    <%= render Bali::Tag::Component.new(
+      text: @movie.status.humanize,
+      color: @movie.status_color,
+      size: :sm
+    ) %>
+  <% end %>
+
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(
+      name: t('movies.show.edit'),
+      href: edit_admin_movie_path(@movie),
+      variant: :ghost,
+      icon_name: 'pencil'
+    ) %>
+  <% end %>
+  <% page.with_action do %>
+    <%= render Bali::DeleteLink::Component.new(
+      href: admin_movie_path(@movie),
+      name: t('movies.show.delete'),
+      confirm: t('movies.show.confirm_delete', name: @movie.name),
+      size: :md
+    ) %>
+  <% end %>
+
+  <% page.with_body do %>
+    <%= render Bali::Tabs::Component.new(style: :border) do |tabs| %>
+      <% tabs.with_tab(title: t('movies.show.details'), icon: 'info', active: true) do %>
+        <%= render partial: 'admin/movies/details_tab', locals: { movie: @movie } %>
+      <% end %>
+
+      <% tabs.with_tab(title: t('movies.show.characters'), icon: 'users') do %>
+        <%= render partial: 'admin/movies/characters_tab', locals: { movie: @movie, characters: @characters } %>
+      <% end %>
+
+      <% tabs.with_tab(title: t('movies.show.activity'), icon: 'activity') do %>
+        <%= render partial: 'admin/movies/activity_tab', locals: { movie: @movie } %>
+      <% end %>
+    <% end %>
+
+    <%# Related Movies Section %>
+    <div class="mt-8">
+      <h3 class="text-lg font-semibold mb-4"><%= t('movies.show.related_movies') %></h3>
+      <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, cols_lg: 4, gap: :lg) do %>
+        <% @related_movies.each do |related| %>
+          <%= render Bali::Card::Component.new(style: :bordered, body_class: 'p-4') do %>
+            <%= render Bali::Link::Component.new(name: related.name, href: admin_movie_path(related), class: 'font-medium text-base') %>
+            <div class="flex items-center gap-2 mt-2">
+              <%= render Bali::Tag::Component.new(text: related.genre, size: :xs, style: :outline) %>
+              <%= render Bali::Tag::Component.new(
+                text: related.status.humanize,
+                size: :xs,
+                color: related.status_color
+              ) %>
+            </div>
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

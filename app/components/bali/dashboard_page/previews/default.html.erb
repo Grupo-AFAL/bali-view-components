@@ -1,0 +1,62 @@
+<%= render Bali::DashboardPage::Component.new(
+  title: "Dashboard",
+  subtitle: "Welcome back, Ana"
+) do |page| %>
+  <% page.with_action do %>
+    <%= render Bali::Button::Component.new(name: "Export", variant: :ghost, icon_name: "download") %>
+  <% end %>
+
+  <% page.with_stat(label: "Total Movies", value: "1,234", icon: "film", color: :primary) %>
+  <% page.with_stat(label: "Studios", value: "56", icon: "building-2", color: :secondary) %>
+  <% page.with_stat(label: "Revenue", value: "$45.2K", icon: "dollar-sign", color: :success, change: "+12.5%") %>
+  <% page.with_stat(label: "Users", value: "892", icon: "users", color: :info, change: "+3.2%") %>
+
+  <% page.with_body do %>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <%= render Bali::Card::Component.new(style: :bordered) do %>
+        <div class="card-body">
+          <h3 class="card-title text-lg">Recent Activity</h3>
+          <p class="text-base-content/60">Latest changes across your movie database.</p>
+          <div class="space-y-3 mt-4">
+            <% [
+              { title: "Inception updated", time: "2 hours ago", icon: "pencil" },
+              { title: "New studio added: Pixar", time: "5 hours ago", icon: "plus" },
+              { title: "The Matrix archived", time: "1 day ago", icon: "archive" }
+            ].each do |item| %>
+              <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-base-200">
+                <%= render Bali::Icon::Component.new(item[:icon], class: "size-4 text-base-content/40") %>
+                <div class="flex-1">
+                  <p class="text-sm font-medium"><%= item[:title] %></p>
+                  <p class="text-xs text-base-content/50"><%= item[:time] %></p>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <%= render Bali::Card::Component.new(style: :bordered) do %>
+        <div class="card-body">
+          <h3 class="card-title text-lg">Top Genres</h3>
+          <p class="text-base-content/60">Most popular genres in your catalog.</p>
+          <div class="space-y-3 mt-4">
+            <% [
+              { name: "Action", count: 342, pct: 85 },
+              { name: "Drama", count: 287, pct: 72 },
+              { name: "Sci-Fi", count: 198, pct: 50 },
+              { name: "Comedy", count: 156, pct: 39 }
+            ].each do |genre| %>
+              <div>
+                <div class="flex justify-between text-sm mb-1">
+                  <span><%= genre[:name] %></span>
+                  <span class="text-base-content/50"><%= genre[:count] %></span>
+                </div>
+                <%= render Bali::Progress::Component.new(value: genre[:pct], variant: :primary, class: "h-2") %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

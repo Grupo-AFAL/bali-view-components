@@ -175,7 +175,7 @@ For components with Stimulus controllers:
 You MUST spawn the `frontend-ui-ux-engineer` agent for pixel-perfect visual review. This agent is CRITICAL and DEMANDING about visual quality. Do NOT skip this step or try to do the review yourself.
 
 #### Why This Matters
-The Calendar component migration revealed that basic visual checks miss critical issues:
+The Calendar component review revealed that basic visual checks miss critical issues:
 - Column widths being unequal
 - Navigation elements mispositioned
 - Row heights not matching design specs
@@ -193,13 +193,6 @@ The Calendar component migration revealed that basic visual checks miss critical
 | **Backgrounds** | Correct colors applied, proper opacity, hover states |
 | **Typography** | Font sizes match, proper weights, correct colors |
 | **Today/Active States** | Clearly visible highlighting, proper contrast |
-
-#### Compare Against Bulma Version (When Available)
-
-If the original Bulma version is running on port 3002:
-1. Open both versions side-by-side
-2. Verify dimensions match or improve upon original
-3. Note any intentional design changes vs bugs
 
 #### Spawn Agent with This Prompt:
 
@@ -226,7 +219,6 @@ The DaisyUI Blueprint MCP provides the SINGLE SOURCE OF TRUTH for:
 ## COMPONENT INFO
 - Component: Bali::[ComponentName]::Component
 - DaisyUI URL: http://localhost:3001/lookbook/inspect/bali/[component_name]/default
-- Bulma URL (if available): http://localhost:3002/lookbook/inspect/bali/[component_name]/default
 
 ## PIXEL-PERFECT CHECKLIST (VERIFY EACH ITEM)
 
@@ -260,11 +252,6 @@ The DaisyUI Blueprint MCP provides the SINGLE SOURCE OF TRUTH for:
 - [ ] Hover/focus states work
 - [ ] Active/selected states are clearly visible
 - [ ] Proper shadows where expected
-
-### Comparison with Original (if Bulma version available)
-- [ ] Layout matches or improves upon original
-- [ ] No regressions in visual quality
-- [ ] Intentional changes documented
 
 ## MUST DO
 1. Take screenshots of EVERY variant
@@ -381,11 +368,6 @@ If the agent reports ANY issues:
 | Backgrounds correct | Pass/Fail | |
 | Hover states | Pass/Fail | |
 | Active states | Pass/Fail | |
-
-### Comparison with Bulma Version
-- [ ] Matches original layout
-- [ ] No visual regressions
-- [ ] Improvements noted: [list]
 
 ### Issues Found (BLOCKING)
 1. [Issue with screenshot evidence]

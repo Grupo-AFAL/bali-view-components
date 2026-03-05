@@ -4,7 +4,7 @@ module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module TimeZoneSelectFields
       # DaisyUI select classes matching SelectFields pattern
-      BASE_CLASSES = 'select select-bordered w-full'
+      BASE_CLASSES = "select select-bordered w-full"
 
       def time_zone_select_group(method, priority_zones = nil, options = {}, html_options = {})
         @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
@@ -26,7 +26,7 @@ module Bali
         base = field_class_name(method, BASE_CLASSES)
 
         html_options.except(:class, :control_data, :control_class, :help).merge(
-          class: [base, custom_class].compact.join(' ')
+          class: [ base, custom_class ].compact.join(" ")
         )
       end
 

@@ -7,7 +7,7 @@
 <% end %>
 
 <%# Page Header with New Movie button %>
-<%= render Bali::PageHeader::Component.new(title: t('movies.title'), subtitle: t('movies.subtitle'), class: 'mt-4 mb-6') do %>
+<%= render Bali::PageHeader::Component.new(title: t('movies.title'), subtitle: t('movies.subtitle'), class: 'mt-4') do %>
   <%= render Bali::Link::Component.new(
     name: t('movies.new_movie'),
     href: new_movie_path,
@@ -28,7 +28,7 @@
   <%# search is auto-configured from @filter_form.search_config %>
   <%# filter_groups is auto-populated from @filter_form.filter_groups %>
   <% data_table.with_filters_panel(
-    available_attributes: available_filter_attributes,
+    available_attributes: movie_filter_attributes,
     search: { placeholder: t('movies.search_placeholder') }
   ) %>
 
@@ -79,7 +79,7 @@
               size: :sm
             ) %>
           </td>
-          <td class="text-sm text-base-content/70"><%= movie.tenant&.name || '—' %></td>
+          <td class="text-sm text-base-content/70"><%= movie.studio&.name || '—' %></td>
           <td class="text-center">
             <%= render Bali::BooleanIcon::Component.new(value: movie.indie) %>
           </td>
@@ -108,13 +108,15 @@
 
   <%# Bulk Actions %>
   <% data_table.with_actions_panel do %>
-    <%= form_with url: bulk_action_movies_path, method: :post, class: 'flex items-center gap-2' do %>
-      <select name="bulk_action" class="select select-bordered select-sm">
-        <option value=""><%= t('movies.bulk_actions.select_action') %></option>
-        <option value="mark_done"><%= t('movies.bulk_actions.mark_done') %></option>
-        <option value="mark_draft"><%= t('movies.bulk_actions.mark_draft') %></option>
-        <option value="delete"><%= t('movies.bulk_actions.delete') %></option>
-      </select>
+    <%= form_with url: movies_bulk_actions_path, method: :post, class: 'flex items-center gap-2' do %>
+      <%= select_tag :bulk_action,
+            options_for_select([
+              [t('movies.bulk_actions.select_action'), ''],
+              [t('movies.bulk_actions.mark_done'), 'mark_done'],
+              [t('movies.bulk_actions.mark_draft'), 'mark_draft'],
+              [t('movies.bulk_actions.delete'), 'delete']
+            ]),
+            class: 'select select-bordered select-sm' %>
       <%= render Bali::Button::Component.new(
         name: t('movies.bulk_actions.apply'),
         variant: :ghost,

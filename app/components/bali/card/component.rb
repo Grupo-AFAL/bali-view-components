@@ -4,23 +4,23 @@ module Bali
   module Card
     class Component < ApplicationViewComponent
       STYLES = {
-        default: '',
-        bordered: 'card-border',
-        dash: 'card-dash'
+        default: "",
+        bordered: "card-border",
+        dash: "card-dash"
       }.freeze
 
       SIZES = {
-        xs: 'card-xs',
-        sm: 'card-sm',
-        md: '',
-        lg: 'card-lg',
-        xl: 'card-xl'
+        xs: "card-xs",
+        sm: "card-sm",
+        md: "",
+        lg: "card-lg",
+        xl: "card-xl"
       }.freeze
 
       renders_one :header, Header::Component
 
       renders_one :title, ->(text, **options) do
-        tag.h2(text, class: class_names('card-title', options[:class]), **options.except(:class))
+        tag.h2(text, class: class_names("card-title", options[:class]), **options.except(:class))
       end
 
       renders_one :image,
@@ -45,25 +45,23 @@ module Bali
         @shadow = shadow
         @body_class = body_class
         @options = options
-
-        build_options
       end
 
       private
 
-      def build_options
-        @options = prepend_class_name(@options, card_classes)
+      def card_attributes
+        @options.merge(class: class_names(card_classes, @options[:class]))
       end
 
       def card_classes
         class_names(
-          'card',
-          'bg-base-100',
+          "card",
+          "bg-base-100",
           STYLES[@style],
           SIZES[@size],
-          'card-side' => @side,
-          'image-full' => @image_full,
-          'shadow-sm' => @shadow
+          "card-side" => @side,
+          "image-full" => @image_full,
+          "shadow-sm" => @shadow
         )
       end
 
@@ -72,7 +70,7 @@ module Bali
       end
 
       def body_classes
-        class_names('card-body', @body_class)
+        class_names("card-body", @body_class)
       end
     end
   end

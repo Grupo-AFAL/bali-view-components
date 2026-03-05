@@ -55,10 +55,10 @@
                   ) %>
             </div>
 
-            <% if movie.tenant %>
+            <% if movie.studio %>
               <p class="text-sm text-base-content/60 mt-2">
                 <%= render Bali::Icon::Component.new('business', class: 'w-4 h-4 inline') %>
-                <%= movie.tenant.name %>
+                <%= movie.studio.name %>
               </p>
             <% end %>
 

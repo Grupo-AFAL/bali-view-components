@@ -3,25 +3,25 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module SubmitFields
-      BUTTON_BASE_CLASS = 'btn'
-      WRAPPER_CLASS = 'inline'
-      SUBMIT_ACTIONS_CLASS = 'submit-actions flex items-center justify-end gap-2'
+      BUTTON_BASE_CLASS = "btn"
+      WRAPPER_CLASS = "inline"
+      SUBMIT_ACTIONS_CLASS = "submit-actions flex items-center justify-end gap-2 mt-6"
 
       VARIANTS = {
-        primary: 'btn-primary',
-        secondary: 'btn-secondary',
-        accent: 'btn-accent',
-        success: 'btn-success',
-        warning: 'btn-warning',
-        error: 'btn-error',
-        ghost: 'btn-ghost'
+        primary: "btn-primary",
+        secondary: "btn-secondary",
+        accent: "btn-accent",
+        success: "btn-success",
+        warning: "btn-warning",
+        error: "btn-error",
+        ghost: "btn-ghost"
       }.freeze
 
       SIZES = {
-        xs: 'btn-xs',
-        sm: 'btn-sm',
+        xs: "btn-xs",
+        sm: "btn-sm",
         md: nil,
-        lg: 'btn-lg'
+        lg: "btn-lg"
       }.freeze
 
       def submit(value, options = {})
@@ -30,7 +30,7 @@ module Bali
         wrapper_class = options.delete(:wrapper_class) || WRAPPER_CLASS
 
         options.with_defaults!(
-          type: 'submit',
+          type: "submit",
           class: button_classes(variant: variant, size: size, custom_class: options.delete(:class))
         )
 
@@ -51,7 +51,7 @@ module Bali
         should_render_cancel = cancel_html.present? && show_cancel_button?(options)
 
         content_tag(:div, wrapper_config) do
-          should_render_cancel ? safe_join([cancel_html, submit_html]) : submit_html
+          should_render_cancel ? safe_join([ cancel_html, submit_html ]) : submit_html
         end
       end
 
@@ -63,14 +63,14 @@ module Bali
           VARIANTS[variant],
           SIZES[size],
           custom_class
-        ].compact.join(' ')
+        ].compact.join(" ")
       end
 
       def apply_stimulus_actions(options)
         return options if Bali.native_app
 
-        options = prepend_action(options, 'modal#submit') if options.delete(:modal)
-        options = prepend_action(options, 'drawer#submit') if options.delete(:drawer)
+        options = prepend_action(options, "modal#submit") if options.delete(:modal)
+        options = prepend_action(options, "drawer#submit") if options.delete(:drawer)
         options
       end
 
@@ -95,14 +95,14 @@ module Bali
         return unless cancel_button_required?(config)
 
         link_options = build_cancel_link_options(config)
-        label = link_options.delete(:label) || I18n.t('helpers.cancel.text', default: 'Cancel')
+        label = link_options.delete(:label) || I18n.t("helpers.cancel.text", default: "Cancel")
 
         content_tag(:div, class: WRAPPER_CLASS) do
           if config[:path].present?
             @template.link_to(label, config[:path], link_options)
           else
             # When no path, use a button for modal/drawer close actions
-            content_tag(:button, label, link_options.merge(type: 'button'))
+            content_tag(:button, label, link_options.merge(type: "button"))
           end
         end
       end
@@ -114,8 +114,8 @@ module Bali
 
       def build_cancel_link_options(config)
         link_options = config[:options] || {}
-        link_options = prepend_action(link_options, 'modal#close') if config[:modal]
-        link_options = prepend_action(link_options, 'drawer#close') if config[:drawer]
+        link_options = prepend_action(link_options, "modal#close") if config[:modal]
+        link_options = prepend_action(link_options, "drawer#close") if config[:drawer]
         link_options.with_defaults!(class: button_classes(variant: :secondary))
         link_options
       end

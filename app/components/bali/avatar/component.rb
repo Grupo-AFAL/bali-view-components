@@ -9,51 +9,51 @@ module Bali
       renders_one :placeholder
 
       SIZES = {
-        xs: 'w-8',
-        sm: 'w-12',
-        md: 'w-16',
-        lg: 'w-24',
-        xl: 'w-32'
+        xs: "w-8",
+        sm: "w-12",
+        md: "w-16",
+        lg: "w-24",
+        xl: "w-32"
       }.freeze
 
       PLACEHOLDER_TEXT_SIZES = {
-        xs: 'text-xs',
-        sm: 'text-sm',
-        md: 'text-base',
-        lg: 'text-xl',
-        xl: 'text-3xl'
+        xs: "text-xs",
+        sm: "text-sm",
+        md: "text-base",
+        lg: "text-xl",
+        xl: "text-3xl"
       }.freeze
 
       SHAPES = {
-        square: 'rounded',
-        rounded: 'rounded-xl',
-        circle: 'rounded-full'
+        square: "rounded",
+        rounded: "rounded-xl",
+        circle: "rounded-full"
       }.freeze
 
       MASKS = {
-        heart: 'mask mask-heart',
-        squircle: 'mask mask-squircle',
-        hexagon: 'mask mask-hexagon-2',
-        triangle: 'mask mask-triangle',
-        diamond: 'mask mask-diamond',
-        pentagon: 'mask mask-pentagon',
-        star: 'mask mask-star'
+        heart: "mask mask-heart",
+        squircle: "mask mask-squircle",
+        hexagon: "mask mask-hexagon-2",
+        triangle: "mask mask-triangle",
+        diamond: "mask mask-diamond",
+        pentagon: "mask mask-pentagon",
+        star: "mask mask-star"
       }.freeze
 
       STATUSES = {
-        online: 'avatar-online',
-        offline: 'avatar-offline'
+        online: "avatar-online",
+        offline: "avatar-offline"
       }.freeze
 
       RING_COLORS = {
-        primary: 'ring-primary',
-        secondary: 'ring-secondary',
-        accent: 'ring-accent',
-        neutral: 'ring-neutral',
-        success: 'ring-success',
-        warning: 'ring-warning',
-        error: 'ring-error',
-        info: 'ring-info'
+        primary: "ring-primary",
+        secondary: "ring-secondary",
+        accent: "ring-accent",
+        neutral: "ring-neutral",
+        success: "ring-success",
+        warning: "ring-warning",
+        error: "ring-error",
+        info: "ring-info"
       }.freeze
 
       # rubocop:disable Metrics/ParameterLists
@@ -71,9 +71,9 @@ module Bali
 
       def container_classes
         class_names(
-          'avatar',
+          "avatar",
           STATUSES[@status],
-          placeholder? && 'avatar-placeholder',
+          placeholder? && "avatar-placeholder",
           @options[:class]
         )
       end
@@ -82,15 +82,15 @@ module Bali
         class_names(
           SIZES[@size],
           shape_classes,
-          @mask.nil? && 'aspect-square',
+          @mask.nil? && "aspect-square",
           ring_classes
         )
       end
 
       def placeholder_classes
         class_names(
-          'bg-neutral',
-          'text-neutral-content',
+          "bg-neutral",
+          "text-neutral-content",
           placeholder_text_size
         )
       end
@@ -105,7 +105,7 @@ module Bali
         return unless @ring
 
         class_names(
-          'ring-2 ring-offset-base-100 ring-offset-2',
+          "ring-2 ring-offset-base-100 ring-offset-2",
           RING_COLORS[@ring]
         )
       end
@@ -115,7 +115,7 @@ module Bali
       end
 
       def placeholder_text_size
-        PLACEHOLDER_TEXT_SIZES.fetch(@size, 'text-xl')
+        PLACEHOLDER_TEXT_SIZES.fetch(@size, "text-xl")
       end
     end
   end

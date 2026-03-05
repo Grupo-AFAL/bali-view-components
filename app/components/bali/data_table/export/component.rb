@@ -6,10 +6,10 @@ module Bali
       class Component < ApplicationViewComponent
         # Supported export formats with their icons and extensions
         FORMATS = {
-          csv: { icon: 'file-export', extension: 'csv' },
-          excel: { icon: 'file-export', extension: 'xlsx' },
-          pdf: { icon: 'file-export', extension: 'pdf' },
-          json: { icon: 'file-export', extension: 'json' }
+          csv: { icon: "file-export", extension: "csv" },
+          excel: { icon: "file-export", extension: "xlsx" },
+          pdf: { icon: "file-export", extension: "pdf" },
+          json: { icon: "file-export", extension: "json" }
         }.freeze
 
         # @param formats [Array<Symbol>] Export formats to show (e.g., [:csv, :excel, :pdf])
@@ -18,7 +18,7 @@ module Bali
         # @param button_icon [String] Icon name (default: 'download')
         # @param method [Symbol] HTTP method for export links (default: :get)
         def initialize(formats: %i[csv excel pdf], url: nil, button_label: nil,
-                       button_icon: 'download', method: :get)
+                       button_icon: "download", method: :get)
           @formats = formats.map(&:to_sym)
           @url = url
           @button_label = button_label
@@ -29,7 +29,7 @@ module Bali
         attr_reader :formats, :button_icon, :method
 
         def button_label
-          @button_label || t('.button_label')
+          @button_label || t(".button_label")
         end
 
         def export_items
@@ -53,8 +53,8 @@ module Bali
         end
 
         def export_url(format)
-          base = @url || '/export'
-          separator = base.include?('?') ? '&' : '?'
+          base = @url || "/export"
+          separator = base.include?("?") ? "&" : "?"
           "#{base}#{separator}format=#{format}"
         end
       end

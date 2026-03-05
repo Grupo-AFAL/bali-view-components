@@ -4,7 +4,7 @@ module Bali
   module TreeView
     class Component < ApplicationViewComponent
       # Base class for the component wrapper - DaisyUI menu-inspired
-      BASE_CLASSES = 'tree-view-component bg-base-200 rounded-box p-2'
+      BASE_CLASSES = "tree-view-component bg-base-200 rounded-box p-2"
 
       renders_many :items, ->(name:, path:, **options) do
         Item::Component.new(
@@ -32,7 +32,7 @@ module Bali
       def component_options
         options.except(:class).merge(
           class: component_classes,
-          role: 'tree'
+          role: "tree"
         )
       end
     end

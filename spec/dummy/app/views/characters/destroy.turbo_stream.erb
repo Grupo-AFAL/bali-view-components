@@ -1,6 +1,6 @@
 <%# Update the characters list %>
 <%= turbo_stream.replace 'characters-list' do %>
-  <%= render partial: 'movies/characters_list', locals: { movie: @movie, characters: @movie.characters.reload } %>
+  <%= render partial: 'movies/characters_list', locals: { movie: @movie, characters: @movie.characters.reload.positioned } %>
 <% end %>
 
 <%# Show success notification %>

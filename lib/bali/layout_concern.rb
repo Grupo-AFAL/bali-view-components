@@ -14,7 +14,7 @@ module Bali
     end
 
     def conditionally_skip_layout
-      params[:layout] == 'false' ? false : self.class.conditional_layout
+      params[:layout] == "false" ? false : self.class.conditional_layout
     end
   end
 end

@@ -3,10 +3,10 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module TimePeriodFields
-      CONTROLLER_NAME = 'time-period-field'
-      SELECT_CLASSES = 'select select-bordered w-full'
-      SELECT_WRAPPER_CLASSES = 'mb-2'
-      DATE_FIELD_HIDDEN_CLASS = 'hidden'
+      CONTROLLER_NAME = "time-period-field"
+      SELECT_CLASSES = "select select-bordered w-full"
+      SELECT_WRAPPER_CLASSES = "mb-2"
+      DATE_FIELD_HIDDEN_CLASS = "hidden"
 
       def time_period_field_group(method, select_options, selected: nil, **options)
         @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
@@ -15,7 +15,7 @@ module Bali
       end
 
       def time_period_field(method, select_options, selected: nil, **options)
-        include_blank = options.fetch(:include_blank, '')
+        include_blank = options.fetch(:include_blank, "")
         wrapper_attrs = time_period_wrapper_attrs(options)
         selected_value = selected || object.try(method)
 
@@ -25,9 +25,9 @@ module Bali
         tag.div(**wrapper_attrs) do
           safe_join([
                       hidden_field(method, value: selected_value,
-                                           data: { "#{CONTROLLER_NAME}-target": 'input' }),
+                                           data: { "#{CONTROLLER_NAME}-target": "input" }),
                       time_periods_select(method, final_select_options,
-                                          is_custom ? '' : selected_value),
+                                          is_custom ? "" : selected_value),
                       time_periods_date_field(method, is_custom ? selected_value : nil)
                     ])
         end
@@ -45,7 +45,7 @@ module Bali
       def build_select_options(select_options, include_blank)
         return select_options if include_blank.blank?
 
-        select_options + [[include_blank, '']]
+        select_options + [ [ include_blank, "" ] ]
       end
 
       def custom_date_range?(select_options, selected)
@@ -67,7 +67,7 @@ module Bali
 
       def select_data_attributes
         {
-          "#{CONTROLLER_NAME}-target": 'select',
+          "#{CONTROLLER_NAME}-target": "select",
           action: "#{CONTROLLER_NAME}#toggleDateInput #{CONTROLLER_NAME}#setInputValue"
         }
       end
@@ -75,7 +75,7 @@ module Bali
       def time_periods_date_field(method, value)
         date_field(
           "#{method}_date_range",
-          mode: 'range',
+          mode: "range",
           alt_input: false,
           label: false,
           class: DATE_FIELD_HIDDEN_CLASS,
@@ -86,7 +86,7 @@ module Bali
 
       def date_field_data_attributes
         {
-          "#{CONTROLLER_NAME}-target": 'dateInput',
+          "#{CONTROLLER_NAME}-target": "dateInput",
           action: "#{CONTROLLER_NAME}#setInputValue"
         }
       end

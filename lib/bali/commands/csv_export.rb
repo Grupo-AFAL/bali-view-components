@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'csv'
-require 'simple_command'
+require "csv"
+require "simple_command"
 
 module Bali
   module Commands
@@ -72,7 +72,7 @@ module Bali
         when :currency then number_to_currency(value, strip_insignificant_zeros: true)
         when :number then number_to_delimited(value)
         when :percentage then number_to_percentage(value)
-        when :array then Array(value).join(', ')
+        when :array then Array(value).join(", ")
         else value
         end
       end

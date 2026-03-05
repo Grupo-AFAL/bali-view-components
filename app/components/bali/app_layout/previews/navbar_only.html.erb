@@ -1,0 +1,42 @@
+<%# transform creates a containing block that traps position:fixed elements inside the preview pane %>
+<div style="transform: translateZ(0); position: relative; height: 100vh; overflow: hidden;">
+<%= render Bali::AppLayout::Component.new(
+  flash: flash_notice.present? ? { notice: flash_notice } : nil,
+  modal: false,
+  drawer: false,
+  class: "bg-base-200",
+  body_container: body_container
+) do |layout|
+  layout.with_navbar do %>
+    <%= render Bali::Navbar::Component.new(sticky: false, color: :base) do |nav|
+      nav.with_brand do %>
+        <span class="text-lg font-bold">MovieDB</span>
+      <% end
+
+      nav.with_menu do |menu|
+        menu.with_start_item(name: 'Home', href: '/lookbook')
+        menu.with_start_item(name: 'Features', href: '/lookbook')
+        menu.with_start_item(name: 'Pricing', href: '/lookbook')
+
+        menu.with_end_item(tag_name: :div) do %>
+          <div class="flex gap-2">
+            <%= render Bali::Button::Component.new(name: "Sign In", variant: :ghost, size: :sm) %>
+            <%= render Bali::Button::Component.new(name: "Get Started", variant: :primary, size: :sm) %>
+          </div>
+        <% end
+      end
+    end %>
+  <% end
+
+  layout.with_body do %>
+    <div class="text-center py-20">
+      <h1 class="text-5xl font-bold mb-4">Welcome to MovieDB</h1>
+      <p class="text-xl text-base-content/70 mb-8">Your complete movie database management platform</p>
+      <div class="flex gap-4 justify-center">
+        <%= render Bali::Button::Component.new(name: "Get Started", variant: :primary, size: :lg) %>
+        <%= render Bali::Button::Component.new(name: "Learn More", variant: :ghost, size: :lg) %>
+      </div>
+    </div>
+  <% end
+end %>
+</div>

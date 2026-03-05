@@ -1,6 +1,6 @@
 # Create Pull Request
 
-Create a PR for component migration or new component work.
+Create a PR for component changes or new component work.
 
 ## Usage
 
@@ -9,8 +9,8 @@ Create a PR for component migration or new component work.
 ```
 
 Where `$ARGUMENTS` is:
-- `--component [name]` - PR for component migration/creation
-- `--base [branch]` - Base branch (default: `tailwind-migration`)
+- `--component [name]` - PR for component changes/creation
+- `--base [branch]` - Base branch (default: `main`)
 - `--draft` - Create as draft PR
 
 ## Workflow
@@ -32,8 +32,8 @@ git status
 
 ```bash
 # Show what will be in the PR
-git diff tailwind-migration...HEAD --stat
-git log tailwind-migration...HEAD --oneline
+git diff main...HEAD --stat
+git log main...HEAD --oneline
 ```
 
 ### Step 3: Push and Create PR
@@ -44,27 +44,20 @@ git push -u origin [branch-name]
 
 # Create PR
 gh pr create \
-  --base tailwind-migration \
-  --title "[Migration] ComponentName: Bulma → DaisyUI" \
+  --base main \
+  --title "[ComponentName] Brief description of changes" \
   --body "$(cat <<'EOF'
 ## Summary
 
-Migrates the **ComponentName** component from Bulma to Tailwind + DaisyUI.
+Brief description of changes to **ComponentName**.
 
 ## Changes
 
-- Updated variant/size mappings to DaisyUI classes
-- Restructured template for DaisyUI patterns
-- Updated Lookbook preview
-- Updated RSpec tests
-
-## DaisyUI Classes Used
-
-- `btn`, `btn-primary`, `btn-sm`, etc.
+- [List specific changes made]
 
 ## Testing
 
-- [ ] All RSpec tests pass
+- [ ] All tests pass
 - [ ] Lookbook preview renders correctly
 - [ ] Visual regression check complete
 
@@ -75,62 +68,42 @@ EOF
 )"
 ```
 
-## PR Template for Migration
+## PR Template
 
 ```markdown
 ## Summary
 
-Migrates **[ComponentName]** from Bulma to Tailwind + DaisyUI.
+Brief description of changes to **[ComponentName]**.
 
 ## Changes
 
 ### Ruby Component (`component.rb`)
-- [ ] Updated VARIANTS constant with DaisyUI classes
-- [ ] Updated SIZES constant with DaisyUI classes  
-- [ ] Added new variants (if applicable)
+- [ ] Updated constants or class mappings
 - [ ] Used `class_names` helper
+- [ ] Added new variants/features (if applicable)
 
 ### Template (`component.html.erb`)
 - [ ] Applied DaisyUI semantic classes
-- [ ] Restructured for DaisyUI patterns
-- [ ] Removed Bulma-specific markup
-
-### Styles (`component.scss`)
-- [ ] Removed Bulma overrides
-- [ ] Kept only custom animations/states
-- [ ] Or deleted if no longer needed
+- [ ] Minimal template logic
 
 ### Preview (`preview.rb`)
 - [ ] Updated variant options
-- [ ] Updated size options
 - [ ] Added new examples for new features
 
 ### Tests (`component_spec.rb`)
 - [ ] Updated class expectations
-- [ ] Added tests for new variants
+- [ ] Added tests for new features
 - [ ] All tests passing
-
-## Class Mapping Applied
-
-| Before (Bulma) | After (DaisyUI) |
-|----------------|-----------------|
-| `button is-primary` | `btn btn-primary` |
-| ... | ... |
 
 ## Verification
 
 - [x] `bundle exec rspec spec/components/bali/[name]/` passes
 - [x] `bundle exec rubocop app/components/bali/[name]/` passes
 - [x] Lookbook preview renders correctly
-- [ ] Visual comparison with production (if applicable)
 
 ## Screenshots
 
-### Before
-[Screenshot or "N/A if no visual change"]
-
-### After
-[Screenshot or "N/A if no visual change"]
+[Screenshots if significant visual changes, otherwise "N/A"]
 ```
 
 ## Example Execution
@@ -138,7 +111,7 @@ Migrates **[ComponentName]** from Bulma to Tailwind + DaisyUI.
 ```
 User: /pr --component Button
 
-AI: Creating PR for Button migration...
+AI: Creating PR for Button changes...
 
 ## Pre-flight Checks
 
@@ -155,7 +128,7 @@ bundle exec rubocop app/components/bali/button/
 ## Changes Summary
 
 ```
-git diff tailwind-migration...HEAD --stat
+git diff main...HEAD --stat
 
  app/components/bali/button/component.rb       | 45 ++++++++--------
  app/components/bali/button/component.html.erb |  8 ++-
@@ -167,8 +140,8 @@ git diff tailwind-migration...HEAD --stat
 ## Creating PR
 
 ```bash
-git push -u origin tailwind-migration/button
-gh pr create --base tailwind-migration ...
+git push -u origin feature/button-improvements
+gh pr create --base main ...
 ```
 
 ✓ PR created: https://github.com/Grupo-AFAL/bali/pull/XXX
@@ -177,18 +150,12 @@ gh pr create --base tailwind-migration ...
 
 1. Request review from team
 2. Address any feedback
-3. Merge to `tailwind-migration` base branch
-4. Continue with next component: `/migrate-component Card`
+3. Merge to `main`
 ```
 
 ## Merge Strategy
 
-When PRs are ready:
-
-1. **Individual component PRs** merge into `tailwind-migration`
-2. After several components migrated, create **integration PR** from `tailwind-migration` → `main`
-3. Integration PR should include:
-   - README updates
-   - CHANGELOG entry
-   - Version bump
-   - Migration guide for consumers
+PRs merge directly into `main`. For larger changes:
+- Include README updates
+- Add CHANGELOG entry
+- Consider version bump if API changes

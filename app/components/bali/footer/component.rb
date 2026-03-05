@@ -4,10 +4,10 @@ module Bali
   module Footer
     class Component < ApplicationViewComponent
       COLORS = {
-        neutral: 'bg-neutral text-neutral-content',
-        base: 'bg-base-200 text-base-content',
-        primary: 'bg-primary text-primary-content',
-        secondary: 'bg-secondary text-secondary-content'
+        neutral: "bg-neutral text-neutral-content",
+        base: "bg-base-200 text-base-content",
+        primary: "bg-primary text-primary-content",
+        secondary: "bg-secondary text-secondary-content"
       }.freeze
 
       renders_one :brand, ->(name: nil, description: nil, &block) {
@@ -19,7 +19,7 @@ module Bali
       }
 
       renders_one :bottom, ->(&block) {
-        classes = 'border-t border-current/20 mt-8 pt-8 text-sm opacity-60 text-center'
+        classes = "border-t border-current/20 mt-8 pt-8 text-sm opacity-60 text-center"
         tag.div(class: classes, &block)
       }
 
@@ -41,9 +41,9 @@ module Bali
 
       def component_classes
         [
-          'footer-component p-10',
+          "footer-component p-10",
           COLORS[@color]
-        ].compact.join(' ')
+        ].compact.join(" ")
       end
 
       # Brand section component
@@ -62,8 +62,8 @@ module Bali
               capture(&@block)
             else
               safe_join([
-                (tag.h3(name, class: 'text-lg font-bold mb-2') if name),
-                (tag.p(description, class: 'text-sm opacity-80 max-w-xs') if description)
+                (tag.h3(name, class: "text-lg font-bold mb-2") if name),
+                (tag.p(description, class: "text-sm opacity-80 max-w-xs") if description)
               ].compact)
             end
           end
@@ -73,7 +73,7 @@ module Bali
       # Footer section with title and links
       class SectionComponent < ApplicationViewComponent
         renders_many :links, ->(name:, href:, **options) {
-          tag.a(name, href: href, class: 'link link-hover', **options)
+          tag.a(name, href: href, class: "link link-hover", **options)
         }
 
         attr_reader :title
@@ -86,7 +86,7 @@ module Bali
         def call
           tag.nav(**@options) do
             safe_join([
-              (tag.h6(title, class: 'footer-title') if title),
+              (tag.h6(title, class: "footer-title") if title),
               *links
             ].compact)
           end

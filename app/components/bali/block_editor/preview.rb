@@ -2,6 +2,7 @@
 
 module Bali
   module BlockEditor
+    # rubocop:disable Metrics/ClassLength
     class Preview < ApplicationViewComponentPreview
       # @param editable toggle
       # @param placeholder text
@@ -82,17 +83,24 @@ module Bali
 
       # Full-featured editor with all capabilities enabled.
       # Includes: rich text, code blocks, multi-column, tables,
-      # mentions, entity references, export, AI, and form integration.
+      # mentions, entity references, comments, export, AI, and form integration.
       #
       # Multi-column and AI require XL packages (see docs for licensing).
-      # AI requires the chat server running:
-      #   cd spec/dummy && ANTHROPIC_API_KEY=sk-ant-... node server/ai-chat.mjs
+      # AI requires ANTHROPIC_API_KEY environment variable set on the Rails server.
       #
       # @param placeholder text
       # @param format select { choices: [json, html] }
       # @param multi_column toggle
       # @param table_of_contents toggle
-      def full_featured(placeholder: 'Start writing...', format: :json, multi_column: true, table_of_contents: false)
+      # @param comments toggle
+      def full_featured(placeholder: 'Start writing...', format: :json, multi_column: true,
+                        table_of_contents: false, comments: false)
+        comments_config = if comments
+                            { url: '/block_editor_comments', user: sample_comments_user,
+                              users: sample_comments_users }
+                          else
+                            false
+                          end
         render BlockEditor::Component.new(
           editable: true,
           placeholder: placeholder,
@@ -100,9 +108,10 @@ module Bali
           format: format.to_sym,
           multi_column: multi_column,
           table_of_contents: table_of_contents,
+          comments: comments_config,
           export: true,
           export_filename: 'my-document',
-          ai_url: 'http://localhost:3456/api/ai/chat',
+          ai_url: '/block_editor/ai',
           mentions_url: '/users',
           references_url: '/entity_references',
           references_resolve_url: '/entity_references/resolve',
@@ -123,8 +132,40 @@ module Bali
         )
       end
 
-      # Requires the AI chat server running:
-      #   cd spec/dummy && ANTHROPIC_API_KEY=sk-ant-... node server/ai-chat.mjs
+      # @label With Comments (In-Memory)
+      # Enables inline commenting with in-memory storage.
+      # Comments are lost on page reload — useful for quick demos.
+      #
+      # Select text and click the comment button in the toolbar
+      # to start a thread. The sidebar shows all threads.
+      # @param editable toggle
+      def with_comments(editable: true)
+        render BlockEditor::Component.new(
+          editable: editable,
+          comments: { user: sample_comments_user, users: sample_comments_users },
+          initial_content: sample_content.to_json
+        )
+      end
+
+      # @label With Comments (Persistent)
+      # Enables inline commenting with database persistence via REST API.
+      # Comments survive page reloads. Requires the dummy app server
+      # running (`cd spec/dummy && bin/dev`) and the migration applied
+      # (`cd spec/dummy && bin/rails db:migrate`).
+      #
+      # The `comments_url` param points to the REST endpoint that
+      # implements the ThreadStore contract (see RESTThreadStore.js).
+      # @param editable toggle
+      def with_persistent_comments(editable: true)
+        render BlockEditor::Component.new(
+          editable: editable,
+          comments: { url: '/block_editor_comments', user: sample_comments_user,
+                      users: sample_comments_users },
+          initial_content: sample_content.to_json
+        )
+      end
+
+      # Requires ANTHROPIC_API_KEY environment variable set on the Rails server.
       #
       # Type `/ai` in the editor or select text and click the AI button in the toolbar.
       # @param placeholder text
@@ -132,7 +173,7 @@ module Bali
         render BlockEditor::Component.new(
           editable: true,
           placeholder: placeholder,
-          ai_url: 'http://localhost:3456/api/ai/chat'
+          ai_url: '/block_editor/ai'
         )
       end
 
@@ -148,6 +189,19 @@ module Bali
           { id: 6, name: 'Federico Martinez' },
           { id: 7, name: 'Grace Chen' },
           { id: 8, name: 'Hugo Nakamura' }
+        ]
+      end
+
+      def sample_comments_user
+        { id: '1', username: 'Alice Johnson', avatar_url: '' }
+      end
+
+      def sample_comments_users
+        [
+          { id: '1', username: 'Alice Johnson', avatar_url: '' },
+          { id: '2', username: 'Bob Smith', avatar_url: '' },
+          { id: '3', username: 'Carlos Rivera', avatar_url: '' },
+          { id: '4', username: 'Diana Park', avatar_url: '' }
         ]
       end
 
@@ -406,5 +460,6 @@ module Bali
         ]
       end
     end
+    # rubocop:enable Metrics/ClassLength
   end
 end

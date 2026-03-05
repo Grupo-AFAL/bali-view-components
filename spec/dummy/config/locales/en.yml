@@ -1,4 +1,7 @@
 en:
+  app:
+    name: MovieDB
+
   # Navigation
   navbar:
     dashboard: Dashboard
@@ -10,6 +13,16 @@ en:
     admin: Admin
     profile: Profile
     sign_out: Sign out
+
+  sidebar:
+    main: Main
+    reports: Reports
+    studios: Studios
+    analytics: Analytics
+    revenue: Revenue
+    configuration: Configuration
+    documentation: Documentation
+    log_out: Log Out
 
   # Dashboard
   dashboard:
@@ -79,6 +92,57 @@ en:
       mark_draft: Mark as Draft
       delete: Delete Selected
       apply: Apply
+    characters:
+      role: Character
+      empty: No characters have been added to this movie yet.
+    show:
+      dashboard: Dashboard
+      edit: Edit
+      delete: Delete
+      confirm_delete: "Are you sure you want to delete '%{name}'?"
+      details: Details
+      characters: Characters
+      activity: Activity
+      related_movies: Related Movies
+      view: View
+      movie_information: Movie Information
+      title_label: Title
+      indie_film: Indie Film
+      release_date: Release Date
+      contact_email: Contact Email
+      website: Website
+      time_zone: Time Zone
+      last_updated: Last Updated
+      additional_details: Additional Details
+      budget: Budget
+      rating: Rating
+      release_year: Release Year
+      synopsis: Synopsis
+      rich_description: Rich Description
+      movie_poster: Movie Poster
+      movie_stills: Movie Stills
+      no_studio: No studio assigned
+      partner_studio: Partner Studio
+      verified: Verified
+      premium: Premium
+      statistics: Statistics
+      user_rating: User Rating
+      completion: Completion
+      budget_used: Budget Used
+      activity_history: Activity History
+      recent: Recent
+      movie_updated: Movie Updated
+      details_modified: Details were modified
+      marked_done: Marked as Done
+      production_completed: Production completed
+      status_changed_done: Status changed to done
+      earlier: Earlier
+      movie_created: Movie Created
+      added_to_database: Added to the database
+      studio_assigned: Studio Assigned
+      linked_to: "Linked to %{name}"
+      drag_to_reorder: Drag to reorder characters by importance
+      add_character: Add Character
     no_movies: No movies found.
     no_movies_help: Try adjusting your filters or
     add_new_movie: add a new movie
@@ -124,6 +188,122 @@ en:
         poster: Poster
         details: Details
         settings: Settings
+
+  # Analytics
+  analytics:
+    title: Analytics
+    subtitle: Movie production insights and trends
+    total_movies: Total Movies
+    total_views: Total Views
+    avg_rating: Avg Rating
+    completion: Completion
+    pro_tip: "Pro tip: Use the tabs below to switch between different chart views."
+    tabs:
+      trend: Trend
+      by_genre: By Genre
+      by_status: By Status
+    monthly_trend: Monthly Production Trend
+    monthly_trend_desc: Movies added per month over the last 7 months
+    genre_distribution: Distribution by Genre
+    genre_distribution_desc: Breakdown of movies across genres
+    production_status: Production Status
+    production_status_desc: Current status of all movies in the database
+    top_rated: Top Rated Movies
+    top_rated_tooltip: Movies sorted by rating, highest first
+    columns:
+      rank: "#"
+      movie: Movie
+      genre: Genre
+      rating: Rating
+    no_movies: No movies to display.
+    heatmap_title: Activity Heatmap
+    heatmap_tooltip: Shows user activity intensity by day and hour
+    heatmap_x_axis: Day of Week
+    heatmap_y_axis: Hour
+    heatmap_legend: Activity
+    genre_distribution_title: Genre Distribution
+    copy: Copy
+    recent_activity: Recent Activity
+    timeline_title: Production Timeline
+    no_timeline: No movies with timeline data.
+
+  # Revenue
+  revenue:
+    title: Revenue
+    subtitle: Budget tracking and financial overview
+    total_budget: Total Budget
+    avg_budget: Avg Budget
+    top_budget: Top Budget
+    funded_movies: Funded Movies
+    limited_data_html: "<strong>Limited data:</strong> Only %{count} movies have budget data. Add budgets to see more detailed reports."
+    tabs:
+      monthly_trend: Monthly Trend
+      by_genre: By Genre
+    monthly_revenue: Monthly Revenue
+    monthly_revenue_desc: Revenue trend over the last 7 months
+    export: Export
+    genre_allocation: Budget Allocation by Genre
+    genre_allocation_desc: How budgets are distributed across genres
+    no_budget_data: No budget data available.
+    budget_by_status: Budget by Production Status
+    financial_summary: Financial Summary
+    total_budget_label: Total Budget
+    average_budget: Average Budget
+    highest_budget: Highest Budget
+    highest_budget_tooltip: Highest single movie budget
+    movies_with_budget: Movies with Budget
+    budget_complete: Budget Data Complete
+    top_movies: Top Movies by Budget
+    top_movies_tooltip: Top 10 movies ranked by budget allocation
+    columns:
+      rank: "#"
+      movie: Movie
+      studio: Studio
+      genre: Genre
+      status: Status
+      indie: Indie
+      budget: Budget
+    no_budget_movies: No movies with budget data.
+    genre_budget_distribution: Budget Distribution by Genre
+
+  # Studios
+  studios:
+    title: Studios
+    new_studio: New Studio
+    form:
+      new_title: New Studio
+      edit_title: "Edit %{name}"
+      new_breadcrumb: New
+      select_country: Select country...
+      select_status: Select status...
+      select_size: Select size...
+      update: Update Studio
+      create: Create Studio
+    columns:
+      name: Name
+      country: Country
+      status: Status
+      size: Size
+      founded: Founded
+      actions: Actions
+    actions:
+      view: View
+      edit: Edit
+      delete: Delete
+      close: Close
+    confirm_delete: "Are you sure you want to delete %{name}?"
+    show:
+      dashboard: Dashboard
+      edit: Edit
+      name: Name
+      country: Country
+      status: Status
+      size: Size
+      founded: Founded
+      created: Created
+      delete_studio: Delete Studio
+      confirm_delete: "Are you sure you want to delete %{name}?"
+      no_value: "—"
 
   # Showcase page
   showcase:

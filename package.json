@@ -1,6 +1,6 @@
 {
   "name": "bali-view-components",
-  "version": "2.3.0",
+  "version": "2.5.0",
   "description": "Bali ViewComponents",
   "type": "module",
   "main": "./app/frontend/bali/index.js",
@@ -27,17 +27,16 @@
     "cy:open": "cypress open",
     "cy:run": "cypress run --browser chrome",
     "cy:run:electron": "cypress run",
-    "prepare": "[ -d .git ] && lefthook install || true"
+    "prepare": "[ -d .git ] && git config core.hooksPath .githooks || true"
   },
   "devDependencies": {
-    "@babel/core": "^7.17.10",
-    "@babel/eslint-parser": "^7.17.0",
+    "@babel/core": "^7.29.0",
+    "@babel/eslint-parser": "^7.28.6",
     "@babel/plugin-proposal-class-properties": "^7.16.7",
-    "@babel/preset-env": "^7.17.10",
-    "cypress": "^13.6.4",
-    "lefthook": "^2.0.16",
+    "@babel/preset-env": "^7.29.0",
+    "cypress": "^15.11.0",
     "playwright": "^1.57.0",
-    "standard": "^17.0.0"
+    "standard": "^17.1.2"
   },
   "standard": {
     "parser": "@babel/eslint-parser",
@@ -73,21 +72,43 @@
     "react-dom": ">=18.0.0"
   },
   "peerDependenciesMeta": {
-    "@blocknote/core": { "optional": true },
-    "@blocknote/react": { "optional": true },
-    "@blocknote/mantine": { "optional": true },
-    "@blocknote/xl-multi-column": { "optional": true },
-    "@blocknote/xl-ai": { "optional": true },
-    "@mantine/core": { "optional": true },
-    "@mantine/hooks": { "optional": true },
-    "ai": { "optional": true },
-    "react": { "optional": true },
-    "react-dom": { "optional": true }
+    "@blocknote/core": {
+      "optional": true
+    },
+    "@blocknote/react": {
+      "optional": true
+    },
+    "@blocknote/mantine": {
+      "optional": true
+    },
+    "@blocknote/xl-multi-column": {
+      "optional": true
+    },
+    "@blocknote/xl-ai": {
+      "optional": true
+    },
+    "@mantine/core": {
+      "optional": true
+    },
+    "@mantine/hooks": {
+      "optional": true
+    },
+    "ai": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
   },
-  "optionalDependencies": {
-    "lefthook-linux-arm64": "^2.1.1"
+  "resolutions": {
+    "qs": ">=6.14.2",
+    "js-yaml": ">=4.1.1",
+    "minimatch": ">=3.1.5"
   },
   "dependencies": {
-    "daisyui": "^5.5.14"
+    "daisyui": "^5.5.19"
   }
 }

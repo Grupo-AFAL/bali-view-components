@@ -5,11 +5,11 @@ module Bali
     class Component < ApplicationViewComponent
       renders_many :items, Item::Component
 
-      BASE_CLASSES = 'sortable-list-component p-0 [&_.handle]:cursor-grab'
+      BASE_CLASSES = "sortable-list-component p-0 [&_.handle]:cursor-grab"
 
       DEFAULTS = {
-        position_param_name: 'position',
-        list_param_name: 'list_id',
+        position_param_name: "position",
+        list_param_name: "list_id",
         response_kind: :html,
         disabled: false,
         animation: 150
@@ -58,14 +58,14 @@ module Bali
       def build_options(opts)
         result = prepend_class_name(opts, BASE_CLASSES)
         result = prepend_class_name(result, item_cursor_class) if item_cursor_class
-        result = prepend_controller(result, 'sortable-list')
-        prepend_values(result, 'sortable-list', controller_values)
+        result = prepend_controller(result, "sortable-list")
+        prepend_values(result, "sortable-list", controller_values)
       end
 
       def item_cursor_class
         # When no handle is specified, items are draggable directly
         # When a handle is specified, only the handle should show grab cursor
-        @handle.nil? ? '[&_.sortable-item]:cursor-grab' : nil
+        @handle.nil? ? "[&_.sortable-item]:cursor-grab" : nil
       end
 
       def controller_values

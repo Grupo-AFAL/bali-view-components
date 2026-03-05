@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative 'filter_form/search_configuration'
-require_relative 'filter_form/filter_group_parser'
-require_relative 'filter_form/simple_filters_configuration'
+require_relative "filter_form/search_configuration"
+require_relative "filter_form/filter_group_parser"
+require_relative "filter_form/simple_filters_configuration"
 
 module Bali
   # FilterForm provides a unified interface for Ransack-based filtering with support
@@ -169,7 +169,7 @@ module Bali
     end
 
     def model_name
-      @model_name ||= ActiveModel::Name.new(self, nil, 'q')
+      @model_name ||= ActiveModel::Name.new(self, nil, "q")
     end
 
     def inspect
@@ -193,7 +193,7 @@ module Bali
     end
 
     def active_filters
-      @active_filters || query_params.except('s').compact_blank
+      @active_filters || query_params.except("s").compact_blank
     end
 
     # Get the available filter attributes defined via filter_attribute DSL.
@@ -251,13 +251,16 @@ module Bali
       attribute_names - date_range_attributes
     end
 
-    # Extract Ransack groupings from params
+    # Extract Ransack groupings from params.
     # Groupings format: q[g][0][field_operator]=value, q[g][0][m]=or/and
+    #
+    # Safety: to_unsafe_h is required because Ransack expects a plain nested hash
+    # for its grouping structure. Ransack performs its own attribute authorization
+    # via `ransackable_attributes` / `ransackable_associations` on the model,
+    # so arbitrary keys are rejected at the Ransack layer, not here.
     def extract_groupings(q_params)
       return nil if q_params[:g].blank?
 
-      # Convert ActionController::Parameters to a regular hash
-      # Ransack expects groupings as a hash with string keys
       q_params[:g].to_unsafe_h
     end
 
@@ -269,7 +272,7 @@ module Bali
     # - Only restores filters when @persist_enabled is true
     # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
     def fetch_stored_filter_state(attributes, groupings, combinator, search_value)
-      return [attributes, groupings, combinator, search_value] unless Object.const_defined?('Rails')
+      return [ attributes, groupings, combinator, search_value ] unless Object.const_defined?("Rails")
 
       has_filter_params = attributes.present? || groupings.present? || search_value.present?
 
@@ -281,19 +284,19 @@ module Bali
                             combinator: combinator,
                             search_value: search_value
                           })
-        [attributes, groupings, combinator, search_value]
+        [ attributes, groupings, combinator, search_value ]
       elsif @clear_filters
         # User clicked "Clear all" → delete stored filters
         Rails.cache.delete(cache_key)
-        [{}, nil, nil, nil]
+        [ {}, nil, nil, nil ]
       elsif @clear_search
         # User clicked search clear button → clear just the search from storage
         stored = Rails.cache.fetch(cache_key)
         if stored.is_a?(Hash)
           Rails.cache.write(cache_key, stored.merge(search_value: nil))
-          [stored[:attributes] || {}, stored[:groupings], stored[:combinator], nil]
+          [ stored[:attributes] || {}, stored[:groupings], stored[:combinator], nil ]
         else
-          [{}, nil, nil, nil]
+          [ {}, nil, nil, nil ]
         end
       elsif @persist_enabled
         # No filters in URL and persistence enabled → restore from cache
@@ -307,11 +310,11 @@ module Bali
           ]
         else
           # Legacy format (just attributes) or empty
-          [stored || {}, nil, nil, nil]
+          [ stored || {}, nil, nil, nil ]
         end
       else
         # Persistence not enabled → don't restore, return empty
-        [{}, nil, nil, nil]
+        [ {}, nil, nil, nil ]
       end
     end
     # rubocop:enable Metrics/AbcSize, Metrics/MethodLength

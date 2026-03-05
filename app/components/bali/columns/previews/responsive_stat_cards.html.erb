@@ -1,0 +1,11 @@
+<%= render Bali::Columns::Component.new(mobile: true, gap: :lg) do |c| %>
+  <% 4.times do |i| %>
+    <% colors = %w[primary secondary accent info] %>
+    <% c.with_column(md: :half, lg: :one_quarter) do %>
+      <div class="bg-<%= colors[i] %> text-<%= colors[i] %>-content p-6 rounded-lg text-center">
+        <p class="text-3xl font-bold"><%= (i + 1) * 1234 %></p>
+        <p class="text-sm opacity-80">Stat <%= i + 1 %></p>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>

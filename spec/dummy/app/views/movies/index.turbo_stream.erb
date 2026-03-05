@@ -6,7 +6,7 @@
 
     <%# Filters Panel - filter_groups auto-populated from @filter_form %>
     <% data_table.with_filters_panel(
-      available_attributes: available_filter_attributes
+      available_attributes: movie_filter_attributes
     ) do |filters| %>
       <% filters.with_applied_tags %>
     <% end %>
@@ -35,7 +35,7 @@
                 <%= movie.status.humanize %>
               </span>
             </td>
-            <td><%= movie.tenant&.name %></td>
+            <td><%= movie.studio&.name %></td>
             <td><%= movie.created_at.strftime('%Y-%m-%d') %></td>
           <% end %>
         <% end %>

@@ -6,13 +6,13 @@ module Bali
       class MissingURL < StandardError; end
 
       SIZES = {
-        xs: 'btn-xs',
-        sm: 'btn-sm',
-        md: '',
-        lg: 'btn-lg'
+        xs: "btn-xs",
+        sm: "btn-sm",
+        md: "",
+        lg: "btn-lg"
       }.freeze
 
-      BASE_CLASSES = 'btn btn-ghost text-error'
+      BASE_CLASSES = "btn btn-ghost text-error"
 
       attr_reader :options, :disabled_hover_url, :icon_name
 
@@ -44,7 +44,7 @@ module Bali
         @icon_name = icon_name
         @authorized = authorized
         @plain = plain
-        @form_class = class_names('inline-block', options.delete(:form_class))
+        @form_class = class_names("inline-block", options.delete(:form_class))
         @options = options
 
         validate_url_presence!
@@ -64,7 +64,7 @@ module Bali
       end
 
       def name
-        @name.presence || content.presence || t('.default_name')
+        @name.presence || content.presence || t(".default_name")
       end
 
       def confirm_message
@@ -83,12 +83,12 @@ module Bali
 
       def button_classes
         if @plain
-          class_names('flex items-center gap-2 text-error', @options[:class])
+          class_names("flex items-center gap-2 text-error", @options[:class])
         else
           class_names(
             BASE_CLASSES,
             SIZES[@size],
-            { 'btn-disabled' => @disabled },
+            { "btn-disabled" => @disabled },
             @options[:class]
           )
         end
@@ -106,9 +106,9 @@ module Bali
 
       def default_confirm_message
         if @model.present?
-          t('.specific_confirm_message', pronoun: pronoun, name: model_name)
+          t(".specific_confirm_message", pronoun: pronoun, name: model_name)
         else
-          t('.generic_confirm_message')
+          t(".generic_confirm_message")
         end
       end
 
@@ -123,7 +123,7 @@ module Bali
       def validate_url_presence!
         return if @href.present? || @model.present?
 
-        raise MissingURL, 'Provide either :model or :href'
+        raise MissingURL, "Provide either :model or :href"
       end
     end
   end

@@ -17,7 +17,7 @@ module Bali
         end
 
         def inactive_emails
-          raise MethodNotImplemented
+          raise NotImplementedError
         end
       end
     end

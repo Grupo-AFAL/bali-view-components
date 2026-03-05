@@ -28,24 +28,24 @@ module Bali
         maintainAspectRatio: false,
         animation: {
           duration: 800,
-          easing: 'easeOutQuart'
+          easing: "easeOutQuart"
         }
       }.freeze
 
       # Card style variants
       CARD_STYLES = {
-        default: 'card bg-base-100 shadow-sm',
-        bordered: 'card bg-base-100 card-border',
-        compact: 'card bg-base-100 card-compact shadow-sm',
-        none: '' # No card wrapper
+        default: "card bg-base-100 shadow-sm",
+        bordered: "card bg-base-100 card-border",
+        compact: "card bg-base-100 card-compact shadow-sm",
+        none: "" # No card wrapper
       }.freeze
 
       # Chart height presets
       HEIGHTS = {
-        sm: 'h-[180px]',
-        md: 'h-[250px]',
-        lg: 'h-[350px]',
-        xl: 'h-[450px]'
+        sm: "h-[180px]",
+        md: "h-[250px]",
+        lg: "h-[350px]",
+        xl: "h-[450px]"
       }.freeze
 
       attr_reader :title
@@ -60,7 +60,7 @@ module Bali
         order: [],
         y_axis_ids: [],
         options: {},
-        card_style: :default,
+        card_style: :none,
         height: :md,
         use_theme_colors: true,
         **html_options
@@ -110,7 +110,7 @@ module Bali
 
       def container_classes
         class_names(
-          'chart-container',
+          "chart-container",
           HEIGHTS[@height] || HEIGHTS[:md],
           @html_options[:class]
         )
@@ -161,7 +161,7 @@ module Bali
         axis_config = scales[axis]
 
         # Grid: cleaner, more subtle - only show y-axis grid
-        axis_config[:grid] = { useThemeColors: true, drawBorder: false, display: (axis == 'y') }
+        axis_config[:grid] = { useThemeColors: true, drawBorder: false, display: (axis == "y") }
 
         # Ticks with proper font
         axis_config[:ticks] = { useThemeColors: true, font: { family: FONT_FAMILY, size: 12 } }
@@ -180,7 +180,7 @@ module Bali
         # Legend font
         opts[:plugins][:legend] ||= {}
         opts[:plugins][:legend][:labels] ||= {}
-        opts[:plugins][:legend][:labels][:font] = { family: FONT_FAMILY, size: 12, weight: '500' }
+        opts[:plugins][:legend][:labels][:font] = { family: FONT_FAMILY, size: 12, weight: "500" }
       end
 
       def labels
@@ -204,7 +204,7 @@ module Bali
       end
 
       def build_datasets
-        raw_datasets = @data[:datasets]&.deep_dup || [{ label: '', data: @data.values }]
+        raw_datasets = @data[:datasets]&.deep_dup || [ { label: "", data: @data.values } ]
 
         raw_datasets.map.with_index do |dataset_info, index|
           build_dataset(dataset_info, index)
@@ -232,10 +232,10 @@ module Bali
           # For pie/doughnut/polarArea, need one color per data point
           # Use labels count if available, otherwise count data points
           color_count = labels.any? ? labels.size : Array.wrap(data).size
-          color_count = [color_count, 1].max # Ensure at least 1 color
+          color_count = [ color_count, 1 ].max # Ensure at least 1 color
           color_count.times.map { @color_picker.next_color }
         else
-          [@color_picker.next_color]
+          [ @color_picker.next_color ]
         end
       end
     end

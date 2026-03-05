@@ -4,8 +4,8 @@ module Bali
   module LocationsMap
     module Card
       class Component < ApplicationViewComponent
-        BASE_CLASSES = 'locations-map-component--card card card-border bg-base-100 p-5 shadow-sm ' \
-                       '[&.is-selected]:bg-info [&.is-selected]:text-info-content'
+        BASE_CLASSES = "locations-map-component--card card card-border bg-base-100 p-5 shadow-sm " \
+                       "[&.is-selected]:bg-info [&.is-selected]:text-info-content"
 
         def initialize(latitude: nil, longitude: nil, **options)
           @latitude = latitude

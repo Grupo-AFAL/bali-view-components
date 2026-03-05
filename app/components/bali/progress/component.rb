@@ -4,14 +4,14 @@ module Bali
   module Progress
     class Component < ApplicationViewComponent
       COLORS = {
-        primary: 'progress-primary',
-        secondary: 'progress-secondary',
-        accent: 'progress-accent',
-        neutral: 'progress-neutral',
-        info: 'progress-info',
-        success: 'progress-success',
-        warning: 'progress-warning',
-        error: 'progress-error'
+        primary: "progress-primary",
+        secondary: "progress-secondary",
+        accent: "progress-accent",
+        neutral: "progress-neutral",
+        info: "progress-info",
+        success: "progress-success",
+        warning: "progress-warning",
+        error: "progress-error"
       }.freeze
 
       def initialize(value: 0, max: 100, color: nil, show_percentage: true, **options)
@@ -38,7 +38,7 @@ module Bali
 
       def wrapper_classes
         class_names(
-          'flex items-center gap-2',
+          "flex items-center gap-2",
           options[:class]
         )
       end
@@ -49,8 +49,8 @@ module Bali
 
       def progress_classes
         class_names(
-          'progress',
-          'w-full',
+          "progress",
+          "w-full",
           COLORS[@color]
         )
       end

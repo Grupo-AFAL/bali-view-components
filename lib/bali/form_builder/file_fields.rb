@@ -6,12 +6,12 @@ module Bali
 
     module FileFields
       # hidden class hides the native file input (consistent with ImageField)
-      INPUT_CLASS = 'hidden'
-      WRAPPER_CLASS = 'flex items-center gap-3'
-      FILENAME_CLASS = 'text-sm text-base-content/60 truncate'
-      CTA_CLASS = 'btn btn-soft btn-primary btn-sm gap-2'
-      LABEL_CLASS = 'cursor-pointer inline-flex'
-      DEFAULT_ICON = 'upload'
+      INPUT_CLASS = "hidden"
+      WRAPPER_CLASS = "flex items-center gap-3"
+      FILENAME_CLASS = "text-sm text-base-content/60 truncate"
+      CTA_CLASS = "btn btn-soft btn-primary btn-sm gap-2"
+      LABEL_CLASS = "cursor-pointer inline-flex"
+      DEFAULT_ICON = "upload"
 
       def file_field_group(method, options = {})
         @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
@@ -64,7 +64,7 @@ module Bali
       def build_file_input_options(options)
         # Override class completely - file input must be hidden (not styled as DaisyUI input)
         opts = options.merge(class: INPUT_CLASS)
-        opts = prepend_action(opts, 'file-input#onChange')
+        opts = prepend_action(opts, "file-input#onChange")
         prepend_data_attribute(opts, :file_input_target, :input)
       end
 
@@ -72,7 +72,7 @@ module Bali
         {
           class: class_names(WRAPPER_CLASS, file_class => file_class.present?),
           data: {
-            controller: 'file-input',
+            controller: "file-input",
             file_input_non_selected_text_value: non_selected_text,
             file_input_multiple_value: multiple
           }
@@ -84,7 +84,7 @@ module Bali
           :span,
           non_selected_text,
           class: FILENAME_CLASS,
-          data: { 'file-input-target': 'value' }
+          data: { 'file-input-target': "value" }
         )
       end
 
@@ -92,16 +92,16 @@ module Bali
         @template.content_tag(:span, class: CTA_CLASS) do
           icon = @template.render(Bali::Icon::Component.new(icon_name))
           label = label_text && @template.content_tag(:span, label_text)
-          icon + (label || ''.html_safe)
+          icon + (label || "".html_safe)
         end
       end
 
       def default_choose_text
-        I18n.t('bali.form_builder.file.choose_file')
+        I18n.t("bali.form_builder.file.choose_file")
       end
 
       def default_non_selected_text
-        I18n.t('bali.form_builder.file.no_file_selected')
+        I18n.t("bali.form_builder.file.no_file_selected")
       end
     end
   end

@@ -1,0 +1,35 @@
+# frozen_string_literal: true
+
+module Bali
+  module Clipboard
+    module SuccessContent
+      class Component < ApplicationViewComponent
+        BASE_CLASSES = "clipboard-success-content hidden text-success"
+
+        def initialize(text = "", **options)
+          @text = text
+          @options = options
+        end
+
+        def call
+          tag.span(**success_attributes) do
+            text.presence || content
+          end
+        end
+
+        private
+
+        attr_reader :text, :options
+
+        def success_attributes
+          opts = prepend_class_name(options, BASE_CLASSES)
+          prepend_data_attribute(opts, "clipboard-target", "successContent")
+        end
+      end
+    end
+
+    # Backwards compatibility for the misspelled module name.
+    # Deprecated: use Bali::Clipboard::SuccessContent instead.
+    SucessContent = SuccessContent
+  end
+end

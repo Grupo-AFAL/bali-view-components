@@ -14,7 +14,7 @@ module Bali
                              pointHoverRadius].freeze
 
       # rubocop:disable Metrics/ParameterLists
-      def initialize(label: '', data: [], order: 1, type: :bar, color: [], rounded: false,
+      def initialize(label: "", data: [], order: 1, type: :bar, color: [], rounded: false,
                      **options)
         # rubocop:enable Metrics/ParameterLists
         @label = label
@@ -50,7 +50,7 @@ module Bali
           result[:pointRadius] = @options.fetch(:pointRadius, DEFAULT_POINT_RADIUS)
           result[:pointHoverRadius] = @options.fetch(:pointHoverRadius, DEFAULT_POINT_HOVER_RADIUS)
           result[:pointBackgroundColor] = @options.fetch(:pointBackgroundColor, border_colors.first)
-          result[:pointBorderColor] = '#ffffff'
+          result[:pointBorderColor] = "#ffffff"
           result[:pointBorderWidth] = 2
         end
 
@@ -93,11 +93,11 @@ module Bali
       end
 
       def css_var_color?(color)
-        color.to_s.start_with?('var(')
+        color.to_s.start_with?("var(")
       end
 
       def oklch_color?(color)
-        color.to_s.start_with?('oklch(')
+        color.to_s.start_with?("oklch(")
       end
     end
   end

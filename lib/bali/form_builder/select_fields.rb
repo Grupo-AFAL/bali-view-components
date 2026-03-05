@@ -4,7 +4,7 @@ module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module SelectFields
       # DaisyUI base classes for select elements
-      BASE_CLASSES = 'select select-bordered w-full'
+      BASE_CLASSES = "select select-bordered w-full"
 
       def select_group(method, values, options = {}, html_options = {})
         @template.render Bali::FieldGroupWrapper::Component.new(self, method, options) do
@@ -24,7 +24,7 @@ module Bali
 
       def select_classes(method, additional_classes = nil)
         base = field_class_name(method, BASE_CLASSES)
-        [base, additional_classes].compact.join(' ')
+        [ base, additional_classes ].compact.join(" ")
       end
 
       def select_field_options(_method, html_options)

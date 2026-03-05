@@ -12,12 +12,13 @@
     <% menu.with_start_item(name: 'Studios', href: studios_path) %>
     <% menu.with_start_item(name: t('navbar.showcase'), href: showcase_path) %>
     <% menu.with_start_item(name: t('navbar.landing'), href: landing_path) %>
+    <% menu.with_start_item(name: 'Admin', href: admin_root_path) %>
 
     <%# Dropdown menu item with nested navigation %>
     <% menu.with_start_dropdown_item(name: t('navbar.settings')) do |dropdown| %>
       <% dropdown.with_item(name: t('settings.general'), href: settings_path) %>
-      <% dropdown.with_item(name: t('settings.notifications'), href: '#') %>
-      <% dropdown.with_item(name: t('settings.security'), href: '#') %>
+      <% dropdown.with_item(name: t('settings.notifications'), href: settings_path) %>
+      <% dropdown.with_item(name: t('settings.security'), href: settings_path) %>
     <% end %>
 
     <%# External link with icon %>
@@ -77,9 +78,9 @@
           <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
         <% end %>
         <% dropdown.with_item(href: settings_path) { t('navbar.settings') } %>
-        <% dropdown.with_item(href: '#') { t('navbar.profile') } %>
+        <% dropdown.with_item(href: settings_path) { t('navbar.profile') } %>
         <li class="divider my-1"></li>
-        <% dropdown.with_item(href: '#', class: 'text-error') { t('navbar.sign_out') } %>
+        <% dropdown.with_item(href: logout_path, class: 'text-error', data: { turbo_method: :delete }) { t('navbar.sign_out') } %>
       <% end %>
     <% end %>
   <% end %>

@@ -9,7 +9,7 @@
 <% end %>
 
 <%# Stats Cards Row %>
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+<%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, cols_lg: 4, gap: :lg, class: 'mt-6') do %>
   <%= render Bali::StatCard::Component.new(
     title: t('dashboard.total_movies'),
     value: @total_movies,
@@ -57,10 +57,10 @@
       tag.span(t('dashboard.independent_productions'), class: 'text-accent')
     end
   end %>
-</div>
+<% end %>
 
 <%# Charts and Activity Row %>
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+<%= render Bali::Columns::Component.new(cols: 1, cols_lg: 2, gap: :xl, class: 'mt-6') do %>
   <%# Movies by Genre Chart %>
   <%= render Bali::Card::Component.new(style: :bordered) do %>
     <h3 class="card-title text-lg"><%= t('dashboard.movies_by_genre') %></h3>
@@ -98,10 +98,10 @@
     </div>
     <%= render Bali::Link::Component.new(name: t('dashboard.view_all_activity'), href: movies_path, class: 'mt-4') %>
   <% end %>
-</div>
+<% end %>
 
 <%# Notifications Demo Row %>
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+<%= render Bali::Columns::Component.new(cols: 1, cols_lg: 2, gap: :xl, class: 'mt-6') do %>
   <%# Movies by Status Chart %>
   <%= render Bali::Card::Component.new(style: :bordered) do %>
     <h3 class="card-title text-lg"><%= t('dashboard.movies_by_status') %></h3>
@@ -120,23 +120,23 @@
     <h3 class="card-title text-lg"><%= t('dashboard.notifications_demo') %></h3>
     <div class="mt-4 space-y-3">
       <%= render Bali::Notification::Component.new(type: :info, dismiss: false) do %>
-        <%= raw t('dashboard.new_feature') %>
+        <%= t('dashboard.new_feature') %>
       <% end %>
 
       <%= render Bali::Notification::Component.new(type: :success, dismiss: false) do %>
-        <%= raw t('dashboard.success_message') %>
+        <%= t('dashboard.success_message') %>
       <% end %>
 
       <%= render Bali::Notification::Component.new(type: :warning, dismiss: false) do %>
-        <%= raw t('dashboard.warning_message') %>
+        <%= t('dashboard.warning_message') %>
       <% end %>
 
       <%= render Bali::Notification::Component.new(type: :error, dismiss: false) do %>
-        <%= raw t('dashboard.error_message') %>
+        <%= t('dashboard.error_message') %>
       <% end %>
     </div>
   <% end %>
-</div>
+<% end %>
 
 <%# Quick Actions Level %>
 <div class="mt-6">
@@ -167,11 +167,11 @@
     <p class="text-sm text-base-content/60 mb-4"><%= t('dashboard.bulk_actions_help') %></p>
 
     <%= render Bali::BulkActions::Component.new do |bulk| %>
-      <% bulk.with_action(label: t('dashboard.mark_done'), href: bulk_action_movies_path, variant: :success) %>
-      <% bulk.with_action(label: t('dashboard.archive'), href: bulk_action_movies_path, variant: :info) %>
-      <% bulk.with_action(label: t('dashboard.delete'), href: bulk_action_movies_path, variant: :error) %>
+      <% bulk.with_action(label: t('dashboard.mark_done'), href: movies_bulk_actions_path, variant: :success) %>
+      <% bulk.with_action(label: t('dashboard.archive'), href: movies_bulk_actions_path, variant: :info) %>
+      <% bulk.with_action(label: t('dashboard.delete'), href: movies_bulk_actions_path, variant: :error) %>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, cols_lg: 3, gap: :lg) do %>
         <% @recent_movies.each do |movie| %>
           <% bulk.with_item(record_id: movie.id, class: 'p-4 mb-2 rounded-lg bg-base-200') do %>
             <div class="flex items-center gap-3">
@@ -183,14 +183,14 @@
                   <%= render Bali::Tag::Component.new(
                     text: movie.status.humanize,
                     size: :xs,
-                    color: movie.done? ? :success : :warning
+                    color: movie.status_color
                   ) %>
                 </div>
               </div>
             </div>
           <% end %>
         <% end %>
-      </div>
+      <% end %>
     <% end %>
   <% end %>
 </div>
@@ -221,7 +221,7 @@
 </div>
 
 <%# GanttChart and Heatmap Row %>
-<div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
+<%= render Bali::Columns::Component.new(cols: 1, cols_xl: 2, gap: :xl, class: 'mt-6') do %>
   <%# GanttChart - Production Timeline %>
   <%= render Bali::Card::Component.new(style: :bordered) do %>
     <h3 class="card-title text-lg mb-4"><%= t('dashboard.production_timeline') %></h3>
@@ -253,4 +253,4 @@
       <% heatmap.with_legend_title(t('dashboard.activity')) %>
     <% end %>
   <% end %>
-</div>
+<% end %>

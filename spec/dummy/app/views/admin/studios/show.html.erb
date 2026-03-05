@@ -1,0 +1,60 @@
+<%= render Bali::ShowPage::Component.new(
+  title: @studio.name,
+  breadcrumbs: [
+    { name: t('studios.show.dashboard'), href: admin_root_path, icon_name: 'home' },
+    { name: t('studios.title'), href: admin_studios_path },
+    { name: @studio.name }
+  ],
+  back: { href: admin_studios_path }
+) do |page| %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(
+      name: t('studios.show.edit'),
+      href: edit_admin_studio_path(@studio),
+      variant: :primary,
+      size: :sm,
+      icon_name: 'pencil'
+    ) %>
+  <% end %>
+
+  <% page.with_body do %>
+    <%= render Bali::Card::Component.new do %>
+      <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :xl) do %>
+        <%= render Bali::LabelValue::Component.new(label: t('studios.show.name'), value: @studio.name) %>
+
+        <%= render Bali::LabelValue::Component.new(label: t('studios.show.country')) do %>
+          <% if @studio.country.present? %>
+            <%= render Bali::Tag::Component.new(text: @studio.country, size: :sm, style: :outline) %>
+          <% else %>
+            <span class="text-base-content/50"><%= t('studios.show.no_value') %></span>
+          <% end %>
+        <% end %>
+
+        <%= render Bali::LabelValue::Component.new(label: t('studios.show.status')) do %>
+          <% if @studio.status.present? %>
+            <%= render Bali::Tag::Component.new(
+              text: @studio.status.humanize,
+              color: @studio.status_color,
+              size: :sm
+            ) %>
+          <% else %>
+            <span class="text-base-content/50"><%= t('studios.show.no_value') %></span>
+          <% end %>
+        <% end %>
+
+        <%= render Bali::LabelValue::Component.new(label: t('studios.show.size'), value: @studio.size&.humanize) %>
+        <%= render Bali::LabelValue::Component.new(label: t('studios.show.founded'), value: @studio.founded_year) %>
+        <%= render Bali::LabelValue::Component.new(label: t('studios.show.created'), value: l(@studio.created_at, format: :long)) %>
+      <% end %>
+    <% end %>
+
+    <div class="mt-6">
+      <%= render Bali::DeleteLink::Component.new(
+        name: t('studios.show.delete_studio'),
+        href: admin_studio_path(@studio),
+        variant: :outline,
+        confirm: t('studios.show.confirm_delete', name: @studio.name)
+      ) %>
+    </div>
+  <% end %>
+<% end %>

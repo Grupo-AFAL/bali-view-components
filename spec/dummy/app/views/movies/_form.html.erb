@@ -1,4 +1,5 @@
-<%# Movie Form - Showcases: FormBuilder (all field types), Stepper, Card, Button %>
+<%# Movie Form - Reference Implementation for Bali FormBuilder %>
+<%# Showcases: FormBuilder fields, submit_actions, BlockEditor (JSON round-trip), DirectUpload %>
 
 <%# Form Progress Stepper %>
 <%= render Bali::Stepper::Component.new(current: 0, color: :primary, class: 'mb-8 w-full') do |stepper| %>
@@ -16,7 +17,7 @@
       <%= t('movies.form.basic_info') %>
     </h3>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
       <%# Text Field %>
       <%= f.text_field_group :name, label: t('movies.form.movie_title'), required: true, placeholder: t('movies.form.enter_title') %>
 
@@ -31,7 +32,7 @@
       <%# Radio Field - Status %>
       <% statuses = Movie.statuses.keys.map { |s| [s.humanize, s] } %>
       <%= f.radio_field_group :status, statuses, { label: t('movies.form.status') }, { orientation: :horizontal, color: :primary } %>
-    </div>
+    <% end %>
 
     <%# Switch Field - Indie %>
     <div class="mt-4">
@@ -49,31 +50,30 @@
     <%# Text Area %>
     <%= f.text_area_group :synopsis, label: t('movies.form.synopsis'), rows: 4, placeholder: t('movies.form.enter_synopsis'), char_counter: { max: 500 } %>
 
-    <%# Block Editor - Rich Description %>
+    <%# Block Editor - Rich Description with JSON round-trip %>
     <div class="mt-4">
       <label class="label"><span class="label-text font-medium"><%= t('movies.form.rich_description') %></span></label>
       <%= render Bali::BlockEditor::Component.new(
         editable: true,
         input_name: 'movie[rich_description]',
+        initial_content: movie.rich_description,
         placeholder: t('movies.form.enter_rich_description')
       ) %>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+    <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg, class: 'mt-4') do %>
       <%# Date Field %>
       <%= f.date_field_group :release_date, label: t('movies.form.release_date') %>
 
       <%# Number Field (Currency) %>
       <%= f.currency_field_group :budget, label: t('movies.form.budget'), currency: 'USD', placeholder: '0.00' %>
-    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
       <%# Email Field %>
       <%= f.email_field_group :contact_email, label: t('movies.form.contact_email'), placeholder: 'producer@studio.com' %>
 
       <%# URL Field %>
       <%= f.url_field_group :website_url, label: t('movies.form.website_url'), placeholder: 'https://moviewebsite.com' %>
-    </div>
+    <% end %>
   <% end %>
 
   <%# Section 3: Media Upload (DirectUpload Demo) %>
@@ -105,13 +105,13 @@
       <%= t('movies.form.additional_settings') %>
     </h3>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
       <%# Time Zone Select %>
       <%= f.time_zone_select_group :time_zone, nil, { include_blank: t('movies.form.select_timezone') }, { label: t('movies.form.timezone') } %>
 
       <%# Rating (Number with step) %>
       <%= f.number_field_group :rating, label: t('movies.form.initial_rating'), min: 0, max: 10, step: 0.5, placeholder: '0.0' %>
-    </div>
+    <% end %>
 
     <%# Info Message %>
     <div class="mt-4">
@@ -121,27 +121,10 @@
     </div>
   <% end %>
 
-  <%# Form Actions %>
-  <div class="flex items-center justify-between pt-4">
-    <%= render Bali::Link::Component.new(
-      name: t('common.cancel'),
-      href: movies_path,
-      variant: :ghost
-    ) %>
-
-    <div class="flex items-center gap-2">
-      <%= render Bali::Button::Component.new(
-        name: t('movies.form.save_draft'),
-        variant: :ghost,
-        type: :submit,
-        icon_name: 'save'
-      ) %>
-      <%= render Bali::Button::Component.new(
-        name: movie.persisted? ? t('movies.form.update_movie') : t('movies.form.create_movie'),
-        variant: :primary,
-        type: :submit,
-        icon_name: 'check'
-      ) %>
-    </div>
-  </div>
+  <%# Form Actions - Using submit_actions for reference implementation %>
+  <%= f.submit_actions(
+    movie.persisted? ? t('movies.form.update_movie') : t('movies.form.create_movie'),
+    cancel_path: movies_path,
+    variant: :primary
+  ) %>
 <% end %>

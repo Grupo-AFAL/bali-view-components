@@ -3,24 +3,24 @@
 module Bali
   module Notification
     class Component < ApplicationViewComponent
-      BASE_CLASSES = 'notification-component alert'
-      SHADOW_CLASSES = 'shadow-[0px_3px_18px_rgba(0,0,0,0.1),0_0_0_1px_rgba(0,0,0,0.03)]'
-      UNCLOSABLE_CLASSES = '[&.is-unclosable_.btn-circle]:hidden ' \
-                           '[&.is-unclosable_.notification-content-component]:mr-0'
+      BASE_CLASSES = "notification-component alert"
+      SHADOW_CLASSES = "shadow-[0px_3px_18px_rgba(0,0,0,0.1),0_0_0_1px_rgba(0,0,0,0.03)]"
+      UNCLOSABLE_CLASSES = "[&.is-unclosable_.btn-circle]:hidden " \
+                           "[&.is-unclosable_.notification-content-component]:mr-0"
 
       TYPES = {
-        success: 'alert-success',
-        info: 'alert-info',
-        warning: 'alert-warning',
-        error: 'alert-error',
-        danger: 'alert-error',
-        primary: 'alert-info'
+        success: "alert-success",
+        info: "alert-info",
+        warning: "alert-warning",
+        error: "alert-error",
+        danger: "alert-error",
+        primary: "alert-info"
       }.freeze
 
       STYLES = {
-        soft: 'alert-soft',
-        outline: 'alert-outline',
-        dash: 'alert-dash'
+        soft: "alert-soft",
+        outline: "alert-outline",
+        dash: "alert-dash"
       }.freeze
 
       def initialize(type: :success, delay: 3000, fixed: true, dismiss: true, style: nil, **options)
@@ -46,7 +46,7 @@ module Bali
 
       def stimulus_attributes
         {
-          controller: 'notification',
+          controller: "notification",
           'notification-delay-value': delay,
           'notification-dismiss-value': dismiss,
           'turbo-cache': false
@@ -54,7 +54,7 @@ module Bali
       end
 
       def close_button_label
-        t('.close')
+        t(".close")
       end
 
       private
@@ -73,8 +73,8 @@ module Bali
         return unless fixed
 
         class_names(
-          'fixed top-[4.25rem] right-4 z-[101]',
-          Bali.native_app && 'top-4 left-1/2 right-auto -translate-x-1/2 w-full'
+          "fixed top-[4.25rem] right-4 z-[101]",
+          Bali.native_app && "top-4 left-1/2 right-auto -translate-x-1/2 w-full"
         )
       end
     end

@@ -63,22 +63,22 @@ module Bali
 
       def component_classes
         class_names(
-          'carousel-component',
-          'glide',
+          "carousel-component",
+          "glide",
           @options[:class]
         )
       end
 
       def component_data
         base_data = {
-          controller: 'carousel',
-          'carousel-start-at-value' => @start_at,
-          'carousel-per-view-value' => @slides_per_view,
-          'carousel-autoplay-value' => @autoplay,
-          'carousel-gap-value' => @gap,
-          'carousel-focus-at-value' => @focus_at,
-          'carousel-breakpoints-value' => @breakpoints&.to_json,
-          'carousel-peek-value' => @peek
+          controller: "carousel",
+          "carousel-start-at-value" => @start_at,
+          "carousel-per-view-value" => @slides_per_view,
+          "carousel-autoplay-value" => @autoplay,
+          "carousel-gap-value" => @gap,
+          "carousel-focus-at-value" => @focus_at,
+          "carousel-breakpoints-value" => @breakpoints&.to_json,
+          "carousel-peek-value" => @peek
         }.compact
 
         base_data.merge(@options[:data] || {})
@@ -95,7 +95,7 @@ module Bali
       end
 
       def resolve_focus_at(value)
-        value == :center ? 'center' : value
+        value == :center ? "center" : value
       end
     end
   end

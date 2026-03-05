@@ -115,7 +115,7 @@ module Bali
           template: 'bali/data_table/previews/with_sorting',
           locals: {
             filter_form: filter_form,
-            movies: filter_form.result.includes(:tenant).limit(10),
+            movies: filter_form.result.includes(:studio).limit(10),
             filter_attributes: MOVIE_FILTER_ATTRIBUTES
           }
         )
@@ -133,7 +133,7 @@ module Bali
       def with_pagination(q: {}, page: 1)
         filter_params = ActionController::Parameters.new(q: ActionController::Parameters.new(q), page: page)
         filter_form = Bali::FilterForm.new(Movie.all, filter_params)
-        collection = filter_form.result.includes(:tenant)
+        collection = filter_form.result.includes(:studio)
         count = collection.count
         limit = 5
         pagy_obj = Pagy::Offset.new(count: count, page: page.to_i, limit: limit)
@@ -155,7 +155,7 @@ module Bali
       def complete(q: {}, page: 1)
         filter_params = ActionController::Parameters.new(q: ActionController::Parameters.new(q), page: page)
         filter_form = Bali::FilterForm.new(Movie.all, filter_params)
-        collection = filter_form.result.includes(:tenant)
+        collection = filter_form.result.includes(:studio)
         count = collection.count
         limit = 5
         pagy_obj = Pagy::Offset.new(count: count, page: page.to_i, limit: limit)
@@ -185,15 +185,17 @@ module Bali
       #   { attribute: :status, collection: [...], blank: "All Statuses" }
       # ])
       # ```
+      # @param search text
       # @param country select { choices: ["", USA, UK, France, Germany, Japan, India, Australia, Canada] }
       # @param status select { choices: ["", active, inactive, pending] }
       # @param size select { choices: ["", small, medium, large, enterprise] }
-      def with_simple_filters(q: {}, page: 1, country: '', status: '', size: '')
+      def with_simple_filters(q: {}, page: 1, search: '', country: '', status: '', size: '')
         # Merge simple filter values into q params
         q_with_filters = q.to_h.dup
         q_with_filters['country_eq'] = country if country.present?
         q_with_filters['status_eq'] = status if status.present?
         q_with_filters['size_eq'] = size if size.present?
+        q_with_filters['name_cont'] = search if search.present?
 
         filter_params = ActionController::Parameters.new(
           q: ActionController::Parameters.new(q_with_filters),
@@ -221,7 +223,11 @@ module Bali
           }
         ]
 
-        filter_form = Bali::FilterForm.new(Studio.all, filter_params, simple_filters: simple_filters_config)
+        filter_form = Bali::FilterForm.new(
+          Studio.all, filter_params,
+          simple_filters: simple_filters_config,
+          search_fields: %i[name]
+        )
         pagy, studios = pagy(filter_form.result.order(:name), items: 10, page: page)
 
         render_with_template(
@@ -247,7 +253,7 @@ module Bali
 
         filter_params = ActionController::Parameters.new(q: ActionController::Parameters.new(q), page: page)
         filter_form = Bali::FilterForm.new(Movie.all, filter_params)
-        collection = filter_form.result.includes(:tenant)
+        collection = filter_form.result.includes(:studio)
         count = collection.count
         limit = 6
         pagy_obj = Pagy::Offset.new(count: count, page: page.to_i, limit: limit)
