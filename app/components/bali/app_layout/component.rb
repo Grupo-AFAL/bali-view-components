@@ -38,6 +38,7 @@ module Bali
           "app-layout",
           "flex flex-col",
           "min-h-screen",
+          "bg-base-200",
           { "app-layout--has-fixed-sidebar" => @fixed_sidebar && sidebar? },
           { "app-layout--has-navbar" => navbar? },
           { "app-layout--has-sidebar" => sidebar? },
