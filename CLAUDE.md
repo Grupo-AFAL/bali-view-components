@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working in this repository.
 
 ## Project Overview
 
-bali-view-components — TODO: describe what this project does.
+**Bali** is AFAL's open-source ViewComponent library providing 40+ reusable UI components for Rails applications, styled with Tailwind CSS and DaisyUI.
 
 ## Session Memory
 
