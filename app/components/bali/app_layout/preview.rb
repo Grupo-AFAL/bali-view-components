@@ -63,7 +63,7 @@ module Bali
       end
 
       # @label Content Only
-      # Config D: Minimal layout for login, error, or onboarding pages.
+      # Config D: Minimal layout without sidebar or navbar. Useful for settings, onboarding, or standalone pages.
       # @param flash_notice text
       # @param body_container select { choices: [narrow, contained, wide, full] }
       def content_only(flash_notice: "", body_container: "narrow")

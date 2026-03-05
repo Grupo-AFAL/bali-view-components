@@ -8,27 +8,45 @@
   body_container: body_container
 ) do |layout|
   layout.with_body do %>
-    <div class="flex items-center justify-center min-h-[80vh]">
-      <%= render Bali::Card::Component.new(style: :bordered, body_class: "p-8") do %>
-        <div class="w-80">
-          <h2 class="text-2xl font-bold text-center mb-6">Sign In</h2>
-          <div class="space-y-4">
-            <div class="form-control">
-              <label class="label"><span class="label-text">Email</span></label>
-              <input type="email" placeholder="you@example.com" class="input input-bordered w-full" />
-            </div>
-            <div class="form-control">
-              <label class="label"><span class="label-text">Password</span></label>
-              <input type="password" placeholder="••••••••" class="input input-bordered w-full" />
-            </div>
-            <%= render Bali::Button::Component.new(name: "Sign In", variant: :primary, class: "w-full") %>
-            <p class="text-center text-sm text-base-content/60">
-              Don't have an account? <%= render Bali::Link::Component.new(name: "Sign up", href: "/lookbook") %>
-            </p>
+    <%= render Bali::PageHeader::Component.new(title: 'Account Settings', subtitle: 'Manage your profile and preferences') %>
+
+    <%= render Bali::Columns::Component.new(cols: 1, cols_lg: 3, gap: :lg) do %>
+      <div class="lg:col-span-1">
+        <%= render Bali::Card::Component.new(style: :bordered) do %>
+          <div class="flex flex-col items-center text-center">
+            <%= render Bali::Avatar::Component.new(size: :lg, class: 'mb-3') do |avatar|
+              avatar.with_placeholder { "AG" }
+            end %>
+            <h3 class="font-bold text-lg">Ana García</h3>
+            <p class="text-sm text-base-content/60">ana@example.com</p>
+            <%= render Bali::Tag::Component.new(text: 'Admin', color: :primary, class: 'mt-2') %>
           </div>
-        </div>
-      <% end %>
-    </div>
+        <% end %>
+      </div>
+
+      <div class="lg:col-span-2">
+        <%= render Bali::Card::Component.new(style: :bordered) do |card|
+          card.with_title('Profile Information') %>
+          <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :md) do %>
+            <%= render Bali::LabelValue::Component.new(label: 'Full Name', value: 'Ana García') %>
+            <%= render Bali::LabelValue::Component.new(label: 'Email', value: 'ana@example.com') %>
+            <%= render Bali::LabelValue::Component.new(label: 'Role', value: 'Administrator') %>
+            <%= render Bali::LabelValue::Component.new(label: 'Timezone', value: 'America/Tijuana') %>
+          <% end %>
+          <div class="mt-4">
+            <%= render Bali::Button::Component.new(name: 'Edit Profile', variant: :primary, size: :sm) %>
+          </div>
+        <% end %>
+
+        <%= render Bali::Card::Component.new(style: :bordered, class: 'mt-4') do |card|
+          card.with_title('Notifications') %>
+          <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :md) do %>
+            <%= render Bali::LabelValue::Component.new(label: 'Email Notifications', value: 'Enabled') %>
+            <%= render Bali::LabelValue::Component.new(label: 'Weekly Digest', value: 'Every Monday') %>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
   <% end
 end %>
 </div>
