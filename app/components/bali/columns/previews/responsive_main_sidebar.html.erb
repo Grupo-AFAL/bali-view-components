@@ -1,0 +1,25 @@
+<%= render Bali::Columns::Component.new(gap: :xl) do |c| %>
+  <% c.with_column(lg: :two_thirds) do %>
+    <div class="bg-base-200 p-6 rounded-lg">
+      <h3 class="text-lg font-bold mb-2">Main Content</h3>
+      <p>This column takes full width on mobile and two-thirds on desktop (1024px+).</p>
+      <div class="mt-4 space-y-2">
+        <div class="bg-base-300 p-3 rounded">Article 1</div>
+        <div class="bg-base-300 p-3 rounded">Article 2</div>
+        <div class="bg-base-300 p-3 rounded">Article 3</div>
+      </div>
+    </div>
+  <% end %>
+
+  <% c.with_column(lg: :one_third) do %>
+    <div class="bg-base-200 p-6 rounded-lg">
+      <h3 class="text-lg font-bold mb-2">Sidebar</h3>
+      <p>Stacks below main content on mobile, sits alongside on desktop.</p>
+      <ul class="mt-4 space-y-1 text-sm">
+        <li>Link 1</li>
+        <li>Link 2</li>
+        <li>Link 3</li>
+      </ul>
+    </div>
+  <% end %>
+<% end %>

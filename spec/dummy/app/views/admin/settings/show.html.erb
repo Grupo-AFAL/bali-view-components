@@ -36,7 +36,7 @@
             <p class="text-base-content/60 text-sm mb-4"><%= t('settings.general_desc') %></p>
 
             <%= form_with model: @settings, url: admin_settings_path, method: :patch, builder: Bali::FormBuilder, class: 'space-y-4' do |f| %>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
                 <% languages = [
                   [t('settings.languages.english'), 'en'],
                   [t('settings.languages.spanish'), 'es'],
@@ -45,7 +45,7 @@
                 ] %>
                 <%= f.select_group :language, languages, {}, { label: t('settings.language') } %>
                 <%= f.time_zone_select_group :timezone, nil, {}, { label: t('settings.timezone') } %>
-              </div>
+              <% end %>
 
               <%= render 'admin/settings/save_button', name: t('settings.save_changes') %>
             <% end %>
@@ -115,7 +115,7 @@
             <%= form_with model: @settings, url: admin_settings_path, method: :patch, builder: Bali::FormBuilder, class: 'space-y-4' do |f| %>
               <%= f.switch_field_group :dark_mode, label: t('settings.dark_mode'), color: :accent %>
 
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+              <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg, class: 'mt-4') do %>
                 <%= render Bali::Card::Component.new(style: :bordered, class: 'bg-base-100') do %>
                   <div class="card-body p-4">
                     <div class="flex items-center gap-2">
@@ -135,7 +135,7 @@
                     <p class="text-sm opacity-70"><%= t('settings.dark_mode_desc') %></p>
                   </div>
                 <% end %>
-              </div>
+              <% end %>
 
               <%= render 'admin/settings/save_button', name: t('settings.save_changes') %>
             <% end %>
@@ -161,7 +161,7 @@
                 <% end %>
 
                 <%= form_with model: @settings, url: admin_settings_path, method: :patch, builder: Bali::FormBuilder, class: 'space-y-4' do |f| %>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
                     <% cache_options = [
                       [t('settings.cache_1h'), '1'],
                       [t('settings.cache_6h'), '6'],
@@ -172,7 +172,7 @@
 
                     <% rate_limits = [['100 req/min', '100'], ['500 req/min', '500'], ['1000 req/min', '1000']] %>
                     <%= f.select_group :api_rate_limit, rate_limits, {}, { label: t('settings.api_rate_limit') } %>
-                  </div>
+                  <% end %>
 
                   <%= f.switch_field_group :debug_mode, label: t('settings.debug_mode'), color: :warning %>
                   <%= f.switch_field_group :beta_features, label: t('settings.beta_features'), color: :info %>

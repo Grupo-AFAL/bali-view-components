@@ -1,7 +1,7 @@
 <%= form_with model: studio, url: studio.persisted? ? admin_studio_path(studio) : admin_studios_path, class: 'space-y-4', builder: Bali::FormBuilder do |f| %>
   <%= f.error_summary %>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
     <%= f.text_field_group :name, required: true %>
     <%= f.select_group :country,
           Studio::COUNTRIES.map { |c| [c, c] },
@@ -13,7 +13,7 @@
           Studio::SIZES.map { |s| [s.humanize, s] },
           { include_blank: t('studios.form.select_size') } %>
     <%= f.number_field_group :founded_year, min: 1800, max: Date.current.year %>
-  </div>
+  <% end %>
 
   <div class="flex gap-2 justify-end mt-6">
     <% if params[:layout] == 'false' %>

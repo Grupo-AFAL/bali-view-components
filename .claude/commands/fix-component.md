@@ -34,7 +34,6 @@ Where `$ARGUMENTS` is:
 
 | Issue Type | Priority | Fix Approach |
 |------------|----------|--------------|
-| Dead Bulma classes | Critical | Map to Tailwind equivalents |
 | Missing DaisyUI classes | High | Add correct DaisyUI classes |
 | Broken JS functionality | High | Fix Stimulus controller |
 | Missing tests | Medium | Generate test file |
@@ -44,80 +43,7 @@ Where `$ARGUMENTS` is:
 
 ### Step 3: Apply Fixes by Category
 
-#### 3A: Fix Bulma → Tailwind Class Mappings
-
-**Common Mappings Reference:**
-
-| Bulma Class | Tailwind/DaisyUI Replacement |
-|-------------|------------------------------|
-| **Sizing** | |
-| `is-half` | `w-1/2 flex-none` or `col-span-6` |
-| `is-one-third` | `w-1/3 flex-none` or `col-span-4` |
-| `is-two-thirds` | `w-2/3 flex-none` or `col-span-8` |
-| `is-one-quarter` | `w-1/4 flex-none` or `col-span-3` |
-| `is-three-quarters` | `w-3/4 flex-none` or `col-span-9` |
-| `is-narrow` | `w-auto flex-none` |
-| `is-full` | `w-full` |
-| **Offsets** | |
-| `is-offset-one-quarter` | `ml-[25%]` or `col-start-4` |
-| `is-offset-one-third` | `ml-[33.33%]` or `col-start-5` |
-| `is-offset-half` | `ml-[50%]` or `col-start-7` |
-| **Layout** | |
-| `is-multiline` | `flex-wrap` (already in flex container) |
-| `is-centered` | `justify-center` |
-| `is-vcentered` | `items-center` |
-| `is-gapless` | `gap-0` |
-| **Display** | |
-| `is-hidden` | `hidden` |
-| `is-invisible` | `invisible` |
-| `is-block` | `block` |
-| `is-flex` | `flex` |
-| **Spacing** | |
-| `mb-4` (Bulma) | `mb-4` (same in Tailwind) |
-| `p-4` (Bulma) | `p-4` (same in Tailwind) |
-| **Colors** | |
-| `has-background-primary` | `bg-primary` |
-| `has-text-white` | `text-white` |
-| **Box/Card** | |
-| `box` | `bg-base-100 p-4 rounded-lg shadow` |
-| `card` | `card bg-base-100 shadow-xl` |
-
-**Implementation Pattern:**
-
-```ruby
-# In component.rb - Add mappings as constants
-SIZES = {
-  half: 'w-1/2',
-  third: 'w-1/3',
-  two_thirds: 'w-2/3',
-  quarter: 'w-1/4',
-  three_quarters: 'w-3/4',
-  narrow: 'w-auto',
-  full: 'w-full'
-}.freeze
-
-def initialize(size: nil, **options)
-  @size = size&.to_sym
-  @options = options
-end
-
-def component_classes
-  class_names(
-    'base-class',
-    size_class,
-    @options[:class]
-  )
-end
-
-private
-
-def size_class
-  return 'flex-1' unless @size
-  "#{SIZES[@size]} flex-none"
-end
-```
-
-#### 3B: Fix Missing DaisyUI Classes
+#### 3A: Fix Missing DaisyUI Classes
 
 Check component against DaisyUI reference and add missing semantic classes:
 
@@ -185,13 +111,13 @@ end
 
 #### 3D: Fix Preview Examples
 
-Update preview to use correct Tailwind API:
+Update preview to use correct API:
 
 ```ruby
-# Before (Bulma classes)
+# Before (incorrect API)
 c.with_column(class: 'is-half') { ... }
 
-# After (Tailwind via params)
+# After (correct param-based API)
 c.with_column(size: :half) { ... }
 
 # Or if keeping class passthrough
@@ -247,15 +173,9 @@ Polish the visual design of [ComponentName] after functional fixes.
 ### Files Modified
 | File | Changes |
 |------|---------|
-| component.rb | Added SIZES constant, size param, Tailwind mappings |
+| component.rb | Added SIZES constant, size param, DaisyUI classes |
 | preview.rb | Updated examples to use new API |
 | component_spec.rb | Created with X test cases |
-
-### Class Mappings Applied
-| Old (Bulma) | New (Tailwind) |
-|-------------|----------------|
-| `is-half` | `w-1/2 flex-none` |
-| ... | ... |
 
 ### Tests
 - Added: X new test cases
@@ -278,10 +198,9 @@ User: /fix-component Columns
 AI: Fixing Bali::Columns::Component based on verification findings...
 
 ## Issues Identified
-1. Dead Bulma classes: is-half, is-narrow, is-offset-*, is-multiline
-2. Missing size/offset params in Column component
-3. No tests exist
-4. Preview uses Bulma API
+1. Missing size/offset params in Column component
+2. No tests exist
+3. Preview uses incorrect API
 
 ## Applying Fixes
 

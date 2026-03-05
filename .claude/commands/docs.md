@@ -329,13 +329,6 @@ A versatile button component with multiple variants and sizes.
 - Loading state communicated via `aria-busy`
 - Focus is visible with ring indicator
 
-## Migration Notes
-
-If migrating from Bulma version:
-- `variant: :danger` → `variant: :error`
-- `size: :small` → `size: :sm`
-- `size: :large` → `size: :lg`
-
 ---
 
 Documentation generated. View at docs/api/button.md

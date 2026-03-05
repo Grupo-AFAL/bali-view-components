@@ -1,6 +1,6 @@
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-2">
+<%= render Bali::Columns::Component.new(gap: :xl, class: 'mt-2') do |c| %>
   <%# Main Info - Properties Table %>
-  <div class="lg:col-span-2">
+  <% c.with_column(lg: :two_thirds) do %>
     <%= render Bali::Card::Component.new(style: :bordered) do %>
       <h3 class="card-title text-lg mb-4"><%= t('movies.show.movie_information') %></h3>
       <%= render Bali::PropertiesTable::Component.new do |table| %>
@@ -41,12 +41,12 @@
 
       <%# LabelValue Demo - Numeric details %>
       <h4 class="font-semibold mt-6 mb-3"><%= t('movies.show.additional_details') %></h4>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <%= render Bali::Columns::Component.new(cols: 2, cols_md: 4, gap: :lg) do %>
         <%= render Bali::LabelValue::Component.new(label: t('movies.show.budget'), value: movie.budget.present? ? number_to_currency(movie.budget) : '—') %>
         <%= render Bali::LabelValue::Component.new(label: t('movies.show.rating'), value: movie.rating.present? ? "#{movie.rating} / 10" : '—') %>
         <%= render Bali::LabelValue::Component.new(label: t('movies.show.release_year'), value: movie.release_date.present? ? movie.release_date.strftime('%Y') : '—') %>
         <%= render Bali::LabelValue::Component.new(label: t('movies.columns.status'), value: movie.status.humanize) %>
-      </div>
+      <% end %>
     <% end %>
 
     <%# Synopsis %>
@@ -91,10 +91,10 @@
         <% end %>
       <% end %>
     <% end %>
-  </div>
+  <% end %>
 
   <%# Sidebar - Studio Info & Stats %>
-  <div class="space-y-6">
+  <% c.with_column(lg: :one_third, class: 'space-y-6') do %>
     <%# Studio Card with HoverCard %>
     <%= render Bali::Card::Component.new(style: :bordered) do %>
       <h3 class="card-title text-lg mb-4"><%= t('movies.columns.studio') %></h3>
@@ -171,5 +171,5 @@
         </div>
       <% end %>
     <% end %>
-  </div>
-</div>
+  <% end %>
+<% end %>

@@ -32,7 +32,7 @@
       <p class="text-base-content/60 mt-2">Everything you need to manage your movie catalog</p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <%= render Bali::Columns::Component.new(cols: 1, cols_md: 3, gap: :'2xl') do %>
       <%# Feature 1: Filters %>
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <div class="card-body text-center">
@@ -65,14 +65,14 @@
           <p class="text-base-content/60">Work together with your team. Assign movies to studios and track production status.</p>
         </div>
       <% end %>
-    </div>
+    <% end %>
   </div>
 </section>
 
 <%# Stats Section %>
 <section class="py-16 bg-base-200">
   <div class="container mx-auto px-4 max-w-6xl">
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
+    <%= render Bali::Columns::Component.new(cols: 1, cols_md: 3, gap: :'2xl', class: 'text-center') do %>
       <div>
         <p class="text-4xl font-bold text-primary"><%= @movies_count * 50 %>+</p>
         <p class="text-base-content/60 mt-2">Movies Managed</p>
@@ -85,7 +85,7 @@
         <p class="text-4xl font-bold text-accent">10K+</p>
         <p class="text-base-content/60 mt-2">Active Users</p>
       </div>
-    </div>
+    <% end %>
   </div>
 </section>
 
@@ -164,7 +164,7 @@
       <p class="text-base-content/60 mt-2">Choose the plan that works for you</p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <%= render Bali::Columns::Component.new(cols: 1, cols_md: 3, gap: :'2xl') do %>
       <%# Free Plan %>
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <div class="card-body">
@@ -268,7 +268,7 @@
           </div>
         </div>
       <% end %>
-    </div>
+    <% end %>
   </div>
 </section>
 

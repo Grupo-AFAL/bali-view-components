@@ -6,13 +6,13 @@
 
 @media (min-width: 1024px) {
   /* Push content right when a fixed sidebar is present */
-  .app-layout--has-fixed-sidebar > .app-layout-content {
+  .app-layout--has-fixed-sidebar .app-layout-content {
     padding-left: var(--bali-side-menu-width);
     transition: padding-left 0.2s ease-in-out;
   }
 
   /* Reduce offset when sidebar is collapsed */
-  .app-layout--has-fixed-sidebar:has(.side-menu-collapse-trigger:checked) > .app-layout-content {
+  .app-layout--has-fixed-sidebar:has(.side-menu-collapse-trigger:checked) .app-layout-content {
     padding-left: var(--bali-side-menu-collapsed-width);
   }
 }

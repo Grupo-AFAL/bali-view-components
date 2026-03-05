@@ -1,6 +1,12 @@
 <%# transform creates a containing block that traps position:fixed elements inside the preview pane %>
 <div style="transform: translateZ(0); position: relative; height: 100vh; overflow: hidden;">
-<%= render Bali::AppLayout::Component.new(fixed_sidebar: true) do |layout|
+<%= render Bali::AppLayout::Component.new(
+  fixed_sidebar: true,
+  flash: flash_notice.present? ? { notice: flash_notice } : nil,
+  modal: modal,
+  drawer: drawer,
+  drawer_size: drawer_size
+) do |layout|
   layout.with_sidebar do %>
     <%= render Bali::SideMenu::Component.new(current_path: '/admin', collapsible: collapsible, brand: 'MovieDB') do |menu|
       menu.with_menu_switch(title: 'MovieDB', icon: 'clapperboard', href: '/admin', active: true)
@@ -31,7 +37,7 @@
     <div class="max-w-7xl">
       <%= render Bali::PageHeader::Component.new(title: 'Dashboard', subtitle: 'Welcome back, Ana') %>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, cols_lg: 4, gap: :lg, class: 'mb-6') do %>
         <% [
           { label: 'Total Movies', value: '1,234', icon: 'film', color: 'primary' },
           { label: 'Studios', value: '56', icon: 'building-2', color: 'secondary' },
@@ -48,7 +54,7 @@
             </div>
           <% end %>
         <% end %>
-      </div>
+      <% end %>
 
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <h3 class="card-title text-lg mb-4">Recent Activity</h3>

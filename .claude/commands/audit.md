@@ -10,7 +10,6 @@ Comprehensive audit of the Bali ViewComponent library status.
 
 Where `$ARGUMENTS` is:
 - (none) - Full library audit
-- `--migration` - Migration status only
 - `--coverage` - Test coverage only
 - `--a11y` - Accessibility status only
 - `--json` - Output as JSON for tooling
@@ -35,29 +34,20 @@ For each component, gather:
 - Has SCSS file
 - Has Stimulus controller
 
-### Step 2: Migration Status Analysis
+### Step 2: DaisyUI Compliance Check
 
-Check each component for:
+Check each component for proper DaisyUI class usage:
 
-1. **Bulma Classes** (indicates NOT migrated):
-   ```ruby
-   # Grep for Bulma patterns
-   grep -l "is-primary\|is-success\|is-danger\|is-warning\|is-info" component.rb
-   grep -l "is-small\|is-medium\|is-large" component.rb
-   grep -l "columns\|column" component.html.erb
-   ```
-
-2. **DaisyUI Classes** (indicates migrated):
+1. **DaisyUI Classes**:
    ```ruby
    # Grep for DaisyUI patterns
    grep -l "btn-primary\|btn-success\|btn-error" component.rb
    grep -l "badge-\|alert-\|card-body" component.rb
    ```
 
-3. **Classification**:
-   - **Migrated**: Only DaisyUI classes, no Bulma
-   - **Partial**: Mix of Bulma and DaisyUI
-   - **Pending**: Only Bulma classes
+2. **Classification**:
+   - **Compliant**: Uses proper DaisyUI classes
+   - **Needs Review**: Missing or incorrect DaisyUI patterns
    - **Not Applicable**: No CSS framework classes (e.g., utility components)
 
 ### Step 3: Test Coverage Analysis
@@ -112,30 +102,24 @@ Generated: [timestamp]
 | Metric | Count | Percentage |
 |--------|-------|------------|
 | Total Components | X | 100% |
-| Fully Migrated | X | X% |
-| Partially Migrated | X | X% |
-| Pending Migration | X | X% |
+| DaisyUI Compliant | X | X% |
+| Needs Review | X | X% |
 | With Tests | X | X% |
 | A11y Compliant | X | X% |
 
-## Migration Status
+## Component Status
 
-### Migrated (X components)
+### Compliant (X components)
 | Component | Tests | A11y | Notes |
 |-----------|-------|------|-------|
 | Button | 12 examples | Yes | |
 | Badge | 8 examples | Yes | |
 
-### Partially Migrated (X components)
-| Component | Bulma Classes | DaisyUI Classes | Blocking Issue |
-|-----------|--------------|-----------------|----------------|
-| Modal | is-active | modal-box | Needs backdrop migration |
-
-### Pending Migration (X components)
-| Component | Complexity | Dependencies | Priority |
-|-----------|------------|--------------|----------|
-| Form | High | Multiple sub-components | High |
-| DataTable | High | Table, Pagination | Medium |
+### Needs Review (X components)
+| Component | Issue | Priority |
+|-----------|-------|----------|
+| Form | Complex sub-components | High |
+| DataTable | Table, Pagination dependencies | Medium |
 
 ## Test Coverage
 
@@ -159,7 +143,7 @@ Generated: [timestamp]
 1. [Highest priority item]
 2. [Second priority]
 
-### Migration Order (Recommended)
+### Improvement Order (Recommended)
 1. [Component] - [reason]
 2. [Component] - [reason]
 
@@ -169,13 +153,12 @@ Generated: [timestamp]
 
 ## Report Details
 
-### Migration Status Indicators
+### DaisyUI Compliance Indicators
 
 | Status | Icon | Criteria |
 |--------|------|----------|
-| Migrated | :white_check_mark: | 0 Bulma classes, DaisyUI classes present |
-| Partial | :construction: | Mix of Bulma and DaisyUI |
-| Pending | :hourglass: | Only Bulma classes |
+| Compliant | :white_check_mark: | Proper DaisyUI classes present |
+| Needs Review | :construction: | Missing or incorrect DaisyUI patterns |
 | N/A | :grey_question: | No CSS framework usage |
 
 ### Component Complexity Rating
@@ -189,11 +172,11 @@ Generated: [timestamp]
 ### Priority Calculation
 
 ```
-Priority Score = (Usage Frequency * 3) + (Migration Complexity * -1) + (Has Tests * 2)
+Priority Score = (Usage Frequency * 3) + (Complexity * -1) + (Has Tests * 2)
 ```
 
 - Usage Frequency: Based on grep across consumer apps (if available)
-- Migration Complexity: Low=1, Medium=2, High=3
+- Complexity: Low=1, Medium=2, High=3
 - Has Tests: Yes=1, No=0
 
 ## Example Output
@@ -211,74 +194,40 @@ Generated: 2026-01-11 21:00:00
 | Metric | Count | Percentage |
 |--------|-------|------------|
 | Total Components | 60 | 100% |
-| Fully Migrated | 15 | 25% |
-| Partially Migrated | 8 | 13% |
-| Pending Migration | 37 | 62% |
+| DaisyUI Compliant | 45 | 75% |
+| Needs Review | 3 | 5% |
 | With Tests | 48 | 80% |
 | A11y Compliant | 25 | 42% |
 
-## Migration Progress
+## Component Status
 
-```
-[===========                                   ] 25% Migrated
-```
+### Compliant (45 components)
 
-## Migration Status
+| Component | Tests | A11y | Notes |
+|-----------|-------|------|-------|
+| ActionsDropdown | 3 | Yes | |
+| Avatar | 5 | Yes | |
+| Badge | 8 | Yes | |
+| BooleanIcon | 3 | N/A | |
+| Breadcrumb | 4 | Yes | |
+| Button | 12 | Yes | |
+| Columns | 15 | N/A | |
+| Icon | 6 | Yes | |
+| Link | 4 | Yes | |
+| Loader | 3 | Yes | |
+| Notification | 5 | Yes | |
+| Progress | 4 | Yes | |
+| Tabs | 8 | Yes | |
+| Tooltip | 5 | Yes | |
+| DeleteLink | 3 | Yes | |
 
-### Migrated (15 components)
+### Needs Review (3 components)
 
-| Component | Tests | A11y | Commit |
-|-----------|-------|------|--------|
-| ActionsDropdown | 3 | Yes | a89f03a |
-| Avatar | 5 | Yes | - |
-| Badge | 8 | Yes | - |
-| BooleanIcon | 3 | N/A | - |
-| Breadcrumb | 4 | Yes | - |
-| Button | 12 | Yes | - |
-| Columns | 15 | N/A | 2cdf695 |
-| Icon | 6 | Yes | - |
-| Link | 4 | Yes | - |
-| Loader | 3 | Yes | - |
-| Notification | 5 | Yes | - |
-| Progress | 4 | Yes | - |
-| Tabs | 8 | Yes | - |
-| Tooltip | 5 | Yes | - |
-| DeleteLink | 3 | Yes | - |
-
-### Partially Migrated (8 components)
-
-| Component | Issue | Blocking |
+| Component | Issue | Priority |
 |-----------|-------|----------|
-| Card | card-footer still using Bulma | Low |
-| Dropdown | Some variants use is-active | Medium |
-| Modal | Backdrop uses modal-background | Medium |
-| Drawer | Uses Bulma columns internally | Low |
-| Filters | Form elements need migration | High |
-| Hero | Uses section classes | Low |
-| Level | Uses level class | Low |
-| Navbar | Complex structure | High |
-
-### Pending Migration (37 components)
-
-#### High Priority (frequently used)
-- Form (12 sub-components)
-- DataTable
-- Table
-- SearchInput
-
-#### Medium Priority
-- Calendar, Carousel, Chart, Clipboard
-- Heatmap, HoverCard, ImageGrid, InfoLevel
-- LabelValue, List, Message, PageHeader
-- PropertiesTable, Rate, Reveal, RichTextEditor
-- SideMenu, SortableList, Stepper, Timeline
-- TreeView
-
-#### Low Priority (specialized)
-- AddToCalendar, Box, DisplayValue
-- FieldGroupWrapper, FlashNotifications
-- GanttChart, ImageField, LocationsMap
-- RecurrentEventRuleForm, TurboNativeApp::SignOut
+| GanttChart | Complex custom component | Low |
+| LocationsMap | External library integration | Low |
+| RichTextEditor | External library integration | Medium |
 
 ## Test Coverage
 
@@ -309,15 +258,9 @@ Most components need review for:
 ## Recommendations
 
 ### Immediate Actions
-1. Complete partial migrations (8 components) - ~2 days
-2. Add missing tests for high-use components - ~1 day
-3. Run /a11y audit on migrated components - ~1 day
-
-### Suggested Migration Order
-1. **Form** - Blocks many other components
-2. **Table/DataTable** - High usage
-3. **SearchInput** - Common in all apps
-4. **SideMenu/Navbar** - Layout components
+1. Add missing tests for high-use components - ~1 day
+2. Run /a11y audit on components - ~1 day
+3. Review components flagged as "Needs Review" - ~1 day
 
 ### Technical Debt
 - 12 components have no test coverage
@@ -338,9 +281,8 @@ When `--json` flag is used:
   "generated_at": "2026-01-11T21:00:00Z",
   "summary": {
     "total": 60,
-    "migrated": 15,
-    "partial": 8,
-    "pending": 37,
+    "compliant": 45,
+    "needs_review": 3,
     "with_tests": 48,
     "a11y_compliant": 25
   },
@@ -348,14 +290,13 @@ When `--json` flag is used:
     {
       "name": "Button",
       "path": "app/components/bali/button",
-      "migration_status": "migrated",
+      "daisyui_status": "compliant",
       "has_preview": true,
       "has_spec": true,
       "test_count": 12,
       "has_scss": true,
       "has_stimulus": false,
       "a11y_status": "compliant",
-      "bulma_classes": [],
       "daisyui_classes": ["btn", "btn-primary", "btn-sm"]
     }
   ]
@@ -367,15 +308,12 @@ When `--json` flag is used:
 After audit, suggested follow-ups:
 
 ```bash
-# Migrate highest priority pending component
-/migrate-component Form
-
-# Run accessibility audit on migrated components
+# Run accessibility audit on components
 /a11y Button Card Modal
 
 # Generate missing tests
 /test --generate GanttChart
 
-# Full cycle on partial components
+# Full quality cycle on components needing review
 /component-cycle Card
 ```

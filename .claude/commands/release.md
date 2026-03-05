@@ -609,7 +609,7 @@ Use for:
 - Removed components
 - Removed parameters
 - Ruby/Rails version requirement changes
-- CSS framework migration (Bulma → DaisyUI)
+- CSS framework changes
 
 ---
 

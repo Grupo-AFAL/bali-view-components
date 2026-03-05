@@ -80,7 +80,7 @@
         <% dropdown.with_item(href: settings_path) { t('navbar.settings') } %>
         <% dropdown.with_item(href: settings_path) { t('navbar.profile') } %>
         <li class="divider my-1"></li>
-        <% dropdown.with_item(href: root_path, class: 'text-error') { t('navbar.sign_out') } %>
+        <% dropdown.with_item(href: logout_path, class: 'text-error', data: { turbo_method: :delete }) { t('navbar.sign_out') } %>
       <% end %>
     <% end %>
   <% end %>

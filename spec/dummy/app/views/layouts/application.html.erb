@@ -1,32 +1,21 @@
 <!DOCTYPE html>
 <html data-theme="light">
   <head>
-    <title>MovieDB - Kitchen Sink Demo</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
-    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
-    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
+    <% content_for(:title) { "Kitchen Sink Demo" } %>
+    <%= render "layouts/head" %>
   </head>
-  <body class="min-h-screen bg-base-200" data-controller="modal drawer theme-switcher">
-    <%= render 'layouts/navbar' %>
+  <%= render Bali::AppLayout::Component.new(
+    flash: flash,
+    body_container: :contained,
+    class: "bg-base-200",
+    data: { controller: "theme-switcher" }
+  ) do |layout| %>
+    <% layout.with_navbar do %>
+      <%= render 'layouts/navbar' %>
+    <% end %>
 
-    <main class="container mx-auto px-4 py-6 max-w-7xl">
-      <%= render Bali::FlashNotifications::Component.new(
-        notice: flash[:notice],
-        alert: flash[:alert]
-      ) %>
-
+    <% layout.with_body do %>
       <%= yield %>
-    </main>
-
-    <%# Modal/drawer templates with skeleton loading state - content replaces skeleton via fetch %>
-    <%= render Bali::Modal::Component.new(active: false, id: 'modal-template') do %>
-      <%= render Bali::Skeleton::Component.new(variant: :modal) %>
     <% end %>
-    <%= render Bali::Drawer::Component.new(active: false, drawer_id: 'drawer-template') do %>
-      <%= render Bali::Skeleton::Component.new(variant: :list, lines: 4) %>
-    <% end %>
-  </body>
+  <% end %>
 </html>

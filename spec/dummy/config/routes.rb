@@ -6,6 +6,13 @@ Rails.application.routes.draw do
   get 'landing', to: 'pages#landing'
   get 'showcase', to: 'pages#showcase'
 
+  # Auth pages (demo/reference)
+  get 'login', to: 'sessions#new'
+  get 'register', to: 'sessions#register'
+  get 'forgot-password', to: 'sessions#forgot_password', as: :forgot_password
+  post 'login', to: 'sessions#create'
+  delete 'logout', to: 'sessions#destroy'
+
   # Admin section (AppLayout with sidebar)
   namespace :admin do
     root 'dashboard#index'

@@ -1,56 +1,95 @@
-<%= render Bali::PageHeader::Component.new(
-  title: @studio.name,
-  back: { href: studios_path }
-) do %>
-  <%= render Bali::Link::Component.new(
-    name: 'Edit',
-    href: edit_studio_path(@studio),
-    variant: :primary,
-    size: :sm
-  ) do |link| %>
-    <% link.with_icon('pencil') %>
+<% if params[:layout] == 'false' %>
+  <div class="space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold"><%= @studio.name %></h2>
+      <%= render Bali::Tag::Component.new(
+        text: @studio.status&.humanize || 'Unknown',
+        color: @studio.status.present? ? @studio.status_color : :ghost,
+        size: :sm
+      ) %>
+    </div>
+
+    <%= render Bali::Columns::Component.new(cols: 2, gap: :lg) do %>
+      <%= render Bali::LabelValue::Component.new(label: t('studios.show.country')) do %>
+        <% if @studio.country.present? %>
+          <%= render Bali::Tag::Component.new(text: @studio.country, size: :sm, style: :outline) %>
+        <% else %>
+          <span class="text-base-content/50">&mdash;</span>
+        <% end %>
+      <% end %>
+
+      <%= render Bali::LabelValue::Component.new(label: t('studios.show.size'), value: @studio.size&.humanize || t('studios.show.no_value')) %>
+      <%= render Bali::LabelValue::Component.new(label: t('studios.show.founded'), value: @studio.founded_year || t('studios.show.no_value')) %>
+      <%= render Bali::LabelValue::Component.new(label: t('studios.show.created'), value: l(@studio.created_at, format: :long)) %>
+    <% end %>
+
+    <div class="flex items-center justify-between pt-4 border-t border-base-200">
+      <%= render Bali::DeleteLink::Component.new(
+        name: t('studios.actions.delete'),
+        href: studio_path(@studio),
+        variant: :outline,
+        size: :sm,
+        confirm_message: t('studios.confirm_delete', name: @studio.name)
+      ) %>
+      <%= render Bali::Button::Component.new(
+        name: t('studios.actions.close'),
+        variant: :ghost,
+        data: { action: 'modal#close' }
+      ) %>
+    </div>
+  </div>
+<% else %>
+  <%= render Bali::PageHeader::Component.new(
+    title: @studio.name,
+    back: { href: studios_path }
+  ) do %>
+    <%= render Bali::Link::Component.new(
+      name: t('studios.show.edit'),
+      href: edit_studio_path(@studio),
+      variant: :primary,
+      size: :sm,
+      data: { action: 'drawer#open', drawer_size: 'lg' }
+    ) do |link| %>
+      <% link.with_icon('pencil') %>
+    <% end %>
   <% end %>
-<% end %>
 
-<%= render Bali::Card::Component.new do %>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <%= render Bali::LabelValue::Component.new(label: 'Name', value: @studio.name) %>
+  <%= render Bali::Card::Component.new do %>
+    <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :xl) do %>
+      <%= render Bali::LabelValue::Component.new(label: t('studios.show.name'), value: @studio.name) %>
 
-    <%= render Bali::LabelValue::Component.new(label: 'Country') do %>
-      <% if @studio.country.present? %>
-        <%= render Bali::Tag::Component.new(text: @studio.country, size: :sm, variant: :outline) %>
-      <% else %>
-        <span class="text-base-content/50">—</span>
+      <%= render Bali::LabelValue::Component.new(label: t('studios.show.country')) do %>
+        <% if @studio.country.present? %>
+          <%= render Bali::Tag::Component.new(text: @studio.country, size: :sm, variant: :outline) %>
+        <% else %>
+          <span class="text-base-content/50"><%= t('studios.show.no_value') %></span>
+        <% end %>
       <% end %>
-    <% end %>
 
-    <%= render Bali::LabelValue::Component.new(label: 'Status') do %>
-      <% if @studio.status.present? %>
-        <%= render Bali::Tag::Component.new(
-          text: @studio.status.humanize,
-          color: case @studio.status
-                 when 'active' then :success
-                 when 'inactive' then :error
-                 else :warning
-                 end,
-          size: :sm
-        ) %>
-      <% else %>
-        <span class="text-base-content/50">—</span>
+      <%= render Bali::LabelValue::Component.new(label: t('studios.show.status')) do %>
+        <% if @studio.status.present? %>
+          <%= render Bali::Tag::Component.new(
+            text: @studio.status.humanize,
+            color: @studio.status_color,
+            size: :sm
+          ) %>
+        <% else %>
+          <span class="text-base-content/50"><%= t('studios.show.no_value') %></span>
+        <% end %>
       <% end %>
-    <% end %>
 
-    <%= render Bali::LabelValue::Component.new(label: 'Size', value: @studio.size&.humanize) %>
-    <%= render Bali::LabelValue::Component.new(label: 'Founded', value: @studio.founded_year) %>
-    <%= render Bali::LabelValue::Component.new(label: 'Created', value: l(@studio.created_at, format: :long)) %>
+      <%= render Bali::LabelValue::Component.new(label: t('studios.show.size'), value: @studio.size&.humanize) %>
+      <%= render Bali::LabelValue::Component.new(label: t('studios.show.founded'), value: @studio.founded_year) %>
+      <%= render Bali::LabelValue::Component.new(label: t('studios.show.created'), value: l(@studio.created_at, format: :long)) %>
+    <% end %>
+  <% end %>
+
+  <div class="mt-6">
+    <%= render Bali::DeleteLink::Component.new(
+      name: t('studios.show.delete_studio'),
+      href: studio_path(@studio),
+      variant: :outline,
+      confirm_message: t('studios.show.confirm_delete', name: @studio.name)
+    ) %>
   </div>
 <% end %>
-
-<div class="mt-6">
-  <%= render Bali::DeleteLink::Component.new(
-    name: 'Delete Studio',
-    href: studio_path(@studio),
-    variant: :outline,
-    confirm_message: "Are you sure you want to delete #{@studio.name}?"
-  ) %>
-</div>

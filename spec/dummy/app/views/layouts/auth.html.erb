@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html data-theme="light">
+  <head>
+    <% content_for(:title) { "Sign In" } %>
+    <%= render "layouts/head" %>
+  </head>
+  <%= render Bali::AppLayout::Component.new(
+    modal: false,
+    drawer: false,
+    flash: flash,
+    class: "bg-base-200",
+    body_container: :narrow
+  ) do |layout| %>
+    <% layout.with_body do %>
+      <%= yield %>
+    <% end %>
+  <% end %>
+</html>

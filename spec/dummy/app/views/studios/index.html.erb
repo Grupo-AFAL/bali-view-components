@@ -1,9 +1,10 @@
-<%= render Bali::PageHeader::Component.new(title: 'Studios') do %>
+<%= render Bali::PageHeader::Component.new(title: t('studios.title')) do %>
   <%= render Bali::Link::Component.new(
-    name: 'New Studio',
+    name: t('studios.new_studio'),
     href: new_studio_path,
     variant: :primary,
-    size: :sm
+    size: :sm,
+    data: { action: 'drawer#open', drawer_size: 'lg' }
   ) do |link| %>
     <% link.with_icon('plus') %>
   <% end %>
@@ -23,12 +24,12 @@
   <%# Table Card %>
   <%= render Bali::Card::Component.new do %>
     <%= render Bali::Table::Component.new(form: @filter_form) do |t| %>
-      <% t.with_header(name: 'Name', sort: :name) %>
-      <% t.with_header(name: 'Country', sort: :country) %>
-      <% t.with_header(name: 'Status') %>
-      <% t.with_header(name: 'Size') %>
-      <% t.with_header(name: 'Founded', sort: :founded_year) %>
-      <% t.with_header(name: 'Actions', align: :right) %>
+      <% t.with_header(name: t('studios.columns.name'), sort: :name) %>
+      <% t.with_header(name: t('studios.columns.country'), sort: :country) %>
+      <% t.with_header(name: t('studios.columns.status')) %>
+      <% t.with_header(name: t('studios.columns.size')) %>
+      <% t.with_header(name: t('studios.columns.founded'), sort: :founded_year) %>
+      <% t.with_header(name: t('studios.columns.actions'), align: :right) %>
 
       <% @studios.each do |studio| %>
         <% t.with_row do %>
@@ -36,7 +37,8 @@
             <%= render Bali::Link::Component.new(
               name: studio.name,
               href: studio_path(studio),
-              variant: :link
+              variant: :link,
+              data: { action: 'modal#open', modal_size: 'lg' }
             ) %>
           </td>
           <td>
@@ -45,11 +47,7 @@
           <td>
             <%= render Bali::Tag::Component.new(
                 text: studio.status.humanize,
-                color: case studio.status
-                       when 'active' then :success
-                       when 'inactive' then :error
-                       else :warning
-                       end,
+                color: studio.status_color,
                 size: :sm
               ) %>
           </td>
@@ -58,14 +56,14 @@
           <td>
             <div class="flex justify-end">
               <%= render Bali::ActionsDropdown::Component.new(popover: true, align: :end) do |dropdown| %>
-                <% dropdown.with_item(name: 'View', href: studio_path(studio), icon_name: 'eye') %>
-                <% dropdown.with_item(name: 'Edit', href: edit_studio_path(studio), icon_name: 'pencil') %>
+                <% dropdown.with_item(name: t('studios.actions.view'), href: studio_path(studio), icon_name: 'eye', data: { action: 'modal#open', modal_size: 'lg' }) %>
+                <% dropdown.with_item(name: t('studios.actions.edit'), href: edit_studio_path(studio), icon_name: 'pencil', data: { action: 'drawer#open', drawer_size: 'lg' }) %>
                 <% dropdown.with_item(
-                  name: 'Delete',
+                  name: t('studios.actions.delete'),
                   href: studio_path(studio),
                   icon_name: 'trash',
                   method: :delete,
-                  data: { turbo_confirm: "Are you sure you want to delete #{studio.name}?" },
+                  data: { turbo_confirm: t('studios.confirm_delete', name: studio.name) },
                   class: 'text-error'
                 ) %>
               <% end %>

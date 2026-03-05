@@ -100,7 +100,7 @@
     <% end %>
 
     <%# Stats Row %>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, cols_lg: 4, gap: :xl, class: 'mb-8') do %>
       <%= render Bali::StatCard::Component.new(
         title: 'Total Revenue',
         value: '$45,231.89',
@@ -129,12 +129,12 @@
         change_direction: :up,
         icon: 'activity'
       ) %>
-    </div>
+    <% end %>
 
     <%# Content Cards %>
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <%= render Bali::Columns::Component.new(gap: :xl) do |c| %>
       <%# Recent Orders %>
-      <%= render Bali::Card::Component.new(style: :bordered, class: 'lg:col-span-2') do %>
+      <% c.with_column(lg: :two_thirds) do %>
         <h3 class="card-title text-lg mb-4">Recent Orders</h3>
         <%= render Bali::Table::Component.new do |table| %>
           <% table.with_header(name: 'Order') %>
@@ -168,8 +168,10 @@
           <% end %>
         <% end %>
       <% end %>
+      <% end %>
 
       <%# Recent Activity %>
+      <% c.with_column(lg: :one_third) do %>
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <h3 class="card-title text-lg mb-4">Recent Activity</h3>
         <%= render Bali::Timeline::Component.new(position: :left) do |timeline| %>
@@ -206,7 +208,8 @@
           <% end %>
         <% end %>
       <% end %>
-    </div>
+      <% end %>
+    <% end %>
 
     <%# Info about this example %>
     <div class="mt-8">

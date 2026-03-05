@@ -290,6 +290,7 @@ en:
       view: View
       edit: Edit
       delete: Delete
+      close: Close
     confirm_delete: "Are you sure you want to delete %{name}?"
     show:
       dashboard: Dashboard
