@@ -55,11 +55,12 @@ class BaliColumnsComponentTest < ComponentTestCase
     end
   end
 
-  def test_falls_back_to_gap_3_for_invalid_gap
-    render_inline(Bali::Columns::Component.new(gap: :invalid)) do |c|
-      c.with_column { "Content" }
+  def test_raises_key_error_for_invalid_gap
+    assert_raises(KeyError) do
+      render_inline(Bali::Columns::Component.new(gap: :invalid)) do |c|
+        c.with_column { "Content" }
+      end
     end
-    assert_has_class("gap-3")
   end
 
   # === Modifiers ===

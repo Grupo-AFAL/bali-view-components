@@ -93,6 +93,13 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_no_selector("#toast-notifications")
   end
 
+  def test_does_not_render_toast_container_when_flash_is_empty_hash
+    render_inline(Bali::AppLayout::Component.new(flash: {})) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector("#toast-notifications")
+  end
+
   def test_renders_modal_shell_by_default
     render_inline(Bali::AppLayout::Component.new) do |layout|
       layout.with_body { "Content" }

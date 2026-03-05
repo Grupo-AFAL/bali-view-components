@@ -50,7 +50,7 @@ module Bali
       end
 
       def render_toast?
-        @flash.present?
+        flash_notice.present? || flash_alert.present?
       end
 
       def body_container_classes

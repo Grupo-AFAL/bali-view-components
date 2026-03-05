@@ -48,11 +48,11 @@ module Bali
           tag.div(content, class: column_classes, **@options.except(:class))
         end
 
+        private
+
         def sized?
           @size.present? || @md.present? || @lg.present? || @xl.present?
         end
-
-        private
 
         def column_classes
           prefix = @stacking ? "md:" : ""

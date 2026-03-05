@@ -52,11 +52,11 @@ module Bali
         @options = options
       end
 
+      private
+
       def grid_mode?
         @cols.present? && !columns?
       end
-
-      private
 
       attr_reader :options
 
@@ -73,7 +73,7 @@ module Bali
 
         class_names(
           base,
-          GAPS[@gap] || GAPS[:md],
+          GAPS.fetch(@gap),
           { "flex-wrap" => @wrap },
           { "justify-center" => @center },
           { "items-center" => @middle },
@@ -84,7 +84,7 @@ module Bali
       def grid_classes
         class_names(
           "grid",
-          GAPS[@gap] || GAPS[:md],
+          GAPS.fetch(@gap),
           GRID_COLS[@cols],
           (RESPONSIVE_GRID_COLS[:md][@cols_md] if @cols_md),
           (RESPONSIVE_GRID_COLS[:lg][@cols_lg] if @cols_lg),
