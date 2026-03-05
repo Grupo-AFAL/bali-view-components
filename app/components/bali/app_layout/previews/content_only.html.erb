@@ -25,8 +25,8 @@
       </div>
 
       <div class="lg:col-span-2">
-        <%= render Bali::Card::Component.new(style: :bordered) do |card|
-          card.with_title('Profile Information') %>
+        <%= render Bali::Card::Component.new(style: :bordered) do |card| %>
+          <% card.with_title('Profile Information') %>
           <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :md) do %>
             <%= render Bali::LabelValue::Component.new(label: 'Full Name', value: 'Ana García') %>
             <%= render Bali::LabelValue::Component.new(label: 'Email', value: 'ana@example.com') %>
@@ -38,8 +38,8 @@
           </div>
         <% end %>
 
-        <%= render Bali::Card::Component.new(style: :bordered, class: 'mt-4') do |card|
-          card.with_title('Notifications') %>
+        <%= render Bali::Card::Component.new(style: :bordered, class: 'mt-4') do |card| %>
+          <% card.with_title('Notifications') %>
           <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :md) do %>
             <%= render Bali::LabelValue::Component.new(label: 'Email Notifications', value: 'Enabled') %>
             <%= render Bali::LabelValue::Component.new(label: 'Weekly Digest', value: 'Every Monday') %>
