@@ -68,7 +68,7 @@
     <% end %>
 
     <%# Budget by Status - InfoLevel + PropertiesTable %>
-    <%= render Bali::Columns::Component.new(cols: 1, cols_desktop: 2, gap: :xl, class: 'mt-6') do %>
+    <%= render Bali::Columns::Component.new(cols: 1, cols_lg: 2, gap: :xl, class: 'mt-6') do %>
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <h3 class="card-title text-lg mb-4"><%= t('revenue.budget_by_status') %></h3>
         <%= render Bali::InfoLevel::Component.new(align: :between) do |info| %>

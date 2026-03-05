@@ -4,7 +4,8 @@
   fixed_sidebar: true,
   flash: flash_notice.present? ? { notice: flash_notice } : nil,
   modal: modal,
-  drawer: drawer
+  drawer: drawer,
+  drawer_size: drawer_size
 ) do |layout|
   if show_banner
     layout.with_banner do %>
@@ -72,7 +73,7 @@
     <div class="max-w-7xl">
       <%= render Bali::PageHeader::Component.new(title: 'Dashboard', subtitle: 'Welcome back, Ana') %>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, cols_lg: 4, gap: :lg, class: 'mb-6') do %>
         <% [
           { label: 'Total Movies', value: '1,234', icon: 'film', color: 'primary' },
           { label: 'Studios', value: '56', icon: 'building-2', color: 'secondary' },
@@ -89,7 +90,7 @@
             </div>
           <% end %>
         <% end %>
-      </div>
+      <% end %>
     </div>
   <% end
 end %>

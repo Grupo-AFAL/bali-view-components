@@ -4,57 +4,43 @@ module Bali
   module Columns
     module Column
       class Component < ApplicationViewComponent
-        # Numeric sizes (col-1 through col-12)
-        NUMERIC_SIZES = (1..12).index_with { |n| "col-#{n}" }.freeze
-
-        # Fractional sizes
-        SYMBOLIC_SIZES = {
-          full: "col-full",
-          half: "col-half",
-          one_third: "col-third",
-          third: "col-third",
-          two_thirds: "col-2-thirds",
-          one_quarter: "col-quarter",
-          quarter: "col-quarter",
-          three_quarters: "col-3-quarters",
-          one_fifth: "col-fifth",
-          two_fifths: "col-2-fifths",
-          three_fifths: "col-3-fifths",
-          four_fifths: "col-4-fifths"
+        # Numeric sizes map to Tailwind width fractions
+        NUMERIC_WIDTHS = {
+          1 => "w-1/12", 2 => "w-2/12", 3 => "w-3/12", 4 => "w-4/12",
+          5 => "w-5/12", 6 => "w-6/12", 7 => "w-7/12", 8 => "w-8/12",
+          9 => "w-9/12", 10 => "w-10/12", 11 => "w-11/12", 12 => "w-full"
         }.freeze
 
-        # Numeric offsets (offset-1 through offset-11)
-        NUMERIC_OFFSETS = (1..11).index_with { |n| "offset-#{n}" }.freeze
-
-        # Fractional offsets
-        SYMBOLIC_OFFSETS = {
-          half: "offset-half",
-          one_third: "offset-third",
-          third: "offset-third",
-          two_thirds: "offset-2-thirds",
-          one_quarter: "offset-quarter",
-          quarter: "offset-quarter",
-          three_quarters: "offset-3-quarters",
-          one_fifth: "offset-fifth",
-          two_fifths: "offset-2-fifths",
-          three_fifths: "offset-3-fifths",
-          four_fifths: "offset-4-fifths"
+        # Fractional sizes
+        SYMBOLIC_WIDTHS = {
+          full: "w-full",
+          half: "w-1/2",
+          one_third: "w-1/3",
+          third: "w-1/3",
+          two_thirds: "w-2/3",
+          one_quarter: "w-1/4",
+          quarter: "w-1/4",
+          three_quarters: "w-3/4",
+          one_fifth: "w-1/5",
+          two_fifths: "w-2/5",
+          three_fifths: "w-3/5",
+          four_fifths: "w-4/5"
         }.freeze
 
         # @param size [Symbol, Integer, nil] Column width - symbolic or numeric (1-12)
-        # @param tablet [Symbol, Integer, nil] Column width at tablet breakpoint (769px+)
-        # @param desktop [Symbol, Integer, nil] Column width at desktop breakpoint (1024px+)
-        # @param widescreen [Symbol, Integer, nil] Column width at widescreen breakpoint (1216px+)
-        # @param offset [Symbol, Integer, nil] Column offset - symbolic or numeric (1-11)
+        # @param md [Symbol, Integer, nil] Column width at md breakpoint (768px+)
+        # @param lg [Symbol, Integer, nil] Column width at lg breakpoint (1024px+)
+        # @param xl [Symbol, Integer, nil] Column width at xl breakpoint (1280px+)
         # @param auto [Boolean] Make column only as wide as its content
-        def initialize(size: nil, tablet: nil, desktop: nil, widescreen: nil,
-                       offset: nil, auto: false, **options)
+        # @param stacking [Boolean] Internal: whether parent stacks on mobile (adds md: prefix)
+        def initialize(size: nil, md: nil, lg: nil, xl: nil,
+                       auto: false, stacking: false, **options)
           @size = size
-          @tablet = tablet
-          @desktop = desktop
-          @widescreen = widescreen
-          @offset = offset
+          @md = md
+          @lg = lg
+          @xl = xl
           @auto = auto
+          @stacking = stacking
           @options = options
         end
 
@@ -62,40 +48,39 @@ module Bali
           tag.div(content, class: column_classes, **@options.except(:class))
         end
 
+        def sized?
+          @size.present? || @md.present? || @lg.present? || @xl.present?
+        end
+
         private
 
         def column_classes
-          class_names(
-            "column",
-            resolve_size(@size),
-            resolve_size(@tablet, :tablet),
-            resolve_size(@desktop, :desktop),
-            resolve_size(@widescreen, :widescreen),
-            offset_class,
-            { "col-auto" => @auto },
-            @options[:class]
-          )
-        end
+          prefix = @stacking ? "md:" : ""
 
-        def resolve_size(value, breakpoint = nil)
-          suffix = breakpoint ? "-#{breakpoint}" : ""
-
-          case value
-          when Integer
-            base = NUMERIC_SIZES[value]
-            "#{base}#{suffix}" if base
-          when Symbol
-            base = SYMBOLIC_SIZES[value]
-            "#{base}#{suffix}" if base
+          if @auto
+            class_names("#{prefix}w-auto shrink-0", @options[:class])
+          elsif sized?
+            class_names(
+              "min-w-0",
+              resolve_width(@size, prefix),
+              resolve_width(@md, "md:"),
+              resolve_width(@lg, "lg:"),
+              resolve_width(@xl, "xl:"),
+              @options[:class]
+            )
+          else
+            class_names("#{prefix}flex-1 min-w-0", @options[:class])
           end
         end
 
-        def offset_class
-          case @offset
+        def resolve_width(value, prefix = "")
+          case value
           when Integer
-            NUMERIC_OFFSETS[@offset]
+            base = NUMERIC_WIDTHS[value]
+            "#{prefix}#{base}" if base
           when Symbol
-            SYMBOLIC_OFFSETS[@offset]
+            base = SYMBOLIC_WIDTHS[value]
+            "#{prefix}#{base}" if base
           end
         end
       end

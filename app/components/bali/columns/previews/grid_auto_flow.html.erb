@@ -1,4 +1,4 @@
-<%= render Bali::Columns::Component.new(cols: 1, cols_tablet: 2, cols_desktop: 4, gap: :lg) do %>
+<%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, cols_lg: 4, gap: :lg) do %>
   <% 8.times do |i| %>
     <%= render Bali::Card::Component.new(style: :bordered, body_class: 'p-4') do %>
       <div class="flex items-center justify-between">

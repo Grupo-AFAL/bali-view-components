@@ -4,7 +4,8 @@
   fixed_sidebar: true,
   flash: flash_notice.present? ? { notice: flash_notice } : nil,
   modal: modal,
-  drawer: drawer
+  drawer: drawer,
+  drawer_size: drawer_size
 ) do |layout|
   layout.with_sidebar do %>
     <%= render Bali::SideMenu::Component.new(current_path: '/admin', collapsible: collapsible, brand: 'MovieDB') do |menu|
@@ -36,7 +37,7 @@
     <div class="max-w-7xl">
       <%= render Bali::PageHeader::Component.new(title: 'Dashboard', subtitle: 'Welcome back, Ana') %>
 
-      <%= render Bali::Columns::Component.new(cols: 1, cols_tablet: 2, cols_desktop: 4, gap: :lg, class: 'mb-6') do %>
+      <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, cols_lg: 4, gap: :lg, class: 'mb-6') do %>
         <% [
           { label: 'Total Movies', value: '1,234', icon: 'film', color: 'primary' },
           { label: 'Studios', value: '56', icon: 'building-2', color: 'secondary' },

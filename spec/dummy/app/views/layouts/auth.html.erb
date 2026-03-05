@@ -1,19 +1,14 @@
 <!DOCTYPE html>
 <html data-theme="light">
   <head>
-    <title>MovieDB - Sign In</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
-    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
-    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
+    <% content_for(:title) { "Sign In" } %>
+    <%= render "layouts/head" %>
   </head>
   <%= render Bali::AppLayout::Component.new(
     modal: false,
     drawer: false,
     flash: flash,
-    body_class: "bg-base-200",
+    class: "bg-base-200",
     body_container: :narrow
   ) do |layout| %>
     <% layout.with_body do %>

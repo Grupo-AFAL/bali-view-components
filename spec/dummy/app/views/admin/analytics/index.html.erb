@@ -61,7 +61,7 @@
     <% end %>
 
     <%# Top Movies and Heatmap Row %>
-    <%= render Bali::Columns::Component.new(cols: 1, cols_widescreen: 2, gap: :xl, class: 'mt-6') do %>
+    <%= render Bali::Columns::Component.new(cols: 1, cols_xl: 2, gap: :xl, class: 'mt-6') do %>
       <%# Top Rated Movies with Tooltips %>
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <div class="flex items-center gap-2 mb-4">
@@ -128,7 +128,7 @@
     <% end %>
 
     <%# Genre Distribution with Progress + Clipboard %>
-    <%= render Bali::Columns::Component.new(cols: 1, cols_desktop: 2, gap: :xl, class: 'mt-6') do %>
+    <%= render Bali::Columns::Component.new(cols: 1, cols_lg: 2, gap: :xl, class: 'mt-6') do %>
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <div class="flex items-center justify-between mb-4">
           <h3 class="card-title text-lg"><%= t('analytics.genre_distribution_title') %></h3>

@@ -1,15 +1,10 @@
 <!DOCTYPE html>
 <html data-theme="light">
   <head>
-    <title><%= t('app.name') %> Admin</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
-    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
-    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
+    <% content_for(:title) { "#{t('app.name')} Admin" } %>
+    <%= render "layouts/head" %>
   </head>
-  <%= render Bali::AppLayout::Component.new(fixed_sidebar: true, flash: flash, modal: true, drawer: true) do |layout| %>
+  <%= render Bali::AppLayout::Component.new(fixed_sidebar: true, flash: flash) do |layout| %>
     <% layout.with_sidebar do %>
       <%= render 'layouts/admin_sidebar' %>
     <% end %>

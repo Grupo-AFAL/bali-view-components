@@ -1,4 +1,4 @@
-<body class="<%= container_classes %>" <%= tag.attributes(container_data_attributes) %>>
+<body class="<%= container_classes %>" <%= tag.attributes(container_attributes) %>>
   <%# 1. Banner (impersonation, maintenance, beta) %>
   <% if banner? %>
     <div class="app-layout-banner"><%= banner %></div>
@@ -18,21 +18,21 @@
         <div class="app-layout-topbar"><%= topbar %></div>
       <% end %>
 
-      <main class="flex-1"<% if main_controller.present? %> data-controller="<%= main_controller %>"<% end %>>
+      <main class="flex-1" <%= tag.attributes(main_attributes) %>>
         <div class="<%= body_container_classes %>">
           <%= body? ? body : content %>
         </div>
 
-        <% if render_modal? %>
-          <%= render Bali::Modal::Component.new(id: "main-modal", active: false, size: @modal[:size]) do %>
+        <% if @modal %>
+          <%= render Bali::Modal::Component.new(id: "main-modal", active: false, size: @modal_size) do %>
             <%= render Bali::Skeleton::Component.new(variant: :modal) %>
           <% end %>
         <% end %>
 
-        <% if render_drawer? %>
+        <% if @drawer %>
           <%= render Bali::Drawer::Component.new(
             drawer_id: "main-drawer",
-            size: @drawer[:size],
+            size: @drawer_size,
             active: false
           ) do %>
             <%= render Bali::Skeleton::Component.new(variant: :list, lines: 5) %>

@@ -100,7 +100,7 @@
     <% end %>
 
     <%# Stats Row %>
-    <%= render Bali::Columns::Component.new(cols: 1, cols_tablet: 2, cols_desktop: 4, gap: :xl, class: 'mb-8') do %>
+    <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, cols_lg: 4, gap: :xl, class: 'mb-8') do %>
       <%= render Bali::StatCard::Component.new(
         title: 'Total Revenue',
         value: '$45,231.89',
@@ -134,7 +134,7 @@
     <%# Content Cards %>
     <%= render Bali::Columns::Component.new(gap: :xl) do |c| %>
       <%# Recent Orders %>
-      <% c.with_column(desktop: :two_thirds) do %>
+      <% c.with_column(lg: :two_thirds) do %>
         <h3 class="card-title text-lg mb-4">Recent Orders</h3>
         <%= render Bali::Table::Component.new do |table| %>
           <% table.with_header(name: 'Order') %>
@@ -171,7 +171,7 @@
       <% end %>
 
       <%# Recent Activity %>
-      <% c.with_column(desktop: :one_third) do %>
+      <% c.with_column(lg: :one_third) do %>
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <h3 class="card-title text-lg mb-4">Recent Activity</h3>
         <%= render Bali::Timeline::Component.new(position: :left) do |timeline| %>

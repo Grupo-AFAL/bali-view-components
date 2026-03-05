@@ -9,7 +9,7 @@
 
   <% page.with_body do %>
     <%= render Bali::Columns::Component.new(gap: :xl) do |c| %>
-      <% c.with_column(desktop: :half) do %>
+      <% c.with_column(lg: :half) do %>
         <%= render Bali::Card::Component.new(style: :bordered) do %>
           <h3 class="card-title text-lg"><%= t('dashboard.movies_by_genre') %></h3>
           <div class="mt-4">
@@ -23,7 +23,7 @@
         <% end %>
       <% end %>
 
-      <% c.with_column(desktop: :half) do %>
+      <% c.with_column(lg: :half) do %>
         <%= render Bali::Card::Component.new(style: :bordered) do %>
           <h3 class="card-title text-lg"><%= t('dashboard.recent_activity') %></h3>
           <div class="mt-4">

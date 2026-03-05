@@ -9,7 +9,7 @@
 <% end %>
 
 <%# Stats Cards Row %>
-<%= render Bali::Columns::Component.new(cols: 1, cols_tablet: 2, cols_desktop: 4, gap: :lg, class: 'mt-6') do %>
+<%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, cols_lg: 4, gap: :lg, class: 'mt-6') do %>
   <%= render Bali::StatCard::Component.new(
     title: t('dashboard.total_movies'),
     value: @total_movies,
@@ -60,7 +60,7 @@
 <% end %>
 
 <%# Charts and Activity Row %>
-<%= render Bali::Columns::Component.new(cols: 1, cols_desktop: 2, gap: :xl, class: 'mt-6') do %>
+<%= render Bali::Columns::Component.new(cols: 1, cols_lg: 2, gap: :xl, class: 'mt-6') do %>
   <%# Movies by Genre Chart %>
   <%= render Bali::Card::Component.new(style: :bordered) do %>
     <h3 class="card-title text-lg"><%= t('dashboard.movies_by_genre') %></h3>
@@ -101,7 +101,7 @@
 <% end %>
 
 <%# Notifications Demo Row %>
-<%= render Bali::Columns::Component.new(cols: 1, cols_desktop: 2, gap: :xl, class: 'mt-6') do %>
+<%= render Bali::Columns::Component.new(cols: 1, cols_lg: 2, gap: :xl, class: 'mt-6') do %>
   <%# Movies by Status Chart %>
   <%= render Bali::Card::Component.new(style: :bordered) do %>
     <h3 class="card-title text-lg"><%= t('dashboard.movies_by_status') %></h3>
@@ -171,7 +171,7 @@
       <% bulk.with_action(label: t('dashboard.archive'), href: movies_bulk_actions_path, variant: :info) %>
       <% bulk.with_action(label: t('dashboard.delete'), href: movies_bulk_actions_path, variant: :error) %>
 
-      <%= render Bali::Columns::Component.new(cols: 1, cols_tablet: 2, cols_desktop: 3, gap: :lg) do %>
+      <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, cols_lg: 3, gap: :lg) do %>
         <% @recent_movies.each do |movie| %>
           <% bulk.with_item(record_id: movie.id, class: 'p-4 mb-2 rounded-lg bg-base-200') do %>
             <div class="flex items-center gap-3">
@@ -221,7 +221,7 @@
 </div>
 
 <%# GanttChart and Heatmap Row %>
-<%= render Bali::Columns::Component.new(cols: 1, cols_widescreen: 2, gap: :xl, class: 'mt-6') do %>
+<%= render Bali::Columns::Component.new(cols: 1, cols_xl: 2, gap: :xl, class: 'mt-6') do %>
   <%# GanttChart - Production Timeline %>
   <%= render Bali::Card::Component.new(style: :bordered) do %>
     <h3 class="card-title text-lg mb-4"><%= t('dashboard.production_timeline') %></h3>

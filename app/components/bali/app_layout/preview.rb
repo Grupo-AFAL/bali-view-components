@@ -18,7 +18,8 @@ module Bali
             collapsible: collapsible,
             flash_notice: flash_notice.presence,
             modal: modal,
-            drawer: drawer ? { size: :lg } : false,
+            drawer: drawer,
+            drawer_size: drawer ? :lg : nil,
             body_container: body_container.to_sym
           }
         )
@@ -40,7 +41,8 @@ module Bali
             show_banner: show_banner,
             flash_notice: flash_notice.presence,
             modal: modal,
-            drawer: drawer ? { size: :lg } : false,
+            drawer: drawer,
+            drawer_size: drawer ? :lg : nil,
             body_container: body_container.to_sym
           }
         )

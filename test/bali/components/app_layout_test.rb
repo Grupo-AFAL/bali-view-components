@@ -121,16 +121,16 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_no_selector("#main-drawer")
   end
 
-  def test_modal_hash_option_renders_with_size
-    render_inline(Bali::AppLayout::Component.new(modal: { size: :lg })) do |layout|
+  def test_modal_size_option_renders_with_size
+    render_inline(Bali::AppLayout::Component.new(modal_size: :lg)) do |layout|
       layout.with_body { "Content" }
     end
     assert_selector("#main-modal")
     assert_selector(".modal-box.max-w-lg")
   end
 
-  def test_drawer_hash_option_renders_with_size
-    render_inline(Bali::AppLayout::Component.new(drawer: { size: :sm })) do |layout|
+  def test_drawer_size_option_renders_with_size
+    render_inline(Bali::AppLayout::Component.new(drawer_size: :sm)) do |layout|
       layout.with_body { "Content" }
     end
     assert_selector("#main-drawer")
@@ -189,14 +189,14 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_no_selector(".app-layout-banner")
   end
 
-  def test_applies_body_class_param
-    render_inline(Bali::AppLayout::Component.new(body_class: "bg-base-200")) do |layout|
+  def test_applies_custom_class_via_options
+    render_inline(Bali::AppLayout::Component.new(class: "bg-base-200")) do |layout|
       layout.with_body { "Content" }
     end
     assert_selector(".app-layout.bg-base-200")
   end
 
-  def test_applies_data_attributes
+  def test_applies_data_attributes_via_options
     render_inline(Bali::AppLayout::Component.new(data: { controller: "theme-switcher" })) do |layout|
       layout.with_body { "Content" }
     end
@@ -325,50 +325,12 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     refute_includes container[:class], "mx-auto"
   end
 
-  def test_body_container_false_same_as_full
-    render_inline(Bali::AppLayout::Component.new(body_container: false, modal: false, drawer: false)) do |layout|
-      layout.with_body { "Content" }
+  def test_body_container_unknown_symbol_raises_key_error
+    assert_raises(KeyError) do
+      render_inline(Bali::AppLayout::Component.new(body_container: :unknown, modal: false, drawer: false)) do |layout|
+        layout.with_body { "Content" }
+      end
     end
-    container = page.find(".app-layout-body-container")
-    refute_includes container[:class], "max-w-"
-    refute_includes container[:class], "p-6"
-  end
-
-  def test_body_container_hash_override_max_width
-    render_inline(Bali::AppLayout::Component.new(
-      body_container: { preset: :contained, max_width: "5xl" },
-      modal: false, drawer: false
-    )) do |layout|
-      layout.with_body { "Content" }
-    end
-    container = page.find(".app-layout-body-container")
-    assert_includes container[:class], "max-w-5xl"
-    refute_includes container[:class], "max-w-7xl"
-  end
-
-  def test_body_container_hash_override_padding
-    render_inline(Bali::AppLayout::Component.new(
-      body_container: { preset: :wide, padding: :lg },
-      modal: false, drawer: false
-    )) do |layout|
-      layout.with_body { "Content" }
-    end
-    container = page.find(".app-layout-body-container")
-    assert_includes container[:class], "p-8"
-    refute_includes container[:class], "p-6"
-  end
-
-  def test_body_container_hash_without_preset
-    render_inline(Bali::AppLayout::Component.new(
-      body_container: { max_width: "4xl", padding: :sm, center: true },
-      modal: false, drawer: false
-    )) do |layout|
-      layout.with_body { "Content" }
-    end
-    container = page.find(".app-layout-body-container")
-    assert_includes container[:class], "max-w-4xl"
-    assert_includes container[:class], "p-4"
-    assert_includes container[:class], "mx-auto"
   end
 
   def test_body_container_does_not_affect_modal_drawer_placement

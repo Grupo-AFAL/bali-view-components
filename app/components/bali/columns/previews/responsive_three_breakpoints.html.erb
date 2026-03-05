@@ -1,9 +1,9 @@
 <%= render Bali::Columns::Component.new(mobile: true, gap: :lg) do |c| %>
   <% 6.times do |i| %>
-    <% c.with_column(size: :half, tablet: :one_third, desktop: :one_quarter) do %>
+    <% c.with_column(size: :half, md: :one_third, lg: :one_quarter) do %>
       <div class="bg-base-200 p-4 rounded-lg text-center">
         <p class="font-semibold">Item <%= i + 1 %></p>
-        <p class="text-xs opacity-60 mt-1">2-up mobile, 3-up tablet, 4-up desktop</p>
+        <p class="text-xs opacity-60 mt-1">2-up mobile, 3-up md, 4-up lg</p>
       </div>
     <% end %>
   <% end %>

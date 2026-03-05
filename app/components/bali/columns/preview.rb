@@ -7,24 +7,25 @@ module Bali
 
       # Default
       # -------
-      # Columns without size specifications will automatically fill available space equally.
+      # Columns without size specifications fill available space equally.
+      # Stacks on mobile, side-by-side on md+ (768px).
       def default
         render Columns::Component.new do |c|
           c.with_column do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'First Column'
+            tag.div(class: "bg-base-200 p-4 rounded-lg") do
+              tag.p "First Column"
             end
           end
 
           c.with_column do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'Second Column'
+            tag.div(class: "bg-base-200 p-4 rounded-lg") do
+              tag.p "Second Column"
             end
           end
 
           c.with_column do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'Third Column'
+            tag.div(class: "bg-base-200 p-4 rounded-lg") do
+              tag.p "Third Column"
             end
           end
         end
@@ -32,18 +33,18 @@ module Bali
 
       # Auto Width
       # ----------
-      # A column that only takes the width of its content (col-auto)
+      # A column that only takes the width of its content.
       def auto_width
         render Columns::Component.new do |c|
           c.with_column(auto: true) do
-            tag.div(class: 'bg-primary text-primary-content p-4 rounded-lg') do
-              tag.p 'Auto'
+            tag.div(class: "bg-primary text-primary-content p-4 rounded-lg") do
+              tag.p "Auto"
             end
           end
 
           c.with_column do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'This column fills remaining space'
+            tag.div(class: "bg-base-200 p-4 rounded-lg") do
+              tag.p "This column fills remaining space"
             end
           end
         end
@@ -51,72 +52,76 @@ module Bali
 
       # @!endgroup
 
-      # @!group Gap Sizes
+      # @!group Gap & Alignment
 
-      # Gap None
-      # --------
-      # Columns with no gap between them
-      def gap_none
-        render Columns::Component.new(gap: :none) do |c|
-          c.with_column(size: :one_third) do
-            tag.div(class: 'bg-primary text-primary-content p-4') do
-              tag.p 'No gap'
-            end
-          end
-
-          c.with_column(size: :one_third) do
-            tag.div(class: 'bg-secondary text-secondary-content p-4') do
-              tag.p 'Between'
-            end
-          end
-
-          c.with_column(size: :one_third) do
-            tag.div(class: 'bg-accent text-accent-content p-4') do
-              tag.p 'Columns'
-            end
-          end
-        end
-      end
-
-      # Gap Extra Large
-      # ---------------
-      # Columns with extra large gap (gap: :xl = 1.5rem)
-      def gap_xl
-        render Columns::Component.new(gap: :xl) do |c|
-          c.with_column(size: :half) do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'Large gap (xl)'
-            end
-          end
-
-          c.with_column(size: :half) do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'Between columns'
-            end
-          end
-        end
-      end
-
-      # Gap Small
+      # Gap Sizes
       # ---------
-      # Columns with small gap (gap: :sm = 0.5rem)
-      def gap_sm
-        render Columns::Component.new(gap: :sm) do |c|
+      # Control spacing between columns. Default is `:md` (gap-3).
+      # @param gap select { choices: [none, px, xs, sm, md, lg, xl, 2xl] }
+      def gap_sizes(gap: :md)
+        render Columns::Component.new(gap: gap.to_sym) do |c|
           c.with_column(size: :one_third) do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'Small gap'
+            tag.div(class: "bg-primary text-primary-content p-4 rounded-lg") do
+              tag.p "gap: :#{gap}"
             end
           end
 
           c.with_column(size: :one_third) do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'Between'
+            tag.div(class: "bg-secondary text-secondary-content p-4 rounded-lg") do
+              tag.p "Between"
             end
           end
 
           c.with_column(size: :one_third) do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'Columns'
+            tag.div(class: "bg-accent text-accent-content p-4 rounded-lg") do
+              tag.p "Columns"
+            end
+          end
+        end
+      end
+
+      # Alignment
+      # ---------
+      # `center:` aligns horizontally, `middle:` aligns vertically.
+      # @param center toggle
+      # @param middle toggle
+      def alignment(center: false, middle: false)
+        render Columns::Component.new(center: center, middle: middle) do |c|
+          c.with_column(size: :half) do
+            tag.div(class: "bg-base-200 p-4 rounded-lg", style: "height: 120px;") do
+              tag.p "Tall column"
+            end
+          end
+
+          c.with_column(size: :one_quarter) do
+            tag.div(class: "bg-secondary text-secondary-content p-4 rounded-lg") do
+              tag.p "Short column"
+            end
+          end
+        end
+      end
+
+      # Mobile
+      # ------
+      # By default columns stack on mobile. Set `mobile: true` to keep them horizontal.
+      # @param mobile toggle
+      def mobile(mobile: false)
+        render Columns::Component.new(mobile: mobile) do |c|
+          c.with_column do
+            tag.div(class: "bg-base-200 p-4 rounded-lg") do
+              tag.p "Column 1"
+            end
+          end
+
+          c.with_column do
+            tag.div(class: "bg-base-200 p-4 rounded-lg") do
+              tag.p "Column 2"
+            end
+          end
+
+          c.with_column do
+            tag.div(class: "bg-base-200 p-4 rounded-lg") do
+              tag.p "Column 3"
             end
           end
         end
@@ -128,287 +133,96 @@ module Bali
 
       # Numeric Sizes
       # -------------
-      # Use numeric sizes 1-12 (col-4, col-8, etc.)
+      # Use numeric sizes 1-12 for precise control.
       def numeric_sizes
         render Columns::Component.new do |c|
           c.with_column(size: 4) do
-            tag.div(class: 'bg-primary text-primary-content p-4 rounded-lg') do
-              tag.p 'size: 4 (col-4)'
+            tag.div(class: "bg-primary text-primary-content p-4 rounded-lg") do
+              tag.p "size: 4 (w-4/12)"
             end
           end
 
           c.with_column(size: 8) do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'size: 8 (col-8)'
+            tag.div(class: "bg-base-200 p-4 rounded-lg") do
+              tag.p "size: 8 (w-8/12)"
             end
           end
         end
       end
 
-      # Offset
-      # ------
-      # A column with left offset (offset-*)
-      def offset
+      # Fractional Sizes
+      # ----------------
+      # Symbolic sizes for common splits.
+      # @param split select { choices: [halves, thirds, quarters, fifths] }
+      def fractional_sizes(split: :halves)
+        configs = {
+          "halves"   => [ [ :half, "bg-base-200" ], [ :half, "bg-base-300" ] ],
+          "thirds"   => [ [ :one_third, "bg-accent text-accent-content" ], [ :two_thirds, "bg-base-200" ] ],
+          "quarters" => [ [ :one_quarter, "bg-info text-info-content" ], [ :three_quarters, "bg-base-200" ] ],
+          "fifths"   => [ [ :one_fifth, "bg-primary text-primary-content" ], [ :four_fifths, "bg-base-200" ] ]
+        }
+
+        cols = configs[split.to_s] || configs["halves"]
+
         render Columns::Component.new do |c|
-          c.with_column(size: :half, offset: :one_quarter) do
-            tag.div(class: 'bg-secondary text-secondary-content p-4 rounded-lg') do
-              tag.p 'Half width with quarter offset'
+          cols.each do |size, color|
+            c.with_column(size: size) do
+              tag.div(class: "#{color} p-4 rounded-lg") do
+                tag.p "#{size} width"
+              end
             end
           end
         end
       end
 
-      # Numeric Offset
-      # --------------
-      # Using numeric offset (offset-3)
-      def numeric_offset
-        render Columns::Component.new do |c|
-          c.with_column(size: 6, offset: 3) do
-            tag.div(class: 'bg-accent text-accent-content p-4 rounded-lg') do
-              tag.p 'size: 6, offset: 3'
+      # Equal Columns
+      # -------------
+      # Equal-width columns using fractional sizes.
+      # @param count select { choices: [3, 4, 12] }
+      def equal_columns(count: 3)
+        n = count.to_i
+        colors = %w[bg-success bg-warning bg-error bg-primary bg-secondary bg-accent
+                     bg-info bg-base-300 bg-success bg-warning bg-error bg-primary]
+        size = { 3 => :one_third, 4 => :one_quarter, 12 => 1 }[n] || :one_third
+
+        render Columns::Component.new(mobile: n == 12) do |c|
+          n.times do |i|
+            c.with_column(size: size) do
+              text_class = colors[i].include?("base") ? "" : "text-#{colors[i].delete_prefix('bg-')}-content"
+              tag.div(class: "#{colors[i]} #{text_class} p-#{n == 12 ? 2 : 4} rounded-lg text-center") do
+                tag.p((i + 1).to_s)
+              end
             end
           end
         end
       end
-
-      # Halves
-      # ------
-      # Two columns of equal width using size: :half
-      def halves
-        render Columns::Component.new do |c|
-          c.with_column(size: :half) do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'First half'
-            end
-          end
-
-          c.with_column(size: :half) do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'Second half'
-            end
-          end
-        end
-      end
-
-      # Thirds
-      # ------
-      # Columns with one-third and two-thirds widths
-      def thirds
-        render Columns::Component.new do |c|
-          c.with_column(size: :one_third) do
-            tag.div(class: 'bg-accent text-accent-content p-4 rounded-lg') do
-              tag.p '1/3 width'
-            end
-          end
-
-          c.with_column(size: :two_thirds) do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p '2/3 width'
-            end
-          end
-        end
-      end
-
-      # Quarters
-      # --------
-      # Columns with quarter widths
-      def quarters
-        render Columns::Component.new do |c|
-          c.with_column(size: :one_quarter) do
-            tag.div(class: 'bg-info text-info-content p-4 rounded-lg') do
-              tag.p '1/4'
-            end
-          end
-
-          c.with_column(size: :three_quarters) do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p '3/4 width'
-            end
-          end
-        end
-      end
-
-      # Fifths
-      # ------
-      # Columns with fifth-based widths (col-fifth, col-4-fifths, etc.)
-      def fifths
-        render Columns::Component.new do |c|
-          c.with_column(size: :one_fifth) do
-            tag.div(class: 'bg-primary text-primary-content p-4 rounded-lg') do
-              tag.p '1/5'
-            end
-          end
-
-          c.with_column(size: :four_fifths) do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p '4/5 width'
-            end
-          end
-        end
-      end
-
-      # @!endgroup
-
-      # @!group Alignment
-
-      # Center
-      # ------
-      # Horizontally centered columns (columns-center)
-      def center
-        render Columns::Component.new(center: true) do |c|
-          c.with_column(size: :half) do
-            tag.div(class: 'bg-primary text-primary-content p-4 rounded-lg') do
-              tag.p 'Centered half-width column'
-            end
-          end
-        end
-      end
-
-      # Middle
-      # ------
-      # Vertically centered columns (columns-middle)
-      def middle
-        render Columns::Component.new(middle: true) do |c|
-          c.with_column(size: :half) do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg', style: 'height: 150px;') do
-              tag.p 'Tall column'
-            end
-          end
-
-          c.with_column(size: :half) do
-            tag.div(class: 'bg-secondary text-secondary-content p-4 rounded-lg') do
-              tag.p 'Vertically centered'
-            end
-          end
-        end
-      end
-
-      # Mobile
-      # ------
-      # Columns that stay horizontal on mobile (columns-mobile)
-      def mobile
-        render Columns::Component.new(mobile: true) do |c|
-          c.with_column do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'Column 1'
-            end
-          end
-
-          c.with_column do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'Column 2'
-            end
-          end
-
-          c.with_column do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p 'Column 3'
-            end
-          end
-        end
-      end
-
-      # @!endgroup
-
-      # @!group Multi-row
 
       # Wrap
       # ----
-      # Columns that wrap to multiple lines (columns-wrap)
+      # Columns that wrap to multiple lines when they exceed container width.
       def wrap
         render Columns::Component.new(wrap: true) do |c|
           c.with_column(size: :half) do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p '1st (half)'
+            tag.div(class: "bg-base-200 p-4 rounded-lg") do
+              tag.p "1st (half)"
             end
           end
 
           c.with_column(size: :half) do
-            tag.div(class: 'bg-base-200 p-4 rounded-lg') do
-              tag.p '2nd (half)'
+            tag.div(class: "bg-base-200 p-4 rounded-lg") do
+              tag.p "2nd (half)"
             end
           end
 
           c.with_column(size: :one_third) do
-            tag.div(class: 'bg-base-300 p-4 rounded-lg') do
-              tag.p '3rd (third)'
+            tag.div(class: "bg-base-300 p-4 rounded-lg") do
+              tag.p "3rd (third)"
             end
           end
 
           c.with_column(size: :two_thirds) do
-            tag.div(class: 'bg-base-300 p-4 rounded-lg') do
-              tag.p '4th (two-thirds)'
-            end
-          end
-        end
-      end
-
-      # Equal Thirds
-      # ------------
-      # Three columns of equal width using size: :one_third
-      def equal_thirds
-        render Columns::Component.new do |c|
-          c.with_column(size: :one_third) do
-            tag.div(class: 'bg-success text-success-content p-4 rounded-lg') do
-              tag.p 'Column 1 (1/3)'
-            end
-          end
-
-          c.with_column(size: :one_third) do
-            tag.div(class: 'bg-warning text-warning-content p-4 rounded-lg') do
-              tag.p 'Column 2 (1/3)'
-            end
-          end
-
-          c.with_column(size: :one_third) do
-            tag.div(class: 'bg-error text-error-content p-4 rounded-lg') do
-              tag.p 'Column 3 (1/3)'
-            end
-          end
-        end
-      end
-
-      # Equal Quarters
-      # --------------
-      # Four columns of equal width using size: :one_quarter
-      def equal_quarters
-        render Columns::Component.new do |c|
-          c.with_column(size: :one_quarter) do
-            tag.div(class: 'bg-primary text-primary-content p-4 rounded-lg') do
-              tag.p '1/4'
-            end
-          end
-
-          c.with_column(size: :one_quarter) do
-            tag.div(class: 'bg-secondary text-secondary-content p-4 rounded-lg') do
-              tag.p '1/4'
-            end
-          end
-
-          c.with_column(size: :one_quarter) do
-            tag.div(class: 'bg-accent text-accent-content p-4 rounded-lg') do
-              tag.p '1/4'
-            end
-          end
-
-          c.with_column(size: :one_quarter) do
-            tag.div(class: 'bg-neutral text-neutral-content p-4 rounded-lg') do
-              tag.p '1/4'
-            end
-          end
-        end
-      end
-
-      # 12 Column Grid
-      # --------------
-      # Demonstrating the full 12-column grid with numeric sizes
-      def twelve_column_grid
-        render Columns::Component.new(mobile: true) do |c|
-          12.times do |i|
-            c.with_column(size: 1) do
-              tag.div(class: 'bg-base-300 p-2 rounded text-center text-xs') do
-                tag.p((i + 1).to_s)
-              end
+            tag.div(class: "bg-base-300 p-4 rounded-lg") do
+              tag.p "4th (two-thirds)"
             end
           end
         end
@@ -420,24 +234,24 @@ module Bali
 
       # Responsive Stat Cards
       # ---------------------
-      # 4 stat cards: stacked on mobile, 2-up on tablet (769px+), 4-up on desktop (1024px+).
-      # Uses `tablet: :half` and `desktop: :one_quarter` on each column.
+      # 4 stat cards: stacked on mobile, 2-up on md (768px+), 4-up on lg (1024px+).
+      # Uses `md: :half` and `lg: :one_quarter` on each column.
       def responsive_stat_cards
         render_with_template
       end
 
       # Responsive Main + Sidebar
       # -------------------------
-      # Stacked on mobile, 2/3 + 1/3 split on desktop (1024px+).
-      # Uses `desktop: :two_thirds` and `desktop: :one_third`.
+      # Stacked on mobile, 2/3 + 1/3 split on lg (1024px+).
+      # Uses `lg: :two_thirds` and `lg: :one_third`.
       def responsive_main_sidebar
         render_with_template
       end
 
       # Responsive Three Breakpoints
       # -----------------------------
-      # 6 items: 2-up on mobile, 3-up on tablet, 4-up on desktop.
-      # Uses `size: :half`, `tablet: :one_third`, `desktop: :one_quarter`.
+      # 6 items: 2-up on mobile, 3-up on md, 4-up on lg.
+      # Uses `size: :half`, `md: :one_third`, `lg: :one_quarter`.
       def responsive_three_breakpoints
         render_with_template
       end
@@ -457,8 +271,8 @@ module Bali
 
       # Grid Form Layout
       # -----------------
-      # Common pattern: form fields in a 2-column grid on tablet+.
-      # Uses `cols: 1, cols_tablet: 2` for stacked → side-by-side.
+      # Common pattern: form fields in a 2-column grid on md+.
+      # Uses `cols: 1, cols_md: 2` for stacked → side-by-side.
       def grid_form_layout
         render_with_template
       end

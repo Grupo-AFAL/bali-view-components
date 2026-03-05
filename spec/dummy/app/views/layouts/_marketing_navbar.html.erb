@@ -1,0 +1,32 @@
+<%= render Bali::Navbar::Component.new(
+  color: :base,
+  transparency: true,
+  class: 'sticky top-0 z-50'
+) do |nav| %>
+  <% nav.with_brand do %>
+    <%= render Bali::Link::Component.new(
+      name: 'MovieDB',
+      href: landing_path,
+      variant: :ghost,
+      class: 'text-xl font-bold'
+    ) %>
+  <% end %>
+
+  <% nav.with_burger %>
+
+  <% nav.with_menu do |menu| %>
+    <% menu.with_start_item(name: 'Features', href: '#features') %>
+    <% menu.with_start_item(name: 'Testimonials', href: '#testimonials') %>
+    <% menu.with_start_item(name: 'Pricing', href: '#pricing') %>
+
+    <% menu.with_start_item(name: 'Dashboard', href: root_path) %>
+    <% menu.with_start_item(name: 'Admin', href: admin_root_path) %>
+
+    <% menu.with_end_item(tag_name: :div) do %>
+      <div class="flex items-center gap-2">
+        <%= render Bali::Link::Component.new(name: 'Sign in', href: login_path, variant: :ghost) %>
+        <%= render Bali::Link::Component.new(name: 'Get Started', href: register_path, variant: :primary) %>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>

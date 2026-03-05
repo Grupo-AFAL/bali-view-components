@@ -2,7 +2,7 @@
   <%= f.error_summary %>
 
   <% fields_content = capture do %>
-    <%= render Bali::Columns::Component.new(cols: 1, cols_tablet: 2, gap: :lg) do %>
+    <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
       <%= f.text_field_group :name, required: true %>
       <%= f.select_group :country,
             Studio::COUNTRIES.map { |c| [c, c] },

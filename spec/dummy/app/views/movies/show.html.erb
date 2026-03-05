@@ -49,7 +49,7 @@
     <% tabs.with_tab(title: 'Details', icon: 'info', active: true) do %>
       <%= render Bali::Columns::Component.new(gap: :xl, class: 'mt-2') do |c| %>
         <%# Main Info - Properties Table %>
-        <% c.with_column(desktop: :two_thirds) do %>
+        <% c.with_column(lg: :two_thirds) do %>
           <%= render Bali::Card::Component.new(style: :bordered) do %>
             <h3 class="card-title text-lg mb-4">Movie Information</h3>
             <%= render Bali::PropertiesTable::Component.new do |table| %>
@@ -90,7 +90,7 @@
 
             <%# LabelValue Demo - Numeric details %>
             <h4 class="font-semibold mt-6 mb-3">Additional Details</h4>
-            <%= render Bali::Columns::Component.new(cols: 2, cols_tablet: 4, gap: :lg) do %>
+            <%= render Bali::Columns::Component.new(cols: 2, cols_md: 4, gap: :lg) do %>
               <%= render Bali::LabelValue::Component.new(label: 'Budget', value: @movie.budget.present? ? number_to_currency(@movie.budget) : '—') %>
               <%= render Bali::LabelValue::Component.new(label: 'Rating', value: @movie.rating.present? ? "#{@movie.rating} / 10" : '—') %>
               <%= render Bali::LabelValue::Component.new(label: 'Release Date', value: @movie.release_date.present? ? @movie.release_date.strftime('%Y') : '—') %>
@@ -143,7 +143,7 @@
         <% end %>
 
         <%# Sidebar - Studio Info & Stats %>
-        <% c.with_column(desktop: :one_third, class: 'space-y-6') do %>
+        <% c.with_column(lg: :one_third, class: 'space-y-6') do %>
           <%# Studio Card with HoverCard %>
           <%= render Bali::Card::Component.new(style: :bordered) do %>
             <h3 class="card-title text-lg mb-4">Studio</h3>
@@ -305,7 +305,7 @@
 <%# Related Movies Section %>
 <div class="mt-8">
   <h3 class="text-lg font-semibold mb-4">Related Movies</h3>
-  <%= render Bali::Columns::Component.new(cols: 1, cols_tablet: 2, cols_desktop: 4, gap: :lg) do %>
+  <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, cols_lg: 4, gap: :lg) do %>
     <% Movie.where(genre: @movie.genre).where.not(id: @movie.id).limit(4).each do |related| %>
       <%= render Bali::Card::Component.new(style: :bordered, body_class: 'p-4') do %>
         <h4 class="font-medium text-base"><%= related.name %></h4>

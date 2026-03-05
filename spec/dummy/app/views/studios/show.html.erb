@@ -59,7 +59,7 @@
   <% end %>
 
   <%= render Bali::Card::Component.new do %>
-    <%= render Bali::Columns::Component.new(cols: 1, cols_tablet: 2, gap: :xl) do %>
+    <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :xl) do %>
       <%= render Bali::LabelValue::Component.new(label: 'Name', value: @studio.name) %>
 
       <%= render Bali::LabelValue::Component.new(label: 'Country') do %>

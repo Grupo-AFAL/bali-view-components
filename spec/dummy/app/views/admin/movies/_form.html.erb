@@ -17,7 +17,7 @@
       <%= t('movies.form.basic_info') %>
     </h3>
 
-    <%= render Bali::Columns::Component.new(cols: 1, cols_tablet: 2, gap: :lg) do %>
+    <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
       <%# Text Field %>
       <%= f.text_field_group :name, label: t('movies.form.movie_title'), required: true, placeholder: t('movies.form.enter_title') %>
 
@@ -61,7 +61,7 @@
       ) %>
     </div>
 
-    <%= render Bali::Columns::Component.new(cols: 1, cols_tablet: 2, gap: :lg, class: 'mt-4') do %>
+    <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg, class: 'mt-4') do %>
       <%# Date Field %>
       <%= f.date_field_group :release_date, label: t('movies.form.release_date') %>
 
@@ -105,7 +105,7 @@
       <%= t('movies.form.additional_settings') %>
     </h3>
 
-    <%= render Bali::Columns::Component.new(cols: 1, cols_tablet: 2, gap: :lg) do %>
+    <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
       <%# Time Zone Select %>
       <%= f.time_zone_select_group :time_zone, nil, { include_blank: t('movies.form.select_timezone') }, { label: t('movies.form.timezone') } %>
 

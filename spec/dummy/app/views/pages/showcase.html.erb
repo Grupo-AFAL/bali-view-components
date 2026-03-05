@@ -176,7 +176,7 @@
       <%# Error Summary - the new component %>
       <%= f.error_summary(title: 'Please fix the following errors:') %>
 
-      <%= render Bali::Columns::Component.new(cols: 1, cols_tablet: 2, gap: :lg) do %>
+      <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
         <%# Text fields %>
         <%= f.text_field_group :name, label: t('showcase.full_name'), placeholder: 'John Doe' %>
         <%= f.email_field_group :email, label: t('showcase.email'), placeholder: 'john@example.com' %>
@@ -259,7 +259,7 @@
   <p class="text-base-content/70 mb-4"><%= t('showcase.loader_desc') %></p>
 
   <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <%= render Bali::Columns::Component.new(cols: 2, cols_tablet: 3, cols_desktop: 6, gap: :'2xl') do %>
+    <%= render Bali::Columns::Component.new(cols: 2, cols_md: 3, cols_lg: 6, gap: :'2xl') do %>
       <%# Different loader types %>
       <div class="text-center">
         <%= render Bali::Loader::Component.new(type: :spinner, size: :lg, color: :primary, text: 'Spinner') %>
@@ -490,7 +490,7 @@
   </h2>
   <p class="text-base-content/70 mb-4"><%= t('showcase.list_desc') %></p>
 
-  <%= render Bali::Columns::Component.new(cols: 1, cols_desktop: 2, gap: :xl) do %>
+  <%= render Bali::Columns::Component.new(cols: 1, cols_lg: 2, gap: :xl) do %>
     <%# Basic List %>
     <%= render Bali::Card::Component.new(style: :bordered) do %>
       <h3 class="font-semibold mb-4"><%= t('showcase.team_members') %></h3>
@@ -642,7 +642,7 @@
   </h2>
   <p class="text-base-content/70 mb-4"><%= t('showcase.tree_view_desc') %></p>
 
-  <%= render Bali::Columns::Component.new(cols: 1, cols_desktop: 2, gap: :xl) do %>
+  <%= render Bali::Columns::Component.new(cols: 1, cols_lg: 2, gap: :xl) do %>
     <%= render Bali::Card::Component.new(style: :bordered) do %>
       <h3 class="font-semibold mb-4"><%= t('showcase.file_browser') %></h3>
       <%= render Bali::TreeView::Component.new(current_path: '/src/components') do |tree| %>

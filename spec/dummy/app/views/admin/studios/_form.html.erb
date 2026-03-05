@@ -1,7 +1,7 @@
 <%= form_with model: studio, url: studio.persisted? ? admin_studio_path(studio) : admin_studios_path, class: 'space-y-4', builder: Bali::FormBuilder do |f| %>
   <%= f.error_summary %>
 
-  <%= render Bali::Columns::Component.new(cols: 1, cols_tablet: 2, gap: :lg) do %>
+  <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
     <%= f.text_field_group :name, required: true %>
     <%= f.select_group :country,
           Studio::COUNTRIES.map { |c| [c, c] },

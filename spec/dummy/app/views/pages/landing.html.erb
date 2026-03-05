@@ -32,7 +32,7 @@
       <p class="text-base-content/60 mt-2">Everything you need to manage your movie catalog</p>
     </div>
 
-    <%= render Bali::Columns::Component.new(cols: 1, cols_tablet: 3, gap: :'2xl') do %>
+    <%= render Bali::Columns::Component.new(cols: 1, cols_md: 3, gap: :'2xl') do %>
       <%# Feature 1: Filters %>
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <div class="card-body text-center">
@@ -72,7 +72,7 @@
 <%# Stats Section %>
 <section class="py-16 bg-base-200">
   <div class="container mx-auto px-4 max-w-6xl">
-    <%= render Bali::Columns::Component.new(cols: 1, cols_tablet: 3, gap: :'2xl', class: 'text-center') do %>
+    <%= render Bali::Columns::Component.new(cols: 1, cols_md: 3, gap: :'2xl', class: 'text-center') do %>
       <div>
         <p class="text-4xl font-bold text-primary"><%= @movies_count * 50 %>+</p>
         <p class="text-base-content/60 mt-2">Movies Managed</p>
@@ -164,7 +164,7 @@
       <p class="text-base-content/60 mt-2">Choose the plan that works for you</p>
     </div>
 
-    <%= render Bali::Columns::Component.new(cols: 1, cols_tablet: 3, gap: :'2xl') do %>
+    <%= render Bali::Columns::Component.new(cols: 1, cols_md: 3, gap: :'2xl') do %>
       <%# Free Plan %>
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <div class="card-body">
