@@ -12,7 +12,7 @@ Where `$ARGUMENTS` is:
 - Component name (e.g., `Button`, `Card`)
 - File path (e.g., `app/components/bali/button/component.rb`)
 - `--staged` - Review staged git changes
-- `--branch` - Review all changes on current branch vs tailwind-migration base
+- `--branch` - Review all changes on current branch vs main base
 
 ## Workflow
 
@@ -23,7 +23,7 @@ Based on argument:
 1. **Component name**: Find all files in `app/components/bali/[name]/`
 2. **File path**: Review that specific file
 3. **--staged**: Get files from `git diff --staged --name-only`
-4. **--branch**: Get files from `git diff tailwind-migration...HEAD --name-only`
+4. **--branch**: Get files from `git diff main...HEAD --name-only`
 
 ### Step 2: Run Automated Checks
 
