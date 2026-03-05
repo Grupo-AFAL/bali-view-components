@@ -70,11 +70,11 @@ module Bali
       end
 
       def flash_notice
-        @flash&.dig(:notice)
+        @flash&.[](:notice)
       end
 
       def flash_alert
-        @flash&.dig(:alert)
+        @flash&.[](:alert)
       end
     end
   end
