@@ -1,9 +1,9 @@
 <% if params[:layout] == 'false' %>
-  <h2 class="text-lg font-semibold mb-4">New Studio</h2>
+  <h2 class="text-lg font-semibold mb-4"><%= t('studios.form.new_title') %></h2>
   <%= render 'form', studio: @studio %>
 <% else %>
   <%= render Bali::PageHeader::Component.new(
-    title: 'New Studio',
+    title: t('studios.form.new_title'),
     back: { href: studios_path }
   ) %>
 
