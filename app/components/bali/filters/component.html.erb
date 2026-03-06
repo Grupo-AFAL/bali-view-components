@@ -55,12 +55,13 @@
           </button>
 
           <%# Dropdown content - hidden by default, shown via JS %>
-          <div class="hidden fixed inset-0 z-50 bg-base-100 flex flex-col
-                      sm:absolute sm:inset-auto sm:left-0 sm:top-full sm:mt-2 sm:shadow-xl sm:rounded-box sm:border sm:border-base-200 sm:w-[40rem] sm:max-w-[calc(100vw-2rem)] sm:block"
+          <div class="hidden z-50 bg-base-100
+                      max-sm:fixed max-sm:top-0 max-sm:right-0 max-sm:bottom-0 max-sm:left-0 max-sm:flex max-sm:flex-col
+                      sm:absolute sm:top-full sm:left-0 sm:mt-2 sm:shadow-xl sm:rounded-box sm:border sm:border-base-200 sm:w-[40rem] sm:max-w-[calc(100vw-2rem)]"
              data-filters-target="dropdownContent">
 
             <%# Mobile header with close button %>
-            <div class="flex items-center justify-between p-4 border-b border-base-200 sm:hidden">
+            <div class="max-sm:flex items-center justify-between p-4 border-b border-base-200 sm:hidden">
               <h3 class="text-lg font-semibold flex items-center gap-2">
                 <%= render Bali::Icon::Component.new('filter', class: 'w-5 h-5') %>
                 <%= t('bali.filters.title', default: 'Filters') %>
@@ -76,9 +77,9 @@
                   turbo_stream: turbo_stream,
                   turbo_action: 'replace'
                 },
-                class: 'w-full flex flex-col flex-1 min-h-0 sm:block' do |f| %>
+                class: 'w-full max-sm:flex max-sm:flex-col max-sm:flex-1 max-sm:min-h-0' do |f| %>
               <%= preserved_params_hidden_fields %>
-              <div class="p-4 space-y-4 flex-1 overflow-y-auto sm:overflow-visible">
+              <div class="p-4 space-y-4 max-sm:flex-1 max-sm:overflow-y-auto">
                 <%# Filter groups container - no header for compact layout %>
                 <div data-filters-target="groupsContainer" class="space-y-4">
                   <% filter_groups.each_with_index do |group, group_idx| %>
@@ -116,30 +117,8 @@
               </div>
 
               <%# Footer - sticky on mobile, inline on desktop %>
-              <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2 p-4 border-t border-base-200 shrink-0 bg-base-100">
-                <button type="button"
-                      class="btn btn-ghost btn-xs text-error order-3 sm:order-1"
-                      data-action="filters#clearAll"
-                      data-filters-target="clearButton">
-                  <%= t('bali.filters.clear_all', default: 'Clear all') %>
-                </button>
-
-                <div class="flex items-center gap-2 flex-wrap order-2 sm:order-2">
-                  <% if persistence_available? && persist_enabled? %>
-                    <span class="text-xs text-base-content/50 flex items-center gap-1">
-                      <%= render Bali::Icon::Component.new('bookmark-check', class: 'w-3 h-3') %>
-                      <%= t('bali.filters.auto_saved', default: 'Auto-saved') %>
-                    </span>
-                  <% end %>
-                  <button type="button"
-                        class="btn btn-ghost btn-sm text-primary gap-1"
-                        data-action="filters#addGroup"
-                        data-filters-target="addGroupButton">
-                    <%= render Bali::Icon::Component.new('plus', class: 'w-4 h-4') %>
-                    <%= t('bali.filters.add_group', default: 'Add filter group') %>
-                  </button>
-                </div>
-
+              <div class="max-sm:flex max-sm:flex-col sm:flex sm:flex-row justify-between max-sm:items-stretch sm:items-center gap-3 p-4 border-t border-base-200 max-sm:shrink-0 bg-base-100">
+                <%# Apply + Reset: primary actions first on mobile %>
                 <div class="flex items-center gap-2 order-1 sm:order-3">
                   <button type="button"
                         class="btn btn-ghost btn-sm flex-1 sm:flex-initial"
@@ -151,6 +130,29 @@
                         data-action="filters#apply">
                     <%= render Bali::Icon::Component.new('check', class: 'w-4 h-4') %>
                     <%= t('bali.filters.apply', default: 'Apply') %>
+                  </button>
+                </div>
+
+                <%# Add group + Clear: secondary actions on mobile %>
+                <div class="flex items-center justify-between sm:justify-start gap-2 order-2 sm:order-1">
+                  <button type="button"
+                        class="btn btn-ghost btn-sm text-primary gap-1"
+                        data-action="filters#addGroup"
+                        data-filters-target="addGroupButton">
+                    <%= render Bali::Icon::Component.new('plus', class: 'w-4 h-4') %>
+                    <%= t('bali.filters.add_group', default: 'Add filter group') %>
+                  </button>
+                  <% if persistence_available? && persist_enabled? %>
+                    <span class="text-xs text-base-content/50 flex items-center gap-1">
+                      <%= render Bali::Icon::Component.new('bookmark-check', class: 'w-3 h-3') %>
+                      <%= t('bali.filters.auto_saved', default: 'Auto-saved') %>
+                    </span>
+                  <% end %>
+                  <button type="button"
+                        class="btn btn-ghost btn-xs text-error"
+                        data-action="filters#clearAll"
+                        data-filters-target="clearButton">
+                    <%= t('bali.filters.clear_all', default: 'Clear all') %>
                   </button>
                 </div>
               </div>
