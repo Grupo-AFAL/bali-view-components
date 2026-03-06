@@ -17,7 +17,7 @@
         <%= form_with url: url, method: :get, class: 'contents', data: { turbo_stream: turbo_stream, turbo_action: 'replace', filters_target: 'searchForm' } do %>
           <%= preserved_params_hidden_fields %>
           <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg">
-            <label class="input input-bordered join-item w-64 flex items-center gap-2">
+            <label class="input input-bordered join-item w-full sm:w-64 flex items-center gap-2">
               <input type="text"
                      name="<%= search_field_name %>"
                      value="<%= search_value %>"

@@ -41,7 +41,7 @@ class BaliTableComponentTest < ComponentTestCase
       c.with_header(name: "amount", class: "text-right")
     end
     assert_selector("table")
-    assert_selector("tr th", text: "name")
+    assert_selector("tr th.whitespace-nowrap", text: "name")
     assert_selector("tr th.text-right", text: "amount")
   end
 
