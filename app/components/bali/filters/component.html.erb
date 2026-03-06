@@ -56,9 +56,10 @@
 
           <%# Dropdown content - hidden by default, shown via JS %>
           <div class="hidden z-50 bg-base-100
-                      max-sm:fixed max-sm:top-0 max-sm:right-0 max-sm:bottom-0 max-sm:left-0 max-sm:flex max-sm:flex-col
+                      max-sm:fixed max-sm:top-0 max-sm:right-0 max-sm:bottom-0 max-sm:left-0
                       sm:absolute sm:top-full sm:left-0 sm:mt-2 sm:shadow-xl sm:rounded-box sm:border sm:border-base-200 sm:w-[40rem] sm:max-w-[calc(100vw-2rem)]"
              data-filters-target="dropdownContent">
+            <div class="max-sm:flex max-sm:flex-col max-sm:h-full">
 
             <%# Mobile header with close button %>
             <div class="max-sm:flex items-center justify-between p-4 border-b border-base-200 sm:hidden">
@@ -157,6 +158,7 @@
                 </div>
               </div>
             <% end %>
+            </div>
           </div>
         </div>
 
