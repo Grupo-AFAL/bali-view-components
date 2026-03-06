@@ -11,13 +11,13 @@
 
   <% if popover %>
     <%# Popover mode: search input + trigger button + dropdown %>
-    <div class="flex flex-wrap items-center gap-3">
+    <div class="flex items-center gap-2 sm:gap-3">
       <% if search_enabled? %>
         <%# Quick search input with clear button %>
-        <%= form_with url: url, method: :get, class: 'contents', data: { turbo_stream: turbo_stream, turbo_action: 'replace', filters_target: 'searchForm' } do %>
+        <%= form_with url: url, method: :get, class: 'flex-1 min-w-0 sm:flex-initial', data: { turbo_stream: turbo_stream, turbo_action: 'replace', filters_target: 'searchForm' } do %>
           <%= preserved_params_hidden_fields %>
-          <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg">
-            <label class="input input-bordered join-item w-full sm:w-64 flex items-center gap-2">
+          <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg w-full sm:w-auto">
+            <label class="input input-bordered input-sm sm:input-md join-item w-full sm:w-64 flex items-center gap-2">
               <input type="text"
                      name="<%= search_field_name %>"
                      value="<%= search_value %>"
@@ -34,7 +34,7 @@
                 <%= render Bali::Icon::Component.new('x', class: 'w-4 h-4') %>
               </button>
             </label>
-            <button type="submit" class="btn btn-primary join-item" data-action="click->filters#submitSearch">
+            <button type="submit" class="btn btn-primary btn-sm sm:btn-md join-item" data-action="click->filters#submitSearch">
               <%= render Bali::Icon::Component.new('search', class: 'w-4 h-4') %>
             </button>
           </div>
@@ -45,10 +45,10 @@
       <div class="flex items-center gap-1">
         <div class="relative" data-filters-target="dropdown">
           <button type="button"
-                  class="btn btn-outline gap-2"
+                  class="btn btn-outline btn-sm gap-2"
                   data-action="click->filters#toggleDropdown">
             <%= render Bali::Icon::Component.new('filter', class: 'w-4 h-4') %>
-            <%= button_text %>
+            <span class="hidden sm:inline"><%= button_text %></span>
             <% if active_filters? %>
               <span class="badge badge-primary badge-sm"><%= active_filter_count %></span>
             <% end %>
@@ -188,11 +188,14 @@
         <% end %>
       </div>
 
-      <%# Applied filter tags (shown inline with button) %>
-      <% if applied_tags? %>
-        <%= applied_tags %>
-      <% end %>
     </div>
+
+    <%# Applied filter tags (below search row) %>
+    <% if applied_tags? %>
+      <div class="mt-2">
+        <%= applied_tags %>
+      </div>
+    <% end %>
 
   <% else %>
     <%# Inline mode: original layout %>
