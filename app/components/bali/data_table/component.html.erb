@@ -1,7 +1,7 @@
 <div id="<%= id %>" class="data-table-component">
   <%# Toolbar: Filters (left) + Actions/Buttons (right) %>
   <% if show_toolbar? %>
-    <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
+    <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-start justify-between gap-3 sm:gap-4 mb-4">
       <%# Left side: Filters %>
       <div class="flex-1 min-w-0">
         <%= filters_panel if filters_panel? %>
@@ -10,7 +10,7 @@
 
       <%# Right side: Column selector + Export + Toolbar buttons + Actions panel %>
       <% if show_toolbar_right? %>
-        <div class="flex items-center gap-2 flex-shrink-0">
+        <div class="flex items-center gap-2 justify-end sm:flex-shrink-0">
           <%= column_selector if column_selector? %>
           <%= export if export? %>
           <% toolbar_buttons.each do |button| %>

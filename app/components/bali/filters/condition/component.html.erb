@@ -1,4 +1,4 @@
-<div class="condition flex-1 flex gap-2 items-start"
+<div class="condition flex-1 flex flex-col sm:flex-row gap-2 items-stretch sm:items-start"
      data-controller="condition"
      data-condition-group-index-value="<%= group_index %>"
      data-condition-index-value="<%= condition_index %>"
@@ -6,8 +6,8 @@
      data-condition-translations-value="<%= translations_json %>"
      data-filter-group-target="condition">
 
-  <%# Attribute selector - fixed width %>
-  <div class="w-32 shrink-0">
+  <%# Attribute selector - fixed width on desktop, full width on mobile %>
+  <div class="w-full sm:w-32 sm:shrink-0">
     <select class="select select-bordered select-sm w-full"
             data-action="condition#attributeChanged"
             data-condition-target="attribute">
@@ -26,8 +26,8 @@
     </select>
   </div>
 
-  <%# Operator selector - fixed width %>
-  <div class="w-24 shrink-0">
+  <%# Operator selector - fixed width on desktop, full width on mobile %>
+  <div class="w-full sm:w-24 sm:shrink-0">
     <select class="select select-bordered select-sm w-full"
             data-action="condition#operatorChanged"
             data-condition-target="operator">
@@ -213,7 +213,7 @@
   </div>
 
   <%# Remove condition button %>
-  <div class="flex-shrink-0">
+  <div class="flex-shrink-0 self-end sm:self-auto">
     <button type="button"
             class="btn btn-ghost btn-sm btn-circle text-base-content/50 hover:text-error hover:bg-error/10"
             data-action="condition#remove"
