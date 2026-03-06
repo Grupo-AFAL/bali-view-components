@@ -45,7 +45,7 @@
   }
 
   .gantt-chart-container {
-    @apply flex relative;
+    @apply flex relative overflow-x-auto;
   }
 
   /* === List === */

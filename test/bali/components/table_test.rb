@@ -13,7 +13,7 @@ class BaliTableComponentTest < ComponentTestCase
   end
 
   def test_constants_defines_table_classes
-    assert_equal("table table-zebra w-full", Bali::Table::Component::TABLE_CLASSES)
+    assert_equal("table table-zebra min-w-full", Bali::Table::Component::TABLE_CLASSES)
   end
 
   def test_constants_defines_container_classes
