@@ -18,6 +18,7 @@ export class NotificationController extends Controller {
 
   connect () {
     this.closed = false
+    this.element.classList.add('slideInRight')
 
     if (this.dismissValue) {
       setTimeout(() => this.close(), this.delayValue)

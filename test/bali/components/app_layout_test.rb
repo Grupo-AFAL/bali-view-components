@@ -266,7 +266,9 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     render_inline(Bali::AppLayout::Component.new(flash: { notice: "Saved!" })) do |layout|
       layout.with_body { "Content" }
     end
-    assert_selector("#toast-notifications.fixed.bottom-4.right-4.z-50")
+    assert_selector("#toast-notifications.fixed.bottom-4")
+    assert_selector('#toast-notifications[role="status"]')
+    assert_selector('#toast-notifications[aria-live="polite"]')
   end
 
   def test_uses_flex_col_direction

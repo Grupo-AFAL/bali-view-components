@@ -33,9 +33,25 @@ a {
   @apply rounded-full;
 }
 
-/* Notification fadeOut animation */
+/* Notification animations */
+.slideInRight {
+  animation: slideInRight 0.35s cubic-bezier(0.21, 1.02, 0.73, 1) both;
+}
+
 .fadeOutRight {
-  animation: fadeOutRight 1s both;
+  animation: fadeOutRight 0.3s cubic-bezier(0.06, 0.71, 0.55, 1) both;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translate3d(100%, 0, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 @keyframes fadeOutRight {

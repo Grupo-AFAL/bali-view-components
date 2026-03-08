@@ -1,4 +1,7 @@
-<%= tag.div class: alert_classes, data: stimulus_attributes do %>
-  <button class="btn btn-sm btn-circle btn-ghost" data-action="notification#close" aria-label="<%= close_button_label %>">✕</button>
-  <span class="notification-content-component"><%= content %></span>
+<%= tag.div class: alert_classes, role: aria_role, data: stimulus_attributes do %>
+  <%= render Bali::Icon::Component.new(type_icon, size: :small) %>
+  <span class="notification-content-component flex-1"><%= content %></span>
+  <button class="btn btn-sm btn-circle btn-ghost" data-action="notification#close" aria-label="<%= close_button_label %>">
+    <%= render Bali::Icon::Component.new("x", size: :small) %>
+  </button>
 <% end %>

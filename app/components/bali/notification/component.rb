@@ -3,8 +3,7 @@
 module Bali
   module Notification
     class Component < ApplicationViewComponent
-      BASE_CLASSES = "notification-component alert"
-      SHADOW_CLASSES = "shadow-[0px_3px_18px_rgba(0,0,0,0.1),0_0_0_1px_rgba(0,0,0,0.03)]"
+      BASE_CLASSES = "notification-component alert shadow-xl"
       UNCLOSABLE_CLASSES = "[&.is-unclosable_.btn-circle]:hidden " \
                            "[&.is-unclosable_.notification-content-component]:mr-0"
 
@@ -15,6 +14,15 @@ module Bali
         error: "alert-error",
         danger: "alert-error",
         primary: "alert-info"
+      }.freeze
+
+      ICONS = {
+        success: "circle-check",
+        info: "info",
+        warning: "triangle-alert",
+        error: "circle-x",
+        danger: "circle-x",
+        primary: "info"
       }.freeze
 
       STYLES = {
@@ -35,7 +43,6 @@ module Bali
       def alert_classes
         class_names(
           BASE_CLASSES,
-          SHADOW_CLASSES,
           UNCLOSABLE_CLASSES,
           type_class,
           style_class,
@@ -53,8 +60,16 @@ module Bali
         }
       end
 
+      def type_icon
+        ICONS.fetch(type, ICONS[:success])
+      end
+
       def close_button_label
         t(".close")
+      end
+
+      def aria_role
+        type == :error || type == :danger ? "alert" : "status"
       end
 
       private
@@ -73,8 +88,8 @@ module Bali
         return unless fixed
 
         class_names(
-          "fixed top-[4.25rem] right-4 z-[101]",
-          Bali.native_app && "top-4 left-1/2 right-auto -translate-x-1/2 w-full"
+          "fixed bottom-4 right-4 z-[101]",
+          Bali.native_app && "bottom-4 left-1/2 right-auto -translate-x-1/2 w-full"
         )
       end
     end
