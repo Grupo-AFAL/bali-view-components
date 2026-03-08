@@ -4,7 +4,11 @@
   <% elsif icon_name.present? %>
     <%= render Bali::Icon::Component.new(icon_name) %>
   <% end %>
-  <%= name %>
+  <% if @responsive && name.present? && @icon_name.present? && button_style? %>
+    <span class="max-sm:hidden"><%= name %></span>
+  <% else %>
+    <%= name %>
+  <% end %>
   <%= icon_right if icon_right? %>
   <%= content %>
 <% end %>

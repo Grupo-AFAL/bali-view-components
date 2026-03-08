@@ -198,13 +198,15 @@
                   name: t('settings.export_data'),
                   variant: :ghost,
                   size: :sm,
-                  icon_name: 'download'
+                  icon_name: 'download',
+                  responsive: false
                 ) %>
               <%= render Bali::Button::Component.new(
                   name: t('settings.delete_account'),
                   variant: :error,
                   size: :sm,
-                  icon_name: 'trash-2'
+                  icon_name: 'trash-2',
+                  responsive: false
                 ) %>
             </div>
           <% end %>
