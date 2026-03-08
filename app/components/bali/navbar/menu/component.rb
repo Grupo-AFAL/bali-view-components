@@ -56,8 +56,10 @@ module Bali
         end
 
         # Classes for end_items inner div (ml-auto pushes to right on desktop)
+        # Mobile: separated from start items with a top border, padded to align with menu items
         def end_items_classes
-          "flex flex-col lg:flex-row lg:items-center gap-2 lg:ml-auto"
+          "flex flex-col lg:flex-row lg:items-center gap-2 lg:ml-auto " \
+            "max-sm:border-t max-sm:border-base-300 max-sm:pt-4 max-sm:pl-2"
         end
 
         def wrapper_classes
