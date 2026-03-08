@@ -13,8 +13,8 @@ module Bali
 
       BODY_CONTAINERS = {
         wide:      "p-4 md:p-6",
-        contained: "max-w-7xl px-4 md:px-6 mx-auto",
-        narrow:    "max-w-xl px-4 mx-auto",
+        contained: "max-w-7xl px-4 md:px-6 py-4 mx-auto",
+        narrow:    "max-w-xl px-4 py-4 mx-auto",
         full:      ""
       }.freeze
 
@@ -39,6 +39,7 @@ module Bali
           "flex flex-col",
           "min-h-screen",
           "bg-base-200",
+          "overflow-x-hidden",
           { "app-layout--has-fixed-sidebar" => @fixed_sidebar && sidebar? },
           { "app-layout--has-navbar" => navbar? },
           { "app-layout--has-sidebar" => sidebar? },
