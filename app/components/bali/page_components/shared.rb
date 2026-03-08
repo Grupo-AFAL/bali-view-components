@@ -22,7 +22,7 @@ module Bali
       def render_actions_bar
         return unless actions?
 
-        helpers.tag.div(class: "flex items-center gap-2") do
+        helpers.tag.div(class: "flex items-center gap-2 flex-wrap") do
           helpers.safe_join(actions)
         end
       end

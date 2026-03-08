@@ -212,6 +212,64 @@
 }
 
 /* ========================================
+   Mobile Expansion Override
+   When the mobile sidebar opens, force expanded view
+   regardless of the collapse checkbox state.
+   ======================================== */
+
+@media (max-width: 1023.98px) {
+  /* Disable collapse mode on mobile — icon-only sidebar is desktop-only.
+     These rules match the specificity of the collapse rules above (0-3-0)
+     and appear later, so they win when both are !important. */
+  .side-menu-collapse-trigger:checked + .side-menu-component {
+    width: var(--bali-side-menu-width) !important;
+  }
+  .side-menu-collapse-trigger:checked + .side-menu-component .side-menu-expanded {
+    display: flex !important;
+  }
+  .side-menu-collapse-trigger:checked + .side-menu-component .side-menu-collapsed {
+    display: none !important;
+  }
+  .side-menu-collapse-trigger:checked + .side-menu-component .menu-item {
+    justify-content: flex-start;
+    padding: 0.5rem 0.625rem;
+  }
+  .side-menu-collapse-trigger:checked + .side-menu-component .menu-label,
+  .side-menu-collapse-trigger:checked + .side-menu-component .side-menu-brand,
+  .side-menu-collapse-trigger:checked + .side-menu-component .menu-switcher {
+    display: block !important;
+  }
+  .side-menu-collapse-trigger:checked + .side-menu-component .side-menu-bottom-section {
+    padding-left: 0.625rem;
+    padding-right: 0.625rem;
+  }
+
+  /* When mobile sidebar opens, also force expanded view */
+  .side-menu-mobile-trigger:checked ~ .side-menu-component {
+    width: var(--bali-side-menu-width) !important;
+  }
+  .side-menu-mobile-trigger:checked ~ .side-menu-component .side-menu-expanded {
+    display: flex !important;
+  }
+  .side-menu-mobile-trigger:checked ~ .side-menu-component .side-menu-collapsed {
+    display: none !important;
+  }
+  .side-menu-mobile-trigger:checked ~ .side-menu-component .menu-item {
+    justify-content: flex-start;
+    padding: 0.5rem 0.625rem;
+  }
+  .side-menu-mobile-trigger:checked ~ .side-menu-component .menu-label,
+  .side-menu-mobile-trigger:checked ~ .side-menu-component .side-menu-brand,
+  .side-menu-mobile-trigger:checked ~ .side-menu-component .menu-switcher {
+    display: block !important;
+  }
+  .side-menu-mobile-trigger:checked ~ .side-menu-component .side-menu-bottom-section {
+    padding-left: 0.625rem;
+    padding-right: 0.625rem;
+  }
+}
+
+/* ========================================
    Mobile Overlay
    ======================================== */
 

@@ -165,7 +165,7 @@
 
         <%# Persistence toggle (bookmark icon) %>
         <% if persistence_available? %>
-          <div data-controller="filter-persistence"
+          <div class="max-sm:overflow-hidden" data-controller="filter-persistence"
                data-filter-persistence-storage-id-value="<%= storage_id %>"
                data-filter-persistence-enabled-value="<%= persist_enabled? %>">
             <button type="button"

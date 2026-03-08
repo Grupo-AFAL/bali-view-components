@@ -304,6 +304,7 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_includes container[:class], "mx-auto"
     assert_includes container[:class], "px-4"
     assert_includes container[:class], "md:px-6"
+    assert_includes container[:class], "py-4"
   end
 
   def test_body_container_narrow_preset
@@ -314,6 +315,7 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_includes container[:class], "max-w-xl"
     assert_includes container[:class], "mx-auto"
     assert_includes container[:class], "px-4"
+    assert_includes container[:class], "py-4"
   end
 
   def test_body_container_full_preset

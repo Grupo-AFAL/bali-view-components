@@ -4,11 +4,6 @@
  * defined in side_menu/index.css :root.
  */
 
-/* Prevent horizontal scroll from off-screen fixed sidebar on mobile */
-.app-layout--has-fixed-sidebar {
-  overflow-x: hidden;
-}
-
 @media (min-width: 1024px) {
   /* Push content right when a fixed sidebar is present */
   .app-layout--has-fixed-sidebar .app-layout-content {

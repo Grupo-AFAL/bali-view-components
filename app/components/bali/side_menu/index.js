@@ -72,19 +72,12 @@ export class SideMenuController extends Controller {
     this.element.classList.toggle('is-active', checkbox.checked)
   }
 
-  // Restore collapse state from localStorage (desktop only)
+  // Restore collapse state from localStorage
   restoreCollapseState () {
     if (!this.hasCollapseCheckboxValue) return
 
     const checkbox = this.collapseCheckbox
     if (!checkbox) return
-
-    // Always show expanded on mobile — collapsed icon-only mode is desktop-only
-    const isDesktop = window.matchMedia('(min-width: 1024px)').matches
-    if (!isDesktop) {
-      checkbox.checked = false
-      return
-    }
 
     const isCollapsed = localStorage.getItem('bali_sideMenuCollapsed') === 'true'
     checkbox.checked = isCollapsed

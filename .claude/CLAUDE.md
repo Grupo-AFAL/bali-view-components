@@ -646,6 +646,21 @@ cd spec/dummy && bin/dev
 yarn run cy:run
 ```
 
+## Tailwind v4 CSS Layer Gotcha
+
+Component CSS files (`index.css`) are **unlayered** — they beat Tailwind utility classes in `@layer utilities`.
+If a component sets `@apply flex` on `.menu-item`, utility classes like `lg:hidden` will NOT override it.
+Use `!important` variants instead: `lg:!hidden`, `max-lg:!hidden`.
+
+### CSS Rebuild
+After editing component CSS files, rebuild with: `bundle exec rails tailwindcss:build`
+Compiled output: `spec/dummy/app/assets/builds/tailwind.css`
+
+## DaisyUI Tooltip Mobile Gotcha
+
+DaisyUI tooltip pseudo-elements (`::before`/`::after`) can cause horizontal scroll on mobile.
+Wrap tooltip containers with `max-sm:overflow-hidden` to clip them on small screens.
+
 ## Prohibited Patterns
 
 | DON'T | DO INSTEAD |
