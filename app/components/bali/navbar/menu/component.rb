@@ -18,7 +18,7 @@ module Bali
         # Desktop: inline with navbar, fills remaining space
         WRAPPER_CLASSES_MOBILE = %w[
           hidden flex-col gap-4 absolute left-0 top-full
-          w-full bg-base-100 text-base-content shadow-lg p-4 z-40
+          w-full bg-base-100 max-lg:text-base-content shadow-lg p-4 z-40
         ].join(" ").freeze
 
         WRAPPER_CLASSES_DESKTOP = %w[
