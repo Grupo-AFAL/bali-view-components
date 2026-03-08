@@ -9,6 +9,18 @@
       <%= render 'layouts/admin_sidebar' %>
     <% end %>
 
+    <% layout.with_topbar do %>
+      <div class="flex items-center gap-2 px-4 py-2 bg-base-100 shadow-sm lg:hidden">
+        <label for="<%= Bali::SideMenu::Component::MOBILE_TRIGGER_ID %>"
+               role="button" tabindex="0"
+               class="btn btn-ghost btn-sm"
+               aria-label="<%= t('bali.side_menu.toggle_mobile', default: 'Toggle sidebar') %>">
+          <%= render Bali::Icon::Component.new('menu', size: :small) %>
+        </label>
+        <span class="font-semibold text-sm"><%= t('app.name') %> Admin</span>
+      </div>
+    <% end %>
+
     <% layout.with_body do %>
       <%= yield %>
     <% end %>
