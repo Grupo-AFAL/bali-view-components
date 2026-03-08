@@ -31,12 +31,18 @@ module Bali
         dash: "alert-dash"
       }.freeze
 
-      def initialize(type: :success, delay: 3000, fixed: true, dismiss: true, style: nil, **options)
+      POSITIONS = {
+        top_right: "fixed top-4 right-4 z-[101]",
+        bottom_right: "fixed bottom-4 right-4 z-[101]"
+      }.freeze
+
+      def initialize(type: :success, delay: 3000, fixed: true, dismiss: true, style: nil, position: :bottom_right, **options)
         @type = type&.to_sym
         @delay = delay
         @fixed = fixed
         @dismiss = dismiss
         @style = style&.to_sym
+        @position = position&.to_sym
         @options = options
       end
 
@@ -68,13 +74,9 @@ module Bali
         t(".close")
       end
 
-      def aria_role
-        type == :error || type == :danger ? "alert" : "status"
-      end
-
       private
 
-      attr_reader :type, :delay, :fixed, :dismiss, :style, :options
+      attr_reader :type, :delay, :fixed, :dismiss, :style, :position, :options
 
       def type_class
         TYPES.fetch(type, TYPES[:success])
@@ -84,12 +86,16 @@ module Bali
         STYLES[style]
       end
 
+      def aria_role
+        type == :error || type == :danger ? "alert" : "status"
+      end
+
       def fixed_classes
         return unless fixed
 
         class_names(
-          "fixed bottom-4 right-4 z-[101]",
-          Bali.native_app && "bottom-4 left-1/2 right-auto -translate-x-1/2 w-full"
+          POSITIONS.fetch(position, POSITIONS[:bottom_right]),
+          Bali.native_app && "left-1/2 right-auto -translate-x-1/2 w-full"
         )
       end
     end
