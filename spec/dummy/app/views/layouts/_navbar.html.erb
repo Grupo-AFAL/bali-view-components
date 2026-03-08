@@ -77,9 +77,7 @@
     <% menu.with_end_item(tag_name: :div) do %>
       <%= render Bali::Dropdown::Component.new(align: :left, class: 'lg:dropdown-end') do |dropdown| %>
         <% dropdown.with_trigger(variant: :menu) do %>
-          <%= render Bali::Avatar::Component.new(size: :xs) do |avatar| %>
-            <% avatar.with_placeholder { 'AD' } %>
-          <% end %>
+          <%= render Bali::Icon::Component.new('circle-user', size: :small) %>
           <%= t('navbar.admin') %>
           <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
         <% end %>
