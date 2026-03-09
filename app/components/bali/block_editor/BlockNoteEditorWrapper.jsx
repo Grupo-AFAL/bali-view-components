@@ -21,6 +21,7 @@ import {
   getFormattingToolbarItems,
   ThreadsSidebar
 } from '@blocknote/react'
+import { createPortal } from 'react-dom'
 import { useEffect, useRef, useMemo, useState, useCallback } from 'react'
 
 import { SUPPORTED_LANGUAGES, PRELOADED_LANGS } from './constants'
@@ -70,6 +71,7 @@ export default function BlockNoteEditorWrapper ({
   referencesResolveUrl,
   referencesConfig,
   tableOfContents = false,
+  tableOfContentsContainerId,
   comments: commentsEnabled = false,
   commentsUrl,
   commentsUser,
@@ -333,6 +335,21 @@ export default function BlockNoteEditorWrapper ({
     </div>
   )
 
+  // Portal mode: render TOC into an external DOM container (e.g. DocumentEditor's side panel)
+  const tocPortalContainer = tableOfContentsContainerId
+    ? document.getElementById(tableOfContentsContainerId)
+    : null
+
+  if (tableOfContents && tocPortalContainer) {
+    return (
+      <>
+        {createPortal(<TableOfContents headings={tocHeadings} />, tocPortalContainer)}
+        {editorView}
+      </>
+    )
+  }
+
+  // Inline mode: render TOC alongside editor in flex layout
   if (tableOfContents) {
     return (
       <div className='bn-toc-layout'>

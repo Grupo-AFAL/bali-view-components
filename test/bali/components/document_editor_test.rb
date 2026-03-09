@@ -122,14 +122,13 @@ class BaliDocumentEditorComponentTest < ComponentTestCase
     assert_selector("a[href='/documents/1'][data-action='document-editor#close']")
   end
 
-  def test_renders_toc_panel
+  def test_renders_editor_content_area
     render_inline(Bali::DocumentEditor::Component.new(
       title: "My Document",
       initial_content: [],
       document_url: "/documents/1"
     ))
-    assert_selector("[data-document-editor-target='tocPanel']")
-    assert_text("Contents")
+    assert_selector(".document-editor-overlay .flex-1.overflow-y-auto")
   end
 
   def test_renders_comments_panel_when_configured
@@ -201,5 +200,15 @@ class BaliDocumentEditorComponentTest < ComponentTestCase
       export: false
     ))
     assert_no_selector("[data-action='document-editor#exportPdf']")
+  end
+
+  def test_renders_toc_panel_with_portal_container
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1"
+    ))
+    assert_selector("[data-document-editor-target='tocPanel']")
+    assert_selector("#document-editor-toc-container")
   end
 end

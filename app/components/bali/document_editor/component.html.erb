@@ -72,23 +72,25 @@
 
   <%# Main Content Area: TOC | Editor | Right Panel %>
   <div class="flex-1 flex overflow-hidden">
-    <%# Left: Table of Contents %>
-    <div class="document-editor-toc w-56 border-r border-base-300 overflow-y-auto shrink-0 p-4"
+    <%# Left: TOC Panel (populated via React portal from BlockNote) %>
+    <div class="document-editor-toc w-56 border-r border-base-300 overflow-y-auto shrink-0 p-4 hidden"
          data-document-editor-target="tocPanel">
-      <h3 class="text-sm font-semibold text-base-content/60 uppercase tracking-wider mb-3">Contents</h3>
-      <div data-document-editor-target="tocContainer"></div>
+      <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">Contents</h3>
+      <div id="document-editor-toc-container"></div>
     </div>
 
     <%# Center: Editor %>
     <div class="flex-1 overflow-y-auto">
-      <div class="max-w-[900px] mx-auto px-8 py-6">
+      <div class="px-12 py-8">
         <%= render Bali::BlockEditor::Component.new(
           initial_content: initial_content,
           editable: editable?,
           input_name: editable? ? "document[content]" : nil,
           table_of_contents: true,
-          comments: comments_config || false,
+          table_of_contents_container_id: "document-editor-toc-container",
+          comments: false,
           export: export,
+          show_export_buttons: false,
           export_filename: export_filename,
           ai_url: ai_url,
           mentions_url: mentions_url,

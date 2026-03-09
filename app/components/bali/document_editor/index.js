@@ -185,6 +185,14 @@ export class DocumentEditorController extends Controller {
     window.open(`${this.versionsUrlValue}/${versionId}`, '_blank')
   }
 
+  exportPdf () {
+    this._blockEditorController()?.exportPdf()
+  }
+
+  exportDocx () {
+    this._blockEditorController()?.exportDocx()
+  }
+
   handleKeydown (event) {
     if (event.key === 'Escape') {
       event.preventDefault()
@@ -199,6 +207,12 @@ export class DocumentEditorController extends Controller {
   close () {
     const closeLink = this.element.querySelector("a[data-action*='close']")
     window.location.href = closeLink?.href || this.documentUrlValue
+  }
+
+  _blockEditorController () {
+    const el = this.element.querySelector('[data-controller~="block-editor"]')
+    if (!el) return null
+    return this.application.getControllerForElementAndIdentifier(el, 'block-editor')
   }
 
   timeAgo (dateString) {
