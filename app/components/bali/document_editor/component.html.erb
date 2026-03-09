@@ -1,0 +1,126 @@
+<div class="document-editor-overlay fixed inset-0 z-50 flex flex-col bg-base-100"
+     <%= tag.attributes(controller_data) %>>
+
+  <%# App Bar %>
+  <div class="document-editor-app-bar flex items-center gap-3 px-4 h-14 border-b border-base-300 shrink-0">
+    <%# Left: TOC toggle %>
+    <button type="button"
+            class="btn btn-ghost btn-sm btn-square"
+            data-action="document-editor#toggleToc"
+            title="Toggle table of contents">
+      <%= render Bali::Icon::Component.new('panel-left', size: :small) %>
+    </button>
+
+    <%# Center: Title %>
+    <div class="flex-1 min-w-0">
+      <% if editable? %>
+        <input type="text"
+               value="<%= title %>"
+               class="input input-ghost text-lg font-semibold w-full max-w-md"
+               data-document-editor-target="titleInput"
+               data-action="change->document-editor#titleChanged"
+               placeholder="Untitled document" />
+      <% else %>
+        <h1 class="text-lg font-semibold truncate"><%= title %></h1>
+      <% end %>
+    </div>
+
+    <%# Right: Panel toggles + Close %>
+    <div class="flex items-center gap-1">
+      <% if comments? %>
+        <button type="button"
+                class="btn btn-ghost btn-sm btn-square"
+                data-action="document-editor#toggleComments"
+                data-document-editor-target="commentsToggle"
+                title="Toggle comments">
+          <%= render Bali::Icon::Component.new('message-square', size: :small) %>
+        </button>
+      <% end %>
+
+      <% if versions? %>
+        <button type="button"
+                class="btn btn-ghost btn-sm btn-square"
+                data-action="document-editor#toggleHistory"
+                data-document-editor-target="historyToggle"
+                title="Toggle version history">
+          <%= render Bali::Icon::Component.new('history', size: :small) %>
+        </button>
+      <% end %>
+
+      <% if export %>
+        <div class="dropdown dropdown-end">
+          <button type="button" class="btn btn-ghost btn-sm btn-square" tabindex="0" title="Export">
+            <%= render Bali::Icon::Component.new('download', size: :small) %>
+          </button>
+          <ul tabindex="0" class="dropdown-content menu bg-base-200 rounded-box z-10 w-40 p-2 shadow-lg">
+            <li><a data-action="document-editor#exportPdf">Export PDF</a></li>
+            <li><a data-action="document-editor#exportDocx">Export DOCX</a></li>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="divider divider-horizontal mx-1 h-6"></div>
+
+      <a href="<%= close_url %>"
+         class="btn btn-ghost btn-sm btn-square"
+         data-action="document-editor#close"
+         title="Close editor">
+        <%= render Bali::Icon::Component.new('x', size: :small) %>
+      </a>
+    </div>
+  </div>
+
+  <%# Main Content Area: TOC | Editor | Right Panel %>
+  <div class="flex-1 flex overflow-hidden">
+    <%# Left: Table of Contents %>
+    <div class="document-editor-toc w-56 border-r border-base-300 overflow-y-auto shrink-0 p-4"
+         data-document-editor-target="tocPanel">
+      <h3 class="text-sm font-semibold text-base-content/60 uppercase tracking-wider mb-3">Contents</h3>
+      <div data-document-editor-target="tocContainer"></div>
+    </div>
+
+    <%# Center: Editor %>
+    <div class="flex-1 overflow-y-auto">
+      <div class="max-w-[900px] mx-auto px-8 py-6">
+        <%= render Bali::BlockEditor::Component.new(
+          initial_content: initial_content,
+          editable: editable?,
+          input_name: editable? ? "document[content]" : nil,
+          table_of_contents: true,
+          comments: comments_config || false,
+          export: export,
+          export_filename: export_filename,
+          ai_url: ai_url,
+          mentions_url: mentions_url,
+          mentions: mentions
+        ) %>
+      </div>
+    </div>
+
+    <%# Right: Comments Panel %>
+    <% if comments? %>
+      <div class="document-editor-panel w-80 border-l border-base-300 overflow-y-auto shrink-0 hidden"
+           data-document-editor-target="commentsPanel">
+        <div class="p-4">
+          <h3 class="text-sm font-semibold text-base-content/60 uppercase tracking-wider mb-3">Comments</h3>
+          <div data-document-editor-target="commentsList">
+            <p class="text-sm text-base-content/50">Comments appear here as you add them in the document.</p>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <%# Right: History Panel %>
+    <% if versions? %>
+      <div class="document-editor-panel w-80 border-l border-base-300 overflow-y-auto shrink-0 hidden"
+           data-document-editor-target="historyPanel">
+        <div class="p-4">
+          <h3 class="text-sm font-semibold text-base-content/60 uppercase tracking-wider mb-3">Version History</h3>
+          <div data-document-editor-target="versionsList">
+            <%= render Bali::Loader::Component.new(size: :md) %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
