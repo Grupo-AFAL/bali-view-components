@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class BlockEditorThread < ApplicationRecord
+  belongs_to :document, optional: true
   has_many :block_editor_comments, -> { order(:created_at) }, inverse_of: :block_editor_thread, dependent: :destroy
 
   scope :with_comments, -> { includes(block_editor_comments: :block_editor_reactions) }
