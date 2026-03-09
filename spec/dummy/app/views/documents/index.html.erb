@@ -1,0 +1,50 @@
+<%= render Bali::Breadcrumb::Component.new do |breadcrumb| %>
+  <% breadcrumb.with_item(name: 'Dashboard', href: root_path, icon_name: 'home') %>
+  <% breadcrumb.with_item(name: 'Documents') %>
+<% end %>
+
+<%= render Bali::PageHeader::Component.new(class: 'mt-4') do |header| %>
+  <% header.with_title { "Documents" } %>
+  <% header.with_subtitle("#{Document.count} documents") %>
+  <div class="flex items-center gap-2">
+    <%= render Bali::Link::Component.new(
+      name: 'New Document',
+      href: new_document_path,
+      variant: :primary,
+      icon_name: 'plus'
+    ) %>
+  </div>
+<% end %>
+
+<div class="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  <% @documents.each do |document| %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <div class="card-body">
+        <div class="flex items-start justify-between">
+          <h2 class="card-title text-base"><%= document.title %></h2>
+          <%= render Bali::Tag::Component.new(
+            text: document.status.humanize,
+            color: document.published? ? :success : document.archived? ? :ghost : :warning,
+            size: :sm
+          ) %>
+        </div>
+        <p class="text-sm text-base-content/60">
+          by <%= document.author_name %> &middot;
+          <%= render Bali::Timeago::Component.new(document.updated_at, add_suffix: true) %>
+        </p>
+        <p class="text-sm text-base-content/70 mt-1">
+          <%= document.word_count %> words &middot;
+          <%= document.document_versions.count %> versions
+        </p>
+        <div class="card-actions justify-end mt-3">
+          <%= render Bali::Link::Component.new(
+            name: 'Open',
+            href: document_path(document),
+            variant: :ghost,
+            size: :sm
+          ) %>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+</div>

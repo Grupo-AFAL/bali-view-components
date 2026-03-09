@@ -1,0 +1,26 @@
+<%= form_with(model: document, class: 'space-y-4') do |f| %>
+  <% if document.errors.any? %>
+    <%= render Bali::Notification::Component.new(variant: :error) do %>
+      <ul>
+        <% document.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    <% end %>
+  <% end %>
+
+  <div class="form-control">
+    <%= f.label :title, class: 'label' %>
+    <%= f.text_field :title, class: 'input input-bordered w-full', placeholder: 'Document title' %>
+  </div>
+
+  <div class="form-control">
+    <%= f.label :status, class: 'label' %>
+    <%= f.select :status, Document.statuses.keys.map { |s| [s.humanize, s] }, {}, class: 'select select-bordered w-full' %>
+  </div>
+
+  <div class="flex justify-end gap-2 pt-4">
+    <%= render Bali::Link::Component.new(name: 'Cancel', href: documents_path, variant: :ghost) %>
+    <%= render Bali::Button::Component.new(name: 'Create Document', variant: :primary, type: :submit) %>
+  </div>
+<% end %>

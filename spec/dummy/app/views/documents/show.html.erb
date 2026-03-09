@@ -1,0 +1,129 @@
+<%= render Bali::DocumentPage::Component.new(
+  title: @document.title,
+  subtitle: "Last edited #{time_ago_in_words(@document.updated_at)} ago",
+  breadcrumbs: [
+    { name: 'Dashboard', href: root_path, icon_name: 'home' },
+    { name: 'Documents', href: documents_path },
+    { name: @document.title }
+  ]
+) do |page| %>
+  <% page.with_action do %>
+    <div class="flex items-center gap-2">
+      <button type="button"
+              class="btn btn-primary btn-sm gap-2"
+              onclick="document.getElementById('document-editor-overlay').classList.remove('hidden')">
+        <%= render Bali::Icon::Component.new('pencil', size: :small) %>
+        Edit
+      </button>
+      <button type="button"
+              class="btn btn-ghost btn-sm gap-2"
+              onclick="document.getElementById('document-viewer-overlay').classList.remove('hidden')">
+        <%= render Bali::Icon::Component.new('eye', size: :small) %>
+        View
+      </button>
+      <%= render Bali::ActionsDropdown::Component.new(size: :sm) do |dropdown| %>
+        <% dropdown.with_item(name: 'Export PDF', icon_name: 'file-text', href: '#') %>
+        <% dropdown.with_item(name: 'Export DOCX', icon_name: 'file-down', href: '#') %>
+        <% dropdown.with_divider %>
+        <% dropdown.with_item(name: 'Delete', icon_name: 'trash-2', href: document_path(@document), method: :delete, confirm: 'Delete this document?') %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% page.with_metadata do %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <div class="card-body space-y-4">
+        <div>
+          <p class="text-xs text-base-content/50 uppercase tracking-wider">Status</p>
+          <%= render Bali::Tag::Component.new(
+            text: @document.status.humanize,
+            color: @document.published? ? :success : @document.archived? ? :ghost : :warning
+          ) %>
+        </div>
+        <div>
+          <p class="text-xs text-base-content/50 uppercase tracking-wider">Author</p>
+          <div class="flex items-center gap-2 mt-1">
+            <%= render Bali::Avatar::Component.new(size: :sm) do |avatar| %>
+              <% avatar.with_placeholder { @document.author_name[0..1].upcase } %>
+            <% end %>
+            <span class="text-sm"><%= @document.author_name %></span>
+          </div>
+        </div>
+        <div>
+          <p class="text-xs text-base-content/50 uppercase tracking-wider">Created</p>
+          <p class="text-sm"><%= render Bali::Timeago::Component.new(@document.created_at, add_suffix: true) %></p>
+        </div>
+        <div>
+          <p class="text-xs text-base-content/50 uppercase tracking-wider">Last Modified</p>
+          <p class="text-sm"><%= render Bali::Timeago::Component.new(@document.updated_at, add_suffix: true) %></p>
+        </div>
+        <div>
+          <p class="text-xs text-base-content/50 uppercase tracking-wider">Versions</p>
+          <p class="text-sm"><%= @document.document_versions.count %></p>
+        </div>
+        <div>
+          <p class="text-xs text-base-content/50 uppercase tracking-wider">Word Count</p>
+          <p class="text-sm"><%= number_with_delimiter(@document.word_count) %></p>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+
+  <% page.with_preview do %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <div class="card-body">
+        <h3 class="text-sm font-semibold text-base-content/60 uppercase tracking-wider mb-3">Preview</h3>
+        <div class="max-h-[600px] overflow-y-auto">
+          <%= render Bali::BlockEditor::Component.new(
+            initial_content: @document.content,
+            editable: false
+          ) %>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>
+
+<%# Full-screen Editor Overlay (hidden by default) %>
+<div id="document-editor-overlay" class="hidden">
+  <%= render Bali::DocumentEditor::Component.new(
+    title: @document.title,
+    initial_content: @document.content,
+    document_url: document_path(@document),
+    close_url: document_path(@document),
+    versions_url: document_versions_path(@document),
+    editable: true,
+    comments: {
+      url: block_editor_threads_path,
+      user: { id: "user-1", username: "Demo User" },
+      users: [
+        { id: "user-1", username: "Demo User" },
+        { id: "user-2", username: "Jane Smith" },
+        { id: "user-3", username: "Bob Wilson" }
+      ]
+    },
+    export: true,
+    export_filename: @document.title.parameterize
+  ) %>
+</div>
+
+<%# Full-screen Viewer Overlay (hidden by default) %>
+<div id="document-viewer-overlay" class="hidden">
+  <%= render Bali::DocumentEditor::Component.new(
+    title: @document.title,
+    initial_content: @document.content,
+    document_url: document_path(@document),
+    close_url: document_path(@document),
+    versions_url: document_versions_path(@document),
+    editable: false,
+    comments: {
+      url: block_editor_threads_path,
+      user: { id: "user-1", username: "Demo User" },
+      users: [
+        { id: "user-1", username: "Demo User" },
+        { id: "user-2", username: "Jane Smith" },
+        { id: "user-3", username: "Bob Wilson" }
+      ]
+    }
+  ) %>
+</div>
