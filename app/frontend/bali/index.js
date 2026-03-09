@@ -94,6 +94,7 @@ export {
   ConditionController,
   DirectUploadController,
   DocumentEditorController,
+  DocumentPageController,
   DrawerController,
   DropdownController,
   FilterGroupController,

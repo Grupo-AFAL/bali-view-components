@@ -47,6 +47,7 @@ import {
 } from '../../../components/bali/filters/index'
 import { ColumnSelectorController } from '../../../components/bali/data_table/index'
 import { DocumentEditorController } from '../../../components/bali/document_editor/index'
+import { DocumentPageController } from '../../../components/bali/document_page/index'
 import { TreeViewItemController } from '../../../components/bali/tree_view/item/index'
 
 export { TableController } from '../../../components/bali/table/index'
@@ -96,6 +97,7 @@ export { ColumnSelectorController } from '../../../components/bali/data_table/in
 
 // Document components
 export { DocumentEditorController } from '../../../components/bali/document_editor/index'
+export { DocumentPageController } from '../../../components/bali/document_page/index'
 
 // Navigation components
 export { TreeViewItemController } from '../../../components/bali/tree_view/item/index'
@@ -157,6 +159,7 @@ export function registerAll (application) {
 
   // Document
   application.register('document-editor', DocumentEditorController)
+  application.register('document-page', DocumentPageController)
 
   // Navigation
   application.register('tree-view-item', TreeViewItemController)
