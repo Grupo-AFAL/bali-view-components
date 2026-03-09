@@ -13,6 +13,8 @@ export class NavbarController extends Controller {
   altMenuActive = false
 
   connect () {
+    this._boundCloseOnClickOutside = this._closeOnClickOutside.bind(this)
+
     if (!this.allowTransparencyValue) return
 
     this.isTransparent = true
@@ -23,6 +25,8 @@ export class NavbarController extends Controller {
   }
 
   disconnect () {
+    document.removeEventListener('click', this._boundCloseOnClickOutside)
+
     if (this.throttledUpdateBackgroundColor) {
       document.removeEventListener('scroll', this.throttledUpdateBackgroundColor)
     }
@@ -63,6 +67,8 @@ export class NavbarController extends Controller {
     if (this.hasBurgerTarget) {
       this.burgerTarget.classList.toggle('is-active')
     }
+
+    this._updateClickOutsideListener()
   }
 
   toggleVisibility (element) {
@@ -87,11 +93,50 @@ export class NavbarController extends Controller {
     if (this.hasAltBurgerTarget) {
       this.altBurgerTarget.classList.toggle('is-active')
     }
+
+    this._updateClickOutsideListener()
   }
 
   // Toggle the side menu via global event (for cross-component communication)
   toggleSideMenu (event) {
     event.preventDefault()
     window.dispatchEvent(new CustomEvent('bali:side-menu:toggle'))
+  }
+
+  // Close mobile menu when clicking outside the navbar
+  _closeOnClickOutside (event) {
+    if (this.element.contains(event.target)) return
+
+    if (this.menuActive) {
+      this.menuActive = false
+      if (this.hasMenuTarget) {
+        this.menuTarget.classList.add('hidden')
+        this.menuTarget.classList.remove('flex')
+      }
+      if (this.hasBurgerTarget) {
+        this.burgerTarget.classList.remove('is-active')
+      }
+    }
+
+    if (this.altMenuActive) {
+      this.altMenuActive = false
+      if (this.hasAltMenuTarget) {
+        this.altMenuTarget.classList.add('hidden')
+        this.altMenuTarget.classList.remove('flex')
+      }
+      if (this.hasAltBurgerTarget) {
+        this.altBurgerTarget.classList.remove('is-active')
+      }
+    }
+
+    this._updateClickOutsideListener()
+  }
+
+  _updateClickOutsideListener () {
+    if (this.menuActive || this.altMenuActive) {
+      document.addEventListener('click', this._boundCloseOnClickOutside)
+    } else {
+      document.removeEventListener('click', this._boundCloseOnClickOutside)
+    }
   }
 }

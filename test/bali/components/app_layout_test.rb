@@ -266,7 +266,9 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     render_inline(Bali::AppLayout::Component.new(flash: { notice: "Saved!" })) do |layout|
       layout.with_body { "Content" }
     end
-    assert_selector("#toast-notifications.fixed.bottom-4.right-4.z-50")
+    assert_selector("#toast-notifications.fixed.bottom-4")
+    assert_selector('#toast-notifications[role="status"]')
+    assert_selector('#toast-notifications[aria-live="polite"]')
   end
 
   def test_uses_flex_col_direction
@@ -289,7 +291,10 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     render_inline(Bali::AppLayout::Component.new(modal: false, drawer: false)) do |layout|
       layout.with_body { "Content" }
     end
-    assert_selector("main .app-layout-body-container.p-6", text: "Content")
+    assert_selector("main .app-layout-body-container", text: "Content")
+    container = page.find(".app-layout-body-container")
+    assert_includes container[:class], "p-4"
+    assert_includes container[:class], "md:p-6"
   end
 
   def test_body_container_contained_preset
@@ -299,7 +304,9 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     container = page.find(".app-layout-body-container")
     assert_includes container[:class], "max-w-7xl"
     assert_includes container[:class], "mx-auto"
-    assert_includes container[:class], "px-6"
+    assert_includes container[:class], "px-4"
+    assert_includes container[:class], "md:px-6"
+    assert_includes container[:class], "py-4"
   end
 
   def test_body_container_narrow_preset
@@ -310,6 +317,7 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_includes container[:class], "max-w-xl"
     assert_includes container[:class], "mx-auto"
     assert_includes container[:class], "px-4"
+    assert_includes container[:class], "py-4"
   end
 
   def test_body_container_full_preset
@@ -327,7 +335,8 @@ class BaliAppLayoutComponentTest < ComponentTestCase
       layout.with_body { "Content" }
     end
     container = page.find(".app-layout-body-container")
-    assert_includes container[:class], "p-6"
+    assert_includes container[:class], "p-4"
+    assert_includes container[:class], "md:p-6"
     refute_includes container[:class], "max-w-"
     refute_includes container[:class], "mx-auto"
   end

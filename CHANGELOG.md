@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Filters** - Fix horizontal scroll on mobile caused by DaisyUI tooltip pseudo-element on persistence button
+- **SideMenu** - Force expanded sidebar view on mobile via CSS override (regardless of collapse state from localStorage)
+- **SideMenu** - Hide collapse toggle on mobile, show X close button instead for fixed sidebars
+- **SideMenu** - Support mobile close button for non-collapsible fixed sidebars
+- **PageComponents** - Add flex-wrap to actions bar to prevent overflow on mobile
 - **BlockEditor** - Prevent page scroll jump when opening AI menu via slash command or formatting toolbar on long pages
 
 ### Changed

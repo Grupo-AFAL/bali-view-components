@@ -51,6 +51,7 @@ module Bali
         modal: false,
         drawer: false,
         authorized: true,
+        responsive: true,
         type: nil, # DEPRECATED: Use `variant` instead
         **options
       )
@@ -73,6 +74,7 @@ module Bali
         @drawer = drawer
         @drawer_options = normalize_options(drawer)
         @authorized = authorized
+        @responsive = responsive
         @options = options
       end
 
@@ -91,7 +93,9 @@ module Bali
           style_class,
           size_class,
           @options[:class],
-          { "active" => active?, "btn-disabled" => @disabled && button_style? }
+          "active" => active?,
+          "btn-disabled" => @disabled && button_style?,
+          "max-sm:btn-square" => responsive_icon_only?
         )
       end
 
@@ -100,6 +104,7 @@ module Bali
         attrs[:href] = @href unless @disabled
         attrs[:disabled] = true if @disabled
         attrs[:data] = build_data_attributes(attrs[:data])
+        attrs[:"aria-label"] = @name if responsive_icon_only? && @name.present?
         attrs.compact
       end
 
@@ -178,6 +183,7 @@ module Bali
 
       def modal_enabled? = @modal.present?
       def drawer_enabled? = @drawer.present?
+      def responsive_icon_only? = @responsive && button_style? && @icon_name.present?
 
       # Normalize option to hash format. Supports: true, { size: :lg }
       def normalize_options(value) = value.is_a?(Hash) ? value.symbolize_keys : {}

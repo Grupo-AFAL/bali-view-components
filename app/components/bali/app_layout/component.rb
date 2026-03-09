@@ -12,9 +12,9 @@ module Bali
       renders_one :body
 
       BODY_CONTAINERS = {
-        wide:      "p-6",
-        contained: "max-w-7xl px-6 mx-auto",
-        narrow:    "max-w-xl px-4 mx-auto",
+        wide:      "p-4 md:p-6",
+        contained: "max-w-7xl px-4 md:px-6 py-4 mx-auto",
+        narrow:    "max-w-xl px-4 py-4 mx-auto",
         full:      ""
       }.freeze
 

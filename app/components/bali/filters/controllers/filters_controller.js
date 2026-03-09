@@ -39,6 +39,8 @@ export class FiltersController extends Controller {
   }
 
   groupIndex = 0
+  _dropdownOpen = false
+  _currentAnimation = null
 
   connect () {
     // Initialize group index based on existing groups
@@ -47,18 +49,24 @@ export class FiltersController extends Controller {
     // Update UI state
     this.updateAddGroupButton()
 
+    // Sync dropdown state with DOM (in case of Turbo restoration)
+    if (this.hasDropdownContentTarget) {
+      this._dropdownOpen = !this.dropdownContentTarget.classList.contains('hidden')
+    }
+
     // Handle clicks outside dropdown to close it (use window to catch clicks outside html element)
     if (this.popoverValue && this.hasDropdownTarget) {
       this.boundCloseOnClickOutside = this.closeOnClickOutside.bind(this)
       window.addEventListener('click', this.boundCloseOnClickOutside)
 
-      // Close dropdown before Turbo caches the page (prevents stale open state on back navigation)
-      this.boundCloseBeforeCache = this.closeDropdown.bind(this)
+      // Close dropdown before Turbo caches the page (instant, no animation)
+      this.boundCloseBeforeCache = () => this.closeDropdown(false)
       document.addEventListener('turbo:before-cache', this.boundCloseBeforeCache)
     }
   }
 
   disconnect () {
+    this._cancelAnimation()
     if (this.boundCloseOnClickOutside) {
       window.removeEventListener('click', this.boundCloseOnClickOutside)
     }
@@ -68,32 +76,104 @@ export class FiltersController extends Controller {
   }
 
   /**
-   * Toggle the dropdown open/closed
+   * Toggle the dropdown open/closed with animation
    */
   toggleDropdown (event) {
     event.preventDefault()
     event.stopPropagation()
 
-    if (this.hasDropdownContentTarget) {
-      this.dropdownContentTarget.classList.toggle('hidden')
+    if (this._dropdownOpen) {
+      this.closeDropdown()
+    } else {
+      this.openDropdown()
     }
   }
 
   /**
-   * Close the dropdown
-   */
-  closeDropdown () {
-    if (this.hasDropdownContentTarget) {
-      this.dropdownContentTarget.classList.add('hidden')
-    }
-  }
-
-  /**
-   * Open the dropdown
+   * Open the dropdown with animation
    */
   openDropdown () {
-    if (this.hasDropdownContentTarget) {
-      this.dropdownContentTarget.classList.remove('hidden')
+    if (!this.hasDropdownContentTarget || this._dropdownOpen) return
+    this._dropdownOpen = true
+    this._cancelAnimation()
+
+    this.dropdownContentTarget.classList.remove('hidden')
+
+    const inner = this.dropdownContentTarget.firstElementChild
+    if (!inner) return
+
+    const isMobile = window.matchMedia('(max-width: 639px)').matches
+
+    if (isMobile) {
+      this._currentAnimation = inner.animate(
+        [{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }],
+        { duration: 300, easing: 'cubic-bezier(0.32, 0.72, 0, 1)', fill: 'both' }
+      )
+    } else {
+      inner.style.transformOrigin = 'top left'
+      this._currentAnimation = inner.animate(
+        [
+          { opacity: 0, transform: 'scale(0.95) translateY(-4px)' },
+          { opacity: 1, transform: 'scale(1) translateY(0)' }
+        ],
+        { duration: 150, easing: 'cubic-bezier(0.32, 0.72, 0, 1)', fill: 'both' }
+      )
+    }
+
+    this._currentAnimation.onfinish = () => {
+      this._currentAnimation.cancel()
+      this._currentAnimation = null
+      inner.style.transformOrigin = ''
+    }
+  }
+
+  /**
+   * Close the dropdown with animation
+   * @param {boolean} animate - Set to false for instant close (e.g., Turbo cache)
+   */
+  closeDropdown (animate = true) {
+    if (!this.hasDropdownContentTarget) return
+    if (!this._dropdownOpen) {
+      this.dropdownContentTarget.classList.add('hidden')
+      return
+    }
+    this._dropdownOpen = false
+    this._cancelAnimation()
+
+    if (!animate) {
+      this.dropdownContentTarget.classList.add('hidden')
+      return
+    }
+
+    const inner = this.dropdownContentTarget.firstElementChild
+    if (!inner) {
+      this.dropdownContentTarget.classList.add('hidden')
+      return
+    }
+
+    const isMobile = window.matchMedia('(max-width: 639px)').matches
+
+    if (isMobile) {
+      this._currentAnimation = inner.animate(
+        [{ transform: 'translateY(0)' }, { transform: 'translateY(100%)' }],
+        { duration: 200, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'forwards' }
+      )
+    } else {
+      inner.style.transformOrigin = 'top left'
+      this._currentAnimation = inner.animate(
+        [
+          { opacity: 1, transform: 'scale(1) translateY(0)' },
+          { opacity: 0, transform: 'scale(0.95) translateY(-4px)' }
+        ],
+        { duration: 100, easing: 'ease-in', fill: 'forwards' }
+      )
+    }
+
+    this._currentAnimation.onfinish = () => {
+      this.dropdownContentTarget.classList.add('hidden')
+      this._currentAnimation.cancel()
+      this._currentAnimation = null
+      inner.style.transformOrigin = ''
     }
   }
 
@@ -101,8 +181,7 @@ export class FiltersController extends Controller {
    * Close dropdown when clicking outside
    */
   closeOnClickOutside (event) {
-    // Check if dropdown is open
-    if (!this.hasDropdownContentTarget || this.dropdownContentTarget.classList.contains('hidden')) {
+    if (!this._dropdownOpen) {
       return
     }
 
@@ -461,5 +540,15 @@ export class FiltersController extends Controller {
 
     // Submit the form (Turbo will handle the response with morphing)
     form.requestSubmit()
+  }
+
+  /**
+   * Cancel any running dropdown animation
+   */
+  _cancelAnimation () {
+    if (this._currentAnimation) {
+      this._currentAnimation.cancel()
+      this._currentAnimation = null
+    }
   }
 }

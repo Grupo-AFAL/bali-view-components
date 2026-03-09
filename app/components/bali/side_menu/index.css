@@ -212,6 +212,41 @@
 }
 
 /* ========================================
+   Mobile Expansion Override
+   When the mobile sidebar opens, force expanded view
+   regardless of the collapse checkbox state.
+   ======================================== */
+
+@media (max-width: 1023.98px) {
+  /* Disable collapse mode on mobile — icon-only sidebar is desktop-only.
+     These rules match the specificity of the collapse rules above (0-3-0)
+     and appear later, so they win when both are !important. */
+  .side-menu-collapse-trigger:checked + .side-menu-component,
+  .side-menu-mobile-trigger:checked ~ .side-menu-component {
+    width: var(--bali-side-menu-width) !important;
+
+    .side-menu-expanded { display: flex !important; }
+    .side-menu-collapsed { display: none !important; }
+
+    .menu-item {
+      justify-content: flex-start;
+      padding: 0.5rem 0.625rem;
+    }
+
+    .menu-label,
+    .side-menu-brand,
+    .menu-switcher {
+      display: block !important;
+    }
+
+    .side-menu-bottom-section {
+      padding-left: 0.625rem;
+      padding-right: 0.625rem;
+    }
+  }
+}
+
+/* ========================================
    Mobile Overlay
    ======================================== */
 

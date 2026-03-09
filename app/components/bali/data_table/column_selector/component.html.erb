@@ -3,7 +3,7 @@
      data-column-selector-table-value="<%= table_id %>">
   <button type="button" tabindex="0" class="btn btn-outline btn-sm gap-2">
     <%= render Bali::Icon::Component.new(button_icon, class: 'w-4 h-4') %>
-    <%= button_label %>
+    <span class="hidden sm:inline"><%= button_label %></span>
   </button>
   <ul tabindex="0" class="dropdown-content z-50 menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-200">
     <li class="menu-title"><%= menu_title %></li>

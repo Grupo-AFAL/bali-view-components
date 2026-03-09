@@ -121,4 +121,17 @@ class BaliPageHeaderComponentTest < ComponentTestCase
     render_inline(Bali::PageHeader::Component.new(title: "Title", data: { testid: "page-header" }))
     assert_selector('[data-testid="page-header"]')
   end
+
+  def test_responsive_is_enabled_by_default
+    render_inline(Bali::PageHeader::Component.new(title: "Title"))
+    level = page.find(".level")
+    assert_includes level[:class], "max-sm:flex-wrap"
+    assert_includes level[:class], "max-sm:gap-3"
+  end
+
+  def test_responsive_can_be_disabled
+    render_inline(Bali::PageHeader::Component.new(title: "Title", responsive: false))
+    level = page.find(".level")
+    refute_includes level[:class], "max-sm:flex-wrap"
+  end
 end

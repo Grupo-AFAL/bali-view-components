@@ -19,7 +19,8 @@ module Bali
         )
       end
 
-      # Demonstrates both flash types appearing simultaneously
+      # Demonstrates both flash types stacking at bottom-right.
+      # Notifications stack vertically with a gap between them.
       def both
         render Bali::FlashNotifications::Component.new(
           notice: 'Operation completed successfully',

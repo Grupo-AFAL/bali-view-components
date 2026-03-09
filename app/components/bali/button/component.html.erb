@@ -7,7 +7,13 @@
     <%= render Bali::Icon::Component.new(@icon_name) %>
   <% end %>
 
-  <%= @name || content %>
+  <% if responsive_icon_only? %>
+    <span class="max-sm:hidden"><%= @name %></span>
+  <% elsif @name.present? %>
+    <%= @name %>
+  <% else %>
+    <%= content %>
+  <% end %>
 
   <%= icon_right if icon_right.present? %>
 <% end %>

@@ -1,11 +1,11 @@
 <% if notice %>
-  <%= render Bali::Notification::Component.new(type: :success) do %>
+  <%= render Bali::Notification::Component.new(type: :success, fixed: false) do %>
     <%= notice %>
   <% end %>
 <% end %>
 
 <% if alert %>
-  <%= render Bali::Notification::Component.new(type: :danger) do %>
+  <%= render Bali::Notification::Component.new(type: :danger, fixed: false) do %>
     <%= alert %>
   <% end %>
 <% end %>

@@ -4,6 +4,8 @@ module Bali
   module PageHeader
     class Component < ApplicationViewComponent
       BASE_CLASSES = "page-header-component mb-6"
+      # Mobile-first responsive: wrap instead of stack so icon-only buttons stay on the right
+      RESPONSIVE_CLASSES = "max-sm:flex-wrap max-sm:gap-3"
 
       HEADING_SIZES = {
         h1: "text-4xl",
@@ -42,11 +44,12 @@ module Bali
         heading_tag(text, tag, **options, &block)
       end
 
-      def initialize(title: nil, subtitle: nil, align: :center, back: nil, **options)
+      def initialize(title: nil, subtitle: nil, align: :center, back: nil, responsive: true, **options)
         @title = title
         @subtitle = subtitle
         @align = align.to_sym
         @back = back
+        @responsive = responsive
         @options = options
       end
 
@@ -55,7 +58,7 @@ module Bali
       attr_reader :options
 
       def component_classes
-        class_names(BASE_CLASSES, options[:class])
+        class_names(BASE_CLASSES, (@responsive ? RESPONSIVE_CLASSES : nil), options[:class])
       end
 
       def level_align

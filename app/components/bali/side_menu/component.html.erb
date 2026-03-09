@@ -22,11 +22,21 @@
       <% elsif collapsible? %>
         <span class="grow"></span>
       <% end %>
+      <%# Desktop: collapse toggle %>
       <label for="<%= collapse_checkbox_id %>"
              title="<%= collapse_label %>"
-             class="menu-item p-2 cursor-pointer shrink-0">
+             class="menu-item p-2 cursor-pointer shrink-0 max-lg:!hidden">
         <%= render Bali::Icon::Component.new('panel-left-close', class: 'size-4') %>
       </label>
+      <% if fixed? %>
+        <%# Mobile: close sidebar button %>
+        <label for="<%= mobile_trigger_id %>"
+               title="<%= t('bali.side_menu.close', default: 'Close sidebar') %>"
+               aria-label="<%= t('bali.side_menu.close', default: 'Close sidebar') %>"
+               class="menu-item p-2 cursor-pointer shrink-0 lg:!hidden">
+          <%= render Bali::Icon::Component.new('x', class: 'size-4') %>
+        </label>
+      <% end %>
     </div>
     <%# Collapsed state header - toggle centered like menu items %>
     <div class="side-menu-collapsed hidden px-1 py-3">
@@ -37,9 +47,21 @@
               class: 'size-4') %>
       </label>
     </div>
-  <% elsif brand? %>
+  <% elsif brand? || fixed? %>
     <div class="flex min-h-10 items-center gap-3 px-2.5 py-3">
-      <span class="side-menu-brand text-xl font-semibold"><%= brand %></span>
+      <% if brand? %>
+        <span class="side-menu-brand text-xl font-semibold grow"><%= brand %></span>
+      <% else %>
+        <span class="grow"></span>
+      <% end %>
+      <% if fixed? %>
+        <label for="<%= mobile_trigger_id %>"
+               title="<%= t('bali.side_menu.close', default: 'Close sidebar') %>"
+               aria-label="<%= t('bali.side_menu.close', default: 'Close sidebar') %>"
+               class="menu-item p-2 cursor-pointer shrink-0 lg:!hidden">
+          <%= render Bali::Icon::Component.new('x', class: 'size-4') %>
+        </label>
+      <% end %>
     </div>
   <% end %>
 

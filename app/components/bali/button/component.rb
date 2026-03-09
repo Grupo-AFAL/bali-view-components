@@ -30,7 +30,7 @@ module Bali
 
       # rubocop:disable Metrics/ParameterLists
       def initialize(name: nil, variant: nil, size: nil, icon_name: nil, type: :button,
-                     disabled: false, loading: false, **options)
+                     disabled: false, loading: false, responsive: true, **options)
         @name = name
         @variant = variant&.to_sym
         @size = size&.to_sym
@@ -38,6 +38,7 @@ module Bali
         @type = type
         @disabled = disabled
         @loading = loading
+        @responsive = responsive
         @options = options
       end
       # rubocop:enable Metrics/ParameterLists
@@ -50,17 +51,22 @@ module Bali
           VARIANTS[@variant],
           SIZES[@size],
           "btn-disabled" => @disabled,
-          "loading loading-spinner" => @loading
+          "loading loading-spinner" => @loading,
+          "max-sm:btn-square" => responsive_icon_only?
         )
       end
 
       def button_attributes
-        @options.merge(
+        attrs = @options.merge(
           class: class_names(button_classes, @options[:class]),
           type: @type,
           disabled: @disabled || nil
-        ).compact
+        )
+        attrs[:"aria-label"] = @name if responsive_icon_only? && @name.present?
+        attrs.compact
       end
+
+      def responsive_icon_only? = @responsive && @icon_name.present?
     end
   end
 end

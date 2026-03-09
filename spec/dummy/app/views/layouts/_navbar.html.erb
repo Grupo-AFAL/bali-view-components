@@ -14,11 +14,17 @@
     <% menu.with_start_item(name: t('navbar.landing'), href: landing_path) %>
     <% menu.with_start_item(name: 'Admin', href: admin_root_path) %>
 
-    <%# Dropdown menu item with nested navigation %>
-    <% menu.with_start_dropdown_item(name: t('navbar.settings')) do |dropdown| %>
-      <% dropdown.with_item(name: t('settings.general'), href: settings_path) %>
-      <% dropdown.with_item(name: t('settings.notifications'), href: settings_path) %>
-      <% dropdown.with_item(name: t('settings.security'), href: settings_path) %>
+    <%# Settings dropdown %>
+    <% menu.with_start_item(tag_name: :div) do %>
+      <%= render Bali::Dropdown::Component.new(hoverable: true, align: :left) do |dropdown| %>
+        <% dropdown.with_trigger(variant: :menu) do %>
+          <%= t('navbar.settings') %>
+          <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
+        <% end %>
+        <% dropdown.with_item(href: settings_path) { t('settings.general') } %>
+        <% dropdown.with_item(href: settings_path) { t('settings.notifications') } %>
+        <% dropdown.with_item(href: settings_path) { t('settings.security') } %>
+      <% end %>
     <% end %>
 
     <%# External link with icon %>
@@ -29,8 +35,8 @@
 
     <%# Theme Switcher %>
     <% menu.with_end_item(tag_name: :div) do %>
-      <%= render Bali::Dropdown::Component.new(align: :right) do |dropdown| %>
-        <% dropdown.with_trigger(variant: :ghost, size: :sm) do %>
+      <%= render Bali::Dropdown::Component.new(align: :left, class: 'lg:dropdown-end') do |dropdown| %>
+        <% dropdown.with_trigger(variant: :menu) do %>
           <%= render Bali::Icon::Component.new('palette', size: :small) %>
           Theme
           <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
@@ -52,8 +58,8 @@
 
     <%# Language Switcher %>
     <% menu.with_end_item(tag_name: :div) do %>
-      <%= render Bali::Dropdown::Component.new(align: :right) do |dropdown| %>
-        <% dropdown.with_trigger(variant: :ghost, size: :sm) do %>
+      <%= render Bali::Dropdown::Component.new(align: :left, class: 'lg:dropdown-end') do |dropdown| %>
+        <% dropdown.with_trigger(variant: :menu) do %>
           <%= render Bali::Icon::Component.new('globe', size: :small) %>
           <%= I18n.locale.to_s.upcase %>
           <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
@@ -69,11 +75,9 @@
 
     <%# User dropdown on the right side %>
     <% menu.with_end_item(tag_name: :div) do %>
-      <%= render Bali::Dropdown::Component.new(align: :right) do |dropdown| %>
-        <% dropdown.with_trigger(variant: :ghost) do %>
-          <%= render Bali::Avatar::Component.new(size: :xs) do |avatar| %>
-            <% avatar.with_placeholder { 'AD' } %>
-          <% end %>
+      <%= render Bali::Dropdown::Component.new(align: :left, class: 'lg:dropdown-end') do |dropdown| %>
+        <% dropdown.with_trigger(variant: :menu) do %>
+          <%= render Bali::Icon::Component.new('circle-user', size: :small) %>
           <%= t('navbar.admin') %>
           <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
         <% end %>

@@ -9,7 +9,7 @@ module Bali
         end: "items-end"
       }.freeze
 
-      BASE_CLASSES = "level flex justify-between gap-4"
+      BASE_CLASSES = "level flex justify-between gap-2 sm:gap-4"
 
       renders_one :left, ->(**args) { Side::Component.new(position: :left, **args) }
       renders_one :right, ->(**args) { Side::Component.new(position: :right, **args) }

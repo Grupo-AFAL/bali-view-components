@@ -13,7 +13,7 @@ class BaliTableComponentTest < ComponentTestCase
   end
 
   def test_constants_defines_table_classes
-    assert_equal("table table-zebra w-full", Bali::Table::Component::TABLE_CLASSES)
+    assert_equal("table table-zebra min-w-full", Bali::Table::Component::TABLE_CLASSES)
   end
 
   def test_constants_defines_container_classes
@@ -41,7 +41,7 @@ class BaliTableComponentTest < ComponentTestCase
       c.with_header(name: "amount", class: "text-right")
     end
     assert_selector("table")
-    assert_selector("tr th", text: "name")
+    assert_selector("tr th.whitespace-nowrap", text: "name")
     assert_selector("tr th.text-right", text: "amount")
   end
 

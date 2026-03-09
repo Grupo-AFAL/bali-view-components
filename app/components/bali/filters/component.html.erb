@@ -11,13 +11,13 @@
 
   <% if popover %>
     <%# Popover mode: search input + trigger button + dropdown %>
-    <div class="flex flex-wrap items-center gap-3">
+    <div class="flex items-center gap-2 sm:gap-3">
       <% if search_enabled? %>
         <%# Quick search input with clear button %>
-        <%= form_with url: url, method: :get, class: 'contents', data: { turbo_stream: turbo_stream, turbo_action: 'replace', filters_target: 'searchForm' } do %>
+        <%= form_with url: url, method: :get, class: 'flex-1 min-w-0 sm:flex-initial', data: { turbo_stream: turbo_stream, turbo_action: 'replace', filters_target: 'searchForm' } do %>
           <%= preserved_params_hidden_fields %>
-          <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg">
-            <label class="input input-bordered join-item w-64 flex items-center gap-2">
+          <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg w-full sm:w-auto">
+            <label class="input input-bordered input-sm sm:input-md join-item w-full sm:w-64 flex items-center gap-2">
               <input type="text"
                      name="<%= search_field_name %>"
                      value="<%= search_value %>"
@@ -34,7 +34,7 @@
                 <%= render Bali::Icon::Component.new('x', class: 'w-4 h-4') %>
               </button>
             </label>
-            <button type="submit" class="btn btn-primary join-item" data-action="click->filters#submitSearch">
+            <button type="submit" class="btn btn-primary btn-sm sm:btn-md join-item" data-action="click->filters#submitSearch">
               <%= render Bali::Icon::Component.new('search', class: 'w-4 h-4') %>
             </button>
           </div>
@@ -45,18 +45,33 @@
       <div class="flex items-center gap-1">
         <div class="relative" data-filters-target="dropdown">
           <button type="button"
-                  class="btn btn-outline gap-2"
+                  class="btn btn-outline btn-sm gap-2"
                   data-action="click->filters#toggleDropdown">
             <%= render Bali::Icon::Component.new('filter', class: 'w-4 h-4') %>
-            <%= button_text %>
+            <span class="hidden sm:inline"><%= button_text %></span>
             <% if active_filters? %>
               <span class="badge badge-primary badge-sm"><%= active_filter_count %></span>
             <% end %>
           </button>
 
           <%# Dropdown content - hidden by default, shown via JS %>
-          <div class="absolute left-0 top-full hidden z-50 mt-2 shadow-xl bg-base-100 rounded-box border border-base-200 w-[40rem] max-w-[calc(100vw-2rem)]"
+          <div class="hidden z-50
+                      max-sm:fixed max-sm:top-0 max-sm:right-0 max-sm:bottom-0 max-sm:left-0
+                      sm:absolute sm:top-full sm:left-0 sm:mt-2"
              data-filters-target="dropdownContent">
+            <div class="bg-base-100 max-sm:flex max-sm:flex-col max-sm:h-full
+                        sm:shadow-xl sm:rounded-box sm:border sm:border-base-200 sm:w-[40rem] sm:max-w-[calc(100vw-2rem)]">
+
+            <%# Mobile header with close button %>
+            <div class="max-sm:flex items-center justify-between p-4 border-b border-base-200 sm:hidden">
+              <h3 class="text-lg font-semibold flex items-center gap-2">
+                <%= render Bali::Icon::Component.new('filter', class: 'w-5 h-5') %>
+                <%= t('bali.filters.title', default: 'Filters') %>
+              </h3>
+              <button type="button" class="btn btn-ghost btn-sm btn-circle" data-action="filters#toggleDropdown" aria-label="Close">
+                <%= render Bali::Icon::Component.new('x', class: 'w-5 h-5') %>
+              </button>
+            </div>
 
             <%= form_with url: url, method: :get,
                 data: {
@@ -64,9 +79,9 @@
                   turbo_stream: turbo_stream,
                   turbo_action: 'replace'
                 },
-                class: 'w-full' do |f| %>
+                class: 'w-full max-sm:flex max-sm:flex-col max-sm:flex-1 max-sm:min-h-0' do |f| %>
               <%= preserved_params_hidden_fields %>
-              <div class="p-4 space-y-4">
+              <div class="p-4 space-y-4 max-sm:flex-1 max-sm:overflow-y-auto">
                 <%# Filter groups container - no header for compact layout %>
                 <div data-filters-target="groupsContainer" class="space-y-4">
                   <% filter_groups.each_with_index do |group, group_idx| %>
@@ -101,51 +116,56 @@
                       ) %>
                   <% end %>
                 </div>
+              </div>
 
-                <%# Compact footer: Clear all (left) | Auto-saved + Add group + Reset + Apply (right) %>
-                <div class="flex justify-between items-center gap-2 pt-3 border-t border-base-200">
+              <%# Footer - sticky on mobile, inline on desktop %>
+              <div class="max-sm:flex max-sm:flex-col sm:flex sm:flex-row justify-between max-sm:items-stretch sm:items-center gap-3 p-4 border-t border-base-200 max-sm:shrink-0 bg-base-100">
+                <%# Apply + Reset: primary actions first on mobile %>
+                <div class="flex items-center gap-2 order-1 sm:order-3">
+                  <button type="button"
+                        class="btn btn-ghost btn-sm flex-1 sm:flex-initial"
+                        data-action="filters#reset">
+                    <%= t('bali.filters.reset', default: 'Reset') %>
+                  </button>
+                  <button type="submit"
+                        class="btn btn-primary btn-sm flex-1 sm:flex-initial"
+                        data-action="filters#apply">
+                    <%= render Bali::Icon::Component.new('check', class: 'w-4 h-4') %>
+                    <%= t('bali.filters.apply', default: 'Apply') %>
+                  </button>
+                </div>
+
+                <%# Add group + Clear: secondary actions on mobile %>
+                <div class="flex items-center justify-between sm:justify-start gap-2 order-2 sm:order-1">
+                  <button type="button"
+                        class="btn btn-ghost btn-sm text-primary gap-1"
+                        data-action="filters#addGroup"
+                        data-filters-target="addGroupButton">
+                    <%= render Bali::Icon::Component.new('plus', class: 'w-4 h-4') %>
+                    <%= t('bali.filters.add_group', default: 'Add filter group') %>
+                  </button>
+                  <% if persistence_available? && persist_enabled? %>
+                    <span class="text-xs text-base-content/50 flex items-center gap-1">
+                      <%= render Bali::Icon::Component.new('bookmark-check', class: 'w-3 h-3') %>
+                      <%= t('bali.filters.auto_saved', default: 'Auto-saved') %>
+                    </span>
+                  <% end %>
                   <button type="button"
                         class="btn btn-ghost btn-xs text-error"
                         data-action="filters#clearAll"
                         data-filters-target="clearButton">
                     <%= t('bali.filters.clear_all', default: 'Clear all') %>
                   </button>
-
-                  <div class="flex items-center gap-2">
-                    <% if persistence_available? && persist_enabled? %>
-                      <span class="text-xs text-base-content/50 flex items-center gap-1">
-                        <%= render Bali::Icon::Component.new('bookmark-check', class: 'w-3 h-3') %>
-                        <%= t('bali.filters.auto_saved', default: 'Auto-saved') %>
-                      </span>
-                    <% end %>
-                    <button type="button"
-                          class="btn btn-ghost btn-sm text-primary gap-1"
-                          data-action="filters#addGroup"
-                          data-filters-target="addGroupButton">
-                      <%= render Bali::Icon::Component.new('plus', class: 'w-4 h-4') %>
-                      <%= t('bali.filters.add_group', default: 'Add filter group') %>
-                    </button>
-                    <button type="button"
-                          class="btn btn-ghost btn-sm"
-                          data-action="filters#reset">
-                      <%= t('bali.filters.reset', default: 'Reset') %>
-                    </button>
-                    <button type="submit"
-                          class="btn btn-primary btn-sm"
-                          data-action="filters#apply">
-                      <%= render Bali::Icon::Component.new('check', class: 'w-4 h-4') %>
-                      <%= t('bali.filters.apply', default: 'Apply') %>
-                    </button>
-                  </div>
                 </div>
               </div>
             <% end %>
+            </div>
           </div>
         </div>
 
         <%# Persistence toggle (bookmark icon) %>
         <% if persistence_available? %>
-          <div data-controller="filter-persistence"
+          <div class="max-sm:overflow-hidden" data-controller="filter-persistence"
                data-filter-persistence-storage-id-value="<%= storage_id %>"
                data-filter-persistence-enabled-value="<%= persist_enabled? %>">
             <button type="button"
@@ -168,11 +188,14 @@
         <% end %>
       </div>
 
-      <%# Applied filter tags (shown inline with button) %>
-      <% if applied_tags? %>
-        <%= applied_tags %>
-      <% end %>
     </div>
+
+    <%# Applied filter tags (below search row) %>
+    <% if applied_tags? %>
+      <div class="mt-2">
+        <%= applied_tags %>
+      </div>
+    <% end %>
 
   <% else %>
     <%# Inline mode: original layout %>

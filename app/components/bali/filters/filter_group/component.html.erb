@@ -13,9 +13,9 @@
   <%# Conditions container - each row has label/toggle + condition inline %>
   <div data-filter-group-target="conditionsContainer" class="space-y-2">
     <% conditions.each_with_index do |condition, condition_idx| %>
-      <div class="flex items-start gap-2" data-filter-group-target="conditionRow">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-start gap-2" data-filter-group-target="conditionRow">
         <%# First row shows "Where", subsequent rows show AND/OR toggle %>
-        <div class="w-20 shrink-0 pt-1.5">
+        <div class="flex items-center justify-between sm:block sm:w-20 shrink-0 sm:pt-1.5">
           <% if condition_idx == 0 %>
             <span class="text-sm font-medium text-base-content/70">
               <%= t('bali.filters.where', default: 'Where') %>
@@ -51,7 +51,7 @@
   </div>
 
   <%# Add condition button %>
-  <div class="mt-3 pl-20">
+  <div class="mt-3 sm:pl-20">
     <button type="button"
             class="btn btn-ghost btn-sm gap-1 text-primary hover:bg-primary/10"
             data-action="filter-group#addCondition">
@@ -62,8 +62,8 @@
 
   <%# Template for new condition row (used by Stimulus) %>
   <template data-filter-group-target="conditionTemplate">
-    <div class="flex items-start gap-2" data-filter-group-target="conditionRow">
-      <div class="w-20 shrink-0 pt-1.5">
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-start gap-2" data-filter-group-target="conditionRow">
+      <div class="flex items-center justify-between sm:block sm:w-20 shrink-0 sm:pt-1.5">
         <div class="join" data-filter-group-target="combinatorToggle">
           <button type="button"
                   class="<%= and_button_classes %>"
