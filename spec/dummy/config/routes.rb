@@ -83,6 +83,14 @@ Rails.application.routes.draw do
   end
   post 'block_editor/ai', to: 'block_editor_ai#create'
 
+  # Documents (full editing experience reference)
+  resources :documents do
+    resources :versions, only: [:index, :show], controller: 'document_versions'
+    member do
+      post :restore_version
+    end
+  end
+
   mount Bali::Engine, at: '/bali'
   mount Lookbook::Engine, at: '/lookbook'
 end
