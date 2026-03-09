@@ -90,4 +90,85 @@ studios_data.each do |data|
 end
 
 puts "Created #{Studio.count} studios"
+
+# Create documents
+sample_content = [
+  {
+    "id" => "intro-1",
+    "type" => "heading",
+    "props" => { "level" => 1 },
+    "content" => [{ "type" => "text", "text" => "Project Overview" }]
+  },
+  {
+    "id" => "para-1",
+    "type" => "paragraph",
+    "content" => [
+      { "type" => "text", "text" => "This document outlines the key objectives and milestones for the upcoming quarter. Our team has been working diligently on several initiatives that will significantly impact our product roadmap." }
+    ]
+  },
+  {
+    "id" => "heading-2",
+    "type" => "heading",
+    "props" => { "level" => 2 },
+    "content" => [{ "type" => "text", "text" => "Key Objectives" }]
+  },
+  {
+    "id" => "para-2",
+    "type" => "paragraph",
+    "content" => [
+      { "type" => "text", "text" => "The primary focus areas include improving user onboarding, enhancing the reporting dashboard, and launching the new API integration platform. Each initiative has dedicated teams and clear success metrics." }
+    ]
+  },
+  {
+    "id" => "heading-3",
+    "type" => "heading",
+    "props" => { "level" => 2 },
+    "content" => [{ "type" => "text", "text" => "Timeline & Milestones" }]
+  },
+  {
+    "id" => "para-3",
+    "type" => "paragraph",
+    "content" => [
+      { "type" => "text", "text" => "Phase 1 is expected to complete by end of April, with Phase 2 beginning in May. The full rollout is targeted for July, pending successful beta testing with our early adopter group." }
+    ]
+  },
+  {
+    "id" => "heading-4",
+    "type" => "heading",
+    "props" => { "level" => 2 },
+    "content" => [{ "type" => "text", "text" => "Resource Allocation" }]
+  },
+  {
+    "id" => "para-4",
+    "type" => "paragraph",
+    "content" => [
+      { "type" => "text", "text" => "We have allocated additional engineering resources to ensure timely delivery. The design team will be conducting user research sessions throughout the quarter to validate our assumptions and iterate on the experience." }
+    ]
+  }
+]
+
+documents_data = [
+  { title: "Q2 2026 Product Roadmap", status: :published, author_name: "Demo User", content: sample_content },
+  { title: "Engineering Standards Guide", status: :published, author_name: "Jane Smith", content: sample_content },
+  { title: "API Integration Spec", status: :draft, author_name: "Bob Wilson", content: sample_content },
+  { title: "User Research Findings", status: :draft, author_name: "Demo User", content: [] },
+  { title: "Archived: Legacy Migration Plan", status: :archived, author_name: "Jane Smith", content: sample_content }
+]
+
+documents_data.each do |data|
+  doc = Document.find_or_initialize_by(title: data[:title])
+  doc.update!(
+    status: data[:status],
+    author_name: data[:author_name],
+    content: data[:content]
+  )
+
+  if doc.document_versions.empty?
+    doc.create_version!(author_name: data[:author_name], summary: "Initial draft")
+    doc.create_version!(author_name: data[:author_name], summary: "Added key sections")
+    doc.create_version!(author_name: "Jane Smith", summary: "Reviewed and edited") if data[:status].to_s == "published"
+  end
+end
+
+puts "Created #{Document.count} documents with #{DocumentVersion.count} versions"
 puts "Seed data complete!"
