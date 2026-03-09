@@ -93,6 +93,7 @@ export {
   ClipboardController,
   ConditionController,
   DirectUploadController,
+  DocumentEditorController,
   DrawerController,
   DropdownController,
   FilterGroupController,
