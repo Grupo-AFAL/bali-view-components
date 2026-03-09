@@ -1,0 +1,31 @@
+<div class="document-page-component">
+  <%= render_breadcrumbs %>
+
+  <%= render Bali::PageHeader::Component.new(back: back, class: breadcrumb_spacer_class) do |header| %>
+    <% header.with_title do %>
+      <div class="flex items-center gap-3">
+        <%= title %>
+        <% title_tags.each { |tag| concat(tag) } %>
+      </div>
+    <% end %>
+    <% if subtitle.present? %>
+      <% header.with_subtitle(subtitle) %>
+    <% end %>
+
+    <%= render_actions_bar %>
+  <% end %>
+
+  <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <% if metadata? %>
+      <div class="lg:col-span-3">
+        <%= metadata %>
+      </div>
+    <% end %>
+
+    <% if preview? %>
+      <div class="<%= metadata? ? 'lg:col-span-9' : 'lg:col-span-12' %>">
+        <%= preview %>
+      </div>
+    <% end %>
+  </div>
+</div>
