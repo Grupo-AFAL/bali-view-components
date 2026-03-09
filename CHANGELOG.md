@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **DocumentPage** - Three-panel sticky layout (TOC | Content | Metadata) unified with DocumentEditor visual language
+- **DocumentPage** - Toggle buttons in PageHeader for TOC and metadata panels
+- **DocumentPage** - BlockEditor readonly support with TOC portal, plus slot-based fallback for preview/content
+- **DocumentPage** - Stimulus controller (`document-page`) for panel visibility toggling
+- **DocumentEditor** - `input_name` parameter and Stimulus value for configurable form field name
+- **DocumentEditor** - `close_url` parameter and Stimulus value for explicit close navigation
+- **DocumentEditor** - `**options` passthrough for custom HTML attributes on root element
 - **SideMenu** - `bottom_group` slot for upward-expanding dropdown menus at sidebar bottom
 - **AppLayout** - New layout component with flash messages, modal, and drawer infrastructure
 - **AppLayout** - Login/register preview layouts and body_container presets
@@ -21,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **DocumentEditor** - Replace all `innerHTML` with `createElement` + `textContent` to prevent XSS in version rendering
+- **DocumentEditor** - Use Bali Dropdown component instead of raw DaisyUI HTML for export menu
 - **Filters** - Fix horizontal scroll on mobile caused by DaisyUI tooltip pseudo-element on persistence button
 - **SideMenu** - Force expanded sidebar view on mobile via CSS override (regardless of collapse state from localStorage)
 - **SideMenu** - Hide collapse toggle on mobile, show X close button instead for fixed sidebars

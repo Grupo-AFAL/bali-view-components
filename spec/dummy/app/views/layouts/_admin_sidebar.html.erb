@@ -6,6 +6,7 @@
     <% list.with_item(name: t('navbar.dashboard'), href: admin_root_path, icon: 'layout-dashboard', match: :exact) %>
     <% list.with_item(name: t('navbar.movies'), href: admin_movies_path, icon: 'film', match: :crud) %>
     <% list.with_item(name: t('sidebar.studios'), href: admin_studios_path, icon: 'building-2', match: :crud) %>
+    <% list.with_item(name: t('sidebar.documents'), href: documents_path, icon: 'file-text', match: :crud) %>
   <% end %>
 
   <% menu.with_list(title: t('sidebar.reports')) do |list| %>

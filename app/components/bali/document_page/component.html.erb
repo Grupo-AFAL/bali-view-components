@@ -1,0 +1,96 @@
+<%= tag.div(**container_attributes) do %>
+  <%= render_breadcrumbs %>
+
+  <%= render Bali::PageHeader::Component.new(back: back, class: breadcrumb_spacer_class) do |header| %>
+    <% header.with_title do %>
+      <div class="flex items-center gap-3">
+        <%= title %>
+        <% title_tags.each { |tag| concat(tag) } %>
+      </div>
+    <% end %>
+    <% if subtitle.present? %>
+      <% header.with_subtitle(subtitle) %>
+    <% end %>
+
+    <div class="flex items-center gap-2">
+      <% if toc? %>
+        <button type="button"
+                class="btn btn-ghost btn-sm btn-square"
+                data-action="document-page#toggleToc"
+                data-document-page-target="tocToggle"
+                title="Toggle table of contents">
+          <%= render Bali::Icon::Component.new('panel-left', size: :small) %>
+        </button>
+      <% end %>
+
+      <% if three_panel? && metadata? %>
+        <button type="button"
+                class="btn btn-ghost btn-sm btn-square"
+                data-action="document-page#toggleMetadata"
+                data-document-page-target="metadataToggle"
+                title="Toggle details">
+          <%= render Bali::Icon::Component.new('panel-right', size: :small) %>
+        </button>
+      <% end %>
+
+      <% if actions? %>
+        <div class="divider divider-horizontal mx-0 h-6"></div>
+        <%= render_actions_bar %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if three_panel? %>
+    <%# Three-panel layout %>
+    <div class="flex items-start border-t border-base-300 mt-4">
+      <%# Left: TOC Panel %>
+      <% if toc? %>
+        <div class="w-56 shrink-0 sticky top-4 overflow-y-auto max-h-[calc(100vh-12rem)] border-r border-base-300 p-4"
+             data-document-page-target="tocPanel">
+          <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">Contents</h3>
+          <div id="document-page-toc-container"></div>
+        </div>
+      <% end %>
+
+      <%# Center: Content %>
+      <div class="flex-1 min-w-0 px-8 py-6">
+        <% if block_editor? %>
+          <%= render Bali::BlockEditor::Component.new(
+            initial_content: initial_content,
+            editable: false,
+            table_of_contents: toc?,
+            table_of_contents_container_id: toc? ? "document-page-toc-container" : nil,
+            show_export_buttons: false
+          ) %>
+        <% elsif preview? %>
+          <%= preview %>
+        <% else %>
+          <%= content %>
+        <% end %>
+      </div>
+
+      <%# Right: Metadata Panel %>
+      <% if metadata? %>
+        <div class="w-72 shrink-0 sticky top-4 overflow-y-auto max-h-[calc(100vh-12rem)] border-l border-base-300 p-4"
+             data-document-page-target="metadataPanel">
+          <%= metadata %>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <%# Simple layout: no panels %>
+    <div class="mt-6">
+      <% if block_editor? %>
+        <%= render Bali::BlockEditor::Component.new(
+          initial_content: initial_content,
+          editable: false,
+          show_export_buttons: false
+        ) %>
+      <% elsif preview? %>
+        <%= preview %>
+      <% else %>
+        <%= content %>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

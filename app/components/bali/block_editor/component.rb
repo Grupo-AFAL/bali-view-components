@@ -26,6 +26,8 @@ module Bali
         references_config: nil,
         multi_column: false,
         table_of_contents: false,
+        table_of_contents_container_id: nil,
+        show_export_buttons: true,
         comments: false,
         **options
       )
@@ -49,6 +51,8 @@ module Bali
         @references_config = references_config
         @multi_column = multi_column
         @table_of_contents = table_of_contents
+        @table_of_contents_container_id = table_of_contents_container_id
+        @show_export_buttons = show_export_buttons
 
         comments_config = comments.is_a?(Hash) ? comments.transform_keys(&:to_sym) : nil
         @comments       = comments_config.present?
@@ -81,6 +85,10 @@ module Bali
 
       def export_enabled?
         @export.present? && @export != false
+      end
+
+      def show_export_buttons?
+        export_enabled? && @show_export_buttons
       end
 
       def export_pdf?
@@ -120,6 +128,7 @@ module Bali
           references_config: serialized_references_config,
           multi_column: @multi_column,
           table_of_contents: @table_of_contents,
+          table_of_contents_container_id: @table_of_contents_container_id || "",
           comments: @comments,
           comments_url: @comments_url || "",
           comments_user: serialized_comments_user,

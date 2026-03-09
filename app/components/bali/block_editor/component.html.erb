@@ -1,7 +1,7 @@
 <%= tag.div(**options) do %>
   <div data-block-editor-target="editor" class="block-editor-content"></div>
 
-  <% if export_enabled? %>
+  <% if show_export_buttons? %>
     <div class="flex justify-end mt-2 gap-2">
       <% if export_pdf? %>
         <button type="button"

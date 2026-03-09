@@ -4,8 +4,8 @@ module Bali
   module PageHeader
     class Component < ApplicationViewComponent
       BASE_CLASSES = "page-header-component mb-6"
-      # Mobile-first responsive: wrap instead of stack so icon-only buttons stay on the right
-      RESPONSIVE_CLASSES = "max-sm:flex-wrap max-sm:gap-3"
+      # Mobile-first responsive: tighter gap on small screens (flex-wrap is on Level)
+      RESPONSIVE_CLASSES = "max-sm:gap-3"
 
       HEADING_SIZES = {
         h1: "text-4xl",
