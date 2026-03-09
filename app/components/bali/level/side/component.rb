@@ -27,6 +27,7 @@ module Bali
           class_names(
             "level-#{position}",
             BASE_CLASSES,
+            { "flex-1 min-w-0" => position == :left },
             options[:class]
           )
         end
