@@ -3,10 +3,6 @@
 module Bali
   module DocumentEditor
     class Component < ApplicationViewComponent
-      attr_reader :title, :initial_content, :document_url, :close_url, :versions_url,
-                  :editable, :auto_save, :auto_save_delay, :comments_config,
-                  :export, :export_filename, :ai_url, :mentions_url, :mentions
-
       # rubocop:disable Metrics/ParameterLists
       def initialize(
         title:,
@@ -20,9 +16,11 @@ module Bali
         comments: nil,
         export: false,
         export_filename: nil,
+        input_name: "document[content]",
         ai_url: nil,
         mentions_url: nil,
-        mentions: nil
+        mentions: nil,
+        **options
       )
         # rubocop:enable Metrics/ParameterLists
         @title = title
@@ -36,9 +34,11 @@ module Bali
         @comments_config = comments
         @export = export
         @export_filename = export_filename || title.parameterize
+        @input_name = input_name
         @ai_url = ai_url
         @mentions_url = mentions_url
         @mentions = mentions
+        @options = options
       end
 
       def editable?
@@ -53,17 +53,31 @@ module Bali
         @versions_url.present?
       end
 
+      private
+
+      attr_reader :title, :initial_content, :document_url, :close_url,
+                  :versions_url, :auto_save, :auto_save_delay,
+                  :export, :export_filename, :input_name,
+                  :ai_url, :mentions_url, :mentions, :options
+
+      def container_attributes
+        options.except(:class).merge(
+          class: class_names("document-editor-overlay fixed inset-0 z-50 flex flex-col bg-base-100", options[:class]),
+          data: controller_data
+        )
+      end
+
       def controller_data
         {
-          data: {
-            controller: "document-editor",
-            document_editor_auto_save_value: auto_save,
-            document_editor_auto_save_delay_value: auto_save_delay,
-            document_editor_document_url_value: document_url,
-            document_editor_versions_url_value: versions_url || "",
-            document_editor_toc_open_value: true,
-            document_editor_panel_value: ""
-          }
+          controller: "document-editor",
+          document_editor_auto_save_value: auto_save,
+          document_editor_auto_save_delay_value: auto_save_delay,
+          document_editor_document_url_value: document_url,
+          document_editor_close_url_value: close_url,
+          document_editor_versions_url_value: versions_url || "",
+          document_editor_input_name_value: input_name,
+          document_editor_toc_open_value: true,
+          document_editor_panel_value: ""
         }
       end
     end

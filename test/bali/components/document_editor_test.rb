@@ -211,4 +211,43 @@ class BaliDocumentEditorComponentTest < ComponentTestCase
     assert_selector("[data-document-editor-target='tocPanel']")
     assert_selector("#document-editor-toc-container")
   end
+
+  def test_passes_custom_input_name_to_controller
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      input_name: "article[body]"
+    ))
+    assert_selector("[data-document-editor-input-name-value='article[body]']")
+  end
+
+  def test_defaults_input_name_to_document_content
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1"
+    ))
+    assert_selector("[data-document-editor-input-name-value='document[content]']")
+  end
+
+  def test_accepts_custom_classes_via_options
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      class: "custom-editor"
+    ))
+    assert_selector(".document-editor-overlay.custom-editor")
+  end
+
+  def test_accepts_data_attributes_via_options
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      id: "my-editor"
+    ))
+    assert_selector("#my-editor.document-editor-overlay")
+  end
 end

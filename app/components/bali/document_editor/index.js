@@ -22,7 +22,9 @@ export class DocumentEditorController extends Controller {
     autoSave: { type: Boolean, default: true },
     autoSaveDelay: { type: Number, default: 3000 },
     documentUrl: String,
+    closeUrl: String,
     versionsUrl: String,
+    inputName: { type: String, default: 'document[content]' },
     tocOpen: { type: Boolean, default: true },
     panel: { type: String, default: '' }
   }
@@ -31,12 +33,13 @@ export class DocumentEditorController extends Controller {
     this.saveTimeout = null
     this.bindKeydown = this.handleKeydown.bind(this)
     document.addEventListener('keydown', this.bindKeydown)
+    this._previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
   }
 
   disconnect () {
     document.removeEventListener('keydown', this.bindKeydown)
-    document.body.style.overflow = ''
+    document.body.style.overflow = this._previousOverflow || ''
     if (this.saveTimeout) clearTimeout(this.saveTimeout)
   }
 
@@ -96,7 +99,7 @@ export class DocumentEditorController extends Controller {
       body.document.title = this.titleInputTarget.value
     }
 
-    const contentInput = this.element.querySelector("input[name='document[content]']")
+    const contentInput = this.element.querySelector(`input[name='${this.inputNameValue}']`)
     if (contentInput) {
       body.document.content = contentInput.value
     }
@@ -128,34 +131,28 @@ export class DocumentEditorController extends Controller {
       this.renderVersions(versions)
     } catch (error) {
       console.error('Failed to load versions:', error)
-      this.versionsListTarget.innerHTML = '<p class="text-sm text-error">Failed to load versions.</p>'
+      this.versionsListTarget.replaceChildren()
+      const p = document.createElement('p')
+      p.className = 'text-sm text-error'
+      p.textContent = 'Failed to load versions.'
+      this.versionsListTarget.appendChild(p)
     }
   }
 
   renderVersions (versions) {
+    this.versionsListTarget.replaceChildren()
+
     if (!versions.length) {
-      this.versionsListTarget.innerHTML = '<p class="text-sm text-base-content/50">No versions yet.</p>'
+      const p = document.createElement('p')
+      p.className = 'text-sm text-base-content/50'
+      p.textContent = 'No versions yet.'
+      this.versionsListTarget.appendChild(p)
       return
     }
 
-    this.versionsListTarget.innerHTML = versions.map(v => `
-      <div class="py-3 border-b border-base-200 last:border-0">
-        <div class="flex items-center justify-between">
-          <span class="text-sm font-medium">Version ${v.version_number}</span>
-          <span class="text-xs text-base-content/50">${this.timeAgo(v.created_at)}</span>
-        </div>
-        <p class="text-xs text-base-content/60 mt-1">${v.author_name}</p>
-        ${v.summary ? `<p class="text-xs text-base-content/50 mt-1">${v.summary}</p>` : ''}
-        <div class="flex gap-2 mt-2">
-          <button class="btn btn-ghost btn-xs"
-                  data-action="document-editor#previewVersion"
-                  data-version-id="${v.id}">Preview</button>
-          <button class="btn btn-ghost btn-xs"
-                  data-action="document-editor#restoreVersion"
-                  data-version-id="${v.id}">Restore</button>
-        </div>
-      </div>
-    `).join('')
+    versions.forEach(v => {
+      this.versionsListTarget.appendChild(this._buildVersionItem(v))
+    })
   }
 
   async restoreVersion (event) {
@@ -205,8 +202,7 @@ export class DocumentEditorController extends Controller {
   }
 
   close () {
-    const closeLink = this.element.querySelector("a[data-action*='close']")
-    window.location.href = closeLink?.href || this.documentUrlValue
+    window.location.href = this.closeUrlValue || this.documentUrlValue
   }
 
   _blockEditorController () {
@@ -215,7 +211,59 @@ export class DocumentEditorController extends Controller {
     return this.application.getControllerForElementAndIdentifier(el, 'block-editor')
   }
 
-  timeAgo (dateString) {
+  _buildVersionItem (v) {
+    const wrapper = document.createElement('div')
+    wrapper.className = 'py-3 border-b border-base-200 last:border-0'
+
+    const header = document.createElement('div')
+    header.className = 'flex items-center justify-between'
+
+    const versionLabel = document.createElement('span')
+    versionLabel.className = 'text-sm font-medium'
+    versionLabel.textContent = `Version ${v.version_number}`
+    header.appendChild(versionLabel)
+
+    const timeLabel = document.createElement('span')
+    timeLabel.className = 'text-xs text-base-content/50'
+    timeLabel.textContent = this._timeAgo(v.created_at)
+    header.appendChild(timeLabel)
+
+    wrapper.appendChild(header)
+
+    const author = document.createElement('p')
+    author.className = 'text-xs text-base-content/60 mt-1'
+    author.textContent = v.author_name
+    wrapper.appendChild(author)
+
+    if (v.summary) {
+      const summary = document.createElement('p')
+      summary.className = 'text-xs text-base-content/50 mt-1'
+      summary.textContent = v.summary
+      wrapper.appendChild(summary)
+    }
+
+    const actions = document.createElement('div')
+    actions.className = 'flex gap-2 mt-2'
+
+    const previewBtn = document.createElement('button')
+    previewBtn.className = 'btn btn-ghost btn-xs'
+    previewBtn.textContent = 'Preview'
+    previewBtn.dataset.action = 'document-editor#previewVersion'
+    previewBtn.dataset.versionId = v.id
+    actions.appendChild(previewBtn)
+
+    const restoreBtn = document.createElement('button')
+    restoreBtn.className = 'btn btn-ghost btn-xs'
+    restoreBtn.textContent = 'Restore'
+    restoreBtn.dataset.action = 'document-editor#restoreVersion'
+    restoreBtn.dataset.versionId = v.id
+    actions.appendChild(restoreBtn)
+
+    wrapper.appendChild(actions)
+    return wrapper
+  }
+
+  _timeAgo (dateString) {
     const date = new Date(dateString)
     const now = new Date()
     const seconds = Math.floor((now - date) / 1000)

@@ -1,6 +1,4 @@
-<div class="document-editor-overlay fixed inset-0 z-50 flex flex-col bg-base-100"
-     <%= tag.attributes(controller_data) %>>
-
+<%= tag.div(**container_attributes) do %>
   <%# App Bar %>
   <div class="document-editor-app-bar flex items-center gap-3 px-4 h-14 border-b border-base-300 shrink-0">
     <%# Left: TOC toggle %>
@@ -14,12 +12,10 @@
     <%# Center: Title %>
     <div class="flex-1 min-w-0">
       <% if editable? %>
-        <input type="text"
-               value="<%= title %>"
-               class="input input-ghost text-lg font-semibold w-full max-w-md"
-               data-document-editor-target="titleInput"
-               data-action="change->document-editor#titleChanged"
-               placeholder="Untitled document" />
+        <%= tag.input type: "text", value: title,
+              class: "input input-ghost text-lg font-semibold w-full max-w-md",
+              data: { document_editor_target: "titleInput", action: "change->document-editor#titleChanged" },
+              placeholder: "Untitled document" %>
       <% else %>
         <h1 class="text-lg font-semibold truncate"><%= title %></h1>
       <% end %>
@@ -48,25 +44,21 @@
       <% end %>
 
       <% if export %>
-        <div class="dropdown dropdown-end">
-          <button type="button" class="btn btn-ghost btn-sm btn-square" tabindex="0" title="Export">
+        <%= render Bali::Dropdown::Component.new(align: :right) do |dropdown| %>
+          <% dropdown.with_trigger(class: "btn-ghost btn-sm btn-square") do %>
             <%= render Bali::Icon::Component.new('download', size: :small) %>
-          </button>
-          <ul tabindex="0" class="dropdown-content menu bg-base-200 rounded-box z-10 w-40 p-2 shadow-lg">
-            <li><a data-action="document-editor#exportPdf">Export PDF</a></li>
-            <li><a data-action="document-editor#exportDocx">Export DOCX</a></li>
-          </ul>
-        </div>
+          <% end %>
+          <% dropdown.with_item(tag: :button, data: { action: "document-editor#exportPdf" }) { "Export PDF" } %>
+          <% dropdown.with_item(tag: :button, data: { action: "document-editor#exportDocx" }) { "Export DOCX" } %>
+        <% end %>
       <% end %>
 
       <div class="divider divider-horizontal mx-1 h-6"></div>
 
-      <a href="<%= close_url %>"
-         class="btn btn-ghost btn-sm btn-square"
-         data-action="document-editor#close"
-         title="Close editor">
+      <%= link_to close_url, class: "btn btn-ghost btn-sm btn-square",
+            data: { action: "document-editor#close" }, title: "Close editor" do %>
         <%= render Bali::Icon::Component.new('x', size: :small) %>
-      </a>
+      <% end %>
     </div>
   </div>
 
@@ -85,7 +77,7 @@
         <%= render Bali::BlockEditor::Component.new(
           initial_content: initial_content,
           editable: editable?,
-          input_name: editable? ? "document[content]" : nil,
+          input_name: editable? ? input_name : nil,
           table_of_contents: true,
           table_of_contents_container_id: "document-editor-toc-container",
           comments: false,
@@ -125,4 +117,4 @@
       </div>
     <% end %>
   </div>
-</div>
+<% end %>
