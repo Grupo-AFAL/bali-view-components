@@ -306,7 +306,7 @@ export default function BlockNoteEditorWrapper ({
       const editorEl = editor.domElement
       if (editorEl && editorEl.contains(this)) {
         const rect = this.getBoundingClientRect()
-        if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
+        if (rect.height > 0 && rect.top >= 0 && rect.bottom <= window.innerHeight) {
           // Element is visible — suppress and lock scroll position to catch
           // any ProseMirror transaction-level scrolling in the same frame
           if (savedScrollY === null) savedScrollY = window.scrollY
@@ -410,7 +410,7 @@ export default function BlockNoteEditorWrapper ({
   if (tableOfContents && tocPortalContainer) {
     return (
       <>
-        {createPortal(<TableOfContents headings={tocHeadings} />, tocPortalContainer)}
+        {createPortal(<TableOfContents headings={tocHeadings} editorElement={editor?.domElement} />, tocPortalContainer)}
         {editorView}
       </>
     )
@@ -420,7 +420,7 @@ export default function BlockNoteEditorWrapper ({
   if (tableOfContents) {
     return (
       <div className='bn-toc-layout'>
-        <TableOfContents headings={tocHeadings} />
+        <TableOfContents headings={tocHeadings} editorElement={editor?.domElement} />
         <div className='bn-toc-editor-wrapper'>{editorView}</div>
       </div>
     )

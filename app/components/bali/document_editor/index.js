@@ -35,14 +35,38 @@ export class DocumentEditorController extends Controller {
     this.saveTimeout = null
     this.bindKeydown = this.handleKeydown.bind(this)
     document.addEventListener('keydown', this.bindKeydown)
-    this._previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+
+    // Only lock body scroll when the editor is visible.
+    // When rendered inside a hidden overlay (e.g., document show page),
+    // defer the lock until the overlay becomes visible.
+    if (this._isVisible()) {
+      this._lockBodyScroll()
+    } else {
+      this._visibilityObserver = new window.MutationObserver(() => {
+        if (this._isVisible()) {
+          this._lockBodyScroll()
+          this._visibilityObserver.disconnect()
+          this._visibilityObserver = null
+        }
+      })
+      if (this.element.parentElement) {
+        this._visibilityObserver.observe(this.element.parentElement, {
+          attributes: true, attributeFilter: ['class']
+        })
+      }
+    }
   }
 
   disconnect () {
     document.removeEventListener('keydown', this.bindKeydown)
-    document.body.style.overflow = this._previousOverflow || ''
+    if (this._scrollLocked) {
+      document.body.style.overflow = this._previousOverflow || ''
+    }
     if (this.saveTimeout) clearTimeout(this.saveTimeout)
+    if (this._visibilityObserver) {
+      this._visibilityObserver.disconnect()
+      this._visibilityObserver = null
+    }
   }
 
   toggleToc () {
@@ -321,6 +345,17 @@ export class DocumentEditorController extends Controller {
     if (this.hasSaveButtonTarget) {
       this.saveButtonTarget.disabled = !this._dirty
     }
+  }
+
+  _isVisible () {
+    // offsetParent is null for position:fixed elements, so use getClientRects
+    return this.element.getClientRects().length > 0
+  }
+
+  _lockBodyScroll () {
+    this._previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    this._scrollLocked = true
   }
 
   _timeAgo (dateString) {
