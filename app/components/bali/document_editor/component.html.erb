@@ -81,7 +81,7 @@
           input_name: editable? ? input_name : nil,
           table_of_contents: true,
           table_of_contents_container_id: "document-editor-toc-container",
-          comments: false,
+          comments: @comments_config || false,
           export: export,
           show_export_buttons: false,
           export_filename: export_filename,
