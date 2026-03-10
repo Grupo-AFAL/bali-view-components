@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **DocumentEditor** - Save status indicator showing "Saving..." / "Saved at HH:MM:SS" in the app bar
+- **DocumentEditor** - Version preview loads content into the editor in read-only mode with a dismissible "Previewing Version X" banner, instead of opening raw JSON in a new tab
+- **BlockEditor** - Pre-populate UserStore cache with known users before rendering comments, preventing crashes on resolved threads
+
+### Fixed
+
+- **DocumentEditor** - Auto-save now triggers correctly on content changes via `input` event delegation
+- **DocumentEditor** - Version history panel redesigned with version badges, author avatars, italic summaries, and polished Preview/Restore buttons with icons
+- **BlockEditor** - Fix "User resolved thread, but their data could not be found" crash by gating comments rendering on UserStore readiness
+- **BlockEditor** - Fix comments sidebar losing all CSS when portaled into DocumentEditor side panel (added `bn-mantine` class to portal container)
+- **BlockEditor** - Fix emoji reaction chips rendering unstyled — override Mantine CSS variables with DaisyUI-compatible colors, backgrounds, and hover states
+- **BlockEditor** - Fix selected thread showing blue border on only 3 sides — use outline instead of border for consistent selection indicator
+- **BlockEditor** - Fix resolved thread hover toolbar invisible due to opacity dimming the entire thread — target only comment text and header for dimming
+- **BlockEditor** - Fix delete comment clearing body but not removing the thread — destroy thread when no active comments remain
+- **BlockEditor** - Fix emoji picker popover rendering behind comments sidebar panel (z-index)
+
 ## [v2.7.0] - 2026-03-09
 
 ### Added
