@@ -23,11 +23,15 @@
     <div class="flex items-center gap-1">
       <span class="text-xs text-base-content/50 shrink-0" data-document-editor-target="saveStatus"></span>
       <% if editable? %>
-        <%= render Bali::Button::Component.new(name: "Save", variant: :ghost, size: :sm, disabled: true,
-              data: { action: "document-editor#save", document_editor_target: "saveButton" },
-              title: "Save changes") do |btn| %>
-          <% btn.with_icon("save", size: :small) %>
-        <% end %>
+        <button type="button"
+                class="btn btn-ghost btn-sm gap-1"
+                data-action="document-editor#save"
+                data-document-editor-target="saveButton"
+                disabled
+                title="Save changes">
+          <%= render Bali::Icon::Component.new('save', size: :small) %>
+          Save
+        </button>
       <% end %>
       <% if comments? %>
         <%= render Bali::Button::Component.new(variant: :ghost, size: :sm, class: "btn-square",
