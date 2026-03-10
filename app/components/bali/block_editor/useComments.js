@@ -112,6 +112,15 @@ export function useComments ({ commentsUser, commentsUsers, commentsUsersUrl, co
 
     const extension = CommentsExtension({ threadStore, resolveUsers })
 
+    // Pre-populate the UserStore cache synchronously with all known users
+    // so that getUser() returns data on the very first render. Without this,
+    // resolved threads crash because BlockNote's Comments component throws
+    // when resolvedBy user data is missing from the synchronous snapshot
+    // (useUsers → getUser returns undefined before async loadUsers completes).
+    for (const [id, user] of staticUserMap) {
+      extension.userStore.userCache.set(id, user)
+    }
+
     return { extension, threadStore }
   }, [commentsUser, commentsUsers, commentsUsersUrl, commentsUrl])
 }

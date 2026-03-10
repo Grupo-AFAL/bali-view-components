@@ -449,20 +449,39 @@
   color: var(--color-base-content);
 }
 
-/* Comment actions (resolve, delete, reply) */
-.block-editor-component .bn-comment-actions button {
-  font-size: 0.75rem;
-  color: color-mix(in oklch, var(--color-base-content) 50%, transparent);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.15rem 0.35rem;
-  border-radius: 0.25rem;
+/* Comment action toolbar - ensure Mantine buttons get proper styling.
+ * DaisyUI resets button backgrounds/borders globally; we must restore
+ * BlockNote's intended styles for the action toolbar icons. */
+.block-editor-component .bn-action-toolbar {
+  background-color: var(--color-base-100);
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 12%, transparent);
+  border-radius: 0.375rem;
+  padding: 2px;
+  gap: 0;
 }
 
-.block-editor-component .bn-comment-actions button:hover {
-  background-color: color-mix(in oklch, var(--color-base-content) 8%, transparent);
+.block-editor-component .bn-action-toolbar .mantine-ActionIcon-root,
+.block-editor-component .bn-action-toolbar .mantine-Button-root {
+  background-color: transparent;
+  border: none;
+  color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
+  cursor: pointer;
+  border-radius: 0.25rem;
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+}
+
+.block-editor-component .bn-action-toolbar .mantine-ActionIcon-root:hover,
+.block-editor-component .bn-action-toolbar .mantine-Button-root:hover {
+  background-color: color-mix(in oklch, var(--color-base-content) 10%, transparent);
   color: var(--color-base-content);
+}
+
+/* Comment actions wrapper - keep aligned right */
+.block-editor-component .bn-comment-actions-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* Thread reference text snippet */
@@ -475,9 +494,23 @@
   margin-bottom: 0.5rem;
 }
 
-/* Resolved thread styling */
-.block-editor-component .bn-thread.resolved {
+/* Resolved thread styling - BlockNote inserts a .bn-resolved-text element
+ * inside threads that have been resolved. We dim the parent thread. */
+.block-editor-component .bn-thread:has(.bn-resolved-text) {
   opacity: 0.6;
+}
+
+/* The "Marked as resolved" text should look like a status indicator,
+ * not a regular comment. Style it as a subtle, distinct callout. */
+.block-editor-component .bn-resolved-text {
+  font-size: 0.75rem;
+  font-style: italic;
+  color: color-mix(in oklch, var(--color-success) 80%, var(--color-base-content));
+  background-color: color-mix(in oklch, var(--color-success) 8%, transparent);
+  border-left: 2px solid color-mix(in oklch, var(--color-success) 50%, transparent);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0 0.25rem 0.25rem 0;
+  margin-top: 0.25rem;
 }
 
 /* Avatar styling */
@@ -486,6 +519,20 @@
   height: 1.5rem;
   border-radius: 9999px;
   object-fit: cover;
+}
+
+/* Emoji picker popover - must escape overflow:auto containers.
+ * The comments panel uses overflow-y:auto which clips popovers.
+ * Force the emoji picker to render above everything. */
+.block-editor-component .bn-emoji-picker-popover,
+.document-editor-panel .bn-emoji-picker-popover {
+  z-index: 9999 !important;
+  position: fixed !important;
+}
+
+/* Also ensure Mantine popovers inside the comments panel aren't clipped */
+.document-editor-panel .mantine-Popover-dropdown {
+  z-index: 9999 !important;
 }
 
 /* Collapse comments sidebar on narrow viewports */
