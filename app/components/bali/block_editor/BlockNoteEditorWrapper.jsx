@@ -73,6 +73,7 @@ export default function BlockNoteEditorWrapper ({
   tableOfContents = false,
   tableOfContentsContainerId,
   comments: commentsEnabled = false,
+  commentsContainerId,
   commentsUrl,
   commentsUser,
   commentsUsers,
@@ -316,10 +317,15 @@ export default function BlockNoteEditorWrapper ({
   )
 
   // ThreadsSidebar must be a child of BlockNoteView for access to the
-  // BlockNote context. We wrap the view in a CSS class so that
-  // .bn-container gains flex layout to place the sidebar beside the editor.
+  // BlockNote context. When commentsContainerId is provided, portal the
+  // sidebar into an external container (e.g. DocumentEditor's side panel),
+  // following the same pattern as the TOC portal.
+  const commentsPortalContainer = commentsContainerId
+    ? document.getElementById(commentsContainerId)
+    : null
+
   const editorView = (
-    <div className={commentsEnabled ? 'bn-with-comments' : undefined}>
+    <div className={commentsEnabled && !commentsPortalContainer ? 'bn-with-comments' : undefined}>
       <BlockNoteView
         editor={editor}
         editable={editable}
@@ -330,7 +336,8 @@ export default function BlockNoteEditorWrapper ({
         comments={commentsEnabled}
       >
         {editorChildren}
-        {commentsEnabled && <ThreadsSidebar />}
+        {commentsEnabled && !commentsPortalContainer && <ThreadsSidebar />}
+        {commentsEnabled && commentsPortalContainer && createPortal(<ThreadsSidebar />, commentsPortalContainer)}
       </BlockNoteView>
     </div>
   )

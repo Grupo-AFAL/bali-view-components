@@ -29,6 +29,7 @@ module Bali
         table_of_contents_container_id: nil,
         show_export_buttons: true,
         comments: false,
+        comments_container_id: nil,
         **options
       )
         # rubocop:enable Metrics/ParameterLists, Metrics/AbcSize
@@ -53,6 +54,7 @@ module Bali
         @table_of_contents = table_of_contents
         @table_of_contents_container_id = table_of_contents_container_id
         @show_export_buttons = show_export_buttons
+        @comments_container_id = comments_container_id
 
         comments_config = comments.is_a?(Hash) ? comments.transform_keys(&:to_sym) : nil
         @comments       = comments_config.present?
@@ -130,6 +132,7 @@ module Bali
           table_of_contents: @table_of_contents,
           table_of_contents_container_id: @table_of_contents_container_id || "",
           comments: @comments,
+          comments_container_id: @comments_container_id || "",
           comments_url: @comments_url || "",
           comments_user: serialized_comments_user,
           comments_users: serialized_comments_users,
