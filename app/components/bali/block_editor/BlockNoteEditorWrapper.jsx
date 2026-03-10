@@ -247,6 +247,29 @@ export default function BlockNoteEditorWrapper ({
     }
   }, [editor, pmContent])
 
+  // Pre-populate the UserStore cache with all known users so that
+  // resolved threads don't crash when BlockNote's Comments component
+  // calls getUser() before async resolution completes.
+  // We gate BlockNoteView's comments prop AND ThreadsSidebar on
+  // commentsReady to ensure the cache is populated before any
+  // resolved-thread UI mounts.
+  const [commentsReady, setCommentsReady] = useState(!commentsEnabled)
+  useEffect(() => {
+    if (!editor || !commentsResult?.staticUserMap) return
+    // editor.extensions is a Map<key, extension>, not an array
+    if (editor.extensions) {
+      for (const [, ext] of editor.extensions) {
+        if (ext.userStore?.userCache) {
+          for (const [id, user] of commentsResult.staticUserMap) {
+            ext.userStore.userCache.set(id, user)
+          }
+          break
+        }
+      }
+    }
+    setCommentsReady(true)
+  }, [editor, commentsResult])
+
   // Expose editor instance to the parent (Stimulus controller) for export functionality
   useEffect(() => {
     if (editor && onEditorReady) {
@@ -370,11 +393,11 @@ export default function BlockNoteEditorWrapper ({
         onChange={handleChangeWithToc}
         slashMenu={false}
         formattingToolbar={needsCustomToolbar ? false : undefined}
-        comments={commentsEnabled}
+        comments={commentsEnabled && commentsReady}
       >
         {editorChildren}
-        {commentsEnabled && !commentsPortalContainer && <ThreadsSidebar filter='all' />}
-        {commentsEnabled && commentsPortalContainer && createPortal(<ThreadsSidebar filter='all' />, commentsPortalContainer)}
+        {commentsEnabled && commentsReady && !commentsPortalContainer && <ThreadsSidebar filter='all' />}
+        {commentsEnabled && commentsReady && commentsPortalContainer && createPortal(<ThreadsSidebar filter='all' />, commentsPortalContainer)}
       </BlockNoteView>
     </div>
   )

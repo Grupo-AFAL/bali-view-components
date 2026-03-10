@@ -73,7 +73,22 @@
     </div>
 
     <%# Center: Editor %>
-    <div class="flex-1 overflow-y-auto" data-action="input->document-editor#contentChanged">
+    <div class="flex-1 overflow-y-auto" data-action="input->document-editor#contentChanged" data-document-editor-target="editorArea">
+      <%# Preview Banner (hidden by default, shown when previewing a version) %>
+      <div class="hidden bg-info/10 border-b border-info/20 px-6 py-2.5 flex items-center justify-between"
+           data-document-editor-target="previewBanner">
+        <div class="flex items-center gap-2 text-sm">
+          <%= render Bali::Icon::Component.new('eye', size: :small) %>
+          <span>Previewing <strong data-document-editor-target="previewVersionLabel"></strong></span>
+          <span class="text-base-content/50">— read only</span>
+        </div>
+        <button type="button"
+                class="btn btn-sm btn-ghost gap-1"
+                data-action="document-editor#exitPreview">
+          <%= render Bali::Icon::Component.new('x', size: :small) %>
+          Back to current
+        </button>
+      </div>
       <div class="px-12 py-8">
         <%= render Bali::BlockEditor::Component.new(
           initial_content: initial_content,
@@ -99,7 +114,7 @@
            data-document-editor-target="commentsPanel">
         <div class="p-4">
           <h3 class="text-sm font-semibold text-base-content/60 uppercase tracking-wider mb-3">Comments</h3>
-          <div data-document-editor-target="commentsList" id="<%= comments_container_id %>">
+          <div class="bn-mantine" data-document-editor-target="commentsList" id="<%= comments_container_id %>">
           </div>
         </div>
       </div>

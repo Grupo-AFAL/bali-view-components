@@ -28,6 +28,12 @@ module Documents
 
       def destroy
         @comment.soft_delete!
+
+        # If no active comments remain, delete the entire thread
+        if @thread.block_editor_comments.active.none?
+          @thread.destroy!
+        end
+
         head :no_content
       end
 
