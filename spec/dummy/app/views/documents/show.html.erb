@@ -24,7 +24,6 @@
       <%= render Bali::ActionsDropdown::Component.new(size: :sm) do |dropdown| %>
         <% dropdown.with_item(name: 'Export PDF', icon_name: 'file-text', href: '#') %>
         <% dropdown.with_item(name: 'Export DOCX', icon_name: 'file-down', href: '#') %>
-        <% dropdown.with_divider %>
         <% dropdown.with_item(name: 'Delete', icon_name: 'trash-2', href: document_path(@document), method: :delete, confirm: 'Delete this document?') %>
       <% end %>
     </div>
@@ -94,7 +93,7 @@
     versions_url: document_versions_path(@document),
     editable: true,
     comments: {
-      url: block_editor_threads_path,
+      url: document_comment_threads_path(@document),
       user: { id: "user-1", username: "Demo User" },
       users: [
         { id: "user-1", username: "Demo User" },
@@ -117,7 +116,7 @@
     versions_url: document_versions_path(@document),
     editable: false,
     comments: {
-      url: block_editor_threads_path,
+      url: document_comment_threads_path(@document),
       user: { id: "user-1", username: "Demo User" },
       users: [
         { id: "user-1", username: "Demo User" },

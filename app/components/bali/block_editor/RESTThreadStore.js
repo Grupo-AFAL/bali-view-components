@@ -290,11 +290,15 @@ export class RESTThreadStore extends ThreadStore {
   }
 
   _headers () {
-    return {
+    const headers = {
       'Content-Type': 'application/json',
       Accept: 'application/json',
       'X-CSRF-Token': this._csrfToken()
     }
+    if (this._userId) {
+      headers['X-User-Id'] = this._userId
+    }
+    return headers
   }
 
   async _get (path) {
