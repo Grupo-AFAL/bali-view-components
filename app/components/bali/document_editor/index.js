@@ -15,7 +15,7 @@ export class DocumentEditorController extends Controller {
     'titleInput', 'tocPanel', 'tocContainer',
     'commentsPanel', 'commentsToggle',
     'historyPanel', 'historyToggle',
-    'versionsList', 'saveStatus', 'saveButton',
+    'versionsList', 'versionTemplate', 'saveStatus', 'saveButton',
     'previewBanner', 'previewVersionLabel',
     'editorArea'
   ]
@@ -289,70 +289,27 @@ export class DocumentEditorController extends Controller {
   }
 
   _buildVersionItem (v) {
-    const wrapper = document.createElement('div')
-    wrapper.className = 'version-item group'
+    const fragment = this.versionTemplateTarget.content.cloneNode(true)
+    const el = fragment.firstElementChild
 
-    // Top row: version badge + time
-    const header = document.createElement('div')
-    header.className = 'flex items-center justify-between mb-1.5'
+    el.querySelector('[data-version-field="number"]').textContent = `v${v.version_number}`
+    el.querySelector('[data-version-field="time"]').textContent = this._timeAgo(v.created_at)
+    el.querySelector('[data-version-field="avatar"]').textContent = (v.author_name || '?')[0].toUpperCase()
+    el.querySelector('[data-version-field="author"]').textContent = v.author_name
 
-    const badge = document.createElement('span')
-    badge.className = 'inline-flex items-center gap-1.5 text-xs font-semibold text-base-content'
-    badge.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-50"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> v${v.version_number}`
-    header.appendChild(badge)
-
-    const timeLabel = document.createElement('span')
-    timeLabel.className = 'text-[11px] text-base-content/40 tabular-nums'
-    timeLabel.textContent = this._timeAgo(v.created_at)
-    header.appendChild(timeLabel)
-
-    wrapper.appendChild(header)
-
-    // Author row
-    const authorRow = document.createElement('div')
-    authorRow.className = 'flex items-center gap-1.5 mb-1'
-
-    const avatar = document.createElement('span')
-    avatar.className = 'inline-flex items-center justify-center w-4 h-4 rounded-full bg-base-content/10 text-[9px] font-bold text-base-content/60 shrink-0'
-    avatar.textContent = (v.author_name || '?')[0].toUpperCase()
-    authorRow.appendChild(avatar)
-
-    const authorName = document.createElement('span')
-    authorName.className = 'text-xs text-base-content/60'
-    authorName.textContent = v.author_name
-    authorRow.appendChild(authorName)
-
-    wrapper.appendChild(authorRow)
-
-    // Summary
+    const summary = el.querySelector('[data-version-field="summary"]')
     if (v.summary) {
-      const summary = document.createElement('p')
-      summary.className = 'text-[11px] text-base-content/40 leading-relaxed mb-1 italic'
       summary.textContent = v.summary
-      wrapper.appendChild(summary)
+      summary.classList.remove('hidden')
     }
 
-    // Actions: show on hover
-    const actions = document.createElement('div')
-    actions.className = 'flex items-center gap-1 mt-2 pt-2 border-t border-base-200/60'
-
-    const previewBtn = document.createElement('button')
-    previewBtn.className = 'version-btn version-btn-preview'
-    previewBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> Preview'
-    previewBtn.dataset.action = 'document-editor#previewVersion'
+    const previewBtn = el.querySelector('[data-action*="previewVersion"]')
     previewBtn.dataset.versionId = v.id
     previewBtn.dataset.versionNumber = v.version_number
-    actions.appendChild(previewBtn)
 
-    const restoreBtn = document.createElement('button')
-    restoreBtn.className = 'version-btn version-btn-restore'
-    restoreBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> Restore'
-    restoreBtn.dataset.action = 'document-editor#restoreVersion'
-    restoreBtn.dataset.versionId = v.id
-    actions.appendChild(restoreBtn)
+    el.querySelector('[data-action*="restoreVersion"]').dataset.versionId = v.id
 
-    wrapper.appendChild(actions)
-    return wrapper
+    return fragment
   }
 
   _updateStatus (text, error = false) {
