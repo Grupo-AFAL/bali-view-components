@@ -22,7 +22,7 @@ export class DocumentEditorController extends Controller {
 
   static values = {
     autoSave: { type: Boolean, default: true },
-    autoSaveDelay: { type: Number, default: 60000 },
+    autoSaveDelay: { type: Number, default: 30000 },
     documentUrl: String,
     closeUrl: String,
     versionsUrl: String,
