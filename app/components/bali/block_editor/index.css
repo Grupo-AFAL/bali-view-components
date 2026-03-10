@@ -462,6 +462,58 @@
   color: var(--color-base-content);
 }
 
+/* --- Emoji reaction chips — inline editor --- */
+.block-editor-component .mantine-Chip-label {
+  font-size: 0.75rem !important;
+  padding: 0.15rem 0.5rem !important;
+  border-radius: 9999px !important;
+  cursor: pointer !important;
+  background-color: color-mix(in oklch, var(--color-base-content) 7%, transparent) !important;
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 10%, transparent) !important;
+  color: var(--color-base-content) !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.25rem !important;
+  line-height: 1.4 !important;
+}
+
+.block-editor-component .mantine-Chip-label:hover {
+  background-color: color-mix(in oklch, var(--color-base-content) 14%, transparent) !important;
+  border-color: color-mix(in oklch, var(--color-base-content) 18%, transparent) !important;
+}
+
+.block-editor-component .mantine-Chip-root:has(input:checked) .mantine-Chip-label {
+  background-color: color-mix(in oklch, var(--color-primary) 12%, transparent) !important;
+  border-color: color-mix(in oklch, var(--color-primary) 25%, transparent) !important;
+  color: var(--color-primary) !important;
+}
+
+.block-editor-component .mantine-Chip-root:has(input:checked) .mantine-Chip-label:hover {
+  background-color: color-mix(in oklch, var(--color-primary) 20%, transparent) !important;
+}
+
+.block-editor-component .mantine-Chip-input {
+  position: absolute !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.block-editor-component .bn-comment-add-reaction .mantine-Chip-label {
+  background-color: transparent !important;
+  border: 1px dashed color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
+  color: color-mix(in oklch, var(--color-base-content) 40%, transparent) !important;
+}
+
+.block-editor-component .bn-comment-add-reaction .mantine-Chip-label:hover {
+  background-color: color-mix(in oklch, var(--color-base-content) 6%, transparent) !important;
+  border-style: solid !important;
+  color: color-mix(in oklch, var(--color-base-content) 65%, transparent) !important;
+}
+
 /* -------------------------------------------------------
  * Comments — Sidebar Panel (portaled into .document-editor-panel)
  *
@@ -499,6 +551,10 @@
 
 .document-editor-panel .bn-thread.selected {
   background-color: color-mix(in oklch, var(--color-primary) 4%, transparent);
+  outline: 1.5px solid color-mix(in oklch, var(--color-primary) 35%, transparent);
+  outline-offset: -1.5px;
+  border-radius: 0.5rem;
+  border-bottom-color: transparent;
 }
 
 /* --- Reference text (quoted document excerpt) --- */
@@ -694,15 +750,64 @@
 .document-editor-panel .bn-badge-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
-  margin-top: 0.25rem;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
 }
 
+/* Mantine Chip — DaisyUI strips Mantine's color vars, so we use !important
+   to override the inline style="--chip-bg: var(--mantine-color-*)" attrs */
 .document-editor-panel .mantine-Chip-label {
-  font-size: 0.75rem;
-  padding: 0.1rem 0.4rem;
-  border-radius: 9999px;
-  cursor: pointer;
+  font-size: 0.75rem !important;
+  padding: 0.15rem 0.5rem !important;
+  border-radius: 9999px !important;
+  cursor: pointer !important;
+  background-color: color-mix(in oklch, var(--color-base-content) 7%, transparent) !important;
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 10%, transparent) !important;
+  color: var(--color-base-content) !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.25rem !important;
+  line-height: 1.4 !important;
+}
+
+.document-editor-panel .mantine-Chip-label:hover {
+  background-color: color-mix(in oklch, var(--color-base-content) 14%, transparent) !important;
+  border-color: color-mix(in oklch, var(--color-base-content) 18%, transparent) !important;
+}
+
+/* Checked/active chip (user's own reaction) */
+.document-editor-panel .mantine-Chip-root:has(input:checked) .mantine-Chip-label {
+  background-color: color-mix(in oklch, var(--color-primary) 12%, transparent) !important;
+  border-color: color-mix(in oklch, var(--color-primary) 25%, transparent) !important;
+  color: var(--color-primary) !important;
+}
+
+.document-editor-panel .mantine-Chip-root:has(input:checked) .mantine-Chip-label:hover {
+  background-color: color-mix(in oklch, var(--color-primary) 20%, transparent) !important;
+}
+
+/* Hide the native checkbox */
+.document-editor-panel .mantine-Chip-input {
+  position: absolute !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Add-reaction button (+) */
+.document-editor-panel .bn-comment-add-reaction .mantine-Chip-label {
+  background-color: transparent !important;
+  border: 1px dashed color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
+  color: color-mix(in oklch, var(--color-base-content) 40%, transparent) !important;
+}
+
+.document-editor-panel .bn-comment-add-reaction .mantine-Chip-label:hover {
+  background-color: color-mix(in oklch, var(--color-base-content) 6%, transparent) !important;
+  border-style: solid !important;
+  color: color-mix(in oklch, var(--color-base-content) 65%, transparent) !important;
 }
 
 /* --- Comment composer (reply box) --- */
