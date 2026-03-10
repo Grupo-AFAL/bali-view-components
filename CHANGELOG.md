@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2.7.1] - 2026-03-10
+
 ### Added
 
 - **DocumentEditor** - Save status indicator showing "Saving..." / "Saved at HH:MM:SS" in the app bar
@@ -15,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **BlockEditor** - Fix comment thread marks (`.bn-thread-mark`) missing highlight, cursor, and click behavior in the editor
+- **BlockEditor** - Fix reply Save/Cancel buttons appearing blank in floating thread composer
+- **BlockEditor** - Fix emoji reaction tooltip missing visual styles when portaled to `<body>`
 - **DocumentEditor** - Auto-save now triggers correctly on content changes via `input` event delegation
 - **DocumentEditor** - Version history panel redesigned with version badges, author avatars, italic summaries, and polished Preview/Restore buttons with icons
 - **BlockEditor** - Fix "User resolved thread, but their data could not be found" crash by gating comments rendering on UserStore readiness
