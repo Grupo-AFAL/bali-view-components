@@ -16,6 +16,7 @@ export function useContentSync (editor, outputElement, format, ready) {
         } else {
           outputElement.value = JSON.stringify(editor.document)
         }
+        outputElement.dispatchEvent(new Event('input', { bubbles: true }))
       } catch (error) {
         console.error('BlockEditor: Failed to serialize content:', error)
       }

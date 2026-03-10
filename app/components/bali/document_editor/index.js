@@ -15,7 +15,7 @@ export class DocumentEditorController extends Controller {
     'titleInput', 'tocPanel', 'tocContainer',
     'commentsPanel', 'commentsToggle',
     'historyPanel', 'historyToggle',
-    'versionsList'
+    'versionsList', 'saveStatus'
   ]
 
   static values = {
@@ -92,6 +92,7 @@ export class DocumentEditorController extends Controller {
   }
 
   async save () {
+    this._updateStatus('Saving...')
     const csrfToken = document.querySelector("meta[name='csrf-token']")?.content
     const body = { document: {} }
 
@@ -114,8 +115,14 @@ export class DocumentEditorController extends Controller {
         },
         body: JSON.stringify(body)
       })
-      if (!response.ok) console.error('Auto-save failed:', response.status)
+      if (response.ok) {
+        this._updateStatus(`Saved at ${new Date().toLocaleTimeString()}`)
+      } else {
+        this._updateStatus('Save failed', true)
+        console.error('Auto-save failed:', response.status)
+      }
     } catch (error) {
+      this._updateStatus('Save failed', true)
       console.error('Auto-save error:', error)
     }
   }
@@ -261,6 +268,13 @@ export class DocumentEditorController extends Controller {
 
     wrapper.appendChild(actions)
     return wrapper
+  }
+
+  _updateStatus (text, error = false) {
+    if (!this.hasSaveStatusTarget) return
+    this.saveStatusTarget.textContent = text
+    this.saveStatusTarget.classList.toggle('text-error', error)
+    this.saveStatusTarget.classList.toggle('text-base-content/50', !error)
   }
 
   _timeAgo (dateString) {

@@ -9,8 +9,8 @@
       <%= render Bali::Icon::Component.new('panel-left', size: :small) %>
     </button>
 
-    <%# Center: Title %>
-    <div class="flex-1 min-w-0">
+    <%# Center: Title + Save Status %>
+    <div class="flex-1 min-w-0 flex items-center gap-3">
       <% if editable? %>
         <%= tag.input type: "text", value: title,
               class: "input input-ghost text-lg font-semibold w-full max-w-md",
@@ -19,6 +19,7 @@
       <% else %>
         <h1 class="text-lg font-semibold truncate"><%= title %></h1>
       <% end %>
+      <span class="text-xs text-base-content/50 shrink-0" data-document-editor-target="saveStatus"></span>
     </div>
 
     <%# Right: Panel toggles + Close %>
@@ -72,7 +73,7 @@
     </div>
 
     <%# Center: Editor %>
-    <div class="flex-1 overflow-y-auto">
+    <div class="flex-1 overflow-y-auto" data-action="input->document-editor#contentChanged">
       <div class="px-12 py-8">
         <%= render Bali::BlockEditor::Component.new(
           initial_content: initial_content,
