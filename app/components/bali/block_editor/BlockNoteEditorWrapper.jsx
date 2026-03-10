@@ -87,13 +87,26 @@ export default function BlockNoteEditorWrapper ({
 
   const uploadFile = useFileUpload(uploadUrl)
 
-  const parsedContent = useMemo(() => {
-    if (!initialContent) return undefined
+  // Parse content, detecting format:
+  // - Array → BlockNote blocks (legacy/default)
+  // - { type: "doc" } → ProseMirror JSON (preserves comment marks)
+  const { parsedContent, pmContent } = useMemo(() => {
+    if (!initialContent) return { parsedContent: undefined, pmContent: undefined }
     try {
       const parsed = typeof initialContent === 'string' ? JSON.parse(initialContent) : initialContent
-      return Array.isArray(parsed) && parsed.length > 0 ? parsed : undefined
+      if (parsed && parsed.type === 'doc') {
+        // ProseMirror JSON — will be loaded via setContent after editor init.
+        // Delay content sync until setContent completes to prevent auto-save
+        // from overwriting the document with empty content.
+        ready.current = false
+        return { parsedContent: undefined, pmContent: parsed }
+      }
+      return {
+        parsedContent: Array.isArray(parsed) && parsed.length > 0 ? parsed : undefined,
+        pmContent: undefined
+      }
     } catch {
-      return undefined
+      return { parsedContent: undefined, pmContent: undefined }
     }
   }, [initialContent])
 
@@ -209,6 +222,30 @@ export default function BlockNoteEditorWrapper ({
       }, 300)
     }
   }, [handleChange, tableOfContents, editor])
+
+  // Restore ProseMirror JSON content (preserves comment marks).
+  // This handles content saved via _tiptapEditor.getJSON() when comments were active.
+  // Strips marks not registered in the current editor schema to avoid tiptap errors
+  // (e.g. "comment" marks when CommentsExtension is not loaded).
+  const pmContentApplied = useRef(false)
+  useEffect(() => {
+    if (pmContent && editor && !pmContentApplied.current) {
+      pmContentApplied.current = true
+      const schema = editor._tiptapEditor.schema
+      const strip = (node) => {
+        if (!node) return node
+        const result = { ...node }
+        if (result.marks) {
+          result.marks = result.marks.filter(m => schema.marks[m.type])
+          if (result.marks.length === 0) delete result.marks
+        }
+        if (result.content) result.content = result.content.map(strip)
+        return result
+      }
+      editor._tiptapEditor.commands.setContent(strip(pmContent))
+      ready.current = true
+    }
+  }, [editor, pmContent])
 
   // Expose editor instance to the parent (Stimulus controller) for export functionality
   useEffect(() => {
@@ -336,8 +373,8 @@ export default function BlockNoteEditorWrapper ({
         comments={commentsEnabled}
       >
         {editorChildren}
-        {commentsEnabled && !commentsPortalContainer && <ThreadsSidebar />}
-        {commentsEnabled && commentsPortalContainer && createPortal(<ThreadsSidebar />, commentsPortalContainer)}
+        {commentsEnabled && !commentsPortalContainer && <ThreadsSidebar filter='all' />}
+        {commentsEnabled && commentsPortalContainer && createPortal(<ThreadsSidebar filter='all' />, commentsPortalContainer)}
       </BlockNoteView>
     </div>
   )
