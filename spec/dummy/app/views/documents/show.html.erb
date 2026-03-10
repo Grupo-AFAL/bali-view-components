@@ -1,6 +1,9 @@
+<% content_for(:body_container) { "full" } %>
+
 <%= render Bali::DocumentPage::Component.new(
   title: @document.title,
   subtitle: "Last edited #{time_ago_in_words(@document.updated_at)} ago",
+  initial_content: @document.content,
   breadcrumbs: [
     { name: 'Dashboard', href: root_path, icon_name: 'home' },
     { name: 'Documents', href: documents_path },
@@ -11,17 +14,17 @@
     <div class="flex items-center gap-2">
       <button type="button"
               class="btn btn-primary btn-sm gap-2"
+              onclick="document.getElementById('document-viewer-overlay').classList.remove('hidden')">
+        <%= render Bali::Icon::Component.new('maximize', size: :small) %>
+        Full screen
+      </button>
+      <button type="button"
+              class="btn btn-ghost btn-sm gap-2"
               onclick="document.getElementById('document-editor-overlay').classList.remove('hidden')">
         <%= render Bali::Icon::Component.new('pencil', size: :small) %>
         Edit
       </button>
-      <button type="button"
-              class="btn btn-ghost btn-sm gap-2"
-              onclick="document.getElementById('document-viewer-overlay').classList.remove('hidden')">
-        <%= render Bali::Icon::Component.new('eye', size: :small) %>
-        View
-      </button>
-      <%= render Bali::ActionsDropdown::Component.new(size: :sm) do |dropdown| %>
+      <%= render Bali::ActionsDropdown::Component.new(size: :sm, align: :end) do |dropdown| %>
         <% dropdown.with_item(name: 'Export PDF', icon_name: 'file-text', href: '#') %>
         <% dropdown.with_item(name: 'Export DOCX', icon_name: 'file-down', href: '#') %>
         <% dropdown.with_item(name: 'Delete', icon_name: 'trash-2', href: document_path(@document), method: :delete, confirm: 'Delete this document?') %>
@@ -30,13 +33,15 @@
   <% end %>
 
   <% page.with_metadata do %>
-    <%= render Bali::Card::Component.new(style: :bordered) do %>
+    <div class="space-y-4">
       <div>
         <p class="text-xs text-base-content/50 uppercase tracking-wider">Status</p>
-        <%= render Bali::Tag::Component.new(
-            text: @document.status.humanize,
-            color: @document.published? ? :success : @document.archived? ? :ghost : :warning
-          ) %>
+        <div class="mt-1">
+          <%= render Bali::Tag::Component.new(
+              text: @document.status.humanize,
+              color: @document.published? ? :success : @document.archived? ? :ghost : :warning
+            ) %>
+        </div>
       </div>
       <div>
         <p class="text-xs text-base-content/50 uppercase tracking-wider">Author</p>
@@ -63,19 +68,7 @@
         <p class="text-xs text-base-content/50 uppercase tracking-wider">Word Count</p>
         <p class="text-sm"><%= number_with_delimiter(@document.word_count) %></p>
       </div>
-    <% end %>
-  <% end %>
-
-  <% page.with_preview do %>
-    <%= render Bali::Card::Component.new(style: :bordered) do %>
-      <h3 class="text-sm font-semibold text-base-content/60 uppercase tracking-wider mb-3">Preview</h3>
-      <div class="max-h-[600px] overflow-y-auto">
-        <%= render Bali::BlockEditor::Component.new(
-            initial_content: @document.content,
-            editable: false
-          ) %>
-      </div>
-    <% end %>
+    </div>
   <% end %>
 <% end %>
 

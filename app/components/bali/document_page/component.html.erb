@@ -1,7 +1,8 @@
 <%= tag.div(**container_attributes) do %>
-  <%= render_breadcrumbs %>
+  <div class="px-4 md:px-6 pt-4">
+    <%= render_breadcrumbs %>
 
-  <%= render Bali::PageHeader::Component.new(back: back, class: breadcrumb_spacer_class) do |header| %>
+    <%= render Bali::PageHeader::Component.new(back: back, class: breadcrumb_spacer_class) do |header| %>
     <% header.with_title do %>
       <div class="flex items-center gap-3">
         <%= title %>
@@ -39,6 +40,7 @@
       <% end %>
     </div>
   <% end %>
+  </div>
 
   <% if three_panel? %>
     <%# Three-panel layout %>
