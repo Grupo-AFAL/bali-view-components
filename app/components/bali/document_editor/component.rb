@@ -12,7 +12,7 @@ module Bali
         versions_url: nil,
         editable: true,
         auto_save: true,
-        auto_save_delay: 3000,
+        auto_save_delay: 60000,
         comments: nil,
         export: false,
         export_filename: nil,

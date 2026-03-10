@@ -15,14 +15,14 @@ export class DocumentEditorController extends Controller {
     'titleInput', 'tocPanel', 'tocContainer',
     'commentsPanel', 'commentsToggle',
     'historyPanel', 'historyToggle',
-    'versionsList', 'saveStatus',
+    'versionsList', 'saveStatus', 'saveButton',
     'previewBanner', 'previewVersionLabel',
     'editorArea'
   ]
 
   static values = {
     autoSave: { type: Boolean, default: true },
-    autoSaveDelay: { type: Number, default: 3000 },
+    autoSaveDelay: { type: Number, default: 60000 },
     documentUrl: String,
     closeUrl: String,
     versionsUrl: String,
@@ -88,12 +88,16 @@ export class DocumentEditorController extends Controller {
   }
 
   scheduleSave () {
+    this._dirty = true
+    this._updateStatus('Unsaved changes')
     if (!this.autoSaveValue) return
     if (this.saveTimeout) clearTimeout(this.saveTimeout)
     this.saveTimeout = setTimeout(() => { this.save() }, this.autoSaveDelayValue)
   }
 
   async save () {
+    if (this._saving) return
+    this._saving = true
     this._updateStatus('Saving...')
     const csrfToken = document.querySelector("meta[name='csrf-token']")?.content
     const body = { document: {} }
@@ -118,6 +122,7 @@ export class DocumentEditorController extends Controller {
         body: JSON.stringify(body)
       })
       if (response.ok) {
+        this._dirty = false
         this._updateStatus(`Saved at ${new Date().toLocaleTimeString()}`)
       } else {
         this._updateStatus('Save failed', true)
@@ -126,6 +131,16 @@ export class DocumentEditorController extends Controller {
     } catch (error) {
       this._updateStatus('Save failed', true)
       console.error('Auto-save error:', error)
+    } finally {
+      this._saving = false
+      // If new changes came in during save, show unsaved and re-schedule
+      if (this._dirty) {
+        this._updateStatus('Unsaved changes')
+        if (this.autoSaveValue) {
+          if (this.saveTimeout) clearTimeout(this.saveTimeout)
+          this.saveTimeout = setTimeout(() => { this.save() }, this.autoSaveDelayValue)
+        }
+      }
     }
   }
 
@@ -341,10 +356,14 @@ export class DocumentEditorController extends Controller {
   }
 
   _updateStatus (text, error = false) {
-    if (!this.hasSaveStatusTarget) return
-    this.saveStatusTarget.textContent = text
-    this.saveStatusTarget.classList.toggle('text-error', error)
-    this.saveStatusTarget.classList.toggle('text-base-content/50', !error)
+    if (this.hasSaveStatusTarget) {
+      this.saveStatusTarget.textContent = text
+      this.saveStatusTarget.classList.toggle('text-error', error)
+      this.saveStatusTarget.classList.toggle('text-base-content/50', !error)
+    }
+    if (this.hasSaveButtonTarget) {
+      this.saveButtonTarget.disabled = !this._dirty
+    }
   }
 
   _timeAgo (dateString) {

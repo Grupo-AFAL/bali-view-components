@@ -9,8 +9,8 @@
       <%= render Bali::Icon::Component.new('panel-left', size: :small) %>
     </button>
 
-    <%# Center: Title + Save Status %>
-    <div class="flex-1 min-w-0 flex items-center gap-3">
+    <%# Center: Title %>
+    <div class="flex-1 min-w-0">
       <% if editable? %>
         <%= tag.input type: "text", value: title,
               class: "input input-ghost text-lg font-semibold w-full max-w-md",
@@ -19,11 +19,22 @@
       <% else %>
         <h1 class="text-lg font-semibold truncate"><%= title %></h1>
       <% end %>
-      <span class="text-xs text-base-content/50 shrink-0" data-document-editor-target="saveStatus"></span>
     </div>
 
-    <%# Right: Panel toggles + Close %>
+    <%# Right: Save status + Panel toggles + Close %>
     <div class="flex items-center gap-1">
+      <span class="text-xs text-base-content/50 shrink-0" data-document-editor-target="saveStatus"></span>
+      <% if editable? %>
+        <button type="button"
+                class="btn btn-ghost btn-sm gap-1"
+                data-action="document-editor#save"
+                data-document-editor-target="saveButton"
+                disabled
+                title="Save changes">
+          <%= render Bali::Icon::Component.new('save', size: :small) %>
+          Save
+        </button>
+      <% end %>
       <% if comments? %>
         <button type="button"
                 class="btn btn-ghost btn-sm btn-square"
