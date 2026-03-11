@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2.7.3] - 2026-03-11
+
+### Changed
+
+- **DocumentPage** - Remove internal padding from header and subheader areas; relies on app layout padding instead
+
 ## [v2.7.2] - 2026-03-11
 
 ### Added

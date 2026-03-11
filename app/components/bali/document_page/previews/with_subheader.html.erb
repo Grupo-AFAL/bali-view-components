@@ -22,7 +22,7 @@
   <% end %>
 
   <% page.with_subheader do %>
-    <%= render Bali::Message::Component.new(color: :info, style: :soft, class: "mt-2") do %>
+    <%= render Bali::Message::Component.new(color: :info, style: :soft) do %>
       This document is pending approval from <strong>2 reviewers</strong>. You will be notified once all approvals are received.
     <% end %>
   <% end %>

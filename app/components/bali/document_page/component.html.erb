@@ -1,5 +1,5 @@
 <%= tag.div(**container_attributes) do %>
-  <div class="px-4 md:px-6 pt-4">
+  <div>
     <%= render_breadcrumbs %>
 
     <%= render Bali::PageHeader::Component.new(back: back, class: breadcrumb_spacer_class) do |header| %>
@@ -39,7 +39,7 @@
   </div>
 
   <% if subheader? %>
-    <div class="px-4 md:px-6">
+    <div>
       <%= subheader %>
     </div>
   <% end %>
