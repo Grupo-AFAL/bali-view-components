@@ -104,6 +104,8 @@ export class RESTThreadStore extends ThreadStore {
     }
   }
 
+  // TODO: _removeMarks is not removing comment highlights from the document body after deletion.
+  //       The thread is removed from the sidebar but the text stays highlighted.
   async deleteThread ({ threadId }) {
     await this._delete(`/${threadId}`)
 
