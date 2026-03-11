@@ -19,6 +19,13 @@
       <% end %>
     </div>
 
+    <%# Custom toolbar slot %>
+    <% if toolbar? %>
+      <div class="flex items-center gap-1">
+        <%= toolbar %>
+      </div>
+    <% end %>
+
     <%# Right: Save status + Panel toggles + Close %>
     <div class="flex items-center gap-1">
       <span class="text-xs text-base-content/50 shrink-0" data-document-editor-target="saveStatus"></span>

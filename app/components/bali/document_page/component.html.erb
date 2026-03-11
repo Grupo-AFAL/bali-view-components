@@ -38,6 +38,12 @@
   <% end %>
   </div>
 
+  <% if subheader? %>
+    <div class="px-4 md:px-6">
+      <%= subheader %>
+    </div>
+  <% end %>
+
   <% if three_panel? %>
     <%# Three-panel layout %>
     <div class="flex items-start border-t border-base-300 mt-4">

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2.7.2] - 2026-03-11
+
+### Added
+
+- **DocumentEditor** - `toolbar` slot for custom content between the document title and action buttons in the app bar
+- **DocumentPage** - `subheader` slot for custom content between the page header and content area
+
 ## [v2.7.1] - 2026-03-10
 
 ### Added

@@ -37,6 +37,19 @@ module Bali
           export: true
         )
       end
+
+      # Shows a custom toolbar slot between the title and action buttons.
+      # Use `with_toolbar` to inject any content into the app bar.
+      def with_toolbar
+        sample_content = [
+          { "type" => "heading", "props" => { "level" => 1 },
+            "content" => [{ "type" => "text", "text" => "Document with Toolbar" }] },
+          { "type" => "paragraph",
+            "content" => [{ "type" => "text", "text" => "This preview demonstrates the toolbar slot with a status indicator." }] }
+        ]
+
+        render_with_template(locals: { sample_content: sample_content })
+      end
     end
   end
 end
