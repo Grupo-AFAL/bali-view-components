@@ -108,7 +108,16 @@ export class RESTThreadStore extends ThreadStore {
     await this._delete(`/${threadId}`)
 
     this._threads.delete(threadId)
+    this._removeMarks(threadId)
     this._notify()
+  }
+
+  /**
+   * Set a reference to the BlockNote editor so we can manipulate marks.
+   * Called from BlockNoteEditorWrapper after the editor is created.
+   */
+  setEditor (editor) {
+    this._editor = editor
   }
 
   async resolveThread ({ threadId }) {
@@ -362,6 +371,23 @@ export class RESTThreadStore extends ThreadStore {
       headers: this._headers()
     })
     if (!response.ok) throw new Error(`DELETE ${path} failed: ${response.status}`)
+  }
+
+  _removeMarks (threadId) {
+    if (!this._editor?._tiptapEditor) return
+    const { state, dispatch } = this._editor._tiptapEditor.view
+    const markType = state.schema.marks.comment
+    if (!markType) return
+
+    const { tr } = state
+    let changed = false
+    state.doc.descendants((node, pos) => {
+      if (node.marks?.some(m => m.type === markType && m.attrs.threadId === threadId)) {
+        tr.removeMark(pos, pos + node.nodeSize, markType.create({ threadId }))
+        changed = true
+      }
+    })
+    if (changed) dispatch(tr)
   }
 
   async _deleteWithBody (path, body) {

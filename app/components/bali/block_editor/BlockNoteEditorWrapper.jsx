@@ -270,12 +270,16 @@ export default function BlockNoteEditorWrapper ({
     setCommentsReady(true)
   }, [editor, commentsResult])
 
-  // Expose editor instance to the parent (Stimulus controller) for export functionality
+  // Expose editor instance to the parent (Stimulus controller) for export functionality,
+  // and give the ThreadStore a reference so it can remove marks on thread deletion.
   useEffect(() => {
     if (editor && onEditorReady) {
       onEditorReady(editor)
     }
-  }, [editor, onEditorReady])
+    if (editor && commentsResult?.threadStore?.setEditor) {
+      commentsResult.threadStore.setEditor(editor)
+    }
+  }, [editor, onEditorReady, commentsResult])
 
   // Prevent BlockNote's AI menu from jumping page scroll when the editor is already visible.
   // Two scroll sources cause this:

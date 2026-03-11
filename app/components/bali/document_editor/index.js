@@ -123,6 +123,11 @@ export class DocumentEditorController extends Controller {
     if (this._saving) return
     this._saving = true
     this._updateStatus('Saving...')
+
+    // Flush content synchronously to avoid the 500ms debounce in useContentSync
+    // which can cause stale reads (e.g. missing comment marks)
+    this._flushContent()
+
     const csrfToken = document.querySelector("meta[name='csrf-token']")?.content
     const body = { document: {} }
 
@@ -334,6 +339,29 @@ export class DocumentEditorController extends Controller {
     el.querySelector('[data-action*="restoreVersion"]').dataset.versionId = v.id
 
     return fragment
+  }
+
+  _flushContent () {
+    const blockEditor = this._blockEditorController()
+    if (!blockEditor?.blockNoteEditor) return
+
+    const editor = blockEditor.blockNoteEditor
+    const contentInput = this.element.querySelector(`input[name='${this.inputNameValue}']`)
+    if (!contentInput) return
+
+    let hasComments = false
+    editor._tiptapEditor.state.doc.descendants((node) => {
+      if (!hasComments && node.marks?.some(m => m.type.name === 'comment')) {
+        hasComments = true
+      }
+      return !hasComments
+    })
+
+    if (hasComments) {
+      contentInput.value = JSON.stringify(editor._tiptapEditor.getJSON())
+    } else {
+      contentInput.value = JSON.stringify(editor.document)
+    }
   }
 
   _updateStatus (text, error = false) {

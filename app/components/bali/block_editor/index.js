@@ -147,12 +147,20 @@ export class BlockEditorController extends Controller {
       this._turboMeta.remove()
       this._turboMeta = null
     }
+    // Destroy the tiptap/ProseMirror editor BEFORE React unmount.
+    // ProseMirror plugins (e.g. Placeholder) remove DOM nodes during destroy —
+    // if Turbo has already detached the tree, removeChild throws.
+    // Destroying while DOM is still attached prevents the error.
+    if (this.blockNoteEditor?._tiptapEditor) {
+      try { this.blockNoteEditor._tiptapEditor.destroy() } catch { /* noop */ }
+    }
+    this.blockNoteEditor = null
+
     if (this.root) {
-      this.root.unmount()
+      try { this.root.unmount() } catch { /* noop */ }
       this.root = null
     }
     this._mountPoint = null
-    this.blockNoteEditor = null
   }
 
   async exportPdf () {
