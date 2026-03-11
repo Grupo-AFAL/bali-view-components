@@ -3,6 +3,8 @@
 module Bali
   module DocumentEditor
     class Component < ApplicationViewComponent
+      renders_one :toolbar
+
       # rubocop:disable Metrics/ParameterLists
       def initialize(
         title:,

@@ -1,0 +1,18 @@
+<%= render Bali::DocumentEditor::Component.new(
+  title: "Q2 2026 Product Roadmap",
+  initial_content: sample_content,
+  document_url: "/lookbook",
+  close_url: "/lookbook",
+  editable: true,
+  auto_save: false
+) do |editor| %>
+  <% editor.with_toolbar do %>
+    <%= render Bali::Tag::Component.new(text: "Published", color: :success, size: :sm) %>
+    <div class="divider divider-horizontal mx-1 h-6"></div>
+    <div class="flex items-center gap-1.5 text-xs text-base-content/50">
+      <%= render Bali::Icon::Component.new("user", size: :small) %>
+      <span>Sarah Chen</span>
+    </div>
+    <span class="text-xs text-base-content/40">edited 2 hours ago</span>
+  <% end %>
+<% end %>
