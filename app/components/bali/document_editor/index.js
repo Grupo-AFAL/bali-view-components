@@ -140,6 +140,12 @@ export class DocumentEditorController extends Controller {
       body.document.content = contentInput.value
     }
 
+    // Nothing to save (e.g. read-only viewer overlay with no inputs)
+    if (Object.keys(body.document).length === 0) {
+      this._saving = false
+      return
+    }
+
     try {
       const response = await fetch(this.documentUrlValue, {
         method: 'PATCH',
