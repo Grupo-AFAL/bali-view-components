@@ -14,6 +14,12 @@ module Bali
       def with_panels
         render_with_template
       end
+
+      # Shows the subheader slot between the page header and content area.
+      # Use `with_subheader` to inject tabs, alerts, or any custom content.
+      def with_subheader
+        render_with_template
+      end
     end
   end
 end

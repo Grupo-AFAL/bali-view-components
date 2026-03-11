@@ -1,0 +1,46 @@
+<%= render Bali::DocumentPage::Component.new(
+  title: "Q2 2026 Product Roadmap",
+  subtitle: "Last edited 2 hours ago",
+  breadcrumbs: [
+    { name: "Dashboard", href: "/lookbook" },
+    { name: "Documents", href: "/lookbook" },
+    { name: "Q2 2026 Product Roadmap" }
+  ],
+  initial_content: [
+    { type: "heading", props: { level: 1 }, content: [{ type: "text", text: "Executive Summary" }], children: [] },
+    { type: "paragraph", content: [{ type: "text", text: "This document outlines the key objectives and milestones for the upcoming quarter." }], children: [] },
+    { type: "heading", props: { level: 2 }, content: [{ type: "text", text: "Goals & Objectives" }], children: [] },
+    { type: "paragraph", content: [{ type: "text", text: "Our Q2 goals are structured around three pillars: stability, growth, and innovation." }], children: [] }
+  ].to_json
+) do |page| %>
+  <% page.with_title_tag do %>
+    <%= render Bali::Tag::Component.new(text: "Published", color: :success, size: :sm) %>
+  <% end %>
+
+  <% page.with_action do %>
+    <%= render Bali::Button::Component.new(name: "Edit", variant: :primary, size: :sm, icon_name: "pencil") %>
+  <% end %>
+
+  <% page.with_subheader do %>
+    <%= render Bali::Notification::Component.new(type: :info, dismissible: false, class: "mt-2") do %>
+      This document is pending approval from <strong>2 reviewers</strong>. You will be notified once all approvals are received.
+    <% end %>
+  <% end %>
+
+  <% page.with_metadata do %>
+    <div class="space-y-5">
+      <div>
+        <p class="text-xs text-base-content/50 uppercase tracking-wider mb-1">Status</p>
+        <%= render Bali::Tag::Component.new(text: "Published", color: :success, size: :sm) %>
+      </div>
+      <div>
+        <p class="text-xs text-base-content/50 uppercase tracking-wider mb-1">Author</p>
+        <p class="text-sm">Sarah Chen</p>
+      </div>
+      <div>
+        <p class="text-xs text-base-content/50 uppercase tracking-wider mb-1">Created</p>
+        <p class="text-sm">March 1, 2026</p>
+      </div>
+    </div>
+  <% end %>
+<% end %>

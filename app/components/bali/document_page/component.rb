@@ -8,6 +8,7 @@ module Bali
       renders_many :title_tags
       renders_many :actions
       renders_one :metadata
+      renders_one :subheader
       renders_one :preview
 
       def initialize(
