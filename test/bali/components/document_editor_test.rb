@@ -209,7 +209,7 @@ class BaliDocumentEditorComponentTest < ComponentTestCase
       document_url: "/documents/1"
     ))
     assert_selector("[data-document-editor-target='tocPanel']")
-    assert_selector("#document-editor-toc-container")
+    assert_selector("[id^='document-editor-toc-']")
   end
 
   def test_passes_custom_input_name_to_controller

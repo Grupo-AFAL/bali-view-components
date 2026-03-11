@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class DocumentsController < ApplicationController
-  before_action :set_document, only: %i[show edit update destroy restore_version]
+  before_action :set_document, only: %i[show update destroy restore_version]
 
   DEMO_USER = "Demo User"
   DEMO_USERS = [

@@ -1,7 +1,8 @@
 <%= tag.div(**container_attributes) do %>
-  <%= render_breadcrumbs %>
+  <div class="px-4 md:px-6 pt-4">
+    <%= render_breadcrumbs %>
 
-  <%= render Bali::PageHeader::Component.new(back: back, class: breadcrumb_spacer_class) do |header| %>
+    <%= render Bali::PageHeader::Component.new(back: back, class: breadcrumb_spacer_class) do |header| %>
     <% header.with_title do %>
       <div class="flex items-center gap-3">
         <%= title %>
@@ -14,23 +15,19 @@
 
     <div class="flex items-center gap-2">
       <% if toc? %>
-        <button type="button"
-                class="btn btn-ghost btn-sm btn-square"
-                data-action="document-page#toggleToc"
-                data-document-page-target="tocToggle"
-                title="Toggle table of contents">
+        <%= render Bali::Button::Component.new(variant: :ghost, size: :sm, class: "btn-square",
+              data: { action: "document-page#toggleToc", document_page_target: "tocToggle" },
+              title: "Toggle table of contents") do %>
           <%= render Bali::Icon::Component.new('panel-left', size: :small) %>
-        </button>
+        <% end %>
       <% end %>
 
       <% if three_panel? && metadata? %>
-        <button type="button"
-                class="btn btn-ghost btn-sm btn-square"
-                data-action="document-page#toggleMetadata"
-                data-document-page-target="metadataToggle"
-                title="Toggle details">
+        <%= render Bali::Button::Component.new(variant: :ghost, size: :sm, class: "btn-square",
+              data: { action: "document-page#toggleMetadata", document_page_target: "metadataToggle" },
+              title: "Toggle details") do %>
           <%= render Bali::Icon::Component.new('panel-right', size: :small) %>
-        </button>
+        <% end %>
       <% end %>
 
       <% if actions? %>
@@ -39,6 +36,7 @@
       <% end %>
     </div>
   <% end %>
+  </div>
 
   <% if three_panel? %>
     <%# Three-panel layout %>

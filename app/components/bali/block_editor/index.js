@@ -24,6 +24,7 @@ export class BlockEditorController extends Controller {
     tableOfContents: { type: Boolean, default: false },
     tableOfContentsContainerId: { type: String, default: '' },
     comments: { type: Boolean, default: false },
+    commentsContainerId: { type: String, default: '' },
     commentsUrl: { type: String, default: '' },
     commentsUser: { type: Object, default: {} },
     commentsUsers: { type: Array, default: [] },
@@ -75,6 +76,7 @@ export class BlockEditorController extends Controller {
         tableOfContents: this.tableOfContentsValue,
         tableOfContentsContainerId: this.tableOfContentsContainerIdValue || undefined,
         comments: this.commentsValue,
+        commentsContainerId: this.commentsContainerIdValue || undefined,
         commentsUrl: this.commentsUrlValue || undefined,
         commentsUser: Object.keys(this.commentsUserValue).length > 0 ? this.commentsUserValue : undefined,
         commentsUsers: this.commentsUsersValue.length > 0 ? this.commentsUsersValue : undefined,
@@ -145,12 +147,20 @@ export class BlockEditorController extends Controller {
       this._turboMeta.remove()
       this._turboMeta = null
     }
+    // Destroy the tiptap/ProseMirror editor BEFORE React unmount.
+    // ProseMirror plugins (e.g. Placeholder) remove DOM nodes during destroy —
+    // if Turbo has already detached the tree, removeChild throws.
+    // Destroying while DOM is still attached prevents the error.
+    if (this.blockNoteEditor?._tiptapEditor) {
+      try { this.blockNoteEditor._tiptapEditor.destroy() } catch { /* noop */ }
+    }
+    this.blockNoteEditor = null
+
     if (this.root) {
-      this.root.unmount()
+      try { this.root.unmount() } catch { /* noop */ }
       this.root = null
     }
     this._mountPoint = null
-    this.blockNoteEditor = null
   }
 
   async exportPdf () {

@@ -66,7 +66,10 @@ const config = {
     react: path.join(__dirname, 'node_modules/react'),
     'react-dom': path.join(__dirname, 'node_modules/react-dom'),
     'react/jsx-runtime': path.join(__dirname, 'node_modules/react/jsx-runtime'),
-    'react/jsx-dev-runtime': path.join(__dirname, 'node_modules/react/jsx-dev-runtime')
+    'react/jsx-dev-runtime': path.join(__dirname, 'node_modules/react/jsx-dev-runtime'),
+    // rrule's ESM build uses extensionless imports that esbuild can't resolve.
+    // Force the CJS build which works fine.
+    rrule: path.join(__dirname, 'node_modules/rrule/dist/es5/rrule.js')
   },
   loader: {
     // Inline fonts as data URIs — Propshaft's digest-based path resolution

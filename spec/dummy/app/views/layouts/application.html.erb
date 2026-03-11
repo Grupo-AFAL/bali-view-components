@@ -6,7 +6,7 @@
   </head>
   <%= render Bali::AppLayout::Component.new(
     flash: flash,
-    body_container: :contained,
+    body_container: content_for?(:body_container) ? content_for(:body_container).strip.to_sym : :contained,
     class: "bg-base-200",
     data: { controller: "theme-switcher" }
   ) do |layout| %>

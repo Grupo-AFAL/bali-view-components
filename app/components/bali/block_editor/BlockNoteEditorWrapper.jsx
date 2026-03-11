@@ -73,6 +73,7 @@ export default function BlockNoteEditorWrapper ({
   tableOfContents = false,
   tableOfContentsContainerId,
   comments: commentsEnabled = false,
+  commentsContainerId,
   commentsUrl,
   commentsUser,
   commentsUsers,
@@ -86,13 +87,26 @@ export default function BlockNoteEditorWrapper ({
 
   const uploadFile = useFileUpload(uploadUrl)
 
-  const parsedContent = useMemo(() => {
-    if (!initialContent) return undefined
+  // Parse content, detecting format:
+  // - Array → BlockNote blocks (legacy/default)
+  // - { type: "doc" } → ProseMirror JSON (preserves comment marks)
+  const { parsedContent, pmContent } = useMemo(() => {
+    if (!initialContent) return { parsedContent: undefined, pmContent: undefined }
     try {
       const parsed = typeof initialContent === 'string' ? JSON.parse(initialContent) : initialContent
-      return Array.isArray(parsed) && parsed.length > 0 ? parsed : undefined
+      if (parsed && parsed.type === 'doc') {
+        // ProseMirror JSON — will be loaded via setContent after editor init.
+        // Delay content sync until setContent completes to prevent auto-save
+        // from overwriting the document with empty content.
+        ready.current = false
+        return { parsedContent: undefined, pmContent: parsed }
+      }
+      return {
+        parsedContent: Array.isArray(parsed) && parsed.length > 0 ? parsed : undefined,
+        pmContent: undefined
+      }
     } catch {
-      return undefined
+      return { parsedContent: undefined, pmContent: undefined }
     }
   }, [initialContent])
 
@@ -209,12 +223,63 @@ export default function BlockNoteEditorWrapper ({
     }
   }, [handleChange, tableOfContents, editor])
 
-  // Expose editor instance to the parent (Stimulus controller) for export functionality
+  // Restore ProseMirror JSON content (preserves comment marks).
+  // This handles content saved via _tiptapEditor.getJSON() when comments were active.
+  // Strips marks not registered in the current editor schema to avoid tiptap errors
+  // (e.g. "comment" marks when CommentsExtension is not loaded).
+  const pmContentApplied = useRef(false)
+  useEffect(() => {
+    if (pmContent && editor && !pmContentApplied.current) {
+      pmContentApplied.current = true
+      const schema = editor._tiptapEditor.schema
+      const strip = (node) => {
+        if (!node) return node
+        const result = { ...node }
+        if (result.marks) {
+          result.marks = result.marks.filter(m => schema.marks[m.type])
+          if (result.marks.length === 0) delete result.marks
+        }
+        if (result.content) result.content = result.content.map(strip)
+        return result
+      }
+      editor._tiptapEditor.commands.setContent(strip(pmContent))
+      ready.current = true
+    }
+  }, [editor, pmContent])
+
+  // Pre-populate the UserStore cache with all known users so that
+  // resolved threads don't crash when BlockNote's Comments component
+  // calls getUser() before async resolution completes.
+  // We gate BlockNoteView's comments prop AND ThreadsSidebar on
+  // commentsReady to ensure the cache is populated before any
+  // resolved-thread UI mounts.
+  const [commentsReady, setCommentsReady] = useState(!commentsEnabled)
+  useEffect(() => {
+    if (!editor || !commentsResult?.staticUserMap) return
+    // editor.extensions is a Map<key, extension>, not an array
+    if (editor.extensions) {
+      for (const [, ext] of editor.extensions) {
+        if (ext.userStore?.userCache) {
+          for (const [id, user] of commentsResult.staticUserMap) {
+            ext.userStore.userCache.set(id, user)
+          }
+          break
+        }
+      }
+    }
+    setCommentsReady(true)
+  }, [editor, commentsResult])
+
+  // Expose editor instance to the parent (Stimulus controller) for export functionality,
+  // and give the ThreadStore a reference so it can remove marks on thread deletion.
   useEffect(() => {
     if (editor && onEditorReady) {
       onEditorReady(editor)
     }
-  }, [editor, onEditorReady])
+    if (editor && commentsResult?.threadStore?.setEditor) {
+      commentsResult.threadStore.setEditor(editor)
+    }
+  }, [editor, onEditorReady, commentsResult])
 
   // Prevent BlockNote's AI menu from jumping page scroll when the editor is already visible.
   // Two scroll sources cause this:
@@ -245,7 +310,7 @@ export default function BlockNoteEditorWrapper ({
       const editorEl = editor.domElement
       if (editorEl && editorEl.contains(this)) {
         const rect = this.getBoundingClientRect()
-        if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
+        if (rect.height > 0 && rect.top >= 0 && rect.bottom <= window.innerHeight) {
           // Element is visible — suppress and lock scroll position to catch
           // any ProseMirror transaction-level scrolling in the same frame
           if (savedScrollY === null) savedScrollY = window.scrollY
@@ -316,10 +381,15 @@ export default function BlockNoteEditorWrapper ({
   )
 
   // ThreadsSidebar must be a child of BlockNoteView for access to the
-  // BlockNote context. We wrap the view in a CSS class so that
-  // .bn-container gains flex layout to place the sidebar beside the editor.
+  // BlockNote context. When commentsContainerId is provided, portal the
+  // sidebar into an external container (e.g. DocumentEditor's side panel),
+  // following the same pattern as the TOC portal.
+  const commentsPortalContainer = commentsContainerId
+    ? document.getElementById(commentsContainerId)
+    : null
+
   const editorView = (
-    <div className={commentsEnabled ? 'bn-with-comments' : undefined}>
+    <div className={commentsEnabled && !commentsPortalContainer ? 'bn-with-comments' : undefined}>
       <BlockNoteView
         editor={editor}
         editable={editable}
@@ -327,10 +397,11 @@ export default function BlockNoteEditorWrapper ({
         onChange={handleChangeWithToc}
         slashMenu={false}
         formattingToolbar={needsCustomToolbar ? false : undefined}
-        comments={commentsEnabled}
+        comments={commentsEnabled && commentsReady}
       >
         {editorChildren}
-        {commentsEnabled && <ThreadsSidebar />}
+        {commentsEnabled && commentsReady && !commentsPortalContainer && <ThreadsSidebar filter='all' />}
+        {commentsEnabled && commentsReady && commentsPortalContainer && createPortal(<ThreadsSidebar filter='all' />, commentsPortalContainer)}
       </BlockNoteView>
     </div>
   )
@@ -343,7 +414,7 @@ export default function BlockNoteEditorWrapper ({
   if (tableOfContents && tocPortalContainer) {
     return (
       <>
-        {createPortal(<TableOfContents headings={tocHeadings} />, tocPortalContainer)}
+        {createPortal(<TableOfContents headings={tocHeadings} editorElement={editor?.domElement} />, tocPortalContainer)}
         {editorView}
       </>
     )
@@ -353,7 +424,7 @@ export default function BlockNoteEditorWrapper ({
   if (tableOfContents) {
     return (
       <div className='bn-toc-layout'>
-        <TableOfContents headings={tocHeadings} />
+        <TableOfContents headings={tocHeadings} editorElement={editor?.domElement} />
         <div className='bn-toc-editor-wrapper'>{editorView}</div>
       </div>
     )

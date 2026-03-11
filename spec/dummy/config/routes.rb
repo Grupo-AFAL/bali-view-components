@@ -86,6 +86,11 @@ Rails.application.routes.draw do
   # Documents (full editing experience reference)
   resources :documents do
     resources :versions, only: [:index, :show], controller: 'document_versions'
+    resources :comment_threads, path: 'comments', controller: 'documents/comment_threads', only: %i[index create update destroy] do
+      resources :comments, controller: 'documents/comment_threads/comments', only: %i[create update destroy] do
+        resource :reactions, controller: 'documents/comment_threads/comments/reactions', only: %i[create destroy]
+      end
+    end
     member do
       post :restore_version
     end

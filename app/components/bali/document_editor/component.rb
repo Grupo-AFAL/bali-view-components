@@ -12,7 +12,7 @@ module Bali
         versions_url: nil,
         editable: true,
         auto_save: true,
-        auto_save_delay: 3000,
+        auto_save_delay: 30000,
         comments: nil,
         export: false,
         export_filename: nil,
@@ -39,6 +39,7 @@ module Bali
         @mentions_url = mentions_url
         @mentions = mentions
         @options = options
+        @instance_id = SecureRandom.hex(4)
       end
 
       def editable?
@@ -58,7 +59,16 @@ module Bali
       attr_reader :title, :initial_content, :document_url, :close_url,
                   :versions_url, :auto_save, :auto_save_delay,
                   :export, :export_filename, :input_name,
-                  :ai_url, :mentions_url, :mentions, :options
+                  :ai_url, :mentions_url, :mentions, :options,
+                  :instance_id
+
+      def toc_container_id
+        "document-editor-toc-#{instance_id}"
+      end
+
+      def comments_container_id
+        "document-editor-comments-#{instance_id}"
+      end
 
       def container_attributes
         options.except(:class).merge(

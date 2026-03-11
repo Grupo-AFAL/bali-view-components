@@ -71,6 +71,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_09_000003) do
     t.index ["document_id"], name: "index_block_editor_threads_on_document_id"
   end
 
+  create_table "characters", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "movie_id", null: false
+    t.string "name"
+    t.integer "position", default: 0
+    t.datetime "updated_at", null: false
+    t.index ["movie_id"], name: "index_characters_on_movie_id"
+  end
+
   create_table "document_versions", force: :cascade do |t|
     t.string "author_name", null: false
     t.json "content", default: []
@@ -89,15 +98,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_09_000003) do
     t.integer "status", default: 0, null: false
     t.string "title", null: false
     t.datetime "updated_at", null: false
-  end
-
-  create_table "characters", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.integer "movie_id", null: false
-    t.string "name"
-    t.integer "position", default: 0
-    t.datetime "updated_at", null: false
-    t.index ["movie_id"], name: "index_characters_on_movie_id"
   end
 
   create_table "form_records", force: :cascade do |t|
@@ -164,8 +164,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_09_000003) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "block_editor_comments", "block_editor_threads"
-  add_foreign_key "block_editor_threads", "documents"
   add_foreign_key "block_editor_reactions", "block_editor_comments"
+  add_foreign_key "block_editor_threads", "documents"
   add_foreign_key "characters", "movies"
   add_foreign_key "document_versions", "documents"
   add_foreign_key "movies", "tenants"

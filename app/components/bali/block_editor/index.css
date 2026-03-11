@@ -386,7 +386,13 @@
   overflow-y: auto;
 }
 
-/* Thread card styling - DaisyUI integration */
+/* -------------------------------------------------------
+ * Comments — Inline (inside .block-editor-component)
+ * These styles apply when ThreadsSidebar renders alongside
+ * the editor inside BlockNoteView (non-portaled mode).
+ * ------------------------------------------------------- */
+
+/* Thread card - inline */
 .block-editor-component .bn-thread {
   background-color: var(--color-base-100);
   border: 1px solid color-mix(in oklch, var(--color-base-content) 12%, transparent);
@@ -401,13 +407,41 @@
   border-color: color-mix(in oklch, var(--color-primary) 40%, transparent);
 }
 
-/* Comment text highlight in editor (marks where threads are anchored) */
-.block-editor-component .bn-comment-mark {
+/* Comment text highlight in editor (marks where threads are anchored).
+ * BlockNote uses .bn-thread-mark for comment marks in the editor.
+ * We also keep .bn-comment-mark for backwards compatibility. */
+.block-editor-component .bn-comment-mark,
+.block-editor-component .bn-thread-mark {
   background-color: color-mix(in oklch, var(--color-warning) 20%, transparent);
   border-bottom: 2px solid color-mix(in oklch, var(--color-warning) 50%, transparent);
+  cursor: pointer;
+  padding: 1px 0;
+  border-radius: 2px;
+  transition: background-color 0.15s ease;
 }
 
-.block-editor-component .bn-comment-mark.selected {
+.block-editor-component .bn-comment-mark:hover,
+.block-editor-component .bn-thread-mark:hover {
+  background-color: color-mix(in oklch, var(--color-warning) 30%, transparent);
+}
+
+/* --- Sidebar is read-only: hide interactive comment actions ---
+   Shared between inline (.block-editor-component) and portaled (.document-editor-panel) sidebars. */
+:is(.block-editor-component, .document-editor-panel) .bn-threads-sidebar .bn-action-toolbar,
+:is(.block-editor-component, .document-editor-panel) .bn-threads-sidebar .bn-comment-actions-wrapper {
+  display: none !important;
+}
+
+:is(.block-editor-component, .document-editor-panel) .bn-threads-sidebar .bn-thread-composer {
+  display: none !important;
+}
+
+:is(.block-editor-component, .document-editor-panel) .bn-threads-sidebar .bn-comment-add-reaction {
+  display: none !important;
+}
+
+.block-editor-component .bn-comment-mark.selected,
+.block-editor-component .bn-thread-mark-selected {
   background-color: color-mix(in oklch, var(--color-warning) 35%, transparent);
 }
 
@@ -421,71 +455,411 @@
   max-width: 20rem;
 }
 
-/* The "Save" button in comment action toolbars already has text — hide its redundant Mantine
- * tooltip. withinPortal=false renders the tooltip inline inside .bn-comment-actions, where
- * our .mantine-Popover-dropdown styles give it a visible border/background, making it look
- * like a second button. We use :has([data-test="save"]) so only toolbars with a Save text
- * button are affected — icon-only toolbars (resolve, delete, emoji) keep their tooltips. */
-.block-editor-component .bn-comment-actions:has([data-test="save"]) .bn-tooltip {
+/* --- Tooltip styling (Mantine Tooltip used by reaction badges, action buttons) ---
+   Shared between inline and portaled sidebars. */
+:is(.block-editor-component, .document-editor-panel) .bn-tooltip {
+  background-color: var(--color-base-200) !important;
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
+  border-radius: 0.375rem !important;
+  box-shadow: 0 2px 8px color-mix(in oklch, var(--color-base-content) 10%, transparent) !important;
+  color: var(--color-base-content) !important;
+  padding: 4px 8px !important;
+  font-size: 0.75rem !important;
+  line-height: 1.4 !important;
+  text-align: center !important;
+  z-index: 9999 !important;
+}
+
+:is(.block-editor-component, .document-editor-panel) .mantine-Tooltip-tooltip {
+  z-index: 9999 !important;
+}
+
+/* Hide redundant Save-button tooltip (withinPortal=false renders it inline) */
+:is(.block-editor-component, .document-editor-panel) .bn-comment-actions:has([data-test="save"]) .bn-tooltip {
   display: none !important;
 }
 
-/* Comment author info */
-.block-editor-component .bn-comment-author {
-  font-weight: 600;
-  font-size: 0.85rem;
-  color: var(--color-base-content);
+/* Action toolbar - inline */
+.block-editor-component .bn-action-toolbar {
+  background-color: var(--color-base-100);
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 12%, transparent);
+  border-radius: 0.375rem;
+  padding: 2px;
+  gap: 0;
 }
 
-.block-editor-component .bn-comment-time {
-  font-size: 0.75rem;
-  color: color-mix(in oklch, var(--color-base-content) 50%, transparent);
-}
-
-/* Comment body text */
-.block-editor-component .bn-comment-body {
-  font-size: 0.875rem;
-  line-height: 1.5;
-  color: var(--color-base-content);
-}
-
-/* Comment actions (resolve, delete, reply) */
-.block-editor-component .bn-comment-actions button {
-  font-size: 0.75rem;
-  color: color-mix(in oklch, var(--color-base-content) 50%, transparent);
-  background: none;
+.block-editor-component .bn-action-toolbar .mantine-ActionIcon-root,
+.block-editor-component .bn-action-toolbar .mantine-Button-root {
+  background-color: transparent;
   border: none;
+  color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
   cursor: pointer;
-  padding: 0.15rem 0.35rem;
   border-radius: 0.25rem;
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  padding: 0.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.block-editor-component .bn-comment-actions button:hover {
+.block-editor-component .bn-action-toolbar .mantine-ActionIcon-root:hover,
+.block-editor-component .bn-action-toolbar .mantine-Button-root:hover {
+  background-color: color-mix(in oklch, var(--color-base-content) 10%, transparent);
+  color: var(--color-base-content);
+}
+
+/* --- Floating thread/composer: restore visible Save/Cancel button text ---
+ * Shared between inline and portaled sidebars. */
+:is(.block-editor-component, .document-editor-panel) .bn-thread-composer .bn-action-toolbar .mantine-Button-label,
+:is(.block-editor-component, .document-editor-panel) .bn-comment-actions-wrapper .bn-action-toolbar .mantine-Button-label {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  overflow: visible;
+}
+
+:is(.block-editor-component, .document-editor-panel) .bn-thread-composer .bn-action-toolbar .mantine-Button-root,
+:is(.block-editor-component, .document-editor-panel) .bn-comment-actions-wrapper .bn-action-toolbar .mantine-Button-root {
+  width: auto;
+  height: auto;
+  min-width: auto;
+  min-height: 1.5rem;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-primary);
+  background-color: color-mix(in oklch, var(--color-primary) 10%, transparent);
+  border-radius: 0.375rem;
+}
+
+:is(.block-editor-component, .document-editor-panel) .bn-thread-composer .bn-action-toolbar .mantine-Button-root:hover,
+:is(.block-editor-component, .document-editor-panel) .bn-comment-actions-wrapper .bn-action-toolbar .mantine-Button-root:hover {
+  background-color: color-mix(in oklch, var(--color-primary) 18%, transparent);
+  color: var(--color-primary);
+}
+
+/* --- Emoji reaction chips — shared between inline and portaled sidebars --- */
+:is(.block-editor-component, .document-editor-panel) .mantine-Chip-label {
+  font-size: 0.75rem !important;
+  padding: 0.15rem 0.5rem !important;
+  border-radius: 9999px !important;
+  cursor: pointer !important;
+  background-color: color-mix(in oklch, var(--color-base-content) 7%, transparent) !important;
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 10%, transparent) !important;
+  color: var(--color-base-content) !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.25rem !important;
+  line-height: 1.4 !important;
+}
+
+:is(.block-editor-component, .document-editor-panel) .mantine-Chip-label:hover {
+  background-color: color-mix(in oklch, var(--color-base-content) 14%, transparent) !important;
+  border-color: color-mix(in oklch, var(--color-base-content) 18%, transparent) !important;
+}
+
+:is(.block-editor-component, .document-editor-panel) .mantine-Chip-root:has(input:checked) .mantine-Chip-label {
+  background-color: color-mix(in oklch, var(--color-primary) 12%, transparent) !important;
+  border-color: color-mix(in oklch, var(--color-primary) 25%, transparent) !important;
+  color: var(--color-primary) !important;
+}
+
+:is(.block-editor-component, .document-editor-panel) .mantine-Chip-root:has(input:checked) .mantine-Chip-label:hover {
+  background-color: color-mix(in oklch, var(--color-primary) 20%, transparent) !important;
+}
+
+:is(.block-editor-component, .document-editor-panel) .mantine-Chip-input {
+  position: absolute !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+:is(.block-editor-component, .document-editor-panel) .bn-comment-add-reaction .mantine-Chip-label {
+  background-color: transparent !important;
+  border: 1px dashed color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
+  color: color-mix(in oklch, var(--color-base-content) 40%, transparent) !important;
+}
+
+:is(.block-editor-component, .document-editor-panel) .bn-comment-add-reaction .mantine-Chip-label:hover {
+  background-color: color-mix(in oklch, var(--color-base-content) 6%, transparent) !important;
+  border-style: solid !important;
+  color: color-mix(in oklch, var(--color-base-content) 65%, transparent) !important;
+}
+
+/* -------------------------------------------------------
+ * Comments — Sidebar Panel (portaled into .document-editor-panel)
+ *
+ * When DocumentEditor portals ThreadsSidebar into the right
+ * side panel, comments render OUTSIDE BlockNoteView. We add
+ * .bn-mantine on the container so BlockNote's own selectors
+ * still match. Below we layer DaisyUI-aware overrides for
+ * Mantine components that lose styling due to global resets.
+ * ------------------------------------------------------- */
+
+/* --- Thread cards --- */
+.document-editor-panel .bn-thread {
+  background-color: var(--color-base-100);
+  border: none;
+  border-bottom: 1px solid color-mix(in oklch, var(--color-base-content) 8%, transparent);
+  border-radius: 0;
+  padding: 0.875rem 0;
+  margin-bottom: 0;
+  box-shadow: none;
+  min-width: 0;
+  transition: background-color 0.15s;
+}
+
+.document-editor-panel .bn-thread:first-child {
+  padding-top: 0;
+}
+
+.document-editor-panel .bn-thread:last-child {
+  border-bottom: none;
+}
+
+.document-editor-panel .bn-thread:hover {
+  background-color: color-mix(in oklch, var(--color-base-content) 3%, transparent);
+}
+
+.document-editor-panel .bn-thread.selected {
+  background-color: color-mix(in oklch, var(--color-primary) 4%, transparent);
+  outline: 1.5px solid color-mix(in oklch, var(--color-primary) 35%, transparent);
+  outline-offset: -1.5px;
+  border-radius: 0.5rem;
+  border-bottom-color: transparent;
+}
+
+/* --- Reference text (quoted document excerpt) --- */
+.document-editor-panel .bn-header-text {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: color-mix(in oklch, var(--color-base-content) 45%, transparent);
+  border-left: 2px solid color-mix(in oklch, var(--color-warning) 40%, transparent);
+  padding-left: 0.5rem;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  font-style: italic;
+}
+
+/* --- Comment layout — restore Mantine Group flex --- */
+.document-editor-panel .bn-thread-comment {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  align-items: flex-start;
+}
+
+.document-editor-panel .bn-thread-comments {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* --- Author row — Avatar + Name · Date --- */
+.document-editor-panel .bn-thread-comment > .mantine-Group-root {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+}
+
+/* Mantine Avatar — DaisyUI strips border-radius and sizing */
+.document-editor-panel .mantine-Avatar-root {
+  width: 1.5rem;
+  height: 1.5rem;
+  min-width: 1.5rem;
+  border-radius: 9999px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.document-editor-panel .mantine-Avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 9999px;
+}
+
+/* Avatar placeholder (initials fallback) */
+.document-editor-panel .mantine-Avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background-color: color-mix(in oklch, var(--color-primary) 15%, transparent);
+  color: var(--color-primary);
+  font-size: 0.6rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* Username text */
+.document-editor-panel .bn-thread-comment .mantine-Text-root {
+  font-size: 0.8rem;
+  line-height: 1.3;
+  color: var(--color-base-content);
+}
+
+/* Bold username */
+.document-editor-panel .bn-thread-comment .mantine-Text-root[data-fw="bold"],
+.document-editor-panel .bn-thread-comment .mantine-Text-root[style*="font-weight"] {
+  font-weight: 600;
+}
+
+/* Date span (nested inside username Text) — DaisyUI strips Mantine's ml-xs */
+.document-editor-panel .bn-thread-comment .mantine-Text-root > .mantine-Text-root {
+  font-size: 0.7rem;
+  color: color-mix(in oklch, var(--color-base-content) 40%, transparent);
+  font-weight: 400;
+  margin-left: 0.35rem;
+}
+
+/* --- Comment body text --- */
+.document-editor-panel .bn-thread-comment p {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: color-mix(in oklch, var(--color-base-content) 85%, transparent);
+  margin: 0;
+}
+
+/* --- Action toolbar (hover pill) --- */
+.document-editor-panel .bn-action-toolbar {
+  background-color: var(--color-base-100);
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 10%, transparent);
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 4px color-mix(in oklch, var(--color-base-content) 8%, transparent);
+  padding: 1px;
+  gap: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.document-editor-panel .bn-action-toolbar .mantine-ActionIcon-root,
+.document-editor-panel .bn-action-toolbar .mantine-Button-root {
+  background-color: transparent;
+  border: none;
+  color: color-mix(in oklch, var(--color-base-content) 50%, transparent);
+  cursor: pointer;
+  border-radius: 0.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  min-width: 1.5rem;
+  min-height: 1.5rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0;
+  line-height: 0;
+}
+
+/* Icon sizing inside action buttons */
+.document-editor-panel .bn-action-toolbar .mantine-ActionIcon-root svg,
+.document-editor-panel .bn-action-toolbar .mantine-Button-root svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* Hide the Mantine Button label text — only show the icon child
+   (but NOT in the composer, where Save/Cancel buttons need visible text) */
+.document-editor-panel .bn-action-toolbar .mantine-Button-label {
+  font-size: 0;
+  line-height: 0;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.document-editor-panel .bn-action-toolbar .mantine-ActionIcon-root:hover,
+.document-editor-panel .bn-action-toolbar .mantine-Button-root:hover {
   background-color: color-mix(in oklch, var(--color-base-content) 8%, transparent);
   color: var(--color-base-content);
 }
 
-/* Thread reference text snippet */
-.block-editor-component .bn-thread-reference-text {
-  font-size: 0.8rem;
-  font-style: italic;
-  color: color-mix(in oklch, var(--color-base-content) 50%, transparent);
-  border-left: 2px solid color-mix(in oklch, var(--color-warning) 50%, transparent);
-  padding-left: 0.5rem;
-  margin-bottom: 0.5rem;
+/* --- Resolved thread styling --- dim text only, not action toolbar */
+.document-editor-panel .bn-thread:has(.bn-resolved-text) .bn-thread-comments {
+  opacity: 0.5;
 }
 
-/* Resolved thread styling */
-.block-editor-component .bn-thread.resolved {
-  opacity: 0.6;
+.document-editor-panel .bn-thread:has(.bn-resolved-text) .bn-header-text {
+  opacity: 0.5;
 }
 
-/* Avatar styling */
-.block-editor-component .bn-comment-avatar {
-  width: 1.5rem;
-  height: 1.5rem;
+.document-editor-panel .bn-thread:has(.bn-resolved-text):hover .bn-thread-comments,
+.document-editor-panel .bn-thread:has(.bn-resolved-text):hover .bn-header-text {
+  opacity: 0.75;
+}
+
+/* "Marked as resolved" — distinct status badge, not a comment */
+.document-editor-panel .bn-resolved-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: color-mix(in oklch, var(--color-success) 85%, var(--color-base-content));
+  background-color: color-mix(in oklch, var(--color-success) 10%, transparent);
+  padding: 0.2rem 0.5rem;
   border-radius: 9999px;
-  object-fit: cover;
+  margin-top: 0.25rem;
+}
+
+/* --- Emoji reaction badges --- */
+.document-editor-panel .bn-badge-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+/* --- Comment composer (reply box) --- */
+.document-editor-panel .bn-thread-composer {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid color-mix(in oklch, var(--color-base-content) 6%, transparent);
+}
+
+.document-editor-panel .bn-thread-composer .bn-editor {
+  font-size: 0.8125rem;
+  min-height: 2rem;
+}
+
+/* --- Popovers and menus (z-index fixes) --- */
+.document-editor-panel .bn-emoji-picker-popover,
+.block-editor-component .bn-emoji-picker-popover {
+  z-index: 9999 !important;
+  position: fixed !important;
+}
+
+.document-editor-panel .mantine-Popover-dropdown {
+  z-index: 9999 !important;
+}
+
+.document-editor-panel .mantine-Menu-dropdown {
+  background-color: var(--color-base-100) !important;
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
+  box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
+  z-index: 9999 !important;
+}
+
+/* --- Mantine Skeleton (loading state) --- */
+.document-editor-panel .mantine-Skeleton-root {
+  background-color: color-mix(in oklch, var(--color-base-content) 8%, transparent);
+  border-radius: 0.25rem;
 }
 
 /* Collapse comments sidebar on narrow viewports */
@@ -499,4 +873,118 @@
     position: static;
     max-height: none;
   }
+}
+
+/* ==========================================================================
+ * Global Tooltip — Mantine portals tooltips to <body>, outside scoped
+ * containers (.block-editor-component, .document-editor-panel). These
+ * global rules restore styling for BlockNote's .bn-tooltip wrapper.
+ * ========================================================================== */
+.bn-tooltip {
+  background-color: var(--color-base-200, #f2f2f2) !important;
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
+  border-radius: 0.375rem !important;
+  box-shadow: 0 2px 8px color-mix(in oklch, var(--color-base-content) 10%, transparent) !important;
+  color: var(--color-base-content) !important;
+  padding: 4px 8px !important;
+  font-size: 0.75rem !important;
+  line-height: 1.4 !important;
+  text-align: center !important;
+  max-width: 200px !important;
+}
+
+.bn-tooltip p {
+  margin: 0 !important;
+  white-space: pre-wrap !important;
+}
+
+/* Mantine Tooltip — portaled to <body>, outside any scoped container.
+ * Provides full visual styling for tooltips used by emoji reactions,
+ * action buttons, and other BlockNote comment UI. */
+.mantine-Tooltip-tooltip {
+  z-index: 9999 !important;
+  background-color: var(--color-base-200, #f2f2f2) !important;
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
+  border-radius: 0.375rem !important;
+  box-shadow: 0 2px 8px color-mix(in oklch, var(--color-base-content) 10%, transparent) !important;
+  color: var(--color-base-content) !important;
+  padding: 4px 8px !important;
+  font-size: 0.75rem !important;
+  line-height: 1.4 !important;
+  max-width: 200px !important;
+}
+
+.mantine-Tooltip-tooltip p {
+  margin: 0 !important;
+  white-space: pre-wrap !important;
+}
+
+/* ==========================================================================
+ * Version History — Sidebar Panel
+ * ========================================================================== */
+
+.version-item {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid color-mix(in oklch, var(--color-base-content) 6%, transparent);
+  transition: background-color 0.15s ease;
+}
+
+.version-item:last-child {
+  border-bottom: none;
+}
+
+.version-item:hover {
+  background-color: color-mix(in oklch, var(--color-base-content) 2%, transparent);
+  margin-inline: -0.5rem;
+  padding-inline: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+/* Version action buttons */
+.version-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1;
+  background: transparent;
+}
+
+.version-btn svg {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.version-btn-preview {
+  color: var(--color-base-content);
+  background-color: color-mix(in oklch, var(--color-base-content) 6%, transparent);
+}
+
+.version-btn-preview:hover {
+  background-color: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+}
+
+.version-btn-preview:hover svg {
+  opacity: 1;
+}
+
+.version-btn-restore {
+  color: color-mix(in oklch, var(--color-primary) 90%, var(--color-base-content));
+  background-color: color-mix(in oklch, var(--color-primary) 8%, transparent);
+}
+
+.version-btn-restore:hover {
+  background-color: color-mix(in oklch, var(--color-primary) 16%, transparent);
+  color: var(--color-primary);
+}
+
+.version-btn-restore:hover svg {
+  opacity: 1;
 }

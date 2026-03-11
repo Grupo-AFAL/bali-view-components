@@ -19,3 +19,16 @@ This project uses `.ai-sessions/` for session continuity between Docker sandbox 
 - What remains to be done
 - Key decisions made
 - Any blockers or issues
+
+## Browser Verification (MANDATORY)
+
+**ALWAYS verify UI/UX changes through the browser before claiming they work.** Curl-testing APIs and passing Ruby tests is NOT sufficient for frontend features.
+
+After making changes to JavaScript, Stimulus controllers, React components, or any user-facing behavior:
+1. Start the dummy app (`cd spec/dummy && bin/dev`)
+2. Open the relevant page in the browser
+3. Manually test the full user flow end-to-end
+4. Take screenshots to confirm visual correctness
+5. Only then claim the feature works
+
+Backend API tests passing ≠ the feature works in the browser.

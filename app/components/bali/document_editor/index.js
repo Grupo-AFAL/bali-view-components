@@ -15,12 +15,14 @@ export class DocumentEditorController extends Controller {
     'titleInput', 'tocPanel', 'tocContainer',
     'commentsPanel', 'commentsToggle',
     'historyPanel', 'historyToggle',
-    'versionsList'
+    'versionsList', 'versionTemplate', 'saveStatus', 'saveButton',
+    'previewBanner', 'previewVersionLabel',
+    'editorArea'
   ]
 
   static values = {
     autoSave: { type: Boolean, default: true },
-    autoSaveDelay: { type: Number, default: 3000 },
+    autoSaveDelay: { type: Number, default: 30000 },
     documentUrl: String,
     closeUrl: String,
     versionsUrl: String,
@@ -33,14 +35,38 @@ export class DocumentEditorController extends Controller {
     this.saveTimeout = null
     this.bindKeydown = this.handleKeydown.bind(this)
     document.addEventListener('keydown', this.bindKeydown)
-    this._previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+
+    // Only lock body scroll when the editor is visible.
+    // When rendered inside a hidden overlay (e.g., document show page),
+    // defer the lock until the overlay becomes visible.
+    if (this._isVisible()) {
+      this._lockBodyScroll()
+    } else {
+      this._visibilityObserver = new window.MutationObserver(() => {
+        if (this._isVisible()) {
+          this._lockBodyScroll()
+          this._visibilityObserver.disconnect()
+          this._visibilityObserver = null
+        }
+      })
+      if (this.element.parentElement) {
+        this._visibilityObserver.observe(this.element.parentElement, {
+          attributes: true, attributeFilter: ['class']
+        })
+      }
+    }
   }
 
   disconnect () {
     document.removeEventListener('keydown', this.bindKeydown)
-    document.body.style.overflow = this._previousOverflow || ''
+    if (this._scrollLocked) {
+      document.body.style.overflow = this._previousOverflow || ''
+    }
     if (this.saveTimeout) clearTimeout(this.saveTimeout)
+    if (this._visibilityObserver) {
+      this._visibilityObserver.disconnect()
+      this._visibilityObserver = null
+    }
   }
 
   toggleToc () {
@@ -86,12 +112,22 @@ export class DocumentEditorController extends Controller {
   }
 
   scheduleSave () {
+    this._dirty = true
+    this._updateStatus('Unsaved changes')
     if (!this.autoSaveValue) return
     if (this.saveTimeout) clearTimeout(this.saveTimeout)
     this.saveTimeout = setTimeout(() => { this.save() }, this.autoSaveDelayValue)
   }
 
   async save () {
+    if (this._saving) return
+    this._saving = true
+    this._updateStatus('Saving...')
+
+    // Flush content synchronously to avoid the 500ms debounce in useContentSync
+    // which can cause stale reads (e.g. missing comment marks)
+    this._flushContent()
+
     const csrfToken = document.querySelector("meta[name='csrf-token']")?.content
     const body = { document: {} }
 
@@ -104,6 +140,12 @@ export class DocumentEditorController extends Controller {
       body.document.content = contentInput.value
     }
 
+    // Nothing to save (e.g. read-only viewer overlay with no inputs)
+    if (Object.keys(body.document).length === 0) {
+      this._saving = false
+      return
+    }
+
     try {
       const response = await fetch(this.documentUrlValue, {
         method: 'PATCH',
@@ -114,9 +156,26 @@ export class DocumentEditorController extends Controller {
         },
         body: JSON.stringify(body)
       })
-      if (!response.ok) console.error('Auto-save failed:', response.status)
+      if (response.ok) {
+        this._dirty = false
+        this._updateStatus(`Saved at ${new Date().toLocaleTimeString()}`)
+      } else {
+        this._updateStatus('Save failed', true)
+        console.error('Auto-save failed:', response.status)
+      }
     } catch (error) {
+      this._updateStatus('Save failed', true)
       console.error('Auto-save error:', error)
+    } finally {
+      this._saving = false
+      // If new changes came in during save, show unsaved and re-schedule
+      if (this._dirty) {
+        this._updateStatus('Unsaved changes')
+        if (this.autoSaveValue) {
+          if (this.saveTimeout) clearTimeout(this.saveTimeout)
+          this.saveTimeout = setTimeout(() => { this.save() }, this.autoSaveDelayValue)
+        }
+      }
     }
   }
 
@@ -179,7 +238,60 @@ export class DocumentEditorController extends Controller {
 
   async previewVersion (event) {
     const versionId = event.currentTarget.dataset.versionId
-    window.open(`${this.versionsUrlValue}/${versionId}`, '_blank')
+    const versionNumber = event.currentTarget.dataset.versionNumber
+
+    try {
+      const response = await fetch(`${this.versionsUrlValue}/${versionId}`, {
+        headers: { Accept: 'application/json' }
+      })
+      const version = await response.json()
+
+      // Store current content for restoring later
+      const blockEditor = this._blockEditorController()
+      if (!blockEditor || !blockEditor.blockNoteEditor) {
+        // Fallback: open in new tab if editor not available
+        window.open(`${this.versionsUrlValue}/${versionId}`, '_blank')
+        return
+      }
+
+      const editor = blockEditor.blockNoteEditor
+      this._savedContent = editor._tiptapEditor.getJSON()
+      this._savedEditable = editor.isEditable
+
+      // Load version content into the editor (read-only)
+      const content = typeof version.content === 'string' ? JSON.parse(version.content) : version.content
+      if (content && content.type === 'doc') {
+        editor._tiptapEditor.commands.setContent(content)
+      } else if (Array.isArray(content)) {
+        editor.replaceBlocks(editor.document, content)
+      }
+      editor.isEditable = false
+
+      // Show preview banner
+      if (this.hasPreviewBannerTarget) {
+        this.previewBannerTarget.classList.remove('hidden')
+        if (this.hasPreviewVersionLabelTarget) {
+          this.previewVersionLabelTarget.textContent = `Version ${versionNumber || version.version_number}`
+        }
+      }
+    } catch (error) {
+      console.error('Preview failed:', error)
+    }
+  }
+
+  exitPreview () {
+    const blockEditor = this._blockEditorController()
+    if (!blockEditor || !blockEditor.blockNoteEditor || !this._savedContent) return
+
+    const editor = blockEditor.blockNoteEditor
+    editor._tiptapEditor.commands.setContent(this._savedContent)
+    editor.isEditable = this._savedEditable ?? true
+    this._savedContent = null
+    this._savedEditable = null
+
+    if (this.hasPreviewBannerTarget) {
+      this.previewBannerTarget.classList.add('hidden')
+    }
   }
 
   exportPdf () {
@@ -212,55 +324,72 @@ export class DocumentEditorController extends Controller {
   }
 
   _buildVersionItem (v) {
-    const wrapper = document.createElement('div')
-    wrapper.className = 'py-3 border-b border-base-200 last:border-0'
+    const fragment = this.versionTemplateTarget.content.cloneNode(true)
+    const el = fragment.firstElementChild
 
-    const header = document.createElement('div')
-    header.className = 'flex items-center justify-between'
+    el.querySelector('[data-version-field="number"]').textContent = `v${v.version_number}`
+    el.querySelector('[data-version-field="time"]').textContent = this._timeAgo(v.created_at)
+    el.querySelector('[data-version-field="avatar"]').textContent = (v.author_name || '?')[0].toUpperCase()
+    el.querySelector('[data-version-field="author"]').textContent = v.author_name
 
-    const versionLabel = document.createElement('span')
-    versionLabel.className = 'text-sm font-medium'
-    versionLabel.textContent = `Version ${v.version_number}`
-    header.appendChild(versionLabel)
-
-    const timeLabel = document.createElement('span')
-    timeLabel.className = 'text-xs text-base-content/50'
-    timeLabel.textContent = this._timeAgo(v.created_at)
-    header.appendChild(timeLabel)
-
-    wrapper.appendChild(header)
-
-    const author = document.createElement('p')
-    author.className = 'text-xs text-base-content/60 mt-1'
-    author.textContent = v.author_name
-    wrapper.appendChild(author)
-
+    const summary = el.querySelector('[data-version-field="summary"]')
     if (v.summary) {
-      const summary = document.createElement('p')
-      summary.className = 'text-xs text-base-content/50 mt-1'
       summary.textContent = v.summary
-      wrapper.appendChild(summary)
+      summary.classList.remove('hidden')
     }
 
-    const actions = document.createElement('div')
-    actions.className = 'flex gap-2 mt-2'
-
-    const previewBtn = document.createElement('button')
-    previewBtn.className = 'btn btn-ghost btn-xs'
-    previewBtn.textContent = 'Preview'
-    previewBtn.dataset.action = 'document-editor#previewVersion'
+    const previewBtn = el.querySelector('[data-action*="previewVersion"]')
     previewBtn.dataset.versionId = v.id
-    actions.appendChild(previewBtn)
+    previewBtn.dataset.versionNumber = v.version_number
 
-    const restoreBtn = document.createElement('button')
-    restoreBtn.className = 'btn btn-ghost btn-xs'
-    restoreBtn.textContent = 'Restore'
-    restoreBtn.dataset.action = 'document-editor#restoreVersion'
-    restoreBtn.dataset.versionId = v.id
-    actions.appendChild(restoreBtn)
+    el.querySelector('[data-action*="restoreVersion"]').dataset.versionId = v.id
 
-    wrapper.appendChild(actions)
-    return wrapper
+    return fragment
+  }
+
+  _flushContent () {
+    const blockEditor = this._blockEditorController()
+    if (!blockEditor?.blockNoteEditor) return
+
+    const editor = blockEditor.blockNoteEditor
+    const contentInput = this.element.querySelector(`input[name='${this.inputNameValue}']`)
+    if (!contentInput) return
+
+    let hasComments = false
+    editor._tiptapEditor.state.doc.descendants((node) => {
+      if (!hasComments && node.marks?.some(m => m.type.name === 'comment')) {
+        hasComments = true
+      }
+      return !hasComments
+    })
+
+    if (hasComments) {
+      contentInput.value = JSON.stringify(editor._tiptapEditor.getJSON())
+    } else {
+      contentInput.value = JSON.stringify(editor.document)
+    }
+  }
+
+  _updateStatus (text, error = false) {
+    if (this.hasSaveStatusTarget) {
+      this.saveStatusTarget.textContent = text
+      this.saveStatusTarget.classList.toggle('text-error', error)
+      this.saveStatusTarget.classList.toggle('text-base-content/50', !error)
+    }
+    if (this.hasSaveButtonTarget) {
+      this.saveButtonTarget.disabled = !this._dirty
+    }
+  }
+
+  _isVisible () {
+    // offsetParent is null for position:fixed elements, so use getClientRects
+    return this.element.getClientRects().length > 0
+  }
+
+  _lockBodyScroll () {
+    this._previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    this._scrollLocked = true
   }
 
   _timeAgo (dateString) {
