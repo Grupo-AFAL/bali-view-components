@@ -39,15 +39,12 @@ module Bali
       # @param group_behavior [Symbol] How nested items behave - :expandable or :dropdown
       # @param brand [String] Optional brand name shown in the header (e.g., "ACME")
       # @param mobile_trigger_id [String] Mobile trigger checkbox ID
-      def initialize(current_path:, fixed: true, collapsible: false, collapsable: nil,
+      def initialize(current_path:, fixed: true, collapsible: false,
                      group_behavior: :expandable,
                      brand: nil, mobile_trigger_id: MOBILE_TRIGGER_ID, **options)
         @current_path = current_path
         @fixed = fixed
-        unless collapsable.nil?
-          ActiveSupport::Deprecation.warn("`collapsable:` is deprecated, use `collapsible:` instead", caller)
-        end
-        @collapsible = collapsable.nil? ? collapsible : collapsable
+        @collapsible = collapsible
         @group_behavior = GROUP_BEHAVIORS.include?(group_behavior) ? group_behavior : :expandable
         @brand = brand
         @mobile_trigger_id = mobile_trigger_id
@@ -62,7 +59,6 @@ module Bali
         @collapsible
       end
 
-      alias collapsable? collapsible?
 
       def expandable_groups?
         @group_behavior == :expandable
