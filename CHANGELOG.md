@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2.7.4] - 2026-03-13
+
+### Removed
+
+- **SideMenu** - Removed deprecated `collapsable:` parameter and `collapsable?` alias. Use `collapsible:` instead.
+
 ## [v2.7.3] - 2026-03-11
 
 ### Changed
