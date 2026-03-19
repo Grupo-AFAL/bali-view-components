@@ -1,0 +1,39 @@
+<%= tag.div(**html_attributes) do %>
+  <%# Floating button %>
+  <button type="button"
+          class="btn btn-primary btn-circle shadow-lg fixed bottom-6 right-6 z-50"
+          data-action="feedback-widget#toggle"
+          data-feedback-widget-target="trigger"
+          aria-label="Abrir feedback">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>
+    </svg>
+    <span class="badge badge-sm badge-error absolute -top-1 -right-1 hidden"
+          data-feedback-widget-target="badge">0</span>
+  </button>
+
+  <%# Drawer overlay %>
+  <div class="fixed inset-0 bg-black/50 z-[60] hidden"
+       data-feedback-widget-target="overlay"
+       data-action="click->feedback-widget#close"></div>
+
+  <%# Drawer panel %>
+  <div class="fixed top-0 right-0 h-full w-full max-w-md bg-base-100 shadow-2xl z-[61]
+              transform translate-x-full transition-transform duration-300 ease-in-out"
+       data-feedback-widget-target="panel">
+    <div class="flex items-center justify-between p-3 border-b border-base-200">
+      <h3 class="font-semibold text-sm">Opina</h3>
+      <button type="button" class="btn btn-sm btn-circle btn-ghost"
+              data-action="feedback-widget#close" aria-label="Cerrar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+        </svg>
+      </button>
+    </div>
+    <iframe class="w-full h-[calc(100%-49px)] border-0"
+            data-feedback-widget-target="iframe"
+            title="Opina Feedback"></iframe>
+  </div>
+<% end %>
