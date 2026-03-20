@@ -1,0 +1,15 @@
+<div class="bg-base-200 rounded-lg p-4 <%= options[:class] %>">
+  <h3 class="font-semibold mb-3 flex items-center gap-2">
+    <span class="badge <%= badge_class %> badge-sm">&nbsp;</span>
+    <%= title %>
+    <% if count %>
+      <span class="badge badge-ghost badge-sm"><%= count %></span>
+    <% end %>
+  </h3>
+
+  <%= render Bali::SortableList::Component.new(**sortable_options) do %>
+    <div class="space-y-2 min-h-[100px]">
+      <%= content %>
+    </div>
+  <% end %>
+</div>
