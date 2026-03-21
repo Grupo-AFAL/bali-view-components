@@ -30,6 +30,11 @@ Rails.application.routes.draw do
     end
 
     resources :studios
+
+    resources :projects, only: %i[index show] do
+      resources :tasks, only: :update, module: :projects
+    end
+
     resources :analytics, only: :index
     resources :revenue, only: :index
     resource :settings, only: %i[show update]

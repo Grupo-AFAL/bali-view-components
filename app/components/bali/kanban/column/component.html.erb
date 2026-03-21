@@ -1,15 +1,15 @@
-<div class="bg-base-200 rounded-lg p-4 <%= options[:class] %>">
+<div class="bg-base-100 rounded-xl shadow-sm border border-base-200 p-4 <%= options[:class] %>">
   <h3 class="font-semibold mb-3 flex items-center gap-2">
-    <span class="badge <%= badge_class %> badge-sm">&nbsp;</span>
+    <%= render Bali::Tag::Component.new(text: " ", color: color, size: :sm) %>
     <%= title %>
-    <% if count %>
-      <span class="badge badge-ghost badge-sm"><%= count %></span>
+    <% if display_count > 0 %>
+      <%= render Bali::Tag::Component.new(text: display_count.to_s, color: :ghost, size: :sm) %>
     <% end %>
   </h3>
 
-  <%= render Bali::SortableList::Component.new(**sortable_options) do %>
-    <div class="space-y-2 min-h-[100px]">
-      <%= content %>
-    </div>
+  <%= render Bali::SortableList::Component.new(**sortable_options, class: "space-y-2 min-h-[100px]") do %>
+    <% cards.each do |card| %>
+      <%= card %>
+    <% end %>
   <% end %>
 </div>

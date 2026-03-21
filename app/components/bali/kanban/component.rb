@@ -3,8 +3,19 @@
 module Bali
   module Kanban
     class Component < ApplicationViewComponent
+      # Tailwind safelist: md:grid-cols-1 md:grid-cols-2 md:grid-cols-3 md:grid-cols-4
+      GRID_COLS = {
+        1 => "md:grid-cols-1",
+        2 => "md:grid-cols-2",
+        3 => "md:grid-cols-3",
+        4 => "md:grid-cols-4"
+      }.freeze
+
       renders_many :columns, ->(title:, status:, color: :ghost, count: nil, **opts) do
-        Column::Component.new(title: title, status: status, color: color, count: count, kanban: self, **opts)
+        Column::Component.new(
+          title: title, status: status, color: color, count: count,
+          sortable_config: sortable_config, **opts
+        )
       end
 
       # @param resource_name [String] Name of the resource for position params (e.g., "roadmap_item")
@@ -29,9 +40,12 @@ module Bali
 
       attr_reader :resource_name, :group_name, :list_param_name, :response_kind, :options
 
+      def sortable_config
+        { group_name:, list_param_name:, resource_name:, response_kind: }
+      end
+
       def grid_classes
-        cols = columns.size
-        col_class = cols <= 4 ? "md:grid-cols-#{cols}" : "md:grid-cols-4"
+        col_class = GRID_COLS.fetch(columns.size.clamp(1, 4), GRID_COLS[4])
         class_names("grid grid-cols-1 gap-4", col_class, options[:class])
       end
     end

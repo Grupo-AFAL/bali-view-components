@@ -9,28 +9,21 @@ export class FeedbackWidgetController extends Controller {
   }
 
   connect () {
-    this.open = false
-    this._checkBadge()
-    this._startPolling()
+    this.isOpen = false
+    this.checkBadge()
+    this.startPolling()
   }
 
   disconnect () {
-    this._stopPolling()
+    this.stopPolling()
   }
 
   toggle () {
-    this.open ? this.close() : this._open()
+    this.isOpen ? this.close() : this.open()
   }
 
-  close () {
-    this.open = false
-    this.panelTarget.classList.add('translate-x-full')
-    this.overlayTarget.classList.add('hidden')
-    document.body.classList.remove('overflow-hidden')
-  }
-
-  _open () {
-    this.open = true
+  open () {
+    this.isOpen = true
 
     // Load iframe on first open
     if (!this.iframeTarget.src) {
@@ -43,25 +36,34 @@ export class FeedbackWidgetController extends Controller {
 
     // Reset badge
     this.badgeTarget.classList.add('hidden')
-    this._lastChecked = new Date().toISOString()
+    this.lastChecked = new Date().toISOString()
   }
 
-  _startPolling () {
+  close () {
+    this.isOpen = false
+    this.panelTarget.classList.add('translate-x-full')
+    this.overlayTarget.classList.add('hidden')
+    document.body.classList.remove('overflow-hidden')
+  }
+
+  // -- Private ----------------------------------------------------------------
+
+  startPolling () {
     if (this.intervalValue > 0) {
-      this._pollTimer = setInterval(() => this._checkBadge(), this.intervalValue)
+      this.pollTimer = setInterval(() => this.checkBadge(), this.intervalValue)
     }
   }
 
-  _stopPolling () {
-    if (this._pollTimer) {
-      clearInterval(this._pollTimer)
-      this._pollTimer = null
+  stopPolling () {
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer)
+      this.pollTimer = null
     }
   }
 
-  async _checkBadge () {
+  async checkBadge () {
     try {
-      const since = this._lastChecked || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      const since = this.lastChecked || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
       const response = await fetch(`${this.badgeUrlValue}?since=${since}`)
       if (!response.ok) return
 
