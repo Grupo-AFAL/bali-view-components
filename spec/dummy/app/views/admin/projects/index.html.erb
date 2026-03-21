@@ -11,29 +11,27 @@
   <% page.with_body do %>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <% @projects.each do |project| %>
-        <%= render Bali::Card::Component.new(style: :bordered) do %>
-          <div class="card-body">
-            <h2 class="card-title"><%= project.name %></h2>
-            <p class="text-sm text-base-content/70"><%= project.description %></p>
+        <%= render Bali::Card::Component.new(style: :bordered) do |card| %>
+          <h2 class="card-title"><%= project.name %></h2>
+          <p class="text-sm text-base-content/70"><%= project.description %></p>
 
-            <div class="flex flex-wrap gap-2 mt-2">
-              <% project.tasks.group(:status).count.each do |status, count| %>
-                <%= render Bali::Tag::Component.new(
-                  text: "#{status.humanize}: #{count}",
-                  color: Task::STATUS_COLORS[status]
-                ) %>
-              <% end %>
-            </div>
-
-            <div class="card-actions justify-end mt-4">
-              <%= render Bali::Link::Component.new(
-                name: 'View Board',
-                href: admin_project_path(project),
-                variant: :primary,
-                icon_name: 'kanban'
+          <div class="flex flex-wrap gap-2 mt-2">
+            <% project.tasks.group(:status).count.each do |status, count| %>
+              <%= render Bali::Tag::Component.new(
+                text: "#{status.humanize}: #{count}",
+                color: Task::STATUS_COLORS[status]
               ) %>
-            </div>
+            <% end %>
           </div>
+
+          <% card.with_action do %>
+            <%= render Bali::Link::Component.new(
+              name: 'View Board',
+              href: admin_project_path(project),
+              variant: :primary,
+              icon_name: 'kanban'
+            ) %>
+          <% end %>
         <% end %>
       <% end %>
     </div>
