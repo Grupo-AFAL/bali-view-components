@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_09_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_21_000001) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -138,6 +138,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_09_000003) do
     t.index ["tenant_id"], name: "index_movies_on_tenant_id"
   end
 
+  create_table "projects", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "studios", force: :cascade do |t|
     t.string "country"
     t.datetime "created_at", null: false
@@ -146,6 +153,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_09_000003) do
     t.string "size"
     t.integer "status"
     t.datetime "updated_at", null: false
+  end
+
+  create_table "tasks", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.integer "position", default: 0, null: false
+    t.integer "priority", default: 0, null: false
+    t.integer "project_id", null: false
+    t.integer "status", default: 0, null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["project_id", "status", "position"], name: "index_tasks_on_project_id_and_status_and_position"
+    t.index ["project_id"], name: "index_tasks_on_project_id"
   end
 
   create_table "tenants", force: :cascade do |t|
@@ -169,4 +189,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_09_000003) do
   add_foreign_key "characters", "movies"
   add_foreign_key "document_versions", "documents"
   add_foreign_key "movies", "tenants"
+  add_foreign_key "tasks", "projects"
 end

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Kanban** - Drag-and-drop board component composing SortableList, with Column and Card slots
+- **FeedbackWidget** - Floating button with drawer for Opina feedback integration, includes JWT TokenGenerator
+
 ## [v2.7.4] - 2026-03-13
 
 ### Removed

@@ -171,4 +171,34 @@ documents_data.each do |data|
 end
 
 puts "Created #{Document.count} documents with #{DocumentVersion.count} versions"
+
+# Create projects and tasks for Kanban demo
+project = Project.find_or_create_by!(name: "Bali Component Library") do |p|
+  p.description = "Open-source ViewComponent library for Rails applications"
+end
+
+tasks_data = [
+  { title: "Audit existing icon usage", description: "Map all icon names used across AFAL apps", status: :done, priority: :low, position: 0 },
+  { title: "Migrate to Lucide icons", description: "Replace custom SVGs with Lucide equivalents", status: :done, priority: :medium, position: 1 },
+  { title: "Upgrade to daisyUI 5", description: "Update class names and verify all component previews", status: :in_progress, priority: :high, position: 0 },
+  { title: "Add DataTable filter persistence", description: "Save active filters to cookies for page reload", status: :in_progress, priority: :medium, position: 1 },
+  { title: "Build Kanban component", description: "Drag-and-drop board composing SortableList", status: :in_progress, priority: :high, position: 2 },
+  { title: "Create FeedbackWidget", description: "Floating button with iframe drawer for Opina", status: :todo, priority: :medium, position: 0 },
+  { title: "Add Carousel accessibility", description: "Keyboard navigation and ARIA labels for slides", status: :todo, priority: :high, position: 1 },
+  { title: "Document FilterForm DSL", description: "Write guide for search_fields and filter_attribute", status: :todo, priority: :low, position: 2 },
+  { title: "Explore Turbo Mount for charts", description: "Evaluate React-based charting via islands architecture", status: :backlog, priority: :low, position: 0 },
+  { title: "Add dark mode support", description: "Verify all components render correctly with dark theme", status: :backlog, priority: :medium, position: 1 },
+  { title: "Performance benchmark suite", description: "Measure render times for complex components", status: :backlog, priority: :low, position: 2 }
+]
+
+tasks_data.each do |data|
+  project.tasks.find_or_create_by!(title: data[:title]) do |task|
+    task.description = data[:description]
+    task.status = data[:status]
+    task.priority = data[:priority]
+    task.position = data[:position]
+  end
+end
+
+puts "Created #{Project.count} projects with #{Task.count} tasks"
 puts "Seed data complete!"

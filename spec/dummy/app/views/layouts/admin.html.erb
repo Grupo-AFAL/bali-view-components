@@ -25,4 +25,13 @@
       <%= yield %>
     <% end %>
   <% end %>
+
+  <%# FeedbackWidget - floats on all admin pages %>
+  <%= render Bali::FeedbackWidget::Component.new(
+    project_slug: "bali-demo",
+    opina_url: "http://localhost:3008",
+    secret: "dev-shared-secret",
+    user_id: 1,
+    email: "demo@example.com"
+  ) %>
 </html>
