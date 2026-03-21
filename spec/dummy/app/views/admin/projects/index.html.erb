@@ -11,7 +11,7 @@
   <% page.with_body do %>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <% @projects.each do |project| %>
-        <%= render Bali::Card::Component.new(style: :bordered) do |card| %>
+        <%= render Bali::Card::Component.new(style: :bordered) do %>
           <h2 class="card-title"><%= project.name %></h2>
           <p class="text-sm text-base-content/70"><%= project.description %></p>
 
@@ -24,14 +24,16 @@
             <% end %>
           </div>
 
-          <% card.with_action do %>
+          <div class="mt-4 flex justify-end">
             <%= render Bali::Link::Component.new(
               name: 'View Board',
               href: admin_project_path(project),
               variant: :primary,
+              style: :soft,
+              size: :sm,
               icon_name: 'kanban'
             ) %>
-          <% end %>
+          </div>
         <% end %>
       <% end %>
     </div>
