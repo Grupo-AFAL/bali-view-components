@@ -1,3 +1,17 @@
+/* DaisyUI structural variable fallbacks.
+   Built-in themes (light, dark) define these, but custom themes that only
+   set colors will silently break borders, radii, and sizing without them. */
+:root {
+  --border: 1px;
+  --radius-box: 0.5rem;
+  --radius-field: 0.25rem;
+  --radius-selector: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --depth: 1;
+  --noise: 0;
+}
+
 /* General utility styles */
 a {
   &[disabled] {
