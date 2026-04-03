@@ -188,4 +188,29 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("input[aria-label='Public']")
     assert_selector("input[aria-label='Private']")
   end
+
+  def test_renders_toggle_group_multi_filters
+    multi_filters = [
+      {
+        attribute: :category,
+        collection: [ %w[Electronics electronics], %w[Books books], %w[Clothing clothing] ],
+        label: "Categories",
+        type: :toggle_group_multi,
+        predicate: :in,
+        value: %w[electronics books]
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: multi_filters))
+
+    assert_selector(".filter.join")
+    assert_selector("input[type='checkbox'][name='q[category_in][]'][value='electronics'][checked]", visible: false)
+    assert_selector("input[type='checkbox'][name='q[category_in][]'][value='books'][checked]", visible: false)
+    assert_selector("input[type='checkbox'][name='q[category_in][]'][value='clothing']", visible: false)
+    assert_no_selector("input[type='checkbox'][checked][value='clothing']", visible: false)
+
+    # Check for active state class
+    assert_selector("input.btn-primary[value='electronics']", visible: false)
+    assert_selector("input.btn-primary[value='books']", visible: false)
+    assert_no_selector("input.btn-primary[value='clothing']", visible: false)
+  end
 end

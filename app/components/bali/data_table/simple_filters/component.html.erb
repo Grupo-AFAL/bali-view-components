@@ -17,21 +17,38 @@
         <% if toggle_group?(filter) %>
           <div class="filter join">
             <% if filter[:blank].present? %>
+              <% is_checked = (filter[:value] || filter[:default]).blank? %>
               <input type="radio"
                      name="<%= filter_field_name(filter) %>"
                      value=""
-                     class="btn btn-sm join-item"
+                     class="btn btn-sm join-item <%= 'btn-primary' if is_checked %>"
                      aria-label="<%= filter[:blank] %>"
-                     <%= "checked" if (filter[:value] || filter[:default]).blank? %> />
+                     <%= "checked" if is_checked %> />
             <% end %>
 
             <% filter[:collection].each do |label, value| %>
+              <% is_checked = (filter[:value] || filter[:default]).to_s == value.to_s %>
               <input type="radio"
                      name="<%= filter_field_name(filter) %>"
                      value="<%= value %>"
-                     class="btn btn-sm join-item"
+                     class="btn btn-sm join-item <%= 'btn-primary' if is_checked %>"
                      aria-label="<%= label %>"
-                     <%= "checked" if (filter[:value] || filter[:default]).to_s == value.to_s %> />
+                     <%= "checked" if is_checked %> />
+            <% end %>
+          </div>
+        <% elsif toggle_group_multi?(filter) %>
+          <div class="filter join">
+            <% filter[:collection].each do |label, value| %>
+              <%
+                current_values = Array.wrap(filter[:value] || filter[:default]).map(&:to_s)
+                is_checked = current_values.include?(value.to_s)
+              %>
+              <input type="checkbox"
+                     name="<%= filter_field_name(filter) %>"
+                     value="<%= value %>"
+                     class="btn btn-sm join-item <%= 'btn-primary' if is_checked %>"
+                     aria-label="<%= label %>"
+                     <%= "checked" if is_checked %> />
             <% end %>
           </div>
         <% elsif date?(filter) %>
