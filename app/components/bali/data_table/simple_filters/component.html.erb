@@ -15,7 +15,7 @@
     <% @filters.each do |filter| %>
       <div class="<%= toggle_group?(filter) ? '' : 'sm:w-auto sm:min-w-40 sm:max-w-56' %>">
         <% if toggle_group?(filter) %>
-          <div class="filter">
+          <div class="join">
             <% filter[:collection].each do |label, value| %>
               <%
                 current_values = Array.wrap(filter[:value] || filter[:default]).map(&:to_s)
@@ -24,7 +24,7 @@
               <input type="checkbox"
                      name="<%= filter_field_name(filter) %>"
                      value="<%= value %>"
-                     class="btn btn-sm <%= 'btn-primary' if is_checked %>"
+                     class="btn btn-sm join-item <%= is_checked ? 'btn-primary' : 'btn-outline' %>"
                      aria-label="<%= label %>"
                      <%= "checked" if is_checked %> />
             <% end %>
