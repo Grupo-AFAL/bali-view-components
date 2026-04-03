@@ -168,7 +168,7 @@ module Bali
       #
       # This example shows Studios with different filter types:
       # - **Country**: `type: :slim_select` — searchable dropdown (useful for long lists)
-      # - **Status**: plain `select` — standard dropdown
+      # - **Status**: `type: :toggle_group` — segmented button group
       # - **Size**: plain `select` — standard dropdown
       # - **Created after**: `type: :date` — date picker input
       #
@@ -176,7 +176,7 @@ module Bali
       # ```ruby
       # filter_form = Bali::FilterForm.new(Studio.all, params, simple_filters: [
       #   { attribute: :country, collection: [...], blank: "All Countries", type: :slim_select },
-      #   { attribute: :status, collection: [...], blank: "All Statuses" },
+      #   { attribute: :status, collection: [...], blank: "All", type: :toggle_group },
       #   { attribute: :created_at, type: :date, predicate: :gteq, label: "Created after" }
       # ])
       # ```
@@ -208,8 +208,9 @@ module Bali
           {
             attribute: :status,
             collection: Studio.statuses.keys.map { |s| [s.humanize, s] },
-            blank: 'All Statuses',
-            label: 'Status'
+            blank: 'All',
+            label: 'Status',
+            type: :toggle_group
           },
           {
             attribute: :size,
