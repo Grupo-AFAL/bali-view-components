@@ -27,15 +27,20 @@ module Bali
           @defined_search_fields ||= []
         end
 
+        def defined_search_icon
+          @defined_search_icon
+        end
+
         # Define quick search fields for text search across multiple columns.
         # This generates a Ransack predicate like "name_or_email_cont".
         #
         # @param fields [Array<Symbol>] Field names to search across
+        # @param icon [String, nil] Icon name for search input
         #
         # @example
-        #   search_fields :name, :email, :description
-        #   # Generates: q[name_or_email_or_description_cont]
-        def search_fields(*fields)
+        #   search_fields :name, :email, icon: 'search'
+        def search_fields(*fields, icon: nil)
+          @defined_search_icon = icon
           @defined_search_fields = fields.flatten.map(&:to_sym)
         end
 
@@ -43,6 +48,7 @@ module Bali
         def inherited(subclass)
           super
           subclass.instance_variable_set(:@defined_search_fields, defined_search_fields.dup)
+          subclass.instance_variable_set(:@defined_search_icon, defined_search_icon)
         end
       end
 
@@ -52,6 +58,11 @@ module Bali
       # @return [Array<Symbol>] Field names to search across
       def search_fields
         @instance_search_fields.presence || self.class.defined_search_fields
+      end
+
+      # Get the search icon name.
+      def search_icon
+        @instance_search_icon || self.class.defined_search_icon
       end
 
       # Check if quick search is enabled
@@ -104,7 +115,8 @@ module Bali
         {
           field_name: "q[#{search_field_name}]",
           value: search_value,
-          placeholder: search_placeholder
+          placeholder: search_placeholder,
+          icon: search_icon
         }
       end
 

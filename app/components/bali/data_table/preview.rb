@@ -168,16 +168,16 @@ module Bali
       #
       # This example shows Studios with different filter types:
       # - **Country**: `type: :slim_select` — searchable dropdown (useful for long lists)
-      # - **Status**: plain `select` — standard dropdown
+      # - **Status**: `type: :toggle_group` — segmented button group
       # - **Size**: plain `select` — standard dropdown
-      # - **Created after**: `type: :date` — date picker input
+      # - **Created between**: `type: :date_range` — date range picker input
       #
       # Configure via FilterForm:
       # ```ruby
       # filter_form = Bali::FilterForm.new(Studio.all, params, simple_filters: [
       #   { attribute: :country, collection: [...], blank: "All Countries", type: :slim_select },
-      #   { attribute: :status, collection: [...], blank: "All Statuses" },
-      #   { attribute: :created_at, type: :date, predicate: :gteq, label: "Created after" }
+      #   { attribute: :status, collection: [...], type: :toggle_group, predicate: :in },
+      #   { attribute: :created_at, type: :date_range, label: "Created between" }
       # ])
       # ```
       # @param search text
@@ -203,25 +203,28 @@ module Bali
             collection: Studio::COUNTRIES.map { |c| [c, c] },
             blank: 'All Countries',
             label: 'Country',
-            type: :slim_select
+            type: :slim_select,
+            icon: 'globe'
           },
           {
             attribute: :status,
-            collection: Studio.statuses.keys.map { |s| [s.humanize, s] },
-            blank: 'All Statuses',
-            label: 'Status'
+            collection: Studio.statuses.map { |s, v| [s.humanize, v] },
+            label: 'Status',
+            type: :toggle_group,
+            predicate: :in
           },
           {
             attribute: :size,
             collection: Studio::SIZES.map { |s| [s.humanize, s] },
             blank: 'All Sizes',
-            label: 'Size'
+            label: 'Size',
+            icon: 'maximize'
           },
           {
             attribute: :created_at,
-            type: :date,
-            predicate: :gteq,
-            label: 'Created after'
+            type: :date_range,
+            label: 'Created between',
+            icon: 'calendar'
           }
         ]
 

@@ -164,4 +164,64 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("input[name='q[name_cont]']")
     assert_selector("select[name='q[status_eq]']")
   end
+
+  def test_renders_toggle_group_filters
+    toggle_filters = [
+      {
+        attribute: :category,
+        collection: [ %w[Electronics electronics], %w[Books books], %w[Clothing clothing] ],
+        label: "Categories",
+        type: :toggle_group,
+        predicate: :in,
+        value: %w[electronics books]
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: toggle_filters))
+
+    assert_selector(".join")
+    assert_selector("input[type='checkbox'][name='q[category_in][]'][value='electronics'][checked].join-item", visible: false)
+    assert_selector("input[type='checkbox'][name='q[category_in][]'][value='books'][checked].join-item", visible: false)
+    assert_selector("input[type='checkbox'][name='q[category_in][]'][value='clothing'].join-item", visible: false)
+    assert_no_selector("input[type='checkbox'][checked][value='clothing']", visible: false)
+
+    # Check for active state (checked attribute)
+    assert_selector("input[value='electronics'][checked]", visible: false)
+    assert_selector("input[value='books'][checked]", visible: false)
+    assert_no_selector("input[value='clothing'][checked]", visible: false)
+
+    # DaisyUI uses aria-label for button text in the filter group
+    assert_selector("input[aria-label='Electronics']")
+    assert_selector("input[aria-label='Books']")
+    assert_selector("input[aria-label='Clothing']")
+  end
+
+  def test_renders_date_range_filters
+    date_filters = [
+      {
+        attribute: :created_at,
+        label: "Created between",
+        type: :date_range
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: date_filters))
+
+    assert_selector(".flatpickr[data-datepicker-mode-value='range']")
+    assert_selector("input[name='q[created_at]']")
+  end
+
+  def test_persists_date_range_value
+    date_filters = [
+      {
+        attribute: :created_at,
+        label: "Created between",
+        type: :date_range,
+        value: "2024-01-01 to 2024-01-20"
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: date_filters))
+
+    assert_selector(".flatpickr[data-datepicker-default-dates-value*='2024-01-01']")
+    assert_selector(".flatpickr[data-datepicker-default-dates-value*='2024-01-20']")
+    assert_selector("input[value='2024-01-01 to 2024-01-20']")
+  end
 end

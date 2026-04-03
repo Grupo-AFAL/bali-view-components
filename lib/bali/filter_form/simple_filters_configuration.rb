@@ -40,7 +40,8 @@ module Bali
         # @param blank [String, nil] Blank option text (e.g., "All Statuses")
         # @param label [String, nil] Human-readable label (defaults to humanized attribute)
         # @param default [String, nil] Default value when no filter is active
-        # @param type [Symbol] Filter input type (:select, :slim_select, :date)
+        # @param icon [String, nil] Icon name to display
+        # @param type [Symbol] Filter input type (:select, :slim_select, :date, :date_range, :toggle_group)
         # @param predicate [Symbol] Ransack predicate (default: :eq)
         #
         # @example Static collection
@@ -60,7 +61,7 @@ module Bali
         #     predicate: :gteq,
         #     label: "Created after"
         def simple_filter(attribute, collection: nil, blank: nil, label: nil, default: nil,
-                          type: :select, predicate: :eq)
+                          type: :select, predicate: :eq, icon: nil)
           defined_simple_filters << {
             attribute: attribute.to_sym,
             collection: collection,
@@ -68,7 +69,8 @@ module Bali
             label: label,
             default: default,
             type: type.to_sym,
-            predicate: predicate.to_sym
+            predicate: predicate.to_sym,
+            icon: icon
           }
         end
 
@@ -102,15 +104,18 @@ module Bali
         return nil unless simple_filters_enabled?
 
         simple_filters.map do |filter|
-          predicate = filter[:predicate] || :eq
+          type = filter[:type] || :select
+          predicate = filter[:predicate] || (type.to_sym == :date_range ? nil : :eq)
+
           {
             attribute: filter[:attribute],
             collection: resolve_collection(filter[:collection]),
             blank: filter[:blank],
             label: filter[:label] || infer_simple_filter_label(filter[:attribute]),
             default: filter[:default],
-            type: filter[:type] || :select,
+            type: type,
             predicate: predicate,
+            icon: filter[:icon],
             value: current_simple_filter_value(filter[:attribute], predicate)
           }
         end
@@ -121,8 +126,17 @@ module Bali
       # @return [Boolean]
       def simple_filters_active?
         simple_filters.any? do |f|
-          current_simple_filter_value(f[:attribute], f[:predicate] || :eq).present?
+          type = f[:type] || :select
+          predicate = f[:predicate] || (type.to_sym == :date_range ? nil : :eq)
+          current_simple_filter_value(f[:attribute], predicate).present?
         end
+      end
+
+      def simple_date_range_attributes
+        return [] unless simple_filters_enabled?
+
+        simple_filters.select { |f| f[:type]&.to_sym == :date_range }
+                      .map { |f| f[:attribute].to_sym }
       end
 
       private
@@ -131,6 +145,9 @@ module Bali
       # Called from FilterForm#ransack_params
       def add_simple_filter_params(params)
         simple_filters.each do |filter|
+          type = filter[:type] || :select
+          next if type.to_sym == :date_range # Handled separately via where clause
+
           predicate = filter[:predicate] || :eq
           value = current_simple_filter_value(filter[:attribute], predicate)
           next if value.blank?
@@ -141,10 +158,20 @@ module Bali
 
       # Get current value for a simple filter from params
       def current_simple_filter_value(attribute, predicate = :eq)
-        return nil unless defined?(@q_params) && @q_params.present?
+        key = predicate.present? ? "#{attribute}_#{predicate}" : attribute.to_s
 
-        key = "#{attribute}_#{predicate}"
-        @q_params[key] || @q_params[key.to_sym]
+        # 1. Try raw params first (for non-persisted immediate feedback)
+        value = nil
+        value = @q_params[key] || @q_params[key.to_sym] if defined?(@q_params) && @q_params.present?
+
+        # 2. Try instance attribute (for persisted/restored values)
+        value ||= send(key) if respond_to?(key)
+
+        if value.is_a?(Array)
+          return value.compact_blank
+        end
+
+        value
       end
 
       # Resolve collection - call if Proc, return as-is otherwise

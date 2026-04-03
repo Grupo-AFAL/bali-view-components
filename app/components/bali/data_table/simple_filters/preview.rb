@@ -30,7 +30,7 @@ module Bali
             }
           ]
 
-          render Component.new(
+          render Bali::DataTable::SimpleFilters::Component.new(
             url: '/lookbook',
             filters: filters,
             show_clear: status.present? || category.present?
@@ -59,7 +59,7 @@ module Bali
             }
           ]
 
-          render Component.new(
+          render Bali::DataTable::SimpleFilters::Component.new(
             url: '/lookbook',
             filters: filters,
             show_clear: false
@@ -80,7 +80,7 @@ module Bali
             }
           ]
 
-          render Component.new(
+          render Bali::DataTable::SimpleFilters::Component.new(
             url: '/lookbook',
             filters: filters,
             show_clear: status.present?
@@ -117,10 +117,11 @@ module Bali
           search = {
             field_name: 'q[name_cont]',
             value: search_text.presence,
-            placeholder: 'Search by name...'
+            placeholder: 'Search by name...',
+            icon: 'search'
           }
 
-          render Component.new(
+          render Bali::DataTable::SimpleFilters::Component.new(
             url: '/lookbook',
             filters: filters,
             show_clear: search_text.present? || status.present? || category.present?,
@@ -139,10 +140,104 @@ module Bali
             placeholder: 'Search records...'
           }
 
-          render Component.new(
+          render Bali::DataTable::SimpleFilters::Component.new(
             url: '/lookbook',
             filters: [],
             search: search
+          )
+        end
+
+        # @label Toggle Group
+        # Segmented button groups for filters with a small number of choices.
+        #
+        # @param kind select { choices: [public, private], multi: true }
+        # @param categories select { choices: [electronics, books, clothing], multi: true }
+        def toggle_group(kind: [], categories: [])
+          filters = [
+            {
+              attribute: :kind,
+              collection: [%w[Public public], %w[Private private]],
+              label: 'Kind',
+              type: :toggle_group,
+              predicate: :in,
+              value: kind.presence
+            },
+            {
+              attribute: :category,
+              collection: [%w[Electronics electronics], %w[Books books],
+                           %w[Clothing clothing]],
+              label: 'Categories',
+              type: :toggle_group,
+              predicate: :in,
+              value: categories.presence
+            }
+          ]
+
+          render Bali::DataTable::SimpleFilters::Component.new(
+            url: '/lookbook',
+            filters: filters,
+            show_clear: kind.present? || categories.present?
+          )
+        end
+
+        # @label Date Range
+        # Single date picker that selects a range of dates.
+        #
+        # @param created_at text
+        def date_range(created_at: '')
+          filters = [
+            {
+              attribute: :created_at,
+              label: 'Created between',
+              type: :date_range,
+              value: created_at.presence
+            }
+          ]
+
+          render Bali::DataTable::SimpleFilters::Component.new(
+            url: '/lookbook',
+            filters: filters,
+            show_clear: created_at.present?
+          )
+        end
+
+        # @label With Icons
+        # Filters can have icons to save space and provide visual context.
+        #
+        # @param status select { choices: [0, 1, 2] }
+        # @param country select { choices: ["", USA, UK, France, Germany] }
+        def with_icons(status: nil, country: '')
+          filters = [
+            {
+              attribute: :country,
+              collection: [%w[USA USA], %w[UK UK], %w[France France], %w[Germany Germany]],
+              blank: 'All Countries',
+              label: 'Country',
+              icon: 'globe',
+              value: country.presence
+            },
+            {
+              attribute: :status,
+              collection: [['Active', 0], ['Inactive', 1], ['Pending', 2]],
+              label: 'Status',
+              type: :toggle_group,
+              predicate: :in,
+              value: status.presence
+            }
+          ]
+
+          search = {
+            field_name: 'q[name_cont]',
+            value: nil,
+            placeholder: 'Search...',
+            icon: 'search'
+          }
+
+          render Bali::DataTable::SimpleFilters::Component.new(
+            url: '/lookbook',
+            filters: filters,
+            search: search,
+            show_clear: status.present? || country.present?
           )
         end
       end

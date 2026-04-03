@@ -48,9 +48,12 @@ module Bali
           @search[:label] || I18n.t("bali.simple_filters.search", default: "Search")
         end
 
-        def filter_field_name(filter)
-          predicate = filter[:predicate] || :eq
-          "q[#{filter[:attribute]}_#{predicate}]"
+        def search_icon
+          @search[:icon]
+        end
+
+        def toggle_group?(filter)
+          filter[:type]&.to_sym == :toggle_group
         end
 
         def slim_select?(filter)
@@ -59,6 +62,16 @@ module Bali
 
         def date?(filter)
           filter[:type]&.to_sym == :date
+        end
+
+        def date_range?(filter)
+          filter[:type]&.to_sym == :date_range
+        end
+
+        def filter_field_name(filter)
+          predicate = filter[:predicate] || (date_range?(filter) ? nil : :eq)
+          name = predicate.present? ? "q[#{filter[:attribute]}_#{predicate}]" : "q[#{filter[:attribute]}]"
+          toggle_group?(filter) ? "#{name}[]" : name
         end
 
         def apply_button_text

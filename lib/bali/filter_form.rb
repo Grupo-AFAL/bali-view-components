@@ -99,12 +99,13 @@ module Bali
     # @param simple_filters [Array<Hash>] Simple inline filters (alternative to DSL)
     # rubocop:disable Metrics/ParameterLists
     def initialize(scope, params = {}, storage_id: nil, context: nil, search_fields: nil,
-                   search_placeholder: nil, persist_enabled: false, simple_filters: nil)
+                   search_placeholder: nil, search_icon: nil, persist_enabled: false, simple_filters: nil)
       # rubocop:enable Metrics/ParameterLists
       @scope = scope
       @storage_id = storage_id
       @context = context
       @instance_search_fields = search_fields&.map(&:to_sym)
+      @instance_search_icon = search_icon
       @instance_simple_filters = simple_filters
       @search_placeholder = search_placeholder
       @persist_enabled = persist_enabled
@@ -122,6 +123,24 @@ module Bali
 
       # Capture quick search value from params
       @search_value = extract_search_value(q_params)
+
+      # Dynamically permit simple filter attributes
+      if simple_filters_enabled?
+        simple_filters.each do |f|
+          type = f[:type]&.to_sym || :select
+          predicate = f[:predicate] || (type == :date_range ? nil : :eq)
+          key = predicate.present? ? "#{f[:attribute]}_#{predicate}" : f[:attribute].to_s
+
+          if type == :toggle_group || f[:type].to_s.include?("multi")
+            q_params.permit! if q_params.respond_to?(:permit!) # Simple way to ensure they are allowed
+          elsif type == :date_range
+            # Define attribute dynamically if it doesn't exist
+            unless self.class.attribute_names.include?(key.to_s)
+              self.class.attribute key, :date_range
+            end
+          end
+        end
+      end
 
       # Persist/restore all filter state (attributes, groupings, combinator, search)
       if storage_id.present?
@@ -150,7 +169,7 @@ module Bali
     #
     def array_attributes
       @array_attributes ||= self.class.attribute_names.select do |attribute_name|
-        array_predicates.any? { |predicate| attribute_name.ends_with?(predicate) }
+        array_predicates.any? { |predicate| attribute_name.to_s.ends_with?(predicate) }
       end
     end
 
@@ -163,8 +182,11 @@ module Bali
     end
 
     def date_range_attributes
-      @date_range_attributes ||= self.class.attribute_names.filter do |key|
-        self.class.attribute_types[key].instance_of?(Bali::Types::DateRangeValue)
+      @date_range_attributes ||= begin
+        class_date_range_attrs = self.class.attribute_names.filter do |key|
+          self.class.attribute_types[key].instance_of?(Bali::Types::DateRangeValue)
+        end
+        (class_date_range_attrs + simple_date_range_attributes.map(&:to_s)).uniq
       end
     end
 

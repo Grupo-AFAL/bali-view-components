@@ -9,7 +9,8 @@ class StudiosController < ApplicationController
       Studio.all,
       params,
       simple_filters: simple_filters_config,
-      search_fields: %i[name]
+      search_fields: %i[name],
+      search_icon: 'search'
     )
 
     @pagy, @studios = pagy(@filter_form.result.order(:name), items: 10)
@@ -72,19 +73,28 @@ class StudiosController < ApplicationController
         collection: Studio::COUNTRIES.map { |c| [ c, c ] },
         blank: 'All Countries',
         label: 'Country',
-        type: :slim_select
+        type: :slim_select,
+        icon: 'globe'
       },
       {
         attribute: :status,
-        collection: Studio.statuses.keys.map { |s| [ s.humanize, s ] },
-        blank: 'All Statuses',
-        label: 'Status'
+        collection: Studio.statuses.map { |s, v| [ s.humanize, v ] },
+        label: 'Status',
+        type: :toggle_group,
+        predicate: :in
       },
       {
         attribute: :size,
         collection: Studio::SIZES.map { |s| [ s.humanize, s ] },
         blank: 'All Sizes',
-        label: 'Size'
+        label: 'Size',
+        icon: 'maximize'
+      },
+      {
+        attribute: :created_at,
+        type: :date_range,
+        label: 'Created between',
+        icon: 'calendar'
       }
     ]
   end
