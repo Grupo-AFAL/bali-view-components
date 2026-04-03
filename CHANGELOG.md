@@ -285,7 +285,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Pagy.new()` → `Pagy::Offset.new()`
   - `items:` parameter → `limit:`
   - `pagy.prev` → `pagy.previous`
-  - `Pagy::DEFAULT` → `Pagy.options`
+  - `Pagy::DEFAULT` → `Pagy::OPTIONS`
   - Added fallback URL builder for contexts without request object (e.g., Lookbook previews)
   - Updated `Pagination::Component` and `DataTable` previews for new API
 
