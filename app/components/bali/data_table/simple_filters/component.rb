@@ -48,8 +48,17 @@ module Bali
           @search[:label] || I18n.t("bali.simple_filters.search", default: "Search")
         end
 
-        def filter_field_name(attribute)
-          "q[#{attribute}_eq]"
+        def filter_field_name(filter)
+          predicate = filter[:predicate] || :eq
+          "q[#{filter[:attribute]}_#{predicate}]"
+        end
+
+        def slim_select?(filter)
+          filter[:type]&.to_sym == :slim_select
+        end
+
+        def date?(filter)
+          filter[:type]&.to_sym == :date
         end
 
         def apply_button_text

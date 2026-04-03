@@ -17,7 +17,7 @@
         <%= form_with url: url, method: :get, class: 'flex-1 min-w-0 sm:flex-initial', data: { turbo_stream: turbo_stream, turbo_action: 'replace', filters_target: 'searchForm' } do %>
           <%= preserved_params_hidden_fields %>
           <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg w-full sm:w-auto">
-            <label class="input input-bordered input-sm sm:input-md join-item w-full sm:w-64 flex items-center gap-2">
+            <label class="input input-bordered input-sm join-item w-full sm:w-64 flex items-center gap-2">
               <input type="text"
                      name="<%= search_field_name %>"
                      value="<%= search_value %>"
@@ -34,7 +34,7 @@
                 <%= render Bali::Icon::Component.new('x', class: 'w-4 h-4') %>
               </button>
             </label>
-            <button type="submit" class="btn btn-primary btn-sm sm:btn-md join-item" data-action="click->filters#submitSearch">
+            <button type="submit" class="btn btn-primary btn-sm join-item" data-action="click->filters#submitSearch">
               <%= render Bali::Icon::Component.new('search', class: 'w-4 h-4') %>
             </button>
           </div>

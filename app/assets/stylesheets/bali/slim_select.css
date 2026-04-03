@@ -107,34 +107,27 @@
    The clickable element that looks like an input/select
    ============================================================================= */
 .ss-main {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  position: relative;
-  user-select: none;
-  color: var(--ss-font-color);
-  min-height: var(--ss-main-height);
-  width: 100%;
-  padding: var(--ss-spacing-s) var(--ss-spacing-l);
-  cursor: pointer;
-  border: 1px solid var(--ss-border-color);
-  border-radius: var(--ss-border-radius);
-  background-color: var(--ss-bg-color);
+  @apply flex flex-row items-center relative select-none w-full h-10 min-h-[40px] p-0 cursor-pointer text-[14px];
+  @apply bg-base-100 border border-base-content/20;
+  border-radius: 4px;
   outline: none;
   box-sizing: border-box;
+  padding-left: 12px;
+  padding-right: 12px;
   transition: border-color var(--ss-animation-timing) ease,
               box-shadow var(--ss-animation-timing) ease;
 
 
-  /* Focus state - subtle border change, no outline */
-  &:focus {
-    outline: none;
-    border-color: var(--ss-primary-color);
+  /* Focus state - use native DaisyUI ring */
+  &:focus,
+  &.ss-dir-below,
+  &.ss-dir-above {
+    @apply outline outline-2 outline-offset-2 outline-base-content border-base-content;
   }
 
   /* Hover state */
   &:hover:not(.ss-disabled) {
-    border-color: oklch(0.278 0.033 256.8 / 0.4);
+    @apply border-base-content/40;
   }
 
   /* Disabled state */
@@ -148,15 +141,10 @@
     }
   }
 
-  /* Direction states - connect border radius to dropdown */
-  &.ss-dir-above {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-  }
-
+  /* Direction states - detached dropdowns no longer change input radius */
+  &.ss-dir-above,
   &.ss-dir-below {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    /* Kept intentionally empty to override any default SlimSelect behavior if needed */
   }
 }
 
@@ -371,19 +359,17 @@
   &.ss-dir-above {
     transform-origin: center bottom;
     flex-direction: column-reverse;
-    border-top-left-radius: var(--ss-border-radius);
-    border-top-right-radius: var(--ss-border-radius);
-    margin-bottom: -1px;
-    border-bottom: none;
+    border-radius: var(--ss-border-radius);
+    transform: translateY(-8px) !important;
+    @apply border border-base-content/15 shadow-xl;
   }
 
   /* Direction: below trigger */
   &.ss-dir-below {
     transform-origin: center top;
-    border-bottom-left-radius: var(--ss-border-radius);
-    border-bottom-right-radius: var(--ss-border-radius);
-    margin-top: -1px;
-    border-top: none;
+    border-radius: var(--ss-border-radius);
+    transform: translateY(8px) !important;
+    @apply border border-base-content/15 shadow-xl;
   }
 
   /* Open state */
@@ -496,8 +482,8 @@
 /* Search when dropdown opens above */
 .ss-content.ss-dir-above .ss-search {
   border-bottom: none;
-  border-top: 1px solid oklch(0.278 0.033 256.8 / 0.1);
-  border-radius: var(--ss-border-radius) var(--ss-border-radius) 0 0;
+  @apply border-t border-base-content/10;
+  border-radius: 0 0 var(--ss-border-radius) var(--ss-border-radius);
 }
 
 /* Search when dropdown opens below - no rounded corners */
@@ -561,13 +547,13 @@
   align-items: center;
   justify-content: flex-start;
   width: 100%;
-  min-height: auto;
-  padding: 0.625rem var(--ss-spacing-l);
+  min-height: 40px;
+  padding: 0 12px;
   margin: 1px 0;
-  font-size: 0.875rem;
+  font-size: 14px;
   color: var(--ss-font-color);
   background-color: transparent;
-  border-radius: var(--ss-border-radius);
+  border-radius: 4px;
   cursor: pointer;
   user-select: none;
   white-space: normal;
@@ -779,6 +765,100 @@
 }
 
 /* =============================================================================
+   Small Variant (.slim-select-sm)
+   Compact height matching DaisyUI select-sm for use in SimpleFilters
+   ============================================================================= */
+.slim-select-sm {
+  --ss-main-height: 2rem;
+  --ss-search-height: 1.75rem;
+  --ss-content-height: 220px;
+  --ss-spacing-l: 0.5rem;
+  --ss-spacing-m: 0.375rem;
+  --ss-spacing-s: 0.125rem;
+}
+
+.slim-select-sm .ss-main {
+  @apply bg-base-100 border border-base-content/20 w-full h-8 min-h-8 text-[12px];
+  border-radius: 4px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+/* Match DaisyUI select focus/open: 2px outline separated by 2px from the border */
+.slim-select-sm .ss-main:focus,
+.slim-select-sm .ss-main.ss-dir-below,
+.slim-select-sm .ss-main.ss-dir-above {
+  @apply outline outline-2 outline-offset-2 outline-base-content border-base-content;
+}
+
+.slim-select-sm .ss-main .ss-values .ss-single {
+  font-size: 0.8125rem;
+  line-height: 1.25;
+}
+
+.slim-select-sm .ss-main .ss-values .ss-placeholder {
+  font-size: 0.8125rem;
+}
+
+.slim-select-sm .ss-main .ss-arrow {
+  width: 0.625rem;
+  height: 0.625rem;
+}
+
+/* Compact dropdown content for small variant.
+   Targets both: content inside wrapper (.slim-select-sm .ss-content)
+   and content outside wrapper (.slim-select-sm-content) via JS class propagation */
+
+/* Gap between trigger and dropdown — prevent overlap, match native select popover */
+.slim-select-sm .ss-content.ss-dir-below,
+.slim-select-sm-content.ss-dir-below {
+  @apply border border-base-content/15 shadow-xl;
+  transform: translateY(8px) !important;
+  border-radius: var(--ss-border-radius) !important;
+}
+
+.slim-select-sm .ss-content.ss-dir-above,
+.slim-select-sm-content.ss-dir-above {
+  @apply border border-base-content/15 shadow-xl;
+  transform: translateY(-8px) !important;
+  border-radius: var(--ss-border-radius) !important;
+}
+
+/* Keep trigger border radius when dropdown is open (detached style) */
+.slim-select-sm .ss-main.ss-dir-above,
+.slim-select-sm .ss-main.ss-dir-below {
+  border-radius: var(--radius-field, 0.25rem) !important;
+}
+
+.slim-select-sm .ss-content .ss-search,
+.slim-select-sm-content .ss-search {
+  padding: 0.25rem;
+}
+
+.slim-select-sm .ss-content .ss-search input,
+.slim-select-sm-content .ss-search input {
+  height: 1.5rem;
+  font-size: 0.75rem;
+  padding: 0 0.375rem;
+  margin: 0 0.125rem;
+  border-radius: 0.25rem;
+}
+
+.slim-select-sm .ss-content .ss-list .ss-option,
+.slim-select-sm-content .ss-list .ss-option {
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+.slim-select-sm .ss-content .ss-list,
+.slim-select-sm-content .ss-list {
+  padding: 0.125rem 0.25rem;
+  max-height: 180px;
+}
+
+/* =============================================================================
    Shorter Variant (compact lists)
    ============================================================================= */
 .ss-main.is-shorter + .ss-content .ss-list {
@@ -797,6 +877,13 @@ div.ss-main.select-bordered {
   background-image: none !important;
   background-position: unset !important;
   padding-right: var(--ss-spacing-l) !important;
+}
+
+/* Override DaisyUI select height for small variant */
+.slim-select-sm .ss-main.select,
+.slim-select-sm .ss-main.select-bordered {
+  height: 2rem !important;
+  min-height: 2rem !important;
 }
 
 /* ss-content should have NO padding from DaisyUI select classes */

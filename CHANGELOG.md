@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **SlimSelect** - Added 8px detached gap between input and dropdown menu for improved visual separation
+- **SlimSelect** - Matched focus ring style with DaisyUI native selects (2px outline with 2px offset)
+- **SlimSelect** - Added support for placing search box at the bottom when dropdown opens upwards
+- **SlimSelect** - Matched native select dimensions (40px regular / 32px small) and border-radius (4px)
+- **SlimSelect** - Optimized internal padding and density to match standard DaisyUI elements
+- **SimpleFilters** - Enhanced configuration to support SlimSelect by default for improved usability
+
 ### Fixed
 
 - **CSS** - Add DaisyUI v5 structural variable fallbacks (`--border`, `--radius-box`, etc.) so custom themes that only define colors don't silently break component borders and radii

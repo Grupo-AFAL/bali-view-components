@@ -21,6 +21,7 @@ module Bali
           "breadcrumbs",
           "text-sm",
           "overflow-x-auto",
+          "pt-0",
           @options[:class]
         )
       end

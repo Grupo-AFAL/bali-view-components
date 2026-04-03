@@ -1,77 +1,83 @@
-<%= render Bali::PageHeader::Component.new(title: t('studios.title')) do %>
-  <%= render Bali::Link::Component.new(
-    name: t('studios.new_studio'),
-    href: new_studio_path,
-    variant: :primary,
-    size: :sm,
-    icon_name: 'plus',
-    data: { action: 'drawer#open', drawer_size: 'lg' }
-  ) %>
-<% end %>
-
-<div class="space-y-4">
-  <%# Filters Card %>
-  <%= render Bali::Card::Component.new do %>
-    <%= render Bali::DataTable::SimpleFilters::Component.new(
-      url: studios_path,
-      filters: @filter_form.simple_filters_config,
-      show_clear: @filter_form.simple_filters_active? || @filter_form.search_value.present?,
-      search: @filter_form.simple_search_config
+<%= render Bali::IndexPage::Component.new(
+  title: t('studios.title'),
+  breadcrumbs: [
+    { name: t('navbar.dashboard'), href: root_path, icon_name: 'home' },
+    { name: t('studios.title') }
+  ]
+) do |page| %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(
+      name: t('studios.new_studio'),
+      href: new_studio_path,
+      variant: :primary,
+      size: :sm,
+      icon_name: 'plus',
+      data: { action: 'drawer#open', drawer_size: 'lg' }
     ) %>
   <% end %>
 
-  <%# Table Card %>
-  <%= render Bali::Card::Component.new do %>
-    <%= render Bali::Table::Component.new(form: @filter_form) do |t| %>
-      <% t.with_header(name: t('studios.columns.name'), sort: :name) %>
-      <% t.with_header(name: t('studios.columns.country'), sort: :country) %>
-      <% t.with_header(name: t('studios.columns.status')) %>
-      <% t.with_header(name: t('studios.columns.size')) %>
-      <% t.with_header(name: t('studios.columns.founded'), sort: :founded_year) %>
-      <% t.with_header(name: t('studios.columns.actions'), align: :right) %>
+  <% page.with_body do %>
+    <%= render Bali::Card::Component.new do %>
+      <%= render Bali::DataTable::Component.new(
+        filter_form: @filter_form,
+        url: studios_path,
+        pagy: @pagy,
+        item_name: 'studios'
+      ) do |dt| %>
+        <% dt.with_simple_filters %>
 
-      <% @studios.each do |studio| %>
-        <% t.with_row do %>
-          <td class="font-medium">
-            <%= render Bali::Link::Component.new(
-              name: studio.name,
-              href: studio_path(studio),
-              variant: :link,
-              data: { action: 'modal#open', modal_size: 'lg' }
-            ) %>
-          </td>
-          <td>
-            <%= render Bali::Tag::Component.new(text: studio.country, size: :sm, variant: :outline) %>
-          </td>
-          <td>
-            <%= render Bali::Tag::Component.new(
-                text: studio.status.humanize,
-                color: studio.status_color,
-                size: :sm
-              ) %>
-          </td>
-          <td><%= studio.size&.humanize %></td>
-          <td><%= studio.founded_year %></td>
-          <td>
-            <div class="flex justify-end">
-              <%= render Bali::ActionsDropdown::Component.new(popover: true, align: :end) do |dropdown| %>
-                <% dropdown.with_item(name: t('studios.actions.view'), href: studio_path(studio), icon_name: 'eye', data: { action: 'modal#open', modal_size: 'lg' }) %>
-                <% dropdown.with_item(name: t('studios.actions.edit'), href: edit_studio_path(studio), icon_name: 'pencil', data: { action: 'drawer#open', drawer_size: 'lg' }) %>
-                <% dropdown.with_item(
-                  name: t('studios.actions.delete'),
-                  href: studio_path(studio),
-                  icon_name: 'trash',
-                  method: :delete,
-                  data: { turbo_confirm: t('studios.confirm_delete', name: studio.name) },
-                  class: 'text-error'
-                ) %>
+        <% dt.with_table do %>
+          <%= render Bali::Table::Component.new(form: @filter_form) do |t| %>
+            <% t.with_header(name: t('studios.columns.name'), sort: :name) %>
+            <% t.with_header(name: t('studios.columns.country'), sort: :country) %>
+            <% t.with_header(name: t('studios.columns.status')) %>
+            <% t.with_header(name: t('studios.columns.size')) %>
+            <% t.with_header(name: t('studios.columns.founded'), sort: :founded_year) %>
+            <% t.with_header(name: t('studios.columns.actions'), align: :right) %>
+
+            <% @studios.each do |studio| %>
+              <% t.with_row do %>
+                <td class="font-medium">
+                  <%= render Bali::Link::Component.new(
+                    name: studio.name,
+                    href: studio_path(studio),
+                    variant: :link,
+                    data: { action: 'modal#open', modal_size: 'lg' }
+                  ) %>
+                </td>
+                <td>
+                  <%= render Bali::Tag::Component.new(text: studio.country, size: :sm, variant: :outline) %>
+                </td>
+                <td>
+                  <%= render Bali::Tag::Component.new(
+                    text: studio.status.humanize,
+                    color: studio.status_color,
+                    size: :sm
+                  ) %>
+                </td>
+                <td><%= studio.size&.humanize %></td>
+                <td><%= studio.founded_year %></td>
+                <td>
+                  <div class="flex justify-end">
+                    <%= render Bali::ActionsDropdown::Component.new(popover: true, align: :end) do |dropdown| %>
+                      <% dropdown.with_item(name: t('studios.actions.view'), href: studio_path(studio), icon_name: 'eye', data: { action: 'modal#open', modal_size: 'lg' }) %>
+                      <% dropdown.with_item(name: t('studios.actions.edit'), href: edit_studio_path(studio), icon_name: 'pencil', data: { action: 'drawer#open', drawer_size: 'lg' }) %>
+                      <% dropdown.with_item(
+                        name: t('studios.actions.delete'),
+                        href: studio_path(studio),
+                        icon_name: 'trash',
+                        method: :delete,
+                        data: { turbo_confirm: t('studios.confirm_delete', name: studio.name) },
+                        class: 'text-error'
+                      ) %>
+                    <% end %>
+                  </div>
+                </td>
               <% end %>
-            </div>
-          </td>
+            <% end %>
+          <% end %>
         <% end %>
       <% end %>
     <% end %>
   <% end %>
-
-  <%= render Bali::PaginationFooter::Component.new(pagy: @pagy, item_name: 'studios') %>
-</div>
+<% end %>

@@ -71,7 +71,8 @@ class StudiosController < ApplicationController
         attribute: :country,
         collection: Studio::COUNTRIES.map { |c| [ c, c ] },
         blank: 'All Countries',
-        label: 'Country'
+        label: 'Country',
+        type: :slim_select
       },
       {
         attribute: :status,

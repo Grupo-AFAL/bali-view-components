@@ -8,7 +8,7 @@ module Bali
       private
 
       def breadcrumb_spacer_class
-        "mt-4" unless breadcrumbs.empty?
+        "mt-1" unless breadcrumbs.empty?
       end
 
       def render_breadcrumbs

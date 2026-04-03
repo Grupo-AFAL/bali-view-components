@@ -33,9 +33,10 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector('button[type="submit"]')
   end
 
-  def test_renders_labels
+  def test_renders_filters_without_labels
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters))
-    assert_selector(".label-text", text: "Status")
+    assert_no_selector(".label-text")
+    assert_selector("select[name='q[status_eq]']")
   end
 
   def test_shows_clear_button_when_show_clear_is_true
@@ -102,8 +103,6 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: multi_filters))
     assert_selector("select[name='q[status_eq]']")
     assert_selector("select[name='q[category_eq]']")
-    assert_selector(".label-text", text: "Status")
-    assert_selector(".label-text", text: "Category")
   end
 
   def test_uses_turbo_frame_top_for_form_submission
@@ -134,15 +133,10 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("input[value='SAP']")
   end
 
-  def test_search_parameter_renders_search_label
+  def test_search_parameter_renders_search_input_with_placeholder
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: @search))
-    assert_selector(".label-text", text: "Search")
-  end
-
-  def test_search_parameter_renders_custom_search_label
-    search_with_label = @search.merge(label: "Find records")
-    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: search_with_label))
-    assert_selector(".label-text", text: "Find records")
+    assert_selector("input[placeholder='Search by name...']")
+    assert_no_selector(".label-text")
   end
 
   def test_search_parameter_shows_clear_button_when_show_clear_is_true_with_search
