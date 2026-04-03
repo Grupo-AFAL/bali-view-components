@@ -784,6 +784,8 @@
    ============================================================================= */
 .slim-select-sm {
   --ss-main-height: 2rem;
+  --ss-search-height: 1.75rem;
+  --ss-content-height: 220px;
   --ss-spacing-l: 0.5rem;
   --ss-spacing-m: 0.375rem;
   --ss-spacing-s: 0.125rem;
@@ -807,6 +809,58 @@
 .slim-select-sm .ss-main .ss-arrow {
   width: 0.625rem;
   height: 0.625rem;
+}
+
+/* Compact dropdown content for small variant.
+   Targets both: content inside wrapper (.slim-select-sm .ss-content)
+   and content outside wrapper (.slim-select-sm-content) via JS class propagation */
+
+/* Gap between trigger and dropdown — prevent overlap */
+.slim-select-sm .ss-content.ss-dir-below,
+.slim-select-sm-content.ss-dir-below {
+  margin-top: 4px;
+  border-top: 1px solid var(--ss-border-color);
+  border-radius: var(--ss-border-radius);
+}
+
+.slim-select-sm .ss-content.ss-dir-above,
+.slim-select-sm-content.ss-dir-above {
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--ss-border-color);
+  border-radius: var(--ss-border-radius);
+}
+
+/* Detach trigger border radius when dropdown is open */
+.slim-select-sm .ss-main.ss-dir-above,
+.slim-select-sm .ss-main.ss-dir-below {
+  border-radius: var(--radius-field, 0.25rem);
+}
+
+.slim-select-sm .ss-content .ss-search,
+.slim-select-sm-content .ss-search {
+  padding: 0.25rem;
+}
+
+.slim-select-sm .ss-content .ss-search input,
+.slim-select-sm-content .ss-search input {
+  height: 1.5rem;
+  font-size: 0.75rem;
+  padding: 0 0.375rem;
+  margin: 0 0.125rem;
+  border-radius: 0.25rem;
+}
+
+.slim-select-sm .ss-content .ss-list .ss-option,
+.slim-select-sm-content .ss-list .ss-option {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  border-radius: 0.25rem;
+}
+
+.slim-select-sm .ss-content .ss-list,
+.slim-select-sm-content .ss-list {
+  padding: 0.125rem 0.25rem;
+  max-height: 180px;
 }
 
 /* =============================================================================

@@ -91,6 +91,11 @@ export class SlimSelectController extends Controller {
         document.querySelector('.ss-content')
       if (contentEl) {
         contentEl.classList.remove('select', 'select-bordered')
+
+        // Propagate size variant class to dropdown content (it may render outside the wrapper)
+        if (this.element.classList.contains('slim-select-sm')) {
+          contentEl.classList.add('slim-select-sm-content')
+        }
       }
     } catch (error) {
       console.error('[SlimSelect] Failed to initialize:', error)
