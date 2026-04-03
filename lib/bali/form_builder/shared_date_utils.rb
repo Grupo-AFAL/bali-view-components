@@ -16,6 +16,12 @@ module Bali
 
         wrapper_options = build_wrapper_options(method, opts)
 
+        # Format Range objects to string for the input value AFTER wrapper options are built
+        if opts[:value].is_a?(Range)
+          separator = { en: " to ", es: " a " }[I18n.locale.to_sym] || " to "
+          opts[:value] = "#{opts[:value].first.strftime("%Y-%m-%d")}#{separator}#{opts[:value].last.strftime("%Y-%m-%d")}"
+        end
+
         content_tag(:div, wrapper_options) do
           build_date_input(clear_btn, method, opts)
         end
@@ -34,8 +40,14 @@ module Bali
           disabled_dates: (options[:disabled_dates] || []).to_json
         }
 
-        if options[:mode] == "range" && options[:value].respond_to?(:first)
-          values[:default_dates] = [ options[:value].first, options[:value].last ]
+        if options[:mode] == "range"
+          if options[:value].respond_to?(:first) && !options[:value].is_a?(String)
+            values[:default_dates] = [ options[:value].first, options[:value].last ]
+          elsif options[:value].is_a?(String) && options[:value].present?
+            # Split the range string using the localized separator
+            separator = { en: " to ", es: " a " }[I18n.locale.to_sym] || " to "
+            values[:default_dates] = options[:value].split(/#{Regexp.escape(separator)}/)
+          end
         end
 
         values
@@ -67,7 +79,9 @@ module Bali
           }
         }.merge!(options.delete(:wrapper_options) || {})
 
-        prepend_values(wrapper_options, "datepicker", controller_values(method, options))
+        cv = controller_values(method, options)
+        puts "DEBUG: controller_values for #{method}: #{cv.inspect}"
+        prepend_values(wrapper_options, "datepicker", cv)
         wrapper_options
       end
 

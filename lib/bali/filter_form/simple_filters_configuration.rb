@@ -168,12 +168,6 @@ module Bali
           return value.compact_blank
         end
 
-        if value.is_a?(Range)
-          # Format range back to flatpickr string
-          separator = { en: " to ", es: " a " }[I18n.locale] || " to "
-          return "#{value.first.strftime("%Y-%m-%d")}#{separator}#{value.last.strftime("%Y-%m-%d")}"
-        end
-
         value
       end
 

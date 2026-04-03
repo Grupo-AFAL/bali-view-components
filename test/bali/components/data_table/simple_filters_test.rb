@@ -208,4 +208,20 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector(".flatpickr[data-datepicker-mode-value='range']")
     assert_selector("input[name='q[created_at]']")
   end
+
+  def test_persists_date_range_value
+    date_filters = [
+      {
+        attribute: :created_at,
+        label: "Created between",
+        type: :date_range,
+        value: "2024-01-01 to 2024-01-20"
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: date_filters))
+
+    assert_selector(".flatpickr[data-datepicker-default-dates-value*='2024-01-01']")
+    assert_selector(".flatpickr[data-datepicker-default-dates-value*='2024-01-20']")
+    assert_selector("input[value='2024-01-01 to 2024-01-20']")
+  end
 end
