@@ -155,13 +155,23 @@ module Bali
 
       # Get current value for a simple filter from params
       def current_simple_filter_value(attribute, predicate = :eq)
-        return nil unless defined?(@q_params) && @q_params.present?
-
         key = predicate.present? ? "#{attribute}_#{predicate}" : attribute.to_s
-        value = @q_params[key] || @q_params[key.to_sym]
+
+        # 1. Try raw params first (for non-persisted immediate feedback)
+        value = nil
+        value = @q_params[key] || @q_params[key.to_sym] if defined?(@q_params) && @q_params.present?
+
+        # 2. Try instance attribute (for persisted/restored values)
+        value ||= send(key) if respond_to?(key)
 
         if value.is_a?(Array)
           return value.compact_blank
+        end
+
+        if value.is_a?(Range)
+          # Format range back to flatpickr string
+          separator = { en: " to ", es: " a " }[I18n.locale] || " to "
+          return "#{value.first.strftime("%Y-%m-%d")}#{separator}#{value.last.strftime("%Y-%m-%d")}"
         end
 
         value
