@@ -3,11 +3,7 @@
     <% if search_enabled? %>
       <div class="w-32 sm:w-80 shrink-0">
         <div class="w-full <%= 'join' if search_icon %>">
-          <% if search_icon %>
-            <div class="join-item btn btn-sm btn-disabled no-animation border-base-content/20 bg-base-200 text-base-content/60 px-2.5">
-              <%= render Bali::Icon::Component.new(search_icon, class: 'w-4 h-4') %>
-            </div>
-          <% end %>
+          <%= icon_addon(search_icon) %>
 
           <%= tag.input(
                 type: "text",
@@ -40,13 +36,9 @@
                      <%= "checked" if is_checked %> />
             <% end %>
           </div>
-        <% elsif date_range?(filter) %>
+        <% elsif date_filter?(filter) %>
           <div class="<%= 'join' if filter[:icon] %>">
-            <% if filter[:icon] %>
-              <div class="join-item btn btn-sm btn-disabled no-animation border-base-content/20 bg-base-200 text-base-content/60 px-2.5">
-                <%= render Bali::Icon::Component.new(filter[:icon], class: 'w-4 h-4') %>
-              </div>
-            <% end %>
+            <%= icon_addon(filter[:icon]) %>
 
             <%= f.date_field(
                   filter_field_name(filter),
@@ -54,23 +46,7 @@
                   placeholder: filter[:placeholder] || filter[:label],
                   alt_input_class: "input input-bordered input-sm w-full #{'join-item rounded-l-none border-l-0 max-sm:w-24 max-sm:px-1' if filter[:icon]}",
                   wrapper_options: { class: "flatpickr #{'grow' if filter[:icon]}" },
-                  mode: "range"
-                ) %>
-          </div>
-        <% elsif date?(filter) %>
-          <div class="<%= 'join' if filter[:icon] %>">
-            <% if filter[:icon] %>
-              <div class="join-item btn btn-sm btn-disabled no-animation border-base-content/20 bg-base-200 text-base-content/60 px-2.5">
-                <%= render Bali::Icon::Component.new(filter[:icon], class: 'w-4 h-4') %>
-              </div>
-            <% end %>
-
-            <%= f.date_field(
-                  filter_field_name(filter),
-                  value: filter[:value] || filter[:default],
-                  placeholder: filter[:placeholder] || filter[:label],
-                  alt_input_class: "input input-bordered input-sm w-full #{'join-item rounded-l-none border-l-0 max-sm:w-24 max-sm:px-1' if filter[:icon]}",
-                  wrapper_options: { class: "flatpickr #{'grow' if filter[:icon]}" }
+                  **({ mode: "range" } if date_range?(filter))
                 ) %>
           </div>
         <% elsif slim_select?(filter) %>
@@ -86,11 +62,7 @@
               ) %>
         <% else %>
           <div class="<%= 'join' if filter[:icon] %>">
-            <% if filter[:icon] %>
-              <div class="join-item btn btn-sm btn-disabled no-animation border-base-content/20 bg-base-200 text-base-content/60 px-2.5">
-                <%= render Bali::Icon::Component.new(filter[:icon], class: 'w-4 h-4') %>
-              </div>
-            <% end %>
+            <%= icon_addon(filter[:icon]) %>
 
             <%= f.select(
               filter_field_name(filter),
@@ -116,7 +88,7 @@
         responsive: true
       ) %>
 
-      <% if show_clear_button? %>
+      <% if show_clear? %>
         <%= render Bali::Link::Component.new(
           name: clear_button_text,
           href: @url,

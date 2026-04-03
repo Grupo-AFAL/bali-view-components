@@ -124,22 +124,25 @@ module Bali
       # Capture quick search value from params
       @search_value = extract_search_value(q_params)
 
-      # Dynamically permit simple filter attributes
+      # Permit simple filter keys on @q_params so values can be read via
+      # current_simple_filter_value. These are NOT added to `attributes` —
+      # simple filter values bypass ActiveModel and go straight to Ransack.
       if simple_filters_enabled?
+        permit_keys = permitted_attributes.dup
+
         simple_filters.each do |f|
           type = f[:type]&.to_sym || :select
           predicate = f[:predicate] || (type == :date_range ? nil : :eq)
           key = predicate.present? ? "#{f[:attribute]}_#{predicate}" : f[:attribute].to_s
 
-          if type == :toggle_group || f[:type].to_s.include?("multi")
-            q_params.permit! if q_params.respond_to?(:permit!) # Simple way to ensure they are allowed
-          elsif type == :date_range
-            # Define attribute dynamically if it doesn't exist
-            unless self.class.attribute_names.include?(key.to_s)
-              self.class.attribute key, :date_range
-            end
+          if type == :toggle_group
+            permit_keys << { key => [] }
+          else
+            permit_keys << key
           end
         end
+
+        @q_params = q_params.permit(*permit_keys)
       end
 
       # Persist/restore all filter state (attributes, groupings, combinator, search)
