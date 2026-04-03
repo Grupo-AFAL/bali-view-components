@@ -107,11 +107,13 @@
    The clickable element that looks like an input/select
    ============================================================================= */
 .ss-main {
-  @apply flex flex-row items-center relative select-none w-full min-h-[var(--ss-main-height)] p-2 cursor-pointer;
+  @apply flex flex-row items-center relative select-none w-full h-10 min-h-[40px] p-0 cursor-pointer text-[14px];
   @apply bg-base-100 border border-base-content/20;
-  border-radius: var(--ss-border-radius);
+  border-radius: 4px;
   outline: none;
   box-sizing: border-box;
+  padding-left: 12px;
+  padding-right: 12px;
   transition: border-color var(--ss-animation-timing) ease,
               box-shadow var(--ss-animation-timing) ease;
 
@@ -545,13 +547,13 @@
   align-items: center;
   justify-content: flex-start;
   width: 100%;
-  min-height: auto;
-  padding: 0.625rem var(--ss-spacing-l);
+  min-height: 40px;
+  padding: 0 12px;
   margin: 1px 0;
-  font-size: 0.875rem;
+  font-size: 14px;
   color: var(--ss-font-color);
   background-color: transparent;
-  border-radius: var(--ss-border-radius);
+  border-radius: 4px;
   cursor: pointer;
   user-select: none;
   white-space: normal;
@@ -776,8 +778,10 @@
 }
 
 .slim-select-sm .ss-main {
-  @apply bg-base-100 border border-base-content/20 w-full h-8 min-h-8;
-  border-radius: var(--radius-field, 0.25rem);
+  @apply bg-base-100 border border-base-content/20 w-full h-8 min-h-8 text-[12px];
+  border-radius: 4px;
+  padding-left: 12px;
+  padding-right: 12px;
 }
 
 /* Match DaisyUI select focus/open: 2px outline separated by 2px from the border */
@@ -842,9 +846,10 @@
 
 .slim-select-sm .ss-content .ss-list .ss-option,
 .slim-select-sm-content .ss-list .ss-option {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  border-radius: 0.25rem;
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+  border-radius: 4px;
 }
 
 .slim-select-sm .ss-content .ss-list,
