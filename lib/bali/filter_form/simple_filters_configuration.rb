@@ -144,7 +144,16 @@ module Bali
         return nil unless defined?(@q_params) && @q_params.present?
 
         key = "#{attribute}_#{predicate}"
-        @q_params[key] || @q_params[key.to_sym]
+        value = @q_params[key] || @q_params[key.to_sym]
+
+        if value.is_a?(Array)
+          value = value.compact_blank
+          return value if value.present?
+
+          return nil
+        end
+
+        value
       end
 
       # Resolve collection - call if Proc, return as-is otherwise

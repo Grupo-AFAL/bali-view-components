@@ -150,7 +150,7 @@ module Bali
     #
     def array_attributes
       @array_attributes ||= self.class.attribute_names.select do |attribute_name|
-        array_predicates.any? { |predicate| attribute_name.ends_with?(predicate) }
+        array_predicates.any? { |predicate| attribute_name.to_s.ends_with?(predicate) }
       end
     end
 
