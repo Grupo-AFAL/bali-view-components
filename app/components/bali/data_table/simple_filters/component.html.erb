@@ -13,30 +13,8 @@
     <% end %>
 
     <% @filters.each do |filter| %>
-      <div class="<%= toggle_group?(filter) || toggle_group_multi?(filter) ? '' : 'sm:w-auto sm:min-w-40 sm:max-w-56' %>">
+      <div class="<%= toggle_group?(filter) ? '' : 'sm:w-auto sm:min-w-40 sm:max-w-56' %>">
         <% if toggle_group?(filter) %>
-          <div class="filter">
-            <% if filter[:blank].present? %>
-              <% is_checked = (filter[:value] || filter[:default]).blank? %>
-              <input type="radio"
-                     name="<%= filter_field_name(filter) %>"
-                     value=""
-                     class="btn btn-sm <%= 'btn-primary' if is_checked %>"
-                     aria-label="<%= filter[:blank] %>"
-                     <%= "checked" if is_checked %> />
-            <% end %>
-
-            <% filter[:collection].each do |label, value| %>
-              <% is_checked = (filter[:value] || filter[:default]).to_s == value.to_s %>
-              <input type="radio"
-                     name="<%= filter_field_name(filter) %>"
-                     value="<%= value %>"
-                     class="btn btn-sm <%= 'btn-primary' if is_checked %>"
-                     aria-label="<%= label %>"
-                     <%= "checked" if is_checked %> />
-            <% end %>
-          </div>
-        <% elsif toggle_group_multi?(filter) %>
           <div class="filter">
             <% filter[:collection].each do |label, value| %>
               <%

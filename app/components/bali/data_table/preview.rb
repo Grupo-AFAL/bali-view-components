@@ -208,9 +208,9 @@ module Bali
           {
             attribute: :status,
             collection: Studio.statuses.keys.map { |s| [s.humanize, s] },
-            blank: 'All',
             label: 'Status',
-            type: :toggle_group
+            type: :toggle_group,
+            predicate: :in
           },
           {
             attribute: :size,

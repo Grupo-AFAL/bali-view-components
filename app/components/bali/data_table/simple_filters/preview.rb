@@ -148,18 +148,17 @@ module Bali
 
         # @label Toggle Group
         # Segmented button groups for filters with a small number of choices.
-        # Supports both single select (radio) and multi select (checkbox).
         #
-        # @param kind select { choices: ["", public, private] }
+        # @param kind select { choices: [public, private], multi: true }
         # @param categories select { choices: [electronics, books, clothing], multi: true }
-        def toggle_group(kind: '', categories: [])
+        def toggle_group(kind: [], categories: [])
           filters = [
             {
               attribute: :kind,
               collection: [%w[Public public], %w[Private private]],
-              blank: 'All',
               label: 'Kind',
               type: :toggle_group,
+              predicate: :in,
               value: kind.presence
             },
             {
@@ -167,7 +166,7 @@ module Bali
               collection: [%w[Electronics electronics], %w[Books books],
                            %w[Clothing clothing]],
               label: 'Categories',
-              type: :toggle_group_multi,
+              type: :toggle_group,
               predicate: :in,
               value: categories.presence
             }

@@ -40,7 +40,7 @@ module Bali
         # @param blank [String, nil] Blank option text (e.g., "All Statuses")
         # @param label [String, nil] Human-readable label (defaults to humanized attribute)
         # @param default [String, nil] Default value when no filter is active
-        # @param type [Symbol] Filter input type (:select, :slim_select, :date, :toggle_group, :toggle_group_multi)
+        # @param type [Symbol] Filter input type (:select, :slim_select, :date, :toggle_group)
         # @param predicate [Symbol] Ransack predicate (default: :eq)
         #
         # @example Static collection

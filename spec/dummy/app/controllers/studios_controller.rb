@@ -78,7 +78,7 @@ class StudiosController < ApplicationController
         attribute: :status,
         collection: Studio.statuses.keys.map { |s| [ s.humanize, s ] },
         label: 'Status',
-        type: :toggle_group_multi,
+        type: :toggle_group,
         predicate: :in
       },
       {
