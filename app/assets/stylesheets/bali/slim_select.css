@@ -358,9 +358,8 @@
   /* Direction: above trigger */
   &.ss-dir-above {
     transform-origin: center bottom;
-    flex-direction: column-reverse;
     border-radius: var(--ss-border-radius);
-    margin-bottom: 8px !important;
+    transform: translateY(-8px) !important;
     @apply border border-base-content/15 shadow-xl;
   }
 
@@ -368,7 +367,7 @@
   &.ss-dir-below {
     transform-origin: center top;
     border-radius: var(--ss-border-radius);
-    margin-top: 8px !important;
+    transform: translateY(8px) !important;
     @apply border border-base-content/15 shadow-xl;
   }
 
@@ -813,14 +812,14 @@
 .slim-select-sm .ss-content.ss-dir-below,
 .slim-select-sm-content.ss-dir-below {
   @apply border border-base-content/15 shadow-xl;
-  margin-top: 8px !important;
+  transform: translateY(8px) !important;
   border-radius: var(--ss-border-radius) !important;
 }
 
 .slim-select-sm .ss-content.ss-dir-above,
 .slim-select-sm-content.ss-dir-above {
   @apply border border-base-content/15 shadow-xl;
-  margin-bottom: 8px !important;
+  transform: translateY(-8px) !important;
   border-radius: var(--ss-border-radius) !important;
 }
 
