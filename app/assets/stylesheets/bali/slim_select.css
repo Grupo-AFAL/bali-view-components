@@ -358,6 +358,7 @@
   /* Direction: above trigger */
   &.ss-dir-above {
     transform-origin: center bottom;
+    flex-direction: column-reverse;
     border-radius: var(--ss-border-radius);
     transform: translateY(-8px) !important;
     @apply border border-base-content/15 shadow-xl;
@@ -481,8 +482,8 @@
 /* Search when dropdown opens above */
 .ss-content.ss-dir-above .ss-search {
   border-bottom: none;
-  border-top: 1px solid oklch(0.278 0.033 256.8 / 0.1);
-  border-radius: var(--ss-border-radius) var(--ss-border-radius) 0 0;
+  @apply border-t border-base-content/10;
+  border-radius: 0 0 var(--ss-border-radius) var(--ss-border-radius);
 }
 
 /* Search when dropdown opens below - no rounded corners */
