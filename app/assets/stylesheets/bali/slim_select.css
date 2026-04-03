@@ -107,34 +107,25 @@
    The clickable element that looks like an input/select
    ============================================================================= */
 .ss-main {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  position: relative;
-  user-select: none;
-  color: var(--ss-font-color);
-  min-height: var(--ss-main-height);
-  width: 100%;
-  padding: var(--ss-spacing-s) var(--ss-spacing-l);
-  cursor: pointer;
-  border: 1px solid var(--ss-border-color);
+  @apply flex flex-row items-center relative select-none w-full min-h-[var(--ss-main-height)] p-2 cursor-pointer;
+  @apply bg-base-100 border border-base-content/20;
   border-radius: var(--ss-border-radius);
-  background-color: var(--ss-bg-color);
   outline: none;
   box-sizing: border-box;
   transition: border-color var(--ss-animation-timing) ease,
               box-shadow var(--ss-animation-timing) ease;
 
 
-  /* Focus state - subtle border change, no outline */
-  &:focus {
-    outline: none;
-    border-color: var(--ss-primary-color);
+  /* Focus state - use native DaisyUI ring */
+  &:focus,
+  &.ss-dir-below,
+  &.ss-dir-above {
+    @apply outline outline-2 outline-offset-2 outline-base-content border-base-content;
   }
 
   /* Hover state */
   &:hover:not(.ss-disabled) {
-    border-color: oklch(0.278 0.033 256.8 / 0.4);
+    @apply border-base-content/40;
   }
 
   /* Disabled state */
@@ -148,15 +139,10 @@
     }
   }
 
-  /* Direction states - connect border radius to dropdown */
-  &.ss-dir-above {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-  }
-
+  /* Direction states - detached dropdowns no longer change input radius */
+  &.ss-dir-above,
   &.ss-dir-below {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    /* Kept intentionally empty to override any default SlimSelect behavior if needed */
   }
 }
 
@@ -371,19 +357,17 @@
   &.ss-dir-above {
     transform-origin: center bottom;
     flex-direction: column-reverse;
-    border-top-left-radius: var(--ss-border-radius);
-    border-top-right-radius: var(--ss-border-radius);
-    margin-bottom: -1px;
-    border-bottom: none;
+    border-radius: var(--ss-border-radius);
+    margin-bottom: 4px;
+    @apply border border-base-content/15 shadow-xl;
   }
 
   /* Direction: below trigger */
   &.ss-dir-below {
     transform-origin: center top;
-    border-bottom-left-radius: var(--ss-border-radius);
-    border-bottom-right-radius: var(--ss-border-radius);
-    margin-top: -1px;
-    border-top: none;
+    border-radius: var(--ss-border-radius);
+    margin-top: 4px;
+    @apply border border-base-content/15 shadow-xl;
   }
 
   /* Open state */
@@ -792,9 +776,15 @@
 }
 
 .slim-select-sm .ss-main {
-  height: 2rem;
-  font-size: 0.8125rem;
+  @apply bg-base-100 border border-base-content/20 w-full h-8 min-h-8;
   border-radius: var(--radius-field, 0.25rem);
+}
+
+/* Match DaisyUI select focus/open: 2px outline separated by 2px from the border */
+.slim-select-sm .ss-main:focus,
+.slim-select-sm .ss-main.ss-dir-below,
+.slim-select-sm .ss-main.ss-dir-above {
+  @apply outline outline-2 outline-offset-2 outline-base-content border-base-content;
 }
 
 .slim-select-sm .ss-main .ss-values .ss-single {
@@ -815,25 +805,25 @@
    Targets both: content inside wrapper (.slim-select-sm .ss-content)
    and content outside wrapper (.slim-select-sm-content) via JS class propagation */
 
-/* Gap between trigger and dropdown — prevent overlap */
+/* Gap between trigger and dropdown — prevent overlap, match native select popover */
 .slim-select-sm .ss-content.ss-dir-below,
 .slim-select-sm-content.ss-dir-below {
-  margin-top: 4px;
-  border-top: 1px solid var(--ss-border-color);
-  border-radius: var(--ss-border-radius);
+  @apply border border-base-content/15 shadow-xl;
+  margin-top: 8px !important;
+  border-radius: var(--ss-border-radius) !important;
 }
 
 .slim-select-sm .ss-content.ss-dir-above,
 .slim-select-sm-content.ss-dir-above {
-  margin-bottom: 4px;
-  border-bottom: 1px solid var(--ss-border-color);
-  border-radius: var(--ss-border-radius);
+  @apply border border-base-content/15 shadow-xl;
+  margin-bottom: 4px !important;
+  border-radius: var(--ss-border-radius) !important;
 }
 
-/* Detach trigger border radius when dropdown is open */
+/* Keep trigger border radius when dropdown is open (detached style) */
 .slim-select-sm .ss-main.ss-dir-above,
 .slim-select-sm .ss-main.ss-dir-below {
-  border-radius: var(--radius-field, 0.25rem);
+  border-radius: var(--radius-field, 0.25rem) !important;
 }
 
 .slim-select-sm .ss-content .ss-search,
