@@ -14,7 +14,27 @@
 
     <% @filters.each do |filter| %>
       <div class="sm:w-auto sm:min-w-40 sm:max-w-56">
-        <% if date?(filter) %>
+        <% if toggle_group?(filter) %>
+          <div class="filter join">
+            <% if filter[:blank].present? %>
+              <input type="radio"
+                     name="<%= filter_field_name(filter) %>"
+                     value=""
+                     class="btn btn-sm join-item"
+                     aria-label="<%= filter[:blank] %>"
+                     <%= "checked" if (filter[:value] || filter[:default]).blank? %> />
+            <% end %>
+
+            <% filter[:collection].each do |label, value| %>
+              <input type="radio"
+                     name="<%= filter_field_name(filter) %>"
+                     value="<%= value %>"
+                     class="btn btn-sm join-item"
+                     aria-label="<%= label %>"
+                     <%= "checked" if (filter[:value] || filter[:default]).to_s == value.to_s %> />
+            <% end %>
+          </div>
+        <% elsif date?(filter) %>
           <%= f.date_field(
                 filter_field_name(filter),
                 value: filter[:value] || filter[:default],

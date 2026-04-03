@@ -164,4 +164,28 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("input[name='q[name_cont]']")
     assert_selector("select[name='q[status_eq]']")
   end
+
+  def test_renders_toggle_group_filters
+    toggle_filters = [
+      {
+        attribute: :kind,
+        collection: [ %w[Public public], %w[Private private] ],
+        blank: "All",
+        label: "Kind",
+        type: :toggle_group,
+        value: "public"
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: toggle_filters))
+
+    assert_selector(".filter.join")
+    assert_selector("input[type='radio'][name='q[kind_eq]'][value='']", visible: false)
+    assert_selector("input[type='radio'][name='q[kind_eq]'][value='public'][checked]", visible: false)
+    assert_selector("input[type='radio'][name='q[kind_eq]'][value='private']", visible: false)
+
+    # DaisyUI uses aria-label for button text in the filter/join group
+    assert_selector("input[aria-label='All']")
+    assert_selector("input[aria-label='Public']")
+    assert_selector("input[aria-label='Private']")
+  end
 end

@@ -61,6 +61,10 @@ module Bali
           filter[:type]&.to_sym == :date
         end
 
+        def toggle_group?(filter)
+          filter[:type]&.to_sym == :toggle_group
+        end
+
         def apply_button_text
           I18n.t("bali.simple_filters.apply", default: "Filter")
         end
