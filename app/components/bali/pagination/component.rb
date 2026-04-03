@@ -69,7 +69,11 @@ module Bali
         # Build URL with page param
         uri = URI.parse(base)
         params = Rack::Utils.parse_nested_query(uri.query || "")
-        page_key = @pagy.vars[:page_key] || "page"
+        page_key = if @pagy.respond_to?(:vars)
+                     @pagy.vars[:page_key]
+                   else
+                     @pagy.respond_to?(:page_key) ? @pagy.page_key : nil
+        end || "page"
         params[page_key] = page
         uri.query = Rack::Utils.build_nested_query(params)
         uri.to_s
