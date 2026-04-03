@@ -178,6 +178,27 @@ module Bali
             show_clear: kind.present? || categories.present?
           )
         end
+
+        # @label Date Range
+        # Single date picker that selects a range of dates.
+        #
+        # @param created_at text
+        def date_range(created_at: '')
+          filters = [
+            {
+              attribute: :created_at,
+              label: 'Created between',
+              type: :date_range,
+              value: created_at.presence
+            }
+          ]
+
+          render Bali::DataTable::SimpleFilters::Component.new(
+            url: '/lookbook',
+            filters: filters,
+            show_clear: created_at.present?
+          )
+        end
       end
     end
   end

@@ -32,6 +32,15 @@
                      <%= "checked" if is_checked %> />
             <% end %>
           </div>
+        <% elsif date_range?(filter) %>
+          <%= f.date_field(
+                filter_field_name(filter),
+                value: filter[:value] || filter[:default],
+                placeholder: filter[:placeholder] || filter[:label],
+                alt_input_class: "input input-bordered input-sm w-full",
+                wrapper_options: { class: "flatpickr" },
+                mode: "range"
+              ) %>
         <% elsif date?(filter) %>
           <%= f.date_field(
                 filter_field_name(filter),

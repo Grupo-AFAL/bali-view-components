@@ -194,4 +194,18 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("input[aria-label='Books']")
     assert_selector("input[aria-label='Clothing']")
   end
+
+  def test_renders_date_range_filters
+    date_filters = [
+      {
+        attribute: :created_at,
+        label: "Created between",
+        type: :date_range
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: date_filters))
+
+    assert_selector(".flatpickr[data-datepicker-mode-value='range']")
+    assert_selector("input[name='q[created_at]']")
+  end
 end

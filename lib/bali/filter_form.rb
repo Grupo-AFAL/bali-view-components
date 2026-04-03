@@ -126,10 +126,17 @@ module Bali
       # Dynamically permit simple filter attributes
       if simple_filters_enabled?
         simple_filters.each do |f|
-          predicate = f[:predicate] || :eq
-          key = "#{f[:attribute]}_#{predicate}"
-          if f[:type]&.to_sym == :toggle_group || f[:type].to_s.include?("multi")
+          type = f[:type]&.to_sym || :select
+          predicate = f[:predicate] || (type == :date_range ? nil : :eq)
+          key = predicate.present? ? "#{f[:attribute]}_#{predicate}" : f[:attribute].to_s
+
+          if type == :toggle_group || f[:type].to_s.include?("multi")
             q_params.permit! if q_params.respond_to?(:permit!) # Simple way to ensure they are allowed
+          elsif type == :date_range
+            # Define attribute dynamically if it doesn't exist
+            unless self.class.attribute_names.include?(key.to_s)
+              self.class.attribute key, :date_range
+            end
           end
         end
       end
@@ -174,8 +181,11 @@ module Bali
     end
 
     def date_range_attributes
-      @date_range_attributes ||= self.class.attribute_names.filter do |key|
-        self.class.attribute_types[key].instance_of?(Bali::Types::DateRangeValue)
+      @date_range_attributes ||= begin
+        class_date_range_attrs = self.class.attribute_names.filter do |key|
+          self.class.attribute_types[key].instance_of?(Bali::Types::DateRangeValue)
+        end
+        (class_date_range_attrs + simple_date_range_attributes.map(&:to_s)).uniq
       end
     end
 

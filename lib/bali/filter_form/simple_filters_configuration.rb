@@ -40,7 +40,7 @@ module Bali
         # @param blank [String, nil] Blank option text (e.g., "All Statuses")
         # @param label [String, nil] Human-readable label (defaults to humanized attribute)
         # @param default [String, nil] Default value when no filter is active
-        # @param type [Symbol] Filter input type (:select, :slim_select, :date, :toggle_group)
+        # @param type [Symbol] Filter input type (:select, :slim_select, :date, :date_range, :toggle_group)
         # @param predicate [Symbol] Ransack predicate (default: :eq)
         #
         # @example Static collection
@@ -102,14 +102,16 @@ module Bali
         return nil unless simple_filters_enabled?
 
         simple_filters.map do |filter|
-          predicate = filter[:predicate] || :eq
+          type = filter[:type] || :select
+          predicate = filter[:predicate] || (type.to_sym == :date_range ? nil : :eq)
+
           {
             attribute: filter[:attribute],
             collection: resolve_collection(filter[:collection]),
             blank: filter[:blank],
             label: filter[:label] || infer_simple_filter_label(filter[:attribute]),
             default: filter[:default],
-            type: filter[:type] || :select,
+            type: type,
             predicate: predicate,
             value: current_simple_filter_value(filter[:attribute], predicate)
           }
@@ -121,8 +123,17 @@ module Bali
       # @return [Boolean]
       def simple_filters_active?
         simple_filters.any? do |f|
-          current_simple_filter_value(f[:attribute], f[:predicate] || :eq).present?
+          type = f[:type] || :select
+          predicate = f[:predicate] || (type.to_sym == :date_range ? nil : :eq)
+          current_simple_filter_value(f[:attribute], predicate).present?
         end
+      end
+
+      def simple_date_range_attributes
+        return [] unless simple_filters_enabled?
+
+        simple_filters.select { |f| f[:type]&.to_sym == :date_range }
+                      .map { |f| f[:attribute].to_sym }
       end
 
       private
@@ -131,6 +142,9 @@ module Bali
       # Called from FilterForm#ransack_params
       def add_simple_filter_params(params)
         simple_filters.each do |filter|
+          type = filter[:type] || :select
+          next if type.to_sym == :date_range # Handled separately via where clause
+
           predicate = filter[:predicate] || :eq
           value = current_simple_filter_value(filter[:attribute], predicate)
           next if value.blank?
@@ -143,14 +157,11 @@ module Bali
       def current_simple_filter_value(attribute, predicate = :eq)
         return nil unless defined?(@q_params) && @q_params.present?
 
-        key = "#{attribute}_#{predicate}"
+        key = predicate.present? ? "#{attribute}_#{predicate}" : attribute.to_s
         value = @q_params[key] || @q_params[key.to_sym]
 
         if value.is_a?(Array)
-          value = value.compact_blank
-          return value if value.present?
-
-          return nil
+          return value.compact_blank
         end
 
         value

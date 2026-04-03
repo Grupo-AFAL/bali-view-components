@@ -60,9 +60,13 @@ module Bali
           filter[:type]&.to_sym == :date
         end
 
+        def date_range?(filter)
+          filter[:type]&.to_sym == :date_range
+        end
+
         def filter_field_name(filter)
-          predicate = filter[:predicate] || :eq
-          name = "q[#{filter[:attribute]}_#{predicate}]"
+          predicate = filter[:predicate] || (date_range?(filter) ? nil : :eq)
+          name = predicate.present? ? "q[#{filter[:attribute]}_#{predicate}]" : "q[#{filter[:attribute]}]"
           toggle_group?(filter) ? "#{name}[]" : name
         end
 

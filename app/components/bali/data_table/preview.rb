@@ -170,14 +170,14 @@ module Bali
       # - **Country**: `type: :slim_select` — searchable dropdown (useful for long lists)
       # - **Status**: `type: :toggle_group` — segmented button group
       # - **Size**: plain `select` — standard dropdown
-      # - **Created after**: `type: :date` — date picker input
+      # - **Created between**: `type: :date_range` — date range picker input
       #
       # Configure via FilterForm:
       # ```ruby
       # filter_form = Bali::FilterForm.new(Studio.all, params, simple_filters: [
       #   { attribute: :country, collection: [...], blank: "All Countries", type: :slim_select },
-      #   { attribute: :status, collection: [...], blank: "All", type: :toggle_group },
-      #   { attribute: :created_at, type: :date, predicate: :gteq, label: "Created after" }
+      #   { attribute: :status, collection: [...], type: :toggle_group, predicate: :in },
+      #   { attribute: :created_at, type: :date_range, label: "Created between" }
       # ])
       # ```
       # @param search text
@@ -220,9 +220,8 @@ module Bali
           },
           {
             attribute: :created_at,
-            type: :date,
-            predicate: :gteq,
-            label: 'Created after'
+            type: :date_range,
+            label: 'Created between'
           }
         ]
 

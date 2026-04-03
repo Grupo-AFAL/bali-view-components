@@ -86,6 +86,11 @@ class StudiosController < ApplicationController
         collection: Studio::SIZES.map { |s| [ s.humanize, s ] },
         blank: 'All Sizes',
         label: 'Size'
+      },
+      {
+        attribute: :created_at,
+        type: :date_range,
+        label: 'Created between'
       }
     ]
   end
