@@ -184,10 +184,10 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("input[type='checkbox'][name='q[category_in][]'][value='clothing'].join-item", visible: false)
     assert_no_selector("input[type='checkbox'][checked][value='clothing']", visible: false)
 
-    # Check for active state class
-    assert_selector("input.btn-primary[value='electronics']", visible: false)
-    assert_selector("input.btn-primary[value='books']", visible: false)
-    assert_selector("input.btn-outline[value='clothing']", visible: false)
+    # Check for active state (checked attribute)
+    assert_selector("input[value='electronics'][checked]", visible: false)
+    assert_selector("input[value='books'][checked]", visible: false)
+    assert_no_selector("input[value='clothing'][checked]", visible: false)
 
     # DaisyUI uses aria-label for button text in the filter group
     assert_selector("input[aria-label='Electronics']")
