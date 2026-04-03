@@ -99,12 +99,13 @@ module Bali
     # @param simple_filters [Array<Hash>] Simple inline filters (alternative to DSL)
     # rubocop:disable Metrics/ParameterLists
     def initialize(scope, params = {}, storage_id: nil, context: nil, search_fields: nil,
-                   search_placeholder: nil, persist_enabled: false, simple_filters: nil)
+                   search_placeholder: nil, search_icon: nil, persist_enabled: false, simple_filters: nil)
       # rubocop:enable Metrics/ParameterLists
       @scope = scope
       @storage_id = storage_id
       @context = context
       @instance_search_fields = search_fields&.map(&:to_sym)
+      @instance_search_icon = search_icon
       @instance_simple_filters = simple_filters
       @search_placeholder = search_placeholder
       @persist_enabled = persist_enabled

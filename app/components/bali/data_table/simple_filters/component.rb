@@ -48,6 +48,10 @@ module Bali
           @search[:label] || I18n.t("bali.simple_filters.search", default: "Search")
         end
 
+        def search_icon
+          @search[:icon]
+        end
+
         def toggle_group?(filter)
           filter[:type]&.to_sym == :toggle_group
         end

@@ -117,7 +117,8 @@ module Bali
           search = {
             field_name: 'q[name_cont]',
             value: search_text.presence,
-            placeholder: 'Search by name...'
+            placeholder: 'Search by name...',
+            icon: 'search'
           }
 
           render Bali::DataTable::SimpleFilters::Component.new(
@@ -228,7 +229,8 @@ module Bali
           search = {
             field_name: 'q[name_cont]',
             value: nil,
-            placeholder: 'Search...'
+            placeholder: 'Search...',
+            icon: 'search'
           }
 
           render Bali::DataTable::SimpleFilters::Component.new(

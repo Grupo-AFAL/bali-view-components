@@ -9,7 +9,8 @@ class StudiosController < ApplicationController
       Studio.all,
       params,
       simple_filters: simple_filters_config,
-      search_fields: %i[name]
+      search_fields: %i[name],
+      search_icon: 'search'
     )
 
     @pagy, @studios = pagy(@filter_form.result.order(:name), items: 10)
