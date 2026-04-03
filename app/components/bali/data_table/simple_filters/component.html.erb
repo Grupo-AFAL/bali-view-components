@@ -1,7 +1,7 @@
-<%= form_with url: @url, method: :get, data: { turbo_frame: "_top" } do |f| %>
+<%= form_with url: @url, method: :get, builder: Bali::FormBuilder, data: { turbo_frame: "_top" } do |f| %>
   <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-4 items-end">
     <% if search_enabled? %>
-      <div class="form-control col-span-1 sm:flex-1 sm:min-w-52">
+      <div class="form-control col-span-1 sm:min-w-52 sm:max-w-xs sm:flex-1">
         <label class="label">
           <span class="label-text"><%= search_label %></span>
         </label>
@@ -16,19 +16,37 @@
     <% end %>
 
     <% @filters.each do |filter| %>
-      <div class="form-control col-span-1 <%= search_enabled? ? 'sm:flex-1 sm:min-w-40' : 'sm:w-auto sm:max-w-xs' %>">
+      <div class="form-control col-span-1 sm:w-auto sm:min-w-40 sm:max-w-56">
         <label class="label">
           <span class="label-text"><%= filter[:label] %></span>
         </label>
-        <%= f.select(
-          filter_field_name(filter[:attribute]),
-          options_for_select(
-            filter[:collection],
-            filter[:value] || filter[:default]
-          ),
-          { include_blank: filter[:blank] },
-          class: "select select-bordered select-sm w-full"
-        ) %>
+
+        <% if date?(filter) %>
+          <%= f.date_field(
+                filter_field_name(filter),
+                value: filter[:value] || filter[:default],
+                placeholder: filter[:placeholder] || filter[:label],
+                alt_input_class: "input input-bordered input-sm w-full",
+                wrapper_options: { class: "flatpickr" }
+              ) %>
+        <% elsif slim_select?(filter) %>
+          <%= f.slim_select_field(
+                filter_field_name(filter),
+                filter[:collection],
+                { include_blank: filter[:blank], size: :sm },
+                { class: "w-full" }
+              ) %>
+        <% else %>
+          <%= f.select(
+            filter_field_name(filter),
+            options_for_select(
+              filter[:collection],
+              filter[:value] || filter[:default]
+            ),
+            { include_blank: filter[:blank] },
+            class: "select select-bordered select-sm w-full"
+          ) %>
+        <% end %>
       </div>
     <% end %>
 

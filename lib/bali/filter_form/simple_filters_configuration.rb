@@ -36,28 +36,39 @@ module Bali
         #
         # @param attribute [Symbol] Attribute key (column name)
         # @param collection [Array, Proc] Options for select - array of [label, value] pairs
-        #   or a Proc that returns such an array
+        #   or a Proc that returns such an array (not needed for :date type)
         # @param blank [String, nil] Blank option text (e.g., "All Statuses")
         # @param label [String, nil] Human-readable label (defaults to humanized attribute)
         # @param default [String, nil] Default value when no filter is active
+        # @param type [Symbol] Filter input type (:select, :slim_select, :date)
+        # @param predicate [Symbol] Ransack predicate (default: :eq)
         #
         # @example Static collection
         #   simple_filter :status,
         #     collection: [["Active", "active"], ["Inactive", "inactive"]],
         #     blank: "All"
         #
-        # @example Dynamic collection (evaluated at render time)
-        #   simple_filter :legal_entity_id,
-        #     collection: -> { LegalEntity.active.pluck(:name, :id) },
-        #     blank: "All Entities",
-        #     label: "Legal Entity"
-        def simple_filter(attribute, collection:, blank: nil, label: nil, default: nil)
+        # @example Searchable dropdown
+        #   simple_filter :country,
+        #     collection: Country.pluck(:name, :code),
+        #     blank: "All Countries",
+        #     type: :slim_select
+        #
+        # @example Date filter
+        #   simple_filter :created_at,
+        #     type: :date,
+        #     predicate: :gteq,
+        #     label: "Created after"
+        def simple_filter(attribute, collection: nil, blank: nil, label: nil, default: nil,
+                          type: :select, predicate: :eq)
           defined_simple_filters << {
             attribute: attribute.to_sym,
             collection: collection,
             blank: blank,
             label: label,
-            default: default
+            default: default,
+            type: type.to_sym,
+            predicate: predicate.to_sym
           }
         end
 
@@ -91,13 +102,16 @@ module Bali
         return nil unless simple_filters_enabled?
 
         simple_filters.map do |filter|
+          predicate = filter[:predicate] || :eq
           {
             attribute: filter[:attribute],
             collection: resolve_collection(filter[:collection]),
             blank: filter[:blank],
             label: filter[:label] || infer_simple_filter_label(filter[:attribute]),
             default: filter[:default],
-            value: current_simple_filter_value(filter[:attribute])
+            type: filter[:type] || :select,
+            predicate: predicate,
+            value: current_simple_filter_value(filter[:attribute], predicate)
           }
         end
       end
@@ -106,7 +120,9 @@ module Bali
       #
       # @return [Boolean]
       def simple_filters_active?
-        simple_filters.any? { |f| current_simple_filter_value(f[:attribute]).present? }
+        simple_filters.any? do |f|
+          current_simple_filter_value(f[:attribute], f[:predicate] || :eq).present?
+        end
       end
 
       private
@@ -115,19 +131,20 @@ module Bali
       # Called from FilterForm#ransack_params
       def add_simple_filter_params(params)
         simple_filters.each do |filter|
-          value = current_simple_filter_value(filter[:attribute])
+          predicate = filter[:predicate] || :eq
+          value = current_simple_filter_value(filter[:attribute], predicate)
           next if value.blank?
 
-          params["#{filter[:attribute]}_eq"] = value
+          params["#{filter[:attribute]}_#{predicate}"] = value
         end
       end
 
       # Get current value for a simple filter from params
-      # Simple filters use _eq predicate (equality match)
-      def current_simple_filter_value(attribute)
+      def current_simple_filter_value(attribute, predicate = :eq)
         return nil unless defined?(@q_params) && @q_params.present?
 
-        @q_params["#{attribute}_eq"] || @q_params[:"#{attribute}_eq"]
+        key = "#{attribute}_#{predicate}"
+        @q_params[key] || @q_params[key.to_sym]
       end
 
       # Resolve collection - call if Proc, return as-is otherwise

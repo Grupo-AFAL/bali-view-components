@@ -6,6 +6,7 @@ module Bali
       WRAPPER_CLASS = "slim-select"
       SELECT_CLASS = "select select-bordered"
       TOGGLE_BUTTON_CLASS = "ss-toggle-btn"
+      SIZE_CLASSES = { sm: "slim-select-sm" }.freeze
 
       DEFAULT_OPTIONS = {
         add_items: false,
@@ -101,9 +102,10 @@ module Bali
       end
 
       def wrapper_attributes(method, options, html_options, select_class)
+        size_class = SIZE_CLASSES[options[:size]&.to_sym]
         {
           id: "#{method}_select_div",
-          class: class_names([ WRAPPER_CLASS, select_class ].compact),
+          class: class_names([ WRAPPER_CLASS, size_class, select_class ].compact),
           data: stimulus_data(options, html_options)
         }
       end
