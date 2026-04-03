@@ -30,7 +30,7 @@ module Bali
             }
           ]
 
-          render Component.new(
+          render Bali::DataTable::SimpleFilters::Component.new(
             url: '/lookbook',
             filters: filters,
             show_clear: status.present? || category.present?
@@ -59,7 +59,7 @@ module Bali
             }
           ]
 
-          render Component.new(
+          render Bali::DataTable::SimpleFilters::Component.new(
             url: '/lookbook',
             filters: filters,
             show_clear: false
@@ -80,7 +80,7 @@ module Bali
             }
           ]
 
-          render Component.new(
+          render Bali::DataTable::SimpleFilters::Component.new(
             url: '/lookbook',
             filters: filters,
             show_clear: status.present?
@@ -120,7 +120,7 @@ module Bali
             placeholder: 'Search by name...'
           }
 
-          render Component.new(
+          render Bali::DataTable::SimpleFilters::Component.new(
             url: '/lookbook',
             filters: filters,
             show_clear: search_text.present? || status.present? || category.present?,
@@ -139,7 +139,7 @@ module Bali
             placeholder: 'Search records...'
           }
 
-          render Component.new(
+          render Bali::DataTable::SimpleFilters::Component.new(
             url: '/lookbook',
             filters: [],
             search: search
@@ -173,7 +173,7 @@ module Bali
             }
           ]
 
-          render Component.new(
+          render Bali::DataTable::SimpleFilters::Component.new(
             url: '/lookbook',
             filters: filters,
             show_clear: kind.present? || categories.present?
