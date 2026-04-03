@@ -123,6 +123,17 @@ module Bali
       # Capture quick search value from params
       @search_value = extract_search_value(q_params)
 
+      # Dynamically permit simple filter attributes
+      if simple_filters_enabled?
+        simple_filters.each do |f|
+          predicate = f[:predicate] || :eq
+          key = "#{f[:attribute]}_#{predicate}"
+          if f[:type]&.to_sym == :toggle_group || f[:type].to_s.include?("multi")
+            q_params.permit! if q_params.respond_to?(:permit!) # Simple way to ensure they are allowed
+          end
+        end
+      end
+
       # Persist/restore all filter state (attributes, groupings, combinator, search)
       if storage_id.present?
         attributes, @groupings, @combinator, @search_value = fetch_stored_filter_state(
