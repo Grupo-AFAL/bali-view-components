@@ -135,7 +135,7 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
 
   def test_search_parameter_renders_search_input_with_placeholder
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: @search))
-    assert_selector("input[placeholder='Search...']")
+    assert_selector("input[placeholder='Search by name...']")
     assert_no_selector(".label-text")
   end
 
