@@ -80,7 +80,6 @@ module Bali
         }.merge!(options.delete(:wrapper_options) || {})
 
         cv = controller_values(method, options)
-        puts "DEBUG: controller_values for #{method}: #{cv.inspect}"
         prepend_values(wrapper_options, "datepicker", cv)
         wrapper_options
       end
