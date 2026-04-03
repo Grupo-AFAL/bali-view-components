@@ -178,12 +178,13 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     ]
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: toggle_filters))
 
-    assert_selector(".filter.join")
+    assert_selector(".filter")
+    assert_no_selector(".join")
     assert_selector("input[type='radio'][name='q[kind_eq]'][value='']", visible: false)
     assert_selector("input[type='radio'][name='q[kind_eq]'][value='public'][checked]", visible: false)
     assert_selector("input[type='radio'][name='q[kind_eq]'][value='private']", visible: false)
 
-    # DaisyUI uses aria-label for button text in the filter/join group
+    # DaisyUI uses aria-label for button text in the filter group
     assert_selector("input[aria-label='All']")
     assert_selector("input[aria-label='Public']")
     assert_selector("input[aria-label='Private']")
@@ -202,7 +203,8 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     ]
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: multi_filters))
 
-    assert_selector(".filter.join")
+    assert_selector(".filter")
+    assert_no_selector(".join")
     assert_selector("input[type='checkbox'][name='q[category_in][]'][value='electronics'][checked]", visible: false)
     assert_selector("input[type='checkbox'][name='q[category_in][]'][value='books'][checked]", visible: false)
     assert_selector("input[type='checkbox'][name='q[category_in][]'][value='clothing']", visible: false)
