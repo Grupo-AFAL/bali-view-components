@@ -1,7 +1,7 @@
 <%= form_with url: @url, method: :get, builder: Bali::FormBuilder, data: { turbo_frame: "_top" } do |f| %>
-  <div class="flex flex-nowrap overflow-x-auto sm:flex-wrap gap-2 items-center pb-2 sm:pb-0 scrollbar-hide">
+  <div class="flex flex-nowrap overflow-x-auto sm:flex-wrap gap-2 items-center py-1 pb-2 sm:pb-1 scrollbar-hide">
     <% if search_enabled? %>
-      <div class="w-32 sm:w-auto sm:max-w-xs sm:flex-1 shrink-0">
+      <div class="w-32 sm:min-w-40 sm:max-w-xs sm:flex-1 shrink-0">
         <div class="<%= 'join' if search_icon %>">
           <% if search_icon %>
             <div class="join-item btn btn-sm btn-disabled no-animation border-base-content/20 bg-base-200 text-base-content/60 px-2.5">
@@ -52,7 +52,7 @@
                   filter_field_name(filter),
                   value: filter[:value] || filter[:default],
                   placeholder: filter[:placeholder] || filter[:label],
-                  alt_input_class: "input input-bordered input-sm w-full max-sm:placeholder-transparent #{'join-item rounded-l-none border-l-0 max-sm:w-12 max-sm:px-0' if filter[:icon]}",
+                  alt_input_class: "input input-bordered input-sm w-full max-sm:placeholder-transparent #{'join-item rounded-l-none border-l-0 max-sm:w-20 max-sm:px-1' if filter[:icon]}",
                   wrapper_options: { class: "flatpickr #{'grow' if filter[:icon]}" },
                   mode: "range"
                 ) %>
@@ -69,7 +69,7 @@
                   filter_field_name(filter),
                   value: filter[:value] || filter[:default],
                   placeholder: filter[:placeholder] || filter[:label],
-                  alt_input_class: "input input-bordered input-sm w-full max-sm:placeholder-transparent #{'join-item rounded-l-none border-l-0 max-sm:w-12 max-sm:px-0' if filter[:icon]}",
+                  alt_input_class: "input input-bordered input-sm w-full max-sm:placeholder-transparent #{'join-item rounded-l-none border-l-0 max-sm:w-20 max-sm:px-1' if filter[:icon]}",
                   wrapper_options: { class: "flatpickr #{'grow' if filter[:icon]}" }
                 ) %>
           </div>
@@ -82,7 +82,7 @@
                   size: :sm,
                   addon_left: (render Bali::Icon::Component.new(filter[:icon], class: 'w-4 h-4') if filter[:icon])
                 },
-                { class: "w-full #{'max-sm:w-12' if filter[:icon]}", select_class: ('max-sm:w-12' if filter[:icon]) }
+                { class: "w-full #{'max-sm:w-16' if filter[:icon]}", select_class: ('max-sm:w-16' if filter[:icon]) }
               ) %>
         <% else %>
           <div class="<%= 'join' if filter[:icon] %>">
@@ -99,7 +99,7 @@
                 filter[:value] || filter[:default]
               ),
               { include_blank: filter[:blank] },
-              class: "select select-bordered select-sm w-full #{'join-item rounded-l-none border-l-0 max-sm:w-12 max-sm:px-0' if filter[:icon]}"
+              class: "select select-bordered select-sm w-full bg-none max-sm:pr-2 #{'join-item rounded-l-none border-l-0 max-sm:w-16 max-sm:px-1' if filter[:icon]}"
             ) %>
           </div>
         <% end %>
