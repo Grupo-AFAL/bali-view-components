@@ -4,7 +4,7 @@ require "test_helper"
 
 class BaliPageHeaderComponentTest < ComponentTestCase
   def test_constants_defines_base_classes
-    assert_equal("page-header-component mb-6", Bali::PageHeader::Component::BASE_CLASSES)
+    assert_equal("page-header-component mb-4", Bali::PageHeader::Component::BASE_CLASSES)
   end
 
   def test_constants_defines_frozen_heading_sizes
@@ -33,7 +33,7 @@ class BaliPageHeaderComponentTest < ComponentTestCase
   def test_rendering_with_title_and_subtitle_as_params_renders
     render_inline(Bali::PageHeader::Component.new(title: "Title", subtitle: "Subtitle"))
     assert_selector(".level-left h3.title", text: "Title")
-    assert_selector(".level-left h5.subtitle", text: "Subtitle")
+    assert_selector(".level-left h6.subtitle", text: "Subtitle")
   end
 
   def test_rendering_with_title_and_subtitle_as_slots_when_using_text_param_renders
@@ -43,7 +43,7 @@ class BaliPageHeaderComponentTest < ComponentTestCase
       "Right content"
     end
     assert_selector(".level-left h3.title", text: "Title")
-    assert_selector(".level-left h5.subtitle", text: "Subtitle")
+    assert_selector(".level-left h6.subtitle", text: "Subtitle")
     assert_selector(".level-right", text: "Right content")
   end
 
@@ -62,7 +62,7 @@ class BaliPageHeaderComponentTest < ComponentTestCase
       c.with_subtitle("Subtitle", class: "text-primary")
     end
     assert_selector(".level-left h3.title.text-info", text: "Title")
-    assert_selector(".level-left h5.subtitle.text-primary", text: "Subtitle")
+    assert_selector(".level-left h6.subtitle.text-primary", text: "Subtitle")
   end
 
   def test_rendering_with_title_and_subtitle_as_slots_when_using_blocks_renders_custom_content

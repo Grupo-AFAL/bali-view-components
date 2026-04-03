@@ -3,7 +3,7 @@
 module Bali
   module PageHeader
     class Component < ApplicationViewComponent
-      BASE_CLASSES = "page-header-component mb-6"
+      BASE_CLASSES = "page-header-component mb-4"
       # Mobile-first responsive: tighter gap on small screens (flex-wrap is on Level)
       RESPONSIVE_CLASSES = "max-sm:gap-3"
 
@@ -26,7 +26,7 @@ module Bali
       BACK_BUTTON_CLASSES = "back-button btn btn-ghost size-9 text-primary"
 
       TITLE_CLASSES = "title text-2xl font-bold mb-1"
-      SUBTITLE_CLASSES = "subtitle text-lg text-base-content/60"
+      SUBTITLE_CLASSES = "subtitle text-sm text-base-content/60"
 
       renders_one :title, ->(text = nil, tag: :h3, **options, &block) do
         options = prepend_class_name(
@@ -36,7 +36,7 @@ module Bali
         heading_tag(text, tag, **options, &block)
       end
 
-      renders_one :subtitle, ->(text = nil, tag: :h5, **options, &block) do
+      renders_one :subtitle, ->(text = nil, tag: :h6, **options, &block) do
         options = prepend_class_name(
           options,
           class_names("subtitle text-base-content/60", HEADING_SIZES[tag])

@@ -1,10 +1,7 @@
 <%= form_with url: @url, method: :get, builder: Bali::FormBuilder, data: { turbo_frame: "_top" } do |f| %>
-  <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-4 items-end">
+  <div class="flex flex-wrap gap-3 sm:gap-4 items-center">
     <% if search_enabled? %>
-      <div class="form-control col-span-1 sm:min-w-52 sm:max-w-xs sm:flex-1">
-        <label class="label">
-          <span class="label-text"><%= search_label %></span>
-        </label>
+      <div class="sm:min-w-52 sm:max-w-xs sm:flex-1">
         <%= tag.input(
               type: "text",
               name: @search[:field_name],
@@ -16,11 +13,7 @@
     <% end %>
 
     <% @filters.each do |filter| %>
-      <div class="form-control col-span-1 sm:w-auto sm:min-w-40 sm:max-w-56">
-        <label class="label">
-          <span class="label-text"><%= filter[:label] %></span>
-        </label>
-
+      <div class="sm:w-auto sm:min-w-40 sm:max-w-56">
         <% if date?(filter) %>
           <%= f.date_field(
                 filter_field_name(filter),
@@ -50,7 +43,7 @@
       </div>
     <% end %>
 
-    <div class="form-control col-span-2 sm:col-span-1 flex-row sm:flex-col gap-2 justify-start items-end">
+    <div class="flex gap-2 items-center">
       <%= render Bali::Button::Component.new(
         name: apply_button_text,
         type: :submit,
