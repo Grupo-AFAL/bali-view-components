@@ -15,10 +15,10 @@
     <% @filters.each do |filter| %>
       <div class="<%= toggle_group?(filter) ? '' : 'sm:w-auto sm:min-w-40 sm:max-w-56' %>">
         <% if toggle_group?(filter) %>
-          <div class="join">
-            <%# Hidden input to ensure the parameter is sent even when nothing is checked %>
-            <input type="hidden" name="<%= filter_field_name(filter) %>" value="" />
+          <%# Hidden input to ensure the parameter is sent even when nothing is checked %>
+          <input type="hidden" name="<%= filter_field_name(filter) %>" value="" />
 
+          <div class="join">
             <% filter[:collection].each do |label, value| %>
               <%
                 current_values = Array.wrap(filter[:value] || filter[:default]).map(&:to_s)
@@ -27,7 +27,7 @@
               <input type="checkbox"
                      name="<%= filter_field_name(filter) %>"
                      value="<%= value %>"
-                     class="btn btn-sm join-item <%= is_checked ? 'btn-primary' : 'btn-outline' %>"
+                     class="btn btn-sm join-item btn-outline border-base-content/20 checked:!btn-primary checked:!text-primary-content"
                      aria-label="<%= label %>"
                      <%= "checked" if is_checked %> />
             <% end %>
