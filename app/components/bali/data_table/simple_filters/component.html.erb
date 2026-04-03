@@ -17,7 +17,7 @@
     <% end %>
 
     <% @filters.each do |filter| %>
-      <div class="<%= toggle_group?(filter) ? '' : 'w-auto sm:max-w-56' %> shrink-0">
+      <div class="<%= (toggle_group?(filter) || radio_group?(filter)) ? '' : (number_range?(filter) ? 'w-auto' : 'w-auto sm:max-w-56') %> shrink-0">
         <% if toggle_group?(filter) %>
           <%# Hidden input to ensure the parameter is sent even when nothing is checked %>
           <input type="hidden" name="<%= filter_field_name(filter) %>" value="" />
@@ -35,6 +35,50 @@
                      aria-label="<%= label %>"
                      <%= "checked" if is_checked %> />
             <% end %>
+          </div>
+        <% elsif radio_group?(filter) %>
+          <div class="join">
+            <% filter[:collection].each do |label, value| %>
+              <% current_value = (filter[:value] || filter[:default]).to_s %>
+              <input type="radio"
+                     name="<%= filter_field_name(filter) %>"
+                     value="<%= value %>"
+                     class="btn btn-sm join-item btn-outline border-base-content/20 checked:!bg-primary/10 checked:!text-primary checked:!border-primary"
+                     aria-label="<%= label %>"
+                     <%= "checked" if current_value == value.to_s %> />
+            <% end %>
+          </div>
+        <% elsif boolean?(filter) %>
+          <label class="flex items-center gap-2 cursor-pointer px-1">
+            <input type="hidden" name="<%= filter_field_name(filter) %>" value="" />
+            <input type="checkbox"
+                   name="<%= filter_field_name(filter) %>"
+                   value="true"
+                   class="toggle toggle-sm toggle-primary"
+                   <%= "checked" if (filter[:value] || filter[:default]).to_s == "true" %> />
+            <span class="text-sm whitespace-nowrap"><%= filter[:label] %></span>
+          </label>
+        <% elsif number_range?(filter) %>
+          <% names = number_range_field_names(filter) %>
+          <% values = number_range_values(filter) %>
+          <div class="<%= 'join' if filter[:icon] %>">
+            <%= icon_addon(filter[:icon]) %>
+
+            <div class="flex items-center gap-1 <%= 'join-item' if filter[:icon] %>">
+              <input type="number"
+                     name="<%= names[:min] %>"
+                     value="<%= values[:min] %>"
+                     placeholder="<%= filter[:placeholder_min] || 'Min' %>"
+                     class="input input-bordered input-sm w-20"
+                     step="<%= filter[:step] || 'any' %>" />
+              <span class="text-base-content/40 text-xs">–</span>
+              <input type="number"
+                     name="<%= names[:max] %>"
+                     value="<%= values[:max] %>"
+                     placeholder="<%= filter[:placeholder_max] || 'Max' %>"
+                     class="input input-bordered input-sm w-20"
+                     step="<%= filter[:step] || 'any' %>" />
+            </div>
           </div>
         <% elsif date_filter?(filter) %>
           <div class="<%= 'join' if filter[:icon] %>">

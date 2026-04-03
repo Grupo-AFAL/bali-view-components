@@ -137,6 +137,9 @@ module Bali
 
           if type == :toggle_group
             permit_keys << { key => [] }
+          elsif type == :number_range
+            permit_keys << "#{f[:attribute]}_gteq"
+            permit_keys << "#{f[:attribute]}_lteq"
           else
             permit_keys << key
           end

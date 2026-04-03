@@ -107,7 +107,7 @@ module Bali
           type = filter[:type] || :select
           predicate = filter[:predicate] || (type.to_sym == :date_range ? nil : :eq)
 
-          {
+          config = {
             attribute: filter[:attribute],
             collection: resolve_collection(filter[:collection]),
             blank: filter[:blank],
@@ -118,6 +118,15 @@ module Bali
             icon: filter[:icon],
             value: current_simple_filter_value(filter[:attribute], predicate)
           }
+
+          if type.to_sym == :number_range
+            config[:value] = current_number_range_value(filter[:attribute])
+            config[:step] = filter[:step]
+            config[:placeholder_min] = filter[:placeholder_min]
+            config[:placeholder_max] = filter[:placeholder_max]
+          end
+
+          config
         end
       end
 
@@ -127,8 +136,13 @@ module Bali
       def simple_filters_active?
         simple_filters.any? do |f|
           type = f[:type] || :select
-          predicate = f[:predicate] || (type.to_sym == :date_range ? nil : :eq)
-          current_simple_filter_value(f[:attribute], predicate).present?
+          if type.to_sym == :number_range
+            value = current_number_range_value(f[:attribute])
+            value[:min].present? || value[:max].present?
+          else
+            predicate = f[:predicate] || (type.to_sym == :date_range ? nil : :eq)
+            current_simple_filter_value(f[:attribute], predicate).present?
+          end
         end
       end
 
@@ -148,11 +162,17 @@ module Bali
           type = filter[:type] || :select
           next if type.to_sym == :date_range # Handled separately via where clause
 
-          predicate = filter[:predicate] || :eq
-          value = current_simple_filter_value(filter[:attribute], predicate)
-          next if value.blank?
+          if type.to_sym == :number_range
+            values = current_number_range_value(filter[:attribute])
+            params["#{filter[:attribute]}_gteq"] = values[:min] if values[:min].present?
+            params["#{filter[:attribute]}_lteq"] = values[:max] if values[:max].present?
+          else
+            predicate = filter[:predicate] || :eq
+            value = current_simple_filter_value(filter[:attribute], predicate)
+            next if value.blank?
 
-          params["#{filter[:attribute]}_#{predicate}"] = value
+            params["#{filter[:attribute]}_#{predicate}"] = value
+          end
         end
       end
 
@@ -172,6 +192,14 @@ module Bali
         end
 
         value
+      end
+
+      # Get current min/max values for a number_range filter from params
+      def current_number_range_value(attribute)
+        {
+          min: current_simple_filter_value(attribute, :gteq),
+          max: current_simple_filter_value(attribute, :lteq)
+        }
       end
 
       # Resolve collection - call if Proc, return as-is otherwise

@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **SlimSelect** - Matched native select dimensions (40px regular / 32px small) and border-radius (4px)
 - **SlimSelect** - Optimized internal padding and density to match standard DaisyUI elements
 - **SimpleFilters** - Enhanced configuration to support SlimSelect by default for improved usability
+- **SimpleFilters** - Added `boolean` filter type: toggle switch for boolean columns (active, published, featured)
+- **SimpleFilters** - Added `radio_group` filter type: single-select segmented buttons for mutually exclusive choices
+- **SimpleFilters** - Added `number_range` filter type: min/max inputs for numeric columns (price, amount, quantity)
 
 ### Fixed
 

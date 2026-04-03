@@ -224,4 +224,199 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector(".flatpickr[data-datepicker-default-dates-value*='2024-01-20']")
     assert_selector("input[value='2024-01-01 to 2024-01-20']")
   end
+
+  # Boolean toggle tests
+
+  def test_renders_boolean_toggle_filter
+    boolean_filters = [
+      {
+        attribute: :featured,
+        label: "Featured",
+        type: :boolean,
+        value: nil
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: boolean_filters))
+
+    assert_selector("input[type='checkbox'][name='q[featured_eq]'][value='true'].toggle")
+    assert_selector("span", text: "Featured")
+  end
+
+  def test_boolean_toggle_checked_when_value_is_true
+    boolean_filters = [
+      {
+        attribute: :featured,
+        label: "Featured",
+        type: :boolean,
+        value: "true"
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: boolean_filters))
+
+    assert_selector("input[type='checkbox'][checked].toggle", visible: false)
+  end
+
+  def test_boolean_toggle_unchecked_when_value_is_nil
+    boolean_filters = [
+      {
+        attribute: :published,
+        label: "Published",
+        type: :boolean,
+        value: nil
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: boolean_filters))
+
+    assert_no_selector("input[type='checkbox'][checked].toggle", visible: false)
+  end
+
+  def test_boolean_toggle_sends_hidden_field_for_unchecked
+    boolean_filters = [
+      {
+        attribute: :featured,
+        label: "Featured",
+        type: :boolean,
+        value: nil
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: boolean_filters))
+
+    assert_selector("input[type='hidden'][name='q[featured_eq]'][value='']", visible: false)
+  end
+
+  # Radio group tests
+
+  def test_renders_radio_group_filter
+    radio_filters = [
+      {
+        attribute: :status,
+        collection: [ %w[Draft draft], %w[Published published], %w[Archived archived] ],
+        label: "Status",
+        type: :radio_group,
+        value: nil
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: radio_filters))
+
+    assert_selector(".join")
+    assert_selector("input[type='radio'][name='q[status_eq]'][value='draft']")
+    assert_selector("input[type='radio'][name='q[status_eq]'][value='published']")
+    assert_selector("input[type='radio'][name='q[status_eq]'][value='archived']")
+    assert_selector("input[aria-label='Draft']")
+    assert_selector("input[aria-label='Published']")
+    assert_selector("input[aria-label='Archived']")
+  end
+
+  def test_radio_group_selects_current_value
+    radio_filters = [
+      {
+        attribute: :status,
+        collection: [ %w[Draft draft], %w[Published published] ],
+        label: "Status",
+        type: :radio_group,
+        value: "published"
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: radio_filters))
+
+    assert_selector("input[type='radio'][value='published'][checked]", visible: false)
+    assert_no_selector("input[type='radio'][value='draft'][checked]", visible: false)
+  end
+
+  def test_radio_group_is_single_select
+    radio_filters = [
+      {
+        attribute: :status,
+        collection: [ %w[Draft draft], %w[Published published] ],
+        label: "Status",
+        type: :radio_group,
+        value: nil
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: radio_filters))
+
+    # All radio inputs share the same name (single-select behavior)
+    assert_selector("input[type='radio'][name='q[status_eq]']", count: 2)
+  end
+
+  # Number range tests
+
+  def test_renders_number_range_filter
+    range_filters = [
+      {
+        attribute: :amount,
+        label: "Amount",
+        type: :number_range,
+        value: nil
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: range_filters))
+
+    assert_selector("input[type='number'][name='q[amount_gteq]']")
+    assert_selector("input[type='number'][name='q[amount_lteq]']")
+  end
+
+  def test_number_range_preserves_values
+    range_filters = [
+      {
+        attribute: :price,
+        label: "Price",
+        type: :number_range,
+        value: { min: 100, max: 500 }
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: range_filters))
+
+    assert_selector("input[type='number'][name='q[price_gteq]'][value='100']")
+    assert_selector("input[type='number'][name='q[price_lteq]'][value='500']")
+  end
+
+  def test_number_range_with_custom_placeholders
+    range_filters = [
+      {
+        attribute: :amount,
+        label: "Amount",
+        type: :number_range,
+        placeholder_min: "From",
+        placeholder_max: "To",
+        value: nil
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: range_filters))
+
+    assert_selector("input[placeholder='From']")
+    assert_selector("input[placeholder='To']")
+  end
+
+  def test_number_range_with_icon
+    range_filters = [
+      {
+        attribute: :amount,
+        label: "Amount",
+        type: :number_range,
+        icon: "dollar-sign",
+        value: nil
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: range_filters))
+
+    assert_selector(".join")
+    assert_selector("input[type='number'][name='q[amount_gteq]']")
+    assert_selector("input[type='number'][name='q[amount_lteq]']")
+  end
+
+  def test_number_range_with_step
+    range_filters = [
+      {
+        attribute: :quantity,
+        label: "Quantity",
+        type: :number_range,
+        step: 1,
+        value: nil
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: range_filters))
+
+    assert_selector("input[type='number'][step='1']", count: 2)
+  end
 end
