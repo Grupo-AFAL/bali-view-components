@@ -203,7 +203,8 @@ module Bali
             collection: Studio::COUNTRIES.map { |c| [c, c] },
             blank: 'All Countries',
             label: 'Country',
-            type: :slim_select
+            type: :slim_select,
+            icon: 'globe'
           },
           {
             attribute: :status,
@@ -216,12 +217,14 @@ module Bali
             attribute: :size,
             collection: Studio::SIZES.map { |s| [s.humanize, s] },
             blank: 'All Sizes',
-            label: 'Size'
+            label: 'Size',
+            icon: 'maximize'
           },
           {
             attribute: :created_at,
             type: :date_range,
-            label: 'Created between'
+            label: 'Created between',
+            icon: 'calendar'
           }
         ]
 

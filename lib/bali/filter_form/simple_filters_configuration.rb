@@ -40,6 +40,7 @@ module Bali
         # @param blank [String, nil] Blank option text (e.g., "All Statuses")
         # @param label [String, nil] Human-readable label (defaults to humanized attribute)
         # @param default [String, nil] Default value when no filter is active
+        # @param icon [String, nil] Icon name to display
         # @param type [Symbol] Filter input type (:select, :slim_select, :date, :date_range, :toggle_group)
         # @param predicate [Symbol] Ransack predicate (default: :eq)
         #
@@ -60,7 +61,7 @@ module Bali
         #     predicate: :gteq,
         #     label: "Created after"
         def simple_filter(attribute, collection: nil, blank: nil, label: nil, default: nil,
-                          type: :select, predicate: :eq)
+                          type: :select, predicate: :eq, icon: nil)
           defined_simple_filters << {
             attribute: attribute.to_sym,
             collection: collection,
@@ -68,7 +69,8 @@ module Bali
             label: label,
             default: default,
             type: type.to_sym,
-            predicate: predicate.to_sym
+            predicate: predicate.to_sym,
+            icon: icon
           }
         end
 
@@ -113,6 +115,7 @@ module Bali
             default: filter[:default],
             type: type,
             predicate: predicate,
+            icon: filter[:icon],
             value: current_simple_filter_value(filter[:attribute], predicate)
           }
         end

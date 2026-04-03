@@ -199,6 +199,45 @@ module Bali
             show_clear: created_at.present?
           )
         end
+
+        # @label With Icons
+        # Filters can have icons to save space and provide visual context.
+        #
+        # @param status select { choices: [0, 1, 2] }
+        # @param country select { choices: ["", USA, UK, France, Germany] }
+        def with_icons(status: nil, country: '')
+          filters = [
+            {
+              attribute: :country,
+              collection: [%w[USA USA], %w[UK UK], %w[France France], %w[Germany Germany]],
+              blank: 'All Countries',
+              label: 'Country',
+              icon: 'globe',
+              value: country.presence
+            },
+            {
+              attribute: :status,
+              collection: [['Active', 0], ['Inactive', 1], ['Pending', 2]],
+              label: 'Status',
+              type: :toggle_group,
+              predicate: :in,
+              value: status.presence
+            }
+          ]
+
+          search = {
+            field_name: 'q[name_cont]',
+            value: nil,
+            placeholder: 'Search...'
+          }
+
+          render Bali::DataTable::SimpleFilters::Component.new(
+            url: '/lookbook',
+            filters: filters,
+            search: search,
+            show_clear: status.present? || country.present?
+          )
+        end
       end
     end
   end

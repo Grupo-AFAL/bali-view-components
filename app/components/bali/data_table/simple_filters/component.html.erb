@@ -1,7 +1,7 @@
 <%= form_with url: @url, method: :get, builder: Bali::FormBuilder, data: { turbo_frame: "_top" } do |f| %>
-  <div class="flex flex-wrap gap-3 sm:gap-4 items-center">
+  <div class="flex flex-nowrap overflow-x-auto sm:flex-wrap gap-3 sm:gap-4 items-center pb-2 sm:pb-0 scrollbar-hide">
     <% if search_enabled? %>
-      <div class="sm:min-w-52 sm:max-w-xs sm:flex-1">
+      <div class="min-w-48 sm:min-w-52 sm:max-w-xs sm:flex-1 shrink-0">
         <%= tag.input(
               type: "text",
               name: @search[:field_name],
@@ -13,7 +13,7 @@
     <% end %>
 
     <% @filters.each do |filter| %>
-      <div class="<%= toggle_group?(filter) ? '' : 'sm:w-auto sm:min-w-40 sm:max-w-56' %>">
+      <div class="<%= toggle_group?(filter) ? '' : 'min-w-40 sm:w-auto sm:min-w-40 sm:max-w-56' %> shrink-0">
         <% if toggle_group?(filter) %>
           <%# Hidden input to ensure the parameter is sent even when nothing is checked %>
           <input type="hidden" name="<%= filter_field_name(filter) %>" value="" />
@@ -39,7 +39,8 @@
                 placeholder: filter[:placeholder] || filter[:label],
                 alt_input_class: "input input-bordered input-sm w-full",
                 wrapper_options: { class: "flatpickr" },
-                mode: "range"
+                mode: "range",
+                addon_left: (render Bali::Icon::Component.new(filter[:icon], class: 'w-4 h-4') if filter[:icon])
               ) %>
         <% elsif date?(filter) %>
           <%= f.date_field(
@@ -47,35 +48,50 @@
                 value: filter[:value] || filter[:default],
                 placeholder: filter[:placeholder] || filter[:label],
                 alt_input_class: "input input-bordered input-sm w-full",
-                wrapper_options: { class: "flatpickr" }
+                wrapper_options: { class: "flatpickr" },
+                addon_left: (render Bali::Icon::Component.new(filter[:icon], class: 'w-4 h-4') if filter[:icon])
               ) %>
         <% elsif slim_select?(filter) %>
           <%= f.slim_select_field(
                 filter_field_name(filter),
                 filter[:collection],
-                { include_blank: filter[:blank], size: :sm },
+                {
+                  include_blank: filter[:blank],
+                  size: :sm,
+                  addon_left: (render Bali::Icon::Component.new(filter[:icon], class: 'w-4 h-4') if filter[:icon])
+                },
                 { class: "w-full" }
               ) %>
         <% else %>
-          <%= f.select(
-            filter_field_name(filter),
-            options_for_select(
-              filter[:collection],
-              filter[:value] || filter[:default]
-            ),
-            { include_blank: filter[:blank] },
-            class: "select select-bordered select-sm w-full"
-          ) %>
+          <div class="<%= 'join' if filter[:icon] %>">
+            <% if filter[:icon] %>
+              <div class="join-item bg-base-200 flex items-center px-2 border border-r-0 border-base-content/20 rounded-l-lg">
+                <%= render Bali::Icon::Component.new(filter[:icon], class: 'w-4 h-4') %>
+              </div>
+            <% end %>
+
+            <%= f.select(
+              filter_field_name(filter),
+              options_for_select(
+                filter[:collection],
+                filter[:value] || filter[:default]
+              ),
+              { include_blank: filter[:blank] },
+              class: "select select-bordered select-sm w-full #{'join-item rounded-l-none' if filter[:icon]}"
+            ) %>
+          </div>
         <% end %>
       </div>
     <% end %>
 
-    <div class="flex gap-2 items-center">
+    <div class="flex gap-2 items-center shrink-0">
       <%= render Bali::Button::Component.new(
         name: apply_button_text,
         type: :submit,
         variant: :primary,
-        size: :sm
+        size: :sm,
+        icon_name: 'search',
+        responsive: true
       ) %>
 
       <% if show_clear_button? %>
@@ -83,7 +99,9 @@
           name: clear_button_text,
           href: @url,
           variant: :ghost,
-          size: :sm
+          size: :sm,
+          icon_name: 'x',
+          responsive: true
         ) %>
       <% end %>
     </div>
