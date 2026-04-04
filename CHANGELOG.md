@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **SimpleFilters** - Configurable search input width via `search[:width]` option; widened defaults from `w-32 sm:w-80` to `w-48 sm:w-96`
 - **SlimSelect** - Added 8px detached gap between input and dropdown menu for improved visual separation
 - **SlimSelect** - Matched focus ring style with DaisyUI native selects (2px outline with 2px offset)
 - **SlimSelect** - Added support for placing search box at the bottom when dropdown opens upwards
@@ -24,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **SimpleFilters** - Fix mass-assignment vulnerability by replacing blanket `permit!` with targeted parameter permitting
 - **SimpleFilters** - Fix thread-safety bug: remove class-level attribute mutation from initializer that could corrupt state under concurrent requests
 - **CSS** - Add DaisyUI v5 structural variable fallbacks (`--border`, `--radius-box`, etc.) so custom themes that only define colors don't silently break component borders and radii
+- **Pagination** - Load Pagy 43.x `series` helper explicitly to prevent `NoMethodError` on paginated views
+- **FilterForm** - Fix `simple_filters` keyword arg shadowing the instance method in `initialize`
+- **Tests** - Restore corrupted `filter_form_test.rb` (82 tests were silently disabled by null-byte corruption)
 
 ## [v2.8.0] - 2026-03-23
 
