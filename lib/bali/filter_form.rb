@@ -130,7 +130,7 @@ module Bali
       # Permit simple filter keys on @q_params so values can be read via
       # current_simple_filter_value. These are NOT added to `attributes` —
       # simple filter values bypass ActiveModel and go straight to Ransack.
-      @q_params = q_params.permit(perm_attrs) if simple_filters_enabled?
+      @q_params = q_params.permit(perm_attrs) if self.simple_filters_enabled?
 
       # Persist/restore all filter state (attributes, groupings, combinator, search)
       if storage_id.present?
