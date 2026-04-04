@@ -13,9 +13,11 @@ class Studio < ApplicationRecord
 
   def self.filter_options
     [
-      { attribute: :country, collection: COUNTRIES.map { |c| [ c, c ] }, blank: "All Countries", label: "Country", icon: 'globe' },
+      { attribute: :country, collection: COUNTRIES.map { |c| [ c, c ] }, blank: "All Countries", label: "Country", type: :slim_select, icon: 'globe' },
       { attribute: :status, collection: statuses.map { |s, v| [ s.humanize, v ] }, label: "Status", type: :toggle_group, predicate: :in },
-      { attribute: :size, collection: SIZES.map { |s| [ s.humanize, s ] }, blank: "All Sizes", label: "Size", icon: 'maximize' },
+      { attribute: :size, collection: SIZES.map { |s| [ s.humanize, s ] }, label: "Size", type: :radio_group, icon: 'maximize' },
+      { attribute: :indie, label: "Indie", type: :boolean },
+      { attribute: :founded_year, label: "Founded", type: :number_range, icon: 'hash' },
       { attribute: :created_at, type: :date_range, label: "Created between", icon: 'calendar' }
     ]
   end

@@ -104,8 +104,7 @@ module Bali
         return nil unless simple_filters_enabled?
 
         simple_filters.map do |filter|
-          type = filter[:type] || :select
-          predicate = filter[:predicate] || (type.to_sym == :date_range ? nil : :eq)
+          type, predicate = resolve_filter_type_and_predicate(filter)
 
           config = {
             attribute: filter[:attribute],
@@ -119,7 +118,7 @@ module Bali
             value: current_simple_filter_value(filter[:attribute], predicate)
           }
 
-          if type.to_sym == :number_range
+          if type == :number_range
             config[:value] = current_number_range_value(filter[:attribute])
             config[:step] = filter[:step]
             config[:placeholder_min] = filter[:placeholder_min]
@@ -135,12 +134,11 @@ module Bali
       # @return [Boolean]
       def simple_filters_active?
         simple_filters.any? do |f|
-          type = f[:type] || :select
-          if type.to_sym == :number_range
+          type, predicate = resolve_filter_type_and_predicate(f)
+          if type == :number_range
             value = current_number_range_value(f[:attribute])
             value[:min].present? || value[:max].present?
           else
-            predicate = f[:predicate] || (type.to_sym == :date_range ? nil : :eq)
             current_simple_filter_value(f[:attribute], predicate).present?
           end
         end
@@ -149,25 +147,52 @@ module Bali
       def simple_date_range_attributes
         return [] unless simple_filters_enabled?
 
-        simple_filters.select { |f| f[:type]&.to_sym == :date_range }
+        simple_filters.select { |f| resolve_filter_type_and_predicate(f).first == :date_range }
                       .map { |f| f[:attribute].to_sym }
       end
 
+      def simple_filters_permitted_keys
+        return [] unless simple_filters_enabled?
+
+        keys = []
+        simple_filters.each do |filter|
+          type, predicate = resolve_filter_type_and_predicate(filter)
+          key = predicate.present? ? "#{filter[:attribute]}_#{predicate}" : filter[:attribute].to_s
+
+          if type == :toggle_group
+            keys << { key => [] }
+          elsif type == :number_range
+            keys << "#{filter[:attribute]}_gteq"
+            keys << "#{filter[:attribute]}_lteq"
+          else
+            keys << key
+          end
+        end
+        keys
+      end
+
       private
+
+      # Resolve type and predicate from a filter hash, normalizing to symbols.
+      # Date range filters have no predicate (handled via where clause).
+      def resolve_filter_type_and_predicate(filter)
+        type = filter[:type]&.to_sym || :select
+        predicate = filter[:predicate] || (type == :date_range ? nil : :eq)
+        [ type, predicate ]
+      end
 
       # Add simple filter values to Ransack params
       # Called from FilterForm#ransack_params
       def add_simple_filter_params(params)
         simple_filters.each do |filter|
-          type = filter[:type] || :select
-          next if type.to_sym == :date_range # Handled separately via where clause
+          type, predicate = resolve_filter_type_and_predicate(filter)
+          next if type == :date_range # Handled separately via where clause
 
-          if type.to_sym == :number_range
+          if type == :number_range
             values = current_number_range_value(filter[:attribute])
             params["#{filter[:attribute]}_gteq"] = values[:min] if values[:min].present?
             params["#{filter[:attribute]}_lteq"] = values[:max] if values[:max].present?
           else
-            predicate = filter[:predicate] || :eq
             value = current_simple_filter_value(filter[:attribute], predicate)
             next if value.blank?
 

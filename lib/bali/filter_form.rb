@@ -114,7 +114,10 @@ module Bali
 
       q_params = params.fetch(:q, {})
       @q_params = q_params # Store for simple_filters value extraction
-      attributes = q_params.permit(permitted_attributes)
+      perm_attrs = permitted_attributes
+      permitted = q_params.permit(perm_attrs)
+      permitted_h = permitted.to_h
+      attributes = permitted_h.select { |k, _| self.class.attribute_names.include?(k.to_s) }
 
       # Extract Ransack groupings (g) and combinator (m) for complex filters
       # These are used by Filters for AND/OR condition groups
@@ -127,26 +130,7 @@ module Bali
       # Permit simple filter keys on @q_params so values can be read via
       # current_simple_filter_value. These are NOT added to `attributes` —
       # simple filter values bypass ActiveModel and go straight to Ransack.
-      if simple_filters_enabled?
-        permit_keys = permitted_attributes.dup
-
-        simple_filters.each do |f|
-          type = f[:type]&.to_sym || :select
-          predicate = f[:predicate] || (type == :date_range ? nil : :eq)
-          key = predicate.present? ? "#{f[:attribute]}_#{predicate}" : f[:attribute].to_s
-
-          if type == :toggle_group
-            permit_keys << { key => [] }
-          elsif type == :number_range
-            permit_keys << "#{f[:attribute]}_gteq"
-            permit_keys << "#{f[:attribute]}_lteq"
-          else
-            permit_keys << key
-          end
-        end
-
-        @q_params = q_params.permit(*permit_keys)
-      end
+      @q_params = q_params.permit(perm_attrs) if simple_filters_enabled?
 
       # Persist/restore all filter state (attributes, groupings, combinator, search)
       if storage_id.present?
@@ -164,7 +148,8 @@ module Bali
     end
 
     def permitted_attributes
-      scalar_attributes + date_range_attributes + array_attributes.map { |a| { a => [] } }
+      (scalar_attributes + date_range_attributes + array_attributes.map { |a| { a => [] } } +
+       simple_filters_permitted_keys).uniq
     end
 
     # To define array attributes the user needs to specify an array as
@@ -243,9 +228,20 @@ module Bali
         relation = ransack_search.result(**options)
 
         date_range_attributes.each do |date_range_attr|
-          next if send(date_range_attr).blank?
+          value = if respond_to?(date_range_attr)
+                    send(date_range_attr)
+          else
+                    current_simple_filter_value(date_range_attr, nil)
+          end
 
-          relation = relation.where(date_range_attr => send(date_range_attr))
+          # Manually cast if it's a string from params
+          if value.is_a?(String)
+            value = Bali::Types::DateRangeValue.new.cast(value)
+          end
+
+          next if value.blank?
+
+          relation = relation.where(date_range_attr => value)
         end
 
         relation
