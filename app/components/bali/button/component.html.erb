@@ -1,4 +1,4 @@
-<%= tag.button **button_attributes do %>
+<%= tag.button(**button_attributes) do %>
   <% if @loading %>
     <span class="loading loading-spinner loading-sm"></span>
   <% elsif icon.present? %>

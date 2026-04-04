@@ -181,8 +181,10 @@ module Bali
       end
     end
 
-    def model_name
-      @model_name ||= ActiveModel::Name.new(self, nil, "q")
+    silence_warnings do
+      def model_name
+        @model_name ||= ActiveModel::Name.new(self, nil, "q")
+      end
     end
 
     def inspect

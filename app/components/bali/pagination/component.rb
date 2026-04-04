@@ -75,7 +75,7 @@ module Bali
                      @pagy.vars[:page_key]
                    else
                      @pagy.respond_to?(:page_key) ? @pagy.page_key : nil
-        end || "page"
+                   end || "page"
         params[page_key] = page
         uri.query = Rack::Utils.build_nested_query(params)
         uri.to_s

@@ -1,5 +1,5 @@
-<%= tag.div id: container_id, **table_container_options do %>
-  <%= tag.table **options do %>
+<%= tag.div(id: container_id, **table_container_options) do %>
+  <%= tag.table(**options) do %>
     <thead>
       <tr>
         <% if bulk_actions? %>
