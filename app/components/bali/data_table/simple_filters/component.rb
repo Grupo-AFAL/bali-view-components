@@ -72,10 +72,35 @@ module Bali
           date?(filter) || date_range?(filter)
         end
 
+        def boolean?(filter)
+          filter_type(filter) == :boolean
+        end
+
+        def radio_group?(filter)
+          filter_type(filter) == :radio_group
+        end
+
+        def number_range?(filter)
+          filter_type(filter) == :number_range
+        end
+
         def filter_field_name(filter)
           predicate = filter[:predicate] || (date_range?(filter) ? nil : :eq)
           name = predicate.present? ? "q[#{filter[:attribute]}_#{predicate}]" : "q[#{filter[:attribute]}]"
           toggle_group?(filter) ? "#{name}[]" : name
+        end
+
+        def number_range_field_names(filter)
+          {
+            min: "q[#{filter[:attribute]}_gteq]",
+            max: "q[#{filter[:attribute]}_lteq]"
+          }
+        end
+
+        def number_range_values(filter)
+          values = filter[:value] || filter[:default] || {}
+          values = {} unless values.is_a?(Hash)
+          values
         end
 
         def icon_addon(icon_name)

@@ -55,7 +55,7 @@ module Admin
     end
 
     def studio_params
-      params.expect(studio: %i[name country status size founded_year])
+      params.expect(studio: %i[name country status size founded_year indie])
     end
   end
 end

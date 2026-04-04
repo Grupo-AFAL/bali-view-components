@@ -201,6 +201,82 @@ module Bali
           )
         end
 
+        # @label Boolean Toggle
+        # On/off toggle for boolean columns like "active", "published", or "featured".
+        #
+        # @param featured toggle
+        # @param published toggle
+        def boolean_toggle(featured: false, published: false)
+          filters = [
+            {
+              attribute: :featured,
+              label: 'Featured',
+              type: :boolean,
+              value: featured ? 'true' : nil
+            },
+            {
+              attribute: :published,
+              label: 'Published',
+              type: :boolean,
+              value: published ? 'true' : nil
+            }
+          ]
+
+          render Bali::DataTable::SimpleFilters::Component.new(
+            url: '/lookbook',
+            filters: filters,
+            show_clear: featured || published
+          )
+        end
+
+        # @label Radio Group
+        # Single-select segmented buttons — like toggle group but only one choice at a time.
+        #
+        # @param status select { choices: ["", draft, published, archived] }
+        def radio_group(status: '')
+          filters = [
+            {
+              attribute: :status,
+              collection: [%w[Draft draft], %w[Published published], %w[Archived archived]],
+              label: 'Status',
+              type: :radio_group,
+              value: status.presence
+            }
+          ]
+
+          render Bali::DataTable::SimpleFilters::Component.new(
+            url: '/lookbook',
+            filters: filters,
+            show_clear: status.present?
+          )
+        end
+
+        # @label Number Range
+        # Min/max inputs for numeric columns like price, quantity, or age.
+        #
+        # @param min number
+        # @param max number
+        def number_range(min: nil, max: nil)
+          filters = [
+            {
+              attribute: :amount,
+              label: 'Amount',
+              type: :number_range,
+              icon: 'dollar-sign',
+              step: 1,
+              placeholder_min: 'Min',
+              placeholder_max: 'Max',
+              value: { min: min, max: max }
+            }
+          ]
+
+          render Bali::DataTable::SimpleFilters::Component.new(
+            url: '/lookbook',
+            filters: filters,
+            show_clear: min.present? || max.present?
+          )
+        end
+
         # @label With Icons
         # Filters can have icons to save space and provide visual context.
         #

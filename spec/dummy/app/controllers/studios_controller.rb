@@ -63,39 +63,10 @@ class StudiosController < ApplicationController
   end
 
   def studio_params
-    params.expect(studio: %i[name country status size founded_year])
+    params.expect(studio: %i[name country status size founded_year indie])
   end
 
   def simple_filters_config
-    [
-      {
-        attribute: :country,
-        collection: Studio::COUNTRIES.map { |c| [ c, c ] },
-        blank: 'All Countries',
-        label: 'Country',
-        type: :slim_select,
-        icon: 'globe'
-      },
-      {
-        attribute: :status,
-        collection: Studio.statuses.map { |s, v| [ s.humanize, v ] },
-        label: 'Status',
-        type: :toggle_group,
-        predicate: :in
-      },
-      {
-        attribute: :size,
-        collection: Studio::SIZES.map { |s| [ s.humanize, s ] },
-        blank: 'All Sizes',
-        label: 'Size',
-        icon: 'maximize'
-      },
-      {
-        attribute: :created_at,
-        type: :date_range,
-        label: 'Created between',
-        icon: 'calendar'
-      }
-    ]
+    Studio.filter_options
   end
 end
