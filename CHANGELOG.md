@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix Ruby 4.0 warnings: parenthesize double-splat in ERB templates, silence intentional method overrides, fix indentation
 - Fix pagination end alignment conflict between Rubocop and Ruby 4.0
+- **SimpleFilters** - Fix `simple_filter` DSL defaulting date/date_range predicate to `:eq` instead of `nil`, causing incorrect field names (`q[created_at_eq]` instead of `q[created_at]`)
 
 ### Added
 
