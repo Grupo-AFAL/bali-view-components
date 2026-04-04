@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "pagy/toolbox/helpers/support/series"
+
 module Bali
   module Pagination
     class Component < ApplicationViewComponent
