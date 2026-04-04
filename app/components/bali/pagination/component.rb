@@ -73,8 +73,8 @@ module Bali
         params = Rack::Utils.parse_nested_query(uri.query || "")
         page_key = if @pagy.respond_to?(:vars)
                      @pagy.vars[:page_key]
-                   else
-                     @pagy.respond_to?(:page_key) ? @pagy.page_key : nil
+                   elsif @pagy.respond_to?(:page_key)
+                     @pagy.page_key
         end || "page"
         params[page_key] = page
         uri.query = Rack::Utils.build_nested_query(params)
