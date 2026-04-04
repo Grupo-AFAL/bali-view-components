@@ -88,6 +88,11 @@ es:
         greater_than_or_equal: "mayor o igual que"
         less_than_or_equal: "menor o igual que"
 
+    # Simple filters
+    simple_filters:
+      apply: "Filtrar"
+      clear: "Limpiar"
+
     # File input
     file_input:
       remove: "Eliminar %{name}"
