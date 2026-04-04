@@ -116,6 +116,18 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("input[placeholder='Search by name...']")
   end
 
+  def test_search_input_uses_default_width_classes
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: @search))
+    assert_selector("div.w-48.sm\\:w-96.shrink-0")
+  end
+
+  def test_search_input_uses_custom_width_when_provided
+    search_with_width = @search.merge(width: "w-64 sm:w-full")
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: search_with_width))
+    assert_selector("div.w-64.sm\\:w-full.shrink-0")
+    assert_no_selector("div.w-48")
+  end
+
   def test_search_parameter_does_not_render_search_input_when_search_is_nil
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters))
     assert_no_selector("input[type='text']")

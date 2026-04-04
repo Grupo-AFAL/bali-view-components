@@ -131,13 +131,17 @@ module Bali
 
         # @label Search Only
         # SimpleFilters can render with just a search input and no dropdowns.
+        # Use the `width` option to control how wide the search input is.
+        # Default is `w-48 sm:w-96`. Use `flex-1` for full available width.
         #
         # @param search_text text
-        def search_only(search_text: '')
+        # @param width select { choices: ["w-48 sm:w-96", "w-64 sm:w-full", "flex-1"] }
+        def search_only(search_text: '', width: 'w-48 sm:w-96')
           search = {
             field_name: 'q[name_cont]',
             value: search_text.presence,
-            placeholder: 'Search records...'
+            placeholder: 'Search records...',
+            width: width
           }
 
           render Bali::DataTable::SimpleFilters::Component.new(
