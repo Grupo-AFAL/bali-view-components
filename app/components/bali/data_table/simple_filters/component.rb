@@ -25,6 +25,7 @@ module Bali
         #   - :value [String, nil] Current search value
         #   - :placeholder [String, nil] Placeholder text
         #   - :label [String, nil] Custom label (defaults to I18n)
+        #   - :width [String, nil] Tailwind width classes (default: "w-48 sm:w-96")
         def initialize(url:, filters: [], show_clear: false, search: nil)
           @url = url
           @filters = filters
@@ -46,6 +47,10 @@ module Bali
 
         def search_icon
           @search&.dig(:icon)
+        end
+
+        def search_width
+          @search&.dig(:width) || "w-48 sm:w-96"
         end
 
         def filter_type(filter)
