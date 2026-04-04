@@ -62,6 +62,7 @@ module Bali
         #     label: "Created after"
         def simple_filter(attribute, collection: nil, blank: nil, label: nil, default: nil,
                           type: :select, predicate: :eq, icon: nil)
+          resolved_predicate = type.to_sym.in?(%i[date date_range]) ? nil : predicate
           defined_simple_filters << {
             attribute: attribute.to_sym,
             collection: collection,
@@ -69,7 +70,7 @@ module Bali
             label: label,
             default: default,
             type: type.to_sym,
-            predicate: predicate.to_sym,
+            predicate: resolved_predicate&.to_sym,
             icon: icon
           }
         end
