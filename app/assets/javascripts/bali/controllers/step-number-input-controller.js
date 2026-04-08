@@ -14,7 +14,9 @@ export class StepNumberInputController extends Controller {
   }
 
   disconnect () {
-    this.inputTarget.removeEventListener('change', this.handleInputChange)
+    if (this.hasInputTarget) {
+      this.inputTarget.removeEventListener('change', this.handleInputChange)
+    }
   }
 
   add (event) {
