@@ -2,7 +2,7 @@
 
 ## Problem Statement
 
-The gobierno-corporativo app currently spawns a **separate Node.js process per AI request** to handle BlockNote's `/ai` feature. The controller (`Documents::AiCompletionsController`) uses `Open3.popen3("node", "lib/ai/blocknote-chat.mjs")` to:
+The host app currently spawns a **separate Node.js process per AI request** to handle BlockNote's `/ai` feature. The controller (`Documents::AiCompletionsController`) uses `Open3.popen3("node", "lib/ai/blocknote-chat.mjs")` to:
 
 1. Transform messages (inject document state)
 2. Call the Anthropic API via the Vercel AI SDK

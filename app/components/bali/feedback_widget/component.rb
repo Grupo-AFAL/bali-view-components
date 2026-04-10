@@ -3,8 +3,8 @@
 module Bali
   module FeedbackWidget
     class Component < ApplicationViewComponent
-      # @param project_slug [String] The project slug in Opina (e.g., "gobierno-corporativo")
-      # @param opina_url [String] Base URL of the Opina instance (e.g., "https://opina-staging.afal.mx")
+      # @param project_slug [String] The project slug in Opina (e.g., "my-project")
+      # @param opina_url [String] Base URL of the Opina instance (e.g., "https://opina.example.com")
       # @param token [String, nil] Pre-built JWT token for embed authentication
       # @param secret [String, nil] Opina shared secret to generate the token automatically
       # @param user_id [String, nil] User ID for token generation (required when using secret)
