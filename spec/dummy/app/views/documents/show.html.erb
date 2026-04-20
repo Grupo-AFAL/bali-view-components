@@ -91,7 +91,9 @@
       ]
     },
     export: true,
-    export_filename: @document.title.parameterize
+    export_filename: @document.title.parameterize,
+    references_url: "/entity_references",
+    references_resolve_url: "/entity_references/resolve"
   ) %>
 </div>
 
@@ -112,6 +114,8 @@
         { id: "user-2", username: "Jane Smith" },
         { id: "user-3", username: "Bob Wilson" }
       ]
-    }
+    },
+    references_url: "/entity_references",
+    references_resolve_url: "/entity_references/resolve"
   ) %>
 </div>

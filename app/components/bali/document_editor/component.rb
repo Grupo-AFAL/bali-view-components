@@ -22,6 +22,9 @@ module Bali
         ai_url: nil,
         mentions_url: nil,
         mentions: nil,
+        references_url: nil,
+        references_resolve_url: nil,
+        references_config: nil,
         **options
       )
         # rubocop:enable Metrics/ParameterLists
@@ -40,6 +43,9 @@ module Bali
         @ai_url = ai_url
         @mentions_url = mentions_url
         @mentions = mentions
+        @references_url = references_url
+        @references_resolve_url = references_resolve_url
+        @references_config = references_config
         @options = options
         @instance_id = SecureRandom.hex(4)
       end
@@ -61,8 +67,9 @@ module Bali
       attr_reader :title, :initial_content, :document_url, :close_url,
                   :versions_url, :auto_save, :auto_save_delay,
                   :export, :export_filename, :input_name,
-                  :ai_url, :mentions_url, :mentions, :options,
-                  :instance_id
+                  :ai_url, :mentions_url, :mentions,
+                  :references_url, :references_resolve_url, :references_config,
+                  :options, :instance_id
 
       def toc_container_id
         "document-editor-toc-#{instance_id}"

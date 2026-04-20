@@ -19,6 +19,9 @@ module Bali
         initial_content: nil,
         toc_open: true,
         metadata_open: true,
+        references_url: nil,
+        references_resolve_url: nil,
+        references_config: nil,
         **options
       )
         @title = title
@@ -28,6 +31,9 @@ module Bali
         @initial_content = initial_content
         @toc_open = toc_open
         @metadata_open = metadata_open
+        @references_url = references_url
+        @references_resolve_url = references_resolve_url
+        @references_config = references_config
         @options = options
       end
 
@@ -46,7 +52,9 @@ module Bali
       private
 
       attr_reader :title, :subtitle, :breadcrumbs, :back,
-                  :initial_content, :options
+                  :initial_content,
+                  :references_url, :references_resolve_url, :references_config,
+                  :options
 
       def container_attributes
         options.except(:class).merge(

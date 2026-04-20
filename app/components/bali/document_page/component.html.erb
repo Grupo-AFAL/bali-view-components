@@ -64,7 +64,10 @@
             editable: false,
             table_of_contents: toc?,
             table_of_contents_container_id: toc? ? "document-page-toc-container" : nil,
-            show_export_buttons: false
+            show_export_buttons: false,
+            references_url: references_url,
+            references_resolve_url: references_resolve_url,
+            references_config: references_config
           ) %>
         <% elsif preview? %>
           <%= preview %>
@@ -88,7 +91,10 @@
         <%= render Bali::BlockEditor::Component.new(
           initial_content: initial_content,
           editable: false,
-          show_export_buttons: false
+          show_export_buttons: false,
+          references_url: references_url,
+          references_resolve_url: references_resolve_url,
+          references_config: references_config
         ) %>
       <% elsif preview? %>
         <%= preview %>
