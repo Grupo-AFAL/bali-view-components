@@ -36,22 +36,22 @@ module Bali
         no_results_subtitle: nil,
         **options
       )
-        @placeholder = placeholder || I18n.t('bali.command.placeholder', default: 'Search…')
+        @placeholder = placeholder || I18n.t("bali.command.placeholder", default: "Search…")
         @shortcut_label = shortcut_label
         @density = DENSITIES.include?(density) ? density : :default
-        @no_results_text = no_results_text || I18n.t('bali.command.no_results', default: 'No results')
+        @no_results_text = no_results_text || I18n.t("bali.command.no_results", default: "No results")
         @no_results_subtitle = no_results_subtitle
         @options = options
+      end
+
+      def compact?
+        density == :compact
       end
 
       private
 
       attr_reader :placeholder, :shortcut_label, :density,
                   :no_results_text, :no_results_subtitle, :options
-
-      def panel_classes
-        class_names("cmd-panel", { "compact" => density == :compact })
-      end
 
       def container_classes
         class_names("bali-command", options[:class])

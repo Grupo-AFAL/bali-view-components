@@ -4,17 +4,19 @@
         <%= "data-href=\"#{href}\"".html_safe if href %>
         data-search="<%= search.downcase %>"
         data-action="click->command#select"
-        class="cmd-row">
+        class="cmd-row group flex items-center gap-2.5 w-full px-2.5 py-2 rounded-md text-left text-sm text-base-content cursor-pointer hover:bg-base-200">
   <% if icon %>
-    <span class="cmd-row-ic">
+    <span class="cmd-row-ic size-7 rounded-md bg-base-200 grid place-items-center text-base-content/70 shrink-0">
       <%= render Bali::Icon::Component.new(icon, class: 'size-3.5') %>
     </span>
   <% end %>
-  <span class="cmd-row-body">
-    <span class="cmd-row-title"><%= title %></span>
+  <span class="cmd-row-body flex-1 min-w-0 flex flex-col gap-px">
+    <span class="cmd-row-title text-sm text-base-content truncate"><%= title %></span>
     <% if meta %>
-      <span class="cmd-row-meta"><%= meta %></span>
+      <span class="cmd-row-meta text-xs text-base-content/60 truncate"><%= meta %></span>
     <% end %>
   </span>
-  <span class="cmd-row-hint"><span class="cmd-kbd">⏎</span></span>
+  <span class="cmd-row-hint shrink-0 text-base-content/50 inline-flex items-center gap-1 opacity-0 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
 </button>

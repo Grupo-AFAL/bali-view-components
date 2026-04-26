@@ -4,10 +4,11 @@
       placeholder: 'Search documents, pages, actions…'
     ) do |cmd| %>
       <% cmd.with_trigger do %>
-        <button type="button" class="cmd-trigger">
-          <%= render Bali::Icon::Component.new('search') %>
-          <span class="grow">Search…</span>
-          <span class="cmd-kbd hidden sm:inline-grid">⌘K</span>
+        <button type="button"
+                class="flex items-center gap-2 w-full bg-base-200 hover:bg-base-300 rounded-md px-2.5 py-1.5 text-sm text-base-content/60 cursor-pointer transition-colors">
+          <%= render Bali::Icon::Component.new('search', class: 'size-4 shrink-0') %>
+          <span class="flex-1 text-left">Search…</span>
+          <kbd class="kbd kbd-xs hidden sm:inline-grid">⌘K</kbd>
         </button>
       <% end %>
 
