@@ -29,10 +29,10 @@
         <span class="hidden md:inline">Ana García</span>
         <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
       <% end %>
-      <% dropdown.with_item(href: admin_settings_path) { t('navbar.profile') } %>
-      <% dropdown.with_item(href: admin_settings_path) { t('navbar.settings') } %>
+      <% dropdown.with_item(href: '#') { 'Profile' } %>
+      <% dropdown.with_item(href: '#') { 'Settings' } %>
       <li class="divider my-1"></li>
-      <% dropdown.with_item(href: logout_path, class: 'text-error', data: { turbo_method: :delete }) { t('navbar.sign_out') } %>
+      <% dropdown.with_item(href: '#', class: 'text-error') { 'Sign out' } %>
     <% end %>
   <% end %>
 <% end %>
