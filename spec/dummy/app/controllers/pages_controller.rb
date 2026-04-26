@@ -12,6 +12,7 @@ class PagesController < ApplicationController
     case action_name
     when 'landing' then 'marketing'
     when 'sidemenu_example' then 'lookbook_preview' # Minimal layout for full-page demo
+    when 'workspace' then 'admin'
     else 'application'
     end
   end
@@ -35,5 +36,16 @@ class PagesController < ApplicationController
 
   def sidemenu_example
     # Uses application layout by default (inherits from layout setting)
+  end
+
+  def workspace
+    # Reference page demonstrating the standard "navbar + sidebar + content" admin shell.
+    @stats = [
+      { label: 'Total Movies', value: Movie.count, change: '+12.5%', icon: 'film', color: 'primary' },
+      { label: 'Studios', value: Tenant.count, change: '+3.2%', icon: 'building-2', color: 'secondary' },
+      { label: 'Revenue', value: '$45.2K', change: '+18.1%', icon: 'dollar-sign', color: 'success' },
+      { label: 'Active Users', value: 892, change: '-2.4%', icon: 'users', color: 'info' }
+    ]
+    @recent_movies = Movie.includes(:studio).order(created_at: :desc).limit(6)
   end
 end

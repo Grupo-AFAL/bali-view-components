@@ -13,10 +13,12 @@
 <% end %>
 
 <%= tag.div(**container_options) do %>
-  <%# Header with collapse toggle %>
+  <%# Header with collapse toggle.
+      Height is fixed to h-14 (56px) so the row aligns horizontally with the
+      AppLayout topbar — both share one continuous border-b across the top. %>
   <% if collapsible? %>
     <%# Expanded state header - toggle on the right %>
-    <div class="side-menu-expanded flex min-h-10 items-center gap-3 px-2.5 pt-3">
+    <div class="side-menu-expanded flex h-14 items-center gap-2 px-2.5 border-b border-base-300">
       <% if brand? %>
         <span class="side-menu-brand text-xl font-semibold grow"><%= brand %></span>
       <% elsif collapsible? %>
@@ -39,16 +41,16 @@
       <% end %>
     </div>
     <%# Collapsed state header - toggle centered like menu items %>
-    <div class="side-menu-collapsed hidden px-1 py-3">
+    <div class="side-menu-collapsed hidden h-14 items-center px-1 border-b border-base-300">
       <label for="<%= collapse_checkbox_id %>"
              title="<%= expand_label %>"
-             class="collapse-toggle menu-item justify-center cursor-pointer">
+             class="collapse-toggle menu-item justify-center cursor-pointer w-full">
         <%= render Bali::Icon::Component.new('panel-left-open',
               class: 'size-4') %>
       </label>
     </div>
   <% elsif brand? || fixed? %>
-    <div class="flex min-h-10 items-center gap-3 px-2.5 py-3">
+    <div class="flex h-14 items-center gap-2 px-2.5 border-b border-base-300">
       <% if brand? %>
         <span class="side-menu-brand text-xl font-semibold grow"><%= brand %></span>
       <% else %>
@@ -68,14 +70,17 @@
   <%# Menu switcher dropdown (when multiple menus) %>
   <% if multiple_menus? %>
     <div class="menu-switcher px-2.5 mb-3 mt-3">
-      <div class="dropdown dropdown-bottom w-full">
-        <div tabindex="0" role="button"
-             class="border-base-300 hover:bg-base-200 rounded-box flex cursor-pointer items-center gap-2 border p-2">
+      <%# Use <details><summary> instead of focus-based dropdown — the focus
+          pattern is fragile on iOS Safari (focus loss on slide-in animation,
+          blur on scroll). <details> uses native browser toggling and works
+          reliably on all touch devices. %>
+      <details class="dropdown dropdown-bottom w-full">
+        <summary class="menu-switcher-trigger tooltip tooltip-right border-base-300 hover:bg-base-200 rounded-box flex w-full items-center gap-2 border p-2 cursor-pointer list-none [&::-webkit-details-marker]:hidden"
+                 data-tip="<%= active_menu.title %>">
           <%= active_menu %>
-          <%= render Bali::Icon::Component.new('chevrons-up-down', class: 'ml-auto size-4 text-base-content/50') %>
-        </div>
-        <ul tabindex="0"
-            class="dropdown-content menu bg-base-100 rounded-box z-50 mt-1 w-full p-2 shadow-lg">
+          <%= render Bali::Icon::Component.new('chevrons-up-down', class: 'menu-switcher-chevron ml-auto size-4 text-base-content/50') %>
+        </summary>
+        <ul class="dropdown-content menu bg-base-100 rounded-box z-50 mt-1 w-full p-2 shadow-lg">
           <% authorized_menus.each do |menu| %>
             <li>
               <a href="<%= menu.href %>" class="<%= 'active' if menu == active_menu %>">
@@ -84,7 +89,7 @@
             </li>
           <% end %>
         </ul>
-      </div>
+      </details>
     </div>
   <% end %>
 

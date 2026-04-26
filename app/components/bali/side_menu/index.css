@@ -14,9 +14,35 @@
   overflow: visible;
 }
 
-/* Fixed positioning variant - for full-page sidebars */
+/* Menu-switcher needs position: relative so the dropdown-content can be
+   absolutely positioned beside the collapsed sidebar (see collapsed-state
+   block below). */
+.menu-switcher {
+  position: relative;
+}
+
+/* Menu-switcher tooltip is only useful when the sidebar is collapsed —
+   in expanded state the title is right there in the trigger button.
+   Hide DaisyUI's tooltip pseudo-elements unless the sidebar is collapsed. */
+.menu-switcher-trigger.tooltip::before,
+.menu-switcher-trigger.tooltip::after {
+  display: none;
+}
+.side-menu-collapse-trigger:checked + .side-menu-component .menu-switcher-trigger.tooltip:hover::before,
+.side-menu-collapse-trigger:checked + .side-menu-component .menu-switcher-trigger.tooltip:hover::after,
+.side-menu-component.is-collapsed .menu-switcher-trigger.tooltip:hover::before,
+.side-menu-component.is-collapsed .menu-switcher-trigger.tooltip:hover::after {
+  display: block;
+}
+
+/* Fixed positioning variant - for full-page sidebars.
+   Uses a 1px right border for desktop separation (lines up with the topbar's
+   bottom border to form one continuous app-chrome divider). On mobile, where
+   the sidebar slides in as an overlay over content, the border is replaced by
+   a drop shadow for visual depth. */
 .side-menu-component--fixed {
-  @apply fixed top-0 left-0 h-full shadow-lg z-40 bg-base-100;
+  @apply fixed top-0 left-0 h-full z-40 bg-base-100;
+  border-right: 1px solid var(--color-base-300);
   width: var(--bali-side-menu-width);
   transform: translateX(-100%);
   transition: transform 0.2s ease-in-out, width 0.2s ease-in-out;
@@ -29,6 +55,13 @@
   /* Active state (mobile menu open) */
   &.is-active {
     transform: translateX(0);
+  }
+}
+
+/* Mobile overlay shadow — only when the sidebar slides in over content */
+@media (max-width: 1023px) {
+  .side-menu-component--fixed.is-active {
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   }
 }
 
@@ -46,7 +79,12 @@
    ======================================== */
 
 .sidebar-menu {
-  @apply space-y-1;
+  /* Breathing room below the chrome row's bottom border. Applied when there's
+     no contextual chrome between the brand row and the first menu item:
+     - Mobile (sidebar overlay, no separate topbar)
+     - Desktop collapsed (no MAIN/section labels visible, icons sit bare)
+     The collapsed-state padding is added in the .is-collapsed block below. */
+  @apply space-y-1 max-lg:pt-2;
 
   /* Allow dropdowns to overflow outside the menu container */
   .dropdown {
@@ -142,9 +180,46 @@
     @apply hidden;
   }
 
-  /* Hide menu switcher */
+  /* Compact menu switcher to icon-only — keep it clickable to switch modules.
+     Hides the title/subtitle/chevron and removes the border, leaving just the
+     module icon centered in the collapsed-width sidebar.
+     IMPORTANT: title-hiding is scoped to .menu-switcher-trigger so the OPEN
+     dropdown popup still renders the full title + subtitle for each module. */
   .menu-switcher {
-    @apply hidden;
+    @apply px-1;
+  }
+  .menu-switcher-trigger {
+    @apply justify-center !border-0 !p-2;
+  }
+  .menu-switcher-trigger .menu-switcher-chevron {
+    @apply !hidden;
+  }
+  .menu-switcher-trigger .side-menu-component--menu-switch-component {
+    @apply !gap-0;
+  }
+  .menu-switcher-trigger .side-menu-component--menu-switch-component > div {
+    @apply !hidden;
+  }
+
+  /* Reposition the dropdown popup to open beside the collapsed sidebar
+     (instead of below, where it would overlap the menu items). Mirrors the
+     pattern used by .side-menu-bottom-group.dropdown above. */
+  .menu-switcher details {
+    position: static;
+  }
+  .menu-switcher .dropdown-content {
+    position: absolute !important;
+    top: 0;
+    left: var(--bali-side-menu-collapsed-width);
+    right: auto;
+    bottom: auto;
+    width: var(--bali-side-menu-width);
+    margin: 0;
+  }
+  /* In the dropdown items, don't stretch the title div — let icon + title
+     sit naturally next to each other with the menu_switch's gap-3 spacing. */
+  .menu-switcher .dropdown-content .side-menu-component--menu-switch-component > div {
+    @apply !flex-none;
   }
 
   /* Hide section labels */
@@ -152,13 +227,16 @@
     @apply hidden;
   }
 
-  /* Toggle expanded/collapsed item visibility */
+  /* Toggle expanded/collapsed item visibility.
+     Collapsed header uses !flex (not !block) so its `items-center` works —
+     the brand-row collapse toggle needs to vertically center inside the
+     56px chrome row to align with the topbar. */
   .side-menu-expanded {
     @apply !hidden;
   }
 
   .side-menu-collapsed {
-    @apply !block;
+    @apply !flex;
   }
 
   /* Center menu items in collapsed state */
@@ -174,6 +252,11 @@
   /* Style the collapse toggle like a menu item in collapsed state */
   .collapse-toggle {
     @apply justify-center p-2;
+  }
+
+  /* Breathing room above the first icon when collapsed (no labels visible) */
+  .sidebar-menu {
+    @apply pt-2;
   }
 
   /* Bottom group dropdown: open right instead of up when collapsed */

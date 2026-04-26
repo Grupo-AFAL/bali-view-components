@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   root 'dashboard#index'
   get 'landing', to: 'pages#landing'
   get 'showcase', to: 'pages#showcase'
+  get 'workspace', to: 'pages#workspace'
 
   # Auth pages (demo/reference)
   get 'login', to: 'sessions#new'

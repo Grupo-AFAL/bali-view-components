@@ -1,0 +1,53 @@
+<%# Workspace topbar — sits inside the content column, right of the sidebar.
+    Aligns horizontally with the sidebar's brand row (both 56px tall) so the
+    divider underline reads as one continuous line.
+
+    TODO(you): pick the global controls that belong here.
+    Common picks: search, notifications, help, user menu.
+    Keep ≤ 4 items so it stays readable on tablets. %>
+<div class="flex items-center gap-3 px-6 h-14 bg-base-100 border-b border-base-300">
+  <%# Mobile sidebar trigger — only on small screens %>
+  <label for="<%= Bali::SideMenu::Component::MOBILE_TRIGGER_ID %>"
+         role="button" tabindex="0"
+         class="btn btn-ghost btn-sm lg:hidden"
+         aria-label="<%= t('bali.side_menu.toggle_mobile', default: 'Toggle sidebar') %>">
+    <%= render Bali::Icon::Component.new('menu', size: :small) %>
+  </label>
+
+  <%# Global search — typeahead trigger, Cmd+K-style %>
+  <div class="flex-1 max-w-md">
+    <label class="input input-sm input-bordered flex items-center gap-2 bg-base-200 border-0">
+      <%= render Bali::Icon::Component.new('search', class: 'size-4 text-base-content/50') %>
+      <input type="text" class="grow" placeholder="Search..." />
+      <kbd class="kbd kbd-xs hidden sm:inline-flex">⌘K</kbd>
+    </label>
+  </div>
+
+  <div class="flex items-center gap-1 ml-auto">
+    <%# Notifications %>
+    <button type="button" class="btn btn-ghost btn-sm btn-square relative" aria-label="Notifications">
+      <%= render Bali::Icon::Component.new('bell', class: 'size-5') %>
+      <span class="absolute top-1.5 right-1.5 size-2 rounded-full bg-error border-2 border-base-100"></span>
+    </button>
+
+    <%# Help %>
+    <button type="button" class="btn btn-ghost btn-sm btn-square" aria-label="Help">
+      <%= render Bali::Icon::Component.new('circle-help', class: 'size-5') %>
+    </button>
+
+    <%# User menu %>
+    <%= render Bali::Dropdown::Component.new(align: :left, class: 'lg:dropdown-end') do |dropdown| %>
+      <% dropdown.with_trigger(variant: :ghost, class: 'btn-sm gap-2') do %>
+        <%= render Bali::Avatar::Component.new(size: :xs) do |avatar| %>
+          <% avatar.with_placeholder { 'AG' } %>
+        <% end %>
+        <span class="hidden md:inline">Ana García</span>
+        <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
+      <% end %>
+      <% dropdown.with_item(href: admin_settings_path) { t('navbar.profile') } %>
+      <% dropdown.with_item(href: admin_settings_path) { t('navbar.settings') } %>
+      <li class="divider my-1"></li>
+      <% dropdown.with_item(href: logout_path, class: 'text-error', data: { turbo_method: :delete }) { t('navbar.sign_out') } %>
+    <% end %>
+  </div>
+</div>
