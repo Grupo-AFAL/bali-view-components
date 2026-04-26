@@ -169,7 +169,13 @@ export class CommandController extends Controller {
   _activateRow (row) {
     const href = row.dataset.href
     if (href) {
-      window.location.href = href
+      // Prefer Turbo navigation when available so we stay inside the SPA shell;
+      // fall back to a hard navigation when Turbo isn't loaded.
+      if (window.Turbo && typeof window.Turbo.visit === 'function') {
+        window.Turbo.visit(href)
+      } else {
+        window.location.href = href
+      }
       return
     }
     // Custom event so consumers can hook actions without an href
@@ -223,7 +229,11 @@ export class CommandController extends Controller {
     // ⌘K (Mac) / Ctrl+K (Windows/Linux) — toggles the palette globally
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault()
-      this.openValue ? this.close() : this.open()
+      if (this.openValue) {
+        this.close()
+      } else {
+        this.open()
+      }
       return
     }
     // Esc closes the palette when it's open (even when input doesn't have focus)

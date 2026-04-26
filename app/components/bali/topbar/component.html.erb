@@ -1,8 +1,9 @@
 <%= tag.div(class: container_classes, **container_attributes) do %>
   <% if mobile_trigger_id %>
-    <%# Mobile sidebar trigger — only on small screens. %>
+    <%# Mobile sidebar trigger — only on small screens. The <label> toggles the
+        sibling checkbox on click; native browser behavior already maps Space to
+        the associated checkbox via `for`, so no role/tabindex polyfill needed. %>
     <label for="<%= mobile_trigger_id %>"
-           role="button" tabindex="0"
            class="btn btn-ghost btn-sm lg:hidden"
            aria-label="<%= toggle_mobile_label %>">
       <%= render Bali::Icon::Component.new('menu', size: :small) %>

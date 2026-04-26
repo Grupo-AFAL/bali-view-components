@@ -1,10 +1,6 @@
-<button type="button"
-        data-command-target="row"
-        data-mode="<%= mode %>"
-        <%= "data-href=\"#{href}\"".html_safe if href %>
-        data-search="<%= search.downcase %>"
-        data-action="click->command#select"
-        class="cmd-row group flex items-center gap-2.5 w-full px-2.5 py-2 rounded-md text-left text-sm text-base-content cursor-pointer hover:bg-base-content/8">
+<%= tag.button(type: "button",
+               data: { command_target: "row", mode: mode, href: href, search: search.downcase, action: "click->command#select" }.compact,
+               class: "cmd-row group flex items-center gap-2.5 w-full px-2.5 py-2 rounded-md text-left text-sm text-base-content cursor-pointer hover:bg-base-content/8") do %>
   <% if icon %>
     <span class="cmd-row-ic size-7 rounded-md bg-base-200 grid place-items-center text-base-content/70 shrink-0">
       <%= render Bali::Icon::Component.new(icon, class: 'size-3.5') %>
@@ -19,4 +15,4 @@
   <span class="cmd-row-hint shrink-0 text-base-content/50 inline-flex items-center gap-1 opacity-0 transition-opacity">
     <kbd class="kbd kbd-xs">⏎</kbd>
   </span>
-</button>
+<% end %>

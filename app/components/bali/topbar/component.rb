@@ -20,9 +20,11 @@ module Bali
       renders_one :user_menu
 
       # @param mobile_trigger_id [String, nil] When set, renders a hamburger label
-      #   (lg:hidden) that toggles the matching sidebar checkbox. Pass `nil` to
-      #   skip — useful for layouts without a sidebar.
-      def initialize(mobile_trigger_id: Bali::SideMenu::Component::MOBILE_TRIGGER_ID,
+      #   (lg:hidden) that toggles the matching sidebar checkbox. Defaults to the
+      #   value of `Bali::SideMenu::Component::MOBILE_TRIGGER_ID` so the standard
+      #   AppLayout pairing works without configuration. Pass `nil` to skip the
+      #   hamburger — useful for layouts without a sidebar.
+      def initialize(mobile_trigger_id: SideMenu::Component::MOBILE_TRIGGER_ID,
                      **options)
         @mobile_trigger_id = mobile_trigger_id
         @options = options

@@ -80,11 +80,11 @@ module Bali
       end
 
       def flash_notice
-        @flash&.[](:notice)
+        @flash && @flash[:notice]
       end
 
       def flash_alert
-        @flash&.[](:alert)
+        @flash && @flash[:alert]
       end
     end
   end
