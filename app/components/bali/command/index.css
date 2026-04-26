@@ -7,13 +7,16 @@
  *   - Compact-density density overrides (parent → child cascade)
  */
 
-/* ── Active row state ─────────────────────────────────────────────────── */
+/* ── Active row state — neutral darken (avoids primary-tint purple cast) ── */
 .cmd-row.is-active {
-  background: var(--color-base-200);
+  background: color-mix(in oklch, var(--color-base-content) 10%, transparent);
+}
+.cmd-row.is-active .cmd-row-title {
+  font-weight: 500;
 }
 .cmd-row.is-active .cmd-row-ic {
-  background: var(--color-base-100);
-  color: var(--color-base-content);
+  background: var(--color-base-content);
+  color: var(--color-base-100);
 }
 .cmd-row.is-active .cmd-row-hint {
   opacity: 1;

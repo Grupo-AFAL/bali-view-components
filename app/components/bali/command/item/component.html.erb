@@ -4,7 +4,7 @@
         <%= "data-href=\"#{href}\"".html_safe if href %>
         data-search="<%= search.downcase %>"
         data-action="click->command#select"
-        class="cmd-row group flex items-center gap-2.5 w-full px-2.5 py-2 rounded-md text-left text-sm text-base-content cursor-pointer hover:bg-base-200">
+        class="cmd-row group flex items-center gap-2.5 w-full px-2.5 py-2 rounded-md text-left text-sm text-base-content cursor-pointer hover:bg-base-content/8">
   <% if icon %>
     <span class="cmd-row-ic size-7 rounded-md bg-base-200 grid place-items-center text-base-content/70 shrink-0">
       <%= render Bali::Icon::Component.new(icon, class: 'size-3.5') %>
