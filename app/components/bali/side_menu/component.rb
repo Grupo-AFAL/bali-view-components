@@ -10,6 +10,11 @@ module Bali
 
       renders_many :menu_switches, Bali::SideMenu::MenuSwitch::Component
 
+      # Brand slot — renders rich content (logo + text, just an icon, custom HTML)
+      # in the chrome row above the menu switcher. Falls back to the `brand:`
+      # parameter when the slot is not set, so existing string usage keeps working.
+      renders_one :brand
+
       renders_many :bottom_items, Item::Component.renderable
 
       renders_many :bottom_groups,
@@ -115,10 +120,13 @@ module Bali
         authorized_menus.find(&:active?) || authorized_menus.first
       end
 
-      attr_reader :brand, :mobile_trigger_id
+      attr_reader :mobile_trigger_id
 
-      def brand?
-        @brand.present?
+      # True when EITHER the brand slot is set OR the `brand:` text param is present.
+      # Overrides the slot's auto-generated `brand?` so the chrome row renders
+      # whichever path the consumer used.
+      def brand_present?
+        brand? || @brand.present?
       end
 
       # Translated aria-label for mobile trigger checkbox

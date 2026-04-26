@@ -19,8 +19,10 @@
   <% if collapsible? %>
     <%# Expanded state header - toggle on the right %>
     <div class="side-menu-expanded flex h-14 items-center gap-2 px-2.5 border-b border-base-300">
-      <% if brand? %>
-        <span class="side-menu-brand text-xl font-semibold grow"><%= brand %></span>
+      <% if brand_present? %>
+        <span class="side-menu-brand text-xl font-semibold grow flex items-center gap-2 min-w-0">
+          <%= brand || @brand %>
+        </span>
       <% elsif collapsible? %>
         <span class="grow"></span>
       <% end %>
@@ -49,10 +51,12 @@
               class: 'size-4') %>
       </label>
     </div>
-  <% elsif brand? || fixed? %>
+  <% elsif brand_present? || fixed? %>
     <div class="flex h-14 items-center gap-2 px-2.5 border-b border-base-300">
-      <% if brand? %>
-        <span class="side-menu-brand text-xl font-semibold grow"><%= brand %></span>
+      <% if brand_present? %>
+        <span class="side-menu-brand text-xl font-semibold grow flex items-center gap-2 min-w-0">
+          <%= brand || @brand %>
+        </span>
       <% else %>
         <span class="grow"></span>
       <% end %>
