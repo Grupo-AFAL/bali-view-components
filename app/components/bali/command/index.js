@@ -55,7 +55,7 @@ export class CommandController extends Controller {
     this.panelTarget.classList.remove('hidden')
     this.backdropTarget.classList.remove('hidden')
     this.filter()
-    requestAnimationFrame(() => this.inputTarget.focus())
+    window.requestAnimationFrame(() => this.inputTarget.focus())
   }
 
   close (event) {

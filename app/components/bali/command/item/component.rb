@@ -18,7 +18,7 @@ module Bali
           @icon = icon
           @href = href
           @mode = mode
-          @search = search || [title, meta].compact.join(' ')
+          @search = search || [ title, meta ].compact.join(" ")
         end
 
         attr_reader :title, :meta, :icon, :href, :mode, :search
