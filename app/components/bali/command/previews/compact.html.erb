@@ -1,0 +1,27 @@
+<div class="p-6 bg-base-200 min-h-[480px]">
+  <%= render Bali::Command::Component.new(
+    placeholder: 'Search…',
+    density: :compact
+  ) do |c| %>
+    <% c.with_trigger do %>
+      <button type="button" class="cmd-trigger max-w-md">
+        <%= render Bali::Icon::Component.new('search') %>
+        <span class="grow">Search…</span>
+        <span class="cmd-kbd">⌘K</span>
+      </button>
+    <% end %>
+
+    <% c.with_group(name: 'Pages') do |g| %>
+      <% g.with_item(title: 'Committees', meta: 'Structure', icon: 'users', href: '/lookbook') %>
+    <% end %>
+
+    <% c.with_group(name: 'Documents') do |g| %>
+      <% g.with_item(title: 'Audit Committee Minutes 2025-Q4', meta: 'ACT-2025-0042 · Signed', icon: 'file-text', href: '/lookbook') %>
+      <% g.with_item(title: 'Anti-Money Laundering Policy v3.2', meta: 'POL-2026-0218 · Ethics Committee', icon: 'file-text', href: '/lookbook') %>
+    <% end %>
+
+    <% c.with_group(name: 'Actions', mode: :action) do |g| %>
+      <% g.with_item(title: 'New document request', meta: 'Start an approval flow', icon: 'plus', href: '/lookbook') %>
+    <% end %>
+  <% end %>
+</div>

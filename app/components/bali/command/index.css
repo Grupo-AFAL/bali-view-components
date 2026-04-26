@@ -1,0 +1,194 @@
+/* Command Component
+ * ⌘K-style command palette: modal panel with grouped, filterable items.
+ * CSS lifted from the AFAL Bali design-system reference; classes are
+ * unprefixed (`.cmd-*`) because they're scoped to the .bali-command wrapper
+ * and the .cmd-panel modal — no risk of collision with utilities.
+ */
+
+.cmd-panel {
+  width: 520px;
+  max-width: 100%;
+  background: var(--color-base-100);
+  border: 1px solid var(--color-base-300);
+  border-radius: var(--radius-box);
+  box-shadow: 0 24px 64px rgb(15 23 42 / 0.14), 0 4px 12px rgb(15 23 42 / 0.06);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  color: var(--color-base-content);
+  margin: 0 auto;
+}
+
+.cmd-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-base-200);
+  color: var(--fg-muted);
+}
+.cmd-panel.compact .cmd-input-wrap { padding: 10px 14px; }
+.cmd-input-wrap > svg { flex-shrink: 0; width: 16px; height: 16px; color: var(--fg-muted); }
+
+.cmd-input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: 400 15px/1.2 var(--font-sans);
+  color: var(--color-base-content);
+  min-width: 0;
+}
+.cmd-panel.compact .cmd-input { font-size: 14px; }
+.cmd-input::placeholder { color: var(--fg-faint); }
+
+.cmd-list {
+  padding: 6px 6px 8px;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.cmd-group {
+  font: 600 10px/1 var(--font-sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+  padding: 12px 12px 6px;
+}
+[data-command-target="group"]:first-child .cmd-group { padding-top: 8px; }
+
+.cmd-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  background: transparent;
+  border-radius: var(--radius-field);
+  text-align: left;
+  color: var(--color-base-content);
+  font: inherit;
+  cursor: pointer;
+}
+.cmd-panel.compact .cmd-row { padding: 6px 10px; }
+.cmd-row:hover { background: var(--color-base-200); }
+.cmd-row.is-active { background: var(--color-base-200); }
+
+.cmd-row-ic {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: var(--color-base-200);
+  display: grid;
+  place-items: center;
+  color: var(--fg-muted);
+  flex-shrink: 0;
+}
+.cmd-row-ic svg { width: 14px; height: 14px; }
+.cmd-row.is-active .cmd-row-ic { background: var(--color-base-100); color: var(--fg-strong); }
+
+.cmd-row-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.cmd-panel.compact .cmd-row-body {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.cmd-row-title {
+  font-size: 13px;
+  color: var(--fg-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cmd-row-meta {
+  font-size: 11.5px;
+  color: var(--fg-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cmd-panel.compact .cmd-row-meta { font-size: 12px; flex: 1; }
+
+.cmd-row-hint {
+  flex-shrink: 0;
+  color: var(--fg-subtle);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.cmd-row.is-active .cmd-row-hint { opacity: 1; }
+
+.cmd-mark {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  padding: 0 1px;
+  border-radius: 2px;
+}
+
+.cmd-empty {
+  padding: 32px 16px 12px;
+  text-align: center;
+}
+.cmd-empty-title {
+  font: 600 14px/1.2 var(--font-sans);
+  color: var(--fg-strong);
+  margin-bottom: 4px;
+}
+.cmd-empty-sub { font-size: 12px; color: var(--fg-muted); }
+
+.cmd-foot {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--color-base-200);
+  background: var(--color-base-100);
+  font-size: 11px;
+  color: var(--fg-subtle);
+}
+.cmd-foot-key { display: inline-flex; align-items: center; gap: 5px; }
+.cmd-foot-spacer { flex: 1; }
+.cmd-foot-count { font-family: var(--font-mono); font-size: 10.5px; color: var(--fg-muted); }
+
+.cmd-kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font: 500 10.5px/1 var(--font-mono);
+  background: var(--color-base-100);
+  border: 1px solid var(--color-base-300);
+  border-radius: 3px;
+  color: var(--fg-subtle);
+}
+
+/* Default trigger style — input-shaped button used in topbar's search slot. */
+.cmd-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: var(--color-base-200);
+  border-radius: var(--radius-field);
+  padding: 7px 10px;
+  font: 400 13px/1 var(--font-sans);
+  color: var(--fg-muted);
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+}
+.cmd-trigger:hover { background: var(--color-base-300); }
+.cmd-trigger svg { width: 14px; height: 14px; flex-shrink: 0; }
+.cmd-trigger > .grow { flex: 1; }

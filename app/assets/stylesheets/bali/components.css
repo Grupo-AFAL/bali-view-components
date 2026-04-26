@@ -10,6 +10,7 @@
 /* Navigation Components */
 @import "../../../components/bali/navbar/index.css";
 @import "../../../components/bali/side_menu/index.css";
+@import "../../../components/bali/command/index.css";
 
 /* Data Display Components */
 @import "../../../components/bali/calendar/index.css";

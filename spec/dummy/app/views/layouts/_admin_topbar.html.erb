@@ -1,10 +1,38 @@
 <%= render Bali::Topbar::Component.new do |topbar| %>
   <% topbar.with_search do %>
-    <label class="input input-sm input-bordered flex items-center gap-2 bg-base-200 border-0">
-      <%= render Bali::Icon::Component.new('search', class: 'size-4 text-base-content/50') %>
-      <input type="text" class="grow" placeholder="Search..." />
-      <kbd class="kbd kbd-xs hidden sm:inline-flex">⌘K</kbd>
-    </label>
+    <%= render Bali::Command::Component.new(
+      placeholder: 'Search documents, pages, actions…'
+    ) do |cmd| %>
+      <% cmd.with_trigger do %>
+        <button type="button" class="cmd-trigger">
+          <%= render Bali::Icon::Component.new('search') %>
+          <span class="grow">Search…</span>
+          <span class="cmd-kbd hidden sm:inline-grid">⌘K</span>
+        </button>
+      <% end %>
+
+      <% cmd.with_group(name: 'Pages') do |g| %>
+        <% g.with_item(title: 'Dashboard', meta: 'Admin overview', icon: 'layout-dashboard', href: admin_root_path) %>
+        <% g.with_item(title: 'Workspace', meta: 'Reference shell', icon: 'sparkles', href: workspace_path) %>
+        <% g.with_item(title: 'Movies', meta: 'Catalog', icon: 'film', href: admin_movies_path) %>
+        <% g.with_item(title: 'Studios', meta: 'Production houses', icon: 'building-2', href: admin_studios_path) %>
+        <% g.with_item(title: 'Projects', meta: 'Kanban board', icon: 'kanban', href: admin_projects_path) %>
+        <% g.with_item(title: 'Documents', meta: 'Knowledge base', icon: 'file-text', href: documents_path) %>
+        <% g.with_item(title: 'Analytics', meta: 'Reports', icon: 'bar-chart-3', href: admin_analytics_path) %>
+        <% g.with_item(title: 'Revenue', meta: 'Reports', icon: 'dollar-sign', href: admin_revenue_index_path) %>
+        <% g.with_item(title: 'Settings', meta: 'Profile and preferences', icon: 'settings', href: admin_settings_path) %>
+      <% end %>
+
+      <% cmd.with_group(name: 'Recents', mode: :recent) do |g| %>
+        <% g.with_item(title: 'Dashboard', meta: 'Last visit · today', icon: 'layout-dashboard', href: admin_root_path) %>
+        <% g.with_item(title: 'Movies', meta: 'Last visit · yesterday', icon: 'film', href: admin_movies_path) %>
+      <% end %>
+
+      <% cmd.with_group(name: 'Actions', mode: :action) do |g| %>
+        <% g.with_item(title: 'New movie', meta: 'Create a new movie record', icon: 'plus', href: new_admin_movie_path) %>
+        <% g.with_item(title: 'New studio', meta: 'Create a new studio', icon: 'plus', href: new_admin_studio_path) %>
+      <% end %>
+    <% end %>
   <% end %>
 
   <% topbar.with_action do %>

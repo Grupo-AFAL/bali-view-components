@@ -1,0 +1,50 @@
+<%= tag.div(class: container_classes, data: { controller: "command" }) do %>
+  <% if trigger? %>
+    <div data-action="click->command#open" class="bali-command-trigger-wrap">
+      <%= trigger %>
+    </div>
+  <% end %>
+
+  <%# Backdrop — click to close %>
+  <div data-command-target="backdrop"
+       data-action="click->command#close"
+       class="hidden fixed inset-0 bg-black/40 z-[100]"></div>
+
+  <%# Modal panel — centered, fixed position %>
+  <div data-command-target="panel"
+       class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-[101] w-[520px] max-w-[calc(100vw-2rem)]">
+    <div class="<%= panel_classes %>">
+      <div class="cmd-input-wrap">
+        <%= render Bali::Icon::Component.new('search', class: 'size-4') %>
+        <input data-command-target="input"
+               data-action="input->command#filter keydown->command#nav"
+               type="text"
+               placeholder="<%= placeholder %>"
+               class="cmd-input"
+               aria-label="<%= placeholder %>" />
+        <span class="cmd-kbd">esc</span>
+      </div>
+
+      <div class="cmd-list">
+        <% groups.each do |group| %>
+          <%= group %>
+        <% end %>
+
+        <div data-command-target="noResults" class="hidden cmd-empty">
+          <div class="cmd-empty-title"><%= no_results_text %></div>
+          <% if no_results_subtitle %>
+            <div class="cmd-empty-sub"><%= no_results_subtitle %></div>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="cmd-foot">
+        <span class="cmd-foot-key"><span class="cmd-kbd">↑</span><span class="cmd-kbd">↓</span> <%= t('bali.command.navigate', default: 'navigate') %></span>
+        <span class="cmd-foot-key"><span class="cmd-kbd">⏎</span> <%= t('bali.command.open_action', default: 'open') %></span>
+        <span class="cmd-foot-key"><span class="cmd-kbd">esc</span> <%= t('bali.command.close', default: 'close') %></span>
+        <span class="cmd-foot-spacer"></span>
+        <span class="cmd-foot-count" data-command-target="count"></span>
+      </div>
+    </div>
+  </div>
+<% end %>
