@@ -50,6 +50,7 @@ import { DocumentEditorController } from '../../../components/bali/document_edit
 import { DocumentPageController } from '../../../components/bali/document_page/index'
 import { TreeViewItemController } from '../../../components/bali/tree_view/item/index'
 import { FeedbackWidgetController } from '../../../components/bali/feedback_widget/index'
+import { CommandController } from '../../../components/bali/command/index'
 
 export { TableController } from '../../../components/bali/table/index'
 export { ModalController } from '../../../components/bali/modal/index'
@@ -105,6 +106,9 @@ export { TreeViewItemController } from '../../../components/bali/tree_view/item/
 
 // Integration components
 export { FeedbackWidgetController } from '../../../components/bali/feedback_widget/index'
+
+// Command palette
+export { CommandController } from '../../../components/bali/command/index'
 
 /**
  * Register all core Bali component controllers with a Stimulus application
@@ -170,4 +174,7 @@ export function registerAll (application) {
 
   // Integration
   application.register('feedback-widget', FeedbackWidgetController)
+
+  // Command palette
+  application.register('command', CommandController)
 }

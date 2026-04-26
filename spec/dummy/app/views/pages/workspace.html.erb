@@ -1,0 +1,87 @@
+<% content_for :topbar do %>
+  <%= render Bali::Breadcrumb::Component.new do |bc| %>
+    <% bc.with_item(name: 'Home', href: root_path) %>
+    <% bc.with_item(name: 'Workspace') %>
+  <% end %>
+<% end %>
+
+<%= render Bali::PageHeader::Component.new(
+  title: 'Workspace',
+  subtitle: 'Reference page demonstrating the standard navbar + sidebar shell.'
+) do %>
+  <div class="flex items-center gap-2">
+    <%= render Bali::Button::Component.new(name: 'Export', variant: :ghost, icon_name: 'download') %>
+    <%= render Bali::Link::Component.new(name: 'New Movie', variant: :primary, icon_name: 'plus', href: new_admin_movie_path) %>
+  </div>
+<% end %>
+
+<%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, cols_lg: 4, gap: :lg, class: 'mb-6') do %>
+  <% @stats.each do |stat| %>
+    <%= render Bali::Card::Component.new(style: :bordered, body_class: 'p-4') do %>
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-base-content/60"><%= stat[:label] %></p>
+          <p class="text-2xl font-bold"><%= stat[:value] %></p>
+          <p class="text-xs <%= stat[:change].start_with?('-') ? 'text-error' : 'text-success' %> mt-1">
+            <%= stat[:change] %> vs last month
+          </p>
+        </div>
+        <div class="rounded-lg bg-<%= stat[:color] %>/10 p-3">
+          <%= render Bali::Icon::Component.new(stat[:icon], class: "size-6 text-#{stat[:color]}") %>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>
+
+<%= render Bali::Columns::Component.new(cols: 1, cols_lg: 3, gap: :lg) do %>
+  <div class="lg:col-span-2">
+    <%= render Bali::Card::Component.new(style: :bordered) do |card| %>
+      <% card.with_header(title: 'Recent Movies') %>
+
+      <%= render Bali::Table::Component.new do |table| %>
+        <% table.with_header(name: 'Title') %>
+        <% table.with_header(name: 'Studio') %>
+        <% table.with_header(name: 'Genre') %>
+        <% table.with_header(name: 'Status') %>
+        <% @recent_movies.each do |movie| %>
+          <% table.with_row do %>
+            <td class="font-medium"><%= movie.name %></td>
+            <td class="text-base-content/70"><%= movie.studio&.name || '—' %></td>
+            <td class="text-base-content/70"><%= movie.genre&.titleize %></td>
+            <td>
+              <%= render Bali::Tag::Component.new(
+                text: movie.status&.titleize || 'Draft',
+                color: movie.status == 'published' ? :success : :warning
+              ) %>
+            </td>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <%= render Bali::Card::Component.new(style: :bordered) do |card| %>
+    <% card.with_header(title: 'Activity') %>
+    <ul class="space-y-3">
+      <% [
+        { who: 'Carlos', what: 'published', target: 'The Matrix Resurrections', when: '2h ago', icon: 'check-circle', color: 'success' },
+        { who: 'María', what: 'commented on', target: 'Dune Part Two', when: '4h ago', icon: 'message-square', color: 'info' },
+        { who: 'Ana', what: 'created', target: 'Studio Ghibli', when: 'Yesterday', icon: 'plus-circle', color: 'primary' },
+        { who: 'David', what: 'archived', target: 'Old Project Alpha', when: '2d ago', icon: 'archive', color: 'neutral' }
+      ].each do |item| %>
+        <li class="flex gap-3 text-sm">
+          <%= render Bali::Icon::Component.new(item[:icon], class: "size-5 text-#{item[:color]} shrink-0 mt-0.5") %>
+          <div class="flex-1 min-w-0">
+            <p class="text-base-content">
+              <span class="font-medium"><%= item[:who] %></span>
+              <span class="text-base-content/70"><%= item[:what] %></span>
+              <span class="font-medium"><%= item[:target] %></span>
+            </p>
+            <p class="text-xs text-base-content/50 mt-0.5"><%= item[:when] %></p>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+<% end %>

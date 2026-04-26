@@ -18,10 +18,18 @@ module Bali
         full:      ""
       }.freeze
 
-      def initialize(fixed_sidebar: false, flash: nil, modal: true, drawer: true,
+      # @param viewport_locked [Boolean, nil] When true, the layout locks to viewport
+      #   height and only the inner <main> scrolls (Linear/Notion app-shell pattern).
+      #   When false, the page scrolls naturally and the topbar scrolls with content.
+      #   When nil (default), follows `fixed_sidebar` — the typical app-shell wants both,
+      #   but you can decouple them, e.g. `fixed_sidebar: true, viewport_locked: false`
+      #   for a fixed sidebar with normal page scroll (long forms, marketing-style content).
+      def initialize(fixed_sidebar: false, viewport_locked: nil,
+                     flash: nil, modal: true, drawer: true,
                      modal_size: nil, drawer_size: nil,
                      body_container: :wide, **options)
         @fixed_sidebar = fixed_sidebar
+        @viewport_locked = viewport_locked.nil? ? fixed_sidebar : viewport_locked
         @flash = flash
         @modal = modal
         @drawer = drawer
@@ -42,6 +50,7 @@ module Bali
           { "app-layout--has-fixed-sidebar" => @fixed_sidebar && sidebar? },
           { "app-layout--has-navbar" => navbar? },
           { "app-layout--has-sidebar" => sidebar? },
+          { "app-layout--viewport-locked" => @viewport_locked },
           @options[:class]
         )
       end
@@ -71,11 +80,11 @@ module Bali
       end
 
       def flash_notice
-        @flash&.[](:notice)
+        @flash && @flash[:notice]
       end
 
       def flash_alert
-        @flash&.[](:alert)
+        @flash && @flash[:alert]
       end
     end
   end

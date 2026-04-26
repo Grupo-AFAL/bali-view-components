@@ -1,9 +1,17 @@
-<%= render Bali::SideMenu::Component.new(current_path: request.path, collapsible: true, brand: t('app.name')) do |menu| %>
+<%= render Bali::SideMenu::Component.new(current_path: request.path, collapsible: true) do |menu| %>
+  <% menu.with_brand do %>
+    <span class="text-primary shrink-0 inline-flex">
+      <%= lucide_icon('clapperboard', size: 24) %>
+    </span>
+    <span class="truncate"><%= t('app.name') %></span>
+  <% end %>
+
   <% menu.with_menu_switch(title: t('app.name'), icon: 'clapperboard', href: admin_root_path) %>
   <% menu.with_menu_switch(title: t('sidebar.reports'), icon: 'bar-chart-3', href: admin_analytics_path) %>
 
   <% menu.with_list(title: t('sidebar.main')) do |list| %>
     <% list.with_item(name: t('navbar.dashboard'), href: admin_root_path, icon: 'layout-dashboard', match: :exact) %>
+    <% list.with_item(name: 'Workspace', href: workspace_path, icon: 'sparkles', match: :exact) %>
     <% list.with_item(name: t('navbar.movies'), href: admin_movies_path, icon: 'film', match: :crud) %>
     <% list.with_item(name: t('sidebar.studios'), href: admin_studios_path, icon: 'building-2', match: :crud) %>
     <% list.with_item(name: 'Projects', href: admin_projects_path, icon: 'kanban', match: :crud) %>

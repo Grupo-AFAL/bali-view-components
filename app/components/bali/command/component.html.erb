@@ -1,0 +1,53 @@
+<%= tag.div(class: container_classes, data: { controller: "command" }) do %>
+  <% if trigger? %>
+    <div data-action="click->command#open">
+      <%= trigger %>
+    </div>
+  <% end %>
+
+  <%# Backdrop — click to close %>
+  <div data-command-target="backdrop"
+       data-action="click->command#close"
+       class="hidden fixed inset-0 bg-black/40 z-[100]"></div>
+
+  <%# Modal panel — centered, fixed position %>
+  <div data-command-target="panel"
+       class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-[101] w-[520px] max-w-[calc(100vw-2rem)]">
+    <div class="cmd-panel bg-base-100 border border-base-300 rounded-box shadow-xl flex flex-col overflow-hidden <%= 'is-compact' if compact? %>">
+      <%# Search input %>
+      <div class="cmd-input-wrap flex items-center gap-3 px-4 py-3 border-b border-base-200 text-base-content/60">
+        <%= render Bali::Icon::Component.new('search', class: 'size-4 shrink-0') %>
+        <input data-command-target="input"
+               data-action="input->command#filter keydown->command#nav"
+               type="text"
+               placeholder="<%= placeholder %>"
+               class="cmd-input flex-1 min-w-0 bg-transparent border-0 outline-none text-base text-base-content placeholder:text-base-content/40"
+               aria-label="<%= placeholder %>" />
+        <kbd class="kbd kbd-xs">esc</kbd>
+      </div>
+
+      <%# List %>
+      <div class="cmd-list p-1.5 max-h-80 overflow-y-auto">
+        <% groups.each do |group| %>
+          <%= group %>
+        <% end %>
+
+        <div data-command-target="noResults" class="hidden text-center px-4 pt-8 pb-3">
+          <div class="text-sm font-semibold text-base-content"><%= no_results_text %></div>
+          <% if no_results_subtitle %>
+            <div class="text-xs text-base-content/60 mt-1"><%= no_results_subtitle %></div>
+          <% end %>
+        </div>
+      </div>
+
+      <%# Footer %>
+      <div class="flex items-center gap-3 px-3 py-2 border-t border-base-200 bg-base-100 text-xs text-base-content/60">
+        <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs">↓</kbd> <%= t('bali.command.navigate', default: 'navigate') %></span>
+        <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs">⏎</kbd> <%= t('bali.command.open_action', default: 'open') %></span>
+        <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs">esc</kbd> <%= t('bali.command.close', default: 'close') %></span>
+        <span class="flex-1"></span>
+        <span class="font-mono text-[10.5px] text-base-content/60" data-command-target="count"></span>
+      </div>
+    </div>
+  </div>
+<% end %>

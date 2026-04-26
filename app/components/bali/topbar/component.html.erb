@@ -1,0 +1,33 @@
+<%= tag.div(class: container_classes, **container_attributes) do %>
+  <% if mobile_trigger_id %>
+    <%# Mobile sidebar trigger — only on small screens. The <label> toggles the
+        sibling checkbox on click; native browser behavior already maps Space to
+        the associated checkbox via `for`, so no role/tabindex polyfill needed. %>
+    <label for="<%= mobile_trigger_id %>"
+           class="btn btn-ghost btn-sm lg:hidden"
+           aria-label="<%= toggle_mobile_label %>">
+      <%= render Bali::Icon::Component.new('menu', size: :small) %>
+    </label>
+  <% end %>
+
+  <% if brand? %>
+    <div class="bali-topbar-brand"><%= brand %></div>
+  <% end %>
+
+  <% if search? %>
+    <div class="flex-1 max-w-md">
+      <%= search %>
+    </div>
+  <% end %>
+
+  <% if actions? || user_menu? %>
+    <div class="flex items-center gap-1 ml-auto">
+      <% actions.each do |action| %>
+        <%= action %>
+      <% end %>
+      <% if user_menu? %>
+        <%= user_menu %>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>
