@@ -101,8 +101,12 @@ module Bali
 
       def translate_attribute(method)
         if object.respond_to?(:model_name)
-          model_name = object.model_name.i18n_key
-          I18n.t("activerecord.attributes.#{model_name}.#{method}", default: method.to_s.humanize)
+          # `human_attribute_name` resolves through `activerecord.attributes.*`
+          # for AR models and `activemodel.attributes.*` for plain
+          # ActiveModel::Model form objects, falling back to humanize when
+          # neither namespace has the key. Hardcoding `activerecord.*` missed
+          # form-object translations entirely.
+          object.class.human_attribute_name(method)
         else
           method.to_s.humanize
         end
