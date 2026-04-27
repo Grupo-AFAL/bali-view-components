@@ -147,6 +147,10 @@ en:
         dismiss: "Dismiss error"
         remove_file: "Remove %{filename}"
 
+    # FilterForm — quick text search across multiple columns
+    filter_form:
+      search_placeholder_with_fields: "Search by %{fields}..."
+
     # Form builder
     form_builder:
       file:

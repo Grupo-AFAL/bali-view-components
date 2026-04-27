@@ -147,6 +147,10 @@ es:
         dismiss: "Cerrar error"
         remove_file: "Eliminar %{filename}"
 
+    # FilterForm — búsqueda rápida en varias columnas
+    filter_form:
+      search_placeholder_with_fields: "Buscar por %{fields}..."
+
     # Form builder
     form_builder:
       file:

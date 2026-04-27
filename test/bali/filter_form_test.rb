@@ -324,6 +324,13 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     assert_equal("Search by name, genre, tenant name...", config[:placeholder])
   end
 
+  def test_search_config_default_placeholder_is_localized
+    @form = SearchableMovieFilterForm.new(Movie.all, params({}))
+    I18n.with_locale(:es) do
+      assert_equal("Buscar por name, genre, tenant name...", @form.search_config[:placeholder])
+    end
+  end
+
   def test_search_config_returns_nil_when_search_not_enabled
     @form = MovieFilterForm.new(@tenant.movies, params({}))
     assert_nil(@form.search_config)

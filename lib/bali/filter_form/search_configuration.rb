@@ -125,13 +125,30 @@ module Bali
       # Generate a descriptive placeholder from search field names.
       # e.g., [:name] => "Search by name..."
       # e.g., [:name, :email] => "Search by name, email..."
+      #
+      # Field names go through `human_attribute_name` when the scope exposes a
+      # model class, so consumers' existing `activerecord.attributes.*`
+      # translations come through automatically.
       def default_search_placeholder
         unless search_enabled?
           return I18n.t("bali.filters.search_placeholder", default: "Search...")
         end
 
-        field_labels = search_fields.map { |f| f.to_s.humanize(capitalize: false) }
-        "Search by #{field_labels.join(', ')}..."
+        I18n.t(
+          "bali.filter_form.search_placeholder_with_fields",
+          fields: search_field_labels.join(", "),
+          default: "Search by %{fields}..."
+        )
+      end
+
+      def search_field_labels
+        search_fields.map { |f| search_field_label(f) }
+      end
+
+      def search_field_label(field)
+        @scope.model.human_attribute_name(field).downcase
+      rescue NoMethodError
+        field.to_s.humanize(capitalize: false)
       end
 
       # Extract quick search value from params based on configured search_fields
