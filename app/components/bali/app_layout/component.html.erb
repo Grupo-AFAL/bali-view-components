@@ -16,6 +16,17 @@
     <div class="app-layout-content flex-1 min-w-0 flex flex-col">
       <% if topbar? %>
         <div class="app-layout-topbar"><%= topbar %></div>
+      <% elsif render_default_mobile_topbar? %>
+        <div class="app-layout-topbar app-layout-topbar--default-mobile flex items-center gap-2 px-4 py-2 bg-base-100 border-b border-base-300 lg:hidden">
+          <label for="<%= default_mobile_trigger_id %>"
+                 class="btn btn-ghost btn-sm"
+                 aria-label="<%= toggle_mobile_label %>">
+            <%= render Bali::Icon::Component.new('menu', size: :small) %>
+          </label>
+          <% if @app_name.present? %>
+            <span class="font-semibold text-sm"><%= @app_name %></span>
+          <% end %>
+        </div>
       <% end %>
 
       <main class="flex-1" <%= tag.attributes(main_attributes) %>>
