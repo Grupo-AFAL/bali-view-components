@@ -3,6 +3,7 @@
 module Bali
   module AppLayout
     class Preview < ApplicationViewComponentPreview
+      layout "app_layout_preview"
       # @label Sidebar + Content
       # Config A: Admin layout with sidebar and content area.
       # In production, use `fixed: true` on the SideMenu and `fixed_sidebar: true` on AppLayout.
