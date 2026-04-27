@@ -3,16 +3,17 @@
 module Bali
   module Topbar
     # Renders the topbar that sits inside the AppLayout's `with_topbar` slot.
-    # Designed to align horizontally with the SideMenu's brand row (both 56px,
-    # h-14) so the bottom border forms one continuous chrome divider.
+    # Designed to align horizontally with the SideMenu's brand row — both
+    # derive their height from the shared `--bali-chrome-height` variable so
+    # the bottom border forms one continuous chrome divider.
     #
     # Composes 4 zones — brand (left, optional), search (center), actions
     # (right, many icon buttons), user_menu (far right). Pair with a sidebar
     # by passing the sidebar's `mobile_trigger_id` to render the hamburger on
     # small screens.
     class Component < ApplicationViewComponent
-      BASE_CLASSES = "bali-topbar flex items-center gap-3 px-4 md:px-6 h-14 " \
-                     "bg-base-100 border-b border-base-300"
+      BASE_CLASSES = "bali-topbar flex items-center gap-3 px-4 md:px-6 " \
+                     "bali-chrome-height bg-base-100 border-b border-base-300"
 
       renders_one :brand
       renders_one :search

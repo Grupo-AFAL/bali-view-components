@@ -10,6 +10,16 @@
   --size-field: 0.25rem;
   --depth: 1;
   --noise: 0;
+
+  /* Shared height for the app shell chrome — SideMenu brand row + Topbar.
+     Both must derive from this so the bottom-border divider stays aligned
+     across the seam when the value changes. */
+  --bali-chrome-height: 3.5rem;
+}
+
+/* Utility for chrome-height alignment between SideMenu brand row + Topbar. */
+.bali-chrome-height {
+  height: var(--bali-chrome-height);
 }
 
 /* General utility styles */
