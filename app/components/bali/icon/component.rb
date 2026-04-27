@@ -16,6 +16,9 @@ module Bali
     # @example With size
     #   render Bali::Icon::Component.new('check', size: :large)
     #
+    # @example With numeric size (pixels)
+    #   render Bali::Icon::Component.new('check', size: 24)
+    #
     # @example With custom classes
     #   render Bali::Icon::Component.new('alert', class: 'text-error')
     #
@@ -43,12 +46,14 @@ module Bali
 
       # @param name [String, Symbol] Icon name (Bali name or Lucide name)
       # @param tag_name [Symbol] HTML tag to wrap the icon (:span, :div, etc.)
-      # @param size [Symbol] Icon size (:small, :medium, :large)
+      # @param size [Symbol, Numeric] Icon size — :small / :medium / :large or
+      #   an integer in pixels (e.g. 24)
       # @param options [Hash] Additional HTML attributes
       def initialize(name, tag_name: :span, size: nil, **options)
         @name = name.to_s
         @tag_name = tag_name
         @size = size
+        options = apply_size_style(options) if numeric_size?
         @options = prepend_class_name(options, component_classes)
       end
 
@@ -89,7 +94,6 @@ module Bali
       # @param lucide_name [String] the Lucide icon name
       # @return [String] SVG markup
       def render_lucide_icon(lucide_name)
-        pixel_size = LUCIDE_SIZES[@size] || 16
         svg_content = LucideRails::IconProvider.icon(lucide_name)
 
         tag.svg(
@@ -99,6 +103,22 @@ module Bali
           height: pixel_size,
           class: "lucide-icon"
         )
+      end
+
+      def numeric_size?
+        @size.is_a?(Numeric)
+      end
+
+      def pixel_size
+        return @size.to_i if numeric_size?
+
+        LUCIDE_SIZES[@size] || 16
+      end
+
+      def apply_size_style(options)
+        px = "#{@size.to_i}px"
+        sizing = "width: #{px}; height: #{px}; --bali-icon-size: #{px}"
+        options.merge(style: [ sizing, options[:style] ].compact.join("; "))
       end
 
       # Checks if a Lucide icon exists
@@ -164,12 +184,25 @@ module Bali
       end
 
       def component_classes
+        return numeric_component_classes if numeric_size?
+
         class_names(
           "icon-component",
           "inline-flex items-center justify-center",
           "*:inline-block *:h-4 *:w-4 *:overflow-visible",
           SIZES[@size],
           SIZE_SVG_CLASSES[@size]
+        )
+      end
+
+      # Numeric sizes drive the wrapper and direct children via inline style
+      # plus the `--bali-icon-size` CSS variable, so no Tailwind safelist is
+      # required and consumers can pass any pixel value.
+      def numeric_component_classes
+        class_names(
+          "icon-component",
+          "inline-flex items-center justify-center",
+          "*:inline-block *:overflow-visible"
         )
       end
     end

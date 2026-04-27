@@ -47,6 +47,15 @@ a {
   @apply rounded-full;
 }
 
+/* Icon component — numeric sizes propagate to direct children (legacy and
+   kept SVGs that do not get explicit width/height from the Lucide gem).
+   The `[style*=...]` guard limits the cascade to wrappers that actually
+   set the variable, so named-size icons keep their `*:h-N *:w-N` classes. */
+.icon-component[style*="--bali-icon-size"] > * {
+  width: var(--bali-icon-size);
+  height: var(--bali-icon-size);
+}
+
 /* Notification animations */
 .slideInRight {
   animation: slideInRight 0.35s cubic-bezier(0.21, 1.02, 0.73, 1) both;
