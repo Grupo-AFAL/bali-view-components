@@ -49,6 +49,17 @@ module Bali
           )
         end
 
+        # @label With Errors
+        # Shows validation error styling with `select-error` class.
+        def with_errors
+          form_record.errors.add(:name, 'must be selected')
+
+          render_with_template(
+            template: 'bali/form/slim_select/previews/default',
+            locals: { model: form_record, options: OPTIONS }
+          )
+        end
+
         # @label Multiple
         # Multi-select with tags for selected values
         def multiple
