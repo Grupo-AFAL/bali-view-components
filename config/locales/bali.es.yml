@@ -104,6 +104,14 @@ es:
       expand: "Expandir menú lateral"
       toggle_item: "Alternar %{name}"
 
+    # Paleta de comandos (⌘K)
+    command:
+      placeholder: "Buscar…"
+      no_results: "Sin resultados"
+      navigate: "navegar"
+      open_action: "abrir"
+      close: "cerrar"
+
     # Modal
     modal:
       close: "Cerrar modal"

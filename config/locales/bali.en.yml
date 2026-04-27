@@ -104,6 +104,14 @@ en:
       expand: "Expand sidebar"
       toggle_item: "Toggle %{name}"
 
+    # Command palette (⌘K)
+    command:
+      placeholder: "Search…"
+      no_results: "No results"
+      navigate: "navigate"
+      open_action: "open"
+      close: "close"
+
     # Modal
     modal:
       close: "Close modal"

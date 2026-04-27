@@ -26,6 +26,16 @@ class BaliCommandComponentTest < ComponentTestCase
     assert_selector("input[placeholder='Search…']")
   end
 
+  def test_default_strings_resolve_through_locale_files
+    I18n.with_locale(:es) do
+      render_inline(Bali::Command::Component.new)
+    end
+    assert_selector("input[placeholder='Buscar…']")
+    assert_text("navegar")
+    assert_text("abrir")
+    assert_text("cerrar")
+  end
+
   def test_uses_custom_placeholder
     render_inline(Bali::Command::Component.new(placeholder: "Find anything"))
     assert_selector("input[placeholder='Find anything']")
