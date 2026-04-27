@@ -10,6 +10,16 @@
   --size-field: 0.25rem;
   --depth: 1;
   --noise: 0;
+
+  /* Shared height for the app shell chrome — SideMenu brand row + Topbar.
+     Both must derive from this so the bottom-border divider stays aligned
+     across the seam when the value changes. */
+  --bali-chrome-height: 3.5rem;
+}
+
+/* Utility for chrome-height alignment between SideMenu brand row + Topbar. */
+.bali-chrome-height {
+  height: var(--bali-chrome-height);
 }
 
 /* General utility styles */
@@ -45,6 +55,15 @@ a {
 
 .is-circle {
   @apply rounded-full;
+}
+
+/* Icon component — numeric sizes propagate to direct children (legacy and
+   kept SVGs that do not get explicit width/height from the Lucide gem).
+   The `[style*=...]` guard limits the cascade to wrappers that actually
+   set the variable, so named-size icons keep their `*:h-N *:w-N` classes. */
+.icon-component[style*="--bali-icon-size"] > * {
+  width: var(--bali-icon-size);
+  height: var(--bali-icon-size);
 }
 
 /* Notification animations */

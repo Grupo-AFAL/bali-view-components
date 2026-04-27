@@ -20,6 +20,19 @@ This project uses `.ai-sessions/` for session continuity between Docker sandbox 
 - Key decisions made
 - Any blockers or issues
 
+## Codebase Search (SocratiCode)
+
+This repo is indexed by SocratiCode (hybrid semantic + BM25 search, file watcher active). For exploratory questions ("where is X?", "how does Y work?", "find code that does Z"), reach for `codebase_search` **before** `Grep` or speculative `Read` calls — it returns ranked snippets across the whole repo in one tool call.
+
+**Workflow:**
+1. `codebase_search` to find relevant code
+2. `codebase_graph_query` for imports/dependents on JS/JSX (Ruby is mostly Zeitwerk-autoloaded, so the graph is less useful there)
+3. `Read` only after search has narrowed to 1–3 files
+
+**Skip search for:** known file paths (use `Read`), single-file symbol lookups (use `Grep`), edits/writes (search is read-only).
+
+**Cross-project:** pass `includeLinked: true` to search linked projects defined in `.socraticode.json` or `SOCRATICODE_LINKED_PROJECTS`.
+
 ## Browser Verification (MANDATORY)
 
 **ALWAYS verify UI/UX changes through the browser before claiming they work.** Curl-testing APIs and passing Ruby tests is NOT sufficient for frontend features.

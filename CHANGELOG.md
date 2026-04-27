@@ -9,22 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Breadcrumb** - DaisyUI's `.breadcrumbs { padding-block: .5rem }` was beating the component's `pt-0` utility in host apps where the daisyUI plugin layer ends up after `@layer utilities` (Tailwind v4 + daisyUI plugin ordering varies per host). Move the override into the component's unlayered `index.css` so it wins regardless of layer ordering and drop the now-redundant `pt-0` utility (#530)
+- **FormBuilder** - `translate_attribute` routes through `ActiveModel::Translation#human_attribute_name` so labels resolve from `activemodel.attributes.*` (form objects) as well as `activerecord.attributes.*`. Previously the `activerecord.*` namespace was hardcoded and form-object translations silently fell back to humanize (#538)
+- **FormBuilder** - `select_group`, `text_area_group`, `time_zone_select_group`, and `slim_select_field` now apply DaisyUI's element-specific error classes (`select-error` / `textarea-error`) instead of always using `input-error`. Validation errors on these fields actually paint the field red now (#545)
+- **FilterForm** - Default search placeholder is localized via `bali.filter_form.search_placeholder_with_fields`, and field labels resolve through `human_attribute_name`, so apps running in non-English locales no longer get a hardcoded "Search by ..." string (#539)
 - Fix Ruby 4.0 warnings: parenthesize double-splat in ERB templates, silence intentional method overrides, fix indentation
 - Fix pagination end alignment conflict between Rubocop and Ruby 4.0
 - **SimpleFilters** - Fix `simple_filter` DSL defaulting date/date_range predicate to `:eq` instead of `nil`, causing incorrect field names (`q[created_at_eq]` instead of `q[created_at]`)
-- **SideMenu** - Brand row uses fixed `h-14` (56px) + `border-b` so it aligns horizontally with `Bali::Topbar`, forming one continuous chrome divider across the top of the app shell
+- **SideMenu** / **Topbar** - Brand row and Topbar both derive their height from the shared `--bali-chrome-height` variable (defaults to 3.5rem) so the bottom-border divider stays aligned across the seam if the value changes (#544)
 - **SideMenu** - Replace `shadow-lg` on the fixed variant with a 1px right border on desktop (shadow stays on mobile overlay) — eliminates the shadow seam where sidebar meets the topbar
 - **SideMenu** - `menu_switcher` dropdown now uses `<details><summary>` instead of focus-based dropdown — fixes mobile-tap reliability (focus pattern is fragile on iOS Safari)
 - **SideMenu** - When sidebar is collapsed, the `menu_switcher` stays visible as an icon-only button (was hidden) with a tooltip on hover and a right-side popout for switching modules
 
 ### Added
 
+- **AppLayout** - Auto-render a mobile-only topbar (hamburger + optional `app_name:` title) when `fixed_sidebar: true`, a sidebar is present, and no custom `topbar` slot was provided. Without this fallback the sidebar was unreachable on mobile, forcing every consuming app to copy/paste the same `lg:hidden` trigger row. Custom topbars still take precedence (#506)
 - **AppLayout** - New `viewport_locked:` parameter that locks the body to 100vh and scrolls only the inner `<main>`, matching the Linear/Notion app-shell pattern. Defaults to the value of `fixed_sidebar` so existing pages keep working; pass explicitly to decouple (e.g. `fixed_sidebar: true, viewport_locked: false` for a fixed sidebar with normal page scroll)
 - **SideMenu** - New `with_brand` slot for icon + text or arbitrary brand content (the existing `brand:` text param keeps working as a fallback)
 - **Topbar** - New component for the top-of-content bar inside `Bali::AppLayout`'s `with_topbar` slot. Slots: `brand`, `search`, `actions` (many), `user_menu`. Built-in mobile sidebar trigger via `mobile_trigger_id:` (defaults to `SideMenu::MOBILE_TRIGGER_ID`)
 - **Command** - New ⌘K-style command palette / launcher. Modal panel with search input, grouped results (`:searchable` / `:recent` / `:action` modes), keyboard navigation (↑/↓/⏎/Esc), substring highlighting, and a global ⌘K (Mac) / Ctrl+K (Windows/Linux) shortcut. Composable trigger slot, density variants (`:default` / `:compact`), and window events (`bali:command:open` / `close` / `toggle`)
 - **DocumentEditor / DocumentPage** - Forward `references_url`, `references_resolve_url`, and `references_config` to the inner `BlockEditor` so the `#` entity-reference picker and entity chip icons/colors work when the editor is used via `DocumentEditor` or `DocumentPage` (#541)
+- **Icon** - Numeric pixel sizes alongside the named presets: `Bali::Icon::Component.new('clapperboard', size: 24)` renders a 24×24 wrapper with a 24×24 SVG. Inline `style` + `--bali-icon-size` variable, no Tailwind safelist needed (#544)
+- **Command** - i18n keys (`bali.command.placeholder`, `no_results`, `navigate`, `open_action`, `close`) are now in the en/es locale files so consumers can override / translate without monkey-patching. Inline `default:` fallbacks remain (#544)
 - **SimpleFilters** - Configurable search input width via `search[:width]` option; widened defaults from `w-32 sm:w-80` to `w-48 sm:w-96`
+- **SlimSelect** - Search row redesign: magnifier icon prefix, no boxed background, no input border. Selected options use blue text plus a checkmark on the right with no background tint. Trigger focus outline unchanged
 - **SlimSelect** - Added 8px detached gap between input and dropdown menu for improved visual separation
 - **SlimSelect** - Matched focus ring style with DaisyUI native selects (2px outline with 2px offset)
 - **SlimSelect** - Added support for placing search box at the bottom when dropdown opens upwards

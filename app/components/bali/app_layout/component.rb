@@ -24,10 +24,13 @@ module Bali
       #   When nil (default), follows `fixed_sidebar` — the typical app-shell wants both,
       #   but you can decouple them, e.g. `fixed_sidebar: true, viewport_locked: false`
       #   for a fixed sidebar with normal page scroll (long forms, marketing-style content).
+      # @param app_name [String, nil] Title shown next to the hamburger in the
+      #   auto-rendered mobile topbar. Only used when `fixed_sidebar:` is true,
+      #   a sidebar is present, and no `topbar` slot was provided.
       def initialize(fixed_sidebar: false, viewport_locked: nil,
                      flash: nil, modal: true, drawer: true,
                      modal_size: nil, drawer_size: nil,
-                     body_container: :wide, **options)
+                     body_container: :wide, app_name: nil, **options)
         @fixed_sidebar = fixed_sidebar
         @viewport_locked = viewport_locked.nil? ? fixed_sidebar : viewport_locked
         @flash = flash
@@ -36,10 +39,26 @@ module Bali
         @modal_size = modal_size
         @drawer_size = drawer_size
         @body_container = body_container
+        @app_name = app_name
         @options = options
       end
 
       private
+
+      # Auto-render a mobile-only topbar (hamburger + optional app name) when the
+      # consumer pinned the sidebar but didn't supply their own topbar — without
+      # this fallback, the sidebar is unreachable on mobile.
+      def render_default_mobile_topbar?
+        @fixed_sidebar && sidebar? && !topbar?
+      end
+
+      def default_mobile_trigger_id
+        Bali::SideMenu::Component::MOBILE_TRIGGER_ID
+      end
+
+      def toggle_mobile_label
+        I18n.t("bali.side_menu.toggle_mobile", default: "Toggle sidebar")
+      end
 
       def container_classes
         class_names(

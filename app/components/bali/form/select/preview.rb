@@ -15,7 +15,7 @@ module Bali
         end
 
         # @label With Errors
-        # Shows validation error styling with `input-error` class.
+        # Shows validation error styling with `select-error` class.
         def with_errors
           form_record.errors.add(:status, 'must be selected')
 

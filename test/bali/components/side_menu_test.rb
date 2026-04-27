@@ -23,6 +23,12 @@ class BaliSideMenuComponentTest < ComponentTestCase
     assert_selector("a[href='/movies']", text: "Item 1")
   end
 
+  def test_brand_row_uses_shared_chrome_height_for_alignment_with_topbar
+    @options = @options.merge(brand: "ACME")
+    render_inline(component)
+    assert_selector("div.bali-chrome-height", text: "ACME")
+  end
+
   def test_renders_the_side_menu_with_icon
     render_inline(component) do |c|
       c.with_list(title: "Section title") do |list|

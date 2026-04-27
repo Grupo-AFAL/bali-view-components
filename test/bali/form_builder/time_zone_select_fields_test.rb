@@ -52,10 +52,10 @@ class BaliFormBuilderTimeZoneSelectFieldsTest < FormBuilderTestCase
     assert_html(result, "p.label-text-alt", text: "Select your time zone")
   end
 
-  def test_time_zone_select_with_errors_renders_input_error_class
+  def test_time_zone_select_with_errors_renders_select_error_class
     resource.errors.add(:release_date, "is invalid")
     result = builder.time_zone_select(:release_date)
-    assert_html(result, "select.input-error")
+    assert_html(result, "select.select-error")
   end
 
   def test_time_zone_select_with_errors_renders_error_message

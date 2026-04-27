@@ -1,7 +1,6 @@
-<%# transform creates a containing block that traps position:fixed elements inside the preview pane %>
-<div style="transform: translateZ(0); position: relative; height: 100vh; overflow: hidden;">
 <%= render Bali::AppLayout::Component.new(
   fixed_sidebar: true,
+  app_name: app_name,
   flash: flash_notice.present? ? { notice: flash_notice } : nil,
   modal: modal,
   drawer: drawer,
@@ -63,4 +62,3 @@
     </div>
   <% end
 end %>
-</div>

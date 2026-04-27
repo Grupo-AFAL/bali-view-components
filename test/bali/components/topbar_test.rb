@@ -8,6 +8,11 @@ class BaliTopbarComponentTest < ComponentTestCase
     assert_selector(".bali-topbar")
   end
 
+  def test_uses_shared_chrome_height_for_alignment_with_side_menu_brand_row
+    render_inline(Bali::Topbar::Component.new)
+    assert_selector(".bali-topbar.bali-chrome-height")
+  end
+
   def test_renders_brand_when_provided
     render_inline(Bali::Topbar::Component.new) do |topbar|
       topbar.with_brand { "ACME" }

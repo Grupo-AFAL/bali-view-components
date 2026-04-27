@@ -14,11 +14,12 @@
 
 <%= tag.div(**container_options) do %>
   <%# Header with collapse toggle.
-      Height is fixed to h-14 (56px) so the row aligns horizontally with the
-      AppLayout topbar — both share one continuous border-b across the top. %>
+      Height comes from the shared `--bali-chrome-height` variable so the row
+      stays aligned horizontally with the AppLayout topbar — both share one
+      continuous border-b across the top. %>
   <% if collapsible? %>
     <%# Expanded state header - toggle on the right %>
-    <div class="side-menu-expanded flex h-14 items-center gap-2 px-2.5 border-b border-base-300">
+    <div class="side-menu-expanded flex bali-chrome-height items-center gap-2 px-2.5 border-b border-base-300">
       <% if brand_present? %>
         <span class="side-menu-brand text-xl font-semibold grow flex items-center gap-2 min-w-0">
           <%= brand || @brand %>
@@ -43,7 +44,7 @@
       <% end %>
     </div>
     <%# Collapsed state header - toggle centered like menu items %>
-    <div class="side-menu-collapsed hidden h-14 items-center px-1 border-b border-base-300">
+    <div class="side-menu-collapsed hidden bali-chrome-height items-center px-1 border-b border-base-300">
       <label for="<%= collapse_checkbox_id %>"
              title="<%= expand_label %>"
              class="collapse-toggle menu-item justify-center cursor-pointer w-full">
@@ -52,7 +53,7 @@
       </label>
     </div>
   <% elsif brand_present? || fixed? %>
-    <div class="flex h-14 items-center gap-2 px-2.5 border-b border-base-300">
+    <div class="flex bali-chrome-height items-center gap-2 px-2.5 border-b border-base-300">
       <% if brand_present? %>
         <span class="side-menu-brand text-xl font-semibold grow flex items-center gap-2 min-w-0">
           <%= brand || @brand %>

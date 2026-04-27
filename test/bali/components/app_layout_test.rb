@@ -361,6 +361,60 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_selector("main #main-drawer")
   end
 
+  # --- default mobile topbar tests ---
+
+  def test_auto_renders_default_mobile_topbar_when_fixed_sidebar_and_no_topbar
+    render_inline(Bali::AppLayout::Component.new(fixed_sidebar: true)) do |layout|
+      layout.with_sidebar { "Sidebar" }
+      layout.with_body { "Content" }
+    end
+    assert_selector(".app-layout-topbar--default-mobile.lg\\:hidden")
+    assert_selector(
+      ".app-layout-topbar--default-mobile label[for='#{Bali::SideMenu::Component::MOBILE_TRIGGER_ID}']"
+    )
+  end
+
+  def test_default_mobile_topbar_renders_app_name_when_provided
+    render_inline(Bali::AppLayout::Component.new(fixed_sidebar: true, app_name: "MovieDB")) do |layout|
+      layout.with_sidebar { "Sidebar" }
+      layout.with_body { "Content" }
+    end
+    assert_selector(".app-layout-topbar--default-mobile", text: "MovieDB")
+  end
+
+  def test_default_mobile_topbar_omits_app_name_when_blank
+    render_inline(Bali::AppLayout::Component.new(fixed_sidebar: true)) do |layout|
+      layout.with_sidebar { "Sidebar" }
+      layout.with_body { "Content" }
+    end
+    assert_no_selector(".app-layout-topbar--default-mobile span.font-semibold")
+  end
+
+  def test_default_mobile_topbar_skipped_when_custom_topbar_provided
+    render_inline(Bali::AppLayout::Component.new(fixed_sidebar: true, app_name: "Ignored")) do |layout|
+      layout.with_sidebar { "Sidebar" }
+      layout.with_topbar { "Custom topbar" }
+      layout.with_body { "Content" }
+    end
+    assert_selector(".app-layout-topbar", text: "Custom topbar")
+    assert_no_selector(".app-layout-topbar--default-mobile")
+  end
+
+  def test_default_mobile_topbar_skipped_without_sidebar
+    render_inline(Bali::AppLayout::Component.new(fixed_sidebar: true)) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector(".app-layout-topbar--default-mobile")
+  end
+
+  def test_default_mobile_topbar_skipped_when_fixed_sidebar_disabled
+    render_inline(Bali::AppLayout::Component.new(fixed_sidebar: false)) do |layout|
+      layout.with_sidebar { "Sidebar" }
+      layout.with_body { "Content" }
+    end
+    assert_no_selector(".app-layout-topbar--default-mobile")
+  end
+
   def test_main_tag_no_longer_has_p6_hardcoded
     render_inline(Bali::AppLayout::Component.new(modal: false, drawer: false)) do |layout|
       layout.with_body { "Content" }

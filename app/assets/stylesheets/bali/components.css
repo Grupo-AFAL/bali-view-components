@@ -8,6 +8,7 @@
  */
 
 /* Navigation Components */
+@import "../../../components/bali/breadcrumb/index.css";
 @import "../../../components/bali/navbar/index.css";
 @import "../../../components/bali/side_menu/index.css";
 @import "../../../components/bali/command/index.css";

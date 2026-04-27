@@ -95,9 +95,7 @@ module Bali
 
       def alt_input_class(method, options)
         base_class = options[:alt_input_class] || "input input-bordered w-full"
-        return "#{base_class} input-error" if errors?(method)
-
-        base_class
+        field_class_name(method, base_class)
       end
 
       def previous_date_button
