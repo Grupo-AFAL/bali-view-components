@@ -28,7 +28,9 @@ module Bali
 
       def textarea_field_options(method, options, stimulus: false)
         base_class = "textarea textarea-bordered w-full"
-        options[:class] = field_class_name(method, "#{base_class} #{options[:class]}")
+        options[:class] = field_class_name(
+          method, "#{base_class} #{options[:class]}", error_class: "textarea-error"
+        )
 
         if stimulus
           options[:data] ||= {}
@@ -62,10 +64,10 @@ module Bali
         wrapped_field + help_message
       end
 
-      def field_class_name(method, class_name = "input")
+      def field_class_name(method, class_name = "input", error_class: "input-error")
         return class_name unless errors?(method)
 
-        "#{class_name} input-error"
+        "#{class_name} #{error_class}"
       end
 
       def errors?(method)

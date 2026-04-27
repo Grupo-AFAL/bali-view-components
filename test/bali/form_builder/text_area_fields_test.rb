@@ -50,7 +50,7 @@ class BaliFormBuilderTextAreaFieldsTest < FormBuilderTestCase
   def test_text_area_with_validation_errors_applies_error_class
     resource.errors.add(:synopsis, "is required")
     result = builder.text_area(:synopsis)
-    assert_html(result, "textarea.input-error")
+    assert_html(result, "textarea.textarea-error")
   end
 
   def test_text_area_with_validation_errors_displays_error_message

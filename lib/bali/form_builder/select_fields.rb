@@ -23,7 +23,7 @@ module Bali
       private
 
       def select_classes(method, additional_classes = nil)
-        base = field_class_name(method, BASE_CLASSES)
+        base = field_class_name(method, BASE_CLASSES, error_class: "select-error")
         [ base, additional_classes ].compact.join(" ")
       end
 
