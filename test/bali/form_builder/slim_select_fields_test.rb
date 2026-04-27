@@ -98,6 +98,20 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_html(result, "div.slim-select.wrapper-class")
   end
 
+  # validation errors
+
+  def test_slim_select_field_with_validation_errors_renders_select_with_error_class
+    resource.errors.add(:status, :invalid)
+    result = builder.slim_select_field(:status, Movie.statuses.to_a)
+    assert_html(result, "select.select.select-bordered.select-error")
+  end
+
+  def test_slim_select_field_with_validation_errors_displays_error_message
+    resource.errors.add(:status, :invalid)
+    result = builder.slim_select_field(:status, Movie.statuses.to_a)
+    assert_html(result, "p.text-error")
+  end
+
   # custom data attributes
 
   def test_slim_select_field_custom_data_attributes_merges_custom_data_attributes_with_slim_select_target

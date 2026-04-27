@@ -33,7 +33,9 @@ module Bali
 
         select_class = merged_html.delete(:select_class)
         custom_class = merged_html[:class]
-        merged_html[:class] = class_names([ SELECT_CLASS, custom_class ].compact)
+        merged_html[:class] = field_class_name(
+          method, class_names([ SELECT_CLASS, custom_class ].compact), error_class: "select-error"
+        )
 
         field = build_wrapper(method, merged_options, merged_html, select_class) do
           build_select_content(method, values, merged_options, merged_html)
