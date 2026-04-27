@@ -383,17 +383,32 @@
    Search Input
    ============================================================================= */
 .ss-content .ss-search {
+  position: relative;
   flex: 0 1 auto;
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding: var(--ss-spacing-m);
+  padding: var(--ss-spacing-s) var(--ss-spacing-m);
   border-bottom: 1px solid oklch(0.278 0.033 256.8 / 0.1);
-  background-color: oklch(0.95 0 0 / 0.5);
-  /* Remove padding on sides and use negative margin to extend to container edges */
-  padding-left: 0;
-  padding-right: 0;
+  background-color: transparent;
   margin: 0;
+
+  /* Magnifier icon prefix */
+  &::before {
+    content: "";
+    position: absolute;
+    left: calc(var(--ss-spacing-m) + var(--ss-spacing-m));
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1rem;
+    height: 1rem;
+    background-color: var(--ss-placeholder-color);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E") no-repeat center;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E") no-repeat center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    pointer-events: none;
+  }
 
   input {
     display: inline-flex;
@@ -401,18 +416,15 @@
     width: 100%;
     min-width: 0;
     height: var(--ss-search-height);
-    padding: 0 var(--ss-spacing-l);
-    margin: 0 var(--ss-spacing-m);
+    padding: 0 var(--ss-spacing-l) 0 calc(var(--ss-spacing-l) + 1.25rem);
+    margin: 0;
     font-size: 0.875rem;
     line-height: inherit;
     color: var(--ss-font-color);
-    background-color: var(--ss-bg-color);
-    border: 1px solid var(--ss-border-color);
-    border-radius: var(--ss-border-radius);
+    background-color: transparent;
+    border: none;
     outline: none;
     box-sizing: border-box;
-    transition: border-color var(--ss-animation-timing) ease,
-                outline var(--ss-animation-timing) ease;
 
     &::placeholder {
       color: var(--ss-placeholder-color);
@@ -420,7 +432,6 @@
 
     &:focus {
       outline: none;
-      border-color: var(--ss-primary-color);
     }
 
     /* Style the native search clear button (X) to match DaisyUI */
@@ -543,6 +554,7 @@
    Individual Option (.ss-option)
    ============================================================================= */
 .ss-content .ss-list .ss-option {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -569,14 +581,31 @@
     background-color: oklch(0.95 0 0);
   }
 
-  /* Selected state - subtle primary tint */
+  /* Selected state — blue text + checkmark, no background tint */
   &.ss-selected {
-    background-color: oklch(0.6569 0.196 275.75 / 0.1);
+    background-color: transparent;
     color: var(--ss-primary-color);
     font-weight: 500;
+    padding-right: calc(12px + 1.25rem);
 
     &:hover {
-      background-color: oklch(0.6569 0.196 275.75 / 0.15);
+      background-color: oklch(0.95 0 0);
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1rem;
+      height: 1rem;
+      background-color: var(--ss-primary-color);
+      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") no-repeat center;
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") no-repeat center;
+      -webkit-mask-size: contain;
+      mask-size: contain;
+      pointer-events: none;
     }
   }
 
