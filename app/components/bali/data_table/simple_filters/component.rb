@@ -17,6 +17,11 @@ module Bali
       #   ])
       #
       class Component < ApplicationViewComponent
+        # Min-width for slim_select dropdowns. Triggers in SimpleFilters are narrow
+        # (~13rem), so we let the dropdown grow past the trigger to fit long labels
+        # without wrapping.
+        SLIM_SELECT_CONTENT_WIDTH = ">240px"
+
         # @param url [String] Form submission URL
         # @param filters [Array<Hash>] Filter configurations
         # @param show_clear [Boolean] Show clear button

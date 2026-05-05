@@ -186,6 +186,28 @@ module Bali
           )
         end
 
+        # @label Wide Content
+        # By default, SlimSelect locks the dropdown to the trigger's width, so long
+        # option labels wrap awkwardly. Pass `content_width:` to forward SlimSelect's
+        # `contentWidth` setting:
+        #
+        # - `">240px"` -> minimum width of 240px, grows to fit content
+        # - `"<500px"` -> caps at 500px
+        # - `"320px"` or `"auto"` -> fixed width
+        def wide_content
+          long_options = [
+            ['ASISTENCIA EJECUTIVA SR - DIRECCIÓN GENERAL COORDINACIÓN', '1'],
+            ['GERENCIA DE TECNOLOGÍA DE INFORMACIÓN Y TRANSFORMACIÓN DIGITAL', '2'],
+            ['SUBDIRECCIÓN DE OPERACIONES Y LOGÍSTICA INTERNACIONAL', '3'],
+            ['COORDINACIÓN DE RECURSOS HUMANOS Y DESARROLLO ORGANIZACIONAL', '4']
+          ]
+
+          render_with_template(
+            template: 'bali/form/slim_select/previews/wide_content',
+            locals: { model: form_record, options: long_options }
+          )
+        end
+
         private
 
         def build_team_options

@@ -27,7 +27,8 @@ export class SlimSelectController extends Controller {
       default: 'Type 2 chars to search...'
     },
     afterChangeFetchUrl: String,
-    afterChangeFetchMethod: { type: String, default: 'get' }
+    afterChangeFetchMethod: { type: String, default: 'get' },
+    contentWidth: String
   }
 
   static targets = ['select', 'selectAllButton', 'deselectAllButton']
@@ -55,6 +56,10 @@ export class SlimSelectController extends Controller {
           searchingText: this.searchingTextValue
         },
         events: {}
+      }
+
+      if (this.hasContentWidthValue && this.contentWidthValue) {
+        options.settings.contentWidth = this.contentWidthValue
       }
 
       if (this.hasInnerHTML()) {

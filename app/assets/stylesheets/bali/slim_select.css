@@ -560,7 +560,7 @@
   justify-content: flex-start;
   width: 100%;
   min-height: 40px;
-  padding: 0 12px;
+  padding: 8px 12px;
   margin: 1px 0;
   font-size: 14px;
   color: var(--ss-font-color);
@@ -866,17 +866,14 @@
 
 .slim-select-sm .ss-content .ss-search input,
 .slim-select-sm-content .ss-search input {
-  height: 1.5rem;
   font-size: 0.75rem;
-  padding: 0 0.375rem;
-  margin: 0 0.125rem;
   border-radius: 0.25rem;
 }
 
 .slim-select-sm .ss-content .ss-list .ss-option,
 .slim-select-sm-content .ss-list .ss-option {
   min-height: 32px;
-  padding: 0 12px;
+  padding: 6px 12px;
   font-size: 12px;
   border-radius: 4px;
 }
