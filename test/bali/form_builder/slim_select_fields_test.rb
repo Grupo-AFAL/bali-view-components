@@ -171,6 +171,16 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_html(result, 'div[data-slim-select-add-to-body-value="true"]')
   end
 
+  def test_slim_select_field_stimulus_data_values_sets_content_width_value
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, content_width: ">240px")
+    assert_html(result, 'div[data-slim-select-content-width-value=">240px"]')
+  end
+
+  def test_slim_select_field_omits_content_width_value_when_not_provided
+    result = builder.slim_select_field(:status, Movie.statuses.to_a)
+    refute_match(/data-slim-select-content-width-value/, result)
+  end
+
   # ajax options
 
   def test_slim_select_field_ajax_options_sets_ajax_url_value

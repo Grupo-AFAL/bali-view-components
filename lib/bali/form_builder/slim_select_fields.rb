@@ -18,7 +18,8 @@ module Bali
         select_all: false,
         disabled: false,
         hide_selected: false,
-        search_highlight: false
+        search_highlight: false,
+        content_width: nil
       }.freeze
 
       def slim_select_group(method, values, options = {}, html_options = {})
@@ -129,7 +130,8 @@ module Bali
           slim_select_ajax_url_value: options[:ajax_url],
           slim_select_ajax_placeholder_value: options[:ajax_placeholder],
           slim_select_after_change_fetch_url_value: options[:after_change_fetch_url],
-          slim_select_after_change_fetch_method_value: options[:after_change_fetch_method]
+          slim_select_after_change_fetch_method_value: options[:after_change_fetch_method],
+          slim_select_content_width_value: options[:content_width]
         }
 
         # Boolean values - only include when true to reduce HTML size
