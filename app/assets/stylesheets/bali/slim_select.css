@@ -548,6 +548,25 @@
     color: oklch(0.278 0.033 256.8 / 0.6);
     font-size: 0.875rem;
   }
+
+  /* No-results / "Press Enter to add {value}" prompt.
+     SlimSelect renders this with class `.ss-search`, which would otherwise pick up
+     the top search bar's padding, border, and magnifier ::before icon. */
+  .ss-search {
+    padding: var(--ss-spacing-s) var(--ss-spacing-l);
+    color: oklch(0.278 0.033 256.8 / 0.6);
+    font-size: 0.875rem;
+    border-bottom: none;
+
+    &::before {
+      content: none;
+    }
+  }
+}
+
+.slim-select-sm .ss-content .ss-list .ss-search,
+.slim-select-sm-content .ss-list .ss-search {
+  font-size: 0.75rem;
 }
 
 /* =============================================================================
