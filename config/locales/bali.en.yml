@@ -116,6 +116,10 @@ en:
     modal:
       close: "Close modal"
 
+    # Image grid
+    image_grid:
+      expand: "Expand image"
+
     # Breadcrumb
     breadcrumb:
       aria_label: "Breadcrumb"

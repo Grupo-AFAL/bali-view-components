@@ -116,6 +116,10 @@ es:
     modal:
       close: "Cerrar modal"
 
+    # Image grid
+    image_grid:
+      expand: "Ampliar imagen"
+
     # Breadcrumb
     breadcrumb:
       aria_label: "Navegación de migas de pan"

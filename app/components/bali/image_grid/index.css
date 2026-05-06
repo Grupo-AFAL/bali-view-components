@@ -1,0 +1,42 @@
+/* Image Grid - Lightbox overlay */
+
+@keyframes bali-image-expander-spin {
+  to { transform: rotate(360deg); }
+}
+
+.bali-image-expander-overlay {
+  @apply fixed inset-0 z-[100] flex items-center justify-center;
+  @apply bg-black/80 p-4 cursor-zoom-out;
+  @apply opacity-0 transition-opacity duration-200 ease-out;
+
+  &.is-open {
+    @apply opacity-100;
+  }
+}
+
+.bali-image-expander-image {
+  @apply max-w-full max-h-full object-contain cursor-default;
+  @apply opacity-0 transition duration-200 ease-out;
+  transform: scale(0.96);
+
+  &.is-loaded {
+    @apply opacity-100;
+    transform: scale(1);
+  }
+}
+
+.bali-image-expander-spinner {
+  @apply size-12 rounded-full;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-top-color: white;
+  animation: bali-image-expander-spin 0.8s linear infinite;
+}
+
+.bali-image-expander-close {
+  @apply btn btn-sm btn-circle btn-ghost absolute right-4 top-4;
+  @apply text-white hover:bg-white/20;
+}
+
+.bali-image-expander-error {
+  @apply text-white text-sm;
+}

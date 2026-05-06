@@ -1,7 +1,16 @@
 <%= tag.div class: card_classes, **card_attributes do %>
-  <figure class="<%= figure_classes %>">
-    <%= content %>
-  </figure>
+  <% if expandable %>
+    <%= tag.button type: "button",
+                   class: expand_button_classes,
+                   aria: { label: expand_label },
+                   data: expand_button_data do %>
+      <%= content %>
+    <% end %>
+  <% else %>
+    <figure class="<%= figure_classes %>">
+      <%= content %>
+    </figure>
+  <% end %>
 
   <% if footer? %>
     <%= footer %>

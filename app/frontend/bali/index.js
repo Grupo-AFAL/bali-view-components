@@ -99,6 +99,7 @@ export {
   DropdownController,
   FilterGroupController,
   HovercardController,
+  ImageExpanderController,
   ImageFieldController,
   LocationsMapController,
   ModalController,

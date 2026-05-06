@@ -18,11 +18,14 @@ module Bali
         lg: "gap-6"
       }.freeze
 
-      renders_many :images, Image::Component
+      renders_many :images, ->(**opts) {
+        Image::Component.new(**{ expandable: @expandable }.merge(opts))
+      }
 
-      def initialize(columns: 4, gap: :md, **options)
+      def initialize(columns: 4, gap: :md, expandable: false, **options)
         @columns = columns
         @gap = gap.to_sym
+        @expandable = expandable
         @options = options
       end
 

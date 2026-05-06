@@ -101,6 +101,21 @@ class BaliImageGridComponentTest < ComponentTestCase
     end
     assert_no_selector(".card-body")
   end
+
+  def test_expandable_grid_propagates_expandable_to_all_images
+    render_inline(Bali::ImageGrid::Component.new(expandable: true)) do |c|
+      3.times { c.with_image { '<img src="test.jpg">'.html_safe } }
+    end
+    assert_selector('button[data-controller="image-expander"]', count: 3)
+  end
+
+  def test_expandable_grid_image_can_override_to_disable_expand
+    render_inline(Bali::ImageGrid::Component.new(expandable: true)) do |c|
+      c.with_image(expandable: false) { '<img src="test.jpg">'.html_safe }
+    end
+    assert_selector("figure")
+    assert_no_selector('button[data-controller="image-expander"]')
+  end
 end
 
 class BaliImageGridImageComponentTest < ComponentTestCase
@@ -154,6 +169,35 @@ class BaliImageGridImageComponentTest < ComponentTestCase
   def test_wraps_content_in_figure_with_overflow_hidden
     render_inline(Bali::ImageGrid::Image::Component.new) { '<img src="test.jpg">'.html_safe }
     assert_selector("figure.overflow-hidden")
+  end
+
+  def test_expandable_renders_button_instead_of_figure
+    render_inline(Bali::ImageGrid::Image::Component.new(expandable: true)) { '<img src="test.jpg">'.html_safe }
+    assert_selector('button[type="button"][data-controller="image-expander"]')
+    assert_no_selector("figure")
+  end
+
+  def test_expandable_button_has_accessible_label
+    render_inline(Bali::ImageGrid::Image::Component.new(expandable: true)) { '<img src="test.jpg">'.html_safe }
+    assert_selector('button[aria-label="Expand image"]')
+  end
+
+  def test_expandable_passes_full_src_to_stimulus_value
+    render_inline(Bali::ImageGrid::Image::Component.new(expandable: true, full_src: "/full.jpg")) do
+      '<img src="thumb.jpg">'.html_safe
+    end
+    assert_selector('button[data-image-expander-src-value="/full.jpg"]')
+  end
+
+  def test_expandable_omits_src_value_when_full_src_not_provided
+    render_inline(Bali::ImageGrid::Image::Component.new(expandable: true)) { '<img src="test.jpg">'.html_safe }
+    assert_no_selector("button[data-image-expander-src-value]")
+  end
+
+  def test_non_expandable_still_renders_figure
+    render_inline(Bali::ImageGrid::Image::Component.new(expandable: false)) { '<img src="test.jpg">'.html_safe }
+    assert_selector("figure")
+    assert_no_selector("button[data-controller='image-expander']")
   end
 end
 

@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **ImageGrid** - New `expandable:` option on `Bali::ImageGrid::Component` and `Bali::ImageGrid::Image::Component`. When enabled, clicking an image opens it in a fullscreen lightbox with backdrop fade-in, image fade + scale-in, and a CSS spinner while the full-size image preloads. Pass `full_src:` to load a higher-resolution image; otherwise the thumbnail's `src` is reused. Closes on ESC, backdrop click, or close button; restores focus to the trigger. The grid-level `expandable:` propagates to every image but can be overridden per-image (#550)
 - **AppLayout** - Auto-render a mobile-only topbar (hamburger + optional `app_name:` title) when `fixed_sidebar: true`, a sidebar is present, and no custom `topbar` slot was provided. Without this fallback the sidebar was unreachable on mobile, forcing every consuming app to copy/paste the same `lg:hidden` trigger row. Custom topbars still take precedence (#506)
 - **AppLayout** - New `viewport_locked:` parameter that locks the body to 100vh and scrolls only the inner `<main>`, matching the Linear/Notion app-shell pattern. Defaults to the value of `fixed_sidebar` so existing pages keep working; pass explicitly to decouple (e.g. `fixed_sidebar: true, viewport_locked: false` for a fixed sidebar with normal page scroll)
 - **SideMenu** - New `with_brand` slot for icon + text or arbitrary brand content (the existing `brand:` text param keeps working as a fallback)
