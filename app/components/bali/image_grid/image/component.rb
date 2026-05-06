@@ -3,24 +3,6 @@
 module Bali
   module ImageGrid
     module Image
-      class FooterComponent < ApplicationViewComponent
-        def initialize(**options)
-          @options = options
-        end
-
-        def call
-          tag.div(**footer_options) { content }
-        end
-
-        private
-
-        attr_reader :options
-
-        def footer_options
-          options.merge(class: class_names("card-body", "p-3", options[:class]))
-        end
-      end
-
       class Component < ApplicationViewComponent
         ASPECT_RATIOS = {
           square: "aspect-square",
@@ -33,14 +15,16 @@ module Bali
 
         renders_one :footer, FooterComponent
 
-        def initialize(aspect_ratio: :'3/2', **options)
+        def initialize(aspect_ratio: :'3/2', expandable: false, full_src: nil, **options)
           @aspect_ratio = aspect_ratio.to_sym
+          @expandable = expandable
+          @full_src = full_src
           @options = options
         end
 
         private
 
-        attr_reader :options
+        attr_reader :options, :expandable, :full_src
 
         def aspect_class
           ASPECT_RATIOS[@aspect_ratio] || "aspect-#{@aspect_ratio}"
@@ -61,6 +45,24 @@ module Bali
 
         def card_attributes
           options.except(:class)
+        end
+
+        def expand_label
+          I18n.t("bali.image_grid.expand", default: "Expand image")
+        end
+
+        def expand_button_classes
+          class_names(
+            figure_classes,
+            "block w-full p-0 cursor-zoom-in",
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          )
+        end
+
+        def expand_button_data
+          { controller: "image-expander", action: "click->image-expander#open" }.tap do |data|
+            data[:image_expander_src_value] = full_src if full_src
+          end
         end
       end
     end
