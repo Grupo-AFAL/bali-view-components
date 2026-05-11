@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2.9.1] - 2026-05-10
+
+### Fixed
+
+- **SimpleFilters** - `:slim_select` filters now preserve their value after submission. The `slim_select_field` branch of the template wasn't passing `filter[:value]` (or `filter[:default]`), so the `<option>` rendered without `selected`. SlimSelect reads `option.selected` from the DOM, so the dropdown showed the placeholder text instead of the chosen option even though the URL carried the param. The `:select` branch already handled this via `options_for_select`; this brings `:slim_select` in line (#553)
+
 ## [v2.9.0] - 2026-05-10
 
 ### Changed

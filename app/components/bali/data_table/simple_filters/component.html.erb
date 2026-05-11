@@ -99,6 +99,7 @@
                 filter[:collection],
                 {
                   include_blank: filter[:blank],
+                  selected: (filter[:value] || filter[:default]),
                   size: :sm,
                   content_width: SLIM_SELECT_CONTENT_WIDTH,
                   addon_left: (render Bali::Icon::Component.new(filter[:icon], class: 'w-4 h-4') if filter[:icon])
