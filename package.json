@@ -1,6 +1,6 @@
 {
   "name": "bali-view-components",
-  "version": "2.8.0",
+  "version": "2.9.0",
   "description": "Bali ViewComponents",
   "type": "module",
   "main": "./app/frontend/bali/index.js",
@@ -33,9 +33,9 @@
     "@babel/core": "^7.29.0",
     "@babel/eslint-parser": "^7.28.6",
     "@babel/plugin-proposal-class-properties": "^7.16.7",
-    "@babel/preset-env": "^7.29.0",
-    "cypress": "^15.11.0",
-    "playwright": "^1.57.0",
+    "@babel/preset-env": "^7.29.2",
+    "cypress": "^15.13.0",
+    "playwright": "^1.59.1",
     "standard": "^17.1.2"
   },
   "standard": {
@@ -61,10 +61,10 @@
   },
   "peerDependencies": {
     "@blocknote/core": ">=0.46.0",
-    "@blocknote/react": ">=0.46.0",
     "@blocknote/mantine": ">=0.46.0",
-    "@blocknote/xl-multi-column": ">=0.46.0",
+    "@blocknote/react": ">=0.46.0",
     "@blocknote/xl-ai": ">=0.46.0",
+    "@blocknote/xl-multi-column": ">=0.46.0",
     "@mantine/core": ">=8.3.0",
     "@mantine/hooks": ">=8.3.0",
     "ai": ">=6.0.0",
@@ -106,7 +106,9 @@
   "resolutions": {
     "qs": ">=6.14.2",
     "js-yaml": ">=4.1.1",
-    "minimatch": ">=3.1.5"
+    "minimatch": ">=3.1.5",
+    "flatted": ">=3.4.2",
+    "lodash": ">=4.18.1"
   },
   "dependencies": {
     "daisyui": "^5.5.19"
