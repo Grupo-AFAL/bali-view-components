@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2.9.0] - 2026-05-10
+
+### Changed
+
+- **Dependencies** - Bump `cypress` 15.11.0 → 15.13.0, `playwright` 1.58.2 → 1.59.1, `@babel/preset-env` 7.29.0 → 7.29.2, and refresh transitive dependencies (`@babel/plugin-transform-modules-systemjs` 7.29.0 → 7.29.4, `lodash` 4.17.23 → 4.18.1, `flatted` 3.4.1 → 3.4.2). Bump `actions/github-script` 8 → 9 in CI workflows (#551, #536, #515, #520, #516, #537)
+
 ### Fixed
 
 - **SlimSelect** - `slim_select_field` now accepts `content_width:` to forward SlimSelect's upstream `contentWidth` setting (`">240px"` grow-to-fit, `"<500px"` cap, `"320px"` fixed). `Bali::DataTable::SimpleFilters` defaults to `">240px"` so dropdowns with long option labels (department / job-title catalogs) grow past the trigger instead of wrapping to 2-3 lines. Also fixes `.ss-option` zero vertical padding so wrapped lines no longer merge with adjacent items, removes a legacy `.slim-select-sm .ss-search input` override that was clobbering the new search-icon padding, and scopes the inline `No Results` / `Press "Enter" to add {value}` prompt so it stops inheriting the top search bar's padding, border, and magnifier icon (#548)
