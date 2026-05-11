@@ -83,6 +83,37 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("option[selected]", text: "Inactive")
   end
 
+  def test_slim_select_filter_selects_the_current_value
+    slim_select_filter = [
+      {
+        attribute: :status,
+        type: :slim_select,
+        collection: [ %w[Active active], %w[Inactive inactive] ],
+        blank: "All",
+        label: "Status",
+        value: "active"
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: slim_select_filter))
+    assert_selector("option[selected]", text: "Active")
+  end
+
+  def test_slim_select_filter_selects_the_default_value_when_no_current_value
+    slim_select_filter = [
+      {
+        attribute: :status,
+        type: :slim_select,
+        collection: [ %w[Active active], %w[Inactive inactive] ],
+        blank: "All",
+        label: "Status",
+        value: nil,
+        default: "inactive"
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: slim_select_filter))
+    assert_selector("option[selected]", text: "Inactive")
+  end
+
   def test_renders_multiple_filters
     multi_filters = [
       {
