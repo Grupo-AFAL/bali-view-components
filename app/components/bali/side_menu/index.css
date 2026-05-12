@@ -259,6 +259,47 @@
     @apply pt-2;
   }
 
+  /* Collapsed-state flyout for expandable groups. The container is
+     shown by `.side-menu-collapsed { !flex }` above. DaisyUI's
+     `dropdown-right` relies on CSS Anchor Positioning, which silently
+     falls back to viewport-relative when the anchor chain isn't set up
+     correctly — the panel can end up at `top: 0` of the viewport,
+     creating a vertical gap the cursor can't cross. We override that
+     here: the JS controller measures the trigger and sets `top` / `left`
+     so the panel is flush against the trigger's right edge. */
+  .side-menu-collapsed-flyout .dropdown-content {
+    /* `left` and `top` are set inline by side-menu-flyout controller. */
+    inset: auto !important;
+  }
+
+  /* Intent delay — wait ~120ms before opening so cursor drift past the
+     rail doesn't trigger a flyout mid-task. Closing has a longer delay
+     (300ms) to give users grace if the cursor briefly drifts off the
+     trigger before reaching the panel. */
+  .side-menu-collapsed-flyout .dropdown-content {
+    transition-delay: 300ms;
+  }
+  .side-menu-collapsed-flyout:hover .dropdown-content,
+  .side-menu-collapsed-flyout:focus-within .dropdown-content {
+    transition-delay: 120ms;
+  }
+
+  /* Open the panel when the trigger is hovered OR the container has
+     focus inside it (keyboard tab / touch tap) — covers all three
+     interaction modes (mouse, keyboard, touch). DaisyUI's dropdown-hover
+     handles :hover; this rule extends it to focus-within so keyboard
+     and touch open the panel too. */
+  .side-menu-collapsed-flyout:focus-within .dropdown-content {
+    @apply opacity-100 visible;
+  }
+
+  /* Explicit close via Escape — overrides both :hover and :focus-within
+     until the user moves cursor away or tabs out. Paired with the
+     `is-suppressed` class the controller toggles. */
+  .side-menu-collapsed-flyout.is-suppressed .dropdown-content {
+    @apply opacity-0 invisible;
+  }
+
   /* Bottom group dropdown: open right instead of up when collapsed */
   .side-menu-bottom-group.dropdown {
     position: static;

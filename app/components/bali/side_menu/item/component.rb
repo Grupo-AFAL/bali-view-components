@@ -79,11 +79,6 @@ module Bali
           @group_behavior == :dropdown
         end
 
-        # Unique ID for collapse checkbox
-        def collapse_id
-          @collapse_id ||= "side-menu-item-#{object_id}"
-        end
-
         def menu_item_classes
           class_names(
             "menu-item",
@@ -142,6 +137,71 @@ module Bali
               ) { render_icon_or_initial }
             end
             content || name
+          end
+        end
+
+        # Class chain for the collapsed-state flyout container.
+        # Combines our own visibility scope (`side-menu-collapsed hidden`)
+        # with DaisyUI's hover dropdown.
+        def flyout_classes
+          class_names(
+            "side-menu-collapsed-flyout",
+            "side-menu-collapsed",
+            "hidden",
+            "dropdown",
+            "dropdown-right",
+            "dropdown-hover"
+          )
+        end
+
+        # Flat link for a child entry inside a popup. Both the
+        # `:dropdown` mode template and the `:expandable` collapsed-state
+        # flyout render children this way so a popup doesn't recurse
+        # into nested accordions or flyouts.
+        def render_subitem_link(item)
+          tag.a(href: item.href,
+                class: class_names("active" => item.active?),
+                target: item.target, rel: item.rel) do
+            safe_join([
+              (render(Bali::Icon::Component.new(item.icon, class: "size-4")) if item.icon.present?),
+              item.name
+            ].compact)
+          end
+        end
+
+        # Parent's own link inside an accordion or popup. Active only
+        # when the parent route matches but no child does — child links
+        # own the highlight when active. Returns nil if no href.
+        def render_parent_link(in_accordion: false)
+          return unless href.present?
+
+          link = tag.a(
+            href: href,
+            class: class_names({ "menu-item" => in_accordion },
+                               "active" => active? && !active_child_items?),
+            target: target, rel: rel
+          ) { in_accordion ? tag.span(name, class: "grow") : name }
+
+          in_accordion ? link : tag.li(link)
+        end
+
+        # Flyout trigger: `<a>` when the parent has its own destination
+        # (click navigates, hover/focus opens the popup), `<div>` button
+        # otherwise (popup-only). Either way it's keyboard-reachable
+        # and wired to the Stimulus controller.
+        def render_flyout_trigger
+          trigger_class = class_names("menu-item", "active" => active?)
+
+          if href.present?
+            tag.a(href: href, tabindex: 0, class: trigger_class,
+                  target: target, rel: rel,
+                  data: { side_menu_flyout_target: "trigger",
+                          action: "keydown->side-menu-flyout#triggerKeydown" }) { render_icon_or_initial }
+          else
+            tag.div(tabindex: 0, role: "button", class: trigger_class,
+                    "aria-label": name,
+                    data: { side_menu_flyout_target: "trigger",
+                            action: "keydown->side-menu-flyout#triggerKeydown" }) { render_icon_or_initial }
           end
         end
 
