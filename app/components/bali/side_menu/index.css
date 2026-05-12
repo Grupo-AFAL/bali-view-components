@@ -272,6 +272,18 @@
     inset: auto !important;
   }
 
+  /* Safe-triangle bridge: the trigger (collapsed `menu-item` with `p-2`)
+     is ~32px wide while the panel sits flush against the 56px rail edge,
+     leaving a ~14px dead zone the cursor would otherwise cross with no
+     element to hover. This transparent pseudo-element extends 24px to
+     the left of the panel — wider than the worst-case gap — so the
+     cursor's `:hover` state stays on the `.dropdown` throughout the
+     traversal. */
+  .side-menu-collapsed-flyout .dropdown-content::before {
+    content: "";
+    @apply absolute -left-6 top-0 bottom-0 w-6;
+  }
+
   /* Intent delay — wait ~120ms before opening so cursor drift past the
      rail doesn't trigger a flyout mid-task. Closing has a longer delay
      (300ms) to give users grace if the cursor briefly drifts off the
