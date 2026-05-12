@@ -24,6 +24,7 @@
     "./package.json": "./package.json"
   },
   "scripts": {
+    "build": "yarn --cwd spec/dummy build",
     "cy:open": "cypress open",
     "cy:run": "cypress run --browser chrome",
     "cy:run:electron": "cypress run",
