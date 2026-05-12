@@ -352,6 +352,14 @@
     .side-menu-expanded { display: flex !important; }
     .side-menu-collapsed { display: none !important; }
 
+    /* The accordion wrapper carries `.side-menu-expanded` but relies on
+       DaisyUI's `display: grid` for its open/close animation and row
+       stacking. The blanket `display: flex` above would otherwise turn
+       the title and content into side-by-side flex items — exactly
+       what makes expandable groups look indented and never expand on
+       mobile. Higher-specificity selector restores grid. */
+    .collapse.side-menu-expanded { display: grid !important; }
+
     .menu-item {
       justify-content: flex-start;
       padding: 0.5rem 0.625rem;
