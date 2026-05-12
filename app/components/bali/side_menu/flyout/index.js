@@ -53,11 +53,17 @@ export class SideMenuFlyoutController extends Controller {
   }
 
   // Pin the panel's top to the trigger's top and its left to the
-  // trigger's right edge — zero gap to traverse.
+  // sidebar's right edge (not the trigger's, which is narrower than the
+  // rail in collapsed state). `setProperty` with `important` is required
+  // because our CSS uses `inset: auto !important` to neutralize DaisyUI's
+  // anchor-positioning fallback — without the priority, the stylesheet
+  // would win and the inline coordinates would be ignored.
   updatePosition () {
     const rect = this.triggerTarget.getBoundingClientRect()
-    this.panelTarget.style.top = `${rect.top}px`
-    this.panelTarget.style.left = `${rect.right}px`
+    const sidebar = this.element.closest('.side-menu-component')
+    const left = sidebar ? sidebar.getBoundingClientRect().right : rect.right
+    this.panelTarget.style.setProperty('top', `${rect.top}px`, 'important')
+    this.panelTarget.style.setProperty('left', `${left}px`, 'important')
   }
 
   // Captured once at connect; hybrid devices that switch input modes
