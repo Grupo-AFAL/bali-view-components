@@ -3,6 +3,13 @@
 module BlockEditorAuthentication
   extend ActiveSupport::Concern
 
+  included do
+    # JSON API requests include the CSRF token via X-CSRF-Token header (read from
+    # the <meta> tag by RESTThreadStore). For testing convenience, also allow
+    # null_session so curl-based tests work without a browser session.
+    protect_from_forgery with: :null_session, if: -> { request.format.json? }
+  end
+
   private
 
   # In the dummy app, user identity comes from a request header.

@@ -1,0 +1,67 @@
+<%= render Bali::Topbar::Component.new do |topbar| %>
+  <% topbar.with_search do %>
+    <%= render Bali::Command::Component.new(
+      placeholder: 'Search documents, pages, actions…'
+    ) do |cmd| %>
+      <% cmd.with_trigger do %>
+        <button type="button"
+                class="flex items-center gap-2 w-full bg-base-200 hover:bg-base-300 rounded-md px-2.5 py-1.5 text-sm text-base-content/60 cursor-pointer transition-colors">
+          <%= render Bali::Icon::Component.new('search', class: 'size-4 shrink-0') %>
+          <span class="flex-1 text-left">Search…</span>
+          <kbd class="kbd kbd-xs hidden sm:inline-grid">⌘K</kbd>
+        </button>
+      <% end %>
+
+      <% cmd.with_group(name: 'Pages') do |g| %>
+        <% g.with_item(title: 'Dashboard', meta: 'Admin overview', icon: 'layout-dashboard', href: admin_root_path) %>
+        <% g.with_item(title: 'Workspace', meta: 'Reference shell', icon: 'sparkles', href: workspace_path) %>
+        <% g.with_item(title: 'Movies', meta: 'Catalog', icon: 'film', href: admin_movies_path) %>
+        <% g.with_item(title: 'Studios', meta: 'Production houses', icon: 'building-2', href: admin_studios_path) %>
+        <% g.with_item(title: 'Projects', meta: 'Kanban board', icon: 'kanban', href: admin_projects_path) %>
+        <% g.with_item(title: 'Documents', meta: 'Knowledge base', icon: 'file-text', href: documents_path) %>
+        <% g.with_item(title: 'Analytics', meta: 'Reports', icon: 'bar-chart-3', href: admin_analytics_path) %>
+        <% g.with_item(title: 'Revenue', meta: 'Reports', icon: 'dollar-sign', href: admin_revenue_index_path) %>
+        <% g.with_item(title: 'Settings', meta: 'Profile and preferences', icon: 'settings', href: admin_settings_path) %>
+      <% end %>
+
+      <% cmd.with_group(name: 'Recents', mode: :recent) do |g| %>
+        <% g.with_item(title: 'Dashboard', meta: 'Last visit · today', icon: 'layout-dashboard', href: admin_root_path) %>
+        <% g.with_item(title: 'Movies', meta: 'Last visit · yesterday', icon: 'film', href: admin_movies_path) %>
+      <% end %>
+
+      <% cmd.with_group(name: 'Actions', mode: :action) do |g| %>
+        <% g.with_item(title: 'New movie', meta: 'Create a new movie record', icon: 'plus', href: new_admin_movie_path) %>
+        <% g.with_item(title: 'New studio', meta: 'Create a new studio', icon: 'plus', href: new_admin_studio_path) %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <% topbar.with_action do %>
+    <button type="button" class="btn btn-ghost btn-sm btn-square relative" aria-label="Notifications">
+      <%= render Bali::Icon::Component.new('bell', class: 'size-5') %>
+      <span class="absolute top-1.5 right-1.5 size-2 rounded-full bg-error border-2 border-base-100"></span>
+    </button>
+  <% end %>
+
+  <% topbar.with_action do %>
+    <button type="button" class="btn btn-ghost btn-sm btn-square" aria-label="Help">
+      <%= render Bali::Icon::Component.new('circle-help', class: 'size-5') %>
+    </button>
+  <% end %>
+
+  <% topbar.with_user_menu do %>
+    <%= render Bali::Dropdown::Component.new(align: :left, class: 'lg:dropdown-end') do |dropdown| %>
+      <% dropdown.with_trigger(variant: :ghost, class: 'btn-sm gap-2') do %>
+        <%= render Bali::Avatar::Component.new(size: :xs) do |avatar| %>
+          <% avatar.with_placeholder { 'AG' } %>
+        <% end %>
+        <span class="hidden md:inline">Ana García</span>
+        <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
+      <% end %>
+      <% dropdown.with_item(href: admin_settings_path) { t('navbar.profile') } %>
+      <% dropdown.with_item(href: admin_settings_path) { t('navbar.settings') } %>
+      <li class="divider my-1"></li>
+      <% dropdown.with_item(href: logout_path, class: 'text-error', data: { turbo_method: :delete }) { t('navbar.sign_out') } %>
+    <% end %>
+  <% end %>
+<% end %>

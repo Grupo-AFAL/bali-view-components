@@ -13,19 +13,30 @@
       </div>
       <div class="collapse-content ms-6.5 !p-0">
         <div class="mt-0.5 space-y-0.5">
-          <% if href.present? %>
-            <%= tag.a(href: href, class: class_names("menu-item", "active" => active? && !active_child_items?), target: target, rel: rel) do %>
-              <span class="grow"><%= name %></span>
-            <% end %>
-          <% end %>
+          <%= render_parent_link(in_accordion: true) %>
           <% items.each do |item| %>
             <%= item %>
           <% end %>
         </div>
       </div>
     </div>
-    <%# Collapsed state: icon with tooltip %>
-    <%= render_collapsed_tooltip %>
+    <%# Collapsed state: hover flyout exposing children to the right of
+        the rail. %>
+    <div class="<%= flyout_classes %>" data-controller="side-menu-flyout">
+      <%= render_flyout_trigger %>
+      <ul tabindex="0"
+          class="dropdown-content menu bg-base-100 rounded-box z-50 w-56 p-2 shadow-lg"
+          data-side-menu-flyout-target="panel"
+          data-action="keydown->side-menu-flyout#panelKeydown">
+        <li class="menu-title px-2 pb-1 text-xs font-semibold uppercase tracking-wider text-base-content/50">
+          <%= name %>
+        </li>
+        <%= render_parent_link %>
+        <% items.each do |item| %>
+          <li><%= render_subitem_link(item) %></li>
+        <% end %>
+      </ul>
+    </div>
   <% else %>
     <%# Dropdown mode: DaisyUI dropdown on hover %>
     <div class="dropdown dropdown-right dropdown-hover">
@@ -36,22 +47,9 @@
         <%= render Bali::Icon::Component.new('chevron-right', class: 'size-3.5') %>
       </div>
       <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-50 w-48 p-2 shadow-lg">
-        <% if href.present? %>
-          <li>
-            <%= tag.a(href: href, class: class_names("active" => active? && !active_child_items?), target: target, rel: rel) do %>
-              <%= name %>
-            <% end %>
-          </li>
-        <% end %>
+        <%= render_parent_link %>
         <% items.each do |item| %>
-          <li>
-            <%= tag.a(href: item.href, class: class_names("active" => item.active?), target: item.target, rel: item.rel) do %>
-              <% if item.icon.present? %>
-                <%= render Bali::Icon::Component.new(item.icon, class: 'size-4') %>
-              <% end %>
-              <%= item.name %>
-            <% end %>
-          </li>
+          <li><%= render_subitem_link(item) %></li>
         <% end %>
       </ul>
     </div>

@@ -1,0 +1,40 @@
+<%# Admin Project Show - Showcases: PageHeader, Kanban with real drag-and-drop, Tag %>
+
+<%= render Bali::PageHeader::Component.new(
+  title: @project.name,
+  subtitle: @project.description,
+  back: { href: admin_projects_path }
+) %>
+
+<%= render Bali::Kanban::Component.new(
+  resource_name: 'task',
+  group_name: 'project-board',
+  list_param_name: 'status',
+  response_kind: :html
+) do |kanban| %>
+  <% Task::STATUSES.each do |status| %>
+    <% tasks = @tasks_by_status.fetch(status, []) %>
+
+    <% kanban.with_column(
+      title: status.humanize,
+      status: status,
+      color: Task::STATUS_COLORS[status]
+    ) do |col| %>
+      <% tasks.each do |task| %>
+        <% col.with_card(update_url: admin_project_task_path(@project, task)) do %>
+          <p class="font-medium text-sm"><%= task.title %></p>
+          <% if task.description.present? %>
+            <p class="text-xs text-base-content/60 mt-1"><%= truncate(task.description, length: 60) %></p>
+          <% end %>
+          <div class="mt-2">
+            <%= render Bali::Tag::Component.new(
+              text: task.priority.humanize,
+              color: Task::PRIORITY_COLORS[task.priority],
+              size: :sm
+            ) %>
+          </div>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

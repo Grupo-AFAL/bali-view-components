@@ -3,15 +3,20 @@
 module Bali
   module AppLayout
     class Preview < ApplicationViewComponentPreview
+      layout "app_layout_preview"
       # @label Sidebar + Content
       # Config A: Admin layout with sidebar and content area.
       # In production, use `fixed: true` on the SideMenu and `fixed_sidebar: true` on AppLayout.
+      # On mobile (lg breakpoint), AppLayout auto-renders a hamburger topbar so the
+      # sidebar stays reachable — set `app_name:` to label it.
       # @param collapsible toggle
       # @param flash_notice text
       # @param modal toggle
       # @param drawer toggle
       # @param body_container select { choices: [wide, contained, narrow, full] }
-      def default(collapsible: true, flash_notice: "", modal: true, drawer: true, body_container: "wide")
+      # @param app_name text
+      def default(collapsible: true, flash_notice: "", modal: true, drawer: true,
+                  body_container: "wide", app_name: "MovieDB")
         render_with_template(
           template: "bali/app_layout/previews/default",
           locals: {
@@ -20,7 +25,8 @@ module Bali
             modal: modal,
             drawer: drawer,
             drawer_size: drawer ? :lg : nil,
-            body_container: body_container.to_sym
+            body_container: body_container.to_sym,
+            app_name: app_name.presence
           }
         )
       end

@@ -23,7 +23,7 @@ module Bali
 
       def time_zone_html_options(method, html_options)
         custom_class = html_options[:class]
-        base = field_class_name(method, BASE_CLASSES)
+        base = field_class_name(method, BASE_CLASSES, error_class: "select-error")
 
         html_options.except(:class, :control_data, :control_class, :help).merge(
           class: [ base, custom_class ].compact.join(" ")

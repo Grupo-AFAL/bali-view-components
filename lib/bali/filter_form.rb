@@ -99,12 +99,13 @@ module Bali
     # @param simple_filters [Array<Hash>] Simple inline filters (alternative to DSL)
     # rubocop:disable Metrics/ParameterLists
     def initialize(scope, params = {}, storage_id: nil, context: nil, search_fields: nil,
-                   search_placeholder: nil, persist_enabled: false, simple_filters: nil)
+                   search_placeholder: nil, search_icon: nil, persist_enabled: false, simple_filters: nil)
       # rubocop:enable Metrics/ParameterLists
       @scope = scope
       @storage_id = storage_id
       @context = context
       @instance_search_fields = search_fields&.map(&:to_sym)
+      @instance_search_icon = search_icon
       @instance_simple_filters = simple_filters
       @search_placeholder = search_placeholder
       @persist_enabled = persist_enabled
@@ -113,7 +114,10 @@ module Bali
 
       q_params = params.fetch(:q, {})
       @q_params = q_params # Store for simple_filters value extraction
-      attributes = q_params.permit(permitted_attributes)
+      perm_attrs = permitted_attributes
+      permitted = q_params.permit(perm_attrs)
+      permitted_h = permitted.to_h
+      attributes = permitted_h.select { |k, _| self.class.attribute_names.include?(k.to_s) }
 
       # Extract Ransack groupings (g) and combinator (m) for complex filters
       # These are used by Filters for AND/OR condition groups
@@ -122,6 +126,11 @@ module Bali
 
       # Capture quick search value from params
       @search_value = extract_search_value(q_params)
+
+      # Permit simple filter keys on @q_params so values can be read via
+      # current_simple_filter_value. These are NOT added to `attributes` —
+      # simple filter values bypass ActiveModel and go straight to Ransack.
+      @q_params = q_params.permit(perm_attrs) if self.simple_filters_enabled?
 
       # Persist/restore all filter state (attributes, groupings, combinator, search)
       if storage_id.present?
@@ -139,7 +148,8 @@ module Bali
     end
 
     def permitted_attributes
-      scalar_attributes + date_range_attributes + array_attributes.map { |a| { a => [] } }
+      (scalar_attributes + date_range_attributes + array_attributes.map { |a| { a => [] } } +
+       simple_filters_permitted_keys).uniq
     end
 
     # To define array attributes the user needs to specify an array as
@@ -150,7 +160,7 @@ module Bali
     #
     def array_attributes
       @array_attributes ||= self.class.attribute_names.select do |attribute_name|
-        array_predicates.any? { |predicate| attribute_name.ends_with?(predicate) }
+        array_predicates.any? { |predicate| attribute_name.to_s.ends_with?(predicate) }
       end
     end
 
@@ -163,13 +173,18 @@ module Bali
     end
 
     def date_range_attributes
-      @date_range_attributes ||= self.class.attribute_names.filter do |key|
-        self.class.attribute_types[key].instance_of?(Bali::Types::DateRangeValue)
+      @date_range_attributes ||= begin
+        class_date_range_attrs = self.class.attribute_names.filter do |key|
+          self.class.attribute_types[key].instance_of?(Bali::Types::DateRangeValue)
+        end
+        (class_date_range_attrs + simple_date_range_attributes.map(&:to_s)).uniq
       end
     end
 
-    def model_name
-      @model_name ||= ActiveModel::Name.new(self, nil, "q")
+    silence_warnings do
+      def model_name
+        @model_name ||= ActiveModel::Name.new(self, nil, "q")
+      end
     end
 
     def inspect
@@ -215,9 +230,20 @@ module Bali
         relation = ransack_search.result(**options)
 
         date_range_attributes.each do |date_range_attr|
-          next if send(date_range_attr).blank?
+          value = if respond_to?(date_range_attr)
+                    send(date_range_attr)
+          else
+                    current_simple_filter_value(date_range_attr, nil)
+          end
 
-          relation = relation.where(date_range_attr => send(date_range_attr))
+          # Manually cast if it's a string from params
+          if value.is_a?(String)
+            value = Bali::Types::DateRangeValue.new.cast(value)
+          end
+
+          next if value.blank?
+
+          relation = relation.where(date_range_attr => value)
         end
 
         relation

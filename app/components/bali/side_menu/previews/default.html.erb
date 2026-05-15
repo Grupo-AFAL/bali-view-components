@@ -1,4 +1,4 @@
-<div class="h-[500px] bg-base-200 p-4 ml-64">
+<div class="h-[500px] bg-base-200 p-4 lg:ml-64">
   <%= render Bali::SideMenu::Component.new(current_path: '/dashboard', fixed: true, collapsible: collapsible) do |c|
     c.with_list(title: 'Navigation') do |list|
       list.with_item(name: 'Dashboard', href: '/dashboard', icon: 'layout-dashboard')

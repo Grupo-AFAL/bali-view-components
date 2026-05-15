@@ -3,8 +3,7 @@
 module Bali
   module Notification
     class Component < ApplicationViewComponent
-      BASE_CLASSES = "notification-component alert"
-      SHADOW_CLASSES = "shadow-[0px_3px_18px_rgba(0,0,0,0.1),0_0_0_1px_rgba(0,0,0,0.03)]"
+      BASE_CLASSES = "notification-component alert shadow-xl"
       UNCLOSABLE_CLASSES = "[&.is-unclosable_.btn-circle]:hidden " \
                            "[&.is-unclosable_.notification-content-component]:mr-0"
 
@@ -17,25 +16,39 @@ module Bali
         primary: "alert-info"
       }.freeze
 
+      ICONS = {
+        success: "circle-check",
+        info: "info",
+        warning: "triangle-alert",
+        error: "circle-x",
+        danger: "circle-x",
+        primary: "info"
+      }.freeze
+
       STYLES = {
         soft: "alert-soft",
         outline: "alert-outline",
         dash: "alert-dash"
       }.freeze
 
-      def initialize(type: :success, delay: 3000, fixed: true, dismiss: true, style: nil, **options)
+      POSITIONS = {
+        top_right: "fixed top-4 right-4 z-[101]",
+        bottom_right: "fixed bottom-4 right-4 z-[101]"
+      }.freeze
+
+      def initialize(type: :success, delay: 3000, fixed: true, dismiss: true, style: nil, position: :bottom_right, **options)
         @type = type&.to_sym
         @delay = delay
         @fixed = fixed
         @dismiss = dismiss
         @style = style&.to_sym
+        @position = position&.to_sym
         @options = options
       end
 
       def alert_classes
         class_names(
           BASE_CLASSES,
-          SHADOW_CLASSES,
           UNCLOSABLE_CLASSES,
           type_class,
           style_class,
@@ -53,13 +66,17 @@ module Bali
         }
       end
 
+      def type_icon
+        ICONS.fetch(type, ICONS[:success])
+      end
+
       def close_button_label
         t(".close")
       end
 
       private
 
-      attr_reader :type, :delay, :fixed, :dismiss, :style, :options
+      attr_reader :type, :delay, :fixed, :dismiss, :style, :position, :options
 
       def type_class
         TYPES.fetch(type, TYPES[:success])
@@ -69,12 +86,16 @@ module Bali
         STYLES[style]
       end
 
+      def aria_role
+        type == :error || type == :danger ? "alert" : "status"
+      end
+
       def fixed_classes
         return unless fixed
 
         class_names(
-          "fixed top-[4.25rem] right-4 z-[101]",
-          Bali.native_app && "top-4 left-1/2 right-auto -translate-x-1/2 w-full"
+          POSITIONS.fetch(position, POSITIONS[:bottom_right]),
+          Bali.native_app && "left-1/2 right-auto -translate-x-1/2 w-full"
         )
       end
     end

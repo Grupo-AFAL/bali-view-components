@@ -17,8 +17,13 @@ module Bali
         )
       end
 
-      def with_icon
-        render Bali::Button::Component.new(name: 'Add Item', variant: :primary, icon_name: 'plus')
+      # With Icon
+      # ---------------
+      # When `responsive: true` (default), the label hides on mobile and the button becomes
+      # a square icon-only button using DaisyUI's `max-sm:btn-square`.
+      # @param responsive toggle
+      def with_icon(responsive: true)
+        render Bali::Button::Component.new(name: 'Add Item', variant: :primary, icon_name: 'plus', responsive: responsive)
       end
 
       # @label Button Group

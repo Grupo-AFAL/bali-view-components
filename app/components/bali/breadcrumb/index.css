@@ -1,0 +1,11 @@
+/* Breadcrumb Component
+ * DaisyUI sets `.breadcrumbs { padding-block: .5rem }` inside its utilities
+ * layer. In some host apps (Tailwind v4 + daisyUI plugin) that layer ends
+ * up ordered AFTER our @layer utilities, so a `pt-0` utility from the Ruby
+ * class list loses the cascade and breadcrumbs render with unwanted top
+ * padding. This unlayered rule beats both layered sources regardless of
+ * ordering. (#530)
+ */
+.breadcrumbs {
+  padding-block: 0;
+}

@@ -27,7 +27,7 @@ gem "lucide-rails"
 gem "debug", ">= 1.0.0"
 
 group :development do
-  gem "puma", "< 7"
+  gem "puma", ">= 5.0"
   gem "rubocop-rails-omakase", require: false
   gem "yard", "~> 0.9"
 end

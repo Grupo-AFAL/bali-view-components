@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   root 'dashboard#index'
   get 'landing', to: 'pages#landing'
   get 'showcase', to: 'pages#showcase'
+  get 'workspace', to: 'pages#workspace'
 
   # Auth pages (demo/reference)
   get 'login', to: 'sessions#new'
@@ -30,6 +31,11 @@ Rails.application.routes.draw do
     end
 
     resources :studios
+
+    resources :projects, only: %i[index show] do
+      resources :tasks, only: :update, module: :projects
+    end
+
     resources :analytics, only: :index
     resources :revenue, only: :index
     resource :settings, only: %i[show update]
@@ -82,6 +88,19 @@ Rails.application.routes.draw do
     end
   end
   post 'block_editor/ai', to: 'block_editor_ai#create'
+
+  # Documents (full editing experience reference)
+  resources :documents do
+    resources :versions, only: [:index, :show], controller: 'document_versions'
+    resources :comment_threads, path: 'comments', controller: 'documents/comment_threads', only: %i[index create update destroy] do
+      resources :comments, controller: 'documents/comment_threads/comments', only: %i[create update destroy] do
+        resource :reactions, controller: 'documents/comment_threads/comments/reactions', only: %i[create destroy]
+      end
+    end
+    member do
+      post :restore_version
+    end
+  end
 
   mount Bali::Engine, at: '/bali'
   mount Lookbook::Engine, at: '/lookbook'

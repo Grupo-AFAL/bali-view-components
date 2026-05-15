@@ -14,7 +14,7 @@ module Bali
       private
 
       def date_range_separator
-        { en: " to ", es: " a " }[I18n.locale]
+        { en: " to ", es: " a " }[I18n.locale.to_sym]
       end
 
       def normalize_date_range(range)

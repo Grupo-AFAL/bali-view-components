@@ -8,7 +8,7 @@ module Bali
       private
 
       def breadcrumb_spacer_class
-        "mt-4" unless breadcrumbs.empty?
+        "mt-1" unless breadcrumbs.empty?
       end
 
       def render_breadcrumbs
@@ -22,7 +22,7 @@ module Bali
       def render_actions_bar
         return unless actions?
 
-        helpers.tag.div(class: "flex items-center gap-2") do
+        helpers.tag.div(class: "flex items-center gap-2 flex-wrap") do
           helpers.safe_join(actions)
         end
       end

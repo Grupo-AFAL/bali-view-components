@@ -27,7 +27,8 @@ export class SlimSelectController extends Controller {
       default: 'Type 2 chars to search...'
     },
     afterChangeFetchUrl: String,
-    afterChangeFetchMethod: { type: String, default: 'get' }
+    afterChangeFetchMethod: { type: String, default: 'get' },
+    contentWidth: String
   }
 
   static targets = ['select', 'selectAllButton', 'deselectAllButton']
@@ -55,6 +56,10 @@ export class SlimSelectController extends Controller {
           searchingText: this.searchingTextValue
         },
         events: {}
+      }
+
+      if (this.hasContentWidthValue && this.contentWidthValue) {
+        options.settings.contentWidth = this.contentWidthValue
       }
 
       if (this.hasInnerHTML()) {
@@ -91,6 +96,11 @@ export class SlimSelectController extends Controller {
         document.querySelector('.ss-content')
       if (contentEl) {
         contentEl.classList.remove('select', 'select-bordered')
+
+        // Propagate size variant class to dropdown content (it may render outside the wrapper)
+        if (this.element.classList.contains('slim-select-sm')) {
+          contentEl.classList.add('slim-select-sm-content')
+        }
       }
     } catch (error) {
       console.error('[SlimSelect] Failed to initialize:', error)

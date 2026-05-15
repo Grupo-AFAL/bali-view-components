@@ -1,0 +1,128 @@
+<%= render Bali::DocumentPage::Component.new(
+  title: "Q2 2026 Product Roadmap",
+  subtitle: "Last edited 2 hours ago",
+  breadcrumbs: [
+    { name: "Dashboard", href: "/lookbook" },
+    { name: "Documents", href: "/lookbook" },
+    { name: "Q2 2026 Product Roadmap" }
+  ],
+  initial_content: [
+    { type: "heading", props: { level: 1 }, content: [{ type: "text", text: "Executive Summary" }], children: [] },
+    { type: "paragraph", content: [{ type: "text", text: "This document outlines the key objectives and milestones for the upcoming quarter. Our team has been working diligently on several initiatives that will significantly impact our product roadmap and market position." }], children: [] },
+    { type: "paragraph", content: [{ type: "text", text: "The primary themes for Q2 center around platform reliability, developer experience, and expanding our enterprise feature set. Each initiative has been carefully scoped with input from engineering, design, and product leadership." }], children: [] },
+
+    { type: "heading", props: { level: 2 }, content: [{ type: "text", text: "Goals & Objectives" }], children: [] },
+    { type: "paragraph", content: [{ type: "text", text: "Our Q2 goals are structured around three pillars: stability, growth, and innovation. Each pillar has measurable OKRs that align with the company's annual strategic plan." }], children: [] },
+
+    { type: "heading", props: { level: 3 }, content: [{ type: "text", text: "Platform Stability" }], children: [] },
+    { type: "paragraph", content: [{ type: "text", text: "Achieve 99.95% uptime across all production services. Reduce P50 API latency to under 120ms. Eliminate all critical-severity bugs from the backlog by end of quarter. Implement automated canary deployments for the core API." }], children: [] },
+
+    { type: "heading", props: { level: 3 }, content: [{ type: "text", text: "User Growth" }], children: [] },
+    { type: "paragraph", content: [{ type: "text", text: "Increase monthly active users by 25% through improved onboarding flows, self-serve trial activation, and targeted email campaigns. Launch the referral program with tiered incentives for existing customers." }], children: [] },
+
+    { type: "heading", props: { level: 3 }, content: [{ type: "text", text: "Innovation Initiatives" }], children: [] },
+    { type: "paragraph", content: [{ type: "text", text: "Ship the AI-assisted document editing feature to beta. Launch the public API v2 with webhook support. Begin development on the real-time collaboration engine with CRDTs for conflict-free editing." }], children: [] },
+
+    { type: "heading", props: { level: 2 }, content: [{ type: "text", text: "Timeline & Milestones" }], children: [] },
+    { type: "paragraph", content: [{ type: "text", text: "The quarter is divided into three phases, each with clear deliverables and review checkpoints." }], children: [] },
+
+    { type: "heading", props: { level: 3 }, content: [{ type: "text", text: "Phase 1: Foundation (April)" }], children: [] },
+    { type: "paragraph", content: [{ type: "text", text: "Infrastructure upgrades and database migration. Complete the Kubernetes cluster migration for the staging environment. Establish performance benchmarks and monitoring dashboards. Finalize API v2 specification and begin implementation." }], children: [] },
+
+    { type: "heading", props: { level: 3 }, content: [{ type: "text", text: "Phase 2: Build (May)" }], children: [] },
+    { type: "paragraph", content: [{ type: "text", text: "Core feature development and internal beta testing. Ship AI document editing to internal users. Launch webhook infrastructure for API v2. Begin onboarding flow redesign with A/B testing framework." }], children: [] },
+
+    { type: "heading", props: { level: 3 }, content: [{ type: "text", text: "Phase 3: Ship (June)" }], children: [] },
+    { type: "paragraph", content: [{ type: "text", text: "Polish, documentation, and general availability releases. Public launch of API v2 with developer documentation. AI editing moves to public beta. Referral program goes live. Quarter retrospective and Q3 planning begins." }], children: [] },
+
+    { type: "heading", props: { level: 2 }, content: [{ type: "text", text: "Resources & Budget" }], children: [] },
+    { type: "paragraph", content: [{ type: "text", text: "The estimated budget for Q2 initiatives is $450,000, distributed across engineering (60%), design (20%), and infrastructure (20%). We have approved headcount for two additional senior engineers and one product designer." }], children: [] },
+
+    { type: "heading", props: { level: 2 }, content: [{ type: "text", text: "Risks & Mitigations" }], children: [] },
+    { type: "paragraph", content: [{ type: "text", text: "Key risks include: database migration complexity (mitigated by phased rollout with rollback plan), AI feature scope creep (mitigated by fixed feature set for beta), and hiring timeline delays (mitigated by contractor backfill plan). The team will conduct weekly risk reviews during standup." }], children: [] },
+
+    { type: "heading", props: { level: 2 }, content: [{ type: "text", text: "Success Criteria" }], children: [] },
+    { type: "paragraph", content: [{ type: "text", text: "The quarter will be considered successful if we achieve: 99.95% uptime, 20%+ MAU growth, API v2 public launch, and AI editing in public beta. Secondary metrics include NPS improvement of 5 points and developer documentation coverage above 90%." }], children: [] }
+  ].to_json
+) do |page| %>
+  <% page.with_title_tag do %>
+    <%= render Bali::Tag::Component.new(text: "Published", color: :success, size: :sm) %>
+  <% end %>
+
+  <% page.with_action do %>
+    <%= render Bali::Button::Component.new(name: "Edit", variant: :primary, size: :sm, icon_name: "pencil") %>
+  <% end %>
+
+  <% page.with_metadata do %>
+    <div class="space-y-5">
+      <div>
+        <p class="text-xs text-base-content/50 uppercase tracking-wider mb-1">Status</p>
+        <%= render Bali::Tag::Component.new(text: "Published", color: :success, size: :sm) %>
+      </div>
+
+      <div>
+        <p class="text-xs text-base-content/50 uppercase tracking-wider mb-1">Author</p>
+        <div class="flex items-center gap-2">
+          <%= render Bali::Avatar::Component.new(size: :xs) do |c| %>
+            <% c.with_placeholder do %><span>SC</span><% end %>
+          <% end %>
+          <p class="text-sm">Sarah Chen</p>
+        </div>
+      </div>
+
+      <div>
+        <p class="text-xs text-base-content/50 uppercase tracking-wider mb-1">Created</p>
+        <p class="text-sm">March 1, 2026</p>
+      </div>
+
+      <div>
+        <p class="text-xs text-base-content/50 uppercase tracking-wider mb-1">Last Modified</p>
+        <p class="text-sm">2 hours ago</p>
+      </div>
+
+      <div>
+        <p class="text-xs text-base-content/50 uppercase tracking-wider mb-1">Word Count</p>
+        <p class="text-sm">842</p>
+      </div>
+
+      <div>
+        <p class="text-xs text-base-content/50 uppercase tracking-wider mb-1">Versions</p>
+        <p class="text-sm">7</p>
+      </div>
+
+      <div>
+        <p class="text-xs text-base-content/50 uppercase tracking-wider mb-1">Tags</p>
+        <div class="flex flex-wrap gap-1 mt-1">
+          <%= render Bali::Tag::Component.new(text: "Roadmap", size: :sm) %>
+          <%= render Bali::Tag::Component.new(text: "Q2 2026", size: :sm) %>
+          <%= render Bali::Tag::Component.new(text: "Product", size: :sm) %>
+          <%= render Bali::Tag::Component.new(text: "Strategy", size: :sm) %>
+        </div>
+      </div>
+
+      <div>
+        <p class="text-xs text-base-content/50 uppercase tracking-wider mb-1">Collaborators</p>
+        <div class="space-y-2 mt-1">
+          <div class="flex items-center gap-2">
+            <%= render Bali::Avatar::Component.new(size: :xs) do |c| %>
+              <% c.with_placeholder do %><span>SC</span><% end %>
+            <% end %>
+            <p class="text-sm">Sarah Chen</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <%= render Bali::Avatar::Component.new(size: :xs) do |c| %>
+              <% c.with_placeholder do %><span>AR</span><% end %>
+            <% end %>
+            <p class="text-sm">Alex Rivera</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <%= render Bali::Avatar::Component.new(size: :xs) do |c| %>
+              <% c.with_placeholder do %><span>JL</span><% end %>
+            <% end %>
+            <p class="text-sm">Jordan Lee</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+<% end %>

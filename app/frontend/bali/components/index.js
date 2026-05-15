@@ -23,6 +23,7 @@ import { DropdownController } from '../../../components/bali/dropdown/index'
 import { TabsController } from '../../../components/bali/tabs/index'
 import { NavbarController } from '../../../components/bali/navbar/index'
 import { SideMenuController } from '../../../components/bali/side_menu/index'
+import { SideMenuFlyoutController } from '../../../components/bali/side_menu/flyout/index'
 import { AvatarController } from '../../../components/bali/avatar/index'
 import { TimeagoController } from '../../../components/bali/timeago/index'
 import { RateController } from '../../../components/bali/rate/index'
@@ -34,6 +35,7 @@ import { RevealController } from '../../../components/bali/reveal/index'
 import { SortableListController } from '../../../components/bali/sortable_list/index'
 import { TooltipController } from '../../../components/bali/tooltip/index'
 import { ImageFieldController } from '../../../components/bali/image_field/index'
+import { ImageExpanderController } from '../../../components/bali/image_grid/index'
 import { DirectUploadController } from '../../../components/bali/direct_upload/index'
 import { RecurrentEventRuleController } from '../../../components/bali/recurrent_event_rule_form/index'
 import { NotificationController } from '../../../components/bali/notification/index'
@@ -46,7 +48,11 @@ import {
   MultiSelectController
 } from '../../../components/bali/filters/index'
 import { ColumnSelectorController } from '../../../components/bali/data_table/index'
+import { DocumentEditorController } from '../../../components/bali/document_editor/index'
+import { DocumentPageController } from '../../../components/bali/document_page/index'
 import { TreeViewItemController } from '../../../components/bali/tree_view/item/index'
+import { FeedbackWidgetController } from '../../../components/bali/feedback_widget/index'
+import { CommandController } from '../../../components/bali/command/index'
 
 export { TableController } from '../../../components/bali/table/index'
 export { ModalController } from '../../../components/bali/modal/index'
@@ -55,6 +61,7 @@ export { DropdownController } from '../../../components/bali/dropdown/index'
 export { TabsController } from '../../../components/bali/tabs/index'
 export { NavbarController } from '../../../components/bali/navbar/index'
 export { SideMenuController } from '../../../components/bali/side_menu/index'
+export { SideMenuFlyoutController } from '../../../components/bali/side_menu/flyout/index'
 
 // Data display components
 export { AvatarController } from '../../../components/bali/avatar/index'
@@ -72,6 +79,7 @@ export { TooltipController } from '../../../components/bali/tooltip/index'
 
 // Form components
 export { ImageFieldController } from '../../../components/bali/image_field/index'
+export { ImageExpanderController } from '../../../components/bali/image_grid/index'
 export { DirectUploadController } from '../../../components/bali/direct_upload/index'
 export { RecurrentEventRuleController } from '../../../components/bali/recurrent_event_rule_form/index'
 
@@ -93,8 +101,18 @@ export {
 // DataTable components
 export { ColumnSelectorController } from '../../../components/bali/data_table/index'
 
+// Document components
+export { DocumentEditorController } from '../../../components/bali/document_editor/index'
+export { DocumentPageController } from '../../../components/bali/document_page/index'
+
 // Navigation components
 export { TreeViewItemController } from '../../../components/bali/tree_view/item/index'
+
+// Integration components
+export { FeedbackWidgetController } from '../../../components/bali/feedback_widget/index'
+
+// Command palette
+export { CommandController } from '../../../components/bali/command/index'
 
 /**
  * Register all core Bali component controllers with a Stimulus application
@@ -115,6 +133,7 @@ export function registerAll (application) {
   application.register('tabs', TabsController)
   application.register('navbar', NavbarController)
   application.register('side-menu', SideMenuController)
+  application.register('side-menu-flyout', SideMenuFlyoutController)
 
   // Data display
   application.register('avatar', AvatarController)
@@ -132,6 +151,7 @@ export function registerAll (application) {
 
   // Form
   application.register('image-field', ImageFieldController)
+  application.register('image-expander', ImageExpanderController)
   application.register('direct-upload', DirectUploadController)
   application.register('recurrent-event-rule', RecurrentEventRuleController)
 
@@ -151,6 +171,16 @@ export function registerAll (application) {
   // DataTable
   application.register('column-selector', ColumnSelectorController)
 
+  // Document
+  application.register('document-editor', DocumentEditorController)
+  application.register('document-page', DocumentPageController)
+
   // Navigation
   application.register('tree-view-item', TreeViewItemController)
+
+  // Integration
+  application.register('feedback-widget', FeedbackWidgetController)
+
+  // Command palette
+  application.register('command', CommandController)
 }

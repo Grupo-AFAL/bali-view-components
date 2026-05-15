@@ -194,4 +194,38 @@ class BaliLinkComponentTest < ComponentTestCase
     assert_selector("a.btn.btn-error", text: "Button")
     assert_no_selector("a.btn-primary")
   end
+
+  # Responsive (icon-only on mobile)
+
+  def test_responsive_adds_btn_square_class_with_icon_and_variant
+    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon_name: "plus"))
+    assert_selector("a.btn.max-sm\\:btn-square")
+  end
+
+  def test_responsive_wraps_name_in_hidden_span
+    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon_name: "plus"))
+    assert_selector("a span.max-sm\\:hidden", text: "New")
+  end
+
+  def test_responsive_adds_aria_label
+    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon_name: "plus"))
+    assert_selector('a[aria-label="New"]')
+  end
+
+  def test_responsive_false_renders_normally
+    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon_name: "plus", responsive: false))
+    assert_no_selector("a.max-sm\\:btn-square")
+    assert_no_selector("a span.max-sm\\:hidden")
+    assert_no_selector("a[aria-label]")
+  end
+
+  def test_responsive_without_icon_does_not_add_btn_square
+    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary))
+    assert_no_selector("a.max-sm\\:btn-square")
+  end
+
+  def test_responsive_without_variant_does_not_add_btn_square
+    render_inline(Bali::Link::Component.new(name: "New", href: "#", icon_name: "plus"))
+    assert_no_selector("a.max-sm\\:btn-square")
+  end
 end

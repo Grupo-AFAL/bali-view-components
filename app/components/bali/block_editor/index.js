@@ -22,7 +22,9 @@ export class BlockEditorController extends Controller {
     exportPdf: { type: Boolean, default: false },
     exportDocx: { type: Boolean, default: false },
     tableOfContents: { type: Boolean, default: false },
+    tableOfContentsContainerId: { type: String, default: '' },
     comments: { type: Boolean, default: false },
+    commentsContainerId: { type: String, default: '' },
     commentsUrl: { type: String, default: '' },
     commentsUser: { type: Object, default: {} },
     commentsUsers: { type: Array, default: [] },
@@ -30,6 +32,18 @@ export class BlockEditorController extends Controller {
   }
 
   async connect () {
+    this._disconnected = false
+
+    // Tell Turbo not to cache this page. React's internal state
+    // (fiber tree, __reactContainer$ expando properties) doesn't survive
+    // Turbo's cache→preview→replace cycle, causing broken editors on revisit.
+    if (!document.querySelector('meta[name="turbo-cache-control"]')) {
+      this._turboMeta = document.createElement('meta')
+      this._turboMeta.name = 'turbo-cache-control'
+      this._turboMeta.content = 'no-cache'
+      document.head.appendChild(this._turboMeta)
+    }
+
     try {
       const [{ createElement }, { createRoot }, { default: BlockNoteEditorWrapper }] = await Promise.all([
         import('react'),
@@ -37,7 +51,11 @@ export class BlockEditorController extends Controller {
         import('./BlockNoteEditorWrapper.jsx')
       ])
 
-      this.root = createRoot(this.editorTarget)
+      if (this._disconnected) return
+
+      this._mountPoint = document.createElement('div')
+      this.editorTarget.replaceChildren(this._mountPoint)
+      this.root = createRoot(this._mountPoint)
 
       const props = {
         initialContent: this.initialContentValue || undefined,
@@ -56,7 +74,9 @@ export class BlockEditorController extends Controller {
         referencesResolveUrl: this.referencesResolveUrlValue || undefined,
         referencesConfig: Object.keys(this.referencesConfigValue).length > 0 ? this.referencesConfigValue : undefined,
         tableOfContents: this.tableOfContentsValue,
+        tableOfContentsContainerId: this.tableOfContentsContainerIdValue || undefined,
         comments: this.commentsValue,
+        commentsContainerId: this.commentsContainerIdValue || undefined,
         commentsUrl: this.commentsUrlValue || undefined,
         commentsUser: Object.keys(this.commentsUserValue).length > 0 ? this.commentsUserValue : undefined,
         commentsUsers: this.commentsUsersValue.length > 0 ? this.commentsUsersValue : undefined,
@@ -101,16 +121,14 @@ export class BlockEditorController extends Controller {
         }
       }
 
-      this.root.render(createElement(BlockNoteEditorWrapper, props))
-
-      // Clean up React DOM before Turbo caches the page
-      this._boundCleanCache = () => {
-        if (this.root) {
-          this.root.unmount()
-          this.root = null
-        }
+      // Re-check after optional async imports (multi-column, AI)
+      if (this._disconnected) {
+        this.root.unmount()
+        this.root = null
+        return
       }
-      document.addEventListener('turbo:before-cache', this._boundCleanCache)
+
+      this.root.render(createElement(BlockNoteEditorWrapper, props))
     } catch (error) {
       console.error('BlockEditor failed to initialize:', error)
       if (this.hasEditorTarget) {
@@ -123,14 +141,26 @@ export class BlockEditorController extends Controller {
   }
 
   disconnect () {
-    if (this._boundCleanCache) {
-      document.removeEventListener('turbo:before-cache', this._boundCleanCache)
+    this._disconnected = true
+
+    if (this._turboMeta) {
+      this._turboMeta.remove()
+      this._turboMeta = null
     }
-    if (this.root) {
-      this.root.unmount()
-      this.root = null
+    // Destroy the tiptap/ProseMirror editor BEFORE React unmount.
+    // ProseMirror plugins (e.g. Placeholder) remove DOM nodes during destroy —
+    // if Turbo has already detached the tree, removeChild throws.
+    // Destroying while DOM is still attached prevents the error.
+    if (this.blockNoteEditor?._tiptapEditor) {
+      try { this.blockNoteEditor._tiptapEditor.destroy() } catch { /* noop */ }
     }
     this.blockNoteEditor = null
+
+    if (this.root) {
+      try { this.root.unmount() } catch { /* noop */ }
+      this.root = null
+    }
+    this._mountPoint = null
   }
 
   async exportPdf () {

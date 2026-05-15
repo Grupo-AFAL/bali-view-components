@@ -9,7 +9,8 @@ class StudiosController < ApplicationController
       Studio.all,
       params,
       simple_filters: simple_filters_config,
-      search_fields: %i[name]
+      search_fields: %i[name],
+      search_icon: 'search'
     )
 
     @pagy, @studios = pagy(@filter_form.result.order(:name), items: 10)
@@ -62,29 +63,10 @@ class StudiosController < ApplicationController
   end
 
   def studio_params
-    params.expect(studio: %i[name country status size founded_year])
+    params.expect(studio: %i[name country status size founded_year indie])
   end
 
   def simple_filters_config
-    [
-      {
-        attribute: :country,
-        collection: Studio::COUNTRIES.map { |c| [ c, c ] },
-        blank: 'All Countries',
-        label: 'Country'
-      },
-      {
-        attribute: :status,
-        collection: Studio.statuses.keys.map { |s| [ s.humanize, s ] },
-        blank: 'All Statuses',
-        label: 'Status'
-      },
-      {
-        attribute: :size,
-        collection: Studio::SIZES.map { |s| [ s.humanize, s ] },
-        blank: 'All Sizes',
-        label: 'Size'
-      }
-    ]
+    Studio.filter_options
   end
 end

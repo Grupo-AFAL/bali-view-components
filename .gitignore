@@ -54,5 +54,8 @@ spec/dummy/log/test.log.0
 # AI session memory (local, not committed)
 .ai-sessions/*.md
 
+# SocratiCode linked projects (user-specific absolute paths)
+.socraticode.json
+
 # Sandbox environment secrets (written by bin/docker-claude, read once by container)
 .sandbox-env

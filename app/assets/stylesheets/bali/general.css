@@ -1,3 +1,27 @@
+/* DaisyUI structural variable fallbacks.
+   Built-in themes (light, dark) define these, but custom themes that only
+   set colors will silently break borders, radii, and sizing without them. */
+:root {
+  --border: 1px;
+  --radius-box: 0.5rem;
+  --radius-field: 0.25rem;
+  --radius-selector: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --depth: 1;
+  --noise: 0;
+
+  /* Shared height for the app shell chrome — SideMenu brand row + Topbar.
+     Both must derive from this so the bottom-border divider stays aligned
+     across the seam when the value changes. */
+  --bali-chrome-height: 3.5rem;
+}
+
+/* Utility for chrome-height alignment between SideMenu brand row + Topbar. */
+.bali-chrome-height {
+  height: var(--bali-chrome-height);
+}
+
 /* General utility styles */
 a {
   &[disabled] {
@@ -33,9 +57,34 @@ a {
   @apply rounded-full;
 }
 
-/* Notification fadeOut animation */
+/* Icon component — numeric sizes propagate to direct children (legacy and
+   kept SVGs that do not get explicit width/height from the Lucide gem).
+   The `[style*=...]` guard limits the cascade to wrappers that actually
+   set the variable, so named-size icons keep their `*:h-N *:w-N` classes. */
+.icon-component[style*="--bali-icon-size"] > * {
+  width: var(--bali-icon-size);
+  height: var(--bali-icon-size);
+}
+
+/* Notification animations */
+.slideInRight {
+  animation: slideInRight 0.35s cubic-bezier(0.21, 1.02, 0.73, 1) both;
+}
+
 .fadeOutRight {
-  animation: fadeOutRight 1s both;
+  animation: fadeOutRight 0.3s cubic-bezier(0.06, 0.71, 0.55, 1) both;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translate3d(100%, 0, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 @keyframes fadeOutRight {

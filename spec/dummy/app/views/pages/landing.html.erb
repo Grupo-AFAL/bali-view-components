@@ -11,14 +11,16 @@
         href: root_path,
         variant: :secondary,
         size: :lg,
-        icon_name: 'rocket'
+        icon_name: 'rocket',
+        responsive: false
       ) %>
       <%= render Bali::Link::Component.new(
         name: 'View Demo',
         href: movies_path,
         variant: :ghost,
         size: :lg,
-        icon_name: 'play'
+        icon_name: 'play',
+        responsive: false
       ) %>
     </div>
   <% end %>

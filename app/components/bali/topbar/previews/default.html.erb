@@ -1,0 +1,38 @@
+<%= render Bali::Topbar::Component.new do |topbar| %>
+  <% topbar.with_search do %>
+    <label class="input input-sm input-bordered flex items-center gap-2 bg-base-200 border-0">
+      <%= render Bali::Icon::Component.new('search', class: 'size-4 text-base-content/50') %>
+      <input type="text" class="grow" placeholder="Search..." />
+      <kbd class="kbd kbd-xs hidden sm:inline-flex">⌘K</kbd>
+    </label>
+  <% end %>
+
+  <% topbar.with_action do %>
+    <button type="button" class="btn btn-ghost btn-sm btn-square relative" aria-label="Notifications">
+      <%= render Bali::Icon::Component.new('bell', class: 'size-5') %>
+      <span class="absolute top-1.5 right-1.5 size-2 rounded-full bg-error border-2 border-base-100"></span>
+    </button>
+  <% end %>
+
+  <% topbar.with_action do %>
+    <button type="button" class="btn btn-ghost btn-sm btn-square" aria-label="Help">
+      <%= render Bali::Icon::Component.new('circle-help', class: 'size-5') %>
+    </button>
+  <% end %>
+
+  <% topbar.with_user_menu do %>
+    <%= render Bali::Dropdown::Component.new(align: :left, class: 'lg:dropdown-end') do |dropdown| %>
+      <% dropdown.with_trigger(variant: :ghost, class: 'btn-sm gap-2') do %>
+        <%= render Bali::Avatar::Component.new(size: :xs) do |avatar| %>
+          <% avatar.with_placeholder { 'AG' } %>
+        <% end %>
+        <span class="hidden md:inline">Ana García</span>
+        <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
+      <% end %>
+      <% dropdown.with_item(href: '#') { 'Profile' } %>
+      <% dropdown.with_item(href: '#') { 'Settings' } %>
+      <li class="divider my-1"></li>
+      <% dropdown.with_item(href: '#', class: 'text-error') { 'Sign out' } %>
+    <% end %>
+  <% end %>
+<% end %>

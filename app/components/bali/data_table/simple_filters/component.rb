@@ -17,6 +17,11 @@ module Bali
       #   ])
       #
       class Component < ApplicationViewComponent
+        # Min-width for slim_select dropdowns. Triggers in SimpleFilters are narrow
+        # (~13rem), so we let the dropdown grow past the trigger to fit long labels
+        # without wrapping.
+        SLIM_SELECT_CONTENT_WIDTH = ">240px"
+
         # @param url [String] Form submission URL
         # @param filters [Array<Hash>] Filter configurations
         # @param show_clear [Boolean] Show clear button
@@ -25,6 +30,7 @@ module Bali
         #   - :value [String, nil] Current search value
         #   - :placeholder [String, nil] Placeholder text
         #   - :label [String, nil] Custom label (defaults to I18n)
+        #   - :width [String, nil] Tailwind width classes (default: "w-48 sm:w-96")
         def initialize(url:, filters: [], show_clear: false, search: nil)
           @url = url
           @filters = filters
@@ -36,7 +42,7 @@ module Bali
           @filters.any? || search_enabled?
         end
 
-        def show_clear_button?
+        def show_clear?
           @show_clear
         end
 
@@ -44,12 +50,75 @@ module Bali
           @search.present? && @search[:field_name].present?
         end
 
-        def search_label
-          @search[:label] || I18n.t("bali.simple_filters.search", default: "Search")
+        def search_icon
+          @search&.dig(:icon)
         end
 
-        def filter_field_name(attribute)
-          "q[#{attribute}_eq]"
+        def search_width
+          @search&.dig(:width) || "w-48 sm:w-96"
+        end
+
+        def filter_type(filter)
+          filter[:type]&.to_sym
+        end
+
+        def toggle_group?(filter)
+          filter_type(filter) == :toggle_group
+        end
+
+        def slim_select?(filter)
+          filter_type(filter) == :slim_select
+        end
+
+        def date?(filter)
+          filter_type(filter) == :date
+        end
+
+        def date_range?(filter)
+          filter_type(filter) == :date_range
+        end
+
+        def date_filter?(filter)
+          date?(filter) || date_range?(filter)
+        end
+
+        def boolean?(filter)
+          filter_type(filter) == :boolean
+        end
+
+        def radio_group?(filter)
+          filter_type(filter) == :radio_group
+        end
+
+        def number_range?(filter)
+          filter_type(filter) == :number_range
+        end
+
+        def filter_field_name(filter)
+          predicate = filter[:predicate] || (date_range?(filter) ? nil : :eq)
+          name = predicate.present? ? "q[#{filter[:attribute]}_#{predicate}]" : "q[#{filter[:attribute]}]"
+          toggle_group?(filter) ? "#{name}[]" : name
+        end
+
+        def number_range_field_names(filter)
+          {
+            min: "q[#{filter[:attribute]}_gteq]",
+            max: "q[#{filter[:attribute]}_lteq]"
+          }
+        end
+
+        def number_range_values(filter)
+          values = filter[:value] || filter[:default] || {}
+          values = {} unless values.is_a?(Hash)
+          values
+        end
+
+        def icon_addon(icon_name)
+          return unless icon_name
+
+          tag.div(class: "join-item btn btn-sm btn-disabled no-animation border-base-content/20 bg-base-200 text-base-content/60 px-2.5") do
+            render Bali::Icon::Component.new(icon_name, class: "w-4 h-4")
+          end
         end
 
         def apply_button_text

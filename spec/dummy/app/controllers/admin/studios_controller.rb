@@ -9,7 +9,8 @@ module Admin
         Studio.all,
         params,
         simple_filters: Studio.filter_options,
-        search_fields: %i[name]
+        search_fields: %i[name],
+        search_icon: 'search'
       )
       @pagy, @studios = pagy(@filter_form.result.order(:name), items: 10)
     end
@@ -54,7 +55,7 @@ module Admin
     end
 
     def studio_params
-      params.expect(studio: %i[name country status size founded_year])
+      params.expect(studio: %i[name country status size founded_year indie])
     end
   end
 end

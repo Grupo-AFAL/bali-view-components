@@ -107,7 +107,8 @@
 
     <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
       <%# Time Zone Select %>
-      <%= f.time_zone_select_group :time_zone, nil, { include_blank: t('movies.form.select_timezone') }, { label: t('movies.form.timezone') } %>
+      <% timezones = ActiveSupport::TimeZone.all.map { |tz| [tz.to_s, tz.name] } %>
+      <%= f.slim_select_group :time_zone, timezones, { include_blank: t('movies.form.select_timezone') }, { label: t('movies.form.timezone') } %>
 
       <%# Rating (Number with step) %>
       <%= f.number_field_group :rating, label: t('movies.form.initial_rating'), min: 0, max: 10, step: 0.5, placeholder: '0.0' %>

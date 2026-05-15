@@ -20,6 +20,7 @@ module Bali
         class_names(
           "breadcrumbs",
           "text-sm",
+          "overflow-x-auto",
           @options[:class]
         )
       end

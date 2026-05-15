@@ -1,4 +1,4 @@
-<%= tag.div **options do %>
+<%= tag.div(**options) do %>
   <%= tag.div class: 'gantt-chart-cell-content',
               style: task.milestone? ? '' : "background: linear-gradient(to right, #{task.colors_gradient})" do %>
     <% if resize_handle? %>

@@ -1,0 +1,51 @@
+/* Command Component
+ * Most styling lives in Tailwind/DaisyUI utility classes inline on the
+ * templates. This file only carries the rules that utilities can't
+ * cleanly express:
+ *   - Active row state (kbd-driven; class toggled by Stimulus)
+ *   - Search-match highlight (uses DaisyUI primary token)
+ *   - Compact-density density overrides (parent → child cascade)
+ */
+
+/* ── Active row state — neutral darken (avoids primary-tint purple cast) ── */
+.cmd-row.is-active {
+  background: color-mix(in oklch, var(--color-base-content) 10%, transparent);
+}
+.cmd-row.is-active .cmd-row-title {
+  font-weight: 500;
+}
+.cmd-row.is-active .cmd-row-ic {
+  background: var(--color-base-content);
+  color: var(--color-base-100);
+}
+.cmd-row.is-active .cmd-row-hint {
+  opacity: 1;
+}
+
+/* ── Highlight matched substring — uses DaisyUI primary token ─────────── */
+.cmd-mark {
+  background: color-mix(in oklch, var(--color-primary) 15%, transparent);
+  color: var(--color-primary);
+  padding: 0 1px;
+  border-radius: 2px;
+}
+
+/* ── Compact density overrides ────────────────────────────────────────── */
+.cmd-panel.is-compact .cmd-input-wrap {
+  padding: 0.5rem 0.875rem;
+}
+.cmd-panel.is-compact .cmd-input {
+  font-size: 0.875rem;
+}
+.cmd-panel.is-compact .cmd-row {
+  padding: 0.375rem 0.625rem;
+}
+.cmd-panel.is-compact .cmd-row-body {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.cmd-panel.is-compact .cmd-row-meta {
+  font-size: 0.75rem;
+  flex: 1;
+}

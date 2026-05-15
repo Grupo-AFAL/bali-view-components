@@ -1,0 +1,41 @@
+<%# Admin Projects Index - Showcases: IndexPage, Card, Tag, Link %>
+
+<%= render Bali::IndexPage::Component.new(
+  title: 'Projects',
+  subtitle: 'Manage your projects and track task progress',
+  breadcrumbs: [
+    { name: 'Dashboard', href: admin_root_path, icon_name: 'home' },
+    { name: 'Projects' }
+  ]
+) do |page| %>
+  <% page.with_body do %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <% @projects.each do |project| %>
+        <%= render Bali::Card::Component.new(style: :bordered) do %>
+          <h2 class="card-title"><%= project.name %></h2>
+          <p class="text-sm text-base-content/70"><%= project.description %></p>
+
+          <div class="flex flex-wrap gap-2 mt-2">
+            <% project.tasks.group(:status).count.each do |status, count| %>
+              <%= render Bali::Tag::Component.new(
+                text: "#{status.humanize}: #{count}",
+                color: Task::STATUS_COLORS[status]
+              ) %>
+            <% end %>
+          </div>
+
+          <div class="mt-4 flex justify-end">
+            <%= render Bali::Link::Component.new(
+              name: 'View Board',
+              href: admin_project_path(project),
+              variant: :primary,
+              style: :soft,
+              size: :sm,
+              icon_name: 'kanban'
+            ) %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

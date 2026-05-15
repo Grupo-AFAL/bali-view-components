@@ -3,7 +3,7 @@
 module Bali
   module Table
     class Component < ApplicationViewComponent
-      TABLE_CLASSES = "table table-zebra w-full"
+      TABLE_CLASSES = "table table-zebra min-w-full"
       CONTAINER_CLASSES = "overflow-x-auto table-component"
       STICKY_CLASSES = "overflow-visible [&_table]:overflow-x-auto " \
                        "[&_thead_tr]:sticky [&_thead_tr]:bg-base-100 [&_thead_tr]:top-[3.75rem]"

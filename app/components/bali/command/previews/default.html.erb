@@ -1,0 +1,37 @@
+<div class="p-6 bg-base-200 min-h-[480px]">
+  <%= render Bali::Command::Component.new(placeholder: 'Search documents, folios, procedures…') do |c| %>
+    <% c.with_trigger do %>
+      <button type="button"
+              class="flex items-center gap-2 w-full max-w-md bg-base-200 hover:bg-base-300 rounded-md px-2.5 py-1.5 text-sm text-base-content/60 cursor-pointer transition-colors">
+        <%= render Bali::Icon::Component.new('search', class: 'size-4 shrink-0') %>
+        <span class="flex-1 text-left">Search documents, folios, procedures…</span>
+        <kbd class="kbd kbd-xs">⌘K</kbd>
+      </button>
+    <% end %>
+
+    <% c.with_group(name: 'Pages') do |g| %>
+      <% g.with_item(title: 'Policies', meta: 'Regulations', icon: 'book-open', href: '/lookbook') %>
+      <% g.with_item(title: 'Procedures', meta: 'Operations', icon: 'list-checks', href: '/lookbook') %>
+      <% g.with_item(title: 'Committees', meta: 'Structure', icon: 'users', href: '/lookbook') %>
+    <% end %>
+
+    <% c.with_group(name: 'Documents') do |g| %>
+      <% g.with_item(title: 'Anti-Money Laundering Policy v3.2', meta: 'POL-2026-0218 · Active · Ethics Committee', icon: 'file-text', href: '/lookbook') %>
+      <% g.with_item(title: 'Code of Ethics and Conduct', meta: 'POL-2026-0211 · Active · Board', icon: 'file-text', href: '/lookbook') %>
+      <% g.with_item(title: 'Conflict of Interest Policy', meta: 'POL-2025-0184 · Active · Ethics Committee', icon: 'file-text', href: '/lookbook') %>
+      <% g.with_item(title: 'Reinforced KYC Procedure', meta: 'PRO-2026-0094 · In review', icon: 'file-check', href: '/lookbook') %>
+    <% end %>
+
+    <% c.with_group(name: 'Recents', mode: :recent) do |g| %>
+      <% g.with_item(title: 'Anti-Money Laundering Policy v3.2', meta: 'POL-2026-0218 · Active', icon: 'file-text', href: '/lookbook') %>
+      <% g.with_item(title: 'Reinforced KYC Procedure', meta: 'PRO-2026-0094 · In review', icon: 'file-check', href: '/lookbook') %>
+      <% g.with_item(title: 'Inbox', meta: '7 pending', icon: 'inbox', href: '/lookbook') %>
+    <% end %>
+
+    <% c.with_group(name: 'Actions', mode: :action) do |g| %>
+      <% g.with_item(title: 'New document request', meta: 'Start an approval flow', icon: 'plus', href: '/lookbook') %>
+      <% g.with_item(title: 'Upload committee minutes', meta: 'Signed PDF', icon: 'paperclip', href: '/lookbook') %>
+      <% g.with_item(title: 'Import regulations', meta: 'CSV or Excel', icon: 'upload', href: '/lookbook') %>
+    <% end %>
+  <% end %>
+</div>

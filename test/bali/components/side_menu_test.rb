@@ -23,6 +23,12 @@ class BaliSideMenuComponentTest < ComponentTestCase
     assert_selector("a[href='/movies']", text: "Item 1")
   end
 
+  def test_brand_row_uses_shared_chrome_height_for_alignment_with_topbar
+    @options = @options.merge(brand: "ACME")
+    render_inline(component)
+    assert_selector("div.bali-chrome-height", text: "ACME")
+  end
+
   def test_renders_the_side_menu_with_icon
     render_inline(component) do |c|
       c.with_list(title: "Section title") do |list|
@@ -226,6 +232,79 @@ class BaliSideMenuComponentTest < ComponentTestCase
       end
     end
     assert_selector(".dropdown.dropdown-top.dropdown-end")
+  end
+
+  def test_expandable_group_renders_collapsed_state_flyout_with_children
+    render_inline(component) do |c|
+      c.with_list do |list|
+        list.with_item(name: "Products", icon: "package") do |item|
+          item.with_item(name: "All Products", href: "/products")
+          item.with_item(name: "Add New", href: "/products/new")
+        end
+      end
+    end
+
+    assert_selector(".side-menu-collapsed-flyout.dropdown.dropdown-right.dropdown-hover")
+    assert_selector(".side-menu-collapsed-flyout[data-controller='side-menu-flyout']")
+    assert_selector(".side-menu-collapsed-flyout .dropdown-content li.menu-title", text: "Products")
+    assert_selector(".side-menu-collapsed-flyout .dropdown-content a[href='/products']", text: "All Products")
+    assert_selector(".side-menu-collapsed-flyout .dropdown-content a[href='/products/new']", text: "Add New")
+  end
+
+  def test_expandable_group_collapsed_flyout_renders_parent_link_when_parent_has_href
+    render_inline(component) do |c|
+      c.with_list do |list|
+        list.with_item(name: "Products", href: "/products", icon: "package") do |item|
+          item.with_item(name: "All", href: "/products/all")
+        end
+      end
+    end
+
+    # Trigger is an <a> linking to the parent so click navigates
+    assert_selector(".side-menu-collapsed-flyout > a[href='/products']")
+    # Panel also includes a labeled parent link so users can navigate from the popup
+    assert_selector(".side-menu-collapsed-flyout .dropdown-content a[href='/products']", text: "Products")
+  end
+
+  def test_expandable_group_collapsed_flyout_uses_div_trigger_when_parent_has_no_href
+    render_inline(component) do |c|
+      c.with_list do |list|
+        list.with_item(name: "Products", icon: "package") do |item|
+          item.with_item(name: "All", href: "/products/all")
+        end
+      end
+    end
+
+    # No href → div button so there's nothing accidentally navigable
+    assert_selector(".side-menu-collapsed-flyout > div[role='button']")
+    assert_no_selector(".side-menu-collapsed-flyout > a")
+  end
+
+  def test_leaf_item_in_expandable_mode_still_uses_tooltip_in_collapsed_state
+    render_inline(component) do |c|
+      c.with_list do |list|
+        list.with_item(name: "Dashboard", href: "/dashboard", icon: "home")
+      end
+    end
+
+    # Leaf items keep the tooltip (no children to flyout)
+    assert_no_selector(".side-menu-collapsed-flyout")
+    assert_selector(".side-menu-collapsed.tooltip-component")
+  end
+
+  def test_dropdown_mode_uses_dropdown_right_without_flyout_wrapper
+    @options[:group_behavior] = :dropdown
+    render_inline(component) do |c|
+      c.with_list do |list|
+        list.with_item(name: "Products", icon: "package") do |item|
+          item.with_item(name: "All", href: "/products/all")
+        end
+      end
+    end
+
+    # Dropdown mode still uses the original dropdown-right hover (no flyout wrapper)
+    assert_no_selector(".side-menu-collapsed-flyout")
+    assert_selector(".dropdown.dropdown-right.dropdown-hover")
   end
 
   private

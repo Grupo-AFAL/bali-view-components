@@ -7,8 +7,141 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **SideMenu** - Expandable groups (`group_behavior: :expandable`) with subitems were unreachable when the sidebar was collapsed to icon-rail width. Hovering the parent icon showed only a tooltip with the parent's name; children required expanding the rail to navigate. They now open a hover/focus flyout to the right of the rail with the parent name as a title and child links beneath, mirroring the established `:dropdown` mode pattern. Hover/focus opens it; ArrowRight/Enter opens it via keyboard with arrow keys to navigate inside; Escape closes via an `is-suppressed` class cleared on the next `mouseleave`/`focusout`. On coarse pointers, first tap opens the panel without navigating so children remain reachable on touch. A 120ms intent delay throttles open, a 300ms close delay forgives cursor drift, and a 24px transparent `::before` bridge covers the gap between the narrower trigger (icon + `p-2`) and the rail's right edge so `:hover` stays continuous during traversal. The panel position is anchored by JS to the sidebar's `getBoundingClientRect().right` (via `setProperty(..., 'important')` so it wins against the CSS reset that defuses DaisyUI's CSS Anchor Positioning fallback). Children rendering is shared with `:dropdown` mode via a new `render_subitem_link` helper; `render_parent_link`, `flyout_classes`, and `render_flyout_trigger` consolidate the rest. Adds a new `SideMenuFlyoutController` Stimulus controller — registered automatically by `registerAll`
+- **SideMenu** - Expandable groups (accordion variant) no longer open on mobile. The mobile-expansion override applied `display: flex !important` to every `.side-menu-expanded` element, including the `<div class="collapse side-menu-expanded">` accordion wrapper. DaisyUI's collapse relies on `display: grid` for its `grid-template-rows: max-content 0fr` → `1fr` open/close animation; the forced flex made title and content side-by-side flex items, so expandable groups appeared indented and never opened. A higher-specificity `.collapse.side-menu-expanded { display: grid !important }` restores grid
+
+### Removed
+
+- **SideMenu** - Drop the unused `Bali::SideMenu::Item::Component#collapse_id` method. Was defined for a checkbox-driven DaisyUI collapse pattern that never materialized in the template and used `object_id` for the id, which is non-deterministic between requests
+
+## [v2.9.1] - 2026-05-10
+
+### Fixed
+
+- **SimpleFilters** - `:slim_select` filters now preserve their value after submission. The `slim_select_field` branch of the template wasn't passing `filter[:value]` (or `filter[:default]`), so the `<option>` rendered without `selected`. SlimSelect reads `option.selected` from the DOM, so the dropdown showed the placeholder text instead of the chosen option even though the URL carried the param. The `:select` branch already handled this via `options_for_select`; this brings `:slim_select` in line (#553)
+
+## [v2.9.0] - 2026-05-10
+
+### Changed
+
+- **Dependencies** - Bump `cypress` 15.11.0 → 15.13.0, `playwright` 1.58.2 → 1.59.1, `@babel/preset-env` 7.29.0 → 7.29.2, and refresh transitive dependencies (`@babel/plugin-transform-modules-systemjs` 7.29.0 → 7.29.4, `lodash` 4.17.23 → 4.18.1, `flatted` 3.4.1 → 3.4.2). Bump `actions/github-script` 8 → 9 in CI workflows (#551, #536, #515, #520, #516, #537)
+
+### Fixed
+
+- **SlimSelect** - `slim_select_field` now accepts `content_width:` to forward SlimSelect's upstream `contentWidth` setting (`">240px"` grow-to-fit, `"<500px"` cap, `"320px"` fixed). `Bali::DataTable::SimpleFilters` defaults to `">240px"` so dropdowns with long option labels (department / job-title catalogs) grow past the trigger instead of wrapping to 2-3 lines. Also fixes `.ss-option` zero vertical padding so wrapped lines no longer merge with adjacent items, removes a legacy `.slim-select-sm .ss-search input` override that was clobbering the new search-icon padding, and scopes the inline `No Results` / `Press "Enter" to add {value}` prompt so it stops inheriting the top search bar's padding, border, and magnifier icon (#548)
+- **Breadcrumb** - DaisyUI's `.breadcrumbs { padding-block: .5rem }` was beating the component's `pt-0` utility in host apps where the daisyUI plugin layer ends up after `@layer utilities` (Tailwind v4 + daisyUI plugin ordering varies per host). Move the override into the component's unlayered `index.css` so it wins regardless of layer ordering and drop the now-redundant `pt-0` utility (#530)
+- **FormBuilder** - `translate_attribute` routes through `ActiveModel::Translation#human_attribute_name` so labels resolve from `activemodel.attributes.*` (form objects) as well as `activerecord.attributes.*`. Previously the `activerecord.*` namespace was hardcoded and form-object translations silently fell back to humanize (#538)
+- **FormBuilder** - `select_group`, `text_area_group`, `time_zone_select_group`, and `slim_select_field` now apply DaisyUI's element-specific error classes (`select-error` / `textarea-error`) instead of always using `input-error`. Validation errors on these fields actually paint the field red now (#545)
+- **FilterForm** - Default search placeholder is localized via `bali.filter_form.search_placeholder_with_fields`, and field labels resolve through `human_attribute_name`, so apps running in non-English locales no longer get a hardcoded "Search by ..." string (#539)
+- Fix Ruby 4.0 warnings: parenthesize double-splat in ERB templates, silence intentional method overrides, fix indentation
+- Fix pagination end alignment conflict between Rubocop and Ruby 4.0
+- **SimpleFilters** - Fix `simple_filter` DSL defaulting date/date_range predicate to `:eq` instead of `nil`, causing incorrect field names (`q[created_at_eq]` instead of `q[created_at]`)
+- **SideMenu** / **Topbar** - Brand row and Topbar both derive their height from the shared `--bali-chrome-height` variable (defaults to 3.5rem) so the bottom-border divider stays aligned across the seam if the value changes (#544)
+- **SideMenu** - Replace `shadow-lg` on the fixed variant with a 1px right border on desktop (shadow stays on mobile overlay) — eliminates the shadow seam where sidebar meets the topbar
+- **SideMenu** - `menu_switcher` dropdown now uses `<details><summary>` instead of focus-based dropdown — fixes mobile-tap reliability (focus pattern is fragile on iOS Safari)
+- **SideMenu** - When sidebar is collapsed, the `menu_switcher` stays visible as an icon-only button (was hidden) with a tooltip on hover and a right-side popout for switching modules
+
 ### Added
 
+- **ImageGrid** - New `expandable:` option on `Bali::ImageGrid::Component` and `Bali::ImageGrid::Image::Component`. When enabled, clicking an image opens it in a fullscreen lightbox with backdrop fade-in, image fade + scale-in, and a CSS spinner while the full-size image preloads. Pass `full_src:` to load a higher-resolution image; otherwise the thumbnail's `src` is reused. Closes on ESC, backdrop click, or close button; restores focus to the trigger. The grid-level `expandable:` propagates to every image but can be overridden per-image (#550)
+- **AppLayout** - Auto-render a mobile-only topbar (hamburger + optional `app_name:` title) when `fixed_sidebar: true`, a sidebar is present, and no custom `topbar` slot was provided. Without this fallback the sidebar was unreachable on mobile, forcing every consuming app to copy/paste the same `lg:hidden` trigger row. Custom topbars still take precedence (#506)
+- **AppLayout** - New `viewport_locked:` parameter that locks the body to 100vh and scrolls only the inner `<main>`, matching the Linear/Notion app-shell pattern. Defaults to the value of `fixed_sidebar` so existing pages keep working; pass explicitly to decouple (e.g. `fixed_sidebar: true, viewport_locked: false` for a fixed sidebar with normal page scroll)
+- **SideMenu** - New `with_brand` slot for icon + text or arbitrary brand content (the existing `brand:` text param keeps working as a fallback)
+- **Topbar** - New component for the top-of-content bar inside `Bali::AppLayout`'s `with_topbar` slot. Slots: `brand`, `search`, `actions` (many), `user_menu`. Built-in mobile sidebar trigger via `mobile_trigger_id:` (defaults to `SideMenu::MOBILE_TRIGGER_ID`)
+- **Command** - New ⌘K-style command palette / launcher. Modal panel with search input, grouped results (`:searchable` / `:recent` / `:action` modes), keyboard navigation (↑/↓/⏎/Esc), substring highlighting, and a global ⌘K (Mac) / Ctrl+K (Windows/Linux) shortcut. Composable trigger slot, density variants (`:default` / `:compact`), and window events (`bali:command:open` / `close` / `toggle`)
+- **DocumentEditor / DocumentPage** - Forward `references_url`, `references_resolve_url`, and `references_config` to the inner `BlockEditor` so the `#` entity-reference picker and entity chip icons/colors work when the editor is used via `DocumentEditor` or `DocumentPage` (#541)
+- **Icon** - Numeric pixel sizes alongside the named presets: `Bali::Icon::Component.new('clapperboard', size: 24)` renders a 24×24 wrapper with a 24×24 SVG. Inline `style` + `--bali-icon-size` variable, no Tailwind safelist needed (#544)
+- **Command** - i18n keys (`bali.command.placeholder`, `no_results`, `navigate`, `open_action`, `close`) are now in the en/es locale files so consumers can override / translate without monkey-patching. Inline `default:` fallbacks remain (#544)
+- **SimpleFilters** - Configurable search input width via `search[:width]` option; widened defaults from `w-32 sm:w-80` to `w-48 sm:w-96`
+- **SlimSelect** - Search row redesign: magnifier icon prefix, no boxed background, no input border. Selected options use blue text plus a checkmark on the right with no background tint. Trigger focus outline unchanged
+- **SlimSelect** - Added 8px detached gap between input and dropdown menu for improved visual separation
+- **SlimSelect** - Matched focus ring style with DaisyUI native selects (2px outline with 2px offset)
+- **SlimSelect** - Added support for placing search box at the bottom when dropdown opens upwards
+- **SlimSelect** - Matched native select dimensions (40px regular / 32px small) and border-radius (4px)
+- **SlimSelect** - Optimized internal padding and density to match standard DaisyUI elements
+- **SimpleFilters** - Enhanced configuration to support SlimSelect by default for improved usability
+- **SimpleFilters** - Added `boolean` filter type: toggle switch for boolean columns (active, published, featured)
+- **SimpleFilters** - Added `radio_group` filter type: single-select segmented buttons for mutually exclusive choices
+- **SimpleFilters** - Added `number_range` filter type: min/max inputs for numeric columns (price, amount, quantity)
+
+### Fixed
+
+- **SimpleFilters** - Fix mass-assignment vulnerability by replacing blanket `permit!` with targeted parameter permitting
+- **SimpleFilters** - Fix thread-safety bug: remove class-level attribute mutation from initializer that could corrupt state under concurrent requests
+- **CSS** - Add DaisyUI v5 structural variable fallbacks (`--border`, `--radius-box`, etc.) so custom themes that only define colors don't silently break component borders and radii
+- **Pagination** - Load Pagy 43.x `series` helper explicitly to prevent `NoMethodError` on paginated views
+- **FilterForm** - Fix `simple_filters` keyword arg shadowing the instance method in `initialize`
+- **Tests** - Restore corrupted `filter_form_test.rb` (82 tests were silently disabled by null-byte corruption)
+
+## [v2.8.0] - 2026-03-23
+
+### Added
+
+- **Kanban** - Drag-and-drop board component composing SortableList, with Column and Card slots
+- **FeedbackWidget** - Floating button with drawer for Opina feedback integration, includes JWT TokenGenerator
+
+## [v2.7.4] - 2026-03-13
+
+### Removed
+
+- **SideMenu** - Removed deprecated `collapsable:` parameter and `collapsable?` alias. Use `collapsible:` instead.
+
+## [v2.7.3] - 2026-03-11
+
+### Changed
+
+- **DocumentPage** - Remove internal padding from header and subheader areas; relies on app layout padding instead
+
+## [v2.7.2] - 2026-03-11
+- Bump bundler to 4.0.10 (consolidates AFAL fleet on one bundler version; see Grupo-AFAL/dev-sandbox#6)
+
+### Added
+
+- **DocumentEditor** - `toolbar` slot for custom content between the document title and action buttons in the app bar
+- **DocumentPage** - `subheader` slot for custom content between the page header and content area
+
+## [v2.7.1] - 2026-03-10
+
+### Added
+
+- **DocumentEditor** - Save status indicator showing "Saving..." / "Saved at HH:MM:SS" in the app bar
+- **DocumentEditor** - Version preview loads content into the editor in read-only mode with a dismissible "Previewing Version X" banner, instead of opening raw JSON in a new tab
+- **BlockEditor** - Pre-populate UserStore cache with known users before rendering comments, preventing crashes on resolved threads
+
+### Fixed
+
+- **BlockEditor** - Fix comment thread marks (`.bn-thread-mark`) missing highlight, cursor, and click behavior in the editor
+- **BlockEditor** - Fix reply Save/Cancel buttons appearing blank in floating thread composer
+- **BlockEditor** - Fix emoji reaction tooltip missing visual styles when portaled to `<body>`
+- **DocumentEditor** - Auto-save now triggers correctly on content changes via `input` event delegation
+- **DocumentEditor** - Version history panel redesigned with version badges, author avatars, italic summaries, and polished Preview/Restore buttons with icons
+- **BlockEditor** - Fix "User resolved thread, but their data could not be found" crash by gating comments rendering on UserStore readiness
+- **BlockEditor** - Fix comments sidebar losing all CSS when portaled into DocumentEditor side panel (added `bn-mantine` class to portal container)
+- **BlockEditor** - Fix emoji reaction chips rendering unstyled — override Mantine CSS variables with DaisyUI-compatible colors, backgrounds, and hover states
+- **BlockEditor** - Fix selected thread showing blue border on only 3 sides — use outline instead of border for consistent selection indicator
+- **BlockEditor** - Fix resolved thread hover toolbar invisible due to opacity dimming the entire thread — target only comment text and header for dimming
+- **BlockEditor** - Fix delete comment clearing body but not removing the thread — destroy thread when no active comments remain
+- **BlockEditor** - Fix emoji picker popover rendering behind comments sidebar panel (z-index)
+
+## [v2.7.0] - 2026-03-09
+
+### Added
+
+- **DocumentPage** and **DocumentEditor** components (#507)
+
+## [v2.6.0] - 2026-03-09
+
+### Added
+
+- **DocumentPage** - Three-panel sticky layout (TOC | Content | Metadata) unified with DocumentEditor visual language
+- **DocumentPage** - Toggle buttons in PageHeader for TOC and metadata panels
+- **DocumentPage** - BlockEditor readonly support with TOC portal, plus slot-based fallback for preview/content
+- **DocumentPage** - Stimulus controller (`document-page`) for panel visibility toggling
+- **DocumentEditor** - `input_name` parameter and Stimulus value for configurable form field name
+- **DocumentEditor** - `close_url` parameter and Stimulus value for explicit close navigation
+- **DocumentEditor** - `**options` passthrough for custom HTML attributes on root element
 - **SideMenu** - `bottom_group` slot for upward-expanding dropdown menus at sidebar bottom
 - **AppLayout** - New layout component with flash messages, modal, and drawer infrastructure
 - **AppLayout** - Login/register preview layouts and body_container presets
@@ -21,6 +154,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **DocumentEditor** - Replace all `innerHTML` with `createElement` + `textContent` to prevent XSS in version rendering
+- **DocumentEditor** - Use Bali Dropdown component instead of raw DaisyUI HTML for export menu
+- **Filters** - Fix horizontal scroll on mobile caused by DaisyUI tooltip pseudo-element on persistence button
+- **SideMenu** - Force expanded sidebar view on mobile via CSS override (regardless of collapse state from localStorage)
+- **SideMenu** - Hide collapse toggle on mobile, show X close button instead for fixed sidebars
+- **SideMenu** - Support mobile close button for non-collapsible fixed sidebars
+- **PageComponents** - Add flex-wrap to actions bar to prevent overflow on mobile
 - **BlockEditor** - Prevent page scroll jump when opening AI menu via slash command or formatting toolbar on long pages
 
 ### Changed
@@ -202,7 +342,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Pagy.new()` → `Pagy::Offset.new()`
   - `items:` parameter → `limit:`
   - `pagy.prev` → `pagy.previous`
-  - `Pagy::DEFAULT` → `Pagy.options`
+  - `Pagy::DEFAULT` → `Pagy::OPTIONS`
   - Added fallback URL builder for contexts without request object (e.g., Lookbook previews)
   - Updated `Pagination::Component` and `DataTable` previews for new API
 

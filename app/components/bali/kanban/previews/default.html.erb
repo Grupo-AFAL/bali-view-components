@@ -1,0 +1,34 @@
+<%= render Bali::Kanban::Component.new(resource_name: "task", group_name: "kanban") do |k| %>
+  <% k.with_column(title: "To Do", status: "todo", color: :ghost) do |col| %>
+    <% col.with_card do %>
+      <p class="font-medium text-sm">Design landing page</p>
+      <p class="text-xs text-base-content/60 mt-1">Due: Mar 25</p>
+    <% end %>
+    <% col.with_card do %>
+      <p class="font-medium text-sm">Write API docs</p>
+      <p class="text-xs text-base-content/60 mt-1">Due: Mar 28</p>
+    <% end %>
+    <% col.with_card do %>
+      <p class="font-medium text-sm">Set up CI pipeline</p>
+      <p class="text-xs text-base-content/60 mt-1">Due: Mar 30</p>
+    <% end %>
+  <% end %>
+
+  <% k.with_column(title: "In Progress", status: "in_progress", color: :info) do |col| %>
+    <% col.with_card do %>
+      <p class="font-medium text-sm">Implement auth flow</p>
+      <p class="text-xs text-base-content/60 mt-1">Due: Mar 22</p>
+    <% end %>
+    <% col.with_card do %>
+      <p class="font-medium text-sm">Database migration</p>
+      <p class="text-xs text-base-content/60 mt-1">Due: Mar 23</p>
+    <% end %>
+  <% end %>
+
+  <% k.with_column(title: "Done", status: "done", color: :success) do |col| %>
+    <% col.with_card do %>
+      <p class="font-medium text-sm">Project setup</p>
+      <p class="text-xs text-base-content/60 mt-1">Completed</p>
+    <% end %>
+  <% end %>
+<% end %>

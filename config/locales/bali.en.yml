@@ -88,6 +88,11 @@ en:
         greater_than_or_equal: "greater than or equal"
         less_than_or_equal: "less than or equal"
 
+    # Simple filters
+    simple_filters:
+      apply: "Filter"
+      clear: "Clear"
+
     # File input
     file_input:
       remove: "Remove %{name}"
@@ -99,9 +104,21 @@ en:
       expand: "Expand sidebar"
       toggle_item: "Toggle %{name}"
 
+    # Command palette (⌘K)
+    command:
+      placeholder: "Search…"
+      no_results: "No results"
+      navigate: "navigate"
+      open_action: "open"
+      close: "close"
+
     # Modal
     modal:
       close: "Close modal"
+
+    # Image grid
+    image_grid:
+      expand: "Expand image"
 
     # Breadcrumb
     breadcrumb:
@@ -133,6 +150,10 @@ en:
         remove: "Remove"
         dismiss: "Dismiss error"
         remove_file: "Remove %{filename}"
+
+    # FilterForm — quick text search across multiple columns
+    filter_form:
+      search_placeholder_with_fields: "Search by %{fields}..."
 
     # Form builder
     form_builder:

@@ -112,6 +112,10 @@ export function useComments ({ commentsUser, commentsUsers, commentsUsersUrl, co
 
     const extension = CommentsExtension({ threadStore, resolveUsers })
 
-    return { extension, threadStore }
+    // Expose the static user map so BlockNoteEditorWrapper can pre-populate
+    // the editor's UserStore cache after the editor is created. This prevents
+    // crashes when BlockNote renders resolved threads before async user
+    // resolution completes (useUsers → getUser returns undefined).
+    return { extension, threadStore, staticUserMap }
   }, [commentsUser, commentsUsers, commentsUsersUrl, commentsUrl])
 }

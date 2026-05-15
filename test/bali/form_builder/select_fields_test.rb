@@ -54,7 +54,7 @@ class BaliFormBuilderSelectFieldsTest < FormBuilderTestCase
   def test_select_field_with_validation_errors_renders_select_with_error_class
     resource.errors.add(:status, :invalid)
     result = builder.select_field(:status, Movie.statuses.to_a)
-    assert_html(result, "select.select.select-bordered.w-full.input-error")
+    assert_html(result, "select.select.select-bordered.w-full.select-error")
   end
 
   def test_select_field_with_validation_errors_displays_error_message

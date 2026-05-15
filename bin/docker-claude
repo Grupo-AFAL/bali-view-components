@@ -24,6 +24,9 @@ PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SANDBOX_NAME="claude-$(basename "$PROJECT_DIR")"
 # Override the autonomous prompt via AUTONOMOUS_PROMPT env var
 AUTONOMOUS_PROMPT="${AUTONOMOUS_PROMPT:-/omc-rails-autopilot: next}"
+# Additional directories to mount in the sandbox (space-separated absolute paths)
+# Example: EXTRA_DIRS="$PROJECT_DIR/../sibling-app $PROJECT_DIR/../shared-lib"
+EXTRA_DIRS="${EXTRA_DIRS:-}"
 
 cd "$PROJECT_DIR"
 
@@ -46,6 +49,11 @@ write_sandbox_env() {
 
   [ -n "$GH_TOKEN" ] && echo "GH_TOKEN=$GH_TOKEN" >> "$env_file"
   [ -n "$ANTHROPIC_API_KEY" ] && echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" >> "$env_file"
+
+  # daisyUI Blueprint MCP server (configured via profile.d script in base image)
+  [ -n "$DAISYUI_LICENSE" ] && echo "DAISYUI_LICENSE=$DAISYUI_LICENSE" >> "$env_file"
+  [ -n "$DAISYUI_EMAIL" ] && echo "DAISYUI_EMAIL=$DAISYUI_EMAIL" >> "$env_file"
+  [ -n "$DAISYUI_FIGMA" ] && echo "DAISYUI_FIGMA=$DAISYUI_FIGMA" >> "$env_file"
 
   # Add other env vars to forward here:
   # [ -n "$SOME_VAR" ] && echo "SOME_VAR=$SOME_VAR" >> "$env_file"
@@ -106,6 +114,13 @@ for vm in data.get('vms', []):
 " 2>/dev/null | grep -q 'exists'
 }
 
+# Build list of extra directories that exist (for docker sandbox create)
+extra_dir_args() {
+  for dir in $EXTRA_DIRS; do
+    [ -d "$dir" ] && echo "$dir"
+  done
+}
+
 # Allow package registries through the sandbox proxy (deny-by-default)
 configure_sandbox_proxy() {
   docker sandbox network proxy "$SANDBOX_NAME" \
@@ -115,7 +130,9 @@ configure_sandbox_proxy() {
     --allow-host codeload.github.com \
     --allow-host api.github.com \
     --allow-host registry.yarnpkg.com \
-    --allow-host registry.npmjs.org >/dev/null 2>&1 || true
+    --allow-host registry.npmjs.org \
+    --allow-host daisyui.com \
+    --allow-host license.api.daisyui.com >/dev/null 2>&1 || true
 }
 
 case "${1:-help}" in
@@ -142,12 +159,13 @@ case "${1:-help}" in
       fi
       info "Creating new sandbox: $SANDBOX_NAME"
       echo "  Workspace: $PROJECT_DIR"
+      for d in $(extra_dir_args); do echo "  Extra dir: $d"; done
       echo "  Template:  $SANDBOX_TEMPLATE"
       echo ""
       docker sandbox create \
         -t "$SANDBOX_TEMPLATE" \
         --name "$SANDBOX_NAME" \
-        claude "$PROJECT_DIR"
+        claude "$PROJECT_DIR" $(extra_dir_args)
       configure_sandbox_proxy
       docker sandbox run "$SANDBOX_NAME"
     fi
@@ -170,7 +188,7 @@ case "${1:-help}" in
       docker sandbox create \
         -t "$SANDBOX_TEMPLATE" \
         --name "$SANDBOX_NAME" \
-        claude "$PROJECT_DIR"
+        claude "$PROJECT_DIR" $(extra_dir_args)
       configure_sandbox_proxy
       docker sandbox run "$SANDBOX_NAME" \
         -- -p "$AUTONOMOUS_PROMPT" --dangerously-skip-permissions
@@ -252,6 +270,7 @@ case "${1:-help}" in
     echo "                     Generate at: https://github.com/settings/tokens (classic, 'repo' scope)"
     echo "  ANTHROPIC_API_KEY  Anthropic API key (forwarded into sandbox automatically)"
     echo "  AUTONOMOUS_PROMPT  Override the autonomous mode prompt"
+    echo "  EXTRA_DIRS         Additional directories to mount (space-separated absolute paths)"
     echo ""
     echo "First time setup:"
     echo "  bin/docker-claude build   # Build the sandbox template"

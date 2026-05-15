@@ -1,0 +1,38 @@
+<%= tag.div(**html_attributes) do %>
+  <%# Floating button %>
+  <button type="button"
+          class="btn btn-primary btn-circle shadow-lg fixed bottom-6 right-6 z-50"
+          data-action="feedback-widget#toggle"
+          data-feedback-widget-target="trigger"
+          aria-label="<%= open_label %>">
+    <%= render Bali::Icon::Component.new('message-circle') %>
+    <span class="badge badge-sm badge-error absolute -top-1 -right-1 hidden"
+          data-feedback-widget-target="badge">0</span>
+  </button>
+
+  <%# Drawer overlay %>
+  <div class="fixed inset-0 bg-black/50 z-[60] hidden"
+       data-feedback-widget-target="overlay"
+       data-action="click->feedback-widget#close"
+       aria-hidden="true"></div>
+
+  <%# Drawer panel %>
+  <div class="fixed top-0 right-0 h-full w-full max-w-md bg-base-100 shadow-2xl z-[61]
+              transform translate-x-full transition-transform duration-300 ease-in-out"
+       data-feedback-widget-target="panel"
+       role="dialog"
+       aria-modal="true"
+       aria-labelledby="feedback-widget-title">
+    <div class="flex items-center justify-between p-3 border-b border-base-200">
+      <h3 id="feedback-widget-title" class="font-semibold text-sm"><%= display_title %></h3>
+      <button type="button" class="btn btn-sm btn-circle btn-ghost"
+              data-action="feedback-widget#close"
+              aria-label="<%= close_label %>">
+        <%= render Bali::Icon::Component.new('times') %>
+      </button>
+    </div>
+    <iframe class="w-full h-[calc(100%-49px)] border-0"
+            data-feedback-widget-target="iframe"
+            title="<%= display_title %>"></iframe>
+  </div>
+<% end %>

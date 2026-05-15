@@ -4,6 +4,40 @@
  * defined in side_menu/index.css :root.
  */
 
+/* Viewport-locked scroll model — activates via `viewport_locked: true`.
+ * Body locks to viewport height; only the inner <main> scrolls. This keeps
+ * sidebar AND topbar pinned naturally (no position: sticky needed) and
+ * matches the Linear/Notion app-shell pattern.
+ *
+ * Decoupled from `fixed_sidebar` so each can be toggled independently:
+ *   fixed_sidebar: true,  viewport_locked: true   → full app shell (default)
+ *   fixed_sidebar: true,  viewport_locked: false  → fixed sidebar, page scrolls
+ *   fixed_sidebar: false, viewport_locked: true   → topbar pinned, no sidebar
+ *   fixed_sidebar: false, viewport_locked: false  → marketing-style page scroll */
+.app-layout--viewport-locked {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-layout--viewport-locked .app-layout-main {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.app-layout--viewport-locked .app-layout-content {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.app-layout--viewport-locked .app-layout-topbar {
+  flex-shrink: 0;
+}
+
+.app-layout--viewport-locked .app-layout-content > main {
+  overflow-y: auto;
+  min-height: 0;
+}
+
 @media (min-width: 1024px) {
   /* Push content right when a fixed sidebar is present */
   .app-layout--has-fixed-sidebar .app-layout-content {

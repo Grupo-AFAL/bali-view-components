@@ -1,0 +1,31 @@
+<%= render Bali::Kanban::Component.new(resource_name: "ticket", group_name: "colored-kanban") do |k| %>
+  <% k.with_column(title: "Backlog", status: "backlog", color: :ghost) do |col| %>
+    <% col.with_card do %>
+      <p class="font-medium text-sm">Research competitors</p>
+    <% end %>
+    <% col.with_card do %>
+      <p class="font-medium text-sm">User interviews</p>
+    <% end %>
+  <% end %>
+
+  <% k.with_column(title: "In Review", status: "review", color: :warning) do |col| %>
+    <% col.with_card do %>
+      <p class="font-medium text-sm">PR #42: Fix pagination</p>
+    <% end %>
+  <% end %>
+
+  <% k.with_column(title: "Approved", status: "approved", color: :primary) do |col| %>
+    <% col.with_card do %>
+      <p class="font-medium text-sm">Deploy v2.1</p>
+    <% end %>
+  <% end %>
+
+  <% k.with_column(title: "Released", status: "released", color: :success) do |col| %>
+    <% col.with_card do %>
+      <p class="font-medium text-sm">Onboarding wizard</p>
+    <% end %>
+    <% col.with_card do %>
+      <p class="font-medium text-sm">Email templates</p>
+    <% end %>
+  <% end %>
+<% end %>

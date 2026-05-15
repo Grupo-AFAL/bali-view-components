@@ -3,8 +3,6 @@
 module Bali
   module DataTable
     class Preview < ApplicationViewComponentPreview
-      # Pagy 43.x Pagy::Method requires a request object which previews don't have
-      # Use Pagy::Offset.new directly instead
 
       HEADERS = [
         { name: 'Name', sortable: true, sort_key: 'name' },
@@ -133,17 +131,13 @@ module Bali
       def with_pagination(q: {}, page: 1)
         filter_params = ActionController::Parameters.new(q: ActionController::Parameters.new(q), page: page)
         filter_form = Bali::FilterForm.new(Movie.all, filter_params)
-        collection = filter_form.result.includes(:studio)
-        count = collection.count
-        limit = 5
-        pagy_obj = Pagy::Offset.new(count: count, page: page.to_i, limit: limit)
-        movies = collection.offset(pagy_obj.offset).limit(limit)
+        pagy, movies = pagy(filter_form.result.includes(:studio), limit: 5, page: page)
 
         render_with_template(
           template: 'bali/data_table/previews/with_pagination',
           locals: {
             filter_form: filter_form,
-            pagy: pagy_obj,
+            pagy: pagy,
             movies: movies,
             filter_attributes: MOVIE_FILTER_ATTRIBUTES
           }
@@ -155,17 +149,13 @@ module Bali
       def complete(q: {}, page: 1)
         filter_params = ActionController::Parameters.new(q: ActionController::Parameters.new(q), page: page)
         filter_form = Bali::FilterForm.new(Movie.all, filter_params)
-        collection = filter_form.result.includes(:studio)
-        count = collection.count
-        limit = 5
-        pagy_obj = Pagy::Offset.new(count: count, page: page.to_i, limit: limit)
-        movies = collection.offset(pagy_obj.offset).limit(limit)
+        pagy, movies = pagy(filter_form.result.includes(:studio), limit: 5, page: page)
 
         render_with_template(
           template: 'bali/data_table/previews/complete',
           locals: {
             filter_form: filter_form,
-            pagy: pagy_obj,
+            pagy: pagy,
             movies: movies,
             filter_attributes: MOVIE_FILTER_ATTRIBUTES
           }
@@ -174,23 +164,19 @@ module Bali
 
       # @label With Simple Filters (Studios)
       # Simple inline dropdown filters - a lightweight alternative to the full Filters component.
-      # Use for CRUD views that only need 2-4 dropdown filters without AND/OR groupings.
+      # Shows all available filter types:
+      # - **Country**: `type: :slim_select` — searchable dropdown
+      # - **Status**: `type: :toggle_group` — multi-select segmented buttons
+      # - **Size**: `type: :radio_group` — single-select segmented buttons
+      # - **Indie**: `type: :boolean` — toggle switch
+      # - **Founded**: `type: :number_range` — min/max number inputs
+      # - **Created between**: `type: :date_range` — date range picker
       #
-      # This example shows Studios filtered by country, status, and size.
-      #
-      # Configure via FilterForm:
-      # ```ruby
-      # filter_form = Bali::FilterForm.new(Studio.all, params, simple_filters: [
-      #   { attribute: :country, collection: [...], blank: "All Countries" },
-      #   { attribute: :status, collection: [...], blank: "All Statuses" }
-      # ])
-      # ```
       # @param search text
       # @param country select { choices: ["", USA, UK, France, Germany, Japan, India, Australia, Canada] }
       # @param status select { choices: ["", active, inactive, pending] }
       # @param size select { choices: ["", small, medium, large, enterprise] }
       def with_simple_filters(q: {}, page: 1, search: '', country: '', status: '', size: '')
-        # Merge simple filter values into q params
         q_with_filters = q.to_h.dup
         q_with_filters['country_eq'] = country if country.present?
         q_with_filters['status_eq'] = status if status.present?
@@ -202,33 +188,13 @@ module Bali
           page: page
         )
 
-        simple_filters_config = [
-          {
-            attribute: :country,
-            collection: Studio::COUNTRIES.map { |c| [c, c] },
-            blank: 'All Countries',
-            label: 'Country'
-          },
-          {
-            attribute: :status,
-            collection: Studio.statuses.keys.map { |s| [s.humanize, s] },
-            blank: 'All Statuses',
-            label: 'Status'
-          },
-          {
-            attribute: :size,
-            collection: Studio::SIZES.map { |s| [s.humanize, s] },
-            blank: 'All Sizes',
-            label: 'Size'
-          }
-        ]
-
         filter_form = Bali::FilterForm.new(
           Studio.all, filter_params,
-          simple_filters: simple_filters_config,
-          search_fields: %i[name]
+          simple_filters: Studio.filter_options,
+          search_fields: %i[name],
+          search_icon: 'search'
         )
-        pagy, studios = pagy(filter_form.result.order(:name), items: 10, page: page)
+        pagy, studios = pagy(filter_form.result.order(:name), limit: 10, page: page)
 
         render_with_template(
           template: 'bali/data_table/previews/with_simple_filters',
@@ -253,17 +219,13 @@ module Bali
 
         filter_params = ActionController::Parameters.new(q: ActionController::Parameters.new(q), page: page)
         filter_form = Bali::FilterForm.new(Movie.all, filter_params)
-        collection = filter_form.result.includes(:studio)
-        count = collection.count
-        limit = 6
-        pagy_obj = Pagy::Offset.new(count: count, page: page.to_i, limit: limit)
-        movies = collection.offset(pagy_obj.offset).limit(limit)
+        pagy, movies = pagy(filter_form.result.includes(:studio), limit: 6, page: page)
 
         render_with_template(
           template: 'bali/data_table/previews/with_grid_mode',
           locals: {
             filter_form: filter_form,
-            pagy: pagy_obj,
+            pagy: pagy,
             movies: movies,
             filter_attributes: MOVIE_FILTER_ATTRIBUTES,
             display_mode: actual_display_mode

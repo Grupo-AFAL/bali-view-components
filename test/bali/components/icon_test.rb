@@ -30,6 +30,30 @@ class BaliIconComponentTest < ComponentTestCase
     assert_selector("span.icon-component.size-12")
   end
 
+  def test_sizes_numeric_size_renders_inline_style_with_pixel_dimensions
+    render_inline(Bali::Icon::Component.new("snowflake", size: 24))
+    assert_selector("span.icon-component[style*='width: 24px'][style*='height: 24px']")
+    assert_selector("span.icon-component[style*='--bali-icon-size: 24px']")
+  end
+
+  def test_sizes_numeric_size_passes_pixel_size_to_lucide_svg
+    render_inline(Bali::Icon::Component.new("user", size: 24))
+    assert_selector("svg[width='24'][height='24']")
+  end
+
+  def test_sizes_numeric_size_drops_named_size_classes
+    render_inline(Bali::Icon::Component.new("snowflake", size: 24))
+    refute_selector("span.size-4")
+    refute_selector("span.size-8")
+    refute_selector("span.size-12")
+  end
+
+  def test_sizes_numeric_size_preserves_user_supplied_inline_style
+    render_inline(Bali::Icon::Component.new("snowflake", size: 24, style: "color: red"))
+    assert_selector("span.icon-component[style*='color: red']")
+    assert_selector("span.icon-component[style*='--bali-icon-size: 24px']")
+  end
+
   def test_resolution_pipeline_with_lucide_mapped_icons_renders_mapped_icons_through_lucide
     # "user" is mapped to Lucide"s "user' icon
     render_inline(Bali::Icon::Component.new("user"))

@@ -18,7 +18,7 @@ module Bali
         # Desktop: inline with navbar, fills remaining space
         WRAPPER_CLASSES_MOBILE = %w[
           hidden flex-col gap-4 absolute left-0 top-full
-          w-full bg-base-100 shadow-lg p-4 z-40
+          w-full bg-base-100 max-lg:text-base-content shadow-lg p-4 z-40
         ].join(" ").freeze
 
         WRAPPER_CLASSES_DESKTOP = %w[
@@ -56,8 +56,10 @@ module Bali
         end
 
         # Classes for end_items inner div (ml-auto pushes to right on desktop)
+        # Mobile: separated from start items with a top border, padded to align with menu items
         def end_items_classes
-          "flex flex-col lg:flex-row lg:items-center gap-2 lg:ml-auto"
+          "flex flex-col lg:flex-row lg:items-center gap-2 lg:ml-auto " \
+            "max-sm:border-t max-sm:border-base-300 max-sm:pt-4 max-sm:pl-2"
         end
 
         def wrapper_classes

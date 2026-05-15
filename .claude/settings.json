@@ -1,6 +1,7 @@
 {
   "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_NO_FLICKER": "0"
   },
   "permissions": {
     "allow": [
@@ -71,6 +72,10 @@
         ]
       }
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash /Users/fede/code/shared/bali-view-components/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
     "rails-tools@afal-plugins": true,

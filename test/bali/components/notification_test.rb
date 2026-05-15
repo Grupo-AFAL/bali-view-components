@@ -87,6 +87,35 @@ class BaliNotificationComponentTest < ComponentTestCase
   end
 
   def test_constants_has_base_classes_constant
-    assert_equal("notification-component alert", Bali::Notification::Component::BASE_CLASSES)
+    assert_equal("notification-component alert shadow-xl", Bali::Notification::Component::BASE_CLASSES)
+  end
+
+  def test_renders_type_icon_for_success
+    render_inline(Bali::Notification::Component.new(type: :success, fixed: false))
+    assert_selector(".lucide-icon")
+  end
+
+  def test_renders_close_button_with_icon
+    render_inline(Bali::Notification::Component.new(fixed: false))
+    assert_selector('button[data-action="notification#close"] .lucide-icon')
+  end
+
+  def test_success_has_status_role
+    render_inline(Bali::Notification::Component.new(type: :success, fixed: false))
+    assert_selector('div[role="status"]')
+  end
+
+  def test_error_has_alert_role
+    render_inline(Bali::Notification::Component.new(type: :error, fixed: false))
+    assert_selector('div[role="alert"]')
+  end
+
+  def test_danger_has_alert_role
+    render_inline(Bali::Notification::Component.new(type: :danger, fixed: false))
+    assert_selector('div[role="alert"]')
+  end
+
+  def test_constants_has_frozen_icons_constant
+    assert(Bali::Notification::Component::ICONS.frozen?)
   end
 end

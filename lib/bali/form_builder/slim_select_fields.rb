@@ -6,6 +6,7 @@ module Bali
       WRAPPER_CLASS = "slim-select"
       SELECT_CLASS = "select select-bordered"
       TOGGLE_BUTTON_CLASS = "ss-toggle-btn"
+      SIZE_CLASSES = { sm: "slim-select-sm" }.freeze
 
       DEFAULT_OPTIONS = {
         add_items: false,
@@ -17,7 +18,8 @@ module Bali
         select_all: false,
         disabled: false,
         hide_selected: false,
-        search_highlight: false
+        search_highlight: false,
+        content_width: nil
       }.freeze
 
       def slim_select_group(method, values, options = {}, html_options = {})
@@ -32,7 +34,9 @@ module Bali
 
         select_class = merged_html.delete(:select_class)
         custom_class = merged_html[:class]
-        merged_html[:class] = class_names([ SELECT_CLASS, custom_class ].compact)
+        merged_html[:class] = field_class_name(
+          method, class_names([ SELECT_CLASS, custom_class ].compact), error_class: "select-error"
+        )
 
         field = build_wrapper(method, merged_options, merged_html, select_class) do
           build_select_content(method, values, merged_options, merged_html)
@@ -101,9 +105,10 @@ module Bali
       end
 
       def wrapper_attributes(method, options, html_options, select_class)
+        size_class = SIZE_CLASSES[options[:size]&.to_sym]
         {
           id: "#{method}_select_div",
-          class: class_names([ WRAPPER_CLASS, select_class ].compact),
+          class: class_names([ WRAPPER_CLASS, size_class, select_class ].compact),
           data: stimulus_data(options, html_options)
         }
       end
@@ -125,7 +130,8 @@ module Bali
           slim_select_ajax_url_value: options[:ajax_url],
           slim_select_ajax_placeholder_value: options[:ajax_placeholder],
           slim_select_after_change_fetch_url_value: options[:after_change_fetch_url],
-          slim_select_after_change_fetch_method_value: options[:after_change_fetch_method]
+          slim_select_after_change_fetch_method_value: options[:after_change_fetch_method],
+          slim_select_content_width_value: options[:content_width]
         }
 
         # Boolean values - only include when true to reduce HTML size

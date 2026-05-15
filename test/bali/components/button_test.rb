@@ -110,4 +110,33 @@ class BaliButtonComponentTest < ComponentTestCase
     render_inline(Bali::Button::Component.new(class: "w-full")) { "Full Width" }
     assert_selector("button.btn.w-full")
   end
+
+  # Responsive (icon-only on mobile)
+
+  def test_responsive_adds_btn_square_class_with_icon
+    render_inline(Bali::Button::Component.new(name: "Add", icon_name: "plus"))
+    assert_selector("button.btn.max-sm\\:btn-square")
+  end
+
+  def test_responsive_wraps_name_in_hidden_span
+    render_inline(Bali::Button::Component.new(name: "Add", icon_name: "plus"))
+    assert_selector("button span.max-sm\\:hidden", text: "Add")
+  end
+
+  def test_responsive_adds_aria_label
+    render_inline(Bali::Button::Component.new(name: "Add", icon_name: "plus"))
+    assert_selector('button[aria-label="Add"]')
+  end
+
+  def test_responsive_false_renders_normally
+    render_inline(Bali::Button::Component.new(name: "Add", icon_name: "plus", responsive: false))
+    assert_no_selector("button.max-sm\\:btn-square")
+    assert_no_selector("button span.max-sm\\:hidden")
+    assert_no_selector("button[aria-label]")
+  end
+
+  def test_responsive_without_icon_does_not_add_btn_square
+    render_inline(Bali::Button::Component.new(name: "Add"))
+    assert_no_selector("button.max-sm\\:btn-square")
+  end
 end

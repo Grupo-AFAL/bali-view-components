@@ -10,6 +10,11 @@ module Bali
 
       renders_many :menu_switches, Bali::SideMenu::MenuSwitch::Component
 
+      # Brand slot — renders rich content (logo + text, just an icon, custom HTML)
+      # in the chrome row above the menu switcher. Falls back to the `brand:`
+      # parameter when the slot is not set, so existing string usage keeps working.
+      renders_one :brand
+
       renders_many :bottom_items, Item::Component.renderable
 
       renders_many :bottom_groups,
@@ -39,15 +44,12 @@ module Bali
       # @param group_behavior [Symbol] How nested items behave - :expandable or :dropdown
       # @param brand [String] Optional brand name shown in the header (e.g., "ACME")
       # @param mobile_trigger_id [String] Mobile trigger checkbox ID
-      def initialize(current_path:, fixed: true, collapsible: false, collapsable: nil,
+      def initialize(current_path:, fixed: true, collapsible: false,
                      group_behavior: :expandable,
                      brand: nil, mobile_trigger_id: MOBILE_TRIGGER_ID, **options)
         @current_path = current_path
         @fixed = fixed
-        unless collapsable.nil?
-          ActiveSupport::Deprecation.warn("`collapsable:` is deprecated, use `collapsible:` instead", caller)
-        end
-        @collapsible = collapsable.nil? ? collapsible : collapsable
+        @collapsible = collapsible
         @group_behavior = GROUP_BEHAVIORS.include?(group_behavior) ? group_behavior : :expandable
         @brand = brand
         @mobile_trigger_id = mobile_trigger_id
@@ -62,7 +64,6 @@ module Bali
         @collapsible
       end
 
-      alias collapsable? collapsible?
 
       def expandable_groups?
         @group_behavior == :expandable
@@ -119,10 +120,13 @@ module Bali
         authorized_menus.find(&:active?) || authorized_menus.first
       end
 
-      attr_reader :brand, :mobile_trigger_id
+      attr_reader :mobile_trigger_id
 
-      def brand?
-        @brand.present?
+      # True when EITHER the brand slot is set OR the `brand:` text param is present.
+      # Overrides the slot's auto-generated `brand?` so the chrome row renders
+      # whichever path the consumer used.
+      def brand_present?
+        brand? || @brand.present?
       end
 
       # Translated aria-label for mobile trigger checkbox

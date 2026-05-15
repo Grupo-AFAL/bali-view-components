@@ -4,8 +4,8 @@ module Bali
   module SideMenu
     module MenuSwitch
       class Component < ApplicationViewComponent
-        # href is public for use in parent component template
-        attr_reader :href
+        # href and title are public for use in parent component template
+        attr_reader :href, :title
 
         def initialize(title:, href:, icon:, subtitle: nil, active: false, authorized: true)
           @title = title
@@ -30,7 +30,7 @@ module Bali
 
         private
 
-        attr_reader :title, :subtitle, :icon
+        attr_reader :subtitle, :icon
       end
     end
   end

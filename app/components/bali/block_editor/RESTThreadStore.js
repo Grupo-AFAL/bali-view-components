@@ -23,7 +23,8 @@ export class RESTThreadStore extends ThreadStore {
   constructor (userId, baseUrl, { role = 'editor', pollInterval = 5000 } = {}) {
     super(new DefaultThreadStoreAuth(userId, role))
     this._userId = userId
-    this._baseUrl = baseUrl.replace(/\/+$/, '')
+    // Parse the base URL to correctly handle query parameters in sub-requests
+    this._parsedBaseUrl = new URL(baseUrl, window.location.origin)
     this._threads = new Map()
     this._subscribers = new Set()
     this._pollInterval = pollInterval
@@ -103,11 +104,22 @@ export class RESTThreadStore extends ThreadStore {
     }
   }
 
+  // TODO: _removeMarks is not removing comment highlights from the document body after deletion.
+  //       The thread is removed from the sidebar but the text stays highlighted.
   async deleteThread ({ threadId }) {
     await this._delete(`/${threadId}`)
 
     this._threads.delete(threadId)
+    this._removeMarks(threadId)
     this._notify()
+  }
+
+  /**
+   * Set a reference to the BlockNote editor so we can manipulate marks.
+   * Called from BlockNoteEditorWrapper after the editor is created.
+   */
+  setEditor (editor) {
+    this._editor = editor
   }
 
   async resolveThread ({ threadId }) {
@@ -278,10 +290,31 @@ export class RESTThreadStore extends ThreadStore {
       base.deletedAt = new Date(raw.deleted_at || raw.deletedAt)
       base.body = undefined
     } else {
-      base.body = raw.body
+      base.body = this._normalizeCommentBody(raw.body)
     }
 
     return base
+  }
+
+  _normalizeCommentBody (body) {
+    // BlockNote expects comment body as an array of blocks.
+    // Handle string bodies by wrapping them in a paragraph block.
+    if (typeof body === 'string') {
+      return [{
+        type: 'paragraph',
+        content: [{ type: 'text', text: body, styles: {} }],
+        children: []
+      }]
+    }
+    return body
+  }
+
+  _buildUrl (path) {
+    const url = new URL(this._parsedBaseUrl)
+    if (path) {
+      url.pathname = url.pathname.replace(/\/+$/, '') + path
+    }
+    return url.toString()
   }
 
   _csrfToken () {
@@ -290,15 +323,20 @@ export class RESTThreadStore extends ThreadStore {
   }
 
   _headers () {
-    return {
+    const headers = {
       'Content-Type': 'application/json',
       Accept: 'application/json',
       'X-CSRF-Token': this._csrfToken()
     }
+    if (this._userId) {
+      headers['X-User-Id'] = this._userId
+    }
+    return headers
   }
 
   async _get (path) {
-    const response = await fetch(`${this._baseUrl}${path}`, {
+    const url = this._buildUrl(path)
+    const response = await fetch(url, {
       method: 'GET',
       headers: this._headers()
     })
@@ -307,7 +345,8 @@ export class RESTThreadStore extends ThreadStore {
   }
 
   async _post (path, body) {
-    const response = await fetch(`${this._baseUrl}${path}`, {
+    const url = this._buildUrl(path)
+    const response = await fetch(url, {
       method: 'POST',
       headers: this._headers(),
       body: JSON.stringify(body)
@@ -317,7 +356,8 @@ export class RESTThreadStore extends ThreadStore {
   }
 
   async _patch (path, body) {
-    const response = await fetch(`${this._baseUrl}${path}`, {
+    const url = this._buildUrl(path)
+    const response = await fetch(url, {
       method: 'PATCH',
       headers: this._headers(),
       body: JSON.stringify(body)
@@ -327,15 +367,34 @@ export class RESTThreadStore extends ThreadStore {
   }
 
   async _delete (path) {
-    const response = await fetch(`${this._baseUrl}${path}`, {
+    const url = this._buildUrl(path)
+    const response = await fetch(url, {
       method: 'DELETE',
       headers: this._headers()
     })
     if (!response.ok) throw new Error(`DELETE ${path} failed: ${response.status}`)
   }
 
+  _removeMarks (threadId) {
+    if (!this._editor?._tiptapEditor) return
+    const { state, dispatch } = this._editor._tiptapEditor.view
+    const markType = state.schema.marks.comment
+    if (!markType) return
+
+    const { tr } = state
+    let changed = false
+    state.doc.descendants((node, pos) => {
+      if (node.marks?.some(m => m.type === markType && m.attrs.threadId === threadId)) {
+        tr.removeMark(pos, pos + node.nodeSize, markType.create({ threadId }))
+        changed = true
+      }
+    })
+    if (changed) dispatch(tr)
+  }
+
   async _deleteWithBody (path, body) {
-    const response = await fetch(`${this._baseUrl}${path}`, {
+    const url = this._buildUrl(path)
+    const response = await fetch(url, {
       method: 'DELETE',
       headers: this._headers(),
       body: JSON.stringify(body)

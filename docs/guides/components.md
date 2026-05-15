@@ -131,6 +131,77 @@ Slots allow you to inject content into specific areas of a component:
 
 ### Layout Components
 
+#### AppLayout
+
+Top-level page shell. Renders `<body>` directly with optional banner, navbar,
+sidebar, topbar, and main body slots. Designed for admin shells but the
+slots are independent so non-shell layouts work too.
+
+```erb
+<%= render Bali::AppLayout::Component.new(fixed_sidebar: true) do |layout| %>
+  <% layout.with_sidebar do %>
+    <%= render 'layouts/admin_sidebar' %>  <%# typically a Bali::SideMenu %>
+  <% end %>
+  <% layout.with_topbar do %>
+    <%= render 'layouts/admin_topbar' %>   <%# typically a Bali::Topbar %>
+  <% end %>
+  <% layout.with_body do %>
+    <%= yield %>
+  <% end %>
+<% end %>
+```
+
+**Options:**
+- `fixed_sidebar` - Sidebar uses `position: fixed`; content gets left padding (default: false)
+- `viewport_locked` - Body locks to 100vh; only inner `<main>` scrolls (Linear/Notion app-shell pattern). Defaults to `fixed_sidebar` value — pass explicitly to decouple
+- `body_container` - `:wide` (default), `:contained`, `:narrow`, `:full`
+- `flash` - Pass `flash` for built-in toast notifications
+- `modal` / `drawer` - Render shared modal/drawer slots (default: true)
+
+**Decoupled scroll model**:
+| `fixed_sidebar` | `viewport_locked` | Behavior |
+|-----------------|-------------------|----------|
+| `true` | `true` (default) | Full app shell — sidebar + topbar pinned, only body scrolls |
+| `true` | `false` | Fixed sidebar but page scrolls (long forms) |
+| `false` | `true` | Topbar pinned, no sidebar |
+| `false` | `false` | Marketing-style page scroll |
+
+#### Topbar
+
+Top-of-content bar that sits inside the AppLayout's `with_topbar` slot. 56px
+tall to align horizontally with the SideMenu's brand row. Slots: brand,
+search, actions (many), user_menu.
+
+```erb
+<%= render Bali::Topbar::Component.new do |topbar| %>
+  <% topbar.with_search do %>
+    <%= render Bali::Command::Component.new do |cmd| %>
+      <% cmd.with_trigger do %>
+        <button type="button" class="...">Search… <kbd>⌘K</kbd></button>
+      <% end %>
+      <% cmd.with_group(name: "Pages") do |g| %>
+        <% g.with_item(title: "Dashboard", icon: 'layout-dashboard', href: '/') %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <% topbar.with_action do %>
+    <button class="btn btn-ghost btn-sm btn-square" aria-label="Notifications">
+      <%= render Bali::Icon::Component.new('bell', class: 'size-5') %>
+    </button>
+  <% end %>
+
+  <% topbar.with_user_menu do %>
+    <%= render Bali::Dropdown::Component.new do |d| %>
+      <%# avatar + dropdown items %>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+**Options:**
+- `mobile_trigger_id` - ID of the sidebar's mobile checkbox (renders the `lg:hidden` hamburger). Defaults to `Bali::SideMenu::Component::MOBILE_TRIGGER_ID`. Pass `nil` for layouts without a sidebar
+
 #### Card
 
 Content container with optional header, image, and actions.
@@ -187,6 +258,94 @@ Slide-in panel from edge of screen.
 ---
 
 ### Navigation Components
+
+#### SideMenu
+
+Vertical sidebar with brand row, sectioned nav, optional module switcher, and
+bottom-pinned items. Used inside `Bali::AppLayout`'s `with_sidebar` slot.
+
+```erb
+<%= render Bali::SideMenu::Component.new(current_path: request.path, collapsible: true) do |menu| %>
+  <%# Brand slot — accepts icon + text or any custom HTML %>
+  <% menu.with_brand do %>
+    <%= lucide_icon('clapperboard', size: 24) %>
+    <span class="truncate">My App</span>
+  <% end %>
+
+  <%# Optional: multiple modules → renders a switcher dropdown above the lists %>
+  <% menu.with_menu_switch(title: 'Admin', icon: 'shield', href: admin_root_path) %>
+  <% menu.with_menu_switch(title: 'Reports', icon: 'bar-chart-3', href: reports_path) %>
+
+  <% menu.with_list(title: 'Main') do |list| %>
+    <% list.with_item(name: 'Dashboard', href: '/', icon: 'layout-dashboard', match: :exact) %>
+    <% list.with_item(name: 'Movies', href: movies_path, icon: 'film', match: :crud) %>
+  <% end %>
+
+  <% menu.with_bottom_group(name: 'Settings', icon: 'settings') do |group| %>
+    <% group.with_item(name: 'Profile', href: '#', icon: 'circle-user') %>
+    <% group.with_item(name: 'Sign out', href: '#', icon: 'log-out') %>
+  <% end %>
+<% end %>
+```
+
+**Options:**
+- `current_path` (required) - For active-state matching
+- `fixed` - Fixed-to-viewport sidebar (default: true)
+- `collapsible` - Show desktop collapse toggle and icon-only collapsed state
+- `brand` - Simple text brand. For richer brand (logo + text, custom HTML), use the `with_brand` slot instead
+- `group_behavior` - `:expandable` (default, DaisyUI collapse) or `:dropdown` (hover dropdown for nested items)
+
+**Brand row aligns** with `Bali::Topbar` (both 56px) so they form one continuous chrome divider when paired in `Bali::AppLayout`.
+
+**Match types** for `with_item`: `:exact`, `:partial`, `:starts_with`, `:crud` (matches `/path` and `/path/123/edit` etc).
+
+#### Command
+
+⌘K-style command palette / launcher. Modal panel with search input, grouped
+results, keyboard navigation, and a global ⌘K (Mac) / Ctrl+K (Windows) shortcut.
+
+```erb
+<%= render Bali::Command::Component.new(placeholder: 'Search…') do |c| %>
+  <% c.with_trigger do %>
+    <button type="button" class="...">
+      <%= render Bali::Icon::Component.new('search') %>
+      <span>Search…</span>
+      <kbd class="kbd kbd-xs">⌘K</kbd>
+    </button>
+  <% end %>
+
+  <% c.with_group(name: 'Pages') do |g| %>
+    <% g.with_item(title: 'Dashboard', meta: 'Overview', icon: 'layout-dashboard', href: '/') %>
+    <% g.with_item(title: 'Movies', meta: 'Catalog', icon: 'film', href: movies_path) %>
+  <% end %>
+
+  <% c.with_group(name: 'Recents', mode: :recent) do |g| %>
+    <% g.with_item(title: 'Last viewed doc', icon: 'file-text', href: '/docs/1') %>
+  <% end %>
+
+  <% c.with_group(name: 'Actions', mode: :action) do |g| %>
+    <% g.with_item(title: 'New movie', meta: 'Create a record', icon: 'plus', href: new_movie_path) %>
+  <% end %>
+<% end %>
+```
+
+**Group modes:**
+- `:searchable` (default) - Items only show when the query matches `title + meta`
+- `:recent` - Only shown when query is empty (recent activity)
+- `:action` - Always shown (used as a fallback when no matches)
+
+**Options:**
+- `placeholder` - Search input placeholder
+- `density` - `:default` (44px rows) or `:compact` (32px rows)
+- `no_results_text` / `no_results_subtitle` - Empty-state copy
+- `shortcut_label` - Display label for the shortcut hint (default `⌘K`). Actual binding is hardcoded to ⌘K/Ctrl+K
+
+**Triggers:**
+- `with_trigger` slot — any clickable element opens the palette (input-shaped buttons are common)
+- Global keyboard: ⌘K (Mac) / Ctrl+K (Windows/Linux)
+- Window events: `bali:command:open` / `bali:command:close` / `bali:command:toggle`
+
+**Keyboard:** ↑/↓ to navigate, ⏎ to activate, Esc to close.
 
 #### Breadcrumb
 
