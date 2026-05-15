@@ -23,6 +23,7 @@ import { DropdownController } from '../../../components/bali/dropdown/index'
 import { TabsController } from '../../../components/bali/tabs/index'
 import { NavbarController } from '../../../components/bali/navbar/index'
 import { SideMenuController } from '../../../components/bali/side_menu/index'
+import { SideMenuFlyoutController } from '../../../components/bali/side_menu/flyout/index'
 import { AvatarController } from '../../../components/bali/avatar/index'
 import { TimeagoController } from '../../../components/bali/timeago/index'
 import { RateController } from '../../../components/bali/rate/index'
@@ -60,6 +61,7 @@ export { DropdownController } from '../../../components/bali/dropdown/index'
 export { TabsController } from '../../../components/bali/tabs/index'
 export { NavbarController } from '../../../components/bali/navbar/index'
 export { SideMenuController } from '../../../components/bali/side_menu/index'
+export { SideMenuFlyoutController } from '../../../components/bali/side_menu/flyout/index'
 
 // Data display components
 export { AvatarController } from '../../../components/bali/avatar/index'
@@ -131,6 +133,7 @@ export function registerAll (application) {
   application.register('tabs', TabsController)
   application.register('navbar', NavbarController)
   application.register('side-menu', SideMenuController)
+  application.register('side-menu-flyout', SideMenuFlyoutController)
 
   // Data display
   application.register('avatar', AvatarController)

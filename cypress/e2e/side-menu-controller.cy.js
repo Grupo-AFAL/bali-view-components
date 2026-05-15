@@ -93,4 +93,37 @@ describe('SideMenuComponent', () => {
       cy.get('.menu-switcher .dropdown-content').should('be.visible')
     })
   })
+
+  context('expandable groups on mobile', () => {
+    // The mobile override (max-width: 1023.98px) forces the sidebar to
+    // expanded width and hides `.side-menu-collapsed` markup, so the new
+    // collapsed-state flyout never appears on mobile. Users get the
+    // accordion instead — tapping a parent expands children inline.
+    beforeEach(() => {
+      cy.viewport('iphone-x') // 375 x 812
+      cy.visit('/bali/side_menu/collapsible')
+      cy.get('.side-menu-component', { timeout: 5000 }).should('exist')
+      // Open the sidebar by checking the mobile-trigger (no hamburger in
+      // the preview chrome, so we trip the checkbox directly).
+      cy.get('input.side-menu-mobile-trigger').check({ force: true })
+    })
+
+    it('hides the collapsed-state flyout markup', () => {
+      // Markup exists in the DOM but the mobile override sets display:none.
+      cy.get('.side-menu-collapsed-flyout').should('not.be.visible')
+    })
+
+    it('shows the expanded accordion for groups with children', () => {
+      cy.contains('.side-menu-expanded', 'Projects').should('be.visible')
+    })
+
+    it('keeps child links in the DOM inside the accordion content', () => {
+      // The accordion is the only path to children on mobile. Confirm
+      // children render inside `.collapse-content` (the accordion's
+      // expandable region) so users can reach them by opening it.
+      cy.contains('.collapse', 'Projects')
+        .find('.collapse-content a[href="/projects/active"]')
+        .should('exist')
+    })
+  })
 })
