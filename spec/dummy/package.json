@@ -6,7 +6,7 @@
     "build:watch": "node esbuild.config.mjs --watch"
   },
   "devDependencies": {
-    "esbuild": "^0.27.0"
+    "esbuild": "^0.28.1"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.44",
