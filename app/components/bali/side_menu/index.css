@@ -259,6 +259,59 @@
     @apply pt-2;
   }
 
+  /* Collapsed-state flyout for expandable groups. The container is
+     shown by `.side-menu-collapsed { !flex }` above. DaisyUI's
+     `dropdown-right` relies on CSS Anchor Positioning, which silently
+     falls back to viewport-relative when the anchor chain isn't set up
+     correctly — the panel can end up at `top: 0` of the viewport,
+     creating a vertical gap the cursor can't cross. We override that
+     here: the JS controller measures the trigger and sets `top` / `left`
+     so the panel is flush against the trigger's right edge. */
+  .side-menu-collapsed-flyout .dropdown-content {
+    /* `left` and `top` are set inline by side-menu-flyout controller. */
+    inset: auto !important;
+  }
+
+  /* Safe-triangle bridge: the trigger (collapsed `menu-item` with `p-2`)
+     is ~32px wide while the panel sits flush against the 56px rail edge,
+     leaving a ~14px dead zone the cursor would otherwise cross with no
+     element to hover. This transparent pseudo-element extends 24px to
+     the left of the panel — wider than the worst-case gap — so the
+     cursor's `:hover` state stays on the `.dropdown` throughout the
+     traversal. */
+  .side-menu-collapsed-flyout .dropdown-content::before {
+    content: "";
+    @apply absolute -left-6 top-0 bottom-0 w-6;
+  }
+
+  /* Intent delay — wait ~120ms before opening so cursor drift past the
+     rail doesn't trigger a flyout mid-task. Closing has a longer delay
+     (300ms) to give users grace if the cursor briefly drifts off the
+     trigger before reaching the panel. */
+  .side-menu-collapsed-flyout .dropdown-content {
+    transition-delay: 300ms;
+  }
+  .side-menu-collapsed-flyout:hover .dropdown-content,
+  .side-menu-collapsed-flyout:focus-within .dropdown-content {
+    transition-delay: 120ms;
+  }
+
+  /* Open the panel when the trigger is hovered OR the container has
+     focus inside it (keyboard tab / touch tap) — covers all three
+     interaction modes (mouse, keyboard, touch). DaisyUI's dropdown-hover
+     handles :hover; this rule extends it to focus-within so keyboard
+     and touch open the panel too. */
+  .side-menu-collapsed-flyout:focus-within .dropdown-content {
+    @apply opacity-100 visible;
+  }
+
+  /* Explicit close via Escape — overrides both :hover and :focus-within
+     until the user moves cursor away or tabs out. Paired with the
+     `is-suppressed` class the controller toggles. */
+  .side-menu-collapsed-flyout.is-suppressed .dropdown-content {
+    @apply opacity-0 invisible;
+  }
+
   /* Bottom group dropdown: open right instead of up when collapsed */
   .side-menu-bottom-group.dropdown {
     position: static;
@@ -310,6 +363,14 @@
 
     .side-menu-expanded { display: flex !important; }
     .side-menu-collapsed { display: none !important; }
+
+    /* The accordion wrapper carries `.side-menu-expanded` but relies on
+       DaisyUI's `display: grid` for its open/close animation and row
+       stacking. The blanket `display: flex` above would otherwise turn
+       the title and content into side-by-side flex items — exactly
+       what makes expandable groups look indented and never expand on
+       mobile. Higher-specificity selector restores grid. */
+    .collapse.side-menu-expanded { display: grid !important; }
 
     .menu-item {
       justify-content: flex-start;

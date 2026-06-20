@@ -12,6 +12,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **SimpleFilters** - el buscador de texto del DataTable ahora sale del autofill de gestores de contraseñas (`autocomplete="off"` + `data-1p-ignore`/`data-lpignore`/`data-form-type="other"`). Un buscador no es un campo de credenciales, pero su `name` puede contener tokens como `name`/`email` (p. ej. `q[name_or_email_cont]` cuando se buscan esas columnas), lo que hacía que 1Password/LastPass/Dashlane ofrecieran login al enfocarlo. Aplica a todos los consumidores sin configuración.
+### Changed
+
+- **DataTable::SimpleFilters** - Filter controls now render their `label:` as a visible caption above each control (select, slim_select, toggle/radio group, number range, date). Previously `label:` was accepted in the filter config but only rendered for `:boolean` toggles (inline) and used as a `:date` placeholder fallback — for the common `select` dropdowns it was silently ignored, so a row of dropdowns all reading "All"/"Todas" gave no indication of what each one filtered. The label renders only when present (filters without `label:` are unchanged), boolean toggles keep their existing inline label (no duplicate caption), and the filter row switched from `items-center` to `items-end` so the Apply/Clear buttons and search input stay aligned with the bottom of the now taller label+control stacks.
+
+### Fixed
+
+- **SideMenu** - Expandable groups (`group_behavior: :expandable`) with subitems were unreachable when the sidebar was collapsed to icon-rail width. Hovering the parent icon showed only a tooltip with the parent's name; children required expanding the rail to navigate. They now open a hover/focus flyout to the right of the rail with the parent name as a title and child links beneath, mirroring the established `:dropdown` mode pattern. Hover/focus opens it; ArrowRight/Enter opens it via keyboard with arrow keys to navigate inside; Escape closes via an `is-suppressed` class cleared on the next `mouseleave`/`focusout`. On coarse pointers, first tap opens the panel without navigating so children remain reachable on touch. A 120ms intent delay throttles open, a 300ms close delay forgives cursor drift, and a 24px transparent `::before` bridge covers the gap between the narrower trigger (icon + `p-2`) and the rail's right edge so `:hover` stays continuous during traversal. The panel position is anchored by JS to the sidebar's `getBoundingClientRect().right` (via `setProperty(..., 'important')` so it wins against the CSS reset that defuses DaisyUI's CSS Anchor Positioning fallback). Children rendering is shared with `:dropdown` mode via a new `render_subitem_link` helper; `render_parent_link`, `flyout_classes`, and `render_flyout_trigger` consolidate the rest. Adds a new `SideMenuFlyoutController` Stimulus controller — registered automatically by `registerAll`
+- **SideMenu** - Expandable groups (accordion variant) no longer open on mobile. The mobile-expansion override applied `display: flex !important` to every `.side-menu-expanded` element, including the `<div class="collapse side-menu-expanded">` accordion wrapper. DaisyUI's collapse relies on `display: grid` for its `grid-template-rows: max-content 0fr` → `1fr` open/close animation; the forced flex made title and content side-by-side flex items, so expandable groups appeared indented and never opened. A higher-specificity `.collapse.side-menu-expanded { display: grid !important }` restores grid
+
+### Removed
+
+- **SideMenu** - Drop the unused `Bali::SideMenu::Item::Component#collapse_id` method. Was defined for a checkbox-driven DaisyUI collapse pattern that never materialized in the template and used `object_id` for the id, which is non-deterministic between requests
 
 ## [v2.9.1] - 2026-05-10
 
@@ -208,6 +220,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **FormBuilder** - `submit_actions` button row now has consistent top margin (`mt-6`) to prevent buttons from appearing flush against the last form field
 - **Modal** - Prevent modal from closing when clicking browser autocomplete options inside modal forms
+- **StepNumberInput** - Guard `disconnect()` with `hasInputTarget` check to prevent error when target element is already removed from DOM ([ENJOY-KITCHEN-JS-B](https://enjoy-kitchen.sentry.io/issues/ENJOY-KITCHEN-JS-B))
 
 ## [v2.3.0] - 2026-02-18
 

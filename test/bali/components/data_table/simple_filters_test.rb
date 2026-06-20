@@ -33,9 +33,23 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector('button[type="submit"]')
   end
 
-  def test_renders_filters_without_labels
+  def test_renders_visible_filter_label
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters))
-    assert_no_selector(".label-text")
+    assert_selector("label", text: "Status")
+    assert_selector("select[name='q[status_eq]']")
+  end
+
+  def test_omits_label_caption_when_label_absent
+    filters_without_label = [
+      {
+        attribute: :status,
+        collection: [ %w[Active active], %w[Inactive inactive] ],
+        blank: "All",
+        value: nil
+      }
+    ]
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: filters_without_label))
+    assert_no_selector("label")
     assert_selector("select[name='q[status_eq]']")
   end
 

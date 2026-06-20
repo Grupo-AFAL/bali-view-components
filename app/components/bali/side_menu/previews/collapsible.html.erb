@@ -2,8 +2,16 @@
   <%= render Bali::SideMenu::Component.new(current_path: '/dashboard', fixed: true, collapsible: true) do |c|
     c.with_list(title: 'Navigation') do |list|
       list.with_item(name: 'Dashboard', href: '/dashboard', icon: 'layout-dashboard')
-      list.with_item(name: 'Projects', href: '/projects', icon: 'folder-open')
-      list.with_item(name: 'Team', href: '/team', icon: 'users')
+      list.with_item(name: 'Projects', icon: 'folder-open') do |item|
+        item.with_item(name: 'Active', href: '/projects/active')
+        item.with_item(name: 'Archived', href: '/projects/archived')
+        item.with_item(name: 'Templates', href: '/projects/templates')
+      end
+      list.with_item(name: 'Team', icon: 'users') do |item|
+        item.with_item(name: 'Members', href: '/team/members')
+        item.with_item(name: 'Invitations', href: '/team/invitations')
+        item.with_item(name: 'Roles', href: '/team/roles')
+      end
       list.with_item(name: 'Calendar', href: '/calendar', icon: 'calendar')
       list.with_item(name: 'Reports', href: '/reports', icon: 'file-text')
     end
@@ -15,7 +23,8 @@
     end
   end %>
   <div class="flex-1 p-4">
-    <p class="text-base-content/60">A simple collapsible sidebar with navigation items.</p>
+    <p class="text-base-content/60">A collapsible sidebar that supports nested groups.</p>
+    <p class="text-base-content/60 mt-2">When collapsed, expandable groups open a hover flyout to the right so children stay reachable. Tab and arrow keys also work; Escape closes.</p>
     <p class="text-base-content/60 mt-2">For collapsible sidebars, use <code class="text-primary">fixed: true, collapsible: true</code> in a full-page layout.</p>
   </div>
 </div>
