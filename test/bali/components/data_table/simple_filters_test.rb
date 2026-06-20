@@ -161,6 +161,14 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("input[placeholder='Search by name...']")
   end
 
+  def test_search_input_opts_out_of_password_manager_autofill
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: @search))
+    # Un buscador no es un campo de login; salimos del autofill para que 1Password
+    # y otros no ofrezcan credenciales al enfocarlo.
+    assert_selector("input[type='text'][autocomplete='off'][data-1p-ignore]")
+    assert_selector("input[type='text'][data-lpignore='true'][data-form-type='other']")
+  end
+
   def test_search_input_uses_default_width_classes
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: @search))
     assert_selector("div.w-48.sm\\:w-96.shrink-0")

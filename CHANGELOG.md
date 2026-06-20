@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2.9.2] - 2026-06-19
+
+### Fixed
+
+- **SimpleFilters** - el buscador de texto del DataTable ahora sale del autofill de gestores de contraseñas (`autocomplete="off"` + `data-1p-ignore`/`data-lpignore`/`data-form-type="other"`). Un buscador no es un campo de credenciales, pero su `name` puede contener tokens como `name`/`email` (p. ej. `q[name_or_email_cont]` cuando se buscan esas columnas), lo que hacía que 1Password/LastPass/Dashlane ofrecieran login al enfocarlo. Aplica a todos los consumidores sin configuración.
 ### Changed
 
 - **DataTable::SimpleFilters** - Filter controls now render their `label:` as a visible caption above each control (select, slim_select, toggle/radio group, number range, date). Previously `label:` was accepted in the filter config but only rendered for `:boolean` toggles (inline) and used as a `:date` placeholder fallback — for the common `select` dropdowns it was silently ignored, so a row of dropdowns all reading "All"/"Todas" gave no indication of what each one filtered. The label renders only when present (filters without `label:` are unchanged), boolean toggles keep their existing inline label (no duplicate caption), and the filter row switched from `items-center` to `items-end` so the Apply/Clear buttons and search input stay aligned with the bottom of the now taller label+control stacks.

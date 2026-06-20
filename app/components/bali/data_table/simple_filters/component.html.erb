@@ -5,11 +5,18 @@
         <div class="w-full <%= 'join' if search_icon %>">
           <%= icon_addon(search_icon) %>
 
+          <%# Un buscador de texto no es un campo de credenciales: optamos por
+              salir del autofill para que los gestores de contraseñas (1Password,
+              LastPass, Dashlane) no ofrezcan login al enfocarlo. Aplica a todos
+              los buscadores del DataTable; el name puede contener tokens como
+              "name"/"email" (p. ej. q[name_or_email_cont]) que disparan su heurística. %>
           <%= tag.input(
                 type: "text",
                 name: @search[:field_name],
                 value: @search[:value],
                 placeholder: @search[:placeholder],
+                autocomplete: "off",
+                data: { "1p-ignore": "", lpignore: "true", "form-type": "other" },
                 class: "input input-bordered input-sm w-full #{'join-item rounded-l-none border-l-0' if search_icon}"
               ) %>
         </div>
