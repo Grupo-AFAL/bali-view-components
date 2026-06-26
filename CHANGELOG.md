@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2.9.3] - 2026-06-26
+
+### Changed
+
+- **Filters** - searchable single-select (SlimSelect) for select-type filter values; wider field selector so long labels fit. The advanced-filter condition's single-value `select` (used for `is`/`is not` on select-type attributes) now mounts the `slim-select` controller, adding a type-to-filter search box — helpful when an attribute has many options. The attribute (field) selector widened from `sm:w-32` (128px) to `sm:w-48` (192px) on desktop so long labels (e.g. "Último Inicio de Sesión") no longer overlap the chevron; it stays full-width on mobile. Both the server-rendered ERB and the JavaScript that rebuilds the value input on attribute/operator change emit equivalent markup, so dynamically added conditions get the same searchable select. The multi-select (`is any of` / `is not any of`) is unchanged. Adds a `bali.filters.search` i18n key (en/es).
+
 ## [v2.9.2] - 2026-06-19
 
 ### Fixed

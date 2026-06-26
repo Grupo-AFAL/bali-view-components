@@ -6,8 +6,8 @@
      data-condition-translations-value="<%= translations_json %>"
      data-filter-group-target="condition">
 
-  <%# Attribute selector - fixed width on desktop, full width on mobile %>
-  <div class="w-full sm:w-32 sm:shrink-0">
+  <%# Attribute selector - wider fixed width on desktop so long labels fit, full width on mobile %>
+  <div class="w-full sm:w-48 sm:shrink-0">
     <select class="select select-bordered select-sm w-full"
             data-action="condition#attributeChanged"
             data-condition-target="attribute">
@@ -80,20 +80,25 @@
           </div>
         </div>
       <% else %>
-        <%# Single select for "is" / "is not" %>
-        <select class="select select-bordered select-sm w-full"
-                name="<%= field_name %>"
-                data-condition-target="value">
-          <option value="">
-            <%= t('bali.filters.select_value', default: 'Select...') %>
-          </option>
-          <% attribute_options.each do |opt| %>
-            <% opt_label, opt_value = opt.is_a?(Array) ? opt : [opt, opt] %>
-            <option value="<%= opt_value %>" <%= 'selected' if opt_value.to_s == value.to_s %>>
-              <%= opt_label %>
+        <%# Single searchable select for "is" / "is not" (SlimSelect) %>
+        <div class="w-full" data-controller="slim-select"
+             data-slim-select-placeholder-value="<%= t('bali.filters.select_value', default: 'Select...') %>"
+             data-slim-select-search-placeholder-value="<%= t('bali.filters.search', default: 'Buscar...') %>">
+          <select class="select select-bordered select-sm w-full"
+                  name="<%= field_name %>"
+                  data-slim-select-target="select"
+                  data-condition-target="value">
+            <option value="">
+              <%= t('bali.filters.select_value', default: 'Select...') %>
             </option>
-          <% end %>
-        </select>
+            <% attribute_options.each do |opt| %>
+              <% opt_label, opt_value = opt.is_a?(Array) ? opt : [opt, opt] %>
+              <option value="<%= opt_value %>" <%= 'selected' if opt_value.to_s == value.to_s %>>
+                <%= opt_label %>
+              </option>
+            <% end %>
+          </select>
+        </div>
       <% end %>
 
     <% when :boolean %>

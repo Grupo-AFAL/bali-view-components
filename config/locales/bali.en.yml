@@ -6,6 +6,7 @@ en:
       where: "Where"
       filters_button: "Filters"
       search_placeholder: "Search..."
+      search: "Search..."
       select_field: "Select field..."
       select_value: "Select..."
       select_values: "Select values..."
