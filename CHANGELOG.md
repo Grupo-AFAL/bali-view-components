@@ -11,7 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Filters** - searchable single-select (SlimSelect) for select-type filter values; wider field selector so long labels fit. The advanced-filter condition's single-value `select` (used for `is`/`is not` on select-type attributes) now mounts the `slim-select` controller, adding a type-to-filter search box — helpful when an attribute has many options. The attribute (field) selector widened from `sm:w-32` (128px) to `sm:w-48` (192px) on desktop so long labels (e.g. "Último Inicio de Sesión") no longer overlap the chevron; it stays full-width on mobile. Both the server-rendered ERB and the JavaScript that rebuilds the value input on attribute/operator change emit equivalent markup, so dynamically added conditions get the same searchable select. The multi-select (`is any of` / `is not any of`) is unchanged. Adds a `bali.filters.search` i18n key (en/es).
+- **Filters** - searchable single-select (SlimSelect) for select-type filter values; wider field and operator selectors so long labels fit. The advanced-filter condition's single-value `select` (used for `is`/`is not` on select-type attributes) now mounts the `slim-select` controller, adding a type-to-filter search box — helpful when an attribute has many options. The attribute (field) selector widened from `sm:w-32` (128px) to `sm:w-48` (192px) and the operator selector from `sm:w-24` (96px) to `sm:w-40` (160px) on desktop, so long labels (e.g. "Último Inicio de Sesión", "es exactamente", "no contiene") no longer overlap the chevron; both stay full-width on mobile. Both the server-rendered ERB and the JavaScript that rebuilds the value input on attribute/operator change emit equivalent markup, so dynamically added conditions get the same searchable select. The multi-select (`is any of` / `is not any of`) is unchanged. Adds a `bali.filters.search` i18n key (en/es).
+
+### Security
+
+- Bump `concurrent-ruby` 1.3.6 → 1.3.7 and `nokogiri` 1.19.3 → 1.19.4 (bundler-audit advisories).
 
 ## [v2.9.2] - 2026-06-19
 

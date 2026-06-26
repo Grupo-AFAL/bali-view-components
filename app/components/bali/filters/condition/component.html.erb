@@ -26,8 +26,8 @@
     </select>
   </div>
 
-  <%# Operator selector - fixed width on desktop, full width on mobile %>
-  <div class="w-full sm:w-24 sm:shrink-0">
+  <%# Operator selector - wider fixed width so labels like "es exactamente" / "no contiene" fit %>
+  <div class="w-full sm:w-40 sm:shrink-0">
     <select class="select select-bordered select-sm w-full"
             data-action="condition#operatorChanged"
             data-condition-target="operator">
