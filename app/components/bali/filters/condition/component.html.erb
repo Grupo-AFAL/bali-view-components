@@ -6,9 +6,9 @@
      data-condition-translations-value="<%= translations_json %>"
      data-filter-group-target="condition">
 
-  <%# Attribute selector - wider fixed width on desktop so long labels fit, full width on mobile %>
-  <div class="w-full sm:w-48 sm:shrink-0">
-    <select class="select select-bordered select-sm w-full"
+  <%# Attribute selector - narrow; long labels truncate with ellipsis so the value gets space %>
+  <div class="w-full sm:w-36 sm:shrink-0">
+    <select class="select select-bordered select-sm w-full truncate"
             data-action="condition#attributeChanged"
             data-condition-target="attribute">
       <option value="">
@@ -26,9 +26,9 @@
     </select>
   </div>
 
-  <%# Operator selector - wider fixed width so labels like "es exactamente" / "no contiene" fit %>
-  <div class="w-full sm:w-40 sm:shrink-0">
-    <select class="select select-bordered select-sm w-full"
+  <%# Operator selector - kept narrow; long labels ("es exactamente") truncate with ellipsis %>
+  <div class="w-full sm:w-28 sm:shrink-0">
+    <select class="select select-bordered select-sm w-full truncate"
             data-action="condition#operatorChanged"
             data-condition-target="operator">
       <% operators_for_current_type.each do |op| %>
@@ -80,8 +80,9 @@
           </div>
         </div>
       <% else %>
-        <%# Single searchable select for "is" / "is not" (SlimSelect) %>
-        <div class="w-full" data-controller="slim-select"
+        <%# Single searchable select for "is" / "is not" (SlimSelect).
+            slim-select-sm matches the select-sm height of the field/operator selects. %>
+        <div class="w-full slim-select-sm" data-controller="slim-select"
              data-slim-select-placeholder-value="<%= t('bali.filters.select_value', default: 'Select...') %>"
              data-slim-select-search-placeholder-value="<%= t('bali.filters.search', default: 'Buscar...') %>">
           <select class="select select-bordered select-sm w-full"

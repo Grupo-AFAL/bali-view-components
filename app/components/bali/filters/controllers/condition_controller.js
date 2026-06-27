@@ -553,7 +553,7 @@ export class ConditionController extends Controller {
       .join('')
 
     return `
-      <div class="w-full" data-controller="slim-select"
+      <div class="w-full slim-select-sm" data-controller="slim-select"
            data-slim-select-placeholder-value="${this.escapeHtml(placeholder)}"
            data-slim-select-search-placeholder-value="${this.escapeHtml(searchPlaceholder)}">
         <select class="select select-bordered select-sm w-full"
