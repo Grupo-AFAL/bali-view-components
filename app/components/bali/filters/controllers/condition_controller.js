@@ -544,6 +544,7 @@ export class ConditionController extends Controller {
 
   buildSelectInput (fieldName, options) {
     const placeholder = this.t.placeholders?.select || 'Select...'
+    const searchPlaceholder = this.t.search || 'Buscar...'
     const optionsHtml = options
       .map((opt) => {
         const [label, value] = Array.isArray(opt) ? opt : [opt, opt]
@@ -552,12 +553,17 @@ export class ConditionController extends Controller {
       .join('')
 
     return `
-      <select class="select select-bordered select-sm w-full"
-              name="${fieldName}"
-              data-condition-target="value">
-        <option value="">${this.escapeHtml(placeholder)}</option>
-        ${optionsHtml}
-      </select>
+      <div class="w-full slim-select-sm" data-controller="slim-select"
+           data-slim-select-placeholder-value="${this.escapeHtml(placeholder)}"
+           data-slim-select-search-placeholder-value="${this.escapeHtml(searchPlaceholder)}">
+        <select class="select select-bordered select-sm w-full"
+                name="${fieldName}"
+                data-slim-select-target="select"
+                data-condition-target="value">
+          <option value="">${this.escapeHtml(placeholder)}</option>
+          ${optionsHtml}
+        </select>
+      </div>
     `
   }
 

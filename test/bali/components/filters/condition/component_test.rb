@@ -84,6 +84,15 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     assert_select(with_options: %w[Active Inactive])
   end
 
+  def test_select_type_single_value_uses_searchable_slim_select
+    condition = { attribute: "status", operator: "eq", value: "active" }
+    render_inline(Bali::Filters::Condition::Component.new(
+      condition: condition, group_index: 0, condition_index: 0, available_attributes: @available_attributes
+    ))
+    assert_selector('[data-controller="slim-select"] select[data-slim-select-target="select"][data-condition-target="value"]')
+    assert_selector('[data-controller="slim-select"][data-slim-select-search-placeholder-value]')
+  end
+
   def test_with_pre_selected_attribute_shows_select_for_boolean_type
     condition = { attribute: "verified", operator: "eq", value: "true" }
     render_inline(Bali::Filters::Condition::Component.new(

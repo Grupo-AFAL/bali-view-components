@@ -151,6 +151,33 @@ module Bali
         )
       end
 
+      # @label Searchable Select (many options)
+      # @param popover toggle
+      # A select-type attribute with many options renders a searchable SlimSelect dropdown:
+      # pick "City" and type to filter the list instead of scrolling. Great for large catalogs
+      # (departments, cities, etc.).
+      def searchable_select(popover: true)
+        cities = [
+          'Tijuana', 'Mexicali', 'Ensenada', 'Rosarito', 'Tecate', 'Guadalajara',
+          'Zapopan', 'Tlaquepaque', 'Culiacán', 'Mazatlán', 'Los Mochis', 'Guasave',
+          'Hermosillo', 'Ciudad Obregón', 'Navojoa', 'Nogales', 'La Paz',
+          'Cabo San Lucas', 'San José del Cabo', 'Tepic', 'Monterrey',
+          'Ciudad de México', 'Puebla', 'Querétaro', 'León', 'Aguascalientes',
+          'Mérida', 'Cancún', 'Veracruz', 'Toluca', 'Morelia', 'Chihuahua'
+        ]
+
+        attributes = [
+          { key: :name, label: 'Name', type: :text },
+          { key: :city, label: 'City', type: :select, options: cities.map { |c| [c, c] } }
+        ]
+
+        render Filters::Component.new(
+          url: '/preview',
+          available_attributes: attributes,
+          popover: popover
+        )
+      end
+
       private
 
       def sample_attributes

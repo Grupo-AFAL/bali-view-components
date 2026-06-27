@@ -103,7 +103,8 @@ module Bali
             operators: operators_translations,
             placeholders: placeholders_translations,
             boolean: boolean_translations,
-            selected_count: selected_count_translation
+            selected_count: selected_count_translation,
+            search: t("bali.filters.search", default: "Buscar...")
           }.to_json
         end
 

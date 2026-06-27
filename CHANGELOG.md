@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2.9.3] - 2026-06-26
+
+### Changed
+
+- **Filters** - searchable single-select (SlimSelect) for select-type filter values, plus layout fixes that keep the value input roomy. The advanced-filter condition's single-value `select` (used for `is`/`is not` on select-type attributes) now mounts the `slim-select` controller, adding a type-to-filter search box — helpful when an attribute has many options. The SlimSelect uses the `slim-select-sm` variant so its height matches the field/operator `select-sm`. The field and operator selectors keep compact fixed widths (`sm:w-36` / `sm:w-28`) and truncate long labels with an ellipsis (e.g. "Último Inicio de Sesión", "es exactamente") instead of growing — so the value input keeps its space; both stay full-width on mobile. Both the server-rendered ERB and the JavaScript that rebuilds the value input on attribute/operator change emit equivalent markup, so dynamically added conditions get the same searchable select. The multi-select (`is any of` / `is not any of`) is unchanged. Adds a `bali.filters.search` i18n key (en/es).
+
+### Security
+
+- Bump `concurrent-ruby` 1.3.6 → 1.3.7 and `nokogiri` 1.19.3 → 1.19.4 (bundler-audit advisories).
+
 ## [v2.9.2] - 2026-06-19
 
 ### Fixed
