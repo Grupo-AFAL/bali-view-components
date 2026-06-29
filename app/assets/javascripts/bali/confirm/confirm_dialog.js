@@ -43,8 +43,8 @@ function buildDialog () {
       <h3 id="bali-confirm-title" class="text-lg font-bold"></h3>
       <p id="bali-confirm-message" class="py-4"></p>
       <div class="modal-action">
-        <button type="button" class="btn btn-ghost" data-bali-confirm-cancel></button>
-        <button type="button" class="btn" data-bali-confirm-accept></button>
+        <button type="button" class="btn btn-ghost" id="bali-confirm-cancel-btn"></button>
+        <button type="button" class="btn" id="bali-confirm-accept-btn"></button>
       </div>
     </div>
     <form method="dialog" class="modal-backdrop">
@@ -54,8 +54,8 @@ function buildDialog () {
 
   titleEl = dialog.querySelector('#bali-confirm-title')
   messageEl = dialog.querySelector('#bali-confirm-message')
-  cancelBtn = dialog.querySelector('[data-bali-confirm-cancel]')
-  acceptBtn = dialog.querySelector('[data-bali-confirm-accept]')
+  cancelBtn = dialog.querySelector('#bali-confirm-cancel-btn')
+  acceptBtn = dialog.querySelector('#bali-confirm-accept-btn')
 
   acceptBtn.addEventListener('click', () => {
     confirmed = true
