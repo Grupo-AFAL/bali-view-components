@@ -1,0 +1,41 @@
+<div class="flex flex-col items-center gap-4 p-8">
+  <p class="max-w-md text-center text-sm text-base-content/60">
+    Bali reemplaza el confirm nativo de Turbo por este diálogo. Aplica a cualquier
+    <code>data-turbo-confirm</code>, no solo a borrados.
+  </p>
+
+  <%= button_to "Eliminar registro", "/bali/confirm_dialog/default",
+        method: :get,
+        class: "btn btn-error",
+        form: { data: {
+          turbo_confirm: "¿Seguro que deseas eliminar este registro?",
+          bali_confirm_title: "Eliminar registro",
+          bali_confirm_variant: "danger",
+          bali_confirm_accept: "Sí, eliminar",
+          bali_confirm_cancel: "Cancelar"
+        } } %>
+
+  <%= button_to "Publicar cambios", "/bali/confirm_dialog/default",
+        method: :get,
+        class: "btn btn-primary",
+        form: { data: {
+          turbo_confirm: "Se publicarán los cambios para todos los usuarios.",
+          bali_confirm_title: "Publicar cambios",
+          bali_confirm_variant: "info",
+          bali_confirm_accept: "Publicar"
+        } } %>
+
+  <%= button_to "Archivar", "/bali/confirm_dialog/default",
+        method: :get,
+        class: "btn btn-warning",
+        form: { data: {
+          turbo_confirm: "El elemento se moverá al archivo.",
+          bali_confirm_title: "Archivar elemento",
+          bali_confirm_variant: "warning"
+        } } %>
+
+  <%= button_to "Guardar", "/bali/confirm_dialog/default",
+        method: :get,
+        class: "btn",
+        form: { data: { turbo_confirm: "¿Guardar los cambios?" } } %>
+</div>
