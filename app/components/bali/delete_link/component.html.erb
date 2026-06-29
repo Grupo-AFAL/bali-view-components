@@ -6,7 +6,7 @@
   <% end %>
 <% else %>
   <%= button_to href, method: :delete,
-                      form: { data: { 'turbo-confirm': confirm_message } },
+                      form: { data: confirm_data },
                       form_class: form_classes,
                       class: button_classes,
                       **button_options do %>
