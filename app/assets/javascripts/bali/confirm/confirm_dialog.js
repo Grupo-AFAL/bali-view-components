@@ -41,7 +41,7 @@ function buildDialog () {
   dialog.innerHTML = `
     <div class="modal-box" role="alertdialog" aria-labelledby="bali-confirm-title" aria-describedby="bali-confirm-message">
       <h3 id="bali-confirm-title" class="text-lg font-bold"></h3>
-      <p id="bali-confirm-message" class="py-4 whitespace-pre-line"></p>
+      <p id="bali-confirm-message" class="py-4"></p>
       <div class="modal-action">
         <button type="button" class="btn btn-ghost" data-bali-confirm-cancel></button>
         <button type="button" class="btn" data-bali-confirm-accept></button>
