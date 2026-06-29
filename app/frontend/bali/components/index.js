@@ -16,6 +16,7 @@
 
 // Core components
 // Import all for registerAll (static imports)
+import { installConfirmDialog } from '../../../assets/javascripts/bali/confirm/confirm_dialog'
 import { TableController } from '../../../components/bali/table/index'
 import { ModalController } from '../../../components/bali/modal/index'
 import { DrawerController } from '../../../components/bali/drawer/index'
@@ -125,6 +126,9 @@ export { CommandController } from '../../../components/bali/command/index'
  * @param {Application} application - Stimulus application instance
  */
 export function registerAll (application) {
+  // Replace Turbo's native window.confirm with Bali's styled dialog (idempotent)
+  installConfirmDialog()
+
   // Core
   application.register('table', TableController)
   application.register('modal', ModalController)

@@ -123,6 +123,9 @@ export { registerAll as registerAllComponents } from './components/index'
 // Re-export utilities
 export * from './utils/index'
 
+// Confirmation dialog (auto-installed by registerAll; exported for manual setup/opt-in)
+export { confirmDialog, installConfirmDialog } from '../../assets/javascripts/bali/confirm/confirm_dialog'
+
 /**
  * Register ALL core Bali controllers (utility + component controllers)
  *
