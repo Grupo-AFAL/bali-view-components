@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2.10.0] - 2026-06-30
+
+### Added
+
+- **Confirm dialog** - Bali now replaces Turbo's native `window.confirm` with a DaisyUI-styled `<dialog>`, auto-installed via `registerAll`. It applies to every `data-turbo-confirm` (including `DeleteLink` and `ActionsDropdown` delete items), renders as real DOM in the top layer so automated browser tools (e.g. Claude in Chrome) can operate it, and supports per-trigger customization through `data-bali-confirm-{title,variant,accept,cancel}` (`variant`: `danger`/`warning`/`info`). `DeleteLink` now renders a red destructive confirm button with localized title/labels (en/es). Opt out with `window.BALI_DISABLE_CONFIRM_DIALOG`. Exports `confirmDialog` / `installConfirmDialog` for manual setup or apps that register controllers selectively. The Turbo Native `SignOut` keeps its own native confirm.
+
 ## [v2.9.3] - 2026-06-26
 
 ### Changed

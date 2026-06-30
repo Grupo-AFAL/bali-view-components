@@ -73,6 +73,16 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
     @options.merge!(skip_confirm: true)
     render_inline(component)
     assert_no_selector("[data-turbo-confirm]")
+    assert_no_selector("[data-bali-confirm-variant]")
+  end
+
+  def test_renders_styled_confirm_data_attributes
+    render_inline(component)
+    assert_selector("form[data-turbo-confirm='Are you sure?']")
+    assert_selector("form[data-bali-confirm-variant='danger']")
+    assert_selector("form[data-bali-confirm-title='Confirm deletion']")
+    assert_selector("form[data-bali-confirm-accept='Delete']")
+    assert_selector("form[data-bali-confirm-cancel='Cancel']")
   end
 
   def test_authorization_does_not_render_when_authorized_false

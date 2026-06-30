@@ -35,6 +35,9 @@ en:
         generic_confirm_message: Are you sure?
         default_name: Delete
         specific_confirm_message: Are you sure you want to delete %{pronoun} %{name}?
+        confirm_title: Confirm deletion
+        confirm_accept: Delete
+        confirm_cancel: Cancel
       filters:
         filters: Filters
         remove_filters: Clear

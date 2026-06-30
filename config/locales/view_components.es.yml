@@ -35,6 +35,9 @@ es:
         generic_confirm_message: '¿Estás seguro(a)?'
         default_name: Eliminar
         specific_confirm_message: '¿Seguro que desea eliminar %{pronoun} %{name}?'
+        confirm_title: Confirmar eliminación
+        confirm_accept: Eliminar
+        confirm_cancel: Cancelar
       filters:
         filters: Filtros
         remove_filters: Quitar filtros

@@ -73,6 +73,18 @@ module Bali
         @confirm.presence || default_confirm_message
       end
 
+      def confirm_data
+        return {} if confirm_message.blank?
+
+        {
+          turbo_confirm: confirm_message,
+          bali_confirm_variant: "danger",
+          bali_confirm_title: t(".confirm_title"),
+          bali_confirm_accept: t(".confirm_accept"),
+          bali_confirm_cancel: t(".confirm_cancel")
+        }
+      end
+
       def icon?
         @icon
       end
