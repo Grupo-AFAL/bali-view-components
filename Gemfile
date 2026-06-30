@@ -6,7 +6,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 # Specify your gem's dependencies in bali.gemspec.
 gemspec
 
-gem "caxlsx", "~> 4.1"
+gem "caxlsx", "~> 4.5"
 gem "csv"
 gem "device_detector"
 gem "propshaft"
