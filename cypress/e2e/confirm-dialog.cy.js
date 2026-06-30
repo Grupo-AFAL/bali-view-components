@@ -35,4 +35,28 @@ describe('Confirm dialog', () => {
     cy.wait('@go')
     cy.get('dialog.modal[open]').should('not.exist')
   })
+
+  it('dismissing via the backdrop closes without navigating', () => {
+    cy.contains('button', 'Eliminar registro').click()
+    cy.get('dialog.modal[open]').should('be.visible')
+
+    cy.get('dialog.modal .modal-backdrop button').click({ force: true })
+    cy.get('dialog.modal[open]').should('not.exist')
+    cy.contains('button', 'Eliminar registro').should('be.visible')
+  })
+
+  it('still works after a Turbo navigation (singleton re-attaches to the new body)', () => {
+    // Accepting triggers a Turbo Drive GET visit that replaces document.body,
+    // detaching the singleton dialog. The next confirm must rebuild it.
+    cy.contains('button', 'Guardar').click()
+    cy.get('#bali-confirm-accept-btn').click()
+
+    // Page re-rendered after the Turbo visit
+    cy.contains('button', 'Eliminar registro').should('be.visible')
+
+    // Confirm again — dialog must still appear (regression guard for the detach bug)
+    cy.contains('button', 'Eliminar registro').click()
+    cy.get('dialog.modal[open]').should('be.visible')
+    cy.get('#bali-confirm-title').should('have.text', 'Eliminar registro')
+  })
 })
