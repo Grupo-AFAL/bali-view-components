@@ -35,7 +35,7 @@ end
 group :test do
   gem "capybara", "~> 3"
   gem "simplecov", require: false
-  gem "sqlite3", "~> 2.0"
+  gem "sqlite3", "~> 2.9"
 end
 
 group :development, :test do
