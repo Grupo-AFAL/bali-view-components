@@ -11,7 +11,7 @@ gem "csv"
 gem "device_detector"
 gem "propshaft"
 gem "rrule", git: "https://github.com/square/ruby-rrule"
-gem "tailwindcss-rails", "~> 4.0"
+gem "tailwindcss-rails", "~> 4.6"
 
 gem "lookbook"
 gem "pagy", ">= 43.0"
