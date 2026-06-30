@@ -36,7 +36,7 @@
     "@babel/plugin-proposal-class-properties": "^7.16.7",
     "@babel/preset-env": "^7.29.2",
     "cypress": "^15.13.0",
-    "playwright": "^1.59.1",
+    "playwright": "^1.60.0",
     "standard": "^17.1.2"
   },
   "standard": {
