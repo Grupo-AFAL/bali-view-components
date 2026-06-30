@@ -20,18 +20,24 @@ const VARIANT_CLASSES = {
 
 const DEFAULT_ACCEPT_CLASS = 'btn-primary'
 
+// Fallback button labels for the bare `data-turbo-confirm` case (no per-trigger
+// labels). DeleteLink always supplies localized labels. Apps that use bare
+// `data-turbo-confirm` in a non-English locale should localize these once via
+// installConfirmDialog({ acceptText, cancelText }).
 const labels = {
   accept: 'OK',
   cancel: 'Cancel'
 }
 
 let dialog = null
+let boxEl = null
 let titleEl = null
 let messageEl = null
 let acceptBtn = null
 let cancelBtn = null
 let activeResolve = null
 let confirmed = false
+let previouslyFocused = null
 let installed = false
 
 function buildDialog () {
@@ -39,7 +45,7 @@ function buildDialog () {
   dialog.className = 'modal'
   dialog.dataset.baliConfirm = ''
   dialog.innerHTML = `
-    <div class="modal-box" role="alertdialog" aria-labelledby="bali-confirm-title" aria-describedby="bali-confirm-message">
+    <div class="modal-box" role="alertdialog" aria-describedby="bali-confirm-message">
       <h3 id="bali-confirm-title" class="text-lg font-bold"></h3>
       <p id="bali-confirm-message" class="py-4"></p>
       <div class="modal-action">
@@ -52,6 +58,7 @@ function buildDialog () {
     </form>
   `
 
+  boxEl = dialog.querySelector('.modal-box')
   titleEl = dialog.querySelector('#bali-confirm-title')
   messageEl = dialog.querySelector('#bali-confirm-message')
   cancelBtn = dialog.querySelector('#bali-confirm-cancel-btn')
@@ -71,6 +78,8 @@ function buildDialog () {
   dialog.addEventListener('close', () => {
     const resolve = activeResolve
     activeResolve = null
+    if (previouslyFocused && previouslyFocused.focus) previouslyFocused.focus()
+    previouslyFocused = null
     if (resolve) resolve(confirmed)
   })
 
@@ -84,13 +93,25 @@ function dataValue (submitter, formElement, key) {
 }
 
 export function confirmDialog (message, formElement, submitter) {
-  if (!dialog) buildDialog()
+  // Only one confirm at a time — bail rather than orphan the pending promise.
+  if (activeResolve) return Promise.resolve(false)
+  // Rebuild if missing OR detached (Turbo Drive replaces document.body on full visits).
+  if (!dialog || !dialog.isConnected) buildDialog()
 
   const title = dataValue(submitter, formElement, 'baliConfirmTitle')
   const variant = dataValue(submitter, formElement, 'baliConfirmVariant')
 
   titleEl.textContent = title || ''
   titleEl.hidden = !title
+
+  // Label the dialog by its title when present; otherwise by the message text.
+  if (title) {
+    boxEl.setAttribute('aria-labelledby', 'bali-confirm-title')
+    boxEl.removeAttribute('aria-label')
+  } else {
+    boxEl.removeAttribute('aria-labelledby')
+    boxEl.setAttribute('aria-label', message || '')
+  }
 
   messageEl.textContent = message || ''
 
@@ -101,6 +122,7 @@ export function confirmDialog (message, formElement, submitter) {
   acceptBtn.classList.add(VARIANT_CLASSES[variant] || DEFAULT_ACCEPT_CLASS)
 
   confirmed = false
+  previouslyFocused = document.activeElement
 
   return new Promise(resolve => {
     activeResolve = resolve
