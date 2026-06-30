@@ -77,11 +77,11 @@ module Bali
         return {} if confirm_message.blank?
 
         {
-          "turbo-confirm": confirm_message,
-          "bali-confirm-variant": "danger",
-          "bali-confirm-title": t(".confirm_title"),
-          "bali-confirm-accept": t(".confirm_accept"),
-          "bali-confirm-cancel": t(".confirm_cancel")
+          turbo_confirm: confirm_message,
+          bali_confirm_variant: "danger",
+          bali_confirm_title: t(".confirm_title"),
+          bali_confirm_accept: t(".confirm_accept"),
+          bali_confirm_cancel: t(".confirm_cancel")
         }
       end
 

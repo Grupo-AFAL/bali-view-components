@@ -1,3 +1,6 @@
+<%# Triggers use method: :get so the Lookbook preview stays idempotent. %>
+<%# Real apps would use method: :delete (DeleteLink) or a real form submit; %>
+<%# Turbo fires the confirm for any data-turbo-confirm regardless of method. %>
 <div class="flex flex-col items-center gap-4 p-8">
   <p class="max-w-md text-center text-sm text-base-content/60">
     Bali reemplaza el confirm nativo de Turbo por este diálogo. Aplica a cualquier
