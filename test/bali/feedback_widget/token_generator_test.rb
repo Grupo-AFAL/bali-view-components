@@ -56,15 +56,31 @@ class BaliFeedbackWidgetTokenGeneratorTest < ActiveSupport::TestCase
     end
   end
 
+  def test_payload_contains_name_when_user_name_given
+    token = generate_token(user_name: "Ana López")
+    payload = decode_segment(token, 1)
+
+    assert_equal "Ana López", payload["name"]
+  end
+
+  def test_payload_omits_name_when_user_name_not_given
+    token = generate_token
+    payload = decode_segment(token, 1)
+
+    assert_not payload.key?("name")
+  end
+
   private
 
-  def generate_token(secret: "test-secret", project_slug: "test", user_id: 1, email: "a@b.com", expires_in: 3600)
+  def generate_token(secret: "test-secret", project_slug: "test", user_id: 1, email: "a@b.com", expires_in: 3600,
+                      user_name: nil)
     Bali::FeedbackWidget::TokenGenerator.call(
       secret: secret,
       project_slug: project_slug,
       user_id: user_id,
       email: email,
-      expires_in: expires_in
+      expires_in: expires_in,
+      user_name: user_name
     )
   end
 

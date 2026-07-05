@@ -5,16 +5,17 @@ module Bali
     # Generates HS256 JWT tokens for Opina embed authentication.
     # Compatible with Opina's embed/base_controller token verification.
     class TokenGenerator
-      def self.call(secret:, project_slug:, user_id:, email:, expires_in: 3600)
-        new(secret:, project_slug:, user_id:, email:, expires_in:).call
+      def self.call(secret:, project_slug:, user_id:, email:, expires_in: 3600, user_name: nil)
+        new(secret:, project_slug:, user_id:, email:, expires_in:, user_name:).call
       end
 
-      def initialize(secret:, project_slug:, user_id:, email:, expires_in:)
+      def initialize(secret:, project_slug:, user_id:, email:, expires_in:, user_name: nil)
         @secret = secret
         @project_slug = project_slug
         @user_id = user_id
         @email = email
         @expires_in = expires_in
+        @user_name = user_name
       end
 
       def call
@@ -37,7 +38,7 @@ module Bali
           email: @email,
           project_slug: @project_slug,
           exp: (Time.current + @expires_in).to_i
-        }
+        }.merge({ name: @user_name }.compact)
       end
 
       def encode_segment(data)

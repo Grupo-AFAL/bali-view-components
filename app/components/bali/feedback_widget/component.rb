@@ -9,14 +9,15 @@ module Bali
       # @param secret [String, nil] Opina shared secret to generate the token automatically
       # @param user_id [String, nil] User ID for token generation (required when using secret)
       # @param email [String, nil] User email for token generation (required when using secret)
+      # @param user_name [String, nil] User display name for token generation (optional)
       # @param title [String] Drawer header title (default: "Feedback")
       # @param token_expires_in [Integer] Token expiry in seconds (default: 3600 = 1 hour)
       # @param badge_interval [Integer] Polling interval in ms for badge count (default: 300000 = 5 min)
       def initialize(project_slug:, opina_url:, token: nil, secret: nil, user_id: nil, email: nil,
-                     title: nil, token_expires_in: 3600, badge_interval: 300_000, **options)
+                     user_name: nil, title: nil, token_expires_in: 3600, badge_interval: 300_000, **options)
         @project_slug = project_slug
         @opina_url = opina_url.chomp("/")
-        @token = token || generate_token(secret, user_id, email, token_expires_in)
+        @token = token || generate_token(secret, user_id, email, user_name, token_expires_in)
         @title = title
         @badge_interval = badge_interval
         @options = options
@@ -38,7 +39,7 @@ module Bali
         I18n.t("bali.feedback_widget.close", default: "Close")
       end
 
-      def generate_token(secret, user_id, email, expires_in)
+      def generate_token(secret, user_id, email, user_name, expires_in)
         raise ArgumentError, "Either token: or secret: (with user_id: and email:) is required" unless secret
 
         TokenGenerator.call(
@@ -46,6 +47,7 @@ module Bali
           project_slug: project_slug,
           user_id: user_id,
           email: email,
+          user_name: user_name,
           expires_in: expires_in
         )
       end

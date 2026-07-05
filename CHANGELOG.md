@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **FeedbackWidget** - `TokenGenerator`/`Component` now accept an optional `user_name:` kwarg that adds a `name` claim to the embed JWT (e.g. `"Ana López"`). Omitted entirely from the payload when not given, so existing integrations are unaffected.
+
 ## [v2.10.0] - 2026-06-30
 
 ### Added

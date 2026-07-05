@@ -119,4 +119,21 @@ class BaliFeedbackWidgetComponentTest < ComponentTestCase
 
     assert_selector("#feedback-widget-title", text: "Send us feedback")
   end
+
+  def test_threads_user_name_into_generated_token
+    render_inline(Bali::FeedbackWidget::Component.new(
+      project_slug: "test-project",
+      opina_url: "https://opina.example.com",
+      secret: "test-secret",
+      user_id: 1,
+      email: "user@example.com",
+      user_name: "Ana López"
+    ))
+
+    el = page.find("[data-feedback-widget-embed-url-value]")
+    token = el[:"data-feedback-widget-embed-url-value"][/token=(.+)\z/, 1]
+    payload = JSON.parse(Base64.urlsafe_decode64(token.split(".")[1]))
+
+    assert_equal "Ana López", payload["name"]
+  end
 end
