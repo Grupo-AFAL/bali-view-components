@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **FormBuilder** - `select_group`/`select_field` and `slim_select_group`/`slim_select_field` now honor `input_name:` and `input_id:` options instead of silently dropping them, so non-model forms can namespace the rendered `<select>` under a param key (e.g. `thing[approver_id]`). Explicit `name:`/`id:` in html options still win.
+
 ## [v2.10.0] - 2026-06-30
 
 ### Added
