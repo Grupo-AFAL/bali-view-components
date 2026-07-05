@@ -313,13 +313,16 @@ export class ModalController extends Controller {
    * submit
    *
    * This action is called when a form within a modal is submitted. There
-   * are 2 scenarios we need to handle:
+   * are 3 scenarios we need to handle:
    *
    * 1. When Form is submitted successfully, the server redirects to a new page.
    * 2. When Form has an error, the server returns the form with the errors.
+   * 3. When the form has data-turbo="true" and the server responds with
+   *    text/vnd.turbo-stream.html, the streams are applied to the page and
+   *    the modal/drawer closes (on success), enabling partial page updates.
    *
-   * On a successful scenario we get a full HTML page and we then proceed to extract
-   * the <body> tag from the page and replace the existing body tag.
+   * On a successful redirect scenario we get a full HTML page and we then proceed
+   * to extract the <body> tag from the page and replace the existing body tag.
    *
    * On a error scenario we just replace the modal contents with the response, since we
    * are already only getting the contents inside the modal.
@@ -362,6 +365,7 @@ export class ModalController extends Controller {
     let redirected = false
     let redirectURL = null
     let responseOk = null
+    let turboStreamResponse = false
     const redirectData = this.extraProps || {}
 
     fetch(url, options)
@@ -375,6 +379,8 @@ export class ModalController extends Controller {
         })
 
         responseOk = response.ok
+        turboStreamResponse = (response.headers.get('Content-Type') || '')
+          .includes('text/vnd.turbo-stream.html')
         return response.text()
       })
       .then(responseText => {
@@ -388,6 +394,14 @@ export class ModalController extends Controller {
           } else {
             this._replaceBodyAndURL(responseText, redirectURL)
           }
+        } else if (turboStreamResponse && window.Turbo) {
+          if (responseOk) { document.dispatchEvent(event) }
+
+          // Apply the streams to the page instead of injecting the raw
+          // <turbo-stream> markup as inert HTML. Close only on success: an
+          // error stream may re-render the form inside the modal/drawer.
+          window.Turbo.renderStreamMessage(responseText)
+          if (responseOk) { this._closeModal() }
         } else {
           if (responseOk) { document.dispatchEvent(event) }
 
