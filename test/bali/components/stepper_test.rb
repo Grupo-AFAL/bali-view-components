@@ -93,6 +93,33 @@ class BaliStepperComponentTest < ComponentTestCase
     end
     assert_selector('ul.steps[data-testid="stepper"]')
   end
+
+  def test_step_sublabel_renders_below_title
+    render_inline(Bali::Stepper::Component.new(current: 1)) do |c|
+      c.with_step(title: "Aprobado", sublabel: "03/07 · Ana Gutiérrez")
+      c.with_step(title: "Publicado")
+    end
+
+    assert_selector("li.step .step-sublabel", text: "03/07 · Ana Gutiérrez")
+    assert_selector("li.step", text: "Aprobado")
+  end
+
+  def test_step_without_sublabel_renders_no_sublabel_element
+    render_inline(Bali::Stepper::Component.new) do |c|
+      c.with_step(title: "Step One")
+    end
+
+    assert_no_selector(".step-sublabel")
+  end
+
+  def test_step_renders_free_content_block
+    render_inline(Bali::Stepper::Component.new) do |c|
+      c.with_step(title: "Publicado") { "publicación #12" }
+    end
+
+    assert_selector("li.step", text: "Publicado")
+    assert_selector("li.step", text: "publicación #12")
+  end
 end
 
 class BaliStepperStepComponentTest < ComponentTestCase

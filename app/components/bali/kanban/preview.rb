@@ -22,6 +22,15 @@ module Bali
       def with_colors
         render_with_template
       end
+
+      # @label With Footer
+      # Columns accept an optional `footer` slot rendered after the card list —
+      # the classic "+ add card" action. The footer lives outside the
+      # SortableList, so it is never draggable and doesn't interfere with
+      # dragging cards between columns.
+      def with_footer
+        render_with_template
+      end
     end
   end
 end
