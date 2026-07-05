@@ -1,8 +1,22 @@
+// Uses the Lookbook preview (no DB dependency): the default preview renders
+// the editor overlay with versions_url "/lookbook", so both the versions
+// index and each version payload are stubbed with cy.intercept.
+const stubVersions = [1, 2].map(id => ({
+  id,
+  version_number: id,
+  summary: `Change ${id}`,
+  author_name: 'Demo User',
+  created_at: '2026-07-01T12:00:00Z'
+}))
+
 describe('DocumentEditor version preview', () => {
   beforeEach(() => {
-    // Stub version payloads so previewed content is distinguishable from the
-    // current document regardless of DB state
-    cy.intercept('GET', /\/documents\/\d+\/versions\/\d+$/, req => {
+    cy.intercept('GET', /\/lookbook$/, {
+      headers: { 'Content-Type': 'application/json' },
+      body: stubVersions
+    }).as('versionsIndex')
+
+    cy.intercept('GET', /\/lookbook\/\d+$/, req => {
       const id = req.url.split('/').pop()
       req.reply({
         id: Number(id),
@@ -19,47 +33,38 @@ describe('DocumentEditor version preview', () => {
       })
     }).as('showVersion')
 
-    cy.visit('http://localhost:3001/documents/1')
-    cy.contains('button', 'Edit').click()
+    cy.visit('/bali/document_editor/default')
+    editor().should('contain.text', 'Project Overview')
     cy.get('[data-action*="document-editor#toggleHistory"]:visible').first().click()
-    cy.get('[data-action*="previewVersion"]:visible').should('have.length.at.least', 2)
-
-    editor()
-      .invoke('text')
-      .then(text => cy.wrap(text.slice(0, 40)).as('currentText'))
+    cy.wait('@versionsIndex')
+    cy.get('[data-action*="previewVersion"]:visible').should('have.length', 2)
   })
 
   const editor = () => cy.get('[data-document-editor-target="editorArea"]:visible .bn-editor')
 
-  const previewNth = n =>
-    cy.get('[data-action*="previewVersion"]:visible').eq(n).then($btn => {
-      const stubText = `STUB VERSION ${$btn.data('versionId')}`
-      cy.wrap($btn).click()
-      cy.wait('@showVersion')
-      editor().should('contain.text', stubText)
-    })
+  const previewVersion = id => {
+    cy.get(`[data-action*="previewVersion"][data-version-id="${id}"]:visible`).click()
+    cy.wait('@showVersion')
+    editor().should('contain.text', `STUB VERSION ${id}`)
+  }
 
   const backToCurrent = () => cy.get('[data-action*="exitPreview"]:visible').click()
 
   const assertBackOnCurrent = () => {
     editor().should('not.contain.text', 'STUB VERSION')
-    cy.get('@currentText').then(currentText => {
-      editor().invoke('text').should(text => {
-        expect(text.slice(0, 40)).to.eq(currentText)
-      })
-    })
+    editor().should('contain.text', 'Project Overview')
     editor().should('have.attr', 'contenteditable', 'true')
   }
 
   it('returns to the current version after a single preview', () => {
-    previewNth(0)
+    previewVersion(1)
     backToCurrent()
     assertBackOnCurrent()
   })
 
   it('returns to the current version after previewing several versions in a row', () => {
-    previewNth(0)
-    previewNth(1)
+    previewVersion(1)
+    previewVersion(2)
     backToCurrent()
     assertBackOnCurrent()
   })
