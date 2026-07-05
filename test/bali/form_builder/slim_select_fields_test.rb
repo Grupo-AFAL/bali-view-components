@@ -28,6 +28,18 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     end
   end
 
+  # input_name / input_id options (issue #547)
+
+  def test_slim_select_group_honors_input_name_option
+    result = builder.slim_select_group(:status, Movie.statuses.to_a, input_name: "thing[status]")
+    assert_html(result, 'select[name="thing[status]"]')
+  end
+
+  def test_slim_select_group_honors_input_id_option
+    result = builder.slim_select_group(:status, Movie.statuses.to_a, input_id: "thing_status")
+    assert_html(result, "select#thing_status")
+  end
+
   # #slim_select_field
 
   def test_slim_select_field_renders_a_div_with_control_class

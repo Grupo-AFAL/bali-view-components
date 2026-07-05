@@ -30,7 +30,7 @@ module Bali
 
       def slim_select_field(method, values, options = {}, html_options = {})
         merged_options = build_options(options)
-        merged_html = build_html_options(html_options)
+        merged_html = apply_input_name_options(options, build_html_options(html_options))
 
         select_class = merged_html.delete(:select_class)
         custom_class = merged_html[:class]
