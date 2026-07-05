@@ -120,6 +120,9 @@ es:
     # Image grid
     image_grid:
       expand: "Ampliar imagen"
+      empty_state:
+        title: "Aún no hay imágenes"
+        add_image: "Agregar imagen"
 
     # Breadcrumb
     breadcrumb:
