@@ -47,6 +47,34 @@ class BaliImageGridComponentTest < ComponentTestCase
     end
   end
 
+  # empty state (issue #27)
+
+  def test_empty_state_renders_when_there_are_no_images
+    render_inline(Bali::ImageGrid::Component.new) do |c|
+      c.with_empty_state { '<a href="/images/new">Add image</a>'.html_safe }
+    end
+
+    assert_selector(".image-grid-empty-state a[href='/images/new']", text: "Add image")
+    assert_no_selector(".grid")
+  end
+
+  def test_empty_state_is_not_rendered_when_images_are_present
+    render_inline(Bali::ImageGrid::Component.new) do |c|
+      c.with_empty_state { "Add image" }
+      c.with_image { '<img src="test.jpg">'.html_safe }
+    end
+
+    assert_no_selector(".image-grid-empty-state")
+    assert_selector('img[src="test.jpg"]')
+  end
+
+  def test_without_empty_state_slot_an_empty_grid_renders_as_before
+    render_inline(Bali::ImageGrid::Component.new)
+
+    assert_selector(".grid.grid-cols-4.gap-4")
+    assert_no_selector(".image-grid-empty-state")
+  end
+
   def test_with_images_renders_image_cards
     render_inline(Bali::ImageGrid::Component.new) do |c|
       c.with_image { '<img src="test.jpg">'.html_safe }

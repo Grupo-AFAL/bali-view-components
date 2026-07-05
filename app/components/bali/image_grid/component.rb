@@ -22,6 +22,10 @@ module Bali
         Image::Component.new(**{ expandable: @expandable }.merge(opts))
       }
 
+      # Rendered instead of the grid when there are no images — typically an
+      # "add image" button/link (issue #27).
+      renders_one :empty_state
+
       def initialize(columns: 4, gap: :md, expandable: false, **options)
         @columns = columns
         @gap = gap.to_sym

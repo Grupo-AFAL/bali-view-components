@@ -25,6 +25,15 @@ module Bali
         render_with_template
       end
 
+      # Empty state
+      # -----------
+      # When there are no images, the `empty_state` slot is rendered instead of
+      # the grid — typically an "add image" action. Without the slot, an empty
+      # grid renders as before.
+      def empty_state
+        render_with_template
+      end
+
       # Expandable images
       # -----------------
       # Click any image to open it in a fullscreen lightbox. Pass `full_src:`
