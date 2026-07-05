@@ -119,6 +119,38 @@ class BaliKanbanComponentTest < ComponentTestCase
     assert_selector("[data-sortable-list-resource-name-value='task']")
   end
 
+  def test_column_footer_renders_its_content
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Todo", status: "todo") do |col|
+        col.with_card { "A" }
+        col.with_footer { "+ Agregar tarjeta" }
+      end
+    end
+
+    assert_text("+ Agregar tarjeta")
+  end
+
+  def test_column_footer_renders_outside_the_sortable_list
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Todo", status: "todo") do |col|
+        col.with_card { "A" }
+        col.with_footer { "+ Agregar tarjeta" }
+      end
+    end
+
+    assert_no_selector("[data-controller='sortable-list']", text: "+ Agregar tarjeta")
+  end
+
+  def test_column_without_footer_renders_no_footer_wrapper
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Todo", status: "todo") do |col|
+        col.with_card { "A" }
+      end
+    end
+
+    assert_no_selector(".kanban-column-footer")
+  end
+
   def test_column_renders_sortable_list
     render_inline(Bali::Kanban::Component.new) do |k|
       k.with_column(title: "Todo", status: "todo") do |col|

@@ -68,6 +68,28 @@ class BaliFormBuilderSelectFieldsTest < FormBuilderTestCase
     assert_html(result, "p.label-text-alt", text: "Select a status")
   end
 
+  # input_name / input_id options (issue #547)
+
+  def test_select_group_honors_input_name_option
+    result = builder.select_group(:status, Movie.statuses.to_a, input_name: "thing[status]")
+    assert_html(result, 'select[name="thing[status]"]')
+  end
+
+  def test_select_group_honors_input_id_option
+    result = builder.select_group(:status, Movie.statuses.to_a, input_id: "thing_status")
+    assert_html(result, "select#thing_status")
+  end
+
+  def test_select_field_honors_input_name_option
+    result = builder.select_field(:status, Movie.statuses.to_a, input_name: "thing[status]")
+    assert_html(result, 'select[name="thing[status]"]')
+  end
+
+  def test_select_field_explicit_html_name_wins_over_input_name
+    result = builder.select_field(:status, Movie.statuses.to_a, { input_name: "a[b]" }, name: "c[d]")
+    assert_html(result, 'select[name="c[d]"]')
+  end
+
   # BASE_CLASSES constant
 
   def test_base_classes_constant_is_frozen

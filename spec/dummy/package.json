@@ -6,7 +6,7 @@
     "build:watch": "node esbuild.config.mjs --watch"
   },
   "devDependencies": {
-    "esbuild": "^0.27.0"
+    "esbuild": "^0.28.1"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.44",
@@ -46,5 +46,8 @@
     "sortablejs": "^1.15.6",
     "tippy.js": "^6.3.7",
     "zod": "^4.3.6"
+  },
+  "resolutions": {
+    "uuid": "^11.1.1"
   }
 }
