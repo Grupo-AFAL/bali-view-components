@@ -255,8 +255,14 @@ export class DocumentEditorController extends Controller {
       }
 
       const editor = blockEditor.blockNoteEditor
-      this._savedContent = editor._tiptapEditor.getJSON()
-      this._savedEditable = editor.isEditable
+      // Only capture the current document on the first preview: previewing
+      // another version while already previewing would otherwise overwrite
+      // the saved content with the previewed version, and "Back to current"
+      // would restore that version (read-only) instead of the real document.
+      if (this._savedContent == null) {
+        this._savedContent = editor._tiptapEditor.getJSON()
+        this._savedEditable = editor.isEditable
+      }
 
       // Load version content into the editor (read-only)
       const content = typeof version.content === 'string' ? JSON.parse(version.content) : version.content
