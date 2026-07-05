@@ -42,6 +42,16 @@ module Bali
         end
       end
 
+      # Turbo Stream Form
+      # ---
+      # Forms submitted with `drawer#submit` and `data-turbo="true"` accept
+      # `text/vnd.turbo-stream.html` responses: the streams are applied to the
+      # page and the drawer closes, instead of injecting the raw
+      # `<turbo-stream>` markup as inert HTML. Used by the Cypress suite.
+      def turbo_stream_form
+        render_with_template
+      end
+
       # Left Position
       # ---
       # Drawer opens from the left side.
