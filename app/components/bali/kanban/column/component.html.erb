@@ -12,4 +12,10 @@
       <%= card %>
     <% end %>
   <% end %>
+
+  <% if footer? %>
+    <div class="kanban-column-footer mt-2 pt-2 border-t border-base-200">
+      <%= footer %>
+    </div>
+  <% end %>
 </div>

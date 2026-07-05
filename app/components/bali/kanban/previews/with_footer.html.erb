@@ -1,0 +1,28 @@
+<%= render Bali::Kanban::Component.new(resource_name: "task", group_name: "kanban") do |k| %>
+  <% k.with_column(title: "To Do", status: "todo", color: :ghost) do |col| %>
+    <% col.with_card do %>
+      <p class="font-medium text-sm">Design landing page</p>
+    <% end %>
+    <% col.with_card do %>
+      <p class="font-medium text-sm">Write API docs</p>
+    <% end %>
+    <% col.with_footer do %>
+      <%= render Bali::Link::Component.new(name: "+ Add card", href: "/lookbook", class: "text-sm w-full justify-start") %>
+    <% end %>
+  <% end %>
+
+  <% k.with_column(title: "In Progress", status: "in_progress", color: :info) do |col| %>
+    <% col.with_card do %>
+      <p class="font-medium text-sm">Implement auth flow</p>
+    <% end %>
+    <% col.with_footer do %>
+      <%= render Bali::Link::Component.new(name: "+ Add card", href: "/lookbook", class: "text-sm w-full justify-start") %>
+    <% end %>
+  <% end %>
+
+  <% k.with_column(title: "Done", status: "done", color: :success) do |col| %>
+    <% col.with_card do %>
+      <p class="font-medium text-sm">Project setup</p>
+    <% end %>
+  <% end %>
+<% end %>
