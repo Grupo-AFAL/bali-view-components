@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Forms** - `.control` field wrappers now shrink inside CSS grid columns (`min-width: 0`), so a select/slim-select holding a long selected option truncates with ellipsis instead of overflowing `minmax(0, 1fr)` columns. `.ss-main` also gets a defensive `max-width: 100%`.
+
 ## [v2.10.0] - 2026-06-30
 
 ### Added
