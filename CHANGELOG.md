@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **ImageGrid** - new `empty_state` slot rendered inside a dashed-border centered box instead of the grid when there are no images — typically an "add image" action. Ignored when images are present; grids without the slot render unchanged.
+
 ## [v2.10.0] - 2026-06-30
 
 ### Added
