@@ -1,0 +1,11 @@
+<div id="stream-target" class="p-4"></div>
+
+<%= render Bali::Drawer::Component.new(active: true, title: 'Turbo Stream Form') do %>
+  <form action="/fake/submit" method="post" data-turbo="true" class="space-y-4">
+    <div class="form-control">
+      <label class="label" for="name">Name</label>
+      <input type="text" id="name" name="name" class="input input-bordered w-full">
+    </div>
+    <%= render Bali::Button::Component.new(name: 'Save', variant: :primary, data: { action: 'drawer#submit' }) %>
+  </form>
+<% end %>
