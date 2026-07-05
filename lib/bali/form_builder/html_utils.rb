@@ -41,6 +41,15 @@ module Bali
         options
       end
 
+      # Escape hatch for non-model forms (issue #547): `input_name:` / `input_id:`
+      # in the options hash override the name/id Rails derives from the form
+      # object. Explicit `name:` / `id:` in html_options still win.
+      def apply_input_name_options(options, html_options)
+        html_options[:name] ||= options[:input_name] if options[:input_name]
+        html_options[:id] ||= options[:input_id] if options[:input_id]
+        html_options
+      end
+
       def field_helper(method, field, options = {})
         if errors?(method)
           help_message = content_tag(:p, full_errors(method), class: "label-text-alt text-error")

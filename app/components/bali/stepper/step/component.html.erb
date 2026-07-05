@@ -1,3 +1,13 @@
 <%= tag.li(**step_options) do %>
-  <%= title %>
+  <% if sublabel.present? || content? %>
+    <div>
+      <div><%= title %></div>
+      <% if sublabel.present? %>
+        <div class="step-sublabel text-xs opacity-60"><%= sublabel %></div>
+      <% end %>
+      <%= content %>
+    </div>
+  <% else %>
+    <%= title %>
+  <% end %>
 <% end %>
