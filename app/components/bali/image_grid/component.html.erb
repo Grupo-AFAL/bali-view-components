@@ -1,5 +1,11 @@
-<%= tag.div class: grid_classes, **grid_attributes do %>
-  <% images.each do |image| %>
-    <%= image %>
+<% if images.empty? && empty_state? %>
+  <div class="image-grid-empty-state flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-base-300 p-8 text-center">
+    <%= empty_state %>
+  </div>
+<% else %>
+  <%= tag.div class: grid_classes, **grid_attributes do %>
+    <% images.each do |image| %>
+      <%= image %>
+    <% end %>
   <% end %>
 <% end %>

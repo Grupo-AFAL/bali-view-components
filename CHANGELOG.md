@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **FeedbackWidget** - `TokenGenerator`/`Component` now accept an optional `user_name:` kwarg that adds a `name` claim to the embed JWT (e.g. `"Ana López"`). Omitted entirely from the payload when not given, so existing integrations are unaffected.
+- **ImageGrid** - new `empty_state` slot rendered inside a dashed-border centered box instead of the grid when there are no images — typically an "add image" action. Ignored when images are present; grids without the slot render unchanged. Adds `bali.image_grid.empty_state.*` i18n keys (en/es) used by the Lookbook preview.
 - **Stepper** - steps accept a `sublabel:` option rendered as a smaller muted line under the title (event date, actor, status note), or a free content block via `with_step(title:) { ... }` for arbitrary markup. Works in both orientations; steps without sublabel render unchanged.
 - **Kanban** - `Kanban::Column` accepts an optional `footer` slot rendered after the card list and outside the `SortableList`, for non-draggable per-column actions like "+ add card". Columns without a footer render unchanged.
 ### Changed
