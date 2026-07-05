@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- Resolve all 11 open Dependabot alerts (4 high, 5 moderate, 2 low), all npm. Re-resolved transitive dependencies in `yarn.lock` (`form-data` 4.0.6, `systeminformation` 5.31.12, `tmp` 0.2.7, `js-yaml` 5.2.1, `@babel/core` 7.29.7) and `spec/dummy/yarn.lock` (`linkify-it` 5.0.2, `markdown-it` 14.3.0). Added Yarn `resolutions` for `qs` (^6.15.2) and `uuid` (^11.1.1) whose parent ranges could not reach the patched versions, and bumped the dummy app's `esbuild` to ^0.28.1. Dev/test-only surface (Cypress, eslint/standard, esbuild, BlockNote markdown chain) — no runtime gem code affected.
+
 ## [v2.10.0] - 2026-06-30
 
 ### Added
