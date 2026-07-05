@@ -85,12 +85,12 @@ Reference documentation is maintained in `docs/` for use by both Claude Code and
 
 ## Project Overview
 
-**Bali** is AFAL's open-source ViewComponent library providing 40+ reusable UI components for Rails applications.
+**Bali** is AFAL's open-source ViewComponent library providing 75+ reusable UI components for Rails applications.
 
 | Aspect | Details |
 |--------|---------|
 | **Type** | Ruby gem (Rails engine) |
-| **Components** | 40+ ViewComponents |
+| **Components** | 75+ ViewComponents |
 | **CSS** | Tailwind + DaisyUI |
 | **JavaScript** | Stimulus controllers |
 | **Testing** | Minitest + Cypress |
@@ -749,6 +749,8 @@ Use the correct component based on **what the element does**, not how it looks:
 | `FormBuilder` select | `select_field_group` | `select_group` |
 | `FormBuilder` textarea | `text_area_field_group` | `text_area_group` |
 | `SlimSelect` HTML | inline HTML | `data-inner-html` attribute on options |
+| Non-model form select param key | expecting `name:` to namespace | `input_name:`/`input_id:` in `select_group`/`slim_select_group` options |
+| Drawer/Modal form partial updates | full-page redirect only | respond with `text/vnd.turbo-stream.html` + `data-turbo="true"` on the form — streams are applied and the drawer/modal closes on success |
 
 ## Icons
 
@@ -859,6 +861,14 @@ Document show pages may render multiple overlays (editor + viewer), each with th
 | `Bali::Level` | Horizontal layout | `flex items-center justify-between` | Tailwind flex |
 | `Bali::Modal` | Dialog/modal | `modal modal-box modal-action` | daisyUI modal |
 | `Bali::PageHeader` | Page header | Custom Tailwind | `nexus/layouts/page-title/` |
+| `Bali::AppLayout` | App shell (banner/navbar/sidebar/topbar/body slots) | Custom Tailwind | `nexus/layouts/` |
+| `Bali::Footer` | Page footer | `footer` | daisyUI footer |
+| `Bali::Topbar` | Admin top bar | Custom Tailwind | `nexus/layouts/topbar/` |
+| `Bali::DashboardPage` | Dashboard page template | Composition | — |
+| `Bali::IndexPage` | Index page template (DataTable + filters) | Composition | — |
+| `Bali::ShowPage` | Show page template | Composition | — |
+| `Bali::FormPage` | Form page template | Composition | — |
+| `Bali::DocumentPage` | Document view/edit page template | Composition | — |
 
 ### Navigation Components
 
@@ -869,7 +879,10 @@ Document show pages may render multiple overlays (editor + viewer), each with th
 | `Bali::NavBar` | Navigation bar | `navbar navbar-start/center/end` | `nexus/layouts/topbar/` |
 | `Bali::SideMenu` | Sidebar menu | `menu` | `nexus/layouts/sidebar/` |
 | `Bali::Tabs` | Tab navigation | `tabs tabs-box tab` | daisyUI tabs |
-| `Bali::Stepper` | Step indicator | `steps step step-*` | daisyUI steps |
+| `Bali::Stepper` | Step indicator (supports `sublabel:` and content block per step) | `steps step step-*` | daisyUI steps |
+| `Bali::Command` | Command palette (⌘K) | `modal` + custom | — |
+| `Bali::Pagination` | Pagy-based pagination | `join btn` | daisyUI pagination |
+| `Bali::PaginationFooter` | Pagination + per-page + count footer | `join btn select` | — |
 
 ### Data Display Components
 
@@ -882,7 +895,7 @@ Document show pages may render multiple overlays (editor + viewer), each with th
 | `Bali::GanttChart` | Gantt chart | Custom | — |
 | `Bali::Heatmap` | Heatmap display | Custom | — |
 | `Bali::Icon` | Icon display | `iconify lucide--*` | Iconify Lucide |
-| `Bali::ImageGrid` | Image gallery | Grid layout | — |
+| `Bali::ImageGrid` | Image gallery (optional `empty_state` slot when no images) | Grid layout | — |
 | `Bali::InfoLevel` | Info display | Custom | — |
 | `Bali::LabelValue` | Label/value pair | Custom Tailwind | — |
 | `Bali::List` | List display | `list list-row` | daisyUI list |
@@ -892,6 +905,8 @@ Document show pages may render multiple overlays (editor + viewer), each with th
 | `Bali::Table` | Basic table | `table` | daisyUI table |
 | `Bali::Timeline` | Timeline | `timeline timeline-*` | daisyUI timeline |
 | `Bali::TreeView` | Tree structure | Custom | — |
+| `Bali::Skeleton` | Loading skeleton | `skeleton` | daisyUI skeleton |
+| `Bali::StatCard` | Metric/stat card | `stats stat` | `nexus/blocks/stats/` |
 
 ### Interactive Components
 
@@ -910,6 +925,8 @@ Document show pages may render multiple overlays (editor + viewer), each with th
 | `Bali::Reveal` | Show/hide content | Custom + Stimulus | — |
 | `Bali::SearchInput` | Search field | `input` | `nexus/layouts/search/` |
 | `Bali::SortableList` | Drag-drop list | Custom + SortableJS | `nexus/interactions/sortable/` |
+| `Bali::Kanban` | Kanban board (drag between columns; columns accept a non-draggable `footer` slot) | Composition + SortableList | — |
+| `Bali::ConfirmDialog` | DaisyUI confirm replacing `window.confirm` (auto-installed via `registerAll`) | `modal` | — |
 | `Bali::Tooltip` | Tooltip | `tooltip tooltip-*` | daisyUI tooltip |
 
 ### Feedback Components
@@ -920,6 +937,7 @@ Document show pages may render multiple overlays (editor + viewer), each with th
 | `Bali::Loader` | Loading indicator | `loading loading-*` | daisyUI loading |
 | `Bali::Message` | Message display | `alert` | daisyUI alert |
 | `Bali::Notification` | Notification | `alert alert-*` | daisyUI alert |
+| `Bali::FeedbackWidget` | Embeddable feedback widget (JWT token; optional `user_name:` claim) | Custom | — |
 
 ### Form Components
 
@@ -928,6 +946,10 @@ Document show pages may render multiple overlays (editor + viewer), each with th
 | `Bali::Form::*` | Form elements | `input select textarea checkbox radio` | daisyUI form elements |
 | `Bali::ImageField` | Image upload | Custom | `nexus/interactions/file-upload/` |
 | `Bali::RichTextEditor` | Rich text | (Trix) | `nexus/interactions/text-editor/` |
+| `Bali::DirectUpload` | Drag-and-drop multi-file upload (ActiveStorage) | Custom + Stimulus | `nexus/interactions/file-upload/` |
+| `Bali::RecurrentEventRuleForm` | RRULE recurrence editor | Form composition | — |
+| `Bali::BlockEditor` | BlockNote block editor (React via islands) | Custom | — |
+| `Bali::DocumentEditor` | Full-screen document editor (versions, comments, export) | Custom + BlockEditor | — |
 
 ### Utility Components
 

@@ -1,9 +1,10 @@
 # Bali Tailwind/DaisyUI Migration Status
 
-This is the **single source of truth** for the Bulma → Tailwind/DaisyUI migration.
-
-> **Detailed Logs**: See [.claude/migration-log.md](.claude/migration-log.md) for per-component migration details.
-> **Autonomous Workflow**: See [docs/migration/AUTONOMOUS_MIGRATION_WORKFLOW.md](docs/migration/AUTONOMOUS_MIGRATION_WORKFLOW.md) for `/ultrawork` instructions.
+> **✅ MIGRATION COMPLETE (2026-01).** The Bulma → Tailwind/DaisyUI migration
+> finished in January 2026; every component ships on Tailwind CSS 4 + DaisyUI 5.
+> This file is kept as a historical record and is no longer updated — see
+> `CHANGELOG.md` for ongoing changes. The detailed per-component log and the
+> autonomous workflow docs referenced below were removed after completion.
 
 ---
 

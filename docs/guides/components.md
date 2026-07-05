@@ -255,6 +255,32 @@ Slide-in panel from edge of screen.
 <% end %>
 ```
 
+**Turbo Stream form submits** (Modal and Drawer): forms submitted with the
+`modal#submit`/`drawer#submit` action and `data-turbo="true"` accept
+`text/vnd.turbo-stream.html` responses — the streams are applied to the page
+and the modal/drawer closes on success (an error stream keeps it open so the
+form can re-render inside). Redirect and HTML responses behave as before.
+
+```erb
+<%# In the drawer content %>
+<%= form_with model: @tag, data: { turbo: true } do |f| %>
+  ...
+  <%= render Bali::Button::Component.new(name: 'Save', data: { action: 'drawer#submit' }) %>
+<% end %>
+```
+
+```ruby
+# Controller — partial update instead of full-page redirect
+respond_to do |format|
+  format.turbo_stream do
+    render turbo_stream: [
+      turbo_stream.replace('systems-card', partial: 'systems_card'),
+      turbo_stream.append('toast-notifications', partial: 'toast')
+    ]
+  end
+end
+```
+
 ---
 
 ### Navigation Components
@@ -386,6 +412,28 @@ Action menu that opens on click/hover.
 <% end %>
 ```
 
+#### Stepper
+
+Step indicator for multi-stage flows. Steps accept an optional `sublabel:`
+(event date, actor, status note) rendered as a smaller muted line under the
+title, or a free content block for arbitrary markup.
+
+```erb
+<%= render Bali::Stepper::Component.new(current: 2) do |s| %>
+  <% s.with_step(title: "Proposed", sublabel: "07/01 · Luis Pérez") %>
+  <% s.with_step(title: "Approved", sublabel: "07/03 · Ana Gutiérrez") %>
+  <% s.with_step(title: "Published") do %>
+    <span class="text-xs opacity-60">release #12</span>
+  <% end %>
+  <% s.with_step(title: "Active") %>
+<% end %>
+```
+
+**Options:**
+- `current` - Zero-based index of the active step
+- `orientation` - `:horizontal` (default) or `:vertical`
+- `color` - DaisyUI step color for completed/active steps
+
 ---
 
 ### Data Display Components
@@ -439,6 +487,27 @@ Progress bar indicator.
 ```erb
 <%= render Bali::Progress::Component.new(value: 75, max: 100, color: :primary) %>
 ```
+
+#### ImageGrid
+
+Responsive image gallery with optional lightbox and empty state.
+
+```erb
+<%= render Bali::ImageGrid::Component.new(columns: 4, expandable: true) do |grid| %>
+  <% grid.with_empty_state do %>
+    <p class="text-sm text-base-content/60"><%= t('bali.image_grid.empty_state.title') %></p>
+    <%= render Bali::Link::Component.new(name: t('bali.image_grid.empty_state.add_image'),
+          href: new_image_path, type: :primary) %>
+  <% end %>
+  <% @images.each do |image| %>
+    <% grid.with_image(full_src: image.full_url) { image_tag image.thumb_url } %>
+  <% end %>
+<% end %>
+```
+
+The `empty_state` slot renders inside a dashed-border centered box instead of
+the grid when there are no images; it is ignored when images are present.
+i18n keys `bali.image_grid.empty_state.{title,add_image}` ship in en/es.
 
 ---
 
@@ -502,6 +571,48 @@ Contextual information on hover.
   Hover over me
 <% end %>
 ```
+
+#### Kanban
+
+Kanban board built on SortableList with drag-and-drop between columns. Each
+column maps to a status value sent to the server on drop. Columns accept an
+optional `footer` slot rendered outside the sortable list (never draggable) —
+the classic "+ add card" action.
+
+```erb
+<%= render Bali::Kanban::Component.new(resource_name: "task", group_name: "board") do |k| %>
+  <% k.with_column(title: "To Do", status: "todo", color: :ghost) do |col| %>
+    <% col.with_card(update_url: task_path(task)) { render TaskCard.new(task:) } %>
+    <% col.with_footer do %>
+      <%= link_to "+ Add card", new_task_path(status: :todo) %>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+#### ConfirmDialog
+
+DaisyUI-styled `<dialog>` that replaces Turbo's native `window.confirm` for
+every `data-turbo-confirm` (including `DeleteLink` and `ActionsDropdown`
+delete items). Auto-installed via `registerAll` — no per-app code needed.
+
+```erb
+<%# Any turbo confirm gets the styled dialog automatically %>
+<%= button_to "Delete", thing_path(thing), method: :delete,
+      data: { turbo_confirm: "Delete this thing?" } %>
+
+<%# Per-trigger customization %>
+<%= button_to "Close project", close_project_path(project),
+      data: {
+        turbo_confirm: "Close this project?",
+        bali_confirm_title: "Close project",
+        bali_confirm_variant: "warning",
+        bali_confirm_accept: "Close it"
+      } %>
+```
+
+Opt out globally with `window.BALI_DISABLE_CONFIRM_DIALOG = true` before
+`registerAll` runs.
 
 ---
 

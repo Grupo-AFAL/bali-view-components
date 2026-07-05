@@ -221,7 +221,7 @@ import { DatepickerController, TableController } from 'bali-view-components'
 
 // Avoid: Register all if you only need a few
 import { registerAll } from 'bali-view-components'
-registerAll(application)  // Includes all 40+ controllers
+registerAll(application)  // Includes all 50+ controllers (and installs the confirm dialog)
 ```
 
 ### Code Splitting

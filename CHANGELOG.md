@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Docs** - documentation refresh: component counts corrected (75+ components), README categories and status table now list every component (Kanban, ConfirmDialog, DocumentEditor, DirectUpload, page templates, etc.), the components guide gains sections for Stepper sublabels, ImageGrid empty state, Kanban and ConfirmDialog plus the Modal/Drawer turbo_stream submit pattern, the form-builder guide documents `input_name:`/`input_id:` for non-model forms, the AI dev guide catalog (.claude/CLAUDE.md) covers the full component set, and MIGRATION_STATUS.md is marked complete (historical).
+
 ## [v2.11.0] - 2026-07-05
 
 ### Added

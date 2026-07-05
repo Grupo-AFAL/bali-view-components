@@ -1,10 +1,10 @@
 # Bali ViewComponents
 
-A collection of 48+ UI components built with [ViewComponent](https://viewcomponent.org/) for Rails applications. Styled with [Tailwind CSS](https://tailwindcss.com/) and [DaisyUI](https://daisyui.com/), powered by [Stimulus](https://stimulus.hotwired.dev/) controllers.
+A collection of 75+ UI components built with [ViewComponent](https://viewcomponent.org/) for Rails applications. Styled with [Tailwind CSS](https://tailwindcss.com/) and [DaisyUI](https://daisyui.com/), powered by [Stimulus](https://stimulus.hotwired.dev/) controllers.
 
 ## Features
 
-- **48+ Production-Ready Components** - Buttons, cards, modals, forms, tables, navigation, and more
+- **75+ Production-Ready Components** - Buttons, cards, modals, forms, tables, navigation, and more
 - **DaisyUI Styling** - Beautiful, consistent styling with theme support (light/dark)
 - **Stimulus Controllers** - Interactive behaviors without writing JavaScript
 - **FormBuilder Extensions** - Enhanced form helpers with validation and addons
@@ -98,22 +98,28 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 ## Component Categories
 
 ### Layout
-`Card`, `Columns`, `Drawer`, `Hero`, `Level`, `Modal`, `PageHeader`
+`AppLayout`, `Card`, `Columns`, `Drawer`, `Footer`, `Hero`, `Level`, `Modal`, `PageHeader`, `Topbar`
 
 ### Navigation
-`Breadcrumb`, `Dropdown`, `NavBar`, `SideMenu`, `Tabs`, `Stepper`
+`Breadcrumb`, `Command`, `Dropdown`, `Navbar`, `Pagination`, `PaginationFooter`, `SideMenu`, `Stepper`, `Tabs`
 
 ### Data Display
-`Avatar`, `DataTable`, `Icon`, `List`, `Progress`, `Table`, `Tag`, `Timeline`, `TreeView`
+`Avatar`, `BooleanIcon`, `Chart`, `DataTable`, `GanttChart`, `Heatmap`, `Icon`, `ImageGrid`, `InfoLevel`, `LabelValue`, `List`, `LocationsMap`, `Progress`, `PropertiesTable`, `Rate`, `Skeleton`, `StatCard`, `Table`, `Tag`, `Tags`, `Timeago`, `Timeline`, `TreeView`
 
 ### Interactive
-`ActionsDropdown`, `Filters`, `Button`, `Carousel`, `Clipboard`, `DeleteLink`, `HoverCard`, `Link`, `Reveal`, `SearchInput`, `SortableList`, `Tooltip`
+`ActionsDropdown`, `BulkActions`, `Button`, `Carousel`, `Clipboard`, `ConfirmDialog`, `DeleteLink`, `Filters`, `HoverCard`, `Kanban`, `Link`, `Reveal`, `SearchInput`, `SortableList`, `Tooltip`
 
 ### Feedback
-`FlashNotifications`, `Loader`, `Message`, `Notification`
+`FeedbackWidget`, `FlashNotifications`, `Loader`, `Message`, `Notification`
 
 ### Forms
-`Calendar`, `ImageField`, `RichTextEditor`, plus 25+ FormBuilder extensions
+`Calendar`, `DirectUpload`, `ImageField`, `RecurrentEventRuleForm`, `RichTextEditor`, plus 25+ FormBuilder extensions
+
+### Documents & Editors
+`BlockEditor`, `DocumentEditor`, `DocumentPage`
+
+### Page Templates
+`DashboardPage`, `IndexPage`, `ShowPage`, `FormPage`
 
 ## FormBuilder Extensions
 
@@ -192,10 +198,12 @@ The gem is available as open source under the terms of the [MIT License](https:/
 | Component | Preview | Docs | Tests |
 |-----------|:-------:|:----:|:-----:|
 | ActionsDropdown | ✓ | ✓ | ✓ |
-| Filters | ✓ | ✓ | ✓ |
+| AppLayout | ✓ | ✓ | ✓ |
 | Avatar | ✓ | ✓ | ✓ |
-| Breadcrumb | ✓ | ✓ | ✓ |
+| BlockEditor | ✓ | ✓ | ✓ |
 | BooleanIcon | ✓ | ✓ | ✓ |
+| Breadcrumb | ✓ | ✓ | ✓ |
+| BulkActions | ✓ | - | ✓ |
 | Button | ✓ | ✓ | ✓ |
 | Calendar | ✓ | ✓ | ✓ |
 | Card | ✓ | ✓ | ✓ |
@@ -203,41 +211,66 @@ The gem is available as open source under the terms of the [MIT License](https:/
 | Chart | ✓ | ~ | ✓ |
 | Clipboard | ✓ | ✓ | ✓ |
 | Columns | ✓ | ✓ | ✓ |
+| Command | ✓ | ✓ | ✓ |
+| ConfirmDialog | ✓ | - | - |
+| DashboardPage | ✓ | - | ✓ |
 | DataTable | ✓ | ✓ | ✓ |
 | DeleteLink | ✓ | ✓ | ✓ |
+| DirectUpload | ✓ | ✓ | - |
+| DocumentEditor | ✓ | - | ✓ |
+| DocumentPage | ✓ | - | ✓ |
 | Drawer | ✓ | ✓ | ✓ |
 | Dropdown | ✓ | ✓ | ✓ |
+| FeedbackWidget | ✓ | - | ✓ |
 | Filters | ✓ | ✓ | ✓ |
+| FlashNotifications | ✓ | - | ✓ |
+| Footer | ✓ | - | ✓ |
+| FormPage | ✓ | - | ✓ |
 | GanttChart | ✓ | ✓ | - |
 | Heatmap | ✓ | ✓ | ✓ |
 | Hero | ✓ | ✓ | ✓ |
 | HoverCard | ✓ | ✓ | ✓ |
 | Icon | ✓ | ✓ | ✓ |
+| ImageField | ✓ | - | ✓ |
 | ImageGrid | ✓ | ✓ | ✓ |
+| IndexPage | ✓ | - | ✓ |
 | InfoLevel | ✓ | ✓ | ✓ |
+| Kanban | ✓ | - | ✓ |
 | LabelValue | ✓ | ✓ | ✓ |
 | Level | ✓ | ✓ | ✓ |
 | Link | ✓ | ✓ | ✓ |
 | List | ✓ | ✓ | ✓ |
 | Loader | ✓ | ✓ | ✓ |
+| LocationsMap | ✓ | ✓ | ✓ |
+| Message | ✓ | - | ✓ |
 | Modal | ✓ | ✓ | ✓ |
 | NavBar | ✓ | ✓ | ✓ |
 | Notification | ✓ | ✓ | ✓ |
 | PageHeader | ✓ | ~ | ✓ |
+| Pagination | ✓ | - | ✓ |
+| PaginationFooter | ✓ | - | ✓ |
 | Progress | ✓ | ✓ | ✓ |
 | PropertiesTable | ✓ | ✓ | ✓ |
 | Rate | ✓ | ✓ | ✓ |
+| RecurrentEventRuleForm | ✓ | - | ✓ |
 | Reveal | ✓ | ✓ | ✓ |
 | RichTextEditor | ✓ | - | - |
 | SearchInput | ✓ | ✓ | ✓ |
+| ShowPage | ✓ | - | ✓ |
 | SideMenu | ✓ | ✓ | ✓ |
+| Skeleton | ✓ | - | ✓ |
 | SortableList | ✓ | ✓ | ✓ |
+| StatCard | ✓ | - | - |
 | Stepper | ✓ | ✓ | ✓ |
 | Table | ✓ | ✓ | ✓ |
 | Tabs | ✓ | ✓ | ✓ |
+| Tag | ✓ | - | ✓ |
+| Tags | ✓ | - | ✓ |
+| ThemeSampler | ✓ | - | - |
 | Timeago | ✓ | ✓ | ✓ |
 | Timeline | ✓ | ✓ | ✓ |
 | Tooltip | ✓ | ✓ | ✓ |
+| Topbar | ✓ | ✓ | ✓ |
 | TreeView | ✓ | ✓ | ✓ |
 
 **Legend:** ✓ Complete | ~ Partial | - Missing
