@@ -32,6 +32,14 @@
   }
 }
 
+/* DaisyUI 5's .fieldset is a flex column, so .control is a flex item with
+   min-width: auto — it refuses to shrink below its content's min-content width.
+   A select/slim-select holding a long option then overflows grid columns
+   (minmax(0, 1fr)) instead of truncating. Allow the control to shrink. */
+.control {
+  min-width: 0;
+}
+
 .control.is-small {
   @apply w-40;
 }
