@@ -6,6 +6,10 @@ module Bali
       class Component < ApplicationViewComponent
         renders_many :cards, Card::Component
 
+        # Rendered after the SortableList so its content is never draggable —
+        # the "+ add card" pattern at the foot of a column.
+        renders_one :footer
+
         BADGE_COLORS = {
           primary: "badge-primary",
           secondary: "badge-secondary",

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Kanban** - `Kanban::Column` accepts an optional `footer` slot rendered after the card list and outside the `SortableList`, for non-draggable per-column actions like "+ add card". Columns without a footer render unchanged.
 ### Changed
 
 - Consolidated dependency refresh covering all 15 open Dependabot PRs. Gems: `tailwindcss-rails` 4.4.0 → 4.6.0, `caxlsx` 4.4.2 → 4.5.0, `sqlite3` 2.9.2 → 2.9.5, `brakeman` 8.0.4 → 8.0.5, `rrule` git `4d40a71` → `7e11c7e` (0.8.0). npm: `cypress` 15.14.2 → 15.18.0, `playwright` 1.59.1 → 1.61.1, `daisyui` 5.5.19 → 5.6.13 (root and dummy). CI: `actions/checkout` v6 → v7 across all workflows. Compiled CSS rebuilt against the new daisyUI/Tailwind.
