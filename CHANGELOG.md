@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Modal/Drawer** - the shared `submit` handler now detects `text/vnd.turbo-stream.html` responses and applies them with `Turbo.renderStreamMessage` (closing the modal/drawer on success) instead of injecting the raw `<turbo-stream>` markup as inert HTML. Enables the standard partial-update pattern (close drawer + refresh sections + toast) for forms submitted with `data-turbo="true"`; redirect and HTML-error responses behave as before.
 ### Added
 
 - **Stepper** - steps accept a `sublabel:` option rendered as a smaller muted line under the title (event date, actor, status note), or a free content block via `with_step(title:) { ... }` for arbitrary markup. Works in both orientations; steps without sublabel render unchanged.
