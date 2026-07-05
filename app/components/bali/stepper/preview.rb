@@ -31,6 +31,21 @@ module Bali
         end
       end
 
+      # With sublabels
+      # --------------
+      # Each step accepts an optional `sublabel:` (event date, actor, status note)
+      # rendered as a smaller second line. For arbitrary markup, pass a content
+      # block to `with_step` instead.
+      # @param orientation select [horizontal, vertical]
+      def with_sublabels(orientation: :horizontal)
+        render Bali::Stepper::Component.new(current: 2, orientation: orientation.to_sym) do |c|
+          c.with_step(title: 'Propuesto', sublabel: '01/07 · Luis Pérez')
+          c.with_step(title: 'Aprobado', sublabel: '03/07 · Ana Gutiérrez')
+          c.with_step(title: 'Publicado', sublabel: 'publicación #12')
+          c.with_step(title: 'Vigente')
+        end
+      end
+
       # Color variants
       # --------------
       # Different color schemes for different contexts

@@ -19,10 +19,11 @@ module Bali
         # Unicode checkmark for completed steps
         CHECKMARK = "\u2713"
 
-        attr_reader :title
+        attr_reader :title, :sublabel
 
-        def initialize(title:, current:, index:, color: :primary, **options)
+        def initialize(title:, current:, index:, color: :primary, sublabel: nil, **options)
           @title = title
+          @sublabel = sublabel
           @current = current
           @index = index
           @color = color

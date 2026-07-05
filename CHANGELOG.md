@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Stepper** - steps accept a `sublabel:` option rendered as a smaller muted line under the title (event date, actor, status note), or a free content block via `with_step(title:) { ... }` for arbitrary markup. Works in both orientations; steps without sublabel render unchanged.
 - **Kanban** - `Kanban::Column` accepts an optional `footer` slot rendered after the card list and outside the `SortableList`, for non-draggable per-column actions like "+ add card". Columns without a footer render unchanged.
 ### Changed
 
