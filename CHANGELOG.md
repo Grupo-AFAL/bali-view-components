@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **DocumentEditor** - "Back to current" now restores the real document after previewing several versions in a row. `previewVersion` captured the editor state on every call, so a second preview overwrote the saved current document with the first previewed version — exiting preview then restored that version read-only, and saving in that state could overwrite the document with old content.
+- **Forms** - `.control` field wrappers now shrink inside CSS grid columns (`min-width: 0`), so a select/slim-select holding a long selected option truncates with ellipsis instead of overflowing `minmax(0, 1fr)` columns. `.ss-main` also gets a defensive `max-width: 100%`.
 
 ## [v2.10.0] - 2026-06-30
 

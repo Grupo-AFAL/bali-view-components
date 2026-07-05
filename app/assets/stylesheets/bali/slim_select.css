@@ -107,6 +107,9 @@
    The clickable element that looks like an input/select
    ============================================================================= */
 .ss-main {
+  /* Never grow past the container, even when a selected option is wider
+     than the column that holds it (see .control { min-width: 0 } in forms.css) */
+  max-width: 100%;
   @apply flex flex-row items-center relative select-none w-full h-10 min-h-[40px] p-0 cursor-pointer text-[14px];
   @apply bg-base-100 border border-base-content/20;
   border-radius: 4px;
