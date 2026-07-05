@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Consolidated dependency refresh covering all 15 open Dependabot PRs. Gems: `tailwindcss-rails` 4.4.0 → 4.6.0, `caxlsx` 4.4.2 → 4.5.0, `sqlite3` 2.9.2 → 2.9.5, `brakeman` 8.0.4 → 8.0.5, `rrule` git `4d40a71` → `7e11c7e` (0.8.0). npm: `cypress` 15.14.2 → 15.18.0, `playwright` 1.59.1 → 1.61.1, `daisyui` 5.5.19 → 5.6.13 (root and dummy). CI: `actions/checkout` v6 → v7 across all workflows. Compiled CSS rebuilt against the new daisyUI/Tailwind.
+
+### Security
+
+- Resolve all 11 open Dependabot alerts (4 high, 5 moderate, 2 low), all npm. Re-resolved transitive dependencies in `yarn.lock` (`form-data` 4.0.6, `systeminformation` 5.31.12, `tmp` 0.2.7, `js-yaml` 5.2.1, `@babel/core` 7.29.7) and `spec/dummy/yarn.lock` (`linkify-it` 5.0.2, `markdown-it` 14.3.0). Added Yarn `resolutions` for `qs` (^6.15.2) and `uuid` (^11.1.1) whose parent ranges could not reach the patched versions, and bumped the dummy app's `esbuild` to ^0.28.1. Dev/test-only surface (Cypress, eslint/standard, esbuild, BlockNote markdown chain) — no runtime gem code affected.
 ### Fixed
 
 - **Forms** - `.control` field wrappers now shrink inside CSS grid columns (`min-width: 0`), so a select/slim-select holding a long selected option truncates with ellipsis instead of overflowing `minmax(0, 1fr)` columns. `.ss-main` also gets a defensive `max-width: 100%`.
