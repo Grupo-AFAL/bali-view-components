@@ -204,6 +204,16 @@ Native HTML select with DaisyUI styling.
 <%= f.select_group :country, Country.all.map { |c| [c.name, c.id] }, include_blank: "Select country" %>
 ```
 
+**Non-model forms** (`form_with url:` without a model): pass `input_name:` /
+`input_id:` in the options hash to namespace the rendered `<select>` under a
+param key. Also supported by `slim_select_group`. An explicit `name:`/`id:`
+in the html options hash still wins.
+
+```erb
+<%= f.select_group :approver_id, approvers, input_name: "thing[approver_id]" %>
+<%# => <select name="thing[approver_id]" ...> — works with params.require(:thing) %>
+```
+
 ### slim_select_group / slim_select_field
 
 Enhanced select with search, multi-select, and AJAX support.
