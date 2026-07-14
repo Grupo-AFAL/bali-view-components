@@ -101,4 +101,75 @@ class BaliMessageComponentTest < ComponentTestCase
     render_inline(Bali::Message::Component.new(id: "unique-message")) { "Content" }
     assert_selector("div.alert#unique-message")
   end
+
+  # Live-region role (issue #599)
+
+  def test_role_defaults_to_alert
+    render_inline(Bali::Message::Component.new) { "Content" }
+    assert_selector('div.alert[role="alert"]')
+  end
+
+  def test_role_status_renders_status_role
+    render_inline(Bali::Message::Component.new(role: :status)) { "Content" }
+    assert_selector('div.alert[role="status"]')
+  end
+
+  def test_role_note_renders_note_role
+    render_inline(Bali::Message::Component.new(role: :note)) { "Content" }
+    assert_selector('div.alert[role="note"]')
+  end
+
+  def test_role_falls_back_to_alert_for_unknown_role
+    render_inline(Bali::Message::Component.new(role: :marquee)) { "Content" }
+    assert_selector('div.alert[role="alert"]')
+  end
+
+  def test_polite_maps_to_status_role
+    render_inline(Bali::Message::Component.new(polite: true)) { "Content" }
+    assert_selector('div.alert[role="status"]')
+  end
+
+  def test_assertive_maps_to_alert_role
+    render_inline(Bali::Message::Component.new(assertive: true)) { "Content" }
+    assert_selector('div.alert[role="alert"]')
+  end
+
+  def test_explicit_role_wins_over_boolean_sugar
+    render_inline(Bali::Message::Component.new(role: :note, assertive: true)) { "Content" }
+    assert_selector('div.alert[role="note"]')
+  end
+
+  def test_assertive_wins_over_polite
+    render_inline(Bali::Message::Component.new(polite: true, assertive: true)) { "Content" }
+    assert_selector('div.alert[role="alert"]')
+  end
+
+  # Dismissible (issue #598)
+
+  def test_not_dismissible_by_default
+    render_inline(Bali::Message::Component.new) { "Content" }
+    assert_no_selector('div.alert[data-controller~="message"]')
+    assert_no_selector('button[data-action="message#dismiss"]')
+  end
+
+  def test_dismissible_wires_message_controller
+    render_inline(Bali::Message::Component.new(dismissible: true)) { "Content" }
+    assert_selector('div.message-component[data-controller~="message"]')
+  end
+
+  def test_dismissible_renders_close_button
+    render_inline(Bali::Message::Component.new(dismissible: true)) { "Content" }
+    assert_selector('button[data-action="message#dismiss"][aria-label="Close"]')
+    assert_selector("button svg.lucide-icon")
+  end
+
+  def test_dismiss_id_adds_persistence_value
+    render_inline(Bali::Message::Component.new(dismissible: true, dismiss_id: "welcome-banner")) { "Content" }
+    assert_selector('div.message-component[data-message-dismiss-id-value="welcome-banner"]')
+  end
+
+  def test_dismiss_id_omitted_without_dismissible
+    render_inline(Bali::Message::Component.new(dismiss_id: "welcome-banner")) { "Content" }
+    assert_no_selector("div.alert[data-message-dismiss-id-value]")
+  end
 end

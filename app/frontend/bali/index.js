@@ -102,6 +102,7 @@ export {
   ImageExpanderController,
   ImageFieldController,
   LocationsMapController,
+  MessageController,
   ModalController,
   MultiSelectController,
   NavbarController,
