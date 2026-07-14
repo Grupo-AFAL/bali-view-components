@@ -23,6 +23,36 @@ class BaliSideMenuComponentTest < ComponentTestCase
     assert_selector("a[href='/movies']", text: "Item 1")
   end
 
+  def test_renders_a_section_badge_when_with_list_badge_is_given
+    render_inline(component) do |c|
+      c.with_list(title: "Pendientes", badge: "3") do |list|
+        list.with_item(name: "Item 1", href: "/movies")
+      end
+    end
+    assert_selector("p.menu-label", text: "Pendientes")
+    assert_selector("p.menu-label span.text-primary", text: "3")
+  end
+
+  def test_section_badge_respects_badge_color
+    render_inline(component) do |c|
+      c.with_list(title: "Alerts", badge: "9", badge_color: :warning) do |list|
+        list.with_item(name: "Item 1", href: "/movies")
+      end
+    end
+    assert_selector("p.menu-label span.text-warning", text: "9")
+    assert_no_selector("p.menu-label span.text-primary")
+  end
+
+  def test_does_not_render_a_section_badge_when_badge_is_absent
+    render_inline(component) do |c|
+      c.with_list(title: "Pendientes") do |list|
+        list.with_item(name: "Item 1", href: "/movies")
+      end
+    end
+    assert_selector("p.menu-label", text: "Pendientes")
+    assert_no_selector("p.menu-label span.border")
+  end
+
   def test_brand_row_uses_shared_chrome_height_for_alignment_with_topbar
     @options = @options.merge(brand: "ACME")
     render_inline(component)
