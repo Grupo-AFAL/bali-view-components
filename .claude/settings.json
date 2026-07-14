@@ -59,20 +59,6 @@
       "Bash(> /dev/*)"
     ]
   },
-  "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/check-dependency-versions.sh",
-            "timeout": 30
-          }
-        ]
-      }
-    ]
-  },
   "statusLine": {
     "type": "command",
     "command": "bash /Users/fede/code/shared/bali-view-components/.claude/statusline-command.sh"

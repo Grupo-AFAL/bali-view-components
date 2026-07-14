@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Docs** - documentation refresh: component counts corrected (75+ components), README categories and status table now list every component (Kanban, ConfirmDialog, DocumentEditor, DirectUpload, page templates, etc.), the components guide now documents all 74 components with per-component sections (usage example + options verified against each initialize signature), organized into categories including new Documents & Editors, Page Templates and Utilities sections, plus the Modal/Drawer turbo_stream submit pattern, the form-builder guide documents `input_name:`/`input_id:` for non-model forms, the AI dev guide catalog (.claude/CLAUDE.md) covers the full component set, and MIGRATION_STATUS.md is marked complete (historical).
+- **Tooling** - slimmed the AI dev guide (`.claude/CLAUDE.md`) to point at `docs/` and `app/components/bali/` as the single source of truth for the component inventory instead of an in-file catalog that drifts out of sync; removed dead hook config (`.claude/hooks.json`, which Claude Code never reads, and a `SessionStart` hook referencing a non-existent `check-dependency-versions.sh`); fixed the `frontend-ui-ux-engineer` agent model alias. No effect on the published gem.
+
+### Security
+
+- Bumped `view_component` 4.10.0 → 4.12.0 (resolves CVE-2026-54497 and the High-severity `around_render` HTML-safety bypass CVE-2026-54498) and `websocket-driver` 0.8.0 → 0.8.2 (resolves CVE-2026-54463/54464/54465 and the malformed Host header DoS). Lockfile-only within existing version constraints; full test suite passes.
 
 ## [v2.11.0] - 2026-07-05
 
