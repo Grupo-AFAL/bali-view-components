@@ -1,5 +1,8 @@
 <% if title.present? %>
-  <p class="<%= title_classes %>"><%= title %></p>
+  <p class="<%= title_classes %>">
+    <span><%= title %></span>
+    <%= render_badge %>
+  </p>
 <% end %>
 <div class="space-y-0.5 px-2.5">
   <% items.each do |item| %>

@@ -23,6 +23,36 @@ class BaliSideMenuComponentTest < ComponentTestCase
     assert_selector("a[href='/movies']", text: "Item 1")
   end
 
+  def test_renders_a_section_badge_when_with_list_badge_is_given
+    render_inline(component) do |c|
+      c.with_list(title: "Pendientes", badge: "3") do |list|
+        list.with_item(name: "Item 1", href: "/movies")
+      end
+    end
+    assert_selector("p.menu-label", text: "Pendientes")
+    assert_selector("p.menu-label span.text-primary", text: "3")
+  end
+
+  def test_section_badge_respects_badge_color
+    render_inline(component) do |c|
+      c.with_list(title: "Alerts", badge: "9", badge_color: :warning) do |list|
+        list.with_item(name: "Item 1", href: "/movies")
+      end
+    end
+    assert_selector("p.menu-label span.text-warning", text: "9")
+    assert_no_selector("p.menu-label span.text-primary")
+  end
+
+  def test_does_not_render_a_section_badge_when_badge_is_absent
+    render_inline(component) do |c|
+      c.with_list(title: "Pendientes") do |list|
+        list.with_item(name: "Item 1", href: "/movies")
+      end
+    end
+    assert_selector("p.menu-label", text: "Pendientes")
+    assert_no_selector("p.menu-label span.border")
+  end
+
   def test_brand_row_uses_shared_chrome_height_for_alignment_with_topbar
     @options = @options.merge(brand: "ACME")
     render_inline(component)
@@ -117,6 +147,48 @@ class BaliSideMenuComponentTest < ComponentTestCase
     end
     assert_selector("a.active", text: "item root")
     assert_no_selector("a.active", text: "item 1")
+  end
+
+  def test_with_active_when_regexp_renders_as_active_on_a_nested_full_page_route
+    @options[:current_path] = "/departments/1/merges/new"
+    render_menu_with_active_when_items
+    assert_selector("a.active", text: "Departments")
+  end
+
+  def test_with_active_when_does_not_activate_an_unrelated_sibling_item
+    @options[:current_path] = "/departments/1/merges/new"
+    render_menu_with_active_when_items
+    assert_no_selector("a.active", text: "Department Types")
+  end
+
+  def test_with_active_when_string_prefix_renders_as_active_on_a_nested_route
+    @options[:current_path] = "/departments/1/source_links/new"
+    render_inline(component) do |c|
+      c.with_list do |list|
+        list.with_item(name: "Departments", href: "/departments", active_when: "/departments/1/source_links")
+      end
+    end
+    assert_selector("a.active", text: "Departments")
+  end
+
+  def test_with_active_when_proc_renders_as_active_when_lambda_matches
+    @options[:current_path] = "/departments/1/merges/new"
+    render_inline(component) do |c|
+      c.with_list do |list|
+        list.with_item(
+          name: "Departments",
+          href: "/departments",
+          active_when: ->(current_path) { current_path.include?("/merges") }
+        )
+      end
+    end
+    assert_selector("a.active", text: "Departments")
+  end
+
+  def test_with_active_when_stays_inactive_on_an_unrelated_route
+    @options[:current_path] = "/dashboard"
+    render_menu_with_active_when_items
+    assert_no_selector("a.active", text: "Departments")
   end
 
   def test_passes_data_attributes_through_to_the_anchor_tag
@@ -314,6 +386,23 @@ class BaliSideMenuComponentTest < ComponentTestCase
     render_inline(component) do |c|
       c.with_list do |list|
         list.with_item(name: "items", href: "/items", match: :crud)
+      end
+    end
+  end
+
+  # "Departments" owns its own nested full-page routes via active_when,
+  # while "Department Types" shares the /departments prefix but must NOT
+  # activate — the case that match: :starts_with would over-match.
+  def render_menu_with_active_when_items
+    render_inline(component) do |c|
+      c.with_list do |list|
+        list.with_item(
+          name: "Departments",
+          href: "/departments",
+          match: :crud,
+          active_when: %r{\A/departments/\d+/(merges|source_links)}
+        )
+        list.with_item(name: "Department Types", href: "/department_types")
       end
     end
   end

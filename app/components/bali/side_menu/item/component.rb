@@ -42,6 +42,7 @@ module Bali
           @target = target
           @active = options.delete(:active)
           @match_type = MATCH_TYPES.include?(options[:match]) ? options.delete(:match) : :exact
+          @active_when = options.delete(:active_when)
           @badge = options.delete(:badge)
           @badge_color = options.delete(:badge_color) || :primary
           @link_class = options.delete(:class)
@@ -64,7 +65,14 @@ module Bali
           return @active unless @active.nil?
 
           (!disabled? && active_path?(parsed_path, @current_path, match: @match_type)) ||
+            active_when_match? ||
             active_child_items?
+        end
+
+        # OR-ed into +active?+ so an item declaring +active_when:+ stays
+        # highlighted on nested full-page routes that +match:+ alone misses.
+        def active_when_match?
+          active_extra_path?(@active_when, @current_path)
         end
 
         def active_child_items?
