@@ -65,7 +65,8 @@ module Bali
       end
 
       # @label With Badges
-      # Menu items with notification badges
+      # Menu items with notification badges. Section titles also support a badge via
+      # `with_list(title:, badge:, badge_color:)` — see the "Pendientes" section header.
       def with_badges
         render_with_template(template: "bali/side_menu/previews/with_badges")
       end
