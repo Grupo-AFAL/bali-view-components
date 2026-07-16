@@ -33,6 +33,17 @@ module Bali
         render_with_template(template: "bali/side_menu/previews/with_menu_switcher")
       end
 
+      # @label Active When (Nested Routes)
+      # Use `active_when:` to keep an item highlighted on nested full-page routes that
+      # `match:` alone misses — e.g. `/departments/1/merges/new`. It accepts a String
+      # prefix, a Regexp, a lambda `->(current_path) { ... }`, or an Array of any of these,
+      # and is OR-ed with the normal `match:` logic. Unlike `match: :starts_with`, it does
+      # not light up unrelated siblings. This preview renders at
+      # `/departments/1/merges/new`, so "Departments" stays active.
+      def active_when
+        render_with_template(template: "bali/side_menu/previews/active_when")
+      end
+
       # @label Collapsible Sidebar
       # Sidebar that can collapse to icon-only mode. Click the toggle button to collapse/expand.
       # The collapse state is persisted in localStorage.

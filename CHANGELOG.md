@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **SideMenu** - items accept `active_when:` (String prefix, Regexp, Array, or Proc) to keep the parent item highlighted on nested full-page routes (e.g. `/departments/:id/merges/new`) without the over-matching of `match: :starts_with`. Matching logic lives in `Bali::PathHelper#active_extra_path?`; existing `match:` behavior is unchanged.
 - **SideMenu** - `with_list(title:)` now accepts `badge:` and `badge_color:` to render a badge next to a section title (e.g. `Pendientes` with a `3` badge), matching the existing item-level badge contract and palette. Sections without a badge render unchanged.
 
 ### Changed

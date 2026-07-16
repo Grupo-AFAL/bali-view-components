@@ -149,6 +149,48 @@ class BaliSideMenuComponentTest < ComponentTestCase
     assert_no_selector("a.active", text: "item 1")
   end
 
+  def test_with_active_when_regexp_renders_as_active_on_a_nested_full_page_route
+    @options[:current_path] = "/departments/1/merges/new"
+    render_menu_with_active_when_items
+    assert_selector("a.active", text: "Departments")
+  end
+
+  def test_with_active_when_does_not_activate_an_unrelated_sibling_item
+    @options[:current_path] = "/departments/1/merges/new"
+    render_menu_with_active_when_items
+    assert_no_selector("a.active", text: "Department Types")
+  end
+
+  def test_with_active_when_string_prefix_renders_as_active_on_a_nested_route
+    @options[:current_path] = "/departments/1/source_links/new"
+    render_inline(component) do |c|
+      c.with_list do |list|
+        list.with_item(name: "Departments", href: "/departments", active_when: "/departments/1/source_links")
+      end
+    end
+    assert_selector("a.active", text: "Departments")
+  end
+
+  def test_with_active_when_proc_renders_as_active_when_lambda_matches
+    @options[:current_path] = "/departments/1/merges/new"
+    render_inline(component) do |c|
+      c.with_list do |list|
+        list.with_item(
+          name: "Departments",
+          href: "/departments",
+          active_when: ->(current_path) { current_path.include?("/merges") }
+        )
+      end
+    end
+    assert_selector("a.active", text: "Departments")
+  end
+
+  def test_with_active_when_stays_inactive_on_an_unrelated_route
+    @options[:current_path] = "/dashboard"
+    render_menu_with_active_when_items
+    assert_no_selector("a.active", text: "Departments")
+  end
+
   def test_passes_data_attributes_through_to_the_anchor_tag
     render_inline(component) do |c|
       c.with_list do |list|
@@ -344,6 +386,23 @@ class BaliSideMenuComponentTest < ComponentTestCase
     render_inline(component) do |c|
       c.with_list do |list|
         list.with_item(name: "items", href: "/items", match: :crud)
+      end
+    end
+  end
+
+  # "Departments" owns its own nested full-page routes via active_when,
+  # while "Department Types" shares the /departments prefix but must NOT
+  # activate — the case that match: :starts_with would over-match.
+  def render_menu_with_active_when_items
+    render_inline(component) do |c|
+      c.with_list do |list|
+        list.with_item(
+          name: "Departments",
+          href: "/departments",
+          match: :crud,
+          active_when: %r{\A/departments/\d+/(merges|source_links)}
+        )
+        list.with_item(name: "Department Types", href: "/department_types")
       end
     end
   end

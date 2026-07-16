@@ -1,0 +1,22 @@
+<div class="h-[500px] bg-base-200 p-4">
+  <div class="w-xs">
+    <%= render Bali::SideMenu::Component.new(current_path: '/departments/1/merges/new', fixed: false) do |c|
+      c.with_list(title: 'Navigation') do |list|
+        list.with_item(name: 'Dashboard', href: '/dashboard', icon: 'layout-dashboard')
+
+        # Stays active on CRUD routes AND on nested sub-resource pages
+        # such as /departments/1/merges/new or /departments/1/source_links/new.
+        list.with_item(
+          name: 'Departments',
+          href: '/departments',
+          icon: 'building-2',
+          match: :crud,
+          active_when: %r{\A/departments/\d+/(merges|source_links)}
+        )
+
+        # Sibling that shares the /departments prefix but must NOT light up here.
+        list.with_item(name: 'Department Types', href: '/department_types', icon: 'tags')
+      end
+    end %>
+  </div>
+</div>
