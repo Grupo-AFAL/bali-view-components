@@ -31,7 +31,7 @@
     "ai": "^6.0.5",
     "bali-view-components": "link:../..",
     "chart.js": "^4.5.1",
-    "daisyui": "^5.0.0",
+    "daisyui": "5.6.17",
     "date-fns": "^4.1.0",
     "docx": "^9.4.0",
     "flatpickr": "^4.6.13",
