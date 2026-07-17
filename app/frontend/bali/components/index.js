@@ -40,6 +40,7 @@ import { ImageExpanderController } from '../../../components/bali/image_grid/ind
 import { DirectUploadController } from '../../../components/bali/direct_upload/index'
 import { RecurrentEventRuleController } from '../../../components/bali/recurrent_event_rule_form/index'
 import { NotificationController } from '../../../components/bali/notification/index'
+import { MessageController } from '../../../components/bali/message/index'
 import { LocationsMapController } from '../../../components/bali/locations_map/index'
 import {
   FiltersController,
@@ -86,6 +87,7 @@ export { RecurrentEventRuleController } from '../../../components/bali/recurrent
 
 // Feedback components
 export { NotificationController } from '../../../components/bali/notification/index'
+export { MessageController } from '../../../components/bali/message/index'
 
 // Map components
 export { LocationsMapController } from '../../../components/bali/locations_map/index'
@@ -161,6 +163,7 @@ export function registerAll (application) {
 
   // Feedback
   application.register('notification', NotificationController)
+  application.register('message', MessageController)
 
   // Map
   application.register('locations-map', LocationsMapController)

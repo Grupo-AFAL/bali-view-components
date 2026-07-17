@@ -1,4 +1,4 @@
-<%= tag.div(role: 'alert', **options) do %>
+<%= tag.div(role: role, **options) do %>
   <% if title.present? || header? %>
     <div class="flex flex-col gap-1">
       <% if title.present? %>
@@ -10,5 +10,8 @@
     </div>
   <% else %>
     <span><%= content %></span>
+  <% end %>
+  <% if dismissible? %>
+    <%= render close_button %>
   <% end %>
 <% end %>
