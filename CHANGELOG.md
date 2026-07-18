@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **DataTable / SimpleFilters** - `SimpleFilters::Component` now accepts `storage_id:` and `persist_enabled:`, rendering the same bookmark persistence toggle as `Bali::Filters` (wired to the `filter-persistence` Stimulus controller, which stores the user's on/off preference in `localStorage` + a `bali_persist_<storage_id>` cookie for server-side access). `DataTable#with_simple_filters` auto-populates both from the `FilterForm` (mirroring `with_filters_panel`), so screens using SimpleFilters no longer lose their filters on redirects. The toggle only renders when a `storage_id` is present; restoring filter *values* remains the consuming app's server-side responsibility. Backwards compatible.
+
 ## [v2.12.0] - 2026-07-16
 
 ### Added

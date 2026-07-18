@@ -31,11 +31,15 @@ module Bali
         #   - :placeholder [String, nil] Placeholder text
         #   - :label [String, nil] Custom label (defaults to I18n)
         #   - :width [String, nil] Tailwind width classes (default: "w-48 sm:w-96")
-        def initialize(url:, filters: [], show_clear: false, search: nil)
+        # @param storage_id [String, nil] Optional storage ID indicating filters can be persisted
+        # @param persist_enabled [Boolean] Whether user has opted into filter persistence
+        def initialize(url:, filters: [], show_clear: false, search: nil, storage_id: nil, persist_enabled: false)
           @url = url
           @filters = filters
           @show_clear = show_clear
           @search = search
+          @storage_id = storage_id
+          @persist_enabled = persist_enabled
         end
 
         def render?
@@ -44,6 +48,16 @@ module Bali
 
         def show_clear?
           @show_clear
+        end
+
+        # Returns true if persistence is available (storage_id is configured)
+        def persistence_available?
+          @storage_id.present?
+        end
+
+        # Returns true if user has enabled persistence
+        def persist_enabled?
+          @persist_enabled
         end
 
         def search_enabled?
