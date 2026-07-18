@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Tooltip** - new `append_to:` option (default `:parent`) controls where the balloon is portaled in the DOM. Pass `:body` or a CSS-selector String to portal the balloon out of ancestors with `overflow` (wide tables in `overflow-x-auto`, cards with `overflow-hidden`) that would otherwise clip it. Balloon styling now applies via a global `bali` tippy theme (`.tippy-box[data-theme~='bali']`) so it renders correctly wherever the box is appended. Backwards compatible — the default `:parent` behavior and appearance are unchanged.
+
 ## [v2.12.0] - 2026-07-16
 
 ### Added
