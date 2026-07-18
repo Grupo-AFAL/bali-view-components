@@ -104,6 +104,27 @@ class BaliTooltipComponentTest < ComponentTestCase
     assert_selector('#tooltip-1[role="tooltip"]')
   end
 
+  def test_append_to_defaults_to_parent
+    render_inline(Bali::Tooltip::Component.new) do |c|
+      c.with_trigger { c.tag.span "Hover" }
+    end
+    assert_selector('[data-tooltip-append-to-value="parent"]')
+  end
+
+  def test_append_to_body_sets_body_value
+    render_inline(Bali::Tooltip::Component.new(append_to: :body)) do |c|
+      c.with_trigger { c.tag.span "Hover" }
+    end
+    assert_selector('[data-tooltip-append-to-value="body"]')
+  end
+
+  def test_append_to_accepts_css_selector_string
+    render_inline(Bali::Tooltip::Component.new(append_to: "#portal")) do |c|
+      c.with_trigger { c.tag.span "Hover" }
+    end
+    assert_selector('[data-tooltip-append-to-value="#portal"]')
+  end
+
   def test_trigger_slot_renders_custom_trigger_content
     render_inline(Bali::Tooltip::Component.new) do |c|
       c.with_trigger { c.tag.button "Click me", class: "btn btn-primary" }

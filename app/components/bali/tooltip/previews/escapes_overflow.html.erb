@@ -1,0 +1,19 @@
+<div class="flex justify-center items-center gap-16 p-16">
+  <div class="relative w-40 h-20 overflow-hidden border border-base-300 rounded flex items-center justify-center">
+    <%= render Bali::Tooltip::Component.new(placement: :top) do |c| %>
+      <% c.with_trigger do %>
+        <span class="btn btn-sm">Clipped (parent)</span>
+      <% end %>
+      <p>The default balloon is clipped by the overflow-hidden container.</p>
+    <% end %>
+  </div>
+
+  <div class="relative w-40 h-20 overflow-hidden border border-base-300 rounded flex items-center justify-center">
+    <%= render Bali::Tooltip::Component.new(placement: :top, append_to: :body) do |c| %>
+      <% c.with_trigger do %>
+        <span class="btn btn-sm btn-primary">Escapes (body)</span>
+      <% end %>
+      <p>This balloon is portaled to &lt;body&gt; and escapes the container.</p>
+    <% end %>
+  </div>
+</div>
