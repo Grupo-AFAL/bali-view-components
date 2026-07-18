@@ -104,17 +104,27 @@ module Bali
       #   data_table.with_simple_filters(filters: [
       #     { attribute: :status, collection: [["Active", "active"]], blank: "All" }
       #   ])
-      renders_one :simple_filters, ->(filters: nil, search: nil) do
+      renders_one :simple_filters, ->(filters: nil, search: nil, storage_id: nil, persist_enabled: nil) do
         resolved_filters = filters || @filter_form&.simple_filters_config || []
         resolved_search = search || @filter_form&.simple_search_config
         filters_active = @filter_form&.simple_filters_active? || false
         search_active = resolved_search&.dig(:value).present?
 
+        # Auto-populate storage_id from filter_form unless explicitly provided
+        storage_id ||= @filter_form&.storage_id if @filter_form.respond_to?(:storage_id)
+
+        # Auto-populate persist_enabled from filter_form unless explicitly provided
+        if persist_enabled.nil? && @filter_form.respond_to?(:persist_enabled?)
+          persist_enabled = @filter_form.persist_enabled?
+        end
+
         SimpleFilters::Component.new(
           url: @url,
           filters: resolved_filters,
           show_clear: filters_active || search_active,
-          search: resolved_search
+          search: resolved_search,
+          storage_id: storage_id,
+          persist_enabled: persist_enabled || false
         )
       end
 

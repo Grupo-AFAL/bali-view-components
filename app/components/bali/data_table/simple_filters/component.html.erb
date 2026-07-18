@@ -155,6 +155,30 @@
           responsive: true
         ) %>
       <% end %>
+
+      <%# Persistence toggle (bookmark icon) %>
+      <% if persistence_available? %>
+        <div class="max-sm:overflow-hidden" data-controller="filter-persistence"
+             data-filter-persistence-storage-id-value="<%= @storage_id %>"
+             data-filter-persistence-enabled-value="<%= persist_enabled? %>">
+          <button type="button"
+                  class="tooltip tooltip-bottom btn btn-ghost btn-sm btn-square"
+                  data-action="filter-persistence#toggle"
+                  data-filter-persistence-target="button"
+                  data-filter-persistence-enabled-tooltip="<%= t('bali.filters.persistence_enabled', default: 'Filters are being saved. Click to disable.') %>"
+                  data-filter-persistence-disabled-tooltip="<%= t('bali.filters.persistence_disabled', default: 'Filters are not saved. Click to enable.') %>"
+                  data-tip="<%= persist_enabled? ? t('bali.filters.persistence_enabled', default: 'Filters are being saved. Click to disable.') : t('bali.filters.persistence_disabled', default: 'Filters are not saved. Click to enable.') %>">
+            <%# Filled bookmark when enabled %>
+            <span data-filter-persistence-target="iconEnabled" class="<%= 'hidden' unless persist_enabled? %>">
+              <%= render Bali::Icon::Component.new('bookmark-check', class: 'w-5 h-5 text-primary') %>
+            </span>
+            <%# Outline bookmark when disabled %>
+            <span data-filter-persistence-target="iconDisabled" class="<%= 'hidden' if persist_enabled? %>">
+              <%= render Bali::Icon::Component.new('bookmark', class: 'w-5 h-5 text-base-content/40') %>
+            </span>
+          </button>
+        </div>
+      <% end %>
     </div>
   </div>
 <% end %>

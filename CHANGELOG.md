@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **DataTable / SimpleFilters** - `SimpleFilters::Component` now accepts `storage_id:` and `persist_enabled:`, rendering the same bookmark persistence toggle as `Bali::Filters` (wired to the `filter-persistence` Stimulus controller, which stores the user's on/off preference in `localStorage` + a `bali_persist_<storage_id>` cookie for server-side access). `DataTable#with_simple_filters` auto-populates both from the `FilterForm` (mirroring `with_filters_panel`), so screens using SimpleFilters no longer lose their filters on redirects. The toggle only renders when a `storage_id` is present; restoring filter *values* remains the consuming app's server-side responsibility. Backwards compatible.
 - **Tooltip** - new `append_to:` option (default `:parent`) controls where the balloon is portaled in the DOM. Pass `:body` or a CSS-selector String to portal the balloon out of ancestors with `overflow` (wide tables in `overflow-x-auto`, cards with `overflow-hidden`) that would otherwise clip it. Balloon styling now applies via a global `bali` tippy theme (`.tippy-box[data-theme~='bali']`) so it renders correctly wherever the box is appended. Backwards compatible — the default `:parent` behavior and appearance are unchanged.
 
 ## [v2.12.0] - 2026-07-16

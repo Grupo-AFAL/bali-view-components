@@ -484,4 +484,56 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
 
     assert_selector("input[type='number'][step='1']", count: 2)
   end
+
+  # Persistence toggle tests
+
+  def test_persistence_available_returns_false_when_no_storage_id
+    component = Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters)
+    refute(component.persistence_available?)
+  end
+
+  def test_persistence_available_returns_true_when_storage_id_is_present
+    component = Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, storage_id: "records_filters")
+    assert(component.persistence_available?)
+  end
+
+  def test_persist_enabled_returns_false_by_default
+    component = Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, storage_id: "records_filters")
+    refute(component.persist_enabled?)
+  end
+
+  def test_persist_enabled_returns_true_when_explicitly_enabled
+    component = Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, storage_id: "records_filters", persist_enabled: true)
+    assert(component.persist_enabled?)
+  end
+
+  def test_does_not_render_persistence_toggle_when_storage_id_is_absent
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters))
+    assert_no_selector('[data-controller="filter-persistence"]')
+  end
+
+  def test_renders_persistence_toggle_when_storage_id_is_present
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, storage_id: "records_filters"))
+    assert_selector('[data-controller="filter-persistence"]')
+    assert_selector('[data-filter-persistence-storage-id-value="records_filters"]')
+  end
+
+  def test_persistence_toggle_shows_disabled_icon_by_default
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, storage_id: "records_filters"))
+    assert_selector('[data-filter-persistence-target="iconDisabled"]:not(.hidden)')
+    assert_selector('[data-filter-persistence-target="iconEnabled"].hidden')
+    assert_selector('[data-filter-persistence-enabled-value="false"]')
+  end
+
+  def test_persistence_toggle_shows_enabled_icon_when_persist_enabled_is_true
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, storage_id: "records_filters", persist_enabled: true))
+    assert_selector('[data-filter-persistence-target="iconEnabled"]:not(.hidden)')
+    assert_selector('[data-filter-persistence-target="iconDisabled"].hidden')
+    assert_selector('[data-filter-persistence-enabled-value="true"]')
+  end
+
+  def test_persistence_toggle_renders_with_search_only_and_no_filters
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: [], search: @search, storage_id: "records_filters"))
+    assert_selector('[data-controller="filter-persistence"]')
+  end
 end

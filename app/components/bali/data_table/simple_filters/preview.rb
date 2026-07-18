@@ -320,6 +320,34 @@ module Bali
             show_clear: status.present? || country.present?
           )
         end
+
+        # @label With Persistence
+        # A bookmark toggle appears next to the actions when `storage_id` is set,
+        # letting users opt into persisting their filters across visits. The
+        # preference is stored in localStorage + a cookie by the
+        # `filter-persistence` controller (mirrors Bali::Filters).
+        #
+        # @param status select { choices: ["", active, inactive] }
+        # @param persist_enabled toggle
+        def with_persistence(status: '', persist_enabled: false)
+          filters = [
+            {
+              attribute: :status,
+              collection: [%w[Active active], %w[Inactive inactive]],
+              blank: 'All Statuses',
+              label: 'Status',
+              value: status.presence
+            }
+          ]
+
+          render Bali::DataTable::SimpleFilters::Component.new(
+            url: '/lookbook',
+            filters: filters,
+            show_clear: status.present?,
+            storage_id: 'lookbook_simple_filters',
+            persist_enabled: persist_enabled
+          )
+        end
       end
     end
   end
