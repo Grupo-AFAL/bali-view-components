@@ -1,4 +1,7 @@
 /* Tooltip component - Tippy.js styling */
+
+/* Trigger styling stays scoped to the component wrapper — the trigger
+   always lives inside `.tooltip-component`. */
 .tooltip-component {
 
   &.help-tip {
@@ -17,66 +20,68 @@
       @apply inline-flex justify-center items-center text-base;
     }
   }
+}
 
-  .tippy-box {
-    @apply relative bg-neutral text-neutral-content rounded;
-    @apply text-sm tracking-normal normal-case leading-relaxed;
-    @apply whitespace-normal outline-none;
-    transition-property: transform, visibility, opacity;
+/* Balloon styling is keyed to the `bali` tippy theme and left global so it
+   applies wherever the box is appended (parent, body, or a custom selector). */
+.tippy-box[data-theme~='bali'] {
+  @apply relative bg-neutral text-neutral-content rounded;
+  @apply text-sm tracking-normal normal-case leading-relaxed;
+  @apply whitespace-normal outline-none;
+  transition-property: transform, visibility, opacity;
 
-    &[data-animation='fade'][data-state='hidden'] {
-      @apply opacity-0;
-    }
+  &[data-animation='fade'][data-state='hidden'] {
+    @apply opacity-0;
+  }
 
-    &[data-placement^='top'] > .tippy-arrow {
-      @apply bottom-0;
-    }
+  &[data-placement^='top'] > .tippy-arrow {
+    @apply bottom-0;
+  }
 
-    &[data-placement^='top'] > .tippy-arrow:before {
-      bottom: -7px;
-      @apply left-0;
-      border-width: 8px 8px 0;
-      border-top-color: initial;
-      transform-origin: center top;
-    }
+  &[data-placement^='top'] > .tippy-arrow:before {
+    bottom: -7px;
+    @apply left-0;
+    border-width: 8px 8px 0;
+    border-top-color: initial;
+    transform-origin: center top;
+  }
 
-    &[data-placement^='bottom'] > .tippy-arrow {
-      @apply top-0;
-    }
+  &[data-placement^='bottom'] > .tippy-arrow {
+    @apply top-0;
+  }
 
-    &[data-placement^='bottom'] > .tippy-arrow:before {
-      top: -7px;
-      @apply left-0;
-      border-width: 0 8px 8px;
-      border-bottom-color: initial;
-      transform-origin: center bottom;
-    }
+  &[data-placement^='bottom'] > .tippy-arrow:before {
+    top: -7px;
+    @apply left-0;
+    border-width: 0 8px 8px;
+    border-bottom-color: initial;
+    transform-origin: center bottom;
+  }
 
-    &[data-placement^='left'] > .tippy-arrow {
-      @apply right-0;
-    }
+  &[data-placement^='left'] > .tippy-arrow {
+    @apply right-0;
+  }
 
-    &[data-placement^='left'] > .tippy-arrow:before {
-      border-width: 8px 0 8px 8px;
-      border-left-color: initial;
-      right: -7px;
-      transform-origin: center left;
-    }
+  &[data-placement^='left'] > .tippy-arrow:before {
+    border-width: 8px 0 8px 8px;
+    border-left-color: initial;
+    right: -7px;
+    transform-origin: center left;
+  }
 
-    &[data-placement^='right'] > .tippy-arrow {
-      @apply left-0;
-    }
+  &[data-placement^='right'] > .tippy-arrow {
+    @apply left-0;
+  }
 
-    &[data-placement^='right'] > .tippy-arrow:before {
-      left: -7px;
-      border-width: 8px 8px 8px 0;
-      border-right-color: initial;
-      transform-origin: center right;
-    }
+  &[data-placement^='right'] > .tippy-arrow:before {
+    left: -7px;
+    border-width: 8px 8px 8px 0;
+    border-right-color: initial;
+    transform-origin: center right;
+  }
 
-    &[data-inertia][data-state='visible'] {
-      transition-timing-function: cubic-bezier(0.54, 1.5, 0.38, 1.11);
-    }
+  &[data-inertia][data-state='visible'] {
+    transition-timing-function: cubic-bezier(0.54, 1.5, 0.38, 1.11);
   }
 
   .tippy-arrow {

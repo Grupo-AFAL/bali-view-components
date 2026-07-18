@@ -5,32 +5,39 @@ module Bali
     class Preview < ApplicationViewComponentPreview
       # @param placement select { choices: [top, bottom, left, right] }
       # @param trigger_event select { choices: [mouseenter focus, click, manual] }
-      def default(placement: :top, trigger_event: 'mouseenter focus')
+      def default(placement: :top, trigger_event: "mouseenter focus")
         render Tooltip::Component.new(placement: placement, trigger_event: trigger_event) do |c|
-          c.with_trigger { tag.span 'Hover me', class: 'link link-primary' }
-          tag.p 'Hi, this is the tooltip content'
+          c.with_trigger { tag.span "Hover me", class: "link link-primary" }
+          tag.p "Hi, this is the tooltip content"
         end
       end
 
       # Shows tooltip behavior when content is empty (no tooltip appears)
       def empty_tooltip
         render Tooltip::Component.new do |c|
-          c.with_trigger { tag.span 'Link without tooltip', class: 'link' }
+          c.with_trigger { tag.span "Link without tooltip", class: "link" }
         end
       end
 
       # Common pattern: help icon with tooltip explanation
       def help_tip
-        render Tooltip::Component.new(class: 'help-tip') do |c|
+        render Tooltip::Component.new(class: "help-tip") do |c|
           c.with_trigger do
-            tag.span '?',
-                     class: 'w-6 h-6 rounded-full border border-neutral flex items-center justify-center text-sm'
+            tag.span "?",
+                     class: "w-6 h-6 rounded-full border border-neutral flex items-center justify-center text-sm"
           end
-          tag.p 'Hi, this is the help tip content'
+          tag.p "Hi, this is the help tip content"
         end
       end
 
       def all_placements
+        render_with_template
+      end
+
+      # Portals the balloon to <body> with `append_to: :body` so it escapes a
+      # clipping ancestor. Both triggers sit inside an `overflow-hidden` box:
+      # the default (`:parent`) balloon is clipped, the `:body` one escapes.
+      def escapes_overflow
         render_with_template
       end
     end
