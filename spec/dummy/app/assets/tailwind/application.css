@@ -7,11 +7,11 @@
    Source Paths - Tailwind class scanning
    ============================================== */
 
-/* Dummy app sources */
-@source "../../../views/**/*.erb";
-@source "../../../helpers/**/*.rb";
-@source "../../../javascript/**/*.js";
-@source "../../../../public/*.html";
+/* Dummy app sources (relative to this file at app/assets/tailwind/) */
+@source "../../views/**/*.erb";
+@source "../../helpers/**/*.rb";
+@source "../../javascript/**/*.js";
+@source "../../../public/*.html";
 
 /* Bali ViewComponents sources (via node_modules symlink) */
 @source "../../../node_modules/bali-view-components/app/components/**/*.{erb,rb}";
