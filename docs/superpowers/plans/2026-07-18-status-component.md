@@ -770,13 +770,18 @@ Create `app/components/bali/status/index.css`:
 
 /* Sizes */
 .status--xs { font-size: 0.6875rem; padding: 0.125rem 0.5rem; }
-.status--sm { font-size: 0.75rem;  padding: 0.25rem 0.625rem; }
+.status--sm { font-size: 0.75rem; padding: 0.25rem 0.625rem; }
 .status--md { font-size: 0.875rem; padding: 0.375rem 0.75rem; }
 
-/* Panel (position:fixed set inline by the controller) */
+/* Panel (position:fixed set inline by the controller).
+   Visibility is class-driven: hidden by default, shown when the controller
+   adds `.status-panel--open`. This must NOT rely on the `[hidden]` attribute
+   alone — Bali's component CSS is unlayered, so an unconditional
+   `display: flex` here would beat the UA `[hidden] { display: none }` rule and
+   the panel would never hide (repo's "Tailwind v4 unlayered CSS" gotcha). */
 .status-panel {
   z-index: 60;
-  display: flex;
+  display: none;
   flex-direction: column;
   gap: 0.25rem;
   padding: 0.375rem;
@@ -786,6 +791,8 @@ Create `app/components/bali/status/index.css`:
   max-height: 20rem;
   overflow-y: auto;
 }
+
+.status-panel--open { display: flex; }
 
 .status-option {
   display: block;
