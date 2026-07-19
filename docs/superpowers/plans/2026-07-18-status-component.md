@@ -1038,8 +1038,12 @@ describe('StatusController', () => {
       cy.get('.status-panel').first().should('not.be.visible')
     })
 
+    // NOTE: `form_with method: :patch` renders <form method="post"> plus a
+    // hidden _method=patch field, so the wire request is POST (Rack method
+    // override), NOT PATCH. Intercept POST — matching the drawer spec. The
+    // body carries `_method=patch` and the clicked button's name/value.
     it('submits the form with the chosen value when an option is selected', () => {
-      cy.intercept('PATCH', '/lookbook*', {
+      cy.intercept('POST', '/lookbook*', {
         headers: { 'Content-Type': 'text/vnd.turbo-stream.html' },
         body: '<turbo-stream action="append" target="stream-target"><template><p id="stream-result">ok</p></template></turbo-stream>'
       }).as('submit')
@@ -1051,13 +1055,15 @@ describe('StatusController', () => {
     })
 
     it('submits an empty value when the clear X is clicked', () => {
-      cy.intercept('PATCH', '/lookbook*', {
+      cy.intercept('POST', '/lookbook*', {
         headers: { 'Content-Type': 'text/vnd.turbo-stream.html' },
         body: '<turbo-stream action="append" target="stream-target"><template><p>ok</p></template></turbo-stream>'
       }).as('clear')
 
       cy.get('.status-pill__clear').first().click({ force: true })
-      cy.wait('@clear').its('request.body').should('include', 'thing%5Bstatus%5D=&')
+      // thing[status] is the last form param, so its empty value is followed by
+      // end-of-body or the next '&' — match either, don't assume a trailing '&'.
+      cy.wait('@clear').its('request.body').should('match', /thing%5Bstatus%5D=(&|$)/)
     })
   })
 
@@ -1078,11 +1084,22 @@ describe('StatusController', () => {
 })
 ```
 
-- [ ] **Step 2: Run Cypress against the running dummy server**
+- [ ] **Step 2: Run Cypress against a prebuilt, running dummy server**
 
-Ensure `cd spec/dummy && bin/dev` is running (from Task 5). Then:
-Run: `yarn run cy:run:electron --spec cypress/e2e/status-controller.cy.js`
-Expected: all specs pass. (Per the repo memory, use the Electron browser; `cy:run` targets Chrome which may not be available.)
+`bin/dev`/Foreman is BROKEN in this environment (the tailwind watcher exits and kills the whole process group), so do NOT use it. Instead prebuild the assets and run a plain Rails server:
+
+```bash
+# 1. Bundle the dummy app's JS so the new StatusController is registered in the bundle
+cd spec/dummy && yarn build
+# 2. Build the component CSS (engine-namespaced task name in this repo)
+cd /Users/fede/code/afal/bali-view-components && bundle exec rails app:tailwindcss:build
+# 3. Start the server on port 3001 in the background; poll until it answers
+cd spec/dummy && bin/rails server -p 3001   # (run in background)
+# 4. Run the spec (Electron browser — cy:run targets Chrome which may be absent)
+cd /Users/fede/code/afal/bali-view-components && yarn run cy:run:electron --spec cypress/e2e/status-controller.cy.js
+```
+
+Expected: all specs pass. If a spec fails, read the Cypress output/screenshots to decide whether it's a spec bug (fix the spec) or a real component/JS defect (fix it, rebuild the relevant asset, re-run). Shut the background server down when done.
 
 - [ ] **Step 3: Commit**
 
