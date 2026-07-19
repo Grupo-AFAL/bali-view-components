@@ -114,12 +114,11 @@ module Bali
       end
 
       def container_attributes
-        attrs = html_options.except(:class, :data)
+        attrs = html_options.except(:class)
         attrs[:class] = container_classes
-        data = html_options.fetch(:data, {})
-        attrs[:data] = editable? ? { controller: CONTROLLER }.merge(data) : data
-        attrs[:data] = nil if attrs[:data].empty?
-        attrs.compact
+        attrs[:data] = attrs[:data].dup if attrs[:data]
+        prepend_controller(attrs, CONTROLLER) if editable?
+        attrs
       end
     end
   end

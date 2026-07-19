@@ -67,6 +67,14 @@ class BaliStatusComponentTest < ComponentTestCase
     assert_selector("button[type='button'][data-status-target='trigger'][data-action='status#toggle'][aria-haspopup='listbox']")
   end
 
+  def test_data_controller_passthrough_preserves_both_controllers
+    render_inline(Bali::Status::Component.new(
+      selected: "pending", options: OPTIONS, form: FORM, data: { controller: "foo" }
+    ))
+    assert_selector("span.status-component[data-controller~='status']")
+    assert_selector("span.status-component[data-controller~='foo']")
+  end
+
   def test_editable_renders_one_submit_button_per_option_with_name_and_value
     render_inline(Bali::Status::Component.new(selected: "pending", options: OPTIONS, form: FORM))
     assert_selector("div.status-panel[role='listbox'] button[type='submit'][role='option']", count: 2, visible: false)

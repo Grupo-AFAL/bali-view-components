@@ -642,7 +642,7 @@ Colorful, SmartSuite-style status pill with optional inline editing. Presentatio
 - `clearable` - Adds a clear (X) button and a "no status" row to the panel; only applies when editable (default: false)
 - `size` - `:xs`, `:sm`, `:md` (default: `:sm`)
 - `placeholder` - Text shown when nothing is selected (default: i18n `bali.status.no_status`, "No status")
-- `**html_options` - Additional HTML attributes for the wrapper `div`; the consumer owns the Turbo target id via `id:` passthrough
+- `**html_options` - Additional HTML attributes for the wrapper `span`; the consumer owns the Turbo target id via `id:` passthrough
 
 The consuming controller responds with a Turbo Stream replacing the element identified by the `id:` you pass.
 
