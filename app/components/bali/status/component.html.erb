@@ -1,0 +1,9 @@
+<%= tag.span(**container_attributes) do %>
+  <% if editable? %>
+    <%# filled in Task 2 %>
+  <% else %>
+    <span class="<%= pill_classes("status-pill--static") %>"<%= " style=\"#{selected_style}\"".html_safe if selected_style %>>
+      <span class="status-pill__label"><%= selected_label %></span>
+    </span>
+  <% end %>
+<% end %>
