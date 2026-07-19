@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Rolled up all open Dependabot version bumps into one update. npm: `daisyui` 5.6.17 → 5.6.18. Gems (dev): `yard` 0.9.44 → 0.9.45, `simplecov` 0.22.0 → 1.0.2 (1.0 vendors its former runtime deps `docile`/`simplecov-html`/`simplecov_json_formatter`, which drop out of the lockfile). CI: `actions/setup-node` v6 → v7 across all workflows. Supersedes Dependabot PRs #615–#618.
 
+### Fixed
+
+- **Dev server (dummy app)** - `bin/dev` no longer dies on startup. Two bugs in `spec/dummy` broke it: (1) four `@source` directives in `app/assets/tailwind/application.css` had one extra `../` and pointed at non-existent directories, which is harmless for `tailwindcss build` but makes `--watch` fail with `ENOENT`; corrected to the real `app/{views,helpers,javascript}` and `public` paths (the dummy app's own sources are now scanned for classes too). (2) Tailwind v4's `--watch` exits when stdin closes under foreman, tearing down the whole process group — `Procfile.dev` now uses `tailwindcss:watch[always]` (`--watch=always`) so the watcher stays alive. Dev-only; no consumer-facing change.
+
 ## [v2.12.1] - 2026-07-17
 
 ### Added
