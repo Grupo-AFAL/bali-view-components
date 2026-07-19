@@ -55,6 +55,7 @@ import { DocumentPageController } from '../../../components/bali/document_page/i
 import { TreeViewItemController } from '../../../components/bali/tree_view/item/index'
 import { FeedbackWidgetController } from '../../../components/bali/feedback_widget/index'
 import { CommandController } from '../../../components/bali/command/index'
+import { StatusController } from '../../../components/bali/status/index'
 
 export { TableController } from '../../../components/bali/table/index'
 export { ModalController } from '../../../components/bali/modal/index'
@@ -78,6 +79,7 @@ export { HovercardController } from '../../../components/bali/hover_card/index'
 export { RevealController } from '../../../components/bali/reveal/index'
 export { SortableListController } from '../../../components/bali/sortable_list/index'
 export { TooltipController } from '../../../components/bali/tooltip/index'
+export { StatusController } from '../../../components/bali/status/index'
 
 // Form components
 export { ImageFieldController } from '../../../components/bali/image_field/index'
@@ -154,6 +156,7 @@ export function registerAll (application) {
   application.register('reveal', RevealController)
   application.register('sortable-list', SortableListController)
   application.register('tooltip', TooltipController)
+  application.register('status', StatusController)
 
   // Form
   application.register('image-field', ImageFieldController)
