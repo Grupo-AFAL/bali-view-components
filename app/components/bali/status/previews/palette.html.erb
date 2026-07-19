@@ -1,0 +1,7 @@
+<div class="flex flex-wrap gap-2">
+  <% swatches.each do |name| %>
+    <%= render Bali::Status::Component.new(
+          selected: name.to_s,
+          options: [{ value: name.to_s, label: name.to_s.titleize, color: name }]) %>
+  <% end %>
+</div>

@@ -1,0 +1,29 @@
+<div class="overflow-x-auto border rounded-lg" style="max-width: 32rem;">
+  <table class="table">
+    <thead>
+      <tr><th>Escenario</th><th>Estado</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>B1-01 | Registro</td>
+        <td>
+          <%= render Bali::Status::Component.new(
+                selected: "in_progress",
+                options: Bali::Status::Preview::STATUSES,
+                form: { url: "/lookbook", method: :patch, param: "thing[status]" },
+                clearable: true) %>
+        </td>
+      </tr>
+      <tr>
+        <td>B1-01 | Visualización</td>
+        <td>
+          <%= render Bali::Status::Component.new(
+                selected: "done",
+                options: Bali::Status::Preview::STATUSES,
+                form: { url: "/lookbook", method: :patch, param: "thing[status]" },
+                clearable: true) %>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
