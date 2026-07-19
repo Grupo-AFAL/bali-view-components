@@ -298,8 +298,11 @@ Scope-risk: narrow"
 ### Task 2: Editable mode — form, options panel, clearable
 
 **Files:**
-- Modify: `app/components/bali/status/component.html.erb` (fill the `editable?` branch)
-- Test: `test/bali/components/status_test.rb` (add editable cases)
+- Modify: `app/components/bali/status/component.html.erb` (fill the `editable?` branch; rewrite BOTH branches to build inline `style` via Rails `tag.*` helpers so the value is HTML-escaped — resolves the Task 1 review's Important finding)
+- Modify: `app/components/bali/status/component.rb` (add `default:` fallback to the `placeholder` translation — resolves a Task 1 Minor finding)
+- Test: `test/bali/components/status_test.rb` (add editable cases + a style-escaping regression test + an unmatched-`selected` test)
+
+**Security note (Task 1 review carryover):** the inline `style` must NEVER be assembled via `"style=\"#{...}\"".html_safe` string interpolation — that bypasses Rails attribute escaping and lets a `"` in a color value break out of the attribute. Always pass `style:` as a kwarg to a `tag.*` helper (as `Bali::Tag::Component` does), which escapes the value.
 
 **Interfaces:**
 - Consumes (from Task 1): `editable?`, `clearable?`, `selected?`, `selected_option`, `selected_label`, `selected_style`, `pill_classes`, `pill_style`, `param`, `form_method`, `options`, `form`.
@@ -363,6 +366,22 @@ Add these methods inside `class BaliStatusComponentTest`:
     render_inline(Bali::Status::Component.new(selected: nil, options: OPTIONS, form: FORM, clearable: true))
     assert_no_selector("button.status-pill__clear")
   end
+
+  def test_color_value_cannot_break_out_of_the_style_attribute
+    render_inline(Bali::Status::Component.new(
+      selected: "x",
+      options: [{ value: "x", label: "X", color: 'red" onmouseover="alert(1)' }],
+      form: { url: "/t", method: :patch, param: "t[s]" }
+    ))
+    # If the color value broke out of the style attribute, an onmouseover
+    # attribute would exist. tag.* escaping keeps the quote inside style.
+    assert_no_selector("[onmouseover]")
+  end
+
+  def test_selected_value_absent_from_options_falls_back_to_raw_label_and_default_color
+    render_inline(Bali::Status::Component.new(selected: "ghost", options: OPTIONS))
+    assert_selector('.status-pill.status-pill--static[style*="background-color: #64748b"]', text: "ghost")
+  end
 ```
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -370,15 +389,15 @@ Add these methods inside `class BaliStatusComponentTest`:
 Run: `bundle exec rails test test/bali/components/status_test.rb`
 Expected: FAIL — the editable branch is empty, so no `form`/trigger/options selectors match.
 
-- [ ] **Step 3: Fill the editable branch of the template**
+- [ ] **Step 3: Fill the editable branch of the template (using escaped `tag.*` helpers)**
 
-Replace the whole `app/components/bali/status/component.html.erb` with:
+Replace the whole `app/components/bali/status/component.html.erb` with the following. Note: every inline `style` is passed as a `tag.*` kwarg (auto-escaped) — do NOT hand-roll `style="…".html_safe`. The literal character inside the clear button is a multiplication sign `×` (U+00D7), not a lowercase x.
 
 ```erb
 <%= tag.span(**container_attributes) do %>
   <% if editable? %>
     <%= form_with url: form[:url], method: form_method, data: { turbo: true } do %>
-      <div class="<%= pill_classes %>"<%= " style=\"#{selected_style}\"".html_safe if selected_style %>>
+      <%= tag.div(class: pill_classes, style: selected_style) do %>
         <button type="button"
                 class="status-pill__label"
                 data-status-target="trigger"
@@ -389,44 +408,59 @@ Replace the whole `app/components/bali/status/component.html.erb` with:
           <span class="status-pill__caret" aria-hidden="true"></span>
         </button>
         <% if clearable? && selected? %>
-          <button type="submit"
-                  class="status-pill__clear"
-                  name="<%= param %>"
-                  value=""
-                  data-action="status#clear"
-                  aria-label="<%= t("bali.status.no_status") %>">&times;</button>
+          <%= tag.button("×",
+                type: "submit",
+                class: "status-pill__clear",
+                name: param,
+                value: "",
+                aria: { label: placeholder },
+                data: { action: "status#clear" }) %>
         <% end %>
-      </div>
+      <% end %>
 
-      <div class="status-panel" data-status-target="panel" role="listbox" hidden>
+      <%= tag.div(class: "status-panel", role: "listbox", hidden: true,
+                  data: { status_target: "panel" }) do %>
         <% options.each do |option| %>
-          <button type="submit"
-                  class="status-option"
-                  role="option"
-                  name="<%= param %>"
-                  value="<%= option[:value] %>"
-                  aria-selected="<%= option[:value].to_s == @selected %>"
-                  style="<%= pill_style(option[:color]) %>">
-            <%= option[:label] %>
-          </button>
+          <%= tag.button(option[:label],
+                type: "submit",
+                class: "status-option",
+                role: "option",
+                name: param,
+                value: option[:value],
+                aria: { selected: option[:value].to_s == @selected },
+                style: pill_style(option[:color])) %>
         <% end %>
         <% if clearable? %>
-          <button type="submit"
-                  class="status-option status-option--none"
-                  role="option"
-                  name="<%= param %>"
-                  value="">
-            <%= t("bali.status.no_status") %>
-          </button>
+          <%= tag.button(placeholder,
+                type: "submit",
+                class: "status-option status-option--none",
+                role: "option",
+                name: param,
+                value: "") %>
         <% end %>
-      </div>
+      <% end %>
     <% end %>
   <% else %>
-    <span class="<%= pill_classes("status-pill--static") %>"<%= " style=\"#{selected_style}\"".html_safe if selected_style %>>
+    <%= tag.span(class: pill_classes("status-pill--static"), style: selected_style) do %>
       <span class="status-pill__label"><%= selected_label %></span>
-    </span>
+    <% end %>
   <% end %>
 <% end %>
+```
+
+Notes for the implementer:
+- `tag.div(..., style: nil)` and `tag.span(..., style: nil)` omit the attribute entirely when `selected_style` is `nil` — no empty `style=""`.
+- `aria: { selected: bool }` renders `aria-selected="true"|"false"`; `hidden: true` renders the boolean `hidden` attribute; `data: { status_target: "panel" }` renders `data-status-target="panel"`.
+- The clear button and none-row use `placeholder` (which is the i18n `no_status` string) for their accessible label / text.
+
+- [ ] **Step 3b: Harden the placeholder translation fallback**
+
+In `app/components/bali/status/component.rb`, update the `placeholder` method to pass a `default:` so a consuming app without Bali's locale files loaded degrades gracefully instead of rendering "translation missing":
+
+```ruby
+      def placeholder
+        @placeholder.presence || t("bali.status.no_status", default: "No status")
+      end
 ```
 
 - [ ] **Step 4: Run tests to verify they pass**
@@ -437,14 +471,21 @@ Expected: PASS (all Task 1 + Task 2 tests green).
 - [ ] **Step 5: Commit**
 
 ```bash
-git add app/components/bali/status/component.html.erb test/bali/components/status_test.rb
+git add app/components/bali/status/component.html.erb \
+        app/components/bali/status/component.rb \
+        test/bali/components/status_test.rb
 git commit -m "feat(status): editable mode with colored options panel
 
 form_with + one <button type=submit name=param value> per option (plain
 form semantics, Turbo Stream on the app side). readonly forces the static
 pill; clearable adds an X (form-nested submit) and a 'no status' row.
+Inline styles are emitted via escaped tag.* helpers (not html_safe string
+interpolation) so a quote in a color value cannot break out of the style
+attribute; placeholder translation gains a default: fallback.
 
 Constraint: options must submit without JS -> native submit buttons inside the form
+Constraint: color values must not be able to break out of the style attribute -> tag.* escaping
+Rejected: hand-rolled style=\"...\".html_safe | bypasses Rails attribute escaping (XSS foot-gun)
 Confidence: high
 Scope-risk: narrow"
 ```
