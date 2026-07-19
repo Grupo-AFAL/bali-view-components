@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Status** - new `Bali::Status::Component`, a colorful SmartSuite-style status pill. Presentational and domain-agnostic: pass `options: [{value:, label:, color:}]` + `selected:`. Colors come from a fixed vibrant palette (`:slate :gray :red :orange :amber :yellow :green :teal :blue :indigo :violet :pink`) or a hex escape, rendered as inline styles (theme-independent, no Tailwind safelist). Pass `form: { url:, method:, param: }` to make it editable — click opens a portaled (`position: fixed`, escapes DataTable overflow) panel of colored option rows; selecting a row submits the form natively (respond with a Turbo Stream that replaces the wrapper). `readonly:` forces the read-only pill even when `form:` is given (permission-gated call sites), `clearable:` adds an X + a "no status" row, and `size:` is `:xs/:sm/:md`. The consumer owns the Turbo target id via `id:` passthrough.
+### Security
+
+- Bumped `loofah` 2.25.1 → 2.25.2 (resolves GHSA-5qhf-9phg-95m2, GHSA-8whx-365g-h9vv — `javascript:` URI restriction bypass — and GHSA-9wjq-cp2p-hrgf — SVG `href` local-reference bypass) and `rails-html-sanitizer` 1.7.0 → 1.7.1 (resolves GHSA-cj75-f6xr-r4g7, possible XSS). Both are transitive Rails sanitization gems; lockfile-only within existing version constraints. Surfaced by `bundler-audit` (0 open GitHub Dependabot alerts). Full test suite passes; `bundler-audit` and `yarn audit` both clean.
+
+### Changed
+
+- Rolled up all open Dependabot version bumps into one update. npm: `daisyui` 5.6.17 → 5.6.18. Gems (dev): `yard` 0.9.44 → 0.9.45, `simplecov` 0.22.0 → 1.0.2 (1.0 vendors its former runtime deps `docile`/`simplecov-html`/`simplecov_json_formatter`, which drop out of the lockfile). CI: `actions/setup-node` v6 → v7 across all workflows. Supersedes Dependabot PRs #615–#618.
+
+### Fixed
+
+- **Dev server (dummy app)** - `bin/dev` no longer dies on startup. Two bugs in `spec/dummy` broke it: (1) four `@source` directives in `app/assets/tailwind/application.css` had one extra `../` and pointed at non-existent directories, which is harmless for `tailwindcss build` but makes `--watch` fail with `ENOENT`; corrected to the real `app/{views,helpers,javascript}` and `public` paths (the dummy app's own sources are now scanned for classes too). (2) Tailwind v4's `--watch` exits when stdin closes under foreman, tearing down the whole process group — `Procfile.dev` now uses `tailwindcss:watch[always]` (`--watch=always`) so the watcher stays alive. Dev-only; no consumer-facing change.
 
 ## [v2.12.1] - 2026-07-17
 
