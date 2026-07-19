@@ -1,0 +1,52 @@
+<%= tag.span(**container_attributes) do %>
+  <% if editable? %>
+    <%= form_with url: form[:url], method: form_method, data: { turbo: true } do %>
+      <%= tag.div(class: pill_classes, style: selected_style) do %>
+        <button type="button"
+                class="status-pill__label"
+                data-status-target="trigger"
+                data-action="status#toggle"
+                aria-haspopup="listbox"
+                aria-expanded="false">
+          <span><%= selected_label %></span>
+          <span class="status-pill__caret" aria-hidden="true"></span>
+        </button>
+        <% if clearable? && selected? %>
+          <%= tag.button("×",
+                type: "submit",
+                class: "status-pill__clear",
+                name: param,
+                value: "",
+                aria: { label: placeholder },
+                data: { action: "status#clear" }) %>
+        <% end %>
+      <% end %>
+
+      <%= tag.div(class: "status-panel", role: "listbox", hidden: true,
+                  data: { status_target: "panel" }) do %>
+        <% options.each do |option| %>
+          <%= tag.button(option[:label],
+                type: "submit",
+                class: "status-option",
+                role: "option",
+                name: param,
+                value: option[:value],
+                aria: { selected: option[:value].to_s == @selected },
+                style: pill_style(option[:color])) %>
+        <% end %>
+        <% if clearable? %>
+          <%= tag.button(placeholder,
+                type: "submit",
+                class: "status-option status-option--none",
+                role: "option",
+                name: param,
+                value: "") %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% else %>
+    <%= tag.span(class: pill_classes("status-pill--static"), style: selected_style) do %>
+      <span class="status-pill__label"><%= selected_label %></span>
+    <% end %>
+  <% end %>
+<% end %>

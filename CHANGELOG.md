@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Status** - new `Bali::Status::Component`, a colorful SmartSuite-style status pill. Presentational and domain-agnostic: pass `options: [{value:, label:, color:}]` + `selected:`. Colors come from a fixed vibrant palette (`:slate :gray :red :orange :amber :yellow :green :teal :blue :indigo :violet :pink`) or a hex escape, rendered as inline styles (theme-independent, no Tailwind safelist). Pass `form: { url:, method:, param: }` to make it editable — click opens a portaled (`position: fixed`, escapes DataTable overflow) panel of colored option rows; selecting a row submits the form natively (respond with a Turbo Stream that replaces the wrapper). `readonly:` forces the read-only pill even when `form:` is given (permission-gated call sites), `clearable:` adds an X + a "no status" row, and `size:` is `:xs/:sm/:md`. The consumer owns the Turbo target id via `id:` passthrough.
 ### Security
 
 - Bumped `loofah` 2.25.1 → 2.25.2 (resolves GHSA-5qhf-9phg-95m2, GHSA-8whx-365g-h9vv — `javascript:` URI restriction bypass — and GHSA-9wjq-cp2p-hrgf — SVG `href` local-reference bypass) and `rails-html-sanitizer` 1.7.0 → 1.7.1 (resolves GHSA-cj75-f6xr-r4g7, possible XSS). Both are transitive Rails sanitization gems; lockfile-only within existing version constraints. Surfaced by `bundler-audit` (0 open GitHub Dependabot alerts). Full test suite passes; `bundler-audit` and `yarn audit` both clean.

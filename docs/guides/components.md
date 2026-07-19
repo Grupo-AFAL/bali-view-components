@@ -614,6 +614,38 @@ Labels and status indicators.
 <%= render Bali::Tag::Component.new(text: "Pending", color: :warning, outline: true) %>
 ```
 
+#### Status
+
+Colorful, SmartSuite-style status pill with optional inline editing. Presentational and domain-agnostic — colors come from a fixed palette or a hex string, rendered as inline styles so it looks the same across DaisyUI themes with no Tailwind safelist.
+
+```erb
+<%# Read-only %>
+<%= render Bali::Status::Component.new(
+      selected: record.status,
+      options: Model.status_options) %>
+
+<%# Editable (auto-submits via Turbo); readonly toggles by permission %>
+<%= render Bali::Status::Component.new(
+      id: dom_id(record, :status),
+      selected: record.status,
+      options: Model.status_options,
+      form: { url: record_status_path(record), method: :patch, param: "model[status]" },
+      readonly: !policy(record).manage?,
+      clearable: true) %>
+```
+
+**Options:**
+- `selected` - Currently selected value, matched against each option's `value:` (default: nil)
+- `options` - Array of `{ value:, label:, color: }`; `color:` is a palette symbol (`:slate :gray :red :orange :amber :yellow :green :teal :blue :indigo :violet :pink`) or a hex string (default: `[]`)
+- `form` - `{ url:, method:, param: }`; when present (and `readonly:` is false) the pill becomes clickable and opens a portaled panel of colored option rows that submits via Turbo on selection (default: nil)
+- `readonly` - Forces the read-only pill even when `form:` is given, e.g. permission-gated call sites (default: false)
+- `clearable` - Adds a clear (X) button and a "no status" row to the panel; only applies when editable (default: false)
+- `size` - `:xs`, `:sm`, `:md` (default: `:sm`)
+- `placeholder` - Text shown when nothing is selected (default: i18n `bali.status.no_status`, "No status")
+- `**html_options` - Additional HTML attributes for the wrapper `span`; the consumer owns the Turbo target id via `id:` passthrough
+
+The consuming controller responds with a Turbo Stream replacing the element identified by the `id:` you pass.
+
 #### Progress
 
 Progress bar indicator.
