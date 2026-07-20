@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **PageHeader** - actions bar no longer overlaps the title/subtitle at narrow viewports (<640px) on `ShowPage`, `IndexPage`, `DashboardPage`, and `DocumentPage` (#625). Regression from #507: giving the title side `flex-1 min-w-0` made it contribute zero width to the flex line, so `Level`'s `max-sm:flex-wrap` never fired. `PageHeader` now stacks its `Level` vertically on mobile (`max-sm:flex-col max-sm:items-stretch`) with both sides and the actions bar taking `max-sm:w-full`, instead of relying on wrapping. Desktop layout and the #507 long-title truncation are unchanged; `Bali::Level::BASE_CLASSES` is untouched for other consumers.
+
 ## [v2.13.0] - 2026-07-19
 
 ### Added
