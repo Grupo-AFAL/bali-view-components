@@ -31,6 +31,8 @@ module Bali
         position: :right,
         drawer_id: nil,
         title: nil,
+        confirm_close_message: nil,
+        dismissable_without_confirm: false,
         **options
       )
         @active = active
@@ -38,6 +40,8 @@ module Bali
         @position = position&.to_sym
         @drawer_id = drawer_id || "drawer-#{SecureRandom.hex(4)}"
         @title = title
+        @confirm_close_message = confirm_close_message
+        @dismissable_without_confirm = dismissable_without_confirm
         @options = options
       end
 
@@ -80,6 +84,17 @@ module Bali
         t(".close_drawer")
       end
 
+      # Confirm-on-close is on by default: an unsaved form inside the drawer
+      # prompts before Escape/overlay/close-button discard the input. Opt out
+      # per-drawer with `dismissable_without_confirm: true`.
+      def confirm_close?
+        !@dismissable_without_confirm
+      end
+
+      def confirm_close_message
+        @confirm_close_message.presence || t(".confirm_close")
+      end
+
       private
 
       attr_reader :title, :options
@@ -104,7 +119,13 @@ module Bali
           controller: "drawer",
           drawer_target: "template",
           action: "keydown.esc->drawer#close"
-        }
+        }.merge(confirm_close_data_attributes)
+      end
+
+      def confirm_close_data_attributes
+        return {} unless confirm_close?
+
+        { drawer_confirm_close_message_value: confirm_close_message }
       end
     end
   end
