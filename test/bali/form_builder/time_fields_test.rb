@@ -142,6 +142,16 @@ class BaliFormBuilderTimeFieldsTest < FormBuilderTestCase
     assert_html(result, 'input[placeholder="HH:MM"]')
   end
 
+  def test_time_field_group_with_allow_input_and_seconds_maps_the_seconds_token_in_the_placeholder
+    result = builder.time_field_group(:duration, allow_input: true, seconds: true)
+    assert_html(result, 'input[placeholder="hh:MM:ss AM/PM"]')
+  end
+
+  def test_time_field_group_with_allow_input_and_seconds_and_24_hour_format_maps_both_tokens
+    result = builder.time_field_group(:duration, allow_input: true, seconds: true, time_24hr: true)
+    assert_html(result, 'input[placeholder="HH:MM:ss"]')
+  end
+
   def test_time_field_group_with_allow_input_and_explicit_placeholder_keeps_the_explicit_placeholder
     result = builder.time_field_group(:duration, allow_input: true, placeholder: "Type a time")
     assert_html(result, 'input[placeholder="Type a time"]')

@@ -15,7 +15,7 @@ module Bali
       # #allow_input_placeholder).
       ALT_FORMAT_PLACEHOLDER_TOKENS = {
         "d" => "dd", "j" => "d", "m" => "mm", "Y" => "yyyy",
-        "H" => "HH", "h" => "hh", "i" => "MM", "K" => "AM/PM"
+        "H" => "HH", "h" => "hh", "i" => "MM", "S" => "ss", "K" => "AM/PM"
       }.freeze
 
       def date_field(method, options = {})
