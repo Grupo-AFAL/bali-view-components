@@ -1,0 +1,29 @@
+<%= render Bali::ShowPage::Component.new(
+  title: 'The Matrix Reloaded: Special Extended Director\'s Cut Edition',
+  subtitle: 'Added 2 days ago by an administrator on behalf of the studio licensing team',
+  breadcrumbs: [
+    { name: 'Dashboard', href: '/lookbook', icon_name: 'home' },
+    { name: 'Movies', href: '/lookbook' },
+    { name: 'The Matrix Reloaded' }
+  ],
+  back: { href: '/lookbook' }
+) do |page| %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(name: 'Duplicate', href: '#', variant: :ghost, icon_name: 'copy') %>
+  <% end %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(name: 'Archive', href: '#', variant: :ghost, icon_name: 'archive') %>
+  <% end %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(name: 'Share', href: '#', variant: :ghost, icon_name: 'share-2') %>
+  <% end %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(name: 'Edit', href: '#', variant: :primary, icon_name: 'pencil') %>
+  <% end %>
+  <% page.with_body do %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <h3 class="card-title text-lg mb-4">Movie Information</h3>
+      <p class="text-base-content/60">Properties table and details would go here.</p>
+    <% end %>
+  <% end %>
+<% end %>
