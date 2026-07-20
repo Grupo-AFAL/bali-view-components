@@ -1,0 +1,9 @@
+<%= render Bali::Drawer::Component.new(active: true, title: 'Edit Item') do %>
+  <%= form_with(model: model, url: '/fake/submit', builder: Bali::FormBuilder) do |form| %>
+    <%= form.text_field_group :text %>
+    <%= form.date_field_group :date %>
+    <div class="mt-4">
+      <%= render Bali::Button::Component.new(name: 'Save', variant: :primary, type: :submit) %>
+    </div>
+  <% end %>
+<% end %>
