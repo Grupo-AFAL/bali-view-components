@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **FormBuilder date fields** - `allow_input: true` (date_field_group/datetime_field_group/time_field_group) now auto-fills a `placeholder:` hinting at what the field will parse, unless the caller already passed one explicitly. Derived from the effective `alt_format:` (or an i18n string for the verbose default format). Addresses part of #620; the read-only-by-default behavior itself is unchanged — `allow_input:` remains opt-in.
+
 ## [v2.13.0] - 2026-07-19
 
 ### Added
