@@ -161,6 +161,12 @@ en:
 
     # Form builder
     form_builder:
+      date_fields:
+        # Placeholder shown when `allow_input: true` and no explicit `alt_format:`
+        # is given. Mirrors flatpickr's non-localized "F j, Y" token order (month
+        # name, then day, then year) rather than a conventional Spanish date order,
+        # since that's the literal text the field will parse.
+        allow_input_placeholder: "e.g., December 31, 2026"
       file:
         choose_file: "Choose file"
         no_file_selected: "No file selected"
