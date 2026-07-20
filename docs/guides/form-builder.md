@@ -295,6 +295,30 @@ Month/year picker.
 <%= f.month_field_group :billing_month %>
 ```
 
+### Typing into date/time fields (`allow_input:`)
+
+By default, date/datetime/time fields are read-only — users must pick a value
+from the calendar/time popup, with no way to type it directly. Pass
+`allow_input: true` to let users type into the field instead:
+
+```erb
+<%= f.date_field_group :birth_date, allow_input: true, alt_format: 'd/m/Y' %>
+```
+
+**Pair it with `alt_format:`.** Typed text is parsed against the visible
+input's format (flatpickr's `altFormat`) when the field loses focus; text that
+doesn't match is silently cleared. The default format is a verbose one (e.g.
+"December 31, 2026"), so an explicit numeric `alt_format:` like `'d/m/Y'`
+(or `'H:i'` for 24-hour time fields) gives users a format that's easier to
+type correctly.
+
+When `allow_input: true` is set and no explicit `placeholder:` is given, Bali
+automatically sets one derived from the effective format, so the field always
+hints at what to type. A caller-supplied `placeholder:` always takes
+precedence. This does not change the default behavior of `date_field_group` /
+`datetime_field_group` / `time_field_group` — fields remain read-only unless
+`allow_input: true` is passed explicitly.
+
 ---
 
 ## Boolean Fields
