@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **FormBuilder date fields** - `allow_input: true` (date_field_group/datetime_field_group/time_field_group) now auto-fills a `placeholder:` hinting at what the field will parse, unless the caller already passed one explicitly. Derived from the effective `alt_format:` (or an i18n string for the verbose default format). Addresses part of #620; the read-only-by-default behavior itself is unchanged — `allow_input:` remains opt-in.
+
 ### Fixed
 
 - **PageHeader** - actions bar no longer overlaps the title/subtitle at narrow viewports (<640px) on `ShowPage`, `IndexPage`, `DashboardPage`, and `DocumentPage` (#625). Regression from #507: giving the title side `flex-1 min-w-0` made it contribute zero width to the flex line, so `Level`'s `max-sm:flex-wrap` never fired. `PageHeader` now stacks its `Level` vertically on mobile (`max-sm:flex-col max-sm:items-stretch`) with both sides and the actions bar taking `max-sm:w-full`, instead of relying on wrapping. Desktop layout and the #507 long-title truncation are unchanged; `Bali::Level::BASE_CLASSES` is untouched for other consumers.

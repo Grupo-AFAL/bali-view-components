@@ -46,9 +46,22 @@ module Bali
           )
         end
 
+        # Typing is allowed (`allow_input: true`) and paired with an explicit
+        # `alt_format: 'd/m/Y'`, so Bali auto-fills `placeholder="dd/mm/yyyy"` —
+        # a hint at what the field will actually parse on blur.
         def allow_input
           render_with_template(
             template: 'bali/form/date/previews/allow_input',
+            locals: { model: form_record }
+          )
+        end
+
+        # Same as above, but with no explicit `alt_format:` — the field falls
+        # back to the verbose default format, so the auto-filled placeholder
+        # comes from an i18n string instead of a token-mapped hint.
+        def allow_input_default_format
+          render_with_template(
+            template: 'bali/form/date/previews/allow_input_default_format',
             locals: { model: form_record }
           )
         end

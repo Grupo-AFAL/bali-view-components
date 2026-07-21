@@ -9,10 +9,20 @@ module Bali
       CLEAR_BUTTON_CLASS = "#{BUTTON_CLASS} #{JOIN_ITEM_CLASS}".freeze
       NAV_BUTTON_CLASS = "#{BUTTON_CLASS} #{JOIN_ITEM_CLASS}".freeze
 
+      # Maps flatpickr format tokens to a literal human hint for the auto-generated
+      # `allow_input` placeholder. `F` (localized month name) is intentionally absent —
+      # it has no universal literal hint, so it's handled via i18n instead (see
+      # #allow_input_placeholder).
+      ALT_FORMAT_PLACEHOLDER_TOKENS = {
+        "d" => "dd", "j" => "d", "m" => "mm", "Y" => "yyyy",
+        "H" => "HH", "h" => "hh", "i" => "MM", "S" => "ss", "K" => "AM/PM"
+      }.freeze
+
       def date_field(method, options = {})
         opts = options.dup
         clear_btn = build_clear_button if opts.delete(:clear)
         opts[:control_class] = [ "w-full", opts[:control_class] ].compact.join(" ")
+        opts[:placeholder] ||= allow_input_placeholder(opts) if opts[:allow_input]
 
         wrapper_options = build_wrapper_options(method, opts)
 
@@ -54,6 +64,45 @@ module Bali
       end
 
       private
+
+      # `allow_input: true` lets users type directly into the visible input, but
+      # flatpickr silently discards anything that doesn't match the effective
+      # altFormat on blur (see datepicker-controller.js#altFormat). Without a hint,
+      # users have no way to know what to type, so derive a placeholder from that
+      # same effective format — unless the caller already supplied one.
+      def allow_input_placeholder(options)
+        effective_format = options[:alt_format].presence || default_alt_format(options)
+
+        if effective_format.include?("F")
+          I18n.t("bali.form_builder.date_fields.allow_input_placeholder")
+        else
+          effective_format.gsub(/[A-Za-z]/) { |token| ALT_FORMAT_PLACEHOLDER_TOKENS[token] || token }
+        end
+      end
+
+      # Ruby port of DatepickerController#altFormat() in datepicker-controller.js,
+      # so the derived placeholder always matches what the visible input actually
+      # parses when no explicit `alt_format:` is given. Reads the same wrapper data
+      # attributes the JS controller receives (enable_time/no_calendar/time_24hr/
+      # seconds), before `build_wrapper_options` merges and removes `wrapper_options`.
+      def default_alt_format(options)
+        wrapper_data = (options[:wrapper_options] || {}).transform_keys(&:to_s)
+        enable_time = wrapper_data["data-datepicker-enable-time-value"]
+        no_calendar = wrapper_data["data-datepicker-no-calendar-value"]
+        time_24hr = wrapper_data["data-datepicker-time24hr-value"]
+        seconds = wrapper_data["data-datepicker-enable-seconds-value"]
+
+        time_portion =
+          if !no_calendar && !enable_time
+            ""
+          elsif seconds
+            time_24hr ? "H:i:S" : "h:i:S K"
+          else
+            time_24hr ? "H:i" : "h:i K"
+          end
+
+        no_calendar ? time_portion : "F j, Y #{time_portion}".strip
+      end
 
       def build_clear_button
         aria_label = I18n.t("bali.form_builder.date_fields.clear", default: "Clear date")

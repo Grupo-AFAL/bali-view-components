@@ -162,6 +162,11 @@ es:
 
     # Form builder
     form_builder:
+      date_fields:
+        # Coincide con el orden de tokens no localizado de flatpickr ("F j, Y":
+        # nombre de mes, día, año) en vez del orden habitual en español, porque
+        # es el texto literal que el campo va a intentar interpretar.
+        allow_input_placeholder: "ej. diciembre 31, 2026"
       file:
         choose_file: "Seleccionar archivo"
         no_file_selected: "Ningún archivo seleccionado"
