@@ -29,6 +29,7 @@ es:
         copy_label: Copiar al portapapeles
       drawer:
         close_drawer: Cerrar panel
+        confirm_close: Hay cambios sin guardar. ¿Descartar los cambios?
       dropdown:
         menu_label: Menú desplegable
       delete_link:

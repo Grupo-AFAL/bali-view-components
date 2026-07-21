@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Drawer / Modal** - a form inside a `Bali::Drawer` no longer silently discards typed input when the user presses Escape or clicks the overlay (#619). The drawer now tracks edits and, while the form is dirty, asks for confirmation (via the DaisyUI `confirmDialog`, not `window.confirm`) before closing; a successful submit still closes without prompting. A flatpickr calendar opened inside the drawer also gets its own Escape now — the first Escape closes the calendar, the second closes the drawer. Confirm-on-close is **on by default** for `Bali::Drawer::Component` (opt out per-drawer with `dismissable_without_confirm: true`, or customize the copy with `confirm_close_message:`). `Bali::Modal::Component` gains the same guard as **opt-in** via `confirm_on_close: true` (+ optional `confirm_close_message:`); modal default behavior is unchanged. The mechanism lives in the base `ModalController` (`DrawerController` inherits it).
+
 ## [v2.13.0] - 2026-07-19
 
 ### Added

@@ -31,6 +31,9 @@ export class DrawerController extends ModalController {
 
   // Override to use drawer-open class instead of modal-open
   openModal (content) {
+    // A freshly opened drawer starts clean
+    this._dirty = false
+
     this.previouslyFocusedElement = document.activeElement
 
     if (this.wrapperClasses) {
@@ -102,12 +105,9 @@ export class DrawerController extends ModalController {
     }
   }
 
-  close = (event) => {
-    if (event && event.type === 'keydown' && event.key !== 'Escape') return
-
-    if (event) event.preventDefault()
-    this._closeModal()
-  }
+  // `close()`, `_onOverlayClick()` and the confirm/flatpickr guards are
+  // inherited from ModalController — the drawer only overrides the parts that
+  // differ (the `drawer-open` class and size map).
 
   // Override open to dispatch 'openDrawer' event with skeleton shown first
   open = async (event) => {

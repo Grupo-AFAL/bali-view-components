@@ -199,4 +199,25 @@ class BaliModalComponentTest < ComponentTestCase
     assert_selector(".modal-body", text: "Modal body content")
     assert_selector(".modal-action button.btn", text: "Done")
   end
+
+  def test_confirm_on_close_is_opt_in_and_omitted_by_default
+    render_inline(Bali::Modal::Component.new)
+    assert_no_selector("[data-modal-confirm-close-message-value]")
+  end
+
+  def test_confirm_on_close_adds_confirm_close_message_value_and_self_scoped_controller
+    render_inline(Bali::Modal::Component.new(confirm_on_close: true))
+    assert_selector("div.modal[data-controller='modal'][data-modal-confirm-close-message-value]")
+  end
+
+  def test_confirm_on_close_uses_default_message
+    render_inline(Bali::Modal::Component.new(confirm_on_close: true))
+    modal = page.find("div.modal")
+    assert_equal("You have unsaved changes. Discard them?", modal["data-modal-confirm-close-message-value"])
+  end
+
+  def test_confirm_on_close_honors_custom_message
+    render_inline(Bali::Modal::Component.new(confirm_on_close: true, confirm_close_message: "Discard?"))
+    assert_selector('[data-modal-confirm-close-message-value="Discard?"]')
+  end
 end
