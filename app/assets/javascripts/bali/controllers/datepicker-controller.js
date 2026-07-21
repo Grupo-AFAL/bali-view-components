@@ -33,7 +33,7 @@ export class DatepickerController extends Controller {
     period: String,
     mode: { type: String, default: 'single' },
     altInput: { type: Boolean, default: true },
-    allowInput: { type: Boolean, default: false },
+    allowInput: { type: Boolean, default: true },
     altFormat: String,
     static: { type: Boolean, default: false }
   }
@@ -72,6 +72,13 @@ export class DatepickerController extends Controller {
     if (this.hasAppendToTarget) options.appendTo = this.appendToTarget
 
     this.flatpickr = flatpickr(input, options)
+    // flatpickr's own keydown handler skips Escape while allowInput is on and
+    // focus is in the input (allowKeydown gate), leaving the calendar stuck open.
+    this.flatpickr._input?.addEventListener('keydown', this.closeOnEscape)
+  }
+
+  closeOnEscape = event => {
+    if (event.key === 'Escape' && this.flatpickr?.isOpen) this.flatpickr.close()
   }
 
   async setLocale (countryCode) {
@@ -88,6 +95,7 @@ export class DatepickerController extends Controller {
   }
 
   disconnect () {
+    this.flatpickr?._input?.removeEventListener('keydown', this.closeOnEscape)
     this.flatpickr?.destroy()
   }
 
@@ -113,7 +121,7 @@ export class DatepickerController extends Controller {
     }
 
     if (!this.noCalendarValue) {
-      format = `F j, Y ${format}`.trim()
+      format = `d/m/Y ${format}`.trim()
     }
 
     return format

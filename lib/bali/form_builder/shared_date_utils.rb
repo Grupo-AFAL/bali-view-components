@@ -22,7 +22,11 @@ module Bali
         opts = options.dup
         clear_btn = build_clear_button if opts.delete(:clear)
         opts[:control_class] = [ "w-full", opts[:control_class] ].compact.join(" ")
-        opts[:placeholder] ||= allow_input_placeholder(opts) if opts[:allow_input]
+        # Typing is enabled by default (allow_input defaults to true in the
+        # controller), so derive a placeholder hint for every field unless the
+        # caller explicitly opts out with `allow_input: false` (readonly field,
+        # no hint needed). An absent option counts as enabled.
+        opts[:placeholder] ||= allow_input_placeholder(opts) unless opts[:allow_input] == false
 
         wrapper_options = build_wrapper_options(method, opts)
 
@@ -65,11 +69,11 @@ module Bali
 
       private
 
-      # `allow_input: true` lets users type directly into the visible input, but
-      # flatpickr silently discards anything that doesn't match the effective
-      # altFormat on blur (see datepicker-controller.js#altFormat). Without a hint,
-      # users have no way to know what to type, so derive a placeholder from that
-      # same effective format — unless the caller already supplied one.
+      # Users can type directly into the visible input by default, but flatpickr
+      # silently discards anything that doesn't match the effective altFormat on
+      # blur (see datepicker-controller.js#altFormat). Without a hint, users have
+      # no way to know what to type, so derive a placeholder from that same
+      # effective format — unless the caller already supplied one.
       def allow_input_placeholder(options)
         effective_format = options[:alt_format].presence || default_alt_format(options)
 
@@ -101,7 +105,7 @@ module Bali
             time_24hr ? "H:i" : "h:i K"
           end
 
-        no_calendar ? time_portion : "F j, Y #{time_portion}".strip
+        no_calendar ? time_portion : "d/m/Y #{time_portion}".strip
       end
 
       def build_clear_button
