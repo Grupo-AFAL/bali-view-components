@@ -88,4 +88,38 @@ class BaliFormBuilderDatetimeFieldsTest < FormBuilderTestCase
     assert_html(result, '.fieldset[data-custom="value"]')
     assert_html(result, '.fieldset[data-datepicker-enable-time-value="true"]')
   end
+
+  # #datetime_field_group allow_input
+
+  def test_datetime_field_group_without_allow_input_option_does_not_render_allow_input_attribute
+    result = builder.datetime_field_group(:release_date)
+    refute_html(result, "[data-datepicker-allow-input-value]")
+  end
+
+  def test_datetime_field_group_without_allow_input_option_does_not_render_a_placeholder_attribute
+    result = builder.datetime_field_group(:release_date)
+    refute_html(result, "input[placeholder]")
+  end
+
+  def test_datetime_field_group_with_allow_input_option_renders_allow_input_attribute
+    result = builder.datetime_field_group(:release_date, allow_input: true)
+    assert_html(result, '.fieldset[data-datepicker-allow-input-value="true"]')
+  end
+
+  def test_datetime_field_group_with_allow_input_and_explicit_alt_format_sets_a_token_mapped_placeholder
+    result = builder.datetime_field_group(:release_date, allow_input: true, alt_format: "d/m/Y H:i")
+    assert_html(result, 'input[placeholder="dd/mm/yyyy HH:MM"]')
+  end
+
+  def test_datetime_field_group_with_allow_input_and_no_alt_format_sets_an_i18n_placeholder
+    result = builder.datetime_field_group(:release_date, allow_input: true)
+    assert_html(result, 'input[placeholder="e.g., December 31, 2026"]')
+  end
+
+  def test_datetime_field_group_with_allow_input_and_explicit_placeholder_keeps_the_explicit_placeholder
+    result = builder.datetime_field_group(
+      :release_date, allow_input: true, alt_format: "d/m/Y H:i", placeholder: "Type a date and time"
+    )
+    assert_html(result, 'input[placeholder="Type a date and time"]')
+  end
 end

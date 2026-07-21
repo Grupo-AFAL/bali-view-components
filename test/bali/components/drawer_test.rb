@@ -185,4 +185,27 @@ class BaliDrawerComponentTest < ComponentTestCase
     assert_equal("drawer", dialog["data-controller"])
     assert_equal("value", dialog["data-custom"])
   end
+
+  def test_confirm_close_adds_confirm_close_message_value_by_default
+    render_inline(component)
+    assert_selector("[data-drawer-confirm-close-message-value]")
+  end
+
+  def test_confirm_close_uses_default_message
+    render_inline(component)
+    dialog = page.find('[role="dialog"]')
+    assert_equal("You have unsaved changes. Discard them?", dialog["data-drawer-confirm-close-message-value"])
+  end
+
+  def test_confirm_close_honors_custom_message
+    @options.merge!(confirm_close_message: "Descartar cambios?")
+    render_inline(component)
+    assert_selector('[data-drawer-confirm-close-message-value="Descartar cambios?"]')
+  end
+
+  def test_confirm_close_omitted_when_dismissable_without_confirm
+    @options.merge!(dismissable_without_confirm: true)
+    render_inline(component)
+    assert_no_selector("[data-drawer-confirm-close-message-value]")
+  end
 end

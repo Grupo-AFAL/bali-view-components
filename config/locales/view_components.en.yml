@@ -31,6 +31,7 @@ en:
         copy_label: Copy to clipboard
       drawer:
         close_drawer: Close drawer
+        confirm_close: You have unsaved changes. Discard them?
       dropdown:
         menu_label: Dropdown menu
       delete_link:

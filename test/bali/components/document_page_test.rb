@@ -188,4 +188,44 @@ class BaliDocumentPageComponentTest < ComponentTestCase
     render_inline(Bali::DocumentPage::Component.new(title: "My Document")) { "Fallback content" }
     assert_text("Fallback content")
   end
+
+  def test_three_panel_container_stacks_on_mobile
+    render_inline(Bali::DocumentPage::Component.new(title: "My Document")) do |page|
+      page.with_metadata { "Meta" }
+      page.with_preview { "Content" }
+    end
+    assert_selector(".flex.items-start.max-lg\\:flex-col")
+  end
+
+  def test_toc_panel_has_mobile_stacking_classes
+    render_inline(Bali::DocumentPage::Component.new(
+      title: "My Document",
+      initial_content: [ { type: "paragraph", content: [ { type: "text", text: "Hello" } ] } ].to_json
+    )) do |page|
+      page.with_metadata { "Meta" }
+    end
+    assert_selector(
+      "[data-document-page-target='tocPanel'].max-lg\\:w-full.max-lg\\:static.max-lg\\:max-h-72" \
+        ".max-lg\\:border-r-0.max-lg\\:border-b"
+    )
+  end
+
+  def test_metadata_panel_has_mobile_stacking_classes
+    render_inline(Bali::DocumentPage::Component.new(title: "My Document")) do |page|
+      page.with_metadata { "Meta" }
+      page.with_preview { "Content" }
+    end
+    assert_selector(
+      "[data-document-page-target='metadataPanel'].max-lg\\:w-full.max-lg\\:static" \
+        ".max-lg\\:max-h-none.max-lg\\:border-l-0.max-lg\\:border-t"
+    )
+  end
+
+  def test_toolbar_wraps_on_mobile
+    render_inline(Bali::DocumentPage::Component.new(title: "My Document")) do |page|
+      page.with_action { "Edit Button" }
+      page.with_preview { "Content" }
+    end
+    assert_selector(".flex.items-center.gap-2.flex-wrap")
+  end
 end
