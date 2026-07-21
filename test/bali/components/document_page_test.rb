@@ -217,7 +217,7 @@ class BaliDocumentPageComponentTest < ComponentTestCase
     end
     assert_selector(
       "[data-document-page-target='metadataPanel'].max-lg\\:w-full.max-lg\\:static" \
-        ".max-lg\\:max-h-none.max-lg\\:overflow-y-visible.max-lg\\:border-l-0.max-lg\\:border-t"
+        ".max-lg\\:max-h-none.max-lg\\:border-l-0.max-lg\\:border-t"
     )
   end
 
