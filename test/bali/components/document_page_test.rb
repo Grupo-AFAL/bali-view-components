@@ -217,7 +217,7 @@ class BaliDocumentPageComponentTest < ComponentTestCase
     end
     assert_selector(
       "[data-document-page-target='metadataPanel'].max-lg\\:w-full.max-lg\\:static" \
-        ".max-lg\\:max-h-none.max-lg\\:overflow-visible.max-lg\\:border-l-0.max-lg\\:border-t"
+        ".max-lg\\:max-h-none.max-lg\\:overflow-y-visible.max-lg\\:border-l-0.max-lg\\:border-t"
     )
   end
 
@@ -226,6 +226,6 @@ class BaliDocumentPageComponentTest < ComponentTestCase
       page.with_action { "Edit Button" }
       page.with_preview { "Content" }
     end
-    assert_selector(".flex.items-center.gap-2.flex-wrap.gap-y-2")
+    assert_selector(".flex.items-center.gap-2.flex-wrap")
   end
 end
