@@ -219,4 +219,86 @@ class BaliTableComponentTest < ComponentTestCase
     c = Bali::Table::Component.new
     refute(c.bulk_actions?)
   end
+
+  def test_grouping_emits_header_row_when_group_value_changes
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+      c.with_row(group: "Norte") { "<td>B</td>".html_safe }
+      c.with_row(group: "Sur") { "<td>C</td>".html_safe }
+    end
+    assert_selector("tr.bali-table-group-row", count: 2)
+    assert_selector("tr.bali-table-group-row td", text: "Norte (2)")
+    assert_selector("tr.bali-table-group-row td", text: "Sur (1)")
+  end
+
+  def test_grouping_counts_only_consecutive_rows_sharing_the_value
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+      c.with_row(group: "Sur") { "<td>B</td>".html_safe }
+      c.with_row(group: "Norte") { "<td>C</td>".html_safe }
+    end
+    assert_selector("tr.bali-table-group-row", count: 3)
+    assert_selector("tr.bali-table-group-row td", text: "Norte (1)", count: 2)
+    assert_selector("tr.bali-table-group-row td", text: "Sur (1)")
+  end
+
+  def test_grouping_header_colspan_matches_visible_headers_without_bulk_actions
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_header(name: "Amount")
+      c.with_header(name: "Hidden", hidden: true)
+      c.with_row(group: "Norte") { "<td>A</td><td>1</td>".html_safe }
+    end
+    assert_selector('tr.bali-table-group-row td[colspan="2"]')
+  end
+
+  def test_grouping_header_colspan_includes_bulk_actions_column
+    @options = { bulk_actions: [ { name: "Delete", href: "/delete" } ] }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_header(name: "Amount")
+      c.with_row(record_id: 1, group: "Norte") { "<td>A</td><td>1</td>".html_safe }
+    end
+    assert_selector('tr.bali-table-group-row td[colspan="3"]')
+  end
+
+  def test_grouping_renders_no_header_rows_when_no_group_given
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row { "<td>A</td>".html_safe }
+      c.with_row { "<td>B</td>".html_safe }
+    end
+    assert_no_selector("tr.bali-table-group-row")
+    assert_selector("tbody tr td", text: "A")
+    assert_selector("tbody tr td", text: "B")
+  end
+
+  def test_grouping_does_not_leak_group_as_html_attribute
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+    end
+    assert_no_selector("tr[group]")
+  end
+
+  def test_grouping_labels_nil_group_with_i18n_fallback
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+      c.with_row(group: nil) { "<td>B</td>".html_safe }
+    end
+    assert_selector("tr.bali-table-group-row td", text: "Norte (1)")
+    assert_selector("tr.bali-table-group-row td", text: "Ungrouped (1)")
+  end
+
+  def test_grouping_escapes_html_in_group_value
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(group: "<script>alert('x')</script>") { "<td>A</td>".html_safe }
+    end
+    refute_includes(page.native.to_html, "<script>alert('x')</script>")
+    assert_selector("tr.bali-table-group-row td", text: "<script>alert('x')</script> (1)")
+  end
 end
