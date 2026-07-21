@@ -301,4 +301,64 @@ class BaliTableComponentTest < ComponentTestCase
     refute_includes(page.native.to_html, "<script>alert('x')</script>")
     assert_selector("tr.bali-table-group-row td", text: "<script>alert('x')</script> (1)")
   end
+
+  def test_grouping_shows_global_count_when_group_counts_given
+    @options = { group_counts: { "Norte" => 30 } }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+    end
+    assert_selector("tr.bali-table-group-row td", text: "Norte (30)")
+  end
+
+  def test_grouping_appends_partial_hint_when_run_smaller_than_global_total
+    @options = { group_counts: { "Norte" => 30 } }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+      c.with_row(group: "Norte") { "<td>B</td>".html_safe }
+    end
+    assert_selector("tr.bali-table-group-row td", text: "Norte (30) — showing 2")
+  end
+
+  def test_grouping_omits_partial_hint_when_run_matches_global_total
+    @options = { group_counts: { "Norte" => 2 } }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+      c.with_row(group: "Norte") { "<td>B</td>".html_safe }
+    end
+    assert_selector("tr.bali-table-group-row td", text: "Norte (2)")
+    assert_no_selector("tr.bali-table-group-row td", text: "showing")
+  end
+
+  def test_grouping_tolerant_lookup_matches_string_key_for_symbol_group_value
+    @options = { group_counts: { "active" => 9 } }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(group: :active) { "<td>A</td>".html_safe }
+    end
+    assert_selector("tr.bali-table-group-row td", text: "active (9)")
+  end
+
+  def test_grouping_falls_back_to_local_count_on_missing_global_key
+    @options = { group_counts: { "Norte" => 30 } }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(group: "Sur") { "<td>A</td>".html_safe }
+    end
+    # "Sur" is not in group_counts → page-local count (1), no crash
+    assert_selector("tr.bali-table-group-row td", text: "Sur (1)")
+  end
+
+  def test_grouping_global_count_for_nil_group_value
+    # A non-nil group is required to activate grouping (matches v1 behavior).
+    @options = { group_counts: { "Norte" => 5, nil => 12 } }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(group: "Norte") { "<td>A</td>".html_safe }
+      c.with_row(group: nil) { "<td>B</td>".html_safe }
+    end
+    assert_selector("tr.bali-table-group-row td", text: "Ungrouped (12) — showing 1")
+  end
 end

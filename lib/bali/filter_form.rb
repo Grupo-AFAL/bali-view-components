@@ -3,6 +3,7 @@
 require_relative "filter_form/search_configuration"
 require_relative "filter_form/filter_group_parser"
 require_relative "filter_form/simple_filters_configuration"
+require_relative "filter_form/group_by_configuration"
 
 module Bali
   # FilterForm provides a unified interface for Ransack-based filtering with support
@@ -45,6 +46,7 @@ module Bali
     include SearchConfiguration
     include FilterGroupParser
     include SimpleFiltersConfiguration
+    include GroupByConfiguration
 
     attr_reader :scope, :storage_id, :context, :clear_filters, :groupings
 
@@ -99,7 +101,8 @@ module Bali
     # @param simple_filters [Array<Hash>] Simple inline filters (alternative to DSL)
     # rubocop:disable Metrics/ParameterLists
     def initialize(scope, params = {}, storage_id: nil, context: nil, search_fields: nil,
-                   search_placeholder: nil, search_icon: nil, persist_enabled: false, simple_filters: nil)
+                   search_placeholder: nil, search_icon: nil, persist_enabled: false, simple_filters: nil,
+                   group_by_attributes: nil)
       # rubocop:enable Metrics/ParameterLists
       @scope = scope
       @storage_id = storage_id
@@ -107,10 +110,12 @@ module Bali
       @instance_search_fields = search_fields&.map(&:to_sym)
       @instance_search_icon = search_icon
       @instance_simple_filters = simple_filters
+      @instance_group_by_attributes = group_by_attributes
       @search_placeholder = search_placeholder
       @persist_enabled = persist_enabled
       @clear_filters = params.fetch(:clear_filters, false)
       @clear_search = params.fetch(:clear_search, false)
+      @group_by = resolve_group_by(params[:group_by])
 
       q_params = params.fetch(:q, {})
       @q_params = q_params # Store for simple_filters value extraction
@@ -267,6 +272,9 @@ module Bali
 
       # Add simple filter parameters
       add_simple_filter_params(params) if simple_filters_enabled?
+
+      # Group-first ordering (sort-within-groups) when grouping is active
+      apply_group_by_ordering(params)
 
       params
     end

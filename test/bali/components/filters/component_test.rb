@@ -240,6 +240,31 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_equal([ %w[page 2] ], component.preserved_query_params)
   end
 
+  def test_preserved_query_params_includes_explicit_preserved_params
+    component = Bali::Filters::Component.new(
+      url: "/users?page=2", available_attributes: @available_attributes,
+      preserved_params: { group_by: "genre" }
+    )
+    assert_includes(component.preserved_query_params, %w[group_by genre])
+    assert_includes(component.preserved_query_params, %w[page 2])
+  end
+
+  def test_explicit_preserved_params_win_over_url_params
+    component = Bali::Filters::Component.new(
+      url: "/users?group_by=stale", available_attributes: @available_attributes,
+      preserved_params: { group_by: "genre" }
+    )
+    assert_equal([ %w[group_by genre] ], component.preserved_query_params)
+  end
+
+  def test_preserved_params_render_as_hidden_fields_in_form
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes,
+      preserved_params: { group_by: "genre" }
+    ))
+    assert_selector("form input[type=hidden][name=group_by][value=genre]", visible: :all, minimum: 1)
+  end
+
   def test_preserved_query_params_excludes_clear_filters_and_clear_search_params
     component = Bali::Filters::Component.new(
       url: "/users?page=2&clear_filters=true&clear_search=true", available_attributes: @available_attributes

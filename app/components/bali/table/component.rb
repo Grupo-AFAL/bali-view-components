@@ -31,10 +31,11 @@ module Bali
 
       attr_reader :options, :tbody_options, :table_container_options
 
-      def initialize(form: nil, bulk_actions: [], sticky_headers: false, **options)
+      def initialize(form: nil, bulk_actions: [], sticky_headers: false, group_counts: {}, **options)
         @form = form
         @bulk_actions = bulk_actions
         @sticky_headers = sticky_headers
+        @group_counts = group_counts || {}
         @tbody_options = hyphenize_keys(options.delete(:tbody) || {})
         @table_container_options = build_container_options(options.delete(:table_container) || {})
         @options = prepend_class_name(hyphenize_keys(options), TABLE_CLASSES)
@@ -73,6 +74,23 @@ module Bali
         value.nil? ? t(".ungrouped") : value.to_s
       end
 
+      # Group-header text. When a global count exists for the group value (from
+      # `group_counts:`, typically FilterForm#group_counts), it shows the global
+      # total — "Norte (30)" — and appends a partial hint when the visible run is
+      # smaller than that total because pagination split the group:
+      # "Norte (30) — mostrando 25". Without a global count it falls back to the
+      # page-local run size (v1 behavior).
+      def group_header_text(group)
+        label = group_label(group.value)
+        total = global_group_count(group.value)
+
+        return t(".group_count", group: label, count: group.rows.size) if total.nil?
+
+        text = t(".group_count", group: label, count: total)
+        text += " — #{t('.group_partial', shown: group.rows.size)}" if group.rows.size < total
+        text
+      end
+
       def empty_state_content
         if @form&.active_filters?
           no_results_notification || tag.p(t(".no_results"), class: "text-base-content/60")
@@ -87,6 +105,20 @@ module Bali
       end
 
       private
+
+      # Tolerant lookup of the global total for a group value. SQL group keys are
+      # often strings while record attributes may be symbols/enums, so we try the
+      # raw value then its string form. nil (SQL NULL group) is looked up as-is.
+      # Returns nil on a miss so the header falls back to the page-local count.
+      def global_group_count(value)
+        return nil if @group_counts.blank?
+
+        if @group_counts.key?(value)
+          @group_counts[value]
+        elsif !value.nil? && @group_counts.key?(value.to_s)
+          @group_counts[value.to_s]
+        end
+      end
 
       def build_container_options(options)
         opts = prepend_class_name(options, container_classes)

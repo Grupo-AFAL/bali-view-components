@@ -5,10 +5,14 @@ es:
         no_records: Sin Registros
         no_results: Sin Resultados
         group_count: "%{group} (%{count})"
+        group_partial: "mostrando %{shown}"
         ungrouped: Sin agrupar
       data_table:
         summary: "Mostrando %{from}-%{to} de %{count} %{item_name}"
         default_item_name: elementos
+        group_by_control:
+          label: Agrupar por
+          no_grouping: Sin agrupar
         column_selector:
           button_label: Columnas
           menu_title: Mostrar/Ocultar Columnas

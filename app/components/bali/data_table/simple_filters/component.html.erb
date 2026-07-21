@@ -1,4 +1,8 @@
 <%= form_with url: @url, method: :get, builder: Bali::FormBuilder, data: { turbo_frame: "_top" } do |f| %>
+  <%# Preserve top-level params (e.g. an active group_by) across the GET submit %>
+  <% preserved_params.each do |name, value| %>
+    <%= tag.input(type: "hidden", name: name, value: value) %>
+  <% end %>
   <div class="flex flex-nowrap overflow-x-auto sm:flex-wrap gap-2 items-end py-1 pb-2 sm:pb-1 scrollbar-hide">
     <% if search_enabled? %>
       <div class="<%= search_width %> shrink-0">
