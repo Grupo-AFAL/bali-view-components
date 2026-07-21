@@ -17,7 +17,7 @@
         <% if grouped? %>
           <% row_groups.each do |group| %>
             <tr class="bali-table-group-row">
-              <%= tag.td(t(".group_count", group: group_label(group.value), count: group.rows.size), colspan: group_colspan, class: "bg-base-200 font-semibold text-sm text-base-content/80") %>
+              <%= tag.td(group_header_text(group), colspan: group_colspan, class: "bg-base-200 font-semibold text-sm text-base-content/80") %>
             </tr>
             <% group.rows.each do |row| %><%= row %><% end %>
           <% end %>
