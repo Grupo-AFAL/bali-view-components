@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **FormBuilder date fields** - `allow_input: true` (date_field_group/datetime_field_group/time_field_group) now auto-fills a `placeholder:` hinting at what the field will parse, unless the caller already passed one explicitly. Derived from the effective `alt_format:` (or an i18n string for the verbose default format). Addresses part of #620; the read-only-by-default behavior itself is unchanged — `allow_input:` remains opt-in.
+- **FormBuilder date fields** - date/datetime/time fields auto-fill a `placeholder:` hinting at what the field will parse, unless the caller already passed one explicitly. Derived from the effective `alt_format:` (or an i18n string for verbose formats like `F j, Y`). Part of #620.
+
+### Changed
+
+- **FormBuilder date fields (behavior change, #620)** - date/datetime/time fields are now **typeable by default** and display dates in a **numeric format**. Two ecosystem-wide default flips in the `datepicker` Stimulus controller: `allowInput` now defaults to `true` (the visible input accepts typed dates instead of being read-only, so flatpickr no longer sets `readonly`), and the default display `altFormat` for the date portion changed from the verbose `'F j, Y'` ("Enero 5, 2026") to numeric `'d/m/Y'` ("05/01/2026"). Time portions were already numeric and are unchanged. Combined with the auto-derived placeholder above, every date/datetime/time field now shows a `dd/mm/yyyy`-style hint by default. **Opt out per field with `allow_input: false`** to restore the read-only, pick-from-popup behavior (renders `readonly`, no placeholder). Explicit `alt_format:` and `placeholder:` still override the defaults. This changes the rendered display format and typing behavior of every date field across AFAL apps.
 
 ## [v2.13.0] - 2026-07-19
 
