@@ -110,6 +110,47 @@ class BaliFormBuilderDateFieldsTest < FormBuilderTestCase
     assert_html(result, 'div.custom-wrapper[data-controller="datepicker"]')
   end
 
+  # #date_field_group allow_input
+
+  def test_date_field_group_without_allow_input_option_does_not_render_allow_input_attribute
+    result = builder.date_field_group(:release_date)
+    refute_html(result, "[data-datepicker-allow-input-value]")
+  end
+
+  def test_date_field_group_without_allow_input_option_does_not_render_a_placeholder_attribute
+    result = builder.date_field_group(:release_date)
+    refute_html(result, "input[placeholder]")
+  end
+
+  def test_date_field_group_with_allow_input_option_renders_allow_input_attribute
+    result = builder.date_field_group(:release_date, allow_input: true)
+    assert_html(result, 'div[data-datepicker-allow-input-value="true"]')
+  end
+
+  def test_date_field_group_with_allow_input_and_explicit_alt_format_sets_a_token_mapped_placeholder
+    result = builder.date_field_group(:release_date, allow_input: true, alt_format: "d/m/Y")
+    assert_html(result, 'input[placeholder="dd/mm/yyyy"]')
+  end
+
+  def test_date_field_group_with_allow_input_and_no_alt_format_sets_an_i18n_placeholder
+    result = builder.date_field_group(:release_date, allow_input: true)
+    assert_html(result, 'input[placeholder="e.g., December 31, 2026"]')
+  end
+
+  def test_date_field_group_with_allow_input_and_no_alt_format_supports_spanish_locale
+    I18n.with_locale(:es) do
+      result = builder.date_field_group(:release_date, allow_input: true)
+      assert_html(result, 'input[placeholder="ej. diciembre 31, 2026"]')
+    end
+  end
+
+  def test_date_field_group_with_allow_input_and_explicit_placeholder_keeps_the_explicit_placeholder
+    result = builder.date_field_group(
+      :release_date, allow_input: true, alt_format: "d/m/Y", placeholder: "Type a date"
+    )
+    assert_html(result, 'input[placeholder="Type a date"]')
+  end
+
   # #month_field_group
 
   def test_month_field_group_renders_a_fieldset_wrapper
