@@ -13,7 +13,7 @@
       <% header.with_subtitle(subtitle) %>
     <% end %>
 
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 flex-wrap gap-y-2">
       <% if toc? %>
         <%= render Bali::Button::Component.new(variant: :ghost, size: :sm, class: "btn-square",
               data: { action: "document-page#toggleToc", document_page_target: "tocToggle" },
@@ -46,10 +46,11 @@
 
   <% if three_panel? %>
     <%# Three-panel layout %>
-    <div class="flex items-start border-t border-base-300 mt-4">
+    <div class="flex items-start max-lg:flex-col border-t border-base-300 mt-4">
       <%# Left: TOC Panel %>
       <% if toc? %>
-        <div class="w-56 shrink-0 sticky top-4 overflow-y-auto max-h-[calc(100vh-12rem)] border-r border-base-300 p-4"
+        <div class="w-56 shrink-0 sticky top-4 overflow-y-auto max-h-[calc(100vh-12rem)] border-r border-base-300 p-4
+                    max-lg:w-full max-lg:static max-lg:max-h-72 max-lg:border-r-0 max-lg:border-b"
              data-document-page-target="tocPanel">
           <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">Contents</h3>
           <div id="document-page-toc-container"></div>
@@ -57,7 +58,7 @@
       <% end %>
 
       <%# Center: Content %>
-      <div class="flex-1 min-w-0 px-8 py-6">
+      <div class="flex-1 min-w-0 px-8 py-6 max-lg:px-4">
         <% if block_editor? %>
           <%= render Bali::BlockEditor::Component.new(
             initial_content: initial_content,
@@ -78,7 +79,8 @@
 
       <%# Right: Metadata Panel %>
       <% if metadata? %>
-        <div class="w-72 shrink-0 sticky top-4 overflow-y-auto max-h-[calc(100vh-12rem)] border-l border-base-300 p-4"
+        <div class="w-72 shrink-0 sticky top-4 overflow-y-auto max-h-[calc(100vh-12rem)] border-l border-base-300 p-4
+                    max-lg:w-full max-lg:static max-lg:max-h-none max-lg:overflow-visible max-lg:border-l-0 max-lg:border-t"
              data-document-page-target="metadataPanel">
           <%= metadata %>
         </div>
