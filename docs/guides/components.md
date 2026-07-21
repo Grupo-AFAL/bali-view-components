@@ -616,13 +616,15 @@ Caveats:
 
 - **Ordering is the caller's responsibility.** The component never re-sorts;
   it only compares each row's `group:` against the previous row. The same value
-  reappearing later starts a *new* group header. This makes grouping
-  **incompatible with user-driven column sorting** — Ransack `sort:` header
-  links reorder rows and break the grouping. Sort server-side by the group
-  field instead.
+  reappearing later starts a *new* group header. Sort server-side by the group
+  field so equal values are adjacent. When you drive grouping through
+  `Bali::FilterForm#group_by` (see **Query-aware grouping** below) this is
+  handled for you, and user column sorts remain compatible as a *secondary*
+  sort.
 - **Pagination splits groups.** With Pagy a group that spans a page boundary
-  restarts (with its own header and a partial count) on the next page, because
-  each page only sees its own slice of rows.
+  restarts on the next page, because each page only sees its own slice of rows.
+  Pass `group_counts:` (below) so the header still shows the group's *global*
+  total plus a "showing N" hint on the split page.
 - **Zebra striping shifts.** `table-zebra` stripes by `:nth-child`, so injected
   header rows offset the alternating background of the data rows. This is
   cosmetic and expected.
@@ -633,6 +635,69 @@ Caveats:
   collected under a localized "Ungrouped" header (i18n
   `bali.table.ungrouped`). When **no** row has a `group:`, the table renders
   exactly as it does without the feature — no header rows.
+
+**Query-aware grouping (FilterForm + DataTable)** — driving grouping through
+`Bali::FilterForm` upgrades the page-local behavior above: groups are ordered by
+the query, counts are global, and the "Agrupar por" control persists the choice
+in the URL.
+
+Declare groupable attributes on the form (DSL or constructor):
+
+```ruby
+class MoviesFilterForm < Bali::FilterForm
+  group_by_attribute :genre, label: "Género"
+  group_by_attribute :status
+end
+
+# or, without subclassing:
+Bali::FilterForm.new(Movie.all, params, group_by_attributes: [:genre, :status])
+```
+
+`group_by` is a **whitelisted top-level param** (not a `q[...]` predicate). The
+raw value only takes effect when it matches a declared attribute — anything else
+is ignored, so it can never reach `.group()`/`.order()` (Ransack does not
+authorize `.group`). When active, the form:
+
+- orders the query by the group field **first**, keeping any user column sort as
+  the **secondary** sort — so column sorting and grouping now coexist
+  (sort-within-groups); and
+- exposes `group_counts`, the **global** per-group totals over the full filtered
+  (unpaginated) result.
+
+Wire it into the view — `DataTable` auto-renders the "Agrupar por" control
+whenever the form declares group_by attributes, and the `Table` shows global
+counts when you pass `group_counts:`:
+
+```erb
+<%= render Bali::DataTable::Component.new(url: request.path, filter_form: @filter_form, pagy: @pagy) do |c| %>
+  <% c.with_simple_filters %>          <%# control renders itself beside the filters %>
+  <% c.with_table do %>
+    <%= render Bali::Table::Component.new(form: @filter_form, group_counts: @filter_form.group_counts) do |t| %>
+      <%= t.with_header(name: "Name", sort: :name) %>
+      <%= t.with_header(name: "Genre", sort: :genre) %>
+      <% @movies.each do |movie| %>
+        <%= t.with_row(group: @filter_form.group_by && movie.public_send(@filter_form.group_by)) do %>
+          <td><%= movie.name %></td>
+          <td><%= movie.genre %></td>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+A split group then reads e.g. `Norte (30) — showing 25` (i18n
+`bali.table.group_partial`). The count lookup is tolerant of string-vs-symbol
+keys and falls back to the page-local count on a miss.
+
+Constraints:
+
+- **Do not `.reorder` the relation after `result`** when grouping — it drops the
+  group-first ordering and rows stop cohering into groups. Let the form own the
+  order.
+- **`group_by` is not persisted** in the FilterForm filters cache. It lives only
+  in the URL (the "Agrupar por" links carry it, and the filter forms round-trip
+  it as a hidden field), so it resets when the URL does.
 
 #### Avatar
 

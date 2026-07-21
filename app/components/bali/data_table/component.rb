@@ -69,6 +69,9 @@ module Bali
           options[:persist_enabled] = @filter_form.persist_enabled?
         end
 
+        # Preserve an active group_by across the GET filter submit (round-trip)
+        options[:preserved_params] = group_by_preserved_params unless options.key?(:preserved_params)
+
         # Auto-populate search config from filter_form, merging with explicit overrides
         filter_form_search = if @filter_form && @filter_form.respond_to?(:search_config)
                                @filter_form.search_config
@@ -124,7 +127,8 @@ module Bali
           show_clear: filters_active || search_active,
           search: resolved_search,
           storage_id: storage_id,
-          persist_enabled: persist_enabled || false
+          persist_enabled: persist_enabled || false,
+          preserved_params: group_by_preserved_params
         )
       end
 
@@ -212,8 +216,23 @@ module Bali
       end
 
       def show_toolbar?
-        filters_panel? || simple_filters? || toolbar_buttons? ||
+        filters_panel? || simple_filters? || group_by_control? || toolbar_buttons? ||
           column_selector? || export? || actions_panel?
+      end
+
+      # Whether the "Agrupar por" control should render — true when the filter
+      # form declares any group_by attribute. Auto-rendered (no explicit slot).
+      def group_by_control?
+        @filter_form.respond_to?(:group_by_options) && @filter_form.group_by_options.present?
+      end
+
+      # The auto-configured group_by control component.
+      def group_by_control
+        @group_by_control ||= GroupByControl::Component.new(
+          url: @url,
+          filter_form: @filter_form,
+          current_params: safe_query_parameters
+        )
       end
 
       def show_toolbar_right?
@@ -221,6 +240,22 @@ module Bali
       end
 
       private
+
+      # group_by param to preserve as a hidden field on GET filter forms, so
+      # applying filters/search does not drop an active grouping.
+      def group_by_preserved_params
+        return {} unless @filter_form.respond_to?(:group_by_active?) && @filter_form.group_by_active?
+
+        { "group_by" => @filter_form.group_by.to_s }
+      end
+
+      # Current request query params (to preserve in group_by control links).
+      # Falls back to {} when there is no request context.
+      def safe_query_parameters
+        helpers.request.query_parameters.to_h
+      rescue StandardError
+        {}
+      end
 
       def item_name
         @item_name || I18n.t("view_components.bali.data_table.default_item_name")

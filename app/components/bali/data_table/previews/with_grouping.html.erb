@@ -1,0 +1,28 @@
+<%# DataTable with query-aware row grouping. The "Agrupar por" control switches
+    the group_by param; group headers show global counts with a partial hint when
+    Pagy splits a group across pages. %>
+<%= render Bali::DataTable::Component.new(url: request.path, filter_form: filter_form, pagy: pagy, item_name: 'movies') do |c| %>
+  <% c.with_table do %>
+    <%= render Bali::Table::Component.new(form: filter_form, group_counts: filter_form.group_counts) do |t| %>
+      <%= t.with_header(name: 'Name', sort: :name) %>
+      <%= t.with_header(name: 'Genre', sort: :genre) %>
+      <%= t.with_header(name: 'Studio') %>
+      <%= t.with_header(name: 'Status', sort: :status) %>
+
+      <% movies.each do |movie| %>
+        <%# group value must match a group_counts key (raw enum/string) so the
+            global total resolves; nil when grouping is off. %>
+        <%= t.with_row(group: group_attribute && movie.public_send(group_attribute)) do %>
+          <td class="font-medium"><%= movie.name %></td>
+          <td><%= movie.genre %></td>
+          <td class="text-sm text-base-content/70"><%= movie.studio&.name %></td>
+          <td>
+            <span class="badge <%= movie.done? ? 'badge-success' : 'badge-warning' %>">
+              <%= movie.status.humanize %>
+            </span>
+          </td>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

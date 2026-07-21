@@ -57,6 +57,15 @@ class ExtendedSimpleFilterForm < SimpleFilterableMovieFilterForm
                 label: "Indie Film"
 end
 
+# Test form with group_by_attribute DSL. No custom scope order so the
+# group-first ordering is the sole ORDER BY (sort-within-groups assertions).
+class GroupableMovieFilterForm < Bali::FilterForm
+  group_by_attribute :genre, label: "Género"
+  group_by_attribute :status
+
+  attribute :genre_eq
+end
+
 class BaliFilterFormTest < ActiveSupport::TestCase
   def setup
     @tenant = Tenant.create(name: "Test")
@@ -667,5 +676,129 @@ class BaliFilterFormTestSimpleFilters < ActiveSupport::TestCase
     )
     config = @form.simple_search_config
     assert_equal("Find movies...", config[:placeholder])
+  end
+end
+
+class BaliFilterFormGroupByTest < ActiveSupport::TestCase
+  def setup
+    @tenant = Tenant.create(name: "Test Studio")
+    # Action: 3, Comedy: 2, Drama: 1 (6 total across multiple "pages")
+    @tenant.movies.create(name: "Aardvark", genre: "Action", status: :draft)
+    @tenant.movies.create(name: "Blade", genre: "Action", status: :draft)
+    @tenant.movies.create(name: "Crash", genre: "Action", status: :done)
+    @tenant.movies.create(name: "Ditto", genre: "Comedy", status: :draft)
+    @tenant.movies.create(name: "Echo", genre: "Comedy", status: :done)
+    @tenant.movies.create(name: "Fargo", genre: "Drama", status: :draft)
+  end
+
+  def group_params(group_by, q: {})
+    ActionController::Parameters.new(q: ActionController::Parameters.new(q), group_by: group_by)
+  end
+
+  # --- Whitelist / security boundary ---
+
+  def test_group_by_ignores_undeclared_attribute
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params("name"))
+    assert_nil(form.group_by)
+    refute(form.group_by_active?)
+  end
+
+  def test_group_by_rejects_sql_injection_shaped_value
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre) UNION SELECT--"))
+    assert_nil(form.group_by)
+    assert_equal({}, form.group_counts)
+    # The raw value must never reach ordering
+    refute_includes(form.ransack_params["s"].to_s, "UNION")
+  end
+
+  def test_group_by_is_blank_when_param_absent
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params(nil))
+    assert_nil(form.group_by)
+  end
+
+  # --- Activation + ordering (sort-within-groups) ---
+
+  def test_group_by_activates_for_declared_attribute
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre"))
+    assert_equal(:genre, form.group_by)
+    assert(form.group_by_active?)
+  end
+
+  def test_group_by_orders_by_group_field_first
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre"))
+    assert_equal([ "genre asc" ], form.ransack_params["s"])
+    assert_match(/ORDER BY.*genre/i, form.result.to_sql)
+  end
+
+  def test_group_by_keeps_user_sort_secondary
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", q: { s: "name desc" }))
+    assert_equal([ "genre asc", "name desc" ], form.ransack_params["s"])
+
+    order_clause = form.result.to_sql[/ORDER BY(.*)\z/i, 1]
+    assert(order_clause.index("genre") < order_clause.index("name"),
+           "group field must be ordered before the user sort")
+  end
+
+  # --- Global counts (independent of pagination) ---
+
+  def test_group_counts_returns_global_totals
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre"))
+    assert_equal({ "Action" => 3, "Comedy" => 2, "Drama" => 1 }, form.group_counts)
+  end
+
+  def test_group_counts_independent_of_pagination
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre"))
+    # Simulate a page slice; group_counts still counts the full filtered set.
+    assert_equal(2, form.result.limit(2).to_a.size)
+    assert_equal(6, form.group_counts.values.sum)
+  end
+
+  def test_group_counts_respects_active_filters
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", q: { genre_eq: "Action" }))
+    assert_equal({ "Action" => 3 }, form.group_counts)
+  end
+
+  def test_group_counts_works_with_active_user_sort
+    # unscope(:order) prevents the ORDER BY (incl. the group sort) from
+    # conflicting with GROUP BY under strict SQL.
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", q: { s: "name desc" }))
+    assert_equal(3, form.group_counts["Action"])
+  end
+
+  def test_group_counts_by_status_returns_enum_label_keys
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params("status"))
+    assert_equal({ "draft" => 4, "done" => 2 }, form.group_counts)
+  end
+
+  # --- Inactive parity ---
+
+  def test_group_counts_empty_when_inactive
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params(nil))
+    assert_equal({}, form.group_counts)
+  end
+
+  def test_ransack_params_sort_unchanged_when_group_by_inactive
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params(nil, q: { s: "name asc" }))
+    assert_equal("name asc", form.ransack_params["s"])
+  end
+
+  # --- Options / configuration ---
+
+  def test_group_by_options_returns_attributes_with_labels
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params(nil))
+    options = form.group_by_options
+    assert_equal("Género", options.find { |o| o[:attribute] == :genre }[:label])
+    assert_equal("Status", options.find { |o| o[:attribute] == :status }[:label])
+  end
+
+  def test_group_by_enabled_reflects_declaration
+    assert(GroupableMovieFilterForm.new(@tenant.movies, group_params(nil)).group_by_enabled?)
+    refute(Bali::FilterForm.new(@tenant.movies, group_params(nil)).group_by_enabled?)
+  end
+
+  def test_group_by_via_initialize_parameter
+    form = Bali::FilterForm.new(@tenant.movies, group_params("genre"), group_by_attributes: %i[genre status])
+    assert_equal(:genre, form.group_by)
+    assert_equal(%i[genre status], form.group_by_attributes)
   end
 end
