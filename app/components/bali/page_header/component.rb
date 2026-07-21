@@ -4,8 +4,10 @@ module Bali
   module PageHeader
     class Component < ApplicationViewComponent
       BASE_CLASSES = "page-header-component mb-4"
-      # Mobile-first responsive: tighter gap on small screens (flex-wrap is on Level)
-      RESPONSIVE_CLASSES = "max-sm:gap-3"
+      # Mobile-first responsive: stack title/subtitle above actions instead of
+      # relying on Level's max-sm:flex-wrap, which never fires because the left
+      # side's flex-1 basis-0 contributes no width to the flex line (#625).
+      RESPONSIVE_CLASSES = "max-sm:gap-3 max-sm:flex-col max-sm:items-stretch"
 
       HEADING_SIZES = {
         h1: "text-4xl",

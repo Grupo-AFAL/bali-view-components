@@ -126,11 +126,24 @@ class BaliPageHeaderComponentTest < ComponentTestCase
     render_inline(Bali::PageHeader::Component.new(title: "Title"))
     level = page.find(".level")
     assert_includes level[:class], "max-sm:gap-3"
+    assert_includes level[:class], "max-sm:flex-col"
+    assert_includes level[:class], "max-sm:items-stretch"
   end
 
   def test_responsive_can_be_disabled
     render_inline(Bali::PageHeader::Component.new(title: "Title", responsive: false))
     level = page.find(".level")
     refute_includes level[:class], "max-sm:gap-3"
+    refute_includes level[:class], "max-sm:flex-col"
+    refute_includes level[:class], "max-sm:items-stretch"
+  end
+
+  def test_responsive_stacks_left_and_right_sides_full_width_on_mobile
+    render_inline(Bali::PageHeader::Component.new(title: "Title")) do |c|
+      c.with_title("Title")
+      "Right content"
+    end
+    assert_selector(".level-left.max-sm\\:w-full")
+    assert_selector(".level-right.max-sm\\:w-full")
   end
 end
