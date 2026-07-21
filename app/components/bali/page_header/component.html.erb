@@ -1,6 +1,6 @@
 <% right_content = content %>
 <%= render Bali::Level::Component.new(align: level_align, class: component_classes, **options.except(:class)) do |c| %>
-  <%= c.with_left do |level| %>
+  <%= c.with_left(class: 'max-sm:w-full') do |level| %>
     <% if render_back_button? %>
       <% level.with_item do %>
         <%= render Bali::Link::Component.new(icon_name: 'arrow-left', **back_button_options) %>
@@ -14,7 +14,7 @@
     <% end %>
   <% end %>
   <% if right_content.present? %>
-    <% c.with_right do %>
+    <% c.with_right(class: 'max-sm:w-full') do %>
       <%= right_content %>
     <% end %>
   <% end %>

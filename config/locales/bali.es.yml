@@ -116,6 +116,7 @@ es:
     # Modal
     modal:
       close: "Cerrar modal"
+      confirm_close: "Hay cambios sin guardar. ¿Descartar los cambios?"
 
     # Image grid
     image_grid:

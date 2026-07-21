@@ -11,10 +11,10 @@ module Bali
           active: active,
           size: size.to_sym,
           position: position.to_sym,
-          title: 'Drawer Title'
+          title: "Drawer Title"
         ) do
-          tag.p('This is the drawer content. It slides in from the side of the screen.',
-                class: 'text-base-content')
+          tag.p("This is the drawer content. It slides in from the side of the screen.",
+                class: "text-base-content")
         end
       end
 
@@ -38,7 +38,7 @@ module Bali
           title: "#{size.to_s.upcase} Drawer"
         ) do
           tag.p("This drawer uses the #{size} size (#{Bali::Drawer::Component::SIZES[size.to_sym]}).",
-                class: 'text-base-content')
+                class: "text-base-content")
         end
       end
 
@@ -52,6 +52,20 @@ module Bali
         render_with_template
       end
 
+      # Unsaved Changes (Confirm on Close)
+      # ---
+      # Drawers guard against silently discarding an unsaved form. Editing a
+      # field marks the drawer dirty; Escape, the overlay, or the close button
+      # then ask for confirmation before closing. Opt out per-drawer with
+      # `dismissable_without_confirm: true`.
+      #
+      # The date field uses flatpickr, whose calendar renders outside the drawer
+      # DOM. The first Escape closes the open calendar (flatpickr consumes it);
+      # only the next Escape closes the drawer. Used by the Cypress suite.
+      def dirty_form
+        render_with_template(locals: { model: form_record })
+      end
+
       # Left Position
       # ---
       # Drawer opens from the left side.
@@ -59,10 +73,10 @@ module Bali
         render Bali::Drawer::Component.new(
           active: active,
           position: :left,
-          title: 'Left Drawer'
+          title: "Left Drawer"
         ) do
-          tag.p('This drawer slides in from the left side of the screen.',
-                class: 'text-base-content')
+          tag.p("This drawer slides in from the left side of the screen.",
+                class: "text-base-content")
         end
       end
     end
