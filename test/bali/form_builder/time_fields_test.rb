@@ -110,50 +110,55 @@ class BaliFormBuilderTimeFieldsTest < FormBuilderTestCase
     assert_equal(options_copy, original_options)
   end
 
-  # #time_field_group allow_input
+  # #time_field_group typing (allow_input) and placeholder
 
-  def test_time_field_group_without_allow_input_option_does_not_render_allow_input_attribute
+  def test_time_field_group_by_default_does_not_render_the_allow_input_attribute
     result = builder.time_field_group(:duration)
     refute_html(result, "[data-datepicker-allow-input-value]")
   end
 
-  def test_time_field_group_without_allow_input_option_does_not_render_a_placeholder_attribute
+  def test_time_field_group_by_default_sets_a_token_mapped_placeholder
     result = builder.time_field_group(:duration)
+    assert_html(result, 'input[placeholder="hh:MM AM/PM"]')
+  end
+
+  def test_time_field_group_with_allow_input_false_renders_the_opt_out_attribute
+    result = builder.time_field_group(:duration, allow_input: false)
+    assert_html(result, '.fieldset[data-datepicker-allow-input-value="false"]')
+  end
+
+  def test_time_field_group_with_allow_input_false_does_not_render_a_placeholder
+    result = builder.time_field_group(:duration, allow_input: false)
     refute_html(result, "input[placeholder]")
   end
 
-  def test_time_field_group_with_allow_input_option_renders_allow_input_attribute
+  def test_time_field_group_with_allow_input_true_renders_the_allow_input_attribute
     result = builder.time_field_group(:duration, allow_input: true)
     assert_html(result, '.fieldset[data-datepicker-allow-input-value="true"]')
   end
 
-  def test_time_field_group_with_allow_input_and_explicit_alt_format_sets_a_token_mapped_placeholder
-    result = builder.time_field_group(:duration, allow_input: true, alt_format: "H:i")
+  def test_time_field_group_with_explicit_alt_format_sets_a_token_mapped_placeholder
+    result = builder.time_field_group(:duration, alt_format: "H:i")
     assert_html(result, 'input[placeholder="HH:MM"]')
   end
 
-  def test_time_field_group_with_allow_input_and_no_alt_format_sets_a_token_mapped_placeholder
-    result = builder.time_field_group(:duration, allow_input: true)
-    assert_html(result, 'input[placeholder="hh:MM AM/PM"]')
-  end
-
-  def test_time_field_group_with_allow_input_and_24_hour_format_maps_the_24_hour_placeholder
-    result = builder.time_field_group(:duration, allow_input: true, time_24hr: true)
+  def test_time_field_group_with_24_hour_format_maps_the_24_hour_placeholder
+    result = builder.time_field_group(:duration, time_24hr: true)
     assert_html(result, 'input[placeholder="HH:MM"]')
   end
 
-  def test_time_field_group_with_allow_input_and_seconds_maps_the_seconds_token_in_the_placeholder
-    result = builder.time_field_group(:duration, allow_input: true, seconds: true)
+  def test_time_field_group_with_seconds_maps_the_seconds_token_in_the_placeholder
+    result = builder.time_field_group(:duration, seconds: true)
     assert_html(result, 'input[placeholder="hh:MM:ss AM/PM"]')
   end
 
-  def test_time_field_group_with_allow_input_and_seconds_and_24_hour_format_maps_both_tokens
-    result = builder.time_field_group(:duration, allow_input: true, seconds: true, time_24hr: true)
+  def test_time_field_group_with_seconds_and_24_hour_format_maps_both_tokens
+    result = builder.time_field_group(:duration, seconds: true, time_24hr: true)
     assert_html(result, 'input[placeholder="HH:MM:ss"]')
   end
 
-  def test_time_field_group_with_allow_input_and_explicit_placeholder_keeps_the_explicit_placeholder
-    result = builder.time_field_group(:duration, allow_input: true, placeholder: "Type a time")
+  def test_time_field_group_with_explicit_placeholder_keeps_the_explicit_placeholder
+    result = builder.time_field_group(:duration, placeholder: "Type a time")
     assert_html(result, 'input[placeholder="Type a time"]')
   end
 end

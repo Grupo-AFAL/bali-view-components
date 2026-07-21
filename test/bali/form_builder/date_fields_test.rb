@@ -110,44 +110,53 @@ class BaliFormBuilderDateFieldsTest < FormBuilderTestCase
     assert_html(result, 'div.custom-wrapper[data-controller="datepicker"]')
   end
 
-  # #date_field_group allow_input
+  # #date_field_group typing (allow_input) and placeholder
 
-  def test_date_field_group_without_allow_input_option_does_not_render_allow_input_attribute
+  def test_date_field_group_by_default_does_not_render_the_allow_input_attribute
+    # Typing is enabled by the controller default, so no attribute is emitted.
     result = builder.date_field_group(:release_date)
     refute_html(result, "[data-datepicker-allow-input-value]")
   end
 
-  def test_date_field_group_without_allow_input_option_does_not_render_a_placeholder_attribute
+  def test_date_field_group_by_default_sets_a_numeric_placeholder
     result = builder.date_field_group(:release_date)
+    assert_html(result, 'input[placeholder="dd/mm/yyyy"]')
+  end
+
+  def test_date_field_group_with_allow_input_false_renders_the_opt_out_attribute
+    result = builder.date_field_group(:release_date, allow_input: false)
+    assert_html(result, 'div[data-datepicker-allow-input-value="false"]')
+  end
+
+  def test_date_field_group_with_allow_input_false_does_not_render_a_placeholder
+    result = builder.date_field_group(:release_date, allow_input: false)
     refute_html(result, "input[placeholder]")
   end
 
-  def test_date_field_group_with_allow_input_option_renders_allow_input_attribute
+  def test_date_field_group_with_allow_input_true_renders_the_allow_input_attribute
     result = builder.date_field_group(:release_date, allow_input: true)
     assert_html(result, 'div[data-datepicker-allow-input-value="true"]')
   end
 
-  def test_date_field_group_with_allow_input_and_explicit_alt_format_sets_a_token_mapped_placeholder
-    result = builder.date_field_group(:release_date, allow_input: true, alt_format: "d/m/Y")
-    assert_html(result, 'input[placeholder="dd/mm/yyyy"]')
+  def test_date_field_group_with_explicit_alt_format_sets_a_token_mapped_placeholder
+    result = builder.date_field_group(:release_date, alt_format: "Y-m-d")
+    assert_html(result, 'input[placeholder="yyyy-mm-dd"]')
   end
 
-  def test_date_field_group_with_allow_input_and_no_alt_format_sets_an_i18n_placeholder
-    result = builder.date_field_group(:release_date, allow_input: true)
+  def test_date_field_group_with_verbose_alt_format_sets_an_i18n_placeholder
+    result = builder.date_field_group(:release_date, alt_format: "F j, Y")
     assert_html(result, 'input[placeholder="e.g., December 31, 2026"]')
   end
 
-  def test_date_field_group_with_allow_input_and_no_alt_format_supports_spanish_locale
+  def test_date_field_group_with_verbose_alt_format_supports_spanish_locale
     I18n.with_locale(:es) do
-      result = builder.date_field_group(:release_date, allow_input: true)
+      result = builder.date_field_group(:release_date, alt_format: "F j, Y")
       assert_html(result, 'input[placeholder="ej. diciembre 31, 2026"]')
     end
   end
 
-  def test_date_field_group_with_allow_input_and_explicit_placeholder_keeps_the_explicit_placeholder
-    result = builder.date_field_group(
-      :release_date, allow_input: true, alt_format: "d/m/Y", placeholder: "Type a date"
-    )
+  def test_date_field_group_with_explicit_placeholder_keeps_the_explicit_placeholder
+    result = builder.date_field_group(:release_date, placeholder: "Type a date")
     assert_html(result, 'input[placeholder="Type a date"]')
   end
 

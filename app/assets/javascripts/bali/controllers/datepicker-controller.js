@@ -33,7 +33,7 @@ export class DatepickerController extends Controller {
     period: String,
     mode: { type: String, default: 'single' },
     altInput: { type: Boolean, default: true },
-    allowInput: { type: Boolean, default: false },
+    allowInput: { type: Boolean, default: true },
     altFormat: String,
     static: { type: Boolean, default: false }
   }
@@ -113,7 +113,7 @@ export class DatepickerController extends Controller {
     }
 
     if (!this.noCalendarValue) {
-      format = `F j, Y ${format}`.trim()
+      format = `d/m/Y ${format}`.trim()
     }
 
     return format
