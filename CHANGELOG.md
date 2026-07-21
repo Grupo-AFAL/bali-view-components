@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **DocumentPage** - the three-panel body (TOC + content + metadata) now stacks vertically below the `lg` breakpoint instead of crushing the content column to ~1 word per line on mobile (#631). Both side panels go full-width and static (drop `sticky`) with adjusted borders; the TOC panel gets a bounded, scrollable height (`max-h-72`) so a long table of contents doesn't push content off-screen, while metadata flows full height. Content padding narrows (`px-4`) and the header toolbar wraps instead of overflowing. Pure Tailwind utility additions (`max-lg:*` + toolbar `flex-wrap`) — no JS changes, desktop (`≥lg`) layout is unchanged.
+
 ## [v2.13.0] - 2026-07-19
 
 ### Added
