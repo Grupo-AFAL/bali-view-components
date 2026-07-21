@@ -79,6 +79,7 @@ module Bali
             locals: { model: form_record }
           )
         end
+
       end
     end
   end

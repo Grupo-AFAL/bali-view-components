@@ -34,11 +34,13 @@ module Bali
         Actions::Component.new(**options)
       end
 
-      def initialize(active: true, size: nil, id: nil, **options)
+      def initialize(active: true, size: nil, id: nil, confirm_on_close: false, confirm_close_message: nil, **options)
         @active = active
         @size = size&.to_sym
         @wrapper_class = options.delete(:wrapper_class)
         @id = id
+        @confirm_on_close = confirm_on_close
+        @confirm_close_message = confirm_close_message
         @options = options
       end
 
@@ -88,6 +90,18 @@ module Bali
       # Translated label for close button (accessibility)
       def close_label
         I18n.t("bali.modal.close", default: "Close modal")
+      end
+
+      # Opt-in confirm-on-close: when enabled, an unsaved form inside the modal
+      # prompts before Escape/overlay/close-button discard the input. Rendering
+      # its own `data-controller="modal"` scopes the confirm value to this modal
+      # (the shared body/main-level controller ignores the nested subtree).
+      def confirm_on_close?
+        @confirm_on_close
+      end
+
+      def confirm_close_message
+        @confirm_close_message.presence || I18n.t("bali.modal.confirm_close", default: "You have unsaved changes. Discard them?")
       end
     end
   end

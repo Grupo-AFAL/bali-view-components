@@ -116,6 +116,7 @@ en:
     # Modal
     modal:
       close: "Close modal"
+      confirm_close: "You have unsaved changes. Discard them?"
 
     # Image grid
     image_grid:
