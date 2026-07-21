@@ -10,6 +10,8 @@ module Bali
 
       class MissingFilterForm < StandardError; end
 
+      RowGroup = Struct.new(:value, :rows)
+
       renders_many :headers, ->(name: nil, sort: nil, **options) do
         Header::Component.new(form: @form, name: name, sort: sort, **options)
       end
@@ -48,6 +50,27 @@ module Bali
 
       def visible_headers
         headers.reject(&:hidden)
+      end
+
+      def grouped?
+        rows.any? { |row| !row.group.nil? }
+      end
+
+      # Consecutive rows sharing the same `group:` value collapse into one
+      # RowGroup. The same value reappearing later starts a fresh group — the
+      # caller owns the ordering (see docs), the component never re-sorts.
+      def row_groups
+        rows
+          .chunk_while { |previous, current| previous.group == current.group }
+          .map { |run| RowGroup.new(run.first.group, run) }
+      end
+
+      def group_colspan
+        visible_headers.count + (bulk_actions? ? 1 : 0)
+      end
+
+      def group_label(value)
+        value.nil? ? t(".ungrouped") : value.to_s
       end
 
       def empty_state_content

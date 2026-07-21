@@ -6,10 +6,13 @@ module Bali
       class Component < ApplicationViewComponent
         class IncompatibleOptions < StandardError; end
 
-        def initialize(record_id: nil, skip_tr: false, bulk_actions: false, **options)
+        attr_reader :group
+
+        def initialize(record_id: nil, skip_tr: false, bulk_actions: false, group: nil, **options)
           @record_id = record_id
           @skip_tr = skip_tr
           @bulk_actions = bulk_actions
+          @group = group
           @options = hyphenize_keys(options)
 
           if @bulk_actions && @record_id.blank?

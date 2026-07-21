@@ -4,6 +4,8 @@ en:
       table:
         no_records: No Records
         no_results: No Results
+        group_count: "%{group} (%{count})"
+        ungrouped: Ungrouped
       data_table:
         summary: "Showing %{from}-%{to} of %{count} %{item_name}"
         default_item_name: items
