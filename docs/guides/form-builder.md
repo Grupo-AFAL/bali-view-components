@@ -295,29 +295,39 @@ Month/year picker.
 <%= f.month_field_group :billing_month %>
 ```
 
-### Typing into date/time fields (`allow_input:`)
+### Typing into date/time fields
 
-By default, date/datetime/time fields are read-only — users must pick a value
-from the calendar/time popup, with no way to type it directly. Pass
-`allow_input: true` to let users type into the field instead:
+By default, date/datetime/time fields are **typeable** — users can pick a value
+from the calendar/time popup or type it directly into the input. The visible
+input uses a **numeric display format** (`d/m/Y`, e.g. `31/12/2026`), and Bali
+auto-fills a `placeholder:` hint (`dd/mm/yyyy`) so users know what to type:
 
 ```erb
-<%= f.date_field_group :birth_date, allow_input: true, alt_format: 'd/m/Y' %>
+<%= f.date_field_group :birth_date %>
 ```
 
-**Pair it with `alt_format:`.** Typed text is parsed against the visible
-input's format (flatpickr's `altFormat`) when the field loses focus; text that
-doesn't match is silently cleared. The default format is a verbose one (e.g.
-"December 31, 2026"), so an explicit numeric `alt_format:` like `'d/m/Y'`
-(or `'H:i'` for 24-hour time fields) gives users a format that's easier to
-type correctly.
+**Typed text is parsed against the visible input's format** (flatpickr's
+`altFormat`) when the field loses focus; anything that doesn't match is silently
+cleared. Pass an explicit `alt_format:` to change that format — the auto-filled
+placeholder follows it:
 
-When `allow_input: true` is set and no explicit `placeholder:` is given, Bali
-automatically sets one derived from the effective format, so the field always
-hints at what to type. A caller-supplied `placeholder:` always takes
-precedence. This does not change the default behavior of `date_field_group` /
-`datetime_field_group` / `time_field_group` — fields remain read-only unless
-`allow_input: true` is passed explicitly.
+```erb
+<%= f.date_field_group :birth_date, alt_format: 'F j, Y' %>  <%# "December 31, 2026" %>
+<%= f.time_field_group :start_at, alt_format: 'H:i' %>       <%# 24-hour time %>
+```
+
+For a verbose format like `'F j, Y'` (a localized month name, which has no
+compact literal hint), the placeholder falls back to an i18n sample string
+(e.g. "e.g., December 31, 2026"). A caller-supplied `placeholder:` always takes
+precedence over the derived hint.
+
+**Opt out with `allow_input: false`** to keep a field read-only — users must
+pick a value from the popup and cannot type. The visible input renders with
+flatpickr's `readonly` attribute and no placeholder hint:
+
+```erb
+<%= f.date_field_group :birth_date, allow_input: false %>
+```
 
 ---
 
