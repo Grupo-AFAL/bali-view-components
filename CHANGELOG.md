@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Table** - row grouping (#621). Pass `group:` to `with_row` and `Bali::Table::Component` emits a group-header row whenever the value changes between consecutive rows, showing the group value and the count of rows in that run (e.g. `Norte (12)`). Grouping assumes caller-controlled order (the component never re-sorts), so it is incompatible with user-driven column sorting and a group may continue across Pagy page boundaries; rows with `group: nil` fall under a localized "Ungrouped" header (i18n `bali.table.ungrouped`). When no row is grouped the table renders exactly as before. Group headers are not sticky and never overlap `sticky_headers:`. Server-rendered markup only — no JS.
+
 ## [v2.13.0] - 2026-07-19
 
 ### Added

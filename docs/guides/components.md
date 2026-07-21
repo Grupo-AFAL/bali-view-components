@@ -592,6 +592,48 @@ Data table with optional sorting and pagination.
 <% end %>
 ```
 
+**Row grouping** — pass `group:` to `with_row` to render a group-header row
+whenever the value changes between consecutive rows. The header spans every
+column (including the bulk-actions column when present) and shows the group
+value plus the count of rows in that run (e.g. `Norte (12)`).
+
+```erb
+<%= render Bali::Table::Component.new do |table| %>
+  <% table.with_header(name: "Leader") %>
+  <% table.with_header(name: "Role") %>
+
+  <%# leaders must already be ordered by area %>
+  <% @leaders.each do |leader| %>
+    <% table.with_row(group: leader.area_name) do %>
+      <td><%= leader.name %></td>
+      <td><%= leader.role %></td>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+Caveats:
+
+- **Ordering is the caller's responsibility.** The component never re-sorts;
+  it only compares each row's `group:` against the previous row. The same value
+  reappearing later starts a *new* group header. This makes grouping
+  **incompatible with user-driven column sorting** — Ransack `sort:` header
+  links reorder rows and break the grouping. Sort server-side by the group
+  field instead.
+- **Pagination splits groups.** With Pagy a group that spans a page boundary
+  restarts (with its own header and a partial count) on the next page, because
+  each page only sees its own slice of rows.
+- **Zebra striping shifts.** `table-zebra` stripes by `:nth-child`, so injected
+  header rows offset the alternating background of the data rows. This is
+  cosmetic and expected.
+- **Group headers are not sticky.** They scroll with the table body even when
+  `sticky_headers: true` (which only pins the `<thead>`), so the two never
+  overlap.
+- Rows given `group: nil` (or with no `group:` while other rows have one) are
+  collected under a localized "Ungrouped" header (i18n
+  `bali.table.ungrouped`). When **no** row has a `group:`, the table renders
+  exactly as it does without the feature — no header rows.
+
 #### Avatar
 
 User avatar display.
