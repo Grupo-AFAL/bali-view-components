@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Table** - row grouping (#621). Pass `group:` to `with_row` and `Bali::Table::Component` emits a group-header row whenever the value changes between consecutive rows, showing the group value and the count of rows in that run (e.g. `Norte (12)`). Grouping assumes caller-controlled order (the component never re-sorts), so it is incompatible with user-driven column sorting and a group may continue across Pagy page boundaries; rows with `group: nil` fall under a localized "Ungrouped" header (i18n `bali.table.ungrouped`). When no row is grouped the table renders exactly as before. Group headers are not sticky and never overlap `sticky_headers:`. Server-rendered markup only — no JS.
 - **FormBuilder date fields** - `allow_input: true` (date_field_group/datetime_field_group/time_field_group) now auto-fills a `placeholder:` hinting at what the field will parse, unless the caller already passed one explicitly. Derived from the effective `alt_format:` (or an i18n string for the verbose default format). Addresses part of #620; the read-only-by-default behavior itself is unchanged — `allow_input:` remains opt-in.
 
 ### Fixed

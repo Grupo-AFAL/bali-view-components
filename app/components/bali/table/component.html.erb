@@ -14,7 +14,17 @@
     </thead>
     <%= tag.tbody(**tbody_options) do %>
       <% if rows.any? %>
+        <% if grouped? %>
+          <% row_groups.each do |group| %>
+            <tr class="bali-table-group-row">
+              <%= tag.td(t(".group_count", group: group_label(group.value), count: group.rows.size), colspan: group_colspan, class: "bg-base-200 font-semibold text-sm text-base-content/80") %>
+            </tr>
+            <% group.rows.each do |row| %><%= row %><% end %>
+          <% end %>
+        <% else %>
+        <%# Kept at this indent so the no-group output is byte-identical to the pre-grouping template. %>
         <% rows.each do |row| %><%= row %><% end %>
+        <% end %>
       <% else %>
         <tr id="<%= empty_table_row_id %>">
           <td class="empty-table text-center py-8" colspan="<%= headers.count %>">

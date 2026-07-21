@@ -1,0 +1,17 @@
+<div class="p-4">
+  <div class="mb-4">
+    <h2 class="text-lg font-semibold">Leaders by area</h2>
+    <p class="text-sm text-base-content/60">Rows are pre-sorted by area; a group header is emitted whenever the area changes.</p>
+  </div>
+
+  <%= render(Bali::Table::Component.new) do |c| %>
+    <%= c.with_headers(headers) %>
+    <% records.each do |record| %>
+      <%= c.with_row(group: record[:area]) do %>
+        <td class="font-medium"><%= record[:leader] %></td>
+        <td><%= record[:role] %></td>
+        <td><%= record[:members] %></td>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>
