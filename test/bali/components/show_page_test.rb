@@ -69,4 +69,12 @@ class BaliShowPageComponentTest < ComponentTestCase
     end
     assert_text("Edit Button")
   end
+
+  def test_actions_bar_stacks_full_width_on_mobile
+    render_inline(Bali::ShowPage::Component.new(title: "The Matrix")) do |page|
+      page.with_action { "Edit Button" }
+      page.with_body { "Content" }
+    end
+    assert_selector(".max-sm\\:w-full", text: "Edit Button")
+  end
 end

@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { autoFocusInput } from '../../../assets/javascripts/bali/utils/form.js'
+import { confirmDialog } from '../../../assets/javascripts/bali/confirm/confirm_dialog.js'
 
 // Size classes matching Modal::Component::SIZES
 const SIZE_CLASSES = {
@@ -28,11 +29,25 @@ const SIZE_CLASSES = {
 export class ModalController extends Controller {
   static targets = ['template', 'background', 'wrapper', 'content', 'closeBtn']
 
+  // When set, closing while the form is dirty asks for confirmation first.
+  // Emitted by Drawer (default on) and Modal (opt-in). Subclasses inherit it.
+  static values = { confirmCloseMessage: String }
+
   async connect () {
     this.setupListeners('openModal')
   }
 
   setupListeners = eventName => {
+    this._dirty = false
+
+    // Track edits so we can warn before discarding an unsaved form. Only wired
+    // when confirm-on-close is configured, so the shared body/main-level
+    // controller (no value) stays inert.
+    if (this.hasConfirmCloseMessageValue) {
+      this.element.addEventListener('input', this._markDirty)
+      this.element.addEventListener('change', this._markDirty)
+    }
+
     if (this.hasWrapperTarget) {
       this.wrapperClasses = this.normalizeClass(
         this.wrapperTarget.getAttribute('data-wrapper-class')
@@ -50,6 +65,9 @@ export class ModalController extends Controller {
       // We detect clicks outside the wrapper to close the modal.
       this.templateTarget.addEventListener('mousedown', this._onOverlayMousedown)
       this.templateTarget.addEventListener('click', this._onOverlayClick)
+
+      // Capture-phase probe for the flatpickr popup guard (see _recordPopupState).
+      this.element.addEventListener('keydown', this._recordPopupState, true)
     }
 
     if (this.hasCloseBtnTarget) {
@@ -64,9 +82,15 @@ export class ModalController extends Controller {
   }
 
   removeListeners = eventName => {
+    if (this.hasConfirmCloseMessageValue) {
+      this.element.removeEventListener('input', this._markDirty)
+      this.element.removeEventListener('change', this._markDirty)
+    }
+
     if (this.hasTemplateTarget) {
       this.templateTarget.removeEventListener('mousedown', this._onOverlayMousedown)
       this.templateTarget.removeEventListener('click', this._onOverlayClick)
+      this.element.removeEventListener('keydown', this._recordPopupState, true)
     }
 
     if (this.hasCloseBtnTarget) {
@@ -97,6 +121,9 @@ export class ModalController extends Controller {
   }
 
   openModal (content) {
+    // A freshly opened modal starts clean
+    this._dirty = false
+
     // Store the element that triggered the modal for focus restoration
     this.previouslyFocusedElement = document.activeElement
 
@@ -189,9 +216,37 @@ export class ModalController extends Controller {
 
     // Close only if both mousedown AND click were outside the wrapper
     if (this._mousedownOnOverlay && !insideWrapper) {
-      this._closeModal()
+      this._closeWithConfirmation()
     }
     this._mousedownOnOverlay = false
+  }
+
+  _markDirty = () => {
+    this._dirty = true
+  }
+
+  // flatpickr binds its Escape handler on the input itself, so it closes the
+  // calendar at the target phase — before our bubble-phase `close()` could see
+  // `.flatpickr-calendar.open`. Sampling here in the capture phase (which runs
+  // before the target phase) records whether a popup was open so `close()` can
+  // defer to it. Kept generic to the `.flatpickr-calendar.open` marker.
+  _recordPopupState = event => {
+    if (event.key === 'Escape') {
+      this._escapeHadOpenPopup = Boolean(document.querySelector('.flatpickr-calendar.open'))
+    }
+  }
+
+  // Guards the close paths a user drives (Escape, overlay, close button) so an
+  // unsaved form is not silently discarded. Never call this from `submit()`: a
+  // successful submit must close without prompting.
+  _closeWithConfirmation = () => {
+    if (this._dirty && this.hasConfirmCloseMessageValue) {
+      confirmDialog(this.confirmCloseMessageValue).then(confirmed => {
+        if (confirmed) this._closeModal()
+      })
+    } else {
+      this._closeModal()
+    }
   }
 
   _closeModal = () => {
@@ -303,10 +358,20 @@ export class ModalController extends Controller {
     // Ignore synthetic keydown events from browser autocomplete selections.
     // When a user selects a browser autocomplete suggestion, some browsers fire
     // a keydown event with key: undefined, which Stimulus may not filter out.
-    if (event.type === 'keydown' && event.key !== 'Escape') return
+    if (event && event.type === 'keydown' && event.key !== 'Escape') return
 
-    event.preventDefault()
-    this._closeModal()
+    // Let an open flatpickr calendar (or similar popup) consume the Escape
+    // first. The popup state is sampled in the capture phase (_recordPopupState)
+    // because flatpickr closes its calendar at the target phase, before this
+    // bubble-phase handler runs. So the first Escape closes the calendar and
+    // only the next one closes the modal/drawer.
+    if (event && event.type === 'keydown' && this._escapeHadOpenPopup) {
+      this._escapeHadOpenPopup = false
+      return
+    }
+
+    if (event) event.preventDefault()
+    this._closeWithConfirmation()
   }
 
   /**
@@ -387,6 +452,9 @@ export class ModalController extends Controller {
         const event = new CustomEvent('modal:success', { detail: redirectData })
 
         if (redirected) {
+          // A successful submit is not a discard — clear dirty so the close
+          // below (and any that follows) does not prompt for confirmation.
+          this._dirty = false
           document.dispatchEvent(event)
 
           if (this.skipRender) {
@@ -401,7 +469,10 @@ export class ModalController extends Controller {
           // <turbo-stream> markup as inert HTML. Close only on success: an
           // error stream may re-render the form inside the modal/drawer.
           window.Turbo.renderStreamMessage(responseText)
-          if (responseOk) { this._closeModal() }
+          if (responseOk) {
+            this._dirty = false
+            this._closeModal()
+          }
         } else {
           if (responseOk) { document.dispatchEvent(event) }
 
