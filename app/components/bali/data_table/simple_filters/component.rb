@@ -33,13 +33,25 @@ module Bali
         #   - :width [String, nil] Tailwind width classes (default: "w-48 sm:w-96")
         # @param storage_id [String, nil] Optional storage ID indicating filters can be persisted
         # @param persist_enabled [Boolean] Whether user has opted into filter persistence
-        def initialize(url:, filters: [], show_clear: false, search: nil, storage_id: nil, persist_enabled: false)
+        # @param preserved_params [Hash] Extra top-level params (e.g. an active
+        #   `group_by`) rendered as hidden fields so the GET submit keeps them
+        # rubocop:disable Metrics/ParameterLists
+        def initialize(url:, filters: [], show_clear: false, search: nil, storage_id: nil,
+                       persist_enabled: false, preserved_params: {})
+          # rubocop:enable Metrics/ParameterLists
           @url = url
           @filters = filters
           @show_clear = show_clear
           @search = search
           @storage_id = storage_id
           @persist_enabled = persist_enabled
+          @preserved_params = preserved_params || {}
+        end
+
+        # Top-level params to carry through the GET submit as hidden fields.
+        # Blank values are dropped so no empty inputs are emitted.
+        def preserved_params
+          @preserved_params.reject { |_, value| value.to_s.blank? }
         end
 
         def render?

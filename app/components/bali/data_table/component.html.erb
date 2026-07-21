@@ -8,6 +8,13 @@
         <%= simple_filters if simple_filters? %>
       </div>
 
+      <%# Group-by control ("Agrupar por"), beside the filters %>
+      <% if group_by_control? %>
+        <div class="shrink-0">
+          <%= render group_by_control %>
+        </div>
+      <% end %>
+
       <%# Right side: Column selector + Export + Toolbar buttons + Actions panel %>
       <% if show_toolbar_right? %>
         <div class="flex items-center gap-1 sm:gap-2 shrink-0">

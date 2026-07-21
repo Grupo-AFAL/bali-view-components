@@ -1,0 +1,19 @@
+<%= render Bali::Dropdown::Component.new(align: :left, close_on_click: true) do |dropdown| %>
+  <% dropdown.with_trigger(variant: :ghost, class: "btn-sm gap-1 whitespace-nowrap") do %>
+    <%= render Bali::Icon::Component.new("layers", class: "w-4 h-4") %>
+    <span class="max-sm:hidden"><%= trigger_label %></span>
+    <%= render Bali::Icon::Component.new("chevron-down", class: "w-3 h-3 opacity-60") %>
+  <% end %>
+
+  <% dropdown.with_item(href: no_grouping_href, class: item_class(!active?)) do %>
+    <%= render Bali::Icon::Component.new(active? ? "minus" : "check", class: "w-4 h-4 opacity-60") %>
+    <span><%= no_grouping_label %></span>
+  <% end %>
+
+  <% options.each do |option| %>
+    <% dropdown.with_item(href: option_href(option[:attribute]), class: item_class(option_active?(option[:attribute]))) do %>
+      <%= render Bali::Icon::Component.new(option_active?(option[:attribute]) ? "check" : "layers", class: "w-4 h-4 opacity-60") %>
+      <span><%= option[:label] %></span>
+    <% end %>
+  <% end %>
+<% end %>

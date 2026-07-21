@@ -10,6 +10,9 @@ es:
       data_table:
         summary: "Mostrando %{from}-%{to} de %{count} %{item_name}"
         default_item_name: elementos
+        group_by_control:
+          label: Agrupar por
+          no_grouping: Sin agrupar
         column_selector:
           button_label: Columnas
           menu_title: Mostrar/Ocultar Columnas

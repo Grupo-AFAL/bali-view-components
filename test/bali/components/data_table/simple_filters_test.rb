@@ -33,6 +33,20 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector('button[type="submit"]')
   end
 
+  def test_renders_preserved_params_as_hidden_fields
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/test", filters: @filters, preserved_params: { "group_by" => "genre" }
+    ))
+    assert_selector("form input[type=hidden][name=group_by][value=genre]", visible: :all)
+  end
+
+  def test_drops_blank_preserved_params
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/test", filters: @filters, preserved_params: { "group_by" => "" }
+    ))
+    assert_no_selector("input[type=hidden][name=group_by]", visible: :all)
+  end
+
   def test_renders_visible_filter_label
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters))
     assert_selector("label", text: "Status")

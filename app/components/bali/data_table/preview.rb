@@ -206,6 +206,44 @@ module Bali
         )
       end
 
+      # @label With Grouping (Live DB)
+      # Query-aware row grouping. Pick a field in the "Agrupar por" control (or the
+      # `group_by` param below): the query is ordered by that field FIRST — so
+      # groups cohere and any user column sort becomes secondary (sort-within-groups)
+      # — and each group header shows the GLOBAL count over the full filtered set,
+      # e.g. "Action (14)". When Pagy splits a group across pages the header appends
+      # a partial hint: "Action (14) — showing 6".
+      #
+      # Requires a `Bali::FilterForm` that declares grouping attributes (here via the
+      # `group_by_attributes:` constructor option; the DSL is `group_by_attribute`).
+      # group_by is a whitelisted top-level param — undeclared values are ignored.
+      # @param group_by select { choices: [none, genre, status] }
+      # @param page number
+      def with_grouping(group_by: 'genre', page: 1)
+        raw_group_by = group_by.to_s == 'none' ? nil : group_by
+
+        filter_params = ActionController::Parameters.new(
+          q: ActionController::Parameters.new({}),
+          group_by: raw_group_by,
+          page: page
+        )
+        filter_form = Bali::FilterForm.new(
+          Movie.all, filter_params,
+          group_by_attributes: %i[genre status]
+        )
+        pagy, movies = pagy(filter_form.result.includes(:studio), limit: 8, page: page)
+
+        render_with_template(
+          template: 'bali/data_table/previews/with_grouping',
+          locals: {
+            filter_form: filter_form,
+            pagy: pagy,
+            movies: movies,
+            group_attribute: filter_form.group_by
+          }
+        )
+      end
+
       # @label With Grid Mode (Live DB)
       # Toggle between table and card-based grid layouts.
       #

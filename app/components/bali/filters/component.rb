@@ -51,9 +51,11 @@ module Bali
         storage_id: nil,
         persist_enabled: false,
         turbo_stream: false,
+        preserved_params: {},
         **options
       )
         @url = url
+        @preserved_params = preserved_params || {}
         @available_attributes = normalize_attributes(available_attributes)
         @filter_groups = filter_groups.presence || [ default_filter_group ]
         @apply_mode = apply_mode
@@ -143,14 +145,22 @@ module Bali
         }.to_json
       end
 
-      # Extract non-filter query params from the URL to preserve them when submitting.
-      # Returns an array of [name, value] pairs suitable for hidden_field_tag.
+      # Extract non-filter query params to preserve them when submitting.
+      # Combines params parsed from the URL with any explicitly-passed
+      # `preserved_params` (e.g. an active `group_by`), which win on key
+      # collisions. Returns an array of [name, value] pairs for hidden_field_tag.
       def preserved_query_params
         query_string = URI.parse(url).query
-        return [] if query_string.blank?
+        from_url = if query_string.blank?
+                     []
+        else
+                     params = Rack::Utils.parse_nested_query(query_string)
+                     flatten_params(params.except(*EXCLUDED_PARAMS))
+        end
 
-        params = Rack::Utils.parse_nested_query(query_string)
-        flatten_params(params.except(*EXCLUDED_PARAMS))
+        explicit = flatten_params(@preserved_params.stringify_keys).reject { |_, value| value.to_s.blank? }
+        explicit_keys = explicit.map(&:first)
+        from_url.reject { |name, _| explicit_keys.include?(name) } + explicit
       end
 
       # Render hidden fields for preserved params (call from template)
