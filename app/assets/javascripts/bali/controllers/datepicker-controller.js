@@ -72,6 +72,13 @@ export class DatepickerController extends Controller {
     if (this.hasAppendToTarget) options.appendTo = this.appendToTarget
 
     this.flatpickr = flatpickr(input, options)
+    // flatpickr's own keydown handler skips Escape while allowInput is on and
+    // focus is in the input (allowKeydown gate), leaving the calendar stuck open.
+    this.flatpickr._input?.addEventListener('keydown', this.closeOnEscape)
+  }
+
+  closeOnEscape = event => {
+    if (event.key === 'Escape' && this.flatpickr?.isOpen) this.flatpickr.close()
   }
 
   async setLocale (countryCode) {
@@ -88,6 +95,7 @@ export class DatepickerController extends Controller {
   }
 
   disconnect () {
+    this.flatpickr?._input?.removeEventListener('keydown', this.closeOnEscape)
     this.flatpickr?.destroy()
   }
 
