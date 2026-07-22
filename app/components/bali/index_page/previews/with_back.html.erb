@@ -1,0 +1,19 @@
+<%= render Bali::IndexPage::Component.new(
+  title: 'Reviews',
+  subtitle: '12 reviews for The Matrix',
+  breadcrumbs: [
+    { name: 'Dashboard', href: '/lookbook', icon_name: 'home' },
+    { name: 'Movies', href: '/lookbook' },
+    { name: 'Reviews' }
+  ],
+  back: { href: '/lookbook' }
+) do |page| %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(name: 'New Review', href: '#', variant: :primary, icon_name: 'plus') %>
+  <% end %>
+  <% page.with_body do %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <p class="text-base-content/60">DataTable would go here.</p>
+    <% end %>
+  <% end %>
+<% end %>

@@ -39,4 +39,21 @@ class BaliIndexPageComponentTest < ComponentTestCase
     end
     assert_text("24 total")
   end
+
+  def test_renders_back_button
+    render_inline(Bali::IndexPage::Component.new(
+      title: "Approval Requests",
+      back: { href: "/initiatives/1" }
+    )) do |page|
+      page.with_body { "Content" }
+    end
+    assert_selector("a.back-button[href='/initiatives/1']")
+  end
+
+  def test_renders_no_back_button_by_default
+    render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
+      page.with_body { "Content" }
+    end
+    assert_no_selector(".back-button")
+  end
 end
