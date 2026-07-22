@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **FilterForm** - `simple_filter type: :date` no longer silently discards the declared `predicate:` (#644). `simple_filter :created_at, type: :date, predicate: :gteq` — the DSL docstring's own example — used to filter by `created_at_eq`; it now honors `:gteq`. `:date_range` still has no single predicate (handled as a range). Also, unknown widget `type:` values now raise `ArgumentError` at class-definition time instead of silently rendering a plain select.
+- **IndexPage** - accepts `back:` with the same contract as `ShowPage`/`FormPage` and forwards it to the `PageHeader` back button (#639). Nested listings under a resource (e.g. an initiative's approval requests) no longer need to render a `ShowPage` just to inherit the back link. Defaults to `nil` — existing index pages render unchanged.
 
 ## [v2.14.0] - 2026-07-21
 
