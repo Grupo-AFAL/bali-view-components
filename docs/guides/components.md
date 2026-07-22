@@ -1855,6 +1855,7 @@ Standard listing page with breadcrumbs, title, action buttons, and a body area f
 - `title` - Page title (required)
 - `subtitle` - Text under the title (default: nil)
 - `breadcrumbs` - Array of `{ name:, href: }` hashes (default: [])
+- `back` - Back link, e.g. `{ href: path }` (default: nil)
 
 #### ShowPage
 

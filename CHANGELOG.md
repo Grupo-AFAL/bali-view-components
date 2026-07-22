@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **IndexPage** - accepts `back:` with the same contract as `ShowPage`/`FormPage` and forwards it to the `PageHeader` back button (#639). Nested listings under a resource (e.g. an initiative's approval requests) no longer need to render a `ShowPage` just to inherit the back link. Defaults to `nil` — existing index pages render unchanged.
+
 ## [v2.14.0] - 2026-07-21
 
 ### Added
