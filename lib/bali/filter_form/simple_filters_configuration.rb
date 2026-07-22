@@ -6,12 +6,13 @@ module Bali
     # Unlike the complex Filters component, simple filters render as inline select dropdowns
     # without AND/OR groupings, operators, or popovers.
     #
-    # @example Class-level DSL
+    # @example Class-level DSL (canonical: unified filter_attribute)
     #   class DepartmentsFilterForm < Bali::FilterForm
-    #     simple_filter :legal_entity_id,
-    #       collection: -> { LegalEntity.active.pluck(:name, :id) },
+    #     filter_attribute :legal_entity_id, type: :select, simple: true,
+    #       options: -> { LegalEntity.where(id: scope.select(:legal_entity_id)).pluck(:name, :id) },
     #       blank: "All Entities"
     #
+    #     # Legacy alias (still supported): simple-UI-only declaration
     #     simple_filter :status,
     #       collection: [["Active", "active"], ["Inactive", "inactive"]],
     #       blank: "All",
@@ -27,16 +28,47 @@ module Bali
       extend ActiveSupport::Concern
 
       class_methods do
-        # Storage for simple filter definitions
+        # Data type (advanced Filters UI vocabulary) implied by each legacy
+        # simple_filter widget type.
+        LEGACY_TYPE_FOR_INPUT = {
+          select: :select, slim_select: :select, toggle_group: :select, radio_group: :select,
+          boolean: :boolean, date: :date, date_range: :date, number_range: :number
+        }.freeze
+
+        # Simple filter definitions, derived from the unified filter_attribute
+        # storage (entries declared with `simple: true`) and mapped to the
+        # legacy shape the SimpleFilters pipeline consumes.
         def defined_simple_filters
-          @defined_simple_filters ||= []
+          filter_attributes.select { |attr| attr[:simple] }.map do |attr|
+            {
+              attribute: attr[:key],
+              collection: attr[:options],
+              blank: attr[:blank],
+              label: attr[:explicit_label],
+              default: attr[:default],
+              type: attr[:input],
+              # date_range filters have no single predicate (range handled via where clause)
+              predicate: attr[:input] == :date_range ? nil : attr[:predicate],
+              icon: attr[:icon],
+              step: attr[:step],
+              placeholder_min: attr[:placeholder_min],
+              placeholder_max: attr[:placeholder_max]
+            }
+          end
         end
 
         # Define a simple dropdown filter for the SimpleFilters component.
         #
+        # @deprecated Legacy alias for {Bali::FilterForm.filter_attribute} with
+        #   `simple: true, advanced: false`. Kept for backwards compatibility;
+        #   new code should declare a single filter_attribute per attribute so
+        #   both filter UIs share one definition.
+        #
         # @param attribute [Symbol] Attribute key (column name)
         # @param collection [Array, Proc] Options for select - array of [label, value] pairs
-        #   or a Proc that returns such an array (not needed for :date type)
+        #   or a Proc that returns such an array (not needed for :date type).
+        #   Zero-arity procs run with instance_exec, so they can use `scope`
+        #   (the relation the controller passed in, typically policy-scoped).
         # @param blank [String, nil] Blank option text (e.g., "All Statuses")
         # @param label [String, nil] Human-readable label (defaults to humanized attribute)
         # @param default [String, nil] Default value when no filter is active
@@ -49,12 +81,6 @@ module Bali
         #     collection: [["Active", "active"], ["Inactive", "inactive"]],
         #     blank: "All"
         #
-        # @example Searchable dropdown
-        #   simple_filter :country,
-        #     collection: Country.pluck(:name, :code),
-        #     blank: "All Countries",
-        #     type: :slim_select
-        #
         # @example Date filter
         #   simple_filter :created_at,
         #     type: :date,
@@ -62,23 +88,20 @@ module Bali
         #     label: "Created after"
         def simple_filter(attribute, collection: nil, blank: nil, label: nil, default: nil,
                           type: :select, predicate: :eq, icon: nil)
-          resolved_predicate = type.to_sym.in?(%i[date date_range]) ? nil : predicate
-          defined_simple_filters << {
-            attribute: attribute.to_sym,
-            collection: collection,
-            blank: blank,
+          input = type.to_sym
+          filter_attribute(
+            attribute,
+            type: LEGACY_TYPE_FOR_INPUT.fetch(input, :select),
             label: label,
+            options: collection,
+            simple: true,
+            advanced: false,
+            input: input,
+            predicate: predicate,
+            blank: blank,
             default: default,
-            type: type.to_sym,
-            predicate: resolved_predicate&.to_sym,
             icon: icon
-          }
-        end
-
-        # Inherit simple_filters from parent class
-        def inherited(subclass)
-          super
-          subclass.instance_variable_set(:@defined_simple_filters, defined_simple_filters.dup)
+          )
         end
       end
 
@@ -110,8 +133,8 @@ module Bali
           config = {
             attribute: filter[:attribute],
             collection: resolve_collection(filter[:collection]),
-            blank: filter[:blank],
-            label: filter[:label] || infer_simple_filter_label(filter[:attribute]),
+            blank: resolve_definition_value(filter[:blank]),
+            label: resolve_definition_value(filter[:label]) || infer_simple_filter_label(filter[:attribute]),
             default: filter[:default],
             type: type,
             predicate: predicate,
@@ -228,9 +251,11 @@ module Bali
         }
       end
 
-      # Resolve collection - call if Proc, return as-is otherwise
+      # Resolve collection — arrays pass through; zero-arity procs run with
+      # instance_exec (see FilterForm#resolve_definition_value), so class-level
+      # lambdas can build collections narrowed to the policy scope via `scope`.
       def resolve_collection(collection)
-        collection.respond_to?(:call) ? collection.call : collection
+        resolve_definition_value(collection)
       end
 
       # Infer label from attribute name using I18n or humanization

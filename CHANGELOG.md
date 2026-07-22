@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **FilterForm** - unified filter DSL (#644). `filter_attribute` is now the single declaration from which BOTH filter UIs derive: the advanced `Filters` popover (as always, via `available_attributes`) and, with `simple: true`, the inline `SimpleFilters` row (via `simple_filters_config`). New kwargs: `simple:` / `advanced:` (which UIs offer the attribute), `input:` (simple widget override, e.g. `type: :select, input: :slim_select`; validated against the widget list, invalid values raise at class-definition time), `predicate:`, `blank:`, `default:`, `icon:`, `collection:` (alias of `options:`), and `step:`/`placeholder_min:`/`placeholder_max:` for `:number_range` (previously reachable only through instance-level hashes). `options:`/`collection:`, `label:` and `blank:` also accept **zero-arity procs resolved per-instance with `instance_exec`** — inside them you can use `scope` (the relation the controller passed in, typically already narrowed to the policy scope) and per-request `I18n`, removing the two reasons apps had to bypass the class DSL (overriding `available_attributes` wholesale, or building `simple_filters:` hashes in the controller). Both escape hatches remain supported.
+
+### Deprecated
+
+- **FilterForm** - `simple_filter` is now a thin alias of `filter_attribute(..., simple: true, advanced: false)` and is soft-deprecated (no runtime warning; existing forms keep working unchanged and stay out of the advanced popover, exactly as before). New code should declare one `filter_attribute` per attribute. Note for exotic procs: collection procs now run under `instance_exec` (receiver = the form instance instead of the class where the lambda was defined); lambdas referencing constants/models — every known usage — are unaffected.
+
+### Fixed
+
+- **FilterForm** - `simple_filter type: :date` no longer silently discards the declared `predicate:` (#644). `simple_filter :created_at, type: :date, predicate: :gteq` — the DSL docstring's own example — used to filter by `created_at_eq`; it now honors `:gteq`. `:date_range` still has no single predicate (handled as a range). Also, unknown widget `type:` values now raise `ArgumentError` at class-definition time instead of silently rendering a plain select.
+
 ## [v2.14.0] - 2026-07-21
 
 ### Added
