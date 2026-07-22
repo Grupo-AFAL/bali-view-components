@@ -1832,6 +1832,8 @@ Dashboard layout with page header, stat cards grid, and a body area for charts a
 - `stats_columns` - Stat cards per row: 2, 3, or 4 (default: 4)
 - `max_width` - Content width: `:lg`, `:xl`, `:"2xl"`, or `:full` (default: :"2xl")
 
+Also accepts a `nav` slot for second-level navigation, rendered between the header and the stats — see [Two-level navigation](#two-level-navigation-nav-slot).
+
 #### IndexPage
 
 Standard listing page with breadcrumbs, title, action buttons, and a body area for tables.
@@ -1855,6 +1857,8 @@ Standard listing page with breadcrumbs, title, action buttons, and a body area f
 - `title` - Page title (required)
 - `subtitle` - Text under the title (default: nil)
 - `breadcrumbs` - Array of `{ name:, href: }` hashes (default: [])
+
+Also accepts a `nav` slot for second-level navigation, rendered between the header and the body — see [Two-level navigation](#two-level-navigation-nav-slot).
 
 #### ShowPage
 
@@ -1888,6 +1892,8 @@ Record detail page with breadcrumbs, title with tags, actions, and an optional t
 - `breadcrumbs` - Array of `{ name:, href: }` hashes (default: [])
 - `back` - Back link, e.g. `{ href: path }` (default: nil)
 
+Also accepts a `nav` slot for second-level navigation, rendered between the header and the body — see [Two-level navigation](#two-level-navigation-nav-slot).
+
 #### FormPage
 
 New/edit page that wraps form content in a centered Card, with an optional sidebar column for help text.
@@ -1916,6 +1922,44 @@ New/edit page that wraps form content in a centered Card, with an optional sideb
 - `back` - Back link, e.g. `{ href: path }` (default: nil)
 - `max_width` - Form width: `:sm`, `:md`, `:lg`, `:xl`, or `:full` (default: :md)
 - `card` - Wrap the body in a Card (default: true)
+
+#### Two-level navigation (`nav` slot)
+
+`IndexPage`, `ShowPage` and `DashboardPage` accept a `nav` slot rendered **between the
+PageHeader and the body** (in `DashboardPage`, before the stat cards) with standardized
+spacing (`mt-4`), so section navigation no longer needs to be embedded in the body by hand.
+
+The recommended recipe for hubs with two navigation levels:
+
+- **Level 1** - `Bali::Tabs style: :border` (icon + label, default size), one tab per section.
+- **Level 2** - `Bali::Tabs style: :box, size: :sm` (no icons), one tab per sub-section.
+- Both levels use `href:` tabs (full-page navigation, active tab auto-detected from the
+  current path) and keep the active section **in the PATH**, never in the query string —
+  GET filter forms would drop it otherwise.
+
+```erb
+<%= render Bali::ShowPage::Component.new(title: @project.name, back: { href: projects_path }) do |page| %>
+  <% page.with_nav do %>
+    <%= render Bali::Tabs::Component.new(style: :border) do |tabs| %>
+      <% tabs.with_tab(title: t('.summary'), icon: 'layout-dashboard', href: project_path(@project)) %>
+      <% tabs.with_tab(title: t('.quality'), icon: 'shield-check', href: project_quality_path(@project, section: 'tests')) %>
+    <% end %>
+
+    <%# Second level, shown within the active section %>
+    <div class="mt-2">
+      <%= render Bali::Tabs::Component.new(style: :box, size: :sm) do |tabs| %>
+        <% tabs.with_tab(title: t('.tests'), href: project_quality_path(@project, section: 'tests')) %>
+        <% tabs.with_tab(title: t('.defects'), href: project_quality_path(@project, section: 'defects')) %>
+      <% end %>
+    </div>
+  <% end %>
+  <% page.with_body do %>
+    <%# Section content %>
+  <% end %>
+<% end %>
+```
+
+See the `IndexPage` "With nav" preview in Lookbook for a rendered example.
 
 ---
 

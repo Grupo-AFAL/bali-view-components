@@ -26,6 +26,14 @@ module Bali
           helpers.safe_join(actions)
         end
       end
+
+      # Renders the optional nav slot (second-level navigation, e.g. Bali::Tabs)
+      # between the PageHeader and the body with standardized spacing.
+      def render_nav
+        return unless nav?
+
+        helpers.tag.div(class: "page-nav mt-4") { nav.to_s }
+      end
     end
   end
 end

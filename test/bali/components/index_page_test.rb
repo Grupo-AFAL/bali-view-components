@@ -39,4 +39,23 @@ class BaliIndexPageComponentTest < ComponentTestCase
     end
     assert_text("24 total")
   end
+
+  def test_renders_nav_between_header_and_body
+    render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
+      page.with_nav { page.tag.a("Subnav link", href: "/movies/upcoming") }
+      page.with_body { "Content" }
+    end
+    assert_selector(".page-nav.mt-4 a[href='/movies/upcoming']", text: "Subnav link")
+
+    html = page.native.to_html
+    assert_operator html.index("Movies"), :<, html.index("Subnav link")
+    assert_operator html.index("Subnav link"), :<, html.index("Content")
+  end
+
+  def test_does_not_render_nav_wrapper_without_nav
+    render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
+      page.with_body { "Content" }
+    end
+    assert_no_selector(".page-nav")
+  end
 end

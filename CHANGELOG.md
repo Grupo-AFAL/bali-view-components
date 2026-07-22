@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **IndexPage / ShowPage / DashboardPage** - new `nav` slot (`renders_one :nav`) rendered between the `PageHeader` and the body (in `DashboardPage`, before the stat cards) inside a `.page-nav` wrapper with standardized spacing (`mt-4`), for second-level navigation that pages previously had to embed in the body by hand with ad-hoc margins (#637). Documented the two-level navigation recipe (level 1 `Tabs style: :border` with icon+label, level 2 `Tabs style: :box, size: :sm`, both with `href:` tabs and the active section in the PATH so GET filter forms don't drop it) in the components guide, plus a new `IndexPage` "With nav" Lookbook preview. Pages without a `nav` slot render unchanged.
+
 ## [v2.14.0] - 2026-07-21
 
 ### Added
