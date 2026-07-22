@@ -1,0 +1,4 @@
+<%= link_to href, link_attributes do %>
+  <%= render Bali::Icon::Component.new(icon, size: :small) %>
+  <% unless icon_only? %><%= name %><% end %>
+<% end %>

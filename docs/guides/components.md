@@ -506,6 +506,38 @@ Tabbed content navigation.
 <% end %>
 ```
 
+#### ViewSwitch
+
+Segmented control (DaisyUI `join` of buttons) to switch between sibling views of the same content (list / table / board / schedule). Each view is a real link — keep the selected view in the PATH so GET filter forms don't lose it.
+
+```erb
+<%= render Bali::ViewSwitch::Component.new(aria_label: "Views") do |switch| %>
+  <% switch.with_view(name: "List", icon: "list", href: backlog_view_path("list")) %>
+  <% switch.with_view(name: "Board", icon: "grid", href: backlog_view_path("board")) %>
+<% end %>
+
+<%# Icon-only for spots that compete for space (tabs row, toolbars) %>
+<%= render Bali::ViewSwitch::Component.new(aria_label: "Views", icon_only: true) do |switch| %>
+  <% switch.with_view(name: "List", icon: "list", href: backlog_view_path("list"),
+                      data: { turbo_action: "replace" }) %>
+  <% switch.with_view(name: "Board", icon: "grid", href: backlog_view_path("board"),
+                      data: { turbo_action: "replace" }) %>
+<% end %>
+```
+
+**Options:**
+- `aria_label` - Accessible label for the button group (required)
+- `size` - Button size: `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: `:sm`)
+- `icon_only` - Square icon-only buttons; each view's `name:` becomes the native tooltip (`title`) and the accessible label (default: `false`)
+- `**options` - Additional HTML attributes for the container `div`
+
+**Each `with_view`:**
+- `name` - Label of the view (visible text, or tooltip + `aria-label` when `icon_only`)
+- `icon` - Icon name rendered before the label
+- `href` - Path this view links to
+- `active` - Explicit active state; when omitted it is autodetected by matching the request path against `href` (query strings ignored)
+- `**options` - Additional HTML attributes for the link, e.g. `data: { turbo_action: "replace" }`
+
 #### Dropdown
 
 Action menu that opens on click/hover.
@@ -1684,6 +1716,33 @@ Inline alert box (DaisyUI `alert`) with an optional title or custom header slot.
 - `color` - Alert color: `:primary`, `:success`, `:danger`, `:warning`, `:info` (default: `:primary`)
 - `style` - Alert style: `:soft`, `:outline`, `:dash` (default: `nil`, solid)
 
+#### EmptyState
+
+Standard empty state: a centered block with an optional icon in a soft circle, a title, an optional description and an optional CTA. Use it anywhere a section has nothing to show yet (grids, panels, tabs, kanban columns) so every blank state looks the same. `Bali::Table` renders its built-in empty state through this component, so tables and standalone sections match.
+
+```erb
+<%= render Bali::EmptyState::Component.new(
+      icon: 'inbox',
+      title: t('.empty_title'),
+      description: t('.empty_description')) do |empty_state| %>
+  <% empty_state.with_cta do %>
+    <%= render Bali::Link::Component.new(
+          name: t('.new'), href: new_thing_path,
+          icon_name: 'plus', variant: :primary, size: :sm) %>
+  <% end %>
+<% end %>
+```
+
+**Options:**
+- `title` - Main message (required)
+- `description` - Muted secondary line below the title (default: `nil`)
+- `icon` - Icon name rendered inside a soft `bg-base-200` circle (default: `nil`)
+- `size` - Vertical padding and icon scale: `:sm` (compact, for cells/panels), `:md`, `:lg` (full page) (default: `:md`)
+- `**options` - Additional HTML attributes for the wrapper `div` (e.g. `id:`, extra `class:`)
+
+**Slots:**
+- `with_cta` - Optional call-to-action (a `Bali::Link`, button, drawer trigger, etc.) rendered below the text
+
 #### FeedbackWidget
 
 Floating feedback button that opens a drawer with an embedded Opina iframe and polls a badge endpoint for unread count.
@@ -1857,6 +1916,7 @@ Standard listing page with breadcrumbs, title, action buttons, and a body area f
 - `title` - Page title (required)
 - `subtitle` - Text under the title (default: nil)
 - `breadcrumbs` - Array of `{ name:, href: }` hashes (default: [])
+- `back` - Back link, e.g. `{ href: path }` (default: nil)
 
 Also accepts a `nav` slot for second-level navigation, rendered between the header and the body — see [Two-level navigation](#two-level-navigation-nav-slot).
 

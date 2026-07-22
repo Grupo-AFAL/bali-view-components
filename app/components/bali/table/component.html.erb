@@ -27,10 +27,18 @@
         <% end %>
       <% else %>
         <tr id="<%= empty_table_row_id %>">
-          <td class="empty-table text-center py-8" colspan="<%= headers.count %>">
-            <div class="flex flex-col items-center justify-center gap-4">
-              <%= empty_state_content %>
-            </div>
+          <td class="empty-table text-center" colspan="<%= headers.count %>">
+            <% if custom_empty_state_content.present? %>
+              <div class="<%= Bali::EmptyState::Component.container_classes %>">
+                <%= custom_empty_state_content %>
+              </div>
+            <% else %>
+              <%= render Bali::EmptyState::Component.new(title: empty_state_title) do |empty_state| %>
+                <% if empty_state_cta.present? %>
+                  <% empty_state.with_cta do %><%= empty_state_cta %><% end %>
+                <% end %>
+              <% end %>
+            <% end %>
           </td>
         </tr>
       <% end %>

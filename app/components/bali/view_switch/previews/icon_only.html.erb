@@ -1,0 +1,18 @@
+<div class="flex flex-col gap-6">
+  <div>
+    <p class="mb-2 text-sm opacity-70">Two views</p>
+    <%= render Bali::ViewSwitch::Component.new(aria_label: "Views", icon_only: true) do |switch| %>
+      <% switch.with_view(name: "List", icon: "list", href: "/lookbook", active: true) %>
+      <% switch.with_view(name: "Board", icon: "grid", href: "/lookbook?view=board") %>
+    <% end %>
+  </div>
+
+  <div>
+    <p class="mb-2 text-sm opacity-70">Three views</p>
+    <%= render Bali::ViewSwitch::Component.new(aria_label: "Views", icon_only: true) do |switch| %>
+      <% switch.with_view(name: "Plan", icon: "list", href: "/lookbook") %>
+      <% switch.with_view(name: "Board", icon: "grid", href: "/lookbook?view=board", active: true) %>
+      <% switch.with_view(name: "Schedule", icon: "calendar", href: "/lookbook?view=schedule") %>
+    <% end %>
+  </div>
+</div>

@@ -57,6 +57,23 @@ class ExtendedSimpleFilterForm < SimpleFilterableMovieFilterForm
                 label: "Indie Film"
 end
 
+# Unified DSL: one filter_attribute declaration feeding BOTH filter UIs (#644)
+class UnifiedMovieFilterForm < Bali::FilterForm
+  filter_attribute :genre, type: :select, simple: true,
+                   options: -> { scope.order(:genre).distinct.pluck(:genre).compact.map { |g| [ g, g ] } },
+                   blank: "All Genres"
+  filter_attribute :name, type: :text
+  filter_attribute :status, type: :select, simple: true, advanced: false,
+                   options: [ %w[Done done], %w[Draft draft] ],
+                   label: -> { "Estado" }, default: "draft", input: :slim_select
+end
+
+# Legacy alias declaring a :date filter with an explicit predicate (bug fix:
+# the declared predicate used to be silently discarded and replaced with :eq)
+class DatePredicateFilterForm < Bali::FilterForm
+  simple_filter :created_at, type: :date, predicate: :gteq, label: "Created after"
+end
+
 # Test form with group_by_attribute DSL. No custom scope order so the
 # group-first ordering is the sole ORDER BY (sort-within-groups assertions).
 class GroupableMovieFilterForm < Bali::FilterForm
@@ -170,7 +187,10 @@ class BaliFilterFormTest < ActiveSupport::TestCase
 
   def test_available_attributes_returns_the_filter_attributes_from_the_class
     @form = AdvancedMovieFilterForm.new(Movie.all, params({}))
-    assert_equal(AdvancedMovieFilterForm.filter_attributes, @form.available_attributes)
+    expected = AdvancedMovieFilterForm.filter_attributes.map do |attr|
+      attr.slice(:key, :type, :label, :options)
+    end
+    assert_equal(expected, @form.available_attributes)
   end
 
   def test_available_attributes_returns_empty_array_for_forms_without_filter_attribute_definitions
@@ -800,5 +820,93 @@ class BaliFilterFormGroupByTest < ActiveSupport::TestCase
     form = Bali::FilterForm.new(@tenant.movies, group_params("genre"), group_by_attributes: %i[genre status])
     assert_equal(:genre, form.group_by)
     assert_equal(%i[genre status], form.group_by_attributes)
+  end
+end
+
+class BaliFilterFormTestUnifiedDsl < ActiveSupport::TestCase
+  def setup
+    @tenant = Tenant.create(name: "Test")
+    @tenant.movies.create(name: "Snatch", genre: "crime", status: 0)
+    @tenant.movies.create(name: "Heat", genre: "thriller", status: 0)
+  end
+
+  def params(filter_attributes)
+    ActionController::Parameters.new(q: filter_attributes)
+  end
+
+  def test_unified_attribute_appears_in_both_uis
+    form = UnifiedMovieFilterForm.new(@tenant.movies, params({}))
+    assert_includes(form.available_attributes.pluck(:key), :genre)
+    assert_includes(form.simple_filters_config.pluck(:attribute), :genre)
+  end
+
+  def test_options_proc_resolves_with_instance_context_for_the_advanced_ui
+    form = UnifiedMovieFilterForm.new(@tenant.movies, params({}))
+    genre = form.available_attributes.find { |a| a[:key] == :genre }
+    assert_equal([ %w[crime crime], %w[thriller thriller] ], genre[:options])
+  end
+
+  def test_options_proc_sees_only_the_scoped_relation
+    other_tenant = Tenant.create(name: "Other")
+    other_tenant.movies.create(name: "Z", genre: "zombie", status: 0)
+    form = UnifiedMovieFilterForm.new(@tenant.movies, params({}))
+    genre = form.available_attributes.find { |a| a[:key] == :genre }
+    refute_includes(genre[:options].map(&:last), "zombie")
+  end
+
+  def test_options_proc_resolves_for_the_simple_ui_too
+    form = UnifiedMovieFilterForm.new(@tenant.movies, params({}))
+    genre = form.simple_filters_config.find { |c| c[:attribute] == :genre }
+    assert_equal([ %w[crime crime], %w[thriller thriller] ], genre[:collection])
+    assert_equal("All Genres", genre[:blank])
+  end
+
+  def test_advanced_false_keeps_the_attribute_out_of_the_popover
+    form = UnifiedMovieFilterForm.new(@tenant.movies, params({}))
+    refute_includes(form.available_attributes.pluck(:key), :status)
+  end
+
+  def test_input_overrides_the_simple_widget
+    form = UnifiedMovieFilterForm.new(@tenant.movies, params({}))
+    status = form.simple_filters_config.find { |c| c[:attribute] == :status }
+    assert_equal(:slim_select, status[:type])
+    assert_equal("draft", status[:default])
+  end
+
+  def test_label_proc_resolves_at_instance_time
+    form = UnifiedMovieFilterForm.new(@tenant.movies, params({}))
+    status = form.simple_filters_config.find { |c| c[:attribute] == :status }
+    assert_equal("Estado", status[:label])
+  end
+
+  def test_legacy_simple_filter_stays_out_of_the_advanced_popover
+    form = SimpleFilterableMovieFilterForm.new(@tenant.movies, params({}))
+    assert_equal([], form.available_attributes)
+  end
+
+  def test_simple_text_attribute_without_input_raises
+    error = assert_raises(ArgumentError) do
+      Class.new(Bali::FilterForm) { filter_attribute :notes, type: :text, simple: true }
+    end
+    assert_match(/no simple filter widget/, error.message)
+  end
+
+  def test_unknown_simple_input_raises
+    error = assert_raises(ArgumentError) do
+      Class.new(Bali::FilterForm) { filter_attribute :notes, type: :select, simple: true, input: :bogus }
+    end
+    assert_match(/unknown input/, error.message)
+  end
+
+  def test_date_simple_filter_honors_declared_predicate
+    form = DatePredicateFilterForm.new(Movie.all, params({ created_at_gteq: "2024-01-01" }))
+    assert_includes(form.simple_filters_permitted_keys, "created_at_gteq")
+    assert_equal("2024-01-01", form.ransack_params["created_at_gteq"])
+  end
+
+  def test_unified_simple_value_reaches_ransack_params_and_result
+    form = UnifiedMovieFilterForm.new(@tenant.movies, params({ genre_eq: "crime" }))
+    assert_equal("crime", form.ransack_params["genre_eq"])
+    assert_equal([ "Snatch" ], form.result.pluck(:name))
   end
 end
