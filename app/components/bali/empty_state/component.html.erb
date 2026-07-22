@@ -1,0 +1,16 @@
+<%= tag.div(**container_attributes) do %>
+  <% if icon.present? %>
+    <div class="<%= icon_circle_classes %>">
+      <%= render Bali::Icon::Component.new(icon, size: icon_pixel_size) %>
+    </div>
+  <% end %>
+  <div>
+    <p class="<%= TITLE_CLASSES %>"><%= title %></p>
+    <% if description.present? %>
+      <p class="<%= DESCRIPTION_CLASSES %>"><%= description %></p>
+    <% end %>
+  </div>
+  <% if cta.present? %>
+    <%= cta %>
+  <% end %>
+<% end %>

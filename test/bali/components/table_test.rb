@@ -106,6 +106,36 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector(".empty-table", text: "So sorry, no results!")
   end
 
+  def test_empty_states_default_renders_through_empty_state_component
+    @options = { form: @filter_form }
+    render_inline(component)
+    assert_selector(".empty-table .empty-state-component p", text: "No Records")
+  end
+
+  def test_empty_states_new_record_link_renders_inside_the_empty_state_cta
+    render_inline(component) do |c|
+      c.with_new_record_link(name: "Add New Record", href: "#", modal: false)
+    end
+    assert_selector(".empty-table .empty-state-component a", text: "Add New Record")
+  end
+
+  def test_empty_states_new_record_link_is_hidden_when_filters_are_active
+    active_form = Struct.new(:active_filters?, :id).new(true, "1")
+    @options = { form: active_form }
+    render_inline(component) do |c|
+      c.with_new_record_link(name: "Add New Record", href: "#", modal: false)
+    end
+    assert_no_selector(".empty-table a", text: "Add New Record")
+  end
+
+  def test_empty_states_custom_notification_sits_in_the_shared_empty_state_container
+    @options = { form: @filter_form }
+    render_inline(component) do |c|
+      c.with_no_records_notification { "So sorry, no records found!" }
+    end
+    assert_selector(".empty-table div.empty-state-component.py-8", text: "So sorry, no records found!")
+  end
+
   def test_bulk_actions_renders_checkboxes_when_bulk_actions_provided
     @options = { bulk_actions: [ { name: "Delete", href: "/delete" } ] }
     render_inline(component) do |c|

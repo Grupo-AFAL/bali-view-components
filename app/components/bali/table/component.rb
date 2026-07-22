@@ -91,17 +91,20 @@ module Bali
         text
       end
 
-      def empty_state_content
-        if @form&.active_filters?
-          no_results_notification || tag.p(t(".no_results"), class: "text-base-content/60")
-        elsif no_records_notification.present?
-          no_records_notification
-        else
-          safe_join([
-            tag.p(t(".no_records"), class: "text-base-content/60"),
-            new_record_link
-          ].compact)
-        end
+      # Free-form content given by the caller for the current empty situation
+      # (filtered vs. truly empty), or nil to render the default EmptyState.
+      def custom_empty_state_content
+        @form&.active_filters? ? no_results_notification : no_records_notification
+      end
+
+      def empty_state_title
+        @form&.active_filters? ? t(".no_results") : t(".no_records")
+      end
+
+      def empty_state_cta
+        return if @form&.active_filters?
+
+        new_record_link
       end
 
       private

@@ -8,15 +8,16 @@ module Bali
       renders_many :actions
       renders_one :body
 
-      def initialize(title:, subtitle: nil, breadcrumbs: [])
+      def initialize(title:, subtitle: nil, breadcrumbs: [], back: nil)
         @title = title
         @subtitle = subtitle
         @breadcrumbs = breadcrumbs.map(&:symbolize_keys)
+        @back = back
       end
 
       private
 
-      attr_reader :title, :subtitle, :breadcrumbs
+      attr_reader :title, :subtitle, :breadcrumbs, :back
     end
   end
 end
