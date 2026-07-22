@@ -54,31 +54,84 @@ module Bali
     attribute :s
 
     class << self
+      # Widgets available in the SimpleFilters UI (valid `input:` values)
+      SIMPLE_INPUTS = %i[select slim_select toggle_group radio_group boolean date
+                         date_range number_range].freeze
+
+      # Default SimpleFilters widget derived from the declared data type.
+      # :text has no entry on purpose — quick text search belongs to search_fields.
+      DEFAULT_SIMPLE_INPUT_FOR_TYPE = {
+        select: :select, boolean: :boolean, date: :date, datetime: :date, number: :number_range
+      }.freeze
+
       # Storage for filter attribute definitions used by Filters UI
       def filter_attributes
         @filter_attributes ||= []
       end
 
-      # Define a filterable attribute for the Filters component.
-      # This is used to generate the filter UI and provide labels/options.
+      # Define a filterable attribute. One declaration can feed BOTH filter UIs:
+      # the advanced Filters popover (via #available_attributes) and, when
+      # `simple: true`, the inline SimpleFilters row (via #simple_filters_config).
       #
       # @param key [Symbol] Attribute key (column name or Ransack association path)
-      # @param type [Symbol] Attribute type: :text, :number, :date, :datetime,
-      #   :select, :boolean
-      # @param label [String] Human-readable label (defaults to humanized key)
-      # @param options [Array] For select types, array of [label, value] pairs
+      # @param type [Symbol] Data type: :text, :number, :date, :datetime,
+      #   :select, :boolean. Drives the advanced UI operators and the default
+      #   simple widget.
+      # @param label [String, Proc] Human-readable label (defaults to humanized key).
+      #   Zero-arity procs are resolved per-instance with instance_exec (useful
+      #   for I18n lookups that must not be frozen at class-load time).
+      # @param options [Array, Proc] For select types, array of [label, value]
+      #   pairs or a zero-arity proc resolved per-instance with instance_exec —
+      #   inside it you can use `scope` (the relation the controller passed in,
+      #   typically already narrowed to the policy scope).
+      # @param collection [Array, Proc] Alias of options (legacy simple_filter name)
+      # @param simple [Boolean] Also render this attribute in the SimpleFilters UI
+      # @param advanced [Boolean] Offer this attribute in the Filters popover
+      #   (default true; the legacy simple_filter DSL declares with false)
+      # @param input [Symbol] SimpleFilters widget when it differs from the one
+      #   derived from type (e.g. type: :select, input: :slim_select)
+      # @param predicate [Symbol] Fixed Ransack predicate for the simple UI
+      #   (default :eq; the advanced UI lets the user pick the operator)
+      # @param blank [String, Proc] Blank option text for the simple UI
+      # @param default [String] Default value for the simple UI
+      # @param icon [String] Icon name for the simple UI
+      # @param step [Numeric] Step for the :number_range simple widget
+      # @param placeholder_min [String] Min placeholder for :number_range
+      # @param placeholder_max [String] Max placeholder for :number_range
       #
-      # @example
+      # @example Advanced popover only (same as always)
       #   filter_attribute :name, type: :text
-      #   filter_attribute :status, type: :select,
-      #     options: [['Active', 'active'], ['Inactive', 'inactive']]
-      #   filter_attribute :created_at, type: :date, label: 'Created Date'
-      def filter_attribute(key, type: :text, label: nil, options: [])
+      #
+      # @example Both UIs, collection narrowed to the policy scope
+      #   filter_attribute :pm_id, type: :select, simple: true,
+      #     options: -> { User.where(id: scope.select(:pm_id)).pluck(:name, :id) }
+      #
+      # @example Simple UI only, custom widget
+      #   filter_attribute :priority, type: :select, simple: true, advanced: false,
+      #     options: [['High', 'high'], ['Low', 'low']], input: :toggle_group
+      # rubocop:disable Metrics/ParameterLists
+      def filter_attribute(key, type: :text, label: nil, options: [], collection: nil,
+                           simple: false, advanced: true, input: nil, predicate: :eq,
+                           blank: nil, default: nil, icon: nil, step: nil,
+                           placeholder_min: nil, placeholder_max: nil)
+        # rubocop:enable Metrics/ParameterLists
+        type = type.to_sym
         filter_attributes << {
-          key: key,
+          key: key.to_sym,
           type: type,
           label: label || key.to_s.humanize,
-          options: options
+          explicit_label: label,
+          options: options.presence || collection || [],
+          simple: simple,
+          advanced: advanced,
+          input: simple ? resolve_simple_input(key, type, input) : input&.to_sym,
+          predicate: predicate&.to_sym,
+          blank: blank,
+          default: default,
+          icon: icon,
+          step: step,
+          placeholder_min: placeholder_min,
+          placeholder_max: placeholder_max
         }
       end
 
@@ -87,6 +140,27 @@ module Bali
       def inherited(subclass)
         super
         subclass.instance_variable_set(:@filter_attributes, filter_attributes.dup)
+      end
+
+      private
+
+      # Validate an explicit simple `input:` or derive it from the data type.
+      # Fails fast at class-definition time so a typo'd widget never renders
+      # silently as a plain select.
+      def resolve_simple_input(key, type, input)
+        if input
+          input = input.to_sym
+          return input if SIMPLE_INPUTS.include?(input)
+
+          raise ArgumentError, "filter_attribute #{key}: unknown input: :#{input} " \
+                               "(valid: #{SIMPLE_INPUTS.join(', ')})"
+        end
+
+        DEFAULT_SIMPLE_INPUT_FOR_TYPE.fetch(type) do
+          raise ArgumentError, "filter_attribute #{key}: type :#{type} has no simple filter " \
+                               "widget; pass input: (one of #{SIMPLE_INPUTS.join(', ')}) or " \
+                               "declare quick text search with search_fields"
+        end
       end
     end
 
@@ -219,9 +293,26 @@ module Bali
     # Get the available filter attributes defined via filter_attribute DSL.
     # Used by Filters component for rendering the filter UI.
     #
+    # Entries declared with `advanced: false` (including everything declared
+    # through the legacy simple_filter DSL) are excluded. `label:`/`options:`
+    # given as zero-arity procs are resolved here with instance_exec, so they
+    # can use instance context — most importantly `scope`, the (typically
+    # policy-scoped) relation the controller passed in.
+    #
+    # Override this method for full control; the Filters component consumes
+    # whatever it returns.
+    #
     # @return [Array<Hash>] Array of attribute definitions with :key, :type, :label, :options
     def available_attributes
-      self.class.filter_attributes
+      @available_attributes ||=
+        self.class.filter_attributes.reject { |attr| attr[:advanced] == false }.map do |attr|
+          {
+            key: attr[:key],
+            type: attr[:type],
+            label: resolve_definition_value(attr[:label]) || attr[:key].to_s.humanize,
+            options: resolve_definition_value(attr[:options]) || []
+          }
+        end
     end
 
     def query_params
@@ -280,6 +371,15 @@ module Bali
     end
 
     private
+
+    # Resolve a DSL value that may be callable. Zero-arity procs run under
+    # instance_exec so they can reference the form instance (e.g. `scope`);
+    # other callables are invoked as-is.
+    def resolve_definition_value(value)
+      return value unless value.respond_to?(:call)
+
+      value.is_a?(Proc) && value.arity.zero? ? instance_exec(&value) : value.call
+    end
 
     def non_date_range_attribute_names
       attribute_names - date_range_attributes
