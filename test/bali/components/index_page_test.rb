@@ -58,7 +58,7 @@ class BaliIndexPageComponentTest < ComponentTestCase
     end
     assert_no_selector(".page-nav")
   end
-  
+
   def test_renders_back_button
     render_inline(Bali::IndexPage::Component.new(
       title: "Approval Requests",
