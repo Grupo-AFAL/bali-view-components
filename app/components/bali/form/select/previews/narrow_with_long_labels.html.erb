@@ -1,0 +1,13 @@
+<%# Narrow select (w-36, like the Filters field/operator selects) with labels
+    longer than the control. The label must truncate with an ellipsis before
+    the chevron instead of overlapping it (#638). %>
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <div class="w-36">
+    <%= form.select_group :status,
+                          [['Último Inicio de Sesión', 'last_sign_in'],
+                           ['Fecha de creación del registro', 'created_at'],
+                           ['Responsable de seguimiento', 'assignee']],
+                          {},
+                          class: 'truncate' %>
+  </div>
+<% end %>

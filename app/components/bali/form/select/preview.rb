@@ -9,7 +9,7 @@ module Bali
         # Uses `select select-bordered w-full` classes.
         def default
           render_with_template(
-            template: 'bali/form/select/previews/default',
+            template: "bali/form/select/previews/default",
             locals: { model: form_record }
           )
         end
@@ -17,10 +17,10 @@ module Bali
         # @label With Errors
         # Shows validation error styling with `select-error` class.
         def with_errors
-          form_record.errors.add(:status, 'must be selected')
+          form_record.errors.add(:status, "must be selected")
 
           render_with_template(
-            template: 'bali/form/select/previews/default',
+            template: "bali/form/select/previews/default",
             locals: { model: form_record }
           )
         end
@@ -29,7 +29,7 @@ module Bali
         # Displays helper text below the select.
         def with_help_text
           render_with_template(
-            template: 'bali/form/select/previews/with_help_text',
+            template: "bali/form/select/previews/with_help_text",
             locals: { model: form_record }
           )
         end
@@ -38,7 +38,20 @@ module Bali
         # Include prompt option using the `include_blank` option.
         def with_blank_option
           render_with_template(
-            template: 'bali/form/select/previews/with_blank_option',
+            template: "bali/form/select/previews/with_blank_option",
+            locals: { model: form_record }
+          )
+        end
+
+        # @label Narrow With Long Labels
+        # Regression preview for #638: a narrow select whose option labels are
+        # longer than the control. DaisyUI 5.5 opted selects into Chrome's
+        # base-select mode, which ignores text-overflow (Chrome >= 135), so the
+        # label ran over the chevron. `bali/forms.css` reverts `.select` to the
+        # classic rendering — the ellipsis must appear before the arrow.
+        def narrow_with_long_labels
+          render_with_template(
+            template: "bali/form/select/previews/narrow_with_long_labels",
             locals: { model: form_record }
           )
         end
