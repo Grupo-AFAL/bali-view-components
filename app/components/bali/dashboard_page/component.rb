@@ -8,6 +8,7 @@ module Bali
       include PageComponents::Shared
 
       renders_many :actions
+      renders_one :nav
       renders_one :body
 
       MAX_WIDTHS = {

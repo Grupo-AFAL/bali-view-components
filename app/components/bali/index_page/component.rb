@@ -6,6 +6,7 @@ module Bali
       include PageComponents::Shared
 
       renders_many :actions
+      renders_one :nav
       renders_one :body
 
       def initialize(title:, subtitle: nil, breadcrumbs: [], back: nil)

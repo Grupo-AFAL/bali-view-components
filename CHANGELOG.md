@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **IndexPage / ShowPage / DashboardPage** - new `nav` slot (`renders_one :nav`) rendered between the `PageHeader` and the body (in `DashboardPage`, before the stat cards) inside a `.page-nav` wrapper with standardized spacing (`mt-4`), for second-level navigation that pages previously had to embed in the body by hand with ad-hoc margins (#637). Documented the two-level navigation recipe (level 1 `Tabs style: :border` with icon+label, level 2 `Tabs style: :box, size: :sm`, both with `href:` tabs and the active section in the PATH so GET filter forms don't drop it) in the components guide, plus a new `IndexPage` "With nav" Lookbook preview. Pages without a `nav` slot render unchanged.
 ### Fixed
 
 - **Selects** - long option labels no longer overlap the chevron in narrow selects on Chrome ≥ 135 (#638). DaisyUI 5.5 opts every `.select` into Chrome's customizable select (`appearance: base-select`), a mode that ignores the author's `overflow`/`text-overflow` — labels stopped truncating at the content edge and ran over the arrow painted in the padding area (most visible in the narrow field/operator selects of `Bali::Filters`, where the `truncate` class became a no-op). `bali/forms.css` now reverts `.select` to the classic rendering under `@supports (appearance: base-select)`, restoring the ellipsis before the chevron. Cost: Chrome's styled native popup (`::picker(select)`) is lost — the dropdown looks like Firefox/Safari and Chrome < 135; the visible arrow (DaisyUI `background-image`) is unchanged. Includes a regression Lookbook preview (`Form::Select` → "Narrow With Long Labels").

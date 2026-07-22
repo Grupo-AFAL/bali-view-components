@@ -9,6 +9,8 @@
     <%= render_actions_bar %>
   <% end %>
 
+  <%= render_nav %>
+
   <% if stat_items.any? %>
     <div class="<%= stats_grid_classes %> mb-6">
       <% stat_items.each do |stat| %>
