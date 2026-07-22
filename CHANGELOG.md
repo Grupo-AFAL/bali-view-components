@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **EmptyState** - new `Bali::EmptyState::Component`, the standard empty state for sections with nothing to show (#640): a centered flex-col block with an optional icon in a soft `bg-base-200` circle, a required `title:` (`text-base-content`), an optional `description:` (`text-base-content/60`) and an optional CTA via the `cta` slot (a `Bali::Link`, button or drawer trigger). `size:` controls vertical padding and icon scale — `:sm` (`py-4`, compact for cells/panels), `:md` (`py-8`, default, matches the Table empty state) and `:lg` (`py-12`, full page). Extra HTML attributes pass through to the wrapper `div`. Replaces the per-app zoo of dashed boxes and loose `<p>` tags documented in afal-apps and gobierno-corporativo.
+
+### Changed
+
+- **Table** - the built-in empty state now renders through `Bali::EmptyState::Component` (#640), so tables and standalone empty sections look identical. API unchanged (`with_no_records_notification` / `with_no_results_notification` / `with_new_record_link` behave as before); custom notification content now sits inside the exact same centered container as the component (single source of truth via `Bali::EmptyState::Component.container_classes`). Visual nuance: the default "No records"/"No results" message is now the EmptyState title (`font-medium text-base-content`) instead of the previous muted `text-base-content/60` paragraph, and the `py-8` padding moved from the `td.empty-table` to the inner container.
+
 ## [v2.14.0] - 2026-07-21
 
 ### Added

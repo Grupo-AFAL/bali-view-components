@@ -1684,6 +1684,33 @@ Inline alert box (DaisyUI `alert`) with an optional title or custom header slot.
 - `color` - Alert color: `:primary`, `:success`, `:danger`, `:warning`, `:info` (default: `:primary`)
 - `style` - Alert style: `:soft`, `:outline`, `:dash` (default: `nil`, solid)
 
+#### EmptyState
+
+Standard empty state: a centered block with an optional icon in a soft circle, a title, an optional description and an optional CTA. Use it anywhere a section has nothing to show yet (grids, panels, tabs, kanban columns) so every blank state looks the same. `Bali::Table` renders its built-in empty state through this component, so tables and standalone sections match.
+
+```erb
+<%= render Bali::EmptyState::Component.new(
+      icon: 'inbox',
+      title: t('.empty_title'),
+      description: t('.empty_description')) do |empty_state| %>
+  <% empty_state.with_cta do %>
+    <%= render Bali::Link::Component.new(
+          name: t('.new'), href: new_thing_path,
+          icon_name: 'plus', variant: :primary, size: :sm) %>
+  <% end %>
+<% end %>
+```
+
+**Options:**
+- `title` - Main message (required)
+- `description` - Muted secondary line below the title (default: `nil`)
+- `icon` - Icon name rendered inside a soft `bg-base-200` circle (default: `nil`)
+- `size` - Vertical padding and icon scale: `:sm` (compact, for cells/panels), `:md`, `:lg` (full page) (default: `:md`)
+- `**options` - Additional HTML attributes for the wrapper `div` (e.g. `id:`, extra `class:`)
+
+**Slots:**
+- `with_cta` - Optional call-to-action (a `Bali::Link`, button, drawer trigger, etc.) rendered below the text
+
 #### FeedbackWidget
 
 Floating feedback button that opens a drawer with an embedded Opina iframe and polls a badge endpoint for unread count.
