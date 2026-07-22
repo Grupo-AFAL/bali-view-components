@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **ViewSwitch** - new `Bali::ViewSwitch::Component` (#636), a DaisyUI `join` of buttons to switch between sibling views of the same content (list / table / board / schedule). Each view is a real link (`with_view(name:, icon:, href:)`); the active view (`btn-active btn-primary` + `aria-pressed`) is autodetected by matching the request path against `href` via `Bali::PathHelper#active_path?` (same logic as `Tabs::Trigger`), with an explicit `active:` override. Default look is icon + label; `icon_only: true` renders square buttons where the name becomes the native tooltip (`title`) and the accessible label (`Bali::Tooltip` wrapping was rejected: a wrapper between `.join` and `.join-item` breaks DaisyUI's border collapse between adjacent buttons). Sizes `:xs`-`:xl` (default `:sm`); per-view options passthrough supports `data: { turbo_action: 'replace' }`. Replaces the ad-hoc view toggles consuming apps keep reinventing; migrating the `DataTable::ActionsPanel` table/grid toggle to this component is a follow-up.
+
 ## [v2.14.0] - 2026-07-21
 
 ### Added
