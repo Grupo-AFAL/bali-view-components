@@ -101,7 +101,7 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 `AppLayout`, `Card`, `Columns`, `Drawer`, `Footer`, `Hero`, `Level`, `Modal`, `PageHeader`, `Topbar`
 
 ### Navigation
-`Breadcrumb`, `Command`, `Dropdown`, `Navbar`, `Pagination`, `PaginationFooter`, `SideMenu`, `Stepper`, `Tabs`
+`Breadcrumb`, `Command`, `Dropdown`, `Navbar`, `Pagination`, `PaginationFooter`, `SideMenu`, `Stepper`, `Tabs`, `ViewSwitch`
 
 ### Data Display
 `Avatar`, `BooleanIcon`, `Chart`, `DataTable`, `GanttChart`, `Heatmap`, `Icon`, `ImageGrid`, `InfoLevel`, `LabelValue`, `List`, `LocationsMap`, `Progress`, `PropertiesTable`, `Rate`, `Skeleton`, `StatCard`, `Table`, `Tag`, `Tags`, `Timeago`, `Timeline`, `TreeView`
@@ -272,6 +272,7 @@ The gem is available as open source under the terms of the [MIT License](https:/
 | Tooltip | ✓ | ✓ | ✓ |
 | Topbar | ✓ | ✓ | ✓ |
 | TreeView | ✓ | ✓ | ✓ |
+| ViewSwitch | ✓ | ✓ | ✓ |
 
 **Legend:** ✓ Complete | ~ Partial | - Missing
 

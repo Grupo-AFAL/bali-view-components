@@ -506,6 +506,38 @@ Tabbed content navigation.
 <% end %>
 ```
 
+#### ViewSwitch
+
+Segmented control (DaisyUI `join` of buttons) to switch between sibling views of the same content (list / table / board / schedule). Each view is a real link — keep the selected view in the PATH so GET filter forms don't lose it.
+
+```erb
+<%= render Bali::ViewSwitch::Component.new(aria_label: "Views") do |switch| %>
+  <% switch.with_view(name: "List", icon: "list", href: backlog_view_path("list")) %>
+  <% switch.with_view(name: "Board", icon: "grid", href: backlog_view_path("board")) %>
+<% end %>
+
+<%# Icon-only for spots that compete for space (tabs row, toolbars) %>
+<%= render Bali::ViewSwitch::Component.new(aria_label: "Views", icon_only: true) do |switch| %>
+  <% switch.with_view(name: "List", icon: "list", href: backlog_view_path("list"),
+                      data: { turbo_action: "replace" }) %>
+  <% switch.with_view(name: "Board", icon: "grid", href: backlog_view_path("board"),
+                      data: { turbo_action: "replace" }) %>
+<% end %>
+```
+
+**Options:**
+- `aria_label` - Accessible label for the button group (required)
+- `size` - Button size: `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: `:sm`)
+- `icon_only` - Square icon-only buttons; each view's `name:` becomes the native tooltip (`title`) and the accessible label (default: `false`)
+- `**options` - Additional HTML attributes for the container `div`
+
+**Each `with_view`:**
+- `name` - Label of the view (visible text, or tooltip + `aria-label` when `icon_only`)
+- `icon` - Icon name rendered before the label
+- `href` - Path this view links to
+- `active` - Explicit active state; when omitted it is autodetected by matching the request path against `href` (query strings ignored)
+- `**options` - Additional HTML attributes for the link, e.g. `data: { turbo_action: "replace" }`
+
 #### Dropdown
 
 Action menu that opens on click/hover.
