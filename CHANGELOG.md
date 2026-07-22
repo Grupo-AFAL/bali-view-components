@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Selects** - long option labels no longer overlap the chevron in narrow selects on Chrome ≥ 135 (#638). DaisyUI 5.5 opts every `.select` into Chrome's customizable select (`appearance: base-select`), a mode that ignores the author's `overflow`/`text-overflow` — labels stopped truncating at the content edge and ran over the arrow painted in the padding area (most visible in the narrow field/operator selects of `Bali::Filters`, where the `truncate` class became a no-op). `bali/forms.css` now reverts `.select` to the classic rendering under `@supports (appearance: base-select)`, restoring the ellipsis before the chevron. Cost: Chrome's styled native popup (`::picker(select)`) is lost — the dropdown looks like Firefox/Safari and Chrome < 135; the visible arrow (DaisyUI `background-image`) is unchanged. Includes a regression Lookbook preview (`Form::Select` → "Narrow With Long Labels").
+
 ## [v2.14.0] - 2026-07-21
 
 ### Added
