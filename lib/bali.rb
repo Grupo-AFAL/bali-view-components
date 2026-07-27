@@ -75,6 +75,14 @@ module Bali
   # Set to true to enable the Block Editor component (requires @blocknote/core)
   mattr_accessor :block_editor_enabled, default: false
 
+  # Whether Block Editor code blocks get syntax highlighting. This is an
+  # installation-level decision, not a per-field one: it depends on whether the
+  # app installed `shiki`, which is optional and heavy (it ships every grammar —
+  # turning this off took one real app's editor bundle from 14.3 MB to 3.6 MB).
+  # With no shiki installed and this left on, inserting a code block logs an
+  # error and renders unhighlighted. A component can still override per call.
+  mattr_accessor :block_editor_syntax_highlighting, default: true
+
   # Block Editor upload configuration
   # Authorization lambda: receives the controller instance, must return truthy to allow upload.
   # Example: ->(controller) { controller.current_user.present? }

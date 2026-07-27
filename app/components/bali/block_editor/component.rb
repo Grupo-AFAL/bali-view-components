@@ -15,7 +15,7 @@ module Bali
         format: :json,
         preset: :full,
         locale: nil,
-        syntax_highlighting: true,
+        syntax_highlighting: nil,
         editable: true,
         placeholder: nil,
         upload_url: :auto,
@@ -46,7 +46,7 @@ module Bali
         # Sigue a la app por default: un editor en inglés dentro de una UI en
         # español es el error más visible de una instalación sin configurar.
         @locale = locale || I18n.locale.to_s.split("-").first
-        @syntax_highlighting = syntax_highlighting
+        @syntax_highlighting = syntax_highlighting.nil? ? Bali.block_editor_syntax_highlighting : syntax_highlighting
         @editable = editable
         @placeholder = placeholder
         @upload_url_auto = (upload_url == :auto)

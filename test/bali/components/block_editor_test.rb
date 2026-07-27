@@ -262,6 +262,28 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     assert_selector('[data-block-editor-syntax-highlighting-value="false"]')
   end
 
+  # Whether shiki is installed is an installation-level fact, so an app sets it
+  # once in the initializer instead of at all 19 call sites.
+  def test_syntax_highlighting_follows_the_global_configuration
+    original = Bali.block_editor_syntax_highlighting
+    Bali.block_editor_syntax_highlighting = false
+
+    render_inline(Bali::BlockEditor::Component.new)
+    assert_selector('[data-block-editor-syntax-highlighting-value="false"]')
+  ensure
+    Bali.block_editor_syntax_highlighting = original
+  end
+
+  def test_an_explicit_value_overrides_the_global_configuration
+    original = Bali.block_editor_syntax_highlighting
+    Bali.block_editor_syntax_highlighting = false
+
+    render_inline(Bali::BlockEditor::Component.new(syntax_highlighting: true))
+    assert_selector('[data-block-editor-syntax-highlighting-value="true"]')
+  ensure
+    Bali.block_editor_syntax_highlighting = original
+  end
+
   def test_locale_follows_the_application_by_default
     I18n.with_locale(:es) do
       render_inline(Bali::BlockEditor::Component.new)
