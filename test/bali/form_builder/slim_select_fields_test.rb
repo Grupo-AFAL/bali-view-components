@@ -60,6 +60,30 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     end
   end
 
+  # include_blank / prompt -> SlimSelect placeholder (issue gobierno-corporativo#570)
+
+  def test_slim_select_field_include_blank_renders_a_slim_select_placeholder_option
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, include_blank: "Choose a status")
+    assert_html(result, 'option[data-placeholder="true"][value=""]', text: "Choose a status")
+  end
+
+  def test_slim_select_field_prompt_renders_a_slim_select_placeholder_option
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, prompt: "Pick one")
+    assert_html(result, 'option[data-placeholder="true"][value=""]', text: "Pick one")
+  end
+
+  def test_slim_select_field_without_blank_renders_no_placeholder_option
+    result = builder.slim_select_field(:status, Movie.statuses.to_a)
+    assert_html(result, "option[data-placeholder]", count: 0)
+  end
+
+  def test_slim_select_field_include_blank_keeps_the_real_options_selectable
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, include_blank: "Choose a status")
+    Movie.statuses.each do |name, value|
+      assert_html(result, "option[value=\"#{value}\"]:not([data-placeholder])", text: name)
+    end
+  end
+
   def test_slim_select_field_applies_daisyui_select_classes
     result = builder.slim_select_field(:status, Movie.statuses.to_a)
     assert_html(result, "select.select.select-bordered")
