@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v2.16.0] - 2026-07-26
+
+### Fixed
+
+- **SlimSelect** - the widget no longer dies (search stops filtering, clicks stop selecting, only the arrow toggles it) after a Turbo restoration visit. Turbo caches a page snapshot while controllers are still connected, so the snapshot already contained the `.ss-main` widget SlimSelect injects; on back/forward — or any navigation to an already-cached page — the controller reconnected and stacked a second, event-less widget over the dead cached one. The controller now tears SlimSelect down on `turbo:before-cache` (so the stored snapshot stays clean) and defensively removes any stale `.ss-main` before re-initializing. Only reproducible through Turbo navigation, not a hard reload — which is why it surfaced in normal app use but not in isolated page loads.
+- **SlimSelect** - `include_blank` / `prompt` now render a proper SlimSelect placeholder instead of a selectable, checkmarked option. Rails emits a plain empty `<option>`; SlimSelect only treats an option as a placeholder — muted and excluded from the selectable list — when it carries `data-placeholder="true"`, so the "choose one" blank previously showed up inside the dropdown as a pickable row with a selected checkmark. `slim_select_field` now promotes the blank of a flat option list to a `data-placeholder="true"` option.
+
 ## [v2.15.0] - 2026-07-22
 
 ### Added

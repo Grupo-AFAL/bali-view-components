@@ -34,6 +34,19 @@ export class SlimSelectController extends Controller {
   static targets = ['select', 'selectAllButton', 'deselectAllButton']
 
   async connect () {
+    // A Turbo restoration visit (back/forward, or navigating to an already
+    // cached page) replays a snapshot that was captured while this controller
+    // was still connected, so it already contains the `.ss-main` widget
+    // SlimSelect injected. Re-initializing on top of it would stack a second,
+    // event-less widget over the dead cached one — the visible select then
+    // neither filters on search nor selects on click. Drop any stale widget
+    // before (re)initializing, and tear SlimSelect down again right before
+    // Turbo caches the page so the stored snapshot stays clean.
+    this.removeStaleWidget()
+
+    this.beforeCacheHandler = () => this.teardown()
+    document.addEventListener('turbo:before-cache', this.beforeCacheHandler)
+
     try {
       const { default: SlimSelect } = await import('slim-select')
 
@@ -108,7 +121,25 @@ export class SlimSelectController extends Controller {
   }
 
   disconnect () {
+    if (this.beforeCacheHandler) {
+      document.removeEventListener('turbo:before-cache', this.beforeCacheHandler)
+      this.beforeCacheHandler = null
+    }
+    this.teardown()
+  }
+
+  teardown () {
     this.select?.destroy()
+    this.select = null
+  }
+
+  // Remove a SlimSelect widget left behind in a restored Turbo snapshot. The
+  // original <select> (SlimSelect's target) is intentionally preserved so a
+  // fresh instance can attach to it on connect.
+  removeStaleWidget () {
+    this.element
+      .querySelectorAll('.ss-main')
+      .forEach(widget => widget.remove())
   }
 
   dataWithHTML () {
