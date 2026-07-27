@@ -1,31 +1,42 @@
-<%= tag.div(**options) do %>
-  <div data-block-editor-target="editor" class="block-editor-content"></div>
+<% if disabled? %>
+  <div class="border border-dashed border-error text-error text-sm rounded-box p-4">
+    <p class="font-semibold">Bali::BlockEditor is disabled</p>
+    <p>
+      Set <code>config.block_editor_enabled = true</code> in
+      <code>config/initializers/bali.rb</code> and install the npm packages listed in
+      <code>docs/api/block-editor.md</code>. This notice only appears in development.
+    </p>
+  </div>
+<% else %>
+  <%= tag.div(**options) do %>
+    <div data-block-editor-target="editor" class="block-editor-content"></div>
 
-  <% if show_export_buttons? %>
-    <div class="flex justify-end mt-2 gap-2">
-      <% if export_pdf? %>
-        <button type="button"
-                class="btn btn-sm btn-ghost gap-1"
-                data-action="block-editor#exportPdf">
-          <%= render Bali::Icon::Component.new('file-text', size: :small) %>
-          Export PDF
-        </button>
-      <% end %>
-      <% if export_docx? %>
-        <button type="button"
-                class="btn btn-sm btn-ghost gap-1"
-                data-action="block-editor#exportDocx">
-          <%= render Bali::Icon::Component.new('file-down', size: :small) %>
-          Export DOCX
-        </button>
-      <% end %>
-    </div>
-  <% end %>
+    <% if show_export_buttons? %>
+      <div class="flex justify-end mt-2 gap-2">
+        <% if export_pdf? %>
+          <button type="button"
+                  class="btn btn-sm btn-ghost gap-1"
+                  data-action="block-editor#exportPdf">
+            <%= render Bali::Icon::Component.new('file-text', size: :small) %>
+            Export PDF
+          </button>
+        <% end %>
+        <% if export_docx? %>
+          <button type="button"
+                  class="btn btn-sm btn-ghost gap-1"
+                  data-action="block-editor#exportDocx">
+            <%= render Bali::Icon::Component.new('file-down', size: :small) %>
+            Export DOCX
+          </button>
+        <% end %>
+      </div>
+    <% end %>
 
-  <% if editable? && input_name.present? %>
-    <input type="hidden"
-           data-block-editor-target="output"
-           name="<%= input_name %>"
-           value="<%= serialized_content %>" />
+    <% if editable? && input_name.present? %>
+      <input type="hidden"
+             data-block-editor-target="output"
+             name="<%= input_name %>"
+             value="<%= hidden_input_value %>" />
+    <% end %>
   <% end %>
 <% end %>

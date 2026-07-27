@@ -45,10 +45,50 @@
   --bn-font-family: inherit;
 }
 
-/* Editor content area */
+/* Editor content area.
+   The height is a custom property so a form can size a field the way it sizes a
+   textarea with `rows`, instead of every editor claiming 200px. */
 .block-editor-content {
-  min-height: 200px;
+  min-height: var(--bali-block-editor-min-height, 200px);
   width: 100%;
+}
+
+/* An editable editor standing on its own is a form field and has to look like
+   one: it sits between text inputs and selects. These are DaisyUI's own
+   `.textarea` values (border colour, radius, padding, inset shadow) plus its
+   focus outline, so it matches whatever theme the app is on instead of
+   approximating it.
+   Excluded inside DocumentPage and DocumentEditor: there the editor is the
+   document canvas, full width and already framed by its own chrome — a field
+   border around it would be wrong. */
+.block-editor-component[data-block-editor-editable-value="true"]:not(
+  .document-page-component *,
+  .document-editor-overlay *
+) {
+  --input-color: color-mix(in oklab, var(--color-base-content) 20%, #0000);
+
+  border: var(--border, 1px) solid var(--input-color);
+  border-radius: var(--radius-field, 0.5rem);
+  background-color: var(--color-base-100);
+  box-shadow:
+    0 1px color-mix(in oklab, var(--input-color) calc(var(--depth, 1) * 10%), #0000) inset,
+    0 -1px oklch(100% 0 0 / calc(var(--depth, 1) * 0.1)) inset;
+  padding-block: 0.5rem;
+  padding-inline: 0.75rem;
+}
+
+.block-editor-component[data-block-editor-editable-value="true"]:focus-within:not(
+  .document-page-component *,
+  .document-editor-overlay *
+) {
+  outline: 2px solid var(--color-base-content);
+  outline-offset: 1px;
+}
+
+/* Simple preset: a compact field, sized like a textarea rather than a document
+   canvas — four 200px blocks in one drawer read as a layout bug. */
+.block-editor-component[data-block-editor-preset-value="simple"] {
+  --bali-block-editor-min-height: 4rem;
 }
 
 /* Editor body: white background, remove default padding */

@@ -60,32 +60,79 @@
       "DataTransfer"
     ]
   },
+  "//peerDependencies": [
+    "Everything here is optional: Bali is a component library and no app uses all of it.",
+    "Block Editor (subpath ./block-editor): @blocknote/core + /react + /mantine, @mantine/core,",
+    "  @mantine/hooks, react, react-dom -- all MPL-2.0 or MIT. `shiki` is only needed for",
+    "  syntax-highlighted code blocks; pass syntax_highlighting: false and you can skip it.",
+    "Rich Text Editor (subpath ./rich-text-editor): the @tiptap/* set plus lowlight, highlight.js,",
+    "  tippy.js and lodash.throttle. This list previously existed only as a code comment that",
+    "  named three packages and trailed off in an ellipsis.",
+    "DELIBERATELY ABSENT -- @blocknote/xl-ai, xl-multi-column, xl-pdf-exporter, xl-docx-exporter",
+    "  and their companions (`ai`, `docx`, `@react-pdf/renderer`). Those four are",
+    "  'GPL-3.0 OR PROPRIETARY': a closed-source application needs a paid commercial licence.",
+    "  Declaring them as peers led people to install them by reflex. They are documented in",
+    "  docs/api/block-editor.md, and the loader keeps them lazy so an app that never turns those",
+    "  features on still builds and runs without them."
+  ],
   "peerDependencies": {
-    "@blocknote/core": ">=0.46.0",
-    "@blocknote/mantine": ">=0.46.0",
-    "@blocknote/react": ">=0.46.0",
-    "@blocknote/xl-ai": ">=0.46.0",
-    "@blocknote/xl-multi-column": ">=0.46.0",
+    "@blocknote/core": ">=0.51.0",
+    "@blocknote/mantine": ">=0.51.0",
+    "@blocknote/react": ">=0.51.0",
     "@mantine/core": ">=8.3.0",
     "@mantine/hooks": ">=8.3.0",
-    "ai": ">=6.0.0",
+    "shiki": ">=1.0.0",
     "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "react-dom": ">=18.0.0",
+    "@tiptap/core": ">=2.0.0",
+    "@tiptap/extension-blockquote": ">=2.0.0",
+    "@tiptap/extension-bold": ">=2.0.0",
+    "@tiptap/extension-bubble-menu": ">=2.0.0",
+    "@tiptap/extension-bullet-list": ">=2.0.0",
+    "@tiptap/extension-code": ">=2.0.0",
+    "@tiptap/extension-code-block": ">=2.0.0",
+    "@tiptap/extension-color": ">=2.0.0",
+    "@tiptap/extension-document": ">=2.0.0",
+    "@tiptap/extension-dropcursor": ">=2.0.0",
+    "@tiptap/extension-gapcursor": ">=2.0.0",
+    "@tiptap/extension-hard-break": ">=2.0.0",
+    "@tiptap/extension-heading": ">=2.0.0",
+    "@tiptap/extension-highlight": ">=2.0.0",
+    "@tiptap/extension-history": ">=2.0.0",
+    "@tiptap/extension-image": ">=2.0.0",
+    "@tiptap/extension-italic": ">=2.0.0",
+    "@tiptap/extension-link": ">=2.0.0",
+    "@tiptap/extension-list-item": ">=2.0.0",
+    "@tiptap/extension-mention": ">=2.0.0",
+    "@tiptap/extension-paragraph": ">=2.0.0",
+    "@tiptap/extension-placeholder": ">=2.0.0",
+    "@tiptap/extension-strike": ">=2.0.0",
+    "@tiptap/extension-subscript": ">=2.0.0",
+    "@tiptap/extension-superscript": ">=2.0.0",
+    "@tiptap/extension-table": ">=2.0.0",
+    "@tiptap/extension-table-cell": ">=2.0.0",
+    "@tiptap/extension-table-row": ">=2.0.0",
+    "@tiptap/extension-task-item": ">=2.0.0",
+    "@tiptap/extension-task-list": ">=2.0.0",
+    "@tiptap/extension-text": ">=2.0.0",
+    "@tiptap/extension-text-align": ">=2.0.0",
+    "@tiptap/extension-text-style": ">=2.0.0",
+    "@tiptap/extension-underline": ">=2.0.0",
+    "@tiptap/suggestion": ">=2.0.0",
+    "@rails/request.js": ">=0.0.9",
+    "highlight.js": ">=11.0.0",
+    "lodash.throttle": ">=4.0.0",
+    "lowlight": ">=2.0.0",
+    "tippy.js": ">=6.0.0"
   },
   "peerDependenciesMeta": {
     "@blocknote/core": {
       "optional": true
     },
-    "@blocknote/react": {
-      "optional": true
-    },
     "@blocknote/mantine": {
       "optional": true
     },
-    "@blocknote/xl-multi-column": {
-      "optional": true
-    },
-    "@blocknote/xl-ai": {
+    "@blocknote/react": {
       "optional": true
     },
     "@mantine/core": {
@@ -94,13 +141,133 @@
     "@mantine/hooks": {
       "optional": true
     },
-    "ai": {
+    "shiki": {
       "optional": true
     },
     "react": {
       "optional": true
     },
     "react-dom": {
+      "optional": true
+    },
+    "@tiptap/core": {
+      "optional": true
+    },
+    "@tiptap/extension-blockquote": {
+      "optional": true
+    },
+    "@tiptap/extension-bold": {
+      "optional": true
+    },
+    "@tiptap/extension-bubble-menu": {
+      "optional": true
+    },
+    "@tiptap/extension-bullet-list": {
+      "optional": true
+    },
+    "@tiptap/extension-code": {
+      "optional": true
+    },
+    "@tiptap/extension-code-block": {
+      "optional": true
+    },
+    "@tiptap/extension-color": {
+      "optional": true
+    },
+    "@tiptap/extension-document": {
+      "optional": true
+    },
+    "@tiptap/extension-dropcursor": {
+      "optional": true
+    },
+    "@tiptap/extension-gapcursor": {
+      "optional": true
+    },
+    "@tiptap/extension-hard-break": {
+      "optional": true
+    },
+    "@tiptap/extension-heading": {
+      "optional": true
+    },
+    "@tiptap/extension-highlight": {
+      "optional": true
+    },
+    "@tiptap/extension-history": {
+      "optional": true
+    },
+    "@tiptap/extension-image": {
+      "optional": true
+    },
+    "@tiptap/extension-italic": {
+      "optional": true
+    },
+    "@tiptap/extension-link": {
+      "optional": true
+    },
+    "@tiptap/extension-list-item": {
+      "optional": true
+    },
+    "@tiptap/extension-mention": {
+      "optional": true
+    },
+    "@tiptap/extension-paragraph": {
+      "optional": true
+    },
+    "@tiptap/extension-placeholder": {
+      "optional": true
+    },
+    "@tiptap/extension-strike": {
+      "optional": true
+    },
+    "@tiptap/extension-subscript": {
+      "optional": true
+    },
+    "@tiptap/extension-superscript": {
+      "optional": true
+    },
+    "@tiptap/extension-table": {
+      "optional": true
+    },
+    "@tiptap/extension-table-cell": {
+      "optional": true
+    },
+    "@tiptap/extension-table-row": {
+      "optional": true
+    },
+    "@tiptap/extension-task-item": {
+      "optional": true
+    },
+    "@tiptap/extension-task-list": {
+      "optional": true
+    },
+    "@tiptap/extension-text": {
+      "optional": true
+    },
+    "@tiptap/extension-text-align": {
+      "optional": true
+    },
+    "@tiptap/extension-text-style": {
+      "optional": true
+    },
+    "@tiptap/extension-underline": {
+      "optional": true
+    },
+    "@tiptap/suggestion": {
+      "optional": true
+    },
+    "@rails/request.js": {
+      "optional": true
+    },
+    "highlight.js": {
+      "optional": true
+    },
+    "lodash.throttle": {
+      "optional": true
+    },
+    "lowlight": {
+      "optional": true
+    },
+    "tippy.js": {
       "optional": true
     }
   },

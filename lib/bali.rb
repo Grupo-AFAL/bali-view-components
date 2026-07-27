@@ -40,6 +40,7 @@ require "bali/form_builder/radio_fields"
 require "bali/form_builder/range_fields"
 require "bali/form_builder/recurrent_event_rule_fields"
 require "bali/form_builder/rich_text_area_fields"
+require "bali/form_builder/rich_text_fields"
 require "bali/form_builder/search_fields"
 require "bali/form_builder/select_fields"
 require "bali/form_builder/slim_select_fields"
@@ -74,6 +75,14 @@ module Bali
   # Set to true to enable the Block Editor component (requires @blocknote/core)
   mattr_accessor :block_editor_enabled, default: false
 
+  # Whether Block Editor code blocks get syntax highlighting. This is an
+  # installation-level decision, not a per-field one: it depends on whether the
+  # app installed `shiki`, which is optional and heavy (it ships every grammar —
+  # turning this off took one real app's editor bundle from 14.3 MB to 4.0 MB).
+  # With no shiki installed and this left on, inserting a code block logs an
+  # error and renders unhighlighted. A component can still override per call.
+  mattr_accessor :block_editor_syntax_highlighting, default: true
+
   # Block Editor upload configuration
   # Authorization lambda: receives the controller instance, must return truthy to allow upload.
   # Example: ->(controller) { controller.current_user.present? }
@@ -92,7 +101,8 @@ module Bali
   # See BlockEditorUploadsController::ALLOWED_CONTENT_TYPES for the full list.
   mattr_accessor :block_editor_allowed_upload_types, default: nil
 
-  # Maximum upload file size in bytes. Default: 10.megabytes
+  # Maximum upload file size in bytes. When nil the controller's own default
+  # applies, which is 50.megabytes (BlockEditorUploadsController::MAX_FILE_SIZE).
   mattr_accessor :block_editor_max_upload_size, default: nil
 
   # Explicit upload URL path. When set, the component uses this instead of
