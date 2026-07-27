@@ -1,53 +1,81 @@
 # Bali::BlockEditor::Component
 
-A rich text editor powered by [BlockNote](https://www.blocknotejs.org/) and React, integrated into Rails via a Stimulus controller. Provides a modern block-based editing experience with support for rich text, code blocks, tables, multi-column layouts, file uploads, @mentions, #entity references, AI assistance, and PDF/DOCX export.
+A rich text editor powered by [BlockNote](https://www.blocknotejs.org/) and React, integrated into Rails via a Stimulus controller. Provides a modern block-based editing experience with support for rich text, code blocks, tables, multi-column layouts, file uploads, @mentions, #entity references, inline comments, AI assistance, and PDF/DOCX export.
 
-## Prerequisites
+Content can be stored as BlockNote JSON, HTML or **Markdown**, and the UI comes in two sizes -- a full block editor or a cut-down `:simple` preset for description fields. For forms, `Bali::FormBuilder` wraps both behind [`f.rich_text_group` / `f.block_editor_group`](#formbuilder-helpers).
 
-### npm Dependencies
+## Installation
+
+Everything in this section is **free software** (MPL-2.0 or MIT) and needs no commercial licence. The paid BlockNote XL packages are deliberately *not* part of it -- see [BlockNote XL packages](#blocknote-xl-packages-paid-opt-in).
+
+### Step 1 -- npm packages
 
 ```bash
-yarn add @blocknote/core @blocknote/react @blocknote/mantine react react-dom
-yarn add shiki                       # Syntax highlighting for code blocks
-
-# Optional - for multi-column layouts (XL package, requires license for closed-source)
-yarn add @blocknote/xl-multi-column
-
-# Optional - for export functionality (XL packages)
-yarn add @blocknote/xl-pdf-exporter @react-pdf/renderer
-yarn add @blocknote/xl-docx-exporter docx
-
-# Optional - for AI assistance (XL package)
-yarn add @blocknote/xl-ai ai
+yarn add @blocknote/core @blocknote/react @blocknote/mantine \
+         @mantine/core @mantine/hooks \
+         react react-dom
 ```
 
-### BlockNote XL Package Licensing
+The three `@mantine/*` entries are easy to miss: `@blocknote/mantine` needs `@mantine/core` and `@mantine/hooks` and does not bring them along.
 
-The BlockEditor relies on several **BlockNote XL** packages for advanced features. These packages are **dual-licensed** and may require a paid subscription depending on your project:
+Code blocks are syntax-highlighted by default, which needs one more package:
 
-| Package | Feature | License |
-|---------|---------|---------|
-| `@blocknote/core`, `@blocknote/react`, `@blocknote/mantine` | Core editor | **MPL 2.0** -- Free for all projects, including commercial and closed-source |
-| `@blocknote/xl-multi-column` | Multi-column layouts | **GPL-3.0** or Commercial |
-| `@blocknote/xl-pdf-exporter` | PDF export | **GPL-3.0** or Commercial |
-| `@blocknote/xl-docx-exporter` | DOCX export | **GPL-3.0** or Commercial |
-| `@blocknote/xl-ai` | AI assistance | **GPL-3.0** or Commercial |
+```bash
+yarn add shiki
+```
 
-**What this means for your application:**
+You can skip `shiki` if you render the component with `syntax_highlighting: false` (see [Syntax highlighting](#syntax-highlighting)). Leaving highlighting on *without* `shiki` installed still builds, but code blocks fail at runtime and the console shows `` BlockEditor: syntax highlighting is on but `shiki` could not be loaded ``.
 
-- **Open-source projects (GPL-3.0 compatible):** XL packages are free to use under GPL-3.0.
-- **Closed-source / proprietary applications:** You must purchase a [BlockNote Business subscription](https://www.blocknotejs.org/pricing) ($390/month) for a commercial license to use any XL package.
+All of these are declared as **optional** peer dependencies of `bali-view-components`, so your package manager will neither install them for you nor warn when they are missing. Minimum versions come from `package.json`: `@blocknote/*` `>= 0.51.0`, `@mantine/*` `>= 8.3.0`, `react` / `react-dom` `>= 18.0.0`.
 
-**Commercial license terms:**
-- Covers **one application** (single production domain) per license
-- Includes **5 developer seats**
-- Auto-renews monthly; XL packages must not be used in production if the subscription lapses
+### Step 2 -- esbuild flags
 
-**Startup/non-profit discounts** are available for seed-stage startups and non-profits with fewer than 5 employees. See [BlockNote Pricing](https://www.blocknotejs.org/pricing) for details.
+Bali's assets are bundled with esbuild. Two settings are required; both were found by building a real application, and each fails as a hard build error rather than a warning:
 
-> **Note:** The base BlockEditor component works without any XL packages and requires no commercial license. Multi-column layouts are opt-in via `multi_column: true`, which dynamically loads `@blocknote/xl-multi-column`. Only enable XL features if your project is GPL-3.0 compatible or you have a commercial license.
+```javascript
+// esbuild.config.mjs
+const config = {
+  entryPoints: ['app/javascript/application.js'],
+  bundle: true,
+  format: 'esm',
+  jsx: 'automatic',
+  outdir: 'app/assets/builds',
 
-### Rails Configuration
+  // The BlockNote/Mantine packages expose their stylesheets through the
+  // "style" export condition (e.g. the `@blocknote/mantine/style.css` that
+  // BlockNoteEditorWrapper.jsx imports). Without this, those subpaths do
+  // not resolve and the build fails.
+  conditions: ['style'],
+
+  loader: {
+    // Without these, the build stops with a batch of "No loader is configured
+    // for '.woff2' files" errors (18 in the app this was measured on) coming
+    // from the fonts BlockNote and Mantine ship with their CSS.
+    //
+    // Use `dataurl`, NOT `file`: with Propshaft, esbuild's content hash in the
+    // emitted filename is mistaken for Propshaft's own digest, stripped, and
+    // the font 404s.
+    '.woff': 'dataurl',
+    '.woff2': 'dataurl',
+    '.ttf': 'dataurl',
+    '.eot': 'dataurl'
+  }
+}
+```
+
+The same thing on the CLI:
+
+```bash
+esbuild app/javascript/application.js --bundle --format=esm --jsx=automatic \
+  --conditions=style \
+  --loader:.woff=dataurl --loader:.woff2=dataurl \
+  --loader:.ttf=dataurl --loader:.eot=dataurl \
+  --outdir=app/assets/builds
+```
+
+> **Link the CSS, or the editor looks broken and nothing fails.** The editor's stylesheets are imported from JavaScript, so esbuild emits them as a **separate file** next to the bundle -- an `application.js` entry point produces `app/assets/builds/application.css`. If your layout only has `javascript_include_tag "application"`, add the matching `stylesheet_link_tag "application"`. Otherwise every test still passes, nothing is logged, and the editor simply renders unstyled.
+
+### Step 3 -- Rails configuration
 
 Enable the component in your Bali initializer:
 
@@ -58,17 +86,89 @@ Bali.config do |config|
 end
 ```
 
-The component will not render unless `block_editor_enabled` is `true`.
+The component does not render unless `block_editor_enabled` is `true`. When it is `false` the component logs a warning through `Rails.logger.warn` on every render, and in `development` it also renders a visible red dashed notice in place of the editor. In every other environment it renders an empty string -- which is why `assert_response :success` happily passes on a page whose editor never appeared.
 
-### Stimulus Controller Registration
+### Step 4 -- Register the Stimulus controller
 
-Register the controller in your JavaScript entry point:
+The BlockEditor controller is **not** exported from the package root (`bali-view-components`), because pulling it in would drag React and BlockNote into every bundle. Import it from the `./block-editor` subpath:
 
 ```javascript
-import { BlockEditorController } from 'bali-view-components'
+import { BlockEditorController } from 'bali-view-components/block-editor'
 
 application.register('block-editor', BlockEditorController)
 ```
+
+Or let the helper do the registration:
+
+```javascript
+import { registerBlockEditor } from 'bali-view-components/block-editor'
+
+registerBlockEditor(application)
+```
+
+---
+
+## BlockNote XL packages (paid, opt-in)
+
+Four optional features are built on **BlockNote XL** packages, licensed `GPL-3.0 OR PROPRIETARY`. A closed-source application needs a paid commercial licence to ship them.
+
+| Package | Feature | Enabled by | License |
+|---------|---------|-----------|---------|
+| `@blocknote/core`, `@blocknote/react`, `@blocknote/mantine` | Core editor | always | **MPL-2.0** -- free for any project, including closed-source |
+| `@blocknote/xl-multi-column` | Multi-column layouts | `multi_column: true` | **GPL-3.0 or commercial** |
+| `@blocknote/xl-pdf-exporter` + `@react-pdf/renderer` | PDF export | `export: true` / `export: [:pdf]` | **GPL-3.0 or commercial** |
+| `@blocknote/xl-docx-exporter` + `docx` | DOCX export | `export: true` / `export: [:docx]` | **GPL-3.0 or commercial** |
+| `@blocknote/xl-ai` + `ai` | AI assistance | `ai_url: '...'` | **GPL-3.0 or commercial** |
+
+**These packages are not declared as peer dependencies of `bali-view-components`, on purpose.** Listing them as peers led people to install them reflexively -- and installing them is the act that puts a closed-source app on the hook for the licence. Install them explicitly, only after deciding you are entitled to:
+
+```bash
+# Multi-column layouts
+yarn add @blocknote/xl-multi-column
+
+# PDF export
+yarn add @blocknote/xl-pdf-exporter @react-pdf/renderer
+
+# DOCX export
+yarn add @blocknote/xl-docx-exporter docx
+
+# AI assistance
+yarn add @blocknote/xl-ai ai
+```
+
+**What the licence means for your application:**
+
+- **Open-source projects (GPL-3.0 compatible):** free to use under GPL-3.0.
+- **Closed-source / proprietary applications:** you must purchase a [BlockNote Business subscription](https://www.blocknotejs.org/pricing) ($390/month) for a commercial licence to use any XL package.
+
+**Commercial licence terms:**
+- Covers **one application** (single production domain) per licence
+- Includes **5 developer seats**
+- Auto-renews monthly; XL packages must not be used in production if the subscription lapses
+
+**Startup/non-profit discounts** are available for seed-stage startups and non-profits with fewer than 5 employees. See [BlockNote Pricing](https://www.blocknotejs.org/pricing) for details.
+
+### How "optional" actually works at build time
+
+Every XL import in this component is a dynamic `import()` inside a `try`, **awaited one per line**. That shape is load-bearing, not style:
+
+```javascript
+// index.js
+try {
+  const xlAi = await import('@blocknote/xl-ai')
+  await import('@blocknote/xl-ai/style.css')
+  const aiLocales = await import('@blocknote/xl-ai/locales')
+  const aiSdk = await import('ai')
+  // ...
+} catch (error) { /* feature stays off */ }
+```
+
+esbuild only treats a dynamic import as optional when it can attribute the failure to a surrounding `try`, and it cannot do that for an import nested in a `Promise.all` argument list. While these imports were grouped in a `Promise.all`, an application that installed only the free core **did not compile at all** -- 27 esbuild resolution errors for packages it had deliberately not bought. That is fixed; keep the one-await-per-line shape if you touch this code.
+
+What this does and does not buy you:
+
+- An app that never installs the XL packages **builds and runs**. Turning the corresponding feature on at render time logs a console error and the feature stays off.
+- An app that *does* install them gets them in the bundle as separate chunks, loaded on demand: the multi-column chunk when `multi_column: true`, the AI chunk when `ai_url` is set, the exporter chunks when the user clicks an export button. The base editor bundle stays free of them.
 
 ---
 
@@ -110,12 +210,23 @@ When `input_name` is provided, the editor syncs its content to a hidden input fi
 ```
 
 **Format options:**
-- `:json` (default) -- Serializes as BlockNote JSON. Lossless round-trip. Recommended for storage.
-- `:html` -- Serializes as HTML. Lossy (some block-level metadata may be lost).
+- `:json` (default) -- Serializes as BlockNote JSON. Lossless round-trip. Recommended when the content never leaves the editor.
+- `:html` -- Serializes as HTML via `blocksToHTMLLossy`. Lossy (some block-level metadata may be lost).
+- `:markdown` -- Serializes as Markdown via `blocksToMarkdownLossy`. Lossy, but keeps the column readable by everything else in the app: search, plain-text exports, APIs, LLM prompts.
+
+Each format has a matching input prop, so the stored value is *parsed* rather than shown as raw source:
+
+| `format:` | Load the stored value with | Parsed by |
+|-----------|---------------------------|-----------|
+| `:json` | `initial_content:` | `JSON.parse` (or `setContent` for ProseMirror JSON) |
+| `:html` | `html_content:` | `editor.tryParseHTMLToBlocks` |
+| `:markdown` | `markdown_content:` | `editor.tryParseMarkdownToBlocks` |
+
+Before the editor mounts, the hidden input already carries the **original** content for the configured format. A form submitted without ever touching the editor round-trips the stored value instead of blanking the column.
 
 ### Loading HTML Content
 
-If you have existing HTML content (e.g., from a legacy Trix editor), use `html_content:` instead of `initial_content:`. The editor will parse the HTML into blocks on mount.
+If you have existing HTML content (e.g., from a legacy Trix editor), use `html_content:` instead of `initial_content:`. The editor parses the HTML into blocks on mount.
 
 ```erb
 <%= render Bali::BlockEditor::Component.new(
@@ -125,22 +236,100 @@ If you have existing HTML content (e.g., from a legacy Trix editor), use `html_c
 ) %>
 ```
 
+### Storing Markdown
+
+Use `format: :markdown` with `markdown_content:` to keep a plain `text` column that stays legible outside the editor.
+
+```erb
+<%= render Bali::BlockEditor::Component.new(
+  markdown_content: @post.body,
+  input_name: 'post[body]',
+  format: :markdown
+) %>
+```
+
+Markdown is a lossy target by construction (BlockNote names the serializer `blocksToMarkdownLossy`): anything Markdown cannot express -- including this component's custom inline content, `@mentions` and `#entity references` -- is not guaranteed to survive a round-trip. Use `:json` when fidelity matters more than legibility.
+
+---
+
+## Presets
+
+`preset:` chooses how much editing UI is exposed.
+
+| `preset:` | Formatting toolbar | Side menu (drag handle / `+`) | Slash menu (`/`) | File panel |
+|-----------|-------------------|-------------------------------|------------------|------------|
+| `:full` (default) | complete | yes | yes | yes |
+| `:simple` | block type select, bold, italic, strikethrough, inline code, link | no | no | no |
+
+```erb
+<%= render Bali::BlockEditor::Component.new(
+  markdown_content: @task.description,
+  input_name: 'task[description]',
+  format: :markdown,
+  preset: :simple
+) %>
+```
+
+`@mentions` and `#entity references` still work under `:simple` when their respective options are configured -- the preset only removes the three menus listed above.
+
+> **The simple preset restricts the UI, never the schema.** Tables, images, columns and every other block spec stay registered even though nothing in the simple UI can insert them. This is deliberate: if the schema could not represent a construct already present in stored content, merely opening a record and saving it would silently destroy that part of the document.
+
+---
+
+## Syntax highlighting
+
+Code blocks are highlighted with [Shiki](https://shiki.style/) by default (`syntax_highlighting: true`). Turning it off swaps in BlockNote's plain code block and never loads `shiki`:
+
+```erb
+<%= render Bali::BlockEditor::Component.new(syntax_highlighting: false) %>
+```
+
+**This is the single biggest lever on bundle size.** `shiki` pulls in the whole grammar set, and the grammars dwarf the highlighter itself. In one application, turning highlighting off took the built bundle from **14.3 MB to 3.6 MB**.
+
+Highlighting on is worth it for documentation-style content; for a description field or a comment box it rarely is. `shiki` is only needed when highlighting is on -- see [Step 1](#step-1----npm-packages).
+
+---
+
+## FormBuilder helpers
+
+`Bali::FormBuilder` exposes the editor the way Rails exposes `rich_text_area`: bind a plain text column and get an editor, with no wiring at the call site.
+
+```erb
+<%= form_with model: @task, builder: Bali::FormBuilder do |f| %>
+  <%= f.rich_text_group :description %>
+  <%= f.block_editor_group :body, preset: :full, format: :json %>
+<% end %>
+```
+
+| Helper | Preset | Default format | Use for |
+|--------|--------|----------------|---------|
+| `f.rich_text_group` / `f.rich_text` | `:simple` | `:markdown` | Description and note fields: bold/italic/lists over a plain text column |
+| `f.block_editor_group` / `f.block_editor` | `:full` | `:markdown` | Full block editing; pass `format: :json` for BlockNote's native document JSON |
+
+The `*_group` variants wrap the field in `Bali::FieldGroupWrapper` (label, hint, errors); the bare variants render just the editor. Both derive `input_name` from the attribute and read the current value from the model through the prop matching `format:`, so no `markdown_content:` / `html_content:` / `initial_content:` is needed at the call site. Any other option is forwarded to `Bali::BlockEditor::Component`.
+
+> **Not to be confused with `f.rich_text_area_group`.** That one is the ActionText/Trix helper and has nothing to do with this component -- different editor, different storage, different dependencies. The name similarity is unfortunate; check which one you are calling.
+
 ---
 
 ## Parameters
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `initial_content` | `String`, `Hash`, `Array` | `nil` | BlockNote JSON content to load |
+| `initial_content` | `String`, `Hash`, `Array` | `nil` | BlockNote JSON (or ProseMirror JSON) content to load |
 | `html_content` | `String` | `nil` | HTML string to parse into blocks on mount |
+| `markdown_content` | `String` | `nil` | Markdown string to parse into blocks on mount |
 | `input_name` | `String` | `nil` | Hidden input `name` attribute for form submission |
-| `format` | `Symbol` | `:json` | Serialization format: `:json` or `:html` |
+| `format` | `Symbol` | `:json` | Serialization format: `:json`, `:html` or `:markdown` |
+| `preset` | `Symbol` | `:full` | UI preset: `:full` or `:simple` (see [Presets](#presets)) |
+| `syntax_highlighting` | `Boolean` | `true` | Highlight code blocks with Shiki. `false` never loads `shiki` |
 | `editable` | `Boolean` | `true` | Whether the editor is editable |
 | `placeholder` | `String` | `nil` | Placeholder text shown when editor is empty |
 | `upload_url` | `String`, `:auto` | `:auto` | Upload endpoint URL. `:auto` resolves from engine routes |
 | `theme` | `Symbol` | `:light` | Editor theme: `:light` or `:dark` |
-| `export` | `Boolean`, `Array` | `false` | Enable export buttons. `true` for both, or `[:pdf]`, `[:docx]`, `[:pdf, :docx]` |
+| `export` | `Boolean`, `Array` | `false` | Enable export. `true` for both, or `[:pdf]`, `[:docx]`, `[:pdf, :docx]` |
 | `export_filename` | `String` | `'document'` | Base filename for exported files (without extension) |
+| `show_export_buttons` | `Boolean` | `true` | Render the built-in export buttons. `false` keeps export enabled but hides them, for callers driving `block-editor#exportPdf` / `#exportDocx` from their own UI |
 | `ai_url` | `String` | `nil` | AI chat endpoint URL. Enables AI features when set |
 | `mentions_url` | `String` | `nil` | Remote mentions search endpoint URL |
 | `mentions` | `Array` | `nil` | Static list of mentionable users |
@@ -149,11 +338,9 @@ If you have existing HTML content (e.g., from a legacy Trix editor), use `html_c
 | `references_config` | `Hash` | `nil` | Custom entity type display configuration |
 | `multi_column` | `Boolean` | `false` | Enable multi-column layouts (requires `@blocknote/xl-multi-column`) |
 | `table_of_contents` | `Boolean` | `false` | Enable table of contents sidebar |
-| `comments` | `Boolean` | `false` | Enable inline comments with threads sidebar |
-| `comments_url` | `String` | `nil` | REST API base URL for persistent thread storage (uses in-memory when nil) |
-| `comments_user` | `Hash` | `nil` | Current user: `{ id:, username:, avatar_url: }` (required when `comments: true`) |
-| `comments_users` | `Array` | `nil` | Static user list for resolution: `[{ id:, username:, avatar_url: }, ...]` |
-| `comments_users_url` | `String` | `nil` | Remote endpoint for user resolution |
+| `table_of_contents_container_id` | `String` | `nil` | DOM id to portal the table of contents into, instead of rendering it beside the editor |
+| `comments` | `Hash` | `nil` | Inline comments configuration -- see [Comments](#comments). Comments are on when a Hash is given |
+| `comments_container_id` | `String` | `nil` | DOM id to portal the threads sidebar into, instead of rendering it beside the editor |
 | `**options` | `Hash` | `{}` | Additional HTML attributes passed to the wrapper div |
 
 ---
@@ -167,19 +354,20 @@ These features work out of the box with zero configuration:
 - **Lists** -- Bullet, numbered, checklist, toggle
 - **Blockquotes**
 - **Tables** -- Resizable with header rows
-- **Code blocks** -- Syntax highlighting via Shiki for 20+ languages
+- **Code blocks** -- Syntax highlighting via Shiki for 22 languages (opt out with `syntax_highlighting: false`)
 - **Dividers**
-- **Slash menu** -- Type `/` to access all block types
+- **Slash menu** -- Type `/` to access all block types (`preset: :full` only)
+- **Inline comments** -- MPL-2.0, no XL package required (see [Comments](#comments))
 
 ### Opt-in Features (XL Packages)
 
-These features require explicit opt-in and use XL packages (see [Licensing](#blocknote-xl-package-licensing)):
+These features require explicit opt-in **and installing the corresponding paid-licence packages yourself** -- they are not peer dependencies (see [BlockNote XL packages](#blocknote-xl-packages-paid-opt-in)):
 
 - **Multi-column layouts** -- 2 and 3 column layouts via slash menu (`multi_column: true`)
 - **PDF/DOCX export** -- Export editor content to PDF or DOCX files (`export: true`)
 - **AI assistance** -- AI-powered text generation and editing (`ai_url: '...'`)
 
-All XL packages are dynamically imported only when their feature is enabled, keeping the base bundle lean and license-free.
+If an XL package is not installed, the build still succeeds and the feature simply does not activate: the loader logs a console error and moves on. If it *is* installed, it lands in a separate chunk that is only fetched when the feature is used, so the base editor bundle stays free of it. See [How "optional" actually works at build time](#how-optional-actually-works-at-build-time) for why the code is written the way it is.
 
 ### Supported Code Languages
 
@@ -202,7 +390,7 @@ mount Bali::Engine => '/bali'
 
 The engine provides `POST /bali/block_editor/uploads` which:
 - Validates file type via MIME type detection (not just extension)
-- Validates file size (default 50MB max)
+- Validates file size -- the effective default is **50 MB** (`Bali::BlockEditorUploadsController::MAX_FILE_SIZE`), used whenever `block_editor_max_upload_size` is left unset
 - Blocks dangerous extensions (`.exe`, `.bat`, `.sh`, etc.)
 - Creates an Active Storage unattached blob and returns `{ url: "..." }`
 
@@ -502,14 +690,24 @@ Inline commenting allows users to select text and attach comment threads, simila
 
 ### Basic Setup
 
+Comments are configured through a single `comments:` **Hash**:
+
 ```erb
-<%%= render Bali::BlockEditor::Component.new(
-  comments: true,
-  comments_user: { id: current_user.id, username: current_user.name, avatar_url: current_user.avatar_url }
+<%= render Bali::BlockEditor::Component.new(
+  comments: {
+    user: { id: current_user.id, username: current_user.name, avatar_url: current_user.avatar_url }
+  }
 ) %>
 ```
 
-The `comments_user` parameter identifies the current user for authoring comments. It requires `id` and `username`; `avatar_url` is optional.
+| Key | Type | Description |
+|-----|------|-------------|
+| `user` | `Hash` | Current user authoring comments: `{ id:, username:, avatar_url: }`. `id` and `username` are required, `avatar_url` optional |
+| `users` | `Array` | Static user list for resolution: `[{ id:, username:, avatar_url: }, ...]` |
+| `users_url` | `String` | Remote endpoint for user resolution |
+| `url` | `String` | REST API base URL for persistent thread storage (in-memory when omitted) |
+
+> **Comments are on only when `comments:` is a non-empty Hash.** `comments: true` and `comments: {}` both leave them off, silently -- a truthy non-Hash is not a configuration. There is no separate `comments_user:` / `comments_url:` / `comments_users:` / `comments_users_url:` argument: passing those at the top level does not configure anything, they fall through to `**options` and end up as HTML attributes on the wrapper `div`.
 
 ### User Resolution
 
@@ -520,14 +718,15 @@ When displaying comments, the editor needs to resolve user IDs into display name
 Pass a list of users directly. Best for small teams or preview contexts.
 
 ```erb
-<%%= render Bali::BlockEditor::Component.new(
-  comments: true,
-  comments_user: { id: '1', username: 'Alice', avatar_url: '' },
-  comments_users: [
-    { id: '1', username: 'Alice', avatar_url: '/avatars/alice.jpg' },
-    { id: '2', username: 'Bob', avatar_url: '/avatars/bob.jpg' },
-    { id: '3', username: 'Carlos', avatar_url: '/avatars/carlos.jpg' }
-  ]
+<%= render Bali::BlockEditor::Component.new(
+  comments: {
+    user: { id: '1', username: 'Alice', avatar_url: '' },
+    users: [
+      { id: '1', username: 'Alice', avatar_url: '/avatars/alice.jpg' },
+      { id: '2', username: 'Bob', avatar_url: '/avatars/bob.jpg' },
+      { id: '3', username: 'Carlos', avatar_url: '/avatars/carlos.jpg' }
+    ]
+  }
 ) %>
 ```
 
@@ -536,10 +735,11 @@ Pass a list of users directly. Best for small teams or preview contexts.
 For larger user bases, point to an endpoint that resolves user IDs:
 
 ```erb
-<%%= render Bali::BlockEditor::Component.new(
-  comments: true,
-  comments_user: { id: current_user.id, username: current_user.name, avatar_url: current_user.avatar_url },
-  comments_users_url: '/api/users/resolve'
+<%= render Bali::BlockEditor::Component.new(
+  comments: {
+    user: { id: current_user.id, username: current_user.name, avatar_url: current_user.avatar_url },
+    users_url: '/api/users/resolve'
+  }
 ) %>
 ```
 
@@ -572,17 +772,18 @@ end
 
 #### In-Memory (Default)
 
-When `comments_url` is not provided, comments are stored **in-memory** -- they exist only for the duration of the editor session and are lost on page reload. This is suitable for previews, demos, and single-session review workflows.
+When `comments[:url]` is not provided, comments are stored **in-memory** -- they exist only for the duration of the editor session and are lost on page reload. This is suitable for previews, demos, and single-session review workflows.
 
 #### REST Persistence
 
-Pass `comments_url` to persist comments to a database via REST API:
+Pass `comments[:url]` to persist comments to a database via REST API:
 
 ```erb
-<%%= render Bali::BlockEditor::Component.new(
-  comments: true,
-  comments_url: '/api/comments',
-  comments_user: { id: current_user.id, username: current_user.name, avatar_url: current_user.avatar_url }
+<%= render Bali::BlockEditor::Component.new(
+  comments: {
+    url: '/api/comments',
+    user: { id: current_user.id, username: current_user.name, avatar_url: current_user.avatar_url }
+  }
 ) %>
 ```
 
@@ -594,7 +795,7 @@ The `RESTThreadStore` will:
 
 #### REST API Contract
 
-Your server must implement these endpoints (all relative to `comments_url`):
+Your server must implement these endpoints (all relative to `comments[:url]`):
 
 | Method | Path | Description |
 |--------|------|-------------|
@@ -644,7 +845,7 @@ Comment thread positions are stored as marks in the ProseMirror document. The th
 
 ## PDF and DOCX Export
 
-> **Licensing:** PDF and DOCX export use XL packages (`@blocknote/xl-pdf-exporter`, `@blocknote/xl-docx-exporter`). Free for open-source projects under GPL-3.0; closed-source applications require a [BlockNote Business subscription](https://www.blocknotejs.org/pricing). See [Licensing](#blocknote-xl-package-licensing).
+> **Licensing:** PDF and DOCX export use XL packages (`@blocknote/xl-pdf-exporter`, `@blocknote/xl-docx-exporter`), which are **not** peer dependencies -- you install them yourself. Free for open-source projects under GPL-3.0; closed-source applications require a [BlockNote Business subscription](https://www.blocknotejs.org/pricing). See [BlockNote XL packages](#blocknote-xl-packages-paid-opt-in).
 
 Add export buttons below the editor:
 
@@ -681,13 +882,13 @@ yarn add @blocknote/xl-pdf-exporter @react-pdf/renderer
 yarn add @blocknote/xl-docx-exporter docx
 ```
 
-These are dynamically imported only when `export:` is enabled and the user clicks an export button. If `export: false` (the default), the XL packages are never loaded.
+They are imported dynamically, inside a `try`, when the user clicks an export button -- not at page load, and never when `export: false` (the default). If they are not installed at all, the build still succeeds and clicking export logs `BlockEditor: PDF export failed` to the console.
 
 ---
 
 ## AI Assistance
 
-> **Licensing:** AI features use the XL package `@blocknote/xl-ai`. Free for open-source projects under GPL-3.0; closed-source applications require a [BlockNote Business subscription](https://www.blocknotejs.org/pricing). See [Licensing](#blocknote-xl-package-licensing).
+> **Licensing:** AI features use the XL package `@blocknote/xl-ai`, which is **not** a peer dependency -- you install it yourself. Free for open-source projects under GPL-3.0; closed-source applications require a [BlockNote Business subscription](https://www.blocknotejs.org/pricing). See [BlockNote XL packages](#blocknote-xl-packages-paid-opt-in).
 
 AI features add an AI button to the formatting toolbar and an `/ai` slash command. Requires a chat endpoint compatible with the AI SDK.
 
@@ -703,7 +904,7 @@ AI features add an AI button to the formatting toolbar and an `/ai` slash comman
 yarn add @blocknote/xl-ai ai
 ```
 
-These are dynamically imported only when `ai_url` is configured, so they don't affect bundle size for editors without AI.
+They are imported dynamically, inside a `try`, only when `ai_url` is configured, so they land in a chunk that editors without AI never fetch. If they are not installed at all, the build still succeeds and setting `ai_url` logs `BlockEditor: Failed to load AI modules` to the console while the editor renders without AI.
 
 ### AI Chat Endpoint
 
@@ -786,9 +987,10 @@ An editor with all capabilities enabled:
   multi_column: true,
 
   # Comments
-  comments: true,
-  comments_user: { id: current_user.id, username: current_user.name, avatar_url: current_user.avatar_url },
-  comments_users_url: '/api/users/resolve',
+  comments: {
+    user: { id: current_user.id, username: current_user.name, avatar_url: current_user.avatar_url },
+    users_url: '/api/users/resolve'
+  },
 
   # Export
   export: true,
@@ -816,7 +1018,7 @@ The editor uses [Mantine](https://mantine.dev/) for its UI and respects DaisyUI 
 <%= render Bali::BlockEditor::Component.new(theme: :dark) %>
 ```
 
-The CSS is lazy-loaded via Vite only when the BlockEditor component is used on a page.
+The stylesheets (`@blocknote/core/fonts/inter.css`, `@blocknote/mantine/style.css` and this component's `index.css`) are imported from `BlockNoteEditorWrapper.jsx`, so esbuild folds them into the CSS file it emits next to your JS bundle at build time. There is no runtime CSS loading and no Vite in this project -- if the bundle's stylesheet is not linked in the layout, the editor renders unstyled (see [Step 2](#step-2----esbuild-flags)).
 
 ---
 
@@ -824,32 +1026,52 @@ The CSS is lazy-loaded via Vite only when the BlockEditor component is used on a
 
 The BlockEditor uses a **custom Stimulus controller** that manages a React component lifecycle:
 
-1. **Mount** -- On Stimulus `connect()`, dynamically imports React, ReactDOM, and BlockNoteEditorWrapper, then creates a React root
-2. **Turbo cleanup** -- Listens for `turbo:before-cache` to unmount the React root before Turbo caches the page
-3. **Disconnect** -- Unmounts the React root on Stimulus `disconnect()`
+1. **Turbo opt-out** -- `connect()` appends `<meta name="turbo-cache-control" content="no-cache">` if the page does not already have one. React's internal state (fiber tree, `__reactContainer$` expandos) does not survive Turbo's cache → preview → replace cycle, so the page is excluded from the Turbo cache rather than restored from it. The meta tag is removed again on `disconnect()`.
+2. **Mount** -- `connect()` dynamically imports React, ReactDOM and `BlockNoteEditorWrapper`, then creates a React root.
+3. **Submit flush** -- the wrapper hands the controller a `flush` callback, bound to the surrounding form's `submit` event (see [Content sync](#content-sync-and-form-submit)).
+4. **Disconnect** -- destroys the tiptap/ProseMirror editor *before* unmounting the React root (ProseMirror plugins remove DOM nodes while destroying; if Turbo has already detached the tree, `removeChild` throws), then unmounts.
 
-XL modules (multi-column, AI) are only imported when their respective features are enabled, keeping the base bundle lean and license-free.
+### Content sync and form submit
+
+When `input_name` is set, the editor keeps a hidden input in sync with its content. Two writers:
+
+- **Debounced** -- 500 ms after the last change (`SYNC_DELAY` in `useContentSync.js`).
+- **On submit** -- the controller listens for `submit` on `this.element.closest('form')` (capture phase) and writes immediately, cancelling the pending debounce.
+
+The second one is not an optimisation. With only the debounce, a form submitted inside the 500 ms window posted the **previous** content: the user's last edits vanished with no error and no validation failure. Drawers that submit over `fetch` hit this constantly. Serialisation is synchronous (BlockNote >= 0.51), so the value is in place before the browser reads the form.
+
+The `submit` event is what triggers the flush, so a form sent through the legacy `form.submit()` DOM call -- which fires no `submit` event -- still races the debounce. Use `form.requestSubmit()`, or let Turbo/Rails submit the form normally.
+
+### Version compatibility
+
+The peer range is `@blocknote/* >= 0.51.0`, and the lower bound is not cosmetic:
+
+- **0.51** made the parsers and serialisers **synchronous**. They returned promises before. Code that did `tryParseHTMLToBlocks(...).then(...)` throws on 0.51+ because `.then` is not a function on a plain array; this component no longer chains them. The same applies to `tryParseMarkdownToBlocks`, `blocksToMarkdownLossy` and `blocksToHTMLLossy` -- BlockNote's own documentation still describes some of these as async, and is wrong for current versions.
+- **0.47** has two table-corruption bugs, fixed in **0.52**: a `|` typed inside a table cell drops a column, and a table without a header row promotes its first data row to the header. If your content has tables, prefer `>= 0.52`.
 
 ### File Structure
 
 ```
 app/components/bali/block_editor/
   component.rb                  # Ruby ViewComponent class
-  component.html.erb            # ERB template
-  index.js                      # Stimulus controller + export logic
+  component.html.erb            # ERB template (incl. the disabled-in-development notice)
+  index.js                      # Stimulus controller + export logic + submit flush
   BlockNoteEditorWrapper.jsx    # React component (main editor)
   inlineContent.jsx             # Mention and EntityReference definitions
   useFileUpload.js              # File upload hook
-  useContentSync.js             # Hidden input sync hook (debounced 300ms)
+  useContentSync.js             # Hidden input sync hook (debounced 500ms + flush)
   useMentions.js                # @mentions suggestion hook
   useEntityReferences.jsx       # #entity references suggestion + resolution hook
   useComments.js                # Comments extension setup hook
+  TableOfContents.jsx           # Table of contents sidebar
   InMemoryThreadStore.js        # In-memory ThreadStore for comments (no persistence)
   RESTThreadStore.js            # REST-backed ThreadStore for persistent comments
   constants.js                  # Supported languages, max upload size
   index.css                     # DaisyUI overrides for BlockNote/Mantine
   preview.rb                    # Lookbook previews
 ```
+
+The FormBuilder helpers live outside this directory, in `lib/bali/form_builder/rich_text_fields.rb`.
 
 ---
 
@@ -864,6 +1086,7 @@ app/components/bali/block_editor/
 | Mentions (Static) | `/lookbook/inspect/bali/block_editor/with_mentions` | Static user list |
 | Mentions (Remote) | `/lookbook/inspect/bali/block_editor/with_remote_mentions` | Server search |
 | Entity References | `/lookbook/inspect/bali/block_editor/with_entity_references` | #references |
+| Table of Contents | `/lookbook/inspect/bali/block_editor/with_table_of_contents` | Headings sidebar |
 | Full Featured | `/lookbook/inspect/bali/block_editor/full_featured` | All features enabled |
 | With Comments (In-Memory) | `/lookbook/inspect/bali/block_editor/with_comments` | Inline comments (session-only) |
 | With Comments (Persistent) | `/lookbook/inspect/bali/block_editor/with_persistent_comments` | Inline comments with REST persistence |
@@ -871,10 +1094,28 @@ app/components/bali/block_editor/
 
 ---
 
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| The page renders but there is no editor at all, and no error | `block_editor_enabled` is `false`, so the component renders an empty string. `assert_response :success` still passes | Set `config.block_editor_enabled = true`. In `development` you get a red dashed notice instead of silence; a `Rails.logger.warn` is emitted in every environment |
+| The editor renders but looks unstyled / broken | The CSS esbuild emitted next to the JS bundle is not linked | Add `stylesheet_link_tag "application"` alongside `javascript_include_tag "application"` -- see [Step 2](#step-2----esbuild-flags) |
+| Build fails with `No loader is configured for ".woff2" files` | Missing font loaders | Add the four `dataurl` loaders -- see [Step 2](#step-2----esbuild-flags) |
+| Fonts 404 at runtime with a mangled digest in the path | Font loader set to `file` instead of `dataurl` under Propshaft | Use `dataurl` |
+| A `*/style.css` subpath fails to resolve at build time | The `style` export condition is not enabled | Add `conditions: ['style']` |
+| Console: `Failed to load editor. Ensure @blocknote/react, @blocknote/mantine, react, and react-dom are installed.` | A core package is missing | Run the [Step 1](#step-1----npm-packages) install, including the three `@mantine/*` |
+| Console: `` syntax highlighting is on but `shiki` could not be loaded `` | `shiki` not installed while `syntax_highlighting` is `true` | `yarn add shiki`, or pass `syntax_highlighting: false` |
+| Console: `Failed to load AI modules` / `PDF export failed` | The XL packages for that feature are not installed | Install them deliberately -- read [BlockNote XL packages](#blocknote-xl-packages-paid-opt-in) first |
+| Content saved is one edit behind | The form was submitted through `form.submit()`, which fires no `submit` event, so the flush never ran | Use `form.requestSubmit()` or a normal Turbo/Rails submit |
+| Comments never appear | `comments:` was given something other than a non-empty Hash | See [Comments](#comments) |
+| `TypeError: ....then is not a function` while parsing content | BlockNote older than 0.51 (or third-party code chaining `.then` onto a now-synchronous parser) | Upgrade to `>= 0.51`, `>= 0.52` if you use tables |
+
+---
+
 ## Accessibility
 
 - Keyboard accessible -- all block operations available via keyboard shortcuts
-- Slash menu navigable with arrow keys and Enter
+- Slash menu navigable with arrow keys and Enter (`preset: :full`)
 - Suggestion menus (mentions, references) support keyboard navigation
 - Focus management handled by BlockNote core
 - Semantic HTML output for screen readers

@@ -19,6 +19,9 @@ import {
   FormattingToolbarController,
   FormattingToolbar,
   getFormattingToolbarItems,
+  BasicTextStyleButton,
+  BlockTypeSelect,
+  CreateLinkButton,
   ThreadsSidebar
 } from '@blocknote/react'
 import { createPortal } from 'react-dom'
@@ -55,12 +58,17 @@ function collectHeadings (blocks, result = []) {
 export default function BlockNoteEditorWrapper ({
   initialContent,
   htmlContent,
+  markdownContent,
   editable = true,
   placeholder,
   format = 'json',
+  preset = 'full',
+  locale = 'en',
+  syntaxHighlighting = true,
   uploadUrl,
   outputElement,
   onEditorReady,
+  onSyncReady,
   theme = 'light',
   aiUrl,
   ai,
@@ -80,7 +88,11 @@ export default function BlockNoteEditorWrapper ({
   commentsUsersUrl
 }) {
   const htmlParsed = useRef(false)
-  const ready = useRef(!htmlContent)
+  // Deferred content (HTML/Markdown) is applied after mount; hold back the
+  // content sync until then so autosave doesn't overwrite the document with
+  // the empty initial state.
+  const ready = useRef(!htmlContent && !markdownContent)
+  const simple = preset === 'simple'
   const aiEnabled = !!(aiUrl && ai)
   const mentionsEnabled = !!(mentionsUrl || (staticMentions && staticMentions.length > 0))
   const referencesEnabled = !!referencesUrl
@@ -110,31 +122,40 @@ export default function BlockNoteEditorWrapper ({
     }
   }, [initialContent])
 
-  // Build schema with syntax highlighting, optional multi-column, and mentions support
+  // Build schema with optional syntax highlighting, multi-column, and mentions support.
+  //
+  // `shiki` is a heavyweight optional dependency (~9 MB unminified with every
+  // grammar) and is NOT declared as a peer. Each import() is awaited on its own
+  // line inside the try: esbuild only treats a dynamic import as optional when
+  // it can attribute the failure to a surrounding try, which it cannot do for
+  // imports nested in a Promise.all argument list. Written this way, an app that
+  // never installs shiki still builds, and code blocks simply render unhighlighted.
   const schema = useMemo(() => {
+    const codeBlock = syntaxHighlighting
+      ? createCodeBlockSpec({
+        supportedLanguages: SUPPORTED_LANGUAGES,
+        defaultLanguage: 'text',
+        createHighlighter: async () => {
+          try {
+            const { createHighlighter } = await import('shiki')
+            const { createJavaScriptRegexEngine } = await import('shiki/engine/javascript')
+            return createHighlighter({
+              themes: ['github-light', 'github-dark'],
+              langs: PRELOADED_LANGS,
+              engine: createJavaScriptRegexEngine()
+            })
+          } catch (error) {
+            console.error('BlockEditor: syntax highlighting is on but `shiki` could not be loaded. Install it, or pass syntax_highlighting: false.', error)
+            throw error
+          }
+        }
+      })
+      : defaultBlockSpecs.codeBlock
+
     const base = BlockNoteSchema.create({
       blockSpecs: {
         ...defaultBlockSpecs,
-        codeBlock: createCodeBlockSpec({
-          supportedLanguages: SUPPORTED_LANGUAGES,
-          defaultLanguage: 'text',
-          createHighlighter: async () => {
-            try {
-              const [{ createHighlighter }, { createJavaScriptRegexEngine }] = await Promise.all([
-                import('shiki'),
-                import('shiki/engine/javascript')
-              ])
-              return createHighlighter({
-                themes: ['github-light', 'github-dark'],
-                langs: PRELOADED_LANGS,
-                engine: createJavaScriptRegexEngine()
-              })
-            } catch (error) {
-              console.error('BlockEditor: Failed to initialize syntax highlighter:', error)
-              throw error
-            }
-          }
-        })
+        codeBlock
       },
       inlineContentSpecs: {
         ...defaultInlineContentSpecs,
@@ -143,7 +164,7 @@ export default function BlockNoteEditorWrapper ({
       }
     })
     return multiColumn ? multiColumn.withMultiColumn(base) : base
-  }, [multiColumn])
+  }, [multiColumn, syntaxHighlighting])
 
   const aiExtension = useMemo(() => {
     if (!aiEnabled) return null
@@ -166,17 +187,32 @@ export default function BlockNoteEditorWrapper ({
     return exts.length > 0 ? exts : undefined
   }, [aiExtension, commentsResult])
 
+  // BlockNote ships ~23 locales; fall back to English for an unknown tag rather
+  // than rendering an editor with no labels at all.
+  const dictionary = useMemo(() => {
+    const base = coreLocales[locale] ?? coreLocales.en
+    return {
+      ...base,
+      ...(multiColumn ? { multi_column: (multiColumn.locales[locale] ?? multiColumn.locales.en) } : {}),
+      ...(aiEnabled ? { ai: (ai.aiLocales[locale] ?? ai.aiLocales.en) } : {})
+    }
+  }, [locale, multiColumn, aiEnabled, ai])
+
+  // The default placeholder advertises the "/" slash menu, which the simple
+  // preset turns off. Promising a menu that never opens is worse than no hint.
+  const placeholders = useMemo(() => {
+    if (placeholder) return { default: placeholder }
+    if (simple) return { default: '' }
+    return undefined
+  }, [placeholder, simple])
+
   const editor = useCreateBlockNote({
     schema,
     dropCursor: multiColumn?.multiColumnDropCursor,
-    dictionary: {
-      ...coreLocales.en,
-      ...(multiColumn ? { multi_column: multiColumn.locales.en } : {}),
-      ...(aiEnabled ? { ai: ai.aiLocales.en } : {})
-    },
+    dictionary,
     initialContent: parsedContent,
     uploadFile: uploadUrl ? uploadFile : undefined,
-    placeholders: placeholder ? { default: placeholder } : undefined,
+    placeholders,
     extensions
   })
 
@@ -206,7 +242,14 @@ export default function BlockNoteEditorWrapper ({
     referencesResolveUrl,
     referencesConfig
   })
-  const handleChange = useContentSync(editor, outputElement, format, ready)
+  const { handleChange, flush } = useContentSync(editor, outputElement, format, ready)
+
+  // Hand the synchronous flush to the Stimulus controller so it can write the
+  // pending content on form submit. Without it, submitting inside the debounce
+  // window posts the previous content and the last edits are lost silently.
+  useEffect(() => {
+    if (onSyncReady) onSyncReady(flush)
+  }, [onSyncReady, flush])
 
   const [tocHeadings, setTocHeadings] = useState(() =>
     tableOfContents ? collectHeadings(editor.document) : []
@@ -327,33 +370,63 @@ export default function BlockNoteEditorWrapper ({
     }
   }, [editor])
 
-  // Load HTML content after mount if no JSON content was provided
+  // Load deferred HTML/Markdown content after mount if no JSON content was provided.
+  //
+  // BlockNote's parsers became synchronous in 0.51 (they returned promises
+  // before), so the result is awaited rather than chained with .then() — calling
+  // .then() on a plain array throws.
   useEffect(() => {
-    if (!parsedContent && htmlContent && editor && !htmlParsed.current) {
-      htmlParsed.current = true
-      editor.tryParseHTMLToBlocks(htmlContent).then((blocks) => {
+    const deferred = markdownContent
+      ? { text: markdownContent, parse: () => editor.tryParseMarkdownToBlocks(markdownContent), label: 'Markdown' }
+      : htmlContent
+        ? { text: htmlContent, parse: () => editor.tryParseHTMLToBlocks(htmlContent), label: 'HTML' }
+        : null
+
+    if (parsedContent || !deferred || !editor || htmlParsed.current) return
+
+    htmlParsed.current = true
+    ;(async () => {
+      try {
+        const blocks = await deferred.parse()
         if (blocks && blocks.length > 0) {
           editor.replaceBlocks(editor.document, blocks)
         }
-      }).catch((error) => {
-        console.error('BlockEditor: Failed to parse HTML content:', error)
-      }).finally(() => {
+      } catch (error) {
+        console.error(`BlockEditor: Failed to parse ${deferred.label} content:`, error)
+      } finally {
         ready.current = true
-      })
-    }
-  }, [editor, htmlContent, parsedContent])
+      }
+    })()
+  }, [editor, htmlContent, markdownContent, parsedContent])
 
-  // Only need a custom toolbar when AI is enabled (to add AI button).
-  // Comments button is already included by getFormattingToolbarItems()
+  // Custom toolbar when AI is enabled (to add the AI button) or in the simple
+  // preset (to cut the toolbar down to inline formatting).
+  // Otherwise the comments button is already included by getFormattingToolbarItems()
   // and BlockNoteView handles FloatingComposer/FloatingThread via comments prop.
-  const needsCustomToolbar = aiEnabled
+  const needsCustomToolbar = aiEnabled || simple
+
+  // The simple preset restricts the UI, never the schema: the editor must still
+  // be able to represent every construct already present in stored content, or
+  // opening and saving a record would destroy the parts it can't model.
+  const simpleToolbar = (
+    <FormattingToolbar>
+      <BlockTypeSelect key='blockType' />
+      <BasicTextStyleButton basicTextStyle='bold' key='bold' />
+      <BasicTextStyleButton basicTextStyle='italic' key='italic' />
+      <BasicTextStyleButton basicTextStyle='strike' key='strike' />
+      <BasicTextStyleButton basicTextStyle='code' key='code' />
+      <CreateLinkButton key='link' />
+    </FormattingToolbar>
+  )
 
   const editorChildren = (
     <>
-      <SuggestionMenuController
-        triggerCharacter='/'
-        getItems={getSlashMenuItems}
-      />
+      {!simple && (
+        <SuggestionMenuController
+          triggerCharacter='/'
+          getItems={getSlashMenuItems}
+        />
+      )}
       {mentionsEnabled && (
         <SuggestionMenuController
           triggerCharacter='@'
@@ -369,10 +442,14 @@ export default function BlockNoteEditorWrapper ({
       {needsCustomToolbar && (
         <FormattingToolbarController
           formattingToolbar={() => (
-            <FormattingToolbar>
-              {getFormattingToolbarItems()}
-              {aiEnabled && <ai.AIToolbarButton key='aiButton' />}
-            </FormattingToolbar>
+            simple
+              ? simpleToolbar
+              : (
+                <FormattingToolbar>
+                  {getFormattingToolbarItems()}
+                  {aiEnabled && <ai.AIToolbarButton key='aiButton' />}
+                </FormattingToolbar>
+                )
           )}
         />
       )}
@@ -396,6 +473,8 @@ export default function BlockNoteEditorWrapper ({
         theme={theme}
         onChange={handleChangeWithToc}
         slashMenu={false}
+        sideMenu={simple ? false : undefined}
+        filePanel={simple ? false : undefined}
         formattingToolbar={needsCustomToolbar ? false : undefined}
         comments={commentsEnabled && commentsReady}
       >

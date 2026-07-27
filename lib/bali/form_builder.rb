@@ -25,6 +25,7 @@ module Bali
     include RangeFields
     include RecurrentEventRuleFields
     include RichTextAreaFields
+    include RichTextFields
     include SearchFields
     include SelectFields
     include SlimSelectFields

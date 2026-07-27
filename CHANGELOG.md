@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **BlockEditor** - an application that installs only the free MPL-2.0 packages can now BUILD. The four paid `@blocknote/xl-*` packages and their companions (`ai`, `docx`, `@react-pdf/renderer`) were loaded through `import()` calls nested inside `Promise.all([...])`. esbuild only treats a dynamic import as optional when it can attribute the failure to a surrounding `try`, which it cannot do for an import in an argument list — so it demanded all of them at BUILD time, even for an app that never enables AI or exporting. Measured on a real app: `yarn build` failed with **27 errors**; after awaiting each import on its own line it builds clean. This matters beyond ergonomics: those four packages are `GPL-3.0 OR PROPRIETARY`, so "just install what the library asks for" quietly pulled a closed-source app into a paid commercial licence. Same fix applied to `shiki`.
+- **BlockEditor** - compatible with BlockNote >= 0.51 again. Its parsers stopped returning promises in 0.51, and the HTML path still called `.then()` on the result, which throws on a plain array. The peer range moved to `>=0.51.0` for a second reason: 0.47 corrupts table data in two ways (a `|` inside a cell is not escaped on export, so re-parsing drops a cell; and a table with no header row promotes the first data row to a header).
+- **BlockEditor** - a form submitted within the 500 ms sync debounce posted the PREVIOUS content, losing the user's last edits with no error. The controller now also flushes on the form's `submit` event. Drawers that submit over fetch hit this on every fast save.
+- **BlockEditor** - the editor rendered in English regardless of the application locale. It now follows `I18n.locale` (BlockNote ships ~23 locales) and accepts an explicit `locale:`.
+- **BlockEditor** - documentation corrected: the import example named the package root, which does not export `BlockEditorController` (the subpath `bali-view-components/block-editor` does), and two passages claimed the XL packages had no build-time cost.
+
+### Added
+
+- **BlockEditor** - `format: :markdown` with a matching `markdown_content:`, serialising through `blocksToMarkdownLossy` / `tryParseMarkdownToBlocks`. This is what lets an application adopt the editor WITHOUT migrating stored data: search, plain-text exports, APIs and LLM prompts keep reading the same column. Verified against 14 real documents: 12 round-trip word-for-word, GFM tables and nested checklists survive intact, and the first save normalises whitespace and list markers before converging. Known loss (silent, inherent to Markdown): underline, text/background colour, alignment, merged cells, and text in `<angle brackets>`, which Markdown reads as an HTML tag.
+- **BlockEditor** - `preset:` — `:full` (default) or `:simple`, which cuts the UI down to bold/italic/strike/code/link plus block type, with no slash menu, side menu or file panel, and takes the border and scale of a form field. The preset restricts the UI only, never the schema: an editor that could not represent something already stored would destroy it on the next save.
+- **BlockEditor** - `syntax_highlighting:` (default `true`). `shiki` was always in the import graph, and it bundles every grammar it ships: on a real application, turning it off took the editor bundle from **14.3 MB to 3.6 MB**.
+- **FormBuilder** - `f.rich_text_group :field` and `f.block_editor_group :field` (`lib/bali/form_builder/rich_text_fields.rb`), giving the component the same ergonomics as Rails' own `rich_text_area`: the input name, the current value and the storage format are derived from the form object. `rich_text_group` defaults to the simple preset and Markdown storage. Not to be confused with the pre-existing `rich_text_area_group`, which is the ActionText/Trix helper.
+- **BlockEditor** - declares the peer dependencies it actually imports. The ~35 `@tiptap/*` packages the Rich Text Editor needs existed only as a code comment that named three and trailed off in an ellipsis; `shiki`, `lowlight`, `highlight.js`, `tippy.js`, `lodash.throttle` and `@rails/request.js` were undeclared entirely. The paid `@blocknote/xl-*` packages were REMOVED from `peerDependencies` and documented separately, so nobody installs a commercial licence by reflex.
+- **BlockEditor** - a component rendered while `Bali.block_editor_enabled` is false now logs a warning naming the flag, and shows a visible placeholder in development. It used to render an empty string: no markup, no error, and `assert_response :success` still passing — the most common way this component is mis-installed.
+- **BlockEditor** - `--bali-block-editor-min-height` custom property, so a form can size an editor the way it sizes a textarea's `rows` instead of every instance claiming 200px.
+
 ## [v2.15.0] - 2026-07-22
 
 ### Added

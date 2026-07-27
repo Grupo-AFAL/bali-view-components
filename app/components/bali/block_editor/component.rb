@@ -10,8 +10,12 @@ module Bali
       def initialize(
         initial_content: nil,
         html_content: nil,
+        markdown_content: nil,
         input_name: nil,
         format: :json,
+        preset: :full,
+        locale: nil,
+        syntax_highlighting: true,
         editable: true,
         placeholder: nil,
         upload_url: :auto,
@@ -35,8 +39,14 @@ module Bali
         # rubocop:enable Metrics/ParameterLists, Metrics/AbcSize
         @initial_content = initial_content
         @html_content = html_content
+        @markdown_content = markdown_content
         @input_name = input_name
         @format = format
+        @preset = preset
+        # Sigue a la app por default: un editor en inglés dentro de una UI en
+        # español es el error más visible de una instalación sin configurar.
+        @locale = locale || I18n.locale.to_s.split("-").first
+        @syntax_highlighting = syntax_highlighting
         @editable = editable
         @placeholder = placeholder
         @upload_url_auto = (upload_url == :auto)
@@ -102,10 +112,45 @@ module Bali
       end
 
       def render?
-        Bali.block_editor_enabled
+        return true if Bali.block_editor_enabled
+
+        warn_disabled
+        # In development, render a visible placeholder instead of nothing so the
+        # mistake is impossible to miss. Test keeps the "renders nothing"
+        # contract, and production never shows scaffolding to users.
+        Rails.env.development?
+      end
+
+      def disabled?
+        !Bali.block_editor_enabled
+      end
+
+      # What the hidden input carries before the editor has mounted and synced.
+      # It must round-trip the ORIGINAL content: if the user submits without
+      # touching the editor, an empty value here would silently blank the field.
+      def hidden_input_value
+        case @format.to_sym
+        when :markdown then @markdown_content.to_s
+        when :html then @html_content.to_s
+        else serialized_content
+        end
       end
 
       private
+
+      # A disabled component renders an empty string: no markup, no controller,
+      # no error — and `assert_response :success` still passes. That silence is
+      # the single most common way this component is mis-installed, so say so
+      # loudly where it is safe to: logs always, plus a visible placeholder in
+      # development and test (see component.html.erb).
+      def warn_disabled
+        Rails.logger.warn(
+          "[Bali] BlockEditor::Component was rendered but `Bali.block_editor_enabled` is false, " \
+          "so nothing was output. Set `config.block_editor_enabled = true` in " \
+          "config/initializers/bali.rb and install the npm packages listed in " \
+          "docs/api/block-editor.md."
+        )
+      end
 
       def controller_values
         base_values.merge(export_values)
@@ -116,7 +161,11 @@ module Bali
         {
           initial_content: serialized_content,
           html_content: @html_content || "",
+          markdown_content: @markdown_content || "",
           format: @format.to_s,
+          preset: @preset.to_s,
+          locale: @locale.to_s,
+          syntax_highlighting: @syntax_highlighting,
           editable: @editable,
           placeholder: @placeholder || "",
           upload_url: @upload_url,

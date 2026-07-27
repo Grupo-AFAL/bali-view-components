@@ -212,4 +212,82 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     render_inline(Bali::BlockEditor::Component.new)
     assert_selector('[data-block-editor-export-filename-value="document"]')
   end
+
+  # --- Markdown storage, presets and quiet-failure guard ---
+
+  def test_accepts_markdown_content_and_format
+    render_inline(Bali::BlockEditor::Component.new(format: :markdown, markdown_content: "**hola**"))
+    assert_selector('[data-block-editor-format-value="markdown"]')
+    assert_selector('[data-block-editor-markdown-content-value="**hola**"]')
+  end
+
+  # The hidden input has to carry the original content: a form submitted before
+  # the editor mounts would otherwise blank the column.
+  def test_hidden_input_is_seeded_with_the_markdown_content
+    render_inline(
+      Bali::BlockEditor::Component.new(
+        format: :markdown, markdown_content: "texto previo", input_name: "post[body]"
+      )
+    )
+    assert_selector('input[name="post[body]"][value="texto previo"]', visible: false)
+  end
+
+  def test_hidden_input_is_seeded_with_the_html_content
+    render_inline(
+      Bali::BlockEditor::Component.new(
+        format: :html, html_content: "<p>hola</p>", input_name: "post[body]"
+      )
+    )
+    assert_selector('input[name="post[body]"][value="<p>hola</p>"]', visible: false)
+  end
+
+  def test_defaults_to_the_full_preset
+    render_inline(Bali::BlockEditor::Component.new)
+    assert_selector('[data-block-editor-preset-value="full"]')
+  end
+
+  def test_accepts_the_simple_preset
+    render_inline(Bali::BlockEditor::Component.new(preset: :simple))
+    assert_selector('[data-block-editor-preset-value="simple"]')
+  end
+
+  def test_syntax_highlighting_is_on_by_default
+    render_inline(Bali::BlockEditor::Component.new)
+    assert_selector('[data-block-editor-syntax-highlighting-value="true"]')
+  end
+
+  # Turning it off keeps `shiki` (~9 MB of grammars) out of the bundle.
+  def test_syntax_highlighting_can_be_turned_off
+    render_inline(Bali::BlockEditor::Component.new(syntax_highlighting: false))
+    assert_selector('[data-block-editor-syntax-highlighting-value="false"]')
+  end
+
+  def test_locale_follows_the_application_by_default
+    I18n.with_locale(:es) do
+      render_inline(Bali::BlockEditor::Component.new)
+      assert_selector('[data-block-editor-locale-value="es"]')
+    end
+  end
+
+  def test_locale_can_be_set_explicitly
+    render_inline(Bali::BlockEditor::Component.new(locale: :fr))
+    assert_selector('[data-block-editor-locale-value="fr"]')
+  end
+
+  # Rendering an empty string when the flag is off is the single most common way
+  # this component is mis-installed: no markup, no error, and a green test suite.
+  def test_logs_a_warning_when_rendered_while_disabled
+    Bali.block_editor_enabled = false
+    output = StringIO.new
+    original = Rails.logger
+    Rails.logger = Logger.new(output)
+
+    begin
+      render_inline(Bali::BlockEditor::Component.new)
+    ensure
+      Rails.logger = original
+    end
+
+    assert_includes output.string, "block_editor_enabled"
+  end
 end

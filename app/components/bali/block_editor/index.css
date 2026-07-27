@@ -45,10 +45,27 @@
   --bn-font-family: inherit;
 }
 
-/* Editor content area */
+/* Editor content area.
+   The height is a custom property so a form can size a field the way it sizes a
+   textarea with `rows`, instead of every editor claiming 200px. */
 .block-editor-content {
-  min-height: 200px;
+  min-height: var(--bali-block-editor-min-height, 200px);
   width: 100%;
+}
+
+/* Simple preset: this is a form field, not a document canvas. It sits between
+   text inputs and selects, so it takes their border and their scale — four
+   borderless 200px blocks in one drawer read as a layout bug. */
+.block-editor-component[data-block-editor-preset-value="simple"] {
+  --bali-block-editor-min-height: 4.5rem;
+
+  border: 1px solid var(--color-base-300, color-mix(in oklch, var(--color-base-content) 20%, transparent));
+  border-radius: var(--radius-field, var(--radius-box, 0.5rem));
+  padding: 0.5rem 0.75rem;
+}
+
+.block-editor-component[data-block-editor-preset-value="simple"]:focus-within {
+  border-color: var(--color-primary, currentColor);
 }
 
 /* Editor body: white background, remove default padding */

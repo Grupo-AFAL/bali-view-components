@@ -6,7 +6,11 @@ export class BlockEditorController extends Controller {
   static values = {
     initialContent: { type: String, default: '' },
     htmlContent: { type: String, default: '' },
+    markdownContent: { type: String, default: '' },
     format: { type: String, default: 'json' },
+    preset: { type: String, default: 'full' },
+    locale: { type: String, default: 'en' },
+    syntaxHighlighting: { type: Boolean, default: true },
     placeholder: { type: String, default: '' },
     editable: { type: Boolean, default: true },
     uploadUrl: String,
@@ -60,12 +64,17 @@ export class BlockEditorController extends Controller {
       const props = {
         initialContent: this.initialContentValue || undefined,
         htmlContent: this.htmlContentValue || undefined,
+        markdownContent: this.markdownContentValue || undefined,
         editable: this.editableValue,
         placeholder: this.placeholderValue || undefined,
         format: this.formatValue,
+        preset: this.presetValue,
+        locale: this.localeValue,
+        syntaxHighlighting: this.syntaxHighlightingValue,
         uploadUrl: this.uploadUrlValue || undefined,
         outputElement: this.hasOutputTarget ? this.outputTarget : null,
         onEditorReady: (editor) => { this.blockNoteEditor = editor },
+        onSyncReady: (flush) => this._bindSubmitFlush(flush),
         theme: this.themeValue,
         aiUrl: this.aiUrlValue || undefined,
         mentionsUrl: this.mentionsUrlValue || undefined,
@@ -98,15 +107,18 @@ export class BlockEditorController extends Controller {
         }
       }
 
-      // Dynamically load AI modules when ai_url is configured
+      // Dynamically load AI modules when ai_url is configured.
+      // Each import() is awaited on its own line: esbuild only treats a dynamic
+      // import as optional when it can attribute the failure to a surrounding
+      // try, which it cannot do for imports nested in a Promise.all argument
+      // list. Grouping them made these paid packages mandatory AT BUILD TIME
+      // for every consuming app, even one that never enables AI.
       if (props.aiUrl) {
         try {
-          const [xlAi, , aiLocales, aiSdk] = await Promise.all([
-            import('@blocknote/xl-ai'),
-            import('@blocknote/xl-ai/style.css'),
-            import('@blocknote/xl-ai/locales'),
-            import('ai')
-          ])
+          const xlAi = await import('@blocknote/xl-ai')
+          await import('@blocknote/xl-ai/style.css')
+          const aiLocales = await import('@blocknote/xl-ai/locales')
+          const aiSdk = await import('ai')
 
           props.ai = {
             AIExtension: xlAi.AIExtension,
@@ -140,8 +152,32 @@ export class BlockEditorController extends Controller {
     }
   }
 
+  // Write pending content to the hidden input the moment the surrounding form
+  // is submitted. The content sync is debounced (500 ms), so a form sent before
+  // the debounce fires would otherwise post the PREVIOUS content — the user's
+  // last edits vanish with no error. Drawers that submit over fetch hit this
+  // constantly. BlockNote's serializers are synchronous as of 0.51, so the
+  // value is in place before the browser reads the form.
+  _bindSubmitFlush (flush) {
+    this._flush = flush
+
+    const form = this.element.closest('form')
+    if (!form || this._submitFlushBound) return
+
+    this._submitFlushBound = () => { this._flush?.() }
+    form.addEventListener('submit', this._submitFlushBound, { capture: true })
+    this._boundForm = form
+  }
+
   disconnect () {
     this._disconnected = true
+
+    if (this._boundForm && this._submitFlushBound) {
+      this._boundForm.removeEventListener('submit', this._submitFlushBound, { capture: true })
+      this._boundForm = null
+      this._submitFlushBound = null
+    }
+    this._flush = null
 
     if (this._turboMeta) {
       this._turboMeta.remove()
@@ -167,15 +203,11 @@ export class BlockEditorController extends Controller {
     if (!this.blockNoteEditor || !this.exportPdfValue) return
 
     try {
-      const [
-        { PDFExporter, pdfDefaultSchemaMappings },
-        reactPdf,
-        { createElement }
-      ] = await Promise.all([
-        import('@blocknote/xl-pdf-exporter'),
-        import('@react-pdf/renderer'),
-        import('react')
-      ])
+      // Awaited one per line so esbuild keeps these paid packages optional —
+      // see the note in connect().
+      const { PDFExporter, pdfDefaultSchemaMappings } = await import('@blocknote/xl-pdf-exporter')
+      const reactPdf = await import('@react-pdf/renderer')
+      const { createElement } = await import('react')
 
       const { pdf, Text, View } = reactPdf
       const mappings = {
@@ -216,13 +248,10 @@ export class BlockEditorController extends Controller {
     if (!this.blockNoteEditor || !this.exportDocxValue) return
 
     try {
-      const [
-        { DOCXExporter, docxDefaultSchemaMappings },
-        docx
-      ] = await Promise.all([
-        import('@blocknote/xl-docx-exporter'),
-        import('docx')
-      ])
+      // Awaited one per line so esbuild keeps these paid packages optional —
+      // see the note in connect().
+      const { DOCXExporter, docxDefaultSchemaMappings } = await import('@blocknote/xl-docx-exporter')
+      const docx = await import('docx')
 
       const mappings = {
         ...docxDefaultSchemaMappings,
