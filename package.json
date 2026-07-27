@@ -1,6 +1,6 @@
 {
   "name": "bali-view-components",
-  "version": "2.15.0",
+  "version": "2.17.0",
   "description": "Bali ViewComponents",
   "type": "module",
   "main": "./app/frontend/bali/index.js",
@@ -13,6 +13,8 @@
     "./charts": "./app/frontend/bali/charts.js",
     "./gantt": "./app/frontend/bali/gantt.js",
     "./block-editor": "./app/frontend/bali/block-editor.js",
+    "./block-editor-entry": "./app/frontend/bali/block-editor-entry.js",
+    "./block-editor-loader": "./app/frontend/bali/block-editor-loader.js",
     "./rich-text-editor": "./app/frontend/bali/rich-text-editor.js",
     "./controllers": "./app/frontend/bali/controllers/index.js",
     "./components": "./app/frontend/bali/components/index.js",
@@ -57,7 +59,9 @@
       "FormData",
       "CustomEvent",
       "localStorage",
-      "DataTransfer"
+      "DataTransfer",
+      "MutationObserver",
+      "Node"
     ]
   },
   "//peerDependencies": [
