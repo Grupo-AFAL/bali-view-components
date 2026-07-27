@@ -82,12 +82,34 @@ module Bali
       end
 
       def build_select_content(method, values, options, html_options)
-        select_element = select(method, values, options, html_options)
+        select_element = build_select(method, values, options, html_options)
 
         if options[:select_all]
           select_all_buttons(options) + select_element
         else
           select_element
+        end
+      end
+
+      # Rails' include_blank / prompt emit a plain empty <option>. SlimSelect only
+      # treats an <option> as a placeholder — rendered muted and excluded from the
+      # selectable list — when it carries data-placeholder="true"; otherwise it shows
+      # the blank as a real, checkmarked, selectable row. When a blank is requested
+      # for a flat option list, promote it to a proper SlimSelect placeholder so the
+      # "choose one" hint behaves like a placeholder instead of a pickable value.
+      def build_select(method, values, options, html_options)
+        text = placeholder_option_text(options)
+        return select(method, values, options, html_options) if text.nil? || !values.is_a?(Array)
+
+        values = [ [ text, "", { data: { placeholder: true } } ], *values ]
+        select(method, values, options.except(:include_blank, :prompt), html_options)
+      end
+
+      def placeholder_option_text(options)
+        if options[:include_blank]
+          options[:include_blank] == true ? "" : options[:include_blank].to_s
+        elsif options[:prompt].is_a?(String)
+          options[:prompt]
         end
       end
 
