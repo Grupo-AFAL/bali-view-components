@@ -99,10 +99,21 @@ module Bali
       # "choose one" hint behaves like a placeholder instead of a pickable value.
       def build_select(method, values, options, html_options)
         text = placeholder_option_text(options)
-        return select(method, values, options, html_options) if text.nil? || !values.is_a?(Array)
+        return select(method, values, options, html_options) if text.nil? || !flat_choices?(values)
 
         values = [ [ text, "", { data: { placeholder: true } } ], *values ]
         select(method, values, options.except(:include_blank, :prompt), html_options)
+      end
+
+      # Rails' select decides between options_for_select and grouped_options_for_select
+      # by looking ONLY at the first element (Tags::Select#grouped_choices?). Prepending
+      # a flat placeholder to a grouped list flips that detection and mangles every
+      # optgroup, so grouped lists keep Rails' plain include_blank behavior instead.
+      def flat_choices?(values)
+        return false unless values.is_a?(Array)
+
+        first = values.first
+        !(first.respond_to?(:last) && first.last.is_a?(Array))
       end
 
       def placeholder_option_text(options)

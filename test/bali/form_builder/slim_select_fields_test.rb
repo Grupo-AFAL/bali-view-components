@@ -84,6 +84,32 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     end
   end
 
+  # include_blank + grouped (optgroup) choices — the placeholder promotion must not
+  # break Rails' grouped-choices detection, which looks only at the FIRST element
+  # (afal-apps report_schedules regression, 27/07/2026)
+
+  GROUPED_CHOICES = [
+    [ "Fiction", [ [ "Dune", "fiction:1" ], [ "Neuromancer", "fiction:2" ] ] ],
+    [ "Non-fiction", [ [ "Cosmos", "nonfiction:1" ] ] ]
+  ].freeze
+
+  def test_slim_select_field_include_blank_with_grouped_choices_keeps_optgroups
+    result = builder.slim_select_field(:status, GROUPED_CHOICES, include_blank: "All")
+    assert_html(result, 'optgroup[label="Fiction"] option[value="fiction:1"]', text: "Dune")
+    assert_html(result, 'optgroup[label="Non-fiction"] option[value="nonfiction:1"]', text: "Cosmos")
+  end
+
+  def test_slim_select_field_include_blank_with_grouped_choices_keeps_the_blank_option
+    result = builder.slim_select_field(:status, GROUPED_CHOICES, include_blank: "All")
+    assert_html(result, 'option[value=""]', text: "All")
+  end
+
+  def test_slim_select_field_include_blank_with_grouped_choices_honors_selected
+    result = builder.slim_select_field(:status, GROUPED_CHOICES,
+                                       include_blank: "All", selected: "fiction:2")
+    assert_html(result, 'option[value="fiction:2"][selected]')
+  end
+
   def test_slim_select_field_applies_daisyui_select_classes
     result = builder.slim_select_field(:status, Movie.statuses.to_a)
     assert_html(result, "select.select.select-bordered")
