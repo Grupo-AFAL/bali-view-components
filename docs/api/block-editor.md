@@ -88,23 +88,49 @@ end
 
 The component does not render unless `block_editor_enabled` is `true`. When it is `false` the component logs a warning through `Rails.logger.warn` on every render, and in `development` it also renders a visible red dashed notice in place of the editor. In every other environment it renders an empty string -- which is why `assert_response :success` happily passes on a page whose editor never appeared.
 
-### Step 4 -- Register the Stimulus controller
+### Step 4 -- Create a dedicated entry
 
-The BlockEditor controller is **not** exported from the package root (`bali-view-components`), because pulling it in would drag React and BlockNote into every bundle. Import it from the `./block-editor` subpath:
+The BlockEditor controller is **not** exported from the package root (`bali-view-components`), because pulling it in would drag React and BlockNote into every bundle. Give it its own bundler entry — the whole file is one line:
 
 ```javascript
-import { BlockEditorController } from 'bali-view-components/block-editor'
-
-application.register('block-editor', BlockEditorController)
+// app/javascript/editor.js
+import 'bali-view-components/block-editor-entry'
 ```
 
-Or let the helper do the registration:
+A dedicated entry matters for two reasons: the editor imports CSS from JS (in its own entry esbuild emits it as `editor.css`; inside the main entry it would be appended to your application stylesheet), and the editor weighs several MB that only capture screens need.
+
+The entry registers the controller on the Stimulus application your app exposes as `window.Stimulus` — it deliberately does **not** start a second application, because two applications scanning the same DOM mount every controller twice. If your app does not set `window.Stimulus`, either expose it or use the [manual registration](#alternative----bundle-it-eagerly) below.
+
+### Step 5 -- Load it lazily
+
+Loading the entry from the form view does not work: Bali drawers and modals inject their content with fetch + `innerHTML`, and `<script>` tags inserted through `innerHTML` never execute — the editor stays unmounted with an empty div and no error. Loading it in every layout wastes several MB on pages with no editor.
+
+Two pieces solve this. Import the loader once in your MAIN bundle (it weighs nothing):
+
+```javascript
+// app/javascript/application.js
+import 'bali-view-components/block-editor-loader'
+```
+
+And publish the digested asset paths in your layout's `<head>` (the helper is exposed to host views by the engine):
+
+```erb
+<%= block_editor_meta_tags %>
+```
+
+The loader watches the DOM and injects the editor's `<link>` and `<script>` the first time a `block-editor` controller appears — full page, Turbo navigation or drawer alike. `block_editor_meta_tags` defaults to assets named `editor.js` / `editor.css`; pass `js:`/`css:` to override, or `css: nil` if your entry emits no stylesheet.
+
+### Alternative -- bundle it eagerly
+
+If your app uses the editor on most pages (or you prefer no indirection), skip Step 5 and register the controller straight into your main bundle:
 
 ```javascript
 import { registerBlockEditor } from 'bali-view-components/block-editor'
 
 registerBlockEditor(application)
 ```
+
+This is the setup the lazy path replaces: everything travels in `application.js`, on every page.
 
 ---
 

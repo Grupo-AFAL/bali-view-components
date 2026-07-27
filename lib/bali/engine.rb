@@ -37,6 +37,15 @@ module Bali
       ActiveModel::Type.register(:date_range, Bali::Types::DateRangeValue)
     end
 
+    # isolate_namespace keeps engine helpers out of the host app, but
+    # block_editor_meta_tags is meant for the HOST layout (it publishes the
+    # digested paths of the app's own editor bundle), so expose just that one.
+    initializer "bali.block_editor_helper" do
+      ActiveSupport.on_load(:action_controller_base) do
+        helper Bali::BlockEditorHelper
+      end
+    end
+
     initializer "bali.add_locales" do |app|
       app.config.i18n.load_path += Dir[root.join("config", "locales", "*.yml")]
     end
