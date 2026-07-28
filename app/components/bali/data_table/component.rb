@@ -147,7 +147,23 @@ module Bali
       renders_one :column_selector, ->(table_id:, **opts, &block) do
         component = ColumnSelector::Component.new(table_id: table_id, **opts)
         block&.call(component)
+        # Una vista guardada aplicada MANDA: sus columnas visibles pisan los defaults
+        # declarados por columna, y el selector marca server_state para que el JS no
+        # restaure localStorage encima del estado de la vista.
+        if @filter_form.respond_to?(:saved_view_columns) && (view_columns = @filter_form.saved_view_columns)
+          component.apply_visible_columns(view_columns)
+        end
         component
+      end
+
+      # Dropdown "Vistas" (B2): combinaciones de filtros guardadas CON NOMBRE. Solo pinta
+      # cuando el filter_form trae `saved_views_store`. `url:` es la base RESTful de la app
+      # para crear/renombrar/borrar (POST url, PATCH/DELETE url/:id); `table_id:` conecta
+      # con el column selector para guardar las columnas visibles dentro de la vista;
+      # `default_views:` son atajos estáticos {name:, url:} (sección "Sugeridas").
+      renders_one :saved_views, ->(url:, table_id: nil, default_views: nil) do
+        SavedViews::Component.new(filter_form: @filter_form, url: url, base_url: @url,
+                                  table_id: table_id, default_views: default_views)
       end
 
       # Built-in export dropdown with format options
@@ -217,7 +233,7 @@ module Bali
 
       def show_toolbar?
         filters_panel? || simple_filters? || group_by_control? || toolbar_buttons? ||
-          column_selector? || export? || actions_panel?
+          column_selector? || export? || actions_panel? || saved_views?
       end
 
       # Whether the "Agrupar por" control should render — true when the filter
@@ -236,7 +252,7 @@ module Bali
       end
 
       def show_toolbar_right?
-        toolbar_buttons? || column_selector? || export? || actions_panel?
+        saved_views? || toolbar_buttons? || column_selector? || export? || actions_panel?
       end
 
       private

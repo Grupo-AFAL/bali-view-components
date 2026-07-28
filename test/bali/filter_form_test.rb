@@ -909,4 +909,99 @@ class BaliFilterFormTestUnifiedDsl < ActiveSupport::TestCase
     assert_equal("crime", form.ransack_params["genre_eq"])
     assert_equal([ "Snatch" ], form.result.pluck(:name))
   end
+
+  # --- Saved views (B2): combinaciones de filtros con nombre vía saved_views_store ---
+
+  # Store fake que cumple el contrato de SavedViewsConfiguration (list/find/save/delete).
+  class FakeSavedViewsStore
+    SavedView = Struct.new(:id, :name, :payload, keyword_init: true)
+
+    def initialize(views = [])
+      @views = views
+    end
+
+    def list = @views
+    def find(id) = @views.find { |view| view.id.to_s == id.to_s }
+
+    def save(name:, payload:)
+      SavedView.new(id: @views.size + 1, name: name, payload: payload).tap { |view| @views << view }
+    end
+
+    def delete(id) = @views.reject! { |view| view.id.to_s == id.to_s }
+  end
+
+  def store_with_view(payload, id: 1, name: "Mi vista")
+    FakeSavedViewsStore.new([ FakeSavedViewsStore::SavedView.new(id: id, name: name, payload: payload) ])
+  end
+
+  def test_saved_views_disabled_without_store
+    form = MovieFilterForm.new(Movie.all, params({}))
+    assert_not form.saved_views_enabled?
+    assert_empty form.saved_views
+    assert_nil form.current_saved_view
+  end
+
+  def test_applying_a_saved_view_replaces_filter_state_from_its_payload
+    store = store_with_view({ "attributes" => { "name_i_cont" => "Matrix" }, "combinator" => "or",
+                              "search_value" => nil })
+    form = MovieFilterForm.new(
+      Movie.all,
+      ActionController::Parameters.new(q: { name_i_cont: "otra cosa" }, saved_view: "1"),
+      saved_views_store: store
+    )
+
+    assert_equal "Mi vista", form.current_saved_view.name
+    # La vista REEMPLAZA el estado — lo que venía en q no sobrevive.
+    assert_equal "Matrix", form.name_i_cont
+    assert_equal "or", form.combinator
+  end
+
+  def test_saved_view_payload_attributes_are_gated_by_declared_attribute_names
+    store = store_with_view({ "attributes" => { "name_i_cont" => "Matrix", "no_declarado_eq" => "x" } })
+    form = MovieFilterForm.new(Movie.all, ActionController::Parameters.new(saved_view: "1"),
+                               saved_views_store: store)
+
+    assert_equal "Matrix", form.name_i_cont
+    assert_not form.attributes.key?("no_declarado_eq")
+  end
+
+  def test_saved_view_group_by_repasses_the_whitelist
+    applied = Bali::FilterForm.new(Movie.all, ActionController::Parameters.new(saved_view: "1"),
+                                   group_by_attributes: [ :genre ],
+                                   saved_views_store: store_with_view({ "group_by" => "genre" }))
+    assert_equal :genre, applied.group_by
+
+    hostile = Bali::FilterForm.new(Movie.all, ActionController::Parameters.new(saved_view: "1"),
+                                   group_by_attributes: [ :genre ],
+                                   saved_views_store: store_with_view({ "group_by" => "no_declarado" }))
+    assert_nil hostile.group_by
+  end
+
+  def test_unknown_saved_view_id_falls_back_to_normal_params_flow
+    store = FakeSavedViewsStore.new
+    form = MovieFilterForm.new(
+      Movie.all,
+      ActionController::Parameters.new(q: { name_i_cont: "Snatch" }, saved_view: "999"),
+      saved_views_store: store
+    )
+
+    assert_nil form.current_saved_view
+    assert_equal "Snatch", form.name_i_cont
+  end
+
+  def test_current_view_payload_captures_the_present_state_without_blanks
+    form = MovieFilterForm.new(Movie.all, params({ name_i_cont: "Matrix" }))
+    payload = form.current_view_payload
+
+    assert_equal({ "name_i_cont" => "Matrix" }, payload["attributes"])
+    assert_not payload.key?("groupings"), "sin agrupaciones no viaja la llave (compact)"
+  end
+
+  def test_saved_view_columns_come_from_the_applied_view_payload
+    store = store_with_view({ "attributes" => {}, "columns" => [ 0, 2 ] })
+    form = MovieFilterForm.new(Movie.all, ActionController::Parameters.new(saved_view: "1"),
+                               saved_views_store: store)
+
+    assert_equal [ 0, 2 ], form.saved_view_columns
+  end
 end

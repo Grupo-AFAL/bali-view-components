@@ -1,0 +1,28 @@
+<%= render Bali::DataTable::Component.new(url: request.path, filter_form: filter_form) do |c| %>
+  <% c.with_filters_panel(available_attributes: filter_attributes) %>
+  <% c.with_saved_views(url: '/preview/saved_views', table_id: 'saved-views-preview-table',
+                        default_views: [
+                          { name: 'Todo (sin filtros)', url: request.path },
+                          { name: 'Pendientes', url: "#{request.path}?q%5Bstatus_eq%5D=pending" }
+                        ]) %>
+  <% c.with_column_selector(table_id: 'saved-views-preview-table') do |cs| %>
+    <% cs.with_column(index: 0, label: 'Name') %>
+    <% cs.with_column(index: 1, label: 'Status') %>
+    <% cs.with_column(index: 2, label: 'Amount') %>
+    <% cs.with_column(index: 3, label: 'Created At') %>
+  <% end %>
+
+  <% c.with_table do %>
+    <%= render Bali::Table::Component.new(id: 'saved-views-preview-table') do |ct| %>
+      <%= ct.with_headers(headers) %>
+      <% records.each do |record| %>
+        <%= ct.with_row do %>
+          <td><%= record[:name] %></td>
+          <td><%= record[:status].capitalize %></td>
+          <td class="text-right font-mono">$<%= number_with_delimiter(record[:amount]) %></td>
+          <td class="text-sm text-base-content/70"><%= record[:created_at] %></td>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

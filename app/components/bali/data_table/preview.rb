@@ -3,46 +3,60 @@
 module Bali
   module DataTable
     class Preview < ApplicationViewComponentPreview
-
       HEADERS = [
-        { name: 'Name', sortable: true, sort_key: 'name' },
-        { name: 'Status' },
-        { name: 'Amount', sortable: true, sort_key: 'amount' },
-        { name: 'Created At', sortable: true, sort_key: 'created_at' }
+        { name: "Name", sortable: true, sort_key: "name" },
+        { name: "Status" },
+        { name: "Amount", sortable: true, sort_key: "amount" },
+        { name: "Created At", sortable: true, sort_key: "created_at" }
       ].freeze
 
       RECORDS = [
-        { name: 'Product A', status: 'active', amount: 1500, created_at: '2024-01-15' },
-        { name: 'Product B', status: 'inactive', amount: 2300, created_at: '2024-02-20' },
-        { name: 'Product C', status: 'active', amount: 800, created_at: '2024-03-10' },
-        { name: 'Product D', status: 'pending', amount: 3200, created_at: '2024-04-05' },
-        { name: 'Product E', status: 'active', amount: 950, created_at: '2024-05-12' }
+        { name: "Product A", status: "active", amount: 1500, created_at: "2024-01-15" },
+        { name: "Product B", status: "inactive", amount: 2300, created_at: "2024-02-20" },
+        { name: "Product C", status: "active", amount: 800, created_at: "2024-03-10" },
+        { name: "Product D", status: "pending", amount: 3200, created_at: "2024-04-05" },
+        { name: "Product E", status: "active", amount: 950, created_at: "2024-05-12" }
       ].freeze
 
       FILTER_ATTRIBUTES = [
-        { key: :name, label: 'Name', type: :text },
-        { key: :status, label: 'Status', type: :select,
-          options: [%w[Active active], %w[Inactive inactive], %w[Pending pending]] },
-        { key: :amount, label: 'Amount', type: :number },
-        { key: :created_at, label: 'Created At', type: :date }
+        { key: :name, label: "Name", type: :text },
+        { key: :status, label: "Status", type: :select,
+          options: [ %w[Active active], %w[Inactive inactive], %w[Pending pending] ] },
+        { key: :amount, label: "Amount", type: :number },
+        { key: :created_at, label: "Created At", type: :date }
       ].freeze
 
       MOVIE_FILTER_ATTRIBUTES = [
-        { key: :name, label: 'Name', type: :text },
-        { key: :genre, label: 'Genre', type: :select,
-          options: [%w[Action Action], %w[Drama Drama], %w[Sci-Fi Sci-Fi],
+        { key: :name, label: "Name", type: :text },
+        { key: :genre, label: "Genre", type: :select,
+          options: [ %w[Action Action], %w[Drama Drama], %w[Sci-Fi Sci-Fi],
                     %w[Comedy Comedy], %w[Horror Horror], %w[Animation Animation],
-                    %w[Adventure Adventure]] },
-        { key: :status, label: 'Status', type: :select,
-          options: [%w[Done done], %w[Draft draft]] },
-        { key: :indie, label: 'Indie', type: :boolean },
-        { key: :created_at, label: 'Created At', type: :date }
+                    %w[Adventure Adventure] ] },
+        { key: :status, label: "Status", type: :select,
+          options: [ %w[Done done], %w[Draft draft] ] },
+        { key: :indie, label: "Indie", type: :boolean },
+        { key: :created_at, label: "Created At", type: :date }
       ].freeze
+
+      # Store en memoria para el preview de vistas guardadas (B2): cumple el contrato de
+      # SavedViewsConfiguration sin tocar storage real.
+      PreviewSavedView = Struct.new(:id, :name, :payload, keyword_init: true)
+      class PreviewSavedViewsStore
+        VIEWS = [
+          PreviewSavedView.new(id: 1, name: "Solo activos",
+                               payload: { "attributes" => { "status_eq" => "active" } }),
+          PreviewSavedView.new(id: 2, name: "Montos altos",
+                               payload: { "attributes" => { "amount_gteq" => "1000" }, "columns" => [ 0, 2 ] })
+        ].freeze
+
+        def list = VIEWS
+        def find(id) = VIEWS.find { |view| view.id.to_s == id.to_s }
+      end
 
       # @label Default
       def default
         render_with_template(
-          template: 'bali/data_table/previews/default',
+          template: "bali/data_table/previews/default",
           locals: {
             headers: HEADERS,
             records: RECORDS,
@@ -51,10 +65,27 @@ module Bali
         )
       end
 
+      # @label With Saved Views
+      # Dropdown "Vistas" (B2): aplicar una vista navega con ?saved_view=<id>; guardar la
+      # actual postea a la URL de la app (aquí un endpoint ficticio). Prueba también los
+      # atajos estáticos de `default_views`.
+      def with_saved_views(saved_view: nil)
+        filter_form = Bali::FilterForm.new(
+          Movie.all,
+          ActionController::Parameters.new(saved_view: saved_view),
+          saved_views_store: PreviewSavedViewsStore.new
+        )
+        render_with_template(
+          template: "bali/data_table/previews/with_saved_views",
+          locals: { headers: HEADERS, records: RECORDS,
+                    filter_attributes: FILTER_ATTRIBUTES, filter_form: filter_form }
+        )
+      end
+
       # @label With Search
       def with_search
         render_with_template(
-          template: 'bali/data_table/previews/with_search',
+          template: "bali/data_table/previews/with_search",
           locals: {
             headers: HEADERS,
             records: RECORDS,
@@ -66,7 +97,7 @@ module Bali
       # @label With Toolbar Buttons
       def with_toolbar_buttons
         render_with_template(
-          template: 'bali/data_table/previews/with_toolbar_buttons',
+          template: "bali/data_table/previews/with_toolbar_buttons",
           locals: {
             headers: HEADERS,
             records: RECORDS,
@@ -78,7 +109,7 @@ module Bali
       # @label With Summary
       def with_summary
         render_with_template(
-          template: 'bali/data_table/previews/with_summary',
+          template: "bali/data_table/previews/with_summary",
           locals: {
             headers: HEADERS,
             records: RECORDS,
@@ -91,7 +122,7 @@ module Bali
       # @label Minimal (No Filters)
       def minimal
         render_with_template(
-          template: 'bali/data_table/previews/minimal',
+          template: "bali/data_table/previews/minimal",
           locals: {
             headers: HEADERS.map { |h| { name: h[:name] } },
             records: RECORDS
@@ -110,7 +141,7 @@ module Bali
         filter_form = Bali::FilterForm.new(Movie.all, filter_params)
 
         render_with_template(
-          template: 'bali/data_table/previews/with_sorting',
+          template: "bali/data_table/previews/with_sorting",
           locals: {
             filter_form: filter_form,
             movies: filter_form.result.includes(:studio).limit(10),
@@ -134,7 +165,7 @@ module Bali
         pagy, movies = pagy(filter_form.result.includes(:studio), limit: 5, page: page)
 
         render_with_template(
-          template: 'bali/data_table/previews/with_pagination',
+          template: "bali/data_table/previews/with_pagination",
           locals: {
             filter_form: filter_form,
             pagy: pagy,
@@ -152,7 +183,7 @@ module Bali
         pagy, movies = pagy(filter_form.result.includes(:studio), limit: 5, page: page)
 
         render_with_template(
-          template: 'bali/data_table/previews/complete',
+          template: "bali/data_table/previews/complete",
           locals: {
             filter_form: filter_form,
             pagy: pagy,
@@ -176,12 +207,12 @@ module Bali
       # @param country select { choices: ["", USA, UK, France, Germany, Japan, India, Australia, Canada] }
       # @param status select { choices: ["", active, inactive, pending] }
       # @param size select { choices: ["", small, medium, large, enterprise] }
-      def with_simple_filters(q: {}, page: 1, search: '', country: '', status: '', size: '')
+      def with_simple_filters(q: {}, page: 1, search: "", country: "", status: "", size: "")
         q_with_filters = q.to_h.dup
-        q_with_filters['country_eq'] = country if country.present?
-        q_with_filters['status_eq'] = status if status.present?
-        q_with_filters['size_eq'] = size if size.present?
-        q_with_filters['name_cont'] = search if search.present?
+        q_with_filters["country_eq"] = country if country.present?
+        q_with_filters["status_eq"] = status if status.present?
+        q_with_filters["size_eq"] = size if size.present?
+        q_with_filters["name_cont"] = search if search.present?
 
         filter_params = ActionController::Parameters.new(
           q: ActionController::Parameters.new(q_with_filters),
@@ -192,12 +223,12 @@ module Bali
           Studio.all, filter_params,
           simple_filters: Studio.filter_options,
           search_fields: %i[name],
-          search_icon: 'search'
+          search_icon: "search"
         )
         pagy, studios = pagy(filter_form.result.order(:name), limit: 10, page: page)
 
         render_with_template(
-          template: 'bali/data_table/previews/with_simple_filters',
+          template: "bali/data_table/previews/with_simple_filters",
           locals: {
             filter_form: filter_form,
             pagy: pagy,
@@ -219,8 +250,8 @@ module Bali
       # group_by is a whitelisted top-level param — undeclared values are ignored.
       # @param group_by select { choices: [none, genre, status] }
       # @param page number
-      def with_grouping(group_by: 'genre', page: 1)
-        raw_group_by = group_by.to_s == 'none' ? nil : group_by
+      def with_grouping(group_by: "genre", page: 1)
+        raw_group_by = group_by.to_s == "none" ? nil : group_by
 
         filter_params = ActionController::Parameters.new(
           q: ActionController::Parameters.new({}),
@@ -234,7 +265,7 @@ module Bali
         pagy, movies = pagy(filter_form.result.includes(:studio), limit: 8, page: page)
 
         render_with_template(
-          template: 'bali/data_table/previews/with_grouping',
+          template: "bali/data_table/previews/with_grouping",
           locals: {
             filter_form: filter_form,
             pagy: pagy,
@@ -260,7 +291,7 @@ module Bali
         pagy, movies = pagy(filter_form.result.includes(:studio), limit: 6, page: page)
 
         render_with_template(
-          template: 'bali/data_table/previews/with_grid_mode',
+          template: "bali/data_table/previews/with_grid_mode",
           locals: {
             filter_form: filter_form,
             pagy: pagy,

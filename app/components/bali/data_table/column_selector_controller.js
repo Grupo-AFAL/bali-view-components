@@ -14,7 +14,9 @@ import { Controller } from '@hotwired/stimulus'
  */
 export default class extends Controller {
   static values = {
-    table: String // Selector for the target table
+    table: String, // Selector for the target table
+    storageKey: String, // localStorage key for per-device persistence ('' disables)
+    serverState: Boolean // true when a saved view imposed the state (skip localStorage restore)
   }
 
   connect () {
@@ -24,8 +26,38 @@ export default class extends Controller {
       return
     }
 
+    // Per-device persistence (B2): restore the stored column set — unless a saved
+    // view imposed the state server-side (the view wins over the device memory).
+    if (!this.serverStateValue) this.restoreStoredState()
+
     // Apply initial visibility based on checkbox state
     this.applyInitialState()
+  }
+
+  restoreStoredState () {
+    if (!this.storageKeyValue) return
+
+    let stored
+    try {
+      stored = JSON.parse(window.localStorage.getItem(this.storageKeyValue))
+    } catch { return }
+    if (!Array.isArray(stored)) return
+
+    this.element.querySelectorAll('[data-column-index]').forEach(checkbox => {
+      const index = parseInt(checkbox.dataset.columnIndex, 10)
+      if (!isNaN(index)) checkbox.checked = stored.includes(index)
+    })
+  }
+
+  persistState () {
+    if (!this.storageKeyValue) return
+
+    const visible = [...this.element.querySelectorAll('[data-column-index]')]
+      .filter(checkbox => checkbox.checked)
+      .map(checkbox => parseInt(checkbox.dataset.columnIndex, 10))
+    try {
+      window.localStorage.setItem(this.storageKeyValue, JSON.stringify(visible))
+    } catch { /* almacenamiento lleno o bloqueado: la sesión sigue sin persistir */ }
   }
 
   applyInitialState () {
@@ -46,6 +78,7 @@ export default class extends Controller {
     if (isNaN(columnIndex) || !this.table) return
 
     this.setColumnVisibility(columnIndex, visible)
+    this.persistState()
   }
 
   setColumnVisibility (index, visible) {

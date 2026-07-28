@@ -16,6 +16,16 @@ es:
         column_selector:
           button_label: Columnas
           menu_title: Mostrar/Ocultar Columnas
+        saved_views:
+          button_label: Vistas
+          suggested_title: Sugeridas
+          mine_title: Mis vistas
+          save_current: Guardar vista actual
+          name_placeholder: Nombre de la vista
+          save: Guardar
+          rename: Renombrar
+          delete: Borrar
+          delete_confirm: "¿Borrar la vista \"%{name}\"?"
         export:
           button_label: Exportar
           formats:

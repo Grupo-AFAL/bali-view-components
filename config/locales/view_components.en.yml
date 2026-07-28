@@ -16,6 +16,16 @@ en:
         column_selector:
           button_label: Columns
           menu_title: Show/Hide Columns
+        saved_views:
+          button_label: Views
+          suggested_title: Suggested
+          mine_title: My views
+          save_current: Save current view
+          name_placeholder: View name
+          save: Save
+          rename: Rename
+          delete: Delete
+          delete_confirm: "Delete the \"%{name}\" view?"
         export:
           button_label: Export
           formats:
