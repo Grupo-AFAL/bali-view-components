@@ -181,6 +181,12 @@ en:
         searching: "Searching..."
         results: "Results"
 
+    # Saved views (B2) — Bali::SavedViewsController notices
+    saved_views:
+      saved: "View saved."
+      renamed: "View renamed."
+      deleted: "View deleted."
+
     # Status
     status:
       no_status: "No status"

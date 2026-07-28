@@ -10,14 +10,36 @@ module Bali
         # @param table_id [String] CSS selector for the target table (e.g., '#my-table')
         # @param button_label [String] Label for the dropdown button (i18n default)
         # @param button_icon [String] Icon name (default: 'table')
-        def initialize(table_id:, button_label: nil, button_icon: "table")
+        # @param persist [Boolean] Persist column visibility in localStorage keyed by
+        #   table_id (per-device, B2/FB-17). Default: true.
+        def initialize(table_id:, button_label: nil, button_icon: "table", persist: true)
           @table_id = table_id.start_with?("#") ? table_id : "##{table_id}"
           @button_label = button_label
           @button_icon = button_icon
+          @persist = persist
+          @server_state = false
           @columns = []
         end
 
         attr_reader :table_id, :button_icon, :columns
+
+        # ¿La visibilidad viene impuesta por el servidor (vista guardada aplicada)? El JS
+        # entonces NO restaura localStorage encima — la vista manda.
+        def server_state? = @server_state
+
+        def persist? = @persist
+
+        def storage_key
+          "bali:columns:#{@table_id.delete_prefix('#')}"
+        end
+
+        # Impone la visibilidad desde una vista guardada: visibles = los índices dados.
+        # Se llama DESPUÉS del bloque de with_column (el DataTable lo hace solo).
+        def apply_visible_columns(indices)
+          visible = Array(indices).map(&:to_i)
+          @columns.each { |column| column.visible = visible.include?(column.index) }
+          @server_state = true
+        end
 
         def button_label
           @button_label || t(".button_label")

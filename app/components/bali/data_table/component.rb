@@ -147,7 +147,25 @@ module Bali
       renders_one :column_selector, ->(table_id:, **opts, &block) do
         component = ColumnSelector::Component.new(table_id: table_id, **opts)
         block&.call(component)
+        # Una vista guardada aplicada MANDA: sus columnas visibles pisan los defaults
+        # declarados por columna, y el selector marca server_state para que el JS no
+        # restaure localStorage encima del estado de la vista.
+        if @filter_form.respond_to?(:saved_view_columns) && (view_columns = @filter_form.saved_view_columns)
+          component.apply_visible_columns(view_columns)
+        end
         component
+      end
+
+      # Dropdown "Vistas" (B2): combinaciones de filtros guardadas CON NOMBRE. Solo pinta
+      # cuando el filter_form trae `saved_views_store`. `url:` es la base RESTful para
+      # crear/renombrar/borrar (POST url, PATCH/DELETE url/:id); si se omite, apunta a las
+      # rutas del PROPIO engine (requiere montarlo y que el form tenga `storage_id` — sin
+      # storage_id no hay URL default y el dropdown no pinta). `table_id:` conecta con el
+      # column selector para guardar las columnas visibles dentro de la vista;
+      # `default_views:` son atajos estáticos {name:, url:} (sección "Sugeridas").
+      renders_one :saved_views, ->(url: nil, table_id: nil, default_views: nil) do
+        SavedViews::Component.new(filter_form: @filter_form, url: url || default_saved_views_url,
+                                  base_url: @url, table_id: table_id, default_views: default_views)
       end
 
       # Built-in export dropdown with format options
@@ -217,7 +235,7 @@ module Bali
 
       def show_toolbar?
         filters_panel? || simple_filters? || group_by_control? || toolbar_buttons? ||
-          column_selector? || export? || actions_panel?
+          column_selector? || export? || actions_panel? || saved_views?
       end
 
       # Whether the "Agrupar por" control should render — true when the filter
@@ -236,10 +254,19 @@ module Bali
       end
 
       def show_toolbar_right?
-        toolbar_buttons? || column_selector? || export? || actions_panel?
+        saved_views? || toolbar_buttons? || column_selector? || export? || actions_panel?
       end
 
       private
+
+      # URL default de las mutaciones de vistas guardadas: las rutas del PROPIO engine
+      # (montado en el host). El storage_id viaja en el query string porque el create del
+      # engine no tiene otro lugar de dónde sacarlo.
+      def default_saved_views_url
+        return unless @filter_form.respond_to?(:storage_id) && @filter_form.storage_id.present?
+
+        helpers.bali.saved_views_path(storage_id: @filter_form.storage_id)
+      end
 
       # group_by param to preserve as a hidden field on GET filter forms, so
       # applying filters/search does not drop an active grouping.

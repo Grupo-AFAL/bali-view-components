@@ -1,0 +1,69 @@
+<div class="dropdown dropdown-end"
+     data-controller="saved-views"
+     data-saved-views-table-value="<%= table_id %>">
+  <button type="button" tabindex="0" class="btn btn-outline btn-sm gap-2">
+    <%= render Bali::Icon::Component.new('bookmark', class: 'w-4 h-4') %>
+    <span class="hidden sm:inline"><%= current_view ? current_view.name : t('.button_label') %></span>
+  </button>
+
+  <div tabindex="0" class="dropdown-content z-50 p-2 shadow-lg bg-base-100 rounded-box w-72 border border-base-200">
+    <% if default_views.any? %>
+      <div class="menu-title px-2 pt-1"><%= t('.suggested_title') %></div>
+      <ul class="menu p-0">
+        <% default_views.each do |view| %>
+          <li><%= link_to view.name, view.url, class: 'text-sm' %></li>
+        <% end %>
+      </ul>
+    <% end %>
+
+    <% if views.any? %>
+      <div class="menu-title px-2 pt-1"><%= t('.mine_title') %></div>
+      <ul class="menu p-0">
+        <% views.each do |view| %>
+          <li class="flex-row items-center flex-nowrap">
+            <%= link_to view.name, apply_url(view),
+                  class: "grow text-sm truncate #{'active' if current_view&.id == view.id}" %>
+            <button type="button" class="btn btn-ghost btn-xs px-1"
+                    title="<%= t('.rename') %>"
+                    data-action="saved-views#toggleRename" data-saved-views-id-param="<%= view.id %>">
+              <%= render Bali::Icon::Component.new('pencil', class: 'w-3 h-3') %>
+            </button>
+            <%= button_to view_url(view), method: :delete,
+                  class: 'btn btn-ghost btn-xs px-1',
+                  title: t('.delete'),
+                  form: { data: { turbo_confirm: t('.delete_confirm', name: view.name) } } do %>
+              <%= render Bali::Icon::Component.new('trash-2', class: 'w-3 h-3') %>
+            <% end %>
+          </li>
+          <%# Form de renombrar, oculto hasta que se pide (PATCH url/:id con solo `name`). %>
+          <li class="hidden" data-saved-views-target="renameForm" data-saved-views-id="<%= view.id %>">
+            <%= form_with url: view_url(view), method: :patch, class: 'flex gap-1 p-1' do |f| %>
+              <%= f.text_field :name, value: view.name, required: true,
+                    class: 'input input-bordered input-xs grow' %>
+              <%= f.submit t('.save'), class: 'btn btn-primary btn-xs' %>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+
+    <div class="border-t border-base-200 mt-1 pt-1">
+      <button type="button" class="btn btn-ghost btn-sm btn-block justify-start gap-2"
+              data-action="saved-views#toggleSaveForm">
+        <%= render Bali::Icon::Component.new('plus', class: 'w-4 h-4') %>
+        <%= t('.save_current') %>
+      </button>
+      <%# Guardar el estado ACTUAL: el payload viaja serializado en un hidden; el Stimulus
+          agrega las columnas visibles del column selector justo antes de enviar. %>
+      <div class="hidden p-1" data-saved-views-target="saveForm">
+        <%= form_with url: url, method: :post, class: 'flex gap-1',
+              data: { action: 'submit->saved-views#injectColumns' } do |f| %>
+          <%= f.text_field :name, placeholder: t('.name_placeholder'), required: true,
+                class: 'input input-bordered input-sm grow' %>
+          <%= f.hidden_field :payload, value: payload_json, data: { saved_views_target: 'payload' } %>
+          <%= f.submit t('.save'), class: 'btn btn-primary btn-sm' %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

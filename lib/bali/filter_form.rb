@@ -4,6 +4,7 @@ require_relative "filter_form/search_configuration"
 require_relative "filter_form/filter_group_parser"
 require_relative "filter_form/simple_filters_configuration"
 require_relative "filter_form/group_by_configuration"
+require_relative "filter_form/saved_views_configuration"
 
 module Bali
   # FilterForm provides a unified interface for Ransack-based filtering with support
@@ -47,6 +48,7 @@ module Bali
     include FilterGroupParser
     include SimpleFiltersConfiguration
     include GroupByConfiguration
+    include SavedViewsConfiguration
 
     attr_reader :scope, :storage_id, :context, :clear_filters, :groupings
 
@@ -173,10 +175,16 @@ module Bali
     # @param persist_enabled [Boolean] Whether user has opted into filter persistence
     #   (default: false). When false, filters are saved but not restored.
     # @param simple_filters [Array<Hash>] Simple inline filters (alternative to DSL)
+    # @param saved_views_store [Object, Symbol] Store for named saved views — an
+    #   app-provided object with the list/find/save/delete contract, or `:default` for the
+    #   engine's own storage (Bali::SavedView) scoped to `saved_views_owner:` and
+    #   `storage_id:` (see SavedViewsConfiguration)
+    # @param saved_views_owner [Object] Owner of the `:default` store (e.g. current_user);
+    #   ignored when an explicit store object is given
     # rubocop:disable Metrics/ParameterLists
     def initialize(scope, params = {}, storage_id: nil, context: nil, search_fields: nil,
                    search_placeholder: nil, search_icon: nil, persist_enabled: false, simple_filters: nil,
-                   group_by_attributes: nil)
+                   group_by_attributes: nil, saved_views_store: nil, saved_views_owner: nil)
       # rubocop:enable Metrics/ParameterLists
       @scope = scope
       @storage_id = storage_id
@@ -189,6 +197,8 @@ module Bali
       @persist_enabled = persist_enabled
       @clear_filters = params.fetch(:clear_filters, false)
       @clear_search = params.fetch(:clear_search, false)
+      @saved_views_store = resolve_saved_views_store(saved_views_store, saved_views_owner)
+      @saved_view_param = params[:saved_view].presence
       @group_by = resolve_group_by(params[:group_by])
 
       q_params = params.fetch(:q, {})
@@ -211,10 +221,17 @@ module Bali
       # simple filter values bypass ActiveModel and go straight to Ransack.
       @q_params = q_params.permit(perm_attrs) if self.simple_filters_enabled?
 
+      # Vista guardada aplicada por URL (?saved_view=<id>): su payload REEMPLAZA el estado
+      # que hubiera venido en q — una vista es un estado completo, no un merge. Va ANTES de
+      # la persistencia para que el estado de la vista se escriba como "último estado" del
+      # listado (fetch_stored_filter_state lo ve como filtros recién enviados).
+      saved_view_applied = current_saved_view.present?
+      attributes = apply_saved_view_state if saved_view_applied
+
       # Persist/restore all filter state (attributes, groupings, combinator, search)
       if storage_id.present?
         attributes, @groupings, @combinator, @search_value = fetch_stored_filter_state(
-          attributes, @groupings, @combinator, @search_value
+          attributes, @groupings, @combinator, @search_value, force_write: saved_view_applied
         )
       end
 
@@ -405,10 +422,14 @@ module Bali
     # - Always saves filters when user submits new ones (so they're available if user enables later)
     # - Only restores filters when @persist_enabled is true
     # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
-    def fetch_stored_filter_state(attributes, groupings, combinator, search_value)
+    # `force_write:` — un saved view recién aplicado SIEMPRE cuenta como "filtros recién
+    # enviados", incluso cuando su payload resulta en un estado vacío (una vista "ver todo").
+    # Sin esto, `has_filter_params` no distingue "no vino nada" de "vino una vista vacía" y
+    # con `persist_enabled` cae al branch de restaurar — la caché vieja pisa la vista aplicada.
+    def fetch_stored_filter_state(attributes, groupings, combinator, search_value, force_write: false)
       return [ attributes, groupings, combinator, search_value ] unless Object.const_defined?("Rails")
 
-      has_filter_params = attributes.present? || groupings.present? || search_value.present?
+      has_filter_params = force_write || attributes.present? || groupings.present? || search_value.present?
 
       if has_filter_params
         # User submitted new filters → always save complete state
