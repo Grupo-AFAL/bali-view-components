@@ -110,6 +110,24 @@ module Bali
   # Example: '/api/block_editor/uploads'
   mattr_accessor :block_editor_upload_url, default: nil
 
+  # Saved views (B2) — storage default que trae el engine (tabla `bali_saved_views`,
+  # instalada con `bin/rails bali:install:migrations`).
+  #
+  # Dueño de las vistas: callable evaluado con el controller de la request. OJO: el
+  # controller del ENGINE no hereda el ApplicationController del host, así que un
+  # `current_user` que viva en un concern del host no existe ahí solo — o el host se lo
+  # enseña (p.ej. `Bali::SavedViewsController.include MiAuthConcern` en un to_prepare,
+  # skipeando los before_action del concern) o configura este callable.
+  # Example: ->(controller) { controller.current_member }
+  mattr_accessor :saved_views_owner, default: ->(controller) { controller.try(:current_user) }
+
+  # Autorización de Bali::SavedViewsController: callable (controller, owner) — truthy
+  # permite, falsy responde 403. El default exige owner presente; una app puede endurecerlo
+  # (p.ej. Pundit) porque los hooks del ApplicationController del HOST no aplican en el
+  # controller del engine.
+  # Example: ->(controller, owner) { owner&.can?("tdflow.access") }
+  mattr_accessor :saved_views_authorize, default: ->(_controller, owner) { owner.present? }
+
   def self.add_icon(name, svg_str)
     custom_icons[name.to_s] = svg_str
   end

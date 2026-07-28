@@ -180,6 +180,12 @@ es:
         searching: "Buscando..."
         results: "Resultados"
 
+    # Saved views (B2) — notices de Bali::SavedViewsController
+    saved_views:
+      saved: "Vista guardada."
+      renamed: "Vista renombrada."
+      deleted: "Vista borrada."
+
     # Status
     status:
       no_status: "Sin estado"

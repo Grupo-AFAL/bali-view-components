@@ -15,8 +15,10 @@ module Bali
     # boot in v2.17.0 while 2860 tests stayed green here).
     config.eager_load_paths = %W[
       #{root}/app/components
+      #{root}/app/controllers
       #{root}/app/helpers
       #{root}/app/lib
+      #{root}/app/models
     ]
 
     overrides = File.expand_path(
