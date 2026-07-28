@@ -42,7 +42,10 @@
           <%# Form de renombrar, oculto hasta que se pide (PATCH url/:id con solo `name`). %>
           <li class="hidden" data-saved-views-target="renameForm" data-saved-views-id="<%= view.id %>">
             <%= form_with url: view_url(view), method: :patch, class: 'flex gap-1 p-1' do |f| %>
+              <%# id explícito por vista: N forms de renombrar + el de guardar generaban N+1
+                  ids "name" duplicados (HTML inválido, autofill confundido). %>
               <%= f.text_field :name, value: view.name, required: true,
+                    id: "saved-view-name-#{view.id}",
                     class: 'input input-bordered input-xs grow' %>
               <%= f.submit t('.save'), class: 'btn btn-primary btn-xs' %>
             <% end %>
@@ -63,6 +66,7 @@
         <%= form_with url: url, method: :post, class: 'flex gap-1',
               data: { action: 'submit->saved-views#injectColumns' } do |f| %>
           <%= f.text_field :name, placeholder: t('.name_placeholder'), required: true,
+                id: nil,
                 class: 'input input-bordered input-sm grow' %>
           <%= f.hidden_field :payload, value: payload_json, data: { saved_views_target: 'payload' } %>
           <%= f.submit t('.save'), class: 'btn btn-primary btn-sm' %>

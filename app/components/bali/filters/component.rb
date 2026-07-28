@@ -3,7 +3,10 @@
 module Bali
   module Filters
     class Component < ApplicationViewComponent
-      EXCLUDED_PARAMS = %w[q clear_filters clear_search].freeze
+      # `saved_view` NO se preserva: re-enviarlo hace que el server re-aplique el payload de
+      # la vista, pisando en silencio los filtros o la búsqueda que el usuario acaba de
+      # escribir. (`page` sí viaja: preservarlo es comportamiento deliberado de Bali.)
+      EXCLUDED_PARAMS = %w[q clear_filters clear_search saved_view].freeze
 
       attr_reader :url, :available_attributes, :apply_mode, :id, :popover, :combinator,
                   :filter_groups, :max_groups, :storage_id, :persist_enabled, :turbo_stream
@@ -43,7 +46,7 @@ module Bali
         available_attributes:,
         filter_groups: [],
         apply_mode: :batch,
-        combinator: :and,
+        combinator: nil,
         max_groups: 10,
         popover: true,
         button_text: nil,
@@ -59,7 +62,11 @@ module Bali
         @available_attributes = normalize_attributes(available_attributes)
         @filter_groups = filter_groups.presence || [ default_filter_group ]
         @apply_mode = apply_mode
-        @combinator = combinator.to_s
+        # `@applied_combinator` es nil cuando el estado NO traía `q[m]`; `@combinator` conserva
+        # el default de render ("and"). Re-emitir el default como si fuera elección del usuario
+        # volteaba a AND un OR aplicado en el siguiente round-trip.
+        @applied_combinator = combinator.presence&.to_s
+        @combinator = @applied_combinator || "and"
         @max_groups = max_groups
         @popover = popover
         @button_text = button_text
@@ -188,15 +195,19 @@ module Bali
       def active_filter_params
         pairs = []
         filter_groups.each_with_index do |group, index|
+          # Se descartan las filas vacías del builder Y las que no producen ningún par real
+          # (un `between` con ambos extremos en blanco pasa `present?` por ser un Hash, y
+          # emitía un grupo fantasma: solo los `m`, sin una sola condición).
           conditions = (group[:conditions] || []).select do |condition|
-            condition[:attribute].present? && condition[:value].present?
+            condition[:attribute].present? && condition[:value].present? &&
+              condition_params(condition, 0).any?
           end
           next if conditions.empty?
 
           pairs << [ "q[g][#{index}][m]", group[:combinator] ] if group[:combinator].present?
           conditions.each { |condition| pairs.concat(condition_params(condition, index)) }
         end
-        pairs << [ "q[m]", combinator ] if pairs.any? && combinator.present?
+        pairs << [ "q[m]", @applied_combinator ] if pairs.any? && @applied_combinator.present?
         pairs
       end
 

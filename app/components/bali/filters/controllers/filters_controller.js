@@ -404,8 +404,14 @@ export class FiltersController extends Controller {
       }
     }
 
-    // Add form params (only non-empty values)
+    // Add search-form params (only non-empty values). The applied filter state (q[g]/q[m])
+    // also travels as hidden fields there so submitting a search keeps the filters — but the
+    // popover form above is the authority when BOTH are present: appending the hidden copy
+    // too made the pushed URL describe the PREVIOUS filter (last key wins on nested parse),
+    // so an edited or removed condition came back on reload.
+    const filterKeys = new Set([...formData.keys()].filter(key => key.startsWith('q[')))
     for (const [key, value] of searchFormData) {
+      if (filterKeys.has(key) || key.startsWith('q[g]') || key === 'q[m]') continue
       if (value && value.trim() !== '') {
         url.searchParams.append(key, value)
       }

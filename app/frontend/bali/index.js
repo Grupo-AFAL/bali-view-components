@@ -108,6 +108,7 @@ export {
   NavbarController,
   NotificationController,
   RateController,
+  ColumnSelectorController,
   RecurrentEventRuleController,
   RevealController,
   SavedViewsController,

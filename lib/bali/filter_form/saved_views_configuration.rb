@@ -64,15 +64,22 @@ module Bali
       # Compara normalizado: llaves String, sin `columns` (vive en el DOM) y sin valores
       # vacíos — así una vista aplicada sigue reconociéndose como activa aunque la URL ya no
       # traiga ?saved_view= (p.ej. tras navegar de regreso con el estado restaurado del cache).
+      #
+      # Un payload que normaliza a VACÍO nunca casa por estado: una vista "solo columnas" (o
+      # "ver todo") describe el estado limpio, así que casaría en cada visita y se marcaría
+      # activa sin que sus columnas estén aplicadas —columns solo se aplica con ?saved_view=—.
+      # Esas vistas solo se reconocen activas cuando se aplican por URL.
       def view_matches_current_state?(view)
-        comparable_view_state(normalized_view_payload(view)) ==
-          comparable_view_state(current_view_payload)
+        state_matches_current_state?(normalized_view_payload(view))
       end
 
       # Mismo contrato para un estado que viene de una URL (los atajos estáticos del
       # dropdown): se le da la forma del payload y se compara igual.
       def state_matches_current_state?(payload)
-        comparable_view_state(payload) == comparable_view_state(current_view_payload)
+        comparable = comparable_view_state(payload)
+        return false if comparable.empty?
+
+        comparable == comparable_view_state(current_view_payload)
       end
 
       # Estado ACTUAL completo, listo para guardarse como vista. Sin `columns`: eso vive en
@@ -102,8 +109,22 @@ module Bali
       # Forma canónica para comparar estados: llaves String a fondo, sin `columns` y sin
       # valores vacíos (un payload guardado sin combinator y un estado actual con combinator
       # nil son el mismo estado).
+      #
+      # Los combinadores NO-OP también se descartan: el builder siempre re-emite `m` por grupo
+      # (y `q[m]` arriba) aunque el estado original no lo trajera, así que sin esto un atajo o
+      # una vista dejaban de reconocerse activos tras el primer round-trip por el popover o el
+      # buscador. Solo se descarta donde el combinador no puede cambiar el resultado —un grupo
+      # de una condición, o un solo grupo—, nunca cuando distingue de verdad AND de OR.
       def comparable_view_state(payload)
-        payload.to_h.deep_stringify_keys.except("columns").reject { |_k, v| v.blank? }
+        state = payload.to_h.deep_stringify_keys.except("columns").reject { |_k, v| v.blank? }
+        groupings = state["groupings"]
+        if groupings.is_a?(Hash)
+          state["groupings"] = groupings.transform_values do |group|
+            group.is_a?(Hash) && group.except("m").size < 2 ? group.except("m") : group
+          end
+          state = state.except("combinator") if groupings.size < 2
+        end
+        state.reject { |_k, v| v.blank? }
       end
 
       # El payload viene de un jsonb round-trip (llaves String) o de un Hash recién armado
@@ -123,7 +144,10 @@ module Bali
         @groupings = payload["groupings"]
         @combinator = payload["combinator"]
         @search_value = payload["search_value"]
-        @group_by = resolve_group_by(payload["group_by"])
+        # Un `group_by` explícito en la URL gana sobre el del payload: con `?saved_view=` aún
+        # pegado (los links de "Agrupar por" preservan la query), el payload pisaba el clic
+        # recién dado y el control se veía muerto.
+        @group_by = @group_by.presence || resolve_group_by(payload["group_by"])
         (payload["attributes"] || {}).select { |k, _v| self.class.attribute_names.include?(k.to_s) }
       end
     end

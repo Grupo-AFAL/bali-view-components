@@ -33,16 +33,36 @@ export default class extends Controller {
     const selector = document.querySelector(
       `[data-controller~="column-selector"][data-column-selector-table-value="${this.tableValue}"]`
     )
-    if (!selector) return
 
     let payload = {}
     try {
       payload = JSON.parse(this.payloadTarget.value || '{}')
     } catch { payload = {} }
 
-    payload.columns = [...selector.querySelectorAll('[data-column-index]')]
+    // Sin selector en el DOM (se pinta solo en modo tabla) las columnas se leen de su
+    // memoria por dispositivo: guardar desde tarjetas/Gantt dejaba la vista sin columnas,
+    // "olvidando" la mitad de su estado según desde qué modo se guardó.
+    const columns = selector ? this.visibleColumnsFrom(selector) : this.storedColumns()
+    if (columns === null) return
+
+    payload.columns = columns
+    this.payloadTarget.value = JSON.stringify(payload)
+  }
+
+  visibleColumnsFrom (selector) {
+    return [...selector.querySelectorAll('[data-column-index]')]
       .filter(checkbox => checkbox.checked)
       .map(checkbox => parseInt(checkbox.dataset.columnIndex, 10))
-    this.payloadTarget.value = JSON.stringify(payload)
+  }
+
+  // Misma llave que usa el column-selector para su persistencia por dispositivo.
+  storedColumns () {
+    try {
+      const raw = localStorage.getItem(`bali:columns:${this.tableValue.replace(/^#/, '')}`)
+      const parsed = raw && JSON.parse(raw)
+      return Array.isArray(parsed) ? parsed : null
+    } catch {
+      return null
+    }
   }
 }

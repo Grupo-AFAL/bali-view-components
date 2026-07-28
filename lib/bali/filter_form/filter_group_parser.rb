@@ -47,6 +47,14 @@ module Bali
         @combinator || "and"
       end
 
+      # El combinador tal como llegó (nil cuando la URL/estado no traía `q[m]`), a diferencia
+      # de `combinator`, que colapsa nil al default "and". Quien re-emite el estado necesita
+      # distinguir "el usuario eligió AND" de "nadie eligió nada": re-emitir el default como
+      # si fuera elección convierte un OR aplicado en AND en el siguiente round-trip.
+      def applied_combinator
+        @combinator
+      end
+
       # Get detailed information about each active filter condition.
       # Useful for displaying filter pills/tags with human-readable labels.
       #

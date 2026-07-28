@@ -35,7 +35,12 @@ export class FilterPersistenceController extends Controller {
       this.enabledValue = stored === 'true'
     }
     this.updateUI()
-    this.syncCookie()
+    // Only an EXPLICIT user preference (localStorage, written by toggle()) may write the
+    // cookie. Syncing unconditionally let a server-rendered `false` — which can mean
+    // "persistence is off in THIS context", not "the user turned it off" — be promoted to a
+    // durable preference: visiting such a page silently disabled persistence everywhere,
+    // and connect() rewrote the cookie on every visit, making it permanent.
+    if (stored !== null) this.syncCookie()
   }
 
   toggle () {

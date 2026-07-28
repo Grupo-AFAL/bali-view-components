@@ -81,18 +81,34 @@ module Bali
         private
 
         # Un atajo estático está activo cuando la query de su URL describe el MISMO estado
-        # que el form tiene aplicado. Su query se traduce a la forma del payload (q[g]→
-        # groupings, q[m]→combinator, resto de q→attributes) y se compara normalizada.
+        # que el form tiene aplicado. Su query se traduce a la forma del payload: q[g]→
+        # groupings, q[m]→combinator, el predicado de búsqueda→search_value (el form lo lleva
+        # ahí, no en attributes), `group_by` (param top-level, fuera de q) y el resto de q→
+        # attributes. Traducir de menos daba tanto falsos positivos (un atajo que solo agrupa
+        # normalizaba a vacío) como falsos negativos (un atajo con búsqueda nunca casaba).
         def default_view_active?(view)
-          query = URI.parse(view.url.to_s).query
-          q = (query.present? ? Rack::Utils.parse_nested_query(query) : {}).fetch("q", {})
+          uri = URI.parse(view.url.to_s)
+          params = uri.query.present? ? Rack::Utils.parse_nested_query(uri.query) : {}
+          q = params.fetch("q", {})
+          q = {} unless q.is_a?(Hash)
           filter_form.state_matches_current_state?(
-            "attributes" => q.except("g", "m"),
+            "attributes" => q.except("g", "m", *search_predicate),
             "groupings" => q["g"],
-            "combinator" => q["m"]
+            "combinator" => q["m"],
+            "search_value" => search_predicate && q[search_predicate],
+            "group_by" => params["group_by"]
           )
         rescue URI::InvalidURIError
           false
+        end
+
+        # Predicado combinado que emite el buscador rápido (p.ej. "name_or_code_cont"), o nil
+        # si este listado no tiene búsqueda.
+        def search_predicate
+          return @search_predicate if defined?(@search_predicate)
+
+          fields = filter_form.try(:search_config)&.dig(:fields)
+          @search_predicate = fields.presence && "#{Array(fields).map(&:to_s).join('_or_')}_cont"
         end
       end
     end

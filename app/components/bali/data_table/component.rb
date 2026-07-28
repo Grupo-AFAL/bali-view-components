@@ -69,8 +69,17 @@ module Bali
           options[:persist_enabled] = @filter_form.persist_enabled?
         end
 
-        # Preserve an active group_by across the GET filter submit (round-trip)
-        options[:preserved_params] = group_by_preserved_params unless options.key?(:preserved_params)
+        # Auto-populate the APPLIED combinator (nil when the state carried no `q[m]`), so the
+        # panel re-emits what the user chose instead of its own `:and` default — re-emitting
+        # the default flipped an applied OR to AND on the next round-trip.
+        if !options.key?(:combinator) && @filter_form.respond_to?(:applied_combinator)
+          options[:combinator] = @filter_form.applied_combinator
+        end
+
+        # Preserve an active group_by across the GET filter submit (round-trip). Explicit
+        # preserved_params MERGE with it instead of replacing it: a host preserving its own
+        # params should not silently drop the grouping on every filter/search submit.
+        options[:preserved_params] = group_by_preserved_params.merge(options[:preserved_params] || {})
 
         # Auto-populate search config from filter_form, merging with explicit overrides
         filter_form_search = if @filter_form && @filter_form.respond_to?(:search_config)

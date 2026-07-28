@@ -166,4 +166,55 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
     assert_no_selector "a[href='/listado?saved_view=1'].active"
     assert_selector "button", text: "Míos"
   end
+
+  # --- R5 (ronda adversarial): la marca activa no puede MENTIR ---
+
+  def test_a_view_whose_payload_normalizes_to_empty_never_matches_by_state
+    # Caso insignia de B2 ("guardo mi arreglo de columnas"): payload sin filtros. Describe el
+    # estado limpio, así que casaba en CADA visita y se marcaba activa aunque sus columnas no
+    # estuvieran aplicadas (columns solo se aplica con ?saved_view=).
+    columns_only = FakeStore.new([
+      SavedView.new(id: 9, name: "Compacta", payload: { "attributes" => {}, "columns" => [ 0, 1 ] })
+    ])
+    render_component(named_form(ActionController::Parameters.new, views_store: columns_only))
+
+    assert_no_selector "a.active"
+    # El botón conserva su etiqueta genérica: no hay vista que nombrar.
+    assert_selector "button", text: I18n.t("view_components.bali.data_table.saved_views.button_label")
+
+    # Aplicada por URL sí se reconoce: ahí el estado de la vista realmente está impuesto.
+    render_component(named_form(ActionController::Parameters.new(saved_view: "9"),
+                                views_store: columns_only))
+    assert_selector "a[href='/listado?saved_view=9'].active"
+  end
+
+  def test_a_shortcut_stays_marked_after_the_builder_round_trip_adds_the_default_m
+    # El builder re-emite q[g][0][m]=or aunque la URL del atajo no lo trajera: sin normalizar
+    # ese combinador no-op, el atajo se desmarcaba tras aplicar el popover o buscar una vez.
+    state = ActionController::Parameters.new(q: { g: { "0" => { name_i_cont: "a", m: "or" } } })
+    render_component(named_form(state, views_store: FakeStore.new([])),
+                     default_views: [ { name: "Con a", url: "/listado?q%5Bg%5D%5B0%5D%5Bname_i_cont%5D=a" } ])
+
+    assert_selector "a.active", text: "Con a"
+  end
+
+  def test_a_shortcut_matches_on_the_groupings_shape_used_by_real_apps
+    # Los atajos reales viajan como q[g][0][attr_eq] (no como attributes planos).
+    state = ActionController::Parameters.new(q: { g: { "0" => { name_i_cont: "rojo" } } })
+    render_component(named_form(state, views_store: FakeStore.new([])),
+                     default_views: [
+                       { name: "En rojo", url: "/listado?q%5Bg%5D%5B0%5D%5Bname_i_cont%5D=rojo" },
+                       { name: "Otro", url: "/listado?q%5Bg%5D%5B0%5D%5Bname_i_cont%5D=verde" }
+                     ])
+
+    assert_selector "a.active", text: "En rojo"
+    assert_no_selector "a.active", text: "Otro"
+  end
+
+  def test_renaming_inputs_get_unique_ids
+    render_component(form)
+
+    ids = page.native.css("input[type='text']").map { |input| input["id"] }.compact
+    assert_equal ids.uniq.size, ids.size, "los ids de los inputs de nombre deben ser únicos"
+  end
 end

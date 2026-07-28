@@ -432,12 +432,15 @@ module Bali
       has_filter_params = force_write || attributes.present? || groupings.present? || search_value.present?
 
       if has_filter_params
-        # User submitted new filters → always save complete state
+        # User submitted new filters → always save complete state. `group_by` viaja con el
+        # resto: sin él, volver al listado restauraba los filtros pero perdía la agrupación
+        # (y una vista guardada que agrupa dejaba de reconocerse activa).
         Rails.cache.write(cache_key, {
                             attributes: attributes.to_h,
                             groupings: groupings,
                             combinator: combinator,
-                            search_value: search_value
+                            search_value: search_value,
+                            group_by: @group_by
                           })
         [ attributes, groupings, combinator, search_value ]
       elsif @clear_filters
@@ -445,8 +448,11 @@ module Bali
         Rails.cache.delete(cache_key)
         [ {}, nil, nil, nil ]
       elsif @clear_search
-        # User clicked search clear button → clear just the search from storage
-        stored = Rails.cache.fetch(cache_key)
+        # User clicked search clear button → clear just the search from storage. Con la
+        # persistencia apagada NO se restaura nada: el usuario pidió explícitamente que el
+        # server no le devuelva estado, y limpiar la búsqueda no puede ser la puerta trasera
+        # por la que reaparecen filtros que la URL ya no describe.
+        stored = @persist_enabled ? Rails.cache.fetch(cache_key) : nil
         if stored.is_a?(Hash)
           Rails.cache.write(cache_key, stored.merge(search_value: nil))
           [ stored[:attributes] || {}, stored[:groupings], stored[:combinator], nil ]
@@ -457,6 +463,7 @@ module Bali
         # No filters in URL and persistence enabled → restore from cache
         stored = Rails.cache.fetch(cache_key)
         if stored.is_a?(Hash) && stored[:attributes]
+          @group_by = resolve_group_by(stored[:group_by]) if stored.key?(:group_by)
           [
             stored[:attributes] || {},
             stored[:groupings],
