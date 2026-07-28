@@ -1,28 +1,32 @@
 <div class="dropdown dropdown-end"
      data-controller="saved-views"
      data-saved-views-table-value="<%= table_id %>">
+  <%# El botón nombra la vista ACTIVA (aplicada por URL, o la que coincide con el estado
+      actual — incluye atajos); el ícono se rellena para señalarla también con el popover
+      cerrado. %>
   <button type="button" tabindex="0" class="btn btn-outline btn-sm gap-2">
-    <%= render Bali::Icon::Component.new('bookmark', class: 'w-4 h-4') %>
-    <span class="hidden sm:inline"><%= current_view ? current_view.name : t('.button_label') %></span>
+    <%= render Bali::Icon::Component.new(active_view ? 'bookmark-check' : 'bookmark', class: 'w-4 h-4') %>
+    <span class="hidden sm:inline"><%= active_view ? active_view.name : t('.button_label') %></span>
   </button>
 
-  <div tabindex="0" class="dropdown-content z-50 p-2 shadow-lg bg-base-100 rounded-box w-72 border border-base-200">
+  <div tabindex="0" class="dropdown-content z-50 p-2 shadow-lg bg-base-100 rounded-box w-72 max-h-[70vh] overflow-y-auto border border-base-200">
     <% if default_views.any? %>
       <div class="menu-title px-2 pt-1"><%= t('.suggested_title') %></div>
-      <ul class="menu p-0">
+      <ul class="menu p-0 w-full">
         <% default_views.each do |view| %>
-          <li><%= link_to view.name, view.url, class: 'text-sm' %></li>
+          <li class="w-full"><%= link_to view.name, view.url,
+                class: "text-sm #{'active' if active_view?(view)}" %></li>
         <% end %>
       </ul>
     <% end %>
 
     <% if views.any? %>
       <div class="menu-title px-2 pt-1"><%= t('.mine_title') %></div>
-      <ul class="menu p-0">
+      <ul class="menu p-0 w-full">
         <% views.each do |view| %>
-          <li class="flex-row items-center flex-nowrap">
+          <li class="flex-row items-center flex-nowrap w-full">
             <%= link_to view.name, apply_url(view),
-                  class: "grow text-sm truncate #{'active' if current_view&.id == view.id}" %>
+                  class: "grow text-sm truncate #{'active' if active_view?(view)}" %>
             <button type="button" class="btn btn-ghost btn-xs px-1"
                     title="<%= t('.rename') %>"
                     data-action="saved-views#toggleRename" data-saved-views-id-param="<%= view.id %>">
@@ -38,7 +42,10 @@
           <%# Form de renombrar, oculto hasta que se pide (PATCH url/:id con solo `name`). %>
           <li class="hidden" data-saved-views-target="renameForm" data-saved-views-id="<%= view.id %>">
             <%= form_with url: view_url(view), method: :patch, class: 'flex gap-1 p-1' do |f| %>
+              <%# id explícito por vista: N forms de renombrar + el de guardar generaban N+1
+                  ids "name" duplicados (HTML inválido, autofill confundido). %>
               <%= f.text_field :name, value: view.name, required: true,
+                    id: "saved-view-name-#{view.id}",
                     class: 'input input-bordered input-xs grow' %>
               <%= f.submit t('.save'), class: 'btn btn-primary btn-xs' %>
             <% end %>
@@ -59,6 +66,7 @@
         <%= form_with url: url, method: :post, class: 'flex gap-1',
               data: { action: 'submit->saved-views#injectColumns' } do |f| %>
           <%= f.text_field :name, placeholder: t('.name_placeholder'), required: true,
+                id: nil,
                 class: 'input input-bordered input-sm grow' %>
           <%= f.hidden_field :payload, value: payload_json, data: { saved_views_target: 'payload' } %>
           <%= f.submit t('.save'), class: 'btn btn-primary btn-sm' %>

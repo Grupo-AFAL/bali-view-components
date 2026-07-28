@@ -49,7 +49,7 @@ import {
   AppliedTagsController,
   MultiSelectController
 } from '../../../components/bali/filters/index'
-import { ColumnSelectorController } from '../../../components/bali/data_table/index'
+import { ColumnSelectorController, SavedViewsController } from '../../../components/bali/data_table/index'
 import { DocumentEditorController } from '../../../components/bali/document_editor/index'
 import { DocumentPageController } from '../../../components/bali/document_page/index'
 import { TreeViewItemController } from '../../../components/bali/tree_view/item/index'
@@ -104,7 +104,7 @@ export {
 } from '../../../components/bali/filters/index'
 
 // DataTable components
-export { ColumnSelectorController } from '../../../components/bali/data_table/index'
+export { ColumnSelectorController, SavedViewsController } from '../../../components/bali/data_table/index'
 
 // Document components
 export { DocumentEditorController } from '../../../components/bali/document_editor/index'
@@ -180,6 +180,7 @@ export function registerAll (application) {
 
   // DataTable
   application.register('column-selector', ColumnSelectorController)
+  application.register('saved-views', SavedViewsController)
 
   // Document
   application.register('document-editor', DocumentEditorController)

@@ -16,6 +16,10 @@
         <%# Quick search input with clear button %>
         <%= form_with url: url, method: :get, class: 'flex-1 min-w-0 sm:flex-initial', data: { turbo_stream: turbo_stream, turbo_action: 'replace', filters_target: 'searchForm' } do %>
           <%= preserved_params_hidden_fields %>
+          <%# Los filtros ACTIVOS viajan como hidden fields: sin esto, buscar re-enviaba solo
+              q[...search...] y el server tomaba "attributes vacíos" como estado nuevo — borraba
+              los filtros aplicados (y, con persistencia, también los guardados). %>
+          <%= active_filter_hidden_fields %>
           <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg w-full sm:w-auto">
             <label class="input input-bordered input-sm join-item w-full sm:w-64 flex items-center gap-2">
               <input type="text"
@@ -165,15 +169,18 @@
 
         <%# Persistence toggle (bookmark icon) %>
         <% if persistence_available? %>
+          <%# Los tooltips van como VALUES en el elemento del controller: el Stimulus los lee
+              con this.data.get / values sobre this.element — puestos en el botón hijo eran
+              invisibles y el texto caía al fallback en inglés. %>
           <div class="max-sm:overflow-hidden" data-controller="filter-persistence"
                data-filter-persistence-storage-id-value="<%= storage_id %>"
-               data-filter-persistence-enabled-value="<%= persist_enabled? %>">
+               data-filter-persistence-enabled-value="<%= persist_enabled? %>"
+               data-filter-persistence-enabled-tooltip-value="<%= t('bali.filters.persistence_enabled', default: 'Filters are being saved. Click to disable.') %>"
+               data-filter-persistence-disabled-tooltip-value="<%= t('bali.filters.persistence_disabled', default: 'Filters are not saved. Click to enable.') %>">
             <button type="button"
                     class="tooltip tooltip-bottom btn btn-ghost btn-sm btn-square"
                     data-action="filter-persistence#toggle"
                     data-filter-persistence-target="button"
-                    data-filter-persistence-enabled-tooltip="<%= t('bali.filters.persistence_enabled', default: 'Filters are being saved. Click to disable.') %>"
-                    data-filter-persistence-disabled-tooltip="<%= t('bali.filters.persistence_disabled', default: 'Filters are not saved. Click to enable.') %>"
                     data-tip="<%= persist_enabled? ? t('bali.filters.persistence_enabled', default: 'Filters are being saved. Click to disable.') : t('bali.filters.persistence_disabled', default: 'Filters are not saved. Click to enable.') %>">
               <%# Filled bookmark when enabled %>
               <span data-filter-persistence-target="iconEnabled" class="<%= 'hidden' unless persist_enabled? %>">

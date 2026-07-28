@@ -1,7 +1,7 @@
 <div id="<%= id %>" class="data-table-component">
   <%# Toolbar: Filters (left) + Actions/Buttons (right) %>
   <% if show_toolbar? %>
-    <div class="flex items-center gap-2 sm:gap-4 mb-4">
+    <div class="<%= toolbar_classes %>">
       <%# Left side: Filters (search + filter button + bookmark) %>
       <div class="flex-1 min-w-0">
         <%= filters_panel if filters_panel? %>

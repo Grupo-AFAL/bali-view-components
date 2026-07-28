@@ -287,4 +287,124 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_selector('input[type="hidden"][name="page"][value="2"]', visible: :hidden)
     assert_no_selector('input[type="hidden"][name="q[name_cont]"]', visible: :hidden)
   end
+
+  # --- R5: la búsqueda rápida NO borra los filtros aplicados ---
+
+  def test_the_search_form_carries_the_applied_filters_as_hidden_fields
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes,
+      search: { fields: [ :name ], value: "" },
+      combinator: "and",
+      filter_groups: [
+        { combinator: "or", conditions: [
+          { attribute: "status", operator: "eq", value: "active" },
+          { attribute: "age", operator: "between", value: { start: "18", end: "30" } }
+        ] },
+        # Fila del builder sin atributo/valor: NO debe viajar.
+        { combinator: "or", conditions: [ { attribute: "", operator: "cont", value: "" } ] }
+      ]
+    ))
+
+    within = '[data-filters-target="searchForm"]'
+    assert_selector "#{within} input[name='q[g][0][status_eq]'][value='active']", visible: :all
+    # `between` se re-expande al par gteq/lteq que el server parsea.
+    assert_selector "#{within} input[name='q[g][0][age_gteq]'][value='18']", visible: :all
+    assert_selector "#{within} input[name='q[g][0][age_lteq]'][value='30']", visible: :all
+    assert_selector "#{within} input[name='q[g][0][m]'][value='or']", visible: :all
+    assert_selector "#{within} input[name='q[m]'][value='and']", visible: :all
+    # El grupo vacío del builder no aporta hidden fields.
+    assert_no_selector "#{within} input[name^='q[g][1]']", visible: :all
+  end
+
+  def test_the_search_form_without_active_filters_adds_no_hidden_q_fields
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes,
+      search: { fields: [ :name ], value: "" }
+    ))
+
+    assert_no_selector '[data-filters-target="searchForm"] input[name^="q[g]"]', visible: :all
+    assert_no_selector '[data-filters-target="searchForm"] input[name="q[m]"]', visible: :all
+  end
+
+  def test_array_values_serialize_one_hidden_per_item
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes,
+      search: { fields: [ :name ], value: "" },
+      filter_groups: [
+        { combinator: "or", conditions: [
+          { attribute: "status", operator: "in", value: [ "active", "inactive" ] }
+        ] }
+      ]
+    ))
+
+    within = '[data-filters-target="searchForm"]'
+    assert_selector "#{within} input[name='q[g][0][status_in][]'][value='active']", visible: :all
+    assert_selector "#{within} input[name='q[g][0][status_in][]'][value='inactive']", visible: :all
+  end
+
+  # --- R5 (ronda adversarial): el estado re-emitido no debe MUTAR lo aplicado ---
+
+  def test_the_search_form_emits_the_applied_combinator_not_the_component_default
+    # Sin combinator aplicado no se emite q[m]: emitir el default "and" volteaba a AND un
+    # OR ya aplicado en cuanto el usuario tecleaba una búsqueda.
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes,
+      search: { fields: [ :name ], value: "" },
+      filter_groups: [ { combinator: "or", conditions: [
+        { attribute: "status", operator: "eq", value: "active" }
+      ] } ]
+    ))
+    assert_no_selector '[data-filters-target="searchForm"] input[name="q[m]"]', visible: :all
+
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes,
+      search: { fields: [ :name ], value: "" }, combinator: "or",
+      filter_groups: [ { combinator: "or", conditions: [
+        { attribute: "status", operator: "eq", value: "active" }
+      ] } ]
+    ))
+    assert_selector '[data-filters-target="searchForm"] input[name="q[m]"][value="or"]', visible: :all
+  end
+
+  def test_a_between_with_both_ends_blank_emits_no_phantom_group
+    # El popover serializa sus inputs vacíos, y un between {start:"",end:""} es un Hash
+    # (present?) — contaba como condición y emitía un grupo con solo los combinadores.
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes,
+      search: { fields: [ :name ], value: "" }, combinator: "and",
+      filter_groups: [ { combinator: "or", conditions: [
+        { attribute: "created_at", operator: "between", value: { start: "", end: "" } }
+      ] } ]
+    ))
+
+    assert_no_selector '[data-filters-target="searchForm"] input[name^="q[g]"]', visible: :all
+    assert_no_selector '[data-filters-target="searchForm"] input[name="q[m]"]', visible: :all
+  end
+
+  def test_saved_view_is_not_preserved_so_submitting_does_not_reapply_the_view
+    # Con ?saved_view= preservado, el server re-aplicaba el payload de la vista y descartaba
+    # en silencio lo que el usuario acababa de escribir.
+    component = Bali::Filters::Component.new(
+      url: "/users?saved_view=7&per=25", available_attributes: @available_attributes
+    )
+    names = component.preserved_query_params.map(&:first)
+
+    assert_includes names, "per"
+    assert_not_includes names, "saved_view"
+  end
+
+  # --- R5-04: los tooltips localizados viven en el ELEMENTO del controller ---
+
+  def test_the_persistence_toggle_carries_the_localized_tooltips_as_stimulus_values
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes,
+      storage_id: "users_index", persist_enabled: true
+    ))
+
+    # En el botón hijo el Stimulus no los ve y el tooltip caía al fallback en inglés.
+    assert_selector "[data-controller='filter-persistence']" \
+                    "[data-filter-persistence-enabled-tooltip-value]" \
+                    "[data-filter-persistence-disabled-tooltip-value]"
+    assert_no_selector "button[data-filter-persistence-enabled-tooltip]"
+  end
 end

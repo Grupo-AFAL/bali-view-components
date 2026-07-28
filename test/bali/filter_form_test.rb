@@ -459,6 +459,40 @@ class BaliFilterFormPersistenceTest < ActiveSupport::TestCase
     "#{form_class.name.tableize};;movies"
   end
 
+  # --- R5 (ronda adversarial): la persistencia también cubre la agrupación ---
+
+  def test_persists_and_restores_the_active_group_by
+    # Sin group_by en el cache, volver al listado restauraba los filtros pero perdía la
+    # agrupación — y una vista guardada que agrupa dejaba de reconocerse activa.
+    grouped = ActionController::Parameters.new(q: { genre_eq: "action" }, group_by: "genre")
+    GroupableMovieFilterForm.new(Movie.all, grouped, storage_id: "movies")
+
+    stored = Rails.cache.read(cache_key_for(GroupableMovieFilterForm))
+    assert_equal("genre", stored[:group_by].to_s)
+
+    restored = GroupableMovieFilterForm.new(Movie.all, ActionController::Parameters.new,
+                                            storage_id: "movies", persist_enabled: true)
+    assert_equal("genre", restored.group_by.to_s)
+  end
+
+  def test_clearing_the_search_does_not_restore_state_when_persistence_is_off
+    # Con la persistencia apagada el usuario pidió que el server NO le devuelva estado:
+    # limpiar la búsqueda no puede ser la puerta trasera por la que reaparecen filtros.
+    MovieFilterForm.new(Movie.all, params(name_i_cont: "iron"), storage_id: "movies")
+
+    cleared = MovieFilterForm.new(
+      Movie.all, ActionController::Parameters.new(clear_search: true),
+      storage_id: "movies", persist_enabled: false
+    )
+    assert_nil(cleared.name_i_cont)
+
+    still_there = MovieFilterForm.new(
+      Movie.all, ActionController::Parameters.new(clear_search: true),
+      storage_id: "movies", persist_enabled: true
+    )
+    assert_equal("iron", still_there.name_i_cont)
+  end
+
   def test_stores_complete_filter_state_including_groupings
     filter_params = { g: {
       "0" => { name_cont: "Iron", genre_eq: "action", m: "or" }

@@ -1,13 +1,18 @@
 <%= render Bali::Dropdown::Component.new(align: :left, close_on_click: true) do |dropdown| %>
-  <% dropdown.with_trigger(variant: :ghost, class: "btn-sm gap-1 whitespace-nowrap") do %>
+  <%# aria-label explícito: el texto vive en un span max-sm:hidden, así que en móvil el
+      trigger quedaba solo con iconos y sin nombre accesible. %>
+  <% dropdown.with_trigger(variant: :ghost, class: "btn-sm gap-1 whitespace-nowrap",
+                           "aria-label": trigger_label) do %>
     <%= render Bali::Icon::Component.new("layers", class: "w-4 h-4") %>
     <span class="max-sm:hidden"><%= trigger_label %></span>
     <%= render Bali::Icon::Component.new("chevron-down", class: "w-3 h-3 opacity-60") %>
   <% end %>
 
-  <% dropdown.with_item(href: no_grouping_href, class: item_class(!active?)) do %>
-    <%= render Bali::Icon::Component.new(active? ? "minus" : "check", class: "w-4 h-4 opacity-60") %>
-    <span><%= no_grouping_label %></span>
+  <% if include_none? %>
+    <% dropdown.with_item(href: no_grouping_href, class: item_class(!active?)) do %>
+      <%= render Bali::Icon::Component.new(active? ? "minus" : "check", class: "w-4 h-4 opacity-60") %>
+      <span><%= no_grouping_label %></span>
+    <% end %>
   <% end %>
 
   <% options.each do |option| %>
