@@ -21,7 +21,11 @@ export class FilterPersistenceController extends Controller {
   static targets = ['button', 'iconEnabled', 'iconDisabled']
   static values = {
     storageId: String,
-    enabled: Boolean
+    enabled: Boolean,
+    // Localized tooltip texts, provided by the server via data-*-value attributes on the
+    // controller element. The English strings are last-resort fallbacks only.
+    enabledTooltip: { type: String, default: 'Filter persistence enabled. Click to disable.' },
+    disabledTooltip: { type: String, default: 'Filter persistence disabled. Click to enable.' }
   }
 
   connect () {
@@ -60,11 +64,11 @@ export class FilterPersistenceController extends Controller {
       }
     }
 
-    // Update tooltip text
+    // Update tooltip text. NOTE: `this.data.get(...)` reads the CONTROLLER element, so the
+    // tooltips must be Stimulus values on it — attributes on the button child are invisible
+    // here (that placement silently fell back to the hardcoded English strings).
     if (this.hasButtonTarget) {
-      const tooltip = this.enabledValue
-        ? this.data.get('enabledTooltip') || 'Filter persistence enabled. Click to disable.'
-        : this.data.get('disabledTooltip') || 'Filter persistence disabled. Click to enable.'
+      const tooltip = this.enabledValue ? this.enabledTooltipValue : this.disabledTooltipValue
       this.buttonTarget.setAttribute('data-tip', tooltip)
     }
   }

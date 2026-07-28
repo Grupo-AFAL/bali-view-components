@@ -60,6 +60,21 @@ module Bali
         current_saved_view && normalized_view_payload(current_saved_view)["columns"]
       end
 
+      # ¿El estado ACTUAL del form (ya post-persistencia) equivale al payload de esta vista?
+      # Compara normalizado: llaves String, sin `columns` (vive en el DOM) y sin valores
+      # vacíos — así una vista aplicada sigue reconociéndose como activa aunque la URL ya no
+      # traiga ?saved_view= (p.ej. tras navegar de regreso con el estado restaurado del cache).
+      def view_matches_current_state?(view)
+        comparable_view_state(normalized_view_payload(view)) ==
+          comparable_view_state(current_view_payload)
+      end
+
+      # Mismo contrato para un estado que viene de una URL (los atajos estáticos del
+      # dropdown): se le da la forma del payload y se compara igual.
+      def state_matches_current_state?(payload)
+        comparable_view_state(payload) == comparable_view_state(current_view_payload)
+      end
+
       # Estado ACTUAL completo, listo para guardarse como vista. Sin `columns`: eso vive en
       # el DOM (column selector) y lo agrega el Stimulus del dropdown al momento de enviar.
       def current_view_payload
@@ -82,6 +97,13 @@ module Bali
         return nil unless owner.present? && storage_id.present?
 
         Bali::SavedView.store_for(owner, storage_id)
+      end
+
+      # Forma canónica para comparar estados: llaves String a fondo, sin `columns` y sin
+      # valores vacíos (un payload guardado sin combinator y un estado actual con combinator
+      # nil son el mismo estado).
+      def comparable_view_state(payload)
+        payload.to_h.deep_stringify_keys.except("columns").reject { |_k, v| v.blank? }
       end
 
       # El payload viene de un jsonb round-trip (llaves String) o de un Hash recién armado

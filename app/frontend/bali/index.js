@@ -110,6 +110,7 @@ export {
   RateController,
   RecurrentEventRuleController,
   RevealController,
+  SavedViewsController,
   SideMenuController,
   SideMenuFlyoutController,
   SortableListController,

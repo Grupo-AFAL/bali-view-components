@@ -170,7 +170,48 @@ module Bali
         )
       end
 
+      # Hidden fields carrying the APPLIED filter state (q[g][...]/q[m]), so the quick-search
+      # form preserves active filters instead of clearing them. Serializes `filter_groups`
+      # back into the same Ransack param shape the filter form submits; the consolidated
+      # `between` operator expands back to its gteq/lteq pair.
+      def active_filter_hidden_fields
+        safe_join(
+          active_filter_params.map { |name, value| helpers.hidden_field_tag(name, value, id: nil) }
+        )
+      end
+
       private
+
+      # [name, value] pairs of the applied filter state. Only real conditions travel
+      # (attribute + value present); empty builder rows stay out so the server keeps
+      # treating "solo búsqueda, sin filtros" igual que hoy cuando no hay filtros activos.
+      def active_filter_params
+        pairs = []
+        filter_groups.each_with_index do |group, index|
+          conditions = (group[:conditions] || []).select do |condition|
+            condition[:attribute].present? && condition[:value].present?
+          end
+          next if conditions.empty?
+
+          pairs << [ "q[g][#{index}][m]", group[:combinator] ] if group[:combinator].present?
+          conditions.each { |condition| pairs.concat(condition_params(condition, index)) }
+        end
+        pairs << [ "q[m]", combinator ] if pairs.any? && combinator.present?
+        pairs
+      end
+
+      def condition_params(condition, group_index)
+        base = "q[g][#{group_index}][#{condition[:attribute]}"
+        if condition[:operator] == "between"
+          value = condition[:value] || {}
+          [ [ "#{base}_gteq]", value[:start] || value["start"] ],
+            [ "#{base}_lteq]", value[:end] || value["end"] ] ].reject { |_, v| v.blank? }
+        elsif condition[:value].is_a?(Array)
+          condition[:value].map { |v| [ "#{base}_#{condition[:operator]}][]", v ] }
+        else
+          [ [ "#{base}_#{condition[:operator]}]", condition[:value] ] ]
+        end
+      end
 
       # Recursively flatten nested params hash into [name, value] pairs.
       # e.g., {"sort" => {"column" => "name"}} becomes [["sort[column]", "name"]]

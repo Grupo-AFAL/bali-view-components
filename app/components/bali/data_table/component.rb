@@ -194,10 +194,18 @@ module Bali
         @item_name = options[:item_name]
         @table_wrapper_class = options[:table_class]
         @display_mode = (options[:display_mode] || :table).to_sym
+        @toolbar_class = options[:toolbar_class]
       end
 
       def table_wrapper_classes
         @table_wrapper_class || "overflow-x-auto"
+      end
+
+      # Extra classes for the toolbar row (filters + actions). Permite, p.ej., envolver
+      # SOLO la toolbar en superficie de card cuando el contenido no aporta la suya
+      # (grid de tarjetas, Gantt) sin duplicar el componente.
+      def toolbar_classes
+        [ "flex items-center gap-2 sm:gap-4 mb-4", @toolbar_class ].compact.join(" ")
       end
 
       def id
