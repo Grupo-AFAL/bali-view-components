@@ -16,9 +16,15 @@ module Bali
 
       def find(id) = scope.find_by(id: id)
 
-      # Upsert por nombre: guardar "Míos" dos veces actualiza la vista, no duplica.
+      # Upsert por nombre: guardar "Míos" dos veces actualiza la vista, no duplica. El
+      # rescue cubre la carrera del doble click: el segundo insert pierde contra el índice
+      # único y el reintento encuentra la fila recién creada — el upsert prometido, sin 500.
       def save(name:, payload:)
         view = scope.find_or_initialize_by(name: name)
+        view.update!(payload: payload)
+        view
+      rescue ActiveRecord::RecordNotUnique
+        view = scope.find_by!(name: name)
         view.update!(payload: payload)
         view
       end

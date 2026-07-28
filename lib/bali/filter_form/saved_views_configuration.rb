@@ -39,8 +39,10 @@ module Bali
         @saved_views_store.present?
       end
 
+      # Memoizado: el dropdown lo consulta más de una vez por render (.any? y luego .each)
+      # y cada llamada sin memo era un SELECT.
       def saved_views
-        saved_views_enabled? ? Array(@saved_views_store.list) : []
+        @saved_views ||= saved_views_enabled? ? Array(@saved_views_store.list) : []
       end
 
       # La vista aplicada por URL (?saved_view=<id>), o nil. Memoiza incluso el nil (un id

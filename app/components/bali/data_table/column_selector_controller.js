@@ -78,7 +78,9 @@ export default class extends Controller {
     if (isNaN(columnIndex) || !this.table) return
 
     this.setColumnVisibility(columnIndex, visible)
-    this.persistState()
+    // Con una vista aplicada (serverState) el toggle es un ajuste SOBRE la vista: no debe
+    // volverse el default del dispositivo en localStorage.
+    if (!this.serverStateValue) this.persistState()
   }
 
   setColumnVisibility (index, visible) {
