@@ -28,8 +28,11 @@ module Bali
 
         attr_reader :filter_form, :url, :table_id, :default_views
 
+        # Sin URL no hay mutaciones posibles (pasa cuando el slot no recibió `url:` y el
+        # form no tiene storage_id para armar la default del engine): no pintar nada gana
+        # sobre pintar forms rotos.
         def render?
-          filter_form&.saved_views_enabled?
+          filter_form&.saved_views_enabled? && url.present?
         end
 
         def views

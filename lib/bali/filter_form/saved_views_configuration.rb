@@ -4,9 +4,9 @@ module Bali
   class FilterForm
     # SavedViewsConfiguration — combinaciones de filtros CON NOMBRE (vistas guardadas).
     #
-    # El FilterForm NO conoce el storage: la app provee un `saved_views_store:` con este
-    # contrato (mismo espíritu que la persistencia vía Rails.cache — Bali define el QUÉ,
-    # la app decide el DÓNDE):
+    # El FilterForm define el QUÉ del storage, no el DÓNDE (mismo espíritu que la
+    # persistencia vía Rails.cache). `saved_views_store:` acepta cualquier objeto con este
+    # contrato:
     #
     #   store.list                   -> [view, ...]     # vistas visibles para el usuario actual
     #   store.find(id)               -> view | nil
@@ -15,9 +15,15 @@ module Bali
     #
     # donde cada `view` responde a `id`, `name` y `payload` (Hash con las llaves de
     # PAYLOAD_KEYS). El FilterForm solo LEE (list/find): guardar/renombrar/borrar los hace
-    # la app en sus propias rutas — la UI (Bali::DataTable::SavedViews) postea a la URL que
-    # la app le pasa. Diseñado a propósito para que "vistas compartidas por equipo" sea OTRA
-    # implementación del store (p.ej. scoped al equipo en vez del usuario), sin tocar Bali.
+    # el controller dueño de la URL que recibe la UI (Bali::DataTable::SavedViews).
+    #
+    # El engine TRAE la implementación default de ese contrato: `saved_views_store: :default`
+    # resuelve a `Bali::SavedView::Store` (tabla `bali_saved_views`, instalada con
+    # `bin/rails bali:install:migrations`), scoped al `saved_views_owner:` que pasa la app
+    # (p.ej. current_user) y al `storage_id:` del form; las mutaciones las atiende
+    # `Bali::SavedViewsController` (rutas del engine montado). Una app puede seguir pasando
+    # su propio store — p.ej. "vistas compartidas por equipo" es OTRA implementación del
+    # mismo contrato (scoped al equipo en vez del usuario), sin tocar Bali.
     #
     # Aplicación: `?saved_view=<id>` en la URL. El payload REEMPLAZA el estado de filtros
     # (una vista es un estado completo, no un merge) y después pasa por la persistencia
@@ -65,6 +71,16 @@ module Bali
       end
 
       private
+
+      # `:default` = el storage del engine, scoped al owner y al storage_id del form. Sin
+      # owner o sin storage_id no hay store (el dropdown no pinta): mejor apagado que un
+      # scope mal armado. Un store explícito pasa intacto.
+      def resolve_saved_views_store(store, owner)
+        return store unless store == :default
+        return nil unless owner.present? && storage_id.present?
+
+        Bali::SavedView.store_for(owner, storage_id)
+      end
 
       # El payload viene de un jsonb round-trip (llaves String) o de un Hash recién armado
       # (llaves Symbol): se normaliza a String y se recorta al contrato.
