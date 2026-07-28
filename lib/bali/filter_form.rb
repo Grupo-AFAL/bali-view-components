@@ -225,12 +225,13 @@ module Bali
       # que hubiera venido en q — una vista es un estado completo, no un merge. Va ANTES de
       # la persistencia para que el estado de la vista se escriba como "último estado" del
       # listado (fetch_stored_filter_state lo ve como filtros recién enviados).
-      attributes = apply_saved_view_state if current_saved_view
+      saved_view_applied = current_saved_view.present?
+      attributes = apply_saved_view_state if saved_view_applied
 
       # Persist/restore all filter state (attributes, groupings, combinator, search)
       if storage_id.present?
         attributes, @groupings, @combinator, @search_value = fetch_stored_filter_state(
-          attributes, @groupings, @combinator, @search_value
+          attributes, @groupings, @combinator, @search_value, force_write: saved_view_applied
         )
       end
 
@@ -421,10 +422,14 @@ module Bali
     # - Always saves filters when user submits new ones (so they're available if user enables later)
     # - Only restores filters when @persist_enabled is true
     # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
-    def fetch_stored_filter_state(attributes, groupings, combinator, search_value)
+    # `force_write:` — un saved view recién aplicado SIEMPRE cuenta como "filtros recién
+    # enviados", incluso cuando su payload resulta en un estado vacío (una vista "ver todo").
+    # Sin esto, `has_filter_params` no distingue "no vino nada" de "vino una vista vacía" y
+    # con `persist_enabled` cae al branch de restaurar — la caché vieja pisa la vista aplicada.
+    def fetch_stored_filter_state(attributes, groupings, combinator, search_value, force_write: false)
       return [ attributes, groupings, combinator, search_value ] unless Object.const_defined?("Rails")
 
-      has_filter_params = attributes.present? || groupings.present? || search_value.present?
+      has_filter_params = force_write || attributes.present? || groupings.present? || search_value.present?
 
       if has_filter_params
         # User submitted new filters → always save complete state

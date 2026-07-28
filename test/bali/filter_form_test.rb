@@ -515,6 +515,29 @@ class BaliFilterFormPersistenceTest < ActiveSupport::TestCase
     AdvancedMovieFilterForm.new(Movie.all, params(filter_params))
     assert_nil(Rails.cache.read(cache_key_for(AdvancedMovieFilterForm)))
   end
+
+  # Regresión: una vista guardada "vacía" (ver todo) aplicada con persist_enabled: true no
+  # debe perder ante la caché de la visita anterior — una vista es un estado completo, y
+  # eso incluye el estado vacío. Antes del fix, has_filter_params no distinguía "no vino
+  # vista" de "vino una vista vacía" y ambos caían al branch de restaurar la caché.
+  def test_an_applied_view_with_a_blank_payload_beats_stale_cached_filters
+    filter_params = { name_or_genre_or_tenant_name_cont: "Iron" }
+    SearchableMovieFilterForm.new(Movie.all, params(filter_params), storage_id: "movies")
+
+    blank_view = Struct.new(:id, :name, :payload, keyword_init: true).new(id: 1, name: "Ver todo", payload: {})
+    store = Struct.new(:views) do
+      def list = views
+      def find(id) = views.find { |view| view.id.to_s == id.to_s }
+    end.new([ blank_view ])
+
+    @form = SearchableMovieFilterForm.new(
+      Movie.all, ActionController::Parameters.new(saved_view: "1"),
+      storage_id: "movies", persist_enabled: true, saved_views_store: store
+    )
+
+    assert_nil(@form.search_value, "la vista vacía debe ganarle a la búsqueda vieja en caché")
+    assert_equal([], @form.filter_groups)
+  end
 end
 
 class BaliFilterFormTestSimpleFilters < ActiveSupport::TestCase
