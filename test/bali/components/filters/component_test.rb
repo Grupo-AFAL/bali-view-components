@@ -287,4 +287,58 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_selector('input[type="hidden"][name="page"][value="2"]', visible: :hidden)
     assert_no_selector('input[type="hidden"][name="q[name_cont]"]', visible: :hidden)
   end
+
+  # --- R5: la búsqueda rápida NO borra los filtros aplicados ---
+
+  def test_the_search_form_carries_the_applied_filters_as_hidden_fields
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes,
+      search: { fields: [ :name ], value: "" },
+      combinator: "and",
+      filter_groups: [
+        { combinator: "or", conditions: [
+          { attribute: "status", operator: "eq", value: "active" },
+          { attribute: "age", operator: "between", value: { start: "18", end: "30" } }
+        ] },
+        # Fila del builder sin atributo/valor: NO debe viajar.
+        { combinator: "or", conditions: [ { attribute: "", operator: "cont", value: "" } ] }
+      ]
+    ))
+
+    within = '[data-filters-target="searchForm"]'
+    assert_selector "#{within} input[name='q[g][0][status_eq]'][value='active']", visible: :all
+    # `between` se re-expande al par gteq/lteq que el server parsea.
+    assert_selector "#{within} input[name='q[g][0][age_gteq]'][value='18']", visible: :all
+    assert_selector "#{within} input[name='q[g][0][age_lteq]'][value='30']", visible: :all
+    assert_selector "#{within} input[name='q[g][0][m]'][value='or']", visible: :all
+    assert_selector "#{within} input[name='q[m]'][value='and']", visible: :all
+    # El grupo vacío del builder no aporta hidden fields.
+    assert_no_selector "#{within} input[name^='q[g][1]']", visible: :all
+  end
+
+  def test_the_search_form_without_active_filters_adds_no_hidden_q_fields
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes,
+      search: { fields: [ :name ], value: "" }
+    ))
+
+    assert_no_selector '[data-filters-target="searchForm"] input[name^="q[g]"]', visible: :all
+    assert_no_selector '[data-filters-target="searchForm"] input[name="q[m]"]', visible: :all
+  end
+
+  def test_array_values_serialize_one_hidden_per_item
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes,
+      search: { fields: [ :name ], value: "" },
+      filter_groups: [
+        { combinator: "or", conditions: [
+          { attribute: "status", operator: "in", value: [ "active", "inactive" ] }
+        ] }
+      ]
+    ))
+
+    within = '[data-filters-target="searchForm"]'
+    assert_selector "#{within} input[name='q[g][0][status_in][]'][value='active']", visible: :all
+    assert_selector "#{within} input[name='q[g][0][status_in][]'][value='inactive']", visible: :all
+  end
 end

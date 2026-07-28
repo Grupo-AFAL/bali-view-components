@@ -122,4 +122,48 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
 
     assert_no_selector "[data-controller='saved-views']"
   end
+
+  # --- Vista activa por coincidencia de ESTADO (la persistencia deja la URL limpia) ---
+
+  class NamedMovieFilterForm < Bali::FilterForm
+    attribute :name_i_cont, :string
+  end
+
+  def named_form(params = ActionController::Parameters.new, views_store: store)
+    NamedMovieFilterForm.new(Movie.all, params, saved_views_store: views_store)
+  end
+
+  def test_a_personal_view_matching_the_current_state_is_active_without_the_url_param
+    # El payload de "Activos" (name_i_cont: "a") describe el estado actual del form aunque
+    # la URL no traiga ?saved_view — exactamente lo que pasa tras una restauración de
+    # persistencia o al navegar de regreso.
+    matching = named_form(ActionController::Parameters.new(q: { name_i_cont: "a" }))
+    render_component(matching)
+
+    assert_selector "a[href='/listado?saved_view=1'].active"
+    assert_selector "button", text: "Activos"
+  end
+
+  def test_a_default_view_whose_query_matches_the_state_is_active
+    only_defaults = named_form(ActionController::Parameters.new(q: { name_i_cont: "a" }),
+                               views_store: FakeStore.new([]))
+    render_component(only_defaults,
+                     default_views: [ { name: "Con a", url: "/listado?q%5Bname_i_cont%5D=a" },
+                                      { name: "Otra", url: "/listado?q%5Bname_i_cont%5D=z" } ])
+
+    assert_selector "a.active", text: "Con a"
+    assert_no_selector "a.active", text: "Otra"
+    assert_selector "button", text: "Con a"
+  end
+
+  def test_the_view_applied_by_url_wins_over_state_matching
+    # saved_view=2 aplicado explícitamente gana la marca aunque el estado también
+    # coincida con otra vista: una sola activa, sin doble marca.
+    applied = named_form(ActionController::Parameters.new(saved_view: "2"))
+    render_component(applied)
+
+    assert_selector "a[href='/listado?saved_view=2'].active"
+    assert_no_selector "a[href='/listado?saved_view=1'].active"
+    assert_selector "button", text: "Míos"
+  end
 end

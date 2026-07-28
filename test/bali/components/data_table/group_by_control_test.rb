@@ -77,4 +77,32 @@ class BaliDataTableGroupByControlComponentTest < ComponentTestCase
       assert_selector("a", text: "Sin agrupar")
     end
   end
+
+  # --- R5: opciones explícitas (superficies sin FilterForm, p.ej. el Gantt) ---
+
+  def test_explicit_options_render_without_a_filter_form
+    render_inline(Bali::DataTable::GroupByControl::Component.new(
+      url: "/projects", current_params: { "data_display_mode" => "gantt" },
+      options: [ { attribute: "program", label: "Programa" }, { attribute: "area", label: "Área" } ],
+      current: "program", param: "gantt_group_by", include_none: false
+    ))
+
+    # El param propio viaja en los hrefs, conservando los params ajenos.
+    assert_selector "a[href='/projects?data_display_mode=gantt&gantt_group_by=area']", text: "Área"
+    # La opción activa nombra el trigger.
+    assert_text "Group by: Programa"
+    # include_none: false — no hay item "sin agrupar".
+    assert_no_selector "a[href='/projects?data_display_mode=gantt']"
+  end
+
+  def test_explicit_options_win_over_the_filter_form
+    render_inline(Bali::DataTable::GroupByControl::Component.new(
+      url: "/movies",
+      filter_form: FilterFormStub.new(options: OPTIONS, active: true, group_by: :genre),
+      options: [ { attribute: "year", label: "Año" } ], current: "year"
+    ))
+
+    assert_selector "a", text: "Año"
+    assert_no_selector "a", text: "Género"
+  end
 end
