@@ -105,4 +105,13 @@ class BaliDataTableGroupByControlComponentTest < ComponentTestCase
     assert_selector "a", text: "Año"
     assert_no_selector "a", text: "Género"
   end
+
+  def test_one_shot_commands_never_ride_along_in_the_hrefs
+    # clear_filters/clear_search son ACCIONES (borran el estado guardado), no estado de
+    # navegación: arrastrarlos re-ejecutaba el borrado en cada clic de agrupación.
+    render_inline(component(current_params: { "clear_filters" => "true", "view" => "table" }))
+
+    assert_no_selector("a[href*='clear_filters']")
+    assert_selector("a[href*='view=table']")
+  end
 end

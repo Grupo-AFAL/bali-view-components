@@ -93,9 +93,11 @@ module Bali
         private
 
         # Merge (or drop) the grouping param into the preserved params and build the URL.
-        # `page` is always dropped so grouping changes reset pagination.
+        # `page` is always dropped so grouping changes reset pagination, and the one-shot
+        # commands (`clear_filters`/`clear_search`) never ride along: they are actions, not
+        # navigation state, and carrying them re-executed the wipe on every later click.
         def build_href(group_by)
-          params = @current_params.except("page", param)
+          params = @current_params.except("page", "clear_filters", "clear_search", param)
           params = params.merge(param => group_by) unless group_by.nil?
           query = params.to_query
           query.present? ? "#{@url}?#{query}" : @url
