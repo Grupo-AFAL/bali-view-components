@@ -22,6 +22,8 @@ es:
           no_grouping: Sin agrupar
         view_switch_control:
           aria_label: Vistas
+        toolbar_overflow:
+          button_label: Más opciones
         column_selector:
           button_label: Columnas
           menu_title: Mostrar/Ocultar Columnas

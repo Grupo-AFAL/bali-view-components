@@ -1,30 +1,88 @@
 <%= tag.div(**container_attributes) do %>
-  <%# Toolbar: Filters (left) + Actions/Buttons (right) %>
+  <%# Toolbar: una sola fila agrupada por función — izquierda QUÉ datos se ven, derecha
+      CÓMO se ven. Bajo el breakpoint el controlador `toolbar-overflow` MUEVE los controles
+      secundarios al menú ⋯ (ver OVERFLOW_PRIORITIES) y los devuelve al subir. %>
   <% if show_toolbar? %>
     <%= tag.div(**toolbar_attributes) do %>
-      <%# Left side: Filters (search + filter button + bookmark) %>
-      <div class="flex-1 min-w-0">
-        <%= filters_panel if filters_panel? %>
-        <%= simple_filters if simple_filters? %>
-      </div>
+      <%# Izquierda: qué datos se ven (búsqueda + filtros + agrupación) %>
+      <%= tag.div(**overflow_group_attributes("left", css_class: "flex items-center gap-1 sm:gap-2 flex-1 min-w-0")) do %>
+        <% if filters_panel? || simple_filters? %>
+          <%= tag.div(**overflow_item_attributes(:filters, group: "left", css_class: "flex-1 min-w-0")) do %>
+            <%= filters_panel if filters_panel? %>
+            <%= simple_filters if simple_filters? %>
+          <% end %>
+        <% end %>
 
-      <%# Group-by control ("Agrupar por"), beside the filters %>
-      <% if group_by_control? %>
-        <div class="shrink-0">
-          <%= render group_by_control %>
-        </div>
+        <% if group_by_control? %>
+          <%= tag.div(**overflow_item_attributes(:group_by, group: "left", css_class: "shrink-0")) do %>
+            <%= render group_by_control %>
+          <% end %>
+        <% end %>
       <% end %>
 
-      <%# Right side: cómo se muestran los datos. Orden de supervivencia: view switch >
-          saved views > columnas > export > botones del host %>
+      <%# Derecha: cómo se ven %>
       <% if show_toolbar_right? %>
-        <div class="flex items-center gap-1 sm:gap-2 shrink-0">
-          <%= view_switch if view_switch? %>
-          <%= saved_views if saved_views? %>
-          <%= column_selector if column_selector? %>
-          <%= export if export? %>
+        <%= tag.div(**overflow_group_attributes("right", css_class: "flex items-center gap-1 sm:gap-2 shrink-0")) do %>
+          <% if view_switch? %>
+            <%= tag.div(**overflow_item_attributes(:view_switch, group: "right")) do %>
+              <%= view_switch %>
+            <% end %>
+          <% end %>
+
+          <% if saved_views? %>
+            <%= tag.div(**overflow_item_attributes(:saved_views, group: "right")) do %>
+              <%= saved_views %>
+            <% end %>
+          <% end %>
+
+          <% if column_selector? %>
+            <%= tag.div(**overflow_item_attributes(:column_selector, group: "right")) do %>
+              <%= column_selector %>
+            <% end %>
+          <% end %>
+
+          <% if export? %>
+            <%= tag.div(**overflow_item_attributes(:export, group: "right")) do %>
+              <%= export %>
+            <% end %>
+          <% end %>
+
           <% toolbar_buttons.each do |button| %>
-            <%= button %>
+            <%= tag.div(**overflow_item_attributes(:toolbar_buttons, group: "right")) do %>
+              <%= button %>
+            <% end %>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <%# Menú ⋯: solo existe si hay algo que colapsar, y se sirve oculto — lo destapa el JS
+          al mover el primer control adentro, así no parpadea un menú vacío. `sm:hidden` va
+          en este div PLANO, sin la clase .dropdown compitiendo, así no hace falta la
+          variante !important. %>
+      <% if overflow_menu? %>
+        <div class="shrink-0 hidden sm:hidden" data-toolbar-overflow-target="overflow">
+          <%= render Bali::Dropdown::Component.new(align: :bottom_end, wide: true) do |dropdown| %>
+            <% dropdown.with_trigger(variant: :ghost, class: "btn-sm btn-square",
+                                     "aria-label": overflow_menu_label) do %>
+              <%= render Bali::Icon::Component.new("ellipsis", class: "w-4 h-4") %>
+            <% end %>
+            <%# El <li> es obligatorio: Bali::Dropdown pinta `content` dentro de un <ul>.
+                Las utilidades van con ! porque daisyUI le impone display:grid + padding +
+                hover a todo hijo directo de un li dentro de .menu, con la misma
+                especificidad que una utilidad de Tailwind.
+
+                Los dropdowns que caen acá (columnas, export, vistas) son `.dropdown-end`
+                con contenido ABSOLUTO: anidados se posicionan contra este contenedor y se
+                salen del viewport (medido: left -115px en un teléfono de 375px). En flujo
+                quedan como secciones apiladas, que es lo razonable en un teléfono. Cerrados
+                siguen siendo `display:none`, así que no dejan huecos. %>
+            <li class="w-full">
+              <div class="toolbar-overflow-menu
+                          !flex flex-col !items-stretch gap-2 w-full !p-1 hover:!bg-transparent
+                          max-w-[calc(100vw-3rem)] max-h-[70vh] overflow-y-auto
+                          [&_.dropdown-content]:!static [&_.dropdown-content]:!w-full"
+                   data-toolbar-overflow-target="menu"></div>
+            </li>
           <% end %>
         </div>
       <% end %>

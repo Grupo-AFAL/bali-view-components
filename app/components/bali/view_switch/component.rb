@@ -21,8 +21,11 @@ module Bali
 
       # @param aria_label [String] Accessible label for the group of buttons
       # @param size [Symbol] Button size (:xs, :sm, :md, :lg, :xl)
-      # @param icon_only [Boolean] Render square icon-only buttons; each view's
-      #   name becomes the native tooltip (title) and the accessible label
+      # @param icon_only [Boolean, Symbol] Render square icon-only buttons; each view's
+      #   name becomes the native tooltip (title) and the accessible label.
+      #   `:responsive` only collapses the label below `sm`, keeping title/aria-label
+      #   at every size (used by DataTable, where the switch shrinks instead of
+      #   collapsing into the overflow menu)
       def initialize(aria_label:, size: :sm, icon_only: false, **options)
         @aria_label = aria_label
         @size = size&.to_sym

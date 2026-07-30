@@ -119,6 +119,7 @@ export {
   TabsController,
   TableController,
   TimeagoController,
+  ToolbarOverflowController,
   TooltipController,
   TreeViewItemController
 } from './components/index'

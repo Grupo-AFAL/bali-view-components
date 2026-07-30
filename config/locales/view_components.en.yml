@@ -22,6 +22,8 @@ en:
           no_grouping: No grouping
         view_switch_control:
           aria_label: Views
+        toolbar_overflow:
+          button_label: More options
         column_selector:
           button_label: Columns
           menu_title: Show/Hide Columns

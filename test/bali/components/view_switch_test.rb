@@ -103,6 +103,21 @@ class BaliViewSwitchComponentTest < ComponentTestCase
     assert_selector("a[href='/projects/board'][title='Board'][aria-label='Board']")
   end
 
+  def test_responsive_icon_only_keeps_the_label_in_the_dom_and_collapses_it_below_sm
+    render_switch(icon_only: :responsive)
+    assert_selector("a[href='/projects/list'] span.max-sm\\:hidden", text: "List")
+    assert_selector("a.max-sm\\:btn-square", count: 2)
+    assert_no_selector("a.btn-square")
+  end
+
+  def test_responsive_icon_only_names_the_button_at_every_size
+    # El texto se esconde por CSS, así que el nombre accesible tiene que viajar SIEMPRE:
+    # sin esto, en móvil quedan botones con solo un icono y sin nombre.
+    render_switch(icon_only: :responsive)
+    assert_selector("a[href='/projects/list'][title='List'][aria-label='List']")
+    assert_selector("a[href='/projects/board'][title='Board'][aria-label='Board']")
+  end
+
   def test_view_options_passthrough_supports_turbo_action
     render_inline(Bali::ViewSwitch::Component.new(aria_label: "Views")) do |switch|
       switch.with_view(name: "List", icon: "list", href: "/projects/list",

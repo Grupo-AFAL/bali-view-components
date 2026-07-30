@@ -5,6 +5,25 @@ module Bali
     class Component < ApplicationViewComponent
       SUMMARY_POSITIONS = %i[top bottom].freeze
 
+      # Orden de supervivencia de la toolbar en viewports angostos (mayor = sobrevive más):
+      # búsqueda/filtros > view switch > vistas guardadas > agrupar > columnas > export.
+      # `search` y `filters` son EL MISMO nodo (Bali::Filters pinta el input de búsqueda y el
+      # botón de filtros juntos), por eso hay una sola entrada. Se guarda como escala y no
+      # como lista ordenada para que sumar un segundo umbral sea un cambio de una línea.
+      OVERFLOW_PRIORITIES = {
+        filters: 70,
+        view_switch: 50,
+        saved_views: 40,
+        group_by: 30,
+        column_selector: 20,
+        export: 10,
+        toolbar_buttons: 10
+      }.freeze
+
+      # Colapsa lo que esté POR DEBAJO del umbral. Con un solo breakpoint la escala se
+      # reduce a este corte.
+      OVERFLOW_THRESHOLD = 50
+
       attr_reader :pagy
 
       renders_one :custom_pagy_nav
@@ -216,6 +235,11 @@ module Bali
       # @param options [Hash] Opciones de Bali::ViewSwitch (size:, icon_only:, class:)
       # @yield [view_switch] Bloque para declarar las vistas con `with_view`
       renders_one :view_switch, ->(aria_label: nil, **options, &block) do
+        # El switch NO se colapsa al ⋯ (prioridad 50 = umbral): se ENCOGE. `:responsive`
+        # esconde el texto bajo sm dejando title/aria-label, así que el botón nunca queda
+        # sin nombre accesible — que es lo que pasaría escondiendo el label a mano.
+        options[:icon_only] = :responsive unless options.key?(:icon_only)
+
         component = ViewSwitchControl::Component.new(
           url: @url,
           current_params: safe_query_parameters,
@@ -357,13 +381,51 @@ module Bali
         bulk_actions? ? prepend_controller(attrs, "bulk-actions") : attrs
       end
 
-      # La fila de la toolbar se marca para que el controlador pueda esconderla mientras
-      # la barra contextual ocupa su lugar.
+      # La fila de la toolbar lleva el controlador de overflow, y se marca además para que
+      # el de selección pueda esconderla mientras la barra contextual ocupa su lugar.
       def toolbar_attributes
-        attrs = { class: toolbar_classes }
+        attrs = prepend_controller({ class: toolbar_classes }, "toolbar-overflow")
         return attrs unless bulk_actions?
 
-        attrs.merge(data: { bulk_actions_target: "toolbar" })
+        attrs[:data][:bulk_actions_target] = "toolbar"
+        attrs
+      end
+
+      # Contenedor hogar de un grupo funcional: al expandir, cada control vuelve al grupo
+      # que declara acá. INVARIANTE: un grupo solo puede tener hijos `item` — el JS reordena
+      # appendeando por prioridad y un hijo sin prioridad terminaría empujado al final.
+      def overflow_group_attributes(group, css_class:)
+        {
+          class: css_class,
+          data: { toolbar_overflow_target: "group", toolbar_overflow_group: group }
+        }
+      end
+
+      # Envoltorio de un control: a qué grupo vuelve y con qué prioridad (ver
+      # OVERFLOW_PRIORITIES). Es el nodo que el JS MUEVE, nunca copia.
+      def overflow_item_attributes(key, group:, css_class: nil)
+        {
+          class: css_class,
+          data: {
+            toolbar_overflow_target: "item",
+            toolbar_overflow_group: group,
+            toolbar_overflow_priority: overflow_priority(key)
+          }
+        }
+      end
+
+      # El ⋯ no se pinta si no hay nada que colapsar: sin esto, un listado que solo tiene
+      # búsqueda mostraría un botón que abre un menú vacío.
+      def overflow_menu?
+        declared_toolbar_controls.any? { |key| overflow_priority(key) < OVERFLOW_THRESHOLD }
+      end
+
+      def overflow_priority(key)
+        OVERFLOW_PRIORITIES.fetch(key)
+      end
+
+      def overflow_menu_label
+        I18n.t("view_components.bali.data_table.toolbar_overflow.button_label")
       end
 
       # Whether the "Agrupar por" control should render — true when the filter
@@ -386,6 +448,20 @@ module Bali
       end
 
       private
+
+      # Qué familias de control declaró el host. Es la ÚNICA lista: `overflow_menu?` se
+      # deriva de acá, así que el gate del ⋯ no puede desalinearse de lo que el JS colapsa.
+      def declared_toolbar_controls
+        controls = []
+        controls << :filters if filters_panel? || simple_filters?
+        controls << :group_by if group_by_control?
+        controls << :view_switch if view_switch?
+        controls << :saved_views if saved_views?
+        controls << :column_selector if column_selector?
+        controls << :export if export?
+        controls << :toolbar_buttons if toolbar_buttons?
+        controls
+      end
 
       # [id, estable?]. `FilterForm#id` (scope.cache_key) NO sirve como identidad: trae una
       # diagonal —'movies/query-abc'— que rompe el querySelector, y además dos listados

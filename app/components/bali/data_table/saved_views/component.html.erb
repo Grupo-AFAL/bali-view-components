@@ -7,7 +7,7 @@
       cerrado. %>
   <button type="button" tabindex="0" class="btn btn-outline btn-sm gap-2">
     <%= render Bali::Icon::Component.new(active_view ? 'bookmark-check' : 'bookmark', class: 'w-4 h-4') %>
-    <span class="hidden sm:inline"><%= active_view ? active_view.name : t('.button_label') %></span>
+    <span class="toolbar-control-label hidden sm:inline"><%= active_view ? active_view.name : t('.button_label') %></span>
   </button>
 
   <div tabindex="0" class="dropdown-content z-50 p-2 shadow-lg bg-base-100 rounded-box w-72 max-h-[70vh] overflow-y-auto border border-base-200">

@@ -1,0 +1,16 @@
+/*
+ * DataTable — menú de overflow (⋯)
+ *
+ * Los controles de la toolbar (columnas, export, vistas guardadas, agrupar) esconden su
+ * label bajo `sm` para no comerse el ancho de la fila. Adentro del ⋯ esa razón no existe
+ * —cada control ocupa una fila entera— y sin label el menú queda con iconos anónimos.
+ *
+ * El archivo es unlayered a propósito: así le gana a las utilidades `hidden` / `max-sm:hidden`
+ * de Tailwind (que viven en @layer utilities) sin repartir !important por los templates.
+ *
+ * CONTRATO: el label de un control colapsable DEBE llevar `toolbar-control-label`. Sin esa
+ * clase el control sigue funcionando, pero dentro del ⋯ se ve como un icono sin nombre.
+ */
+.toolbar-overflow-menu .toolbar-control-label {
+  display: inline;
+}

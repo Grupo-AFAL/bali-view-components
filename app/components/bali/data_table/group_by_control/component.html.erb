@@ -4,7 +4,7 @@
   <% dropdown.with_trigger(variant: :ghost, class: "btn-sm gap-1 whitespace-nowrap",
                            "aria-label": trigger_label) do %>
     <%= render Bali::Icon::Component.new("layers", class: "w-4 h-4") %>
-    <span class="max-sm:hidden"><%= trigger_label %></span>
+    <span class="toolbar-control-label max-sm:hidden"><%= trigger_label %></span>
     <%= render Bali::Icon::Component.new("chevron-down", class: "w-3 h-3 opacity-60") %>
   <% end %>
 

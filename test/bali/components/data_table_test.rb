@@ -349,6 +349,152 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_selector("div.bulk-actions-component")
   end
 
+  # --- Toolbar overflow: el ⋯ de viewports angostos ---
+
+  # Filtros (70, sobreviven) + export (10, colapsa): el caso mínimo con algo de cada lado
+  # del umbral.
+  def render_toolbar_with_export
+    render_inline(component) do |c|
+      c.with_filters_panel(available_attributes: filter_attributes)
+      c.with_export(formats: [ :csv ], url: "/movies")
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+  end
+
+  def test_toolbar_declares_the_overflow_controller_and_both_home_groups
+    render_toolbar_with_export
+
+    assert_selector('div[data-controller~="toolbar-overflow"]', visible: :all)
+    assert_selector('[data-toolbar-overflow-target="group"][data-toolbar-overflow-group="left"]',
+                    count: 1, visible: :all)
+    assert_selector('[data-toolbar-overflow-target="group"][data-toolbar-overflow-group="right"]',
+                    count: 1, visible: :all)
+  end
+
+  def test_collapsible_controls_declare_their_priority_and_home_group
+    render_toolbar_with_export
+
+    assert_selector('[data-toolbar-overflow-target="item"][data-toolbar-overflow-group="left"]' \
+                    '[data-toolbar-overflow-priority="70"]', count: 1, visible: :all)
+    assert_selector('[data-toolbar-overflow-target="item"][data-toolbar-overflow-group="right"]' \
+                    '[data-toolbar-overflow-priority="10"]', count: 1, visible: :all)
+  end
+
+  def test_toolbar_controls_exist_exactly_once_in_the_dom
+    # EL contrato del overflow: el JS MUEVE nodos. Sin este test, el patrón viejo
+    # (`hidden md:block` + copia móvil) puede volver sin que nada falle — y dos copias del
+    # selector de columnas son dos controladores manejando la misma tabla.
+    render_toolbar_with_export
+
+    assert_selector('[data-toolbar-overflow-target="item"]', count: 2, visible: :all)
+    assert_selector("div.filters", count: 1, visible: :all)
+    assert_selector('[data-toolbar-overflow-target="menu"]', count: 1, visible: :all)
+    # La zona de aterrizaje se sirve VACÍA: la llena el JS al colapsar.
+    assert_no_selector('[data-toolbar-overflow-target="menu"] *', visible: :all)
+  end
+
+  def test_overflow_menu_is_served_hidden_and_only_visible_below_the_breakpoint
+    # Se sirve con `hidden` y lo destapa el JS al mover el primer control adentro: así no
+    # parpadea un ⋯ que abre un menú vacío mientras el bundle carga.
+    render_toolbar_with_export
+
+    assert_selector('[data-toolbar-overflow-target="overflow"][class~="hidden"]', visible: :all)
+    assert_selector('[data-toolbar-overflow-target="overflow"][class~="sm:hidden"]', visible: :all)
+  end
+
+  def test_collapsible_controls_mark_their_label_for_the_overflow_menu
+    # Contrato con data_table/index.css: los controles esconden su label bajo `sm` para no
+    # comerse la fila, y adentro del ⋯ —donde sobra ancho— vuelve. Sin las dos clases el
+    # menú queda con iconos anónimos, y eso ningún test de CSS lo ve.
+    render_inline(component) do |c|
+      c.with_column_selector { |cs| cs.with_column(index: 0, label: "Name") }
+      c.with_export(formats: [ :csv ], url: "/movies")
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector('[data-toolbar-overflow-target="menu"].toolbar-overflow-menu', visible: :all)
+    assert_selector('[data-toolbar-overflow-priority="20"] span.toolbar-control-label',
+                    text: "Columns", visible: :all)
+    assert_selector('[data-toolbar-overflow-priority="10"] span.toolbar-control-label',
+                    text: "Export", visible: :all)
+  end
+
+  def test_overflow_menu_is_not_rendered_without_collapsible_controls
+    render_inline(component) do |c|
+      c.with_filters_panel(available_attributes: filter_attributes)
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_no_selector('[data-toolbar-overflow-target="overflow"]', visible: :all)
+    assert_no_selector('[data-toolbar-overflow-target="menu"]', visible: :all)
+  end
+
+  def test_view_switch_does_not_open_the_overflow_menu_by_itself
+    # Prioridad 50 = umbral: el switch se ENCOGE (icon_only responsive), no se colapsa. Si
+    # abriera el ⋯ siendo lo único extra declarado, el menú saldría vacío.
+    render_inline(component) do |c|
+      declare_views(c)
+      c.with_filters_panel(available_attributes: filter_attributes)
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector('[data-toolbar-overflow-target="item"][data-toolbar-overflow-priority="50"]',
+                    count: 1, visible: :all)
+    assert_no_selector('[data-toolbar-overflow-target="overflow"]', visible: :all)
+  end
+
+  def test_view_switch_collapses_its_labels_below_the_breakpoint
+    render_inline(component) do |c|
+      declare_views(c)
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    # El label se colapsa por CSS, pero el nombre accesible viaja siempre: en móvil el
+    # botón queda con solo un icono.
+    assert_selector("a[title='Tabla'][aria-label='Tabla']")
+    assert_selector("a[href*='view=table'] span[class~='max-sm:hidden']", text: "Tabla")
+  end
+
+  def test_group_by_control_collapses_from_the_left_group
+    form = GroupableDataTableFilterForm.new(Movie.all, ActionController::Parameters.new({}))
+    render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: form)) do |c|
+      c.with_filters_panel
+      c.with_table { "".html_safe }
+    end
+
+    assert_selector('[data-toolbar-overflow-target="item"][data-toolbar-overflow-group="left"]' \
+                    '[data-toolbar-overflow-priority="30"]', count: 1, visible: :all)
+    assert_selector('[data-toolbar-overflow-priority="30"] span.toolbar-control-label', visible: :all)
+    assert_selector('[data-toolbar-overflow-target="overflow"]', visible: :all)
+  end
+
+  def test_each_toolbar_button_gets_its_own_collapsible_wrapper
+    render_inline(component) do |c|
+      c.with_toolbar_button { '<button class="btn">A</button>'.html_safe }
+      c.with_toolbar_button { '<button class="btn">B</button>'.html_safe }
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector('[data-toolbar-overflow-target="item"][data-toolbar-overflow-group="right"]' \
+                    '[data-toolbar-overflow-priority="10"]', count: 2, visible: :all)
+    assert_selector('[data-toolbar-overflow-target="overflow"]', visible: :all)
+  end
+
+  def test_toolbar_row_keeps_the_overflow_controller_and_the_bulk_actions_target
+    # Los dos viven en la MISMA fila: la barra contextual la esconde entera, el overflow
+    # reacomoda lo que hay adentro. Escribir el hash `data` en vez de mergearlo borraba el
+    # controlador sin fallar en ningún lado.
+    render_inline(component) do |c|
+      c.with_filters_panel(available_attributes: filter_attributes)
+      c.with_export(formats: [ :csv ], url: "/movies")
+      c.with_bulk_actions { |bulk| bulk.with_action(label: "Delete", href: "/delete") }
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector('div[data-controller~="toolbar-overflow"][data-bulk-actions-target="toolbar"]',
+                    visible: :all)
+  end
+
   def test_actions_panel_is_gone
     # El panel entero murió: su toggle grid/tabla lo reemplaza with_view_switch, su export
     # with_export y su hueco de acciones with_bulk_actions. Romper ruidoso > seguir
