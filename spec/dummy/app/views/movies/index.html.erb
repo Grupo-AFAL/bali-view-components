@@ -35,7 +35,7 @@
         ) %>
 
         <%# Column Selector - allows users to show/hide table columns (0-indexed) %>
-        <% data_table.with_column_selector(table_id: '#movies-table') do |cs| %>
+        <% data_table.with_column_selector do |cs| %>
           <% cs.with_column(index: 1, label: t('movies.columns.name')) %>
           <% cs.with_column(index: 2, label: t('movies.columns.genre')) %>
           <% cs.with_column(index: 3, label: t('movies.columns.status')) %>

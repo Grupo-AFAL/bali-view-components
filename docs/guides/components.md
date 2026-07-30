@@ -884,6 +884,16 @@ Complete data table wrapper with filters, quick search, summary, and pagination.
 - `item_name` - Item name used in the summary text (default: i18n)
 - `table_class` - CSS class for the table wrapper (default: `"overflow-x-auto"`)
 - `display_mode` - `:table` or `:grid` (default: `:table`)
+- `id` - Listing identity: the container id, the column selector's `querySelector` target
+  (`#<id> table`) and the localStorage key of its columns (`bali:columns:<id>`) — one name
+  for everything the listing persists. Resolved in this order: explicit `id:`, then
+  `filter_form.storage_id`, then a random hex. The value is sanitized into a valid CSS
+  identifier (case preserved). With the random hex the id cannot survive the next render,
+  so **column persistence turns itself off** rather than writing a key nothing can read
+  back. `with_column_selector` and `with_saved_views` take no `table_id:` — they read this.
+
+If the host replaces the listing over Turbo Streams, target the same id:
+`turbo_stream.replace @filter_form.storage_id`.
 
 Slots: `with_filters_panel`, `with_simple_filters`, `with_table`, `with_grid`, `with_summary`, `with_toolbar_button`, `with_column_selector`, `with_export`, `with_actions_panel`, `with_custom_pagy_nav`.
 

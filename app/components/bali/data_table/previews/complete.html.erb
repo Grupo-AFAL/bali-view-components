@@ -1,5 +1,8 @@
 <%# Complete DataTable example with filters, sorting, pagination, and toolbar %>
-<%= render Bali::DataTable::Component.new(url: request.path, pagy: pagy, item_name: 'movies') do |c| %>
+<%# `id:` explícito porque este preview no arma FilterForm: sin identidad estable el
+    selector de columnas apagaría su memoria por dispositivo y el demo dejaría de demostrarla. %>
+<%= render Bali::DataTable::Component.new(url: request.path, pagy: pagy, item_name: 'movies',
+                                          id: 'complete-demo') do |c| %>
   <%# Filters with search %>
   <% c.with_filters_panel(
        available_attributes: filter_attributes,
@@ -10,7 +13,7 @@
      ) %>
 
   <%# Column selector - declarative API with some columns hidden by default %>
-  <% c.with_column_selector(table_id: 'complete-demo-table') do |cs| %>
+  <% c.with_column_selector do |cs| %>
     <% cs.with_column(index: 0, label: 'Name') %>
     <% cs.with_column(index: 1, label: 'Genre') %>
     <% cs.with_column(index: 2, label: 'Studio', visible: false) %>  <%# Hidden by default %>

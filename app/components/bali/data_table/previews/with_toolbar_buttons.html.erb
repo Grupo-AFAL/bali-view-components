@@ -1,4 +1,4 @@
-<%= render Bali::DataTable::Component.new(url: request.path) do |c| %>
+<%= render Bali::DataTable::Component.new(url: request.path, id: 'toolbar-demo') do |c| %>
   <%# Filters with search %>
   <% c.with_filters_panel(
        available_attributes: filter_attributes,
@@ -9,7 +9,7 @@
      ) %>
 
   <%# Column selector - declarative API %>
-  <% c.with_column_selector(table_id: 'toolbar-demo-table') do |cs| %>
+  <% c.with_column_selector do |cs| %>
     <% cs.with_column(index: 0, label: 'Name') %>
     <% cs.with_column(index: 1, label: 'Status') %>
     <% cs.with_column(index: 2, label: 'Amount') %>

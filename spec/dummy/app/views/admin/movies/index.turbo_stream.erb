@@ -1,4 +1,7 @@
-<%= turbo_stream.replace "data-table-#{@filter_form.id}" do %>
+<%# El target es la identidad del listado (la misma que el DataTable resuelve desde
+    storage_id): un id derivado de otra fórmula no encuentra el nodo y el stream se aplica
+    sobre la nada, sin excepción ni log. %>
+<%= turbo_stream.replace @filter_form.storage_id do %>
   <%= render Bali::DataTable::Component.new(
     filter_form: @filter_form,
     url: admin_movies_path,
@@ -13,7 +16,7 @@
     ) %>
 
     <%# Column Selector %>
-    <% data_table.with_column_selector(table_id: '#movies-table') do |cs| %>
+    <% data_table.with_column_selector do |cs| %>
       <% cs.with_column(index: 1, label: t('movies.columns.name')) %>
       <% cs.with_column(index: 2, label: t('movies.columns.genre')) %>
       <% cs.with_column(index: 3, label: t('movies.columns.status')) %>

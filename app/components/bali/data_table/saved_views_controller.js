@@ -12,7 +12,7 @@ import { Controller } from '@hotwired/stimulus'
  */
 export default class extends Controller {
   static targets = ['saveForm', 'renameForm', 'payload']
-  static values = { table: String }
+  static values = { table: String, storageKey: String }
 
   toggleSaveForm () {
     this.saveFormTarget.classList.toggle('hidden')
@@ -55,11 +55,14 @@ export default class extends Controller {
       .map(checkbox => parseInt(checkbox.dataset.columnIndex, 10))
   }
 
-  // Misma llave que usa el column-selector para su persistencia por dispositivo.
+  // Misma llave que usa el column-selector para su persistencia por dispositivo. La manda
+  // el servidor porque el target (`#<listing_id> table`) ya no la contiene, y porque una
+  // llave derivada por separado se separa: ahí las columnas se perdían en silencio.
   storedColumns () {
+    if (!this.storageKeyValue) return null
+
     try {
-      const raw = localStorage.getItem(`bali:columns:${this.tableValue.replace(/^#/, '')}`)
-      const parsed = raw && JSON.parse(raw)
+      const parsed = JSON.parse(localStorage.getItem(this.storageKeyValue))
       return Array.isArray(parsed) ? parsed : null
     } catch {
       return null

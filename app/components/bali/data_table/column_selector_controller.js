@@ -7,7 +7,7 @@ import { Controller } from '@hotwired/stimulus'
  * Works with any table by targeting columns by index.
  *
  * Usage:
- *   <div data-controller="column-selector" data-column-selector-table-value="#my-table">
+ *   <div data-controller="column-selector" data-column-selector-table-value="#my-listing table">
  *     <input type="checkbox" data-action="column-selector#toggle" data-column-index="0" checked>
  *     <input type="checkbox" data-action="column-selector#toggle" data-column-index="1">  <!-- hidden by default -->
  *   </div>

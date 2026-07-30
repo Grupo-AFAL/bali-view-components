@@ -149,12 +149,13 @@ module Bali
       renders_many :toolbar_buttons
 
       # Built-in column selector with declarative API
-      # @param table_id [String] CSS selector for the target table
+      # @param persist [Boolean] Guardar la visibilidad por dispositivo (localStorage).
+      #   Se ignora cuando el listado no tiene un id estable (ver #id).
       # @param button_label [String] Label for the dropdown button (i18n default)
       # @param button_icon [String] Icon name
       # @yield [column_selector] Block to define columns
-      renders_one :column_selector, ->(table_id:, **opts, &block) do
-        component = ColumnSelector::Component.new(table_id: table_id, **opts)
+      renders_one :column_selector, ->(persist: true, **opts, &block) do
+        component = ColumnSelector::Component.new(listing_id: id, persist: persist && stable_id?, **opts)
         block&.call(component)
         # Una vista guardada aplicada MANDA: sus columnas visibles pisan los defaults
         # declarados por columna, y el selector marca server_state para que el JS no
@@ -169,12 +170,12 @@ module Bali
       # cuando el filter_form trae `saved_views_store`. `url:` es la base RESTful para
       # crear/renombrar/borrar (POST url, PATCH/DELETE url/:id); si se omite, apunta a las
       # rutas del PROPIO engine (requiere montarlo y que el form tenga `storage_id` — sin
-      # storage_id no hay URL default y el dropdown no pinta). `table_id:` conecta con el
-      # column selector para guardar las columnas visibles dentro de la vista;
-      # `default_views:` son atajos estáticos {name:, url:} (sección "Sugeridas").
-      renders_one :saved_views, ->(url: nil, table_id: nil, default_views: nil) do
+      # storage_id no hay URL default y el dropdown no pinta). La identidad del listado
+      # (ver #id) conecta con el column selector para guardar las columnas visibles dentro
+      # de la vista; `default_views:` son atajos estáticos {name:, url:} ("Sugeridas").
+      renders_one :saved_views, ->(url: nil, default_views: nil) do
         SavedViews::Component.new(filter_form: @filter_form, url: url || default_saved_views_url,
-                                  base_url: @url, table_id: table_id, default_views: default_views)
+                                  base_url: @url, listing_id: id, default_views: default_views)
       end
 
       # Built-in export dropdown with format options
@@ -194,6 +195,9 @@ module Bali
       # @param item_name [String] Name for items in summary (i18n default)
       # @param table_class [String] CSS class for table wrapper
       # @param display_mode [Symbol] :table (default) or :grid
+      # @param id [String] Identidad del listado. Es a la vez el id del contenedor, el
+      #   target de querySelector del selector de columnas (`#<id> table`) y la llave de
+      #   localStorage de sus columnas: UN solo nombre para todo lo que el listado persiste.
       def initialize(url:, filter_form: nil, pagy: nil, **options)
         @filter_form = filter_form
         @url = url
@@ -204,6 +208,7 @@ module Bali
         @table_wrapper_class = options[:table_class]
         @display_mode = (options[:display_mode] || :table).to_sym
         @toolbar_class = options[:toolbar_class]
+        @listing_id, @stable_id = resolve_listing_id(options[:id])
       end
 
       def table_wrapper_classes
@@ -218,7 +223,14 @@ module Bali
       end
 
       def id
-        @filter_form ? "data-table-#{@filter_form.id}" : "data-table-#{SecureRandom.hex(4)}"
+        @listing_id
+      end
+
+      # ¿El id sobrevive al próximo render? Con el hex aleatorio no, y una llave que cambia
+      # en cada visita jamás va a restaurar nada: la persistencia por dispositivo se apaga
+      # sola en vez de escribir basura que nadie puede leer de vuelta.
+      def stable_id?
+        @stable_id
       end
 
       # Auto-generated summary text from Pagy using I18n
@@ -275,6 +287,31 @@ module Bali
       end
 
       private
+
+      # [id, estable?]. `FilterForm#id` (scope.cache_key) NO sirve como identidad: trae una
+      # diagonal —'movies/query-abc'— que rompe el querySelector, y además dos listados
+      # sobre el mismo scope base caen en el mismo valor (era el caso de /movies y
+      # /admin/movies, que terminaban compartiendo la memoria de columnas).
+      def resolve_listing_id(explicit)
+        given = sanitize_listing_id(explicit) || sanitize_listing_id(form_storage_id)
+        return [ given, true ] if given
+
+        [ "data-table-#{SecureRandom.hex(4)}", false ]
+      end
+
+      # Slug usable como identificador CSS: sin "#" inicial, sin caracteres inválidos y sin
+      # empezar con dígito — `#123 table` hace que querySelector lance SyntaxError. No se
+      # hace downcase a propósito: el matching de `#id` en HTML es case-sensitive.
+      def sanitize_listing_id(value)
+        slug = value.to_s.delete_prefix("#").gsub(/[^A-Za-z0-9_-]+/, "-").gsub(/\A-+|-+\z/, "")
+        return if slug.blank?
+
+        slug.match?(/\A\d/) ? "listing-#{slug}" : slug
+      end
+
+      def form_storage_id
+        @filter_form.storage_id if @filter_form.respond_to?(:storage_id)
+      end
 
       # URL default de las mutaciones de vistas guardadas: las rutas del PROPIO engine
       # (montado en el host). El storage_id viaja en el query string porque el create del

@@ -112,6 +112,22 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
     assert_selector "form[action='/bali/saved_views?storage_id=movies_index']", visible: :all
   end
 
+  def test_saved_views_and_the_column_selector_agree_on_the_listing_target
+    # El JS de saved-views encuentra al selector de columnas comparando ESTA cadena exacta,
+    # y lee sus columnas guardadas de ESTA llave: si las dos derivaciones se separan,
+    # guardar una vista pierde las columnas sin fallar en ningún lado.
+    render_inline(Bali::DataTable::Component.new(url: "/listado", filter_form: default_form)) do |dt|
+      dt.with_saved_views
+      dt.with_column_selector { |cs| cs.with_column(index: 0, label: "Nombre") }
+      dt.with_table { "".html_safe }
+    end
+
+    assert_selector "[data-saved-views-table-value='#movies_index table']"
+    assert_selector "[data-column-selector-table-value='#movies_index table']"
+    assert_selector "[data-saved-views-storage-key-value='bali:columns:movies_index']"
+    assert_selector "[data-column-selector-storage-key-value='bali:columns:movies_index']"
+  end
+
   def test_the_slot_without_url_nor_storage_id_does_not_render_the_dropdown
     form_without_storage = Bali::FilterForm.new(Movie.all, ActionController::Parameters.new,
                                                 saved_views_store: store)

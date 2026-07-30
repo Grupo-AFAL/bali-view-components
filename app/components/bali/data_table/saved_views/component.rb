@@ -11,22 +11,25 @@ module Bali
       # `default_views:` son atajos ESTÁTICOS (no persistidos) que la app define — pares
       # {name:, url:} listos para navegar; se pintan en su propia sección "Sugeridas".
       class Component < ApplicationViewComponent
+        include Bali::DataTable::ListingIdentity
+
         DefaultView = Struct.new(:name, :url, keyword_init: true)
 
         # @param filter_form [Bali::FilterForm] con saved_views_store configurado
         # @param url [String] base RESTful de la app para crear/renombrar/borrar vistas
         # @param base_url [String] URL del listado donde se aplican (?saved_view=<id>)
-        # @param table_id [String] id de la tabla (para capturar columnas visibles al guardar)
+        # @param listing_id [String] identidad del listado (para capturar las columnas
+        #   visibles del selector al guardar; ver Bali::DataTable::ListingIdentity)
         # @param default_views [Array<Hash>] atajos estáticos {name:, url:}
-        def initialize(filter_form:, url:, base_url:, table_id: nil, default_views: nil)
+        def initialize(filter_form:, url:, base_url:, listing_id: nil, default_views: nil)
           @filter_form = filter_form
           @url = url
           @base_url = base_url.to_s
-          @table_id = table_id && (table_id.start_with?("#") ? table_id : "##{table_id}")
+          @listing_id = listing_id.to_s.delete_prefix("#")
           @default_views = Array(default_views).map { |view| DefaultView.new(**view.to_h.symbolize_keys) }
         end
 
-        attr_reader :filter_form, :url, :table_id, :default_views
+        attr_reader :filter_form, :url, :listing_id, :default_views
 
         # Sin URL no hay mutaciones posibles (pasa cuando el slot no recibió `url:` y el
         # form no tiene storage_id para armar la default del engine): no pintar nada gana
