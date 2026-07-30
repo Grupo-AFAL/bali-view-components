@@ -315,8 +315,9 @@ Plus the manual browser verification the repo's `CLAUDE.md` requires.
 
 ## Sequencing
 
-This is a v3.0 release, not a single PR. The implementation plan should
-decompose it into stacked, independently reviewable changes, roughly:
+Ships as **one PR** — the pieces are one coherent breaking change and splitting
+them would leave intermediate states where the default layout is half-migrated.
+The order below is the internal phase order of that PR, not a PR sequence:
 
 1. **Identity** — resolve the listing id from `storage_id`, drop `table_id:`
    from both slots and the selector target from `Bali::Table`. Self-contained
@@ -330,8 +331,8 @@ decompose it into stacked, independently reviewable changes, roughly:
 5. **Toolbar overflow** — the `toolbar-overflow` controller.
 6. **Previews, dummy migration, docs, migration guide.**
 
-Each step lands with its own tests and CHANGELOG entry; the release note for
-v3.0 is assembled at the end.
+Each phase lands with its own tests; the CHANGELOG gets a single `[Unreleased]`
+entry describing the whole v3.0 change, assembled at the end.
 
 ## Out of scope
 
