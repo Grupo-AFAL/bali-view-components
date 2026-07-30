@@ -8,15 +8,18 @@ module Bali
       include Bali::DataTable::Preview::CanonicalIndex
 
       # @label Complete (Live DB)
-      # **The canonical index page.** Page chrome (breadcrumbs, title, primary action) plus
-      # a DataTable with the seven toolbar control families, row selection and pagination.
-      # Copy this composition when building an index.
+      # **The canonical index page.** Page chrome (breadcrumbs, title, primary action, the
+      # `⋯` of secondary actions) plus a DataTable with the six toolbar control families,
+      # row selection and pagination. Copy this composition when building an index.
       #
       # - The DataTable goes in bare: the surface travels with its content slot, so there is
       #   no `Bali::Card` around it
       # - `?view=` switches the content band (table / cards / timeline) while keeping
       #   filters, sorting, grouping and the applied saved view
-      # - Below `sm` the secondary toolbar controls fold into the `⋯` menu
+      # - Export lives in the page's `⋯` (`page.with_export`), not in the toolbar: it acts
+      #   ON the page. Its links carry the active filters — filter the listing and the
+      #   hrefs follow
+      # - Below `sm` the secondary toolbar controls fold into the toolbar's own `⋯` menu
       # @param view select { choices: [table, grid, timeline] }
       # @param group_by select { choices: ["", genre, status] }
       def complete(view: :table, q: {}, page: 1, group_by: nil, saved_view: nil)

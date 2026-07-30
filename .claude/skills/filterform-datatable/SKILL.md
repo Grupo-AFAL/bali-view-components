@@ -36,6 +36,12 @@ buttons.
                                          variant: :primary, icon_name: 'plus') %>
   <% end %>
 
+  <%# Export lives in the page's ⋯, not in the toolbar: it acts ON the page. The links
+      carry the active slice (filters, search, sort, grouping), which is why the item
+      reads "Export filtered". The host still has to answer the format — a respond_to
+      that only declares html gives a 406 on ?format=csv. %>
+  <% page.with_export(url: movies_path) %>
+
   <%# The DataTable goes in BARE — no Bali::Card around it %>
   <% page.with_body do %>
     <%= render Bali::DataTable::Component.new(
@@ -60,8 +66,6 @@ buttons.
           <% cs.with_column(index: 2, label: 'Genre') %>
         <% end %>
       <% end %>
-
-      <% dt.with_export(formats: %i[csv excel pdf], url: movies_path) %>
 
       <% dt.with_bulk_actions do |bulk| %>
         <% bulk.with_action(label: 'Mark as done',

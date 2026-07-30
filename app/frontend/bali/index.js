@@ -97,6 +97,7 @@ export {
   DocumentPageController,
   DrawerController,
   DropdownController,
+  ExportLinksController,
   FilterGroupController,
   HovercardController,
   ImageExpanderController,

@@ -1015,14 +1015,15 @@ subgroups; it is rendered only when both sides have content and hidden below the
 (see below).
 
 Three home groups back this: `left` (filters, group by, columns), `memory` (saved views,
-the filter-persistence bookmark) and `right` (view switch, export, host
-`toolbar_buttons`).
+the filter-persistence bookmark) and `right` (view switch, host `toolbar_buttons`).
+Export is NOT a toolbar control — it lives in the page's `⋯` menu, see
+[Secondary page actions](#secondary-page-actions-and-export).
 
 **Narrow viewports.** Below `sm` (640px) the toolbar folds its secondary controls into a
 `⋯` menu and unfolds them on the way back. The nodes are **moved**, never duplicated: two
 copies of the column selector would be two Stimulus controllers driving one table. Survival
 order lives in `OVERFLOW_PRIORITIES` — search/filters and the view switch stay in the row;
-group by, columns, saved views, the persistence bookmark, export and host `toolbar_buttons`
+group by, columns, saved views, the persistence bookmark and host `toolbar_buttons`
 collapse. Three consequences worth knowing:
 
 - **The order inside a group** is defined by `OVERFLOW_PRIORITIES`, not by the template:
@@ -1078,7 +1079,10 @@ table rows share one scope. Each action is its own form whose only hidden field 
 `selected_ids` (a JSON array injected by the controller) — extra parameters travel in the
 action's query string.
 
-Slots: `with_filters_panel`, `with_simple_filters`, `with_content` (`with_table` / `with_grid`), `with_summary`, `with_toolbar_button`, `with_view_switch`, `with_saved_views`, `with_column_selector`, `with_export`, `with_bulk_actions`, `with_custom_pagy_nav`.
+Slots: `with_filters_panel`, `with_simple_filters`, `with_content` (`with_table` / `with_grid`), `with_summary`, `with_toolbar_button`, `with_view_switch`, `with_saved_views`, `with_column_selector`, `with_bulk_actions`, `with_custom_pagy_nav`.
+
+Export is not one of them: `page.with_export` on the surrounding page component puts it in
+the page's `⋯` — see [Secondary page actions](#secondary-page-actions-and-export).
 
 #### GanttChart
 
@@ -2130,7 +2134,7 @@ Also accepts a `nav` slot for second-level navigation, rendered between the head
 
 The body takes the DataTable **bare**: the surface travels with the DataTable's content
 slot, so wrapping it in a `Bali::Card` produces a card inside a card in grid mode. The
-canonical composition — page chrome plus a DataTable with the seven toolbar control
+canonical composition — page chrome plus a DataTable with the six toolbar control
 families, row selection and pagination — is the `Complete` scenario of the IndexPage
 preview (`bali/index_page/complete` in Lookbook). Copy that.
 
@@ -2196,6 +2200,52 @@ New/edit page that wraps form content in a centered Card, with an optional sideb
 - `back` - Back link, e.g. `{ href: path }` (default: nil)
 - `max_width` - Form width: `:sm`, `:md`, `:lg`, `:xl`, or `:full` (default: :md)
 - `card` - Wrap the body in a Card (default: true)
+
+#### Secondary page actions and export
+
+All five page components (`IndexPage`, `ShowPage`, `FormPage`, `DashboardPage`,
+`DocumentPage`) share one hole for **secondary** actions: a `⋯` menu rendered next to the
+primary action, inside the same group. Use it for what acts ON the page but does not
+deserve a button of its own — export, import, print.
+
+```erb
+<%= render Bali::IndexPage::Component.new(title: 'Movies') do |page| %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(name: 'New Movie', href: new_movie_path, variant: :primary) %>
+  <% end %>
+
+  <% page.with_export(url: movies_path) %>
+  <% page.with_secondary_action(name: 'Import', icon_name: 'upload', href: import_movies_path) %>
+
+  <% page.with_body do %>
+    <%# DataTable goes here %>
+  <% end %>
+<% end %>
+```
+
+`with_secondary_action(**options, &block)` takes the same options as
+`Bali::Dropdown#with_item` (`href:`, `icon_name:`, `method:`, `tag: :link | :button |
+:title`, `authorized:`), because it *is* an item of that dropdown. The `⋯` is not rendered
+when nothing is declared — a button that opens an empty menu is a bug.
+
+**`with_export(url:, formats: %i[csv excel pdf], params: nil)`** renders a section titled
+*Export filtered* with one item per format. The name is a promise the links keep: each href
+carries the same slice of data the user is looking at — filters, search, sort, grouping and the applied
+saved view — merged from the current query string. Two parameters are deliberately dropped
+(`Bali::DataTable::ToolbarHref::TRANSIENT_PARAMS`): `page`, because exporting page 3 of a
+listing is never what "export" means, and `clear_filters`, which on the server *deletes* the
+user's stored filters as a side effect of the click. Pass `params: {}` to opt out and export
+everything on purpose, or an explicit hash to override.
+
+Export is **not** a DataTable toolbar control. It acts on the page, not on how the listing
+looks, which is also what gives import and print somewhere to land later. Because the `⋯`
+lives in the PageHeader — outside the node a filter submit's turbo-stream replaces — the
+links carry an `export-links` Stimulus controller that re-syncs their hrefs from
+`window.location` on connect. Without it the first filter would freeze them on the slice
+of the initial page load, which is the exact bug they exist to fix.
+
+The host still has to answer the format: a controller whose `respond_to` only declares
+`html` returns **406** for `?format=csv`.
 
 #### Two-level navigation (`nav` slot)
 

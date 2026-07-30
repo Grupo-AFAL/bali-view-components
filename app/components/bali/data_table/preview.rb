@@ -240,14 +240,16 @@ module Bali
       end
 
       # @label Complete Example (Live DB)
-      # The canonical index composition, without the page layer. The seven toolbar control
+      # The canonical index composition, without the page layer. The six toolbar control
       # families in one bare row (search + filters, group by, view switch, saved views,
-      # column selector, export, host buttons), row selection and pagination.
+      # column selector, host buttons), row selection and pagination.
       #
       # - The surface belongs to the content slot: no `Bali::Card` around the DataTable
       # - `?view=` picks the content band; `dt.display_mode` is the value already validated
       #   against the declared views
       # - Below `sm` the secondary controls fold into the `⋯` menu
+      # - Export is not a toolbar control: it lives in the page's `⋯` (`page.with_export`),
+      #   which is why it only shows up in `bali/index_page/complete`
       #
       # `bali/index_page/complete` renders this same body inside a page.
       # @param view select { choices: [table, grid, timeline] }

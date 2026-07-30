@@ -57,6 +57,20 @@ class BaliFormPageComponentTest < ComponentTestCase
     assert_text("Form content")
   end
 
+  def test_renders_an_actions_bar
+    # FormPage es el ÚNICO de los cinco page components cuyo PageHeader no llevaba bloque:
+    # declaraba `with_action` y no pintaba nada. Ahora comparte el hueco con los otros.
+    render_inline(Bali::FormPage::Component.new(title: "New Movie")) do |page|
+      page.with_action { "Save Draft" }
+      page.with_secondary_action(name: "Import", href: "/movies/import")
+      page.with_body { "Form" }
+    end
+
+    assert_text("Save Draft")
+    assert_selector('.dropdown [role="menuitem"][href="/movies/import"]', text: "Import",
+                    visible: :all)
+  end
+
   def test_card_false_with_sidebar
     render_inline(Bali::FormPage::Component.new(title: "New Movie", card: false)) do |page|
       page.with_body { "Form content" }

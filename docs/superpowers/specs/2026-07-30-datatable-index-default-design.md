@@ -162,7 +162,6 @@ scrolls horizontally anyway.
   <% dt.with_column_selector do |cs| %>
     <% cs.with_column(index: 0, label: 'Nombre') %>
   <% end %>
-  <% dt.with_export(formats: %i[csv excel pdf]) %>
   <% dt.with_bulk_actions do |ba| %>
     <% ba.with_action(name: 'Marcar hecho', href: mark_done_path, method: :patch) %>
   <% end %>
@@ -237,7 +236,8 @@ disqualifies the current value.
 | Removed | Replacement |
 |---|---|
 | `with_actions_panel` | `with_bulk_actions` |
-| `actions_panel(export_formats:)` | `with_export` |
+| `actions_panel(export_formats:)` | `page.with_export(url:)` (page component, no longer a DataTable slot) |
+| `dt.with_export` | `page.with_export(url:)` |
 | `actions_panel(grid_display_mode_enabled:)` | `with_view_switch` |
 | param `data_display_mode` | param `view` |
 | `with_column_selector(table_id:)` | resolved from `storage_id` |

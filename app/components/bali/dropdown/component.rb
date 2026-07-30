@@ -13,8 +13,13 @@ module Bali
       }.freeze
 
       renders_one :trigger, Trigger::Component
+      # @param tag [Symbol] `:link` (default), `:button` (acción JS, evita el `href="#"`) o
+      #   `:title` (encabezado de sección: agrupa los items que le siguen).
       renders_many :items, ->(method: :get, href: nil, tag: :link, **options) do
-        if tag == :button
+        case tag
+        when :title
+          Title::Component.new(**options)
+        when :button
           ActionItem::Component.new(**options)
         else
           component_klass = method&.to_sym == :delete ? DeleteLink::Component : Link::Component
@@ -75,11 +80,17 @@ module Bali
         )
       end
 
+      # Los encabezados no cuentan: un menú de puros títulos destapa un botón que abre algo
+      # sin ninguna opción para elegir.
       def render?
-        items? ? items.any?(&:authorized?) : content.present?
+        items? ? items.any? { |item| item.authorized? && !section_title?(item) } : content.present?
       end
 
       private
+
+      def section_title?(item)
+        item.respond_to?(:menu_title?) && item.menu_title?
+      end
 
       def dropdown_classes
         class_names(

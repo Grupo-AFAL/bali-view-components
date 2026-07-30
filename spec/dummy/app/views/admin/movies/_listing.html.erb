@@ -40,8 +40,6 @@
     <% end %>
   <% end %>
 
-  <% data_table.with_export(formats: [:csv, :excel, :pdf], url: admin_movies_path) %>
-
   <%# Fila contextual que reemplaza la toolbar mientras haya selección. `bulk_action` viaja
       en el query string porque cada acción es su propio form y su único hidden es
       `selected_ids`. %>

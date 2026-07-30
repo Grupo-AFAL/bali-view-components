@@ -1,7 +1,11 @@
-<%# The canonical index composition: the seven toolbar control families, row selection and
+<%# The canonical index composition: the six toolbar control families, row selection and
     pagination in one DataTable. Lives in a partial because `index_page/previews/complete`
     renders the SAME body inside the page layer — two copies would drift, which is the
     exact problem this preview exists to fix.
+
+    Export is deliberately NOT here: it is an action ON the page, not a control of how the
+    listing looks, so it lives in the page's `⋯` menu (`page.with_export`). The composition
+    with the page layer around it is `index_page/complete`.
 
     Locals: url, filter_form, pagy, movies. %>
 <%= render Bali::DataTable::Component.new(
@@ -46,10 +50,7 @@
     <% end %>
   <% end %>
 
-  <%# 6. Export. %>
-  <% dt.with_export(formats: %i[csv excel pdf], url: url) %>
-
-  <%# 7. Host buttons: arbitrary content, last in the survival order (collapses first).
+  <%# 6. Host buttons: arbitrary content, last in the survival order (collapses first).
          `responsive: false` on purpose — Bali::Button's responsive mode hides its label
          below `sm`, which inside the ⋯ menu leaves an anonymous icon. A control that
          collapses into the menu should keep its name there, where there is room. %>

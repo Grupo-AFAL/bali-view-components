@@ -16,7 +16,9 @@ an owner the dummy has no concept of) and host toolbar buttons.
 | Removed | Replacement |
 |---|---|
 | `with_actions_panel` | `with_bulk_actions` |
-| `with_actions_panel(export_formats:)` | `with_export(formats:)` |
+| `with_actions_panel(export_formats:)` | `page.with_export(url:)` on the page component |
+| `dt.with_export` | `page.with_export(url:)` on the page component |
+| `Bali::DataTable::Export(method:)` | *(deleted — it only emitted a dead `data-method`)* |
 | `with_actions_panel(grid_display_mode_enabled:)` | `with_view_switch` |
 | `Bali::DataTable::ActionsPanel::Component` | *(deleted)* |
 | `Bali::DataTable::Action::Component` | *(deleted)* |

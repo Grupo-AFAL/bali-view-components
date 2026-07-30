@@ -30,7 +30,9 @@
         <% end %>
       <% end %>
 
-      <% if actions? %>
+      <%# `secondary_actions?` además de `actions?`: una página que solo declara acciones
+          secundarias (el ⋯) no pintaba nada. %>
+      <% if actions? || secondary_actions? %>
         <div class="divider divider-horizontal mx-0 h-6"></div>
         <%= render_actions_bar %>
       <% end %>

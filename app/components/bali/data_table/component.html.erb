@@ -76,12 +76,6 @@
             <% end %>
           <% end %>
 
-          <% if control_content(:export) %>
-            <%= tag.div(**overflow_item_attributes(:export, group: "right")) do %>
-              <%= control_content(:export) %>
-            <% end %>
-          <% end %>
-
           <% toolbar_buttons.each do |button| %>
             <%= tag.div(**overflow_item_attributes(:toolbar_buttons, group: "right")) do %>
               <%= button %>

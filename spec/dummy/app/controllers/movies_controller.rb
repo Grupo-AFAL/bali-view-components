@@ -24,6 +24,10 @@ class MoviesController < ApplicationController
     respond_to do |format|
       format.html
       format.turbo_stream
+      # Sin esto el link de export es un 406 y no hay forma de ver que el recorte viajó.
+      format.csv do
+        render plain: @filter_form.result.pluck(:name).join("\n"), content_type: 'text/csv'
+      end
     end
   end
 

@@ -6,7 +6,6 @@ module Bali
       include PageComponents::Shared
 
       renders_many :title_tags
-      renders_many :actions
       renders_one :nav
       renders_one :body
       renders_one :sidebar

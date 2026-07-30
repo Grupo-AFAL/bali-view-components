@@ -3,6 +3,8 @@
 module Bali
   module DataTable
     class Component < ApplicationViewComponent
+      include Bali::DataTable::ToolbarHref
+
       SUMMARY_POSITIONS = %i[top bottom].freeze
 
       # La prioridad manda DOS cosas a la vez, y por eso la escala no se puede renumerar
@@ -27,7 +29,6 @@ module Bali
         column_selector: 35,
         saved_views: 30,
         filter_persistence: 25,
-        export: 10,
         toolbar_buttons: 10
       }.freeze
 
@@ -278,7 +279,7 @@ module Bali
         component = ViewSwitchControl::Component.new(
           **options,
           url: @url,
-          current_params: safe_query_parameters,
+          current_params: request_query_params,
           param: @view_param,
           current: requested_display_mode,
           aria_label: aria_label
@@ -288,15 +289,6 @@ module Bali
         # después de correr el bloque del host (ver #display_mode).
         @view_switch_control = component
         component
-      end
-
-      # Built-in export dropdown with format options
-      # @param formats [Array<Symbol>] Export formats (e.g., [:csv, :excel, :pdf])
-      # @param url [String] Base URL for export (required in production)
-      # @param button_label [String] Label for the dropdown button (i18n default)
-      # @param button_icon [String] Icon name
-      renders_one :export, ->(formats: %i[csv excel pdf], url: nil, **options) do
-        Export::Component.new(formats: formats, url: url, **options)
       end
 
       # @param url [String] Base URL for filtering/sorting links
@@ -517,7 +509,7 @@ module Bali
         @group_by_control ||= GroupByControl::Component.new(
           url: @url,
           filter_form: @filter_form,
-          current_params: safe_query_parameters
+          current_params: request_query_params
         )
       end
 
@@ -551,7 +543,7 @@ module Bali
       end
 
       def show_toolbar_right?
-        (declared_toolbar_controls & %i[view_switch toolbar_buttons export]).any?
+        (declared_toolbar_controls & %i[view_switch toolbar_buttons]).any?
       end
 
       # La barrita afirma algo sobre sus dos vecinos ("acá termina qué contiene la vista y
@@ -584,7 +576,6 @@ module Bali
           controls << :view_switch if control_content(:view_switch)
           controls << :saved_views if control_content(:saved_views)
           controls << :column_selector if control_content(:column_selector)
-          controls << :export if control_content(:export)
           controls << :toolbar_buttons if toolbar_buttons?
           controls
         end
@@ -622,7 +613,7 @@ module Bali
       def requested_display_mode
         return @display_mode if @display_mode_declared
 
-        safe_query_parameters[@view_param.to_s].to_s.presence&.to_sym
+        request_query_params[@view_param.to_s].to_s.presence&.to_sym
       end
 
       # Aplicar una vista guardada no debería sacar al usuario del modo en el que está
@@ -669,14 +660,6 @@ module Bali
         return {} unless @filter_form.respond_to?(:group_by_active?) && @filter_form.group_by_active?
 
         { "group_by" => @filter_form.group_by.to_s }
-      end
-
-      # Current request query params (to preserve in group_by control links).
-      # Falls back to {} when there is no request context.
-      def safe_query_parameters
-        helpers.request.query_parameters.to_h
-      rescue StandardError
-        {}
       end
 
       def item_name

@@ -350,7 +350,7 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_the_toolbar_emits_the_overflow_threshold_it_gated_with
-    render_toolbar_with_export
+    render_collapsible_toolbar
 
     assert_selector('[data-controller~="toolbar-overflow"]' \
                     "[data-toolbar-overflow-threshold-value=\"#{Bali::DataTable::Component::OVERFLOW_THRESHOLD}\"]",
@@ -360,7 +360,7 @@ class BaliDataTableComponentTest < ComponentTestCase
   def test_the_overflow_menu_is_a_container_not_a_menu_of_menuitems
     # Adentro caen widgets enteros (dropdowns anidados, checkboxes, el form de renombrar):
     # `role="menu"` expone hijos que ese rol no permite.
-    render_toolbar_with_export
+    render_collapsible_toolbar
 
     assert_no_selector('[data-toolbar-overflow-target="overflow"] [role="menu"]', visible: :all)
     assert_selector('div[data-toolbar-overflow-target="menu"]', visible: :all)
@@ -436,25 +436,26 @@ class BaliDataTableComponentTest < ComponentTestCase
 
   # --- Toolbar overflow: el ⋯ de viewports angostos ---
 
-  # Filtros (70, sobreviven) + export (10, colapsa): el caso mínimo con algo de cada lado
+  # Filtros (70, sobreviven) + columnas (35, colapsa): el caso mínimo con algo de cada lado
   # del umbral.
-  def render_toolbar_with_export
+  def render_collapsible_toolbar
     render_inline(component) do |c|
       c.with_filters_panel(available_attributes: filter_attributes)
-      c.with_export(formats: [ :csv ], url: "/movies")
+      c.with_column_selector { |cs| cs.with_column(index: 0, label: "Name") }
       c.with_table { '<div class="table-component"></div>'.html_safe }
     end
   end
 
   # Los tres grupos poblados: contenido de la vista (izquierda), cómo se recuerda (memory) y
   # cómo se ve (derecha). El form trae storage_id, así que el marcador de persistencia
-  # también pinta.
+  # también pinta. El view switch es lo ÚNICO que puebla la derecha desde que el export se
+  # mudó al ⋯ del PageHeader.
   def render_full_toolbar
     render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: saved_views_form)) do |c|
       c.with_filters_panel(available_attributes: filter_attributes)
       c.with_saved_views
       c.with_column_selector { |cs| cs.with_column(index: 0, label: "Name") }
-      c.with_export(formats: [ :csv ], url: "/movies")
+      declare_views(c)
       c.with_table { '<div class="table-component"></div>'.html_safe }
     end
   end
@@ -562,19 +563,19 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_collapsible_controls_declare_their_priority_and_home_group
-    render_toolbar_with_export
+    render_collapsible_toolbar
 
     assert_selector('[data-toolbar-overflow-target="item"][data-toolbar-overflow-group="left"]' \
                     '[data-toolbar-overflow-priority="70"]', count: 1, visible: :all)
-    assert_selector('[data-toolbar-overflow-target="item"][data-toolbar-overflow-group="right"]' \
-                    '[data-toolbar-overflow-priority="10"]', count: 1, visible: :all)
+    assert_selector('[data-toolbar-overflow-target="item"][data-toolbar-overflow-group="left"]' \
+                    '[data-toolbar-overflow-priority="35"]', count: 1, visible: :all)
   end
 
   def test_toolbar_controls_exist_exactly_once_in_the_dom
     # EL contrato del overflow: el JS MUEVE nodos. Sin este test, el patrón viejo
     # (`hidden md:block` + copia móvil) puede volver sin que nada falle — y dos copias del
     # selector de columnas son dos controladores manejando la misma tabla.
-    render_toolbar_with_export
+    render_collapsible_toolbar
 
     assert_selector('[data-toolbar-overflow-target="item"]', count: 2, visible: :all)
     assert_selector("div.filters", count: 1, visible: :all)
@@ -586,7 +587,7 @@ class BaliDataTableComponentTest < ComponentTestCase
   def test_overflow_menu_is_served_hidden_and_only_visible_below_the_breakpoint
     # Se sirve con `hidden` y lo destapa el JS al mover el primer control adentro: así no
     # parpadea un ⋯ que abre un menú vacío mientras el bundle carga.
-    render_toolbar_with_export
+    render_collapsible_toolbar
 
     assert_selector('[data-toolbar-overflow-target="overflow"][class~="hidden"]', visible: :all)
     assert_selector('[data-toolbar-overflow-target="overflow"][class~="sm:hidden"]', visible: :all)
@@ -596,17 +597,17 @@ class BaliDataTableComponentTest < ComponentTestCase
     # Contrato con data_table/index.css: los controles esconden su label bajo `sm` para no
     # comerse la fila, y adentro del ⋯ —donde sobra ancho— vuelve. Sin las dos clases el
     # menú queda con iconos anónimos, y eso ningún test de CSS lo ve.
-    render_inline(component) do |c|
+    form = GroupableDataTableFilterForm.new(Movie.all, ActionController::Parameters.new({}))
+    render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: form)) do |c|
       c.with_column_selector { |cs| cs.with_column(index: 0, label: "Name") }
-      c.with_export(formats: [ :csv ], url: "/movies")
       c.with_table { '<div class="table-component"></div>'.html_safe }
     end
 
     assert_selector('[data-toolbar-overflow-target="menu"].toolbar-overflow-menu', visible: :all)
     assert_selector('[data-toolbar-overflow-priority="35"] span.toolbar-control-label',
                     text: "Columns", visible: :all)
-    assert_selector('[data-toolbar-overflow-priority="10"] span.toolbar-control-label',
-                    text: "Export", visible: :all)
+    assert_selector('[data-toolbar-overflow-priority="40"] span.toolbar-control-label',
+                    text: "Group by", visible: :all)
   end
 
   def test_overflow_menu_is_not_rendered_without_collapsible_controls
@@ -676,7 +677,7 @@ class BaliDataTableComponentTest < ComponentTestCase
     # controlador sin fallar en ningún lado.
     render_inline(component) do |c|
       c.with_filters_panel(available_attributes: filter_attributes)
-      c.with_export(formats: [ :csv ], url: "/movies")
+      c.with_column_selector { |cs| cs.with_column(index: 0, label: "Name") }
       c.with_bulk_actions { |bulk| bulk.with_action(label: "Delete", href: "/delete") }
       c.with_table { '<div class="table-component"></div>'.html_safe }
     end
@@ -755,9 +756,17 @@ class BaliDataTableComponentTest < ComponentTestCase
 
   def test_actions_panel_is_gone
     # El panel entero murió: su toggle grid/tabla lo reemplaza with_view_switch, su export
-    # with_export y su hueco de acciones with_bulk_actions. Romper ruidoso > seguir
-    # pintando el camino de #653.
+    # el ⋯ del PageHeader (page.with_export) y su hueco de acciones with_bulk_actions.
+    # Romper ruidoso > seguir pintando el camino de #653.
     refute_respond_to(component, :with_actions_panel)
     refute(Bali::DataTable.const_defined?(:ActionsPanel))
+  end
+
+  def test_export_is_not_a_toolbar_slot
+    # El export se mudó al ⋯ del PageHeader (`page.with_export`): exportar es una acción
+    # SOBRE la página, no un control de cómo se ve el listado. `dt.with_export` tiene que
+    # levantar NoMethodError y no seguir pintando un botón que ignora los filtros.
+    refute_respond_to(component, :with_export)
+    refute(Bali::DataTable::Component::OVERFLOW_PRIORITIES.key?(:export))
   end
 end

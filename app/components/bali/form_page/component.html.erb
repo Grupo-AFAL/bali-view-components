@@ -6,7 +6,9 @@
     subtitle: subtitle,
     back: back,
     class: breadcrumb_spacer_class
-  ) %>
+  ) do %>
+    <%= render_actions_bar %>
+  <% end %>
 
   <div class="mt-6">
     <% if sidebar? %>

@@ -16,9 +16,6 @@
     <% cs.with_column(index: 3, label: 'Created At') %>
   <% end %>
 
-  <%# Export - declarative API %>
-  <% c.with_export(formats: [:csv, :excel, :pdf]) %>
-
   <%# Host buttons: contenido arbitrario, último en el orden de supervivencia (colapsa
       primero al ⋯). Un botón puesto acá tiene que tener connect() idempotente: bajo el
       breakpoint el controlador de overflow lo MUEVE, y mover un nodo dispara

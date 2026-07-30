@@ -1,8 +1,8 @@
 /*
  * DataTable — menú de overflow (⋯)
  *
- * Los controles de la toolbar (columnas, export, vistas guardadas, agrupar) esconden su
- * label bajo `sm` para no comerse el ancho de la fila. Adentro del ⋯ esa razón no existe
+ * Los controles de la toolbar (columnas, vistas guardadas, agrupar) esconden su label bajo
+ * `sm` para no comerse el ancho de la fila. Adentro del ⋯ esa razón no existe
  * —cada control ocupa una fila entera— y sin label el menú queda con iconos anónimos.
  *
  * El archivo es unlayered a propósito: así le gana a las utilidades `hidden` / `max-sm:hidden`

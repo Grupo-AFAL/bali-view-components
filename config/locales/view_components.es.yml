@@ -45,6 +45,11 @@ es:
             excel: Excel
             pdf: PDF
             json: JSON
+      page_components:
+        secondary_actions:
+          button_label: Más acciones
+        export:
+          menu_title: Exportar lo filtrado
       pagination:
         aria_label: Paginación
         previous_page: Página anterior

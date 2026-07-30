@@ -6,7 +6,6 @@ describe('DataTable toolbar overflow', () => {
   const leftGroup = '[data-toolbar-overflow-target="group"][data-toolbar-overflow-group="left"]'
   const memoryGroup = '[data-toolbar-overflow-target="group"][data-toolbar-overflow-group="memory"]'
   const separator = '[data-toolbar-overflow-target="separator"]'
-  const exportItem = '[data-toolbar-overflow-priority="10"]'
   const columnsItem = '[data-toolbar-overflow-priority="35"]'
   const filtersItem = '[data-toolbar-overflow-priority="70"]'
   const viewSwitchItem = '[data-toolbar-overflow-priority="50"]'
@@ -23,7 +22,7 @@ describe('DataTable toolbar overflow', () => {
     cy.viewport(375, 667)
 
     cy.get(`${menu} ${columnsItem}`).should('have.length', 1)
-    cy.get(`${menu} ${exportItem}`).should('have.length.greaterThan', 0)
+    cy.get(`${menu} ${groupByItem}`).should('have.length', 1)
     // MOVIDO, no duplicado: dos column selectors serían dos controladores sobre una tabla.
     cy.get(columnsItem).should('have.length', 1)
     cy.get('[data-controller~="column-selector"]').should('have.length', 1)
