@@ -1005,16 +1005,35 @@ table. A filter submit rebuilds the URL from `url:` — which hosts pass without
 string — so anything that must survive it has to be an explicit hidden field; the active
 `group_by` travels the same way.
 
+**Toolbar layout.** The row reads left to right as
+`search + filters · group by · columns ￨ saved views · persistence` and, pinned to the far
+right, the view switch. The left side is the **state of the listing and how it is
+remembered**, the right side is **how it is displayed** — the display mode is not part of a
+saved view's payload, which is why the view switch is the only thing on that side. The
+vertical rule between `columns` and `saved views` marks the boundary between the two left
+subgroups; it is rendered only when both sides have content and hidden below the breakpoint
+(see below).
+
+Three home groups back this: `left` (filters, group by, columns), `memory` (saved views,
+the filter-persistence bookmark) and `right` (view switch, export, host
+`toolbar_buttons`).
+
 **Narrow viewports.** Below `sm` (640px) the toolbar folds its secondary controls into a
 `⋯` menu and unfolds them on the way back. The nodes are **moved**, never duplicated: two
 copies of the column selector would be two Stimulus controllers driving one table. Survival
-order lives in `OVERFLOW_PRIORITIES` — search/filters, the filter-persistence bookmark and
-the view switch stay in the row; saved views, group by, columns, export and host
-`toolbar_buttons` collapse. Two consequences worth knowing:
+order lives in `OVERFLOW_PRIORITIES` — search/filters and the view switch stay in the row;
+group by, columns, saved views, the persistence bookmark, export and host `toolbar_buttons`
+collapse. Three consequences worth knowing:
 
-- The toolbar order is defined by `OVERFLOW_PRIORITIES`, not by the template. Expanding
-  re-sorts each group by priority, which is what lets the controller be stateless across
-  Turbo reconnects.
+- **The order inside a group** is defined by `OVERFLOW_PRIORITIES`, not by the template:
+  expanding re-sorts each group by descending priority, which is what lets the controller be
+  stateless across Turbo reconnects. **The order of the groups** is the template's. The
+  numbers descend in reading order, so the `⋯` lists the collapsed controls in the same
+  order the row does.
+- The separator is not a control: it carries no priority and is not an `item`, so it can
+  never travel into the `⋯`. The controller only hides it — when a collapse empties either
+  of the two groups it flanks, and by CSS (`max-sm:hidden`) when the bundle has not loaded.
+  An empty group is hidden too, so it does not keep stealing the row's `gap`.
 - The `⋯` is a server-side decision (it is not rendered when nothing is collapsible), so a
   host that adds or removes `toolbar_buttons` from JavaScript after render can leave the
   gate stale. The controller hides an empty `⋯`, but it cannot create one.

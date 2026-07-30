@@ -192,8 +192,8 @@ longer on this path.
   memories — which is the bug being fixed, at the cost of one reset per listing.
 - **The toolbar is bare and single-row**, identical in every display mode, and below `sm`
   its secondary controls **move** into a `⋯` menu (never duplicated — the old
-  `hidden md:block` + mobile copy pattern is gone). The order is defined by
-  `OVERFLOW_PRIORITIES`, not by your template. Anything you put in `with_toolbar_button`
+  `hidden md:block` + mobile copy pattern is gone). The order **inside a group** is defined
+  by `OVERFLOW_PRIORITIES`, not by your template. Anything you put in `with_toolbar_button`
   needs an idempotent `connect()`, no `data-turbo-permanent`, and the
   `toolbar-control-label` class on a label that hides on mobile.
 - **The active view travels as a hidden field on filter submits**, like `group_by` already

@@ -328,9 +328,9 @@ class BaliDataTableComponentTest < ComponentTestCase
       c.with_table { '<div class="table-component"></div>'.html_safe }
     end
 
-    assert_selector('[data-toolbar-overflow-target="item"][data-toolbar-overflow-group="right"]' \
-                    '[data-toolbar-overflow-priority="40"]', count: 1, visible: :all)
-    assert_selector('[data-toolbar-overflow-priority="40"] span.toolbar-control-label', visible: :all)
+    assert_selector('[data-toolbar-overflow-target="item"][data-toolbar-overflow-group="memory"]' \
+                    '[data-toolbar-overflow-priority="30"]', count: 1, visible: :all)
+    assert_selector('[data-toolbar-overflow-priority="30"] span.toolbar-control-label', visible: :all)
     assert_selector('[data-controller~="saved-views"]', count: 1, visible: :all)
   end
 
@@ -345,7 +345,7 @@ class BaliDataTableComponentTest < ComponentTestCase
       c.with_table { '<div class="table-component"></div>'.html_safe }
     end
 
-    assert_no_selector('[data-toolbar-overflow-priority="40"]', visible: :all)
+    assert_no_selector('[data-toolbar-overflow-priority="30"]', visible: :all)
     assert_no_selector('[data-toolbar-overflow-target="overflow"]', visible: :all)
   end
 
@@ -446,14 +446,119 @@ class BaliDataTableComponentTest < ComponentTestCase
     end
   end
 
-  def test_toolbar_declares_the_overflow_controller_and_both_home_groups
-    render_toolbar_with_export
+  # Los tres grupos poblados: contenido de la vista (izquierda), cómo se recuerda (memory) y
+  # cómo se ve (derecha). El form trae storage_id, así que el marcador de persistencia
+  # también pinta.
+  def render_full_toolbar
+    render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: saved_views_form)) do |c|
+      c.with_filters_panel(available_attributes: filter_attributes)
+      c.with_saved_views
+      c.with_column_selector { |cs| cs.with_column(index: 0, label: "Name") }
+      c.with_export(formats: [ :csv ], url: "/movies")
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+  end
+
+  def test_toolbar_declares_the_overflow_controller_and_its_three_home_groups
+    render_full_toolbar
 
     assert_selector('div[data-controller~="toolbar-overflow"]', visible: :all)
     assert_selector('[data-toolbar-overflow-target="group"][data-toolbar-overflow-group="left"]',
                     count: 1, visible: :all)
+    assert_selector('[data-toolbar-overflow-target="group"][data-toolbar-overflow-group="memory"]',
+                    count: 1, visible: :all)
     assert_selector('[data-toolbar-overflow-target="group"][data-toolbar-overflow-group="right"]',
                     count: 1, visible: :all)
+  end
+
+  def test_the_left_group_reads_filters_then_group_by_then_columns
+    # El JS reordena cada grupo por prioridad DESCENDENTE al expandir, así que el orden de la
+    # fila lo fijan estos números y no el template: leídos de mayor a menor tienen que dar el
+    # orden pedido.
+    form = GroupableDataTableFilterForm.new(Movie.all, ActionController::Parameters.new({}))
+    render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: form)) do |c|
+      c.with_filters_panel
+      c.with_column_selector { |cs| cs.with_column(index: 0, label: "Name") }
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    priorities = page.all('[data-toolbar-overflow-group="left"][data-toolbar-overflow-target="item"]',
+                          visible: :all).map { |item| item["data-toolbar-overflow-priority"].to_i }
+
+    assert_equal [ 70, 40, 35 ], priorities
+  end
+
+  def test_the_memory_group_reads_saved_views_then_the_persistence_bookmark
+    render_full_toolbar
+
+    priorities = page.all('[data-toolbar-overflow-group="memory"][data-toolbar-overflow-target="item"]',
+                          visible: :all).map { |item| item["data-toolbar-overflow-priority"].to_i }
+
+    assert_equal [ 30, 25 ], priorities
+  end
+
+  def test_the_column_selector_collapses_from_the_left_group
+    # Cambió de lado: era el subgrupo derecho ("cómo se ve") y ahora es contenido de la vista.
+    render_full_toolbar
+
+    assert_selector('[data-toolbar-overflow-target="item"][data-toolbar-overflow-group="left"]' \
+                    '[data-toolbar-overflow-priority="35"]', count: 1, visible: :all)
+    assert_no_selector('[data-toolbar-overflow-group="right"][data-toolbar-overflow-priority="35"]',
+                       visible: :all)
+  end
+
+  def test_the_separator_is_not_a_control
+    # Marcada como `item` viajaría al ⋯ como si fuera un control, y con prioridad el JS la
+    # reordenaría entre los controles del grupo. No es ninguna de las dos cosas.
+    render_full_toolbar
+
+    assert_selector('[data-toolbar-overflow-target="separator"]', count: 1, visible: :all)
+    assert_selector('[data-toolbar-overflow-separates="left memory"]', count: 1, visible: :all)
+    assert_no_selector("[data-toolbar-overflow-separates][data-toolbar-overflow-priority]",
+                       visible: :all)
+    assert_no_selector('[data-toolbar-overflow-separates][data-toolbar-overflow-target~="item"]',
+                       visible: :all)
+    # Hermana de los dos grupos, no hija de ninguno: adentro de uno el JS la empuja al final.
+    assert_no_selector('[data-toolbar-overflow-target="group"] [data-toolbar-overflow-target="separator"]',
+                       visible: :all)
+  end
+
+  def test_the_separator_is_served_hidden_below_the_breakpoint
+    # El caso sin JS: bajo `sm` no queda nadie a su derecha que la sostenga.
+    render_full_toolbar
+
+    assert_selector('[data-toolbar-overflow-target="separator"][class~="max-sm:hidden"]', visible: :all)
+  end
+
+  def test_no_separator_without_something_on_both_sides
+    render_inline(component) do |c|
+      c.with_filters_panel(available_attributes: filter_attributes)
+      c.with_column_selector { |cs| cs.with_column(index: 0, label: "Name") }
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_no_selector('[data-toolbar-overflow-target="separator"]', visible: :all)
+    assert_no_selector('[data-toolbar-overflow-group="memory"]', visible: :all)
+  end
+
+  def test_no_separator_with_only_the_memory_side
+    render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: saved_views_form)) do |c|
+      c.with_saved_views
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector('[data-toolbar-overflow-group="memory"]', visible: :all)
+    assert_no_selector('[data-toolbar-overflow-target="separator"]', visible: :all)
+    assert_no_selector('[data-toolbar-overflow-group="left"]', visible: :all)
+  end
+
+  def test_only_the_view_switch_and_host_buttons_stay_on_the_right
+    render_full_toolbar
+
+    assert_no_selector('[data-toolbar-overflow-group="right"][data-toolbar-overflow-priority="30"]',
+                       visible: :all)
+    assert_no_selector('[data-toolbar-overflow-group="right"][data-toolbar-overflow-priority="25"]',
+                       visible: :all)
   end
 
   def test_collapsible_controls_declare_their_priority_and_home_group
@@ -498,7 +603,7 @@ class BaliDataTableComponentTest < ComponentTestCase
     end
 
     assert_selector('[data-toolbar-overflow-target="menu"].toolbar-overflow-menu', visible: :all)
-    assert_selector('[data-toolbar-overflow-priority="20"] span.toolbar-control-label',
+    assert_selector('[data-toolbar-overflow-priority="35"] span.toolbar-control-label',
                     text: "Columns", visible: :all)
     assert_selector('[data-toolbar-overflow-priority="10"] span.toolbar-control-label',
                     text: "Export", visible: :all)
@@ -548,8 +653,8 @@ class BaliDataTableComponentTest < ComponentTestCase
     end
 
     assert_selector('[data-toolbar-overflow-target="item"][data-toolbar-overflow-group="left"]' \
-                    '[data-toolbar-overflow-priority="30"]', count: 1, visible: :all)
-    assert_selector('[data-toolbar-overflow-priority="30"] span.toolbar-control-label', visible: :all)
+                    '[data-toolbar-overflow-priority="40"]', count: 1, visible: :all)
+    assert_selector('[data-toolbar-overflow-priority="40"] span.toolbar-control-label', visible: :all)
     assert_selector('[data-toolbar-overflow-target="overflow"]', visible: :all)
   end
 

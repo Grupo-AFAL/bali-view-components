@@ -1,55 +1,78 @@
 <%= tag.div(**container_attributes) do %>
-  <%# Toolbar: una sola fila agrupada por función — izquierda QUÉ datos se ven, derecha
-      CÓMO se ven. Bajo el breakpoint el controlador `toolbar-overflow` MUEVE los controles
-      secundarios al menú ⋯ (ver OVERFLOW_PRIORITIES) y los devuelve al subir. %>
+  <%# Toolbar: una sola fila agrupada por función — izquierda el ESTADO del listado y cómo se
+      recuerda, derecha CÓMO se ve. Bajo el breakpoint el controlador `toolbar-overflow`
+      MUEVE los controles secundarios al menú ⋯ (ver OVERFLOW_PRIORITIES) y los devuelve al
+      subir. %>
   <% if show_toolbar? %>
     <%= tag.div(**toolbar_attributes) do %>
-      <%# Izquierda: qué datos se ven (búsqueda + filtros + agrupación) %>
-      <%= tag.div(**overflow_group_attributes("left", css_class: "flex items-center gap-1 sm:gap-2 flex-1 min-w-0")) do %>
-        <%# Se pregunta por el CONTENIDO y no por el slot: un control declarado que decide no
-            pintar (p.ej. vistas guardadas sin store) dejaba un envoltorio vacío que el JS
-            movía al ⋯, destapando un botón que abre un menú vacío. %>
-        <% if control_content(:filters_panel) || control_content(:simple_filters) %>
-          <%= tag.div(**overflow_item_attributes(:filters, group: "left", css_class: "flex-1 min-w-0")) do %>
-            <%= control_content(:filters_panel) %>
-            <%= control_content(:simple_filters) %>
+      <%# Izquierda, primer subgrupo: el CONTENIDO de la vista — qué filas y qué columnas.
+          `flex-1` solo bajo `sm`: ahí la búsqueda tiene que llenar la fila, y arriba de `sm`
+          es de ancho fijo (`sm:w-64`), así que creciendo empujaba la barrita y las vistas
+          contra el view switch en vez de dejar el hueco donde va. %>
+      <% if show_toolbar_left? %>
+        <%= tag.div(**overflow_group_attributes("left", css_class: "flex items-center gap-1 sm:gap-2 flex-1 sm:flex-initial min-w-0")) do %>
+          <%# Se pregunta por el CONTENIDO y no por el slot: un control declarado que decide no
+              pintar (p.ej. vistas guardadas sin store) dejaba un envoltorio vacío que el JS
+              movía al ⋯, destapando un botón que abre un menú vacío. %>
+          <% if control_content(:filters_panel) || control_content(:simple_filters) %>
+            <%= tag.div(**overflow_item_attributes(:filters, group: "left", css_class: "flex-1 min-w-0")) do %>
+              <%= control_content(:filters_panel) %>
+              <%= control_content(:simple_filters) %>
+            <% end %>
           <% end %>
-        <% end %>
 
-        <%# El marcador de persistencia: hasta ahora viajaba DENTRO del nodo de filtros, y acá
-            queda en el mismo lugar visual pero como item propio — así el ⋯ puede tratarlo
-            aparte y la fase de layout puede moverlo sin tocar el panel. %>
-        <% if filter_persistence_control? %>
-          <%= tag.div(**overflow_item_attributes(:filter_persistence, group: "left", css_class: "shrink-0")) do %>
-            <%= render filter_persistence_control %>
+          <% if group_by_control? %>
+            <%= tag.div(**overflow_item_attributes(:group_by, group: "left", css_class: "shrink-0")) do %>
+              <%= render group_by_control %>
+            <% end %>
           <% end %>
-        <% end %>
 
-        <% if group_by_control? %>
-          <%= tag.div(**overflow_item_attributes(:group_by, group: "left", css_class: "shrink-0")) do %>
-            <%= render group_by_control %>
+          <%# `shrink-0`: este grupo SÍ encoge (a diferencia del de la derecha), y sin esto el
+              botón de columnas se aplasta en vez de dejar que la búsqueda absorba. %>
+          <% if control_content(:column_selector) %>
+            <%= tag.div(**overflow_item_attributes(:column_selector, group: "left", css_class: "shrink-0")) do %>
+              <%= control_content(:column_selector) %>
+            <% end %>
           <% end %>
         <% end %>
       <% end %>
 
-      <%# Derecha: cómo se ven %>
-      <% if show_toolbar_right? %>
-        <%= tag.div(**overflow_group_attributes("right", css_class: "flex items-center gap-1 sm:gap-2 shrink-0")) do %>
-          <% if control_content(:view_switch) %>
-            <%= tag.div(**overflow_item_attributes(:view_switch, group: "right")) do %>
-              <%= control_content(:view_switch) %>
-            <% end %>
-          <% end %>
+      <%# Frontera entre "qué contiene la vista" y "cómo se recuerda". Va ENTRE los dos grupos
+          y no adentro de uno: el JS ordena a los hijos de un grupo por prioridad y un nodo sin
+          prioridad cuenta como 0, así que la barrita terminaba empujada al final de la fila ya
+          en el primer render de escritorio. %>
+      <% if toolbar_separator? %>
+        <%= tag.div(**overflow_separator_attributes("left", "memory")) do %>
+          <div class="divider divider-horizontal mx-0 h-6"></div>
+        <% end %>
+      <% end %>
 
+      <%# Izquierda, segundo subgrupo: cómo se RECUERDA ese contenido — las vistas guardadas
+          con nombre y el marcador que recuerda el último estado. %>
+      <% if show_toolbar_memory? %>
+        <%= tag.div(**overflow_group_attributes("memory", css_class: "flex items-center gap-1 sm:gap-2 shrink-0")) do %>
           <% if control_content(:saved_views) %>
-            <%= tag.div(**overflow_item_attributes(:saved_views, group: "right")) do %>
+            <%= tag.div(**overflow_item_attributes(:saved_views, group: "memory")) do %>
               <%= control_content(:saved_views) %>
             <% end %>
           <% end %>
 
-          <% if control_content(:column_selector) %>
-            <%= tag.div(**overflow_item_attributes(:column_selector, group: "right")) do %>
-              <%= control_content(:column_selector) %>
+          <% if filter_persistence_control? %>
+            <%= tag.div(**overflow_item_attributes(:filter_persistence, group: "memory")) do %>
+              <%= render filter_persistence_control %>
+            <% end %>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <%# Derecha: cómo se ven. `ml-auto` acá y no `flex-1` en la izquierda: el margen auto
+          absorbe el espacio libre DESPUÉS de resolver grow/shrink, así que en móvil —donde la
+          izquierda sí crece— es un no-op, y arriba de `sm` clava el switch contra el borde. %>
+      <% if show_toolbar_right? %>
+        <%= tag.div(**overflow_group_attributes("right", css_class: "flex items-center gap-1 sm:gap-2 shrink-0 ml-auto")) do %>
+          <% if control_content(:view_switch) %>
+            <%= tag.div(**overflow_item_attributes(:view_switch, group: "right")) do %>
+              <%= control_content(:view_switch) %>
             <% end %>
           <% end %>
 

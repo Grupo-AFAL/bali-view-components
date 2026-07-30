@@ -22,13 +22,16 @@ import { Controller } from '@hotwired/stimulus'
  *            data-toolbar-overflow-group="left"
  *            data-toolbar-overflow-priority="70">…</div>
  *     </div>
+ *     <div data-toolbar-overflow-target="separator"
+ *          data-toolbar-overflow-separates="left memory">…</div>
+ *     <div data-toolbar-overflow-target="group" data-toolbar-overflow-group="memory">…</div>
  *     <div data-toolbar-overflow-target="overflow">
  *       …<div data-toolbar-overflow-target="menu"></div>
  *     </div>
  *   </div>
  */
 export default class extends Controller {
-  static targets = ['group', 'item', 'menu', 'overflow']
+  static targets = ['group', 'item', 'menu', 'overflow', 'separator']
 
   static values = {
     breakpoint: { type: Number, default: 640 }, // Tailwind `sm`
@@ -65,6 +68,8 @@ export default class extends Controller {
     } else {
       this.expand()
     }
+    this.syncGroupVisibility()
+    this.syncSeparators()
     this.syncOverflowVisibility()
     this.restoreFocus(focused)
   }
@@ -89,7 +94,9 @@ export default class extends Controller {
   }
 
   // Ordenados de mayor a menor para que adentro del ⋯ el orden de lectura sea el mismo que
-  // el de la toolbar.
+  // el de la toolbar. Se sostiene porque las prioridades bajan siguiendo la fila (ver
+  // OVERFLOW_PRIORITIES); renumerarlas sin mirar el layout rompe esta correspondencia sin
+  // que falle nada.
   collapsibleItems () {
     return this.itemTargets
       .filter(item => this.priorityOf(item) < this.thresholdValue)
@@ -161,6 +168,42 @@ export default class extends Controller {
     if (!this.hasOverflowTarget) return null
 
     return this.overflowTarget.querySelector('[data-dropdown-target="trigger"]')
+  }
+
+  /**
+   * Un grupo vacío sigue siendo un flex item: se lleva el `gap` de la fila a los dos lados y
+   * le come ancho a la búsqueda justo en el viewport donde menos sobra.
+   */
+  syncGroupVisibility () {
+    this.groupTargets.forEach(group => {
+      group.classList.toggle('hidden', group.children.length === 0)
+    })
+  }
+
+  /**
+   * La barrita es una AFIRMACIÓN sobre sus vecinos ("acá termina qué contiene la vista y
+   * empieza cómo se recuerda"). Cuando el overflow se lleva uno de los dos lados la
+   * afirmación deja de ser cierta y queda marcando una frontera contra nada. NO es un
+   * control: no es `item`, así que `collapsibleItems` no la puede mover al ⋯ — solo se
+   * esconde y vuelve.
+   */
+  syncSeparators () {
+    this.separatorTargets.forEach(separator => {
+      separator.classList.toggle('hidden', !this.separatorFlanked(separator))
+    })
+  }
+
+  // Los grupos se buscan POR NOMBRE y no por adyacencia en el DOM: insertar cualquier nodo
+  // entre la barrita y un grupo rompía la decisión en silencio.
+  separatorFlanked (separator) {
+    return (separator.dataset.toolbarOverflowSeparates || '')
+      .split(' ')
+      .filter(name => name)
+      .every(name => this.groupNamed(name)?.children.length > 0)
+  }
+
+  groupNamed (name) {
+    return this.groupTargets.find(group => group.dataset.toolbarOverflowGroup === name)
   }
 
   // Sin nada adentro, el ⋯ abriría un menú vacío. `sm:hidden` ya lo tapa arriba del

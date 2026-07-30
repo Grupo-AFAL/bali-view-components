@@ -3,12 +3,14 @@
 describe('DataTable toolbar overflow', () => {
   const menu = '[data-toolbar-overflow-target="menu"]'
   const overflow = '[data-toolbar-overflow-target="overflow"]'
-  const rightGroup = '[data-toolbar-overflow-target="group"][data-toolbar-overflow-group="right"]'
+  const leftGroup = '[data-toolbar-overflow-target="group"][data-toolbar-overflow-group="left"]'
+  const memoryGroup = '[data-toolbar-overflow-target="group"][data-toolbar-overflow-group="memory"]'
+  const separator = '[data-toolbar-overflow-target="separator"]'
   const exportItem = '[data-toolbar-overflow-priority="10"]'
-  const columnsItem = '[data-toolbar-overflow-priority="20"]'
+  const columnsItem = '[data-toolbar-overflow-priority="35"]'
   const filtersItem = '[data-toolbar-overflow-priority="70"]'
   const viewSwitchItem = '[data-toolbar-overflow-priority="50"]'
-  const groupByItem = '[data-toolbar-overflow-priority="30"]'
+  const groupByItem = '[data-toolbar-overflow-priority="40"]'
 
   it('moves the secondary controls into the ⋯ menu and back, never duplicating them', () => {
     cy.viewport(1280, 800)
@@ -41,15 +43,51 @@ describe('DataTable toolbar overflow', () => {
 
   it('restores the toolbar ordered by priority after a round trip', () => {
     // `expand()` reordena en vez de recordar la posición original: eso es lo que hace al
-    // controlador stateless frente a un reconnect de Turbo.
+    // controlador stateless frente a un reconnect de Turbo. Es también la única prueba real
+    // del orden de la fila: el HTML servido se ve bien aunque el navegador lo reordene mal.
     cy.viewport(375, 667)
     cy.visit('/bali/data_table/complete')
     cy.viewport(1280, 800)
 
-    cy.get(`${rightGroup} > [data-toolbar-overflow-target="item"]`).then(($items) => {
-      const priorities = [...$items].map((el) => Number(el.dataset.toolbarOverflowPriority))
-      expect(priorities).to.deep.equal([...priorities].sort((a, b) => b - a))
-    })
+    const sortedDescending = (selector) =>
+      cy.get(`${selector} > [data-toolbar-overflow-target="item"]`).then(($items) => {
+        const priorities = [...$items].map((el) => Number(el.dataset.toolbarOverflowPriority))
+        expect(priorities).to.deep.equal([...priorities].sort((a, b) => b - a))
+      })
+
+    // Búsqueda/filtros · agrupar · columnas
+    sortedDescending(leftGroup)
+    // Vistas guardadas · marcador de persistencia
+    sortedDescending(memoryGroup)
+  })
+
+  it('hides the separator when the overflow empties one of its sides, and brings it back', () => {
+    // La barrita AFIRMA algo sobre sus vecinos: con el grupo de memoria adentro del ⋯ queda
+    // marcando una frontera contra nada.
+    cy.viewport(1280, 800)
+    cy.visit('/bali/data_table/complete')
+
+    cy.get(separator).should('be.visible')
+
+    cy.viewport(375, 667)
+
+    cy.get(separator).should('not.be.visible')
+    cy.get(memoryGroup).should('not.be.visible')
+
+    cy.viewport(1280, 800)
+
+    cy.get(separator).should('be.visible')
+    cy.get(memoryGroup).should('be.visible')
+  })
+
+  it('never moves the separator into the ⋯', () => {
+    // No es un `item`: `collapsibleItems` no la puede ver, así que no puede viajar al menú
+    // ni duplicarse.
+    cy.viewport(375, 667)
+    cy.visit('/bali/data_table/complete')
+
+    cy.get(`${menu} ${separator}`).should('not.exist')
+    cy.get(separator).should('have.length', 1)
   })
 
   it('keeps the column selector working after being moved', () => {

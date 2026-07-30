@@ -5,22 +5,28 @@ module Bali
     class Component < ApplicationViewComponent
       SUMMARY_POSITIONS = %i[top bottom].freeze
 
-      # Orden de supervivencia de la toolbar en viewports angostos (mayor = sobrevive más):
-      # búsqueda/filtros > view switch > vistas guardadas > agrupar > columnas > export.
-      # `search` y `filters` son EL MISMO nodo (Bali::Filters pinta el input de búsqueda y el
-      # botón de filtros juntos), por eso hay una sola entrada. Se guarda como escala y no
-      # como lista ordenada para que sumar un segundo umbral sea un cambio de una línea.
+      # La prioridad manda DOS cosas a la vez, y por eso la escala no se puede renumerar
+      # mirando una sola: qué SOBREVIVE en un viewport angosto (colapsa lo que quede por
+      # debajo de OVERFLOW_THRESHOLD) y, DENTRO de cada grupo, el ORDEN en que se pintan los
+      # controles — el JS reordena cada grupo por prioridad al expandir, así que mover un
+      # bloque del template no mueve nada en el navegador.
       #
-      # `filter_persistence` queda pegado a `filters` (y por encima del umbral) porque hasta
-      # ahora el marcador viajaba DENTRO de ese mismo nodo: extraerlo no debe moverlo ni
-      # empezar a colapsarlo.
+      # El orden ENTRE grupos lo fija la plantilla (ver #show_toolbar_left? y sus hermanos),
+      # que es lo único que deja al view switch sobrevivir a todo y aun así verse último.
+      #
+      # Los números bajan en el mismo orden en que se leen los controles de la fila: eso es
+      # lo que mantiene el orden de lectura del ⋯ igual al de la toolbar (ver
+      # `collapsibleItems` en el controlador). `search` y `filters` son EL MISMO nodo
+      # (Bali::Filters pinta el input de búsqueda y el botón de filtros juntos), por eso hay
+      # una sola entrada. Se guarda como escala y no como lista ordenada para que sumar un
+      # segundo umbral sea un cambio de una línea.
       OVERFLOW_PRIORITIES = {
         filters: 70,
-        filter_persistence: 60,
         view_switch: 50,
-        saved_views: 40,
-        group_by: 30,
-        column_selector: 20,
+        group_by: 40,
+        column_selector: 35,
+        saved_views: 30,
+        filter_persistence: 25,
         export: 10,
         toolbar_buttons: 10
       }.freeze
@@ -471,6 +477,21 @@ module Bali
         }
       end
 
+      # La barrita NO es un control: sin prioridad y sin ser `item`, `collapsibleItems` no la
+      # puede ver y nunca viaja al ⋯. Declara a quién separa POR NOMBRE en vez de mirar a sus
+      # hermanos del DOM: con adyacencia, insertar cualquier nodo en el medio rompía la
+      # decisión en silencio. `max-sm:hidden` cubre el caso sin JS — bajo el breakpoint no
+      # queda nadie a su derecha que la sostenga.
+      def overflow_separator_attributes(*groups)
+        {
+          class: "shrink-0 max-sm:hidden",
+          data: {
+            toolbar_overflow_target: "separator",
+            toolbar_overflow_separates: groups.join(" ")
+          }
+        }
+      end
+
       # El ⋯ no se pinta si no hay nada que colapsar: sin esto, un listado que solo tiene
       # búsqueda mostraría un botón que abre un menú vacío.
       def overflow_menu?
@@ -515,8 +536,29 @@ module Bali
         )
       end
 
+      # IZQUIERDA el estado del listado y cómo se recuerda; DERECHA cómo se ve. El modo de
+      # visualización NO viaja dentro de una vista guardada (no está en PAYLOAD_KEYS), y por
+      # eso el view switch es lo único que queda del otro lado.
+      #
+      # Primer subgrupo de la izquierda: el CONTENIDO de la vista — qué filas y qué columnas.
+      def show_toolbar_left?
+        (declared_toolbar_controls & %i[filters group_by column_selector]).any?
+      end
+
+      # Segundo subgrupo de la izquierda: cómo se RECUERDA ese contenido.
+      def show_toolbar_memory?
+        (declared_toolbar_controls & %i[saved_views filter_persistence]).any?
+      end
+
       def show_toolbar_right?
-        (declared_toolbar_controls & %i[view_switch saved_views toolbar_buttons column_selector export]).any?
+        (declared_toolbar_controls & %i[view_switch toolbar_buttons export]).any?
+      end
+
+      # La barrita afirma algo sobre sus dos vecinos ("acá termina qué contiene la vista y
+      # empieza cómo se recuerda"): con un solo lado marcaría una frontera contra nada. Bajo
+      # el breakpoint la esconde el JS (ver #overflow_separator_attributes).
+      def toolbar_separator?
+        show_toolbar_left? && show_toolbar_memory?
       end
 
       private
