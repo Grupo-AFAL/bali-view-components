@@ -26,8 +26,12 @@ jobs:
             yarn.lock
             spec/dummy/yarn.lock
 
+      # Los previews del DataTable leen de la BASE (escenario "Live DB"), así que un schema
+      # vacío los renderiza sin una sola fila y los specs fallan buscando elementos que el
+      # componente nunca tuvo qué pintar — no por una regresión. `seeds.rb` crea todo con
+      # find_or_create_by! / find_or_initialize_by y no borra nada, así que es idempotente.
       - name: Setup database
-        run: cd spec/dummy && bin/rails db:schema:load
+        run: cd spec/dummy && bin/rails db:schema:load db:seed
 
       - name: Install dependencies
         run: |
