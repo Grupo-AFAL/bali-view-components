@@ -22,38 +22,32 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <% movies.each do |movie| %>
           <%= render Bali::Card::Component.new(style: :bordered, class: 'hover:shadow-md transition-shadow') do |card| %>
-            <div class="card-body p-4">
-              <h3 class="card-title text-base">
-                <%= movie.name %>
-                <% if movie.indie %>
-                  <%= render Bali::Tag::Component.new(text: 'Indie', color: :secondary, size: :sm) %>
-                <% end %>
-              </h3>
+            <% card.with_title(movie.name, class: 'text-base') %>
 
-              <div class="flex flex-wrap gap-2 mt-2">
-                <%= render Bali::Tag::Component.new(text: movie.genre, style: :outline) %>
-                <%= render Bali::Tag::Component.new(
-                      text: movie.status.humanize,
-                      color: movie.done? ? :success : :warning
-                    ) %>
-              </div>
-
-              <% if movie.studio %>
-                <p class="text-sm text-base-content/60 mt-2">
-                  <%= render Bali::Icon::Component.new('business', class: 'w-4 h-4 inline') %>
-                  <%= movie.studio.name %>
-                </p>
+            <div class="flex flex-wrap gap-2">
+              <%= render Bali::Tag::Component.new(text: movie.genre, style: :outline) %>
+              <%= render Bali::Tag::Component.new(
+                    text: movie.status.humanize,
+                    color: movie.done? ? :success : :warning
+                  ) %>
+              <% if movie.indie %>
+                <%= render Bali::Tag::Component.new(text: 'Indie', color: :secondary) %>
               <% end %>
-
-              <div class="card-actions justify-end mt-3">
-                <button class="btn btn-ghost btn-sm">
-                  <%= render Bali::Icon::Component.new('expand', class: 'w-4 h-4') %>
-                </button>
-                <button class="btn btn-ghost btn-sm">
-                  <%= render Bali::Icon::Component.new('edit', class: 'w-4 h-4') %>
-                </button>
-              </div>
             </div>
+
+            <% if movie.studio %>
+              <p class="text-sm text-base-content/60">
+                <%= render Bali::Icon::Component.new('business', class: 'w-4 h-4 inline') %>
+                <%= movie.studio.name %>
+              </p>
+            <% end %>
+
+            <% card.with_action(href: '#', class: 'btn-ghost btn-sm') do %>
+              <%= render Bali::Icon::Component.new('expand', class: 'w-4 h-4') %>
+            <% end %>
+            <% card.with_action(href: '#', class: 'btn-ghost btn-sm') do %>
+              <%= render Bali::Icon::Component.new('edit', class: 'w-4 h-4') %>
+            <% end %>
           <% end %>
         <% end %>
       </div>
@@ -61,7 +55,7 @@
   <% else %>
     <%# Table view - la superficie y el scroll horizontal los trae with_table %>
     <% c.with_table do %>
-      <%= render Bali::Table::Component.new(form: filter_form, id: 'grid-mode-demo-table') do |t| %>
+      <%= render Bali::Table::Component.new(form: filter_form) do |t| %>
         <%= t.with_header(name: 'Name', sort: :name) %>
         <%= t.with_header(name: 'Genre') %>
         <%= t.with_header(name: 'Status', sort: :status) %>
@@ -70,11 +64,13 @@
         <% movies.each do |movie| %>
           <%= t.with_row do %>
             <td class="font-medium"><%= movie.name %></td>
-            <td><span class="badge badge-outline"><%= movie.genre %></span></td>
+            <td><%= render Bali::Tag::Component.new(text: movie.genre, style: :outline, size: :sm) %></td>
             <td>
-              <span class="badge <%= movie.done? ? 'badge-success' : 'badge-warning' %>">
-                <%= movie.status.humanize %>
-              </span>
+              <%= render Bali::Tag::Component.new(
+                    text: movie.status.humanize,
+                    color: movie.done? ? :success : :warning,
+                    size: :sm
+                  ) %>
             </td>
             <td>
               <%= render Bali::BooleanIcon::Component.new(value: movie.indie) %>

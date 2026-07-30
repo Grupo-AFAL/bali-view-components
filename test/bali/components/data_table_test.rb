@@ -495,6 +495,74 @@ class BaliDataTableComponentTest < ComponentTestCase
                     visible: :all)
   end
 
+  def test_filters_panel_preserves_the_declared_display_mode_as_hidden_field
+    # El submit de filtros reconstruye la URL desde `url:`, que el host pasa SIN query
+    # string: sin este hidden, filtrar estando en tarjetas devolvía al usuario a la tabla.
+    @options = { display_mode: :grid }
+    render_inline(component) do |c|
+      c.with_filters_panel(available_attributes: filter_attributes)
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector("form input[type=hidden][name=view][value=grid]", visible: :all)
+  end
+
+  def test_simple_filters_preserve_the_declared_display_mode_as_hidden_field
+    render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: grouping_filter_form,
+                                                 display_mode: :grid)) do |c|
+      c.with_simple_filters
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector("form input[type=hidden][name=view][value=grid]", visible: :all)
+    assert_selector("form input[type=hidden][name=group_by][value=genre]", visible: :all)
+  end
+
+  def test_no_view_hidden_field_when_the_host_declares_no_display_mode
+    # Un listado sin view switch no tiene por qué escribir `view=table` en la URL.
+    render_inline(component) do |c|
+      c.with_filters_panel(available_attributes: filter_attributes)
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_no_selector("input[type=hidden][name=view]", visible: :all)
+  end
+
+  def test_the_preserved_view_field_follows_view_param
+    @options = { display_mode: :grid, view_param: :mode }
+    render_inline(component) do |c|
+      c.with_filters_panel(available_attributes: filter_attributes)
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector("form input[type=hidden][name=mode][value=grid]", visible: :all)
+    assert_no_selector("input[type=hidden][name=view]", visible: :all)
+  end
+
+  def test_explicit_preserved_params_do_not_drop_the_active_view
+    @options = { display_mode: :grid }
+    render_inline(component) do |c|
+      c.with_filters_panel(available_attributes: filter_attributes, preserved_params: { tab: "archived" })
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector("form input[type=hidden][name=view][value=grid]", visible: :all)
+    assert_selector("form input[type=hidden][name=tab][value=archived]", visible: :all)
+  end
+
+  def test_a_nested_view_param_does_not_blow_up_the_component
+    # `display_mode:` suele llegar directo de params[:view]; `?view[]=x` no responde a
+    # to_sym y reventaba el render entero antes de llegar al gateo.
+    @options = { display_mode: [ "grid" ] }
+    render_inline(component) do |c|
+      c.with_view_switch { |vs| vs.with_view(name: "Table", icon: "list", value: :table) }
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector("div.data-table-component")
+    assert_selector('.view-switch-component a[aria-pressed="true"]', text: "Table")
+  end
+
   def test_actions_panel_is_gone
     # El panel entero murió: su toggle grid/tabla lo reemplaza with_view_switch, su export
     # with_export y su hueco de acciones with_bulk_actions. Romper ruidoso > seguir

@@ -39,13 +39,18 @@ movies_data.each_with_index do |data, index|
   movie = Movie.find_or_initialize_by(name: data[:name])
   # Spread movies across the last 2 years with varied dates
   days_ago = (index * 37) % 730 # Spread across ~2 years
+  # Production windows straddling today, so the timeline view of the listing has
+  # something to draw on both sides of the "today" marker.
+  starts_on = Date.current - (60 - (index * 11)).days
   movie.update!(
     genre: data[:genre],
     status: data[:status],
     studio: data[:tenant],
     indie: data[:indie],
     budget: data[:budget],
-    created_at: days_ago.days.ago
+    created_at: days_ago.days.ago,
+    production_starts_on: starts_on,
+    production_ends_on: starts_on + (30 + ((index % 5) * 15)).days
   )
 end
 

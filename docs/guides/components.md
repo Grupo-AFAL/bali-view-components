@@ -530,7 +530,7 @@ Segmented control (DaisyUI `join` of buttons) to switch between sibling views of
 **Options:**
 - `aria_label` - Accessible label for the button group (required)
 - `size` - Button size: `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: `:sm`)
-- `icon_only` - Square icon-only buttons; each view's `name:` becomes the native tooltip (`title`) and the accessible label (default: `false`)
+- `icon_only` - `true` for square icon-only buttons at every size, or `:responsive` to collapse only the label below `sm` (what `DataTable` uses: the switch shrinks instead of folding into the `⋯` menu). Either way each view's `name:` becomes the native tooltip (`title`) and the accessible label, so the buttons never lose their accessible name (default: `false`)
 - `**options` - Additional HTML attributes for the container `div`
 
 **Each `with_view`:**
@@ -893,6 +893,11 @@ Complete data table wrapper with filters, quick search, summary, and pagination.
 
 The component owns three bands: a **bare** toolbar (identical in every display mode), the **content**, and a bare footer (summary + pagination). The surface travels with the content slot, so the host does **not** wrap the DataTable in `Bali::Card`.
 
+The canonical composition — the seven toolbar control families, row selection and
+pagination — is the `Complete` scenario of the DataTable preview, and the same body inside
+a page is `bali/index_page/complete`. Copy one of those rather than assembling from the
+option list below.
+
 ```erb
 <%= render Bali::DataTable::Component.new(filter_form: @filter_form, url: movies_path, pagy: @pagy) do |dt| %>
   <% dt.with_filters_panel(search: { placeholder: 'Search movies...' }) %>
@@ -979,7 +984,37 @@ merging the current query string so filters, sorting, grouping and the applied
 `?view=` falls back to the first declared view instead of leaving the listing empty, so a
 raw URL param never reaches the content unchecked. Declare the switch before reading it.
 `aria_label:`, `size:`, `icon_only:` and any HTML attribute pass through to
-`Bali::ViewSwitch`.
+`Bali::ViewSwitch` (the DataTable defaults it to `icon_only: :responsive`).
+
+Passing `display_mode:` also makes the view travel as a hidden field on the filter forms,
+so applying a filter or a search from the cards view does not drop the user back into the
+table. A filter submit rebuilds the URL from `url:` — which hosts pass without a query
+string — so anything that must survive it has to be an explicit hidden field; the active
+`group_by` travels the same way.
+
+**Narrow viewports.** Below `sm` (640px) the toolbar folds its secondary controls into a
+`⋯` menu and unfolds them on the way back. The nodes are **moved**, never duplicated: two
+copies of the column selector would be two Stimulus controllers driving one table. Survival
+order lives in `OVERFLOW_PRIORITIES` — search/filters and the view switch stay in the row;
+saved views, group by, columns, export and host `toolbar_buttons` collapse. Two
+consequences worth knowing:
+
+- The toolbar order is defined by `OVERFLOW_PRIORITIES`, not by the template. Expanding
+  re-sorts each group by priority, which is what lets the controller be stateless across
+  Turbo reconnects.
+- The `⋯` is a server-side decision (it is not rendered when nothing is collapsible), so a
+  host that adds or removes `toolbar_buttons` from JavaScript after render can leave the
+  gate stale. The controller hides an empty `⋯`, but it cannot create one.
+
+Anything placed in a collapsible slot (`with_toolbar_button` is arbitrary host content)
+must therefore:
+
+1. have an **idempotent `connect()`** — moving a node fires `disconnect()` then `connect()`;
+2. carry **no `data-turbo-permanent`**;
+3. keep its label readable inside the menu — mark a label that hides on mobile with the
+   `toolbar-control-label` class, or, for a `Bali::Button`/`Bali::Link`, pass
+   `responsive: false` (their responsive mode hides the label below `sm`, which inside the
+   `⋯` leaves an anonymous icon).
 
 **Row selection and bulk actions**
 
@@ -2052,6 +2087,12 @@ Standard listing page with breadcrumbs, title, action buttons, and a body area f
 - `back` - Back link, e.g. `{ href: path }` (default: nil)
 
 Also accepts a `nav` slot for second-level navigation, rendered between the header and the body — see [Two-level navigation](#two-level-navigation-nav-slot).
+
+The body takes the DataTable **bare**: the surface travels with the DataTable's content
+slot, so wrapping it in a `Bali::Card` produces a card inside a card in grid mode. The
+canonical composition — page chrome plus a DataTable with the seven toolbar control
+families, row selection and pagination — is the `Complete` scenario of the IndexPage
+preview (`bali/index_page/complete` in Lookbook). Copy that.
 
 #### ShowPage
 

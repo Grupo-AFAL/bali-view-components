@@ -8,9 +8,11 @@
         <%= ct.with_row do %>
           <td><%= record[:name] %></td>
           <td>
-            <span class="badge <%= record[:status] == 'active' ? 'badge-success' : record[:status] == 'pending' ? 'badge-warning' : 'badge-ghost' %>">
-              <%= record[:status].capitalize %>
-            </span>
+            <%= render Bali::Tag::Component.new(
+                  text: record[:status].capitalize,
+                  color: { 'active' => :success, 'pending' => :warning }[record[:status]],
+                  size: :sm
+                ) %>
           </td>
           <td class="text-right font-mono">$<%= number_with_delimiter(record[:amount]) %></td>
           <td class="text-sm text-base-content/70"><%= record[:created_at] %></td>

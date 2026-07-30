@@ -16,7 +16,9 @@
   <% end %>
 
   <% c.with_table do %>
-    <%= render Bali::Table::Component.new(id: 'saved-views-preview-table') do |ct| %>
+    <%# Sin `id:`: el selector de columnas apunta al contenedor del DataTable
+        (`#saved-views-preview table`), no a la tabla. %>
+    <%= render Bali::Table::Component.new do |ct| %>
       <%= ct.with_headers(headers) %>
       <% records.each do |record| %>
         <%= ct.with_row do %>

@@ -98,10 +98,11 @@ module Bali
           options[:combinator] = @filter_form.applied_combinator
         end
 
-        # Preserve an active group_by across the GET filter submit (round-trip). Explicit
-        # preserved_params MERGE with it instead of replacing it: a host preserving its own
-        # params should not silently drop the grouping on every filter/search submit.
-        options[:preserved_params] = group_by_preserved_params.merge(options[:preserved_params] || {})
+        # Preserve the listing state (grouping + display mode) across the GET filter submit
+        # (round-trip). Explicit preserved_params MERGE with it instead of replacing it: a
+        # host preserving its own params should not silently drop the grouping on every
+        # filter/search submit.
+        options[:preserved_params] = preserved_state_params.merge(options[:preserved_params] || {})
 
         # Auto-populate search config from filter_form, merging with explicit overrides
         filter_form_search = if @filter_form && @filter_form.respond_to?(:search_config)
@@ -159,7 +160,7 @@ module Bali
           search: resolved_search,
           storage_id: storage_id,
           persist_enabled: persist_enabled || false,
-          preserved_params: group_by_preserved_params
+          preserved_params: preserved_state_params
         )
       end
 
@@ -286,8 +287,14 @@ module Bali
         @summary_position = validate_summary_position(options[:summary_position])
         @item_name = options[:item_name]
         @table_wrapper_class = options[:table_class]
-        @display_mode = (options[:display_mode] || :table).to_sym
+        # `.to_s` primero: esto suele llegar directo de `params[:view]`, y un param anidado
+        # (`?view[]=x`) no responde a `to_sym`. El valor se valida después contra las vistas
+        # declaradas (ver #display_mode); acá solo se normaliza sin reventar.
+        @display_mode = (options[:display_mode].to_s.presence || "table").to_sym
         @view_param = (options[:view_param] || :view).to_sym
+        # Solo un host que DECLARÓ el modo tiene un `view` que preservar; el default no se
+        # escribe en la URL de un listado que ni siquiera tiene view switch.
+        @display_mode_declared = options[:display_mode].present?
         @content_declared = false
         @listing_id, @stable_id = resolve_listing_id(options[:id])
       end
@@ -495,6 +502,24 @@ module Bali
         return unless @filter_form.respond_to?(:storage_id) && @filter_form.storage_id.present?
 
         helpers.bali.saved_views_path(storage_id: @filter_form.storage_id)
+      end
+
+      # Estado del listado que tiene que sobrevivir a un submit GET de filtros. Los links del
+      # view switch mergean el query string entero, pero un submit de filtros lo reconstruye
+      # desde `url:` —que el host pasa SIN query string—, así que la agrupación y el modo de
+      # visualización tienen que viajar como hidden fields o filtrar estando en tarjetas
+      # devuelve al usuario a la tabla.
+      def preserved_state_params
+        group_by_preserved_params.merge(view_preserved_params)
+      end
+
+      # El modo CRUDO, no el gateado: las vistas se declaran después de construir el slot del
+      # panel de filtros, así que acá el gateo todavía no se puede resolver. Un valor
+      # desconocido es inofensivo — el próximo request lo vuelve a gatear.
+      def view_preserved_params
+        return {} unless @display_mode_declared
+
+        { @view_param.to_s => @display_mode.to_s }
       end
 
       # group_by param to preserve as a hidden field on GET filter forms, so

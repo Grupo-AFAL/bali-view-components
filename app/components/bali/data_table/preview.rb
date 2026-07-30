@@ -53,6 +53,70 @@ module Bali
         def find(id) = VIEWS.find { |view| view.id.to_s == id.to_s }
       end
 
+      # Fixtures del preview CANÓNICO, compartidas con Bali::IndexPage::Preview: el mismo
+      # listado se muestra con y sin la capa de página, y dos copias del setup derivarían
+      # igual que derivaron los previews que este spec vino a unificar.
+      module CanonicalIndex
+        # Declara TODO lo que la toolbar auto-configura: atributos filtrables, búsqueda
+        # rápida y agrupación. Es el mismo DSL que documenta el skill filterform-datatable.
+        class MovieFilterForm < Bali::FilterForm
+          search_fields :name, :genre
+
+          filter_attribute :name, type: :text
+          filter_attribute :genre, type: :select,
+                                   options: [ %w[Action Action], %w[Drama Drama], %w[Sci-Fi Sci-Fi],
+                                             %w[Comedy Comedy], %w[Horror Horror],
+                                             %w[Animation Animation], %w[Adventure Adventure] ]
+          filter_attribute :status, type: :select, options: [ %w[Done done], %w[Draft draft] ]
+          filter_attribute :indie, type: :boolean
+
+          group_by_attribute :genre, label: "Genre"
+          group_by_attribute :status, label: "Status"
+
+          attribute :name_cont
+          attribute :genre_eq
+          attribute :status_eq
+          attribute :indie_true
+        end
+
+        class SavedViewsStore
+          VIEWS = [
+            PreviewSavedView.new(id: 1, name: "Indie only",
+                                 payload: { "attributes" => { "indie_true" => "1" } }),
+            PreviewSavedView.new(id: 2, name: "Drafts by status",
+                                 payload: { "attributes" => { "status_eq" => "draft" },
+                                            "group_by" => "status" })
+          ].freeze
+
+          def list = VIEWS
+          def find(id) = VIEWS.find { |view| view.id.to_s == id.to_s }
+        end
+
+        # `view` llega por dos caminos y son el MISMO param: el control del panel Params de
+        # Lookbook y los links del view switch dentro del iframe. Lookbook solo reenvía los
+        # query params cuyo nombre coincide con un kwarg del método del preview, así que
+        # declararlos es lo que hace que el switch, el "agrupar por" y las vistas guardadas
+        # sobrevivan al round-trip.
+        def canonical_index_locals(view:, q:, page:, group_by:, saved_view:)
+          filter_params = ActionController::Parameters.new(
+            q: ActionController::Parameters.new(q),
+            page: page,
+            group_by: group_by.presence,
+            saved_view: saved_view.presence
+          )
+          filter_form = MovieFilterForm.new(
+            Movie.all, filter_params,
+            storage_id: "lookbook_movies",
+            saved_views_store: SavedViewsStore.new
+          )
+          pagy, movies = pagy(filter_form.result.includes(:studio), limit: 8, page: page)
+
+          { filter_form: filter_form, pagy: pagy, movies: movies, display_mode: view.to_sym }
+        end
+      end
+
+      include CanonicalIndex
+
       # @label Default
       def default
         render_with_template(
@@ -176,20 +240,23 @@ module Bali
       end
 
       # @label Complete Example (Live DB)
-      # Full DataTable with filters, sorting, pagination, and toolbar buttons.
-      def complete(q: {}, page: 1)
-        filter_params = ActionController::Parameters.new(q: ActionController::Parameters.new(q), page: page)
-        filter_form = Bali::FilterForm.new(Movie.all, filter_params)
-        pagy, movies = pagy(filter_form.result.includes(:studio), limit: 5, page: page)
-
+      # The canonical index composition, without the page layer. The seven toolbar control
+      # families in one bare row (search + filters, group by, view switch, saved views,
+      # column selector, export, host buttons), row selection and pagination.
+      #
+      # - The surface belongs to the content slot: no `Bali::Card` around the DataTable
+      # - `?view=` picks the content band; `dt.display_mode` is the value already validated
+      #   against the declared views
+      # - Below `sm` the secondary controls fold into the `⋯` menu
+      #
+      # `bali/index_page/complete` renders this same body inside a page.
+      # @param view select { choices: [table, grid, timeline] }
+      # @param group_by select { choices: ["", genre, status] }
+      def complete(view: :table, q: {}, page: 1, group_by: nil, saved_view: nil)
         render_with_template(
           template: "bali/data_table/previews/complete",
-          locals: {
-            filter_form: filter_form,
-            pagy: pagy,
-            movies: movies,
-            filter_attributes: MOVIE_FILTER_ATTRIBUTES
-          }
+          locals: canonical_index_locals(view: view, q: q, page: page,
+                                         group_by: group_by, saved_view: saved_view)
         )
       end
 

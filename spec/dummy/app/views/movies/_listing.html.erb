@@ -1,0 +1,153 @@
+<%# La composición canónica del listado, compartida por index.html.erb y
+    index.turbo_stream.erb. El stream reemplaza EXACTAMENTE este nodo (el que lleva el
+    controlador de selección), así que las dos ramas tienen que producir el mismo DOM;
+    cuando eran dos copias, divergían en silencio.
+
+    El DataTable entra pelado: la superficie viaja con su slot de contenido. %>
+<%= render Bali::DataTable::Component.new(
+  filter_form: @filter_form,
+  url: movies_path,
+  pagy: @pagy,
+  item_name: 'movies',
+  display_mode: params[:view]
+) do |data_table| %>
+
+  <%# Filtros + búsqueda: todo se auto-configura desde @filter_form %>
+  <% data_table.with_filters_panel(
+    available_attributes: movie_filter_attributes,
+    search: { placeholder: t('movies.search_placeholder') }
+  ) %>
+
+  <%# Cada vista declara su `value:` (lo que viaja en ?view=) y el DataTable arma el href
+      preservando filtros, orden, agrupación y la vista guardada aplicada. %>
+  <% data_table.with_view_switch do |switch| %>
+    <% switch.with_view(name: t('movies.views.table'), icon: 'list', value: :table) %>
+    <% switch.with_view(name: t('movies.views.cards'), icon: 'grid', value: :grid) %>
+    <% switch.with_view(name: t('movies.views.timeline'), icon: 'calendar', value: :timeline) %>
+  <% end %>
+
+  <%# El selector de columnas solo tiene sentido sobre la tabla: las tarjetas y la línea de
+      tiempo no tienen columnas que esconder. La 0 es la de selección, que pinta el propio
+      componente, por eso la lista arranca en 1. %>
+  <% if data_table.display_mode == :table %>
+    <% data_table.with_column_selector do |cs| %>
+      <% cs.with_column(index: 1, label: t('movies.columns.name')) %>
+      <% cs.with_column(index: 2, label: t('movies.columns.genre')) %>
+      <% cs.with_column(index: 3, label: t('movies.columns.status')) %>
+      <% cs.with_column(index: 4, label: t('movies.columns.studio')) %>
+      <% cs.with_column(index: 5, label: t('movies.columns.indie')) %>
+      <% cs.with_column(index: 6, label: t('movies.columns.created')) %>
+    <% end %>
+  <% end %>
+
+  <% data_table.with_export(formats: [:csv, :excel, :pdf], url: movies_path) %>
+
+  <%# Fila contextual que reemplaza la toolbar mientras haya selección. `bulk_action` viaja
+      en el query string porque cada acción es su propio form y su único hidden es
+      `selected_ids`. %>
+  <% data_table.with_bulk_actions do |bulk| %>
+    <% bulk.with_action(label: t('movies.bulk_actions.mark_done'),
+                        href: movies_bulk_actions_path(bulk_action: 'mark_done'),
+                        variant: :success) %>
+    <% bulk.with_action(label: t('movies.bulk_actions.mark_draft'),
+                        href: movies_bulk_actions_path(bulk_action: 'mark_draft'),
+                        variant: :warning) %>
+    <% bulk.with_action(label: t('movies.bulk_actions.delete'),
+                        href: movies_bulk_actions_path(bulk_action: 'delete'),
+                        variant: :error) %>
+  <% end %>
+
+  <%# UNA sola banda de contenido: declarar dos levanta DuplicateContent. %>
+  <% case data_table.display_mode %>
+  <% when :grid %>
+    <%# Sin superficie: las tarjetas YA son la superficie. %>
+    <% data_table.with_grid do %>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <% @movies.each do |movie| %>
+          <%= render Bali::Card::Component.new(style: :bordered, class: 'hover:shadow-md transition-shadow') do |card| %>
+            <% card.with_title(movie.name, class: 'text-base') %>
+            <div class="flex flex-wrap gap-2">
+              <%= render Bali::Tag::Component.new(text: movie.genre, style: :outline, size: :sm) %>
+              <%= render Bali::Tag::Component.new(text: movie.status.humanize,
+                                                  color: movie.status_color, size: :sm) %>
+              <% if movie.indie %>
+                <%= render Bali::Tag::Component.new(text: t('movies.columns.indie'),
+                                                    color: :secondary, size: :sm) %>
+              <% end %>
+            </div>
+            <p class="text-sm text-base-content/60"><%= movie.studio&.name || '—' %></p>
+            <% card.with_action(href: movie_path(movie), class: 'btn-ghost btn-sm') do %>
+              <%= t('movies.actions.view') %>
+            <% end %>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  <% when :timeline %>
+    <%# Un Gantt no trae superficie propia, así que la pide por el slot genérico junto con
+        el wrapper de scroll horizontal. Eso es lo que with_table/with_grid azucaran. %>
+    <% data_table.with_content(scroll: true) do %>
+      <%= render Bali::GanttChart::Component.new(
+        tasks: @movies.filter_map { |movie|
+          next unless movie.production_starts_on && movie.production_ends_on
+
+          { id: movie.id, name: movie.name, href: movie_path(movie),
+            start_date: movie.production_starts_on, end_date: movie.production_ends_on,
+            progress: movie.done? ? 100 : 40 }
+        },
+        zoom: :week,
+        readonly: true,
+        row_height: 40
+      ) %>
+    <% end %>
+  <% else %>
+    <%# La superficie y el scroll horizontal los trae with_table. %>
+    <% data_table.with_table do %>
+      <%= render Bali::Table::Component.new(form: @filter_form, selectable: true) do |table| %>
+        <% table.with_header(name: t('movies.columns.name'), sort: :name) %>
+        <% table.with_header(name: t('movies.columns.genre'), sort: :genre) %>
+        <% table.with_header(name: t('movies.columns.status'), sort: :status) %>
+        <% table.with_header(name: t('movies.columns.studio')) %>
+        <% table.with_header(name: t('movies.columns.indie'), sort: :indie, class: 'text-center') %>
+        <% table.with_header(name: t('movies.columns.created'), sort: :created_at) %>
+        <% table.with_header(name: '', class: 'w-12') %>
+
+        <% @movies.each do |movie| %>
+          <% table.with_row(record_id: movie.id) do %>
+            <td class="font-medium">
+              <%= render Bali::Link::Component.new(name: movie.name, href: movie_path(movie)) %>
+            </td>
+            <td>
+              <%= render Bali::Tag::Component.new(text: movie.genre, style: :outline, size: :sm) %>
+            </td>
+            <td>
+              <%= render Bali::Tag::Component.new(text: movie.status.humanize,
+                                                  color: movie.status_color, size: :sm) %>
+            </td>
+            <td class="text-sm text-base-content/70"><%= movie.studio&.name || '—' %></td>
+            <td class="text-center">
+              <%= render Bali::BooleanIcon::Component.new(value: movie.indie) %>
+            </td>
+            <td class="text-sm text-base-content/70">
+              <%= render Bali::Timeago::Component.new(movie.created_at, add_suffix: true) %>
+            </td>
+            <td>
+              <%= render Bali::ActionsDropdown::Component.new(align: :end, popover: true) do |dropdown| %>
+                <% dropdown.with_item(href: movie_path(movie), icon_name: 'eye') { t('movies.actions.view') } %>
+                <% dropdown.with_item(href: edit_movie_path(movie), icon_name: 'pencil') { t('movies.actions.edit') } %>
+                <% dropdown.with_item(href: movie_path(movie), method: :delete, icon_name: 'trash') { t('movies.actions.delete') } %>
+              <% end %>
+            </td>
+          <% end %>
+        <% end %>
+
+        <% table.with_no_records_notification do %>
+          <%= render Bali::Message::Component.new(color: :info) do %>
+            <strong><%= t('movies.no_movies') %></strong> <%= t('movies.no_movies_help') %>
+            <%= render Bali::Link::Component.new(name: t('movies.add_new_movie'), href: new_movie_path) %>.
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

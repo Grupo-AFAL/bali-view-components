@@ -9,9 +9,12 @@
   <% page.with_action do %>
     <%= render Bali::Link::Component.new(name: 'New Movie', href: '#', variant: :primary, icon_name: 'plus') %>
   <% end %>
+  <%# Este escenario ejerce SOLO la capa de página (breadcrumbs, header, acción, body).
+      El listado de verdad vive en el escenario "Complete", que es la referencia a copiar. %>
   <% page.with_body do %>
-    <%= render Bali::Card::Component.new(style: :bordered) do %>
-      <p class="text-base-content/60">DataTable would go here.</p>
+    <%= render Bali::Message::Component.new(color: :info) do %>
+      Page layer only. See the <strong>Complete</strong> scenario for the canonical index
+      body: a DataTable with the seven toolbar control families, row selection and pagination.
     <% end %>
   <% end %>
 <% end %>

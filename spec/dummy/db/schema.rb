@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_28_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_30_000001) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -137,6 +137,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_28_120000) do
     t.string "genre"
     t.boolean "indie"
     t.string "name"
+    t.date "production_ends_on"
+    t.date "production_starts_on"
     t.decimal "rating"
     t.date "release_date"
     t.text "rich_description"

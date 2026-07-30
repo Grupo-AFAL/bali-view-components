@@ -3,6 +3,30 @@
 module Bali
   module IndexPage
     class Preview < ApplicationViewComponentPreview
+      # Mismas fixtures que `bali/data_table/complete`: este preview es esa composición MÁS
+      # la capa de página. Compartirlas es lo que garantiza que no derive.
+      include Bali::DataTable::Preview::CanonicalIndex
+
+      # @label Complete (Live DB)
+      # **The canonical index page.** Page chrome (breadcrumbs, title, primary action) plus
+      # a DataTable with the seven toolbar control families, row selection and pagination.
+      # Copy this composition when building an index.
+      #
+      # - The DataTable goes in bare: the surface travels with its content slot, so there is
+      #   no `Bali::Card` around it
+      # - `?view=` switches the content band (table / cards / timeline) while keeping
+      #   filters, sorting, grouping and the applied saved view
+      # - Below `sm` the secondary toolbar controls fold into the `⋯` menu
+      # @param view select { choices: [table, grid, timeline] }
+      # @param group_by select { choices: ["", genre, status] }
+      def complete(view: :table, q: {}, page: 1, group_by: nil, saved_view: nil)
+        render_with_template(
+          template: "bali/index_page/previews/complete",
+          locals: canonical_index_locals(view: view, q: q, page: page,
+                                         group_by: group_by, saved_view: saved_view)
+        )
+      end
+
       # @label Default
       # Standard index page with breadcrumbs, title, action button, and body area.
       def default
