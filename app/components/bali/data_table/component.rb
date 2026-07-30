@@ -341,7 +341,11 @@ module Bali
         @table_wrapper_class || "overflow-x-auto"
       end
 
-      TOOLBAR_CLASSES = "flex items-center gap-2 sm:gap-4 mb-4"
+      # `min-h-8` es el alto de un control `sm` de daisyUI, que es el que esta fila ya tenía
+      # por su contenido. Se declara EXPLÍCITO porque la fila contextual de selección lo
+      # reemplaza en este mismo hueco (`BulkActions::Component::TOOLBAR_MIN_HEIGHT`): con el
+      # alto como accidente del contenido, cualquier cambio ahí reintroduce el salto de layout.
+      TOOLBAR_CLASSES = "flex items-center gap-2 sm:gap-4 min-h-8 mb-4"
 
       # La toolbar va SIN superficie: es la MISMA fila en todos los modos de visualización
       # y la superficie la trae el contenido.

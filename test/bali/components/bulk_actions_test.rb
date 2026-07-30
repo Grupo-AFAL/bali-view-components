@@ -185,4 +185,31 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     assert_selector(".bulk-actions-item", count: 2)
     assert_button("Bulk Update")
   end
+
+  # La fila contextual REEMPLAZA a la toolbar del DataTable en su mismo hueco: si miden
+  # distinto, seleccionar una fila empuja el listado. Antes pasaba (18px: `py-2` + `border`).
+  def test_the_toolbar_row_declares_the_same_minimum_height_as_the_datatable_toolbar
+    assert_includes(Bali::DataTable::Component::TOOLBAR_CLASSES,
+                    Bali::BulkActions::Component::TOOLBAR_MIN_HEIGHT)
+
+    render_inline(Bali::BulkActions::Component.new(variant: :toolbar, standalone: false)) do |c|
+      c.with_action(label: "Borrar", href: "/borrar")
+    end
+
+    bar = page.find("[data-bulk-actions-target='actionsContainer'] > div")
+    assert_includes(bar[:class], Bali::BulkActions::Component::TOOLBAR_MIN_HEIGHT)
+  end
+
+  # El contorno va con `ring` (box-shadow) y sin padding vertical justamente porque un
+  # `border`/`py-*` sí ocupan layout y devolverían el salto.
+  def test_the_toolbar_row_outline_costs_no_vertical_space
+    render_inline(Bali::BulkActions::Component.new(variant: :toolbar, standalone: false)) do |c|
+      c.with_action(label: "Borrar", href: "/borrar")
+    end
+
+    classes = page.find("[data-bulk-actions-target='actionsContainer'] > div")[:class]
+    assert_includes(classes, "ring-1")
+    refute_match(/\bborder\b/, classes)
+    refute_match(/\bpy-\d/, classes)
+  end
 end

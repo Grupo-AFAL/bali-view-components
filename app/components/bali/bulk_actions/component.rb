@@ -8,6 +8,12 @@ module Bali
 
       VARIANTS = %i[floating toolbar].freeze
 
+      # Alto de un control `sm` de daisyUI (btn-sm / input-sm), que es lo que le da su altura
+      # a la toolbar del DataTable. La fila contextual la REEMPLAZA en el mismo hueco, así que
+      # ambas declaran este mismo mínimo: si difieren, intercambiarlas empuja el listado.
+      # `Bali::DataTable::Component::TOOLBAR_CLASSES` declara el gemelo, y un test lo fija.
+      TOOLBAR_MIN_HEIGHT = "min-h-8"
+
       # Dos juegos de clases: la barra flotante (fuera de un listado) y la fila contextual
       # que ocupa el hueco de la toolbar de un DataTable mientras hay selección.
       CLASSES = {
@@ -19,8 +25,16 @@ module Bali
         # El tinte primario es el MISMO que marca las filas seleccionadas, y funciona sobre
         # cualquier fondo: `bg-base-200` era invisible en un shell cuyo fondo de página ya
         # es base-200 (verificado en el dummy), y la barra quedaba sin estado visible.
-        toolbar_bar_inner: "flex items-center gap-2 sm:gap-4 rounded-box " \
-                           "bg-primary/10 border border-primary/20 px-3 py-2",
+        #
+        # ALTURA: esta fila REEMPLAZA a la toolbar del DataTable, así que tiene que medir
+        # exactamente lo mismo o intercambiarlas empuja el listado (18px de salto medidos:
+        # `py-2` aportaba 16 y el `border` 2). Por eso el contorno es un `ring` —box-shadow,
+        # cero contribución al layout— en vez de un `border`, y no hay padding vertical:
+        # el alto lo fija `min-h-8`, el mismo `TOOLBAR_MIN_HEIGHT` que declara la toolbar,
+        # que es el alto de un control `sm` de daisyUI (btn-sm / input-sm). Si cambia uno,
+        # cambia el otro.
+        toolbar_bar_inner: "flex items-center gap-2 sm:gap-4 #{TOOLBAR_MIN_HEIGHT} rounded-box " \
+                           "bg-primary/10 ring-1 ring-primary/20 px-3",
         toolbar_counter_wrapper: "flex items-center gap-1 text-sm shrink-0",
         toolbar_counter: "font-semibold",
         toolbar_actions_wrapper: "flex flex-wrap items-center gap-2 flex-1"
