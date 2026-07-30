@@ -6,13 +6,31 @@
   <%= content %>
 
   <% if actions.any? %>
-    <%= tag.div class: CLASSES[:floating_bar], data: { bulk_actions_target: 'actionsContainer' } do %>
-      <%= tag.div class: CLASSES[:floating_bar_inner] do %>
-        <%= tag.div '0', class: CLASSES[:counter], data: { bulk_actions_target: 'selectedCount' } %>
-        <%= tag.div class: CLASSES[:actions_wrapper] do %>
+    <%= tag.div class: bar_classes, data: { bulk_actions_target: 'actionsContainer' } do %>
+      <%= tag.div class: bar_inner_classes do %>
+        <% if toolbar? %>
+          <%= tag.div class: CLASSES[:toolbar_counter_wrapper] do %>
+            <%= tag.span '0', class: CLASSES[:toolbar_counter], data: { bulk_actions_target: 'selectedCount' } %>
+            <%= tag.span t('.selected_one'), class: 'hidden', data: { bulk_actions_target: 'selectedLabelOne' } %>
+            <%= tag.span t('.selected_other'), data: { bulk_actions_target: 'selectedLabelOther' } %>
+          <% end %>
+        <% else %>
+          <%= tag.div '0', class: CLASSES[:counter], data: { bulk_actions_target: 'selectedCount' } %>
+        <% end %>
+
+        <%= tag.div class: actions_wrapper_classes do %>
           <% actions.each do |action| %>
             <%= action %>
           <% end %>
+        <% end %>
+
+        <% if toolbar? %>
+          <%# Limpiar la selección es una ACCIÓN, no navegación: botón, no link. %>
+          <%= render Bali::Button::Component.new(
+                icon_name: 'times', variant: :ghost, size: :sm, responsive: false,
+                'aria-label': t('.clear'),
+                data: { action: 'bulk-actions#clear' }
+              ) %>
         <% end %>
       <% end %>
     <% end %>

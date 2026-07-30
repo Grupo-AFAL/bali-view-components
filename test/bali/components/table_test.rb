@@ -171,6 +171,66 @@ class BaliTableComponentTest < ComponentTestCase
     assert_no_selector('input[type="checkbox"][data-table-target="toggleAll"]')
   end
 
+  def test_selectable_renders_the_select_all_header
+    @options = { selectable: true }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(record_id: 1) { "<td>Row 1</td>".html_safe }
+    end
+    assert_selector('th input[data-bulk-actions-target="selectAll"][data-action*="bulk-actions#toggleAll"]')
+  end
+
+  def test_selectable_marks_each_row_as_a_bulk_actions_item
+    # El `<tr>` ES el item: lleva el record id y la clase `selected`. El checkbox de la
+    # celda solo dispara la acción.
+    @options = { selectable: true }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(record_id: 1) { "<td>Row 1</td>".html_safe }
+    end
+    assert_selector('tr[data-bulk-actions-target="item"][data-record-id="1"] td input[type="checkbox"][value="1"]')
+    assert_selector('tr[data-record-id="1"] td input[data-action="change->bulk-actions#toggleItem"]')
+  end
+
+  def test_selectable_requires_record_id_on_each_row
+    @options = { selectable: true }
+    assert_raises(Bali::Table::Row::Component::IncompatibleOptions) do
+      render_inline(component) do |c|
+        c.with_header(name: "Name")
+        c.with_row { "<td>Row 1</td>".html_safe }
+      end
+    end
+  end
+
+  def test_selectable_and_legacy_bulk_actions_are_mutually_exclusive
+    assert_raises(Bali::Table::Component::IncompatibleOptions) do
+      Bali::Table::Component.new(selectable: true, bulk_actions: [ { name: "Delete", href: "/delete" } ])
+    end
+  end
+
+  def test_selectable_row_data_merges_with_host_data_attributes
+    @options = { selectable: true }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(record_id: 7, data: { turbo_frame: "movie_7" }) { "<td>Row</td>".html_safe }
+    end
+    assert_selector('tr[data-record-id="7"][data-turbo-frame="movie_7"][data-bulk-actions-target="item"]')
+  end
+
+  def test_selectable_does_not_render_the_legacy_table_targets
+    @options = { selectable: true }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(record_id: 1) { "<td>Row 1</td>".html_safe }
+    end
+    assert_no_selector('[data-table-target="toggleAll"]')
+    assert_no_selector('[data-table-target="checkbox"]')
+  end
+
+  def test_selectable_returns_false_by_default
+    refute(Bali::Table::Component.new.selectable?)
+  end
+
   def test_sticky_headers_applies_sticky_classes_when_enabled
     @options = { sticky_headers: true }
     render_inline(component) do |c|
@@ -286,6 +346,16 @@ class BaliTableComponentTest < ComponentTestCase
 
   def test_grouping_header_colspan_includes_bulk_actions_column
     @options = { bulk_actions: [ { name: "Delete", href: "/delete" } ] }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_header(name: "Amount")
+      c.with_row(record_id: 1, group: "Norte") { "<td>A</td><td>1</td>".html_safe }
+    end
+    assert_selector('tr.bali-table-group-row td[colspan="3"]')
+  end
+
+  def test_grouping_header_colspan_includes_the_selectable_column
+    @options = { selectable: true }
     render_inline(component) do |c|
       c.with_header(name: "Name")
       c.with_header(name: "Amount")

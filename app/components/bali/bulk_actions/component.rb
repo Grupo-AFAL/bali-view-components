@@ -6,29 +6,69 @@ module Bali
       renders_many :actions, Action::Component
       renders_many :items, Item::Component
 
-      # Consolidated class definitions for floating action bar
+      VARIANTS = %i[floating toolbar].freeze
+
+      # Dos juegos de clases: la barra flotante (fuera de un listado) y la fila contextual
+      # que ocupa el hueco de la toolbar de un DataTable mientras hay selección.
       CLASSES = {
         floating_bar: "fixed bottom-4 left-1/2 -translate-x-1/2 z-40 hidden",
         floating_bar_inner: "flex items-center shadow-xl rounded-lg overflow-hidden",
         counter: "bg-primary text-primary-content font-bold text-2xl px-4 py-2 rounded-l-lg",
-        actions_wrapper: "flex gap-2 px-3 py-2 bg-base-100 rounded-r-lg"
+        actions_wrapper: "flex gap-2 px-3 py-2 bg-base-100 rounded-r-lg",
+        toolbar_bar: "hidden mb-4",
+        # El tinte primario es el MISMO que marca las filas seleccionadas, y funciona sobre
+        # cualquier fondo: `bg-base-200` era invisible en un shell cuyo fondo de página ya
+        # es base-200 (verificado en el dummy), y la barra quedaba sin estado visible.
+        toolbar_bar_inner: "flex items-center gap-2 sm:gap-4 rounded-box " \
+                           "bg-primary/10 border border-primary/20 px-3 py-2",
+        toolbar_counter_wrapper: "flex items-center gap-1 text-sm shrink-0",
+        toolbar_counter: "font-semibold",
+        toolbar_actions_wrapper: "flex flex-wrap items-center gap-2 flex-1"
       }.freeze
 
-      def initialize(**options)
+      # @param variant [Symbol] :floating (barra fija abajo) o :toolbar (fila contextual)
+      # @param standalone [Boolean] Emitir el `data-controller`. Dentro de un DataTable va
+      #   en `false`: el controlador vive en el contenedor del DataTable. Dos controladores
+      #   `bulk-actions` anidados se reparten los targets (Stimulus asigna cada target a su
+      #   ancestro con controlador más cercano), así que la barra no vería las filas y el
+      #   contador quedaría clavado en 0 — sin error, en silencio.
+      def initialize(variant: :floating, standalone: true, **options)
+        @variant = VARIANTS.include?(variant&.to_sym) ? variant.to_sym : :floating
+        @standalone = standalone
         @options = options
       end
 
+      def toolbar?
+        @variant == :toolbar
+      end
+
+      def standalone?
+        @standalone
+      end
+
       private
+
+      def bar_classes
+        CLASSES[toolbar? ? :toolbar_bar : :floating_bar]
+      end
+
+      def bar_inner_classes
+        CLASSES[toolbar? ? :toolbar_bar_inner : :floating_bar_inner]
+      end
+
+      def actions_wrapper_classes
+        CLASSES[toolbar? ? :toolbar_actions_wrapper : :actions_wrapper]
+      end
 
       def component_classes
         class_names("bulk-actions-component", @options[:class])
       end
 
       def component_attributes
-        @options.except(:class).merge(
-          class: component_classes,
-          data: merge_data_attributes(@options[:data], controller: "bulk-actions")
-        )
+        data = @options[:data] || {}
+        data = merge_data_attributes(data, controller: "bulk-actions") if standalone?
+
+        @options.except(:class, :data).merge(class: component_classes, data: data)
       end
 
       def merge_data_attributes(existing, **new_attrs)

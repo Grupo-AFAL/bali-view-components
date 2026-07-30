@@ -33,8 +33,8 @@
 
     <%# Data Table %>
     <% data_table.with_table do %>
-      <%= render Bali::Table::Component.new(form: @filter_form, id: 'movies-table') do |table| %>
-        <% table.with_header(name: '', class: 'w-8') %>
+      <%= render Bali::Table::Component.new(form: @filter_form, id: 'movies-table', selectable: true) do |table| %>
+        <%# La columna 0 es la de selección, que pinta el propio componente. %>
         <% table.with_header(name: t('movies.columns.name'), sort: :name) %>
         <% table.with_header(name: t('movies.columns.genre'), sort: :genre) %>
         <% table.with_header(name: t('movies.columns.status'), sort: :status) %>
@@ -44,10 +44,7 @@
         <% table.with_header(name: '', class: 'w-12') %>
 
         <% @movies.each do |movie| %>
-          <% table.with_row do %>
-            <td>
-              <input type="checkbox" class="checkbox checkbox-sm" name="movie_ids[]" value="<%= movie.id %>" />
-            </td>
+          <% table.with_row(record_id: movie.id) do %>
             <td class="font-medium">
               <%= render Bali::Link::Component.new(name: movie.name, href: admin_movie_path(movie)) %>
             </td>
@@ -88,22 +85,18 @@
       <% end %>
     <% end %>
 
-    <%# Bulk Actions %>
-    <% data_table.with_actions_panel do %>
-      <%= form_with url: admin_movies_bulk_actions_path, method: :post, class: 'flex items-center gap-2' do %>
-        <select name="bulk_action" class="select select-bordered select-sm">
-          <option value=""><%= t('movies.bulk_actions.select_action') %></option>
-          <option value="mark_done"><%= t('movies.bulk_actions.mark_done') %></option>
-          <option value="mark_draft"><%= t('movies.bulk_actions.mark_draft') %></option>
-          <option value="delete"><%= t('movies.bulk_actions.delete') %></option>
-        </select>
-        <%= render Bali::Button::Component.new(
-          name: t('movies.bulk_actions.apply'),
-          variant: :ghost,
-          size: :sm,
-          type: :submit
-        ) %>
-      <% end %>
+    <%# Bulk Actions - misma declaración que el html.erb: el stream reemplaza el nodo que
+        lleva el controlador, así que las dos ramas tienen que producir el mismo DOM. %>
+    <% data_table.with_bulk_actions do |bulk| %>
+      <% bulk.with_action(label: t('movies.bulk_actions.mark_done'),
+                         href: admin_movies_bulk_actions_path(bulk_action: 'mark_done'),
+                         variant: :success) %>
+      <% bulk.with_action(label: t('movies.bulk_actions.mark_draft'),
+                         href: admin_movies_bulk_actions_path(bulk_action: 'mark_draft'),
+                         variant: :warning) %>
+      <% bulk.with_action(label: t('movies.bulk_actions.delete'),
+                         href: admin_movies_bulk_actions_path(bulk_action: 'delete'),
+                         variant: :error) %>
     <% end %>
   <% end %>
 <% end %>

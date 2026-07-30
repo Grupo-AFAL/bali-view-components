@@ -1,7 +1,7 @@
-<div id="<%= id %>" class="data-table-component">
+<%= tag.div(**container_attributes) do %>
   <%# Toolbar: Filters (left) + Actions/Buttons (right) %>
   <% if show_toolbar? %>
-    <div class="<%= toolbar_classes %>">
+    <%= tag.div(**toolbar_attributes) do %>
       <%# Left side: Filters (search + filter button + bookmark) %>
       <div class="flex-1 min-w-0">
         <%= filters_panel if filters_panel? %>
@@ -26,25 +26,19 @@
           <% toolbar_buttons.each do |button| %>
             <%= button %>
           <% end %>
-          <% if actions_panel? %>
-            <div class="hidden md:block"><%= actions_panel %></div>
-          <% end %>
         </div>
       <% end %>
-    </div>
+    <% end %>
   <% end %>
+
+  <%# Fila contextual de selección: hermana inmediata de la toolbar, para caer en su mismo
+      hueco vertical cuando el controlador se la esconde %>
+  <%= bulk_actions if bulk_actions? %>
 
   <%# Custom summary slot (top position) or summary_position: :top %>
   <% if summary? || show_summary_top? %>
     <div class="mb-4 text-sm text-base-content/70">
       <%= summary? ? summary : default_summary_text %>
-    </div>
-  <% end %>
-
-  <%# Mobile actions %>
-  <% if actions_panel? %>
-    <div class="md:hidden flex items-center justify-end">
-      <%= actions_panel %>
     </div>
   <% end %>
 
@@ -73,4 +67,4 @@
       <% end %>
     </div>
   <% end %>
-</div>
+<% end %>

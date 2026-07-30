@@ -6,7 +6,7 @@ module BulkActionable
   BULK_ACTIONS = %w[delete mark_done mark_draft].freeze
 
   def create
-    movie_ids = params[:movie_ids]
+    movie_ids = selected_movie_ids
 
     if movie_ids.blank?
       redirect_to after_bulk_action_path, alert: "No movies selected."
@@ -29,5 +29,15 @@ module BulkActionable
     end
 
     redirect_to after_bulk_action_path, notice: "#{count} movie(s) #{action.humanize.downcase}."
+  end
+
+  private
+
+  # BulkActionsController inyecta los ids seleccionados como JSON en un único hidden
+  # `selected_ids`, uno por cada form de acción.
+  def selected_movie_ids
+    JSON.parse(params[:selected_ids].to_s)
+  rescue JSON::ParserError
+    []
   end
 end

@@ -1,0 +1,32 @@
+<div class="p-4">
+  <div class="mb-4">
+    <h2 class="text-lg font-semibold">Product Inventory</h2>
+    <p class="text-sm text-base-content/60">Select products with the checkbox column</p>
+  </div>
+
+  <%# El controlador vive en un ancestro: dentro de un DataTable lo pone `with_bulk_actions`,
+      acá lo trae el propio BulkActions con su barra flotante. %>
+  <%= render Bali::BulkActions::Component.new do |bulk| %>
+    <% bulk.with_action(label: 'Archive', href: '/products/bulk_archive', variant: :info) %>
+    <% bulk.with_action(label: 'Delete', href: '/products/bulk_delete', variant: :error) %>
+
+    <%= render(Bali::Table::Component.new(selectable: true)) do |c| %>
+      <%= c.with_headers(headers) %>
+      <% records.each do |record| %>
+        <%= c.with_row(record_id: record[:id]) do %>
+          <td class="font-medium"><%= record[:product] %></td>
+          <td class="font-mono text-sm text-base-content/70"><%= record[:sku] %></td>
+          <td><%= record[:price] %></td>
+          <td><%= record[:stock] %> units</td>
+          <td>
+            <%= render Bali::Tag::Component.new(
+                  text: record[:status].humanize,
+                  color: record[:stock].zero? ? :error : :success,
+                  size: :sm
+                ) %>
+          </td>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

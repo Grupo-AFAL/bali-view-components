@@ -626,6 +626,32 @@ Data table with optional sorting and pagination.
 <% end %>
 ```
 
+**Row selection** — `selectable: true` renders the checkbox column plus a select-all
+header, wired to the `bulk-actions` Stimulus controller. Every row needs a `record_id:`
+(missing one raises `Bali::Table::Row::Component::IncompatibleOptions`), and the `<tr>`
+itself becomes the selectable item: it carries the record id, the `selected` class and its
+own checkbox. Double-clicking a row toggles it too.
+
+```erb
+<%= render Bali::Table::Component.new(form: @filter_form, selectable: true) do |table| %>
+  <% table.with_header(name: "Name", sort: :name) %>
+
+  <% @movies.each do |movie| %>
+    <% table.with_row(record_id: movie.id) do %>
+      <td><%= movie.name %></td>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+The controller must live on an **ancestor** element — `DataTable#with_bulk_actions` puts it
+on the DataTable container for you; standalone, wrap the table in a
+`Bali::BulkActions::Component`. `selectable:` and the legacy `bulk_actions:` array are
+mutually exclusive (they are two different selection systems and together would render two
+checkbox columns), so declaring both raises `Bali::Table::Component::IncompatibleOptions`.
+The selection column shifts every other column by one: a column selector's 0-based indexes
+must account for it.
+
 **Row grouping** — pass `group:` to `with_row` to render a group-header row
 whenever the value changes between consecutive rows. The header spans every
 column (including the bulk-actions column when present) and shows the group
@@ -955,7 +981,33 @@ raw URL param never reaches the content unchecked. Declare the switch before rea
 `aria_label:`, `size:`, `icon_only:` and any HTML attribute pass through to
 `Bali::ViewSwitch`.
 
-Slots: `with_filters_panel`, `with_simple_filters`, `with_content` (`with_table` / `with_grid`), `with_summary`, `with_toolbar_button`, `with_view_switch`, `with_saved_views`, `with_column_selector`, `with_export`, `with_actions_panel`, `with_custom_pagy_nav`.
+**Row selection and bulk actions**
+
+```erb
+<%= render Bali::DataTable::Component.new(url: movies_path, filter_form: @filter_form) do |dt| %>
+  <% dt.with_bulk_actions do |bulk| %>
+    <% bulk.with_action(label: 'Mark as done', href: bulk_actions_path(bulk_action: 'mark_done'), variant: :success) %>
+    <% bulk.with_action(label: 'Delete', href: bulk_actions_path(bulk_action: 'delete'), variant: :error) %>
+  <% end %>
+
+  <% dt.with_table do %>
+    <%= render Bali::Table::Component.new(form: @filter_form, selectable: true) do |t| %>
+      <% @movies.each do |movie| %>
+        <% t.with_row(record_id: movie.id) do %>...<% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+`with_bulk_actions` renders a `Bali::BulkActions(variant: :toolbar)` contextual row that
+**replaces the toolbar** while a selection exists and restores it when it is cleared. The
+`bulk-actions` Stimulus controller goes on the DataTable container, so the bar and the
+table rows share one scope. Each action is its own form whose only hidden field is
+`selected_ids` (a JSON array injected by the controller) — extra parameters travel in the
+action's query string.
+
+Slots: `with_filters_panel`, `with_simple_filters`, `with_content` (`with_table` / `with_grid`), `with_summary`, `with_toolbar_button`, `with_view_switch`, `with_saved_views`, `with_column_selector`, `with_export`, `with_bulk_actions`, `with_custom_pagy_nav`.
 
 #### GanttChart
 
@@ -1411,7 +1463,18 @@ Selectable item list with a floating action bar that appears when items are sele
 ```
 
 **Options:**
+- `variant` - `:floating` (default, fixed bar at the bottom) or `:toolbar` (contextual row
+  with a counter, the actions and a clear button — what `DataTable#with_bulk_actions` uses)
+- `standalone` - Emit the `data-controller="bulk-actions"` (default: `true`). `false` when
+  the controller already lives on an ancestor, as inside a `DataTable`. Two nested
+  `bulk-actions` controllers split the targets between them and the bar stops seeing the
+  items, silently.
 - `**options` - HTML attributes for the wrapper (e.g. `class`, `data`)
+
+Selection is **per page**: the controller only knows the DOM it was rendered with, so
+paginating, filtering or switching display mode clears it (all of those re-render the node
+that carries the controller). Record ids go through `parseInt`, so non-numeric ids (UUIDs)
+serialize as `null` in the `selected_ids` payload.
 
 #### Carousel
 

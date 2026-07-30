@@ -8,7 +8,23 @@ module Bali
       attr_reader :pagy
 
       renders_one :custom_pagy_nav
-      renders_one :actions_panel, -> { ActionsPanel::Component.new(filter_form: @filter_form, url: @url) }
+
+      # Barra contextual de selección: REEMPLAZA la fila de la toolbar mientras haya
+      # selección y la restaura al limpiar. El controlador Stimulus vive en el CONTENEDOR
+      # del DataTable (ver #container_attributes) y no en este slot: dos controladores
+      # `bulk-actions` anidados se reparten los targets y la barra no vería las filas.
+      #
+      # El bloque NO se corre acá, a diferencia de column_selector/view_switch: `with_action`
+      # es un slot de ViewComponent de verdad, y leer un slot ya fuerza la evaluación del
+      # bloque una vez (Slotable#__vc_get_slot llama a `content`). Correrlo además acá lo
+      # ejecuta DOS veces y duplica cada acción, en silencio. Los otros dos slots no tienen
+      # el problema porque su `with_*` es un método plano sobre un array.
+      #
+      # @param options [Hash] Opciones de Bali::BulkActions (class:, data:)
+      # @yield [bulk_actions] Bloque para declarar las acciones con `with_action`
+      renders_one :bulk_actions, ->(**options) do
+        Bali::BulkActions::Component.new(variant: :toolbar, standalone: false, **options)
+      end
 
       # Filters panel using Filters component.
       #
@@ -331,7 +347,23 @@ module Bali
 
       def show_toolbar?
         filters_panel? || simple_filters? || group_by_control? || toolbar_buttons? ||
-          column_selector? || export? || actions_panel? || saved_views? || view_switch?
+          column_selector? || export? || saved_views? || view_switch?
+      end
+
+      # El contenedor es quien lleva el controlador de selección: tiene que envolver a la
+      # vez a la barra contextual y a las filas de la tabla.
+      def container_attributes
+        attrs = { id: id, class: "data-table-component" }
+        bulk_actions? ? prepend_controller(attrs, "bulk-actions") : attrs
+      end
+
+      # La fila de la toolbar se marca para que el controlador pueda esconderla mientras
+      # la barra contextual ocupa su lugar.
+      def toolbar_attributes
+        attrs = { class: toolbar_classes }
+        return attrs unless bulk_actions?
+
+        attrs.merge(data: { bulk_actions_target: "toolbar" })
       end
 
       # Whether the "Agrupar por" control should render — true when the filter
@@ -350,7 +382,7 @@ module Bali
       end
 
       def show_toolbar_right?
-        view_switch? || saved_views? || toolbar_buttons? || column_selector? || export? || actions_panel?
+        view_switch? || saved_views? || toolbar_buttons? || column_selector? || export?
       end
 
       private

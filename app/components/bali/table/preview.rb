@@ -106,9 +106,28 @@ module Bali
       # @label Bulk Actions
       # Select rows using checkboxes to see the floating action bar.
       # The bulk actions container appears when at least one row is selected.
+      #
+      # Legacy path, driven by the table's own Stimulus controller. New code should use
+      # `selectable: true` inside a `DataTable` with `with_bulk_actions`.
       def bulk_actions
         render_with_template(
           template: 'bali/table/previews/bulk_actions',
+          locals: {
+            headers: BULK_ACTION_HEADERS,
+            records: BULK_ACTION_RECORDS
+          }
+        )
+      end
+
+      # @label Selectable
+      # `selectable: true` renders the checkbox column plus a select-all header, wired to
+      # the `bulk-actions` Stimulus controller. Every row needs a `record_id:`.
+      #
+      # The controller must live on an ancestor element — a `DataTable` with
+      # `with_bulk_actions` puts it there for you; standalone, wrap the table yourself.
+      def selectable
+        render_with_template(
+          template: 'bali/table/previews/selectable',
           locals: {
             headers: BULK_ACTION_HEADERS,
             records: BULK_ACTION_RECORDS

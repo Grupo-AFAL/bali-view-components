@@ -1,12 +1,19 @@
 en:
   view_components:
     bali:
+      bulk_actions:
+        selected_one: selected
+        selected_other: selected
+        clear: Clear selection
       table:
         no_records: No Records
         no_results: No Results
         group_count: "%{group} (%{count})"
         group_partial: "showing %{shown}"
         ungrouped: Ungrouped
+        select_all: Select all
+        row:
+          select_row: Select row
       data_table:
         summary: "Showing %{from}-%{to} of %{count} %{item_name}"
         default_item_name: items

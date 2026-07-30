@@ -2,7 +2,12 @@
   <%= tag.table(**options) do %>
     <thead>
       <tr>
-        <% if bulk_actions? %>
+        <% if selectable? %>
+          <th class="w-4">
+            <%= tag.input type: 'checkbox', class: 'checkbox checkbox-sm', 'aria-label': t('.select_all'),
+                          data: { bulk_actions_target: 'selectAll', action: 'change->bulk-actions#toggleAll' } %>
+          </th>
+        <% elsif bulk_actions? %>
           <th>
             <%= tag.input type: 'checkbox', class: 'checkbox', data: { action: 'table#toggleAll', table_target: 'toggleAll' } %>
           </th>

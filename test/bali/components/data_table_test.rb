@@ -281,15 +281,79 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_equal(:gantt, component.display_mode)
   end
 
-  def test_actions_panel_no_longer_accepts_the_legacy_toggle_options
-    # El toggle grid/tabla y el dropdown de export del panel murieron: los reemplazan
-    # with_view_switch y with_export. Romper ruidoso > seguir pintando el camino de #653.
-    assert_raises(ArgumentError) do
-      render_inline(component) { |c| c.with_actions_panel(grid_display_mode_enabled: true) }
+  def test_bulk_actions_puts_the_stimulus_controller_on_the_container
+    render_inline(component) do |c|
+      c.with_bulk_actions { |bulk| bulk.with_action(label: "Delete", href: "/delete") }
+      c.with_table { '<div class="table-component"></div>'.html_safe }
     end
+    assert_selector('div.data-table-component[data-controller~="bulk-actions"]')
+  end
 
-    assert_raises(ArgumentError) do
-      render_inline(component) { |c| c.with_actions_panel(export_formats: %i[csv]) }
+  def test_only_one_bulk_actions_controller_in_the_tree
+    # Dos controladores anidados se reparten los targets y la barra deja de ver las filas,
+    # en silencio: por eso el slot pide standalone: false.
+    render_inline(component) do |c|
+      c.with_bulk_actions { |bulk| bulk.with_action(label: "Delete", href: "/delete") }
+      c.with_table { '<div class="table-component"></div>'.html_safe }
     end
+    assert_selector('[data-controller~="bulk-actions"]', count: 1)
+  end
+
+  def test_bulk_actions_declares_each_action_exactly_once
+    # El bloque del slot lo evalúa ViewComponent al leer `actions`. Correrlo también en el
+    # lambda duplicaba cada acción sin fallar en ningún lado.
+    render_inline(component) do |c|
+      c.with_bulk_actions do |bulk|
+        bulk.with_action(label: "Delete", href: "/delete")
+        bulk.with_action(label: "Archive", href: "/archive")
+      end
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+    assert_selector(".bulk-actions-component form", count: 2, visible: :all)
+  end
+
+  def test_container_has_no_bulk_actions_controller_without_the_slot
+    render_inline(component) do |c|
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+    assert_no_selector('[data-controller~="bulk-actions"]')
+  end
+
+  def test_bulk_actions_marks_the_toolbar_row_as_the_replaceable_node
+    render_inline(component) do |c|
+      c.with_filters_panel(available_attributes: filter_attributes)
+      c.with_bulk_actions { |bulk| bulk.with_action(label: "Delete", href: "/delete") }
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+    assert_selector('div.data-table-component > div[data-bulk-actions-target="toolbar"]')
+  end
+
+  def test_bulk_actions_bar_is_a_sibling_of_the_toolbar_and_not_nested_in_it
+    render_inline(component) do |c|
+      c.with_filters_panel(available_attributes: filter_attributes)
+      c.with_bulk_actions { |bulk| bulk.with_action(label: "Delete", href: "/delete") }
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+    assert_selector("div.data-table-component > div.bulk-actions-component")
+    assert_no_selector('[data-bulk-actions-target="toolbar"] .bulk-actions-component')
+  end
+
+  def test_bulk_actions_alone_does_not_bring_up_the_toolbar_row
+    # La barra contextual NO vive en la fila de la toolbar: sin otro control declarado no
+    # hay toolbar que esconder.
+    render_inline(component) do |c|
+      c.with_bulk_actions { |bulk| bulk.with_action(label: "Delete", href: "/delete") }
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+    assert_no_selector('[data-bulk-actions-target="toolbar"]')
+    assert_selector("div.bulk-actions-component")
+  end
+
+  def test_actions_panel_is_gone
+    # El panel entero murió: su toggle grid/tabla lo reemplaza with_view_switch, su export
+    # with_export y su hueco de acciones with_bulk_actions. Romper ruidoso > seguir
+    # pintando el camino de #653.
+    refute_respond_to(component, :with_actions_panel)
+    refute(Bali::DataTable.const_defined?(:ActionsPanel))
   end
 end

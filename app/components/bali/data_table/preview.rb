@@ -193,6 +193,31 @@ module Bali
         )
       end
 
+      # @label With Bulk Actions (Live DB)
+      # Row selection with a contextual action row.
+      #
+      # - `Bali::Table(selectable: true)` renders the checkbox column and the select-all
+      #   header; every row needs `record_id:`
+      # - `with_bulk_actions` puts the contextual row in the toolbar's slot: it shows up
+      #   while a selection exists and the toolbar comes back when it is cleared
+      # - The `bulk-actions` Stimulus controller lives on the DataTable container, so the
+      #   bar and the rows share one scope
+      def with_bulk_actions(q: {}, page: 1)
+        filter_params = ActionController::Parameters.new(q: ActionController::Parameters.new(q), page: page)
+        filter_form = Bali::FilterForm.new(Movie.all, filter_params)
+        pagy, movies = pagy(filter_form.result.includes(:studio), limit: 5, page: page)
+
+        render_with_template(
+          template: "bali/data_table/previews/with_bulk_actions",
+          locals: {
+            filter_form: filter_form,
+            pagy: pagy,
+            movies: movies,
+            filter_attributes: MOVIE_FILTER_ATTRIBUTES
+          }
+        )
+      end
+
       # @label With Simple Filters (Studios)
       # Simple inline dropdown filters - a lightweight alternative to the full Filters component.
       # Shows all available filter types:

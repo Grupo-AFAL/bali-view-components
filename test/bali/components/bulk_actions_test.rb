@@ -127,6 +127,54 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     assert_button("Delete")
   end
 
+  def test_toolbar_variant_renders_the_contextual_bar_instead_of_the_floating_one
+    render_inline(Bali::BulkActions::Component.new(variant: :toolbar)) do |c|
+      c.with_action(label: "Delete", href: "/delete")
+    end
+    assert_selector(".hidden.mb-4[data-bulk-actions-target='actionsContainer']")
+    assert_no_selector(".fixed[data-bulk-actions-target='actionsContainer']")
+  end
+
+  def test_toolbar_variant_renders_a_clear_button_wired_to_the_controller
+    render_inline(Bali::BulkActions::Component.new(variant: :toolbar)) do |c|
+      c.with_action(label: "Delete", href: "/delete")
+    end
+    assert_selector("button[data-action='bulk-actions#clear']", visible: :all)
+    assert_no_selector("a[data-action='bulk-actions#clear']", visible: :all)
+  end
+
+  def test_toolbar_variant_renders_both_plural_labels_with_the_singular_hidden
+    render_inline(Bali::BulkActions::Component.new(variant: :toolbar)) do |c|
+      c.with_action(label: "Delete", href: "/delete")
+    end
+    assert_selector("[data-bulk-actions-target='selectedLabelOne'].hidden", visible: :all)
+    assert_selector("[data-bulk-actions-target='selectedLabelOther']", visible: :all)
+    assert_selector("[data-bulk-actions-target='selectedCount']", text: "0", visible: :all)
+  end
+
+  def test_unknown_variant_falls_back_to_floating
+    render_inline(Bali::BulkActions::Component.new(variant: :sidebar)) do |c|
+      c.with_action(label: "Delete", href: "/delete")
+    end
+    assert_selector(".fixed[data-bulk-actions-target='actionsContainer']")
+  end
+
+  def test_standalone_false_does_not_emit_its_own_stimulus_controller
+    # Dos controladores `bulk-actions` anidados se reparten los targets: la barra dejaría
+    # de ver las filas y el contador quedaría en 0 SIN error.
+    render_inline(Bali::BulkActions::Component.new(variant: :toolbar, standalone: false))
+    assert_selector("div.bulk-actions-component")
+    assert_no_selector("[data-controller='bulk-actions']")
+  end
+
+  def test_custom_data_attributes_survive_in_both_modes
+    render_inline(Bali::BulkActions::Component.new(data: { foo: "bar" }))
+    assert_selector("[data-foo='bar'][data-controller='bulk-actions']")
+
+    render_inline(Bali::BulkActions::Component.new(standalone: false, data: { foo: "bar" }))
+    assert_selector("[data-foo='bar']")
+  end
+
   def test_combined_items_and_actions_renders_both_items_and_actions_together
     render_inline(@component) do |c|
       c.with_action(label: "Bulk Update", href: "/bulk_update")
