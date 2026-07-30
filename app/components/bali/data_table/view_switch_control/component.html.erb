@@ -1,0 +1,5 @@
+<%= render Bali::ViewSwitch::Component.new(aria_label: aria_label, **options) do |switch| %>
+  <% views.each do |view| %>
+    <% switch.with_view(**view_attributes(view)) %>
+  <% end %>
+<% end %>

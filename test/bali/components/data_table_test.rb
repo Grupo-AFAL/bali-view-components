@@ -207,4 +207,89 @@ class BaliDataTableComponentTest < ComponentTestCase
 
     assert_selector("div.card.card-border.mt-2 div.table-component")
   end
+
+  # --- View switch ---
+
+  def declare_views(component_instance)
+    component_instance.with_view_switch do |switch|
+      switch.with_view(name: "Tabla", icon: "list", value: :table)
+      switch.with_view(name: "Tarjetas", icon: "grid", value: :grid)
+    end
+  end
+
+  def test_view_switch_renders_in_the_toolbar
+    render_inline(component) do |c|
+      declare_views(c)
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    # Sin nada más declarado la toolbar aparece igual: el switch la cuenta.
+    assert_selector("div.data-table-component .view-switch-component a", count: 2)
+    assert_selector("a[href*='view=table']")
+    assert_selector("a[href*='view=grid']")
+  end
+
+  def test_unknown_view_param_falls_back_to_the_first_declared_view
+    # Un `?view=` que nadie declaró no puede dejar el listado vacío: cae a la primera
+    # vista, y el host lee ese valor ya validado para elegir su contenido.
+    @options = { display_mode: :bogus }
+
+    render_inline(component) do |c|
+      declare_views(c)
+      if c.display_mode == :grid
+        c.with_grid { '<div class="cards"></div>'.html_safe }
+      else
+        c.with_table { '<div class="table-component"></div>'.html_safe }
+      end
+    end
+
+    assert_selector("div.table-component")
+    assert_no_selector("div.cards")
+    assert_selector("a.btn-active[href*='view=table']")
+  end
+
+  def test_declared_view_drives_the_content_and_the_active_link
+    @options = { display_mode: :grid }
+
+    render_inline(component) do |c|
+      declare_views(c)
+      if c.display_mode == :grid
+        c.with_grid { '<div class="cards"></div>'.html_safe }
+      else
+        c.with_table { '<div class="table-component"></div>'.html_safe }
+      end
+    end
+
+    assert_selector("div.cards")
+    assert_selector("a.btn-active[href*='view=grid']")
+  end
+
+  def test_view_param_option_renames_the_url_param
+    @options = { view_param: :mode, display_mode: :grid }
+
+    render_inline(component) do |c|
+      declare_views(c)
+      c.with_grid { '<div class="cards"></div>'.html_safe }
+    end
+
+    assert_selector("a[href*='mode=grid']")
+    assert_no_selector("a[href*='view=']")
+  end
+
+  def test_display_mode_is_untouched_without_a_view_switch
+    @options = { display_mode: :gantt }
+    assert_equal(:gantt, component.display_mode)
+  end
+
+  def test_actions_panel_no_longer_accepts_the_legacy_toggle_options
+    # El toggle grid/tabla y el dropdown de export del panel murieron: los reemplazan
+    # with_view_switch y with_export. Romper ruidoso > seguir pintando el camino de #653.
+    assert_raises(ArgumentError) do
+      render_inline(component) { |c| c.with_actions_panel(grid_display_mode_enabled: true) }
+    end
+
+    assert_raises(ArgumentError) do
+      render_inline(component) { |c| c.with_actions_panel(export_formats: %i[csv]) }
+    end
+  end
 end

@@ -15,9 +15,11 @@
         </div>
       <% end %>
 
-      <%# Right side: Column selector + Export + Toolbar buttons + Actions panel %>
+      <%# Right side: cómo se muestran los datos. Orden de supervivencia: view switch >
+          saved views > columnas > export > botones del host %>
       <% if show_toolbar_right? %>
         <div class="flex items-center gap-1 sm:gap-2 shrink-0">
+          <%= view_switch if view_switch? %>
           <%= saved_views if saved_views? %>
           <%= column_selector if column_selector? %>
           <%= export if export? %>

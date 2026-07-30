@@ -6,12 +6,17 @@
       display_mode: display_mode
     ) do |c| %>
 
-  <%# Actions panel with grid mode toggle enabled %>
-  <% c.with_actions_panel(grid_display_mode_enabled: true) %>
+  <%# Cada vista declara su `value:` (lo que viaja en ?view=); el href lo arma el
+      DataTable preservando filtros, orden y agrupación. %>
+  <% c.with_view_switch do |switch| %>
+    <% switch.with_view(name: 'Table', icon: 'list', value: :table) %>
+    <% switch.with_view(name: 'Cards', icon: 'grid', value: :grid) %>
+  <% end %>
 
-  <%# UNA sola banda de contenido: el host elige cuál declara según el modo.
-      Declarar las dos levanta DuplicateContent. %>
-  <% if display_mode == :grid %>
+  <%# UNA sola banda de contenido: el host elige cuál declara según el modo, leyendo el
+      valor YA validado contra las vistas declaradas. Declarar las dos levanta
+      DuplicateContent. %>
+  <% if c.display_mode == :grid %>
     <%# Grid view - card-based layout using Bali components (sin superficie propia) %>
     <% c.with_grid do %>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

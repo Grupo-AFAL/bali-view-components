@@ -8,20 +8,7 @@ module Bali
       attr_reader :pagy
 
       renders_one :custom_pagy_nav
-      renders_one :actions_panel, ->(
-        export_formats: [],
-        display_mode_param_name: :data_display_mode,
-        grid_display_mode_enabled: false
-      ) do
-        ActionsPanel::Component.new(
-          filter_form: @filter_form,
-          url: @url,
-          display_mode: @display_mode,
-          grid_display_mode_enabled: grid_display_mode_enabled,
-          export_formats: export_formats,
-          display_mode_param_name: display_mode_param_name
-        )
-      end
+      renders_one :actions_panel, -> { ActionsPanel::Component.new(filter_form: @filter_form, url: @url) }
 
       # Filters panel using Filters component.
       #
@@ -204,6 +191,30 @@ module Bali
                                   base_url: @url, listing_id: id, default_views: default_views)
       end
 
+      # Segmented control de vistas (tabla / tarjetas / lo que el host defina). A diferencia
+      # de Bali::ViewSwitch acá NO se pasa `href:`: cada vista declara su `value:` y el
+      # DataTable arma el link preservando el query string. `href:` sigue aceptado por vista
+      # para un modo que vive en otra ruta.
+      #
+      # @param aria_label [String] Label accesible del grupo (default i18n)
+      # @param options [Hash] Opciones de Bali::ViewSwitch (size:, icon_only:, class:)
+      # @yield [view_switch] Bloque para declarar las vistas con `with_view`
+      renders_one :view_switch, ->(aria_label: nil, **options, &block) do
+        component = ViewSwitchControl::Component.new(
+          url: @url,
+          current_params: safe_query_parameters,
+          param: @view_param,
+          current: @display_mode,
+          aria_label: aria_label,
+          **options
+        )
+        block&.call(component)
+        # El gateo de display_mode necesita las vistas YA declaradas, y eso solo pasa
+        # después de correr el bloque del host (ver #display_mode).
+        @view_switch_control = component
+        component
+      end
+
       # Built-in export dropdown with format options
       # @param formats [Array<Symbol>] Export formats (e.g., [:csv, :excel, :pdf])
       # @param url [String] Base URL for export (required in production)
@@ -220,8 +231,10 @@ module Bali
       # @param summary_position [Symbol] :bottom (default) or :top
       # @param item_name [String] Name for items in summary (i18n default)
       # @param table_class [String] CSS class for the content scroll wrapper
-      # @param display_mode [Symbol] Modo de visualización declarado por el host. NO elige
-      #   slot (hay uno solo): el host decide qué contenido declara.
+      # @param display_mode [Symbol] Modo de visualización pedido por el host (típicamente
+      #   `params[:view]`). NO elige slot (hay uno solo): el host decide qué contenido
+      #   declara, leyendo el valor YA validado en #display_mode.
+      # @param view_param [Symbol] Param de la URL que lleva la vista (default :view)
       # @param id [String] Identidad del listado. Es a la vez el id del contenedor, el
       #   target de querySelector del selector de columnas (`#<id> table`) y la llave de
       #   localStorage de sus columnas: UN solo nombre para todo lo que el listado persiste.
@@ -234,8 +247,18 @@ module Bali
         @item_name = options[:item_name]
         @table_wrapper_class = options[:table_class]
         @display_mode = (options[:display_mode] || :table).to_sym
+        @view_param = (options[:view_param] || :view).to_sym
         @content_declared = false
         @listing_id, @stable_id = resolve_listing_id(options[:id])
+      end
+
+      # Modo de visualización YA validado contra las vistas declaradas: un `?view=`
+      # desconocido cae a la primera vista en vez de dejar el contenido vacío (misma
+      # frontera que FilterForm#resolve_group_by). El host lo lee dentro del bloque para
+      # elegir qué contenido declara — por eso se resuelve tarde y no en `initialize`: las
+      # vistas se declaran DESPUÉS de construir el componente.
+      def display_mode
+        @view_switch_control ? @view_switch_control.current_value : @display_mode
       end
 
       # Una sola banda de contenido: `with_table`/`with_grid` son azúcar sobre ella.
@@ -308,7 +331,7 @@ module Bali
 
       def show_toolbar?
         filters_panel? || simple_filters? || group_by_control? || toolbar_buttons? ||
-          column_selector? || export? || actions_panel? || saved_views?
+          column_selector? || export? || actions_panel? || saved_views? || view_switch?
       end
 
       # Whether the "Agrupar por" control should render — true when the filter
@@ -327,7 +350,7 @@ module Bali
       end
 
       def show_toolbar_right?
-        saved_views? || toolbar_buttons? || column_selector? || export? || actions_panel?
+        view_switch? || saved_views? || toolbar_buttons? || column_selector? || export? || actions_panel?
       end
 
       private

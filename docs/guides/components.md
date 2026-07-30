@@ -510,6 +510,8 @@ Tabbed content navigation.
 
 Segmented control (DaisyUI `join` of buttons) to switch between sibling views of the same content (list / table / board / schedule). Each view is a real link — keep the selected view in the PATH so GET filter forms don't lose it.
 
+> Inside a `DataTable` do **not** use this component directly: `dt.with_view_switch { |switch| switch.with_view(value: :grid, ...) }` renders it and builds the hrefs for you, preserving the listing's query string. See the DataTable section.
+
 ```erb
 <%= render Bali::ViewSwitch::Component.new(aria_label: "Views") do |switch| %>
   <% switch.with_view(name: "List", icon: "list", href: backlog_view_path("list")) %>
@@ -885,8 +887,11 @@ The component owns three bands: a **bare** toolbar (identical in every display m
 - `summary_position` - `:top` or `:bottom` (default: `:bottom`)
 - `item_name` - Item name used in the summary text (default: i18n)
 - `table_class` - CSS class for the content scroll wrapper (default: `"overflow-x-auto"`)
-- `display_mode` - Display mode declared by the host (default: `:table`). It does **not**
-  select a slot — there is only one content band, and the host chooses what to declare.
+- `display_mode` - Display mode requested by the host, typically `params[:view]`
+  (default: `:table`). It does **not** select a slot — there is only one content band, and
+  the host chooses what to declare, reading the already-validated value from
+  `dt.display_mode` (see `with_view_switch`).
+- `view_param` - URL param that carries the view (default: `:view`)
 - `id` - Listing identity: the container id, the column selector's `querySelector` target
   (`#<id> table`) and the localStorage key of its columns (`bali:columns:<id>`) — one name
   for everything the listing persists. Resolved in this order: explicit `id:`, then
@@ -911,17 +916,46 @@ the `Bali::Card` surface (`style:`, `class:`, `shadow:`, `body_class:`). Content
 its own chrome — a Gantt, a map — passes `surface: false`.
 
 Declaring two content slots raises `Bali::DataTable::Component::DuplicateContent`: to
-alternate between modes, pick which one you declare with an `if` on `display_mode`.
+alternate between modes, pick which one you declare with an `if` on `dt.display_mode`.
 
 ```erb
-<% if display_mode == :grid %>
+<% if dt.display_mode == :grid %>
   <% dt.with_grid do %>...<% end %>
 <% else %>
   <% dt.with_table do %>...<% end %>
 <% end %>
 ```
 
-Slots: `with_filters_panel`, `with_simple_filters`, `with_content` (`with_table` / `with_grid`), `with_summary`, `with_toolbar_button`, `with_column_selector`, `with_export`, `with_actions_panel`, `with_custom_pagy_nav`.
+**View switch.** `with_view_switch` puts a `Bali::ViewSwitch` in the toolbar. Unlike the
+standalone component, each view declares a `value:` — the DataTable builds the href itself,
+merging the current query string so filters, sorting, grouping and the applied
+`saved_view` survive the mode change (`page` is dropped, so switching returns to page one).
+`href:` is still accepted per view, for a mode that lives on another route.
+
+```erb
+<%= render Bali::DataTable::Component.new(
+      url: movies_path, filter_form: @filter_form, pagy: @pagy,
+      display_mode: params[:view]) do |dt| %>
+  <% dt.with_view_switch do |switch| %>
+    <% switch.with_view(name: 'Table', icon: 'list', value: :table) %>
+    <% switch.with_view(name: 'Cards', icon: 'grid', value: :grid) %>
+  <% end %>
+
+  <% if dt.display_mode == :grid %>
+    <% dt.with_grid do %>...<% end %>
+  <% else %>
+    <% dt.with_table do %>...<% end %>
+  <% end %>
+<% end %>
+```
+
+`dt.display_mode` is the value **validated against the declared views**: an unknown
+`?view=` falls back to the first declared view instead of leaving the listing empty, so a
+raw URL param never reaches the content unchecked. Declare the switch before reading it.
+`aria_label:`, `size:`, `icon_only:` and any HTML attribute pass through to
+`Bali::ViewSwitch`.
+
+Slots: `with_filters_panel`, `with_simple_filters`, `with_content` (`with_table` / `with_grid`), `with_summary`, `with_toolbar_button`, `with_view_switch`, `with_saved_views`, `with_column_selector`, `with_export`, `with_actions_panel`, `with_custom_pagy_nav`.
 
 #### GanttChart
 

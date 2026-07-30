@@ -13,6 +13,8 @@ en:
         group_by_control:
           label: Group by
           no_grouping: No grouping
+        view_switch_control:
+          aria_label: Views
         column_selector:
           button_label: Columns
           menu_title: Show/Hide Columns

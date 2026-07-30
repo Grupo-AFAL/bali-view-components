@@ -281,11 +281,14 @@ module Bali
       # - There is ONE content slot: the host picks `with_table` or `with_grid`
       #   with an `if` on `display_mode` (declaring both raises `DuplicateContent`)
       # - `with_table` brings a surface + horizontal scroll; `with_grid` brings none
-      # - Enable toggle: `with_actions_panel(grid_display_mode_enabled: true)`
+      # - The switch is `with_view_switch`: each view declares `value:` and the
+      #   DataTable builds the href, preserving the query string
       # @param display_mode select { choices: [table, grid] }
-      def with_grid_mode(q: {}, page: 1, display_mode: :table, data_display_mode: nil)
-        # Use URL param if present (from toggle clicks), otherwise use Lookbook param
-        actual_display_mode = (data_display_mode || display_mode).to_sym
+      def with_grid_mode(q: {}, page: 1, display_mode: :table, view: nil)
+        # `view` is what the switch links carry; the Lookbook param is the fallback.
+        # Lookbook only forwards query params whose name matches a kwarg of this method,
+        # so declaring `view:` is what makes the switch round-trip inside the iframe.
+        actual_display_mode = (view || display_mode).to_sym
 
         filter_params = ActionController::Parameters.new(q: ActionController::Parameters.new(q), page: page)
         filter_form = Bali::FilterForm.new(Movie.all, filter_params)

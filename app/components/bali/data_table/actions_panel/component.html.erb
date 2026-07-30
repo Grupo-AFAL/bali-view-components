@@ -1,39 +1,3 @@
 <% actions.each do |action| %>
   <%= action %>
 <% end %>
-
-<% if single_export? %>
-  <%= render Bali::Link::Component.new(
-    name: render(Bali::Icon::Component.new('download')),
-    href: build_url({ format: single_export_format }),
-    type: :text
-  ) %>
-<% elsif multiple_exports? %>
-  <%= render Bali::Dropdown::Component.new(class: 'ml-4') do |c| %>
-    <% c.with_trigger(class: 'btn btn-ghost') do %>
-      <%= render Bali::Icon::Component.new('download') %>
-    <% end %>
-    <% @export_formats.each_with_index do |export_format, index| %>
-      <%= render Bali::Link::Component.new(
-        name: export_format.upcase,
-        href: build_url({ format: export_format }),
-        class: 'w-full'
-      ) %>
-      <%= tag.div(class: 'divider my-0') if index < @export_formats.size - 1 %>
-    <% end %>
-  <% end %>
-<% end %>
-
-<% if @grid_display_mode_enabled %>
-  <% if show_display_mode_separator? %>
-    <span class="divider divider-horizontal mx-1 h-6"></span>
-  <% end %>
-  <div class="join">
-    <%= link_to table_mode_url, class: table_button_classes, data: { turbo_action: 'replace' } do %>
-      <%= render Bali::Icon::Component.new('list') %>
-    <% end %>
-    <%= link_to grid_mode_url, class: grid_button_classes, data: { turbo_action: 'replace' } do %>
-      <%= render Bali::Icon::Component.new('grid') %>
-    <% end %>
-  </div>
-<% end %>
