@@ -142,8 +142,34 @@ module Bali
       end
 
       renders_one :summary
-      renders_one :table
-      renders_one :grid
+
+      class DuplicateContent < StandardError; end
+
+      DUPLICATE_CONTENT_MESSAGE = "DataTable renderiza UN solo slot de contenido " \
+        "(with_table / with_grid / with_content). Para alternar entre modos, elige " \
+        "cuál declaras con un if sobre display_mode."
+
+      # Banda de contenido. La SUPERFICIE la decide el slot, no el host: `with_table` la
+      # trae (una tabla necesita fondo propio), `with_grid` no (las tarjetas YA son la
+      # superficie). El slot no puede llamarse `content` —ViewComponent lo reserva—, de
+      # ahí el nombre interno y el alias público `with_content`.
+      #
+      # @param surface [Boolean] Envolver el contenido en Bali::Card (default: true)
+      # @param scroll [Boolean] Envolver en el wrapper de scroll horizontal (default: false)
+      # @param card_options [Hash] Opciones de Bali::Card (style:, class:, shadow:, body_class:)
+      renders_one :content_band, ->(surface: true, scroll: false, **card_options, &block) do
+        body = if block.nil?
+                 "".html_safe
+        elsif scroll
+                 tag.div(class: content_scroll_classes, &block)
+        else
+                 block.call
+        end
+
+        # Devolver SIEMPRE un String: con nil ViewComponent tira el contenido en silencio,
+        # y devolviendo la Card ella recibiría el bloque original, sin el wrapper de scroll.
+        surface ? render(Bali::Card::Component.new(**card_options)) { body } : body
+      end
 
       # Slot for right-aligned toolbar buttons (column selector, export, etc.)
       renders_many :toolbar_buttons
@@ -193,8 +219,9 @@ module Bali
       # @param show_summary [Boolean] Show summary (default: true when pagy present)
       # @param summary_position [Symbol] :bottom (default) or :top
       # @param item_name [String] Name for items in summary (i18n default)
-      # @param table_class [String] CSS class for table wrapper
-      # @param display_mode [Symbol] :table (default) or :grid
+      # @param table_class [String] CSS class for the content scroll wrapper
+      # @param display_mode [Symbol] Modo de visualización declarado por el host. NO elige
+      #   slot (hay uno solo): el host decide qué contenido declara.
       # @param id [String] Identidad del listado. Es a la vez el id del contenedor, el
       #   target de querySelector del selector de columnas (`#<id> table`) y la llave de
       #   localStorage de sus columnas: UN solo nombre para todo lo que el listado persiste.
@@ -207,19 +234,40 @@ module Bali
         @item_name = options[:item_name]
         @table_wrapper_class = options[:table_class]
         @display_mode = (options[:display_mode] || :table).to_sym
-        @toolbar_class = options[:toolbar_class]
+        @content_declared = false
         @listing_id, @stable_id = resolve_listing_id(options[:id])
       end
 
-      def table_wrapper_classes
+      # Una sola banda de contenido: `with_table`/`with_grid` son azúcar sobre ella.
+      # `display_mode` YA NO elige entre slots — el host decide qué renderiza.
+      def with_content(surface: true, scroll: false, **options, &block)
+        raise DuplicateContent, DUPLICATE_CONTENT_MESSAGE if @content_declared
+
+        @content_declared = true
+        with_content_band(surface: surface, scroll: scroll, **options, &block)
+      end
+
+      # Una tabla trae superficie y scroll horizontal.
+      def with_table(**options, &block)
+        with_content(surface: true, scroll: true, **options, &block)
+      end
+
+      # Un grid de tarjetas NO lleva superficie: las tarjetas ya son la superficie.
+      def with_grid(**options, &block)
+        with_content(surface: false, **options, &block)
+      end
+
+      # Clases del wrapper de scroll horizontal (solo cuando el slot lo pide).
+      def content_scroll_classes
         @table_wrapper_class || "overflow-x-auto"
       end
 
-      # Extra classes for the toolbar row (filters + actions). Permite, p.ej., envolver
-      # SOLO la toolbar en superficie de card cuando el contenido no aporta la suya
-      # (grid de tarjetas, Gantt) sin duplicar el componente.
+      TOOLBAR_CLASSES = "flex items-center gap-2 sm:gap-4 mb-4"
+
+      # La toolbar va SIN superficie: es la MISMA fila en todos los modos de visualización
+      # y la superficie la trae el contenido.
       def toolbar_classes
-        [ "flex items-center gap-2 sm:gap-4 mb-4", @toolbar_class ].compact.join(" ")
+        TOOLBAR_CLASSES
       end
 
       def id
@@ -256,10 +304,6 @@ module Bali
 
       def show_footer?
         @pagy || summary? || show_summary_bottom?
-      end
-
-      def grid_mode?
-        @display_mode == :grid
       end
 
       def show_toolbar?

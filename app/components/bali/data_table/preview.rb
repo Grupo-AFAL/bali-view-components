@@ -278,8 +278,9 @@ module Bali
       # @label With Grid Mode (Live DB)
       # Toggle between table and card-based grid layouts.
       #
-      # - Use `display_mode: :grid` to show the grid slot
-      # - Provide both `with_table` and `with_grid` slots
+      # - There is ONE content slot: the host picks `with_table` or `with_grid`
+      #   with an `if` on `display_mode` (declaring both raises `DuplicateContent`)
+      # - `with_table` brings a surface + horizontal scroll; `with_grid` brings none
       # - Enable toggle: `with_actions_panel(grid_display_mode_enabled: true)`
       # @param display_mode select { choices: [table, grid] }
       def with_grid_mode(q: {}, page: 1, display_mode: :table, data_display_mode: nil)

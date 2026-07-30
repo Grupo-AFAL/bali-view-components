@@ -46,14 +46,8 @@
     </div>
   <% end %>
 
-  <%# Content: Table or Grid %>
-  <% if grid_mode? %>
-    <%= grid %>
-  <% else %>
-    <%= tag.div class: table_wrapper_classes do %>
-      <%= table %>
-    <% end %>
-  <% end %>
+  <%# Contenido: la superficie viaja con el slot (with_table la trae, with_grid no) %>
+  <%= content_band %>
 
   <%# Footer: Summary (left) + Pagination (right) %>
   <% if show_footer? %>

@@ -863,6 +863,8 @@ Renders a Chart.js chart (bar, line, pie, doughnut, polarArea) with theme-aware 
 
 Complete data table wrapper with filters, quick search, summary, and pagination. Integrates with `Bali::FilterForm` — when a `filter_form` is given, `with_filters_panel` auto-configures attributes, filter groups, and search.
 
+The component owns three bands: a **bare** toolbar (identical in every display mode), the **content**, and a bare footer (summary + pagination). The surface travels with the content slot, so the host does **not** wrap the DataTable in `Bali::Card`.
+
 ```erb
 <%= render Bali::DataTable::Component.new(filter_form: @filter_form, url: movies_path, pagy: @pagy) do |dt| %>
   <% dt.with_filters_panel(search: { placeholder: 'Search movies...' }) %>
@@ -882,8 +884,9 @@ Complete data table wrapper with filters, quick search, summary, and pagination.
 - `show_summary` - Show record summary (default: true when pagy present)
 - `summary_position` - `:top` or `:bottom` (default: `:bottom`)
 - `item_name` - Item name used in the summary text (default: i18n)
-- `table_class` - CSS class for the table wrapper (default: `"overflow-x-auto"`)
-- `display_mode` - `:table` or `:grid` (default: `:table`)
+- `table_class` - CSS class for the content scroll wrapper (default: `"overflow-x-auto"`)
+- `display_mode` - Display mode declared by the host (default: `:table`). It does **not**
+  select a slot — there is only one content band, and the host chooses what to declare.
 - `id` - Listing identity: the container id, the column selector's `querySelector` target
   (`#<id> table`) and the localStorage key of its columns (`bali:columns:<id>`) — one name
   for everything the listing persists. Resolved in this order: explicit `id:`, then
@@ -895,7 +898,30 @@ Complete data table wrapper with filters, quick search, summary, and pagination.
 If the host replaces the listing over Turbo Streams, target the same id:
 `turbo_stream.replace @filter_form.storage_id`.
 
-Slots: `with_filters_panel`, `with_simple_filters`, `with_table`, `with_grid`, `with_summary`, `with_toolbar_button`, `with_column_selector`, `with_export`, `with_actions_panel`, `with_custom_pagy_nav`.
+**Content slot.** There is exactly ONE content band, and it decides its own surface:
+
+| Slot | Surface | Scroll wrapper |
+|------|---------|----------------|
+| `with_table` | yes (a table needs a background of its own) | yes |
+| `with_grid` | no (the cards *are* the surface) | no |
+| `with_content(surface:, scroll:)` | `surface:` (default `true`) | `scroll:` (default `false`) |
+
+`with_table` and `with_grid` are sugar over `with_content`. Extra keywords go straight to
+the `Bali::Card` surface (`style:`, `class:`, `shadow:`, `body_class:`). Content that brings
+its own chrome — a Gantt, a map — passes `surface: false`.
+
+Declaring two content slots raises `Bali::DataTable::Component::DuplicateContent`: to
+alternate between modes, pick which one you declare with an `if` on `display_mode`.
+
+```erb
+<% if display_mode == :grid %>
+  <% dt.with_grid do %>...<% end %>
+<% else %>
+  <% dt.with_table do %>...<% end %>
+<% end %>
+```
+
+Slots: `with_filters_panel`, `with_simple_filters`, `with_content` (`with_table` / `with_grid`), `with_summary`, `with_toolbar_button`, `with_column_selector`, `with_export`, `with_actions_panel`, `with_custom_pagy_nav`.
 
 #### GanttChart
 

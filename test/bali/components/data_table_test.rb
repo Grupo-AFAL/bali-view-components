@@ -113,22 +113,6 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_no_selector("input[type=hidden][name=group_by]", visible: :all)
   end
 
-  # --- R5: superficie propia para la toolbar y preservación de la agrupación ---
-
-  def test_toolbar_class_lands_on_the_toolbar_row_next_to_the_base_classes
-    @options = { toolbar_class: "rounded-box border p-4" }
-    render_inline(component) do |c|
-      c.with_filters_panel(available_attributes: filter_attributes)
-      c.with_table { '<div class="table-component"></div>'.html_safe }
-    end
-
-    # Las clases extra van en la MISMA fila de la toolbar (la que contiene los filtros),
-    # no en otro contenedor: un host las usa para darle superficie de card cuando el
-    # contenido trae la suya.
-    assert_selector("div.data-table-component > div.rounded-box.border div.filters")
-    assert_selector("div.data-table-component > div.flex.items-center.rounded-box")
-  end
-
   def test_explicit_preserved_params_do_not_drop_the_active_group_by
     # Antes eran excluyentes: un host que preservaba sus propios params tiraba la
     # agrupación en cada submit de filtros o búsqueda.
@@ -142,5 +126,85 @@ class BaliDataTableComponentTest < ComponentTestCase
 
     assert_selector("input[name='group_by'][value='genre']", visible: :all)
     assert_selector("input[name='view_mode'][value='cards']", visible: :all)
+  end
+
+  # --- Superficie: la trae el slot de contenido, no el host ni la toolbar ---
+
+  def test_with_table_brings_its_own_surface_and_scroll_wrapper
+    render_inline(component) do |c|
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector(
+      "div.data-table-component div.card > div.card-body > div.overflow-x-auto > div.table-component"
+    )
+  end
+
+  def test_with_grid_renders_without_surface
+    render_inline(component) do |c|
+      c.with_grid { '<div class="cards"></div>'.html_safe }
+    end
+
+    # Las tarjetas YA son la superficie: una card alrededor las anidaría.
+    assert_selector("div.cards")
+    assert_no_selector("div.card")
+    assert_no_selector("div.overflow-x-auto")
+  end
+
+  def test_with_content_defaults_to_surface_and_accepts_surface_false
+    render_inline(component) do |c|
+      c.with_content { '<div class="custom-view"></div>'.html_safe }
+    end
+    assert_selector("div.card > div.card-body > div.custom-view")
+
+    # Un contenido que trae su propio chrome (un Gantt) apaga la superficie y NO pierde
+    # el bloque en el camino.
+    render_inline(component) do |c|
+      c.with_content(surface: false) { '<div class="custom-view"></div>'.html_safe }
+    end
+    assert_selector("div.custom-view")
+    assert_no_selector("div.card")
+  end
+
+  def test_the_toolbar_row_has_no_surface
+    render_inline(component) do |c|
+      c.with_filters_panel(available_attributes: filter_attributes)
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    # La toolbar es la MISMA fila en todos los modos: bare, hija directa del componente.
+    # La única card de la página es la del contenido, y los filtros quedan FUERA.
+    assert_selector("div.data-table-component > div.flex.items-center div.filters")
+    assert_no_selector("div.card div.filters")
+    assert_no_selector("div.data-table-component > div.flex.items-center.bg-base-100")
+  end
+
+  def test_declaring_two_content_slots_raises
+    # Dos declaraciones se pisaban en silencio y el host veía siempre la última: un modo
+    # que no eligió. Ahora falla ruidoso y enseña el if sobre display_mode.
+    error = assert_raises(Bali::DataTable::Component::DuplicateContent) do
+      render_inline(component) do |c|
+        c.with_table { '<div class="table-component"></div>'.html_safe }
+        c.with_grid { '<div class="cards"></div>'.html_safe }
+      end
+    end
+    assert_match(/with_table/, error.message)
+  end
+
+  def test_table_class_option_overrides_the_scroll_wrapper_classes
+    @options = { table_class: "overflow-x-auto max-h-96" }
+    render_inline(component) do |c|
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector("div.card-body > div.overflow-x-auto.max-h-96 > div.table-component")
+  end
+
+  def test_content_slot_forwards_card_options_to_the_surface
+    render_inline(component) do |c|
+      c.with_table(style: :bordered, class: "mt-2") { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector("div.card.card-border.mt-2 div.table-component")
   end
 end
