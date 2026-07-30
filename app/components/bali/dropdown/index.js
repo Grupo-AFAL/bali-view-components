@@ -27,6 +27,12 @@ export class DropdownController extends Controller {
   }
 
   handleKeydown = (event) => {
+    // El keydown BURBUJEA y un dropdown puede contener otros (el ⋯ de la toolbar del
+    // DataTable): sin este guard la misma tecla la procesaban los dos controladores, así que
+    // una sola flecha saltaba dos items y un Escape dentro del dropdown de adentro cerraba
+    // el contenedor entero.
+    if (this.fromNestedDropdown(event.target)) return
+
     const isOpen = this.element.classList.contains('dropdown-open')
 
     switch (event.key) {
@@ -38,6 +44,8 @@ export class DropdownController extends Controller {
         }
         break
       case 'ArrowDown':
+        // Dentro de un campo, las flechas son del campo: mueven el cursor o la selección.
+        if (this.fromFormControl(event.target)) break
         event.preventDefault()
         if (!isOpen) {
           this.open()
@@ -45,6 +53,7 @@ export class DropdownController extends Controller {
         this.focusNextItem()
         break
       case 'ArrowUp':
+        if (this.fromFormControl(event.target)) break
         event.preventDefault()
         if (!isOpen) {
           this.open()
@@ -59,6 +68,18 @@ export class DropdownController extends Controller {
         }
         break
     }
+  }
+
+  // ¿El evento nació en un dropdown ANIDADO dentro de éste? Entonces es del de adentro.
+  // Markup a mano sin `.dropdown` alrededor sigue funcionando: `closest` devuelve null.
+  fromNestedDropdown (target) {
+    const nearest = target?.closest?.('.dropdown')
+
+    return Boolean(nearest) && nearest !== this.element && this.element.contains(nearest)
+  }
+
+  fromFormControl (target) {
+    return Boolean(target?.closest?.('input, textarea, select'))
   }
 
   toggle () {

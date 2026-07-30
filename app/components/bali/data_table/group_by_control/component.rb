@@ -14,6 +14,8 @@ module Bali
       # Auto-configured by DataTable from a FilterForm that declares
       # `group_by_attribute`.
       class Component < ApplicationViewComponent
+        include Bali::DataTable::ToolbarHref
+
         # @param url [String] Base URL for the option links (typically request.path)
         # @param filter_form [Bali::FilterForm] Form exposing group_by_options / group_by
         # @param current_params [Hash] Current query params to preserve (merged into links)
@@ -92,15 +94,11 @@ module Bali
 
         private
 
-        # Merge (or drop) the grouping param into the preserved params and build the URL.
-        # `page` is always dropped so grouping changes reset pagination, and the one-shot
-        # commands (`clear_filters`/`clear_search`) never ride along: they are actions, not
-        # navigation state, and carrying them re-executed the wipe on every later click.
+        # Merge (or drop) the grouping param into the preserved params. See ToolbarHref for
+        # why `page`/`clear_*` never ride along and why the base URL is parsed instead of
+        # concatenated.
         def build_href(group_by)
-          params = @current_params.except("page", "clear_filters", "clear_search", param)
-          params = params.merge(param => group_by) unless group_by.nil?
-          query = params.to_query
-          query.present? ? "#{@url}?#{query}" : @url
+          build_toolbar_href(@url, @current_params, param, group_by)
         end
       end
     end

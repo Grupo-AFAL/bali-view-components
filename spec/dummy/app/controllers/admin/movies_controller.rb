@@ -10,6 +10,10 @@ module Admin
         params,
         search_fields: %i[name genre tenant_name],
         storage_id: 'admin_movies',
+        # El control "Agrupar por" se auto-configura desde acá: esta página es la referencia
+        # end-to-end del index canónico, así que tiene que ejercitar la familia de controles,
+        # no solo describirla.
+        group_by_attributes: %i[genre status],
         persist_enabled: cookies['bali_persist_admin_movies'] == '1'
       )
       @pagy, @movies = pagy(@filter_form.result.includes(:studio), items: 10)

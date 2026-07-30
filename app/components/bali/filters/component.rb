@@ -170,10 +170,13 @@ module Bali
         from_url.reject { |name, _| explicit_keys.include?(name) } + explicit
       end
 
-      # Render hidden fields for preserved params (call from template)
+      # Render hidden fields for preserved params (call from template).
+      # `id: nil` como en active_filter_hidden_fields: en modo popover estos campos se pintan
+      # en los DOS forms (búsqueda rápida y panel), y con id derivado del name quedaban ids
+      # duplicados en el documento.
       def preserved_params_hidden_fields
         safe_join(
-          preserved_query_params.map { |name, value| helpers.hidden_field_tag(name, value) }
+          preserved_query_params.map { |name, value| helpers.hidden_field_tag(name, value, id: nil) }
         )
       end
 

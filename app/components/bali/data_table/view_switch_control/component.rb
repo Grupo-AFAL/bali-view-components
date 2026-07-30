@@ -6,10 +6,9 @@ module Bali
       # Segmented control de vistas del DataTable. Envuelve a Bali::ViewSwitch y le agrega
       # lo único que el switch genérico no puede saber: cómo se ve la URL de ESTE listado.
       #
-      # Cada vista declara `value:` (lo que viaja en `?view=`) y el href lo arma este
-      # componente mergeando el query string actual — mismo criterio que
-      # GroupByControl#build_href: se tira `page` (cambiar de vista vuelve a la primera) y
-      # sobreviven filtros, búsqueda, orden y agrupación.
+      # Cada vista declara `value:` (lo que viaja en `?view=`) y el href lo arma
+      # ToolbarHref mergeando el query string actual: se tira `page` (cambiar de vista
+      # vuelve a la primera) y sobreviven filtros, búsqueda, orden y agrupación.
       #
       # `saved_view` SÍ viaja acá, al revés que en Bali::Filters (EXCLUDED_PARAMS). Allá es
       # un SUBMIT de filtros: reenviarlo hacía que el server re-aplicara el payload de la
@@ -21,6 +20,8 @@ module Bali
       # de `module Bali::DataTable` la constante `ViewSwitch::Component` sombrearía a
       # `Bali::ViewSwitch::Component`.
       class Component < ApplicationViewComponent
+        include Bali::DataTable::ToolbarHref
+
         View = Struct.new(:name, :icon, :value, :href, :active, :options, keyword_init: true)
 
         MISSING_TARGET_MESSAGE = "with_view necesita `value:` (una vista de esta misma ruta) " \
@@ -97,14 +98,8 @@ module Bali
           view.value == current_value
         end
 
-        # Mismo criterio que GroupByControl#build_href: `page` se tira (cambiar de vista
-        # vuelve a la primera) y las órdenes de un solo uso (clear_filters/clear_search) no
-        # viajan — son acciones, no estado de navegación.
         def href_for(value)
-          params = @current_params.except("page", "clear_filters", "clear_search", param)
-          params = params.merge(param => value.to_s)
-          query = params.to_query
-          query.present? ? "#{@url}?#{query}" : @url
+          build_toolbar_href(@url, @current_params, param, value.to_s)
         end
       end
     end

@@ -12,13 +12,18 @@ module Bali
 
         attr_reader :group
 
+        # @param select_label [String] Nombre del registro para el checkbox de selección. Sin
+        #   él, N filas dan N controles con el MISMO nombre accesible ("Seleccionar fila") y
+        #   en el rotor de formularios del lector de pantalla son indistinguibles.
+        # rubocop:disable Metrics/ParameterLists
         def initialize(record_id: nil, skip_tr: false, bulk_actions: false, selectable: false,
-                       group: nil, **options)
+                       group: nil, select_label: nil, **options)
           @record_id = record_id
           @skip_tr = skip_tr
           @bulk_actions = bulk_actions
           @selectable = selectable
           @group = group
+          @select_label = select_label
           @options = hyphenize_keys(options)
 
           if (@bulk_actions || @selectable) && @record_id.blank?
@@ -28,6 +33,11 @@ module Bali
           return unless @skip_tr && (@bulk_actions || @selectable)
 
           raise IncompatibleOptions, "skip_tr and row selection are mutually exclusive"
+        end
+        # rubocop:enable Metrics/ParameterLists
+
+        def select_label
+          @select_label.present? ? t(".select_row_named", name: @select_label) : t(".select_row")
         end
 
         private

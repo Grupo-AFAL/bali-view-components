@@ -918,10 +918,12 @@ option list below.
 - `summary_position` - `:top` or `:bottom` (default: `:bottom`)
 - `item_name` - Item name used in the summary text (default: i18n)
 - `table_class` - CSS class for the content scroll wrapper (default: `"overflow-x-auto"`)
-- `display_mode` - Display mode requested by the host, typically `params[:view]`
-  (default: `:table`). It does **not** select a slot — there is only one content band, and
-  the host chooses what to declare, reading the already-validated value from
-  `dt.display_mode` (see `with_view_switch`).
+- `display_mode` - Display mode requested by the host, typically `params[:view]`. It does
+  **not** select a slot — there is only one content band, and the host chooses what to
+  declare, reading the already-validated value from `dt.display_mode` (see
+  `with_view_switch`). Omitted, it falls back to `params[<view_param>]` and then to the
+  first declared view, so a switch still works if you forget to wire it; pass it explicitly
+  when the mode does not come from the URL.
 - `view_param` - URL param that carries the view (default: `:view`)
 - `id` - Listing identity: the container id, the column selector's `querySelector` target
   (`#<id> table`) and the localStorage key of its columns (`bali:columns:<id>`) — one name
@@ -931,8 +933,19 @@ option list below.
   so **column persistence turns itself off** rather than writing a key nothing can read
   back. `with_column_selector` and `with_saved_views` take no `table_id:` — they read this.
 
-If the host replaces the listing over Turbo Streams, target the same id:
-`turbo_stream.replace @filter_form.storage_id`.
+If the host replaces the listing over Turbo Streams, target the **resolved** id — not the raw
+`storage_id`, which is not the same string whenever sanitizing changes it (`'admin/movies'` →
+`admin-movies`). Turbo looks the target up with `getElementById`, so a miss replaces nothing
+and reports nothing:
+
+```erb
+<%= turbo_stream.replace Bali::DataTable::ListingIdentity.for(@filter_form) do %>
+  <%= render 'listing' %>
+<% end %>
+```
+
+`Bali::DataTable::ListingIdentity.for` accepts the form (or a raw value) and applies exactly
+the rule the component applies.
 
 **Content slot.** There is exactly ONE content band, and it decides its own surface:
 
@@ -1028,12 +1041,16 @@ must therefore:
   <% dt.with_table do %>
     <%= render Bali::Table::Component.new(form: @filter_form, selectable: true) do |t| %>
       <% @movies.each do |movie| %>
-        <% t.with_row(record_id: movie.id) do %>...<% end %>
+        <% t.with_row(record_id: movie.id, select_label: movie.name) do %>...<% end %>
       <% end %>
     <% end %>
   <% end %>
 <% end %>
 ```
+
+Pass `select_label:` on every selectable row: without it all the checkboxes share the label
+"Select row", and in a screen reader's form-controls rotor a 25-row page is 25 identical
+entries.
 
 `with_bulk_actions` renders a `Bali::BulkActions(variant: :toolbar)` contextual row that
 **replaces the toolbar** while a selection exists and restores it when it is cleared. The

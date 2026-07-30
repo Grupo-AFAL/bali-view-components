@@ -6,10 +6,13 @@
     <%= tag.div(**toolbar_attributes) do %>
       <%# Izquierda: qué datos se ven (búsqueda + filtros + agrupación) %>
       <%= tag.div(**overflow_group_attributes("left", css_class: "flex items-center gap-1 sm:gap-2 flex-1 min-w-0")) do %>
-        <% if filters_panel? || simple_filters? %>
+        <%# Se pregunta por el CONTENIDO y no por el slot: un control declarado que decide no
+            pintar (p.ej. vistas guardadas sin store) dejaba un envoltorio vacío que el JS
+            movía al ⋯, destapando un botón que abre un menú vacío. %>
+        <% if control_content(:filters_panel) || control_content(:simple_filters) %>
           <%= tag.div(**overflow_item_attributes(:filters, group: "left", css_class: "flex-1 min-w-0")) do %>
-            <%= filters_panel if filters_panel? %>
-            <%= simple_filters if simple_filters? %>
+            <%= control_content(:filters_panel) %>
+            <%= control_content(:simple_filters) %>
           <% end %>
         <% end %>
 
@@ -23,27 +26,27 @@
       <%# Derecha: cómo se ven %>
       <% if show_toolbar_right? %>
         <%= tag.div(**overflow_group_attributes("right", css_class: "flex items-center gap-1 sm:gap-2 shrink-0")) do %>
-          <% if view_switch? %>
+          <% if control_content(:view_switch) %>
             <%= tag.div(**overflow_item_attributes(:view_switch, group: "right")) do %>
-              <%= view_switch %>
+              <%= control_content(:view_switch) %>
             <% end %>
           <% end %>
 
-          <% if saved_views? %>
+          <% if control_content(:saved_views) %>
             <%= tag.div(**overflow_item_attributes(:saved_views, group: "right")) do %>
-              <%= saved_views %>
+              <%= control_content(:saved_views) %>
             <% end %>
           <% end %>
 
-          <% if column_selector? %>
+          <% if control_content(:column_selector) %>
             <%= tag.div(**overflow_item_attributes(:column_selector, group: "right")) do %>
-              <%= column_selector %>
+              <%= control_content(:column_selector) %>
             <% end %>
           <% end %>
 
-          <% if export? %>
+          <% if control_content(:export) %>
             <%= tag.div(**overflow_item_attributes(:export, group: "right")) do %>
-              <%= export %>
+              <%= control_content(:export) %>
             <% end %>
           <% end %>
 
@@ -61,28 +64,28 @@
           variante !important. %>
       <% if overflow_menu? %>
         <div class="shrink-0 hidden sm:hidden" data-toolbar-overflow-target="overflow">
-          <%= render Bali::Dropdown::Component.new(align: :bottom_end, wide: true) do |dropdown| %>
+          <%# `menu: false`: acá adentro no hay menuitems sino widgets enteros (otros
+              dropdowns, checkboxes de columnas, el form de renombrar vistas). Declarado como
+              `role="menu"` el lector de pantalla entra en modo menú sobre un formulario y
+              expone hijos que ese rol no permite. Esto es un popover contenedor. %>
+          <%= render Bali::Dropdown::Component.new(align: :bottom_end, wide: true, menu: false) do |dropdown| %>
             <% dropdown.with_trigger(variant: :ghost, class: "btn-sm btn-square",
                                      "aria-label": overflow_menu_label) do %>
               <%= render Bali::Icon::Component.new("ellipsis", class: "w-4 h-4") %>
             <% end %>
-            <%# El <li> es obligatorio: Bali::Dropdown pinta `content` dentro de un <ul>.
-                Las utilidades van con ! porque daisyUI le impone display:grid + padding +
-                hover a todo hijo directo de un li dentro de .menu, con la misma
-                especificidad que una utilidad de Tailwind.
+            <%# Sin la clase `.menu` de daisyUI el contenedor ya no impone display:grid +
+                padding + hover a sus hijos, así que las utilidades van sin `!`.
 
                 Los dropdowns que caen acá (columnas, export, vistas) son `.dropdown-end`
                 con contenido ABSOLUTO: anidados se posicionan contra este contenedor y se
                 salen del viewport (medido: left -115px en un teléfono de 375px). En flujo
                 quedan como secciones apiladas, que es lo razonable en un teléfono. Cerrados
                 siguen siendo `display:none`, así que no dejan huecos. %>
-            <li class="w-full">
-              <div class="toolbar-overflow-menu
-                          !flex flex-col !items-stretch gap-2 w-full !p-1 hover:!bg-transparent
-                          max-w-[calc(100vw-3rem)] max-h-[70vh] overflow-y-auto
-                          [&_.dropdown-content]:!static [&_.dropdown-content]:!w-full"
-                   data-toolbar-overflow-target="menu"></div>
-            </li>
+            <div class="toolbar-overflow-menu
+                        flex flex-col items-stretch gap-2 w-full p-1
+                        max-w-[calc(100vw-3rem)] max-h-[70vh] overflow-y-auto
+                        [&_.dropdown-content]:!static [&_.dropdown-content]:!w-full"
+                 data-toolbar-overflow-target="menu"></div>
           <% end %>
         </div>
       <% end %>

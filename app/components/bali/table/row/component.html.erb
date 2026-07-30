@@ -8,7 +8,7 @@
             además NO se dispara cuando el JS setea `.checked` (sin eso, sincronizar el
             checkbox desde el controlador vuelve a entrar al mismo handler). %>
         <%= tag.input(type: 'checkbox', class: 'checkbox checkbox-sm', value: @record_id,
-                      'aria-label': t('.select_row'),
+                      'aria-label': select_label,
                       data: { action: 'change->bulk-actions#toggleItem' }) %>
       <% end %>
     <% elsif @bulk_actions %>

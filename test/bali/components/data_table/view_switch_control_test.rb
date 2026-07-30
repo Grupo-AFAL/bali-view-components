@@ -48,11 +48,28 @@ class BaliDataTableViewSwitchControlComponentTest < ComponentTestCase
     assert_selector("a[href*='group_by=genre']")
   end
 
+  def test_a_url_that_already_carries_a_query_string_is_merged_not_concatenated
+    # `"#{url}?#{query}"` daba `/movies?scope=archived?view=grid`, que Rack parsea como un
+    # solo `scope` corrupto y sin `view`: el click no cambiaba de vista.
+    switch = Bali::DataTable::ViewSwitchControl::Component.new(
+      url: "/movies?scope=archived", current_params: { "q" => { "name_cont" => "matrix" } }
+    )
+    switch.with_view(name: "Tabla", icon: "list", value: :table)
+    switch.with_view(name: "Tarjetas", icon: "grid", value: :grid)
+    render_inline(switch)
+
+    href = page.native.css("a").map { |link| link["href"] }.find { |url| url.include?("view=grid") }
+    assert_equal 1, href.count("?")
+    parsed = Rack::Utils.parse_nested_query(href.split("?", 2).last)
+    assert_equal "archived", parsed["scope"]
+    assert_equal "grid", parsed["view"]
+  end
+
   def test_marks_the_current_view_as_active
     render_switch(current: :grid)
 
-    assert_selector("a.btn-active.btn-primary[href*='view=grid'][aria-pressed='true']")
-    assert_selector("a.btn-outline[href*='view=table'][aria-pressed='false']")
+    assert_selector("a.btn-active.btn-primary[href*='view=grid'][aria-current='page']")
+    assert_selector("a.btn-outline[href*='view=table']:not([aria-current])")
   end
 
   def test_unknown_view_falls_back_to_the_first_declared

@@ -372,7 +372,7 @@ export class FiltersController extends Controller {
     this.closeDropdown()
 
     // Navigate to URL without filters (use Turbo.visit for proper navigation)
-    const url = new URL(this.urlValue, window.location.origin)
+    const url = this.preservedParamsUrl()
     url.searchParams.set('clear_filters', 'true')
 
     if (window.Turbo) {
@@ -380,6 +380,28 @@ export class FiltersController extends Controller {
     } else {
       window.location.href = url.toString()
     }
+  }
+
+  /**
+   * URL base del listado CON los params que tienen que sobrevivir a limpiar (el modo de
+   * visualización, la agrupación, y cualquier `preserved_params` del host). `urlValue` llega
+   * sin query string, así que armar la URL solo con él tiraba esos params: limpiar la
+   * búsqueda estando en tarjetas devolvía al usuario a la tabla. Viven como hidden fields del
+   * form; los `q[...]` quedan afuera porque son justo lo que se está limpiando.
+   */
+  preservedParamsUrl () {
+    const url = new URL(this.urlValue, window.location.origin)
+    const form = this.hasSearchFormTarget
+      ? this.searchFormTarget
+      : (this.hasFormTarget ? this.formTarget : null)
+    if (!form) return url
+
+    for (const [key, value] of new FormData(form)) {
+      if (key.startsWith('q[')) continue
+      if (value && String(value).trim() !== '') url.searchParams.set(key, value)
+    }
+
+    return url
   }
 
   /**
@@ -529,7 +551,7 @@ export class FiltersController extends Controller {
 
     // Navigate to URL with clear_search param (bypasses persistence restore)
     // Use standard navigation to ensure fresh server response
-    const url = new URL(this.urlValue, window.location.origin)
+    const url = this.preservedParamsUrl()
     url.searchParams.set('clear_search', 'true')
 
     // Use window.location for reliable navigation that avoids Turbo caching

@@ -26,18 +26,45 @@ module Bali
         end
       end
 
-      def initialize(hoverable: false, close_on_click: true, align: :right, wide: false, **options)
+      # @param menu [Boolean] Semántica de menú (`<ul role="menu">` de menuitems). En `false`
+      #   el panel es un CONTENEDOR genérico: para contenido que no son menuitems (forms,
+      #   checkboxes, otros dropdowns), donde `role="menu"` expone hijos no permitidos y hace
+      #   que el lector de pantalla entre en modo menú sobre un formulario.
+      def initialize(hoverable: false, close_on_click: true, align: :right, wide: false,
+                     menu: true, **options)
         @hoverable = hoverable
         @close_on_click = close_on_click
         @align = align&.to_sym
         @wide = wide
+        @menu = menu
         @options = options
+      end
+
+      def menu?
+        @menu
+      end
+
+      def menu_tag_name
+        menu? ? :ul : :div
+      end
+
+      # Sin semántica de menú tampoco va la clase `.menu` de daisyUI: es la que impone
+      # display:grid + padding + hover a los hijos directos, y sin ella el contenido en flujo
+      # no necesita variantes `!important` para recuperar su propio layout.
+      def menu_attributes
+        {
+          tabindex: -1,
+          class: content_classes,
+          role: ("menu" if menu?),
+          "aria-label": (t(".menu_label") if menu?),
+          data: { dropdown_target: "menu" }
+        }.compact
       end
 
       def content_classes
         class_names(
           "dropdown-content",
-          "menu",
+          ("menu" if menu?),
           "bg-base-100",
           "text-base-content", # Ensure proper text contrast regardless of parent colors
           "rounded-box",

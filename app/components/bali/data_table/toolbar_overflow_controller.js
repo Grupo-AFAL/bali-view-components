@@ -57,6 +57,8 @@ export default class extends Controller {
   handleBeforeCache = () => this.apply(false)
 
   apply (narrow) {
+    const focused = this.focusedControl()
+
     this.closeOpenDropdowns()
     if (narrow) {
       this.collapse()
@@ -64,6 +66,7 @@ export default class extends Controller {
       this.expand()
     }
     this.syncOverflowVisibility()
+    this.restoreFocus(focused)
   }
 
   collapse () {
@@ -127,6 +130,37 @@ export default class extends Controller {
         dropdown.classList.remove('dropdown-open')
       }
     })
+  }
+
+  /**
+   * Cruzar el breakpoint (un zoom al 400%, rotar el teléfono) no puede costarle al usuario
+   * de teclado su posición: `closeOpenDropdowns` hace blur y `collapse`/`expand` mueven el
+   * nodo enfocado, así que sin esto el foco cae al <body> sin anillo ni anuncio.
+   */
+  focusedControl () {
+    const active = document.activeElement
+    if (!active || !this.itemTargets.some(item => item.contains(active))) return null
+
+    return active
+  }
+
+  restoreFocus (element) {
+    if (!element || !element.isConnected) return
+
+    // Quedó dentro del ⋯ cerrado (no renderizado): el destino equivalente es su trigger,
+    // que es por donde el usuario llega ahora a ese control.
+    if (element.offsetParent === null) {
+      this.overflowTrigger()?.focus({ preventScroll: true })
+      return
+    }
+
+    element.focus({ preventScroll: true })
+  }
+
+  overflowTrigger () {
+    if (!this.hasOverflowTarget) return null
+
+    return this.overflowTarget.querySelector('[data-dropdown-target="trigger"]')
   }
 
   // Sin nada adentro, el ⋯ abriría un menú vacío. `sm:hidden` ya lo tapa arriba del

@@ -22,14 +22,14 @@ class BaliViewSwitchComponentTest < ComponentTestCase
     assert_selector("a[href='/projects/board']", text: "Board")
   end
 
-  def test_active_view_gets_primary_classes_and_aria_pressed_true
+  def test_active_view_gets_primary_classes_and_aria_current_page
     render_switch
-    assert_selector("a.btn-active.btn-primary[href='/projects/list'][aria-pressed='true']")
+    assert_selector("a.btn-active.btn-primary[href='/projects/list'][aria-current='page']")
   end
 
-  def test_inactive_view_gets_outline_classes_and_aria_pressed_false
+  def test_inactive_view_gets_outline_classes_and_no_aria_current
     render_switch
-    assert_selector("a.btn-outline[href='/projects/board'][aria-pressed='false']")
+    assert_selector("a.btn-outline[href='/projects/board']:not([aria-current])")
     assert_no_selector("a.btn-active[href='/projects/board']")
   end
 
@@ -67,8 +67,8 @@ class BaliViewSwitchComponentTest < ComponentTestCase
         switch.with_view(name: "Board", icon: "grid", href: "/studios")
       end
     end
-    assert_selector("a.btn-active.btn-primary[href='/studios'][aria-pressed='true']")
-    assert_selector("a.btn-outline[href='/movies'][aria-pressed='false']")
+    assert_selector("a.btn-active.btn-primary[href='/studios'][aria-current='page']")
+    assert_selector("a.btn-outline[href='/movies']:not([aria-current])")
   end
 
   def test_autodetection_ignores_the_query_string
@@ -77,7 +77,7 @@ class BaliViewSwitchComponentTest < ComponentTestCase
         switch.with_view(name: "Board", icon: "grid", href: "/studios")
       end
     end
-    assert_selector("a.btn-active.btn-primary[aria-pressed='true']")
+    assert_selector("a.btn-active.btn-primary[aria-current='page']")
   end
 
   def test_explicit_active_false_overrides_autodetection
@@ -86,7 +86,7 @@ class BaliViewSwitchComponentTest < ComponentTestCase
         switch.with_view(name: "Board", icon: "grid", href: "/studios", active: false)
       end
     end
-    assert_selector("a.btn-outline[aria-pressed='false']")
+    assert_selector("a.btn-outline:not([aria-current])")
     assert_no_selector("a.btn-active")
   end
 

@@ -41,8 +41,12 @@ module Bali
       #
       # @param options [Hash] Opciones de Bali::BulkActions (class:, data:)
       # @yield [bulk_actions] Bloque para declarar las acciones con `with_action`
+      #
+      # `**options` va PRIMERO: lo que el componente posee no se puede pisar desde el host.
+      # Splateado al final, un `standalone: true` del host anidaba un segundo controlador y
+      # rompía en silencio la invariante que este comentario acaba de documentar.
       renders_one :bulk_actions, ->(**options) do
-        Bali::BulkActions::Component.new(variant: :toolbar, standalone: false, **options)
+        Bali::BulkActions::Component.new(**options, variant: :toolbar, standalone: false)
       end
 
       # Filters panel using Filters component.
@@ -204,7 +208,9 @@ module Bali
       # @param button_icon [String] Icon name
       # @yield [column_selector] Block to define columns
       renders_one :column_selector, ->(persist: true, **opts, &block) do
-        component = ColumnSelector::Component.new(listing_id: id, persist: persist && stable_id?, **opts)
+        # `**opts` primero: la identidad del listado la resuelve el DataTable y pisarla desde
+        # el host apuntaba el selector a un contenedor distinto del de las vistas guardadas.
+        component = ColumnSelector::Component.new(**opts, listing_id: id, persist: persist && stable_id?)
         block&.call(component)
         # Una vista guardada aplicada MANDA: sus columnas visibles pisan los defaults
         # declarados por columna, y el selector marca server_state para que el JS no
@@ -224,7 +230,8 @@ module Bali
       # de la vista; `default_views:` son atajos estáticos {name:, url:} ("Sugeridas").
       renders_one :saved_views, ->(url: nil, default_views: nil) do
         SavedViews::Component.new(filter_form: @filter_form, url: url || default_saved_views_url,
-                                  base_url: @url, listing_id: id, default_views: default_views)
+                                  base_url: saved_views_base_url, listing_id: id,
+                                  default_views: default_views)
       end
 
       # Segmented control de vistas (tabla / tarjetas / lo que el host defina). A diferencia
@@ -241,13 +248,15 @@ module Bali
         # sin nombre accesible — que es lo que pasaría escondiendo el label a mano.
         options[:icon_only] = :responsive unless options.key?(:icon_only)
 
+        # `**options` primero: la URL, el param y el modo actual los resuelve el DataTable —
+        # pisarlos desde el host daba links apuntando a un param y hidden fields a otro.
         component = ViewSwitchControl::Component.new(
+          **options,
           url: @url,
           current_params: safe_query_parameters,
           param: @view_param,
-          current: @display_mode,
-          aria_label: aria_label,
-          **options
+          current: requested_display_mode,
+          aria_label: aria_label
         )
         block&.call(component)
         # El gateo de display_mode necesita las vistas YA declaradas, y eso solo pasa
@@ -305,7 +314,7 @@ module Bali
       # elegir qué contenido declara — por eso se resuelve tarde y no en `initialize`: las
       # vistas se declaran DESPUÉS de construir el componente.
       def display_mode
-        @view_switch_control ? @view_switch_control.current_value : @display_mode
+        @view_switch_control ? @view_switch_control.current_value : requested_display_mode
       end
 
       # Una sola banda de contenido: `with_table`/`with_grid` son azúcar sobre ella.
@@ -376,9 +385,23 @@ module Bali
         @pagy || summary? || show_summary_bottom?
       end
 
+      # Contenido YA renderizado de un control declarativo, o nil si el control decidió no
+      # pintar. Declarar el slot NO es lo mismo que pintar: `with_saved_views` sobre un form
+      # sin store deja `render?` en false, y mirar solo el predicado del slot dejaba un
+      # envoltorio vacío que en un teléfono terminaba destapando un ⋯ que abría un menú
+      # vacío — justo lo que el gate de #overflow_menu? existe para evitar.
+      #
+      # Se memoiza porque el template lo vuelve a leer (ViewComponent::Slot#to_s ya memoiza,
+      # pero acá además se cachea el `nil`).
+      def control_content(key)
+        @control_contents ||= {}
+        return @control_contents[key] if @control_contents.key?(key)
+
+        @control_contents[key] = (public_send(key).to_s.presence if public_send(:"#{key}?"))
+      end
+
       def show_toolbar?
-        filters_panel? || simple_filters? || group_by_control? || toolbar_buttons? ||
-          column_selector? || export? || saved_views? || view_switch?
+        declared_toolbar_controls.any?
       end
 
       # El contenedor es quien lleva el controlador de selección: tiene que envolver a la
@@ -392,6 +415,10 @@ module Bali
       # el de selección pueda esconderla mientras la barra contextual ocupa su lugar.
       def toolbar_attributes
         attrs = prepend_controller({ class: toolbar_classes }, "toolbar-overflow")
+        # El umbral se EMITE: el gate del ⋯ y el corte que aplica el JS son el mismo número,
+        # y con dos defaults independientes moverlo de un lado dejaba al otro pintando un
+        # menú que nunca se llena. El default del controlador cubre solo markup a mano.
+        prepend_values(attrs, "toolbar-overflow", threshold: OVERFLOW_THRESHOLD)
         return attrs unless bulk_actions?
 
         attrs[:data][:bulk_actions_target] = "toolbar"
@@ -451,23 +478,27 @@ module Bali
       end
 
       def show_toolbar_right?
-        view_switch? || saved_views? || toolbar_buttons? || column_selector? || export?
+        (declared_toolbar_controls & %i[view_switch saved_views toolbar_buttons column_selector export]).any?
       end
 
       private
 
-      # Qué familias de control declaró el host. Es la ÚNICA lista: `overflow_menu?` se
-      # deriva de acá, así que el gate del ⋯ no puede desalinearse de lo que el JS colapsa.
+      # Qué familias de control PINTAN algo. Es la ÚNICA lista: `overflow_menu?`,
+      # `show_toolbar?` y `show_toolbar_right?` se derivan de acá, así que el gate del ⋯ no
+      # puede desalinearse de lo que el JS colapsa. Mira el render, no el predicado del slot
+      # (ver #control_content).
       def declared_toolbar_controls
-        controls = []
-        controls << :filters if filters_panel? || simple_filters?
-        controls << :group_by if group_by_control?
-        controls << :view_switch if view_switch?
-        controls << :saved_views if saved_views?
-        controls << :column_selector if column_selector?
-        controls << :export if export?
-        controls << :toolbar_buttons if toolbar_buttons?
-        controls
+        @declared_toolbar_controls ||= begin
+          controls = []
+          controls << :filters if control_content(:filters_panel) || control_content(:simple_filters)
+          controls << :group_by if group_by_control?
+          controls << :view_switch if control_content(:view_switch)
+          controls << :saved_views if control_content(:saved_views)
+          controls << :column_selector if control_content(:column_selector)
+          controls << :export if control_content(:export)
+          controls << :toolbar_buttons if toolbar_buttons?
+          controls
+        end
       end
 
       # [id, estable?]. `FilterForm#id` (scope.cache_key) NO sirve como identidad: trae una
@@ -481,18 +512,40 @@ module Bali
         [ "data-table-#{SecureRandom.hex(4)}", false ]
       end
 
-      # Slug usable como identificador CSS: sin "#" inicial, sin caracteres inválidos y sin
-      # empezar con dígito — `#123 table` hace que querySelector lance SyntaxError. No se
-      # hace downcase a propósito: el matching de `#id` en HTML es case-sensitive.
+      # La MISMA regla que un `.turbo_stream.erb` del host tiene que poder aplicar para
+      # apuntar su `turbo_stream.replace`: vive en ListingIdentity, público (ver
+      # ListingIdentity.for).
       def sanitize_listing_id(value)
-        slug = value.to_s.delete_prefix("#").gsub(/[^A-Za-z0-9_-]+/, "-").gsub(/\A-+|-+\z/, "")
-        return if slug.blank?
-
-        slug.match?(/\A\d/) ? "listing-#{slug}" : slug
+        ListingIdentity.sanitize(value)
       end
 
       def form_storage_id
         @filter_form.storage_id if @filter_form.respond_to?(:storage_id)
+      end
+
+      # El modo pedido, CRUDO: el que declaró el host o, si no declaró ninguno, el que trae
+      # la URL. Sin el fallback, un host que arma el view switch y se olvida de
+      # `display_mode:` obtiene links que cambian la URL y nunca cambian la vista: el
+      # componente ya tiene el query string en la mano (lo usa para armar esos mismos hrefs)
+      # y quedarse mirando solo el kwarg era fallar en silencio.
+      #
+      # Tarde y no en `initialize`: `helpers` todavía no existe antes del render.
+      def requested_display_mode
+        return @display_mode if @display_mode_declared
+
+        safe_query_parameters[@view_param.to_s].to_s.presence&.to_sym
+      end
+
+      # Aplicar una vista guardada no debería sacar al usuario del modo en el que está
+      # mirando el listado: el view switch preserva `saved_view` a propósito y la dirección
+      # inversa tiene que ser simétrica. Viaja SOLO el modo — arrastrar el query string
+      # entero haría que un `group_by` de la URL le gane al que trae el payload de la vista
+      # (ver FilterForm#apply_saved_view_state).
+      def saved_views_base_url
+        view = view_preserved_params
+        return @url if view.empty?
+
+        "#{@url}#{@url.to_s.include?('?') ? '&' : '?'}#{view.to_query}"
       end
 
       # URL default de las mutaciones de vistas guardadas: las rutas del PROPIO engine
@@ -517,9 +570,8 @@ module Bali
       # panel de filtros, así que acá el gateo todavía no se puede resolver. Un valor
       # desconocido es inofensivo — el próximo request lo vuelve a gatear.
       def view_preserved_params
-        return {} unless @display_mode_declared
-
-        { @view_param.to_s => @display_mode.to_s }
+        mode = requested_display_mode
+        mode.present? ? { @view_param.to_s => mode.to_s } : {}
       end
 
       # group_by param to preserve as a hidden field on GET filter forms, so

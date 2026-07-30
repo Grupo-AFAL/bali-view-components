@@ -192,6 +192,43 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector('tr[data-record-id="1"] td input[data-action="change->bulk-actions#toggleItem"]')
   end
 
+  def test_the_empty_state_spans_the_selection_column_too
+    # `headers.count` ignoraba la columna de checkbox: el empty state quedaba una columna
+    # corto y descentrado en cada listado filtrado a cero.
+    @options = { selectable: true }
+    render_inline(component) do |c|
+      c.with_header(name: "A")
+      c.with_header(name: "B")
+    end
+
+    assert_selector("thead th", count: 3)
+    assert_selector("td.empty-table[colspan='3']")
+  end
+
+  def test_the_empty_state_ignores_hidden_headers
+    render_inline(component) do |c|
+      c.with_header(name: "A")
+      c.with_header(name: "B", hidden: true)
+    end
+
+    assert_selector("thead th", count: 1)
+    assert_selector("td.empty-table[colspan='1']")
+  end
+
+  def test_select_label_names_the_row_checkbox_after_its_record
+    # Sin él, N filas dan N controles con el MISMO nombre accesible y en el rotor de
+    # formularios del lector de pantalla son indistinguibles.
+    @options = { selectable: true }
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+      c.with_row(record_id: 1, select_label: "Blade Runner") { "<td>Row 1</td>".html_safe }
+      c.with_row(record_id: 2) { "<td>Row 2</td>".html_safe }
+    end
+
+    assert_selector('tr[data-record-id="1"] input[aria-label="Select Blade Runner"]')
+    assert_selector('tr[data-record-id="2"] input[aria-label="Select row"]')
+  end
+
   def test_selectable_requires_record_id_on_each_row
     @options = { selectable: true }
     assert_raises(Bali::Table::Row::Component::IncompatibleOptions) do

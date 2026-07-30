@@ -51,11 +51,13 @@ module Bali
           active_path?(request.fullpath, href)
         end
 
+        # `aria-current="page"` y no `aria-pressed`: esto es un `<a>` que NAVEGA (role=link) y
+        # el navegador descarta `pressed` sobre un link — el modo activo quedaba expresado
+        # solo por color y los tres links sonaban idénticos ("Tabla, link / Tarjetas, link").
+        # `aria-current` es un atributo global, permitido en cualquier rol.
         def link_attributes
-          attrs = options.except(:class).merge(
-            class: link_classes,
-            "aria-pressed": active?.to_s
-          )
+          attrs = options.except(:class).merge(class: link_classes)
+          attrs[:"aria-current"] = "page" if active?
 
           if icon_only? || responsive_icon_only?
             attrs[:title] ||= name

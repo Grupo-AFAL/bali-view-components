@@ -58,6 +58,11 @@ module Bali
                          default_views.find { |view| default_view_active?(view) }
         end
 
+        # El botón nombra la vista ACTIVA; sin ninguna aplicada, el label genérico.
+        def button_label
+          active_view ? active_view.name : t(".button_label")
+        end
+
         def active_view?(view)
           view.equal?(active_view) ||
             (!view.is_a?(DefaultView) && !active_view.is_a?(DefaultView) &&
@@ -79,6 +84,14 @@ module Bali
         # columnas visibles las agrega el Stimulus al enviar (viven en el DOM del selector).
         def payload_json
           filter_form.current_view_payload.to_json
+        end
+
+        # Columnas que IMPUSO la vista aplicada. El selector solo se pinta en modo tabla, y
+        # sin él el JS caía a localStorage — que es la memoria del dispositivo ANTERIOR a la
+        # vista: guardar una vista nueva desde tarjetas la persistía con columnas que el
+        # usuario no estaba viendo.
+        def server_columns_json
+          Array(filter_form.try(:saved_view_columns)).map(&:to_i).to_json
         end
 
         private

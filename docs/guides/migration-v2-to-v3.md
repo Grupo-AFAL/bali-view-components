@@ -6,7 +6,10 @@ library is unchanged; if your app has no `Bali::DataTable`, upgrading is a versi
 
 The goal of the change is that the correct index layout is what you get by *default*.
 The reference composition is the `Complete` scenario of the IndexPage preview
-(`bali/index_page/complete` in Lookbook), and `/admin/movies` in the dummy app.
+(`bali/index_page/complete` in Lookbook) — it is the only place all seven control families
+render at once. `/admin/movies` in the dummy app is the end-to-end reference against real
+controllers, routes and Turbo Streams; it renders everything except saved views (which need
+an owner the dummy has no concept of) and host toolbar buttons.
 
 ## What breaks, and what replaces it
 
@@ -77,16 +80,22 @@ selector or saved views to it.
 
 ### 3. Fix any `turbo_stream.replace` that hardcoded the old container id
 
-**This is the only break that fails silently.** The container id changed from
-`data-table-<scope cache_key>` to the resolved identity. Turbo finds no target, applies the
-stream to nothing, and raises no error:
+**This is the break that leaves no trace.** The container id changed from
+`data-table-<scope cache_key>` to the resolved identity. Turbo resolves a stream target with
+`getElementById`: with no node it replaces nothing, raises nothing and logs nothing.
+
+The identity is the `storage_id` **sanitized into a valid CSS identifier**, so do not target
+the raw value — a `storage_id` containing `/`, `:`, `.` or a space, or one starting with a
+digit, renders a different id (`'admin/movies'` → `admin-movies`, `'2026_reports'` →
+`listing-2026_reports`). `Bali::DataTable::ListingIdentity.for` applies exactly the rule the
+component applies:
 
 ```erb
 <%# v2 %>
 <%= turbo_stream.replace "data-table-#{@filter_form.id}" do %>
 
 <%# v3 %>
-<%= turbo_stream.replace @filter_form.storage_id do %>
+<%= turbo_stream.replace Bali::DataTable::ListingIdentity.for(@filter_form) do %>
 ```
 
 While you are there: render the DataTable from a **shared partial** used by both
@@ -167,6 +176,15 @@ longer on this path.
 
 ## Behaviour changes with no API change
 
+- **`toolbar_class:` is ignored, not rejected.** `DataTable#initialize` swallows unknown
+  keywords in `**options`, so a leftover `toolbar_class:` raises nothing and simply loses
+  its styling — unlike every other removal in the table above, which raises `ArgumentError`.
+  Same for `display_mode:`'s old sibling `data_display_mode:` as a keyword. (It never
+  shipped in a released 2.x — only apps tracking `main` need to grep for it.)
+- **`DataTable#with_content` shadows `ViewComponent::Base#with_content`.** The content band
+  is declared with keywords (`with_content(surface:, scroll:)`), so the base one-positional
+  form raises `ArgumentError: wrong number of arguments`. It was a silent no-op on
+  `DataTable` before, so nothing that worked stops working — but the error is new.
 - **Stored column preferences reset once.** The localStorage key moved from
   `bali:columns:<table_id>` to `bali:columns:<storage_id>`. The old keys are orphaned; no
   one cleans them up. If two listings shared a `table_id` (a very common copy-paste, e.g.

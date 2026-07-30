@@ -103,7 +103,10 @@
   <% else %>
     <%# La superficie y el scroll horizontal los trae with_table. %>
     <% data_table.with_table do %>
-      <%= render Bali::Table::Component.new(form: @filter_form, selectable: true) do |table| %>
+      <%# `group_counts` es lo que hace que el encabezado de grupo muestre el total GLOBAL
+          sobre el set filtrado, no solo lo que entró en la página. %>
+      <%= render Bali::Table::Component.new(form: @filter_form, selectable: true,
+                                            group_counts: @filter_form.group_counts) do |table| %>
         <% table.with_header(name: t('movies.columns.name'), sort: :name) %>
         <% table.with_header(name: t('movies.columns.genre'), sort: :genre) %>
         <% table.with_header(name: t('movies.columns.status'), sort: :status) %>
@@ -113,7 +116,11 @@
         <% table.with_header(name: '', class: 'w-12') %>
 
         <% @movies.each do |movie| %>
-          <% table.with_row(record_id: movie.id) do %>
+          <%# `select_label:` da contexto de registro al checkbox de la fila: sin él, N filas
+              dan N controles con el mismo nombre accesible. El valor del grupo tiene que
+              coincidir con una clave de group_counts; nil cuando la agrupación está apagada. %>
+          <% table.with_row(record_id: movie.id, select_label: movie.name,
+                            group: @filter_form.group_by && movie.public_send(@filter_form.group_by)) do %>
             <td class="font-medium">
               <%= render Bali::Link::Component.new(name: movie.name, href: admin_movie_path(movie)) %>
             </td>

@@ -281,6 +281,91 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_equal(:gantt, component.display_mode)
   end
 
+  def test_the_display_mode_falls_back_to_the_url_when_the_host_forgets_it
+    # Un host que declara el switch y se olvida de `display_mode:` obtenía links que
+    # cambiaban la URL y nunca la vista, en silencio: el componente ya tiene el query
+    # string en la mano (arma esos mismos hrefs con él).
+    with_request_url "/movies?view=grid" do
+      render_inline(Bali::DataTable::Component.new(url: "/movies")) do |c|
+        declare_views(c)
+        assert_equal(:grid, c.display_mode)
+        c.with_grid { '<div class="cards"></div>'.html_safe }
+      end
+    end
+
+    assert_selector("a.btn-active[href*='view=grid']")
+  end
+
+  def test_the_view_taken_from_the_url_also_travels_as_a_hidden_field
+    with_request_url "/movies?view=grid" do
+      render_inline(Bali::DataTable::Component.new(url: "/movies")) do |c|
+        c.with_filters_panel(available_attributes: filter_attributes)
+        declare_views(c)
+        c.with_grid { '<div class="cards"></div>'.html_safe }
+      end
+    end
+
+    assert_selector("form input[type=hidden][name=view][value=grid]", visible: :all)
+  end
+
+  SavedViewsStore = Struct.new(:views) do
+    def list = views
+    def find(id) = views.find { |view| view.id.to_s == id.to_s }
+  end
+
+  def saved_views_form
+    Bali::FilterForm.new(
+      Movie.all, ActionController::Parameters.new, storage_id: "movies_index",
+      saved_views_store: SavedViewsStore.new([])
+    )
+  end
+
+  def test_the_saved_views_control_declares_its_priority_and_keeps_its_label
+    # Vistas guardadas es el control cuya DUPLICACIÓN causó #669, y el único cuyo label es
+    # dinámico (el nombre de la vista activa): dentro del ⋯ sin label queda un ícono anónimo.
+    render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: saved_views_form)) do |c|
+      c.with_saved_views
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector('[data-toolbar-overflow-target="item"][data-toolbar-overflow-group="right"]' \
+                    '[data-toolbar-overflow-priority="40"]', count: 1, visible: :all)
+    assert_selector('[data-toolbar-overflow-priority="40"] span.toolbar-control-label', visible: :all)
+    assert_selector('[data-controller~="saved-views"]', count: 1, visible: :all)
+  end
+
+  def test_a_declared_control_that_renders_nothing_does_not_open_the_overflow_menu
+    # `with_saved_views` sobre un form sin store deja `render?` en false. Mirando el
+    # predicado del slot quedaba un envoltorio VACÍO que el JS movía al ⋯, destapando un
+    # botón que abre un menú en blanco.
+    formless = Bali::FilterForm.new(Movie.all, ActionController::Parameters.new)
+    render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: formless)) do |c|
+      c.with_filters_panel(available_attributes: filter_attributes)
+      c.with_saved_views
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_no_selector('[data-toolbar-overflow-priority="40"]', visible: :all)
+    assert_no_selector('[data-toolbar-overflow-target="overflow"]', visible: :all)
+  end
+
+  def test_the_toolbar_emits_the_overflow_threshold_it_gated_with
+    render_toolbar_with_export
+
+    assert_selector('[data-controller~="toolbar-overflow"]' \
+                    "[data-toolbar-overflow-threshold-value=\"#{Bali::DataTable::Component::OVERFLOW_THRESHOLD}\"]",
+                    visible: :all)
+  end
+
+  def test_the_overflow_menu_is_a_container_not_a_menu_of_menuitems
+    # Adentro caen widgets enteros (dropdowns anidados, checkboxes, el form de renombrar):
+    # `role="menu"` expone hijos que ese rol no permite.
+    render_toolbar_with_export
+
+    assert_no_selector('[data-toolbar-overflow-target="overflow"] [role="menu"]', visible: :all)
+    assert_selector('div[data-toolbar-overflow-target="menu"]', visible: :all)
+  end
+
   def test_bulk_actions_puts_the_stimulus_controller_on_the_container
     render_inline(component) do |c|
       c.with_bulk_actions { |bulk| bulk.with_action(label: "Delete", href: "/delete") }
@@ -560,7 +645,7 @@ class BaliDataTableComponentTest < ComponentTestCase
     end
 
     assert_selector("div.data-table-component")
-    assert_selector('.view-switch-component a[aria-pressed="true"]', text: "Table")
+    assert_selector('.view-switch-component a[aria-current="page"]', text: "Table")
   end
 
   def test_actions_panel_is_gone

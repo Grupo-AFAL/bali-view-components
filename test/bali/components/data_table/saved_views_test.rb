@@ -128,6 +128,39 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
     assert_selector "[data-column-selector-storage-key-value='bali:columns:movies_index']"
   end
 
+  def test_applying_a_view_keeps_the_current_display_mode
+    # El view switch preserva `saved_view` a propósito; la dirección inversa tiene que ser
+    # simétrica — aplicar una vista no puede sacar al usuario del modo que está mirando.
+    render_inline(Bali::DataTable::Component.new(url: "/listado", filter_form: form,
+                                                 display_mode: :grid)) do |dt|
+      dt.with_saved_views(url: "/vistas")
+      dt.with_grid { "".html_safe }
+    end
+
+    assert_selector "a[href='/listado?view=grid&saved_view=1']"
+  end
+
+  def test_without_a_display_mode_the_apply_url_stays_bare
+    render_inline(Bali::DataTable::Component.new(url: "/listado", filter_form: form)) do |dt|
+      dt.with_saved_views(url: "/vistas")
+      dt.with_table { "".html_safe }
+    end
+
+    assert_selector "a[href='/listado?saved_view=1']"
+  end
+
+  def test_the_columns_imposed_by_the_applied_view_travel_to_the_controller
+    # Sin selector en el DOM (modos que no son tabla) el JS caía a localStorage, que es la
+    # memoria ANTERIOR a la vista: guardar desde tarjetas persistía columnas que el usuario
+    # no estaba viendo.
+    columns_store = FakeStore.new([
+      SavedView.new(id: 5, name: "Compacta", payload: { "attributes" => {}, "columns" => [ 1, 3 ] })
+    ])
+    render_component(form(ActionController::Parameters.new(saved_view: "5"), views_store: columns_store))
+
+    assert_selector "[data-saved-views-server-columns-value='[1,3]']"
+  end
+
   def test_the_slot_without_url_nor_storage_id_does_not_render_the_dropdown
     form_without_storage = Bali::FilterForm.new(Movie.all, ActionController::Parameters.new,
                                                 saved_views_store: store)

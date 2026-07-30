@@ -8,6 +8,7 @@ describe('DataTable toolbar overflow', () => {
   const columnsItem = '[data-toolbar-overflow-priority="20"]'
   const filtersItem = '[data-toolbar-overflow-priority="70"]'
   const viewSwitchItem = '[data-toolbar-overflow-priority="50"]'
+  const groupByItem = '[data-toolbar-overflow-priority="30"]'
 
   it('moves the secondary controls into the ⋯ menu and back, never duplicating them', () => {
     cy.viewport(1280, 800)
@@ -63,6 +64,40 @@ describe('DataTable toolbar overflow', () => {
       .uncheck({ force: true })
 
     cy.get('.data-table-component table thead th').eq(2).should('not.be.visible')
+  })
+
+  it('closes an open dropdown before folding it into the ⋯', () => {
+    // `.dropdown-open` SOBREVIVE al movimiento: sin cerrarlo antes, el control aterriza
+    // abierto dentro del menú. Solo se llega por teclado — los demás dropdowns de la
+    // toolbar abren por :focus-within de daisyUI y no marcan la clase.
+    cy.viewport(1280, 800)
+    cy.visit('/bali/data_table/complete')
+
+    // `force`: daisyUI le pone pointer-events:none al trigger de un dropdown abierto (el
+    // :focus-within ya lo abrió), y un keydown no necesita accionabilidad de mouse.
+    cy.get(`${groupByItem} [data-dropdown-target="trigger"]`)
+      .focus()
+      .trigger('keydown', { key: 'ArrowDown', force: true })
+    cy.get(`${groupByItem} .dropdown-open`).should('have.length', 1)
+
+    cy.viewport(375, 667)
+
+    cy.get(`${menu} ${groupByItem}`).should('have.length', 1)
+    cy.get(`${menu} .dropdown-open`).should('not.exist')
+  })
+
+  it('keeps keyboard focus on the toolbar when the breakpoint is crossed', () => {
+    // Un zoom al 400% deja el viewport en 320px CSS: cruzar el umbral no puede costarle al
+    // usuario de teclado su posición. `closeOpenDropdowns` hace blur y el colapso mueve el
+    // nodo, así que sin restaurar el foco cae al <body>.
+    cy.viewport(1280, 800)
+    cy.visit('/bali/data_table/complete')
+
+    cy.get(`${filtersItem} button[data-action*="toggleDropdown"]`).first().focus()
+    cy.viewport(375, 667)
+
+    cy.focused().should('exist')
+    cy.document().its('activeElement.tagName').should('not.equal', 'BODY')
   })
 
   it('does not render the ⋯ when there is nothing to collapse', () => {

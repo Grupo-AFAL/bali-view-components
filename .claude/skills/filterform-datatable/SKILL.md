@@ -10,7 +10,10 @@ The `Bali::FilterForm`, `Bali::DataTable`, and `Bali::Filters` components work t
 ## The canonical index
 
 This is the composition to copy. It is rendered live as `bali/index_page/complete` in
-Lookbook, and as `/admin/movies` in the dummy app.
+Lookbook — the only place where all seven control families are on at once. `/admin/movies`
+in the dummy app is the same composition against real controllers, routes and Turbo Streams,
+minus saved views (they need an owner the dummy has no concept of) and host toolbar
+buttons.
 
 ```ruby
 # Controller
@@ -82,7 +85,7 @@ Lookbook, and as `/admin/movies` in the dummy app.
           <%= render Bali::Table::Component.new(form: @filter_form, selectable: true) do |t| %>
             <% t.with_header(name: 'Name', sort: :name) %>
             <% @movies.each do |movie| %>
-              <% t.with_row(record_id: movie.id) do %>
+              <% t.with_row(record_id: movie.id, select_label: movie.name) do %>
                 <td><%= movie.name %></td>
               <% end %>
             <% end %>
@@ -107,9 +110,16 @@ Rules this composition encodes — get these wrong and the page still renders, j
 - **Read `dt.display_mode`, not the param you passed.** It is the value validated against
   the declared views, so an unknown `?view=` falls back to the first one instead of
   rendering an empty listing. Declare the switch before reading it.
-- **Turbo Streams target the same identity:** `turbo_stream.replace @filter_form.storage_id`.
+- **Turbo Streams target the RESOLVED identity:**
+  `turbo_stream.replace Bali::DataTable::ListingIdentity.for(@filter_form)`. It is
+  `storage_id` sanitized into a valid CSS identifier, so the raw value is only the same
+  string when it is already a slug (`'admin/movies'` renders as `admin-movies`). Turbo
+  resolves the target with `getElementById`: a miss replaces nothing and reports nothing.
   Render the DataTable from a **shared partial** so the HTML and the stream cannot diverge —
   the stream replaces the node that carries the selection controller.
+- **Every selectable row needs `select_label:`** (`t.with_row(record_id:, select_label:)`).
+  Without it all the checkboxes are called "Select row" and a screen reader's form-controls
+  rotor lists N identical entries.
 - **`selectable: true` shifts every column by one.** A column selector's 0-based indexes
   must start at 1.
 - **Below `sm` the secondary controls move into a `⋯` menu.** Anything in a collapsible

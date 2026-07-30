@@ -7,7 +7,7 @@ describe('DataTable view switch', () => {
   it('keeps the filters, the applied saved view and the grouping when the mode changes', () => {
     cy.visit('/bali/data_table/complete?group_by=genre&saved_view=1&q%5Bname_cont%5D=a&page=2')
 
-    cy.get(`${viewSwitch} a[aria-pressed="true"]`).should('contain.text', 'Table')
+    cy.get(`${viewSwitch} a[aria-current="page"]`).should('contain.text', 'Table')
     cy.get('table').should('exist')
     cy.get(savedViews).should('contain.text', 'Indie only')
 
@@ -24,7 +24,7 @@ describe('DataTable view switch', () => {
 
     cy.get('table').should('not.exist')
     cy.get('.card-title').should('have.length.greaterThan', 0)
-    cy.get(`${viewSwitch} a[aria-pressed="true"]`).should('contain.text', 'Cards')
+    cy.get(`${viewSwitch} a[aria-current="page"]`).should('contain.text', 'Cards')
     cy.get(savedViews).should('contain.text', 'Indie only')
   })
 
@@ -34,7 +34,7 @@ describe('DataTable view switch', () => {
 
     cy.get('.gantt-chart-component').should('exist')
     cy.get('table').should('not.exist')
-    cy.get(`${viewSwitch} a[aria-pressed="true"]`).should('contain.text', 'Timeline')
+    cy.get(`${viewSwitch} a[aria-current="page"]`).should('contain.text', 'Timeline')
   })
 
   it('falls back to the first declared view when ?view= is unknown', () => {
@@ -42,7 +42,7 @@ describe('DataTable view switch', () => {
     // gateo, un `?view=` inventado dejaba el listado vacío.
     cy.visit('/bali/data_table/complete?view=kanban')
 
-    cy.get(`${viewSwitch} a[aria-pressed="true"]`).should('contain.text', 'Table')
+    cy.get(`${viewSwitch} a[aria-current="page"]`).should('contain.text', 'Table')
     cy.get('table').should('exist')
   })
 

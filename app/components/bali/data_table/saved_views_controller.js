@@ -12,7 +12,7 @@ import { Controller } from '@hotwired/stimulus'
  */
 export default class extends Controller {
   static targets = ['saveForm', 'renameForm', 'payload']
-  static values = { table: String, storageKey: String }
+  static values = { table: String, storageKey: String, serverColumns: Array }
 
   toggleSaveForm () {
     this.saveFormTarget.classList.toggle('hidden')
@@ -39,10 +39,7 @@ export default class extends Controller {
       payload = JSON.parse(this.payloadTarget.value || '{}')
     } catch { payload = {} }
 
-    // Sin selector en el DOM (se pinta solo en modo tabla) las columnas se leen de su
-    // memoria por dispositivo: guardar desde tarjetas/Gantt dejaba la vista sin columnas,
-    // "olvidando" la mitad de su estado según desde qué modo se guardó.
-    const columns = selector ? this.visibleColumnsFrom(selector) : this.storedColumns()
+    const columns = selector ? this.visibleColumnsFrom(selector) : this.columnsWithoutSelector()
     if (columns === null) return
 
     payload.columns = columns
@@ -53,6 +50,15 @@ export default class extends Controller {
     return [...selector.querySelectorAll('[data-column-index]')]
       .filter(checkbox => checkbox.checked)
       .map(checkbox => parseInt(checkbox.dataset.columnIndex, 10))
+  }
+
+  // El selector se pinta solo en modo tabla. Sin él mandan las columnas que impuso la vista
+  // APLICADA (las serializa el servidor): la memoria por dispositivo es anterior a esa vista,
+  // así que guardar desde tarjetas/Gantt persistía columnas que el usuario no estaba viendo.
+  // Sin vista aplicada sí vale la memoria del dispositivo — si no, la vista nueva se
+  // guardaba sin columnas, "olvidando" la mitad de su estado según desde qué modo se guardó.
+  columnsWithoutSelector () {
+    return this.serverColumnsValue.length > 0 ? this.serverColumnsValue : this.storedColumns()
   }
 
   // Misma llave que usa el column-selector para su persistencia por dispositivo. La manda

@@ -68,6 +68,26 @@ class BaliDataTableListingIdentityTest < ComponentTestCase
     assert_selector "[data-column-selector-table-value='#movies-table table']"
   end
 
+  def test_the_documented_stream_target_is_the_id_the_component_renders
+    # La receta de la guía de migración: `turbo_stream.replace ListingIdentity.for(form)`.
+    # Turbo resuelve el target con getElementById, así que si esto se separa del id del
+    # contenedor el stream se aplica sobre la nada — sin excepción y sin log.
+    [ "movies", "admin/movies", "2026_reports", "#movies-table", "movies index" ].each do |storage_id|
+      filter_form = form(storage_id: storage_id)
+      render_data_table(filter_form: filter_form)
+
+      rendered_id = page.native.css("div.data-table-component").first["id"]
+      assert_equal rendered_id, Bali::DataTable::ListingIdentity.for(filter_form),
+                   "ListingIdentity.for no describe el contenedor de storage_id=#{storage_id.inspect}"
+    end
+  end
+
+  def test_listing_identity_also_sanitizes_a_raw_value
+    assert_equal "admin-movies", Bali::DataTable::ListingIdentity.for("admin/movies")
+    assert_equal "listing-123", Bali::DataTable::ListingIdentity.sanitize("123")
+    assert_nil Bali::DataTable::ListingIdentity.sanitize("  ")
+  end
+
   def test_an_explicit_persist_false_still_wins_over_a_stable_id
     render_inline(Bali::DataTable::Component.new(url: "/movies", id: "movies")) do |dt|
       dt.with_column_selector(persist: false) { |cs| cs.with_column(index: 0, label: "Nombre") }

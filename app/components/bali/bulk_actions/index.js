@@ -9,6 +9,7 @@ export class BulkActionsController extends Controller {
     'item',
     'bulkAction',
     'actionsContainer',
+    'announcement',
     'selectedCount',
     'selectedLabelOne',
     'selectedLabelOther',
@@ -62,8 +63,31 @@ export class BulkActionsController extends Controller {
   }
 
   clear = () => {
+    // El ✕ vive DENTRO de la barra que él mismo esconde: si no se saca el foco antes, el
+    // navegador lo tira al <body> y el usuario de teclado pierde su posición. Se mira
+    // ANTES de sincronizar, porque para entonces la barra ya está en display:none.
+    const focusWasInBar = this.hasActionsContainerTarget &&
+      this.actionsContainerTarget.contains(document.activeElement)
+
     this.selectableItems.forEach(item => this.setSelected(item, false))
     this.syncSelectedIds()
+
+    if (focusWasInBar) this.focusAfterClear()
+  }
+
+  // Destino equivalente al ✕: el seleccionar-todo, que es el control de selección que queda
+  // en pie; si la tabla no lo trae, el primer control de la toolbar recién restaurada.
+  focusAfterClear = () => {
+    if (this.hasSelectAllTarget) {
+      this.selectAllTarget.focus({ preventScroll: true })
+      return
+    }
+
+    if (!this.hasToolbarTarget) return
+
+    this.toolbarTarget
+      .querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+      ?.focus({ preventScroll: true })
   }
 
   setSelected = (item, selected) => {
@@ -93,6 +117,7 @@ export class BulkActionsController extends Controller {
     this.updateSelectedCount()
     this.updateSelectAll()
     this.updateToolbar()
+    this.announceSelection()
   }
 
   updateBulkActionsSelectedIds = () => {
@@ -140,6 +165,21 @@ export class BulkActionsController extends Controller {
 
     this.selectAllTarget.checked = total > 0 && selected === total
     this.selectAllTarget.indeterminate = selected > 0 && selected < total
+  }
+
+  // El cambio de selección no mueve el foco, así que sin anunciarlo el usuario de lector de
+  // pantalla marca N filas sin ninguna confirmación de que la selección existe.
+  announceSelection = () => {
+    if (!this.hasAnnouncementTarget) return
+
+    const count = this.selectedIdsValue.length
+    if (count === 0) {
+      this.announcementTarget.textContent = ''
+      return
+    }
+
+    const { selectedOne, selectedOther } = this.announcementTarget.dataset
+    this.announcementTarget.textContent = `${count} ${count === 1 ? selectedOne : selectedOther}`.trim()
   }
 
   // La fila contextual REEMPLAZA la toolbar: mismo hueco, nunca las dos a la vez.

@@ -14,6 +14,7 @@ es:
         select_all: Seleccionar todo
         row:
           select_row: Seleccionar fila
+          select_row_named: Seleccionar %{name}
       data_table:
         summary: "Mostrando %{from}-%{to} de %{count} %{item_name}"
         default_item_name: elementos

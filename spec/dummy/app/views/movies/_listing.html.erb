@@ -113,7 +113,9 @@
         <% table.with_header(name: '', class: 'w-12') %>
 
         <% @movies.each do |movie| %>
-          <% table.with_row(record_id: movie.id) do %>
+          <%# `select_label:` da contexto de registro al checkbox de la fila: sin él, N filas
+              dan N controles con el mismo nombre accesible. %>
+          <% table.with_row(record_id: movie.id, select_label: movie.name) do %>
             <td class="font-medium">
               <%= render Bali::Link::Component.new(name: movie.name, href: movie_path(movie)) %>
             </td>
