@@ -25,6 +25,7 @@ en:
       filters_saved: "Filters are saved automatically"
       persistence_enabled: "Filters are being saved. Click to disable."
       persistence_disabled: "Filters are not saved. Click to enable."
+      persistence_label: "Remember filters"
 
       # Date/time placeholders
       select_date: "Select date..."

@@ -10,8 +10,13 @@ module Bali
       # `search` y `filters` son EL MISMO nodo (Bali::Filters pinta el input de búsqueda y el
       # botón de filtros juntos), por eso hay una sola entrada. Se guarda como escala y no
       # como lista ordenada para que sumar un segundo umbral sea un cambio de una línea.
+      #
+      # `filter_persistence` queda pegado a `filters` (y por encima del umbral) porque hasta
+      # ahora el marcador viajaba DENTRO de ese mismo nodo: extraerlo no debe moverlo ni
+      # empezar a colapsarlo.
       OVERFLOW_PRIORITIES = {
         filters: 70,
+        filter_persistence: 60,
         view_switch: 50,
         saved_views: 40,
         group_by: 30,
@@ -108,6 +113,16 @@ module Bali
         # filter/search submit.
         options[:preserved_params] = preserved_state_params.merge(options[:preserved_params] || {})
 
+        # El marcador se pinta UNA sola vez, y como control propio de la toolbar (ver
+        # #filter_persistence_control): dos controladores `filter-persistence` sobre el mismo
+        # storage_id se pisan el localStorage y la cookie. El panel igual recibe
+        # `persist_enabled` — de ahí sale su leyenda "Auto-guardado".
+        #
+        # Asignación y no `||=`: el splat `**options` va al FINAL del constructor, así que un
+        # `persistence_toggle: true` del host ganaría y anidaría el segundo controlador.
+        capture_persistence(options[:storage_id], options[:persist_enabled])
+        options[:persistence_toggle] = false
+
         # Auto-populate search config from filter_form, merging with explicit overrides
         filter_form_search = if @filter_form && @filter_form.respond_to?(:search_config)
                                @filter_form.search_config
@@ -157,6 +172,9 @@ module Bali
           persist_enabled = @filter_form.persist_enabled?
         end
 
+        # Mismo motivo que en `filters_panel`: el marcador sale del form y lo pinta la toolbar.
+        capture_persistence(storage_id, persist_enabled)
+
         SimpleFilters::Component.new(
           url: @url,
           filters: resolved_filters,
@@ -164,6 +182,7 @@ module Bali
           search: resolved_search,
           storage_id: storage_id,
           persist_enabled: persist_enabled || false,
+          persistence_toggle: false,
           preserved_params: preserved_state_params
         )
       end
@@ -481,11 +500,34 @@ module Bali
         )
       end
 
+      # El marcador recuerda el estado de los FILTROS: suelto, en un listado sin control de
+      # filtros, no significa nada. Se pregunta por el CONTENIDO y no por el predicado del
+      # slot porque `SimpleFilters#render?` es false sin filtros ni búsqueda — declarar el
+      # slot no es lo mismo que pintar (ver #control_content).
+      def filter_persistence_control?
+        @persistence_storage_id.present? &&
+          (control_content(:filters_panel) || control_content(:simple_filters)).present?
+      end
+
+      def filter_persistence_control
+        @filter_persistence_control ||= Bali::Filters::PersistenceToggle::Component.new(
+          storage_id: @persistence_storage_id, enabled: @persistence_enabled
+        )
+      end
+
       def show_toolbar_right?
         (declared_toolbar_controls & %i[view_switch saved_views toolbar_buttons column_selector export]).any?
       end
 
       private
+
+      # Los valores los RESUELVE el slot (pueden venir del filter_form o explícitos del host),
+      # así que se capturan ahí y no se re-derivan acá: re-derivarlos del filter_form dejaba
+      # sin marcador a un host que pasa `storage_id:` directo al slot.
+      def capture_persistence(storage_id, enabled)
+        @persistence_storage_id = storage_id.presence
+        @persistence_enabled = !!enabled
+      end
 
       # Qué familias de control PINTAN algo. Es la ÚNICA lista: `overflow_menu?`,
       # `show_toolbar?` y `show_toolbar_right?` se derivan de acá, así que el gate del ⋯ no
@@ -495,6 +537,7 @@ module Bali
         @declared_toolbar_controls ||= begin
           controls = []
           controls << :filters if control_content(:filters_panel) || control_content(:simple_filters)
+          controls << :filter_persistence if filter_persistence_control?
           controls << :group_by if group_by_control?
           controls << :view_switch if control_content(:view_switch)
           controls << :saved_views if control_content(:saved_views)

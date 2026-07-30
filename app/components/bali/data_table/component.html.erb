@@ -16,6 +16,15 @@
           <% end %>
         <% end %>
 
+        <%# El marcador de persistencia: hasta ahora viajaba DENTRO del nodo de filtros, y acá
+            queda en el mismo lugar visual pero como item propio — así el ⋯ puede tratarlo
+            aparte y la fase de layout puede moverlo sin tocar el panel. %>
+        <% if filter_persistence_control? %>
+          <%= tag.div(**overflow_item_attributes(:filter_persistence, group: "left", css_class: "shrink-0")) do %>
+            <%= render filter_persistence_control %>
+          <% end %>
+        <% end %>
+
         <% if group_by_control? %>
           <%= tag.div(**overflow_item_attributes(:group_by, group: "left", css_class: "shrink-0")) do %>
             <%= render group_by_control %>

@@ -37,6 +37,8 @@ module Bali
       #   - :placeholder [String] Placeholder text for search input
       # @param storage_id [String] Optional storage ID indicating filters can be persisted
       # @param persist_enabled [Boolean] Whether user has opted into filter persistence
+      # @param persistence_toggle [Boolean] Render the bookmark toggle inside this panel
+      #   (default: true). DataTable turns it off and paints it as its own toolbar control.
       # @param turbo_stream [Boolean] Whether to accept Turbo Stream responses (default: false)
       #   When true, forms will include data-turbo-stream="true" to accept stream responses.
       #   The URL is still updated via JavaScript before form submission.
@@ -53,6 +55,7 @@ module Bali
         search: {},
         storage_id: nil,
         persist_enabled: false,
+        persistence_toggle: true,
         turbo_stream: false,
         preserved_params: {},
         **options
@@ -73,6 +76,7 @@ module Bali
         @search = search || {}
         @storage_id = storage_id
         @persist_enabled = persist_enabled
+        @persistence_toggle = persistence_toggle
         @turbo_stream = turbo_stream
         @id = options[:id] || "filters-#{SecureRandom.hex(4)}"
       end
@@ -86,6 +90,14 @@ module Bali
       # Returns true if user has enabled persistence
       def persist_enabled?
         @persist_enabled
+      end
+
+      # El DataTable pinta el marcador como control propio de la toolbar y apaga este: dos
+      # controladores `filter-persistence` sobre el mismo storage_id se pisan el localStorage
+      # y la cookie. Apaga SOLO el toggle — el panel sigue necesitando storage_id y
+      # persist_enabled para su leyenda "Auto-guardado".
+      def persistence_toggle?
+        @persistence_toggle
       end
 
       def button_text

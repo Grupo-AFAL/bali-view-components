@@ -198,6 +198,17 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_text("Auto-saved")
   end
 
+  # El DataTable apaga el toggle porque lo pinta él en la toolbar, pero la leyenda del pie
+  # NO es un control: apagarla dejaría al panel sin decir que está guardando.
+  def test_persistence_toggle_can_be_turned_off_without_losing_the_auto_saved_hint
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes, storage_id: "users_filters",
+      persist_enabled: true, persistence_toggle: false
+    ))
+    assert_no_selector('[data-controller="filter-persistence"]')
+    assert_text("Auto-saved")
+  end
+
   def test_persistence_toggle_does_not_render_auto_saved_text_when_persistence_is_disabled
     render_inline(Bali::Filters::Component.new(
       url: "/users", available_attributes: @available_attributes, storage_id: "users_filters", persist_enabled: false

@@ -33,11 +33,13 @@ module Bali
         #   - :width [String, nil] Tailwind width classes (default: "w-48 sm:w-96")
         # @param storage_id [String, nil] Optional storage ID indicating filters can be persisted
         # @param persist_enabled [Boolean] Whether user has opted into filter persistence
+        # @param persistence_toggle [Boolean] Render the bookmark toggle inline (default: true).
+        #   DataTable turns it off and paints it as its own toolbar control.
         # @param preserved_params [Hash] Extra top-level params (e.g. an active
         #   `group_by`) rendered as hidden fields so the GET submit keeps them
         # rubocop:disable Metrics/ParameterLists
         def initialize(url:, filters: [], show_clear: false, search: nil, storage_id: nil,
-                       persist_enabled: false, preserved_params: {})
+                       persist_enabled: false, persistence_toggle: true, preserved_params: {})
           # rubocop:enable Metrics/ParameterLists
           @url = url
           @filters = filters
@@ -45,8 +47,11 @@ module Bali
           @search = search
           @storage_id = storage_id
           @persist_enabled = persist_enabled
+          @persistence_toggle = persistence_toggle
           @preserved_params = preserved_params || {}
         end
+
+        attr_reader :storage_id
 
         # Top-level params to carry through the GET submit as hidden fields.
         # Blank values are dropped so no empty inputs are emitted.
@@ -70,6 +75,13 @@ module Bali
         # Returns true if user has enabled persistence
         def persist_enabled?
           @persist_enabled
+        end
+
+        # El DataTable pinta el marcador como control propio de la toolbar y apaga este: dos
+        # controladores `filter-persistence` sobre el mismo storage_id se pisan el
+        # localStorage y la cookie.
+        def persistence_toggle?
+          @persistence_toggle
         end
 
         def search_enabled?

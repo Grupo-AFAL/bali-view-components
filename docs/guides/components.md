@@ -1008,9 +1008,9 @@ string — so anything that must survive it has to be an explicit hidden field; 
 **Narrow viewports.** Below `sm` (640px) the toolbar folds its secondary controls into a
 `⋯` menu and unfolds them on the way back. The nodes are **moved**, never duplicated: two
 copies of the column selector would be two Stimulus controllers driving one table. Survival
-order lives in `OVERFLOW_PRIORITIES` — search/filters and the view switch stay in the row;
-saved views, group by, columns, export and host `toolbar_buttons` collapse. Two
-consequences worth knowing:
+order lives in `OVERFLOW_PRIORITIES` — search/filters, the filter-persistence bookmark and
+the view switch stay in the row; saved views, group by, columns, export and host
+`toolbar_buttons` collapse. Two consequences worth knowing:
 
 - The toolbar order is defined by `OVERFLOW_PRIORITIES`, not by the template. Expanding
   re-sorts each group by priority, which is what lets the controller be stateless across
@@ -1681,7 +1681,10 @@ Advanced filter controls for data tables with Ransack integration.
 - Multiple filter groups with AND/OR combinators
 - Type-specific operators (text, number, date, select, boolean)
 - Quick search with clear button (x) for easy clearing
-- Filter persistence with bookmark toggle
+- Filter persistence with bookmark toggle. Inside a `DataTable` the bookmark is painted
+  by the toolbar as its own control and the panel receives `persistence_toggle: false`:
+  two `filter-persistence` controllers over one `storage_id` fight over localStorage and
+  the cookie. The panel's "Auto-saved" hint does not depend on the toggle.
 - Date range "between" operator with Flatpickr
 
 **Modes:**
@@ -1704,6 +1707,7 @@ The search input includes a clear button (x) that appears when text is entered. 
 | `available_attributes` | Array | `[]` | Filterable attributes |
 | `popover` | Boolean | `true` | Use popover mode |
 | `storage_id` | String | `nil` | Enable persistence |
+| `persistence_toggle` | Boolean | `true` | Render the bookmark inside the panel (DataTable turns it off) |
 
 #### SearchInput
 

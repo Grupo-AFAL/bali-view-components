@@ -546,6 +546,14 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector('[data-filter-persistence-enabled-value="true"]')
   end
 
+  # El DataTable lo apaga porque pinta el marcador como control propio de la toolbar.
+  def test_does_not_render_persistence_toggle_when_persistence_toggle_is_false
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/test", filters: @filters, storage_id: "records_filters", persistence_toggle: false
+    ))
+    assert_no_selector('[data-controller="filter-persistence"]')
+  end
+
   def test_persistence_toggle_renders_with_search_only_and_no_filters
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: [], search: @search, storage_id: "records_filters"))
     assert_selector('[data-controller="filter-persistence"]')
