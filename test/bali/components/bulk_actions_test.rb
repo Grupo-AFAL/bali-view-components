@@ -200,6 +200,29 @@ class BaliBulkActionsComponentTest < ComponentTestCase
     assert_includes(bar[:class], Bali::BulkActions::Component::TOOLBAR_MIN_HEIGHT)
   end
 
+  # La barra mide lo mismo que la toolbar (32px), así que un botón `sm` —que mide EXACTAMENTE
+  # eso— queda a ras del tinte y se ve apretado. `xs` deja 4px de aire sin mover el alto.
+  # La flotante no vive dentro de una superficie de alto fijo y conserva `sm`.
+  def test_the_toolbar_row_sizes_its_actions_below_the_bar_height
+    render_inline(Bali::BulkActions::Component.new(variant: :toolbar, standalone: false)) do |c|
+      c.with_action(label: "Borrar", href: "/borrar")
+    end
+    assert_selector("input.btn.btn-xs[value='Borrar']")
+    assert_no_selector(".btn-sm")
+
+    render_inline(Bali::BulkActions::Component.new) do |c|
+      c.with_action(label: "Borrar", href: "/borrar")
+    end
+    assert_selector("input.btn.btn-sm[value='Borrar']")
+  end
+
+  def test_an_explicit_action_size_wins_over_the_one_the_bar_injects
+    render_inline(Bali::BulkActions::Component.new(variant: :toolbar, standalone: false)) do |c|
+      c.with_action(label: "Borrar", href: "/borrar", size: :lg)
+    end
+    assert_selector("input.btn.btn-lg[value='Borrar']")
+  end
+
   # El contorno va con `ring` (box-shadow) y sin padding vertical justamente porque un
   # `border`/`py-*` sí ocupan layout y devolverían el salto.
   def test_the_toolbar_row_outline_costs_no_vertical_space

@@ -4,7 +4,7 @@ module Bali
   module BulkActions
     module Action
       class Component < ApplicationViewComponent
-        attr_reader :label, :href, :method, :variant
+        attr_reader :label, :href, :method, :variant, :size
 
         VARIANTS = {
           primary: "btn-primary",
@@ -18,11 +18,14 @@ module Bali
           neutral: "btn-neutral"
         }.freeze
 
-        def initialize(label:, href:, method: :post, variant: :secondary, **options)
+        # @param size [Symbol] Tamaño del botón. Lo inyecta la barra según su variante
+        #   (`xs` en la fila contextual, `sm` en la flotante); pasarlo explícito gana.
+        def initialize(label:, href:, method: :post, variant: :secondary, size: :sm, **options)
           @label = label
           @href = href
           @method = method.to_sym
           @variant = variant.to_sym
+          @size = size.to_sym
           @options = options
         end
 
@@ -45,7 +48,7 @@ module Bali
             name: label,
             href: href,
             type: variant,
-            size: :sm,
+            size: size,
             data: { bulk_actions_target: "bulkAction" },
             **@options
           )
@@ -67,7 +70,7 @@ module Bali
         end
 
         def button_classes
-          class_names("btn btn-sm", VARIANTS[variant])
+          class_names("btn", "btn-#{size}", VARIANTS[variant])
         end
       end
     end

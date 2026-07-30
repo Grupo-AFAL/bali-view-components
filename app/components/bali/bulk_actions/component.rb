@@ -3,7 +3,15 @@
 module Bali
   module BulkActions
     class Component < ApplicationViewComponent
-      renders_many :actions, Action::Component
+      # El tamaño de los botones lo decide la BARRA, no quien declara la acción: en la fila
+      # contextual los botones van DENTRO de una superficie tintada de alto fijo, así que un
+      # `sm` (32px, el alto exacto de la barra) queda a ras de los bordes y se ve apretado.
+      # `xs` (24px) deja 4px de aire arriba y abajo sin tocar el alto total —que tiene que
+      # seguir siendo el de la toolbar que reemplaza—. La barra flotante no tiene ese límite
+      # y conserva `sm`. Un `size:` explícito en la acción gana sobre ambos.
+      renders_many :actions, ->(**options) do
+        Action::Component.new(size: toolbar? ? :xs : :sm, **options)
+      end
       renders_many :items, Item::Component
 
       VARIANTS = %i[floating toolbar].freeze
