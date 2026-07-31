@@ -37,7 +37,7 @@
     "@babel/eslint-parser": "^7.28.6",
     "@babel/plugin-proposal-class-properties": "^7.16.7",
     "@babel/preset-env": "7.29.7",
-    "cypress": "15.18.1",
+    "cypress": "15.19.0",
     "playwright": "^1.60.0",
     "standard": "^17.1.2"
   },
