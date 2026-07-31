@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+### Changed
+
+- **Tooling** - adelgazados los CLAUDE.md que se cargan en cada sesión (`CLAUDE.md` 47 → 29 líneas, `.claude/CLAUDE.md` 264 → 178). Se eliminó lo que una sesión puede reconstruir leyendo el repo: overview del proyecto, comandos estándar de Rails/Cypress ya presentes en `package.json`, la tabla de dependencias y sus comandos de update, el checklist pre-commit que `.githooks` ya impone (rubocop y minitest), el catálogo de iconos derivable de `lucide_mapping.rb`/`kept_icons.rb`, la lista de enlaces a documentación pública, y la sección "Session Memory" que describía hooks SessionStart/Stop que no están registrados en ninguna configuración. Se conservan íntegros los gotchas (Zeitwerk, Tailwind v4 layers, tooltip móvil), Prohibited Patterns y Component Composition. Los gotchas de BlockNote/ProseMirror se movieron a `app/components/bali/block_editor/CLAUDE.md`, que carga solo al trabajar en los componentes de editor. No effect on the published gem.
+
+### Fixed
+
+- **Tooling** - `.claude/settings.json` no longer overrides the statusline with a dead path. The `statusLine` command pointed at `/Users/fede/code/shared/bali-view-components/.claude/statusline-command.sh`, an absolute path into a directory that exists on no machine — and since project settings win over user settings, it silently replaced whatever statusline each contributor had configured with nothing at all. Removed, so the user-scope statusline applies again. No effect on the published gem.
+
 ## [v3.0.0.beta.1] - 2026-07-31
 
 ### Changed (breaking)
