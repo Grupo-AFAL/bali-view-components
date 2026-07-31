@@ -1,5 +1,5 @@
 en:
-  bali:
+  bali_view:
     filters:
       # UI Labels
       title: "Filters"
@@ -169,6 +169,16 @@ en:
         # name, then day, then year) rather than a conventional Spanish date order,
         # since that's the literal text the field will parse.
         allow_input_placeholder: "e.g., December 31, 2026"
+      # Moved out of the host's `helpers.*` namespace, which this gem had no
+      # business writing into (Rails owns it for form label/submit lookups).
+      coordinates_polygon:
+        clear: "Clear"
+        clear_holes: "Clear holes"
+        confirm: "Are you sure?"
+      dynamic_fields:
+        add: "Add"
+      submit:
+        cancel: "Cancel"
       file:
         choose_file: "Choose file"
         no_file_selected: "No file selected"
@@ -201,3 +211,156 @@ en:
       last_30_days: "Last 30 days"
       last_12_weeks: "Last 12 weeks"
       last_12_months: "Last 12 months"
+
+    bulk_actions:
+      selected_one: selected
+      selected_other: selected
+      clear: Clear selection
+    table:
+      no_records: No Records
+      no_results: No Results
+      group_count: "%{group} (%{count})"
+      group_partial: "showing %{shown}"
+      ungrouped: Ungrouped
+      select_all: Select all
+      row:
+        select_row: Select row
+        select_row_named: Select %{name}
+    data_table:
+      summary: "Showing %{from}-%{to} of %{count} %{item_name}"
+      default_item_name: items
+      group_by_control:
+        label: Group by
+        no_grouping: No grouping
+        disabled_title: "Grouping applies in %{modes} view"
+      view_switch_control:
+        aria_label: Views
+      toolbar_overflow:
+        button_label: More options
+      column_selector:
+        button_label: Columns
+        menu_title: Show/Hide Columns
+      saved_views:
+        button_label: Views
+        suggested_title: Suggested
+        mine_title: My views
+        save_current: Save current view
+        save_as_new: Save as new view
+        update_current: "Update \"%{name}\""
+        update_confirm: "Overwrite the \"%{name}\" view with what you are seeing now?"
+        name_placeholder: View name
+        save: Save
+        rename: Rename
+        delete: Delete
+        delete_confirm: "Delete the \"%{name}\" view?"
+      export:
+        button_label: Export
+        formats:
+          csv: CSV
+          excel: Excel
+          pdf: PDF
+          json: JSON
+    page_components:
+      secondary_actions:
+        button_label: More actions
+      export:
+        menu_title: Export filtered
+    pagination:
+      aria_label: Pagination
+      previous_page: Previous page
+      next_page: Next page
+      page: "Page %{page}"
+    chart:
+      loading: Loading...
+    clipboard:
+      copied: Copied!
+      copy_label: Copy to clipboard
+    drawer:
+      close_drawer: Close drawer
+      confirm_close: You have unsaved changes. Discard them?
+    dropdown:
+      menu_label: Dropdown menu
+    delete_link:
+      generic_confirm_message: Are you sure?
+      default_name: Delete
+      specific_confirm_message: Are you sure you want to delete %{pronoun} %{name}?
+      confirm_title: Confirm deletion
+      confirm_accept: Delete
+      confirm_cancel: Cancel
+    image_field:
+      clear_image: Clear image
+    gantt_chart:
+      task_header: Name
+      today: Today
+      task_actions:
+        open_details: Open details
+        complete_task: Complete task
+        delete_task: Delete task
+        indent_task: Indent task
+        outdent_task: Outdent task
+    loader:
+      loading: Loading...
+    search_input:
+      placeholder: Search...
+    turbo_native_app:
+      sign_out:
+        name: Sign out
+        confirm: Are you sure?
+    carousel:
+      arrows:
+        previous_slide: Previous slide
+        next_slide: Next slide
+      bullets:
+        navigation: Slide navigation
+        go_to_slide: "Go to slide %{number}"
+    calendar:
+      header:
+        week: Week
+        month: Month
+        previous: Previous
+        next: Next
+    navbar:
+      main_navigation: Main navigation
+      toggle_menu: Toggle menu
+      burger:
+        toggle_menu: Toggle menu
+    notification:
+      close: Close notification
+    step_number_field:
+      increase: Increase value
+      decrease: Decrease value
+    rate:
+      label: Rating
+      star_rating: "%{number} stars"
+    recurrent_event_rule_form:
+      yearly: Yearly
+      monthly: Monthly
+      weekly: Weekly
+      daily: Daily
+      hourly: Hourly
+      never: Never
+      after: After
+      on_date: On date
+      first: First
+      second: Second
+      third: Third
+      fourth: Fourth
+      last: Last
+      day: Day
+      weekday: Weekday
+      weekend_day: Weekend day
+      repeat: Repeat
+      every: every
+      month_s: month(s)
+      week_s: week(s)
+      day_s: day(s)
+      hour_s: hour(s)
+      on_option: "On"
+      on_the: On the
+      on_day: On day
+      end: End
+      ocurrence_s: occurrence(s)
+      yearly_options: Yearly Options
+      monthly_options: Monthly Options
+      repeat_on_days: Repeat on Days
+      of: of

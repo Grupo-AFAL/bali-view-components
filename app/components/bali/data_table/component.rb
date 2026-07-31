@@ -400,7 +400,7 @@ module Bali
         return "" unless @pagy
 
         I18n.t(
-          "view_components.bali.data_table.summary",
+          "bali_view.data_table.summary",
           from: @pagy.from,
           to: @pagy.to,
           count: @pagy.count,
@@ -509,7 +509,7 @@ module Bali
       end
 
       def overflow_menu_label
-        I18n.t("view_components.bali.data_table.toolbar_overflow.button_label")
+        I18n.t("bali_view.data_table.toolbar_overflow.button_label")
       end
 
       # Whether the "Agrupar por" control should render — true when the filter form declares
@@ -749,7 +749,7 @@ module Bali
       end
 
       def item_name
-        @item_name || I18n.t("view_components.bali.data_table.default_item_name")
+        @item_name || I18n.t("bali_view.data_table.default_item_name")
       end
 
       def validate_summary_position(position)

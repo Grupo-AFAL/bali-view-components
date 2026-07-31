@@ -107,7 +107,7 @@ module Bali
 
         # Translated aria-label for collapse toggle
         def toggle_label
-          I18n.t("bali.side_menu.toggle_item", name: name, default: "Toggle #{name}")
+          I18n.t("bali_view.side_menu.toggle_item", name: name, default: "Toggle #{name}")
         end
 
         def render_badge

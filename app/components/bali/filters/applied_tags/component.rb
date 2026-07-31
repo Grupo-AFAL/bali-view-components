@@ -64,9 +64,9 @@ module Bali
         def value_label(value, attr_config)
           # Handle boolean type
           if attr_config[:type].to_sym == :boolean
-            return value.to_s == "true" ? I18n.t("bali.filters.yes",
+            return value.to_s == "true" ? I18n.t("bali_view.filters.yes",
                                                  default: "Yes") : I18n.t(
-                                                   "bali.filters.no", default: "No"
+                                                   "bali_view.filters.no", default: "No"
                                                  )
           end
 

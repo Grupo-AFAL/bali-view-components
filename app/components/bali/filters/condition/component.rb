@@ -104,7 +104,7 @@ module Bali
             placeholders: placeholders_translations,
             boolean: boolean_translations,
             selected_count: selected_count_translation,
-            search: t("bali.filters.search", default: "Buscar...")
+            search: t("bali_view.filters.search", default: "Buscar...")
           }.to_json
         end
 
@@ -131,34 +131,34 @@ module Bali
 
         def placeholders_translations
           {
-            enter_value: t("bali.filters.placeholders.enter_value",
+            enter_value: t("bali_view.filters.placeholders.enter_value",
                            default: "Enter value..."),
-            number: t("bali.filters.placeholders.number", default: "0"),
-            select_date: t("bali.filters.placeholders.select_date",
+            number: t("bali_view.filters.placeholders.number", default: "0"),
+            select_date: t("bali_view.filters.placeholders.select_date",
                            default: "Select date..."),
-            select_datetime: t("bali.filters.placeholders.select_datetime",
+            select_datetime: t("bali_view.filters.placeholders.select_datetime",
                                default: "Select date & time..."),
-            select_date_range: t("bali.filters.placeholders.select_date_range",
+            select_date_range: t("bali_view.filters.placeholders.select_date_range",
                                  default: "Select date range..."),
-            select_datetime_range: t("bali.filters.placeholders.select_datetime_range",
+            select_datetime_range: t("bali_view.filters.placeholders.select_datetime_range",
                                      default: "Select date & time range..."),
-            select: t("bali.filters.placeholders.select", default: "Select..."),
-            select_values: t("bali.filters.placeholders.select_values",
+            select: t("bali_view.filters.placeholders.select", default: "Select..."),
+            select_values: t("bali_view.filters.placeholders.select_values",
                              default: "Select values...")
           }
         end
 
         def boolean_translations
           {
-            any: t("bali.filters.boolean.any", default: "Any"),
-            yes: t("bali.filters.boolean.yes", default: "Yes"),
-            no: t("bali.filters.boolean.no", default: "No")
+            any: t("bali_view.filters.boolean.any", default: "Any"),
+            yes: t("bali_view.filters.boolean.yes", default: "Yes"),
+            no: t("bali_view.filters.boolean.no", default: "No")
           }
         end
 
         # rubocop:disable Style/FormatStringToken -- %{count} is Rails I18n format
         def selected_count_translation
-          t("bali.filters.selected_count", default: "%{count} selected")
+          t("bali_view.filters.selected_count", default: "%{count} selected")
         end
         # rubocop:enable Style/FormatStringToken
       end

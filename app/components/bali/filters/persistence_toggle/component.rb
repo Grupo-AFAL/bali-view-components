@@ -36,12 +36,12 @@ module Bali
         # mudar las claves y dejar sin traducción, en silencio, a cualquier host que las
         # tenga sobrescritas.
         def enabled_tooltip
-          I18n.t("bali.filters.persistence_enabled",
+          I18n.t("bali_view.filters.persistence_enabled",
                  default: "Filters are being saved. Click to disable.")
         end
 
         def disabled_tooltip
-          I18n.t("bali.filters.persistence_disabled",
+          I18n.t("bali_view.filters.persistence_disabled",
                  default: "Filters are not saved. Click to enable.")
         end
 
@@ -50,7 +50,7 @@ module Bali
         end
 
         def label
-          I18n.t("bali.filters.persistence_label", default: "Remember filters")
+          I18n.t("bali_view.filters.persistence_label", default: "Remember filters")
         end
       end
     end

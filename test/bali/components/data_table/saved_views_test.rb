@@ -238,7 +238,7 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
 
     assert_no_selector "a.text-primary"
     # El botón conserva su etiqueta genérica: no hay vista que nombrar.
-    assert_selector "button", text: I18n.t("view_components.bali.data_table.saved_views.button_label")
+    assert_selector "button", text: I18n.t("bali_view.data_table.saved_views.button_label")
 
     # Aplicada por URL sí se reconoce: ahí el estado de la vista realmente está impuesto.
     render_component(named_form(ActionController::Parameters.new(saved_view: "9"),

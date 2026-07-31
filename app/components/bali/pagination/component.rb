@@ -86,19 +86,19 @@ module Bali
       end
 
       def aria_label
-        I18n.t("view_components.bali.pagination.aria_label")
+        I18n.t("bali_view.pagination.aria_label")
       end
 
       def prev_aria_label
-        I18n.t("view_components.bali.pagination.previous_page")
+        I18n.t("bali_view.pagination.previous_page")
       end
 
       def next_aria_label
-        I18n.t("view_components.bali.pagination.next_page")
+        I18n.t("bali_view.pagination.next_page")
       end
 
       def page_aria_label(page)
-        I18n.t("view_components.bali.pagination.page", page: page)
+        I18n.t("bali_view.pagination.page", page: page)
       end
     end
   end

@@ -35,7 +35,7 @@ module Bali
 
       def summary_text
         I18n.t(
-          "view_components.bali.pagination_footer.summary",
+          "bali_view.pagination_footer.summary",
           from: @pagy.from,
           to: @pagy.to,
           count: @pagy.count,
@@ -55,7 +55,7 @@ module Bali
       private
 
       def item_name
-        @item_name || I18n.t("view_components.bali.pagination_footer.default_item_name",
+        @item_name || I18n.t("bali_view.pagination_footer.default_item_name",
                              default: "items")
       end
     end

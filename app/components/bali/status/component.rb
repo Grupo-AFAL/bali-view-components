@@ -68,7 +68,7 @@ module Bali
       end
 
       def placeholder
-        @placeholder.presence || t("bali.status.no_status", default: "No status")
+        @placeholder.presence || t("bali_view.status.no_status", default: "No status")
       end
 
       def param

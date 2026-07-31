@@ -50,22 +50,22 @@ module Bali
       def build_options(options)
         DEFAULT_OPTIONS.merge(options).merge(
           search_placeholder: options.fetch(:search_placeholder) do
-            I18n.t("bali.form_builder.slim_select.search_placeholder")
+            I18n.t("bali_view.form_builder.slim_select.search_placeholder")
           end,
           select_all_text: options.fetch(:select_all_text) do
-            I18n.t("bali.form_builder.slim_select.select_all")
+            I18n.t("bali_view.form_builder.slim_select.select_all")
           end,
           deselect_all_text: options.fetch(:deselect_all_text) do
-            I18n.t("bali.form_builder.slim_select.deselect_all")
+            I18n.t("bali_view.form_builder.slim_select.deselect_all")
           end,
           no_results_text: options.fetch(:no_results_text) do
-            I18n.t("bali.form_builder.slim_select.no_results")
+            I18n.t("bali_view.form_builder.slim_select.no_results")
           end,
           searching_text: options.fetch(:searching_text) do
-            I18n.t("bali.form_builder.slim_select.searching")
+            I18n.t("bali_view.form_builder.slim_select.searching")
           end,
           results_text: options.fetch(:results_text) do
-            I18n.t("bali.form_builder.slim_select.results")
+            I18n.t("bali_view.form_builder.slim_select.results")
           end
         )
       end

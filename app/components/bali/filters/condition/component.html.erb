@@ -12,7 +12,7 @@
             data-action="condition#attributeChanged"
             data-condition-target="attribute">
       <option value="">
-        <%= t('bali.filters.select_field', default: 'Select field...') %>
+        <%= t('bali_view.filters.select_field', default: 'Select field...') %>
       </option>
       <% available_attributes.each do |attr| %>
         <option value="<%= attr[:key] %>"
@@ -58,7 +58,7 @@
                data-action="click->multi-select#toggle"
                data-multi-select-target="trigger">
             <span class="flex-1 truncate text-left" data-multi-select-target="label">
-              <%= t('bali.filters.select_values', default: 'Select values...') %>
+              <%= t('bali_view.filters.select_values', default: 'Select values...') %>
             </span>
           </div>
           <div class="absolute left-0 top-full hidden z-[100] mt-1 p-2 shadow-lg bg-base-100 border border-base-300 rounded-lg w-full max-h-60 overflow-y-auto"
@@ -83,14 +83,14 @@
         <%# Single searchable select for "is" / "is not" (SlimSelect).
             slim-select-sm matches the select-sm height of the field/operator selects. %>
         <div class="w-full slim-select-sm" data-controller="slim-select"
-             data-slim-select-placeholder-value="<%= t('bali.filters.select_value', default: 'Select...') %>"
-             data-slim-select-search-placeholder-value="<%= t('bali.filters.search', default: 'Buscar...') %>">
+             data-slim-select-placeholder-value="<%= t('bali_view.filters.select_value', default: 'Select...') %>"
+             data-slim-select-search-placeholder-value="<%= t('bali_view.filters.search', default: 'Buscar...') %>">
           <select class="select select-bordered select-sm w-full"
                   name="<%= field_name %>"
                   data-slim-select-target="select"
                   data-condition-target="value">
             <option value="">
-              <%= t('bali.filters.select_value', default: 'Select...') %>
+              <%= t('bali_view.filters.select_value', default: 'Select...') %>
             </option>
             <% attribute_options.each do |opt| %>
               <% opt_label, opt_value = opt.is_a?(Array) ? opt : [opt, opt] %>
@@ -107,13 +107,13 @@
               name="<%= field_name %>"
               data-condition-target="value">
         <option value="">
-          <%= t('bali.filters.boolean.any', default: 'Any') %>
+          <%= t('bali_view.filters.boolean.any', default: 'Any') %>
         </option>
         <option value="true" <%= 'selected' if value.to_s == 'true' %>>
-          <%= t('bali.filters.boolean.yes', default: 'Yes') %>
+          <%= t('bali_view.filters.boolean.yes', default: 'Yes') %>
         </option>
         <option value="false" <%= 'selected' if value.to_s == 'false' %>>
-          <%= t('bali.filters.boolean.no', default: 'No') %>
+          <%= t('bali_view.filters.boolean.no', default: 'No') %>
         </option>
       </select>
 
@@ -123,7 +123,7 @@
         <div class="w-full" data-condition-target="value">
           <input type="text"
                  class="input input-bordered input-sm w-full"
-                 placeholder="<%= t('bali.filters.select_date_range', default: 'Select date range...') %>"
+                 placeholder="<%= t('bali_view.filters.select_date_range', default: 'Select date range...') %>"
                  data-controller="datepicker"
                  data-datepicker-locale-value="<%= I18n.locale %>"
                  data-datepicker-mode-value="range"
@@ -148,7 +148,7 @@
                class="input input-bordered input-sm w-full"
                name="<%= field_name %>"
                value="<%= value %>"
-               placeholder="<%= t('bali.filters.select_date', default: 'Select date...') %>"
+               placeholder="<%= t('bali_view.filters.select_date', default: 'Select date...') %>"
                data-controller="datepicker"
                data-datepicker-locale-value="<%= I18n.locale %>"
                data-datepicker-mode-value="single"
@@ -163,7 +163,7 @@
         <div class="w-full" data-condition-target="value">
           <input type="text"
                  class="input input-bordered input-sm w-full"
-                 placeholder="<%= t('bali.filters.select_datetime_range', default: 'Select date & time range...') %>"
+                 placeholder="<%= t('bali_view.filters.select_datetime_range', default: 'Select date & time range...') %>"
                  data-controller="datepicker"
                  data-datepicker-locale-value="<%= I18n.locale %>"
                  data-datepicker-mode-value="range"
@@ -189,7 +189,7 @@
                class="input input-bordered input-sm w-full"
                name="<%= field_name %>"
                value="<%= value %>"
-               placeholder="<%= t('bali.filters.select_datetime', default: 'Select date & time...') %>"
+               placeholder="<%= t('bali_view.filters.select_datetime', default: 'Select date & time...') %>"
                data-controller="datepicker"
                data-datepicker-locale-value="<%= I18n.locale %>"
                data-datepicker-mode-value="single"
@@ -213,7 +213,7 @@
              class="input input-bordered input-sm w-full"
              name="<%= field_name %>"
              value="<%= value %>"
-             placeholder="<%= t('bali.filters.enter_value', default: 'Enter value...') %>"
+             placeholder="<%= t('bali_view.filters.enter_value', default: 'Enter value...') %>"
              data-condition-target="value">
     <% end %>
   </div>
@@ -223,7 +223,7 @@
     <button type="button"
             class="btn btn-ghost btn-sm btn-circle text-base-content/50 hover:text-error hover:bg-error/10"
             data-action="condition#remove"
-            title="<%= t('bali.filters.remove_condition', default: 'Remove condition') %>">
+            title="<%= t('bali_view.filters.remove_condition', default: 'Remove condition') %>">
       <%= render Bali::Icon::Component.new('times', class: 'w-4 h-4') %>
     </button>
   </div>

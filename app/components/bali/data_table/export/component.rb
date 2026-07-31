@@ -63,7 +63,7 @@ module Bali
         # ViewComponent necesita contexto de render. Es la misma clave que resolvía antes, así
         # que un host que la tenga sobrescrita no se entera.
         def format_label(format)
-          I18n.t("view_components.bali.data_table.export.formats.#{format}")
+          I18n.t("bali_view.data_table.export.formats.#{format}")
         end
 
         # El export se lleva EL MISMO recorte que el usuario está mirando: filtros, búsqueda,

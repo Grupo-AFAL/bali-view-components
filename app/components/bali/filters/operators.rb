@@ -85,7 +85,7 @@ module Bali
 
       # Helper for I18n translations
       def t_op(key, default)
-        I18n.t("bali.filters.operators.#{key}", default: default)
+        I18n.t("bali_view.filters.operators.#{key}", default: default)
       end
     end
   end

@@ -9,8 +9,8 @@ module Bali
 
       # Claves ABSOLUTAS: este concern lo incluyen CINCO componentes, así que `t('.x')`
       # resolvería a cinco scopes sidecar distintos y ninguno existiría.
-      SECONDARY_ACTIONS_LABEL_KEY = "view_components.bali.page_components.secondary_actions.button_label"
-      EXPORT_MENU_TITLE_KEY = "view_components.bali.page_components.export.menu_title"
+      SECONDARY_ACTIONS_LABEL_KEY = "bali_view.page_components.secondary_actions.button_label"
+      EXPORT_MENU_TITLE_KEY = "bali_view.page_components.export.menu_title"
 
       included do
         renders_many :actions

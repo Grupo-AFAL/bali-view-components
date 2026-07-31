@@ -1,5 +1,5 @@
 es:
-  bali:
+  bali_view:
     filters:
       # UI Labels
       title: "Filtros"
@@ -168,6 +168,16 @@ es:
         # nombre de mes, día, año) en vez del orden habitual en español, porque
         # es el texto literal que el campo va a intentar interpretar.
         allow_input_placeholder: "ej. diciembre 31, 2026"
+      # Salen del namespace `helpers.*` del host, donde esta gema no tenía nada
+      # que escribir (Rails lo usa para labels y submits de sus forms).
+      coordinates_polygon:
+        clear: "Limpiar"
+        clear_holes: "Limpiar agujeros"
+        confirm: "¿Estás seguro(a)?"
+      dynamic_fields:
+        add: "Agregar"
+      submit:
+        cancel: "Cancelar"
       file:
         choose_file: "Seleccionar archivo"
         no_file_selected: "Ningún archivo seleccionado"
@@ -200,3 +210,156 @@ es:
       last_30_days: "Últimos 30 días"
       last_12_weeks: "Últimas 12 semanas"
       last_12_months: "Últimos 12 meses"
+
+    bulk_actions:
+      selected_one: seleccionado
+      selected_other: seleccionados
+      clear: Limpiar selección
+    table:
+      no_records: Sin Registros
+      no_results: Sin Resultados
+      group_count: "%{group} (%{count})"
+      group_partial: "mostrando %{shown}"
+      ungrouped: Sin agrupar
+      select_all: Seleccionar todo
+      row:
+        select_row: Seleccionar fila
+        select_row_named: Seleccionar %{name}
+    data_table:
+      summary: "Mostrando %{from}-%{to} de %{count} %{item_name}"
+      default_item_name: elementos
+      group_by_control:
+        label: Agrupar por
+        no_grouping: Sin agrupar
+        disabled_title: "La agrupación se aplica en la vista %{modes}"
+      view_switch_control:
+        aria_label: Vistas
+      toolbar_overflow:
+        button_label: Más opciones
+      column_selector:
+        button_label: Columnas
+        menu_title: Mostrar/Ocultar Columnas
+      saved_views:
+        button_label: Vistas
+        suggested_title: Sugeridas
+        mine_title: Mis vistas
+        save_current: Guardar vista actual
+        save_as_new: Guardar como vista nueva
+        update_current: "Actualizar \"%{name}\""
+        update_confirm: "¿Sobrescribir la vista \"%{name}\" con lo que estás viendo?"
+        name_placeholder: Nombre de la vista
+        save: Guardar
+        rename: Renombrar
+        delete: Borrar
+        delete_confirm: "¿Borrar la vista \"%{name}\"?"
+      export:
+        button_label: Exportar
+        formats:
+          csv: CSV
+          excel: Excel
+          pdf: PDF
+          json: JSON
+    page_components:
+      secondary_actions:
+        button_label: Más acciones
+      export:
+        menu_title: Exportar lo filtrado
+    pagination:
+      aria_label: Paginación
+      previous_page: Página anterior
+      next_page: Página siguiente
+      page: "Página %{page}"
+    chart:
+      loading: Cargando...
+    clipboard:
+      copied: ¡Copiado!
+      copy_label: Copiar al portapapeles
+    drawer:
+      close_drawer: Cerrar panel
+      confirm_close: Hay cambios sin guardar. ¿Descartar los cambios?
+    dropdown:
+      menu_label: Menú desplegable
+    delete_link:
+      generic_confirm_message: '¿Estás seguro(a)?'
+      default_name: Eliminar
+      specific_confirm_message: '¿Seguro que desea eliminar %{pronoun} %{name}?'
+      confirm_title: Confirmar eliminación
+      confirm_accept: Eliminar
+      confirm_cancel: Cancelar
+    image_field:
+      clear_image: Borrar imagen
+    gantt_chart:
+      task_header: Nombre
+      today: Hoy
+      task_actions:
+        open_details: Abrir detalles
+        complete_task: Completar tarea
+        delete_task: Eliminar tarea
+        indent_task: Hacer sub tarea
+        outdent_task: Promover tarea
+    loader:
+      loading: Cargando...
+    search_input:
+      placeholder: Buscar...
+    turbo_native_app:
+      sign_out:
+        name: Cerrar sesión
+        confirm: ¿Estás seguro?
+    carousel:
+      arrows:
+        previous_slide: Diapositiva anterior
+        next_slide: Diapositiva siguiente
+      bullets:
+        navigation: Navegación de diapositivas
+        go_to_slide: "Ir a diapositiva %{number}"
+    calendar:
+      header:
+        week: Semana
+        month: Mes
+        previous: Anterior
+        next: Siguiente
+    navbar:
+      main_navigation: Navegación principal
+      toggle_menu: Alternar menú
+      burger:
+        toggle_menu: Alternar menú
+    notification:
+      close: Cerrar notificación
+    step_number_field:
+      increase: Aumentar valor
+      decrease: Disminuir valor
+    rate:
+      label: Calificación
+      star_rating: "%{number} estrellas"
+    recurrent_event_rule_form:
+      yearly: Anualmente
+      monthly: Mensualmente
+      weekly: Semanalmente
+      daily: Por día
+      hourly: Por hora
+      never: Nunca
+      after: Después de
+      on_date: En la fecha
+      first: Primer
+      second: Segundo
+      third: Tercer
+      fourth: Cuarto
+      last: Último
+      day: Día
+      weekday: Días laborales
+      weekend_day: Fines de semana
+      repeat: Repetir
+      every: cada
+      month_s: mes(es)
+      week_s: semana(s)
+      day_s: día(s)
+      hour_s: hora(s)
+      on_option: En
+      on_the: El
+      on_day: En el día
+      end: Termina
+      ocurrence_s: ocurrencia(s)
+      yearly_options: Opciones Anuales
+      monthly_options: Opciones Mensuales
+      repeat_on_days: Repetir en Días
+      of: de

@@ -49,7 +49,7 @@ module Bali
         # Por qué está inerte. Va como `title` y no como cartel en la fila: el estado ya lo
         # comunica el botón apagado, y un texto permanente ahí competía con los filtros.
         def disabled_title
-          I18n.t("view_components.bali.data_table.group_by_control.disabled_title",
+          I18n.t("bali_view.data_table.group_by_control.disabled_title",
                  modes: disabled_modes)
         end
 
@@ -103,11 +103,11 @@ module Bali
         end
 
         def label
-          @label || I18n.t("view_components.bali.data_table.group_by_control.label", default: "Group by")
+          @label || I18n.t("bali_view.data_table.group_by_control.label", default: "Group by")
         end
 
         def no_grouping_label
-          I18n.t("view_components.bali.data_table.group_by_control.no_grouping", default: "No grouping")
+          I18n.t("bali_view.data_table.group_by_control.no_grouping", default: "No grouping")
         end
 
         def item_class(selected)

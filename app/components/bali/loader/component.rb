@@ -76,7 +76,7 @@ module Bali
       end
 
       def display_text
-        text || I18n.t("view_components.bali.loader.loading")
+        text || I18n.t("bali_view.loader.loading")
       end
 
       def aria_label

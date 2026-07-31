@@ -97,11 +97,11 @@ module Bali
       end
 
       def default_choose_text
-        I18n.t("bali.form_builder.file.choose_file")
+        I18n.t("bali_view.form_builder.file.choose_file")
       end
 
       def default_non_selected_text
-        I18n.t("bali.form_builder.file.no_file_selected")
+        I18n.t("bali_view.form_builder.file.no_file_selected")
       end
     end
   end

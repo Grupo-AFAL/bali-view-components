@@ -36,8 +36,8 @@
       <% if fixed? %>
         <%# Mobile: close sidebar button %>
         <label for="<%= mobile_trigger_id %>"
-               title="<%= t('bali.side_menu.close', default: 'Close sidebar') %>"
-               aria-label="<%= t('bali.side_menu.close', default: 'Close sidebar') %>"
+               title="<%= t('bali_view.side_menu.close', default: 'Close sidebar') %>"
+               aria-label="<%= t('bali_view.side_menu.close', default: 'Close sidebar') %>"
                class="menu-item p-2 cursor-pointer shrink-0 lg:!hidden">
           <%= render Bali::Icon::Component.new('x', class: 'size-4') %>
         </label>
@@ -63,8 +63,8 @@
       <% end %>
       <% if fixed? %>
         <label for="<%= mobile_trigger_id %>"
-               title="<%= t('bali.side_menu.close', default: 'Close sidebar') %>"
-               aria-label="<%= t('bali.side_menu.close', default: 'Close sidebar') %>"
+               title="<%= t('bali_view.side_menu.close', default: 'Close sidebar') %>"
+               aria-label="<%= t('bali_view.side_menu.close', default: 'Close sidebar') %>"
                class="menu-item p-2 cursor-pointer shrink-0 lg:!hidden">
           <%= render Bali::Icon::Component.new('x', class: 'size-4') %>
         </label>

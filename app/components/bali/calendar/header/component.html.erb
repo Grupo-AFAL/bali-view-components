@@ -1,7 +1,7 @@
 <div class="header mb-4 flex items-center justify-between">
   <div class="flex-none">
     <% if route_path.present? %>
-      <%= render Bali::Link::Component.new(href: route(extra_params(:prev)), type: :ghost, aria: { label: t('view_components.bali.calendar.header.previous') }) do %>
+      <%= render Bali::Link::Component.new(href: route(extra_params(:prev)), type: :ghost, aria: { label: t('bali_view.calendar.header.previous') }) do %>
         <%= render Bali::Icon::Component.new('arrow-left') %>
       <% end %>
     <% end %>
@@ -12,13 +12,13 @@
     </h3>
     <% if period_switch && route_path.present? %>
       <%= render Bali::Link::Component.new(
-            name: t('view_components.bali.calendar.header.week'),
+            name: t('bali_view.calendar.header.week'),
             href: route(extra_params(:week)),
             type: :primary,
             class: ('btn-outline' if period == :month)
           ) %>
       <%= render Bali::Link::Component.new(
-            name: t('view_components.bali.calendar.header.month'),
+            name: t('bali_view.calendar.header.month'),
             href: route(extra_params(:month)),
             type: :primary,
             class: ('btn-outline' if period == :week)
@@ -27,7 +27,7 @@
   </div>
   <div class="flex-none">
     <% if route_path.present? %>
-      <%= render Bali::Link::Component.new(href: route(extra_params(:next)), type: :ghost, aria: { label: t('view_components.bali.calendar.header.next') }) do %>
+      <%= render Bali::Link::Component.new(href: route(extra_params(:next)), type: :ghost, aria: { label: t('bali_view.calendar.header.next') }) do %>
         <%= render Bali::Icon::Component.new('arrow-right') %>
       <% end %>
     <% end %>

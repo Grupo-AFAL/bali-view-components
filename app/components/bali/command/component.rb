@@ -36,10 +36,10 @@ module Bali
         no_results_subtitle: nil,
         **options
       )
-        @placeholder = placeholder || I18n.t("bali.command.placeholder", default: "Search…")
+        @placeholder = placeholder || I18n.t("bali_view.command.placeholder", default: "Search…")
         @shortcut_label = shortcut_label
         @density = DENSITIES.include?(density) ? density : :default
-        @no_results_text = no_results_text || I18n.t("bali.command.no_results", default: "No results")
+        @no_results_text = no_results_text || I18n.t("bali_view.command.no_results", default: "No results")
         @no_results_subtitle = no_results_subtitle
         @options = options
       end
