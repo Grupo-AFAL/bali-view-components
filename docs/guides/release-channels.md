@@ -37,6 +37,14 @@ one-line, reviewable diff in the `Gemfile.lock`.
   next line does not drift. Merging `3.0` into `main` before v3 is ready would leak breaking
   changes into the stable channel — which is the whole thing this split exists to prevent.
 
+## CI covers both lines
+
+Every workflow triggers on `push` and `pull_request` for **both** `main` and `3.0`. It has to:
+a pre-release tag cut from a branch nothing verified is worse than no pre-release at all.
+
+Note the quotes in `branches: [main, "3.0"]` — unquoted, YAML parses `3.0` as the number
+`3.0` and the filter silently never matches.
+
 ## Cutting a v3 pre-release
 
 Whenever `3.0` reaches a state an app could adopt:
