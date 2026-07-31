@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Tooling** - `.claude/settings.json` no longer overrides the statusline with a dead path. The `statusLine` command pointed at `/Users/fede/code/shared/bali-view-components/.claude/statusline-command.sh`, an absolute path into a directory that exists on no machine — and since project settings win over user settings, it silently replaced whatever statusline each contributor had configured with nothing at all. Removed, so the user-scope statusline applies again. No effect on the published gem.
+
 ## [v2.18.0] - 2026-07-31
 
 ### Security
