@@ -750,13 +750,19 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_no_selector('[data-toolbar-overflow-target="menu"] *', visible: :all)
   end
 
-  def test_overflow_menu_is_served_hidden_and_only_visible_below_the_breakpoint
+  def test_overflow_menu_is_served_hidden_and_revealed_by_the_javascript
     # Se sirve con `hidden` y lo destapa el JS al mover el primer control adentro: así no
     # parpadea un ⋯ que abre un menú vacío mientras el bundle carga.
+    #
+    # Sin `sm:hidden` a propósito: el colapso dejó de decidirlo el breakpoint y pasa a MEDIRSE
+    # (`max-content` contra el ancho real de la fila), así que el ⋯ tiene que poder aparecer en
+    # cualquier ancho — con un sidebar, una ventana de 1024px deja la toolbar sin lugar mucho
+    # antes de llegar a `sm`. Una clase que lo escondiera arriba de 640px lo volvería
+    # inalcanzable justo donde más falta hace.
     render_collapsible_toolbar
 
     assert_selector('[data-toolbar-overflow-target="overflow"][class~="hidden"]', visible: :all)
-    assert_selector('[data-toolbar-overflow-target="overflow"][class~="sm:hidden"]', visible: :all)
+    assert_no_selector('[data-toolbar-overflow-target="overflow"][class~="sm:hidden"]', visible: :all)
   end
 
   def test_collapsible_controls_mark_their_label_for_the_overflow_menu
