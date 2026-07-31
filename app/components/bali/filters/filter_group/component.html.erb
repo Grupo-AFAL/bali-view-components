@@ -18,7 +18,7 @@
         <div class="flex items-center justify-between sm:block sm:w-20 shrink-0 sm:pt-1.5">
           <% if condition_idx == 0 %>
             <span class="text-sm font-medium text-base-content/70">
-              <%= t('bali_view.filters.where', default: 'Where') %>
+              <%= t('bali_view.filters.where') %>
             </span>
           <% else %>
             <%# AND/OR toggle switch %>
@@ -27,13 +27,13 @@
                       class="<%= and_button_classes %>"
                       data-action="filter-group#setCombinator"
                       data-combinator="and">
-                <%= t('bali_view.filters.combinators.and', default: 'AND') %>
+                <%= t('bali_view.filters.combinators.and') %>
               </button>
               <button type="button"
                       class="<%= or_button_classes %>"
                       data-action="filter-group#setCombinator"
                       data-combinator="or">
-                <%= t('bali_view.filters.combinators.or', default: 'OR') %>
+                <%= t('bali_view.filters.combinators.or') %>
               </button>
             </div>
           <% end %>
@@ -56,7 +56,7 @@
             class="btn btn-ghost btn-sm gap-1 text-primary hover:bg-primary/10"
             data-action="filter-group#addCondition">
       <%= render Bali::Icon::Component.new('plus', class: 'w-4 h-4') %>
-      <%= t('bali_view.filters.add_condition', default: 'Add condition') %>
+      <%= t('bali_view.filters.add_condition') %>
     </button>
   </div>
 
@@ -69,13 +69,13 @@
                   class="<%= and_button_classes %>"
                   data-action="filter-group#setCombinator"
                   data-combinator="and">
-            <%= t('bali_view.filters.combinators.and', default: 'AND') %>
+            <%= t('bali_view.filters.combinators.and') %>
           </button>
           <button type="button"
                   class="<%= or_button_classes %>"
                   data-action="filter-group#setCombinator"
                   data-combinator="or">
-            <%= t('bali_view.filters.combinators.or', default: 'OR') %>
+            <%= t('bali_view.filters.combinators.or') %>
           </button>
         </div>
       </div>

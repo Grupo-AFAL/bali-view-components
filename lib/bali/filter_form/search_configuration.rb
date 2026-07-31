@@ -131,14 +131,12 @@ module Bali
       # translations come through automatically.
       def default_search_placeholder
         unless search_enabled?
-          return I18n.t("bali_view.filters.search_placeholder", default: "Search...")
+          return I18n.t("bali_view.filters.search_placeholder")
         end
 
         I18n.t(
           "bali_view.filter_form.search_placeholder_with_fields",
-          fields: search_field_labels.join(", "),
-          default: "Search by %{fields}..."
-        )
+          fields: search_field_labels.join(", "))
       end
 
       def search_field_labels

@@ -28,15 +28,15 @@ module Bali
       attr_reader :project_slug, :opina_url, :token, :badge_interval, :options
 
       def display_title
-        @title || I18n.t("bali_view.feedback_widget.title", default: "Feedback")
+        @title || I18n.t("bali_view.feedback_widget.title")
       end
 
       def open_label
-        I18n.t("bali_view.feedback_widget.open", default: "Open feedback")
+        I18n.t("bali_view.feedback_widget.open")
       end
 
       def close_label
-        I18n.t("bali_view.feedback_widget.close", default: "Close")
+        I18n.t("bali_view.feedback_widget.close")
       end
 
       def generate_token(secret, user_id, email, user_name, expires_in)

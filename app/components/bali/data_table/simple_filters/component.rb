@@ -155,11 +155,11 @@ module Bali
         end
 
         def apply_button_text
-          I18n.t("bali_view.simple_filters.apply", default: "Filter")
+          I18n.t("bali_view.simple_filters.apply")
         end
 
         def clear_button_text
-          I18n.t("bali_view.simple_filters.clear", default: "Clear")
+          I18n.t("bali_view.simple_filters.clear")
         end
       end
     end

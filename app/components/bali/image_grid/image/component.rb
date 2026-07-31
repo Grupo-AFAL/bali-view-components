@@ -48,7 +48,7 @@ module Bali
         end
 
         def expand_label
-          I18n.t("bali_view.image_grid.expand", default: "Expand image")
+          I18n.t("bali_view.image_grid.expand")
         end
 
         def expand_button_classes

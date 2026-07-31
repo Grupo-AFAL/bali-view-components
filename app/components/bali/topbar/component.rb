@@ -44,7 +44,7 @@ module Bali
       end
 
       def toggle_mobile_label
-        I18n.t("bali_view.side_menu.toggle_mobile", default: "Toggle sidebar")
+        I18n.t("bali_view.side_menu.toggle_mobile")
       end
     end
   end

@@ -73,11 +73,11 @@ module Bali
       end
 
       def subtract_label
-        I18n.t("bali_view.step_number_field.decrease", default: "Decrease value")
+        I18n.t("bali_view.step_number_field.decrease")
       end
 
       def add_label
-        I18n.t("bali_view.step_number_field.increase", default: "Increase value")
+        I18n.t("bali_view.step_number_field.increase")
       end
 
       def step_button(opts)

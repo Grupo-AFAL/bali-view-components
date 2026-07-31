@@ -131,22 +131,22 @@ module Bali
 
       # Translated aria-label for mobile trigger checkbox
       def toggle_mobile_label
-        I18n.t("bali_view.side_menu.toggle_mobile", default: "Toggle sidebar")
+        I18n.t("bali_view.side_menu.toggle_mobile")
       end
 
       # Translated aria-label for collapse checkbox
       def toggle_collapse_label
-        I18n.t("bali_view.side_menu.toggle_collapse", default: "Toggle sidebar collapse")
+        I18n.t("bali_view.side_menu.toggle_collapse")
       end
 
       # Translated title for collapse button
       def collapse_label
-        I18n.t("bali_view.side_menu.collapse", default: "Collapse sidebar")
+        I18n.t("bali_view.side_menu.collapse")
       end
 
       # Translated title for expand button
       def expand_label
-        I18n.t("bali_view.side_menu.expand", default: "Expand sidebar")
+        I18n.t("bali_view.side_menu.expand")
       end
     end
   end

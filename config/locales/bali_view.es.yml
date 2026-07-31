@@ -105,6 +105,8 @@ es:
       collapse: "Colapsar menú lateral"
       expand: "Expandir menú lateral"
       toggle_item: "Alternar %{name}"
+      toggle_mobile: "Alternar menú lateral"
+      close: "Cerrar menú lateral"
 
     # Paleta de comandos (⌘K)
     command:
@@ -168,6 +170,12 @@ es:
         # nombre de mes, día, año) en vez del orden habitual en español, porque
         # es el texto literal que el campo va a intentar interpretar.
         allow_input_placeholder: "ej. diciembre 31, 2026"
+        clear: "Limpiar fecha"
+        previous: "Fecha anterior"
+        next: "Fecha siguiente"
+        # Se escribe entre las dos fechas de un rango Y se usa para volver a
+        # separarlas, así que una traducción tiene que seguir siendo reversible.
+        range_separator: " a "
       # Salen del namespace `helpers.*` del host, donde esta gema no tenía nada
       # que escribir (Rails lo usa para labels y submits de sus forms).
       coordinates_polygon:
@@ -228,6 +236,11 @@ es:
     data_table:
       summary: "Mostrando %{from}-%{to} de %{count} %{item_name}"
       default_item_name: elementos
+      display_modes:
+        table: Tabla
+        cards: Tarjetas
+        grid: Cuadrícula
+        timeline: Línea de tiempo
       group_by_control:
         label: Agrupar por
         no_grouping: Sin agrupar
@@ -363,3 +376,11 @@ es:
       monthly_options: Opciones Mensuales
       repeat_on_days: Repetir en Días
       of: de
+
+    feedback_widget:
+      title: "Comentarios"
+      open: "Abrir comentarios"
+      close: "Cerrar"
+    pagination_footer:
+      summary: "Mostrando %{from}-%{to} de %{count} %{item_name}"
+      default_item_name: "elementos"

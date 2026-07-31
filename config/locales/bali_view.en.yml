@@ -105,6 +105,8 @@ en:
       collapse: "Collapse sidebar"
       expand: "Expand sidebar"
       toggle_item: "Toggle %{name}"
+      toggle_mobile: "Toggle sidebar"
+      close: "Close sidebar"
 
     # Command palette (⌘K)
     command:
@@ -169,6 +171,12 @@ en:
         # name, then day, then year) rather than a conventional Spanish date order,
         # since that's the literal text the field will parse.
         allow_input_placeholder: "e.g., December 31, 2026"
+        clear: "Clear date"
+        previous: "Previous date"
+        next: "Next date"
+        # Written between the two dates of a range AND used to split them back
+        # apart, so a locale that translates it must keep it round-trippable.
+        range_separator: " to "
       # Moved out of the host's `helpers.*` namespace, which this gem had no
       # business writing into (Rails owns it for form label/submit lookups).
       coordinates_polygon:
@@ -229,6 +237,11 @@ en:
     data_table:
       summary: "Showing %{from}-%{to} of %{count} %{item_name}"
       default_item_name: items
+      display_modes:
+        table: Table
+        cards: Cards
+        grid: Grid
+        timeline: Timeline
       group_by_control:
         label: Group by
         no_grouping: No grouping
@@ -364,3 +377,11 @@ en:
       monthly_options: Monthly Options
       repeat_on_days: Repeat on Days
       of: of
+
+    feedback_widget:
+      title: "Feedback"
+      open: "Open feedback"
+      close: "Close"
+    pagination_footer:
+      summary: "Showing %{from}-%{to} of %{count} %{item_name}"
+      default_item_name: "items"

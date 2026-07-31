@@ -37,12 +37,12 @@ module Bali
 
       def text_operators
         [
-          { value: "cont", label: t_op("contains", "contains") },
-          { value: "eq", label: t_op("equals", "is exactly") },
-          { value: "start", label: t_op("starts_with", "starts with") },
-          { value: "end", label: t_op("ends_with", "ends with") },
-          { value: "not_cont", label: t_op("not_contains", "does not contain") },
-          { value: "not_eq", label: t_op("not_equals", "is not") }
+          { value: "cont", label: t_op("contains") },
+          { value: "eq", label: t_op("equals") },
+          { value: "start", label: t_op("starts_with") },
+          { value: "end", label: t_op("ends_with") },
+          { value: "not_cont", label: t_op("not_contains") },
+          { value: "not_eq", label: t_op("not_equals") }
         ]
       end
 
@@ -59,33 +59,32 @@ module Bali
 
       def date_operators
         [
-          { value: "eq", label: t_op("on", "is") },
-          { value: "between", label: t_op("between", "between"), range: true },
-          { value: "gt", label: t_op("after", "after") },
-          { value: "lt", label: t_op("before", "before") },
-          { value: "gteq", label: t_op("on_or_after", "on or after") },
-          { value: "lteq", label: t_op("on_or_before", "on or before") }
+          { value: "eq", label: t_op("on") },
+          { value: "between", label: t_op("between"), range: true },
+          { value: "gt", label: t_op("after") },
+          { value: "lt", label: t_op("before") },
+          { value: "gteq", label: t_op("on_or_after") },
+          { value: "lteq", label: t_op("on_or_before") }
         ]
       end
 
       def select_operators
         [
-          { value: "eq", label: t_op("is", "is") },
-          { value: "not_eq", label: t_op("is_not", "is not") },
-          { value: "in", label: t_op("is_any_of", "is any of"), multiple: true },
-          { value: "not_in", label: t_op("is_not_any_of", "is not any of"), multiple: true }
+          { value: "eq", label: t_op("is") },
+          { value: "not_eq", label: t_op("is_not") },
+          { value: "in", label: t_op("is_any_of"), multiple: true },
+          { value: "not_in", label: t_op("is_not_any_of"), multiple: true }
         ]
       end
 
       def boolean_operators
         [
-          { value: "eq", label: t_op("is", "is") }
+          { value: "eq", label: t_op("is") }
         ]
       end
 
-      # Helper for I18n translations
-      def t_op(key, default)
-        I18n.t("bali_view.filters.operators.#{key}", default: default)
+      def t_op(key)
+        I18n.t("bali_view.filters.operators.#{key}")
       end
     end
   end
