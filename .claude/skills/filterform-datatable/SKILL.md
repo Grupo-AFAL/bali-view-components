@@ -169,6 +169,12 @@ Ransack drop the whole condition without raising: the search returns 200 and eve
 same rule applies to `with_header(sort:)` on the table. Assert on the result SET, not the
 status code.
 
+A `filter_attribute type: :select` over a Rails enum can use the enum LABELS as its option
+values (`Movie.statuses.keys`) — Bali translates label to value before the params reach
+Ransack, which otherwise casts with the raw column type and turns `"done"` into `0`. The
+translation covers the model's OWN enums only (not association paths like `studio_status_eq`)
+and only the four operators the select UI offers (`eq`, `not_eq`, `in`, `not_in`).
+
 ## FilterForm Architecture
 
 FilterForm is organized into focused concerns for maintainability:
@@ -177,6 +183,7 @@ FilterForm is organized into focused concerns for maintainability:
 |---------|------|----------------|
 | `SearchConfiguration` | `lib/bali/filter_form/search_configuration.rb` | Search DSL and methods |
 | `FilterGroupParser` | `lib/bali/filter_form/filter_group_parser.rb` | Ransack grouping parsing |
+| `EnumCasting` | `lib/bali/filter_form/enum_casting.rb` | Enum label → value translation before Ransack |
 
 ## FilterForm Methods
 

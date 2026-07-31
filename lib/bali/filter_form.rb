@@ -5,6 +5,7 @@ require_relative "filter_form/filter_group_parser"
 require_relative "filter_form/simple_filters_configuration"
 require_relative "filter_form/group_by_configuration"
 require_relative "filter_form/saved_views_configuration"
+require_relative "filter_form/enum_casting"
 
 module Bali
   # FilterForm provides a unified interface for Ransack-based filtering with support
@@ -49,6 +50,7 @@ module Bali
     include SimpleFiltersConfiguration
     include GroupByConfiguration
     include SavedViewsConfiguration
+    include EnumCasting
 
     attr_reader :scope, :storage_id, :context, :clear_filters, :groupings, :view_param, :display_mode
 
@@ -415,7 +417,10 @@ module Bali
       # Group-first ordering (sort-within-groups) when grouping is active
       apply_group_by_ordering(params)
 
-      params
+      # Último paso y sobre una copia: el estado que se RENDERIZA (filter_groups, las pills,
+      # el payload de una vista guardada, la caché de persistencia) sigue hablando en
+      # etiquetas, que es lo que trae el `<option value>`. Ver EnumCasting.
+      cast_enum_labels(params)
     end
 
     private

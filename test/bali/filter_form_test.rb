@@ -83,6 +83,33 @@ class GroupableMovieFilterForm < Bali::FilterForm
   attribute :genre_eq
 end
 
+# Enum-label casting (#670): las opciones del select son las ETIQUETAS del enum, que es lo
+# que sale de `Movie.statuses.keys` — el caso que Ransack rompía casteando con el tipo crudo
+# de la columna.
+class EnumMovieFilterForm < Bali::FilterForm
+  filter_attribute :status, type: :select,
+                   options: -> { Movie.statuses.keys.map { |key| [ key.humanize, key ] } }
+
+  attribute :status_eq
+  attribute :status_cont
+  attribute :status_gteq
+end
+
+class EnumSimpleFilterMovieForm < Bali::FilterForm
+  simple_filter :status, collection: [ %w[Done done], %w[Draft draft] ], blank: "All"
+end
+
+# Enum de STRING: nunca estuvo roto (Ransack no destruye la etiqueta y el EnumType la
+# resuelve después). Está acá para clavar que la traducción es IDEMPOTENTE, no un cambio de
+# comportamiento.
+class StringEnumMovie < ActiveRecord::Base
+  self.table_name = "movies"
+
+  enum :genre, { action: "Action", comedy: "Comedy" }
+
+  def self.ransackable_attributes(_auth_object = nil) = column_names
+end
+
 class BaliFilterFormTest < ActiveSupport::TestCase
   def setup
     @tenant = Tenant.create(name: "Test")
@@ -1221,5 +1248,127 @@ class BaliFilterFormTestUnifiedDsl < ActiveSupport::TestCase
                                saved_views_store: store)
 
     assert_equal [ 0, 2 ], form.saved_view_columns
+  end
+end
+
+# Enum-label casting (#670). Síntoma: filtrar Status = "Done" devolvía exactamente los
+# registros contrarios. Causa: Ransack castea con el tipo CRUDO de la columna, así que sobre
+# un enum entero "done".to_i es 0 — el valor de `draft`.
+class EnumCastingFilterFormTest < ActiveSupport::TestCase
+  def setup
+    @tenant = Tenant.create(name: "Test")
+    @done = @tenant.movies.create(name: "Iron man 3", status: :done)
+    @draft = @tenant.movies.create(name: "Iron man 2", status: :draft)
+    Rails.cache.clear
+  end
+
+  def params(filter_attributes)
+    ActionController::Parameters.new(q: filter_attributes)
+  end
+
+  # LA reproducción: el shape exacto que emite el builder de Bali::Filters. Se afirma sobre
+  # el CONJUNTO y no sobre el conteo — con dos registros, un conteo de 1 pasa igual de bien
+  # filtrando por el estado equivocado.
+  def test_an_enum_label_in_a_grouping_filters_by_the_right_records
+    form = EnumMovieFilterForm.new(@tenant.movies, params({ g: { "0" => { status_in: [ "done" ], m: "and" } } }))
+
+    assert_equal [ "done" ], form.result.pluck(:status).uniq
+    assert_equal [ @done.name ], form.result.pluck(:name)
+  end
+
+  def test_an_enum_label_in_a_declared_attribute_filters_by_the_right_records
+    form = EnumMovieFilterForm.new(@tenant.movies, params({ status_eq: "done" }))
+
+    assert_equal 1, form.ransack_params["status_eq"]
+    assert_equal [ "done" ], form.result.pluck(:status).uniq
+  end
+
+  def test_an_enum_label_in_a_simple_filter_filters_by_the_right_records
+    form = EnumSimpleFilterMovieForm.new(@tenant.movies, params({ status_eq: "done" }))
+
+    assert_equal 1, form.ransack_params["status_eq"]
+    assert_equal [ "done" ], form.result.pluck(:status).uniq
+  end
+
+  # Bali no adivina: un valor que no es etiqueta puede ser el valor crudo (una app que ya
+  # mandaba 0/1 sigue andando) o un typo, y adivinar sobre un typo es la clase de error que
+  # esto existe para no cometer.
+  def test_a_value_that_is_not_an_enum_label_is_left_alone
+    unknown = EnumMovieFilterForm.new(@tenant.movies, params({ status_eq: "bogus" }))
+    raw = EnumMovieFilterForm.new(@tenant.movies, params({ status_eq: "1" }))
+
+    assert_equal "bogus", unknown.ransack_params["status_eq"]
+    assert_equal "1", raw.ransack_params["status_eq"]
+    assert_equal [ "done" ], raw.result.pluck(:status).uniq
+  end
+
+  def test_enum_labels_are_cast_inside_nested_groupings
+    filter_params = { g: { "0" => { g: { "0" => { status_eq: "done" } }, m: "or" } } }
+    form = EnumMovieFilterForm.new(@tenant.movies, params(filter_params))
+
+    assert_equal 1, form.ransack_params[:g]["0"]["g"]["0"]["status_eq"]
+  end
+
+  def test_the_grouping_combinator_is_not_treated_as_an_attribute
+    filter_params = { g: { "0" => { status_in: [ "done" ], m: "and" } }, m: "or" }
+    form = EnumMovieFilterForm.new(@tenant.movies, params(filter_params))
+
+    assert_equal "and", form.ransack_params[:g]["0"]["m"]
+    assert_equal "or", form.ransack_params[:m]
+  end
+
+  # Fuera de la igualdad el valor no es una pertenencia: `_cont` pide un SUBSTRING y `_gteq`
+  # un ORDEN sobre los códigos crudos. Traducir ahí cambiaría la pregunta.
+  def test_only_equality_predicates_translate_enum_labels
+    contains = EnumMovieFilterForm.new(@tenant.movies, params({ status_cont: "done" }))
+    ordered = EnumMovieFilterForm.new(@tenant.movies, params({ status_gteq: "done" }))
+    nulls = EnumMovieFilterForm.new(@tenant.movies, params({ g: { "0" => { status_null: "1" } } }))
+
+    assert_equal "done", contains.ransack_params["status_cont"]
+    assert_equal "done", ordered.ransack_params["status_gteq"]
+    assert_equal "1", nulls.ransack_params[:g]["0"]["status_null"]
+  end
+
+  # @groupings es EL MISMO objeto que renderiza el popover y que viaja en el payload de una
+  # vista guardada: castear en el lugar dejaría un `1` donde la UI espera "done".
+  def test_casting_does_not_mutate_the_state_the_ui_renders
+    form = EnumMovieFilterForm.new(@tenant.movies, params({ g: { "0" => { status_in: [ "done" ], m: "and" } } }))
+
+    form.ransack_params
+
+    assert_equal [ "done" ], form.filter_groups.first[:conditions].first[:value]
+    assert_equal [ "done" ], form.current_view_payload["groupings"]["0"]["status_in"]
+  end
+
+  # Un enum de string nunca estuvo roto: traducir ahí produce el MISMO SQL, así que la
+  # traducción es idempotente y no un cambio de comportamiento.
+  def test_a_string_enum_label_maps_to_its_value
+    by_label = Bali::FilterForm.new(StringEnumMovie.all, params({ g: { "0" => { genre_eq: "action" } } }))
+    by_value = Bali::FilterForm.new(StringEnumMovie.all, params({ g: { "0" => { genre_eq: "Action" } } }))
+
+    assert_equal "Action", by_label.ransack_params[:g]["0"]["genre_eq"]
+    assert_equal "Action", by_value.ransack_params[:g]["0"]["genre_eq"]
+  end
+
+  def test_compound_predicates_translate_every_member
+    filter_params = { g: { "0" => { status_eq_any: %w[done draft] } } }
+    form = EnumMovieFilterForm.new(@tenant.movies, params(filter_params))
+
+    assert_equal [ 1, 0 ], form.ransack_params[:g]["0"]["status_eq_any"]
+  end
+
+  # Los tests del repo usan dobles como scope. Sin modelo no hay enums y el módulo es un
+  # no-op: no puede reventar. No se llama a #result — eso sería `[].ransack`.
+  def test_a_scope_without_a_model_does_not_raise
+    form = Bali::FilterForm.new([], params({ g: { "0" => { status_eq: "done" } } }))
+
+    assert_equal "done", form.ransack_params[:g]["0"]["status_eq"]
+  end
+
+  # Anti-drift: los predicados que traducimos son EXACTAMENTE los que la UI de select ofrece.
+  # Si alguien agrega un operador al select, esto falla y fuerza la decisión.
+  def test_the_translated_predicates_are_the_ones_the_select_ui_offers
+    assert_equal Bali::Filters::Operators.for_type(:select).pluck(:value).sort,
+                 Bali::FilterForm::EnumCasting::EQUALITY_PREDICATES.sort
   end
 end

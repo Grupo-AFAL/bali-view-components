@@ -75,6 +75,21 @@ class KitchenSinkDemoPagesTest < ActionDispatch::IntegrationTest
     assert_select "tbody tr", text: /Otra Película/, count: 0
   end
 
+  # Ransack castea con el tipo CRUDO de la columna, así que sobre un enum entero la etiqueta
+  # "done" se volvía 0 — el código de `draft`— y el filtro devolvía los registros CONTRARIOS.
+  # Este es el único test que recorre el shape exacto de URL que emite el builder de
+  # Bali::Filters. La aserción es sobre el SET: un `assert_response :ok` pasaba con el bug.
+  def test_admin_movies_filters_by_an_enum_label_from_the_filters_builder
+    done_movie = @tenant.movies.create!(name: "Película Terminada", status: 1)
+
+    get admin_movies_path, params: { q: { g: { "0" => { status_in: [ "done" ], m: "and" } } } }
+
+    assert_response :ok
+    assert_select "tbody tr", 1
+    assert_select "tbody tr", text: /#{done_movie.name}/
+    assert_select "tbody tr", text: /#{@movie.name}/, count: 0
+  end
+
   def test_admin_movies_sorts_by_the_studio_association
     get admin_movies_path, params: { q: { s: "studio_name asc" } }
     assert_response :ok
