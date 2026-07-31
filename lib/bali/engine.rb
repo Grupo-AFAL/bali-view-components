@@ -42,6 +42,13 @@ module Bali
       ViewComponent::Preview.extend ViewComponentContrib::Preview::Abstract
     end
 
+    # `before: :load_environment_config` mirrors Rails' own "active_support.deprecator":
+    # `active_support.deprecation_behavior` applies config.active_support.deprecation to
+    # whatever is registered by then, and plain engine initializers run after it.
+    initializer "bali.deprecator", before: :load_environment_config do |app|
+      app.deprecators[:bali] = Bali.deprecator
+    end
+
     initializer "Register Bali ActiveModel::Types" do
       ActiveModel::Type.register(:date_range, Bali::Types::DateRangeValue)
     end

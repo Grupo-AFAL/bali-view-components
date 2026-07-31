@@ -36,25 +36,25 @@ class SearchableMovieFilterForm < Bali::FilterForm
   filter_attribute :genre, type: :select, options: [ %w[Action action], %w[Comedy comedy] ]
 end
 
-# Test form with simple_filter DSL
+# Test form declaring simple-UI-only filters
 class SimpleFilterableMovieFilterForm < Bali::FilterForm
-  simple_filter :genre,
-                collection: [ %w[Action action], %w[Comedy comedy], %w[Drama drama] ],
-                blank: "All Genres"
+  filter_attribute :genre, type: :select, simple: true, advanced: false,
+                   options: [ %w[Action action], %w[Comedy comedy], %w[Drama drama] ],
+                   blank: "All Genres"
 
-  simple_filter :status,
-                collection: [ %w[Done done], %w[Draft draft] ],
-                blank: "All",
-                label: "Movie Status",
-                default: "done"
+  filter_attribute :status, type: :select, simple: true, advanced: false,
+                   options: [ %w[Done done], %w[Draft draft] ],
+                   blank: "All",
+                   label: "Movie Status",
+                   default: "done"
 end
 
-# Test simple_filter inheritance
+# Test simple filter inheritance
 class ExtendedSimpleFilterForm < SimpleFilterableMovieFilterForm
-  simple_filter :indie,
-                collection: [ [ true, true ], [ false, false ] ],
-                blank: "Any",
-                label: "Indie Film"
+  filter_attribute :indie, type: :select, simple: true, advanced: false,
+                   options: [ [ true, true ], [ false, false ] ],
+                   blank: "Any",
+                   label: "Indie Film"
 end
 
 # Unified DSL: one filter_attribute declaration feeding BOTH filter UIs (#644)
@@ -68,10 +68,11 @@ class UnifiedMovieFilterForm < Bali::FilterForm
                    label: -> { "Estado" }, default: "draft", input: :slim_select
 end
 
-# Legacy alias declaring a :date filter with an explicit predicate (bug fix:
-# the declared predicate used to be silently discarded and replaced with :eq)
+# A :date simple filter with an explicit predicate (regression: the declared
+# predicate used to be silently discarded and replaced with :eq)
 class DatePredicateFilterForm < Bali::FilterForm
-  simple_filter :created_at, type: :date, predicate: :gteq, label: "Created after"
+  filter_attribute :created_at, type: :date, simple: true, advanced: false,
+                   predicate: :gteq, label: "Created after"
 end
 
 # Test form with group_by_attribute DSL. No custom scope order so the
@@ -97,7 +98,8 @@ class EnumMovieFilterForm < Bali::FilterForm
 end
 
 class EnumSimpleFilterMovieForm < Bali::FilterForm
-  simple_filter :status, collection: [ %w[Done done], %w[Draft draft] ], blank: "All"
+  filter_attribute :status, type: :select, simple: true, advanced: false,
+                   options: [ %w[Done done], %w[Draft draft] ], blank: "All"
 end
 
 # Enum de STRING: nunca estuvo roto (Ransack no destruye la etiqueta y el EnumType la
@@ -1173,7 +1175,7 @@ class BaliFilterFormTestUnifiedDsl < ActiveSupport::TestCase
     assert_equal("Estado", status[:label])
   end
 
-  def test_legacy_simple_filter_stays_out_of_the_advanced_popover
+  def test_simple_only_filter_stays_out_of_the_advanced_popover
     form = SimpleFilterableMovieFilterForm.new(@tenant.movies, params({}))
     assert_equal([], form.available_attributes)
   end
