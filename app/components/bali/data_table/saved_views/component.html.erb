@@ -26,7 +26,7 @@
       <ul class="menu p-0 w-full">
         <% default_views.each do |view| %>
           <li class="w-full"><%= link_to view.name, view.url,
-                class: "text-sm #{'menu-active' if active_view?(view)}" %></li>
+                class: "text-sm #{active_item_class(view)}" %></li>
         <% end %>
       </ul>
     <% end %>
@@ -37,7 +37,7 @@
         <% views.each do |view| %>
           <li class="flex-row items-center flex-nowrap w-full">
             <%= link_to view.name, apply_url(view),
-                  class: "grow text-sm truncate #{'menu-active' if active_view?(view)}" %>
+                  class: "grow text-sm truncate #{active_item_class(view)}" %>
             <button type="button" class="btn btn-ghost btn-xs px-1"
                     title="<%= t('.rename') %>"
                     data-action="saved-views#toggleRename" data-saved-views-id-param="<%= view.id %>">

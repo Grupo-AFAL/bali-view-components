@@ -1091,7 +1091,9 @@ class BaliFilterFormGroupByTest < ActiveSupport::TestCase
 
   def test_a_view_saved_from_cards_still_carries_the_suspended_grouping
     form = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", view: "grid"))
-    assert_equal(:genre, form.current_view_payload["group_by"])
+    # String y no Symbol: este payload se compara contra uno que ya volvió de un jsonb, donde
+    # todo es String, y `comparable_view_state` normaliza llaves pero no valores.
+    assert_equal("genre", form.current_view_payload["group_by"])
   end
 
   # --- Options / configuration ---

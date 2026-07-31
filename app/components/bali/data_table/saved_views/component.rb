@@ -69,6 +69,15 @@ module Bali
              active_view&.id == view.id)
         end
 
+        # Marca del item activo. NO `menu-active`: en daisyUI 5 esa clase pinta el item con
+        # `neutral`, o sea un bloque negro sólido que se come el resto del menú. El estándar
+        # de este repo para "esto es lo seleccionado" dentro de una lista es texto primary sin
+        # fondo — igual que SlimSelect (`.ss-selected`, slim_select.css:607) y que el dropdown
+        # hermano de "Agrupar por" (GroupByControl#item_class).
+        def active_item_class(view)
+          "text-primary font-medium" if active_view?(view)
+        end
+
         # La vista sobre la que se está trabajando, aunque ya se le hayan cambiado filtros
         # (sobrevive al submit vía `view_origin`). Es la que se ofrece ACTUALIZAR.
         def origin_view = filter_form.saved_view_origin
