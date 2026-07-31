@@ -705,7 +705,7 @@ Caveats:
   overlap.
 - Rows given `group: nil` (or with no `group:` while other rows have one) are
   collected under a localized "Ungrouped" header (i18n
-  `bali.table.ungrouped`). When **no** row has a `group:`, the table renders
+  `bali_view.table.ungrouped`). When **no** row has a `group:`, the table renders
   exactly as it does without the feature — no header rows.
 
 **Query-aware grouping (FilterForm + DataTable)** — driving grouping through
@@ -806,7 +806,7 @@ counts when you pass `group_counts:`:
 ```
 
 A split group then reads e.g. `Norte (30) — showing 25` (i18n
-`bali.table.group_partial`). The count lookup is tolerant of string-vs-symbol
+`bali_view.table.group_partial`). The count lookup is tolerant of string-vs-symbol
 keys and falls back to the page-local count on a miss.
 
 Constraints:
@@ -868,7 +868,7 @@ Colorful, SmartSuite-style status pill with optional inline editing. Presentatio
 - `readonly` - Forces the read-only pill even when `form:` is given, e.g. permission-gated call sites (default: false)
 - `clearable` - Adds a clear (X) button and a "no status" row to the panel; only applies when editable (default: false)
 - `size` - `:xs`, `:sm`, `:md` (default: `:sm`)
-- `placeholder` - Text shown when nothing is selected (default: i18n `bali.status.no_status`, "No status")
+- `placeholder` - Text shown when nothing is selected (default: i18n `bali_view.status.no_status`, "No status")
 - `**html_options` - Additional HTML attributes for the wrapper `span`; the consumer owns the Turbo target id via `id:` passthrough
 
 The consuming controller responds with a Turbo Stream replacing the element identified by the `id:` you pass.
@@ -888,8 +888,8 @@ Responsive image gallery with optional lightbox and empty state.
 ```erb
 <%= render Bali::ImageGrid::Component.new(columns: 4, expandable: true) do |grid| %>
   <% grid.with_empty_state do %>
-    <p class="text-sm text-base-content/60"><%= t('bali.image_grid.empty_state.title') %></p>
-    <%= render Bali::Link::Component.new(name: t('bali.image_grid.empty_state.add_image'),
+    <p class="text-sm text-base-content/60"><%= t('bali_view.image_grid.empty_state.title') %></p>
+    <%= render Bali::Link::Component.new(name: t('bali_view.image_grid.empty_state.add_image'),
           href: new_image_path, type: :primary) %>
   <% end %>
   <% @images.each do |image| %>
@@ -900,7 +900,7 @@ Responsive image gallery with optional lightbox and empty state.
 
 The `empty_state` slot renders inside a dashed-border centered box instead of
 the grid when there are no images; it is ignored when images are present.
-i18n keys `bali.image_grid.empty_state.{title,add_image}` ship in en/es.
+i18n keys `bali_view.image_grid.empty_state.{title,add_image}` ship in en/es.
 
 #### BooleanIcon
 

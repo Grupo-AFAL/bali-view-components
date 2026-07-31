@@ -63,6 +63,83 @@ render at once. `/admin/movies` in the dummy app is the end-to-end reference aga
 controllers, routes and Turbo Streams — saved views included, backed by the engine's default
 store and a one-user demo owner; the only family it leaves out is host toolbar buttons.
 
+## Every translation key moves to `bali_view.*`
+
+v2 shipped its strings under **three** roots — `bali.*`, `view_components.bali.*` and
+`helpers.*` — and two of them belong to somebody else: `view_components` is the namespace
+`view_component-contrib` reserves for the host (any other component library shares it), and
+`helpers` is Rails', which uses it to resolve labels and submit buttons for the host's own
+forms. v3 uses one root per gem in the family, and this one is `bali_view`.
+
+Two mechanical rules cover 302 of the 306 keys:
+
+```
+bali.<anything>                  →  bali_view.<anything>
+view_components.bali.<anything>  →  bali_view.<anything>
+```
+
+The rest are the `helpers.*` squatters, which move next to the FormBuilder module that
+emits them:
+
+| v2 | v3 |
+|---|---|
+| `helpers.add.text` | `bali_view.form_builder.dynamic_fields.add` |
+| `helpers.cancel.text` | `bali_view.form_builder.submit.cancel` |
+| `helpers.clear.text` | `bali_view.form_builder.coordinates_polygon.clear` |
+| `helpers.clear_holes.text` | `bali_view.form_builder.coordinates_polygon.clear_holes` |
+| `helpers.generic_confirm_message.text` | `bali_view.form_builder.coordinates_polygon.confirm` |
+| `helpers.apply.text` | *(deleted — nothing read it)* |
+
+Three more keys are gone because nothing ever read them either, and they duplicated a
+sibling: `view_components.bali.filters.filters` (say `bali_view.filters.filters_button`),
+`…filters.remove_filters` (`bali_view.filters.clear_all`) and
+`…filters.attributes.date_range.custom`.
+
+### Host overrides work now — which is why you have to fix them
+
+This is the part to read even if you never overrode a Bali string, because the two changes
+interact. In v2 the engine appended its own locale files to `i18n.load_path` by hand, on top
+of the copy `Rails::Engine` already registers. I18n merges in load order and the last file
+wins, so the gem's files — appended last, after the host's — beat the app. **No override of
+a key Bali defined has ever taken effect.** What looked like a working override was always a
+key Bali did not define, i.e. an addition.
+
+v3 deletes that initializer. `Rails::Engine` registers `config/locales` on its own, in an
+order that puts every engine before the app, so an override in the host's
+`config/locales/*.yml` finally wins.
+
+The trap: a host that "overrode" a key Bali did not define is now overriding a key Bali
+*does* define, under a name that moved. `Bali::PaginationFooter` is the live example — its
+`summary` and `default_item_name` only existed as inline English defaults in Ruby, so an app
+that wanted them in Spanish declared `view_components.bali.pagination_footer.*` and it
+worked. Both keys now ship in `bali_view.pagination_footer.*` in en and es. Rename yours or
+delete it; leaving it under the old path is silently dead.
+
+```
+grep -rn "^\s*bali:\|view_components:\|bali\.\|view_components\.bali\." config/locales app/
+```
+
+### Strings that had no key at all
+
+44 user-visible strings were hardcoded in templates — the whole `DocumentEditor` app bar,
+the `RichTextEditor` bubble menu (including a `placeholder="Ingresa la URL"` sitting in an
+otherwise English file), `BlockEditor`'s export buttons, `DocumentPage`'s panels, and a
+handful of `aria-label`s. They now resolve through `bali_view.*` in both locales. If your
+app renders these components in Spanish, text that used to come out in English changes.
+Two `aria-label`s got more specific on the way (`Close` → `Close message` on
+`Bali::Message`, and the Filters panel close button), because a bare "Close" gives a screen
+reader nothing to distinguish it by.
+
+### The datepicker stops assuming Spanish
+
+`DatepickerController`'s `locale` value defaulted to `'es'`, and `setLocale` returned the
+Spanish flatpickr locale for **every** code that was not `'en'` — so a host on `fr` got a
+Spanish calendar and nothing said so. The default is now `'en'`, and only locales the gem
+declares are loaded; anything else falls back to flatpickr's built-in English. Every Bali
+call site already emits `data-datepicker-locale-value` from `I18n.locale`, so this only
+affects a host wiring the controller by hand — and a host that needs another locale
+registers it with `flatpickr.localize()`.
+
 ## What breaks, and what replaces it
 
 | Removed | Replacement |
