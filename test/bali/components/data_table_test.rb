@@ -460,7 +460,7 @@ class BaliDataTableComponentTest < ComponentTestCase
     end
   end
 
-  def test_toolbar_declares_the_overflow_controller_and_its_three_home_groups
+  def test_toolbar_declares_the_overflow_controller_and_a_home_group_per_family
     render_full_toolbar
 
     assert_selector('div[data-controller~="toolbar-overflow"]', visible: :all)
@@ -470,6 +470,9 @@ class BaliDataTableComponentTest < ComponentTestCase
                     count: 1, visible: :all)
     assert_selector('[data-toolbar-overflow-target="group"][data-toolbar-overflow-group="right"]',
                     count: 1, visible: :all)
+    # Sin botones del host no hay grupo del host: un grupo vacío es un flex item que se lleva
+    # el `gap` de la fila a los dos lados.
+    assert_no_selector('[data-toolbar-overflow-group="host"]', visible: :all)
   end
 
   def test_the_left_group_reads_filters_then_group_by_then_columns
@@ -553,13 +556,33 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_no_selector('[data-toolbar-overflow-group="left"]', visible: :all)
   end
 
-  def test_only_the_view_switch_and_host_buttons_stay_on_the_right
+  def test_only_the_view_switch_stays_on_the_right
     render_full_toolbar
 
     assert_no_selector('[data-toolbar-overflow-group="right"][data-toolbar-overflow-priority="30"]',
                        visible: :all)
     assert_no_selector('[data-toolbar-overflow-group="right"][data-toolbar-overflow-priority="25"]',
                        visible: :all)
+  end
+
+  def test_host_buttons_get_their_own_group_and_leave_the_view_switch_pinned_right
+    # Adentro del grupo derecho el JS los ordenaba por prioridad DESCENDENTE (10 contra 50) y
+    # el botón del host terminaba a la derecha del view switch — que es lo único que puede ir
+    # pegado al borde, porque es lo único que dice cómo se VE el listado.
+    render_inline(component) do |c|
+      declare_views(c)
+      c.with_toolbar_button { '<button class="btn">Refresh</button>'.html_safe }
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector('[data-toolbar-overflow-target="group"][data-toolbar-overflow-group="host"]',
+                    count: 1, visible: :all)
+    assert_selector('[data-toolbar-overflow-group="host"][data-toolbar-overflow-priority="10"]',
+                    count: 1, visible: :all)
+    assert_no_selector('[data-toolbar-overflow-group="right"][data-toolbar-overflow-priority="10"]',
+                       visible: :all)
+    assert_selector('[data-toolbar-overflow-group="right"][data-toolbar-overflow-priority="50"]',
+                    count: 1, visible: :all)
   end
 
   def test_collapsible_controls_declare_their_priority_and_home_group
@@ -666,7 +689,7 @@ class BaliDataTableComponentTest < ComponentTestCase
       c.with_table { '<div class="table-component"></div>'.html_safe }
     end
 
-    assert_selector('[data-toolbar-overflow-target="item"][data-toolbar-overflow-group="right"]' \
+    assert_selector('[data-toolbar-overflow-target="item"][data-toolbar-overflow-group="host"]' \
                     '[data-toolbar-overflow-priority="10"]', count: 2, visible: :all)
     assert_selector('[data-toolbar-overflow-target="overflow"]', visible: :all)
   end

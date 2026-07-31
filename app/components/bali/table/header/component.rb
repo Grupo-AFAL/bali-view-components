@@ -64,13 +64,19 @@ module Bali
           )
         end
 
-        # Apagado hasta que el puntero (o el foco de teclado) entra: la afordancia tiene que
+        # Atenuado hasta que el puntero (o el foco de teclado) entra: la afordancia tiene que
         # distinguir la columna ordenable sin competir con el dato de la tabla.
+        #
+        # Color explícito y NO `opacity`: daisyUI ya pinta el thead con `base-content` al 60%,
+        # así que una opacidad se MULTIPLICA contra eso — `opacity-30` medía 1.5:1 contra
+        # base-100, debajo del 3:1 que pide WCAG 1.4.11 para un elemento de interfaz. Y como
+        # el único realce es hover/focus, en un teléfono no hay forma de subirlo: la afordancia
+        # se quedaba ahí para siempre, justo para quien menos la ve.
         def indicator_classes
           return "shrink-0 opacity-100" if sort_direction
 
-          "shrink-0 opacity-30 transition-opacity " \
-            "group-hover:opacity-100 group-focus-visible:opacity-100"
+          "shrink-0 text-base-content/60 transition-colors " \
+            "group-hover:text-base-content group-focus-visible:text-base-content"
         end
 
         def sort_direction

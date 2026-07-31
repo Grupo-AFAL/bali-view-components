@@ -1,5 +1,9 @@
 import { Controller } from '@hotwired/stimulus'
 
+// A dónde puede ir a parar el foco cuando el control que lo tenía cambia de lugar. El
+// `[tabindex]` no negativo cubre al trigger del dropdown, que es un div con `role="button"`.
+const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
+
 /**
  * Toolbar Overflow Controller
  *
@@ -143,25 +147,53 @@ export default class extends Controller {
    * Cruzar el breakpoint (un zoom al 400%, rotar el teléfono) no puede costarle al usuario
    * de teclado su posición: `closeOpenDropdowns` hace blur y `collapse`/`expand` mueven el
    * nodo enfocado, así que sin esto el foco cae al <body> sin anillo ni anuncio.
+   *
+   * El ⋯ cuenta como control y NO es un `item`: angosto es la única forma de llegar a lo
+   * colapsado, y al ensanchar se esconde. Sin contarlo acá, el cruce hacia arriba —volver
+   * del zoom al 400%— tiraba el foco al <body>, que es exactamente la pérdida que este
+   * método existe para evitar, solo que en el otro sentido.
    */
   focusedControl () {
     const active = document.activeElement
-    if (!active || !this.itemTargets.some(item => item.contains(active))) return null
+    if (!active) return null
+    if (this.itemTargets.some(item => item.contains(active))) return active
+    if (this.hasOverflowTarget && this.overflowTarget.contains(active)) return this.overflowTarget
 
-    return active
+    return null
   }
 
   restoreFocus (element) {
     if (!element || !element.isConnected) return
 
+    // El foco estaba en el ⋯. Si sigue en pantalla vuelve a su trigger; si se escondió
+    // porque ya no hay nada que colapsar, el destino equivalente es el control de mayor
+    // prioridad que acaba de volver a la fila — lo primero que el menú ofrecía.
+    if (element === this.overflowTarget) {
+      const home = this.isRendered(element) ? this.overflowTrigger() : this.collapsibleItems()[0]
+      this.focusableWithin(home)?.focus({ preventScroll: true })
+      return
+    }
+
     // Quedó dentro del ⋯ cerrado (no renderizado): el destino equivalente es su trigger,
     // que es por donde el usuario llega ahora a ese control.
-    if (element.offsetParent === null) {
+    if (!this.isRendered(element)) {
       this.overflowTrigger()?.focus({ preventScroll: true })
       return
     }
 
     element.focus({ preventScroll: true })
+  }
+
+  isRendered (element) {
+    return element.offsetParent !== null
+  }
+
+  // Los `item` son ENVOLTORIOS, no controles: enfocarlos no hace nada. El foco va al primer
+  // elemento enfocable que tengan adentro.
+  focusableWithin (element) {
+    if (!element) return null
+
+    return element.matches(FOCUSABLE) ? element : element.querySelector(FOCUSABLE)
   }
 
   overflowTrigger () {

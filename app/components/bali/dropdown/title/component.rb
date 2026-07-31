@@ -9,9 +9,14 @@ module Bali
       #
       # Span y no `<li>`: el template del Dropdown ya envuelve cada item en `<li role="none">`.
       class Component < ApplicationViewComponent
+        # `role="presentation"`: dentro de un `<ul role="menu">` un span genérico es un hijo
+        # que ese rol no admite (solo menuitem/group/separator), y el lector de pantalla en
+        # modo menú lo saltea igual. Marcado como presentacional deja de ser un hijo inválido,
+        # y el texto sigue disponible para el `aria-describedby` con el que los items de la
+        # sección se lo apropian (ver PageComponents::Shared#export_menu_items).
         def initialize(name: nil, **options)
           @name = name
-          @options = prepend_class_name(options, "menu-title")
+          @options = prepend_class_name(options, "menu-title").reverse_merge(role: "presentation")
         end
 
         # El Dropdown filtra sus items por este predicado antes de pintarlos (ver

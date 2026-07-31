@@ -79,6 +79,27 @@ class BaliDataTableExportComponentTest < ComponentTestCase
     assert_includes error.message, "method"
   end
 
+  def test_explicit_params_switch_the_client_side_re_sync_off
+    # `params: {}` es el opt-out ("exportar todo a propósito") y el controlador lo deshacía
+    # apenas booteaba, reescribiendo el href desde `window.location`.
+    render_inline(export(params: {}))
+    assert_selector('[data-export-links-sync-value="false"]', visible: :all)
+
+    render_inline(export(params: nil))
+    assert_selector('[data-export-links-sync-value="true"]', visible: :all)
+  end
+
+  # Las dos mitades del MISMO link: el server pinta el href y el controlador lo re-sincroniza
+  # desde la URL. Con las listas separadas, mover un param de un lado dejaba al otro
+  # arrastrando lo que el primero acababa de tirar, y no fallaba nada.
+  def test_the_transient_params_list_is_the_same_in_ruby_and_in_javascript
+    source = Bali::Engine.root.join("app/components/bali/data_table/export_links_controller.js").read
+    literal = source[/const TRANSIENT_PARAMS = \[(.*?)\]/m, 1]
+    refute_nil literal, "no se encontró el literal TRANSIENT_PARAMS en el controlador"
+
+    assert_equal Bali::DataTable::ToolbarHref::TRANSIENT_PARAMS, literal.scan(/'([^']+)'/).flatten
+  end
+
   private
 
   def export(url: "/movies", params: {}, formats: %i[csv excel pdf])

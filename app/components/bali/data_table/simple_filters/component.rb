@@ -67,11 +67,6 @@ module Bali
           @show_clear
         end
 
-        # Returns true if persistence is available (storage_id is configured)
-        def persistence_available?
-          @storage_id.present?
-        end
-
         # Returns true if user has enabled persistence
         def persist_enabled?
           @persist_enabled

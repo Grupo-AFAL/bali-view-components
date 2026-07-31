@@ -1,4 +1,4 @@
-<%# The canonical index composition: the six toolbar control families, row selection and
+<%# The canonical index composition: the seven toolbar control families, row selection and
     pagination in one DataTable. Lives in a partial because `index_page/previews/complete`
     renders the SAME body inside the page layer — two copies would drift, which is the
     exact problem this preview exists to fix.
@@ -40,15 +40,18 @@
   <% end %>
 
   <%# 4. Saved views: named filter combinations, backed by the form's store. Past the
-         separator, with the persistence bookmark the DataTable renders on its own: this
-         side of the row is how the listing's state is REMEMBERED. %>
+         separator: this side of the row is how the listing's state is REMEMBERED. %>
   <% dt.with_saved_views(url: '/preview/saved_views',
                          default_views: [
                            { name: 'Everything', url: url },
                            { name: 'Indie only', url: "#{url}?q%5Bindie_true%5D=1" }
                          ]) %>
 
-  <%# 5. View switch — the only control on the right, because how the listing is DISPLAYED
+  <%# 5. The persistence bookmark ("remember my filters") has no declaration: the DataTable
+         renders it next to the saved views whenever the FilterForm carries a storage id.
+         It is a control family all the same — it collapses into the ⋯ like the rest. %>
+
+  <%# 6. View switch — the only control on the right, because how the listing is DISPLAYED
          is the one piece of state a saved view does not carry. Each view declares `value:`
          (what travels in ?view=) and the DataTable builds the href, preserving filters,
          sorting, grouping and the applied saved view. %>
@@ -58,13 +61,16 @@
     <% switch.with_view(name: 'Timeline', icon: 'calendar', value: :timeline) %>
   <% end %>
 
-  <%# 6. Host buttons: arbitrary content, last in the survival order (collapses first).
+  <%# 7. Host buttons: arbitrary content Bali does not cover, in their own group between the
+         memory side and the right edge. Last in the survival order (collapses first).
+         NOT a page action — importing, printing and exporting go in the page's `⋯`, which
+         is why this one is a listing control and not the `Import` the page declares.
          `responsive: false` on purpose — Bali::Button's responsive mode hides its label
          below `sm`, which inside the ⋯ menu leaves an anonymous icon. A control that
          collapses into the menu should keep its name there, where there is room. %>
   <% dt.with_toolbar_button do %>
-    <%= render Bali::Button::Component.new(name: 'Import', variant: :ghost, size: :sm,
-                                           icon_name: 'upload', responsive: false) %>
+    <%= render Bali::Button::Component.new(name: 'Refresh', variant: :ghost, size: :sm,
+                                           icon_name: 'refresh-cw', responsive: false) %>
   <% end %>
 
   <%# Selection: the contextual row replaces the toolbar while a selection exists. %>

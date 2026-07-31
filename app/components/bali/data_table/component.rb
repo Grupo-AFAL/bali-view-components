@@ -542,8 +542,16 @@ module Bali
         (declared_toolbar_controls & %i[saved_views filter_persistence]).any?
       end
 
+      # Los botones del host no caen en ninguno de los tres cubos: grupo propio, entre lo que
+      # se recuerda y el borde derecho. Metidos en el grupo de la derecha el JS los ordenaba
+      # por prioridad (10 contra 50) y quedaban DESPUÉS del view switch, que es lo único que
+      # va pegado al borde.
+      def show_toolbar_host?
+        declared_toolbar_controls.include?(:toolbar_buttons)
+      end
+
       def show_toolbar_right?
-        (declared_toolbar_controls & %i[view_switch toolbar_buttons]).any?
+        declared_toolbar_controls.include?(:view_switch)
       end
 
       # La barrita afirma algo sobre sus dos vecinos ("acá termina qué contiene la vista y
@@ -564,9 +572,9 @@ module Bali
       end
 
       # Qué familias de control PINTAN algo. Es la ÚNICA lista: `overflow_menu?`,
-      # `show_toolbar?` y `show_toolbar_right?` se derivan de acá, así que el gate del ⋯ no
-      # puede desalinearse de lo que el JS colapsa. Mira el render, no el predicado del slot
-      # (ver #control_content).
+      # `show_toolbar?` y los `show_toolbar_*` de cada grupo se derivan de acá, así que el
+      # gate del ⋯ no puede desalinearse de lo que el JS colapsa. Mira el render, no el
+      # predicado del slot (ver #control_content).
       def declared_toolbar_controls
         @declared_toolbar_controls ||= begin
           controls = []

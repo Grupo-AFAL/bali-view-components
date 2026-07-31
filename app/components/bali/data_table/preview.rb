@@ -240,9 +240,9 @@ module Bali
       end
 
       # @label Complete Example (Live DB)
-      # The canonical index composition, without the page layer. The six toolbar control
-      # families in one bare row (search + filters, group by, view switch, saved views,
-      # column selector, host buttons), row selection and pagination.
+      # The canonical index composition, without the page layer. The seven toolbar control
+      # families in one bare row (search + filters, group by, column selector, saved views,
+      # the persistence bookmark, view switch, host buttons), row selection and pagination.
       #
       # - The surface belongs to the content slot: no `Bali::Card` around the DataTable
       # - `?view=` picks the content band; `dt.display_mode` is the value already validated

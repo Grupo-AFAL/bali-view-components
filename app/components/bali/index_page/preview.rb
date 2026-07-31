@@ -9,7 +9,7 @@ module Bali
 
       # @label Complete (Live DB)
       # **The canonical index page.** Page chrome (breadcrumbs, title, primary action, the
-      # `⋯` of secondary actions) plus a DataTable with the six toolbar control families,
+      # `⋯` of secondary actions) plus a DataTable with the seven toolbar control families,
       # row selection and pagination. Copy this composition when building an index.
       #
       # - The DataTable goes in bare: the surface travels with its content slot, so there is

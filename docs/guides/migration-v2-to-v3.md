@@ -206,11 +206,20 @@ longer on this path.
 - **Bulk selection order.** `selected_ids` is derived from the DOM, so it comes in row
   order rather than click order. Non-numeric record ids (UUIDs) still serialize as `null` —
   a pre-existing limitation of the controller, now reachable by many more apps.
+- **The filter-persistence bookmark left the Filters panel.** Inside a `DataTable` it is a
+  toolbar control of its own (`Bali::Filters::PersistenceToggle::Component`, `memory`
+  group) and the panel receives `persistence_toggle: false`, so nothing renders it twice.
+  Standalone `Filters` / `SimpleFilters` are unchanged and still render it (default
+  `persistence_toggle: true`). No API changed, but a system test scoping the bookmark
+  inside the panel (`within('.filters') { … }`) or CSS doing the same stops matching.
+- **Host `toolbar_buttons` moved to their own overflow group** (`host`) between the memory
+  group and the right edge, so the view switch stays pinned to the edge. A listing that
+  declares toolbar buttons and *no* view switch no longer pushes them to the far right.
 
 ## Checklist
 
 ```
-grep -rn "with_actions_panel\|table_id:\|data_display_mode\|toolbar_class:" app/
+grep -rn "with_actions_panel\|with_export\|table_id:\|data_display_mode\|toolbar_class:" app/
 grep -rn "turbo_stream.replace \"data-table-" app/
 grep -rn "Bali::Card.*DataTable\|render Bali::Card" app/views/**/index*
 ```

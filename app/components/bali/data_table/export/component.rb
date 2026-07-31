@@ -31,6 +31,13 @@ module Bali
 
         attr_reader :formats, :button_icon
 
+        # Ver `export_links_controller.js`: el re-sync desde la URL solo vale cuando el
+        # recorte salió del request. Con `params:` explícito (o `{}`, el opt-out) el href es
+        # una decisión del host y adivinarla se la deshace en silencio.
+        def sync_links?
+          @params.nil?
+        end
+
         def button_label
           @button_label || t(".button_label")
         end

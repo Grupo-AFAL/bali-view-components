@@ -20,7 +20,9 @@
   <%# El export vive en el ⋯ del PageHeader y no en la toolbar: exportar es una acción SOBRE
       la página, no un control de cómo se ve el listado. El link arrastra el recorte activo,
       por eso el item dice "lo filtrado". %>
-  <% page.with_export(url: movies_path) %>
+  <%# `formats: [:csv]` y no los tres por default: este controller solo responde CSV, y un
+      item que devuelve 406 en la página de referencia enseña la trampa en vez del arreglo. %>
+  <% page.with_export(url: movies_path, formats: [:csv]) %>
 
   <%# El DataTable entra pelado: la superficie viaja con su slot de contenido. %>
   <% page.with_body do %>

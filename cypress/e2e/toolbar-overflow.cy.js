@@ -137,6 +137,24 @@ describe('DataTable toolbar overflow', () => {
     cy.document().its('activeElement.tagName').should('not.equal', 'BODY')
   })
 
+  it('keeps keyboard focus when the breakpoint is crossed the OTHER way', () => {
+    // El espejo del caso de arriba, y el que faltaba: angosto, el ⋯ es la única forma de
+    // llegar a lo colapsado, así que ahí es donde está parado el usuario. Al ensanchar el ⋯
+    // se esconde — y no es un `item`, así que no entraba en la restauración de foco.
+    cy.viewport(375, 667)
+    cy.visit('/bali/data_table/complete')
+
+    cy.get(`${overflow} [data-dropdown-target="trigger"]`).focus()
+    cy.focused().should('have.attr', 'aria-label')
+
+    cy.viewport(1280, 800)
+
+    cy.get(overflow).should('have.class', 'hidden')
+    cy.document().its('activeElement.tagName').should('not.equal', 'BODY')
+    // Aterriza en un control de la fila, no en cualquier lado del documento.
+    cy.focused().closest('[data-toolbar-overflow-target="item"]').should('have.length', 1)
+  })
+
   it('does not render the ⋯ when there is nothing to collapse', () => {
     cy.viewport(375, 667)
     cy.visit('/bali/data_table/default')

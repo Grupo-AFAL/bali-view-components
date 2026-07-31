@@ -52,6 +52,21 @@ class BaliFiltersPersistenceToggleTest < ComponentTestCase
     assert_selector('button[data-action="filter-persistence#toggle"][aria-label="Remember filters"]')
   end
 
+  # El nombre no cambia con el estado, los íconos son `aria-hidden` y `data-tip` es contenido
+  # generado por CSS: `aria-pressed` es lo único que le dice a un lector de pantalla si los
+  # filtros se están recordando o no. Sin él el botón se anuncia igual en los dos estados.
+  def test_the_button_announces_its_state
+    render_inline(Bali::Filters::PersistenceToggle::Component.new(storage_id: "movies"))
+
+    assert_selector('button[data-action="filter-persistence#toggle"][aria-pressed="false"]')
+  end
+
+  def test_the_button_announces_the_enabled_state
+    render_inline(Bali::Filters::PersistenceToggle::Component.new(storage_id: "movies", enabled: true))
+
+    assert_selector('button[data-action="filter-persistence#toggle"][aria-pressed="true"]')
+  end
+
   # CONTRATO de data_table/index.css: sin esta clase el control queda como un ícono anónimo
   # dentro del menú ⋯.
   def test_the_label_carries_the_toolbar_control_label_class

@@ -21,7 +21,10 @@ describe('Page export links', () => {
 
   it('re-syncs the href from the URL, so filtering does not freeze it', () => {
     // `filters#_submit` empuja la URL nueva al history ANTES de enviar el form, así que
-    // `connect()` ya la ve. Sin esto el link se queda con el slice de la carga inicial.
+    // cuando llega el evento la URL ya describe el recorte nuevo. Se despacha sobre
+    // `documentElement` y burbujeando porque es lo que hace Turbo: el controlador escucha
+    // en `document`, y un dispatch sobre `window` no llega ahí — su ruta de propagación es
+    // solo [window].
     cy.visit('/bali/index_page/complete')
 
     cy.get(secondaryActions).click()
@@ -31,7 +34,7 @@ describe('Page export links', () => {
 
     cy.window().then((win) => {
       win.history.pushState({}, '', '?group_by=genre&page=3')
-      win.dispatchEvent(new win.Event('turbo:load'))
+      win.document.documentElement.dispatchEvent(new win.Event('turbo:load', { bubbles: true }))
     })
 
     cy.get(exportLink).first().should(($link) => {
@@ -39,6 +42,27 @@ describe('Page export links', () => {
       expect(href).to.include('group_by=genre')
       expect(href).to.include('format=csv')
       expect(href).to.not.include('page=')
+    })
+  })
+
+  it('follows a real filter submit that answers with a turbo_stream', () => {
+    // EL caso para el que existe el controlador, y el único que el evento sintético de
+    // arriba no prueba: la respuesta es un turbo_stream que reemplaza solo el listado, así
+    // que no hay visita, `turbo:load` NO se dispara y el ⋯ tampoco se reconecta. Va contra
+    // la app dummy porque los previews de Lookbook no tienen controller que responda
+    // `turbo_stream`.
+    cy.visit('http://localhost:3001/admin/movies')
+
+    cy.get('[data-filters-target="searchInput"]').type('Alien')
+    cy.get('[data-action*="filters#submitSearch"]').click()
+
+    cy.location('search').should('include', 'name_or_genre_or_studio_name_cont')
+
+    cy.get(secondaryActions).click()
+    cy.get(exportLink).first().should(($link) => {
+      const href = $link.attr('href')
+      expect(href).to.include('format=csv')
+      expect(href).to.include('name_or_genre_or_studio_name_cont')
     })
   })
 

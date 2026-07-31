@@ -126,6 +126,35 @@ class BaliIndexPageComponentTest < ComponentTestCase
 
     assert_selector('[data-controller~="export-links"]', count: 1, visible: :all)
     assert_selector('[data-export-links-target="link"]', count: 3, visible: :all)
+    assert_selector('[data-export-links-sync-value="true"]', count: 1, visible: :all)
+  end
+
+  def test_an_explicit_params_switches_the_client_side_re_sync_off
+    # `params:` es una DECISIÓN del host —`{}` es "exportar todo a propósito"— y el
+    # controlador la deshacía apenas booteaba Stimulus, reescribiendo el href desde la URL
+    # del navegador. Los tests de Ruby seguían verdes porque `render_inline` no corre JS.
+    render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
+      page.with_export(url: "/movies", params: {})
+      page.with_body { "Content" }
+    end
+
+    assert_selector('[data-export-links-sync-value="false"]', count: 1, visible: :all)
+  end
+
+  def test_the_export_items_are_described_by_the_section_title
+    # Dentro de un `<ul role="menu">` el lector de pantalla navega SOLO los menuitem, así que
+    # el título quedaba fuera del recorrido y los items se anunciaban "CSV / Excel / PDF" sin
+    # decir nunca que exportan. Como descripción y no como nombre para no pisar el visible.
+    render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
+      page.with_export(url: "/movies")
+      page.with_body { "Content" }
+    end
+
+    title_id = page.find("span.menu-title", visible: :all)["id"]
+    refute_nil title_id
+    assert_selector("span.menu-title[role='presentation']", visible: :all)
+    assert_selector("[data-export-links-target='link'][aria-describedby='#{title_id}']",
+                    count: 3, visible: :all)
   end
 
   def test_the_primary_action_and_the_overflow_share_one_container

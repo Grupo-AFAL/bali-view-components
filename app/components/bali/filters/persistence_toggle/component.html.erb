@@ -10,12 +10,18 @@
      data-filter-persistence-disabled-tooltip-value="<%= disabled_tooltip %>">
   <%# aria-label explícito: los dos íconos son svg `aria-hidden` y el label solo se destapa
       dentro del ⋯, así que sin esto el botón no tiene nombre accesible. Coincide con el
-      texto visible para no romper "Label in Name" cuando ese label aparece. %>
+      texto visible para no romper "Label in Name" cuando ese label aparece.
+
+      `aria-pressed` es lo ÚNICO que expone en qué estado está: el cambio de ícono es visual
+      y el `data-tip` es contenido generado por CSS. Sin él el botón se anuncia igual
+      encendido que apagado, y como el click recarga por Turbo sin anunciar nada, no había
+      forma de saber para qué lado quedó. El JS lo mantiene al día (updateUI). %>
   <button type="button"
           class="tooltip tooltip-bottom btn btn-ghost btn-sm gap-2"
           data-action="filter-persistence#toggle"
           data-filter-persistence-target="button"
           data-tip="<%= tooltip %>"
+          aria-pressed="<%= enabled? %>"
           aria-label="<%= label %>">
     <%# Marcador relleno cuando está activo %>
     <span data-filter-persistence-target="iconEnabled" class="<%= 'hidden' unless enabled? %>">

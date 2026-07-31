@@ -75,6 +75,11 @@ export class FilterPersistenceController extends Controller {
     if (this.hasButtonTarget) {
       const tooltip = this.enabledValue ? this.enabledTooltipValue : this.disabledTooltipValue
       this.buttonTarget.setAttribute('data-tip', tooltip)
+      // El estado se expone acá y no solo en el HTML servido: connect() puede darlo vuelta
+      // desde localStorage sin que el server vuelva a pintar, y el `aria-pressed` quedaría
+      // mintiendo. Es la única señal que tiene un lector de pantalla — los íconos son
+      // `aria-hidden` y el tooltip es contenido generado por CSS.
+      this.buttonTarget.setAttribute('aria-pressed', this.enabledValue.toString())
     }
   }
 

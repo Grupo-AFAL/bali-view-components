@@ -2,7 +2,9 @@
     recorte de la carga completa, y un submit de filtros (que responde turbo_stream y
     reemplaza SOLO el nodo del listado) puede dejarlo congelado si este dropdown vive afuera
     de ese nodo — que es exactamente donde vive en el ⋯ del PageHeader. %>
-<div class="dropdown dropdown-end" data-controller="export-links">
+<div class="dropdown dropdown-end"
+     data-controller="export-links"
+     data-export-links-sync-value="<%= sync_links? %>">
   <%# aria-label explícito: el label visible vive en un span `hidden sm:inline` (ver el
       column selector). %>
   <button type="button" tabindex="0" class="btn btn-outline btn-sm gap-2" aria-label="<%= button_label %>">

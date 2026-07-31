@@ -501,16 +501,6 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
 
   # Persistence toggle tests
 
-  def test_persistence_available_returns_false_when_no_storage_id
-    component = Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters)
-    refute(component.persistence_available?)
-  end
-
-  def test_persistence_available_returns_true_when_storage_id_is_present
-    component = Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, storage_id: "records_filters")
-    assert(component.persistence_available?)
-  end
-
   def test_persist_enabled_returns_false_by_default
     component = Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, storage_id: "records_filters")
     refute(component.persist_enabled?)

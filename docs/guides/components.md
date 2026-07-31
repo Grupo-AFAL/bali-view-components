@@ -1026,8 +1026,10 @@ vertical rule between `columns` and `saved views` marks the boundary between the
 subgroups; it is rendered only when both sides have content and hidden below the breakpoint
 (see below).
 
-Three home groups back this: `left` (filters, group by, columns), `memory` (saved views,
-the filter-persistence bookmark) and `right` (view switch, host `toolbar_buttons`).
+Four home groups back this: `left` (filters, group by, columns), `memory` (saved views,
+the filter-persistence bookmark), `host` (your `toolbar_buttons`) and `right` (the view
+switch, alone). Host buttons get their own group precisely so the view switch stays pinned
+to the edge: inside `right` the JS orders by priority and they landed to its right.
 Export is NOT a toolbar control — it lives in the page's `⋯` menu, see
 [Secondary page actions](#secondary-page-actions-and-export).
 
@@ -2146,7 +2148,7 @@ Also accepts a `nav` slot for second-level navigation, rendered between the head
 
 The body takes the DataTable **bare**: the surface travels with the DataTable's content
 slot, so wrapping it in a `Bali::Card` produces a card inside a card in grid mode. The
-canonical composition — page chrome plus a DataTable with the six toolbar control
+canonical composition — page chrome plus a DataTable with the seven toolbar control
 families, row selection and pagination — is the `Complete` scenario of the IndexPage
 preview (`bali/index_page/complete` in Lookbook). Copy that.
 
@@ -2253,8 +2255,13 @@ Export is **not** a DataTable toolbar control. It acts on the page, not on how t
 looks, which is also what gives import and print somewhere to land later. Because the `⋯`
 lives in the PageHeader — outside the node a filter submit's turbo-stream replaces — the
 links carry an `export-links` Stimulus controller that re-syncs their hrefs from
-`window.location` on connect. Without it the first filter would freeze them on the slice
-of the initial page load, which is the exact bug they exist to fix.
+`window.location`, on connect and on `turbo:load` / `turbo:before-stream-render` /
+`turbo:submit-end`. A stream render is not a visit, so `turbo:load` alone never fires for
+the case that matters and the first filter would freeze the links on the slice of the
+initial page load — the exact bug they exist to fix. The re-sync **merges** over the link's
+own query string rather than replacing it, so params baked into `url:` survive, and it is
+switched off entirely when you passed `params:` yourself: that href is your decision, not a
+photo of the URL.
 
 The host still has to answer the format: a controller whose `respond_to` only declares
 `html` returns **406** for `?format=csv`.

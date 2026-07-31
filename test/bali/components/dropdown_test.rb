@@ -178,6 +178,10 @@ class BaliDropdownComponentTest < ComponentTestCase
 
     assert_selector("span.menu-title", text: "Export filtered")
     assert_selector('[role="menuitem"]', count: 1)
+    # Un span genérico NO es un hijo que `role="menu"` admita (solo menuitem/group/separator).
+    # Presentacional deja de contar como hijo inválido sin sacarle el texto a un
+    # `aria-describedby` que lo apunte.
+    assert_selector('span.menu-title[role="presentation"]')
   end
 
   def test_a_menu_of_only_titles_does_not_render
