@@ -521,29 +521,15 @@ module Bali
       # (FilterForm#group_by_applies?) y no el componente — re-derivarla acá era la segunda
       # copia de la misma regla, y las dos copias se desalinean. `respond_to?` con fallback a
       # "aplica": un filter_form ajeno no puede perder su control por no conocer la API nueva.
+      # El control se pinta SIEMPRE que el form declare agrupaciones. En un modo que no la
+      # aplica va inerte (ver #group_by_disabled?) en vez de desaparecer: esconderlo movía la
+      # toolbar entera al cambiar de modo y no explicaba nada.
       def group_by_control?
-        return false unless @filter_form.respond_to?(:group_by_options) &&
-                            @filter_form.group_by_options.present?
-
-        !@filter_form.respond_to?(:group_by_applies?) || @filter_form.group_by_applies?
+        @filter_form.respond_to?(:group_by_options) && @filter_form.group_by_options.present?
       end
 
-      # Hay una agrupación elegida que este modo NO aplica. El control se esconde —ofrecer
-      # agrupaciones que no van a pasar nada es peor que no ofrecerlas— pero el estado sigue
-      # vivo: viaja en la URL, en la caché de filtros y en el payload de una vista guardada.
-      # Sin decirlo en algún lado, el usuario guardaba desde tarjetas una vista con una
-      # agrupación que no podía ver ni sacar, y se la encontraba al aplicarla desde la tabla.
-      # Es un CARTEL, no un control: la decisión de esconder el control no se toca.
-      def group_by_hint?
-        @filter_form.respond_to?(:group_by_suspended?) && @filter_form.group_by_suspended?
-      end
-
-      def group_by_hint_text
-        option = @filter_form.group_by_options.find { |o| o[:attribute] == @filter_form.group_by }
-        modes = @filter_form.group_by_modes.map { |mode| mode.to_s.humanize }.to_sentence
-
-        I18n.t("view_components.bali.data_table.group_by_control.suspended_hint",
-               label: option&.dig(:label) || @filter_form.group_by.to_s.humanize, modes: modes)
+      def group_by_disabled?
+        @filter_form.respond_to?(:group_by_applies?) && !@filter_form.group_by_applies?
       end
 
       # The auto-configured group_by control component.
@@ -551,7 +537,8 @@ module Bali
         @group_by_control ||= GroupByControl::Component.new(
           url: @url,
           filter_form: @filter_form,
-          current_params: request_query_params
+          current_params: request_query_params,
+          disabled: group_by_disabled?
         )
       end
 
@@ -622,7 +609,7 @@ module Bali
           controls = []
           controls << :filters if control_content(:filters_panel) || control_content(:simple_filters)
           controls << :filter_persistence if filter_persistence_control?
-          controls << :group_by if group_by_control? || group_by_hint?
+          controls << :group_by if group_by_control?
           controls << :view_switch if control_content(:view_switch)
           controls << :saved_views if control_content(:saved_views)
           controls << :column_selector if control_content(:column_selector)

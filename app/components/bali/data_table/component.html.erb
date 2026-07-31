@@ -25,16 +25,11 @@
             <% end %>
           <% end %>
 
+          <%# En un modo que no aplica agrupación el control va INERTE, no ausente: el propio
+              botón apagado dice que ahí no se agrupa, sin mover la fila al cambiar de modo. %>
           <% if group_by_control? %>
             <%= tag.div(**overflow_item_attributes(:group_by, group: "left", css_class: "shrink-0")) do %>
               <%= render group_by_control %>
-            <% end %>
-          <%# Agrupación SUSPENDIDA: el control no va, pero el estado sigue viajando en la URL,
-              en la caché y en el payload de una vista guardada. Sin cartel, guardar una vista
-              desde tarjetas se llevaba una agrupación que el usuario no veía ni podía sacar. %>
-          <% elsif group_by_hint? %>
-            <%= tag.div(**overflow_item_attributes(:group_by, group: "left", css_class: "shrink-0")) do %>
-              <%= render Bali::Tag::Component.new(text: group_by_hint_text, style: :outline, size: :sm) %>
             <% end %>
           <% end %>
 

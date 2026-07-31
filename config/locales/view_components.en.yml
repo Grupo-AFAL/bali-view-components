@@ -21,7 +21,7 @@ en:
         group_by_control:
           label: Group by
           no_grouping: No grouping
-          suspended_hint: "Grouped by %{label} — applies in %{modes} view"
+          disabled_title: "Grouping applies in %{modes} view"
         view_switch_control:
           aria_label: Views
         toolbar_overflow:

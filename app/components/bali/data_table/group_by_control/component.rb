@@ -26,8 +26,12 @@ module Bali
         # @param param [String] Query param that carries the grouping (default "group_by")
         # @param include_none [Boolean] Whether to offer the "no grouping" item
         # @param label [String] Trigger label override (defaults to the i18n "Group by")
+        # @param disabled [Boolean] Renderizar el control INERTE en vez de esconderlo. Se usa
+        #   cuando el modo de visualización actual no aplica agrupación: esconderlo movía la
+        #   toolbar al cambiar de modo y dejaba sin explicar por qué el control desapareció.
         def initialize(url:, filter_form: nil, current_params: {}, options: nil, current: nil,
-                       param: "group_by", include_none: true, label: nil)
+                       param: "group_by", include_none: true, label: nil, disabled: false)
+          @disabled = disabled
           @url = url
           @filter_form = filter_form
           @current_params = (current_params || {}).to_h.with_indifferent_access
@@ -39,6 +43,20 @@ module Bali
         end
 
         attr_reader :param
+
+        def disabled? = @disabled
+
+        # Por qué está inerte. Va como `title` y no como cartel en la fila: el estado ya lo
+        # comunica el botón apagado, y un texto permanente ahí competía con los filtros.
+        def disabled_title
+          I18n.t("view_components.bali.data_table.group_by_control.disabled_title",
+                 modes: disabled_modes)
+        end
+
+        def disabled_modes
+          modes = @filter_form.respond_to?(:group_by_modes) ? @filter_form.group_by_modes : []
+          modes.map { |mode| mode.to_s.humanize }.to_sentence
+        end
 
         def render?
           options.present?

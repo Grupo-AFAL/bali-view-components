@@ -135,7 +135,7 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_selector("form input[type=hidden][name=group_by][value=genre]", visible: :all)
   end
 
-  def test_group_by_control_is_hidden_when_the_form_suspends_the_grouping
+  def test_the_suspended_control_offers_no_grouping_links
     render_inline(
       Bali::DataTable::Component.new(
         url: "/movies", filter_form: grouping_filter_form(view: "grid"), display_mode: :grid
@@ -231,18 +231,17 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_text("table")
   end
 
-  def test_a_suspended_grouping_says_so_where_the_control_used_to_be
-    # El control se esconde, pero el estado sigue viajando en la URL, en la caché y en el
-    # payload de una vista guardada: sin cartel, guardar desde tarjetas se llevaba una
-    # agrupación que el usuario no podía ver ni sacar.
+  def test_a_suspended_grouping_leaves_the_control_in_place_but_inert
+    # Esconderlo movía la fila entera al cambiar de modo, y el cartel que lo explicaba ocupaba
+    # una franja permanente para decir lo que un botón apagado ya dice.
     render_inline(
       Bali::DataTable::Component.new(url: "/movies", filter_form: grouping_filter_form(view: "grid"))
     ) do |c|
       c.with_grid { "".html_safe }
     end
 
+    assert_selector("button.btn-disabled[title*='Table']", text: /Group by/)
     assert_no_selector("[data-dropdown-target='trigger']", text: /Group by/)
-    assert_selector(".badge", text: /Grouped by Genre/)
   end
 
   def test_explicit_preserved_params_do_not_drop_the_active_group_by
