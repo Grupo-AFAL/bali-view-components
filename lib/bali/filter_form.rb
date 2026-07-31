@@ -219,6 +219,12 @@ module Bali
       @clear_search = params.fetch(:clear_search, false)
       @saved_views_store = resolve_saved_views_store(saved_views_store, saved_views_owner)
       @saved_view_param = params[:saved_view].presence
+      # ORIGEN vs APLICACIÓN, la misma separación que group_by. `saved_view` APLICA (pisa el
+      # estado con el payload) y por eso #669 lo sacó de los forms de filtro: preservarlo
+      # re-aplicaba la vista encima de lo que el usuario acababa de teclear. Pero al perderlo
+      # también se pierde SABER de qué vista venía el estado, y sin eso no se puede ofrecer
+      # "Actualizar 'X'". `view_origin` es ese dato y NUNCA se aplica: solo recuerda.
+      @saved_view_origin_param = params[:view_origin].presence || @saved_view_param
       @group_by = resolve_group_by(params[:group_by])
       # Que el param VENGA es distinto de que traiga un valor válido: "sin agrupación" llega
       # como `?group_by=` y tiene que ganarle a la agrupación guardada en la caché de filtros

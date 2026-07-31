@@ -34,6 +34,9 @@ en:
           suggested_title: Suggested
           mine_title: My views
           save_current: Save current view
+          save_as_new: Save as new view
+          update_current: "Update \"%{name}\""
+          update_confirm: "Overwrite the \"%{name}\" view with what you are seeing now?"
           name_placeholder: View name
           save: Save
           rename: Rename

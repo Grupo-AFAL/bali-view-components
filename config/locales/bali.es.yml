@@ -185,6 +185,7 @@ es:
     saved_views:
       saved: "Vista guardada."
       renamed: "Vista renombrada."
+      updated: "Vista actualizada."
       deleted: "Vista borrada."
 
     # Status

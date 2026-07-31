@@ -209,8 +209,8 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
                      default_views: [ { name: "Con a", url: "/listado?q%5Bname_i_cont%5D=a" },
                                       { name: "Otra", url: "/listado?q%5Bname_i_cont%5D=z" } ])
 
-    assert_selector "a.active", text: "Con a"
-    assert_no_selector "a.active", text: "Otra"
+    assert_selector "a.menu-active", text: "Con a"
+    assert_no_selector "a.menu-active", text: "Otra"
     assert_selector "button", text: "Con a"
   end
 
@@ -236,7 +236,7 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
     ])
     render_component(named_form(ActionController::Parameters.new, views_store: columns_only))
 
-    assert_no_selector "a.active"
+    assert_no_selector "a.menu-active"
     # El botón conserva su etiqueta genérica: no hay vista que nombrar.
     assert_selector "button", text: I18n.t("view_components.bali.data_table.saved_views.button_label")
 
@@ -253,7 +253,7 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
     render_component(named_form(state, views_store: FakeStore.new([])),
                      default_views: [ { name: "Con a", url: "/listado?q%5Bg%5D%5B0%5D%5Bname_i_cont%5D=a" } ])
 
-    assert_selector "a.active", text: "Con a"
+    assert_selector "a.menu-active", text: "Con a"
   end
 
   def test_a_shortcut_matches_on_the_groupings_shape_used_by_real_apps
@@ -265,8 +265,52 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
                        { name: "Otro", url: "/listado?q%5Bg%5D%5B0%5D%5Bname_i_cont%5D=verde" }
                      ])
 
-    assert_selector "a.active", text: "En rojo"
-    assert_no_selector "a.active", text: "Otro"
+    assert_selector "a.menu-active", text: "En rojo"
+    assert_no_selector "a.menu-active", text: "Otro"
+  end
+
+  def test_no_update_action_without_an_origin_view
+    render_component(form)
+
+    assert_no_selector "input[type='submit'][value^='Update']"
+    assert_selector "button", text: "Save current view"
+  end
+
+  # Con la vista aplicada y el estado INTACTO no hay nada que actualizar: ofrecerlo prometería
+  # guardar algo que ya está guardado.
+  def test_no_update_action_when_the_state_still_matches_the_origin
+    # La vista 1 y no la 2: el payload de la 2 normaliza a VACÍO, y por diseño un payload
+    # vacío nunca casa por estado (casaría en cada visita), así que se leería como desviada.
+    render_component(form(ActionController::Parameters.new(saved_view: "1")))
+
+    assert_no_selector "input[type='submit'][value^='Update']"
+    assert_selector "button", text: "Save current view"
+  end
+
+  # Desviado del origen: actualizar pasa a primario y guardar se vuelve "como nueva".
+  def test_a_drifted_origin_offers_updating_it_and_demotes_saving
+    state = ActionController::Parameters.new(view_origin: "1", q: { g: { "0" => { name_i_cont: "otra cosa" } } })
+    render_component(form(state))
+
+    assert_selector "form[action='/vistas/1'] input[type='submit'][value='Update \"Activos\"']"
+    assert_selector "form[action='/vistas/1'] input[name='payload']", visible: :all
+    assert_selector "button", text: "Save as new view"
+  end
+
+  # El PATCH de actualizar es destructivo: pisa la configuración guardada.
+  def test_updating_a_view_asks_for_confirmation
+    state = ActionController::Parameters.new(view_origin: "1", q: { g: { "0" => { name_i_cont: "otra cosa" } } })
+    render_component(form(state))
+
+    assert_selector "form[data-turbo-confirm*='Activos']"
+  end
+
+  # Una vista de origen borrada entre requests no puede tumbar el listado.
+  def test_a_missing_origin_view_degrades_to_saving
+    render_component(form(ActionController::Parameters.new(view_origin: "999")))
+
+    assert_no_selector "input[type='submit'][value^='Update']"
+    assert_selector "button", text: "Save current view"
   end
 
   def test_renaming_inputs_get_unique_ids

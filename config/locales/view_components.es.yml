@@ -34,6 +34,9 @@ es:
           suggested_title: Sugeridas
           mine_title: Mis vistas
           save_current: Guardar vista actual
+          save_as_new: Guardar como vista nueva
+          update_current: "Actualizar \"%{name}\""
+          update_confirm: "¿Sobrescribir la vista \"%{name}\" con lo que estás viendo?"
           name_placeholder: Nombre de la vista
           save: Guardar
           rename: Renombrar

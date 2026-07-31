@@ -186,6 +186,7 @@ en:
     saved_views:
       saved: "View saved."
       renamed: "View renamed."
+      updated: "View updated."
       deleted: "View deleted."
 
     # Status

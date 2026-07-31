@@ -26,7 +26,7 @@
       <ul class="menu p-0 w-full">
         <% default_views.each do |view| %>
           <li class="w-full"><%= link_to view.name, view.url,
-                class: "text-sm #{'active' if active_view?(view)}" %></li>
+                class: "text-sm #{'menu-active' if active_view?(view)}" %></li>
         <% end %>
       </ul>
     <% end %>
@@ -37,7 +37,7 @@
         <% views.each do |view| %>
           <li class="flex-row items-center flex-nowrap w-full">
             <%= link_to view.name, apply_url(view),
-                  class: "grow text-sm truncate #{'active' if active_view?(view)}" %>
+                  class: "grow text-sm truncate #{'menu-active' if active_view?(view)}" %>
             <button type="button" class="btn btn-ghost btn-xs px-1"
                     title="<%= t('.rename') %>"
                     data-action="saved-views#toggleRename" data-saved-views-id-param="<%= view.id %>">
@@ -66,10 +66,22 @@
     <% end %>
 
     <div class="border-t border-base-200 mt-1 pt-1">
+      <%# Con una vista de origen modificada, ACTUALIZARLA es la acción esperada y guardar otra
+          pasa a secundaria. Antes la única forma de sobrescribir era teclear el nombre exacto
+          en "Guardar": nada lo decía, y un typo creaba una vista nueva en vez de actualizar.
+          Es destructivo (pisa lo guardado), así que confirma igual que borrar. %>
+      <% if updatable? %>
+        <%= form_with url: view_url(origin_view), method: :patch,
+              data: { action: 'submit->saved-views#injectColumns',
+                      turbo_confirm: update_confirm } do |f| %>
+          <%= f.hidden_field :payload, value: payload_json, data: { saved_views_target: 'payload' } %>
+          <%= f.submit update_label, class: 'btn btn-primary btn-sm btn-block justify-start gap-2' %>
+        <% end %>
+      <% end %>
       <button type="button" class="btn btn-ghost btn-sm btn-block justify-start gap-2"
               data-action="saved-views#toggleSaveForm">
         <%= render Bali::Icon::Component.new('plus', class: 'w-4 h-4') %>
-        <%= t('.save_current') %>
+        <%= save_label %>
       </button>
       <%# Guardar el estado ACTUAL: el payload viaja serializado en un hidden; el Stimulus
           agrega las columnas visibles del column selector justo antes de enviar. %>

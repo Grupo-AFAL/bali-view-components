@@ -69,6 +69,22 @@ module Bali
              active_view&.id == view.id)
         end
 
+        # La vista sobre la que se está trabajando, aunque ya se le hayan cambiado filtros
+        # (sobrevive al submit vía `view_origin`). Es la que se ofrece ACTUALIZAR.
+        def origin_view = filter_form.saved_view_origin
+
+        # Solo se ofrece actualizar si hay de dónde venir Y el estado cambió: con el estado
+        # intacto el botón prometería guardar algo que ya está guardado.
+        def updatable? = filter_form.saved_view_dirty?
+
+        def update_label = t(".update_current", name: origin_view.name)
+
+        def update_confirm = t(".update_confirm", name: origin_view.name)
+
+        # Con una vista modificada, guardar de nuevo es "guardar como NUEVA": el texto lo dice
+        # para que no se confunda con actualizar la que ya existe.
+        def save_label = updatable? ? t(".save_as_new") : t(".save_current")
+
         def apply_url(view)
           "#{@base_url}#{@base_url.include?('?') ? '&' : '?'}saved_view=#{view.id}"
         end

@@ -54,6 +54,28 @@ module Bali
           (@saved_views_store.find(@saved_view_param) if saved_views_enabled? && @saved_view_param.present?)
       end
 
+      # La vista de la que VIENE el estado actual, aunque ya se le hayan cambiado filtros.
+      # A diferencia de {#current_saved_view}, esto no aplica nada: solo recuerda el origen
+      # para poder ofrecer "Actualizar 'X'". Una vista borrada resuelve a nil sin romper.
+      def saved_view_origin
+        return @saved_view_origin if defined?(@saved_view_origin)
+
+        @saved_view_origin =
+          if saved_views_enabled? && @saved_view_origin_param.present?
+            @saved_views_store.find(@saved_view_origin_param)
+          end
+      end
+
+      # El id crudo, para que los forms y los links lo hagan viajar sin tocar el store.
+      def saved_view_origin_id = @saved_view_origin_param
+
+      # ¿El estado actual se DESVIÓ de la vista de la que viene? Es la única condición que
+      # justifica ofrecer "Actualizar": sin cambios no hay nada que guardar.
+      def saved_view_dirty?
+        origin = saved_view_origin
+        origin.present? && !view_matches_current_state?(origin)
+      end
+
       # Índices de columnas visibles que la vista aplicada trae guardados (o nil): el
       # DataTable se los pasa al column selector para que el estado inicial sea el de la vista.
       def saved_view_columns
@@ -90,7 +112,11 @@ module Bali
           "groupings" => @groupings,
           "combinator" => @combinator,
           "search_value" => @search_value,
-          "group_by" => @group_by
+          # A String, no el Symbol de `resolve_group_by`: este payload se compara contra uno
+          # que YA volvió de un jsonb, donde todo es String. `comparable_view_state` normaliza
+          # las LLAVES pero no los valores, así que `:genre` nunca casaba con `"genre"` y una
+          # vista que agrupa no se reconocía activa por estado — solo con `?saved_view=` puesto.
+          "group_by" => @group_by&.to_s
         }.compact
       end
 

@@ -693,7 +693,15 @@ module Bali
       # visualización tienen que viajar como hidden fields o filtrar estando en tarjetas
       # devuelve al usuario a la tabla.
       def preserved_state_params
-        group_by_preserved_params.merge(view_preserved_params)
+        group_by_preserved_params.merge(view_preserved_params).merge(saved_view_origin_params)
+      end
+
+      # El ORIGEN viaja; `saved_view` no (sigue en EXCLUDED_PARAMS de Filters, porque APLICA).
+      # Sin esto, cambiar un filtro sobre una vista aplicada la volvía anónima y el dropdown
+      # solo podía ofrecer "guardar otra".
+      def saved_view_origin_params
+        origin = @filter_form.try(:saved_view_origin_id)
+        origin.present? ? { "view_origin" => origin.to_s } : {}
       end
 
       # El modo CRUDO, no el gateado: las vistas se declaran después de construir el slot del
