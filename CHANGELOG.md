@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+## [v3.0.0.beta.1] - 2026-07-31
+
 ### Changed (breaking)
 
 - **DataTable + IndexPage — the index page becomes a default instead of an assembly kit.** Every listing feature added over the last cycles — saved views, row grouping, the column selector, export, the `ViewSwitch` segmented control — landed as its own isolated slot with its own isolated preview. None were ever composed together, so there was no single place showing what a Bali index is supposed to look like with everything on, and the pieces had drifted into three partially overlapping implementations of "display mode" and "export". v3.0 defines that composition and makes composing it wrong take effort. The canonical reference is rendered live: `bali/index_page/complete` in Lookbook (the same body without the page layer is `bali/data_table/complete`), the only place where all seven control families are on at once; `/admin/movies` in the dummy app is the same composition end to end against real controllers, routes and Turbo Streams, saved views included — the only family it leaves out is host toolbar buttons. Step-by-step instructions, including the two breaks that fail silently, are in [the v2 → v3 migration guide](docs/guides/migration-v2-to-v3.md).
