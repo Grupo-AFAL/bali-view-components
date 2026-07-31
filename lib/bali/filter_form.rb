@@ -93,10 +93,12 @@ module Bali
       #   pairs or a zero-arity proc resolved per-instance with instance_exec —
       #   inside it you can use `scope` (the relation the controller passed in,
       #   typically already narrowed to the policy scope).
-      # @param collection [Array, Proc] Alias of options (legacy simple_filter name)
+      # @param collection [Array, Proc] Alias of options, matching the key name
+      #   the instance-level `simple_filters:` hashes use
       # @param simple [Boolean] Also render this attribute in the SimpleFilters UI
       # @param advanced [Boolean] Offer this attribute in the Filters popover
-      #   (default true; the legacy simple_filter DSL declares with false)
+      #   (default true; pass false for an attribute that only belongs in the
+      #   inline SimpleFilters row)
       # @param input [Symbol] SimpleFilters widget when it differs from the one
       #   derived from type (e.g. type: :select, input: :slim_select)
       # @param predicate [Symbol] Fixed Ransack predicate for the simple UI
@@ -349,8 +351,7 @@ module Bali
     # Get the available filter attributes defined via filter_attribute DSL.
     # Used by Filters component for rendering the filter UI.
     #
-    # Entries declared with `advanced: false` (including everything declared
-    # through the legacy simple_filter DSL) are excluded. `label:`/`options:`
+    # Entries declared with `advanced: false` are excluded. `label:`/`options:`
     # given as zero-arity procs are resolved here with instance_exec, so they
     # can use instance context — most importantly `scope`, the (typically
     # policy-scoped) relation the controller passed in.

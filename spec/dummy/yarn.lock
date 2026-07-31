@@ -1035,15 +1035,10 @@ crypto-js@^4.2.0:
   resolved "https://registry.yarnpkg.com/crypto-js/-/crypto-js-4.2.0.tgz#4d931639ecdfd12ff80e8186dba6af2c2e856631"
   integrity sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==
 
-daisyui@5.6.17:
-  version "5.6.17"
-  resolved "https://registry.yarnpkg.com/daisyui/-/daisyui-5.6.17.tgz#cd4c58566df0d2d4fb449ba1f60b66a0c965bab6"
-  integrity sha512-e/+8lJc2/GiMrnm6bVL+0K3pYE2mUP4DY/IFUcOCQdcocvRkDsmXGIIaC87JMedJJSKXVCuFpOVSZqMwaRcIGg==
-
-daisyui@5.6.18:
-  version "5.6.18"
-  resolved "https://registry.yarnpkg.com/daisyui/-/daisyui-5.6.18.tgz#98be6a4d6a95dd3bf8de439c9e45725281678b94"
-  integrity sha512-6y9rboRQl8fosnusy/5pg11yp+H0LtK3YdtfS4Vf2QVnaYOKasNdYm6hDxeiT6bwZPdl4WRPzVIlIApdo2ssBg==
+daisyui@5.7.9:
+  version "5.7.9"
+  resolved "https://registry.yarnpkg.com/daisyui/-/daisyui-5.7.9.tgz#f222417f0143707adbcecd5f35ecd81f207052fc"
+  integrity sha512-oPL7yddYPQrMsDmYtxNqPGBYc+gqm14GTwu7cDxAaUq0bPg5ZcaeR/DVMgSwgo26InVn8AECbUBUCK0rMs96Kg==
 
 date-fns@^4.1.0:
   version "4.1.0"

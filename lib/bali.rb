@@ -128,6 +128,14 @@ module Bali
   # Example: ->(controller, owner) { owner&.can?("tdflow.access") }
   mattr_accessor :saved_views_authorize, default: ->(_controller, owner) { owner.present? }
 
+  # Every deprecation this gem emits goes through here. The engine registers it
+  # as `app.deprecators[:bali]`, so a host silences, logs or raises Bali's
+  # warnings with the same `config.active_support.deprecation` it already uses
+  # for Rails' own — and `Bali.deprecator.silence { }` scopes an exception.
+  def self.deprecator
+    @deprecator ||= ActiveSupport::Deprecation.new("4.0", "Bali")
+  end
+
   def self.add_icon(name, svg_str)
     custom_icons[name.to_s] = svg_str
   end

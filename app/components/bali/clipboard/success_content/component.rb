@@ -27,9 +27,5 @@ module Bali
         end
       end
     end
-
-    # Backwards compatibility for the misspelled module name.
-    # Deprecated: use Bali::Clipboard::SuccessContent instead.
-    SucessContent = SuccessContent
   end
 end

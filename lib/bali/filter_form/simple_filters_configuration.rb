@@ -6,15 +6,15 @@ module Bali
     # Unlike the complex Filters component, simple filters render as inline select dropdowns
     # without AND/OR groupings, operators, or popovers.
     #
-    # @example Class-level DSL (canonical: unified filter_attribute)
+    # @example Class-level DSL (unified filter_attribute)
     #   class DepartmentsFilterForm < Bali::FilterForm
     #     filter_attribute :legal_entity_id, type: :select, simple: true,
     #       options: -> { LegalEntity.where(id: scope.select(:legal_entity_id)).pluck(:name, :id) },
     #       blank: "All Entities"
     #
-    #     # Legacy alias (still supported): simple-UI-only declaration
-    #     simple_filter :status,
-    #       collection: [["Active", "active"], ["Inactive", "inactive"]],
+    #     # Simple UI only (the advanced popover skips it)
+    #     filter_attribute :status, type: :select, simple: true, advanced: false,
+    #       options: [["Active", "active"], ["Inactive", "inactive"]],
     #       blank: "All",
     #       default: "active"
     #   end
@@ -28,7 +28,7 @@ module Bali
       extend ActiveSupport::Concern
 
       class_methods do
-        # Data type (advanced Filters UI vocabulary) implied by each legacy
+        # Data type (advanced Filters UI vocabulary) implied by each deprecated
         # simple_filter widget type.
         LEGACY_TYPE_FOR_INPUT = {
           select: :select, slim_select: :select, toggle_group: :select, radio_group: :select,
@@ -37,7 +37,7 @@ module Bali
 
         # Simple filter definitions, derived from the unified filter_attribute
         # storage (entries declared with `simple: true`) and mapped to the
-        # legacy shape the SimpleFilters pipeline consumes.
+        # shape the SimpleFilters pipeline consumes.
         def defined_simple_filters
           filter_attributes.select { |attr| attr[:simple] }.map do |attr|
             {
@@ -59,39 +59,25 @@ module Bali
 
         # Define a simple dropdown filter for the SimpleFilters component.
         #
-        # @deprecated Legacy alias for {Bali::FilterForm.filter_attribute} with
-        #   `simple: true, advanced: false`. Kept for backwards compatibility;
-        #   new code should declare a single filter_attribute per attribute so
-        #   both filter UIs share one definition.
-        #
-        # @param attribute [Symbol] Attribute key (column name)
-        # @param collection [Array, Proc] Options for select - array of [label, value] pairs
-        #   or a Proc that returns such an array (not needed for :date type).
-        #   Zero-arity procs run with instance_exec, so they can use `scope`
-        #   (the relation the controller passed in, typically policy-scoped).
-        # @param blank [String, nil] Blank option text (e.g., "All Statuses")
-        # @param label [String, nil] Human-readable label (defaults to humanized attribute)
-        # @param default [String, nil] Default value when no filter is active
-        # @param icon [String, nil] Icon name to display
-        # @param type [Symbol] Filter input type (:select, :slim_select, :date, :date_range, :toggle_group)
-        # @param predicate [Symbol] Ransack predicate (default: :eq)
-        #
-        # @example Static collection
-        #   simple_filter :status,
-        #     collection: [["Active", "active"], ["Inactive", "inactive"]],
-        #     blank: "All"
-        #
-        # @example Date filter
-        #   simple_filter :created_at,
-        #     type: :date,
-        #     predicate: :gteq,
-        #     label: "Created after"
+        # @deprecated Removed in Bali 4.0. Use {Bali::FilterForm.filter_attribute}
+        #   with `simple: true, advanced: false` so one declaration feeds both
+        #   filter UIs. `collection:` becomes `options:` and `type:` becomes
+        #   `input:` (the data `type:` is inferred by the table below).
         def simple_filter(attribute, collection: nil, blank: nil, label: nil, default: nil,
                           type: :select, predicate: :eq, icon: nil)
           input = type.to_sym
+          data_type = LEGACY_TYPE_FOR_INPUT.fetch(input, :select)
+
+          Bali.deprecator.warn(
+            "FilterForm.simple_filter is deprecated. Declare it as " \
+            "`filter_attribute :#{attribute}, type: :#{data_type}, input: :#{input}, " \
+            "simple: true, advanced: false` (collection: becomes options:) so the same " \
+            "definition can also feed the advanced Filters popover."
+          )
+
           filter_attribute(
             attribute,
-            type: LEGACY_TYPE_FOR_INPUT.fetch(input, :select),
+            type: data_type,
             label: label,
             options: collection,
             simple: true,

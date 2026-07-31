@@ -1,10 +1,60 @@
 # Migrating from Bali v2 to v3
 
-v3.0 is a breaking release confined to one area: **the index page** — `DataTable`, its
-toolbar, `Bali::Table` selection and the surface that wraps them. Everything else in the
-library is unchanged; if your app has no `Bali::DataTable`, upgrading is a version bump —
-with one exception, listed under *Behaviour changes*: `FilterForm` now reads `?view=` on
-any listing that declares grouping, `DataTable` or not.
+The largest single area v3.0 breaks is **the index page** — `DataTable`, its toolbar,
+`Bali::Table` selection and the surface that wraps them — and that is what most of this
+guide is about. Two things apply to every app regardless of whether it renders a
+`DataTable`: the *Version floors* below, and one behaviour change listed under *Behaviour
+changes* — `FilterForm` now reads `?view=` on any listing that declares grouping.
+
+## Version floors
+
+| | v2 | v3.0 |
+|---|---|---|
+| Rails | `>= 7.0, < 9.0` | `>= 8.1, < 9.0` |
+| Ruby | `>= 4.0` (the docs wrongly said 3.0+) | `>= 4.0` |
+| daisyUI | 5.6.x | 5.7.x |
+
+Bundler resolves the gem floor for you — an app still on Rails 7 gets a resolution error,
+not a runtime surprise. daisyUI is not enforced by anything: it is the host's npm
+dependency, and Bali's component CSS is written against the 5.7 class set.
+
+### `Bali.deprecator`
+
+Every deprecation warning the gem emits now goes through a single
+`ActiveSupport::Deprecation` registered as `Rails.application.deprecators[:bali]`. It obeys
+the `config.active_support.deprecation` an app already sets, and it can be addressed on its
+own:
+
+```ruby
+config.active_support.deprecators[:bali].behavior = :raise   # fail the build on Bali warnings
+Bali.deprecator.silence { ... }                              # or scope one exception
+```
+
+### Removed, and deprecated
+
+| Removed | Replacement |
+|---|---|
+| `Bali::Clipboard::SucessContent` | `Bali::Clipboard::SuccessContent` (the alias existed only for the typo) |
+| `Bali::Utils::Url#add_query_params` | `#add_query_param(url, name, value)`, one name at a time |
+
+`Bali::FilterForm.simple_filter` is **deprecated, not removed** — it still declares the
+filter and now warns. It goes away in v4; migrate at your own pace:
+
+```ruby
+# v2
+simple_filter :status, collection: [%w[Done done]], blank: "All", type: :slim_select
+
+# v3 — one declaration that can also feed the advanced Filters popover
+filter_attribute :status, type: :select, input: :slim_select,
+  simple: true, advanced: false, options: [%w[Done done]], blank: "All"
+```
+
+`collection:` becomes `options:`, and the old `type:` (the widget) becomes `input:`, with
+`type:` now naming the *data* type that drives the advanced UI's operators. Dropping
+`advanced: false` is what puts the attribute in both UIs from one line — the reason the DSL
+is going away. `#add_query_param` also stopped duplicating a param already present in the
+URL (**#653**); if you were compensating for that by stripping the param first, you can
+stop.
 
 The goal of the change is that the correct index layout is what you get by *default*.
 The reference composition is the `Complete` scenario of the IndexPage preview
