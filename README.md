@@ -15,10 +15,15 @@ A collection of 75+ UI components built with [ViewComponent](https://viewcompone
 
 ### 1. Install the Gem
 
-Add to your `Gemfile`:
+Bali is not published to RubyGems — it is consumed straight from this repository. Add to your
+`Gemfile`, pinning a tag:
 
 ```ruby
-gem "bali_view_components"
+# Bundler resolves git sources before rubygems ones, so these two must be declared FIRST
+gem "lucide-rails"
+gem "view_component-contrib"
+
+gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v2.18.0"
 ```
 
 Then run:
@@ -26,6 +31,11 @@ Then run:
 ```bash
 bundle install
 ```
+
+**Pin a tag, don't track a branch.** With `branch: "main"` a `bundle update` silently pulls
+whatever landed since — including, eventually, the next major and all of its breaking changes.
+See [Release channels](docs/guides/release-channels.md) for the v2 / v3 lines and how to adopt
+a v3 pre-release.
 
 ### 2. Install JavaScript Dependencies
 
