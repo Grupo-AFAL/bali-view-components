@@ -21,6 +21,7 @@ es:
         group_by_control:
           label: Agrupar por
           no_grouping: Sin agrupar
+          suspended_hint: "Agrupado por %{label} — se aplica en la vista %{modes}"
         view_switch_control:
           aria_label: Vistas
         toolbar_overflow:

@@ -7,8 +7,8 @@ const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex]:not([tab
 /**
  * Toolbar Overflow Controller
  *
- * Mueve los controles secundarios de la toolbar del DataTable a un menú "⋯" cuando el
- * viewport baja del breakpoint, y los devuelve al subir. MUEVE, no duplica: dos copias del
+ * Mueve los controles secundarios de la toolbar del DataTable a un menú "⋯" cuando la fila
+ * deja de entrar, y los devuelve cuando vuelve a haber lugar. MUEVE, no duplica: dos copias del
  * selector de columnas serían dos controladores manejando la misma tabla, y dos copias de
  * las vistas guardadas duplicarían los ids de sus forms de renombrar — el bug de #669.
  *
@@ -17,8 +17,11 @@ const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex]:not([tab
  * reemplaza el contenedor; un mapa en memoria con "dónde vivía cada control" se perdería en
  * el reconnect y los dejaría atrapados dentro del ⋯.
  *
- * Umbral fijo, no medición: se colapsa lo que declare una prioridad por debajo de
- * `threshold` (ver OVERFLOW_PRIORITIES en el componente).
+ * Qué puede colapsar lo declara la prioridad (`threshold`, ver OVERFLOW_PRIORITIES en el
+ * componente); CUÁNTO colapsa lo decide la MEDICIÓN de la fila. El breakpoint solo sigue
+ * siendo el piso de móvil: el ancho que la toolbar tiene no lo fija el viewport sino el
+ * layout del host —un sidebar le come 300px— y con el corte fijo en `sm` la fila se apretaba
+ * sin colapsar nada, dejando la búsqueda pintada encima de agrupar y columnas.
  *
  *   <div data-controller="toolbar-overflow">
  *     <div data-toolbar-overflow-target="group" data-toolbar-overflow-group="left">
@@ -47,6 +50,10 @@ export default class extends Controller {
     this.mediaQuery.addEventListener('change', this.handleBreakpointChange)
     document.addEventListener('turbo:before-cache', this.handleBeforeCache)
 
+    this.lastWidth = Math.round(this.availableWidth())
+    this.observer = new window.ResizeObserver(this.handleResize)
+    this.observer.observe(this.element)
+
     // El layout inicial puede llegar ya angosto: no alcanza con escuchar el cruce.
     this.apply(this.mediaQuery.matches)
   }
@@ -54,36 +61,118 @@ export default class extends Controller {
   disconnect () {
     this.mediaQuery.removeEventListener('change', this.handleBreakpointChange)
     document.removeEventListener('turbo:before-cache', this.handleBeforeCache)
+    this.observer?.disconnect()
+    if (this.frame) window.cancelAnimationFrame(this.frame)
   }
 
   handleBreakpointChange = (event) => this.apply(event.matches)
 
+  /**
+   * Solo el ANCHO dispara una recomputación. Colapsar cambia el ALTO de la fila (un control
+   * menos puede plegar el contenido de al lado) y el ResizeObserver volvería a entrar acá
+   * por el cambio que acabamos de provocar: ese es el bucle que Chrome denuncia como
+   * "ResizeObserver loop". El rAF además saca el trabajo de layout de adentro del callback.
+   */
+  handleResize = () => {
+    // Se remide el elemento en vez de leer `contentRect`: es la MISMA medida que usa el
+    // colapso, y dos fuentes distintas para el mismo ancho vuelven a aplicar de más.
+    const width = Math.round(this.availableWidth())
+    if (width === this.lastWidth) return
+
+    this.lastWidth = width
+    if (this.frame) window.cancelAnimationFrame(this.frame)
+    this.frame = window.requestAnimationFrame(() => {
+      this.frame = null
+      this.apply(this.mediaQuery.matches)
+    })
+  }
+
   // El snapshot que Turbo cachea tiene que ser SIEMPRE el layout expandido. Cacheado
   // colapsado, volver atrás en un viewport ancho restaura la toolbar plegada hasta que
   // connect() la repara: un parpadeo con la toolbar vacía.
-  handleBeforeCache = () => this.apply(false)
+  handleBeforeCache = () => {
+    this.closeOpenDropdowns()
+    this.expand()
+    this.sync()
+  }
 
   apply (narrow) {
     const focused = this.focusedControl()
 
     this.closeOpenDropdowns()
+    // Siempre se parte de la fila entera: el colapso es incremental y sin volver a expandir
+    // primero, ensanchar nunca devolvería nada.
+    this.expand()
+    this.sync()
+
     if (narrow) {
-      this.collapse()
+      this.collapseAll()
     } else {
-      this.expand()
+      this.collapseUntilItFits()
     }
-    this.syncGroupVisibility()
-    this.syncSeparators()
-    this.syncOverflowVisibility()
+
+    this.sync()
     this.restoreFocus(focused)
   }
 
-  collapse () {
+  sync () {
+    this.syncGroupVisibility()
+    this.syncSeparators()
+    this.syncOverflowVisibility()
+  }
+
+  // Bajo el breakpoint no se mide: en un teléfono no entra nada y el resultado tiene que ser
+  // el mismo siempre, no depender de cuánto ocupe una etiqueta traducida.
+  collapseAll () {
     if (!this.hasMenuTarget) return
 
     this.collapsibleItems()
       .filter(item => !this.menuTarget.contains(item))
       .forEach(item => this.menuTarget.appendChild(item))
+  }
+
+  /**
+   * Se sacrifica de menor a mayor prioridad y solo hasta que la fila entra: el ⋯ deja de ser
+   * un modo de móvil y pasa a ser la válvula de cualquier ancho. Cada movimiento re-sincroniza
+   * antes de volver a medir porque el propio ⋯ ocupa lugar y un grupo que queda vacío se
+   * esconde, devolviendo su `gap`.
+   */
+  collapseUntilItFits () {
+    if (!this.hasMenuTarget) return
+
+    for (const item of this.collapsibleItems().reverse()) {
+      if (!this.overflowing()) return
+
+      this.menuTarget.appendChild(item)
+      this.sync()
+    }
+  }
+
+  /**
+   * Lo que la fila NECESITA contra lo que TIENE. `scrollWidth` no sirve como señal: lo que
+   * no entra vive dentro del único item elástico, que se encoge a 0 y deja su contenido
+   * pintado por encima de los vecinos SIN generar scroll — medido `scrollWidth === clientWidth`
+   * con tres controles superpuestos. Con `max-content` cada item aporta su ancho natural, que
+   * es la pregunta real.
+   */
+  overflowing () {
+    const available = this.availableWidth()
+    if (available === 0) return false
+
+    return this.requiredWidth() > available + 0.5
+  }
+
+  availableWidth () {
+    return this.element.getBoundingClientRect().width
+  }
+
+  requiredWidth () {
+    const inline = this.element.style.width
+    this.element.style.width = 'max-content'
+    const required = this.element.getBoundingClientRect().width
+    this.element.style.width = inline
+
+    return required
   }
 
   expand () {
@@ -238,8 +327,8 @@ export default class extends Controller {
     return this.groupTargets.find(group => group.dataset.toolbarOverflowGroup === name)
   }
 
-  // Sin nada adentro, el ⋯ abriría un menú vacío. `sm:hidden` ya lo tapa arriba del
-  // breakpoint; esto cubre al host que solo declaró controles no colapsables.
+  // Sin nada adentro, el ⋯ abriría un menú vacío. Es la ÚNICA regla de visibilidad del menú
+  // desde que el colapso se mide: el markup ya no lo tapa por breakpoint.
   syncOverflowVisibility () {
     if (!this.hasOverflowTarget || !this.hasMenuTarget) return
 

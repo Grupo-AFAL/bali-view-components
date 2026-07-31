@@ -2,7 +2,9 @@
 
 v3.0 is a breaking release confined to one area: **the index page** — `DataTable`, its
 toolbar, `Bali::Table` selection and the surface that wraps them. Everything else in the
-library is unchanged; if your app has no `Bali::DataTable`, upgrading is a version bump.
+library is unchanged; if your app has no `Bali::DataTable`, upgrading is a version bump —
+with one exception, listed under *Behaviour changes*: `FilterForm` now reads `?view=` on
+any listing that declares grouping, `DataTable` or not.
 
 The goal of the change is that the correct index layout is what you get by *default*.
 The reference composition is the `Complete` scenario of the IndexPage preview
@@ -192,12 +194,29 @@ longer on this path.
   one cleans them up. If two listings shared a `table_id` (a very common copy-paste, e.g.
   `/movies` and `/admin/movies` both using `#movies-table`), they now have independent
   memories — which is the bug being fixed, at the cost of one reset per listing.
-- **The toolbar is bare and single-row**, identical in every display mode, and below `sm`
-  its secondary controls **move** into a `⋯` menu (never duplicated — the old
-  `hidden md:block` + mobile copy pattern is gone). The order **inside a group** is defined
-  by `OVERFLOW_PRIORITIES`, not by your template. Anything you put in `with_toolbar_button`
-  needs an idempotent `connect()`, no `data-turbo-permanent`, and the
-  `toolbar-control-label` class on a label that hides on mobile.
+- **The toolbar is bare and single-row**, identical in every display mode, and its secondary
+  controls **move** into a `⋯` menu whenever the row does not fit — measured, not guessed
+  from the viewport, because a sidebar can leave a 1400px window with a 700px toolbar. They
+  are never duplicated (the old `hidden md:block` + mobile copy pattern is gone). The order
+  **inside a group** is defined by `OVERFLOW_PRIORITIES`, not by your template. Anything you
+  put in `with_toolbar_button` needs an idempotent `connect()`, no `data-turbo-permanent`,
+  and the `toolbar-control-label` class on a label that hides on mobile.
+- **`view` is now a reserved param for every `FilterForm` that declares grouping.** The form
+  reads `params[:view]` (rename it with `view_param:`) and applies the grouping only in
+  `group_by_modes` — default `[:table]`. This has nothing to do with having a `DataTable`:
+  a plain `Filters` + `Table` listing that groups and already uses `?view=` for its own
+  purpose (a density switch, a print mode, a tab) silently **stops grouping** after the
+  upgrade — the page still returns 200, only the bands and their counts are gone. Pass
+  `view_param:` on both sides, or widen `group_by_modes:`.
+- **A listing whose default view is not the table must tell the form.** The `DataTable`
+  resolves an absent `?view=` to the *first declared view*; the form, seeing no param,
+  assumes the grouping applies. Declare the table first, or pass the same value to both
+  (`Bali::FilterForm.new(..., display_mode: params[:view] || :grid)`). While they disagree
+  the `DataTable` raises `ArgumentError` on render rather than sorting cards by a group
+  nobody can see.
+- **"No grouping" now leaves `?group_by=` in the URL** instead of dropping the param. With
+  filter persistence on, an absent param means "restore whatever was cached", so removing
+  it brought the grouping straight back.
 - **The active view travels as a hidden field on filter submits**, like `group_by` already
   did, so filtering from the cards view no longer drops you back into the table.
 - `Bali::ViewSwitch#icon_only?` is now `== true` rather than truthy: a host passing a
@@ -222,6 +241,9 @@ longer on this path.
 grep -rn "with_actions_panel\|with_export\|table_id:\|data_display_mode\|toolbar_class:" app/
 grep -rn "turbo_stream.replace \"data-table-" app/
 grep -rn "Bali::Card.*DataTable\|render Bali::Card" app/views/**/index*
+# any listing that groups and already used `view`, or that does not start on the table?
+grep -rn "group_by_attribute" app/
+grep -rn "view=\|params\[:view\]" app/views app/controllers
 ```
 
 Then load each index page in a browser and check, in this order: the toolbar is not inside

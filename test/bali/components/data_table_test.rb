@@ -181,6 +181,70 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert(Bali::DataTable::Component.new(url: "/movies", filter_form: form, view_param: :modo))
   end
 
+  def test_raises_when_the_listing_renders_a_mode_the_form_never_heard_about
+    # El modo se deriva DOS veces: el DataTable lo resuelve contra las vistas declaradas y el
+    # form lo lee de la URL. Sin `?view=`, un listado que declara las tarjetas PRIMERO pinta
+    # tarjetas mientras el form —viendo nil— aplica la agrupación igual: las tarjetas vuelven
+    # reordenadas sin ninguna banda que lo explique.
+    # Las dos clases: el bloque del host se evalúa dentro del render, así que según quién esté
+    # en la pila ActionView puede envolver el ArgumentError en un Template::Error.
+    error = assert_raises(ArgumentError, ActionView::Template::Error) do
+      render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: grouping_filter_form)) do |c|
+        c.with_view_switch do |switch|
+          switch.with_view(name: "Cards", icon: "grid", value: :grid)
+          switch.with_view(name: "Table", icon: "list", value: :table)
+        end
+        c.with_grid { c.display_mode.to_s.html_safe }
+      end
+    end
+    assert_match("display_mode", error.message)
+  end
+
+  def test_does_not_raise_when_the_host_hands_the_form_the_same_mode
+    component = Bali::DataTable::Component.new(
+      url: "/movies", filter_form: grouping_filter_form(display_mode: :grid), display_mode: :grid
+    )
+    render_inline(component) do |c|
+      c.with_view_switch do |switch|
+        switch.with_view(name: "Cards", icon: "grid", value: :grid)
+        switch.with_view(name: "Table", icon: "list", value: :table)
+      end
+      c.with_grid { c.display_mode.to_s.html_safe }
+    end
+
+    assert_text("grid")
+  end
+
+  def test_does_not_raise_on_an_unknown_view_param
+    # Un `?view=` desconocido lo puede tipear un usuario: el listado cae a la primera vista y
+    # el form suspende. Es un límite conocido y sin daño — un 500 no es la respuesta a un typo.
+    component = Bali::DataTable::Component.new(
+      url: "/movies", filter_form: grouping_filter_form(view: "bogus")
+    )
+    render_inline(component) do |c|
+      c.with_view_switch do |switch|
+        switch.with_view(name: "Table", icon: "list", value: :table)
+      end
+      c.with_table { c.display_mode.to_s.html_safe }
+    end
+
+    assert_text("table")
+  end
+
+  def test_a_suspended_grouping_says_so_where_the_control_used_to_be
+    # El control se esconde, pero el estado sigue viajando en la URL, en la caché y en el
+    # payload de una vista guardada: sin cartel, guardar desde tarjetas se llevaba una
+    # agrupación que el usuario no podía ver ni sacar.
+    render_inline(
+      Bali::DataTable::Component.new(url: "/movies", filter_form: grouping_filter_form(view: "grid"))
+    ) do |c|
+      c.with_grid { "".html_safe }
+    end
+
+    assert_no_selector("[data-dropdown-target='trigger']", text: /Group by/)
+    assert_selector(".badge", text: /Grouped by Genre/)
+  end
+
   def test_explicit_preserved_params_do_not_drop_the_active_group_by
     # Antes eran excluyentes: un host que preservaba sus propios params tiraba la
     # agrupación en cada submit de filtros o búsqueda.

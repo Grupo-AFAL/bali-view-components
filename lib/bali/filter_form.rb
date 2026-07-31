@@ -50,7 +50,7 @@ module Bali
     include GroupByConfiguration
     include SavedViewsConfiguration
 
-    attr_reader :scope, :storage_id, :context, :clear_filters, :groupings, :view_param
+    attr_reader :scope, :storage_id, :context, :clear_filters, :groupings, :view_param, :display_mode
 
     # Param que lleva el modo de visualización. Es EL MISMO que el `view_param:` del
     # DataTable: UNA sola literal para que no se puedan desincronizar (el DataTable revienta
@@ -191,10 +191,15 @@ module Bali
     #   y el ordenamiento no corre, pero el param sobrevive (ver GroupByConfiguration)
     # @param view_param [Symbol] Param de la URL que lleva el modo de visualización
     #   (default `:view`). Tiene que ser el MISMO que el del DataTable
+    # @param display_mode [Symbol, String] Modo que el listado va a RENDERIZAR, cuando el
+    #   param de la URL no alcanza para saberlo: un listado cuya vista por default no es la
+    #   tabla (el view switch declara las tarjetas primero) aterriza sin `?view=` y el form,
+    #   mirando solo la URL, creería que está en la tabla y aplicaría la agrupación sobre las
+    #   tarjetas. Pasá lo MISMO que le pasás al DataTable (p.ej. `params[:view] || :grid`)
     # rubocop:disable Metrics/ParameterLists
     def initialize(scope, params = {}, storage_id: nil, context: nil, search_fields: nil,
                    search_placeholder: nil, search_icon: nil, persist_enabled: false, simple_filters: nil,
-                   group_by_attributes: nil, group_by_modes: nil, view_param: nil,
+                   group_by_attributes: nil, group_by_modes: nil, view_param: nil, display_mode: nil,
                    saved_views_store: nil, saved_views_owner: nil)
       # rubocop:enable Metrics/ParameterLists
       @scope = scope
@@ -213,12 +218,19 @@ module Bali
       @saved_views_store = resolve_saved_views_store(saved_views_store, saved_views_owner)
       @saved_view_param = params[:saved_view].presence
       @group_by = resolve_group_by(params[:group_by])
+      # Que el param VENGA es distinto de que traiga un valor válido: "sin agrupación" llega
+      # como `?group_by=` y tiene que ganarle a la agrupación guardada en la caché de filtros
+      # (ver #fetch_stored_filter_state). Sin esta distinción, apagar la agrupación con la
+      # persistencia encendida la resucitaba en el próximo render.
+      @group_by_requested = params.key?(:group_by)
       # La agrupación se SUSPENDE fuera de los modos que la aplican (default: tabla), pero el
-      # param sigue vivo: volver a la tabla la encuentra como se dejó. `.to_s` primero porque
-      # esto llega crudo de la URL y un param anidado (`?view[]=x`) no responde a `to_sym`; un
+      # param sigue vivo: volver a la tabla la encuentra como se dejó. El modo que pasa el
+      # host gana sobre la URL: es el único que sabe qué vista renderiza un listado que
+      # todavía no tiene `?view=` (ver el @param display_mode). `.to_s` primero porque esto
+      # llega crudo de la URL y un param anidado (`?view[]=x`) no responde a `to_sym`; un
       # valor desconocido simplemente no está en group_by_modes y suspende, que es el lado
       # seguro (agrupar de más es lo que no se ve venir).
-      @display_mode = params[@view_param].to_s.presence&.to_sym
+      @display_mode = (display_mode || params[@view_param]).to_s.presence&.to_sym
 
       q_params = params.fetch(:q, {})
       @q_params = q_params # Store for simple_filters value extraction
@@ -482,7 +494,12 @@ module Bali
         # No filters in URL and persistence enabled → restore from cache
         stored = Rails.cache.fetch(cache_key)
         if stored.is_a?(Hash) && stored[:attributes]
-          @group_by = resolve_group_by(stored[:group_by]) if stored.key?(:group_by)
+          # La URL manda, igual que con una vista guardada (ver #apply_saved_view_state).
+          # Elegir una agrupación llega SOLO como `?group_by=` —los filtros viven en la caché,
+          # así que la URL no los lleva y este branch es el que corre—, y restaurar acá pisaba
+          # el click recién hecho con la agrupación vieja: el control no hacía nada, y el
+          # viaje tarjetas↔tabla perdía la agrupación en el camino.
+          @group_by = resolve_group_by(stored[:group_by]) if stored.key?(:group_by) && !@group_by_requested
           [
             stored[:attributes] || {},
             stored[:groupings],

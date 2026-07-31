@@ -51,7 +51,9 @@ saved views included; the only family it leaves out is host toolbar buttons.
 
       <%# "Group by" renders itself when the FilterForm declares group_by_attributes AND the
           current display mode applies grouping (default: only :table). In cards the control
-          hides and the grouping is suspended, but the param stays in the URL %>
+          hides, the grouping is suspended and en su lugar queda un cartel que lo dice, pero
+          el param sigue en la URL. Si la PRIMERA vista declarada no fuera la tabla, el form
+          también necesita el modo: `Bali::FilterForm.new(..., display_mode: params[:view] || :grid)` %>
 
       <% dt.with_view_switch do |switch| %>
         <% switch.with_view(name: 'Table', icon: 'list', value: :table) %>
@@ -87,10 +89,17 @@ saved views included; the only family it leaves out is host toolbar buttons.
         <% end %>
       <% else %>
         <% dt.with_table do %>
-          <%= render Bali::Table::Component.new(form: @filter_form, selectable: true) do |t| %>
+          <%# `group_counts:` + `group:` son lo que HACE VISIBLE la agrupación: sin los dos, el
+              control ofrece agrupaciones cuyo único efecto es reordenar las filas sin ninguna
+              banda que lo explique. `group_by_applied` (no `group_by`) es nil cuando la
+              agrupación está apagada O suspendida. %>
+          <%= render Bali::Table::Component.new(form: @filter_form, selectable: true,
+                                                group_counts: @filter_form.group_counts) do |t| %>
             <% t.with_header(name: 'Name', sort: :name) %>
+            <% applied = @filter_form.group_by_applied %>
             <% @movies.each do |movie| %>
-              <% t.with_row(record_id: movie.id, select_label: movie.name) do %>
+              <% t.with_row(record_id: movie.id, select_label: movie.name,
+                            group: applied && movie.public_send(applied)) do %>
                 <td><%= movie.name %></td>
               <% end %>
             <% end %>
@@ -193,6 +202,7 @@ FilterForm is organized into focused concerns for maintainability:
 | `group_by_attributes` | `Array<Symbol>` | `nil` | Groupable attributes; enables the "Group by" control |
 | `group_by_modes` | `Array<Symbol>` | `[:table]` | Display modes that APPLY grouping. Outside them the control hides and the grouping is suspended — but the param survives, so switching back finds it as it was left. Paint rows with `group_by_applied`, never `group_by` |
 | `view_param` | `Symbol` | `:view` | URL param carrying the display mode. Must be the SAME one the DataTable gets, or the DataTable raises `ArgumentError` at build time |
+| `display_mode` | `Symbol` | `nil` | The mode the listing RENDERS, for when the URL cannot say it. Only needed when the first declared view is not a grouping mode: without `?view=` the form would assume grouping applies and sort the cards by group. Pass what the DataTable gets (`params[:view] \|\| :grid`) |
 | `saved_views_store` | `Symbol, Object` | `nil` | `:default` for the engine store, or any object answering `list/find/save/delete`; enables the "Views" dropdown |
 | `saved_views_owner` | `Object` | `nil` | Owner the saved views are scoped to (typically `current_user`) |
 | `context` | `String` | `nil` | Context for cache key namespacing |

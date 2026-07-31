@@ -11,7 +11,11 @@
   <%# aria-label explícito y calculado igual que el texto visible (que vive en un span
       `hidden sm:inline`): con un label estático rompería "Label in Name" cuando el botón
       nombra la vista activa. %>
-  <button type="button" tabindex="0" class="btn btn-outline btn-sm gap-2" aria-label="<%= button_label %>">
+  <%# `aria-haspopup`/`aria-expanded`: el panel lo abre el `:focus-within` de daisyUI, no un JS,
+      así que sin esto el botón no anunciaba ni que abre un popover ni si está abierto. Lo
+      mantiene al día `syncPopoverAria` desde el controlador. %>
+  <button type="button" tabindex="0" class="btn btn-outline btn-sm gap-2" aria-label="<%= button_label %>"
+          aria-haspopup="true" aria-expanded="false">
     <%= render Bali::Icon::Component.new(active_view ? 'bookmark-check' : 'bookmark', class: 'w-4 h-4') %>
     <span class="toolbar-control-label hidden sm:inline"><%= button_label %></span>
   </button>

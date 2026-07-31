@@ -207,6 +207,12 @@ module Bali
         "el view switch nunca escribe (o se sigue aplicando en tarjetas). Pasá el mismo " \
         "`view_param:` a los dos."
 
+      DISPLAY_MODE_MISMATCH_MESSAGE = "Este listado renderiza `%s`, que no está entre los " \
+        "modos que aplican agrupación (%s), pero su FilterForm nunca vio un modo: sin " \
+        "`?view=` en la URL da por hecho que aplica y ordena las filas por el grupo sin que " \
+        "nada en pantalla lo explique. Pasale el modo al form: " \
+        "`Bali::FilterForm.new(..., display_mode: params[:view] || :%s)`."
+
       # Banda de contenido. La SUPERFICIE la decide el slot, no el host: `with_table` la
       # trae (una tabla necesita fondo propio), `with_grid` no (las tarjetas YA son la
       # superficie). El slot no puede llamarse `content` —ViewComponent lo reserva—, de
@@ -337,7 +343,9 @@ module Bali
       # elegir qué contenido declara — por eso se resuelve tarde y no en `initialize`: las
       # vistas se declaran DESPUÉS de construir el componente.
       def display_mode
-        @view_switch_control ? @view_switch_control.current_value : requested_display_mode
+        mode = @view_switch_control ? @view_switch_control.current_value : requested_display_mode
+        validate_display_mode!(mode)
+        mode
       end
 
       # Una sola banda de contenido: `with_table`/`with_grid` son azúcar sobre ella.
@@ -520,6 +528,24 @@ module Bali
         !@filter_form.respond_to?(:group_by_applies?) || @filter_form.group_by_applies?
       end
 
+      # Hay una agrupación elegida que este modo NO aplica. El control se esconde —ofrecer
+      # agrupaciones que no van a pasar nada es peor que no ofrecerlas— pero el estado sigue
+      # vivo: viaja en la URL, en la caché de filtros y en el payload de una vista guardada.
+      # Sin decirlo en algún lado, el usuario guardaba desde tarjetas una vista con una
+      # agrupación que no podía ver ni sacar, y se la encontraba al aplicarla desde la tabla.
+      # Es un CARTEL, no un control: la decisión de esconder el control no se toca.
+      def group_by_hint?
+        @filter_form.respond_to?(:group_by_suspended?) && @filter_form.group_by_suspended?
+      end
+
+      def group_by_hint_text
+        option = @filter_form.group_by_options.find { |o| o[:attribute] == @filter_form.group_by }
+        modes = @filter_form.group_by_modes.map { |mode| mode.to_s.humanize }.to_sentence
+
+        I18n.t("view_components.bali.data_table.group_by_control.suspended_hint",
+               label: option&.dig(:label) || @filter_form.group_by.to_s.humanize, modes: modes)
+      end
+
       # The auto-configured group_by control component.
       def group_by_control
         @group_by_control ||= GroupByControl::Component.new(
@@ -596,7 +622,7 @@ module Bali
           controls = []
           controls << :filters if control_content(:filters_panel) || control_content(:simple_filters)
           controls << :filter_persistence if filter_persistence_control?
-          controls << :group_by if group_by_control?
+          controls << :group_by if group_by_control? || group_by_hint?
           controls << :view_switch if control_content(:view_switch)
           controls << :saved_views if control_content(:saved_views)
           controls << :column_selector if control_content(:column_selector)
@@ -701,6 +727,30 @@ module Bali
 
         raise ArgumentError,
               format(VIEW_PARAM_MISMATCH_MESSAGE, @view_param, @filter_form.view_param)
+      end
+
+      # El modo se deriva DOS veces —el DataTable lo resuelve contra las vistas declaradas, el
+      # form lo lee de la URL— y sin `?view=` las dos derivaciones dicen cosas distintas: el
+      # listado pinta la primera vista declarada y el form, viendo nil, da por hecho que
+      # aplica. Con las tarjetas declaradas primero eso es la agrupación corriendo sobre
+      # tarjetas, que es justo lo que la suspensión existe para evitar.
+      #
+      # Se valida en el momento en que el modo se CONSUME (el host llama a #display_mode para
+      # elegir qué contenido declara) porque las vistas se declaran después de construir el
+      # componente. Solo cuando el form no tiene modo propio: con un `?view=` desconocido
+      # —que un usuario puede tipear— el form suspende y el listado cae a la primera vista, y
+      # eso es un límite conocido, no una config rota que merezca reventar.
+      def validate_display_mode!(mode)
+        return if @display_mode_validated
+
+        @display_mode_validated = true
+        return if mode.nil?
+        return unless @filter_form.respond_to?(:group_by_enabled?) && @filter_form.group_by_enabled?
+        return unless @filter_form.respond_to?(:display_mode) && @filter_form.display_mode.nil?
+        return if @filter_form.group_by_modes.include?(mode)
+
+        raise ArgumentError,
+              format(DISPLAY_MODE_MISMATCH_MESSAGE, mode, @filter_form.group_by_modes.join(", "), mode)
       end
 
       def item_name

@@ -20,13 +20,17 @@
               q[...search...] y el server tomaba "attributes vacíos" como estado nuevo — borraba
               los filtros aplicados (y, con persistencia, también los guardados). %>
           <%= active_filter_hidden_fields %>
-          <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg w-full sm:w-auto">
-            <label class="input input-bordered input-sm join-item w-full sm:w-64 flex items-center gap-2">
+          <%# `min-w-0` en los tres niveles: `sm:w-64` es el ancho que la búsqueda QUIERE, no
+              un piso. Sin esto no podía encogerse, y en una toolbar apretada (un DataTable
+              con sidebar) el campo se pintaba fuera de su caja, encima de los controles de
+              al lado, en vez de cederles ancho. %>
+          <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg w-full sm:w-auto min-w-0">
+            <label class="input input-bordered input-sm join-item w-full sm:w-64 min-w-0 flex items-center gap-2">
               <input type="text"
                      name="<%= search_field_name %>"
                      value="<%= search_value %>"
                      placeholder="<%= search_placeholder %>"
-                     class="grow bg-transparent outline-none"
+                     class="grow min-w-0 bg-transparent outline-none"
                      data-filters-target="searchInput"
                      data-action="input->filters#toggleSearchClear">
               <%# Clear button - shown when search has value %>

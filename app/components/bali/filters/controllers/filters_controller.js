@@ -431,7 +431,12 @@ export class FiltersController extends Controller {
     // popover form above is the authority when BOTH are present: appending the hidden copy
     // too made the pushed URL describe the PREVIOUS filter (last key wins on nested parse),
     // so an edited or removed condition came back on reload.
-    const filterKeys = new Set([...formData.keys()].filter(key => key.startsWith('q[')))
+    //
+    // El set se arma con TODAS las claves del form de arriba, no solo las `q[`: el estado del
+    // listado (`group_by`, `view`) se pinta como hidden en los DOS forms, así que filtrando
+    // solo las de filtro cada uno se agregaba dos veces y la URL que queda en la barra —la que
+    // el usuario copia— decía `?group_by=genre&view=grid&group_by=genre&view=grid`.
+    const filterKeys = new Set(formData.keys())
     for (const [key, value] of searchFormData) {
       if (filterKeys.has(key) || key.startsWith('q[g]') || key === 'q[m]') continue
       if (value && value.trim() !== '') {

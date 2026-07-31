@@ -14,8 +14,12 @@
           <%# Se pregunta por el CONTENIDO y no por el slot: un control declarado que decide no
               pintar (p.ej. vistas guardadas sin store) dejaba un envoltorio vacío que el JS
               movía al ⋯, destapando un botón que abre un menú vacío. %>
+          <%# `sm:flex-auto` y no `flex-1` arriba del breakpoint: con base 0 este item no pesa
+              nada al repartir el faltante, así que la fila apretada lo dejaba en 0px y la
+              búsqueda —que mide lo suyo igual— se pintaba ENCIMA de agrupar y columnas. Con
+              base en el contenido absorbe el faltante encogiéndose, que es lo que se ve. %>
           <% if control_content(:filters_panel) || control_content(:simple_filters) %>
-            <%= tag.div(**overflow_item_attributes(:filters, group: "left", css_class: "flex-1 min-w-0")) do %>
+            <%= tag.div(**overflow_item_attributes(:filters, group: "left", css_class: "flex-1 sm:flex-auto min-w-0")) do %>
               <%= control_content(:filters_panel) %>
               <%= control_content(:simple_filters) %>
             <% end %>
@@ -24,6 +28,13 @@
           <% if group_by_control? %>
             <%= tag.div(**overflow_item_attributes(:group_by, group: "left", css_class: "shrink-0")) do %>
               <%= render group_by_control %>
+            <% end %>
+          <%# Agrupación SUSPENDIDA: el control no va, pero el estado sigue viajando en la URL,
+              en la caché y en el payload de una vista guardada. Sin cartel, guardar una vista
+              desde tarjetas se llevaba una agrupación que el usuario no veía ni podía sacar. %>
+          <% elsif group_by_hint? %>
+            <%= tag.div(**overflow_item_attributes(:group_by, group: "left", css_class: "shrink-0")) do %>
+              <%= render Bali::Tag::Component.new(text: group_by_hint_text, style: :outline, size: :sm) %>
             <% end %>
           <% end %>
 
@@ -91,11 +102,12 @@
       <% end %>
 
       <%# Menú ⋯: solo existe si hay algo que colapsar, y se sirve oculto — lo destapa el JS
-          al mover el primer control adentro, así no parpadea un menú vacío. `sm:hidden` va
-          en este div PLANO, sin la clase .dropdown compitiendo, así no hace falta la
-          variante !important. %>
+          al mover el primer control adentro, así no parpadea un menú vacío. Sin `sm:hidden`:
+          el colapso ya no lo decide el breakpoint sino cuánto ancho tiene la fila (ver
+          `toolbar_overflow_controller`), y con la clase el ⋯ quedaba invisible justo en los
+          anchos intermedios donde es la única salida. %>
       <% if overflow_menu? %>
-        <div class="shrink-0 hidden sm:hidden" data-toolbar-overflow-target="overflow">
+        <div class="shrink-0 hidden" data-toolbar-overflow-target="overflow">
           <%# `menu: false`: acá adentro no hay menuitems sino widgets enteros (otros
               dropdowns, checkboxes de columnas, el form de renombrar vistas). Declarado como
               `role="menu"` el lector de pantalla entra en modo menú sobre un formulario y

@@ -103,11 +103,18 @@ module Bali
       end
 
       # ¿La agrupación APLICA en el modo de visualización actual? Pregunta sobre el MODO, no
-      # sobre el estado: es true en la tabla aunque nadie haya elegido agrupar. Sin modo en la
-      # URL (un listado sin view switch) aplica, que es el caso de la enorme mayoría.
+      # sobre el estado: es true en la tabla aunque nadie haya elegido agrupar. Sin modo (un
+      # listado sin view switch, o uno que todavía no sabe cuál renderiza) aplica, que es el
+      # caso de la enorme mayoría; un listado cuya vista por default NO es la tabla tiene que
+      # pasarle ese modo al form (ver el `display_mode:` de FilterForm#initialize).
+      #
+      # `[]` corta antes: es la forma de decir "ningún modo la aplica", y el escape de "sin
+      # modo aplica" la habría vuelto a encender en cada URL sin `?view=`.
       #
       # @return [Boolean]
       def group_by_applies?
+        return false if group_by_modes.empty?
+
         @display_mode.nil? || group_by_modes.include?(@display_mode)
       end
 
@@ -136,10 +143,16 @@ module Bali
 
       # Modos de visualización que aplican la agrupación, normalizados a símbolos.
       #
+      # `nil` y `[]` NO son lo mismo, así que no se puede usar `.presence`: `[]` es un host
+      # diciendo "ningún modo la aplica" (quiere el param en las vistas guardadas pero nunca
+      # aplicado) y colapsarlo al default le daba exactamente lo contrario, en silencio.
+      #
       # @return [Array<Symbol>]
       def group_by_modes
-        @group_by_modes ||=
-          Array(@instance_group_by_modes.presence || DEFAULT_GROUP_BY_MODES).map(&:to_sym)
+        @group_by_modes ||= begin
+          declared = @instance_group_by_modes.nil? ? DEFAULT_GROUP_BY_MODES : @instance_group_by_modes
+          Array(declared).map(&:to_sym)
+        end
       end
 
       # Options for the "Agrupar por" UI control, labels resolved.

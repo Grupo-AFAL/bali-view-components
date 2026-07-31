@@ -11,6 +11,8 @@ export class DropdownController extends Controller {
       document.addEventListener('click', this.handleOutsideClick)
     }
     this.element.addEventListener('keydown', this.handleKeydown)
+    this.element.addEventListener('focusin', this.handleFocusIn)
+    this.element.addEventListener('focusout', this.handleFocusOut)
   }
 
   disconnect () {
@@ -18,6 +20,32 @@ export class DropdownController extends Controller {
       document.removeEventListener('click', this.handleOutsideClick)
     }
     this.element.removeEventListener('keydown', this.handleKeydown)
+    this.element.removeEventListener('focusin', this.handleFocusIn)
+    this.element.removeEventListener('focusout', this.handleFocusOut)
+  }
+
+  /**
+   * `aria-expanded` seguía al TECLADO, no a la pantalla. Quien abre el panel con el mouse
+   * nunca pasa por `open()`: daisyUI lo despliega por `:focus-within` al enfocarse el trigger,
+   * así que el lector de pantalla anunciaba "contraído" con el menú a la vista (WCAG 4.1.2).
+   * El foco es la señal REAL de apertura de daisyUI, así que el atributo se sincroniza con él.
+   *
+   * Solo el atributo: la clase `dropdown-open` la sigue manejando el camino de teclado, que es
+   * el que la usa para saber si ya estaba abierto.
+   */
+  handleFocusIn = () => this.setExpanded(true)
+
+  handleFocusOut = (event) => {
+    // El foco puede saltar ENTRE hijos (del trigger a un item): eso no es cerrar.
+    if (event.relatedTarget && this.element.contains(event.relatedTarget)) return
+
+    this.setExpanded(false)
+  }
+
+  setExpanded (expanded) {
+    if (!this.hasTriggerTarget) return
+
+    this.triggerTarget.setAttribute('aria-expanded', String(expanded))
   }
 
   handleOutsideClick = (event) => {
@@ -92,16 +120,12 @@ export class DropdownController extends Controller {
 
   open () {
     this.element.classList.add('dropdown-open')
-    if (this.hasTriggerTarget) {
-      this.triggerTarget.setAttribute('aria-expanded', 'true')
-    }
+    this.setExpanded(true)
   }
 
   close () {
     this.element.classList.remove('dropdown-open')
-    if (this.hasTriggerTarget) {
-      this.triggerTarget.setAttribute('aria-expanded', 'false')
-    }
+    this.setExpanded(false)
     this.element.querySelector('[tabindex]')?.blur()
   }
 

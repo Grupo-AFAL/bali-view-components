@@ -59,10 +59,14 @@ class BaliDataTableGroupByControlComponentTest < ComponentTestCase
     assert_selector("[data-dropdown-target='trigger'].btn.btn-outline", text: /Género/)
   end
 
-  def test_renders_no_grouping_option_that_removes_the_param
+  # El param se queda VACÍO en vez de desaparecer: "sin agrupación" tiene que ser distinguible
+  # de "no vino nada", o un listado con persistencia de filtros restaura de la caché la
+  # agrupación que el usuario acaba de apagar.
+  def test_renders_no_grouping_option_that_empties_the_param
     render_inline(component(active: true, group_by: :genre))
     no_group = page.find("a", text: "No grouping")
-    refute_includes(no_group[:href], "group_by")
+
+    assert_match(/[?&]group_by=(&|\z)/, no_group[:href])
   end
 
   def test_option_links_preserve_existing_query_params

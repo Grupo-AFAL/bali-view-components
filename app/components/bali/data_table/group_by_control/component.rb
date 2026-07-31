@@ -72,8 +72,12 @@ module Bali
           build_href(attribute.to_s)
         end
 
+        # `""` y no `nil`: el param se queda en la URL, vacío. Sacándolo, "sin agrupación" era
+        # indistinguible de "no vino nada", y un listado con persistencia de filtros restaura
+        # de la caché lo que la URL no dice — o sea que apagar la agrupación la resucitaba en
+        # el mismo render (ver FilterForm#fetch_stored_filter_state).
         def no_grouping_href
-          build_href(nil)
+          build_href("")
         end
 
         def option_active?(attribute)

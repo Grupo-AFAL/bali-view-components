@@ -489,6 +489,36 @@ class BaliFilterFormPersistenceTest < ActiveSupport::TestCase
     assert_equal("genre", stored[:group_by].to_s)
   end
 
+  def test_a_group_by_from_the_url_beats_the_persisted_one
+    # Elegir una agrupación llega SOLO como `?group_by=`: los filtros viven en la caché, así
+    # que la URL no los trae y corre el branch de restaurar, que pisaba el click recién hecho
+    # con la agrupación vieja. El control no hacía nada y el viaje tarjetas↔tabla la perdía.
+    GroupableMovieFilterForm.new(Movie.all, params(genre_eq: "action"), storage_id: "movies")
+    assert_nil(Rails.cache.read(cache_key_for(GroupableMovieFilterForm))[:group_by])
+
+    clicked = GroupableMovieFilterForm.new(
+      Movie.all, ActionController::Parameters.new(group_by: "genre"),
+      storage_id: "movies", persist_enabled: true
+    )
+    assert_equal(:genre, clicked.group_by)
+  end
+
+  def test_turning_the_grouping_off_is_not_undone_by_the_persisted_one
+    # `?group_by=` vacío es "sin agrupación", y tiene que ser distinguible de "no vino nada":
+    # con la persistencia encendida, un param ausente significa restaurar la caché — o sea que
+    # apagar la agrupación la resucitaba en el mismo render.
+    GroupableMovieFilterForm.new(
+      Movie.all, ActionController::Parameters.new(q: { genre_eq: "action" }, group_by: "genre"),
+      storage_id: "movies"
+    )
+
+    cleared = GroupableMovieFilterForm.new(
+      Movie.all, ActionController::Parameters.new(group_by: ""),
+      storage_id: "movies", persist_enabled: true
+    )
+    assert_nil(cleared.group_by)
+  end
+
   def test_clearing_the_search_does_not_restore_state_when_persistence_is_off
     # Con la persistencia apagada el usuario pidió que el server NO le devuelva estado:
     # limpiar la búsqueda no puede ser la puerta trasera por la que reaparecen filtros.
@@ -938,6 +968,40 @@ class BaliFilterFormGroupByTest < ActiveSupport::TestCase
     grid = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", view: "grid"),
                                         group_by_modes: %i[table kanban])
     assert(grid.group_by_suspended?)
+  end
+
+  def test_group_by_modes_can_be_emptied_to_mean_no_mode_applies_it
+    # `[]` NO es "no me dijeron nada": es el host declarando que ningún modo la aplica (quiere
+    # el param preservado y guardado en una vista, nunca aplicado). Colapsándolo al default le
+    # daba justo lo contrario, en silencio.
+    never = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", view: "table"),
+                                         group_by_modes: [])
+
+    assert(never.group_by_active?)
+    refute(never.group_by_applies?)
+    assert_nil(never.group_by_applied)
+    assert_nil(never.ransack_params["s"])
+
+    # Y tampoco por la puerta de atrás: sin `?view=` el escape de "sin modo aplica" la habría
+    # vuelto a encender.
+    bare = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre"), group_by_modes: [])
+    refute(bare.group_by_applies?)
+  end
+
+  def test_display_mode_from_the_host_beats_the_url
+    # Un listado cuya vista por default no es la tabla aterriza SIN `?view=`, y el form —que
+    # solo mira la URL— daba por hecho que aplicaba: las tarjetas volvían ordenadas por grupo
+    # sin ninguna banda que lo explicara.
+    cards = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre"), display_mode: :grid)
+
+    assert_equal(:grid, cards.display_mode)
+    assert(cards.group_by_suspended?)
+    assert_nil(cards.ransack_params["s"])
+
+    # Con el modo en la URL el host igual manda: es el único que sabe qué está renderizando.
+    forced = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", view: "table"),
+                                          display_mode: :grid)
+    assert(forced.group_by_suspended?)
   end
 
   def test_view_param_selects_which_param_carries_the_display_mode

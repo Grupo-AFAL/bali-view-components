@@ -1,5 +1,10 @@
 // El movimiento de nodos solo es observable en un navegador: Minitest ve el HTML servido,
 // que es siempre el layout expandido.
+//
+// 1440 y no 1280 como viewport "ancho": el colapso ya no lo decide el breakpoint sino cuánto
+// ancho NECESITA la fila (medido ~1180px en este preview), y a 1280 el margen quedaba en
+// ~70px — menos de lo que puede moverse el mismo texto renderizado con otras fuentes en CI.
+// Un ancho holgado prueba lo que la prueba quiere probar: expandido es expandido.
 describe('DataTable toolbar overflow', () => {
   const menu = '[data-toolbar-overflow-target="menu"]'
   const overflow = '[data-toolbar-overflow-target="overflow"]'
@@ -12,7 +17,7 @@ describe('DataTable toolbar overflow', () => {
   const groupByItem = '[data-toolbar-overflow-priority="40"]'
 
   it('moves the secondary controls into the ⋯ menu and back, never duplicating them', () => {
-    cy.viewport(1280, 800)
+    cy.viewport(1440, 800)
     cy.visit('/bali/data_table/complete')
 
     cy.get(columnsItem).should('have.length', 1)
@@ -32,7 +37,7 @@ describe('DataTable toolbar overflow', () => {
     cy.get(`${menu} ${filtersItem}`).should('not.exist')
     cy.get(`${menu} ${viewSwitchItem}`).should('not.exist')
 
-    cy.viewport(1280, 800)
+    cy.viewport(1440, 800)
 
     cy.get(`${menu} ${columnsItem}`).should('not.exist')
     cy.get(columnsItem).should('have.length', 1)
@@ -46,7 +51,7 @@ describe('DataTable toolbar overflow', () => {
     // del orden de la fila: el HTML servido se ve bien aunque el navegador lo reordene mal.
     cy.viewport(375, 667)
     cy.visit('/bali/data_table/complete')
-    cy.viewport(1280, 800)
+    cy.viewport(1440, 800)
 
     const sortedDescending = (selector) =>
       cy.get(`${selector} > [data-toolbar-overflow-target="item"]`).then(($items) => {
@@ -63,7 +68,7 @@ describe('DataTable toolbar overflow', () => {
   it('hides the separator when the overflow empties one of its sides, and brings it back', () => {
     // La barrita AFIRMA algo sobre sus vecinos: con el grupo de memoria adentro del ⋯ queda
     // marcando una frontera contra nada.
-    cy.viewport(1280, 800)
+    cy.viewport(1440, 800)
     cy.visit('/bali/data_table/complete')
 
     cy.get(separator).should('be.visible')
@@ -73,7 +78,7 @@ describe('DataTable toolbar overflow', () => {
     cy.get(separator).should('not.be.visible')
     cy.get(memoryGroup).should('not.be.visible')
 
-    cy.viewport(1280, 800)
+    cy.viewport(1440, 800)
 
     cy.get(separator).should('be.visible')
     cy.get(memoryGroup).should('be.visible')
@@ -107,7 +112,7 @@ describe('DataTable toolbar overflow', () => {
     // `.dropdown-open` SOBREVIVE al movimiento: sin cerrarlo antes, el control aterriza
     // abierto dentro del menú. Solo se llega por teclado — los demás dropdowns de la
     // toolbar abren por :focus-within de daisyUI y no marcan la clase.
-    cy.viewport(1280, 800)
+    cy.viewport(1440, 800)
     cy.visit('/bali/data_table/complete')
 
     // `force`: daisyUI le pone pointer-events:none al trigger de un dropdown abierto (el
@@ -127,7 +132,7 @@ describe('DataTable toolbar overflow', () => {
     // Un zoom al 400% deja el viewport en 320px CSS: cruzar el umbral no puede costarle al
     // usuario de teclado su posición. `closeOpenDropdowns` hace blur y el colapso mueve el
     // nodo, así que sin restaurar el foco cae al <body>.
-    cy.viewport(1280, 800)
+    cy.viewport(1440, 800)
     cy.visit('/bali/data_table/complete')
 
     cy.get(`${filtersItem} button[data-action*="toggleDropdown"]`).first().focus()
@@ -147,7 +152,7 @@ describe('DataTable toolbar overflow', () => {
     cy.get(`${overflow} [data-dropdown-target="trigger"]`).focus()
     cy.focused().should('have.attr', 'aria-label')
 
-    cy.viewport(1280, 800)
+    cy.viewport(1440, 800)
 
     cy.get(overflow).should('have.class', 'hidden')
     cy.document().its('activeElement.tagName').should('not.equal', 'BODY')

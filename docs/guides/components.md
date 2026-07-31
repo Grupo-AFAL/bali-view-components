@@ -751,22 +751,36 @@ grouping exactly as it was left.
 | Is a grouping **chosen**? (state) | `group_by`, `group_by_active?` | Preservation: hidden fields, filters cache, saved-view payload |
 | Does this display mode **apply** grouping? (mode) | `group_by_applies?` | Visibility of the "Group by" control |
 | Is it **being applied** right now? | `group_by_applied`, `group_by_applied?` | Ordering, `group_counts`, the `group:` value of each row |
-| Chosen but not applied here | `group_by_suspended?` | Sugar for a "grouped by Genre — applies in table view" hint |
+| Chosen but not applied here | `group_by_suspended?` | The "Grouped by Genre — applies in table view" hint the DataTable paints where the control used to be |
 
 Use `group_by_applied` (not `group_by`) wherever you paint the grouping, and
 never null out `group_by` yourself to suspend it: the state has to survive.
 
-Two options tune it:
+Three options tune it:
 
 - `group_by_modes:` — display modes that apply grouping (default `[:table]`).
+  `[]` means *no* mode applies it: the param is still preserved and still saved
+  into a view, it is simply never applied.
 - `view_param:` — the URL param carrying the display mode (default `:view`).
   It must be the **same** one you give the DataTable; a DataTable whose
   `view_param:` disagrees with its form raises `ArgumentError` at build time,
   because desynced there is nothing visible to give the bug away.
+- `display_mode:` — the mode the listing is going to **render**. Only needed when
+  the URL cannot say it: a listing whose first declared view is not a grouping
+  mode lands with no `?view=`, and the form — which only sees the URL — would
+  assume the grouping applies and sort the cards by group with nothing on screen
+  to explain it. Pass the same value you give the DataTable
+  (`display_mode: params[:view] || :grid`). While the two disagree the DataTable
+  raises `ArgumentError` on render.
 
 Known limit: an invalid `?view=` (hand-typed) makes the DataTable fall back to
 the first declared view while the form suspends — a table with no bands. The
-state survives and the next click fixes it.
+state survives and the next click fixes it. That one does **not** raise: a
+user can type it, and a 500 is not the answer to a typo.
+
+"No grouping" leaves `?group_by=` (empty) in the URL rather than dropping the
+param: with filter persistence on, an absent param means "restore the cached
+state", so removing it resurrected the grouping the user just turned off.
 
 Wire it into the view — `DataTable` auto-renders the "Agrupar por" control
 whenever the form declares group_by attributes, and the `Table` shows global
