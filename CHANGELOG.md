@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2.18.0] - 2026-07-31
+
+### Security
+
+- **Dependencies** - `rails` 8.1.3 → 8.1.3.1 for CVE-2026-66066 / GHSA-xr9x-r78c-5hrm, possible arbitrary file read and remote code execution in Active Storage variant processing. This is the one advisory in the stack that reaches a consuming app's production code, so it ships with the stable line rather than waiting for v3.
+
 ### Added
 
 - **DataTable SavedViews** - the dropdown now signals the ACTIVE view: the trigger button shows its name (with a filled bookmark icon) and the matching item gets the `active` class. Active is the view applied by URL (`?saved_view=`), or — because persistence rewrites the URL clean on the way back — the personal view whose payload matches the form's CURRENT state (`FilterForm#view_matches_current_state?`), or the static `default_views` shortcut whose URL query describes that same state. One winner, no double marking. The dropdown also gains `max-h-[70vh] overflow-y-auto` and full-width rows so long lists stay usable.
