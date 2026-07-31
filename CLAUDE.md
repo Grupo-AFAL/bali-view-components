@@ -2,24 +2,6 @@
 
 This file provides guidance to Claude Code when working in this repository.
 
-## Project Overview
-
-**Bali** is AFAL's open-source ViewComponent library providing 75+ reusable UI components for Rails applications, styled with Tailwind CSS and DaisyUI.
-
-## Session Memory
-
-This project uses `.ai-sessions/` for session continuity between Docker sandbox runs.
-
-**How it works:**
-- **SessionStart hook** (`bin/hooks/session-memory-load.sh`): Automatically injects `.ai-sessions/latest.md` into every new session
-- **Stop hook** (`bin/hooks/session-memory-save.sh`): Reminds you to write a session summary before exiting
-
-**When ending a session**, write a summary to `.ai-sessions/<timestamp>.md` and copy it to `.ai-sessions/latest.md`. Include:
-- What was accomplished
-- What remains to be done
-- Key decisions made
-- Any blockers or issues
-
 ## Codebase Search (SocratiCode)
 
 This repo is indexed by SocratiCode (hybrid semantic + BM25 search, file watcher active). For exploratory questions ("where is X?", "how does Y work?", "find code that does Z"), reach for `codebase_search` **before** `Grep` or speculative `Read` calls — it returns ranked snippets across the whole repo in one tool call.
