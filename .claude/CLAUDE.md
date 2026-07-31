@@ -20,29 +20,10 @@ Two project skills load on demand: `lookbook-previews` (writing/editing preview 
 
 ## Development Commands
 
-```bash
-# Run Minitest tests
-bundle exec rails test
+The Lookbook preview server is not a plain `rails s` — start it with `cd spec/dummy && bin/dev`
+and open http://localhost:3001/lookbook. Cypress needs that server already running.
 
-# Run specific component test
-bundle exec rails test test/bali/components/button_test.rb
-
-# Start Lookbook preview server
-cd spec/dummy && bin/dev
-# Open http://localhost:3001/lookbook
-
-# Run Cypress tests (requires server running)
-yarn run cy:run   # Headless
-yarn run cy:open  # Interactive
-```
-
-### Batch Processing (Shell Script)
-```bash
-./scripts/batch-review.sh                          # Review all components (code-only, parallel)
-./scripts/batch-review.sh Button Modal Card        # Review specific components
-./scripts/batch-review.sh --with-visual --parallel 4  # With visual verification (needs port coordination)
-./scripts/batch-review.sh --dry-run
-```
+Bulk component review: `./scripts/batch-review.sh` (read the script for its flags).
 
 ## Engine Gotchas
 
@@ -67,41 +48,14 @@ Cypress tests render Stimulus controllers by visiting `http://localhost:3001/loo
 
 ## Dependency Version Alignment
 
-Bali must stay on the latest Tailwind CSS and daisyUI to keep all AFAL apps aligned. Check versions at the start of substantial work and update before doing other changes if either is behind:
-
-| Dependency | Source | Spec location |
-|------------|--------|---------------|
-| **Tailwind CSS** | `tailwindcss-rails` gem | `Gemfile` |
-| **daisyUI** | `daisyui` npm package | `package.json` |
-
-```bash
-# Update Tailwind CSS (gem)
-bundle update tailwindcss-rails
-
-# Update daisyUI (npm)
-yarn upgrade daisyui
-```
-
-After updating, run the full test suite to confirm nothing breaks.
+Bali must stay on the latest Tailwind CSS (`tailwindcss-rails` gem) and daisyUI (npm) to keep all
+AFAL apps aligned. Check both at the start of substantial work and update them *before* other
+changes if either is behind, then run the full test suite.
 
 ## Pre-Commit Checklist
 
-Before committing changes:
-
-```bash
-# 1. Run tests
-bundle exec rails test
-
-# 2. Run Rubocop
-bundle exec rubocop -a
-
-# 3. Check Lookbook preview works
-cd spec/dummy && bin/dev
-# Verify component renders correctly
-
-# 4. Run Cypress tests (if JS changes)
-yarn run cy:run
-```
+Rubocop and Minitest run automatically via `.githooks` (pre-commit and pre-push). Cypress does
+not — run `yarn run cy:run` yourself when you touch JS, and confirm the Lookbook preview renders.
 
 ## Tailwind v4 CSS Layer Gotcha
 
@@ -211,54 +165,14 @@ Use the correct component based on **what the element does**, not how it looks:
 
 ## Icons
 
-The Bali icon system uses **Lucide icons** as the primary source, with backwards compatibility for existing icon names.
+Icons resolve through a pipeline that falls back across several sources, so a name that "should"
+be Lucide may not be. Never assume a mapping — read the source:
 
-### Icon Resolution Pipeline
-
-When you use `Bali::Icon::Component.new('icon-name')`, the system resolves icons in this order:
-
-1. **Lucide mapping** - Old Bali names mapped to Lucide equivalents (e.g., `edit` → `pencil`)
-2. **Direct Lucide** - Use any [Lucide icon](https://lucide.dev/icons) name directly
-3. **Kept icons** - Brand logos, regional icons, custom domain icons
-4. **Legacy fallback** - Original Bali SVGs for full backwards compatibility
-
-### Icon Categories
-
-| Category | Source | Examples |
-|----------|--------|----------|
-| **UI Icons** | Lucide (via mapping) | `edit`, `trash`, `search`, `check`, `times` |
-| **Direct Lucide** | Lucide | Any icon from [lucide.dev/icons](https://lucide.dev/icons) |
-| **Payment Brands** | Kept SVGs | `visa`, `mastercard`, `american-express`, `paypal`, `oxxo` |
-| **Social Brands** | Kept SVGs | `whatsapp`, `facebook`, `youtube`, `twitter`, `linkedin` |
-| **Regional** | Kept SVGs | `mexico-flag`, `us-flag` |
-| **Custom Domain** | Kept SVGs | `recipe-book`, `diagnose`, `day`, `month`, `week` |
-
-### Key Files
-
-| File | Purpose |
-|------|---------|
-| `app/components/bali/icon/lucide_mapping.rb` | Maps old Bali names → Lucide names (authoritative — check it before assuming a mapping) |
-| `app/components/bali/icon/kept_icons.rb` | Brand, regional, and custom icons |
-| `app/components/bali/icon/component.rb` | Resolution pipeline |
+- `app/components/bali/icon/component.rb` — the resolution pipeline
+- `app/components/bali/icon/lucide_mapping.rb` — old Bali names → Lucide (authoritative)
+- `app/components/bali/icon/kept_icons.rb` — brand, regional, and custom-domain SVGs
 
 ## BlockNote / ProseMirror Gotchas
 
-### Turbo + React + ProseMirror cleanup
-ProseMirror plugins (e.g. Placeholder) remove DOM nodes during destroy. If Turbo detaches the tree first, `removeChild` throws. Fix: destroy `_tiptapEditor` before calling `root.unmount()` in Stimulus `disconnect()`.
-
-### Content serialization with comment marks
-`useContentSync` debounces content writes to the hidden input by 500ms. If `save()` reads the input immediately, it may get stale content without comment marks. Fix: flush content synchronously from the editor before reading the hidden input in `save()`.
-
-### BlockNote comment mark cleanup
-`ThreadStore.deleteThread()` removes the thread from the store but does NOT remove `comment` marks from the ProseMirror document. Must explicitly call `tr.removeMark()` for the deleted threadId.
-
-### Multiple Stimulus controllers on same page
-Document show pages may render multiple overlays (editor + viewer), each with their own `document-editor` controller. Global keyboard listeners (e.g. Cmd+S on `document`) fire on ALL controllers. Guard actions against read-only/empty state.
-
-## Resources
-
-- [ViewComponent Docs](https://viewcomponent.org/)
-- [DaisyUI Components](https://daisyui.com/components/)
-- [Tailwind CSS](https://tailwindcss.com/docs)
-- [Lookbook](https://lookbook.build/)
-- [Stimulus Handbook](https://stimulus.hotwired.dev/handbook/introduction)
+See `app/components/bali/block_editor/CLAUDE.md` — loads automatically when working in the
+editor components.
