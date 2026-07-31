@@ -20,13 +20,17 @@
               q[...search...] y el server tomaba "attributes vacíos" como estado nuevo — borraba
               los filtros aplicados (y, con persistencia, también los guardados). %>
           <%= active_filter_hidden_fields %>
-          <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg w-full sm:w-auto">
-            <label class="input input-bordered input-sm join-item w-full sm:w-64 flex items-center gap-2">
+          <%# `min-w-0` en los tres niveles: `sm:w-64` es el ancho que la búsqueda QUIERE, no
+              un piso. Sin esto no podía encogerse, y en una toolbar apretada (un DataTable
+              con sidebar) el campo se pintaba fuera de su caja, encima de los controles de
+              al lado, en vez de cederles ancho. %>
+          <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg w-full sm:w-auto min-w-0">
+            <label class="input input-bordered input-sm join-item w-full sm:w-64 min-w-0 flex items-center gap-2">
               <input type="text"
                      name="<%= search_field_name %>"
                      value="<%= search_value %>"
                      placeholder="<%= search_placeholder %>"
-                     class="grow bg-transparent outline-none"
+                     class="grow min-w-0 bg-transparent outline-none"
                      data-filters-target="searchInput"
                      data-action="input->filters#toggleSearchClear">
               <%# Clear button - shown when search has value %>
@@ -167,31 +171,12 @@
           </div>
         </div>
 
-        <%# Persistence toggle (bookmark icon) %>
-        <% if persistence_available? %>
-          <%# Los tooltips van como VALUES en el elemento del controller: el Stimulus los lee
-              con this.data.get / values sobre this.element — puestos en el botón hijo eran
-              invisibles y el texto caía al fallback en inglés. %>
-          <div class="max-sm:overflow-hidden" data-controller="filter-persistence"
-               data-filter-persistence-storage-id-value="<%= storage_id %>"
-               data-filter-persistence-enabled-value="<%= persist_enabled? %>"
-               data-filter-persistence-enabled-tooltip-value="<%= t('bali.filters.persistence_enabled', default: 'Filters are being saved. Click to disable.') %>"
-               data-filter-persistence-disabled-tooltip-value="<%= t('bali.filters.persistence_disabled', default: 'Filters are not saved. Click to enable.') %>">
-            <button type="button"
-                    class="tooltip tooltip-bottom btn btn-ghost btn-sm btn-square"
-                    data-action="filter-persistence#toggle"
-                    data-filter-persistence-target="button"
-                    data-tip="<%= persist_enabled? ? t('bali.filters.persistence_enabled', default: 'Filters are being saved. Click to disable.') : t('bali.filters.persistence_disabled', default: 'Filters are not saved. Click to enable.') %>">
-              <%# Filled bookmark when enabled %>
-              <span data-filter-persistence-target="iconEnabled" class="<%= 'hidden' unless persist_enabled? %>">
-                <%= render Bali::Icon::Component.new('bookmark-check', class: 'w-5 h-5 text-primary') %>
-              </span>
-              <%# Outline bookmark when disabled %>
-              <span data-filter-persistence-target="iconDisabled" class="<%= 'hidden' if persist_enabled? %>">
-                <%= render Bali::Icon::Component.new('bookmark', class: 'w-5 h-5 text-base-content/40') %>
-              </span>
-            </button>
-          </div>
+        <%# Persistence toggle (bookmark icon). Dentro de un DataTable el marcador lo pinta la
+            toolbar como control propio y acá llega apagado: dos controladores
+            `filter-persistence` sobre el mismo storage_id se pisan el localStorage. %>
+        <% if persistence_toggle? %>
+          <%= render Bali::Filters::PersistenceToggle::Component.new(
+                storage_id: storage_id, enabled: persist_enabled?) %>
         <% end %>
       </div>
 

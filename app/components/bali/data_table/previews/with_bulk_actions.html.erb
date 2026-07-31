@@ -1,0 +1,42 @@
+<%# DataTable with row selection and a contextual bulk-actions row %>
+<%# `id:` explícito porque este preview no arma un FilterForm con storage_id: sin identidad
+    estable el selector de columnas apagaría su memoria por dispositivo. %>
+<%= render Bali::DataTable::Component.new(url: request.path, pagy: pagy, item_name: 'movies',
+                                          id: 'bulk-actions-demo') do |c| %>
+  <% c.with_filters_panel(
+       available_attributes: filter_attributes,
+       search: { fields: [:name, :genre], placeholder: 'Search movies...' }
+     ) %>
+
+  <%# Fila contextual: aparece al seleccionar y esconde la toolbar mientras dure la selección %>
+  <% c.with_bulk_actions do |bulk| %>
+    <% bulk.with_action(label: 'Mark as done', href: '#', variant: :success) %>
+    <% bulk.with_action(label: 'Mark as draft', href: '#', variant: :warning) %>
+    <% bulk.with_action(label: 'Delete', href: '#', variant: :error) %>
+  <% end %>
+
+  <%# `selectable: true` pinta la columna de checkbox y el header de seleccionar-todo %>
+  <% c.with_table do %>
+    <%= render Bali::Table::Component.new(form: filter_form, selectable: true) do |t| %>
+      <%= t.with_header(name: 'Name', sort: :name) %>
+      <%= t.with_header(name: 'Genre') %>
+      <%= t.with_header(name: 'Status', sort: :status) %>
+      <%= t.with_header(name: 'Indie') %>
+
+      <% movies.each do |movie| %>
+        <%= t.with_row(record_id: movie.id) do %>
+          <td class="font-medium"><%= movie.name %></td>
+          <td><%= render Bali::Tag::Component.new(text: movie.genre, style: :outline, size: :sm) %></td>
+          <td>
+            <%= render Bali::Tag::Component.new(
+                  text: movie.status.humanize,
+                  color: movie.done? ? :success : :warning,
+                  size: :sm
+                ) %>
+          </td>
+          <td><%= render Bali::BooleanIcon::Component.new(value: movie.indie) %></td>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

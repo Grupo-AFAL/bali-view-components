@@ -21,10 +21,18 @@ module Bali
       redirect_back fallback_location: fallback_path, alert: e.record.errors.full_messages.to_sentence
     end
 
+    # Atiende DOS operaciones: renombrar (manda `name`) y actualizar la configuración guardada
+    # (manda `payload`). Se asigna SOLO lo que vino: asignar ambos siempre haría que renombrar
+    # VACIARA el payload —`SavedView#payload=` slicea, así que un nil borra la configuración en
+    # silencio— y que actualizar pisara el nombre con vacío.
     def update
       view = own_views.find(params[:id])
-      view.update!(name: params.require(:name))
-      redirect_back fallback_location: fallback_path, notice: t("bali.saved_views.renamed")
+      attributes = params.permit(:name, :payload).to_h.symbolize_keys.compact
+      raise ActionController::ParameterMissing, :name if attributes.empty?
+
+      view.update!(attributes)
+      redirect_back fallback_location: fallback_path,
+                    notice: t("bali.saved_views.#{attributes.key?(:payload) ? 'updated' : 'renamed'}")
     rescue ActiveRecord::RecordInvalid => e
       redirect_back fallback_location: fallback_path, alert: e.record.errors.full_messages.to_sentence
     end

@@ -1,0 +1,161 @@
+<%# The canonical index composition: the seven toolbar control families, row selection and
+    pagination in one DataTable. Lives in a partial because `index_page/previews/complete`
+    renders the SAME body inside the page layer — two copies would drift, which is the
+    exact problem this preview exists to fix.
+
+    Export is deliberately NOT here: it is an action ON the page, not a control of how the
+    listing looks, so it lives in the page's `⋯` menu (`page.with_export`). The composition
+    with the page layer around it is `index_page/complete`.
+
+    Locals: url, filter_form, pagy, movies. %>
+<%= render Bali::DataTable::Component.new(
+      url: url,
+      filter_form: filter_form,
+      pagy: pagy,
+      item_name: 'movies',
+      display_mode: display_mode
+    ) do |dt| %>
+
+  <%# The declarations below follow the toolbar's reading order — `search + filters ·
+      group by · columns ￨ saved views · persistence`, with the view switch pinned right.
+      Declaration order does not decide it (`OVERFLOW_PRIORITIES` does, because expanding
+      re-sorts each group by priority), so writing them in row order is for the reader. %>
+
+  <%# 1. Search + filters. Everything is auto-configured from the FilterForm. %>
+  <% dt.with_filters_panel(search: { placeholder: 'Search movies...' }) %>
+
+  <%# 2. "Group by" renders itself: the FilterForm declares the groupable attributes. %>
+
+  <%# 3. Column selector — only in the table view, because it hides table columns. A card
+         grid or a timeline has none, and saving a view from those modes falls back to the
+         selector's per-device memory. Column 0 is the selection checkbox the Table renders. %>
+  <% if dt.display_mode == :table %>
+    <% dt.with_column_selector do |cs| %>
+      <% cs.with_column(index: 1, label: 'Name') %>
+      <% cs.with_column(index: 2, label: 'Genre') %>
+      <% cs.with_column(index: 3, label: 'Studio') %>
+      <% cs.with_column(index: 4, label: 'Status') %>
+      <% cs.with_column(index: 5, label: 'Indie') %>
+    <% end %>
+  <% end %>
+
+  <%# 4. Saved views: named filter combinations, backed by the form's store. Past the
+         separator: this side of the row is how the listing's state is REMEMBERED. %>
+  <% dt.with_saved_views(url: '/preview/saved_views',
+                         default_views: [
+                           { name: 'Everything', url: url },
+                           { name: 'Indie only', url: "#{url}?q%5Bindie_true%5D=1" }
+                         ]) %>
+
+  <%# 5. The persistence bookmark ("remember my filters") has no declaration: the DataTable
+         renders it next to the saved views whenever the FilterForm carries a storage id.
+         It is a control family all the same — it collapses into the ⋯ like the rest. %>
+
+  <%# 6. View switch — the only control on the right, because how the listing is DISPLAYED
+         is the one piece of state a saved view does not carry. Each view declares `value:`
+         (what travels in ?view=) and the DataTable builds the href, preserving filters,
+         sorting, grouping and the applied saved view. %>
+  <% dt.with_view_switch do |switch| %>
+    <% switch.with_view(name: 'Table', icon: 'list', value: :table) %>
+    <% switch.with_view(name: 'Cards', icon: 'grid', value: :grid) %>
+    <% switch.with_view(name: 'Timeline', icon: 'calendar', value: :timeline) %>
+  <% end %>
+
+  <%# 7. Host buttons: arbitrary content Bali does not cover, in their own group between the
+         memory side and the right edge. Last in the survival order (collapses first).
+         NOT a page action — importing, printing and exporting go in the page's `⋯`, which
+         is why this one is a listing control and not the `Import` the page declares.
+         `responsive: false` on purpose — Bali::Button's responsive mode hides its label
+         below `sm`, which inside the ⋯ menu leaves an anonymous icon. A control that
+         collapses into the menu should keep its name there, where there is room. %>
+  <% dt.with_toolbar_button do %>
+    <%= render Bali::Button::Component.new(name: 'Refresh', variant: :ghost, size: :sm,
+                                           icon_name: 'refresh-cw', responsive: false) %>
+  <% end %>
+
+  <%# Selection: the contextual row replaces the toolbar while a selection exists. %>
+  <% dt.with_bulk_actions do |bulk| %>
+    <% bulk.with_action(label: 'Mark as done', href: '#', variant: :success) %>
+    <% bulk.with_action(label: 'Mark as draft', href: '#', variant: :warning) %>
+    <% bulk.with_action(label: 'Delete', href: '#', variant: :error) %>
+  <% end %>
+
+  <%# ONE content band: the host picks which one it declares (declaring two raises
+      DuplicateContent) and the slot decides the surface. %>
+  <% case dt.display_mode %>
+  <% when :grid %>
+    <%# No surface: the cards ARE the surface. %>
+    <% dt.with_grid do %>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <% movies.each do |movie| %>
+          <%= render Bali::Card::Component.new(style: :bordered, class: 'hover:shadow-md transition-shadow') do |card| %>
+            <% card.with_title(movie.name, class: 'text-base') %>
+            <div class="flex flex-wrap gap-2">
+              <%= render Bali::Tag::Component.new(text: movie.genre, style: :outline, size: :sm) %>
+              <%= render Bali::Tag::Component.new(text: movie.status.humanize,
+                                                  color: movie.done? ? :success : :warning,
+                                                  size: :sm) %>
+              <% if movie.indie %>
+                <%= render Bali::Tag::Component.new(text: 'Indie', color: :secondary, size: :sm) %>
+              <% end %>
+            </div>
+            <p class="text-sm text-base-content/60"><%= movie.studio&.name %></p>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  <% when :timeline %>
+    <%# A Gantt brings no surface of its own, so the generic slot asks for one plus the
+        horizontal scroll wrapper. This is what `with_table`/`with_grid` are sugar over. %>
+    <% dt.with_content(scroll: true) do %>
+      <%= render Bali::GanttChart::Component.new(
+            tasks: movies.filter_map { |movie|
+              next unless movie.production_starts_on && movie.production_ends_on
+
+              { id: movie.id, name: movie.name,
+                start_date: movie.production_starts_on, end_date: movie.production_ends_on,
+                progress: movie.done? ? 100 : 40 }
+            },
+            zoom: :week,
+            readonly: true,
+            row_height: 40
+          ) %>
+    <% end %>
+  <% else %>
+    <%# A table brings a surface and a horizontal scroll wrapper. %>
+    <% dt.with_table do %>
+      <%# `group_counts` es lo que hace que el encabezado de grupo muestre el total GLOBAL
+          sobre el set filtrado, no solo lo que entró en la página. %>
+      <%= render Bali::Table::Component.new(form: filter_form, selectable: true,
+                                            group_counts: filter_form.group_counts) do |t| %>
+        <%= t.with_header(name: 'Name', sort: :name) %>
+        <%= t.with_header(name: 'Genre', sort: :genre) %>
+        <%# Sorting an association takes the Ransack path (`studio_name`), not the column. %>
+        <%= t.with_header(name: 'Studio', sort: :studio_name) %>
+        <%= t.with_header(name: 'Status', sort: :status) %>
+        <%= t.with_header(name: 'Indie', sort: :indie, class: 'text-center') %>
+
+        <% movies.each do |movie| %>
+          <%# El valor del grupo tiene que coincidir con una clave de group_counts (el enum
+              o el string crudo); nil cuando la agrupación está apagada O suspendida fuera de
+              la tabla (de ahí `group_by_applied` y no `group_by`). %>
+          <%# `select_label:` da contexto de registro al checkbox de la fila: sin él, N filas
+              dan N controles con el mismo nombre accesible ("Select row"). %>
+          <% applied_group = filter_form.group_by_applied %>
+          <%= t.with_row(record_id: movie.id, select_label: movie.name,
+                         group: applied_group && movie.public_send(applied_group)) do %>
+            <td class="font-medium"><%= movie.name %></td>
+            <td><%= render Bali::Tag::Component.new(text: movie.genre, style: :outline, size: :sm) %></td>
+            <td class="text-sm text-base-content/70"><%= movie.studio&.name %></td>
+            <td>
+              <%= render Bali::Tag::Component.new(text: movie.status.humanize,
+                                                  color: movie.done? ? :success : :warning,
+                                                  size: :sm) %>
+            </td>
+            <td class="text-center"><%= render Bali::BooleanIcon::Component.new(value: movie.indie) %></td>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

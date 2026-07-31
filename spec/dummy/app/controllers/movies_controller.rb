@@ -13,8 +13,13 @@ class MoviesController < ApplicationController
     @filter_form = Bali::FilterForm.new(
       Movie.all,
       params,
-      search_fields: %i[name genre tenant_name],
+      # `studio_name` y no `tenant_name`: el alias `tenant` es un método Ruby invisible para
+      # Ransack, y un campo inválido tira el predicado combinado ENTERO en silencio.
+      search_fields: %i[name genre studio_name],
       storage_id: 'movies',
+      # Sin `context:` la caché de persistencia es UNA sola para todo el proceso (ver
+      # ApplicationController#filter_context): dos visitantes se pisan los filtros.
+      context: filter_context,
       persist_enabled: cookies['bali_persist_movies'] == '1'
     )
 
@@ -24,6 +29,10 @@ class MoviesController < ApplicationController
     respond_to do |format|
       format.html
       format.turbo_stream
+      # Sin esto el link de export es un 406 y no hay forma de ver que el recorte viajó.
+      format.csv do
+        render plain: @filter_form.result.pluck(:name).join("\n"), content_type: 'text/csv'
+      end
     end
   end
 

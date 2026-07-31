@@ -9,6 +9,7 @@ module Bali
                        "[&_thead_tr]:sticky [&_thead_tr]:bg-base-100 [&_thead_tr]:top-[3.75rem]"
 
       class MissingFilterForm < StandardError; end
+      class IncompatibleOptions < StandardError; end
 
       RowGroup = Struct.new(:value, :rows)
 
@@ -17,7 +18,9 @@ module Bali
       end
 
       renders_many :rows, ->(skip_tr: false, **options) do
-        Row::Component.new(skip_tr: skip_tr, bulk_actions: bulk_actions?, **options)
+        Row::Component.new(
+          skip_tr: skip_tr, bulk_actions: bulk_actions?, selectable: selectable?, **options
+        )
       end
 
       renders_many :footers, Footer::Component
@@ -31,9 +34,20 @@ module Bali
 
       attr_reader :options, :tbody_options, :table_container_options
 
-      def initialize(form: nil, bulk_actions: [], sticky_headers: false, group_counts: {}, **options)
+      # @param selectable [Boolean] Columna de checkbox + seleccionar-todo cableada al
+      #   controlador `bulk-actions`, que debe vivir en algún ancestro (el DataTable lo
+      #   pone solo cuando se declara `with_bulk_actions`). Cada fila necesita `record_id:`.
+      def initialize(form: nil, bulk_actions: [], selectable: false, sticky_headers: false,
+                     group_counts: {}, **options)
         @form = form
         @bulk_actions = bulk_actions
+        @selectable = selectable
+        # Dos sistemas de selección en la misma tabla dan dos columnas de checkbox y dos
+        # contadores: el legado (controlador `table`) y el nuevo (`bulk-actions`).
+        if @selectable && bulk_actions.any?
+          raise IncompatibleOptions, "selectable and bulk_actions are mutually exclusive"
+        end
+
         @sticky_headers = sticky_headers
         @group_counts = group_counts || {}
         @tbody_options = hyphenize_keys(options.delete(:tbody) || {})
@@ -47,6 +61,15 @@ module Bali
 
       def bulk_actions?
         @bulk_actions.any?
+      end
+
+      def selectable?
+        @selectable
+      end
+
+      # Columna de selección: la nueva (`selectable:`) o la del bulk_actions legado.
+      def selection_column?
+        selectable? || bulk_actions?
       end
 
       def visible_headers
@@ -67,7 +90,7 @@ module Bali
       end
 
       def group_colspan
-        visible_headers.count + (bulk_actions? ? 1 : 0)
+        visible_headers.count + (selection_column? ? 1 : 0)
       end
 
       def group_label(value)

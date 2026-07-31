@@ -26,18 +26,24 @@ Rails.application.configure do
   # Enable server timing.
   config.server_timing = true
 
+  # El dummy es una app de DEMOSTRACIÓN, no una app normal: existe para que las features de
+  # Bali se vean funcionando recién clonado el repo. La persistencia de filtros vive en
+  # Rails.cache (ver Bali::FilterForm#fetch_stored_filter_state), así que con el :null_store
+  # que Rails trae por defecto en development las escrituras se iban al vacío y la feature
+  # parecía rota: aplicabas filtros, navegabas, volvías y no había nada. El toggle estándar
+  # (tmp/caching-dev.txt vía `rails dev:cache`) no sirve acá porque ese archivo está
+  # gitignoreado — nadie que clone el repo lo tiene, y nada lo documenta.
+  config.cache_store = :memory_store
+
   # Enable/disable Action Controller caching. By default Action Controller caching is disabled.
   # Run rails dev:cache to toggle Action Controller caching.
   if Rails.root.join("tmp/caching-dev.txt").exist?
     config.action_controller.perform_caching = true
     config.action_controller.enable_fragment_cache_logging = true
 
-    config.cache_store = :memory_store
     config.public_file_server.headers = { "cache-control" => "public, max-age=#{2.days.to_i}" }
   else
     config.action_controller.perform_caching = false
-
-    config.cache_store = :null_store
   end
 
   # Store uploaded files on the local file system (see config/storage.yml for options).

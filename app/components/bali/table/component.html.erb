@@ -2,7 +2,12 @@
   <%= tag.table(**options) do %>
     <thead>
       <tr>
-        <% if bulk_actions? %>
+        <% if selectable? %>
+          <th class="w-4">
+            <%= tag.input type: 'checkbox', class: 'checkbox checkbox-sm', 'aria-label': t('.select_all'),
+                          data: { bulk_actions_target: 'selectAll', action: 'change->bulk-actions#toggleAll' } %>
+          </th>
+        <% elsif bulk_actions? %>
           <th>
             <%= tag.input type: 'checkbox', class: 'checkbox', data: { action: 'table#toggleAll', table_target: 'toggleAll' } %>
           </th>
@@ -27,7 +32,9 @@
         <% end %>
       <% else %>
         <tr id="<%= empty_table_row_id %>">
-          <td class="empty-table text-center" colspan="<%= headers.count %>">
+          <%# `group_colspan` y no `headers.count`: suma la columna de selección y descuenta
+              los headers ocultos, así el empty state cubre el ancho REAL de la tabla. %>
+          <td class="empty-table text-center" colspan="<%= group_colspan %>">
             <% if custom_empty_state_content.present? %>
               <div class="<%= Bali::EmptyState::Component.container_classes %>">
                 <%= custom_empty_state_content %>

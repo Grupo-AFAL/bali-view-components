@@ -1,6 +1,7 @@
 <%= tag.div(**dropdown_attributes) do %>
   <%= trigger %>
-  <ul tabindex="-1" class="<%= content_classes %>" role="menu" aria-label="<%= t('.menu_label') %>" data-dropdown-target="menu">
+  <%# `<ul role="menu">` solo cuando el contenido SON menuitems (ver `menu:`). %>
+  <%= content_tag(menu_tag_name, menu_attributes) do %>
     <% if (authorized_items = items.select(&:authorized?)).any? %>
       <% authorized_items.each do |item| %>
         <li role="none"><%= item %></li>
@@ -8,5 +9,5 @@
     <% else %>
       <%= content %>
     <% end %>
-  </ul>
+  <% end %>
 <% end %>

@@ -52,10 +52,12 @@
   <% topbar.with_user_menu do %>
     <%= render Bali::Dropdown::Component.new(align: :left, class: 'lg:dropdown-end') do |dropdown| %>
       <% dropdown.with_trigger(variant: :ghost, class: 'btn-sm gap-2') do %>
+        <%# La identidad sale de `current_user`, no de dos strings sueltos: quien nombra el
+            topbar ES el dueño de las vistas guardadas de /admin/movies. %>
         <%= render Bali::Avatar::Component.new(size: :xs) do |avatar| %>
-          <% avatar.with_placeholder { 'AG' } %>
+          <% avatar.with_placeholder { current_user.name.split.map(&:first).join } %>
         <% end %>
-        <span class="hidden md:inline">Ana García</span>
+        <span class="hidden md:inline"><%= current_user.name %></span>
         <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
       <% end %>
       <% dropdown.with_item(href: admin_settings_path) { t('navbar.profile') } %>

@@ -97,6 +97,7 @@ export {
   DocumentPageController,
   DrawerController,
   DropdownController,
+  ExportLinksController,
   FilterGroupController,
   HovercardController,
   ImageExpanderController,
@@ -119,6 +120,7 @@ export {
   TabsController,
   TableController,
   TimeagoController,
+  ToolbarOverflowController,
   TooltipController,
   TreeViewItemController
 } from './components/index'

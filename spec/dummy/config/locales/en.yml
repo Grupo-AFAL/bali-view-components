@@ -88,11 +88,13 @@ en:
       edit: Edit
       delete: Delete
     bulk_actions:
-      select_action: Select action...
       mark_done: Mark as Done
       mark_draft: Mark as Draft
       delete: Delete Selected
-      apply: Apply
+    views:
+      table: Table
+      cards: Cards
+      timeline: Timeline
     characters:
       role: Character
       empty: No characters have been added to this movie yet.

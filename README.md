@@ -93,6 +93,7 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 | [Components](docs/guides/components.md) | Component usage patterns and slots |
 | [FormBuilder](docs/guides/form-builder.md) | Enhanced form helpers |
 | [Accessibility](docs/guides/accessibility.md) | WCAG 2.1 compliance |
+| [Migrating v2 → v3](docs/guides/migration-v2-to-v3.md) | Breaking changes to the index page (DataTable) |
 | [Troubleshooting](docs/guides/troubleshooting.md) | Common issues and solutions |
 
 ## Component Categories

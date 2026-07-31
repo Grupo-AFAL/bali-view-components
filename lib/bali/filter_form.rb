@@ -5,6 +5,7 @@ require_relative "filter_form/filter_group_parser"
 require_relative "filter_form/simple_filters_configuration"
 require_relative "filter_form/group_by_configuration"
 require_relative "filter_form/saved_views_configuration"
+require_relative "filter_form/enum_casting"
 
 module Bali
   # FilterForm provides a unified interface for Ransack-based filtering with support
@@ -49,8 +50,14 @@ module Bali
     include SimpleFiltersConfiguration
     include GroupByConfiguration
     include SavedViewsConfiguration
+    include EnumCasting
 
-    attr_reader :scope, :storage_id, :context, :clear_filters, :groupings
+    attr_reader :scope, :storage_id, :context, :clear_filters, :groupings, :view_param, :display_mode
+
+    # Param que lleva el modo de visualización. Es EL MISMO que el `view_param:` del
+    # DataTable: UNA sola literal para que no se puedan desincronizar (el DataTable revienta
+    # temprano si difieren, ver Bali::DataTable::Component#initialize).
+    DEFAULT_VIEW_PARAM = :view
 
     # Ransack attribute for receiving the sort parameters
     attribute :s
@@ -181,10 +188,21 @@ module Bali
     #   `storage_id:` (see SavedViewsConfiguration)
     # @param saved_views_owner [Object] Owner of the `:default` store (e.g. current_user);
     #   ignored when an explicit store object is given
+    # @param group_by_modes [Array<Symbol>] Modos de visualización que APLICAN la agrupación
+    #   (default `[:table]`). Fuera de ellos la agrupación se suspende: el control se esconde
+    #   y el ordenamiento no corre, pero el param sobrevive (ver GroupByConfiguration)
+    # @param view_param [Symbol] Param de la URL que lleva el modo de visualización
+    #   (default `:view`). Tiene que ser el MISMO que el del DataTable
+    # @param display_mode [Symbol, String] Modo que el listado va a RENDERIZAR, cuando el
+    #   param de la URL no alcanza para saberlo: un listado cuya vista por default no es la
+    #   tabla (el view switch declara las tarjetas primero) aterriza sin `?view=` y el form,
+    #   mirando solo la URL, creería que está en la tabla y aplicaría la agrupación sobre las
+    #   tarjetas. Pasá lo MISMO que le pasás al DataTable (p.ej. `params[:view] || :grid`)
     # rubocop:disable Metrics/ParameterLists
     def initialize(scope, params = {}, storage_id: nil, context: nil, search_fields: nil,
                    search_placeholder: nil, search_icon: nil, persist_enabled: false, simple_filters: nil,
-                   group_by_attributes: nil, saved_views_store: nil, saved_views_owner: nil)
+                   group_by_attributes: nil, group_by_modes: nil, view_param: nil, display_mode: nil,
+                   saved_views_store: nil, saved_views_owner: nil)
       # rubocop:enable Metrics/ParameterLists
       @scope = scope
       @storage_id = storage_id
@@ -193,13 +211,34 @@ module Bali
       @instance_search_icon = search_icon
       @instance_simple_filters = simple_filters
       @instance_group_by_attributes = group_by_attributes
+      @instance_group_by_modes = group_by_modes
+      @view_param = (view_param || DEFAULT_VIEW_PARAM).to_sym
       @search_placeholder = search_placeholder
       @persist_enabled = persist_enabled
       @clear_filters = params.fetch(:clear_filters, false)
       @clear_search = params.fetch(:clear_search, false)
       @saved_views_store = resolve_saved_views_store(saved_views_store, saved_views_owner)
       @saved_view_param = params[:saved_view].presence
+      # ORIGEN vs APLICACIÓN, la misma separación que group_by. `saved_view` APLICA (pisa el
+      # estado con el payload) y por eso #669 lo sacó de los forms de filtro: preservarlo
+      # re-aplicaba la vista encima de lo que el usuario acababa de teclear. Pero al perderlo
+      # también se pierde SABER de qué vista venía el estado, y sin eso no se puede ofrecer
+      # "Actualizar 'X'". `view_origin` es ese dato y NUNCA se aplica: solo recuerda.
+      @saved_view_origin_param = params[:view_origin].presence || @saved_view_param
       @group_by = resolve_group_by(params[:group_by])
+      # Que el param VENGA es distinto de que traiga un valor válido: "sin agrupación" llega
+      # como `?group_by=` y tiene que ganarle a la agrupación guardada en la caché de filtros
+      # (ver #fetch_stored_filter_state). Sin esta distinción, apagar la agrupación con la
+      # persistencia encendida la resucitaba en el próximo render.
+      @group_by_requested = params.key?(:group_by)
+      # La agrupación se SUSPENDE fuera de los modos que la aplican (default: tabla), pero el
+      # param sigue vivo: volver a la tabla la encuentra como se dejó. El modo que pasa el
+      # host gana sobre la URL: es el único que sabe qué vista renderiza un listado que
+      # todavía no tiene `?view=` (ver el @param display_mode). `.to_s` primero porque esto
+      # llega crudo de la URL y un param anidado (`?view[]=x`) no responde a `to_sym`; un
+      # valor desconocido simplemente no está en group_by_modes y suspende, que es el lado
+      # seguro (agrupar de más es lo que no se ve venir).
+      @display_mode = (display_mode || params[@view_param]).to_s.presence&.to_sym
 
       q_params = params.fetch(:q, {})
       @q_params = q_params # Store for simple_filters value extraction
@@ -384,7 +423,10 @@ module Bali
       # Group-first ordering (sort-within-groups) when grouping is active
       apply_group_by_ordering(params)
 
-      params
+      # Último paso y sobre una copia: el estado que se RENDERIZA (filter_groups, las pills,
+      # el payload de una vista guardada, la caché de persistencia) sigue hablando en
+      # etiquetas, que es lo que trae el `<option value>`. Ver EnumCasting.
+      cast_enum_labels(params)
     end
 
     private
@@ -409,10 +451,28 @@ module Bali
     # for its grouping structure. Ransack performs its own attribute authorization
     # via `ransackable_attributes` / `ransackable_associations` on the model,
     # so arbitrary keys are rejected at the Ransack layer, not here.
+    #
+    # Cada grupo tiene que ser un hash y `g` puede llegar de cualquier forma: `q[g][]` (la
+    # forma de ARRAY, que Ransack acepta y Bali no emite) reventaba con un NoMethodError sobre
+    # `to_unsafe_h`, y un grupo escalar (`q[g][0]=x`) llegaba entero hasta Ransack para reventar
+    # ahí — un 500 en cualquier index desde una URL a mano. Se normaliza a la forma indexada
+    # que habla el resto de Bali (filter_groups, el payload de una vista guardada, EnumCasting),
+    # así que la forma de array también PASA por la traducción de enums en vez de esquivarla en
+    # silencio y devolver los registros contrarios.
     def extract_groupings(q_params)
-      return nil if q_params[:g].blank?
+      groupings = q_params[:g]
+      return nil if groupings.blank?
 
-      q_params[:g].to_unsafe_h
+      groups = unwrap_params(groupings)
+      groups = groups.each_with_index.to_h { |group, index| [ index.to_s, group ] } if groups.is_a?(Array)
+      return nil unless groups.is_a?(Hash)
+
+      groups.transform_values { |group| unwrap_params(group) }
+            .select { |_index, group| group.is_a?(Hash) }.presence
+    end
+
+    def unwrap_params(value)
+      value.respond_to?(:to_unsafe_h) ? value.to_unsafe_h : value
     end
 
     # Persist or restore complete filter state including groupings, combinator, and search.
@@ -461,25 +521,40 @@ module Bali
         end
       elsif @persist_enabled
         # No filters in URL and persistence enabled → restore from cache
-        stored = Rails.cache.fetch(cache_key)
-        if stored.is_a?(Hash) && stored[:attributes]
-          @group_by = resolve_group_by(stored[:group_by]) if stored.key?(:group_by)
-          [
-            stored[:attributes] || {},
-            stored[:groupings],
-            stored[:combinator],
-            stored[:search_value]
-          ]
-        else
-          # Legacy format (just attributes) or empty
-          [ stored || {}, nil, nil, nil ]
+        stored = normalize_stored_state(Rails.cache.fetch(cache_key))
+        if @group_by_requested
+          # La URL manda, igual que con una vista guardada (ver #apply_saved_view_state).
+          # Elegir una agrupación llega SOLO como `?group_by=` —los filtros viven en la caché,
+          # así que la URL no los lleva y este branch es el que corre—, y restaurar acá pisaba
+          # el click recién hecho con la agrupación vieja: el control no hacía nada, y el
+          # viaje tarjetas↔tabla perdía la agrupación en el camino. Se GUARDA además de
+          # renderizarse: sin escribirla, el mismo render salía bien y el próximo request sin
+          # el param resucitaba la agrupación vieja — el mismo síntoma, corrido un request.
+          Rails.cache.write(cache_key, stored.merge(group_by: @group_by))
+        elsif stored.key?(:group_by)
+          @group_by = resolve_group_by(stored[:group_by])
         end
+        [
+          stored[:attributes] || {},
+          stored[:groupings],
+          stored[:combinator],
+          stored[:search_value]
+        ]
       else
         # Persistence not enabled → don't restore, return empty
         [ {}, nil, nil, nil ]
       end
     end
     # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
+
+    # Formato viejo de la caché: solo los atributos, sin las llaves del estado completo. Se
+    # normaliza en la entrada para que el resto del branch hable una sola forma — restaurar y
+    # volver a escribir tienen que ver el MISMO hash o la caché termina contando otra historia.
+    def normalize_stored_state(stored)
+      return stored if stored.is_a?(Hash) && stored[:attributes]
+
+      { attributes: stored || {} }
+    end
 
     def array_predicates
       %w[_any _all _not_in _in]

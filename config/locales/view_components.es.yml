@@ -1,18 +1,31 @@
 es:
   view_components:
     bali:
+      bulk_actions:
+        selected_one: seleccionado
+        selected_other: seleccionados
+        clear: Limpiar selección
       table:
         no_records: Sin Registros
         no_results: Sin Resultados
         group_count: "%{group} (%{count})"
         group_partial: "mostrando %{shown}"
         ungrouped: Sin agrupar
+        select_all: Seleccionar todo
+        row:
+          select_row: Seleccionar fila
+          select_row_named: Seleccionar %{name}
       data_table:
         summary: "Mostrando %{from}-%{to} de %{count} %{item_name}"
         default_item_name: elementos
         group_by_control:
           label: Agrupar por
           no_grouping: Sin agrupar
+          disabled_title: "La agrupación se aplica en la vista %{modes}"
+        view_switch_control:
+          aria_label: Vistas
+        toolbar_overflow:
+          button_label: Más opciones
         column_selector:
           button_label: Columnas
           menu_title: Mostrar/Ocultar Columnas
@@ -21,6 +34,9 @@ es:
           suggested_title: Sugeridas
           mine_title: Mis vistas
           save_current: Guardar vista actual
+          save_as_new: Guardar como vista nueva
+          update_current: "Actualizar \"%{name}\""
+          update_confirm: "¿Sobrescribir la vista \"%{name}\" con lo que estás viendo?"
           name_placeholder: Nombre de la vista
           save: Guardar
           rename: Renombrar
@@ -33,6 +49,11 @@ es:
             excel: Excel
             pdf: PDF
             json: JSON
+      page_components:
+        secondary_actions:
+          button_label: Más acciones
+        export:
+          menu_title: Exportar lo filtrado
       pagination:
         aria_label: Paginación
         previous_page: Página anterior

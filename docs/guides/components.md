@@ -510,6 +510,8 @@ Tabbed content navigation.
 
 Segmented control (DaisyUI `join` of buttons) to switch between sibling views of the same content (list / table / board / schedule). Each view is a real link — keep the selected view in the PATH so GET filter forms don't lose it.
 
+> Inside a `DataTable` do **not** use this component directly: `dt.with_view_switch { |switch| switch.with_view(value: :grid, ...) }` renders it and builds the hrefs for you, preserving the listing's query string. See the DataTable section.
+
 ```erb
 <%= render Bali::ViewSwitch::Component.new(aria_label: "Views") do |switch| %>
   <% switch.with_view(name: "List", icon: "list", href: backlog_view_path("list")) %>
@@ -528,7 +530,7 @@ Segmented control (DaisyUI `join` of buttons) to switch between sibling views of
 **Options:**
 - `aria_label` - Accessible label for the button group (required)
 - `size` - Button size: `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: `:sm`)
-- `icon_only` - Square icon-only buttons; each view's `name:` becomes the native tooltip (`title`) and the accessible label (default: `false`)
+- `icon_only` - `true` for square icon-only buttons at every size, or `:responsive` to collapse only the label below `sm` (what `DataTable` uses: the switch shrinks instead of folding into the `⋯` menu). Either way each view's `name:` becomes the native tooltip (`title`) and the accessible label, so the buttons never lose their accessible name (default: `false`)
 - `**options` - Additional HTML attributes for the container `div`
 
 **Each `with_view`:**
@@ -624,6 +626,44 @@ Data table with optional sorting and pagination.
 <% end %>
 ```
 
+**Sorting** — `sort:` needs a `form:` (a `Bali::FilterForm`); without one the header raises
+`Bali::Table::Component::MissingFilterForm`. The value is a **Ransack** attribute, so
+sorting through an association takes its path, not the column: `sort: :studio_name` for a
+`belongs_to :studio`, never the name of a Ruby `alias_method` — Ransack cannot see those and
+drops the sort in silence.
+
+Every sortable column paints a dimmed double chevron that brightens on hover and on keyboard
+focus, so a sortable header is distinguishable from a fixed one before it is clicked; the
+active one shows a single chevron in the sort direction. The `<th>` carries `aria-sort`
+(`ascending` / `descending` / `none`), which is what announces the state — the indicator is
+`aria-hidden`. Headers without `sort:` get no `aria-sort` and no indicator.
+
+**Row selection** — `selectable: true` renders the checkbox column plus a select-all
+header, wired to the `bulk-actions` Stimulus controller. Every row needs a `record_id:`
+(missing one raises `Bali::Table::Row::Component::IncompatibleOptions`), and the `<tr>`
+itself becomes the selectable item: it carries the record id, the `selected` class and its
+own checkbox. Double-clicking a row toggles it too.
+
+```erb
+<%= render Bali::Table::Component.new(form: @filter_form, selectable: true) do |table| %>
+  <% table.with_header(name: "Name", sort: :name) %>
+
+  <% @movies.each do |movie| %>
+    <% table.with_row(record_id: movie.id) do %>
+      <td><%= movie.name %></td>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+The controller must live on an **ancestor** element — `DataTable#with_bulk_actions` puts it
+on the DataTable container for you; standalone, wrap the table in a
+`Bali::BulkActions::Component`. `selectable:` and the legacy `bulk_actions:` array are
+mutually exclusive (they are two different selection systems and together would render two
+checkbox columns), so declaring both raises `Bali::Table::Component::IncompatibleOptions`.
+The selection column shifts every other column by one: a column selector's 0-based indexes
+must account for it.
+
 **Row grouping** — pass `group:` to `with_row` to render a group-header row
 whenever the value changes between consecutive rows. The header spans every
 column (including the bulk-actions column when present) and shows the group
@@ -688,13 +728,59 @@ Bali::FilterForm.new(Movie.all, params, group_by_attributes: [:genre, :status])
 `group_by` is a **whitelisted top-level param** (not a `q[...]` predicate). The
 raw value only takes effect when it matches a declared attribute — anything else
 is ignored, so it can never reach `.group()`/`.order()` (Ransack does not
-authorize `.group`). When active, the form:
+authorize `.group`). When **applied**, the form:
 
 - orders the query by the group field **first**, keeping any user column sort as
   the **secondary** sort — so column sorting and grouping now coexist
   (sort-within-groups); and
 - exposes `group_counts`, the **global** per-group totals over the full filtered
   (unpaginated) result.
+
+##### State vs. application (three predicates, three questions)
+
+Grouping only **applies in table mode**: a table is the only surface of
+contiguous rows where a group band means something. In cards or a timeline the
+same ordering would rearrange the content invisibly, with nothing on screen to
+explain it. So outside a grouping mode the control **hides**, the grouping is
+**suspended** — and the `group_by` param **survives** in the URL and in the
+hidden fields of the filter forms, so switching back to the table finds the
+grouping exactly as it was left.
+
+| Question | API | Governs |
+|----------|-----|---------|
+| Is a grouping **chosen**? (state) | `group_by`, `group_by_active?` | Preservation: hidden fields, filters cache, saved-view payload |
+| Does this display mode **apply** grouping? (mode) | `group_by_applies?` | Visibility of the "Group by" control |
+| Is it **being applied** right now? | `group_by_applied`, `group_by_applied?` | Ordering, `group_counts`, the `group:` value of each row |
+| Chosen but not applied here | `group_by_suspended?` | The "Grouped by Genre — applies in table view" hint the DataTable paints where the control used to be |
+
+Use `group_by_applied` (not `group_by`) wherever you paint the grouping, and
+never null out `group_by` yourself to suspend it: the state has to survive.
+
+Three options tune it:
+
+- `group_by_modes:` — display modes that apply grouping (default `[:table]`).
+  `[]` means *no* mode applies it: the param is still preserved and still saved
+  into a view, it is simply never applied.
+- `view_param:` — the URL param carrying the display mode (default `:view`).
+  It must be the **same** one you give the DataTable; a DataTable whose
+  `view_param:` disagrees with its form raises `ArgumentError` at build time,
+  because desynced there is nothing visible to give the bug away.
+- `display_mode:` — the mode the listing is going to **render**. Only needed when
+  the URL cannot say it: a listing whose first declared view is not a grouping
+  mode lands with no `?view=`, and the form — which only sees the URL — would
+  assume the grouping applies and sort the cards by group with nothing on screen
+  to explain it. Pass the same value you give the DataTable
+  (`display_mode: params[:view] || :grid`). While the two disagree the DataTable
+  raises `ArgumentError` on render.
+
+Known limit: an invalid `?view=` (hand-typed) makes the DataTable fall back to
+the first declared view while the form suspends — a table with no bands. The
+state survives and the next click fixes it. That one does **not** raise: a
+user can type it, and a 500 is not the answer to a typo.
+
+"No grouping" leaves `?group_by=` (empty) in the URL rather than dropping the
+param: with filter persistence on, an absent param means "restore the cached
+state", so removing it resurrected the grouping the user just turned off.
 
 Wire it into the view — `DataTable` auto-renders the "Agrupar por" control
 whenever the form declares group_by attributes, and the `Table` shows global
@@ -708,7 +794,8 @@ counts when you pass `group_counts:`:
       <%= t.with_header(name: "Name", sort: :name) %>
       <%= t.with_header(name: "Genre", sort: :genre) %>
       <% @movies.each do |movie| %>
-        <%= t.with_row(group: @filter_form.group_by && movie.public_send(@filter_form.group_by)) do %>
+        <% applied = @filter_form.group_by_applied %>
+        <%= t.with_row(group: applied && movie.public_send(applied)) do %>
           <td><%= movie.name %></td>
           <td><%= movie.genre %></td>
         <% end %>
@@ -727,9 +814,10 @@ Constraints:
 - **Do not `.reorder` the relation after `result`** when grouping — it drops the
   group-first ordering and rows stop cohering into groups. Let the form own the
   order.
-- **`group_by` is not persisted** in the FilterForm filters cache. It lives only
-  in the URL (the "Agrupar por" links carry it, and the filter forms round-trip
-  it as a hidden field), so it resets when the URL does.
+- **`group_by` travels with the state, always.** The "Agrupar por" links carry
+  it, the filter forms round-trip it as a hidden field, the filters cache stores
+  it and a saved view records it — including while it is suspended in card mode.
+  Suspension is a derived predicate, never `@group_by = nil`.
 
 #### Avatar
 
@@ -863,6 +951,13 @@ Renders a Chart.js chart (bar, line, pie, doughnut, polarArea) with theme-aware 
 
 Complete data table wrapper with filters, quick search, summary, and pagination. Integrates with `Bali::FilterForm` — when a `filter_form` is given, `with_filters_panel` auto-configures attributes, filter groups, and search.
 
+The component owns three bands: a **bare** toolbar (identical in every display mode), the **content**, and a bare footer (summary + pagination). The surface travels with the content slot, so the host does **not** wrap the DataTable in `Bali::Card`.
+
+The canonical composition — the seven toolbar control families, row selection and
+pagination — is the `Complete` scenario of the DataTable preview, and the same body inside
+a page is `bali/index_page/complete`. Copy one of those rather than assembling from the
+option list below.
+
 ```erb
 <%= render Bali::DataTable::Component.new(filter_form: @filter_form, url: movies_path, pagy: @pagy) do |dt| %>
   <% dt.with_filters_panel(search: { placeholder: 'Search movies...' }) %>
@@ -882,10 +977,174 @@ Complete data table wrapper with filters, quick search, summary, and pagination.
 - `show_summary` - Show record summary (default: true when pagy present)
 - `summary_position` - `:top` or `:bottom` (default: `:bottom`)
 - `item_name` - Item name used in the summary text (default: i18n)
-- `table_class` - CSS class for the table wrapper (default: `"overflow-x-auto"`)
-- `display_mode` - `:table` or `:grid` (default: `:table`)
+- `table_class` - CSS class for the content scroll wrapper (default: `"overflow-x-auto"`)
+- `display_mode` - Display mode requested by the host, typically `params[:view]`. It does
+  **not** select a slot — there is only one content band, and the host chooses what to
+  declare, reading the already-validated value from `dt.display_mode` (see
+  `with_view_switch`). Omitted, it falls back to `params[<view_param>]` and then to the
+  first declared view, so a switch still works if you forget to wire it; pass it explicitly
+  when the mode does not come from the URL.
+- `view_param` - URL param that carries the view (default: `:view`)
+- `id` - Listing identity: the container id, the column selector's `querySelector` target
+  (`#<id> table`) and the localStorage key of its columns (`bali:columns:<id>`) — one name
+  for everything the listing persists. Resolved in this order: explicit `id:`, then
+  `filter_form.storage_id`, then a random hex. The value is sanitized into a valid CSS
+  identifier (case preserved). With the random hex the id cannot survive the next render,
+  so **column persistence turns itself off** rather than writing a key nothing can read
+  back. `with_column_selector` and `with_saved_views` take no `table_id:` — they read this.
 
-Slots: `with_filters_panel`, `with_simple_filters`, `with_table`, `with_grid`, `with_summary`, `with_toolbar_button`, `with_column_selector`, `with_export`, `with_actions_panel`, `with_custom_pagy_nav`.
+If the host replaces the listing over Turbo Streams, target the **resolved** id — not the raw
+`storage_id`, which is not the same string whenever sanitizing changes it (`'admin/movies'` →
+`admin-movies`). Turbo looks the target up with `getElementById`, so a miss replaces nothing
+and reports nothing:
+
+```erb
+<%= turbo_stream.replace Bali::DataTable::ListingIdentity.for(@filter_form) do %>
+  <%= render 'listing' %>
+<% end %>
+```
+
+`Bali::DataTable::ListingIdentity.for` accepts the form (or a raw value) and applies exactly
+the rule the component applies.
+
+**Content slot.** There is exactly ONE content band, and it decides its own surface:
+
+| Slot | Surface | Scroll wrapper |
+|------|---------|----------------|
+| `with_table` | yes (a table needs a background of its own) | yes |
+| `with_grid` | no (the cards *are* the surface) | no |
+| `with_content(surface:, scroll:)` | `surface:` (default `true`) | `scroll:` (default `false`) |
+
+`with_table` and `with_grid` are sugar over `with_content`. Extra keywords go straight to
+the `Bali::Card` surface (`style:`, `class:`, `shadow:`, `body_class:`). Content that brings
+its own chrome — a Gantt, a map — passes `surface: false`.
+
+Declaring two content slots raises `Bali::DataTable::Component::DuplicateContent`: to
+alternate between modes, pick which one you declare with an `if` on `dt.display_mode`.
+
+```erb
+<% if dt.display_mode == :grid %>
+  <% dt.with_grid do %>...<% end %>
+<% else %>
+  <% dt.with_table do %>...<% end %>
+<% end %>
+```
+
+**View switch.** `with_view_switch` puts a `Bali::ViewSwitch` in the toolbar. Unlike the
+standalone component, each view declares a `value:` — the DataTable builds the href itself,
+merging the current query string so filters, sorting, grouping and the applied
+`saved_view` survive the mode change (`page` is dropped, so switching returns to page one).
+`href:` is still accepted per view, for a mode that lives on another route.
+
+```erb
+<%= render Bali::DataTable::Component.new(
+      url: movies_path, filter_form: @filter_form, pagy: @pagy,
+      display_mode: params[:view]) do |dt| %>
+  <% dt.with_view_switch do |switch| %>
+    <% switch.with_view(name: 'Table', icon: 'list', value: :table) %>
+    <% switch.with_view(name: 'Cards', icon: 'grid', value: :grid) %>
+  <% end %>
+
+  <% if dt.display_mode == :grid %>
+    <% dt.with_grid do %>...<% end %>
+  <% else %>
+    <% dt.with_table do %>...<% end %>
+  <% end %>
+<% end %>
+```
+
+`dt.display_mode` is the value **validated against the declared views**: an unknown
+`?view=` falls back to the first declared view instead of leaving the listing empty, so a
+raw URL param never reaches the content unchecked. Declare the switch before reading it.
+`aria_label:`, `size:`, `icon_only:` and any HTML attribute pass through to
+`Bali::ViewSwitch` (the DataTable defaults it to `icon_only: :responsive`).
+
+Passing `display_mode:` also makes the view travel as a hidden field on the filter forms,
+so applying a filter or a search from the cards view does not drop the user back into the
+table. A filter submit rebuilds the URL from `url:` — which hosts pass without a query
+string — so anything that must survive it has to be an explicit hidden field; the active
+`group_by` travels the same way.
+
+**Toolbar layout.** The row reads left to right as
+`search + filters · group by · columns ￨ saved views · persistence` and, pinned to the far
+right, the view switch. The left side is the **state of the listing and how it is
+remembered**, the right side is **how it is displayed** — the display mode is not part of a
+saved view's payload, which is why the view switch is the only thing on that side. The
+vertical rule between `columns` and `saved views` marks the boundary between the two left
+subgroups; it is rendered only when both sides have content and hidden below the breakpoint
+(see below).
+
+Four home groups back this: `left` (filters, group by, columns), `memory` (saved views,
+the filter-persistence bookmark), `host` (your `toolbar_buttons`) and `right` (the view
+switch, alone). Host buttons get their own group precisely so the view switch stays pinned
+to the edge: inside `right` the JS orders by priority and they landed to its right.
+Export is NOT a toolbar control — it lives in the page's `⋯` menu, see
+[Secondary page actions](#secondary-page-actions-and-export).
+
+**Narrow viewports.** Below `sm` (640px) the toolbar folds its secondary controls into a
+`⋯` menu and unfolds them on the way back. The nodes are **moved**, never duplicated: two
+copies of the column selector would be two Stimulus controllers driving one table. Survival
+order lives in `OVERFLOW_PRIORITIES` — search/filters and the view switch stay in the row;
+group by, columns, saved views, the persistence bookmark and host `toolbar_buttons`
+collapse. Three consequences worth knowing:
+
+- **The order inside a group** is defined by `OVERFLOW_PRIORITIES`, not by the template:
+  expanding re-sorts each group by descending priority, which is what lets the controller be
+  stateless across Turbo reconnects. **The order of the groups** is the template's. The
+  numbers descend in reading order, so the `⋯` lists the collapsed controls in the same
+  order the row does.
+- The separator is not a control: it carries no priority and is not an `item`, so it can
+  never travel into the `⋯`. The controller only hides it — when a collapse empties either
+  of the two groups it flanks, and by CSS (`max-sm:hidden`) when the bundle has not loaded.
+  An empty group is hidden too, so it does not keep stealing the row's `gap`.
+- The `⋯` is a server-side decision (it is not rendered when nothing is collapsible), so a
+  host that adds or removes `toolbar_buttons` from JavaScript after render can leave the
+  gate stale. The controller hides an empty `⋯`, but it cannot create one.
+
+Anything placed in a collapsible slot (`with_toolbar_button` is arbitrary host content)
+must therefore:
+
+1. have an **idempotent `connect()`** — moving a node fires `disconnect()` then `connect()`;
+2. carry **no `data-turbo-permanent`**;
+3. keep its label readable inside the menu — mark a label that hides on mobile with the
+   `toolbar-control-label` class, or, for a `Bali::Button`/`Bali::Link`, pass
+   `responsive: false` (their responsive mode hides the label below `sm`, which inside the
+   `⋯` leaves an anonymous icon).
+
+**Row selection and bulk actions**
+
+```erb
+<%= render Bali::DataTable::Component.new(url: movies_path, filter_form: @filter_form) do |dt| %>
+  <% dt.with_bulk_actions do |bulk| %>
+    <% bulk.with_action(label: 'Mark as done', href: bulk_actions_path(bulk_action: 'mark_done'), variant: :success) %>
+    <% bulk.with_action(label: 'Delete', href: bulk_actions_path(bulk_action: 'delete'), variant: :error) %>
+  <% end %>
+
+  <% dt.with_table do %>
+    <%= render Bali::Table::Component.new(form: @filter_form, selectable: true) do |t| %>
+      <% @movies.each do |movie| %>
+        <% t.with_row(record_id: movie.id, select_label: movie.name) do %>...<% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+Pass `select_label:` on every selectable row: without it all the checkboxes share the label
+"Select row", and in a screen reader's form-controls rotor a 25-row page is 25 identical
+entries.
+
+`with_bulk_actions` renders a `Bali::BulkActions(variant: :toolbar)` contextual row that
+**replaces the toolbar** while a selection exists and restores it when it is cleared. The
+`bulk-actions` Stimulus controller goes on the DataTable container, so the bar and the
+table rows share one scope. Each action is its own form whose only hidden field is
+`selected_ids` (a JSON array injected by the controller) — extra parameters travel in the
+action's query string.
+
+Slots: `with_filters_panel`, `with_simple_filters`, `with_content` (`with_table` / `with_grid`), `with_summary`, `with_toolbar_button`, `with_view_switch`, `with_saved_views`, `with_column_selector`, `with_bulk_actions`, `with_custom_pagy_nav`.
+
+Export is not one of them: `page.with_export` on the surrounding page component puts it in
+the page's `⋯` — see [Secondary page actions](#secondary-page-actions-and-export).
 
 #### GanttChart
 
@@ -1341,7 +1600,18 @@ Selectable item list with a floating action bar that appears when items are sele
 ```
 
 **Options:**
+- `variant` - `:floating` (default, fixed bar at the bottom) or `:toolbar` (contextual row
+  with a counter, the actions and a clear button — what `DataTable#with_bulk_actions` uses)
+- `standalone` - Emit the `data-controller="bulk-actions"` (default: `true`). `false` when
+  the controller already lives on an ancestor, as inside a `DataTable`. Two nested
+  `bulk-actions` controllers split the targets between them and the bar stops seeing the
+  items, silently.
 - `**options` - HTML attributes for the wrapper (e.g. `class`, `data`)
+
+Selection is **per page**: the controller only knows the DOM it was rendered with, so
+paginating, filtering or switching display mode clears it (all of those re-render the node
+that carries the controller). Record ids go through `parseInt`, so non-numeric ids (UUIDs)
+serialize as `null` in the `selected_ids` payload.
 
 #### Carousel
 
@@ -1496,7 +1766,13 @@ Advanced filter controls for data tables with Ransack integration.
 - Multiple filter groups with AND/OR combinators
 - Type-specific operators (text, number, date, select, boolean)
 - Quick search with clear button (x) for easy clearing
-- Filter persistence with bookmark toggle
+- Filter persistence with bookmark toggle. Inside a `DataTable` the bookmark is painted
+  by the toolbar as its own control and the panel receives `persistence_toggle: false`:
+  two `filter-persistence` controllers over one `storage_id` fight over localStorage and
+  the cookie. The panel's "Auto-saved" hint does not depend on the toggle. Persistence
+  reads and writes `Rails.cache`, so it needs a real cache store: under `:null_store` —
+  which is what a generated `development.rb` uses unless `tmp/caching-dev.txt` exists —
+  every write is silently dropped and nothing is ever restored.
 - Date range "between" operator with Flatpickr
 
 **Modes:**
@@ -1519,6 +1795,7 @@ The search input includes a clear button (x) that appears when text is entered. 
 | `available_attributes` | Array | `[]` | Filterable attributes |
 | `popover` | Boolean | `true` | Use popover mode |
 | `storage_id` | String | `nil` | Enable persistence |
+| `persistence_toggle` | Boolean | `true` | Render the bookmark inside the panel (DataTable turns it off) |
 
 #### SearchInput
 
@@ -1920,6 +2197,12 @@ Standard listing page with breadcrumbs, title, action buttons, and a body area f
 
 Also accepts a `nav` slot for second-level navigation, rendered between the header and the body — see [Two-level navigation](#two-level-navigation-nav-slot).
 
+The body takes the DataTable **bare**: the surface travels with the DataTable's content
+slot, so wrapping it in a `Bali::Card` produces a card inside a card in grid mode. The
+canonical composition — page chrome plus a DataTable with the seven toolbar control
+families, row selection and pagination — is the `Complete` scenario of the IndexPage
+preview (`bali/index_page/complete` in Lookbook). Copy that.
+
 #### ShowPage
 
 Record detail page with breadcrumbs, title with tags, actions, and an optional two-column layout with sidebar.
@@ -1982,6 +2265,57 @@ New/edit page that wraps form content in a centered Card, with an optional sideb
 - `back` - Back link, e.g. `{ href: path }` (default: nil)
 - `max_width` - Form width: `:sm`, `:md`, `:lg`, `:xl`, or `:full` (default: :md)
 - `card` - Wrap the body in a Card (default: true)
+
+#### Secondary page actions and export
+
+All five page components (`IndexPage`, `ShowPage`, `FormPage`, `DashboardPage`,
+`DocumentPage`) share one hole for **secondary** actions: a `⋯` menu rendered next to the
+primary action, inside the same group. Use it for what acts ON the page but does not
+deserve a button of its own — export, import, print.
+
+```erb
+<%= render Bali::IndexPage::Component.new(title: 'Movies') do |page| %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(name: 'New Movie', href: new_movie_path, variant: :primary) %>
+  <% end %>
+
+  <% page.with_export(url: movies_path) %>
+  <% page.with_secondary_action(name: 'Import', icon_name: 'upload', href: import_movies_path) %>
+
+  <% page.with_body do %>
+    <%# DataTable goes here %>
+  <% end %>
+<% end %>
+```
+
+`with_secondary_action(**options, &block)` takes the same options as
+`Bali::Dropdown#with_item` (`href:`, `icon_name:`, `method:`, `tag: :link | :button |
+:title`, `authorized:`), because it *is* an item of that dropdown. The `⋯` is not rendered
+when nothing is declared — a button that opens an empty menu is a bug.
+
+**`with_export(url:, formats: %i[csv excel pdf], params: nil)`** renders a section titled
+*Export filtered* with one item per format. The name is a promise the links keep: each href
+carries the same slice of data the user is looking at — filters, search, sort, grouping and the applied
+saved view — merged from the current query string. Two parameters are deliberately dropped
+(`Bali::DataTable::ToolbarHref::TRANSIENT_PARAMS`): `page`, because exporting page 3 of a
+listing is never what "export" means, and `clear_filters`, which on the server *deletes* the
+user's stored filters as a side effect of the click. Pass `params: {}` to opt out and export
+everything on purpose, or an explicit hash to override.
+
+Export is **not** a DataTable toolbar control. It acts on the page, not on how the listing
+looks, which is also what gives import and print somewhere to land later. Because the `⋯`
+lives in the PageHeader — outside the node a filter submit's turbo-stream replaces — the
+links carry an `export-links` Stimulus controller that re-syncs their hrefs from
+`window.location`, on connect and on `turbo:load` / `turbo:before-stream-render` /
+`turbo:submit-end`. A stream render is not a visit, so `turbo:load` alone never fires for
+the case that matters and the first filter would freeze the links on the slice of the
+initial page load — the exact bug they exist to fix. The re-sync **merges** over the link's
+own query string rather than replacing it, so params baked into `url:` survive, and it is
+switched off entirely when you passed `params:` yourself: that href is your decision, not a
+photo of the URL.
+
+The host still has to answer the format: a controller whose `respond_to` only declares
+`html` returns **406** for `?format=csv`.
 
 #### Two-level navigation (`nav` slot)
 

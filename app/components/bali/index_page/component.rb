@@ -5,7 +5,6 @@ module Bali
     class Component < ApplicationViewComponent
       include PageComponents::Shared
 
-      renders_many :actions
       renders_one :nav
       renders_one :body
 

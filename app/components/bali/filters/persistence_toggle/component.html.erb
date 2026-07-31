@@ -1,0 +1,40 @@
+<%# Los tooltips van como VALUES en el elemento del controller: el Stimulus los lee de
+    this.element, y puestos en el botón hijo eran invisibles — el texto caía al fallback en
+    inglés. El wrapper recorta el pseudo-elemento del tooltip de daisyUI, que en un teléfono
+    genera scroll horizontal. %>
+<div class="max-sm:overflow-hidden"
+     data-controller="filter-persistence"
+     data-filter-persistence-storage-id-value="<%= storage_id %>"
+     data-filter-persistence-enabled-value="<%= enabled? %>"
+     data-filter-persistence-enabled-tooltip-value="<%= enabled_tooltip %>"
+     data-filter-persistence-disabled-tooltip-value="<%= disabled_tooltip %>">
+  <%# aria-label explícito: los dos íconos son svg `aria-hidden` y el label solo se destapa
+      dentro del ⋯, así que sin esto el botón no tiene nombre accesible. Coincide con el
+      texto visible para no romper "Label in Name" cuando ese label aparece.
+
+      `aria-pressed` es lo ÚNICO que expone en qué estado está: el cambio de ícono es visual
+      y el `data-tip` es contenido generado por CSS. Sin él el botón se anuncia igual
+      encendido que apagado, y como el click recarga por Turbo sin anunciar nada, no había
+      forma de saber para qué lado quedó. El JS lo mantiene al día (updateUI). %>
+  <button type="button"
+          class="tooltip tooltip-bottom btn btn-ghost btn-sm gap-2"
+          data-action="filter-persistence#toggle"
+          data-filter-persistence-target="button"
+          data-tip="<%= tooltip %>"
+          aria-pressed="<%= enabled? %>"
+          aria-label="<%= label %>">
+    <%# Marcador relleno cuando está activo %>
+    <span data-filter-persistence-target="iconEnabled" class="<%= 'hidden' unless enabled? %>">
+      <%= render Bali::Icon::Component.new('bookmark-check', class: 'w-5 h-5 text-primary') %>
+    </span>
+    <%# Marcador de contorno cuando está apagado %>
+    <span data-filter-persistence-target="iconDisabled" class="<%= 'hidden' if enabled? %>">
+      <%= render Bali::Icon::Component.new('bookmark', class: 'w-5 h-5 text-base-content/40') %>
+    </span>
+    <%# Sin `sm:inline` a propósito: en la toolbar es un control de ícono. Adentro del ⋯ el
+        control ocupa una fila entera y un ícono solo queda anónimo, así que la regla
+        unlayered de data_table/index.css lo destapa ahí y solo ahí. `btn-square` quedó fuera
+        de la clase del botón por lo mismo: forzaría ancho = alto y el label desbordaría. %>
+    <span class="toolbar-control-label hidden"><%= label %></span>
+  </button>
+</div>

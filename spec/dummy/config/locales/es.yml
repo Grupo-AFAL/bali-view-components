@@ -125,11 +125,13 @@ es:
       edit: Editar
       delete: Eliminar
     bulk_actions:
-      select_action: Seleccionar accion...
       mark_done: Marcar como Completado
       mark_draft: Marcar como Borrador
       delete: Eliminar Seleccionados
-      apply: Aplicar
+    views:
+      table: Tabla
+      cards: Tarjetas
+      timeline: Cronograma
     no_movies: No se encontraron peliculas.
     no_movies_help: Intenta ajustar tus filtros o
     add_new_movie: agrega una nueva pelicula

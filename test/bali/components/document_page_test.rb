@@ -33,6 +33,18 @@ class BaliDocumentPageComponentTest < ComponentTestCase
     assert_text("Edit Button")
   end
 
+  def test_secondary_actions_alone_still_paint_the_actions_bar
+    # El gate era `if actions?`, así que una página con SOLO acciones secundarias no pintaba
+    # ni el ⋯ ni el divisor que lo separa de los toggles de paneles.
+    render_inline(Bali::DocumentPage::Component.new(title: "My Document")) do |page|
+      page.with_secondary_action(name: "Export", href: "/documents/1.pdf")
+      page.with_preview { "Content" }
+    end
+
+    assert_selector('[aria-label="More actions"]', visible: :all)
+    assert_selector(".divider.divider-horizontal", visible: :all)
+  end
+
   def test_renders_subtitle
     render_inline(Bali::DocumentPage::Component.new(
       title: "My Document",

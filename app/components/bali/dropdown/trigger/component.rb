@@ -10,6 +10,10 @@ module Bali
         # DO NOT add `btn` classes to `menu` variant - they break vertical alignment.
         VARIANTS = {
           button: "btn",
+          # `outline` es el chrome de un control de toolbar (filtros, columnas, vistas
+          # guardadas): con `ghost` el trigger no tiene borde y entre dos vecinos con borde
+          # se lee como de otra familia.
+          outline: "btn btn-outline",
           icon: "btn btn-ghost btn-circle",
           ghost: "btn btn-ghost",
           menu: "flex items-center gap-1 cursor-pointer !bg-transparent hover:!bg-transparent",

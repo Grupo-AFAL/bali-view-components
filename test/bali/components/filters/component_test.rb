@@ -198,6 +198,17 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_text("Auto-saved")
   end
 
+  # El DataTable apaga el toggle porque lo pinta él en la toolbar, pero la leyenda del pie
+  # NO es un control: apagarla dejaría al panel sin decir que está guardando.
+  def test_persistence_toggle_can_be_turned_off_without_losing_the_auto_saved_hint
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes, storage_id: "users_filters",
+      persist_enabled: true, persistence_toggle: false
+    ))
+    assert_no_selector('[data-controller="filter-persistence"]')
+    assert_text("Auto-saved")
+  end
+
   def test_persistence_toggle_does_not_render_auto_saved_text_when_persistence_is_disabled
     render_inline(Bali::Filters::Component.new(
       url: "/users", available_attributes: @available_attributes, storage_id: "users_filters", persist_enabled: false
@@ -263,6 +274,18 @@ class BaliFiltersComponentTest < ComponentTestCase
       preserved_params: { group_by: "genre" }
     ))
     assert_selector("form input[type=hidden][name=group_by][value=genre]", visible: :all, minimum: 1)
+  end
+
+  def test_preserved_params_hidden_fields_carry_no_id
+    # En modo popover se pintan en LOS DOS forms (búsqueda rápida y panel): con el id
+    # derivado del name quedaban ids duplicados en el documento.
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes,
+      search: { fields: [ :name ], value: "" }, preserved_params: { view: "grid" }
+    ))
+
+    assert_selector("form input[type=hidden][name=view]", visible: :all, count: 2)
+    assert_no_selector("input[type=hidden][name=view][id]", visible: :all)
   end
 
   def test_preserved_query_params_excludes_clear_filters_and_clear_search_params

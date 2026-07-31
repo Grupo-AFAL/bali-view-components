@@ -17,9 +17,9 @@
           <td><%= movie.genre %></td>
           <td class="text-sm text-base-content/70"><%= movie.studio&.name %></td>
           <td>
-            <span class="badge <%= movie.done? ? 'badge-success' : 'badge-warning' %>">
-              <%= movie.status.humanize %>
-            </span>
+            <%= render Bali::Tag::Component.new(text: movie.status.humanize,
+                                                color: movie.done? ? :success : :warning,
+                                                size: :sm) %>
           </td>
         <% end %>
       <% end %>

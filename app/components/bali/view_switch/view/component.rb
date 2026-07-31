@@ -35,7 +35,14 @@ module Bali
         attr_reader :name, :icon, :href, :options
 
         def icon_only?
-          @icon_only
+          @icon_only == true
+        end
+
+        # `:responsive` colapsa el texto por CSS bajo sm, pero emite title/aria-label SIEMPRE:
+        # esconder el label con `max-sm:hidden` a secas dejaría un botón sin nombre accesible
+        # justo en el viewport donde solo se ve el icono.
+        def responsive_icon_only?
+          @icon_only == :responsive
         end
 
         def active?
@@ -44,13 +51,15 @@ module Bali
           active_path?(request.fullpath, href)
         end
 
+        # `aria-current="page"` y no `aria-pressed`: esto es un `<a>` que NAVEGA (role=link) y
+        # el navegador descarta `pressed` sobre un link — el modo activo quedaba expresado
+        # solo por color y los tres links sonaban idénticos ("Tabla, link / Tarjetas, link").
+        # `aria-current` es un atributo global, permitido en cualquier rol.
         def link_attributes
-          attrs = options.except(:class).merge(
-            class: link_classes,
-            "aria-pressed": active?.to_s
-          )
+          attrs = options.except(:class).merge(class: link_classes)
+          attrs[:"aria-current"] = "page" if active?
 
-          if icon_only?
+          if icon_only? || responsive_icon_only?
             attrs[:title] ||= name
             attrs[:"aria-label"] ||= name
           end
@@ -64,6 +73,7 @@ module Bali
             "join-item",
             SIZES.fetch(@size, ""),
             icon_only? ? "btn-square" : "gap-1.5",
+            ("max-sm:btn-square" if responsive_icon_only?),
             active? ? "btn-active btn-primary" : "btn-outline",
             options[:class]
           )

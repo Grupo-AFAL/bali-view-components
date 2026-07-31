@@ -25,6 +25,7 @@ es:
       filters_saved: "Los filtros se guardan automáticamente"
       persistence_enabled: "Los filtros se están guardando. Haz clic para desactivar."
       persistence_disabled: "Los filtros no se guardan. Haz clic para activar."
+      persistence_label: "Recordar filtros"
 
       # Date/time placeholders
       select_date: "Seleccionar fecha..."
@@ -184,6 +185,7 @@ es:
     saved_views:
       saved: "Vista guardada."
       renamed: "Vista renombrada."
+      updated: "Vista actualizada."
       deleted: "Vista borrada."
 
     # Status

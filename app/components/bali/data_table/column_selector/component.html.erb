@@ -1,11 +1,19 @@
-<div class="dropdown dropdown-end"
+<%# Sin `dropdown-end`: el control vive en el grupo IZQUIERDO de la toolbar, y anclado al
+    borde derecho de su trigger el panel abría hacia afuera de la fila a la que pertenece. %>
+<div class="dropdown"
      data-controller="column-selector"
-     data-column-selector-table-value="<%= table_id %>"
-     data-column-selector-storage-key-value="<%= persist? ? storage_key : '' %>"
+     data-column-selector-table-value="<%= table_selector %>"
+     data-column-selector-storage-key-value="<%= persist? ? columns_storage_key : '' %>"
      data-column-selector-server-state-value="<%= server_state? %>">
-  <button type="button" tabindex="0" class="btn btn-outline btn-sm gap-2">
+  <%# aria-label explícito: el label visible vive en un span `hidden sm:inline`, así que hasta
+      que el JS mueve el control al ⋯ el botón es un icono sin nombre accesible. %>
+  <%# `aria-haspopup`/`aria-expanded`: el panel lo abre el `:focus-within` de daisyUI, no un JS,
+      así que sin esto el botón no anunciaba ni que abre un popover ni si está abierto. Lo
+      mantiene al día `syncPopoverAria` desde el controlador. %>
+  <button type="button" tabindex="0" class="btn btn-outline btn-sm gap-2" aria-label="<%= button_label %>"
+          aria-haspopup="true" aria-expanded="false">
     <%= render Bali::Icon::Component.new(button_icon, class: 'w-4 h-4') %>
-    <span class="hidden sm:inline"><%= button_label %></span>
+    <span class="toolbar-control-label hidden sm:inline"><%= button_label %></span>
   </button>
   <ul tabindex="0" class="dropdown-content z-50 menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-200">
     <li class="menu-title"><%= menu_title %></li>

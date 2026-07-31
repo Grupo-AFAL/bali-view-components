@@ -1,18 +1,31 @@
 en:
   view_components:
     bali:
+      bulk_actions:
+        selected_one: selected
+        selected_other: selected
+        clear: Clear selection
       table:
         no_records: No Records
         no_results: No Results
         group_count: "%{group} (%{count})"
         group_partial: "showing %{shown}"
         ungrouped: Ungrouped
+        select_all: Select all
+        row:
+          select_row: Select row
+          select_row_named: Select %{name}
       data_table:
         summary: "Showing %{from}-%{to} of %{count} %{item_name}"
         default_item_name: items
         group_by_control:
           label: Group by
           no_grouping: No grouping
+          disabled_title: "Grouping applies in %{modes} view"
+        view_switch_control:
+          aria_label: Views
+        toolbar_overflow:
+          button_label: More options
         column_selector:
           button_label: Columns
           menu_title: Show/Hide Columns
@@ -21,6 +34,9 @@ en:
           suggested_title: Suggested
           mine_title: My views
           save_current: Save current view
+          save_as_new: Save as new view
+          update_current: "Update \"%{name}\""
+          update_confirm: "Overwrite the \"%{name}\" view with what you are seeing now?"
           name_placeholder: View name
           save: Save
           rename: Rename
@@ -33,6 +49,11 @@ en:
             excel: Excel
             pdf: PDF
             json: JSON
+      page_components:
+        secondary_actions:
+          button_label: More actions
+        export:
+          menu_title: Export filtered
       pagination:
         aria_label: Pagination
         previous_page: Previous page

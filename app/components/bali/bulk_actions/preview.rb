@@ -30,6 +30,29 @@ module Bali
           end
         end
       end
+
+      # `variant: :toolbar` renders the contextual row a DataTable puts where its toolbar
+      # sits, instead of the floating bar. Click on items to select them.
+      def toolbar
+        render Bali::BulkActions::Component.new(variant: :toolbar) do |c|
+          c.with_action(label: 'Archive', href: '/users/bulk_archive', variant: :info)
+          c.with_action(label: 'Delete', href: '/users/bulk_delete', variant: :error)
+
+          RECORDS.each do |record|
+            c.with_item(record_id: record[:id], class: 'flex items-center gap-3 p-3 rounded-lg hover:bg-base-200') do
+              safe_join([
+                tag.input(type: 'checkbox', class: 'checkbox checkbox-sm'),
+                tag.div(class: 'flex-1') do
+                  safe_join([
+                    tag.p(record[:name], class: 'font-medium'),
+                    tag.p(record[:email], class: 'text-sm text-base-content/60')
+                  ])
+                end
+              ])
+            end
+          end
+        end
+      end
     end
   end
 end

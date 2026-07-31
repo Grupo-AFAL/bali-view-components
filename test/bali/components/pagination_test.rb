@@ -23,9 +23,13 @@ class BaliPaginationComponentTest < ComponentTestCase
     assert_selector("a.join-item", text: "»")
   end
 
+  # `btn-active` a secas pasaba este test mientras la página actual se veía IGUAL que las
+  # demás: en daisyUI 5 apenas oscurece un `btn` plano. El marcador tiene que ser el mismo
+  # que usa el resto de Bali para "esto es lo seleccionado" (`ViewSwitch::View`).
   def test_marks_current_page_as_active
     render_inline(Bali::Pagination::Component.new(pagy: @pagy, url: @test_url))
-    assert_selector("button.btn-active", text: "3")
+    assert_selector("button.btn-active.btn-primary[aria-current='page']", text: "3")
+    assert_no_selector("a.btn-primary")
   end
 
   def test_does_not_render_when_only_one_page

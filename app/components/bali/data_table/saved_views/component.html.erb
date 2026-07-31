@@ -1,12 +1,23 @@
-<div class="dropdown dropdown-end"
+<%# Sin `dropdown-end`: el control vive en el grupo IZQUIERDO de la toolbar, y anclado al
+    borde derecho de su trigger el panel abría hacia afuera de la fila a la que pertenece. %>
+<div class="dropdown"
      data-controller="saved-views"
-     data-saved-views-table-value="<%= table_id %>">
+     data-saved-views-table-value="<%= table_selector %>"
+     data-saved-views-storage-key-value="<%= columns_storage_key %>"
+     data-saved-views-server-columns-value="<%= server_columns_json %>">
   <%# El botón nombra la vista ACTIVA (aplicada por URL, o la que coincide con el estado
       actual — incluye atajos); el ícono se rellena para señalarla también con el popover
       cerrado. %>
-  <button type="button" tabindex="0" class="btn btn-outline btn-sm gap-2">
+  <%# aria-label explícito y calculado igual que el texto visible (que vive en un span
+      `hidden sm:inline`): con un label estático rompería "Label in Name" cuando el botón
+      nombra la vista activa. %>
+  <%# `aria-haspopup`/`aria-expanded`: el panel lo abre el `:focus-within` de daisyUI, no un JS,
+      así que sin esto el botón no anunciaba ni que abre un popover ni si está abierto. Lo
+      mantiene al día `syncPopoverAria` desde el controlador. %>
+  <button type="button" tabindex="0" class="btn btn-outline btn-sm gap-2" aria-label="<%= button_label %>"
+          aria-haspopup="true" aria-expanded="false">
     <%= render Bali::Icon::Component.new(active_view ? 'bookmark-check' : 'bookmark', class: 'w-4 h-4') %>
-    <span class="hidden sm:inline"><%= active_view ? active_view.name : t('.button_label') %></span>
+    <span class="toolbar-control-label hidden sm:inline"><%= button_label %></span>
   </button>
 
   <div tabindex="0" class="dropdown-content z-50 p-2 shadow-lg bg-base-100 rounded-box w-72 max-h-[70vh] overflow-y-auto border border-base-200">
@@ -15,7 +26,7 @@
       <ul class="menu p-0 w-full">
         <% default_views.each do |view| %>
           <li class="w-full"><%= link_to view.name, view.url,
-                class: "text-sm #{'active' if active_view?(view)}" %></li>
+                class: "text-sm #{active_item_class(view)}" %></li>
         <% end %>
       </ul>
     <% end %>
@@ -26,7 +37,7 @@
         <% views.each do |view| %>
           <li class="flex-row items-center flex-nowrap w-full">
             <%= link_to view.name, apply_url(view),
-                  class: "grow text-sm truncate #{'active' if active_view?(view)}" %>
+                  class: "grow text-sm truncate #{active_item_class(view)}" %>
             <button type="button" class="btn btn-ghost btn-xs px-1"
                     title="<%= t('.rename') %>"
                     data-action="saved-views#toggleRename" data-saved-views-id-param="<%= view.id %>">
@@ -55,10 +66,22 @@
     <% end %>
 
     <div class="border-t border-base-200 mt-1 pt-1">
+      <%# Con una vista de origen modificada, ACTUALIZARLA es la acción esperada y guardar otra
+          pasa a secundaria. Antes la única forma de sobrescribir era teclear el nombre exacto
+          en "Guardar": nada lo decía, y un typo creaba una vista nueva en vez de actualizar.
+          Es destructivo (pisa lo guardado), así que confirma igual que borrar. %>
+      <% if updatable? %>
+        <%= form_with url: view_url(origin_view), method: :patch,
+              data: { action: 'submit->saved-views#injectColumns',
+                      turbo_confirm: update_confirm } do |f| %>
+          <%= f.hidden_field :payload, value: payload_json, data: { saved_views_target: 'payload' } %>
+          <%= f.submit update_label, class: 'btn btn-primary btn-sm btn-block justify-start gap-2' %>
+        <% end %>
+      <% end %>
       <button type="button" class="btn btn-ghost btn-sm btn-block justify-start gap-2"
               data-action="saved-views#toggleSaveForm">
         <%= render Bali::Icon::Component.new('plus', class: 'w-4 h-4') %>
-        <%= t('.save_current') %>
+        <%= save_label %>
       </button>
       <%# Guardar el estado ACTUAL: el payload viaja serializado en un hidden; el Stimulus
           agrega las columnas visibles del column selector justo antes de enviar. %>

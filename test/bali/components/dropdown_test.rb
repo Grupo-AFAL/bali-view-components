@@ -44,6 +44,16 @@ class BaliDropdownComponentTest < ComponentTestCase
     assert_no_selector(".dropdown-end")
   end
 
+  # El chrome de un control de toolbar tenía que escribirse a mano en el call site porque el
+  # enum no lo nombraba: `button`, `icon` y `ghost`, ninguno con borde.
+  def test_trigger_outline_variant
+    render_inline(Bali::Dropdown::Component.new) do |c|
+      c.with_trigger(variant: :outline) { "Columns" }
+      c.with_item(href: "#") { "Item" }
+    end
+    assert_selector("[data-dropdown-target='trigger'].btn.btn-outline")
+  end
+
   def test_alignments_renders_top_alignment
     render_inline(Bali::Dropdown::Component.new(align: :top)) do |c|
       c.with_trigger { "Trigger" }
@@ -165,5 +175,33 @@ class BaliDropdownComponentTest < ComponentTestCase
       c.with_item(href: "#") { "Item" }
     end
     assert_selector('[aria-haspopup="true"][aria-expanded="false"]', text: "Trigger")
+  end
+
+  def test_title_item_renders_a_menu_title_and_not_a_menuitem
+    # Un encabezado AGRUPA items; contado como opción navegable, el lector de pantalla
+    # anuncia una opción más de las que hay.
+    render_inline(Bali::Dropdown::Component.new) do |c|
+      c.with_trigger { "Trigger" }
+      c.with_item(tag: :title, name: "Export filtered")
+      c.with_item(href: "/movies.csv") { "CSV" }
+    end
+
+    assert_selector("span.menu-title", text: "Export filtered")
+    assert_selector('[role="menuitem"]', count: 1)
+    # Un span genérico NO es un hijo que `role="menu"` admita (solo menuitem/group/separator).
+    # Presentacional deja de contar como hijo inválido sin sacarle el texto a un
+    # `aria-describedby` que lo apunte.
+    assert_selector('span.menu-title[role="presentation"]')
+  end
+
+  def test_a_menu_of_only_titles_does_not_render
+    # Un menú de puro encabezado no es un menú: destaparía un botón que no abre ninguna
+    # opción para elegir.
+    render_inline(Bali::Dropdown::Component.new) do |c|
+      c.with_trigger { "Trigger" }
+      c.with_item(tag: :title, name: "Export filtered")
+    end
+
+    assert_no_selector(".dropdown")
   end
 end

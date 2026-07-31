@@ -1,36 +1,140 @@
-<div id="<%= id %>" class="data-table-component">
-  <%# Toolbar: Filters (left) + Actions/Buttons (right) %>
+<%= tag.div(**container_attributes) do %>
+  <%# Toolbar: una sola fila agrupada por función — izquierda el ESTADO del listado y cómo se
+      recuerda, derecha CÓMO se ve. Bajo el breakpoint el controlador `toolbar-overflow`
+      MUEVE los controles secundarios al menú ⋯ (ver OVERFLOW_PRIORITIES) y los devuelve al
+      subir. %>
   <% if show_toolbar? %>
-    <div class="<%= toolbar_classes %>">
-      <%# Left side: Filters (search + filter button + bookmark) %>
-      <div class="flex-1 min-w-0">
-        <%= filters_panel if filters_panel? %>
-        <%= simple_filters if simple_filters? %>
-      </div>
+    <%= tag.div(**toolbar_attributes) do %>
+      <%# Izquierda, primer subgrupo: el CONTENIDO de la vista — qué filas y qué columnas.
+          `flex-1` solo bajo `sm`: ahí la búsqueda tiene que llenar la fila, y arriba de `sm`
+          es de ancho fijo (`sm:w-64`), así que creciendo empujaba la barrita y las vistas
+          contra el view switch en vez de dejar el hueco donde va. %>
+      <% if show_toolbar_left? %>
+        <%= tag.div(**overflow_group_attributes("left", css_class: "flex items-center gap-1 sm:gap-2 flex-1 sm:flex-initial min-w-0")) do %>
+          <%# Se pregunta por el CONTENIDO y no por el slot: un control declarado que decide no
+              pintar (p.ej. vistas guardadas sin store) dejaba un envoltorio vacío que el JS
+              movía al ⋯, destapando un botón que abre un menú vacío. %>
+          <%# `sm:flex-auto` y no `flex-1` arriba del breakpoint: con base 0 este item no pesa
+              nada al repartir el faltante, así que la fila apretada lo dejaba en 0px y la
+              búsqueda —que mide lo suyo igual— se pintaba ENCIMA de agrupar y columnas. Con
+              base en el contenido absorbe el faltante encogiéndose, que es lo que se ve. %>
+          <% if control_content(:filters_panel) || control_content(:simple_filters) %>
+            <%= tag.div(**overflow_item_attributes(:filters, group: "left", css_class: "flex-1 sm:flex-auto min-w-0")) do %>
+              <%= control_content(:filters_panel) %>
+              <%= control_content(:simple_filters) %>
+            <% end %>
+          <% end %>
 
-      <%# Group-by control ("Agrupar por"), beside the filters %>
-      <% if group_by_control? %>
-        <div class="shrink-0">
-          <%= render group_by_control %>
-        </div>
+          <%# En un modo que no aplica agrupación el control va INERTE, no ausente: el propio
+              botón apagado dice que ahí no se agrupa, sin mover la fila al cambiar de modo. %>
+          <% if group_by_control? %>
+            <%= tag.div(**overflow_item_attributes(:group_by, group: "left", css_class: "shrink-0")) do %>
+              <%= render group_by_control %>
+            <% end %>
+          <% end %>
+
+          <%# `shrink-0`: este grupo SÍ encoge (a diferencia del de la derecha), y sin esto el
+              botón de columnas se aplasta en vez de dejar que la búsqueda absorba. %>
+          <% if control_content(:column_selector) %>
+            <%= tag.div(**overflow_item_attributes(:column_selector, group: "left", css_class: "shrink-0")) do %>
+              <%= control_content(:column_selector) %>
+            <% end %>
+          <% end %>
+        <% end %>
       <% end %>
 
-      <%# Right side: Column selector + Export + Toolbar buttons + Actions panel %>
-      <% if show_toolbar_right? %>
-        <div class="flex items-center gap-1 sm:gap-2 shrink-0">
-          <%= saved_views if saved_views? %>
-          <%= column_selector if column_selector? %>
-          <%= export if export? %>
+      <%# Frontera entre "qué contiene la vista" y "cómo se recuerda". Va ENTRE los dos grupos
+          y no adentro de uno: el JS ordena a los hijos de un grupo por prioridad y un nodo sin
+          prioridad cuenta como 0, así que la barrita terminaba empujada al final de la fila ya
+          en el primer render de escritorio. %>
+      <% if toolbar_separator? %>
+        <%= tag.div(**overflow_separator_attributes("left", "memory")) do %>
+          <div class="divider divider-horizontal mx-0 h-6"></div>
+        <% end %>
+      <% end %>
+
+      <%# Izquierda, segundo subgrupo: cómo se RECUERDA ese contenido — las vistas guardadas
+          con nombre y el marcador que recuerda el último estado. %>
+      <% if show_toolbar_memory? %>
+        <%= tag.div(**overflow_group_attributes("memory", css_class: "flex items-center gap-1 sm:gap-2 shrink-0")) do %>
+          <% if control_content(:saved_views) %>
+            <%= tag.div(**overflow_item_attributes(:saved_views, group: "memory")) do %>
+              <%= control_content(:saved_views) %>
+            <% end %>
+          <% end %>
+
+          <% if filter_persistence_control? %>
+            <%= tag.div(**overflow_item_attributes(:filter_persistence, group: "memory")) do %>
+              <%= render filter_persistence_control %>
+            <% end %>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <%# Botones del host: contenido arbitrario que Bali no cubre, así que no son ni estado
+          del listado ni modo de visualización. Grupo PROPIO y no adentro del de la derecha:
+          ahí el JS ordena por prioridad descendente (10 contra 50) y quedaban a la derecha
+          DEL view switch, que es lo único que puede ir pegado al borde. %>
+      <% if show_toolbar_host? %>
+        <%= tag.div(**overflow_group_attributes("host", css_class: "flex items-center gap-1 sm:gap-2 shrink-0")) do %>
           <% toolbar_buttons.each do |button| %>
-            <%= button %>
+            <%= tag.div(**overflow_item_attributes(:toolbar_buttons, group: "host")) do %>
+              <%= button %>
+            <% end %>
           <% end %>
-          <% if actions_panel? %>
-            <div class="hidden md:block"><%= actions_panel %></div>
+        <% end %>
+      <% end %>
+
+      <%# Derecha: cómo se ven. `ml-auto` acá y no `flex-1` en la izquierda: el margen auto
+          absorbe el espacio libre DESPUÉS de resolver grow/shrink, así que en móvil —donde la
+          izquierda sí crece— es un no-op, y arriba de `sm` clava el switch contra el borde. %>
+      <% if show_toolbar_right? %>
+        <%= tag.div(**overflow_group_attributes("right", css_class: "flex items-center gap-1 sm:gap-2 shrink-0 ml-auto")) do %>
+          <%= tag.div(**overflow_item_attributes(:view_switch, group: "right")) do %>
+            <%= control_content(:view_switch) %>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <%# Menú ⋯: solo existe si hay algo que colapsar, y se sirve oculto — lo destapa el JS
+          al mover el primer control adentro, así no parpadea un menú vacío. Sin `sm:hidden`:
+          el colapso ya no lo decide el breakpoint sino cuánto ancho tiene la fila (ver
+          `toolbar_overflow_controller`), y con la clase el ⋯ quedaba invisible justo en los
+          anchos intermedios donde es la única salida. %>
+      <% if overflow_menu? %>
+        <div class="shrink-0 hidden" data-toolbar-overflow-target="overflow">
+          <%# `menu: false`: acá adentro no hay menuitems sino widgets enteros (otros
+              dropdowns, checkboxes de columnas, el form de renombrar vistas). Declarado como
+              `role="menu"` el lector de pantalla entra en modo menú sobre un formulario y
+              expone hijos que ese rol no permite. Esto es un popover contenedor. %>
+          <%= render Bali::Dropdown::Component.new(align: :bottom_end, wide: true, menu: false) do |dropdown| %>
+            <% dropdown.with_trigger(variant: :ghost, class: "btn-sm btn-square",
+                                     "aria-label": overflow_menu_label) do %>
+              <%= render Bali::Icon::Component.new("ellipsis", class: "w-4 h-4") %>
+            <% end %>
+            <%# Sin la clase `.menu` de daisyUI el contenedor ya no impone display:grid +
+                padding + hover a sus hijos, así que las utilidades van sin `!`.
+
+                Los dropdowns que caen acá (columnas, vistas, agrupar) tienen contenido
+                ABSOLUTO: anidados se posicionan contra este contenedor y se salen del
+                viewport (medido: left -115px en un teléfono de 375px, cuando además eran
+                `.dropdown-end`). En flujo quedan como secciones apiladas, que es lo
+                razonable en un teléfono. Cerrados siguen siendo `display:none`, así que no
+                dejan huecos. %>
+            <div class="toolbar-overflow-menu
+                        flex flex-col items-stretch gap-2 w-full p-1
+                        max-w-[calc(100vw-3rem)] max-h-[70vh] overflow-y-auto
+                        [&_.dropdown-content]:!static [&_.dropdown-content]:!w-full"
+                 data-toolbar-overflow-target="menu"></div>
           <% end %>
         </div>
       <% end %>
-    </div>
+    <% end %>
   <% end %>
+
+  <%# Fila contextual de selección: hermana inmediata de la toolbar, para caer en su mismo
+      hueco vertical cuando el controlador se la esconde %>
+  <%= bulk_actions if bulk_actions? %>
 
   <%# Custom summary slot (top position) or summary_position: :top %>
   <% if summary? || show_summary_top? %>
@@ -39,21 +143,8 @@
     </div>
   <% end %>
 
-  <%# Mobile actions %>
-  <% if actions_panel? %>
-    <div class="md:hidden flex items-center justify-end">
-      <%= actions_panel %>
-    </div>
-  <% end %>
-
-  <%# Content: Table or Grid %>
-  <% if grid_mode? %>
-    <%= grid %>
-  <% else %>
-    <%= tag.div class: table_wrapper_classes do %>
-      <%= table %>
-    <% end %>
-  <% end %>
+  <%# Contenido: la superficie viaja con el slot (with_table la trae, with_grid no) %>
+  <%= content_band %>
 
   <%# Footer: Summary (left) + Pagination (right) %>
   <% if show_footer? %>
@@ -77,4 +168,4 @@
       <% end %>
     </div>
   <% end %>
-</div>
+<% end %>

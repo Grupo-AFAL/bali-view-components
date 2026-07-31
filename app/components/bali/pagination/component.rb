@@ -34,8 +34,12 @@ module Bali
         classes.join(" ")
       end
 
+      # `btn-active` SOLO no se ve: en daisyUI 5 oscurece apenas un `btn` plano, así que la
+      # página actual quedaba indistinguible de las demás aunque el marcado ya fuera correcto
+      # (`aria-current="page"`). El resto de Bali marca "esto es lo seleccionado" con
+      # `btn-active btn-primary` (ver `ViewSwitch::View`), y la paginación se alinea.
       def btn_active_class
-        "#{btn_class} btn-active"
+        "#{btn_class} btn-active btn-primary"
       end
 
       def btn_disabled_class

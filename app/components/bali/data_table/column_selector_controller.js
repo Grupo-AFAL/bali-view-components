@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
+import { syncPopoverAria } from './popover_aria'
 
 /**
  * Column Selector Controller
@@ -7,7 +8,7 @@ import { Controller } from '@hotwired/stimulus'
  * Works with any table by targeting columns by index.
  *
  * Usage:
- *   <div data-controller="column-selector" data-column-selector-table-value="#my-table">
+ *   <div data-controller="column-selector" data-column-selector-table-value="#my-listing table">
  *     <input type="checkbox" data-action="column-selector#toggle" data-column-index="0" checked>
  *     <input type="checkbox" data-action="column-selector#toggle" data-column-index="1">  <!-- hidden by default -->
  *   </div>
@@ -20,6 +21,8 @@ export default class extends Controller {
   }
 
   connect () {
+    this.disconnectAria = syncPopoverAria(this.element, this.element.querySelector('button'))
+
     this.table = document.querySelector(this.tableValue)
     if (!this.table) {
       console.warn(`Column selector: table not found with selector "${this.tableValue}"`)
@@ -32,6 +35,10 @@ export default class extends Controller {
 
     // Apply initial visibility based on checkbox state
     this.applyInitialState()
+  }
+
+  disconnect () {
+    this.disconnectAria?.()
   }
 
   restoreStoredState () {
