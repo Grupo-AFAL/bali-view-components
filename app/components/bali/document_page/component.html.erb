@@ -17,7 +17,7 @@
       <% if toc? %>
         <%= render Bali::Button::Component.new(variant: :ghost, size: :sm, class: "btn-square",
               data: { action: "document-page#toggleToc", document_page_target: "tocToggle" },
-              title: "Toggle table of contents") do %>
+              title: t(".toggle_toc")) do %>
           <%= render Bali::Icon::Component.new('panel-left', size: :small) %>
         <% end %>
       <% end %>
@@ -25,7 +25,7 @@
       <% if three_panel? && metadata? %>
         <%= render Bali::Button::Component.new(variant: :ghost, size: :sm, class: "btn-square",
               data: { action: "document-page#toggleMetadata", document_page_target: "metadataToggle" },
-              title: "Toggle details") do %>
+              title: t(".toggle_details")) do %>
           <%= render Bali::Icon::Component.new('panel-right', size: :small) %>
         <% end %>
       <% end %>
@@ -54,7 +54,7 @@
         <div class="w-56 shrink-0 sticky top-4 overflow-y-auto max-h-[calc(100vh-12rem)] border-r border-base-300 p-4
                     max-lg:w-full max-lg:static max-lg:max-h-72 max-lg:border-r-0 max-lg:border-b"
              data-document-page-target="tocPanel">
-          <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">Contents</h3>
+          <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3"><%= t(".contents") %></h3>
           <div id="document-page-toc-container"></div>
         </div>
       <% end %>

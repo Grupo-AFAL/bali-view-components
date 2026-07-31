@@ -1,6 +1,7 @@
 es:
   bali_view:
     filters:
+      close_panel: "Cerrar filtros"
       # UI Labels
       title: "Filtros"
       where: "Donde"
@@ -110,6 +111,7 @@ es:
 
     # Paleta de comandos (⌘K)
     command:
+      esc_key: "esc"
       placeholder: "Buscar…"
       no_results: "Sin resultados"
       navigate: "navegar"
@@ -234,6 +236,9 @@ es:
         select_row: Seleccionar fila
         select_row_named: Seleccionar %{name}
     data_table:
+      simple_filters:
+        placeholder_min: "Mín"
+        placeholder_max: "Máx"
       summary: "Mostrando %{from}-%{to} de %{count} %{item_name}"
       default_item_name: elementos
       display_modes:
@@ -384,3 +389,75 @@ es:
     pagination_footer:
       summary: "Mostrando %{from}-%{to} de %{count} %{item_name}"
       default_item_name: "elementos"
+
+    document_editor:
+      # Barra superior
+      toggle_toc: "Alternar tabla de contenido"
+      title_placeholder: "Documento sin título"
+      save_changes: "Guardar cambios"
+      save: "Guardar"
+      toggle_comments: "Alternar comentarios"
+      toggle_history: "Alternar historial de versiones"
+      export_pdf: "Exportar PDF"
+      export_docx: "Exportar DOCX"
+      close: "Cerrar editor"
+
+      # Paneles
+      contents: "Contenido"
+      comments: "Comentarios"
+      version_history: "Historial de Versiones"
+
+      # Aviso de vista previa de versión
+      previewing: "Vista previa de"
+      read_only: "— solo lectura"
+      back_to_current: "Volver a la actual"
+
+      # Acciones de cada versión
+      preview: "Vista previa"
+      restore: "Restaurar"
+    block_editor:
+      disabled_title: "Bali::BlockEditor está deshabilitado"
+      disabled_help_html: "Configura %{setting} en %{initializer} e instala los paquetes npm listados en %{docs}. Este aviso solo aparece en desarrollo."
+      export_pdf: "Exportar PDF"
+      export_docx: "Exportar DOCX"
+    document_page:
+      toggle_toc: "Alternar tabla de contenido"
+      toggle_details: "Alternar detalles"
+      contents: "Contenido"
+    rich_text_editor:
+      # Default editor placeholder, handed to the Stimulus controller as a value
+      placeholder: "Empieza a escribir..."
+
+      bubble_menu:
+        # Node type dropdown; `text` doubles as the trigger's default label
+        nodes:
+          text: "Texto"
+          h1: "Encabezado 1"
+          h2: "Encabezado 2"
+          h3: "Encabezado 3"
+          bullet_list: "Lista con viñetas"
+          ordered_list: "Lista numerada"
+          quote: "Cita"
+          code: "Código"
+
+        # Link panel
+        link:
+          url_placeholder: "Ingresa la URL"
+          tabs:
+            url: "URL"
+            pages: "Páginas"
+
+        # Table panel
+        table:
+          insert: "Insertar tabla"
+          insert_left: "Insertar a la izquierda"
+          insert_right: "Insertar a la derecha"
+          insert_above: "Insertar arriba"
+          insert_below: "Insertar abajo"
+          remove_column: "Eliminar columna"
+          remove_row: "Eliminar fila"
+    avatar:
+      upload:
+        upload_image: "Subir imagen de avatar"
+    message:
+      close: "Cerrar mensaje"

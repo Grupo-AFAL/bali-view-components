@@ -1,6 +1,7 @@
 en:
   bali_view:
     filters:
+      close_panel: "Close filters"
       # UI Labels
       title: "Filters"
       where: "Where"
@@ -110,6 +111,7 @@ en:
 
     # Command palette (⌘K)
     command:
+      esc_key: "esc"
       placeholder: "Search…"
       no_results: "No results"
       navigate: "navigate"
@@ -235,6 +237,9 @@ en:
         select_row: Select row
         select_row_named: Select %{name}
     data_table:
+      simple_filters:
+        placeholder_min: "Min"
+        placeholder_max: "Max"
       summary: "Showing %{from}-%{to} of %{count} %{item_name}"
       default_item_name: items
       display_modes:
@@ -385,3 +390,75 @@ en:
     pagination_footer:
       summary: "Showing %{from}-%{to} of %{count} %{item_name}"
       default_item_name: "items"
+
+    document_editor:
+      # App bar
+      toggle_toc: "Toggle table of contents"
+      title_placeholder: "Untitled document"
+      save_changes: "Save changes"
+      save: "Save"
+      toggle_comments: "Toggle comments"
+      toggle_history: "Toggle version history"
+      export_pdf: "Export PDF"
+      export_docx: "Export DOCX"
+      close: "Close editor"
+
+      # Panels
+      contents: "Contents"
+      comments: "Comments"
+      version_history: "Version History"
+
+      # Version preview banner
+      previewing: "Previewing"
+      read_only: "— read only"
+      back_to_current: "Back to current"
+
+      # Version item actions
+      preview: "Preview"
+      restore: "Restore"
+    block_editor:
+      disabled_title: "Bali::BlockEditor is disabled"
+      disabled_help_html: "Set %{setting} in %{initializer} and install the npm packages listed in %{docs}. This notice only appears in development."
+      export_pdf: "Export PDF"
+      export_docx: "Export DOCX"
+    document_page:
+      toggle_toc: "Toggle table of contents"
+      toggle_details: "Toggle details"
+      contents: "Contents"
+    rich_text_editor:
+      # Default editor placeholder, handed to the Stimulus controller as a value
+      placeholder: "Start typing..."
+
+      bubble_menu:
+        # Node type dropdown; `text` doubles as the trigger's default label
+        nodes:
+          text: "Text"
+          h1: "Heading 1"
+          h2: "Heading 2"
+          h3: "Heading 3"
+          bullet_list: "Bulleted list"
+          ordered_list: "Ordered list"
+          quote: "Quote"
+          code: "Code"
+
+        # Link panel
+        link:
+          url_placeholder: "Enter the URL"
+          tabs:
+            url: "URL"
+            pages: "Pages"
+
+        # Table panel
+        table:
+          insert: "Insert Table"
+          insert_left: "Insert Left"
+          insert_right: "Insert Right"
+          insert_above: "Insert Above"
+          insert_below: "Insert Below"
+          remove_column: "Remove Column"
+          remove_row: "Remove Row"
+    avatar:
+      upload:
+        upload_image: "Upload avatar image"
+    message:
+      close: "Close message"

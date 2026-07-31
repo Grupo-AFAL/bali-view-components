@@ -76,7 +76,7 @@
                 <%= render Bali::Icon::Component.new('filter', class: 'w-5 h-5') %>
                 <%= t('bali_view.filters.title') %>
               </h3>
-              <button type="button" class="btn btn-ghost btn-sm btn-circle" data-action="filters#toggleDropdown" aria-label="Close">
+              <button type="button" class="btn btn-ghost btn-sm btn-circle" data-action="filters#toggleDropdown" aria-label="<%= t('.close_panel') %>">
                 <%= render Bali::Icon::Component.new('x', class: 'w-5 h-5') %>
               </button>
             </div>

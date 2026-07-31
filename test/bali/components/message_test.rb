@@ -157,9 +157,11 @@ class BaliMessageComponentTest < ComponentTestCase
     assert_selector('div.message-component[data-controller~="message"]')
   end
 
+  # "Close message", not "Close": a page can hold several dismissible things, and
+  # a bare "Close" gives a screen reader no way to tell them apart.
   def test_dismissible_renders_close_button
     render_inline(Bali::Message::Component.new(dismissible: true)) { "Content" }
-    assert_selector('button[data-action="message#dismiss"][aria-label="Close"]')
+    assert_selector('button[data-action="message#dismiss"][aria-label="Close message"]')
     assert_selector("button svg.lucide-icon")
   end
 
