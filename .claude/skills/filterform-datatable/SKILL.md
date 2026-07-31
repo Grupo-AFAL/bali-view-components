@@ -49,7 +49,9 @@ saved views included; the only family it leaves out is host toolbar buttons.
         ) do |dt| %>
       <% dt.with_filters_panel(search: { placeholder: 'Search movies...' }) %>
 
-      <%# "Group by" renders itself when the FilterForm declares group_by_attributes %>
+      <%# "Group by" renders itself when the FilterForm declares group_by_attributes AND the
+          current display mode applies grouping (default: only :table). In cards the control
+          hides and the grouping is suspended, but the param stays in the URL %>
 
       <% dt.with_view_switch do |switch| %>
         <% switch.with_view(name: 'Table', icon: 'list', value: :table) %>
@@ -189,6 +191,8 @@ FilterForm is organized into focused concerns for maintainability:
 | `params` | `Hash` | `{}` | Request params containing `q[...]` |
 | `storage_id` | `String` | `nil` | **The listing identity.** Filter-persistence cache key, DataTable container id, column-selector target (`#<id> table`) and localStorage key (`bali:columns:<id>`), and the saved-views scope. Without it a DataTable falls back to a random hex and column persistence turns itself off |
 | `group_by_attributes` | `Array<Symbol>` | `nil` | Groupable attributes; enables the "Group by" control |
+| `group_by_modes` | `Array<Symbol>` | `[:table]` | Display modes that APPLY grouping. Outside them the control hides and the grouping is suspended — but the param survives, so switching back finds it as it was left. Paint rows with `group_by_applied`, never `group_by` |
+| `view_param` | `Symbol` | `:view` | URL param carrying the display mode. Must be the SAME one the DataTable gets, or the DataTable raises `ArgumentError` at build time |
 | `saved_views_store` | `Symbol, Object` | `nil` | `:default` for the engine store, or any object answering `list/find/save/delete`; enables the "Views" dropdown |
 | `saved_views_owner` | `Object` | `nil` | Owner the saved views are scoped to (typically `current_user`) |
 | `context` | `String` | `nil` | Context for cache key namespacing |

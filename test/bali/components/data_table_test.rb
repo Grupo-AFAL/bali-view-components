@@ -64,12 +64,15 @@ class BaliDataTableComponentTest < ComponentTestCase
 
   # --- Grouping (group_by control + round-trip) ---
 
-  def grouping_filter_form(group_by: "genre")
+  def grouping_filter_form(group_by: "genre", view: nil, **options)
     Bali::FilterForm.new(
       Movie.all,
-      ActionController::Parameters.new(q: ActionController::Parameters.new({}), group_by: group_by),
+      ActionController::Parameters.new(
+        q: ActionController::Parameters.new({}), group_by: group_by, view: view
+      ),
       simple_filters: [ { attribute: :genre, collection: [ %w[Action Action] ], blank: "All" } ],
-      group_by_attributes: %i[genre status]
+      group_by_attributes: %i[genre status],
+      **options
     )
   end
 
@@ -111,6 +114,71 @@ class BaliDataTableComponentTest < ComponentTestCase
       c.with_table { '<div class="table-component"></div>'.html_safe }
     end
     assert_no_selector("input[type=hidden][name=group_by]", visible: :all)
+  end
+
+  # --- Suspensión en tarjetas: se esconde el control, NO el param ---
+
+  def test_grid_mode_keeps_the_group_by_hidden_field
+    # ANTI-REGRESIÓN: el hidden field gatea por ESTADO (`group_by_active?`), no por
+    # APLICACIÓN. Si alguien lo "arregla" a `group_by_applied?`, buscar algo estando en
+    # tarjetas borra la agrupación y volver a la tabla ya no la encuentra.
+    form = grouping_filter_form(view: "grid")
+    assert(form.group_by_suspended?, "el form tiene que estar suspendido para que el test valga")
+
+    render_inline(
+      Bali::DataTable::Component.new(url: "/movies", filter_form: form, display_mode: :grid)
+    ) do |c|
+      c.with_simple_filters
+      c.with_grid { '<div class="grid-component"></div>'.html_safe }
+    end
+
+    assert_selector("form input[type=hidden][name=group_by][value=genre]", visible: :all)
+  end
+
+  def test_group_by_control_is_hidden_when_the_form_suspends_the_grouping
+    render_inline(
+      Bali::DataTable::Component.new(
+        url: "/movies", filter_form: grouping_filter_form(view: "grid"), display_mode: :grid
+      )
+    ) do |c|
+      c.with_grid { '<div class="grid-component"></div>'.html_safe }
+    end
+
+    assert_no_selector(".dropdown a[href*='group_by=']")
+  end
+
+  def test_group_by_control_renders_again_back_in_table_mode
+    render_inline(
+      Bali::DataTable::Component.new(url: "/movies", filter_form: grouping_filter_form(view: "table"))
+    ) do |c|
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector(".dropdown a[href*='group_by=status']")
+  end
+
+  def test_raises_when_the_view_param_disagrees_with_the_filter_form
+    # Desincronizados no hay NADA visible que lo delate: la tabla se ve igual y la suspensión
+    # decide al revés (mirando un param que el view switch nunca escribe).
+    error = assert_raises(ArgumentError) do
+      Bali::DataTable::Component.new(
+        url: "/movies", filter_form: grouping_filter_form, view_param: :modo
+      )
+    end
+    assert_match("view_param", error.message)
+  end
+
+  def test_does_not_raise_on_a_custom_view_param_shared_with_the_filter_form
+    component = Bali::DataTable::Component.new(
+      url: "/movies", filter_form: grouping_filter_form(view_param: :modo), view_param: :modo
+    )
+    assert(component)
+  end
+
+  def test_does_not_raise_on_a_custom_view_param_when_the_listing_has_no_grouping
+    # Sin agrupación declarada el modo de visualización no cambia ninguna decisión del form.
+    form = Bali::FilterForm.new(Movie.all, ActionController::Parameters.new(q: {}))
+    assert(Bali::DataTable::Component.new(url: "/movies", filter_form: form, view_param: :modo))
   end
 
   def test_explicit_preserved_params_do_not_drop_the_active_group_by
@@ -458,6 +526,17 @@ class BaliDataTableComponentTest < ComponentTestCase
       declare_views(c)
       c.with_table { '<div class="table-component"></div>'.html_safe }
     end
+  end
+
+  # El ColumnSelector no tiene test propio: su cobertura vive acá.
+  # La aserción negativa VA scopeada al `data-controller`: el propio ⋯ de la toolbar se pinta
+  # con `align: :bottom_end`, así que un `assert_no_selector('.dropdown-end')` pelado falla
+  # contra un `dropdown-end` que es correcto y tiene que quedarse.
+  def test_the_column_selector_popover_opens_to_the_left
+    render_collapsible_toolbar
+
+    assert_selector("[data-controller='column-selector'].dropdown", visible: :all)
+    assert_no_selector("[data-controller='column-selector'].dropdown-end", visible: :all)
   end
 
   def test_toolbar_declares_the_overflow_controller_and_a_home_group_per_family

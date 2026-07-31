@@ -123,9 +123,11 @@
         <% @movies.each do |movie| %>
           <%# `select_label:` da contexto de registro al checkbox de la fila: sin él, N filas
               dan N controles con el mismo nombre accesible. El valor del grupo tiene que
-              coincidir con una clave de group_counts; nil cuando la agrupación está apagada. %>
+              coincidir con una clave de group_counts; nil cuando la agrupación está apagada
+              O suspendida (de ahí `group_by_applied` y no `group_by`). %>
+          <% applied_group = @filter_form.group_by_applied %>
           <% table.with_row(record_id: movie.id, select_label: movie.name,
-                            group: @filter_form.group_by && movie.public_send(@filter_form.group_by)) do %>
+                            group: applied_group && movie.public_send(applied_group)) do %>
             <td class="font-medium">
               <%= render Bali::Link::Component.new(name: movie.name, href: admin_movie_path(movie)) %>
             </td>

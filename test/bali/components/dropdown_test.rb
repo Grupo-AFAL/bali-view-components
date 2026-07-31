@@ -44,6 +44,16 @@ class BaliDropdownComponentTest < ComponentTestCase
     assert_no_selector(".dropdown-end")
   end
 
+  # El chrome de un control de toolbar tenía que escribirse a mano en el call site porque el
+  # enum no lo nombraba: `button`, `icon` y `ghost`, ninguno con borde.
+  def test_trigger_outline_variant
+    render_inline(Bali::Dropdown::Component.new) do |c|
+      c.with_trigger(variant: :outline) { "Columns" }
+      c.with_item(href: "#") { "Item" }
+    end
+    assert_selector("[data-dropdown-target='trigger'].btn.btn-outline")
+  end
+
   def test_alignments_renders_top_alignment
     render_inline(Bali::Dropdown::Component.new(align: :top)) do |c|
       c.with_trigger { "Trigger" }

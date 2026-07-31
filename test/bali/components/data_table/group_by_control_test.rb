@@ -42,6 +42,23 @@ class BaliDataTableGroupByControlComponentTest < ComponentTestCase
     assert_selector("a[href*='group_by=status']")
   end
 
+  # El trigger comparte chrome con Filtros/Columnas/Vistas: `ghost` no tiene borde y entre
+  # dos vecinos con borde se leía como de otra familia.
+  def test_the_trigger_wears_the_same_outline_chrome_as_the_other_toolbar_controls
+    render_inline(component)
+
+    assert_selector("[data-dropdown-target='trigger'].btn.btn-outline.btn-sm")
+    assert_no_selector("[data-dropdown-target='trigger'].btn-ghost")
+  end
+
+  # El label mutante ES el marcador de estado (mismo criterio que Vistas guardadas), así que
+  # el chrome no puede cambiar entre agrupado y sin agrupar.
+  def test_the_active_trigger_keeps_the_same_chrome_and_only_the_label_changes
+    render_inline(component(active: true, group_by: :genre))
+
+    assert_selector("[data-dropdown-target='trigger'].btn.btn-outline", text: /Género/)
+  end
+
   def test_renders_no_grouping_option_that_removes_the_param
     render_inline(component(active: true, group_by: :genre))
     no_group = page.find("a", text: "No grouping")

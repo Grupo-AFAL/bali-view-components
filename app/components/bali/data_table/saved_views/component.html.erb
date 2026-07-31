@@ -1,4 +1,6 @@
-<div class="dropdown dropdown-end"
+<%# Sin `dropdown-end`: el control vive en el grupo IZQUIERDO de la toolbar, y anclado al
+    borde derecho de su trigger el panel abría hacia afuera de la fila a la que pertenece. %>
+<div class="dropdown"
      data-controller="saved-views"
      data-saved-views-table-value="<%= table_selector %>"
      data-saved-views-storage-key-value="<%= columns_storage_key %>"

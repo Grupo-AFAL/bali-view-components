@@ -5,11 +5,19 @@ module Bali
     # GroupByConfiguration provides DSL and methods for query-aware row grouping.
     #
     # Grouping is driven by a whitelisted top-level `group_by` param (NOT a
-    # `q[...]` Ransack predicate). When active it:
+    # `q[...]` Ransack predicate). When APPLIED (see {#group_by_applied}) it:
     #   1. orders the query by the group field FIRST (user column sorts become
     #      secondary, giving sort-within-groups), and
     #   2. exposes GLOBAL per-group counts over the full filtered (unpaginated)
     #      result via {#group_counts}.
+    #
+    # Tres preguntas distintas, tres predicados — confundirlos es EL bug de este módulo:
+    #   * ESTADO      — {#group_by} / {#group_by_active?}: ¿hay una agrupación elegida?
+    #     Manda la PRESERVACIÓN (hidden fields, caché, payload de vistas guardadas).
+    #   * MODO        — {#group_by_applies?}: ¿este modo de visualización aplica agrupación?
+    #     Manda la VISIBILIDAD del control.
+    #   * APLICACIÓN  — {#group_by_applied} / {#group_by_applied?}: ¿se está aplicando ahora?
+    #     Manda ordenamiento, conteos y bandas de grupo.
     #
     # Security boundary: the raw param NEVER reaches `.group()`/`.order()`.
     # {#resolve_group_by} returns the declared symbol only when the raw value
@@ -27,6 +35,12 @@ module Bali
     #
     module GroupByConfiguration
       extend ActiveSupport::Concern
+
+      # Modos de visualización en los que la agrupación se APLICA. Una tabla es la única
+      # superficie de filas contiguas donde una banda de grupo significa algo: en tarjetas o
+      # en una línea de tiempo el mismo ordenamiento actúa INVISIBLE, reacomodando el
+      # contenido sin que nada en pantalla lo explique.
+      DEFAULT_GROUP_BY_MODES = %i[table].freeze
 
       class_methods do
         # Storage for group_by attribute definitions
@@ -81,11 +95,51 @@ module Bali
         @group_by
       end
 
-      # Whether a valid group_by is currently active.
+      # Whether a valid group_by is currently active (ESTADO).
       #
       # @return [Boolean]
       def group_by_active?
         !@group_by.nil?
+      end
+
+      # ¿La agrupación APLICA en el modo de visualización actual? Pregunta sobre el MODO, no
+      # sobre el estado: es true en la tabla aunque nadie haya elegido agrupar. Sin modo en la
+      # URL (un listado sin view switch) aplica, que es el caso de la enorme mayoría.
+      #
+      # @return [Boolean]
+      def group_by_applies?
+        @display_mode.nil? || group_by_modes.include?(@display_mode)
+      end
+
+      # La agrupación que se está APLICANDO (o nil): manda ordenamiento, conteos y bandas.
+      # Fuera de un modo que la aplique es nil AUNQUE {#group_by} siga elegido — eso es la
+      # suspensión. Derivado y no `@group_by = nil` a propósito: el estado tiene que
+      # sobrevivir en la URL, en la caché de filtros y en el payload de una vista guardada.
+      #
+      # @return [Symbol, nil]
+      def group_by_applied
+        group_by_applies? ? @group_by : nil
+      end
+
+      # @return [Boolean]
+      def group_by_applied?
+        !group_by_applied.nil?
+      end
+
+      # Hay agrupación elegida pero este modo no la aplica. Azúcar para que el host pueda
+      # explicarlo ("Agrupado por Género — se aplica en la vista de tabla").
+      #
+      # @return [Boolean]
+      def group_by_suspended?
+        group_by_active? && !group_by_applies?
+      end
+
+      # Modos de visualización que aplican la agrupación, normalizados a símbolos.
+      #
+      # @return [Array<Symbol>]
+      def group_by_modes
+        @group_by_modes ||=
+          Array(@instance_group_by_modes.presence || DEFAULT_GROUP_BY_MODES).map(&:to_sym)
       end
 
       # Options for the "Agrupar por" UI control, labels resolved.
@@ -106,13 +160,13 @@ module Bali
       # with GROUP BY under strict SQL modes.
       #
       # Keys are whatever SQL returns (strings, enum labels, nil). Returns {}
-      # when grouping is inactive.
+      # when grouping is inactive OR suspended (ver {#group_by_applied}).
       #
       # @return [Hash] value => Integer count
       def group_counts
-        return {} unless group_by_active?
+        return {} unless group_by_applied?
 
-        @group_counts ||= result.unscope(:order).group(group_by).count
+        @group_counts ||= result.unscope(:order).group(group_by_applied).count
       end
 
       private
@@ -129,11 +183,15 @@ module Bali
       # Prepend the group field as the primary sort so rows cohere into groups,
       # keeping any user column sort as the secondary sort (sort-within-groups).
       # Ransack whitelists sort columns, so building the `s` array is safe.
+      #
+      # Gatea por APLICACIÓN y no por estado: en tarjetas este ordenamiento reacomodaría el
+      # contenido sin ninguna banda de grupo que lo explique.
       def apply_group_by_ordering(params)
-        return params unless group_by_active?
+        applied = group_by_applied
+        return params if applied.nil?
 
         existing_sort = Array(params["s"]).compact_blank
-        params["s"] = [ "#{group_by} asc", *existing_sort ]
+        params["s"] = [ "#{applied} asc", *existing_sort ]
         params
       end
 

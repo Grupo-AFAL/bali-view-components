@@ -630,6 +630,7 @@ Use `!important` overrides sparingly but intentionally:
 # DO NOT add `btn` classes - they break vertical alignment.
 VARIANTS = {
   button: 'btn',
+  outline: 'btn btn-outline',
   icon: 'btn btn-ghost btn-circle',
   ghost: 'btn btn-ghost',
   menu: 'flex items-center gap-1 cursor-pointer !bg-transparent hover:!bg-transparent',

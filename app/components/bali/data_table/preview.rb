@@ -98,9 +98,14 @@ module Bali
         # declararlos es lo que hace que el switch, el "agrupar por" y las vistas guardadas
         # sobrevivan al round-trip.
         def canonical_index_locals(view:, q:, page:, group_by:, saved_view:)
+          # `view` va TAMBIÉN adentro de los params del form: el FilterForm suspende la
+          # agrupación fuera de la tabla leyéndolo de ahí. Pasándolo solo como local
+          # `display_mode:` el form nunca ve el modo y la preview seguiría agrupando en
+          # tarjetas — o sea, dejaría de reproducir lo que hace un host real.
           filter_params = ActionController::Parameters.new(
             q: ActionController::Parameters.new(q),
             page: page,
+            view: view.presence,
             group_by: group_by.presence,
             saved_view: saved_view.presence
           )
@@ -364,7 +369,7 @@ module Bali
             filter_form: filter_form,
             pagy: pagy,
             movies: movies,
-            group_attribute: filter_form.group_by
+            group_attribute: filter_form.group_by_applied
           }
         )
       end

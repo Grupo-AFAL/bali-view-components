@@ -9,6 +9,7 @@ module Bali
       # ---------------
       # Dropdown with a list of items. Trigger supports multiple variants:
       # - `:button` (default) - Standard button
+      # - `:outline` - Bordered button (the toolbar control chrome)
       # - `:icon` - Ghost button with circle (for icon-only triggers)
       # - `:ghost` - Ghost button (transparent background)
       # - `:custom` - No base classes (fully customizable)
@@ -16,7 +17,7 @@ module Bali
       # @param close_on_click toggle
       # @param align [Symbol] select [left, right, top, bottom, top_end, bottom_end]
       # @param wide toggle
-      # @param trigger_variant [Symbol] select [button, icon, ghost, custom]
+      # @param trigger_variant [Symbol] select [button, outline, icon, ghost, custom]
       def default(hoverable: false, close_on_click: true, align: :right, wide: false, trigger_variant: :button)
         render_with_template(locals: {
           hoverable: hoverable,

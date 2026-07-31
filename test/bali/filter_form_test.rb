@@ -475,6 +475,20 @@ class BaliFilterFormPersistenceTest < ActiveSupport::TestCase
     assert_equal("genre", restored.group_by.to_s)
   end
 
+  def test_persists_the_group_by_even_while_it_is_suspended
+    # La suspensión fuera del modo tabla es un predicado DERIVADO, nunca `@group_by = nil`:
+    # anulando el ivar, entrar al listado en tarjetas envenenaba la caché con nil y volver a
+    # la tabla ya no encontraba la agrupación.
+    suspended = ActionController::Parameters.new(
+      q: { genre_eq: "action" }, group_by: "genre", view: "grid"
+    )
+    form = GroupableMovieFilterForm.new(Movie.all, suspended, storage_id: "movies")
+    assert(form.group_by_suspended?)
+
+    stored = Rails.cache.read(cache_key_for(GroupableMovieFilterForm))
+    assert_equal("genre", stored[:group_by].to_s)
+  end
+
   def test_clearing_the_search_does_not_restore_state_when_persistence_is_off
     # Con la persistencia apagada el usuario pidió que el server NO le devuelva estado:
     # limpiar la búsqueda no puede ser la puerta trasera por la que reaparecen filtros.
@@ -768,8 +782,12 @@ class BaliFilterFormGroupByTest < ActiveSupport::TestCase
     @tenant.movies.create(name: "Fargo", genre: "Drama", status: :draft)
   end
 
-  def group_params(group_by, q: {})
-    ActionController::Parameters.new(q: ActionController::Parameters.new(q), group_by: group_by)
+  # `view:` es el modo de visualización tal cual llega de la URL; `extra` deja escribir el
+  # param con otro nombre para los tests de `view_param:`.
+  def group_params(group_by, q: {}, view: nil, **extra)
+    ActionController::Parameters.new(
+      { q: ActionController::Parameters.new(q), group_by: group_by, view: view }.merge(extra)
+    )
   end
 
   # --- Whitelist / security boundary ---
@@ -857,6 +875,85 @@ class BaliFilterFormGroupByTest < ActiveSupport::TestCase
   def test_ransack_params_sort_unchanged_when_group_by_inactive
     form = GroupableMovieFilterForm.new(@tenant.movies, group_params(nil, q: { s: "name asc" }))
     assert_equal("name asc", form.ransack_params["s"])
+  end
+
+  # --- Suspensión fuera del modo tabla: el ESTADO sobrevive, la APLICACIÓN se apaga ---
+  #
+  # Una tabla es la única superficie donde una banda de grupo significa algo. En tarjetas el
+  # mismo ordenamiento reacomodaba el contenido sin que nada en pantalla lo explicara, así
+  # que ahí la agrupación se SUSPENDE — pero el param tiene que sobrevivir, o volver a la
+  # tabla ya no la encuentra.
+
+  def test_group_by_ordering_is_suspended_outside_table_mode
+    form = GroupableMovieFilterForm.new(
+      @tenant.movies, group_params("genre", q: { s: "name desc" }, view: "grid")
+    )
+
+    assert_equal("name desc", form.ransack_params["s"])
+    refute_match(/genre/i, form.result.to_sql[/ORDER BY(.*)\z/i, 1].to_s)
+  end
+
+  def test_group_counts_are_empty_when_grouping_is_suspended
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", view: "grid"))
+    assert_equal({}, form.group_counts)
+  end
+
+  def test_group_by_state_survives_suspension
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", view: "grid"))
+
+    # ESTADO: intacto — es lo que preserva el hidden field del form de filtros.
+    assert_equal(:genre, form.group_by)
+    assert(form.group_by_active?)
+    # MODO y APLICACIÓN: apagados.
+    refute(form.group_by_applies?)
+    assert_nil(form.group_by_applied)
+    refute(form.group_by_applied?)
+    assert(form.group_by_suspended?)
+  end
+
+  def test_group_by_applies_in_table_mode
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", view: "table"))
+
+    assert(form.group_by_applies?)
+    assert_equal(:genre, form.group_by_applied)
+    refute(form.group_by_suspended?)
+    assert_equal([ "genre asc" ], form.ransack_params["s"])
+    assert_equal({ "Action" => 3, "Comedy" => 2, "Drama" => 1 }, form.group_counts)
+  end
+
+  def test_group_by_applies_when_the_listing_has_no_view_switch
+    # El caso de la enorme mayoría de los listados: sin `?view=` en la URL no hay modo que
+    # pueda suspender nada.
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre"))
+
+    assert(form.group_by_applies?)
+    assert_equal(:genre, form.group_by_applied)
+  end
+
+  def test_group_by_modes_lets_the_host_declare_which_modes_apply_it
+    kanban = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", view: "kanban"),
+                                          group_by_modes: %i[table kanban])
+    assert(kanban.group_by_applied?)
+
+    grid = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", view: "grid"),
+                                        group_by_modes: %i[table kanban])
+    assert(grid.group_by_suspended?)
+  end
+
+  def test_view_param_selects_which_param_carries_the_display_mode
+    custom = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", modo: "grid"),
+                                          view_param: :modo)
+    assert(custom.group_by_suspended?)
+
+    # `view` dejó de ser el param que este form mira, así que no suspende nada.
+    ignored = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", view: "grid"),
+                                           view_param: :modo)
+    assert(ignored.group_by_applied?)
+  end
+
+  def test_a_view_saved_from_cards_still_carries_the_suspended_grouping
+    form = GroupableMovieFilterForm.new(@tenant.movies, group_params("genre", view: "grid"))
+    assert_equal(:genre, form.current_view_payload["group_by"])
   end
 
   # --- Options / configuration ---

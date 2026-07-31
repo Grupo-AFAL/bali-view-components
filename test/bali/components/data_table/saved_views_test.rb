@@ -32,6 +32,15 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
     assert_no_selector "[data-controller='saved-views']"
   end
 
+  def test_the_popover_opens_to_the_left_now_that_the_control_lives_on_the_left
+    # Anclado al borde derecho de su trigger (`dropdown-end`) el panel abría hacia afuera de
+    # la fila a la que pertenece, desde que el control se mudó al grupo izquierdo.
+    render_component(form)
+
+    assert_selector "[data-controller='saved-views'].dropdown"
+    assert_no_selector "[data-controller='saved-views'].dropdown-end"
+  end
+
   def test_renders_personal_views_with_apply_urls_and_the_save_form
     render_component(form)
 

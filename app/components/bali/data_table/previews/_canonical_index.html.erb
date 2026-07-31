@@ -137,11 +137,13 @@
 
         <% movies.each do |movie| %>
           <%# El valor del grupo tiene que coincidir con una clave de group_counts (el enum
-              o el string crudo); nil cuando la agrupación está apagada. %>
+              o el string crudo); nil cuando la agrupación está apagada O suspendida fuera de
+              la tabla (de ahí `group_by_applied` y no `group_by`). %>
           <%# `select_label:` da contexto de registro al checkbox de la fila: sin él, N filas
               dan N controles con el mismo nombre accesible ("Select row"). %>
+          <% applied_group = filter_form.group_by_applied %>
           <%= t.with_row(record_id: movie.id, select_label: movie.name,
-                         group: filter_form.group_by && movie.public_send(filter_form.group_by)) do %>
+                         group: applied_group && movie.public_send(applied_group)) do %>
             <td class="font-medium"><%= movie.name %></td>
             <td><%= render Bali::Tag::Component.new(text: movie.genre, style: :outline, size: :sm) %></td>
             <td class="text-sm text-base-content/70"><%= movie.studio&.name %></td>

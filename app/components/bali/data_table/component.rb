@@ -202,6 +202,11 @@ module Bali
         "(with_table / with_grid / with_content). Para alternar entre modos, elige " \
         "cuál declaras con un if sobre display_mode."
 
+      VIEW_PARAM_MISMATCH_MESSAGE = "El DataTable lee el modo de visualización de `%s` y el " \
+        "FilterForm de `%s`. Desincronizados, la agrupación se suspende mirando un param que " \
+        "el view switch nunca escribe (o se sigue aplicando en tarjetas). Pasá el mismo " \
+        "`view_param:` a los dos."
+
       # Banda de contenido. La SUPERFICIE la decide el slot, no el host: `with_table` la
       # trae (una tabla necesita fondo propio), `with_grid` no (las tarjetas YA son la
       # superficie). El slot no puede llamarse `content` —ViewComponent lo reserva—, de
@@ -317,12 +322,13 @@ module Bali
         # (`?view[]=x`) no responde a `to_sym`. El valor se valida después contra las vistas
         # declaradas (ver #display_mode); acá solo se normaliza sin reventar.
         @display_mode = (options[:display_mode].to_s.presence || "table").to_sym
-        @view_param = (options[:view_param] || :view).to_sym
+        @view_param = (options[:view_param] || Bali::FilterForm::DEFAULT_VIEW_PARAM).to_sym
         # Solo un host que DECLARÓ el modo tiene un `view` que preservar; el default no se
         # escribe en la URL de un listado que ni siquiera tiene view switch.
         @display_mode_declared = options[:display_mode].present?
         @content_declared = false
         @listing_id, @stable_id = resolve_listing_id(options[:id])
+        validate_view_param!
       end
 
       # Modo de visualización YA validado contra las vistas declaradas: un `?view=`
@@ -498,10 +504,20 @@ module Bali
         I18n.t("view_components.bali.data_table.toolbar_overflow.button_label")
       end
 
-      # Whether the "Agrupar por" control should render — true when the filter
-      # form declares any group_by attribute. Auto-rendered (no explicit slot).
+      # Whether the "Agrupar por" control should render — true when the filter form declares
+      # any group_by attribute AND la agrupación aplica en este modo de visualización.
+      # Auto-rendered (no explicit slot).
+      #
+      # Fuera de la tabla el control se ESCONDE: ofrecer una agrupación que no va a pasar
+      # nada es peor que no ofrecerla. La condición la resuelve el FORM
+      # (FilterForm#group_by_applies?) y no el componente — re-derivarla acá era la segunda
+      # copia de la misma regla, y las dos copias se desalinean. `respond_to?` con fallback a
+      # "aplica": un filter_form ajeno no puede perder su control por no conocer la API nueva.
       def group_by_control?
-        @filter_form.respond_to?(:group_by_options) && @filter_form.group_by_options.present?
+        return false unless @filter_form.respond_to?(:group_by_options) &&
+                            @filter_form.group_by_options.present?
+
+        !@filter_form.respond_to?(:group_by_applies?) || @filter_form.group_by_applies?
       end
 
       # The auto-configured group_by control component.
@@ -664,10 +680,27 @@ module Bali
 
       # group_by param to preserve as a hidden field on GET filter forms, so
       # applying filters/search does not drop an active grouping.
+      #
+      # `group_by_active?` (ESTADO) y NO `group_by_applied?` (APLICACIÓN) a propósito: en
+      # tarjetas la agrupación está suspendida pero el param TIENE que seguir viajando — si
+      # no, buscar algo estando en tarjetas la borra y volver a la tabla ya no la encuentra.
       def group_by_preserved_params
         return {} unless @filter_form.respond_to?(:group_by_active?) && @filter_form.group_by_active?
 
         { "group_by" => @filter_form.group_by.to_s }
+      end
+
+      # Falla temprano: con los dos params desincronizados no hay NADA visible que lo delate
+      # — la tabla se ve igual y la suspensión decide al revés. Solo importa si el listado
+      # declara agrupación; sin ella el modo de visualización no cambia ninguna decisión.
+      def validate_view_param!
+        return unless @filter_form.respond_to?(:view_param) &&
+                      @filter_form.respond_to?(:group_by_enabled?) &&
+                      @filter_form.group_by_enabled? &&
+                      @filter_form.view_param != @view_param
+
+        raise ArgumentError,
+              format(VIEW_PARAM_MISMATCH_MESSAGE, @view_param, @filter_form.view_param)
       end
 
       def item_name

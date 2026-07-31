@@ -108,11 +108,12 @@
             <%# Sin la clase `.menu` de daisyUI el contenedor ya no impone display:grid +
                 padding + hover a sus hijos, así que las utilidades van sin `!`.
 
-                Los dropdowns que caen acá (columnas, export, vistas) son `.dropdown-end`
-                con contenido ABSOLUTO: anidados se posicionan contra este contenedor y se
-                salen del viewport (medido: left -115px en un teléfono de 375px). En flujo
-                quedan como secciones apiladas, que es lo razonable en un teléfono. Cerrados
-                siguen siendo `display:none`, así que no dejan huecos. %>
+                Los dropdowns que caen acá (columnas, vistas, agrupar) tienen contenido
+                ABSOLUTO: anidados se posicionan contra este contenedor y se salen del
+                viewport (medido: left -115px en un teléfono de 375px, cuando además eran
+                `.dropdown-end`). En flujo quedan como secciones apiladas, que es lo
+                razonable en un teléfono. Cerrados siguen siendo `display:none`, así que no
+                dejan huecos. %>
             <div class="toolbar-overflow-menu
                         flex flex-col items-stretch gap-2 w-full p-1
                         max-w-[calc(100vw-3rem)] max-h-[70vh] overflow-y-auto

@@ -87,6 +87,16 @@ class KitchenSinkDemoPagesTest < ActionDispatch::IntegrationTest
     assert_select "tr.bali-table-group-row"
   end
 
+  def test_admin_movies_suspends_grouping_in_grid_mode_without_dropping_the_param
+    # La agrupación solo aplica en la tabla: en tarjetas no hay banda de grupo que explique
+    # el reordenamiento. El param igual tiene que viajar en el form de filtros, o buscar algo
+    # desde tarjetas la borra.
+    get admin_movies_path, params: { group_by: "status", view: "grid" }
+    assert_response :ok
+    assert_select "tr.bali-table-group-row", count: 0
+    assert_select "input[name=group_by][value=status]"
+  end
+
   def test_movies_get_movies_id_renders_the_show_page_successfully
     get movie_path(movie)
     assert_response :ok

@@ -728,13 +728,45 @@ Bali::FilterForm.new(Movie.all, params, group_by_attributes: [:genre, :status])
 `group_by` is a **whitelisted top-level param** (not a `q[...]` predicate). The
 raw value only takes effect when it matches a declared attribute — anything else
 is ignored, so it can never reach `.group()`/`.order()` (Ransack does not
-authorize `.group`). When active, the form:
+authorize `.group`). When **applied**, the form:
 
 - orders the query by the group field **first**, keeping any user column sort as
   the **secondary** sort — so column sorting and grouping now coexist
   (sort-within-groups); and
 - exposes `group_counts`, the **global** per-group totals over the full filtered
   (unpaginated) result.
+
+##### State vs. application (three predicates, three questions)
+
+Grouping only **applies in table mode**: a table is the only surface of
+contiguous rows where a group band means something. In cards or a timeline the
+same ordering would rearrange the content invisibly, with nothing on screen to
+explain it. So outside a grouping mode the control **hides**, the grouping is
+**suspended** — and the `group_by` param **survives** in the URL and in the
+hidden fields of the filter forms, so switching back to the table finds the
+grouping exactly as it was left.
+
+| Question | API | Governs |
+|----------|-----|---------|
+| Is a grouping **chosen**? (state) | `group_by`, `group_by_active?` | Preservation: hidden fields, filters cache, saved-view payload |
+| Does this display mode **apply** grouping? (mode) | `group_by_applies?` | Visibility of the "Group by" control |
+| Is it **being applied** right now? | `group_by_applied`, `group_by_applied?` | Ordering, `group_counts`, the `group:` value of each row |
+| Chosen but not applied here | `group_by_suspended?` | Sugar for a "grouped by Genre — applies in table view" hint |
+
+Use `group_by_applied` (not `group_by`) wherever you paint the grouping, and
+never null out `group_by` yourself to suspend it: the state has to survive.
+
+Two options tune it:
+
+- `group_by_modes:` — display modes that apply grouping (default `[:table]`).
+- `view_param:` — the URL param carrying the display mode (default `:view`).
+  It must be the **same** one you give the DataTable; a DataTable whose
+  `view_param:` disagrees with its form raises `ArgumentError` at build time,
+  because desynced there is nothing visible to give the bug away.
+
+Known limit: an invalid `?view=` (hand-typed) makes the DataTable fall back to
+the first declared view while the form suspends — a table with no bands. The
+state survives and the next click fixes it.
 
 Wire it into the view — `DataTable` auto-renders the "Agrupar por" control
 whenever the form declares group_by attributes, and the `Table` shows global
@@ -748,7 +780,8 @@ counts when you pass `group_counts:`:
       <%= t.with_header(name: "Name", sort: :name) %>
       <%= t.with_header(name: "Genre", sort: :genre) %>
       <% @movies.each do |movie| %>
-        <%= t.with_row(group: @filter_form.group_by && movie.public_send(@filter_form.group_by)) do %>
+        <% applied = @filter_form.group_by_applied %>
+        <%= t.with_row(group: applied && movie.public_send(applied)) do %>
           <td><%= movie.name %></td>
           <td><%= movie.genre %></td>
         <% end %>
@@ -767,9 +800,10 @@ Constraints:
 - **Do not `.reorder` the relation after `result`** when grouping — it drops the
   group-first ordering and rows stop cohering into groups. Let the form own the
   order.
-- **`group_by` is not persisted** in the FilterForm filters cache. It lives only
-  in the URL (the "Agrupar por" links carry it, and the filter forms round-trip
-  it as a hidden field), so it resets when the URL does.
+- **`group_by` travels with the state, always.** The "Agrupar por" links carry
+  it, the filter forms round-trip it as a hidden field, the filters cache stores
+  it and a saved view records it — including while it is suspended in card mode.
+  Suspension is a derived predicate, never `@group_by = nil`.
 
 #### Avatar
 
