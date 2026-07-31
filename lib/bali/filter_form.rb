@@ -445,10 +445,28 @@ module Bali
     # for its grouping structure. Ransack performs its own attribute authorization
     # via `ransackable_attributes` / `ransackable_associations` on the model,
     # so arbitrary keys are rejected at the Ransack layer, not here.
+    #
+    # Cada grupo tiene que ser un hash y `g` puede llegar de cualquier forma: `q[g][]` (la
+    # forma de ARRAY, que Ransack acepta y Bali no emite) reventaba con un NoMethodError sobre
+    # `to_unsafe_h`, y un grupo escalar (`q[g][0]=x`) llegaba entero hasta Ransack para reventar
+    # ahí — un 500 en cualquier index desde una URL a mano. Se normaliza a la forma indexada
+    # que habla el resto de Bali (filter_groups, el payload de una vista guardada, EnumCasting),
+    # así que la forma de array también PASA por la traducción de enums en vez de esquivarla en
+    # silencio y devolver los registros contrarios.
     def extract_groupings(q_params)
-      return nil if q_params[:g].blank?
+      groupings = q_params[:g]
+      return nil if groupings.blank?
 
-      q_params[:g].to_unsafe_h
+      groups = unwrap_params(groupings)
+      groups = groups.each_with_index.to_h { |group, index| [ index.to_s, group ] } if groups.is_a?(Array)
+      return nil unless groups.is_a?(Hash)
+
+      groups.transform_values { |group| unwrap_params(group) }
+            .select { |_index, group| group.is_a?(Hash) }.presence
+    end
+
+    def unwrap_params(value)
+      value.respond_to?(:to_unsafe_h) ? value.to_unsafe_h : value
     end
 
     # Persist or restore complete filter state including groupings, combinator, and search.
@@ -497,30 +515,40 @@ module Bali
         end
       elsif @persist_enabled
         # No filters in URL and persistence enabled → restore from cache
-        stored = Rails.cache.fetch(cache_key)
-        if stored.is_a?(Hash) && stored[:attributes]
+        stored = normalize_stored_state(Rails.cache.fetch(cache_key))
+        if @group_by_requested
           # La URL manda, igual que con una vista guardada (ver #apply_saved_view_state).
           # Elegir una agrupación llega SOLO como `?group_by=` —los filtros viven en la caché,
           # así que la URL no los lleva y este branch es el que corre—, y restaurar acá pisaba
           # el click recién hecho con la agrupación vieja: el control no hacía nada, y el
-          # viaje tarjetas↔tabla perdía la agrupación en el camino.
-          @group_by = resolve_group_by(stored[:group_by]) if stored.key?(:group_by) && !@group_by_requested
-          [
-            stored[:attributes] || {},
-            stored[:groupings],
-            stored[:combinator],
-            stored[:search_value]
-          ]
-        else
-          # Legacy format (just attributes) or empty
-          [ stored || {}, nil, nil, nil ]
+          # viaje tarjetas↔tabla perdía la agrupación en el camino. Se GUARDA además de
+          # renderizarse: sin escribirla, el mismo render salía bien y el próximo request sin
+          # el param resucitaba la agrupación vieja — el mismo síntoma, corrido un request.
+          Rails.cache.write(cache_key, stored.merge(group_by: @group_by))
+        elsif stored.key?(:group_by)
+          @group_by = resolve_group_by(stored[:group_by])
         end
+        [
+          stored[:attributes] || {},
+          stored[:groupings],
+          stored[:combinator],
+          stored[:search_value]
+        ]
       else
         # Persistence not enabled → don't restore, return empty
         [ {}, nil, nil, nil ]
       end
     end
     # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
+
+    # Formato viejo de la caché: solo los atributos, sin las llaves del estado completo. Se
+    # normaliza en la entrada para que el resto del branch hable una sola forma — restaurar y
+    # volver a escribir tienen que ver el MISMO hash o la caché termina contando otra historia.
+    def normalize_stored_state(stored)
+      return stored if stored.is_a?(Hash) && stored[:attributes]
+
+      { attributes: stored || {} }
+    end
 
     def array_predicates
       %w[_any _all _not_in _in]

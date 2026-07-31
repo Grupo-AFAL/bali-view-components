@@ -23,6 +23,9 @@ module Admin
         # por `Bali.saved_views_owner` (ver config/initializers/bali.rb).
         saved_views_store: :default,
         saved_views_owner: current_user,
+        # Sin `context:` la caché de persistencia es UNA sola para todo el proceso (ver
+        # ApplicationController#filter_context): dos visitantes se pisan los filtros.
+        context: filter_context,
         persist_enabled: cookies['bali_persist_admin_movies'] == '1'
       )
       @pagy, @movies = pagy(@filter_form.result.includes(:studio), items: 10)

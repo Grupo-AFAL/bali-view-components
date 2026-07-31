@@ -137,3 +137,55 @@ class KitchenSinkDemoPagesTest < ActionDispatch::IntegrationTest
     assert_response :ok
   end
 end
+
+# La persistencia de filtros solo existe completa a través de un REQUEST: cookie →
+# `persist_enabled:` → restaurar → listado renderizado. Nada la recorría, y el tramo que la
+# apagaba entera (el cache store del dummy) no lo cubría ningún test.
+class KitchenSinkFilterPersistenceTest < ActionDispatch::IntegrationTest
+  # El env de test corre con `:null_store`, donde toda escritura se pierde y toda lectura es
+  # nil: un test de persistencia ahí pasa sin afirmar nada. Se cambia el store SOLO acá —
+  # acoplar la suite entera a una caché global es justo lo que esto existe para no hacer.
+  def setup
+    @original_cache = Rails.cache
+    Rails.cache = ActiveSupport::Cache::MemoryStore.new
+    @tenant = Tenant.create!(name: "Test Studio")
+    @draft = @tenant.movies.create!(name: "Película Borrador", status: 0)
+    @done = @tenant.movies.create!(name: "Película Terminada", status: 1)
+  end
+
+  def teardown
+    Rails.cache = @original_cache
+  end
+
+  def filtered_params
+    { q: { g: { "0" => { status_in: [ "done" ], m: "and" } } } }
+  end
+
+  def test_the_listing_restores_the_filters_of_the_previous_visit
+    cookies["bali_persist_admin_movies"] = "1"
+    get admin_movies_path, params: filtered_params
+    assert_select "tbody tr", 1
+
+    get admin_movies_path
+    assert_response :ok
+    assert_select "tbody tr", 1
+    assert_select "tbody tr", text: /#{@done.name}/
+  end
+
+  # La caché se llama `class;context;storage_id`: sin `context:` un único key sirve a TODAS las
+  # visitas del proceso y los filtros de uno se le restauran al siguiente. Con `:null_store`
+  # esto no se veía porque no se guardaba nada.
+  def test_a_visitor_does_not_restore_another_visitors_filters
+    filtering = open_session
+    filtering.cookies["bali_persist_admin_movies"] = "1"
+    filtering.get admin_movies_path, params: filtered_params
+    assert_not_includes filtering.response.body, @draft.name
+
+    arriving = open_session
+    arriving.cookies["bali_persist_admin_movies"] = "1"
+    arriving.get admin_movies_path
+
+    assert_includes arriving.response.body, @draft.name
+    assert_includes arriving.response.body, @done.name
+  end
+end

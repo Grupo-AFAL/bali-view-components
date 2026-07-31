@@ -21,6 +21,7 @@ saved views included; the only family it leaves out is host toolbar buttons.
   params,
   search_fields: %i[name genre studio_name], # quick search across these columns
   storage_id: 'admin_movies',                # THE listing identity (see below)
+  context: current_user.id,                  # scopes persisted filters to this user
   group_by_attributes: %i[genre status],     # enables the "Group by" control
   saved_views_store: :default,               # enables the "Views" dropdown
   saved_views_owner: current_user
@@ -171,9 +172,16 @@ status code.
 
 A `filter_attribute type: :select` over a Rails enum can use the enum LABELS as its option
 values (`Movie.statuses.keys`) — Bali translates label to value before the params reach
-Ransack, which otherwise casts with the raw column type and turns `"done"` into `0`. The
-translation covers the model's OWN enums only (not association paths like `studio_status_eq`)
-and only the four operators the select UI offers (`eq`, `not_eq`, `in`, `not_in`).
+Ransack, which otherwise casts with the raw column type and turns `"done"` into `0`. Only the
+four operators the select UI offers are translated (`eq`, `not_eq`, `in`, `not_in`); a value
+that is neither a label nor a raw code matches nothing rather than silently becoming the FIRST
+member, so the option values must be the exact `Movie.statuses.keys` strings — `"Done"` is not
+`"done"`.
+
+**Warning — association enums are NOT translated.** `filter_attribute :studio_status` (any
+Ransack association path) skips the translation, so a select built on its labels returns the
+OPPOSITE records, silently. Declare those options with the raw values
+(`Studio.statuses.map { |label, value| [label.humanize, value] }`) until this is covered.
 
 ## FilterForm Architecture
 
@@ -212,17 +220,24 @@ FilterForm is organized into focused concerns for maintainability:
 | `display_mode` | `Symbol` | `nil` | The mode the listing RENDERS, for when the URL cannot say it. Only needed when the first declared view is not a grouping mode: without `?view=` the form would assume grouping applies and sort the cards by group. Pass what the DataTable gets (`params[:view] \|\| :grid`) |
 | `saved_views_store` | `Symbol, Object` | `nil` | `:default` for the engine store, or any object answering `list/find/save/delete`; enables the "Views" dropdown |
 | `saved_views_owner` | `Object` | `nil` | Owner the saved views are scoped to (typically `current_user`) |
-| `context` | `String` | `nil` | Context for cache key namespacing |
+| `context` | `String` | `nil` | Namespaces the persistence cache key. **Omitting it makes the persisted state process-global** — see below |
 | `search_fields` | `Array<Symbol>` | `nil` | Fields for quick text search |
 | `search_placeholder` | `String` | `nil` | Placeholder text for search input |
 | `persist_enabled` | `Boolean` | `false` | Whether to restore persisted filters. **Needs a real `Rails.cache`** — see below |
 | `clear_filters` | `Boolean` | `false` | Clear all persisted filters (via params) |
 | `clear_search` | `Boolean` | `false` | Clear only persisted search (via params) |
 
-### Filter persistence needs a real cache store
+### Filter persistence needs a real cache store — and a `context:`
 
 Persisted filters live in `Rails.cache` (`FilterForm#fetch_stored_filter_state`), keyed by
-`storage_id`. Under `:null_store` every write silently succeeds and every read returns `nil`,
+`"#{form_class};#{context};#{storage_id}"`. **`context:` is what makes that key per-user**:
+without it the key is the same for every request the process serves, so one visitor's filters
+and quick-search text are restored for the next one. Pass `current_user.id` (or a session
+token when the listing is public). Note the state is written whenever filters are submitted,
+even with `persist_enabled: false` — so a user who never turned persistence on still writes to
+that shared key.
+
+Under `:null_store` every write silently succeeds and every read returns `nil`,
 so the feature does nothing and looks like a bug in Bali: apply filters, navigate away, come
 back, nothing restored. Rails' generated `development.rb` defaults to `:null_store` unless
 `tmp/caching-dev.txt` exists, so this is the normal state of a fresh app, not an exotic one.

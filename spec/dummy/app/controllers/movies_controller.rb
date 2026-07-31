@@ -17,6 +17,9 @@ class MoviesController < ApplicationController
       # Ransack, y un campo inválido tira el predicado combinado ENTERO en silencio.
       search_fields: %i[name genre studio_name],
       storage_id: 'movies',
+      # Sin `context:` la caché de persistencia es UNA sola para todo el proceso (ver
+      # ApplicationController#filter_context): dos visitantes se pisan los filtros.
+      context: filter_context,
       persist_enabled: cookies['bali_persist_movies'] == '1'
     )
 
