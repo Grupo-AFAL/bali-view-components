@@ -215,9 +215,18 @@ FilterForm is organized into focused concerns for maintainability:
 | `context` | `String` | `nil` | Context for cache key namespacing |
 | `search_fields` | `Array<Symbol>` | `nil` | Fields for quick text search |
 | `search_placeholder` | `String` | `nil` | Placeholder text for search input |
-| `persist_enabled` | `Boolean` | `false` | Whether to restore persisted filters |
+| `persist_enabled` | `Boolean` | `false` | Whether to restore persisted filters. **Needs a real `Rails.cache`** — see below |
 | `clear_filters` | `Boolean` | `false` | Clear all persisted filters (via params) |
 | `clear_search` | `Boolean` | `false` | Clear only persisted search (via params) |
+
+### Filter persistence needs a real cache store
+
+Persisted filters live in `Rails.cache` (`FilterForm#fetch_stored_filter_state`), keyed by
+`storage_id`. Under `:null_store` every write silently succeeds and every read returns `nil`,
+so the feature does nothing and looks like a bug in Bali: apply filters, navigate away, come
+back, nothing restored. Rails' generated `development.rb` defaults to `:null_store` unless
+`tmp/caching-dev.txt` exists, so this is the normal state of a fresh app, not an exotic one.
+Check `Rails.cache.class` before debugging a persistence report.
 
 ## DataTable Auto-Configuration
 

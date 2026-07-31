@@ -1769,7 +1769,10 @@ Advanced filter controls for data tables with Ransack integration.
 - Filter persistence with bookmark toggle. Inside a `DataTable` the bookmark is painted
   by the toolbar as its own control and the panel receives `persistence_toggle: false`:
   two `filter-persistence` controllers over one `storage_id` fight over localStorage and
-  the cookie. The panel's "Auto-saved" hint does not depend on the toggle.
+  the cookie. The panel's "Auto-saved" hint does not depend on the toggle. Persistence
+  reads and writes `Rails.cache`, so it needs a real cache store: under `:null_store` —
+  which is what a generated `development.rb` uses unless `tmp/caching-dev.txt` exists —
+  every write is silently dropped and nothing is ever restored.
 - Date range "between" operator with Flatpickr
 
 **Modes:**
