@@ -149,7 +149,12 @@ describe('DataTable toolbar overflow', () => {
     cy.viewport(375, 667)
     cy.visit('/bali/data_table/complete')
 
-    cy.get(`${overflow} [data-dropdown-target="trigger"]`).focus()
+    // El ⋯ ES un dropdown Y CONTIENE dropdowns: angosto, el overflow le mete adentro Columnas
+    // y Vistas, que traen su propio trigger. El descendiente pelado matcheaba los tres y
+    // `cy.focus()` no acepta más de un elemento. El del ⋯ es el que NO vive dentro del menú.
+    cy.get(`${overflow} [data-dropdown-target="trigger"]`)
+      .not(`${menu} [data-dropdown-target="trigger"]`)
+      .focus()
     cy.focused().should('have.attr', 'aria-label')
 
     cy.viewport(1440, 800)

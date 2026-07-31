@@ -20,7 +20,11 @@ module Bali
 
         def call
           if @sort_attribute.present? && @form.blank?
-            raise MissingFilterForm, "FilterForm is required for sorting"
+            # CALIFICADO a propósito: `MissingFilterForm` vive en `Bali::Table::Component`, que NO
+            # es padre léxico de esta clase (`Header::Component` → `Header` → `Table` → `Bali`).
+            # Sin calificar, este raise levantaba un NameError en vez del error documentado —
+            # nunca se notó porque ningún test ejercitaba el guard hasta ahora.
+            raise Bali::Table::Component::MissingFilterForm, "FilterForm is required for sorting"
           end
 
           if sortable?
