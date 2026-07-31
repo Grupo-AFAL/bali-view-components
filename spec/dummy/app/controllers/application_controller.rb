@@ -5,7 +5,16 @@ class ApplicationController < ActionController::Base
 
   around_action :switch_locale
 
+  helper_method :current_user
+
   private
+
+  # Identidad única del demo, la misma que resuelve `Bali.saved_views_owner` para el
+  # controller del engine: el dueño de las vistas guardadas y el nombre del topbar son el
+  # mismo hecho, escrito una vez.
+  def current_user
+    @current_user ||= User.demo
+  end
 
   def switch_locale(&)
     # Check for locale param (for switching), then session, then default

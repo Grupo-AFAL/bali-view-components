@@ -12,15 +12,14 @@ The `Bali::FilterForm`, `Bali::DataTable`, and `Bali::Filters` components work t
 This is the composition to copy. It is rendered live as `bali/index_page/complete` in
 Lookbook — the only place where all seven control families are on at once. `/admin/movies`
 in the dummy app is the same composition against real controllers, routes and Turbo Streams,
-minus saved views (they need an owner the dummy has no concept of) and host toolbar
-buttons.
+saved views included; the only family it leaves out is host toolbar buttons.
 
 ```ruby
 # Controller
 @filter_form = Bali::FilterForm.new(
   Movie.all,
   params,
-  search_fields: %i[name genre tenant_name], # quick search across these columns
+  search_fields: %i[name genre studio_name], # quick search across these columns
   storage_id: 'admin_movies',                # THE listing identity (see below)
   group_by_attributes: %i[genre status],     # enables the "Group by" control
   saved_views_store: :default,               # enables the "Views" dropdown
@@ -136,7 +135,7 @@ For reusable filter forms, use the class-level DSL:
 ```ruby
 class MoviesFilterForm < Bali::FilterForm
   # Quick search across multiple columns
-  search_fields :name, :genre, :tenant_name
+  search_fields :name, :genre, :studio_name
 
   # Filterable attributes for advanced filters UI
   filter_attribute :name, type: :text
@@ -150,6 +149,14 @@ class MoviesFilterForm < Bali::FilterForm
   attribute :genre_eq
 end
 ```
+
+**Every field here is a Ransack path, and a wrong one fails silently.** An association is
+reached by its Ransack name (`studio_name` for `belongs_to :studio`), never by a Ruby
+`alias_method` — Ransack does not see those. Because `search_fields` compiles into ONE
+combined predicate (`name_or_genre_or_studio_name_cont`), a single unreachable field makes
+Ransack drop the whole condition without raising: the search returns 200 and every row. The
+same rule applies to `with_header(sort:)` on the table. Assert on the result SET, not the
+status code.
 
 ## FilterForm Architecture
 

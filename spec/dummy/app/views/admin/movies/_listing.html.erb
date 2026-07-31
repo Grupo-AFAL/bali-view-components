@@ -26,6 +26,11 @@
     <% switch.with_view(name: t('movies.views.timeline'), icon: 'calendar', value: :timeline) %>
   <% end %>
 
+  <%# Vistas guardadas: combinaciones de filtros CON NOMBRE. Sin `url:` apunta a las rutas
+      del engine montado (/bali), que es la adopción de una línea que documenta la guía; el
+      store y el dueño los trae el FilterForm. %>
+  <% data_table.with_saved_views %>
+
   <%# El selector de columnas solo tiene sentido sobre la tabla: las tarjetas y la línea de
       tiempo no tienen columnas que esconder. La 0 es la de selección, que pinta el propio
       componente, por eso la lista arranca en 1. %>
@@ -108,7 +113,9 @@
         <% table.with_header(name: t('movies.columns.name'), sort: :name) %>
         <% table.with_header(name: t('movies.columns.genre'), sort: :genre) %>
         <% table.with_header(name: t('movies.columns.status'), sort: :status) %>
-        <% table.with_header(name: t('movies.columns.studio')) %>
+        <%# `studio_name` es el camino Ransack por la asociación (`belongs_to :studio`), no
+            el alias `tenant`, que Ransack no puede ver. %>
+        <% table.with_header(name: t('movies.columns.studio'), sort: :studio_name) %>
         <% table.with_header(name: t('movies.columns.indie'), sort: :indie, class: 'text-center') %>
         <% table.with_header(name: t('movies.columns.created'), sort: :created_at) %>
         <% table.with_header(name: '', class: 'w-12') %>

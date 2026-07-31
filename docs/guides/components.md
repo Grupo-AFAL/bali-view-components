@@ -626,6 +626,18 @@ Data table with optional sorting and pagination.
 <% end %>
 ```
 
+**Sorting** — `sort:` needs a `form:` (a `Bali::FilterForm`); without one the header raises
+`Bali::Table::Component::MissingFilterForm`. The value is a **Ransack** attribute, so
+sorting through an association takes its path, not the column: `sort: :studio_name` for a
+`belongs_to :studio`, never the name of a Ruby `alias_method` — Ransack cannot see those and
+drops the sort in silence.
+
+Every sortable column paints a dimmed double chevron that brightens on hover and on keyboard
+focus, so a sortable header is distinguishable from a fixed one before it is clicked; the
+active one shows a single chevron in the sort direction. The `<th>` carries `aria-sort`
+(`ascending` / `descending` / `none`), which is what announces the state — the indicator is
+`aria-hidden`. Headers without `sort:` get no `aria-sort` and no indicator.
+
 **Row selection** — `selectable: true` renders the checkbox column plus a select-all
 header, wired to the `bulk-actions` Stimulus controller. Every row needs a `record_id:`
 (missing one raises `Bali::Table::Row::Component::IncompatibleOptions`), and the `<tr>`

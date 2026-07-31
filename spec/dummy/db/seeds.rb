@@ -206,4 +206,10 @@ tasks_data.each do |data|
 end
 
 puts "Created #{Project.count} projects with #{Task.count} tasks"
+
+# Dueño de las vistas guardadas: el dummy no autentica, hay un solo usuario y es el que
+# nombra el topbar.
+User.demo
+puts "Demo user: #{User::DEMO_NAME}"
+
 puts "Seed data complete!"

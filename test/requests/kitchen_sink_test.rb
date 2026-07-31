@@ -54,6 +54,33 @@ class KitchenSinkDemoPagesTest < ActionDispatch::IntegrationTest
     assert_select ".gantt-chart-component"
   end
 
+  # La página de referencia tiene que ejercitar TODA la familia de controles: sin dueño el
+  # store no se resuelve y el dropdown desaparece sin romper nada.
+  def test_admin_movies_renders_the_saved_views_dropdown
+    get admin_movies_path
+    assert_response :ok
+    assert_select "[data-controller~='saved-views']"
+  end
+
+  # Ransack descarta un predicado combinado ENTERO cuando uno de sus campos no es
+  # ransackable, sin levantar nada: la búsqueda respondía 200 y devolvía todo. Por eso la
+  # aserción es sobre el SET, no sobre el status.
+  def test_admin_movies_quick_search_narrows_the_result_set
+    other = Tenant.create!(name: "Otro Estudio")
+    other.movies.create!(name: "Otra Película", status: 0)
+
+    get admin_movies_path, params: { q: { name_or_genre_or_studio_name_cont: "Test Studio" } }
+    assert_response :ok
+    assert_select "tbody tr", 1
+    assert_select "tbody tr", text: /Otra Película/, count: 0
+  end
+
+  def test_admin_movies_sorts_by_the_studio_association
+    get admin_movies_path, params: { q: { s: "studio_name asc" } }
+    assert_response :ok
+    assert_select "th[aria-sort='ascending']", text: /Studio/
+  end
+
   def test_admin_movies_groups_rows_when_the_group_by_control_is_used
     get admin_movies_path, params: { group_by: "status" }
     assert_response :ok

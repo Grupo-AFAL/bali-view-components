@@ -13,7 +13,9 @@ class MoviesController < ApplicationController
     @filter_form = Bali::FilterForm.new(
       Movie.all,
       params,
-      search_fields: %i[name genre tenant_name],
+      # `studio_name` y no `tenant_name`: el alias `tenant` es un método Ruby invisible para
+      # Ransack, y un campo inválido tira el predicado combinado ENTERO en silencio.
+      search_fields: %i[name genre studio_name],
       storage_id: 'movies',
       persist_enabled: cookies['bali_persist_movies'] == '1'
     )

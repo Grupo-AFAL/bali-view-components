@@ -54,6 +54,79 @@ class BaliTableComponentTest < ComponentTestCase
     assert_no_selector("tr th", text: "hidden")
   end
 
+  # --- Sort affordance (Bali::Table::Header) ---
+
+  def sortable_table(sort: nil)
+    params = sort ? { q: { s: sort } } : {}
+    form = Bali::FilterForm.new(Movie.all, ActionController::Parameters.new(params))
+    Bali::Table::Component.new(form: form)
+  end
+
+  def test_headers_marks_a_sortable_column_that_is_not_sorted_yet
+    render_inline(sortable_table) do |c|
+      c.with_header(name: "Name", sort: :name)
+    end
+    assert_selector("th[aria-sort='none'] a.sort_link svg")
+  end
+
+  # Ransack solo pintaba flecha en la columna ORDENADA (`default_arrow` es nil): una columna
+  # ordenable se veía idéntica a una que no lo es. Esta es la aserción que lo fija.
+  def test_headers_do_not_render_ransacks_text_arrow
+    render_inline(sortable_table(sort: "name desc")) do |c|
+      c.with_header(name: "Name", sort: :name)
+    end
+    assert_no_text("▼")
+    assert_no_text("▲")
+  end
+
+  def test_headers_announce_the_active_sort_direction_on_the_th
+    render_inline(sortable_table(sort: "name desc")) do |c|
+      c.with_header(name: "Name", sort: :name)
+      c.with_header(name: "Amount", sort: :budget)
+    end
+    assert_selector("th[aria-sort='descending']", text: "Name")
+    assert_selector("th[aria-sort='none']", text: "Amount")
+  end
+
+  def test_headers_announce_an_ascending_sort
+    render_inline(sortable_table(sort: "name asc")) do |c|
+      c.with_header(name: "Name", sort: :name)
+    end
+    assert_selector("th[aria-sort='ascending']", text: "Name")
+  end
+
+  def test_headers_without_sort_carry_no_sort_semantics
+    render_inline(component) do |c|
+      c.with_header(name: "Name")
+    end
+    assert_no_selector("th[aria-sort]")
+    assert_no_selector("th svg")
+  end
+
+  # El estado lo anuncia `aria-sort` una sola vez: el ícono es decoración.
+  def test_headers_hide_the_sort_indicator_from_assistive_tech
+    render_inline(sortable_table) do |c|
+      c.with_header(name: "Name", sort: :name)
+    end
+    assert_selector("th a.sort_link span[aria-hidden='true']")
+  end
+
+  # `sort_link` mergea al HREF toda opción que no sea class/data (`title:` sale como
+  # `&title=...`): si alguien "mejora" el link con una opción nueva, esto lo caza.
+  def test_headers_sort_links_carry_only_the_sort_param
+    render_inline(sortable_table) do |c|
+      c.with_header(name: "Name", sort: :name)
+    end
+    href = page.find("th a.sort_link")[:href]
+    assert_equal({ "q" => { "s" => "name asc" } }, Rack::Utils.parse_nested_query(href.split("?").last))
+  end
+
+  def test_headers_raise_without_a_filter_form_when_sorting_is_requested
+    assert_raises(Bali::Table::Component::MissingFilterForm) do
+      render_inline(component) { |c| c.with_header(name: "Name", sort: :name) }
+    end
+  end
+
   def test_rows_renders_a_table_with_rows
     render_inline(component) do |c|
       c.with_row { "<td>Hola</td>".html_safe }

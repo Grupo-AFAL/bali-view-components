@@ -105,7 +105,9 @@
         <% table.with_header(name: t('movies.columns.name'), sort: :name) %>
         <% table.with_header(name: t('movies.columns.genre'), sort: :genre) %>
         <% table.with_header(name: t('movies.columns.status'), sort: :status) %>
-        <% table.with_header(name: t('movies.columns.studio')) %>
+        <%# `studio_name`, el camino Ransack por la asociación: el alias `tenant` es un
+            método Ruby que Ransack no ve. %>
+        <% table.with_header(name: t('movies.columns.studio'), sort: :studio_name) %>
         <% table.with_header(name: t('movies.columns.indie'), sort: :indie, class: 'text-center') %>
         <% table.with_header(name: t('movies.columns.created'), sort: :created_at) %>
         <% table.with_header(name: '', class: 'w-12') %>

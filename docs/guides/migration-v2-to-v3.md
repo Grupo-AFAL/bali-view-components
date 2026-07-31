@@ -8,8 +8,8 @@ The goal of the change is that the correct index layout is what you get by *defa
 The reference composition is the `Complete` scenario of the IndexPage preview
 (`bali/index_page/complete` in Lookbook) — it is the only place all seven control families
 render at once. `/admin/movies` in the dummy app is the end-to-end reference against real
-controllers, routes and Turbo Streams; it renders everything except saved views (which need
-an owner the dummy has no concept of) and host toolbar buttons.
+controllers, routes and Turbo Streams — saved views included, backed by the engine's default
+store and a one-user demo owner; the only family it leaves out is host toolbar buttons.
 
 ## What breaks, and what replaces it
 

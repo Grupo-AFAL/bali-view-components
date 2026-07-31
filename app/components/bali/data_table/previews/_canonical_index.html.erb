@@ -16,28 +16,17 @@
       display_mode: display_mode
     ) do |dt| %>
 
+  <%# The declarations below follow the toolbar's reading order — `search + filters ·
+      group by · columns ￨ saved views · persistence`, with the view switch pinned right.
+      Declaration order does not decide it (`OVERFLOW_PRIORITIES` does, because expanding
+      re-sorts each group by priority), so writing them in row order is for the reader. %>
+
   <%# 1. Search + filters. Everything is auto-configured from the FilterForm. %>
   <% dt.with_filters_panel(search: { placeholder: 'Search movies...' }) %>
 
   <%# 2. "Group by" renders itself: the FilterForm declares the groupable attributes. %>
 
-  <%# 3. View switch. Each view declares `value:` (what travels in ?view=) and the
-         DataTable builds the href, preserving filters, sorting, grouping and the
-         applied saved view. %>
-  <% dt.with_view_switch do |switch| %>
-    <% switch.with_view(name: 'Table', icon: 'list', value: :table) %>
-    <% switch.with_view(name: 'Cards', icon: 'grid', value: :grid) %>
-    <% switch.with_view(name: 'Timeline', icon: 'calendar', value: :timeline) %>
-  <% end %>
-
-  <%# 4. Saved views: named filter combinations, backed by the form's store. %>
-  <% dt.with_saved_views(url: '/preview/saved_views',
-                         default_views: [
-                           { name: 'Everything', url: url },
-                           { name: 'Indie only', url: "#{url}?q%5Bindie_true%5D=1" }
-                         ]) %>
-
-  <%# 5. Column selector — only in the table view, because it hides table columns. A card
+  <%# 3. Column selector — only in the table view, because it hides table columns. A card
          grid or a timeline has none, and saving a view from those modes falls back to the
          selector's per-device memory. Column 0 is the selection checkbox the Table renders. %>
   <% if dt.display_mode == :table %>
@@ -48,6 +37,25 @@
       <% cs.with_column(index: 4, label: 'Status') %>
       <% cs.with_column(index: 5, label: 'Indie') %>
     <% end %>
+  <% end %>
+
+  <%# 4. Saved views: named filter combinations, backed by the form's store. Past the
+         separator, with the persistence bookmark the DataTable renders on its own: this
+         side of the row is how the listing's state is REMEMBERED. %>
+  <% dt.with_saved_views(url: '/preview/saved_views',
+                         default_views: [
+                           { name: 'Everything', url: url },
+                           { name: 'Indie only', url: "#{url}?q%5Bindie_true%5D=1" }
+                         ]) %>
+
+  <%# 5. View switch — the only control on the right, because how the listing is DISPLAYED
+         is the one piece of state a saved view does not carry. Each view declares `value:`
+         (what travels in ?view=) and the DataTable builds the href, preserving filters,
+         sorting, grouping and the applied saved view. %>
+  <% dt.with_view_switch do |switch| %>
+    <% switch.with_view(name: 'Table', icon: 'list', value: :table) %>
+    <% switch.with_view(name: 'Cards', icon: 'grid', value: :grid) %>
+    <% switch.with_view(name: 'Timeline', icon: 'calendar', value: :timeline) %>
   <% end %>
 
   <%# 6. Host buttons: arbitrary content, last in the survival order (collapses first).
@@ -116,7 +124,8 @@
                                             group_counts: filter_form.group_counts) do |t| %>
         <%= t.with_header(name: 'Name', sort: :name) %>
         <%= t.with_header(name: 'Genre', sort: :genre) %>
-        <%= t.with_header(name: 'Studio') %>
+        <%# Sorting an association takes the Ransack path (`studio_name`), not the column. %>
+        <%= t.with_header(name: 'Studio', sort: :studio_name) %>
         <%= t.with_header(name: 'Status', sort: :status) %>
         <%= t.with_header(name: 'Indie', sort: :indie, class: 'text-center') %>
 
