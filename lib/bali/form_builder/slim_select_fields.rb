@@ -32,14 +32,14 @@ module Bali
         merged_options = build_options(options)
         merged_html = apply_input_name_options(options, build_html_options(html_options))
 
-        select_class = merged_html.delete(:select_class)
-        custom_class = merged_html[:class]
-        merged_html[:class] = field_class_name(
-          method, class_names([ SELECT_CLASS, custom_class ].compact), error_class: "select-error"
+        attributes = html_attributes(merged_html)
+        attributes[:class] = field_class_name(
+          method, class_names([ SELECT_CLASS, merged_html[:class] ].compact),
+          error_class: "select-error"
         )
 
-        field = build_wrapper(method, merged_options, merged_html, select_class) do
-          build_select_content(method, values, merged_options, merged_html)
+        field = build_wrapper(method, merged_options, attributes, merged_html[:select_class]) do
+          build_select_content(method, values, merged_options, attributes)
         end
 
         field_helper(method, field, merged_html)

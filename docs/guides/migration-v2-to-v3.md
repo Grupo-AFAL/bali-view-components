@@ -697,6 +697,24 @@ two back.
 - **Host `toolbar_buttons` moved to their own overflow group** (`host`) between the memory
   group and the right edge, so the view switch stays pinned to the edge. A listing that
   declares toolbar buttons and *no* view switch no longer pushes them to the far right.
+- **The FormBuilder no longer emits its own options as HTML attributes.** `label`, `help`,
+  `mode`, `control_class`, `control_data`, `pattern_type` and the rest of
+  `HtmlUtils::RESERVED_OPTIONS` reached the element because Rails forwards any key it does
+  not recognise; they are now extracted before delegating. The API does not change and the
+  valid markup is identical — but **a selector that depended on those invalid attributes
+  stops matching**: `input[mode="range"]`, `[control_class]`, `[help]`, `select[label]` and
+  the like, in CSS or in integration tests. It is the only observable change in the HTML of
+  a form that already worked.
+- **Helpers no longer mutate the options hash they are given.** `field_options` used to
+  write the base classes onto the caller's hash, so reusing it across two fields
+  accumulated the first field's classes into the second; a host relying on that side effect
+  (one shared `opts = { class: 'w-full' }`, expecting the second field to inherit
+  `input input-bordered`) now gets the correct classes on both. A frozen hash no longer
+  raises `FrozenError` either.
+- **`submit_actions` respects `show_cancel_button?` again.** The check read
+  `options[:modal]` after `submit` had deleted it from the hash, so it was always true.
+  With `Bali.native_app` on and `modal:` present, the cancel button is now hidden the way
+  the code always said it would be. Without `native_app` nothing changes.
 
 ## Checklist
 
