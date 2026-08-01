@@ -168,10 +168,69 @@ call site already emits `data-datepicker-locale-value` from `I18n.locale`, so th
 affects a host wiring the controller by hand — and a host that needs another locale
 registers it with `flatpickr.localize()`.
 
+### Timeline renders each entry once, and its slots lose the `tag_` prefix
+
+A timeline item used to emit its heading and its content twice — once in `.timeline-start`,
+once in `.timeline-end` — and hide one copy with CSS. Which side an item lands on is now
+decided in Ruby, so each item renders one content box.
+
+The slot setters were named after an internal collection called `tags`, which was never a
+timeline concept. Rename them:
+
+| v2 | v3 | Notes |
+|---|---|---|
+| `c.with_tag_item(...)` | `c.with_item(...)` | Deprecated shim warns through `Bali.deprecator`; removed in v4 |
+| `c.with_tag_header(...)` | `c.with_header(...)` | Same |
+| `c.tags` | `c.entries` | The collection accessor. No shim — reading it in a host template is rare |
+| `with_tag_header(tag_class: 'badge-outline badge-primary')` | `with_header(color: :primary, class: 'badge-outline')` | Deprecated shim warns; removed in v4 |
+
+```erb
+<%# v2 %>
+<%= render Bali::Timeline::Component.new(position: :left) do |c| %>
+  <% c.with_tag_header(text: 'Start') %>
+  <% c.with_tag_item(heading: 'January 2022') do %>
+    <p>Timeline event 1</p>
+  <% end %>
+<% end %>
+
+<%# v3 %>
+<%= render Bali::Timeline::Component.new(position: :left) do |c| %>
+  <% c.with_header(text: 'Start') %>
+  <% c.with_item(heading: 'January 2022') do %>
+    <p>Timeline event 1</p>
+  <% end %>
+<% end %>
+```
+
+Three things change even if you rename nothing, because the old markup was the bug:
+
+- **Anything with an `id` inside an item now exists once.** A `turbo_frame_tag` in a timeline
+  item used to render twice under the same id: Turbo matched the second, which was the copy
+  CSS had hidden, so a stream update reached a `display: none` element and the visible one
+  never changed. If you worked around this — a suffix on the id, a wrapper that rendered in
+  only one column — you can drop the workaround.
+- **Nested components run once.** An item whose block rendered a component that queried the
+  database issued that query twice per item.
+- **`position: :center` alternates by item.** The old alternation was `li:nth-child(odd)`, and
+  a header is an `li`, so a header between two items flipped the parity and left two
+  consecutive items on the same side. Centred timelines *with headers* will move some boxes
+  to the other side. Ones without headers are unchanged.
+
+CSS that targeted the hidden copy stops matching. `app/components/bali/timeline/index.css`
+now carries only the two `text-align` rules the alternating layout needs; if your app styled
+`.timeline-content-box.timeline-end` on a left-aligned timeline, it was styling the copy the
+user could not see.
+
+Finally, `Bali::Timeline::Header::Component` now applies `**options` to its badge. It accepted
+them and rendered none of them, so a `class:`, `data:` or `aria-*` you passed and gave up on
+will start taking effect.
+
 ## What breaks, and what replaces it
 
 | Removed | Replacement |
 |---|---|
+| `c.with_tag_item` / `c.with_tag_header` on `Bali::Timeline` | `c.with_item` / `c.with_header` *(deprecated shim until v4)* |
+| `Bali::Timeline::Header(tag_class:)` | `color:` plus `class:` *(deprecated shim until v4)* |
 | `with_actions_panel` | `with_bulk_actions` |
 | `with_actions_panel(export_formats:)` | `page.with_export(url:)` on the page component |
 | `dt.with_export` | `page.with_export(url:)` on the page component |
@@ -394,6 +453,7 @@ longer on this path.
 
 ```
 grep -rn "with_actions_panel\|with_export\|table_id:\|data_display_mode\|toolbar_class:" app/
+grep -rn "with_tag_item\|with_tag_header\|tag_class:" app/
 grep -rn "turbo_stream.replace \"data-table-" app/
 grep -rn "Bali::Card.*DataTable\|render Bali::Card" app/views/**/index*
 # any listing that groups and already used `view`, or that does not start on the table?
