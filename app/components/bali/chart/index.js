@@ -11,7 +11,10 @@ export class ChartController extends Controller {
     options: Object,
     labels: Array,
     displayPercent: { type: Boolean, default: false },
-    useThemeColors: { type: Boolean, default: true }
+    useThemeColors: { type: Boolean, default: true },
+    // The DaisyUI variable the palette starts from, e.g. '--color-success'.
+    // Empty means the default order.
+    color: { type: String, default: '' }
   }
 
   // DaisyUI 5 theme color variable names (full form)
@@ -94,9 +97,22 @@ export class ChartController extends Controller {
     return colorValue
   }
 
+  // The palette rotated so a declared `color:` leads it. Ruby applies the same
+  // rotation when it builds the dataset colors; without it here the recomputed
+  // colors would silently put --color-primary back in front.
+  get themeColorVars () {
+    const vars = ChartController.THEME_COLOR_VARS
+    if (!this.colorValue) return vars
+
+    const index = vars.indexOf(this.colorValue)
+    if (index === -1) return [this.colorValue, ...vars]
+
+    return [...vars.slice(index), ...vars.slice(0, index)]
+  }
+
   // Get an array of theme colors for datasets
   getThemeColorPalette () {
-    return ChartController.THEME_COLOR_VARS.map(varName => ({
+    return this.themeColorVars.map(varName => ({
       solid: this.getThemeColor(varName, 1),
       border: this.getThemeColor(varName, 0.8),
       background: this.getThemeColor(varName, 0.5)

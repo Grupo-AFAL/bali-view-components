@@ -72,7 +72,7 @@ class BaliFormBuilderRichTextFieldsTest < FormBuilderTestCase
 
   def test_rich_text_group_renders_the_help_text
     result = builder.rich_text_group(:synopsis, help: "Una ayuda")
-    assert_html(result, "p.label-text-alt", text: "Una ayuda")
+    assert_html(result, "p.fieldset-label", text: "Una ayuda")
   end
 
   # #block_editor_group

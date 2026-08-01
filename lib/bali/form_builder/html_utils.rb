@@ -6,9 +6,16 @@ module Bali
       # Shared class for input addons (currency $, percentage %, etc.)
       ADDON_CLASSES = "btn btn-disabled pointer-events-none join-item"
 
-      INPUT_BASE_CLASS = "input input-bordered w-full"
-      INPUT_ADDON_BASE_CLASS = "input input-bordered join-item grow"
-      TEXTAREA_BASE_CLASS = "textarea textarea-bordered w-full"
+      INPUT_BASE_CLASS = "input w-full"
+      INPUT_ADDON_BASE_CLASS = "input join-item grow"
+      TEXTAREA_BASE_CLASS = "textarea w-full"
+
+      # daisyUI 5 dropped `label-text-alt`; `fieldset-label` is its successor for
+      # the messages under a control. Unlike `.label` — the other candidate — it
+      # is a block-level flex container with no `white-space: nowrap`, so a long
+      # validation message wraps instead of overflowing the fieldset.
+      MESSAGE_CLASS = "fieldset-label"
+      ERROR_MESSAGE_CLASS = "fieldset-label text-error"
 
       PATTERN_TYPES = {
         number_with_commas: '^(\d+|\d{1,3}(,\d{3})*)(\.\d+)?$'
@@ -108,14 +115,14 @@ module Bali
       end
 
       def field_helper(method, field, options = {})
-        help_message = help_message_for(method, options)
+        messages = error_and_help(method, options)
 
         left_addon = options[:addon_left]
         right_addon = options[:addon_right]
 
         # When addons exist, don't wrap in control div - use join pattern directly
         if left_addon.present? || right_addon.present?
-          return field_with_addons(field, left: left_addon, right: right_addon) + help_message
+          return field_with_addons(field, left: left_addon, right: right_addon) + messages
         end
 
         control_class = [ "control", options[:control_class] ].compact.join(" ")
@@ -123,7 +130,48 @@ module Bali
           :div, field, class: control_class, data: options[:control_data]
         )
 
-        wrapped_field + help_message
+        wrapped_field + messages
+      end
+
+      # The one place the builder renders what it has to say about a field.
+      # Every family goes through it — checkboxes, toggles, ranges, and every
+      # helper behind `field_helper` — so the markup cannot drift again.
+      #
+      # Both messages render. The error says what went wrong; the help still
+      # says what is expected, and a wrong field is the one moment the user
+      # needs that instruction most. The error comes first so it keeps sitting
+      # right under the control, where it has always been.
+      #
+      # Each message carries a stable id, which is what #674 needs to point the
+      # control's `aria-describedby` at them. Emitting the id is all that
+      # happens here; wiring it onto the input belongs to that issue.
+      def error_and_help(method, options = {})
+        safe_join([ error_message(method), help_message(method, options) ].compact)
+      end
+
+      def error_message(method)
+        return unless errors?(method)
+
+        content_tag(
+          :p, full_errors(method), class: ERROR_MESSAGE_CLASS, id: error_message_id(method)
+        )
+      end
+
+      def help_message(method, options = {})
+        help = options[:help]
+        return if help.blank?
+
+        content_tag(:p, help, class: MESSAGE_CLASS, id: help_message_id(method))
+      end
+
+      # Derived with Rails' own `field_id`, so the ids follow the same namespace,
+      # index and nested-attribute rules as the control they describe.
+      def error_message_id(method)
+        field_id(method, "error")
+      end
+
+      def help_message_id(method)
+        field_id(method, "help")
       end
 
       def field_class_name(method, class_name = "input", error_class: "input-error")
@@ -175,14 +223,6 @@ module Bali
       end
 
       private
-
-      def help_message_for(method, options)
-        if errors?(method)
-          content_tag(:p, full_errors(method), class: "label-text-alt text-error")
-        elsif options[:help]
-          content_tag(:p, options[:help], class: "label-text-alt")
-        end
-      end
 
       # Add join-item class when addons are present for proper DaisyUI join pattern
       def input_base_class(options)

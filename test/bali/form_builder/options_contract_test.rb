@@ -129,17 +129,18 @@ class BaliFormBuilderOptionsContractTest < FormBuilderTestCase
     first = builder.text_field(:name, options)
     second = builder.text_field(:name, options)
 
-    assert_equal "input input-bordered w-full custom-class", input_class(first)
+    assert_equal "input w-full custom-class", input_class(first)
     assert_equal input_class(first), input_class(second)
   end
 
   def test_errors_still_render_when_the_options_hash_is_frozen
     resource.errors.add(:name, "is invalid")
 
-    html = builder.text_field(:name, { help: "Ignored while erroring" }.freeze)
+    html = builder.text_field(:name, { help: "Still shown while erroring" }.freeze)
 
     assert_html html, "input.input-error"
     assert_html html, "p.text-error", text: "Name is invalid"
+    assert_html html, "p.fieldset-label", text: "Still shown while erroring"
   end
 
   private

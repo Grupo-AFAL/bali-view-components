@@ -39,6 +39,32 @@ Most components share these standard parameters:
 
 ---
 
+## Colors
+
+Every component that colours something takes the same two keywords, resolved by
+`Bali::Color`:
+
+| Keyword | Takes | Follows the DaisyUI theme? |
+|---|---|---|
+| `color:` | one of `:neutral :primary :secondary :accent :info :success :warning :error :ghost` | Yes |
+| `custom_color:` | a hex string (`#rgb`, `#rrggbb`, and the alpha forms) | No — that is the point of it |
+
+The seven components on this contract are `Tag`, `Status`, `Heatmap`, `Chart`,
+`Timeline::Item` / `Timeline::Header`, `StatCard` and `Kanban::Column`. A value
+outside the list raises `ArgumentError` at construction, naming the component and
+the valid values; a removed Bulma name (`:danger`, `:link`, `:black`, `:dark`,
+`:light`, `:white`) is told its replacement by name.
+
+`:ghost` means "no colour of its own" — DaisyUI has no `--color-ghost`, so a
+component either has a class for it (`badge-ghost`) or falls back to the theme's
+own foreground.
+
+Two components take names beyond this list on purpose: `Bali::Status` also
+accepts its twelve fixed workflow colours (`:slate`, `:green`, …), which do *not*
+follow the theme, because a workflow's "blue" is not the app's `primary`.
+
+---
+
 ## Variants and Sizes
 
 ### Standard Variants
@@ -528,6 +554,9 @@ results, keyboard navigation, and a global ⌘K (Mac) / Ctrl+K (Windows) shortcu
 
 **Keyboard:** ↑/↓ to navigate, ⏎ to activate, Esc to close.
 
+**Emits:** `bali:command:select` (bubbles, `detail: { row, value }`) when an item without an
+`href` is activated.
+
 #### Breadcrumb
 
 Navigation path indicator.
@@ -971,7 +1000,7 @@ Colorful, SmartSuite-style status pill with optional inline editing. Presentatio
 
 **Options:**
 - `selected` - Currently selected value, matched against each option's `value:` (default: nil)
-- `options` - Array of `{ value:, label:, color: }`; `color:` is a palette symbol (`:slate :gray :red :orange :amber :yellow :green :teal :blue :indigo :violet :pink`) or a hex string (default: `[]`)
+- `options` - Array of `{ value:, label:, color: }` or `{ value:, label:, custom_color: }`. `color:` takes either the fixed status palette (`:slate :gray :red :orange :amber :yellow :green :teal :blue :indigo :violet :pink`), which deliberately does not follow the theme, or one of the semantic names shared with every other component (`:neutral :primary :secondary :accent :info :success :warning :error :ghost`), which does. `custom_color:` takes a hex — in v2 a hex went in `color:` (default: `[]`)
 - `form` - `{ url:, method:, param: }`; when present (and `readonly:` is false) the pill becomes clickable and opens a portaled panel of colored option rows that submits via Turbo on selection (default: nil)
 - `readonly` - Forces the read-only pill even when `form:` is given, e.g. permission-gated call sites (default: false)
 - `clearable` - Adds a clear (X) button and a "no status" row to the panel; only applies when editable (default: false)
@@ -1054,6 +1083,8 @@ Renders a Chart.js chart (bar, line, pie, doughnut, polarArea) with theme-aware 
 - `card_style` - Card wrapper: `:default`, `:bordered`, `:compact`, `:none` (default: `:none`)
 - `height` - Height preset: `:sm`, `:md`, `:lg`, `:xl` (default: `:md`)
 - `use_theme_colors` - Use DaisyUI theme colors for series, grid, and tooltips (default: true)
+- `color` - Semantic name the palette starts from (`:neutral :primary :secondary :accent :info :success :warning :error :ghost`). A single-series chart is painted in it; a multi-series one cycles from it (default: nil, i.e. `:primary` first)
+- `custom_color` - Hex colour the palette starts from. It drops the theme palette entirely and the remaining series fall back to the fixed hex list, because a canvas cannot resolve a `var()` and a chart cannot mix the two (default: nil)
 
 #### DataTable
 
@@ -1275,7 +1306,8 @@ Grid visualization that shows magnitude as color intensity across two dimensions
 
 **Options:**
 - `data` - Hash of `{ x_label => { y_label => value } }` (required)
-- `color` - DaisyUI preset (`:primary`, `:secondary`, `:accent`, `:success`, `:info`, `:warning`, `:error`) or hex string (default: `:primary`)
+- `color` - Semantic name (`:neutral :primary :secondary :accent :info :success :warning :error :ghost`). The ramp is built from the DaisyUI theme variable, so it repaints when the theme changes; in v2 these were hardcoded hex and `:primary` was indigo whatever the theme said (default: `:primary`)
+- `custom_color` - Hex base colour for the ramp; does not follow the theme. In v2 a hex went in `color:` (default: nil)
 - `cell_size` - Cell size in pixels (default: 28)
 - `responsive` - Stretch to fill container width (default: true)
 
@@ -1448,7 +1480,7 @@ Metric card showing a title, value, and colored icon — ideal for dashboard KPI
 <%= render Bali::StatCard::Component.new(
   title: 'Total Users',
   value: '1,234',
-  icon_name: 'users',
+  icon: 'users',
   color: :primary
 ) do |c| %>
   <% c.with_footer { tag.span('+12% from last month', class: 'text-success') } %>
@@ -1460,6 +1492,10 @@ Metric card showing a title, value, and colored icon — ideal for dashboard KPI
 - `value` - Metric value to display (required)
 - `icon_name` - Bali/Lucide icon name; omit it and the card renders without one (default: nil)
 - `color` - Icon accent: `:primary`, `:secondary`, `:accent`, `:success`, `:warning`, `:error`, `:info` (default: :primary)
+
+- `icon` - Bali/Lucide icon name (required). `icon_name:` still works, warns through `Bali.deprecator`, and goes away in v4
+- `color` - Icon accent: `:neutral`, `:primary`, `:secondary`, `:accent`, `:info`, `:success`, `:warning`, `:error`, `:ghost` (default: :primary)
+- `custom_color` - Hex icon accent, applied inline instead of the semantic pair (default: nil)
 
 **Slots:** `with_footer` — optional footer for trends or status text.
 
@@ -1520,7 +1556,9 @@ Vertical timeline for chronological sequences of events, using DaisyUI's timelin
 **Options:**
 - `position` - Timeline layout: `:left`, `:center`, `:right` (default: :left)
 
-**Slots:** `with_header(text:, color:, class:)` (badge separators) and `with_item(heading:, icon:, color:)` with block content.
+**Slots:** `with_header(text:, color:, custom_color:, class:)` (badge separators) and `with_item(heading:, icon:, color:, custom_color:)` with block content.
+
+`color:` takes a semantic name (`:neutral :primary :secondary :accent :info :success :warning :error :ghost`); `custom_color:` takes a hex. An item defaults to `:ghost`, which leaves the marker and the connecting line their DaisyUI colour — in v2 that value was spelled `:default`. `color: :outline` is gone from headers: it named a style, not a colour, so pass `color: :primary, class: 'badge-outline'`.
 
 Every entry renders exactly once. Which side of the line an item lands on is decided in Ruby, and for `position: :center` it alternates across items, so a header between two items does not flip the alternation.
 
@@ -1621,8 +1659,11 @@ the classic "+ add card" action.
       <%= link_to "+ Add card", new_task_path(status: :todo) %>
     <% end %>
   <% end %>
+  <% k.with_column(title: "Brand", status: "brand", custom_color: "#7c3aed") %>
 <% end %>
 ```
+
+A column's header indicator is a `Bali::Tag`, so `color:` takes the same semantic names it does (`:neutral :primary :secondary :accent :info :success :warning :error :ghost`) and `custom_color:` takes a hex. A name outside that list raises — the private `BADGE_COLORS` table this component used to keep answered `:ghost` to anything it did not recognise.
 
 #### ConfirmDialog
 

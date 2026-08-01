@@ -3,7 +3,10 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module TextAreaFields
-      COUNTER_CLASS = "label-text-alt text-base-content/70 text-end w-full"
+      # Not `fieldset-label` like the help and error messages: that class is a
+      # flex container, and the counter needs `text-end` on a block to sit on the
+      # right. It inherits the fieldset's small type the way it always did.
+      COUNTER_CLASS = "text-base-content/70 text-end w-full"
 
       def text_area_group(method, options = {})
         @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
@@ -20,7 +23,12 @@ module Bali
         textarea_element = super(method, field_opts)
 
         if use_stimulus
-          wrap_with_stimulus(textarea_element, char_counter: char_counter, auto_grow: auto_grow)
+          # The stimulus wrapper replaces `field_helper`'s `.control` div, so the
+          # messages have to be appended here too — before, a textarea with a
+          # counter or auto-grow silently rendered neither its help nor its error.
+          wrap_with_stimulus(
+            textarea_element, char_counter: char_counter, auto_grow: auto_grow
+          ) + error_and_help(method, options)
         else
           field_helper(method, textarea_element, options)
         end

@@ -46,6 +46,48 @@ table in *Step 6* of the [installation guide](installation.md) maps each optiona
 the component that loads it. If you already had a working v2 app, you almost certainly have
 these installed; nothing new is required unless you adopt a component you were not using.
 
+### `@blocknote/*` moves to `>= 0.52.1` — only matters if you render the BlockEditor
+
+| | v2 | v3.0 |
+|---|---|---|
+| `@blocknote/core` `/react` `/mantine` | `>= 0.51.0` declared, `0.46.2` actually tested | `>= 0.52.1`, and 0.52.1 is what is tested |
+
+The old bound was fiction: nothing inside the declared range had ever been run. v3 pins the
+demo app to 0.52.1 and declares that same version, so the floor now means something.
+
+- **Below 0.51 — a real break.** The editor writes its hidden input *during* the form's
+  `submit` event and cannot await anything there, which requires the synchronous parsers and
+  serialisers BlockNote introduced in 0.51. On older versions a form submitted inside the
+  500 ms debounce window posts the previous content and the user's last edits vanish with no
+  error.
+- **0.51.x — a warning, not a break.** Nothing in the component calls a 0.52-only API, so it
+  will most likely keep working, but you are outside the declared range and outside what
+  anyone tested, and your package manager will say so.
+- **Upgrade all seven together.** Mixing versions between `@blocknote/core` and
+  `@blocknote/react` is not a build error. It shows up as a suggestion menu that never opens
+  or content that silently fails to serialise, which is far more expensive to diagnose.
+
+```bash
+yarn add @blocknote/core@0.52.1 @blocknote/react@0.52.1 @blocknote/mantine@0.52.1
+```
+
+If you also render the paid XL features (`multi_column:`, `export:`, `ai_url:`), bump
+`@blocknote/xl-multi-column`, `@blocknote/xl-pdf-exporter`, `@blocknote/xl-docx-exporter` and
+`@blocknote/xl-ai` to the same 0.52.1. Their licences are unchanged from 0.46 — see the
+[licence facts](../api/block-editor.md#licence-facts-as-of-blocknote-0521), which are pending
+review by legal.
+
+Two upstream table bugs present in 0.47 are fixed by this move: a `|` typed inside a table
+cell no longer drops a column, and a table with no header row no longer promotes its first
+data row to the header. If your stored content has tables, this is a reason to upgrade rather
+than a cost of it.
+
+**Your build needs Node >= 22.** `@blocknote/core` 0.52 depends on `lib0` `1.0.0-rc.22`, whose
+`engines.node` is `">=22"`. On Node 20 the install itself fails — `Found incompatible module` —
+so you find out at `yarn install`, not in production. Bump your CI and your Dockerfile before
+bumping the package. This applies only if you render the BlockEditor; nothing else in Bali
+raises the Node floor.
+
 ### `Bali.deprecator`
 
 Every deprecation warning the gem emits now goes through a single
@@ -836,6 +878,256 @@ If a specific call site really wants the old wrapping, opt out per tag. The rule
 
 That restores the v2 rendering, broken pill included. `Bali::Timeline::Header` is
 unaffected either way: it emits `.badge` markup directly rather than rendering a Tag.
+## One `color:` across the library
+
+Seven components used to keep seven private colour maps. They agree now, through
+`Bali::Color`:
+
+| Keyword | Takes | Follows the DaisyUI theme? |
+|---|---|---|
+| `color:` | `:neutral :primary :secondary :accent :info :success :warning :error :ghost` | Yes |
+| `custom_color:` | a hex string (`#rgb`, `#rrggbb`, and the alpha forms) | No |
+
+The seven are `Tag`, `Status`, `Heatmap`, `Chart`, `Timeline::Item` /
+`Timeline::Header`, `StatCard` and `Kanban::Column`. A value outside the list
+raises `ArgumentError` at construction instead of falling back; the message names
+the component and the valid values, and a removed Bulma name is told its
+replacement.
+
+### The renames
+
+| v2 | v3 | Where |
+|---|---|---|
+| `icon_name: 'users'` | `icon: 'users'` | `Bali::StatCard`. Deprecated shim warns through `Bali.deprecator`; removed in v4 |
+| `color: :default` | `color: :ghost` | `Bali::Timeline::Item`. Also the default, so dropping it entirely works too |
+| `color: :outline` | `color: :primary, class: 'badge-outline'` | `Bali::Timeline::Header`. It named a style, not a colour |
+| `color: '#7c3aed'` | `custom_color: '#7c3aed'` | `Bali::Heatmap`, and each option hash of `Bali::Status` |
+| `color: :chartreuse` (anything unknown) | raises | `Bali::Heatmap`, `Bali::StatCard`, `Bali::Kanban::Column` used to fall back silently |
+
+```
+grep -rn "StatCard::Component" app/ | grep icon_name
+grep -rn "Timeline::\(Item\|Header\)\|with_item\|with_header" app/ | grep -E ":default|:outline"
+grep -rn "Heatmap::Component" app/ | grep -E "color: *[\"']#"
+```
+
+`icon_name:` on `Bali::Link`, `Bali::Button` and `Bali::ImageField::Input` did
+**not** change. Only `StatCard` did.
+
+### Heatmap follows the theme now, and that is a visual change
+
+`Bali::Heatmap`'s "DaisyUI colour presets" were hardcoded hex: `:primary` was
+`#6366f1` whatever theme the host had chosen. The ramp is built from
+`var(--color-*)` now, so a host that picked `:primary` expecting indigo will see
+its own primary. Measured on the nine ramps side by side, moving from `light` to
+a custom theme changes 6 of 9 — `:primary` from indigo to that theme's teal,
+`:secondary` from pink to gold.
+
+If you were relying on the old fixed colours, name them: `custom_color: '#6366f1'`
+reproduces the v2 `:primary` exactly, and the other six were `#8b5cf6`
+(secondary), `#f59e0b` (accent *and* warning), `#22c55e` (success), `#3b82f6`
+(info) and `#ef4444` (error).
+
+### Status opens in the dark now
+
+`Bali::Status`'s panel hardcoded `#fff` with `#6b7280` text and `#d1d5db` borders,
+so under any dark theme it opened as a white rectangle. It reads
+`--color-base-100` / `--color-base-content` now. Nothing to change in a call site;
+if your app patched around it with its own CSS, that patch is what to remove.
+
+The twelve fixed status colours are unchanged and still do not follow the theme —
+that is the point of them. They are simply joined by the semantic names, so
+`color: :success` on a status option now means what it means everywhere else.
+
+### Chart takes a colour
+
+New, not a break: `Bali::Chart::Component.new(color: :success)` starts the palette
+at that colour, so a single-series chart is painted in it. `custom_color:` takes a
+hex and drops the theme palette entirely — a `<canvas>` cannot resolve a `var()`,
+so a chart cannot mix a hex with theme colours; the remaining series fall back to
+the fixed hex list.
+
+### Removed constants
+
+`Bali::Heatmap::Component::COLOR_PRESETS`,
+`Bali::Kanban::Column::Component::BADGE_COLORS`, and `Bali::Utils::ColorPicker`'s
+`THEME_COLORS`, `CSS_VAR_MAP`, `FALLBACK_COLORS`, `.gradient`, `.theme_color` and
+`.theme_color_with_alpha`. `Bali::Color::NAMES` and `Bali::Color.css` replace what
+was reachable of them.
+
+## Timeline renders each entry once, and its slots lose the `tag_` prefix
+
+A timeline item used to emit its heading and its content twice — once in `.timeline-start`,
+once in `.timeline-end` — and hide one copy with CSS. Which side an item lands on is now
+decided in Ruby, so each item renders one content box.
+
+The slot setters were named after an internal collection called `tags`, which was never a
+timeline concept. Rename them:
+
+| v2 | v3 | Notes |
+|---|---|---|
+| `c.with_tag_item(...)` | `c.with_item(...)` | Deprecated shim warns through `Bali.deprecator`; removed in v4 |
+| `c.with_tag_header(...)` | `c.with_header(...)` | Same |
+| `c.tags` | `c.entries` | The collection accessor. No shim — reading it in a host template is rare |
+| `with_tag_header(tag_class: 'badge-outline badge-primary')` | `with_header(color: :primary, class: 'badge-outline')` | Deprecated shim warns; removed in v4 |
+
+```erb
+<%# v2 %>
+<%= render Bali::Timeline::Component.new(position: :left) do |c| %>
+  <% c.with_tag_header(text: 'Start') %>
+  <% c.with_tag_item(heading: 'January 2022') do %>
+    <p>Timeline event 1</p>
+  <% end %>
+<% end %>
+
+<%# v3 %>
+<%= render Bali::Timeline::Component.new(position: :left) do |c| %>
+  <% c.with_header(text: 'Start') %>
+  <% c.with_item(heading: 'January 2022') do %>
+    <p>Timeline event 1</p>
+  <% end %>
+<% end %>
+```
+
+Three things change even if you rename nothing, because the old markup was the bug:
+
+- **Anything with an `id` inside an item now exists once.** A `turbo_frame_tag` in a timeline
+  item used to render twice under the same id: Turbo matched the second, which was the copy
+  CSS had hidden, so a stream update reached a `display: none` element and the visible one
+  never changed. If you worked around this — a suffix on the id, a wrapper that rendered in
+  only one column — you can drop the workaround.
+- **Nested components run once.** An item whose block rendered a component that queried the
+  database issued that query twice per item.
+- **`position: :center` alternates by item.** The old alternation was `li:nth-child(odd)`, and
+  a header is an `li`, so a header between two items flipped the parity and left two
+  consecutive items on the same side. Centred timelines *with headers* will move some boxes
+  to the other side. Ones without headers are unchanged.
+
+CSS that targeted the hidden copy stops matching. `app/components/bali/timeline/index.css`
+now carries only the two `text-align` rules the alternating layout needs; if your app styled
+`.timeline-content-box.timeline-end` on a left-aligned timeline, it was styling the copy the
+user could not see.
+
+Finally, `Bali::Timeline::Header::Component` now applies `**options` to its badge. It accepted
+them and rendered none of them, so a `class:`, `data:` or `aria-*` you passed and gave up on
+will start taking effect.
+
+## Every public event is now `bali:`-prefixed
+
+v2 shipped three generations of event naming at once: a few already-prefixed `bali:*` names,
+a handful with no prefix at all (`openModal`, `openDrawer`, `modal:success`), and the rest
+riding Stimulus' default `<identifier>:<name>`. On top of that, a `useDispatch` mixin
+replaced Stimulus' own `dispatch` with an incompatible `(name, detail)` signature, so a
+controller that followed the Stimulus documentation and passed `{ detail, target, prefix }`
+got an event whose `detail` was that entire options object.
+
+The mixin is gone and every event now goes through Stimulus' native `dispatch` under one
+scheme: **`bali:<component>:<event>`, kebab-case**. An event without the `bali:` prefix no
+longer comes from this package.
+
+**This breaks silently.** Nothing throws when an event is renamed — the listener simply stops
+running, and the feature quietly stops working. Grep before you upgrade:
+
+```
+grep -rn "openModal\|openDrawer\|modal:success" app/ --include=*.js --include=*.erb --include=*.rb
+grep -rn "hovercard:\|sortable-list:\|interact:on\|direct-upload:" app/
+grep -rn "useDispatch\|use-dispatch\|baliDispatchDebugEnabled" app/ config/
+```
+
+### The complete table
+
+| v2 | v3 | Emitted by | Dispatched on |
+|---|---|---|---|
+| `openModal` | `bali:modal:open` | `ModalController#open` | `document` |
+| `openDrawer` | `bali:drawer:open` | `DrawerController#open` | `document` |
+| `modal:success` | `bali:modal:success` | `ModalController#submit` (drawers inherit it) | `document` |
+| `interact:onResizing` | `bali:interact:resizing` | `InteractController` | the element, bubbling |
+| `interact:onResizeEnd` | `bali:interact:resize-end` | `InteractController` | the element, bubbling |
+| `interact:onDragging` | `bali:interact:dragging` | `InteractController` | the element, bubbling |
+| `interact:onDragEnd` | `bali:interact:drag-end` | `InteractController` | the element, bubbling |
+| `sortable-list:onEnd` | `bali:sortable-list:end` | `SortableListController` | the list, bubbling |
+| `hovercard:show` | `bali:hovercard:show` | `HovercardController` | the element, bubbling |
+| `hovercard:hide` | `bali:hovercard:hide` | `HovercardController` | the element, bubbling |
+| `direct-upload:complete` | `bali:direct-upload:complete` | `DirectUploadController` | the element, bubbling |
+| `direct-upload:all-complete` | `bali:direct-upload:all-complete` | `DirectUploadController` | the element, bubbling |
+| `direct-upload:error` | `bali:direct-upload:error` | `DirectUploadController` | the element, bubbling |
+
+Already correct in v2 and **unchanged**, listed so the inventory is complete:
+`bali:command:open` / `:close` / `:toggle` (listened for on `window`), `bali:command:select`
+(emitted), and `bali:side-menu:toggle` / `:open` / `:close` (listened for on `window`;
+`Navbar#toggleSideMenu` emits the first).
+
+The `on` in `onEnd`, `onDragEnd` and friends is a handler-naming habit, not part of an event
+name, so it is dropped rather than kebab-cased into `on-drag-end`. Every one of those pairs is
+in the table above; nothing changed without a row.
+
+### Two payload changes that come with it
+
+**`event.detail.controller` is gone.** `useDispatch` pushed the emitting controller instance
+into every payload. Native `dispatch` does not, and reaching into another controller's
+instance from an event handler was never worth encouraging. If you needed the element,
+`event.target` is it; if you genuinely need the controller,
+`application.getControllerForElementAndIdentifier(event.target, 'sortable-list')`.
+
+**`bali:modal:success` fires for drawers too.** That is not new — `modal:success` did the same,
+because `DrawerController` inherits `submit` from `ModalController`. It is called out because
+the new name makes the asymmetry look deliberate: there is no `bali:drawer:success`. One name
+for "the form inside the overlay saved" is what a host wants to listen for, and the overlay's
+own root tells the two apart when it matters.
+
+### Opening a modal or drawer by hand still works
+
+This was, and remains, the supported way to open one without a trigger link — only the name
+changed:
+
+```javascript
+// v2
+document.dispatchEvent(new CustomEvent('openModal', {
+  detail: { content: html, options: { modalSize: 'lg' } }
+}))
+
+// v3
+document.dispatchEvent(new CustomEvent('bali:modal:open', {
+  detail: { content: html, options: { modalSize: 'lg' } }
+}))
+```
+
+`detail.options` is still required (pass `{}` if you have nothing to set) and `detail.content`
+still accepts `null` to keep the skeleton showing.
+
+### No compatibility aliases, on purpose
+
+v3 does not emit the old names alongside the new ones. Two reasons. The events split into ones
+Bali *emits* and ones Bali *listens for*, and those need opposite shims — dual-emit for the
+first, dual-listen for the second — so "emit both" would have covered barely half the surface
+while reading as full coverage. And a dual-listen on `openModal` would keep a host working
+without ever telling it to migrate, which only moves this same break to v4. The grep recipe
+above finds every call site in one pass; that is the intended migration path.
+
+### `useDispatch` is removed
+
+`import { useDispatch } from 'bali-view-components/utils'` and the `bali/utils/use-dispatch`
+importmap pin no longer resolve. If you built your own controller on it, the replacement is
+the native `dispatch` the mixin was shadowing all along:
+
+```javascript
+// v2 — mixin signature
+useDispatch(this)
+this.dispatch('saved', { id: this.idValue })
+
+// v3 — native
+this.dispatch('saved', { prefix: 'myapp:widget', detail: { id: this.idValue } })
+```
+
+`window.baliDispatchDebugEnabled` went with it. The replacement traces every Bali event at
+once and needs no cooperation from the controllers:
+
+```javascript
+const dispatchEvent = EventTarget.prototype.dispatchEvent
+EventTarget.prototype.dispatchEvent = function (event) {
+  if (event.type.startsWith('bali:')) console.log(event.type, event.detail)
+  return dispatchEvent.call(this, event)
+}
+```
 
 ## The sidebar's hidden checkboxes are gone
 
@@ -922,6 +1214,13 @@ not.
 
 | Removed | Replacement |
 |---|---|
+| `Bali::StatCard(icon_name:)` | `icon:` *(deprecated shim until v4)* |
+| `Bali::Timeline::Item(color: :default)` | `color: :ghost` |
+| `Bali::Timeline::Header(color: :outline)` | `color: :primary, class: 'badge-outline'` |
+| A hex in `Bali::Heatmap(color:)` or a `Bali::Status` option's `color:` | `custom_color:` |
+| `Bali::Heatmap::Component::COLOR_PRESETS` | `Bali::Color::NAMES` / `Bali::Color.css` |
+| `Bali::Kanban::Column::Component::BADGE_COLORS` | `Bali::Tag::Component::COLORS` |
+| `ColorPicker.gradient` / `.theme_color` / `.theme_color_with_alpha` | `Bali::Color.gradient` / `.css` / `.with_alpha` |
 | `Bali::SideMenu::Component::MOBILE_TRIGGER_ID` | `Bali::SideMenu::Component::DEFAULT_ID` |
 | `SideMenu(mobile_trigger_id:)` | `SideMenu(id:)` |
 | `Topbar(mobile_trigger_id:)` | `Topbar(menu_id:)` |
@@ -1272,10 +1571,62 @@ two back.
   With `Bali.native_app` on and `modal:` present, the cancel button is now hidden the way
   the code always said it would be. Without `native_app` nothing changes.
 
+## The FormBuilder's dead daisyUI 4 classes are gone
+
+daisyUI 5 removed `label-text`, `label-text-alt`, `input-bordered`, `textarea-bordered` and
+`form-control`. Check it against your own compiled CSS — the count is zero:
+
+```
+grep -c "\.label-text\|\.input-bordered\|\.textarea-bordered\|\.form-control" app/assets/builds/tailwind.css
+```
+
+Because they define nothing, **removing them changes no pixel**. What changes is what a
+selector can find. Grep your app for the five names and expect hits in three places:
+
+```
+grep -rn "label-text\|input-bordered\|textarea-bordered\|form-control" app/ test/ spec/
+```
+
+1. **System tests and CSS that select Bali's markup.** `input.input-bordered`,
+   `textarea.textarea-bordered`, `span.label-text`, `p.label-text-alt` and `.form-control`
+   no longer match anything the FormBuilder renders. Rewrite them against the class that is
+   still there (`input.input`, `textarea.textarea`) or against the new one below.
+2. **Your own templates.** Bali does not touch them; they keep working exactly as they do
+   today, which is to say the classes keep doing nothing. Sweep them at your own pace.
+3. **Anything that relied on `label-text-alt` for small type.** It never delivered that in
+   v2 either — the size came from `.fieldset`'s own `font-size: .75rem`, inherited by every
+   child, and it still does.
+
+| v2 (dead in daisyUI 5) | v3 |
+|---|---|
+| `<p class="label-text-alt text-error">` (the error) | `<p class="fieldset-label text-error" id="<field_id>_error">` |
+| `<p class="label-text-alt">` (the help) | `<p class="fieldset-label" id="<field_id>_help">` |
+| `<span class="label-text">` inside a checkbox/toggle/radio label | `<span>` — the wrapping `.label` styles it, as in daisyUI 5's own markup |
+| `input input-bordered w-full` | `input w-full` |
+| `textarea textarea-bordered w-full` | `textarea w-full` |
+
+`select-bordered` is **not** in that table and has not been removed: it is the one class of
+the family with live definitions, in Bali's own SlimSelect stylesheet.
+
+### A field with help and an error now shows both
+
+In v2, `field_helper` was `if errors? … elsif help`, so an error replaced the help text.
+Both render now, error first. Two consequences worth grepping for:
+
+- a test asserting one paragraph under a control (`assert_selector('.control + p', count: 1)`)
+  finds two whenever the field has help **and** is invalid;
+- checkboxes, toggles, ranges, and textareas with a character counter never rendered `help:`
+  at all. If you passed `help:` to any of them and worked around the silence with your own
+  markup, that markup is now duplicated by the real one.
+
+Both paragraphs carry ids derived with Rails' `field_id` — `movie_synopsis_error` and
+`movie_synopsis_help`. Nothing points `aria-describedby` at them yet; that is a later change.
+
 ## Checklist
 
 ```
 grep -rn "with_actions_panel\|with_export\|table_id:\|data_display_mode\|toolbar_class:" app/
+grep -rn "label-text\|input-bordered\|textarea-bordered\|form-control" app/ test/ spec/
 grep -rn "with_tag_item\|with_tag_header\|tag_class:" app/
 
 grep -rn "with_preview" app/                          # DocumentPage's body slot
@@ -1289,6 +1640,14 @@ grep -rn "view=\|params\[:view\]" app/views app/controllers
 # pagination: dead summary keys, and url: that now wins instead of being dropped
 grep -rn "data_table:\|pagination_footer:" config/locales
 grep -rn "Bali::Pagination.*url:" app/
+# do you render the BlockEditor, and are all @blocknote/* on the same >= 0.52.1?
+grep -rn "BlockEditor::Component\|block_editor_group" app/
+node -e 'const d=require("./package.json").dependencies||{};for(const k of Object.keys(d))if(k.startsWith("@blocknote/"))console.log(k,d[k])'
+
+# events — these break with no error at all, see the table above
+grep -rn "openModal\|openDrawer\|modal:success" app/
+grep -rn "hovercard:\|sortable-list:\|interact:on\|direct-upload:" app/
+grep -rn "useDispatch\|use-dispatch\|baliDispatchDebugEnabled" app/ config/
 # sidebar: the checkboxes are gone, and so are their labels and CSS hooks
 grep -rn "MOBILE_TRIGGER_ID\|mobile_trigger_id\|trigger_id:" app/
 grep -rn "side-menu-mobile-trigger\|side-menu-collapse-trigger" app/

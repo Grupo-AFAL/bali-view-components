@@ -193,14 +193,21 @@ trapFocus(container) {
 
 ### Dispatching Events
 
+Bali names every public event `bali:<component>:<event>` and emits it through Stimulus' native
+`dispatch`. The prefix is a hardcoded constant, not the default `this.identifier`, so the name
+survives a host registering the controller under a different identifier.
+
 ```javascript
 // Dispatch from controller
+const EVENT_PREFIX = "bali:dropdown"
+
 this.dispatch("select", {
+  prefix: EVENT_PREFIX,
   detail: { value: selectedValue }
 })
 
 // Listen in parent
-<div data-action="dropdown:select->parent#handleSelect">
+<div data-action="bali:dropdown:select->parent#handleSelect">
 ```
 
 ### Cross-Controller Communication
@@ -215,7 +222,7 @@ openConfirmation() {
 
 // Using custom events
 document.dispatchEvent(new CustomEvent("bali:modal:open", {
-  detail: { id: "confirm-dialog" }
+  detail: { content: "<h3>Hello</h3>", options: {} }
 }))
 ```
 

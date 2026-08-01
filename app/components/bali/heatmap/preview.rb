@@ -9,9 +9,13 @@ module Bali
       # Useful for displaying patterns in time-based data like activity by hour/day.
       #
       # By default, the heatmap is responsive and fills its container width.
-      # Use DaisyUI color presets (:primary, :secondary, :info, etc.) or hex colors.
       #
-      # @param color select { choices: [primary, secondary, accent, success, info, warning, error] }
+      # `color:` names a DaisyUI theme colour and the ramp is built out of that
+      # theme *variable*, so changing the theme repaints the heatmap. Before v3
+      # these were hardcoded hex and `:primary` meant indigo whatever the theme
+      # said. `custom_color:` takes a hex and deliberately does not follow it.
+      #
+      # @param color select { choices: [neutral, primary, secondary, accent, info, success, warning, error, ghost] }
       # @param responsive toggle
       def default(color: :primary, responsive: true)
         data = {
@@ -93,15 +97,17 @@ module Bali
         end
       end
 
-      # A color symbol outside COLOR_PRESETS falls back to the default preset
-      # instead of raising.
-      def with_unknown_color
+      # The hex escape hatch. Everything else on this page follows the theme;
+      # this one does not, which is the whole reason it has its own keyword.
+      # @param custom_color text
+      def with_custom_color(custom_color: '#7c3aed')
         data = { A: { 0 => 1, 1 => 2 }, B: { 0 => 3, 1 => 4 } }
 
-        render Bali::Heatmap::Component.new(data: data, color: :chartreuse)
+        render Bali::Heatmap::Component.new(data: data, custom_color: custom_color)
       end
 
-      # Shows different color presets
+      # Shows every semantic colour at once. Switch the DaisyUI theme with the
+      # toolbar and all nine repaint — that is the check that #691 landed.
       def color_presets
         render_with_template
       end
