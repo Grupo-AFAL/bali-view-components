@@ -22,8 +22,8 @@ class BaliHoverCardComponentTest < ComponentTestCase
     assert_equal("click", Bali::HoverCard::Component::TRIGGERS[:click])
   end
 
-  def test_constants_has_default_z_index_constant
-    assert_equal(9999, Bali::HoverCard::Component::DEFAULT_Z_INDEX)
+  def test_constants_default_z_index_constant_is_gone
+    refute(Bali::HoverCard::Component.const_defined?(:DEFAULT_Z_INDEX))
   end
 
   def test_rendering_with_template_content_renders_wrapper_with_hover_card_component_class
@@ -126,9 +126,9 @@ class BaliHoverCardComponentTest < ComponentTestCase
     assert_includes(rendered_content, 'data-hovercard-arrow-value="false"')
   end
 
-  def test_z_index_parameter_with_default_value_uses_default_z_index
+  def test_z_index_parameter_omitted_leaves_the_tier_to_the_css_scale
     render_inline(@component)
-    assert_includes(rendered_content, 'data-hovercard-z-index-value="9999"')
+    refute_includes(rendered_content, "data-hovercard-z-index-value")
   end
 
   def test_z_index_parameter_with_custom_value_applies_custom_z_index

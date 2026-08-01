@@ -81,7 +81,7 @@ module Bali
 
       def container_attributes
         options.except(:class).merge(
-          class: class_names("document-editor-overlay fixed inset-0 z-50 flex flex-col bg-base-100", options[:class]),
+          class: class_names("document-editor-overlay fixed inset-0 z-[var(--bali-z-modal)] flex flex-col bg-base-100", options[:class]),
           data: controller_data
         )
       end

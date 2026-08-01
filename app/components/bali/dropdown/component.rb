@@ -73,7 +73,7 @@ module Bali
           "bg-base-100",
           "text-base-content", # Ensure proper text contrast regardless of parent colors
           "rounded-box",
-          "z-50",
+          "z-[var(--bali-z-dropdown)]",
           "shadow-lg",
           "p-2",
           @wide ? "w-80" : "w-52"

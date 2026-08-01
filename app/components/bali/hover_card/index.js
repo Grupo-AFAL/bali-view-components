@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import useDispatch from '../../../assets/javascripts/bali/utils/use-dispatch.js'
+import zIndexFor from '../../../assets/javascripts/bali/utils/z-index.js'
 
 const ARROW_SVG = `
 <svg width="14" height="8" viewBox="0 0 14 8" fill="none">
@@ -30,7 +31,7 @@ export class HovercardController extends Controller {
     trigger: { type: String, default: 'mouseenter focus' },
     contentPadding: { type: Boolean, default: true },
     appendTo: { type: String, default: 'body' },
-    zIndex: { type: Number, default: 9999 },
+    zIndex: Number,
     arrow: { type: Boolean, default: true }
   }
 
@@ -53,7 +54,7 @@ export class HovercardController extends Controller {
       placement: this.placementValue,
       trigger: this.triggerValue,
       interactive: true,
-      zIndex: this.zIndexValue,
+      zIndex: this.hasZIndexValue ? this.zIndexValue : zIndexFor('tooltip'),
       onTrigger: this.onTrigger,
       onCreate: this.onCreate,
       onShow: this.onShow,
