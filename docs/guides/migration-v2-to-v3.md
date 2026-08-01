@@ -82,6 +82,12 @@ cell no longer drops a column, and a table with no header row no longer promotes
 data row to the header. If your stored content has tables, this is a reason to upgrade rather
 than a cost of it.
 
+**Your build needs Node >= 22.** `@blocknote/core` 0.52 depends on `lib0` `1.0.0-rc.22`, whose
+`engines.node` is `">=22"`. On Node 20 the install itself fails — `Found incompatible module` —
+so you find out at `yarn install`, not in production. Bump your CI and your Dockerfile before
+bumping the package. This applies only if you render the BlockEditor; nothing else in Bali
+raises the Node floor.
+
 ### `Bali.deprecator`
 
 Every deprecation warning the gem emits now goes through a single

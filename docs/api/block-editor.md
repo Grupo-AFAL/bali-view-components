@@ -30,6 +30,8 @@ All of these are declared as **optional** peer dependencies of `bali-view-compon
 
 **Keep every `@blocknote/*` package on the same version.** Mixing, say, `@blocknote/core` 0.52.1 with `@blocknote/react` 0.51.0 is not a build error -- the packages share types and internal ProseMirror plugin keys across the boundary, so a mismatch surfaces as a menu that never opens or content that silently fails to serialise. Upgrade them as a set.
 
+> **Node >= 22 is required to install this.** `@blocknote/core` 0.52 depends on `lib0` `1.0.0-rc.22`, which declares `engines.node: ">=22"`. On Node 20, `yarn install` stops with `error lib0@1.0.0-rc.22: The engine "node" is incompatible with this module` and `Found incompatible module` -- an install-time failure, not a runtime one, so you will see it immediately rather than in production. This repository's own CI moved from Node 20 to 22 for exactly this reason. `lib0` is the only package in the tree that asks for 22.
+
 ### Step 2 -- esbuild flags
 
 Bali's assets are bundled with esbuild. Two settings are required; both were found by building a real application, and each fails as a hard build error rather than a warning:
