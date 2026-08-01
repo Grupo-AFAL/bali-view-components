@@ -79,14 +79,9 @@ module Bali
       # Renders just the range input without wrapper
       def range_field(method, options = {})
         range_options = build_range_options(method, options)
-        field_html = @template.range_field(object_name, method, range_options)
 
-        if errors?(method)
-          error_html = content_tag(:p, full_errors(method), class: "label-text-alt text-error mt-1")
-          field_html + error_html
-        else
-          field_html
-        end
+        @template.range_field(object_name, method, range_options) +
+          error_and_help(method, options)
       end
 
       private

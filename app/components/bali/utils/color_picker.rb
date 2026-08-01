@@ -2,95 +2,28 @@
 
 module Bali
   module Utils
+    # Walks a palette, handing out one colour per series. The palette itself is
+    # Bali::Color's — this class used to keep three of its own (THEME_COLORS,
+    # CSS_VAR_MAP, FALLBACK_COLORS), of which two were read by nothing.
     class ColorPicker
-      # DaisyUI theme-aware colors using CSS custom properties
-      # These adapt automatically to light/dark mode
-      THEME_COLORS = %w[
-        primary
-        secondary
-        accent
-        info
-        success
-        warning
-        error
-      ].freeze
-
-      # Mapping from semantic color names to DaisyUI 5 CSS variable names
-      # DaisyUI 5 uses full variable names like --color-primary instead of --p
-      CSS_VAR_MAP = {
-        "primary" => "--color-primary",
-        "secondary" => "--color-secondary",
-        "accent" => "--color-accent",
-        "info" => "--color-info",
-        "success" => "--color-success",
-        "warning" => "--color-warning",
-        "error" => "--color-error",
-        "base-content" => "--color-base-content",
-        "base-100" => "--color-base-100",
-        "base-200" => "--color-base-200",
-        "base-300" => "--color-base-300"
-      }.freeze
-
-      # Fallback hex colors (used when CSS variables are not available)
-      # These match common DaisyUI theme defaults
-      FALLBACK_COLORS = {
-        "primary" => "#570df8",
-        "secondary" => "#f000b8",
-        "accent" => "#37cdbe",
-        "info" => "#3abff8",
-        "success" => "#36d399",
-        "warning" => "#fbbd23",
-        "error" => "#f87272"
-      }.freeze
-
       class << self
         def opacify(color, opacity = 5)
-          # Handle CSS variable references
-          return css_color_with_alpha(color, opacity) if color.start_with?("var(")
+          return Bali::Color.with_alpha(color, opacity * 10) unless color.to_s.start_with?("#")
 
           "#{color}#{(opacity * 255 / 10).to_fs(16)}"
-        end
-
-        def gradient(color = nil, size: 10)
-          (0..(size - 1)).map { |opacity| opacify(color || @current, opacity) }
-        end
-
-        # Returns CSS color with alpha for theme colors
-        def css_color_with_alpha(css_var, opacity)
-          # Extract the variable name from var(--...)
-          # For oklch colors, we need to use oklch(var(...) / alpha)
-          alpha = opacity / 10.0
-          var_match = css_var.match(/var\((--[^)]+)\)/)
-          return css_var unless var_match
-
-          "oklch(var(#{var_match[1]}) / #{alpha})"
-        end
-
-        # Returns a CSS variable reference for a theme color
-        # DaisyUI 5 variables contain full oklch values like "oklch(45% .24 277.023)"
-        # So we use var() directly
-        def theme_color(name)
-          css_var = CSS_VAR_MAP[name.to_s]
-          return nil unless css_var
-
-          "var(#{css_var})"
-        end
-
-        # Returns a theme color with alpha
-        # We use color-mix for alpha since DaisyUI 5 vars have full oklch values
-        def theme_color_with_alpha(name, alpha)
-          css_var = CSS_VAR_MAP[name.to_s]
-          return nil unless css_var
-
-          "color-mix(in oklch, var(#{css_var}) #{(alpha * 100).to_i}%, transparent)"
         end
       end
 
       attr_reader :current, :use_theme_colors
 
-      def initialize(use_theme_colors: true)
+      # @param use_theme_colors [Boolean] Resolve to DaisyUI variables rather than fixed hex
+      # @param color [Symbol, nil] Semantic colour the cycle starts from
+      # @param custom_color [String, nil] Hex colour the cycle starts from
+      def initialize(use_theme_colors: true, color: nil, custom_color: nil)
         @pointer = 0
         @use_theme_colors = use_theme_colors
+        @color = color
+        @custom_color = custom_color
         @current = colors[@pointer]
       end
 
@@ -116,20 +49,27 @@ module Bali
         @pointer = 0
       end
 
+      # A hex `custom_color:` takes the whole palette off the theme, not just its
+      # first entry. Mixing the two would hand Chart.js one hex and six
+      # `var(--color-*)` strings in the same dataset, and canvas cannot resolve a
+      # var() — the theme half would render as nothing.
       def colors
-        @colors ||= if @use_theme_colors
+        @colors ||= if @custom_color
+                      [ @custom_color, *legacy_colors ]
+        elsif @use_theme_colors
                       theme_aware_colors
         else
                       legacy_colors
         end
       end
 
-      # DaisyUI theme-aware colors (CSS variables)
+      # Rotated so a declared `color:` leads it, which is what makes a
+      # single-series chart honour one.
       def theme_aware_colors
-        THEME_COLORS.map { |name| self.class.theme_color(name) }
+        Bali::Color.cycle_from(@color).map { |name| Bali::Color.css(name) }
       end
 
-      # Legacy hex colors (for backwards compatibility)
+      # Fixed hex, for a host that opts out of the theme with `use_theme_colors: false`
       def legacy_colors
         [
           "#22AA99", # turquoise

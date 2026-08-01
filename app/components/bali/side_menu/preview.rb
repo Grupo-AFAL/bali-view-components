@@ -93,6 +93,16 @@ module Bali
           locals: { collapsible: collapsible }
         )
       end
+
+      # @label With Trigger (keyboard)
+      # `Bali::SideMenu::Trigger::Component` is the single control that opens the sidebar —
+      # the same button Topbar, AppLayout and Navbar::Burger render. It is a real `<button>`,
+      # so the whole drawer is operable from the keyboard: Tab to it, Enter or Space to open,
+      # Tab through the items, Escape to close, and focus returns to the button.
+      # Narrow the viewport below `lg` to see the drawer; above it the sidebar is permanent.
+      def with_trigger
+        render_with_template(template: "bali/side_menu/previews/with_trigger")
+      end
     end
   end
 end

@@ -10,6 +10,12 @@ module Bali
       # Fixed, vibrant status palette. Rendered as inline styles (never Tailwind
       # bg-* classes) so statuses look identical across DaisyUI themes and need
       # no safelist. `fg` values are picked for AA-ish contrast on `bg`.
+      #
+      # This is the one place a colour name outside Bali::Color::NAMES survives,
+      # and on purpose: a workflow's "blue" is not the app's `primary`, and a host
+      # that rebrands should not have its "validated" status change meaning. The
+      # semantic names are accepted too — see #theme_pair — so `color: :success`
+      # means the same thing here as on a Tag.
       PALETTE = {
         slate:  { bg: "#64748b", fg: "#fff" },
         gray:   { bg: "#d1d5db", fg: "#1f2937" },
@@ -28,6 +34,12 @@ module Bali
       SIZES = { xs: "status--xs", sm: "status--sm", md: "status--md" }.freeze
 
       DEFAULT_COLOR = :slate
+
+      COLOR_NAMES = (PALETTE.keys + Bali::Color::NAMES).freeze
+
+      # `ghost` has no --color-ghost, and a transparent pill would be unreadable
+      # over a table row, so it takes the theme's own surface.
+      GHOST_PAIR = { bg: "var(--color-base-200)", fg: "var(--color-base-content)" }.freeze
 
       def initialize(selected: nil, options: [], form: nil, readonly: false,
                      clearable: false, size: :sm, placeholder: nil, **html_options)
@@ -79,26 +91,35 @@ module Bali
         form.fetch(:method, :patch)
       end
 
-      # Resolves a palette symbol or a hex string to { bg:, fg: } for inline styling.
-      def resolve_color(color)
-        return PALETTE.fetch(DEFAULT_COLOR) if color.blank?
+      # Resolves an option's colour to { bg:, fg: } for inline styling. `color:`
+      # names either the fixed palette above or Bali::Color::NAMES;
+      # `custom_color:` is the hex escape hatch, as it is on every other
+      # component. An unknown name raises rather than silently rendering slate.
+      def resolve_color(option)
+        custom = Bali::Color.hex!(self.class, option&.dig(:custom_color))
+        return { bg: custom, fg: contrasting_text_color(custom) } if custom
 
-        if color.is_a?(Symbol) || PALETTE.key?(color.to_s.to_sym)
-          PALETTE.fetch(color.to_sym, PALETTE.fetch(DEFAULT_COLOR))
-        else
-          { bg: color, fg: contrasting_text_color(color) }
-        end
+        name = Bali::Color.name!(self.class, option&.dig(:color), allowed: COLOR_NAMES)
+        return PALETTE.fetch(DEFAULT_COLOR) if name.nil?
+
+        PALETTE[name] || theme_pair(name)
       end
 
-      def pill_style(color)
-        c = resolve_color(color)
+      def theme_pair(name)
+        return GHOST_PAIR if name == Bali::Color::GHOST
+
+        { bg: "var(--color-#{name})", fg: "var(--color-#{name}-content)" }
+      end
+
+      def pill_style(option)
+        c = resolve_color(option)
         "background-color: #{c[:bg]}; color: #{c[:fg]};"
       end
 
       def selected_style
         return if @selected.blank?
 
-        pill_style(selected_option&.dig(:color))
+        pill_style(selected_option)
       end
 
       def size_class

@@ -10,36 +10,41 @@ module Bali
         CONFIGURATIONS = {
           main: { target: "burger", action: "navbar#toggleMenu" },
           alt: { target: "altBurger", action: "navbar#toggleAltMenu" },
-          sidebar: { action: "navbar#toggleSideMenu" }
+          sidebar: {}
         }.freeze
 
         # @param type [Symbol] :main (navbar menu), :alt, :sidebar (side menu)
-        # @param trigger_id [String] Checkbox ID for :sidebar type
+        # @param menu_id [String] id of the SideMenu opened by `type: :sidebar`
         # @param href [String] When provided, renders as a simple link instead of a button
         def initialize(type: :main,
-                       trigger_id: Bali::SideMenu::Component::MOBILE_TRIGGER_ID,
+                       menu_id: Bali::SideMenu::Component::DEFAULT_ID,
                        href: nil,
                        **options)
           @type = type
-          @trigger_id = trigger_id
+          @menu_id = menu_id
           @href = href
-          @options = prepend_class_name(options, BASE_CLASSES)
+          # The sidebar button delegates its styling to SideMenu::Trigger; the
+          # link form still renders here, so it keeps the burger's own classes.
+          @options = @href || !sidebar? ? prepend_class_name(options, BASE_CLASSES) : options
 
           configure_attrs unless type.nil? || @href
         end
 
+        # `type: :sidebar` renders Bali::SideMenu::Trigger::Component rather than
+        # its own markup. It used to be a `<label for=…>` pointing at a hidden
+        # checkbox — a third hamburger markup with a second opening mechanism,
+        # and one no keyboard could reach. There is now a single trigger, so the
+        # navbar burger gets `aria-expanded`, `aria-controls` and focus
+        # restoration for free.
         def call
           if @href
             tag.a(href: @href, 'aria-label': t(".toggle_menu"), **@options) do
               content.presence || default_icon
             end
           elsif sidebar?
-            tag.label(for: @trigger_id, role: "button", tabindex: "0",
-                      'aria-label': t(".toggle_menu"), **@options) do
-              content.presence || default_icon
-            end
+            render(sidebar_trigger) { content.presence || default_icon }
           else
-            tag.button(role: "button", 'aria-label': t(".toggle_menu"), **@options) do
+            tag.button(type: "button", 'aria-label': t(".toggle_menu"), **@options) do
               content.presence || default_icon
             end
           end
@@ -53,10 +58,20 @@ module Bali
           @type == :sidebar
         end
 
+        def sidebar_trigger
+          Bali::SideMenu::Trigger::Component.new(
+            menu_id: @menu_id,
+            icon: nil,
+            'aria-label': t(".toggle_menu"),
+            class: class_names("lg:hidden", @options[:class]),
+            **@options.except(:class)
+          )
+        end
+
         def configure_attrs
           attrs = CONFIGURATIONS.fetch(@type, CONFIGURATIONS[:main])
 
-          prepend_action(@options, attrs[:action]) if attrs[:action] && !sidebar?
+          prepend_action(@options, attrs[:action]) if attrs[:action]
           prepend_data_attribute(@options, "navbar-target", attrs[:target]) if attrs[:target]
         end
 

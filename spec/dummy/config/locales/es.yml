@@ -154,6 +154,7 @@ es:
       movie_details: Detalles de la Pelicula
       synopsis: Sinopsis
       enter_synopsis: Ingrese la sinopsis de la pelicula...
+      synopsis_help: Un resumen breve, maximo 500 caracteres.
       rich_description: Descripcion Detallada
       enter_rich_description: Escribe una descripcion detallada con formato...
       release_date: Fecha de Estreno

@@ -1,6 +1,6 @@
 <div class="bg-base-100 rounded-xl shadow-sm border border-base-200 p-4 <%= options[:class] %>">
   <h3 class="font-semibold mb-3 flex items-center gap-2">
-    <%= render Bali::Tag::Component.new(text: " ", color: color, size: :sm) %>
+    <%= render Bali::Tag::Component.new(**indicator_options) %>
     <%= title %>
     <% if display_count > 0 %>
       <%= render Bali::Tag::Component.new(text: display_count.to_s, color: :ghost, size: :sm) %>

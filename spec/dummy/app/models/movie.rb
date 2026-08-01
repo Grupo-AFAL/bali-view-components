@@ -15,6 +15,12 @@ class Movie < ApplicationRecord
 
   enum :status, { draft: 0, done: 1 }
 
+  # The reference form needs one reachable field-level error. The synopsis is the
+  # field there that carries help text and a character counter and is not marked
+  # `required`, so an over-long value shows an error next to its help without the
+  # browser blocking the submit first.
+  validates :synopsis, length: { maximum: 500 }
+
   # Virtual attributes (not persisted)
   attribute :duration, default: -> { "#{Date.current} 00:00:00" }
   attribute :cover_photo

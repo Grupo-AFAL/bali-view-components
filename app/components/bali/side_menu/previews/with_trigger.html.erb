@@ -1,0 +1,29 @@
+<div class="h-[700px] bg-base-200">
+  <div class="flex items-center gap-2 px-4 py-2 bg-base-100 border-b border-base-300 lg:ml-64">
+    <%= render Bali::SideMenu::Trigger::Component.new %>
+    <span class="font-semibold text-sm">Keyboard demo</span>
+  </div>
+
+  <%= render Bali::SideMenu::Component.new(current_path: '/dashboard', fixed: true, collapsible: true, brand: 'ACME') do |c|
+    c.with_list(title: 'Navigation') do |list|
+      list.with_item(name: 'Dashboard', href: '/dashboard', icon: 'layout-dashboard')
+      list.with_item(name: 'Projects', href: '/projects', icon: 'folder-open')
+      list.with_item(name: 'Team', href: '/team', icon: 'users')
+    end
+
+    c.with_bottom_item(name: 'Log out', href: '/logout', icon: 'log-out')
+  end %>
+
+  <div class="p-4 space-y-2 lg:ml-64">
+    <p class="text-base-content/60">
+      Below the <code class="text-primary">lg</code> breakpoint the sidebar is a drawer opened by the
+      button above. Tab reaches it, Enter or Space opens it, Tab cycles the items inside, Escape
+      closes it and focus returns to the button.
+    </p>
+    <p class="text-base-content/60">
+      At <code class="text-primary">lg</code> and up the sidebar is permanent chrome and the button is
+      irrelevant; the header toggle collapses it to an icon rail instead.
+    </p>
+    <a href="#" class="link">A link outside the drawer — focus must not reach it while the drawer is open.</a>
+  </div>
+</div>

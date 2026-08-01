@@ -454,19 +454,49 @@ Ensure logical tab order:
 
 ### Skip Links
 
+`Bali::AppLayout::Component` renders one for you. It is the first focusable element on the
+page, it points at the `<main id="main-content" tabindex="-1">` the layout also renders, and it
+is off-screen until it takes focus. Pass `skip_link: false` to opt out.
+
+Hand-rolling one outside AppLayout:
+
 ```erb
 <body>
   <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-base-100 focus:p-4">
     Skip to main content
   </a>
-  
+
   <nav>...</nav>
-  
+
   <main id="main-content" tabindex="-1">
     ...
   </main>
 </body>
 ```
+
+`tabindex="-1"` on the target is not optional: without it the browser scrolls to `<main>` but
+leaves focus behind, and the next Tab restarts at the top of the page.
+
+### Sidebar navigation
+
+`Bali::SideMenu::Component` renders a `<nav aria-label>` landmark whose items are a real
+`ul`/`li` list, and marks the link pointing at the current page with `aria-current="page"`. An
+ancestor of the current page stays visually highlighted but does **not** get `aria-current` —
+that belongs to the one link that actually points at the page you are on.
+
+Everything that opens or collapses it is a `<button>`. Do not build your own hamburger: render
+`Bali::SideMenu::Trigger::Component`, which carries `aria-controls`, keeps `aria-expanded` in
+sync with the sidebar, and gets focus back when the drawer closes.
+
+```erb
+<%= render Bali::SideMenu::Trigger::Component.new %>
+```
+
+Below the `lg` breakpoint the sidebar is a modal drawer:
+
+- it carries `inert` while closed, so nothing inside it is reachable by Tab;
+- opening it moves focus to its first control and keeps Tab inside it;
+- Escape closes it and returns focus to the trigger that opened it.
 
 ---
 

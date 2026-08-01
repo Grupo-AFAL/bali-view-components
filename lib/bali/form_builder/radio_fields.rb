@@ -5,8 +5,6 @@ module Bali
     module RadioFields
       RADIO_CLASS = "radio"
       LABEL_CLASS = "label cursor-pointer justify-start gap-3"
-      LABEL_TEXT_CLASS = "label-text"
-      ERROR_CLASS = "label-text-alt text-error"
       TOGGLERS_CLASS = "join"
       TOGGLER_CLASS = "join-item btn btn-sm"
       TOGGLER_ACTIVE_CLASS = "btn-primary"
@@ -140,7 +138,7 @@ module Bali
           label(method, class: label_class, value: value) do
             safe_join(
               [ radio_button(method, value, merged_options),
-               content_tag(:span, display, class: LABEL_TEXT_CLASS) ]
+               content_tag(:span, display) ]
             )
           end
         end

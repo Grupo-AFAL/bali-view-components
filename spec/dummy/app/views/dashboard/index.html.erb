@@ -13,7 +13,7 @@
   <%= render Bali::StatCard::Component.new(
     title: t('dashboard.total_movies'),
     value: @total_movies,
-    icon_name: 'film',
+    icon: 'film',
     color: :primary
   ) do |card|
     card.with_footer do
@@ -25,7 +25,7 @@
   <%= render Bali::StatCard::Component.new(
     title: t('dashboard.in_production'),
     value: @active_productions,
-    icon_name: 'clapperboard',
+    icon: 'clapperboard',
     color: :warning
   ) do |card|
     card.with_footer do
@@ -37,7 +37,7 @@
   <%= render Bali::StatCard::Component.new(
     title: t('dashboard.studios'),
     value: @studios_count,
-    icon_name: 'building-2',
+    icon: 'building-2',
     color: :secondary
   ) do |card|
     card.with_footer do
@@ -49,7 +49,7 @@
   <%= render Bali::StatCard::Component.new(
     title: t('dashboard.indie_films'),
     value: @indie_count,
-    icon_name: 'star',
+    icon: 'star',
     color: :accent
   ) do |card|
     card.with_footer do
