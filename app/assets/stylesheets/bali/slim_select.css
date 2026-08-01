@@ -3,6 +3,15 @@
  *
  * Self-contained CSS for SlimSelect without vendor CSS dependency.
  * Built from scratch using DaisyUI patterns and Tailwind utilities.
+ *
+ * UNLAYERED ON PURPOSE (see ../bali.css). SlimSelect copies the native
+ * `<select>`'s class list onto its own `.ss-main` / `.ss-content` nodes, so
+ * those elements carry daisyUI's `.select` — which lives in @layer utilities
+ * and sets width, height, padding, border, radius, display, overflow and
+ * background-image. Cascade layers beat specificity, so from @layer components
+ * daisyUI takes the trigger over: measured on bali/form/slim_select/default,
+ * `.ss-main.select` went 1248px -> 320px wide, `display: flex` -> `inline-flex`
+ * and `appearance: none` -> `base-select`.
  */
 
 /* =============================================================================
@@ -34,8 +43,35 @@
 }
 
 /* =============================================================================
+   About the !important in this file (32 of them, audited for #693)
+   -----------------------------------------------------------------------------
+   Two groups, both kept:
+
+   A. Overrides of daisyUI's `.select` — the visually-hidden native select
+      below, the arrow `background-image`, `padding`, `height`, `appearance`
+      and the `::before/::after` suppression near the bottom of the file.
+      SlimSelect copies the native select's class list onto its own nodes, so
+      these elements really do carry `.select`. Being unlayered already beats
+      daisyUI, but not a host's own unlayered `.select` rule imported after
+      Bali — and the failure mode there is the raw native select becoming
+      visible next to the widget. Cheap insurance, kept.
+
+   B. Intra-file ordering: `.ss-hide`, and the `transform` on
+      `.ss-content.ss-dir-above/below`. These fight `.ss-main { @apply flex }`
+      and `.ss-content.ss-open { transform: scaleY(1) }` in this same file at
+      equal specificity, where the competing rule comes later. Load-bearing as
+      the file is written; removing them silently breaks the open/closed
+      animation. Kept.
+
+   Nothing here is reachable by a `!` utility variant from a host — SlimSelect
+   builds this DOM itself, so there is no element to put a class on.
+   ============================================================================= */
+
+/* =============================================================================
    Utility Classes (used by SlimSelect internally)
    ============================================================================= */
+/* Group B: competes with `.ss-main { @apply flex }` (same specificity, later)
+   and with Tailwind's own `.hidden`. */
 .ss-hide {
   display: none !important;
 }

@@ -6,6 +6,8 @@ module Bali
       # Timeline item component for individual timeline entries.
       #
       # Uses DaisyUI's timeline-start, timeline-middle, timeline-end structure.
+      # The heading and the content are emitted once, in the single content box
+      # the parent timeline assigned through `side:`.
       #
       # @example Basic usage
       #   render Bali::Timeline::Item::Component.new(heading: 'Event Title') do
@@ -22,6 +24,12 @@ module Bali
       class Component < ApplicationViewComponent
         # Base classes for the timeline item marker
         MARKER_BASE_CLASSES = "timeline-middle"
+
+        # DaisyUI grid area the single content box is placed in
+        SIDES = {
+          start: "timeline-start",
+          end: "timeline-end"
+        }.freeze
 
         # Color variants for the marker icon
         COLORS = {
@@ -51,17 +59,28 @@ module Bali
         # @param icon [String, nil] Lucide icon name to display in the marker
         # @param color [:default, :primary, :secondary, :accent, :success, :warning, :error, :info]
         #   Color variant for the marker and line
+        # @param side [:start, :end] Which side of the line the content box lands on.
+        #   Set by {Bali::Timeline::Component}, which owns the layout decision.
         # @param options [Hash] Additional HTML attributes for the container
-        def initialize(heading: nil, icon: nil, color: :default, **options)
+        def initialize(heading: nil, icon: nil, color: :default, side: :start, **options)
           @heading = heading
           @icon = icon
           @color = color.to_sym
+          @side = side.to_sym
           @options = options
         end
 
         private
 
-        attr_reader :heading, :icon, :color, :options
+        attr_reader :heading, :icon, :color, :side, :options
+
+        def content_box_classes
+          class_names(
+            SIDES.fetch(side, SIDES[:start]),
+            "timeline-box",
+            "timeline-content-box"
+          )
+        end
 
         def marker_classes
           class_names(

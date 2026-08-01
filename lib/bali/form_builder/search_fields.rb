@@ -6,15 +6,15 @@ module Bali
       DEFAULT_BUTTON_CLASSES = "btn btn-neutral"
 
       def search_field_group(method, options = {})
-        addon_class = options.delete(:addon_class) || DEFAULT_BUTTON_CLASSES
+        addon_class = options[:addon_class] || DEFAULT_BUTTON_CLASSES
 
-        options.with_defaults!(
+        opts = options.with_defaults(
           placeholder: I18n.t("bali_view.form_builder.search.placeholder"),
           addon_right: search_addon(addon_class)
         )
 
-        @template.render Bali::FieldGroupWrapper::Component.new(self, method, options) do
-          text_field(method, options)
+        @template.render Bali::FieldGroupWrapper::Component.new(self, method, opts) do
+          text_field(method, opts)
         end
       end
 
