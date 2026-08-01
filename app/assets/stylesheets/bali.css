@@ -1,42 +1,72 @@
 /*
- * Bali ViewComponents - Main CSS Entry Point
+ * Bali ViewComponents — CSS entry point.
  *
- * Usage in your application's Tailwind CSS file:
+ * Usage in your application's Tailwind CSS file, AFTER the Tailwind and
+ * daisyUI directives:
  *
- *   @import "bali";
+ *   @import "tailwindcss";
+ *   @plugin "daisyui";
+ *   @import "bali-view-components/css/bali.css";
  *
- * Or import individual stylesheets:
+ * This is the ONLY import you need — component CSS comes in through
+ * ./bali/components.css at the bottom of this file.
  *
- *   @import "bali/general.css";
- *   ... etc
+ * ---------------------------------------------------------------------------
+ * Cascade layers
+ * ---------------------------------------------------------------------------
+ * Tailwind v4 orders layers: theme < base < components < utilities.
+ * Two facts drive the layer choices here:
  *
- * Note: This file should be imported AFTER your Tailwind directives
- * and DaisyUI plugin configuration.
+ *   1. Host apps override Bali with utility classes. Utilities live in
+ *      @layer utilities, so Bali's own classes go in @layer components and
+ *      lose to them on purpose — `lg:hidden` beats `.menu-item`, no `!`
+ *      variant required.
+ *
+ *   2. daisyUI 5 does NOT use @layer components. It emits its component
+ *      classes inside @layer utilities (sublayers `daisyui.*`). A sheet in
+ *      @layer components therefore also loses to daisyUI, not only to the
+ *      utilities. The sheets that exist precisely to beat a daisyUI rule stay
+ *      UNLAYERED; each one names the rule it is fighting in its own header.
+ *
+ * Layer assignment lives here, as `@import "..." layer(x)`, instead of an
+ * `@layer` block inside every file, so a sheet's position is readable in one
+ * place. Import order still matters for the unlayered group.
  */
 
 /* ==============================================
-   Base Styles & Variables
+   @layer base — theme token fallbacks
    ============================================== */
-@import "./bali/general.css";
+@import "./bali/theme-fallbacks.css" layer(base);
 
 /* ==============================================
-   Form Styles
+   @layer components — Bali's own styles
+   ============================================== */
+@import "./bali/general.css" layer(components);
+@import "./bali/switch.css" layer(components);
+
+/* Typography & layout */
+@import "./bali/typography.css" layer(components);
+@import "./bali/container.css" layer(components);
+@import "./bali/box.css" layer(components);
+@import "./bali/panel.css" layer(components);
+
+/* Code & rich text */
+@import "./bali/code.css" layer(components);
+@import "./bali/rich_text.css" layer(components);
+
+/* ==============================================
+   Unlayered on purpose — each file's header says which rule it has to beat.
+   Keep the relative order of the first three: they only fight daisyUI, but
+   they are ordinary same-layer neighbours to each other.
+   `container-overrides.css` fights Tailwind's own `.container` utility; it
+   shares no selector with the others, so its position is free.
    ============================================== */
 @import "./bali/forms.css";
 @import "./bali/datepicker.css";
 @import "./bali/slim_select.css";
-@import "./bali/switch.css";
+@import "./bali/container-overrides.css";
 
 /* ==============================================
-   Typography & Layout
+   Component styles (mostly @layer components — see the file)
    ============================================== */
-@import "./bali/typography.css";
-@import "./bali/container.css";
-@import "./bali/box.css";
-@import "./bali/panel.css";
-
-/* ==============================================
-   Code & Rich Text
-   ============================================== */
-@import "./bali/code.css";
-@import "./bali/rich_text.css";
+@import "./bali/components.css";

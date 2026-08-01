@@ -52,9 +52,47 @@ class BaliRevealComponentTest < ComponentTestCase
         end
       end
     end
-    assert_selector('div.reveal-trigger[data-action="click->reveal#toggle"]')
+    assert_selector('button.reveal-trigger[type="button"][data-action="click->reveal#toggle"]')
     assert_selector("div.reveal-title", text: "Click here")
     assert_selector(".icon-component")
+  end
+
+  def test_trigger_is_a_button_pointing_at_the_content_it_controls
+    render_inline(@component) do |c|
+      c.with_trigger { |trigger| trigger.with_title { "Click here" } }
+    end
+    controls = page.find("button.reveal-trigger")["aria-controls"]
+    refute_nil(controls)
+    assert_selector("div.reveal-content##{controls}")
+  end
+
+  def test_trigger_reuses_the_component_id_for_the_content_id
+    render_inline(Bali::Reveal::Component.new(id: "my-reveal")) do |c|
+      c.with_trigger { |trigger| trigger.with_title { "Click here" } }
+    end
+    assert_selector('button.reveal-trigger[aria-controls="my-reveal-content"]')
+    assert_selector("div.reveal-content#my-reveal-content")
+  end
+
+  def test_trigger_is_a_stimulus_target_so_the_controller_can_sync_aria_expanded
+    render_inline(@component) do |c|
+      c.with_trigger { |trigger| trigger.with_title { "Click here" } }
+    end
+    assert_selector('button.reveal-trigger[data-reveal-target="trigger"]')
+  end
+
+  def test_trigger_reports_collapsed_when_the_component_is_closed
+    render_inline(@component) do |c|
+      c.with_trigger { |trigger| trigger.with_title { "Click here" } }
+    end
+    assert_selector('button.reveal-trigger[aria-expanded="false"]')
+  end
+
+  def test_trigger_reports_expanded_when_the_component_is_opened
+    render_inline(Bali::Reveal::Component.new(opened: true)) do |c|
+      c.with_trigger { |trigger| trigger.with_title { "Click here" } }
+    end
+    assert_selector('button.reveal-trigger[aria-expanded="true"]')
   end
 
   def test_trigger_renders_border_at_bottom_by_default
@@ -63,7 +101,7 @@ class BaliRevealComponentTest < ComponentTestCase
         trigger.with_title { "Click here" }
       end
     end
-    assert_selector("div.reveal-trigger.border-b")
+    assert_selector("button.reveal-trigger.border-b")
   end
 
   def test_trigger_hides_border_when_show_border_is_false
@@ -72,7 +110,7 @@ class BaliRevealComponentTest < ComponentTestCase
         trigger.with_title { "Click here" }
       end
     end
-    assert_no_selector("div.reveal-trigger.border-b")
+    assert_no_selector("button.reveal-trigger.border-b")
   end
 
   def test_trigger_accepts_custom_icon_class
