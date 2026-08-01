@@ -10,14 +10,16 @@ module Bali
       end
 
       def recurrent_event_rule_field(method, options = {})
-        value = options.delete(:value) || object.try(method)
+        value = options[:value] || object.try(method)
 
         @template.render(
           Bali::RecurrentEventRuleForm::Component.new(
             form: self,
             method: method,
             value: value,
-            **options
+            # The component prepends its Stimulus controller into `:data` in
+            # place, so it gets a copy rather than the caller's nested hash.
+            **dup_options(options).except(:value)
           )
         )
       end

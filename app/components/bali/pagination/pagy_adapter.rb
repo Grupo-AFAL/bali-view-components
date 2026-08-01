@@ -87,11 +87,17 @@ module Bali
       # append the fragment the way Pagy does (conditionally prepending '#'). With no base at
       # all the result is a bare `?page=2`, which the browser resolves against the current
       # path — the same place the old `request.path` fallback pointed at.
+      #
+      # The page value and the query string are both built by Pagy, not by Rack, because for
+      # countless pagination the value is not the page number: it is `"3+2"`, the page plus
+      # the last page Pagy knows about, wrapped in a `Pagy::EscapedValue` so the `+` survives
+      # into the URL. `Rack::Utils.build_nested_query` escapes it to `3%2B2` and the link
+      # loses the half Pagy needs on the way back.
       def compose_page_url(page)
         uri = URI.parse(@base_url.to_s)
         params = Rack::Utils.parse_nested_query(uri.query || "")
-        params[page_key] = page
-        uri.query = Rack::Utils.build_nested_query(params)
+        params[page_key] = @pagy.send(:compose_page_param, page)
+        uri.query = Pagy::Linkable::QueryUtils.build_nested_query(params)
 
         "#{uri}#{@fragment&.sub(/\A(?=[^#])/, '#')}"
       end

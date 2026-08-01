@@ -226,6 +226,13 @@ en:
       selected_one: selected
       selected_other: selected
       clear: Clear selection
+    tree_view:
+      toggle_branch: "Toggle %{name}"
+    timeago:
+      # Rendered server-side; the Stimulus controller replaces it with date-fns
+      # output once it connects. `blank` is what a nil datetime shows.
+      blank: "—"
+      ago: "%{time} ago"
     table:
       no_records: No Records
       no_results: No Results

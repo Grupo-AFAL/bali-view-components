@@ -30,8 +30,12 @@ module Bali
           @options = options
         end
 
+        # `flex` deliberately absent: the collapsed sidebar hides the label with
+        # `.menu-label { @apply hidden }`, and since #693 that rule lives in
+        # @layer components where a utility on the element would beat it. The
+        # display value is set in ../index.css instead.
         def title_classes
-          class_names("menu-label", "flex", "items-center", "px-2.5", "pt-3", "pb-1.5", @title_class)
+          class_names("menu-label", "items-center", "px-2.5", "pt-3", "pb-1.5", @title_class)
         end
 
         def badge_classes

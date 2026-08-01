@@ -29,7 +29,20 @@ module Bali
     #     <% footer.with_controls { pagy_nav(@pagy) } %>
     #   <% end %>
     class Component < ApplicationViewComponent
-      BASE_CLASSES = "flex flex-col sm:flex-row items-center justify-between gap-2 py-4"
+      # The layout is the same wherever this band renders; the box around it is not, so the
+      # two live apart. Passing spacing in through `class:` instead would land `py-4` and
+      # `pt-4` on the same element — `pt-4` redundant, and `py-4` adding a bottom padding the
+      # caller never asked for, because Tailwind resolves that pair by stylesheet order and
+      # not by the order you wrote the classes in.
+      LAYOUT_CLASSES = "flex flex-col sm:flex-row items-center justify-between"
+
+      # Standing on its own, the band pads itself on both sides.
+      SPACING_CLASSES = "gap-2 py-4"
+
+      # Sitting under a rule at the foot of a listing, the breathing room goes above the line:
+      # the listing already ends where it ends, and a bottom padding here only pushes whatever
+      # follows further down.
+      DIVIDED_CLASSES = "gap-4 mt-4 pt-4 border-t border-base-200"
 
       # Replaces `Bali::Pagination::Component` on the right-hand side. Declaring it does not
       # change the summary.
@@ -45,11 +58,14 @@ module Bali
       # @param url [String] Base URL forwarded to Pagination (see that component for when it
       #   is needed)
       # @param fragment [String] Anchor forwarded to Pagination, appended to every page link
-      # @param data [Hash] data attributes forwarded to every page link
+      # @param data [Hash] data attributes forwarded to every page link (not to the wrapper —
+      #   the links are what a host wants to reach with `turbo_frame:`)
+      # @param divider [Boolean] Sit under a rule at the foot of a listing instead of standing
+      #   on its own: the space moves above the line and a `border-t` draws it (default: false)
       # @param options [Hash] Additional HTML attributes for the wrapper div
       def initialize(pagy:, item_name: nil, show_summary: true, show_pagination: true,
                      size: :md, variant: :default, url: nil, fragment: nil, data: nil,
-                     **options)
+                     divider: false, **options)
         @pagy = pagy
         @item_name = item_name
         @show_summary = show_summary
@@ -59,7 +75,9 @@ module Bali
         @url = url
         @fragment = fragment
         @data = data
-        @options = prepend_class_name(options, BASE_CLASSES)
+        @options = prepend_class_name(
+          options, "#{LAYOUT_CLASSES} #{divider ? DIVIDED_CLASSES : SPACING_CLASSES}"
+        )
       end
 
       # `render?` asks whether the `controls` slot was declared, and a slot declared inside

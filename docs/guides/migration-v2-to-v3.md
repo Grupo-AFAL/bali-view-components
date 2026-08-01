@@ -64,6 +64,7 @@ Bali.deprecator.silence { ... }                              # or scope one exce
 |---|---|
 | `Bali::Clipboard::SucessContent` | `Bali::Clipboard::SuccessContent` (the alias existed only for the typo) |
 | `Bali::Utils::Url#add_query_params` | `#add_query_param(url, name, value)`, one name at a time |
+| `Bali::Icon::DefaultIcons` | nothing — see [The icon fallback is gone](#the-icon-fallback-is-gone) |
 
 `Bali::FilterForm.simple_filter` is **deprecated, not removed** — it still declares the
 filter and now warns. It goes away in v4; migrate at your own pace:
@@ -90,6 +91,151 @@ The reference composition is the `Complete` scenario of the IndexPage preview
 render at once. `/admin/movies` in the dummy app is the end-to-end reference against real
 controllers, routes and Turbo Streams — saved views included, backed by the engine's default
 store and a one-user demo owner; the only family it leaves out is host toolbar buttons.
+
+## The icon fallback is gone
+
+`Bali::Icon::DefaultIcons` was 1,580 lines holding 166 inline SVGs, wired in as the fifth and
+last step of the resolution pipeline under the heading "full backwards compatibility". It is
+deleted. `Bali::Icon::Component` now resolves a name through three steps and raises if none of
+them matches:
+
+1. the Bali → Lucide name map (`LucideMapping`),
+2. a Lucide name used directly,
+3. the kept set (`KeptIcons` — brands, flags, domain-specific), then `Bali.custom_icons`.
+
+**Almost nothing was still reaching that fifth step.** Of the 167 names it could serve, 137
+were already intercepted by the Lucide map and 28 by the kept set, both of which sit *earlier*
+in the pipeline — so for 165 of them the fallback had been unreachable code since the Lucide
+migration, and deleting it changes nothing you can see. Two names were still being served by
+it, and only those two lose their glyph:
+
+| Name that stops resolving | What it drew | Use instead |
+|---|---|---|
+| `money-bill-wave` | a filled FontAwesome banknote | `banknote`, or `hand-coins` if the point was payment rather than cash |
+| `question-circle` | a filled question mark in a circle | `circle-help` |
+
+`question-circle` is the one worth grepping for: the Lucide map *does* carry an entry for this
+icon, but under the key `question_circle` — the single underscored key in the whole table, a
+leftover from the v1 hash. So `question_circle` keeps working and `question-circle`, the
+spelling that matches every other name in the library, does not. Rename it to `circle-help`
+rather than to the underscored form; the underscore is the accident here, not the fix.
+
+### Every alternative spelling of a name stops resolving too
+
+This is the larger surface, and it is invisible in a grep for the two names above. The deleted
+step did not look a name up as written — it upcased it and turned dashes into underscores to
+build a constant name, so `arrow_left`, `ARROW-LEFT` and `Arrow_Left` all resolved to the same
+SVG as `arrow-left`. The three surviving steps match **exactly**: lowercase, dashes, as
+written.
+
+In practice that means the snake_case spelling of every multi-word icon now raises. All 73 of
+them, and for 72 the fix is the same — write the dashed name:
+
+```
+address_book            alert_alt               align_center            align_left
+align_right             american_express        angle_double_down       angle_double_up
+arrow_back              arrow_forward           arrow_left              arrow_right
+arrow_right_up          badge_percent           band_aid                box_archive
+calendar_alt            chart_line              check_circle            chevron_doble_down
+chevron_doble_up        chevron_down            chevron_left            chevron_right
+cloud_upload_alt        comment_dollar          credit_card             credit_card_alt
+cutlery_alt             door_open               edit_alt                ellipsis_h
+exclamation_circle      external_link_alt       face_profile            facebook_square
+file_certificate        file_export             file_signature          filter_alt
+fire_alt                grin_wink               info_circle             info_circle_alt
+instagram_square        laptop_code             link_alt                long_arrow_alt_left
+magic_wand              map_marked_alt          map_marker_alt          mexico_flag
+money_bill_wave         nested_arrow            phone_plus              plus_circle
+project_diagram         recipe_book             search_minus            search_plus
+shopping_cart           space_station_moon_alt  square_phone            sticky_note
+times_circle            trash_alt               trophy_alt              truck_loading
+us_flag                 user_plus               utensils_alt            wallet_alt
+whatsapp_square
+```
+
+`money_bill_wave` is the one entry in that list with no dashed equivalent to fall back on — it
+is the same casualty as the row above. The single-word names (`check`, `user`, `trash`…) are
+unaffected: they spell the same either way.
+
+The error message closes the loop. `IconNotAvailable` already suggested near names, but it
+compared them literally, so `arrow_left` matched nothing and the message degraded to a link to
+lucide.dev. Suggestions now ignore the dash/underscore difference:
+
+```
+Icon 'arrow_left' is not available. Did you mean: arrow-left?
+Icon 'whatsapp_square' is not available. Did you mean: whatsapp, whatsapp-square?
+Icon 'money-bill-wave' is not available. Check available icons at: https://lucide.dev/icons
+```
+
+`money-bill-wave` is the one that still gets no suggestion, and correctly so — no surviving
+name resembles it. Take the alternative from the table above.
+
+### `Bali::Icon::Options` only lists what ships as SVG
+
+`Options.icons` used to be the 166 legacy SVGs merged with `Bali.custom_icons`. It is now the
+28 kept icons merged with `Bali.custom_icons` — the icons Bali ships as literal markup. A
+Lucide-backed name such as `user` has no SVG of its own until lucide-rails renders one at a
+size, so `Options.find('user')` raises `IconNotAvailable` where it used to return the old
+FontAwesome glyph. `Options` was never the rendering path; call
+`render Bali::Icon::Component.new('user')`, which resolves every source.
+
+The 28 kept SVGs moved out of Ruby into `app/components/bali/icon/svg/<name>.svg`, one file
+per name, byte-for-byte the same markup. Nothing about how you reference them changes.
+
+## The CSS cascade changes — on purpose
+
+In v2 every stylesheet Bali shipped was **unlayered**, which in Tailwind v4 outranks every
+layer. A utility class in your own template lost to a component rule, and the documented
+workaround was `lg:!hidden`. v3 puts Bali's own styles in `@layer components`, so **your
+utilities win**. If your app carries `!` variants that exist only to beat a Bali rule, you
+can drop the `!`.
+
+The exceptions are deliberate and documented in each file's header: `forms.css`,
+`datepicker.css`, `slim_select.css`, `breadcrumb/index.css`, `data_table/index.css` and
+`side_menu/daisyui-overrides.css` stay unlayered, because their job is to outrank **daisyUI**,
+which emits its own components inside `@layer utilities` — a layer beats specificity, so a
+rule in `components` cannot win against them at any specificity.
+
+Two consequences worth checking in your app:
+
+- **A CSS override you wrote against a Bali rule may now win where it used to lose, or lose
+  where it used to win.** If you were fighting a Bali rule with `!important` or a very
+  specific selector, try removing the escalation first — a plain utility probably does it now.
+- **`--border`, `--radius-box`, `--radius-field`, `--radius-selector`, `--size-field`,
+  `--size-selector`, `--depth` and `--noise` stop overriding your theme.** They were unlayered
+  `:root` declarations, which beat daisyUI's `@layer base`, so Bali's values won against every
+  theme. `light` and `dark` use exactly those values, which is why nobody noticed; the other 33
+  built-in themes do not. **If your app uses a daisyUI theme other than light or dark, its radii,
+  borders and depth will change — to what your theme actually asked for.**
+
+  They now sit on `:where(:root)` inside `@layer base`, which is where daisyUI declares its own
+  themes. **Setting them from `@theme {}` will not work**, and that is worth knowing because
+  `@theme {}` is the idiomatic way to declare tokens in Tailwind v4: it compiles to
+  `@layer theme`, and Tailwind orders layers `theme < base < components < utilities` (unlayered
+  CSS last). A later layer wins outright, so `theme` loses to `base` however specific its
+  selector is — zero specificity on Bali's side does not help you, because specificity only
+  settles ties *within* a layer. Measured against `--radius-box`, whose fallback is `.5rem`:
+
+  | Your app writes | Result |
+  |---|---|
+  | `@theme { --radius-box: 11px }` | `.5rem` — **ignored** |
+  | `@layer base { :root { --radius-box: 77px } }` | `77px` |
+  | `@layer base { [data-theme=mine] { … } }` | applies |
+  | `:root { --radius-box: 55px }` (no layer) | `55px` |
+
+  daisyUI behaves identically — its built-in themes are in `base` and shadow an `@theme` block
+  the same way — so if you already set these through a daisyUI theme, nothing changes for you.
+  Otherwise use a `@layer base` block or a plain unlayered `:root`.
+
+Import stays one line:
+
+```css
+@import "bali-view-components/css/bali.css";   /* now pulls in components.css too */
+```
+
+If you import `bali-view-components/css/components.css` separately, you can drop that line —
+keeping it duplicates bytes but changes nothing, since the layer assignments travel inside the
+file. `css/variables.css` was empty and is gone; nothing imported it.
 
 ## Every translation key moves to `bali_view.*`
 
@@ -170,6 +316,63 @@ call site already emits `data-datepicker-locale-value` from `I18n.locale`, so th
 affects a host wiring the controller by hand — and a host that needs another locale
 registers it with `flatpickr.localize()`.
 
+### Timeline renders each entry once, and its slots lose the `tag_` prefix
+
+A timeline item used to emit its heading and its content twice — once in `.timeline-start`,
+once in `.timeline-end` — and hide one copy with CSS. Which side an item lands on is now
+decided in Ruby, so each item renders one content box.
+
+The slot setters were named after an internal collection called `tags`, which was never a
+timeline concept. Rename them:
+
+| v2 | v3 | Notes |
+|---|---|---|
+| `c.with_tag_item(...)` | `c.with_item(...)` | Deprecated shim warns through `Bali.deprecator`; removed in v4 |
+| `c.with_tag_header(...)` | `c.with_header(...)` | Same |
+| `c.tags` | `c.entries` | The collection accessor. No shim — reading it in a host template is rare |
+| `with_tag_header(tag_class: 'badge-outline badge-primary')` | `with_header(color: :primary, class: 'badge-outline')` | Deprecated shim warns; removed in v4 |
+
+```erb
+<%# v2 %>
+<%= render Bali::Timeline::Component.new(position: :left) do |c| %>
+  <% c.with_tag_header(text: 'Start') %>
+  <% c.with_tag_item(heading: 'January 2022') do %>
+    <p>Timeline event 1</p>
+  <% end %>
+<% end %>
+
+<%# v3 %>
+<%= render Bali::Timeline::Component.new(position: :left) do |c| %>
+  <% c.with_header(text: 'Start') %>
+  <% c.with_item(heading: 'January 2022') do %>
+    <p>Timeline event 1</p>
+  <% end %>
+<% end %>
+```
+
+Three things change even if you rename nothing, because the old markup was the bug:
+
+- **Anything with an `id` inside an item now exists once.** A `turbo_frame_tag` in a timeline
+  item used to render twice under the same id: Turbo matched the second, which was the copy
+  CSS had hidden, so a stream update reached a `display: none` element and the visible one
+  never changed. If you worked around this — a suffix on the id, a wrapper that rendered in
+  only one column — you can drop the workaround.
+- **Nested components run once.** An item whose block rendered a component that queried the
+  database issued that query twice per item.
+- **`position: :center` alternates by item.** The old alternation was `li:nth-child(odd)`, and
+  a header is an `li`, so a header between two items flipped the parity and left two
+  consecutive items on the same side. Centred timelines *with headers* will move some boxes
+  to the other side. Ones without headers are unchanged.
+
+CSS that targeted the hidden copy stops matching. `app/components/bali/timeline/index.css`
+now carries only the two `text-align` rules the alternating layout needs; if your app styled
+`.timeline-content-box.timeline-end` on a left-aligned timeline, it was styling the copy the
+user could not see.
+
+Finally, `Bali::Timeline::Header::Component` now applies `**options` to its badge. It accepted
+them and rendered none of them, so a `class:`, `data:` or `aria-*` you passed and gave up on
+will start taking effect.
+
 ## Pagination: one footer, one summary key, one adapter
 
 v2 had three implementations of the same band — summary on the left, page controls on the
@@ -230,19 +433,48 @@ Two parameters arrive in exchange, both forwarded by `PaginationFooter` along wi
 `pagy(scope, fragment: '#results')` does the same thing from the controller, and is the
 better place for it when the whole page paginates. The anonymous `**options` bucket on
 `Pagination::Component.new` is gone; it never reached the template, so nothing that passed
-through it ever had an effect.
+through it ever had an effect. `data:` reaches each page **link**, not the wrapper — that is
+where a `turbo_frame:` has to be to do anything.
+
+Honouring `url:` also made a latent bug reachable, so it is fixed here: with **countless**
+pagination the link does not carry the page number but `"5+4"`, the page plus the last page
+Pagy knows about, and Bali used to build that query with `Rack::Utils`, which escaped the `+`
+to `%2B` and lost half the value. The query is now built by Pagy itself. Nothing to do on your
+side; if you had worked around it, you can stop.
 
 **Everything Bali knows about Pagy now lives in `Bali::Pagination::PagyAdapter`.** If you
 subclassed or monkey-patched the component to survive a Pagy upgrade, patch the adapter
 instead — it is the only file that calls anything Pagy does not promise.
 
-On a phone the footer's summary now sits above the controls rather than below; one order for
-both components was the point of collapsing them.
+### The footer's spacing, if you compose it yourself
+
+`DataTable`'s footer is pixel-identical to v2's — same gap, same padding, same rule above it,
+measured A/B. Getting there needed one API decision worth knowing about if you render
+`PaginationFooter` yourself: **its spacing is a set you swap, not one you add to.**
+
+Standing on its own the band carries `gap-2 py-4`. Passing `class: 'mt-4 pt-4 border-t'` to
+put it under a rule does *not* replace that — you end up with `py-4` and `pt-4` on one
+element, `pt-4` redundant and `py-4` still padding the bottom, because no `pt-*` cancels the
+bottom half of a `py-*` and Tailwind settles the top half by stylesheet order rather than by
+the order you wrote the classes. Use the flag instead:
+
+```erb
+<%= render Bali::PaginationFooter::Component.new(pagy: @pagy, divider: true) %>
+```
+
+`divider: true` swaps the whole set for `gap-4 mt-4 pt-4 border-t border-base-200`: the
+breathing room goes above the line, and nothing pads below a band that closes a listing.
+
+One thing about the footer did change shape: on a phone the summary now sits above the
+controls rather than below, because the inline version carried `order-*` utilities that
+flipped them and the shared one does not. Same height, same spacing, reversed reading order.
 
 ## What breaks, and what replaces it
 
 | Removed | Replacement |
 |---|---|
+| `c.with_tag_item` / `c.with_tag_header` on `Bali::Timeline` | `c.with_item` / `c.with_header` *(deprecated shim until v4)* |
+| `Bali::Timeline::Header(tag_class:)` | `color:` plus `class:` *(deprecated shim until v4)* |
 | `bali_view.data_table.summary` | `bali_view.pagination.summary` |
 | `bali_view.data_table.default_item_name` | `bali_view.pagination.default_item_name` |
 | `bali_view.pagination_footer.*` | `bali_view.pagination.*` |
@@ -261,6 +493,9 @@ both components was the point of collapsing them.
 | `Bali::Table(id:)` as the column-selector target | the DataTable container id |
 | `render Bali::Card` around the DataTable in the host | the content slot's surface |
 | `toolbar_class:` | *(deleted — the toolbar is bare by design)* |
+| `Bali::Table(bulk_actions:)` | `selectable: true` inside a `Bali::BulkActions::Component` |
+| `Bali::Table::BulkAction::Component` | `Bali::BulkActions::Action` (`bulk.with_action`) |
+| `TableController` / `data-controller="table"` | `BulkActionsController` (`bulk-actions`) |
 
 ## Step by step
 
@@ -369,8 +604,71 @@ Three things to check on the server side:
 - **Delete your hand-written checkbox column.** `selectable: true` renders the column and
   the select-all header. If you delete the `<th>` without turning `selectable:` on, every
   column selector index shifts by one and the selector starts hiding the wrong column.
-- `selectable:` and the legacy `Bali::Table(bulk_actions:)` array are mutually exclusive;
-  declaring both raises `Bali::Table::Component::IncompatibleOptions`.
+- **`Bali::Table(bulk_actions:)` is gone**, along with `Bali::Table::BulkAction::Component`
+  and the `table` Stimulus controller that drove them. See the next section.
+
+### 4b. Replace the legacy `Bali::Table(bulk_actions:)` array
+
+```
+ArgumentError: Bali::Table(bulk_actions:) was removed in v3.
+```
+
+v2 shipped two complete, mutually exclusive selection systems on the same table. The legacy
+one took an array of action hashes, rendered its own checkbox column and its own floating
+bar, and was driven by a `table` Stimulus controller that Bali put on **every** table
+container whether or not the table had any actions. The v3 one is `selectable: true` plus a
+`Bali::BulkActions::Component` ancestor. Only the second one survives.
+
+Inside a DataTable the replacement is `with_bulk_actions`, shown in step 4 above. Standalone
+— a table with no DataTable around it, which is what the legacy array was mostly used for —
+wrap the table in a `BulkActions` component and let its default `variant: :floating` render
+the bar:
+
+```erb
+<%# v2 %>
+<%= render Bali::Table::Component.new(
+      bulk_actions: [
+        { name: 'Archive', href: '/products/bulk_archive', method: :post },
+        { name: 'Delete',  href: '/products/bulk_delete',  method: :delete }
+      ]
+    ) do |t| %>
+  <% @products.each do |product| %>
+    <% t.with_row(record_id: product.id) do %>...<% end %>
+  <% end %>
+<% end %>
+
+<%# v3 %>
+<%= render Bali::BulkActions::Component.new do |bulk| %>
+  <% bulk.with_action(label: 'Archive', href: '/products/bulk_archive', variant: :info) %>
+  <% bulk.with_action(label: 'Delete',  href: '/products/bulk_delete',  variant: :error) %>
+
+  <%= render Bali::Table::Component.new(selectable: true) do |t| %>
+    <% @products.each do |product| %>
+      <% t.with_row(record_id: product.id) do %>...<% end %>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+What changes beyond the call site:
+
+- **`name:` becomes `label:`**, and each action gains `variant:` (a daisyUI button colour)
+  and `size:`. `method:` survives unchanged, including the `:get` case: a GET action still
+  renders a link whose href the controller rewrites with `?selected_ids=[...]`, everything
+  else still submits a form with a `selected_ids` hidden field.
+- **The payload key is unchanged** (`selected_ids`, a JSON array), so a controller already
+  reading it keeps working.
+- **`data-controller="table"` disappears from every table container.** Bali emitted it
+  unconditionally; nothing in v3 does. A host that hung its *own* Stimulus controller named
+  `table` on Bali's markup, or that registered `TableController` from the npm package (it is
+  no longer exported, and `registerAll` no longer registers it), has to move that wiring.
+- **`Bali::Table::Row(bulk_actions:)` is gone too.** It was internal wiring, but it also
+  raises now rather than leaking into the `<tr>` as an HTML attribute.
+
+Both removed keywords raise `ArgumentError` naming the replacement rather than being
+swallowed into `**options`. Without that guard `bulk_actions:` would have landed in the
+generic HTML-attribute hash and rendered `<table bulk-actions="...">`: a table that looks
+right, has no checkbox column, no bar, and no error.
 
 ### 5. Replace the display-mode toggle with the view switch
 
@@ -408,6 +706,43 @@ ArgumentError: unknown keyword: :grid_display_mode_enabled
 This also closes **#653**: the legacy toggle built its links with
 `Utils::Url#add_query_params`, which duplicated a param already in the URL. That code is no
 longer on this path.
+
+## `Reveal` and `TreeView` change their markup
+
+Both were rows of `<div>`s with click handlers — unreachable by keyboard, unannounced by a
+screen reader — and `TreeView` additionally claimed `role="tree"`, a promise of roving
+tabindex, arrow-key movement and type-ahead that it has never kept. The elements now match
+what the components do. **Every class name is unchanged**, so styling keyed on
+`.tree-view-component`, `.tree-view-item-component`, `.item`, `.children`, `.caret` or
+`.reveal-trigger` still applies; anything naming the element or the role does not.
+
+| v2 | v3.0 |
+|---|---|
+| `<div class="reveal-trigger" data-action="click->reveal#toggle">` | `<button type="button" class="reveal-trigger" aria-expanded aria-controls>` |
+| `<div class="reveal-content">` | same, now with an `id` (derived from the component's `id:` when you pass one) |
+| `<div class="tree-view-component" role="tree">` | `<ul class="tree-view-component">` |
+| `<div class="tree-view-item-component" role="treeitem" aria-expanded>` | `<li class="tree-view-item-component">` — `aria-expanded` moves to the caret |
+| `<div class="children" role="group">` | `<ul class="children" id>` |
+| `<span class="caret" data-action="click->tree-view-item#toggle">` | `<button type="button" class="caret" aria-expanded aria-controls>`, **only on items that have children** |
+| `<span class="caret opacity-0">` on childless items | `<span class="caret" aria-hidden="true">` — no `opacity-0`, no handler, not a tab stop |
+
+What to grep for:
+
+```
+grep -rn 'role="tree\|role="treeitem\|role="group"' app/ test/ spec/
+grep -rn 'div\.reveal-trigger\|span\.caret' app/ test/ spec/
+```
+
+Two of these bite in tests rather than in the browser: a system test clicking `span.caret`
+needs `button.caret`, and one asserting `aria-expanded` on the `treeitem` wrapper has to read
+it off the caret button instead.
+
+`TreeView`'s `navigateTo` action and its `url` value are unchanged, and row clicks still
+navigate.
+
+`Reveal#show` and `Reveal#hide` did the opposite of their names (see the changelog). A host
+that worked around the inversion by wiring `reveal#hide` to its "show" button has to swap the
+two back.
 
 ## Behaviour changes with no API change
 
@@ -465,11 +800,30 @@ longer on this path.
 - **Host `toolbar_buttons` moved to their own overflow group** (`host`) between the memory
   group and the right edge, so the view switch stays pinned to the edge. A listing that
   declares toolbar buttons and *no* view switch no longer pushes them to the far right.
+- **The FormBuilder no longer emits its own options as HTML attributes.** `label`, `help`,
+  `mode`, `control_class`, `control_data`, `pattern_type` and the rest of
+  `HtmlUtils::RESERVED_OPTIONS` reached the element because Rails forwards any key it does
+  not recognise; they are now extracted before delegating. The API does not change and the
+  valid markup is identical — but **a selector that depended on those invalid attributes
+  stops matching**: `input[mode="range"]`, `[control_class]`, `[help]`, `select[label]` and
+  the like, in CSS or in integration tests. It is the only observable change in the HTML of
+  a form that already worked.
+- **Helpers no longer mutate the options hash they are given.** `field_options` used to
+  write the base classes onto the caller's hash, so reusing it across two fields
+  accumulated the first field's classes into the second; a host relying on that side effect
+  (one shared `opts = { class: 'w-full' }`, expecting the second field to inherit
+  `input input-bordered`) now gets the correct classes on both. A frozen hash no longer
+  raises `FrozenError` either.
+- **`submit_actions` respects `show_cancel_button?` again.** The check read
+  `options[:modal]` after `submit` had deleted it from the hash, so it was always true.
+  With `Bali.native_app` on and `modal:` present, the cancel button is now hidden the way
+  the code always said it would be. Without `native_app` nothing changes.
 
 ## Checklist
 
 ```
 grep -rn "with_actions_panel\|with_export\|table_id:\|data_display_mode\|toolbar_class:" app/
+grep -rn "with_tag_item\|with_tag_header\|tag_class:" app/
 grep -rn "turbo_stream.replace \"data-table-" app/
 grep -rn "Bali::Card.*DataTable\|render Bali::Card" app/views/**/index*
 # any listing that groups and already used `view`, or that does not start on the table?

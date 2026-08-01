@@ -37,7 +37,7 @@ module Bali
 
       def time_period_wrapper_attrs(options)
         prepend_controller(
-          options.except(:include_blank),
+          html_attributes(dup_options(options)).except(:include_blank),
           CONTROLLER_NAME
         )
       end

@@ -19,6 +19,8 @@ module Bali
         error: "#ef4444"
       }.freeze
 
+      DEFAULT_COLOR = :primary
+
       renders_one :x_axis_title, ->(text = nil, &block) {
         content = text || (block ? capture(&block) : nil)
         tag.span(content, class: "text-xs font-medium text-base-content/70")
@@ -53,9 +55,14 @@ module Bali
         @html_options = prepend_class_name(html_options, component_classes)
       end
 
+      # A Symbol names a preset; anything else is taken as a literal CSS color. An
+      # unknown symbol used to resolve to nil and blow up downstream inside
+      # ColorPicker.gradient, so it falls back to the default preset instead.
       def resolve_color(color)
-        if color.is_a?(Symbol) || COLOR_PRESETS.key?(color.to_sym)
-          return COLOR_PRESETS[color.to_sym]
+        return COLOR_PRESETS.fetch(DEFAULT_COLOR) if color.blank?
+
+        if color.is_a?(Symbol) || COLOR_PRESETS.key?(color.to_s.to_sym)
+          return COLOR_PRESETS.fetch(color.to_sym, COLOR_PRESETS.fetch(DEFAULT_COLOR))
         end
 
         color
@@ -105,9 +112,15 @@ module Bali
         "heatmap-component w-full"
       end
 
+      # Integer y-keys are treated as a scale, so the range is filled in and rows
+      # with no data still get a (zero-valued) row — that is the point for hours of
+      # the day. Any other key type is a label, not a scale: `("Fri".."Mon")` is a
+      # nonsense range of thousands of strings, and mixing types raises outright, so
+      # those keep the keys as given, in first-seen order.
       def compute_y_labels
         keys = @data.values.flat_map(&:keys)
         return [ 0 ] if keys.empty?
+        return keys.uniq unless keys.all?(Integer)
 
         (keys.min..keys.max)
       end

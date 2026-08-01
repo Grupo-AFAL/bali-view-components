@@ -414,12 +414,17 @@ module Bali
 
       # El footer lo arma `PaginationFooter`, que decide solo si tiene algo que dibujar;
       # acá solo se le pasa lo que este listado quiere de él.
+      #
+      # `divider:` y no el espaciado por `class:`: mandarlo por ahí dejaba el `py-4` del
+      # footer Y el `pt-4` del listado sobre el mismo elemento, y eso le sumaba al pie de la
+      # tabla 16px de padding inferior que nunca tuvo. Tailwind resuelve ese par por orden
+      # de hoja de estilos, no por el orden en que escribes las clases.
       def pagination_footer
         Bali::PaginationFooter::Component.new(
           pagy: @pagy,
           item_name: @item_name,
           show_summary: show_summary_bottom?,
-          class: "mt-4 pt-4 border-t border-base-200"
+          divider: true
         )
       end
 

@@ -1,0 +1,34 @@
+/* Rich text editor — the rules that have to outrank daisyUI's `.input`.
+ *
+ * WHY THIS FILE IS UNLAYERED
+ * --------------------------
+ * ./component.rb puts daisyUI's own `.input` class on the root element, and
+ * daisyUI emits `.input` from @layer utilities:
+ *
+ *   .input { display:inline-flex; height:var(--size); padding-inline:.75rem;
+ *            border:var(--border) solid var(--input-color);
+ *            box-shadow:0 1px … inset, 0 -1px … inset }
+ *
+ * Cascade layers beat specificity, so `.rich-text-editor-component.input` in
+ * @layer components lost every one of them. Measured on
+ * `rich_text_editor/default` and `/readonly` with the dummy booted as
+ * ENABLE_RICH_TEXT_EDITOR=1 (without the flag the component's `render?`
+ * returns false and the preview is blank):
+ *
+ *   display              inline-flex   (should be block)
+ *   readonly border      1px           (should be none)
+ *   readonly box-shadow  two insets    (should be none)
+ *   readonly padding-x   12px          (should be 0)
+ *
+ * This is the textbook case for this position: the right-most compound is a
+ * daisyUI class and every declaration is one daisyUI also sets. `min-height`
+ * is not — daisyUI never sets it — so it stays in ./index.css, where a host
+ * utility beats it.
+ */
+.rich-text-editor-component.input {
+  @apply block h-auto;
+}
+
+.rich-text-editor-component.input[data-rich-text-editor-editable-value='false'] {
+  @apply border-none shadow-none p-0;
+}

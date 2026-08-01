@@ -968,6 +968,21 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_equal 1, page.text.scan("Showing 1-10 of 47 movies").size
   end
 
+  # Test de caracterización: la lista LITERAL de clases que el footer del listado tenía en 3.0,
+  # cuando se dibujaba inline acá. Mover el footer a PaginationFooter no puede cambiar un pixel
+  # del pie de la tabla, y la primera versión de ese cambio sí lo movió: el `py-4` del footer
+  # suelto se sumaba al `pt-4` del listado y metía 16px de padding inferior donde no había
+  # ninguno. Si esta cadena cambia, cámbiala a propósito y documéntalo.
+  FOOTER_CLASSES_ON_3_0 =
+    "flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t border-base-200"
+
+  def test_footer_keeps_the_exact_box_it_had_when_it_was_inline
+    render_with_pagy(Pagy::Offset.new(count: 47, page: 1, limit: 10), item_name: "movies")
+
+    footer = page.find("div.data-table-component > div:last-child")
+    assert_equal FOOTER_CLASSES_ON_3_0.split.sort, footer[:class].split.sort
+  end
+
   def test_footer_falls_back_to_the_shared_item_name
     render_with_pagy(Pagy::Offset.new(count: 47, page: 1, limit: 10))
 

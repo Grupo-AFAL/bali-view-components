@@ -15,26 +15,22 @@ module Bali
         # @param select_label [String] Nombre del registro para el checkbox de selección. Sin
         #   él, N filas dan N controles con el MISMO nombre accesible ("Seleccionar fila") y
         #   en el rotor de formularios del lector de pantalla son indistinguibles.
-        # rubocop:disable Metrics/ParameterLists
-        def initialize(record_id: nil, skip_tr: false, bulk_actions: false, selectable: false,
+        def initialize(record_id: nil, skip_tr: false, selectable: false,
                        group: nil, select_label: nil, **options)
+          raise ArgumentError, Table::Component::REMOVED_BULK_ACTIONS if options.key?(:bulk_actions)
+
           @record_id = record_id
           @skip_tr = skip_tr
-          @bulk_actions = bulk_actions
           @selectable = selectable
           @group = group
           @select_label = select_label
           @options = hyphenize_keys(options)
 
-          if (@bulk_actions || @selectable) && @record_id.blank?
-            raise IncompatibleOptions, "record_id is required when the row is selectable"
-          end
+          return unless @selectable
 
-          return unless @skip_tr && (@bulk_actions || @selectable)
-
-          raise IncompatibleOptions, "skip_tr and row selection are mutually exclusive"
+          raise IncompatibleOptions, "record_id is required when the row is selectable" if @record_id.blank?
+          raise IncompatibleOptions, "skip_tr and row selection are mutually exclusive" if @skip_tr
         end
-        # rubocop:enable Metrics/ParameterLists
 
         def select_label
           @select_label.present? ? t(".select_row_named", name: @select_label) : t(".select_row")

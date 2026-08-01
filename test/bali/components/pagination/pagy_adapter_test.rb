@@ -143,6 +143,22 @@ class BaliPaginationPagyAdapterTest < ActiveSupport::TestCase
     assert_equal "?p=5", a.page_url(5)
   end
 
+  # Countless does not put the page number in the URL: it puts `"5+4"`, the page plus the last
+  # page it knows about, wrapped in a `Pagy::EscapedValue` so the `+` survives. Building the
+  # query with Rack escaped it to `5%2B4` and the link came back missing the half Pagy needs.
+  # The contract is that a hand-composed URL is the SAME one Pagy builds from its request.
+  def test_a_composed_url_matches_pagy_for_countless_pagination
+    request = Pagy::Request.new(
+      request: { base_url: "http://example.com", path: "/movies", params: { "q" => "b" }, cookie: nil }
+    )
+    # No `records` call: it would recompute `last` from whatever the fixtures happen to hold,
+    # and the encoding under test is the same either way.
+    countless = Pagy::Offset::Countless.new(page: 2, limit: 10, last: 4, request: request)
+
+    assert_equal "/movies?q=b&page=5+4", countless.page_url(5)
+    assert_equal countless.page_url(5), adapter(countless, base_url: "/movies?q=b").page_url(5)
+  end
+
   # --- fragment -----------------------------------------------------------------------
 
   def test_fragment_is_appended_to_a_composed_url

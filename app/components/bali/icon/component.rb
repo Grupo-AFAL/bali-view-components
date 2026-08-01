@@ -8,7 +8,9 @@ module Bali
     # 1. Lucide icons (via lucide-rails gem) - primary source for UI icons
     # 2. Kept icons (brands, regional, custom) - from original Bali icon set
     # 3. Custom icons (via Bali.custom_icons) - app-specific extensions
-    # 4. Legacy icons (DefaultIcons) - fallback for full backwards compatibility
+    #
+    # Names are matched exactly: a name that is neither mapped, nor a Lucide
+    # name, nor kept, nor registered raises instead of falling back.
     #
     # @example Basic usage
     #   render Bali::Icon::Component.new('user')
@@ -82,9 +84,6 @@ module Bali
         # 4. Try custom icons (app-specific via Bali.custom_icons)
         return Bali.custom_icons[@name].html_safe if Bali.custom_icons.key?(@name)
 
-        # 5. Fall back to legacy DefaultIcons (full backwards compatibility)
-        return render_legacy_icon(@name) if legacy_icon_exists?(@name)
-
         # No icon found - raise descriptive error
         raise Options::IconNotAvailable, icon_not_found_message
       end
@@ -132,32 +131,6 @@ module Bali
         false
       end
 
-      # Checks if a legacy icon exists in DefaultIcons
-      #
-      # @param icon_name [String] the icon name to check
-      # @return [Boolean]
-      def legacy_icon_exists?(icon_name)
-        DefaultIcons.const_defined?(normalize_constant_name(icon_name))
-      rescue NameError
-        false
-      end
-
-      # Renders a legacy icon from DefaultIcons
-      #
-      # @param icon_name [String] the icon name
-      # @return [String] SVG markup
-      def render_legacy_icon(icon_name)
-        DefaultIcons.const_get(normalize_constant_name(icon_name))
-      end
-
-      # Converts icon name to Ruby constant format
-      #
-      # @param name [String] icon name like 'arrow-left'
-      # @return [String] constant name like 'ARROW_LEFT'
-      def normalize_constant_name(name)
-        name.to_s.upcase.tr("-", "_")
-      end
-
       # Generates a helpful error message for missing icons
       #
       # @return [String]
@@ -176,11 +149,25 @@ module Bali
 
       # Finds similar icon names for better error messages
       #
+      # Matching ignores the difference between dashes and underscores, because
+      # the removed legacy step accepted both spellings of every name it
+      # served — without that, `arrow_left` suggests nothing at all instead of
+      # the `arrow-left` that replaces it.
+      #
       # @param name [String] the icon name that wasn't found
       # @return [Array<String>] up to 3 similar icon names
       def find_similar_icons(name)
+        needle = comparable_name(name)
         all_names = LucideMapping.bali_names + KeptIcons::ALL
-        all_names.select { |n| n.include?(name) || name.include?(n) }.first(3)
+
+        all_names.select do |candidate|
+          comparable = comparable_name(candidate)
+          comparable.include?(needle) || needle.include?(comparable)
+        end.first(3)
+      end
+
+      def comparable_name(name)
+        name.to_s.downcase.tr("_", "-")
       end
 
       def component_classes

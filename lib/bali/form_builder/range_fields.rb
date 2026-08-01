@@ -8,6 +8,10 @@ module Bali
       LEGEND_CLASS = "fieldset-legend text-sm font-medium"
       TICKS_CLASS = "flex justify-between text-xs text-base-content/60 px-0.5 mt-1"
 
+      # Read by the slider itself: `size` and `color` are daisyUI variants here,
+      # and the tick options only ever feed the labels rendered under the input.
+      RANGE_OPTIONS = %i[size color show_ticks ticks tick_labels prefix suffix].freeze
+
       SIZES = {
         xs: "range-xs",
         sm: "range-sm",
@@ -51,9 +55,8 @@ module Bali
       #   f.range_field_group :rating, min: 1, max: 5, tick_labels: %w[Bad Poor OK Good Great]
       #
       def range_field_group(method, options = {})
-        label_text = options.delete(:label) || translate_attribute(method)
+        label_text = options[:label] || translate_attribute(method)
 
-        # Extract tick options before they're deleted by build_range_options
         tick_options = {
           show_ticks: options[:show_ticks],
           ticks: options[:ticks],
@@ -89,32 +92,23 @@ module Bali
       private
 
       def build_range_options(method, options)
-        size = options.delete(:size)
-        color = options.delete(:color)
-        custom_class = options.delete(:class)
-
-        # Extract display options (not passed to input)
-        options.delete(:show_ticks)
-        options.delete(:ticks)
-        options.delete(:tick_labels)
-        options.delete(:prefix)
-        options.delete(:suffix)
-
         range_class = [
           RANGE_CLASS,
           "w-full",
-          SIZES[size],
-          COLORS[color],
+          SIZES[options[:size]],
+          COLORS[options[:color]],
           (errors?(method) ? "range-error" : nil),
-          custom_class
+          options[:class]
         ].compact.join(" ")
 
-        # Set defaults
-        options[:min] ||= 0
-        options[:max] ||= 100
-        options[:step] ||= 1
+        attributes = html_attributes(options).except(:class, *RANGE_OPTIONS)
 
-        options.merge(class: range_class)
+        # Set defaults
+        attributes[:min] ||= 0
+        attributes[:max] ||= 100
+        attributes[:step] ||= 1
+
+        attributes.merge(class: range_class)
       end
 
       def build_range_ticks(options)

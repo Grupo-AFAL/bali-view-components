@@ -59,3 +59,8 @@ spec/dummy/log/test.log.0
 
 # Sandbox environment secrets (written by bin/docker-claude, read once by container)
 .sandbox-env
+
+# El worktree de un agente necesita su propio node_modules del dummy (real,
+# no symlink) para que bali-view-components resuelva a ESTE arbol y no al
+# principal; la barra final solo cubria directorios.
+/spec/dummy/node_modules

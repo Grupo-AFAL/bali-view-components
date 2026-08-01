@@ -95,8 +95,25 @@ class BaliPaginationFooterComponentTest < ComponentTestCase
   end
 
   def test_accepts_extra_html_attributes_on_the_wrapper
-    render_inline(Bali::PaginationFooter::Component.new(pagy: @pagy, class: "border-t", id: "footer"))
-    assert_selector("div#footer.border-t.justify-between")
+    render_inline(Bali::PaginationFooter::Component.new(pagy: @pagy, class: "shadow", id: "footer"))
+    assert_selector("div#footer.shadow.justify-between")
+  end
+
+  # El espaciado NO viaja por `class:` justamente por esto: `py-4` y `pt-4` sobre el mismo
+  # elemento los resuelve Tailwind por orden de hoja de estilos, y contra el `padding-bottom`
+  # que mete `py-4` no hay `pt-*` que valga.
+  def test_standing_alone_it_pads_both_sides
+    render_inline(Bali::PaginationFooter::Component.new(pagy: @pagy))
+    assert_selector("div.py-4.gap-2")
+    assert_no_selector("div.border-t")
+    assert_no_selector("div.pt-4")
+  end
+
+  def test_with_a_divider_the_space_goes_above_the_line
+    render_inline(Bali::PaginationFooter::Component.new(pagy: @pagy, divider: true))
+    assert_selector("div.gap-4.mt-4.pt-4.border-t.border-base-200")
+    assert_no_selector("div.py-4")
+    assert_no_selector("div.gap-2")
   end
 
   def test_custom_controls_replace_the_pagination
