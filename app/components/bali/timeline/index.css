@@ -1,45 +1,21 @@
-/* Timeline component - DaisyUI position variants */
+/* Timeline component - DaisyUI position variants
+ *
+ * Which side of the line an item lands on is decided in Ruby
+ * (Bali::Timeline::Component#next_item_side), so an item emits exactly one
+ * content box and there is no second copy left to hide here.
+ *
+ * What remains is text alignment for the alternating layout: a box on the start
+ * side hugs the centre line from its left, so its text reads better right-aligned.
+ * Unlayered, like every other component sheet in this package - DaisyUI never sets
+ * `text-align` on `.timeline-*`, so there is no cascade fight to win either way.
+ */
 
-/* Base: Hide duplicate content boxes, show based on position */
-.timeline {
-  /* Default (left position): Show timeline-start, hide timeline-end */
-  .timeline-content-box.timeline-end {
-    @apply hidden;
-  }
-  .timeline-content-box.timeline-start {
-    @apply block;
-  }
-}
-
-/* Right position: Show timeline-end, hide timeline-start */
-.timeline.timeline-snap-icon {
-  .timeline-content-box.timeline-start {
-    @apply hidden;
-  }
-  .timeline-content-box.timeline-end {
-    @apply block;
-  }
-}
-
-/* Center position: Alternate items on both sides */
 .timeline.timeline-centered {
-  /* Odd items: content on left (timeline-start) */
-  li:nth-child(odd) {
-    .timeline-content-box.timeline-end {
-      @apply hidden;
-    }
-    .timeline-content-box.timeline-start {
-      @apply block text-right;
-    }
+  .timeline-content-box.timeline-start {
+    @apply text-right;
   }
 
-  /* Even items: content on right (timeline-end) */
-  li:nth-child(even) {
-    .timeline-content-box.timeline-start {
-      @apply hidden;
-    }
-    .timeline-content-box.timeline-end {
-      @apply block text-left;
-    }
+  .timeline-content-box.timeline-end {
+    @apply text-left;
   }
 }

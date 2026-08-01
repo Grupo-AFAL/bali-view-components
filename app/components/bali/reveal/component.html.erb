@@ -1,7 +1,7 @@
 <%= tag.div(**component_options) do %>
   <%= trigger %>
 
-  <%= tag.div(class: content_classes) do %>
+  <%= tag.div(class: content_classes, id: content_id) do %>
     <%= content %>
   <% end %>
 <% end %>

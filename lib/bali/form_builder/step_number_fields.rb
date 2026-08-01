@@ -33,17 +33,19 @@ module Bali
 
       def extract_button_options(options)
         {
-          subtract_data: options.delete(:subtract_data) || {},
-          add_data: options.delete(:add_data) || {},
-          button_class: options.delete(:button_class),
+          subtract_data: options[:subtract_data] || {},
+          add_data: options[:add_data] || {},
+          button_class: options[:button_class],
           disabled: options[:disabled]
         }
       end
 
+      # The button-only keys stay in the hash here and are dropped downstream by
+      # `field_options`, which strips every reserved key before `number_field`
+      # delegates to Rails.
       def build_step_number_input_options(options)
-        opts = options.dup
-        opts[:data] ||= {}
-        opts[:data]["step-number-input-target"] = "input"
+        opts = dup_options(options)
+        opts[:data] = (opts[:data] || {}).merge("step-number-input-target" => "input")
         opts[:class] = @template.class_names(INPUT_CLASSES, opts[:class])
         opts
       end

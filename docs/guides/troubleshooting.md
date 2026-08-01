@@ -33,11 +33,11 @@ Tailwind needs to scan Bali component files to include their classes in the buil
 
 #### 2. Bali CSS Not Imported
 
-**Fix:** Import Bali's CSS files:
+**Fix:** Import Bali's CSS. A single import covers everything, component
+sheets included:
 
 ```css
 @import "bali-view-components/css/bali.css";
-@import "bali-view-components/css/components.css";
 ```
 
 #### 3. Wrong Tailwind Version

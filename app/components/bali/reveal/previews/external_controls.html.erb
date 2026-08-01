@@ -1,0 +1,38 @@
+<%# `show` and `hide` act on the controller's own element, so anything driving them
+    lives inside it. This is the `item` targets API: the controller adds/removes the
+    hidden class on every target, and `is-revealed` on itself. %>
+<div data-controller="reveal" id="external-controls" class="group">
+  <div class="flex gap-2">
+    <%= render Bali::Button::Component.new(
+          name: 'Show', variant: :primary, size: :sm,
+          data: { action: 'click->reveal#show' }) %>
+    <%= render Bali::Button::Component.new(
+          name: 'Hide', variant: :ghost, size: :sm,
+          data: { action: 'click->reveal#hide' }) %>
+    <%= render Bali::Button::Component.new(
+          name: 'Toggle', variant: :ghost, size: :sm,
+          data: { action: 'click->reveal#toggle' }) %>
+  </div>
+
+  <div id="external-item" class="reveal-item hidden mt-4 p-4 rounded-lg bg-base-200"
+       data-reveal-target="item">
+    Revealed by <code>reveal#show</code>, hidden again by <code>reveal#hide</code>.
+  </div>
+</div>
+
+<hr class="my-8 border-base-300">
+
+<%# The component itself: its trigger calls toggle, which routes through the same
+    show/hide pair. %>
+<%= render Bali::Reveal::Component.new(id: 'with-trigger') do |c| %>
+  <% c.with_trigger do |trigger| %>
+    <% trigger.with_title do %>
+      <span class="text-lg font-semibold">Click to see contents</span>
+    <% end %>
+  <% end %>
+
+  <div class="prose">
+    <h3>Revealed Contents</h3>
+    <p>The trigger is a button, and it reports its state with <code>aria-expanded</code>.</p>
+  </div>
+<% end %>

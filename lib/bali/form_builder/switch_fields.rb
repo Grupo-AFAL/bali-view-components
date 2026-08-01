@@ -9,6 +9,11 @@ module Bali
       ERROR_CLASS = "label-text-alt text-error"
       FIELDSET_CLASS = "fieldset"
 
+      # Consumed here rather than forwarded: `size` and `color` name daisyUI
+      # variants in this family, so unlike on a text input they are not the HTML
+      # attributes of the same name.
+      TOGGLE_OPTIONS = %i[label_options size color].freeze
+
       SIZES = {
         xs: "toggle-xs",
         sm: "toggle-sm",
@@ -33,8 +38,8 @@ module Bali
       end
 
       def switch_field(method, options = {}, checked_value = "1", unchecked_value = "0")
-        label_text = extract_switch_label_text(method, options)
-        label_options = extract_switch_label_options(options)
+        label_text = options[:label] || translate_attribute(method)
+        label_options = build_switch_label_options(options)
         toggle_options = build_toggle_options(method, options)
 
         label_html = label(method, label_options) do
@@ -49,31 +54,22 @@ module Bali
 
       private
 
-      def extract_switch_label_text(method, options)
-        options.delete(:label) || translate_attribute(method)
-      end
+      def build_switch_label_options(options)
+        base_options = options[:label_options] || {}
 
-      def extract_switch_label_options(options)
-        base_options = options.delete(:label_options) || {}
-        custom_class = base_options[:class]
-        base_options[:class] = [ LABEL_CLASS, custom_class ].compact.join(" ")
-        base_options
+        base_options.merge(class: [ LABEL_CLASS, base_options[:class] ].compact.join(" "))
       end
 
       def build_toggle_options(method, options)
-        size = options.delete(:size)
-        color = options.delete(:color)
-        custom_class = options.delete(:class)
-
         toggle_class = [
           TOGGLE_CLASS,
-          SIZES[size],
-          COLORS[color],
+          SIZES[options[:size]],
+          COLORS[options[:color]],
           (errors?(method) ? "toggle-error" : nil),
-          custom_class
+          options[:class]
         ].compact.join(" ")
 
-        options.merge(class: toggle_class)
+        html_attributes(options).except(*TOGGLE_OPTIONS).merge(class: toggle_class)
       end
 
       def append_switch_error_message(method, html)

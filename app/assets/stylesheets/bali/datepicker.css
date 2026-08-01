@@ -4,6 +4,16 @@
  * Self-contained CSS for Flatpickr without vendor CSS dependency.
  * Built from scratch using DaisyUI patterns and Tailwind utilities.
  * ~500 lines vs ~900 lines vendor CSS
+ *
+ * UNLAYERED ON PURPOSE (see ../bali.css). Flatpickr names two of its state
+ * classes `inline` and `static`, which collide with the Tailwind utilities of
+ * the same name (`.inline{display:inline}`, `.static{position:static}`) — both
+ * present in any app that uses them anywhere. Cascade layers beat specificity,
+ * so from @layer components `.flatpickr-calendar.inline` and
+ * `.flatpickr-calendar.static` (reachable through the controller's `static:`
+ * value) would lose their `display` / `position` and the calendar would render
+ * in the wrong place. Nothing here is markup a host can put utilities on
+ * either — flatpickr builds this DOM itself — so the layer would buy nothing.
  */
 
 /* =============================================================================
@@ -735,8 +745,11 @@ span.flatpickr-weekday {
 /* =============================================================================
    Multi-month calendar
    ============================================================================= */
+/* No !important: the only rule setting `box-shadow` on `.flatpickr-day.inRange`
+   is in this same file at (0,2,0), and this selector is both more specific and
+   later. Nothing in @layer utilities matches `.flatpickr-*`. */
 .flatpickr-calendar.multiMonth .flatpickr-days .dayContainer:nth-child(n+1) .flatpickr-day.inRange:nth-child(7n+7) {
-  box-shadow: none !important;
+  box-shadow: none;
 }
 
 .flatpickr-calendar.multiMonth .flatpickr-days .dayContainer:nth-child(n+2) .flatpickr-day.inRange:nth-child(7n+1) {
@@ -849,10 +862,13 @@ span.flatpickr-weekday {
   }
 }
 
-/* Hide the arrow pointing to input - cleaner look matching other dropdowns */
+/* Hide the arrow pointing to input - cleaner look matching other dropdowns.
+   No !important: the only rule that sets `display` on these pseudo-elements is
+   the `.flatpickr-calendar:before/:after` block earlier in this file, same
+   specificity (0,1,1), and this one comes later. */
 .flatpickr-calendar:before,
 .flatpickr-calendar:after {
-  display: none !important;
+  display: none;
 }
 
 /* Weekday labels */

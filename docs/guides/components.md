@@ -660,16 +660,27 @@ own checkbox. Double-clicking a row toggles it too.
 ```
 
 The controller must live on an **ancestor** element — `DataTable#with_bulk_actions` puts it
-on the DataTable container for you; standalone, wrap the table in a
-`Bali::BulkActions::Component`. `selectable:` and the legacy `bulk_actions:` array are
-mutually exclusive (they are two different selection systems and together would render two
-checkbox columns), so declaring both raises `Bali::Table::Component::IncompatibleOptions`.
-The selection column shifts every other column by one: a column selector's 0-based indexes
-must account for it.
+on the DataTable container for you. Standalone, wrap the table in a
+`Bali::BulkActions::Component`: its default `variant: :floating` renders the fixed bottom
+bar with the counter and the action buttons, and it emits the controller itself.
+
+```erb
+<%= render Bali::BulkActions::Component.new do |bulk| %>
+  <% bulk.with_action(label: 'Archive', href: bulk_archive_movies_path, variant: :info) %>
+
+  <%= render Bali::Table::Component.new(selectable: true) do |table| %>
+    <%# ... %>
+  <% end %>
+<% end %>
+```
+
+This is the replacement for the `bulk_actions:` array that `Bali::Table` accepted in v2;
+passing it now raises `ArgumentError` (see the migration guide). The selection column shifts
+every other column by one: a column selector's 0-based indexes must account for it.
 
 **Row grouping** — pass `group:` to `with_row` to render a group-header row
 whenever the value changes between consecutive rows. The header spans every
-column (including the bulk-actions column when present) and shows the group
+column (including the selection column when present) and shows the group
 value plus the count of rows in that run (e.g. `Norte (12)`).
 
 ```erb
@@ -1423,21 +1434,23 @@ Vertical timeline for chronological sequences of events, using DaisyUI's timelin
 
 ```erb
 <%= render Bali::Timeline::Component.new(position: :left) do |c| %>
-  <% c.with_tag_header(text: 'Start', color: :primary) %>
-  <% c.with_tag_item(heading: 'January 2022', icon: 'check', color: :success) do %>
+  <% c.with_header(text: 'Start', color: :primary) %>
+  <% c.with_item(heading: 'January 2022', icon: 'check', color: :success) do %>
     <p>Timeline event 1</p>
   <% end %>
-  <% c.with_tag_item(heading: 'February 2022') do %>
+  <% c.with_item(heading: 'February 2022') do %>
     <p>Timeline event 2</p>
   <% end %>
-  <% c.with_tag_header(text: 'End') %>
+  <% c.with_header(text: 'End') %>
 <% end %>
 ```
 
 **Options:**
 - `position` - Timeline layout: `:left`, `:center`, `:right` (default: :left)
 
-**Slots:** `with_tag_header(text:, color:)` (badge separators) and `with_tag_item(heading:, icon:, color:)` with block content.
+**Slots:** `with_header(text:, color:, class:)` (badge separators) and `with_item(heading:, icon:, color:)` with block content.
+
+Every entry renders exactly once. Which side of the line an item lands on is decided in Ruby, and for `position: :center` it alternates across items, so a header between two items does not flip the alternation.
 
 #### TreeView
 
@@ -1604,7 +1617,9 @@ Selectable item list with a floating action bar that appears when items are sele
 
 **Options:**
 - `variant` - `:floating` (default, fixed bar at the bottom) or `:toolbar` (contextual row
-  with a counter, the actions and a clear button — what `DataTable#with_bulk_actions` uses)
+  with a counter, the actions and a clear button — what `DataTable#with_bulk_actions` uses).
+  `:floating` wrapped around a `Bali::Table(selectable: true)` is the standalone replacement
+  for the `Bali::Table(bulk_actions:)` array removed in v3.
 - `standalone` - Emit the `data-controller="bulk-actions"` (default: `true`). `false` when
   the controller already lives on an ancestor, as inside a `DataTable`. Two nested
   `bulk-actions` controllers split the targets between them and the bar stops seeing the

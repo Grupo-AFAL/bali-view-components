@@ -21,7 +21,7 @@
     <%# Expanded state header - toggle on the right %>
     <div class="side-menu-expanded flex bali-chrome-height items-center gap-2 py-3 px-2.5 border-b border-base-300">
       <% if brand_present? %>
-        <span class="side-menu-brand text-xl font-semibold grow flex items-center gap-2 min-w-0">
+        <span class="side-menu-brand text-xl font-semibold grow items-center gap-2 min-w-0">
           <%= brand || @brand %>
         </span>
       <% elsif collapsible? %>
@@ -30,7 +30,7 @@
       <%# Desktop: collapse toggle %>
       <label for="<%= collapse_checkbox_id %>"
              title="<%= collapse_label %>"
-             class="menu-item p-2 cursor-pointer shrink-0 max-lg:!hidden">
+             class="menu-item p-2 cursor-pointer shrink-0 max-lg:hidden">
         <%= render Bali::Icon::Component.new('panel-left-close', class: 'size-4') %>
       </label>
       <% if fixed? %>
@@ -38,7 +38,7 @@
         <label for="<%= mobile_trigger_id %>"
                title="<%= t('bali_view.side_menu.close') %>"
                aria-label="<%= t('bali_view.side_menu.close') %>"
-               class="menu-item p-2 cursor-pointer shrink-0 lg:!hidden">
+               class="menu-item p-2 cursor-pointer shrink-0 lg:hidden">
           <%= render Bali::Icon::Component.new('x', class: 'size-4') %>
         </label>
       <% end %>
@@ -55,7 +55,7 @@
   <% elsif brand_present? || fixed? %>
     <div class="flex bali-chrome-height items-center gap-2 px-2.5 border-b border-base-300">
       <% if brand_present? %>
-        <span class="side-menu-brand text-xl font-semibold grow flex items-center gap-2 min-w-0">
+        <span class="side-menu-brand text-xl font-semibold grow items-center gap-2 min-w-0">
           <%= brand || @brand %>
         </span>
       <% else %>
@@ -65,7 +65,7 @@
         <label for="<%= mobile_trigger_id %>"
                title="<%= t('bali_view.side_menu.close') %>"
                aria-label="<%= t('bali_view.side_menu.close') %>"
-               class="menu-item p-2 cursor-pointer shrink-0 lg:!hidden">
+               class="menu-item p-2 cursor-pointer shrink-0 lg:hidden">
           <%= render Bali::Icon::Component.new('x', class: 'size-4') %>
         </label>
       <% end %>
@@ -74,7 +74,7 @@
 
   <%# Menu switcher dropdown (when multiple menus) %>
   <% if multiple_menus? %>
-    <div class="menu-switcher px-2.5 mb-3 mt-3">
+    <div class="menu-switcher mb-3 mt-3">
       <%# Use <details><summary> instead of focus-based dropdown — the focus
           pattern is fragile on iOS Safari (focus loss on slide-in animation,
           blur on scroll). <details> uses native browser toggling and works
@@ -107,7 +107,7 @@
 
   <%# Bottom pinned items and groups %>
   <% if bottom_items? || bottom_groups? %>
-    <div class="side-menu-bottom-section border-t border-base-200 shrink-0 space-y-0.5 px-2.5 py-2">
+    <div class="side-menu-bottom-section border-t border-base-200 shrink-0 space-y-0.5 py-2">
       <% bottom_items.each do |item| %>
         <%= item %>
       <% end %>

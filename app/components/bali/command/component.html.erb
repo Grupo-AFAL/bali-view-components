@@ -14,14 +14,16 @@
   <div data-command-target="panel"
        class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-[var(--bali-z-command)] w-[520px] max-w-[calc(100vw-2rem)]">
     <div class="cmd-panel bg-base-100 border border-base-300 rounded-box shadow-xl flex flex-col overflow-hidden <%= 'is-compact' if compact? %>">
-      <%# Search input %>
-      <div class="cmd-input-wrap flex items-center gap-3 px-4 py-3 border-b border-base-200 text-base-content/60">
+      <%# Search input. Padding and font size live in index.css next to the
+          `.is-compact` overrides — see the comment there before moving them
+          back onto these elements. %>
+      <div class="cmd-input-wrap flex items-center gap-3 border-b border-base-200 text-base-content/60">
         <%= render Bali::Icon::Component.new('search', class: 'size-4 shrink-0') %>
         <input data-command-target="input"
                data-action="input->command#filter keydown->command#nav"
                type="text"
                placeholder="<%= placeholder %>"
-               class="cmd-input flex-1 min-w-0 bg-transparent border-0 outline-none text-base text-base-content placeholder:text-base-content/40"
+               class="cmd-input flex-1 min-w-0 bg-transparent border-0 outline-none text-base-content placeholder:text-base-content/40"
                aria-label="<%= placeholder %>" />
         <kbd class="kbd kbd-xs"><%= t('.esc_key') %></kbd>
       </div>
