@@ -78,6 +78,29 @@ module Bali
         end
       end
 
+      # Y keys that are labels rather than a numeric scale: one row per key, in the
+      # order given. No range is inferred, because there is no range to infer.
+      def with_string_y_keys
+        data = {
+          Mon: { 'morning' => 5, 'afternoon' => 8, 'evening' => 3 },
+          Tue: { 'morning' => 3, 'afternoon' => 6, 'evening' => 9 },
+          Wed: { 'morning' => 2, 'afternoon' => 4, 'evening' => 6 }
+        }
+
+        render Bali::Heatmap::Component.new(data: data, color: :success) do |c|
+          c.with_x_axis_title('Day')
+          c.with_y_axis_title('Shift')
+        end
+      end
+
+      # A color symbol outside COLOR_PRESETS falls back to the default preset
+      # instead of raising.
+      def with_unknown_color
+        data = { A: { 0 => 1, 1 => 2 }, B: { 0 => 3, 1 => 4 } }
+
+        render Bali::Heatmap::Component.new(data: data, color: :chartreuse)
+      end
+
       # Shows different color presets
       def color_presets
         render_with_template
