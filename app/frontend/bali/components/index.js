@@ -30,6 +30,7 @@ import { BulkActionsController } from '../../../components/bali/bulk_actions/ind
 import { CarouselController } from '../../../components/bali/carousel/index'
 import { ClipboardController } from '../../../components/bali/clipboard/index'
 import { HovercardController } from '../../../components/bali/hover_card/index'
+import { KanbanController } from '../../../components/bali/kanban/index'
 import { RevealController } from '../../../components/bali/reveal/index'
 import { SortableListController } from '../../../components/bali/sortable_list/index'
 import { TooltipController } from '../../../components/bali/tooltip/index'
@@ -81,6 +82,7 @@ export {
   HovercardController,
   ImageExpanderController,
   ImageFieldController,
+  KanbanController,
   LocationsMapController,
   MessageController,
   ModalController,
@@ -137,6 +139,7 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   carousel: CarouselController,
   clipboard: ClipboardController,
   hovercard: HovercardController,
+  kanban: KanbanController,
   reveal: RevealController,
   'sortable-list': SortableListController,
   tooltip: TooltipController,

@@ -57,6 +57,15 @@ module Bali
         )
       end
 
+      # @label Accessible Data Table
+      # A canvas is pixels: `role="img"` and a name are all the accessibility
+      # tree gets from it, and neither carries a number. The `data_table` slot
+      # renders an `sr-only` table with the same figures, which is the only way
+      # a screen reader user reads a value off the chart.
+      def with_data_table
+        render_with_template
+      end
+
       # @label With Title
       # Chart wrapped in a card with a title header.
       def with_title

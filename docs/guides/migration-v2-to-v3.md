@@ -1186,6 +1186,165 @@ two back.
   With `Bali.native_app` on and `modal:` present, the cancel button is now hidden the way
   the code always said it would be. Without `native_app` nothing changes.
 
+## Six components get the accessibility they were missing
+
+Each of these showed something on screen and nothing at all to the accessibility tree.
+Three of the six change markup a host may be selecting on, one changes what a value means,
+and one raises where it used to render.
+
+### `BooleanIcon`: `nil` is no longer `false`
+
+`value: nil` used to collapse into `false` through `!!value` and render the red ✗. It now
+renders a neutral dash and announces "Not specified". If you were relying on nil reading
+as "no" — a nullable boolean column where unset means no — say so:
+
+```erb
+<%# before: nil painted a red ✗ %>
+<%= render Bali::BooleanIcon::Component.new(value: movie.indie) %>
+
+<%# after, if you want the old behaviour for nil %>
+<%= render Bali::BooleanIcon::Component.new(value: !!movie.indie) %>
+```
+
+Everything that is not `nil` keeps the old coercion: a truthy non-boolean is still true.
+
+Every state now renders an `sr-only` name next to the icon — "Yes" / "No" /
+"Not specified", from `bali_view.boolean_icon.true` / `.false` / `.blank`. The default is
+correct but context-free; pass `label:` where the surrounding markup does not supply the
+subject:
+
+```erb
+<%= render Bali::BooleanIcon::Component.new(value: movie.indie, label: t('.indie_film')) %>
+```
+
+### `LabelValue` renders a `<dl>`, not a `<div>` with a `<label>`
+
+| Before | After |
+|---|---|
+| `<div class="mb-2">` | `<dl class="mb-2">` |
+| `<label class="font-bold text-xs …">` | `<dt class="font-bold text-xs …">` |
+| `<div class="min-h-6">` | `<dd class="min-h-6">` |
+
+Every class name is unchanged, so CSS keyed on them still applies. Selectors and tests
+that name the *element* do not:
+
+```
+grep -rn "div.mb-2\|label.font-bold\|div.min-h-6" app/ test/ spec/
+```
+
+Reach for `Bali::PropertiesTable::Component` instead when the pairs form one set read top
+to bottom — it renders a single `<table>` of `<th scope="row">` rows, so a screen reader
+gets table navigation over the whole set. `LabelValue` is right for a pair that stands on
+its own, or when each pair needs its own placement in a grid.
+
+### `Tabs` with `href:` renders a `<nav>`, and mixing raises
+
+When **every** tab has an `href:`, the component renders `<nav aria-label>` with plain
+links and `aria-current="page"` on the active one. Gone from those links: `role="tab"`,
+`aria-selected`, and the `id="tab-N"` they used to carry (it existed to be the
+`aria-labelledby` target of a panel that does not exist here). The wrapper loses
+`data-controller="tabs"` too — there is no panel to switch. The `.tabs` / `.tab` /
+`.tab-active` classes are all unchanged, so CSS keyed on them still applies.
+
+```erb
+<%# renders <nav aria-label="Section navigation"> %>
+<%= render Bali::Tabs::Component.new(label: 'Project sections') do |tabs| %>
+  <% tabs.with_tab(title: 'Summary', href: project_path(@project), active: true) %>
+  <% tabs.with_tab(title: 'Quality', href: project_quality_path(@project)) %>
+<% end %>
+```
+
+Pass `label:` whenever a page has more than one of these; the default is
+`bali_view.tabs.navigation`.
+
+**Mixing the two modes now raises `ArgumentError`.** This used to render, badly:
+
+```erb
+<%# raises %>
+<%= render Bali::Tabs::Component.new do |tabs| %>
+  <% tabs.with_tab(title: 'Overview', href: '/overview') %>
+  <% tabs.with_tab(title: 'Details', active: true) { 'inline panel' } %>
+<% end %>
+```
+
+Split it into two components, or drop `href:` from all of them — `src:` is how a panel
+loads its content on demand without leaving the page.
+
+```
+grep -rn "with_tab(" app/ | grep "href:"
+```
+
+Tabs with panels are untouched: same roles, same controller, same markup.
+
+### `Chart` names its canvas, and can carry a real table
+
+The canvas is `role="img"` with a name — `aria_label:`, else `title:`, else a translated
+generic. Nothing to change unless you were selecting on `canvas.chart` having no `role`.
+
+A name is not a number. The new `data_table` slot renders `sr-only` beside the canvas and
+is the only way a screen reader user reads a value off the chart:
+
+```erb
+<%= render Bali::Chart::Component.new(data: @sales, title: t('.weekly_sales')) do |c| %>
+  <% c.with_data_table do %>
+    <table>
+      <caption><%= t('.weekly_sales') %></caption>
+      <thead><tr><th scope="col"><%= t('.day') %></th><th scope="col"><%= t('.sales') %></th></tr></thead>
+      <tbody>
+        <% @sales.each do |day, total| %>
+          <tr><th scope="row"><%= day %></th><td><%= total %></td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+<% end %>
+```
+
+### `Heatmap` axis labels are `<th>`
+
+The x labels stay at the foot of the chart and the y labels on the left — nothing moves
+visually — but they are `<th scope="col">` and `<th scope="row">` now, and each data cell
+carries its value as `sr-only` text. Only a selector naming `tfoot td` or `tbody td` for a
+label breaks; the classes are unchanged and the axis labels pick up `font-normal` so the
+weight matches what the `<td>` rendered.
+
+### `Kanban` announces drops, and its columns are lists
+
+Each column's card stack is `role="list"` with an `aria-label` carrying the count
+(`"Backlog, 0 cards"` for an empty one), each card is `role="listitem"`, and the board
+renders one `role="status" aria-live="polite"` region that announces every drop.
+
+The board also gains an outer `<div class="kanban-component">` to hold the controller and
+that region. The grid used to be the root element, so a host that made the Kanban a flex or
+grid *item* is now positioning the wrapper; `class:` still lands on the grid.
+
+Two things to do in a host app:
+
+1. **Register the `kanban` Stimulus controller.** `registerAll` picks it up with no
+   change. An app that registers controllers one at a time has to add it:
+
+   ```js
+   import { KanbanController } from 'bali-view-components'
+   application.register('kanban', KanbanController)
+   ```
+
+2. **Pass `label:` on cards that do not lead with their title.** The announcement uses the
+   card's own text by default, truncated to 60 characters, which reads badly on a card
+   whose first line is a date or an avatar:
+
+   ```erb
+   <% col.with_card(update_url: task_path(task), label: task.title) do %>
+     …
+   <% end %>
+   ```
+
+The column label is server-rendered, so after a client-side drop it is exactly as stale as
+the count badge beside it. Both refresh together when the page re-renders.
+
+`SortableList`'s `sortable-list:onEnd` event now also carries `item`, `from`, `to`,
+`oldIndex` and `newIndex` alongside the `order` and `toListId` it always had. Additive —
+existing listeners keep working.
+
 ## Checklist
 
 ```
@@ -1203,6 +1362,10 @@ grep -rn "view=\|params\[:view\]" app/views app/controllers
 # pagination: dead summary keys, and url: that now wins instead of being dropped
 grep -rn "data_table:\|pagination_footer:" config/locales
 grep -rn "Bali::Pagination.*url:" app/
+# a11y: markup that moved under your selectors
+grep -rn "div.mb-2\|label.font-bold\|div.min-h-6" app/ test/   # LabelValue is a <dl> now
+grep -rn "with_tab(" app/ | grep "href:"                        # mixing href and panels raises
+grep -rn "BooleanIcon" app/                                     # value: nil no longer means false
 ```
 
 Then load each index page in a browser and check, in this order: the toolbar is not inside

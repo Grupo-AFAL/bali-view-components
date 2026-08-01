@@ -296,6 +296,7 @@ es:
       default_item_name: elementos
     chart:
       loading: Cargando...
+      default_label: Gráfica
     clipboard:
       copied: ¡Copiado!
       copy_label: Copiar al portapapeles
@@ -465,3 +466,15 @@ es:
         upload_image: "Subir imagen de avatar"
     message:
       close: "Cerrar mensaje"
+    boolean_icon:
+      "true": "Sí"
+      "false": "No"
+      blank: "Sin especificar"
+    kanban:
+      column_label:
+        zero: "%{title}, 0 tarjetas"
+        one: "%{title}, 1 tarjeta"
+        other: "%{title}, %{count} tarjetas"
+      card_moved: "%{card} movida a %{column}, posición %{position} de %{total}"
+    tabs:
+      navigation: "Navegación de secciones"

@@ -4,7 +4,9 @@ module Bali
   module Heatmap
     class Component < ApplicationViewComponent
       CELL_CLASSES = "heatmap-cell rounded-sm"
-      LABEL_CLASSES = "text-xs text-center truncate text-base-content/70"
+      # The axis labels are `<th>` so the data cells inherit both axes as headers;
+      # `font-normal` keeps the weight the plain `<td>` used to have.
+      LABEL_CLASSES = "text-xs text-center truncate font-normal text-base-content/70"
       X_LABEL_CLASSES = "#{LABEL_CLASSES} pt-2".freeze
       Y_LABEL_CLASSES = "#{LABEL_CLASSES} pr-3 text-right".freeze
 

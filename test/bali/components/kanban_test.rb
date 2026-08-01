@@ -160,4 +160,99 @@ class BaliKanbanComponentTest < ComponentTestCase
 
     assert_selector("[data-controller='sortable-list']")
   end
+
+  def test_a11y_column_is_a_list_of_listitems
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Todo", status: "todo") do |col|
+        col.with_card { "A" }
+        col.with_card { "B" }
+      end
+    end
+
+    assert_selector("[role='list']")
+    assert_selector("[role='list'] > [role='listitem']", count: 2)
+  end
+
+  def test_a11y_column_label_carries_the_count
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Todo", status: "todo") do |col|
+        col.with_card { "A" }
+        col.with_card { "B" }
+      end
+    end
+
+    assert_selector("[role='list'][aria-label='Todo, 2 cards']")
+  end
+
+  # The empty column is the case that used to say nothing at all: no count
+  # badge, no cards, an unnamed list. It has to announce that it is empty.
+  def test_a11y_empty_column_announces_zero
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Backlog", status: "backlog")
+    end
+
+    assert_selector("[role='list'][aria-label='Backlog, 0 cards']")
+  end
+
+  def test_a11y_column_label_is_singular_for_one_card
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Doing", status: "doing") do |col|
+        col.with_card { "A" }
+      end
+    end
+
+    assert_selector("[role='list'][aria-label='Doing, 1 card']")
+  end
+
+  def test_a11y_column_label_is_translated
+    I18n.with_locale(:es) do
+      render_inline(Bali::Kanban::Component.new) do |k|
+        k.with_column(title: "Pendientes", status: "todo")
+      end
+
+      assert_selector("[role='list'][aria-label='Pendientes, 0 tarjetas']")
+    end
+  end
+
+  # A drop moves the DOM and nothing else — no focus change, no text change. The
+  # live region is the only channel the outcome can reach a screen reader
+  # through, so the board ships one and the announcement template with it.
+  def test_a11y_board_renders_a_live_region_for_drops
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Todo", status: "todo")
+    end
+
+    assert_selector("[role='status'][aria-live='polite'][aria-atomic='true']")
+    assert_selector("[data-kanban-target='liveRegion']")
+    assert_selector("[data-controller='kanban'][data-action='sortable-list:onEnd->kanban#announce']")
+  end
+
+  def test_a11y_board_passes_the_translated_announcement_template
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Todo", status: "todo")
+    end
+
+    template = page.find("[data-controller='kanban']")["data-kanban-announcement-value"]
+    assert_equal("%{card} moved to %{column}, position %{position} of %{total}", template)
+  end
+
+  # The announcement names the destination column, and JavaScript can only read
+  # that off the drop target.
+  def test_a11y_list_carries_its_column_title_for_the_announcement
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "In Progress", status: "doing")
+    end
+
+    assert_selector("[data-kanban-column-title='In Progress']")
+  end
+
+  def test_card_label_overrides_the_announced_name
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Todo", status: "todo") do |col|
+        col.with_card(label: "Design landing page") { "Design landing page - due Mar 25" }
+      end
+    end
+
+    assert_selector("[data-kanban-card-label='Design landing page']")
+  end
 end

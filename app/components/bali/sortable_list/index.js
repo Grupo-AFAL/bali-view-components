@@ -32,7 +32,7 @@ export class SortableListController extends Controller {
     })
   }
 
-  onEnd = async ({ item, newIndex, to }) => {
+  onEnd = async ({ item, from, to, oldIndex, newIndex }) => {
     const positionParam = this.resourceNameValue
       ? `${this.resourceNameValue}[${this.positionParamNameValue}]`
       : this.positionParamNameValue
@@ -47,7 +47,18 @@ export class SortableListController extends Controller {
     data.append(positionParam, newIndex + 1)
     data.append(listIdParam, toListId)
 
-    this.dispatch('onEnd', { order: this.sortable.toArray(), toListId })
+    // `order` is the *source* list: SortableJS fires onEnd on the instance the
+    // item left, so a listener that needs the destination has to read `to`.
+    // That is why the moved element and both lists travel with the event.
+    this.dispatch('onEnd', {
+      order: this.sortable.toArray(),
+      toListId,
+      item,
+      from,
+      to,
+      oldIndex,
+      newIndex
+    })
 
     if (!item.dataset.sortableUpdateUrl) return
 

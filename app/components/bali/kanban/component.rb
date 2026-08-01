@@ -44,6 +44,24 @@ module Bali
         { group_name:, list_param_name:, resource_name:, response_kind: }
       end
 
+      # A drop is a mouse gesture with no textual result: the DOM changes, the
+      # focus does not move, and nothing is announced. The live region is the
+      # only way the outcome reaches a screen reader, so the board owns one and
+      # listens for the drop the columns' SortableLists dispatch.
+      #
+      # The sentence is interpolated in JavaScript, so Ruby hands the controller
+      # the translated template rather than a finished string.
+      def board_attributes
+        {
+          class: "kanban-component",
+          data: {
+            controller: "kanban",
+            action: "sortable-list:onEnd->kanban#announce",
+            kanban_announcement_value: I18n.t("bali_view.kanban.card_moved")
+          }
+        }
+      end
+
       def grid_classes
         col_class = GRID_COLS.fetch(columns.size.clamp(1, 4), GRID_COLS[4])
         class_names("grid grid-cols-1 gap-4", col_class, options[:class])
