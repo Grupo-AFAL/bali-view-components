@@ -101,7 +101,7 @@ module Bali
       end
 
       def button_text
-        @button_text || I18n.t("bali.filters.filters_button", default: "Filters")
+        @button_text || I18n.t("bali_view.filters.filters_button")
       end
 
       def search_enabled?
@@ -113,8 +113,7 @@ module Bali
       end
 
       def search_placeholder
-        @search[:placeholder] || I18n.t("bali.filters.search_placeholder",
-                                        default: "Search...")
+        @search[:placeholder] || I18n.t("bali_view.filters.search_placeholder")
       end
 
       # Build Ransack field name for multi-field search (e.g., "name_or_genre_cont")
@@ -158,8 +157,8 @@ module Bali
       def translations_json
         {
           combinators: {
-            and: I18n.t("bali.filters.combinators.and", default: "AND"),
-            or: I18n.t("bali.filters.combinators.or", default: "OR")
+            and: I18n.t("bali_view.filters.combinators.and"),
+            or: I18n.t("bali_view.filters.combinators.or")
           }
         }.to_json
       end

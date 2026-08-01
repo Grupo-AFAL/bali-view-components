@@ -83,14 +83,14 @@
               <input type="number"
                      name="<%= names[:min] %>"
                      value="<%= values[:min] %>"
-                     placeholder="<%= filter[:placeholder_min] || 'Min' %>"
+                     placeholder="<%= filter[:placeholder_min] || t('.placeholder_min') %>"
                      class="input input-bordered input-sm w-20"
                      step="<%= filter[:step] || 'any' %>" />
               <span class="text-base-content/40 text-xs">–</span>
               <input type="number"
                      name="<%= names[:max] %>"
                      value="<%= values[:max] %>"
-                     placeholder="<%= filter[:placeholder_max] || 'Max' %>"
+                     placeholder="<%= filter[:placeholder_max] || t('.placeholder_max') %>"
                      class="input input-bordered input-sm w-20"
                      step="<%= filter[:step] || 'any' %>" />
             </div>

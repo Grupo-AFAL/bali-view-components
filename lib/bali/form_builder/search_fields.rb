@@ -9,7 +9,7 @@ module Bali
         addon_class = options.delete(:addon_class) || DEFAULT_BUTTON_CLASSES
 
         options.with_defaults!(
-          placeholder: I18n.t("bali.form_builder.search.placeholder"),
+          placeholder: I18n.t("bali_view.form_builder.search.placeholder"),
           addon_right: search_addon(addon_class)
         )
 

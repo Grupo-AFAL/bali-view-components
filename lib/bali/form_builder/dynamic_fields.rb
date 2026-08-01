@@ -89,7 +89,7 @@ module Bali
 
       def default_header_contents(method, options)
         label_text = options[:label] || translate_association_label(method)
-        button_text = options[:button_text] || I18n.t("helpers.add.text")
+        button_text = options[:button_text] || I18n.t("bali_view.form_builder.dynamic_fields.add")
         button_class = options[:button_class] || DEFAULT_BUTTON_CLASS
 
         tag.div(class: HEADER_CLASS) do

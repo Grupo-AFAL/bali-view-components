@@ -38,7 +38,7 @@
                       class="cursor-pointer p-0 w-4 h-4 flex items-center justify-center text-base-content/40 hover:text-base-content/70 <%= 'hidden' if search_value.blank? %>"
                       data-filters-target="searchClearButton"
                       data-action="click->filters#clearSearch"
-                aria-label="<%= t('bali.filters.clear_search', default: 'Clear search') %>">
+                aria-label="<%= t('bali_view.filters.clear_search') %>">
                 <%= render Bali::Icon::Component.new('x', class: 'w-4 h-4') %>
               </button>
             </label>
@@ -74,9 +74,9 @@
             <div class="max-sm:flex items-center justify-between p-4 border-b border-base-200 sm:hidden">
               <h3 class="text-lg font-semibold flex items-center gap-2">
                 <%= render Bali::Icon::Component.new('filter', class: 'w-5 h-5') %>
-                <%= t('bali.filters.title', default: 'Filters') %>
+                <%= t('bali_view.filters.title') %>
               </h3>
-              <button type="button" class="btn btn-ghost btn-sm btn-circle" data-action="filters#toggleDropdown" aria-label="Close">
+              <button type="button" class="btn btn-ghost btn-sm btn-circle" data-action="filters#toggleDropdown" aria-label="<%= t('.close_panel') %>">
                 <%= render Bali::Icon::Component.new('x', class: 'w-5 h-5') %>
               </button>
             </div>
@@ -103,13 +103,13 @@
                                 class="join-item btn btn-xs w-10 <%= combinator == 'and' ? 'btn-primary' : 'btn-outline' %>"
                                 data-action="filters#setGroupCombinator"
                                 data-combinator="and">
-                            <%= t('bali.filters.combinators.and', default: 'AND') %>
+                            <%= t('bali_view.filters.combinators.and') %>
                           </button>
                           <button type="button"
                                 class="join-item btn btn-xs w-10 <%= combinator == 'or' ? 'btn-primary' : 'btn-outline' %>"
                                 data-action="filters#setGroupCombinator"
                                 data-combinator="or">
-                            <%= t('bali.filters.combinators.or', default: 'OR') %>
+                            <%= t('bali_view.filters.combinators.or') %>
                           </button>
                         </div>
                         <div class="flex-1 border-t border-base-300"></div>
@@ -133,13 +133,13 @@
                   <button type="button"
                         class="btn btn-ghost btn-sm flex-1 sm:flex-initial"
                         data-action="filters#reset">
-                    <%= t('bali.filters.reset', default: 'Reset') %>
+                    <%= t('bali_view.filters.reset') %>
                   </button>
                   <button type="submit"
                         class="btn btn-primary btn-sm flex-1 sm:flex-initial"
                         data-action="filters#apply">
                     <%= render Bali::Icon::Component.new('check', class: 'w-4 h-4') %>
-                    <%= t('bali.filters.apply', default: 'Apply') %>
+                    <%= t('bali_view.filters.apply') %>
                   </button>
                 </div>
 
@@ -150,19 +150,19 @@
                         data-action="filters#addGroup"
                         data-filters-target="addGroupButton">
                     <%= render Bali::Icon::Component.new('plus', class: 'w-4 h-4') %>
-                    <%= t('bali.filters.add_group', default: 'Add filter group') %>
+                    <%= t('bali_view.filters.add_group') %>
                   </button>
                   <% if persistence_available? && persist_enabled? %>
                     <span class="text-xs text-base-content/50 flex items-center gap-1">
                       <%= render Bali::Icon::Component.new('bookmark-check', class: 'w-3 h-3') %>
-                      <%= t('bali.filters.auto_saved', default: 'Auto-saved') %>
+                      <%= t('bali_view.filters.auto_saved') %>
                     </span>
                   <% end %>
                   <button type="button"
                         class="btn btn-ghost btn-xs text-error"
                         data-action="filters#clearAll"
                         data-filters-target="clearButton">
-                    <%= t('bali.filters.clear_all', default: 'Clear all') %>
+                    <%= t('bali_view.filters.clear_all') %>
                   </button>
                 </div>
               </div>
@@ -210,13 +210,13 @@
         <div class="flex justify-between items-center">
           <h3 class="font-semibold text-lg flex items-center gap-2">
             <%= render Bali::Icon::Component.new('filter', class: 'w-5 h-5') %>
-            <%= t('bali.filters.title', default: 'Filters') %>
+            <%= t('bali_view.filters.title') %>
           </h3>
           <button type="button"
                     class="btn btn-ghost btn-sm text-error"
                     data-action="filters#clearAll"
                     data-filters-target="clearButton">
-            <%= t('bali.filters.clear_all', default: 'Clear all') %>
+            <%= t('bali_view.filters.clear_all') %>
           </button>
         </div>
 
@@ -235,13 +235,13 @@
                                 class="join-item btn btn-xs w-10 <%= combinator == 'and' ? 'btn-primary' : 'btn-outline' %>"
                                 data-action="filters#setGroupCombinator"
                                 data-combinator="and">
-                    <%= t('bali.filters.combinators.and', default: 'AND') %>
+                    <%= t('bali_view.filters.combinators.and') %>
                   </button>
                   <button type="button"
                                 class="join-item btn btn-xs w-10 <%= combinator == 'or' ? 'btn-primary' : 'btn-outline' %>"
                                 data-action="filters#setGroupCombinator"
                                 data-combinator="or">
-                    <%= t('bali.filters.combinators.or', default: 'OR') %>
+                    <%= t('bali_view.filters.combinators.or') %>
                   </button>
                 </div>
                 <div class="flex-1 border-t border-base-300"></div>
@@ -263,7 +263,7 @@
                   data-action="filters#addGroup"
                   data-filters-target="addGroupButton">
           <%= render Bali::Icon::Component.new('plus', class: 'w-4 h-4') %>
-          <%= t('bali.filters.add_group', default: 'Add filter group') %>
+          <%= t('bali_view.filters.add_group') %>
         </button>
 
         <div class="divider my-0"></div>
@@ -273,14 +273,14 @@
           <button type="button"
                     class="btn btn-ghost order-2 sm:order-1"
                     data-action="filters#reset">
-            <%= t('bali.filters.reset', default: 'Reset') %>
+            <%= t('bali_view.filters.reset') %>
           </button>
           <button type="submit"
                     class="btn btn-primary order-1 sm:order-2"
                     data-action="filters#apply"
                     data-filters-target="applyButton">
             <%= render Bali::Icon::Component.new('check', class: 'w-4 h-4') %>
-            <%= t('bali.filters.apply', default: 'Apply Filters') %>
+            <%= t('bali_view.filters.apply_filters') %>
           </button>
         </div>
       <% end %>

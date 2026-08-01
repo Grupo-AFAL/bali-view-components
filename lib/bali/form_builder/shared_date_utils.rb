@@ -32,7 +32,7 @@ module Bali
 
         # Format Range objects to string for the input value AFTER wrapper options are built
         if opts[:value].is_a?(Range)
-          separator = { en: " to ", es: " a " }[I18n.locale.to_sym] || " to "
+          separator = I18n.t("bali_view.form_builder.date_fields.range_separator")
           opts[:value] = "#{opts[:value].first.strftime("%Y-%m-%d")}#{separator}#{opts[:value].last.strftime("%Y-%m-%d")}"
         end
 
@@ -59,7 +59,7 @@ module Bali
             values[:default_dates] = [ options[:value].first, options[:value].last ]
           elsif options[:value].is_a?(String) && options[:value].present?
             # Split the range string using the localized separator
-            separator = { en: " to ", es: " a " }[I18n.locale.to_sym] || " to "
+            separator = I18n.t("bali_view.form_builder.date_fields.range_separator")
             values[:default_dates] = options[:value].split(/#{Regexp.escape(separator)}/)
           end
         end
@@ -78,7 +78,7 @@ module Bali
         effective_format = options[:alt_format].presence || default_alt_format(options)
 
         if effective_format.include?("F")
-          I18n.t("bali.form_builder.date_fields.allow_input_placeholder")
+          I18n.t("bali_view.form_builder.date_fields.allow_input_placeholder")
         else
           effective_format.gsub(/[A-Za-z]/) { |token| ALT_FORMAT_PLACEHOLDER_TOKENS[token] || token }
         end
@@ -109,7 +109,7 @@ module Bali
       end
 
       def build_clear_button
-        aria_label = I18n.t("bali.form_builder.date_fields.clear", default: "Clear date")
+        aria_label = I18n.t("bali_view.form_builder.date_fields.clear")
 
         content_tag(:div, class: JOIN_ITEM_CLASS) do
           content_tag(:button, class: CLEAR_BUTTON_CLASS, type: "button",
@@ -152,7 +152,7 @@ module Bali
       end
 
       def previous_date_button
-        aria_label = I18n.t("bali.form_builder.date_fields.previous", default: "Previous date")
+        aria_label = I18n.t("bali_view.form_builder.date_fields.previous")
 
         content_tag(:button, @template.render(Bali::Icon::Component.new("arrow-back")),
                     class: NAV_BUTTON_CLASS,
@@ -162,7 +162,7 @@ module Bali
       end
 
       def next_date_button
-        aria_label = I18n.t("bali.form_builder.date_fields.next", default: "Next date")
+        aria_label = I18n.t("bali_view.form_builder.date_fields.next")
 
         content_tag(:button, @template.render(Bali::Icon::Component.new("arrow-forward")),
                     class: NAV_BUTTON_CLASS,

@@ -21,7 +21,11 @@ export class DatepickerController extends Controller {
     enableSeconds: { type: Boolean, default: false },
     disableWeekends: { type: Boolean, default: false },
     time24hr: { type: Boolean, default: false },
-    locale: { type: String, default: 'es' },
+    // Every Bali call site emits this from I18n.locale. The default only applies
+    // to a host wiring the controller by hand, and for a library that default has
+    // to be the neutral one — it used to be 'es', so an English app that forgot
+    // the attribute got a Spanish calendar.
+    locale: { type: String, default: 'en' },
     defaultDate: String,
     defaultDates: Array,
     disabledDates: Array,
@@ -81,13 +85,25 @@ export class DatepickerController extends Controller {
     if (event.key === 'Escape' && this.flatpickr?.isOpen) this.flatpickr.close()
   }
 
+  // One entry per locale this gem ships translations for. The branch this
+  // replaces had no table: it returned Spanish for EVERY code that was not
+  // 'en', so a host on `fr` rendered a Spanish calendar and nothing said so.
+  // Unknown codes now get flatpickr's built-in English.
+  //
+  // Static specifiers on purpose. `import(`…/${code}.js`)` would cover all 67
+  // flatpickr locales in one line, but esbuild cannot bundle a computed
+  // specifier, and importing `l10n/index.js` to index it pulls the whole 100 kB
+  // table into every host's bundle to serve locales this gem has no strings for.
+  // A host that needs another one calls flatpickr.localize() itself.
+  static LOCALES = {
+    es: () => import('flatpickr/dist/l10n/es.js').then(m => m.Spanish)
+  }
+
   async setLocale (countryCode) {
-    if (countryCode === 'en') {
-      return 'default'
-    } else {
-      await import('flatpickr/dist/l10n/es.js')
-      return 'es'
-    }
+    const code = String(countryCode || 'en').toLowerCase().split(/[-_]/)[0]
+    const load = DatepickerController.LOCALES[code]
+
+    return load ? await load() : 'default'
   }
 
   clear () {

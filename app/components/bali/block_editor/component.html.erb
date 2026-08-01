@@ -1,10 +1,11 @@
 <% if disabled? %>
   <div class="border border-dashed border-error text-error text-sm rounded-box p-4">
-    <p class="font-semibold">Bali::BlockEditor is disabled</p>
+    <p class="font-semibold"><%= t('.disabled_title') %></p>
     <p>
-      Set <code>config.block_editor_enabled = true</code> in
-      <code>config/initializers/bali.rb</code> and install the npm packages listed in
-      <code>docs/api/block-editor.md</code>. This notice only appears in development.
+      <%= t('.disabled_help_html',
+            setting: tag.code('config.block_editor_enabled = true'),
+            initializer: tag.code('config/initializers/bali.rb'),
+            docs: tag.code('docs/api/block-editor.md')) %>
     </p>
   </div>
 <% else %>
@@ -18,7 +19,7 @@
                   class="btn btn-sm btn-ghost gap-1"
                   data-action="block-editor#exportPdf">
             <%= render Bali::Icon::Component.new('file-text', size: :small) %>
-            Export PDF
+            <%= t('.export_pdf') %>
           </button>
         <% end %>
         <% if export_docx? %>
@@ -26,7 +27,7 @@
                   class="btn btn-sm btn-ghost gap-1"
                   data-action="block-editor#exportDocx">
             <%= render Bali::Icon::Component.new('file-down', size: :small) %>
-            Export DOCX
+            <%= t('.export_docx') %>
           </button>
         <% end %>
       </div>

@@ -25,10 +25,11 @@ class BaliFormBuilderCoordinatesPolygonFieldsTest < FormBuilderTestCase
 
   def test_coordinates_polygon_field_group_renders_clear_buttons_with_correct_text
     node = Capybara.string(@coordinates_polygon_field_group)
-    assert node.has_button?(I18n.t("helpers.clear_holes.text")),
-      "Expected to find button '#{I18n.t("helpers.clear_holes.text")}'"
-    assert node.has_button?(I18n.t("helpers.clear.text")),
-      "Expected to find button '#{I18n.t("helpers.clear.text")}'"
+    # Literal text on purpose: comparing the rendered button against the same
+    # I18n.t call passed even when the key did not exist, because both sides
+    # returned the identical "Translation missing:" string.
+    assert node.has_button?("Clear holes"), "Expected to find button 'Clear holes'"
+    assert node.has_button?("Clear"), "Expected to find button 'Clear'"
   end
 
   def test_coordinates_polygon_field_renders_a_hidden_input_and_a_map

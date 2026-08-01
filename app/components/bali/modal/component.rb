@@ -89,7 +89,7 @@ module Bali
 
       # Translated label for close button (accessibility)
       def close_label
-        I18n.t("bali.modal.close", default: "Close modal")
+        I18n.t("bali_view.modal.close")
       end
 
       # Opt-in confirm-on-close: when enabled, an unsaved form inside the modal
@@ -101,7 +101,7 @@ module Bali
       end
 
       def confirm_close_message
-        @confirm_close_message.presence || I18n.t("bali.modal.confirm_close", default: "You have unsaved changes. Discard them?")
+        @confirm_close_message.presence || I18n.t("bali_view.modal.confirm_close")
       end
     end
   end

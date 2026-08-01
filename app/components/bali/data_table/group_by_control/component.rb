@@ -49,13 +49,20 @@ module Bali
         # Por qué está inerte. Va como `title` y no como cartel en la fila: el estado ya lo
         # comunica el botón apagado, y un texto permanente ahí competía con los filtros.
         def disabled_title
-          I18n.t("view_components.bali.data_table.group_by_control.disabled_title",
+          I18n.t("bali_view.data_table.group_by_control.disabled_title",
                  modes: disabled_modes)
         end
 
+        # `humanize` here is the extension point, not a missing translation: the
+        # display modes a listing declares are the HOST's, and Bali only ships
+        # names for the four it previews. Without the lookup the whole sentence
+        # came out half-translated — a Spanish `disabled_title` interpolating an
+        # English "Cards".
         def disabled_modes
           modes = @filter_form.respond_to?(:group_by_modes) ? @filter_form.group_by_modes : []
-          modes.map { |mode| mode.to_s.humanize }.to_sentence
+          modes.map do |mode|
+            I18n.t("bali_view.data_table.display_modes.#{mode}", default: mode.to_s.humanize)
+          end.to_sentence
         end
 
         def render?
@@ -103,11 +110,11 @@ module Bali
         end
 
         def label
-          @label || I18n.t("view_components.bali.data_table.group_by_control.label", default: "Group by")
+          @label || I18n.t("bali_view.data_table.group_by_control.label")
         end
 
         def no_grouping_label
-          I18n.t("view_components.bali.data_table.group_by_control.no_grouping", default: "No grouping")
+          I18n.t("bali_view.data_table.group_by_control.no_grouping")
         end
 
         def item_class(selected)

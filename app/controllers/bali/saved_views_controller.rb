@@ -16,7 +16,7 @@ module Bali
 
     def create
       store.save(name: params.require(:name), payload: params[:payload])
-      redirect_back fallback_location: fallback_path, notice: t("bali.saved_views.saved")
+      redirect_back fallback_location: fallback_path, notice: t("bali_view.saved_views.saved")
     rescue ActiveRecord::RecordInvalid => e
       redirect_back fallback_location: fallback_path, alert: e.record.errors.full_messages.to_sentence
     end
@@ -32,7 +32,7 @@ module Bali
 
       view.update!(attributes)
       redirect_back fallback_location: fallback_path,
-                    notice: t("bali.saved_views.#{attributes.key?(:payload) ? 'updated' : 'renamed'}")
+                    notice: t("bali_view.saved_views.#{attributes.key?(:payload) ? 'updated' : 'renamed'}")
     rescue ActiveRecord::RecordInvalid => e
       redirect_back fallback_location: fallback_path, alert: e.record.errors.full_messages.to_sentence
     end
@@ -40,7 +40,7 @@ module Bali
     def destroy
       view = own_views.find(params[:id])
       view.destroy!
-      redirect_back fallback_location: fallback_path, notice: t("bali.saved_views.deleted")
+      redirect_back fallback_location: fallback_path, notice: t("bali_view.saved_views.deleted")
     end
 
     private

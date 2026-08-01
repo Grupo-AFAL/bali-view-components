@@ -95,7 +95,7 @@ module Bali
         return unless cancel_button_required?(config)
 
         link_options = build_cancel_link_options(config)
-        label = link_options.delete(:label) || I18n.t("helpers.cancel.text", default: "Cancel")
+        label = link_options.delete(:label) || I18n.t("bali_view.form_builder.submit.cancel")
 
         content_tag(:div, class: WRAPPER_CLASS) do
           if config[:path].present?

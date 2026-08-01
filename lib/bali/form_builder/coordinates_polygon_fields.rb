@@ -44,7 +44,7 @@ module Bali
         opts = prepend_data_attribute(
           opts,
           "drawing-maps-confirmation-message-to-clear-value",
-          I18n.t("helpers.generic_confirm_message.text")
+          I18n.t("bali_view.form_builder.coordinates_polygon.confirm")
         )
         prepend_data_attribute(opts, "drawing-maps-key", google_maps_key)
       end
@@ -61,7 +61,7 @@ module Bali
 
       def clear_holes_button
         tag.button(
-          I18n.t("helpers.clear_holes.text"),
+          I18n.t("bali_view.form_builder.coordinates_polygon.clear_holes"),
           type: "button",
           class: BUTTON_CLASSES[:clear_holes],
           data: { action: "drawing-maps#clearHoles" }
@@ -70,7 +70,7 @@ module Bali
 
       def clear_all_button
         tag.button(
-          I18n.t("helpers.clear.text"),
+          I18n.t("bali_view.form_builder.coordinates_polygon.clear"),
           type: "button",
           class: BUTTON_CLASSES[:clear_all],
           data: { action: "drawing-maps#clear" }

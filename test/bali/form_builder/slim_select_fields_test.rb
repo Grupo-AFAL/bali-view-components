@@ -141,8 +141,8 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
   def test_slim_select_field_select_all_option_uses_i18n_for_button_text
     I18n.with_locale(:en) do
       result = builder.slim_select_field(:status, Movie.statuses.to_a, select_all: true)
-      select_all_text = I18n.t("bali.form_builder.slim_select.select_all")
-      deselect_all_text = I18n.t("bali.form_builder.slim_select.deselect_all")
+      select_all_text = I18n.t("bali_view.form_builder.slim_select.select_all")
+      deselect_all_text = I18n.t("bali_view.form_builder.slim_select.deselect_all")
       assert_html(result, "a", text: select_all_text)
       assert_html(result, "a", text: deselect_all_text)
     end

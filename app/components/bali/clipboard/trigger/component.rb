@@ -46,7 +46,7 @@ module Bali
         end
 
         def default_aria_label
-          I18n.t("view_components.bali.clipboard.copy_label", default: "Copy to clipboard")
+          I18n.t("bali_view.clipboard.copy_label")
         end
       end
     end

@@ -86,7 +86,7 @@ module Bali
           responsive: false,
           class: "btn-circle ml-auto message-dismiss",
           data: { action: "message#dismiss" },
-          "aria-label": "Close"
+          "aria-label": t(".close")
         )
       end
 

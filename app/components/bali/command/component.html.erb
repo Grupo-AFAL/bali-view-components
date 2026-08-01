@@ -23,7 +23,7 @@
                placeholder="<%= placeholder %>"
                class="cmd-input flex-1 min-w-0 bg-transparent border-0 outline-none text-base text-base-content placeholder:text-base-content/40"
                aria-label="<%= placeholder %>" />
-        <kbd class="kbd kbd-xs">esc</kbd>
+        <kbd class="kbd kbd-xs"><%= t('.esc_key') %></kbd>
       </div>
 
       <%# List %>
@@ -42,9 +42,9 @@
 
       <%# Footer %>
       <div class="flex items-center gap-3 px-3 py-2 border-t border-base-200 bg-base-100 text-xs text-base-content/60">
-        <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs">↓</kbd> <%= t('bali.command.navigate', default: 'navigate') %></span>
-        <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs">⏎</kbd> <%= t('bali.command.open_action', default: 'open') %></span>
-        <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs">esc</kbd> <%= t('bali.command.close', default: 'close') %></span>
+        <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs">↓</kbd> <%= t('bali_view.command.navigate') %></span>
+        <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs">⏎</kbd> <%= t('bali_view.command.open_action') %></span>
+        <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs"><%= t('.esc_key') %></kbd> <%= t('bali_view.command.close') %></span>
         <span class="flex-1"></span>
         <span class="font-mono text-[10.5px] text-base-content/60" data-command-target="count"></span>
       </div>
