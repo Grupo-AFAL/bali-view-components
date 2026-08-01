@@ -27,6 +27,14 @@ module Bali
         render_with_template
       end
 
+      # No Datetime
+      # ----------------------
+      # A nil datetime renders a placeholder instead of raising. There is no
+      # machine-readable value to carry, so this is a <span> and not a <time>.
+      def blank
+        render Bali::Timeago::Component.new(nil)
+      end
+
       # Auto-Refresh
       # ----------------------
       # The refresh_interval param enables automatic updates (in milliseconds).
