@@ -1,0 +1,37 @@
+/*
+ * daisyUI structural theme tokens — FALLBACKS, not overrides.
+ *
+ * daisyUI declares these for every built-in theme inside @layer base. A custom
+ * theme that only sets colors leaves them undefined, which silently breaks
+ * borders, radii and control sizing — hence these defaults.
+ *
+ * Two things keep them from turning into overrides:
+ *
+ *   - the file is imported with `layer(base)` from ../bali.css, the same layer
+ *     daisyUI uses for its themes;
+ *   - `:where(:root)` has zero specificity, so ANY real declaration wins: a
+ *     daisyUI built-in theme (`[data-theme=cupcake]`), a host's own theme, or
+ *     a plain `:root` rule.
+ *
+ * Until v3 these lived unlayered on `:root`, which quietly beat every daisyUI
+ * theme that ships different values (cyberpunk `--radius-box: 0`, cupcake
+ * `--border: 2px`, corporate `--depth: 0`, nord, caramellatte…). Only `light`
+ * and `dark` happen to match the values below, which is why the bug never
+ * surfaced in this repo.
+ *
+ * NOTE: this file is deliberately NOT called variables.css. It is not "the
+ * place where Bali keeps its variables" — Bali's own tokens (`--bali-*`,
+ * `--ss-*`, `--fp-*`, `--gantt-*`) live next to the code that uses them. This
+ * file holds exactly the tokens Bali shares with daisyUI, and its whole reason
+ * to exist is the cascade position above.
+ */
+:where(:root) {
+  --border: 1px;
+  --radius-box: 0.5rem;
+  --radius-field: 0.25rem;
+  --radius-selector: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --depth: 1;
+  --noise: 0;
+}
