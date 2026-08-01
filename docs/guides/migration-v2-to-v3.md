@@ -263,6 +263,125 @@ sit in a later layer and a host cannot override them from `@theme {}` at all.
   z-index — that is how `position` + `z-index` works, and 200 does not change it.
 - **`HoverCard(z_index:)` still wins** when you pass it. Only the default moved.
 
+## Every public event is now `bali:`-prefixed
+
+v2 shipped three generations of event naming at once: a few already-prefixed `bali:*` names,
+a handful with no prefix at all (`openModal`, `openDrawer`, `modal:success`), and the rest
+riding Stimulus' default `<identifier>:<name>`. On top of that, a `useDispatch` mixin
+replaced Stimulus' own `dispatch` with an incompatible `(name, detail)` signature, so a
+controller that followed the Stimulus documentation and passed `{ detail, target, prefix }`
+got an event whose `detail` was that entire options object.
+
+The mixin is gone and every event now goes through Stimulus' native `dispatch` under one
+scheme: **`bali:<component>:<event>`, kebab-case**. An event without the `bali:` prefix no
+longer comes from this package.
+
+**This breaks silently.** Nothing throws when an event is renamed — the listener simply stops
+running, and the feature quietly stops working. Grep before you upgrade:
+
+```
+grep -rn "openModal\|openDrawer\|modal:success" app/ --include=*.js --include=*.erb --include=*.rb
+grep -rn "hovercard:\|sortable-list:\|interact:on\|direct-upload:\|gantt-foldable-item:" app/
+grep -rn "useDispatch\|use-dispatch\|baliDispatchDebugEnabled" app/ config/
+```
+
+### The complete table
+
+| v2 | v3 | Emitted by | Dispatched on |
+|---|---|---|---|
+| `openModal` | `bali:modal:open` | `ModalController#open` | `document` |
+| `openDrawer` | `bali:drawer:open` | `DrawerController#open` | `document` |
+| `modal:success` | `bali:modal:success` | `ModalController#submit` (drawers inherit it) | `document` |
+| `interact:onResizing` | `bali:interact:resizing` | `InteractController` | the element, bubbling |
+| `interact:onResizeEnd` | `bali:interact:resize-end` | `InteractController` | the element, bubbling |
+| `interact:onDragging` | `bali:interact:dragging` | `InteractController` | the element, bubbling |
+| `interact:onDragEnd` | `bali:interact:drag-end` | `InteractController` | the element, bubbling |
+| `sortable-list:onEnd` | `bali:sortable-list:end` | `SortableListController` | the list, bubbling |
+| `hovercard:show` | `bali:hovercard:show` | `HovercardController` | the element, bubbling |
+| `hovercard:hide` | `bali:hovercard:hide` | `HovercardController` | the element, bubbling |
+| `gantt-foldable-item:toggle` | `bali:gantt-foldable-item:toggle` | `GanttFoldableItemController` | the row, bubbling |
+| `direct-upload:complete` | `bali:direct-upload:complete` | `DirectUploadController` | the element, bubbling |
+| `direct-upload:all-complete` | `bali:direct-upload:all-complete` | `DirectUploadController` | the element, bubbling |
+| `direct-upload:error` | `bali:direct-upload:error` | `DirectUploadController` | the element, bubbling |
+
+Already correct in v2 and **unchanged**, listed so the inventory is complete:
+`bali:command:open` / `:close` / `:toggle` (listened for on `window`), `bali:command:select`
+(emitted), and `bali:side-menu:toggle` / `:open` / `:close` (listened for on `window`;
+`Navbar#toggleSideMenu` emits the first).
+
+The `on` in `onEnd`, `onDragEnd` and friends is a handler-naming habit, not part of an event
+name, so it is dropped rather than kebab-cased into `on-drag-end`. Every one of those pairs is
+in the table above; nothing changed without a row.
+
+### Two payload changes that come with it
+
+**`event.detail.controller` is gone.** `useDispatch` pushed the emitting controller instance
+into every payload. Native `dispatch` does not, and reaching into another controller's
+instance from an event handler was never worth encouraging. If you needed the element,
+`event.target` is it; if you genuinely need the controller,
+`application.getControllerForElementAndIdentifier(event.target, 'sortable-list')`.
+
+**`bali:modal:success` fires for drawers too.** That is not new — `modal:success` did the same,
+because `DrawerController` inherits `submit` from `ModalController`. It is called out because
+the new name makes the asymmetry look deliberate: there is no `bali:drawer:success`. One name
+for "the form inside the overlay saved" is what a host wants to listen for, and the overlay's
+own root tells the two apart when it matters.
+
+### Opening a modal or drawer by hand still works
+
+This was, and remains, the supported way to open one without a trigger link — only the name
+changed:
+
+```javascript
+// v2
+document.dispatchEvent(new CustomEvent('openModal', {
+  detail: { content: html, options: { modalSize: 'lg' } }
+}))
+
+// v3
+document.dispatchEvent(new CustomEvent('bali:modal:open', {
+  detail: { content: html, options: { modalSize: 'lg' } }
+}))
+```
+
+`detail.options` is still required (pass `{}` if you have nothing to set) and `detail.content`
+still accepts `null` to keep the skeleton showing.
+
+### No compatibility aliases, on purpose
+
+v3 does not emit the old names alongside the new ones. Two reasons. The events split into ones
+Bali *emits* and ones Bali *listens for*, and those need opposite shims — dual-emit for the
+first, dual-listen for the second — so "emit both" would have covered barely half the surface
+while reading as full coverage. And a dual-listen on `openModal` would keep a host working
+without ever telling it to migrate, which only moves this same break to v4. The grep recipe
+above finds every call site in one pass; that is the intended migration path.
+
+### `useDispatch` is removed
+
+`import { useDispatch } from 'bali-view-components/utils'` and the `bali/utils/use-dispatch`
+importmap pin no longer resolve. If you built your own controller on it, the replacement is
+the native `dispatch` the mixin was shadowing all along:
+
+```javascript
+// v2 — mixin signature
+useDispatch(this)
+this.dispatch('saved', { id: this.idValue })
+
+// v3 — native
+this.dispatch('saved', { prefix: 'myapp:widget', detail: { id: this.idValue } })
+```
+
+`window.baliDispatchDebugEnabled` went with it. The replacement traces every Bali event at
+once and needs no cooperation from the controllers:
+
+```javascript
+const dispatchEvent = EventTarget.prototype.dispatchEvent
+EventTarget.prototype.dispatchEvent = function (event) {
+  if (event.type.startsWith('bali:')) console.log(event.type, event.detail)
+  return dispatchEvent.call(this, event)
+}
+```
+
 ## What breaks, and what replaces it
 
 | Removed | Replacement |
@@ -494,6 +613,10 @@ grep -rn "Bali::Card.*DataTable\|render Bali::Card" app/views/**/index*
 # any listing that groups and already used `view`, or that does not start on the table?
 grep -rn "group_by_attribute" app/
 grep -rn "view=\|params\[:view\]" app/views app/controllers
+# events — these break with no error at all, see the table above
+grep -rn "openModal\|openDrawer\|modal:success" app/
+grep -rn "hovercard:\|sortable-list:\|interact:on\|direct-upload:\|gantt-foldable-item:" app/
+grep -rn "useDispatch\|use-dispatch\|baliDispatchDebugEnabled" app/ config/
 ```
 
 Then load each index page in a browser and check, in this order: the toolbar is not inside

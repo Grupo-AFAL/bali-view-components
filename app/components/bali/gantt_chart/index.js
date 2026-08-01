@@ -1,7 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import Sortable from 'sortablejs'
 import throttle from 'lodash.throttle'
-import useDispatch from '../../../assets/javascripts/bali/utils/use-dispatch.js'
 import { toBool, toInt } from '../../../assets/javascripts/bali/utils/formatters.js'
 import { addDaysToDate } from '../../../assets/javascripts/bali/utils/time.js'
 import { patch } from '@rails/request.js'
@@ -37,8 +36,6 @@ export class GanttChartController extends Controller {
   }
 
   connect () {
-    useDispatch(this)
-
     this.setStoredListWidth()
 
     this.timelineTarget.scrollTo({ left: this.offsetValue })

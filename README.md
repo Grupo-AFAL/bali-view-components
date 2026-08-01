@@ -192,10 +192,16 @@ rails g view_component bali/my_component name
 
 ## JavaScript Debugging
 
-Some Stimulus controllers emit events for inter-controller communication. Enable debug logging:
+Some Stimulus controllers emit events for inter-controller communication. Every one of them is
+named `bali:<component>:<event>`, so a single console snippet logs the lot:
 
 ```javascript
-baliDispatchDebugEnabled = true
+// Paste in the browser console, then drive the UI
+const dispatchEvent = EventTarget.prototype.dispatchEvent
+EventTarget.prototype.dispatchEvent = function (event) {
+  if (event.type.startsWith('bali:')) console.log(event.type, event.detail)
+  return dispatchEvent.call(this, event)
+}
 ```
 
 ## License

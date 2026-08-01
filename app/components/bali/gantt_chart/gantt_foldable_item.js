@@ -1,15 +1,15 @@
 import { Controller } from '@hotwired/stimulus'
-import useDispatch from '../../../assets/javascripts/bali/utils/use-dispatch.js'
+
+// Hardcoded instead of letting `dispatch` default to `this.identifier`, so the
+// public event name stays put when a host registers this controller under a
+// different identifier.
+const EVENT_PREFIX = 'bali:gantt-foldable-item'
 
 export class GanttFoldableItemController extends Controller {
   static values = {
     folded: { type: Boolean, default: false },
     visible: { type: Boolean, default: true },
     parentId: { type: Number, default: 0 }
-  }
-
-  connect () {
-    useDispatch(this)
   }
 
   toggle () {
@@ -21,7 +21,10 @@ export class GanttFoldableItemController extends Controller {
 
     this.foldedValue = !this.foldedValue
 
-    this.dispatch('toggle', { folded: this.foldedValue })
+    this.dispatch('toggle', {
+      prefix: EVENT_PREFIX,
+      detail: { folded: this.foldedValue }
+    })
   }
 
   get directChildren () {

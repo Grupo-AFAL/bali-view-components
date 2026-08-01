@@ -156,9 +156,14 @@ registerControllers(application)
 
 2. **Event not reaching controller:**
 
-   **Debug:** Add this to console and try clicking:
+   **Debug:** Paste this in the console and try clicking. Every Bali event is named
+   `bali:<component>:<event>`, so opening a modal should log `bali:modal:open`:
    ```javascript
-   baliDispatchDebugEnabled = true
+   const dispatchEvent = EventTarget.prototype.dispatchEvent
+   EventTarget.prototype.dispatchEvent = function (event) {
+     if (event.type.startsWith('bali:')) console.log(event.type, event.detail)
+     return dispatchEvent.call(this, event)
+   }
    ```
 
 3. **Turbo interference:** Turbo Drive might be intercepting clicks
