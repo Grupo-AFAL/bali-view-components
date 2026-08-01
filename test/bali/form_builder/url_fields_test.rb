@@ -22,7 +22,7 @@ class BaliFormBuilderUrlFieldsTest < FormBuilderTestCase
 
   def test_url_field_group_applies_daisyui_input_classes
     result = builder.url_field_group(:website_url)
-    assert_html(result, "input.input.input-bordered")
+    assert_html(result, "input.input")
   end
 
   # #url_field
@@ -39,12 +39,12 @@ class BaliFormBuilderUrlFieldsTest < FormBuilderTestCase
 
   def test_url_field_applies_daisyui_input_classes
     result = builder.url_field(:website_url)
-    assert_html(result, "input.input.input-bordered")
+    assert_html(result, "input.input")
   end
 
   def test_url_field_with_custom_class_includes_custom_class_with_daisyui_classes
     result = builder.url_field(:website_url, class: "custom-input")
-    assert_html(result, "input.input.input-bordered.custom-input")
+    assert_html(result, "input.input.custom-input")
   end
 
   def test_url_field_with_validation_errors_applies_error_class_to_input
@@ -61,7 +61,7 @@ class BaliFormBuilderUrlFieldsTest < FormBuilderTestCase
 
   def test_url_field_with_help_text_displays_help_text
     result = builder.url_field(:website_url, help: "Enter website URL")
-    assert_html(result, "p.label-text-alt", text: "Enter website URL")
+    assert_html(result, "p.fieldset-label", text: "Enter website URL")
   end
 
   def test_url_field_with_data_attributes_passes_through_data_attributes

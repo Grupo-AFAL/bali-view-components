@@ -49,7 +49,7 @@ class BaliFormBuilderTimeZoneSelectFieldsTest < FormBuilderTestCase
 
   def test_time_zone_select_with_help_text_renders_help_text
     result = builder.time_zone_select(:release_date, nil, {}, { help: "Select your time zone" })
-    assert_html(result, "p.label-text-alt", text: "Select your time zone")
+    assert_html(result, "p.fieldset-label", text: "Select your time zone")
   end
 
   def test_time_zone_select_with_errors_renders_select_error_class

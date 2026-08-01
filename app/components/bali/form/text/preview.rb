@@ -52,6 +52,18 @@ module Bali
             locals: { model: form_record }
           )
         end
+
+        # @label With Help Text and Errors
+        # Both messages render together: the error says what went wrong, the help
+        # still says what is expected.
+        def with_help_text_and_errors
+          form_record.errors.add(:text, :invalid)
+
+          render_with_template(
+            template: 'bali/form/text/previews/with_help_text',
+            locals: { model: form_record }
+          )
+        end
       end
     end
   end
