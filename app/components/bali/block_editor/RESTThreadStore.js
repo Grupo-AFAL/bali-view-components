@@ -104,8 +104,6 @@ export class RESTThreadStore extends ThreadStore {
     }
   }
 
-  // TODO: _removeMarks is not removing comment highlights from the document body after deletion.
-  //       The thread is removed from the sidebar but the text stays highlighted.
   async deleteThread ({ threadId }) {
     await this._delete(`/${threadId}`)
 
@@ -375,6 +373,23 @@ export class RESTThreadStore extends ThreadStore {
     if (!response.ok) throw new Error(`DELETE ${path} failed: ${response.status}`)
   }
 
+  // Removes the comment highlight left behind in the document body when a thread
+  // is deleted. ThreadStore.deleteThread only drops the thread from the store.
+  //
+  // The mark passed to tr.removeMark has to be the instance that is actually on
+  // the node. This used to pass `markType.create({ threadId })`, and ProseMirror
+  // removes by `Mark.eq`, which compares every attribute. BlockNote's comment
+  // mark carries two -- `threadId` and `orphan` -- so the freshly built mark only
+  // matched while `orphan` happened to equal its default of `false`. Measured in
+  // the browser against this schema: with `orphan: false` the old code removed
+  // the mark, with `orphan: true` it silently left it in place. `orphan: true` is
+  // what BlockNote sets on a comment whose thread it can no longer resolve, which
+  // is precisely the state around a deletion -- so the highlight survived exactly
+  // the case the code existed to handle.
+  //
+  // Finding the real mark on the node also keeps overlapping comments intact:
+  // passing the mark *type* instead would strip every other thread's highlight in
+  // the same range.
   _removeMarks (threadId) {
     if (!this._editor?._tiptapEditor) return
     const { state, dispatch } = this._editor._tiptapEditor.view
@@ -384,8 +399,11 @@ export class RESTThreadStore extends ThreadStore {
     const { tr } = state
     let changed = false
     state.doc.descendants((node, pos) => {
-      if (node.marks?.some(m => m.type === markType && m.attrs.threadId === threadId)) {
-        tr.removeMark(pos, pos + node.nodeSize, markType.create({ threadId }))
+      const mark = node.marks?.find(
+        m => m.type === markType && String(m.attrs.threadId) === String(threadId)
+      )
+      if (mark) {
+        tr.removeMark(pos, pos + node.nodeSize, mark)
         changed = true
       }
     })

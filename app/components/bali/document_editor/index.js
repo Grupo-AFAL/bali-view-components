@@ -26,6 +26,12 @@ export class DocumentEditorController extends Controller {
     documentUrl: String,
     closeUrl: String,
     versionsUrl: String,
+    // Declared, not invented. This controller used to POST to
+    // `${documentUrl}/restore_version`, which made the host's routes a guess.
+    restoreVersionUrl: String,
+    // Root key of the PATCH payload and the basis of the default inputName.
+    // Hardcoding "document" assumed every host named its model Document.
+    paramKey: { type: String, default: 'document' },
     inputName: { type: String, default: 'document[content]' },
     tocOpen: { type: Boolean, default: true },
     panel: { type: String, default: '' }
@@ -129,22 +135,24 @@ export class DocumentEditorController extends Controller {
     this._flushContent()
 
     const csrfToken = document.querySelector("meta[name='csrf-token']")?.content
-    const body = { document: {} }
+    const attributes = {}
 
     if (this.hasTitleInputTarget) {
-      body.document.title = this.titleInputTarget.value
+      attributes.title = this.titleInputTarget.value
     }
 
     const contentInput = this.element.querySelector(`input[name='${this.inputNameValue}']`)
     if (contentInput) {
-      body.document.content = contentInput.value
+      attributes.content = contentInput.value
     }
 
     // Nothing to save (e.g. read-only viewer overlay with no inputs)
-    if (Object.keys(body.document).length === 0) {
+    if (Object.keys(attributes).length === 0) {
       this._saving = false
       return
     }
+
+    const body = { [this.paramKeyValue]: attributes }
 
     try {
       const response = await fetch(this.documentUrlValue, {
@@ -221,7 +229,7 @@ export class DocumentEditorController extends Controller {
     const csrfToken = document.querySelector("meta[name='csrf-token']")?.content
 
     try {
-      const response = await fetch(`${this.documentUrlValue}/restore_version`, {
+      const response = await fetch(this.restoreVersionUrlValue, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -237,11 +245,15 @@ export class DocumentEditorController extends Controller {
   }
 
   async previewVersion (event) {
-    const versionId = event.currentTarget.dataset.versionId
     const versionNumber = event.currentTarget.dataset.versionNumber
+    // The URL comes from the version's own JSON (`url`), not from a path this
+    // controller assembles. _buildVersionItem still derives it when the payload
+    // omits the field, so a host that has not adopted the richer shape keeps working.
+    const versionUrl = event.currentTarget.dataset.versionUrl
+    if (!versionUrl) return
 
     try {
-      const response = await fetch(`${this.versionsUrlValue}/${versionId}`, {
+      const response = await fetch(versionUrl, {
         headers: { Accept: 'application/json' }
       })
       const version = await response.json()
@@ -250,7 +262,7 @@ export class DocumentEditorController extends Controller {
       const blockEditor = this._blockEditorController()
       if (!blockEditor || !blockEditor.blockNoteEditor) {
         // Fallback: open in new tab if editor not available
-        window.open(`${this.versionsUrlValue}/${versionId}`, '_blank')
+        window.open(versionUrl, '_blank')
         return
       }
 
@@ -347,6 +359,7 @@ export class DocumentEditorController extends Controller {
     const previewBtn = el.querySelector('[data-action*="previewVersion"]')
     previewBtn.dataset.versionId = v.id
     previewBtn.dataset.versionNumber = v.version_number
+    previewBtn.dataset.versionUrl = v.url || `${this.versionsUrlValue}/${v.id}`
 
     el.querySelector('[data-action*="restoreVersion"]').dataset.versionId = v.id
 

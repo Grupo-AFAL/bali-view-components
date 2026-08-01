@@ -26,15 +26,17 @@ module Bali
           versions_url: "/lookbook",
           editable: editable,
           auto_save: false,
-          comments: {
-            url: "/block_editor_comments",
-            user: { id: "user-1", username: "Demo User" },
-            users: [
-              { id: "user-1", username: "Demo User" },
-              { id: "user-2", username: "Jane Smith" }
-            ]
-          },
-          export: true
+          config: {
+            comments: {
+              url: "/block_editor_comments",
+              user: { id: "user-1", username: "Demo User" },
+              users: [
+                { id: "user-1", username: "Demo User" },
+                { id: "user-2", username: "Jane Smith" }
+              ]
+            },
+            export: true
+          }
         )
       end
 

@@ -3,6 +3,13 @@ import { CommentsExtension } from '@blocknote/core/comments'
 import { InMemoryThreadStore } from './InMemoryThreadStore'
 import { RESTThreadStore } from './RESTThreadStore'
 
+// Omit the key entirely when unset so RESTThreadStore's own default (5000 ms)
+// stays the single source of that number. `0` is meaningful -- it turns polling
+// off for a single-author document -- so it must survive as a real value.
+function pollOptions (interval) {
+  return Number.isFinite(interval) ? { pollInterval: interval } : {}
+}
+
 /**
  * Hook to initialize BlockNote's comments extension with either a
  * REST-backed ThreadStore (when commentsUrl is provided) or an
@@ -13,9 +20,10 @@ import { RESTThreadStore } from './RESTThreadStore'
  * @param {Array}  options.commentsUsers   - Static user list for resolution
  * @param {string} options.commentsUsersUrl - Remote endpoint for user resolution
  * @param {string} options.commentsUrl     - REST API base URL for thread persistence
+ * @param {number} options.commentsPollInterval - Poll period in ms; 0 disables polling
  * @returns {{ extension: Object, threadStore: ThreadStore } | null}
  */
-export function useComments ({ commentsUser, commentsUsers, commentsUsersUrl, commentsUrl }) {
+export function useComments ({ commentsUser, commentsUsers, commentsUsersUrl, commentsUrl, commentsPollInterval }) {
   const threadStoreRef = useRef(null)
 
   // Clean up polling on unmount
@@ -37,7 +45,7 @@ export function useComments ({ commentsUser, commentsUsers, commentsUsersUrl, co
 
     const userId = String(commentsUser.id)
     const threadStore = commentsUrl
-      ? new RESTThreadStore(userId, commentsUrl)
+      ? new RESTThreadStore(userId, commentsUrl, pollOptions(commentsPollInterval))
       : new InMemoryThreadStore(userId, 'editor')
 
     threadStoreRef.current = threadStore
@@ -117,5 +125,5 @@ export function useComments ({ commentsUser, commentsUsers, commentsUsersUrl, co
     // crashes when BlockNote renders resolved threads before async user
     // resolution completes (useUsers → getUser returns undefined).
     return { extension, threadStore, staticUserMap }
-  }, [commentsUser, commentsUsers, commentsUsersUrl, commentsUrl])
+  }, [commentsUser, commentsUsers, commentsUsersUrl, commentsUrl, commentsPollInterval])
 }

@@ -56,7 +56,7 @@
         <% end %>
       <% end %>
 
-      <% if export %>
+      <% if export? %>
         <%= render Bali::Dropdown::Component.new(align: :right) do |dropdown| %>
           <% dropdown.with_trigger(class: "btn-ghost btn-sm btn-square") do %>
             <%= render Bali::Icon::Component.new('download', size: :small) %>
@@ -101,22 +101,14 @@
       </div>
       <div class="px-12 py-8">
         <%= render Bali::BlockEditor::Component.new(
+          config: config,
           initial_content: initial_content,
           editable: editable?,
           input_name: editable? ? input_name : nil,
           table_of_contents: true,
           table_of_contents_container_id: toc_container_id,
-          comments: @comments_config || false,
           comments_container_id: comments? ? comments_container_id : nil,
-          export: export,
-          show_export_buttons: false,
-          export_filename: export_filename,
-          ai_url: ai_url,
-          mentions_url: mentions_url,
-          mentions: mentions,
-          references_url: references_url,
-          references_resolve_url: references_resolve_url,
-          references_config: references_config
+          show_export_buttons: false
         ) %>
       </div>
     </div>
