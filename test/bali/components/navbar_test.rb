@@ -261,4 +261,32 @@ class BaliNavbarBurgerComponentTest < ComponentTestCase
     assert_no_selector("[data-navbar-target]")
     assert_no_selector("[data-action]")
   end
+
+  # --- type: :sidebar delegates to the one shared trigger ---
+
+  def test_sidebar_burger_renders_the_shared_trigger
+    render_inline(Bali::Navbar::Burger::Component.new(type: :sidebar))
+    assert_selector("button[type='button'][data-controller~='side-menu-trigger']")
+    assert_selector(
+      "button[aria-controls='#{Bali::SideMenu::Component::DEFAULT_ID}'][aria-expanded='false']"
+    )
+    assert_selector("button.lg\\:hidden svg")
+    # It used to be a <label for=…> pointing at a hidden checkbox.
+    assert_no_selector("label")
+  end
+
+  def test_sidebar_burger_accepts_a_custom_menu_id
+    render_inline(Bali::Navbar::Burger::Component.new(type: :sidebar, menu_id: "reports"))
+    assert_selector("button[aria-controls='reports']")
+  end
+
+  def test_sidebar_burger_keeps_custom_classes
+    render_inline(Bali::Navbar::Burger::Component.new(type: :sidebar, class: "custom-x"))
+    assert_selector("button.custom-x.lg\\:hidden")
+  end
+
+  def test_sidebar_burger_with_href_still_renders_a_link
+    render_inline(Bali::Navbar::Burger::Component.new(type: :sidebar, href: "/menu"))
+    assert_selector("a[href='/menu'].btn.btn-ghost")
+  end
 end

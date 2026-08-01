@@ -57,7 +57,7 @@
 <% else %>
   <%# Simple item: expanded and collapsed versions %>
   <%# Expanded state %>
-  <%= tag.a(href: href.presence || '#', class: "#{menu_item_classes} side-menu-expanded", disabled: disabled? ? 'disabled' : nil, target: target, rel: rel, **@options) do %>
+  <%= tag.a(href: href.presence || '#', class: "#{menu_item_classes} side-menu-expanded", disabled: disabled? ? 'disabled' : nil, target: target, rel: rel, 'aria-current': aria_current, **@options) do %>
     <%= render_icon %>
     <span class="grow"><%= content || name %></span>
     <%= render_badge %>

@@ -4,6 +4,41 @@
  * defined in side_menu/index.css :root.
  */
 
+/* Skip link — the first focusable element of the page, off-screen until it
+ * takes focus. Both halves live here, in @layer components: put the hidden
+ * default on the element as `sr-only` and the reveal would have to beat a
+ * utility from a layer that loses to it, leaving the link permanently
+ * invisible. Same rule as everywhere else in the package — a default and the
+ * state that overrides it share a layer.
+ *
+ * Sits above the toast stack (z-101) so nothing can cover it while focused. */
+.bali-skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.bali-skip-link:focus {
+  @apply bg-primary text-primary-content rounded-lg px-4 py-2 text-sm font-medium shadow-lg;
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 110;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip-path: none;
+  outline: 2px solid var(--color-base-content);
+  outline-offset: 2px;
+}
+
 /* Viewport-locked scroll model — activates via `viewport_locked: true`.
  * Body locks to viewport height; only the inner <main> scrolls. This keeps
  * sidebar AND topbar pinned naturally (no position: sticky needed) and
@@ -45,8 +80,11 @@
     transition: padding-left 0.2s ease-in-out;
   }
 
-  /* Reduce offset when sidebar is collapsed */
-  .app-layout--has-fixed-sidebar:has(.side-menu-collapse-trigger:checked) .app-layout-content {
+  /* Reduce offset when sidebar is collapsed. Reads the state class the
+     SideMenuController owns — it used to read a hidden checkbox
+     (`:has(.side-menu-collapse-trigger:checked)`), which is gone with the
+     checkbox. */
+  .app-layout--has-fixed-sidebar:has(.side-menu-component.is-collapsed) .app-layout-content {
     padding-left: var(--bali-side-menu-collapsed-width);
   }
 }

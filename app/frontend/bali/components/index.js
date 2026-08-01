@@ -23,6 +23,7 @@ import { TabsController } from '../../../components/bali/tabs/index'
 import { NavbarController } from '../../../components/bali/navbar/index'
 import { SideMenuController } from '../../../components/bali/side_menu/index'
 import { SideMenuFlyoutController } from '../../../components/bali/side_menu/flyout/index'
+import { SideMenuTriggerController } from '../../../components/bali/side_menu/trigger/index'
 import { AvatarController } from '../../../components/bali/avatar/index'
 import { TimeagoController } from '../../../components/bali/timeago/index'
 import { RateController } from '../../../components/bali/rate/index'
@@ -93,6 +94,7 @@ export {
   SavedViewsController,
   SideMenuController,
   SideMenuFlyoutController,
+  SideMenuTriggerController,
   SortableListController,
   StatusController,
   TabsController,
@@ -126,6 +128,7 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   navbar: NavbarController,
   'side-menu': SideMenuController,
   'side-menu-flyout': SideMenuFlyoutController,
+  'side-menu-trigger': SideMenuTriggerController,
 
   // Data display
   avatar: AvatarController,
