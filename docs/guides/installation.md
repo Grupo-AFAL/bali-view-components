@@ -248,7 +248,7 @@ Components behind their own entry point carry their own dependency sets, which a
 | Entry point | Dependency set |
 |-------------|----------------|
 | `bali-view-components/charts` | `chart.js` |
-| `bali-view-components/block-editor` | `@blocknote/core` `/react` `/mantine` (>= 0.51), `@mantine/core`, `@mantine/hooks`, `react`, `react-dom`; `shiki` only for syntax-highlighted code blocks. See [the BlockEditor API guide](../api/block-editor.md). |
+| `bali-view-components/block-editor` | `@blocknote/core` `/react` `/mantine` (>= 0.52.1, and all three pinned to the *same* version), `@mantine/core`, `@mantine/hooks`, `react`, `react-dom`; `shiki` only for syntax-highlighted code blocks. See [the BlockEditor API guide](../api/block-editor.md). |
 | `bali-view-components/rich-text-editor` | The `@tiptap/*` set plus `lowlight`, `highlight.js` and `tippy.js`. **Deprecated in v3, removed in v4** — migrate to the block editor. |
 
 ### Flatpickr Setup

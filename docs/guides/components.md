@@ -178,11 +178,14 @@ slots are independent so non-shell layouts work too.
 ```
 
 **Options:**
-- `fixed_sidebar` - Sidebar uses `position: fixed`; content gets left padding (default: false)
-- `viewport_locked` - Body locks to 100vh; only inner `<main>` scrolls (Linear/Notion app-shell pattern). Defaults to `fixed_sidebar` value — pass explicitly to decouple
+- `fixed_sidebar` - Sidebar uses `position: fixed`; content gets left padding (default: true). Must match the `fixed:` of the `SideMenu` in the slot — they share the same default, and a mismatch raises in development
+- `viewport_locked` - Body locks to 100vh; only inner `<main>` scrolls (Linear/Notion app-shell pattern). Defaults to whether a fixed sidebar is actually rendered — pass explicitly to decouple
+- `skip_link` - Render the "skip to main content" link as the first focusable element (default: true)
 - `body_container` - `:wide` (default), `:contained`, `:narrow`, `:full`
 - `flash` - Pass `flash` for built-in toast notifications
 - `modal` / `drawer` - Render shared modal/drawer slots (default: true)
+
+The layout renders `<main id="main-content" tabindex="-1">` so the skip link lands focus on it.
 
 **Decoupled scroll model**:
 | `fixed_sidebar` | `viewport_locked` | Behavior |
@@ -226,7 +229,9 @@ search, actions (many), user_menu.
 ```
 
 **Options:**
-- `mobile_trigger_id` - ID of the sidebar's mobile checkbox (renders the `lg:hidden` hamburger). Defaults to `Bali::SideMenu::Component::MOBILE_TRIGGER_ID`. Pass `nil` for layouts without a sidebar
+- `menu_id` - DOM id of the sidebar the `lg:hidden` hamburger opens. Defaults to `Bali::SideMenu::Component::DEFAULT_ID`. Pass `nil` for layouts without a sidebar
+
+The root element is a `<header>` (the page's banner landmark) and the hamburger is a `Bali::SideMenu::Trigger::Component`.
 
 #### Card
 
@@ -395,7 +400,23 @@ Page-level header with title, subtitle, optional back button, and right-aligned 
 - `subtitle` - Subtitle text; use the `with_subtitle` slot for a custom tag or classes (default: `nil`)
 - `align` - Vertical alignment of left/right content: `:top`, `:center`, `:bottom` (default: `:center`)
 - `back` - Back button options hash, requires `href` (e.g. `{ href: path }`) (default: `nil`)
-- `responsive` - Apply tighter spacing on small screens (default: `true`)
+- `responsive` - Stack the header, and give the back button its own row, below `sm` (default: `true`)
+
+**Slots:**
+- `with_title(text, tag: :h1, **options)` - The page's heading. A block is the heading's
+  *content*, not a replacement for it — a heading inside the block nests one heading in
+  another. Nothing renders without text or a block.
+- `with_subtitle(text, tag: :p, **options)` - Renders a `<p>`; pass `tag:` for a heading.
+- `with_title_tag` - Badges beside the title. They render as siblings of the heading so they
+  stay out of its accessible name, and the row wraps on narrow viewports.
+
+**Headings.** The title is the page's `h1`. If your layout already renders one, pass
+`tag: :h2` — see the [migration guide](migration-v2-to-v3.md). `tag:` sets the element only;
+the size comes from `TITLE_CLASSES` and is overridden with `class:`.
+
+**Accessibility.** The back button is icon-only, so it carries a default `aria-label` from
+`bali_view.page_header.back`. Pass a visible `name:` and the label is skipped, so the
+accessible name keeps matching the visible one.
 
 #### Footer
 
@@ -453,10 +474,33 @@ bottom-pinned items. Used inside `Bali::AppLayout`'s `with_sidebar` slot.
 
 **Options:**
 - `current_path` (required) - For active-state matching
-- `fixed` - Fixed-to-viewport sidebar (default: true)
+- `id` - DOM id every trigger targets through `aria-controls` (default: `DEFAULT_ID`, `"side-menu"`)
+- `fixed` - Fixed-to-viewport sidebar (default: true). Must match `AppLayout`'s `fixed_sidebar:`
 - `collapsible` - Show desktop collapse toggle and icon-only collapsed state
 - `brand` - Simple text brand. For richer brand (logo + text, custom HTML), use the `with_brand` slot instead
+- `aria_label` - Accessible name of the `<nav>` landmark (default: translated "Sidebar")
 - `group_behavior` - `:expandable` (default, DaisyUI collapse) or `:dropdown` (hover dropdown for nested items)
+
+Renders a `<nav aria-label>` whose items are a `ul`/`li` list, with `aria-current="page"` on the
+item pointing at the current page.
+
+#### SideMenu::Trigger
+
+The single button that opens a `SideMenu` — rendered for you by `Topbar`, by `AppLayout`'s
+fallback mobile chrome, and by `Navbar::Burger(type: :sidebar)`. Render it directly for custom
+chrome.
+
+```erb
+<%= render Bali::SideMenu::Trigger::Component.new %>
+<%= render Bali::SideMenu::Trigger::Component.new(menu_id: 'reports-menu', icon: 'panel-left') %>
+```
+
+**Options:**
+- `menu_id` - id of the sidebar it opens; becomes its `aria-controls` (default: `SideMenu::Component::DEFAULT_ID`)
+- `icon` - icon name, or `nil` and pass content for custom markup
+
+It keeps `aria-expanded` in sync with the sidebar, and the sidebar hands focus back to it when
+the drawer closes.
 
 **Brand row aligns** with `Bali::Topbar` (both 56px) so they form one continuous chrome divider when paired in `Bali::AppLayout`.
 
@@ -509,6 +553,9 @@ results, keyboard navigation, and a global ⌘K (Mac) / Ctrl+K (Windows) shortcu
 - Window events: `bali:command:open` / `bali:command:close` / `bali:command:toggle`
 
 **Keyboard:** ↑/↓ to navigate, ⏎ to activate, Esc to close.
+
+**Emits:** `bali:command:select` (bubbles, `detail: { row, value }`) when an item without an
+`href` is activated.
 
 #### Breadcrumb
 

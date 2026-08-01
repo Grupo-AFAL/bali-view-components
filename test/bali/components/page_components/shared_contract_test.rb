@@ -53,6 +53,75 @@ class BaliPageComponentsSharedContractTest < ComponentTestCase
 
   # El orden es parte del contrato: el nav es navegación de segundo nivel y va ENTRE el
   # encabezado y el cuerpo, no debajo de todo.
+  #
+  # #685: sin subtítulo los cinco emitían `<h6 class="subtitle"></h6>`. Un heading vacío es
+  # una sección sin nombre en el outline del documento y una violación de axe, y ninguna de
+  # las cinco páginas tenía un h1: la jerarquía arrancaba en h3.
+  def test_the_five_emit_no_empty_headings
+    each_page do |component|
+      render_inline(component.new(title: "The Matrix")) { |page| page.with_body { "Body" } }
+
+      assert_empty empty_headings,
+                   "#{component}: emite headings vacíos (#{empty_headings.map(&:tag_name).join(', ')})"
+    end
+  end
+
+  def test_the_five_emit_no_empty_headings_with_every_slot_filled
+    each_page do |component|
+      render_inline(component.new(
+        title: "The Matrix", subtitle: "1999", back: { href: "/movies" }
+      )) do |page|
+        page.with_title_tag { "Sci-Fi" }
+        page.with_nav { "Subnav" }
+        page.with_action { "Edit" }
+        page.with_body { "Body" }
+        page.with_sidebar { "Sidebar" }
+      end
+
+      assert_empty empty_headings, "#{component}: emite headings vacíos con todos los slots"
+    end
+  end
+
+  def test_the_five_name_the_page_with_exactly_one_h1
+    each_page do |component|
+      render_inline(component.new(title: "The Matrix")) { |page| page.with_body { "Body" } }
+
+      assert_equal 1, page.all("h1", visible: :all).size,
+                   "#{component}: no pinta exactamente un h1"
+      assert_equal "The Matrix", page.find("h1", visible: :all).text.strip,
+                   "#{component}: el h1 no es el título de la página"
+    end
+  end
+
+  # Dentro del h1 los tags pasaban a formar parte de su nombre accesible y el encabezado se
+  # anunciaba "The Matrix Sci-Fi".
+  def test_the_five_keep_title_tags_out_of_the_heading
+    each_page do |component|
+      render_inline(component.new(title: "The Matrix")) do |page|
+        page.with_title_tag { "Sci-Fi" }
+        page.with_body { "Body" }
+      end
+
+      assert_equal "The Matrix", page.find("h1", visible: :all).text.strip,
+                   "#{component}: los title_tags entraron al nombre accesible del h1"
+      assert page.has_css?(".page-header-title > h1.title"),
+             "#{component}: el h1 no es hijo directo de la fila de título"
+      assert_text_in component, "Sci-Fi"
+    end
+  end
+
+  # El botón de volver es un link icon-only: sin nombre accesible es un nodo anónimo.
+  def test_the_five_name_the_back_button
+    each_page do |component|
+      render_inline(component.new(title: "The Matrix", back: { href: "/movies" })) do |page|
+        page.with_body { "Body" }
+      end
+
+      assert page.has_css?(".back-button[aria-label='#{I18n.t('bali_view.page_header.back')}']"),
+             "#{component}: el botón de volver no tiene nombre accesible"
+    end
+  end
+
   def test_the_five_place_the_nav_between_the_header_and_the_body
     each_page do |component|
       render_inline(component.new(title: "The Matrix")) do |page|
@@ -216,5 +285,9 @@ class BaliPageComponentsSharedContractTest < ComponentTestCase
 
   def assert_text_in(component, text)
     assert_includes page.native.to_html, text, "#{component}: falta el texto #{text.inspect}"
+  end
+
+  def empty_headings
+    page.all("h1,h2,h3,h4,h5,h6", visible: :all).reject { |h| h.text(:all).strip.present? }
   end
 end

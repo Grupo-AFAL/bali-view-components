@@ -56,7 +56,7 @@ module Bali
           class: "kanban-component",
           data: {
             controller: "kanban",
-            action: "sortable-list:onEnd->kanban#announce",
+            action: "bali:sortable-list:end->kanban#announce",
             kanban_announcement_value: I18n.t("bali_view.kanban.card_moved")
           }
         }

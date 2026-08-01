@@ -12,7 +12,7 @@ class BaliFormBuilderSelectFieldsTest < FormBuilderTestCase
 
   def test_select_group_renders_a_label
     result = builder.select_group(:status, Movie.statuses.to_a)
-    assert_html(result, "legend.fieldset-legend", text: "Status")
+    assert_html(result, "label.fieldset-legend", text: "Status")
   end
 
   def test_select_group_renders_a_select_with_daisyui_classes
@@ -65,7 +65,7 @@ class BaliFormBuilderSelectFieldsTest < FormBuilderTestCase
 
   def test_select_field_with_help_text_displays_help_text
     result = builder.select_field(:status, Movie.statuses.to_a, {}, help: "Select a status")
-    assert_html(result, "p.label-text-alt", text: "Select a status")
+    assert_html(result, "p.fieldset-label", text: "Select a status")
   end
 
   # input_name / input_id options (issue #547)

@@ -17,6 +17,7 @@ module Bali
         attributes = html_attributes(html_options)
         attributes[:class] = select_classes(method, html_options[:class])
         apply_input_name_options(options, attributes)
+        merge_aria_attributes(attributes, method, html_options)
 
         field = select(method, values, options, attributes)
         field_helper(method, field, html_options)

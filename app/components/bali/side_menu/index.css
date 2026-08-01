@@ -37,7 +37,20 @@
    Uses a 1px right border for desktop separation (lines up with the topbar's
    bottom border to form one continuous app-chrome divider). On mobile, where
    the sidebar slides in as an overlay over content, the border is replaced by
-   a drop shadow for visual depth. */
+   a drop shadow for visual depth.
+
+   `transform` only moves the closed drawer off-screen; what takes it out of
+   the tab order is the `inert` attribute, which SideMenuController owns and
+   the component renders on first paint. It is deliberately NOT `visibility:
+   hidden` here: the rule that reveals the panel is a transition, so hiding it
+   in CSS would tie "can this be focused" to the animation clock, and the panel
+   is still un-focusable in the task that opened it. Measured — see the note on
+   `syncInert` in ./index.js.
+
+   Both the default and the state that overrides it live in this file, in
+   @layer components. Splitting them — a utility on the element for one and CSS
+   for the other — would leave the utility winning in both directions and the
+   drawer stuck. */
 .side-menu-component--fixed {
   @apply fixed top-0 left-0 h-full z-40 bg-base-100;
   border-right: 1px solid var(--color-base-300);
@@ -45,13 +58,17 @@
   transform: translateX(-100%);
   transition: transform 0.2s ease-in-out, width 0.2s ease-in-out;
 
-  /* Visible on desktop */
-  @media (min-width: 1024px) {
-    transform: translateX(0);
-  }
-
   /* Active state (mobile menu open) */
   &.is-active {
+    transform: translateX(0);
+  }
+}
+
+/* On screen at desktop widths, where the sidebar is permanent chrome rather
+   than a drawer. Placed after the block above so it beats the closed default;
+   the `.is-active` rule agrees with it, so their order does not matter. */
+@media (min-width: 1024px) {
+  .side-menu-component--fixed {
     transform: translateX(0);
   }
 }
@@ -86,6 +103,14 @@
 
   /* The `.dropdown` / `.dropdown-content` overrides for this container live in
      ./daisyui-overrides.css. */
+}
+
+/* A titled section gets its top gap from `.menu-label`'s `pt-3`. An untitled
+   first section has no label, so its first item sat flush against the chrome
+   row's border — which is why consuming apps were patching this padding
+   themselves. `:first-child` matches the list only when no title precedes it. */
+.sidebar-menu > .side-menu-list:first-child {
+  @apply pt-3;
 }
 
 .menu-item {
@@ -155,8 +180,10 @@
   }
 }
 
-/* When collapse checkbox is checked, collapse the sidebar */
-.side-menu-collapse-trigger:checked+.side-menu-component,
+/* Icon-only rail. `is-collapsed` is set by SideMenuController, which restores
+   it from localStorage on connect — it used to be a hidden checkbox read with
+   `:checked + .side-menu-component`, and a `display: none` checkbox is not
+   something a keyboard can reach. */
 .side-menu-component.is-collapsed {
   width: var(--bali-side-menu-collapsed-width);
 
@@ -241,26 +268,19 @@
 }
 
 /* ========================================
-   Mobile Toggle (checkbox-driven)
-   ======================================== */
-
-/* Show sidebar when mobile trigger is checked */
-.side-menu-mobile-trigger:checked~.side-menu-component--fixed {
-  transform: translateX(0);
-}
-
-/* ========================================
    Mobile Expansion Override
-   When the mobile sidebar opens, force expanded view
-   regardless of the collapse checkbox state.
+   The icon-only rail is a desktop affordance; on mobile the sidebar is a
+   drawer that always opens at full width.
    ======================================== */
 
 @media (max-width: 1023.98px) {
   /* Disable collapse mode on mobile — icon-only sidebar is desktop-only.
-     These rules match the specificity of the collapse rules above (0-3-0)
-     and appear later, so they win when both are !important. */
-  .side-menu-collapse-trigger:checked + .side-menu-component,
-  .side-menu-mobile-trigger:checked ~ .side-menu-component {
+     These rules match the specificity of the collapse rules above (0-2-0 on
+     the wrapper, 0-3-0 on the descendants) and appear later, so they win when
+     both are !important. The selector used to be the two hidden checkboxes
+     (`.side-menu-collapse-trigger:checked + …`); it now reads the same
+     `is-collapsed` state class the desktop rules do. */
+  .side-menu-component.is-collapsed {
     width: var(--bali-side-menu-width) !important;
 
     .side-menu-expanded { display: flex !important; }
@@ -301,8 +321,8 @@
   transition: opacity 0.2s ease-in-out;
 }
 
-/* Show overlay when sidebar is open on mobile (checkbox or legacy is-active) */
-.side-menu-mobile-trigger:checked~.side-menu-overlay,
+/* Show the scrim while the drawer is open. `~` because the scrim renders as
+   the sidebar's next sibling, outside the <nav>, so it can stack below it. */
 .side-menu-component--fixed.is-active~.side-menu-overlay {
   @apply opacity-100 pointer-events-auto;
 }

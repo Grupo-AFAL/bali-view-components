@@ -5,8 +5,6 @@ module Bali
     module SwitchFields
       TOGGLE_CLASS = "toggle"
       LABEL_CLASS = "label cursor-pointer gap-3"
-      LABEL_TEXT_CLASS = "label-text"
-      ERROR_CLASS = "label-text-alt text-error"
       FIELDSET_CLASS = "fieldset"
 
       # Consumed here rather than forwarded: `size` and `color` name daisyUI
@@ -44,20 +42,25 @@ module Bali
 
         label_html = label(method, label_options) do
           safe_join([
-                      content_tag(:span, label_text, class: LABEL_TEXT_CLASS),
+                      content_tag(:span, label_text),
                       check_box(method, toggle_options, checked_value, unchecked_value)
                     ], " ")
         end
 
-        append_switch_error_message(method, label_html)
+        label_html + error_and_help(method, options)
       end
 
       private
 
+      # No `for`, for the same reason as BooleanFields: the label wraps the
+      # toggle, so the implicit association names it and survives both a repeated
+      # attribute and a caller-supplied `id:`, neither of which an explicit `for`
+      # survives.
       def build_switch_label_options(options)
         base_options = options[:label_options] || {}
 
-        base_options.merge(class: [ LABEL_CLASS, base_options[:class] ].compact.join(" "))
+        base_options.reverse_merge(for: nil)
+                    .merge(class: [ LABEL_CLASS, base_options[:class] ].compact.join(" "))
       end
 
       def build_toggle_options(method, options)
@@ -69,13 +72,9 @@ module Bali
           options[:class]
         ].compact.join(" ")
 
-        html_attributes(options).except(*TOGGLE_OPTIONS).merge(class: toggle_class)
-      end
+        attributes = html_attributes(options).except(*TOGGLE_OPTIONS).merge(class: toggle_class)
 
-      def append_switch_error_message(method, html)
-        return html unless errors?(method)
-
-        html + content_tag(:p, full_errors(method), class: ERROR_CLASS)
+        merge_aria_attributes(attributes, method, options)
       end
     end
   end

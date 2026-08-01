@@ -69,7 +69,7 @@ module Bali
 
         content_tag(:fieldset, class: FIELDSET_CLASS) do
           safe_join([
-            content_tag(:legend, label_text, class: LEGEND_CLASS),
+            range_caption(method, label_text, options),
             range_field(method, options),
             build_range_ticks(tick_options)
           ].compact)
@@ -79,17 +79,21 @@ module Bali
       # Renders just the range input without wrapper
       def range_field(method, options = {})
         range_options = build_range_options(method, options)
-        field_html = @template.range_field(object_name, method, range_options)
 
-        if errors?(method)
-          error_html = content_tag(:p, full_errors(method), class: "label-text-alt text-error mt-1")
-          field_html + error_html
-        else
-          field_html
-        end
+        @template.range_field(object_name, method, range_options) +
+          error_and_help(method, options)
       end
 
       private
+
+      # This family builds its own fieldset rather than going through
+      # FieldGroupWrapper, so it needs the same fix on its own: a `<legend>`
+      # names the fieldset, never the slider inside it, which left every range
+      # input without an accessible name.
+      def range_caption(method, label_text, options)
+        content_tag(:label, label_text, class: LEGEND_CLASS,
+                                        id: label_id(method), for: control_id(method, options))
+      end
 
       def build_range_options(method, options)
         range_class = [
@@ -108,7 +112,7 @@ module Bali
         attributes[:max] ||= 100
         attributes[:step] ||= 1
 
-        attributes.merge(class: range_class)
+        merge_aria_attributes(attributes.merge(class: range_class), method, options)
       end
 
       def build_range_ticks(options)

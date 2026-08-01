@@ -24,9 +24,11 @@ module Bali
       def time_zone_html_options(method, html_options)
         base = field_class_name(method, BASE_CLASSES, error_class: "select-error")
 
-        html_attributes(html_options).except(:class).merge(
+        attributes = html_attributes(html_options).except(:class).merge(
           class: [ base, html_options[:class] ].compact.join(" ")
         )
+
+        merge_aria_attributes(attributes, method, html_options)
       end
     end
   end

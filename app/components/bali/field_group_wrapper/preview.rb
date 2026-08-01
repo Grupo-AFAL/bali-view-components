@@ -32,6 +32,16 @@ module Bali
         )
       end
 
+      # Two forms for the same model on one page. Every id derives from Rails'
+      # `field_id`, so the form index keeps them apart and each caption's `for`
+      # reaches its own control instead of both binding to the first form's.
+      def two_forms_same_model
+        render_with_template(
+          template: 'bali/field_group_wrapper/previews/two_forms_same_model',
+          locals: { model: form_record }
+        )
+      end
+
       # Shows custom CSS classes applied to the wrapper.
       def with_custom_classes
         render_with_template(

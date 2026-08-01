@@ -47,7 +47,7 @@ class BaliDocumentEditorComponentTest < ComponentTestCase
       title: "My Document",
       initial_content: [],
       document_url: "/documents/1",
-      comments: { url: "/block_editor_comments", user: { id: "1", username: "demo" } }
+      config: { comments: { url: "/block_editor_comments", user: { id: "1", username: "demo" } } }
     ))
     assert_selector("[data-action*='document-editor#toggleComments']")
   end
@@ -136,7 +136,7 @@ class BaliDocumentEditorComponentTest < ComponentTestCase
       title: "My Document",
       initial_content: [],
       document_url: "/documents/1",
-      comments: { url: "/comments", user: { id: "1", username: "demo" } }
+      config: { comments: { url: "/comments", user: { id: "1", username: "demo" } } }
     ))
     assert_selector("[data-document-editor-target='commentsPanel']")
     assert_text("Comments")
@@ -186,7 +186,7 @@ class BaliDocumentEditorComponentTest < ComponentTestCase
       title: "My Document",
       initial_content: [],
       document_url: "/documents/1",
-      export: true
+      config: { export: true }
     ))
     assert_selector("[data-action='document-editor#exportPdf']")
     assert_selector("[data-action='document-editor#exportDocx']")
@@ -197,7 +197,7 @@ class BaliDocumentEditorComponentTest < ComponentTestCase
       title: "My Document",
       initial_content: [],
       document_url: "/documents/1",
-      export: false
+      config: { export: false }
     ))
     assert_no_selector("[data-action='document-editor#exportPdf']")
   end
@@ -249,5 +249,107 @@ class BaliDocumentEditorComponentTest < ComponentTestCase
       id: "my-editor"
     ))
     assert_selector("#my-editor.document-editor-overlay")
+  end
+
+  # --- REST contract (#700) ---------------------------------------------------
+
+  # The controller used to POST to "#{document_url}/restore_version", a path it
+  # invented. It is now a declared value with the same default, so an app whose
+  # routes already matched keeps working while one that does not can say so.
+  def test_restore_version_url_defaults_to_the_conventional_path
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1"
+    ))
+    assert_selector("[data-document-editor-restore-version-url-value='/documents/1/restore_version']")
+  end
+
+  def test_restore_version_url_can_be_named_by_the_host
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      restore_version_url: "/documents/1/revisions/restore"
+    ))
+    assert_selector("[data-document-editor-restore-version-url-value='/documents/1/revisions/restore']")
+  end
+
+  # The PATCH payload root and the hidden input name both used to hardcode
+  # "document", which assumed every host named its model Document.
+  def test_param_key_defaults_to_document_and_drives_the_input_name
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1"
+    ))
+    assert_selector("[data-document-editor-param-key-value='document']")
+    assert_selector("[data-document-editor-input-name-value='document[content]']")
+  end
+
+  def test_param_key_renames_the_payload_root_and_the_input_name
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/articles/1",
+      param_key: :article
+    ))
+    assert_selector("[data-document-editor-param-key-value='article']")
+    assert_selector("[data-document-editor-input-name-value='article[content]']")
+  end
+
+  def test_an_explicit_input_name_still_wins_over_the_derived_one
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/articles/1",
+      param_key: :article,
+      input_name: "article[body]"
+    ))
+    assert_selector("[data-document-editor-input-name-value='article[body]']")
+  end
+
+  # --- Shared config package (#700) -------------------------------------------
+
+  def test_config_reaches_the_nested_block_editor
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      config: { ai_url: "/ai", mentions_url: "/users" }
+    ))
+    assert_selector("[data-block-editor-ai-url-value='/ai']")
+    assert_selector("[data-block-editor-mentions-url-value='/users']")
+  end
+
+  def test_config_accepts_a_config_object_as_well_as_a_hash
+    config = Bali::BlockEditor::Config.new(ai_url: "/ai")
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      config: config
+    ))
+    assert_selector("[data-block-editor-ai-url-value='/ai']")
+  end
+
+  def test_export_filename_falls_back_to_the_parameterized_title
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Big Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      config: { export: true }
+    ))
+    assert_selector("[data-block-editor-export-filename-value='my-big-document']")
+  end
+
+  def test_an_export_filename_in_the_config_beats_the_title
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Big Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      config: { export: true, export_filename: "roadmap" }
+    ))
+    assert_selector("[data-block-editor-export-filename-value='roadmap']")
   end
 end

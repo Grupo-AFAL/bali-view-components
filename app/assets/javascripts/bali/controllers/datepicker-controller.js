@@ -51,7 +51,7 @@ export class DatepickerController extends Controller {
         : this.element.querySelector('input')
 
     // this is necesary because `altInputClass` option does not inherit the original classes
-    this.altInputClassValue = `form-control input ${this.altInputClassValue}`
+    this.altInputClassValue = `input ${this.altInputClassValue}`
 
     const options = {
       altInput: this.altInputValue,
@@ -76,9 +76,40 @@ export class DatepickerController extends Controller {
     if (this.hasAppendToTarget) options.appendTo = this.appendToTarget
 
     this.flatpickr = flatpickr(input, options)
+    this.forwardAccessibleName(input)
     // flatpickr's own keydown handler skips Escape while allowInput is on and
     // focus is in the input (allowKeydown gate), leaving the calendar stuck open.
     this.flatpickr._input?.addEventListener('keydown', this.closeOnEscape)
+  }
+
+  // With `altInput` on — the default — flatpickr builds a brand new input, copies
+  // only the placeholder, disabled, required and tabIndex across, and turns the
+  // original into `type="hidden"`. Everything that named the original therefore
+  // stops applying to the field the user actually types into: the `<label for>`
+  // now points at a hidden element, and so do `aria-describedby` and
+  // `aria-invalid`. Carry them over by hand.
+  forwardAccessibleName (input) {
+    const altInput = this.flatpickr?.altInput
+    if (!altInput || !input) return
+
+    // Rails derives the id off the method name, so a filter bound to a Ransack
+    // param carries brackets: `q[released_at_gteq]`. Those need escaping before
+    // they go anywhere near a selector.
+    const selector = input.id && `label[for="${window.CSS.escape(input.id)}"]`
+    const label = selector && document.querySelector(selector)
+
+    if (label?.id) {
+      altInput.setAttribute('aria-labelledby', label.id)
+    } else if (input.getAttribute('aria-label')) {
+      altInput.setAttribute('aria-label', input.getAttribute('aria-label'))
+    } else if (input.getAttribute('aria-labelledby')) {
+      altInput.setAttribute('aria-labelledby', input.getAttribute('aria-labelledby'))
+    }
+
+    for (const attribute of ['aria-describedby', 'aria-invalid']) {
+      const value = input.getAttribute(attribute)
+      if (value) altInput.setAttribute(attribute, value)
+    }
   }
 
   closeOnEscape = event => {

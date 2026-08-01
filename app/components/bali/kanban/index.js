@@ -6,7 +6,7 @@ export class KanbanController extends Controller {
   static targets = ['liveRegion']
   static values = { announcement: String }
 
-  // Fires on `sortable-list:onEnd`, which bubbles up from each column's
+  // Fires on `bali:sortable-list:end`, which bubbles up from each column's
   // SortableList. A drop moves the DOM and nothing else: focus stays put and no
   // text changes, so this is the only thing a screen reader has to go on.
   announce ({ detail }) {

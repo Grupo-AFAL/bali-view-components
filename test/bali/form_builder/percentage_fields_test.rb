@@ -9,11 +9,11 @@ class BaliFormBuilderPercentageFieldsTest < FormBuilderTestCase
   end
 
   def test_percentage_field_group_renders_a_label_and_input_within_a_wrapper
-    assert_html(@percentage_field_group, "fieldset#field-budget.fieldset")
+    assert_html(@percentage_field_group, "fieldset#movie_budget_field.fieldset")
   end
 
   def test_percentage_field_group_renders_a_label
-    assert_html(@percentage_field_group, "legend.fieldset-legend", text: "Budget")
+    assert_html(@percentage_field_group, "label.fieldset-legend", text: "Budget")
   end
 
   def test_percentage_field_group_renders_a_sign_within_a_join_wrapper

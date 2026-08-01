@@ -70,6 +70,39 @@ class BaliDeprecatorTest < ActiveSupport::TestCase
 
   private
 
+  # RichTextEditor is deprecated in v3 and removed in v4. The deprecation has to
+  # ship in 3.0 to earn that removal, and the removal is what drops roughly
+  # thirty-five `@tiptap/*` optional peers from the package.
+  def test_rich_text_editor_warns_through_the_bali_deprecator
+    original = Bali.rich_text_editor_enabled
+    Bali.rich_text_editor_enabled = true
+
+    message = capture_warning do
+      Bali::RichTextEditor::Component.new(html_content: "<p>Hi</p>")
+    end
+
+    assert_match(/Bali::RichTextEditor::Component is deprecated/, message)
+    assert_match(/Bali::BlockEditor::Component/, message)
+  ensure
+    Bali.rich_text_editor_enabled = original
+  end
+
+  # A warning, not a behaviour change: the component still renders what it did.
+  def test_rich_text_editor_still_renders
+    original = Bali.rich_text_editor_enabled
+    Bali.rich_text_editor_enabled = true
+
+    component = Bali.deprecator.silence do
+      Bali::RichTextEditor::Component.new(html_content: "<p>Hi</p>", editable: true)
+    end
+
+    assert_equal("<p>Hi</p>", component.html_content)
+    assert(component.editable?)
+    assert(component.render?)
+  ensure
+    Bali.rich_text_editor_enabled = original
+  end
+
   def capture_warning(&block)
     captured = []
     Bali.deprecator.behavior = ->(message, *) { captured << message }

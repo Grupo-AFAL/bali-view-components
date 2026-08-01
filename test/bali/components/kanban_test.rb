@@ -224,7 +224,7 @@ class BaliKanbanComponentTest < ComponentTestCase
 
     assert_selector("[role='status'][aria-live='polite'][aria-atomic='true']")
     assert_selector("[data-kanban-target='liveRegion']")
-    assert_selector("[data-controller='kanban'][data-action='sortable-list:onEnd->kanban#announce']")
+    assert_selector("[data-controller='kanban'][data-action='bali:sortable-list:end->kanban#announce']")
   end
 
   def test_a11y_board_passes_the_translated_announcement_template

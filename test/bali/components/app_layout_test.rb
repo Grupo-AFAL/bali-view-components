@@ -370,7 +370,19 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     end
     assert_selector(".app-layout-topbar--default-mobile.lg\\:hidden")
     assert_selector(
-      ".app-layout-topbar--default-mobile label[for='#{Bali::SideMenu::Component::MOBILE_TRIGGER_ID}']"
+      ".app-layout-topbar--default-mobile " \
+      "button[aria-controls='#{Bali::SideMenu::Component::DEFAULT_ID}']"
+    )
+  end
+
+  def test_default_mobile_topbar_trigger_is_keyboard_operable
+    render_inline(Bali::AppLayout::Component.new(fixed_sidebar: true)) do |layout|
+      layout.with_sidebar { "Sidebar" }
+      layout.with_body { "Content" }
+    end
+    assert_no_selector(".app-layout-topbar--default-mobile label")
+    assert_selector(
+      ".app-layout-topbar--default-mobile button[type='button'][aria-expanded='false']"
     )
   end
 
@@ -421,5 +433,107 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     end
     main_el = page.find("main")
     refute_includes main_el[:class], "p-6"
+  end
+
+  # --- skip link ---
+
+  def test_renders_skip_link_as_the_first_focusable_element
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_navbar { '<a href="/">Home</a>'.html_safe }
+      layout.with_body { "Content" }
+    end
+    focusables = page.all("a[href], button, input, [tabindex]:not([tabindex='-1'])")
+    assert_equal "##{Bali::AppLayout::Component::MAIN_ID}", focusables.first[:href]
+  end
+
+  def test_skip_link_points_at_the_main_element
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector("a.bali-skip-link[href='##{Bali::AppLayout::Component::MAIN_ID}']")
+    assert_selector("main##{Bali::AppLayout::Component::MAIN_ID}")
+  end
+
+  def test_main_is_programmatically_focusable_so_the_skip_link_moves_focus
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector("main[tabindex='-1']")
+  end
+
+  def test_skip_link_can_be_disabled
+    render_inline(Bali::AppLayout::Component.new(skip_link: false)) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector("a.bali-skip-link")
+  end
+
+  # --- fixed sidebar single source of truth ---
+
+  def test_fixed_sidebar_defaults_to_true_matching_the_side_menu_default
+    markup = side_menu_markup
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_sidebar { markup }
+      layout.with_body { "Content" }
+    end
+    assert_selector(".app-layout--has-fixed-sidebar")
+    assert_selector(".side-menu-component--fixed")
+  end
+
+  def test_raises_when_the_sidebar_slot_disagrees_with_fixed_sidebar
+    markup = side_menu_markup(fixed: true)
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::AppLayout::Component.new(fixed_sidebar: false)) do |layout|
+        layout.with_sidebar { markup }
+        layout.with_body { "Content" }
+      end
+    end
+    assert_match(/fixed_sidebar: false/, error.message)
+    assert_match(/fixed: true/, error.message)
+  end
+
+  def test_does_not_raise_for_a_sidebar_that_is_not_a_bali_side_menu
+    render_inline(Bali::AppLayout::Component.new(fixed_sidebar: false)) do |layout|
+      layout.with_sidebar { '<aside class="my-own-sidebar">Custom</aside>'.html_safe }
+      layout.with_body { "Content" }
+    end
+    assert_selector(".my-own-sidebar")
+  end
+
+  def test_inline_sidebar_pairs_with_fixed_sidebar_false
+    markup = side_menu_markup(fixed: false)
+    render_inline(Bali::AppLayout::Component.new(fixed_sidebar: false)) do |layout|
+      layout.with_sidebar { markup }
+      layout.with_body { "Content" }
+    end
+    assert_no_selector(".app-layout--has-fixed-sidebar")
+    assert_selector(".side-menu-component--inline")
+  end
+
+  def test_viewport_lock_follows_the_effective_fixed_sidebar_not_the_raw_flag
+    # `fixed_sidebar: true` with nothing in the slot used to lock the viewport
+    # for a sidebar that was never rendered.
+    render_inline(Bali::AppLayout::Component.new(fixed_sidebar: true)) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector(".app-layout--viewport-locked")
+  end
+
+  def test_viewport_lock_can_still_be_forced_without_a_sidebar
+    render_inline(Bali::AppLayout::Component.new(viewport_locked: true)) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector(".app-layout--viewport-locked")
+  end
+
+  private
+
+  # Real SideMenu markup, so the sync check is exercised against what the
+  # component actually emits rather than a hand-written class list.
+  def side_menu_markup(**options)
+    render_inline(Bali::SideMenu::Component.new(current_path: "/", **options)) do |menu|
+      menu.with_list { |list| list.with_item(name: "Dashboard", href: "/") }
+    end
+    rendered_content
   end
 end

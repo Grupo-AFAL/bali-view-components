@@ -12,7 +12,7 @@ class BaliFormBuilderTextAreaFieldsTest < FormBuilderTestCase
 
   def test_text_area_group_renders_a_legend_label
     result = builder.text_area_group(:synopsis)
-    assert_html(result, "legend.fieldset-legend", text: "Synopsis")
+    assert_html(result, "label.fieldset-legend", text: "Synopsis")
   end
 
   def test_text_area_group_renders_a_text_area_with_correct_name
@@ -22,7 +22,7 @@ class BaliFormBuilderTextAreaFieldsTest < FormBuilderTestCase
 
   def test_text_area_group_applies_daisyui_textarea_classes
     result = builder.text_area_group(:synopsis)
-    assert_html(result, "textarea.textarea.textarea-bordered")
+    assert_html(result, "textarea.textarea")
   end
 
   # #text_area
@@ -39,12 +39,12 @@ class BaliFormBuilderTextAreaFieldsTest < FormBuilderTestCase
 
   def test_text_area_applies_daisyui_textarea_classes
     result = builder.text_area(:synopsis)
-    assert_html(result, "textarea.textarea.textarea-bordered.w-full")
+    assert_html(result, "textarea.textarea.w-full")
   end
 
   def test_text_area_with_custom_class_merges_custom_classes
     result = builder.text_area(:synopsis, class: "min-h-32")
-    assert_html(result, "textarea.textarea.textarea-bordered.min-h-32")
+    assert_html(result, "textarea.textarea.min-h-32")
   end
 
   def test_text_area_with_validation_errors_applies_error_class
@@ -61,7 +61,7 @@ class BaliFormBuilderTextAreaFieldsTest < FormBuilderTestCase
 
   def test_text_area_with_help_text_displays_help_text
     result = builder.text_area(:synopsis, help: "Enter a brief synopsis")
-    assert_html(result, "p.label-text-alt", text: "Enter a brief synopsis")
+    assert_html(result, "p.fieldset-label", text: "Enter a brief synopsis")
   end
 
   def test_text_area_with_rows_option_applies_rows_attribute
@@ -106,7 +106,15 @@ class BaliFormBuilderTextAreaFieldsTest < FormBuilderTestCase
 
   def test_text_area_with_char_counter_max_500_renders_counter_element_with_alignment_classes
     result = builder.text_area(:synopsis, char_counter: { max: 500 })
-    assert_html(result, 'p.label-text-alt.text-end.w-full[data-textarea-target="counter"]')
+    assert_html(result, 'p.text-end.w-full[data-textarea-target="counter"]')
+  end
+
+  def test_text_area_with_char_counter_still_renders_its_help_and_error
+    resource.errors.add(:synopsis, "is required")
+    result = builder.text_area(:synopsis, char_counter: { max: 500 }, help: "Keep it short")
+
+    assert_html(result, "p.text-error", text: "Synopsis is required")
+    assert_html(result, "p.fieldset-label", text: "Keep it short")
   end
 
   def test_text_area_with_auto_grow_true_wraps_textarea_in_stimulus_controller_div

@@ -12,11 +12,19 @@ import { Controller } from '@hotwired/stimulus'
  *   - noResults  "No matches" message (shown when query has no regular hits)
  *   - count      Result count display in the footer
  *
- * Global events (window):
+ * Global events (window), listened for:
  *   - bali:command:open    → opens the palette
  *   - bali:command:close   → closes the palette
  *   - bali:command:toggle  → toggles
+ *
+ * Emitted:
+ *   - bali:command:select  → an item without an href was activated
  */
+// Hardcoded instead of letting `dispatch` default to `this.identifier`, so the
+// public event name stays put when a host registers this controller under a
+// different identifier.
+const EVENT_PREFIX = 'bali:command'
+
 export class CommandController extends Controller {
   static targets = [
     'panel', 'backdrop', 'input', 'group', 'row', 'noResults', 'count'
@@ -179,10 +187,10 @@ export class CommandController extends Controller {
       return
     }
     // Custom event so consumers can hook actions without an href
-    this.element.dispatchEvent(new CustomEvent('bali:command:select', {
-      bubbles: true,
+    this.dispatch('select', {
+      prefix: EVENT_PREFIX,
       detail: { row, value: row.dataset.value }
-    }))
+    })
     this.close()
   }
 

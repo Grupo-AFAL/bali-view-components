@@ -7,12 +7,12 @@ class BaliFormBuilderStepNumberFieldsTest < FormBuilderTestCase
 
   def test_step_number_field_group_renders_the_input_and_label_within_a_wrapper
     result = builder.step_number_field_group(:duration)
-    assert_html(result, "#field-duration.fieldset")
+    assert_html(result, "#movie_duration_field.fieldset")
   end
 
   def test_step_number_field_group_renders_the_label
     result = builder.step_number_field_group(:duration)
-    assert_html(result, "legend.fieldset-legend", text: "Duration")
+    assert_html(result, "label.fieldset-legend", text: "Duration")
   end
 
   def test_step_number_field_group_renders_the_input
@@ -63,7 +63,7 @@ class BaliFormBuilderStepNumberFieldsTest < FormBuilderTestCase
 
   def test_step_number_field_input_field_renders_with_daisyui_input_classes
     result = builder.step_number_field(:duration)
-    assert_html(result, "input.input.input-bordered.join-item")
+    assert_html(result, "input.input.join-item")
   end
 
   def test_step_number_field_input_field_renders_with_correct_name_and_id
@@ -181,7 +181,7 @@ class BaliFormBuilderStepNumberFieldsTest < FormBuilderTestCase
 
   def test_step_number_field_with_custom_input_class_appends_custom_class_to_default_input_classes
     result = builder.step_number_field(:duration, class: "w-20")
-    assert_html(result, "input.input.input-bordered.join-item.w-20")
+    assert_html(result, "input.input.join-item.w-20")
   end
 
   # value
@@ -205,7 +205,7 @@ class BaliFormBuilderStepNumberFieldsTest < FormBuilderTestCase
 
   def test_constants_defines_frozen_input_classes_constant
     assert Bali::FormBuilder::StepNumberFields::INPUT_CLASSES.frozen?
-    assert_includes Bali::FormBuilder::StepNumberFields::INPUT_CLASSES, "input input-bordered join-item text-center"
+    assert_includes Bali::FormBuilder::StepNumberFields::INPUT_CLASSES, "input join-item text-center"
     assert_includes Bali::FormBuilder::StepNumberFields::INPUT_CLASSES, "[appearance:textfield]"
   end
 end

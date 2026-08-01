@@ -1,6 +1,11 @@
 import { Controller } from '@hotwired/stimulus'
 import { DirectUpload } from '@rails/activestorage'
 
+// Hardcoded instead of letting `dispatch` default to `this.identifier`, so the
+// public event names stay put when a host registers this controller under a
+// different identifier.
+const EVENT_PREFIX = 'bali:direct-upload'
+
 /**
  * DirectUpload Controller
  *
@@ -251,11 +256,17 @@ export class DirectUploadController extends Controller {
     this.announce(`${fileData.file.name} uploaded successfully`)
 
     // Dispatch completion event
-    this.dispatch('complete', { detail: { id, filename: fileData.file.name, signedId } })
+    this.dispatch('complete', {
+      prefix: EVENT_PREFIX,
+      detail: { id, filename: fileData.file.name, signedId }
+    })
 
     // Check if all uploads are complete
     if (this.getUploadingCount() === 0) {
-      this.dispatch('all-complete', { detail: { count: this.files.size } })
+      this.dispatch('all-complete', {
+        prefix: EVENT_PREFIX,
+        detail: { count: this.files.size }
+      })
     }
   }
 
@@ -521,7 +532,7 @@ export class DirectUploadController extends Controller {
 
   showError (message) {
     console.warn('[DirectUpload]', message)
-    this.dispatch('error', { detail: { message } })
+    this.dispatch('error', { prefix: EVENT_PREFIX, detail: { message } })
 
     // Show visible error alert
     if (this.hasErrorAlertTarget && this.hasErrorMessageTarget) {

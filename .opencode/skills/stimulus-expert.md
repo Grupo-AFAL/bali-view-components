@@ -223,8 +223,13 @@ describe("Dropdown Controller", () => {
 
 ## Debug Mode
 
-Enable in browser console:
+Every event Bali emits is named `bali:<component>:<event>`. Log them all from the browser
+console:
 
 ```javascript
-window.baliDispatchDebugEnabled = true
+const dispatchEvent = EventTarget.prototype.dispatchEvent
+EventTarget.prototype.dispatchEvent = function (event) {
+  if (event.type.startsWith('bali:')) console.log(event.type, event.detail)
+  return dispatchEvent.call(this, event)
+}
 ```

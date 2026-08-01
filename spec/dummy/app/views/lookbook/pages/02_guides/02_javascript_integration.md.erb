@@ -77,28 +77,30 @@ export default class extends Controller {
 
 ### Dispatching Custom Events
 
-Components dispatch events you can listen to:
+Components dispatch events you can listen to. Every one is named `bali:<component>:<event>`,
+kebab-case, with its payload on `event.detail` — an event without the `bali:` prefix does not
+come from this package.
 
 ```javascript
 // In your controller
-handleSelect(event) {
-  const { value } = event.detail
-  console.log("Selected:", value)
+handleReorder(event) {
+  const { order } = event.detail
+  console.log("New order:", order)
 }
 ```
 
 ```erb
-<div data-action="dropdown:select->myController#handleSelect">
-  <%%= render Bali::Dropdown::Component.new(...) %>
+<div data-action="bali:sortable-list:end->myController#handleReorder">
+  <%%= render Bali::SortableList::Component.new(...) %>
 </div>
 ```
 
 ### Cross-Controller Communication
 
 ```javascript
-// Via custom events
+// Via custom events — this is the documented way to open a modal without a trigger link
 document.dispatchEvent(new CustomEvent("bali:modal:open", {
-  detail: { id: "confirm-dialog" }
+  detail: { content: "<h3>Hello</h3>", options: { modalSize: "lg" } }
 }))
 
 // Via Stimulus outlets
@@ -108,6 +110,9 @@ openModal() {
   this.modalOutlet.open()
 }
 ```
+
+The full list of events lives in the
+[JavaScript Integration guide](https://github.com/Grupo-AFAL/bali-view-components/blob/main/docs/guides/javascript-integration.md#events).
 
 ## Tailwind Toggle Patterns
 

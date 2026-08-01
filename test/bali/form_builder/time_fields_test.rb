@@ -37,12 +37,12 @@ class BaliFormBuilderTimeFieldsTest < FormBuilderTestCase
 
   def test_time_field_group_renders_the_input_and_label_within_a_wrapper
     result = builder.time_field_group(:duration)
-    assert_html(result, "#field-duration.fieldset")
+    assert_html(result, "#movie_duration_field.fieldset")
   end
 
   def test_time_field_group_renders_the_label
     result = builder.time_field_group(:duration)
-    assert_html(result, "legend.fieldset-legend", text: "Duration")
+    assert_html(result, "label.fieldset-legend", text: "Duration")
   end
 
   def test_time_field_group_renders_the_input

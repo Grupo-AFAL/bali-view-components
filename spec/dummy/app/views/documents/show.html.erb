@@ -81,19 +81,21 @@
     close_url: document_path(@document),
     versions_url: document_versions_path(@document),
     editable: true,
-    comments: {
-      url: document_comment_threads_path(@document),
-      user: { id: "user-1", username: "Demo User" },
-      users: [
-        { id: "user-1", username: "Demo User" },
-        { id: "user-2", username: "Jane Smith" },
-        { id: "user-3", username: "Bob Wilson" }
-      ]
-    },
-    export: true,
-    export_filename: @document.title.parameterize,
-    references_url: "/entity_references",
-    references_resolve_url: "/entity_references/resolve"
+    config: {
+      comments: {
+        url: document_comment_threads_path(@document),
+        user: { id: "user-1", username: "Demo User" },
+        users: [
+          { id: "user-1", username: "Demo User" },
+          { id: "user-2", username: "Jane Smith" },
+          { id: "user-3", username: "Bob Wilson" }
+        ]
+      },
+      export: true,
+      export_filename: @document.title.parameterize,
+      references_url: "/entity_references",
+      references_resolve_url: "/entity_references/resolve"
+    }
   ) %>
 </div>
 
@@ -106,16 +108,18 @@
     close_url: document_path(@document),
     versions_url: document_versions_path(@document),
     editable: false,
-    comments: {
-      url: document_comment_threads_path(@document),
-      user: { id: "user-1", username: "Demo User" },
-      users: [
-        { id: "user-1", username: "Demo User" },
-        { id: "user-2", username: "Jane Smith" },
-        { id: "user-3", username: "Bob Wilson" }
-      ]
-    },
-    references_url: "/entity_references",
-    references_resolve_url: "/entity_references/resolve"
+    config: {
+      comments: {
+        url: document_comment_threads_path(@document),
+        user: { id: "user-1", username: "Demo User" },
+        users: [
+          { id: "user-1", username: "Demo User" },
+          { id: "user-2", username: "Jane Smith" },
+          { id: "user-3", username: "Bob Wilson" }
+        ]
+      },
+      references_url: "/entity_references",
+      references_resolve_url: "/entity_references/resolve"
+    }
   ) %>
 </div>
