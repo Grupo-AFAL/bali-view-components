@@ -7,10 +7,6 @@
             <%= tag.input type: 'checkbox', class: 'checkbox checkbox-sm', 'aria-label': t('.select_all'),
                           data: { bulk_actions_target: 'selectAll', action: 'change->bulk-actions#toggleAll' } %>
           </th>
-        <% elsif bulk_actions? %>
-          <th>
-            <%= tag.input type: 'checkbox', class: 'checkbox', data: { action: 'table#toggleAll', table_target: 'toggleAll' } %>
-          </th>
         <% end %>
         <% visible_headers.each do |header| %>
           <%= header %>
@@ -55,17 +51,5 @@
         <% footers.each do |footer| %><%= footer %><% end %>
       </tfoot>
     <% end %>
-  <% end %>
-  <% if bulk_actions? %>
-    <div class="bulk-actions-container fixed bottom-4 left-1/2 -translate-x-1/2 bg-base-300 rounded-box shadow-lg p-4 hidden z-50" data-table-target="actionsContainer">
-      <div class="flex items-center gap-4">
-        <span class="badge badge-primary" data-table-target="selectedCount">0</span>
-        <div class="flex gap-2">
-          <% @bulk_actions.each do |action| %>
-            <%= render Bali::Table::BulkAction::Component.new(**action) %>
-          <% end %>
-        </div>
-      </div>
-    </div>
   <% end %>
 <% end %>

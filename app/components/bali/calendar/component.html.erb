@@ -7,7 +7,10 @@
           <thead>
             <tr>
               <% date_range.first(header_day_count).each do |day| %>
-                <th class="text-center text-base-content/70 font-normal text-lg">
+                <%# `p-2 border-none` are utilities here, not only index.css's
+                    `.table th` rule: daisyUI styles `.table` cells from
+                    @layer utilities, which beats the component sheet. %>
+                <th class="text-center text-base-content/70 font-normal text-lg p-2 border-none">
                   <%= t('date.day_names')[day.wday] %>
                 </th>
               <% end %>

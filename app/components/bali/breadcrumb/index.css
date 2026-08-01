@@ -5,6 +5,10 @@
  * class list loses the cascade and breadcrumbs render with unwanted top
  * padding. This unlayered rule beats both layered sources regardless of
  * ordering. (#530)
+ *
+ * This is why the file stayed out of @layer components in #693: cascade layers
+ * beat specificity, so from that layer daisyUI's `padding-block: .5rem` wins
+ * and #530 comes straight back. Do not move it.
  */
 .breadcrumbs {
   padding-block: 0;

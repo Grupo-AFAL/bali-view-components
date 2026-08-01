@@ -1,4 +1,17 @@
-/* Form styling */
+/* Form styling
+ *
+ * UNLAYERED ON PURPOSE (see ../bali.css). daisyUI puts `.input` and `.select`
+ * in @layer utilities, and its base rules there set `width: clamp(3rem, 20rem,
+ * 100%)` and `appearance: base-select`. Cascade layers beat specificity, so in
+ * @layer components:
+ *   - every `.input.is-*` / `.select.is-*` size modifier below stops working
+ *     (measured: they lose to daisyUI's `width`);
+ *   - the `@supports (appearance: base-select)` block stops working, which is
+ *     a straight regression of #638 (measured: `appearance` flips back to
+ *     `base-select` on every DataTable / Filters / FormBuilder select).
+ * A host can still override anything here with a `!` utility variant, exactly
+ * as before.
+ */
 .input.is-very-short,
 .select.is-very-short {
   @apply w-16;
