@@ -218,29 +218,24 @@ module Bali
         class_names(*extra, "mx-auto", max_width)
       end
 
-      # El encabezado de los cinco. `title_tags` va junto al título y no como slot aparte
-      # porque el hueco de la derecha ya es de las acciones.
+      # El encabezado de los cinco. `title:` y `subtitle:` viajan como argumentos del
+      # constructor —y no por los slots `with_title`/`with_subtitle`— para que los cinco
+      # compartan `PageHeader::TITLE_CLASSES` y `SUBTITLE_CLASSES`, y para que el `h1` lo
+      # emita PageHeader: pasarlo por bloque hacía que el slot envolviera el bloque en un
+      # heading y el título quedara siendo lo que el bloque decidiera.
       #
-      # `subtitle:` viaja como argumento del constructor —y no por el slot `with_subtitle`—
-      # para que los cinco compartan el `text-sm` de `PageHeader::SUBTITLE_CLASSES`: el slot
-      # aplica el tamaño derivado del tag (`h6` → `text-base`), que es lo que ShowPage y
-      # DocumentPage venían usando sin quererlo.
+      # `title_tags` va al slot homónimo de PageHeader, que los pone como HERMANOS del
+      # heading. Dentro del `h1` pasaban a formar parte de su nombre accesible y el
+      # encabezado se anunciaba "The Matrix Action Released" (#685).
       def render_page_header
         render(Bali::PageHeader::Component.new(
+          title: title,
           subtitle: subtitle,
           back: back,
           class: breadcrumb_spacer_class
         )) do |header|
-          header.with_title { page_header_title }
+          title_tags.each { |title_tag| header.with_title_tag { title_tag.to_s } }
           page_header_actions
-        end
-      end
-
-      def page_header_title
-        return title if title_tags.empty?
-
-        helpers.tag.div(class: "flex items-center gap-3") do
-          helpers.safe_join([ title, *title_tags ])
         end
       end
 
