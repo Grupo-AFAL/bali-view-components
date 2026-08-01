@@ -12,7 +12,12 @@ module Bali
     # rather than Lucide's stroked style, which is acceptable for brand logos
     # since they're meant to be visually distinct.
     #
+    # The markup lives in `svg/<name>.svg` next to this file, one file per name
+    # in ALL, read on first use and memoized.
+    #
     class KeptIcons
+      SVG_DIR = File.expand_path("svg", __dir__)
+
       # Payment processor and credit card brand icons
       BRAND_PAYMENT = %w[
         american-express
@@ -71,7 +76,6 @@ module Bali
         end
 
         # Find and return the SVG for a kept icon
-        # Delegates to DefaultIcons for the actual SVG content
         #
         # @param name [String, Symbol] the icon name
         # @return [String] the SVG markup
@@ -83,9 +87,14 @@ module Bali
                   "Icon: '#{name}' is not a kept icon"
           end
 
-          # Delegate to DefaultIcons for the actual SVG
-          constant_name = name_str.upcase.tr("-", "_")
-          DefaultIcons.const_get(constant_name).html_safe
+          svgs[name_str]
+        end
+
+        # Every kept icon as a name => SVG hash
+        #
+        # @return [Hash<String, String>]
+        def all
+          ALL.to_h { |name| [ name, find(name) ] }
         end
 
         # Check if an icon is a brand icon
@@ -110,6 +119,15 @@ module Bali
         # @return [Boolean]
         def custom?(name)
           CUSTOM.include?(name.to_s)
+        end
+
+        private
+
+        # Names are whitelisted against ALL before they reach the filesystem
+        def svgs
+          @svgs ||= Hash.new do |cache, name|
+            cache[name] = File.read(File.join(SVG_DIR, "#{name}.svg")).strip.html_safe
+          end
         end
       end
     end

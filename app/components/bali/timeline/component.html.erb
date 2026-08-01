@@ -1,5 +1,5 @@
 <ul <%= tag.attributes(**container_options) %>>
-  <% tags.each_with_index do |timeline_tag, index| %>
-    <%= timeline_tag %>
+  <% entries.each do |entry| %>
+    <%= entry %>
   <% end %>
 </ul>

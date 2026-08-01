@@ -107,6 +107,46 @@ class BaliTimeagoComponentTest < ComponentTestCase
     end
   end
 
+  def test_server_rendering_renders_the_relative_time_so_the_element_is_never_empty
+    render_inline(Bali::Timeago::Component.new(5.minutes.ago))
+    assert_selector("time.timeago-component", text: "5 minutes")
+  end
+
+  def test_server_rendering_adds_the_suffix_when_requested
+    render_inline(Bali::Timeago::Component.new(5.minutes.ago, add_suffix: true))
+    assert_selector("time.timeago-component", text: "5 minutes ago")
+  end
+
+  # Only the suffix is Bali's to translate. The distance itself comes from Rails'
+  # own `datetime.distance_in_words`, which this gem does not ship and must not
+  # squat on — a host wanting a localized first paint installs `rails-i18n`.
+  def test_server_rendering_translates_the_suffix_it_owns
+    I18n.with_locale(:es) do
+      render_inline(Bali::Timeago::Component.new(5.minutes.ago, add_suffix: true))
+      assert_selector("time.timeago-component", text: /\Ahace 5 /)
+    end
+  end
+
+  def test_nil_datetime_renders_a_placeholder_instead_of_raising
+    render_inline(Bali::Timeago::Component.new(nil))
+    assert_selector("span.timeago-component", text: "—")
+  end
+
+  def test_nil_datetime_renders_no_time_element_because_there_is_no_datetime_to_carry
+    render_inline(Bali::Timeago::Component.new(nil))
+    assert_no_selector("time")
+  end
+
+  def test_nil_datetime_does_not_attach_the_controller
+    render_inline(Bali::Timeago::Component.new(nil))
+    assert_no_selector('[data-controller="timeago"]')
+  end
+
+  def test_nil_datetime_keeps_custom_html_attributes
+    render_inline(Bali::Timeago::Component.new(nil, id: "never", class: "custom-class"))
+    assert_selector("span#never.timeago-component.custom-class")
+  end
+
   def test_constants_has_base_classes_constant
     assert_equal("timeago-component", Bali::Timeago::Component::BASE_CLASSES)
   end

@@ -1,0 +1,228 @@
+/* SideMenu — the rules that have to outrank daisyUI.
+ *
+ * WHY THIS FILE IS UNLAYERED
+ * --------------------------
+ * daisyUI 5 does not use @layer components: it emits `.dropdown`,
+ * `.dropdown-content`, `.collapse*`, `.menu` and `.tooltip` inside
+ * @layer utilities. Cascade layers beat specificity, so a rule placed in
+ * @layer components loses to daisyUI no matter how specific it is. Every rule
+ * below was measured losing when this file's contents still lived in
+ * ./index.css after that file moved into the layer:
+ *
+ *   .sidebar-menu .dropdown-content   position: fixed  ->  absolute
+ *   .side-menu-component .collapse-title  min-height: 0  ->  24px
+ *   .menu .menu-item                  display: flex    ->  grid, and daisyUI's
+ *                                     own padding / radius took over
+ *
+ * These are overrides of a third-party layer, not Bali's own look, so being
+ * unlayered is the correct position for them — same reason
+ * ../breadcrumb/index.css and ../data_table/index.css are unlayered. The
+ * component's own styling stays in ./index.css, where host utilities beat it.
+ *
+ * Rule of thumb when adding here: only rules whose right-most compound is a
+ * daisyUI class, and only the declarations daisyUI also sets.
+ */
+
+/* ── .menu ───────────────────────────────────────────────────────────────
+   daisyUI lays out every direct child of a `.menu > li` as a grid with its
+   own padding and radius (`.menu :where(li:not(.menu-title)>:not(...))`),
+   and it also owns the hover background and the transition:
+
+     .menu :where(li … :not(.menu-active,:active,.btn):hover)
+       { background-color: color-mix(base-content 10%) }
+     .menu :where(li:not(.menu-title)>:not(…))
+       { transition-property: color,background-color,box-shadow }
+
+   Menu items rendered INSIDE a dropdown panel would lose the `.menu-item`
+   look entirely. This is not SideMenu-only: DataTable and IndexPage render
+   `.menu-item` links inside their toolbar dropdowns too, so the selector is
+   deliberately not scoped to `.side-menu-component`.
+
+   The hover exclusion list is daisyUI's own `.menu-active`, not Bali's
+   `.active`, so an active Bali item is hovered like any other and loses its
+   primary tint under the cursor as well. Measured on `app_layout/default`,
+   the same `.menu-item` inside and outside a `.menu`:
+
+     transition-property   color,background-color,box-shadow  vs  all
+     :hover background     base-content/10                    vs  base-200
+     .active:hover bg      base-content/10                    vs  primary/10
+
+   (`.active` while idle was never lost — daisyUI declares nothing for it.)
+
+   Keep the declarations in sync with `.menu-item` in ./index.css — colour is
+   left out on purpose so a `text-primary` utility on the link still wins,
+   and daisyUI sets no colour on hover, so ./index.css keeps handling that. */
+.menu .menu-item {
+  @apply flex items-center gap-2 px-2.5 py-2 rounded-lg;
+  @apply transition-all duration-200;
+}
+
+/* `.active` after `:hover`: same specificity, so source order is what keeps a
+   selected item tinted while the cursor is on it. */
+.menu .menu-item:hover {
+  @apply bg-base-200;
+}
+
+.menu .menu-item.active {
+  @apply bg-primary/10;
+}
+
+/* ── .tooltip ────────────────────────────────────────────────────────────
+   The menu-switcher tooltip is only useful when the sidebar is collapsed —
+   expanded, the title is right there in the trigger button. daisyUI sets
+   `display: block` on `.tooltip:after`, so hiding the pseudo-elements has to
+   happen from outside its layer. */
+.menu-switcher-trigger.tooltip::before,
+.menu-switcher-trigger.tooltip::after {
+  display: none;
+}
+.side-menu-collapse-trigger:checked + .side-menu-component .menu-switcher-trigger.tooltip:hover::before,
+.side-menu-collapse-trigger:checked + .side-menu-component .menu-switcher-trigger.tooltip:hover::after,
+.side-menu-component.is-collapsed .menu-switcher-trigger.tooltip:hover::before,
+.side-menu-component.is-collapsed .menu-switcher-trigger.tooltip:hover::after {
+  display: block;
+}
+
+/* ── .dropdown inside the scrolling menu ─────────────────────────────────
+   Dropdown panels must escape the scroll container, and the flyout controller
+   positions them from JS. daisyUI's `.dropdown .dropdown-content` pins
+   `position: absolute`. */
+.sidebar-menu .dropdown {
+  overflow: visible;
+}
+
+.sidebar-menu .dropdown-content {
+  position: fixed;
+}
+
+/* ── .collapse (expandable groups) ───────────────────────────────────────
+   daisyUI owns the radius, the title's padding/min-height and the open
+   state's `padding-bottom: 1rem`. */
+.side-menu-component .collapse {
+  @apply rounded-lg;
+}
+
+.side-menu-component .collapse-title {
+  @apply flex items-center gap-2 min-h-0 px-2.5 py-2 rounded-lg cursor-pointer;
+  @apply text-base-content/80 hover:bg-base-200 hover:text-base-content;
+  @apply transition-all duration-200 after:hidden;
+  /* Remove default DaisyUI arrow */
+
+  &.active {
+    @apply text-primary font-medium;
+  }
+}
+
+.side-menu-component .collapse-content {
+  @apply pb-0;
+}
+
+/* ── Collapsed sidebar: dropdown repositioning ───────────────────────────
+   Every selector below ends in `.dropdown` or `.dropdown-content`, which
+   daisyUI positions from @layer utilities (`.dropdown{position:relative}`,
+   `.dropdown-top .dropdown-content{top:auto;bottom:100%}`, …). */
+.side-menu-collapse-trigger:checked + .side-menu-component,
+.side-menu-component.is-collapsed {
+  /* Reposition the menu-switcher popup to open beside the collapsed sidebar
+     (instead of below, where it would overlap the menu items). Mirrors the
+     pattern used by .side-menu-bottom-group.dropdown below. */
+  .menu-switcher details {
+    position: static;
+  }
+
+  .menu-switcher .dropdown-content {
+    position: absolute !important;
+    top: 0;
+    left: var(--bali-side-menu-collapsed-width);
+    right: auto;
+    bottom: auto;
+    width: var(--bali-side-menu-width);
+    margin: 0;
+  }
+
+  /* In the dropdown items, don't stretch the title div — let icon + title
+     sit naturally next to each other with the menu_switch's gap-3 spacing. */
+  .menu-switcher .dropdown-content .side-menu-component--menu-switch-component > div {
+    @apply !flex-none;
+  }
+
+  /* Collapsed-state flyout for expandable groups. The container is
+     shown by `.side-menu-collapsed { !flex }` in ./index.css. DaisyUI's
+     `dropdown-right` relies on CSS Anchor Positioning, which silently
+     falls back to viewport-relative when the anchor chain isn't set up
+     correctly — the panel can end up at `top: 0` of the viewport,
+     creating a vertical gap the cursor can't cross. We override that
+     here: the JS controller measures the trigger and sets `top` / `left`
+     so the panel is flush against the trigger's right edge. */
+  .side-menu-collapsed-flyout .dropdown-content {
+    /* `left` and `top` are set inline by side-menu-flyout controller. */
+    inset: auto !important;
+  }
+
+  /* Safe-triangle bridge: the trigger (collapsed `menu-item` with `p-2`)
+     is ~32px wide while the panel sits flush against the 56px rail edge,
+     leaving a ~14px dead zone the cursor would otherwise cross with no
+     element to hover. This transparent pseudo-element extends 24px to
+     the left of the panel — wider than the worst-case gap — so the
+     cursor's `:hover` state stays on the `.dropdown` throughout the
+     traversal. */
+  .side-menu-collapsed-flyout .dropdown-content::before {
+    content: "";
+    @apply absolute -left-6 top-0 bottom-0 w-6;
+  }
+
+  /* Intent delay — wait ~120ms before opening so cursor drift past the
+     rail doesn't trigger a flyout mid-task. Closing has a longer delay
+     (300ms) to give users grace if the cursor briefly drifts off the
+     trigger before reaching the panel. */
+  .side-menu-collapsed-flyout .dropdown-content {
+    transition-delay: 300ms;
+  }
+  .side-menu-collapsed-flyout:hover .dropdown-content,
+  .side-menu-collapsed-flyout:focus-within .dropdown-content {
+    transition-delay: 120ms;
+  }
+
+  /* Open the panel when the trigger is hovered OR the container has
+     focus inside it (keyboard tab / touch tap) — covers all three
+     interaction modes (mouse, keyboard, touch). DaisyUI's dropdown-hover
+     handles :hover; this rule extends it to focus-within so keyboard
+     and touch open the panel too. */
+  .side-menu-collapsed-flyout:focus-within .dropdown-content {
+    @apply opacity-100 visible;
+  }
+
+  /* Explicit close via Escape — overrides both :hover and :focus-within
+     until the user moves cursor away or tabs out. Paired with the
+     `is-suppressed` class the controller toggles. Layered, daisyUI's own
+     `.dropdown-hover:hover .dropdown-content { opacity: 1 }` would win and
+     Escape would stop closing the panel while the cursor is still on it. */
+  .side-menu-collapsed-flyout.is-suppressed .dropdown-content {
+    @apply opacity-0 invisible;
+  }
+
+  /* Bottom group dropdown: open right instead of up when collapsed */
+  .side-menu-bottom-group.dropdown {
+    position: static;
+
+    .dropdown-content {
+      left: var(--bali-side-menu-collapsed-width);
+      bottom: 0;
+      top: auto;
+      right: auto;
+
+      /* Override collapsed-state rules inside the dropdown */
+      .side-menu-expanded {
+        @apply !flex;
+      }
+
+      .side-menu-collapsed {
+        @apply !hidden;
+      }
+
+      .menu-item {
+        @apply justify-start px-2.5 py-2;
+      }
+    }
+  }
+}

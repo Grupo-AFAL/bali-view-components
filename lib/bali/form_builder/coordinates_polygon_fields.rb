@@ -18,11 +18,10 @@ module Bali
       end
 
       def coordinates_polygon_field(method, options = {})
-        options = setup_options(options)
         value = serialize_value(options.fetch(:value, []))
-        options = options.except(:value)
+        attributes = setup_options(html_attributes(dup_options(options)).except(:value))
 
-        tag.div(**options) do
+        tag.div(**attributes) do
           safe_join(
             [
               clear_buttons,

@@ -38,16 +38,18 @@ module Bali
       # not reach the component, which forwards anything it does not recognise
       # straight onto the wrapper div as an HTML attribute — `label="..."` and
       # `help="..."` would end up in the markup.
-      FIELD_GROUP_OPTIONS = %i[
-        label help required addon_left addon_right control_class control_data
-      ].freeze
+      #
+      # `required` is the one addition to the canonical list: it is a real
+      # attribute on an <input>, so `html_attributes` keeps it, but the block
+      # editor has no input of its own to put it on.
+      FIELD_GROUP_OPTIONS = (HtmlUtils::WRAPPER_OPTIONS + %i[required]).freeze
 
       def block_editor(method, options = {})
-        opts = options.except(*FIELD_GROUP_OPTIONS)
-        format = (opts.delete(:format) || DEFAULT_RICH_TEXT_FORMAT).to_sym
+        opts = options.except(*FIELD_GROUP_OPTIONS, :format, :input_name)
+        format = (options[:format] || DEFAULT_RICH_TEXT_FORMAT).to_sym
 
         component_options = opts.merge(
-          input_name: opts.delete(:input_name) || field_name(method),
+          input_name: options[:input_name] || field_name(method),
           format: format,
           **content_for_format(method, format)
         )
