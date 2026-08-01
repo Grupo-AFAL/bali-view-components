@@ -46,6 +46,42 @@ table in *Step 6* of the [installation guide](installation.md) maps each optiona
 the component that loads it. If you already had a working v2 app, you almost certainly have
 these installed; nothing new is required unless you adopt a component you were not using.
 
+### `@blocknote/*` moves to `>= 0.52.1` — only matters if you render the BlockEditor
+
+| | v2 | v3.0 |
+|---|---|---|
+| `@blocknote/core` `/react` `/mantine` | `>= 0.51.0` declared, `0.46.2` actually tested | `>= 0.52.1`, and 0.52.1 is what is tested |
+
+The old bound was fiction: nothing inside the declared range had ever been run. v3 pins the
+demo app to 0.52.1 and declares that same version, so the floor now means something.
+
+- **Below 0.51 — a real break.** The editor writes its hidden input *during* the form's
+  `submit` event and cannot await anything there, which requires the synchronous parsers and
+  serialisers BlockNote introduced in 0.51. On older versions a form submitted inside the
+  500 ms debounce window posts the previous content and the user's last edits vanish with no
+  error.
+- **0.51.x — a warning, not a break.** Nothing in the component calls a 0.52-only API, so it
+  will most likely keep working, but you are outside the declared range and outside what
+  anyone tested, and your package manager will say so.
+- **Upgrade all seven together.** Mixing versions between `@blocknote/core` and
+  `@blocknote/react` is not a build error. It shows up as a suggestion menu that never opens
+  or content that silently fails to serialise, which is far more expensive to diagnose.
+
+```bash
+yarn add @blocknote/core@0.52.1 @blocknote/react@0.52.1 @blocknote/mantine@0.52.1
+```
+
+If you also render the paid XL features (`multi_column:`, `export:`, `ai_url:`), bump
+`@blocknote/xl-multi-column`, `@blocknote/xl-pdf-exporter`, `@blocknote/xl-docx-exporter` and
+`@blocknote/xl-ai` to the same 0.52.1. Their licences are unchanged from 0.46 — see the
+[licence facts](../api/block-editor.md#licence-facts-as-of-blocknote-0521), which are pending
+review by legal.
+
+Two upstream table bugs present in 0.47 are fixed by this move: a `|` typed inside a table
+cell no longer drops a column, and a table with no header row no longer promotes its first
+data row to the header. If your stored content has tables, this is a reason to upgrade rather
+than a cost of it.
+
 ### `Bali.deprecator`
 
 Every deprecation warning the gem emits now goes through a single
@@ -772,6 +808,9 @@ grep -rn "Bali::Card.*DataTable\|render Bali::Card" app/views/**/index*
 # any listing that groups and already used `view`, or that does not start on the table?
 grep -rn "group_by_attribute" app/
 grep -rn "view=\|params\[:view\]" app/views app/controllers
+# do you render the BlockEditor, and are all @blocknote/* on the same >= 0.52.1?
+grep -rn "BlockEditor::Component\|block_editor_group" app/
+node -e 'const d=require("./package.json").dependencies||{};for(const k of Object.keys(d))if(k.startsWith("@blocknote/"))console.log(k,d[k])'
 ```
 
 Then load each index page in a browser and check, in this order: the toolbar is not inside

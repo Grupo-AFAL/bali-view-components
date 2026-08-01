@@ -26,7 +26,9 @@ yarn add shiki
 
 You can skip `shiki` if you render the component with `syntax_highlighting: false` (see [Syntax highlighting](#syntax-highlighting)). Leaving highlighting on *without* `shiki` installed still builds, but code blocks fail at runtime and the console shows `` BlockEditor: syntax highlighting is on but `shiki` could not be loaded ``.
 
-All of these are declared as **optional** peer dependencies of `bali-view-components`, so your package manager will neither install them for you nor warn when they are missing. Minimum versions come from `package.json`: `@blocknote/*` `>= 0.51.0`, `@mantine/*` `>= 8.3.0`, `react` / `react-dom` `>= 18.0.0`.
+All of these are declared as **optional** peer dependencies of `bali-view-components`, so your package manager will neither install them for you nor warn when they are missing. Minimum versions come from `package.json`: `@blocknote/*` `>= 0.52.1`, `@mantine/*` `>= 8.3.0`, `react` / `react-dom` `>= 18.0.0`.
+
+**Keep every `@blocknote/*` package on the same version.** Mixing, say, `@blocknote/core` 0.52.1 with `@blocknote/react` 0.51.0 is not a build error -- the packages share types and internal ProseMirror plugin keys across the boundary, so a mismatch surfaces as a menu that never opens or content that silently fails to serialise. Upgrade them as a set.
 
 ### Step 2 -- esbuild flags
 
@@ -136,7 +138,56 @@ This is the setup the lazy path replaces: everything travels in `application.js`
 
 ## BlockNote XL packages (paid, opt-in)
 
-Four optional features are built on **BlockNote XL** packages, licensed `GPL-3.0 OR PROPRIETARY`. A closed-source application needs a paid commercial licence to ship them.
+> **This section is pending review by legal and is not legal advice.** What follows separates two
+> different kinds of statement, and you should treat them differently. The "Licence facts" block
+> below is *measured* -- every line in it was read out of the installed package metadata and the
+> repository, and can be re-checked with the commands given. Everything after it summarises what
+> the BlockNote project publishes about its own commercial terms; it is a convenience restatement
+> of an upstream marketing page, it is not verified, and whether any of it makes a given
+> deployment compliant is a question for the legal team, not for this document. Do not treat this
+> page as a clearance to ship the XL packages.
+
+Four optional features are built on **BlockNote XL** packages, licensed `GPL-3.0 OR PROPRIETARY`.
+
+### Licence facts as of `@blocknote/*` 0.52.1
+
+Measured on the versions this repository installs. Re-check with
+`npm view @blocknote/<pkg>@<version> license`, and for what ships in the published gem/npm
+package, the `files` array in the repository root `package.json`.
+
+| Package | `license` field at 0.52.1 | `license` field at 0.46.2 | Reached from |
+|---|---|---|---|
+| `@blocknote/core` | `MPL-2.0` | `MPL-2.0` | static import, always |
+| `@blocknote/react` | `MPL-2.0` | `MPL-2.0` | static import, always |
+| `@blocknote/mantine` | `MPL-2.0` | `MPL-2.0` | static import, always |
+| `@blocknote/xl-ai` | `GPL-3.0 OR PROPRIETARY` | `GPL-3.0 OR PROPRIETARY` | `import()` in `index.js`, only when `ai_url:` is set |
+| `@blocknote/xl-multi-column` | `GPL-3.0 OR PROPRIETARY` | `GPL-3.0 OR PROPRIETARY` | `import()` in `index.js`, only when `multi_column: true` |
+| `@blocknote/xl-pdf-exporter` | `GPL-3.0 OR PROPRIETARY` | `GPL-3.0 OR PROPRIETARY` | `import()` in `exportPdf()`, only when the user clicks Export PDF |
+| `@blocknote/xl-docx-exporter` | `GPL-3.0 OR PROPRIETARY` | `GPL-3.0 OR PROPRIETARY` | `import()` in `exportDocx()`, only when the user clicks Export DOCX |
+
+Their non-BlockNote companions are permissively licensed: `ai` is `Apache-2.0`, `docx` is `MIT`,
+`@react-pdf/renderer` is `MIT`, `@mantine/core` and `@mantine/hooks` are `MIT`, `shiki` is `MIT`.
+
+Four further facts, each checkable:
+
+1. **The 0.52 upgrade changes no licence.** All seven `@blocknote/*` packages declare exactly the
+   same `license` string at 0.52.1 as they did at 0.46.2. The upgrade moves versions, not terms.
+2. **No XL code is distributed by this project.** The four XL packages appear in
+   `bali-view-components` only as module specifier strings inside dynamic `import()` calls. They
+   are absent from `dependencies` and from `peerDependencies`, they are not vendored, and the
+   `files` array of the published npm package (`app/**/*`, `lib/bali/**/*.rb`, `MIT-LICENSE`,
+   `README.md`) contains no XL code. Installing `bali-view-components` installs no XL package.
+   `bali-view-components` itself is `MIT`.
+3. **They are installed in `spec/dummy`.** The demo/test application lists all four in its
+   `package.json` so the features can be exercised. `spec/dummy` is not published to npm and is
+   not part of the gem.
+4. **Reaching for them is a deliberate act by the host application.** A host must both install
+   the package and turn the feature on. Neither happens by default, and an app that does neither
+   builds and runs with no XL package present.
+
+**What is NOT settled here:** whether AFAL's own use of any XL package -- in `spec/dummy`, in a
+host application, or in CI -- is covered by GPL-3.0 or requires a commercial licence, and what
+the terms of such a licence are. That determination belongs to legal and must be made before GA.
 
 | Package | Feature | Enabled by | License |
 |---------|---------|-----------|---------|
@@ -162,17 +213,13 @@ yarn add @blocknote/xl-docx-exporter docx
 yarn add @blocknote/xl-ai ai
 ```
 
-**What the licence means for your application:**
+**What BlockNote publishes about these terms** (unverified restatement -- read the source before relying on any of it, and see the review notice at the top of this section):
 
-- **Open-source projects (GPL-3.0 compatible):** free to use under GPL-3.0.
-- **Closed-source / proprietary applications:** you must purchase a [BlockNote Business subscription](https://www.blocknotejs.org/pricing) ($390/month) for a commercial licence to use any XL package.
+- **Open-source projects (GPL-3.0 compatible):** described as free to use under GPL-3.0.
+- **Closed-source / proprietary applications:** described as requiring a [BlockNote Business subscription](https://www.blocknotejs.org/pricing) for a commercial licence to use any XL package. Pricing, seat counts and the scope of a licence are stated on that page; they have changed before and are deliberately not copied here.
+- Startup and non-profit discounts are mentioned on the same page.
 
-**Commercial licence terms:**
-- Covers **one application** (single production domain) per licence
-- Includes **5 developer seats**
-- Auto-renews monthly; XL packages must not be used in production if the subscription lapses
-
-**Startup/non-profit discounts** are available for seed-stage startups and non-profits with fewer than 5 employees. See [BlockNote Pricing](https://www.blocknotejs.org/pricing) for details.
+Whether any of that applies to a particular deployment is a legal determination, not an engineering one.
 
 ### How "optional" actually works at build time
 
@@ -1064,16 +1111,20 @@ When `input_name` is set, the editor keeps a hidden input in sync with its conte
 - **Debounced** -- 500 ms after the last change (`SYNC_DELAY` in `useContentSync.js`).
 - **On submit** -- the controller listens for `submit` on `this.element.closest('form')` (capture phase) and writes immediately, cancelling the pending debounce.
 
-The second one is not an optimisation. With only the debounce, a form submitted inside the 500 ms window posted the **previous** content: the user's last edits vanished with no error and no validation failure. Drawers that submit over `fetch` hit this constantly. Serialisation is synchronous (BlockNote >= 0.51), so the value is in place before the browser reads the form.
+The second one is not an optimisation. With only the debounce, a form submitted inside the 500 ms window posted the **previous** content: the user's last edits vanished with no error and no validation failure. Drawers that submit over `fetch` hit this constantly. Serialisation is synchronous (BlockNote >= 0.51), so the value is in place before the browser reads the form. Measured on 0.52.1: the hidden input is still empty 3 ms after an edit, and holds the new content the moment a `submit` event is dispatched -- both well inside the 500 ms debounce window.
 
 The `submit` event is what triggers the flush, so a form sent through the legacy `form.submit()` DOM call -- which fires no `submit` event -- still races the debounce. Use `form.requestSubmit()`, or let Turbo/Rails submit the form normally.
 
 ### Version compatibility
 
-The peer range is `@blocknote/* >= 0.51.0`, and the lower bound is not cosmetic:
+The peer range is `@blocknote/* >= 0.52.1`. **That bound is the version this component was actually exercised on, not the oldest one that might work.** `spec/dummy` pins 0.52.1 and the editor is verified against it by hand -- typing, formatting, lists, tables, file upload, undo and the submit flush -- before the bound is allowed to move. A range wider than what anyone has run is a promise the library cannot keep, which is exactly the state this bound was in before: it claimed `>= 0.51.0` while the dummy app ran 0.46.2, so no version in the declared range was under test.
 
-- **0.51** made the parsers and serialisers **synchronous**. They returned promises before. Code that did `tryParseHTMLToBlocks(...).then(...)` throws on 0.51+ because `.then` is not a function on a plain array; this component no longer chains them. The same applies to `tryParseMarkdownToBlocks`, `blocksToMarkdownLossy` and `blocksToHTMLLossy` -- BlockNote's own documentation still describes some of these as async, and is wrong for current versions.
-- **0.47** has two table-corruption bugs, fixed in **0.52**: a `|` typed inside a table cell drops a column, and a table without a header row promotes its first data row to the header. If your content has tables, prefer `>= 0.52`.
+The lower bound is not cosmetic:
+
+- **0.51** made the parsers and serialisers **synchronous**. They returned promises before. Code that did `tryParseHTMLToBlocks(...).then(...)` throws on 0.51+ because `.then` is not a function on a plain array; this component no longer chains them. The same applies to `tryParseMarkdownToBlocks`, `blocksToMarkdownLossy` and `blocksToHTMLLossy` -- BlockNote's own documentation still describes some of these as async, and is wrong for current versions. The submit flush depends on this directly: it has to write the hidden input *during* the `submit` event, and it cannot await anything there.
+- **0.47** has two table-corruption bugs, fixed in **0.52**: a `|` typed inside a table cell drops a column, and a table without a header row promotes its first data row to the header. On 0.52.1 a cell containing `A|B` survives a Markdown round-trip -- `blocksToMarkdownLossy` emits `A\|B` and the table keeps its three columns.
+
+**Applications still on an older BlockNote.** Nothing in the component reaches for a 0.52-only API, so an app on 0.51.x will most likely keep working -- but it is outside the declared range and outside what is tested, and `yarn`/`npm` will emit an unmet-peer warning. Apps below 0.51 are a genuine break, not a warning: the synchronous-serialiser assumption behind the submit flush does not hold there. Upgrade the app before adopting v3, and upgrade all `@blocknote/*` packages together.
 
 ### File Structure
 
@@ -1134,7 +1185,8 @@ The FormBuilder helpers live outside this directory, in `lib/bali/form_builder/r
 | Console: `Failed to load AI modules` / `PDF export failed` | The XL packages for that feature are not installed | Install them deliberately -- read [BlockNote XL packages](#blocknote-xl-packages-paid-opt-in) first |
 | Content saved is one edit behind | The form was submitted through `form.submit()`, which fires no `submit` event, so the flush never ran | Use `form.requestSubmit()` or a normal Turbo/Rails submit |
 | Comments never appear | `comments:` was given something other than a non-empty Hash | See [Comments](#comments) |
-| `TypeError: ....then is not a function` while parsing content | BlockNote older than 0.51 (or third-party code chaining `.then` onto a now-synchronous parser) | Upgrade to `>= 0.51`, `>= 0.52` if you use tables |
+| `TypeError: ....then is not a function` while parsing content | BlockNote older than 0.51 (or third-party code chaining `.then` onto a now-synchronous parser) | Upgrade to `>= 0.52.1`, the declared and tested range |
+| A menu never opens, or content silently fails to serialise, with no error | `@blocknote/*` packages installed at different versions | Pin them all to the same version -- see [Step 1](#step-1----npm-packages) |
 
 ---
 
