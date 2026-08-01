@@ -5,8 +5,6 @@ module Bali
     module BooleanFields
       CHECKBOX_CLASS = "checkbox"
       LABEL_CLASS = "label cursor-pointer"
-      LABEL_TEXT_CLASS = "label-text"
-      ERROR_CLASS = "label-text-alt text-error"
 
       # Consumed here rather than forwarded: `size` and `color` name daisyUI
       # variants in this family, so unlike on a text input they are not the HTML
@@ -46,11 +44,11 @@ module Bali
         label_html = label(method, label_options) do
           safe_join([
                       check_box(method, checkbox_options, checked_value, unchecked_value),
-                      content_tag(:span, label_text, class: LABEL_TEXT_CLASS)
+                      content_tag(:span, label_text)
                     ], " ")
         end
 
-        append_error_message(method, label_html)
+        label_html + error_and_help(method, options)
       end
 
       private
@@ -71,12 +69,6 @@ module Bali
         ].compact.join(" ")
 
         html_attributes(options).except(*CHECKBOX_OPTIONS).merge(class: checkbox_class)
-      end
-
-      def append_error_message(method, html)
-        return html unless errors?(method)
-
-        html + content_tag(:p, full_errors(method), class: ERROR_CLASS)
       end
     end
   end

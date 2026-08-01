@@ -181,7 +181,7 @@ class BaliFormBuilderDateFieldsTest < FormBuilderTestCase
 
   def test_month_field_applies_daisyui_input_classes
     result = builder.month_field(:release_date)
-    assert_html(result, "input.input.input-bordered")
+    assert_html(result, "input.input")
   end
 
   # constants

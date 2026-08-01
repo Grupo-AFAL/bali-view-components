@@ -28,9 +28,9 @@ class BaliFormBuilderRadioFieldsTest < FormBuilderTestCase
     assert_html(result, "label.label.cursor-pointer")
   end
 
-  def test_radio_field_group_renders_display_text_in_span_with_label_text_class
+  def test_radio_field_group_renders_display_text_in_a_span
     result = builder.radio_field_group(:status, Movie.statuses.to_a)
-    assert_html(result, "span.label-text")
+    assert_html(result, "label.label span")
   end
 
   # #radio_field
@@ -187,14 +187,6 @@ class BaliFormBuilderRadioFieldsTest < FormBuilderTestCase
 
   def test_class_constants_defines_label_class_with_cursor_pointer_and_spacing
     assert_equal "label cursor-pointer justify-start gap-3", Bali::FormBuilder::RadioFields::LABEL_CLASS
-  end
-
-  def test_class_constants_defines_label_text_class
-    assert_equal "label-text", Bali::FormBuilder::RadioFields::LABEL_TEXT_CLASS
-  end
-
-  def test_class_constants_defines_error_class
-    assert_equal "label-text-alt text-error", Bali::FormBuilder::RadioFields::ERROR_CLASS
   end
 
   def test_class_constants_defines_controller_name
