@@ -247,8 +247,6 @@ en:
       simple_filters:
         placeholder_min: "Min"
         placeholder_max: "Max"
-      summary: "Showing %{from}-%{to} of %{count} %{item_name}"
-      default_item_name: items
       display_modes:
         table: Table
         cards: Cards
@@ -295,6 +293,8 @@ en:
       previous_page: Previous page
       next_page: Next page
       page: "Page %{page}"
+      summary: "Showing %{from}-%{to} of %{count} %{item_name}"
+      default_item_name: items
     chart:
       loading: Loading...
     clipboard:
@@ -394,9 +394,6 @@ en:
       title: "Feedback"
       open: "Open feedback"
       close: "Close"
-    pagination_footer:
-      summary: "Showing %{from}-%{to} of %{count} %{item_name}"
-      default_item_name: "items"
 
     document_editor:
       # App bar
