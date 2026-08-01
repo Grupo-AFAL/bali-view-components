@@ -1431,21 +1431,23 @@ Vertical timeline for chronological sequences of events, using DaisyUI's timelin
 
 ```erb
 <%= render Bali::Timeline::Component.new(position: :left) do |c| %>
-  <% c.with_tag_header(text: 'Start', color: :primary) %>
-  <% c.with_tag_item(heading: 'January 2022', icon: 'check', color: :success) do %>
+  <% c.with_header(text: 'Start', color: :primary) %>
+  <% c.with_item(heading: 'January 2022', icon: 'check', color: :success) do %>
     <p>Timeline event 1</p>
   <% end %>
-  <% c.with_tag_item(heading: 'February 2022') do %>
+  <% c.with_item(heading: 'February 2022') do %>
     <p>Timeline event 2</p>
   <% end %>
-  <% c.with_tag_header(text: 'End') %>
+  <% c.with_header(text: 'End') %>
 <% end %>
 ```
 
 **Options:**
 - `position` - Timeline layout: `:left`, `:center`, `:right` (default: :left)
 
-**Slots:** `with_tag_header(text:, color:)` (badge separators) and `with_tag_item(heading:, icon:, color:)` with block content.
+**Slots:** `with_header(text:, color:, class:)` (badge separators) and `with_item(heading:, icon:, color:)` with block content.
+
+Every entry renders exactly once. Which side of the line an item lands on is decided in Ruby, and for `position: :center` it alternates across items, so a header between two items does not flip the alternation.
 
 #### TreeView
 
