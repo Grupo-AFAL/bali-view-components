@@ -140,8 +140,10 @@ The trap: a host that "overrode" a key Bali did not define is now overriding a k
 *does* define, under a name that moved. `Bali::PaginationFooter` is the live example — its
 `summary` and `default_item_name` only existed as inline English defaults in Ruby, so an app
 that wanted them in Spanish declared `view_components.bali.pagination_footer.*` and it
-worked. Both keys now ship in `bali_view.pagination_footer.*` in en and es. Rename yours or
-delete it; leaving it under the old path is silently dead.
+worked. Both keys now ship in **`bali_view.pagination.*`** in en and es — see
+[Pagination](#pagination-one-footer-one-summary-key-one-adapter) for why they landed there
+and not under `pagination_footer`. Rename yours or delete it; leaving it under the old path
+is silently dead.
 
 ```
 grep -rn "^\s*bali:\|view_components:\|bali\.\|view_components\.bali\." config/locales app/
@@ -168,10 +170,84 @@ call site already emits `data-datepicker-locale-value` from `I18n.locale`, so th
 affects a host wiring the controller by hand — and a host that needs another locale
 registers it with `flatpickr.localize()`.
 
+## Pagination: one footer, one summary key, one adapter
+
+v2 had three implementations of the same band — summary on the left, page controls on the
+right. `Bali::PaginationFooter` was one, the bottom of `Bali::DataTable` was a second copy
+of it inline, and `Bali::Pagination` sat under both. Two of them built the summary sentence
+independently, so one string had two translation keys and a host had to find both.
+
+`DataTable` now renders `PaginationFooter`. Nothing about its own API changed —
+`show_summary:`, `summary_position:`, `item_name:` and `with_custom_pagy_nav` all keep
+working — but three things move underneath it.
+
+**The summary key.** One key survives, and it is not the one you would guess from the
+component name:
+
+| v2 / earlier v3 betas | v3.0 |
+|---|---|
+| `bali_view.data_table.summary` | `bali_view.pagination.summary` |
+| `bali_view.data_table.default_item_name` | `bali_view.pagination.default_item_name` |
+| `bali_view.pagination_footer.summary` | `bali_view.pagination.summary` |
+| `bali_view.pagination_footer.default_item_name` | `bali_view.pagination.default_item_name` |
+
+It lives under `pagination` because that is the family: the aria labels for the page buttons
+were already there, and `pagination_footer` is one of two components that render the
+sentence. Both keys ship in en and es. The old paths resolve to nothing — an override left
+behind is dead, not merged.
+
+**A summary of nothing is now nothing.** With `count == 0` the footer printed
+"Showing 0-0 of 0 movies" under an empty table. It is suppressed, in the footer and in
+`summary_position: :top` alike, and a footer with neither summary nor controls left to draw
+no longer emits its container or its vertical padding. If your tests assert on that string
+for an empty result set, they are asserting on the bug.
+
+**`url:` on `Bali::Pagination::Component` is honoured now, which is the breaking part.** Pagy
+43 injects the request into every Pagy the `pagy()` helper builds, and the component took the
+branch that let Pagy build its own URLs — so `url:` was silently dropped for anyone using the
+standard helper. It now wins whenever it is given:
+
+```erb
+<%# v2: url: ignored, links kept ?q=batman  →  v3: links are /movies?page=2, no q %>
+<%= render Bali::Pagination::Component.new(pagy: @pagy, url: '/movies') %>
+```
+
+Drop the `url:` and let Pagy build the links (that is what `pagy(scope, path: '/movies')` is
+for), or put the query string you need into the value you pass. `url:` is still what a Pagy
+built by hand needs — `Pagy::Offset.new(...)` carries no request and cannot build a URL at
+all.
+
+Two parameters arrive in exchange, both forwarded by `PaginationFooter` along with the
+`size:`/`variant:`/`url:` it used to swallow:
+
+```erb
+<%= render Bali::PaginationFooter::Component.new(
+      pagy: @pagy,
+      fragment: '#results',                 # every link keeps the reader where they were
+      data: { turbo_frame: 'movies' }) %>   # page inside a Turbo Frame
+```
+
+`pagy(scope, fragment: '#results')` does the same thing from the controller, and is the
+better place for it when the whole page paginates. The anonymous `**options` bucket on
+`Pagination::Component.new` is gone; it never reached the template, so nothing that passed
+through it ever had an effect.
+
+**Everything Bali knows about Pagy now lives in `Bali::Pagination::PagyAdapter`.** If you
+subclassed or monkey-patched the component to survive a Pagy upgrade, patch the adapter
+instead — it is the only file that calls anything Pagy does not promise.
+
+On a phone the footer's summary now sits above the controls rather than below; one order for
+both components was the point of collapsing them.
+
 ## What breaks, and what replaces it
 
 | Removed | Replacement |
 |---|---|
+| `bali_view.data_table.summary` | `bali_view.pagination.summary` |
+| `bali_view.data_table.default_item_name` | `bali_view.pagination.default_item_name` |
+| `bali_view.pagination_footer.*` | `bali_view.pagination.*` |
+| `Bali::Pagination::Component.new(**options)` | `fragment:` and `data:`, which reach the links |
+| the DataTable's inline footer markup | `Bali::PaginationFooter::Component` |
 | `with_actions_panel` | `with_bulk_actions` |
 | `with_actions_panel(export_formats:)` | `page.with_export(url:)` on the page component |
 | `dt.with_export` | `page.with_export(url:)` on the page component |
@@ -399,6 +475,9 @@ grep -rn "Bali::Card.*DataTable\|render Bali::Card" app/views/**/index*
 # any listing that groups and already used `view`, or that does not start on the table?
 grep -rn "group_by_attribute" app/
 grep -rn "view=\|params\[:view\]" app/views app/controllers
+# pagination: dead summary keys, and url: that now wins instead of being dropped
+grep -rn "data_table:\|pagination_footer:" config/locales
+grep -rn "Bali::Pagination.*url:" app/
 ```
 
 Then load each index page in a browser and check, in this order: the toolbar is not inside

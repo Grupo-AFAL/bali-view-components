@@ -395,29 +395,32 @@ module Bali
         @stable_id
       end
 
-      # Auto-generated summary text from Pagy using I18n
+      # La MISMA frase que pinta el footer, del mismo sitio: el summary de arriba y el de
+      # abajo son la misma cuenta, y tenerlos derivados por separado fue lo que dejó dos
+      # claves i18n para una sola oración.
       def default_summary_text
         return "" unless @pagy
 
-        I18n.t(
-          "bali_view.data_table.summary",
-          from: @pagy.from,
-          to: @pagy.to,
-          count: @pagy.count,
-          item_name: item_name
-        )
+        pagy_adapter.summary(@item_name)
       end
 
       def show_summary_top?
-        @show_summary && @summary_position == :top && !summary?
+        summary_position?(:top) && summarizable?
       end
 
       def show_summary_bottom?
-        @show_summary && @summary_position == :bottom && !summary?
+        summary_position?(:bottom) && summarizable?
       end
 
-      def show_footer?
-        @pagy || summary? || show_summary_bottom?
+      # El footer lo arma `PaginationFooter`, que decide solo si tiene algo que dibujar;
+      # acá solo se le pasa lo que este listado quiere de él.
+      def pagination_footer
+        Bali::PaginationFooter::Component.new(
+          pagy: @pagy,
+          item_name: @item_name,
+          show_summary: show_summary_bottom?,
+          class: "mt-4 pt-4 border-t border-base-200"
+        )
       end
 
       # Contenido YA renderizado de un control declarativo, o nil si el control decidió no
@@ -748,8 +751,18 @@ module Bali
               format(DISPLAY_MODE_MISMATCH_MESSAGE, mode, @filter_form.group_by_modes.join(", "), mode)
       end
 
-      def item_name
-        @item_name || I18n.t("bali_view.data_table.default_item_name")
+      def pagy_adapter
+        @pagy_adapter ||= Bali::Pagination::PagyAdapter.new(@pagy)
+      end
+
+      def summary_position?(position)
+        @show_summary && @summary_position == position && !summary?
+      end
+
+      # Cero resultados no tienen rango que describir: "Showing 0-0 of 0 movies" es lo que
+      # salía en una búsqueda sin resultados.
+      def summarizable?
+        @pagy.present? && pagy_adapter.summarizable?
       end
 
       def validate_summary_position(position)
