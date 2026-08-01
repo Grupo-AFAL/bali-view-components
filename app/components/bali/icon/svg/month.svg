@@ -1,0 +1,6 @@
+<svg viewBox="0 0 18 19" class="svg-inline" stroke="currentColor" fill="none">
+  <rect x="17.5" y="0.5" width="7" height="7" rx="0.5" transform="rotate(90 17.5 0.5)" />
+  <rect x="7.5" y="0.5" width="7" height="7" rx="0.5" transform="rotate(90 7.5 0.5)" />
+  <rect x="17.5" y="11.5" width="7" height="7" rx="0.5" transform="rotate(90 17.5 11.5)" />
+  <rect x="7.5" y="11.5" width="7" height="7" rx="0.5" transform="rotate(90 7.5 11.5)" />
+</svg>
