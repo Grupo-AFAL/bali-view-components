@@ -129,7 +129,7 @@ SVG as `arrow-left`. The three surviving steps match **exactly**: lowercase, das
 written.
 
 In practice that means the snake_case spelling of every multi-word icon now raises. All 73 of
-them, and for every one the fix is the same — write the dashed name:
+them, and for 72 the fix is the same — write the dashed name:
 
 ```
 address_book            alert_alt               align_center            align_left
@@ -148,7 +148,7 @@ magic_wand              map_marked_alt          map_marker_alt          mexico_f
 money_bill_wave         nested_arrow            phone_plus              plus_circle
 project_diagram         recipe_book             search_minus            search_plus
 shopping_cart           space_station_moon_alt  square_phone            sticky_note
-times_circle            trash_alt                trophy_alt             truck_loading
+times_circle            trash_alt               trophy_alt              truck_loading
 us_flag                 user_plus               utensils_alt            wallet_alt
 whatsapp_square
 ```
