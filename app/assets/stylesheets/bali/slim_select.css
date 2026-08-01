@@ -342,7 +342,7 @@
   background-color: var(--ss-bg-color);
   box-shadow: 0 4px 12px oklch(0 0 0 / 0.15);
   overflow: hidden;
-  z-index: 10000;
+  z-index: var(--bali-z-popover);
   opacity: 0;
   transform: scaleY(0);
   transition: transform var(--ss-animation-timing) ease,

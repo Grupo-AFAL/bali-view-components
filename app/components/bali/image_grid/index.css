@@ -5,7 +5,7 @@
 }
 
 .bali-image-expander-overlay {
-  @apply fixed inset-0 z-[100] flex items-center justify-center;
+  @apply fixed inset-0 z-[var(--bali-z-modal)] flex items-center justify-center;
   @apply bg-black/80 p-4 cursor-zoom-out;
   @apply opacity-0 transition-opacity duration-200 ease-out;
 

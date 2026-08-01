@@ -6,7 +6,7 @@ function showUploadError (message) {
   if (!container) return
 
   const toast = document.createElement('div')
-  toast.className = 'alert alert-error shadow-lg fixed bottom-4 right-4 z-50 max-w-md animate-fade-in'
+  toast.className = 'alert alert-error shadow-lg fixed bottom-4 right-4 max-w-md animate-fade-in block-editor-upload-toast'
   toast.setAttribute('role', 'alert')
   toast.textContent = message
   document.body.appendChild(toast)

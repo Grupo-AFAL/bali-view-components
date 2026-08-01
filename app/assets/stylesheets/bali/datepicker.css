@@ -50,7 +50,7 @@
   border: 1px solid var(--fp-border-color);
   border-radius: var(--fp-border-radius);
   box-shadow: 0 4px 12px oklch(0 0 0 / 0.15);
-  z-index: 99999;
+  z-index: var(--bali-z-popover);
   animation: none;
 }
 
@@ -78,7 +78,7 @@
 }
 
 .flatpickr-calendar.static.open {
-  z-index: 999;
+  z-index: var(--bali-z-popover);
   display: block;
 }
 

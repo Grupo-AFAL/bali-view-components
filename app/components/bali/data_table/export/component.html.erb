@@ -11,7 +11,7 @@
     <%= render Bali::Icon::Component.new(button_icon, class: 'w-4 h-4') %>
     <span class="toolbar-control-label hidden sm:inline"><%= button_label %></span>
   </button>
-  <ul tabindex="0" class="dropdown-content z-50 menu p-2 shadow-lg bg-base-100 rounded-box w-40 border border-base-200">
+  <ul tabindex="0" class="dropdown-content z-[var(--bali-z-dropdown)] menu p-2 shadow-lg bg-base-100 rounded-box w-40 border border-base-200">
     <% export_items.each do |item| %>
       <li>
         <%# `data-turbo="false"`: un CSV/XLSX no es una respuesta que Turbo Drive pueda
