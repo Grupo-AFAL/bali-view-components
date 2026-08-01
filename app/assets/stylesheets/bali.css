@@ -55,13 +55,16 @@
 @import "./bali/rich_text.css" layer(components);
 
 /* ==============================================
-   Unlayered on purpose — each file's header says which daisyUI rule it has
-   to beat. Keep the relative order: these three only fight daisyUI, but they
-   are ordinary same-layer neighbours to each other.
+   Unlayered on purpose — each file's header says which rule it has to beat.
+   Keep the relative order of the first three: they only fight daisyUI, but
+   they are ordinary same-layer neighbours to each other.
+   `container-overrides.css` fights Tailwind's own `.container` utility; it
+   shares no selector with the others, so its position is free.
    ============================================== */
 @import "./bali/forms.css";
 @import "./bali/datepicker.css";
 @import "./bali/slim_select.css";
+@import "./bali/container-overrides.css";
 
 /* ==============================================
    Component styles (mostly @layer components — see the file)
