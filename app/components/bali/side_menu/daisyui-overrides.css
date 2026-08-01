@@ -25,15 +25,46 @@
 
 /* ── .menu ───────────────────────────────────────────────────────────────
    daisyUI lays out every direct child of a `.menu > li` as a grid with its
-   own padding and radius (`.menu :where(li:not(.menu-title)>:not(...))`).
+   own padding and radius (`.menu :where(li:not(.menu-title)>:not(...))`),
+   and it also owns the hover background and the transition:
+
+     .menu :where(li … :not(.menu-active,:active,.btn):hover)
+       { background-color: color-mix(base-content 10%) }
+     .menu :where(li:not(.menu-title)>:not(…))
+       { transition-property: color,background-color,box-shadow }
+
    Menu items rendered INSIDE a dropdown panel would lose the `.menu-item`
    look entirely. This is not SideMenu-only: DataTable and IndexPage render
    `.menu-item` links inside their toolbar dropdowns too, so the selector is
    deliberately not scoped to `.side-menu-component`.
+
+   The hover exclusion list is daisyUI's own `.menu-active`, not Bali's
+   `.active`, so an active Bali item is hovered like any other and loses its
+   primary tint under the cursor as well. Measured on `app_layout/default`,
+   the same `.menu-item` inside and outside a `.menu`:
+
+     transition-property   color,background-color,box-shadow  vs  all
+     :hover background     base-content/10                    vs  base-200
+     .active:hover bg      base-content/10                    vs  primary/10
+
+   (`.active` while idle was never lost — daisyUI declares nothing for it.)
+
    Keep the declarations in sync with `.menu-item` in ./index.css — colour is
-   left out on purpose so a `text-primary` utility on the link still wins. */
+   left out on purpose so a `text-primary` utility on the link still wins,
+   and daisyUI sets no colour on hover, so ./index.css keeps handling that. */
 .menu .menu-item {
   @apply flex items-center gap-2 px-2.5 py-2 rounded-lg;
+  @apply transition-all duration-200;
+}
+
+/* `.active` after `:hover`: same specificity, so source order is what keeps a
+   selected item tinted while the cursor is on it. */
+.menu .menu-item:hover {
+  @apply bg-base-200;
+}
+
+.menu .menu-item.active {
+  @apply bg-primary/10;
 }
 
 /* ── .tooltip ────────────────────────────────────────────────────────────
