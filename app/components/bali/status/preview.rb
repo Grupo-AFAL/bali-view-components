@@ -57,6 +57,14 @@ module Bali
       def in_table
         render_with_template
       end
+
+      # Editable pill inside a transformed ancestor — what a Drawer is while it
+      # animates. A transformed ancestor becomes the containing block of its
+      # `fixed` descendants, so the panel has to be positioned against it and not
+      # against the viewport, or it lands off screen.
+      def in_transformed_ancestor
+        render_with_template
+      end
     end
   end
 end

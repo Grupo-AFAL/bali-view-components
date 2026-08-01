@@ -1,4 +1,5 @@
-@charset "UTF-8";
+/* No @charset here: this file is pulled into a cascade layer, and @charset is
+   only valid as the very first byte of a stylesheet. The bundle is UTF-8. */
 
 /*
 Trix 2.0.8

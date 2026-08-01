@@ -4,7 +4,7 @@ require "test_helper"
 
 class BaliIconComponentTest < ComponentTestCase
   def test_basic_rendering_renders_with_icon_component_class
-    # Using a legacy icon that will always exist
+    # "snowflake" is an old Bali name Lucide covers under the same name
     render_inline(Bali::Icon::Component.new("snowflake"))
     assert_selector("span.icon-component")
   end
@@ -79,11 +79,19 @@ class BaliIconComponentTest < ComponentTestCase
     assert_selector("svg")
   end
 
-  def test_resolution_pipeline_with_legacy_icons_falls_back_to_legacy_icons_when_not_in_lucide_or_kept
-    # "poo" is a legacy icon that might not be mapped
-    render_inline(Bali::Icon::Component.new("poo"))
-    assert_selector("span.icon-component")
-    assert_selector("svg")
+  def test_resolution_pipeline_with_legacy_only_name_raises_instead_of_falling_back
+    # "money-bill-wave" shipped as a legacy SVG and is neither mapped nor kept
+    error = assert_raises(Bali::Icon::Options::IconNotAvailable) do
+      render_inline(Bali::Icon::Component.new("money-bill-wave"))
+    end
+    assert_includes(error.message, "money-bill-wave")
+  end
+
+  def test_resolution_pipeline_with_snake_case_spelling_raises_and_suggests_the_dashed_name
+    error = assert_raises(Bali::Icon::Options::IconNotAvailable) do
+      render_inline(Bali::Icon::Component.new("arrow_left"))
+    end
+    assert_includes(error.message, "arrow-left")
   end
 
   def test_resolution_pipeline_with_invalid_icon_name_raises_iconnotavailable_error

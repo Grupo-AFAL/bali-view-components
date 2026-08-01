@@ -15,7 +15,6 @@ export class TimeagoController extends Controller {
   initialize () {
     this.isValid = true
     this.locale = this.localeValue === 'es' ? es : enUS
-    window.locale = this.locale
     this.options = {
       includeSeconds: this.includeSecondsValue,
       addSuffix: this.addSuffixValue,
