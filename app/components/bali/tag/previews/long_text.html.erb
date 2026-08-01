@@ -1,0 +1,84 @@
+<div class="space-y-8 p-4">
+  <p class="text-sm text-base-content/70 max-w-prose">
+    daisyUI's <code>.badge</code> is a fixed-height <code>inline-flex</code> box with no
+    white-space control, so a label that wraps renders its extra lines outside the pill.
+    Every container below squeezes a Tag below the width its text needs.
+  </p>
+
+  <!-- Fixed narrow columns -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Narrow fixed-width containers</h3>
+    <div class="flex flex-wrap gap-4">
+      <% %w[w-48 w-36 w-24].each do |width| %>
+        <div class="<%= width %> border border-dashed border-base-300 p-2">
+          <div class="text-xs text-base-content/50 mb-1"><%= width %></div>
+          <%= render Bali::Tag::Component.new(text: 'Regional Operations Supervisor',
+                                              color: :primary) %>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <!-- The #655 case: a squeezed table cell -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Table cell (issue #655)</h3>
+    <div class="max-w-md border border-dashed border-base-300">
+      <%= render Bali::Table::Component.new do |table| %>
+        <% table.with_header(name: 'Person') %>
+        <% table.with_header(name: 'Role') %>
+        <% table.with_header(name: 'Stage') %>
+        <% [
+             ['Ana Ruiz', 'Regional Operations Supervisor', 'Pending stakeholder approval'],
+             ['Bruno Paz', 'Special Projects Coordinator', 'Budget review in progress'],
+             ['Carla Vega', 'Quality Assurance Analyst', 'Signed off by legal']
+           ].each do |person, role, stage| %>
+          <% table.with_row do %>
+            <td><%= person %></td>
+            <td><%= render Bali::Tag::Component.new(text: role, color: :primary, size: :sm) %></td>
+            <td><%= render Bali::Tag::Component.new(text: stage, color: :warning, size: :sm) %></td>
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
+  </section>
+
+  <!-- A card body has no horizontal scroll to fall back on -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Card body (no horizontal scroll)</h3>
+    <div class="w-64">
+      <%= render Bali::Card::Component.new(style: :bordered) do |card| %>
+        <% card.with_title('Release 3.0') %>
+        <%= render Bali::Tags::Component.new do |tags| %>
+          <% tags.with_item(text: 'Pending stakeholder approval', color: :warning) %>
+          <% tags.with_item(text: 'Documentation', color: :info) %>
+        <% end %>
+      <% end %>
+    </div>
+  </section>
+
+  <!-- The escape hatch -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Opting out</h3>
+    <p class="text-sm text-base-content/70 mb-3 max-w-prose">
+      The rule lives in <code>@layer components</code>, so a plain
+      <code>whitespace-normal</code> utility wins — no <code>!</code> variant. The pill keeps
+      its fixed height, which is why this is the exception and not the default.
+    </p>
+    <div class="w-36 border border-dashed border-base-300 p-2">
+      <%= render Bali::Tag::Component.new(text: 'Regional Operations Supervisor',
+                                          color: :primary,
+                                          class: 'whitespace-normal') %>
+    </div>
+  </section>
+
+  <!-- Every size, with descenders, against the fixed pill height -->
+  <section>
+    <h3 class="text-lg font-semibold mb-3">Descenders at every size</h3>
+    <div class="flex flex-wrap items-center gap-2">
+      <% %i[xs sm md lg xl].each do |size| %>
+        <%= render Bali::Tag::Component.new(text: 'Paging & typography jjgg',
+                                            color: :neutral, size: size) %>
+      <% end %>
+    </div>
+  </section>
+</div>

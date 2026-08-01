@@ -257,7 +257,7 @@ module Bali
       #   which is why it only shows up in `bali/index_page/complete`
       #
       # `bali/index_page/complete` renders this same body inside a page.
-      # @param view select { choices: [table, grid, timeline] }
+      # @param view select { choices: [table, grid, calendar] }
       # @param group_by select { choices: ["", genre, status] }
       def complete(view: :table, q: {}, page: 1, group_by: nil, saved_view: nil)
         render_with_template(

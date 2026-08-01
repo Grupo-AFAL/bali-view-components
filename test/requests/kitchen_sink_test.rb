@@ -28,8 +28,8 @@ class KitchenSinkDemoPagesTest < ActionDispatch::IntegrationTest
   end
 
   # El index canónico tiene TRES ramas de contenido (tabla seleccionable, grid de tarjetas y
-  # Gantt) que comparten un partial. Sin pedirlas, una fecha nula, una clave i18n faltante o
-  # un `with_content(scroll: true)` roto se publican en verde.
+  # calendario) que comparten un partial. Sin pedirlas, una fecha nula, una clave i18n
+  # faltante o un `with_content` roto se publican en verde.
   def test_admin_movies_renders_every_display_mode_of_the_canonical_listing
     get admin_movies_path
     assert_response :ok
@@ -39,9 +39,9 @@ class KitchenSinkDemoPagesTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_select "h2.card-title"
 
-    get admin_movies_path, params: { view: "timeline" }
+    get admin_movies_path, params: { view: "calendar" }
     assert_response :ok
-    assert_select ".gantt-chart-component"
+    assert_select ".calendar-component"
   end
 
   def test_movies_renders_every_display_mode_of_the_shared_listing
@@ -49,9 +49,9 @@ class KitchenSinkDemoPagesTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_select "h2.card-title"
 
-    get movies_path, params: { view: "timeline" }
+    get movies_path, params: { view: "calendar" }
     assert_response :ok
-    assert_select ".gantt-chart-component"
+    assert_select ".calendar-component"
   end
 
   # La página de referencia tiene que ejercitar TODA la familia de controles: sin dueño el

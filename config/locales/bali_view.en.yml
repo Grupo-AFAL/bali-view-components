@@ -314,15 +314,6 @@ en:
       confirm_cancel: Cancel
     image_field:
       clear_image: Clear image
-    gantt_chart:
-      task_header: Name
-      today: Today
-      task_actions:
-        open_details: Open details
-        complete_task: Complete task
-        delete_task: Delete task
-        indent_task: Indent task
-        outdent_task: Outdent task
     loader:
       loading: Loading...
     search_input:
