@@ -65,6 +65,8 @@ Bali.deprecator.silence { ... }                              # or scope one exce
 | `Bali::Clipboard::SucessContent` | `Bali::Clipboard::SuccessContent` (the alias existed only for the typo) |
 | `Bali::Utils::Url#add_query_params` | `#add_query_param(url, name, value)`, one name at a time |
 | `Bali::Icon::DefaultIcons` | nothing — see [The icon fallback is gone](#the-icon-fallback-is-gone) |
+| `Bali::GanttChart::*` (component and sub-components) | nothing in v3 — see [The Gantt chart is gone](#the-gantt-chart-is-gone) |
+| The `bali-view-components/gantt` npm entry | nothing — remove the import |
 
 `Bali::FilterForm.simple_filter` is **deprecated, not removed** — it still declares the
 filter and now warns. It goes away in v4; migrate at your own pace:
@@ -91,6 +93,50 @@ The reference composition is the `Complete` scenario of the IndexPage preview
 render at once. `/admin/movies` in the dummy app is the end-to-end reference against real
 controllers, routes and Turbo Streams — saved views included, backed by the engine's default
 store and a one-user demo owner; the only family it leaves out is host toolbar buttons.
+
+## The Gantt chart is gone
+
+`Bali::GanttChart::Component`, its nine sub-components, `GanttChartController`,
+`GanttFoldableItemController`, the `bali-view-components/gantt` entry point and the
+`bali_view.gantt_chart.*` strings are all removed. There is no v3 replacement, and no
+deprecation cycle: no application in the group renders it (afal-apps adopted it in its PR
+#203 and replaced it with a React island in #206), so the compatibility shim would have
+had no one to serve.
+
+If you do render it, you have three options:
+
+1. **Wait for v3.1.** A new `Bali::Gantt` is planned there, built for read-only portfolio
+   views, with the per-row `color_by:` that #667 asked for. It is not an API-compatible
+   revival of this one — the drag/resize/dependency editor is not coming back.
+2. **Server-render the view yourself.** afal-apps#426 did exactly this for a portfolio
+   Gantt: `position: sticky` plus `<details>` for the parent/child folding, no JavaScript.
+   A read-only chart uses almost none of what the component carried.
+3. **Vendor the v2 component.** It is MIT and self-contained; copy
+   `app/components/bali/gantt_chart/` out of the v2 tag into your app. You then own the
+   two daisyUI v3 colour aliases it reads (`--in`, `--b3`), which no v5 theme defines.
+
+Remove the import and the bundler alias:
+
+```javascript
+// delete
+import { registerGantt } from 'bali-view-components/gantt'
+registerGantt(application)
+```
+
+```javascript
+// vite.config.js — delete the alias too
+{ find: 'bali/gantt', replacement: resolve(baliGemPath, 'app/frontend/bali/gantt.js') },
+```
+
+The export is removed from `package.json` rather than left as a throwing stub, so a stale
+import fails at build time instead of rendering an empty container at runtime. `sortablejs`
+stays an optional peer: Kanban and SortableList still need it.
+
+**#667 is closed by this removal, not solved by it.** A portfolio Gantt whose bar colour
+encodes project status has no v3 answer; the workaround recorded on the issue (one CSS class
+per status, fighting the component's inline `style` with `!important`) dies with the
+component. If that view matters to you, it is the one to raise against the v3.1 `Bali::Gantt`
+design.
 
 ## The icon fallback is gone
 

@@ -1,22 +1,7 @@
 # frozen_string_literal: true
 
 class DemoChartData
-  GANTT_SEED = 42
   HEATMAP_SEED = 43
-
-  def gantt_tasks(limit: 5)
-    rng = Random.new(GANTT_SEED)
-    Movie.limit(limit).map do |movie|
-      start_date = movie.created_at.to_date
-      end_date = movie.done? ? (start_date + rng.rand(30..90).days) : (Date.current + rng.rand(10..60).days)
-      {
-        id: movie.id, name: movie.name,
-        start_date: start_date, end_date: end_date,
-        progress: movie.done? ? 100 : rng.rand(20..80),
-        color: movie.done? ? "hsl(142, 76%, 36%)" : "hsl(38, 92%, 50%)"
-      }
-    end
-  end
 
   def heatmap_data
     rng = Random.new(HEATMAP_SEED)

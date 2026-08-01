@@ -29,7 +29,7 @@ class CanonicalPreviewsTest < ActionDispatch::IntegrationTest
   end
 
   def test_the_data_table_preview_round_trips_the_view_param
-    %w[grid timeline].each do |view|
+    %w[grid calendar].each do |view|
       get "/lookbook/preview/bali/data_table/complete", params: { view: view }
       assert_response :ok, "?view=#{view} no renderizó"
       assert_select "a[href*='view=#{view}'][aria-current='page']"
