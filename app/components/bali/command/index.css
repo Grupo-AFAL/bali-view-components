@@ -7,6 +7,21 @@
  *   - Compact-density density overrides (parent → child cascade)
  */
 
+/* ── Row defaults that the active state has to beat ──────────────────────
+   These two used to be utility classes on the template (`bg-base-200
+   text-base-content/70` on the icon, `opacity-0` on the hint). Since this
+   file moved into @layer components, a utility on the element beats anything
+   here — which is the point of the layer, but it also meant the `.is-active`
+   rules below silently lost and the highlighted row stopped looking
+   highlighted. A default and the state that overrides it have to live in the
+   same layer, so both are declared here. */
+.cmd-row-ic {
+  @apply bg-base-200 text-base-content/70;
+}
+.cmd-row-hint {
+  @apply opacity-0;
+}
+
 /* ── Active row state — neutral darken (avoids primary-tint purple cast) ── */
 .cmd-row.is-active {
   background: color-mix(in oklch, var(--color-base-content) 10%, transparent);
