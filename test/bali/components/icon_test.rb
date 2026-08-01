@@ -96,4 +96,22 @@ class BaliIconComponentTest < ComponentTestCase
     render_inline(Bali::Icon::Component.new("snowflake", tag_name: :div))
     assert_selector("div.icon-component")
   end
+
+  # #685: an icon is decorative unless its host says otherwise. Lucide already
+  # hides its own `<svg>`; the kept, custom and legacy sources do not, so the
+  # attribute goes on the wrapper where it covers all four.
+  def test_accessibility_hides_the_icon_from_assistive_tech_by_default
+    render_inline(Bali::Icon::Component.new("snowflake"))
+    assert_selector("span.icon-component[aria-hidden='true']", visible: :all)
+  end
+
+  def test_accessibility_hides_kept_icons_whose_svg_carries_no_aria_hidden
+    render_inline(Bali::Icon::Component.new("visa"))
+    assert_selector("span.icon-component[aria-hidden='true']", visible: :all)
+  end
+
+  def test_accessibility_can_be_exposed_explicitly
+    render_inline(Bali::Icon::Component.new("snowflake", "aria-hidden": false))
+    assert_selector("span.icon-component[aria-hidden='false']", visible: :all)
+  end
 end

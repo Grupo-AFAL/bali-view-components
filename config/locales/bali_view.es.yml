@@ -277,6 +277,8 @@ es:
           excel: Excel
           pdf: PDF
           json: JSON
+    page_header:
+      back: Volver
     page_components:
       secondary_actions:
         button_label: Más acciones

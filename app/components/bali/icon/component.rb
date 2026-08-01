@@ -54,7 +54,7 @@ module Bali
         @tag_name = tag_name
         @size = size
         options = apply_size_style(options) if numeric_size?
-        @options = prepend_class_name(options, component_classes)
+        @options = hide_from_assistive_tech(prepend_class_name(options, component_classes))
       end
 
       def call
@@ -62,6 +62,20 @@ module Bali
       end
 
       private
+
+      # An icon is decorative unless its host says otherwise: the meaning is in
+      # the text or in the accessible name of the control it sits in, and an
+      # unlabelled SVG announces nothing useful anyway. Lucide already emits
+      # `aria-hidden` on its own `<svg>`; the kept, custom and legacy sources do
+      # not, so it goes on the wrapper where it covers all four (#685).
+      #
+      # Pass `"aria-hidden": false` to expose an icon that really is the only
+      # carrier of meaning — but give it a name too, or it stays anonymous.
+      def hide_from_assistive_tech(options)
+        return options if options.key?(:"aria-hidden") || options.key?("aria-hidden")
+
+        options.merge("aria-hidden": true)
+      end
 
       # Resolves the icon through the resolution pipeline
       #
