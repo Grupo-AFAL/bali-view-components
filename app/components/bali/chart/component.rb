@@ -67,7 +67,12 @@ module Bali
       )
         # rubocop:enable Metrics/ParameterLists
         @types = Array.wrap(type)
-        @data = data
+        # Every lookup below is by Symbol (`@data[:labels]`, `@data[:datasets]`), and
+        # each dataset hash is splatted into Dataset's keyword arguments. A host
+        # handing over string keys — anything that round-tripped through JSON — used
+        # to fall through to the simple `{ label => value }` branch and silently
+        # chart the *words* "labels" and "datasets" as its two categories.
+        @data = data.deep_symbolize_keys
         @title = title
         @display_percent = display_percent
         @order = order

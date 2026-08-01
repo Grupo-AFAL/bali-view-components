@@ -6,16 +6,16 @@ module Bali
       DEFAULT_SYMBOL = "$"
 
       def currency_field_group(method, options = {})
-        symbol = options.delete(:symbol) || DEFAULT_SYMBOL
-        options.with_defaults!(
+        symbol = options[:symbol] || DEFAULT_SYMBOL
+        opts = options.with_defaults(
           placeholder: 0,
           addon_left: currency_addon(symbol),
           step: "0.01",
           pattern_type: :number_with_commas
         )
 
-        @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
-          text_field(method, options)
+        @template.render Bali::FieldGroupWrapper::Component.new self, method, opts do
+          text_field(method, opts)
         end
       end
 

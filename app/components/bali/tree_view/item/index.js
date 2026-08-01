@@ -8,33 +8,28 @@ export class TreeViewItemController extends Controller {
     event.preventDefault()
     event.stopPropagation()
 
-    // Toggle rotation on caret for smooth animation
-    this.caretTarget.classList.toggle('rotate-90')
+    if (!this.hasChildrenTarget) return
 
-    if (this.hasChildrenTarget) {
-      this.childrenTarget.classList.toggle('hidden')
-    }
-
-    // Update aria-expanded for accessibility
-    const expanded = this.caretTarget.classList.contains('rotate-90')
-    this.element.setAttribute('aria-expanded', expanded)
+    const expanded = !this.childrenTarget.classList.toggle('hidden')
+    this.caretTarget.classList.toggle('rotate-90', expanded)
+    this.caretTarget.setAttribute('aria-expanded', expanded)
   }
 
   navigateTo (event) {
-    // Don't navigate if clicking on the caret (toggle instead)
-    if (this.caretTarget === event.target || this.caretTarget.contains(event.target)) {
-      return
-    }
+    // Nested items bubble their clicks up here, but Stimulus only invokes the
+    // binding whose scope owns the event target (Scope#containsElement), so a
+    // click on a child never reaches its ancestors' navigateTo. Nothing to guard.
 
-    // Don't interfere with link clicks - let them handle navigation naturally
-    if (event.target.tagName === 'A') {
-      return
-    }
+    // The caret toggles; it never navigates. Childless items have no caret target
+    // at all, hence the hasCaretTarget check rather than a bare caretTarget read.
+    if (this.hasCaretTarget && this.caretTarget.contains(event.target)) return
 
-    // For clicks on the item row (not the link), use Turbo if available
-    if (window.Turbo) {
-      event.preventDefault()
-      window.Turbo.visit(this.urlValue)
-    }
+    // The link navigates on its own — don't do it a second time.
+    if (event.target.closest('a')) return
+
+    if (!window.Turbo) return
+
+    event.preventDefault()
+    window.Turbo.visit(this.urlValue)
   }
 }

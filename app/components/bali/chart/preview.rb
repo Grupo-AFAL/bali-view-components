@@ -115,6 +115,25 @@ module Bali
         )
       end
 
+      # @label String Keys
+      # The multi-series format written with string keys — what a payload that has
+      # round-tripped through JSON looks like. It charts identically to the symbol
+      # form; it used to be read as two categories named "labels" and "datasets".
+      def with_string_keys
+        render Chart::Component.new(
+          data: {
+            'labels' => %w[Mon Tue Wed Thu Fri],
+            'datasets' => [
+              { 'label' => 'Sales', 'data' => [120, 190, 300, 250, 420] },
+              { 'label' => 'Returns', 'data' => [20, 30, 25, 35, 40] }
+            ]
+          },
+          type: :bar,
+          legend: true,
+          card_style: :bordered
+        )
+      end
+
       # @label Chart.js Data Structures
       # Reference documentation for Chart.js data structures.
       def chart_js_data_structures

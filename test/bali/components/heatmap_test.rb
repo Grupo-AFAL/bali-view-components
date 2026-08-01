@@ -102,6 +102,21 @@ class BaliHeatmapComponentTest < ComponentTestCase
       refute_empty(component.gradient_colors)
   end
 
+  def test_color_customization_falls_back_to_the_default_preset_for_an_unknown_symbol
+    component = Bali::Heatmap::Component.new(data: data, color: :chartreuse)
+    default = Bali::Heatmap::Component::COLOR_PRESETS.fetch(
+      Bali::Heatmap::Component::DEFAULT_COLOR
+    )
+    assert_equal(Bali::Utils::ColorPicker.gradient(default), component.gradient_colors)
+    render_inline(component)
+    assert_selector('.heatmap-cell[style*="background"]')
+  end
+
+  def test_color_customization_falls_back_to_the_default_preset_when_color_is_nil
+    render_inline(Bali::Heatmap::Component.new(data: data, color: nil))
+    assert_selector('.heatmap-cell[style*="background"]')
+  end
+
   def test_responsive_mode_is_responsive_by_default
       component = Bali::Heatmap::Component.new(data: data)
       assert(component.responsive?)
@@ -154,6 +169,32 @@ class BaliHeatmapComponentTest < ComponentTestCase
   def test_public_api_exposes_y_labels_as_a_range
       component = Bali::Heatmap::Component.new(data: data)
       assert_equal(0..2, component.y_labels)
+  end
+
+  def test_y_labels_keeps_string_keys_as_labels_instead_of_building_a_range
+    string_keys = { Mon: { "morning" => 1, "evening" => 2 }, Tue: { "morning" => 3 } }
+    component = Bali::Heatmap::Component.new(data: string_keys)
+    assert_equal(%w[morning evening], component.y_labels)
+  end
+
+  def test_y_labels_renders_one_row_per_string_key
+    string_keys = { Mon: { "morning" => 1, "evening" => 2 }, Tue: { "morning" => 3 } }
+    render_inline(Bali::Heatmap::Component.new(data: string_keys))
+    assert_selector("tbody tr", count: 2)
+    assert_selector("tbody td", text: "morning")
+    assert_selector("tbody td", text: "evening")
+  end
+
+  def test_y_labels_does_not_raise_on_mixed_key_types
+    mixed = { Mon: { 9 => 1, "evening" => 2 } }
+    component = Bali::Heatmap::Component.new(data: mixed)
+    assert_equal([ 9, "evening" ], component.y_labels)
+  end
+
+  def test_y_labels_still_fills_the_range_between_integer_keys
+    sparse = { Mon: { 9 => 1, 12 => 2 } }
+    component = Bali::Heatmap::Component.new(data: sparse)
+    assert_equal(9..12, component.y_labels)
   end
 
   def test_public_api_exposes_max_value

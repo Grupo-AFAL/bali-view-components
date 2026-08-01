@@ -67,6 +67,30 @@ class BaliChartComponentTest < ComponentTestCase
     assert_equal("true", canvas["data-chart-display-percent-value"])
   end
 
+  def test_string_keys_reads_the_multi_series_format_written_with_string_keys
+    render_inline(Bali::Chart::Component.new(
+      data: {
+        "labels" => %w[Mon Tue],
+        "datasets" => [ { "label" => "Beef", "data" => [ 10, 5 ] } ]
+      }
+    ))
+    canvas = page.find("canvas.chart")
+    assert_equal(%w[Mon Tue], JSON.parse(canvas["data-chart-labels-value"]))
+
+    payload = JSON.parse(canvas["data-chart-data-value"])
+    assert_equal(%w[Mon Tue], payload["labels"])
+    assert_equal(1, payload["datasets"].size)
+    assert_equal("Beef", payload["datasets"].first["label"])
+    assert_equal([ 10, 5 ], payload["datasets"].first["data"])
+  end
+
+  def test_string_keys_still_reads_the_simple_format_written_with_string_keys
+    render_inline(Bali::Chart::Component.new(data: { "Mon" => 10, "Tue" => 20 }))
+    canvas = page.find("canvas.chart")
+    assert_equal(%w[Mon Tue], JSON.parse(canvas["data-chart-labels-value"]))
+    assert_equal([ 10, 20 ], JSON.parse(canvas["data-chart-data-value"])["datasets"].first["data"])
+  end
+
   def test_constants_has_max_label_length_constant
     assert_equal(16, Bali::Chart::Component::MAX_LABEL_LENGTH)
   end

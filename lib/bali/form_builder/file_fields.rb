@@ -20,37 +20,23 @@ module Bali
       end
 
       def file_field(method, options = {})
-        field_helper(
-          method,
-          custom_file_field(method, field_options(method, options)),
-          options
-        )
+        field_helper(method, custom_file_field(method, options), options)
       end
 
       private
 
       def custom_file_field(method, options = {})
-        choose_file_text = extract_option(options, :choose_file_text) { default_choose_text }
-        non_selected_text = extract_option(options, :non_selected_text) do
-          default_non_selected_text
-        end
-        file_icon_name = extract_option(options, :icon) || DEFAULT_ICON
+        choose_file_text = options.fetch(:choose_file_text) { default_choose_text }
+        non_selected_text = options.fetch(:non_selected_text) { default_non_selected_text }
+        file_icon_name = options[:icon] || DEFAULT_ICON
         multiple = options.fetch(:multiple, false)
-        file_class = extract_option(options, :file_class)
+        file_class = options[:file_class]
 
-        input_options = build_file_input_options(options)
+        input_options = build_file_input_options(field_options(method, options))
 
         @template.content_tag(:div, wrapper_options(non_selected_text, multiple, file_class)) do
           file_label(method, input_options, file_icon_name, choose_file_text) +
             filename_display(non_selected_text)
-        end
-      end
-
-      def extract_option(options, key, &block)
-        if options.key?(key)
-          options.delete(key)
-        elsif block
-          block.call
         end
       end
 
@@ -63,7 +49,7 @@ module Bali
 
       def build_file_input_options(options)
         # Override class completely - file input must be hidden (not styled as DaisyUI input)
-        opts = options.merge(class: INPUT_CLASS)
+        opts = dup_options(options).merge(class: INPUT_CLASS)
         opts = prepend_action(opts, "file-input#onChange")
         prepend_data_attribute(opts, :file_input_target, :input)
       end

@@ -46,10 +46,10 @@ module Bali
         partial = "#{association.to_s.singularize}_fields"
         form_object, builder = resolve_form_builder
         fields = render_template_fields(builder, association, partial, form_object)
-        wrapper_class = html_options.delete(:wrapper_class)
+        wrapper_class = html_options[:wrapper_class]
 
         tag.div(class: wrapper_class) do
-          tag.a(name, **build_add_link_options(html_options)) +
+          tag.a(name, **build_add_link_options(html_options.except(:wrapper_class))) +
             tag.template(fields, data: { "#{CONTROLLER_NAME}-target": "template" })
         end
       end
@@ -58,10 +58,9 @@ module Bali
       # @param name [String] Link text
       # @param html_options [Hash] HTML attributes (:soft_delete for soft delete)
       def link_to_remove_fields(name, html_options = {})
-        soft_delete = html_options.delete(:soft_delete)
-        destroy_attribute = soft_delete ? :_soft_delete : :_destroy
+        destroy_attribute = html_options[:soft_delete] ? :_soft_delete : :_destroy
 
-        tag.a(name, **build_remove_link_options(html_options)) +
+        tag.a(name, **build_remove_link_options(html_options.except(:soft_delete))) +
           hidden_field(destroy_attribute, class: DESTROY_FLAG_CLASS)
       end
 
@@ -130,7 +129,8 @@ module Bali
       end
 
       def build_remove_link_options(html_options)
-        prepend_action(html_options.merge(href: "#"), "#{CONTROLLER_NAME}#removeFields")
+        prepend_action(dup_options(html_options).merge(href: "#"),
+                       "#{CONTROLLER_NAME}#removeFields")
       end
     end
   end

@@ -29,11 +29,12 @@ module Bali
         class_names(BASE_CLASSES, options[:class])
       end
 
+      # No `role="tree"` — see docs/guides/migration-v2-to-v3.md. This is a list of
+      # links with disclosure buttons, and a <ul> says exactly that without promising
+      # the keyboard contract a tree owes a screen reader (roving tabindex, arrow
+      # keys, type-ahead) and that this component has never implemented.
       def component_options
-        options.except(:class).merge(
-          class: component_classes,
-          role: "tree"
-        )
+        options.except(:class).merge(class: component_classes)
       end
     end
   end

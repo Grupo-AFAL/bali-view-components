@@ -1,0 +1,32 @@
+/* Container — the one rule that has to outrank Tailwind itself.
+ *
+ * WHY THIS FILE IS UNLAYERED
+ * --------------------------
+ * `.container` is a Tailwind utility, so it ships from @layer utilities with
+ * a max-width per breakpoint (96rem once the viewport reaches 1536px).
+ * `.container.is-not-fluid` caps that at 960px instead. Cascade layers beat
+ * specificity, so from @layer components the (0,2,0) selector loses to
+ * Tailwind's (0,1,0) one and the cap disappears above 1024px. Measured with
+ * ./container.css layered, at a 1600px viewport:
+ *
+ *   .container.is-not-fluid   max-width: 1536px   (identical to a bare
+ *   .container                max-width: 1536px    `.container` — no cap)
+ *
+ * The rule of thumb in .claude/CLAUDE.md is written around daisyUI because
+ * that is what Bali usually fights, but the reason is the layer, not the
+ * vendor: this is an override of somebody else's utility rather than Bali's
+ * own look, which is what puts it here instead of in @layer components. A
+ * host that wants a different cap sets it on the element and drops the class.
+ *
+ * The rest of ./container.css stays layered — `#app-frame`'s padding is
+ * Bali's own look and a host utility should beat it.
+ *
+ * This used to repeat the same `max-width: 960px` under three breakpoints
+ * (1024, 1216, 1408). Since all three declared the same value, the two upper
+ * ones never changed anything; one query says it.
+ */
+.container.is-not-fluid {
+  @media (min-width: 1024px) {
+    max-width: 960px;
+  }
+}

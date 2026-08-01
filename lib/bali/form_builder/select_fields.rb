@@ -14,11 +14,12 @@ module Bali
 
       # Uses the native HTML <select> element with DaisyUI styling.
       def select_field(method, values, options = {}, html_options = {})
-        html_options[:class] = select_classes(method, html_options[:class])
-        apply_input_name_options(options, html_options)
+        attributes = html_attributes(html_options)
+        attributes[:class] = select_classes(method, html_options[:class])
+        apply_input_name_options(options, attributes)
 
-        field = select(method, values, options, html_options.except(:control_data, :control_class))
-        field_helper(method, field, select_field_options(method, html_options))
+        field = select(method, values, options, attributes)
+        field_helper(method, field, html_options)
       end
 
       private
@@ -26,14 +27,6 @@ module Bali
       def select_classes(method, additional_classes = nil)
         base = field_class_name(method, BASE_CLASSES, error_class: "select-error")
         [ base, additional_classes ].compact.join(" ")
-      end
-
-      def select_field_options(_method, html_options)
-        {
-          control_data: html_options[:control_data],
-          control_class: html_options[:control_class],
-          help: html_options[:help]
-        }
       end
     end
   end

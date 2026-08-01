@@ -11,7 +11,7 @@ class BaliTreeViewComponentTest < ComponentTestCase
     render_inline(@component) do |c|
       c.with_item(name: "Item 1", path: "/items/1")
     end
-    assert_selector('.tree-view-component[role="tree"]')
+    assert_selector("ul.tree-view-component")
   end
 
   def test_basic_rendering_renders_root_items
@@ -38,7 +38,7 @@ class BaliTreeViewComponentTest < ComponentTestCase
 
   def test_basic_rendering_renders_empty_tree
     render_inline(@component)
-    assert_selector('.tree-view-component[role="tree"]')
+    assert_selector("ul.tree-view-component")
   end
 
   def test_active_state_marks_the_active_item_with_is_active_class
@@ -75,29 +75,71 @@ class BaliTreeViewComponentTest < ComponentTestCase
     assert_no_selector(".item.is-childless", text: "Parent")
   end
 
-  def test_aria_accessibility_sets_role_treeitem_on_items
+  def test_aria_accessibility_renders_items_as_list_items
     render_inline(@component) do |c|
       c.with_item(name: "Item", path: "/item")
     end
-    assert_selector('.tree-view-item-component[role="treeitem"]')
+    assert_selector("li.tree-view-item-component")
   end
 
-  def test_aria_accessibility_sets_aria_expanded_on_items_with_children
+  # role="tree" promises roving tabindex, arrow keys and type-ahead. This
+  # component implements none of them, so it does not claim the role.
+  def test_aria_accessibility_does_not_claim_the_tree_pattern
+    render_inline(@component) do |c|
+      c.with_item(name: "Parent", path: "/parent") do |sub|
+        sub.with_item(name: "Child", path: "/child")
+      end
+    end
+    assert_no_selector('[role="tree"]')
+    assert_no_selector('[role="treeitem"]')
+    assert_no_selector('[role="group"]')
+  end
+
+  def test_aria_accessibility_sets_aria_expanded_on_the_caret_of_items_with_children
     render_inline(Bali::TreeView::Component.new(current_path: "/parent")) do |c|
       c.with_item(name: "Parent", path: "/parent") do |sub|
         sub.with_item(name: "Child", path: "/child")
       end
     end
-    assert_selector('[aria-expanded="true"]')
+    assert_selector('button.caret[aria-expanded="true"]')
   end
 
-  def test_aria_accessibility_sets_role_group_on_children_containers
+  def test_aria_accessibility_points_the_caret_at_the_children_it_discloses
     render_inline(@component) do |c|
       c.with_item(name: "Parent", path: "/parent") do |sub|
         sub.with_item(name: "Child", path: "/child")
       end
     end
-    assert_selector('.children[role="group"]')
+    controls = page.find("button.caret")["aria-controls"]
+    refute_nil(controls)
+    assert_selector("ul.children##{controls}")
+  end
+
+  def test_aria_accessibility_names_the_caret_after_the_branch_it_toggles
+    render_inline(@component) do |c|
+      c.with_item(name: "Parent", path: "/parent") do |sub|
+        sub.with_item(name: "Child", path: "/child")
+      end
+    end
+    assert_selector('button.caret[aria-label="Toggle Parent"]')
+  end
+
+  # An invisible button would still be a tab stop and still be announced.
+  def test_aria_accessibility_renders_an_inert_spacer_instead_of_a_caret_for_childless_items
+    render_inline(@component) do |c|
+      c.with_item(name: "Leaf", path: "/leaf")
+    end
+    assert_no_selector("button.caret")
+    assert_selector('span.caret[aria-hidden="true"]')
+  end
+
+  def test_aria_accessibility_nests_children_in_a_list
+    render_inline(@component) do |c|
+      c.with_item(name: "Parent", path: "/parent") do |sub|
+        sub.with_item(name: "Child", path: "/child")
+      end
+    end
+    assert_selector("ul.children")
   end
 
   # NOTE: ViewComponent's renders_many with lambdas only supports 2 levels of nesting.
@@ -136,9 +178,11 @@ class BaliTreeViewComponentTest < ComponentTestCase
     assert_selector('[data-tree-view-item-url-value="/custom/path"]')
   end
 
-  def test_stimulus_integration_sets_caret_target
+  def test_stimulus_integration_sets_caret_target_on_items_with_children
     render_inline(@component) do |c|
-      c.with_item(name: "Item", path: "/item")
+      c.with_item(name: "Item", path: "/item") do |sub|
+        sub.with_item(name: "Child", path: "/child")
+      end
     end
     assert_selector('[data-tree-view-item-target="caret"]')
   end
