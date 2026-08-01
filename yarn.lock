@@ -1619,10 +1619,10 @@ cypress@15.18.1:
     untildify "^4.0.0"
     yauzl "^3.3.1"
 
-daisyui@5.6.18:
-  version "5.6.18"
-  resolved "https://registry.yarnpkg.com/daisyui/-/daisyui-5.6.18.tgz#98be6a4d6a95dd3bf8de439c9e45725281678b94"
-  integrity sha512-6y9rboRQl8fosnusy/5pg11yp+H0LtK3YdtfS4Vf2QVnaYOKasNdYm6hDxeiT6bwZPdl4WRPzVIlIApdo2ssBg==
+daisyui@5.7.7:
+  version "5.7.7"
+  resolved "https://registry.yarnpkg.com/daisyui/-/daisyui-5.7.7.tgz#de925d144131b9aa6f2cbea4f354d2352ce74b0f"
+  integrity sha512-k3fza99NburOj18SGqMmvMOoIP4iSKkw4PbaE8gCxNOvwoNdEg4HlKgNJjsh+00RijMVKNgOTNqw42FfOT5Ukw==
 
 dashdash@^1.12.0:
   version "1.14.1"

@@ -284,6 +284,6 @@
     "uuid": "^11.1.1"
   },
   "dependencies": {
-    "daisyui": "5.6.18"
+    "daisyui": "5.7.7"
   }
 }
