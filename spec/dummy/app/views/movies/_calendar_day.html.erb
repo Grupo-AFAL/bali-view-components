@@ -1,0 +1,10 @@
+<%# Una celda de día del modo calendario, compartida por los dos listados de películas.
+    Bali::Calendar la renderiza una vez por día con los eventos que lo tocan, así que es el
+    listado —no el componente— el que decide cómo se ve un día.
+
+    Locals: events, period, day. %>
+<% events&.each do |movie| %>
+  <%= render Bali::Tag::Component.new(text: movie.name, size: :sm,
+                                      color: movie.status_color,
+                                      class: 'w-full justify-start truncate') %>
+<% end %>

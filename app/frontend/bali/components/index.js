@@ -10,7 +10,6 @@
  *
  * Heavy/Optional modules (import separately):
  *   - Charts:           import { ChartController } from 'bali-view-components/charts'
- *   - Gantt:            import { GanttChartController } from 'bali-view-components/gantt'
  *   - Block Editor:     import { BlockEditorController } from 'bali-view-components/block-editor'
  *   - Rich Text Editor: import { RichTextEditorController } from 'bali-view-components/rich-text-editor'
  */
@@ -109,10 +108,10 @@ export {
  * import one controller without pulling in the rest. scripts/check-controller-manifest.mjs
  * keeps the two lists and the source tree in sync.
  *
- * ChartController, GanttChartController, GanttFoldableItemController,
- * BlockEditorController and RichTextEditorController are deliberately absent: they
- * drag in Chart.js, Sortable, React/BlockNote and TipTap respectively, so they ship
- * from the ./charts, ./gantt, ./block-editor and ./rich-text-editor entries instead.
+ * ChartController, BlockEditorController and RichTextEditorController are
+ * deliberately absent: they drag in Chart.js, React/BlockNote and TipTap
+ * respectively, so they ship from the ./charts, ./block-editor and
+ * ./rich-text-editor entries instead.
  *
  * The @__PURE__ annotation lets bundlers drop the map (and with it every import
  * above) when a consumer only imports a single named controller.
@@ -187,7 +186,6 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
  *
  * NOTE: Heavy/optional modules are NOT included. Import them separately:
  *   - Charts:           import { registerCharts } from 'bali-view-components/charts'
- *   - Gantt:            import { registerGantt } from 'bali-view-components/gantt'
  *   - Block Editor:     import { registerBlockEditor } from 'bali-view-components/block-editor'
  *   - Rich Text Editor: import { registerRichTextEditor } from 'bali-view-components/rich-text-editor'
  *

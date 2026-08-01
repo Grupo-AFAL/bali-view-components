@@ -27,7 +27,7 @@
   <%# 2. "Group by" renders itself: the FilterForm declares the groupable attributes. %>
 
   <%# 3. Column selector — only in the table view, because it hides table columns. A card
-         grid or a timeline has none, and saving a view from those modes falls back to the
+         grid or a calendar has none, and saving a view from those modes falls back to the
          selector's per-device memory. Column 0 is the selection checkbox the Table renders. %>
   <% if dt.display_mode == :table %>
     <% dt.with_column_selector do |cs| %>
@@ -58,7 +58,7 @@
   <% dt.with_view_switch do |switch| %>
     <% switch.with_view(name: 'Table', icon: 'list', value: :table) %>
     <% switch.with_view(name: 'Cards', icon: 'grid', value: :grid) %>
-    <% switch.with_view(name: 'Timeline', icon: 'calendar', value: :timeline) %>
+    <% switch.with_view(name: 'Calendar', icon: 'calendar', value: :calendar) %>
   <% end %>
 
   <%# 7. Host buttons: arbitrary content Bali does not cover, in their own group between the
@@ -104,22 +104,28 @@
         <% end %>
       </div>
     <% end %>
-  <% when :timeline %>
-    <%# A Gantt brings no surface of its own, so the generic slot asks for one plus the
-        horizontal scroll wrapper. This is what `with_table`/`with_grid` are sugar over. %>
-    <% dt.with_content(scroll: true) do %>
-      <%= render Bali::GanttChart::Component.new(
-            tasks: movies.filter_map { |movie|
-              next unless movie.production_starts_on && movie.production_ends_on
+  <% when :calendar %>
+    <%# The third mode is the point of `with_content`: a surface Bali's DataTable knows
+        nothing about. A Calendar brings its own card AND its own horizontal scroll, so it
+        asks the slot for neither — the opposite of `with_table`, which asks for both.
+        That both knobs are independent is why the generic slot takes them separately and
+        `with_table`/`with_grid` are only sugar over the two useful combinations.
 
-              { id: movie.id, name: movie.name,
-                start_date: movie.production_starts_on, end_date: movie.production_ends_on,
-                progress: movie.done? ? 100 : 40 }
-            },
-            zoom: :week,
-            readonly: true,
-            row_height: 40
-          ) %>
+        The header goes in without `route_path:`, so it renders the month label and no
+        prev/next: month navigation would put a second, competing query string on a listing
+        whose URL is already owned by the filters, the sorting and the view switch. %>
+    <% dt.with_content(surface: false) do %>
+      <%= render Bali::Calendar::Component.new(
+            events: movies,
+            start_attribute: :production_starts_on,
+            end_attribute: :production_ends_on,
+            start_date: Date.current,
+            period: :month,
+            show_date: true,
+            template: 'bali/data_table/previews/calendar_day'
+          ) do |calendar| %>
+        <% calendar.with_header(period_switch: false) %>
+      <% end %>
     <% end %>
   <% else %>
     <%# A table brings a surface and a horizontal scroll wrapper. %>

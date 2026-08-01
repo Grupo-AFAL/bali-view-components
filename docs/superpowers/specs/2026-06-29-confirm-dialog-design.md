@@ -156,8 +156,8 @@ and a localized title.
 - **Turbo not loaded yet:** `installConfirmDialog` defers via `turbo:load`.
 - **App wants native dialog:** set `window.BALI_DISABLE_CONFIRM_DIALOG = true` before
   registering, or re-assign `Turbo.config.forms.confirm` afterward.
-- **Confirm inside a Bali::Modal:** native `<dialog>` lives in the top layer, above the
-  modal (`z-61`), so it stacks correctly.
+- **Confirm inside a Bali::Modal:** native `<dialog>` lives in the top layer, which sits
+  above every z-index there is — including `--bali-z-modal` — so it stacks correctly.
 - **Repeated calls:** singleton dialog is reused; never appends duplicates.
 - **No title provided:** title element hidden; dialog still renders message + buttons.
 

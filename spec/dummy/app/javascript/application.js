@@ -33,7 +33,7 @@ registerAllComponents(application)
 // Only import heavy dependencies when their elements exist
 // ---------------------------------------------------------
 
-const loadedModules = { charts: false, gantt: false, blockEditor: false }
+const loadedModules = { charts: false, blockEditor: false }
 
 function loadChartsIfNeeded () {
   if (loadedModules.charts) return
@@ -41,16 +41,6 @@ function loadChartsIfNeeded () {
     loadedModules.charts = true
     import('bali/charts').then(({ registerCharts }) => {
       registerCharts(application)
-    })
-  }
-}
-
-function loadGanttIfNeeded () {
-  if (loadedModules.gantt) return
-  if (document.querySelector('[data-controller*="gantt"]')) {
-    loadedModules.gantt = true
-    import('bali/gantt').then(({ registerGantt }) => {
-      registerGantt(application)
     })
   }
 }
@@ -67,19 +57,16 @@ function loadBlockEditorIfNeeded () {
 
 // Check on initial page load
 loadChartsIfNeeded()
-loadGanttIfNeeded()
 loadBlockEditorIfNeeded()
 
 // Re-check after Turbo navigations bring in new content
 document.addEventListener('turbo:load', () => {
   loadChartsIfNeeded()
-  loadGanttIfNeeded()
   loadBlockEditorIfNeeded()
 })
 
 document.addEventListener('turbo:frame-load', () => {
   loadChartsIfNeeded()
-  loadGanttIfNeeded()
   loadBlockEditorIfNeeded()
 })
 

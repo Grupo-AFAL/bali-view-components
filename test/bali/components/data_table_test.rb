@@ -288,7 +288,7 @@ class BaliDataTableComponentTest < ComponentTestCase
     end
     assert_selector("div.card > div.card-body > div.custom-view")
 
-    # Un contenido que trae su propio chrome (un Gantt) apaga la superficie y NO pierde
+    # Un contenido que trae su propio chrome (un calendario) apaga la superficie y NO pierde
     # el bloque en el camino.
     render_inline(component) do |c|
       c.with_content(surface: false) { '<div class="custom-view"></div>'.html_safe }
@@ -408,8 +408,8 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_display_mode_is_untouched_without_a_view_switch
-    @options = { display_mode: :gantt }
-    assert_equal(:gantt, component.display_mode)
+    @options = { display_mode: :roadmap }
+    assert_equal(:roadmap, component.display_mode)
   end
 
   def test_the_display_mode_falls_back_to_the_url_when_the_host_forgets_it
@@ -939,5 +939,94 @@ class BaliDataTableComponentTest < ComponentTestCase
     # levantar NoMethodError y no seguir pintando un botón que ignora los filtros.
     refute_respond_to(component, :with_export)
     refute(Bali::DataTable::Component::OVERFLOW_PRIORITIES.key?(:export))
+  end
+
+  # --- footer ---------------------------------------------------------------------------
+  #
+  # El footer ya no se dibuja acá: es el MISMO PaginationFooter que cualquier host puede
+  # renderizar suelto. Lo que estos tests fijan es que el listado siga produciendo el
+  # summary y los controles, y que los siga produciendo UNA sola vez.
+
+  def render_with_pagy(pagy, **options)
+    @options = options.merge(pagy: pagy)
+    render_inline(component) do |c|
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+      yield c if block_given?
+    end
+  end
+
+  def test_footer_renders_the_summary_and_the_controls
+    render_with_pagy(Pagy::Offset.new(count: 47, page: 2, limit: 10), item_name: "movies")
+
+    assert_text("Showing 11-20 of 47 movies")
+    assert_selector("nav.pagy-nav-daisyui .join")
+  end
+
+  def test_footer_summary_is_emitted_once
+    render_with_pagy(Pagy::Offset.new(count: 47, page: 1, limit: 10), item_name: "movies")
+
+    assert_equal 1, page.text.scan("Showing 1-10 of 47 movies").size
+  end
+
+  # Test de caracterización: la lista LITERAL de clases que el footer del listado tenía en 3.0,
+  # cuando se dibujaba inline acá. Mover el footer a PaginationFooter no puede cambiar un pixel
+  # del pie de la tabla, y la primera versión de ese cambio sí lo movió: el `py-4` del footer
+  # suelto se sumaba al `pt-4` del listado y metía 16px de padding inferior donde no había
+  # ninguno. Si esta cadena cambia, cámbiala a propósito y documéntalo.
+  FOOTER_CLASSES_ON_3_0 =
+    "flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t border-base-200"
+
+  def test_footer_keeps_the_exact_box_it_had_when_it_was_inline
+    render_with_pagy(Pagy::Offset.new(count: 47, page: 1, limit: 10), item_name: "movies")
+
+    footer = page.find("div.data-table-component > div:last-child")
+    assert_equal FOOTER_CLASSES_ON_3_0.split.sort, footer[:class].split.sort
+  end
+
+  def test_footer_falls_back_to_the_shared_item_name
+    render_with_pagy(Pagy::Offset.new(count: 47, page: 1, limit: 10))
+
+    assert_text("Showing 1-10 of 47 items")
+  end
+
+  # Con cero resultados el listado decía "Showing 0-0 of 0 movies" debajo de una tabla vacía.
+  def test_footer_says_nothing_without_results
+    render_with_pagy(Pagy::Offset.new(count: 0, page: 1, limit: 10), item_name: "movies")
+
+    assert_no_text("Showing")
+    assert_no_selector(".border-t")
+  end
+
+  def test_top_summary_says_nothing_without_results
+    render_with_pagy(Pagy::Offset.new(count: 0, page: 1, limit: 10),
+      item_name: "movies", summary_position: :top)
+
+    assert_no_text("Showing")
+  end
+
+  def test_top_summary_replaces_the_footer_one
+    render_with_pagy(Pagy::Offset.new(count: 47, page: 1, limit: 10),
+      item_name: "movies", summary_position: :top)
+
+    assert_equal 1, page.text.scan("Showing 1-10 of 47 movies").size
+  end
+
+  def test_custom_pagy_nav_replaces_the_controls
+    render_with_pagy(Pagy::Offset.new(count: 47, page: 2, limit: 10)) do |c|
+      c.with_custom_pagy_nav { '<nav class="my-nav"></nav>'.html_safe }
+    end
+
+    assert_selector("nav.my-nav")
+    assert_no_selector("nav.pagy-nav-daisyui")
+    assert_text("Showing 11-20 of 47 items")
+  end
+
+  def test_no_footer_without_a_pagy
+    render_inline(component) do |c|
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_no_selector(".border-t")
+    assert_no_text("Showing")
   end
 end

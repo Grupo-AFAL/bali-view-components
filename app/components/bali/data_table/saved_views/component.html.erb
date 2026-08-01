@@ -20,7 +20,7 @@
     <span class="toolbar-control-label hidden sm:inline"><%= button_label %></span>
   </button>
 
-  <div tabindex="0" class="dropdown-content z-50 p-2 shadow-lg bg-base-100 rounded-box w-72 max-h-[70vh] overflow-y-auto border border-base-200">
+  <div tabindex="0" class="dropdown-content z-[var(--bali-z-dropdown)] p-2 shadow-lg bg-base-100 rounded-box w-72 max-h-[70vh] overflow-y-auto border border-base-200">
     <% if default_views.any? %>
       <div class="menu-title px-2 pt-1"><%= t('.suggested_title') %></div>
       <ul class="menu p-0 w-full">

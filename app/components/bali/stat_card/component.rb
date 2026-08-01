@@ -15,7 +15,9 @@ module Bali
 
       renders_one :footer
 
-      def initialize(title:, value:, icon_name:, color: :primary, **options)
+      # `icon_name:` es opcional: DashboardPage#with_stat siempre lo permitió, y una tarjeta
+      # sin icono es una tarjeta, no un error.
+      def initialize(title:, value:, icon_name: nil, color: :primary, **options)
         @title = title
         @value = value
         @icon_name = icon_name

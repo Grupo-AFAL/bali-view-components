@@ -60,6 +60,7 @@ Rails.application.routes.draw do
   # DirectUpload test
   resources :direct_uploads, only: %i[new create]
   get 'sidemenu-example', to: 'pages#sidemenu_example'
+  get 'z-stack', to: 'pages#z_stack' # Manual check for the overlay z-index scale
 
   # Modal/Drawer content routes (for remote loading)
   get 'modals/basic', to: 'modals#basic'
@@ -78,7 +79,6 @@ Rails.application.routes.draw do
   get 'users', to: 'users#index'
   get 'entity_references', to: 'entity_references#index'
   post 'entity_references/resolve', to: 'entity_references#resolve'
-  resources :gantt_chart, only: %i[update]
 
   # BlockEditor
   resources :block_editor_threads, path: 'block_editor_comments', only: %i[index create update destroy] do

@@ -1,4 +1,6 @@
-<div class="flex flex-col sm:flex-row items-center justify-between gap-2 py-4">
+<%= tag.div(**@options) do %>
+  <%# The empty div is not decorative: without it `justify-between` pulls the controls to the
+      left whenever the summary is suppressed. %>
   <% if show_summary? %>
     <div class="text-sm text-base-content/70">
       <%= summary_text %>
@@ -7,7 +9,7 @@
     <div></div>
   <% end %>
 
-  <% if show_pagination? %>
-    <%= render Bali::Pagination::Component.new(pagy: @pagy) %>
+  <% if show_controls? %>
+    <%= controls? ? controls : render(pagination) %>
   <% end %>
-</div>
+<% end %>
