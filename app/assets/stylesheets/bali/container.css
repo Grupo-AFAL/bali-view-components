@@ -14,16 +14,5 @@
   }
 }
 
-.container.is-not-fluid {
-  @media (min-width: 1024px) {
-    max-width: 960px;
-  }
-
-  @media (min-width: 1216px) {
-    max-width: 960px;
-  }
-
-  @media (min-width: 1408px) {
-    max-width: 960px;
-  }
-}
+/* `.container.is-not-fluid` is not here: it has to outrank Tailwind's own
+   `.container` utility, so it lives unlayered in ./container-overrides.css. */

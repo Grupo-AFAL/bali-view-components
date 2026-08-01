@@ -386,12 +386,11 @@
 }
 
 .rich-text-editor-component {
+  /* `display`, `height` and the readonly variant's border / shadow / padding
+     are not here: they fight daisyUI's `.input` and live unlayered in
+     ./daisyui-overrides.css. `min-height` is Bali's own and stays. */
   &.input {
-    @apply h-auto min-h-20 block;
-
-    &[data-rich-text-editor-editable-value='false'] {
-      @apply border-none shadow-none p-0;
-    }
+    @apply min-h-20;
   }
 
   .ProseMirror {
