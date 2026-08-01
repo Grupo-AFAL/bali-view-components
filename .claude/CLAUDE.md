@@ -57,14 +57,32 @@ changes if either is behind, then run the full test suite.
 Rubocop and Minitest run automatically via `.githooks` (pre-commit and pre-push). Cypress does
 not — run `yarn run cy:run` yourself when you touch JS, and confirm the Lookbook preview renders.
 
-## Tailwind v4 CSS Layer Gotcha
+## Which CSS layer a rule belongs in
 
-Component CSS files (`index.css`) are **unlayered** — they beat Tailwind utility classes in `@layer utilities`.
-If a component sets `@apply flex` on `.menu-item`, utility classes like `lg:hidden` will NOT override it.
-Use `!important` variants instead: `lg:!hidden`, `max-lg:!hidden`.
+Since v3 the package's CSS sits in three deliberate positions. Put a new rule in the wrong
+one and it either loses to daisyUI or becomes impossible for a host to override.
+
+| Position | What goes there | Why |
+|---|---|---|
+| `@layer base`, `:where(:root)` | `bali/theme-fallbacks.css` only — the daisyUI tokens Bali shares (`--border`, `--radius-*`, `--size-*`, `--depth`, `--noise`) | Zero specificity in daisyUI's own layer, so any real theme wins. They are fallbacks, not overrides. |
+| `@layer components` | Bali's own look — nearly every `index.css` and global sheet | Host utility classes beat it, which is the point. `lg:hidden` just works; **no `!` variant needed**. |
+| unlayered | Only rules whose job is to outrank daisyUI | daisyUI 5 emits its components inside `@layer utilities`, and layers beat specificity — so a rule in `components` loses to daisyUI no matter how specific. |
+
+Unlayered today: `bali/forms.css`, `bali/datepicker.css`, `bali/slim_select.css`,
+`breadcrumb/index.css`, `data_table/index.css`, `side_menu/daisyui-overrides.css`. Each file's
+header names the daisyUI rule it has to beat — read it before adding to one.
+
+Rule of thumb for a new unlayered rule: the right-most compound is a daisyUI class, and you
+are only setting declarations daisyUI also sets. Anything else belongs in `@layer components`.
+
+Careful with `!important` in an unlayered file: it is the *weakest* important in the author
+origin, so a host escapes it with `lg:!hidden`. Move that same rule into a layer and it
+becomes nearly unbeatable — the opposite of what you usually want.
 
 ### CSS Rebuild
-After editing component CSS files, rebuild with: `bundle exec rails tailwindcss:build`
+After editing component CSS files, rebuild with: `bundle exec rails app:tailwindcss:build`
+(`rails tailwindcss:build` is the app's own task and does not exist here — the engine
+namespaces it under `app:`.)
 Compiled output: `spec/dummy/app/assets/builds/tailwind.css`
 
 ## DaisyUI Tooltip Mobile Gotcha
