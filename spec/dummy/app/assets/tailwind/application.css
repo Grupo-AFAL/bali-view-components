@@ -29,12 +29,10 @@
    For apps using this gem, add to package.json:
      "bali-view-components": "^1.4.19"
 
-   Then import in your Tailwind CSS:
+   Then import in your Tailwind CSS — one line, component CSS included:
      @import "bali-view-components/css/bali.css";
-     @import "bali-view-components/css/components.css";
 */
 @import "bali-view-components/css/bali.css";
-@import "bali-view-components/css/components.css";
 
 /* Bali custom themes */
 @import "bali-view-components/css/themes/costa-norte.css";

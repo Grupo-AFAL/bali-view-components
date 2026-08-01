@@ -182,6 +182,61 @@ FontAwesome glyph. `Options` was never the rendering path; call
 The 28 kept SVGs moved out of Ruby into `app/components/bali/icon/svg/<name>.svg`, one file
 per name, byte-for-byte the same markup. Nothing about how you reference them changes.
 
+## The CSS cascade changes — on purpose
+
+In v2 every stylesheet Bali shipped was **unlayered**, which in Tailwind v4 outranks every
+layer. A utility class in your own template lost to a component rule, and the documented
+workaround was `lg:!hidden`. v3 puts Bali's own styles in `@layer components`, so **your
+utilities win**. If your app carries `!` variants that exist only to beat a Bali rule, you
+can drop the `!`.
+
+The exceptions are deliberate and documented in each file's header: `forms.css`,
+`datepicker.css`, `slim_select.css`, `breadcrumb/index.css`, `data_table/index.css` and
+`side_menu/daisyui-overrides.css` stay unlayered, because their job is to outrank **daisyUI**,
+which emits its own components inside `@layer utilities` — a layer beats specificity, so a
+rule in `components` cannot win against them at any specificity.
+
+Two consequences worth checking in your app:
+
+- **A CSS override you wrote against a Bali rule may now win where it used to lose, or lose
+  where it used to win.** If you were fighting a Bali rule with `!important` or a very
+  specific selector, try removing the escalation first — a plain utility probably does it now.
+- **`--border`, `--radius-box`, `--radius-field`, `--radius-selector`, `--size-field`,
+  `--size-selector`, `--depth` and `--noise` stop overriding your theme.** They were unlayered
+  `:root` declarations, which beat daisyUI's `@layer base`, so Bali's values won against every
+  theme. `light` and `dark` use exactly those values, which is why nobody noticed; the other 33
+  built-in themes do not. **If your app uses a daisyUI theme other than light or dark, its radii,
+  borders and depth will change — to what your theme actually asked for.**
+
+  They now sit on `:where(:root)` inside `@layer base`, which is where daisyUI declares its own
+  themes. **Setting them from `@theme {}` will not work**, and that is worth knowing because
+  `@theme {}` is the idiomatic way to declare tokens in Tailwind v4: it compiles to
+  `@layer theme`, and Tailwind orders layers `theme < base < components < utilities` (unlayered
+  CSS last). A later layer wins outright, so `theme` loses to `base` however specific its
+  selector is — zero specificity on Bali's side does not help you, because specificity only
+  settles ties *within* a layer. Measured against `--radius-box`, whose fallback is `.5rem`:
+
+  | Your app writes | Result |
+  |---|---|
+  | `@theme { --radius-box: 11px }` | `.5rem` — **ignored** |
+  | `@layer base { :root { --radius-box: 77px } }` | `77px` |
+  | `@layer base { [data-theme=mine] { … } }` | applies |
+  | `:root { --radius-box: 55px }` (no layer) | `55px` |
+
+  daisyUI behaves identically — its built-in themes are in `base` and shadow an `@theme` block
+  the same way — so if you already set these through a daisyUI theme, nothing changes for you.
+  Otherwise use a `@layer base` block or a plain unlayered `:root`.
+
+Import stays one line:
+
+```css
+@import "bali-view-components/css/bali.css";   /* now pulls in components.css too */
+```
+
+If you import `bali-view-components/css/components.css` separately, you can drop that line —
+keeping it duplicates bytes but changes nothing, since the layer assignments travel inside the
+file. `css/variables.css` was empty and is gone; nothing imported it.
+
 ## Every translation key moves to `bali_view.*`
 
 v2 shipped its strings under **three** roots — `bali.*`, `view_components.bali.*` and
@@ -423,6 +478,43 @@ ArgumentError: unknown keyword: :grid_display_mode_enabled
 This also closes **#653**: the legacy toggle built its links with
 `Utils::Url#add_query_params`, which duplicated a param already in the URL. That code is no
 longer on this path.
+
+## `Reveal` and `TreeView` change their markup
+
+Both were rows of `<div>`s with click handlers — unreachable by keyboard, unannounced by a
+screen reader — and `TreeView` additionally claimed `role="tree"`, a promise of roving
+tabindex, arrow-key movement and type-ahead that it has never kept. The elements now match
+what the components do. **Every class name is unchanged**, so styling keyed on
+`.tree-view-component`, `.tree-view-item-component`, `.item`, `.children`, `.caret` or
+`.reveal-trigger` still applies; anything naming the element or the role does not.
+
+| v2 | v3.0 |
+|---|---|
+| `<div class="reveal-trigger" data-action="click->reveal#toggle">` | `<button type="button" class="reveal-trigger" aria-expanded aria-controls>` |
+| `<div class="reveal-content">` | same, now with an `id` (derived from the component's `id:` when you pass one) |
+| `<div class="tree-view-component" role="tree">` | `<ul class="tree-view-component">` |
+| `<div class="tree-view-item-component" role="treeitem" aria-expanded>` | `<li class="tree-view-item-component">` — `aria-expanded` moves to the caret |
+| `<div class="children" role="group">` | `<ul class="children" id>` |
+| `<span class="caret" data-action="click->tree-view-item#toggle">` | `<button type="button" class="caret" aria-expanded aria-controls>`, **only on items that have children** |
+| `<span class="caret opacity-0">` on childless items | `<span class="caret" aria-hidden="true">` — no `opacity-0`, no handler, not a tab stop |
+
+What to grep for:
+
+```
+grep -rn 'role="tree\|role="treeitem\|role="group"' app/ test/ spec/
+grep -rn 'div\.reveal-trigger\|span\.caret' app/ test/ spec/
+```
+
+Two of these bite in tests rather than in the browser: a system test clicking `span.caret`
+needs `button.caret`, and one asserting `aria-expanded` on the `treeitem` wrapper has to read
+it off the caret button instead.
+
+`TreeView`'s `navigateTo` action and its `url` value are unchanged, and row clicks still
+navigate.
+
+`Reveal#show` and `Reveal#hide` did the opposite of their names (see the changelog). A host
+that worked around the inversion by wiring `reveal#hide` to its "show" button has to swap the
+two back.
 
 ## Behaviour changes with no API change
 

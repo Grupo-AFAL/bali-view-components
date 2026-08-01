@@ -70,9 +70,12 @@ module Bali
       end
 
       # @return [String] CSS classes for a day cell
+      # `p-2 align-top` are utilities and not only index.css's `.table td` rule:
+      # daisyUI styles `.table` cells (`padding: .75rem 1rem`, `vertical-align`)
+      # from @layer utilities, which beats the component sheet.
       def td_classes_for(day)
         class_names(
-          "day",
+          "day", "p-2", "align-top",
           today: today?(day),
           'start-date': day == start_date,
           'prev-month': previous_month?(day),
