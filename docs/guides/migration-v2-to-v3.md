@@ -799,6 +799,100 @@ three of the five raised `ArgumentError` for *any* key, because they had no `max
 `sidebar_width:` is new and shared: `:default` gives the sidebar a third of the grid,
 `:narrow` a quarter, `:wide` a half. Below `lg` it always stacks under the body.
 
+### 4. Give `PageHeader` an `h2` if your layout already owns the page's `h1`
+
+The page title is now the page's `h1`. In v2 it was an `h3` and no page component emitted an
+`h1` at all, so the heading outline of every Bali page started at level 3. All five page
+components inherit this through `PageHeader`, and so does `PageHeader` used directly.
+
+**This is the only edit most hosts owe.** If the surrounding layout — your own application
+layout, a shell, a navbar brand — already renders an `h1`, the page now has two, and two
+`h1`s is the same kind of axe failure the empty `h6` was:
+
+```erb
+<%# The layout already renders <h1>Costa Norte</h1> %>
+
+<%# v2: the title was an h3 and the layout's h1 stood alone %>
+<%= render Bali::ShowPage::Component.new(title: @shipment.folio) %>
+
+<%# v3: hand the page component the level it should use %>
+<%= render Bali::ShowPage::Component.new(title: @shipment.folio) do |page| %>
+  <% page.with_title(@shipment.folio, tag: :h2) %>
+<% end %>
+```
+
+Check it the way the acceptance criterion was checked — in the rendered DOM, not by reading
+the template:
+
+```js
+document.querySelectorAll('h1').length                                    // must be 1
+[...document.querySelectorAll('h1,h2,h3,h4,h5,h6')]
+  .filter(h => !h.textContent.trim())                                     // must be []
+```
+
+The better fix, where you control the layout, is to drop the layout's `h1` — a site name is
+not the page's heading — and let the page component name the page.
+
+### `PageHeader`: `tag:` is semantic, `class:` is the size
+
+`Bali::PageHeader::Component::HEADING_SIZES` is **gone**. The title slot used to derive its
+font size from the heading level through that table (`h1` → `text-4xl` … `h6` → `text-base`),
+which would have turned the `h1` default and the `tag: :h2` migration above into visual
+changes: the title would have grown to 36px, then shrunk to 30px for anyone doing the
+accessible thing. The size now lives in `TITLE_CLASSES` and does not move with the tag.
+
+```erb
+<%# v2: the tag chose the size %>
+<% c.with_title('Movies', tag: :h1) %>          <%# → text-4xl %>
+
+<%# v3: the tag is the element, the class is the size %>
+<% c.with_title('Movies', tag: :h1, class: 'text-4xl') %>
+```
+
+Rendered sizes are unchanged if you pass nothing: `text-2xl` for the title, `text-sm` for
+the subtitle.
+
+Three more shape changes in the same component:
+
+- **The subtitle is a `<p>`, not an `<h6>`.** It describes the title instead of opening a
+  section. Pass `tag:` if you really want a heading. CSS keyed on `h6.subtitle` needs
+  `.subtitle`.
+- **Nothing renders when there is nothing to render.** No title text and no block means no
+  heading element; same for the subtitle. If you leaned on the empty `h6` as a spacer, it is
+  gone — put the space on your own content.
+- **A block is the CONTENT of the heading, not a replacement for it.**
+  `with_title { tag.h3(...) }` produced an `h3` inside an `h3`, which the parser splits into
+  an empty heading plus yours. Pass the text, or put non-heading markup in the block.
+
+### `PageHeader`: title tags moved out of the heading, and the back button got a name
+
+`title_tags` is a slot on `PageHeader` itself now, and the badges render as siblings of the
+heading rather than inside it — inside, they joined the heading's accessible name ("The
+Matrix Action Released"). The markup goes from `h1 > div.flex > [title, tags]` to
+`div.page-header-title > [h1.title, tags]`. **CSS or tests keyed on `.title .badge` need
+`.page-header-title .badge`.**
+
+The back button carries `aria-label` from `bali_view.page_header.back` ("Go back" /
+"Volver"), skipped when you pass a visible `name:`. Override it per call site with
+`back: { href: path, 'aria-label': 'Back to shipments' }`, or globally by defining
+`bali_view.page_header.back` in your own `config/locales` — host locale files win now.
+
+`Bali::Icon` renders `aria-hidden="true"` by default. Lucide already hid its own `<svg>`;
+the kept, custom and legacy icon sources did not, and the attribute now sits on the wrapper
+where it covers all four. If an icon of yours is genuinely the only carrier of meaning, pass
+`"aria-hidden": false` — and give it an accessible name, or it is still announced as nothing.
+
+### `PageHeader`: what changes below `sm`
+
+Under `sm` the back button takes a row of its own instead of standing in a gutter beside the
+title. Measured at 375px: the title went from 291px of usable width starting 52px in, to the
+full 343px starting at the page's left edge, in line with the breadcrumb above it and the
+body below it. The cost is 44px of header height on mobile pages that have a back button.
+Desktop geometry does not change.
+
+Pass `responsive: false` to `PageHeader` to keep the v2 inline arrangement at every width.
+Page components do not forward that option; they always stack.
+
 ### `Level` and `InfoLevel` are deprecated
 
 Both keep working and warn until 4.0. `Level` → flex utilities

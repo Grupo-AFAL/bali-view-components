@@ -1,0 +1,10 @@
+<%= render Bali::PageHeader::Component.new(title: title, subtitle: 'Added 2 days ago',
+                                          back: { href: '#' }) do |c| %>
+  <% c.with_title_tag do %>
+    <%= render Bali::Tag::Component.new(text: 'Action', style: :outline, size: :sm) %>
+  <% end %>
+  <% c.with_title_tag do %>
+    <%= render Bali::Tag::Component.new(text: 'Released', color: :success, size: :sm) %>
+  <% end %>
+  <%= render Bali::Button::Component.new(name: 'Edit', href: '#', variant: :primary) %>
+<% end %>
