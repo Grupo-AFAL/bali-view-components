@@ -331,6 +331,9 @@ registers it with `flatpickr.localize()`.
 | `Bali::Table(id:)` as the column-selector target | the DataTable container id |
 | `render Bali::Card` around the DataTable in the host | the content slot's surface |
 | `toolbar_class:` | *(deleted — the toolbar is bare by design)* |
+| `Bali::Table(bulk_actions:)` | `selectable: true` inside a `Bali::BulkActions::Component` |
+| `Bali::Table::BulkAction::Component` | `Bali::BulkActions::Action` (`bulk.with_action`) |
+| `TableController` / `data-controller="table"` | `BulkActionsController` (`bulk-actions`) |
 
 ## Step by step
 
@@ -439,8 +442,71 @@ Three things to check on the server side:
 - **Delete your hand-written checkbox column.** `selectable: true` renders the column and
   the select-all header. If you delete the `<th>` without turning `selectable:` on, every
   column selector index shifts by one and the selector starts hiding the wrong column.
-- `selectable:` and the legacy `Bali::Table(bulk_actions:)` array are mutually exclusive;
-  declaring both raises `Bali::Table::Component::IncompatibleOptions`.
+- **`Bali::Table(bulk_actions:)` is gone**, along with `Bali::Table::BulkAction::Component`
+  and the `table` Stimulus controller that drove them. See the next section.
+
+### 4b. Replace the legacy `Bali::Table(bulk_actions:)` array
+
+```
+ArgumentError: Bali::Table(bulk_actions:) was removed in v3.
+```
+
+v2 shipped two complete, mutually exclusive selection systems on the same table. The legacy
+one took an array of action hashes, rendered its own checkbox column and its own floating
+bar, and was driven by a `table` Stimulus controller that Bali put on **every** table
+container whether or not the table had any actions. The v3 one is `selectable: true` plus a
+`Bali::BulkActions::Component` ancestor. Only the second one survives.
+
+Inside a DataTable the replacement is `with_bulk_actions`, shown in step 4 above. Standalone
+— a table with no DataTable around it, which is what the legacy array was mostly used for —
+wrap the table in a `BulkActions` component and let its default `variant: :floating` render
+the bar:
+
+```erb
+<%# v2 %>
+<%= render Bali::Table::Component.new(
+      bulk_actions: [
+        { name: 'Archive', href: '/products/bulk_archive', method: :post },
+        { name: 'Delete',  href: '/products/bulk_delete',  method: :delete }
+      ]
+    ) do |t| %>
+  <% @products.each do |product| %>
+    <% t.with_row(record_id: product.id) do %>...<% end %>
+  <% end %>
+<% end %>
+
+<%# v3 %>
+<%= render Bali::BulkActions::Component.new do |bulk| %>
+  <% bulk.with_action(label: 'Archive', href: '/products/bulk_archive', variant: :info) %>
+  <% bulk.with_action(label: 'Delete',  href: '/products/bulk_delete',  variant: :error) %>
+
+  <%= render Bali::Table::Component.new(selectable: true) do |t| %>
+    <% @products.each do |product| %>
+      <% t.with_row(record_id: product.id) do %>...<% end %>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+What changes beyond the call site:
+
+- **`name:` becomes `label:`**, and each action gains `variant:` (a daisyUI button colour)
+  and `size:`. `method:` survives unchanged, including the `:get` case: a GET action still
+  renders a link whose href the controller rewrites with `?selected_ids=[...]`, everything
+  else still submits a form with a `selected_ids` hidden field.
+- **The payload key is unchanged** (`selected_ids`, a JSON array), so a controller already
+  reading it keeps working.
+- **`data-controller="table"` disappears from every table container.** Bali emitted it
+  unconditionally; nothing in v3 does. A host that hung its *own* Stimulus controller named
+  `table` on Bali's markup, or that registered `TableController` from the npm package (it is
+  no longer exported, and `registerAll` no longer registers it), has to move that wiring.
+- **`Bali::Table::Row(bulk_actions:)` is gone too.** It was internal wiring, but it also
+  raises now rather than leaking into the `<tr>` as an HTML attribute.
+
+Both removed keywords raise `ArgumentError` naming the replacement rather than being
+swallowed into `**options`. Without that guard `bulk_actions:` would have landed in the
+generic HTML-attribute hash and rendered `<table bulk-actions="...">`: a table that looks
+right, has no checkbox column, no bar, and no error.
 
 ### 5. Replace the display-mode toggle with the view switch
 

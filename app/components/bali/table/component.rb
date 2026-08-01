@@ -9,7 +9,15 @@ module Bali
                        "[&_thead_tr]:sticky [&_thead_tr]:bg-base-100 [&_thead_tr]:top-[3.75rem]"
 
       class MissingFilterForm < StandardError; end
-      class IncompatibleOptions < StandardError; end
+
+      # `bulk_actions:` era el array de la selección legada, borrada en v3. Sin este guardia
+      # caería en `**options` y saldría como atributo HTML del `<table>`: la tabla se vería
+      # bien, sin columna de checkbox y sin barra, y nada lo delataría.
+      REMOVED_BULK_ACTIONS = "Bali::Table(bulk_actions:) was removed in v3. Turn on " \
+                             "`selectable: true` and declare the actions on a " \
+                             "`Bali::BulkActions::Component` ancestor — inside a DataTable " \
+                             "that is `with_bulk_actions`, standalone it is the default " \
+                             "`variant: :floating` bar."
 
       RowGroup = Struct.new(:value, :rows)
 
@@ -18,9 +26,7 @@ module Bali
       end
 
       renders_many :rows, ->(skip_tr: false, **options) do
-        Row::Component.new(
-          skip_tr: skip_tr, bulk_actions: bulk_actions?, selectable: selectable?, **options
-        )
+        Row::Component.new(skip_tr: skip_tr, selectable: selectable?, **options)
       end
 
       renders_many :footers, Footer::Component
@@ -37,17 +43,12 @@ module Bali
       # @param selectable [Boolean] Columna de checkbox + seleccionar-todo cableada al
       #   controlador `bulk-actions`, que debe vivir en algún ancestro (el DataTable lo
       #   pone solo cuando se declara `with_bulk_actions`). Cada fila necesita `record_id:`.
-      def initialize(form: nil, bulk_actions: [], selectable: false, sticky_headers: false,
+      def initialize(form: nil, selectable: false, sticky_headers: false,
                      group_counts: {}, **options)
-        @form = form
-        @bulk_actions = bulk_actions
-        @selectable = selectable
-        # Dos sistemas de selección en la misma tabla dan dos columnas de checkbox y dos
-        # contadores: el legado (controlador `table`) y el nuevo (`bulk-actions`).
-        if @selectable && bulk_actions.any?
-          raise IncompatibleOptions, "selectable and bulk_actions are mutually exclusive"
-        end
+        raise ArgumentError, REMOVED_BULK_ACTIONS if options.key?(:bulk_actions)
 
+        @form = form
+        @selectable = selectable
         @sticky_headers = sticky_headers
         @group_counts = group_counts || {}
         @tbody_options = hyphenize_keys(options.delete(:tbody) || {})
@@ -59,17 +60,8 @@ module Bali
         @options[:id] || @form&.id
       end
 
-      def bulk_actions?
-        @bulk_actions.any?
-      end
-
       def selectable?
         @selectable
-      end
-
-      # Columna de selección: la nueva (`selectable:`) o la del bulk_actions legado.
-      def selection_column?
-        selectable? || bulk_actions?
       end
 
       def visible_headers
@@ -90,7 +82,7 @@ module Bali
       end
 
       def group_colspan
-        visible_headers.count + (selection_column? ? 1 : 0)
+        visible_headers.count + (selectable? ? 1 : 0)
       end
 
       def group_label(value)
@@ -147,8 +139,7 @@ module Bali
       end
 
       def build_container_options(options)
-        opts = prepend_class_name(options, container_classes)
-        prepend_controller(opts, "table")
+        prepend_class_name(options, container_classes)
       end
 
       def container_classes
