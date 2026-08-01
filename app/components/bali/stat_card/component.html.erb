@@ -6,9 +6,11 @@
       </p>
       <p class="text-3xl font-bold mt-1"><%= value %></p>
     </div>
-    <%= tag.div(class: icon_container_classes, style: icon_container_style) do %>
-      <%= render Bali::Icon::Component.new(icon, size: :large, class: icon_text_class,
-                                           style: icon_style) %>
+    <% if icon.present? %>
+      <%= tag.div(class: icon_container_classes, style: icon_container_style) do %>
+        <%= render Bali::Icon::Component.new(icon, size: :large, class: icon_text_class,
+                                             style: icon_style) %>
+      <% end %>
     <% end %>
   </div>
   <% if footer? %>

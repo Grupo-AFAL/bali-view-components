@@ -146,26 +146,11 @@
   <%# Contenido: la superficie viaja con el slot (with_table la trae, with_grid no) %>
   <%= content_band %>
 
-  <%# Footer: Summary (left) + Pagination (right) %>
-  <% if show_footer? %>
-    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t border-base-200">
-      <%# Summary text %>
-      <div class="text-sm text-base-content/70 order-2 sm:order-1">
-        <% if show_summary_bottom? %>
-          <%= default_summary_text %>
-        <% end %>
-      </div>
-
-      <%# Pagination %>
-      <% if pagy %>
-        <div class="order-1 sm:order-2">
-          <% if custom_pagy_nav? %>
-            <%= custom_pagy_nav %>
-          <% else %>
-            <%= render Bali::Pagination::Component.new(pagy: pagy) %>
-          <% end %>
-        </div>
-      <% end %>
-    </div>
+  <%# Footer: summary (izquierda) + controles (derecha). Es el MISMO PaginationFooter que
+      cualquier host puede renderizar suelto, no una copia inline de él. %>
+  <%# `.to_s` y no el slot pelado: `capture` devuelve lo que el bloque ESCRIBIÓ en el buffer,
+      y un Slot devuelto sin renderizar no escribe nada — el nav salía vacío en silencio. %>
+  <%= render pagination_footer do |footer| %>
+    <% footer.with_controls { custom_pagy_nav.to_s } if custom_pagy_nav? %>
   <% end %>
 <% end %>

@@ -67,6 +67,16 @@ module Bali
         ALIGNMENTS.fetch(@align, :center)
       end
 
+      # PageHeader es el último uso interno de Level, que queda deprecado en v3 (#684). El
+      # aviso se silencia acá porque la decisión no es del host: sustituir el Level por flex
+      # plano es trabajo del propio PageHeader, no de quien lo renderiza.
+      def level_component
+        Bali.deprecator.silence do
+          Bali::Level::Component.new(align: level_align, class: component_classes,
+                                     **options.except(:class))
+        end
+      end
+
       def title_classes
         class_names(TITLE_CLASSES)
       end

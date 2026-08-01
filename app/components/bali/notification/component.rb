@@ -32,8 +32,8 @@ module Bali
       }.freeze
 
       POSITIONS = {
-        top_right: "fixed top-4 right-4 z-[101]",
-        bottom_right: "fixed bottom-4 right-4 z-[101]"
+        top_right: "fixed top-4 right-4 z-[var(--bali-z-toast)]",
+        bottom_right: "fixed bottom-4 right-4 z-[var(--bali-z-toast)]"
       }.freeze
 
       def initialize(type: :success, delay: 3000, fixed: true, dismiss: true, style: nil, position: :bottom_right, **options)
