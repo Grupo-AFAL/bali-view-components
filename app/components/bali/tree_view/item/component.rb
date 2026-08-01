@@ -62,14 +62,12 @@ module Bali
 
         attr_reader :name, :path, :root, :current_path, :options
 
+        def children_id
+          @children_id ||= "tree-view-children-#{SecureRandom.hex(4)}"
+        end
+
         def wrapper_options
-          {
-            class: wrapper_classes,
-            role: "treeitem",
-            data: wrapper_data
-          }.tap do |opts|
-            opts[:'aria-expanded'] = display_children? if items?
-          end
+          { class: wrapper_classes, data: wrapper_data }
         end
 
         def wrapper_classes
@@ -99,9 +97,24 @@ module Bali
           class_names(
             "caret",
             CARET_CLASSES,
-            'rotate-90': display_children?,
-            'opacity-0': !items?
+            'rotate-90': display_children?
           )
+        end
+
+        # The caret is the disclosure control, so it is a button and it says what
+        # it discloses. Childless items render an inert spacer instead — an
+        # invisible button would still be a tab stop and still be announced.
+        def caret_options
+          {
+            type: "button",
+            class: caret_classes,
+            aria: {
+              expanded: display_children?,
+              controls: children_id,
+              label: t("bali_view.tree_view.toggle_branch", name: name)
+            },
+            data: caret_data
+          }
         end
 
         def caret_data
