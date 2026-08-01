@@ -369,7 +369,23 @@ Page-level header with title, subtitle, optional back button, and right-aligned 
 - `subtitle` - Subtitle text; use the `with_subtitle` slot for a custom tag or classes (default: `nil`)
 - `align` - Vertical alignment of left/right content: `:top`, `:center`, `:bottom` (default: `:center`)
 - `back` - Back button options hash, requires `href` (e.g. `{ href: path }`) (default: `nil`)
-- `responsive` - Apply tighter spacing on small screens (default: `true`)
+- `responsive` - Stack the header, and give the back button its own row, below `sm` (default: `true`)
+
+**Slots:**
+- `with_title(text, tag: :h1, **options)` - The page's heading. A block is the heading's
+  *content*, not a replacement for it — a heading inside the block nests one heading in
+  another. Nothing renders without text or a block.
+- `with_subtitle(text, tag: :p, **options)` - Renders a `<p>`; pass `tag:` for a heading.
+- `with_title_tag` - Badges beside the title. They render as siblings of the heading so they
+  stay out of its accessible name, and the row wraps on narrow viewports.
+
+**Headings.** The title is the page's `h1`. If your layout already renders one, pass
+`tag: :h2` — see the [migration guide](migration-v2-to-v3.md). `tag:` sets the element only;
+the size comes from `TITLE_CLASSES` and is overridden with `class:`.
+
+**Accessibility.** The back button is icon-only, so it carries a default `aria-label` from
+`bali_view.page_header.back`. Pass a visible `name:` and the label is skipped, so the
+accessible name keeps matching the visible one.
 
 #### Footer
 
