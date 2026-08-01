@@ -60,6 +60,7 @@ Rails.application.routes.draw do
   # DirectUpload test
   resources :direct_uploads, only: %i[new create]
   get 'sidemenu-example', to: 'pages#sidemenu_example'
+  get 'z-stack', to: 'pages#z_stack' # Manual check for the overlay z-index scale
 
   # Modal/Drawer content routes (for remote loading)
   get 'modals/basic', to: 'modals#basic'

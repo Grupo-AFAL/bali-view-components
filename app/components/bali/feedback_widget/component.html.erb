@@ -11,13 +11,13 @@
   </button>
 
   <%# Drawer overlay %>
-  <div class="fixed inset-0 bg-black/50 z-[60] hidden"
+  <div class="fixed inset-0 bg-black/50 z-[calc(var(--bali-z-drawer)_-_1)] hidden"
        data-feedback-widget-target="overlay"
        data-action="click->feedback-widget#close"
        aria-hidden="true"></div>
 
   <%# Drawer panel %>
-  <div class="fixed top-0 right-0 h-full w-full max-w-md bg-base-100 shadow-2xl z-[61]
+  <div class="fixed top-0 right-0 h-full w-full max-w-md bg-base-100 shadow-2xl z-[var(--bali-z-drawer)]
               transform translate-x-full transition-transform duration-300 ease-in-out"
        data-feedback-widget-target="panel"
        role="dialog"
