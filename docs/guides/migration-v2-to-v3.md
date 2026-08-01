@@ -1129,6 +1129,87 @@ EventTarget.prototype.dispatchEvent = function (event) {
 }
 ```
 
+## The sidebar's hidden checkboxes are gone
+
+The mobile drawer and the desktop collapse were driven by two `<input type="checkbox">`
+elements with `class="hidden"`, flipped by `<label for=…>`. Neither was reachable by keyboard,
+which made the sidebar pointer-only on mobile. Both are now state classes owned by
+`SideMenuController`, and every control is a `<button>`.
+
+**Nothing to do if you only used the components.** The renames below are the whole surface.
+
+| Removed | Replacement |
+|---|---|
+| `Bali::SideMenu::Component::MOBILE_TRIGGER_ID` | `Bali::SideMenu::Component::DEFAULT_ID` (`"side-menu"`) — now the sidebar's DOM `id` |
+| `SideMenu.new(mobile_trigger_id:)` | `SideMenu.new(id:)` |
+| `Topbar.new(mobile_trigger_id:)` | `Topbar.new(menu_id:)` (`nil` still means "no hamburger") |
+| `Navbar::Burger.new(trigger_id:)` | `Navbar::Burger.new(menu_id:)` |
+| `input.side-menu-mobile-trigger` | `.side-menu-component.is-active` |
+| `input.side-menu-collapse-trigger` | `.side-menu-component.is-collapsed` |
+| `bali_view.side_menu.toggle_mobile` | `bali_view.side_menu.trigger.toggle` |
+| `bali_view.side_menu.toggle_collapse` | *(deleted — the collapse buttons use `collapse` / `expand`, which already existed)* |
+
+If you wrote your own hamburger — a `<label for="side-menu-mobile-trigger">`, or a button with
+`data-action="navbar#toggleSideMenu"` — replace it with the component:
+
+```erb
+<%= render Bali::SideMenu::Trigger::Component.new %>
+<%# a sidebar with a custom id: %>
+<%= render Bali::SideMenu::Trigger::Component.new(menu_id: "reports-menu") %>
+```
+
+`navbar#toggleSideMenu` still works — it dispatches the same `bali:side-menu:toggle` window
+event — but a control wired to it gets no `aria-expanded` and no focus restoration.
+
+Any CSS of your own that reached for those checkboxes stops matching. The common one is the
+content offset:
+
+```css
+/* before */
+.app-layout--has-fixed-sidebar:has(.side-menu-collapse-trigger:checked) .app-layout-content { … }
+/* after */
+.app-layout--has-fixed-sidebar:has(.side-menu-component.is-collapsed) .app-layout-content { … }
+```
+
+Also drop any `padding-top` you added to the sidebar's first section: an untitled first list
+now gets the same `pt-3` a titled one gets from its label.
+
+### `AppLayout(fixed_sidebar:)` now defaults to `true`, and a mismatch raises
+
+`AppLayout` defaulted to `false` while `SideMenu` defaulted to `fixed: true`, so the two
+defaults together produced a pinned sidebar over content that was never offset for it. They
+agree now, and `AppLayout` raises in development and test when the sidebar it rendered
+disagrees with the flag.
+
+If you were relying on the old default, pass both:
+
+```erb
+<%= render Bali::AppLayout::Component.new(fixed_sidebar: false) do |layout| %>
+  <% layout.with_sidebar do %>
+    <%= render Bali::SideMenu::Component.new(current_path: request.path, fixed: false) %>
+  <% end %>
+<% end %>
+```
+
+`viewport_locked:` follows suit: its default is now whether a fixed sidebar was *actually*
+rendered into the slot, not the raw flag. `fixed_sidebar: true` with an empty sidebar slot no
+longer locks the page to the viewport. Passing `viewport_locked:` explicitly is unaffected.
+
+### `AppLayout` renders a skip link and owns `<main>`'s id
+
+The layout now emits `<a class="bali-skip-link" href="#main-content">` as the first focusable
+element of the page and `<main id="main-content" tabindex="-1">` as its target. **If your app
+already renders its own skip link inside the layout's body slot, remove it** — otherwise
+keyboard users get two — or pass `skip_link: false`. If you were selecting `main` by a
+different id, note that it has one now.
+
+### `SideMenu` becomes a `<nav>` and `Topbar` a `<header>`
+
+`SideMenu`'s root element is a `<nav aria-label>` and its sections are `ul`/`li`; `Topbar`'s is
+a `<header>`. Both keep their classes (`.side-menu-component`, `.bali-topbar`), so CSS and
+tests that select on those are fine; `div.bali-topbar` and `.side-menu-component > div` are
+not.
+
 ## What breaks, and what replaces it
 
 | Removed | Replacement |
@@ -1140,6 +1221,10 @@ EventTarget.prototype.dispatchEvent = function (event) {
 | `Bali::Heatmap::Component::COLOR_PRESETS` | `Bali::Color::NAMES` / `Bali::Color.css` |
 | `Bali::Kanban::Column::Component::BADGE_COLORS` | `Bali::Tag::Component::COLORS` |
 | `ColorPicker.gradient` / `.theme_color` / `.theme_color_with_alpha` | `Bali::Color.gradient` / `.css` / `.with_alpha` |
+| `Bali::SideMenu::Component::MOBILE_TRIGGER_ID` | `Bali::SideMenu::Component::DEFAULT_ID` |
+| `SideMenu(mobile_trigger_id:)` | `SideMenu(id:)` |
+| `Topbar(mobile_trigger_id:)` | `Topbar(menu_id:)` |
+| `Navbar::Burger(trigger_id:)` | `Navbar::Burger(menu_id:)` |
 | `c.with_tag_item` / `c.with_tag_header` on `Bali::Timeline` | `c.with_item` / `c.with_header` *(deprecated shim until v4)* |
 | `Bali::Timeline::Header(tag_class:)` | `color:` plus `class:` *(deprecated shim until v4)* |
 | `bali_view.data_table.summary` | `bali_view.pagination.summary` |
@@ -1563,7 +1648,16 @@ node -e 'const d=require("./package.json").dependencies||{};for(const k of Objec
 grep -rn "openModal\|openDrawer\|modal:success" app/
 grep -rn "hovercard:\|sortable-list:\|interact:on\|direct-upload:" app/
 grep -rn "useDispatch\|use-dispatch\|baliDispatchDebugEnabled" app/ config/
+# sidebar: the checkboxes are gone, and so are their labels and CSS hooks
+grep -rn "MOBILE_TRIGGER_ID\|mobile_trigger_id\|trigger_id:" app/
+grep -rn "side-menu-mobile-trigger\|side-menu-collapse-trigger" app/
+grep -rn "toggleSideMenu" app/
+grep -rn "fixed_sidebar" app/views app/components   # must agree with SideMenu(fixed:)
+grep -rn "#main-content\|skip.to.main" app/          # AppLayout renders its own skip link
 ```
+
+Then walk the sidebar with the keyboard at a phone width: Tab to the hamburger, Enter,
+Tab through the items, Escape — focus has to come back to the hamburger.
 
 Then load each index page in a browser and check, in this order: the toolbar is not inside
 a card, filtering over Turbo Streams still replaces the listing, selecting a row swaps the

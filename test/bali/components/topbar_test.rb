@@ -48,32 +48,47 @@ class BaliTopbarComponentTest < ComponentTestCase
     assert_selector(".avatar-stub", text: "AG")
   end
 
-  def test_renders_mobile_trigger_label_by_default
+  def test_renders_a_header_landmark
+    # The topbar is the page's banner region. AppLayout renders it as a sibling
+    # of <main>, so <header> maps to role="banner" with no explicit role.
     render_inline(Bali::Topbar::Component.new)
-    assert_selector("label[for='#{Bali::SideMenu::Component::MOBILE_TRIGGER_ID}']")
+    assert_selector("header.bali-topbar")
+  end
+
+  def test_renders_mobile_trigger_by_default
+    render_inline(Bali::Topbar::Component.new)
+    assert_selector(
+      "button[aria-controls='#{Bali::SideMenu::Component::DEFAULT_ID}']"
+    )
   end
 
   def test_does_not_render_mobile_trigger_when_nil
-    render_inline(Bali::Topbar::Component.new(mobile_trigger_id: nil))
-    assert_no_selector("label.lg\\:hidden")
+    render_inline(Bali::Topbar::Component.new(menu_id: nil))
+    assert_no_selector("button[aria-controls]")
   end
 
-  def test_uses_custom_mobile_trigger_id
-    render_inline(Bali::Topbar::Component.new(mobile_trigger_id: "custom-id"))
-    assert_selector("label[for='custom-id']")
+  def test_uses_custom_menu_id
+    render_inline(Bali::Topbar::Component.new(menu_id: "custom-id"))
+    assert_selector("button[aria-controls='custom-id']")
+    assert_selector("button[data-side-menu-trigger-menu-id-value='custom-id']")
   end
 
   def test_mobile_trigger_has_aria_label
     render_inline(Bali::Topbar::Component.new)
-    assert_selector("label[aria-label]")
+    assert_selector("button[aria-label]")
   end
 
-  def test_mobile_trigger_does_not_use_role_button_polyfill
-    # role="button" + tabindex on a <label> is an a11y anti-pattern: the label
-    # already toggles the checkbox on click, but Space/Enter wouldn't work.
+  def test_mobile_trigger_is_a_real_button_not_a_label
+    # A <label> for a `display: none` checkbox is unreachable by keyboard, which
+    # is what made the sidebar mouse-only on mobile before v3.
     render_inline(Bali::Topbar::Component.new)
-    assert_no_selector("label[role='button']")
-    assert_no_selector("label[tabindex]")
+    assert_no_selector("label")
+    assert_selector("button[type='button'][aria-expanded='false']")
+  end
+
+  def test_mobile_trigger_is_hidden_on_large_screens
+    render_inline(Bali::Topbar::Component.new)
+    assert_selector("button.lg\\:hidden[aria-controls]")
   end
 
   def test_accepts_custom_classes
