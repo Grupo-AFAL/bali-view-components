@@ -2,6 +2,11 @@ import { Controller } from '@hotwired/stimulus'
 import { autoFocusInput } from '../../../assets/javascripts/bali/utils/form.js'
 import { confirmDialog } from '../../../assets/javascripts/bali/confirm/confirm_dialog.js'
 
+// Hardcoded instead of letting `dispatch` default to `this.identifier`, so the
+// public event names stay put when a host registers this controller under a
+// different identifier. DrawerController overrides it with 'bali:drawer'.
+export const MODAL_EVENT_PREFIX = 'bali:modal'
+
 // Size classes matching Modal::Component::SIZES
 const SIZE_CLASSES = {
   sm: 'max-w-sm',
@@ -25,6 +30,11 @@ const SIZE_CLASSES = {
  *     <a data-action="modal#close">Cancel</a>
  *   </div>
  * </section>
+ *
+ * Events, all dispatched on `document`:
+ *   - bali:modal:open     emitted by `open()`, and listened for so a host can
+ *                         open the modal without going through a trigger link
+ *   - bali:modal:success  emitted after a form inside the modal (or drawer) saves
  */
 export class ModalController extends Controller {
   static targets = ['template', 'background', 'wrapper', 'content', 'closeBtn']
@@ -33,8 +43,13 @@ export class ModalController extends Controller {
   // Emitted by Drawer (default on) and Modal (opt-in). Subclasses inherit it.
   static values = { confirmCloseMessage: String }
 
+  // Overridden by DrawerController so the two never answer each other's open event.
+  get eventPrefix () {
+    return MODAL_EVENT_PREFIX
+  }
+
   async connect () {
-    this.setupListeners('openModal')
+    this.setupListeners(`${this.eventPrefix}:open`)
   }
 
   setupListeners = eventName => {
@@ -78,7 +93,7 @@ export class ModalController extends Controller {
   }
 
   disconnect () {
-    this.removeListeners('openModal')
+    this.removeListeners(`${this.eventPrefix}:open`)
   }
 
   removeListeners = eventName => {
@@ -329,12 +344,10 @@ export class ModalController extends Controller {
     const modalSize = target.getAttribute('data-modal-size')
 
     // Show modal immediately with skeleton (content already in template)
-    document.dispatchEvent(new CustomEvent('openModal', {
-      detail: {
-        content: null, // Don't replace content - show existing skeleton
-        options: { wrapperClasses, redirectTo, skipRender, extraProps, modalSize }
-      }
-    }))
+    this._dispatchOpen({
+      content: null, // Don't replace content - show existing skeleton
+      options: { wrapperClasses, redirectTo, skipRender, extraProps, modalSize }
+    })
 
     // Fetch actual content
     const response = await fetch(this._buildURL(target.href))
@@ -346,12 +359,17 @@ export class ModalController extends Controller {
     }
 
     // Replace skeleton with actual content
-    document.dispatchEvent(new CustomEvent('openModal', {
-      detail: {
-        content: body,
-        options: { wrapperClasses, redirectTo, skipRender, extraProps, modalSize }
-      }
-    }))
+    this._dispatchOpen({
+      content: body,
+      options: { wrapperClasses, redirectTo, skipRender, extraProps, modalSize }
+    })
+  }
+
+  // Targets `document` rather than the controller element: the trigger and the
+  // overlay are usually different subtrees (often a body-level controller), so a
+  // bubbling event from the link never reaches the one holding the targets.
+  _dispatchOpen = detail => {
+    this.dispatch('open', { prefix: this.eventPrefix, target: document, detail })
   }
 
   close = event => {
@@ -449,13 +467,20 @@ export class ModalController extends Controller {
         return response.text()
       })
       .then(responseText => {
-        const event = new CustomEvent('modal:success', { detail: redirectData })
+        // Always `bali:modal:success`, drawers included: the drawer inherits this
+        // method, and one name for "the form inside the overlay saved" is what a
+        // host wants to listen for.
+        const dispatchSuccess = () => this.dispatch('success', {
+          prefix: MODAL_EVENT_PREFIX,
+          target: document,
+          detail: redirectData
+        })
 
         if (redirected) {
           // A successful submit is not a discard — clear dirty so the close
           // below (and any that follows) does not prompt for confirmation.
           this._dirty = false
-          document.dispatchEvent(event)
+          dispatchSuccess()
 
           if (this.skipRender) {
             this._closeModal()
@@ -463,7 +488,7 @@ export class ModalController extends Controller {
             this._replaceBodyAndURL(responseText, redirectURL)
           }
         } else if (turboStreamResponse && window.Turbo) {
-          if (responseOk) { document.dispatchEvent(event) }
+          if (responseOk) { dispatchSuccess() }
 
           // Apply the streams to the page instead of injecting the raw
           // <turbo-stream> markup as inert HTML. Close only on success: an
@@ -474,7 +499,7 @@ export class ModalController extends Controller {
             this._closeModal()
           }
         } else {
-          if (responseOk) { document.dispatchEvent(event) }
+          if (responseOk) { dispatchSuccess() }
 
           this.openModal(responseText)
         }

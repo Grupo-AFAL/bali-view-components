@@ -26,9 +26,31 @@ class BaliStatusComponentTest < ComponentTestCase
   end
 
   def test_hex_color_is_applied_with_contrasting_text
-    render_inline(Bali::Status::Component.new(selected: "x", options: [ { value: "x", label: "X", color: "#ff0000" } ]))
+    render_inline(Bali::Status::Component.new(selected: "x", options: [ { value: "x", label: "X", custom_color: "#ff0000" } ]))
     assert_selector('.status-pill[style*="background-color: #ff0000"]')
     assert_selector('.status-pill[style*="color:"]')
+  end
+
+  # The fixed palette is Status's own; the semantic names are everybody's. Both
+  # resolve through Bali::Color, so `:success` here means what it means on a Tag.
+  def test_semantic_color_resolves_to_the_theme_variable
+    render_inline(Bali::Status::Component.new(selected: "x", options: [ { value: "x", label: "X", color: :success } ]))
+    assert_selector('.status-pill[style*="background-color: var(--color-success)"]')
+    assert_selector('.status-pill[style*="color: var(--color-success-content)"]')
+  end
+
+  def test_ghost_takes_the_theme_surface_because_there_is_no_color_ghost
+    render_inline(Bali::Status::Component.new(selected: "x", options: [ { value: "x", label: "X", color: :ghost } ]))
+    assert_selector('.status-pill[style*="background-color: var(--color-base-200)"]')
+  end
+
+  def test_unknown_color_name_is_rejected
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::Status::Component.new(
+        selected: "x", options: [ { value: "x", label: "X", color: :chartreuse } ]
+      ))
+    end
+    assert_includes(error.message, "unknown color :chartreuse")
   end
 
   def test_nil_selected_renders_placeholder_none_state
@@ -111,15 +133,19 @@ class BaliStatusComponentTest < ComponentTestCase
     assert_no_selector("button.status-pill__clear")
   end
 
-  def test_color_value_cannot_break_out_of_the_style_attribute
-    render_inline(Bali::Status::Component.new(
-      selected: "x",
-      options: [ { value: "x", label: "X", color: 'red" onmouseover="alert(1)' } ],
-      form: { url: "/t", method: :patch, param: "t[s]" }
-    ))
-    # If the color value broke out of the style attribute, an onmouseover
-    # attribute would exist. tag.* escaping keeps the quote inside style.
-    assert_no_selector("[onmouseover]")
+  # An arbitrary string used to reach the style attribute as-is and rely on
+  # `tag.*` escaping to stay inside it. Neither keyword takes an arbitrary string
+  # any more: a name has to be in the list, a `custom_color:` has to be a hex.
+  def test_a_color_that_is_not_a_name_or_a_hex_never_reaches_the_style_attribute
+    %i[color custom_color].each do |param|
+      assert_raises(ArgumentError) do
+        render_inline(Bali::Status::Component.new(
+          selected: "x",
+          options: [ { value: "x", label: "X", param => 'red" onmouseover="alert(1)' } ],
+          form: { url: "/t", method: :patch, param: "t[s]" }
+        ))
+      end
+    end
   end
 
   def test_selected_value_absent_from_options_falls_back_to_raw_label_and_default_color

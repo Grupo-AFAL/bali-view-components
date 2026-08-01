@@ -1,6 +1,11 @@
 import { ModalController } from '../modal/index.js'
 import { autoFocusInput } from '../../../assets/javascripts/bali/utils/form.js'
 
+// Hardcoded instead of letting `dispatch` default to `this.identifier`, so the
+// public event name stays put when a host registers this controller under a
+// different identifier.
+const EVENT_PREFIX = 'bali:drawer'
+
 // Size classes matching Drawer::Component::SIZES
 const SIZE_CLASSES = {
   sm: 'max-w-sm',
@@ -13,8 +18,15 @@ const SIZE_CLASSES = {
 const DEFAULT_SIZE = 'md'
 
 export class DrawerController extends ModalController {
+  // Splits `bali:drawer:open` off `bali:modal:open` so a page carrying both
+  // overlays does not open them at once. `bali:modal:success` is deliberately
+  // NOT split — see the note on `submit` in ModalController.
+  get eventPrefix () {
+    return EVENT_PREFIX
+  }
+
   async connect () {
-    this.setupListeners('openDrawer')
+    this.setupListeners(`${this.eventPrefix}:open`)
 
     // Store original skeleton content for restoration on close
     if (this.hasContentTarget) {
@@ -26,7 +38,7 @@ export class DrawerController extends ModalController {
   }
 
   disconnect () {
-    this.removeListeners('openDrawer')
+    this.removeListeners(`${this.eventPrefix}:open`)
   }
 
   // Override to use drawer-open class instead of modal-open
@@ -109,7 +121,7 @@ export class DrawerController extends ModalController {
   // inherited from ModalController — the drawer only overrides the parts that
   // differ (the `drawer-open` class and size map).
 
-  // Override open to dispatch 'openDrawer' event with skeleton shown first
+  // Override open to dispatch `bali:drawer:open` with the skeleton shown first
   open = async (event) => {
     event.preventDefault()
     const target = event.currentTarget
@@ -123,12 +135,10 @@ export class DrawerController extends ModalController {
     const drawerSize = target.getAttribute('data-drawer-size')
 
     // Show drawer immediately with skeleton (content already in template)
-    document.dispatchEvent(new CustomEvent('openDrawer', {
-      detail: {
-        content: null, // Don't replace content - show existing skeleton
-        options: { wrapperClasses, redirectTo, skipRender, extraProps, drawerSize }
-      }
-    }))
+    this._dispatchOpen({
+      content: null, // Don't replace content - show existing skeleton
+      options: { wrapperClasses, redirectTo, skipRender, extraProps, drawerSize }
+    })
 
     // Fetch actual content
     const response = await fetch(this._buildURL(target.href))
@@ -140,11 +150,9 @@ export class DrawerController extends ModalController {
     }
 
     // Replace skeleton with actual content
-    document.dispatchEvent(new CustomEvent('openDrawer', {
-      detail: {
-        content: body,
-        options: { wrapperClasses, redirectTo, skipRender, extraProps, drawerSize }
-      }
-    }))
+    this._dispatchOpen({
+      content: body,
+      options: { wrapperClasses, redirectTo, skipRender, extraProps, drawerSize }
+    })
   }
 }

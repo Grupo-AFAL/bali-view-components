@@ -335,16 +335,19 @@ The component dispatches custom events you can listen to:
 
 | Event | Detail | Description |
 |-------|--------|-------------|
-| `direct-upload:error` | `{ message }` | Validation or upload error |
-| `direct-upload:complete` | `{ id, filename, signedId }` | Single file upload completed |
-| `direct-upload:all-complete` | `{ count }` | All pending uploads finished |
+| `bali:direct-upload:error` | `{ message }` | Validation or upload error |
+| `bali:direct-upload:complete` | `{ id, filename, signedId }` | Single file upload completed |
+| `bali:direct-upload:all-complete` | `{ count }` | All pending uploads finished |
 
 ```javascript
 // Listen for completion in your own controller
-element.addEventListener('direct-upload:all-complete', (event) => {
+element.addEventListener('bali:direct-upload:all-complete', (event) => {
   console.log(`All ${event.detail.count} files uploaded`)
 })
 ```
+
+These three gained the `bali:` prefix in v3 — see
+[Migrating from v2 to v3](migration-v2-to-v3.md#every-public-event-is-now-bali-prefixed).
 
 ---
 

@@ -60,10 +60,15 @@ module Bali
       # Color Variants
       # ----------------
       # Timeline items and headers support color variants for visual hierarchy.
-      # Use `color:` param on items and headers.
+      # `color:` takes a DaisyUI name and follows the theme; `custom_color:` takes
+      # a hex and does not. `:ghost` — the default — leaves the marker and the
+      # line their DaisyUI colour.
       def with_colors
         render Bali::Timeline::Component.new do |c|
           c.with_header(text: 'Project Start', color: :primary)
+          c.with_item(heading: 'Brand event', icon: 'sparkles', custom_color: '#7c3aed') do
+            tag.p 'custom_color: the hex escape hatch, on the marker and the line'
+          end
           c.with_item(heading: 'Created', icon: 'plus', color: :primary) do
             tag.p 'Project initialized'
           end

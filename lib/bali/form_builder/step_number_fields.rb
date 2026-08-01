@@ -6,7 +6,7 @@ module Bali
       BUTTON_BASE_CLASSES = "btn join-item"
       BUTTON_DISABLED_CLASSES = "btn-disabled pointer-events-none"
       # Hide native number spinners since we provide +/- buttons
-      INPUT_CLASSES = "input input-bordered join-item text-center w-16 " \
+      INPUT_CLASSES = "input join-item text-center w-16 " \
                       "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none " \
                       "[&::-webkit-inner-spin-button]:appearance-none"
 

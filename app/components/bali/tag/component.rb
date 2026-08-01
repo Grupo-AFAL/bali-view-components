@@ -7,16 +7,18 @@ module Bali
 
       BASE_CLASSES = "badge tag-component"
 
+      # Keyed by Bali::Color::NAMES; the values are spelled out because Tailwind
+      # only emits a class it can find as a literal string in a source file.
       COLORS = {
         neutral: "badge-neutral",
         primary: "badge-primary",
         secondary: "badge-secondary",
         accent: "badge-accent",
-        ghost: "badge-ghost",
         info: "badge-info",
         success: "badge-success",
         warning: "badge-warning",
-        error: "badge-error"
+        error: "badge-error",
+        ghost: "badge-ghost"
       }.freeze
 
       SIZES = {
@@ -33,17 +35,9 @@ module Bali
         dash: "badge-dash"
       }.freeze
 
-      # The Bulma names v1 and v2 also accepted, mapped to what replaces them.
-      # Kept as data so a call site that never migrated is told which value to
-      # write instead of being handed the whole list of valid ones.
-      LEGACY_COLORS = {
-        danger: :error,
-        link: :primary,
-        black: :neutral,
-        dark: :neutral,
-        light: :ghost,
-        white: :ghost
-      }.freeze
+      # The Bulma colour names are shared with every other component that takes a
+      # `color:`, so they live in Bali::Color. The sizes are Tag's alone.
+      LEGACY_COLORS = Bali::Color::LEGACY
 
       LEGACY_SIZES = {
         small: :sm,
@@ -63,9 +57,9 @@ module Bali
 
         @text = text
         @href = href
-        @color_class = variant_class(:color, color, COLORS, LEGACY_COLORS)
+        @color_class = COLORS[Bali::Color.name!(self.class, color)]
         @size_class = variant_class(:size, size, SIZES, LEGACY_SIZES)
-        @custom_color = custom_color
+        @custom_color = Bali::Color.hex!(self.class, custom_color)
         @style = style&.to_sym
         @rounded = rounded
         @options = options
@@ -90,10 +84,11 @@ module Bali
         )
       end
 
-      # nil is how every optional variant is spelled, so it stays a no-op.
-      # Anything else has to be a key: dropping the variant when the value is
-      # not one is how the Bulma names survived two majors past their removal
-      # note — `color: :danger` rendered an uncoloured tag and nothing said so.
+      # The size half of what Bali::Color does for colours: nil is how an
+      # optional variant is spelled and stays a no-op, anything else has to be a
+      # key. Dropping the variant when the value is not one is how the Bulma
+      # names survived two majors past their removal note — `size: :small`
+      # rendered a default-sized tag and nothing said so.
       def variant_class(param, value, classes, legacy)
         return nil if value.nil?
 
