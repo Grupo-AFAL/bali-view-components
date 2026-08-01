@@ -89,6 +89,25 @@ Two consequences worth checking in your app:
   built-in themes do not. **If your app uses a daisyUI theme other than light or dark, its radii,
   borders and depth will change — to what your theme actually asked for.**
 
+  They now sit on `:where(:root)` inside `@layer base`, which is where daisyUI declares its own
+  themes. **Setting them from `@theme {}` will not work**, and that is worth knowing because
+  `@theme {}` is the idiomatic way to declare tokens in Tailwind v4: it compiles to
+  `@layer theme`, and Tailwind orders layers `theme < base < components < utilities` (unlayered
+  CSS last). A later layer wins outright, so `theme` loses to `base` however specific its
+  selector is — zero specificity on Bali's side does not help you, because specificity only
+  settles ties *within* a layer. Measured against `--radius-box`, whose fallback is `.5rem`:
+
+  | Your app writes | Result |
+  |---|---|
+  | `@theme { --radius-box: 11px }` | `.5rem` — **ignored** |
+  | `@layer base { :root { --radius-box: 77px } }` | `77px` |
+  | `@layer base { [data-theme=mine] { … } }` | applies |
+  | `:root { --radius-box: 55px }` (no layer) | `55px` |
+
+  daisyUI behaves identically — its built-in themes are in `base` and shadow an `@theme` block
+  the same way — so if you already set these through a daisyUI theme, nothing changes for you.
+  Otherwise use a `@layer base` block or a plain unlayered `:root`.
+
 Import stays one line:
 
 ```css

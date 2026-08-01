@@ -64,16 +64,31 @@ one and it either loses to daisyUI or becomes impossible for a host to override.
 
 | Position | What goes there | Why |
 |---|---|---|
-| `@layer base`, `:where(:root)` | `bali/theme-fallbacks.css` only — the daisyUI tokens Bali shares (`--border`, `--radius-*`, `--size-*`, `--depth`, `--noise`) | Zero specificity in daisyUI's own layer, so any real theme wins. They are fallbacks, not overrides. |
+| `@layer base`, `:where(:root)` | `bali/theme-fallbacks.css` only — the daisyUI tokens Bali shares (`--border`, `--radius-*`, `--size-*`, `--depth`, `--noise`) | Zero specificity in daisyUI's own layer, so a real theme *in that layer* wins. They are fallbacks, not overrides. |
 | `@layer components` | Bali's own look — nearly every `index.css` and global sheet | Host utility classes beat it, which is the point. `lg:hidden` just works; **no `!` variant needed**. |
-| unlayered | Only rules whose job is to outrank daisyUI | daisyUI 5 emits its components inside `@layer utilities`, and layers beat specificity — so a rule in `components` loses to daisyUI no matter how specific. |
+| unlayered | Only rules whose job is to outrank daisyUI (or Tailwind itself) | daisyUI 5 emits its components inside `@layer utilities`, and layers beat specificity — so a rule in `components` loses to daisyUI no matter how specific. |
 
 Unlayered today: `bali/forms.css`, `bali/datepicker.css`, `bali/slim_select.css`,
-`breadcrumb/index.css`, `data_table/index.css`, `side_menu/daisyui-overrides.css`. Each file's
-header names the daisyUI rule it has to beat — read it before adding to one.
+`bali/container-overrides.css`, `breadcrumb/index.css`, `data_table/index.css`,
+`side_menu/daisyui-overrides.css`, `calendar/daisyui-overrides.css`,
+`rich_text_editor/daisyui-overrides.css`. Each file's header names the rule it has to beat and
+the measurement that put it there — read it before adding to one.
 
 Rule of thumb for a new unlayered rule: the right-most compound is a daisyUI class, and you
 are only setting declarations daisyUI also sets. Anything else belongs in `@layer components`.
+`container-overrides.css` is the same shape against Tailwind's `.container` utility — the
+reason is the layer, not the vendor.
+
+**Specificity only settles ties inside a layer.** Across layers the later one wins outright,
+so a `:where()` selector in `base` is not "weak" against `@layer theme` — it beats it. The
+practical consequence: a host cannot override Bali's eight structural tokens from `@theme {}`,
+because that compiles to `@layer theme`, which comes before `base`. Measured; the table is in
+the header of `bali/theme-fallbacks.css`.
+
+**A default and the state that overrides it must share a layer.** A static utility on a
+template beats anything in `@layer components`, so the moment Bali's own CSS declares a
+`:hover`, an `.is-active` or a density variant for that property, the default has to move into
+the sheet next to it or the variant is dead. `command/index.css` carries the worked example.
 
 Careful with `!important` in an unlayered file: it is the *weakest* important in the author
 origin, so a host escapes it with `lg:!hidden`. Move that same rule into a layer and it

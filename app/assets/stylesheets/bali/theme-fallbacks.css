@@ -9,9 +9,34 @@
  *
  *   - the file is imported with `layer(base)` from ../bali.css, the same layer
  *     daisyUI uses for its themes;
- *   - `:where(:root)` has zero specificity, so ANY real declaration wins: a
- *     daisyUI built-in theme (`[data-theme=cupcake]`), a host's own theme, or
- *     a plain `:root` rule.
+ *   - `:where(:root)` has zero specificity, so a real declaration in the SAME
+ *     layer wins: a daisyUI built-in theme (`[data-theme=cupcake]`), or a
+ *     host's own theme written into `@layer base`.
+ *
+ * WHAT WINS AND WHAT DOES NOT
+ * ---------------------------
+ * Specificity only settles ties inside a layer. Across layers the later layer
+ * wins outright, and Tailwind orders them
+ * `theme < base < components < utilities`, with unlayered CSS after all of
+ * them. So a host beats these fallbacks from `@layer base` (where daisyUI puts
+ * its themes), from any later layer, or from no layer at all — but NOT from
+ * `@layer theme`, which comes first. Measured against `--radius-box`, whose
+ * fallback below is `.5rem`:
+ *
+ *   host writes                          resolves to
+ *   ------------------------------------ -----------
+ *   @theme { --radius-box: 11px }        .5rem   ← IGNORED, see below
+ *   @layer base { :root { … 77px } }     77px
+ *   @layer base { [data-theme] { … } }   22px
+ *   @layer components { :root { … } }    33px
+ *   :root { --radius-box: 55px }         55px
+ *
+ * The trap is the first row, because `@theme {}` is the idiomatic way to
+ * declare tokens in Tailwind v4: it compiles to `@layer theme`, which sits
+ * BEFORE base, so the layer loses no matter how specific the selector is.
+ * This is not a Bali quirk — daisyUI's own themes are in `base` and shadow an
+ * `@theme` block the same way. A host overriding these eight tokens has to
+ * use a daisyUI theme, a `@layer base` block, or a plain unlayered `:root`.
  *
  * Until v3 these lived unlayered on `:root`, which quietly beat every daisyUI
  * theme that ships different values (cyberpunk `--radius-box: 0`, cupcake
