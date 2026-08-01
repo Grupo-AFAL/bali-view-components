@@ -21,6 +21,7 @@
 @import "../../../components/bali/tooltip/index.css" layer(components);
 @import "../../../components/bali/status/index.css" layer(components);
 @import "../../../components/bali/hover_card/index.css" layer(components);
+@import "../../../components/bali/tag/index.css" layer(components);
 
 /* Form Components */
 @import "../../../components/bali/filters/index.css" layer(components);
