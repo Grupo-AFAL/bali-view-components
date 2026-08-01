@@ -89,7 +89,7 @@ module Bali
         else
           # CSS dropdown: menu needs all styling
           class_names(
-            "dropdown-content menu bg-base-100 text-neutral-800 rounded-box z-1 p-2 shadow-sm",
+            "dropdown-content menu bg-base-100 text-neutral-800 rounded-box z-[var(--bali-z-dropdown)] p-2 shadow-sm",
             WIDTHS[@width]
           )
         end

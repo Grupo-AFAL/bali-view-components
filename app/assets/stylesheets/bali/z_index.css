@@ -1,0 +1,65 @@
+/* Overlay stacking scale.
+ *
+ * Every overlay in the package reads its z-index from one of these tiers instead
+ * of picking a number. Before this file the numbers were invented per component
+ * — dropdown 50, drawer 60 and 9999, modal 61, command 100/101, toast 101,
+ * hovercard 9999, flatpickr 99999 — so ordering two overlays meant guessing, and
+ * a host that needed a toast above a modal had no move left except to outbid the
+ * largest number it could find (`!z-[10001]`).
+ *
+ * ORDER, low to high. The tiers are the answer to "which of these two do I still
+ * need to see when both are open?":
+ *
+ *   dropdown  200  menus anchored to a control: Dropdown, ActionsDropdown,
+ *                  SideMenu flyouts, DataTable's column/export/saved-view menus,
+ *                  the Filters condition menus
+ *   drawer    300  side panels: Drawer, FeedbackWidget
+ *   modal     400  dialogs that own the viewport: Modal, ImageGrid's lightbox,
+ *                  DocumentEditor's fullscreen overlay
+ *   command   500  the command palette, which opens on top of whatever you were
+ *                  doing — including a modal
+ *   popover   600  field popovers that escape their container: flatpickr's
+ *                  calendar, SlimSelect's list, Status' panel, BlockNote's
+ *                  portaled menus. They are portaled to <body>, so they need to
+ *                  clear the dialog whose field opened them
+ *   toast     700  notifications, which report on the dialog and must outlive it
+ *   tooltip   800  tooltips and hovercards: the smallest, shortest-lived thing on
+ *                  screen, so nothing may cover it
+ *
+ * THE GAP IS THE POINT. A hundred between tiers leaves a host room to slot its
+ * own overlay in — `--app-z-help-bubble: 650` sits between popover and toast —
+ * without renumbering anything of ours.
+ *
+ * The scale starts at 200 so that the app chrome that is not an overlay (Navbar's
+ * sticky bar at 50, SideMenu's fixed rail at 40 and its mobile scrim at 30, the
+ * floating bulk-action bars at 40/50) stays below all of it by construction. Do
+ * not raise those into the scale: they are page furniture, and an overlay that
+ * cannot cover the navbar is a bug.
+ *
+ * WHY `@layer theme` AND `:where()`. These are tokens, not rules — nothing else
+ * declares them, so this file has nothing to outrank and every reason to be easy
+ * to beat. `theme` is the first layer Tailwind declares, and `:where(:root)`
+ * carries zero specificity, so all four ways a host might redefine a tier win:
+ * an unlayered `:root` (beats every layer), a `@layer base` rule (later layer),
+ * a plain `:root` inside `@theme` (same layer, higher specificity), and of course
+ * a `z-*` utility on the element. Putting them in `base` instead would have made
+ * `@theme {}` — the idiomatic place for a Tailwind v4 host to keep tokens —
+ * silently lose, which is the trap `general.css`'s daisyUI fallbacks already live
+ * in and did not need a second instance of.
+ *
+ * Deliberately NOT in the scale: z-indexes that only order children inside one
+ * component's own stacking context (`z-[1]` on a tippy arrow, `z-[2]` on a Gantt
+ * resize handle, flatpickr's nav arrows at 3). Those never compete with another
+ * overlay, and naming them would suggest they do.
+ */
+@layer theme {
+  :where(:root) {
+    --bali-z-dropdown: 200;
+    --bali-z-drawer: 300;
+    --bali-z-modal: 400;
+    --bali-z-command: 500;
+    --bali-z-popover: 600;
+    --bali-z-toast: 700;
+    --bali-z-tooltip: 800;
+  }
+}

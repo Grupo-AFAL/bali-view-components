@@ -61,7 +61,7 @@
               <%= t('bali_view.filters.select_values') %>
             </span>
           </div>
-          <div class="absolute left-0 top-full hidden z-[100] mt-1 p-2 shadow-lg bg-base-100 border border-base-300 rounded-lg w-full max-h-60 overflow-y-auto"
+          <div class="absolute left-0 top-full hidden z-[var(--bali-z-dropdown)] mt-1 p-2 shadow-lg bg-base-100 border border-base-300 rounded-lg w-full max-h-60 overflow-y-auto"
                data-multi-select-target="dropdown">
             <% attribute_options.each do |opt| %>
               <% opt_label, opt_value = opt.is_a?(Array) ? opt : [opt, opt] %>

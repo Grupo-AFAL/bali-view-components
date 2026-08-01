@@ -469,6 +469,163 @@ One thing about the footer did change shape: on a phone the summary now sits abo
 controls rather than below, because the inline version carried `order-*` utilities that
 flipped them and the shared one does not. Same height, same spacing, reversed reading order.
 
+## The five page components get one surface
+
+`DashboardPage`, `DocumentPage`, `FormPage`, `IndexPage` and `ShowPage` now take the same
+options and the same slots, all defined in `Bali::PageComponents::Shared`. Most of the move
+is additive — a page component that did not accept `back:`, `nav`, `title_tags`, `sidebar`
+or `max_width:` accepts them now — so the only edits a host owes are these three.
+
+### 1. Rename `with_preview` to `with_body` on `DocumentPage`
+
+```erb
+<%# v2 %>
+<% page.with_preview do %><%= @document.body %><% end %>
+
+<%# v3 %>
+<% page.with_body do %><%= @document.body %><% end %>
+```
+
+`with_preview` still renders and warns through `Bali.deprecator` until 4.0, so nothing goes
+blank if you miss one. `grep -rn "with_preview" app/` finds them all.
+
+### 2. Expect DashboardPage's stat cards to look like `StatCard`, because they are one
+
+`with_stat` keeps its signature (`label:`, `value:`, `icon:`, `change:`, `color:`) and now
+renders `Bali::StatCard::Component`: the label becomes uppercase `text-xs`, the value
+`text-3xl`, the icon sits in a tinted circle, and `change:` lands in the card's footer. If
+you were relying on the old inline markup — a `text-sm` label and a `text-2xl` value — this
+is the change to look at. There is no flag for the old one: shipping two stat cards is the
+problem this closes.
+
+### 3. Two spacing/size values move to the shared default
+
+- `IndexPage`'s body gap goes from `mt-4` to `mt-6`, the value the other four use.
+- `ShowPage` and `DocumentPage`'s subtitle goes from `text-base` to `text-sm`, the value
+  `PageHeader::SUBTITLE_CLASSES` declares and the other three already rendered.
+
+Neither is configurable. If a page depended on the old value, set it on your own content.
+
+### `max_width:` now means the same thing everywhere
+
+| key | class | accepted it in v2 |
+|---|---|---|
+| `:sm` | `max-w-xl` | FormPage |
+| `:md` | `max-w-3xl` | FormPage |
+| `:lg` | `max-w-5xl` | DashboardPage, FormPage |
+| `:xl` | `max-w-7xl` | DashboardPage, FormPage |
+| `:"2xl"` | `max-w-screen-2xl` | DashboardPage |
+| `:full` | `max-w-full` | DashboardPage, FormPage |
+
+Defaults are unchanged where they existed (`:"2xl"` for DashboardPage, `:md` for FormPage)
+and are `:full` for the three that had no container — `:full` renders `mx-auto max-w-full`,
+which moves no layout. Passing a key the table does not have raises `ArgumentError`; in v2
+three of the five raised `ArgumentError` for *any* key, because they had no `max_width:`.
+
+`sidebar_width:` is new and shared: `:default` gives the sidebar a third of the grid,
+`:narrow` a quarter, `:wide` a half. Below `lg` it always stacks under the body.
+
+### `Level` and `InfoLevel` are deprecated
+
+Both keep working and warn until 4.0. `Level` → flex utilities
+(`flex justify-between items-center gap-4`), or `Bali::PageHeader::Component` for a page
+header. `InfoLevel` → a grid of `Bali::StatCard::Component`.
+
+## Overlay z-index: one scale, all new numbers
+
+Every overlay used to invent its own z-index. The full inventory, before and after:
+
+| Component | Where | v2 | v3 |
+|---|---|---|---|
+| `Dropdown` menu | `dropdown/component.rb` | `z-50` | `--bali-z-dropdown` (200) |
+| `ActionsDropdown` menu (CSS mode) | `actions_dropdown/component.rb` | `z-1` | `--bali-z-dropdown` |
+| `Navbar::DropdownItem` menu | `navbar/dropdown_item/component.rb` | `z-50` | `--bali-z-dropdown` |
+| `SideMenu` collapsed group / bottom group / item flyouts | 4 templates | `z-50` | `--bali-z-dropdown` |
+| `DataTable` saved views, column selector, export | 3 templates | `z-50` | `--bali-z-dropdown` |
+| `Filters` popover panel | `filters/component.html.erb` | `z-50` | `--bali-z-dropdown` |
+| `Filters::Condition` value menu | `filters/condition/component.html.erb` | `z-[100]` | `--bali-z-dropdown` |
+| `Filters` multi-select list (built in JS) | `condition_controller.js` | `z-50` | `.filters-multi-select-content` → `--bali-z-dropdown` |
+| `Drawer` root | `drawer/component.rb` | `z-[60]` | `--bali-z-drawer` (300) |
+| `Drawer` scrim / panel (inside the root) | `drawer/*` | `z-[60]` / `z-[9999]` | `z-0` / `z-10` |
+| `FeedbackWidget` scrim / panel | `feedback_widget/component.html.erb` | `z-[60]` / `z-[61]` | `calc(--bali-z-drawer - 1)` / `--bali-z-drawer` |
+| `Modal` | `modal/component.html.erb` | `z-61` | `--bali-z-modal` (400) |
+| `ImageGrid` lightbox | `image_grid/index.css` | `z-[100]` | `--bali-z-modal` |
+| `DocumentEditor` fullscreen overlay | `document_editor/component.rb` | `z-50` | `--bali-z-modal` |
+| `Command` backdrop / panel | `command/component.html.erb` | `z-[100]` / `z-[101]` | `calc(--bali-z-command - 1)` / `--bali-z-command` (500) |
+| flatpickr calendar (portaled + static) | `bali/datepicker.css` | `99999` / `999` | `--bali-z-popover` (600) |
+| SlimSelect list | `bali/slim_select.css` | `10000` | `--bali-z-popover` |
+| `Status` panel | `status/index.css` | `60` | `--bali-z-popover` |
+| BlockNote emoji picker, Mantine popover/menu | `block_editor/index.css` | `9999 !important` | `--bali-z-popover !important` |
+| `AppLayout` toast container | `app_layout/component.html.erb` | `z-[101]` | `--bali-z-toast` (700) |
+| `Notification` fixed positions | `notification/component.rb` | `z-[101]` | `--bali-z-toast` |
+| BlockEditor upload toast (built in JS) | `useFileUpload.js` | `z-50` | `.block-editor-upload-toast` → `--bali-z-toast` |
+| BlockNote / Mantine tooltips | `block_editor/index.css` | `9999 !important` | `--bali-z-tooltip !important` (800) |
+| `HoverCard` balloon | `hover_card/*` | `9999` (Ruby constant) | `--bali-z-tooltip`, read at connect |
+| `Tooltip` balloon | `tooltip/index.js` | tippy's own `9999` | `--bali-z-tooltip`, read at connect |
+
+### What you have to change
+
+**Any host rule whose number was chosen against one of Bali's.** The classic shapes:
+
+```css
+/* v2: "above the modal at 61" — now under every Bali overlay */
+.my-overlay { z-index: 70; }
+
+/* v3: say which tier you mean */
+.my-overlay { z-index: calc(var(--bali-z-modal) + 1); }
+```
+
+```erb
+<%# v2: identity's toast above a modal %>
+<div class="!z-[10001]">
+
+<%# v3: toasts are already above modals — the override is dead weight %>
+<div>
+```
+
+**A `z-*` utility still wins**, in both versions, because the tokens are read from
+`@layer utilities` classes and a host utility on the same element ties and sorts after.
+Nothing about escaping the scale got harder.
+
+### Moving the scale, or slotting into it
+
+The tokens are declared `:where(:root)` inside `@layer theme`, which is the weakest place
+they can live. Three ways to override, all of which work:
+
+```css
+/* Tailwind v4 idiom — same layer, higher specificity, wins */
+@theme {
+  --bali-z-modal: 1400;
+}
+
+/* Unlayered — beats every layer */
+:root {
+  --bali-z-toast: 1700;
+}
+```
+
+The gap between tiers is 100, so your own overlays go *between* Bali's without touching
+them:
+
+```css
+:root {
+  --app-z-help-bubble: 650; /* above popovers, below toasts */
+}
+```
+
+Note this is **not** how the daisyUI structural fallbacks in `general.css` behave: those
+sit in a later layer and a host cannot override them from `@theme {}` at all.
+
+### Behaviour that did not change
+
+- **App chrome keeps its numbers** — `Navbar` sticky (50), `SideMenu` rail (40) and mobile
+  scrim (30), floating bulk-action bars (40/50). The scale starts at 200 precisely so that
+  every overlay covers them; do not raise chrome into the scale.
+- **A dropdown inside a stacking context is still trapped in it.** A menu rendered inside
+  `Navbar`'s sticky bar competes only with that bar's other children, whatever its
+  z-index — that is how `position` + `z-index` works, and 200 does not change it.
+- **`HoverCard(z_index:)` still wins** when you pass it. Only the default moved.
+
 ## What breaks, and what replaces it
 
 | Removed | Replacement |
@@ -824,6 +981,9 @@ two back.
 ```
 grep -rn "with_actions_panel\|with_export\|table_id:\|data_display_mode\|toolbar_class:" app/
 grep -rn "with_tag_item\|with_tag_header\|tag_class:" app/
+
+grep -rn "with_preview" app/                          # DocumentPage's body slot
+grep -rn "Bali::Level\|Bali::InfoLevel" app/          # deprecated, removed in 4.0
 grep -rn "turbo_stream.replace \"data-table-" app/
 grep -rn "Bali::Card.*DataTable\|render Bali::Card" app/views/**/index*
 # any listing that groups and already used `view`, or that does not start on the table?

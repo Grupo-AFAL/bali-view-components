@@ -8,11 +8,11 @@
   <%# Backdrop — click to close %>
   <div data-command-target="backdrop"
        data-action="click->command#close"
-       class="hidden fixed inset-0 bg-black/40 z-[100]"></div>
+       class="hidden fixed inset-0 bg-black/40 z-[calc(var(--bali-z-command)_-_1)]"></div>
 
   <%# Modal panel — centered, fixed position %>
   <div data-command-target="panel"
-       class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-[101] w-[520px] max-w-[calc(100vw-2rem)]">
+       class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-[var(--bali-z-command)] w-[520px] max-w-[calc(100vw-2rem)]">
     <div class="cmd-panel bg-base-100 border border-base-300 rounded-box shadow-xl flex flex-col overflow-hidden <%= 'is-compact' if compact? %>">
       <%# Search input. Padding and font size live in index.css next to the
           `.is-compact` overrides — see the comment there before moving them
