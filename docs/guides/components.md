@@ -500,6 +500,9 @@ results, keyboard navigation, and a global ⌘K (Mac) / Ctrl+K (Windows) shortcu
 
 **Keyboard:** ↑/↓ to navigate, ⏎ to activate, Esc to close.
 
+**Emits:** `bali:command:select` (bubbles, `detail: { row, value }`) when an item without an
+`href` is activated.
+
 #### Breadcrumb
 
 Navigation path indicator.

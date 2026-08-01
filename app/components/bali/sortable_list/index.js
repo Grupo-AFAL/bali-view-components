@@ -1,6 +1,10 @@
 import { Controller } from '@hotwired/stimulus'
 import { patch } from '@rails/request.js'
-import useDispatch from '../../../assets/javascripts/bali/utils/use-dispatch.js'
+
+// Hardcoded instead of letting `dispatch` default to `this.identifier`, so the
+// public event name stays put when a host registers this controller under a
+// different identifier.
+const EVENT_PREFIX = 'bali:sortable-list'
 
 export class SortableListController extends Controller {
   static values = {
@@ -16,8 +20,6 @@ export class SortableListController extends Controller {
   }
 
   async connect () {
-    useDispatch(this)
-
     const { default: Sortable } = await import('sortablejs')
 
     this.sortable = new Sortable(this.element, {
@@ -47,7 +49,10 @@ export class SortableListController extends Controller {
     data.append(positionParam, newIndex + 1)
     data.append(listIdParam, toListId)
 
-    this.dispatch('onEnd', { order: this.sortable.toArray(), toListId })
+    this.dispatch('end', {
+      prefix: EVENT_PREFIX,
+      detail: { order: this.sortable.toArray(), toListId }
+    })
 
     if (!item.dataset.sortableUpdateUrl) return
 

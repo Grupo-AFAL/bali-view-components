@@ -408,15 +408,22 @@ export default class extends Controller {
 
 ### Dispatching Custom Events
 
+Bali's own events are all named `bali:<component>:<event>`, kebab-case, and emitted through
+Stimulus' native `dispatch`. The prefix is a hardcoded constant rather than the default
+(`this.identifier`) so the public name survives a host registering the controller under
+another identifier.
+
 ```javascript
 // Controller emitting event
+const EVENT_PREFIX = "bali:dropdown"
+
 this.dispatch("select", {
   detail: { value: selectedValue },
-  prefix: "dropdown"  // Results in "dropdown:select"
+  prefix: EVENT_PREFIX  // Results in "bali:dropdown:select"
 })
 
 // In HTML
-<div data-action="dropdown:select->parent#handleSelect">
+<div data-action="bali:dropdown:select->parent#handleSelect">
 ```
 
 ### Listening to Events
@@ -555,22 +562,21 @@ describe("Dropdown Controller", () => {
 
 ## Debug Mode
 
-Enable debugging for development:
+Because every Bali event shares the `bali:` prefix, one console snippet traces all of them —
+no per-controller instrumentation and no flag to remember to turn off:
 
 ```javascript
 // In browser console
-window.baliDispatchDebugEnabled = true
-```
-
-```javascript
-// In controller
-dispatch(name, detail) {
-  if (window.baliDispatchDebugEnabled) {
-    console.log(`[Bali] ${this.identifier}:${name}`, detail)
-  }
-  super.dispatch(name, detail)
+const dispatchEvent = EventTarget.prototype.dispatchEvent
+EventTarget.prototype.dispatchEvent = function (event) {
+  if (event.type.startsWith('bali:')) console.log(event.type, event.detail)
+  return dispatchEvent.call(this, event)
 }
 ```
+
+Do not override `dispatch` in a controller to add logging: that is what the removed
+`useDispatch` mixin did, and its incompatible `(name, detail)` signature silently broke every
+call that passed native options such as `target:` or `prefix:`.
 
 ---
 
