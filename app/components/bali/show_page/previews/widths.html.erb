@@ -1,0 +1,31 @@
+<%= render Bali::ShowPage::Component.new(
+  title: 'The Matrix',
+  subtitle: "max_width: :#{max_width} — sidebar_width: :#{sidebar_width}",
+  max_width: max_width,
+  sidebar_width: sidebar_width,
+  breadcrumbs: [
+    { name: 'Dashboard', href: '/lookbook', icon_name: 'home' },
+    { name: 'Movies', href: '/lookbook' },
+    { name: 'The Matrix' }
+  ],
+  back: { href: '/lookbook' }
+) do |page| %>
+  <% page.with_action do %>
+    <%= render Bali::Link::Component.new(name: 'Edit', href: '#', variant: :ghost, icon_name: 'pencil') %>
+  <% end %>
+  <% page.with_body do %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <h3 class="card-title text-lg mb-4">Body</h3>
+      <p class="text-base-content/60">
+        Two thirds of the grid by default, three quarters with <code>sidebar_width: :narrow</code>,
+        one half with <code>:wide</code>.
+      </p>
+    <% end %>
+  <% end %>
+  <% page.with_sidebar do %>
+    <%= render Bali::Card::Component.new(style: :bordered) do %>
+      <h3 class="card-title text-lg mb-4">Sidebar</h3>
+      <p class="text-base-content/60">Stacks under the body below <code>lg</code>.</p>
+    <% end %>
+  <% end %>
+<% end %>

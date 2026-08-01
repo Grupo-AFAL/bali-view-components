@@ -2,24 +2,10 @@
 
 module Bali
   module ShowPage
+    # Toda la superficie (title, subtitle, breadcrumbs, back, max_width, sidebar_width, y los
+    # slots nav, title_tags, body, sidebar, actions) vive en PageComponents::Shared.
     class Component < ApplicationViewComponent
       include PageComponents::Shared
-
-      renders_many :title_tags
-      renders_one :nav
-      renders_one :body
-      renders_one :sidebar
-
-      def initialize(title:, subtitle: nil, breadcrumbs: [], back: nil)
-        @title = title
-        @subtitle = subtitle
-        @breadcrumbs = breadcrumbs.map(&:symbolize_keys)
-        @back = back
-      end
-
-      private
-
-      attr_reader :title, :subtitle, :breadcrumbs, :back
     end
   end
 end
