@@ -925,8 +925,29 @@ Labels and status indicators.
 
 ```erb
 <%= render Bali::Tag::Component.new(text: "New", color: :primary) %>
-<%= render Bali::Tag::Component.new(text: "Pending", color: :warning, outline: true) %>
+<%= render Bali::Tag::Component.new(text: "Pending", color: :warning, style: :outline) %>
+<%= render Bali::Tag::Component.new(text: "Docs", href: "/docs", color: :info, size: :sm) %>
+<%= render Bali::Tag::Component.new(text: "Custom", custom_color: "#3b82f6") %>
 ```
+
+**Options:**
+- `text` - Label; falls back to the block content when omitted (default: nil)
+- `href` - Renders an `<a>` instead of a `<div>` (default: nil)
+- `color` - `:neutral`, `:primary`, `:secondary`, `:accent`, `:ghost`, `:info`, `:success`, `:warning`, `:error` (default: nil, daisyUI's own)
+- `size` - `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: nil, which renders like `:md`)
+- `style` - `:outline`, `:soft`, `:dash` (default: nil)
+- `custom_color` - Hex string applied as an inline background, with the text color picked for contrast (default: nil)
+- `rounded` - Fully rounded pill (default: false)
+
+An unknown `color:` or `size:` raises `ArgumentError` naming the valid values. The Bulma
+names v2 accepted (`:danger`, `:small`, `light: true`, …) are gone; the error names their
+replacement, and the full table is in the [migration guide](migration-v2-to-v3.md).
+
+**A Tag never wraps.** daisyUI's `.badge` is a fixed-height box, so a wrapped label renders
+its extra lines outside the pill. The component sets `white-space: nowrap`, which means a
+long tag widens its container instead of breaking — inside `Bali::Table` the table scrolls,
+inside a fixed-width card the pill overhangs. Opt out per call site with
+`class: "whitespace-normal"`; the rule is in `@layer components`, so a plain utility wins.
 
 #### Status
 
@@ -1104,7 +1125,7 @@ the rule the component applies.
 
 `with_table` and `with_grid` are sugar over `with_content`. Extra keywords go straight to
 the `Bali::Card` surface (`style:`, `class:`, `shadow:`, `body_class:`). Content that brings
-its own chrome — a Gantt, a map — passes `surface: false`.
+its own chrome — a calendar, a map — passes `surface: false`.
 
 Declaring two content slots raises `Bali::DataTable::Component::DuplicateContent`: to
 alternate between modes, pick which one you declare with an `if` on `dt.display_mode`.
@@ -1232,35 +1253,6 @@ Slots: `with_filters_panel`, `with_simple_filters`, `with_content` (`with_table`
 
 Export is not one of them: `page.with_export` on the surrounding page component puts it in
 the page's `⋯` — see [Secondary page actions](#secondary-page-actions-and-export).
-
-#### GanttChart
-
-Interactive Gantt chart with nested tasks, dependencies, milestones, drag/resize editing, and day/week/month zoom levels.
-
-```erb
-<%= render Bali::GanttChart::Component.new(tasks: [
-  { id: 1, name: 'Task 1', start_date: Date.current, end_date: Date.current + 16.days, update_url: '/tasks/1' },
-  { id: 2, name: 'Task 1.1', start_date: Date.current, end_date: Date.current + 10.days, parent_id: 1, update_url: '/tasks/2' }
-], zoom: :day) do |c| %>
-  <% c.with_view_mode_button(label: 'Day', zoom: :day, active: true) %>
-  <% c.with_view_mode_button(label: 'Week', zoom: :week, active: false) %>
-  <% c.with_footer { 'This is a footer' } %>
-<% end %>
-```
-
-**Options:**
-- `tasks` - Array of task hashes (`id`, `name`, `start_date`, `end_date`, `update_url`, plus optional `parent_id`, `dependent_on_id`, `progress`, `milestone`, `critical`, `href`, `actions`) (default: `[]`)
-- `row_height` - Row height in pixels (default: 35)
-- `col_width` - Column width in pixels (default: 25 for day zoom, 100 for week/month)
-- `zoom` - `:day`, `:week`, or `:month` (default: `:day`)
-- `readonly` - Disable drag/resize editing (default: false)
-- `offset` - Initial horizontal scroll offset in pixels (default: scrolls near today)
-- `resource_name` - Resource name sent with update requests (default: nil)
-- `list_param_name` - Param name used when reordering tasks (default: `"list_id"`)
-- `start_date` - Chart start date string; computed from tasks when nil (default: nil)
-- `colors` - Hash with `:default` and `:completed` task bar colors (via `**options`)
-
-Slots: `with_view_mode_button`, `with_footer`, `with_list_footer`.
 
 #### Heatmap
 

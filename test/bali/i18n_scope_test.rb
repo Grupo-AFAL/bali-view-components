@@ -12,8 +12,8 @@ class BaliI18nScopeTest < ActiveSupport::TestCase
   # already carries it — but keeps every level below it.
   def test_nested_components_keep_their_path
     assert_equal(
-      "bali_view.gantt_chart.task_actions",
-      Bali::GanttChart::TaskActions::Component.virtual_path
+      "bali_view.data_table.view_switch_control",
+      Bali::DataTable::ViewSwitchControl::Component.virtual_path
     )
   end
 
