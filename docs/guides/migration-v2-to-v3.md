@@ -389,24 +389,24 @@ longer on this path.
 - **Host `toolbar_buttons` moved to their own overflow group** (`host`) between the memory
   group and the right edge, so the view switch stays pinned to the edge. A listing that
   declares toolbar buttons and *no* view switch no longer pushes them to the far right.
-- **FormBuilder ya no emite sus propias opciones como atributos HTML.** `label`, `help`,
-  `mode`, `control_class`, `control_data`, `pattern_type` y el resto de
-  `HtmlUtils::RESERVED_OPTIONS` llegaban al elemento porque Rails reenvía cualquier clave
-  que no reconoce; ahora se extraen antes de delegar. El API no cambia y el markup válido
-  es idéntico — pero **un selector que dependiera de esos atributos inválidos deja de
-  encontrarlos**: `input[mode="range"]`, `[control_class]`, `[help]`, `select[label]` y
-  similares, en CSS o en tests de integración. Es el único cambio observable en el HTML de
-  un formulario que ya funcionaba.
-- **Los helpers ya no mutan el hash de opciones que reciben.** Antes `field_options`
-  escribía las clases base sobre el hash del llamador, así que reutilizarlo entre dos
-  campos acumulaba las clases del primero en el segundo; un host que se apoyara en ese
-  efecto (`opts = { class: 'w-full' }` compartido y esperando que el segundo campo heredara
-  `input input-bordered`) verá ahora las clases correctas en ambos. Un hash congelado
-  tampoco lanza ya `FrozenError`.
-- **`submit_actions` vuelve a respetar `show_cancel_button?`.** La comprobación leía
-  `options[:modal]` después de que `submit` lo hubiera borrado del hash, así que siempre
-  daba verdadero. Con `Bali.native_app` activo y `modal:` presente, el botón de cancelar
-  ahora se oculta como el código siempre dijo que haría. Sin `native_app` no cambia nada.
+- **The FormBuilder no longer emits its own options as HTML attributes.** `label`, `help`,
+  `mode`, `control_class`, `control_data`, `pattern_type` and the rest of
+  `HtmlUtils::RESERVED_OPTIONS` reached the element because Rails forwards any key it does
+  not recognise; they are now extracted before delegating. The API does not change and the
+  valid markup is identical — but **a selector that depended on those invalid attributes
+  stops matching**: `input[mode="range"]`, `[control_class]`, `[help]`, `select[label]` and
+  the like, in CSS or in integration tests. It is the only observable change in the HTML of
+  a form that already worked.
+- **Helpers no longer mutate the options hash they are given.** `field_options` used to
+  write the base classes onto the caller's hash, so reusing it across two fields
+  accumulated the first field's classes into the second; a host relying on that side effect
+  (one shared `opts = { class: 'w-full' }`, expecting the second field to inherit
+  `input input-bordered`) now gets the correct classes on both. A frozen hash no longer
+  raises `FrozenError` either.
+- **`submit_actions` respects `show_cancel_button?` again.** The check read
+  `options[:modal]` after `submit` had deleted it from the hash, so it was always true.
+  With `Bali.native_app` on and `modal:` present, the cancel button is now hidden the way
+  the code always said it would be. Without `native_app` nothing changes.
 
 ## Checklist
 
