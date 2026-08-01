@@ -58,9 +58,8 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 /* Scan Bali ViewComponents for Tailwind classes */
 @source "../../../node_modules/bali-view-components/app/**/*.{rb,erb}";
 
-/* Import Bali CSS */
+/* Import Bali CSS — one line, component sheets included */
 @import "bali-view-components/css/bali.css";
-@import "bali-view-components/css/components.css";
 
 /* Dark mode support */
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));

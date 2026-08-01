@@ -77,13 +77,13 @@ Create `app/assets/tailwind/application.css` (or similar):
 @source "../../../node_modules/bali-view-components/app/**/*.{rb,erb}";
 
 /* =============================================
-   Bali CSS Imports
+   Bali CSS Import
    =============================================
-   - bali.css: Base styles, forms, typography, variables
-   - components.css: Component-specific CSS (navbar, calendar, etc.)
+   One line. bali.css pulls in base styles, forms, typography and every
+   component sheet. (Before v3 you also had to import components.css by hand;
+   forgetting it left every component unstyled with no error.)
 */
 @import "bali-view-components/css/bali.css";
-@import "bali-view-components/css/components.css";
 
 /* =============================================
    Dark Mode Configuration
@@ -102,6 +102,21 @@ Create `app/assets/tailwind/application.css` (or similar):
 ```
 
 > **Note**: The `@source` directive is required because Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-primary'`). Without it, Tailwind won't detect these classes and components will appear unstyled.
+
+### Overriding Bali styles
+
+Bali's own component CSS ships in `@layer components`, so **a utility class on
+the element wins** — `class="menu-item lg:hidden"` hides the item, no `!`
+variant needed. Put the import after `@import "tailwindcss"` and after
+`@plugin "daisyui"` so the layer order is the one Tailwind sets up.
+
+A handful of sheets stay unlayered on purpose, because their whole job is to
+beat a rule daisyUI emits inside `@layer utilities` (daisyUI 5 does not use
+`@layer components`): `forms.css`, `datepicker.css`, `slim_select.css`,
+`breadcrumb/index.css`, `data_table/index.css` and
+`side_menu/daisyui-overrides.css`. Each file's header names the rule it is
+fighting. To override one of those from your app, use a `!` utility variant or
+plain unlayered CSS imported after Bali.
 
 ### DaisyUI Themes
 

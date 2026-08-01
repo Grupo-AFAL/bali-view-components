@@ -19,8 +19,8 @@ module Bali
       }.freeze
 
       def date_field(method, options = {})
-        opts = options.dup
-        clear_btn = build_clear_button if opts.delete(:clear)
+        opts = dup_options(options)
+        clear_btn = build_clear_button if opts[:clear]
         opts[:control_class] = [ "w-full", opts[:control_class] ].compact.join(" ")
         # Typing is enabled by default (allow_input defaults to true in the
         # controller), so derive a placeholder hint for every field unless the
@@ -130,7 +130,7 @@ module Bali
             'datepicker-period-value': options[:period],
             'datepicker-locale-value': I18n.locale
           }
-        }.merge!(options.delete(:wrapper_options) || {})
+        }.merge(dup_options(options[:wrapper_options] || {}))
 
         cv = controller_values(method, options)
         prepend_values(wrapper_options, "datepicker", cv)

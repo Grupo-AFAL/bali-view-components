@@ -5,8 +5,8 @@
  * interactivity for the component templates.
  *
  * Usage:
- *   import { TableController, ModalController } from 'bali-view-components'
- *   application.register('table', TableController)
+ *   import { ModalController } from 'bali-view-components'
+ *   application.register('modal', ModalController)
  *
  * Heavy/Optional modules (import separately):
  *   - Charts:           import { ChartController } from 'bali-view-components/charts'
@@ -15,7 +15,6 @@
  */
 
 import { installConfirmDialog } from '../../../assets/javascripts/bali/confirm/confirm_dialog'
-import { TableController } from '../../../components/bali/table/index'
 import { ModalController } from '../../../components/bali/modal/index'
 import { DrawerController } from '../../../components/bali/drawer/index'
 import { DropdownController } from '../../../components/bali/dropdown/index'
@@ -95,7 +94,6 @@ export {
   SideMenuFlyoutController,
   SortableListController,
   StatusController,
-  TableController,
   TabsController,
   TimeagoController,
   ToolbarOverflowController,
@@ -120,7 +118,6 @@ export {
  */
 export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   // Core
-  table: TableController,
   modal: ModalController,
   drawer: DrawerController,
   dropdown: DropdownController,

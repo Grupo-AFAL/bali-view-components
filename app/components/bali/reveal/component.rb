@@ -6,7 +6,14 @@ module Bali
       BASE_CLASSES = "reveal-component select-none group"
       OPENED_CLASS = "is-revealed"
 
-      renders_one :trigger, Reveal::Trigger::Component
+      # The trigger needs the id of the region it controls and the initial open
+      # state; both are the parent's to know, so the slot is built here rather
+      # than declared as a bare component class.
+      renders_one :trigger, ->(**trigger_options) {
+        Reveal::Trigger::Component.new(
+          controls: content_id, expanded: opened, **trigger_options
+        )
+      }
 
       def initialize(opened: false, **options)
         @opened = opened
@@ -16,6 +23,15 @@ module Bali
       private
 
       attr_reader :opened, :options
+
+      def content_id
+        @content_id ||=
+          if options[:id].present?
+            "#{options[:id]}-content"
+          else
+            "reveal-content-#{SecureRandom.hex(4)}"
+          end
+      end
 
       def component_classes
         class_names(

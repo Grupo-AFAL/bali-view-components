@@ -1,0 +1,62 @@
+/*
+ * daisyUI structural theme tokens — FALLBACKS, not overrides.
+ *
+ * daisyUI declares these for every built-in theme inside @layer base. A custom
+ * theme that only sets colors leaves them undefined, which silently breaks
+ * borders, radii and control sizing — hence these defaults.
+ *
+ * Two things keep them from turning into overrides:
+ *
+ *   - the file is imported with `layer(base)` from ../bali.css, the same layer
+ *     daisyUI uses for its themes;
+ *   - `:where(:root)` has zero specificity, so a real declaration in the SAME
+ *     layer wins: a daisyUI built-in theme (`[data-theme=cupcake]`), or a
+ *     host's own theme written into `@layer base`.
+ *
+ * WHAT WINS AND WHAT DOES NOT
+ * ---------------------------
+ * Specificity only settles ties inside a layer. Across layers the later layer
+ * wins outright, and Tailwind orders them
+ * `theme < base < components < utilities`, with unlayered CSS after all of
+ * them. So a host beats these fallbacks from `@layer base` (where daisyUI puts
+ * its themes), from any later layer, or from no layer at all — but NOT from
+ * `@layer theme`, which comes first. Measured against `--radius-box`, whose
+ * fallback below is `.5rem`:
+ *
+ *   host writes                          resolves to
+ *   ------------------------------------ -----------
+ *   @theme { --radius-box: 11px }        .5rem   ← IGNORED, see below
+ *   @layer base { :root { … 77px } }     77px
+ *   @layer base { [data-theme] { … } }   22px
+ *   @layer components { :root { … } }    33px
+ *   :root { --radius-box: 55px }         55px
+ *
+ * The trap is the first row, because `@theme {}` is the idiomatic way to
+ * declare tokens in Tailwind v4: it compiles to `@layer theme`, which sits
+ * BEFORE base, so the layer loses no matter how specific the selector is.
+ * This is not a Bali quirk — daisyUI's own themes are in `base` and shadow an
+ * `@theme` block the same way. A host overriding these eight tokens has to
+ * use a daisyUI theme, a `@layer base` block, or a plain unlayered `:root`.
+ *
+ * Until v3 these lived unlayered on `:root`, which quietly beat every daisyUI
+ * theme that ships different values (cyberpunk `--radius-box: 0`, cupcake
+ * `--border: 2px`, corporate `--depth: 0`, nord, caramellatte…). Only `light`
+ * and `dark` happen to match the values below, which is why the bug never
+ * surfaced in this repo.
+ *
+ * NOTE: this file is deliberately NOT called variables.css. It is not "the
+ * place where Bali keeps its variables" — Bali's own tokens (`--bali-*`,
+ * `--ss-*`, `--fp-*`) live next to the code that uses them. This
+ * file holds exactly the tokens Bali shares with daisyUI, and its whole reason
+ * to exist is the cascade position above.
+ */
+:where(:root) {
+  --border: 1px;
+  --radius-box: 0.5rem;
+  --radius-field: 0.25rem;
+  --radius-selector: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --depth: 1;
+  --noise: 0;
+}
