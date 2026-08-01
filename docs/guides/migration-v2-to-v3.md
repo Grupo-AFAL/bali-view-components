@@ -626,6 +626,77 @@ sit in a later layer and a host cannot override them from `@theme {}` at all.
   z-index — that is how `position` + `z-index` works, and 200 does not change it.
 - **`HoverCard(z_index:)` still wins** when you pass it. Only the default moved.
 
+## `Bali::Tag` drops the Bulma names, and stops wrapping
+
+Two changes to one small component, both of which can reach an app that never touched a
+`DataTable`.
+
+### The Bulma names raise instead of resolving
+
+`COLORS` and `SIZES` carried a block of Bulma aliases marked "deprecated, remove in v2.0".
+They are gone, and an unrecognised value now raises `ArgumentError` at construction rather
+than dropping the class:
+
+| v2 | v3 |
+|---|---|
+| `color: :danger` | `color: :error` |
+| `color: :link` | `color: :primary` |
+| `color: :black` | `color: :neutral` |
+| `color: :dark` | `color: :neutral` |
+| `color: :light` | `color: :ghost` |
+| `color: :white` | `color: :ghost` |
+| `size: :small` | `size: :sm` |
+| `size: :medium` | `size: :md` |
+| `size: :large` | `size: :lg` |
+| `size: :normal` | `size: :md` (or drop it — `md` is the default) |
+| `light: true` | `style: :outline` |
+
+The error names the replacement, so a missed call site reads
+`Bali::Tag::Component: color :danger is a Bulma name removed in v3. Use color: :error.`
+rather than rendering an uncoloured tag. A value in neither list gets the list of valid
+ones instead. `light:` is rejected the same way even though it is no longer a keyword
+argument: it would otherwise be swallowed by `**options` and rendered as a `light="true"`
+HTML attribute, which is the silent no-op this whole change exists to remove.
+
+Only `Bali::Tag` changed. `Bali::Icon` and `Bali::Message` have their own `:small` /
+`:danger` scales and still accept them.
+
+The knock-on to watch: `Bali::Kanban::Column` passes its `color:` straight through to a
+Tag, and its own `badge_class` tolerates an unknown value by falling back to `:ghost`. A
+column declared with a colour outside `Bali::Tag::COLORS` used to render ghost-coloured
+and now raises.
+
+```
+grep -rn "Tag::Component" app/ | grep -E ":danger|:link|:black|:dark|:white|:small|:medium|:large|:normal|light:"
+```
+
+### A Tag is single-line now
+
+daisyUI 5 gives `.badge` a fixed `height: var(--size)` and no white-space control, so a
+label the container squeezes wrapped its extra lines *outside* the pill — the reported
+symptom was role names "disappearing" from a table. `Bali::Tag` now sets `white-space:
+nowrap` and a `1.2` line-height on itself.
+
+**The trade is deliberate and it is visible.** A tag that used to wrap now keeps its full
+width, so a container that has somewhere to put it grows and a container that does not gets
+a tag sticking out of it:
+
+- Inside `Bali::Table` (or anything else with `overflow-x-auto`), the table widens and the
+  container scrolls. This is the fix.
+- Inside a fixed-width box with no horizontal scroll — a narrow card, a sidebar panel — the
+  pill now overhangs its box instead of breaking. Measured on a 256px card, a
+  28-character tag overhangs by 9px.
+
+If a specific call site really wants the old wrapping, opt out per tag. The rule ships in
+`@layer components`, so a plain utility class beats it — no `!` variant:
+
+```erb
+<%= render Bali::Tag::Component.new(text: role, class: "whitespace-normal") %>
+```
+
+That restores the v2 rendering, broken pill included. `Bali::Timeline::Header` is
+unaffected either way: it emits `.badge` markup directly rather than rendering a Tag.
+
 ## What breaks, and what replaces it
 
 | Removed | Replacement |
@@ -985,6 +1056,7 @@ grep -rn "with_tag_item\|with_tag_header\|tag_class:" app/
 grep -rn "with_preview" app/                          # DocumentPage's body slot
 grep -rn "Bali::Level\|Bali::InfoLevel" app/          # deprecated, removed in 4.0
 grep -rn "turbo_stream.replace \"data-table-" app/
+grep -rn "Tag::Component" app/ | grep -E ":danger|:link|:black|:dark|:white|:small|:medium|:large|:normal|light:"
 grep -rn "Bali::Card.*DataTable\|render Bali::Card" app/views/**/index*
 # any listing that groups and already used `view`, or that does not start on the table?
 grep -rn "group_by_attribute" app/
