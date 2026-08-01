@@ -507,11 +507,11 @@
   font-size: 0.75rem !important;
   line-height: 1.4 !important;
   text-align: center !important;
-  z-index: 9999 !important;
+  z-index: var(--bali-z-tooltip) !important;
 }
 
 :is(.block-editor-component, .document-editor-panel) .mantine-Tooltip-tooltip {
-  z-index: 9999 !important;
+  z-index: var(--bali-z-tooltip) !important;
 }
 
 /* Hide redundant Save-button tooltip (withinPortal=false renders it inline) */
@@ -881,19 +881,19 @@
 /* --- Popovers and menus (z-index fixes) --- */
 .document-editor-panel .bn-emoji-picker-popover,
 .block-editor-component .bn-emoji-picker-popover {
-  z-index: 9999 !important;
+  z-index: var(--bali-z-popover) !important;
   position: fixed !important;
 }
 
 .document-editor-panel .mantine-Popover-dropdown {
-  z-index: 9999 !important;
+  z-index: var(--bali-z-popover) !important;
 }
 
 .document-editor-panel .mantine-Menu-dropdown {
   background-color: var(--color-base-100) !important;
   border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
   box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
-  z-index: 9999 !important;
+  z-index: var(--bali-z-popover) !important;
 }
 
 /* --- Mantine Skeleton (loading state) --- */
@@ -942,7 +942,7 @@
  * Provides full visual styling for tooltips used by emoji reactions,
  * action buttons, and other BlockNote comment UI. */
 .mantine-Tooltip-tooltip {
-  z-index: 9999 !important;
+  z-index: var(--bali-z-tooltip) !important;
   background-color: var(--color-base-200, #f2f2f2) !important;
   border: 1px solid color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
   border-radius: 0.375rem !important;
@@ -1027,4 +1027,11 @@
 
 .version-btn-restore:hover svg {
   opacity: 1;
+}
+
+/* Upload-failure toast, built by useFileUpload.js and appended to <body>. Same
+   reason as `.filters-multi-select-content`: Tailwind does not scan this
+   package's JavaScript, so the tier cannot ride on a utility class. */
+.block-editor-upload-toast {
+  z-index: var(--bali-z-toast);
 }

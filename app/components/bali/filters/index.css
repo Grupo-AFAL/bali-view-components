@@ -53,3 +53,12 @@
     transform: translateX(0);
   }
 }
+
+/* The multi-select value list is assembled as an HTML string by
+   condition_controller.js. Tailwind never scans this package's JavaScript — the
+   install guide points @source at the .rb and .erb files only — so a
+   `z-[var(...)]` utility written there would name a class that is never
+   generated. The tier lands as a real rule instead. */
+.filters-multi-select-content {
+  z-index: var(--bali-z-dropdown);
+}
