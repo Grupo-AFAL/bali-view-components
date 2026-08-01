@@ -6,6 +6,13 @@ module Bali
     class Component < ApplicationViewComponent
       attr_reader :input_name, :upload_url, :options
 
+      # Distinguishes "the caller did not pass this" from "the caller passed the
+      # value that happens to be the default". Without it, `config:` could not be
+      # overridden by an explicit `comments: false` or `upload_url: nil`, because
+      # both are indistinguishable from an untouched default.
+      UNSET = Object.new.freeze
+      private_constant :UNSET
+
       # rubocop:disable Metrics/ParameterLists, Metrics/AbcSize
       def initialize(
         initial_content: nil,
@@ -15,28 +22,43 @@ module Bali
         format: :json,
         preset: :full,
         locale: nil,
-        syntax_highlighting: nil,
+        syntax_highlighting: UNSET,
         editable: true,
         placeholder: nil,
-        upload_url: :auto,
+        upload_url: UNSET,
         theme: :light,
-        export: false,
-        export_filename: "document",
-        ai_url: nil,
-        mentions_url: nil,
-        mentions: nil,
-        references_url: nil,
-        references_resolve_url: nil,
-        references_config: nil,
-        multi_column: false,
+        export: UNSET,
+        export_filename: UNSET,
+        ai_url: UNSET,
+        mentions_url: UNSET,
+        mentions: UNSET,
+        references_url: UNSET,
+        references_resolve_url: UNSET,
+        references_config: UNSET,
+        multi_column: UNSET,
         table_of_contents: false,
         table_of_contents_container_id: nil,
         show_export_buttons: true,
-        comments: false,
+        comments: UNSET,
         comments_container_id: nil,
+        config: nil,
         **options
       )
         # rubocop:enable Metrics/ParameterLists, Metrics/AbcSize
+        # A shared Config supplies the feature set; an explicit keyword overrides
+        # one item of it. That order is the useful one: a host passes the bundle
+        # its app always uses and then turns a single feature off for one editor.
+        @config = Config.wrap(config).merge(
+          {
+            syntax_highlighting: syntax_highlighting, upload_url: upload_url,
+            export: export, export_filename: export_filename, ai_url: ai_url,
+            mentions_url: mentions_url, mentions: mentions,
+            references_url: references_url, references_resolve_url: references_resolve_url,
+            references_config: references_config, multi_column: multi_column,
+            comments: comments
+          }.reject { |_, value| UNSET.equal?(value) }
+        )
+
         @initial_content = initial_content
         @html_content = html_content
         @markdown_content = markdown_content
@@ -46,32 +68,36 @@ module Bali
         # Sigue a la app por default: un editor en inglés dentro de una UI en
         # español es el error más visible de una instalación sin configurar.
         @locale = locale || I18n.locale.to_s.split("-").first
-        @syntax_highlighting = syntax_highlighting.nil? ? Bali.block_editor_syntax_highlighting : syntax_highlighting
+        @syntax_highlighting = @config.syntax_highlighting
+        @syntax_highlighting = Bali.block_editor_syntax_highlighting if @syntax_highlighting.nil?
         @editable = editable
         @placeholder = placeholder
-        @upload_url_auto = (upload_url == :auto)
-        @upload_url = upload_url == :auto ? nil : upload_url
+        @upload_url_auto = (@config.upload_url == :auto)
+        @upload_url = @config.upload_url == :auto ? nil : @config.upload_url
         @theme = theme
-        @export = export
-        @export_filename = export_filename
-        @ai_url = ai_url
-        @mentions_url = mentions_url
-        @mentions = mentions
-        @references_url = references_url
-        @references_resolve_url = references_resolve_url
-        @references_config = references_config
-        @multi_column = multi_column
+        @export = @config.export
+        @export_filename = @config.export_filename || "document"
+        @ai_url = @config.ai_url
+        @mentions_url = @config.mentions_url
+        @mentions = @config.mentions
+        @references_url = @config.references_url
+        @references_resolve_url = @config.references_resolve_url
+        @references_config = @config.references_config
+        @multi_column = @config.multi_column
         @table_of_contents = table_of_contents
         @table_of_contents_container_id = table_of_contents_container_id
         @show_export_buttons = show_export_buttons
         @comments_container_id = comments_container_id
 
-        comments_config = comments.is_a?(Hash) ? comments.transform_keys(&:to_sym) : nil
+        comments_config = @config.comments.is_a?(Hash) ? @config.comments.transform_keys(&:to_sym) : nil
         @comments       = comments_config.present?
         @comments_url   = comments_config&.fetch(:url, nil)
         @comments_user  = comments_config&.fetch(:user, nil)
         @comments_users = comments_config&.fetch(:users, nil)
         @comments_users_url = comments_config&.fetch(:users_url, nil)
+        # -1 stands for "not configured": 0 is a real value that turns polling off,
+        # so it cannot double as the unset marker.
+        @comments_poll_interval = comments_config&.fetch(:poll_interval, nil) || -1
 
         @options = prepend_class_name(options, "block-editor-component")
         @options = prepend_controller(@options, "block-editor")
@@ -185,7 +211,8 @@ module Bali
           comments_url: @comments_url || "",
           comments_user: serialized_comments_user,
           comments_users: serialized_comments_users,
-          comments_users_url: @comments_users_url || ""
+          comments_users_url: @comments_users_url || "",
+          comments_poll_interval: @comments_poll_interval
         }
       end
       # rubocop:enable Metrics/CyclomaticComplexity

@@ -136,6 +136,192 @@ render at once. `/admin/movies` in the dummy app is the end-to-end reference aga
 controllers, routes and Turbo Streams — saved views included, backed by the engine's default
 store and a one-user demo owner; the only family it leaves out is host toolbar buttons.
 
+## The document editor contract changes
+
+Only relevant if you render `Bali::DocumentEditor::Component`, `Bali::DocumentPage::Component`
+or `Bali::BlockEditor::Component`. v3.1 packages a document engine on top of these, which
+freezes them — so the awkward parts are being fixed now rather than inherited.
+
+### Every URL the controller calls is now declared
+
+The Stimulus controller used to assemble two of its own endpoints by string interpolation,
+which made your `routes.rb` a guess it was making:
+
+| | v2 | v3.0 |
+|---|---|---|
+| Restore a version | `POST "#{document_url}/restore_version"`, built in JS | `restore_version_url:`, a declared value |
+| Fetch one version | `GET "#{versions_url}/#{id}"`, built in JS | `url` on each version in the versions JSON |
+
+`restore_version_url:` **defaults to the old interpolated path**, so an app whose routes already
+matched needs no change. Name it when they do not:
+
+```erb
+<%= render Bali::DocumentEditor::Component.new(
+      title: @doc.title,
+      initial_content: @doc.content,
+      document_url: document_path(@doc),
+      versions_url: document_versions_path(@doc),
+      restore_version_url: restore_document_revision_path(@doc)
+    ) %>
+```
+
+For per-version URLs, add a `url` to each entry your versions endpoint returns. When the field
+is absent the controller still derives `"#{versions_url}/#{id}"`, so existing endpoints keep
+working — but the derived form is a fallback now, not the contract.
+
+```ruby
+# The versions JSON. `id`, `version_number`, `author_name` and `created_at` are required;
+# `summary` and `url` are optional.
+render json: @document.versions.map { |v|
+  {
+    id: v.id,
+    version_number: v.version_number,
+    author_name: v.author_name,
+    created_at: v.created_at,
+    summary: v.summary,
+    url: document_version_path(@document, v)
+  }
+}
+```
+
+### The PATCH payload root is no longer hardcoded to `document`
+
+The auto-save sent `{ document: { title:, content: } }` and named the hidden input
+`document[content]`, regardless of what your model was called. Both now follow `param_key:`:
+
+| | v2 | v3.0 |
+|---|---|---|
+| Payload root | always `document` | `param_key:`, default `:document` |
+| `input_name` default | always `document[content]` | `"#{param_key}[content]"` |
+
+```erb
+<%# Payload becomes { article: { title:, content: } }, input becomes article[content] %>
+<%= render Bali::DocumentEditor::Component.new(..., param_key: :article) %>
+```
+
+Nothing changes for an app whose model *is* a `Document`. An app that was working around the
+hardcoded root — permitting `params[:document]` for an `Article` — can now delete that
+workaround. An explicit `input_name:` still wins over the derived one.
+
+### `DocumentEditor` and `DocumentPage` stop mirroring BlockEditor's options
+
+This one **breaks a call site**. Both components used to re-declare BlockEditor keyword
+arguments purely to forward them — twelve in `DocumentEditor`, three in `DocumentPage`. They
+now take one `config:` instead.
+
+```erb
+<%# v2 %>
+<%= render Bali::DocumentEditor::Component.new(
+      title: @doc.title, initial_content: @doc.content, document_url: document_path(@doc),
+      comments: { url: comments_path, user: current_user_hash },
+      export: true, export_filename: "roadmap",
+      ai_url: "/ai", mentions_url: "/users",
+      references_url: "/refs", references_resolve_url: "/refs/resolve"
+    ) %>
+
+<%# v3 %>
+<%= render Bali::DocumentEditor::Component.new(
+      title: @doc.title, initial_content: @doc.content, document_url: document_path(@doc),
+      config: {
+        comments: { url: comments_path, user: current_user_hash },
+        export: true, export_filename: "roadmap",
+        ai_url: "/ai", mentions_url: "/users",
+        references_url: "/refs", references_resolve_url: "/refs/resolve"
+      }
+    ) %>
+```
+
+The moved keys are `ai_url`, `mentions_url`, `mentions`, `references_url`,
+`references_resolve_url`, `references_config`, `comments`, `export`, `export_filename`,
+`multi_column`, `upload_url` and `syntax_highlighting`. Anything else `DocumentEditor` takes —
+`title:`, `initial_content:`, `document_url:`, `close_url:`, `versions_url:`, `editable:`,
+`auto_save:`, `auto_save_delay:`, `input_name:` — is unchanged, because it is genuinely the
+editor's own rather than a forwarded copy.
+
+`config:` accepts a Hash or a `Bali::BlockEditor::Config`. Building the object once is the
+point of the change — an app with one editor setup can now declare it in a helper and hand the
+same value to every editor:
+
+```ruby
+def editor_config
+  Bali::BlockEditor::Config.new(mentions_url: users_path, references_url: refs_path)
+end
+```
+
+`BlockEditor::Component` itself is **not** breaking: it keeps every keyword argument it had and
+merely gains `config:`. Where both are given, the explicit keyword wins, so a shared bundle can
+be overridden one feature at a time:
+
+```erb
+<%# The app-wide config, but with AI off for this one editor %>
+<%= render Bali::BlockEditor::Component.new(config: editor_config, ai_url: nil) %>
+```
+
+`DocumentPage` gains the other nine features as a side effect: it forwarded only the three
+`references_*` keys, so it could never render mentions at all — not by decision, just by
+omission.
+
+### Two editors on one page no longer share an error toast
+
+`useFileUpload` looked its container up with a global
+`document.querySelector('[data-controller="block-editor"]')`. That was wrong twice: the exact
+attribute match found nothing once a host put a second controller on the same element
+(`data-controller="block-editor analytics"`), so upload errors vanished silently; and with two
+editors it resolved to whichever came first in the document regardless of which one failed.
+Errors are now appended inside the editor that raised them. No API change.
+
+### Deleting a comment thread removes its highlight
+
+`RESTThreadStore#deleteThread` left the highlight in the document. The removal passed a
+freshly built mark to ProseMirror's `removeMark`, which matches on every attribute; BlockNote's
+comment mark carries `orphan` as well as `threadId`, so the rebuilt mark only matched while
+`orphan` was `false`. `orphan: true` is what BlockNote sets on a comment whose thread it can no
+longer resolve — the exact state around a deletion. No API change.
+
+`comments:` also takes `poll_interval:` now (milliseconds, default 5000; `0` turns polling
+off), which was previously reachable only from JavaScript.
+
+## RichTextEditor is deprecated
+
+`Bali::RichTextEditor::Component` warns through `Bali.deprecator` and is **removed in 4.0**. It
+still renders exactly as before in v3 — this is a warning, not a behaviour change.
+
+Migrate to `Bali::BlockEditor::Component`, which reads and writes the same HTML:
+
+```erb
+<%# v2 %>
+<%= render Bali::RichTextEditor::Component.new(
+      html_content: @post.body, output_input_name: "post[body]", editable: true
+    ) %>
+
+<%# v3 %>
+<%= render Bali::BlockEditor::Component.new(
+      html_content: @post.body, input_name: "post[body]", format: :html, editable: true
+    ) %>
+```
+
+`output_input_name:` becomes `input_name:`, and `format: :html` is what keeps the field
+round-tripping HTML rather than BlockNote JSON. Content already stored as HTML is parsed on
+mount, so there is no data migration.
+
+**`images_url:` has no direct equivalent, and it is the part of this migration that needs work
+on your side.** It is a *picker*: a `GET` that returns an HTML grid of already-uploaded images
+for the user to choose from (`useImage.js` drops the response straight into a panel).
+BlockEditor's `upload_url:` is a different thing — a `POST` that takes one file and answers
+`{ "url": "..." }`. Renaming the option would point an endpoint that returns HTML at a request
+that expects JSON. Give `upload_url:` an upload action instead; the engine ships one at
+`/bali/block_editor/uploads` and it is the default, so most apps can simply drop `images_url:`.
+The browse-existing-images panel itself has no BlockEditor equivalent — if you rely on it, that
+is a custom block to build, and worth raising before you migrate.
+
+If you want the smaller, single-line editor rather than the full block UI, pass
+`preset: :simple`, which cuts the toolbar down to inline formatting and turns the slash menu
+off without restricting what the schema can represent.
+
+Removing `RichTextEditor` in 4.0 is what drops roughly thirty-five `@tiptap/*` optional peer
+dependencies, plus `lowlight` and `highlight.js`, from the package. Until then nothing is
+removed and `Bali.deprecator.silence { ... }` will quiet the warning if you need time.
+
 ## The Gantt chart is gone
 
 `Bali::GanttChart::Component`, its nine sub-components, `GanttChartController`,
@@ -1643,7 +1829,6 @@ grep -rn "Bali::Pagination.*url:" app/
 # do you render the BlockEditor, and are all @blocknote/* on the same >= 0.52.1?
 grep -rn "BlockEditor::Component\|block_editor_group" app/
 node -e 'const d=require("./package.json").dependencies||{};for(const k of Object.keys(d))if(k.startsWith("@blocknote/"))console.log(k,d[k])'
-
 # events — these break with no error at all, see the table above
 grep -rn "openModal\|openDrawer\|modal:success" app/
 grep -rn "hovercard:\|sortable-list:\|interact:on\|direct-upload:" app/

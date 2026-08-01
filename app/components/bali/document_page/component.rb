@@ -8,22 +8,23 @@ module Bali
       renders_one :metadata
       renders_one :subheader
 
+      # The three `references_*` keyword arguments this component used to forward
+      # to BlockEditor now travel inside `config:`, the same value DocumentEditor
+      # takes. Mirroring three of BlockEditor's twelve features was also why this
+      # page could never render mentions: nobody noticed the other nine were
+      # missing rather than deliberately excluded. See Bali::BlockEditor::Config.
       def initialize(
         initial_content: nil,
         toc_open: true,
         metadata_open: true,
-        references_url: nil,
-        references_resolve_url: nil,
-        references_config: nil,
+        config: nil,
         **options
       )
         super(**options.slice(*PAGE_OPTIONS))
         @initial_content = initial_content
         @toc_open = toc_open
         @metadata_open = metadata_open
-        @references_url = references_url
-        @references_resolve_url = references_resolve_url
-        @references_config = references_config
+        @config = Bali::BlockEditor::Config.wrap(config)
         @options = options.except(*PAGE_OPTIONS)
       end
 
@@ -51,8 +52,7 @@ module Bali
 
       private
 
-      attr_reader :initial_content, :references_url, :references_resolve_url,
-                  :references_config, :options
+      attr_reader :initial_content, :config, :options
 
       def container_attributes
         options.except(:class).merge(
@@ -121,14 +121,12 @@ module Bali
 
       def render_block_editor
         render Bali::BlockEditor::Component.new(
+          config: config,
           initial_content: initial_content,
           editable: false,
           table_of_contents: toc?,
           table_of_contents_container_id: toc? ? "document-page-toc-container" : nil,
-          show_export_buttons: false,
-          references_url: references_url,
-          references_resolve_url: references_resolve_url,
-          references_config: references_config
+          show_export_buttons: false
         )
       end
     end

@@ -5,47 +5,46 @@ module Bali
     class Component < ApplicationViewComponent
       renders_one :toolbar
 
-      # rubocop:disable Metrics/ParameterLists
+      # Every URL the controller talks to is declared here. It used to build two of
+      # them by string interpolation -- `"#{document_url}/restore_version"` and
+      # `"#{versions_url}/#{id}"` -- which made the host's routing file a guess the
+      # JavaScript was making. `restore_version_url:` and the `url` each version
+      # carries in its own JSON replace that; see docs/guides/migration-v2-to-v3.md.
       def initialize(
         title:,
         initial_content:,
         document_url:,
         close_url: nil,
         versions_url: nil,
+        restore_version_url: nil,
+        param_key: :document,
         editable: true,
         auto_save: true,
         auto_save_delay: 30000,
-        comments: nil,
-        export: false,
-        export_filename: nil,
-        input_name: "document[content]",
-        ai_url: nil,
-        mentions_url: nil,
-        mentions: nil,
-        references_url: nil,
-        references_resolve_url: nil,
-        references_config: nil,
+        input_name: nil,
+        config: nil,
         **options
       )
-        # rubocop:enable Metrics/ParameterLists
         @title = title
         @initial_content = initial_content
         @document_url = document_url
         @close_url = close_url || document_url
         @versions_url = versions_url
+        @param_key = param_key.to_s
+        # Kept derivable so an app whose routes already match does not have to
+        # declare it, but it is now a value the host can name rather than one the
+        # controller invents.
+        @restore_version_url = restore_version_url || "#{document_url}/restore_version"
         @editable = editable
         @auto_save = auto_save
         @auto_save_delay = auto_save_delay
-        @comments_config = comments
-        @export = export
-        @export_filename = export_filename || title.parameterize
-        @input_name = input_name
-        @ai_url = ai_url
-        @mentions_url = mentions_url
-        @mentions = mentions
-        @references_url = references_url
-        @references_resolve_url = references_resolve_url
-        @references_config = references_config
+        @input_name = input_name || "#{@param_key}[content]"
+
+        # The twelve editor keyword arguments this component used to re-declare and
+        # forward untouched now travel as one value. See Bali::BlockEditor::Config.
+        @config = Bali::BlockEditor::Config.wrap(config)
+        @config = @config.merge(export_filename: title.parameterize) if @config.export_filename.blank?
+
         @options = options
         @instance_id = SecureRandom.hex(4)
       end
@@ -55,21 +54,23 @@ module Bali
       end
 
       def comments?
-        @comments_config.present?
+        @config.comments.present?
       end
 
       def versions?
         @versions_url.present?
       end
 
+      def export?
+        @config.export.present? && @config.export != false
+      end
+
       private
 
       attr_reader :title, :initial_content, :document_url, :close_url,
-                  :versions_url, :auto_save, :auto_save_delay,
-                  :export, :export_filename, :input_name,
-                  :ai_url, :mentions_url, :mentions,
-                  :references_url, :references_resolve_url, :references_config,
-                  :options, :instance_id
+                  :versions_url, :restore_version_url, :param_key,
+                  :auto_save, :auto_save_delay, :input_name,
+                  :config, :options, :instance_id
 
       def toc_container_id
         "document-editor-toc-#{instance_id}"
@@ -94,6 +95,8 @@ module Bali
           document_editor_document_url_value: document_url,
           document_editor_close_url_value: close_url,
           document_editor_versions_url_value: versions_url || "",
+          document_editor_restore_version_url_value: restore_version_url,
+          document_editor_param_key_value: param_key,
           document_editor_input_name_value: input_name,
           document_editor_toc_open_value: true,
           document_editor_panel_value: ""
