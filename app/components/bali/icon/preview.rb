@@ -10,7 +10,7 @@ module Bali
       # **Resolution order:**
       # 1. Lucide icons (primary) - consistent, modern stroke-based icons
       # 2. Kept icons (brands, regional) - payment processors, social media, flags
-      # 3. Legacy icons - backwards compatibility fallback
+      # 3. Custom icons registered by the host through `Bali.custom_icons`
       #
       # @param name select { choices: [user, check, alert, trash, edit, search, home, settings, bell, star, heart, mail, phone, calendar, clock, download, upload, copy, filter, plus, minus, x, chevron-down, chevron-up, chevron-left, chevron-right, arrow-left, arrow-right] }
       # @param size select { choices: [~, small, medium, large] }
@@ -86,13 +86,17 @@ module Bali
         )
       end
 
-      # All existing icons (legacy)
-      # ---------------------------
-      # Complete list of all available icons for backwards compatibility.
+      # All existing icons
+      # ------------------
+      # Every name the component resolves without reaching for a Lucide name
+      # directly: the Bali names Lucide covers, the kept set, and anything the
+      # host registered through `Bali.custom_icons`.
       def all_existing_icons
+        names = LucideMapping.bali_names + KeptIcons::ALL + Bali.custom_icons.keys
+
         render_with_template(
           template: 'bali/icon/previews/default',
-          locals: { icons: Bali::Icon::Options.icons.keys.sort }
+          locals: { icons: names.uniq.sort }
         )
       end
 

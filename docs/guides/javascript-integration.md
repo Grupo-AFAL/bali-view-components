@@ -46,9 +46,9 @@ const application = Application.start()
 registerAll(application)
 
 // Or register only what you need (smaller bundle, better tree-shaking)
-import { DatepickerController, TableController } from 'bali-view-components'
+import { DatepickerController, BulkActionsController } from 'bali-view-components'
 application.register('datepicker', DatepickerController)
-application.register('table', TableController)
+application.register('bulk-actions', BulkActionsController)
 ```
 
 ### Step 3: Add Optional Modules (if needed)
@@ -124,7 +124,7 @@ pin "bali/controllers/slim-select-controller", to: "bali/controllers/slim-select
 pin "bali/controllers/step-number-input-controller", to: "bali/controllers/step-number-input-controller.js"
 
 # Bali component controllers
-pin "bali/table", to: "bali/table/index.js"
+pin "bali/bulk_actions", to: "bali/bulk_actions/index.js"
 pin "bali/modal", to: "bali/modal/index.js"
 pin "bali/dropdown", to: "bali/dropdown/index.js"
 pin "bali/tabs", to: "bali/tabs/index.js"
@@ -157,12 +157,12 @@ const application = Application.start()
 
 // Import individual controllers as needed
 import { DatepickerController } from "bali/controllers/datepicker-controller"
-import { TableController } from "bali/table"
+import { BulkActionsController } from "bali/bulk_actions"
 import { ModalController } from "bali/modal"
 import { DropdownController } from "bali/dropdown"
 
 application.register("datepicker", DatepickerController)
-application.register("table", TableController)
+application.register("bulk-actions", BulkActionsController)
 application.register("modal", ModalController)
 application.register("dropdown", DropdownController)
 ```
@@ -192,7 +192,6 @@ application.register("dropdown", DropdownController)
 
 | Controller | Description |
 |------------|-------------|
-| `TableController` | Data table with sorting |
 | `ModalController` | Modal dialogs |
 | `DrawerController` | Side panel drawer |
 | `DropdownController` | Dropdown menus |
@@ -231,7 +230,7 @@ Modern bundlers (Vite, Webpack, esbuild) automatically remove unused code. Impor
 
 ```javascript
 // Good: Import specific controllers
-import { DatepickerController, TableController } from 'bali-view-components'
+import { DatepickerController, BulkActionsController } from 'bali-view-components'
 
 // Avoid: Register all if you only need a few
 import { registerAll } from 'bali-view-components'

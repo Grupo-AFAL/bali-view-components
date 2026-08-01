@@ -175,7 +175,7 @@
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <h3 class="card-title text-lg mb-4">Recent Activity</h3>
         <%= render Bali::Timeline::Component.new(position: :left) do |timeline| %>
-          <% timeline.with_tag_item(
+          <% timeline.with_item(
             heading: 'New order received',
             icon: 'shopping-cart',
             color: :primary
@@ -183,7 +183,7 @@
             <p class="text-sm text-base-content/60">Order #3210 from Olivia</p>
           <% end %>
 
-          <% timeline.with_tag_item(
+          <% timeline.with_item(
             heading: 'Payment confirmed',
             icon: 'credit-card',
             color: :success
@@ -191,7 +191,7 @@
             <p class="text-sm text-base-content/60">$125.00 processed</p>
           <% end %>
 
-          <% timeline.with_tag_item(
+          <% timeline.with_item(
             heading: 'New user signup',
             icon: 'user-plus',
             color: :info
@@ -199,7 +199,7 @@
             <p class="text-sm text-base-content/60">Michael joined</p>
           <% end %>
 
-          <% timeline.with_tag_item(
+          <% timeline.with_item(
             heading: 'Product updated',
             icon: 'package',
             color: :warning

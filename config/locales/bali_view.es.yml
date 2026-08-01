@@ -225,6 +225,13 @@ es:
       selected_one: seleccionado
       selected_other: seleccionados
       clear: Limpiar selección
+    tree_view:
+      toggle_branch: "Alternar %{name}"
+    timeago:
+      # Se renderiza en el servidor; el controller de Stimulus lo reemplaza con la
+      # salida de date-fns al conectarse. `blank` es lo que muestra un datetime nil.
+      blank: "—"
+      ago: "hace %{time}"
     table:
       no_records: Sin Registros
       no_results: Sin Resultados

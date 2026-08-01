@@ -215,39 +215,28 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector(".empty-table div.empty-state-component.py-8", text: "So sorry, no records found!")
   end
 
-  def test_bulk_actions_renders_checkboxes_when_bulk_actions_provided
-    @options = { bulk_actions: [ { name: "Delete", href: "/delete" } ] }
-    render_inline(component) do |c|
-      c.with_header(name: "Name")
-      c.with_row(record_id: 1) { "<td>Row 1</td>".html_safe }
+  # `bulk_actions:` caería en `**options` y saldría como atributo del `<table>`: la tabla se
+  # vería bien, sin columna de checkbox y sin barra. El guardia existe para que reviente.
+  def test_the_removed_bulk_actions_option_raises_instead_of_becoming_an_html_attribute
+    error = assert_raises(ArgumentError) do
+      Bali::Table::Component.new(bulk_actions: [ { name: "Delete", href: "/delete" } ])
     end
-    assert_selector('input[type="checkbox"][data-table-target="toggleAll"]')
-    assert_selector('input[type="checkbox"][data-table-target="checkbox"]')
+    assert_match("selectable: true", error.message)
   end
 
-  def test_bulk_actions_renders_bulk_actions_container
-    @options = { bulk_actions: [ { name: "Delete", href: "/delete" } ] }
-    render_inline(component) do |c|
-      c.with_header(name: "Name")
+  def test_the_removed_bulk_actions_option_raises_on_a_row_too
+    assert_raises(ArgumentError) do
+      Bali::Table::Row::Component.new(record_id: 1, bulk_actions: true)
     end
-    assert_selector(".bulk-actions-container")
-    assert_selector('[data-table-target="actionsContainer"]')
   end
 
-  def test_bulk_actions_renders_bulk_action_buttons
-    @options = { bulk_actions: [ { name: "Delete Selected", href: "/bulk_delete" } ] }
-    render_inline(component) do |c|
-      c.with_header(name: "Name")
-    end
-    assert_selector('input[type="submit"][value="Delete Selected"]')
-  end
-
-  def test_bulk_actions_does_not_render_checkboxes_without_bulk_actions
+  def test_a_plain_table_carries_no_stimulus_controller
     render_inline(component) do |c|
       c.with_header(name: "Name")
       c.with_row { "<td>Row 1</td>".html_safe }
     end
-    assert_no_selector('input[type="checkbox"][data-table-target="toggleAll"]')
+    assert_no_selector("[data-controller]")
+    assert_no_selector('input[type="checkbox"]')
   end
 
   def test_selectable_renders_the_select_all_header
@@ -318,12 +307,6 @@ class BaliTableComponentTest < ComponentTestCase
     end
   end
 
-  def test_selectable_and_legacy_bulk_actions_are_mutually_exclusive
-    assert_raises(Bali::Table::Component::IncompatibleOptions) do
-      Bali::Table::Component.new(selectable: true, bulk_actions: [ { name: "Delete", href: "/delete" } ])
-    end
-  end
-
   def test_selectable_row_data_merges_with_host_data_attributes
     @options = { selectable: true }
     render_inline(component) do |c|
@@ -333,6 +316,8 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector('tr[data-record-id="7"][data-turbo-frame="movie_7"][data-bulk-actions-target="item"]')
   end
 
+  # El controlador `table` se borró en v3: la selección la conduce `bulk-actions` desde un
+  # ancestro. Un target huérfano acá sería un checkbox que no dispara nada.
   def test_selectable_does_not_render_the_legacy_table_targets
     @options = { selectable: true }
     render_inline(component) do |c|
@@ -341,6 +326,7 @@ class BaliTableComponentTest < ComponentTestCase
     end
     assert_no_selector('[data-table-target="toggleAll"]')
     assert_no_selector('[data-table-target="checkbox"]')
+    assert_no_selector('[data-controller~="table"]')
   end
 
   def test_selectable_returns_false_by_default
@@ -416,14 +402,9 @@ class BaliTableComponentTest < ComponentTestCase
     assert_nil(c.container_id)
   end
 
-  def test_bulk_actions_returns_true_when_bulk_actions_provided
-    c = Bali::Table::Component.new(bulk_actions: [ { name: "Delete", href: "/delete" } ])
-    assert(c.bulk_actions?)
-  end
-
-  def test_bulk_actions_returns_false_when_no_bulk_actions
-    c = Bali::Table::Component.new
-    refute(c.bulk_actions?)
+  def test_selectable_predicate_follows_the_option
+    assert(Bali::Table::Component.new(selectable: true).selectable?)
+    refute(Bali::Table::Component.new.selectable?)
   end
 
   def test_grouping_emits_header_row_when_group_value_changes
@@ -450,7 +431,7 @@ class BaliTableComponentTest < ComponentTestCase
     assert_selector("tr.bali-table-group-row td", text: "Sur (1)")
   end
 
-  def test_grouping_header_colspan_matches_visible_headers_without_bulk_actions
+  def test_grouping_header_colspan_matches_visible_headers_without_a_selection_column
     render_inline(component) do |c|
       c.with_header(name: "Name")
       c.with_header(name: "Amount")
@@ -458,16 +439,6 @@ class BaliTableComponentTest < ComponentTestCase
       c.with_row(group: "Norte") { "<td>A</td><td>1</td>".html_safe }
     end
     assert_selector('tr.bali-table-group-row td[colspan="2"]')
-  end
-
-  def test_grouping_header_colspan_includes_bulk_actions_column
-    @options = { bulk_actions: [ { name: "Delete", href: "/delete" } ] }
-    render_inline(component) do |c|
-      c.with_header(name: "Name")
-      c.with_header(name: "Amount")
-      c.with_row(record_id: 1, group: "Norte") { "<td>A</td><td>1</td>".html_safe }
-    end
-    assert_selector('tr.bali-table-group-row td[colspan="3"]')
   end
 
   def test_grouping_header_colspan_includes_the_selectable_column
