@@ -11,8 +11,14 @@ module Bali
       # @example Multiple files
       #   <%= form.direct_upload_field_group :attachments, multiple: true, max_files: 5 %>
       #
+      # The caption stays a `<legend>`: the component's file input is
+      # `display: none` and therefore out of the accessibility tree entirely, so
+      # a `for` pointing at it would name nothing. The drop zone and the browse
+      # button carry their own `aria-label`.
       def direct_upload_field_group(method, options = {})
-        @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
+        @template.render(
+          Bali::FieldGroupWrapper::Component.new(self, method, options.merge(control_id: false))
+        ) do
           direct_upload_field(method, options)
         end
       end

@@ -12,7 +12,7 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
 
   def test_slim_select_group_renders_a_label
     result = builder.slim_select_group(:status, Movie.statuses.to_a)
-    assert_html(result, "legend.fieldset-legend", text: "Status")
+    assert_html(result, "label.fieldset-legend", text: "Status")
   end
 
   def test_slim_select_group_renders_a_div_with_a_slim_select_controller

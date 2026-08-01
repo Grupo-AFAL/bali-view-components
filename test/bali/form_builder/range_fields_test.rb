@@ -8,9 +8,10 @@ class BaliFormBuilderRangeFieldGroupTest < FormBuilderTestCase
     assert_html(result, "fieldset.fieldset")
   end
 
-  def test_renders_a_legend_with_translated_label
+  def test_renders_a_caption_labelling_the_slider_with_the_translated_attribute
     result = builder.range_field_group(:rating)
-    assert_html(result, "fieldset legend.fieldset-legend", text: "Rating")
+    assert_html(result, 'fieldset label.fieldset-legend[for="movie_rating"]', text: "Rating")
+    assert_html(result, 'input[type="range"]#movie_rating')
   end
 
   def test_renders_a_range_input
@@ -32,7 +33,7 @@ class BaliFormBuilderRangeFieldGroupTest < FormBuilderTestCase
 
   def test_with_custom_label_renders_custom_label_text
     result = builder.range_field_group(:rating, label: "Custom Label")
-    assert_html(result, "legend", text: "Custom Label")
+    assert_html(result, "label.fieldset-legend", text: "Custom Label")
   end
 
   # with min, max, step options

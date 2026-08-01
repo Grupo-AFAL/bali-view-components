@@ -28,8 +28,15 @@ module Bali
         block_editor(method, { preset: :simple }.merge(options))
       end
 
+      # The caption stays a `<legend>`: what the user types into is a ProseMirror
+      # `contenteditable` BlockNote creates client-side, so at render time there
+      # is no id for a `for` to point at. Naming it needs an `aria-labelledby`
+      # written by the editor once it mounts — the one control this issue leaves
+      # unnamed, tracked apart.
       def block_editor_group(method, options = {})
-        @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
+        @template.render Bali::FieldGroupWrapper::Component.new(
+          self, method, options.merge(control_id: false)
+        ) do
           block_editor(method, options)
         end
       end

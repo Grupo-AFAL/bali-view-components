@@ -20,11 +20,15 @@ module Bali
 
       private
 
+      # An icon is not a name: the SVG contributes no text, so this button was
+      # announced as bare "button". The label is i18n'd because it is the only
+      # thing a screen reader gets to read out here.
       def search_addon(button_class)
         tag.button(
           @template.render(Bali::Icon::Component.new("search")),
           type: "submit",
-          class: button_class
+          class: button_class,
+          'aria-label': I18n.t("bali_view.form_builder.search.submit")
         )
       end
     end

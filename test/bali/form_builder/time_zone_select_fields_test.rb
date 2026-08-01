@@ -7,7 +7,7 @@ class BaliFormBuilderTimeZoneSelectFieldsTest < FormBuilderTestCase
 
   def test_time_zone_select_group_renders_a_label
     result = builder.time_zone_select_group(:release_date)
-    assert_html(result, "legend.fieldset-legend", text: "Release date")
+    assert_html(result, "label.fieldset-legend", text: "Release date")
   end
 
   def test_time_zone_select_group_renders_a_select_tag

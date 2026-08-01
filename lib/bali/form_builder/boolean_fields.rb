@@ -28,8 +28,14 @@ module Bali
         error: "checkbox-error"
       }.freeze
 
+      # The caption stays a `<legend>`: `boolean_field` already wraps the
+      # checkbox in a `<label>` of its own, and a second `<label for>` on the
+      # same control does not replace that name, it concatenates with it —
+      # the control would be announced "Active Active".
       def boolean_field_group(method, options = {}, checked_value = "1", unchecked_value = "0")
-        @template.render Bali::FieldGroupWrapper::Component.new(self, method, options) do
+        @template.render Bali::FieldGroupWrapper::Component.new(
+          self, method, options.merge(control_id: false)
+        ) do
           boolean_field(method, options, checked_value, unchecked_value)
         end
       end
@@ -53,10 +59,17 @@ module Bali
 
       private
 
+      # No `for`. The label wraps the checkbox, so the implicit association names
+      # it, and that association cannot be broken the way an explicit `for` can:
+      # a `for` binds to whichever element in the document happens to carry the
+      # id first, so the moment the same attribute is rendered twice — or the
+      # caller passes an `id:` of their own — every checkbox after the first was
+      # left with no accessible name at all.
       def build_label_options(options)
         base_options = options[:label_options] || {}
 
-        base_options.merge(class: [ LABEL_CLASS, base_options[:class] ].compact.join(" "))
+        base_options.reverse_merge(for: nil)
+                    .merge(class: [ LABEL_CLASS, base_options[:class] ].compact.join(" "))
       end
 
       def build_checkbox_options(method, options)
@@ -68,7 +81,10 @@ module Bali
           options[:class]
         ].compact.join(" ")
 
-        html_attributes(options).except(*CHECKBOX_OPTIONS).merge(class: checkbox_class)
+        attributes = html_attributes(options).except(*CHECKBOX_OPTIONS)
+                                             .merge(class: checkbox_class)
+
+        merge_aria_attributes(attributes, method, options)
       end
     end
   end

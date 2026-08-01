@@ -12,7 +12,7 @@ class BaliFormBuilderEmailFieldsTest < FormBuilderTestCase
 
   def test_email_field_group_renders_a_legend_label
     result = builder.email_field_group(:contact_email)
-    assert_html(result, "legend.fieldset-legend", text: "Contact email")
+    assert_html(result, "label.fieldset-legend", text: "Contact email")
   end
 
   def test_email_field_group_renders_an_email_input_with_correct_attributes

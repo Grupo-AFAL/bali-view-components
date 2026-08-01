@@ -12,7 +12,7 @@ class BaliFormBuilderSelectFieldsTest < FormBuilderTestCase
 
   def test_select_group_renders_a_label
     result = builder.select_group(:status, Movie.statuses.to_a)
-    assert_html(result, "legend.fieldset-legend", text: "Status")
+    assert_html(result, "label.fieldset-legend", text: "Status")
   end
 
   def test_select_group_renders_a_select_with_daisyui_classes

@@ -41,15 +41,20 @@ module Bali
 
       CONTROLLER_NAME = "radio-buttons-group"
 
+      # The caption stays a `<legend>`, which is what a legend is actually for:
+      # the group holds one radio per value, each already named by its own
+      # `<label>`, and there is no single control a `for` could point at.
       def radio_field_group(method, values, options = {}, html_options = {})
-        @template.render Bali::FieldGroupWrapper::Component.new(self, method, options) do
+        @template.render Bali::FieldGroupWrapper::Component.new(
+          self, method, options.merge(control_id: false)
+        ) do
           radio_field(method, values, options, html_options)
         end
       end
 
       def radio_field(method, values, options = {}, html_options = {})
         label_class = build_radio_label_class(html_options)
-        radio_opts = build_radio_input_options(method, html_options)
+        radio_opts = build_radio_input_options(method, html_options, options)
         orientation = html_options.fetch(:orientation, DEFAULT_ORIENTATION).to_sym
         container_class = ORIENTATIONS.fetch(orientation, ORIENTATIONS[DEFAULT_ORIENTATION])
 
@@ -66,7 +71,9 @@ module Bali
 
       def radio_buttons_group(method, values, options = {}, togglers_options = {},
                               radios_options = {})
-        @template.render Bali::FieldGroupWrapper::Component.new(self, method, options) do
+        @template.render Bali::FieldGroupWrapper::Component.new(
+          self, method, options.merge(control_id: false)
+        ) do
           radio_buttons_field(method, values, options, togglers_options, radios_options)
         end
       end
@@ -91,7 +98,10 @@ module Bali
         [ LABEL_CLASS, custom_class ].compact.join(" ")
       end
 
-      def build_radio_input_options(method, html_options)
+      # `help:` travels in the group's `options`, not in the radio's own
+      # `html_options`, so the pair of hashes has to be read together to know
+      # which ids `aria-describedby` may name.
+      def build_radio_input_options(method, html_options, options = {})
         size = html_options[:size]
         color = html_options[:color]
         custom_class = html_options[:class]
@@ -104,8 +114,10 @@ module Bali
           custom_class
         ].compact.join(" ")
 
-        html_attributes(html_options).except(:class, *RADIO_OPTIONS)
-                                     .merge(class: radio_class)
+        attributes = html_attributes(html_options).except(:class, *RADIO_OPTIONS)
+                                                  .merge(class: radio_class)
+
+        merge_aria_attributes(attributes, method, options)
       end
 
       def extract_current_value(values, options)

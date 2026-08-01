@@ -52,10 +52,15 @@ module Bali
 
       private
 
+      # No `for`, for the same reason as BooleanFields: the label wraps the
+      # toggle, so the implicit association names it and survives both a repeated
+      # attribute and a caller-supplied `id:`, neither of which an explicit `for`
+      # survives.
       def build_switch_label_options(options)
         base_options = options[:label_options] || {}
 
-        base_options.merge(class: [ LABEL_CLASS, base_options[:class] ].compact.join(" "))
+        base_options.reverse_merge(for: nil)
+                    .merge(class: [ LABEL_CLASS, base_options[:class] ].compact.join(" "))
       end
 
       def build_toggle_options(method, options)
@@ -67,7 +72,9 @@ module Bali
           options[:class]
         ].compact.join(" ")
 
-        html_attributes(options).except(*TOGGLE_OPTIONS).merge(class: toggle_class)
+        attributes = html_attributes(options).except(*TOGGLE_OPTIONS).merge(class: toggle_class)
+
+        merge_aria_attributes(attributes, method, options)
       end
     end
   end

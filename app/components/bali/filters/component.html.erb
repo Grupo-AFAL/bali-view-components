@@ -42,7 +42,10 @@
                 <%= render Bali::Icon::Component.new('x', class: 'w-4 h-4') %>
               </button>
             </label>
-            <button type="submit" class="btn btn-primary btn-sm join-item" data-action="click->filters#submitSearch">
+            <%# An icon contributes no text, so without this the submit button was announced
+                as a bare "button". %>
+            <button type="submit" class="btn btn-primary btn-sm join-item" data-action="click->filters#submitSearch"
+                    aria-label="<%= t('bali_view.filters.submit_search') %>">
               <%= render Bali::Icon::Component.new('search', class: 'w-4 h-4') %>
             </button>
           </div>

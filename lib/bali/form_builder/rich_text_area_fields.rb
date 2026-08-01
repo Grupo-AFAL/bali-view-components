@@ -3,9 +3,18 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module RichTextAreaFields
+      # The caption stays a `<legend>` and the editor points an `aria-labelledby`
+      # at it instead: `<trix-editor>` is a custom element, and `<label for>` only
+      # names *labelable* elements, so a `for` here is markup the browser drops on
+      # the floor. `aria-labelledby` works on any element.
       def rich_text_area_group(method, options = {})
-        @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
-          rich_text_area(method, options)
+        labelled = caption_id(method, options)
+        editor_options = labelled ? options.merge("aria-labelledby": labelled) : options
+
+        @template.render Bali::FieldGroupWrapper::Component.new(
+          self, method, options.merge(control_id: false)
+        ) do
+          rich_text_area(method, editor_options)
         end
       end
 

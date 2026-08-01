@@ -12,7 +12,7 @@ class BaliFormBuilderSearchFieldsTest < FormBuilderTestCase
 
   def test_search_field_group_renders_a_legend_label
     result = builder.search_field_group(:name)
-    assert_html(result, "legend.fieldset-legend", text: "Name")
+    assert_html(result, "label.fieldset-legend", text: "Name")
   end
 
   def test_search_field_group_renders_a_text_input_with_correct_attributes

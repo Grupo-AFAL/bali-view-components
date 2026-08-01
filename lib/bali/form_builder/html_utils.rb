@@ -21,11 +21,13 @@ module Bali
         number_with_commas: '^(\d+|\d{1,3}(,\d{3})*)(\.\d+)?$'
       }.freeze
 
-      # Options the wrapper markup consumes: the fieldset legend, the help text
+      # Options the wrapper markup consumes: the fieldset caption, the help text
       # under the control, the `.control` div and the addons around the input.
+      # `control_id` is the id the caption's `for` points at — read by
+      # FieldGroupWrapper, never an attribute of the input itself.
       WRAPPER_OPTIONS = %i[
         label help control_class control_data addon_left addon_right addon_class
-        field_class field_data
+        field_class field_data control_id
       ].freeze
 
       # Options a single helper consumes to decide what to build: the currency
@@ -78,6 +80,76 @@ module Bali
         copy
       end
 
+      # The id the control is really going to carry, so the wrapper's
+      # `<label for>` and the input's `aria-describedby` can name it instead of
+      # each rebuilding a guess of their own. A `for` pointing at an id nobody
+      # emits looks perfect in the HTML and gives the control no name at all.
+      #
+      # Rails derives the default from the object name, the index and the
+      # method, which is what makes two forms for the same model on one page
+      # produce distinct ids as long as they are namespaced or indexed. An
+      # explicit `id:` and `input_id:` (the non-model escape hatch of #547)
+      # override it, in that order, because that is the order the helpers
+      # themselves resolve them in.
+      def control_id(method, options = {})
+        options[:id].presence || options[:input_id].presence || field_id(method)
+      end
+
+      # The id of the caption FieldGroupWrapper renders. Both sides derive it
+      # from `field_id`, so a widget that cannot be named by a `<label for>` —
+      # anything that is not a labelable element, such as Trix's `<trix-editor>` —
+      # can still point an `aria-labelledby` at the very same caption without the
+      # wrapper having to hand it down through the render block.
+      def label_id(method)
+        field_id(method, "label")
+      end
+
+      # nil when no caption will be rendered, so nothing ever points an
+      # `aria-labelledby` at an id that is not in the document. `label: false`
+      # and `label: { text: false }` are the two spellings that turn it off, and
+      # a hidden field never gets one.
+      def caption_id(method, options = {})
+        return if options[:type].to_s == "hidden"
+
+        label = options[:label]
+        return if label == false || (label.is_a?(Hash) && label[:text] == false)
+
+        label_id(method)
+      end
+
+      # `aria-describedby` may only name ids that exist. The error and help
+      # paragraphs are in the DOM only when there is something to say, so this
+      # is built from exactly what `error_and_help` is about to render — never
+      # from what the field *could* have.
+      def aria_attributes(method, options = {})
+        described_by = [
+          (error_message_id(method) if errors?(method)),
+          (help_message_id(method) if options[:help].present?)
+        ].compact
+
+        {
+          "aria-describedby": described_by.presence&.join(" "),
+          "aria-invalid": ("true" if errors?(method))
+        }.compact
+      end
+
+      # Drops Bali's aria pair onto an attribute hash, skipping anything the
+      # caller already spelled by hand. Rails accepts both `aria: { invalid: }`
+      # and `"aria-invalid" =>`, and writing both spellings emits the attribute
+      # twice, so both are checked before anything is added.
+      def merge_aria_attributes(attributes, method, options = {})
+        nested = attributes[:aria].is_a?(Hash) ? attributes[:aria] : {}
+
+        aria_attributes(method, options).each do |key, value|
+          short = key.to_s.delete_prefix("aria-").to_sym
+          next if attributes.key?(key) || nested.key?(short)
+
+          attributes[key] = value
+        end
+
+        attributes
+      end
+
       def field_options(method, options)
         attributes = html_attributes(options)
 
@@ -87,7 +159,7 @@ module Bali
         attributes[:class] = field_class_name(
           method, "#{input_base_class(options)} #{options[:class]}"
         )
-        attributes
+        merge_aria_attributes(attributes, method, options)
       end
 
       def textarea_field_options(method, options, stimulus: false)
@@ -102,7 +174,7 @@ module Bali
           )
         end
 
-        attributes
+        merge_aria_attributes(attributes, method, options)
       end
 
       # Escape hatch for non-model forms (issue #547): `input_name:` / `input_id:`

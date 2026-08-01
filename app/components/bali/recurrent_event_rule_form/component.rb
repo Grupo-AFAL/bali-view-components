@@ -84,8 +84,27 @@ module Bali
       attr_reader :form, :method, :value, :disabled, :skip_end_method, :allowed_frequencies,
                   :options
 
+      # Derived with Rails' own `field_id`, so it follows the same object-name,
+      # index and nested-attribute rules as the hidden field this component
+      # writes into. Two components on a page are two different attributes, so
+      # that alone keeps every id here unique — and unlike the `SecureRandom.hex`
+      # it replaces it is stable across renders, which is what lets a test, a
+      # `<label for>` or a Turbo morph address these controls at all.
+      #
+      # `id:` is the escape hatch for the one case the derivation cannot cover:
+      # the *same* attribute rendered twice in one form, where Rails itself would
+      # emit the same id twice anyway. It renames this component's controls only;
+      # it is not put on the wrapper.
       def unique_id
-        @unique_id ||= SecureRandom.hex(4)
+        @unique_id ||= options[:id].presence || form.field_id(method)
+      end
+
+      # `select_tag` and `number_field_tag` derive their id from the name, so
+      # every control below used to carry a bare, page-global `freq`, `interval`,
+      # `bymonth`… — repeated by any second recurrence form on the page, and by
+      # any host field that happened to share the name.
+      def control_id(suffix)
+        "#{unique_id}_#{suffix}"
       end
 
       def component_classes
