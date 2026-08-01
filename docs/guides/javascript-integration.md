@@ -12,11 +12,25 @@ Best for apps using any JavaScript bundler: **Vite**, **esbuild**, **Webpack**, 
 
 ### Step 1: Install Dependencies
 
+Three peers are required. Bali does not work without them, and two of the three fail
+silently rather than at build time:
+
 ```bash
-yarn add bali-view-components @hotwired/stimulus @hotwired/turbo flatpickr \
-         tippy.js sortablejs chart.js @glidejs/glide @popperjs/core date-fns \
-         rrule lodash.throttle @rails/request.js slim-select interactjs
+yarn add bali-view-components @hotwired/stimulus @hotwired/turbo-rails daisyui
 ```
+
+Everything else is an optional peer that the controller needing it loads with a dynamic
+`import()`. Add only what you actually render:
+
+```bash
+yarn add flatpickr slim-select sortablejs @glidejs/glide date-fns rrule \
+         @rails/request.js @rails/activestorage @googlemaps/markerclusterer \
+         lodash.throttle lodash.debounce
+```
+
+*Step 6* of the [installation guide](installation.md) maps each optional peer to the
+component that loads it. Charts, Gantt, the block editor and the rich text editor sit
+behind their own entry points and carry their own dependency sets.
 
 ### Step 2: Register Controllers
 

@@ -30,17 +30,27 @@ bundle install
 
 ## Step 2: Install JavaScript Package
 
-Install the npm package which contains Stimulus controllers and CSS:
+Install the npm package, which contains the Stimulus controllers and the CSS:
 
 ```bash
-npm install bali-view-components
+npm install bali-view-components @hotwired/stimulus @hotwired/turbo-rails daisyui
 # or
-yarn add bali-view-components
+yarn add bali-view-components @hotwired/stimulus @hotwired/turbo-rails daisyui
 ```
 
-This package includes:
-- Pre-built CSS for components with custom styling
-- Peer dependency on DaisyUI 5.x
+Those three are **required peer dependencies**, so your package manager will not install
+them for you — and two of them fail quietly if you skip them:
+
+| Peer | Why it is required |
+|------|--------------------|
+| `@hotwired/stimulus` | Every controller extends it. |
+| `@hotwired/turbo-rails` | Reached through the `window.Turbo` global rather than an import, so **no bundler will warn you it is missing** — the components simply stop reacting. |
+| `daisyui` | The Ruby components emit daisyUI class names, so without it they render *unstyled*, not merely unthemed. |
+
+Everything Bali touches beyond those three is an **optional** peer declared per feature:
+install only what you actually render. *Step 6: External Dependencies* below lists them,
+and the grouped comment in the package's own `package.json` maps every optional peer to
+the entry point that reaches for it.
 
 ---
 
@@ -197,16 +207,35 @@ ActionView::Base.default_form_builder = Bali::FormBuilder
 
 ## Step 6: External Dependencies
 
-Some components require additional JavaScript libraries:
+Every library below is an **optional peer dependency**: it is declared in Bali's
+`package.json` but never installed for you, and the controller that needs it loads it with
+a dynamic `import()`. That means a component you do not use costs you nothing, and a
+component you *do* use fails at runtime rather than at build time if its library is
+missing.
 
 | Component | Dependency | Installation |
 |-----------|------------|--------------|
-| Calendar, DatePicker | Flatpickr | `npm install flatpickr` |
+| Datepicker, Calendar | Flatpickr | `npm install flatpickr` |
 | SlimSelect | Slim Select | `npm install slim-select` |
-| Chart | Chart.js | `npm install chart.js` |
 | SortableList | SortableJS | `npm install sortablejs` |
-| RichTextEditor | Trix | Included with Rails |
-| AutocompleteAddress | Google Maps API | Add script to layout |
+| Carousel | Glide | `npm install @glidejs/glide` |
+| Timeago | date-fns | `npm install date-fns` |
+| RecurrentEventRuleForm | rrule | `npm install rrule` |
+| DirectUpload, ImageField | Active Storage JS | `npm install @rails/activestorage` |
+| LocationsMap | Google Maps marker clusterer | `npm install @googlemaps/markerclusterer` + the Maps script below |
+| AutocompleteAddress | Google Maps API | Add the script to your layout (below) |
+| Tabs, SlimSelect, SortableList, DataTable | `@rails/request.js` | `npm install @rails/request.js` |
+| Navbar, ElementsOverlap, SubmitOnChange | lodash throttle/debounce | `npm install lodash.throttle lodash.debounce` |
+| TrixAttachments | Trix | Included with Rails (Action Text) |
+
+Components behind their own entry point carry their own dependency sets, which are larger:
+
+| Entry point | Dependency set |
+|-------------|----------------|
+| `bali-view-components/charts` | `chart.js` |
+| `bali-view-components/gantt` | `sortablejs`, `lodash.throttle` |
+| `bali-view-components/block-editor` | `@blocknote/core` `/react` `/mantine` (>= 0.51), `@mantine/core`, `@mantine/hooks`, `react`, `react-dom`; `shiki` only for syntax-highlighted code blocks. See [the BlockEditor API guide](../api/block-editor.md). |
+| `bali-view-components/rich-text-editor` | The `@tiptap/*` set plus `lowlight`, `highlight.js` and `tippy.js`. **Deprecated in v3, removed in v4** — migrate to the block editor. |
 
 ### Flatpickr Setup
 

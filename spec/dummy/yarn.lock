@@ -423,11 +423,6 @@
   resolved "https://registry.yarnpkg.com/@hotwired/turbo/-/turbo-8.0.23.tgz#a6eebc9ab4a5faadae265a4cbec8cfcb5731e77c"
   integrity sha512-GZ7cijxEZ6Ig71u7rD6LHaRv/wcE/hNsc+nEfiWOkLNqUgLOwo5MNGWOy5ZV9ZUDSiQx1no7YxjTNnT4O6//cQ==
 
-"@interactjs/types@1.10.27":
-  version "1.10.27"
-  resolved "https://registry.yarnpkg.com/@interactjs/types/-/types-1.10.27.tgz#10afd71cef2498e2b5192cf0d46f937d8ceb767f"
-  integrity sha512-BUdv0cvs4H5ODuwft2Xp4eL8Vmi3LcihK42z0Ft/FbVJZoRioBsxH+LlsBdK4tAie7PqlKGy+1oyOncu1nQ6eA==
-
 "@kurkle/color@^0.3.0":
   version "0.3.4"
   resolved "https://registry.yarnpkg.com/@kurkle/color/-/color-0.3.4.tgz#4d4ff677e1609214fc71c580125ddddd86abcabf"
@@ -450,17 +445,12 @@
   resolved "https://registry.yarnpkg.com/@mantine/hooks/-/hooks-8.3.16.tgz#39d7558cad8d69191881c34ea9a7f86345666e6f"
   integrity sha512-DthR8/KDCLIip3KoXyn370HEiKxiOwH+ZeXs1UoSv/e58xR88OE85Slyb5b5pRsDa4ndYnES+j9wyRyrRXLWfg==
 
-"@mantine/utils@^6.0.22":
-  version "6.0.22"
-  resolved "https://registry.yarnpkg.com/@mantine/utils/-/utils-6.0.22.tgz#7eace697084e2bc5a831eb0fd7cbbc04cc1b0354"
-  integrity sha512-RSKlNZvxhMCkOFZ6slbYvZYbWjHUM+PxDQnupIOxIdsTZQQjx/BFfrfJ7kQFOP+g7MtpOds8weAetEs5obwMOQ==
-
 "@opentelemetry/api@1.9.0":
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/@opentelemetry/api/-/api-1.9.0.tgz#d03eba68273dc0f7509e2a3d5cba21eae10379fe"
   integrity sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==
 
-"@popperjs/core@^2.11.8", "@popperjs/core@^2.9.0":
+"@popperjs/core@^2.9.0":
   version "2.11.8"
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.11.8.tgz#6b79032e760a0899cd4204710beede972a3a185f"
   integrity sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==
@@ -1430,13 +1420,6 @@ inherits@^2.0.3, inherits@~2.0.3:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.4.tgz#0fa2c64f932917c3433a0ded55363aae37416b7c"
   integrity sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
-
-interactjs@^1.10.27:
-  version "1.10.27"
-  resolved "https://registry.yarnpkg.com/interactjs/-/interactjs-1.10.27.tgz#16499aba4987a5ccfdaddca7d1ba7bb1118e14d0"
-  integrity sha512-y/8RcCftGAF24gSp76X2JS3XpHiUvDQyhF8i7ujemBz77hwiHDuJzftHx7thY8cxGogwGiPJ+o97kWB6eAXnsA==
-  dependencies:
-    "@interactjs/types" "1.10.27"
 
 is-arrayish@^0.3.1:
   version "0.3.4"

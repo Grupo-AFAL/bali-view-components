@@ -2,9 +2,10 @@
 
 The largest single area v3.0 breaks is **the index page** — `DataTable`, its toolbar,
 `Bali::Table` selection and the surface that wraps them — and that is what most of this
-guide is about. Two things apply to every app regardless of whether it renders a
-`DataTable`: the *Version floors* below, and one behaviour change listed under *Behaviour
-changes* — `FilterForm` now reads `?view=` on any listing that declares grouping.
+guide is about. Three things apply to every app regardless of whether it renders a
+`DataTable`: the *Version floors* below, the *npm peer dependencies* right after them, and
+one behaviour change listed under *Behaviour changes* — `FilterForm` now reads `?view=` on
+any listing that declares grouping.
 
 ## Version floors
 
@@ -17,6 +18,33 @@ changes* — `FilterForm` now reads `?view=` on any listing that declares groupi
 Bundler resolves the gem floor for you — an app still on Rails 7 gets a resolution error,
 not a runtime surprise. daisyUI is not enforced by anything: it is the host's npm
 dependency, and Bali's component CSS is written against the 5.7 class set.
+
+## npm peer dependencies
+
+v2's npm package declared `daisyui` as a regular dependency and left almost everything else
+undeclared. v3 declares three **required** peers and 62 optional ones. Peers are not
+installed for you — Yarn Classic ignores them entirely, and npm 7+ will auto-install the
+required ones but now reports version conflicts instead of nesting a second copy.
+
+Add the three required peers to your app if they are not already there:
+
+```bash
+yarn add @hotwired/stimulus @hotwired/turbo-rails daisyui
+```
+
+| Peer | Was | Now | If missing |
+|------|-----|-----|------------|
+| `daisyui` | a `dependency` of Bali, so you got it transitively | **required peer** | Components render with correct markup and **no styling** |
+| `@hotwired/stimulus` | undeclared | **required peer** | Build error |
+| `@hotwired/turbo-rails` | undeclared | **required peer** | **Silent** — it is used via the `window.Turbo` global, never imported, so no bundler warns you. Components stop reacting |
+
+`daisyui` is the one to check first: an app that never installed it explicitly was relying
+on Bali's transitive copy, and that copy is gone. Pin it yourself at 5.7.x.
+
+Everything else is optional and declared per feature, so install only what you render — the
+table in *Step 6* of the [installation guide](installation.md) maps each optional peer to
+the component that loads it. If you already had a working v2 app, you almost certainly have
+these installed; nothing new is required unless you adopt a component you were not using.
 
 ### `Bali.deprecator`
 
