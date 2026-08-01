@@ -10,6 +10,11 @@
  *   @import "bali/general.css";
  *   ... etc
  *
+ * If you import individually, "bali/z_index.css" is not optional: every overlay in
+ * the package reads its z-index from the tokens it declares, and a missing token
+ * makes the declaration invalid — the overlay silently falls back to `z-index: auto`
+ * and stacks by DOM order.
+ *
  * Note: This file should be imported AFTER your Tailwind directives
  * and DaisyUI plugin configuration.
  */
