@@ -12,7 +12,7 @@
  * ## Selective Imports (tree-shaking)
  *
  * Core controllers:
- *   import { DatepickerController, TableController } from 'bali-view-components'
+ *   import { DatepickerController, ModalController } from 'bali-view-components'
  *
  * Optional modules (import separately to reduce bundle size):
  *   import { ChartController, registerCharts } from 'bali-view-components/charts'
@@ -120,7 +120,6 @@ export {
   SideMenuFlyoutController,
   SortableListController,
   StatusController,
-  TableController,
   TabsController,
   TimeagoController,
   ToolbarOverflowController,

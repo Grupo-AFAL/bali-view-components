@@ -1,35 +1,44 @@
 /*
- * Bali ViewComponents - Component CSS
+ * Bali ViewComponents — component CSS.
  *
- * This file imports CSS for individual components that require
- * custom styling beyond DaisyUI classes.
+ * Imported by ../bali.css; hosts do not import this file directly.
  *
- * Usage: @import "bali-view-components/css/components.css";
+ * Layers: see the header of ../bali.css. Everything goes into
+ * @layer components so host utility classes win, except the three unlayered
+ * sheets at the bottom, which exist to beat rules daisyUI emits inside
+ * @layer utilities. Each of those explains itself in its own header.
  */
 
 /* Navigation Components */
-@import "../../../components/bali/breadcrumb/index.css";
-@import "../../../components/bali/navbar/index.css";
-@import "../../../components/bali/side_menu/index.css";
-@import "../../../components/bali/command/index.css";
+@import "../../../components/bali/navbar/index.css" layer(components);
+@import "../../../components/bali/side_menu/index.css" layer(components);
+@import "../../../components/bali/command/index.css" layer(components);
 
 /* Data Display Components */
-@import "../../../components/bali/calendar/index.css";
-@import "../../../components/bali/carousel/index.css";
-@import "../../../components/bali/gantt_chart/index.css";
-@import "../../../components/bali/timeline/index.css";
-@import "../../../components/bali/tooltip/index.css";
-@import "../../../components/bali/status/index.css";
-@import "../../../components/bali/hover_card/index.css";
+@import "../../../components/bali/calendar/index.css" layer(components);
+@import "../../../components/bali/carousel/index.css" layer(components);
+@import "../../../components/bali/gantt_chart/index.css" layer(components);
+@import "../../../components/bali/timeline/index.css" layer(components);
+@import "../../../components/bali/tooltip/index.css" layer(components);
+@import "../../../components/bali/status/index.css" layer(components);
+@import "../../../components/bali/hover_card/index.css" layer(components);
 @import "../../../components/bali/tag/index.css" layer(components);
 
 /* Form Components */
-@import "../../../components/bali/data_table/index.css";
-@import "../../../components/bali/filters/index.css";
-@import "../../../components/bali/rich_text_editor/index.css";
-@import "../../../components/bali/stepper/index.css";
+@import "../../../components/bali/filters/index.css" layer(components);
+@import "../../../components/bali/rich_text_editor/index.css" layer(components);
+@import "../../../components/bali/stepper/index.css" layer(components);
 
 /* Layout Components */
-@import "../../../components/bali/app_layout/index.css";
-@import "../../../components/bali/drawer/index.css";
-@import "../../../components/bali/image_grid/index.css";
+@import "../../../components/bali/app_layout/index.css" layer(components);
+@import "../../../components/bali/drawer/index.css" layer(components);
+@import "../../../components/bali/image_grid/index.css" layer(components);
+
+/* Unlayered on purpose. Order of the first three is the pre-v3 order of those
+   sheets, so their mutual cascade is unchanged. The two `daisyui-overrides`
+   below them share no selector with anything here. */
+@import "../../../components/bali/breadcrumb/index.css";
+@import "../../../components/bali/side_menu/daisyui-overrides.css";
+@import "../../../components/bali/data_table/index.css";
+@import "../../../components/bali/calendar/daisyui-overrides.css";
+@import "../../../components/bali/rich_text_editor/daisyui-overrides.css";

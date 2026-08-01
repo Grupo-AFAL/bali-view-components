@@ -12,18 +12,17 @@ module Bali
       end
 
       def text_area(method, options = {})
-        opts = options.dup
-        char_counter = opts.delete(:char_counter)
-        auto_grow = opts.delete(:auto_grow)
+        char_counter = options[:char_counter]
+        auto_grow = options[:auto_grow]
         use_stimulus = char_counter || auto_grow
 
-        field_opts = textarea_field_options(method, opts, stimulus: use_stimulus)
+        field_opts = textarea_field_options(method, options, stimulus: use_stimulus)
         textarea_element = super(method, field_opts)
 
         if use_stimulus
           wrap_with_stimulus(textarea_element, char_counter: char_counter, auto_grow: auto_grow)
         else
-          field_helper(method, textarea_element, opts)
+          field_helper(method, textarea_element, options)
         end
       end
 

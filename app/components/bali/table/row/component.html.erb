@@ -11,10 +11,6 @@
                       'aria-label': select_label,
                       data: { action: 'change->bulk-actions#toggleItem' }) %>
       <% end %>
-    <% elsif @bulk_actions %>
-      <%= tag.td(class: 'w-4') do %>
-        <%= tag.input(type: 'checkbox', class: 'checkbox checkbox-sm', value: @record_id, data: { table_target: 'checkbox', action: 'table#toggle' }) %>
-      <% end %>
     <% end %>
     <%= content %>
   <% end %>

@@ -24,20 +24,29 @@ module Bali
         lg: "btn-lg"
       }.freeze
 
+      # Everything `submit` and `submit_actions` read for themselves: the button
+      # styling, the Stimulus wiring and the cancel button beside it. None of them
+      # is an attribute of the <button> that comes out the other end.
+      SUBMIT_OPTIONS = %i[
+        variant size wrapper_class class modal drawer
+        cancel_path cancel_options field_id field_class field_data
+      ].freeze
+
       def submit(value, options = {})
-        variant = options.delete(:variant) || :primary
-        size = options.delete(:size)
-        wrapper_class = options.delete(:wrapper_class) || WRAPPER_CLASS
+        wrapper_class = options[:wrapper_class] || WRAPPER_CLASS
 
-        options.with_defaults!(
+        attributes = html_attributes(options).except(*SUBMIT_OPTIONS).with_defaults(
           type: "submit",
-          class: button_classes(variant: variant, size: size, custom_class: options.delete(:class))
+          class: button_classes(
+            variant: options[:variant] || :primary,
+            size: options[:size],
+            custom_class: options[:class]
+          )
         )
-
-        options = apply_stimulus_actions(options)
+        attributes = apply_stimulus_actions(options, dup_options(attributes))
 
         content_tag(:div, class: wrapper_class) do
-          content_tag(:button, value, options)
+          content_tag(:button, value, attributes)
         end
       end
 
@@ -66,18 +75,18 @@ module Bali
         ].compact.join(" ")
       end
 
-      def apply_stimulus_actions(options)
-        return options if Bali.native_app
+      def apply_stimulus_actions(options, attributes)
+        return attributes if Bali.native_app
 
-        options = prepend_action(options, "modal#submit") if options.delete(:modal)
-        options = prepend_action(options, "drawer#submit") if options.delete(:drawer)
-        options
+        attributes = prepend_action(attributes, "modal#submit") if options[:modal]
+        attributes = prepend_action(attributes, "drawer#submit") if options[:drawer]
+        attributes
       end
 
       def extract_cancel_config(options)
         {
-          path: options.delete(:cancel_path),
-          options: options.delete(:cancel_options),
+          path: options[:cancel_path],
+          options: options[:cancel_options],
           modal: options[:modal],
           drawer: options[:drawer]
         }
@@ -85,9 +94,9 @@ module Bali
 
       def extract_wrapper_config(options)
         {
-          id: options.delete(:field_id),
-          class: options.delete(:field_class) || SUBMIT_ACTIONS_CLASS,
-          data: options.delete(:field_data)
+          id: options[:field_id],
+          class: options[:field_class] || SUBMIT_ACTIONS_CLASS,
+          data: options[:field_data]
         }.compact
       end
 
@@ -95,7 +104,7 @@ module Bali
         return unless cancel_button_required?(config)
 
         link_options = build_cancel_link_options(config)
-        label = link_options.delete(:label) || I18n.t("bali_view.form_builder.submit.cancel")
+        label = config.dig(:options, :label) || I18n.t("bali_view.form_builder.submit.cancel")
 
         content_tag(:div, class: WRAPPER_CLASS) do
           if config[:path].present?
@@ -113,11 +122,10 @@ module Bali
       end
 
       def build_cancel_link_options(config)
-        link_options = config[:options] || {}
+        link_options = dup_options(config[:options] || {}).except(:label)
         link_options = prepend_action(link_options, "modal#close") if config[:modal]
         link_options = prepend_action(link_options, "drawer#close") if config[:drawer]
-        link_options.with_defaults!(class: button_classes(variant: :secondary))
-        link_options
+        link_options.with_defaults(class: button_classes(variant: :secondary))
       end
 
       def show_cancel_button?(options)

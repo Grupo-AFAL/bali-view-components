@@ -28,9 +28,9 @@
           <h3 class="card-title text-lg"><%= t('dashboard.recent_activity') %></h3>
           <div class="mt-4">
             <%= render Bali::Timeline::Component.new(position: :left) do |timeline| %>
-              <% timeline.with_tag_header(text: t('dashboard.today')) %>
+              <% timeline.with_header(text: t('dashboard.today')) %>
               <% @recent_movies.first(3).each do |movie| %>
-                <% timeline.with_tag_item(
+                <% timeline.with_item(
                   heading: movie.name,
                   icon: movie.done? ? 'check' : 'edit',
                   color: movie.status_color
