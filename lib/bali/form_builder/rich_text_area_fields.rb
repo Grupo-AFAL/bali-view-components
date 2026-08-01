@@ -14,14 +14,16 @@ module Bali
         default_error_msg = "Attachments must not exceed #{max_attachments_size}MB"
         error_message = options.dig(:attachments, :error_message) || default_error_msg
 
-        options.with_defaults!(
+        # ActionText writes its direct-upload URLs into `:data` in place, so the
+        # nested hash has to be ours before the tag helper ever sees it.
+        opts = dup_options(options).with_defaults(
           'data-controller': "trix-attachments",
           'data-trix-attachments-max-size-value': max_attachments_size,
           'data-trix-attachments-error-message-value': error_message
         )
+        opts[:class] = "trix-content #{options[:class]}".strip
 
-        options[:class] = "trix-content #{options[:class]}".strip
-        field_helper(method, super(method, field_options(method, options)), options)
+        field_helper(method, super(method, field_options(method, opts)), options)
       end
     end
   end
