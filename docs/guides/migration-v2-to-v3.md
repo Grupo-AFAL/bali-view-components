@@ -371,6 +371,68 @@ Finally, `Bali::Timeline::Header::Component` now applies `**options` to its badg
 them and rendered none of them, so a `class:`, `data:` or `aria-*` you passed and gave up on
 will start taking effect.
 
+## The five page components get one surface
+
+`DashboardPage`, `DocumentPage`, `FormPage`, `IndexPage` and `ShowPage` now take the same
+options and the same slots, all defined in `Bali::PageComponents::Shared`. Most of the move
+is additive — a page component that did not accept `back:`, `nav`, `title_tags`, `sidebar`
+or `max_width:` accepts them now — so the only edits a host owes are these three.
+
+### 1. Rename `with_preview` to `with_body` on `DocumentPage`
+
+```erb
+<%# v2 %>
+<% page.with_preview do %><%= @document.body %><% end %>
+
+<%# v3 %>
+<% page.with_body do %><%= @document.body %><% end %>
+```
+
+`with_preview` still renders and warns through `Bali.deprecator` until 4.0, so nothing goes
+blank if you miss one. `grep -rn "with_preview" app/` finds them all.
+
+### 2. Expect DashboardPage's stat cards to look like `StatCard`, because they are one
+
+`with_stat` keeps its signature (`label:`, `value:`, `icon:`, `change:`, `color:`) and now
+renders `Bali::StatCard::Component`: the label becomes uppercase `text-xs`, the value
+`text-3xl`, the icon sits in a tinted circle, and `change:` lands in the card's footer. If
+you were relying on the old inline markup — a `text-sm` label and a `text-2xl` value — this
+is the change to look at. There is no flag for the old one: shipping two stat cards is the
+problem this closes.
+
+### 3. Two spacing/size values move to the shared default
+
+- `IndexPage`'s body gap goes from `mt-4` to `mt-6`, the value the other four use.
+- `ShowPage` and `DocumentPage`'s subtitle goes from `text-base` to `text-sm`, the value
+  `PageHeader::SUBTITLE_CLASSES` declares and the other three already rendered.
+
+Neither is configurable. If a page depended on the old value, set it on your own content.
+
+### `max_width:` now means the same thing everywhere
+
+| key | class | accepted it in v2 |
+|---|---|---|
+| `:sm` | `max-w-xl` | FormPage |
+| `:md` | `max-w-3xl` | FormPage |
+| `:lg` | `max-w-5xl` | DashboardPage, FormPage |
+| `:xl` | `max-w-7xl` | DashboardPage, FormPage |
+| `:"2xl"` | `max-w-screen-2xl` | DashboardPage |
+| `:full` | `max-w-full` | DashboardPage, FormPage |
+
+Defaults are unchanged where they existed (`:"2xl"` for DashboardPage, `:md` for FormPage)
+and are `:full` for the three that had no container — `:full` renders `mx-auto max-w-full`,
+which moves no layout. Passing a key the table does not have raises `ArgumentError`; in v2
+three of the five raised `ArgumentError` for *any* key, because they had no `max_width:`.
+
+`sidebar_width:` is new and shared: `:default` gives the sidebar a third of the grid,
+`:narrow` a quarter, `:wide` a half. Below `lg` it always stacks under the body.
+
+### `Level` and `InfoLevel` are deprecated
+
+Both keep working and warn until 4.0. `Level` → flex utilities
+(`flex justify-between items-center gap-4`), or `Bali::PageHeader::Component` for a page
+header. `InfoLevel` → a grid of `Bali::StatCard::Component`.
+
 ## Overlay z-index: one scale, all new numbers
 
 Every overlay used to invent its own z-index. The full inventory, before and after:
@@ -816,6 +878,9 @@ two back.
 ```
 grep -rn "with_actions_panel\|with_export\|table_id:\|data_display_mode\|toolbar_class:" app/
 grep -rn "with_tag_item\|with_tag_header\|tag_class:" app/
+
+grep -rn "with_preview" app/                          # DocumentPage's body slot
+grep -rn "Bali::Level\|Bali::InfoLevel" app/          # deprecated, removed in 4.0
 grep -rn "turbo_stream.replace \"data-table-" app/
 grep -rn "Bali::Card.*DataTable\|render Bali::Card" app/views/**/index*
 # any listing that groups and already used `view`, or that does not start on the table?
