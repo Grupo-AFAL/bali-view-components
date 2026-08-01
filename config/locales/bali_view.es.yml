@@ -246,8 +246,6 @@ es:
       simple_filters:
         placeholder_min: "Mín"
         placeholder_max: "Máx"
-      summary: "Mostrando %{from}-%{to} de %{count} %{item_name}"
-      default_item_name: elementos
       display_modes:
         table: Tabla
         cards: Tarjetas
@@ -284,6 +282,8 @@ es:
           excel: Excel
           pdf: PDF
           json: JSON
+    page_header:
+      back: Volver
     page_components:
       secondary_actions:
         button_label: Más acciones
@@ -294,6 +294,8 @@ es:
       previous_page: Página anterior
       next_page: Página siguiente
       page: "Página %{page}"
+      summary: "Mostrando %{from}-%{to} de %{count} %{item_name}"
+      default_item_name: elementos
     chart:
       loading: Cargando...
     clipboard:
@@ -313,15 +315,6 @@ es:
       confirm_cancel: Cancelar
     image_field:
       clear_image: Borrar imagen
-    gantt_chart:
-      task_header: Nombre
-      today: Hoy
-      task_actions:
-        open_details: Abrir detalles
-        complete_task: Completar tarea
-        delete_task: Eliminar tarea
-        indent_task: Hacer sub tarea
-        outdent_task: Promover tarea
     loader:
       loading: Cargando...
     search_input:
@@ -393,9 +386,6 @@ es:
       title: "Comentarios"
       open: "Abrir comentarios"
       close: "Cerrar"
-    pagination_footer:
-      summary: "Mostrando %{from}-%{to} de %{count} %{item_name}"
-      default_item_name: "elementos"
 
     document_editor:
       # Barra superior

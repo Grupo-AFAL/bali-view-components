@@ -46,7 +46,7 @@
  *
  * NOTE: this file is deliberately NOT called variables.css. It is not "the
  * place where Bali keeps its variables" — Bali's own tokens (`--bali-*`,
- * `--ss-*`, `--fp-*`, `--gantt-*`) live next to the code that uses them. This
+ * `--ss-*`, `--fp-*`) live next to the code that uses them. This
  * file holds exactly the tokens Bali shares with daisyUI, and its whole reason
  * to exist is the cascade position above.
  */

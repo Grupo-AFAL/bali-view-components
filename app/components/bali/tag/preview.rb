@@ -45,6 +45,14 @@ module Bali
       def all_combinations
         render_with_template
       end
+
+      # @label Long Text
+      # A Tag never wraps: daisyUI's `.badge` has a fixed height, so a second
+      # line would render outside the pill. These containers squeeze a Tag below
+      # the width its text needs — narrow columns, a table cell, a card body.
+      def long_text
+        render_with_template
+      end
     end
   end
 end

@@ -2,22 +2,10 @@
 
 module Bali
   module IndexPage
+    # Toda la superficie (title, subtitle, breadcrumbs, back, max_width, sidebar_width, y los
+    # slots nav, title_tags, body, sidebar, actions) vive en PageComponents::Shared.
     class Component < ApplicationViewComponent
       include PageComponents::Shared
-
-      renders_one :nav
-      renders_one :body
-
-      def initialize(title:, subtitle: nil, breadcrumbs: [], back: nil)
-        @title = title
-        @subtitle = subtitle
-        @breadcrumbs = breadcrumbs.map(&:symbolize_keys)
-        @back = back
-      end
-
-      private
-
-      attr_reader :title, :subtitle, :breadcrumbs, :back
     end
   end
 end

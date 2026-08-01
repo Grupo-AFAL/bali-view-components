@@ -12,8 +12,63 @@ module Bali
       SECONDARY_ACTIONS_LABEL_KEY = "bali_view.page_components.secondary_actions.button_label"
       EXPORT_MENU_TITLE_KEY = "bali_view.page_components.export.menu_title"
 
+      # UNA tabla de anchos para los cinco. Antes vivía duplicada en DashboardPage (cuatro
+      # claves, sin `sm`/`md`) y en FormPage (cinco, sin `2xl`), y los otros tres no tenían
+      # `max_width:` en absoluto — así que el mismo símbolo significaba un ancho distinto
+      # según el componente, o nada.
+      MAX_WIDTHS = {
+        sm: "max-w-xl",
+        md: "max-w-3xl",
+        lg: "max-w-5xl",
+        xl: "max-w-7xl",
+        "2xl": "max-w-screen-2xl",
+        full: "max-w-full"
+      }.freeze
+
+      # El grid de cuerpo + barra lateral, parametrizado. `:default` es el 2/3 + 1/3 que
+      # ShowPage y FormPage tenían copiado literal.
+      SIDEBAR_WIDTHS = {
+        narrow: { grid: "lg:grid-cols-4", main: "lg:col-span-3" },
+        default: { grid: "lg:grid-cols-3", main: "lg:col-span-2" },
+        wide: { grid: "lg:grid-cols-2", main: "lg:col-span-1" }
+      }.freeze
+
+      # Las keyword args que este concern se queda. Un componente que además recibe opciones
+      # sueltas de HTML (DocumentPage) las reparte con `slice`/`except` sobre esta lista en
+      # vez de repetir la firma.
+      PAGE_OPTIONS = %i[title subtitle breadcrumbs back max_width sidebar_width].freeze
+
+      # Un solo hueco entre el encabezado (o el nav) y el cuerpo. Antes eran `mt-4` en
+      # IndexPage, `mt-6` en ShowPage/FormPage/DocumentPage y ninguno en DashboardPage.
+      BODY_SPACING_CLASS = "mt-6"
+
       included do
         renders_many :actions
+        renders_many :title_tags
+        renders_one :nav
+        renders_one :body
+        renders_one :sidebar
+
+        # El ancho por defecto es lo ÚNICO que cambia entre los cinco: la tabla que lo
+        # resuelve es la misma. `full` para los que nunca tuvieron contenedor, para que
+        # heredarlo no les cambie el layout.
+        class_attribute :default_max_width, instance_writer: false, default: :full
+      end
+
+      # Firma compartida de los cinco. Un componente que agrega argumentos propios los
+      # declara y llama a `super` con el resto.
+      def initialize(title:, subtitle: nil, breadcrumbs: [], back: nil, max_width: nil,
+                     sidebar_width: :default)
+        @title = title
+        @subtitle = subtitle
+        @breadcrumbs = breadcrumbs.map(&:symbolize_keys)
+        @back = back
+        @max_width_key = (max_width || default_max_width).to_sym
+        @max_width = MAX_WIDTHS.fetch(@max_width_key) do
+          raise ArgumentError,
+                "Unknown max_width: #{@max_width_key.inspect}. Valid: #{MAX_WIDTHS.keys.join(', ')}"
+        end
+        @sidebar_width = resolve_sidebar_width(sidebar_width)
       end
 
       # Acciones SECUNDARIAS de la página: viven en el ⋯ al lado de la primaria. Se guardan
@@ -43,6 +98,8 @@ module Bali
       end
 
       private
+
+      attr_reader :title, :subtitle, :breadcrumbs, :back, :max_width
 
       def secondary_action_items
         @secondary_action_items ||= []
@@ -153,6 +210,82 @@ module Bali
         return unless nav?
 
         helpers.tag.div(class: "page-nav mt-4") { nav.to_s }
+      end
+
+      # El contenedor de la página. `mx-auto` sin `max-w-*` no centra nada, así que van
+      # juntos y siempre: `max_width: :full` es un no-op deliberado, no una ausencia.
+      def page_container_class(*extra)
+        class_names(*extra, "mx-auto", max_width)
+      end
+
+      # El encabezado de los cinco. `title:` y `subtitle:` viajan como argumentos del
+      # constructor —y no por los slots `with_title`/`with_subtitle`— para que los cinco
+      # compartan `PageHeader::TITLE_CLASSES` y `SUBTITLE_CLASSES`, y para que el `h1` lo
+      # emita PageHeader: pasarlo por bloque hacía que el slot envolviera el bloque en un
+      # heading y el título quedara siendo lo que el bloque decidiera.
+      #
+      # `title_tags` va al slot homónimo de PageHeader, que los pone como HERMANOS del
+      # heading. Dentro del `h1` pasaban a formar parte de su nombre accesible y el
+      # encabezado se anunciaba "The Matrix Action Released" (#685).
+      def render_page_header
+        render(Bali::PageHeader::Component.new(
+          title: title,
+          subtitle: subtitle,
+          back: back,
+          class: breadcrumb_spacer_class
+        )) do |header|
+          title_tags.each { |title_tag| header.with_title_tag { title_tag.to_s } }
+          page_header_actions
+        end
+      end
+
+      # El hueco derecho del encabezado. DocumentPage lo amplía con sus toggles de panel;
+      # el resto se queda con la barra de acciones.
+      def page_header_actions
+        render_actions_bar
+      end
+
+      def render_body
+        return unless page_body?
+
+        helpers.tag.div(render_body_with_sidebar, class: BODY_SPACING_CLASS)
+      end
+
+      # ShowPage y FormPage pintaban el MISMO grid con las mismas seis clases; la única
+      # diferencia real era que FormPage envuelve el cuerpo en una Card. Eso es `page_body`,
+      # que FormPage redefine, no una copia del grid.
+      def render_body_with_sidebar
+        return page_body unless sidebar?
+
+        widths = SIDEBAR_WIDTHS.fetch(sidebar_width)
+
+        helpers.tag.div(class: "grid grid-cols-1 #{widths[:grid]} gap-4 lg:gap-6") do
+          helpers.safe_join([
+            helpers.tag.div(page_body, class: widths[:main]),
+            helpers.tag.div(sidebar, class: "space-y-6")
+          ])
+        end
+      end
+
+      # `.to_s` y no el slot pelado: un slot devuelto desde un bloque Ruby llega a `capture`
+      # como objeto, y `capture` solo entiende String o SafeBuffer — lo demás lo descarta en
+      # silencio y el bloque queda vacío. Mismo motivo que el `nav.to_s` de `render_nav`.
+      def page_body
+        body.to_s
+      end
+
+      def page_body?
+        body?
+      end
+
+      attr_reader :sidebar_width
+
+      def resolve_sidebar_width(value)
+        key = (value || :default).to_sym
+        return key if SIDEBAR_WIDTHS.key?(key)
+
+        raise ArgumentError,
+              "Unknown sidebar_width: #{value.inspect}. Valid: #{SIDEBAR_WIDTHS.keys.join(', ')}"
       end
     end
   end

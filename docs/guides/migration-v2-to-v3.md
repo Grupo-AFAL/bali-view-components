@@ -65,6 +65,8 @@ Bali.deprecator.silence { ... }                              # or scope one exce
 | `Bali::Clipboard::SucessContent` | `Bali::Clipboard::SuccessContent` (the alias existed only for the typo) |
 | `Bali::Utils::Url#add_query_params` | `#add_query_param(url, name, value)`, one name at a time |
 | `Bali::Icon::DefaultIcons` | nothing — see [The icon fallback is gone](#the-icon-fallback-is-gone) |
+| `Bali::GanttChart::*` (component and sub-components) | nothing in v3 — see [The Gantt chart is gone](#the-gantt-chart-is-gone) |
+| The `bali-view-components/gantt` npm entry | nothing — remove the import |
 
 `Bali::FilterForm.simple_filter` is **deprecated, not removed** — it still declares the
 filter and now warns. It goes away in v4; migrate at your own pace:
@@ -91,6 +93,50 @@ The reference composition is the `Complete` scenario of the IndexPage preview
 render at once. `/admin/movies` in the dummy app is the end-to-end reference against real
 controllers, routes and Turbo Streams — saved views included, backed by the engine's default
 store and a one-user demo owner; the only family it leaves out is host toolbar buttons.
+
+## The Gantt chart is gone
+
+`Bali::GanttChart::Component`, its nine sub-components, `GanttChartController`,
+`GanttFoldableItemController`, the `bali-view-components/gantt` entry point and the
+`bali_view.gantt_chart.*` strings are all removed. There is no v3 replacement, and no
+deprecation cycle: no application in the group renders it (afal-apps adopted it in its PR
+#203 and replaced it with a React island in #206), so the compatibility shim would have
+had no one to serve.
+
+If you do render it, you have three options:
+
+1. **Wait for v3.1.** A new `Bali::Gantt` is planned there, built for read-only portfolio
+   views, with the per-row `color_by:` that #667 asked for. It is not an API-compatible
+   revival of this one — the drag/resize/dependency editor is not coming back.
+2. **Server-render the view yourself.** afal-apps#426 did exactly this for a portfolio
+   Gantt: `position: sticky` plus `<details>` for the parent/child folding, no JavaScript.
+   A read-only chart uses almost none of what the component carried.
+3. **Vendor the v2 component.** It is MIT and self-contained; copy
+   `app/components/bali/gantt_chart/` out of the v2 tag into your app. You then own the
+   two daisyUI v3 colour aliases it reads (`--in`, `--b3`), which no v5 theme defines.
+
+Remove the import and the bundler alias:
+
+```javascript
+// delete
+import { registerGantt } from 'bali-view-components/gantt'
+registerGantt(application)
+```
+
+```javascript
+// vite.config.js — delete the alias too
+{ find: 'bali/gantt', replacement: resolve(baliGemPath, 'app/frontend/bali/gantt.js') },
+```
+
+The export is removed from `package.json` rather than left as a throwing stub, so a stale
+import fails at build time instead of rendering an empty container at runtime. `sortablejs`
+stays an optional peer: Kanban and SortableList still need it.
+
+**#667 is closed by this removal, not solved by it.** A portfolio Gantt whose bar colour
+encodes project status has no v3 answer; the workaround recorded on the issue (one CSS class
+per status, fighting the component's inline `style` with `!important`) dies with the
+component. If that view matters to you, it is the one to raise against the v3.1 `Bali::Gantt`
+design.
 
 ## The icon fallback is gone
 
@@ -286,8 +332,10 @@ The trap: a host that "overrode" a key Bali did not define is now overriding a k
 *does* define, under a name that moved. `Bali::PaginationFooter` is the live example — its
 `summary` and `default_item_name` only existed as inline English defaults in Ruby, so an app
 that wanted them in Spanish declared `view_components.bali.pagination_footer.*` and it
-worked. Both keys now ship in `bali_view.pagination_footer.*` in en and es. Rename yours or
-delete it; leaving it under the old path is silently dead.
+worked. Both keys now ship in **`bali_view.pagination.*`** in en and es — see
+[Pagination](#pagination-one-footer-one-summary-key-one-adapter) for why they landed there
+and not under `pagination_footer`. Rename yours or delete it; leaving it under the old path
+is silently dead.
 
 ```
 grep -rn "^\s*bali:\|view_components:\|bali\.\|view_components\.bali\." config/locales app/
@@ -371,12 +419,435 @@ Finally, `Bali::Timeline::Header::Component` now applies `**options` to its badg
 them and rendered none of them, so a `class:`, `data:` or `aria-*` you passed and gave up on
 will start taking effect.
 
+## Pagination: one footer, one summary key, one adapter
+
+v2 had three implementations of the same band — summary on the left, page controls on the
+right. `Bali::PaginationFooter` was one, the bottom of `Bali::DataTable` was a second copy
+of it inline, and `Bali::Pagination` sat under both. Two of them built the summary sentence
+independently, so one string had two translation keys and a host had to find both.
+
+`DataTable` now renders `PaginationFooter`. Nothing about its own API changed —
+`show_summary:`, `summary_position:`, `item_name:` and `with_custom_pagy_nav` all keep
+working — but three things move underneath it.
+
+**The summary key.** One key survives, and it is not the one you would guess from the
+component name:
+
+| v2 / earlier v3 betas | v3.0 |
+|---|---|
+| `bali_view.data_table.summary` | `bali_view.pagination.summary` |
+| `bali_view.data_table.default_item_name` | `bali_view.pagination.default_item_name` |
+| `bali_view.pagination_footer.summary` | `bali_view.pagination.summary` |
+| `bali_view.pagination_footer.default_item_name` | `bali_view.pagination.default_item_name` |
+
+It lives under `pagination` because that is the family: the aria labels for the page buttons
+were already there, and `pagination_footer` is one of two components that render the
+sentence. Both keys ship in en and es. The old paths resolve to nothing — an override left
+behind is dead, not merged.
+
+**A summary of nothing is now nothing.** With `count == 0` the footer printed
+"Showing 0-0 of 0 movies" under an empty table. It is suppressed, in the footer and in
+`summary_position: :top` alike, and a footer with neither summary nor controls left to draw
+no longer emits its container or its vertical padding. If your tests assert on that string
+for an empty result set, they are asserting on the bug.
+
+**`url:` on `Bali::Pagination::Component` is honoured now, which is the breaking part.** Pagy
+43 injects the request into every Pagy the `pagy()` helper builds, and the component took the
+branch that let Pagy build its own URLs — so `url:` was silently dropped for anyone using the
+standard helper. It now wins whenever it is given:
+
+```erb
+<%# v2: url: ignored, links kept ?q=batman  →  v3: links are /movies?page=2, no q %>
+<%= render Bali::Pagination::Component.new(pagy: @pagy, url: '/movies') %>
+```
+
+Drop the `url:` and let Pagy build the links (that is what `pagy(scope, path: '/movies')` is
+for), or put the query string you need into the value you pass. `url:` is still what a Pagy
+built by hand needs — `Pagy::Offset.new(...)` carries no request and cannot build a URL at
+all.
+
+Two parameters arrive in exchange, both forwarded by `PaginationFooter` along with the
+`size:`/`variant:`/`url:` it used to swallow:
+
+```erb
+<%= render Bali::PaginationFooter::Component.new(
+      pagy: @pagy,
+      fragment: '#results',                 # every link keeps the reader where they were
+      data: { turbo_frame: 'movies' }) %>   # page inside a Turbo Frame
+```
+
+`pagy(scope, fragment: '#results')` does the same thing from the controller, and is the
+better place for it when the whole page paginates. The anonymous `**options` bucket on
+`Pagination::Component.new` is gone; it never reached the template, so nothing that passed
+through it ever had an effect. `data:` reaches each page **link**, not the wrapper — that is
+where a `turbo_frame:` has to be to do anything.
+
+Honouring `url:` also made a latent bug reachable, so it is fixed here: with **countless**
+pagination the link does not carry the page number but `"5+4"`, the page plus the last page
+Pagy knows about, and Bali used to build that query with `Rack::Utils`, which escaped the `+`
+to `%2B` and lost half the value. The query is now built by Pagy itself. Nothing to do on your
+side; if you had worked around it, you can stop.
+
+**Everything Bali knows about Pagy now lives in `Bali::Pagination::PagyAdapter`.** If you
+subclassed or monkey-patched the component to survive a Pagy upgrade, patch the adapter
+instead — it is the only file that calls anything Pagy does not promise.
+
+### The footer's spacing, if you compose it yourself
+
+`DataTable`'s footer is pixel-identical to v2's — same gap, same padding, same rule above it,
+measured A/B. Getting there needed one API decision worth knowing about if you render
+`PaginationFooter` yourself: **its spacing is a set you swap, not one you add to.**
+
+Standing on its own the band carries `gap-2 py-4`. Passing `class: 'mt-4 pt-4 border-t'` to
+put it under a rule does *not* replace that — you end up with `py-4` and `pt-4` on one
+element, `pt-4` redundant and `py-4` still padding the bottom, because no `pt-*` cancels the
+bottom half of a `py-*` and Tailwind settles the top half by stylesheet order rather than by
+the order you wrote the classes. Use the flag instead:
+
+```erb
+<%= render Bali::PaginationFooter::Component.new(pagy: @pagy, divider: true) %>
+```
+
+`divider: true` swaps the whole set for `gap-4 mt-4 pt-4 border-t border-base-200`: the
+breathing room goes above the line, and nothing pads below a band that closes a listing.
+
+One thing about the footer did change shape: on a phone the summary now sits above the
+controls rather than below, because the inline version carried `order-*` utilities that
+flipped them and the shared one does not. Same height, same spacing, reversed reading order.
+
+## The five page components get one surface
+
+`DashboardPage`, `DocumentPage`, `FormPage`, `IndexPage` and `ShowPage` now take the same
+options and the same slots, all defined in `Bali::PageComponents::Shared`. Most of the move
+is additive — a page component that did not accept `back:`, `nav`, `title_tags`, `sidebar`
+or `max_width:` accepts them now — so the only edits a host owes are these three.
+
+### 1. Rename `with_preview` to `with_body` on `DocumentPage`
+
+```erb
+<%# v2 %>
+<% page.with_preview do %><%= @document.body %><% end %>
+
+<%# v3 %>
+<% page.with_body do %><%= @document.body %><% end %>
+```
+
+`with_preview` still renders and warns through `Bali.deprecator` until 4.0, so nothing goes
+blank if you miss one. `grep -rn "with_preview" app/` finds them all.
+
+### 2. Expect DashboardPage's stat cards to look like `StatCard`, because they are one
+
+`with_stat` keeps its signature (`label:`, `value:`, `icon:`, `change:`, `color:`) and now
+renders `Bali::StatCard::Component`: the label becomes uppercase `text-xs`, the value
+`text-3xl`, the icon sits in a tinted circle, and `change:` lands in the card's footer. If
+you were relying on the old inline markup — a `text-sm` label and a `text-2xl` value — this
+is the change to look at. There is no flag for the old one: shipping two stat cards is the
+problem this closes.
+
+### 3. Two spacing/size values move to the shared default
+
+- `IndexPage`'s body gap goes from `mt-4` to `mt-6`, the value the other four use.
+- `ShowPage` and `DocumentPage`'s subtitle goes from `text-base` to `text-sm`, the value
+  `PageHeader::SUBTITLE_CLASSES` declares and the other three already rendered.
+
+Neither is configurable. If a page depended on the old value, set it on your own content.
+
+### `max_width:` now means the same thing everywhere
+
+| key | class | accepted it in v2 |
+|---|---|---|
+| `:sm` | `max-w-xl` | FormPage |
+| `:md` | `max-w-3xl` | FormPage |
+| `:lg` | `max-w-5xl` | DashboardPage, FormPage |
+| `:xl` | `max-w-7xl` | DashboardPage, FormPage |
+| `:"2xl"` | `max-w-screen-2xl` | DashboardPage |
+| `:full` | `max-w-full` | DashboardPage, FormPage |
+
+Defaults are unchanged where they existed (`:"2xl"` for DashboardPage, `:md` for FormPage)
+and are `:full` for the three that had no container — `:full` renders `mx-auto max-w-full`,
+which moves no layout. Passing a key the table does not have raises `ArgumentError`; in v2
+three of the five raised `ArgumentError` for *any* key, because they had no `max_width:`.
+
+`sidebar_width:` is new and shared: `:default` gives the sidebar a third of the grid,
+`:narrow` a quarter, `:wide` a half. Below `lg` it always stacks under the body.
+
+### 4. Give `PageHeader` an `h2` if your layout already owns the page's `h1`
+
+The page title is now the page's `h1`. In v2 it was an `h3` and no page component emitted an
+`h1` at all, so the heading outline of every Bali page started at level 3. All five page
+components inherit this through `PageHeader`, and so does `PageHeader` used directly.
+
+**This is the only edit most hosts owe.** If the surrounding layout — your own application
+layout, a shell, a navbar brand — already renders an `h1`, the page now has two, and two
+`h1`s is the same kind of axe failure the empty `h6` was:
+
+```erb
+<%# The layout already renders <h1>Costa Norte</h1> %>
+
+<%# v2: the title was an h3 and the layout's h1 stood alone %>
+<%= render Bali::ShowPage::Component.new(title: @shipment.folio) %>
+
+<%# v3: hand the page component the level it should use %>
+<%= render Bali::ShowPage::Component.new(title: @shipment.folio) do |page| %>
+  <% page.with_title(@shipment.folio, tag: :h2) %>
+<% end %>
+```
+
+Check it the way the acceptance criterion was checked — in the rendered DOM, not by reading
+the template:
+
+```js
+document.querySelectorAll('h1').length                                    // must be 1
+[...document.querySelectorAll('h1,h2,h3,h4,h5,h6')]
+  .filter(h => !h.textContent.trim())                                     // must be []
+```
+
+The better fix, where you control the layout, is to drop the layout's `h1` — a site name is
+not the page's heading — and let the page component name the page.
+
+### `PageHeader`: `tag:` is semantic, `class:` is the size
+
+`Bali::PageHeader::Component::HEADING_SIZES` is **gone**. The title slot used to derive its
+font size from the heading level through that table (`h1` → `text-4xl` … `h6` → `text-base`),
+which would have turned the `h1` default and the `tag: :h2` migration above into visual
+changes: the title would have grown to 36px, then shrunk to 30px for anyone doing the
+accessible thing. The size now lives in `TITLE_CLASSES` and does not move with the tag.
+
+```erb
+<%# v2: the tag chose the size %>
+<% c.with_title('Movies', tag: :h1) %>          <%# → text-4xl %>
+
+<%# v3: the tag is the element, the class is the size %>
+<% c.with_title('Movies', tag: :h1, class: 'text-4xl') %>
+```
+
+Rendered sizes are unchanged if you pass nothing: `text-2xl` for the title, `text-sm` for
+the subtitle.
+
+Three more shape changes in the same component:
+
+- **The subtitle is a `<p>`, not an `<h6>`.** It describes the title instead of opening a
+  section. Pass `tag:` if you really want a heading. CSS keyed on `h6.subtitle` needs
+  `.subtitle`.
+- **Nothing renders when there is nothing to render.** No title text and no block means no
+  heading element; same for the subtitle. If you leaned on the empty `h6` as a spacer, it is
+  gone — put the space on your own content.
+- **A block is the CONTENT of the heading, not a replacement for it.**
+  `with_title { tag.h3(...) }` produced an `h3` inside an `h3`, which the parser splits into
+  an empty heading plus yours. Pass the text, or put non-heading markup in the block.
+
+### `PageHeader`: title tags moved out of the heading, and the back button got a name
+
+`title_tags` is a slot on `PageHeader` itself now, and the badges render as siblings of the
+heading rather than inside it — inside, they joined the heading's accessible name ("The
+Matrix Action Released"). The markup goes from `h1 > div.flex > [title, tags]` to
+`div.page-header-title > [h1.title, tags]`. **CSS or tests keyed on `.title .badge` need
+`.page-header-title .badge`.**
+
+The back button carries `aria-label` from `bali_view.page_header.back` ("Go back" /
+"Volver"), skipped when you pass a visible `name:`. Override it per call site with
+`back: { href: path, 'aria-label': 'Back to shipments' }`, or globally by defining
+`bali_view.page_header.back` in your own `config/locales` — host locale files win now.
+
+`Bali::Icon` renders `aria-hidden="true"` by default. Lucide already hid its own `<svg>`;
+the kept, custom and legacy icon sources did not, and the attribute now sits on the wrapper
+where it covers all four. If an icon of yours is genuinely the only carrier of meaning, pass
+`"aria-hidden": false` — and give it an accessible name, or it is still announced as nothing.
+
+### `PageHeader`: what changes below `sm`
+
+Under `sm` the back button takes a row of its own instead of standing in a gutter beside the
+title. Measured at 375px: the title went from 291px of usable width starting 52px in, to the
+full 343px starting at the page's left edge, in line with the breadcrumb above it and the
+body below it. The cost is 44px of header height on mobile pages that have a back button.
+Desktop geometry does not change.
+
+Pass `responsive: false` to `PageHeader` to keep the v2 inline arrangement at every width.
+Page components do not forward that option; they always stack.
+
+### `Level` and `InfoLevel` are deprecated
+
+Both keep working and warn until 4.0. `Level` → flex utilities
+(`flex justify-between items-center gap-4`), or `Bali::PageHeader::Component` for a page
+header. `InfoLevel` → a grid of `Bali::StatCard::Component`.
+
+## Overlay z-index: one scale, all new numbers
+
+Every overlay used to invent its own z-index. The full inventory, before and after:
+
+| Component | Where | v2 | v3 |
+|---|---|---|---|
+| `Dropdown` menu | `dropdown/component.rb` | `z-50` | `--bali-z-dropdown` (200) |
+| `ActionsDropdown` menu (CSS mode) | `actions_dropdown/component.rb` | `z-1` | `--bali-z-dropdown` |
+| `Navbar::DropdownItem` menu | `navbar/dropdown_item/component.rb` | `z-50` | `--bali-z-dropdown` |
+| `SideMenu` collapsed group / bottom group / item flyouts | 4 templates | `z-50` | `--bali-z-dropdown` |
+| `DataTable` saved views, column selector, export | 3 templates | `z-50` | `--bali-z-dropdown` |
+| `Filters` popover panel | `filters/component.html.erb` | `z-50` | `--bali-z-dropdown` |
+| `Filters::Condition` value menu | `filters/condition/component.html.erb` | `z-[100]` | `--bali-z-dropdown` |
+| `Filters` multi-select list (built in JS) | `condition_controller.js` | `z-50` | `.filters-multi-select-content` → `--bali-z-dropdown` |
+| `Drawer` root | `drawer/component.rb` | `z-[60]` | `--bali-z-drawer` (300) |
+| `Drawer` scrim / panel (inside the root) | `drawer/*` | `z-[60]` / `z-[9999]` | `z-0` / `z-10` |
+| `FeedbackWidget` scrim / panel | `feedback_widget/component.html.erb` | `z-[60]` / `z-[61]` | `calc(--bali-z-drawer - 1)` / `--bali-z-drawer` |
+| `Modal` | `modal/component.html.erb` | `z-61` | `--bali-z-modal` (400) |
+| `ImageGrid` lightbox | `image_grid/index.css` | `z-[100]` | `--bali-z-modal` |
+| `DocumentEditor` fullscreen overlay | `document_editor/component.rb` | `z-50` | `--bali-z-modal` |
+| `Command` backdrop / panel | `command/component.html.erb` | `z-[100]` / `z-[101]` | `calc(--bali-z-command - 1)` / `--bali-z-command` (500) |
+| flatpickr calendar (portaled + static) | `bali/datepicker.css` | `99999` / `999` | `--bali-z-popover` (600) |
+| SlimSelect list | `bali/slim_select.css` | `10000` | `--bali-z-popover` |
+| `Status` panel | `status/index.css` | `60` | `--bali-z-popover` |
+| BlockNote emoji picker, Mantine popover/menu | `block_editor/index.css` | `9999 !important` | `--bali-z-popover !important` |
+| `AppLayout` toast container | `app_layout/component.html.erb` | `z-[101]` | `--bali-z-toast` (700) |
+| `Notification` fixed positions | `notification/component.rb` | `z-[101]` | `--bali-z-toast` |
+| BlockEditor upload toast (built in JS) | `useFileUpload.js` | `z-50` | `.block-editor-upload-toast` → `--bali-z-toast` |
+| BlockNote / Mantine tooltips | `block_editor/index.css` | `9999 !important` | `--bali-z-tooltip !important` (800) |
+| `HoverCard` balloon | `hover_card/*` | `9999` (Ruby constant) | `--bali-z-tooltip`, read at connect |
+| `Tooltip` balloon | `tooltip/index.js` | tippy's own `9999` | `--bali-z-tooltip`, read at connect |
+
+### What you have to change
+
+**Any host rule whose number was chosen against one of Bali's.** The classic shapes:
+
+```css
+/* v2: "above the modal at 61" — now under every Bali overlay */
+.my-overlay { z-index: 70; }
+
+/* v3: say which tier you mean */
+.my-overlay { z-index: calc(var(--bali-z-modal) + 1); }
+```
+
+```erb
+<%# v2: identity's toast above a modal %>
+<div class="!z-[10001]">
+
+<%# v3: toasts are already above modals — the override is dead weight %>
+<div>
+```
+
+**A `z-*` utility still wins**, in both versions, because the tokens are read from
+`@layer utilities` classes and a host utility on the same element ties and sorts after.
+Nothing about escaping the scale got harder.
+
+### Moving the scale, or slotting into it
+
+The tokens are declared `:where(:root)` inside `@layer theme`, which is the weakest place
+they can live. Three ways to override, all of which work:
+
+```css
+/* Tailwind v4 idiom — same layer, higher specificity, wins */
+@theme {
+  --bali-z-modal: 1400;
+}
+
+/* Unlayered — beats every layer */
+:root {
+  --bali-z-toast: 1700;
+}
+```
+
+The gap between tiers is 100, so your own overlays go *between* Bali's without touching
+them:
+
+```css
+:root {
+  --app-z-help-bubble: 650; /* above popovers, below toasts */
+}
+```
+
+Note this is **not** how the daisyUI structural fallbacks in `general.css` behave: those
+sit in a later layer and a host cannot override them from `@theme {}` at all.
+
+### Behaviour that did not change
+
+- **App chrome keeps its numbers** — `Navbar` sticky (50), `SideMenu` rail (40) and mobile
+  scrim (30), floating bulk-action bars (40/50). The scale starts at 200 precisely so that
+  every overlay covers them; do not raise chrome into the scale.
+- **A dropdown inside a stacking context is still trapped in it.** A menu rendered inside
+  `Navbar`'s sticky bar competes only with that bar's other children, whatever its
+  z-index — that is how `position` + `z-index` works, and 200 does not change it.
+- **`HoverCard(z_index:)` still wins** when you pass it. Only the default moved.
+
+## `Bali::Tag` drops the Bulma names, and stops wrapping
+
+Two changes to one small component, both of which can reach an app that never touched a
+`DataTable`.
+
+### The Bulma names raise instead of resolving
+
+`COLORS` and `SIZES` carried a block of Bulma aliases marked "deprecated, remove in v2.0".
+They are gone, and an unrecognised value now raises `ArgumentError` at construction rather
+than dropping the class:
+
+| v2 | v3 |
+|---|---|
+| `color: :danger` | `color: :error` |
+| `color: :link` | `color: :primary` |
+| `color: :black` | `color: :neutral` |
+| `color: :dark` | `color: :neutral` |
+| `color: :light` | `color: :ghost` |
+| `color: :white` | `color: :ghost` |
+| `size: :small` | `size: :sm` |
+| `size: :medium` | `size: :md` |
+| `size: :large` | `size: :lg` |
+| `size: :normal` | `size: :md` (or drop it — `md` is the default) |
+| `light: true` | `style: :outline` |
+
+The error names the replacement, so a missed call site reads
+`Bali::Tag::Component: color :danger is a Bulma name removed in v3. Use color: :error.`
+rather than rendering an uncoloured tag. A value in neither list gets the list of valid
+ones instead. `light:` is rejected the same way even though it is no longer a keyword
+argument: it would otherwise be swallowed by `**options` and rendered as a `light="true"`
+HTML attribute, which is the silent no-op this whole change exists to remove.
+
+Only `Bali::Tag` changed. `Bali::Icon` and `Bali::Message` have their own `:small` /
+`:danger` scales and still accept them.
+
+The knock-on to watch: `Bali::Kanban::Column` passes its `color:` straight through to a
+Tag, and its own `badge_class` tolerates an unknown value by falling back to `:ghost`. A
+column declared with a colour outside `Bali::Tag::COLORS` used to render ghost-coloured
+and now raises.
+
+```
+grep -rn "Tag::Component" app/ | grep -E ":danger|:link|:black|:dark|:white|:small|:medium|:large|:normal|light:"
+```
+
+### A Tag is single-line now
+
+daisyUI 5 gives `.badge` a fixed `height: var(--size)` and no white-space control, so a
+label the container squeezes wrapped its extra lines *outside* the pill — the reported
+symptom was role names "disappearing" from a table. `Bali::Tag` now sets `white-space:
+nowrap` and a `1.2` line-height on itself.
+
+**The trade is deliberate and it is visible.** A tag that used to wrap now keeps its full
+width, so a container that has somewhere to put it grows and a container that does not gets
+a tag sticking out of it:
+
+- Inside `Bali::Table` (or anything else with `overflow-x-auto`), the table widens and the
+  container scrolls. This is the fix.
+- Inside a fixed-width box with no horizontal scroll — a narrow card, a sidebar panel — the
+  pill now overhangs its box instead of breaking. Measured on a 256px card, a
+  28-character tag overhangs by 9px.
+
+If a specific call site really wants the old wrapping, opt out per tag. The rule ships in
+`@layer components`, so a plain utility class beats it — no `!` variant:
+
+```erb
+<%= render Bali::Tag::Component.new(text: role, class: "whitespace-normal") %>
+```
+
+That restores the v2 rendering, broken pill included. `Bali::Timeline::Header` is
+unaffected either way: it emits `.badge` markup directly rather than rendering a Tag.
+
 ## What breaks, and what replaces it
 
 | Removed | Replacement |
 |---|---|
 | `c.with_tag_item` / `c.with_tag_header` on `Bali::Timeline` | `c.with_item` / `c.with_header` *(deprecated shim until v4)* |
 | `Bali::Timeline::Header(tag_class:)` | `color:` plus `class:` *(deprecated shim until v4)* |
+| `bali_view.data_table.summary` | `bali_view.pagination.summary` |
+| `bali_view.data_table.default_item_name` | `bali_view.pagination.default_item_name` |
+| `bali_view.pagination_footer.*` | `bali_view.pagination.*` |
+| `Bali::Pagination::Component.new(**options)` | `fragment:` and `data:`, which reach the links |
+| the DataTable's inline footer markup | `Bali::PaginationFooter::Component` |
 | `with_actions_panel` | `with_bulk_actions` |
 | `with_actions_panel(export_formats:)` | `page.with_export(url:)` on the page component |
 | `dt.with_export` | `page.with_export(url:)` on the page component |
@@ -773,11 +1244,18 @@ Both paragraphs carry ids derived with Rails' `field_id` — `movie_synopsis_err
 grep -rn "with_actions_panel\|with_export\|table_id:\|data_display_mode\|toolbar_class:" app/
 grep -rn "label-text\|input-bordered\|textarea-bordered\|form-control" app/ test/ spec/
 grep -rn "with_tag_item\|with_tag_header\|tag_class:" app/
+
+grep -rn "with_preview" app/                          # DocumentPage's body slot
+grep -rn "Bali::Level\|Bali::InfoLevel" app/          # deprecated, removed in 4.0
 grep -rn "turbo_stream.replace \"data-table-" app/
+grep -rn "Tag::Component" app/ | grep -E ":danger|:link|:black|:dark|:white|:small|:medium|:large|:normal|light:"
 grep -rn "Bali::Card.*DataTable\|render Bali::Card" app/views/**/index*
 # any listing that groups and already used `view`, or that does not start on the table?
 grep -rn "group_by_attribute" app/
 grep -rn "view=\|params\[:view\]" app/views app/controllers
+# pagination: dead summary keys, and url: that now wins instead of being dropped
+grep -rn "data_table:\|pagination_footer:" config/locales
+grep -rn "Bali::Pagination.*url:" app/
 ```
 
 Then load each index page in a browser and check, in this order: the toolbar is not inside

@@ -15,7 +15,7 @@
     <%= render Bali::Icon::Component.new(button_icon, class: 'w-4 h-4') %>
     <span class="toolbar-control-label hidden sm:inline"><%= button_label %></span>
   </button>
-  <ul tabindex="0" class="dropdown-content z-50 menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-200">
+  <ul tabindex="0" class="dropdown-content z-[var(--bali-z-dropdown)] menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-200">
     <li class="menu-title"><%= menu_title %></li>
     <% columns.each do |column| %>
       <li>

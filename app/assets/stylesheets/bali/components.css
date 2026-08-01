@@ -17,11 +17,11 @@
 /* Data Display Components */
 @import "../../../components/bali/calendar/index.css" layer(components);
 @import "../../../components/bali/carousel/index.css" layer(components);
-@import "../../../components/bali/gantt_chart/index.css" layer(components);
 @import "../../../components/bali/timeline/index.css" layer(components);
 @import "../../../components/bali/tooltip/index.css" layer(components);
 @import "../../../components/bali/status/index.css" layer(components);
 @import "../../../components/bali/hover_card/index.css" layer(components);
+@import "../../../components/bali/tag/index.css" layer(components);
 
 /* Form Components */
 @import "../../../components/bali/filters/index.css" layer(components);

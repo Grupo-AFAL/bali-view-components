@@ -99,12 +99,10 @@ es:
     avg_budget: Presupuesto Promedio
     completion_rate: Tasa de Finalizacion
     active_users: Usuarios Activos
-    production_timeline: Cronograma de Produccion (GanttChart)
     activity_heatmap: Mapa de Calor de Actividad
     day_of_week: Dia de la Semana
     hour: Hora
     activity: Actividad
-    no_movies_timeline: No hay peliculas para mostrar en el cronograma. Agrega algunas peliculas primero!
     today: Hoy
 
   # Movies
@@ -131,7 +129,7 @@ es:
     views:
       table: Tabla
       cards: Tarjetas
-      timeline: Cronograma
+      calendar: Calendario
     no_movies: No se encontraron peliculas.
     no_movies_help: Intenta ajustar tus filtros o
     add_new_movie: agrega una nueva pelicula

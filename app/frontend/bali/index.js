@@ -16,7 +16,6 @@
  *
  * Optional modules (import separately to reduce bundle size):
  *   import { ChartController, registerCharts } from 'bali-view-components/charts'
- *   import { GanttChartController, registerGantt } from 'bali-view-components/gantt'
  *   import { RichTextEditorController } from 'bali-view-components/rich-text-editor'
  *
  * ## Setup in consuming app
@@ -45,9 +44,7 @@
  *
  *   // Add optional modules as needed
  *   import { registerCharts } from 'bali-view-components/charts'
- *   import { registerGantt } from 'bali-view-components/gantt'
  *   registerCharts(application)
- *   registerGantt(application)
  */
 
 // Re-export all utility controllers
@@ -139,7 +136,6 @@ export { confirmDialog, installConfirmDialog } from '../../assets/javascripts/ba
  *
  * NOTE: Heavy/optional modules are NOT included. Import them separately:
  *   - import { registerCharts } from 'bali-view-components/charts'
- *   - import { registerGantt } from 'bali-view-components/gantt'
  *   - import { registerBlockEditor } from 'bali-view-components/block-editor'
  *   - import { registerRichTextEditor } from 'bali-view-components/rich-text-editor'
  *

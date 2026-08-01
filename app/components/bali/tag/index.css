@@ -1,0 +1,30 @@
+/* Bali Tag — a `.badge` is single-line by construction, so make it say so.
+ *
+ * daisyUI 5 gives `.badge` a fixed `height: var(--size)`, `width: fit-content`
+ * and no white-space control. When the container squeezes a Tag below the width
+ * its text needs, the text wraps but the pill does not grow: the extra lines
+ * render outside it. Measured at a 1280px viewport before this rule,
+ * "Regional Operations Supervisor" in a 144px column produced 3 line boxes
+ * (scrollHeight 43px) inside a 24px pill — that is #655, reported from a table
+ * where role names "disappeared".
+ *
+ * `white-space: nowrap` makes the pill the cell's min-content width instead, so
+ * a table grows and scrolls inside the `overflow-x-auto` container
+ * `Bali::Table` already provides rather than breaking the pill.
+ *
+ * `line-height` is pinned for the same reason the height is: with the inherited
+ * 1.5 a `badge-xs` line box is 15px inside a 14px content box, so even a
+ * single line sits 1px outside its own pill. 1.2 fits every size (xs 12/14,
+ * sm 14.4/18, md 16.8/22, lg 19.2/26, xl 21.6/30) and matches `.status-pill`,
+ * which solved the same problem for Bali::Status.
+ *
+ * Imported into @layer components, which is what lets a host that really wants
+ * a wrapping tag opt out with a plain `whitespace-normal` utility — no `!`
+ * variant needed. daisyUI declares neither property on `.badge`, so nothing in
+ * @layer utilities is being fought here.
+ */
+
+.tag-component {
+  white-space: nowrap;
+  line-height: 1.2;
+}

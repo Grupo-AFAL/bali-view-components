@@ -247,8 +247,6 @@ en:
       simple_filters:
         placeholder_min: "Min"
         placeholder_max: "Max"
-      summary: "Showing %{from}-%{to} of %{count} %{item_name}"
-      default_item_name: items
       display_modes:
         table: Table
         cards: Cards
@@ -285,6 +283,8 @@ en:
           excel: Excel
           pdf: PDF
           json: JSON
+    page_header:
+      back: Go back
     page_components:
       secondary_actions:
         button_label: More actions
@@ -295,6 +295,8 @@ en:
       previous_page: Previous page
       next_page: Next page
       page: "Page %{page}"
+      summary: "Showing %{from}-%{to} of %{count} %{item_name}"
+      default_item_name: items
     chart:
       loading: Loading...
     clipboard:
@@ -314,15 +316,6 @@ en:
       confirm_cancel: Cancel
     image_field:
       clear_image: Clear image
-    gantt_chart:
-      task_header: Name
-      today: Today
-      task_actions:
-        open_details: Open details
-        complete_task: Complete task
-        delete_task: Delete task
-        indent_task: Indent task
-        outdent_task: Outdent task
     loader:
       loading: Loading...
     search_input:
@@ -394,9 +387,6 @@ en:
       title: "Feedback"
       open: "Open feedback"
       close: "Close"
-    pagination_footer:
-      summary: "Showing %{from}-%{to} of %{count} %{item_name}"
-      default_item_name: "items"
 
     document_editor:
       # App bar

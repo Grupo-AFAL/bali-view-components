@@ -57,7 +57,6 @@ const config = {
     // Bali entry points - resolve to local gem source
     bali: path.join(baliGemPath, 'app/frontend/bali'),
     'bali/charts': path.join(baliGemPath, 'app/frontend/bali/charts.js'),
-    'bali/gantt': path.join(baliGemPath, 'app/frontend/bali/gantt.js'),
     'bali/block-editor': path.join(baliGemPath, 'app/frontend/bali/block-editor.js'),
     'bali/rich-text-editor': path.join(baliGemPath, 'app/frontend/bali/rich-text-editor.js'),
     // Force a single React instance — @blocknote/xl-ai bundles react 19 as a

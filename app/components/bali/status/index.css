@@ -74,7 +74,7 @@
 
 /* Panel (position:fixed set inline by the controller) */
 .status-panel {
-  z-index: 60;
+  z-index: var(--bali-z-popover);
   display: none;
   flex-direction: column;
   gap: 0.25rem;

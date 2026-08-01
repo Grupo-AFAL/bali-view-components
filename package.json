@@ -11,7 +11,6 @@
   "exports": {
     ".": "./app/frontend/bali/index.js",
     "./charts": "./app/frontend/bali/charts.js",
-    "./gantt": "./app/frontend/bali/gantt.js",
     "./block-editor": "./app/frontend/bali/block-editor.js",
     "./block-editor-entry": "./app/frontend/bali/block-editor-entry.js",
     "./block-editor-loader": "./app/frontend/bali/block-editor-loader.js",
@@ -73,7 +72,7 @@
     "  Root entry, per controller: @glidejs/glide (carousel), @googlemaps/markerclusterer +",
     "  @rails/activestorage (locations map, direct upload), @rails/request.js, date-fns",
     "  (timeago), flatpickr (datepicker), lodash.debounce, lodash.throttle, rrule (recurrent",
-    "  event rule), slim-select, sortablejs (kanban, sortable list, gantt), tippy.js.",
+    "  event rule), slim-select, sortablejs (kanban, sortable list), tippy.js.",
     "  ./charts: chart.js.",
     "  ./block-editor: @blocknote/core + /react + /mantine, @mantine/core, @mantine/hooks,",
     "    react, react-dom -- all MPL-2.0 or MIT. `shiki` is only needed for syntax-highlighted",

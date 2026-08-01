@@ -47,7 +47,7 @@ module Bali
 
       def drawer_classes
         class_names(
-          "drawer-component group z-[60] fixed",
+          "drawer-component group z-[var(--bali-z-drawer)] fixed",
           @active && "drawer-open",
           @options[:class]
         )
@@ -64,7 +64,7 @@ module Bali
           "bg-base-100 shadow-2xl",
           "transform transition-transform duration-300 ease-in-out",
           position_config[:transform],
-          "overflow-auto z-[9999]"
+          "overflow-auto z-10"
         )
       end
 

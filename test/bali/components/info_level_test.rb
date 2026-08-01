@@ -3,6 +3,19 @@
 require "test_helper"
 
 class BaliInfoLevelComponentTest < ComponentTestCase
+  # InfoLevel queda deprecado en v3 (#684) y se elimina en 4.0; hasta entonces estos tests
+  # siguen cubriendo su render. El aviso se silencia acá para no ahogar la salida del suite —
+  # que avisa se prueba en `deprecator_test.rb`, una vez.
+  def before_setup
+    super
+    Bali.deprecator.silenced = true
+  end
+
+  def after_teardown
+    Bali.deprecator.silenced = false
+    super
+  end
+
   def setup
     @component = Bali::InfoLevel::Component.new
   end
