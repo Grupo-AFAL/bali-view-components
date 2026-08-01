@@ -31,7 +31,21 @@
  * Layer assignment lives here, as `@import "..." layer(x)`, instead of an
  * `@layer` block inside every file, so a sheet's position is readable in one
  * place. Import order still matters for the unlayered group.
+ *
+ * ./bali/z_index.css is the one file assigned from inside itself: it carries its
+ * own `@layer theme` block, so it is imported here WITHOUT a `layer()` — adding
+ * one would nest it into a `theme` sublayer of whatever layer it was given, and
+ * a host's `@theme {}` would stop beating it. Its header argues why `theme` is
+ * the right home for tokens nothing else declares. Anyone assembling these sheets
+ * by hand must still include it: every overlay in the package reads its z-index
+ * from those tokens, a missing token makes the declaration invalid, and the
+ * overlay then falls back to `z-index: auto` and stacks by DOM order.
  */
+
+/* ==============================================
+   @layer theme — the overlay stacking scale, layered from inside the file
+   ============================================== */
+@import "./bali/z_index.css";
 
 /* ==============================================
    @layer base — theme token fallbacks

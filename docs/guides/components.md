@@ -607,11 +607,23 @@ Pagination controls (DaisyUI `join` buttons) built from a Pagy object; renders n
 - `pagy` - The Pagy pagination object (required)
 - `size` - Button size: `:xs`, `:sm`, `:md`, `:lg` (default: `:md`)
 - `variant` - Button variant: `:default`, `:outline`, `:ghost` (default: `:default`)
-- `url` - Base URL for pagination links (default: `nil`, uses the request path)
+- `url` - Base URL for the page links (default: `nil`). Only needed when the Pagy was **not** built by the `pagy()` helper — a bare `Pagy::Offset.new` carries no request and cannot build a URL. When given it wins over the Pagy's own URLs, so it has to carry any query string that must survive paging.
+- `fragment` - Anchor appended to every link, e.g. `'#results'`, so a paginator halfway down the page does not send the reader back to the top
+- `data` - Data attributes for every link, e.g. `{ turbo_frame: 'movies' }` to page inside a Turbo Frame
+
+```erb
+<%# Paging a section without leaving it %>
+<%= render Bali::Pagination::Component.new(
+      pagy: @pagy, fragment: '#results', data: { turbo_frame: 'movies' }) %>
+```
+
+From the controller, `pagy(scope, fragment: '#results')` and `pagy(scope, path: '/movies')` do the same two jobs, and are the better place for them when the whole page paginates.
+
+Everything the component knows about Pagy goes through `Bali::Pagination::PagyAdapter`, the only file in the gem that calls anything Pagy does not promise (`series` is protected; the request lives in an ivar with no reader). Patch the adapter, not the component, if a Pagy upgrade ever calls for it.
 
 #### PaginationFooter
 
-Footer row combining a "Showing X-Y of Z items" summary with `Pagination` controls; renders nothing without a Pagy object.
+Footer row combining a "Showing X-Y of Z items" summary with `Pagination` controls. This is *the* summary-plus-controls band in the library — `Bali::DataTable` renders it instead of an inline copy, and anything else that needs a listing footer should too. Renders nothing without a Pagy object, and nothing when there is neither a summary nor controls left to draw — including `count == 0`, where "Showing 0-0 of 0 movies" said nothing worth saying.
 
 ```erb
 <%= render Bali::PaginationFooter::Component.new(pagy: @pagy, item_name: 'movies') %>
@@ -622,6 +634,21 @@ Footer row combining a "Showing X-Y of Z items" summary with `Pagination` contro
 - `item_name` - Name for items in the summary text (default: `nil`, falls back to "items")
 - `show_summary` - Whether to show the summary text (default: `true`)
 - `show_pagination` - Whether to show pagination controls (default: `true`)
+- `size`, `variant`, `url`, `fragment`, `data` - forwarded to `Pagination` (see above). Note that `data` lands on each page **link**, not on the wrapper — `turbo_frame:` is only useful where the navigation happens. Put wrapper attributes in `data-*` keys of your own if you need them there.
+- `divider` - sit under a rule at the foot of a listing instead of standing on its own (default: `false`). The vertical space moves above the line and a `border-t` draws it, because a footer that closes a listing should not pad below itself. This is what `DataTable` passes.
+- any other option becomes an HTML attribute on the wrapper `div`
+
+The spacing is deliberately **not** something you pass through `class:`. The standalone band carries `py-4`, and adding `pt-4` on top of it leaves both on one element: Tailwind resolves that pair by stylesheet order rather than by the order you wrote them, and nothing you can add cancels the bottom half of a `py-*`. `divider:` swaps the whole spacing set instead of layering a second one on it.
+
+Slots: `with_controls` replaces the `Pagination` component with your own nav.
+
+```erb
+<%= render Bali::PaginationFooter::Component.new(pagy: @pagy) do |footer| %>
+  <% footer.with_controls { pagy_nav(@pagy) } %>
+<% end %>
+```
+
+The sentence and the fallback item name come from `bali_view.pagination.summary` and `bali_view.pagination.default_item_name`, in en and es. That one pair is what `DataTable` uses too.
 
 ---
 
@@ -1006,9 +1033,9 @@ option list below.
 - `url` - Base URL for filtering/sorting links (required)
 - `filter_form` - `Bali::FilterForm` instance for Ransack integration (default: nil)
 - `pagy` - Pagy object for pagination (default: nil)
-- `show_summary` - Show record summary (default: true when pagy present)
-- `summary_position` - `:top` or `:bottom` (default: `:bottom`)
-- `item_name` - Item name used in the summary text (default: i18n)
+- `show_summary` - Show record summary (default: true when pagy present). Suppressed either way when there are no results — a "Showing 0-0 of 0" line under an empty table tells nobody anything.
+- `summary_position` - `:top` or `:bottom` (default: `:bottom`). At the bottom it is the left half of a [`PaginationFooter`](#paginationfooter), which the DataTable renders rather than duplicating.
+- `item_name` - Item name used in the summary text (default: `bali_view.pagination.default_item_name`)
 - `table_class` - CSS class for the content scroll wrapper (default: `"overflow-x-auto"`)
 - `display_mode` - Display mode requested by the host, typically `params[:view]`. It does
   **not** select a slot — there is only one content band, and the host chooses what to

@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
+import zIndexFor from '../../../assets/javascripts/bali/utils/z-index.js'
 
 export class TooltipController extends Controller {
   static targets = ['content', 'trigger']
@@ -21,7 +22,8 @@ export class TooltipController extends Controller {
       trigger: this.triggerValue,
       theme: 'bali',
       arrow: true,
-      offset: [0, 24]
+      offset: [0, 24],
+      zIndex: zIndexFor('tooltip')
     })
   }
 
