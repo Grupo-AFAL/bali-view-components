@@ -12,7 +12,7 @@ class BaliFormBuilderPasswordFieldsTest < FormBuilderTestCase
 
   def test_password_field_group_renders_a_legend_label
     result = builder.password_field_group(:budget)
-    assert_html(result, "legend.fieldset-legend", text: "Budget")
+    assert_html(result, "label.fieldset-legend", text: "Budget")
   end
 
   def test_password_field_group_renders_a_password_input_with_correct_attributes

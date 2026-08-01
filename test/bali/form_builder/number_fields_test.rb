@@ -12,7 +12,7 @@ class BaliFormBuilderNumberFieldsTest < FormBuilderTestCase
 
   def test_number_field_group_renders_a_legend_label
     result = builder.number_field_group(:budget)
-    assert_html(result, "legend.fieldset-legend", text: "Budget")
+    assert_html(result, "label.fieldset-legend", text: "Budget")
   end
 
   def test_number_field_group_renders_a_number_input_with_correct_attributes

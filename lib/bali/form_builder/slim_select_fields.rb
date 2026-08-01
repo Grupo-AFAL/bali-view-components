@@ -37,6 +37,7 @@ module Bali
           method, class_names([ SELECT_CLASS, merged_html[:class] ].compact),
           error_class: "select-error"
         )
+        merge_aria_attributes(attributes, method, merged_html)
 
         field = build_wrapper(method, merged_options, attributes, merged_html[:select_class]) do
           build_select_content(method, values, merged_options, attributes)
@@ -137,10 +138,13 @@ module Bali
               data: { action: action, slim_select_target: target })
       end
 
+      # The wrapper id used to be a bare `#{method}_select_div`, which ignored the
+      # object name, the index and any nested-attribute path — so two forms for
+      # the same model on one page emitted the very same id twice.
       def wrapper_attributes(method, options, html_options, select_class)
         size_class = SIZE_CLASSES[options[:size]&.to_sym]
         {
-          id: "#{method}_select_div",
+          id: field_id(method, "select_div"),
           class: class_names([ WRAPPER_CLASS, size_class, select_class ].compact),
           data: stimulus_data(options, html_options)
         }

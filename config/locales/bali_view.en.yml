@@ -21,6 +21,7 @@ en:
       apply_filters: "Apply Filters"
       reset: "Reset"
       clear_search: "Clear search"
+      submit_search: "Search"
       active_filters: "Active filters:"
       auto_saved: "Auto-saved"
       filters_saved: "Filters are saved automatically"
@@ -199,6 +200,7 @@ en:
         no_file_selected: "No file selected"
       search:
         placeholder: "Search..."
+        submit: "Search"
       slim_select:
         search_placeholder: "Search"
         select_all: "Select all"
@@ -325,6 +327,7 @@ en:
       loading: Loading...
     search_input:
       placeholder: Search...
+      submit: "Search"
     turbo_native_app:
       sign_out:
         name: Sign out
@@ -386,6 +389,19 @@ en:
       yearly_options: Yearly Options
       monthly_options: Monthly Options
       repeat_on_days: Repeat on Days
+      # Accessible names for the controls of the recurrence builder. None of
+      # them is reachable by a <label for>: the visible text around them is
+      # loose copy ("Repeat", "every", "On the"), so without these each select
+      # and number input was announced with no name at all.
+      frequency_label: Frequency
+      interval_label: Repeat interval
+      month_label: Month
+      monthday_label: Day of month
+      setpos_label: Week of month
+      weekday_label: Weekday
+      end_label: End condition
+      count_label: Number of occurrences
+      until_label: End date
       of: of
 
     feedback_widget:

@@ -47,8 +47,11 @@ module Bali
         class_names(BASE_BUTTON_CLASSES, submit_options[:class])
       end
 
+      # The button holds only an icon, which contributes no text to the
+      # accessible name, so it needs a label of its own unless the caller
+      # already supplied one.
       def button_attributes
-        submit_options.except(:class)
+        { 'aria-label': t(".submit") }.merge(submit_options.except(:class))
       end
 
       def input_data

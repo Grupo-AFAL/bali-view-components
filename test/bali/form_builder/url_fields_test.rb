@@ -12,7 +12,7 @@ class BaliFormBuilderUrlFieldsTest < FormBuilderTestCase
 
   def test_url_field_group_renders_a_legend_label
     result = builder.url_field_group(:website_url)
-    assert_html(result, "legend.fieldset-legend", text: "Website url")
+    assert_html(result, "label.fieldset-legend", text: "Website url")
   end
 
   def test_url_field_group_renders_a_url_input_with_correct_attributes

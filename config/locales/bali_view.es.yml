@@ -21,6 +21,7 @@ es:
       apply_filters: "Aplicar Filtros"
       reset: "Restablecer"
       clear_search: "Limpiar búsqueda"
+      submit_search: "Buscar"
       active_filters: "Filtros activos:"
       auto_saved: "Auto-guardado"
       filters_saved: "Los filtros se guardan automáticamente"
@@ -198,6 +199,7 @@ es:
         no_file_selected: "Ningún archivo seleccionado"
       search:
         placeholder: "Buscar..."
+        submit: "Buscar"
       slim_select:
         search_placeholder: "Buscar"
         select_all: "Seleccionar todo"
@@ -324,6 +326,7 @@ es:
       loading: Cargando...
     search_input:
       placeholder: Buscar...
+      submit: "Buscar"
     turbo_native_app:
       sign_out:
         name: Cerrar sesión
@@ -385,6 +388,19 @@ es:
       yearly_options: Opciones Anuales
       monthly_options: Opciones Mensuales
       repeat_on_days: Repetir en Días
+      # Accessible names for the controls of the recurrence builder. None of
+      # them is reachable by a <label for>: the visible text around them is
+      # loose copy ("Repeat", "every", "On the"), so without these each select
+      # and number input was announced with no name at all.
+      frequency_label: Frecuencia
+      interval_label: Intervalo de repetición
+      month_label: Mes
+      monthday_label: Día del mes
+      setpos_label: Semana del mes
+      weekday_label: Día de la semana
+      end_label: Condición de fin
+      count_label: Número de repeticiones
+      until_label: Fecha de fin
       of: de
 
     feedback_widget:

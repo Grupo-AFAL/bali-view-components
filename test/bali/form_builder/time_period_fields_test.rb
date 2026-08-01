@@ -36,7 +36,7 @@ class BaliFormBuilderTimePeriodFieldsTest < FormBuilderTestCase
   def test_time_period_field_group_renders_a_legend_with_label
     select_options = [ [ "This week", Time.zone.now.all_week ] ]
     result = builder.time_period_field_group(:release_date, select_options)
-    assert_html(result, "legend.fieldset-legend", text: "Release date")
+    assert_html(result, "label.fieldset-legend", text: "Release date")
   end
 
   def test_time_period_field_group_renders_the_time_period_field_inside

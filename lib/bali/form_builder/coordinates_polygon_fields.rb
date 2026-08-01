@@ -11,8 +11,12 @@ module Bali
       MAP_CLASSES = "map h-[400px]"
       BUTTON_WRAPPER_CLASSES = "flex justify-end items-center mb-3"
 
+      # The caption stays a `<legend>`: the only form control here is a hidden
+      # field the map writes into, and a hidden input is not labelable.
       def coordinates_polygon_field_group(method, options = {})
-        @template.render Bali::FieldGroupWrapper::Component.new(self, method, options) do
+        @template.render Bali::FieldGroupWrapper::Component.new(
+          self, method, options.merge(control_id: false)
+        ) do
           coordinates_polygon_field(method, options)
         end
       end

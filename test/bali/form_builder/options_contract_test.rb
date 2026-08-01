@@ -15,6 +15,7 @@ class BaliFormBuilderOptionsContractTest < FormBuilderTestCase
     label: "Leaked label", help: "Leaked help", control_class: "leaked-control",
     control_data: { leaked: "control" }, addon_class: "leaked-addon",
     field_class: "leaked-field", field_data: { leaked: "field" },
+    control_id: "leaked-control-id",
     pattern_type: :number_with_commas, symbol: "@", char_counter: { max: 10 },
     auto_grow: true, select_class: "leaked-select", choose_file_text: "Leaked choose",
     non_selected_text: "Leaked empty", file_class: "leaked-file", icon: "star",

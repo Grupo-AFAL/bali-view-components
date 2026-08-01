@@ -12,7 +12,7 @@ class BaliFormBuilderDateFieldsTest < FormBuilderTestCase
 
   def test_date_field_group_renders_a_label
     result = builder.date_field_group(:release_date)
-    assert_html(result, "legend.fieldset-legend", text: "Release date")
+    assert_html(result, "label.fieldset-legend", text: "Release date")
   end
 
   def test_date_field_group_renders_a_field_with_datepicker_controller

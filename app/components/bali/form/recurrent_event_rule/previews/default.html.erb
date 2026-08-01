@@ -14,7 +14,11 @@
         <code class="bg-base-200 px-1 rounded">FREQ=MONTHLY;INTERVAL=5;BYSETPOS=-1;BYDAY=MO</code>
         — Every 5 months, on the last Monday of the month.
       </p>
+      <%# Four illustrations of the same attribute share a page here, which is the one
+          case the derived ids cannot tell apart — Rails would repeat them too. `id:` renames
+          this instance's controls so the preview does not ship duplicate ids. %>
       <%= form.recurrent_event_rule_field :rule,
+          id: 'rule_monthly_example',
           value: 'RRULE:INTERVAL=5;FREQ=MONTHLY;BYSETPOS=-1;BYDAY=MO' %>
     </div>
 
@@ -26,6 +30,7 @@
         — Every 5 weeks on Sun/Tue/Thu, stops after 3 occurrences.
       </p>
       <%= form.recurrent_event_rule_field :rule,
+          id: 'rule_weekly_example',
           value: 'RRULE:INTERVAL=5;FREQ=WEEKLY;BYDAY=SU,TU,TH;COUNT=3' %>
     </div>
 
@@ -36,7 +41,9 @@
         <code class="bg-base-200 px-1 rounded">FREQ=DAILY;INTERVAL=1;UNTIL=20250831</code>
         — Every day until August 31, 2025.
       </p>
-      <%= form.recurrent_event_rule_field :rule, value: 'FREQ=DAILY;INTERVAL=1;UNTIL=20250831T000000Z' %>
+      <%= form.recurrent_event_rule_field :rule,
+          id: 'rule_daily_example',
+          value: 'FREQ=DAILY;INTERVAL=1;UNTIL=20250831T000000Z' %>
     </div>
   </div>
 <% end %>

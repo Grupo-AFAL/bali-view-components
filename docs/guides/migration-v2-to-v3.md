@@ -1757,6 +1757,106 @@ two back.
   With `Bali.native_app` on and `modal:` present, the cancel button is now hidden the way
   the code always said it would be. Without `native_app` nothing changes.
 
+## The field caption becomes a `<label for>`, and every control gets a name
+
+A `<legend>` names the `<fieldset>` around a control, never the control itself. Every
+`*_field_group` in v2 was therefore an input with no accessible name. Check it the way this
+change was verified — the HTML is not evidence, because a `for` pointing at an id nobody
+emits looks perfect and names nothing:
+
+```
+# DevTools → Elements → Accessibility pane, on any form field.
+# "Name" must be the caption text, not empty.
+```
+
+The caption is a `<label for="<the input's real id>">` in the 18 families that wrap exactly
+one labelable control, and stays a `<legend>` in the groups that hold several:
+`boolean_field_group`, `radio_field_group`, `radio_buttons_group`,
+`coordinates_polygon_field_group`, `block_editor_group`, `rich_text_area_group`,
+`direct_upload_field_group` and `recurrent_event_rule_field_group`. In those, the controls
+already carry names of their own, and a second `<label for>` on a control that has one does
+not replace its name — it concatenates with it.
+
+### What to grep for
+
+```
+grep -rn "legend.fieldset-legend\|legend\.fieldset" app/ test/ spec/
+grep -rn "field-[a-z_]*\"\|#field-" app/ test/ spec/
+grep -rn "_select_div\|_period\"" app/ test/ spec/
+```
+
+| v2 | v3 |
+|---|---|
+| `<legend class="fieldset-legend">` | `<label class="fieldset-legend" id="<field_id>_label" for="<field_id>">` (single-control families) |
+| `<fieldset id="field-synopsis">` | `<fieldset id="movie_synopsis_field">` |
+| `<div id="status_select_div">` (SlimSelect wrapper) | `<div id="movie_status_select_div">` |
+| `<select id="created_at_period">` (time period) | `<select id="movie_created_at_period">` |
+| `<select id="freq">`, `id="interval"`, `id="bymonth"`… (recurrence) | `id="<field_id>_freq"`, `_interval`, `_yearly_on_1_bymonth`… |
+| `<label class="label cursor-pointer" for="movie_indie">` around a checkbox | same `<label>`, no `for` — the wrapping association names it |
+
+The three hand-built ids all ignored the object name, the index and any nested-attribute
+path, so **two forms for the same model on one page emitted each of them twice**. They now
+come from Rails' `field_id`, so the form index keeps them apart. The
+`field_group_wrapper/two_forms_same_model` preview is that case, deliberately.
+
+### A 6 px layout change comes with it
+
+daisyUI's `.fieldset` is `display: grid` with `gap: .375rem` and `padding-block: .25rem`, and
+a rendered `<legend>` is **not** a grid item: it is placed above the anonymous grid box and
+escapes both. An ordinary `<label>` is a grid item, so it picks them up. Measured on
+`form/text/with_help_text_and_errors`:
+
+| | caption top | fieldset height |
+|---|---|---|
+| v2 (`<legend>`) | 16 px | 126 px |
+| v3 (`<label>`) | 20 px | 132 px |
+
+Each field group is 6 px taller and its caption sits 4 px lower. Nothing in Bali neutralises
+it: daisyUI exposes no custom property for either value, so the fix would hard-code copies of
+two of its literals. If the density matters to you, set it yourself once, on your side:
+
+```css
+/* Unlayered, because .fieldset is daisyUI and layers beat specificity. */
+.fieldset > label.fieldset-legend { margin-block-start: -0.25rem; margin-block-end: -0.625rem; }
+```
+
+### Errors and help are announced now
+
+The control carries `aria-invalid="true"` when the field has an error, and an
+`aria-describedby` naming only the paragraphs that are actually in the DOM — the error id
+when there is an error, the help id when `help:` was passed, both when both. If you added
+either attribute by hand around Bali, remove yours: writing `aria: { invalid: }` and
+`"aria-invalid" =>` both emits the attribute twice. Bali skips whichever spelling you already
+used, so your value wins, but two sources of truth for the same state is worth collapsing.
+
+### Names that did not exist before
+
+- The icon-only search submits in `search_field_group`, `Bali::Filters` and
+  `Bali::SearchInput` were announced as "button". They carry an i18n'd `aria-label`
+  (`bali_view.form_builder.search.submit`, `bali_view.filters.submit_search`,
+  `bali_view.search_input.submit`). Override them like any other key.
+- `Bali::DataTable::SimpleFilters` captions were `<label>` elements with no `for`. They are a
+  `<label for>` over a single control, and a `<span>` naming a `role="group"` over several.
+  Its documented-but-never-rendered `search: { label: }` option now becomes the search box's
+  `aria-label`.
+- `RecurrentEventRuleForm`'s twelve selects and number inputs had no captions at all; the new
+  `bali_view.recurrent_event_rule_form.*_label` keys name them. It also takes an `id:` now,
+  for the one case the derived ids cannot tell apart: the same attribute rendered twice in
+  one form, where Rails would repeat ids too.
+- With `altInput` on (the default), flatpickr builds a **new** input and turns the original
+  into `type="hidden"`, copying only placeholder/disabled/required/tabIndex. The `<label for>`
+  and both aria attributes therefore stopped applying to the field the user types into.
+  `DatepickerController` forwards them after init. If you wrapped a Bali date field to work
+  around the missing name, drop the workaround.
+
+### Still unnamed
+
+BlockNote's ProseMirror `contenteditable` — the editor creates it client-side, so there is no
+id at render time and naming it needs an `aria-labelledby` the editor writes when it mounts.
+SlimSelect's dropdown search input and its `role="combobox"` trigger are named by that
+library. The bare `*_field` helpers never rendered a caption; that is the `_group` variant's
+job, and they are unchanged.
+
 ## The FormBuilder's dead daisyUI 4 classes are gone
 
 daisyUI 5 removed `label-text`, `label-text-alt`, `input-bordered`, `textarea-bordered` and
@@ -1813,6 +1913,7 @@ Both paragraphs carry ids derived with Rails' `field_id` — `movie_synopsis_err
 ```
 grep -rn "with_actions_panel\|with_export\|table_id:\|data_display_mode\|toolbar_class:" app/
 grep -rn "label-text\|input-bordered\|textarea-bordered\|form-control" app/ test/ spec/
+grep -rn "legend.fieldset-legend\|#field-\|_select_div\|aria-invalid" app/ test/ spec/
 grep -rn "with_tag_item\|with_tag_header\|tag_class:" app/
 
 grep -rn "with_preview" app/                          # DocumentPage's body slot

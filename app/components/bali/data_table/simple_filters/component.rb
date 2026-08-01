@@ -146,6 +146,35 @@ module Bali
           values
         end
 
+        # A filter whose caption cannot be a `<label for>` because it has no
+        # single control to point at. Those get a `role="group"` named by the
+        # caption instead, which is what a caption over several controls is.
+        def multi_control?(filter)
+          toggle_group?(filter) || radio_group?(filter) || number_range?(filter)
+        end
+
+        # Derived from the Ransack param name, not from the attribute: the
+        # predicate is what tells two filters over the same column apart, and it
+        # is already assumed unique — two filters sharing a name would be
+        # fighting over the same param anyway.
+        def filter_control_id(filter)
+          "simple-filter-#{filter_field_name(filter).gsub(/[^a-zA-Z0-9_-]+/, "-").squeeze("-").delete_suffix("-")}"
+        end
+
+        def filter_label_id(filter)
+          "#{filter_control_id(filter)}-label"
+        end
+
+        def search_input_id
+          "simple-filter-search-#{@search[:field_name].gsub(/[^a-zA-Z0-9_-]+/, "-").squeeze("-").delete_suffix("-")}"
+        end
+
+        # Documented since the component was written but never rendered, which
+        # left the search box named by its placeholder alone.
+        def search_label
+          @search&.dig(:label)
+        end
+
         def icon_addon(icon_name)
           return unless icon_name
 

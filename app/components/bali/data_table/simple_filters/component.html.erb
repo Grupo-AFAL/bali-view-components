@@ -16,9 +16,11 @@
               "name"/"email" (p. ej. q[name_or_email_cont]) que disparan su heurística. %>
           <%= tag.input(
                 type: "text",
+                id: search_input_id,
                 name: @search[:field_name],
                 value: @search[:value],
                 placeholder: @search[:placeholder],
+                "aria-label": search_label,
                 autocomplete: "off",
                 data: { "1p-ignore": "", lpignore: "true", "form-type": "other" },
                 class: "input input-bordered input-sm w-full #{'join-item rounded-l-none border-l-0' if search_icon}"
@@ -29,15 +31,30 @@
 
     <% @filters.each do |filter| %>
       <div class="<%= (toggle_group?(filter) || radio_group?(filter)) ? '' : (number_range?(filter) ? 'w-auto' : 'w-auto sm:max-w-56') %> shrink-0">
-        <%# Boolean filters already render their own inline label, so skip the caption there. %>
+        <%# Boolean filters already render their own inline label, so skip the caption there.
+            The caption used to be a `<label>` with no `for`, which names nothing: it is a
+            `<label for>` where there is a single control to point at, and a `<span>` naming a
+            `role="group"` where the filter is really several controls. %>
         <% if filter[:label].present? && !boolean?(filter) %>
-          <label class="block text-xs font-medium text-base-content/60 mb-0.5 truncate" title="<%= filter[:label] %>"><%= filter[:label] %></label>
+          <%= tag.send(
+                multi_control?(filter) ? :span : :label,
+                filter[:label],
+                id: filter_label_id(filter),
+                for: (filter_control_id(filter) unless multi_control?(filter)),
+                title: filter[:label],
+                class: "block text-xs font-medium text-base-content/60 mb-0.5 truncate"
+              ) %>
         <% end %>
+        <% group_attributes = if filter[:label].present? && multi_control?(filter)
+                                { role: "group", "aria-labelledby": filter_label_id(filter) }
+                              else
+                                {}
+                              end %>
         <% if toggle_group?(filter) %>
           <%# Hidden input to ensure the parameter is sent even when nothing is checked %>
           <input type="hidden" name="<%= filter_field_name(filter) %>" value="" />
 
-          <div class="join">
+          <div class="join" <%= tag.attributes(group_attributes) %>>
             <% filter[:collection].each do |label, value| %>
               <%
                 current_values = Array.wrap(filter[:value] || filter[:default]).map(&:to_s)
@@ -52,7 +69,7 @@
             <% end %>
           </div>
         <% elsif radio_group?(filter) %>
-          <div class="join">
+          <div class="join" <%= tag.attributes(group_attributes) %>>
             <% filter[:collection].each do |label, value| %>
               <% current_value = (filter[:value] || filter[:default]).to_s %>
               <input type="radio"
@@ -79,7 +96,7 @@
           <div class="<%= 'join' if filter[:icon] %>">
             <%= icon_addon(filter[:icon]) %>
 
-            <div class="flex items-center gap-1 <%= 'join-item' if filter[:icon] %>">
+            <div class="flex items-center gap-1 <%= 'join-item' if filter[:icon] %>" <%= tag.attributes(group_attributes) %>>
               <input type="number"
                      name="<%= names[:min] %>"
                      value="<%= values[:min] %>"
@@ -99,8 +116,11 @@
           <div class="<%= 'join' if filter[:icon] %>">
             <%= icon_addon(filter[:icon]) %>
 
+            <%# Explicit id so the caption's `for` reaches it: off a Ransack param
+                name Rails would derive `q[released_at_gteq]`, brackets and all. %>
             <%= f.date_field(
                   filter_field_name(filter),
+                  id: filter_control_id(filter),
                   value: filter[:value] || filter[:default],
                   placeholder: filter[:placeholder] || filter[:label],
                   alt_input_class: "input input-bordered input-sm w-full #{'join-item rounded-l-none border-l-0 max-sm:w-24 max-sm:px-1' if filter[:icon]}",
@@ -119,7 +139,7 @@
                   content_width: SLIM_SELECT_CONTENT_WIDTH,
                   addon_left: (render Bali::Icon::Component.new(filter[:icon], class: 'w-4 h-4') if filter[:icon])
                 },
-                { class: "w-full #{'max-sm:w-16' if filter[:icon]}", select_class: ('max-sm:w-16' if filter[:icon]) }
+                { id: filter_control_id(filter), class: "w-full #{'max-sm:w-16' if filter[:icon]}", select_class: ('max-sm:w-16' if filter[:icon]) }
               ) %>
         <% else %>
           <div class="<%= 'join' if filter[:icon] %>">
@@ -132,6 +152,7 @@
                 filter[:value] || filter[:default]
               ),
               { include_blank: filter[:blank] },
+              id: filter_control_id(filter),
               class: "select select-bordered select-sm w-full bg-none max-sm:pr-2 #{'join-item rounded-l-none border-l-0 max-sm:w-16 max-sm:px-1' if filter[:icon]}"
             ) %>
           </div>

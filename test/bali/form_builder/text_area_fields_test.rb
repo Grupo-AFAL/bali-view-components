@@ -12,7 +12,7 @@ class BaliFormBuilderTextAreaFieldsTest < FormBuilderTestCase
 
   def test_text_area_group_renders_a_legend_label
     result = builder.text_area_group(:synopsis)
-    assert_html(result, "legend.fieldset-legend", text: "Synopsis")
+    assert_html(result, "label.fieldset-legend", text: "Synopsis")
   end
 
   def test_text_area_group_renders_a_text_area_with_correct_name
