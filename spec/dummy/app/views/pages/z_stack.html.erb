@@ -1,0 +1,70 @@
+<%# Manual check for the overlay z-index scale (app/assets/stylesheets/bali/z_index.css).
+    Every tier open at once, because the ordering only means anything when several
+    overlays are on screen together — a preview with one overlay open proves nothing.
+    The tiers, low to high: dropdown, drawer, modal, command, popover, toast, tooltip.
+    The datepicker and the select sit INSIDE the modal on purpose: they portal to
+    <body>, so they are the case that has to clear the dialog that opened them. %>
+<h1 class="text-2xl font-bold p-6">z-index scale — every overlay open at once</h1>
+
+<div class="p-6 flex gap-4 items-start">
+  <div id="probe-dropdown-wrap">
+    <%= render Bali::Dropdown::Component.new(class: 'dropdown-open') do |c| %>
+      <% c.with_trigger(name: 'Dropdown trigger') %>
+      <% c.with_item(name: 'Item one', href: '#') %>
+      <% c.with_item(name: 'Item two', href: '#') %>
+    <% end %>
+  </div>
+
+  <span id="probe-tooltip-wrap">
+    <%= render Bali::Tooltip::Component.new(placement: :bottom) do |c| %>
+      <% c.with_trigger do %>
+        <span class="btn btn-sm">Tooltip trigger</span>
+      <% end %>
+      <p>Tooltip content</p>
+    <% end %>
+  </span>
+
+  <span id="probe-hovercard-wrap">
+    <%= render Bali::HoverCard::Component.new(placement: 'bottom') do |c| %>
+      <% c.with_trigger do %>
+        <button type="button" class="btn btn-sm">HoverCard trigger</button>
+      <% end %>
+      <p>HoverCard content</p>
+    <% end %>
+  </span>
+</div>
+
+<%= render Bali::Drawer::Component.new(drawer_id: 'probe-drawer', active: true, title: 'Drawer') do %>
+  <p>Drawer body</p>
+<% end %>
+
+<%= render Bali::Modal::Component.new(id: 'probe-modal', active: true) do |c| %>
+  <% c.with_header(title: 'Modal') %>
+  <% c.with_body do %>
+    <p>Modal body</p>
+    <%= form_with(model: Movie.new, url: '/', builder: Bali::FormBuilder) do |form| %>
+      <%= form.datetime_field_group :release_date %>
+      <%= form.slim_select_field :genre, [['Drama', 'drama'], ['Comedy', 'comedy']] %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<%= render Bali::Command::Component.new(placeholder: 'Command palette') do |c| %>
+  <% c.with_group(name: 'Group') do |g| %>
+    <% g.with_item(title: 'Command item', href: '#') %>
+  <% end %>
+<% end %>
+
+<%# dismiss: false keeps the toast on screen; the default auto-closes after 3s. %>
+<%= render Bali::Notification::Component.new(message: 'Toast', position: :top_right, dismiss: false) %>
+
+<script>
+  // The controllers open these on user input. This page only needs them all
+  // visible at the same time, so it sets the open state directly.
+  document.addEventListener('DOMContentLoaded', () => {
+    const cmd = document.querySelector('.bali-command')
+    cmd.querySelector('[data-command-target="backdrop"]').classList.remove('hidden')
+    cmd.querySelector('[data-command-target="panel"]').classList.remove('hidden')
+    document.querySelector('#probe-modal').classList.add('modal-open')
+  })
+</script>

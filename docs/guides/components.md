@@ -328,6 +328,11 @@ Full-width hero section (DaisyUI `hero`) with title, subtitle, and action slots.
 
 #### Level
 
+> **Deprecated in v3, removed in 4.0.** Level is a flex row with `justify-between` and
+> nothing else: `<div class="flex justify-between items-center gap-4">` does the same
+> without a component in between. For a page header use
+> [PageHeader](#pageheader), which is what Level was holding up.
+
 Horizontal bar that spreads content between left and right sides, wrapping on small screens; use `with_item` directly when positioning is not needed.
 
 ```erb
@@ -586,11 +591,23 @@ Pagination controls (DaisyUI `join` buttons) built from a Pagy object; renders n
 - `pagy` - The Pagy pagination object (required)
 - `size` - Button size: `:xs`, `:sm`, `:md`, `:lg` (default: `:md`)
 - `variant` - Button variant: `:default`, `:outline`, `:ghost` (default: `:default`)
-- `url` - Base URL for pagination links (default: `nil`, uses the request path)
+- `url` - Base URL for the page links (default: `nil`). Only needed when the Pagy was **not** built by the `pagy()` helper — a bare `Pagy::Offset.new` carries no request and cannot build a URL. When given it wins over the Pagy's own URLs, so it has to carry any query string that must survive paging.
+- `fragment` - Anchor appended to every link, e.g. `'#results'`, so a paginator halfway down the page does not send the reader back to the top
+- `data` - Data attributes for every link, e.g. `{ turbo_frame: 'movies' }` to page inside a Turbo Frame
+
+```erb
+<%# Paging a section without leaving it %>
+<%= render Bali::Pagination::Component.new(
+      pagy: @pagy, fragment: '#results', data: { turbo_frame: 'movies' }) %>
+```
+
+From the controller, `pagy(scope, fragment: '#results')` and `pagy(scope, path: '/movies')` do the same two jobs, and are the better place for them when the whole page paginates.
+
+Everything the component knows about Pagy goes through `Bali::Pagination::PagyAdapter`, the only file in the gem that calls anything Pagy does not promise (`series` is protected; the request lives in an ivar with no reader). Patch the adapter, not the component, if a Pagy upgrade ever calls for it.
 
 #### PaginationFooter
 
-Footer row combining a "Showing X-Y of Z items" summary with `Pagination` controls; renders nothing without a Pagy object.
+Footer row combining a "Showing X-Y of Z items" summary with `Pagination` controls. This is *the* summary-plus-controls band in the library — `Bali::DataTable` renders it instead of an inline copy, and anything else that needs a listing footer should too. Renders nothing without a Pagy object, and nothing when there is neither a summary nor controls left to draw — including `count == 0`, where "Showing 0-0 of 0 movies" said nothing worth saying.
 
 ```erb
 <%= render Bali::PaginationFooter::Component.new(pagy: @pagy, item_name: 'movies') %>
@@ -601,6 +618,21 @@ Footer row combining a "Showing X-Y of Z items" summary with `Pagination` contro
 - `item_name` - Name for items in the summary text (default: `nil`, falls back to "items")
 - `show_summary` - Whether to show the summary text (default: `true`)
 - `show_pagination` - Whether to show pagination controls (default: `true`)
+- `size`, `variant`, `url`, `fragment`, `data` - forwarded to `Pagination` (see above). Note that `data` lands on each page **link**, not on the wrapper — `turbo_frame:` is only useful where the navigation happens. Put wrapper attributes in `data-*` keys of your own if you need them there.
+- `divider` - sit under a rule at the foot of a listing instead of standing on its own (default: `false`). The vertical space moves above the line and a `border-t` draws it, because a footer that closes a listing should not pad below itself. This is what `DataTable` passes.
+- any other option becomes an HTML attribute on the wrapper `div`
+
+The spacing is deliberately **not** something you pass through `class:`. The standalone band carries `py-4`, and adding `pt-4` on top of it leaves both on one element: Tailwind resolves that pair by stylesheet order rather than by the order you wrote them, and nothing you can add cancels the bottom half of a `py-*`. `divider:` swaps the whole spacing set instead of layering a second one on it.
+
+Slots: `with_controls` replaces the `Pagination` component with your own nav.
+
+```erb
+<%= render Bali::PaginationFooter::Component.new(pagy: @pagy) do |footer| %>
+  <% footer.with_controls { pagy_nav(@pagy) } %>
+<% end %>
+```
+
+The sentence and the fallback item name come from `bali_view.pagination.summary` and `bali_view.pagination.default_item_name`, in en and es. That one pair is what `DataTable` uses too.
 
 ---
 
@@ -1006,9 +1038,9 @@ option list below.
 - `url` - Base URL for filtering/sorting links (required)
 - `filter_form` - `Bali::FilterForm` instance for Ransack integration (default: nil)
 - `pagy` - Pagy object for pagination (default: nil)
-- `show_summary` - Show record summary (default: true when pagy present)
-- `summary_position` - `:top` or `:bottom` (default: `:bottom`)
-- `item_name` - Item name used in the summary text (default: i18n)
+- `show_summary` - Show record summary (default: true when pagy present). Suppressed either way when there are no results — a "Showing 0-0 of 0" line under an empty table tells nobody anything.
+- `summary_position` - `:top` or `:bottom` (default: `:bottom`). At the bottom it is the left half of a [`PaginationFooter`](#paginationfooter), which the DataTable renders rather than duplicating.
+- `item_name` - Item name used in the summary text (default: `bali_view.pagination.default_item_name`)
 - `table_class` - CSS class for the content scroll wrapper (default: `"overflow-x-auto"`)
 - `display_mode` - Display mode requested by the host, typically `params[:view]`. It does
   **not** select a slot — there is only one content band, and the host chooses what to
@@ -1251,6 +1283,10 @@ Renders an icon by name, resolving Lucide icons first (1,600+ available), then k
 
 #### InfoLevel
 
+> **Deprecated in v3, removed in 4.0.** Each item is a stat card with a third design of its
+> own; the one that stays is [StatCard](#statcard), which is also what
+> `DashboardPage#with_stat` renders since v3. For a row of figures, a grid of StatCard.
+
 Horizontal row of heading/title stat items, useful for profile counts or summary metrics.
 
 ```erb
@@ -1407,10 +1443,13 @@ Metric card showing a title, value, and colored icon — ideal for dashboard KPI
 **Options:**
 - `title` - Metric label (required)
 - `value` - Metric value to display (required)
-- `icon_name` - Bali/Lucide icon name (required)
+- `icon_name` - Bali/Lucide icon name; omit it and the card renders without one (default: nil)
 - `color` - Icon accent: `:primary`, `:secondary`, `:accent`, `:success`, `:warning`, `:error`, `:info` (default: :primary)
 
 **Slots:** `with_footer` — optional footer for trends or status text.
+
+This is the one stat card. `DashboardPage#with_stat` renders it, and both `InfoLevel` and
+DashboardPage's own inline card — the other two designs — are gone or deprecated in v3.
 
 #### Tags
 
@@ -2168,17 +2207,52 @@ Document-centric page with a three-panel layout: table of contents, read-only Bl
 <% end %>
 ```
 
-**Options:**
-- `title` - Page title (required)
-- `subtitle` - Text under the title (default: nil)
-- `breadcrumbs` - Array of `{ name:, href: }` hashes (default: [])
-- `back` - Back link, e.g. `{ href: path }` (default: nil)
+**On top of [the shared surface](#the-shared-surface)** (`DocumentPage` is a page template;
+its options live there too):
 - `initial_content` - BlockNote JSON; renders the editor and TOC when present (default: nil)
 - `toc_open` / `metadata_open` - Initial panel visibility (default: true)
+- `with_metadata` / `with_subheader` slots, plus any leftover keyword becoming an HTML
+  attribute on the container
+
+The content slot is `with_body`, like the other four. It was called `with_preview` in v2 —
+that name still works and warns through `Bali.deprecator` until 4.0. With `initial_content`
+the three-panel layout takes over and `body` is not rendered; the `sidebar` slot is the
+simple layout's only, since the panels are the wide layout's own columns.
 
 ---
 
 ### Page Templates
+
+#### The shared surface
+
+The five page templates (`DashboardPage`, `DocumentPage`, `FormPage`, `IndexPage`,
+`ShowPage`) include `Bali::PageComponents::Shared`, which is where every option and slot
+below is defined. Learn it once; the per-component sections that follow only list what each
+one adds.
+
+**Options:**
+- `title` - Page title (required)
+- `subtitle` - Text under the title (default: nil)
+- `breadcrumbs` - Array of `{ name:, href:, icon_name: }` hashes (default: [])
+- `back` - Back link, e.g. `{ href: path }` (default: nil)
+- `max_width` - Content width: `:sm` (`max-w-xl`), `:md` (`max-w-3xl`), `:lg`
+  (`max-w-5xl`), `:xl` (`max-w-7xl`), `:"2xl"` (`max-w-screen-2xl`) or `:full`. The default
+  is `:full` — a no-op — except `DashboardPage` (`:"2xl"`) and `FormPage` (`:md`). An
+  unknown value raises `ArgumentError`.
+- `sidebar_width` - Share of the grid the sidebar takes when the `sidebar` slot is filled:
+  `:default` (a third), `:narrow` (a quarter) or `:wide` (a half). Below `lg` the sidebar
+  always stacks under the body.
+
+**Slots:**
+- `with_action` (many) - Primary actions, top right
+- `with_secondary_action` (many) - Actions that live in the `⋯` menu next to them; see
+  [Secondary page actions and export](#secondary-page-actions-and-export)
+- `with_export(url:, formats:, params:)` - Export section inside that same `⋯`
+- `with_title_tag` (many) - Badges rendered beside the title
+- `with_nav` - Second-level navigation between the header and the body; see
+  [Two-level navigation](#two-level-navigation-nav-slot)
+- `with_body` - The page content, `mt-6` under whatever precedes it
+- `with_sidebar` - Right-hand column; turns the body into the two-column grid
 
 #### DashboardPage
 
@@ -2197,14 +2271,12 @@ Dashboard layout with page header, stat cards grid, and a body area for charts a
 <% end %>
 ```
 
-**Options:**
-- `title` - Page title (required)
-- `subtitle` - Text under the title (default: nil)
-- `breadcrumbs` - Array of `{ name:, href: }` hashes (default: [])
+**On top of [the shared surface](#the-shared-surface):**
 - `stats_columns` - Stat cards per row: 2, 3, or 4 (default: 4)
-- `max_width` - Content width: `:lg`, `:xl`, `:"2xl"`, or `:full` (default: :"2xl")
+- `with_stat(label:, value:, icon:, change:, color:)` - One `Bali::StatCard` per call.
+  `change` becomes the card's footer. `max_width` defaults to `:"2xl"` here.
 
-Also accepts a `nav` slot for second-level navigation, rendered between the header and the stats — see [Two-level navigation](#two-level-navigation-nav-slot).
+The `nav` slot lands between the header and the stats.
 
 #### IndexPage
 
@@ -2225,13 +2297,7 @@ Standard listing page with breadcrumbs, title, action buttons, and a body area f
 <% end %>
 ```
 
-**Options:**
-- `title` - Page title (required)
-- `subtitle` - Text under the title (default: nil)
-- `breadcrumbs` - Array of `{ name:, href: }` hashes (default: [])
-- `back` - Back link, e.g. `{ href: path }` (default: nil)
-
-Also accepts a `nav` slot for second-level navigation, rendered between the header and the body — see [Two-level navigation](#two-level-navigation-nav-slot).
+Nothing beyond [the shared surface](#the-shared-surface).
 
 The body takes the DataTable **bare**: the surface travels with the DataTable's content
 slot, so wrapping it in a `Bali::Card` produces a card inside a card in grid mode. The
@@ -2265,13 +2331,7 @@ Record detail page with breadcrumbs, title with tags, actions, and an optional t
 <% end %>
 ```
 
-**Options:**
-- `title` - Page title (required)
-- `subtitle` - Text under the title (default: nil)
-- `breadcrumbs` - Array of `{ name:, href: }` hashes (default: [])
-- `back` - Back link, e.g. `{ href: path }` (default: nil)
-
-Also accepts a `nav` slot for second-level navigation, rendered between the header and the body — see [Two-level navigation](#two-level-navigation-nav-slot).
+Nothing beyond [the shared surface](#the-shared-surface).
 
 #### FormPage
 
@@ -2294,13 +2354,8 @@ New/edit page that wraps form content in a centered Card, with an optional sideb
 <% end %>
 ```
 
-**Options:**
-- `title` - Page title (required)
-- `subtitle` - Text under the title (default: nil)
-- `breadcrumbs` - Array of `{ name:, href: }` hashes (default: [])
-- `back` - Back link, e.g. `{ href: path }` (default: nil)
-- `max_width` - Form width: `:sm`, `:md`, `:lg`, `:xl`, or `:full` (default: :md)
-- `card` - Wrap the body in a Card (default: true)
+**On top of [the shared surface](#the-shared-surface):**
+- `card` - Wrap the body in a Card (default: true). `max_width` defaults to `:md` here.
 
 #### Secondary page actions and export
 
@@ -2355,9 +2410,10 @@ The host still has to answer the format: a controller whose `respond_to` only de
 
 #### Two-level navigation (`nav` slot)
 
-`IndexPage`, `ShowPage` and `DashboardPage` accept a `nav` slot rendered **between the
-PageHeader and the body** (in `DashboardPage`, before the stat cards) with standardized
-spacing (`mt-4`), so section navigation no longer needs to be embedded in the body by hand.
+All five page templates accept a `nav` slot rendered **between the PageHeader and the body**
+(in `DashboardPage`, before the stat cards) with standardized spacing (`mt-4`), so section
+navigation no longer needs to be embedded in the body by hand. `FormPage` and `DocumentPage`
+gained it in v3, when the slot moved into `PageComponents::Shared`.
 
 The recommended recipe for hubs with two navigation levels:
 

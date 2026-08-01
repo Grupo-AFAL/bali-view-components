@@ -1,5 +1,5 @@
 <% right_content = content %>
-<%= render Bali::Level::Component.new(align: level_align, class: component_classes, **options.except(:class)) do |c| %>
+<%= render level_component do |c| %>
   <%= c.with_left(class: 'max-sm:w-full') do |level| %>
     <% if render_back_button? %>
       <% level.with_item do %>
