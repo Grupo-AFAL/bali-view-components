@@ -1,0 +1,36 @@
+/* Calendar — the rule that has to outrank daisyUI's `.table`.
+ *
+ * WHY THIS FILE IS UNLAYERED
+ * --------------------------
+ * The calendar grid is a `.table`, and daisyUI draws the horizontal rule
+ * between rows from @layer utilities:
+ *
+ *   .table :where(thead tr :is(td,th), tbody tr:not(:last-child) :is(td,th))
+ *     { border-bottom: var(--border) solid color-mix(base-content 5%) }
+ *
+ * Cascade layers beat specificity, so `.calendar-component .table td` in
+ * @layer components keeps the three sides nobody else declares and loses the
+ * bottom one. Measured with ./index.css layered, on `calendar/default`:
+ *
+ *   td, rows 1-4   border-bottom-color  base-content/5  (should be base-300)
+ *   td, last row   border-bottom-color  base-300        ✓ daisyUI skips it
+ *   td.today       border-bottom-width  1px             (2px on the other three)
+ *
+ * Padding and vertical-align lose to the same daisyUI rule, but those have
+ * utilities that say exactly the right thing, so they are applied on the
+ * elements — see ./component.rb and ./component.html.erb. There is no utility
+ * for "put back the grid line this cell needs", so it lives here.
+ *
+ * Only `border-bottom` is declared. The other three sides never competed with
+ * anything and stay in ./index.css, where a host utility still beats them.
+ */
+.calendar-component .table td {
+  border-bottom: 1px solid var(--color-base-300);
+}
+
+/* `.today`'s colour comes from ./index.css, which declares it `!important`
+   and therefore outranks this file regardless of layer. Only the width has
+   to be repeated; the other three sides are `border-2` over there. */
+.calendar-component .month-view td.today {
+  border-bottom-width: 2px;
+}

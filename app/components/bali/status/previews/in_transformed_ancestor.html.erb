@@ -1,0 +1,23 @@
+<%# The real condition from the report: Bali::Drawer animates its panel with
+    `transform: translateX(...)`, and a transformed ancestor becomes the containing
+    block of its `fixed` descendants — which is what used to send the status panel
+    off the right edge of the screen. %>
+<div class="p-6">
+  <p class="text-sm text-base-content/70">
+    The drawer on the right is open. Its panel carries a <code>transform</code>, so the
+    status panel inside it has to be positioned against the panel, not against the viewport.
+  </p>
+</div>
+
+<%= render Bali::Drawer::Component.new(active: true, size: :md, position: :right,
+                                       title: "Status inside a Drawer") do %>
+  <div class="space-y-4">
+    <p class="text-base-content">Editable status pill:</p>
+
+    <%= render Bali::Status::Component.new(
+          selected: "in_progress",
+          options: Bali::Status::Preview::STATUSES,
+          form: { url: "/lookbook", method: :patch, param: "thing[status]" },
+          clearable: true) %>
+  </div>
+<% end %>
