@@ -28,4 +28,11 @@
       <p class="font-medium text-sm">Email templates</p>
     <% end %>
   <% end %>
+
+  <%# The hex escape hatch, same keyword as everywhere else. %>
+  <% k.with_column(title: "Brand", status: "brand", custom_color: "#7c3aed") do |col| %>
+    <% col.with_card do %>
+      <p class="font-medium text-sm">Rebrand landing page</p>
+    <% end %>
+  <% end %>
 <% end %>

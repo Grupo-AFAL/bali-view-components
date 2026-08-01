@@ -836,6 +836,138 @@ If a specific call site really wants the old wrapping, opt out per tag. The rule
 
 That restores the v2 rendering, broken pill included. `Bali::Timeline::Header` is
 unaffected either way: it emits `.badge` markup directly rather than rendering a Tag.
+## One `color:` across the library
+
+Seven components used to keep seven private colour maps. They agree now, through
+`Bali::Color`:
+
+| Keyword | Takes | Follows the DaisyUI theme? |
+|---|---|---|
+| `color:` | `:neutral :primary :secondary :accent :info :success :warning :error :ghost` | Yes |
+| `custom_color:` | a hex string (`#rgb`, `#rrggbb`, and the alpha forms) | No |
+
+The seven are `Tag`, `Status`, `Heatmap`, `Chart`, `Timeline::Item` /
+`Timeline::Header`, `StatCard` and `Kanban::Column`. A value outside the list
+raises `ArgumentError` at construction instead of falling back; the message names
+the component and the valid values, and a removed Bulma name is told its
+replacement.
+
+### The renames
+
+| v2 | v3 | Where |
+|---|---|---|
+| `icon_name: 'users'` | `icon: 'users'` | `Bali::StatCard`. Deprecated shim warns through `Bali.deprecator`; removed in v4 |
+| `color: :default` | `color: :ghost` | `Bali::Timeline::Item`. Also the default, so dropping it entirely works too |
+| `color: :outline` | `color: :primary, class: 'badge-outline'` | `Bali::Timeline::Header`. It named a style, not a colour |
+| `color: '#7c3aed'` | `custom_color: '#7c3aed'` | `Bali::Heatmap`, and each option hash of `Bali::Status` |
+| `color: :chartreuse` (anything unknown) | raises | `Bali::Heatmap`, `Bali::StatCard`, `Bali::Kanban::Column` used to fall back silently |
+
+```
+grep -rn "StatCard::Component" app/ | grep icon_name
+grep -rn "Timeline::\(Item\|Header\)\|with_item\|with_header" app/ | grep -E ":default|:outline"
+grep -rn "Heatmap::Component" app/ | grep -E "color: *[\"']#"
+```
+
+`icon_name:` on `Bali::Link`, `Bali::Button` and `Bali::ImageField::Input` did
+**not** change. Only `StatCard` did.
+
+### Heatmap follows the theme now, and that is a visual change
+
+`Bali::Heatmap`'s "DaisyUI colour presets" were hardcoded hex: `:primary` was
+`#6366f1` whatever theme the host had chosen. The ramp is built from
+`var(--color-*)` now, so a host that picked `:primary` expecting indigo will see
+its own primary. Measured on the nine ramps side by side, moving from `light` to
+a custom theme changes 6 of 9 — `:primary` from indigo to that theme's teal,
+`:secondary` from pink to gold.
+
+If you were relying on the old fixed colours, name them: `custom_color: '#6366f1'`
+reproduces the v2 `:primary` exactly, and the other six were `#8b5cf6`
+(secondary), `#f59e0b` (accent *and* warning), `#22c55e` (success), `#3b82f6`
+(info) and `#ef4444` (error).
+
+### Status opens in the dark now
+
+`Bali::Status`'s panel hardcoded `#fff` with `#6b7280` text and `#d1d5db` borders,
+so under any dark theme it opened as a white rectangle. It reads
+`--color-base-100` / `--color-base-content` now. Nothing to change in a call site;
+if your app patched around it with its own CSS, that patch is what to remove.
+
+The twelve fixed status colours are unchanged and still do not follow the theme —
+that is the point of them. They are simply joined by the semantic names, so
+`color: :success` on a status option now means what it means everywhere else.
+
+### Chart takes a colour
+
+New, not a break: `Bali::Chart::Component.new(color: :success)` starts the palette
+at that colour, so a single-series chart is painted in it. `custom_color:` takes a
+hex and drops the theme palette entirely — a `<canvas>` cannot resolve a `var()`,
+so a chart cannot mix a hex with theme colours; the remaining series fall back to
+the fixed hex list.
+
+### Removed constants
+
+`Bali::Heatmap::Component::COLOR_PRESETS`,
+`Bali::Kanban::Column::Component::BADGE_COLORS`, and `Bali::Utils::ColorPicker`'s
+`THEME_COLORS`, `CSS_VAR_MAP`, `FALLBACK_COLORS`, `.gradient`, `.theme_color` and
+`.theme_color_with_alpha`. `Bali::Color::NAMES` and `Bali::Color.css` replace what
+was reachable of them.
+
+## Timeline renders each entry once, and its slots lose the `tag_` prefix
+
+A timeline item used to emit its heading and its content twice — once in `.timeline-start`,
+once in `.timeline-end` — and hide one copy with CSS. Which side an item lands on is now
+decided in Ruby, so each item renders one content box.
+
+The slot setters were named after an internal collection called `tags`, which was never a
+timeline concept. Rename them:
+
+| v2 | v3 | Notes |
+|---|---|---|
+| `c.with_tag_item(...)` | `c.with_item(...)` | Deprecated shim warns through `Bali.deprecator`; removed in v4 |
+| `c.with_tag_header(...)` | `c.with_header(...)` | Same |
+| `c.tags` | `c.entries` | The collection accessor. No shim — reading it in a host template is rare |
+| `with_tag_header(tag_class: 'badge-outline badge-primary')` | `with_header(color: :primary, class: 'badge-outline')` | Deprecated shim warns; removed in v4 |
+
+```erb
+<%# v2 %>
+<%= render Bali::Timeline::Component.new(position: :left) do |c| %>
+  <% c.with_tag_header(text: 'Start') %>
+  <% c.with_tag_item(heading: 'January 2022') do %>
+    <p>Timeline event 1</p>
+  <% end %>
+<% end %>
+
+<%# v3 %>
+<%= render Bali::Timeline::Component.new(position: :left) do |c| %>
+  <% c.with_header(text: 'Start') %>
+  <% c.with_item(heading: 'January 2022') do %>
+    <p>Timeline event 1</p>
+  <% end %>
+<% end %>
+```
+
+Three things change even if you rename nothing, because the old markup was the bug:
+
+- **Anything with an `id` inside an item now exists once.** A `turbo_frame_tag` in a timeline
+  item used to render twice under the same id: Turbo matched the second, which was the copy
+  CSS had hidden, so a stream update reached a `display: none` element and the visible one
+  never changed. If you worked around this — a suffix on the id, a wrapper that rendered in
+  only one column — you can drop the workaround.
+- **Nested components run once.** An item whose block rendered a component that queried the
+  database issued that query twice per item.
+- **`position: :center` alternates by item.** The old alternation was `li:nth-child(odd)`, and
+  a header is an `li`, so a header between two items flipped the parity and left two
+  consecutive items on the same side. Centred timelines *with headers* will move some boxes
+  to the other side. Ones without headers are unchanged.
+
+CSS that targeted the hidden copy stops matching. `app/components/bali/timeline/index.css`
+now carries only the two `text-align` rules the alternating layout needs; if your app styled
+`.timeline-content-box.timeline-end` on a left-aligned timeline, it was styling the copy the
+user could not see.
+
+Finally, `Bali::Timeline::Header::Component` now applies `**options` to its badge. It accepted
+them and rendered none of them, so a `class:`, `data:` or `aria-*` you passed and gave up on
+will start taking effect.
 
 ## Every public event is now `bali:`-prefixed
 
@@ -959,6 +1091,13 @@ EventTarget.prototype.dispatchEvent = function (event) {
 
 | Removed | Replacement |
 |---|---|
+| `Bali::StatCard(icon_name:)` | `icon:` *(deprecated shim until v4)* |
+| `Bali::Timeline::Item(color: :default)` | `color: :ghost` |
+| `Bali::Timeline::Header(color: :outline)` | `color: :primary, class: 'badge-outline'` |
+| A hex in `Bali::Heatmap(color:)` or a `Bali::Status` option's `color:` | `custom_color:` |
+| `Bali::Heatmap::Component::COLOR_PRESETS` | `Bali::Color::NAMES` / `Bali::Color.css` |
+| `Bali::Kanban::Column::Component::BADGE_COLORS` | `Bali::Tag::Component::COLORS` |
+| `ColorPicker.gradient` / `.theme_color` / `.theme_color_with_alpha` | `Bali::Color.gradient` / `.css` / `.with_alpha` |
 | `c.with_tag_item` / `c.with_tag_header` on `Bali::Timeline` | `c.with_item` / `c.with_header` *(deprecated shim until v4)* |
 | `Bali::Timeline::Header(tag_class:)` | `color:` plus `class:` *(deprecated shim until v4)* |
 | `bali_view.data_table.summary` | `bali_view.pagination.summary` |

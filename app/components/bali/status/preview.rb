@@ -42,7 +42,7 @@ module Bali
       def custom_color
         render Status::Component.new(
           selected: "brand",
-          options: [{ value: "brand", label: "Brand", color: "#7c3aed" }]
+          options: [{ value: "brand", label: "Brand", custom_color: "#7c3aed" }]
         )
       end
 
