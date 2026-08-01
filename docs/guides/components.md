@@ -881,8 +881,29 @@ Labels and status indicators.
 
 ```erb
 <%= render Bali::Tag::Component.new(text: "New", color: :primary) %>
-<%= render Bali::Tag::Component.new(text: "Pending", color: :warning, outline: true) %>
+<%= render Bali::Tag::Component.new(text: "Pending", color: :warning, style: :outline) %>
+<%= render Bali::Tag::Component.new(text: "Docs", href: "/docs", color: :info, size: :sm) %>
+<%= render Bali::Tag::Component.new(text: "Custom", custom_color: "#3b82f6") %>
 ```
+
+**Options:**
+- `text` - Label; falls back to the block content when omitted (default: nil)
+- `href` - Renders an `<a>` instead of a `<div>` (default: nil)
+- `color` - `:neutral`, `:primary`, `:secondary`, `:accent`, `:ghost`, `:info`, `:success`, `:warning`, `:error` (default: nil, daisyUI's own)
+- `size` - `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: nil, which renders like `:md`)
+- `style` - `:outline`, `:soft`, `:dash` (default: nil)
+- `custom_color` - Hex string applied as an inline background, with the text color picked for contrast (default: nil)
+- `rounded` - Fully rounded pill (default: false)
+
+An unknown `color:` or `size:` raises `ArgumentError` naming the valid values. The Bulma
+names v2 accepted (`:danger`, `:small`, `light: true`, …) are gone; the error names their
+replacement, and the full table is in the [migration guide](migration-v2-to-v3.md).
+
+**A Tag never wraps.** daisyUI's `.badge` is a fixed-height box, so a wrapped label renders
+its extra lines outside the pill. The component sets `white-space: nowrap`, which means a
+long tag widens its container instead of breaking — inside `Bali::Table` the table scrolls,
+inside a fixed-width card the pill overhangs. Opt out per call site with
+`class: "whitespace-normal"`; the rule is in `@layer components`, so a plain utility wins.
 
 #### Status
 
