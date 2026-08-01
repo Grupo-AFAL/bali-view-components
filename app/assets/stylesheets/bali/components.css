@@ -33,8 +33,10 @@
 @import "../../../components/bali/drawer/index.css" layer(components);
 @import "../../../components/bali/image_grid/index.css" layer(components);
 
-/* Unlayered on purpose. Order is the pre-v3 order of these three sheets, so
-   their mutual cascade is unchanged. */
+/* Unlayered on purpose. Order of the first three is the pre-v3 order of those
+   sheets, so their mutual cascade is unchanged. The two `daisyui-overrides`
+   below them share no selector with anything here. */
 @import "../../../components/bali/breadcrumb/index.css";
 @import "../../../components/bali/side_menu/daisyui-overrides.css";
 @import "../../../components/bali/data_table/index.css";
+@import "../../../components/bali/calendar/daisyui-overrides.css";
