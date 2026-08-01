@@ -40,6 +40,23 @@ class BaliIconKeptIconsTest < ActiveSupport::TestCase
     assert_includes(svg, "</svg>")
   end
 
+  def test_find_returns_a_drawable_svg_for_every_kept_icon
+    Bali::Icon::KeptIcons::ALL.each do |name|
+      svg = Bali::Icon::KeptIcons.find(name)
+      assert_includes(svg, "<svg", "#{name} has no opening <svg>")
+      assert_includes(svg, "</svg>", "#{name} has no closing </svg>")
+      assert_match(/<(path|rect|circle|polygon|g|use|ellipse|line|polyline)\b/, svg,
+                   "#{name} renders an empty <svg> with nothing to draw")
+      assert(svg.html_safe?, "#{name} is not html_safe and would render escaped")
+    end
+  end
+
+  def test_all_returns_every_kept_icon_keyed_by_name
+    all = Bali::Icon::KeptIcons.all
+    assert_equal(Bali::Icon::KeptIcons::ALL.sort, all.keys.sort)
+    assert(all.values.all? { |svg| svg.include?("<svg") })
+  end
+
   def test_find_raises_error_for_non_kept_icons
     assert_raises(Bali::Icon::Options::IconNotAvailable) do
       Bali::Icon::KeptIcons.find("user")

@@ -64,6 +64,7 @@ Bali.deprecator.silence { ... }                              # or scope one exce
 |---|---|
 | `Bali::Clipboard::SucessContent` | `Bali::Clipboard::SuccessContent` (the alias existed only for the typo) |
 | `Bali::Utils::Url#add_query_params` | `#add_query_param(url, name, value)`, one name at a time |
+| `Bali::Icon::DefaultIcons` | nothing — see [The icon fallback is gone](#the-icon-fallback-is-gone) |
 
 `Bali::FilterForm.simple_filter` is **deprecated, not removed** — it still declares the
 filter and now warns. It goes away in v4; migrate at your own pace:
@@ -90,6 +91,96 @@ The reference composition is the `Complete` scenario of the IndexPage preview
 render at once. `/admin/movies` in the dummy app is the end-to-end reference against real
 controllers, routes and Turbo Streams — saved views included, backed by the engine's default
 store and a one-user demo owner; the only family it leaves out is host toolbar buttons.
+
+## The icon fallback is gone
+
+`Bali::Icon::DefaultIcons` was 1,580 lines holding 166 inline SVGs, wired in as the fifth and
+last step of the resolution pipeline under the heading "full backwards compatibility". It is
+deleted. `Bali::Icon::Component` now resolves a name through three steps and raises if none of
+them matches:
+
+1. the Bali → Lucide name map (`LucideMapping`),
+2. a Lucide name used directly,
+3. the kept set (`KeptIcons` — brands, flags, domain-specific), then `Bali.custom_icons`.
+
+**Almost nothing was still reaching that fifth step.** Of the 167 names it could serve, 137
+were already intercepted by the Lucide map and 28 by the kept set, both of which sit *earlier*
+in the pipeline — so for 165 of them the fallback had been unreachable code since the Lucide
+migration, and deleting it changes nothing you can see. Two names were still being served by
+it, and only those two lose their glyph:
+
+| Name that stops resolving | What it drew | Use instead |
+|---|---|---|
+| `money-bill-wave` | a filled FontAwesome banknote | `banknote`, or `hand-coins` if the point was payment rather than cash |
+| `question-circle` | a filled question mark in a circle | `circle-help` |
+
+`question-circle` is the one worth grepping for: the Lucide map *does* carry an entry for this
+icon, but under the key `question_circle` — the single underscored key in the whole table, a
+leftover from the v1 hash. So `question_circle` keeps working and `question-circle`, the
+spelling that matches every other name in the library, does not. Rename it to `circle-help`
+rather than to the underscored form; the underscore is the accident here, not the fix.
+
+### Every alternative spelling of a name stops resolving too
+
+This is the larger surface, and it is invisible in a grep for the two names above. The deleted
+step did not look a name up as written — it upcased it and turned dashes into underscores to
+build a constant name, so `arrow_left`, `ARROW-LEFT` and `Arrow_Left` all resolved to the same
+SVG as `arrow-left`. The three surviving steps match **exactly**: lowercase, dashes, as
+written.
+
+In practice that means the snake_case spelling of every multi-word icon now raises. All 73 of
+them, and for 72 the fix is the same — write the dashed name:
+
+```
+address_book            alert_alt               align_center            align_left
+align_right             american_express        angle_double_down       angle_double_up
+arrow_back              arrow_forward           arrow_left              arrow_right
+arrow_right_up          badge_percent           band_aid                box_archive
+calendar_alt            chart_line              check_circle            chevron_doble_down
+chevron_doble_up        chevron_down            chevron_left            chevron_right
+cloud_upload_alt        comment_dollar          credit_card             credit_card_alt
+cutlery_alt             door_open               edit_alt                ellipsis_h
+exclamation_circle      external_link_alt       face_profile            facebook_square
+file_certificate        file_export             file_signature          filter_alt
+fire_alt                grin_wink               info_circle             info_circle_alt
+instagram_square        laptop_code             link_alt                long_arrow_alt_left
+magic_wand              map_marked_alt          map_marker_alt          mexico_flag
+money_bill_wave         nested_arrow            phone_plus              plus_circle
+project_diagram         recipe_book             search_minus            search_plus
+shopping_cart           space_station_moon_alt  square_phone            sticky_note
+times_circle            trash_alt               trophy_alt              truck_loading
+us_flag                 user_plus               utensils_alt            wallet_alt
+whatsapp_square
+```
+
+`money_bill_wave` is the one entry in that list with no dashed equivalent to fall back on — it
+is the same casualty as the row above. The single-word names (`check`, `user`, `trash`…) are
+unaffected: they spell the same either way.
+
+The error message closes the loop. `IconNotAvailable` already suggested near names, but it
+compared them literally, so `arrow_left` matched nothing and the message degraded to a link to
+lucide.dev. Suggestions now ignore the dash/underscore difference:
+
+```
+Icon 'arrow_left' is not available. Did you mean: arrow-left?
+Icon 'whatsapp_square' is not available. Did you mean: whatsapp, whatsapp-square?
+Icon 'money-bill-wave' is not available. Check available icons at: https://lucide.dev/icons
+```
+
+`money-bill-wave` is the one that still gets no suggestion, and correctly so — no surviving
+name resembles it. Take the alternative from the table above.
+
+### `Bali::Icon::Options` only lists what ships as SVG
+
+`Options.icons` used to be the 166 legacy SVGs merged with `Bali.custom_icons`. It is now the
+28 kept icons merged with `Bali.custom_icons` — the icons Bali ships as literal markup. A
+Lucide-backed name such as `user` has no SVG of its own until lucide-rails renders one at a
+size, so `Options.find('user')` raises `IconNotAvailable` where it used to return the old
+FontAwesome glyph. `Options` was never the rendering path; call
+`render Bali::Icon::Component.new('user')`, which resolves every source.
+
+The 28 kept SVGs moved out of Ruby into `app/components/bali/icon/svg/<name>.svg`, one file
+per name, byte-for-byte the same markup. Nothing about how you reference them changes.
 
 ## The CSS cascade changes — on purpose
 
