@@ -11,7 +11,9 @@
  * invisible. Same rule as everywhere else in the package — a default and the
  * state that overrides it share a layer.
  *
- * Sits above the toast stack (z-101) so nothing can cover it while focused. */
+ * `--bali-z-tooltip` is the tier whose contract is "nothing may cover this", which
+ * is exactly what a focused skip link needs — and the two are never on screen
+ * together, so sharing the tier costs nothing. See bali/z_index.css. */
 .bali-skip-link {
   position: absolute;
   width: 1px;
@@ -29,7 +31,7 @@
   position: fixed;
   top: 0.5rem;
   left: 0.5rem;
-  z-index: 110;
+  z-index: var(--bali-z-tooltip);
   width: auto;
   height: auto;
   margin: 0;

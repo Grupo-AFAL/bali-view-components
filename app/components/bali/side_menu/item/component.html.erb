@@ -25,7 +25,7 @@
     <div class="<%= flyout_classes %>" data-controller="side-menu-flyout">
       <%= render_flyout_trigger %>
       <ul tabindex="0"
-          class="dropdown-content menu bg-base-100 rounded-box z-50 w-56 p-2 shadow-lg"
+          class="dropdown-content menu bg-base-100 rounded-box z-[var(--bali-z-dropdown)] w-56 p-2 shadow-lg"
           data-side-menu-flyout-target="panel"
           data-action="keydown->side-menu-flyout#panelKeydown">
         <li class="menu-title px-2 pb-1 text-xs font-semibold uppercase tracking-wider text-base-content/50">
@@ -46,7 +46,7 @@
         <%= render_badge %>
         <%= render Bali::Icon::Component.new('chevron-right', class: 'size-3.5') %>
       </div>
-      <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-50 w-48 p-2 shadow-lg">
+      <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[var(--bali-z-dropdown)] w-48 p-2 shadow-lg">
         <%= render_parent_link %>
         <% items.each do |item| %>
           <li><%= render_subitem_link(item) %></li>

@@ -251,8 +251,6 @@ es:
       simple_filters:
         placeholder_min: "Mín"
         placeholder_max: "Máx"
-      summary: "Mostrando %{from}-%{to} de %{count} %{item_name}"
-      default_item_name: elementos
       display_modes:
         table: Tabla
         cards: Tarjetas
@@ -301,6 +299,8 @@ es:
       previous_page: Página anterior
       next_page: Página siguiente
       page: "Página %{page}"
+      summary: "Mostrando %{from}-%{to} de %{count} %{item_name}"
+      default_item_name: elementos
     chart:
       loading: Cargando...
     clipboard:
@@ -400,9 +400,6 @@ es:
       title: "Comentarios"
       open: "Abrir comentarios"
       close: "Cerrar"
-    pagination_footer:
-      summary: "Mostrando %{from}-%{to} de %{count} %{item_name}"
-      default_item_name: "elementos"
 
     document_editor:
       # Barra superior

@@ -60,7 +60,7 @@
 
   <%# 4. Toast notifications (fixed bottom-right, stacking upward) %>
   <% if render_toast? %>
-    <div id="toast-notifications" class="fixed bottom-4 left-4 right-4 sm:left-auto sm:min-w-80 sm:max-w-sm z-[101] flex flex-col gap-3 pointer-events-none" role="status" aria-live="polite">
+    <div id="toast-notifications" class="fixed bottom-4 left-4 right-4 sm:left-auto sm:min-w-80 sm:max-w-sm z-[var(--bali-z-toast)] flex flex-col gap-3 pointer-events-none" role="status" aria-live="polite">
       <div class="flex flex-col gap-3 pointer-events-auto">
         <%= render Bali::FlashNotifications::Component.new(
           notice: flash_notice,
