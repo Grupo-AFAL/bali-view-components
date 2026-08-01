@@ -13,19 +13,47 @@ class BaliTagComponentTest < ComponentTestCase
     assert_selector('a.badge[href="/path"]', text: "Click me")
   end
 
+  # The hook `app/components/bali/tag/index.css` styles. Losing it takes the
+  # nowrap of #655 with it, and nothing else in the markup would change.
+  def test_basic_rendering_carries_the_tag_component_css_hook
+    render_inline(Bali::Tag::Component.new(text: "Hello"))
+    assert_selector("div.badge.tag-component")
+  end
+
   def test_colors_applies_daisyui_color_classes
     render_inline(Bali::Tag::Component.new(text: "Tag", color: :primary))
     assert_selector("div.badge.badge-primary")
   end
 
-  def test_colors_maps_legacy_bulma_colors_to_daisyui_equivalents
-    render_inline(Bali::Tag::Component.new(text: "Tag", color: :danger))
-    assert_selector("div.badge.badge-error")
+  def test_colors_accepts_a_string
+    render_inline(Bali::Tag::Component.new(text: "Tag", color: "primary"))
+    assert_selector("div.badge.badge-primary")
   end
 
-  def test_colors_maps_black_to_neutral
-    render_inline(Bali::Tag::Component.new(text: "Tag", color: :black))
-    assert_selector("div.badge.badge-neutral")
+  def test_colors_rejects_a_removed_bulma_name_and_names_the_replacement
+    error = assert_raises(ArgumentError) do
+      Bali::Tag::Component.new(text: "Tag", color: :danger)
+    end
+    assert_includes error.message, "color :danger"
+    assert_includes error.message, "color: :error"
+  end
+
+  def test_colors_rejects_every_removed_bulma_name
+    { danger: ":error", link: ":primary", black: ":neutral", dark: ":neutral",
+      light: ":ghost", white: ":ghost" }.each do |removed, replacement|
+      error = assert_raises(ArgumentError) do
+        Bali::Tag::Component.new(text: "Tag", color: removed)
+      end
+      assert_includes error.message, "color: #{replacement}"
+    end
+  end
+
+  def test_colors_rejects_an_unknown_name_and_lists_the_valid_ones
+    error = assert_raises(ArgumentError) do
+      Bali::Tag::Component.new(text: "Tag", color: :fuchsia)
+    end
+    assert_includes error.message, "unknown color :fuchsia"
+    assert_includes error.message, ":primary"
   end
 
   def test_sizes_applies_daisyui_size_classes
@@ -33,16 +61,28 @@ class BaliTagComponentTest < ComponentTestCase
     assert_selector("div.badge.badge-lg")
   end
 
-  def test_sizes_maps_legacy_bulma_sizes_to_daisyui_equivalents
-    render_inline(Bali::Tag::Component.new(text: "Tag", size: :small))
-    assert_selector("div.badge.badge-sm")
-  end
-
   def test_sizes_supports_all_daisyui_sizes
     %i[xs sm md lg xl].each do |size|
       render_inline(Bali::Tag::Component.new(text: "Tag", size: size))
       assert_selector("div.badge.badge-#{size}")
+    end
   end
+
+  def test_sizes_rejects_a_removed_bulma_name_and_names_the_replacement
+    { small: ":sm", medium: ":md", large: ":lg", normal: ":md" }.each do |removed, replacement|
+      error = assert_raises(ArgumentError) do
+        Bali::Tag::Component.new(text: "Tag", size: removed)
+      end
+      assert_includes error.message, "size #{removed.inspect}"
+      assert_includes error.message, "size: #{replacement}"
+    end
+  end
+
+  def test_sizes_rejects_an_unknown_name
+    error = assert_raises(ArgumentError) do
+      Bali::Tag::Component.new(text: "Tag", size: :huge)
+    end
+    assert_includes error.message, "unknown size :huge"
   end
 
   def test_styles_applies_outline_style
@@ -65,20 +105,18 @@ class BaliTagComponentTest < ComponentTestCase
     assert_selector("div.badge.badge-outline.badge-primary")
   end
 
-  def test_legacy_light_parameter_applies_outline_style_for_backward_compatibility
-    render_inline(Bali::Tag::Component.new(text: "Tag", light: true))
-    assert_selector("div.badge.badge-outline")
+  # Without this it lands in **options and renders as a `light="true"`
+  # attribute, which is exactly the silent no-op the removal is undoing.
+  def test_light_is_rejected_and_names_its_replacement
+    error = assert_raises(ArgumentError) do
+      Bali::Tag::Component.new(text: "Tag", light: true)
+    end
+    assert_includes error.message, "no longer accepts `light:`"
+    assert_includes error.message, "style: :outline"
   end
 
-  def test_legacy_light_parameter_renders_badge
-    render_inline(Bali::Tag::Component.new(text: "Tag", light: true))
-    assert_selector(".badge")
-  end
-
-  def test_legacy_light_parameter_style_parameter_takes_precedence_over_light
-    render_inline(Bali::Tag::Component.new(text: "Tag", light: true, style: :soft))
-    assert_selector("div.badge.badge-soft")
-    assert_no_selector("div.badge.badge-outline")
+  def test_light_is_rejected_even_when_false
+    assert_raises(ArgumentError) { Bali::Tag::Component.new(text: "Tag", light: false) }
   end
 
   def test_custom_color_applies_custom_background_color_with_contrasting_text
