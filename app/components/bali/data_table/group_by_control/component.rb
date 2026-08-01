@@ -20,8 +20,8 @@ module Bali
         # @param filter_form [Bali::FilterForm] Form exposing group_by_options / group_by
         # @param current_params [Hash] Current query params to preserve (merged into links)
         # @param options [Array<Hash>] Explicit {attribute:, label:} options — for surfaces
-        #   whose grouping no vive en un FilterForm (p.ej. un Gantt server-rendered). Gana
-        #   sobre las del form.
+        #   whose grouping no vive en un FilterForm (p.ej. un roadmap server-rendered).
+        #   Gana sobre las del form.
         # @param current [String, Symbol] Explicit current grouping value (pairs with options:)
         # @param param [String] Query param that carries the grouping (default "group_by")
         # @param include_none [Boolean] Whether to offer the "no grouping" item

@@ -63,7 +63,7 @@ export default class extends Controller {
 
   // El selector se pinta solo en modo tabla. Sin él mandan las columnas que impuso la vista
   // APLICADA (las serializa el servidor): la memoria por dispositivo es anterior a esa vista,
-  // así que guardar desde tarjetas/Gantt persistía columnas que el usuario no estaba viendo.
+  // así que guardar desde tarjetas o calendario persistía columnas que el usuario no veía.
   // Sin vista aplicada sí vale la memoria del dispositivo — si no, la vista nueva se
   // guardaba sin columnas, "olvidando" la mitad de su estado según desde qué modo se guardó.
   columnsWithoutSelector () {

@@ -30,11 +30,17 @@ describe('DataTable view switch', () => {
 
   it('renders the third mode, which Bali knows nothing about', () => {
     cy.visit('/bali/data_table/complete')
-    cy.get(viewSwitch).contains('a', 'Timeline').click()
+    cy.get(viewSwitch).contains('a', 'Calendar').click()
 
-    cy.get('.gantt-chart-component').should('exist')
-    cy.get('table').should('not.exist')
-    cy.get(`${viewSwitch} a[aria-current="page"]`).should('contain.text', 'Timeline')
+    cy.get('.calendar-component').should('exist')
+    // El contenedor solo prueba que el slot genérico pintó algo: lo que prueba que el modo
+    // sirve son las celdas con datos del listado adentro.
+    cy.get('.calendar-component .badge').should('have.length.greaterThan', 0)
+    // No se puede pedir `table` a secas: el propio Calendar dibuja el mes con una <table>.
+    // Lo que tiene que desaparecer es la tabla DEL LISTADO, y su marca inconfundible es la
+    // casilla de "seleccionar todo" del encabezado.
+    cy.get('thead input[type="checkbox"]').should('not.exist')
+    cy.get(`${viewSwitch} a[aria-current="page"]`).should('contain.text', 'Calendar')
   })
 
   it('falls back to the first declared view when ?view= is unknown', () => {

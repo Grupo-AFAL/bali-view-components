@@ -23,12 +23,12 @@
   <% data_table.with_view_switch do |switch| %>
     <% switch.with_view(name: t('movies.views.table'), icon: 'list', value: :table) %>
     <% switch.with_view(name: t('movies.views.cards'), icon: 'grid', value: :grid) %>
-    <% switch.with_view(name: t('movies.views.timeline'), icon: 'calendar', value: :timeline) %>
+    <% switch.with_view(name: t('movies.views.calendar'), icon: 'calendar', value: :calendar) %>
   <% end %>
 
-  <%# El selector de columnas solo tiene sentido sobre la tabla: las tarjetas y la línea de
-      tiempo no tienen columnas que esconder. La 0 es la de selección, que pinta el propio
-      componente, por eso la lista arranca en 1. %>
+  <%# El selector de columnas solo tiene sentido sobre la tabla: las tarjetas y el
+      calendario no tienen columnas que esconder. La 0 es la de selección, que pinta el
+      propio componente, por eso la lista arranca en 1. %>
   <% if data_table.display_mode == :table %>
     <% data_table.with_column_selector do |cs| %>
       <% cs.with_column(index: 1, label: t('movies.columns.name')) %>
@@ -81,22 +81,28 @@
         <% end %>
       </div>
     <% end %>
-  <% when :timeline %>
-    <%# Un Gantt no trae superficie propia, así que la pide por el slot genérico junto con
-        el wrapper de scroll horizontal. Eso es lo que with_table/with_grid azucaran. %>
-    <% data_table.with_content(scroll: true) do %>
-      <%= render Bali::GanttChart::Component.new(
-        tasks: @movies.filter_map { |movie|
-          next unless movie.production_starts_on && movie.production_ends_on
+  <% when :calendar %>
+    <%# El tercer modo es justo para lo que existe `with_content`: una superficie que el
+        DataTable no conoce. Un Calendar trae su propia card Y su propio scroll horizontal,
+        así que no le pide ninguna de las dos al slot — al revés que `with_table`, que pide
+        las dos. Que las dos perillas sean independientes es la razón de que el slot
+        genérico las reciba por separado.
 
-          { id: movie.id, name: movie.name, href: movie_path(movie),
-            start_date: movie.production_starts_on, end_date: movie.production_ends_on,
-            progress: movie.done? ? 100 : 40 }
-        },
-        zoom: :week,
-        readonly: true,
-        row_height: 40
-      ) %>
+        El header entra sin `route_path:`: pinta el mes y ningún prev/next, porque navegar
+        de mes metería un segundo query string compitiendo con el que ya son los filtros,
+        el orden y el propio view switch. %>
+    <% data_table.with_content(surface: false) do %>
+      <%= render Bali::Calendar::Component.new(
+        events: @movies,
+        start_attribute: :production_starts_on,
+        end_attribute: :production_ends_on,
+        start_date: Date.current,
+        period: :month,
+        show_date: true,
+        template: 'movies/calendar_day'
+      ) do |calendar| %>
+        <% calendar.with_header(period_switch: false) %>
+      <% end %>
     <% end %>
   <% else %>
     <%# La superficie y el scroll horizontal los trae with_table. %>
