@@ -408,10 +408,62 @@ longer on this path.
   daba verdadero. Con `Bali.native_app` activo y `modal:` presente, el botón de cancelar
   ahora se oculta como el código siempre dijo que haría. Sin `native_app` no cambia nada.
 
+## The FormBuilder's dead daisyUI 4 classes are gone
+
+daisyUI 5 removed `label-text`, `label-text-alt`, `input-bordered`, `textarea-bordered` and
+`form-control`. Check it against your own compiled CSS — the count is zero:
+
+```
+grep -c "\.label-text\|\.input-bordered\|\.textarea-bordered\|\.form-control" app/assets/builds/tailwind.css
+```
+
+Because they define nothing, **removing them changes no pixel**. What changes is what a
+selector can find. Grep your app for the five names and expect hits in three places:
+
+```
+grep -rn "label-text\|input-bordered\|textarea-bordered\|form-control" app/ test/ spec/
+```
+
+1. **System tests and CSS that select Bali's markup.** `input.input-bordered`,
+   `textarea.textarea-bordered`, `span.label-text`, `p.label-text-alt` and `.form-control`
+   no longer match anything the FormBuilder renders. Rewrite them against the class that is
+   still there (`input.input`, `textarea.textarea`) or against the new one below.
+2. **Your own templates.** Bali does not touch them; they keep working exactly as they do
+   today, which is to say the classes keep doing nothing. Sweep them at your own pace.
+3. **Anything that relied on `label-text-alt` for small type.** It never delivered that in
+   v2 either — the size came from `.fieldset`'s own `font-size: .75rem`, inherited by every
+   child, and it still does.
+
+| v2 (dead in daisyUI 5) | v3 |
+|---|---|
+| `<p class="label-text-alt text-error">` (the error) | `<p class="fieldset-label text-error" id="<field_id>_error">` |
+| `<p class="label-text-alt">` (the help) | `<p class="fieldset-label" id="<field_id>_help">` |
+| `<span class="label-text">` inside a checkbox/toggle/radio label | `<span>` — the wrapping `.label` styles it, as in daisyUI 5's own markup |
+| `input input-bordered w-full` | `input w-full` |
+| `textarea textarea-bordered w-full` | `textarea w-full` |
+
+`select-bordered` is **not** in that table and has not been removed: it is the one class of
+the family with live definitions, in Bali's own SlimSelect stylesheet.
+
+### A field with help and an error now shows both
+
+In v2, `field_helper` was `if errors? … elsif help`, so an error replaced the help text.
+Both render now, error first. Two consequences worth grepping for:
+
+- a test asserting one paragraph under a control (`assert_selector('.control + p', count: 1)`)
+  finds two whenever the field has help **and** is invalid;
+- checkboxes, toggles, ranges, and textareas with a character counter never rendered `help:`
+  at all. If you passed `help:` to any of them and worked around the silence with your own
+  markup, that markup is now duplicated by the real one.
+
+Both paragraphs carry ids derived with Rails' `field_id` — `movie_synopsis_error` and
+`movie_synopsis_help`. Nothing points `aria-describedby` at them yet; that is a later change.
+
 ## Checklist
 
 ```
 grep -rn "with_actions_panel\|with_export\|table_id:\|data_display_mode\|toolbar_class:" app/
+grep -rn "label-text\|input-bordered\|textarea-bordered\|form-control" app/ test/ spec/
 grep -rn "turbo_stream.replace \"data-table-" app/
 grep -rn "Bali::Card.*DataTable\|render Bali::Card" app/views/**/index*
 # any listing that groups and already used `view`, or that does not start on the table?

@@ -5,8 +5,6 @@ module Bali
     module SwitchFields
       TOGGLE_CLASS = "toggle"
       LABEL_CLASS = "label cursor-pointer gap-3"
-      LABEL_TEXT_CLASS = "label-text"
-      ERROR_CLASS = "label-text-alt text-error"
       FIELDSET_CLASS = "fieldset"
 
       # Consumed here rather than forwarded: `size` and `color` name daisyUI
@@ -44,12 +42,12 @@ module Bali
 
         label_html = label(method, label_options) do
           safe_join([
-                      content_tag(:span, label_text, class: LABEL_TEXT_CLASS),
+                      content_tag(:span, label_text),
                       check_box(method, toggle_options, checked_value, unchecked_value)
                     ], " ")
         end
 
-        append_switch_error_message(method, label_html)
+        label_html + error_and_help(method, options)
       end
 
       private
@@ -70,12 +68,6 @@ module Bali
         ].compact.join(" ")
 
         html_attributes(options).except(*TOGGLE_OPTIONS).merge(class: toggle_class)
-      end
-
-      def append_switch_error_message(method, html)
-        return html unless errors?(method)
-
-        html + content_tag(:p, full_errors(method), class: ERROR_CLASS)
       end
     end
   end

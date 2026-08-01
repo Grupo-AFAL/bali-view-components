@@ -22,7 +22,7 @@ class BaliFormBuilderSearchFieldsTest < FormBuilderTestCase
 
   def test_search_field_group_applies_daisyui_input_classes
     result = builder.search_field_group(:name)
-    assert_html(result, "input.input.input-bordered")
+    assert_html(result, "input.input")
   end
 
   def test_search_field_group_renders_default_placeholder_from_i18n
@@ -84,7 +84,7 @@ class BaliFormBuilderSearchFieldsTest < FormBuilderTestCase
 
   def test_search_field_group_with_custom_class_includes_custom_class_with_daisyui_classes
     result = builder.search_field_group(:name, class: "custom-search")
-    assert_html(result, "input.input.input-bordered.custom-search")
+    assert_html(result, "input.input.custom-search")
   end
 
   def test_search_field_group_with_data_attributes_passes_through_data_attributes

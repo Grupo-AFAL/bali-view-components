@@ -27,7 +27,7 @@ class BaliFormBuilderBooleanFieldsTest < FormBuilderTestCase
 
   def test_boolean_field_group_renders_label_text_in_a_span
     result = builder.boolean_field_group(:indie)
-    assert_html(result, "span.label-text", text: "Indie")
+    assert_html(result, "label.label span", text: "Indie")
   end
 
   def test_boolean_field_group_renders_the_hidden_unchecked_input
@@ -52,9 +52,9 @@ class BaliFormBuilderBooleanFieldsTest < FormBuilderTestCase
     assert_html(result, "input.checkbox")
   end
 
-  def test_boolean_field_renders_label_text_in_a_span_with_label_text_class
+  def test_boolean_field_renders_label_text_in_a_span
     result = builder.boolean_field(:indie)
-    assert_html(result, "span.label-text", text: "Indie")
+    assert_html(result, "label.label span", text: "Indie")
   end
 
   def test_boolean_field_renders_the_hidden_unchecked_input
@@ -69,7 +69,7 @@ class BaliFormBuilderBooleanFieldsTest < FormBuilderTestCase
 
   def test_boolean_field_with_custom_label_uses_custom_label_text
     result = builder.boolean_field(:indie, label: "Independent Film")
-    assert_html(result, "span.label-text", text: "Independent Film")
+    assert_html(result, "label.label span", text: "Independent Film")
   end
 
   def test_boolean_field_with_label_options_merges_custom_label_classes_with_daisyui_classes
