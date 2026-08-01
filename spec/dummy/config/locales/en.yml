@@ -62,12 +62,10 @@ en:
     avg_budget: Avg. Budget
     completion_rate: Completion Rate
     active_users: Active Users
-    production_timeline: Production Timeline (GanttChart)
     activity_heatmap: Activity Heatmap
     day_of_week: Day of Week
     hour: Hour
     activity: Activity
-    no_movies_timeline: No movies to display in timeline. Add some movies first!
     today: Today
 
   # Movies
@@ -94,7 +92,7 @@ en:
     views:
       table: Table
       cards: Cards
-      timeline: Timeline
+      calendar: Calendar
     characters:
       role: Character
       empty: No characters have been added to this movie yet.
@@ -227,8 +225,6 @@ en:
     genre_distribution_title: Genre Distribution
     copy: Copy
     recent_activity: Recent Activity
-    timeline_title: Production Timeline
-    no_timeline: No movies with timeline data.
 
   # Revenue
   revenue:

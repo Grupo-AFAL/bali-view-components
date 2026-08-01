@@ -17,31 +17,11 @@ class DashboardController < ApplicationController
     # Recent activity
     @recent_movies = Movie.includes(:studio).order(created_at: :desc).limit(5)
 
-    # GanttChart data - Movie production timeline (demo data)
-    @gantt_tasks = build_gantt_tasks
-
     # Heatmap data - Movie activity by day of week and hour (demo data)
     @heatmap_data = build_heatmap_data
   end
 
   private
-
-  # Build demo Gantt chart tasks from movies
-  def build_gantt_tasks
-    Movie.limit(5).map.with_index do |movie, _index|
-      start_date = movie.created_at.to_date
-      end_date = movie.done? ? (start_date + rand(30..90).days) : (Date.current + rand(10..60).days)
-
-      {
-        id: movie.id,
-        name: movie.name,
-        start_date: start_date,
-        end_date: end_date,
-        progress: movie.done? ? 100 : rand(20..80),
-        color: movie.done? ? 'hsl(142, 76%, 36%)' : 'hsl(38, 92%, 50%)'
-      }
-    end
-  end
 
   # Build demo heatmap data (activity by day of week)
   def build_heatmap_data

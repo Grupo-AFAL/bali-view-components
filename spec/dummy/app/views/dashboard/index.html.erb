@@ -1,4 +1,4 @@
-<%# Dashboard - Showcases: PageHeader, Card, Icon, Chart, Timeline, Notification, Tag, Button, Level, InfoLevel, GanttChart, Heatmap %>
+<%# Dashboard - Showcases: PageHeader, Card, Icon, Chart, Timeline, Notification, Tag, Button, Level, InfoLevel, Heatmap %>
 
 <%# Page Header %>
 <%= render Bali::PageHeader::Component.new(title: t('dashboard.title'), subtitle: t('dashboard.welcome')) do %>
@@ -220,37 +220,15 @@
   <% end %>
 </div>
 
-<%# GanttChart and Heatmap Row %>
-<%= render Bali::Columns::Component.new(cols: 1, cols_xl: 2, gap: :xl, class: 'mt-6') do %>
-  <%# GanttChart - Production Timeline %>
-  <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <h3 class="card-title text-lg mb-4"><%= t('dashboard.production_timeline') %></h3>
-    <% if @gantt_tasks.any? %>
-      <div class="overflow-x-auto">
-        <%= render Bali::GanttChart::Component.new(
-          tasks: @gantt_tasks,
-          zoom: :week,
-          readonly: true,
-          row_height: 40
-        ) %>
-      </div>
-    <% else %>
-      <%= render Bali::Message::Component.new(color: :info) do %>
-        <%= t('dashboard.no_movies_timeline') %>
-      <% end %>
-    <% end %>
-  <% end %>
-
-  <%# Heatmap - Activity by Day/Hour %>
-  <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <h3 class="card-title text-lg mb-4"><%= t('dashboard.activity_heatmap') %></h3>
-    <%= render Bali::Heatmap::Component.new(
-      data: @heatmap_data,
-      color: :info
-    ) do |heatmap| %>
-      <% heatmap.with_x_axis_title(t('dashboard.day_of_week')) %>
-      <% heatmap.with_y_axis_title(t('dashboard.hour')) %>
-      <% heatmap.with_legend_title(t('dashboard.activity')) %>
-    <% end %>
+<%# Heatmap - Activity by Day/Hour %>
+<%= render Bali::Card::Component.new(style: :bordered, class: 'mt-6') do %>
+  <h3 class="card-title text-lg mb-4"><%= t('dashboard.activity_heatmap') %></h3>
+  <%= render Bali::Heatmap::Component.new(
+    data: @heatmap_data,
+    color: :info
+  ) do |heatmap| %>
+    <% heatmap.with_x_axis_title(t('dashboard.day_of_week')) %>
+    <% heatmap.with_y_axis_title(t('dashboard.hour')) %>
+    <% heatmap.with_legend_title(t('dashboard.activity')) %>
   <% end %>
 <% end %>

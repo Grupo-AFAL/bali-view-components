@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-# Fechas reales de producción para que el modo timeline del listado de películas sea
-# honesto: el Gantt de admin/analytics las inventaba en la vista.
+# Fechas reales de producción para que el tercer modo del listado de películas sea
+# honesto: los paneles de admin/analytics las inventaban en la vista.
 class AddProductionDatesToMovies < ActiveRecord::Migration[8.1]
   def change
     add_column :movies, :production_starts_on, :date
