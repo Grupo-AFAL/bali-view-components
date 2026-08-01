@@ -1029,7 +1029,9 @@
   opacity: 1;
 }
 
-/* Upload-failure toast, built by useFileUpload.js and appended to <body>. Same
+/* Upload-failure toast, built by useFileUpload.js and appended INSIDE the
+   `.block-editor-component` whose upload failed -- not to <body>, so two editors
+   on one page each get their own instead of stacking on the same corner. Same
    reason as `.filters-multi-select-content`: Tailwind does not scan this
    package's JavaScript, so the tier cannot ride on a utility class. */
 .block-editor-upload-toast {

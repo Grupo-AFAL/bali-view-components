@@ -27,6 +27,22 @@ module Bali
         )
       end
 
+      # @label Two Editors On One Page
+      # Two independent editors in the same document. This is the case that broke:
+      # `useFileUpload` looked its container up with a global
+      # `document.querySelector('[data-controller="block-editor"]')`, so an upload
+      # error was reported against whichever editor came first in the DOM rather
+      # than the one that failed, and both toasts landed on the same fixed corner.
+      #
+      # Editor B's `upload_url` points at a 404 on purpose, so its uploads fail on
+      # demand and the toast has somewhere wrong it could go.
+      def two_editors
+        render_with_template(locals: {
+          content_a: [ paragraph("Editor A. Uploads work here.") ],
+          content_b: [ paragraph("Editor B. Uploads are unconfigured here on purpose.") ]
+        })
+      end
+
       def with_form_input
         render BlockEditor::Component.new(
           editable: true,
@@ -206,6 +222,10 @@ module Bali
       end
 
       # rubocop:disable Metrics/MethodLength
+      def paragraph(text)
+        { type: 'paragraph', content: [ { type: 'text', text: text, styles: {} } ] }
+      end
+
       def sample_content
         [
           # Heading Level 1

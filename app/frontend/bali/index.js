@@ -115,6 +115,7 @@ export {
   SavedViewsController,
   SideMenuController,
   SideMenuFlyoutController,
+  SideMenuTriggerController,
   SortableListController,
   StatusController,
   TabsController,

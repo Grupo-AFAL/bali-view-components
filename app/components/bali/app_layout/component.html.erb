@@ -1,4 +1,13 @@
 <body class="<%= container_classes %>" <%= tag.attributes(container_attributes) %>>
+  <%# 0. Skip link — first focusable element on the page, so the very first Tab
+      offers it. Off-screen until focused; the reveal lives in ./index.css next
+      to the default that hides it, because a `sr-only` utility on the element
+      would beat a `:focus` rule in @layer components and the link would never
+      appear. %>
+  <% if render_skip_link? %>
+    <a href="#<%= main_id %>" class="bali-skip-link"><%= skip_link_label %></a>
+  <% end %>
+
   <%# 1. Banner (impersonation, maintenance, beta) %>
   <% if banner? %>
     <div class="app-layout-banner"><%= banner %></div>
@@ -11,25 +20,21 @@
 
   <%# 3. Main area: sidebar + content %>
   <div class="app-layout-main flex flex-1 min-h-0">
-    <% if sidebar? %><%= sidebar %><% end %>
+    <% if sidebar? %><%= sidebar_markup %><% end %>
 
     <div class="app-layout-content flex-1 min-w-0 flex flex-col">
       <% if topbar? %>
         <div class="app-layout-topbar"><%= topbar %></div>
       <% elsif render_default_mobile_topbar? %>
-        <div class="app-layout-topbar app-layout-topbar--default-mobile flex items-center gap-2 px-4 py-2 bg-base-100 border-b border-base-300 lg:hidden">
-          <label for="<%= default_mobile_trigger_id %>"
-                 class="btn btn-ghost btn-sm"
-                 aria-label="<%= toggle_mobile_label %>">
-            <%= render Bali::Icon::Component.new('menu', size: :small) %>
-          </label>
+        <header class="app-layout-topbar app-layout-topbar--default-mobile flex items-center gap-2 px-4 py-2 bg-base-100 border-b border-base-300 lg:hidden">
+          <%= render Bali::SideMenu::Trigger::Component.new(menu_id: default_menu_id) %>
           <% if @app_name.present? %>
             <span class="font-semibold text-sm"><%= @app_name %></span>
           <% end %>
-        </div>
+        </header>
       <% end %>
 
-      <main class="flex-1" <%= tag.attributes(main_attributes) %>>
+      <main id="<%= main_id %>" tabindex="-1" class="flex-1" <%= tag.attributes(main_attributes) %>>
         <div class="<%= body_container_classes %>">
           <%= body? ? body : content %>
         </div>

@@ -103,12 +103,17 @@ en:
 
     # Side menu
     side_menu:
-      toggle_collapse: "Toggle sidebar collapse"
+      label: "Sidebar"
       collapse: "Collapse sidebar"
       expand: "Expand sidebar"
       toggle_item: "Toggle %{name}"
-      toggle_mobile: "Toggle sidebar"
       close: "Close sidebar"
+      trigger:
+        toggle: "Open sidebar"
+
+    # App layout
+    app_layout:
+      skip_to_content: "Skip to main content"
 
     # Command palette (⌘K)
     command:

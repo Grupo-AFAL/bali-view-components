@@ -103,12 +103,17 @@ es:
 
     # Side menu
     side_menu:
-      toggle_collapse: "Alternar colapso del menú lateral"
+      label: "Menú lateral"
       collapse: "Colapsar menú lateral"
       expand: "Expandir menú lateral"
       toggle_item: "Alternar %{name}"
-      toggle_mobile: "Alternar menú lateral"
       close: "Cerrar menú lateral"
+      trigger:
+        toggle: "Abrir menú lateral"
+
+    # App layout
+    app_layout:
+      skip_to_content: "Saltar al contenido principal"
 
     # Paleta de comandos (⌘K)
     command:

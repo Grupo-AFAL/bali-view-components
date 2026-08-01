@@ -67,6 +67,9 @@ export default function BlockNoteEditorWrapper ({
   syntaxHighlighting = true,
   uploadUrl,
   outputElement,
+  // The `.block-editor-component` element this editor lives in. Upload errors are
+  // rendered inside it, so two editors on one page never share a toast corner.
+  containerElement,
   onEditorReady,
   onSyncReady,
   theme = 'light',
@@ -85,7 +88,8 @@ export default function BlockNoteEditorWrapper ({
   commentsUrl,
   commentsUser,
   commentsUsers,
-  commentsUsersUrl
+  commentsUsersUrl,
+  commentsPollInterval
 }) {
   const htmlParsed = useRef(false)
   // Deferred content (HTML/Markdown) is applied after mount; hold back the
@@ -97,7 +101,7 @@ export default function BlockNoteEditorWrapper ({
   const mentionsEnabled = !!(mentionsUrl || (staticMentions && staticMentions.length > 0))
   const referencesEnabled = !!referencesUrl
 
-  const uploadFile = useFileUpload(uploadUrl)
+  const uploadFile = useFileUpload(uploadUrl, containerElement)
 
   // Parse content, detecting format:
   // - Array → BlockNote blocks (legacy/default)
@@ -177,7 +181,8 @@ export default function BlockNoteEditorWrapper ({
     commentsUser: commentsEnabled ? commentsUser : undefined,
     commentsUsers: commentsEnabled ? commentsUsers : undefined,
     commentsUsersUrl: commentsEnabled ? commentsUsersUrl : undefined,
-    commentsUrl: commentsEnabled ? commentsUrl : undefined
+    commentsUrl: commentsEnabled ? commentsUrl : undefined,
+    commentsPollInterval: commentsEnabled ? commentsPollInterval : undefined
   })
 
   const extensions = useMemo(() => {

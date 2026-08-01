@@ -1,5 +1,9 @@
-/* Bali Status component — shape/layout only. Colors are applied inline
-   (see Bali::Status::Component#pill_style) and must never be set here. */
+/* Bali Status component — shape/layout, plus the chrome around the pills.
+   A *status* colour is applied inline (see Bali::Status::Component#pill_style)
+   and must never be set here. What this file may colour is the furniture: the
+   panel, the empty state, the selection ring. Those read daisyUI's own
+   --color-base-* tokens rather than the light-theme hex they used to hardcode,
+   which is why the panel was a white rectangle in every dark theme. */
 
 .status-component {
   position: relative;
@@ -59,11 +63,14 @@
 .status-pill:hover .status-pill__clear,
 .status-pill:focus-within .status-pill__clear { opacity: 0.85; }
 
-/* None / unassigned state */
+/* None / unassigned state. No !important: the component only writes an inline
+   style when something is selected, so there was never anything to outrank —
+   and inside @layer components an !important is nearly unbeatable from a host,
+   which is the opposite of what this rule wants. */
 .status-pill--none {
-  background-color: transparent !important;
-  color: #6b7280 !important;
-  border: 1px dashed #d1d5db;
+  background-color: transparent;
+  color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
+  border: 1px dashed color-mix(in oklch, var(--color-base-content) 20%, transparent);
   font-weight: 500;
 }
 
@@ -79,7 +86,9 @@
   flex-direction: column;
   gap: 0.25rem;
   padding: 0.375rem;
-  background-color: #fff;
+  background-color: var(--color-base-100);
+  color: var(--color-base-content);
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 10%, transparent);
   border-radius: 0.5rem;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.15);
   max-height: 20rem;
@@ -102,11 +111,14 @@
 }
 
 .status-option:hover { filter: brightness(0.95); }
-.status-option[aria-selected="true"] { box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25); }
+
+.status-option[aria-selected="true"] {
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--color-base-content) 30%, transparent);
+}
 
 .status-option--none {
-  background-color: transparent !important;
-  color: #6b7280 !important;
-  border: 1px dashed #d1d5db;
+  background-color: transparent;
+  color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
+  border: 1px dashed color-mix(in oklch, var(--color-base-content) 20%, transparent);
   font-weight: 500;
 }

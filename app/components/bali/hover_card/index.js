@@ -1,6 +1,10 @@
 import { Controller } from '@hotwired/stimulus'
-import useDispatch from '../../../assets/javascripts/bali/utils/use-dispatch.js'
 import zIndexFor from '../../../assets/javascripts/bali/utils/z-index.js'
+
+// Hardcoded instead of letting `dispatch` default to `this.identifier`, so the
+// public event names stay put when a host registers this controller under a
+// different identifier.
+const EVENT_PREFIX = 'bali:hovercard'
 
 const ARROW_SVG = `
 <svg width="14" height="8" viewBox="0 0 14 8" fill="none">
@@ -36,8 +40,6 @@ export class HovercardController extends Controller {
   }
 
   async connect () {
-    useDispatch(this)
-
     this.contentLoaded = false
 
     // Use template content, or loading spinner if fetching from URL
@@ -104,12 +106,12 @@ export class HovercardController extends Controller {
 
   onShow = () => {
     this.element.classList.add('is-active')
-    this.dispatch('show', { tippy: this.tippy })
+    this.dispatch('show', { prefix: EVENT_PREFIX, detail: { tippy: this.tippy } })
   }
 
   onHide = () => {
     this.element.classList.remove('is-active')
-    this.dispatch('hide', { tippy: this.tippy })
+    this.dispatch('hide', { prefix: EVENT_PREFIX, detail: { tippy: this.tippy } })
   }
 
   async loadContent () {

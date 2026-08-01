@@ -1,0 +1,32 @@
+<div class="space-y-8">
+  <div>
+    <h3 class="font-semibold mb-2">Editor A &mdash; uploads enabled</h3>
+    <p class="text-sm text-base-content/60 mb-2">
+      Type <code>/</code> then <em>Image</em> to upload. A failed upload must show its
+      toast inside <em>this</em> editor.
+    </p>
+    <%= render Bali::BlockEditor::Component.new(
+      initial_content: content_a.to_json,
+      editable: true,
+      input_name: 'a[content]',
+      placeholder: 'Editor A...'
+    ) %>
+  </div>
+
+  <div>
+    <h3 class="font-semibold mb-2">Editor B &mdash; upload endpoint that fails on purpose</h3>
+    <p class="text-sm text-base-content/60 mb-2">
+      <code>upload_url</code> points at a route that 404s, so an upload here always fails.
+      The error toast must land in <em>this</em> editor &mdash; not in Editor A, which is
+      the one the old global <code>document.querySelector</code> resolved to regardless of
+      which editor failed.
+    </p>
+    <%= render Bali::BlockEditor::Component.new(
+      initial_content: content_b.to_json,
+      editable: true,
+      input_name: 'b[content]',
+      placeholder: 'Editor B...',
+      upload_url: '/bali/block_editor/uploads/does-not-exist'
+    ) %>
+  </div>
+</div>

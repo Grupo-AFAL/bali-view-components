@@ -1,13 +1,13 @@
 <li>
-  <hr class="<%= line_classes %>"/>
+  <%= tag.hr(class: line_classes, style: line_style) %>
   <div class="<%= content_box_classes %>">
     <% if heading.present? %>
       <p class="font-semibold"><%= heading %></p>
     <% end %>
     <%= content %>
   </div>
-  <div class="<%= marker_classes %>">
+  <%= tag.div(class: marker_classes, style: marker_style) do %>
     <%= render Bali::Icon::Component.new(display_icon, size: :small) %>
-  </div>
-  <hr class="<%= line_classes %>"/>
+  <% end %>
+  <%= tag.hr(class: line_classes, style: line_style) %>
 </li>
