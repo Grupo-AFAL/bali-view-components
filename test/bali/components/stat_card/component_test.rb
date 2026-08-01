@@ -6,7 +6,7 @@ class BaliStatCardComponentTest < ComponentTestCase
   private
 
   def default_attrs
-    { title: "Total Users", value: "1,234", icon_name: "users", color: :primary }
+    { title: "Total Users", value: "1,234", icon: "users", color: :primary }
   end
 
   public
@@ -68,9 +68,25 @@ class BaliStatCardComponentTest < ComponentTestCase
     assert_includes(component.private_methods, :value)
   end
 
-  def test_private_attribute_readers_has_private_icon_name_reader
+  def test_private_attribute_readers_has_private_icon_reader
     component = Bali::StatCard::Component.new(**default_attrs)
-    assert_includes(component.private_methods, :icon_name)
+    assert_includes(component.private_methods, :icon)
+  end
+
+  # `icon_name:` has to stay in the signature rather than be deleted: **options
+  # becomes HTML attributes, so a missed call site would render
+  # `icon_name="users"` on the card, with no icon and nothing to read.
+  def test_icon_name_still_works_and_warns
+    captured = []
+    previous = Bali.deprecator.behavior
+    Bali.deprecator.behavior = ->(message, *) { captured << message }
+
+    render_inline(Bali::StatCard::Component.new(**default_attrs.except(:icon), icon_name: "users"))
+
+    assert_includes(captured.join("\n"), "`icon_name:` is deprecated")
+    assert_selector("svg")
+  ensure
+    Bali.deprecator.behavior = previous
   end
 
   def test_private_attribute_readers_has_private_color_reader
@@ -93,9 +109,11 @@ class BaliStatCardComponentTest < ComponentTestCase
     assert_equal("bg-warning/10", component.icon_bg_class)
   end
 
-  def test_icon_background_classes_falls_back_to_primary_for_unknown_color
-    component = Bali::StatCard::Component.new(**default_attrs, color: :unknown)
-    assert_equal("bg-primary/10", component.icon_bg_class)
+  def test_icon_background_classes_rejects_an_unknown_color
+    error = assert_raises(ArgumentError) do
+      Bali::StatCard::Component.new(**default_attrs, color: :unknown)
+    end
+    assert_includes(error.message, "unknown color :unknown")
   end
 
   def test_icon_text_classes_returns_correct_text_class_for_primary
@@ -108,9 +126,17 @@ class BaliStatCardComponentTest < ComponentTestCase
     assert_equal("text-success", component.icon_text_class)
   end
 
-  def test_icon_text_classes_falls_back_to_primary_for_unknown_color
-    component = Bali::StatCard::Component.new(**default_attrs, color: :unknown)
-    assert_equal("text-primary", component.icon_text_class)
+  def test_icon_text_classes_ghost_takes_the_theme_surface
+    component = Bali::StatCard::Component.new(**default_attrs, color: :ghost)
+    assert_equal("bg-base-200", component.icon_bg_class)
+    assert_equal("text-base-content", component.icon_text_class)
+  end
+
+  def test_icon_text_classes_custom_color_replaces_both_classes_with_inline_styles
+    component = Bali::StatCard::Component.new(**default_attrs, custom_color: "#ff0000")
+    assert_nil(component.icon_bg_class)
+    assert_equal("color: #ff0000", component.icon_style)
+    assert_includes(component.icon_container_style, "#ff0000")
   end
 
   def test_colors_constant_is_frozen

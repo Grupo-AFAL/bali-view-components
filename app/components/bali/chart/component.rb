@@ -63,6 +63,8 @@ module Bali
         card_style: :none,
         height: :md,
         use_theme_colors: true,
+        color: nil,
+        custom_color: nil,
         **html_options
       )
         # rubocop:enable Metrics/ParameterLists
@@ -80,9 +82,13 @@ module Bali
         @card_style = card_style.to_sym
         @height = height.to_sym
         @use_theme_colors = use_theme_colors
+        @custom_color = Bali::Color.hex!(self.class, custom_color)
+        @color = Bali::Color.name!(self.class, color)
         @options = build_options(options, legend)
         @html_options = html_options
-        @color_picker = Bali::Utils::ColorPicker.new(use_theme_colors: use_theme_colors)
+        @color_picker = Bali::Utils::ColorPicker.new(
+          use_theme_colors: use_theme_colors, color: @color, custom_color: @custom_color
+        )
       end
 
       def chart_type
@@ -127,6 +133,13 @@ module Bali
 
       def use_theme_colors?
         @use_theme_colors
+      end
+
+      # The controller recomputes every theme colour in the browser (a canvas
+      # cannot resolve a `var()`), so it needs the same rotation Ruby applied or
+      # it hands the first dataset `--color-primary` again.
+      def theme_color_variable
+        Bali::Color.variable_name(@color)
       end
 
       private
