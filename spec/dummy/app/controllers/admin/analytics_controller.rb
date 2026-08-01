@@ -19,7 +19,6 @@ module Admin
       chart_data = DemoChartData.new
       @monthly_production = chart_data.monthly_data(range: 3..15, seed: 44)
       @heatmap_data = chart_data.heatmap_data
-      @gantt_tasks = chart_data.gantt_tasks
     end
   end
 end

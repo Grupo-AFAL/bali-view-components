@@ -1,0 +1,10 @@
+<%# One day cell of the calendar display mode. Bali::Calendar renders this partial once per
+    day with the events that touch it, so the listing decides what a day looks like — the
+    same division of labour the content band has with the DataTable.
+
+    Locals: events, period, day. %>
+<% events&.each do |movie| %>
+  <%= render Bali::Tag::Component.new(text: movie.name, size: :sm,
+                                      color: movie.done? ? :success : :warning,
+                                      class: 'w-full justify-start truncate') %>
+<% end %>

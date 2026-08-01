@@ -4,6 +4,13 @@ Date: 2026-07-30
 Status: Approved (brainstorming)
 Target release: v3.0.0 (breaking)
 
+> **Amended 2026-07-31 (#701).** This document is kept as written. Every mention of a
+> Gantt below is historical: `Bali::GanttChart` was removed later in the same release,
+> so the third display mode of the canonical composition is a `Bali::Calendar` and its
+> value in `?view=` is `:calendar`, not `:timeline`. Nothing else in the design changed —
+> the point the Gantt illustrated (Bali ships no display modes, the host declares them
+> and `with_content` takes any surface) is exactly what the Calendar illustrates now.
+
 ## Purpose
 
 Every listing feature added over the last cycles — saved views (#668/#669), row

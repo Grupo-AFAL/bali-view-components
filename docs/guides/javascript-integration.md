@@ -29,8 +29,8 @@ yarn add flatpickr slim-select sortablejs @glidejs/glide date-fns rrule \
 ```
 
 *Step 6* of the [installation guide](installation.md) maps each optional peer to the
-component that loads it. Charts, Gantt, the block editor and the rich text editor sit
-behind their own entry points and carry their own dependency sets.
+component that loads it. Charts, the block editor and the rich text editor sit behind
+their own entry points and carry their own dependency sets.
 
 ### Step 2: Register Controllers
 
@@ -58,9 +58,6 @@ application.register('table', TableController)
 import { registerCharts } from 'bali-view-components/charts'
 registerCharts(application)
 
-// Gantt Chart (requires sortablejs, lodash.throttle)
-import { registerGantt } from 'bali-view-components/gantt'
-registerGantt(application)
 ```
 
 ### Bundler Configuration (Only If Needed)
@@ -81,7 +78,6 @@ export default defineConfig({
       // Main entry points
       { find: 'bali', replacement: resolve(baliGemPath, 'app/frontend/bali') },
       { find: 'bali/charts', replacement: resolve(baliGemPath, 'app/frontend/bali/charts.js') },
-      { find: 'bali/gantt', replacement: resolve(baliGemPath, 'app/frontend/bali/gantt.js') },
       // NPM dependencies (needed when loading from gem path)
       { find: 'tippy.js', replacement: resolve(__dirname, 'node_modules/tippy.js') },
       { find: 'sortablejs', replacement: resolve(__dirname, 'node_modules/sortablejs') },
@@ -218,7 +214,6 @@ application.register("dropdown", DropdownController)
 | Module | Import Path | Dependencies | Size |
 |--------|-------------|--------------|------|
 | Charts | `bali-view-components/charts` | chart.js | ~208KB |
-| Gantt | `bali-view-components/gantt` | sortablejs, lodash.throttle | ~50KB |
 | Rich Text Editor | `bali-view-components/rich-text-editor` | TipTap | N/A |
 
 ---

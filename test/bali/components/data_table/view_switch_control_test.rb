@@ -75,7 +75,7 @@ class BaliDataTableViewSwitchControlComponentTest < ComponentTestCase
   def test_unknown_view_falls_back_to_the_first_declared
     # El `?view=` crudo nunca llega al contenido sin validarse: un valor desconocido cae a
     # la primera vista en vez de dejar el listado vacío.
-    render_switch(current: :gantt)
+    render_switch(current: :roadmap)
     assert_selector("a.btn-active[href*='view=table']")
   end
 

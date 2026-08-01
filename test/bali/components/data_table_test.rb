@@ -288,7 +288,7 @@ class BaliDataTableComponentTest < ComponentTestCase
     end
     assert_selector("div.card > div.card-body > div.custom-view")
 
-    # Un contenido que trae su propio chrome (un Gantt) apaga la superficie y NO pierde
+    # Un contenido que trae su propio chrome (un calendario) apaga la superficie y NO pierde
     # el bloque en el camino.
     render_inline(component) do |c|
       c.with_content(surface: false) { '<div class="custom-view"></div>'.html_safe }
@@ -408,8 +408,8 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_display_mode_is_untouched_without_a_view_switch
-    @options = { display_mode: :gantt }
-    assert_equal(:gantt, component.display_mode)
+    @options = { display_mode: :roadmap }
+    assert_equal(:roadmap, component.display_mode)
   end
 
   def test_the_display_mode_falls_back_to_the_url_when_the_host_forgets_it

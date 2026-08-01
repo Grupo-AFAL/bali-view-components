@@ -79,7 +79,6 @@ Rails.application.routes.draw do
   get 'users', to: 'users#index'
   get 'entity_references', to: 'entity_references#index'
   post 'entity_references/resolve', to: 'entity_references#resolve'
-  resources :gantt_chart, only: %i[update]
 
   # BlockEditor
   resources :block_editor_threads, path: 'block_editor_comments', only: %i[index create update destroy] do
