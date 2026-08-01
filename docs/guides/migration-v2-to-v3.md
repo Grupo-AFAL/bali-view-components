@@ -333,6 +333,43 @@ This also closes **#653**: the legacy toggle built its links with
 `Utils::Url#add_query_params`, which duplicated a param already in the URL. That code is no
 longer on this path.
 
+## `Reveal` and `TreeView` change their markup
+
+Both were rows of `<div>`s with click handlers — unreachable by keyboard, unannounced by a
+screen reader — and `TreeView` additionally claimed `role="tree"`, a promise of roving
+tabindex, arrow-key movement and type-ahead that it has never kept. The elements now match
+what the components do. **Every class name is unchanged**, so styling keyed on
+`.tree-view-component`, `.tree-view-item-component`, `.item`, `.children`, `.caret` or
+`.reveal-trigger` still applies; anything naming the element or the role does not.
+
+| v2 | v3.0 |
+|---|---|
+| `<div class="reveal-trigger" data-action="click->reveal#toggle">` | `<button type="button" class="reveal-trigger" aria-expanded aria-controls>` |
+| `<div class="reveal-content">` | same, now with an `id` (derived from the component's `id:` when you pass one) |
+| `<div class="tree-view-component" role="tree">` | `<ul class="tree-view-component">` |
+| `<div class="tree-view-item-component" role="treeitem" aria-expanded>` | `<li class="tree-view-item-component">` — `aria-expanded` moves to the caret |
+| `<div class="children" role="group">` | `<ul class="children" id>` |
+| `<span class="caret" data-action="click->tree-view-item#toggle">` | `<button type="button" class="caret" aria-expanded aria-controls>`, **only on items that have children** |
+| `<span class="caret opacity-0">` on childless items | `<span class="caret" aria-hidden="true">` — no `opacity-0`, no handler, not a tab stop |
+
+What to grep for:
+
+```
+grep -rn 'role="tree\|role="treeitem\|role="group"' app/ test/ spec/
+grep -rn 'div\.reveal-trigger\|span\.caret' app/ test/ spec/
+```
+
+Two of these bite in tests rather than in the browser: a system test clicking `span.caret`
+needs `button.caret`, and one asserting `aria-expanded` on the `treeitem` wrapper has to read
+it off the caret button instead.
+
+`TreeView`'s `navigateTo` action and its `url` value are unchanged, and row clicks still
+navigate.
+
+`Reveal#show` and `Reveal#hide` did the opposite of their names (see the changelog). A host
+that worked around the inversion by wiring `reveal#hide` to its "show" button has to swap the
+two back.
+
 ## Behaviour changes with no API change
 
 - **`toolbar_class:` is ignored, not rejected.** `DataTable#initialize` swallows unknown
