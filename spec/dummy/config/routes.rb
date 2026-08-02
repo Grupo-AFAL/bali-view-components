@@ -89,7 +89,10 @@ Rails.application.routes.draw do
   post 'block_editor/ai', to: 'block_editor_ai#create'
 
   # Documents (full editing experience reference)
-  resources :documents do
+  # No `edit`: editing a document happens in the overlay `documents#show` opens, not on a
+  # page of its own, so `DocumentsController` implements six of the seven actions and the
+  # seventh route answered 404 to anyone who followed it.
+  resources :documents, except: :edit do
     resources :versions, only: [:index, :show], controller: 'document_versions'
     resources :comment_threads, path: 'comments', controller: 'documents/comment_threads', only: %i[index create update destroy] do
       resources :comments, controller: 'documents/comment_threads/comments', only: %i[create update destroy] do
