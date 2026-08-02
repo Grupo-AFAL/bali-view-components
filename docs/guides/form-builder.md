@@ -204,6 +204,20 @@ Native HTML select with DaisyUI styling.
 <%= f.select_group :country, Country.all.map { |c| [c.name, c.id] }, include_blank: "Select country" %>
 ```
 
+**Caption keys work from either hash.** The select families take two positional
+hashes — `select_group(method, values, options, html_options)` — and `label:`,
+`help:` and the other keys the *group* owns are read from both, the first one
+winning on a conflict. Write them next to each other and both land:
+
+```erb
+<%= f.select_group :status, statuses, label: "Status", help: "Visible to admins only" %>
+```
+
+Before v3 the three select families read those keys from the **second** hash
+only, so a `help:` written next to `label:` — where every single-hash field type
+reads it — reached the wrapper and never reached the paragraph. It disappeared
+with no error and no warning.
+
 **Non-model forms** (`form_with url:` without a model): pass `input_name:` /
 `input_id:` in the options hash to namespace the rendered `<select>` under a
 param key. Also supported by `slim_select_group`. An explicit `name:`/`id:`
