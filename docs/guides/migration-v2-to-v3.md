@@ -1026,6 +1026,16 @@ Every overlay used to invent its own z-index. The full inventory, before and aft
 `@layer utilities` classes and a host utility on the same element ties and sorts after.
 Nothing about escaping the scale got harder.
 
+**`Bali::HoverCard::Component::DEFAULT_Z_INDEX` is gone, and `z_index:` now defaults to
+`nil`.** The constant was `9999`. Referencing it raises `NameError`, and there is deliberately
+nothing to replace it with: hardcoding the scale's top value in Ruby is exactly what breaks
+the moment a host moves the scale. `z_index: nil` means "read `--bali-z-hovercard` at
+connect", which is what you want; pass a number only to pin one hovercard outside the scale.
+
+```bash
+grep -rn "DEFAULT_Z_INDEX" app/
+```
+
 ### Moving the scale, or slotting into it
 
 The tokens are declared `:where(:root)` inside `@layer theme`, which is the weakest place
@@ -1106,7 +1116,7 @@ column declared with a colour outside `Bali::Tag::COLORS` used to render ghost-c
 and now raises.
 
 ```
-grep -rn "Tag::Component" app/ | grep -E ":danger|:link|:black|:dark|:white|:small|:medium|:large|:normal|light:"
+grep -rn -A6 "Tag::Component" app/ | grep -E ":danger|:link|:black|:dark|:white|:small|:medium|:large|:normal|light:"
 ```
 
 ### A Tag is single-line now
@@ -1162,9 +1172,9 @@ replacement.
 | `color: :chartreuse` (anything unknown) | raises | `Bali::Heatmap`, `Bali::StatCard`, `Bali::Kanban::Column` used to fall back silently |
 
 ```
-grep -rn "StatCard::Component" app/ | grep icon_name
-grep -rn "Timeline::\(Item\|Header\)\|with_item\|with_header" app/ | grep -E ":default|:outline"
-grep -rn "Heatmap::Component" app/ | grep -E "color: *[\"']#"
+grep -rn -A6 "StatCard::Component" app/ | grep icon_name
+grep -rn -A6 "Timeline::\(Item\|Header\)\|with_item\|with_header" app/ | grep -E ":default|:outline"
+grep -rn -A6 "Heatmap::Component" app/ | grep -E "color: *[\"']#"
 ```
 
 `icon_name:` on `Bali::Link`, `Bali::Button` and `Bali::ImageField::Input` did
@@ -1212,6 +1222,15 @@ the fixed hex list.
 `.theme_color_with_alpha`. `Bali::Color::NAMES` and `Bali::Color.css` replace what
 was reachable of them.
 
+The page components lost theirs to the consolidation described under [The five page
+components get one surface](#the-five-page-components-get-one-surface):
+`Bali::FormPage::Component::MAX_WIDTHS` and `Bali::DashboardPage::Component::MAX_WIDTHS`
+are now the single `Bali::PageComponents::Shared::MAX_WIDTHS`, and
+`Bali::DashboardPage::Component::STAT_ICON_COLORS`, `Bali::DashboardPage::Stat` and
+`Bali::StatCard::Component::COLORS` are gone with nothing to put in their place — the
+colour names come from `Bali::Color::NAMES` like everywhere else. None of the apps in the
+group referenced any of them, which is why this is a line and not a section.
+
 ## One taxonomy for every button
 
 `Button`, `Link` in button dress, `DeleteLink` and `BulkActions::Action` all render
@@ -1250,7 +1269,7 @@ nobody asked for instead of the colour they did ask for.
 ```
 
 ```
-grep -rn "Link::Component" app/ | grep "type:"
+grep -rn -A6 "Link::Component" app/ | grep "type:"
 ```
 
 `Bali::Button`'s `type:` is untouched. It always meant the HTML attribute (`:button`,
@@ -1267,7 +1286,7 @@ grep -rn "Link::Component" app/ | grep "type:"
 ```
 
 ```
-grep -rn "Button::Component" app/ | grep "variant: *:outline"
+grep -rn -A6 "Button::Component" app/ | grep "variant: *:outline"
 ```
 
 Nothing else moved: `variant: :primary`, `:ghost`, `:link` and the rest are unchanged on
@@ -1544,7 +1563,7 @@ longer comes from this package.
 running, and the feature quietly stops working. Grep before you upgrade:
 
 ```
-grep -rn "openModal\|openDrawer\|modal:success" app/ --include=*.js --include=*.erb --include=*.rb
+grep -rn "openModal\|openDrawer\|modal:success" app/ --include="*.js" --include="*.jsx" --include="*.erb" --include="*.rb"
 grep -rn "hovercard:\|sortable-list:\|interact:on\|direct-upload:" app/
 grep -rn "useDispatch\|use-dispatch\|baliDispatchDebugEnabled" app/ config/
 # alerts and toasts — the class names, the keywords and the Stimulus identifiers
@@ -1613,6 +1632,23 @@ document.dispatchEvent(new CustomEvent('bali:modal:open', {
 
 `detail.options` is still required (pass `{}` if you have nothing to set) and `detail.content`
 still accepts `null` to keep the skeleton showing.
+
+**New and optional: `detail.id` names the overlay you mean.** Both events read it, and a
+controller answers only when the id matches its own template target's. Without it every
+`modal` controller on the page answers, which is what v2 did and what a page with one overlay
+still wants — so this is additive and nothing has to change. It exists for the page that
+renders a second overlay next to `AppLayout`'s shared `#main-modal`, where "everyone answers"
+means both open at once:
+
+```javascript
+document.dispatchEvent(new CustomEvent('bali:drawer:open', {
+  detail: { id: 'filters-drawer', content: html, options: {} }
+}))
+```
+
+A trigger link does the same without any JavaScript: put `data-modal-id` (or `data-drawer-id`)
+on the link and the controller forwards it into the event it dispatches. Leave it off and the
+event stays the broadcast it has always been.
 
 ### No compatibility aliases, on purpose
 
@@ -2067,8 +2103,8 @@ what the components do. **Every class name is unchanged**, so styling keyed on
 What to grep for:
 
 ```
-grep -rn 'role="tree\|role="treeitem\|role="group"' app/ test/ spec/
-grep -rn 'div\.reveal-trigger\|span\.caret' app/ test/ spec/
+grep -rn 'role="tree\|role="treeitem\|role="group"' app/ test/
+grep -rn 'div\.reveal-trigger\|span\.caret' app/ test/
 ```
 
 Two of these bite in tests rather than in the browser: a system test clicking `span.caret`
@@ -2126,6 +2162,38 @@ two back.
 - `Bali::ViewSwitch#icon_only?` is now `== true` rather than truthy: a host passing a
   non-boolean truthy value (`"true"`, `1`) changes behaviour. `:responsive` is a new value
   that collapses only the label below `sm`.
+- **`Bali::ViewSwitch` marks the active view with `aria-current="page"`, not `aria-pressed`.**
+  These are `<a>` elements that navigate, and browsers drop `pressed` on `role=link`, so the
+  attribute v2 emitted announced nothing. Nothing to change on a page; a test or a stylesheet
+  written against `[aria-pressed]` or `[aria-pressed="true"]` stops matching, and `aria-pressed`
+  is no longer emitted at all — not even as `"false"` on the inactive ones.
+  ```bash
+  grep -rn "aria-pressed" app/ test/
+  ```
+- **`Modal` emits `aria-labelledby` only when it has a header slot.** v2 emitted it
+  unconditionally while `title_id` only reached the DOM through that slot, so every modal built
+  out of `content` — `AppLayout`'s shared `#main-modal` included — pointed the dialog's
+  accessible name at a node that was not there, which suppresses the fallback and is worse than
+  no name. `Drawer` already behaved this way. A test asserting the attribute is present on a
+  headerless modal was asserting the bug and now fails.
+- **Both overlay panels carry `tabindex="-1"`, and focus on open resolves in one order:**
+  `[autofocus]` inside the content, else the first focusable, else the panel itself. In v2 the
+  autofocus branch ran *before* the focus trap and the trap's `firstFocusable.focus()` overwrote
+  it, so a host's `autofocus:` never won — deterministically so in `#main-modal`, whose
+  standalone `✕` precedes the content. Nothing to pass; if you were compensating with a
+  `setTimeout` that re-focused your field after opening, delete it.
+- **Escape and Tab work while the overlay is still fetching**, which they did not before: the
+  trap and the key handler were installed only on a content-bearing open, so for the whole
+  length of the fetch the focus stayed on the trigger link in a sibling subtree and Escape went
+  nowhere. Two consequences a host can see — a modal can now be dismissed before its content
+  arrives (the response is dropped rather than reopening it), and Tab no longer escapes to the
+  page behind an overlay whose content holds nothing focusable.
+- **A 422 no longer disarms the unsaved-changes guard.** The error branch of `submit` used to
+  re-render through the open path, whose first statement clears the dirty flag, so the one
+  response that means "your input is still unsaved and still on screen" left the overlay marked
+  clean and the next Escape discarded a filled-in form without asking. If your controller
+  answers a failed validation with a 422 and the re-rendered form, you now get the confirm
+  dialog you always should have.
 - **Bulk selection order.** `selected_ids` is derived from the DOM, so it comes in row
   order rather than click order. Non-numeric record ids (UUIDs) still serialize as `null` —
   a pre-existing limitation of the controller, now reachable by many more apps.
@@ -2200,7 +2268,7 @@ Every class name is unchanged, so CSS keyed on them still applies. Selectors and
 that name the *element* do not:
 
 ```
-grep -rn "div.mb-2\|label.font-bold\|div.min-h-6" app/ test/ spec/
+grep -rn "div.mb-2\|label.font-bold\|div.min-h-6" app/ test/
 ```
 
 Reach for `Bali::PropertiesTable::Component` instead when the pairs form one set read top
@@ -2242,7 +2310,7 @@ Split it into two components, or drop `href:` from all of them — `src:` is how
 loads its content on demand without leaving the page.
 
 ```
-grep -rn "with_tab(" app/ | grep "href:"
+grep -rn -A6 "with_tab(" app/ | grep "href:"
 ```
 
 Tabs with panels are untouched: same roles, same controller, same markup.
@@ -2315,6 +2383,61 @@ the count badge beside it. Both refresh together when the page re-renders.
 `SortableList`'s `bali:sortable-list:end` event now also carries `item`, `from`, `to`,
 `oldIndex` and `newIndex` alongside the `order` and `toListId` it always had. Additive —
 existing listeners keep working.
+
+## The tooltip becomes a tab stop
+
+`Bali::Tooltip`'s keyboard half never worked. The default trigger was `"mouseenter focus"`,
+and tippy honours `focus` only when the focused element **is** the reference it was handed —
+which is the `<span class="trigger">` the template wraps the slot in, an element with no
+`tabindex`. A focus landing on the caller's own button inside the slot fires a `focus` that
+does not bubble, so it never reached the reference either. Measured in Chrome on
+`bali/tooltip/default` with a focusable control in the slot: `state.isVisible` **false** on
+real focus. `mouseenter` was the only trigger that ever fired.
+
+Two things change, and only the second one is visible.
+
+**The default becomes `"mouseenter focusin"`.** `focusin` bubbles, so a focus anywhere inside
+the slot reaches the wrapper. There is nothing to do: a host that never passed
+`trigger_event:` gets the fix, and a host that passes one still wins. The only thing to grep
+for is the old default written out by hand, which stays as dead as it was:
+
+```bash
+grep -rn "trigger_event" app/     # "mouseenter focus" → "mouseenter focusin"
+```
+
+**The wrapper takes `tabindex="0"` when the slot brought nothing focusable of its own.**
+`focusin` only helps a slot that has something to focus, and the commonest tooltip in the
+library does not: the `?` help tip is a bare `<span>`, i.e. content that existed for a mouse
+only (WCAG 1.4.13). `TooltipController` adds the attribute on `connect` and takes it off on
+`disconnect`, and only when the slot contains no `a[href]`, `button`, `input`, `select`,
+`textarea`, `summary`, `[contenteditable]` or `[tabindex]:not([tabindex="-1"])`. A trigger
+built out of a `Bali::Button` or a `Bali::Link` therefore keeps its single stop instead of
+gaining a second, unnamed one in front of it, and a tooltip whose content is blank builds no
+tippy instance and claims no stop at all.
+
+**What you will notice: help-tip-shaped tooltips add one tab stop each.** That is the fix
+rather than a side effect, but it is visible, and it multiplies inside a listing — a tooltip
+rendered in a table cell adds one stop per row. Inside the package the only render that
+changes is `FieldGroupWrapper`'s `tooltip:` icon (`component.rb#tooltip_icon`), an
+`info-circle` SVG with nothing focusable in it, so **every form field carrying a `tooltip:`
+gains a stop next to its label**.
+
+```bash
+grep -rn -A6 "Tooltip::Component" app/   # triggers holding only text or an icon gain the stop
+grep -rn "tooltip:" app/views            # form fields — the wrapper's help icon is one of these
+```
+
+Measured on afal-apps, the largest consumer in the group: two `Bali::Tooltip::Component` call
+sites, both icon-only triggers inside a listing cell, and two form fields with `tooltip:`.
+
+**There is no opt-out, and that is deliberate.** The wrapper is the component's own markup
+and takes no host attributes — `class:` and `data:` land on the outer element, not on the
+trigger — so the way to move the stop somewhere else is to put a focusable control in the
+slot, after which the wrapper stays out of the tab order on its own.
+
+What breaks is a test, not a page: anything that counts tab stops or asserts a form's tab
+order. Note that there is nothing to assert against in a rendered-HTML test either way — the
+attribute is written by JavaScript, so it exists in a browser test and not in a unit one.
 
 ## The FormBuilder gets one family of names
 
@@ -2466,9 +2589,9 @@ not replace its name — it concatenates with it.
 ### What to grep for
 
 ```
-grep -rn "legend.fieldset-legend\|legend\.fieldset" app/ test/ spec/
-grep -rn "field-[a-z_]*\"\|#field-" app/ test/ spec/
-grep -rn "_select_div\|_period\"" app/ test/ spec/
+grep -rn "legend.fieldset-legend\|legend\.fieldset" app/ test/
+grep -rn "field-[a-z_]*\"\|#field-" app/ test/
+grep -rn "_select_div\|_period\"" app/ test/
 ```
 
 | v2 | v3 |
@@ -2556,7 +2679,7 @@ Because they define nothing, **removing them changes no pixel**. What changes is
 selector can find. Grep your app for the five names and expect hits in three places:
 
 ```
-grep -rn "label-text\|input-bordered\|textarea-bordered\|form-control" app/ test/ spec/
+grep -rn "label-text\|input-bordered\|textarea-bordered\|form-control" app/ test/
 ```
 
 1. **System tests and CSS that select Bali's markup.** `input.input-bordered`,
@@ -2745,7 +2868,7 @@ Run these:
 grep -rn "field_name:" app/                       # → fields: [:col, :other_col]
 grep -rn "simple_search_config" app/              # → search_config (it carries icon: now)
 grep -rn "SearchInput" app/ test/                 # → f.search_field_group, see below
-grep -rn "DummyFilterForm" app/ test/ spec/       # → gone with the SearchInput preview
+grep -rn "DummyFilterForm" app/ test/       # → gone with the SearchInput preview
 ```
 
 ### `Bali::SearchInput` is deleted
@@ -2918,10 +3041,23 @@ grep -rn "hover-card" app/assets app/components   # popover dropdowns no longer 
 
 ## Checklist
 
+Two things about the recipes themselves. They read `app/ test/`; if your suite lives in
+`spec/`, substitute it — naming a directory you do not have makes grep exit 2 and print an
+error over the hits it did find. And the ones with `-A2` / `-A6` need that context window
+because a component render wraps: `grep -rn "StatCard::Component" app/ | grep icon_name`
+finds only the call sites written on one line, which on the largest app in the group was 12
+of the 45 that are actually there.
+
+That window buys recall at the cost of some precision, and it is written that way on purpose:
+a false positive costs you a glance, a false negative costs you a broken page after the
+upgrade. Measured on that same app, the `-A6` recipes returned no extra hits at all, but the
+two `-A2` FormBuilder ones returned 12 lines for 9 real call sites. **Read the output as a
+list of places to look at, not as a count of places to change.**
+
 ```
 grep -rn "with_actions_panel\|with_export\|table_id:\|data_display_mode\|toolbar_class:" app/
-grep -rn "label-text\|input-bordered\|textarea-bordered\|form-control" app/ test/ spec/
-grep -rn "legend.fieldset-legend\|#field-\|_select_div\|aria-invalid" app/ test/ spec/
+grep -rn "label-text\|input-bordered\|textarea-bordered\|form-control" app/ test/
+grep -rn "legend.fieldset-legend\|#field-\|_select_div\|aria-invalid" app/ test/
 grep -rn "with_tag_item\|with_tag_header\|tag_class:" app/
 grep -rn "all_week:" app/                             # silently ignored now, shows the weekend
 grep -rn "Bali::Card.*Calendar\|Calendar" app/views   # the Calendar renders its own card
@@ -2929,7 +3065,7 @@ grep -rn "Bali::Card.*Calendar\|Calendar" app/views   # the Calendar renders its
 grep -rn "with_preview" app/                          # DocumentPage's body slot
 grep -rn "Bali::Level\|Bali::InfoLevel" app/          # deprecated, removed in 4.0
 grep -rn "turbo_stream.replace \"data-table-" app/
-grep -rn "Tag::Component" app/ | grep -E ":danger|:link|:black|:dark|:white|:small|:medium|:large|:normal|light:"
+grep -rn -A6 "Tag::Component" app/ | grep -E ":danger|:link|:black|:dark|:white|:small|:medium|:large|:normal|light:"
 grep -rn "Bali::Card.*DataTable\|render Bali::Card" app/views/**/index*
 # any listing that groups and already used `view`, or that does not start on the table?
 grep -rn "group_by_attribute" app/
@@ -2939,8 +3075,13 @@ grep -rn "data_table:\|pagination_footer:" config/locales
 grep -rn "Bali::Pagination.*url:" app/
 # a11y: markup that moved under your selectors
 grep -rn "div.mb-2\|label.font-bold\|div.min-h-6" app/ test/   # LabelValue is a <dl> now
-grep -rn "with_tab(" app/ | grep "href:"                        # mixing href and panels raises
+grep -rn -A6 "with_tab(" app/ | grep "href:"                        # mixing href and panels raises
 grep -rn "BooleanIcon" app/                                     # value: nil no longer means false
+grep -rn "aria-pressed" app/ test/                              # ViewSwitch marks the active view with aria-current now
+# tooltips: the trigger becomes a tab stop when the slot holds nothing focusable
+grep -rn -A6 "Tooltip::Component" app/
+grep -rn "tooltip:" app/views                                   # the field wrapper's help icon is one of these
+grep -rn "trigger_event" app/                                   # "mouseenter focus" → "mouseenter focusin"
 # do you render the BlockEditor, and are all @blocknote/* on the same >= 0.52.1?
 grep -rn "BlockEditor::Component\|block_editor_group" app/
 node -e 'const d=require("./package.json").dependencies||{};for(const k of Object.keys(d))if(k.startsWith("@blocknote/"))console.log(k,d[k])'
@@ -2952,19 +3093,19 @@ grep -rn "useDispatch\|use-dispatch\|baliDispatchDebugEnabled" app/ config/
 grep -rn "MOBILE_TRIGGER_ID\|mobile_trigger_id\|trigger_id:" app/
 grep -rn "side-menu-mobile-trigger\|side-menu-collapse-trigger" app/
 grep -rn "toggleSideMenu" app/
-grep -rn "fixed_sidebar" app/views app/components   # must agree with SideMenu(fixed:)
+grep -rn "fixed_sidebar" app/                        # must agree with SideMenu(fixed:)
 grep -rn "#main-content\|skip.to.main" app/          # AppLayout renders its own skip link
 # checkboxes and toggles: label: now means the legend, text: means the inline caption
-grep -rn "boolean_field\|check_box_group\|switch_field" app/ | grep "label:"
+grep -rn -A2 "boolean_field\|check_box_group\|switch_field" app/ | grep "label:"
 # currency/percentage: step never did anything, and the pattern follows the locale now
-grep -rn "currency_field_group\|percentage_field_group" app/ | grep "step:"
+grep -rn -A2 "currency_field_group\|percentage_field_group" app/ | grep "step:"
 grep -rn "NumericAttributesWithCommas\|gsub(\",\"" app/models/   # drop your own comma setter
 # dynamic_fields: these are <button> now
 grep -rn "link_to_add_fields\|link_to_remove_fields" app/ test/
 grep -rn "placehold.jp" app/ test/                   # ImageField's placeholder is a data URI
 # quick search: one shape, and SearchInput is gone
 grep -rn "field_name:\|simple_search_config" app/
-grep -rn "SearchInput\|DummyFilterForm" app/ test/ spec/
+grep -rn "SearchInput\|DummyFilterForm" app/ test/
 # dropdowns: one vocabulary, and popover: renders the same menu as the CSS one
 grep -rn "Dropdown::Component.new" app/ | grep -E "wide:|align: :(left|right|top|bottom|top_end|bottom_end)"
 grep -rn "Dropdown::Component.new" app/ | grep -v "align:"   # these move from :right to :start
