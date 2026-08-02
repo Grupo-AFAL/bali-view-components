@@ -139,14 +139,11 @@
     <%# Genre Distribution with Progress + Clipboard %>
     <%= render Bali::Columns::Component.new(cols: 1, cols_lg: 2, gap: :xl, class: 'mt-6') do %>
       <%= render Bali::Card::Component.new(style: :bordered) do %>
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between gap-4 mb-4">
           <h3 class="card-title text-lg"><%= t('analytics.genre_distribution_title') %></h3>
-          <%= render Bali::Clipboard::Component.new(
-            text: @movies_by_genre.map { |g, c| "#{g}: #{c}" }.join("\n"),
-            class: 'btn btn-ghost btn-xs'
-          ) do %>
-            <%= render Bali::Icon::Component.new('copy', size: :small) %>
-            <span class="ml-1"><%= t('analytics.copy') %></span>
+          <%= render Bali::Clipboard::Component.new(class: 'max-w-xs') do |clipboard| %>
+            <% clipboard.with_source(@movies_by_genre.map { |g, c| "#{g}: #{c}" }.join("\n")) %>
+            <% clipboard.with_trigger(t('analytics.copy')) %>
           <% end %>
         </div>
         <div class="space-y-4">
@@ -169,10 +166,12 @@
           <% @top_movies.each do |movie| %>
             <% list.with_item do %>
               <div class="flex items-center gap-4 w-full">
-                <%= render Bali::Avatar::Component.new(
-                  name: movie.name,
-                  size: :sm
-                ) %>
+                <%# Initials go through the `placeholder` slot: Avatar has no `name:`. %>
+                <%= render Bali::Avatar::Component.new(size: :sm) do |avatar| %>
+                  <% avatar.with_placeholder do %>
+                    <span><%= movie.name.first(2).upcase %></span>
+                  <% end %>
+                <% end %>
                 <div class="flex-1 min-w-0">
                   <p class="font-medium truncate"><%= movie.name %></p>
                   <p class="text-sm text-base-content/60">

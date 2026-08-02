@@ -101,34 +101,48 @@
 
     <%# Stats Row %>
     <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, cols_lg: 4, gap: :xl, class: 'mb-8') do %>
+      <%# The delta belongs in the `footer` slot. StatCard has no `change:` keyword, so one
+          passed as a keyword lands in **options and is painted as an HTML attribute. %>
       <%= render Bali::StatCard::Component.new(
         title: 'Total Revenue',
         value: '$45,231.89',
-        change: '+20.1%',
-        change_direction: :up,
         icon: 'dollar-sign'
-      ) %>
+      ) do |card| %>
+        <% card.with_footer do %>
+          <%= render Bali::Icon::Component.new('trending-up', size: :small, class: 'text-success') %>
+          <span class="text-success">+20.1% from last month</span>
+        <% end %>
+      <% end %>
       <%= render Bali::StatCard::Component.new(
         title: 'Subscriptions',
         value: '+2350',
-        change: '+180.1%',
-        change_direction: :up,
         icon: 'users'
-      ) %>
+      ) do |card| %>
+        <% card.with_footer do %>
+          <%= render Bali::Icon::Component.new('trending-up', size: :small, class: 'text-success') %>
+          <span class="text-success">+180.1% from last month</span>
+        <% end %>
+      <% end %>
       <%= render Bali::StatCard::Component.new(
         title: 'Sales',
         value: '+12,234',
-        change: '+19%',
-        change_direction: :up,
         icon: 'credit-card'
-      ) %>
+      ) do |card| %>
+        <% card.with_footer do %>
+          <%= render Bali::Icon::Component.new('trending-up', size: :small, class: 'text-success') %>
+          <span class="text-success">+19% from last month</span>
+        <% end %>
+      <% end %>
       <%= render Bali::StatCard::Component.new(
         title: 'Active Now',
         value: '+573',
-        change: '+201',
-        change_direction: :up,
         icon: 'activity'
-      ) %>
+      ) do |card| %>
+        <% card.with_footer do %>
+          <%= render Bali::Icon::Component.new('trending-up', size: :small, class: 'text-success') %>
+          <span class="text-success">+201 since last hour</span>
+        <% end %>
+      <% end %>
     <% end %>
 
     <%# Content Cards %>

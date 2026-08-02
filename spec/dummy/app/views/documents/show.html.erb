@@ -24,7 +24,7 @@
         <%= render Bali::Icon::Component.new('pencil', size: :small) %>
         Edit
       </button>
-      <%= render Bali::ActionsDropdown::Component.new(size: :sm, align: :end) do |dropdown| %>
+      <%= render Bali::ActionsDropdown::Component.new(align: :end) do |dropdown| %>
         <% dropdown.with_item(name: 'Export PDF', icon_name: 'file-text', href: '#') %>
         <% dropdown.with_item(name: 'Export DOCX', icon_name: 'file-down', href: '#') %>
         <% dropdown.with_item(name: 'Delete', icon_name: 'trash-2', href: document_path(@document), method: :delete, confirm: 'Delete this document?') %>
