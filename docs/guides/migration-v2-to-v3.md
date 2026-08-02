@@ -3105,7 +3105,7 @@ grep -rn "link_to_add_fields\|link_to_remove_fields" app/ test/
 grep -rn "placehold.jp" app/ test/                   # ImageField's placeholder is a data URI
 # quick search: one shape, and SearchInput is gone
 grep -rn "field_name:\|simple_search_config" app/
-grep -rn "SearchInput\|DummyFilterForm" app/ test/ spec/
+grep -rn "SearchInput\|DummyFilterForm" app/ test/
 # dropdowns: one vocabulary, and popover: renders the same menu as the CSS one
 grep -rn "Dropdown::Component.new" app/ | grep -E "wide:|align: :(left|right|top|bottom|top_end|bottom_end)"
 grep -rn "Dropdown::Component.new" app/ | grep -v "align:"   # these move from :right to :start
