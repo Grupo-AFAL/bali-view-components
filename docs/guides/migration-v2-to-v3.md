@@ -1097,7 +1097,8 @@ grep -rn "Heatmap::Component" app/ | grep -E "color: *[\"']#"
 ```
 
 `icon_name:` on `Bali::Link`, `Bali::Button` and `Bali::ImageField::Input` did
-**not** change. Only `StatCard` did.
+**not** change. `StatCard` did, and so did `DeleteLink` — see "One taxonomy for
+every button" below.
 
 ### Heatmap follows the theme now, and that is a visual change
 
@@ -1139,6 +1140,140 @@ the fixed hex list.
 `THEME_COLORS`, `CSS_VAR_MAP`, `FALLBACK_COLORS`, `.gradient`, `.theme_color` and
 `.theme_color_with_alpha`. `Bali::Color::NAMES` and `Bali::Color.css` replace what
 was reachable of them.
+
+## One taxonomy for every button
+
+`Button`, `Link` in button dress, `DeleteLink` and `BulkActions::Action` all render
+DaisyUI's `.btn`, and each carried its own table of modifiers. They disagreed on the axis
+DaisyUI 5 is most careful to separate: `Button` listed `outline` next to `primary`, as if a
+border and a colour were the same kind of thing; `Link` spelled that same thing
+`style: :outline`; `DeleteLink` offered neither and took only `size:`, capped at `lg`;
+`BulkActions::Action` kept a fourth private map and built its size class by interpolation,
+which Tailwind's scanner cannot see. Learning one of the four taught you nothing about the
+other three.
+
+There is one table now, `Bali::ButtonTaxonomy`, and three independent keywords:
+
+| Keyword | Means | Values |
+|---|---|---|
+| `variant:` | the colour | `:neutral :primary :secondary :accent :info :success :warning :error :ghost :link` |
+| `style:` | the fill | `:outline`, `:soft` |
+| `size:` | the scale | `:xs :sm :md :lg :xl` |
+
+`ghost` and `link` are styles in DaisyUI's own docs, not colours. They stay under `variant:`
+because that is where every call site already writes them, and because they are mutually
+exclusive with a colour in practice. The axis that moved is the one that was genuinely
+duplicated.
+
+### `Bali::Link` no longer takes `type:`
+
+It was deprecated in v2.0 and it is gone. *Rejected*, not ignored: `<a type="primary">` is
+valid HTML, so letting it fall through to `**options` would have rendered an attribute
+nobody asked for instead of the colour they did ask for.
+
+```erb
+<%# v2 %>
+<%= render Bali::Link::Component.new(name: 'Create', href: new_path, type: :primary) %>
+<%# v3 %>
+<%= render Bali::Link::Component.new(name: 'Create', href: new_path, variant: :primary) %>
+```
+
+```
+grep -rn "Link::Component" app/ | grep "type:"
+```
+
+`Bali::Button`'s `type:` is untouched. It always meant the HTML attribute (`:button`,
+`:submit`, `:reset`) and still does — the collision between the two meanings is the reason
+`Link` lost its own.
+
+### `Button(variant: :outline)` becomes `Button(style: :outline)`
+
+```erb
+<%# v2 %>
+<%= render Bali::Button::Component.new(name: 'Sign in', variant: :outline) %>
+<%# v3 %>
+<%= render Bali::Button::Component.new(name: 'Sign in', style: :outline) %>
+```
+
+```
+grep -rn "Button::Component" app/ | grep "variant: *:outline"
+```
+
+Nothing else moved: `variant: :primary`, `:ghost`, `:link` and the rest are unchanged on
+both `Button` and `Link`.
+
+### Unknown values raise
+
+All three keywords validate, on all four components. A name outside its table raises
+`ArgumentError` at construction instead of silently rendering a button with no colour — the
+failure mode that let a stale `:danger` survive two majors past its removal note by merely
+looking plain. The message names the keyword that does take the value:
+
+```
+Bali::Button::Component: variant: :outline is a fill, not a colour. Use style: :outline.
+Bali::Link::Component: variant: :danger is a Bulma name removed in v3. Use variant: :error.
+```
+
+This is the change most likely to find call sites for you. If you build a `variant:` from a
+database column or a config file, that path now raises where it used to render something
+colourless — check it before deploying, not after.
+
+### `DeleteLink` gains the taxonomy, and merges its two icon keywords
+
+`variant:`, `style:` and `size:` work on `DeleteLink` too, and `size: :xl` exists where the
+private table stopped at `lg`. The default is unchanged: `variant: :ghost` plus the
+destructive `text-error`, which is exactly what the old hardcoded `btn btn-ghost text-error`
+produced. `text-error` also applies to `variant: :link` — those two are the variants with no
+colour of their own. Name any other colour and it owns the button, because `btn-error` with
+`text-error` on top is red on red.
+
+`icon:` said whether and `icon_name:` said which. One keyword says both now:
+
+```erb
+<%# v2 %>
+<%= render Bali::DeleteLink::Component.new(href: path, icon: true) %>
+<%= render Bali::DeleteLink::Component.new(href: path, icon_name: 'circle-x') %>
+<%# v3 %>
+<%= render Bali::DeleteLink::Component.new(href: path, icon: true) %>
+<%= render Bali::DeleteLink::Component.new(href: path, icon: 'circle-x') %>
+```
+
+`icon_name:` still works and warns through `Bali.deprecator`; it is removed in v4. It is the
+same rename `StatCard` made, so the note further up about `Link`, `Button` and
+`ImageField::Input` keeping their `icon_name:` now has a second exception.
+
+`Dropdown#with_item` and `ActionsDropdown#with_item` are unaffected: they still take
+`icon_name:` for every item, delete items included, and translate it. An item is not the
+place to make a caller notice which of the two components it is about to become.
+
+### `DeleteLink`'s disabled state is a button, not an anchor
+
+```html
+<!-- v2 -->
+<a disabled class="btn btn-ghost text-error btn-disabled">Delete</a>
+<!-- v3 -->
+<button type="button" aria-disabled="true" class="btn btn-ghost text-error btn-disabled">Delete</button>
+```
+
+HTML has no `disabled` attribute on an anchor, so v2's disabled state existed only as paint:
+the accessibility tree saw an ordinary run of text, and a screen reader announced neither a
+control nor that it was unavailable. `aria-disabled` on a real button says both.
+
+Deliberately **not** `disabled`, and deliberately no `tabindex="-1"`: either one takes the
+button out of the tab order, and with it the hover card that `disabled_hover_url` renders,
+which is the only place the reason for the disabled state is written. Focusable and inert is
+the point.
+
+If you style that state by selector, `a[disabled]` and `a.btn-disabled` no longer match;
+`.btn-disabled` still does. The disabled state also draws its icon now, which it used to
+drop.
+
+### `BulkActions::Action`
+
+`variant:` accepts `:link` and the two `style:` values it never had, and its size class comes
+from the shared table instead of `"btn-#{size}"`. That interpolation was invisible to
+Tailwind's scanner, so those classes only ever shipped because some other component happened
+to spell them out. Nothing to change at your call sites.
 
 ## Timeline renders each entry once, and its slots lose the `tag_` prefix
 
@@ -1528,6 +1663,10 @@ not.
 
 | Removed | Replacement |
 |---|---|
+| `Bali::Link(type:)` | `variant:` *(raises — deprecated since v2.0)* |
+| `Bali::Button(variant: :outline)` | `style: :outline` |
+| `Bali::DeleteLink(icon_name:)` | `icon:`, which now takes a name too *(deprecated shim until v4)* |
+| `<a disabled>` from a disabled `Bali::DeleteLink` | `<button aria-disabled="true">` |
 | `Bali::StatCard(icon_name:)` | `icon:` *(deprecated shim until v4)* |
 | `Bali::Message::Component` | `Bali::Alert::Component` *(deprecated shim until v4)* |
 | `Bali::Notification::Component` | `Bali::Toast::Component` + `Bali::ToastContainer::Component` *(deprecated shim until v4)* |

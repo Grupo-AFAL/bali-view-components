@@ -52,7 +52,7 @@
       <%= render Bali::DeleteLink::Component.new(
         name: t('studios.show.delete_studio'),
         href: admin_studio_path(@studio),
-        variant: :outline,
+        style: :outline,
         confirm: t('studios.show.confirm_delete', name: @studio.name)
       ) %>
     </div>

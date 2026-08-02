@@ -24,6 +24,12 @@ module Bali
         else
           component_klass = method&.to_sym == :delete ? DeleteLink::Component : Link::Component
           options[:role] ||= "menuitem"
+          # DeleteLink merged its `icon:` and `icon_name:` into one keyword in v3. `with_item`
+          # is not the place to make a caller notice which of the two components an item is
+          # about to become, so the spelling stays the same for both.
+          if component_klass == DeleteLink::Component && options.key?(:icon_name)
+            options[:icon] = options.delete(:icon_name)
+          end
           component_klass.new(
             method: method, href: href, plain: true,
             **prepend_class_name(options, "menu-item w-full text-left")

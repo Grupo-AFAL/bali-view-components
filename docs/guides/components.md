@@ -1677,6 +1677,28 @@ File/folder-style navigation tree with expandable nested sections. Branches cont
 
 ### Interactive Components
 
+#### The shared button taxonomy
+
+`Button`, `Link` (in button dress), `DeleteLink` and `BulkActions::Action` all render
+DaisyUI's `.btn`, and they take the same three keywords for it. The three are independent
+axes and they compose:
+
+| Keyword | Means | Values |
+|---|---|---|
+| `variant:` | the colour | `:neutral :primary :secondary :accent :info :success :warning :error :ghost :link` |
+| `style:` | the fill | `:outline`, `:soft` |
+| `size:` | the scale | `:xs :sm :md :lg :xl` |
+
+```erb
+<%= render Bali::Button::Component.new(name: 'Discard', variant: :error, style: :outline, size: :sm) %>
+<%= render Bali::Link::Component.new(name: 'Discard', href: path, variant: :error, style: :outline, size: :sm) %>
+```
+
+A value outside its table raises `ArgumentError` at construction rather than rendering a
+button with no colour at all. The message names the keyword that does take it, so
+`variant: :outline` is told to become `style: :outline`. The tables live in
+`Bali::ButtonTaxonomy`.
+
 #### Button
 
 Primary interactive element for actions.
@@ -1699,10 +1721,11 @@ Primary interactive element for actions.
 
 **Options:**
 - `name` - Button text
-- `variant` - Style variant
+- `variant` - Colour (see the shared taxonomy above)
+- `style` - `:outline` or `:soft`
 - `size` - Size modifier
 - `icon_name` - Left icon name
-- `type` - `:button`, `:submit`, `:reset`
+- `type` - The HTML attribute: `:button`, `:submit`, `:reset`. Never a look
 - `disabled` - Disable button
 - `loading` - Show loading spinner
 
@@ -1718,7 +1741,7 @@ Navigation links, optionally styled as buttons.
 <%= render Bali::Link::Component.new(
   name: 'Create New',
   href: new_item_path,
-  type: :primary  # Button styling
+  variant: :primary  # Button styling
 ) %>
 ```
 
@@ -1903,6 +1926,7 @@ Delete button that submits a DELETE request and automatically triggers the style
 ```erb
 <%= render Bali::DeleteLink::Component.new(model: @movie) %>
 <%= render Bali::DeleteLink::Component.new(href: movie_path(@movie), name: 'Remove', size: :sm, icon: true) %>
+<%= render Bali::DeleteLink::Component.new(href: movie_path(@movie), style: :outline, icon: 'circle-x') %>
 ```
 
 **Options:**
@@ -1910,15 +1934,24 @@ Delete button that submits a DELETE request and automatically triggers the style
 - `href` - Explicit URL; either `model` or `href` is required (default: `nil`)
 - `name` - Button label (default: translated "Delete")
 - `confirm` - Custom confirmation message (default: `nil`, generated from model)
-- `size` - `:xs`, `:sm`, `:md`, `:lg` (default: `nil`)
+- `variant` - Colour, from the shared taxonomy (default: `:ghost`)
+- `style` - `:outline` or `:soft` (default: `nil`)
+- `size` - `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: `nil`)
 - `disabled` - Disable the button (default: `false`)
 - `disabled_hover_url` - URL for a hover card explaining why deletion is disabled (default: `nil`)
 - `skip_confirm` - Skip the confirmation dialog (default: `false`)
-- `icon` - Show a trash icon (default: `false`)
-- `icon_name` - Custom icon name (default: `nil`)
+- `icon` - `true` for the trash icon, or the name of any other icon (default: `false`)
 - `authorized` - When `false`, the component does not render (default: `true`)
 - `plain` - Render as a plain text link instead of a button (default: `false`)
 - `form_class` - Extra classes for the wrapping form (default: `nil`)
+
+The destructive red is `text-error` on top of `variant: :ghost`, the default. It also
+applies to `variant: :link`; those two are the variants with no colour of their own. Name
+any other colour and it owns the button.
+
+Disabled renders `<button aria-disabled="true">`, focusable and inert, not the `<a disabled>`
+it used to be — HTML has no `disabled` attribute on an anchor. It stays in the tab order on
+purpose, because the hover card is where the reason lives.
 
 #### HoverCard
 

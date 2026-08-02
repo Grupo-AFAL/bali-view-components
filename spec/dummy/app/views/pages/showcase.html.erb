@@ -38,7 +38,7 @@
       <%= render Bali::Link::Component.new(
         name: 'Open Test Page',
         href: new_direct_upload_path,
-        type: :primary
+        variant: :primary
       ) %>
     </div>
   <% end %>
@@ -373,28 +373,28 @@
     <div class="flex flex-wrap items-center justify-center gap-8 py-8">
       <%= render Bali::Tooltip::Component.new(placement: :top) do |tooltip| %>
         <% tooltip.with_trigger do %>
-          <%= render Bali::Button::Component.new(name: t('showcase.top'), variant: :outline) %>
+          <%= render Bali::Button::Component.new(name: t('showcase.top'), style: :outline) %>
         <% end %>
         <span><%= t('showcase.tooltip_on_top') %></span>
       <% end %>
 
       <%= render Bali::Tooltip::Component.new(placement: :bottom) do |tooltip| %>
         <% tooltip.with_trigger do %>
-          <%= render Bali::Button::Component.new(name: t('showcase.bottom'), variant: :outline) %>
+          <%= render Bali::Button::Component.new(name: t('showcase.bottom'), style: :outline) %>
         <% end %>
         <span><%= t('showcase.tooltip_on_bottom') %></span>
       <% end %>
 
       <%= render Bali::Tooltip::Component.new(placement: :left) do |tooltip| %>
         <% tooltip.with_trigger do %>
-          <%= render Bali::Button::Component.new(name: t('showcase.left'), variant: :outline) %>
+          <%= render Bali::Button::Component.new(name: t('showcase.left'), style: :outline) %>
         <% end %>
         <span><%= t('showcase.tooltip_on_left') %></span>
       <% end %>
 
       <%= render Bali::Tooltip::Component.new(placement: :right) do |tooltip| %>
         <% tooltip.with_trigger do %>
-          <%= render Bali::Button::Component.new(name: t('showcase.right'), variant: :outline) %>
+          <%= render Bali::Button::Component.new(name: t('showcase.right'), style: :outline) %>
         <% end %>
         <span><%= t('showcase.tooltip_on_right') %></span>
       <% end %>

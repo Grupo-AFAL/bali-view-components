@@ -5,23 +5,37 @@ module Bali
     class Component < ApplicationViewComponent
       class MissingURL < StandardError; end
 
-      SIZES = {
-        xs: "btn-xs",
-        sm: "btn-sm",
-        md: "",
-        lg: "btn-lg"
-      }.freeze
+      # One table for Button, Link and DeleteLink. See Bali::ButtonTaxonomy — DeleteLink
+      # used to take `size:` alone, capped at `lg`, with no way to ask for any other look.
+      VARIANTS = Bali::ButtonTaxonomy::VARIANTS
+      STYLES = Bali::ButtonTaxonomy::STYLES
+      SIZES = Bali::ButtonTaxonomy::SIZES
 
-      BASE_CLASSES = "btn btn-ghost text-error"
+      DEFAULT_VARIANT = :ghost
 
-      attr_reader :options, :disabled_hover_url, :icon_name
+      # The variants with no colour of their own, and so the only ones that leave room for
+      # the destructive red. `variant: :error` already paints the button red; adding
+      # `text-error` on top of it would be red text on a red fill.
+      COLOURLESS_VARIANTS = %i[ghost link].freeze
 
+      DEFAULT_ICON = "trash"
+
+      ICON_NAME_DEPRECATION = "Bali::DeleteLink::Component `icon_name:` is deprecated. " \
+                              "Use `icon:`, which now takes an icon name as well as `true`."
+
+      attr_reader :options, :disabled_hover_url
+
+      # @param icon [Boolean, String, Symbol] `true` for the default trash icon, or the
+      #   name of any other icon. Replaces the old `icon:` / `icon_name:` pair, where one
+      #   said whether and the other said which.
       # rubocop:disable Metrics/ParameterLists
       def initialize(
         model: nil,
         href: nil,
         name: nil,
         confirm: nil,
+        variant: DEFAULT_VARIANT,
+        style: nil,
         size: nil,
         disabled: false,
         disabled_hover_url: nil,
@@ -36,12 +50,14 @@ module Bali
         @href = href
         @name = name
         @confirm = confirm
-        @size = size&.to_sym
+        @variant = (variant || DEFAULT_VARIANT).to_sym
+        @variant_class = Bali::ButtonTaxonomy.variant!(self.class, @variant)
+        @style_class = Bali::ButtonTaxonomy.style!(self.class, style)
+        @size_class = Bali::ButtonTaxonomy.size!(self.class, size)
         @disabled = disabled
         @disabled_hover_url = disabled_hover_url
         @skip_confirm = skip_confirm
-        @icon = icon
-        @icon_name = icon_name
+        @icon = icon.presence || deprecated_icon_name(icon_name)
         @authorized = authorized
         @plain = plain
         @form_class = class_names("inline-block", options.delete(:form_class))
@@ -85,8 +101,11 @@ module Bali
         }
       end
 
-      def icon?
-        @icon
+      # The icon to draw, or nil for none. `true` means "the usual one".
+      def icon_name
+        return if @icon.blank?
+
+        @icon == true ? DEFAULT_ICON : @icon.to_s
       end
 
       def disabled?
@@ -98,9 +117,14 @@ module Bali
           class_names("flex items-center gap-2 text-error", @options[:class])
         else
           class_names(
-            BASE_CLASSES,
-            SIZES[@size],
-            { "btn-disabled" => @disabled },
+            "btn",
+            @variant_class,
+            @style_class,
+            @size_class,
+            {
+              "text-error" => COLOURLESS_VARIANTS.include?(@variant),
+              "btn-disabled" => @disabled
+            },
             @options[:class]
           )
         end
@@ -115,6 +139,13 @@ module Bali
       end
 
       private
+
+      def deprecated_icon_name(icon_name)
+        return if icon_name.blank?
+
+        Bali.deprecator.warn(ICON_NAME_DEPRECATION)
+        icon_name
+      end
 
       def default_confirm_message
         if @model.present?

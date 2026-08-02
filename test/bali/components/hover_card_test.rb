@@ -18,7 +18,9 @@ class BaliHoverCardComponentTest < ComponentTestCase
 
   def test_constants_has_frozen_triggers_constant
     assert(Bali::HoverCard::Component::TRIGGERS.frozen?)
-    assert_equal("mouseenter focus", Bali::HoverCard::Component::TRIGGERS[:hover])
+    # `focusin` and not `focus`: tippy only honours `focus` when the focused element IS the
+    # reference, and the reference is the trigger slot's wrapper, which has no tabindex.
+    assert_equal("mouseenter focusin", Bali::HoverCard::Component::TRIGGERS[:hover])
     assert_equal("click", Bali::HoverCard::Component::TRIGGERS[:click])
   end
 
@@ -84,7 +86,7 @@ class BaliHoverCardComponentTest < ComponentTestCase
 
   def test_open_on_click_parameter_when_false_default_uses_hover_trigger
     render_inline(@component)
-    assert_includes(rendered_content, 'data-hovercard-trigger-value="mouseenter focus"')
+    assert_includes(rendered_content, 'data-hovercard-trigger-value="mouseenter focusin"')
   end
 
   def test_open_on_click_parameter_when_true_uses_click_trigger
