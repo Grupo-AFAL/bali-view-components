@@ -1,5 +1,4 @@
 import { Controller } from '@hotwired/stimulus'
-import { autoFocusInput } from '../../../assets/javascripts/bali/utils/form.js'
 import { confirmDialog } from '../../../assets/javascripts/bali/confirm/confirm_dialog.js'
 
 // Hardcoded instead of letting `dispatch` default to `this.identifier`, so the
@@ -33,7 +32,10 @@ const SIZE_CLASSES = {
  *
  * Events, all dispatched on `document`:
  *   - bali:modal:open     emitted by `open()`, and listened for so a host can
- *                         open the modal without going through a trigger link
+ *                         open the modal without going through a trigger link.
+ *                         Carries `detail.id`: when present only the overlay
+ *                         whose template target has that id answers, so a page
+ *                         with several modals can address one of them.
  *   - bali:modal:success  emitted after a form inside the modal (or drawer) saves
  */
 export class ModalController extends Controller {
@@ -46,6 +48,27 @@ export class ModalController extends Controller {
   // Overridden by DrawerController so the two never answer each other's open event.
   get eventPrefix () {
     return MODAL_EVENT_PREFIX
+  }
+
+  // The four hooks DrawerController overrides. Everything else — opening,
+  // closing, focus, the confirm-on-close guards and `submit` — is shared, so a
+  // fix lands once instead of once per overlay.
+  get openClass () {
+    return 'modal-open'
+  }
+
+  get sizeClasses () {
+    return SIZE_CLASSES
+  }
+
+  // Attribute the trigger link carries, and the matching key in the options
+  // payload of the open event.
+  get sizeAttribute () {
+    return 'data-modal-size'
+  }
+
+  get sizeOptionKey () {
+    return 'modalSize'
   }
 
   async connect () {
@@ -131,6 +154,11 @@ export class ModalController extends Controller {
     // but only the one with targets will actually open the modal
     if (!this.hasContentTarget || !this.hasTemplateTarget || !this.hasWrapperTarget) return
 
+    // An addressed event names its overlay; anything else is a broadcast that
+    // the (single) overlay holding the targets answers, as it always did.
+    const { id } = event.detail
+    if (id && id !== this.templateTarget.id) return
+
     this.setOptions(event.detail.options)
     this.openModal(event.detail.content)
   }
@@ -139,35 +167,53 @@ export class ModalController extends Controller {
     // A freshly opened modal starts clean
     this._dirty = false
 
-    // Store the element that triggered the modal for focus restoration
-    this.previouslyFocusedElement = document.activeElement
+    // Store the element that triggered the modal for focus restoration. Only
+    // while the focus is still outside the panel: `open()` calls this twice —
+    // once for the skeleton, once for the loaded content — and now that the
+    // skeleton pulls the focus in, the second call would otherwise overwrite
+    // the trigger with the panel itself, and closing would restore nothing.
+    if (!this.templateTarget.contains(document.activeElement)) {
+      this.previouslyFocusedElement = document.activeElement
+    }
 
     if (this.wrapperClasses) {
       this.wrapperTarget.classList.add(...this.wrapperClasses)
     }
 
     // Apply dynamic size class if specified
-    if (this.modalSize && SIZE_CLASSES[this.modalSize]) {
-      this._applySize(this.modalSize)
+    const size = this[this.sizeOptionKey]
+    if (size && this.sizeClasses[size]) {
+      this._applySize(size)
     }
 
-    this.templateTarget.classList.add('modal-open')
+    this.templateTarget.classList.add(this.openClass)
 
     // Only replace content if provided - allows showing skeleton first
     if (content !== null && content !== undefined) {
       this.contentTarget.innerHTML = content
-      autoFocusInput(this.contentTarget)
-      // Set up focus trap after content is loaded
-      this.trapFocus()
     }
+
+    // Runs for the skeleton too. Until it did, focus stayed on the trigger link
+    // — a sibling subtree — so for the whole length of the fetch Escape never
+    // reached the panel's handler and Tab walked the page behind the overlay.
+    this.trapFocus()
+  }
+
+  // Swaps the panel's content on an already-open overlay. Deliberately does not
+  // touch `_dirty` or `previouslyFocusedElement`: the overlay never closed, so
+  // the unsaved-changes state and the element to restore focus to still stand.
+  // Focus is re-seated because the nodes that held it were just replaced.
+  _replaceContent (content) {
+    this.contentTarget.innerHTML = content
+    this.trapFocus()
   }
 
   _applySize (size) {
-    const sizeClass = SIZE_CLASSES[size]
+    const sizeClass = this.sizeClasses[size]
     if (!sizeClass || !this.hasWrapperTarget) return
 
     // Remove all size classes first
-    Object.values(SIZE_CLASSES).forEach(cls => {
+    Object.values(this.sizeClasses).forEach(cls => {
       this.wrapperTarget.classList.remove(cls)
     })
 
@@ -187,19 +233,42 @@ export class ModalController extends Controller {
     const focusableElements = this.wrapperTarget.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     )
-    if (focusableElements.length === 0) return
 
     this.firstFocusable = focusableElements[0]
     this.lastFocusable = focusableElements[focusableElements.length - 1]
 
-    // Focus first element
-    this.firstFocusable.focus()
-
+    // Idempotent: openModal runs once for the skeleton and again for the loaded
+    // content, and the same listener must not stack up.
+    this.wrapperTarget.removeEventListener('keydown', this.handleTabKey)
     this.wrapperTarget.addEventListener('keydown', this.handleTabKey)
+
+    this._setInitialFocus()
+  }
+
+  // The host's `autofocus` wins. It used to lose: this ran after
+  // `autoFocusInput` and ended on the first focusable, which in the shared
+  // `#main-modal` is always the standalone ✕ button.
+  //
+  // With neither — the skeleton phase — focus goes to the panel itself, which
+  // is what keeps Escape and Tab inside the overlay while the fetch is in
+  // flight. `wrapperTarget` carries tabindex="-1" so it can receive it.
+  _setInitialFocus () {
+    const autofocusNode = this.hasContentTarget && this.contentTarget.querySelector('[autofocus]')
+    const target = autofocusNode || this.firstFocusable || this.wrapperTarget
+
+    target.focus()
   }
 
   handleTabKey = (event) => {
     if (event.key !== 'Tab') return
+
+    // Skeleton, or content with nothing focusable: there is nowhere to move to,
+    // so hold focus rather than let Tab escape to the page behind the overlay.
+    if (!this.firstFocusable) {
+      event.preventDefault()
+      this.wrapperTarget.focus()
+      return
+    }
 
     if (event.shiftKey) {
       if (document.activeElement === this.firstFocusable) {
@@ -265,7 +334,10 @@ export class ModalController extends Controller {
   }
 
   _closeModal = () => {
-    this.templateTarget.classList.remove('modal-open')
+    // Invalidates any open still waiting on its fetch. See `_openSequence`.
+    this._openSequence = (this._openSequence || 0) + 1
+
+    this.templateTarget.classList.remove(this.openClass)
     if (this.wrapperClasses) {
       this.wrapperTarget.classList.remove(...this.wrapperClasses)
     }
@@ -331,6 +403,8 @@ export class ModalController extends Controller {
   /**
    * Public Methods
    */
+  // Shared by Modal and Drawer: the only differences are the size attribute the
+  // trigger carries and the key it travels under, both of which are hooks.
   open = async (event) => {
     event.preventDefault()
     const target = event.currentTarget
@@ -341,17 +415,38 @@ export class ModalController extends Controller {
     const redirectTo = target.getAttribute('data-redirect-to')
     const skipRender = Boolean(target.getAttribute('data-skip-render'))
     const extraProps = JSON.parse(target.getAttribute('data-extra-props'))
-    const modalSize = target.getAttribute('data-modal-size')
+    const options = {
+      wrapperClasses,
+      redirectTo,
+      skipRender,
+      extraProps,
+      [this.sizeOptionKey]: target.getAttribute(this.sizeAttribute)
+    }
 
-    // Show modal immediately with skeleton (content already in template)
+    // Lets a trigger name the overlay it opens on a page carrying several.
+    // Absent — the usual case, one shared overlay — the event stays a broadcast.
+    const id = target.getAttribute(this.idAttribute) || undefined
+
+    // Now that Escape reaches the panel during the skeleton, closing became
+    // possible while the fetch is still in flight — and the arriving content
+    // would pop the overlay straight back open. Every close bumps this, so an
+    // open whose stamp is stale drops its response on the floor. A close
+    // followed by a fresh open bumps it twice, which invalidates this one too:
+    // the newer open owns the panel.
+    const sequence = this._openSequence = (this._openSequence || 0) + 1
+
+    // Show the overlay immediately with skeleton (content already in template)
     this._dispatchOpen({
+      id,
       content: null, // Don't replace content - show existing skeleton
-      options: { wrapperClasses, redirectTo, skipRender, extraProps, modalSize }
+      options
     })
 
     // Fetch actual content
     const response = await fetch(this._buildURL(target.href))
     const body = await response.text()
+
+    if (sequence !== this._openSequence) return
 
     if (response.redirected) {
       this._replaceBodyAndURL(body, response.url)
@@ -359,10 +454,11 @@ export class ModalController extends Controller {
     }
 
     // Replace skeleton with actual content
-    this._dispatchOpen({
-      content: body,
-      options: { wrapperClasses, redirectTo, skipRender, extraProps, modalSize }
-    })
+    this._dispatchOpen({ id, content: body, options })
+  }
+
+  get idAttribute () {
+    return 'data-modal-id'
   }
 
   // Targets `document` rather than the controller element: the trigger and the
@@ -501,7 +597,11 @@ export class ModalController extends Controller {
         } else {
           if (responseOk) { dispatchSuccess() }
 
-          this.openModal(responseText)
+          // Re-render in place rather than re-open. `openModal` resets the dirty
+          // flag, and this is the branch a 422 lands in: going through it left
+          // the form unprotected exactly when the user had the most typed into
+          // it, so the next Escape discarded the failed submit without asking.
+          this._replaceContent(responseText)
         }
       })
   }
