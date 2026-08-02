@@ -73,4 +73,23 @@ class BaliFormBuilderHelpPlacementTest < FormBuilderTestCase
     assert_includes html, "primary"
     assert_not_includes html, "secondary"
   end
+
+  # Rendering the hint is only half of it. `aria_attributes` decides whether to
+  # emit `aria-describedby` by looking for `help:`, so a helper that renders the
+  # paragraph from one hash and builds its aria pair from the other produces a
+  # description that exists on screen and not in the accessibility tree — which
+  # is worse than no hint at all, because nothing looks wrong.
+  TWO_HASH_GROUPS.each_key do |name|
+    test "#{name} points aria-describedby at the help it rendered" do
+      html = GROUPS.fetch(name).call(builder, { label: "Caption", help: HELP }).to_s
+
+      described_by = html[/aria-describedby="([^"]*)"/, 1]
+      paragraph_id = html[/<p[^>]*id="([^"]*help[^"]*)"/, 1]
+
+      assert_not_nil paragraph_id, "#{name} did not render the help paragraph"
+      assert_not_nil described_by, "#{name} rendered help but emitted no aria-describedby"
+      assert_includes described_by.split, paragraph_id,
+                      "#{name}: aria-describedby does not reference the help it rendered"
+    end
+  end
 end

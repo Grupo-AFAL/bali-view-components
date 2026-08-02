@@ -48,6 +48,13 @@ module Bali
         xl: "h-[450px]"
       }.freeze
 
+      # A canvas is opaque to assistive tech: whatever Chart.js paints into it is
+      # pixels, and the fallback content inside the tag is only surfaced when
+      # canvas itself is unsupported. `role="img"` plus a name is the least a
+      # chart owes; the `data_table` slot is the version a screen reader can
+      # actually read a number out of.
+      renders_one :data_table
+
       attr_reader :title
 
       # rubocop:disable Metrics/ParameterLists
@@ -55,6 +62,7 @@ module Bali
         type: :bar,
         data: {},
         title: nil,
+        aria_label: nil,
         legend: false,
         display_percent: false,
         order: [],
@@ -63,6 +71,8 @@ module Bali
         card_style: :none,
         height: :md,
         use_theme_colors: true,
+        color: nil,
+        custom_color: nil,
         **html_options
       )
         # rubocop:enable Metrics/ParameterLists
@@ -74,15 +84,20 @@ module Bali
         # chart the *words* "labels" and "datasets" as its two categories.
         @data = data.deep_symbolize_keys
         @title = title
+        @aria_label = aria_label
         @display_percent = display_percent
         @order = order
         @y_axis_ids = y_axis_ids
         @card_style = card_style.to_sym
         @height = height.to_sym
         @use_theme_colors = use_theme_colors
+        @custom_color = Bali::Color.hex!(self.class, custom_color)
+        @color = Bali::Color.name!(self.class, color)
         @options = build_options(options, legend)
         @html_options = html_options
-        @color_picker = Bali::Utils::ColorPicker.new(use_theme_colors: use_theme_colors)
+        @color_picker = Bali::Utils::ColorPicker.new(
+          use_theme_colors: use_theme_colors, color: @color, custom_color: @custom_color
+        )
       end
 
       def chart_type
@@ -125,8 +140,40 @@ module Bali
         @html_options.except(:class)
       end
 
+      # The title is already the chart's name on screen, so it is also its name
+      # in the accessibility tree. A chart with neither title nor `aria_label:`
+      # still gets a name — an unnamed `role="img"` is worse than a generic one.
+      def aria_label
+        @aria_label || title.presence || I18n.t("bali_view.chart.default_label")
+      end
+
+      def canvas_attributes
+        {
+          class: "chart",
+          role: "img",
+          "aria-label": aria_label,
+          data: {
+            controller: "chart",
+            chart_type_value: chart_type,
+            chart_data_value: chart_data_json,
+            chart_labels_value: labels_json,
+            chart_options_value: options_json,
+            chart_display_percent_value: display_percent?,
+            chart_use_theme_colors_value: use_theme_colors?,
+            chart_color_value: theme_color_variable
+          }
+        }
+      end
+
       def use_theme_colors?
         @use_theme_colors
+      end
+
+      # The controller recomputes every theme colour in the browser (a canvas
+      # cannot resolve a `var()`), so it needs the same rotation Ruby applied or
+      # it hands the first dataset `--color-primary` again.
+      def theme_color_variable
+        Bali::Color.variable_name(@color)
       end
 
       private

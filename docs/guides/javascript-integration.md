@@ -138,7 +138,6 @@ pin "bali/sortable_list", to: "bali/sortable_list/index.js"
 pin "bali/utils/domHelpers", to: "bali/utils/domHelpers.js"
 pin "bali/utils/formatters", to: "bali/utils/formatters.js"
 pin "bali/utils/form", to: "bali/utils/form.js"
-pin "bali/utils/use-dispatch", to: "bali/utils/use-dispatch.js"
 pin "bali/utils/use-click-outside", to: "bali/utils/use-click-outside.js"
 ```
 
@@ -214,6 +213,53 @@ application.register("dropdown", DropdownController)
 |--------|-------------|--------------|------|
 | Charts | `bali-view-components/charts` | chart.js | ~208KB |
 | Rich Text Editor | `bali-view-components/rich-text-editor` | TipTap | N/A |
+
+---
+
+## Events
+
+Every event the package emits or listens for is named `bali:<component>:<event>`, kebab-case,
+and carries its payload on `event.detail`. Nothing else is public: an event without the `bali:`
+prefix does not come from this package.
+
+### Emitted by Bali
+
+| Event | Dispatched on | `detail` |
+|---|---|---|
+| `bali:modal:open` | `document` | `{ content, options }` |
+| `bali:modal:success` | `document` | the redirect params merged over `data-extra-props`; also fires for drawers |
+| `bali:drawer:open` | `document` | `{ content, options }` |
+| `bali:side-menu:toggle` | `window` | — (emitted by `Navbar#toggleSideMenu`) |
+| `bali:command:select` | the palette element (bubbles) | `{ row, value }` |
+| `bali:direct-upload:complete` | the controller element (bubbles) | `{ id, filename, signedId }` |
+| `bali:direct-upload:all-complete` | the controller element (bubbles) | `{ count }` |
+| `bali:direct-upload:error` | the controller element (bubbles) | `{ message }` |
+| `bali:hovercard:show` / `bali:hovercard:hide` | the controller element (bubbles) | `{ tippy }` |
+| `bali:sortable-list:end` | the list element (bubbles) | `{ order, toListId, item, from, to, oldIndex, newIndex }` |
+| `bali:interact:dragging` / `bali:interact:drag-end` | the dragged element (bubbles) | `{ element, params, position, startDelta, endDelta, width }` |
+| `bali:interact:resizing` / `bali:interact:resize-end` | the resized element (bubbles) | same, plus the live `width`/`position` while resizing |
+| `bali:gantt-foldable-item:toggle` | the row element (bubbles) | `{ folded }` |
+
+### Listened for by Bali
+
+Dispatch these yourself to drive a component without a trigger element.
+
+| Event | Dispatch on | Effect |
+|---|---|---|
+| `bali:modal:open` | `document` | Opens the modal. `detail.content` is the HTML for the body (`null` keeps the skeleton), `detail.options` accepts `wrapperClasses`, `redirectTo`, `skipRender`, `extraProps`, `modalSize` |
+| `bali:drawer:open` | `document` | Same, with `drawerSize` instead of `modalSize` |
+| `bali:command:open` / `:close` / `:toggle` | `window` | Drives the command palette |
+| `bali:side-menu:open` / `:close` / `:toggle` | `window` | Drives the mobile side menu |
+
+```javascript
+// Open a modal from anywhere
+document.dispatchEvent(new CustomEvent('bali:modal:open', {
+  detail: { content: '<h3>Hello</h3>', options: { modalSize: 'lg' } }
+}))
+```
+
+To trace all of them at once, see the debug snippet in
+[Troubleshooting](troubleshooting.md).
 
 ---
 

@@ -22,6 +22,7 @@ import { TabsController } from '../../../components/bali/tabs/index'
 import { NavbarController } from '../../../components/bali/navbar/index'
 import { SideMenuController } from '../../../components/bali/side_menu/index'
 import { SideMenuFlyoutController } from '../../../components/bali/side_menu/flyout/index'
+import { SideMenuTriggerController } from '../../../components/bali/side_menu/trigger/index'
 import { AvatarController } from '../../../components/bali/avatar/index'
 import { TimeagoController } from '../../../components/bali/timeago/index'
 import { RateController } from '../../../components/bali/rate/index'
@@ -29,6 +30,7 @@ import { BulkActionsController } from '../../../components/bali/bulk_actions/ind
 import { CarouselController } from '../../../components/bali/carousel/index'
 import { ClipboardController } from '../../../components/bali/clipboard/index'
 import { HovercardController } from '../../../components/bali/hover_card/index'
+import { KanbanController } from '../../../components/bali/kanban/index'
 import { RevealController } from '../../../components/bali/reveal/index'
 import { SortableListController } from '../../../components/bali/sortable_list/index'
 import { TooltipController } from '../../../components/bali/tooltip/index'
@@ -80,6 +82,7 @@ export {
   HovercardController,
   ImageExpanderController,
   ImageFieldController,
+  KanbanController,
   LocationsMapController,
   MessageController,
   ModalController,
@@ -92,6 +95,7 @@ export {
   SavedViewsController,
   SideMenuController,
   SideMenuFlyoutController,
+  SideMenuTriggerController,
   SortableListController,
   StatusController,
   TabsController,
@@ -125,6 +129,7 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   navbar: NavbarController,
   'side-menu': SideMenuController,
   'side-menu-flyout': SideMenuFlyoutController,
+  'side-menu-trigger': SideMenuTriggerController,
 
   // Data display
   avatar: AvatarController,
@@ -136,6 +141,7 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   carousel: CarouselController,
   clipboard: ClipboardController,
   hovercard: HovercardController,
+  kanban: KanbanController,
   reveal: RevealController,
   'sortable-list': SortableListController,
   tooltip: TooltipController,

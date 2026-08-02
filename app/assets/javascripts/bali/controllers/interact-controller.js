@@ -1,8 +1,12 @@
 import { Controller } from '@hotwired/stimulus'
-import useDispatch from '../utils/use-dispatch.js'
 
 const CLICK_DISTANCE_THRESHOLD = 6 // pixels
 const CLICK_DURATION_THRESHOLD = 500 // miliseconds
+
+// Hardcoded instead of letting `dispatch` default to `this.identifier`, so the
+// public event names stay put when a host registers this controller under a
+// different identifier.
+const EVENT_PREFIX = 'bali:interact'
 
 export class InteractController extends Controller {
   static targets = ['link']
@@ -16,8 +20,6 @@ export class InteractController extends Controller {
   }
 
   connect () {
-    useDispatch(this)
-
     this.widthValue = this.element.clientWidth
     this.positionX = 0
   }
@@ -51,7 +53,10 @@ export class InteractController extends Controller {
     this.element.style.left = `${position}px`
     this.element.style.width = `${width}px`
 
-    this.dispatch('onResizing', { ...this.dispatchParams, width, position })
+    this.dispatch('resizing', {
+      prefix: EVENT_PREFIX,
+      detail: { ...this.dispatchParams, width, position }
+    })
   }
 
   onResizeEnd = event => {
@@ -79,7 +84,7 @@ export class InteractController extends Controller {
     this.element.style.left = `${this.positionValue}px`
     this.element.style.width = `${this.widthValue}px`
 
-    this.dispatch('onResizeEnd', this.dispatchParams)
+    this.dispatch('resize-end', { prefix: EVENT_PREFIX, detail: this.dispatchParams })
     this.resetMovement()
   }
 
@@ -110,7 +115,10 @@ export class InteractController extends Controller {
 
     this.element.style.left = `${position}px`
 
-    this.dispatch('onDragging', { ...this.dispatchParams, position })
+    this.dispatch('dragging', {
+      prefix: EVENT_PREFIX,
+      detail: { ...this.dispatchParams, position }
+    })
   }
 
   onDragEnd = event => {
@@ -133,7 +141,7 @@ export class InteractController extends Controller {
     this.startDeltaValue -= diffX / this.incrementValue
     this.endDeltaValue -= diffX / this.incrementValue
 
-    this.dispatch('onDragEnd', this.dispatchParams)
+    this.dispatch('drag-end', { prefix: EVENT_PREFIX, detail: this.dispatchParams })
     this.resetMovement()
   }
 

@@ -196,4 +196,88 @@ class BaliTabsComponentTest < ComponentTestCase
     end
     assert_selector('[role="tabpanel"].custom-panel')
   end
+
+  # A set of links that leave the page is navigation, not a tab widget. The tab
+  # roles used to survive into that markup, promising an `aria-controls` target
+  # that does not exist.
+  def test_navigation_mode_renders_a_nav_when_every_tab_has_an_href
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Tab 1", href: "/one")
+      c.with_tab(title: "Tab 2", href: "/two")
+    end
+
+    assert_selector("nav.tabs")
+    assert_no_selector('[role="tablist"]')
+    assert_no_selector('[role="tab"]')
+    assert_no_selector('[role="tabpanel"]')
+  end
+
+  def test_navigation_mode_marks_the_current_page
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Tab 1", href: "/one", active: true)
+      c.with_tab(title: "Tab 2", href: "/two")
+    end
+
+    assert_selector('nav a[href="/one"][aria-current="page"]')
+    assert_no_selector('nav a[href="/two"][aria-current]')
+    assert_no_selector("nav a[aria-selected]")
+  end
+
+  def test_navigation_mode_names_the_nav
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Tab", href: "/one")
+    end
+
+    assert_selector('nav[aria-label="Section navigation"]')
+  end
+
+  def test_navigation_mode_accepts_a_custom_nav_label
+    render_inline(Bali::Tabs::Component.new(label: "Project sections")) do |c|
+      c.with_tab(title: "Tab", href: "/one")
+    end
+
+    assert_selector('nav[aria-label="Project sections"]')
+  end
+
+  def test_navigation_mode_translates_the_default_nav_label
+    I18n.with_locale(:es) do
+      render_inline(Bali::Tabs::Component.new) do |c|
+        c.with_tab(title: "Tab", href: "/one")
+      end
+
+      assert_selector('nav[aria-label="Navegación de secciones"]')
+    end
+  end
+
+  # Navigation has no panels to swap, so the Stimulus controller has no work.
+  def test_navigation_mode_drops_the_tabs_controller
+    render_inline(Bali::Tabs::Component.new) do |c|
+      c.with_tab(title: "Tab", href: "/one")
+    end
+
+    assert_no_selector('[data-controller="tabs"]')
+  end
+
+  # Half links leaving the page and half tabs owning a panel, all inside one
+  # `role="tablist"`: ARIA describes no such widget, and this used to render in
+  # silence.
+  def test_mixing_href_and_panels_raises
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::Tabs::Component.new) do |c|
+        c.with_tab(title: "Link", href: "/one")
+        c.with_tab(title: "Panel", active: true) { "Content" }
+      end
+    end
+
+    assert_includes(error.message, "Bali::Tabs::Component")
+    assert_includes(error.message, "href:")
+    assert_includes(error.message, "src:")
+  end
+
+  def test_an_empty_component_still_renders_a_tablist
+    render_inline(Bali::Tabs::Component.new)
+
+    assert_selector('[role="tablist"]')
+    assert_no_selector("nav")
+  end
 end

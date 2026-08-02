@@ -312,4 +312,60 @@ class BaliBlockEditorComponentTest < ComponentTestCase
 
     assert_includes output.string, "block_editor_enabled"
   end
+
+  # --- Shared config package (#700) -------------------------------------------
+
+  def test_config_supplies_the_feature_set
+    render_inline(Bali::BlockEditor::Component.new(config: { ai_url: "/ai", multi_column: true }))
+    assert_selector("[data-block-editor-ai-url-value='/ai']")
+    assert_selector("[data-block-editor-multi-column-value='true']")
+  end
+
+  # A host passes the bundle its app always uses, then turns one feature off for
+  # one editor. Without the UNSET sentinel this was impossible: `ai_url: nil` and
+  # "argument not given" were the same thing.
+  def test_an_explicit_keyword_overrides_the_config
+    render_inline(Bali::BlockEditor::Component.new(
+      config: { ai_url: "/ai", multi_column: true },
+      multi_column: false
+    ))
+    assert_selector("[data-block-editor-ai-url-value='/ai']")
+    assert_selector("[data-block-editor-multi-column-value='false']")
+  end
+
+  def test_an_explicit_nil_can_switch_a_configured_feature_off
+    render_inline(Bali::BlockEditor::Component.new(
+      config: { ai_url: "/ai" },
+      ai_url: nil
+    ))
+    assert_selector("[data-block-editor-ai-url-value='']")
+  end
+
+  def test_the_config_object_is_not_mutated_by_being_rendered
+    config = Bali::BlockEditor::Config.new(ai_url: "/ai", multi_column: true)
+    render_inline(Bali::BlockEditor::Component.new(config: config, multi_column: false))
+
+    assert config.multi_column, "rendering must not write back into the caller's config"
+  end
+
+  def test_comments_poll_interval_is_unset_by_default
+    render_inline(Bali::BlockEditor::Component.new)
+    assert_selector("[data-block-editor-comments-poll-interval-value='-1']")
+  end
+
+  # 0 is a real value -- it turns polling off -- so it must survive as itself
+  # rather than being read as "not configured".
+  def test_comments_poll_interval_of_zero_survives
+    render_inline(Bali::BlockEditor::Component.new(
+      config: { comments: { url: "/c", user: { id: "1" }, poll_interval: 0 } }
+    ))
+    assert_selector("[data-block-editor-comments-poll-interval-value='0']")
+  end
+
+  def test_comments_poll_interval_can_be_configured
+    render_inline(Bali::BlockEditor::Component.new(
+      config: { comments: { url: "/c", user: { id: "1" }, poll_interval: 30000 } }
+    ))
+    assert_selector("[data-block-editor-comments-poll-interval-value='30000']")
+  end
 end

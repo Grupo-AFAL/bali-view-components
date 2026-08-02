@@ -97,10 +97,12 @@ export class NavbarController extends Controller {
     this._updateClickOutsideListener()
   }
 
-  // Toggle the side menu via global event (for cross-component communication)
+  // Toggle the side menu via global event (for cross-component communication).
+  // Targets `window` because that is where SideMenuController listens: the two
+  // are siblings, so an event bubbling out of the navbar never reaches it.
   toggleSideMenu (event) {
     event.preventDefault()
-    window.dispatchEvent(new CustomEvent('bali:side-menu:toggle'))
+    this.dispatch('toggle', { prefix: 'bali:side-menu', target: window })
   }
 
   // Close mobile menu when clicking outside the navbar

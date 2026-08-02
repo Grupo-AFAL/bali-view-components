@@ -103,12 +103,17 @@ es:
 
     # Side menu
     side_menu:
-      toggle_collapse: "Alternar colapso del menú lateral"
+      label: "Menú lateral"
       collapse: "Colapsar menú lateral"
       expand: "Expandir menú lateral"
       toggle_item: "Alternar %{name}"
-      toggle_mobile: "Alternar menú lateral"
       close: "Cerrar menú lateral"
+      trigger:
+        toggle: "Abrir menú lateral"
+
+    # App layout
+    app_layout:
+      skip_to_content: "Saltar al contenido principal"
 
     # Paleta de comandos (⌘K)
     command:
@@ -300,6 +305,7 @@ es:
       default_item_name: elementos
     chart:
       loading: Cargando...
+      default_label: Gráfica
     clipboard:
       copied: ¡Copiado!
       copy_label: Copiar al portapapeles
@@ -474,3 +480,15 @@ es:
         upload_image: "Subir imagen de avatar"
     message:
       close: "Cerrar mensaje"
+    boolean_icon:
+      "true": "Sí"
+      "false": "No"
+      blank: "Sin especificar"
+    kanban:
+      column_label:
+        zero: "%{title}, 0 tarjetas"
+        one: "%{title}, 1 tarjeta"
+        other: "%{title}, %{count} tarjetas"
+      card_moved: "%{card} movida a %{column}, posición %{position} de %{total}"
+    tabs:
+      navigation: "Navegación de secciones"

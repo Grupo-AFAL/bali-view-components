@@ -39,6 +39,33 @@ module Bali
         )
       end
 
+      # @label With Color
+      # `color:` names the DaisyUI colour the palette starts from, so a
+      # single-series chart is painted in it and a multi-series one cycles from
+      # it. `custom_color:` takes a hex and drops the theme palette entirely —
+      # a canvas cannot resolve a `var()`, so a chart cannot mix the two.
+      # @param color select { choices: [neutral, primary, secondary, accent, info, success, warning, error, ghost] }
+      # @param custom_color text
+      def with_color(color: :success, custom_color: nil)
+        render Chart::Component.new(
+          data: WEEKLY_DATA,
+          type: :bar,
+          card_style: :bordered,
+          legend: true,
+          color: color.to_sym,
+          custom_color: custom_color.presence
+        )
+      end
+
+      # @label Accessible Data Table
+      # A canvas is pixels: `role="img"` and a name are all the accessibility
+      # tree gets from it, and neither carries a number. The `data_table` slot
+      # renders an `sr-only` table with the same figures, which is the only way
+      # a screen reader user reads a value off the chart.
+      def with_data_table
+        render_with_template
+      end
+
       # @label With Title
       # Chart wrapped in a card with a title header.
       def with_title

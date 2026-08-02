@@ -103,12 +103,17 @@ en:
 
     # Side menu
     side_menu:
-      toggle_collapse: "Toggle sidebar collapse"
+      label: "Sidebar"
       collapse: "Collapse sidebar"
       expand: "Expand sidebar"
       toggle_item: "Toggle %{name}"
-      toggle_mobile: "Toggle sidebar"
       close: "Close sidebar"
+      trigger:
+        toggle: "Open sidebar"
+
+    # App layout
+    app_layout:
+      skip_to_content: "Skip to main content"
 
     # Command palette (⌘K)
     command:
@@ -301,6 +306,7 @@ en:
       default_item_name: items
     chart:
       loading: Loading...
+      default_label: Chart
     clipboard:
       copied: Copied!
       copy_label: Copy to clipboard
@@ -475,3 +481,15 @@ en:
         upload_image: "Upload avatar image"
     message:
       close: "Close message"
+    boolean_icon:
+      "true": "Yes"
+      "false": "No"
+      blank: "Not specified"
+    kanban:
+      column_label:
+        zero: "%{title}, 0 cards"
+        one: "%{title}, 1 card"
+        other: "%{title}, %{count} cards"
+      card_moved: "%{card} moved to %{column}, position %{position} of %{total}"
+    tabs:
+      navigation: "Section navigation"

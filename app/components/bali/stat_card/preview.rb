@@ -5,14 +5,26 @@ module Bali
     class Preview < ApplicationViewComponentPreview
       # @param title text
       # @param value text
-      # @param icon_name text
-      # @param color select { choices: [primary, secondary, accent, success, warning, error, info] }
-      def default(title: 'Total Users', value: '1,234', icon_name: 'users', color: :primary)
+      # @param icon text
+      # @param color select { choices: [neutral, primary, secondary, accent, info, success, warning, error, ghost] }
+      def default(title: 'Total Users', value: '1,234', icon: 'users', color: :primary)
         render Bali::StatCard::Component.new(
           title: title,
           value: value,
-          icon_name: icon_name,
+          icon: icon,
           color: color.to_sym
+        )
+      end
+
+      # The hex escape hatch. `custom_color:` replaces the semantic pair with an
+      # inline colour, so it stops following the theme — that is the trade.
+      # @param custom_color text
+      def with_custom_color(custom_color: '#7c3aed')
+        render Bali::StatCard::Component.new(
+          title: 'Brand Signups',
+          value: '312',
+          icon: 'user-plus',
+          custom_color: custom_color
         )
       end
 

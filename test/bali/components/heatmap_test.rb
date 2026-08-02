@@ -24,15 +24,31 @@ class BaliHeatmapComponentTest < ComponentTestCase
   def test_rendering_renders_all_x_axis_labels_in_footer
     render_inline(Bali::Heatmap::Component.new(data: data))
     %w[Mon Tue Wed].each do |day|
-      assert_selector("tfoot td", text: day)
+      assert_selector('tfoot th[scope="col"]', text: day)
   end
   end
 
   def test_rendering_renders_all_y_axis_labels
       render_inline(Bali::Heatmap::Component.new(data: data))
     (0..2).each do |hour|
-      assert_selector("td", text: hour.to_s)
+      assert_selector('tbody th[scope="row"]', text: hour.to_s)
   end
+  end
+
+  # A grid of coloured cells with no text is a grid of empty cells to a screen
+  # reader, and the colour is the only thing that carried the number.
+  def test_a11y_renders_every_cell_value_as_screen_reader_text
+    render_inline(Bali::Heatmap::Component.new(data: data))
+    assert_selector("td.heatmap-cell span.sr-only", count: 9)
+    assert_selector("td.heatmap-cell span.sr-only", text: "10")
+  end
+
+  # Both axes reach the cell as headers, so the value alone is enough text.
+  def test_a11y_associates_both_axes_as_headers
+    render_inline(Bali::Heatmap::Component.new(data: data))
+    assert_selector('tfoot th[scope="col"]', count: 3)
+    assert_selector('tbody th[scope="row"]', count: 3)
+    assert_no_selector("thead td[scope]")
   end
 
   def test_rendering_renders_the_legend_with_min_and_max_values
@@ -85,31 +101,44 @@ class BaliHeatmapComponentTest < ComponentTestCase
       assert_no_selector("tfoot tr td[colspan]")
   end
 
-  def test_color_customization_accepts_hex_color_string
-      render_inline(Bali::Heatmap::Component.new(data: data, color: "#FF0000"))
-      assert_selector('.heatmap-cell[style*="background"]')
+  def test_color_customization_accepts_a_hex_string_through_custom_color
+      render_inline(Bali::Heatmap::Component.new(data: data, custom_color: "#FF0000"))
+      assert_selector('.heatmap-cell[style*="#FF0000"]')
   end
 
-  def test_color_customization_accepts_daisyui_color_preset_symbols
-    Bali::Heatmap::Component::COLOR_PRESETS.each_key do |preset|
-      component = Bali::Heatmap::Component.new(data: data, color: preset)
-      assert_kind_of(Array, component.gradient_colors)
+  def test_color_customization_accepts_every_semantic_name
+    Bali::Color::NAMES.each do |name|
+      component = Bali::Heatmap::Component.new(data: data, color: name)
+      refute_empty(component.gradient_colors)
   end
+  end
+
+  # The whole point of #691: `:primary` is the host's theme variable now, not the
+  # indigo hex this component used to hardcode under that name.
+  def test_color_customization_resolves_a_preset_to_the_theme_variable
+    component = Bali::Heatmap::Component.new(data: data, color: :secondary)
+    assert(component.gradient_colors.all? { |c| c.include?("var(--color-secondary)") })
   end
 
   def test_color_customization_uses_primary_as_default_color
       component = Bali::Heatmap::Component.new(data: data)
       refute_empty(component.gradient_colors)
+      assert(component.gradient_colors.all? { |c| c.include?("var(--color-primary)") })
   end
 
-  def test_color_customization_falls_back_to_the_default_preset_for_an_unknown_symbol
-    component = Bali::Heatmap::Component.new(data: data, color: :chartreuse)
-    default = Bali::Heatmap::Component::COLOR_PRESETS.fetch(
-      Bali::Heatmap::Component::DEFAULT_COLOR
-    )
-    assert_equal(Bali::Utils::ColorPicker.gradient(default), component.gradient_colors)
-    render_inline(component)
-    assert_selector('.heatmap-cell[style*="background"]')
+  def test_color_customization_rejects_an_unknown_symbol
+    error = assert_raises(ArgumentError) do
+      Bali::Heatmap::Component.new(data: data, color: :chartreuse)
+    end
+    assert_includes(error.message, "unknown color :chartreuse")
+  end
+
+  # A hex in `color:` was the documented escape hatch; it is `custom_color:` now,
+  # and the old spelling has to say so rather than resolve to nothing.
+  def test_color_customization_rejects_a_hex_string_in_color
+    assert_raises(ArgumentError) do
+      Bali::Heatmap::Component.new(data: data, color: "#FF0000")
+    end
   end
 
   def test_color_customization_falls_back_to_the_default_preset_when_color_is_nil
@@ -181,8 +210,8 @@ class BaliHeatmapComponentTest < ComponentTestCase
     string_keys = { Mon: { "morning" => 1, "evening" => 2 }, Tue: { "morning" => 3 } }
     render_inline(Bali::Heatmap::Component.new(data: string_keys))
     assert_selector("tbody tr", count: 2)
-    assert_selector("tbody td", text: "morning")
-    assert_selector("tbody td", text: "evening")
+    assert_selector('tbody th[scope="row"]', text: "morning")
+    assert_selector('tbody th[scope="row"]', text: "evening")
   end
 
   def test_y_labels_does_not_raise_on_mixed_key_types

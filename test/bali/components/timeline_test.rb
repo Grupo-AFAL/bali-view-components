@@ -258,10 +258,12 @@ end
 class BaliTimelineItemComponentTest < ComponentTestCase
   def test_constants_defines_frozen_colors_hash
     assert(Bali::Timeline::Item::Component::COLORS.frozen?)
-    assert_includes(Bali::Timeline::Item::Component::COLORS.keys, :default)
-    assert_includes(Bali::Timeline::Item::Component::COLORS.keys, :primary)
-    assert_includes(Bali::Timeline::Item::Component::COLORS.keys, :success)
-    assert_includes(Bali::Timeline::Item::Component::COLORS.keys, :error)
+    assert_equal(Bali::Color::NAMES, Bali::Timeline::Item::Component::COLORS.keys)
+  end
+
+  def test_constants_ghost_is_the_default_and_leaves_the_line_uncoloured
+    assert_equal(:ghost, Bali::Timeline::Item::Component::DEFAULT_COLOR)
+    assert_equal("", Bali::Timeline::Item::Component::LINE_COLORS[:ghost])
   end
 
   def test_constants_defines_frozen_line_colors_hash
@@ -290,16 +292,21 @@ end
 class BaliTimelineHeaderComponentTest < ComponentTestCase
   def test_constants_defines_frozen_colors_hash
     assert(Bali::Timeline::Header::Component::COLORS.frozen?)
-    assert_includes(Bali::Timeline::Header::Component::COLORS.keys, :default)
-    assert_includes(Bali::Timeline::Header::Component::COLORS.keys, :primary)
-    assert_includes(Bali::Timeline::Header::Component::COLORS.keys, :success)
-    assert_includes(Bali::Timeline::Header::Component::COLORS.keys, :error)
-    assert_includes(Bali::Timeline::Header::Component::COLORS.keys, :ghost)
-    assert_includes(Bali::Timeline::Header::Component::COLORS.keys, :outline)
+    assert_equal(Bali::Color::NAMES, Bali::Timeline::Header::Component::COLORS.keys)
   end
 
   def test_constants_defaults_to_badge_neutral
-    assert_equal("badge-neutral", Bali::Timeline::Header::Component::COLORS[:default])
+    assert_equal(:neutral, Bali::Timeline::Header::Component::DEFAULT_COLOR)
+    assert_equal("badge-neutral", Bali::Timeline::Header::Component::COLORS[:neutral])
+  end
+
+  # `:outline` used to live in COLORS, which made a style look like a colour and
+  # left `color:` with two different jobs.
+  def test_outline_is_no_longer_a_colour
+    error = assert_raises(ArgumentError) do
+      Bali::Timeline::Header::Component.new(text: "X", color: :outline)
+    end
+    assert_includes(error.message, "unknown color :outline")
   end
 
   def test_deprecated_tag_class_still_sets_the_badge_classes_and_warns

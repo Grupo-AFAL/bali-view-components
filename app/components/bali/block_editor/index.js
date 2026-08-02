@@ -32,7 +32,10 @@ export class BlockEditorController extends Controller {
     commentsUrl: { type: String, default: '' },
     commentsUser: { type: Object, default: {} },
     commentsUsers: { type: Array, default: [] },
-    commentsUsersUrl: { type: String, default: '' }
+    commentsUsersUrl: { type: String, default: '' },
+    // 0 turns polling off; -1 means "unset", so RESTThreadStore's own 5000 ms
+    // default stays the single place that number is written down.
+    commentsPollInterval: { type: Number, default: -1 }
   }
 
   async connect () {
@@ -73,6 +76,7 @@ export class BlockEditorController extends Controller {
         syntaxHighlighting: this.syntaxHighlightingValue,
         uploadUrl: this.uploadUrlValue || undefined,
         outputElement: this.hasOutputTarget ? this.outputTarget : null,
+        containerElement: this.element,
         onEditorReady: (editor) => { this.blockNoteEditor = editor },
         onSyncReady: (flush) => this._bindSubmitFlush(flush),
         theme: this.themeValue,
@@ -89,7 +93,8 @@ export class BlockEditorController extends Controller {
         commentsUrl: this.commentsUrlValue || undefined,
         commentsUser: Object.keys(this.commentsUserValue).length > 0 ? this.commentsUserValue : undefined,
         commentsUsers: this.commentsUsersValue.length > 0 ? this.commentsUsersValue : undefined,
-        commentsUsersUrl: this.commentsUsersUrlValue || undefined
+        commentsUsersUrl: this.commentsUsersUrlValue || undefined,
+        commentsPollInterval: this.commentsPollIntervalValue >= 0 ? this.commentsPollIntervalValue : undefined
       }
 
       // Dynamically load multi-column module when enabled

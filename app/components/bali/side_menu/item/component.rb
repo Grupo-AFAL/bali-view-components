@@ -79,6 +79,18 @@ module Bali
           items.reject(&:disabled?).any?(&:active?)
         end
 
+        # `active?` is a styling question — a parent stays highlighted while a
+        # child route is open. `aria-current="page"` is a factual one and only
+        # belongs on the link that points at the page you are on, so a parent
+        # hands it to its active child.
+        def current_page?
+          active? && !active_child_items?
+        end
+
+        def aria_current
+          "page" if current_page?
+        end
+
         def expandable_mode?
           @group_behavior == :expandable
         end
@@ -141,7 +153,7 @@ module Bali
               tag.a(
                 href: tooltip_href || href.presence || "#",
                 class: class_names("menu-item", "active" => active?),
-                target: target, rel: rel
+                target: target, rel: rel, "aria-current": aria_current
               ) { render_icon_or_initial }
             end
             content || name
@@ -169,7 +181,8 @@ module Bali
         def render_subitem_link(item)
           tag.a(href: item.href,
                 class: class_names("active" => item.active?),
-                target: item.target, rel: item.rel) do
+                target: item.target, rel: item.rel,
+                "aria-current": item.aria_current) do
             safe_join([
               (render(Bali::Icon::Component.new(item.icon, class: "size-4")) if item.icon.present?),
               item.name
@@ -186,8 +199,8 @@ module Bali
           link = tag.a(
             href: href,
             class: class_names({ "menu-item" => in_accordion },
-                               "active" => active? && !active_child_items?),
-            target: target, rel: rel
+                               "active" => current_page?),
+            target: target, rel: rel, "aria-current": aria_current
           ) { in_accordion ? tag.span(name, class: "grow") : name }
 
           in_accordion ? link : tag.li(link)
@@ -202,7 +215,7 @@ module Bali
 
           if href.present?
             tag.a(href: href, tabindex: 0, class: trigger_class,
-                  target: target, rel: rel,
+                  target: target, rel: rel, "aria-current": aria_current,
                   data: { side_menu_flyout_target: "trigger",
                           action: "keydown->side-menu-flyout#triggerKeydown" }) { render_icon_or_initial }
           else
