@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import zIndexFor from '../../../assets/javascripts/bali/utils/z-index.js'
+import { topLayerHost } from '../../../assets/javascripts/bali/utils/top-layer.js'
 
 // Hardcoded instead of letting `dispatch` default to `this.identifier`, so the
 // public event names stay put when a host registers this controller under a
@@ -77,11 +78,22 @@ export class HovercardController extends Controller {
     return ''
   }
 
+  // A modal overlay overrides whatever the call site chose: everything outside
+  // its subtree is inert, so a card portaled to <body> is painted under the
+  // overlay and stops taking pointer events. See utils/top-layer.js. Popper
+  // recomputes its offsets against the new offsetParent, so the move is all
+  // tippy needs.
   appendToProp () {
-    if (this.appendToValue === 'body') return () => document.body
-    if (this.appendToValue === 'parent') return 'parent'
+    if (this.appendToValue === 'parent') {
+      return element => topLayerHost(element) ?? element.parentNode
+    }
 
-    return document.querySelector(this.appendToValue)
+    if (this.appendToValue === 'body') {
+      return element => topLayerHost(element) ?? document.body
+    }
+
+    return element =>
+      topLayerHost(element) ?? document.querySelector(this.appendToValue) ?? document.body
   }
 
   disconnect () {

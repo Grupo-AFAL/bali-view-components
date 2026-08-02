@@ -418,6 +418,18 @@
   }
 }
 
+/* Inside a modal overlay the list joins the top layer as a popover, which is the
+ * only way it stays clickable — see assets/javascripts/bali/utils/top-layer.js
+ * for the hit-test. Of the UA's `[popover]` rules only these two are not already
+ * stated above: `inset: 0` fights the coordinates SlimSelect writes (including
+ * the `-9999px` it parks the closed list at) and `margin: auto` then centres what
+ * is left. */
+.ss-content[popover] {
+  inset: auto;
+  margin: 0;
+  color: inherit;
+}
+
 /* =============================================================================
    Search Input
    ============================================================================= */

@@ -59,12 +59,12 @@
               <td>
                 <div class="flex justify-end">
                   <%= render Bali::ActionsDropdown::Component.new(popover: true, align: :end) do |dropdown| %>
-                    <% dropdown.with_item(name: t('studios.actions.view'), href: studio_path(studio), icon_name: 'eye', data: { action: 'modal#open', modal_size: 'lg' }) %>
-                    <% dropdown.with_item(name: t('studios.actions.edit'), href: edit_studio_path(studio), icon_name: 'pencil', data: { action: 'drawer#open', drawer_size: 'lg' }) %>
+                    <% dropdown.with_item(name: t('studios.actions.view'), href: studio_path(studio), icon: 'eye', data: { action: 'modal#open', modal_size: 'lg' }) %>
+                    <% dropdown.with_item(name: t('studios.actions.edit'), href: edit_studio_path(studio), icon: 'pencil', data: { action: 'drawer#open', drawer_size: 'lg' }) %>
                     <% dropdown.with_item(
                       name: t('studios.actions.delete'),
                       href: studio_path(studio),
-                      icon_name: 'trash',
+                      icon: 'trash',
                       method: :delete,
                       data: { turbo_confirm: t('studios.confirm_delete', name: studio.name) },
                       class: 'text-error'

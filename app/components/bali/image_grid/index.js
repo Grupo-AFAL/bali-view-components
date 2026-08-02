@@ -1,4 +1,9 @@
 import { Controller } from '@hotwired/stimulus'
+import {
+  topLayerHost,
+  enterTopLayer,
+  leaveTopLayer
+} from '../../../assets/javascripts/bali/utils/top-layer.js'
 
 const TRANSITION_MS = 200
 
@@ -33,7 +38,16 @@ export class ImageExpanderController extends Controller {
     const closeLabel = this.element.getAttribute('aria-label') || 'Close'
 
     this.overlay = this._buildOverlay(closeLabel)
-    document.body.appendChild(this.overlay)
+
+    // A thumbnail inside a modal overlay would otherwise expand into a lightbox
+    // that the overlay covers and renders inert. See utils/top-layer.js. The
+    // lightbox is `position: fixed; inset: 0`, so only the move and the top layer
+    // matter here — there are no offsets to keep correct.
+    const host = topLayerHost(this.element)
+    if (!host || !enterTopLayer(this.overlay, host)) {
+      document.body.appendChild(this.overlay)
+    }
+
     document.body.style.overflow = 'hidden'
 
     window.requestAnimationFrame(() => this.overlay.classList.add('is-open'))
@@ -55,6 +69,7 @@ export class ImageExpanderController extends Controller {
 
     overlay.classList.remove('is-open')
     const cleanup = () => {
+      leaveTopLayer(overlay)
       overlay.remove()
       document.body.style.overflow = ''
       this.previouslyFocusedElement?.focus()

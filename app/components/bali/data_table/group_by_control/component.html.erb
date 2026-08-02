@@ -7,7 +7,7 @@
                                          responsive: false, title: disabled_title,
                                          class: 'gap-2 whitespace-nowrap') %>
 <% else %>
-<%= render Bali::Dropdown::Component.new(align: :left, close_on_click: true) do |dropdown| %>
+<%= render Bali::Dropdown::Component.new(align: :start, close_on_click: true) do |dropdown| %>
   <%# aria-label explícito: el texto vive en un span max-sm:hidden, así que en móvil el
       trigger quedaba solo con iconos y sin nombre accesible. %>
   <% dropdown.with_trigger(variant: :outline, class: "btn-sm gap-2 whitespace-nowrap",

@@ -76,6 +76,21 @@
   animation: fpFadeIn var(--fp-animation-timing) ease-out;
 }
 
+/* Inside a modal overlay the calendar joins the top layer as a popover, which is
+ * the only way it stays clickable — see assets/javascripts/bali/utils/top-layer.js
+ * for the hit-test. That brings the UA's `[popover]` rules with it, and the three
+ * declarations the block above does not already state leak through: `inset: 0`
+ * fights the coordinates flatpickr writes, `margin: auto` then centres what is
+ * left, and `overflow: auto` turns the calendar into a scroll container that
+ * clips its own arrow. Everything else (position, width, padding, border,
+ * background) is declared above and wins on origin alone. */
+.flatpickr-calendar[popover] {
+  inset: auto;
+  margin: 0;
+  overflow: visible;
+  color: inherit;
+}
+
 .flatpickr-calendar.inline {
   display: block;
   position: relative;
