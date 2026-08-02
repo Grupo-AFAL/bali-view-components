@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { get, post } from '@rails/request.js'
+import { topLayerHost, enterTopLayer, leaveTopLayer } from '../utils/top-layer.js'
 
 // TODO: Add tests (Issue: #157)
 export class SlimSelectController extends Controller {
@@ -115,6 +116,8 @@ export class SlimSelectController extends Controller {
           contentEl.classList.add('slim-select-sm-content')
         }
       }
+
+      this.joinTopLayer()
     } catch (error) {
       console.error('[SlimSelect] Failed to initialize:', error)
     }
@@ -128,7 +131,30 @@ export class SlimSelectController extends Controller {
     this.teardown()
   }
 
+  // SlimSelect portals `.ss-content` to <body>, which a modal overlay both covers
+  // and renders inert — see utils/top-layer.js for the hit-test that measured it.
+  //
+  // Done once, at connect, rather than on each open: SlimSelect debounces all
+  // four of its open/close callbacks by 100ms, so a hook that reparents there
+  // fires long after the list is already on screen and clickable. The list is
+  // parked at `top: -9999px` while closed, so leaving it in the top layer for the
+  // widget's lifetime shows nothing; when the overlay closes it takes its
+  // contents with it, and `teardown()` removes the node either way.
+  //
+  // Reads the list off the instance rather than off the DOM: the class-fixing
+  // lookup above falls back to the first `.ss-content` in the document, which on
+  // a page with several selects is somebody else's, and relocating that one would
+  // be a good deal worse than mislabelling it.
+  joinTopLayer () {
+    const contentEl = this.select?.render?.content?.main
+    const host = contentEl && topLayerHost(this.element)
+
+    if (host) enterTopLayer(contentEl, host)
+  }
+
   teardown () {
+    leaveTopLayer(this.select?.render?.content?.main)
+
     this.select?.destroy()
     this.select = null
   }
