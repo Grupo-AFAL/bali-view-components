@@ -5,7 +5,7 @@ module Bali
     # UrlFields provides URL input helpers with DaisyUI styling.
     # Supports addons for protocol prefixes (https://) and domain suffixes (.com).
     module UrlFields
-      def url_field_group(method, options = {})
+      def url_group(method, **options)
         @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
           url_field(method, options)
         end

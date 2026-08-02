@@ -36,15 +36,20 @@ module Bali
       #
       # Same split as BooleanFields: `text:` beside the toggle, `label:` as the
       # `<legend>`, and no legend unless asked for.
-      def switch_field_group(method, options = {}, checked_value = "1", unchecked_value = "0")
+      #
+      # `checked_value:` / `unchecked_value:` are keywords for the same reason as
+      # in BooleanFields.
+      def switch_group(method, checked_value: "1", unchecked_value: "0", **options)
         @template.render Bali::FieldGroupWrapper::Component.new(
           self, method, options.merge(control_id: false, label: options.fetch(:label, false))
         ) do
-          switch_field(method, options, checked_value, unchecked_value)
+          switch_field(
+            method, checked_value: checked_value, unchecked_value: unchecked_value, **options
+          )
         end
       end
 
-      def switch_field(method, options = {}, checked_value = "1", unchecked_value = "0")
+      def switch_field(method, checked_value: "1", unchecked_value: "0", **options)
         label_options = build_switch_label_options(options)
         toggle_options = build_toggle_options(method, options)
 

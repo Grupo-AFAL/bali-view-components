@@ -5,10 +5,20 @@ module Bali
     module PercentageFields
       DEFAULT_SYMBOL = "%"
 
-      def percentage_field_group(method, options = {})
+      def percentage_group(method, **options)
+        numeric_group(method, **percentage_options(options))
+      end
+
+      def percentage_field(method, **options)
+        numeric_field(method, **percentage_options(options))
+      end
+
+      private
+
+      def percentage_options(options)
         symbol = options[:symbol] || DEFAULT_SYMBOL
 
-        numeric_field_group(method, options.with_defaults(addon_right: numeric_addon(symbol)))
+        options.with_defaults(addon_right: numeric_addon(symbol))
       end
     end
   end

@@ -3,25 +3,25 @@
 require "test_helper"
 
 class BaliFormBuilderUrlFieldsTest < FormBuilderTestCase
-  # #url_field_group
+  # #url_group
 
-  def test_url_field_group_renders_a_fieldset_wrapper
-    result = builder.url_field_group(:website_url)
+  def test_url_group_renders_a_fieldset_wrapper
+    result = builder.url_group(:website_url)
     assert_html(result, "fieldset.fieldset")
   end
 
-  def test_url_field_group_renders_a_legend_label
-    result = builder.url_field_group(:website_url)
+  def test_url_group_renders_a_legend_label
+    result = builder.url_group(:website_url)
     assert_html(result, "label.fieldset-legend", text: "Website url")
   end
 
-  def test_url_field_group_renders_a_url_input_with_correct_attributes
-    result = builder.url_field_group(:website_url)
+  def test_url_group_renders_a_url_input_with_correct_attributes
+    result = builder.url_group(:website_url)
     assert_html(result, 'input#movie_website_url[type="url"][name="movie[website_url]"]')
   end
 
-  def test_url_field_group_applies_daisyui_input_classes
-    result = builder.url_field_group(:website_url)
+  def test_url_group_applies_daisyui_input_classes
+    result = builder.url_group(:website_url)
     assert_html(result, "input.input")
   end
 

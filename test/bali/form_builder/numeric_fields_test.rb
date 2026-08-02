@@ -2,14 +2,14 @@
 
 require "test_helper"
 
-# What `currency_field_group` and `percentage_field_group` share. Both delegate
-# to `numeric_field_group`, so each case is swept over the two rather than
+# What `currency_group` and `percentage_group` share. Both delegate
+# to `numeric_group`, so each case is swept over the two rather than
 # asserted on one: they used to be independent copies of the same six lines,
 # which is how they came to carry the same two bugs.
 class BaliFormBuilderNumericFieldsTest < FormBuilderTestCase
   FAMILIES = {
-    "currency_field_group" => ->(b, o) { b.currency_field_group(:budget, o) },
-    "percentage_field_group" => ->(b, o) { b.percentage_field_group(:budget, o) }
+    "currency_group" => ->(b, o) { b.currency_group(:budget, **o) },
+    "percentage_group" => ->(b, o) { b.percentage_group(:budget, **o) }
   }.freeze
 
   # `step` only means anything on a `number`, a `range` or a date input. These

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# The server half of `currency_field_group` and `percentage_field_group`: those
+# The server half of `currency_group` and `percentage_group`: those
 # render a text input so the user can type a formatted amount, and this turns
 # what they typed back into a number.
 #

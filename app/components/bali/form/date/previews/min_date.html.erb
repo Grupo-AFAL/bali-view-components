@@ -1,3 +1,3 @@
 <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
-  <%= form.date_field_group :date, min_date: Date.today %>
+  <%= form.date_group :date, min_date: Date.today %>
 <% end %>

@@ -4,35 +4,35 @@ require "test_helper"
 
 class BaliFormBuilderPercentageFieldsTest < FormBuilderTestCase
   def setup
-    @percentage_field_group = builder.percentage_field_group(:budget)
-    @percentage_field_group_custom = builder.percentage_field_group(:budget, symbol: "‰")
+    @percentage_group = builder.percentage_group(:budget)
+    @percentage_group_custom = builder.percentage_group(:budget, symbol: "‰")
   end
 
-  def test_percentage_field_group_renders_a_label_and_input_within_a_wrapper
-    assert_html(@percentage_field_group, "fieldset#movie_budget_field.fieldset")
+  def test_percentage_group_renders_a_label_and_input_within_a_wrapper
+    assert_html(@percentage_group, "fieldset#movie_budget_field.fieldset")
   end
 
-  def test_percentage_field_group_renders_a_label
-    assert_html(@percentage_field_group, "label.fieldset-legend", text: "Budget")
+  def test_percentage_group_renders_a_label
+    assert_html(@percentage_group, "label.fieldset-legend", text: "Budget")
   end
 
-  def test_percentage_field_group_renders_a_sign_within_a_join_wrapper
-    assert_html(@percentage_field_group, "div.join", text: "%")
+  def test_percentage_group_renders_a_sign_within_a_join_wrapper
+    assert_html(@percentage_group, "div.join", text: "%")
   end
 
-  def test_percentage_field_group_renders_an_input
-    assert_html(@percentage_field_group, 'input#movie_budget[name="movie[budget]"][type="text"][inputmode="decimal"][placeholder="0"]')
+  def test_percentage_group_renders_an_input
+    assert_html(@percentage_group, 'input#movie_budget[name="movie[budget]"][type="text"][inputmode="decimal"][placeholder="0"]')
   end
 
-  def test_percentage_field_group_uses_default_symbol
-    assert_html(@percentage_field_group, "span.btn.btn-disabled.join-item", text: "%")
+  def test_percentage_group_uses_default_symbol
+    assert_html(@percentage_group, "span.btn.btn-disabled.join-item", text: "%")
   end
 
-  def test_percentage_field_group_with_custom_symbol_renders_the_custom_symbol
-    assert_html(@percentage_field_group_custom, "span.btn.btn-disabled.join-item", text: "‰")
+  def test_percentage_group_with_custom_symbol_renders_the_custom_symbol
+    assert_html(@percentage_group_custom, "span.btn.btn-disabled.join-item", text: "‰")
   end
 
-  def test_percentage_field_group_with_custom_symbol_does_not_render_the_default_symbol
-    refute_html(@percentage_field_group_custom, "span.btn.btn-disabled.join-item", text: "%")
+  def test_percentage_group_with_custom_symbol_does_not_render_the_default_symbol
+    refute_html(@percentage_group_custom, "span.btn.btn-disabled.join-item", text: "%")
   end
 end

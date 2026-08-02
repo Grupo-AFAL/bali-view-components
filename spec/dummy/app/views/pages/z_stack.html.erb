@@ -43,7 +43,7 @@
   <% c.with_body do %>
     <p>Modal body</p>
     <%= form_with(model: Movie.new, url: '/', builder: Bali::FormBuilder) do |form| %>
-      <%= form.datetime_field_group :release_date %>
+      <%= form.datetime_group :release_date %>
       <%= form.slim_select_field :genre, [['Drama', 'drama'], ['Comedy', 'comedy']] %>
     <% end %>
   <% end %>

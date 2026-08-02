@@ -13,7 +13,7 @@ module Bali
       LABEL_CLASS = "cursor-pointer inline-flex"
       DEFAULT_ICON = "upload"
 
-      def file_field_group(method, options = {})
+      def file_group(method, **options)
         @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
           file_field(method, options)
         end

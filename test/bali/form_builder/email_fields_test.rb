@@ -3,25 +3,25 @@
 require "test_helper"
 
 class BaliFormBuilderEmailFieldsTest < FormBuilderTestCase
-  # #email_field_group
+  # #email_group
 
-  def test_email_field_group_renders_a_fieldset_wrapper
-    result = builder.email_field_group(:contact_email)
+  def test_email_group_renders_a_fieldset_wrapper
+    result = builder.email_group(:contact_email)
     assert_html(result, "fieldset.fieldset")
   end
 
-  def test_email_field_group_renders_a_legend_label
-    result = builder.email_field_group(:contact_email)
+  def test_email_group_renders_a_legend_label
+    result = builder.email_group(:contact_email)
     assert_html(result, "label.fieldset-legend", text: "Contact email")
   end
 
-  def test_email_field_group_renders_an_email_input_with_correct_attributes
-    result = builder.email_field_group(:contact_email)
+  def test_email_group_renders_an_email_input_with_correct_attributes
+    result = builder.email_group(:contact_email)
     assert_html(result, 'input#movie_contact_email[type="email"][name="movie[contact_email]"]')
   end
 
-  def test_email_field_group_applies_daisyui_input_classes
-    result = builder.email_field_group(:contact_email)
+  def test_email_group_applies_daisyui_input_classes
+    result = builder.email_group(:contact_email)
     assert_html(result, "input.input")
   end
 

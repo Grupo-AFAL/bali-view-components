@@ -1,5 +1,5 @@
 <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
-  <%= form.number_field_group :budget,
+  <%= form.number_group :budget,
       addon_left: tag.span('$', class: Bali::FormBuilder::HtmlUtils::ADDON_CLASSES),
       addon_right: tag.span('USD', class: Bali::FormBuilder::HtmlUtils::ADDON_CLASSES),
       placeholder: '0.00',

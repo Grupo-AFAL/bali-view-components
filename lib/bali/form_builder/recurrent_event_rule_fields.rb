@@ -5,7 +5,7 @@ module Bali
     module RecurrentEventRuleFields
       # The caption stays a `<legend>`: the component is a composite of a dozen
       # selects and radios, each named on its own, over a hidden field.
-      def recurrent_event_rule_field_group(method, options = {})
+      def recurrent_event_rule_group(method, **options)
         @template.render Bali::FieldGroupWrapper::Component.new(
           self, method, options.merge(control_id: false)
         ) do
