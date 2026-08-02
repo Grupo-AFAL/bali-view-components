@@ -1,5 +1,5 @@
 <%= tag.div(**@options) do %>
-  <%= render Bali::Dropdown::Component.new(data: { 'rich-text-editor-target': 'nodeSelect'}) do |c| %>
+  <%= render Bali::Dropdown::Component.new(align: :end, data: { 'rich-text-editor-target': 'nodeSelect'}) do |c| %>
     <% c.with_trigger(class: 'toolbar-link', data: { action: 'rich-text-editor#openNodeSelect' }) do %>
       <span class="text" data-rich-text-editor-target="nodeSelectTrigger"><%= t('.nodes.text') %></span>
       <%= render Bali::Icon::Component.new('chevron-down', class: 'dropdown-icon') %>
@@ -13,7 +13,7 @@
     <%= c.with_item(class: 'blockquote', data: { action: 'rich-text-editor#toggleBlockquote', 'rich-text-editor-target': 'blockquote' }) { t('.nodes.quote') } %>
     <%= c.with_item(class: 'codeBlock', data: { action: 'rich-text-editor#toggleCodeBlock', 'rich-text-editor-target': 'codeBlock' }) { t('.nodes.code') } %>
   <% end %>
-  <%= render Bali::Dropdown::Component.new(close_on_click: false, data: { 'rich-text-editor-target': 'linkPanel' }) do |c| %>
+  <%= render Bali::Dropdown::Component.new(align: :end, close_on_click: false, data: { 'rich-text-editor-target': 'linkPanel' }) do |c| %>
     <% c.with_trigger(class: 'toolbar-link mark link', data: { action: 'rich-text-editor#openLinkPanel', 'rich-text-editor-target': 'link' }) do %>
       <%= render Bali::Icon::Component.new('link') %>
     <% end %>
@@ -38,7 +38,7 @@
     </div>
   <% end %>
   <% if images_url.present? %>
-    <%= render Bali::Dropdown::Component.new(data: { 'rich-text-editor-target': 'imagePanel' }) do |c| %>
+    <%= render Bali::Dropdown::Component.new(align: :end, data: { 'rich-text-editor-target': 'imagePanel' }) do |c| %>
       <% c.with_trigger(class: 'toolbar-link', data: { action: 'rich-text-editor#toggleImagePanel' }) do %>
         <div class="flex items-center">
           <%= render Bali::Icon::Component.new('image') %>
@@ -47,7 +47,7 @@
       <div data-rich-text-editor-target="imageGrid"></div>
     <% end %>
   <% end %>
-  <%= render Bali::Dropdown::Component.new(data: { 'rich-text-editor-target': 'tablePanel' }) do |c| %>
+  <%= render Bali::Dropdown::Component.new(align: :end, data: { 'rich-text-editor-target': 'tablePanel' }) do |c| %>
     <% c.with_trigger(class: 'toolbar-link', data: { action: 'rich-text-editor#openTablePanel' }) do %>
       <%= render Bali::Icon::Component.new('table') %>
     <% end %>

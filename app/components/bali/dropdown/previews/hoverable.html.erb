@@ -1,5 +1,5 @@
 <div class="flex justify-center items-center min-h-[250px] p-8">
-  <%= render(Bali::Dropdown::Component.new(hoverable: true, align: :right)) do |c|
+  <%= render(Bali::Dropdown::Component.new(hoverable: true, align: :end)) do |c|
     c.with_trigger(class: 'btn-secondary') { 'Hover me' }
 
     c.with_item(href: '#') { 'Item 1' }

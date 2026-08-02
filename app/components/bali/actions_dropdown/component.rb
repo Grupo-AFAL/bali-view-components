@@ -2,102 +2,48 @@
 
 module Bali
   module ActionsDropdown
-    class Component < ApplicationViewComponent
-      attr_reader :options
+    # A Bali::Dropdown with its trigger already chosen: the ⋯ button of a table row.
+    #
+    # It used to be a second implementation of the same menu, and the two had drifted in
+    # every direction that matters. It reimplemented `with_item` almost line for line, kept
+    # its own `ALIGNMENTS` / `DIRECTIONS` / `WIDTHS` tables against Dropdown's single
+    # `align:` and boolean `wide:`, and — the part that hurt — carried none of Dropdown's
+    # accessibility: no `data-controller="dropdown"`, so no arrow keys and no Escape; no
+    # `role="menu"` on the list; an `aria-expanded` that was never emitted at all, let alone
+    # kept in sync. It opened on daisyUI's `:focus-within` and that was the whole of it.
+    #
+    # What is below this line is now the entire difference between the two components.
+    class Component < Dropdown::Component
+      DEFAULT_ICON = "ellipsis-h"
 
-      # Custom trigger slot - allows overriding the default ellipsis button
-      renders_one :trigger
-
-      # Items auto-select Link vs DeleteLink based on HTTP method.
-      # Use `method: :delete` to render DeleteLink with confirmation dialog.
-      renders_many :items, ->(method: :get, **options) do
-        component_klass = method&.to_sym == :delete ? DeleteLink::Component : Link::Component
-        # See Bali::Dropdown::Component: one spelling of the icon keyword for both kinds of
-        # item, whichever of the two components an item turns out to be.
-        if component_klass == DeleteLink::Component && options.key?(:icon_name)
-          options[:icon] = options.delete(:icon_name)
-        end
-        component_klass.new(method: method, plain: true, **options)
-      end
-
-      # Horizontal alignment
-      ALIGNMENTS = {
-        start: "dropdown-start",
-        center: "dropdown-center",
-        end: "dropdown-end"
-      }.freeze
-
-      # Vertical direction
-      DIRECTIONS = {
-        top: "dropdown-top",
-        bottom: "dropdown-bottom",
-        left: "dropdown-left",
-        right: "dropdown-right"
-      }.freeze
-
-      # Menu width
-      WIDTHS = {
-        sm: "w-40",
-        md: "w-52",
-        lg: "w-64",
-        xl: "w-80"
-      }.freeze
-
-      # @param popover [Boolean] Use Tippy.js popover instead of CSS dropdown.
-      #   Enables menu to escape overflow containers (e.g., tables with overflow-x-auto).
-      def initialize(align: :start, direction: nil, icon: "ellipsis-h", width: :md, popover: false,
-                     **options)
-        @align = align&.to_sym
-        @direction = direction&.to_sym
+      # @param icon [String, Symbol] the trigger's icon. Every other keyword is
+      #   Bali::Dropdown::Component's, including `popover:`, which is what a menu inside a
+      #   scrollable table needs.
+      def initialize(icon: DEFAULT_ICON, **options)
         @icon = icon
-        @width = width&.to_sym
-        @popover = popover
-        @options = prepend_class_name(options, dropdown_classes)
+        super(**options)
       end
 
-      def popover?
-        @popover
-      end
+      # Absolute key, for the reason Dropdown::Component::MENU_LABEL_KEY names.
+      TRIGGER_LABEL_KEY = "bali_view.dropdown.actions_trigger_label"
 
-      def tippy_placement
-        vertical = @direction == :top ? "top" : "bottom"
-        horizontal = @align == :end ? "end" : "start"
-        "#{vertical}-#{horizontal}"
-      end
+      # The old trigger painted `text-neutral-600 hover:text-neutral-800` over the ghost
+      # button — Tailwind greys, not theme tokens, so the ⋯ stayed dark grey on a dark
+      # theme. `btn-ghost` already colours itself from the theme; the override is gone.
+      #
+      # The icon is rendered into a local first and the block merely returns it. A block
+      # that calls `render` itself comes back EMPTY here: `capture` prefers the output
+      # buffer, a nested `render_in` does not write to the buffer `capture` swapped in, and
+      # the returned string is discarded — measured, the trigger came out as an empty
+      # `<div class="btn btn-ghost btn-circle btn-sm">`.
+      def default_trigger
+        icon = render(Bali::Icon::Component.new(@icon))
 
-      def render?
-        items? ? authorized_items.any? : content.present?
-      end
-
-      def authorized_items
-        @authorized_items ||= items.select(&:authorized?)
-      end
-
-      private
-
-      def dropdown_classes
-        class_names(
-          "dropdown",
-          ALIGNMENTS[@align],
-          DIRECTIONS[@direction]
-        )
-      end
-
-      def trigger_classes
-        "btn btn-ghost btn-sm btn-circle text-neutral-600 hover:text-neutral-800"
-      end
-
-      def menu_classes
-        if @popover
-          # Popover mode: tippy-box provides bg/shadow/rounded, menu just needs layout
-          class_names("menu p-2 text-neutral-800", WIDTHS[@width])
-        else
-          # CSS dropdown: menu needs all styling
-          class_names(
-            "dropdown-content menu bg-base-100 text-neutral-800 rounded-box z-[var(--bali-z-dropdown)] p-2 shadow-sm",
-            WIDTHS[@width]
-          )
-        end
+        render(Dropdown::Trigger::Component.new(
+                 variant: :icon,
+                 class: "btn-sm",
+                 "aria-label": t(TRIGGER_LABEL_KEY)
+               )) { icon }
       end
     end
   end

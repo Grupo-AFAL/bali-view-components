@@ -57,7 +57,7 @@
       <% end %>
 
       <% if export? %>
-        <%= render Bali::Dropdown::Component.new(align: :right) do |dropdown| %>
+        <%= render Bali::Dropdown::Component.new(align: :end) do |dropdown| %>
           <% dropdown.with_trigger(class: "btn-ghost btn-sm btn-square") do %>
             <%= render Bali::Icon::Component.new('download', size: :small) %>
           <% end %>

@@ -1,5 +1,5 @@
 <div class="flex justify-center items-center min-h-[250px] p-8">
-  <%= render(Bali::Dropdown::Component.new(align: :bottom_end)) do |c|
+  <%= render(Bali::Dropdown::Component.new(direction: :bottom, align: :end)) do |c|
     c.with_trigger(class: 'btn-info') { 'Bottom End' }
 
     c.with_item(href: '#') { 'Item 1' }
