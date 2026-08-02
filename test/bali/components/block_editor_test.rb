@@ -368,4 +368,40 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     ))
     assert_selector("[data-block-editor-comments-poll-interval-value='30000']")
   end
+
+  def test_every_string_the_react_bundle_renders_travels_as_one_json_value
+    render_inline(Bali::BlockEditor::Component.new)
+
+    assert_equal(
+      %w[load_failed plain_text table_of_contents upload_failed upload_not_configured
+         upload_too_large user_fallback],
+      react_translations.keys.sort
+    )
+    assert_equal "Table of contents", react_translations["table_of_contents"]
+  end
+
+  def test_the_react_strings_follow_the_locale
+    I18n.with_locale(:es) { render_inline(Bali::BlockEditor::Component.new) }
+
+    assert_equal "Tabla de contenido", react_translations["table_of_contents"]
+    assert_equal "La carga de archivos no está configurada", react_translations["upload_not_configured"]
+    assert_equal "Texto plano", react_translations["plain_text"]
+  end
+
+  # The file size, the HTTP status and the unresolved user id only exist in the
+  # browser, so these sentences have to reach it uninterpolated.
+  def test_the_strings_with_runtime_data_keep_their_placeholders
+    render_inline(Bali::BlockEditor::Component.new)
+
+    assert_includes react_translations["upload_too_large"], "%{size}"
+    assert_includes react_translations["upload_too_large"], "%{max}"
+    assert_includes react_translations["upload_failed"], "%{status}"
+    assert_includes react_translations["user_fallback"], "%{id}"
+  end
+
+  private
+
+  def react_translations
+    JSON.parse(page.find("[data-block-editor-translations-value]", visible: :all)["data-block-editor-translations-value"])
+  end
 end

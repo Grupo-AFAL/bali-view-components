@@ -352,4 +352,110 @@ class BaliDocumentEditorComponentTest < ComponentTestCase
     ))
     assert_selector("[data-block-editor-export-filename-value='roadmap']")
   end
+
+  def test_the_save_status_strings_travel_as_values
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1"
+    ))
+    assert_selector("[data-document-editor-status-unsaved-value='Unsaved changes']")
+    assert_selector("[data-document-editor-status-saving-value='Saving...']")
+    assert_selector("[data-document-editor-status-failed-value='Save failed']")
+  end
+
+  # The placeholders belong to the browser: it is the only side that knows the
+  # clock time and the version number, so they have to survive Rails untouched.
+  def test_the_two_status_values_with_runtime_data_keep_their_placeholder
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1"
+    ))
+    assert_selector("[data-document-editor-status-saved-value='Saved at %{time}']")
+    assert_selector("[data-document-editor-version-label-value='Version %{number}']")
+  end
+
+  def test_the_save_status_strings_follow_the_locale
+    I18n.with_locale(:es) do
+      render_inline(Bali::DocumentEditor::Component.new(
+        title: "My Document",
+        initial_content: [],
+        document_url: "/documents/1"
+      ))
+    end
+    assert_selector("[data-document-editor-status-unsaved-value='Cambios sin guardar']")
+    assert_selector("[data-document-editor-status-saved-value='Guardado a las %{time}']")
+    assert_selector("[data-document-editor-locale-value='es']")
+  end
+
+  # Intl.RelativeTimeFormat replaced four hardcoded English strings, and it needs
+  # the locale to do it.
+  def test_the_locale_reaches_the_controller
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1"
+    ))
+    assert_selector("[data-document-editor-locale-value='en']")
+  end
+
+  # Both list messages are rendered up front and hidden; the controller only
+  # picks which one to reveal, so it never has to build translated text.
+  def test_renders_both_version_list_messages_hidden
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      versions_url: "/documents/1/versions"
+    ))
+    assert_selector("[data-document-editor-target='versionsError'].hidden",
+                    text: "Failed to load versions.", visible: :all)
+    assert_selector("[data-document-editor-target='versionsEmpty'].hidden",
+                    text: "No versions yet.", visible: :all)
+  end
+
+  def test_the_version_list_messages_follow_the_locale
+    I18n.with_locale(:es) do
+      render_inline(Bali::DocumentEditor::Component.new(
+        title: "My Document",
+        initial_content: [],
+        document_url: "/documents/1",
+        versions_url: "/documents/1/versions"
+      ))
+    end
+    assert_selector("[data-document-editor-target='versionsError']",
+                    text: "No se pudieron cargar las versiones.", visible: :all)
+    assert_selector("[data-document-editor-target='versionsEmpty']",
+                    text: "Todavía no hay versiones.", visible: :all)
+  end
+
+  # Restoring goes through Bali's styled dialog now, which reads its labels off
+  # the button -- the same channel DeleteLink uses. The button is cloned out of a
+  # <template>, whose contents are inert, so the assertions read the raw markup.
+  def test_the_restore_button_carries_translated_confirm_dialog_labels
+    render_inline(Bali::DocumentEditor::Component.new(
+      title: "My Document",
+      initial_content: [],
+      document_url: "/documents/1",
+      versions_url: "/documents/1/versions"
+    ))
+    assert_includes rendered_content, 'data-bali-confirm-title="Restore version"'
+    assert_includes rendered_content, 'data-bali-confirm-accept="Restore"'
+    assert_includes rendered_content, 'data-bali-confirm-cancel="Cancel"'
+    assert_selector("[data-document-editor-restore-confirm-value]")
+  end
+
+  def test_the_confirm_dialog_labels_follow_the_locale
+    I18n.with_locale(:es) do
+      render_inline(Bali::DocumentEditor::Component.new(
+        title: "My Document",
+        initial_content: [],
+        document_url: "/documents/1",
+        versions_url: "/documents/1/versions"
+      ))
+    end
+    assert_includes rendered_content, 'data-bali-confirm-title="Restaurar versión"'
+    assert_includes rendered_content, 'data-bali-confirm-cancel="Cancelar"'
+  end
 end

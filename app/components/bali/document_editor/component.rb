@@ -100,6 +100,27 @@ module Bali
           document_editor_input_name_value: input_name,
           document_editor_toc_open_value: true,
           document_editor_panel_value: ""
+        }.merge(translation_data)
+      end
+
+      # The controller writes the save status and the preview label into the DOM
+      # after a fetch resolves, so neither can be rendered as text: they have to
+      # reach the JavaScript as values. `%{time}` and `%{number}` stay
+      # uninterpolated on purpose -- only the browser knows them -- and the
+      # controller substitutes them, the way `kanban/index.js` already does.
+      #
+      # The locale goes with them so `Intl.RelativeTimeFormat` can format the age
+      # of each version; it used to be four hardcoded English strings.
+      # `timeago/component.rb` emits it the same way.
+      def translation_data
+        {
+          document_editor_locale_value: I18n.locale,
+          document_editor_status_unsaved_value: t("bali_view.document_editor.status_unsaved"),
+          document_editor_status_saving_value: t("bali_view.document_editor.status_saving"),
+          document_editor_status_saved_value: t("bali_view.document_editor.status_saved"),
+          document_editor_status_failed_value: t("bali_view.document_editor.status_failed"),
+          document_editor_version_label_value: t("bali_view.document_editor.version_label"),
+          document_editor_restore_confirm_value: t("bali_view.document_editor.restore_confirm")
         }
       end
     end

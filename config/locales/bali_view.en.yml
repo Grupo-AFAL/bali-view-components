@@ -435,11 +435,46 @@ en:
       # Version item actions
       preview: "Preview"
       restore: "Restore"
+
+      # Save status. The controller writes these into the DOM after a fetch
+      # resolves, so they travel as Stimulus values rather than as rendered text.
+      status_unsaved: "Unsaved changes"
+      status_saving: "Saving..."
+      status_saved: "Saved at %{time}"
+      status_failed: "Save failed"
+
+      # Version preview banner label, interpolated in JavaScript.
+      version_label: "Version %{number}"
+
+      # Version list states. Rendered hidden and revealed by the controller (the
+      # BulkActions pattern) because they carry no runtime data.
+      versions_error: "Failed to load versions."
+      versions_empty: "No versions yet."
+
+      # Restore confirmation, shown through Bali's confirm dialog.
+      restore_confirm: "Restore this version? Current content will be saved as a new version first."
+      confirm_title: "Restore version"
+      confirm_accept: "Restore"
+      confirm_cancel: "Cancel"
     block_editor:
       disabled_title: "Bali::BlockEditor is disabled"
       disabled_help_html: "Set %{setting} in %{initializer} and install the npm packages listed in %{docs}. This notice only appears in development."
       export_pdf: "Export PDF"
       export_docx: "Export DOCX"
+
+      # Everything the React bundle writes into the DOM. Served as one JSON
+      # object (data-block-editor-translations-value) because the strings are
+      # spread across hooks that all hang off this one controller.
+      load_failed: "Failed to load editor. Ensure @blocknote/react, @blocknote/mantine, react, and react-dom are installed."
+      table_of_contents: "Table of contents"
+      upload_not_configured: "File uploads are not configured"
+      upload_too_large: "File is too large (%{size} MB). Maximum allowed is %{max} MB."
+      upload_failed: "Upload failed (%{status})"
+      # Shown in a comment thread when a user id resolves to no name.
+      user_fallback: "User %{id}"
+      # The only translatable entry of the code-block language list; the rest are
+      # proper names.
+      plain_text: "Plain Text"
     document_page:
       toggle_toc: "Toggle table of contents"
       toggle_details: "Toggle details"
