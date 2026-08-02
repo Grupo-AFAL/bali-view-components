@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
+import { topLayerHost, enterTopLayer, leaveTopLayer } from '../utils/top-layer.js'
 
 // TODO: Add tests (Issue: #154)
 
@@ -71,7 +72,9 @@ export class DatepickerController extends Controller {
       mode: this.modeValue,
       disable: this.disableWeekendsValue ? [this.isWeekend] : this.disabledDatesValue,
       allowInput: this.allowInputValue,
-      static: this.staticValue
+      static: this.staticValue,
+      onOpen: [this.joinTopLayer],
+      onClose: [this.quitTopLayer]
     }
     if (this.hasAppendToTarget) options.appendTo = this.appendToTarget
 
@@ -114,6 +117,27 @@ export class DatepickerController extends Controller {
 
   closeOnEscape = event => {
     if (event.key === 'Escape' && this.flatpickr?.isOpen) this.flatpickr.close()
+  }
+
+  // flatpickr portals the calendar to <body>, which a modal overlay both covers
+  // and renders inert — see utils/top-layer.js for the hit-test that measured it.
+  // Runs after flatpickr has positioned the calendar, and the coordinates it
+  // wrote survive the move because they are document-relative and the top layer
+  // resolves against the initial containing block.
+  //
+  // Left alone when `static` puts the calendar in flow next to the input, and
+  // when the call site named its own container with an `appendTo` target: both
+  // are a decision about where the calendar lives that this should not override.
+  joinTopLayer = () => {
+    const calendar = this.flatpickr?.calendarContainer
+    if (!calendar || this.staticValue || this.hasAppendToTarget) return
+
+    const host = topLayerHost(this.element)
+    if (host) enterTopLayer(calendar, host)
+  }
+
+  quitTopLayer = () => {
+    leaveTopLayer(this.flatpickr?.calendarContainer)
   }
 
   // One entry per locale this gem ships translations for. The branch this

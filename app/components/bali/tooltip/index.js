@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import zIndexFor from '../../../assets/javascripts/bali/utils/z-index.js'
+import { topLayerHost } from '../../../assets/javascripts/bali/utils/top-layer.js'
 
 // Anything the browser puts in the tab order on its own. A trigger slot holding one of
 // these already has a keyboard route to the tooltip; a slot holding plain text does not.
@@ -60,13 +61,21 @@ export class TooltipController extends Controller {
   // Resolves the `appendTo` value into a tippy.js `appendTo` option.
   // 'parent' keeps the balloon inside the trigger (default). 'body' or a
   // CSS selector portals it out of clipping ancestors.
+  //
+  // A modal overlay overrides all three: everything outside its subtree is inert,
+  // so a balloon portaled to <body> is painted under the overlay and stops taking
+  // pointer events (utils/top-layer.js carries the measurement). Unlike flatpickr
+  // and SlimSelect, tippy needs no help beyond the move — Popper recomputes the
+  // offsets against whatever offsetParent the balloon ends up with, and the
+  // overlay root is `position: fixed`, so the arithmetic stays right by itself.
   get appendToOption () {
     const value = this.appendToValue
 
-    if (value === 'parent') return 'parent'
-    if (value === 'body') return () => document.body
+    if (value === 'parent') return element => topLayerHost(element) ?? element.parentNode
+    if (value === 'body') return element => topLayerHost(element) ?? document.body
 
-    return () => document.querySelector(value) || document.body
+    return element =>
+      topLayerHost(element) ?? document.querySelector(value) ?? document.body
   }
 
   disconnect () {
