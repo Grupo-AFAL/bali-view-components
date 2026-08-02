@@ -1,5 +1,12 @@
 <%= render Bali::FormPage::Component.new(
   title: t('studios.form.edit_title', name: @studio.name),
+  subtitle: t('studios.form.subtitle_edit'),
+  breadcrumbs: [
+    { name: t('navbar.dashboard'), href: root_path, icon: 'home' },
+    { name: t('studios.title'), href: studios_path },
+    { name: @studio.name, href: studio_path(@studio) },
+    { name: t('common.edit') }
+  ],
   back: { href: studio_path(@studio) }
 ) do |page| %>
   <% page.with_body do %>

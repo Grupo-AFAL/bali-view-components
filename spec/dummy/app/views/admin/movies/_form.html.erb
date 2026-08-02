@@ -10,6 +10,14 @@
 <% end %>
 
 <%= form_with model: [:admin, movie], builder: Bali::FormBuilder, class: 'space-y-8' do |f| %>
+  <%# Los errores del modelo, arriba y una sola vez. Sin esto un 422 sólo los pinta campo por
+      campo, y en un formulario de cuatro secciones la primera pantalla no dice que algo falló. %>
+  <%= f.error_summary %>
+
+  <%# Las cuatro Cards son deliberadas, y por eso el FormPage entra con `card: false`: esto es
+      un catálogo de cuatro secciones con su Stepper, no la superficie única que FormPage arma
+      por default. /studios es la otra forma, la corta, y sí usa el default. Dos largos
+      distintos, dos formas legítimas. %>
   <%# Section 1: Basic Information %>
   <%= render Bali::Card::Component.new(style: :bordered) do %>
     <h3 class="card-title text-lg mb-4">
@@ -50,15 +58,16 @@
     <%# Text Area %>
     <%= f.text_area_group :synopsis, label: t('movies.form.synopsis'), rows: 4, placeholder: t('movies.form.enter_synopsis'), char_counter: { max: 500 }, help: t('movies.form.synopsis_help') %>
 
-    <%# Block Editor - Rich Description with JSON round-trip %>
+    <%# Block Editor - Rich Description with JSON round-trip.
+        Por el FormBuilder y no por el componente: `block_editor_group` arma el `<legend>`, el
+        `input_name` y el valor inicial desde el modelo. La etiqueta escrita a mano que estaba
+        acá era el único control del formulario de referencia sin su grupo. %>
     <div class="mt-4">
-      <label class="label"><span class="label-text font-medium"><%= t('movies.form.rich_description') %></span></label>
-      <%= render Bali::BlockEditor::Component.new(
-        editable: true,
-        input_name: 'movie[rich_description]',
-        initial_content: movie.rich_description,
-        placeholder: t('movies.form.enter_rich_description')
-      ) %>
+      <%= f.block_editor_group :rich_description,
+            label: t('movies.form.rich_description'),
+            format: :json,
+            editable: true,
+            placeholder: t('movies.form.enter_rich_description') %>
     </div>
 
     <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg, class: 'mt-4') do %>
@@ -87,15 +96,14 @@
       <%= t('movies.form.direct_upload_info') %>
     <% end %>
 
-    <%# DirectUpload Component Demo %>
-    <%= render Bali::DirectUpload::Component.new(
-        form: f,
-        method: :poster,
-        accept: 'image/*',
-        max_file_size: 5,
-        drop_zone: true,
-        auto_upload: true
-      ) %>
+    <%# Igual que el editor: por el grupo del FormBuilder, que es el que trae el `<legend>` y
+        los mensajes de error del campo. %>
+    <%= f.direct_upload_group :poster,
+          label: t('movies.form.movie_poster'),
+          accept: 'image/*',
+          max_file_size: 5,
+          drop_zone: true,
+          auto_upload: true %>
   <% end %>
 
   <%# Section 4: Additional Settings %>

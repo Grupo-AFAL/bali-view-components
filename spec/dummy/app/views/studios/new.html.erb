@@ -1,7 +1,14 @@
 <%# One render serves the full page and the drawer: FormPage autodetects the context and drops
-    its Card and its back button when the drawer is the one fetching the view. %>
+    its Card, its back button and its breadcrumbs when the drawer is the one fetching the view —
+    which is why declaring them here costs the drawer nothing. %>
 <%= render Bali::FormPage::Component.new(
   title: t('studios.form.new_title'),
+  subtitle: t('studios.form.subtitle_new'),
+  breadcrumbs: [
+    { name: t('navbar.dashboard'), href: root_path, icon: 'home' },
+    { name: t('studios.title'), href: studios_path },
+    { name: t('studios.form.new_breadcrumb') }
+  ],
   back: { href: studios_path }
 ) do |page| %>
   <% page.with_body do %>

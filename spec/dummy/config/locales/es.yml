@@ -203,6 +203,8 @@ es:
     form:
       new_title: Nuevo Estudio
       edit_title: "Editar %{name}"
+      subtitle_new: Agrega una productora al catalogo
+      subtitle_edit: Actualiza los datos de este estudio
       new_breadcrumb: Nuevo
       select_country: Selecciona un pais...
       select_status: Selecciona un estado...

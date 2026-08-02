@@ -277,6 +277,8 @@ en:
     form:
       new_title: New Studio
       edit_title: "Edit %{name}"
+      subtitle_new: Add a production company to the catalog
+      subtitle_edit: Update this studio's details
       new_breadcrumb: New
       select_country: Select country...
       select_status: Select status...
