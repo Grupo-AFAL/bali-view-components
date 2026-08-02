@@ -88,8 +88,19 @@ Two things are worth knowing:
   and does *not* make anything inert. It is an ordinary positioned box that the stacking
   scale already orders, so the package leaves popups inside it alone.
 - If you portal an overlay of your own to `<body>` and open it from inside a modal dialog,
-  it will hit the same wall. `topLayerHost` and `enterTopLayer` are exported for that; they
-  are not private to the package.
+  it will hit the same wall. The three functions are published for exactly that:
+
+  ```js
+  import { topLayerHost, enterTopLayer, leaveTopLayer } from 'bali-view-components/utils'
+
+  const host = topLayerHost(triggerElement)
+  if (host) enterTopLayer(myPopup, host)   // on open
+  leaveTopLayer(myPopup)                   // on close; idempotent, safe if it never entered
+  ```
+
+  `enterTopLayer` returns `false` when the browser has no Popover API — the signal to leave
+  your widget alone rather than reparent it half-way, since a reparented popup with no top
+  layer inherits the dialog's fixed containing block and lands off-screen on a scrolled page.
 
 ## What is not covered yet
 
