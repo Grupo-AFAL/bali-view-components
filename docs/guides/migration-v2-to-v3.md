@@ -1026,6 +1026,16 @@ Every overlay used to invent its own z-index. The full inventory, before and aft
 `@layer utilities` classes and a host utility on the same element ties and sorts after.
 Nothing about escaping the scale got harder.
 
+**`Bali::HoverCard::Component::DEFAULT_Z_INDEX` is gone, and `z_index:` now defaults to
+`nil`.** The constant was `9999`. Referencing it raises `NameError`, and there is deliberately
+nothing to replace it with: hardcoding the scale's top value in Ruby is exactly what breaks
+the moment a host moves the scale. `z_index: nil` means "read `--bali-z-hovercard` at
+connect", which is what you want; pass a number only to pin one hovercard outside the scale.
+
+```bash
+grep -rn "DEFAULT_Z_INDEX" app/
+```
+
 ### Moving the scale, or slotting into it
 
 The tokens are declared `:where(:root)` inside `@layer theme`, which is the weakest place
@@ -2909,6 +2919,12 @@ error over the hits it did find. And the ones with `-A2` / `-A6` need that conte
 because a component render wraps: `grep -rn "StatCard::Component" app/ | grep icon_name`
 finds only the call sites written on one line, which on the largest app in the group was 12
 of the 45 that are actually there.
+
+That window buys recall at the cost of some precision, and it is written that way on purpose:
+a false positive costs you a glance, a false negative costs you a broken page after the
+upgrade. Measured on that same app, the `-A6` recipes returned no extra hits at all, but the
+two `-A2` FormBuilder ones returned 12 lines for 9 real call sites. **Read the output as a
+list of places to look at, not as a count of places to change.**
 
 ```
 grep -rn "with_actions_panel\|with_export\|table_id:\|data_display_mode\|toolbar_class:" app/
