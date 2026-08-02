@@ -105,4 +105,87 @@ describe('TooltipController', () => {
       cy.get(balloon).should('not.exist')
     })
   })
+
+  // tippy MOVES what it is handed, so passing it `template.content` emptied the `<template>`
+  // on the first connect. Nothing noticed while the node stayed put; move the same node in
+  // the DOM and the second `connect` re-read an empty template, tripped the empty guard, and
+  // rebuilt neither the balloon nor the tab stop (#803). Anything that relocates the element
+  // instead of replacing it with fresh markup lands here — a reordered list, a node pulled
+  // out and put back, a morph that keeps the element and reconnects its controllers.
+  context('a tooltip whose node is moved in the DOM', () => {
+    // The invariant the fix rests on, and the cheapest thing to assert: after connecting,
+    // the `<template>` still holds what the server rendered.
+    it('leaves the template populated after connecting', () => {
+      cy.visit('/bali/tooltip/help_tip')
+      cy.get('.help-tip .trigger').should('have.attr', 'tabindex', '0')
+
+      cy.get('.help-tip template[data-tooltip-target="content"]').should($tpl => {
+        expect($tpl[0].content.textContent).to.contain('this is the help tip content')
+      })
+    })
+
+    // The issue's exact scenario: take the element out and put it back, which is a real
+    // Stimulus disconnect + connect over the same node.
+    it('rebuilds the balloon after the element is removed and re-inserted', () => {
+      cy.visit('/bali/tooltip/help_tip')
+      cy.get('.help-tip .trigger').should('have.attr', 'tabindex', '0')
+
+      cy.get('.help-tip').then($el => {
+        const el = $el[0]
+        const parent = el.parentNode
+        const next = el.nextSibling
+        parent.removeChild(el)
+        // Stimulus disconnects on the next microtask; re-inserting in the same tick would
+        // not exercise a reconnect at all.
+        cy.wrap(null).wait(100).then(() => parent.insertBefore(el, next))
+      })
+
+      // The tab stop is `makeTriggerFocusable` having run again, so it pins the whole of
+      // `connect` re-running, not just tippy.
+      cy.get('.help-tip .trigger').should('have.attr', 'tabindex', '0')
+
+      cy.get('.help-tip .trigger').focus()
+      cy.get(balloon).should('be.visible')
+        .and('contain', 'this is the help tip content')
+    })
+
+    // The same defect through the door an app actually walks in: reordering siblings moves
+    // the nodes rather than re-rendering them, and Stimulus does treat that as a reconnect —
+    // measured, reversing a row of three controllers reports 3 disconnects and 3 connects
+    // even though every move happens in one tick.
+    it('rebuilds every balloon after the tooltips are reordered', () => {
+      cy.visit('/bali/tooltip/all_placements')
+      cy.get('.tooltip-component').should('have.length', 4)
+
+      // tippy numbers its instances, so the id is what tells a rebuilt balloon apart from
+      // the one the first connect left behind.
+      const idsBefore = []
+      cy.get('.tooltip-component .trigger').each($t => idsBefore.push($t[0]._tippy.id))
+
+      cy.get('.tooltip-component').then($els => {
+        const parent = $els[0].parentNode
+        // Reverse the row: every tooltip is moved, so every controller reconnects.
+        Cypress.$($els).get().reverse().forEach(el => parent.appendChild(el))
+      })
+
+      // The reconnect settles asynchronously — Stimulus dispatches off a MutationObserver
+      // and `connect` awaits the tippy import. Asserting straight after the reorder reads
+      // the instances the first connect built and passes against the broken code too, so
+      // wait until every trigger carries an instance that did not exist before the move.
+      cy.get('.tooltip-component .trigger').should($ts => {
+        const idsAfter = Cypress.$($ts).get().map(t => t._tippy?.id)
+        expect(idsAfter, 'every balloon rebuilt').to.have.length(4)
+        idsAfter.forEach(id => {
+          expect(id, 'a new tippy instance').to.be.a('number')
+          expect(idsBefore, 'not the instance from the first connect').to.not.include(id)
+        })
+      })
+
+      cy.get('.tooltip-component').each($el => {
+        cy.wrap($el).find('.trigger').focus()
+        cy.get(balloon).should('be.visible')
+        cy.wrap($el).find('.trigger').blur()
+      })
+    })
+  })
 })
