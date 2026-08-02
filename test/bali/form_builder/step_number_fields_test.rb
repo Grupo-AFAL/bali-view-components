@@ -105,14 +105,33 @@ class BaliFormBuilderStepNumberFieldsTest < FormBuilderTestCase
     assert_html(result, "button.btn-disabled.pointer-events-none[disabled]", count: 2)
   end
 
-  def test_step_number_field_when_disabled_does_not_add_data_actions_to_disabled_buttons
-    result = builder.step_number_field(:duration, disabled: true)
-    refute_html(result, "button[disabled][data-action]")
-  end
-
   def test_step_number_field_when_disabled_renders_disabled_input
     result = builder.step_number_field(:duration, disabled: true)
     assert_html(result, "input[disabled]")
+  end
+
+  # The controller declares both buttons as required targets, so dropping them from a
+  # disabled field made `connect` raise and left the controller unattached.
+
+  def test_step_number_field_when_disabled_still_renders_the_subtract_target
+    result = builder.step_number_field(:duration, disabled: true)
+    assert_html(result, 'button[disabled][data-step-number-input-target="subtract"]')
+  end
+
+  def test_step_number_field_when_disabled_still_renders_the_add_target
+    result = builder.step_number_field(:duration, disabled: true)
+    assert_html(result, 'button[disabled][data-step-number-input-target="add"]')
+  end
+
+  def test_step_number_field_when_disabled_still_renders_the_stimulus_actions
+    result = builder.step_number_field(:duration, disabled: true)
+    assert_html(result, 'button[disabled][data-action*="step-number-input#subtract"]')
+    assert_html(result, 'button[disabled][data-action*="step-number-input#add"]')
+  end
+
+  def test_step_number_field_when_disabled_still_merges_custom_data_attributes
+    result = builder.step_number_field(:duration, disabled: true, add_data: { confirm: "Sure?" })
+    assert_html(result, 'button[disabled][data-confirm="Sure?"]')
   end
 
   # custom button class

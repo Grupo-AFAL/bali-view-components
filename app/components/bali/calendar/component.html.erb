@@ -1,40 +1,38 @@
 <div class="calendar-component">
-  <div class="card bg-base-100 shadow <%= month_view? ? 'month-view' : 'week-view' %>">
-    <div class="card-body">
-      <%= header %>
-      <div class="overflow-x-auto">
-        <table class="table table-fixed w-full">
-          <thead>
-            <tr>
-              <% date_range.first(header_day_count).each do |day| %>
-                <%# `p-2 border-none` are utilities here, not only index.css's
-                    `.table th` rule: daisyUI styles `.table` cells from
-                    @layer utilities, which beats the component sheet. %>
-                <th class="text-center text-base-content/70 font-normal text-lg p-2 border-none">
-                  <%= t('date.day_names')[day.wday] %>
-                </th>
-              <% end %>
-            </tr>
-          </thead>
-          <tbody>
-            <% date_range.each_slice(7) do |week| %>
-              <%= content_tag :tr, class: tr_classes_for(week) do %>
-                <% filter_week(week).each do |day| %>
-                  <%= content_tag :td, class: td_classes_for(day) do %>
-                    <% if show_date %>
-                      <div class="<%= date_display_classes %>"><%= day.day %></div>
-                    <% end %>
-                    <% if template.present? %>
-                      <%= render template, events: sorted_events[day], period: period, day: day %>
-                    <% end %>
+  <%= render Bali::Card::Component.new(class: card_class) do %>
+    <%= header %>
+    <div class="overflow-x-auto">
+      <table class="table table-fixed w-full">
+        <thead>
+          <tr>
+            <% date_range.first(header_day_count).each do |day| %>
+              <%# `p-2 border-none` are utilities here, not only index.css's
+                  `.table th` rule: daisyUI styles `.table` cells from
+                  @layer utilities, which beats the component sheet. %>
+              <th class="text-center text-base-content/70 font-normal text-lg p-2 border-none">
+                <%= t('date.day_names')[day.wday] %>
+              </th>
+            <% end %>
+          </tr>
+        </thead>
+        <tbody>
+          <% date_range.each_slice(7) do |week| %>
+            <%= content_tag :tr, class: tr_classes_for(week) do %>
+              <% filter_week(week).each do |day| %>
+                <%= content_tag :td, class: td_classes_for(day) do %>
+                  <% if show_date %>
+                    <div class="<%= date_display_classes %>"><%= day.day %></div>
+                  <% end %>
+                  <% if template.present? %>
+                    <%= render template, events: sorted_events[day], period: period, day: day %>
                   <% end %>
                 <% end %>
               <% end %>
             <% end %>
-          </tbody>
-        </table>
-      </div>
-      <%= footer %>
+          <% end %>
+        </tbody>
+      </table>
     </div>
-  </div>
+    <%= footer %>
+  <% end %>
 </div>
