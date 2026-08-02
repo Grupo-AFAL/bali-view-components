@@ -55,8 +55,8 @@
   <section>
     <h3 class="text-lg font-semibold mb-3">With Icons</h3>
     <div class="flex flex-wrap items-center gap-2">
-      <%= render Bali::Link::Component.new(name: 'Icon left', href: '#', variant: :primary, icon_name: 'arrow-left') %>
-      <%= render Bali::Link::Component.new(href: '#', variant: :secondary, icon_name: 'settings') %>
+      <%= render Bali::Link::Component.new(name: 'Icon left', href: '#', variant: :primary, icon: 'arrow-left') %>
+      <%= render Bali::Link::Component.new(href: '#', variant: :secondary, icon: 'settings') %>
       <%= render Bali::Link::Component.new(name: 'Icon right', href: '#', variant: :accent) do |c|
         c.with_icon_right('arrow-right')
       end %>

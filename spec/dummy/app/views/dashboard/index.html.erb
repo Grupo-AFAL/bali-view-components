@@ -1,10 +1,10 @@
-<%# Dashboard - Showcases: PageHeader, Card, Icon, Chart, Timeline, Notification, Tag, Button, Level, InfoLevel, Heatmap %>
+<%# Dashboard - Showcases: PageHeader, Card, Icon, Chart, Timeline, Notification, Tag, Button, StatCard, Heatmap %>
 
 <%# Page Header %>
 <%= render Bali::PageHeader::Component.new(title: t('dashboard.title'), subtitle: t('dashboard.welcome')) do %>
   <div class="flex gap-2">
-    <%= render Bali::Link::Component.new(name: t('dashboard.new_movie'), href: new_movie_path, variant: :primary, icon_name: 'plus') %>
-    <%= render Bali::Link::Component.new(name: t('dashboard.export'), href: '#', variant: :ghost, icon_name: 'download') %>
+    <%= render Bali::Link::Component.new(name: t('dashboard.new_movie'), href: new_movie_path, variant: :primary, icon: 'plus') %>
+    <%= render Bali::Link::Component.new(name: t('dashboard.export'), href: '#', variant: :ghost, icon: 'download') %>
   </div>
 <% end %>
 
@@ -138,25 +138,22 @@
   <% end %>
 <% end %>
 
-<%# Quick Actions Level %>
+<%# Quick Actions. A plain flex row: this is what Bali::Level was, and what its
+    deprecation message tells a host to write instead. %>
 <div class="mt-6">
   <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <%= render Bali::Level::Component.new do |level| %>
-      <% level.with_left do %>
-        <div>
-          <h3 class="font-semibold"><%= t('dashboard.quick_actions') %></h3>
-          <p class="text-sm text-base-content/60"><%= t('dashboard.common_tasks') %></p>
-        </div>
-      <% end %>
-      <% level.with_right do %>
-        <div class="flex flex-wrap gap-2">
-          <%= render Bali::Link::Component.new(name: t('dashboard.add_movie'), href: new_movie_path, variant: :primary, size: :sm) %>
-          <%= render Bali::Link::Component.new(name: t('dashboard.view_all_movies'), href: movies_path, variant: :ghost, size: :sm) %>
-          <%= render Bali::Link::Component.new(name: t('navbar.settings'), href: settings_path, variant: :ghost, size: :sm) %>
-          <%= render Bali::Link::Component.new(name: t('navbar.lookbook'), href: '/lookbook', variant: :ghost, size: :sm, target: '_blank') %>
-        </div>
-      <% end %>
-    <% end %>
+    <div class="flex justify-between items-center gap-4 max-sm:flex-col max-sm:items-start">
+      <div>
+        <h3 class="font-semibold"><%= t('dashboard.quick_actions') %></h3>
+        <p class="text-sm text-base-content/60"><%= t('dashboard.common_tasks') %></p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <%= render Bali::Link::Component.new(name: t('dashboard.add_movie'), href: new_movie_path, variant: :primary, size: :sm) %>
+        <%= render Bali::Link::Component.new(name: t('dashboard.view_all_movies'), href: movies_path, variant: :ghost, size: :sm) %>
+        <%= render Bali::Link::Component.new(name: t('navbar.settings'), href: settings_path, variant: :ghost, size: :sm) %>
+        <%= render Bali::Link::Component.new(name: t('navbar.lookbook'), href: '/lookbook', variant: :ghost, size: :sm, target: '_blank') %>
+      </div>
+    </div>
   <% end %>
 </div>
 
@@ -195,28 +192,14 @@
   <% end %>
 </div>
 
-<%# InfoLevel Component Demo %>
+<%# Key figures. A grid of StatCard, which is what Bali::InfoLevel's deprecation
+    message points at and what Bali::DashboardPage#with_stat renders. %>
 <div class="mt-6">
-  <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <h3 class="card-title text-lg mb-4"><%= t('dashboard.info_level') %></h3>
-    <%= render Bali::InfoLevel::Component.new(align: :between) do |info| %>
-      <% info.with_item do |i| %>
-        <% i.with_heading(t('dashboard.total_revenue')) %>
-        <% i.with_title('$1,234,567') %>
-      <% end %>
-      <% info.with_item do |i| %>
-        <% i.with_heading(t('dashboard.avg_budget')) %>
-        <% i.with_title('$50,000') %>
-      <% end %>
-      <% info.with_item do |i| %>
-        <% i.with_heading(t('dashboard.completion_rate')) %>
-        <% i.with_title('78%') %>
-      <% end %>
-      <% info.with_item do |i| %>
-        <% i.with_heading(t('dashboard.active_users')) %>
-        <% i.with_title('1,234') %>
-      <% end %>
-    <% end %>
+  <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, cols_lg: 4, gap: :lg) do %>
+    <%= render Bali::StatCard::Component.new(title: t('dashboard.total_revenue'), value: '$1,234,567', icon: 'banknote', color: :success) %>
+    <%= render Bali::StatCard::Component.new(title: t('dashboard.avg_budget'), value: '$50,000', icon: 'wallet', color: :info) %>
+    <%= render Bali::StatCard::Component.new(title: t('dashboard.completion_rate'), value: '78%', icon: 'circle-check', color: :primary) %>
+    <%= render Bali::StatCard::Component.new(title: t('dashboard.active_users'), value: '1,234', icon: 'users', color: :accent) %>
   <% end %>
 </div>
 

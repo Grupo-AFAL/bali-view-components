@@ -4,7 +4,7 @@
   title: t('movies.title'),
   subtitle: t('movies.subtitle'),
   breadcrumbs: [
-    { name: t('navbar.dashboard'), href: admin_root_path, icon_name: 'home' },
+    { name: t('navbar.dashboard'), href: admin_root_path, icon: 'home' },
     { name: t('movies.title') }
   ]
 ) do |page| %>
@@ -13,7 +13,7 @@
       name: t('movies.new_movie'),
       href: new_admin_movie_path,
       variant: :primary,
-      icon_name: 'plus'
+      icon: 'plus'
     ) %>
   <% end %>
 

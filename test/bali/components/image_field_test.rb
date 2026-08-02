@@ -161,7 +161,7 @@ class BaliImageFieldInputComponentTest < ComponentTestCase
 
   def test_custom_icon_renders_custom_icon
     helper.form_with(url: "/") do |form|
-      render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar, icon_name: "upload"))
+      render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar, icon: "upload"))
     end
     assert_selector("label svg", visible: :all)
   end

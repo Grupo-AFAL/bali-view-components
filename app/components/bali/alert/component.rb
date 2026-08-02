@@ -136,7 +136,7 @@ module Bali
       # `auto` column, so without it the button sits against the text.
       def close_button
         Bali::Button::Component.new(
-          icon_name: "x",
+          icon: "x",
           variant: :ghost,
           size: :sm,
           responsive: false,
