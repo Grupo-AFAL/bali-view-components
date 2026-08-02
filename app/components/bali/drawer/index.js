@@ -1,5 +1,4 @@
 import { ModalController } from '../modal/index.js'
-import { autoFocusInput } from '../../../assets/javascripts/bali/utils/form.js'
 
 // Hardcoded instead of letting `dispatch` default to `this.identifier`, so the
 // public event name stays put when a host registers this controller under a
@@ -17,6 +16,11 @@ const SIZE_CLASSES = {
 
 const DEFAULT_SIZE = 'md'
 
+// Everything the drawer does beyond naming its own open class, size map and
+// data attributes is inherited: opening, closing, the focus trap, the
+// confirm-on-close guards (flatpickr included) and `submit`. The two overlays
+// used to carry near-identical copies of all of it, which is why the same bug
+// had to be fixed twice.
 export class DrawerController extends ModalController {
   // Splits `bali:drawer:open` off `bali:modal:open` so a page carrying both
   // overlays does not open them at once. `bali:modal:success` is deliberately
@@ -25,134 +29,41 @@ export class DrawerController extends ModalController {
     return EVENT_PREFIX
   }
 
+  get openClass () {
+    return 'drawer-open'
+  }
+
+  get sizeClasses () {
+    return SIZE_CLASSES
+  }
+
+  get sizeAttribute () {
+    return 'data-drawer-size'
+  }
+
+  get sizeOptionKey () {
+    return 'drawerSize'
+  }
+
+  get idAttribute () {
+    return 'data-drawer-id'
+  }
+
   async connect () {
     this.setupListeners(`${this.eventPrefix}:open`)
-
-    // Store original skeleton content for restoration on close
-    if (this.hasContentTarget) {
-      this._originalContent = this.contentTarget.innerHTML
-    }
 
     // Store the default size class from the panel
     this._defaultSizeClass = SIZE_CLASSES[DEFAULT_SIZE]
   }
 
-  disconnect () {
-    this.removeListeners(`${this.eventPrefix}:open`)
-  }
-
-  // Override to use drawer-open class instead of modal-open
-  openModal (content) {
-    // A freshly opened drawer starts clean
-    this._dirty = false
-
-    this.previouslyFocusedElement = document.activeElement
-
-    if (this.wrapperClasses) {
-      this.wrapperTarget.classList.add(...this.wrapperClasses)
-    }
-
-    // Apply dynamic size class if specified
-    if (this.drawerSize && SIZE_CLASSES[this.drawerSize]) {
-      this._applySize(this.drawerSize)
-    }
-
-    this.templateTarget.classList.add('drawer-open')
-
-    // Only replace content if provided - allows showing skeleton first
-    if (content !== null && content !== undefined) {
-      this.contentTarget.innerHTML = content
-      autoFocusInput(this.contentTarget)
-      this.trapFocus()
-    }
-  }
-
-  _applySize (size) {
-    const sizeClass = SIZE_CLASSES[size]
-    if (!sizeClass) return
-
-    // Remove all size classes first
-    Object.values(SIZE_CLASSES).forEach(cls => {
-      this.wrapperTarget.classList.remove(cls)
-    })
-
-    // Apply the new size class
-    this.wrapperTarget.classList.add(sizeClass)
-    this._currentSizeClass = sizeClass
-  }
-
+  // Unlike the modal, whose panel has no width of its own, the drawer panel
+  // renders with a default size class that has to come back when a sized open
+  // is closed.
   _restoreDefaultSize () {
-    if (this._currentSizeClass) {
+    if (this._currentSizeClass && this.hasWrapperTarget) {
       this.wrapperTarget.classList.remove(this._currentSizeClass)
       this.wrapperTarget.classList.add(this._defaultSizeClass)
       this._currentSizeClass = null
     }
-  }
-
-  _closeModal = () => {
-    this.templateTarget.classList.remove('drawer-open')
-    if (this.wrapperClasses) {
-      this.wrapperTarget.classList.remove(...this.wrapperClasses)
-    }
-
-    // Restore default size
-    this._restoreDefaultSize()
-
-    // Restore original skeleton content for next open
-    if (this._originalContent) {
-      this.contentTarget.innerHTML = this._originalContent
-    } else {
-      this.contentTarget.innerHTML = ''
-    }
-
-    // Clean up focus trap
-    if (this.wrapperTarget) {
-      this.wrapperTarget.removeEventListener('keydown', this.handleTabKey)
-    }
-
-    // Restore focus to the element that triggered the drawer
-    if (this.previouslyFocusedElement) {
-      this.previouslyFocusedElement.focus()
-      this.previouslyFocusedElement = null
-    }
-  }
-
-  // `close()`, `_onOverlayClick()` and the confirm/flatpickr guards are
-  // inherited from ModalController — the drawer only overrides the parts that
-  // differ (the `drawer-open` class and size map).
-
-  // Override open to dispatch `bali:drawer:open` with the skeleton shown first
-  open = async (event) => {
-    event.preventDefault()
-    const target = event.currentTarget
-
-    const wrapperClasses = this.normalizeClass(
-      target.getAttribute('data-wrapper-class')
-    )
-    const redirectTo = target.getAttribute('data-redirect-to')
-    const skipRender = Boolean(target.getAttribute('data-skip-render'))
-    const extraProps = JSON.parse(target.getAttribute('data-extra-props'))
-    const drawerSize = target.getAttribute('data-drawer-size')
-
-    // Show drawer immediately with skeleton (content already in template)
-    this._dispatchOpen({
-      content: null, // Don't replace content - show existing skeleton
-      options: { wrapperClasses, redirectTo, skipRender, extraProps, drawerSize }
-    })
-
-    // Fetch actual content
-    const response = await fetch(this._buildURL(target.href))
-    const body = await response.text()
-
-    if (response.redirected) {
-      this._replaceBodyAndURL(body, response.url)
-      return
-    }
-
-    // Replace skeleton with actual content
-    this._dispatchOpen({
-      content: body,
-      options: { wrapperClasses, redirectTo, skipRender, extraProps, drawerSize }
-    })
   }
 }

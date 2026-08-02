@@ -3,7 +3,7 @@
 
   <%= form_with url: '#', method: :post, builder: Bali::FormBuilder, local: true do |f| %>
     <div class="space-y-4">
-      <%= f.text_field_group :name,
+      <%= f.text_group :name,
           label: t('modals.form.name'),
           placeholder: t('modals.form.name_placeholder') %>
 

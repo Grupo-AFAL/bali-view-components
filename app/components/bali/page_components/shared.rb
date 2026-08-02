@@ -36,7 +36,13 @@ module Bali
       # Las keyword args que este concern se queda. Un componente que además recibe opciones
       # sueltas de HTML (DocumentPage) las reparte con `slice`/`except` sobre esta lista en
       # vez de repetir la firma.
-      PAGE_OPTIONS = %i[title subtitle breadcrumbs back max_width sidebar_width].freeze
+      PAGE_OPTIONS = %i[title subtitle breadcrumbs back max_width sidebar_width context].freeze
+
+      # Where the page is being rendered. `:auto` asks the request; the other two state it,
+      # which is what lets a test or a Lookbook preview pin the variant without simulating a
+      # drawer fetch, and what keeps the component a function of its arguments when the host
+      # wants it to be.
+      CONTEXTS = %i[auto page drawer].freeze
 
       # Un solo hueco entre el encabezado (o el nav) y el cuerpo. Antes eran `mt-4` en
       # IndexPage, `mt-6` en ShowPage/FormPage/DocumentPage y ninguno en DashboardPage.
@@ -58,17 +64,31 @@ module Bali
       # Firma compartida de los cinco. Un componente que agrega argumentos propios los
       # declara y llama a `super` con el resto.
       def initialize(title:, subtitle: nil, breadcrumbs: [], back: nil, max_width: nil,
-                     sidebar_width: :default)
+                     sidebar_width: :default, context: :auto)
         @title = title
         @subtitle = subtitle
         @breadcrumbs = breadcrumbs.map(&:symbolize_keys)
         @back = back
+        @context = resolve_context(context)
         @max_width_key = (max_width || default_max_width).to_sym
         @max_width = MAX_WIDTHS.fetch(@max_width_key) do
           raise ArgumentError,
                 "Unknown max_width: #{@max_width_key.inspect}. Valid: #{MAX_WIDTHS.keys.join(', ')}"
         end
         @sidebar_width = resolve_sidebar_width(sidebar_width)
+      end
+
+      # Whether this page is rendering as the contents of a Modal or a Drawer. Public, and
+      # yielded with the component, because the host's own markup inside the body sometimes
+      # has to follow: a Cancel that closes an overlay is not a Cancel that navigates away,
+      # and no amount of page chrome can decide that for it.
+      #
+      # Memoised rather than computed in the constructor: `helpers` needs a view context,
+      # which a component only has from `render` onwards.
+      def drawer?
+        return @drawer if defined?(@drawer)
+
+        @drawer = context == :auto ? drawer_request? : context == :drawer
       end
 
       # Acciones SECUNDARIAS de la página: viven en el ⋯ al lado de la primaria. Se guardan
@@ -99,7 +119,37 @@ module Bali
 
       private
 
-      attr_reader :title, :subtitle, :breadcrumbs, :back, :max_width
+      attr_reader :title, :subtitle, :breadcrumbs, :max_width, :context
+
+      # Breadcrumbs and the back button are the two ways OUT of a page, and a drawer is not a
+      # page you leave — you close it. Both are therefore chrome the context owns, not values
+      # the caller can rescue by passing them: the whole point is that ONE call site works in
+      # both places, and the canonical call site passes `back:`. The escape hatch for a drawer
+      # that genuinely wants page chrome is `context: :page`, which restores all of it.
+      def back
+        @back unless drawer?
+      end
+
+      def render_breadcrumbs?
+        breadcrumbs.any? && !drawer?
+      end
+
+      # The component never reads `params`: it asks the host, through
+      # `Bali::LayoutConcern#drawer_request?`. That indirection is the point — an app that
+      # already declares a `drawer_request?` helper of its own, which is the very pattern this
+      # replaces, is detected without touching a line of its controllers, and a view context
+      # that declares no such helper (a Lookbook preview, a unit test) renders as a page.
+      def drawer_request?
+        helpers.respond_to?(:drawer_request?) && helpers.drawer_request?
+      end
+
+      def resolve_context(value)
+        key = (value || :auto).to_sym
+        return key if CONTEXTS.include?(key)
+
+        raise ArgumentError,
+              "Unknown context: #{value.inspect}. Valid: #{CONTEXTS.join(', ')}"
+      end
 
       def secondary_action_items
         @secondary_action_items ||= []
@@ -185,11 +235,11 @@ module Bali
       end
 
       def breadcrumb_spacer_class
-        "mt-1" unless breadcrumbs.empty?
+        "mt-1" if render_breadcrumbs?
       end
 
       def render_breadcrumbs
-        return if breadcrumbs.empty?
+        return unless render_breadcrumbs?
 
         render(Bali::Breadcrumb::Component.new) do |bc|
           breadcrumbs.each { |crumb| bc.with_item(**crumb) }

@@ -216,7 +216,7 @@ registerControllers(application)
 ### FormBuilder Methods Not Found
 
 **Symptoms:**
-- `undefined method 'text_field_group' for #<ActionView::Helpers::FormBuilder>`
+- `undefined method 'text_group' for #<ActionView::Helpers::FormBuilder>`
 
 **Cause:** Not using Bali's FormBuilder.
 
@@ -224,7 +224,7 @@ registerControllers(application)
 
 ```erb
 <%= form_with model: @user, builder: Bali::FormBuilder do |f| %>
-  <%= f.text_field_group :name %>
+  <%= f.text_group :name %>
 <% end %>
 ```
 
@@ -249,7 +249,7 @@ ActionView::Base.default_form_builder = Bali::FormBuilder
 
    ```erb
    <%# This shows errors %>
-   <%= f.text_field_group :email %>
+   <%= f.text_group :email %>
 
    <%# This does NOT show errors %>
    <%= f.text_field :email %>

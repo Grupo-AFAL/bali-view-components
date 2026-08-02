@@ -17,9 +17,9 @@
           <%= tag.input(
                 type: "text",
                 id: search_input_id,
-                name: @search[:field_name],
-                value: @search[:value],
-                placeholder: @search[:placeholder],
+                name: search_field_name,
+                value: search_value,
+                placeholder: search_placeholder,
                 "aria-label": search_label,
                 autocomplete: "off",
                 data: { "1p-ignore": "", lpignore: "true", "form-type": "other" },

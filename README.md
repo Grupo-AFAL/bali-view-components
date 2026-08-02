@@ -117,7 +117,7 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 `Avatar`, `BooleanIcon`, `Chart`, `DataTable`, `Heatmap`, `Icon`, `ImageGrid`, `InfoLevel`, `LabelValue`, `List`, `LocationsMap`, `Progress`, `PropertiesTable`, `Rate`, `Skeleton`, `StatCard`, `Table`, `Tag`, `Tags`, `Timeago`, `Timeline`, `TreeView`
 
 ### Interactive
-`ActionsDropdown`, `BulkActions`, `Button`, `Carousel`, `Clipboard`, `ConfirmDialog`, `DeleteLink`, `Filters`, `HoverCard`, `Kanban`, `Link`, `Reveal`, `SearchInput`, `SortableList`, `Tooltip`
+`ActionsDropdown`, `BulkActions`, `Button`, `Carousel`, `Clipboard`, `ConfirmDialog`, `DeleteLink`, `Filters`, `HoverCard`, `Kanban`, `Link`, `Reveal`, `SortableList`, `Tooltip`
 
 ### Feedback
 `FeedbackWidget`, `FlashNotifications`, `Loader`, `Message`, `Notification`
@@ -270,7 +270,6 @@ The gem is available as open source under the terms of the [MIT License](https:/
 | RecurrentEventRuleForm | ✓ | - | ✓ |
 | Reveal | ✓ | ✓ | ✓ |
 | RichTextEditor | ✓ | - | - |
-| SearchInput | ✓ | ✓ | ✓ |
 | ShowPage | ✓ | - | ✓ |
 | SideMenu | ✓ | ✓ | ✓ |
 | Skeleton | ✓ | - | ✓ |

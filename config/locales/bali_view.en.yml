@@ -327,9 +327,6 @@ en:
       clear_image: Clear image
     loader:
       loading: Loading...
-    search_input:
-      placeholder: Search...
-      submit: "Search"
     turbo_native_app:
       sign_out:
         name: Sign out

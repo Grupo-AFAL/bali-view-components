@@ -326,9 +326,6 @@ es:
       clear_image: Borrar imagen
     loader:
       loading: Cargando...
-    search_input:
-      placeholder: Buscar...
-      submit: "Buscar"
     turbo_native_app:
       sign_out:
         name: Cerrar sesión

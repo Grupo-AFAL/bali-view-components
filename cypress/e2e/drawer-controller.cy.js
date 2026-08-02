@@ -40,6 +40,29 @@ describe('DrawerController', () => {
       cy.get('.drawer-open').should('exist')
       cy.get('.drawer-open #form-error').should('have.text', 'Name is required')
     })
+
+    // The error branch used to route through `openModal`, which resets the dirty
+    // flag. So a failed submit disarmed the confirm-on-close at the exact moment
+    // the form held the most unsaved input.
+    it('still guards the unsaved form after a failed submit', () => {
+      cy.intercept('POST', '/fake/submit*', {
+        statusCode: 422,
+        headers: { 'Content-Type': 'text/html' },
+        body: '<form action="/fake/submit" data-turbo="true"><p id="form-error">Name is required</p></form>'
+      }).as('submit')
+
+      cy.get('#name').type('Something worth keeping')
+      cy.get('[data-action="drawer#submit"]').click()
+      cy.wait('@submit')
+      cy.get('#form-error').should('exist')
+
+      // The re-rendered error body has nothing focusable, so focus falls back to
+      // the panel — which is what keeps Escape reaching the drawer at all.
+      cy.focused().type('{esc}', { force: true })
+
+      cy.get('dialog[data-bali-confirm]').should('be.visible')
+      cy.get('.drawer-open').should('exist')
+    })
   })
 
   context('confirm on close (unsaved changes)', () => {

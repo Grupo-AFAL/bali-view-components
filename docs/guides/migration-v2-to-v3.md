@@ -109,6 +109,10 @@ Bali.deprecator.silence { ... }                              # or scope one exce
 | `Bali::Icon::DefaultIcons` | nothing — see [The icon fallback is gone](#the-icon-fallback-is-gone) |
 | `Bali::GanttChart::*` (component and sub-components) | nothing in v3 — see [The Gantt chart is gone](#the-gantt-chart-is-gone) |
 | The `bali-view-components/gantt` npm entry | nothing — remove the import |
+| `Bali::SearchInput::Component` | `f.search_field_group` — see [Quick search has one shape](#quick-search-has-one-shape) |
+| `Bali::Utils::DummyFilterForm` | nothing — it existed to feed the `SearchInput` preview |
+| `Bali::FilterForm#simple_search_config` | `#search_config`, the one builder both filter surfaces take |
+| `search: { field_name: … }` on `SimpleFilters` | `search: { fields: […] }` |
 
 `Bali::FilterForm.simple_filter` is **deprecated, not removed** — it still declares the
 filter and now warns. It goes away in v4; migrate at your own pace:
@@ -798,6 +802,73 @@ three of the five raised `ArgumentError` for *any* key, because they had no `max
 
 `sidebar_width:` is new and shared: `:default` gives the sidebar a third of the grid,
 `:narrow` a quarter, `:wide` a half. Below `lg` it always stacks under the body.
+
+### `context:` — one view for the page and for the drawer
+
+The five page components take a `context:`, and it is what lets you delete the
+`if drawer_request?` at the top of every `new`/`edit`/`show` template. Nothing is renamed and
+nothing is removed, so **a host that keeps its `if` keeps working unchanged** — this is worth
+doing when you next touch the file, not as a migration sweep.
+
+```erb
+<%# v2 — the two branches differ by exactly two arguments %>
+<% if drawer_request? %>
+  <%= render Bali::FormPage::Component.new(title: t(".title"), card: false) do |page| %>
+    <% page.with_body do %><%= render "form" %><% end %>
+  <% end %>
+<% else %>
+  <%= render Bali::FormPage::Component.new(title: t(".title"),
+                                           back: { href: vendors_path }) do |page| %>
+    <% page.with_body do %><%= render "form" %><% end %>
+  <% end %>
+<% end %>
+
+<%# v3 — one call, both contexts %>
+<%= render Bali::FormPage::Component.new(title: t(".title"),
+                                         back: { href: vendors_path }) do |page| %>
+  <% page.with_body do %><%= render "form" %><% end %>
+<% end %>
+```
+
+`context:` takes three values:
+
+| value | meaning |
+|---|---|
+| `:auto` | the default: ask the request |
+| `:page` | full page chrome, whatever the request says |
+| `:drawer` | overlay chrome, whatever the request says |
+
+Inside a drawer the component drops the **breadcrumbs**, the **back button** and — on
+`FormPage` — the **Card**. The first two are ways *out* of a page, and a drawer is closed
+rather than left; the Card is the panel the drawer already draws. They are dropped even when
+you pass them, because the whole point is that the one surviving call site does pass `back:`.
+
+**Why the component never reads `params`.** `Bali::LayoutConcern` now defines
+`drawer_request?` — `params[:layout] == "false"`, the same value its layout switch has always
+read — and exposes it as a helper. `context: :auto` asks the view context for that helper and
+renders a page when it is not there. Two consequences worth knowing:
+
+- **If your controllers already declare a `drawer_request?` helper of their own — the very
+  pattern this replaces — autodetection works with no change to them at all.** That is the
+  common case: the helper is what the deleted `if` was calling.
+- If they do not, `include Bali::LayoutConcern` in `ApplicationController`. A controller with
+  a layout of its own must then declare it as `self.conditional_layout = "admin"` rather than
+  `layout "admin"`: a `layout` call in a subclass overrides the concern's and takes the
+  layout skipping with it.
+
+**The escape hatches.** `card:` is an ordinary argument and always wins, `card: true` inside
+a drawer included. For the breadcrumbs and the back button the escape hatch is
+`context: :page`, which restores the whole page chrome inside a drawer request; combine the
+two (`context: :page, card: false`) and every arrangement is reachable.
+
+**When the host still has to branch.** `page.drawer?` is public and yielded with the
+component, because some differences are behavioural rather than chrome: a Cancel that
+*closes* an overlay and a Cancel that *navigates* are two different elements. Pass it down
+(`render "form", drawer: page.drawer?`) instead of reading `params` in the partial. A page
+component decides its own chrome; it does not decide what your buttons do.
+
+Lookbook cannot issue a drawer request, so a preview of the drawer variant has to force it —
+see the "Page or drawer" scenarios of `FormPage` and `ShowPage`.
 
 ### 4. Give `PageHeader` an `h2` if your layout already owns the page's `h1`
 
@@ -2244,6 +2315,134 @@ the count badge beside it. Both refresh together when the page re-renders.
 `SortableList`'s `bali:sortable-list:end` event now also carries `item`, `from`, `to`,
 `oldIndex` and `newIndex` alongside the `order` and `toListId` it always had. Additive —
 existing listeners keep working.
+
+## The FormBuilder gets one family of names
+
+In v2 the wrapper helper was spelled `<type>_field_group` for twenty-three field types
+and `<type>_group` for nine, with no rule telling you which — `select_group` but
+`text_field_group`, `text_area_group` but `date_field_group`. The bare helper was just
+as split: `<type>_field` for most types, the bare Rails name for `text_area`,
+`rich_text_area` and `time_zone_select`, and an invented name for `rich_text` and
+`block_editor`. Bali's own agent instructions carried a lookup table of the exceptions,
+which is the clearest possible sign that the API could not be guessed.
+
+There is one rule in v3:
+
+> **`<type>_group`** renders the control inside its fieldset.
+> **`<type>_field`** renders the bare control.
+
+Nothing else. `select_group` / `select_field` was already right; everything else moved
+to match it.
+
+### The renames
+
+| v2 | v3 | Call sites measured across the eight apps | Deprecation shim |
+|---|---|---|---|
+| `text_field_group` | `text_group` | 329 | yes |
+| `number_field_group` | `number_group` | 88 | yes |
+| `date_field_group` | `date_group` | 57 | yes |
+| `boolean_field_group` | `boolean_group` | 50 | yes |
+| `file_field_group` | `file_group` | 49 | yes |
+| `time_field_group` | `time_group` | 19 | yes |
+| `email_field_group` | `email_group` | 14 | yes |
+| `currency_field_group` | `currency_group` | 12 | yes |
+| `radio_field_group` | `radio_group` | 11 | yes |
+| `date_select_group` | `date_group` | 7 | yes |
+| `password_field_group` | `password_group` | 7 | yes |
+| `switch_field_group` | `switch_group` | 6 | yes |
+| `datetime_field_group` | `datetime_group` | 6 | yes |
+| `url_field_group` | `url_group` | 4 | yes |
+| `percentage_field_group` | `percentage_group` | 4 | yes |
+| `check_box_group` | `boolean_group` | 3 | yes |
+| `month_field_group` | `month_group` | 2 | yes |
+| `datetime_select_group` | `datetime_group` | 0 | **no** |
+| `coordinates_polygon_field_group` | `coordinates_polygon_group` | 0 | **no** |
+| `direct_upload_field_group` | `direct_upload_group` | 0 | **no** |
+| `numeric_field_group` | `numeric_group` | 0 | **no** |
+| `recurrent_event_rule_field_group` | `recurrent_event_rule_group` | 0 | **no** |
+| `step_number_field_group` | `step_number_group` | 0 | **no** |
+| `time_period_field_group` | `time_period_group` | 0 | **no** |
+| `rich_text` | `rich_text_field` | 0 | **no** |
+| `block_editor` | `block_editor_field` | 0 | **no** |
+
+The shim column is the result of counting, not of judgement: every name any of
+afal-apps, ga-apps, gobierno-corporativo, centinela-web, costa-norte, identity, opina
+or bali-auth actually calls warns through `Bali.deprecator` and keeps working for one
+cycle. The seven renames with no measured call site raise `NoMethodError`, which is a
+cheaper signal than a warning for a name nobody has written.
+
+`search_field_group` is **not** renamed. The search input is being reworked under
+issue #677, and moving it here would have landed that work on a name about to change
+again; it joins the convention there.
+
+### The Rails names are not deprecated
+
+`f.text_area`, `f.rich_text_area` and `f.time_zone_select` keep working and keep
+rendering Bali's markup. They are Rails' own helper names, Rails and the gems built on
+it call them positionally, and dropping the overrides would silently downgrade those
+call sites to unstyled controls. `text_area_field`, `rich_text_area_field` and
+`time_zone_select_field` are the canonical spellings; both render the same thing.
+
+### Everything after the field name is a keyword
+
+Six different positional shapes collapse into one. Measured on the same eight apps,
+28 call sites use a shape that has to change:
+
+```erb
+<%# v2: two anonymous positional hashes — which one takes `label:`? %>
+<%= f.select_group :city_id, cities, {}, { class: "w-64" } %>
+<%= f.select_group :status, statuses, { include_blank: "Any", label: "Status" } %>
+<%= f.slim_select_group :tags, tags, { label: "Tags" }, { multiple: true } %>
+
+<%# v3: the field's own options are keywords, the element's attributes are `html:` %>
+<%= f.select_group :city_id, cities, html: { class: "w-64" } %>
+<%= f.select_group :status, statuses, include_blank: "Any", label: "Status" %>
+<%= f.slim_select_group :tags, tags, label: "Tags", html: { multiple: true } %>
+```
+
+The three select families (`select_*`, `slim_select_*`, `time_zone_select_*`) accept
+the v2 positional pair for one cycle and warn, because at 399 measured call sites for
+`select_group` and `slim_select_group` alone they are the busiest surface in the
+builder. Note that the shim reads a *trailing keyword* hash as the v2 `html_options`,
+which is what `f.select_group :x, values, {}, class: "w-64"` meant — reading it as the
+field's options instead would move `class:` off the `<select>` without saying so.
+
+The trailing positional values go the same way, and reaching the second one no longer
+means spelling out the hash before it:
+
+```erb
+<%# v2 %>
+<%= f.boolean_field_group :indie, {}, "yes", "no" %>
+<%= f.radio_buttons_group :plan, values, {}, { class: "mb-4" }, { class: "gap-2" } %>
+
+<%# v3 %>
+<%= f.boolean_group :indie, checked_value: "yes", unchecked_value: "no" %>
+<%= f.radio_buttons_group :plan, values, togglers: { class: "mb-4" }, radios: { class: "gap-2" } %>
+```
+
+`radio_group`, `radio_field`, `radio_buttons_group` and `radio_buttons_field` take the
+keyword form only — none of the eight apps calls them positionally, so there was
+nothing for a shim to protect.
+
+One consequence worth stating plainly: a helper whose options now arrive as `**options`
+rejects an explicit positional hash. `f.text_group :name, opts` raises `ArgumentError`
+where `f.text_field_group :name, opts` worked. Write `f.text_group :name, **opts`.
+
+### What to grep for
+
+```
+# the renames — the shimmed ones warn, the rest raise NoMethodError
+grep -rnE "_field_group|check_box_group|date_select_group|datetime_select_group" app/ test/
+# the positional hashes on the select and radio families
+grep -rnE "\.(select|slim_select|time_zone_select|radio)_(group|field)\b.*, *\{" app/
+# the two bare helpers renamed outright
+grep -rnE "\.(rich_text|block_editor)\b[^_]" app/
+```
+
+Running the app with Bali's deprecations raising rather than logging turns every
+surviving v2 spelling into a failing test instead of a line in the log — see
+[`Bali.deprecator`](#balideprecator).
+
 ## The field caption becomes a `<label for>`, and every control gets a name
 
 A `<legend>` names the `<fieldset>` around a control, never the control itself. Every
@@ -2258,9 +2457,9 @@ emits looks perfect and names nothing:
 
 The caption is a `<label for="<the input's real id>">` in the 18 families that wrap exactly
 one labelable control, and stays a `<legend>` in the groups that hold several:
-`boolean_field_group`, `radio_field_group`, `radio_buttons_group`,
-`coordinates_polygon_field_group`, `block_editor_group`, `rich_text_area_group`,
-`direct_upload_field_group` and `recurrent_event_rule_field_group`. In those, the controls
+`boolean_group`, `radio_group`, `radio_buttons_group`, `coordinates_polygon_group`,
+`block_editor_group`, `rich_text_area_group`, `direct_upload_group` and
+`recurrent_event_rule_group` (v3 names — see the rename table above). In those, the controls
 already carry names of their own, and a second `<label for>` on a control that has one does
 not replace its name — it concatenates with it.
 
@@ -2416,8 +2615,8 @@ to the bare `boolean_field` / `switch_field`, means `text:` today:
 <%# before — one caption asked for, two rendered %>
 <%= f.switch_field_group :email_notifications, label: t(".email_notifications") %>
 
-<%# after %>
-<%= f.switch_field_group :email_notifications, text: t(".email_notifications") %>
+<%# after — note the helper is `switch_group` in v3 %>
+<%= f.switch_group :email_notifications, text: t(".email_notifications") %>
 ```
 
 Leaving `label:` in place is not an error and does not lose the string, but it moves
@@ -2426,7 +2625,7 @@ which is the duplicate again, wearing different words. Keep `label:` only where 
 genuinely want a caption over the group:
 
 ```erb
-<%= f.boolean_field_group :indie, label: "Distribution", text: "This is an indie film" %>
+<%= f.boolean_group :indie, label: "Distribution", text: "This is an indie film" %>
 ```
 
 `text:` is a Bali option, so it is stripped before the hash reaches Rails and never
@@ -2435,7 +2634,7 @@ only alongside a `label:`, or the control ends up with no accessible name at all
 
 The bare `boolean_field` and `switch_field` no longer read `label:` for anything.
 
-### `switch_field_group` and `range_field_group` render through the same wrapper now
+### `switch_group` and `range_group` render through the same wrapper now
 
 Both used to build a `<fieldset>` by hand. They go through `FieldGroupWrapper` like
 the other seventeen families, which changes their markup:
@@ -2445,7 +2644,7 @@ the other seventeen families, which changes their markup:
   model on one page were indistinguishable;
 - both gain `tooltip:`, `label: false`, `field_class:` and `field_data:`, which the
   hand-rolled wrappers never supported;
-- `range_field_group`'s caption loses `text-sm font-medium`. It is a plain
+- `range_group`'s caption loses `text-sm font-medium`. It is a plain
   `.fieldset-legend` now, like every other group's. **If you relied on that weight,
   style `.fieldset-legend` yourself.**
 
@@ -2459,8 +2658,10 @@ form stops matching**, which is the bug going away, not a regression.
 
 ## Currency and percentage follow the locale, and lose their inert `step`
 
-`currency_field_group` and `percentage_field_group` are one implementation now
-(`numeric_field_group`), and three things change.
+`currency_group` and `percentage_group` are one implementation now (`numeric_group`),
+and three things change. Both also gain the bare half they never had — `currency_field`,
+`percentage_field` and `numeric_field` — so an amount can be rendered outside a fieldset
+without hand-rolling the `inputmode` and the locale pattern.
 
 **The `pattern` is built from the active locale.** It was the frozen English literal
 `^(\d+|\d{1,3}(,\d{3})*)(\.\d+)?$`, so an amount typed the correct Spanish way —
@@ -2511,6 +2712,81 @@ inline SVG data URI now.
 
 Nothing to change unless you were passing `placeholder_url:` — that still works — or
 asserting on the old URL in a test. The placeholder art itself changes.
+
+## Quick search has one shape
+
+Quick search had four implementations. The `Filters` panel took the columns and built
+the Ransack parameter itself; `SimpleFilters` took the parameter already written out;
+`FilterForm` shipped a builder for each of those two shapes; and `SavedViews` wrote the
+`_or_` join and the `_cont` suffix a fourth time. They agreed by convention only, and a
+listing moving between the two filter surfaces silently lost whichever options the other
+shape did not understand.
+
+**Declare the columns. Bali builds the parameter.**
+
+```ruby
+# v2 — SimpleFilters
+<% dt.with_simple_filters(search: { field_name: "q[name_or_email_cont]", value: params.dig(:q, :name_or_email_cont) }) %>
+
+# v3 — the same hash the Filters panel takes
+<% dt.with_simple_filters(search: { fields: %i[name email], value: params.dig(:q, :name_or_email_cont) }) %>
+```
+
+The full shape is `fields:`, `value:`, `placeholder:`, `label:`, `icon:` and `width:`,
+and **both** components honour all six now. Anything else raises `ArgumentError` rather
+than rendering a box that submits nothing — including `field_name:`, whose message spells
+the replacement out. `Bali::RansackParamName.predicate([:name, :email])` and `.param(…)`
+are the public way to build `name_or_email_cont` and `q[name_or_email_cont]` yourself if
+you need the string somewhere else.
+
+Run these:
+
+```bash
+grep -rn "field_name:" app/                       # → fields: [:col, :other_col]
+grep -rn "simple_search_config" app/              # → search_config (it carries icon: now)
+grep -rn "SearchInput" app/ test/                 # → f.search_field_group, see below
+grep -rn "DummyFilterForm" app/ test/ spec/       # → gone with the SearchInput preview
+```
+
+### `Bali::SearchInput` is deleted
+
+It was never wired into `Filters`, `SimpleFilters` or `DataTable` — each of those renders
+its own box — so it only ever served hosts rendering it directly. Its replacement is the
+FormBuilder's `search_field_group`, which emits the same text input and the same icon
+submit button from the same form object, and adds the caption the component never had:
+
+```erb
+<%# v2 %>
+<%= form_with url: movies_path, method: :get do |f| %>
+  <%= render Bali::SearchInput::Component.new(form: @filter_form, field: :name_cont,
+                                              placeholder: "Search movies...") %>
+<% end %>
+
+<%# v3 — note builder: Bali::FormBuilder %>
+<%= form_with model: @filter_form, url: movies_path, method: :get, builder: Bali::FormBuilder do |f| %>
+  <%= f.search_field_group :name_cont, placeholder: "Search movies..." %>
+<% end %>
+```
+
+The submitted parameter is unchanged: with a `FilterForm` (whose `model_name` is `q`) both
+emit `q[name_cont]`.
+
+`auto_submit: true` was the variant with no button, submitting on input. Drop the addon and
+point the input at the `submit-on-change` controller, which is what the component did
+internally:
+
+```erb
+<%= form_with model: @filter_form, url: movies_path, method: :get,
+              builder: Bali::FormBuilder, data: { controller: "submit-on-change" } do |f| %>
+  <%= f.search_field_group :name_cont, addon_right: nil,
+        data: { action: "submit-on-change#submit" } %>
+<% end %>
+```
+
+Both variants are rendered live on the dummy app's `/showcase`. The
+`bali_view.search_input.*` strings go with the component; `search_field_group` has its own
+under `bali_view.form_builder.search.*`, which already existed. `.search-input-component`
+had no CSS behind it, so no stylesheet changes.
 
 ## One dropdown, and `popover:` stops meaning "no keyboard"
 
@@ -2686,6 +2962,9 @@ grep -rn "NumericAttributesWithCommas\|gsub(\",\"" app/models/   # drop your own
 # dynamic_fields: these are <button> now
 grep -rn "link_to_add_fields\|link_to_remove_fields" app/ test/
 grep -rn "placehold.jp" app/ test/                   # ImageField's placeholder is a data URI
+# quick search: one shape, and SearchInput is gone
+grep -rn "field_name:\|simple_search_config" app/
+grep -rn "SearchInput\|DummyFilterForm" app/ test/ spec/
 # dropdowns: one vocabulary, and popover: renders the same menu as the CSS one
 grep -rn "Dropdown::Component.new" app/ | grep -E "wide:|align: :(left|right|top|bottom|top_end|bottom_end)"
 grep -rn "Dropdown::Component.new" app/ | grep -v "align:"   # these move from :right to :start

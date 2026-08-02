@@ -19,19 +19,16 @@ module Admin
 
     def new
       @studio = Studio.new
-      render layout: !drawer_request?
     end
 
-    def edit
-      render layout: !drawer_request?
-    end
+    def edit; end
 
     def create
       @studio = Studio.new(studio_params)
       if @studio.save
         redirect_to admin_studios_path, notice: 'Studio was successfully created.'
       else
-        render :new, layout: !drawer_request?, status: :unprocessable_content
+        render :new, status: :unprocessable_content
       end
     end
 
@@ -39,7 +36,7 @@ module Admin
       if @studio.update(studio_params)
         redirect_to admin_studios_path, notice: 'Studio was successfully updated.'
       else
-        render :edit, layout: !drawer_request?, status: :unprocessable_content
+        render :edit, status: :unprocessable_content
       end
     end
 

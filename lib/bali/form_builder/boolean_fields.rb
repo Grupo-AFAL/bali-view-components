@@ -41,17 +41,22 @@ module Bali
       # That caption stays a `<legend>` even then: `boolean_field` wraps the
       # checkbox in a `<label>` of its own, and a second `<label for>` on the
       # same control does not replace that name, it concatenates with it.
-      def boolean_field_group(method, options = {}, checked_value = "1", unchecked_value = "0")
+      #
+      # `checked_value:` and `unchecked_value:` are keywords rather than the
+      # trailing positional pair they used to be. Reaching the second one meant
+      # spelling out both the options hash and the first value, so binding a
+      # `"yes"`/`"no"` column read `f.boolean_field_group :indie, {}, "yes", "no"`.
+      def boolean_group(method, checked_value: "1", unchecked_value: "0", **options)
         @template.render Bali::FieldGroupWrapper::Component.new(
           self, method, options.merge(control_id: false, label: options.fetch(:label, false))
         ) do
-          boolean_field(method, options, checked_value, unchecked_value)
+          boolean_field(
+            method, checked_value: checked_value, unchecked_value: unchecked_value, **options
+          )
         end
       end
 
-      alias check_box_group boolean_field_group
-
-      def boolean_field(method, options = {}, checked_value = "1", unchecked_value = "0")
+      def boolean_field(method, checked_value: "1", unchecked_value: "0", **options)
         label_options = build_label_options(options)
         checkbox_options = build_checkbox_options(method, options)
 

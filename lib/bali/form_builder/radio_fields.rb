@@ -44,15 +44,20 @@ module Bali
       # The caption stays a `<legend>`, which is what a legend is actually for:
       # the group holds one radio per value, each already named by its own
       # `<label>`, and there is no single control a `for` could point at.
-      def radio_field_group(method, values, options = {}, html_options = {})
+      #
+      # `html:` is what each `<input type="radio">` carries — including the
+      # daisyUI variants `size:` and `color:`, and `orientation:`, which this
+      # family reads there rather than on the group.
+      def radio_group(method, values, html: {}, **options)
         @template.render Bali::FieldGroupWrapper::Component.new(
           self, method, options.merge(control_id: false)
         ) do
-          radio_field(method, values, options, html_options)
+          radio_field(method, values, html: html, **options)
         end
       end
 
-      def radio_field(method, values, options = {}, html_options = {})
+      def radio_field(method, values, html: {}, **options)
+        html_options = html
         label_class = build_radio_label_class(html_options)
         radio_opts = build_radio_input_options(method, html_options, options)
         orientation = html_options.fetch(:orientation, DEFAULT_ORIENTATION).to_sym
@@ -69,23 +74,25 @@ module Bali
         field_helper(method, field, options)
       end
 
-      def radio_buttons_group(method, values, options = {}, togglers_options = {},
-                              radios_options = {})
+      # The only family that took three positional hashes. `togglers:` and
+      # `radios:` name the two that were anonymous. No compatibility shim for the
+      # positional form: none of the eight applications that render this builder
+      # calls this helper at all.
+      def radio_buttons_group(method, values, togglers: {}, radios: {}, **options)
         @template.render Bali::FieldGroupWrapper::Component.new(
           self, method, options.merge(control_id: false)
         ) do
-          radio_buttons_field(method, values, options, togglers_options, radios_options)
+          radio_buttons_field(method, values, togglers: togglers, radios: radios, **options)
         end
       end
 
-      def radio_buttons_field(method, values, options = {}, togglers_options = {},
-                              radios_options = {})
+      def radio_buttons_field(method, values, togglers: {}, radios: {}, **options)
         current_value = extract_current_value(values, options)
         control_options = build_control_options(options, current_value)
 
         field = safe_join(
-          [ render_togglers(values, togglers_options, current_value),
-           render_grouped_radios(method, values, radios_options) ]
+          [ render_togglers(values, togglers, current_value),
+           render_grouped_radios(method, values, radios) ]
         )
 
         field_helper(method, field, control_options)

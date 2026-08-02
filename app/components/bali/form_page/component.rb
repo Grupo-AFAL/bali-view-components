@@ -7,12 +7,19 @@ module Bali
 
       self.default_max_width = :md
 
-      def initialize(card: true, **options)
+      def initialize(card: nil, **options)
         super(**options)
         @card = card
       end
 
+      # `nil` — the default — hands the decision to the context: a page gets the Card, a
+      # drawer does not, because the drawer's own panel already IS that card. Unlike `back:`
+      # and the breadcrumbs, an explicit value always wins here, `card: true` inside a drawer
+      # included: a Card is decoration a caller can legitimately want in either place, not a
+      # way out of the page.
       def card?
+        return !drawer? if @card.nil?
+
         @card
       end
 

@@ -190,11 +190,29 @@ Use the correct component based on **what the element does**, not how it looks:
 |-----------|-------|---------|
 | `PageHeader` back | `back: path` | `back: { href: path }` |
 | `Table` rows | `with_body_row` / `with_cell` | `with_row do` + raw `<td>` tags |
-| `FormBuilder` select | `select_field_group` | `select_group` |
-| `FormBuilder` textarea | `text_area_field_group` | `text_area_group` |
 | `SlimSelect` HTML | inline HTML | `data-inner-html` attribute on options |
 | Non-model form select param key | expecting `name:` to namespace | `input_name:`/`input_id:` in `select_group`/`slim_select_group` options |
 | Drawer/Modal form partial updates | full-page redirect only | respond with `text/vnd.turbo-stream.html` + `data-turbo="true"` on the form — streams are applied and the drawer/modal closes on success |
+
+## FormBuilder naming
+
+There is nothing to look up: **`<type>_group`** renders the control inside its fieldset,
+**`<type>_field`** renders the bare control, and everything after the attribute is a
+keyword. `text_group`/`text_field`, `select_group`/`select_field`,
+`text_area_group`/`text_area_field`. Attributes for the element itself go in `html:` on
+the four families that have two hashes (`select_*`, `slim_select_*`,
+`time_zone_select_*`, `radio_*`).
+
+Two exceptions worth knowing, neither of which needs a lookup table:
+
+- `search_field_group` still carries the v2 spelling, pending #677.
+- `f.text_area`, `f.rich_text_area` and `f.time_zone_select` are Rails' names, kept as
+  overrides so they keep rendering Bali's markup. Not deprecated; prefer the
+  `<type>_field` spelling in new code.
+
+The v2 `*_field_group` names still resolve for one cycle where a host app actually used
+them, warning through `Bali.deprecator` — see `lib/bali/form_builder/deprecated_names.rb`.
+Do not write them in new code.
 
 ## Icons
 

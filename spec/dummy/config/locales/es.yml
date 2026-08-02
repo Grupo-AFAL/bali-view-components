@@ -55,7 +55,7 @@ es:
   # falls back to. Normally a host gets these from rails-i18n; the dummy does
   # not depend on it, so without this block `es` silently used English formats
   # and there was no way to exercise the locale-aware pattern that
-  # `currency_field_group` and `percentage_field_group` build, nor the parsing
+  # `currency_group` and `percentage_group` build, nor the parsing
   # in Bali::Concerns::NumericAttributesWithCommas.
   #
   # This lives in the dummy on purpose. The gem must not ship `number.format`
@@ -281,7 +281,7 @@ es:
     calendar: Calendario
     calendar_desc: Vista de calendario mensual/semanal con visualizacion de eventos.
     search_input: Campo de Busqueda
-    search_input_desc: Campo de busqueda con funcionalidad de envio automatico opcional.
+    search_input_desc: Campo de busqueda con envio automatico opcional, construido con el FormBuilder.
     with_submit_button: Con Boton de Enviar
     search_products: Buscar productos...
     auto_submit: Envio automatico (sin boton)

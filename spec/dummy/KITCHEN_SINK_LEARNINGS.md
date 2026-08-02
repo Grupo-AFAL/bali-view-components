@@ -48,12 +48,12 @@ _No major issues - Tabs, PropertiesTable, Timeline, and Rate components worked w
 
 #### Learning 3: FormBuilder API Variety
 - **Component(s)**: `Bali::FormBuilder`
-- **Issue/Learning**: The FormBuilder has a rich set of field helpers (`text_field_group`, `select_group`, `switch_field_group`, `radio_field_group`, `text_area_group`, `date_field_group`, `currency_field_group`, `email_field_group`, `url_field_group`, `time_zone_select_group`, `number_field_group`).
+- **Issue/Learning**: The FormBuilder has a rich set of field helpers (`text_group`, `select_group`, `switch_group`, `radio_group`, `text_area_group`, `date_group`, `currency_group`, `email_group`, `url_group`, `time_zone_select_group`, `number_group`).
 - **Impact**: Positive - comprehensive coverage
 - **Suggestion**: A quick reference guide listing all available field helpers with examples would be valuable
 
 #### Learning 4: Radio Field Orientation
-- **Component(s)**: `radio_field_group`
+- **Component(s)**: `radio_group`
 - **Issue/Learning**: Radio fields support `orientation: :horizontal` or `:vertical` via html_options (4th argument), not via the options hash.
 - **Impact**: Minor confusion about which argument hash to use
 - **Suggestion**: Consider documenting the parameter order clearly: `method, values, options, html_options`

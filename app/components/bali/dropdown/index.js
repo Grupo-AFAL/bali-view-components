@@ -78,6 +78,13 @@ export class DropdownController extends Controller {
       offset: [0, 4],
       placement: this.placementValue,
       zIndex: zIndexFor('dropdown'),
+      // tippy's box defaults to `role="tooltip"`, and a menu inside a tooltip is not a
+      // thing: read back from Chromium's accessibility tree, the panel came out as
+      // `tooltip > menu "Dropdown menu"`. The box is chrome; the roles belong to the list
+      // the server rendered. It needs no other aria told to it — tippy leaves
+      // `aria-expanded` alone because the trigger already carries one, and skips
+      // `aria-describedby` because an interactive popper is not a description.
+      role: 'presentation',
       // The popper box stays unstyled: the panel carries its own background, radius,
       // shadow and padding in both modes, so there is one look to maintain, not two.
       onShow: this.onPopoverShow,
