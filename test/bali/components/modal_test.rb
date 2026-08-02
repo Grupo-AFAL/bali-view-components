@@ -44,9 +44,26 @@ class BaliModalComponentTest < ComponentTestCase
     assert_selector('div.modal[aria-modal="true"]')
   end
 
-  def test_accessibility_has_aria_labelledby_pointing_to_title
-    render_inline(Bali::Modal::Component.new(id: "test-modal"))
+  # Focus has to land somewhere inside the panel while the skeleton is showing,
+  # and at that point the panel holds nothing focusable of its own.
+  def test_accessibility_panel_is_focusable_for_the_skeleton_phase
+    render_inline(Bali::Modal::Component.new)
+    assert_selector('div.modal-box[tabindex="-1"]')
+  end
+
+  def test_accessibility_has_aria_labelledby_when_header_slot_is_used
+    render_inline(Bali::Modal::Component.new(id: "test-modal")) do |modal|
+      modal.with_header(title: "Test")
+    end
     assert_selector('div.modal[aria-labelledby="test-modal-title"]')
+    assert_selector("#test-modal-title", text: "Test")
+  end
+
+  # The header slot is the only thing that puts `title_id` on the DOM, so
+  # without one the attribute named an element that was never rendered.
+  def test_accessibility_does_not_have_aria_labelledby_when_header_slot_is_not_used
+    render_inline(Bali::Modal::Component.new(id: "test-modal"))
+    assert_no_selector("div.modal[aria-labelledby]")
   end
 
   def test_accessibility_has_aria_describedby_when_body_slot_is_used

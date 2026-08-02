@@ -75,6 +75,13 @@ class BaliDrawerComponentTest < ComponentTestCase
     assert_selector(".drawer-panel.bg-base-100.shadow-2xl")
   end
 
+  # Focus has to land somewhere inside the panel while the skeleton is showing,
+  # and at that point the panel holds nothing focusable of its own.
+  def test_structure_panel_is_focusable_for_the_skeleton_phase
+    render_inline(component)
+    assert_selector('.drawer-panel[tabindex="-1"]')
+  end
+
   def test_unique_ids_generates_unique_drawer_id_by_default
     render_inline(component)
     id = page.find('[role="dialog"]')["id"]

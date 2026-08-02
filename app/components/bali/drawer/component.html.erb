@@ -5,7 +5,8 @@
     aria-hidden="true"></div>
   <div class="<%= panel_classes %> <%= panel_open_class %> max-md:group-[.drawer-open]:max-w-[85%]"
        data-drawer-target="wrapper"
-       role="document">
+       role="document"
+       tabindex="-1">
     <% if title? %>
       <div class="drawer-header flex items-center justify-between p-4 border-b border-base-200">
         <% if header? %>

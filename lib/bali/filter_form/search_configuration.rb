@@ -86,13 +86,13 @@ module Bali
       #
       # @return [String, nil]
       def search_field_name
-        return nil unless search_enabled?
-
-        "#{search_fields.map(&:to_s).join('_or_')}_cont"
+        RansackParamName.predicate(search_fields)
       end
 
-      # Get the full configuration hash for Filters component.
-      # Used by DataTable to auto-configure the filters_panel.
+      # The `search:` hash every quick-search surface takes -- the Filters
+      # panel and SimpleFilters alike. There used to be a second builder
+      # (`simple_search_config`) because the two components disagreed on the
+      # shape; they no longer do.
       #
       # @return [Hash, nil] Search configuration or nil if not enabled
       def search_config
@@ -100,20 +100,6 @@ module Bali
 
         {
           fields: search_fields,
-          value: search_value,
-          placeholder: search_placeholder
-        }
-      end
-
-      # Get the search configuration hash for SimpleFilters component.
-      # Returns a hash compatible with SimpleFilters::Component's search parameter.
-      #
-      # @return [Hash, nil] Search configuration or nil if not enabled
-      def simple_search_config
-        return nil unless search_enabled?
-
-        {
-          field_name: "q[#{search_field_name}]",
           value: search_value,
           placeholder: search_placeholder,
           icon: search_icon

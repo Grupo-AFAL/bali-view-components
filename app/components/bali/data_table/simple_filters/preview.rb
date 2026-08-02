@@ -115,7 +115,7 @@ module Bali
           ]
 
           search = {
-            field_name: 'q[name_cont]',
+            fields: [:name],
             value: search_text.presence,
             placeholder: 'Search by name...',
             icon: 'search'
@@ -138,7 +138,7 @@ module Bali
         # @param width select { choices: ["w-48 sm:w-96", "w-64 sm:w-full", "flex-1"] }
         def search_only(search_text: '', width: 'w-48 sm:w-96')
           search = {
-            field_name: 'q[name_cont]',
+            fields: [:name],
             value: search_text.presence,
             placeholder: 'Search records...',
             width: width
@@ -307,7 +307,7 @@ module Bali
           ]
 
           search = {
-            field_name: 'q[name_cont]',
+            fields: [:name],
             value: nil,
             placeholder: 'Search...',
             icon: 'search'

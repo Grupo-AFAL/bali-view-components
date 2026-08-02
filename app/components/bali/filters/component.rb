@@ -31,10 +31,13 @@ module Bali
       # @param max_groups [Integer] Maximum number of filter groups allowed
       # @param popover [Boolean] Whether to show filters in a popover (default: true)
       # @param button_text [String] Text for the popover trigger button
-      # @param search [Hash] Quick search configuration
+      # @param search [Hash] Quick search configuration (see Bali::SearchConfig)
       #   - :fields [Array<Symbol>] Fields to search (e.g., [:name, :description])
       #   - :value [String] Current search value from URL params
       #   - :placeholder [String] Placeholder text for search input
+      #   - :label [String] Accessible name for the search input
+      #   - :icon [String] Icon for the submit button (default: "search")
+      #   - :width [String] Width classes for the search box
       # @param storage_id [String] Optional storage ID indicating filters can be persisted
       # @param persist_enabled [Boolean] Whether user has opted into filter persistence
       # @param persistence_toggle [Boolean] Render the bookmark toggle inside this panel
@@ -73,7 +76,7 @@ module Bali
         @max_groups = max_groups
         @popover = popover
         @button_text = button_text
-        @search = search || {}
+        @search = Bali::SearchConfig.wrap(search)
         @storage_id = storage_id
         @persist_enabled = persist_enabled
         @persistence_toggle = persistence_toggle
@@ -105,23 +108,36 @@ module Bali
       end
 
       def search_enabled?
-        @search[:fields].present?
+        @search.enabled?
       end
 
       def search_value
-        @search[:value]
+        @search.value
       end
 
       def search_placeholder
-        @search[:placeholder] || I18n.t("bali_view.filters.search_placeholder")
+        @search.placeholder || I18n.t("bali_view.filters.search_placeholder")
       end
 
-      # Build Ransack field name for multi-field search (e.g., "name_or_genre_cont")
-      def search_field_name
-        return nil unless search_enabled?
+      # An accessible name for the box, when the caller has one better than the
+      # placeholder. Nil drops the attribute rather than emitting an empty one.
+      def search_label
+        @search.label.presence
+      end
 
-        fields = @search[:fields].map(&:to_s).join("_or_")
-        "q[#{fields}_cont]"
+      def search_icon
+        @search.icon.presence || "search"
+      end
+
+      # The width the box WANTS, not a floor: `min-w-0` stays outside it so a
+      # cramped toolbar can still shrink the field instead of overflowing.
+      def search_width
+        @search.width.presence || "w-full sm:w-64"
+      end
+
+      # "q[name_or_genre_cont]"
+      def search_field_name
+        @search.param_name
       end
 
       def active_filter_count
