@@ -1629,10 +1629,7 @@ Metric card showing a title, value, and colored icon — ideal for dashboard KPI
 **Options:**
 - `title` - Metric label (required)
 - `value` - Metric value to display (required)
-- `icon_name` - Bali/Lucide icon name; omit it and the card renders without one (default: nil)
-- `color` - Icon accent: `:primary`, `:secondary`, `:accent`, `:success`, `:warning`, `:error`, `:info` (default: :primary)
-
-- `icon` - Bali/Lucide icon name (required). `icon_name:` still works, warns through `Bali.deprecator`, and goes away in v4
+- `icon` - Bali/Lucide icon name; omit it and the card renders without one (default: nil). `icon_name:` still works, warns through `Bali.deprecator`, and goes away in v4
 - `color` - Icon accent: `:neutral`, `:primary`, `:secondary`, `:accent`, `:info`, `:success`, `:warning`, `:error`, `:ghost` (default: :primary)
 - `custom_color` - Hex icon accent, applied inline instead of the semantic pair (default: nil)
 
@@ -1755,7 +1752,7 @@ Primary interactive element for actions.
 <%= render Bali::Button::Component.new(name: 'Save', variant: :primary) %>
 
 <%# With icon %>
-<%= render Bali::Button::Component.new(name: 'Add', variant: :success, icon_name: 'plus') %>
+<%= render Bali::Button::Component.new(name: 'Add', variant: :success, icon: 'plus') %>
 
 <%# Loading state %>
 <%= render Bali::Button::Component.new(name: 'Processing...', loading: true, disabled: true) %>
@@ -1771,7 +1768,7 @@ Primary interactive element for actions.
 - `variant` - Colour (see the shared taxonomy above)
 - `style` - `:outline` or `:soft`
 - `size` - Size modifier
-- `icon_name` - Left icon name
+- `icon` - Left icon name. `icon_name:` still works, warns through `Bali.deprecator`, and goes away in v4
 - `type` - The HTML attribute: `:button`, `:submit`, `:reset`. Never a look
 - `disabled` - Disable button
 - `loading` - Show loading spinner
@@ -2380,7 +2377,7 @@ Standard empty state: a centered block with an optional icon in a soft circle, a
   <% empty_state.with_cta do %>
     <%= render Bali::Link::Component.new(
           name: t('.new'), href: new_thing_path,
-          icon_name: 'plus', variant: :primary, size: :sm) %>
+          icon: 'plus', variant: :primary, size: :sm) %>
   <% end %>
 <% end %>
 ```
@@ -2506,7 +2503,7 @@ Document-centric page with a three-panel layout: table of contents, read-only Bl
     <%= render Bali::Tag::Component.new(text: 'Published', color: :success, size: :sm) %>
   <% end %>
   <% page.with_action do %>
-    <%= render Bali::Link::Component.new(name: 'Edit', href: edit_document_path(@document), variant: :ghost, icon_name: 'pencil') %>
+    <%= render Bali::Link::Component.new(name: 'Edit', href: edit_document_path(@document), variant: :ghost, icon: 'pencil') %>
   <% end %>
   <% page.with_metadata do %>
     <p>Owner: Ana</p>
@@ -2540,7 +2537,7 @@ one adds.
 **Options:**
 - `title` - Page title (required)
 - `subtitle` - Text under the title (default: nil)
-- `breadcrumbs` - Array of `{ name:, href:, icon_name: }` hashes (default: [])
+- `breadcrumbs` - Array of `{ name:, href:, icon: }` hashes (default: [])
 - `back` - Back link, e.g. `{ href: path }` (default: nil)
 - `max_width` - Content width: `:sm` (`max-w-xl`), `:md` (`max-w-3xl`), `:lg`
   (`max-w-5xl`), `:xl` (`max-w-7xl`), `:"2xl"` (`max-w-screen-2xl`) or `:full`. The default
@@ -2570,7 +2567,7 @@ Dashboard layout with page header, stat cards grid, and a body area for charts a
 ```erb
 <%= render Bali::DashboardPage::Component.new(title: 'Dashboard', subtitle: 'Welcome back, Ana') do |page| %>
   <% page.with_action do %>
-    <%= render Bali::Button::Component.new(name: 'Export', variant: :ghost, icon_name: 'download') %>
+    <%= render Bali::Button::Component.new(name: 'Export', variant: :ghost, icon: 'download') %>
   <% end %>
   <% page.with_stat(label: 'Total Movies', value: '1,234', icon: 'film', color: :primary) %>
   <% page.with_stat(label: 'Revenue', value: '$45.2K', icon: 'dollar-sign', color: :success, change: '+12.5%') %>
@@ -2595,10 +2592,10 @@ Standard listing page with breadcrumbs, title, action buttons, and a body area f
 <%= render Bali::IndexPage::Component.new(
   title: 'Movies',
   subtitle: '24 movies total',
-  breadcrumbs: [{ name: 'Dashboard', href: root_path, icon_name: 'home' }, { name: 'Movies' }]
+  breadcrumbs: [{ name: 'Dashboard', href: root_path, icon: 'home' }, { name: 'Movies' }]
 ) do |page| %>
   <% page.with_action do %>
-    <%= render Bali::Link::Component.new(name: 'New Movie', href: new_movie_path, variant: :primary, icon_name: 'plus') %>
+    <%= render Bali::Link::Component.new(name: 'New Movie', href: new_movie_path, variant: :primary, icon: 'plus') %>
   <% end %>
   <% page.with_body do %>
     <%# DataTable goes here %>
@@ -2629,7 +2626,7 @@ Record detail page with breadcrumbs, title with tags, actions, and an optional t
     <%= render Bali::Tag::Component.new(text: 'Released', color: :success, size: :sm) %>
   <% end %>
   <% page.with_action do %>
-    <%= render Bali::Link::Component.new(name: 'Edit', href: edit_movie_path(@movie), variant: :ghost, icon_name: 'pencil') %>
+    <%= render Bali::Link::Component.new(name: 'Edit', href: edit_movie_path(@movie), variant: :ghost, icon: 'pencil') %>
   <% end %>
   <% page.with_body do %>
     <%= render Bali::Card::Component.new(style: :bordered) { 'Details...' } %>
@@ -2738,7 +2735,7 @@ deserve a button of its own — export, import, print.
   <% end %>
 
   <% page.with_export(url: movies_path) %>
-  <% page.with_secondary_action(name: 'Import', icon_name: 'upload', href: import_movies_path) %>
+  <% page.with_secondary_action(name: 'Import', icon: 'upload', href: import_movies_path) %>
 
   <% page.with_body do %>
     <%# DataTable goes here %>
@@ -2747,7 +2744,7 @@ deserve a button of its own — export, import, print.
 ```
 
 `with_secondary_action(**options, &block)` takes the same options as
-`Bali::Dropdown#with_item` (`href:`, `icon_name:`, `method:`, `tag: :link | :button |
+`Bali::Dropdown#with_item` (`href:`, `icon:`, `method:`, `tag: :link | :button |
 :title`, `authorized:`), because it *is* an item of that dropdown. The `⋯` is not rendered
 when nothing is declared — a button that opens an empty menu is a bug.
 

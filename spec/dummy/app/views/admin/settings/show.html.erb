@@ -4,7 +4,7 @@
   title: t('settings.title'),
   subtitle: t('settings.subtitle'),
   breadcrumbs: [
-    { name: t('navbar.dashboard'), href: admin_root_path, icon_name: 'home' },
+    { name: t('navbar.dashboard'), href: admin_root_path, icon: 'home' },
     { name: t('settings.title') }
   ],
   max_width: :xl,
@@ -198,14 +198,14 @@
                   name: t('settings.export_data'),
                   variant: :ghost,
                   size: :sm,
-                  icon_name: 'download',
+                  icon: 'download',
                   responsive: false
                 ) %>
               <%= render Bali::Button::Component.new(
                   name: t('settings.delete_account'),
                   variant: :error,
                   size: :sm,
-                  icon_name: 'trash-2',
+                  icon: 'trash-2',
                   responsive: false
                 ) %>
             </div>

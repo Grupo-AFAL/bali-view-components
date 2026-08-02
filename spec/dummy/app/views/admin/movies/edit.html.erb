@@ -4,7 +4,7 @@
   title: "#{t('movies.form.edit_title')}: #{@movie.name}",
   subtitle: t('movies.form.subtitle_edit'),
   breadcrumbs: [
-    { name: t('navbar.dashboard'), href: admin_root_path, icon_name: 'home' },
+    { name: t('navbar.dashboard'), href: admin_root_path, icon: 'home' },
     { name: t('navbar.movies'), href: admin_movies_path },
     { name: @movie.name, href: admin_movie_path(@movie) },
     { name: t('common.edit') }

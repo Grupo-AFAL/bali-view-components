@@ -27,7 +27,7 @@ module Bali
         )
       end
 
-      # `icon:` takes an icon name as well as `true`, which is what `icon_name:` used to be
+      # `icon:` takes an icon name as well as `true`, which is what `icon:` used to be
       # for. One keyword now says both whether and which.
       # @param icon text
       def with_named_icon(icon: 'circle-x')

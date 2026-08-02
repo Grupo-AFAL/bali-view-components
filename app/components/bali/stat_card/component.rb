@@ -3,6 +3,8 @@
 module Bali
   module StatCard
     class Component < ApplicationViewComponent
+      include Bali::DeprecatedIconName
+
       # Keyed by Bali::Color::NAMES. Spelled out because Tailwind only emits a
       # class it can find literally in a source file.
       COLORS = {
@@ -18,9 +20,6 @@ module Bali
       }.freeze
 
       DEFAULT_COLOR = :primary
-
-      ICON_NAME_DEPRECATION = "Bali::StatCard::Component `icon_name:` is deprecated. " \
-                              "Use `icon:`."
 
       renders_one :footer
 
@@ -71,16 +70,6 @@ module Bali
       private
 
       attr_reader :title, :value, :icon, :color, :options
-
-      # `icon_name:` has to stay in the signature rather than being deleted:
-      # **options becomes HTML attributes, so a missed call site would render
-      # `icon_name="users"` on the card and no icon, with nothing to read.
-      def deprecated_icon_name(icon_name)
-        return if icon_name.blank?
-
-        Bali.deprecator.warn(ICON_NAME_DEPRECATION)
-        icon_name
-      end
     end
   end
 end

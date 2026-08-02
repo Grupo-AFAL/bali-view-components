@@ -54,7 +54,7 @@ class BaliBreadcrumbComponentTest < ComponentTestCase
 
   def test_with_icons_renders_breadcrumb_items_with_icons
     render_inline(Bali::Breadcrumb::Component.new) do |c|
-      c.with_item(name: "Home", href: "/home", icon_name: "home")
+      c.with_item(name: "Home", href: "/home", icon: "home")
     end
     assert_selector("li a", text: "Home")
     assert_selector("li a svg")
@@ -62,7 +62,7 @@ class BaliBreadcrumbComponentTest < ComponentTestCase
 
   def test_with_icons_renders_icon_on_non_link_items
     render_inline(Bali::Breadcrumb::Component.new) do |c|
-      c.with_item(name: "Current", icon_name: "home")
+      c.with_item(name: "Current", icon: "home")
     end
     assert_selector("li span", text: "Current")
     assert_selector("li span svg")

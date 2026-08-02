@@ -73,21 +73,7 @@ class BaliStatCardComponentTest < ComponentTestCase
     assert_includes(component.private_methods, :icon)
   end
 
-  # `icon_name:` has to stay in the signature rather than be deleted: **options
-  # becomes HTML attributes, so a missed call site would render
-  # `icon_name="users"` on the card, with no icon and nothing to read.
-  def test_icon_name_still_works_and_warns
-    captured = []
-    previous = Bali.deprecator.behavior
-    Bali.deprecator.behavior = ->(message, *) { captured << message }
-
-    render_inline(Bali::StatCard::Component.new(**default_attrs.except(:icon), icon_name: "users"))
-
-    assert_includes(captured.join("\n"), "`icon_name:` is deprecated")
-    assert_selector("svg")
-  ensure
-    Bali.deprecator.behavior = previous
-  end
+  # The `icon_name:` shim lives in test/bali/deprecated_icon_name_test.rb, with the other six.
 
   def test_private_attribute_readers_has_private_color_reader
     component = Bali::StatCard::Component.new(**default_attrs)

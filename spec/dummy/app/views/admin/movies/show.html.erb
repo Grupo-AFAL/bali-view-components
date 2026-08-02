@@ -3,7 +3,7 @@
 <%= render Bali::ShowPage::Component.new(
   title: @movie.name,
   breadcrumbs: [
-    { name: t('movies.show.dashboard'), href: admin_root_path, icon_name: 'home' },
+    { name: t('movies.show.dashboard'), href: admin_root_path, icon: 'home' },
     { name: t('movies.title'), href: admin_movies_path },
     { name: @movie.name }
   ],
@@ -25,7 +25,7 @@
       name: t('movies.show.edit'),
       href: edit_admin_movie_path(@movie),
       variant: :ghost,
-      icon_name: 'pencil'
+      icon: 'pencil'
     ) %>
   <% end %>
   <% page.with_action do %>

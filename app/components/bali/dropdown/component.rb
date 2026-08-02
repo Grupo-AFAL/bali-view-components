@@ -3,6 +3,8 @@
 module Bali
   module Dropdown
     class Component < ApplicationViewComponent
+      include Bali::DeprecatedIconName
+
       # daisyUI 5 splits a dropdown's position along two axes and gives each its own class.
       # This component used to fold both into one `align:` keyword that could spell four of
       # the twelve combinations, and Bali::ActionsDropdown kept a second, incompatible pair
@@ -44,10 +46,6 @@ module Bali
       WIDE_REMOVED_MESSAGE = "Bali::Dropdown::Component no longer accepts `wide:`. " \
                              "`wide: true` is `width: :xl` (w-80) and `wide: false` is the " \
                              "default `width: :md` (w-52)."
-
-      ITEM_ICON_DEPRECATION = "Bali::Dropdown::Component `with_item(icon_name:)` is " \
-                              "deprecated. Use `icon:`, the one spelling both kinds of " \
-                              "item now take."
 
       renders_one :trigger, Trigger::Component
 
@@ -182,8 +180,7 @@ module Bali
         if method&.to_sym == :delete
           DeleteLink::Component.new(href: href, plain: true, icon: icon, **options)
         else
-          Link::Component.new(method: method, href: href, plain: true,
-                              icon_name: icon, **options)
+          Link::Component.new(method: method, href: href, plain: true, icon: icon, **options)
         end
       end
 
@@ -191,10 +188,7 @@ module Bali
       # (#774). `with_item` translated between them as a bridge; now that one lambda builds
       # both kinds of item there is one keyword, and the old one warns on the way out.
       def item_icon(icon, icon_name)
-        return icon if icon_name.blank?
-
-        Bali.deprecator.warn(ITEM_ICON_DEPRECATION)
-        icon || icon_name
+        icon || deprecated_icon_name(icon_name, on: "with_item")
       end
 
       def section_title?(item)

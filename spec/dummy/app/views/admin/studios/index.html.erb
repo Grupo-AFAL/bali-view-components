@@ -1,7 +1,7 @@
 <%= render Bali::IndexPage::Component.new(
   title: t('studios.title'),
   breadcrumbs: [
-    { name: t('dashboard.title'), href: admin_root_path, icon_name: 'home' },
+    { name: t('dashboard.title'), href: admin_root_path, icon: 'home' },
     { name: t('studios.title') }
   ]
 ) do |page| %>
@@ -10,7 +10,7 @@
       name: t('studios.new_studio'),
       href: new_admin_studio_path,
       variant: :primary,
-      icon_name: 'plus',
+      icon: 'plus',
       data: { action: 'drawer#open', drawer_size: 'lg' }
     ) %>
   <% end %>

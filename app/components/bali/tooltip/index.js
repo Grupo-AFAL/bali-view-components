@@ -34,7 +34,7 @@ export class TooltipController extends Controller {
     this.tippy = tippy(this.triggerTarget, {
       allowHTML: true,
       appendTo: this.appendToOption,
-      content: this.contentTarget.content,
+      content: this.balloonContent,
       placement: this.placementValue,
       trigger: this.triggerValue,
       theme: 'bali',
@@ -42,6 +42,48 @@ export class TooltipController extends Controller {
       offset: [0, 24],
       zIndex: zIndexFor('tooltip')
     })
+  }
+
+  // A copy, because tippy MOVES what it is handed: `setContent` runs `appendChild` on
+  // anything that is an Element or a Fragment (tippy.esm.js:491-502), so handing it
+  // `template.content` emptied the `<template>` on the first connect and left it empty for
+  // good. Nothing noticed while the node stayed put, but the moment the same node is
+  // disconnected and reconnected — a list reordered with `insertBefore`, a node pulled out
+  // and put back, a morph that keeps the element and reconnects its controllers — `connect`
+  // re-read a `<template>` that no longer had anything in it, `isEmpty` returned true, and
+  // neither the balloon nor the tab stop was rebuilt. Measured in Chrome on
+  // `bali/tooltip/help_tip`, removing the element and re-inserting it:
+  //
+  //                          template.content.children | tippy built | tabindex
+  //   page load                                      0 |        true |      "0"
+  //   after re-insert                                0 |       false |     null
+  //
+  // The first row is the defect on its own: the template is already empty once the first
+  // connect returns. Cloning makes it the source of truth every connect reads, and the
+  // three candidates measured out like this, over two connects of the same node:
+  //
+  //                    template survives | balloon on reconnect | nested controller connects
+  //   move (before)                   no |                empty |                  1 of 2
+  //   cloneNode(true)                yes |                 full |                  2 of 2
+  //   template.innerHTML             yes |                 full |                  2 of 2
+  //
+  // Neither copy duplicates an id: a `<template>`'s content is inert and outside the
+  // document, so the balloon's copy is the only one `getElementById` can reach — measured
+  // 1, never 2. `cloneNode` over `innerHTML` because the string route is tippy's other
+  // branch, the one guarded by `allowHTML`: with that flag off it sets `textContent` and a
+  // markup-only balloon (an `<svg>`, an `<img>` — a shape #788 made explicitly supported)
+  // renders as escaped text. Cloning stays on the branch this component already used, and
+  // `direct_upload` and `document_editor` read their templates the same way.
+  //
+  // What a copy cannot carry is a listener a caller attached to a node still inside the
+  // `<template>`; measured, it does not fire. That is the trade, and it is the right way
+  // round: template content is inert markup the document never held, so there was no live
+  // node to hold a reference to. Dropdown is the opposite case and keeps the opposite
+  // symmetry on purpose — its menu IS rendered DOM the reader operates, so it moves the
+  // real node and `disconnect` puts it back. Restoring on exit here would buy nothing: it
+  // would leave the template empty for the whole life of the connection anyway.
+  get balloonContent () {
+    return this.contentTarget.content.cloneNode(true)
   }
 
   // `with_trigger` and no content block is a tooltip with nothing to say, and building a

@@ -10,8 +10,8 @@
   subtitle: 'Reference page demonstrating the standard navbar + sidebar shell.'
 ) do %>
   <div class="flex items-center gap-2">
-    <%= render Bali::Button::Component.new(name: 'Export', variant: :ghost, icon_name: 'download') %>
-    <%= render Bali::Link::Component.new(name: 'New Movie', variant: :primary, icon_name: 'plus', href: new_admin_movie_path) %>
+    <%= render Bali::Button::Component.new(name: 'Export', variant: :ghost, icon: 'download') %>
+    <%= render Bali::Link::Component.new(name: 'New Movie', variant: :primary, icon: 'plus', href: new_admin_movie_path) %>
   </div>
 <% end %>
 

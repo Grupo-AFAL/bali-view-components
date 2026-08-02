@@ -1258,21 +1258,20 @@ replacement.
 
 | v2 | v3 | Where |
 |---|---|---|
-| `icon_name: 'users'` | `icon: 'users'` | `Bali::StatCard`. Deprecated shim warns through `Bali.deprecator`; removed in v4 |
+| `icon_name: 'users'` | `icon: 'users'` | Every component that takes the name of an icon — see "One `icon:` across the library" below. Deprecated shim warns through `Bali.deprecator`; removed in v4 |
 | `color: :default` | `color: :ghost` | `Bali::Timeline::Item`. Also the default, so dropping it entirely works too |
 | `color: :outline` | `color: :primary, class: 'badge-outline'` | `Bali::Timeline::Header`. It named a style, not a colour |
 | `color: '#7c3aed'` | `custom_color: '#7c3aed'` | `Bali::Heatmap`, and each option hash of `Bali::Status` |
 | `color: :chartreuse` (anything unknown) | raises | `Bali::Heatmap`, `Bali::StatCard`, `Bali::Kanban::Column` used to fall back silently |
 
 ```
-grep -rn -A6 "StatCard::Component" app/ | grep icon_name
 grep -rn -A6 "Timeline::\(Item\|Header\)\|with_item\|with_header" app/ | grep -E ":default|:outline"
 grep -rn -A6 "Heatmap::Component" app/ | grep -E "color: *[\"']#"
 ```
 
-`icon_name:` on `Bali::Link`, `Bali::Button` and `Bali::ImageField::Input` did
-**not** change. `StatCard` did, and so did `DeleteLink` — see "One taxonomy for
-every button" below.
+The `icon_name:` row is not `StatCard`'s alone any more: all seven components that take the
+name of an icon spell it `icon:` now. Its own section is next, with the recipe that finds
+them.
 
 ### Heatmap follows the theme now, and that is a visual change
 
@@ -1323,6 +1322,98 @@ are now the single `Bali::PageComponents::Shared::MAX_WIDTHS`, and
 `Bali::StatCard::Component::COLORS` are gone with nothing to put in their place — the
 colour names come from `Bali::Color::NAMES` like everywhere else. None of the apps in the
 group referenced any of them, which is why this is a line and not a section.
+
+## One `icon:` across the library
+
+`icon_name:` meant three different things at once. It was the current API on `Bali::Button`,
+`Bali::Link`, `Bali::Breadcrumb::Item` and `Bali::ImageField::Input`; it was the *deprecated*
+spelling on `Bali::StatCard` and `Bali::DeleteLink`; and on `Dropdown#with_item` it was
+whichever of those two the item turned out to be, because an item becomes a `Link` or a
+`DeleteLink` depending on `method:` and the lambda translated only in the second case.
+Whoever wrote the item could not tell which of the two APIs they were using.
+
+**`icon:` is the one spelling now, everywhere a component is handed the name of an icon.**
+
+```erb
+<%# v2 %>
+<%= render Bali::Button::Component.new(name: 'Add', icon_name: 'plus') %>
+<%= render Bali::Link::Component.new(name: 'Edit', href: path, icon_name: 'pencil') %>
+<%= render Bali::IndexPage::Component.new(title: 'Movies',
+      breadcrumbs: [{ name: 'Dashboard', href: root_path, icon_name: 'home' }]) %>
+
+<%# v3 %>
+<%= render Bali::Button::Component.new(name: 'Add', icon: 'plus') %>
+<%= render Bali::Link::Component.new(name: 'Edit', href: path, icon: 'pencil') %>
+<%= render Bali::IndexPage::Component.new(title: 'Movies',
+      breadcrumbs: [{ name: 'Dashboard', href: root_path, icon: 'home' }]) %>
+```
+
+On `Button` and `Link` the keyword now shares its name with the `with_icon` slot, which is
+deliberate: they were always the same concept, and the slot is simply the form that takes
+options (`with_icon('star', class: 'text-error')`). Given both, the slot wins.
+
+### Nothing breaks on upgrade, and here is the count that decided it
+
+`icon_name:` still works on all seven, warns through `Bali.deprecator`, and is removed in
+4.0. That was measured, not assumed — counted call site by call site across the eight
+applications that render this package, with a six-line window after each render so that a
+keyword sitting on a continuation line is not missed:
+
+| Receiver | Call sites |
+|---|---:|
+| `Bali::Link::Component` | **386** |
+| `Bali::Breadcrumb::Item::Component`, almost all of them through a page's `breadcrumbs:` | **188** |
+| `Bali::StatCard::Component` | 74 |
+| `Bali::Dropdown::Component#with_item` | 30 |
+| `Bali::Button::Component` | 5 |
+| `Bali::DeleteLink::Component` | 2 |
+| `Bali::ImageField::Input::Component` | 0 |
+| **total** | **685** |
+
+685 call sites is the largest single surface of this migration; for comparison
+`text_field_group`, the FormBuilder helper that earned its own shim, had 329.
+
+The one that is easy to miss is `Breadcrumb::Item`, because hardly any of those 188 name it.
+They are hashes inside the `breadcrumbs:` array of an `IndexPage`, `ShowPage`, `FormPage`,
+`DashboardPage` or `DocumentPage`, and the page turns each hash into a breadcrumb item. A
+grep for `Breadcrumb` finds none of them.
+
+`ImageField::Input` keeps its shim with zero measured traffic, which is the opposite of the
+rule the FormBuilder renames followed — there, a helper nobody called was simply deleted. The
+difference is what a hard break looks like on each side. A renamed *method* that disappears
+raises `NoMethodError` and names itself. A removed *keyword* does not: every one of these
+signatures ends in `**options` and forwards the leftovers to the outer tag, so the keyword
+comes back out as a literal `icon_name="camera"` attribute on the element, with no icon drawn
+and nothing logged. Silence is not a migration signal, so all seven keep the keyword.
+
+Two public readers change name with it: `Bali::Link::Component#icon_name` and
+`Bali::ImageField::Input::Component#icon_name` are `#icon`. `Bali::DeleteLink::Component`
+keeps its `#icon_name`, which is not the keyword but the resolved answer to "which icon do I
+draw", `true` included.
+
+### Finding them
+
+```
+grep -rn -A6 --include="*.erb" --include="*.rb" \
+  -e "Bali::Button::Component" -e "Bali::Link::Component" \
+  -e "Bali::DeleteLink::Component" -e "Bali::StatCard::Component" \
+  -e "Bali::Breadcrumb::Item::Component" -e "Bali::ImageField::Input::Component" \
+  -e "breadcrumbs:" -e "with_item" app/ lib/ test/ | grep "icon_name:"
+```
+
+Three details in that recipe are load-bearing. The `-A6` window is there because a component
+render wraps and `icon_name:` is usually not on the line that names the component — run flat,
+the same search finds a fraction of the call sites. The `--include` patterns have to be
+**quoted**, or the shell expands them against the current directory and grep never receives
+the pattern. And do not add `spec/`: naming a directory you do not have makes grep exit 2 and
+print an error over the hits it did find.
+
+Because the spelling now means one thing in one direction, the flat search is a complete list
+of what to change as well. It just will not tell you which component each hit belongs to:
+
+```
+grep -rn --include="*.erb" --include="*.rb" "icon_name:" app/ lib/ test/
+```
 
 ## One taxonomy for every button
 
@@ -1421,13 +1512,11 @@ colour of their own. Name any other colour and it owns the button, because `btn-
 <%= render Bali::DeleteLink::Component.new(href: path, icon: 'circle-x') %>
 ```
 
-`icon_name:` still works and warns through `Bali.deprecator`; it is removed in v4. It is the
-same rename `StatCard` made, so the note further up about `Link`, `Button` and
-`ImageField::Input` keeping their `icon_name:` now has a second exception.
-
-`Dropdown#with_item` and `ActionsDropdown#with_item` are unaffected: they still take
-`icon_name:` for every item, delete items included, and translate it. An item is not the
-place to make a caller notice which of the two components it is about to become.
+`icon_name:` still works and warns through `Bali.deprecator`; it is removed in v4. This is
+one instance of the library-wide rename described under [One `icon:` across the
+library](#one-icon-across-the-library), which is also where the `with_item` end of it lives —
+an item is not the place to make a caller notice which of the two components it is about to
+become, and now it does not have to.
 
 ### `DeleteLink`'s disabled state is a button, not an anchor
 
@@ -1868,6 +1957,10 @@ not.
 | `Bali::DeleteLink(icon_name:)` | `icon:`, which now takes a name too *(deprecated shim until v4)* |
 | `<a disabled>` from a disabled `Bali::DeleteLink` | `<button aria-disabled="true">` |
 | `Bali::StatCard(icon_name:)` | `icon:` *(deprecated shim until v4)* |
+| `Bali::Button(icon_name:)`, `Bali::Link(icon_name:)` | `icon:` *(deprecated shim until v4)* |
+| `Bali::Breadcrumb::Item(icon_name:)`, and so `breadcrumbs: [{ icon_name: }]` on any page component | `icon:` *(deprecated shim until v4)* |
+| `Bali::ImageField::Input(icon_name:)` | `icon:` *(deprecated shim until v4)* |
+| `Bali::Link::Component#icon_name`, `Bali::ImageField::Input::Component#icon_name` (the readers) | `#icon` |
 | `Bali::Message::Component` | `Bali::Alert::Component` *(deprecated shim until v4)* |
 | `Bali::Notification::Component` | `Bali::Toast::Component` + `Bali::ToastContainer::Component` *(deprecated shim until v4)* |
 | `Bali::FlashNotifications::Component` | `Bali::ToastContainer::Component` *(deprecated shim until v4)* |
@@ -3088,10 +3181,12 @@ raises at construction naming the valid ones, the way the button taxonomy does.
 
 ### `with_item` takes `icon:`, and `icon_name:` warns
 
-An item becomes a `Link` or a `DeleteLink` depending on `method:`, and those two spell the
-icon differently. `with_item` used to translate between them; now there is one keyword,
-`icon:`, and it is the same for the `tag: :button` item too. `icon_name:` still works and
-emits a deprecation.
+An item becomes a `Link` or a `DeleteLink` depending on `method:`, and those two used to
+spell the icon differently. `with_item` translated between them; now there is one keyword,
+`icon:`, and it is the same for the `tag: :button` item too — and the same, since this
+release, as the one every other component takes. `icon_name:` still works and emits a
+deprecation. See [One `icon:` across the library](#one-icon-across-the-library) for the whole
+rename and the recipe that finds every call site.
 
 Two things stop being silent no-ops in the same move. `with_item(method: :delete)` passed
 `method:` straight through to `DeleteLink`, which has no such keyword: it landed in
@@ -3308,7 +3403,12 @@ grep -rn "SearchInput\|DummyFilterForm" app/ test/
 # dropdowns: one vocabulary, and popover: renders the same menu as the CSS one
 grep -rn "Dropdown::Component.new" app/ | grep -E "wide:|align: :(left|right|top|bottom|top_end|bottom_end)"
 grep -rn "Dropdown::Component.new" app/ | grep -v "align:"   # these move from :right to :start
-grep -rn "with_item" app/ | grep "icon_name:"
+# one `icon:` everywhere — 685 measured call sites, the largest surface of the migration
+grep -rn -A6 --include="*.erb" --include="*.rb" -e "Bali::Button::Component" \
+  -e "Bali::Link::Component" -e "Bali::DeleteLink::Component" -e "Bali::StatCard::Component" \
+  -e "Bali::Breadcrumb::Item::Component" -e "Bali::ImageField::Input::Component" \
+  -e "breadcrumbs:" -e "with_item" app/ lib/ test/ | grep "icon_name:"
+grep -rn --include="*.erb" --include="*.rb" "icon_name:" app/ lib/ test/   # every one of them, receiver unknown
 # the submit pair, and the last helper to join the naming convention
 grep -rn "submit_actions\|search_field_group" app/ test/
 # Bulma leftovers that forms.css no longer styles
