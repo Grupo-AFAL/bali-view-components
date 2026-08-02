@@ -8,7 +8,7 @@
 
 <div class="p-6 flex gap-4 items-start">
   <div id="probe-dropdown-wrap">
-    <%= render Bali::Dropdown::Component.new(class: 'dropdown-open') do |c| %>
+    <%= render Bali::Dropdown::Component.new(align: :end, class: 'dropdown-open') do |c| %>
       <% c.with_trigger(name: 'Dropdown trigger') %>
       <% c.with_item(name: 'Item one', href: '#') %>
       <% c.with_item(name: 'Item two', href: '#') %>
