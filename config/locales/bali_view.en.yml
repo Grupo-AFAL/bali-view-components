@@ -14,6 +14,7 @@ en:
       enter_value: "Enter value..."
       remove_condition: "Remove condition"
       remove_filter: "Remove filter"
+      incomplete_condition: "No value chosen, so this condition is ignored"
       add_condition: "Add condition"
       add_group: "Add filter group"
       clear_all: "Clear all"

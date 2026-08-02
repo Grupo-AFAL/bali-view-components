@@ -14,6 +14,7 @@ es:
       enter_value: "Ingrese valor..."
       remove_condition: "Eliminar condición"
       remove_filter: "Eliminar filtro"
+      incomplete_condition: "Sin valor elegido, así que esta condición se ignora"
       add_condition: "Agregar condición"
       add_group: "Agregar grupo de filtros"
       clear_all: "Limpiar todo"
