@@ -1645,6 +1645,58 @@ This also closes **#653**: the legacy toggle built its links with
 `Utils::Url#add_query_params`, which duplicated a param already in the URL. That code is no
 longer on this path.
 
+## The calendar drops `all_week:` and brings its own card
+
+`all_week:` was deprecated in 2.x and is now gone, together with the `#all_week` reader a
+template could call. It read backwards — `all_week: false` was how you *hid* the weekend —
+and supporting both spellings needed a `nil` default on a boolean just to tell "not given"
+from "given as false".
+
+```erb
+<%# v2 %>
+<%= render Bali::Calendar::Component.new(all_week: false) %>   <%# hide the weekend %>
+<%= render Bali::Calendar::Component.new(all_week: true) %>    <%# show it %>
+
+<%# v3.0 %>
+<%= render Bali::Calendar::Component.new(weekdays_only: true) %>
+<%= render Bali::Calendar::Component.new(weekdays_only: false) %>  <%# the default %>
+```
+
+**This one does not raise.** The component still takes `**options` and ignores them, so a
+leftover `all_week: false` is swallowed and the calendar quietly renders seven columns
+instead of five. It fails as a layout change, not as an error, which is why it is worth
+grepping for rather than waiting to see:
+
+```
+grep -rn "all_week:" app/          # the keyword argument
+grep -rn "\.all_week\b" app/       # the reader, if a template called it
+```
+
+Careful with the second one: `Date#all_week` is ActiveSupport's and is unrelated.
+
+Two smaller changes come with it. `weekly_title_class` is now a declared keyword argument
+rather than a key fished out of `**options`; same behaviour, same name, nothing to change.
+And the component **renders `Bali::Card` itself** instead of writing `.card`/`.card-body`
+divs by hand — so if you wrapped it in your own `Bali::Card`, remove that wrapper or you
+get a card inside a card. The markup is otherwise the same three elements;
+`.calendar-component > .card > .card-body` still matches, `.month-view` and `.week-view`
+are still on the card, and the card's `shadow` became `shadow-sm`, which compiles to an
+identical `box-shadow` in Tailwind 4.
+
+### `start_date` and `period` stop raising on junk input
+
+Not a migration step — a behaviour change you should know about because it removes a 500
+from your app. Both parameters normally arrive from the query string (the header's
+prev/next links write them back to `route_path`), and both used to raise on input a
+visitor controls: `?start_date=zzz` was an unrescued `Date::Error`, `?period[]=1` a
+`NoMethodError`. Anything unparseable now becomes `Date.current`, and any unknown period
+becomes `:month`.
+
+The component does **not** validate — a wrong date and a typo both silently become today.
+If your UI needs to tell the user their date was rejected, check the param in the
+controller before handing it over; the component only guarantees it will not take the page
+down.
+
 ## `Reveal` and `TreeView` change their markup
 
 Both were rows of `<div>`s with click handlers — unreachable by keyboard, unannounced by a
@@ -2073,6 +2125,8 @@ grep -rn "with_actions_panel\|with_export\|table_id:\|data_display_mode\|toolbar
 grep -rn "label-text\|input-bordered\|textarea-bordered\|form-control" app/ test/ spec/
 grep -rn "legend.fieldset-legend\|#field-\|_select_div\|aria-invalid" app/ test/ spec/
 grep -rn "with_tag_item\|with_tag_header\|tag_class:" app/
+grep -rn "all_week:" app/                             # silently ignored now, shows the weekend
+grep -rn "Bali::Card.*Calendar\|Calendar" app/views   # the Calendar renders its own card
 
 grep -rn "with_preview" app/                          # DocumentPage's body slot
 grep -rn "Bali::Level\|Bali::InfoLevel" app/          # deprecated, removed in 4.0
