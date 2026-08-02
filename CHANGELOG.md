@@ -422,6 +422,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   **What this does not do, and it is visible.** The column's `aria-label` is rendered on the server, so after a client-side drop it is as stale as the count badge next to it — both say "3 cards" until the page re-renders. That is deliberate: making only the screen-reader label live would have it disagree with the number a sighted user is looking at, and the drop announcement already carries the new position and total. Hosts that PATCH through `update_url` and re-render get both refreshed together.
 
+### Added
+
+- **The five page components take a `context:`, and one view now serves the full page and the drawer.** "The same view serves a page and an overlay" is the one gesture of the Modal/Drawer contract that Bali did not help with at all, and hosts paid for it by writing the same render twice. Across `afal-apps`, 43 views branch on `drawer_request?`; 40 of them render a `FormPage`, all 40 pass `card: false` in the drawer arm, and 42 pass a `back:` in the page arm. **The two arms of that `if` differ by exactly two arguments** — roughly eight duplicated lines per template, and templates come in `new`/`edit` pairs, so about sixteen per resource. `context:` collapses the pair into one call:
+
+  ```erb
+  <%# before %>
+  <% if drawer_request? %>
+    <%= render Bali::FormPage::Component.new(title: t(".title"), card: false) do |page| %>
+      <% page.with_body do %><%= render "form" %><% end %>
+    <% end %>
+  <% else %>
+    <%= render Bali::FormPage::Component.new(title: t(".title"), back: { href: vendors_path }) do |page| %>
+      <% page.with_body do %><%= render "form" %><% end %>
+    <% end %>
+  <% end %>
+
+  <%# after %>
+  <%= render Bali::FormPage::Component.new(title: t(".title"), back: { href: vendors_path }) do |page| %>
+    <% page.with_body do %><%= render "form" %><% end %>
+  <% end %>
+  ```
+
+  `context:` is `:auto` by default and can be forced to `:page` or `:drawer`. **Autodetection is the default and forcing is possible, rather than autodetection being the only mode**, because a component that changes its render according to the request stops being a function of its arguments — the explicit values keep that property where it matters, and they are the only way a test or a Lookbook preview can pin the variant without simulating a request. In a drawer the component drops the **breadcrumbs**, the **back button** and — on `FormPage` — the **Card**: the first two are ways *out* of a page, and a drawer is closed rather than left; the Card is the panel the drawer already draws.
+
+  **The component does not read `params`, and that is the load-bearing decision.** `Bali::LayoutConcern` — which until now defined one method that nothing in the repository called except its own test — gains `drawer_request?` (`params[:layout] == "false"`, the value its layout switch has always read) and exposes it as a helper; `conditionally_skip_layout` is written in terms of it now. `context: :auto` asks the *view context* for that helper and renders a page when it is not there. The consequence worth the paragraph: **an app whose controllers already declare a `drawer_request?` helper — the exact pattern this replaces, since that helper is what the deleted `if` was calling — gets autodetection with no change to a single controller.** A view context that declares nothing (a Lookbook preview, a unit test, a mailer) renders a page, which is why this is additive rather than a behaviour change for anyone who is not opted in.
+
+  **The escape hatches are real, and every arrangement is reachable.** `card:` is an ordinary argument and always wins — `card: true` inside a drawer included — which is why its default became `nil` ("let the context decide") rather than `true`. `back:` and `breadcrumbs:` go the other way and are suppressed *even when passed*, because the whole point is that the one surviving call site does pass `back:`; their escape hatch is `context: :page`, which restores the full page chrome inside a drawer request. Combine the two (`context: :page, card: false`) and nothing is walled off. `page.drawer?` is public and yielded with the component for the differences that are behavioural rather than chrome — a Cancel that *closes* an overlay and a Cancel that *navigates* are two different elements — so a partial takes `drawer: page.drawer?` instead of reading `params`.
+
+  **What breaks for a host that updates.** One thing, and only inside an overlay: a `FormPage` rendered under `?layout=false` that passed **no** `card:` used to draw a Card and now does not. Every branching view in `afal-apps` passes `card: false` explicitly in that arm, so the measured blast radius there is zero, and `card: true` restores the old render. Everything else is additive — `context:` is a new keyword whose default reproduces today's behaviour outside an overlay, and a host that keeps its `if` keeps working untouched.
+
+  **Proof rather than theory: the eight branching views in `spec/dummy` were migrated.** Five of the eight `if params[:layout] == 'false'` blocks are gone outright — the two admin `FormPage` templates, the two `studios` form templates (promoted from a bare `PageHeader` to `FormPage`, which is why they also gain `FormPage`'s `max_width: :md`) and the Card branch inside `studios/_form`. `studios/show` moved to `ShowPage`, which shares the whole mechanism because `context:` lives in `PageComponents::Shared` alongside the chrome it governs; `IndexPage`, `DashboardPage` and `DocumentPage` inherit it for the same reason, and it is inert for them until a drawer actually fetches one. **The three branches that remain are deliberate and are not layout branches**: a Cancel/Close button that dismisses an overlay versus one that navigates. `context:` does not absorb those — a page component decides its own chrome, not what the host's buttons do — and they read `page.drawer?` now rather than `params`. The dummy's controllers moved onto `Bali::LayoutConcern` at the same time, which deleted two hand-copied `drawer_request?` definitions and ten `render layout: !drawer_request?` calls; `Admin::BaseController` declares `self.conditional_layout = "admin"` instead of `layout "admin"`, since a `layout` call in a subclass overrides the concern's and takes the layout skipping with it.
+
+  **Lookbook cannot issue a drawer request**, so the drawer variant would have had no visual coverage at all if the context could only be autodetected. `FormPage` and `ShowPage` each gained a "Page or drawer" scenario that forces it, with `card:` exposed as a param so the escape hatch is visible too.
+
 ### Deprecated
 
 - **`Bali::Level` and `Bali::InfoLevel`** now warn through `Bali.deprecator` and are removed in 4.0. Neither is deleted here: the warning fires on construction and the render is the one it always was. `Level` is a flex row with `justify-between` and nothing else, so `<div class="flex justify-between items-center gap-4">` does the same without a component in between — and for a page header there is `Bali::PageHeader`, which is what Level was holding up. `InfoLevel` is the repo's third stat-card design: every `InfoLevel::Item` is a label on top of a large figure, which is a `StatCard` in different type; the replacement is a grid of `Bali::StatCard`, which is also what `DashboardPage#with_stat` renders as of v3.
