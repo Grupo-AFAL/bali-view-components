@@ -4,7 +4,7 @@
     back: { href: new_direct_upload_path }
   ) %>
 
-  <%= render Bali::Message::Component.new(color: :success, class: 'mb-6') do %>
+  <%= render Bali::Alert::Component.new(color: :success, class: 'mb-6') do %>
     Form submitted successfully!
   <% end %>
 
@@ -27,7 +27,7 @@
 
       <% if @evidences.present? %>
         <div class="mt-4">
-          <%= render Bali::Message::Component.new(color: :success) do %>
+          <%= render Bali::Alert::Component.new(color: :success) do %>
             Field name is correct: <%= render Bali::Tag::Component.new(text: 'evidences[]', color: :success) %>
           <% end %>
         </div>
@@ -39,7 +39,7 @@
     <%= render Bali::Link::Component.new(
       name: 'Try Again',
       href: new_direct_upload_path,
-      type: :primary
+      variant: :primary
     ) %>
   </div>
 </div>

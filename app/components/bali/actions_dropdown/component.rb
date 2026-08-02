@@ -12,6 +12,11 @@ module Bali
       # Use `method: :delete` to render DeleteLink with confirmation dialog.
       renders_many :items, ->(method: :get, **options) do
         component_klass = method&.to_sym == :delete ? DeleteLink::Component : Link::Component
+        # See Bali::Dropdown::Component: one spelling of the icon keyword for both kinds of
+        # item, whichever of the two components an item turns out to be.
+        if component_klass == DeleteLink::Component && options.key?(:icon_name)
+          options[:icon] = options.delete(:icon_name)
+        end
         component_klass.new(method: method, plain: true, **options)
       end
 

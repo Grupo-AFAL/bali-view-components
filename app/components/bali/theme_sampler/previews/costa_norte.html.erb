@@ -64,10 +64,10 @@
   <section>
     <h2 class="text-xl font-bold mb-4">Alerts</h2>
     <div class="space-y-2">
-      <%= render Bali::Message::Component.new(color: :info) { 'This is an informational message.' } %>
-      <%= render Bali::Message::Component.new(color: :success) { 'Operation completed successfully.' } %>
-      <%= render Bali::Message::Component.new(color: :warning) { 'Please review before continuing.' } %>
-      <%= render Bali::Message::Component.new(color: :danger) { 'Something went wrong. Please try again.' } %>
+      <%= render(Bali::Alert::Component.new(color: :info)) { 'This is an informational message.' } %>
+      <%= render(Bali::Alert::Component.new(color: :success)) { 'Operation completed successfully.' } %>
+      <%= render(Bali::Alert::Component.new(color: :warning)) { 'Please review before continuing.' } %>
+      <%= render(Bali::Alert::Component.new(color: :error)) { 'Something went wrong. Please try again.' } %>
     </div>
   </section>
 

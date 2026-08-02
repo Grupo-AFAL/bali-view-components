@@ -32,7 +32,7 @@ module Bali
       renders_many :footers, Footer::Component
 
       renders_one :new_record_link, ->(name:, href:, modal: true, **options) do
-        Bali::Link::Component.new(name: name, href: href, type: :success, modal: modal, **options)
+        Bali::Link::Component.new(name: name, href: href, variant: :success, modal: modal, **options)
       end
 
       renders_one :no_records_notification

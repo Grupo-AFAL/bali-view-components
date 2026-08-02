@@ -3,7 +3,7 @@
 
 <%= form_with model: [@movie, @character], class: 'space-y-4', data: { turbo: true } do |f| %>
   <% if @character.errors.any? %>
-    <%= render Bali::Message::Component.new(color: :error, class: 'mb-4') do %>
+    <%= render Bali::Alert::Component.new(color: :error, class: 'mb-4') do %>
       <ul class="list-disc list-inside">
         <% @character.errors.full_messages.each do |message| %>
           <li><%= message %></li>

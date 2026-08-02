@@ -35,4 +35,20 @@ class CanonicalPreviewsTest < ActionDispatch::IntegrationTest
       assert_select "a[href*='view=#{view}'][aria-current='page']"
     end
   end
+
+  # El stub de request de `ApplicationViewComponentPreview` decía `path: "/lookbook"`, así que
+  # Pagy armaba cada link de página contra el home de Lookbook: clicar "2" sacaba al lector del
+  # componente que estaba mirando (#756). Una preview no tiene UNA sola URL —se sirve en
+  # `/lookbook/preview/...` y dentro del iframe del inspector—, así que la respuesta correcta
+  # es un href relativo y no otra ruta escrita a mano.
+  def test_a_paginated_preview_keeps_its_page_links_inside_the_preview
+    studio = Tenant.create!(name: "Paginated Studio")
+    6.times { |i| studio.movies.create!(name: "Paginated Movie #{i}", status: 0) }
+
+    get "/lookbook/preview/bali/data_table/with_pagination"
+    assert_response :ok
+    assert_select "nav.pagy-nav-daisyui a[href=?]", "?page=2"
+    assert_select "nav.pagy-nav-daisyui a[href^='/lookbook']", false,
+      "los links de página sacan al lector de la preview"
+  end
 end

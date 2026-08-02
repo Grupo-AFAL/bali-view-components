@@ -162,7 +162,7 @@
         <% end %>
 
         <% table.with_no_records_notification do %>
-          <%= render Bali::Message::Component.new(color: :info) do %>
+          <%= render Bali::Alert::Component.new(color: :info) do %>
             <strong><%= t('movies.no_movies') %></strong> <%= t('movies.no_movies_help') %>
             <%= render Bali::Link::Component.new(name: t('movies.add_new_movie'), href: new_admin_movie_path) %>.
           <% end %>

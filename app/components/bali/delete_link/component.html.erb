@@ -1,7 +1,19 @@
 <% if disabled? %>
   <%= render Bali::HoverCard::Component.new(hover_url: disabled_hover_url) do |c| %>
     <% c.with_trigger do %>
-      <%= tag.a(name, disabled: true, class: button_classes, **button_options) %>
+      <%# `<a disabled>` is not a thing — HTML has no disabled attribute on an anchor, so the
+          state was paint only and nothing in the accessibility tree said "unavailable". A real
+          button carries it. `aria-disabled` and not `disabled`, because a disabled control
+          takes no focus, and the hover card that explains WHY deletion is off would then be
+          reachable with a mouse and with nothing else. %>
+      <%= tag.button(type: 'button', 'aria-disabled': true, class: button_classes,
+                     **button_options) do %>
+        <% if icon_name.present? %>
+          <%= render Bali::Icon::Component.new(icon_name, size: :small) %>
+        <% end %>
+
+        <%= name %>
+      <% end %>
     <% end %>
   <% end %>
 <% else %>
@@ -12,8 +24,6 @@
                       **button_options do %>
     <% if icon_name.present? %>
       <%= render Bali::Icon::Component.new(icon_name, size: :small) %>
-    <% elsif icon? %>
-      <%= render Bali::Icon::Component.new('trash', class: 'w-4 h-4') %>
     <% end %>
 
     <%= name %>

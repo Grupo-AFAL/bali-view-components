@@ -4,6 +4,11 @@
 describe('Page export links', () => {
   const exportLink = '[data-export-links-target="link"]'
   const secondaryActions = '[aria-label="More actions"]'
+  // The dummy app lives above the Lookbook preview path `baseUrl` points at, so the
+  // origin is derived from it rather than written out. A literal
+  // `http://localhost:3001` ignores CYPRESS_BASE_URL and quietly tests another
+  // checkout's server whenever the suite runs from a git worktree.
+  const appOrigin = new URL(Cypress.config('baseUrl')).origin
 
   it('carries the active slice from the server render', () => {
     cy.visit('/bali/index_page/complete?group_by=genre&q%5Bname_cont%5D=a&page=2')
@@ -51,7 +56,7 @@ describe('Page export links', () => {
     // que no hay visita, `turbo:load` NO se dispara y el ⋯ tampoco se reconecta. Va contra
     // la app dummy porque los previews de Lookbook no tienen controller que responda
     // `turbo_stream`.
-    cy.visit('http://localhost:3001/admin/movies')
+    cy.visit(`${appOrigin}/admin/movies`)
 
     cy.get('[data-filters-target="searchInput"]').type('Alien')
     cy.get('[data-action*="filters#submitSearch"]').click()

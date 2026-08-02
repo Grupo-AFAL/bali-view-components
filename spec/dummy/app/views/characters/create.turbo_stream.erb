@@ -10,7 +10,7 @@
 
 <%# Show success notification %>
 <%= turbo_stream.prepend 'flash-messages' do %>
-  <%= render Bali::Notification::Component.new(color: :success, dismissible: true, class: 'mb-4') do %>
+  <%= render Bali::Toast::Component.new(color: :success, class: 'mb-4') do %>
     Character "<%= @character.name %>" added successfully!
   <% end %>
 <% end %>

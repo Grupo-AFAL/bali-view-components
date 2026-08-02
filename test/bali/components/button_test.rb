@@ -30,12 +30,46 @@ class BaliButtonComponentTest < ComponentTestCase
     assert_no_text("Block content")
   end
 
-  %i[primary secondary accent info success warning error ghost link neutral
-     outline].each do |variant|
+  %i[primary secondary accent info success warning error ghost link neutral].each do |variant|
     define_method("test_variants_renders_#{variant}_variant") do
       render_inline(Bali::Button::Component.new(variant: variant)) { "Button" }
       assert_selector("button.btn.btn-#{variant}")
     end
+  end
+
+  Bali::ButtonTaxonomy::STYLES.each do |style, css_class|
+    define_method("test_styles_renders_#{style}_style") do
+      render_inline(Bali::Button::Component.new(style: style)) { "Button" }
+      assert_selector("button.btn.#{css_class}")
+    end
+  end
+
+  def test_styles_compose_with_a_variant_and_a_size
+    render_inline(Bali::Button::Component.new(variant: :error, style: :outline, size: :sm))
+    assert_selector("button.btn.btn-error.btn-outline.btn-sm")
+  end
+
+  def test_variants_rejects_a_style_name_and_names_the_keyword_that_takes_it
+    error = assert_raises(ArgumentError) { Bali::Button::Component.new(variant: :outline) }
+    assert_match(/variant: :outline is a fill, not a colour/, error.message)
+    assert_match(/Use style: :outline/, error.message)
+  end
+
+  def test_styles_rejects_a_variant_name_and_names_the_keyword_that_takes_it
+    error = assert_raises(ArgumentError) { Bali::Button::Component.new(style: :primary) }
+    assert_match(/Use variant: :primary/, error.message)
+  end
+
+  def test_variants_rejects_an_unknown_name_and_lists_the_valid_ones
+    error = assert_raises(ArgumentError) { Bali::Button::Component.new(variant: :chartreuse) }
+    assert_match(/unknown variant :chartreuse/, error.message)
+    assert_match(/:primary/, error.message)
+  end
+
+  def test_variants_rejects_a_bulma_name_and_names_its_replacement
+    error = assert_raises(ArgumentError) { Bali::Button::Component.new(variant: :danger) }
+    assert_match(/Bulma name removed in v3/, error.message)
+    assert_match(/Use variant: :error/, error.message)
   end
 
   def test_sizes_renders_xs_size

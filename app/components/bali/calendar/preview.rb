@@ -8,16 +8,18 @@ module Bali
       # Use the controls to explore different calendar configurations.
       #
       # @param period select { choices: [month, week] }
+      # @param start_date text "Any string; unparseable input falls back to today"
       # @param weekdays_only toggle "Show only Monday-Friday"
       # @param show_date toggle "Display day numbers"
       # @param with_events toggle "Display sample events"
-      def default(period: :month, weekdays_only: false, show_date: true, with_events: false)
+      def default(period: :month, start_date: nil, weekdays_only: false, show_date: true,
+                  with_events: false)
         events = with_events ? sample_events : []
         event_template = with_events ? 'bali/calendar/previews/template' : nil
 
         render(Calendar::Component.new(
-                 start_date: Date.current,
-                 period: period.to_sym,
+                 start_date: start_date,
+                 period: period,
                  weekdays_only: ActiveModel::Type::Boolean.new.cast(weekdays_only),
                  show_date: ActiveModel::Type::Boolean.new.cast(show_date),
                  events: events,

@@ -1,0 +1,47 @@
+<div class="flex flex-col gap-8">
+  <div>
+    <h3 class="text-lg font-semibold mb-3">Colors</h3>
+    <div class="flex flex-col gap-3">
+      <% Bali::Alert::Component::COLORS.each_key do |color| %>
+        <%= render Bali::Alert::Component.new(title: color.to_s.titleize, color: color) do %>
+          This is a <%= color %> alert.
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <div>
+    <h3 class="text-lg font-semibold mb-3">Sizes</h3>
+    <div class="flex flex-col gap-3">
+      <% Bali::Alert::Component::SIZES.each_key do |size| %>
+        <%= render Bali::Alert::Component.new(title: size.to_s.titleize, color: :info, size: size) do %>
+          This is a <%= size %> alert.
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <div>
+    <h3 class="text-lg font-semibold mb-3">Colors &times; Styles</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <% Bali::Alert::Component::COLORS.each_key do |color| %>
+        <% Bali::Alert::Component::STYLES.each_key do |style| %>
+          <%= render Bali::Alert::Component.new(title: "#{color.to_s.titleize} #{style}", color: color, style: style) do %>
+            <%= color %> / <%= style %>
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <div>
+    <h3 class="text-lg font-semibold mb-3">With icons</h3>
+    <div class="flex flex-col gap-3">
+      <% Bali::Alert::Component::COLORS.each_key do |color| %>
+        <%= render Bali::Alert::Component.new(color: color, icon: true) do %>
+          <%= color %>, with the icon that goes with it.
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</div>
