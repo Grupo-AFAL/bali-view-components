@@ -109,7 +109,7 @@ Bali.deprecator.silence { ... }                              # or scope one exce
 | `Bali::Icon::DefaultIcons` | nothing — see [The icon fallback is gone](#the-icon-fallback-is-gone) |
 | `Bali::GanttChart::*` (component and sub-components) | nothing in v3 — see [The Gantt chart is gone](#the-gantt-chart-is-gone) |
 | The `bali-view-components/gantt` npm entry | nothing — remove the import |
-| `Bali::SearchInput::Component` | `f.search_field_group` — see [Quick search has one shape](#quick-search-has-one-shape) |
+| `Bali::SearchInput::Component` | `f.search_group` — see [Quick search has one shape](#quick-search-has-one-shape) |
 | `Bali::Utils::DummyFilterForm` | nothing — it existed to feed the `SearchInput` preview |
 | `Bali::FilterForm#simple_search_config` | `#search_config`, the one builder both filter surfaces take |
 | `search: { field_name: … }` on `SimpleFilters` | `search: { fields: […] }` |
@@ -2152,7 +2152,7 @@ two back.
   (one shared `opts = { class: 'w-full' }`, expecting the second field to inherit
   `input input-bordered`) now gets the correct classes on both. A frozen hash no longer
   raises `FrozenError` either.
-- **`submit_actions` respects `show_cancel_button?` again.** The check read
+- **The submit actions row respects `show_cancel_button?` again.** The check read
   `options[:modal]` after `submit` had deleted it from the hash, so it was always true.
   With `Bali.native_app` on and `modal:` present, the cancel button is now hidden the way
   the code always said it would be. Without `native_app` nothing changes.
@@ -2355,6 +2355,8 @@ to match it.
 | `percentage_field_group` | `percentage_group` | 4 | yes |
 | `check_box_group` | `boolean_group` | 3 | yes |
 | `month_field_group` | `month_group` | 2 | yes |
+| `submit_actions` | `submit_group` | 270 | yes |
+| `search_field_group` | `search_group` | 0 | **no** |
 | `datetime_select_group` | `datetime_group` | 0 | **no** |
 | `coordinates_polygon_field_group` | `coordinates_polygon_group` | 0 | **no** |
 | `direct_upload_field_group` | `direct_upload_group` | 0 | **no** |
@@ -2371,17 +2373,35 @@ or bali-auth actually calls warns through `Bali.deprecator` and keeps working fo
 cycle. The seven renames with no measured call site raise `NoMethodError`, which is a
 cheaper signal than a warning for a name nobody has written.
 
-`search_field_group` is **not** renamed. The search input is being reworked under
-issue #677, and moving it here would have landed that work on a name about to change
-again; it joins the convention there.
+`search_field_group` was the one exception when this table was first written, held
+back while the search input was reworked under issue #677. That landed, so the rename
+did too: it is `search_group`, with no shim, because none of the eight apps calls it.
+There is deliberately no `search_field` — Rails defines that name, two of the apps
+already call Rails' version, and overriding it would hand them a submit-button addon
+and a placeholder they never asked for.
 
 ### The Rails names are not deprecated
 
-`f.text_area`, `f.rich_text_area` and `f.time_zone_select` keep working and keep
-rendering Bali's markup. They are Rails' own helper names, Rails and the gems built on
-it call them positionally, and dropping the overrides would silently downgrade those
-call sites to unstyled controls. `text_area_field`, `rich_text_area_field` and
-`time_zone_select_field` are the canonical spellings; both render the same thing.
+`f.text_area`, `f.rich_text_area`, `f.time_zone_select` and `f.submit` keep working
+and keep rendering Bali's markup. They are Rails' own helper names, Rails and the gems
+built on it call them positionally, and dropping the overrides would silently downgrade
+those call sites to unstyled controls. `text_area_field`, `rich_text_area_field`,
+`time_zone_select_field` and `submit_field` are the canonical spellings; both halves of
+each pair render the same thing.
+
+`submit_actions` is the other half of that pair and it **is** renamed, to `submit_group`
+— 270 measured call sites, so it warns through `Bali.deprecator` rather than raising.
+The two names describe exactly what every other pair in the builder describes:
+
+```erb
+<%# v2 %>
+<%= f.submit_actions "Save", cancel_path: users_path %>
+<%= f.submit "Save", variant: :ghost %>
+
+<%# v3 %>
+<%= f.submit_group "Save", cancel_path: users_path %>
+<%= f.submit_field "Save", variant: :ghost %>
+```
 
 ### Everything after the field name is a keyword
 
@@ -2432,7 +2452,7 @@ where `f.text_field_group :name, opts` worked. Write `f.text_group :name, **opts
 
 ```
 # the renames — the shimmed ones warn, the rest raise NoMethodError
-grep -rnE "_field_group|check_box_group|date_select_group|datetime_select_group" app/ test/
+grep -rnE "_field_group|check_box_group|date_select_group|datetime_select_group|submit_actions" app/ test/
 # the positional hashes on the select and radio families
 grep -rnE "\.(select|slim_select|time_zone_select|radio)_(group|field)\b.*, *\{" app/
 # the two bare helpers renamed outright
@@ -2517,7 +2537,7 @@ used, so your value wins, but two sources of truth for the same state is worth c
 
 ### Names that did not exist before
 
-- The icon-only search submits in `search_field_group`, `Bali::Filters` and
+- The icon-only search submits in `search_group`, `Bali::Filters` and
   `Bali::SearchInput` were announced as "button". They carry an i18n'd `aria-label`
   (`bali_view.form_builder.search.submit`, `bali_view.filters.submit_search`,
   `bali_view.search_input.submit`). Override them like any other key.
@@ -2744,7 +2764,7 @@ Run these:
 ```bash
 grep -rn "field_name:" app/                       # → fields: [:col, :other_col]
 grep -rn "simple_search_config" app/              # → search_config (it carries icon: now)
-grep -rn "SearchInput" app/ test/                 # → f.search_field_group, see below
+grep -rn "SearchInput" app/ test/                 # → f.search_group, see below
 grep -rn "DummyFilterForm" app/ test/ spec/       # → gone with the SearchInput preview
 ```
 
@@ -2752,7 +2772,7 @@ grep -rn "DummyFilterForm" app/ test/ spec/       # → gone with the SearchInpu
 
 It was never wired into `Filters`, `SimpleFilters` or `DataTable` — each of those renders
 its own box — so it only ever served hosts rendering it directly. Its replacement is the
-FormBuilder's `search_field_group`, which emits the same text input and the same icon
+FormBuilder's `search_group`, which emits the same text input and the same icon
 submit button from the same form object, and adds the caption the component never had:
 
 ```erb
@@ -2764,7 +2784,7 @@ submit button from the same form object, and adds the caption the component neve
 
 <%# v3 — note builder: Bali::FormBuilder %>
 <%= form_with model: @filter_form, url: movies_path, method: :get, builder: Bali::FormBuilder do |f| %>
-  <%= f.search_field_group :name_cont, placeholder: "Search movies..." %>
+  <%= f.search_group :name_cont, placeholder: "Search movies..." %>
 <% end %>
 ```
 
@@ -2778,15 +2798,100 @@ internally:
 ```erb
 <%= form_with model: @filter_form, url: movies_path, method: :get,
               builder: Bali::FormBuilder, data: { controller: "submit-on-change" } do |f| %>
-  <%= f.search_field_group :name_cont, addon_right: nil,
+  <%= f.search_group :name_cont, addon_right: nil,
         data: { action: "submit-on-change#submit" } %>
 <% end %>
 ```
 
 Both variants are rendered live on the dummy app's `/showcase`. The
-`bali_view.search_input.*` strings go with the component; `search_field_group` has its own
+`bali_view.search_input.*` strings go with the component; `search_group` has its own
 under `bali_view.form_builder.search.*`, which already existed. `.search-input-component`
 had no CSS behind it, so no stylesheet changes.
+
+## The Bulma leftovers in `forms.css` are gone
+
+`bali/forms.css` still carried the class vocabulary of the Bulma era. Every one of those
+rules was measured against the 480 pages this package renders and against the eight
+applications that consume it, and what follows is what matched nothing on either side.
+
+| Removed | Why it matches nothing in v3 |
+|---|---|
+| `.radio input`, `.radio .field_with_errors` | `.radio` is the `<input>` itself in daisyUI 5, and an input has no children |
+| `.block-radio`, `.large-radio-group` | Bulma-era wrappers; `radio_group` renders daisyUI labels and an `orientation:` flex container |
+| `.field-body > .field`, `.field-body > .field.flex-2` | Bulma's horizontal field layout; nothing here emits `.field` |
+| `.control.is-small`, `.control.inline`, `.control > .v-center`, `.control > .is-5`, `.inline-label`, `.delete-column` | Bulma spacing helpers, never emitted |
+| `.file.is-boxed`, `.file-label`, `.file-icon.empty-text` | the file field renders Tailwind utilities now — `.file-name` survives, but only as the DirectUpload component's JS hook, and it was never inside a `.file.is-boxed` |
+| `.select.full-width` | it targets Bulma's `<div class="select"><select>` wrapper. Bali's has been `.slim-select` since v2, so `select_class: "full-width"` never reached this rule in either version — and `.ss-main` is already `w-full` |
+| `.radio-buttons-group .togglers`, `.toggler`, `.toggler.is-active`, `.radio-buttons-group.is-left|is-center|is-right` | the toggler row is a daisyUI `join` of `join-item btn btn-sm` with `btn-primary` for the active one |
+| `.label .tooltip-component`, `.tippy-content` | tippy is gone, and the caption tooltip renders inside `.fieldset-legend`, not `.label` |
+
+**What stays.** The five-step width scale — `.is-very-short`, `.is-short`,
+`.is-medium-short`, `.is-long`, `.is-very-long` on `.input` and `.select` — is the one
+`is-*` vocabulary with measured traffic: two call sites reach it through `class:` and
+four more through `alt_input_class:`, which the datepicker controller prepends `input `
+to before handing it to flatpickr's altInput. It keeps working. Prefer a Tailwind width
+(`class: "w-64"`) in new code; the scale goes in 4.0.
+
+If your application writes any of the removed names on its own markup, nothing breaks
+today — those classes were never defined by anything but this file, and your own
+stylesheet still is whatever it is. What breaks is markup that expected *Bali* to style
+them:
+
+```
+grep -rnE "is-boxed|field-body|inline-label|delete-column|block-radio|large-radio-group|v-center|full-width" app/views app/components
+```
+
+## `required:` stops pretending on the widget families
+
+`required:` is a plain HTML attribute the builder forwards; it is not a Bali option and
+never was. On the twenty families that render a native control it lands on the input and
+the browser enforces it, exactly as before.
+
+The families whose control is a widget over a hidden field were the problem. Measured
+helper by helper: `coordinates_polygon_group` and `time_period_group` emitted
+`<div required>`, `rich_text_area_group` emitted `<trix-editor required>`, and the block
+editor, the rich text editor, the direct upload field and the recurrent event rule field
+swallowed the key in silence. None of the three attributes is valid, none of them made
+the field required, and a hidden input is barred from constraint validation anyway — so
+there was no element any of them could have been put on that would have worked.
+
+They all drop it now, in one place rather than in one family's private constant. If you
+were passing `required:` to any of those helpers, it was doing nothing then and it does
+nothing now; the difference is that the markup no longer claims otherwise. Enforce it on
+the server, which is the only place it was ever enforced:
+
+```
+grep -rnE "(block_editor|rich_text|rich_text_area|coordinates_polygon|time_period|direct_upload|recurrent_event_rule)_(group|field).*required" app/
+```
+
+One case is not a widget and is worth knowing: `radio_group`'s per-input attributes
+travel in `html:`, so `required:` at the top level is a group option and reaches no
+radio. `f.radio_group :status, values, html: { required: true }` does.
+
+## The Google Maps key comes from `Bali.google_maps_key`
+
+`LocationsMap` and the form builder's `coordinates_polygon` field each called
+`ENV.fetch("GOOGLE_MAPS_KEY")` on their own, which made the environment the only place
+the key could live. An application keeping credentials in
+`Rails.application.credentials` or in a secrets manager had to export an environment
+variable purely to satisfy this gem.
+
+```ruby
+# config/initializers/bali.rb
+Bali.config do |config|
+  config.google_maps_key = Rails.application.credentials.dig(:google, :maps_key)
+end
+```
+
+**Nothing has to change.** The environment variable is still read, as the fallback rather
+than the source, and it is resolved per call rather than frozen at boot — so an app that
+only exports `GOOGLE_MAPS_KEY` behaves exactly as it did.
+
+The `autocomplete-address` Stimulus controller is the exception, and it always was: it is
+wired by hand in the host's markup and reads its key from
+`data-autocomplete-address-api-key-value` or from `window.GOOGLE_MAPS_API_KEY`. It never
+read the environment variable, whatever `docs/guides/external-services.md` used to say.
+Pass `Bali.google_maps_key` into the data attribute to have one source again.
 
 ## Checklist
 
@@ -2837,6 +2942,12 @@ grep -rn "placehold.jp" app/ test/                   # ImageField's placeholder 
 # quick search: one shape, and SearchInput is gone
 grep -rn "field_name:\|simple_search_config" app/
 grep -rn "SearchInput\|DummyFilterForm" app/ test/ spec/
+# the submit pair, and the last helper to join the naming convention
+grep -rn "submit_actions\|search_field_group" app/ test/ spec/
+# Bulma leftovers that forms.css no longer styles
+grep -rnE "is-boxed|field-body|inline-label|delete-column|block-radio|large-radio-group|v-center|full-width" app/views app/components
+# required: on a widget family — it never worked, and now it is not emitted either
+grep -rnE "(block_editor|rich_text|rich_text_area|coordinates_polygon|time_period|direct_upload|recurrent_event_rule)_(group|field).*required" app/
 ```
 
 Then walk the sidebar with the keyboard at a phone width: Tab to the hamburger, Enter,

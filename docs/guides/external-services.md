@@ -27,12 +27,24 @@ The `Bali::LocationsMap::Component` displays an interactive Google Map with loca
    - **Application restrictions**: Set to "Websites" and add your domains
    - **API restrictions**: Select "Restrict key" and choose "Maps JavaScript API"
 
-#### 2. Configure the Environment Variable
+#### 2. Configure the Key
 
-Add the key to your environment:
+Bali reads the key from `Bali.google_maps_key`, so it can come from wherever the
+application already keeps its credentials:
+
+```ruby
+# config/initializers/bali.rb
+Bali.config do |config|
+  config.google_maps_key = Rails.application.credentials.dig(:google, :maps_key)
+end
+```
+
+With nothing configured it falls back to the `GOOGLE_MAPS_KEY` environment
+variable, which is all v2 ever read — an application that already exports it
+needs no initializer:
 
 ```bash
-# .env or environment configuration
+# .env (add to .gitignore!) or environment configuration
 GOOGLE_MAPS_KEY=AIzaSy...your_key_here
 ```
 
@@ -41,11 +53,6 @@ For Rails applications using `dotenv`:
 ```ruby
 # Gemfile
 gem 'dotenv-rails', groups: [:development, :test]
-```
-
-```bash
-# .env (add to .gitignore!)
-GOOGLE_MAPS_KEY=AIzaSy...your_key_here
 ```
 
 #### 3. Use the Component
@@ -115,7 +122,7 @@ Display clickable cards alongside the map that highlight when clicking markers:
 
 | Issue | Solution |
 |-------|----------|
-| "For development purposes only" watermark | API key missing or invalid. Check `GOOGLE_MAPS_KEY` is set. |
+| "For development purposes only" watermark | API key missing or invalid. Check `Bali.google_maps_key` resolves to it. |
 | `ApiProjectMapError` in console | Maps JavaScript API not enabled. Enable it in Google Cloud Console. |
 | `RefererNotAllowedMapError` | Domain not allowed. Add your domain to key restrictions. |
 | Map doesn't load | Check browser console for errors. Verify billing is enabled. |
@@ -139,7 +146,21 @@ The address autocomplete form field also requires Google Maps APIs.
 
 ### Setup
 
-Use the same `GOOGLE_MAPS_KEY` environment variable. Ensure both APIs are enabled:
+This one does **not** read `Bali.google_maps_key`: the field is wired by hand in
+the host's markup, and the Stimulus controller takes its key from the element or
+from a global, in that order.
+
+```erb
+<div data-controller="autocomplete-address"
+     data-autocomplete-address-api-key-value="<%= Bali.google_maps_key %>">
+```
+
+```js
+// or, once per page
+window.GOOGLE_MAPS_API_KEY = '...'
+```
+
+Ensure both APIs are enabled:
 
 1. Go to **APIs & Services → Library**
 2. Enable **Places API**

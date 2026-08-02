@@ -277,7 +277,7 @@ ActionView::Base.default_form_builder = Bali::FormBuilder
 **Fix:** Use the `modal: true` option on submit:
 
 ```erb
-<%= f.submit_actions "Save", modal: true %>
+<%= f.submit_group "Save", modal: true %>
 ```
 
 This adds the correct Stimulus actions for modal integration.
