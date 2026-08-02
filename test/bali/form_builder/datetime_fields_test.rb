@@ -16,43 +16,41 @@ class BaliFormBuilderDatetimeFieldsTest < FormBuilderTestCase
     )
   end
 
-  # #datetime_field_group
+  # #datetime_group
 
-  def test_datetime_field_group_renders_a_label_and_input_within_a_wrapper
-    result = builder.datetime_field_group(:release_date)
+  def test_datetime_group_renders_a_label_and_input_within_a_wrapper
+    result = builder.datetime_group(:release_date)
     assert_html(result, ".fieldset")
   end
 
-  def test_datetime_field_group_renders_a_label
-    result = builder.datetime_field_group(:release_date)
+  def test_datetime_group_renders_a_label
+    result = builder.datetime_group(:release_date)
     assert_html(result, "label.fieldset-legend", text: "Release date")
   end
 
-  def test_datetime_field_group_renders_a_field_with_a_datepicker_controller
-    result = builder.datetime_field_group(:release_date)
+  def test_datetime_group_renders_a_field_with_a_datepicker_controller
+    result = builder.datetime_group(:release_date)
     assert_html(result, '.fieldset[data-controller="datepicker"]')
   end
 
-  def test_datetime_field_group_renders_a_field_with_datepicker_time_enabled
-    result = builder.datetime_field_group(:release_date)
+  def test_datetime_group_renders_a_field_with_datepicker_time_enabled
+    result = builder.datetime_group(:release_date)
     assert_html(result, '.fieldset[data-datepicker-enable-time-value="true"]')
   end
 
-  def test_datetime_field_group_renders_a_field_with_datepicker_locale_value
-    result = builder.datetime_field_group(:release_date)
+  def test_datetime_group_renders_a_field_with_datepicker_locale_value
+    result = builder.datetime_group(:release_date)
     assert_html(result, '.fieldset[data-datepicker-locale-value="en"]')
   end
 
-  def test_datetime_field_group_renders_an_input
-    result = builder.datetime_field_group(:release_date)
+  def test_datetime_group_renders_an_input
+    result = builder.datetime_group(:release_date)
     assert_html(result, 'input#movie_release_date[name="movie[release_date]"]')
   end
 
-  # #datetime_select_group
-
-  def test_datetime_select_group_is_an_alias_for_datetime_field_group
-    assert_equal(:datetime_field_group, builder.method(:datetime_select_group).original_name)
-  end
+  # The `datetime_select_group` alias this used to cover is gone rather than
+  # deprecated — none of the eight host applications called it. Its removal is
+  # asserted in deprecated_names_test.rb alongside the other six.
 
   # #datetime_field
 
@@ -89,45 +87,45 @@ class BaliFormBuilderDatetimeFieldsTest < FormBuilderTestCase
     assert_html(result, '.fieldset[data-datepicker-enable-time-value="true"]')
   end
 
-  # #datetime_field_group typing (allow_input) and placeholder
+  # #datetime_group typing (allow_input) and placeholder
 
-  def test_datetime_field_group_by_default_does_not_render_the_allow_input_attribute
-    result = builder.datetime_field_group(:release_date)
+  def test_datetime_group_by_default_does_not_render_the_allow_input_attribute
+    result = builder.datetime_group(:release_date)
     refute_html(result, "[data-datepicker-allow-input-value]")
   end
 
-  def test_datetime_field_group_by_default_sets_a_numeric_placeholder
-    result = builder.datetime_field_group(:release_date)
+  def test_datetime_group_by_default_sets_a_numeric_placeholder
+    result = builder.datetime_group(:release_date)
     assert_html(result, 'input[placeholder="dd/mm/yyyy hh:MM AM/PM"]')
   end
 
-  def test_datetime_field_group_with_allow_input_false_renders_the_opt_out_attribute
-    result = builder.datetime_field_group(:release_date, allow_input: false)
+  def test_datetime_group_with_allow_input_false_renders_the_opt_out_attribute
+    result = builder.datetime_group(:release_date, allow_input: false)
     assert_html(result, '.fieldset[data-datepicker-allow-input-value="false"]')
   end
 
-  def test_datetime_field_group_with_allow_input_false_does_not_render_a_placeholder
-    result = builder.datetime_field_group(:release_date, allow_input: false)
+  def test_datetime_group_with_allow_input_false_does_not_render_a_placeholder
+    result = builder.datetime_group(:release_date, allow_input: false)
     refute_html(result, "input[placeholder]")
   end
 
-  def test_datetime_field_group_with_allow_input_true_renders_the_allow_input_attribute
-    result = builder.datetime_field_group(:release_date, allow_input: true)
+  def test_datetime_group_with_allow_input_true_renders_the_allow_input_attribute
+    result = builder.datetime_group(:release_date, allow_input: true)
     assert_html(result, '.fieldset[data-datepicker-allow-input-value="true"]')
   end
 
-  def test_datetime_field_group_with_explicit_alt_format_sets_a_token_mapped_placeholder
-    result = builder.datetime_field_group(:release_date, alt_format: "d/m/Y H:i")
+  def test_datetime_group_with_explicit_alt_format_sets_a_token_mapped_placeholder
+    result = builder.datetime_group(:release_date, alt_format: "d/m/Y H:i")
     assert_html(result, 'input[placeholder="dd/mm/yyyy HH:MM"]')
   end
 
-  def test_datetime_field_group_with_verbose_alt_format_sets_an_i18n_placeholder
-    result = builder.datetime_field_group(:release_date, alt_format: "F j, Y H:i")
+  def test_datetime_group_with_verbose_alt_format_sets_an_i18n_placeholder
+    result = builder.datetime_group(:release_date, alt_format: "F j, Y H:i")
     assert_html(result, 'input[placeholder="e.g., December 31, 2026"]')
   end
 
-  def test_datetime_field_group_with_explicit_placeholder_keeps_the_explicit_placeholder
-    result = builder.datetime_field_group(:release_date, placeholder: "Type a date and time")
+  def test_datetime_group_with_explicit_placeholder_keeps_the_explicit_placeholder
+    result = builder.datetime_group(:release_date, placeholder: "Type a date and time")
     assert_html(result, 'input[placeholder="Type a date and time"]')
   end
 end

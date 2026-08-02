@@ -11,7 +11,7 @@ module Bali
       # The caption names the period select, not the hidden field the controller
       # writes the resolved range into: the select is the control the user
       # operates, and a hidden input is not labelable anyway.
-      def time_period_field_group(method, select_options, selected: nil, **options)
+      def time_period_group(method, select_options, selected: nil, **options)
         @template.render(
           Bali::FieldGroupWrapper::Component.new(
             self, method, options.merge(control_id: period_select_id(method))

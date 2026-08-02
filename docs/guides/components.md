@@ -2206,7 +2206,7 @@ Form control for building RFC 5545 RRULE strings (e.g. `FREQ=WEEKLY;BYDAY=MO,WE,
 <% end %>
 ```
 
-Also available through the form builder as `form.recurrent_event_rule_field :schedule` or `form.recurrent_event_rule_field_group :schedule`.
+Also available through the form builder as `form.recurrent_event_rule_field :schedule` or `form.recurrent_event_rule_group :schedule`.
 
 **Options:**
 - `form` - The form builder instance (required)

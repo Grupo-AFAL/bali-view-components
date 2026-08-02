@@ -6,9 +6,9 @@ Bali extends Rails' `ActionView::Helpers::FormBuilder` with DaisyUI-styled form 
 
 ```erb
 <%= form_with model: @user, builder: Bali::FormBuilder do |f| %>
-  <%= f.text_field_group :name %>
-  <%= f.email_field_group :email %>
-  <%= f.password_field_group :password %>
+  <%= f.text_group :name %>
+  <%= f.email_group :email %>
+  <%= f.password_group :password %>
   <%= f.submit "Create Account", variant: :primary %>
 <% end %>
 ```
@@ -34,33 +34,71 @@ Or use per-form:
 
 ## Field Patterns
 
-Most Bali form helpers follow two patterns:
+Every field type is a pair, and the two names are the type plus a suffix:
 
 | Pattern | Method | Description |
 |---------|--------|-------------|
-| **Group** | `*_field_group` | Wraps input with label, help text, and error messages |
-| **Field** | `*_field` | Just the input element with DaisyUI styling |
+| **Group** | `<type>_group` | The control inside a fieldset, with its caption, help text and error message |
+| **Field** | `<type>_field` | The bare control, plus its help and error messages |
 
 ```erb
 <%# With wrapper (label, errors, help text) %>
-<%= f.text_field_group :name %>
+<%= f.text_group :name %>
 
 <%# Just the input %>
 <%= f.text_field :name %>
 ```
 
+There is no third pattern and no exception to guess at: `select_group` /
+`select_field`, `text_group` / `text_field`, `boolean_group` / `boolean_field`,
+`text_area_group` / `text_area_field`. Before v3 the wrapper was spelled
+`*_field_group` for twenty-three helpers and `*_group` for nine, and the bare
+half was `*_field` for some types and the bare type name for others — see
+[Migrating from v2 to v3](migration-v2-to-v3.md#the-formbuilder-gets-one-family-of-names)
+for the full mapping and the deprecation window.
+
+Rails' own names still work where Bali overrides a Rails helper: `f.text_area`,
+`f.rich_text_area` and `f.time_zone_select` render exactly what
+`f.text_area_field`, `f.rich_text_area_field` and `f.time_zone_select_field`
+render. They are **not** deprecated — Rails and the gems built on it call those
+names, and the override is what keeps them producing Bali's markup rather than
+falling through to an unstyled control.
+
+### Call shape
+
+**Everything after the field name is a keyword.** The only positional arguments
+are the attribute and, where a field type needs one, its data — the choices for
+a select, the priority zones for a time zone select:
+
+```erb
+<%= f.text_group :name, label: "Full name", help: "As it appears on your ID" %>
+<%= f.select_group :status, statuses, include_blank: "Any", label: "Status" %>
+<%= f.boolean_group :indie, checked_value: "yes", unchecked_value: "no" %>
+```
+
+Attributes that belong on the element itself, rather than options that configure
+the field, go in `html:`:
+
+```erb
+<%= f.select_group :tags, tags, label: "Tags", html: { multiple: true, class: "w-64" } %>
+```
+
+The families that take an `html:` hash are the three select families
+(`select_*`, `slim_select_*`, `time_zone_select_*`) and `radio_*`. Every other
+field type has a single hash, so there is nothing to choose between.
+
 ---
 
 ## Text Input Fields
 
-### text_field_group / text_field
+### text_group / text_field
 
 Standard text input with DaisyUI styling.
 
 ```erb
-<%= f.text_field_group :name %>
-<%= f.text_field_group :name, placeholder: "Enter your name" %>
-<%= f.text_field_group :name, help: "Your display name" %>
+<%= f.text_group :name %>
+<%= f.text_group :name, placeholder: "Enter your name" %>
+<%= f.text_group :name, help: "Your display name" %>
 ```
 
 **Options:**
@@ -69,51 +107,56 @@ Standard text input with DaisyUI styling.
 - `addon_left` - Content to prepend (e.g., "$" for currency)
 - `addon_right` - Content to append (e.g., ".com")
 
-### email_field_group / email_field
+### email_group / email_field
 
 ```erb
-<%= f.email_field_group :email %>
-<%= f.email_field_group :email, placeholder: "user@example.com" %>
+<%= f.email_group :email %>
+<%= f.email_group :email, placeholder: "user@example.com" %>
 ```
 
-### password_field_group / password_field
+### password_group / password_field
 
 ```erb
-<%= f.password_field_group :password %>
-<%= f.password_field_group :password_confirmation, label: "Confirm Password" %>
+<%= f.password_group :password %>
+<%= f.password_group :password_confirmation, label: "Confirm Password" %>
 ```
 
-### url_field_group / url_field
+### url_group / url_field
 
 ```erb
-<%= f.url_field_group :website %>
-<%= f.url_field_group :website, addon_left: "https://" %>
+<%= f.url_group :website %>
+<%= f.url_group :website, addon_left: "https://" %>
 ```
 
-### search_field_group / search_field
+### search_field_group
 
 ```erb
 <%= f.search_field_group :query, placeholder: "Search..." %>
 ```
 
+> **The one helper still on the v2 spelling.** It keeps `search_field_group`
+> rather than becoming `search_group` because the search input is being reworked
+> under a separate issue (#677), and renaming it here would have forced that work
+> to land on a name it is about to change again. It joins the convention there.
+
 ---
 
 ## Number Fields
 
-### number_field_group / number_field
+### number_group / number_field
 
 ```erb
-<%= f.number_field_group :quantity %>
-<%= f.number_field_group :quantity, min: 0, max: 100, step: 1 %>
+<%= f.number_group :quantity %>
+<%= f.number_group :quantity, min: 0, max: 100, step: 1 %>
 ```
 
-### step_number_field_group / step_number_field
+### step_number_group / step_number_field
 
 Number input with increment/decrement buttons.
 
 ```erb
-<%= f.step_number_field_group :quantity %>
-<%= f.step_number_field_group :quantity, min: 0, max: 10, step: 1 %>
+<%= f.step_number_group :quantity %>
+<%= f.step_number_group :quantity, min: 0, max: 10, step: 1 %>
 ```
 
 **Options:**
@@ -123,24 +166,24 @@ Number input with increment/decrement buttons.
 - `button_class` - Custom class for +/- buttons
 - `disabled` - Disable the entire control
 
-### currency_field_group
+### currency_group
 
 Currency input with symbol prefix.
 
 ```erb
-<%= f.currency_field_group :price %>
-<%= f.currency_field_group :price, symbol: "€" %>
-<%= f.currency_field_group :price, symbol: "MXN $" %>
+<%= f.currency_group :price %>
+<%= f.currency_group :price, symbol: "€" %>
+<%= f.currency_group :price, symbol: "MXN $" %>
 ```
 
 **Options:**
 - `symbol` - Currency symbol (default: "$")
 
-### percentage_field_group
+### percentage_group
 
 ```erb
-<%= f.percentage_field_group :discount %>
-<%= f.percentage_field_group :tax_rate, symbol: "‰" %>
+<%= f.percentage_group :discount %>
+<%= f.percentage_group :tax_rate, symbol: "‰" %>
 ```
 
 **Options:**
@@ -148,8 +191,8 @@ Currency input with symbol prefix.
 
 ### Both are localized, and both need the model side
 
-`currency_field_group` and `percentage_field_group` share one implementation
-(`numeric_field_group`) and render a `type="text"` input, because a `type="number"`
+`currency_group` and `percentage_group` share one implementation
+(`numeric_group`) and render a `type="text"` input, because a `type="number"`
 input rejects the thousands delimiter as it is typed.
 
 The `pattern` validating that text is **built from the active locale** — Rails'
@@ -179,14 +222,14 @@ end
 Without the concern the parameter arrives as the string the user typed, and
 Rails' own cast reads `"1.234,56"` as `1.234`.
 
-### range_field_group / range_field
+### range_group / range_field
 
 Slider input with optional tick marks.
 
 ```erb
-<%= f.range_field_group :volume, min: 0, max: 100, color: :primary %>
-<%= f.range_field_group :price, min: 0, max: 1000, step: 100, show_ticks: true, prefix: "$" %>
-<%= f.range_field_group :rating, min: 1, max: 5, tick_labels: %w[Bad Poor OK Good Great] %>
+<%= f.range_group :volume, min: 0, max: 100, color: :primary %>
+<%= f.range_group :price, min: 0, max: 1000, step: 100, show_ticks: true, prefix: "$" %>
+<%= f.range_group :rating, min: 1, max: 5, tick_labels: %w[Bad Poor OK Good Great] %>
 ```
 
 **Options:**
@@ -239,24 +282,23 @@ Native HTML select with DaisyUI styling.
 <%= f.select_group :country, Country.all.map { |c| [c.name, c.id] }, include_blank: "Select country" %>
 ```
 
-**Caption keys work from either hash.** The select families take two positional
-hashes — `select_group(method, values, options, html_options)` — and `label:`,
-`help:` and the other keys the *group* owns are read from both, the first one
-winning on a conflict. Write them next to each other and both land:
+**Caption keys work from either hash.** `label:`, `help:` and the other keys the
+*group* owns are read from the field's own options and from `html:` alike, the
+former winning on a conflict — so there is nothing to get wrong:
 
 ```erb
 <%= f.select_group :status, statuses, label: "Status", help: "Visible to admins only" %>
 ```
 
-Before v3 the three select families read those keys from the **second** hash
-only, so a `help:` written next to `label:` — where every single-hash field type
-reads it — reached the wrapper and never reached the paragraph. It disappeared
-with no error and no warning.
+Before v3 the three select families read those keys from the **second positional
+hash** only, so a `help:` written next to `label:` — where every single-hash
+field type reads it — reached the wrapper and never reached the paragraph. It
+disappeared with no error and no warning.
 
 **Non-model forms** (`form_with url:` without a model): pass `input_name:` /
-`input_id:` in the options hash to namespace the rendered `<select>` under a
-param key. Also supported by `slim_select_group`. An explicit `name:`/`id:`
-in the html options hash still wins.
+`input_id:` to namespace the rendered `<select>` under a param key. Also
+supported by `slim_select_group`. An explicit `name:`/`id:` in `html:` still
+wins.
 
 ```erb
 <%= f.select_group :approver_id, approvers, input_name: "thing[approver_id]" %>
@@ -272,13 +314,13 @@ Enhanced select with search, multi-select, and AJAX support.
 <%= f.slim_select_group :category, Category.all.map { |c| [c.name, c.id] } %>
 
 <%# Multi-select %>
-<%= f.slim_select_group :tags, Tag.all.map { |t| [t.name, t.id] }, {}, { multiple: true } %>
+<%= f.slim_select_group :tags, Tag.all.map { |t| [t.name, t.id] }, html: { multiple: true } %>
 
 <%# With search %>
-<%= f.slim_select_group :user, [], { show_search: true, ajax_url: search_users_path, ajax_param_name: 'q' } %>
+<%= f.slim_select_group :user, [], show_search: true, ajax_url: search_users_path, ajax_param_name: 'q' %>
 
 <%# Allow creating new items %>
-<%= f.slim_select_group :category, categories, { add_items: true } %>
+<%= f.slim_select_group :category, categories, add_items: true %>
 ```
 
 **Options:**
@@ -308,40 +350,40 @@ Enhanced select with search, multi-select, and AJAX support.
 
 ## Date and Time Fields
 
-### date_field_group / date_field
+### date_group / date_field
 
 Flatpickr-powered date picker.
 
 ```erb
-<%= f.date_field_group :birth_date %>
-<%= f.date_field_group :start_date, min_date: Date.today %>
-<%= f.date_field_group :deadline, max_date: 1.year.from_now %>
+<%= f.date_group :birth_date %>
+<%= f.date_group :start_date, min_date: Date.today %>
+<%= f.date_group :deadline, max_date: 1.year.from_now %>
 ```
 
-### datetime_field_group / datetime_field
+### datetime_group / datetime_field
 
 Date and time picker.
 
 ```erb
-<%= f.datetime_field_group :starts_at %>
-<%= f.datetime_field_group :appointment, time_24hr: true %>
+<%= f.datetime_group :starts_at %>
+<%= f.datetime_group :appointment, time_24hr: true %>
 ```
 
-### time_field_group / time_field
+### time_group / time_field
 
 Time-only picker.
 
 ```erb
-<%= f.time_field_group :opening_time %>
-<%= f.time_field_group :closing_time, time_24hr: true %>
+<%= f.time_group :opening_time %>
+<%= f.time_group :closing_time, time_24hr: true %>
 ```
 
-### month_field_group / month_field
+### month_group / month_field
 
 Month/year picker.
 
 ```erb
-<%= f.month_field_group :billing_month %>
+<%= f.month_group :billing_month %>
 ```
 
 ### Typing into date/time fields
@@ -352,7 +394,7 @@ input uses a **numeric display format** (`d/m/Y`, e.g. `31/12/2026`), and Bali
 auto-fills a `placeholder:` hint (`dd/mm/yyyy`) so users know what to type:
 
 ```erb
-<%= f.date_field_group :birth_date %>
+<%= f.date_group :birth_date %>
 ```
 
 **Typed text is parsed against the visible input's format** (flatpickr's
@@ -361,8 +403,8 @@ cleared. Pass an explicit `alt_format:` to change that format — the auto-fille
 placeholder follows it:
 
 ```erb
-<%= f.date_field_group :birth_date, alt_format: 'F j, Y' %>  <%# "December 31, 2026" %>
-<%= f.time_field_group :start_at, alt_format: 'H:i' %>       <%# 24-hour time %>
+<%= f.date_group :birth_date, alt_format: 'F j, Y' %>  <%# "December 31, 2026" %>
+<%= f.time_group :start_at, alt_format: 'H:i' %>       <%# 24-hour time %>
 ```
 
 For a verbose format like `'F j, Y'` (a localized month name, which has no
@@ -375,21 +417,21 @@ pick a value from the popup and cannot type. The visible input renders with
 flatpickr's `readonly` attribute and no placeholder hint:
 
 ```erb
-<%= f.date_field_group :birth_date, allow_input: false %>
+<%= f.date_group :birth_date, allow_input: false %>
 ```
 
 ---
 
 ## Boolean Fields
 
-### boolean_field_group / boolean_field
+### boolean_group / boolean_field
 
 Checkbox input.
 
 ```erb
-<%= f.boolean_field_group :terms_accepted %>
-<%= f.boolean_field_group :active, color: :primary, size: :lg %>
-<%= f.boolean_field_group :indie, text: "This is an indie film" %>
+<%= f.boolean_group :terms_accepted %>
+<%= f.boolean_group :active, color: :primary, size: :lg %>
+<%= f.boolean_group :indie, text: "This is an indie film" %>
 ```
 
 **Options:**
@@ -399,12 +441,12 @@ Checkbox input.
   `false` renders none.
 - `label` - A `<legend>` **over the group**. No default: omit it and no legend is rendered.
 
-### switch_field_group / switch_field
+### switch_group / switch_field
 
 Toggle switch (styled checkbox).
 
 ```erb
-<%= f.switch_field_group :notifications %>
+<%= f.switch_group :notifications %>
 <%= f.switch_field :dark_mode, color: :accent, size: :lg %>
 ```
 
@@ -418,7 +460,7 @@ Toggle switch (styled checkbox).
 ### `text:` vs `label:` in these two families
 
 They are two different captions, and until v3 a single `label:` fed both — so
-`boolean_field_group :indie` rendered "Indie" as the legend *and* "Indie" beside
+`boolean_group :indie` rendered "Indie" as the legend *and* "Indie" beside
 the box, and a screen reader read the field out as "Indie Indie".
 
 - **`text:`** is the caption inside the `<label>` that wraps the control. This is
@@ -429,10 +471,10 @@ the box, and a screen reader read the field out as "Indie Indie".
 
 ```erb
 <%# One caption, which is what you want almost always %>
-<%= f.boolean_field_group :indie, text: "This is an indie film" %>
+<%= f.boolean_group :indie, text: "This is an indie film" %>
 
 <%# Two, when the group needs a heading of its own %>
-<%= f.boolean_field_group :indie, label: "Distribution", text: "This is an indie film" %>
+<%= f.boolean_group :indie, label: "Distribution", text: "This is an indie film" %>
 ```
 
 The caption stays a `<legend>` rather than becoming a `<label for>` the way the
@@ -440,29 +482,46 @@ other field groups' captions did: the control is already inside a `<label>`, and
 a second `<label for>` pointing at it does not replace that name, it concatenates
 with it.
 
-### radio_field_group
+### radio_group / radio_field
 
 ```erb
-<%= f.radio_field_group :status, [["Active", "active"], ["Inactive", "inactive"]] %>
+<%= f.radio_group :status, [["Active", "active"], ["Inactive", "inactive"]] %>
+<%= f.radio_group :status, statuses, label: "Status", html: { orientation: :horizontal, color: :primary } %>
 ```
+
+`html:` carries what each `<input type="radio">` gets, which for this family
+includes the daisyUI variants `size:` and `color:` and the list's
+`orientation:` (`:vertical`, the default, or `:horizontal`).
+
+### radio_buttons_group / radio_buttons_field
+
+A segmented toggle over grouped radio values.
+
+```erb
+<%= f.radio_buttons_group :plan, values, keep_selection: true,
+                          togglers: { class: "mb-4" }, radios: { class: "gap-2" } %>
+```
+
+`togglers:` and `radios:` are the attributes for the two halves of the control —
+the button row and the radio lists it switches between.
 
 ---
 
 ## File Fields
 
-### file_field_group / file_field
+### file_group / file_field
 
 ```erb
-<%= f.file_field_group :avatar %>
-<%= f.file_field_group :documents, multiple: true %>
+<%= f.file_group :avatar %>
+<%= f.file_group :documents, multiple: true %>
 ```
 
-### direct_upload_field_group
+### direct_upload_group
 
 Active Storage direct upload support.
 
 ```erb
-<%= f.direct_upload_field_group :avatar %>
+<%= f.direct_upload_group :avatar %>
 ```
 
 ---
@@ -521,9 +580,9 @@ record and once more into a `<template>` for the add button to clone.
 
 <%# app/views/invoices/_line_item_fields.html.erb %>
 <div class="line_item-fields">
-  <%= f.text_field_group :description %>
-  <%= f.number_field_group :quantity %>
-  <%= f.currency_field_group :price %>
+  <%= f.text_group :description %>
+  <%= f.number_group :quantity %>
+  <%= f.currency_group :price %>
   <%= f.link_to_remove_fields "Remove" %>
 </div>
 ```
@@ -548,12 +607,12 @@ here navigates, so an anchor was announced by screen readers as a link going
 nowhere. The `type="button"` matters: these sit inside a `<form>`, where a button
 without one submits it.
 
-### coordinates_polygon_field_group
+### coordinates_polygon_group
 
 Map-based polygon selection.
 
 ```erb
-<%= f.coordinates_polygon_field_group :coverage_area %>
+<%= f.coordinates_polygon_group :coverage_area %>
 ```
 
 ### recurrent_event_rule_field
@@ -588,7 +647,7 @@ Bali FormBuilder automatically displays validation errors:
 
 ```erb
 <%# Errors are shown automatically when present %>
-<%= f.text_field_group :email %>
+<%= f.text_group :email %>
 ```
 
 The input gets `input-error` class and error messages appear below.
@@ -609,13 +668,13 @@ Add content before or after inputs:
 
 ```erb
 <%# Currency prefix %>
-<%= f.text_field_group :price, addon_left: "$" %>
+<%= f.text_group :price, addon_left: "$" %>
 
 <%# URL suffix %>
-<%= f.text_field_group :subdomain, addon_right: ".myapp.com" %>
+<%= f.text_group :subdomain, addon_right: ".myapp.com" %>
 
 <%# Icon addon %>
-<%= f.text_field_group :search, addon_left: render(Bali::Icon::Component.new("search")) %>
+<%= f.text_group :search, addon_left: render(Bali::Icon::Component.new("search")) %>
 ```
 
 ---
@@ -640,16 +699,16 @@ Many fields automatically integrate with Stimulus controllers:
 ```erb
 <%= form_with model: @product, builder: Bali::FormBuilder, class: "space-y-4" do |f| %>
   <div class="grid grid-cols-2 gap-4">
-    <%= f.text_field_group :name %>
-    <%= f.text_field_group :sku, help: "Stock keeping unit" %>
+    <%= f.text_group :name %>
+    <%= f.text_group :sku, help: "Stock keeping unit" %>
   </div>
 
   <%= f.rich_text_area_group :description %>
 
   <div class="grid grid-cols-3 gap-4">
-    <%= f.currency_field_group :price %>
-    <%= f.number_field_group :quantity, min: 0 %>
-    <%= f.percentage_field_group :discount %>
+    <%= f.currency_group :price %>
+    <%= f.number_group :quantity, min: 0 %>
+    <%= f.percentage_group :discount %>
   </div>
 
   <%= f.slim_select_group :category_id, Category.all.map { |c| [c.name, c.id] } %>
@@ -658,7 +717,7 @@ Many fields automatically integrate with Stimulus controllers:
       { select_all: true }, { multiple: true } %>
 
   <%= f.switch_field :active, color: :success %>
-  <%= f.boolean_field_group :featured %>
+  <%= f.boolean_group :featured %>
 
   <%= f.submit_actions "Save Product", cancel_path: products_path, variant: :primary %>
 <% end %>

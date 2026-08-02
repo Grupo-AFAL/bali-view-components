@@ -55,7 +55,7 @@ es:
   # falls back to. Normally a host gets these from rails-i18n; the dummy does
   # not depend on it, so without this block `es` silently used English formats
   # and there was no way to exercise the locale-aware pattern that
-  # `currency_field_group` and `percentage_field_group` build, nor the parsing
+  # `currency_group` and `percentage_group` build, nor the parsing
   # in Bali::Concerns::NumericAttributesWithCommas.
   #
   # This lives in the dummy on purpose. The gem must not ship `number.format`

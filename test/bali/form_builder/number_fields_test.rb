@@ -3,25 +3,25 @@
 require "test_helper"
 
 class BaliFormBuilderNumberFieldsTest < FormBuilderTestCase
-  # #number_field_group
+  # #number_group
 
-  def test_number_field_group_renders_a_fieldset_wrapper
-    result = builder.number_field_group(:budget)
+  def test_number_group_renders_a_fieldset_wrapper
+    result = builder.number_group(:budget)
     assert_html(result, "fieldset.fieldset")
   end
 
-  def test_number_field_group_renders_a_legend_label
-    result = builder.number_field_group(:budget)
+  def test_number_group_renders_a_legend_label
+    result = builder.number_group(:budget)
     assert_html(result, "label.fieldset-legend", text: "Budget")
   end
 
-  def test_number_field_group_renders_a_number_input_with_correct_attributes
-    result = builder.number_field_group(:budget)
+  def test_number_group_renders_a_number_input_with_correct_attributes
+    result = builder.number_group(:budget)
     assert_html(result, 'input#movie_budget[type="number"][name="movie[budget]"]')
   end
 
-  def test_number_field_group_applies_daisyui_input_classes
-    result = builder.number_field_group(:budget)
+  def test_number_group_applies_daisyui_input_classes
+    result = builder.number_group(:budget)
     assert_html(result, "input.input")
   end
 

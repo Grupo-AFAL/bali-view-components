@@ -3,20 +3,20 @@
 require "test_helper"
 
 class BaliFormBuilderStepNumberFieldsTest < FormBuilderTestCase
-  # #step_number_field_group
+  # #step_number_group
 
-  def test_step_number_field_group_renders_the_input_and_label_within_a_wrapper
-    result = builder.step_number_field_group(:duration)
+  def test_step_number_group_renders_the_input_and_label_within_a_wrapper
+    result = builder.step_number_group(:duration)
     assert_html(result, "#movie_duration_field.fieldset")
   end
 
-  def test_step_number_field_group_renders_the_label
-    result = builder.step_number_field_group(:duration)
+  def test_step_number_group_renders_the_label
+    result = builder.step_number_group(:duration)
     assert_html(result, "label.fieldset-legend", text: "Duration")
   end
 
-  def test_step_number_field_group_renders_the_input
-    result = builder.step_number_field_group(:duration)
+  def test_step_number_group_renders_the_input
+    result = builder.step_number_group(:duration)
     assert_html(result, 'input#movie_duration[name="movie[duration]"]')
   end
 

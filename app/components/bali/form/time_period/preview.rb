@@ -18,7 +18,7 @@ module Bali
         # Returns the current year + Q1-Q4 quarters.
         #
         # ```ruby
-        # form.time_period_field_group :period, Bali::TimePeriods::SelectOptions.yearly_quarter
+        # form.time_period_group :period, Bali::TimePeriods::SelectOptions.yearly_quarter
         # ```
         def quarterly_report
           render_with_template(
@@ -34,7 +34,7 @@ module Bali
         # When "Custom" is selected, a date range picker appears.
         #
         # ```ruby
-        # form.time_period_field_group :period, Bali::TimePeriods::SelectOptions.months,
+        # form.time_period_group :period, Bali::TimePeriods::SelectOptions.months,
         #                              include_blank: 'Custom'
         # ```
         def monthly_with_custom
@@ -66,7 +66,7 @@ module Bali
         # Returns: Yesterday, Last 7 days, Last 30 days, Last 12 weeks, Last 12 months.
         #
         # ```ruby
-        # form.time_period_field_group :period, Bali::TimePeriods::SelectOptions.trailing,
+        # form.time_period_group :period, Bali::TimePeriods::SelectOptions.trailing,
         #                              include_blank: 'Custom range'
         # ```
         def trailing_periods

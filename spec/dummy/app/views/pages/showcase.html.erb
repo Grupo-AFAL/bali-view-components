@@ -178,16 +178,16 @@
 
       <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
         <%# Text fields %>
-        <%= f.text_field_group :name, label: t('showcase.full_name'), placeholder: 'John Doe' %>
-        <%= f.email_field_group :email, label: t('showcase.email'), placeholder: 'john@example.com' %>
+        <%= f.text_group :name, label: t('showcase.full_name'), placeholder: 'John Doe' %>
+        <%= f.email_group :email, label: t('showcase.email'), placeholder: 'john@example.com' %>
 
         <%# Password fields %>
-        <%= f.password_field_group :password, label: t('showcase.password') %>
-        <%= f.password_field_group :password_confirmation, label: t('showcase.password_confirmation') %>
+        <%= f.password_group :password, label: t('showcase.password') %>
+        <%= f.password_group :password_confirmation, label: t('showcase.password_confirmation') %>
 
         <%# Number and URL %>
-        <%= f.number_field_group :age, label: t('showcase.age'), min: 18, max: 120 %>
-        <%= f.url_field_group :website, label: t('showcase.website'), placeholder: 'https://example.com' %>
+        <%= f.number_group :age, label: t('showcase.age'), min: 18, max: 120 %>
+        <%= f.url_group :website, label: t('showcase.website'), placeholder: 'https://example.com' %>
       <% end %>
 
       <%# Select %>
@@ -204,8 +204,8 @@
 
       <%# Boolean fields %>
       <div class="space-y-2">
-        <%= f.switch_field_group :newsletter, text: t('showcase.newsletter') %>
-        <%= f.boolean_field_group :terms, text: t('showcase.terms') %>
+        <%= f.switch_group :newsletter, text: t('showcase.newsletter') %>
+        <%= f.boolean_group :terms, text: t('showcase.terms') %>
       </div>
 
       <%# Submit %>
@@ -217,7 +217,7 @@
     <div class="mockup-code text-sm">
       <pre data-prefix="1"><code>&lt;%= form_with model: @user, builder: Bali::FormBuilder do |f| %&gt;</code></pre>
       <pre data-prefix="2" class="text-success"><code>  &lt;%= f.error_summary %&gt;</code></pre>
-      <pre data-prefix="3"><code>  &lt;%= f.text_field_group :name %&gt;</code></pre>
+      <pre data-prefix="3"><code>  &lt;%= f.text_group :name %&gt;</code></pre>
       <pre data-prefix="4"><code>  ...</code></pre>
       <pre data-prefix="5"><code>&lt;% end %&gt;</code></pre>
     </div>

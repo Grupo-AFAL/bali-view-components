@@ -19,26 +19,26 @@ class BaliFormBuilderHelpPlacementTest < FormBuilderTestCase
 
   # `nil` where a helper takes a collection or priority-zones argument.
   GROUPS = {
-    "text_field_group" => ->(b, o) { b.text_field_group(:name, o) },
-    "email_field_group" => ->(b, o) { b.email_field_group(:name, o) },
-    "number_field_group" => ->(b, o) { b.number_field_group(:name, o) },
-    "password_field_group" => ->(b, o) { b.password_field_group(:name, o) },
-    "url_field_group" => ->(b, o) { b.url_field_group(:name, o) },
-    "text_area_group" => ->(b, o) { b.text_area_group(:name, o) },
-    "file_field_group" => ->(b, o) { b.file_field_group(:name, o) },
-    "date_field_group" => ->(b, o) { b.date_field_group(:name, o) },
-    "datetime_field_group" => ->(b, o) { b.datetime_field_group(:name, o) },
-    "time_field_group" => ->(b, o) { b.time_field_group(:name, o) },
-    "month_field_group" => ->(b, o) { b.month_field_group(:name, o) },
-    "currency_field_group" => ->(b, o) { b.currency_field_group(:name, o) },
-    "percentage_field_group" => ->(b, o) { b.percentage_field_group(:name, o) },
-    "step_number_field_group" => ->(b, o) { b.step_number_field_group(:name, o) },
-    "boolean_field_group" => ->(b, o) { b.boolean_field_group(:name, o) },
-    "switch_field_group" => ->(b, o) { b.switch_field_group(:name, o) },
+    "text_group" => ->(b, o) { b.text_group(:name, **o) },
+    "email_group" => ->(b, o) { b.email_group(:name, **o) },
+    "number_group" => ->(b, o) { b.number_group(:name, **o) },
+    "password_group" => ->(b, o) { b.password_group(:name, **o) },
+    "url_group" => ->(b, o) { b.url_group(:name, **o) },
+    "text_area_group" => ->(b, o) { b.text_area_group(:name, **o) },
+    "file_group" => ->(b, o) { b.file_group(:name, **o) },
+    "date_group" => ->(b, o) { b.date_group(:name, **o) },
+    "datetime_group" => ->(b, o) { b.datetime_group(:name, **o) },
+    "time_group" => ->(b, o) { b.time_group(:name, **o) },
+    "month_group" => ->(b, o) { b.month_group(:name, **o) },
+    "currency_group" => ->(b, o) { b.currency_group(:name, **o) },
+    "percentage_group" => ->(b, o) { b.percentage_group(:name, **o) },
+    "step_number_group" => ->(b, o) { b.step_number_group(:name, **o) },
+    "boolean_group" => ->(b, o) { b.boolean_group(:name, **o) },
+    "switch_group" => ->(b, o) { b.switch_group(:name, **o) },
     # The three that dropped it, and the reason this test exists.
-    "select_group" => ->(b, o) { b.select_group(:name, [ %w[A a] ], o) },
-    "slim_select_group" => ->(b, o) { b.slim_select_group(:name, [ %w[A a] ], o) },
-    "time_zone_select_group" => ->(b, o) { b.time_zone_select_group(:name, nil, o) }
+    "select_group" => ->(b, o) { b.select_group(:name, [ %w[A a] ], **o) },
+    "slim_select_group" => ->(b, o) { b.slim_select_group(:name, [ %w[A a] ], **o) },
+    "time_zone_select_group" => ->(b, o) { b.time_zone_select_group(:name, nil, **o) }
   }.freeze
 
   GROUPS.each do |name, render|
@@ -54,9 +54,9 @@ class BaliFormBuilderHelpPlacementTest < FormBuilderTestCase
   # one the caller reached for. Only the families that take a second positional
   # hash can express this.
   TWO_HASH_GROUPS = {
-    "select_group" => ->(b, o) { b.select_group(:name, [ %w[A a] ], {}, o) },
-    "slim_select_group" => ->(b, o) { b.slim_select_group(:name, [ %w[A a] ], {}, o) },
-    "time_zone_select_group" => ->(b, o) { b.time_zone_select_group(:name, nil, {}, o) }
+    "select_group" => ->(b, o) { b.select_group(:name, [ %w[A a] ], html: o) },
+    "slim_select_group" => ->(b, o) { b.slim_select_group(:name, [ %w[A a] ], html: o) },
+    "time_zone_select_group" => ->(b, o) { b.time_zone_select_group(:name, nil, html: o) }
   }.freeze
 
   TWO_HASH_GROUPS.each do |name, render|
@@ -68,7 +68,7 @@ class BaliFormBuilderHelpPlacementTest < FormBuilderTestCase
   end
 
   test "the primary hash wins when both carry the same key" do
-    html = builder.select_group(:name, [ %w[A a] ], { help: "primary" }, { help: "secondary" }).to_s
+    html = builder.select_group(:name, [ %w[A a] ], help: "primary", html: { help: "secondary" }).to_s
 
     assert_includes html, "primary"
     assert_not_includes html, "secondary"

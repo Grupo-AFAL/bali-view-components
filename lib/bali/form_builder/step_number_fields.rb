@@ -10,7 +10,7 @@ module Bali
                       "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none " \
                       "[&::-webkit-inner-spin-button]:appearance-none"
 
-      def step_number_field_group(method, options = {})
+      def step_number_group(method, **options)
         @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
           step_number_field(method, options)
         end

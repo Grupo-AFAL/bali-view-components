@@ -41,7 +41,7 @@ module Bali
         end
 
         # @param orientation select { choices: [vertical, horizontal] }
-        def radio_field_group(orientation: :vertical)
+        def radio_group(orientation: :vertical)
           render_with_template(
             template: 'bali/form/radio/previews/field_group',
             locals: {

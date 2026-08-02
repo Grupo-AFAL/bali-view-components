@@ -22,15 +22,20 @@ module Bali
         content_width: nil
       }.freeze
 
-      def slim_select_group(method, values, options = {}, html_options = {})
-        group = group_options(options, html_options)
+      # Same split as SelectFields: `**options` are the field's own — SlimSelect's
+      # behaviour flags and the group's caption — and `html:` is what lands on the
+      # `<select>` element.
+      def slim_select_group(method, values, *legacy, html: {}, **options)
+        options, html = legacy_option_hashes(:slim_select_group, legacy, html, options)
+        group = group_options(options, html)
 
         @template.render Bali::FieldGroupWrapper::Component.new(self, method, group) do
-          slim_select_field(method, values, options, html_options)
+          slim_select_field(method, values, html: html, **options)
         end
       end
 
-      def slim_select_field(method, values, options = {}, html_options = {})
+      def slim_select_field(method, values, *legacy, html: {}, **options)
+        options, html_options = legacy_option_hashes(:slim_select_field, legacy, html, options)
         merged_options = build_options(options)
         merged_html = apply_input_name_options(options, build_html_options(html_options))
         # `merged_html` carries the real HTML attributes — the Stimulus target

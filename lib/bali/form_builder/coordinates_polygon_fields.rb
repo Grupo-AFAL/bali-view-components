@@ -13,7 +13,7 @@ module Bali
 
       # The caption stays a `<legend>`: the only form control here is a hidden
       # field the map writes into, and a hidden input is not labelable.
-      def coordinates_polygon_field_group(method, options = {})
+      def coordinates_polygon_group(method, **options)
         @template.render Bali::FieldGroupWrapper::Component.new(
           self, method, options.merge(control_id: false)
         ) do

@@ -3,15 +3,13 @@
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module DateFields
-      def date_field_group(method, options = {})
+      def date_group(method, **options)
         @template.render Bali::FieldGroupWrapper::Component.new self, method, options do
           date_field(method, options)
         end
       end
 
-      alias date_select_group date_field_group
-
-      def month_field_group(method, options = {})
+      def month_group(method, **options)
         @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
           month_field(method, options)
         end

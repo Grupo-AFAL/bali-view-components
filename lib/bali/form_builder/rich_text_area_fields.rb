@@ -7,17 +7,28 @@ module Bali
       # at it instead: `<trix-editor>` is a custom element, and `<label for>` only
       # names *labelable* elements, so a `for` here is markup the browser drops on
       # the floor. `aria-labelledby` works on any element.
-      def rich_text_area_group(method, options = {})
+      def rich_text_area_group(method, **options)
         labelled = caption_id(method, options)
         editor_options = labelled ? options.merge("aria-labelledby": labelled) : options
 
         @template.render Bali::FieldGroupWrapper::Component.new(
           self, method, options.merge(control_id: false)
         ) do
-          rich_text_area(method, editor_options)
+          rich_text_area_field(method, editor_options)
         end
       end
 
+      # The canonical name, and the only one a caller should reach for.
+      def rich_text_area_field(method, options = {})
+        rich_text_area(method, options)
+      end
+
+      # Unlike `text_area` and `time_zone_select`, this override cannot hand its
+      # body to the `<type>_field` name: ActionText installs `rich_text_area` on
+      # `ActionView::Helpers::FormBuilder` from an initializer, so it does not
+      # exist yet when this file is loaded and there is nothing to alias. The
+      # implementation therefore stays where `super` can still reach it, and it
+      # is `rich_text_area_field` that delegates rather than the other way round.
       def rich_text_area(method, options = {})
         max_attachments_size = options.dig(:attachments, :max_size) || 1
         default_error_msg = "Attachments must not exceed #{max_attachments_size}MB"
