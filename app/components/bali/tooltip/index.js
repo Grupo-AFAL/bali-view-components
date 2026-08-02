@@ -24,7 +24,7 @@ export class TooltipController extends Controller {
   }
 
   async connect () {
-    if (this.contentTarget.content.textContent.trim().length === 0) return
+    if (this.isEmpty) return
 
     this.makeTriggerFocusable()
 
@@ -41,6 +41,30 @@ export class TooltipController extends Controller {
       offset: [0, 24],
       zIndex: zIndexFor('tooltip')
     })
+  }
+
+  // `with_trigger` and no content block is a tooltip with nothing to say, and building a
+  // balloon for it would open an empty box on hover and — since #776 — claim a tab stop for
+  // it. So the guard is right to exist; what it measured was wrong. It asked "is there any
+  // plain text?", and the component is explicitly built to carry markup: the template wraps
+  // the content in a `<template>` and tippy runs with `allowHTML: true`. Balloon content
+  // that is only an `<svg>`, an `<img>` or any other element has `textContent === ''`, so a
+  // legitimate tooltip — an icon legend, an image preview, a sparkline — returned here and
+  // was never built, silently. Measured on the emitted markup, with the newlines the ERB
+  // leaves around the content:
+  //
+  //   content                    textContent.trim() | children | childNodes | innerHTML.trim()
+  //   `<p>Plain help text</p>`                   15 |        1 |          3 |               22
+  //   `<svg>…</svg>`                              0 |        1 |          3 |              166
+  //   nothing                                     0 |        0 |          1 |                0
+  //
+  // `childNodes` cannot tell the last two apart — the empty one still holds the whitespace
+  // text node from the template. `children` can, so asking for both no text AND no elements
+  // keeps the genuinely empty tooltip behaving exactly as it did.
+  get isEmpty () {
+    const { content } = this.contentTarget
+
+    return content.textContent.trim().length === 0 && content.children.length === 0
   }
 
   // A tooltip whose trigger cannot be reached by the keyboard is content that only exists

@@ -16,6 +16,17 @@ module Bali
         end
       end
 
+      # Markup content
+      # ---------------
+      # The balloon is built to carry HTML — the template hands tippy a `<template>` and
+      # `allowHTML` is on — so content with no plain text in it at all is a supported shape,
+      # not a mistake. Both balloons here hold a single element and nothing else. Neither
+      # existed before #788: the empty check asked whether there was text, so an image or an
+      # `<svg>` on its own read as nothing and the controller returned before building.
+      def markup_content
+        render_with_template
+      end
+
       # Shows tooltip behavior when content is empty (no tooltip appears)
       def empty_tooltip
         render Tooltip::Component.new do |c|
