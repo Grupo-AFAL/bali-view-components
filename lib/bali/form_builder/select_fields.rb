@@ -7,20 +7,24 @@ module Bali
       BASE_CLASSES = "select select-bordered w-full"
 
       def select_group(method, values, options = {}, html_options = {})
-        @template.render Bali::FieldGroupWrapper::Component.new(self, method, options) do
+        group = group_options(options, html_options)
+
+        @template.render Bali::FieldGroupWrapper::Component.new(self, method, group) do
           select_field(method, values, options, html_options)
         end
       end
 
       # Uses the native HTML <select> element with DaisyUI styling.
       def select_field(method, values, options = {}, html_options = {})
+        group = group_options(options, html_options)
+
         attributes = html_attributes(html_options)
         attributes[:class] = select_classes(method, html_options[:class])
         apply_input_name_options(options, attributes)
-        merge_aria_attributes(attributes, method, html_options)
+        merge_aria_attributes(attributes, method, group)
 
         field = select(method, values, options, attributes)
-        field_helper(method, field, html_options)
+        field_helper(method, field, group)
       end
 
       private

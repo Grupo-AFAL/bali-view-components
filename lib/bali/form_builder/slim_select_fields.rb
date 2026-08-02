@@ -23,7 +23,9 @@ module Bali
       }.freeze
 
       def slim_select_group(method, values, options = {}, html_options = {})
-        @template.render Bali::FieldGroupWrapper::Component.new(self, method, options) do
+        group = group_options(options, html_options)
+
+        @template.render Bali::FieldGroupWrapper::Component.new(self, method, group) do
           slim_select_field(method, values, options, html_options)
         end
       end
@@ -31,19 +33,22 @@ module Bali
       def slim_select_field(method, values, options = {}, html_options = {})
         merged_options = build_options(options)
         merged_html = apply_input_name_options(options, build_html_options(html_options))
+        # `merged_html` carries the real HTML attributes — the Stimulus target
+        # among them — so it stays untouched. The caption keys travel separately.
+        group = group_options(options, merged_html)
 
         attributes = html_attributes(merged_html)
         attributes[:class] = field_class_name(
           method, class_names([ SELECT_CLASS, merged_html[:class] ].compact),
           error_class: "select-error"
         )
-        merge_aria_attributes(attributes, method, merged_html)
+        merge_aria_attributes(attributes, method, group)
 
         field = build_wrapper(method, merged_options, attributes, merged_html[:select_class]) do
           build_select_content(method, values, merged_options, attributes)
         end
 
-        field_helper(method, field, merged_html)
+        field_helper(method, field, group)
       end
 
       private

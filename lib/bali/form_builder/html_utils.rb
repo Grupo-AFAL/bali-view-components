@@ -70,6 +70,28 @@ module Bali
         options.except(*RESERVED_OPTIONS)
       end
 
+      # The keys the field *group* owns — the caption, the help text, the addons,
+      # the `.control` div — gathered from every hash the helper takes.
+      #
+      # A family with a single options hash never had a problem. The ones that
+      # take a second positional hash each decided on their own which of the two
+      # `field_helper` would see, and the three select families chose the last
+      # one: `help:` written next to `label:`, where anyone would write it,
+      # reached the wrapper and never reached the paragraph, so it vanished with
+      # no error and no warning. Measured before the fix — `select_group`,
+      # `slim_select_group` and `time_zone_select_group` dropped it; the other
+      # nine field types rendered it.
+      #
+      # The first hash wins on a conflict: it is the caller's primary one, the
+      # one holding `label:`.
+      def group_options(options, *others)
+        others.compact.each_with_object(options.dup) do |other, merged|
+          other.slice(*WRAPPER_OPTIONS).each do |key, value|
+            merged[key] = value unless merged.key?(key)
+          end
+        end
+      end
+
       # `prepend_action` and friends mutate in place, and that includes the
       # nested `:data` hash — which `dup`, `except` and `merge` all leave
       # pointing at the caller's object. Copying that one key is what keeps a

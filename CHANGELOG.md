@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+### Fixed
+
+- **`help:` now means the same thing in every field type.** The three select families — `select_group`, `slim_select_group` and `time_zone_select_group` — take a *second* positional hash, and each had decided on its own which of the two `field_helper` would see. All three chose the last one, so a `help:` written next to `label:` — where the caller naturally writes it, and where the sixteen single-hash field types read it — reached the wrapper and never reached the paragraph. It vanished with no error, no warning and no failing test: the field rendered, just without its hint. Measured before the fix on identical calls: sixteen field types rendered the hint, those three dropped it.
+
+  The keys the *group* owns (`label:`, `help:`, the addons, `control_class:`, `control_data:`) are now gathered from every hash the helper takes, through one `HtmlUtils#group_options`. **The first hash wins on a conflict** — it is the caller's primary one, the one holding `label:` — and that precedence is now the same whether the wrapper or the paragraph is doing the reading, which it was not before.
+
+  What does *not* change is the HTML attributes hash. `group_options` copies only the caption keys, so `slim_select`'s Stimulus target, its `select_class:` and every real attribute keep travelling in the hash they always travelled in — the first attempt at this fix merged the two hashes wholesale and silently dropped `data-slim-select-target`, which ten existing tests caught. A new test sweeps all nineteen group helpers rather than sampling one, because sampling is exactly how this survived: the sixteen that behaved correctly were the majority.
+
 ### Changed (breaking)
 
 - **`PageHeader` stops emitting empty headings, names the page with an `h1`, and stacks properly under `sm`.** Measured on the twenty page-component previews at 375px and 1280px: **ten empty heading elements before, zero after; zero of the forty pages had an `h1`, all forty-two do now** (the count includes a new preview). Two separate defects sat in the same six lines of template.

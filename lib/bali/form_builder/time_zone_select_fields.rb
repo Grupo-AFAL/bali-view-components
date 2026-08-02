@@ -7,16 +7,19 @@ module Bali
       BASE_CLASSES = "select select-bordered w-full"
 
       def time_zone_select_group(method, priority_zones = nil, options = {}, html_options = {})
-        @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
+        group = group_options(options, html_options)
+
+        @template.render(Bali::FieldGroupWrapper::Component.new(self, method, group)) do
           time_zone_select(method, priority_zones, options, html_options)
         end
       end
 
       def time_zone_select(method, priority_zones = nil, options = {}, html_options = {})
+        group = group_options(options, html_options)
         attributes = time_zone_html_options(method, html_options)
         field = super(method, priority_zones, options, attributes)
 
-        field_helper(method, field, html_options)
+        field_helper(method, field, group)
       end
 
       private
