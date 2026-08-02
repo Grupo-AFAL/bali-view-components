@@ -24,18 +24,19 @@ module Bali
         lg: "btn-lg"
       }.freeze
 
-      # Everything `submit` and `submit_actions` read for themselves: the button
-      # styling, the Stimulus wiring and the cancel button beside it. None of them
-      # is an attribute of the <button> that comes out the other end.
+      # Everything `submit_field` and `submit_group` read for themselves: the
+      # button styling, the Stimulus wiring and the cancel button beside it. None
+      # of them is an attribute of the <button> that comes out the other end.
       SUBMIT_OPTIONS = %i[
         variant size wrapper_class class modal drawer
         cancel_path cancel_options field_id field_class field_data
       ].freeze
 
-      def submit(value, options = {})
+      # The bare control: one styled `<button type="submit">`.
+      def submit_field(value, **options)
         wrapper_class = options[:wrapper_class] || WRAPPER_CLASS
 
-        attributes = html_attributes(options).except(*SUBMIT_OPTIONS).with_defaults(
+        attributes = widget_attributes(options).except(*SUBMIT_OPTIONS).with_defaults(
           type: "submit",
           class: button_classes(
             variant: options[:variant] || :primary,
@@ -50,18 +51,31 @@ module Bali
         end
       end
 
-      def submit_actions(value, options = {})
+      # The control inside its wrapper — here the actions row at the foot of the
+      # form, with the cancel control beside the submit. It is the same
+      # relationship every other `<type>_group` has with its `<type>_field`; this
+      # pair just spelled it `submit_actions` / `submit` until v3.
+      def submit_group(value, **options)
         cancel_config = extract_cancel_config(options)
         wrapper_config = extract_wrapper_config(options)
 
         cancel_html = build_cancel_button(cancel_config)
-        submit_html = submit(value, options)
+        submit_html = submit_field(value, **options)
 
         should_render_cancel = cancel_html.present? && show_cancel_button?(options)
 
         content_tag(:div, wrapper_config) do
           should_render_cancel ? safe_join([ cancel_html, submit_html ]) : submit_html
         end
+      end
+
+      # Rails' own name, kept as an override so `f.submit "Save"` keeps rendering
+      # Bali's button instead of a bare `<input type="submit">`. Same treatment as
+      # `text_area` and `time_zone_select`, and for the same reason: Rails and the
+      # gems built on it call it positionally, so it keeps the Rails signature.
+      # Not deprecated — `submit_field` is the canonical spelling.
+      def submit(value, options = {})
+        submit_field(value, **options)
       end
 
       private

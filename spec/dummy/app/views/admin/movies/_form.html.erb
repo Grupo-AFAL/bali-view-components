@@ -1,5 +1,5 @@
 <%# Admin Movie Form - Reference Implementation for Bali FormBuilder %>
-<%# Showcases: FormBuilder fields, submit_actions, BlockEditor (JSON round-trip), DirectUpload %>
+<%# Showcases: FormBuilder fields, submit_group, BlockEditor (JSON round-trip), DirectUpload %>
 
 <%# Form Progress Stepper %>
 <%= render Bali::Stepper::Component.new(current: 0, color: :primary, class: 'mb-8 w-full') do |stepper| %>
@@ -121,8 +121,8 @@
     </div>
   <% end %>
 
-  <%# Form Actions - Using submit_actions for reference implementation %>
-  <%= f.submit_actions(
+  <%# Form Actions - Using submit_group for reference implementation %>
+  <%= f.submit_group(
     movie.persisted? ? t('movies.form.update_movie') : t('movies.form.create_movie'),
     cancel_path: admin_movies_path,
     variant: :primary
