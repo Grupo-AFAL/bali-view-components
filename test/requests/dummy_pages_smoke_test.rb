@@ -43,18 +43,25 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
   #
   # These four are the dummy DEMONSTRATING the components #684 deprecated — the dashboard
   # section is literally headed "InfoLevel Component Demo". Whether the demo app should
-  # keep showing a deprecated component, and what replaces it, is #779's call: it names
-  # these exact four call sites in its body, and it is in flight. Migrating them here
-  # would be two agents editing the same two templates.
+  # keep showing a deprecated component, and what replaces it, belongs to #779, and that
+  # work is already written: **PR #808 replaces all four** — `Level` becomes flex
+  # utilities, `InfoLevel` becomes a `Columns` grid of `StatCard`. Rewriting the same two
+  # templates here would be two branches editing one file for the same reason.
+  #
+  # So this list is meant to die with that merge, and the guard is what makes it happen
+  # instead of being remembered: whichever of the two lands second, these stop firing and
+  # the assertion goes red naming them. **If you are reading this because of that failure,
+  # the fix is to delete this constant and the assertion that reads it** — the call sites
+  # are gone and the count is zero without any exception at all.
   TOLERATED = {
     "/ (dashboard#index): Bali::Level::Component" =>
-      "dashboard's Quick Actions demo of Level (#779)",
+      "dashboard's Quick Actions demo of Level (removed by #808)",
     "/ (dashboard#index): Bali::InfoLevel::Component" =>
-      "dashboard's InfoLevel Component Demo section (#779)",
+      "dashboard's InfoLevel Component Demo section (removed by #808)",
     "/admin/revenue (admin/revenue#index): Bali::InfoLevel::Component" =>
-      "revenue's budget-by-status breakdown (#779)",
+      "revenue's budget-by-status breakdown (removed by #808)",
     "/admin/revenue (admin/revenue#index): Bali::Level::Component" =>
-      "revenue's totals row (#779)"
+      "revenue's totals row (removed by #808)"
   }.freeze
 
   def setup
