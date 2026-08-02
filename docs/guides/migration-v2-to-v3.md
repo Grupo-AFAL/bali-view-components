@@ -1212,6 +1212,15 @@ the fixed hex list.
 `.theme_color_with_alpha`. `Bali::Color::NAMES` and `Bali::Color.css` replace what
 was reachable of them.
 
+The page components lost theirs to the consolidation described under [The five page
+components get one surface](#the-five-page-components-get-one-surface):
+`Bali::FormPage::Component::MAX_WIDTHS` and `Bali::DashboardPage::Component::MAX_WIDTHS`
+are now the single `Bali::PageComponents::Shared::MAX_WIDTHS`, and
+`Bali::DashboardPage::Component::STAT_ICON_COLORS`, `Bali::DashboardPage::Stat` and
+`Bali::StatCard::Component::COLORS` are gone with nothing to put in their place — the
+colour names come from `Bali::Color::NAMES` like everywhere else. None of the apps in the
+group referenced any of them, which is why this is a line and not a section.
+
 ## One taxonomy for every button
 
 `Button`, `Link` in button dress, `DeleteLink` and `BulkActions::Action` all render
