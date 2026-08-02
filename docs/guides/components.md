@@ -1532,7 +1532,7 @@ Slots: `with_item` (each item takes `with_title`, `with_subtitle`, and repeatabl
 
 #### LocationsMap
 
-Interactive Google Map with location markers, optional info views, clustering, and linked location cards. Requires the `GOOGLE_MAPS_KEY` environment variable to be set with a Google Maps JavaScript API key.
+Interactive Google Map with location markers, optional info views, clustering, and linked location cards. Requires a Google Maps JavaScript API key in `Bali.google_maps_key`, which falls back to the `GOOGLE_MAPS_KEY` environment variable.
 
 ```erb
 <%= render Bali::LocationsMap::Component.new(zoom: 12, clustered: false) do |c| %>
@@ -2150,7 +2150,7 @@ the hash is only for overrides:
 ```
 
 Any key outside that table raises `ArgumentError`. For a standalone search box not attached to
-a filter panel, use the FormBuilder's `search_field_group`.
+a filter panel, use the FormBuilder's `search_group`.
 
 #### Calendar
 

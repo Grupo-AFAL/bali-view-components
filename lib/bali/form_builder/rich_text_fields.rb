@@ -46,10 +46,11 @@ module Bali
       # straight onto the wrapper div as an HTML attribute — `label="..."` and
       # `help="..."` would end up in the markup.
       #
-      # `required` is the one addition to the canonical list: it is a real
-      # attribute on an <input>, so `html_attributes` keeps it, but the block
-      # editor has no input of its own to put it on.
-      FIELD_GROUP_OPTIONS = (HtmlUtils::WRAPPER_OPTIONS + %i[required]).freeze
+      # `CONTROL_ONLY_OPTIONS` rides along for the same reason: this editor has
+      # no input of its own to carry them.
+      FIELD_GROUP_OPTIONS = (
+        HtmlUtils::WRAPPER_OPTIONS + HtmlUtils::CONTROL_ONLY_OPTIONS
+      ).freeze
 
       def block_editor_field(method, **options)
         opts = options.except(*FIELD_GROUP_OPTIONS, :format, :input_name)

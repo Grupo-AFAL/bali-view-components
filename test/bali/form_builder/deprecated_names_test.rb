@@ -79,12 +79,35 @@ class BaliFormBuilderDeprecatedNamesTest < FormBuilderTestCase
     end
   end
 
+  def test_submit_actions_renders_what_submit_group_renders
+    options = { cancel_path: "/back", variant: :secondary }
+
+    old_html = Bali.deprecator.silence { builder.submit_actions("Save", options).to_s }
+
+    assert_equal builder.submit_group("Save", **options).to_s, old_html
+  end
+
+  def test_submit_actions_warns
+    assert_deprecated(/submit_actions is deprecated/, Bali.deprecator) do
+      builder.submit_actions("Save")
+    end
+  end
+
+  # `submit` is Rails' name, so it stays and stays silent, like `text_area`.
+  def test_submit_still_renders_bali_markup_without_warning
+    assert_not_deprecated(Bali.deprecator) do
+      assert_equal builder.submit_field("Save").to_s, builder.submit("Save").to_s
+    end
+
+    assert_html builder.submit("Save"), "button[type=submit].btn.btn-primary", text: "Save"
+  end
+
   # The renames nobody calls. A `NoMethodError` here is the deliberate outcome,
   # not an oversight: see the comment on DeprecatedNames.
   UNSHIMMED = %i[
     coordinates_polygon_field_group direct_upload_field_group numeric_field_group
     recurrent_event_rule_field_group step_number_field_group time_period_field_group
-    datetime_select_group
+    datetime_select_group search_field_group
   ].freeze
 
   def test_the_renames_with_no_measured_traffic_are_gone_rather_than_shimmed

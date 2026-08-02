@@ -31,17 +31,18 @@ module Bali
           )
         end
 
-        # @label Submit Actions
-        # Shows submit_actions helper with cancel button and submit button.
-        def submit_actions
+        # @label Submit Group
+        # Shows the submit_group helper: the actions row, with the cancel
+        # control beside the submit button.
+        def submit_group
           render_with_template(
-            template: 'bali/form/submit/previews/submit_actions',
+            template: 'bali/form/submit/previews/submit_group',
             locals: { model: form_record }
           )
         end
 
         # @label Modal Actions
-        # Shows submit_actions for modal forms with Cancel and Save buttons.
+        # Shows submit_group for modal forms with Cancel and Save buttons.
         # The cancel button uses a button element (not link) with modal#close action.
         def modal_actions
           render_with_template(

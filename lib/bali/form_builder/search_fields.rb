@@ -5,7 +5,13 @@ module Bali
     module SearchFields
       DEFAULT_BUTTON_CLASSES = "btn btn-neutral"
 
-      def search_field_group(method, options = {})
+      # The last helper still spelled the v2 way. #675 left it alone on purpose,
+      # because #677 was rewriting this file at the same time; with that landed,
+      # it joins the convention. Counted across the eight applications that
+      # render this builder before renaming: **0 call sites**, so no shim —
+      # `search_field_group` raises `NoMethodError`, the same treatment the seven
+      # other untrafficked renames got.
+      def search_group(method, **options)
         addon_class = options[:addon_class] || DEFAULT_BUTTON_CLASSES
 
         opts = options.with_defaults(
@@ -17,6 +23,14 @@ module Bali
           text_field(method, opts)
         end
       end
+
+      # There is deliberately no `search_field`. Rails already defines one, and
+      # unlike `text_area` or `time_zone_select` — where the override renders the
+      # same control the canonical Bali name does — taking this name over would
+      # change what the two measured host call sites already calling it get: a
+      # submit-button addon and a default placeholder neither asked for. The bare
+      # control for a search box is `text_field`, which is what `search_group`
+      # renders inside its own wrapper.
 
       private
 

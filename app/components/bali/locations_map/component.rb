@@ -42,7 +42,7 @@ module Bali
 
       def controller_values
         {
-          api_key: ENV.fetch("GOOGLE_MAPS_KEY", nil),
+          api_key: Bali.google_maps_key,
           enable_clustering: clustered,
           zoom: zoom,
           center_latitude: center_latitude,

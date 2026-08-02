@@ -65,6 +65,22 @@ module Bali
       # those are stripped next to the helper that gives them that meaning.
       RESERVED_OPTIONS = (WRAPPER_OPTIONS + HELPER_OPTIONS + DATEPICKER_OPTIONS).freeze
 
+      # Attributes that only mean something on a validatable form control,
+      # dropped by the families that render something else. `required` reached
+      # them because it is a real attribute on an `<input>` and therefore
+      # deliberately absent from the list above — but a block editor, a Trix
+      # editor, a polygon map and a period picker are each a widget over a hidden
+      # field, and a hidden input is barred from constraint validation to begin
+      # with; a submit button is a control the browser never validates.
+      #
+      # Measured helper by helper before this list existed: `<div required>` on
+      # two of them and `<trix-editor required>` on a third — none of which is
+      # valid or does anything — and silence on the rest. Every outcome reads as
+      # "this field is required" at the call site and none of them made it so,
+      # which is the reason the drop is named once here instead of living in one
+      # family's private constant.
+      CONTROL_ONLY_OPTIONS = %i[required].freeze
+
       # The single extraction point. Everything that delegates to Rails goes
       # through here, so no module needs its own `delete`/`except` for the keys
       # above, and none of them can drift out of sync with this list.
@@ -74,6 +90,12 @@ module Bali
       # classes and Stimulus actions into the second.
       def html_attributes(options)
         options.except(*RESERVED_OPTIONS)
+      end
+
+      # `html_attributes` for a family that renders a widget rather than a
+      # control. See CONTROL_ONLY_OPTIONS.
+      def widget_attributes(options)
+        html_attributes(options).except(*CONTROL_ONLY_OPTIONS)
       end
 
       # The keys the field *group* owns — the caption, the help text, the addons,

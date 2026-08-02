@@ -42,7 +42,7 @@ class BaliFormBuilderAccessibleNameContractTest < FormBuilderTestCase
     "time_group" => [ ->(b) { b.time_group(:duration) }, "movie_duration" ],
     "currency_group" => [ ->(b) { b.currency_group(:budget) }, "movie_budget" ],
     "percentage_group" => [ ->(b) { b.percentage_group(:budget) }, "movie_budget" ],
-    "search_field_group" => [ ->(b) { b.search_field_group(:name) }, "movie_name" ],
+    "search_group" => [ ->(b) { b.search_group(:name) }, "movie_name" ],
     "step_number_group" => [ ->(b) { b.step_number_group(:duration) },
                                   "movie_duration" ],
     "file_group" => [ ->(b) { b.file_group(:name) }, "movie_name" ],

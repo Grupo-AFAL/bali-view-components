@@ -6,24 +6,22 @@ import { Controller } from '@hotwired/stimulus'
  * File Input Controller
  * Displays the selected filename in the correct place.
  *
- * It expects the following structure:
+ * `f.file_group` / `f.file_field` build this; the structure is only two
+ * targets deep, so hand-written markup works as long as it carries both.
+ * The example that used to live here described the Bulma markup
+ * (`.file`, `.file-label`, `.file-cta`, `.file-icon`) the field stopped
+ * emitting, and the stylesheet no longer has rules for any of those names.
  *
-    <div class="file has-name field" data-controller="file-input">
-      <label class="file-label">
-        <%= form.file_field :[fieldName], class: 'file-input',
-            data: { action: 'file-input#onChange', file_input_target: 'input' } %>
-        <span class="file-cta">
-          <span class="file-icon">
-            <i class="fas fa-cloud-upload-alt"></i>
-          </span>
-          <span class="file-label" >
-            Seleccionar Imagen
-          </span>
-        </span>
-        <span class="file-name" data-target="file-input.value">
-          No hay imagen seleccionada
-        </span>
+    <div class="flex items-center gap-3" data-controller="file-input"
+         data-file-input-non-selected-text-value="No file selected"
+         data-file-input-multiple-value="false">
+      <label class="cursor-pointer inline-flex">
+        <input type="file" class="hidden"
+               data-action="file-input#onChange" data-file-input-target="input">
+        <span class="btn btn-soft btn-primary btn-sm gap-2">Choose file</span>
       </label>
+      <span class="text-sm text-base-content/60 truncate"
+            data-file-input-target="value">No file selected</span>
     </div>
  */
 

@@ -260,11 +260,23 @@ import "flatpickr/dist/flatpickr.min.css"
 
 ### Google Maps (for AutocompleteAddress)
 
-Add to your layout:
+No script tag: Bali loads the Maps API itself, on demand, from the controller that
+needs it. Give it the key instead.
+
+```ruby
+# config/initializers/bali.rb — read by LocationsMap and coordinates_polygon
+Bali.config { |config| config.google_maps_key = Rails.application.credentials.dig(:google, :maps_key) }
+```
+
+The `autocomplete-address` controller is wired by hand, so it takes its key from the
+element (or from a global):
 
 ```erb
-<%= javascript_include_tag "https://maps.googleapis.com/maps/api/js?key=#{ENV['GOOGLE_MAPS_API_KEY']}&libraries=places" %>
+<div data-controller="autocomplete-address"
+     data-autocomplete-address-api-key-value="<%= Bali.google_maps_key %>">
 ```
+
+See [External Services](external-services.md) for the full setup.
 
 ---
 

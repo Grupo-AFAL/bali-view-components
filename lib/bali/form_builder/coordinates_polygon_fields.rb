@@ -23,7 +23,7 @@ module Bali
 
       def coordinates_polygon_field(method, options = {})
         value = serialize_value(options.fetch(:value, []))
-        attributes = setup_options(html_attributes(dup_options(options)).except(:value))
+        attributes = setup_options(widget_attributes(dup_options(options)).except(:value))
 
         tag.div(**attributes) do
           safe_join(
@@ -49,11 +49,7 @@ module Bali
           "drawing-maps-confirmation-message-to-clear-value",
           I18n.t("bali_view.form_builder.coordinates_polygon.confirm")
         )
-        prepend_data_attribute(opts, "drawing-maps-key", google_maps_key)
-      end
-
-      def google_maps_key
-        ENV.fetch("GOOGLE_MAPS_KEY", "")
+        prepend_data_attribute(opts, "drawing-maps-key", Bali.google_maps_key.to_s)
       end
 
       def clear_buttons

@@ -56,7 +56,7 @@ class BaliFormBuilderOptionsContractTest < FormBuilderTestCase
     "datetime_group" => ->(b, o) { b.datetime_group(:name, **o) },
     "time_field" => ->(b, o) { b.time_field(:name, **o) },
     "time_group" => ->(b, o) { b.time_group(:name, **o) },
-    "search_field_group" => ->(b, o) { b.search_field_group(:name, **o) },
+    "search_group" => ->(b, o) { b.search_group(:name, **o) },
     "currency_group" => ->(b, o) { b.currency_group(:name, **o) },
     "percentage_group" => ->(b, o) { b.percentage_group(:name, **o) },
     "step_number_field" => ->(b, o) { b.step_number_field(:name, **o) },
@@ -78,8 +78,8 @@ class BaliFormBuilderOptionsContractTest < FormBuilderTestCase
     "coordinates_polygon_field" => ->(b, o) { b.coordinates_polygon_field(:name, **o) },
     "recurrent_event_rule_field" => ->(b, o) { b.recurrent_event_rule_field(:name, **o) },
     "time_period_field" => ->(b, o) { b.time_period_field(:name, [ %w[Today today] ], **o) },
-    "submit" => ->(b, o) { b.submit("Save", **o) },
-    "submit_actions" => ->(b, o) { b.submit_actions("Save", **o) }
+    "submit_field" => ->(b, o) { b.submit_field("Save", **o) },
+    "submit_group" => ->(b, o) { b.submit_group("Save", **o) }
   }.freeze
 
   def test_reserved_options_list_covers_every_probed_key

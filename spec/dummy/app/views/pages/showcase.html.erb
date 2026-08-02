@@ -209,7 +209,7 @@
       </div>
 
       <%# Submit %>
-      <%= f.submit_actions t('showcase.register'), cancel_path: '#' %>
+      <%= f.submit_group t('showcase.register'), cancel_path: '#' %>
     <% end %>
 
     <div class="divider">Usage</div>
@@ -774,7 +774,7 @@
         <h4 class="font-medium mb-2"><%= t('showcase.with_submit_button') %></h4>
         <%= form_with url: '/pages/showcase', method: :get, local: true, builder: Bali::FormBuilder do |f| %>
           <div class="max-w-md">
-            <%= f.search_field_group :query, placeholder: t('showcase.search_products') %>
+            <%= f.search_group :query, placeholder: t('showcase.search_products') %>
           </div>
         <% end %>
       </div>
@@ -785,7 +785,7 @@
             on input instead, through the submit-on-change controller. %>
         <%= form_with url: '/pages/showcase', method: :get, local: true, builder: Bali::FormBuilder, data: { controller: 'submit-on-change' } do |f| %>
           <div class="max-w-md">
-            <%= f.search_field_group :query,
+            <%= f.search_group :query,
                   placeholder: t('showcase.start_typing'),
                   addon_right: nil,
                   data: { action: 'submit-on-change#submit' } %>
@@ -823,7 +823,7 @@
   <% end %>
 </section>
 
-<%# LocationsMap Demo (requires GOOGLE_MAPS_KEY) %>
+<%# LocationsMap Demo (requires Bali.google_maps_key) %>
 <section class="mb-12">
   <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
     <%= render Bali::Icon::Component.new('map-pin', class: 'text-primary') %>
@@ -832,7 +832,7 @@
   <p class="text-base-content/70 mb-4"><%= t('showcase.locations_map_desc') %></p>
 
   <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <% if ENV['GOOGLE_MAPS_KEY'].present? %>
+    <% if Bali.google_maps_key.present? %>
       <%= render Bali::LocationsMap::Component.new(
         center_latitude: 37.7749,
         center_longitude: -122.4194,

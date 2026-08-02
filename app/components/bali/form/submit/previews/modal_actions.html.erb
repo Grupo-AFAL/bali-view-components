@@ -1,6 +1,6 @@
 <%# Modal actions use button elements for Cancel (no path needed) %>
 <%= form_with(model: model, url: '/lookbook', builder: Bali::FormBuilder) do |form| %>
-  <%= form.submit_actions 'Save', modal: true %>
+  <%= form.submit_group 'Save', modal: true %>
 <% end %>
 
 <p class="text-sm text-base-content/70 mt-4">

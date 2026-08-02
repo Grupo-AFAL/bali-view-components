@@ -9,7 +9,7 @@ Bali extends Rails' `ActionView::Helpers::FormBuilder` with DaisyUI-styled form 
   <%= f.text_group :name %>
   <%= f.email_group :email %>
   <%= f.password_group :password %>
-  <%= f.submit "Create Account", variant: :primary %>
+  <%= f.submit_field "Create Account", variant: :primary %>
 <% end %>
 ```
 
@@ -128,16 +128,18 @@ Standard text input with DaisyUI styling.
 <%= f.url_group :website, addon_left: "https://" %>
 ```
 
-### search_field_group
+### search_group
 
 ```erb
-<%= f.search_field_group :query, placeholder: "Search..." %>
+<%= f.search_group :query, placeholder: "Search..." %>
 ```
 
-> **The one helper still on the v2 spelling.** It keeps `search_field_group`
-> rather than becoming `search_group` because the search input is being reworked
-> under a separate issue (#677), and renaming it here would have forced that work
-> to land on a name it is about to change again. It joins the convention there.
+> **No `search_field`.** Rails already defines one, and unlike `text_area` or
+> `time_zone_select` — where Bali's override renders the same control the
+> canonical name does — taking this name over would add a submit-button addon
+> and a default placeholder to call sites that never asked for either. The bare
+> control for a search box is `text_field`; `search_group` is that plus the
+> addon and the fieldset.
 
 ---
 
@@ -528,14 +530,20 @@ Active Storage direct upload support.
 
 ## Submit Buttons
 
-### submit
+These follow the same `<type>_group` / `<type>_field` split as every field:
+`submit_group` renders the button inside the actions row, `submit_field` renders
+the button alone. `f.submit` is Rails' name for the bare button and keeps
+working, exactly like `f.text_area`.
 
-Styled submit button.
+### submit_field
+
+Styled submit button, on its own.
 
 ```erb
-<%= f.submit "Save" %>
-<%= f.submit "Save", variant: :primary %>
-<%= f.submit "Create", variant: :success, size: :lg %>
+<%= f.submit_field "Save" %>
+<%= f.submit_field "Save", variant: :primary %>
+<%= f.submit_field "Create", variant: :success, size: :lg %>
+<%= f.submit "Save" %>  <%# Rails' name for the same thing %>
 ```
 
 **Options:**
@@ -544,15 +552,16 @@ Styled submit button.
 - `modal` - Add modal submit action
 - `drawer` - Add drawer submit action
 
-### submit_actions
+### submit_group
 
-Submit with cancel button.
+The actions row: submit with the cancel control beside it. Spelled
+`submit_actions` in v2, which still works for one cycle and warns.
 
 ```erb
-<%= f.submit_actions "Save", cancel_path: users_path %>
-<%= f.submit_actions "Save", cancel_path: :back %>
-<%= f.submit_actions "Save", modal: true %>  <%# Cancel closes modal %>
-<%= f.submit_actions "Save", drawer: true %> <%# Cancel closes drawer %>
+<%= f.submit_group "Save", cancel_path: users_path %>
+<%= f.submit_group "Save", cancel_path: :back %>
+<%= f.submit_group "Save", modal: true %>  <%# Cancel closes modal %>
+<%= f.submit_group "Save", drawer: true %> <%# Cancel closes drawer %>
 ```
 
 **Options:**
@@ -690,7 +699,7 @@ Many fields automatically integrate with Stimulus controllers:
 | `datetime_field_*` | `datepicker` | Date + time picking |
 | `step_number_field_*` | `step-number-input` | Increment/decrement |
 | `rich_text_area_*` | `trix-attachments` | File size limits |
-| `submit` (with modal) | `modal` | Form submission handling |
+| `submit_field` (with modal) | `modal` | Form submission handling |
 
 ---
 
@@ -719,6 +728,6 @@ Many fields automatically integrate with Stimulus controllers:
   <%= f.switch_field :active, color: :success %>
   <%= f.boolean_group :featured %>
 
-  <%= f.submit_actions "Save Product", cancel_path: products_path, variant: :primary %>
+  <%= f.submit_group "Save Product", cancel_path: products_path, variant: :primary %>
 <% end %>
 ```

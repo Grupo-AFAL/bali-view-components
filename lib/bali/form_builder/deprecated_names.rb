@@ -9,7 +9,7 @@ module Bali
     # applications that render this builder — afal-apps, ga-apps,
     # gobierno-corporativo, centinela-web, costa-norte, identity, opina and
     # bali-auth — were counted call site by call site, and a name is shimmed if
-    # any of them calls it. Seventeen do; the seven renamed helpers nobody calls
+    # any of them calls it. Eighteen do; the seven renamed helpers nobody calls
     # (`coordinates_polygon_field_group`, `direct_upload_field_group`,
     # `numeric_field_group`, `recurrent_event_rule_field_group`,
     # `step_number_field_group`, `time_period_field_group` and the
@@ -57,6 +57,15 @@ module Bali
             new_name, method, checked_value: checked, unchecked_value: unchecked, **options
           )
         end
+      end
+
+      # 270 call sites across those eight applications — after `text_group` the
+      # busiest helper in the builder, and the only one outside the field
+      # families that carried a name of its own. What it renders is exactly what
+      # every `<type>_group` renders: the control inside its wrapper.
+      def submit_actions(value, options = {})
+        deprecated_helper_name(:submit_actions, :submit_group)
+        submit_group(value, **options)
       end
 
       # 11 call sites. The only renamed family that took a second positional

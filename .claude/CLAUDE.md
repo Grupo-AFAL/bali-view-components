@@ -203,16 +203,23 @@ keyword. `text_group`/`text_field`, `select_group`/`select_field`,
 the four families that have two hashes (`select_*`, `slim_select_*`,
 `time_zone_select_*`, `radio_*`).
 
-Two exceptions worth knowing, neither of which needs a lookup table:
+The submit pair follows the same rule: `submit_group` is the actions row, `submit_field`
+the button on its own.
 
-- `search_field_group` still carries the v2 spelling, pending #677.
-- `f.text_area`, `f.rich_text_area` and `f.time_zone_select` are Rails' names, kept as
-  overrides so they keep rendering Bali's markup. Not deprecated; prefer the
-  `<type>_field` spelling in new code.
+One exception, which needs no lookup table: `f.text_area`, `f.rich_text_area`,
+`f.time_zone_select` and `f.submit` are Rails' names, kept as overrides so they keep
+rendering Bali's markup. Not deprecated; prefer the `<type>_field` spelling in new code.
+`search_group` has no bare half at all — Rails' `search_field` is left alone, because
+overriding it would change what host call sites already using it render.
 
-The v2 `*_field_group` names still resolve for one cycle where a host app actually used
-them, warning through `Bali.deprecator` — see `lib/bali/form_builder/deprecated_names.rb`.
-Do not write them in new code.
+The v2 `*_field_group` names and `submit_actions` still resolve for one cycle where a host
+app actually used them, warning through `Bali.deprecator` — see
+`lib/bali/form_builder/deprecated_names.rb`. Do not write them in new code.
+
+`required:` is a plain HTML attribute passthrough, not a Bali option: it reaches the
+control on the families that render one, and is dropped by the ones whose control is a
+widget over a hidden field. `test/bali/form_builder/required_option_test.rb` names which
+is which, and fails if a new family lands in neither list.
 
 ## Icons
 

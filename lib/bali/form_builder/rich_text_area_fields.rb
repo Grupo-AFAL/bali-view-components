@@ -37,8 +37,11 @@ module Bali
         attachments_error_message = options.dig(:attachments, :error_message) || default_error_msg
 
         # ActionText writes its direct-upload URLs into `:data` in place, so the
-        # nested hash has to be ours before the tag helper ever sees it.
-        opts = dup_options(options).with_defaults(
+        # nested hash has to be ours before the tag helper ever sees it. The
+        # control-only keys come off here rather than at the end, because
+        # `field_options` still has to read the addon and pattern keys out of
+        # this very hash.
+        opts = dup_options(options).except(*HtmlUtils::CONTROL_ONLY_OPTIONS).with_defaults(
           'data-controller': "trix-attachments",
           'data-trix-attachments-max-size-value': max_attachments_size,
           'data-trix-attachments-error-message-value': attachments_error_message
