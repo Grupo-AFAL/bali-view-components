@@ -11,7 +11,27 @@
  *     `base-select` on every DataTable / Filters / FormBuilder select).
  * A host can still override anything here with a `!` utility variant, exactly
  * as before.
+ *
+ * What is NOT here any more: the Bulma vocabulary this file carried since the
+ * migration — `.field-body`, `.control.is-small`, `.control.inline`,
+ * `.control > .v-center`, `.control > .is-5`, `.inline-label`,
+ * `.delete-column`, `.select.full-width`, the `.radio` / `.block-radio` /
+ * `.large-radio-group` family, the `.file` / `.file-label` / `.file-icon`
+ * family, and the `.togglers` / `.toggler` half of `.radio-buttons-group`.
+ * Every one of them was measured across the 480 pages this package renders and
+ * matched nothing, because v3 emits daisyUI class names in their place: the
+ * radio input itself carries `.radio` (so `.radio input` has no children to
+ * match), the file field renders Tailwind utilities instead of `.file-label`,
+ * and the toggler row is a daisyUI `join` of `join-item btn btn-sm`.
  */
+
+/* The five-step width scale, the one piece of `is-*` vocabulary that is still
+   load-bearing. It is not emitted by anything here — a host writes it — so it
+   is kept on measured traffic: two call sites pass it through `class:`, and
+   four more through `alt_input_class:`, which the datepicker controller
+   prepends `input ` to before handing it to flatpickr's altInput. Prefer a
+   Tailwind width (`class: "w-64"`) in new code; these stay for one more cycle
+   so upgrading an application is not a silent relayout. */
 .input.is-very-short,
 .select.is-very-short {
   @apply w-16;
@@ -37,14 +57,6 @@
   @apply w-80;
 }
 
-.select.full-width {
-  @apply w-full;
-
-  select {
-    @apply !w-full;
-  }
-}
-
 /* DaisyUI 5.5 opts every .select into Chrome's customizable select via
    appearance: base-select. In Chrome >= 135 that mode ignores the author's
    overflow/text-overflow, so long option labels no longer truncate at the
@@ -64,75 +76,6 @@
    (minmax(0, 1fr)) instead of truncating. Allow the control to shrink. */
 .control {
   min-width: 0;
-}
-
-.control.is-small {
-  @apply w-40;
-}
-
-.inline-label {
-  @apply mr-3;
-  line-height: 32px;
-
-  &:not(:first-child) {
-    @apply ml-6;
-  }
-}
-
-.field-body > .field {
-  @apply flex-1;
-}
-
-.field-body > .field.flex-2 {
-  @apply flex-[2];
-}
-
-.delete-column {
-  @apply pt-5;
-}
-
-.control.inline {
-  @apply mr-2;
-}
-
-.control > .v-center {
-  @apply self-center;
-}
-
-.control > .is-5 {
-  @apply mt-1.5;
-}
-
-.radio {
-  input {
-    @apply mr-1.5;
-  }
-
-  .field_with_errors {
-    @apply w-auto inline-block;
-  }
-}
-
-.block-radio {
-  @apply block;
-
-  .radio {
-    @apply block;
-  }
-
-  .radio + .radio {
-    @apply m-0;
-  }
-}
-
-.large-radio-group {
-  .radio {
-    @apply !text-base !mb-4;
-
-    input {
-      @apply mr-4;
-    }
-  }
 }
 
 .field_with_errors {
@@ -158,86 +101,13 @@
   .field_with_errors {
     display: contents;
   }
-
-  .tooltip-component {
-    @apply h-6;
-
-    .tippy-content {
-      @apply font-normal;
-    }
-  }
 }
 
-.file-icon.empty-text {
-  @apply mr-0;
-}
-
-.file-label {
-  .field_with_errors {
-    @apply w-auto;
-  }
-}
-
-.file.is-boxed {
-  &.is-fullwidth {
-    .file-label {
-      @apply text-center;
-    }
-  }
-
-  .file-name {
-    @apply h-auto max-w-none;
-
-    ul {
-      @apply m-0;
-    }
-
-    li {
-      @apply flex justify-between;
-    }
-
-    a {
-      @apply ml-4;
-    }
-  }
-}
-
-
+/* `.radio-buttons-group` is the control class the radio_buttons family sets.
+   Only the error wrapper is still its business: the row of togglers is a
+   daisyUI join now, and each radio is labelled by daisyUI's own classes. */
 .radio-buttons-group {
   .field_with_errors {
     @apply w-auto;
-  }
-
-  &.is-left {
-    @apply text-left;
-  }
-
-  &.is-center {
-    @apply text-center;
-  }
-
-  &.is-right {
-    @apply text-right;
-  }
-
-  .togglers {
-    margin-bottom: 1.5rem;
-  }
-
-  .toggler {
-    @apply bg-transparent border border-base-content cursor-pointer;
-    padding: 1rem;
-
-    &:not(:last-child) {
-      margin-right: 1rem;
-    }
-
-    &.is-active {
-      @apply bg-primary text-primary-content;
-    }
-
-    &:disabled {
-      @apply text-base-300 border-base-300;
-    }
   }
 }
