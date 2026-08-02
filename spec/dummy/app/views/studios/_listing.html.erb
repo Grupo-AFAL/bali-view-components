@@ -11,10 +11,34 @@
   <%# El `search:` viaja por el mismo camino en los dos modos de filtro. %>
   <% data_table.with_simple_filters(search: { placeholder: t('studios.search_placeholder') }) %>
 
+  <%# Vistas guardadas: combinaciones de filtros CON NOMBRE. Sin `url:` apunta a las rutas
+      del engine montado (/bali); el store y el dueño los trae el FilterForm.
+
+      OJO (#823): acá la vista guarda la agrupación, las columnas y la búsqueda rápida, pero
+      NO el recorte de los filtros simplificados — `current_view_payload` no los representa.
+      Se deja puesto a propósito: es la superficie que el índice simplificado tiene que
+      ejercitar, y esconderla volvería a tapar el defecto en vez de arreglarlo. %>
+  <% data_table.with_saved_views %>
+
+  <%# Los índices arrancan en 0 porque esta tabla NO es `selectable:` — en /admin/movies la
+      0 es la columna de selección que pinta el componente y por eso allá arranca en 1. La
+      de acciones queda fuera a propósito: esconderla deja las filas sin su ⋯. %>
+  <% data_table.with_column_selector do |cs| %>
+    <% cs.with_column(index: 0, label: t('studios.columns.name')) %>
+    <% cs.with_column(index: 1, label: t('studios.columns.country')) %>
+    <% cs.with_column(index: 2, label: t('studios.columns.status')) %>
+    <% cs.with_column(index: 3, label: t('studios.columns.size')) %>
+    <% cs.with_column(index: 4, label: t('studios.columns.founded')) %>
+  <% end %>
+
   <% data_table.with_table do %>
     <%# `table` y no `t`: la variable del bloque sombrea al helper de i18n, y las seis
-        llamadas a `t(...)` de acá adentro sobreviven solo porque llevan paréntesis. %>
-    <%= render Bali::Table::Component.new(form: @filter_form) do |table| %>
+        llamadas a `t(...)` de acá adentro sobreviven solo porque llevan paréntesis.
+
+        `group_counts` es lo que hace que el encabezado de grupo muestre el total GLOBAL
+        sobre el set filtrado, y no solo lo que entró en esta página. %>
+    <%= render Bali::Table::Component.new(form: @filter_form,
+                                          group_counts: @filter_form.group_counts) do |table| %>
       <% table.with_header(name: t('studios.columns.name'), sort: :name) %>
       <% table.with_header(name: t('studios.columns.country'), sort: :country) %>
       <% table.with_header(name: t('studios.columns.status'), sort: :status) %>
@@ -25,7 +49,11 @@
       <% table.with_header(name: t('studios.columns.actions'), class: 'text-right') %>
 
       <% @studios.each do |studio| %>
-        <% table.with_row do %>
+        <%# El valor del grupo tiene que coincidir con una clave de `group_counts`; `nil`
+            cuando la agrupación está apagada O suspendida — de ahí `group_by_applied` y no
+            `group_by`. %>
+        <% applied_group = @filter_form.group_by_applied %>
+        <% table.with_row(group: applied_group && studio.public_send(applied_group)) do %>
           <td class="font-medium">
             <%= render Bali::Link::Component.new(
               name: studio.name,

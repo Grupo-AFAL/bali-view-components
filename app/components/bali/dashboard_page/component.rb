@@ -7,7 +7,10 @@ module Bali
     class Component < ApplicationViewComponent
       include PageComponents::Shared
 
-      self.default_max_width = :"2xl"
+      # No `default_max_width` override: a dashboard inherits `:full` like the rest. The
+      # `:"2xl"` cap it used to carry came from v2 and fought the container the host had
+      # already chosen — a stats grid and a chart row are exactly the content that wants
+      # the width the app gives it. A host that wants a cap still passes `max_width:`.
 
       STATS_COLUMNS = {
         2 => "sm:grid-cols-2",
