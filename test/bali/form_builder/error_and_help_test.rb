@@ -22,7 +22,7 @@ class BaliFormBuilderErrorAndHelpTest < FormBuilderTestCase
     "url_field" => ->(b, h) { b.url_field(:name, help: h) },
     "number_field" => ->(b, h) { b.number_field(:budget, help: h) },
     "password_field" => ->(b, h) { b.password_field(:name, help: h) },
-    "search_field_group" => ->(b, h) { b.search_field_group(:name, help: h) },
+    "search_group" => ->(b, h) { b.search_group(:name, help: h) },
     "file_field" => ->(b, h) { b.file_field(:name, help: h) },
     "select_field" => ->(b, h) { b.select_field(:status, [], help: h) },
     "slim_select_field" => ->(b, h) { b.slim_select_field(:status, [], help: h) },
