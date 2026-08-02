@@ -73,6 +73,25 @@ module Bali
   mattr_accessor :native_app, default: false
   mattr_accessor :custom_icons, default: {}
 
+  # Google Maps JavaScript API key, read by LocationsMap and by the form
+  # builder's coordinates polygon field. Both used to call
+  # `ENV.fetch("GOOGLE_MAPS_KEY")` on their own, which made the environment the
+  # only place the key could come from — an application that keeps credentials
+  # in `Rails.application.credentials` or in a secrets manager had to export an
+  # environment variable just to satisfy this gem.
+  #
+  # The environment variable is still read, so nothing an app already does
+  # stops working, but it is now the fallback rather than the source: an
+  # explicit `Bali.google_maps_key = ...` wins.
+  mattr_writer :google_maps_key, default: nil
+
+  # Resolved per call, not memoised: `config/initializers` runs before an
+  # application's own credential loading in more setups than not, and a value
+  # frozen at boot would be the empty string forever in every one of them.
+  def self.google_maps_key
+    @@google_maps_key.presence || ENV["GOOGLE_MAPS_KEY"].presence
+  end
+
   # Rich Text Editor configuration
   # Set to true to enable the Rich Text Editor component (requires TipTap dependencies)
   mattr_accessor :rich_text_editor_enabled, default: false

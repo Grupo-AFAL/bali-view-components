@@ -291,7 +291,7 @@ es:
     generated_rrule: "RRULE Generado: El formulario de arriba genera reglas de recurrencia estandar iCalendar (RFC 5545) que pueden usarse con aplicaciones de calendario."
     locations_map: Mapa de Ubicaciones
     locations_map_desc: Integracion de Google Maps con marcadores de ubicacion.
-    google_maps_required: "Clave API de Google Maps Requerida: Establece la variable de entorno GOOGLE_MAPS_KEY para habilitar el componente LocationsMap."
+    google_maps_required: "Clave API de Google Maps Requerida: Establece Bali.google_maps_key (o la variable de entorno GOOGLE_MAPS_KEY) para habilitar el componente LocationsMap."
     map_placeholder: Marcador de posicion del mapa
     block_editor: Editor de Bloques
     block_editor_desc: Editor de texto enriquecido basado en bloques impulsado por BlockNote. Soporta encabezados, listas, bloques de codigo y mas.

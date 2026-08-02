@@ -425,7 +425,7 @@ en:
     generated_rrule: "Generated RRULE: The form above generates standard iCalendar recurrence rules (RFC 5545) that can be used with calendar applications."
     locations_map: LocationsMap
     locations_map_desc: Google Maps integration with location markers.
-    google_maps_required: "Google Maps API Key Required: Set the GOOGLE_MAPS_KEY environment variable to enable the LocationsMap component."
+    google_maps_required: "Google Maps API Key Required: Set Bali.google_maps_key (or the GOOGLE_MAPS_KEY environment variable) to enable the LocationsMap component."
     map_placeholder: Map placeholder
     block_editor: BlockEditor
     block_editor_desc: Block-based rich text editor powered by BlockNote. Supports headings, lists, code blocks, and more.
