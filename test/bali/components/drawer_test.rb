@@ -13,13 +13,13 @@ class BaliDrawerComponentTest < ComponentTestCase
 
   def test_basic_rendering_renders_drawer_component
     render_inline(component)
-    assert_selector("div.drawer-component")
+    assert_selector("dialog.drawer-component")
   end
 
   def test_basic_rendering_renders_drawer_open_class_when_active
     @options.merge!(active: true)
     render_inline(component)
-    assert_selector("div.drawer-component.drawer-open")
+    assert_selector("dialog.drawer-component.drawer-open")
   end
 
   def test_basic_rendering_renders_with_custom_content
@@ -84,7 +84,7 @@ class BaliDrawerComponentTest < ComponentTestCase
 
   def test_unique_ids_generates_unique_drawer_id_by_default
     render_inline(component)
-    id = page.find('[role="dialog"]')["id"]
+    id = page.find("dialog.drawer-component")["id"]
     assert_match(/drawer-[a-f0-9]{8}/, id)
   end
 
@@ -94,27 +94,28 @@ class BaliDrawerComponentTest < ComponentTestCase
     assert_selector("#my-settings-drawer")
   end
 
-  def test_accessibility_has_role_dialog
+  # A native `<dialog>` opened with `showModal()`. `role="dialog"` and
+  # `aria-modal="true"` are gone because both are implicit on the element, and
+  # the second one was a lie in the state a static attribute cannot tell apart:
+  # a panel rendered `active:` that no script has opened yet is not modal.
+  def test_accessibility_is_a_native_dialog_element
     render_inline(component)
-    assert_selector('[role="dialog"]')
-  end
-
-  def test_accessibility_has_aria_modal_true
-    render_inline(component)
-    assert_selector('[aria-modal="true"]')
+    assert_selector("dialog.drawer-component")
+    assert_no_selector("dialog.drawer-component[role]")
+    assert_no_selector("dialog.drawer-component[aria-modal]")
   end
 
   def test_accessibility_connects_aria_labelledby_to_title_when_title_is_provided
     @options.merge!(title: "Settings")
     render_inline(component)
-    dialog = page.find('[role="dialog"]')
+    dialog = page.find("dialog.drawer-component")
     title_id = dialog["aria-labelledby"]
     assert_selector("##{title_id}", text: "Settings")
   end
 
   def test_accessibility_does_not_add_aria_labelledby_when_no_title_is_provided
     render_inline(component)
-    dialog = page.find('[role="dialog"]')
+    dialog = page.find("dialog.drawer-component")
     assert_nil(dialog["aria-labelledby"])
   end
 
@@ -131,7 +132,7 @@ class BaliDrawerComponentTest < ComponentTestCase
 
   def test_accessibility_has_escape_key_handling_via_data_action
     render_inline(component)
-    dialog = page.find('[role="dialog"]')
+    dialog = page.find("dialog.drawer-component")
     assert_includes(dialog["data-action"], "keydown.esc->drawer#close")
   end
 
@@ -188,7 +189,7 @@ class BaliDrawerComponentTest < ComponentTestCase
   def test_options_passthrough_merges_data_attributes_with_defaults
     @options.merge!(data: { custom: "value" })
     render_inline(component)
-    dialog = page.find('[role="dialog"]')
+    dialog = page.find("dialog.drawer-component")
     assert_equal("drawer", dialog["data-controller"])
     assert_equal("value", dialog["data-custom"])
   end
@@ -200,7 +201,7 @@ class BaliDrawerComponentTest < ComponentTestCase
 
   def test_confirm_close_uses_default_message
     render_inline(component)
-    dialog = page.find('[role="dialog"]')
+    dialog = page.find("dialog.drawer-component")
     assert_equal("You have unsaved changes. Discard them?", dialog["data-drawer-confirm-close-message-value"])
   end
 

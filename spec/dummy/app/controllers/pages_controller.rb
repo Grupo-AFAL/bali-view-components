@@ -40,6 +40,19 @@ class PagesController < ApplicationController
     # Full-page SideMenu reference; the shell comes from `choose_layout` above.
   end
 
+  # Real end-to-end check that the Opina embed token never travels in a URL.
+  # `opina_url` points back at this same app so the frame is same-origin and the
+  # `postMessage` is actually delivered; `feedback_embed` below is what receives it.
+  def feedback_widget_demo
+    @opina_url = request.base_url
+  end
+
+  # Stands in for Opina's embed page: it does nothing but show the token it was
+  # handed, so a test can tell "arrived by message" from "arrived in the URL".
+  def feedback_embed
+    render layout: false
+  end
+
   def workspace
     # Reference page demonstrating the standard "navbar + sidebar + content" admin shell.
     @stats = [

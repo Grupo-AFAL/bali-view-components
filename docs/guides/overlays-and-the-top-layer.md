@@ -102,12 +102,46 @@ Two things are worth knowing:
   your widget alone rather than reparent it half-way, since a reparented popup with no top
   layer inherits the dialog's fixed containing block and lands off-screen on a scrolled page.
 
-## What is not covered yet
+## Which of Bali's own overlays are in the top layer
 
-`Modal` and `Drawer` are still ordinary positioned elements at `--bali-z-modal` and
-`--bali-z-drawer`; they do not use `showModal()` yet. `ConfirmDialog` is the one overlay in
-the package that is already a modal `<dialog>`, and it holds nothing but text and two
-buttons, so no popup ever opens inside it.
+Four, and they got there by the same route — a native `<dialog>` opened with
+`showModal()`:
+
+| Overlay | Element |
+| --- | --- |
+| `Modal` | the component's root is the `<dialog>` |
+| `Drawer` | the component's root is the `<dialog>` |
+| `Command` | a `<dialog>` inside the container, wrapping the backdrop and the panel |
+| `ConfirmDialog` | a `<dialog>` built in JavaScript |
+
+**Among themselves they no longer stack by tier.** The top layer is ordered by the sequence
+things entered it, so the overlay opened *last* is on top — a command palette opened over a
+drawer covers it, and so would a drawer opened over a modal. `--bali-z-drawer: 300` and
+`--bali-z-modal: 400` still apply to the element, but they only decide anything for a panel
+the server rendered `active:` in the moment before its controller promotes it, and in a
+browser with no `<dialog>` support at all.
+
+## What has to follow them up there
+
+Anything the scale ranks **above** those four, because no z-index reaches over the top
+layer:
+
+- **Field popups** — flatpickr, SlimSelect, tippy, `ImageGrid` — join from inside the panel
+  whose field opened them, as described above.
+- **The command palette** joins as its own dialog, so ⌘K still opens over a half-filled
+  drawer.
+- **The toast stack** moves into the open overlay for as long as it lasts and moves back out
+  on close, driven by the `toast-container` controller. The node travels but its id does
+  not, so a host's `turbo_stream.append "toast-notifications"` keeps landing in the same
+  place. This is what makes the usual failed-submit flow work: a 422 leaves the panel open
+  by design, and the flash that comes with it would otherwise be painted underneath.
+
+A toast that is already showing when an overlay opens is *not* pulled up after it — only
+toasts that arrive while an overlay is open, plus whatever the stack is holding at that
+moment. In practice a toast auto-dismisses in three seconds, so the window is small; if it
+matters to you, open the overlay first.
+
+## What is not covered
 
 The BlockNote portals inside `BlockEditor` and `Status`' panel read `--bali-z-popover` and
 are not wired to this utility. They are not reachable from inside a modal dialog today, and

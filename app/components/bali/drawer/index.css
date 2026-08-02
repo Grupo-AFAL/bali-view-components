@@ -1,5 +1,42 @@
 /* Drawer component styles */
 
+/* The root is a <dialog>, so it arrives with a UA box: a centred, fit-content,
+   bordered sheet with a Canvas background and its own scroll container. All of it
+   has to go — the root is nothing but a positioning marker, because the overlay
+   and the panel are `position: fixed` in their own right, which leaves the box
+   itself zero-sized. `border`, `margin` and `padding` are already zeroed by the
+   global reset, so what is left is the rest of the UA rule.
+   Modal needs no equivalent: daisyUI's `.modal` already writes every one of
+   these, which is what makes `<dialog class="modal">` its documented shape. */
+dialog.drawer-component {
+  inset: auto;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  background: transparent;
+  color: inherit;
+  overflow: visible;
+}
+
+/* Kept rendered while closed, against the UA's `dialog:not([open])`. Closing a
+   dialog is instantaneous — it drops out of the top layer in the same frame — so
+   with `display: none` the panel would blink out instead of sliding away, and the
+   300ms slide-out below would never be seen. Rendered-while-closed is also what
+   the panel did as a <div>, so the transition works from both directions without
+   `@starting-style`: the element is never not-rendered, and only its transform
+   changes. The box covers nothing (see `inset: auto` above), so nothing behind it
+   becomes unclickable. */
+dialog.drawer-component:not([open]) {
+  display: block;
+}
+
+/* The package draws its own overlay below; the UA backdrop would only wash a
+   second layer of black over it. */
+dialog.drawer-component::backdrop {
+  background: transparent;
+}
+
 /* Overlay - hidden by default, visible when drawer is open */
 .drawer-component .drawer-overlay {
   display: none !important;
