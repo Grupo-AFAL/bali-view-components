@@ -257,7 +257,11 @@ Content container with optional header, image, and actions.
 
 #### Modal
 
-Dialog overlay for focused interactions.
+Dialog overlay for focused interactions. Renders a native `<dialog>` and opens it with
+`showModal()`, so the panel is painted in the top layer, the page behind it is inert, and
+Escape and focus restoration come from the element. See
+[Overlays and the top layer](overlays-and-the-top-layer.md) for what that means for
+anything you render over it.
 
 ```erb
 <%= render Bali::Modal::Component.new(title: "Confirm Action") do |modal| %>
@@ -276,7 +280,8 @@ Dialog overlay for focused interactions.
 
 #### Drawer
 
-Slide-in panel from edge of screen.
+Slide-in panel from edge of screen. Like `Modal`, a native `<dialog>` opened with
+`showModal()`.
 
 ```erb
 <%= render Bali::Drawer::Component.new(title: "Settings", position: :right) do |drawer| %>
@@ -2392,7 +2397,14 @@ Standard empty state: a centered block with an optional icon in a soft circle, a
 
 #### FeedbackWidget
 
-Floating feedback button that opens a drawer with an embedded Opina iframe and polls a badge endpoint for unread count.
+Floating feedback button that opens a `Bali::Drawer` with an embedded Opina iframe, and
+polls a badge endpoint for the unread count.
+
+The embed's JWT is **not** passed in the frame's URL — a bearer credential in a URL is
+written to the server's access log, offered in the `Referer` of anything the embed loads,
+and kept in browser history. The widget sends it to the frame with `postMessage` once it
+has loaded, as `{ type: 'bali:feedback:token', token }`, addressed to the Opina origin and
+never to `*`. The Opina instance has to listen for that message; see the migration guide.
 
 ```erb
 <%= render Bali::FeedbackWidget::Component.new(

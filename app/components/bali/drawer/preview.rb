@@ -2,6 +2,10 @@
 
 module Bali
   module Drawer
+    # Like Modal, the panel is a native `<dialog>` that `DrawerController` opens
+    # with `showModal()`. The `dirty_form` scenario below is the one that proves
+    # the awkward half: flatpickr portals its calendar to `<body>`, where a modal
+    # dialog would leave it both covered and inert, so it is moved back in.
     class Preview < ApplicationViewComponentPreview
       # @param active toggle
       # @param size select [sm, md, lg, xl, full]

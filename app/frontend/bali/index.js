@@ -120,6 +120,7 @@ export {
   StatusController,
   TabsController,
   TimeagoController,
+  ToastContainerController,
   ToolbarOverflowController,
   TooltipController,
   TreeViewItemController

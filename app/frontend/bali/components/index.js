@@ -59,6 +59,7 @@ import { TreeViewItemController } from '../../../components/bali/tree_view/item/
 import { FeedbackWidgetController } from '../../../components/bali/feedback_widget/index'
 import { CommandController } from '../../../components/bali/command/index'
 import { StatusController } from '../../../components/bali/status/index'
+import { ToastContainerController } from '../../../components/bali/toast_container/index'
 
 export {
   AlertController,
@@ -98,6 +99,7 @@ export {
   StatusController,
   TabsController,
   TimeagoController,
+  ToastContainerController,
   ToolbarOverflowController,
   TooltipController,
   TreeViewItemController
@@ -153,6 +155,7 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
 
   // Feedback
   alert: AlertController,
+  'toast-container': ToastContainerController,
 
   // Map
   'locations-map': LocationsMapController,

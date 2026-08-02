@@ -12,7 +12,10 @@ module Bali
     class Component < ApplicationViewComponent
       # daisyUI's `.toast` is the stack: `position: fixed`, a flex column, a gap
       # between entries, and no z-index of its own -- hence the token, so a toast
-      # reports above the modal it is reporting on.
+      # reports above the modal it is reporting on. The token only settles that
+      # *within the document*: Modal, Drawer and Command open with `showModal()`,
+      # which no z-index reaches over, so the stack joins them in the top layer
+      # instead -- that is what the `toast-container` controller is for.
       BASE_CLASSES = "toast toast-container-component z-[var(--bali-z-toast)]"
 
       # daisyUI spells the axes separately, so the nine combinations are written
@@ -51,6 +54,7 @@ module Bali
         @position = position&.to_sym
         @duration = duration
         @options = prepend_class_name(options, container_classes)
+        @options[:data] = { controller: "toast-container" }.merge(@options[:data] || {})
       end
 
       # [colour, message] for every flash entry this component knows how to show.

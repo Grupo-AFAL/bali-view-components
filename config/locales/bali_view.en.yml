@@ -407,7 +407,6 @@ en:
     feedback_widget:
       title: "Feedback"
       open: "Open feedback"
-      close: "Close"
 
     document_editor:
       # App bar

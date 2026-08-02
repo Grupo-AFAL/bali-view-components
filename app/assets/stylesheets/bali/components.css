@@ -33,6 +33,11 @@
 @import "../../../components/bali/drawer/index.css" layer(components);
 @import "../../../components/bali/image_grid/index.css" layer(components);
 
+/* Feedback Components. The toast *stack* is layered; the toast itself is not --
+   see the unlayered group below and that sheet's own header. */
+@import "../../../components/bali/toast_container/index.css" layer(components);
+@import "../../../components/bali/feedback_widget/index.css" layer(components);
+
 /* Unlayered on purpose. Order of the first three is the pre-v3 order of those
    sheets, so their mutual cascade is unchanged. The two `daisyui-overrides` below
    them, and the toast sheet, share no selector with anything here. */

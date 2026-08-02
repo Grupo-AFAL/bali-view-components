@@ -169,10 +169,14 @@ All buttons, links, and controls must have:
 
 ### Modal
 
+`Bali::Modal` and `Bali::Drawer` render a native `<dialog>` and open it with
+`showModal()`. Do the same in your own markup, and do **not** write `role="dialog"`
+or `aria-modal="true"` on it: both are implicit on the element, and `aria-modal`
+written by hand is a claim the markup cannot keep — a `<dialog>` that no script has
+opened with `showModal()` is not modal, whatever the attribute says.
+
 ```erb
-<dialog class="modal" 
-        role="dialog"
-        aria-modal="true"
+<dialog class="modal"
         aria-labelledby="modal-title"
         aria-describedby="modal-desc">
   <div class="modal-box">
@@ -781,10 +785,9 @@ cy.checkA11y()
   <div class="modal-box">...</div>
 </div>
 
-<%# FIX %>
-<dialog class="modal" 
-        role="dialog" 
-        aria-modal="true"
+<%# FIX — a native <dialog>, opened with showModal(). No `role`, no
+    `aria-modal`: both are implicit, and the element decides its own modality. %>
+<dialog class="modal"
         aria-labelledby="modal-title">
   <div class="modal-box">
     <h3 id="modal-title">Dialog Title</h3>
