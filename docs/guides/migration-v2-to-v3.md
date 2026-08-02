@@ -795,9 +795,13 @@ Neither is configurable. If a page depended on the old value, set it on your own
 | `:"2xl"` | `max-w-screen-2xl` | DashboardPage |
 | `:full` | `max-w-full` | DashboardPage, FormPage |
 
-Defaults are unchanged where they existed (`:"2xl"` for DashboardPage, `:md` for FormPage)
-and are `:full` for the three that had no container — `:full` renders `mx-auto max-w-full`,
-which moves no layout. Passing a key the table does not have raises `ArgumentError`; in v2
+`FormPage` keeps its `:md` default; the other four are `:full`, which renders
+`mx-auto max-w-full` and moves no layout. **`DashboardPage` changed**: v2 capped it at
+`:"2xl"` (`max-w-screen-2xl`, 1536px), and it no longer does — a dashboard is now as wide as
+whatever container the app puts it in, like every other page component. Above 1536px a
+dashboard that relied on the cap gets wider; pass `max_width: :"2xl"` to keep it.
+
+Passing a key the table does not have raises `ArgumentError`; in v2
 three of the five raised `ArgumentError` for *any* key, because they had no `max_width:`.
 
 `sidebar_width:` is new and shared: `:default` gives the sidebar a third of the grid,
