@@ -16,8 +16,9 @@ class BaliPageComponentsSharedContractTest < ComponentTestCase
     Bali::ShowPage::Component
   ].freeze
 
+  # Los cinco heredan `:full`; FormPage es la única excepción, y por ancho de lectura.
   DEFAULT_MAX_WIDTHS = {
-    Bali::DashboardPage::Component => :"2xl",
+    Bali::DashboardPage::Component => :full,
     Bali::DocumentPage::Component => :full,
     Bali::FormPage::Component => :md,
     Bali::IndexPage::Component => :full,
