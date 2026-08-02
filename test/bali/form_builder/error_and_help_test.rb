@@ -14,7 +14,7 @@ class BaliFormBuilderErrorAndHelpTest < FormBuilderTestCase
   # position that family reads it from.
   FAMILIES = {
     "text_field" => ->(b, h) { b.text_field(:name, help: h) },
-    "text_field_group" => ->(b, h) { b.text_field_group(:name, help: h) },
+    "text_group" => ->(b, h) { b.text_group(:name, help: h) },
     "text_field with addons" => ->(b, h) { b.text_field(:name, help: h, addon_left: "$") },
     "text_area" => ->(b, h) { b.text_area(:synopsis, help: h) },
     "text_area with counter" => ->(b, h) { b.text_area(:synopsis, help: h, char_counter: true) },
@@ -24,8 +24,8 @@ class BaliFormBuilderErrorAndHelpTest < FormBuilderTestCase
     "password_field" => ->(b, h) { b.password_field(:name, help: h) },
     "search_field_group" => ->(b, h) { b.search_field_group(:name, help: h) },
     "file_field" => ->(b, h) { b.file_field(:name, help: h) },
-    "select_field" => ->(b, h) { b.select_field(:status, [], {}, help: h) },
-    "slim_select_field" => ->(b, h) { b.slim_select_field(:status, [], {}, help: h) },
+    "select_field" => ->(b, h) { b.select_field(:status, [], help: h) },
+    "slim_select_field" => ->(b, h) { b.slim_select_field(:status, [], help: h) },
     "time_zone_select" => ->(b, h) { b.time_zone_select(:name, nil, {}, help: h) },
     "radio_field" => ->(b, h) { b.radio_field(:status, [ %w[One 1] ], help: h) },
     "boolean_field" => ->(b, h) { b.boolean_field(:indie, help: h) },

@@ -5,10 +5,20 @@ module Bali
     module CurrencyFields
       DEFAULT_SYMBOL = "$"
 
-      def currency_field_group(method, options = {})
+      def currency_group(method, **options)
+        numeric_group(method, **currency_options(options))
+      end
+
+      def currency_field(method, **options)
+        numeric_field(method, **currency_options(options))
+      end
+
+      private
+
+      def currency_options(options)
         symbol = options[:symbol] || DEFAULT_SYMBOL
 
-        numeric_field_group(method, options.with_defaults(addon_left: numeric_addon(symbol)))
+        options.with_defaults(addon_left: numeric_addon(symbol))
       end
     end
   end

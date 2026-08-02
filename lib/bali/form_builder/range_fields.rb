@@ -51,15 +51,15 @@ module Bali
       # @option options [String] :suffix Suffix for tick labels (e.g., '%')
       #
       # @example Basic usage
-      #   f.range_field_group :volume, min: 0, max: 100, color: :primary
+      #   f.range_group :volume, min: 0, max: 100, color: :primary
       #
       # @example With tick marks
-      #   f.range_field_group :price, min: 0, max: 1000, step: 100, show_ticks: true, prefix: '$'
+      #   f.range_group :price, min: 0, max: 1000, step: 100, show_ticks: true, prefix: '$'
       #
       # @example Custom tick labels
-      #   f.range_field_group :rating, min: 1, max: 5, tick_labels: %w[Bad Poor OK Good Great]
+      #   f.range_group :rating, min: 1, max: 5, tick_labels: %w[Bad Poor OK Good Great]
       #
-      def range_field_group(method, options = {})
+      def range_group(method, **options)
         @template.render Bali::FieldGroupWrapper::Component.new(self, method, options) do
           safe_join([
             range_field(method, options),

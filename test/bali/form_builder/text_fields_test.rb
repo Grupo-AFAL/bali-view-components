@@ -3,25 +3,25 @@
 require "test_helper"
 
 class BaliFormBuilderTextFieldsTest < FormBuilderTestCase
-  # #text_field_group
+  # #text_group
 
-  def test_text_field_group_renders_a_fieldset_wrapper
-    result = builder.text_field_group(:name)
+  def test_text_group_renders_a_fieldset_wrapper
+    result = builder.text_group(:name)
     assert_html(result, "fieldset.fieldset")
   end
 
-  def test_text_field_group_renders_a_legend_label
-    result = builder.text_field_group(:name)
+  def test_text_group_renders_a_legend_label
+    result = builder.text_group(:name)
     assert_html(result, "label.fieldset-legend", text: "Name")
   end
 
-  def test_text_field_group_renders_a_text_input_with_correct_attributes
-    result = builder.text_field_group(:name)
+  def test_text_group_renders_a_text_input_with_correct_attributes
+    result = builder.text_group(:name)
     assert_html(result, 'input#movie_name[type="text"][name="movie[name]"]')
   end
 
-  def test_text_field_group_applies_daisyui_input_classes
-    result = builder.text_field_group(:name)
+  def test_text_group_applies_daisyui_input_classes
+    result = builder.text_group(:name)
     assert_html(result, "input.input")
   end
 

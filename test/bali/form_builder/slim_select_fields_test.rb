@@ -151,12 +151,12 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
   # custom classes
 
   def test_slim_select_field_custom_classes_appends_custom_class_to_select
-    result = builder.slim_select_field(:status, Movie.statuses.to_a, {}, { class: "custom-class" })
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, html: { class: "custom-class" })
     assert_html(result, "select.select.select-bordered.custom-class")
   end
 
   def test_slim_select_field_custom_classes_applies_select_class_to_wrapper
-    result = builder.slim_select_field(:status, Movie.statuses.to_a, {}, { select_class: "wrapper-class" })
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, html: { select_class: "wrapper-class" })
     assert_html(result, "div.slim-select.wrapper-class")
   end
 
@@ -177,8 +177,7 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
   # custom data attributes
 
   def test_slim_select_field_custom_data_attributes_merges_custom_data_attributes_with_slim_select_target
-    result = builder.slim_select_field(:status, Movie.statuses.to_a, {},
-                                       { data: { turbo_frame: "_top", custom: "value" } })
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, html:                                        { data: { turbo_frame: "_top", custom: "value" } })
     assert_html(result, 'select[data-slim-select-target="select"]')
     assert_html(result, 'select[data-turbo-frame="_top"]')
     assert_html(result, 'select[data-custom="value"]')
@@ -192,7 +191,7 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
   # multiple select
 
   def test_slim_select_field_multiple_select_renders_a_multiple_select
-    result = builder.slim_select_field(:status, Movie.statuses.to_a, {}, { multiple: true })
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, html: { multiple: true })
     assert_html(result, 'select[multiple="multiple"]')
   end
 
@@ -209,7 +208,7 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
   end
 
   def test_slim_select_field_stimulus_data_values_sets_placeholder_value
-    result = builder.slim_select_field(:status, Movie.statuses.to_a, {}, { placeholder: "Choose one" })
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, html: { placeholder: "Choose one" })
     assert_html(result, 'div[data-slim-select-placeholder-value="Choose one"]')
   end
 

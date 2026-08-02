@@ -3,56 +3,56 @@
 require "test_helper"
 
 class BaliFormBuilderBooleanFieldsTest < FormBuilderTestCase
-  # #boolean_field_group
+  # #boolean_group
 
-  def test_boolean_field_group_renders_a_fieldset_wrapper
-    result = builder.boolean_field_group(:indie)
+  def test_boolean_group_renders_a_fieldset_wrapper
+    result = builder.boolean_group(:indie)
     assert_html(result, "fieldset.fieldset")
   end
 
   # No legend by default. One `label:` used to feed both this and the caption
   # beside the checkbox, so the attribute name came out twice and the field read
   # out "Indie Indie".
-  def test_boolean_field_group_renders_no_legend_by_default
-    result = builder.boolean_field_group(:indie)
+  def test_boolean_group_renders_no_legend_by_default
+    result = builder.boolean_group(:indie)
     refute_html(result, "legend.fieldset-legend")
   end
 
-  def test_boolean_field_group_names_the_attribute_exactly_once
-    result = builder.boolean_field_group(:indie)
+  def test_boolean_group_names_the_attribute_exactly_once
+    result = builder.boolean_group(:indie)
     assert_html(result, "span", text: "Indie", count: 1)
   end
 
   # The legend is what `label:` means now: a caption over the group, for when it
   # says something the text beside the box does not.
-  def test_boolean_field_group_renders_a_legend_when_asked_for_one
-    result = builder.boolean_field_group(:indie, label: "Distribution")
+  def test_boolean_group_renders_a_legend_when_asked_for_one
+    result = builder.boolean_group(:indie, label: "Distribution")
     assert_html(result, "legend.fieldset-legend", text: "Distribution")
     assert_html(result, "label.label span", text: "Indie")
   end
 
-  def test_boolean_field_group_renders_a_label_with_cursor_pointer_class
-    result = builder.boolean_field_group(:indie)
+  def test_boolean_group_renders_a_label_with_cursor_pointer_class
+    result = builder.boolean_group(:indie)
     assert_html(result, "label.label.cursor-pointer")
   end
 
-  def test_boolean_field_group_renders_checkbox_with_daisyui_class
-    result = builder.boolean_field_group(:indie)
+  def test_boolean_group_renders_checkbox_with_daisyui_class
+    result = builder.boolean_group(:indie)
     assert_html(result, 'input.checkbox[type="checkbox"]')
   end
 
-  def test_boolean_field_group_renders_label_text_in_a_span
-    result = builder.boolean_field_group(:indie)
+  def test_boolean_group_renders_label_text_in_a_span
+    result = builder.boolean_group(:indie)
     assert_html(result, "label.label span", text: "Indie")
   end
 
-  def test_boolean_field_group_renders_the_hidden_unchecked_input
-    result = builder.boolean_field_group(:indie)
+  def test_boolean_group_renders_the_hidden_unchecked_input
+    result = builder.boolean_group(:indie)
     assert_html(result, 'input[value="0"]', visible: false)
   end
 
-  def test_boolean_field_group_renders_the_checkbox_input_with_correct_id
-    result = builder.boolean_field_group(:indie)
+  def test_boolean_group_renders_the_checkbox_input_with_correct_id
+    result = builder.boolean_group(:indie)
     assert_html(result, 'input#movie_indie[value="1"]')
   end
 
@@ -129,12 +129,12 @@ class BaliFormBuilderBooleanFieldsTest < FormBuilderTestCase
   end
 
   def test_boolean_field_with_custom_checked_unchecked_values_uses_custom_unchecked_value
-    result = builder.boolean_field(:indie, {}, "yes", "no")
+    result = builder.boolean_field(:indie, checked_value: "yes", unchecked_value: "no")
     assert_html(result, 'input[value="no"]', visible: false)
   end
 
   def test_boolean_field_with_custom_checked_unchecked_values_uses_custom_checked_value
-    result = builder.boolean_field(:indie, {}, "yes", "no")
+    result = builder.boolean_field(:indie, checked_value: "yes", unchecked_value: "no")
     assert_html(result, 'input[value="yes"]')
   end
 
@@ -159,9 +159,9 @@ class BaliFormBuilderBooleanFieldsTest < FormBuilderTestCase
     end
   end
 
-  # #check_box_group alias
+  # #boolean_group alias
 
-  def test_check_box_group_is_an_alias_for_boolean_field_group
-    assert_equal(builder.method(:boolean_field_group), builder.method(:check_box_group))
+  def test_boolean_group_is_an_alias_for_boolean_group
+    assert_equal(builder.method(:boolean_group), builder.method(:boolean_group))
   end
 end

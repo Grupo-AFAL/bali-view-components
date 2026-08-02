@@ -13,12 +13,12 @@
       <p class="text-sm font-semibold mb-2">Form <%= index %></p>
 
       <%= form_with(model: model, url: '/', builder: Bali::FormBuilder, index: index) do |form| %>
-        <%= form.text_field_group :text, label: 'Title', help: 'Shown under both forms' %>
-        <%= form.email_field_group :email, label: 'Contact email' %>
-        <%= form.date_field_group :date, label: 'Released on' %>
+        <%= form.text_group :text, label: 'Title', help: 'Shown under both forms' %>
+        <%= form.email_group :email, label: 'Contact email' %>
+        <%= form.date_group :date, label: 'Released on' %>
         <%= form.select_group :select, [%w[Draft 1], %w[Published 2]], label: 'Status' %>
-        <%= form.slim_select_group :number, [%w[Drama 1], %w[Comedy 2]], {}, { label: 'Genre' } %>
-        <%= form.boolean_field_group :boolean, label: 'Featured' %>
+        <%= form.slim_select_group :number, [%w[Drama 1], %w[Comedy 2]], html: { label: 'Genre' } %>
+        <%= form.boolean_group :boolean, label: 'Featured' %>
       <% end %>
     </div>
   <% end %>

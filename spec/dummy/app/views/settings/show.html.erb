@@ -45,10 +45,10 @@
               [t('settings.languages.french'), 'fr'],
               [t('settings.languages.german'), 'de']
             ] %>
-            <%= f.select_group :language, languages, {}, { label: t('settings.language') } %>
+            <%= f.select_group :language, languages, html: { label: t('settings.language') } %>
 
             <%# Timezone Select %>
-            <%= f.time_zone_select_group :timezone, nil, {}, { label: t('settings.timezone') } %>
+            <%= f.time_zone_select_group :timezone, nil, html: { label: t('settings.timezone') } %>
           <% end %>
 
           <div class="flex justify-end mt-4">
@@ -77,8 +77,8 @@
         <% end %>
 
         <%= form_with model: @settings, url: settings_path, method: :patch, builder: Bali::FormBuilder, class: 'space-y-4' do |f| %>
-          <%= f.switch_field_group :email_notifications, text: t('settings.email_notifications'), color: :primary %>
-          <%= f.switch_field_group :push_notifications, text: t('settings.push_notifications'), color: :primary %>
+          <%= f.switch_group :email_notifications, text: t('settings.email_notifications'), color: :primary %>
+          <%= f.switch_group :push_notifications, text: t('settings.push_notifications'), color: :primary %>
 
           <%# Notification Frequency %>
           <% frequencies = [
@@ -86,7 +86,7 @@
             [t('settings.frequency_daily'), 'daily'],
             [t('settings.frequency_weekly'), 'weekly']
           ] %>
-          <%= f.select_group :notification_frequency, frequencies, {}, { label: t('settings.notification_frequency') } %>
+          <%= f.select_group :notification_frequency, frequencies, html: { label: t('settings.notification_frequency') } %>
 
           <div class="flex justify-end mt-4">
             <%= render Bali::Button::Component.new(
@@ -114,8 +114,8 @@
         <% end %>
 
         <%= form_with model: @settings, url: settings_path, method: :patch, builder: Bali::FormBuilder, class: 'space-y-4' do |f| %>
-          <%= f.switch_field_group :profile_visible, text: t('settings.profile_visible'), color: :primary %>
-          <%= f.switch_field_group :show_activity, text: t('settings.show_activity'), color: :primary %>
+          <%= f.switch_group :profile_visible, text: t('settings.profile_visible'), color: :primary %>
+          <%= f.switch_group :show_activity, text: t('settings.show_activity'), color: :primary %>
 
           <div class="flex justify-end mt-4">
             <%= render Bali::Button::Component.new(
@@ -139,7 +139,7 @@
         <p class="text-base-content/60 text-sm mb-4"><%= t('settings.appearance_desc') %></p>
 
         <%= form_with model: @settings, url: settings_path, method: :patch, builder: Bali::FormBuilder, class: 'space-y-4' do |f| %>
-          <%= f.switch_field_group :dark_mode, text: t('settings.dark_mode'), color: :accent %>
+          <%= f.switch_group :dark_mode, text: t('settings.dark_mode'), color: :accent %>
 
           <%# Theme Preview Cards %>
           <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg, class: 'mt-4') do %>
@@ -204,15 +204,15 @@
                   [t('settings.cache_24h'), '24'],
                   [t('settings.cache_1w'), '168']
                 ] %>
-                <%= f.select_group :cache_duration, cache_options, {}, { label: t('settings.cache_duration') } %>
+                <%= f.select_group :cache_duration, cache_options, html: { label: t('settings.cache_duration') } %>
 
                 <%# API Rate Limit %>
                 <% rate_limits = [['100 req/min', '100'], ['500 req/min', '500'], ['1000 req/min', '1000']] %>
-                <%= f.select_group :api_rate_limit, rate_limits, {}, { label: t('settings.api_rate_limit') } %>
+                <%= f.select_group :api_rate_limit, rate_limits, html: { label: t('settings.api_rate_limit') } %>
               <% end %>
 
-              <%= f.switch_field_group :debug_mode, text: t('settings.debug_mode'), color: :warning %>
-              <%= f.switch_field_group :beta_features, text: t('settings.beta_features'), color: :info %>
+              <%= f.switch_group :debug_mode, text: t('settings.debug_mode'), color: :warning %>
+              <%= f.switch_group :beta_features, text: t('settings.beta_features'), color: :info %>
 
               <div class="flex justify-end mt-4">
                 <%= render Bali::Button::Component.new(
