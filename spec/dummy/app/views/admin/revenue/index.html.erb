@@ -14,7 +14,7 @@
     <%# Notifications - warning about data %>
     <% if @stats[:funded_count] < 5 %>
       <div class="mb-6">
-        <%= render Bali::Notification::Component.new(type: :warning, dismiss: true) do %>
+        <%= render Bali::Alert::Component.new(color: :warning, icon: true, closable: true) do %>
           <%= t('revenue.limited_data_html', count: @stats[:funded_count]) %>
         <% end %>
       </div>
@@ -58,7 +58,7 @@
                 class: 'h-[300px]'
               ) %>
             <% else %>
-              <%= render Bali::Message::Component.new(color: :info) do %>
+              <%= render Bali::Alert::Component.new(color: :info) do %>
                 <%= t('revenue.no_budget_data') %>
               <% end %>
             <% end %>
@@ -167,7 +167,7 @@
             <% end %>
           <% end %>
         <% else %>
-          <%= render Bali::Message::Component.new(color: :info) do %>
+          <%= render Bali::Alert::Component.new(color: :info) do %>
             <%= t('revenue.no_budget_movies') %>
           <% end %>
         <% end %>

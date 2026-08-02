@@ -5,7 +5,7 @@
     back: { href: showcase_path }
   ) %>
 
-  <%= render Bali::Message::Component.new(color: :info, class: 'mb-6') do %>
+  <%= render Bali::Alert::Component.new(color: :info, class: 'mb-6') do %>
     This form tests that DirectUpload generates correct field names when using
     <%= render Bali::Tag::Component.new(text: 'form_with url:', color: :ghost) %>
     without a model.

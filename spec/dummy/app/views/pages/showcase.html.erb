@@ -235,17 +235,15 @@
   <%= render Bali::Card::Component.new(style: :bordered) do %>
     <div class="space-y-4">
       <%# Simulated flash notifications %>
-      <%= render Bali::FlashNotifications::Component.new(
-        notice: t('showcase.changes_saved'),
-        alert: nil
-      ) %>
+      <%= render Bali::Toast::Component.new(color: :success, duration: nil) do %>
+        <%= t('showcase.changes_saved') %>
+      <% end %>
 
       <div class="divider"><%= t('showcase.with_alert') %></div>
 
-      <%= render Bali::FlashNotifications::Component.new(
-        notice: nil,
-        alert: t('showcase.error_processing')
-      ) %>
+      <%= render Bali::Toast::Component.new(color: :error, duration: nil) do %>
+        <%= t('showcase.error_processing') %>
+      <% end %>
     </div>
   <% end %>
 </section>
@@ -822,7 +820,7 @@
       </div>
 
       <div class="mt-6">
-        <%= render Bali::Message::Component.new(color: :info) do %>
+        <%= render Bali::Alert::Component.new(color: :info) do %>
           <%= raw t('showcase.generated_rrule') %>
         <% end %>
       </div>
@@ -856,7 +854,7 @@
         ) %>
       <% end %>
     <% else %>
-      <%= render Bali::Message::Component.new(color: :warning) do %>
+      <%= render Bali::Alert::Component.new(color: :warning) do %>
         <%= raw t('showcase.google_maps_required') %>
       <% end %>
 
@@ -987,7 +985,7 @@
 
 <%# Summary %>
 <section class="mb-12">
-  <%= render Bali::Message::Component.new(color: :success) do %>
+  <%= render Bali::Alert::Component.new(color: :success) do %>
     <div class="flex items-start gap-3">
       <%= render Bali::Icon::Component.new('check-circle', class: 'size-6 shrink-0 mt-0.5') %>
       <div>
