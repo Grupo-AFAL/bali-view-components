@@ -11,7 +11,9 @@ class PagesController < ApplicationController
   def choose_layout
     case action_name
     when 'landing' then 'marketing'
-    when 'sidemenu_example' then 'lookbook_preview' # Minimal layout for full-page demo
+    # Bali::AppLayout renders its own <body>, so the shell around it must not have one.
+    # That is what 'app_layout_preview' is for, and the AppLayout previews use it too.
+    when 'sidemenu_example' then 'app_layout_preview'
     when 'workspace' then 'admin'
     else 'application'
     end
@@ -35,7 +37,7 @@ class PagesController < ApplicationController
   end
 
   def sidemenu_example
-    # Uses application layout by default (inherits from layout setting)
+    # Full-page SideMenu reference; the shell comes from `choose_layout` above.
   end
 
   def workspace
