@@ -142,7 +142,7 @@
             <% table.with_header(name: t('revenue.columns.genre')) %>
             <% table.with_header(name: t('revenue.columns.status')) %>
             <% table.with_header(name: t('revenue.columns.indie')) %>
-            <% table.with_header(name: t('revenue.columns.budget'), align: :right) %>
+            <% table.with_header(name: t('revenue.columns.budget'), class: 'text-right') %>
 
             <% @top_movies.each_with_index do |movie, i| %>
               <% table.with_row do %>

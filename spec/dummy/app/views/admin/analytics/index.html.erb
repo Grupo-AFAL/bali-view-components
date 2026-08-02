@@ -78,7 +78,7 @@
             <% table.with_header(name: t('analytics.columns.rank')) %>
             <% table.with_header(name: t('analytics.columns.movie')) %>
             <% table.with_header(name: t('analytics.columns.genre')) %>
-            <% table.with_header(name: t('analytics.columns.rating'), align: :right) %>
+            <% table.with_header(name: t('analytics.columns.rating'), class: 'text-right') %>
 
             <% @top_movies.each_with_index do |movie, i| %>
               <% table.with_row do %>
