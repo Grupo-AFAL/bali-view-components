@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
+import { confirmDialog } from '../../../assets/javascripts/bali/confirm/confirm_dialog.js'
 
 /**
  * DocumentEditor Controller
@@ -15,7 +16,8 @@ export class DocumentEditorController extends Controller {
     'titleInput', 'tocPanel', 'tocContainer',
     'commentsPanel', 'commentsToggle',
     'historyPanel', 'historyToggle',
-    'versionsList', 'versionTemplate', 'saveStatus', 'saveButton',
+    'versionsList', 'versionsError', 'versionsEmpty',
+    'versionTemplate', 'saveStatus', 'saveButton',
     'previewBanner', 'previewVersionLabel',
     'editorArea'
   ]
@@ -34,7 +36,18 @@ export class DocumentEditorController extends Controller {
     paramKey: { type: String, default: 'document' },
     inputName: { type: String, default: 'document[content]' },
     tocOpen: { type: Boolean, default: true },
-    panel: { type: String, default: '' }
+    panel: { type: String, default: '' },
+    // Every string this controller writes into the DOM. It used to hardcode them
+    // in English, so a Spanish app showed "Unsaved changes" in its own toolbar.
+    // The two that carry runtime data keep the Rails placeholder (`%{time}`,
+    // `%{number}`) and get substituted here.
+    locale: { type: String, default: '' },
+    statusUnsaved: { type: String, default: '' },
+    statusSaving: { type: String, default: '' },
+    statusSaved: { type: String, default: '' },
+    statusFailed: { type: String, default: '' },
+    versionLabel: { type: String, default: '' },
+    restoreConfirm: { type: String, default: '' }
   }
 
   connect () {
@@ -119,7 +132,7 @@ export class DocumentEditorController extends Controller {
 
   scheduleSave () {
     this._dirty = true
-    this._updateStatus('Unsaved changes')
+    this._updateStatus(this.statusUnsavedValue)
     if (!this.autoSaveValue) return
     if (this.saveTimeout) clearTimeout(this.saveTimeout)
     this.saveTimeout = setTimeout(() => { this.save() }, this.autoSaveDelayValue)
@@ -128,7 +141,7 @@ export class DocumentEditorController extends Controller {
   async save () {
     if (this._saving) return
     this._saving = true
-    this._updateStatus('Saving...')
+    this._updateStatus(this.statusSavingValue)
 
     // Flush content synchronously to avoid the 500ms debounce in useContentSync
     // which can cause stale reads (e.g. missing comment marks)
@@ -166,19 +179,19 @@ export class DocumentEditorController extends Controller {
       })
       if (response.ok) {
         this._dirty = false
-        this._updateStatus(`Saved at ${new Date().toLocaleTimeString()}`)
+        this._updateStatus(this._savedStatus())
       } else {
-        this._updateStatus('Save failed', true)
+        this._updateStatus(this.statusFailedValue, true)
         console.error('Auto-save failed:', response.status)
       }
     } catch (error) {
-      this._updateStatus('Save failed', true)
+      this._updateStatus(this.statusFailedValue, true)
       console.error('Auto-save error:', error)
     } finally {
       this._saving = false
       // If new changes came in during save, show unsaved and re-schedule
       if (this._dirty) {
-        this._updateStatus('Unsaved changes')
+        this._updateStatus(this.statusUnsavedValue)
         if (this.autoSaveValue) {
           if (this.saveTimeout) clearTimeout(this.saveTimeout)
           this.saveTimeout = setTimeout(() => { this.save() }, this.autoSaveDelayValue)
@@ -199,23 +212,13 @@ export class DocumentEditorController extends Controller {
     } catch (error) {
       console.error('Failed to load versions:', error)
       this.versionsListTarget.replaceChildren()
-      const p = document.createElement('p')
-      p.className = 'text-sm text-error'
-      p.textContent = 'Failed to load versions.'
-      this.versionsListTarget.appendChild(p)
+      this._showVersionsMessage('error')
     }
   }
 
   renderVersions (versions) {
     this.versionsListTarget.replaceChildren()
-
-    if (!versions.length) {
-      const p = document.createElement('p')
-      p.className = 'text-sm text-base-content/50'
-      p.textContent = 'No versions yet.'
-      this.versionsListTarget.appendChild(p)
-      return
-    }
+    this._showVersionsMessage(versions.length ? null : 'empty')
 
     versions.forEach(v => {
       this.versionsListTarget.appendChild(this._buildVersionItem(v))
@@ -224,7 +227,10 @@ export class DocumentEditorController extends Controller {
 
   async restoreVersion (event) {
     const versionId = event.currentTarget.dataset.versionId
-    if (!window.confirm('Restore this version? Current content will be saved as a new version first.')) return
+    // The dialog's own labels come off the button's data-bali-confirm-* attributes,
+    // which the server renders translated.
+    const confirmed = await confirmDialog(this.restoreConfirmValue, null, event.currentTarget)
+    if (!confirmed) return
 
     const csrfToken = document.querySelector("meta[name='csrf-token']")?.content
 
@@ -289,7 +295,8 @@ export class DocumentEditorController extends Controller {
       if (this.hasPreviewBannerTarget) {
         this.previewBannerTarget.classList.remove('hidden')
         if (this.hasPreviewVersionLabelTarget) {
-          this.previewVersionLabelTarget.textContent = `Version ${versionNumber || version.version_number}`
+          this.previewVersionLabelTarget.textContent = this.versionLabelValue
+            .replace('%{number}', versionNumber || version.version_number)
         }
       }
     } catch (error) {
@@ -411,13 +418,38 @@ export class DocumentEditorController extends Controller {
     this._scrollLocked = true
   }
 
+  // Relative time used to be four hardcoded English strings ('just now', '5m ago').
+  // Intl.RelativeTimeFormat produces the same buckets in the app's own locale, so
+  // there is nothing left to translate. `narrow` keeps it as short as the old
+  // wording -- the slot it fills is 11px and tabular.
   _timeAgo (dateString) {
-    const date = new Date(dateString)
-    const now = new Date()
-    const seconds = Math.floor((now - date) / 1000)
-    if (seconds < 60) return 'just now'
-    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
-    return `${Math.floor(seconds / 86400)}d ago`
+    const seconds = Math.floor((new Date() - new Date(dateString)) / 1000)
+    const format = new Intl.RelativeTimeFormat(this.localeValue || undefined, {
+      numeric: 'auto', style: 'narrow'
+    })
+
+    // 0 seconds renders as "now"/"ahora" with numeric: 'auto', which is what
+    // 'just now' meant for the whole first minute.
+    if (seconds < 60) return format.format(0, 'second')
+    if (seconds < 3600) return format.format(-Math.floor(seconds / 60), 'minute')
+    if (seconds < 86400) return format.format(-Math.floor(seconds / 3600), 'hour')
+    return format.format(-Math.floor(seconds / 86400), 'day')
+  }
+
+  // The time is the only runtime value in the status line, so the placeholder is
+  // substituted here and the sentence around it stays in the locale file.
+  _savedStatus () {
+    const time = new Date().toLocaleTimeString(this.localeValue || undefined)
+    return this.statusSavedValue.replace('%{time}', time)
+  }
+
+  // Both messages are already in the DOM, translated; only one is ever visible.
+  _showVersionsMessage (kind) {
+    if (this.hasVersionsErrorTarget) {
+      this.versionsErrorTarget.classList.toggle('hidden', kind !== 'error')
+    }
+    if (this.hasVersionsEmptyTarget) {
+      this.versionsEmptyTarget.classList.toggle('hidden', kind !== 'empty')
+    }
   }
 }

@@ -104,17 +104,14 @@ module Bali
         @options = prepend_values(@options, "block-editor", controller_values)
       end
 
-      # Resolve upload_url at render time (not in initialize) because
-      # engine route helpers require the view context which is only available here.
+      # Two things can only be resolved here, both for the same reason: the view
+      # context does not exist yet in `initialize`. Engine route helpers need it,
+      # and so does `translate` -- ViewComponent raises
+      # TranslateCalledBeforeRenderError if the strings are gathered any earlier.
       def before_render
-        return unless @upload_url_auto && editable?
+        @options = prepend_values(@options, "block-editor", { translations: translations_json })
 
-        resolved = Bali.block_editor_upload_url || resolve_engine_upload_path
-        return unless resolved
-
-        @upload_url = resolved
-        @options[:data] ||= {}
-        @options[:data][:'block-editor-upload-url-value'] = resolved
+        resolve_auto_upload_url
       end
 
       def editable?
@@ -216,6 +213,37 @@ module Bali
         }
       end
       # rubocop:enable Metrics/CyclomaticComplexity
+
+      # Every string the React bundle writes into the DOM, in one JSON value --
+      # the channel `filters/condition/component.rb#translations_json` already
+      # uses. They were hardcoded in English across four modules, so a Spanish
+      # app still got "File is too large (12.4 MB)..." inside its own editor.
+      #
+      # The three that carry runtime data keep their Rails placeholder and are
+      # substituted in JavaScript: only the browser knows the file size, the HTTP
+      # status or the unresolved user id.
+      def translations_json
+        {
+          load_failed: t("bali_view.block_editor.load_failed"),
+          table_of_contents: t("bali_view.block_editor.table_of_contents"),
+          upload_not_configured: t("bali_view.block_editor.upload_not_configured"),
+          upload_too_large: t("bali_view.block_editor.upload_too_large"),
+          upload_failed: t("bali_view.block_editor.upload_failed"),
+          user_fallback: t("bali_view.block_editor.user_fallback"),
+          plain_text: t("bali_view.block_editor.plain_text")
+        }.to_json
+      end
+
+      def resolve_auto_upload_url
+        return unless @upload_url_auto && editable?
+
+        resolved = Bali.block_editor_upload_url || resolve_engine_upload_path
+        return unless resolved
+
+        @upload_url = resolved
+        @options[:data] ||= {}
+        @options[:data][:'block-editor-upload-url-value'] = resolved
+      end
 
       def export_values
         {
