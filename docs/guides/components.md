@@ -2072,17 +2072,39 @@ The search input includes a clear button (x) that appears when text is entered. 
 | `storage_id` | String | `nil` | Enable persistence |
 | `persistence_toggle` | Boolean | `true` | Render the bookmark inside the panel (DataTable turns it off) |
 
-#### SearchInput
+#### Quick search (`search:`)
 
-Search field with icon.
+Both filter surfaces — the `Filters` panel and `DataTable`'s `SimpleFilters` — take the same
+`search:` hash. You declare the **columns**; Bali derives the Ransack parameter from them
+(`[:name, :email]` becomes `q[name_or_email_cont]`), so a listing that moves from one surface
+to the other keeps searching the same thing.
+
+| Key | Type | Description |
+|--------|------|-------------|
+| `fields` | Array&lt;Symbol&gt; | Columns to search. Absent or empty, no search box renders |
+| `value` | String | Current search value, rendered back into the box |
+| `placeholder` | String | Placeholder text |
+| `label` | String | Accessible name for the input |
+| `icon` | String | Icon name — the submit button in `Filters`, a leading addon in `SimpleFilters` |
+| `width` | String | Tailwind width classes for the box |
 
 ```erb
-<%= render Bali::SearchInput::Component.new(
-  name: 'q',
-  placeholder: 'Search...',
-  value: params[:q]
+<%= render Bali::Filters::Component.new(
+  url: movies_path,
+  available_attributes: [...],
+  search: { fields: %i[name genre], value: params.dig(:q, :name_or_genre_cont) }
 ) %>
 ```
+
+A `FilterForm` that declares `search_fields` fills this in on its own, so inside a `DataTable`
+the hash is only for overrides:
+
+```erb
+<% dt.with_simple_filters(search: { placeholder: 'Search movies...' }) %>
+```
+
+Any key outside that table raises `ArgumentError`. For a standalone search box not attached to
+a filter panel, use the FormBuilder's `search_field_group`.
 
 #### Calendar
 

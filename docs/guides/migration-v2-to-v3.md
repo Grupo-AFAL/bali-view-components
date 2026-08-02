@@ -109,6 +109,10 @@ Bali.deprecator.silence { ... }                              # or scope one exce
 | `Bali::Icon::DefaultIcons` | nothing — see [The icon fallback is gone](#the-icon-fallback-is-gone) |
 | `Bali::GanttChart::*` (component and sub-components) | nothing in v3 — see [The Gantt chart is gone](#the-gantt-chart-is-gone) |
 | The `bali-view-components/gantt` npm entry | nothing — remove the import |
+| `Bali::SearchInput::Component` | `f.search_field_group` — see [Quick search has one shape](#quick-search-has-one-shape) |
+| `Bali::Utils::DummyFilterForm` | nothing — it existed to feed the `SearchInput` preview |
+| `Bali::FilterForm#simple_search_config` | `#search_config`, the one builder both filter surfaces take |
+| `search: { field_name: … }` on `SimpleFilters` | `search: { fields: […] }` |
 
 `Bali::FilterForm.simple_filter` is **deprecated, not removed** — it still declares the
 filter and now warns. It goes away in v4; migrate at your own pace:
@@ -2512,6 +2516,81 @@ inline SVG data URI now.
 Nothing to change unless you were passing `placeholder_url:` — that still works — or
 asserting on the old URL in a test. The placeholder art itself changes.
 
+## Quick search has one shape
+
+Quick search had four implementations. The `Filters` panel took the columns and built
+the Ransack parameter itself; `SimpleFilters` took the parameter already written out;
+`FilterForm` shipped a builder for each of those two shapes; and `SavedViews` wrote the
+`_or_` join and the `_cont` suffix a fourth time. They agreed by convention only, and a
+listing moving between the two filter surfaces silently lost whichever options the other
+shape did not understand.
+
+**Declare the columns. Bali builds the parameter.**
+
+```ruby
+# v2 — SimpleFilters
+<% dt.with_simple_filters(search: { field_name: "q[name_or_email_cont]", value: params.dig(:q, :name_or_email_cont) }) %>
+
+# v3 — the same hash the Filters panel takes
+<% dt.with_simple_filters(search: { fields: %i[name email], value: params.dig(:q, :name_or_email_cont) }) %>
+```
+
+The full shape is `fields:`, `value:`, `placeholder:`, `label:`, `icon:` and `width:`,
+and **both** components honour all six now. Anything else raises `ArgumentError` rather
+than rendering a box that submits nothing — including `field_name:`, whose message spells
+the replacement out. `Bali::RansackParamName.predicate([:name, :email])` and `.param(…)`
+are the public way to build `name_or_email_cont` and `q[name_or_email_cont]` yourself if
+you need the string somewhere else.
+
+Run these:
+
+```bash
+grep -rn "field_name:" app/                       # → fields: [:col, :other_col]
+grep -rn "simple_search_config" app/              # → search_config (it carries icon: now)
+grep -rn "SearchInput" app/ test/                 # → f.search_field_group, see below
+grep -rn "DummyFilterForm" app/ test/ spec/       # → gone with the SearchInput preview
+```
+
+### `Bali::SearchInput` is deleted
+
+It was never wired into `Filters`, `SimpleFilters` or `DataTable` — each of those renders
+its own box — so it only ever served hosts rendering it directly. Its replacement is the
+FormBuilder's `search_field_group`, which emits the same text input and the same icon
+submit button from the same form object, and adds the caption the component never had:
+
+```erb
+<%# v2 %>
+<%= form_with url: movies_path, method: :get do |f| %>
+  <%= render Bali::SearchInput::Component.new(form: @filter_form, field: :name_cont,
+                                              placeholder: "Search movies...") %>
+<% end %>
+
+<%# v3 — note builder: Bali::FormBuilder %>
+<%= form_with model: @filter_form, url: movies_path, method: :get, builder: Bali::FormBuilder do |f| %>
+  <%= f.search_field_group :name_cont, placeholder: "Search movies..." %>
+<% end %>
+```
+
+The submitted parameter is unchanged: with a `FilterForm` (whose `model_name` is `q`) both
+emit `q[name_cont]`.
+
+`auto_submit: true` was the variant with no button, submitting on input. Drop the addon and
+point the input at the `submit-on-change` controller, which is what the component did
+internally:
+
+```erb
+<%= form_with model: @filter_form, url: movies_path, method: :get,
+              builder: Bali::FormBuilder, data: { controller: "submit-on-change" } do |f| %>
+  <%= f.search_field_group :name_cont, addon_right: nil,
+        data: { action: "submit-on-change#submit" } %>
+<% end %>
+```
+
+Both variants are rendered live on the dummy app's `/showcase`. The
+`bali_view.search_input.*` strings go with the component; `search_field_group` has its own
+under `bali_view.form_builder.search.*`, which already existed. `.search-input-component`
+had no CSS behind it, so no stylesheet changes.
+
 ## Checklist
 
 ```
@@ -2558,6 +2637,9 @@ grep -rn "NumericAttributesWithCommas\|gsub(\",\"" app/models/   # drop your own
 # dynamic_fields: these are <button> now
 grep -rn "link_to_add_fields\|link_to_remove_fields" app/ test/
 grep -rn "placehold.jp" app/ test/                   # ImageField's placeholder is a data URI
+# quick search: one shape, and SearchInput is gone
+grep -rn "field_name:\|simple_search_config" app/
+grep -rn "SearchInput\|DummyFilterForm" app/ test/ spec/
 ```
 
 Then walk the sidebar with the keyboard at a phone width: Tab to the hamburger, Enter,

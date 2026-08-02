@@ -108,6 +108,36 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_selector("form input[type=hidden][name=group_by][value=genre]", visible: :all)
   end
 
+  # --- #677: both filter slots resolve `search:` the same way ---
+
+  def searchable_filter_form
+    Bali::FilterForm.new(
+      Movie.all, ActionController::Parameters.new({}),
+      search_fields: %i[name genre], search_placeholder: "Declared"
+    )
+  end
+
+  def test_both_filter_slots_take_the_search_config_the_filter_form_declares
+    %i[with_simple_filters with_filters_panel].each do |slot|
+      render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: searchable_filter_form)) do |c|
+        c.public_send(slot)
+        c.with_table { '<div class="table-component"></div>'.html_safe }
+      end
+
+      assert_selector("input[name='q[name_or_genre_cont]'][placeholder='Declared']", visible: :all)
+    end
+  end
+
+  def test_an_explicit_search_option_overrides_only_the_keys_it_names
+    render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: searchable_filter_form)) do |c|
+      c.with_simple_filters(search: { placeholder: "Overridden" })
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    # The declared columns survive an override that only names the placeholder.
+    assert_selector("input[name='q[name_or_genre_cont]'][placeholder='Overridden']", visible: :all)
+  end
+
   def test_no_group_by_hidden_field_when_grouping_inactive
     render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: grouping_filter_form(group_by: nil))) do |c|
       c.with_simple_filters
