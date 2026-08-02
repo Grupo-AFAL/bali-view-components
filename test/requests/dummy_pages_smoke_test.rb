@@ -41,29 +41,6 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
   # guard below fails on an entry that no longer fires, so whoever removes the call site
   # is told to remove its exception too.
   #
-  # These four are the dummy DEMONSTRATING the components #684 deprecated — the dashboard
-  # section is literally headed "InfoLevel Component Demo". Whether the demo app should
-  # keep showing a deprecated component, and what replaces it, belongs to #779, and that
-  # work is already written: **PR #808 replaces all four** — `Level` becomes flex
-  # utilities, `InfoLevel` becomes a `Columns` grid of `StatCard`. Rewriting the same two
-  # templates here would be two branches editing one file for the same reason.
-  #
-  # So this list is meant to die with that merge, and the guard is what makes it happen
-  # instead of being remembered: whichever of the two lands second, these stop firing and
-  # the assertion goes red naming them. **If you are reading this because of that failure,
-  # the fix is to delete this constant and the assertion that reads it** — the call sites
-  # are gone and the count is zero without any exception at all.
-  TOLERATED = {
-    "/ (dashboard#index): Bali::Level::Component" =>
-      "dashboard's Quick Actions demo of Level (removed by #808)",
-    "/ (dashboard#index): Bali::InfoLevel::Component" =>
-      "dashboard's InfoLevel Component Demo section (removed by #808)",
-    "/admin/revenue (admin/revenue#index): Bali::InfoLevel::Component" =>
-      "revenue's budget-by-status breakdown (removed by #808)",
-    "/admin/revenue (admin/revenue#index): Bali::Level::Component" =>
-      "revenue's totals row (removed by #808)"
-  }.freeze
-
   def setup
     @tenant = Tenant.create!(name: "Smoke Studio")
     @movie = @tenant.movies.create!(name: "Smoke Movie", status: 0, genre: "Drama", rating: 8)
@@ -85,14 +62,8 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
     assert_empty failures, "dummy pages that do not render:\n#{failures.join("\n")}"
 
     assert_empty deprecations,
-      "dummy pages calling a deprecated API. Migrate the call site, or add it to " \
-      "TOLERATED with the reason:\n#{deprecations.join("\n")}"
-
-    stale = TOLERATED.keys - @tolerated_seen.to_a
-
-    assert_empty stale,
-      "TOLERATED entries that no longer fire. The call site is gone — delete the " \
-      "exception with it:\n#{stale.join("\n")}"
+      "dummy pages calling a deprecated API. Migrate the call site:\n" \
+      "#{deprecations.join("\n")}"
   end
 
   # Without this the list above rots: a page added to the dummy would simply never be
@@ -114,7 +85,6 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
   def walk
     failures = []
     deprecations = []
-    @tolerated_seen = Set.new
 
     warn_into(deprecations) do
       swept_routes.each do |route|
@@ -145,10 +115,7 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
     Bali.deprecator.behavior = ->(message, *) do
       # The page is what makes a warning actionable. The message's own `called from` names
       # the component that raised it, which is one shared line for every call site.
-      entry = "#{@current_page}: #{summarize(message)}"
-      excuse = TOLERATED.keys.find { |prefix| entry.start_with?(prefix) }
-
-      excuse ? @tolerated_seen << excuse : collected << entry
+      collected << "#{@current_page}: #{summarize(message)}"
     end
     yield
   ensure
