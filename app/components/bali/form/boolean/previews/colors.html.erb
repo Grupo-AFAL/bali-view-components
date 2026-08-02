@@ -2,37 +2,37 @@
   <%= form_with model: model, url: '/lookbook', builder: Bali::FormBuilder do |f| %>
     <div>
       <span class="text-sm text-base-content/60 mb-1 block">Primary</span>
-      <%= f.boolean_field(:indie, color: :primary, label: 'Primary checkbox') %>
+      <%= f.boolean_field(:indie, color: :primary, text: 'Primary checkbox') %>
     </div>
 
     <div>
       <span class="text-sm text-base-content/60 mb-1 block">Secondary</span>
-      <%= f.boolean_field(:indie, color: :secondary, label: 'Secondary checkbox') %>
+      <%= f.boolean_field(:indie, color: :secondary, text: 'Secondary checkbox') %>
     </div>
 
     <div>
       <span class="text-sm text-base-content/60 mb-1 block">Accent</span>
-      <%= f.boolean_field(:indie, color: :accent, label: 'Accent checkbox') %>
+      <%= f.boolean_field(:indie, color: :accent, text: 'Accent checkbox') %>
     </div>
 
     <div>
       <span class="text-sm text-base-content/60 mb-1 block">Success</span>
-      <%= f.boolean_field(:indie, color: :success, label: 'Success checkbox') %>
+      <%= f.boolean_field(:indie, color: :success, text: 'Success checkbox') %>
     </div>
 
     <div>
       <span class="text-sm text-base-content/60 mb-1 block">Warning</span>
-      <%= f.boolean_field(:indie, color: :warning, label: 'Warning checkbox') %>
+      <%= f.boolean_field(:indie, color: :warning, text: 'Warning checkbox') %>
     </div>
 
     <div>
       <span class="text-sm text-base-content/60 mb-1 block">Info</span>
-      <%= f.boolean_field(:indie, color: :info, label: 'Info checkbox') %>
+      <%= f.boolean_field(:indie, color: :info, text: 'Info checkbox') %>
     </div>
 
     <div>
       <span class="text-sm text-base-content/60 mb-1 block">Error</span>
-      <%= f.boolean_field(:indie, color: :error, label: 'Error checkbox') %>
+      <%= f.boolean_field(:indie, color: :error, text: 'Error checkbox') %>
     </div>
   <% end %>
 </div>

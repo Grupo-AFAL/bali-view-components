@@ -5,7 +5,6 @@ module Bali
     module SwitchFields
       TOGGLE_CLASS = "toggle"
       LABEL_CLASS = "label cursor-pointer gap-3"
-      FIELDSET_CLASS = "fieldset"
 
       # Consumed here rather than forwarded: `size` and `color` name daisyUI
       # variants in this family, so unlike on a text input they are not the HTML
@@ -29,22 +28,31 @@ module Bali
         error: "toggle-error"
       }.freeze
 
+      # Through FieldGroupWrapper like every other group, which is where the
+      # fieldset's id, its `w-full` and the `tooltip:`/`label: false` handling
+      # come from — a hand-rolled `<fieldset class="fieldset">` had none of them,
+      # so two toggles for the same model on one page shared no id at all and
+      # the group could not be captioned.
+      #
+      # Same split as BooleanFields: `text:` beside the toggle, `label:` as the
+      # `<legend>`, and no legend unless asked for.
       def switch_field_group(method, options = {}, checked_value = "1", unchecked_value = "0")
-        @template.content_tag(:fieldset, class: FIELDSET_CLASS) do
+        @template.render Bali::FieldGroupWrapper::Component.new(
+          self, method, options.merge(control_id: false, label: options.fetch(:label, false))
+        ) do
           switch_field(method, options, checked_value, unchecked_value)
         end
       end
 
       def switch_field(method, options = {}, checked_value = "1", unchecked_value = "0")
-        label_text = options[:label] || translate_attribute(method)
         label_options = build_switch_label_options(options)
         toggle_options = build_toggle_options(method, options)
 
         label_html = label(method, label_options) do
           safe_join([
-                      content_tag(:span, label_text),
+                      inline_caption(method, options),
                       check_box(method, toggle_options, checked_value, unchecked_value)
-                    ], " ")
+                    ].compact, " ")
         end
 
         label_html + error_and_help(method, options)

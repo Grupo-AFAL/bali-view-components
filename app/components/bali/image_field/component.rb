@@ -3,8 +3,26 @@
 module Bali
   module ImageField
     class Component < ApplicationViewComponent
-      # Default placeholder using data URI to avoid external dependency
-      DEFAULT_PLACEHOLDER_URL = "https://placehold.jp/128x128.png"
+      # An inline SVG, so the component renders nothing but itself.
+      #
+      # The comment here used to claim this was already a data URI while the
+      # constant held `https://placehold.jp/128x128.png`. Every ImageField
+      # without a `src:` — and every one *with* a `src:` too, since the
+      # placeholder `<img>` is emitted alongside whenever there is an input
+      # slot — fired a request at a third party on render: it leaked the page's
+      # Referer, put a stranger's uptime in front of a form field, and left the
+      # component broken behind an offline or egress-filtered network.
+      #
+      # Percent-encoded rather than base64 so it stays greppable, and so the
+      # `#` of each hex colour cannot start a Ruby interpolation.
+      DEFAULT_PLACEHOLDER_URL = "data:image/svg+xml;utf8," \
+                                "%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22" \
+                                "%20width%3D%22128%22%20height%3D%22128%22%20viewBox%3D%220%200" \
+                                "%20128%20128%22%3E%3Crect%20width%3D%22128%22%20height%3D%22128" \
+                                "%22%20fill%3D%22%23e5e7eb%22%2F%3E%3Ccircle%20cx%3D%2248%22%20" \
+                                "cy%3D%2250%22%20r%3D%2210%22%20fill%3D%22%239ca3af%22%2F%3E" \
+                                "%3Cpath%20fill%3D%22%239ca3af%22%20d%3D%22M28%2096l24-30%2016%2019" \
+                                "%2012-14%2020%2025z%22%2F%3E%3C%2Fsvg%3E"
       private_constant :DEFAULT_PLACEHOLDER_URL
 
       SIZES = {

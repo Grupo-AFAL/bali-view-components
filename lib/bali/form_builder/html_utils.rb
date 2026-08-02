@@ -17,9 +17,14 @@ module Bali
       MESSAGE_CLASS = "fieldset-label"
       ERROR_MESSAGE_CLASS = "fieldset-label text-error"
 
-      PATTERN_TYPES = {
-        number_with_commas: '^(\d+|\d{1,3}(,\d{3})*)(\.\d+)?$'
-      }.freeze
+      # `number_with_commas` keeps its old name — it is the value hosts already
+      # pass — but it no longer means "commas". Both separators are read from the
+      # active locale at render time, so the same option yields `1,234.56` in
+      # English and `1.234,56` wherever the host ships Spanish number formats.
+      # The old frozen literal accepted only the English shape, which is what
+      # rejected every correctly-typed Spanish amount. `localized_number` is the
+      # name that says so.
+      PATTERN_TYPES = %i[number_with_commas localized_number].freeze
 
       # Options the wrapper markup consumes: the fieldset caption, the help text
       # under the control, the `.control` div and the addons around the input.
@@ -32,11 +37,12 @@ module Bali
 
       # Options a single helper consumes to decide what to build: the currency
       # symbol, the textarea's counter, the file input's copy, the step buttons'
-      # data. All of them are read before the input is rendered.
+      # data, the caption a checkbox or a toggle renders beside itself. All of
+      # them are read before the input is rendered.
       HELPER_OPTIONS = %i[
         pattern_type symbol char_counter auto_grow attachments select_class
         choose_file_text non_selected_text file_class icon
-        subtract_data add_data button_class
+        subtract_data add_data button_class text
       ].freeze
 
       # Options SharedDateUtils and TimeFields turn into `data-datepicker-*`
@@ -126,6 +132,19 @@ module Bali
         field_id(method, "label")
       end
 
+      # The caption a checkbox or a toggle renders beside itself, inside the
+      # `<label>` that wraps the control — the one the accessible name comes
+      # from. It is a separate key from `label:` because the two are separate
+      # captions: this one sits next to the box, `label:` is the `<legend>`
+      # naming the group. `text: false` drops it, for the caller who wants the
+      # legend to be the only name in the field.
+      def inline_caption(method, options = {})
+        text = options.fetch(:text) { translate_attribute(method) }
+        return if text == false
+
+        content_tag(:span, text)
+      end
+
       # nil when no caption will be rendered, so nothing ever points an
       # `aria-labelledby` at an id that is not in the document. `label: false`
       # and `label: { text: false }` are the two spellings that turn it off, and
@@ -172,11 +191,27 @@ module Bali
         attributes
       end
 
+      # The thousands delimiter and the decimal separator of the active locale,
+      # escaped for use inside a character-by-character pattern. Built per call,
+      # never frozen into a constant: the locale is only known at render time,
+      # and a constant would bake whichever locale happened to be active when
+      # the class was loaded into every request that followed.
+      #
+      # The `default:` pair is Rails' own English fallback, so a host without
+      # rails-i18n keeps exactly the pattern it had before.
+      def localized_number_pattern
+        delimiter = Regexp.escape(I18n.t("number.format.delimiter", default: ","))
+        separator = Regexp.escape(I18n.t("number.format.separator", default: "."))
+
+        "^(\\d+|\\d{1,3}(#{delimiter}\\d{3})*)(#{separator}\\d+)?$"
+      end
+
       def field_options(method, options)
         attributes = html_attributes(options)
 
-        pattern_type = options[:pattern_type]
-        attributes[:pattern] = PATTERN_TYPES[pattern_type] if pattern_type
+        if PATTERN_TYPES.include?(options[:pattern_type])
+          attributes[:pattern] = localized_number_pattern
+        end
 
         attributes[:class] = field_class_name(
           method, "#{input_base_class(options)} #{options[:class]}"

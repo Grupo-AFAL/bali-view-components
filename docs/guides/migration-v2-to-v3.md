@@ -2066,6 +2066,123 @@ Both render now, error first. Two consequences worth grepping for:
 Both paragraphs carry ids derived with Rails' `field_id` — `movie_synopsis_error` and
 `movie_synopsis_help`. Nothing points `aria-describedby` at them yet; that is a later change.
 
+## Checkboxes and toggles: `label:` splits into `label:` and `text:`
+
+`boolean_field_group`, `check_box_group` and `switch_field_group` used one `label:`
+for two different captions, and rendered both. `boolean_field_group :indie` produced
+a `<legend>Indie</legend>` **and** a `<span>Indie</span>` beside the box, so the
+control was announced "Indie Indie" — the duplicate label this release removes.
+
+The two captions now have a key each:
+
+| Key | What it renders | Default |
+|---|---|---|
+| `text:` | the caption inside the `<label>` wrapping the control, which is where the control's accessible name comes from | the translated attribute name |
+| `label:` | a `<legend>` over the fieldset | **none** — no legend unless you ask for one |
+
+**What you have to change.** Every call passing `label:` to these three helpers, or
+to the bare `boolean_field` / `switch_field`, means `text:` today:
+
+```erb
+<%# before — one caption asked for, two rendered %>
+<%= f.switch_field_group :email_notifications, label: t(".email_notifications") %>
+
+<%# after %>
+<%= f.switch_field_group :email_notifications, text: t(".email_notifications") %>
+```
+
+Leaving `label:` in place is not an error and does not lose the string, but it moves
+that string into the legend and puts the *attribute name* back beside the control —
+which is the duplicate again, wearing different words. Keep `label:` only where you
+genuinely want a caption over the group:
+
+```erb
+<%= f.boolean_field_group :indie, label: "Distribution", text: "This is an indie film" %>
+```
+
+`text:` is a Bali option, so it is stripped before the hash reaches Rails and never
+lands on the input as an attribute. `text: false` renders no inline caption; do that
+only alongside a `label:`, or the control ends up with no accessible name at all.
+
+The bare `boolean_field` and `switch_field` no longer read `label:` for anything.
+
+### `switch_field_group` and `range_field_group` render through the same wrapper now
+
+Both used to build a `<fieldset>` by hand. They go through `FieldGroupWrapper` like
+the other seventeen families, which changes their markup:
+
+- the fieldset gains `w-full` and an `id` derived from `field_id`
+  (`movie_indie_field`). It had **no id at all** before, so two forms for the same
+  model on one page were indistinguishable;
+- both gain `tooltip:`, `label: false`, `field_class:` and `field_data:`, which the
+  hand-rolled wrappers never supported;
+- `range_field_group`'s caption loses `text-sm font-medium`. It is a plain
+  `.fieldset-legend` now, like every other group's. **If you relied on that weight,
+  style `.fieldset-legend` yourself.**
+
+`range_field` also stops building its input through `@template.range_field(object_name, …)`.
+Handing the view helper a bare object name discarded the form index, so two indexed
+forms emitted the same `id` *and* the same `name` — the caption's `for` pointed at an
+id nobody emitted, and on submit the second slider's value overwrote the first. It
+delegates normally now, so an indexed form finally produces `movie_2_rating` /
+`movie[2][rating]`. **Any selector hardcoding the un-indexed id inside an indexed
+form stops matching**, which is the bug going away, not a regression.
+
+## Currency and percentage follow the locale, and lose their inert `step`
+
+`currency_field_group` and `percentage_field_group` are one implementation now
+(`numeric_field_group`), and three things change.
+
+**The `pattern` is built from the active locale.** It was the frozen English literal
+`^(\d+|\d{1,3}(,\d{3})*)(\.\d+)?$`, so an amount typed the correct Spanish way —
+`1.234,56` — was rejected by the browser before it ever reached the server. Both
+separators now come from Rails' `number.format.delimiter` and `number.format.separator`.
+An app with `rails-i18n` gets the right pattern per locale for free; an app without it
+resolves to Rails' English defaults in every locale and behaves exactly as before.
+`pattern_type: :number_with_commas` still works and now resolves this way — the name
+is a misnomer kept for compatibility, and `:localized_number` is its real name.
+
+**`step: "0.01"` is gone.** These render `type="text"` — they have to, or the
+thousands delimiter cannot survive being typed — and `step` is inert on a text input.
+It validated nothing and only misled whoever read the markup next. **If you were
+passing `step:` yourself, it never did anything either.**
+
+**`inputmode="decimal"` is set,** so a phone opens the numeric keypad instead of the
+alphabetic one. Pass your own `inputmode:` to override it.
+
+The server side moved with it. `Bali::Concerns::NumericAttributesWithCommas` stripped
+commas and nothing else, so under a Spanish locale it turned `"1.234,56"` into
+`1.23456` — no exception, no validation error, just a number four orders of magnitude
+too small. It now removes the locale's delimiter and normalises its separator. **If
+you worked around this with a setter of your own, remove it before it double-parses.**
+
+## `dynamic_fields` renders buttons, and the method is `dynamic_fields_group`
+
+`link_to_add_fields` and `link_to_remove_fields` emit `<button type="button">`
+instead of `<a href="#">`. Nothing there navigates, so an anchor was announced as a
+link going nowhere and the `#` jumped the page to the top on any activation the
+Stimulus action did not swallow. It also broke the maximum-size cap: `connect()`
+disables the add control once the association is full, and `disabled` is inert on an
+`<a>`, so the control looked capped and stayed clickable.
+
+**Any CSS or test selecting `a.btn`, `a[href="#"]` or an `<a>` inside these stops
+matching.** The helpers keep their `link_to_` prefix — renaming them is a separate
+change — so only the markup moves.
+
+Separately, `docs/guides/form-builder.md` documented a `dynamic_fields` method that
+does not exist. It is and always was `dynamic_fields_group`.
+
+## `ImageField` stops calling a third party on every render
+
+`Bali::ImageField::Component`'s placeholder was `https://placehold.jp/128x128.png`,
+so rendering the component fired a request at a host nobody in this project controls:
+it leaked the page's Referer, put a stranger's uptime in front of a form field, and
+left the component broken behind an offline or egress-filtered network. It is an
+inline SVG data URI now.
+
+Nothing to change unless you were passing `placeholder_url:` — that still works — or
+asserting on the old URL in a test. The placeholder art itself changes.
+
 ## Checklist
 
 ```
@@ -2102,6 +2219,14 @@ grep -rn "side-menu-mobile-trigger\|side-menu-collapse-trigger" app/
 grep -rn "toggleSideMenu" app/
 grep -rn "fixed_sidebar" app/views app/components   # must agree with SideMenu(fixed:)
 grep -rn "#main-content\|skip.to.main" app/          # AppLayout renders its own skip link
+# checkboxes and toggles: label: now means the legend, text: means the inline caption
+grep -rn "boolean_field\|check_box_group\|switch_field" app/ | grep "label:"
+# currency/percentage: step never did anything, and the pattern follows the locale now
+grep -rn "currency_field_group\|percentage_field_group" app/ | grep "step:"
+grep -rn "NumericAttributesWithCommas\|gsub(\",\"" app/models/   # drop your own comma setter
+# dynamic_fields: these are <button> now
+grep -rn "link_to_add_fields\|link_to_remove_fields" app/ test/
+grep -rn "placehold.jp" app/ test/                   # ImageField's placeholder is a data URI
 ```
 
 Then walk the sidebar with the keyboard at a phone width: Tab to the hamburger, Enter,

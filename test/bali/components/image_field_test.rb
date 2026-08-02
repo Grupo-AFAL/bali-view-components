@@ -14,7 +14,27 @@ class BaliImageFieldComponentTest < ComponentTestCase
   def test_default_rendering_renders_with_placeholder_image_by_default
     render_inline(component)
     assert_selector("div.image-field-component")
-    assert_selector('img[src*="placehold.jp"]')
+    assert_selector('img[src^="data:image/svg+xml"]')
+  end
+
+  # The placeholder used to be `https://placehold.jp/128x128.png`, so rendering
+  # this component fired a request at a third party: it leaked the page's
+  # Referer, put a stranger's uptime in front of a form field, and left the
+  # component broken behind an offline or egress-filtered network.
+  #
+  # Asserted over the rendered markup rather than on the constant, because the
+  # placeholder is emitted a second time — as a hidden `<img>` — whenever there
+  # is an input slot, which is the path that kept firing even with a `src:`.
+  def test_no_rendering_path_requests_an_external_url
+    external = [ {}, { src: "avatar.png" }, { size: :xl } ].filter_map do |options|
+      render_inline(Bali::ImageField::Component.new(**options))
+
+      options.inspect if rendered_content.match?(%r{src="https?://})
+    end
+
+    assert_empty external,
+                 "ImageField still requests an external URL when rendered with: " \
+                 "#{external.join(", ")}"
   end
 
   def test_default_rendering_applies_image_field_controller

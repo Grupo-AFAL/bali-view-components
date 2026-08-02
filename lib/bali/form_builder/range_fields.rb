@@ -4,8 +4,6 @@ module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
     module RangeFields
       RANGE_CLASS = "range"
-      FIELDSET_CLASS = "fieldset"
-      LEGEND_CLASS = "fieldset-legend text-sm font-medium"
       TICKS_CLASS = "flex justify-between text-xs text-base-content/60 px-0.5 mt-1"
 
       # Read by the slider itself: `size` and `color` are daisyUI variants here,
@@ -29,7 +27,14 @@ module Bali
         error: "range-error"
       }.freeze
 
-      # Renders a range slider with label, optional tick marks, and value display
+      # Renders a range slider through FieldGroupWrapper, with optional tick
+      # marks under it.
+      #
+      # This family used to build its own `<fieldset>` and its own caption,
+      # which meant re-implementing — and steadily drifting from — the fieldset
+      # id, `w-full`, the `tooltip:` slot and `label: false`. The caption it
+      # built by hand also carried `text-sm font-medium`, which no other field
+      # group has; losing that is the visible half of the change.
       #
       # @param method [Symbol] The attribute name
       # @param options [Hash] Options for the range field
@@ -55,44 +60,35 @@ module Bali
       #   f.range_field_group :rating, min: 1, max: 5, tick_labels: %w[Bad Poor OK Good Great]
       #
       def range_field_group(method, options = {})
-        label_text = options[:label] || translate_attribute(method)
-
-        tick_options = {
-          show_ticks: options[:show_ticks],
-          ticks: options[:ticks],
-          tick_labels: options[:tick_labels],
-          prefix: options[:prefix],
-          suffix: options[:suffix],
-          min: options[:min] || 0,
-          max: options[:max] || 100
-        }
-
-        content_tag(:fieldset, class: FIELDSET_CLASS) do
+        @template.render Bali::FieldGroupWrapper::Component.new(self, method, options) do
           safe_join([
-            range_caption(method, label_text, options),
             range_field(method, options),
-            build_range_ticks(tick_options)
+            build_range_ticks(tick_options(options))
           ].compact)
         end
       end
 
-      # Renders just the range input without wrapper
+      # Renders just the range input, without the wrapper.
+      #
+      # `super`, not `@template.range_field(object_name, ...)`. Handing the view
+      # helper a bare object name threw away everything else the builder knows —
+      # in particular the form index — so two forms for the same model on one
+      # page emitted the same `id` *and* the same `name`: the ids collided, the
+      # caption's `for` pointed at an id nobody emitted, and on submit the
+      # second slider's value overwrote the first. Every other family in the
+      # builder already delegated the normal way; this one had not.
       def range_field(method, options = {})
-        range_options = build_range_options(method, options)
-
-        @template.range_field(object_name, method, range_options) +
+        super(method, build_range_options(method, options)) +
           error_and_help(method, options)
       end
 
       private
 
-      # This family builds its own fieldset rather than going through
-      # FieldGroupWrapper, so it needs the same fix on its own: a `<legend>`
-      # names the fieldset, never the slider inside it, which left every range
-      # input without an accessible name.
-      def range_caption(method, label_text, options)
-        content_tag(:label, label_text, class: LEGEND_CLASS,
-                                        id: label_id(method), for: control_id(method, options))
+      # The tick labels are the only thing that reads `min`/`max` outside the
+      # input, and they need the same defaults the input gets.
+      def tick_options(options)
+        options.slice(:show_ticks, :ticks, :tick_labels, :prefix, :suffix, :step)
+               .merge(min: options[:min] || 0, max: options[:max] || 100)
       end
 
       def build_range_options(method, options)

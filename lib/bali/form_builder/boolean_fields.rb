@@ -28,13 +28,22 @@ module Bali
         error: "checkbox-error"
       }.freeze
 
-      # The caption stays a `<legend>`: `boolean_field` already wraps the
+      # Two captions, two keys. `text:` is the one beside the checkbox — how a
+      # checkbox is normally named, and where its accessible name comes from.
+      # `label:` is the `<legend>` naming the group around it.
+      #
+      # Only `text:` has a default. A single `label:` used to feed both, so the
+      # attribute name came out twice — once as the legend, once beside the box —
+      # and the field read out "Indie Indie". The legend now renders only when
+      # the caller asks for one, which is when a group caption says something
+      # the inline text does not.
+      #
+      # That caption stays a `<legend>` even then: `boolean_field` wraps the
       # checkbox in a `<label>` of its own, and a second `<label for>` on the
-      # same control does not replace that name, it concatenates with it —
-      # the control would be announced "Active Active".
+      # same control does not replace that name, it concatenates with it.
       def boolean_field_group(method, options = {}, checked_value = "1", unchecked_value = "0")
         @template.render Bali::FieldGroupWrapper::Component.new(
-          self, method, options.merge(control_id: false)
+          self, method, options.merge(control_id: false, label: options.fetch(:label, false))
         ) do
           boolean_field(method, options, checked_value, unchecked_value)
         end
@@ -43,15 +52,14 @@ module Bali
       alias check_box_group boolean_field_group
 
       def boolean_field(method, options = {}, checked_value = "1", unchecked_value = "0")
-        label_text = options[:label] || translate_attribute(method)
         label_options = build_label_options(options)
         checkbox_options = build_checkbox_options(method, options)
 
         label_html = label(method, label_options) do
           safe_join([
                       check_box(method, checkbox_options, checked_value, unchecked_value),
-                      content_tag(:span, label_text)
-                    ], " ")
+                      inline_caption(method, options)
+                    ].compact, " ")
         end
 
         label_html + error_and_help(method, options)

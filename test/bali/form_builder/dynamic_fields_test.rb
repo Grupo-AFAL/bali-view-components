@@ -52,13 +52,24 @@ end
 class BaliFormBuilderLinkToRemoveFieldsTest < FormBuilderTestCase
   # #link_to_remove_fields
 
-  def test_renders_a_link_element
+  def test_renders_a_button_element
     result = builder.link_to_remove_fields("Remove")
     assert_includes(result, ">Remove<")
+    assert_html(result, "button")
   end
 
-  def test_includes_href_on_the_link
-    assert_includes(builder.link_to_remove_fields("Remove"), 'href="#"')
+  # `<a href="#">` for something that does not navigate is the anti-pattern the
+  # repo's own guide forbids: a screen reader announced a link that goes
+  # nowhere, and the `#` jumped the page to the top.
+  def test_is_not_an_anchor
+    result = builder.link_to_remove_fields("Remove")
+    refute_html(result, "a")
+    refute_includes(result, 'href="#"')
+  end
+
+  # These sit inside a `<form>`, where a button with no `type` submits it.
+  def test_declares_type_button_so_it_does_not_submit_the_form
+    assert_html(builder.link_to_remove_fields("Remove"), 'button[type="button"]')
   end
 
   def test_adds_stimulus_action_for_removing_fields

@@ -7,22 +7,8 @@ module Bali
 
       def percentage_field_group(method, options = {})
         symbol = options[:symbol] || DEFAULT_SYMBOL
-        opts = options.with_defaults(
-          placeholder: 0,
-          addon_right: percentage_addon(symbol),
-          step: "0.01",
-          pattern_type: :number_with_commas
-        )
 
-        @template.render Bali::FieldGroupWrapper::Component.new self, method, opts do
-          text_field(method, opts)
-        end
-      end
-
-      private
-
-      def percentage_addon(symbol)
-        tag.span(symbol, class: HtmlUtils::ADDON_CLASSES)
+        numeric_field_group(method, options.with_defaults(addon_right: numeric_addon(symbol)))
       end
     end
   end

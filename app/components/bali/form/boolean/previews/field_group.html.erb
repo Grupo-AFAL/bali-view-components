@@ -1,6 +1,17 @@
-<div class="p-4">
-  <p class="text-sm text-base-content/60 mb-4">The <code class="bg-base-200 px-1 rounded">boolean_field_group</code> method wraps the checkbox in a fieldset for form grouping.</p>
-  <%= form_with model: model, url: '/lookbook', builder: Bali::FormBuilder do |f| %>
-    <%= f.boolean_field_group(:indie, label: 'This is an indie film') %>
-  <% end %>
+<div class="p-4 space-y-6">
+  <p class="text-sm text-base-content/60">The <code class="bg-base-200 px-1 rounded">boolean_field_group</code> method wraps the checkbox in a fieldset for form grouping.</p>
+
+  <div>
+    <p class="text-sm font-medium mb-2">Default — the caption sits beside the checkbox, and there is no legend</p>
+    <%= form_with model: model, url: '/lookbook', builder: Bali::FormBuilder do |f| %>
+      <%= f.boolean_field_group(:indie, text: 'This is an indie film') %>
+    <% end %>
+  </div>
+
+  <div>
+    <p class="text-sm font-medium mb-2"><code class="bg-base-200 px-1 rounded">label:</code> adds a legend over the group, for when it says something the inline caption does not</p>
+    <%= form_with model: model, url: '/lookbook', builder: Bali::FormBuilder do |f| %>
+      <%= f.boolean_field_group(:indie, label: 'Distribution', text: 'This is an indie film') %>
+    <% end %>
+  </div>
 </div>
