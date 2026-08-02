@@ -135,9 +135,9 @@ Slots allow you to inject content into specific areas of a component:
 **Multiple slots:**
 ```erb
 <%= render Bali::Tabs::Component.new do |tabs| %>
-  <% tabs.with_tab(label: "Tab 1") { "Content 1" } %>
-  <% tabs.with_tab(label: "Tab 2") { "Content 2" } %>
-  <% tabs.with_tab(label: "Tab 3") { "Content 3" } %>
+  <% tabs.with_tab(title: "Tab 1", active: true) { "Content 1" } %>
+  <% tabs.with_tab(title: "Tab 2") { "Content 2" } %>
+  <% tabs.with_tab(title: "Tab 3") { "Content 3" } %>
 <% end %>
 ```
 
@@ -571,18 +571,53 @@ Navigation path indicator.
 
 #### Tabs
 
-Tabbed content navigation.
+One component, two widgets. Which one you get depends on whether the triggers navigate.
+
+**Tabs with panels** — the click swaps a panel without leaving the page. Renders the ARIA
+tabs pattern (`role="tablist"` / `role="tab"` / `role="tabpanel"`) driven by the `tabs`
+Stimulus controller.
 
 ```erb
-<%= render Bali::Tabs::Component.new(variant: :boxed) do |tabs| %>
-  <% tabs.with_tab(label: "Overview", active: true) do %>
+<%= render Bali::Tabs::Component.new(style: :box) do |tabs| %>
+  <% tabs.with_tab(title: "Overview", active: true) do %>
     Overview content...
   <% end %>
-  <% tabs.with_tab(label: "Details") do %>
+  <% tabs.with_tab(title: "Details") do %>
     Details content...
   <% end %>
 <% end %>
+
+<%# src: loads a panel's content on demand, still without leaving the page %>
+<%= render Bali::Tabs::Component.new do |tabs| %>
+  <% tabs.with_tab(title: "Activity", src: activity_path(@project), active: true) %>
+<% end %>
 ```
+
+**Tabs that navigate** — every trigger has an `href:`, so the click leaves the page. There is
+no panel to control, so this renders `<nav aria-label>` with plain links and
+`aria-current="page"` on the active one, and no Stimulus controller.
+
+```erb
+<%= render Bali::Tabs::Component.new(style: :border, label: "Project sections") do |tabs| %>
+  <% tabs.with_tab(title: "Summary", icon: "layout-dashboard", href: project_path(@project)) %>
+  <% tabs.with_tab(title: "Quality", icon: "shield-check", href: project_quality_path(@project)) %>
+<% end %>
+```
+
+Without `active:`, an `href:` tab decides for itself by comparing the URL against the current
+path; pass `active:` to override that.
+
+**Mixing the two raises `ArgumentError`.** A `role="tablist"` where half the children are
+links leaving the page and half own a panel is not a widget ARIA describes, and it used to
+render in silence. Split it into two components, or drop `href:` from all of them.
+
+**Options:**
+- `style` - `:default`, `:border` (default), `:box`, `:lift`
+- `size` - `:xs`, `:sm`, `:md` (default), `:lg`, `:xl`
+- `label` - Accessible name for the `<nav>` in navigation mode. Pass it whenever a page has more than one; defaults to `bali_view.tabs.navigation`. Ignored when the tabs have panels (default: nil)
+- `**options` - Additional HTML attributes for the wrapper
+
+**Slots:** `with_tab(title:, icon:, active:, src:, reload:, href:, **options)`.
 
 #### ViewSwitch
 
@@ -1041,15 +1076,23 @@ i18n keys `bali_view.image_grid.empty_state.{title,add_image}` ship in en/es.
 
 #### BooleanIcon
 
-Displays a boolean value as a colored icon — a green check for true, a red cross for false (nil is treated as false). Useful in table cells and lists.
+Displays a boolean as a coloured icon plus an `sr-only` name — a green check for true, a red cross for false, and a neutral dash for nil. Useful in table cells and lists.
+
+The value is **ternary**. `nil` is missing data, not `false`: announcing "No" for a column nobody filled in states something the record does not say. Pass `value: false` explicitly if an unset value should read as no.
 
 ```erb
-<%= render Bali::BooleanIcon::Component.new(value: movie.indie?) %>
+<%= render Bali::BooleanIcon::Component.new(value: movie.indie) %>
+
+<%# The default name is generic; supply the subject where the surrounding markup doesn't %>
+<%= render Bali::BooleanIcon::Component.new(value: movie.indie, label: t('.indie_film')) %>
 ```
 
 **Options:**
-- `value` - Boolean value to display; nil is coerced to false (required)
+- `value` - `true`, `false`, or `nil` for "not specified". Any other truthy value still reads as true (required)
+- `label` - Accessible name for this cell. Defaults to `bali_view.boolean_icon.true` / `.false` / `.blank` — "Yes" / "No" / "Not specified" (default: nil)
 - `**options` - Additional HTML attributes for the wrapper div
+
+The icon is `aria-hidden`, so the `sr-only` label is the only accessible name the component has. Without it the colour is the sole difference between the two states, which also fails WCAG 1.4.1.
 
 #### Chart
 
@@ -1085,6 +1128,28 @@ Renders a Chart.js chart (bar, line, pie, doughnut, polarArea) with theme-aware 
 - `use_theme_colors` - Use DaisyUI theme colors for series, grid, and tooltips (default: true)
 - `color` - Semantic name the palette starts from (`:neutral :primary :secondary :accent :info :success :warning :error :ghost`). A single-series chart is painted in it; a multi-series one cycles from it (default: nil, i.e. `:primary` first)
 - `custom_color` - Hex colour the palette starts from. It drops the theme palette entirely and the remaining series fall back to the fixed hex list, because a canvas cannot resolve a `var()` and a chart cannot mix the two (default: nil)
+- `aria_label` - Accessible name for the canvas. Falls back to `title:`, then to `bali_view.chart.default_label` (default: nil)
+
+**Slots:** `with_data_table` — a real `<table>` rendered `sr-only` next to the canvas.
+
+Everything Chart.js draws is pixels, so the canvas is `role="img"` with a name. A name is not
+a number: `with_data_table` is the only way a screen reader user reads a value off the chart.
+
+```erb
+<%= render Bali::Chart::Component.new(data: @sales, title: t('.weekly_sales')) do |c| %>
+  <% c.with_data_table do %>
+    <table>
+      <caption><%= t('.weekly_sales') %></caption>
+      <thead><tr><th scope="col"><%= t('.day') %></th><th scope="col"><%= t('.sales') %></th></tr></thead>
+      <tbody>
+        <% @sales.each do |day, total| %>
+          <tr><th scope="row"><%= day %></th><td><%= total %></td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+<% end %>
+```
 
 #### DataTable
 
@@ -1313,6 +1378,11 @@ Grid visualization that shows magnitude as color intensity across two dimensions
 
 Slots: `with_x_axis_title`, `with_y_axis_title`, `with_legend_title`, `with_hovercard_title`.
 
+The value lived only in the hover card through v2, which put every number behind a mouse. The
+axis labels are `<th scope="col">` (x, at the foot) and `<th scope="row">` (y), so both axes
+reach each cell as headers, and each cell carries its value as `sr-only` text — a coloured
+cell with no text is an empty cell to a screen reader. Nothing moved visually.
+
 #### Icon
 
 Renders an icon by name, resolving Lucide icons first (1,600+ available), then kept brand/regional icons, then legacy Bali icons.
@@ -1357,7 +1427,7 @@ Slots: `with_item` (each item takes `with_heading` and `with_title`, as text or 
 
 #### LabelValue
 
-Displays a small bold label above its value — a common pattern on show pages.
+Displays a small bold label above its value — a common pattern on show pages. Renders as a single-pair `<dl>`: `<dt>` for the label, `<dd>` for the value.
 
 ```erb
 <%= render Bali::LabelValue::Component.new(label: 'Name', value: 'Juan Perez') %>
@@ -1372,6 +1442,22 @@ Displays a small bold label above its value — a common pattern on show pages.
 - `label` - Label text shown above the value (required)
 - `value` - Value to display; when nil, block content is rendered instead (default: nil)
 - `**options` - Additional HTML attributes
+
+**LabelValue or PropertiesTable?** They render the same information and read differently.
+
+| | LabelValue | PropertiesTable |
+|---|---|---|
+| Markup | one `<dl>` per pair | one `<table>`, `<th scope="row">` per row |
+| Layout | you place each pair — a grid cell, a card, a column | rows, stacked, zebra-striped |
+| Screen reader | a run of them is a run of separate one-pair lists | one set, with table navigation and a row count |
+
+Use `PropertiesTable` when the pairs form **one set read top to bottom**, which is most detail
+pages. Use `LabelValue` for a pair that stands on its own, or when each pair needs its own
+placement in a layout the table cannot express.
+
+It was a `<div>` holding a `<label>` through v2. A `<label>` with no control to point at
+labels nothing: the text and the value beside it were two unrelated nodes in the
+accessibility tree.
 
 #### List
 
@@ -1654,7 +1740,7 @@ the classic "+ add card" action.
 ```erb
 <%= render Bali::Kanban::Component.new(resource_name: "task", group_name: "board") do |k| %>
   <% k.with_column(title: "To Do", status: "todo", color: :ghost) do |col| %>
-    <% col.with_card(update_url: task_path(task)) { render TaskCard.new(task:) } %>
+    <% col.with_card(update_url: task_path(task), label: task.title) { render TaskCard.new(task:) } %>
     <% col.with_footer do %>
       <%= link_to "+ Add card", new_task_path(status: :todo) %>
     <% end %>
@@ -1664,6 +1750,25 @@ the classic "+ add card" action.
 ```
 
 A column's header indicator is a `Bali::Tag`, so `color:` takes the same semantic names it does (`:neutral :primary :secondary :accent :info :success :warning :error :ghost`) and `custom_color:` takes a hex. A name outside that list raises — the private `BADGE_COLORS` table this component used to keep answered `:ghost` to anything it did not recognise.
+
+**A drop is announced.** Moving a card changes the DOM and nothing else — focus stays put, no
+text changes — so the board renders a `role="status" aria-live="polite"` region and writes
+into it on every drop: *"Design landing page moved to Done, position 1 of 2"*. The sentence
+comes from `bali_view.kanban.card_moved` and is interpolated in the browser.
+
+`label:` on a card is what the announcement calls it. The default is the card's own text,
+truncated to 60 characters, which reads badly on a card that leads with a date or an avatar
+rather than a title.
+
+Each column's card stack is `role="list"` with an `aria-label` carrying the count
+(`bali_view.kanban.column_label`), including `"Backlog, 0 cards"` — an empty column used to
+have no badge, no cards and no name at all. Each card is `role="listitem"`. That label is
+rendered on the server, so after a client-side drop it is as stale as the count badge next to
+it; both refresh when the page does.
+
+The `kanban` Stimulus controller ships in the core bundle and `registerAll` picks it up. An
+app that registers controllers one at a time needs `application.register('kanban',
+KanbanController)`.
 
 #### ConfirmDialog
 

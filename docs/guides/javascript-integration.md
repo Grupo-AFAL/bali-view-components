@@ -235,7 +235,7 @@ prefix does not come from this package.
 | `bali:direct-upload:all-complete` | the controller element (bubbles) | `{ count }` |
 | `bali:direct-upload:error` | the controller element (bubbles) | `{ message }` |
 | `bali:hovercard:show` / `bali:hovercard:hide` | the controller element (bubbles) | `{ tippy }` |
-| `bali:sortable-list:end` | the list element (bubbles) | `{ order, toListId }` |
+| `bali:sortable-list:end` | the list element (bubbles) | `{ order, toListId, item, from, to, oldIndex, newIndex }` |
 | `bali:interact:dragging` / `bali:interact:drag-end` | the dragged element (bubbles) | `{ element, params, position, startDelta, endDelta, width }` |
 | `bali:interact:resizing` / `bali:interact:resize-end` | the resized element (bubbles) | same, plus the live `width`/`position` while resizing |
 | `bali:gantt-foldable-item:toggle` | the row element (bubbles) | `{ folded }` |

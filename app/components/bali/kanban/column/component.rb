@@ -39,6 +39,9 @@ module Bali
           count || cards.size
         end
 
+        def list_label
+          I18n.t("bali_view.kanban.column_label", title: title, count: display_count)
+        end
         # The indicator is a Tag, so the colour is a Tag's business: it owns the
         # `badge-*` table and the rejection of a name outside Bali::Color::NAMES.
         # The duplicate table this column used to keep answered `:ghost` to

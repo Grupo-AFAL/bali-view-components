@@ -103,6 +103,7 @@ export {
   HovercardController,
   ImageExpanderController,
   ImageFieldController,
+  KanbanController,
   LocationsMapController,
   MessageController,
   ModalController,

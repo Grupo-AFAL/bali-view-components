@@ -5,21 +5,12 @@
         <h3 class="card-title text-base font-semibold text-base-content"><%= title %></h3>
       <% end %>
       <%= tag.div(class: container_classes, **container_options) do %>
-        <%= tag.canvas(
-          class: 'chart',
-          data: {
-            controller: 'chart',
-            chart_type_value: chart_type,
-            chart_data_value: chart_data_json,
-            chart_labels_value: labels_json,
-            chart_options_value: options_json,
-            chart_display_percent_value: display_percent?,
-            chart_use_theme_colors_value: use_theme_colors?,
-            chart_color_value: theme_color_variable
-          }
-        ) do %>
+        <%= tag.canvas(**canvas_attributes) do %>
           <span class="loading loading-spinner loading-md text-primary"></span>
         <% end %>
+      <% end %>
+      <% if data_table? %>
+        <div class="sr-only"><%= data_table %></div>
       <% end %>
     </div>
   </div>
@@ -29,21 +20,12 @@
       <h3 class="text-base font-semibold text-base-content mb-3"><%= title %></h3>
     <% end %>
     <%= tag.div(class: container_classes, **container_options) do %>
-      <%= tag.canvas(
-        class: 'chart',
-        data: {
-          controller: 'chart',
-          chart_type_value: chart_type,
-          chart_data_value: chart_data_json,
-          chart_labels_value: labels_json,
-          chart_options_value: options_json,
-          chart_display_percent_value: display_percent?,
-          chart_use_theme_colors_value: use_theme_colors?,
-          chart_color_value: theme_color_variable
-        }
-      ) do %>
+      <%= tag.canvas(**canvas_attributes) do %>
         <span class="loading loading-spinner loading-md text-primary"></span>
       <% end %>
+    <% end %>
+    <% if data_table? %>
+      <div class="sr-only"><%= data_table %></div>
     <% end %>
   </div>
 <% end %>

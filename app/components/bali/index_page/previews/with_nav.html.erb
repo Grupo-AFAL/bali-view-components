@@ -10,15 +10,18 @@
     <%= render Bali::Link::Component.new(name: 'New Movie', href: '#', variant: :primary, icon_name: 'plus') %>
   <% end %>
   <% page.with_nav do %>
+    <%# Every tab here has an href:, so both sets render a <nav> with
+        aria-current instead of a tablist. Two navs on one page need telling
+        apart, which is what `label:` is for. %>
     <%# Level 1: section tabs (style: :border, icon + label) %>
-    <%= render Bali::Tabs::Component.new(style: :border) do |tabs| %>
+    <%= render Bali::Tabs::Component.new(style: :border, label: 'Movie sections') do |tabs| %>
       <% tabs.with_tab(title: 'All', icon: 'list', href: '#', active: true) %>
       <% tabs.with_tab(title: 'Upcoming', icon: 'clock', href: '#') %>
       <% tabs.with_tab(title: 'Archived', icon: 'archive', href: '#') %>
     <% end %>
     <%# Level 2: sub-section segment (style: :box, size: :sm, no icons) %>
     <div class="mt-2">
-      <%= render Bali::Tabs::Component.new(style: :box, size: :sm) do |tabs| %>
+      <%= render Bali::Tabs::Component.new(style: :box, size: :sm, label: 'Movie sub-sections') do |tabs| %>
         <% tabs.with_tab(title: 'Releases', href: '#', active: true) %>
         <% tabs.with_tab(title: 'Premieres', href: '#') %>
       <% end %>

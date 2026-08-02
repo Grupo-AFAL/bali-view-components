@@ -24,15 +24,31 @@ class BaliHeatmapComponentTest < ComponentTestCase
   def test_rendering_renders_all_x_axis_labels_in_footer
     render_inline(Bali::Heatmap::Component.new(data: data))
     %w[Mon Tue Wed].each do |day|
-      assert_selector("tfoot td", text: day)
+      assert_selector('tfoot th[scope="col"]', text: day)
   end
   end
 
   def test_rendering_renders_all_y_axis_labels
       render_inline(Bali::Heatmap::Component.new(data: data))
     (0..2).each do |hour|
-      assert_selector("td", text: hour.to_s)
+      assert_selector('tbody th[scope="row"]', text: hour.to_s)
   end
+  end
+
+  # A grid of coloured cells with no text is a grid of empty cells to a screen
+  # reader, and the colour is the only thing that carried the number.
+  def test_a11y_renders_every_cell_value_as_screen_reader_text
+    render_inline(Bali::Heatmap::Component.new(data: data))
+    assert_selector("td.heatmap-cell span.sr-only", count: 9)
+    assert_selector("td.heatmap-cell span.sr-only", text: "10")
+  end
+
+  # Both axes reach the cell as headers, so the value alone is enough text.
+  def test_a11y_associates_both_axes_as_headers
+    render_inline(Bali::Heatmap::Component.new(data: data))
+    assert_selector('tfoot th[scope="col"]', count: 3)
+    assert_selector('tbody th[scope="row"]', count: 3)
+    assert_no_selector("thead td[scope]")
   end
 
   def test_rendering_renders_the_legend_with_min_and_max_values
@@ -194,8 +210,8 @@ class BaliHeatmapComponentTest < ComponentTestCase
     string_keys = { Mon: { "morning" => 1, "evening" => 2 }, Tue: { "morning" => 3 } }
     render_inline(Bali::Heatmap::Component.new(data: string_keys))
     assert_selector("tbody tr", count: 2)
-    assert_selector("tbody td", text: "morning")
-    assert_selector("tbody td", text: "evening")
+    assert_selector('tbody th[scope="row"]', text: "morning")
+    assert_selector('tbody th[scope="row"]', text: "evening")
   end
 
   def test_y_labels_does_not_raise_on_mixed_key_types
