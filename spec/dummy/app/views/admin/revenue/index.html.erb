@@ -94,8 +94,11 @@
           <% pt.with_property(label: t('revenue.highest_budget')) do %>
             <div class="flex items-center gap-2">
               <%= number_to_currency(@stats[:top_budget], precision: 0) %>
-              <%= render Bali::Tooltip::Component.new(text: t('revenue.highest_budget_tooltip'), position: :left) do %>
-                <%= render Bali::Icon::Component.new('info', size: :small, class: 'text-base-content/40 cursor-help') %>
+              <%= render Bali::Tooltip::Component.new(placement: :left) do |tooltip| %>
+                <% tooltip.with_trigger do %>
+                  <%= render Bali::Icon::Component.new('info', size: :small, class: 'text-base-content/40 cursor-help') %>
+                <% end %>
+                <%= t('revenue.highest_budget_tooltip') %>
               <% end %>
             </div>
           <% end %>
@@ -122,8 +125,11 @@
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <div class="flex items-center justify-between mb-4">
           <h3 class="card-title text-lg"><%= t('revenue.top_movies') %></h3>
-          <%= render Bali::Tooltip::Component.new(text: t('revenue.top_movies_tooltip'), position: :left) do %>
-            <%= render Bali::Icon::Component.new('info', size: :small, class: 'text-base-content/40 cursor-help') %>
+          <%= render Bali::Tooltip::Component.new(placement: :left) do |tooltip| %>
+            <% tooltip.with_trigger do %>
+              <%= render Bali::Icon::Component.new('info', size: :small, class: 'text-base-content/40 cursor-help') %>
+            <% end %>
+            <%= t('revenue.top_movies_tooltip') %>
           <% end %>
         </div>
         <% if @top_movies.any? %>

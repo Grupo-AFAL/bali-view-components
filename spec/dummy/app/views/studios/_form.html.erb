@@ -2,17 +2,17 @@
   <%= f.error_summary %>
 
   <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
-    <%= f.text_field_group :name, required: true %>
+    <%= f.text_group :name, required: true %>
     <%= f.select_group :country,
           Studio::COUNTRIES.map { |c| [c, c] },
-          { include_blank: 'Select country...' } %>
+          include_blank: 'Select country...' %>
     <%= f.select_group :status,
           Studio.statuses.keys.map { |s| [s.humanize, s] },
-          { include_blank: 'Select status...' } %>
+          include_blank: 'Select status...' %>
     <%= f.select_group :size,
           Studio::SIZES.map { |s| [s.humanize, s] },
-          { include_blank: 'Select size...' } %>
-    <%= f.number_field_group :founded_year, min: 1800, max: Date.current.year %>
+          include_blank: 'Select size...' %>
+    <%= f.number_group :founded_year, min: 1800, max: Date.current.year %>
   <% end %>
 
   <%# The Card this partial used to branch for belongs to FormPage now — that is exactly what

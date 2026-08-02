@@ -57,6 +57,9 @@ require "bali/form_builder/time_period_fields"
 require "bali/form_builder/time_zone_select_fields"
 require "bali/form_builder/url_fields"
 
+# The v2 spellings, kept for one cycle. Removed in 4.0.
+require "bali/form_builder/deprecated_names"
+
 # Commands
 require "bali/commands/csv_export"
 require "bali/commands/xlsx_export"

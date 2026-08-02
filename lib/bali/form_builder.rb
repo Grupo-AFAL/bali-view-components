@@ -39,5 +39,9 @@ module Bali
     include TimePeriodFields
     include TimeZoneSelectFields
     include UrlFields
+
+    # Last, so the v2 spellings it defines are unambiguously the compatibility
+    # layer and not part of any family. The whole module goes in 4.0.
+    include DeprecatedNames
   end
 end

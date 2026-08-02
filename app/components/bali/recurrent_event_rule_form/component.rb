@@ -22,7 +22,7 @@ module Bali
     #   form.recurrent_event_rule_field :schedule
     #
     #   # With field group wrapper (includes label)
-    #   form.recurrent_event_rule_field_group :schedule
+    #   form.recurrent_event_rule_group :schedule
     #
     #   # Pre-populated with existing value
     #   form.recurrent_event_rule_field :schedule, value: 'FREQ=WEEKLY;BYDAY=MO'

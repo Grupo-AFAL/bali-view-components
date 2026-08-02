@@ -19,24 +19,24 @@
 
     <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
       <%# Text Field %>
-      <%= f.text_field_group :name, label: t('movies.form.movie_title'), required: true, placeholder: t('movies.form.enter_title') %>
+      <%= f.text_group :name, label: t('movies.form.movie_title'), required: true, placeholder: t('movies.form.enter_title') %>
 
       <%# Select Field - Genre %>
       <% genres = ['Action', 'Adventure', 'Animation', 'Comedy', 'Drama', 'Horror', 'Sci-Fi', 'Thriller'].map { |g| [g, g] } %>
-      <%= f.select_group :genre, genres, { include_blank: t('movies.form.select_genre') }, { label: t('movies.form.genre') } %>
+      <%= f.select_group :genre, genres, include_blank: t('movies.form.select_genre'), html: { label: t('movies.form.genre') } %>
 
       <%# Select Field - Studio %>
       <% studios = Tenant.order(:name).pluck(:name, :id) %>
-      <%= f.select_group :tenant_id, studios, { include_blank: t('movies.form.select_studio') }, { label: t('movies.form.studio') } %>
+      <%= f.select_group :tenant_id, studios, include_blank: t('movies.form.select_studio'), html: { label: t('movies.form.studio') } %>
 
       <%# Radio Field - Status %>
       <% statuses = Movie.statuses.keys.map { |s| [s.humanize, s] } %>
-      <%= f.radio_field_group :status, statuses, { label: t('movies.form.status') }, { orientation: :horizontal, color: :primary } %>
+      <%= f.radio_group :status, statuses, label: t('movies.form.status'), html: { orientation: :horizontal, color: :primary } %>
     <% end %>
 
     <%# Switch Field - Indie %>
     <div class="mt-4">
-      <%= f.switch_field_group :indie, text: t('movies.form.indie_film'), color: :primary %>
+      <%= f.switch_group :indie, text: t('movies.form.indie_film'), color: :primary %>
     </div>
   <% end %>
 
@@ -63,16 +63,16 @@
 
     <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg, class: 'mt-4') do %>
       <%# Date Field %>
-      <%= f.date_field_group :release_date, label: t('movies.form.release_date') %>
+      <%= f.date_group :release_date, label: t('movies.form.release_date') %>
 
       <%# Number Field (Currency) %>
-      <%= f.currency_field_group :budget, label: t('movies.form.budget'), currency: 'USD', placeholder: '0.00' %>
+      <%= f.currency_group :budget, label: t('movies.form.budget'), currency: 'USD', placeholder: '0.00' %>
 
       <%# Email Field %>
-      <%= f.email_field_group :contact_email, label: t('movies.form.contact_email'), placeholder: 'producer@studio.com' %>
+      <%= f.email_group :contact_email, label: t('movies.form.contact_email'), placeholder: 'producer@studio.com' %>
 
       <%# URL Field %>
-      <%= f.url_field_group :website_url, label: t('movies.form.website_url'), placeholder: 'https://moviewebsite.com' %>
+      <%= f.url_group :website_url, label: t('movies.form.website_url'), placeholder: 'https://moviewebsite.com' %>
     <% end %>
   <% end %>
 
@@ -108,10 +108,10 @@
     <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
       <%# Time Zone Select %>
       <% timezones = ActiveSupport::TimeZone.all.map { |tz| [tz.to_s, tz.name] } %>
-      <%= f.slim_select_group :time_zone, timezones, { include_blank: t('movies.form.select_timezone') }, { label: t('movies.form.timezone') } %>
+      <%= f.slim_select_group :time_zone, timezones, include_blank: t('movies.form.select_timezone'), html: { label: t('movies.form.timezone') } %>
 
       <%# Rating (Number with step) %>
-      <%= f.number_field_group :rating, label: t('movies.form.initial_rating'), min: 0, max: 10, step: 0.5, placeholder: '0.0' %>
+      <%= f.number_group :rating, label: t('movies.form.initial_rating'), min: 0, max: 10, step: 0.5, placeholder: '0.0' %>
     <% end %>
 
     <%# Info Message %>

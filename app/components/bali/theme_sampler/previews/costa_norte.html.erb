@@ -140,10 +140,10 @@
     <h2 class="text-xl font-bold mb-4">Form Inputs</h2>
     <%= form_with(model: model, url: '/lookbook', builder: Bali::FormBuilder) do |form| %>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
-        <%= form.text_field_group :name, placeholder: 'Enter name' %>
+        <%= form.text_group :name, placeholder: 'Enter name' %>
         <%= form.select_group :genre, [['Action', 'action'], ['Drama', 'drama'], ['Comedy', 'comedy']] %>
-        <%= form.date_field_group :created_at %>
-        <%= form.boolean_field_group :indie %>
+        <%= form.date_group :created_at %>
+        <%= form.boolean_group :indie %>
       </div>
     <% end %>
   </section>

@@ -2,25 +2,40 @@
 
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
+    # Captured before TextAreaFields is included, the way `rails_file_field`
+    # already is, so the implementation can live under the canonical
+    # `text_area_field` name instead of hiding inside the Rails override.
+    alias rails_text_area text_area
+
     module TextAreaFields
       # Not `fieldset-label` like the help and error messages: that class is a
       # flex container, and the counter needs `text-end` on a block to sit on the
       # right. It inherits the fieldset's small type the way it always did.
       COUNTER_CLASS = "text-base-content/70 text-end w-full"
 
-      def text_area_group(method, options = {})
+      def text_area_group(method, **options)
         @template.render(Bali::FieldGroupWrapper::Component.new(self, method, options)) do
-          text_area(method, options)
+          text_area_field(method, options)
         end
       end
 
+      # Rails already owns the name `text_area`, and Rails, its form helpers and
+      # any gem that builds on them call it positionally. So the canonical Bali
+      # name is `text_area_field` — the `<type>_field` half of the pair — and the
+      # override keeps its Rails signature and simply forwards. Nothing a host
+      # already wrote stops working, and `f.text_area` keeps rendering the styled
+      # textarea rather than quietly falling through to Rails' bare one.
       def text_area(method, options = {})
+        text_area_field(method, options)
+      end
+
+      def text_area_field(method, options = {})
         char_counter = options[:char_counter]
         auto_grow = options[:auto_grow]
         use_stimulus = char_counter || auto_grow
 
         field_opts = textarea_field_options(method, options, stimulus: use_stimulus)
-        textarea_element = super(method, field_opts)
+        textarea_element = rails_text_area(method, field_opts)
 
         if use_stimulus
           # The stimulus wrapper replaces `field_helper`'s `.control` div, so the

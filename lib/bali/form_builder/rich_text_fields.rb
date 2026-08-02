@@ -20,12 +20,12 @@ module Bali
     module RichTextFields
       DEFAULT_RICH_TEXT_FORMAT = :markdown
 
-      def rich_text_group(method, options = {})
-        block_editor_group(method, { preset: :simple }.merge(options))
+      def rich_text_group(method, **options)
+        block_editor_group(method, **{ preset: :simple }.merge(options))
       end
 
-      def rich_text(method, options = {})
-        block_editor(method, { preset: :simple }.merge(options))
+      def rich_text_field(method, **options)
+        block_editor_field(method, **{ preset: :simple }.merge(options))
       end
 
       # The caption stays a `<legend>`: what the user types into is a ProseMirror
@@ -33,11 +33,11 @@ module Bali
       # is no id for a `for` to point at. Naming it needs an `aria-labelledby`
       # written by the editor once it mounts — the one control this issue leaves
       # unnamed, tracked apart.
-      def block_editor_group(method, options = {})
+      def block_editor_group(method, **options)
         @template.render Bali::FieldGroupWrapper::Component.new(
           self, method, options.merge(control_id: false)
         ) do
-          block_editor(method, options)
+          block_editor_field(method, **options)
         end
       end
 
@@ -51,7 +51,7 @@ module Bali
       # editor has no input of its own to put it on.
       FIELD_GROUP_OPTIONS = (HtmlUtils::WRAPPER_OPTIONS + %i[required]).freeze
 
-      def block_editor(method, options = {})
+      def block_editor_field(method, **options)
         opts = options.except(*FIELD_GROUP_OPTIONS, :format, :input_name)
         format = (options[:format] || DEFAULT_RICH_TEXT_FORMAT).to_sym
 

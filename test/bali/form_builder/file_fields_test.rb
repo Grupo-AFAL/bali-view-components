@@ -3,47 +3,47 @@
 require "test_helper"
 
 class BaliFormBuilderFileFieldsTest < FormBuilderTestCase
-  # #file_field_group
+  # #file_group
 
-  def test_file_field_group_renders_a_div_with_a_file_input_controller
-    result = builder.file_field_group(:cover_photo)
+  def test_file_group_renders_a_div_with_a_file_input_controller
+    result = builder.file_group(:cover_photo)
     assert_html(result,
                 'div.flex[data-controller="file-input"]' \
                 '[data-file-input-non-selected-text-value="No file selected"]')
   end
 
-  def test_file_field_group_renders_an_input_with_a_data_action
-    result = builder.file_field_group(:cover_photo)
+  def test_file_group_renders_an_input_with_a_data_action
+    result = builder.file_group(:cover_photo)
     assert_html(result, 'input#movie_cover_photo[name="movie[cover_photo]"][data-action="file-input#onChange"]')
   end
 
-  def test_file_field_group_renders_a_label_with_cursor_pointer_class
-    result = builder.file_field_group(:cover_photo)
+  def test_file_group_renders_a_label_with_cursor_pointer_class
+    result = builder.file_group(:cover_photo)
     assert_html(result, "label.cursor-pointer")
   end
 
-  def test_file_field_group_renders_an_icon
-    result = builder.file_field_group(:cover_photo)
+  def test_file_group_renders_an_icon
+    result = builder.file_group(:cover_photo)
     assert_html(result, "span.icon-component")
   end
 
-  def test_file_field_group_renders_with_hidden_class_on_the_input_hidden_but_accessible
-    result = builder.file_field_group(:cover_photo)
+  def test_file_group_renders_with_hidden_class_on_the_input_hidden_but_accessible
+    result = builder.file_group(:cover_photo)
     assert_html(result, "input.hidden")
   end
 
-  def test_file_field_group_renders_the_cta_button_with_proper_classes
-    result = builder.file_field_group(:cover_photo)
+  def test_file_group_renders_the_cta_button_with_proper_classes
+    result = builder.file_group(:cover_photo)
     assert_html(result, "span.btn.btn-soft.btn-primary.btn-sm.gap-2")
   end
 
-  def test_file_field_group_renders_the_filename_display_with_truncate_class
-    result = builder.file_field_group(:cover_photo)
+  def test_file_group_renders_the_filename_display_with_truncate_class
+    result = builder.file_group(:cover_photo)
     assert_html(result, "span.truncate")
   end
 
-  def test_file_field_group_renders_filename_display_outside_the_label
-    result = builder.file_field_group(:cover_photo)
+  def test_file_group_renders_filename_display_outside_the_label
+    result = builder.file_group(:cover_photo)
     assert_html(result, "div > label + span.truncate")
   end
 

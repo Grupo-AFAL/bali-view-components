@@ -5,7 +5,7 @@
   </div>
 
   <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
-    <%= form.time_period_field_group :date, Bali::TimePeriods::SelectOptions.trailing,
+    <%= form.time_period_group :date, Bali::TimePeriods::SelectOptions.trailing,
         include_blank: 'Custom range' %>
   <% end %>
 </div>

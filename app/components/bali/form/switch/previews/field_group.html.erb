@@ -2,14 +2,14 @@
   <div>
     <p class="text-sm font-medium mb-2">Default — the caption sits beside the toggle, and there is no legend</p>
     <%= form_with model: model, url: '/lookbook', builder: Bali::FormBuilder do |f| %>
-      <%= f.switch_field_group(:indie, text: 'Indie Film') %>
+      <%= f.switch_group(:indie, text: 'Indie Film') %>
     <% end %>
   </div>
 
   <div>
     <p class="text-sm font-medium mb-2"><code class="bg-base-200 px-1 rounded">label:</code> adds a legend over the group</p>
     <%= form_with model: model, url: '/lookbook', builder: Bali::FormBuilder do |f| %>
-      <%= f.switch_field_group(:indie, label: 'Distribution', text: 'Indie Film') %>
+      <%= f.switch_group(:indie, label: 'Distribution', text: 'Indie Film') %>
     <% end %>
   </div>
 </div>

@@ -3,25 +3,25 @@
 require "test_helper"
 
 class BaliFormBuilderPasswordFieldsTest < FormBuilderTestCase
-  # #password_field_group
+  # #password_group
 
-  def test_password_field_group_renders_a_fieldset_wrapper
-    result = builder.password_field_group(:budget)
+  def test_password_group_renders_a_fieldset_wrapper
+    result = builder.password_group(:budget)
     assert_html(result, "fieldset.fieldset")
   end
 
-  def test_password_field_group_renders_a_legend_label
-    result = builder.password_field_group(:budget)
+  def test_password_group_renders_a_legend_label
+    result = builder.password_group(:budget)
     assert_html(result, "label.fieldset-legend", text: "Budget")
   end
 
-  def test_password_field_group_renders_a_password_input_with_correct_attributes
-    result = builder.password_field_group(:budget)
+  def test_password_group_renders_a_password_input_with_correct_attributes
+    result = builder.password_group(:budget)
     assert_html(result, 'input#movie_budget[type="password"][name="movie[budget]"]')
   end
 
-  def test_password_field_group_applies_daisyui_input_classes
-    result = builder.password_field_group(:budget)
+  def test_password_group_applies_daisyui_input_classes
+    result = builder.password_group(:budget)
     assert_html(result, "input.input")
   end
 

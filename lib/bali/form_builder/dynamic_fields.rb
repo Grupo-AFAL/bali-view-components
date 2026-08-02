@@ -28,7 +28,7 @@ module Bali
       #
       # @param method [Symbol] Name of the association
       # @param options [Hash] Options to customize the display
-      def dynamic_fields_group(method, options = {}, &block)
+      def dynamic_fields_group(method, **options, &block)
         singular = method.to_s.singularize
         container = build_fields_container(method, singular)
         header = block ? @template.capture(&block) : default_header_contents(method, options)

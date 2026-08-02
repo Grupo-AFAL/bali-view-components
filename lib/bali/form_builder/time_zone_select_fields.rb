@@ -2,29 +2,42 @@
 
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
+    # Captured before TimeZoneSelectFields is included, so the implementation can
+    # live under the canonical `time_zone_select_field` name. See TextAreaFields
+    # for why the Rails-named override stays.
+    alias rails_time_zone_select time_zone_select
+
     module TimeZoneSelectFields
       # DaisyUI select classes matching SelectFields pattern
       BASE_CLASSES = "select select-bordered w-full"
 
-      def time_zone_select_group(method, priority_zones = nil, options = {}, html_options = {})
-        group = group_options(options, html_options)
+      def time_zone_select_group(method, priority_zones = nil, *legacy, html: {}, **options)
+        options, html = legacy_option_hashes(:time_zone_select_group, legacy, html, options)
+        group = group_options(options, html)
 
         @template.render(Bali::FieldGroupWrapper::Component.new(self, method, group)) do
-          time_zone_select(method, priority_zones, options, html_options)
+          time_zone_select_field(method, priority_zones, html: html, **options)
         end
       end
 
+      # Rails' own name, kept as an override so an existing `f.time_zone_select`
+      # keeps its daisyUI classes and its error and help messages.
       def time_zone_select(method, priority_zones = nil, options = {}, html_options = {})
-        group = group_options(options, html_options)
-        attributes = time_zone_html_options(method, html_options, group)
-        field = super(method, priority_zones, options, attributes)
+        time_zone_select_field(method, priority_zones, html: html_options, **options)
+      end
+
+      def time_zone_select_field(method, priority_zones = nil, *legacy, html: {}, **options)
+        options, html = legacy_option_hashes(:time_zone_select_field, legacy, html, options)
+        group = group_options(options, html)
+        attributes = time_zone_html_options(method, html, group)
+        field = rails_time_zone_select(method, priority_zones, options, attributes)
 
         field_helper(method, field, group)
       end
 
       private
 
-      # `group` and not `html_options`: `aria_attributes` decides whether to emit
+      # `group` and not `html`: `aria_attributes` decides whether to emit
       # `aria-describedby` by looking for `help:`, so reading the hash that does
       # not carry it points the control at nothing while the paragraph renders
       # anyway — a description that exists on screen and not in the a11y tree.

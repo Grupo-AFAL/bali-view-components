@@ -66,8 +66,11 @@
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <div class="flex items-center gap-2 mb-4">
           <h3 class="card-title text-lg"><%= t('analytics.top_rated') %></h3>
-          <%= render Bali::Tooltip::Component.new(text: t('analytics.top_rated_tooltip'), position: :right) do %>
-            <%= render Bali::Icon::Component.new('info', size: :small, class: 'text-base-content/40 cursor-help') %>
+          <%= render Bali::Tooltip::Component.new(placement: :right) do |tooltip| %>
+            <% tooltip.with_trigger do %>
+              <%= render Bali::Icon::Component.new('info', size: :small, class: 'text-base-content/40 cursor-help') %>
+            <% end %>
+            <%= t('analytics.top_rated_tooltip') %>
           <% end %>
         </div>
         <% if @top_movies.any? %>
@@ -81,8 +84,11 @@
               <% table.with_row do %>
                 <td class="text-base-content/60"><%= i + 1 %></td>
                 <td class="font-medium">
-                  <%= render Bali::Tooltip::Component.new(text: "#{movie.status.humanize} — #{movie.genre}", position: :top) do %>
-                    <%= movie.name %>
+                  <%= render Bali::Tooltip::Component.new(placement: :top) do |tooltip| %>
+                    <% tooltip.with_trigger do %>
+                      <%= movie.name %>
+                    <% end %>
+                    <%= "#{movie.status.humanize} — #{movie.genre}" %>
                   <% end %>
                 </td>
                 <td>
@@ -112,8 +118,11 @@
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <div class="flex items-center justify-between mb-4">
           <h3 class="card-title text-lg"><%= t('analytics.heatmap_title') %></h3>
-          <%= render Bali::Tooltip::Component.new(text: t('analytics.heatmap_tooltip'), position: :left) do %>
-            <%= render Bali::Icon::Component.new('info', size: :small, class: 'text-base-content/40 cursor-help') %>
+          <%= render Bali::Tooltip::Component.new(placement: :left) do |tooltip| %>
+            <% tooltip.with_trigger do %>
+              <%= render Bali::Icon::Component.new('info', size: :small, class: 'text-base-content/40 cursor-help') %>
+            <% end %>
+            <%= t('analytics.heatmap_tooltip') %>
           <% end %>
         </div>
         <%= render Bali::Heatmap::Component.new(
