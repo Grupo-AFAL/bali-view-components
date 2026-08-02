@@ -12,7 +12,7 @@
   <%# Este escenario ejerce SOLO la capa de página (breadcrumbs, header, acción, body).
       El listado de verdad vive en el escenario "Complete", que es la referencia a copiar. %>
   <% page.with_body do %>
-    <%= render Bali::Message::Component.new(color: :info) do %>
+    <%= render Bali::Alert::Component.new(color: :info) do %>
       Page layer only. See the <strong>Complete</strong> scenario for the canonical index
       body: a DataTable with the seven toolbar control families, row selection and pagination.
     <% end %>

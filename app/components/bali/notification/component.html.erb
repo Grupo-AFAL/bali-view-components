@@ -1,7 +1,8 @@
-<%= tag.div class: alert_classes, role: aria_role, data: stimulus_attributes do %>
-  <%= render Bali::Icon::Component.new(type_icon, size: :small) %>
-  <span class="notification-content-component flex-1"><%= content %></span>
-  <button class="btn btn-sm btn-circle btn-ghost" data-action="notification#close" aria-label="<%= close_button_label %>">
-    <%= render Bali::Icon::Component.new("x", size: :small) %>
-  </button>
+<%# `render_parent` renders Bali::Toast's template into the buffer at this point,
+    so the wrapper below nests it. `fixed:` used to put the alert itself in the
+    corner; the replacement is a Bali::ToastContainer, whose classes this reuses. %>
+<% if fixed? %>
+  <div class="<%= container_classes %>"><%= render_parent %></div>
+<% else %>
+  <%= render_parent %>
 <% end %>

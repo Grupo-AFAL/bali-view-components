@@ -137,8 +137,15 @@ module Bali
         @options.except(:class)
       end
 
-      def render_toast?
-        flash_notice.present? || flash_alert.present?
+      # An empty container is a fixed, zero-height div in every page's DOM, so the
+      # guard stays here rather than inside the component: only the caller knows
+      # whether a slot is coming.
+      def flash_toasts?
+        return false if @flash.blank?
+
+        @flash.any? do |key, message|
+          Bali::ToastContainer::Component::FLASH_COLORS.key?(key.to_sym) && message.present?
+        end
       end
 
       def body_container_classes
@@ -157,12 +164,8 @@ module Bali
         { data: { controller: controllers.join(" ") } }
       end
 
-      def flash_notice
-        @flash && @flash[:notice]
-      end
-
-      def flash_alert
-        @flash && @flash[:alert]
+      def flash_hash
+        @flash
       end
     end
   end

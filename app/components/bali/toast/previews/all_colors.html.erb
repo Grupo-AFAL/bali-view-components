@@ -1,0 +1,14 @@
+<div class="flex flex-col gap-8">
+  <% Bali::Alert::Component::STYLES.keys.unshift(nil).each do |style| %>
+    <div>
+      <h3 class="text-lg font-semibold mb-3"><%= style ? style.to_s.capitalize : 'Default' %> style</h3>
+      <div class="flex flex-col gap-3">
+        <% Bali::Alert::Component::COLORS.each_key do |color| %>
+          <%= render Bali::Toast::Component.new(color: color, style: style, duration: nil) do %>
+            This is a <%= color %> toast<%= style ? " with #{style} style" : '' %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

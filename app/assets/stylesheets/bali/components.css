@@ -34,10 +34,11 @@
 @import "../../../components/bali/image_grid/index.css" layer(components);
 
 /* Unlayered on purpose. Order of the first three is the pre-v3 order of those
-   sheets, so their mutual cascade is unchanged. The two `daisyui-overrides`
-   below them share no selector with anything here. */
+   sheets, so their mutual cascade is unchanged. The two `daisyui-overrides` below
+   them, and the toast sheet, share no selector with anything here. */
 @import "../../../components/bali/breadcrumb/index.css";
 @import "../../../components/bali/side_menu/daisyui-overrides.css";
 @import "../../../components/bali/data_table/index.css";
 @import "../../../components/bali/calendar/daisyui-overrides.css";
 @import "../../../components/bali/rich_text_editor/daisyui-overrides.css";
+@import "../../../components/bali/toast/index.css";

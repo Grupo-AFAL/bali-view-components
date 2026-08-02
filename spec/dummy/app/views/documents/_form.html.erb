@@ -1,6 +1,6 @@
 <%= form_with(model: document, class: 'space-y-4') do |f| %>
   <% if document.errors.any? %>
-    <%= render Bali::Notification::Component.new(variant: :error) do %>
+    <%= render Bali::Alert::Component.new(color: :error, icon: true) do %>
       <ul>
         <% document.errors.full_messages.each do |message| %>
           <li><%= message %></li>
