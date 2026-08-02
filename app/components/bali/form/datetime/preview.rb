@@ -18,7 +18,10 @@ module Bali
         # Datetime field pre-populated with a value.
         def with_value
           record = form_record
-          record.datetime = Time.current
+          # `::Time` is mandatory here: the lexical scope of this preview includes
+          # `Bali::Form`, where `Bali::Form::Time` (the time field component) shadows
+          # the top-level `Time`.
+          record.datetime = ::Time.current
           render_with_template(
             template: 'bali/form/datetime/previews/default',
             locals: { model: record }

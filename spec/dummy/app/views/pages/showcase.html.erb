@@ -746,15 +746,17 @@
   </h2>
   <p class="text-base-content/70 mb-4"><%= t('showcase.calendar_desc') %></p>
 
-  <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <%= render Bali::Calendar::Component.new(
-      start_date: Date.current,
-      period: :month,
-      events: @calendar_events || [],
-      show_date: true
-    ) do |calendar| %>
-      <% calendar.with_header(route_path: '/pages/showcase', period_switch: true) %>
-    <% end %>
+  <%# The header's prev/next and period links write `?start_time=` and `?period=` back to
+      this same path, so the page has to read them or navigating does nothing. Reading them
+      raw is also the point: this is the route that shows garbage in the query string
+      degrading to today instead of raising. The Calendar brings its own card. %>
+  <%= render Bali::Calendar::Component.new(
+    start_date: params[:start_time],
+    period: params[:period],
+    events: @calendar_events || [],
+    show_date: true
+  ) do |calendar| %>
+    <% calendar.with_header(route_path: '/showcase', period_switch: true) %>
   <% end %>
 </section>
 

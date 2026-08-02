@@ -4,6 +4,8 @@ module Bali
   module Calendar
     module Header
       class Component < ApplicationViewComponent
+        include Normalization
+
         attr_reader :route_path, :period, :start_date, :period_switch, :start_attribute
 
         # @param start_date [Date|String] The date to start the calendar from.
@@ -15,8 +17,8 @@ module Bali
 
         def initialize(start_date:, period: :month, route_path: "", period_switch: true,
                        start_attribute: :start_time, **options)
-          @start_date = Date.parse(start_date.presence || Date.current.to_s)
-          @period = (period || :month).to_sym
+          @start_date = normalize_date(start_date)
+          @period = normalize_period(period)
           @route_path = route_path
           @period_switch = period_switch
           @start_attribute = start_attribute

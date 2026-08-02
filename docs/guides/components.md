@@ -1175,7 +1175,13 @@ option list below.
 ```
 
 **Options:**
-- `url` - Base URL for filtering/sorting links (required)
+- `url` - Base URL for filtering/sorting links (required). It is also the base for the **page**
+  links, but only when the `pagy` cannot build its own — that is, when it was not created by
+  the `pagy()` helper and so carries no request. With the helper (the normal case) Pagy keeps
+  building them from the real request, which is what preserves an applied filter across a page
+  change; `url:` is a filtering base and does not carry the query string, so letting it win
+  would drop that filter. When it *is* used, the listing composes it the way the view switch and
+  "Group by" do: `url` plus the current query string, minus the one-shot params.
 - `filter_form` - `Bali::FilterForm` instance for Ransack integration (default: nil)
 - `pagy` - Pagy object for pagination (default: nil)
 - `show_summary` - Show record summary (default: true when pagy present). Suppressed either way when there are no results — a "Showing 0-0 of 0" line under an empty table tells nobody anything.
@@ -2069,10 +2075,18 @@ Month, week, or day calendar that displays events grouped by date, with optional
 - `start_attribute` - Method called on each event for its start date (default: `:start_time`)
 - `end_attribute` - Method called on each event for its end date, enables multi-day events (default: `:end_time`)
 - `weekdays_only` - Show only Monday-Friday (default: false)
-- `all_week` - DEPRECATED: use `weekdays_only` instead
 - `show_date` - Display the day number in each cell (default: true)
+- `weekly_title_class` - Extra classes for the day number, aimed at week view (default: nil)
 
 **Slots:** `header` (navigation with period switch, accepts `route_path:` and `period_switch:`), `footer`.
+
+`start_date` and `period` normally arrive from the query string — the header's prev/next
+and period links write them back to `route_path` — so both degrade rather than raise:
+anything `Date.parse` cannot read becomes `Date.current`, and any period outside
+`:month`/`:week`/`:day` becomes `:month`. Handing `params[:start_time]` straight to the
+component is safe.
+
+The component renders its own `Bali::Card`, so do not wrap it in another one.
 
 #### ImageField
 
