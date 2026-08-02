@@ -45,6 +45,18 @@ export class SlimSelectController extends Controller {
     // Turbo caches the page so the stored snapshot stays clean.
     this.removeStaleWidget()
 
+    // `connect()` is async, and the `await` below is a window in which Stimulus can
+    // disconnect this controller — any DOM move does it, and the DataTable toolbar moves its
+    // items on every overflow recalculation. A `teardown()` inside that window destroys
+    // `this.select`, which is still null, so it destroys nothing; the in-flight `connect()`
+    // then finishes and builds an instance nobody owns. SlimSelect ships a guard for exactly
+    // this — `this.selectEl.dataset.ssid && this.destroy()` — but it is dead code in 3.4.3:
+    // `ssid` appears once in the whole bundle, at that read, and is never written. So the two
+    // instances coexist, each with its own MutationObserver on the same <select>, and the
+    // orphan reverts what the live one writes: the user picks an option, the widget shows it,
+    // and the <select> that FormData serializes stays empty.
+    const generation = (this.generation = (this.generation || 0) + 1)
+
     this.beforeCacheHandler = () => this.teardown()
     document.addEventListener('turbo:before-cache', this.beforeCacheHandler)
 
@@ -92,7 +104,17 @@ export class SlimSelectController extends Controller {
         options.events.afterChange = this.fetchAfterChange
       }
 
-      this.select = new SlimSelect(options)
+      const instance = new SlimSelect(options)
+
+      // The controller disconnected while the import was in flight: this instance belongs to
+      // nobody, and leaving it alive is what corrupts the <select>. Destroying it here is the
+      // only chance to — `teardown()` already ran, and it only ever looks at `this.select`.
+      if (generation !== this.generation) {
+        instance.destroy()
+        return
+      }
+
+      this.select = instance
 
       // Disable the select if disabled value is set
       // Note: settings.disabled in constructor doesn't work reliably,
@@ -124,6 +146,11 @@ export class SlimSelectController extends Controller {
   }
 
   disconnect () {
+    // Bumped before `teardown()` so an in-flight `connect()` sees a stale generation and
+    // destroys the instance it is about to build, instead of leaving it observing the
+    // <select> forever.
+    this.generation = (this.generation || 0) + 1
+
     if (this.beforeCacheHandler) {
       document.removeEventListener('turbo:before-cache', this.beforeCacheHandler)
       this.beforeCacheHandler = null

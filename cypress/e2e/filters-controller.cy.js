@@ -94,6 +94,46 @@ describe('FiltersController', () => {
       ])
     })
 
+    // The user-facing half of #824 — the widget showed the new value while the <select> that
+    // FormData serializes stayed empty, so Apply dropped the condition as unfilled and the
+    // old rows came back. It is here for the behaviour, NOT as a guard: it passes against the
+    // unfixed controller too, because reaching the panel this way never opens the race (the
+    // dynamic import is already cached by then, so the `await` resolves in the same microtask).
+    // The case below is the one that fails without the fix.
+    it('carries a value the user changes his mind about', () => {
+      pickValue('Drama')
+      pickValue('Comedy')
+      captureSubmission()
+
+      cy.get(applyButton).click()
+
+      filterParams().should('deep.equal', [
+        ['q[g][0][m]', 'or'],
+        ['q[g][0][genre_eq]', 'Comedy']
+      ])
+    })
+
+    // The same defect from the widget's side, and the case that actually reproduces it: the
+    // race needs the controller to disconnect while `connect()` is still awaiting its dynamic
+    // import. Re-parenting the value container twice in a row is what the DataTable's toolbar
+    // does on every overflow recalculation — the second move lands inside the window the
+    // first one opened.
+    it('keeps a single SlimSelect instance when the DOM moves under it', () => {
+      cy.get('[data-condition-target="valueContainer"]').then(($container) => {
+        const node = $container[0]
+        const parent = node.parentNode
+        const anchor = node.nextSibling
+
+        parent.removeChild(node)
+        parent.insertBefore(node, anchor)
+        parent.removeChild(node)
+        parent.insertBefore(node, anchor)
+      })
+
+      cy.get('[data-condition-target="valueContainer"] .ss-main').should('have.length', 1)
+      cy.get('body > .ss-content').should('have.length', 1)
+    })
+
     // #798 in the configuration this issue changed: a condition with no value stays out of
     // the request instead of travelling as a blank predicate the server drops in silence.
     it('still leaves a condition with no value out of the request', () => {
