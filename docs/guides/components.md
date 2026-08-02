@@ -1819,6 +1819,13 @@ nothing focusable (the classic `?` help tip), the controller gives the wrapper `
 so the balloon has a keyboard route at all; when the slot brought its own button or link it
 does not, so there is no second, unnamed tab stop in front of it.
 
+**The balloon takes markup, including markup with no text in it.** The block is rendered
+into a `<template>` and handed to tippy with `allowHTML`, so an image preview, an icon
+legend or a small inline chart is a supported balloon — the `markup_content` preview shows
+two. The one case that builds nothing is a tooltip with *no* content: `with_trigger` and no
+block. That one gets no tippy instance and no `tabindex`, because a balloon that will never
+open should not claim a stop in the tab order.
+
 #### Kanban
 
 Kanban board built on SortableList with drag-and-drop between columns. Each

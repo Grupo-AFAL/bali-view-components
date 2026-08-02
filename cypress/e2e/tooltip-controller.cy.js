@@ -5,6 +5,9 @@
 // balloon, and a slot with nothing focusable in it had no keyboard route at all.
 describe('TooltipController', () => {
   const balloon = '[data-tippy-root]'
+  // Same list the controller uses to decide whether the slot already brought a tab stop.
+  const FOCUSABLE = 'a[href], button, input, select, textarea, summary, [contenteditable], ' +
+    '[tabindex]:not([tabindex="-1"])'
 
   context('a slot that brings its own focusable control', () => {
     beforeEach(() => {
@@ -54,11 +57,52 @@ describe('TooltipController', () => {
     })
   })
 
-  // An empty tooltip builds no tippy instance, so it must not claim a tab stop either.
+  // Balloon content that carries no plain text at all — an image, an `<svg>`, a chart — is a
+  // supported shape: the template hands tippy markup and `allowHTML` is on. The empty check
+  // asked whether there was text, so these tooltips returned before they were built, and
+  // `makeTriggerFocusable` never ran either: no balloon and no tab stop, silently (#788).
+  context('a balloon that holds markup and no text', () => {
+    beforeEach(() => {
+      cy.visit('/bali/tooltip/markup_content')
+    })
+
+    it('builds the balloon around an image', () => {
+      cy.get('.image-balloon .trigger').focus()
+      cy.get(`${balloon} .tippy-content img`).should('be.visible')
+    })
+
+    it('builds the balloon around an svg', () => {
+      cy.get('.sparkline-balloon .trigger').focus()
+      cy.get(`${balloon} .tippy-box`).should('be.visible')
+      cy.get(`${balloon} .tippy-content svg`).should('exist')
+    })
+
+    // The other half of the defect: with no instance built, the wrapper never took
+    // `tabindex` either, so the tooltip did not exist for the keyboard any more than for
+    // the mouse. Counting the stops pins that it gains exactly one per tooltip.
+    it('reaches both balloons with the keyboard, one stop each', () => {
+      cy.get('.image-balloon .trigger').should('have.attr', 'tabindex', '0')
+      cy.get('.sparkline-balloon .trigger').should('have.attr', 'tabindex', '0')
+
+      cy.get(FOCUSABLE).should('have.length', 2)
+      cy.get(FOCUSABLE).each(($el) => {
+        cy.wrap($el).should('have.attr', 'data-tooltip-target', 'trigger')
+      })
+    })
+  })
+
+  // An empty tooltip builds no tippy instance, so it must not claim a tab stop either. This
+  // is the case the guard exists for and #788 has to leave alone: `with_trigger` with no
+  // content block is still nothing to say, and a balloon that never opens must not take a
+  // stop. The whitespace the ERB leaves inside the `<template>` is why the check cannot
+  // simply count child nodes.
   context('an empty tooltip', () => {
-    it('stays out of the tab order', () => {
+    it('stays out of the tab order and opens nothing', () => {
       cy.visit('/bali/tooltip/empty_tooltip')
       cy.get('.trigger').should('not.have.attr', 'tabindex')
+
+      cy.get('.trigger').trigger('mouseenter')
+      cy.get(balloon).should('not.exist')
     })
   })
 })
