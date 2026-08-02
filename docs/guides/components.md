@@ -2069,10 +2069,18 @@ Month, week, or day calendar that displays events grouped by date, with optional
 - `start_attribute` - Method called on each event for its start date (default: `:start_time`)
 - `end_attribute` - Method called on each event for its end date, enables multi-day events (default: `:end_time`)
 - `weekdays_only` - Show only Monday-Friday (default: false)
-- `all_week` - DEPRECATED: use `weekdays_only` instead
 - `show_date` - Display the day number in each cell (default: true)
+- `weekly_title_class` - Extra classes for the day number, aimed at week view (default: nil)
 
 **Slots:** `header` (navigation with period switch, accepts `route_path:` and `period_switch:`), `footer`.
+
+`start_date` and `period` normally arrive from the query string — the header's prev/next
+and period links write them back to `route_path` — so both degrade rather than raise:
+anything `Date.parse` cannot read becomes `Date.current`, and any period outside
+`:month`/`:week`/`:day` becomes `:month`. Handing `params[:start_time]` straight to the
+component is safe.
+
+The component renders its own `Bali::Card`, so do not wrap it in another one.
 
 #### ImageField
 
