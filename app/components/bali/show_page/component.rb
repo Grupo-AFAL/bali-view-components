@@ -2,8 +2,9 @@
 
 module Bali
   module ShowPage
-    # Toda la superficie (title, subtitle, breadcrumbs, back, max_width, sidebar_width, y los
-    # slots nav, title_tags, body, sidebar, actions) vive en PageComponents::Shared.
+    # Toda la superficie (title, subtitle, breadcrumbs, back, max_width, sidebar_width,
+    # context, y los slots nav, title_tags, body, sidebar, actions) vive en
+    # PageComponents::Shared.
     class Component < ApplicationViewComponent
       include PageComponents::Shared
     end
