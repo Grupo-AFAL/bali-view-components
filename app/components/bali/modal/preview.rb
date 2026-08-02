@@ -2,6 +2,11 @@
 
 module Bali
   module Modal
+    # The panel is a native `<dialog>`, and `ModalController` opens it with
+    # `showModal()`: the top layer, the inertness of the page behind it and the
+    # focus containment all come from the element. A panel rendered `active:`
+    # is promoted the same way when its controller connects, which is what these
+    # previews show — the preview frame behind the panel is inert while it is open.
     class Preview < ApplicationViewComponentPreview
       # @param active toggle
       # @param size [Symbol] select [~, sm, md, lg, xl, full]

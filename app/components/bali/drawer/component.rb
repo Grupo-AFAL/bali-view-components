@@ -107,8 +107,6 @@ module Bali
         {
           id: drawer_id,
           class: drawer_classes,
-          role: "dialog",
-          'aria-modal': "true",
           'aria-labelledby': title? ? title_id : nil,
           data: default_data_attributes.merge(options.fetch(:data, {}))
         }.compact

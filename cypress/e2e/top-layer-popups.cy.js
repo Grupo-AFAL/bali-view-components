@@ -3,11 +3,12 @@
 // inert. Widgets that portal their popup to `<body>` therefore stop being usable
 // inside one: the popup is covered AND it takes no pointer events.
 //
-// Bali does not render such a dialog yet (that is the next cut of #679), so these
-// specs stand in for the host that owns one: they build a modal dialog around a
-// real Bali form and then drive the widgets with real clicks. `cy.click()` fails
-// on an element another element covers, which is exactly the failure being
-// guarded against — no `{ force: true }` anywhere below, on purpose.
+// These specs stand in for a host that owns such a dialog: they build a modal
+// dialog around a real Bali form and then drive the widgets with real clicks.
+// `cy.click()` fails on an element another element covers, which is exactly the
+// failure being guarded against — no `{ force: true }` anywhere below, on purpose.
+// Bali's own Modal and Drawer are dialogs too now; `overlays-in-the-top-layer.cy.js`
+// is where they are covered, so this file stays about the hand-built case.
 
 const DIALOG_ID = 'host-dialog'
 
@@ -98,9 +99,11 @@ describe('Popups opened from inside a top-layer overlay', () => {
     })
   })
 
+  // `bali/form/date/default` and not the drawer preview this used to use: since
+  // Drawer became a `<dialog>`, a field inside one is never the no-overlay case.
   describe('outside a top-layer overlay', () => {
     it('leaves the calendar exactly where flatpickr puts it', () => {
-      cy.visit('/bali/drawer/dirty_form')
+      cy.visit('/bali/form/date/default')
       cy.get(DATE_INPUT).should('be.visible').click()
 
       cy.get('.flatpickr-calendar.open').should('not.have.attr', 'popover')

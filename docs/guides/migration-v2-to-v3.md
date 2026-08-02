@@ -1075,6 +1075,99 @@ sit in a later layer and a host cannot override them from `@theme {}` at all.
   z-index — that is how `position` + `z-index` works, and 200 does not change it.
 - **`HoverCard(z_index:)` still wins** when you pass it. Only the default moved.
 
+## Modal, Drawer and the command palette are `<dialog>` elements
+
+`Bali::Modal` renders `<dialog class="modal-component modal …">` where it rendered a
+`<div>`, `Bali::Drawer` renders `<dialog class="drawer-component …">`, and
+`Bali::Command` gained a `<dialog>` inside its container wrapping the backdrop and the
+panel. All three are opened with `showModal()`.
+
+Nothing about how you open them changes. `Bali::Link::Component.new(..., drawer: true)`,
+`modal: true`, `drawer: { size: :lg }`, `bali:modal:open` / `bali:drawer:open`,
+`?layout=false`, the skeleton, the confirm-on-close and the three submit flows
+(stream + close, redirect, 422) all behave exactly as before.
+
+### What you have to change
+
+**Selectors that name the element or the ARIA attributes.**
+
+| Was | Now |
+| --- | --- |
+| `div.modal` | `dialog.modal` |
+| `[role="dialog"]` on a Bali overlay | `dialog.modal-component` / `dialog.drawer-component` |
+| `[aria-modal="true"]` on a Bali overlay | gone — the element decides its own modality |
+
+`role="dialog"` and `aria-modal="true"` are both implicit on `<dialog>`, and the second
+one was a claim static markup cannot keep: a panel rendered `active:` that no script has
+opened with `showModal()` is not modal, whatever the attribute says.
+
+**The `modal-open` and `drawer-open` classes are unchanged.** They still carry the open
+state and still drive the CSS, so anything keyed on those — your own rules, your system
+tests — is unaffected.
+
+**Rules that styled the root as an ordinary box.** A `<dialog>` arrives with a UA box —
+centred, fit-content, bordered, on a `Canvas` background, with its own scroll container.
+daisyUI's `.modal` already overrides every one of those, so `Modal` needed nothing;
+`Drawer` and `Command` carry an explicit reset in their own sheets. If you restyled either
+root yourself, check it against the UA rules for `dialog:modal`.
+
+### Two overlays open at once now stack by open order, not by tier
+
+The top layer is a sequence, not a scale. `--bali-z-drawer: 300` and `--bali-z-modal: 400`
+no longer decide which of a drawer and a modal is on top: the one opened **last** is, and
+so is a command palette opened over either. The tokens still land on the element, but they
+only decide anything in the moment a panel the server rendered `active:` spends waiting for
+its controller, and in a browser with no `<dialog>` support.
+
+If your app opens a modal from inside a drawer and relied on the modal winning, it still
+wins — it is opened second. The reverse case is what changed.
+
+### If you render an overlay of your own above one of Bali's
+
+No `z-index` reaches over the top layer. An overlay of yours that has to cover a Bali modal
+has to join the top layer too; `docs/guides/overlays-and-the-top-layer.md` explains how,
+and the three functions it describes are published for exactly that. Bali's own field
+popups, its command palette and its toast stack all do this already, so a datepicker, a
+select, a ⌘K palette or a flash inside or over an open panel needs nothing from you.
+
+## `FeedbackWidget`: the embed token stops travelling in a URL
+
+**This one needs a change on the Opina side, not just here.** The frame's `src` used to be
+`{opina_url}/embed/feedback_posts?token=<JWT>`. It is now `{opina_url}/embed/feedback_posts`
+with no query string, and the widget hands the token to the frame with `postMessage` once
+it has loaded:
+
+```js
+{ type: 'bali:feedback:token', token: '<JWT>' }
+```
+
+addressed to the embed's exact origin, never to `*`.
+
+A bearer credential in a URL is written to the server's access log, offered in the
+`Referer` of anything the embed loads, and kept in browser history, which is why it moved.
+
+**An Opina instance that still reads the token from its query string will see an
+unauthenticated frame** until it listens for that message instead:
+
+```js
+window.addEventListener('message', event => {
+  if (event.origin !== EXPECTED_PARENT_ORIGIN) return
+  if (event.data?.type !== 'bali:feedback:token') return
+  authenticateWith(event.data.token)
+})
+```
+
+Nothing in the component's Ruby API changes: `project_slug:`, `opina_url:`, `token:`,
+`secret:`, `user_id:`, `email:`, `user_name:`, `title:`, `token_expires_in:` and
+`badge_interval:` all mean what they meant.
+
+Two smaller consequences. The panel is now a composed `Bali::Drawer`, so its markup is the
+drawer's — a `<dialog class="drawer-component" id="feedback-widget">` with the drawer's own
+header and ✕. And the floating button's action is `feedback-widget#open`, not `#toggle`:
+while the drawer is open the rest of the page is inert, so the button was not clickable and
+toggle-to-close was never reachable. The drawer's ✕, its overlay and Escape are the ways
+out.
+
 ## `Bali::Tag` drops the Bulma names, and stops wrapping
 
 Two changes to one small component, both of which can reach an app that never touched a

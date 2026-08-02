@@ -62,13 +62,24 @@
  *
  * The rule that follows, and the one the package obeys: an overlay that has to
  * appear over something in the top layer has to join the top layer itself. There
- * is no number that does it. Bali's own case is a field popup — flatpickr's
- * calendar, SlimSelect's list — opened from a field inside a modal overlay: it
- * joins the top layer from inside that overlay's subtree, because a modal dialog
- * also makes everything outside itself inert, so being painted on top is only
- * half of what it takes. `assets/javascripts/bali/utils/top-layer.js` carries the
- * measurement and does the work; `docs/guides/overlays-and-the-top-layer.md` is
- * the version written for a host.
+ * is no number that does it. `assets/javascripts/bali/utils/top-layer.js` carries
+ * the measurement and does the work; `docs/guides/overlays-and-the-top-layer.md`
+ * is the version written for a host.
+ *
+ * WHICH OF THESE ARE IN THE TOP LAYER. Modal, Drawer and Command are `<dialog>`
+ * elements opened with `showModal()`, and ConfirmDialog always was. Their tokens
+ * still land on the element, but they only decide anything for the moment a panel
+ * the server rendered `active:` spends waiting for its controller, and for a
+ * browser with no `<dialog>` at all. Among themselves those four stack by the
+ * order they were opened in — the top layer is a sequence, not a scale — so the
+ * last one opened is on top regardless of its tier here.
+ *
+ * Everything ABOVE them in this list therefore has to join them up there, and
+ * does: the field popups (flatpickr, SlimSelect, tippy, ImageGrid) from inside
+ * the panel whose field opened them, the palette as a dialog of its own, and the
+ * toast stack by moving into the open overlay for as long as it lasts. What is
+ * BELOW them needs nothing: a dropdown that a modal covers is a dropdown nobody
+ * can reach anyway.
  */
 @layer theme {
   :where(:root) {

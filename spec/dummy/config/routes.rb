@@ -61,6 +61,8 @@ Rails.application.routes.draw do
   resources :direct_uploads, only: %i[new create]
   get 'sidemenu-example', to: 'pages#sidemenu_example'
   get 'z-stack', to: 'pages#z_stack' # Manual check for the overlay z-index scale
+  get 'feedback-widget-demo', to: 'pages#feedback_widget_demo'
+  get 'embed/feedback_posts', to: 'pages#feedback_embed' # Stand-in for Opina's embed page
 
   # Modal/Drawer content routes (for remote loading)
   get 'modals/basic', to: 'modals#basic'

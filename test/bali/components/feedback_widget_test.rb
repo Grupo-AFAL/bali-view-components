@@ -11,7 +11,7 @@ class BaliFeedbackWidgetComponentTest < ComponentTestCase
     ))
 
     assert_selector("div.feedback-widget")
-    assert_selector("button[data-action='feedback-widget#toggle']")
+    assert_selector("button[data-action='feedback-widget#open']")
   end
 
   def test_renders_with_secret
@@ -35,14 +35,41 @@ class BaliFeedbackWidgetComponentTest < ComponentTestCase
     end
   end
 
-  def test_sets_embed_url_data_attribute
+  # The credential is NOT in the URL. A URL is written to the server's access
+  # log, offered in the `Referer` of anything the embed loads, and kept in
+  # browser history; the token travels by `postMessage` instead.
+  def test_embed_url_carries_no_token
     render_inline(Bali::FeedbackWidget::Component.new(
       project_slug: "my-project",
       opina_url: "https://opina.example.com",
       token: "abc123"
     ))
 
-    assert_selector("[data-feedback-widget-embed-url-value='https://opina.example.com/embed/feedback_posts?token=abc123']")
+    assert_selector("[data-feedback-widget-embed-url-value='https://opina.example.com/embed/feedback_posts']")
+    assert_selector("[data-feedback-widget-token-value='abc123']")
+    assert_no_selector("[data-feedback-widget-embed-url-value*='token']")
+  end
+
+  # `postMessage` is addressed to this and never to `*`, so a wildcard cannot
+  # hand the token to whatever document happens to be in the frame.
+  def test_sets_embed_origin_for_the_token_message
+    render_inline(Bali::FeedbackWidget::Component.new(
+      project_slug: "my-project",
+      opina_url: "https://opina.example.com/feedback",
+      token: "abc123"
+    ))
+
+    assert_selector("[data-feedback-widget-embed-origin-value='https://opina.example.com']")
+  end
+
+  def test_keeps_a_non_default_port_in_the_embed_origin
+    render_inline(Bali::FeedbackWidget::Component.new(
+      project_slug: "my-project",
+      opina_url: "http://localhost:3001",
+      token: "abc123"
+    ))
+
+    assert_selector("[data-feedback-widget-embed-origin-value='http://localhost:3001']")
   end
 
   def test_sets_badge_url_data_attribute
@@ -62,7 +89,7 @@ class BaliFeedbackWidgetComponentTest < ComponentTestCase
       token: "abc123"
     ))
 
-    assert_selector("[data-feedback-widget-embed-url-value='https://opina.example.com/embed/feedback_posts?token=abc123']")
+    assert_selector("[data-feedback-widget-embed-url-value='https://opina.example.com/embed/feedback_posts']")
   end
 
   def test_sets_badge_interval
@@ -83,8 +110,9 @@ class BaliFeedbackWidgetComponentTest < ComponentTestCase
       token: "abc"
     ))
 
-    assert_selector("button[data-action='feedback-widget#toggle'] .icon-component")
-    assert_selector("button[data-action='feedback-widget#close'] .icon-component")
+    assert_selector("button[data-action='feedback-widget#open'] .icon-component")
+    # The panel's ✕ belongs to the composed Bali::Drawer, not to this component.
+    assert_selector("button[data-action='drawer#close'] .icon-component")
   end
 
   def test_has_accessible_aria_attributes
@@ -94,8 +122,10 @@ class BaliFeedbackWidgetComponentTest < ComponentTestCase
       token: "abc"
     ))
 
-    assert_selector("[role='dialog'][aria-modal='true']")
-    assert_selector("[aria-labelledby='feedback-widget-title']")
+    # The panel is a Bali::Drawer, so it is a native <dialog> whose accessible
+    # name comes from the drawer title. The id is unchanged from the
+    # hand-written panel this replaced.
+    assert_selector("dialog.drawer-component#feedback-widget[aria-labelledby='feedback-widget-title']")
     assert_selector("#feedback-widget-title")
   end
 
@@ -130,8 +160,7 @@ class BaliFeedbackWidgetComponentTest < ComponentTestCase
       user_name: "Ana López"
     ))
 
-    el = page.find("[data-feedback-widget-embed-url-value]")
-    token = el[:"data-feedback-widget-embed-url-value"][/token=(.+)\z/, 1]
+    token = page.find("[data-feedback-widget-token-value]")[:"data-feedback-widget-token-value"]
     payload = JSON.parse(Base64.urlsafe_decode64(token.split(".")[1]))
 
     assert_equal "Ana López", payload["name"]

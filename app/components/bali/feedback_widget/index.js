@@ -1,15 +1,28 @@
 import { Controller } from '@hotwired/stimulus'
 
+// The Opina embed reads its credential from a message, not from its URL.
+const TOKEN_MESSAGE_TYPE = 'bali:feedback:token'
+
+/**
+ * Floating feedback button.
+ *
+ * The panel itself is a `Bali::Drawer`, so opening, closing, Escape, the focus
+ * containment and the `<dialog>` in the top layer are the drawer's job and this
+ * controller does not repeat any of it: it opens the drawer by name, loads the
+ * embed, hands over the token, and polls the unread badge.
+ */
 export class FeedbackWidgetController extends Controller {
-  static targets = ['trigger', 'badge', 'overlay', 'panel', 'iframe']
+  static targets = ['trigger', 'badge', 'iframe']
   static values = {
+    drawerId: String,
     embedUrl: String,
+    embedOrigin: String,
+    token: String,
     badgeUrl: String,
     interval: { type: Number, default: 300000 }
   }
 
   connect () {
-    this.isOpen = false
     this.checkBadge()
     this.startPolling()
   }
@@ -18,32 +31,36 @@ export class FeedbackWidgetController extends Controller {
     this.stopPolling()
   }
 
-  toggle () {
-    this.isOpen ? this.close() : this.open()
-  }
-
+  // There is no matching `close`, and there cannot be: while the drawer is open
+  // the rest of the page is inert, so the floating button is not clickable. The
+  // drawer's own ✕, its overlay and Escape are the ways out.
   open () {
-    this.isOpen = true
+    // The drawer restores its markup on close, so the frame is a fresh one on
+    // every open and the embed reloads instead of showing whatever it held the
+    // last time it was on screen.
+    this.iframeTarget.addEventListener('load', this.sendToken, { once: true })
+    this.iframeTarget.src = this.embedUrlValue
 
-    // Load iframe on first open
-    if (!this.iframeTarget.src) {
-      this.iframeTarget.src = this.embedUrlValue
-    }
-
-    this.overlayTarget.classList.remove('hidden')
-    this.panelTarget.classList.remove('translate-x-full')
-    document.body.classList.add('overflow-hidden')
+    this.dispatch('open', {
+      prefix: 'bali:drawer',
+      target: document,
+      detail: { id: this.drawerIdValue, content: null, options: {} }
+    })
 
     // Reset badge
     this.badgeTarget.classList.add('hidden')
     this.lastChecked = new Date().toISOString()
   }
 
-  close () {
-    this.isOpen = false
-    this.panelTarget.classList.add('translate-x-full')
-    this.overlayTarget.classList.add('hidden')
-    document.body.classList.remove('overflow-hidden')
+  // Addressed to the embed's exact origin, never to `*`: a wildcard would hand
+  // the token to whatever document happened to be in the frame.
+  sendToken = () => {
+    if (!this.hasTokenValue || !this.embedOriginValue) return
+
+    this.iframeTarget.contentWindow?.postMessage(
+      { type: TOKEN_MESSAGE_TYPE, token: this.tokenValue },
+      this.embedOriginValue
+    )
   }
 
   // -- Private ----------------------------------------------------------------
