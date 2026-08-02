@@ -2,22 +2,22 @@
   <%= form_with model: model, url: '/lookbook', builder: Bali::FormBuilder do |f| %>
     <div>
       <span class="text-sm text-base-content/60 mb-1 block">Extra Small (xs)</span>
-      <%= f.switch_field(:indie, size: :xs, label: 'Extra small toggle') %>
+      <%= f.switch_field(:indie, size: :xs, text: 'Extra small toggle') %>
     </div>
 
     <div>
       <span class="text-sm text-base-content/60 mb-1 block">Small (sm)</span>
-      <%= f.switch_field(:indie, size: :sm, label: 'Small toggle') %>
+      <%= f.switch_field(:indie, size: :sm, text: 'Small toggle') %>
     </div>
 
     <div>
       <span class="text-sm text-base-content/60 mb-1 block">Medium (md) - Default</span>
-      <%= f.switch_field(:indie, size: :md, label: 'Medium toggle') %>
+      <%= f.switch_field(:indie, size: :md, text: 'Medium toggle') %>
     </div>
 
     <div>
       <span class="text-sm text-base-content/60 mb-1 block">Large (lg)</span>
-      <%= f.switch_field(:indie, size: :lg, label: 'Large toggle') %>
+      <%= f.switch_field(:indie, size: :lg, text: 'Large toggle') %>
     </div>
   <% end %>
 </div>

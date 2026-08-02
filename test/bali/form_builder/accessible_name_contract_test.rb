@@ -15,9 +15,19 @@ require "test_helper"
 # Swept over every family rather than sampled, because the whole point of
 # deriving ids from `field_id` in one place is that no family can opt out.
 class BaliFormBuilderAccessibleNameContractTest < FormBuilderTestCase
-  # Every group helper, and the id its caption is expected to reach. `nil` means
-  # the group legitimately holds several controls (or a widget no `for` can
-  # reach) and must therefore keep a `<legend>`.
+  # Every group helper, and how the control inside it is expected to get its
+  # name. Three legitimate shapes, spelled out rather than inferred:
+  #
+  #   "an_id"          a `<label for>` reaching that id, which must be in the
+  #                    document — the ~18 families wrapping one labelable control;
+  #   :legend          a `<legend>` over a group whose several controls carry
+  #                    names of their own, or a widget no `for` can reach;
+  #   :wrapping_label  the control sits inside a `<label>` that contributes text,
+  #                    so the implicit association names it. This is how a
+  #                    checkbox and a toggle are normally labelled, and it is
+  #                    why those two render no `<legend>` unless asked: a second
+  #                    caption does not replace the name, it concatenates with
+  #                    it, and the control read out "Indie Indie".
   GROUPS = {
     "text_field_group" => [ ->(b) { b.text_field_group(:name) }, "movie_name" ],
     "email_field_group" => [ ->(b) { b.email_field_group(:name) }, "movie_name" ],
@@ -42,14 +52,18 @@ class BaliFormBuilderAccessibleNameContractTest < FormBuilderTestCase
     "time_zone_select_group" => [ ->(b) { b.time_zone_select_group(:name) }, "movie_name" ],
     "time_period_field_group" => [ ->(b) { b.time_period_field_group(:release_date, [ %w[T t] ]) },
                                   "movie_release_date_period" ],
-    "boolean_field_group" => [ ->(b) { b.boolean_field_group(:indie) }, nil ],
-    "radio_field_group" => [ ->(b) { b.radio_field_group(:status, [ %w[One 1] ]) }, nil ],
-    "radio_buttons_group" => [ ->(b) { b.radio_buttons_group(:status, { a: [ %w[One 1] ] }) }, nil ],
-    "coordinates_polygon_field_group" => [ ->(b) { b.coordinates_polygon_field_group(:name) }, nil ],
-    "block_editor_group" => [ ->(b) { b.block_editor_group(:synopsis) }, nil ],
-    "rich_text_area_group" => [ ->(b) { b.rich_text_area_group(:synopsis) }, nil ],
+    "range_field_group" => [ ->(b) { b.range_field_group(:rating) }, "movie_rating" ],
+    "boolean_field_group" => [ ->(b) { b.boolean_field_group(:indie) }, :wrapping_label ],
+    "switch_field_group" => [ ->(b) { b.switch_field_group(:indie) }, :wrapping_label ],
+    "radio_field_group" => [ ->(b) { b.radio_field_group(:status, [ %w[One 1] ]) }, :legend ],
+    "radio_buttons_group" => [ ->(b) { b.radio_buttons_group(:status, { a: [ %w[One 1] ] }) },
+                              :legend ],
+    "coordinates_polygon_field_group" => [ ->(b) { b.coordinates_polygon_field_group(:name) },
+                                          :legend ],
+    "block_editor_group" => [ ->(b) { b.block_editor_group(:synopsis) }, :legend ],
+    "rich_text_area_group" => [ ->(b) { b.rich_text_area_group(:synopsis) }, :legend ],
     "recurrent_event_rule_field_group" => [ ->(b) { b.recurrent_event_rule_field_group(:rule) },
-                                           nil ]
+                                           :legend ]
   }.freeze
 
   # Families that render the error and help paragraphs on a control able to carry
@@ -68,23 +82,29 @@ class BaliFormBuilderAccessibleNameContractTest < FormBuilderTestCase
   }.freeze
 
   def test_every_group_caption_reaches_the_control_it_names
-    unnamed = GROUPS.filter_map do |name, (render, control_id)|
+    unnamed = GROUPS.filter_map do |name, (render, expectation)|
       document = fragment(render.call(builder))
-      caption = document.at_css("label.fieldset-legend, legend.fieldset-legend")
 
-      next "#{name}: no caption at all" if caption.nil?
-      next resolve_legend(name, caption, control_id) if control_id.nil?
-
-      target = document.at_css("##{CSS.escape_id(control_id)}")
-      next "#{name}: caption is a <legend>, so it names nothing" if caption.name == "legend"
-      next "#{name}: for=#{caption["for"].inspect} but the id is #{control_id.inspect}" \
-        if caption["for"] != control_id
-      next "#{name}: for points at #{control_id.inspect}, which nothing emits" if target.nil?
-
-      nil
+      case expectation
+      when :wrapping_label then resolve_wrapping_label(name, document)
+      when :legend then resolve_legend(name, document)
+      else resolve_label_for(name, document, expectation)
+      end
     end
 
     assert_empty unnamed, "Controls left without an accessible name:\n#{unnamed.join("\n")}"
+  end
+
+  # The check that keeps `:wrapping_label` honest. Drop the inline caption and
+  # the checkbox has no name from anywhere, which is exactly the state the
+  # contract exists to catch — so assert that the shape fails when the text is
+  # gone, not merely that it passes when the text is there.
+  def test_a_checkbox_with_no_inline_caption_and_no_legend_is_reported_as_unnamed
+    document = fragment(builder.boolean_field_group(:indie, text: false))
+
+    refute_nil resolve_wrapping_label("boolean_field_group", document),
+               "A checkbox with neither an inline caption nor a legend has no accessible " \
+               "name, and the contract has to say so"
   end
 
   # The case no preview covers and the one that breaks today: the same model
@@ -162,8 +182,42 @@ class BaliFormBuilderAccessibleNameContractTest < FormBuilderTestCase
     end
   end
 
-  def resolve_legend(name, caption, _control_id)
+  def caption_in(document)
+    document.at_css("label.fieldset-legend, legend.fieldset-legend")
+  end
+
+  def resolve_legend(name, document)
+    caption = caption_in(document)
+
+    return "#{name}: no caption at all" if caption.nil?
     return "#{name}: expected a <legend> for a multi-control group" if caption.name != "legend"
+
+    nil
+  end
+
+  def resolve_label_for(name, document, control_id)
+    caption = caption_in(document)
+
+    return "#{name}: no caption at all" if caption.nil?
+    return "#{name}: caption is a <legend>, so it names nothing" if caption.name == "legend"
+    return "#{name}: for=#{caption["for"].inspect} but the id is #{control_id.inspect}" \
+      if caption["for"] != control_id
+    return "#{name}: for points at #{control_id.inspect}, which nothing emits" \
+      if document.at_css("##{CSS.escape_id(control_id)}").nil?
+
+    nil
+  end
+
+  # An implicit label association: the control is a descendant of a `<label>`,
+  # and that label contributes text. Both halves matter — a `<label>` wrapping
+  # a bare checkbox and nothing else names it "".
+  def resolve_wrapping_label(name, document)
+    control = document.at_css("input[type=checkbox]:not([type=hidden])")
+    return "#{name}: no control to name" if control.nil?
+
+    label = control.ancestors("label").first
+    return "#{name}: the control is not inside a <label>" if label.nil?
+    return "#{name}: the wrapping <label> contributes no text" if label.text.strip.empty?
 
     nil
   end

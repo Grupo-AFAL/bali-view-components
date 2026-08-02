@@ -77,8 +77,8 @@
         <% end %>
 
         <%= form_with model: @settings, url: settings_path, method: :patch, builder: Bali::FormBuilder, class: 'space-y-4' do |f| %>
-          <%= f.switch_field_group :email_notifications, label: t('settings.email_notifications'), color: :primary %>
-          <%= f.switch_field_group :push_notifications, label: t('settings.push_notifications'), color: :primary %>
+          <%= f.switch_field_group :email_notifications, text: t('settings.email_notifications'), color: :primary %>
+          <%= f.switch_field_group :push_notifications, text: t('settings.push_notifications'), color: :primary %>
 
           <%# Notification Frequency %>
           <% frequencies = [
@@ -114,8 +114,8 @@
         <% end %>
 
         <%= form_with model: @settings, url: settings_path, method: :patch, builder: Bali::FormBuilder, class: 'space-y-4' do |f| %>
-          <%= f.switch_field_group :profile_visible, label: t('settings.profile_visible'), color: :primary %>
-          <%= f.switch_field_group :show_activity, label: t('settings.show_activity'), color: :primary %>
+          <%= f.switch_field_group :profile_visible, text: t('settings.profile_visible'), color: :primary %>
+          <%= f.switch_field_group :show_activity, text: t('settings.show_activity'), color: :primary %>
 
           <div class="flex justify-end mt-4">
             <%= render Bali::Button::Component.new(
@@ -139,7 +139,7 @@
         <p class="text-base-content/60 text-sm mb-4"><%= t('settings.appearance_desc') %></p>
 
         <%= form_with model: @settings, url: settings_path, method: :patch, builder: Bali::FormBuilder, class: 'space-y-4' do |f| %>
-          <%= f.switch_field_group :dark_mode, label: t('settings.dark_mode'), color: :accent %>
+          <%= f.switch_field_group :dark_mode, text: t('settings.dark_mode'), color: :accent %>
 
           <%# Theme Preview Cards %>
           <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg, class: 'mt-4') do %>
@@ -211,8 +211,8 @@
                 <%= f.select_group :api_rate_limit, rate_limits, {}, { label: t('settings.api_rate_limit') } %>
               <% end %>
 
-              <%= f.switch_field_group :debug_mode, label: t('settings.debug_mode'), color: :warning %>
-              <%= f.switch_field_group :beta_features, label: t('settings.beta_features'), color: :info %>
+              <%= f.switch_field_group :debug_mode, text: t('settings.debug_mode'), color: :warning %>
+              <%= f.switch_field_group :beta_features, text: t('settings.beta_features'), color: :info %>
 
               <div class="flex justify-end mt-4">
                 <%= render Bali::Button::Component.new(

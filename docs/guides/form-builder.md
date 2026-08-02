@@ -135,14 +135,49 @@ Currency input with symbol prefix.
 
 **Options:**
 - `symbol` - Currency symbol (default: "$")
-- `step` - Decimal precision (default: "0.01")
 
 ### percentage_field_group
 
 ```erb
 <%= f.percentage_field_group :discount %>
-<%= f.percentage_field_group :tax_rate, addon_right: "%" %>
+<%= f.percentage_field_group :tax_rate, symbol: "‰" %>
 ```
+
+**Options:**
+- `symbol` - Symbol appended after the input (default: "%")
+
+### Both are localized, and both need the model side
+
+`currency_field_group` and `percentage_field_group` share one implementation
+(`numeric_field_group`) and render a `type="text"` input, because a `type="number"`
+input rejects the thousands delimiter as it is typed.
+
+The `pattern` validating that text is **built from the active locale** — Rails'
+`number.format.delimiter` and `number.format.separator`. In English it accepts
+`1,234.56`; in a locale shipping Spanish number formats it accepts `1.234,56`
+and rejects the English shape. There is nothing to configure: if the app has
+`rails-i18n` (or defines `number.format` itself) this follows it, and if it does
+not, every locale falls back to Rails' English defaults and behaves as before.
+
+`inputmode="decimal"` is set so a phone opens the numeric keypad. `step` is
+deliberately **not** set: it is inert on a `type="text"` input, and passing one
+only misleads the next person to read the markup.
+
+The browser validates a string. Turning it back into a number is the model's
+job, and `Bali::Concerns::NumericAttributesWithCommas` does it against the same
+locale:
+
+```ruby
+class Product < ApplicationRecord
+  include Bali::Concerns::NumericAttributesWithCommas
+
+  currency_attribute :price
+  percentage_attribute :discount
+end
+```
+
+Without the concern the parameter arrives as the string the user typed, and
+Rails' own cast reads `"1.234,56"` as `1.234`.
 
 ### range_field_group / range_field
 
@@ -354,12 +389,15 @@ Checkbox input.
 ```erb
 <%= f.boolean_field_group :terms_accepted %>
 <%= f.boolean_field_group :active, color: :primary, size: :lg %>
+<%= f.boolean_field_group :indie, text: "This is an indie film" %>
 ```
 
 **Options:**
 - `size` - `:xs`, `:sm`, `:md`, `:lg`
 - `color` - `:primary`, `:secondary`, `:accent`, `:success`, `:warning`, `:info`, `:error`
-- `label` - Custom label text
+- `text` - The caption **beside the checkbox** (default: the translated attribute name).
+  `false` renders none.
+- `label` - A `<legend>` **over the group**. No default: omit it and no legend is rendered.
 
 ### switch_field_group / switch_field
 
@@ -373,8 +411,34 @@ Toggle switch (styled checkbox).
 **Options:**
 - `size` - `:xs`, `:sm`, `:md`, `:lg`
 - `color` - `:primary`, `:secondary`, `:accent`, `:success`, `:warning`, `:info`, `:error`
-- `label` - Custom label text
-- `label_options` - HTML attributes for label element
+- `text` - The caption **beside the toggle** (default: the translated attribute name)
+- `label` - A `<legend>` **over the group**, with no default
+- `label_options` - HTML attributes for the `<label>` wrapping the control
+
+### `text:` vs `label:` in these two families
+
+They are two different captions, and until v3 a single `label:` fed both — so
+`boolean_field_group :indie` rendered "Indie" as the legend *and* "Indie" beside
+the box, and a screen reader read the field out as "Indie Indie".
+
+- **`text:`** is the caption inside the `<label>` that wraps the control. This is
+  where a checkbox's accessible name comes from, so it is the one with a default.
+- **`label:`** is the `<legend>` naming the whole fieldset. It renders only when
+  you ask for one — that is, when the group caption says something the inline
+  text does not.
+
+```erb
+<%# One caption, which is what you want almost always %>
+<%= f.boolean_field_group :indie, text: "This is an indie film" %>
+
+<%# Two, when the group needs a heading of its own %>
+<%= f.boolean_field_group :indie, label: "Distribution", text: "This is an indie film" %>
+```
+
+The caption stays a `<legend>` rather than becoming a `<label for>` the way the
+other field groups' captions did: the control is already inside a `<label>`, and
+a second `<label for>` pointing at it does not replace that name, it concatenates
+with it.
 
 ### radio_field_group
 
@@ -443,17 +507,46 @@ Submit with cancel button.
 
 ## Special Fields
 
-### dynamic_fields
+### dynamic_fields_group
 
-Add/remove fields dynamically.
+Add and remove nested records without a round trip.
+
+The header — a caption plus an "add" button — is rendered for you, and each row
+comes from a `_<singular>_fields` partial that the helper renders per associated
+record and once more into a `<template>` for the add button to clone.
 
 ```erb
-<%= f.dynamic_fields :line_items do |builder| %>
-  <%= builder.text_field_group :description %>
-  <%= builder.number_field_group :quantity %>
-  <%= builder.currency_field_group :price %>
+<%# app/views/invoices/_form.html.erb %>
+<%= f.dynamic_fields_group :line_items, button_text: "Add line item" %>
+
+<%# app/views/invoices/_line_item_fields.html.erb %>
+<div class="line_item-fields">
+  <%= f.text_field_group :description %>
+  <%= f.number_field_group :quantity %>
+  <%= f.currency_field_group :price %>
+  <%= f.link_to_remove_fields "Remove" %>
+</div>
+```
+
+Pass a block to replace the whole header:
+
+```erb
+<%= f.dynamic_fields_group :line_items do %>
+  <h3>Line items</h3>
+  <%= f.link_to_add_fields "Add line item", :line_items %>
 <% end %>
 ```
+
+**Options:**
+- `label` - Header caption (default: the translated association name)
+- `button_text` - Add-button text (default: `bali_view.form_builder.dynamic_fields.add`)
+- `button_class` - Add-button classes (default: `btn btn-primary`)
+
+`link_to_add_fields` and `link_to_remove_fields` render `<button type="button">`.
+The names are historical — they emitted `<a href="#">` until v3 — but nothing
+here navigates, so an anchor was announced by screen readers as a link going
+nowhere. The `type="button"` matters: these sit inside a `<form>`, where a button
+without one submits it.
 
 ### coordinates_polygon_field_group
 

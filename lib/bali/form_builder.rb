@@ -19,6 +19,7 @@ module Bali
     include ErrorSummaryFields
     include FileFields
     include NumberFields
+    include NumericFields
     include PasswordFields
     include PercentageFields
     include RadioFields

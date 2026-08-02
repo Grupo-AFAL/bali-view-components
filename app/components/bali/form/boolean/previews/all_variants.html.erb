@@ -4,10 +4,10 @@
     <section>
       <h3 class="text-lg font-semibold mb-4">Sizes</h3>
       <div class="flex flex-wrap gap-6 items-center">
-        <%= f.boolean_field(:indie, size: :xs, label: 'XS') %>
-        <%= f.boolean_field(:indie, size: :sm, label: 'SM') %>
-        <%= f.boolean_field(:indie, size: :md, label: 'MD') %>
-        <%= f.boolean_field(:indie, size: :lg, label: 'LG') %>
+        <%= f.boolean_field(:indie, size: :xs, text: 'XS') %>
+        <%= f.boolean_field(:indie, size: :sm, text: 'SM') %>
+        <%= f.boolean_field(:indie, size: :md, text: 'MD') %>
+        <%= f.boolean_field(:indie, size: :lg, text: 'LG') %>
       </div>
     </section>
 
@@ -15,13 +15,13 @@
     <section>
       <h3 class="text-lg font-semibold mb-4">Colors</h3>
       <div class="flex flex-wrap gap-6 items-center">
-        <%= f.boolean_field(:indie, color: :primary, label: 'Primary') %>
-        <%= f.boolean_field(:indie, color: :secondary, label: 'Secondary') %>
-        <%= f.boolean_field(:indie, color: :accent, label: 'Accent') %>
-        <%= f.boolean_field(:indie, color: :success, label: 'Success') %>
-        <%= f.boolean_field(:indie, color: :warning, label: 'Warning') %>
-        <%= f.boolean_field(:indie, color: :info, label: 'Info') %>
-        <%= f.boolean_field(:indie, color: :error, label: 'Error') %>
+        <%= f.boolean_field(:indie, color: :primary, text: 'Primary') %>
+        <%= f.boolean_field(:indie, color: :secondary, text: 'Secondary') %>
+        <%= f.boolean_field(:indie, color: :accent, text: 'Accent') %>
+        <%= f.boolean_field(:indie, color: :success, text: 'Success') %>
+        <%= f.boolean_field(:indie, color: :warning, text: 'Warning') %>
+        <%= f.boolean_field(:indie, color: :info, text: 'Info') %>
+        <%= f.boolean_field(:indie, color: :error, text: 'Error') %>
       </div>
     </section>
 
@@ -29,9 +29,9 @@
     <section>
       <h3 class="text-lg font-semibold mb-4">Combined (Size + Color)</h3>
       <div class="flex flex-wrap gap-6 items-center">
-        <%= f.boolean_field(:indie, size: :lg, color: :primary, label: 'Large Primary') %>
-        <%= f.boolean_field(:indie, size: :sm, color: :success, label: 'Small Success') %>
-        <%= f.boolean_field(:indie, size: :xs, color: :warning, label: 'XS Warning') %>
+        <%= f.boolean_field(:indie, size: :lg, color: :primary, text: 'Large Primary') %>
+        <%= f.boolean_field(:indie, size: :sm, color: :success, text: 'Small Success') %>
+        <%= f.boolean_field(:indie, size: :xs, color: :warning, text: 'XS Warning') %>
       </div>
     </section>
   <% end %>

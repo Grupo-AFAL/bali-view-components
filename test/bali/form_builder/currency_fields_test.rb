@@ -21,7 +21,11 @@ class BaliFormBuilderCurrencyFieldsTest < FormBuilderTestCase
   end
 
   def test_currency_field_group_renders_an_input
-    assert_html(@currency_field_group, 'input#movie_budget[name="movie[budget]"][type="text"][step="0.01"][placeholder="0"]')
+    assert_html(@currency_field_group, 'input#movie_budget[name="movie[budget]"][type="text"][inputmode="decimal"][placeholder="0"]')
+  end
+
+  def test_currency_field_group_puts_the_symbol_before_the_input
+    assert_html(@currency_field_group, "div.join > span.join-item:first-child", text: "$")
   end
 
   def test_currency_field_group_uses_default_symbol

@@ -20,7 +20,7 @@ class BaliFormBuilderOptionsContractTest < FormBuilderTestCase
     auto_grow: true, select_class: "leaked-select", choose_file_text: "Leaked choose",
     non_selected_text: "Leaked empty", file_class: "leaked-file", icon: "star",
     subtract_data: { leaked: "subtract" }, add_data: { leaked: "add" },
-    button_class: "leaked-button", clear: true, manual: true, period: "day",
+    button_class: "leaked-button", text: "Leaked text", clear: true, manual: true, period: "day",
     mode: "range", alt_input: true, alt_input_class: "leaked-alt", alt_format: "d/m/Y",
     allow_input: true, disable_weekends: true, disabled_dates: [], min_date: "2026-01-01",
     max_date: "2026-12-31", seconds: true, time_24hr: true, default_date: "2026-01-01",

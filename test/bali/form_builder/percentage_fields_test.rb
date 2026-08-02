@@ -21,7 +21,7 @@ class BaliFormBuilderPercentageFieldsTest < FormBuilderTestCase
   end
 
   def test_percentage_field_group_renders_an_input
-    assert_html(@percentage_field_group, 'input#movie_budget[name="movie[budget]"][type="text"][step="0.01"][placeholder="0"]')
+    assert_html(@percentage_field_group, 'input#movie_budget[name="movie[budget]"][type="text"][inputmode="decimal"][placeholder="0"]')
   end
 
   def test_percentage_field_group_uses_default_symbol

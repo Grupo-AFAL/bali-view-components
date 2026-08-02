@@ -30,6 +30,27 @@ class BaliFormBuilderSwitchFieldGroupTest < FormBuilderTestCase
   def test_renders_the_toggle_input_with_correct_id
     assert_includes(builder.switch_field_group(:indie), 'id="movie_indie"')
   end
+
+  # Through FieldGroupWrapper now, which is where the fieldset's own id comes
+  # from. The hand-rolled `<fieldset class="fieldset">` had none, so two toggles
+  # for the same model on one page were indistinguishable.
+  def test_renders_the_fieldset_with_an_id_derived_from_the_field
+    assert_html(builder.switch_field_group(:indie), "fieldset#movie_indie_field.fieldset")
+  end
+
+  def test_renders_no_legend_by_default
+    refute_html(builder.switch_field_group(:indie), "legend.fieldset-legend")
+  end
+
+  def test_names_the_attribute_exactly_once
+    assert_html(builder.switch_field_group(:indie), "span", text: "Indie", count: 1)
+  end
+
+  def test_renders_a_legend_when_asked_for_one
+    result = builder.switch_field_group(:indie, label: "Distribution")
+    assert_html(result, "legend.fieldset-legend", text: "Distribution")
+    assert_html(result, "label.label span", text: "Indie")
+  end
 end
 
 class BaliFormBuilderSwitchFieldTest < FormBuilderTestCase
@@ -58,8 +79,18 @@ class BaliFormBuilderSwitchFieldTest < FormBuilderTestCase
   end
   # with custom label
 
-  def test_with_custom_label_uses_custom_label_text
-    assert_includes(builder.switch_field(:indie, label: "Independent Film"), "Independent Film")
+  # `text:`, not `label:` — same split as BooleanFields.
+  def test_with_custom_text_uses_it_beside_the_toggle
+    assert_html(builder.switch_field(:indie, text: "Independent Film"),
+                "label.label span", text: "Independent Film")
+  end
+
+  def test_with_text_false_renders_no_caption_beside_the_toggle
+    refute_html(builder.switch_field(:indie, text: false), "label.label span")
+  end
+
+  def test_does_not_leak_text_onto_the_toggle
+    refute_html(builder.switch_field(:indie, text: "Independent Film"), "input[text]")
   end
   # with label_options
 

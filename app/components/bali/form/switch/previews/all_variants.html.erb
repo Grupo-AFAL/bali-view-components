@@ -3,31 +3,31 @@
     <div>
       <h3 class="text-lg font-semibold mb-2">Sizes</h3>
       <div class="space-y-2">
-        <%= f.switch_field(:indie, size: :xs, label: 'Extra small toggle') %>
-        <%= f.switch_field(:indie, size: :sm, label: 'Small toggle') %>
-        <%= f.switch_field(:indie, size: :md, label: 'Medium toggle') %>
-        <%= f.switch_field(:indie, size: :lg, label: 'Large toggle') %>
+        <%= f.switch_field(:indie, size: :xs, text: 'Extra small toggle') %>
+        <%= f.switch_field(:indie, size: :sm, text: 'Small toggle') %>
+        <%= f.switch_field(:indie, size: :md, text: 'Medium toggle') %>
+        <%= f.switch_field(:indie, size: :lg, text: 'Large toggle') %>
       </div>
     </div>
 
     <div>
       <h3 class="text-lg font-semibold mb-2">Colors</h3>
       <div class="space-y-2">
-        <%= f.switch_field(:indie, color: :primary, label: 'Primary') %>
-        <%= f.switch_field(:indie, color: :secondary, label: 'Secondary') %>
-        <%= f.switch_field(:indie, color: :accent, label: 'Accent') %>
-        <%= f.switch_field(:indie, color: :success, label: 'Success') %>
-        <%= f.switch_field(:indie, color: :warning, label: 'Warning') %>
-        <%= f.switch_field(:indie, color: :info, label: 'Info') %>
-        <%= f.switch_field(:indie, color: :error, label: 'Error') %>
+        <%= f.switch_field(:indie, color: :primary, text: 'Primary') %>
+        <%= f.switch_field(:indie, color: :secondary, text: 'Secondary') %>
+        <%= f.switch_field(:indie, color: :accent, text: 'Accent') %>
+        <%= f.switch_field(:indie, color: :success, text: 'Success') %>
+        <%= f.switch_field(:indie, color: :warning, text: 'Warning') %>
+        <%= f.switch_field(:indie, color: :info, text: 'Info') %>
+        <%= f.switch_field(:indie, color: :error, text: 'Error') %>
       </div>
     </div>
 
     <div>
       <h3 class="text-lg font-semibold mb-2">Combined Size and Color</h3>
       <div class="space-y-2">
-        <%= f.switch_field(:indie, size: :lg, color: :primary, label: 'Large Primary Toggle') %>
-        <%= f.switch_field(:indie, size: :sm, color: :success, label: 'Small Success Toggle') %>
+        <%= f.switch_field(:indie, size: :lg, color: :primary, text: 'Large Primary Toggle') %>
+        <%= f.switch_field(:indie, size: :sm, color: :success, text: 'Small Success Toggle') %>
       </div>
     </div>
   <% end %>

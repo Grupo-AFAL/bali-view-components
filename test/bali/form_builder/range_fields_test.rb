@@ -8,6 +8,25 @@ class BaliFormBuilderRangeFieldGroupTest < FormBuilderTestCase
     assert_html(result, "fieldset.fieldset")
   end
 
+  # Through FieldGroupWrapper now, so the fieldset carries the same derived id
+  # every other family's does. The hand-rolled one had none.
+  def test_renders_the_fieldset_with_an_id_derived_from_the_field
+    assert_html(builder.range_field_group(:rating), "fieldset#movie_rating_field")
+  end
+
+  # Handing `@template.range_field` a bare object name threw away the form
+  # index, so two forms for the same model emitted the same id *and* the same
+  # name: the caption's `for` pointed at an id nobody emitted, and on submit the
+  # second slider's value overwrote the first.
+  def test_the_slider_follows_the_form_index
+    indexed = Bali::FormBuilder.new("movie", Movie.new, vc_test_controller.view_context, index: 2)
+    result = indexed.range_field_group(:rating)
+
+    assert_html(result, 'input#movie_2_rating[name="movie[2][rating]"]')
+    assert_html(result, 'label.fieldset-legend[for="movie_2_rating"]')
+  end
+
+
   def test_renders_a_caption_labelling_the_slider_with_the_translated_attribute
     result = builder.range_field_group(:rating)
     assert_html(result, 'fieldset label.fieldset-legend[for="movie_rating"]', text: "Rating")

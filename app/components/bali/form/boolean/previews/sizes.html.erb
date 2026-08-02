@@ -2,22 +2,22 @@
   <%= form_with model: model, url: '/lookbook', builder: Bali::FormBuilder do |f| %>
     <div>
       <span class="text-sm text-base-content/60 mb-1 block">Extra Small (xs)</span>
-      <%= f.boolean_field(:indie, size: :xs, label: 'Extra small checkbox') %>
+      <%= f.boolean_field(:indie, size: :xs, text: 'Extra small checkbox') %>
     </div>
 
     <div>
       <span class="text-sm text-base-content/60 mb-1 block">Small (sm)</span>
-      <%= f.boolean_field(:indie, size: :sm, label: 'Small checkbox') %>
+      <%= f.boolean_field(:indie, size: :sm, text: 'Small checkbox') %>
     </div>
 
     <div>
       <span class="text-sm text-base-content/60 mb-1 block">Medium (md) - Default</span>
-      <%= f.boolean_field(:indie, size: :md, label: 'Medium checkbox') %>
+      <%= f.boolean_field(:indie, size: :md, text: 'Medium checkbox') %>
     </div>
 
     <div>
       <span class="text-sm text-base-content/60 mb-1 block">Large (lg)</span>
-      <%= f.boolean_field(:indie, size: :lg, label: 'Large checkbox') %>
+      <%= f.boolean_field(:indie, size: :lg, text: 'Large checkbox') %>
     </div>
   <% end %>
 </div>
