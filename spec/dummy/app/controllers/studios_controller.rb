@@ -15,6 +15,14 @@ class StudiosController < ApplicationController
       # marcador de la toolbar se apagan solos, en silencio. Es el mínimo que necesita
       # cualquier índice, adopte o no las vistas guardadas y el selector de columnas.
       storage_id: 'studios',
+      # El control "Agrupar por" se auto-configura desde acá. Es la lista blanca: el param
+      # crudo nunca llega a un `group()` sin pasar por ella.
+      group_by_attributes: %i[status country size],
+      # Storage default del engine (tabla bali_saved_views). El dueño va explícito porque el
+      # FilterForm vive en el host; las mutaciones las resuelve el controller del engine por
+      # `Bali.saved_views_owner` (ver config/initializers/bali.rb).
+      saved_views_store: :default,
+      saved_views_owner: current_user,
       # Sin `context:` la caché de persistencia es UNA sola para todo el proceso (ver
       # ApplicationController#filter_context): dos visitantes se pisan los filtros.
       context: filter_context,
