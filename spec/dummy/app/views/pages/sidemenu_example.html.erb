@@ -168,46 +168,45 @@
           <% end %>
         <% end %>
       <% end %>
-      <% end %>
 
       <%# Recent Activity %>
       <% c.with_column(lg: :one_third) do %>
-      <%= render Bali::Card::Component.new(style: :bordered) do %>
-        <h3 class="card-title text-lg mb-4">Recent Activity</h3>
-        <%= render Bali::Timeline::Component.new(position: :left) do |timeline| %>
-          <% timeline.with_item(
-            heading: 'New order received',
-            icon: 'shopping-cart',
-            color: :primary
-          ) do %>
-            <p class="text-sm text-base-content/60">Order #3210 from Olivia</p>
-          <% end %>
+        <%= render Bali::Card::Component.new(style: :bordered) do %>
+          <h3 class="card-title text-lg mb-4">Recent Activity</h3>
+          <%= render Bali::Timeline::Component.new(position: :left) do |timeline| %>
+            <% timeline.with_item(
+              heading: 'New order received',
+              icon: 'shopping-cart',
+              color: :primary
+            ) do %>
+              <p class="text-sm text-base-content/60">Order #3210 from Olivia</p>
+            <% end %>
 
-          <% timeline.with_item(
-            heading: 'Payment confirmed',
-            icon: 'credit-card',
-            color: :success
-          ) do %>
-            <p class="text-sm text-base-content/60">$125.00 processed</p>
-          <% end %>
+            <% timeline.with_item(
+              heading: 'Payment confirmed',
+              icon: 'credit-card',
+              color: :success
+            ) do %>
+              <p class="text-sm text-base-content/60">$125.00 processed</p>
+            <% end %>
 
-          <% timeline.with_item(
-            heading: 'New user signup',
-            icon: 'user-plus',
-            color: :info
-          ) do %>
-            <p class="text-sm text-base-content/60">Michael joined</p>
-          <% end %>
+            <% timeline.with_item(
+              heading: 'New user signup',
+              icon: 'user-plus',
+              color: :info
+            ) do %>
+              <p class="text-sm text-base-content/60">Michael joined</p>
+            <% end %>
 
-          <% timeline.with_item(
-            heading: 'Product updated',
-            icon: 'package',
-            color: :warning
-          ) do %>
-            <p class="text-sm text-base-content/60">SKU-1234 inventory</p>
+            <% timeline.with_item(
+              heading: 'Product updated',
+              icon: 'package',
+              color: :warning
+            ) do %>
+              <p class="text-sm text-base-content/60">SKU-1234 inventory</p>
+            <% end %>
           <% end %>
         <% end %>
-      <% end %>
       <% end %>
     <% end %>
 
