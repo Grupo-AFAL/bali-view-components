@@ -1751,13 +1751,31 @@ Navigation links, optionally styled as buttons.
 
 #### Tooltip
 
-Contextual information on hover.
+Contextual information on hover or focus. The block is the balloon; the `trigger` slot is
+what opens it.
 
 ```erb
-<%= render Bali::Tooltip::Component.new(content: "More information", position: :top) do %>
-  Hover over me
+<%= render Bali::Tooltip::Component.new(placement: :top) do |c| %>
+  <% c.with_trigger do %>
+    <%= render Bali::Button::Component.new(name: 'Export', variant: :ghost) %>
+  <% end %>
+  <p>Downloads the current slice as CSV.</p>
 <% end %>
 ```
+
+**Options:**
+- `placement` - `:top` (default), `:bottom`, `:left`, `:right`
+- `trigger_event` - tippy trigger string, `"mouseenter focusin"` by default. `"click"` and
+  `"manual"` are the other useful values.
+- `append_to` - `:parent` (default), `:body`, or a CSS selector, to portal the balloon out
+  of an ancestor whose `overflow` would clip it.
+
+**Keyboard.** The default trigger is `focusin` rather than tippy's `focus` because the
+element tippy watches is the wrapper around the slot, and a `focus` on the caller's own
+control inside the slot does not reach it — `focusin` bubbles and does. When the slot holds
+nothing focusable (the classic `?` help tip), the controller gives the wrapper `tabindex="0"`
+so the balloon has a keyboard route at all; when the slot brought its own button or link it
+does not, so there is no second, unnamed tab stop in front of it.
 
 #### Kanban
 
