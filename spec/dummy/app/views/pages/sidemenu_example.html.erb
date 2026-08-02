@@ -1,93 +1,97 @@
-<%# Full Page Example: Fixed Collapsible SideMenu with Menu Switcher and Sub Items %>
-<%# This demonstrates a complete admin layout pattern %>
+<%# Full Page Example: Fixed Collapsible SideMenu with Menu Switcher and Sub Items.
+    The shell is Bali::AppLayout, which is the point: a fixed sidebar is taken out of the
+    document flow, so something has to offset the content to clear it. AppLayout does that
+    (and re-does it when the menu collapses) off `fixed_sidebar:`, which it cross-checks
+    against the SideMenu's own `fixed:` in development. Building the shell by hand instead
+    is what this page used to do, and the content sat underneath the sidebar. %>
+<%= render Bali::AppLayout::Component.new(fixed_sidebar: true, app_name: 'ACME') do |layout| %>
+  <% layout.with_sidebar do %>
+    <%# Fixed Collapsible Sidebar with Menu Switcher %>
+    <%= render Bali::SideMenu::Component.new(
+      current_path: request.path,
+      fixed: true,
+      collapsible: true,
+      brand: 'ACME'
+    ) do |sidebar| %>
+      <%# Menu Switcher - switch between application modules %>
+      <% sidebar.with_menu_switch(
+        title: 'Admin Portal',
+        subtitle: 'Manage everything',
+        href: '/admin',
+        icon: 'shield',
+        active: true
+      ) %>
+      <% sidebar.with_menu_switch(
+        title: 'Store Front',
+        subtitle: 'Customer-facing',
+        href: '/store',
+        icon: 'store'
+      ) %>
+      <% sidebar.with_menu_switch(
+        title: 'Analytics',
+        subtitle: 'Reports & insights',
+        href: '/analytics',
+        icon: 'bar-chart-2'
+      ) %>
 
-<div class="min-h-screen bg-base-200 flex">
-  <%# Fixed Collapsible Sidebar with Menu Switcher %>
-  <%= render Bali::SideMenu::Component.new(
-    current_path: request.path,
-    fixed: true,
-    collapsible: true,
-    brand: 'ACME'
-  ) do |sidebar| %>
-    <%# Menu Switcher - switch between application modules %>
-    <% sidebar.with_menu_switch(
-      title: 'Admin Portal',
-      subtitle: 'Manage everything',
-      href: '/admin',
-      icon: 'shield',
-      active: true
-    ) %>
-    <% sidebar.with_menu_switch(
-      title: 'Store Front',
-      subtitle: 'Customer-facing',
-      href: '/store',
-      icon: 'store'
-    ) %>
-    <% sidebar.with_menu_switch(
-      title: 'Analytics',
-      subtitle: 'Reports & insights',
-      href: '/analytics',
-      icon: 'bar-chart-2'
-    ) %>
-
-    <%# Main Navigation %>
-    <% sidebar.with_list(title: 'Main') do |list| %>
-      <% list.with_item(name: 'Dashboard', href: root_path, icon: 'layout-dashboard') %>
-      <% list.with_item(name: 'Notifications', href: '#', icon: 'bell', badge: '12', badge_color: :error) %>
-    <% end %>
-
-    <%# E-commerce Section with Sub Items %>
-    <% sidebar.with_list(title: 'E-Commerce') do |list| %>
-      <%# Products with expandable sub-items %>
-      <% list.with_item(name: 'Products', icon: 'package') do |item| %>
-        <% item.with_item(name: 'All Products', href: movies_path) %>
-        <% item.with_item(name: 'Add New', href: new_movie_path) %>
-        <% item.with_item(name: 'Categories', href: '#') %>
-        <% item.with_item(name: 'Inventory', href: '#') %>
+      <%# Main Navigation %>
+      <% sidebar.with_list(title: 'Main') do |list| %>
+        <% list.with_item(name: 'Dashboard', href: root_path, icon: 'layout-dashboard') %>
+        <% list.with_item(name: 'Notifications', href: '#', icon: 'bell', badge: '12', badge_color: :error) %>
       <% end %>
 
-      <%# Orders with expandable sub-items %>
-      <% list.with_item(name: 'Orders', icon: 'shopping-cart') do |item| %>
-        <% item.with_item(name: 'All Orders', href: '#') %>
-        <% item.with_item(name: 'Pending', href: '#') %>
-        <% item.with_item(name: 'Shipped', href: '#') %>
-        <% item.with_item(name: 'Returns', href: '#') %>
+      <%# E-commerce Section with Sub Items %>
+      <% sidebar.with_list(title: 'E-Commerce') do |list| %>
+        <%# Products with expandable sub-items %>
+        <% list.with_item(name: 'Products', icon: 'package') do |item| %>
+          <% item.with_item(name: 'All Products', href: movies_path) %>
+          <% item.with_item(name: 'Add New', href: new_movie_path) %>
+          <% item.with_item(name: 'Categories', href: '#') %>
+          <% item.with_item(name: 'Inventory', href: '#') %>
+        <% end %>
+
+        <%# Orders with expandable sub-items %>
+        <% list.with_item(name: 'Orders', icon: 'shopping-cart') do |item| %>
+          <% item.with_item(name: 'All Orders', href: '#') %>
+          <% item.with_item(name: 'Pending', href: '#') %>
+          <% item.with_item(name: 'Shipped', href: '#') %>
+          <% item.with_item(name: 'Returns', href: '#') %>
+        <% end %>
+
+        <% list.with_item(name: 'Customers', href: '#', icon: 'users') %>
+        <% list.with_item(name: 'Discounts', href: '#', icon: 'percent') %>
       <% end %>
 
-      <% list.with_item(name: 'Customers', href: '#', icon: 'users') %>
-      <% list.with_item(name: 'Discounts', href: '#', icon: 'percent') %>
-    <% end %>
+      <%# Content Management %>
+      <% sidebar.with_list(title: 'Content') do |list| %>
+        <% list.with_item(name: 'Pages', icon: 'file-text') do |item| %>
+          <% item.with_item(name: 'All Pages', href: '#') %>
+          <% item.with_item(name: 'Create Page', href: '#') %>
+        <% end %>
 
-    <%# Content Management %>
-    <% sidebar.with_list(title: 'Content') do |list| %>
-      <% list.with_item(name: 'Pages', icon: 'file-text') do |item| %>
-        <% item.with_item(name: 'All Pages', href: '#') %>
-        <% item.with_item(name: 'Create Page', href: '#') %>
+        <% list.with_item(name: 'Blog', icon: 'pen-tool') do |item| %>
+          <% item.with_item(name: 'Posts', href: '#') %>
+          <% item.with_item(name: 'Categories', href: '#') %>
+          <% item.with_item(name: 'Tags', href: '#') %>
+        <% end %>
+
+        <% list.with_item(name: 'Media Library', href: '#', icon: 'image') %>
       <% end %>
 
-      <% list.with_item(name: 'Blog', icon: 'pen-tool') do |item| %>
-        <% item.with_item(name: 'Posts', href: '#') %>
-        <% item.with_item(name: 'Categories', href: '#') %>
-        <% item.with_item(name: 'Tags', href: '#') %>
+      <%# Settings Section %>
+      <% sidebar.with_list(title: 'Settings') do |list| %>
+        <% list.with_item(name: 'General', href: settings_path, icon: 'settings') %>
+        <% list.with_item(name: 'Users & Permissions', icon: 'user-cog') do |item| %>
+          <% item.with_item(name: 'Team Members', href: '#') %>
+          <% item.with_item(name: 'Roles', href: '#') %>
+          <% item.with_item(name: 'API Keys', href: '#') %>
+        <% end %>
+        <% list.with_item(name: 'Integrations', href: '#', icon: 'plug') %>
       <% end %>
-
-      <% list.with_item(name: 'Media Library', href: '#', icon: 'image') %>
-    <% end %>
-
-    <%# Settings Section %>
-    <% sidebar.with_list(title: 'Settings') do |list| %>
-      <% list.with_item(name: 'General', href: settings_path, icon: 'settings') %>
-      <% list.with_item(name: 'Users & Permissions', icon: 'user-cog') do |item| %>
-        <% item.with_item(name: 'Team Members', href: '#') %>
-        <% item.with_item(name: 'Roles', href: '#') %>
-        <% item.with_item(name: 'API Keys', href: '#') %>
-      <% end %>
-      <% list.with_item(name: 'Integrations', href: '#', icon: 'plug') %>
     <% end %>
   <% end %>
 
-  <%# Main Content Area %>
-  <main class="side-menu-main-content flex-1 p-6">
+  <% layout.with_body do %>
     <%# Page Header %>
     <%= render Bali::PageHeader::Component.new do |header| %>
       <% header.with_title { 'Admin Dashboard' } %>
@@ -232,16 +236,20 @@
           <div>
             <strong>SideMenu Features Demonstrated:</strong>
             <ul class="mt-2 space-y-1 text-sm">
-              <li><strong>fixed: true</strong> - Sidebar is fixed to viewport</li>
-              <li><strong>collapsible: true</strong> - Click the toggle to collapse to icon-only mode</li>
+              <li><strong>fixed: true</strong> - Sidebar is pinned to the viewport, and
+                <strong>Bali::AppLayout</strong> offsets the content to clear it</li>
+              <li><strong>collapsible: true</strong> - Click the toggle to collapse to icon-only mode;
+                the content offset follows the collapsed width</li>
               <li><strong>brand: 'ACME'</strong> - Brand name shown in header when expanded</li>
               <li><strong>with_menu_switch</strong> - Dropdown at top to switch between app modules</li>
               <li><strong>Nested with_item</strong> - Expandable sub-menus for Products, Orders, etc.</li>
               <li><strong>badge</strong> - Notification count on Notifications item</li>
+              <li><strong>Below 1024px</strong> - AppLayout renders the hamburger that opens the
+                sidebar, since a pinned sidebar is off-screen on mobile</li>
             </ul>
           </div>
         </div>
       <% end %>
     </div>
-  </main>
-</div>
+  <% end %>
+<% end %>
