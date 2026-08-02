@@ -27,21 +27,62 @@ class BaliDropdownComponentTest < ComponentTestCase
     assert_selector("li", count: 2)
   end
 
-  def test_alignments_defaults_to_right_alignment_with_dropdown_end
+  # daisyUI's own default, and ActionsDropdown's, against Dropdown's old `:right`. The two
+  # components had different defaults for the same menu; this is the one that survived.
+  def test_alignments_defaults_to_start
     render_inline(Bali::Dropdown::Component.new) do |c|
       c.with_trigger { "Trigger" }
       c.with_item(href: "#") { "Item" }
     end
-    assert_selector(".dropdown.dropdown-end")
+    assert_selector(".dropdown.dropdown-start")
+    assert_no_selector(".dropdown-end")
   end
 
-  def test_alignments_renders_left_alignment_without_position_class
-    render_inline(Bali::Dropdown::Component.new(align: :left)) do |c|
+  Bali::Dropdown::Component::ALIGNMENTS.each do |key, css|
+    define_method("test_alignments_renders_#{key}") do
+      render_inline(Bali::Dropdown::Component.new(align: key)) do |c|
+        c.with_trigger { "Trigger" }
+        c.with_item(href: "#") { "Item" }
+      end
+      assert_selector(".dropdown.#{css}")
+    end
+  end
+
+  Bali::Dropdown::Component::DIRECTIONS.each do |key, css|
+    define_method("test_directions_renders_#{key}") do
+      render_inline(Bali::Dropdown::Component.new(direction: key)) do |c|
+        c.with_trigger { "Trigger" }
+        c.with_item(href: "#") { "Item" }
+      end
+      assert_selector(".dropdown.#{css}")
+    end
+  end
+
+  def test_the_two_axes_compose
+    render_inline(Bali::Dropdown::Component.new(direction: :top, align: :end)) do |c|
       c.with_trigger { "Trigger" }
       c.with_item(href: "#") { "Item" }
     end
-    assert_selector(".dropdown")
-    assert_no_selector(".dropdown-end")
+    assert_selector(".dropdown.dropdown-top.dropdown-end")
+  end
+
+  # `align: :left` used to mean "no class at all" and `:left` is now a DIRECTION, where it
+  # means a menu opening sideways. Resolving it quietly would have moved the menu.
+  Bali::Dropdown::Component::MOVED_ALIGNMENTS.each do |key, replacement|
+    define_method("test_alignments_rejects_the_v2_spelling_#{key}") do
+      error = assert_raises(ArgumentError) do
+        Bali::Dropdown::Component.new(align: key)
+      end
+      assert_includes(error.message, replacement)
+    end
+  end
+
+  def test_unknown_values_raise_naming_the_valid_ones
+    error = assert_raises(ArgumentError) { Bali::Dropdown::Component.new(direction: :sideways) }
+    assert_includes(error.message, ":top, :bottom, :left, :right")
+
+    error = assert_raises(ArgumentError) { Bali::Dropdown::Component.new(width: :huge) }
+    assert_includes(error.message, ":sm, :md, :lg, :xl")
   end
 
   # El chrome de un control de toolbar tenía que escribirse a mano en el call site porque el
@@ -54,22 +95,6 @@ class BaliDropdownComponentTest < ComponentTestCase
     assert_selector("[data-dropdown-target='trigger'].btn.btn-outline")
   end
 
-  def test_alignments_renders_top_alignment
-    render_inline(Bali::Dropdown::Component.new(align: :top)) do |c|
-      c.with_trigger { "Trigger" }
-      c.with_item(href: "#") { "Item" }
-    end
-    assert_selector(".dropdown.dropdown-top")
-  end
-
-  def test_alignments_renders_bottom_end_alignment
-    render_inline(Bali::Dropdown::Component.new(align: :bottom_end)) do |c|
-      c.with_trigger { "Trigger" }
-      c.with_item(href: "#") { "Item" }
-    end
-    assert_selector(".dropdown.dropdown-bottom.dropdown-end")
-  end
-
   def test_hoverable_adds_dropdown_hover_class_when_hoverable
     render_inline(Bali::Dropdown::Component.new(hoverable: true)) do |c|
       c.with_trigger { "Trigger" }
@@ -78,28 +103,37 @@ class BaliDropdownComponentTest < ComponentTestCase
     assert_selector(".dropdown.dropdown-hover")
   end
 
-  def test_hoverable_does_not_add_controller_when_hoverable_css_only
+  # A hover dropdown used to be the one shape with NO controller, so daisyUI opened it from
+  # CSS and its trigger went on reporting `aria-expanded="false"` with the menu on screen.
+  def test_hoverable_keeps_the_controller
     render_inline(Bali::Dropdown::Component.new(hoverable: true)) do |c|
       c.with_trigger { "Trigger" }
       c.with_item(href: "#") { "Item" }
     end
-    assert_no_selector('[data-controller="dropdown"]')
+    assert_selector('.dropdown.dropdown-hover[data-controller="dropdown"]')
   end
 
-  def test_wide_option_uses_w_80_class_for_wide_dropdowns
-    render_inline(Bali::Dropdown::Component.new(wide: true)) do |c|
-      c.with_trigger { "Trigger" }
-      c.with_item(href: "#") { "Item" }
+  Bali::Dropdown::Component::WIDTHS.each do |key, css|
+    define_method("test_width_#{key}") do
+      render_inline(Bali::Dropdown::Component.new(width: key)) do |c|
+        c.with_trigger { "Trigger" }
+        c.with_item(href: "#") { "Item" }
+      end
+      assert_selector(".dropdown-content.#{css}")
     end
-    assert_selector(".dropdown-content.w-80")
   end
 
-  def test_wide_option_uses_w_52_class_for_normal_dropdowns
-    render_inline(Bali::Dropdown::Component.new(wide: false)) do |c|
+  def test_width_defaults_to_md
+    render_inline(Bali::Dropdown::Component.new) do |c|
       c.with_trigger { "Trigger" }
       c.with_item(href: "#") { "Item" }
     end
     assert_selector(".dropdown-content.w-52")
+  end
+
+  def test_wide_raises_naming_its_replacement
+    error = assert_raises(ArgumentError) { Bali::Dropdown::Component.new(wide: true) }
+    assert_includes(error.message, "width: :xl")
   end
 
   def test_custom_content_renders_custom_html_content
@@ -192,6 +226,96 @@ class BaliDropdownComponentTest < ComponentTestCase
     # Presentacional deja de contar como hijo inválido sin sacarle el texto a un
     # `aria-describedby` que lo apunte.
     assert_selector('span.menu-title[role="presentation"]')
+  end
+
+  # `with_item(method: :delete)` used to hand `method:` straight to DeleteLink, which has no
+  # such keyword: it landed in **options and came out as `<button method="delete">`, an
+  # attribute a browser ignores. The verb travels in the `button_to` DeleteLink builds.
+  def test_a_delete_item_does_not_paint_a_method_attribute
+    render_inline(Bali::Dropdown::Component.new) do |c|
+      c.with_trigger { "Trigger" }
+      c.with_item(name: "Delete", href: "/movies/1", method: :delete)
+    end
+
+    assert_no_selector("[method='delete']")
+    assert_selector("form[method='post'] input[name='_method'][value='delete']", visible: :all)
+    assert_selector("button[role='menuitem']", text: "Delete")
+  end
+
+  def test_icon_is_one_keyword_for_both_kinds_of_item
+    render_inline(Bali::Dropdown::Component.new) do |c|
+      c.with_trigger { "Trigger" }
+      c.with_item(name: "Edit", href: "/e", icon: "pencil")
+      c.with_item(name: "Delete", href: "/d", method: :delete, icon: "trash")
+    end
+
+    assert_selector("a[role='menuitem'] svg")
+    assert_selector("button[role='menuitem'] svg")
+  end
+
+  def test_icon_name_still_works_and_warns
+    assert_deprecated(Bali.deprecator) do
+      render_inline(Bali::Dropdown::Component.new) do |c|
+        c.with_trigger { "Trigger" }
+        c.with_item(name: "Edit", href: "/e", icon_name: "pencil")
+      end
+    end
+
+    assert_selector("a[role='menuitem'] svg")
+  end
+
+  # `name:` and `icon:` on a button item used to be painted as HTML attributes, so the only
+  # way to label one was a block.
+  def test_a_button_item_takes_a_name_and_an_icon
+    render_inline(Bali::Dropdown::Component.new) do |c|
+      c.with_trigger { "Trigger" }
+      c.with_item(tag: :button, name: "Duplicate", icon: "copy",
+                  data: { action: "thing#duplicate" })
+    end
+
+    assert_selector("button[role='menuitem'][type='button'][data-action='thing#duplicate'] svg")
+    assert_selector("button[role='menuitem']", text: "Duplicate")
+    assert_no_selector("button[name='Duplicate']")
+  end
+
+  # The menu is rendered in the same place, with the same roles, in both modes. What tells
+  # the controller to portal it is one Stimulus value; the markup is not a second shape.
+  def test_popover_mode_changes_a_value_and_not_the_markup
+    render_inline(Bali::Dropdown::Component.new(popover: true)) do |c|
+      c.with_trigger { "Trigger" }
+      c.with_item(name: "Edit", href: "/e")
+    end
+
+    assert_selector("div.dropdown[data-dropdown-popover-value='true']")
+    assert_selector("div.dropdown > ul[role='menu'].dropdown-content.menu")
+  end
+
+  def test_popover_defaults_to_false
+    render_inline(Bali::Dropdown::Component.new) do |c|
+      c.with_trigger { "Trigger" }
+      c.with_item(name: "Edit", href: "/e")
+    end
+
+    assert_selector("[data-dropdown-popover-value='false']")
+  end
+
+  # tippy's vocabulary for the same two axes. `center` is tippy's unsuffixed placement.
+  def test_tippy_placement_follows_the_two_axes
+    {
+      {} => "bottom-start",
+      { align: :end } => "bottom-end",
+      { align: :center } => "bottom",
+      { direction: :top, align: :end } => "top-end",
+      { direction: :left } => "left-start",
+      { direction: :right, align: :center } => "right"
+    }.each do |kwargs, expected|
+      render_inline(Bali::Dropdown::Component.new(**kwargs)) do |c|
+        c.with_trigger { "Trigger" }
+        c.with_item(name: "Edit", href: "/e")
+      end
+
+      assert_selector("[data-dropdown-placement-value='#{expected}']")
+    end
   end
 
   def test_a_menu_of_only_titles_does_not_render

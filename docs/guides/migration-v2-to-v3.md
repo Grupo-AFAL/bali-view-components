@@ -2512,6 +2512,134 @@ inline SVG data URI now.
 Nothing to change unless you were passing `placeholder_url:` — that still works — or
 asserting on the old URL in a test. The placeholder art itself changes.
 
+## One dropdown, and `popover:` stops meaning "no keyboard"
+
+`Bali::Dropdown` and `Bali::ActionsDropdown` rendered the same menu twice. `ActionsDropdown`
+reimplemented `with_item` almost line for line and kept its own `ALIGNMENTS`, `DIRECTIONS`
+and `WIDTHS` against Dropdown's single `align:` and boolean `wide:` — and it carried none of
+Dropdown's accessibility: no `data-controller="dropdown"`, so no arrow keys and no Escape;
+no `role="menu"` on the list; no `aria-expanded` emitted at all. It opened on DaisyUI's
+`:focus-within` and that was the whole of it.
+
+`ActionsDropdown` is a **preset of `Dropdown`** now — a subclass whose only addition is the
+⋯ trigger. Everything it accepts is `Dropdown`'s, and everything `Dropdown` gained it gained
+with it.
+
+### The two position axes get a keyword each
+
+DaisyUI 5 splits a dropdown's position along two axes and gives each its own class.
+`Dropdown` folded both into one `align:` that could spell four of the twelve pairs;
+`ActionsDropdown` used two keywords with different values. There is one vocabulary now, and
+it is `ActionsDropdown`'s, because it maps 1:1 onto the classes DaisyUI emits:
+
+| Keyword | Means | Values |
+|---|---|---|
+| `align:` | the horizontal axis | `:start` (default), `:center`, `:end` |
+| `direction:` | the side the menu opens towards | `:top`, `:bottom`, `:left`, `:right` |
+
+Every v2 spelling of `align:` **raises** with the sentence that replaces it:
+
+| v2 | v3 |
+|---|---|
+| `align: :left` | `align: :start` |
+| `align: :right` | `align: :end` |
+| `align: :top` | `direction: :top` |
+| `align: :bottom` | `direction: :bottom` |
+| `align: :top_end` | `direction: :top, align: :end` |
+| `align: :bottom_end` | `direction: :bottom, align: :end` |
+
+Raising rather than resolving matters most for `:left` and `:right`: both are now valid
+values of the *other* axis, where they mean a menu opening sideways. Mapping them quietly
+would have moved the menu instead of failing.
+
+**The one thing that changes silently is the default.** `Dropdown` defaulted to `:right`
+(`dropdown-end`) and `ActionsDropdown` to `:start`; the surviving default is `:start`,
+DaisyUI's own. A call that passed no `align:` at all keeps working and moves. If you relied
+on Dropdown's default, write `align: :end`.
+
+```
+grep -rn "Dropdown::Component.new" app/ | grep -v "align:"   # these move to :start
+```
+
+### `wide:` becomes `width:`
+
+`wide:` was a boolean over two of the four widths `ActionsDropdown` already had. It raises:
+
+| v2 | v3 |
+|---|---|
+| `wide: true` | `width: :xl` (w-80) |
+| `wide: false` | nothing — `width: :md` (w-52) is the default |
+
+`:sm` is w-40 and `:lg` is w-64. An unknown value of `align:`, `direction:` or `width:` now
+raises at construction naming the valid ones, the way the button taxonomy does.
+
+### `with_item` takes `icon:`, and `icon_name:` warns
+
+An item becomes a `Link` or a `DeleteLink` depending on `method:`, and those two spell the
+icon differently. `with_item` used to translate between them; now there is one keyword,
+`icon:`, and it is the same for the `tag: :button` item too. `icon_name:` still works and
+emits a deprecation.
+
+Two things stop being silent no-ops in the same move. `with_item(method: :delete)` passed
+`method:` straight through to `DeleteLink`, which has no such keyword: it landed in
+`**options` and rendered `<button method="delete">`, an attribute a browser ignores. And
+`tag: :button` items painted `name:` and `icon:` as HTML attributes, so the only way to
+label one was to pass a block; both are real keywords now.
+
+### `popover:` is the same menu, moved
+
+`popover: true` used to render something else entirely: a `HoverCard` whose content was a
+**string copy** of the list, dropped into `<body>` with no roles, no controller and no
+keyboard. The markup a popover dropdown renders is now identical to the CSS one — same
+wrapper, same `<ul role="menu">`, in the same place — and the controller *moves* that
+element into a Tippy popper when it connects. Ids, `data-turbo-confirm`, Stimulus targets
+and every listener travel with it, because it is the same node.
+
+What this buys, and what it costs:
+
+- The keyboard is not a second implementation. Tab reaches the trigger, Enter or Space
+  opens, `↓`/`↑` walk the items, Escape closes and returns the focus to the trigger, in
+  both modes.
+- **Anything you selected inside a popover menu with CSS descending from `.hover-card-…`
+  stops matching.** The wrapper classes are gone; the panel is your `<ul class="menu …">`
+  inside `[data-tippy-root]`.
+- Tippy is still a `peerDependency` and still only loaded on demand, but it is now loaded
+  by the dropdown controller rather than by the hovercard one.
+
+The **native Popover API with CSS anchor positioning** was measured and rejected for this
+release. DaisyUI 5.7.9 does emit the support (`.dropdown{position-area:var(--anchor-v,bottom)
+var(--anchor-h,span-right)}` plus `.dropdown[popover]{position:fixed}`), and it works: built
+by hand in Chrome 150 inside the dummy app's studios table, the menu landed 5 px inside the
+trigger's right edge and 3 px below it, unclipped. But anchor positioning only became
+Baseline "newly available" in January 2026 (Firefox 147), and neutralising `position-area`
+and `position-anchor` to simulate an engine without it — everything else left exactly as
+DaisyUI ships it — put the same menu at **x=5, y=3: the top-left corner of the viewport,
+1325 px left of and 505 px above the row it belongs to**. For a menu that opens off a table
+row that is not a graceful degradation, so `popover:` keeps meaning what it already meant.
+
+### `hoverable:` gets the controller
+
+A hover dropdown was the one shape with no controller attached at all, so DaisyUI opened it
+from CSS and its trigger went on reporting `aria-expanded="false"` with the menu on screen —
+the WCAG 4.1.2 hole that was closed for the click dropdown and left open in the one beside
+it. The CSS still does the opening; the controller adds the attribute, the arrow keys and
+Escape. If you asserted `assert_no_selector('[data-controller="dropdown"]')` on a hoverable
+dropdown, invert it.
+
+### Escape actually closes now
+
+Escape closed the menu and then handed the focus back to the trigger, which re-opened it on
+the same frame through `:focus-within`. `close()` now adds DaisyUI's own `.dropdown-close`,
+which every one of its open rules is written to yield to, so the close survives the focus
+coming back. `aria-expanded` is no longer set by hand either: it is read from the same
+condition DaisyUI opens on, so it cannot drift from what is on screen.
+
+```
+grep -rn "Dropdown::Component.new\|ActionsDropdown::Component.new" app/ | grep -E "wide:|align: :(left|right|top|bottom|top_end|bottom_end)"
+grep -rn "with_item" app/ | grep "icon_name:"
+grep -rn "hover-card" app/assets app/components   # popover dropdowns no longer render one
+```
+
 ## Checklist
 
 ```
@@ -2558,6 +2686,10 @@ grep -rn "NumericAttributesWithCommas\|gsub(\",\"" app/models/   # drop your own
 # dynamic_fields: these are <button> now
 grep -rn "link_to_add_fields\|link_to_remove_fields" app/ test/
 grep -rn "placehold.jp" app/ test/                   # ImageField's placeholder is a data URI
+# dropdowns: one vocabulary, and popover: renders the same menu as the CSS one
+grep -rn "Dropdown::Component.new" app/ | grep -E "wide:|align: :(left|right|top|bottom|top_end|bottom_end)"
+grep -rn "Dropdown::Component.new" app/ | grep -v "align:"   # these move from :right to :start
+grep -rn "with_item" app/ | grep "icon_name:"
 ```
 
 Then walk the sidebar with the keyboard at a phone width: Tab to the hamburger, Enter,

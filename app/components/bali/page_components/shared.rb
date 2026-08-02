@@ -113,7 +113,8 @@ module Bali
         return unless secondary_actions?
 
         render(Bali::Dropdown::Component.new(
-          align: :bottom_end,
+          direction: :bottom,
+          align: :end,
           data: { controller: "export-links", export_links_sync_value: export_links_sync? }
         )) do |dropdown|
           # `ellipsis-vertical` y no `ellipsis`: bajo `sm` este menú y el ⋯ del overflow de la
@@ -151,7 +152,7 @@ module Bali
           # Turbo no hace nada. `data-turbo="false"` sí hace falta: un CSV no es una respuesta
           # que Turbo Drive pueda renderizar y la visita se queda a mitad de camino en vez de
           # disparar la descarga.
-          items << { href: item[:url], name: item[:label], icon_name: item[:icon], method: nil,
+          items << { href: item[:url], name: item[:label], icon: item[:icon], method: nil,
                      "aria-describedby": export_menu_title_id,
                      data: { turbo: false, export_links_target: "link" } }
         end

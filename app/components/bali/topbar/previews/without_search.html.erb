@@ -7,7 +7,7 @@
   <% end %>
 
   <% topbar.with_user_menu do %>
-    <%= render Bali::Dropdown::Component.new(align: :left, class: 'lg:dropdown-end') do |dropdown| %>
+    <%= render Bali::Dropdown::Component.new(align: :start, class: 'lg:dropdown-end') do |dropdown| %>
       <% dropdown.with_trigger(variant: :ghost, class: 'btn-sm gap-2') do %>
         <%= render Bali::Avatar::Component.new(size: :xs) do |avatar| %>
           <% avatar.with_placeholder { 'AG' } %>

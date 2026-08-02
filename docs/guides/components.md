@@ -655,13 +655,55 @@ Segmented control (DaisyUI `join` of buttons) to switch between sibling views of
 
 #### Dropdown
 
-Action menu that opens on click/hover.
+Action menu that opens on click, on hover, or as a popover. One component: `ActionsDropdown`
+is a preset of this one, not a second implementation.
 
 ```erb
-<%= render Bali::Dropdown::Component.new do |dd| %>
+<%= render Bali::Dropdown::Component.new(align: :end) do |dd| %>
   <% dd.with_trigger { "Options" } %>
-  <% dd.with_item(href: "/edit") { "Edit" } %>
-  <% dd.with_item(href: "/delete", class: "text-error") { "Delete" } %>
+  <% dd.with_item(name: "Edit", href: "/edit", icon: "pencil") %>
+  <% dd.with_item(name: "Delete", href: "/things/1", method: :delete, icon: "trash") %>
+<% end %>
+```
+
+**Options:**
+- `align` - horizontal axis: `:start` (default), `:center`, `:end`
+- `direction` - the side the menu opens towards: `:top`, `:bottom`, `:left`, `:right`.
+  Left out, daisyUI's default (below the trigger) applies. It composes with `align:`.
+- `width` - `:sm` (w-40), `:md` (w-52, default), `:lg` (w-64), `:xl` (w-80)
+- `popover` - move the menu into a popper on `<body>` so no ancestor's `overflow` can clip
+  it (default: `false`). What a dropdown inside a scrollable table needs.
+- `hoverable` - open on hover as well, through daisyUI's CSS (default: `false`)
+- `close_on_click` - close when the reader clicks outside (default: `true`)
+- `menu` - `<ul role="menu">` semantics (default: `true`). Pass `false` when the panel holds
+  a form or checkboxes rather than menu items: `role="menu"` exposes children it does not
+  allow and puts a screen reader into menu mode over a form.
+
+**Items.** `with_item` builds one of three things, and `icon:` means the same in all of them:
+
+```erb
+<% dd.with_item(tag: :title, name: "Export") %>            <%# section heading %>
+<% dd.with_item(name: "CSV", href: "/x.csv", icon: "download") %>
+<% dd.with_item(name: "Delete", href: "/x", method: :delete) %>   <%# DeleteLink + confirm %>
+<% dd.with_item(tag: :button, name: "Duplicate", icon: "copy",
+                data: { action: "thing#duplicate" }) %>    <%# a real <button> %>
+```
+
+**Keyboard**, and it is the same in both modes. Tab reaches the trigger, Enter or Space
+opens it, `↓` / `↑` walk the items, Escape closes it and puts the focus back on the trigger,
+and `aria-expanded` follows what is on screen rather than the path that got there — daisyUI
+opens the CSS dropdown from `:focus-within` without any JavaScript running, so an attribute
+set by hand goes stale the moment somebody uses a mouse.
+
+#### ActionsDropdown
+
+`Bali::Dropdown` with its trigger already chosen: the ⋯ button of a table row. Takes every
+Dropdown keyword plus `icon:` for the trigger (default `"ellipsis-h"`).
+
+```erb
+<%= render Bali::ActionsDropdown::Component.new(align: :end, popover: true) do |c| %>
+  <% c.with_item(name: "Edit", icon: "pencil", href: edit_movie_path(movie)) %>
+  <% c.with_item(name: "Delete", icon: "trash", href: movie_path(movie), method: :delete) %>
 <% end %>
 ```
 
@@ -1822,27 +1864,6 @@ delete items). Auto-installed via `registerAll` — no per-app code needed.
 
 Opt out globally with `window.BALI_DISABLE_CONFIRM_DIALOG = true` before
 `registerAll` runs.
-
-#### ActionsDropdown
-
-Dropdown menu for row-level actions with an ellipsis icon trigger. Items with `method: :delete` automatically render a DeleteLink with confirmation.
-
-```erb
-<%= render Bali::ActionsDropdown::Component.new(align: :end) do |c| %>
-  <% c.with_item(name: 'Edit', icon_name: 'edit', href: edit_movie_path(movie)) %>
-  <% c.with_item(name: 'Export', icon_name: 'file-export', href: export_movie_path(movie)) %>
-  <% c.with_item(name: 'Delete', icon_name: 'trash', href: movie_path(movie), method: :delete) %>
-<% end %>
-```
-
-**Options:**
-- `align` - Horizontal alignment: `:start`, `:center`, `:end` (default: `:start`)
-- `direction` - Menu direction: `:top`, `:bottom`, `:left`, `:right` (default: `nil`)
-- `icon` - Trigger icon name (default: `"ellipsis-h"`)
-- `width` - Menu width: `:sm`, `:md`, `:lg`, `:xl` (default: `:md`)
-- `popover` - Use Tippy.js popover to escape overflow containers like scrollable tables (default: `false`)
-
-Use `with_trigger` to replace the default icon button with a custom trigger element.
 
 #### BulkActions
 
