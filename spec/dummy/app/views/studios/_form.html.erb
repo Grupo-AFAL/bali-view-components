@@ -1,32 +1,28 @@
 <%= form_with model: studio, class: 'space-y-4', builder: Bali::FormBuilder do |f| %>
   <%= f.error_summary %>
 
-  <% fields_content = capture do %>
-    <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
-      <%= f.text_group :name, required: true %>
-      <%= f.select_group :country,
-            Studio::COUNTRIES.map { |c| [c, c] },
-            { include_blank: 'Select country...' } %>
-      <%= f.select_group :status,
-            Studio.statuses.keys.map { |s| [s.humanize, s] },
-            { include_blank: 'Select status...' } %>
-      <%= f.select_group :size,
-            Studio::SIZES.map { |s| [s.humanize, s] },
-            { include_blank: 'Select size...' } %>
-      <%= f.number_group :founded_year, min: 1800, max: Date.current.year %>
-    <% end %>
+  <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
+    <%= f.text_group :name, required: true %>
+    <%= f.select_group :country,
+          Studio::COUNTRIES.map { |c| [c, c] },
+          include_blank: 'Select country...' %>
+    <%= f.select_group :status,
+          Studio.statuses.keys.map { |s| [s.humanize, s] },
+          include_blank: 'Select status...' %>
+    <%= f.select_group :size,
+          Studio::SIZES.map { |s| [s.humanize, s] },
+          include_blank: 'Select size...' %>
+    <%= f.number_group :founded_year, min: 1800, max: Date.current.year %>
   <% end %>
 
-  <% if params[:layout] == 'false' %>
-    <%= fields_content %>
-  <% else %>
-    <%= render Bali::Card::Component.new do %>
-      <%= fields_content %>
-    <% end %>
-  <% end %>
-
+  <%# The Card this partial used to branch for belongs to FormPage now — that is exactly what
+      `card:` resolving from the context buys, and it is why the `capture` above is gone too.
+      What is left is NOT a layout branch: Cancel closes an overlay and navigates on a page,
+      two different elements doing two different things, and a page component has no business
+      deciding what the host's buttons do. The context still reaches here from the component
+      rather than from `params` — the view passes `drawer: page.drawer?`. %>
   <div class="flex gap-2 justify-end mt-6">
-    <% if params[:layout] == 'false' %>
+    <% if local_assigns.fetch(:drawer, false) %>
       <%= render Bali::Button::Component.new(
         name: 'Cancel',
         variant: :ghost,

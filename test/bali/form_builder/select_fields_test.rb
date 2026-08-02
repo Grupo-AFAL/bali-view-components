@@ -86,7 +86,9 @@ class BaliFormBuilderSelectFieldsTest < FormBuilderTestCase
   end
 
   def test_select_field_explicit_html_name_wins_over_input_name
-    result = builder.select_field(:status, Movie.statuses.to_a, { input_name: "a[b]" }, name: "c[d]")
+    result = builder.select_field(
+      :status, Movie.statuses.to_a, input_name: "a[b]", html: { name: "c[d]" }
+    )
     assert_html(result, 'select[name="c[d]"]')
   end
 

@@ -3,6 +3,14 @@
 class ApplicationController < ActionController::Base
   include Pagy::Method
 
+  # Un solo lugar decide que un `?layout=false` es el Modal/Drawer trayéndose la vista: el
+  # concern apaga el layout y expone `drawer_request?` a las vistas, que es de donde los page
+  # components autodetectan su `context:`. Antes cada acción lo escribía a mano
+  # (`render layout: !drawer_request?`) sobre su propia copia del predicado. Un controller con
+  # layout propio lo declara con `self.conditional_layout = "..."`, no con `layout "..."`:
+  # `layout` en la subclase pisa al del concern y se lleva puesto el apagado.
+  include Bali::LayoutConcern
+
   around_action :switch_locale
 
   helper_method :current_user

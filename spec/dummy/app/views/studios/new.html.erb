@@ -1,11 +1,10 @@
-<% if params[:layout] == 'false' %>
-  <h2 class="text-lg font-semibold mb-4"><%= t('studios.form.new_title') %></h2>
-  <%= render 'form', studio: @studio %>
-<% else %>
-  <%= render Bali::PageHeader::Component.new(
-    title: t('studios.form.new_title'),
-    back: { href: studios_path }
-  ) %>
-
-  <%= render 'form', studio: @studio %>
+<%# One render serves the full page and the drawer: FormPage autodetects the context and drops
+    its Card and its back button when the drawer is the one fetching the view. %>
+<%= render Bali::FormPage::Component.new(
+  title: t('studios.form.new_title'),
+  back: { href: studios_path }
+) do |page| %>
+  <% page.with_body do %>
+    <%= render 'form', studio: @studio, drawer: page.drawer? %>
+  <% end %>
 <% end %>

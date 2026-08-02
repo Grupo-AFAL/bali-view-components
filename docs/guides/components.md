@@ -1751,13 +1751,31 @@ Navigation links, optionally styled as buttons.
 
 #### Tooltip
 
-Contextual information on hover.
+Contextual information on hover or focus. The block is the balloon; the `trigger` slot is
+what opens it.
 
 ```erb
-<%= render Bali::Tooltip::Component.new(content: "More information", position: :top) do %>
-  Hover over me
+<%= render Bali::Tooltip::Component.new(placement: :top) do |c| %>
+  <% c.with_trigger do %>
+    <%= render Bali::Button::Component.new(name: 'Export', variant: :ghost) %>
+  <% end %>
+  <p>Downloads the current slice as CSV.</p>
 <% end %>
 ```
+
+**Options:**
+- `placement` - `:top` (default), `:bottom`, `:left`, `:right`
+- `trigger_event` - tippy trigger string, `"mouseenter focusin"` by default. `"click"` and
+  `"manual"` are the other useful values.
+- `append_to` - `:parent` (default), `:body`, or a CSS selector, to portal the balloon out
+  of an ancestor whose `overflow` would clip it.
+
+**Keyboard.** The default trigger is `focusin` rather than tippy's `focus` because the
+element tippy watches is the wrapper around the slot, and a `focus` on the caller's own
+control inside the slot does not reach it — `focusin` bubbles and does. When the slot holds
+nothing focusable (the classic `?` help tip), the controller gives the wrapper `tabindex="0"`
+so the balloon has a keyboard route at all; when the slot brought its own button or link it
+does not, so there is no second, unnamed tab stop in front of it.
 
 #### Kanban
 
@@ -2469,6 +2487,8 @@ one adds.
 - `sidebar_width` - Share of the grid the sidebar takes when the `sidebar` slot is filled:
   `:default` (a third), `:narrow` (a quarter) or `:wide` (a half). Below `lg` the sidebar
   always stacks under the body.
+- `context` - Where the page is rendering: `:auto` (default), `:page` or `:drawer`. See
+  [One view for the page and the drawer](#one-view-for-the-page-and-the-drawer).
 
 **Slots:**
 - `with_action` (many) - Primary actions, top right
@@ -2582,7 +2602,65 @@ New/edit page that wraps form content in a centered Card, with an optional sideb
 ```
 
 **On top of [the shared surface](#the-shared-surface):**
-- `card` - Wrap the body in a Card (default: true). `max_width` defaults to `:md` here.
+- `card` - Wrap the body in a Card. Defaults to `nil`, which lets `context` decide: a page
+  gets the Card, a drawer does not. An explicit `true`/`false` always wins. `max_width`
+  defaults to `:md` here.
+
+#### One view for the page and the drawer
+
+`context:` lets one template serve a full page and a Modal/Drawer, so a `new`/`edit`/`show`
+view does not need an `if drawer_request?` around two nearly identical renders.
+
+```erb
+<%= render Bali::FormPage::Component.new(
+  title: t('.title'),
+  back: { href: movies_path }
+) do |page| %>
+  <% page.with_body do %>
+    <%= render 'form', movie: @movie, drawer: page.drawer? %>
+  <% end %>
+<% end %>
+```
+
+| value | meaning |
+|---|---|
+| `:auto` | the default: ask the request |
+| `:page` | full page chrome, whatever the request says |
+| `:drawer` | overlay chrome, whatever the request says |
+
+In a drawer the component drops the **breadcrumbs**, the **back button** and — on `FormPage`
+— the **Card**. The first two are ways out of a page, and a drawer is closed rather than
+left; the Card is the panel the drawer already draws. They are dropped even when passed,
+which is the point: the one surviving call site passes `back:`.
+
+**How `:auto` decides.** It asks the view context for `drawer_request?`, which
+`Bali::LayoutConcern` defines as `params[:layout] == "false"` and exposes as a helper — so
+the component never reads `params` itself. An app that already declares its own
+`drawer_request?` helper is detected with no change to its controllers; a view context with
+no such helper (a Lookbook preview, a unit test) renders a page.
+
+```ruby
+class ApplicationController < ActionController::Base
+  include Bali::LayoutConcern
+end
+
+module Admin
+  class BaseController < ApplicationController
+    # NOT `layout 'admin'` — a `layout` call in a subclass overrides the concern's and
+    # takes the layout skipping with it.
+    self.conditional_layout = 'admin'
+  end
+end
+```
+
+**Escape hatches.** `card:` always wins, `card: true` inside a drawer included. For the
+breadcrumbs and the back button the hatch is `context: :page`, which restores the whole page
+chrome inside a drawer request; `context: :page, card: false` combines them.
+
+**When you still have to branch.** `page.drawer?` is public and yielded with the component,
+for differences that are behavioural rather than chrome — a Cancel that closes an overlay and
+a Cancel that navigates are two different elements. Pass it into partials rather than reading
+`params` there.
 
 #### Secondary page actions and export
 

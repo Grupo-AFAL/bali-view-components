@@ -69,11 +69,19 @@ class BaliTooltipComponentTest < ComponentTestCase
     assert_selector('[data-tooltip-trigger-value="click"]')
   end
 
-  def test_custom_trigger_events_defaults_to_mouseenter_focus
+  # `focus` never fired: tippy binds it on the reference, and the reference is the wrapper
+  # the template puts around the slot, which has no tabindex. `focusin` bubbles, so a focus
+  # anywhere inside the slot reaches it. See Component::DEFAULT_TRIGGER.
+  def test_custom_trigger_events_defaults_to_mouseenter_focusin
     render_inline(Bali::Tooltip::Component.new) do |c|
       c.with_trigger { c.tag.span "Hover" }
     end
-    assert_selector('[data-tooltip-trigger-value="mouseenter focus"]')
+    assert_selector('[data-tooltip-trigger-value="mouseenter focusin"]')
+  end
+
+  def test_custom_trigger_events_default_matches_the_hovercard_default
+    assert_equal(Bali::HoverCard::Component::TRIGGERS[:hover],
+                 Bali::Tooltip::Component::DEFAULT_TRIGGER)
   end
 
   def test_options_passthrough_accepts_custom_class_via_options

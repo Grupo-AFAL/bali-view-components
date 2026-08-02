@@ -15,8 +15,13 @@
     <%= f.number_group :founded_year, min: 1800, max: Date.current.year %>
   <% end %>
 
+  <%# The only branch left, and it is not layout: Cancel CLOSES an overlay and NAVIGATES on a
+      page, which are two different elements (button vs link) doing two different things.
+      `context:` deliberately does not absorb this — a page component decides its own chrome,
+      not what the host's buttons do. The context still travels from FormPage rather than from
+      `params`: the view passes `drawer: page.drawer?`. %>
   <div class="flex gap-2 justify-end mt-6">
-    <% if params[:layout] == 'false' %>
+    <% if local_assigns.fetch(:drawer, false) %>
       <%= render Bali::Button::Component.new(
         name: t('common.cancel'),
         variant: :ghost,

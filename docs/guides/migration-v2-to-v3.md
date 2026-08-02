@@ -799,6 +799,73 @@ three of the five raised `ArgumentError` for *any* key, because they had no `max
 `sidebar_width:` is new and shared: `:default` gives the sidebar a third of the grid,
 `:narrow` a quarter, `:wide` a half. Below `lg` it always stacks under the body.
 
+### `context:` — one view for the page and for the drawer
+
+The five page components take a `context:`, and it is what lets you delete the
+`if drawer_request?` at the top of every `new`/`edit`/`show` template. Nothing is renamed and
+nothing is removed, so **a host that keeps its `if` keeps working unchanged** — this is worth
+doing when you next touch the file, not as a migration sweep.
+
+```erb
+<%# v2 — the two branches differ by exactly two arguments %>
+<% if drawer_request? %>
+  <%= render Bali::FormPage::Component.new(title: t(".title"), card: false) do |page| %>
+    <% page.with_body do %><%= render "form" %><% end %>
+  <% end %>
+<% else %>
+  <%= render Bali::FormPage::Component.new(title: t(".title"),
+                                           back: { href: vendors_path }) do |page| %>
+    <% page.with_body do %><%= render "form" %><% end %>
+  <% end %>
+<% end %>
+
+<%# v3 — one call, both contexts %>
+<%= render Bali::FormPage::Component.new(title: t(".title"),
+                                         back: { href: vendors_path }) do |page| %>
+  <% page.with_body do %><%= render "form" %><% end %>
+<% end %>
+```
+
+`context:` takes three values:
+
+| value | meaning |
+|---|---|
+| `:auto` | the default: ask the request |
+| `:page` | full page chrome, whatever the request says |
+| `:drawer` | overlay chrome, whatever the request says |
+
+Inside a drawer the component drops the **breadcrumbs**, the **back button** and — on
+`FormPage` — the **Card**. The first two are ways *out* of a page, and a drawer is closed
+rather than left; the Card is the panel the drawer already draws. They are dropped even when
+you pass them, because the whole point is that the one surviving call site does pass `back:`.
+
+**Why the component never reads `params`.** `Bali::LayoutConcern` now defines
+`drawer_request?` — `params[:layout] == "false"`, the same value its layout switch has always
+read — and exposes it as a helper. `context: :auto` asks the view context for that helper and
+renders a page when it is not there. Two consequences worth knowing:
+
+- **If your controllers already declare a `drawer_request?` helper of their own — the very
+  pattern this replaces — autodetection works with no change to them at all.** That is the
+  common case: the helper is what the deleted `if` was calling.
+- If they do not, `include Bali::LayoutConcern` in `ApplicationController`. A controller with
+  a layout of its own must then declare it as `self.conditional_layout = "admin"` rather than
+  `layout "admin"`: a `layout` call in a subclass overrides the concern's and takes the
+  layout skipping with it.
+
+**The escape hatches.** `card:` is an ordinary argument and always wins, `card: true` inside
+a drawer included. For the breadcrumbs and the back button the escape hatch is
+`context: :page`, which restores the whole page chrome inside a drawer request; combine the
+two (`context: :page, card: false`) and every arrangement is reachable.
+
+**When the host still has to branch.** `page.drawer?` is public and yielded with the
+component, because some differences are behavioural rather than chrome: a Cancel that
+*closes* an overlay and a Cancel that *navigates* are two different elements. Pass it down
+(`render "form", drawer: page.drawer?`) instead of reading `params` in the partial. A page
+component decides its own chrome; it does not decide what your buttons do.
+
+Lookbook cannot issue a drawer request, so a preview of the drawer variant has to force it —
+see the "Page or drawer" scenarios of `FormPage` and `ShowPage`.
+
 ### 4. Give `PageHeader` an `h2` if your layout already owns the page's `h1`
 
 The page title is now the page's `h1`. In v2 it was an `h3` and no page component emitted an
