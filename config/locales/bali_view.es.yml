@@ -434,11 +434,48 @@ es:
       # Acciones de cada versión
       preview: "Vista previa"
       restore: "Restaurar"
+
+      # Estado de guardado. El controlador los escribe en el DOM cuando resuelve
+      # un fetch, así que viajan como valores de Stimulus y no como texto ya
+      # renderizado.
+      status_unsaved: "Cambios sin guardar"
+      status_saving: "Guardando..."
+      status_saved: "Guardado a las %{time}"
+      status_failed: "Error al guardar"
+
+      # Etiqueta del aviso de vista previa, interpolada en JavaScript.
+      version_label: "Versión %{number}"
+
+      # Estados de la lista de versiones. Se renderizan ocultos y el controlador
+      # los revela (el patrón de BulkActions) porque no llevan dato de runtime.
+      versions_error: "No se pudieron cargar las versiones."
+      versions_empty: "Todavía no hay versiones."
+
+      # Confirmación de restaurar, mostrada con el diálogo de confirmación de Bali.
+      restore_confirm: "¿Restaurar esta versión? El contenido actual se guardará antes como una versión nueva."
+      confirm_title: "Restaurar versión"
+      confirm_accept: "Restaurar"
+      confirm_cancel: "Cancelar"
     block_editor:
       disabled_title: "Bali::BlockEditor está deshabilitado"
       disabled_help_html: "Configura %{setting} en %{initializer} e instala los paquetes npm listados en %{docs}. Este aviso solo aparece en desarrollo."
       export_pdf: "Exportar PDF"
       export_docx: "Exportar DOCX"
+
+      # Todo lo que el bundle de React escribe en el DOM. Viaja como un solo
+      # objeto JSON (data-block-editor-translations-value) porque las cadenas
+      # están repartidas entre hooks que cuelgan de este mismo controlador.
+      load_failed: "No se pudo cargar el editor. Verifica que @blocknote/react, @blocknote/mantine, react y react-dom estén instalados."
+      table_of_contents: "Tabla de contenido"
+      upload_not_configured: "La carga de archivos no está configurada"
+      upload_too_large: "El archivo es demasiado grande (%{size} MB). El máximo permitido es %{max} MB."
+      upload_failed: "Error al subir el archivo (%{status})"
+      # Se muestra en un hilo de comentarios cuando un id de usuario no resuelve
+      # a ningún nombre.
+      user_fallback: "Usuario %{id}"
+      # La única entrada traducible de la lista de lenguajes de bloques de código;
+      # el resto son nombres propios.
+      plain_text: "Texto plano"
     document_page:
       toggle_toc: "Alternar tabla de contenido"
       toggle_details: "Alternar detalles"
@@ -478,6 +515,8 @@ es:
     avatar:
       upload:
         upload_image: "Subir imagen de avatar"
+    alert:
+      close: "Cerrar alerta"
     message:
       close: "Cerrar mensaje"
     boolean_icon:

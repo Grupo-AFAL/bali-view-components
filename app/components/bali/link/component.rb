@@ -3,31 +3,16 @@
 module Bali
   module Link
     class Component < ApplicationViewComponent
-      VARIANTS = {
-        primary: "btn-primary",
-        secondary: "btn-secondary",
-        accent: "btn-accent",
-        info: "btn-info",
-        success: "btn-success",
-        warning: "btn-warning",
-        error: "btn-error",
-        ghost: "btn-ghost",
-        link: "btn-link",
-        neutral: "btn-neutral"
-      }.freeze
+      # One table for Button, Link and DeleteLink. See Bali::ButtonTaxonomy.
+      VARIANTS = Bali::ButtonTaxonomy::VARIANTS
+      SIZES = Bali::ButtonTaxonomy::SIZES
+      STYLES = Bali::ButtonTaxonomy::STYLES
 
-      SIZES = {
-        xs: "btn-xs",
-        sm: "btn-sm",
-        md: "",
-        lg: "btn-lg",
-        xl: "btn-xl"
-      }.freeze
-
-      STYLES = {
-        outline: "btn-outline",
-        soft: "btn-soft"
-      }.freeze
+      # `type:` named the colour here and the HTML attribute in Bali::Button, which is why
+      # it is gone rather than renamed. Rejected rather than dropped: `<a type="ghost">` is
+      # valid HTML, so **options would have quietly turned it into an attribute.
+      TYPE_REMOVED_MESSAGE = "Bali::Link::Component no longer accepts `type:`. " \
+                             "Use `variant:` for the colour (`type:` was deprecated in v2.0)."
 
       attr_reader :name, :href, :icon_name
 
@@ -52,16 +37,19 @@ module Bali
         drawer: false,
         authorized: true,
         responsive: true,
-        type: nil, # DEPRECATED: Use `variant` instead
         **options
       )
         # rubocop:enable Metrics/ParameterLists
+        reject_type!(options)
+
         @name = name
         @href = href
-        # Support deprecated `type` parameter for backwards compatibility
-        @variant = (variant || type)&.to_sym
+        @variant = variant&.to_sym
         @style = style&.to_sym
         @size = size&.to_sym
+        @variant_class = Bali::ButtonTaxonomy.variant!(self.class, variant)
+        @style_class = Bali::ButtonTaxonomy.style!(self.class, style)
+        @size_class = Bali::ButtonTaxonomy.size!(self.class, size)
         @icon_name = icon_name
         @active = active
         @active_path = active_path
@@ -112,6 +100,12 @@ module Bali
 
       attr_reader :options
 
+      def reject_type!(options)
+        return unless options.key?(:type)
+
+        raise ArgumentError, TYPE_REMOVED_MESSAGE
+      end
+
       def base_class
         if button_style?
           "btn"
@@ -123,15 +117,15 @@ module Bali
       end
 
       def variant_class
-        VARIANTS[@variant] if button_style?
+        @variant_class if button_style?
       end
 
       def size_class
-        SIZES[@size] if button_style? && @size
+        @size_class if button_style?
       end
 
       def style_class
-        STYLES[@style] if button_style? && @style
+        @style_class if button_style?
       end
 
       def button_style?

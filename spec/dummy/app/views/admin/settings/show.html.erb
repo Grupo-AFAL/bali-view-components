@@ -61,7 +61,7 @@
             </h3>
             <p class="text-base-content/60 text-sm mb-4"><%= t('settings.notification_desc') %></p>
 
-            <%= render Bali::Message::Component.new(color: :info, class: 'mb-4') do %>
+            <%= render Bali::Alert::Component.new(color: :info, class: 'mb-4') do %>
               <%= t('settings.notification_tip') %>
             <% end %>
 
@@ -90,7 +90,7 @@
             </h3>
             <p class="text-base-content/60 text-sm mb-4"><%= t('settings.privacy_desc') %></p>
 
-            <%= render Bali::Message::Component.new(color: :warning, class: 'mb-4') do %>
+            <%= render Bali::Alert::Component.new(color: :warning, class: 'mb-4') do %>
               <%= t('settings.privacy_notice') %>
             <% end %>
 
@@ -156,7 +156,7 @@
               <% end %>
 
               <div class="space-y-4">
-                <%= render Bali::Message::Component.new(color: :warning, class: 'mb-4') do %>
+                <%= render Bali::Alert::Component.new(color: :warning, class: 'mb-4') do %>
                   <%= t('settings.advanced_warning') %>
                 <% end %>
 

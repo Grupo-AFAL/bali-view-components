@@ -134,6 +134,12 @@
           <div data-document-editor-target="versionsList">
             <%= render Bali::Loader::Component.new(size: :md) %>
           </div>
+          <%# Neither message carries runtime data, so the server renders both and the
+              controller only reveals one -- the BulkActions pattern. They sit OUTSIDE
+              versionsList because the controller clears that node with replaceChildren()
+              on every load. %>
+          <p class="text-sm text-error hidden" data-document-editor-target="versionsError"><%= t('.versions_error') %></p>
+          <p class="text-sm text-base-content/50 hidden" data-document-editor-target="versionsEmpty"><%= t('.versions_empty') %></p>
         </div>
       </div>
 
@@ -155,7 +161,14 @@
             <button type="button" class="version-btn version-btn-preview" data-action="document-editor#previewVersion">
               <%= render Bali::Icon::Component.new('eye', size: :small) %> <%= t('.preview') %>
             </button>
-            <button type="button" class="version-btn version-btn-restore" data-action="document-editor#restoreVersion">
+            <%# The dialog labels ride on the button, the way DeleteLink already does it,
+                so the confirm is Bali's styled <dialog> instead of window.confirm. %>
+            <button type="button" class="version-btn version-btn-restore"
+                    data-action="document-editor#restoreVersion"
+                    data-bali-confirm-variant="warning"
+                    data-bali-confirm-title="<%= t('.confirm_title') %>"
+                    data-bali-confirm-accept="<%= t('.confirm_accept') %>"
+                    data-bali-confirm-cancel="<%= t('.confirm_cancel') %>">
               <%= render Bali::Icon::Component.new('rotate-ccw', size: :small) %> <%= t('.restore') %>
             </button>
           </div>

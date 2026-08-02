@@ -83,6 +83,7 @@ export { registerAll as registerAllControllers } from './controllers/index'
 
 // Re-export all core component controllers (excludes heavy modules)
 export {
+  AlertController,
   AppliedTagsController,
   AvatarController,
   BulkActionsController,
@@ -105,11 +106,9 @@ export {
   ImageFieldController,
   KanbanController,
   LocationsMapController,
-  MessageController,
   ModalController,
   MultiSelectController,
   NavbarController,
-  NotificationController,
   RateController,
   RecurrentEventRuleController,
   RevealController,

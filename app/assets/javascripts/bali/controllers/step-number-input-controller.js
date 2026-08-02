@@ -41,12 +41,14 @@ export class StepNumberInputController extends Controller {
     this.updateButtonState(this.subtractTarget, this.value <= this.minValue)
   }
 
+  // A disabled field stays disabled. The buttons carry their targets even when the
+  // field is disabled, so without this the first updateValue would re-enable them.
   updateButtonState (button, atLimit) {
-    if (!button) return
+    const disabled = atLimit || this.inputTarget.disabled
 
-    button.classList.toggle('btn-disabled', atLimit)
-    button.classList.toggle('pointer-events-none', atLimit)
-    button.disabled = atLimit
+    button.classList.toggle('btn-disabled', disabled)
+    button.classList.toggle('pointer-events-none', disabled)
+    button.disabled = disabled
   }
 
   // Arrow function preserves `this` binding when used as event listener

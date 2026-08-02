@@ -165,7 +165,7 @@ Use the correct component based on **what the element does**, not how it looks:
 |----------|-----------|---------|---------|
 | **Navigation** (goes to URL) | `Bali::Link::Component` | `<a>` | "View Details", "Go Back" |
 | **Action** (triggers behavior) | `Bali::Button::Component` | `<button>` | "Submit", "Cancel", "Close Modal" |
-| **Link styled as button** | `Bali::Link::Component` with `type:` | `<a class="btn">` | "Create New" (navigates to /new) |
+| **Link styled as button** | `Bali::Link::Component` with `variant:` | `<a class="btn">` | "Create New" (navigates to /new) |
 
 ```erb
 <%# ✅ CORRECT: Button for actions %>
@@ -173,7 +173,7 @@ Use the correct component based on **what the element does**, not how it looks:
 <%= render Bali::Button::Component.new(name: 'Save', variant: :primary, type: :submit) %>
 
 <%# ✅ CORRECT: Link for navigation %>
-<%= render Bali::Link::Component.new(name: 'View Users', href: '/users', type: :primary) %>
+<%= render Bali::Link::Component.new(name: 'View Users', href: '/users', variant: :primary) %>
 
 <%# ❌ WRONG: Link for action (accessibility issue) %>
 <%= render Bali::Link::Component.new(name: 'Cancel', href: '#', data: { action: 'modal#close' }) %>

@@ -89,7 +89,10 @@ export default function BlockNoteEditorWrapper ({
   commentsUser,
   commentsUsers,
   commentsUsersUrl,
-  commentsPollInterval
+  commentsPollInterval,
+  // Rails-supplied UI strings, keyed as in config/locales/bali_view.*.yml. The
+  // hooks below used to hardcode them in English regardless of the app's locale.
+  translations = {}
 }) {
   const htmlParsed = useRef(false)
   // Deferred content (HTML/Markdown) is applied after mount; hold back the
@@ -101,7 +104,7 @@ export default function BlockNoteEditorWrapper ({
   const mentionsEnabled = !!(mentionsUrl || (staticMentions && staticMentions.length > 0))
   const referencesEnabled = !!referencesUrl
 
-  const uploadFile = useFileUpload(uploadUrl, containerElement)
+  const uploadFile = useFileUpload(uploadUrl, containerElement, translations)
 
   // Parse content, detecting format:
   // - Array → BlockNote blocks (legacy/default)
@@ -126,6 +129,13 @@ export default function BlockNoteEditorWrapper ({
     }
   }, [initialContent])
 
+  // "Plain Text" is the one entry of the language list that is a description
+  // rather than a proper name, so it is the one that needs translating.
+  const supportedLanguages = useMemo(() => ({
+    ...SUPPORTED_LANGUAGES,
+    text: { ...SUPPORTED_LANGUAGES.text, name: translations.plain_text ?? SUPPORTED_LANGUAGES.text.name }
+  }), [translations.plain_text])
+
   // Build schema with optional syntax highlighting, multi-column, and mentions support.
   //
   // `shiki` is a heavyweight optional dependency (~9 MB unminified with every
@@ -137,7 +147,7 @@ export default function BlockNoteEditorWrapper ({
   const schema = useMemo(() => {
     const codeBlock = syntaxHighlighting
       ? createCodeBlockSpec({
-        supportedLanguages: SUPPORTED_LANGUAGES,
+        supportedLanguages,
         defaultLanguage: 'text',
         createHighlighter: async () => {
           try {
@@ -168,7 +178,7 @@ export default function BlockNoteEditorWrapper ({
       }
     })
     return multiColumn ? multiColumn.withMultiColumn(base) : base
-  }, [multiColumn, syntaxHighlighting])
+  }, [multiColumn, syntaxHighlighting, supportedLanguages])
 
   const aiExtension = useMemo(() => {
     if (!aiEnabled) return null
@@ -182,7 +192,8 @@ export default function BlockNoteEditorWrapper ({
     commentsUsers: commentsEnabled ? commentsUsers : undefined,
     commentsUsersUrl: commentsEnabled ? commentsUsersUrl : undefined,
     commentsUrl: commentsEnabled ? commentsUrl : undefined,
-    commentsPollInterval: commentsEnabled ? commentsPollInterval : undefined
+    commentsPollInterval: commentsEnabled ? commentsPollInterval : undefined,
+    translations
   })
 
   const extensions = useMemo(() => {
@@ -498,7 +509,7 @@ export default function BlockNoteEditorWrapper ({
   if (tableOfContents && tocPortalContainer) {
     return (
       <>
-        {createPortal(<TableOfContents headings={tocHeadings} editorElement={editor?.domElement} />, tocPortalContainer)}
+        {createPortal(<TableOfContents headings={tocHeadings} editorElement={editor?.domElement} label={translations.table_of_contents} />, tocPortalContainer)}
         {editorView}
       </>
     )
@@ -508,7 +519,7 @@ export default function BlockNoteEditorWrapper ({
   if (tableOfContents) {
     return (
       <div className='bn-toc-layout'>
-        <TableOfContents headings={tocHeadings} editorElement={editor?.domElement} />
+        <TableOfContents headings={tocHeadings} editorElement={editor?.domElement} label={translations.table_of_contents} />
         <div className='bn-toc-editor-wrapper'>{editorView}</div>
       </div>
     )

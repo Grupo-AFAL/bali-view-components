@@ -55,8 +55,10 @@
   <% end %>
 <% end %>
 
-<%# dismiss: false keeps the toast on screen; the default auto-closes after 3s. %>
-<%= render Bali::Notification::Component.new(message: 'Toast', position: :top_right, dismiss: false) %>
+<%# duration: nil keeps the toast on screen; the default auto-closes after 3s. %>
+<%= render Bali::ToastContainer::Component.new(position: :top_end) do |c| %>
+  <% c.with_toast(duration: nil) { 'Toast' } %>
+<% end %>
 
 <script>
   // The controllers open these on user input. This page only needs them all

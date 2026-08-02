@@ -12,8 +12,14 @@ module Bali
         left left-start left-end
       ].freeze
 
+      # `focusin` and not tippy's `focus`: tippy only honours `focus` when the focused
+      # element IS the reference, and the reference here is the trigger slot's wrapper
+      # `<div>`, which has no tabindex and therefore never takes focus. The keyboard half
+      # of "mouseenter focus" was dead in every hovercard the library has ever rendered —
+      # measured in Chrome, `state.isVisible` false on focus with `focus`, true with
+      # `focusin`. `focusin` bubbles, so focusing anything inside the trigger opens the card.
       TRIGGERS = {
-        hover: "mouseenter focus",
+        hover: "mouseenter focusin",
         click: "click"
       }.freeze
 

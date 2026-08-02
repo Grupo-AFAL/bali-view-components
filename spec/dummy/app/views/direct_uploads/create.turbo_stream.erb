@@ -1,5 +1,5 @@
 <%= turbo_stream.update "result" do %>
-  <%= render Bali::Message::Component.new(color: :success, class: 'mb-4') do %>
+  <%= render Bali::Alert::Component.new(color: :success, class: 'mb-4') do %>
     <div>
       <h3 class="font-bold">Form submitted successfully!</h3>
       <p class="text-sm">Files should auto-clear above (Turbo integration working).</p>
@@ -25,7 +25,7 @@
 
       <% if @evidences.present? %>
         <div class="mt-4">
-          <%= render Bali::Message::Component.new(color: :success, size: :small) do %>
+          <%= render Bali::Alert::Component.new(color: :success, size: :small) do %>
             Field name is correct: <%= render Bali::Tag::Component.new(text: 'evidences[]', color: :success) %>
             <span class="text-sm ml-2">
               (Received <%= @evidences.is_a?(Array) ? @evidences.length : 1 %> file(s))
@@ -34,7 +34,7 @@
         </div>
       <% else %>
         <div class="mt-4">
-          <%= render Bali::Message::Component.new(color: :warning, size: :small) do %>
+          <%= render Bali::Alert::Component.new(color: :warning, size: :small) do %>
             No evidences received. Upload files first.
           <% end %>
         </div>

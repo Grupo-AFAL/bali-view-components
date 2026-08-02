@@ -25,17 +25,40 @@ function showUploadError (message, container) {
   setTimeout(() => toast.remove(), 5000)
 }
 
-export function useFileUpload (uploadUrl, container = null) {
+// Rails ships the sentence with its placeholders intact; the numbers only exist
+// in the browser, so they are substituted here.
+function interpolate (template, values) {
+  return Object.entries(values).reduce(
+    (text, [key, value]) => text.replaceAll(`%{${key}}`, value),
+    template
+  )
+}
+
+// English is what a host gets when it wires this controller up by hand instead
+// of rendering the component; through the component, Rails always supplies these.
+// Only the three strings that reach the DOM are here -- the two that merely
+// `throw` are developer signals and stay in English on purpose.
+const FALLBACKS = {
+  upload_not_configured: 'File uploads are not configured',
+  upload_too_large: 'File is too large (%{size} MB). Maximum allowed is %{max} MB.',
+  upload_failed: 'Upload failed (%{status})'
+}
+
+export function useFileUpload (uploadUrl, container = null, translations = {}) {
   return useCallback(async (file) => {
+    const t = (key, values = {}) => interpolate(translations[key] ?? FALLBACKS[key], values)
+
     if (!uploadUrl) {
-      showUploadError('File uploads are not configured', container)
-      throw new Error('File uploads are not configured')
+      const message = t('upload_not_configured')
+      showUploadError(message, container)
+      throw new Error(message)
     }
 
     if (file.size > MAX_UPLOAD_SIZE) {
-      const maxMB = Math.round(MAX_UPLOAD_SIZE / (1024 * 1024))
-      const fileMB = (file.size / (1024 * 1024)).toFixed(1)
-      const message = `File is too large (${fileMB} MB). Maximum allowed is ${maxMB} MB.`
+      const message = t('upload_too_large', {
+        size: (file.size / (1024 * 1024)).toFixed(1),
+        max: Math.round(MAX_UPLOAD_SIZE / (1024 * 1024))
+      })
       showUploadError(message, container)
       throw new Error(message)
     }
@@ -55,7 +78,7 @@ export function useFileUpload (uploadUrl, container = null) {
     })
 
     if (!response.ok) {
-      let message = `Upload failed (${response.status})`
+      let message = t('upload_failed', { status: response.status })
       try {
         const err = await response.json()
         if (err.error) message = err.error
@@ -69,5 +92,5 @@ export function useFileUpload (uploadUrl, container = null) {
       return data.url
     }
     throw new Error('Invalid URL returned from upload endpoint')
-  }, [uploadUrl, container])
+  }, [uploadUrl, container, translations])
 }

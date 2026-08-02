@@ -21,10 +21,17 @@ function pollOptions (interval) {
  * @param {string} options.commentsUsersUrl - Remote endpoint for user resolution
  * @param {string} options.commentsUrl     - REST API base URL for thread persistence
  * @param {number} options.commentsPollInterval - Poll period in ms; 0 disables polling
+ * @param {Object} options.translations   - Rails-supplied UI strings
  * @returns {{ extension: Object, threadStore: ThreadStore } | null}
  */
-export function useComments ({ commentsUser, commentsUsers, commentsUsersUrl, commentsUrl, commentsPollInterval }) {
+export function useComments ({
+  commentsUser, commentsUsers, commentsUsersUrl, commentsUrl, commentsPollInterval,
+  translations = {}
+}) {
   const threadStoreRef = useRef(null)
+  // The name shown on a comment whose author id resolves to nothing. It is the
+  // one string this hook puts on screen.
+  const userFallback = translations.user_fallback ?? 'User %{id}'
 
   // Clean up polling on unmount
   useEffect(() => {
@@ -37,6 +44,8 @@ export function useComments ({ commentsUser, commentsUsers, commentsUsersUrl, co
 
   return useMemo(() => {
     if (!commentsUser?.id) return null
+
+    const nameFor = (id) => userFallback.replaceAll('%{id}', id)
 
     // Destroy previous store if switching
     if (threadStoreRef.current?.destroy) {
@@ -56,7 +65,7 @@ export function useComments ({ commentsUser, commentsUsers, commentsUsersUrl, co
       commentsUsers.forEach(u => {
         staticUserMap.set(String(u.id), {
           id: String(u.id),
-          username: u.username || u.name || `User ${u.id}`,
+          username: u.username || u.name || nameFor(u.id),
           avatarUrl: u.avatarUrl || u.avatar_url || ''
         })
       })
@@ -65,7 +74,7 @@ export function useComments ({ commentsUser, commentsUsers, commentsUsersUrl, co
     // Always include the current user
     staticUserMap.set(userId, {
       id: userId,
-      username: commentsUser.username || commentsUser.name || `User ${userId}`,
+      username: commentsUser.username || commentsUser.name || nameFor(userId),
       avatarUrl: commentsUser.avatarUrl || commentsUser.avatar_url || ''
     })
 
@@ -96,7 +105,7 @@ export function useComments ({ commentsUser, commentsUsers, commentsUsersUrl, co
             for (const u of users) {
               const user = {
                 id: String(u.id),
-                username: u.username || u.name || `User ${u.id}`,
+                username: u.username || u.name || nameFor(u.id),
                 avatarUrl: u.avatarUrl || u.avatar_url || ''
               }
               staticUserMap.set(user.id, user)
@@ -111,7 +120,7 @@ export function useComments ({ commentsUser, commentsUsers, commentsUsersUrl, co
       // Fallback: return placeholder for any still-missing users
       for (const uid of missing) {
         if (!resolved.find(u => u.id === String(uid))) {
-          resolved.push({ id: String(uid), username: `User ${uid}`, avatarUrl: '' })
+          resolved.push({ id: String(uid), username: nameFor(uid), avatarUrl: '' })
         }
       }
 
@@ -125,5 +134,5 @@ export function useComments ({ commentsUser, commentsUsers, commentsUsersUrl, co
     // crashes when BlockNote renders resolved threads before async user
     // resolution completes (useUsers → getUser returns undefined).
     return { extension, threadStore, staticUserMap }
-  }, [commentsUser, commentsUsers, commentsUsersUrl, commentsUrl, commentsPollInterval])
+  }, [commentsUser, commentsUsers, commentsUsersUrl, commentsUrl, commentsPollInterval, userFallback])
 }

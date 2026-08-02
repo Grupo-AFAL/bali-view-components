@@ -2,6 +2,6 @@
   <% c.with_empty_state do %>
     <%= render Bali::Icon::Component.new('image', class: 'size-8 text-base-content/40') %>
     <p class="text-sm text-base-content/60"><%= t('bali_view.image_grid.empty_state.title') %></p>
-    <%= render Bali::Link::Component.new(name: t('bali_view.image_grid.empty_state.add_image'), href: '/lookbook', type: :primary) %>
+    <%= render Bali::Link::Component.new(name: t('bali_view.image_grid.empty_state.add_image'), href: '/lookbook', variant: :primary) %>
   <% end %>
 <% end %>
