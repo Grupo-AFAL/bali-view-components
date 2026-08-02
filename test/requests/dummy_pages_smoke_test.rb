@@ -13,6 +13,11 @@ require "test_helper"
 # smoke test on purpose: it pins that the page renders at all, not what it renders. A page
 # that renders *less* than it should still answers 200 — that shape of bug is what
 # `test/dummy_component_keywords_test.rb` is for.
+#
+# The walk also reads the deprecator, and that is the second thing it pins (#797). The pages
+# a host copies from cannot teach the call the library just deprecated, and 27 warnings per
+# run is how a deprecator stops being read at all — the one that finally matters scrolls past
+# with the rest.
 class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
   # Controllers the dummy does not own. Rails, Turbo, Active Storage and ViewComponent ship
   # these; whether they answer is their maintainers' problem, not this app's.
@@ -27,6 +32,15 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
                                          "controller test"
   }.freeze
 
+  # Deprecations the dummy fires on purpose, keyed by the leading text of the entry the
+  # walk builds — `<path> (<endpoint>): <message>` — so an exception covers the call site
+  # it was written for and not the component everywhere. A fifth page reaching for Level
+  # still fails.
+  #
+  # Zero is the goal and the rest of this list is meant to be deleted, not extended: the
+  # guard below fails on an entry that no longer fires, so whoever removes the call site
+  # is told to remove its exception too.
+  #
   def setup
     @tenant = Tenant.create!(name: "Smoke Studio")
     @movie = @tenant.movies.create!(name: "Smoke Movie", status: 0, genre: "Drama", rating: 8)
@@ -36,23 +50,20 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
     @version = @document.create_version!(author_name: "Smoke Author")
   end
 
-  def test_every_page_the_dummy_serves_answers
-    failures = swept_routes.filter_map do |route|
-      path = expand(route)
-      # Rescued rather than left to propagate so the sweep reports every broken page in one
-      # run: a template that raises is exactly the case this exists for, and letting the
-      # first one abort the loop would hide the rest.
-      begin
-        get path
-        next if response.successful?
-
-        "#{path} (#{endpoint(route)}) -> #{response.status} #{first_error_line}"
-      rescue StandardError => e
-        "#{path} (#{endpoint(route)}) -> raised #{e.class}: #{e.message.lines.first.to_s.strip}"
-      end
-    end
+  # Two assertions off one walk rather than two test methods, because the walk is the
+  # expensive part: rendering all 51 pages a second time to read a different side effect
+  # would cost more than the check is worth.
+  #
+  # Rendering is asserted first on purpose. A page that 500s never reaches the call site
+  # that would have warned, so its silence about deprecations would mean nothing.
+  def test_every_page_the_dummy_serves_answers_without_deprecation_warnings
+    failures, deprecations = walk
 
     assert_empty failures, "dummy pages that do not render:\n#{failures.join("\n")}"
+
+    assert_empty deprecations,
+      "dummy pages calling a deprecated API. Migrate the call site:\n" \
+      "#{deprecations.join("\n")}"
   end
 
   # Without this the list above rots: a page added to the dummy would simply never be
@@ -67,6 +78,55 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  # Requests every swept route once, returning the pages that did not render and the
+  # deprecations they emitted while rendering. Both come off the same pass so the sweep
+  # stays one walk.
+  def walk
+    failures = []
+    deprecations = []
+
+    warn_into(deprecations) do
+      swept_routes.each do |route|
+        path = expand(route)
+        @current_page = "#{path} (#{endpoint(route)})"
+        # Rescued rather than left to propagate so the sweep reports every broken page in
+        # one run: a template that raises is exactly the case this exists for, and letting
+        # the first one abort the loop would hide the rest.
+        begin
+          get path
+          next if response.successful?
+
+          failures << "#{@current_page} -> #{response.status} #{first_error_line}"
+        rescue StandardError => e
+          failures << "#{@current_page} -> raised #{e.class}: #{e.message.lines.first.to_s.strip}"
+        end
+      end
+    end
+
+    [ failures, deprecations ]
+  end
+
+  # Bali's deprecator is process-wide, so the previous behavior is restored rather than
+  # reset to a literal: the test env configures it and this must not quietly redefine it
+  # for whatever runs next.
+  def warn_into(collected)
+    original = Bali.deprecator.behavior
+    Bali.deprecator.behavior = ->(message, *) do
+      # The page is what makes a warning actionable. The message's own `called from` names
+      # the component that raised it, which is one shared line for every call site.
+      collected << "#{@current_page}: #{summarize(message)}"
+    end
+    yield
+  ensure
+    Bali.deprecator.behavior = original
+  end
+
+  # Drops the `DEPRECATION WARNING:` prefix and the `(called from ...)` suffix ActiveSupport
+  # wraps around the text, which are noise once the page is named.
+  def summarize(message)
+    message.sub(/\ADEPRECATION WARNING: /, "").sub(/ \(called from .*\z/m, "").strip
+  end
 
   # The record each dynamic segment resolves to, keyed by the controller that owns the route
   # and then by the segment's name. A segment with no entry drops its route out of the sweep

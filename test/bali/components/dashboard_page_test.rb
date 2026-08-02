@@ -23,6 +23,26 @@ class BaliDashboardPageComponentTest < ComponentTestCase
     assert_text("$45K")
   end
 
+  # Every stat renders as a real StatCard, and this template used to hand it the keyword
+  # StatCard itself deprecates — so a host got one warning per stat card for a call it
+  # never wrote and could not change. Twelve of the twenty-seven warnings the dummy fired
+  # came from here (#797). Same leak the deprecator test pins for PageHeader and Level.
+  #
+  # The icon is asserted alongside the silence because the cheap way to quiet this warning
+  # is to drop the keyword, which drops the icon too and still passes a test that only
+  # counts warnings.
+  def test_stats_do_not_leak_the_stat_card_deprecation_to_the_host
+    warning = capture_deprecation do
+      render_inline(Bali::DashboardPage::Component.new(title: "Dashboard")) do |page|
+        page.with_stat(label: "Total Movies", value: "1,234", icon: "film")
+        page.with_body { "Content" }
+      end
+    end
+
+    assert_nil(warning)
+    assert_selector(".rounded-full svg")
+  end
+
   def test_renders_actions
     render_inline(Bali::DashboardPage::Component.new(title: "Dashboard")) do |page|
       page.with_action { "Export Button" }
