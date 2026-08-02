@@ -111,6 +111,31 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("option[selected]", text: "Inactive")
   end
 
+  # This template called `slim_select_field` with the two positional hashes #785 retired,
+  # so every index page carrying a slim_select filter warned on the host's behalf about a
+  # call written here (#797). The id and the width class come out of what used to be the
+  # second hash: assert them, or "fix" the warning by deleting the hash and still pass.
+  def test_slim_select_filter_does_not_leak_the_form_builder_deprecation_to_the_host
+    slim_select_filter = [
+      {
+        attribute: :status,
+        type: :slim_select,
+        collection: [ %w[Active active], %w[Inactive inactive] ],
+        blank: "All",
+        label: "Status",
+        value: "active"
+      }
+    ]
+
+    warning = capture_deprecation do
+      render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: slim_select_filter))
+    end
+
+    assert_nil(warning)
+    assert_selector("select#simple-filter-q-status_eq.w-full")
+    assert_selector("option[selected]", text: "Active")
+  end
+
   def test_slim_select_filter_selects_the_current_value
     slim_select_filter = [
       {

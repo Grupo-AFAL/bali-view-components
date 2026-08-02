@@ -132,14 +132,12 @@
           <%= f.slim_select_field(
                 filter_field_name(filter),
                 filter[:collection],
-                {
-                  include_blank: filter[:blank],
-                  selected: (filter[:value] || filter[:default]),
-                  size: :sm,
-                  content_width: SLIM_SELECT_CONTENT_WIDTH,
-                  addon_left: (render Bali::Icon::Component.new(filter[:icon], class: 'w-4 h-4') if filter[:icon])
-                },
-                { id: filter_control_id(filter), class: "w-full #{'max-sm:w-16' if filter[:icon]}", select_class: ('max-sm:w-16' if filter[:icon]) }
+                include_blank: filter[:blank],
+                selected: (filter[:value] || filter[:default]),
+                size: :sm,
+                content_width: SLIM_SELECT_CONTENT_WIDTH,
+                addon_left: (render Bali::Icon::Component.new(filter[:icon], class: 'w-4 h-4') if filter[:icon]),
+                html: { id: filter_control_id(filter), class: "w-full #{'max-sm:w-16' if filter[:icon]}", select_class: ('max-sm:w-16' if filter[:icon]) }
               ) %>
         <% else %>
           <div class="<%= 'join' if filter[:icon] %>">

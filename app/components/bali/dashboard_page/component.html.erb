@@ -9,7 +9,7 @@
         <%= render Bali::StatCard::Component.new(
           title: stat.label,
           value: stat.value,
-          icon_name: stat.icon,
+          icon: stat.icon,
           color: stat.color
         ) do |card| %>
           <% if stat.change.present? %>

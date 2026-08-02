@@ -92,8 +92,8 @@
           %>
           <%= f.slim_select_group :assignees,
             options_for_select(team_options),
-            { label: 'Team Members', include_blank: 'Select team members...', hide_selected: true },
-            { multiple: true, placeholder: 'Search team members...' } %>
+            label: 'Team Members', include_blank: 'Select team members...', hide_selected: true,
+            html: { multiple: true, placeholder: 'Search team members...' } %>
         <% end %>
       </div>
 
@@ -131,8 +131,8 @@
           %>
           <%= f.slim_select_group :priority,
             options_for_select(priority_options, 'medium'),
-            { label: 'Priority Level', allow_deselect_option: true },
-            { placeholder: 'Select priority...' } %>
+            label: 'Priority Level', allow_deselect_option: true,
+            html: { placeholder: 'Select priority...' } %>
         <% end %>
       </div>
     </div>
@@ -196,7 +196,7 @@
          [t('showcase.experience_levels.intermediate'), 'intermediate'],
          [t('showcase.experience_levels.advanced'), 'advanced'],
          [t('showcase.experience_levels.expert'), 'expert']],
-        { include_blank: t('showcase.select_level') },
+        include_blank: t('showcase.select_level'),
         label: t('showcase.experience_level') %>
 
       <%# Text area %>
