@@ -38,8 +38,7 @@ import { ImageFieldController } from '../../../components/bali/image_field/index
 import { ImageExpanderController } from '../../../components/bali/image_grid/index'
 import { DirectUploadController } from '../../../components/bali/direct_upload/index'
 import { RecurrentEventRuleController } from '../../../components/bali/recurrent_event_rule_form/index'
-import { NotificationController } from '../../../components/bali/notification/index'
-import { MessageController } from '../../../components/bali/message/index'
+import { AlertController } from '../../../components/bali/alert/index'
 import { LocationsMapController } from '../../../components/bali/locations_map/index'
 import {
   FiltersController,
@@ -62,6 +61,7 @@ import { CommandController } from '../../../components/bali/command/index'
 import { StatusController } from '../../../components/bali/status/index'
 
 export {
+  AlertController,
   AppliedTagsController,
   AvatarController,
   BulkActionsController,
@@ -84,11 +84,9 @@ export {
   ImageFieldController,
   KanbanController,
   LocationsMapController,
-  MessageController,
   ModalController,
   MultiSelectController,
   NavbarController,
-  NotificationController,
   RateController,
   RecurrentEventRuleController,
   RevealController,
@@ -154,8 +152,7 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   'recurrent-event-rule': RecurrentEventRuleController,
 
   // Feedback
-  notification: NotificationController,
-  message: MessageController,
+  alert: AlertController,
 
   // Map
   'locations-map': LocationsMapController,

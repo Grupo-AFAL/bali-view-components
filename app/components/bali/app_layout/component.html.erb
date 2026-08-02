@@ -58,15 +58,13 @@
     </div>
   </div>
 
-  <%# 4. Toast notifications (fixed bottom-right, stacking upward) %>
-  <% if render_toast? %>
-    <div id="toast-notifications" class="fixed bottom-4 left-4 right-4 sm:left-auto sm:min-w-80 sm:max-w-sm z-[var(--bali-z-toast)] flex flex-col gap-3 pointer-events-none" role="status" aria-live="polite">
-      <div class="flex flex-col gap-3 pointer-events-auto">
-        <%= render Bali::FlashNotifications::Component.new(
-          notice: flash_notice,
-          alert: flash_alert
-        ) %>
-      </div>
-    </div>
+  <%# 4. Flash toasts. The stack used to be hand-written here, around a
+      FlashNotifications that only knew `notice:` and `alert:`; Bali::ToastContainer
+      is that markup, and it reads every flash key it recognises. The wrapper also
+      used to be an `aria-live` region containing alerts that were live regions
+      themselves — nesting that made announcements unreliable. The toasts keep
+      their roles; the container is now plain furniture. %>
+  <% if flash_toasts? %>
+    <%= render Bali::ToastContainer::Component.new(id: "toast-notifications", flash: flash_hash) %>
   <% end %>
 </body>

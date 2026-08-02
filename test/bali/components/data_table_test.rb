@@ -1029,4 +1029,54 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_no_selector(".border-t")
     assert_no_text("Showing")
   end
+
+  # --- links de página --------------------------------------------------------------------
+  #
+  # Quién arma la URL de "página 2" depende de si el Pagy trae un request, y el listado no le
+  # quita el trabajo a Pagy cuando Pagy puede hacerlo: la `url:` de un DataTable es la base de
+  # filtrado y orden, que el host pasa SIN query string, así que hacerla ganar borra el recorte
+  # aplicado al cambiar de página (#756).
+
+  def render_listing(pagy:, url: "/movies")
+    render_inline(Bali::DataTable::Component.new(url: url, pagy: pagy)) do |c|
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+  end
+
+  def linkable_pagy(params:, path: "/admin/movies")
+    request = Pagy::Request.new(
+      request: { base_url: "http://example.com", path: path, params: params, cookie: nil }
+    )
+    Pagy::Offset.new(count: 47, page: 1, limit: 10, request: request)
+  end
+
+  def page_link_href(number)
+    page.find("nav.pagy-nav-daisyui a", text: number.to_s, exact_text: true)[:href]
+  end
+
+  def test_page_links_point_at_the_listing_url_when_the_pagy_has_no_request
+    render_listing(pagy: Pagy::Offset.new(count: 47, page: 1, limit: 10))
+
+    assert_equal "/movies?page=2", page_link_href(2)
+  end
+
+  # Sin base, un Pagy sin request caía en un `?page=2` pelado, y ese href REEMPLAZA el query
+  # string entero del navegador: el filtro que el usuario estaba mirando desaparecía al pasar
+  # de página. La base la arma el listado igual que el view switch y "Agrupar por".
+  def test_page_links_keep_the_applied_filter_when_the_pagy_has_no_request
+    with_request_url "/movies?q%5Bname_cont%5D=a&page=1" do
+      render_listing(pagy: Pagy::Offset.new(count: 47, page: 1, limit: 10))
+    end
+
+    assert_equal "/movies?q%5Bname_cont%5D=a&page=2", page_link_href(2)
+  end
+
+  # LA regresión que introduce el arreglo ingenuo. Con el helper `pagy()` —o sea, en cualquier
+  # host— el Pagy arma sus URLs desde el request real, con el recorte adentro; reenviarle la
+  # `url:` del listado lo pisaría (PagyAdapter#page_url, #654) y devolvería `/?page=2`.
+  def test_a_linkable_pagy_keeps_building_its_own_page_links
+    render_listing(pagy: linkable_pagy(params: { "q" => { "name_cont" => "a" } }), url: "/")
+
+    assert_equal "/admin/movies?q%5Bname_cont%5D=a&page=2", page_link_href(2)
+  end
 end

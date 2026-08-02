@@ -1,0 +1,70 @@
+/*
+ * Toast — enter and leave animations.
+ *
+ * UNLAYERED ON PURPOSE. The rule it has to beat is daisyUI's own
+ *
+ *   @layer utilities { .toast > * { animation: 0.25s ease-out 0s 1 normal none running toast } }
+ *
+ * measured in the compiled build of daisyUI 5.7.9. A toast rendered inside a
+ * `Bali::ToastContainer` is a direct child of `.toast`, so that rule reaches it.
+ * Layers beat specificity, so a `@layer components` sheet loses to it no matter
+ * how specific the selector — which would leave a toast animating in with
+ * daisyUI's keyframes inside a container and with Bali's outside one, and would
+ * leave the leaving animation dead everywhere it matters. Unlayered author rules
+ * come after every layer, so these win in both places.
+ *
+ * `.toast-leaving` is written after `.toast-component` and shares its specificity,
+ * so source order is what decides between them. Both must stay in this file for
+ * that to keep holding: a default and the state that overrides it belong in the
+ * same sheet.
+ *
+ * Do not add `!important` here. Unlayered is the *weakest* important in the author
+ * origin, so it buys nothing, and it would take the escape hatch away from a host
+ * that wants its own motion.
+ */
+
+.toast-component {
+  animation: bali-toast-in 0.25s cubic-bezier(0.21, 1.02, 0.73, 1) both;
+}
+
+.toast-leaving {
+  animation: bali-toast-out 0.25s cubic-bezier(0.06, 0.71, 0.55, 1) both;
+}
+
+@keyframes bali-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes bali-toast-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+/*
+ * The Stimulus controller times the removal off `getComputedStyle().animationDuration`
+ * rather than off `animationend`, so zeroing the animation here is all that
+ * reduced motion needs: the computed duration comes back as `0s` and the element
+ * leaves on the next tick instead of hanging around waiting for an event that a
+ * cancelled animation never fires.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .toast-component,
+  .toast-component.toast-leaving {
+    animation: none;
+  }
+}

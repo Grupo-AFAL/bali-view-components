@@ -3,6 +3,8 @@
 module Bali
   module Calendar
     class Component < ApplicationViewComponent
+      include Normalization
+
       PERIODS = %i[month week day].freeze
 
       # Public readers for template access
@@ -27,30 +29,30 @@ module Bali
       # @param start_attribute [Symbol] Method to call on each event for the start date.
       # @param end_attribute [Symbol] Method to call on each event for the end date.
       # @param weekdays_only [Boolean] Show only Monday-Friday (default: false).
-      # @param all_week [Boolean] DEPRECATED: Use weekdays_only instead.
       # @param show_date [Boolean] Display the date number or not.
-      # rubocop:disable Metrics/ParameterLists -- backward compatibility requires all params
+      # @param weekly_title_class [String] Extra classes for the day number in week view.
+      # `**options` is accepted and ignored: it has never reached the markup, and letting
+      # a stray keyword through is what the previous signature did.
       def initialize(template: nil,
                      start_date: nil,
                      period: :month,
                      events: [],
                      start_attribute: :start_time,
                      end_attribute: :end_time,
-                     weekdays_only: nil,
-                     all_week: nil,
+                     weekdays_only: false,
                      show_date: true,
-                     **options)
+                     weekly_title_class: nil,
+                     **_options)
         @template = template
         @start_date = normalize_date(start_date)
         @period = normalize_period(period)
         @events = events
         @start_attribute = start_attribute
         @end_attribute = end_attribute
-        @weekdays_only = resolve_weekdays_only(weekdays_only, all_week)
+        @weekdays_only = weekdays_only
         @show_date = show_date
-        @options = options
+        @weekly_title_class = weekly_title_class
       end
-      # rubocop:enable Metrics/ParameterLists
 
       # @return [Array<Date>] All dates to display in the calendar
       def date_range
@@ -125,56 +127,28 @@ module Bali
       end
 
       def weekdays_only?
-        @weekdays_only
+        !show_weekends?
       end
-
-      # DEPRECATED: Use weekdays_only? or show_weekends? instead
-      # Kept for backward compatibility with existing templates
-      # rubocop:disable Naming/PredicateMethod -- backward compatibility
-      def all_week
-        !@weekdays_only
-      end
-      # rubocop:enable Naming/PredicateMethod
 
       # Number of days to show in header (5 for weekdays, 7 for full week)
       def header_day_count
         show_weekends? ? 7 : 5
       end
 
-      # @return [String, nil] Custom class for weekly title from options
-      def weekly_title_class
-        @options[:weekly_title_class]
-      end
-
       # @return [String] CSS classes for date display
       def date_display_classes
         class_names(
           month_view? ? "font-semibold float-right text-lg" : "text-2xl font-bold",
-          weekly_title_class
+          @weekly_title_class
         )
       end
 
+      # @return [String] CSS classes for the card that frames the grid
+      def card_class
+        month_view? ? "month-view" : "week-view"
+      end
+
       private
-
-      def normalize_date(date)
-        return Date.current if date.blank?
-
-        date.is_a?(Date) ? date : Date.parse(date.to_s)
-      end
-
-      def normalize_period(period)
-        period_sym = (period || :month).to_sym
-        PERIODS.include?(period_sym) ? period_sym : :month
-      end
-
-      # Handles backward compatibility: weekdays_only takes precedence,
-      # falls back to inverting all_week, defaults to false (show full week)
-      def resolve_weekdays_only(weekdays_only, all_week)
-        return weekdays_only unless weekdays_only.nil?
-        return !all_week unless all_week.nil?
-
-        false # Default: show full week (weekdays_only: false)
-      end
 
       def month_date_range
         (start_date.beginning_of_month.beginning_of_week..start_date.end_of_month.end_of_week).to_a

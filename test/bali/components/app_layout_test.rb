@@ -262,13 +262,49 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_no_selector(".app-layout--has-sidebar")
   end
 
-  def test_toast_notifications_are_fixed_bottom_right
+  def test_flash_renders_a_toast_container_in_the_bottom_right
     render_inline(Bali::AppLayout::Component.new(flash: { notice: "Saved!" })) do |layout|
       layout.with_body { "Content" }
     end
-    assert_selector("#toast-notifications.fixed.bottom-4")
-    assert_selector('#toast-notifications[role="status"]')
-    assert_selector('#toast-notifications[aria-live="polite"]')
+    assert_selector("#toast-notifications.toast.toast-bottom.toast-end")
+    assert_selector("#toast-notifications .toast-component.alert-success", text: "Saved!")
+  end
+
+  # The wrapper used to be an aria-live region holding alerts that were live
+  # regions themselves. A live region inside a live region is not reliably
+  # announced by anything, so the roles now live on the toasts alone.
+  def test_the_toast_container_is_not_a_live_region
+    render_inline(Bali::AppLayout::Component.new(flash: { notice: "Saved!" })) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector("#toast-notifications[aria-live]")
+    assert_no_selector("#toast-notifications[role]")
+    assert_selector('#toast-notifications [role="status"]')
+  end
+
+  # `flash[:warning]` and `flash[:info]` had nowhere to go before: AppLayout read
+  # two keys off the hash and dropped the rest.
+  def test_flash_keys_beyond_notice_and_alert_are_rendered
+    render_inline(Bali::AppLayout::Component.new(flash: { warning: "Careful", info: "Heads up" })) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_selector("#toast-notifications .toast-component.alert-warning", text: "Careful")
+    assert_selector("#toast-notifications .toast-component.alert-info", text: "Heads up")
+  end
+
+  def test_no_container_without_a_flash
+    render_inline(Bali::AppLayout::Component.new) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector("#toast-notifications")
+  end
+
+  # `flash[:timedout]` and friends are state, not messages.
+  def test_no_container_for_flash_keys_that_are_not_messages
+    render_inline(Bali::AppLayout::Component.new(flash: { timedout: true })) do |layout|
+      layout.with_body { "Content" }
+    end
+    assert_no_selector("#toast-notifications")
   end
 
   def test_uses_flex_col_direction

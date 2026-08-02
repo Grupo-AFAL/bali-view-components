@@ -478,6 +478,8 @@ es:
     avatar:
       upload:
         upload_image: "Subir imagen de avatar"
+    alert:
+      close: "Cerrar alerta"
     message:
       close: "Cerrar mensaje"
     boolean_icon:

@@ -1332,6 +1332,130 @@ Finally, `Bali::Timeline::Header::Component` now applies `**options` to its badg
 them and rendered none of them, so a `class:`, `data:` or `aria-*` you passed and gave up on
 will start taking effect.
 
+## Three alerts become two: `Alert` and `Toast`
+
+`Bali::Message`, `Bali::Notification` and `Bali::FlashNotifications` all wrapped the same
+daisyUI `.alert`. They are now:
+
+| v2 | v3 |
+|---|---|
+| `Bali::Message::Component` | `Bali::Alert::Component` |
+| `Bali::Notification::Component` | `Bali::Toast::Component`, inside a `Bali::ToastContainer::Component` |
+| `Bali::FlashNotifications::Component` | `Bali::ToastContainer::Component` |
+
+All three old names keep working and warn through
+[`Bali.deprecator`](#balideprecator). They translate their own keywords, so nothing has to
+change on the day you upgrade. They are removed in 4.0.
+
+```
+grep -rn "Bali::Message::Component\|Bali::Notification::Component\|Bali::FlashNotifications::Component" app/
+grep -rn "data-controller=\"\(message\|notification\)\"" app/
+```
+
+### The keywords
+
+| v2 | v3 | Where |
+|---|---|---|
+| `type: :success` | `color: :success` | `Notification`. One keyword for a colour across the library |
+| `color: :primary` / `:link` | `color: :info` | `Message`. Both rendered `alert-info` |
+| `color: :secondary` | `color: :neutral` | `Message`. It rendered a bare `.alert` |
+| `color: :danger` | `color: :error` | Both |
+| `dismissible: true` | `closable: true` | `Message` |
+| the `is-unclosable` class | `closable: false` | `Notification`. Nothing in the gem ever set the class |
+| `delay: 5000` | `duration: 5000` | `Notification` |
+| `dismiss: false` | `duration: nil` | `Notification`. `dismiss:` was the timer, never the button |
+| `fixed: true` + `position: :top_right` | a `ToastContainer(position: :top_end)` around it | `Notification` |
+| `notice:` / `alert:` | `flash: flash` | `FlashNotifications` |
+
+`color:` now takes `:neutral :info :success :warning :error` and nothing else, because
+daisyUI has no other alert colours — there is no `alert-primary`. **An unknown name raises
+`ArgumentError`** at construction rather than falling back, and the message names its
+replacement when there is one. The old fallbacks were how `:primary`, `:secondary` and
+`:link` survived two majors past Bulma: every one of them silently rendered `alert-info`.
+
+`role:` is unchanged and still wins over everything, but the default is not: it is derived
+from the colour now. `:error` announces as `alert`, and everything else — including
+`:warning` — as `status`. In v2 every `Message` was `role="alert"`, so an informational
+banner interrupted the screen reader mid-sentence. `polite:` and `assertive:` still work as
+sugar. An unknown `role:` raises instead of falling back to `alert`.
+
+### A toast does not position itself any more
+
+```erb
+<%# v2 %>
+<%= render Bali::Notification::Component.new(type: :success, position: :top_right) do %>
+  Saved.
+<% end %>
+
+<%# v3 %>
+<%= render Bali::ToastContainer::Component.new(position: :top_end) do |c| %>
+  <% c.with_toast(color: :success) { 'Saved.' } %>
+<% end %>
+```
+
+The container spells its nine corners as `top`/`middle`/`bottom` crossed with
+`start`/`center`/`end` — `:top_end`, `:bottom_start`, `:middle_center` — which are daisyUI's
+own names and are direction-aware. `:top_right` and `:bottom_right` are the only two v2 had;
+the deprecated `Notification` still accepts them and maps them for you.
+
+A `Bali::Toast` rendered on its own is simply an inline alert that closes itself, which is
+what `Notification(fixed: false)` was. That still works and needs no container.
+
+### The flash
+
+`Bali::AppLayout` renders the container for you and reads the **whole** flash hash. In v2 it
+read `flash[:notice]` and `flash[:alert]` and dropped everything else, so `flash[:warning]`
+and `flash[:info]` never appeared.
+
+| flash key | renders as |
+|---|---|
+| `notice`, `success` | success |
+| `alert`, `error`, `danger` | error |
+| `warning` | warning |
+| `info` | info |
+| anything else | nothing — `flash[:timedout]` and friends are state, not messages |
+
+If you render the container yourself:
+
+```erb
+<%= render Bali::ToastContainer::Component.new(flash: flash) %>
+```
+
+### The Stimulus controllers merge
+
+`MessageController` and `NotificationController` are replaced by a single `AlertController`,
+registered under the identifier `alert`. **`message` and `notification` no longer register**,
+so any hand-written `data-controller="notification"` or `data-controller="message"` in your
+own templates has to be renamed, and so do the values on it:
+
+| v2 attribute | v3 attribute |
+|---|---|
+| `data-notification-delay-value` | `data-alert-duration-value` |
+| `data-notification-dismiss-value` | dropped — `duration` absent means no timer |
+| `data-notification-animation-class` | `data-alert-leaving-class` |
+| `data-message-dismiss-id-value` | `data-alert-dismiss-id-value` |
+| `data-turbo-cache="false"` | `data-turbo-temporary` |
+
+`import { MessageController }` and `import { NotificationController }` from the npm package
+stop resolving; import `AlertController` instead.
+
+### The animation classes are gone from the global namespace
+
+`.slideInRight` and `.fadeOutRight` — animate.css names the package was squatting in every
+host's global namespace — are removed from `bali/general.css`. They are replaced by
+`.toast-component` (enter) and `.toast-leaving` (leave) in
+`app/components/bali/toast/index.css`. If your app used either class on its own markup, copy
+the keyframes into your own stylesheet; nothing in Bali emits them any more.
+
+The controller no longer waits for `animationend` to remove a toast. It reads the leaving
+animation's duration back out of `getComputedStyle` and removes the element on a timer, so
+a toast leaves even when the animation never runs — a background tab, or a leaving class you
+pointed the controller at and never styled. If you replaced Bali's auto-dismiss with your own
+because notifications used to stay on screen forever, that is the bug, and you can drop the
+replacement. Setting `data-alert-leaving-class` to a class of any duration works without
+telling the controller how long it takes; a class with no animation removes the element at
+once, which is also what `prefers-reduced-motion: reduce` produces.
+
 ## Every public event is now `bali:`-prefixed
 
 v2 shipped three generations of event naming at once: a few already-prefixed `bali:*` names,
@@ -1352,6 +1476,10 @@ running, and the feature quietly stops working. Grep before you upgrade:
 grep -rn "openModal\|openDrawer\|modal:success" app/ --include=*.js --include=*.erb --include=*.rb
 grep -rn "hovercard:\|sortable-list:\|interact:on\|direct-upload:" app/
 grep -rn "useDispatch\|use-dispatch\|baliDispatchDebugEnabled" app/ config/
+# alerts and toasts — the class names, the keywords and the Stimulus identifiers
+grep -rn "Bali::Message::Component\|Bali::Notification::Component\|Bali::FlashNotifications::Component" app/
+grep -rn "data-controller=\"\(message\|notification\)\"\|MessageController\|NotificationController" app/
+grep -rn "is-unclosable\|slideInRight\|fadeOutRight" app/
 ```
 
 ### The complete table
@@ -1540,6 +1668,16 @@ not.
 | `Bali::DeleteLink(icon_name:)` | `icon:`, which now takes a name too *(deprecated shim until v4)* |
 | `<a disabled>` from a disabled `Bali::DeleteLink` | `<button aria-disabled="true">` |
 | `Bali::StatCard(icon_name:)` | `icon:` *(deprecated shim until v4)* |
+| `Bali::Message::Component` | `Bali::Alert::Component` *(deprecated shim until v4)* |
+| `Bali::Notification::Component` | `Bali::Toast::Component` + `Bali::ToastContainer::Component` *(deprecated shim until v4)* |
+| `Bali::FlashNotifications::Component` | `Bali::ToastContainer::Component` *(deprecated shim until v4)* |
+| `Message(dismissible:)` | `closable:` |
+| `Notification(delay:, dismiss:)` | one `duration:` in ms; `nil` never auto-closes |
+| `Notification(type:)` | `color:` |
+| `Notification(fixed:, position:)` | `ToastContainer(position:)`, spelled `:top_end` not `:top_right` |
+| the `is-unclosable` class | `closable: false` |
+| `MessageController` / `NotificationController` | `AlertController`, identifier `alert` |
+| `.slideInRight` / `.fadeOutRight` | `.toast-component` / `.toast-leaving` |
 | `Bali::Timeline::Item(color: :default)` | `color: :ghost` |
 | `Bali::Timeline::Header(color: :outline)` | `color: :primary, class: 'badge-outline'` |
 | A hex in `Bali::Heatmap(color:)` or a `Bali::Status` option's `color:` | `custom_color:` |
@@ -1783,6 +1921,58 @@ ArgumentError: unknown keyword: :grid_display_mode_enabled
 This also closes **#653**: the legacy toggle built its links with
 `Utils::Url#add_query_params`, which duplicated a param already in the URL. That code is no
 longer on this path.
+
+## The calendar drops `all_week:` and brings its own card
+
+`all_week:` was deprecated in 2.x and is now gone, together with the `#all_week` reader a
+template could call. It read backwards — `all_week: false` was how you *hid* the weekend —
+and supporting both spellings needed a `nil` default on a boolean just to tell "not given"
+from "given as false".
+
+```erb
+<%# v2 %>
+<%= render Bali::Calendar::Component.new(all_week: false) %>   <%# hide the weekend %>
+<%= render Bali::Calendar::Component.new(all_week: true) %>    <%# show it %>
+
+<%# v3.0 %>
+<%= render Bali::Calendar::Component.new(weekdays_only: true) %>
+<%= render Bali::Calendar::Component.new(weekdays_only: false) %>  <%# the default %>
+```
+
+**This one does not raise.** The component still takes `**options` and ignores them, so a
+leftover `all_week: false` is swallowed and the calendar quietly renders seven columns
+instead of five. It fails as a layout change, not as an error, which is why it is worth
+grepping for rather than waiting to see:
+
+```
+grep -rn "all_week:" app/          # the keyword argument
+grep -rn "\.all_week\b" app/       # the reader, if a template called it
+```
+
+Careful with the second one: `Date#all_week` is ActiveSupport's and is unrelated.
+
+Two smaller changes come with it. `weekly_title_class` is now a declared keyword argument
+rather than a key fished out of `**options`; same behaviour, same name, nothing to change.
+And the component **renders `Bali::Card` itself** instead of writing `.card`/`.card-body`
+divs by hand — so if you wrapped it in your own `Bali::Card`, remove that wrapper or you
+get a card inside a card. The markup is otherwise the same three elements;
+`.calendar-component > .card > .card-body` still matches, `.month-view` and `.week-view`
+are still on the card, and the card's `shadow` became `shadow-sm`, which compiles to an
+identical `box-shadow` in Tailwind 4.
+
+### `start_date` and `period` stop raising on junk input
+
+Not a migration step — a behaviour change you should know about because it removes a 500
+from your app. Both parameters normally arrive from the query string (the header's
+prev/next links write them back to `route_path`), and both used to raise on input a
+visitor controls: `?start_date=zzz` was an unrescued `Date::Error`, `?period[]=1` a
+`NoMethodError`. Anything unparseable now becomes `Date.current`, and any unknown period
+becomes `:month`.
+
+The component does **not** validate — a wrong date and a typo both silently become today.
+If your UI needs to tell the user their date was rejected, check the param in the
+controller before handing it over; the component only guarantees it will not take the page
+down.
 
 ## `Reveal` and `TreeView` change their markup
 
@@ -2212,6 +2402,8 @@ grep -rn "with_actions_panel\|with_export\|table_id:\|data_display_mode\|toolbar
 grep -rn "label-text\|input-bordered\|textarea-bordered\|form-control" app/ test/ spec/
 grep -rn "legend.fieldset-legend\|#field-\|_select_div\|aria-invalid" app/ test/ spec/
 grep -rn "with_tag_item\|with_tag_header\|tag_class:" app/
+grep -rn "all_week:" app/                             # silently ignored now, shows the weekend
+grep -rn "Bali::Card.*Calendar\|Calendar" app/views   # the Calendar renders its own card
 
 grep -rn "with_preview" app/                          # DocumentPage's body slot
 grep -rn "Bali::Level\|Bali::InfoLevel" app/          # deprecated, removed in 4.0

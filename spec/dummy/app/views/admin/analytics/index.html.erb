@@ -13,7 +13,7 @@
   <% page.with_body do %>
     <%# Notifications - different types %>
     <div class="space-y-2 mb-6">
-      <%= render Bali::Notification::Component.new(type: :info, dismiss: true) do %>
+      <%= render Bali::Alert::Component.new(color: :info, icon: true, closable: true) do %>
         <strong>Pro tip:</strong> <%= t('analytics.pro_tip') %>
       <% end %>
     </div>
@@ -102,7 +102,7 @@
             <% end %>
           <% end %>
         <% else %>
-          <%= render Bali::Message::Component.new(color: :info) do %>
+          <%= render Bali::Alert::Component.new(color: :info) do %>
             <%= t('analytics.no_movies') %>
           <% end %>
         <% end %>
