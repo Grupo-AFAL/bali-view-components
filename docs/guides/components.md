@@ -2541,8 +2541,9 @@ one adds.
 - `back` - Back link, e.g. `{ href: path }` (default: nil)
 - `max_width` - Content width: `:sm` (`max-w-xl`), `:md` (`max-w-3xl`), `:lg`
   (`max-w-5xl`), `:xl` (`max-w-7xl`), `:"2xl"` (`max-w-screen-2xl`) or `:full`. The default
-  is `:full` — a no-op — except `DashboardPage` (`:"2xl"`) and `FormPage` (`:md`). An
-  unknown value raises `ArgumentError`.
+  is `:full` — a no-op, so the page is as wide as the container the app already put it in —
+  except `FormPage` (`:md`), because a single column of fields stretched across a wide
+  screen is the wrong shape. An unknown value raises `ArgumentError`.
 - `sidebar_width` - Share of the grid the sidebar takes when the `sidebar` slot is filled:
   `:default` (a third), `:narrow` (a quarter) or `:wide` (a half). Below `lg` the sidebar
   always stacks under the body.
@@ -2580,7 +2581,7 @@ Dashboard layout with page header, stat cards grid, and a body area for charts a
 **On top of [the shared surface](#the-shared-surface):**
 - `stats_columns` - Stat cards per row: 2, 3, or 4 (default: 4)
 - `with_stat(label:, value:, icon:, change:, color:)` - One `Bali::StatCard` per call.
-  `change` becomes the card's footer. `max_width` defaults to `:"2xl"` here.
+  `change` becomes the card's footer.
 
 The `nav` slot lands between the header and the stats.
 
