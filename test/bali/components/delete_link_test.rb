@@ -69,6 +69,51 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
     assert_no_selector(".icon-component")
   end
 
+  # `icon:` said whether and `icon_name:` said which; now one keyword says both.
+  def test_icon_accepts_an_icon_name
+    @options.merge!(icon: "x")
+    render_inline(component)
+    assert_selector("button .icon-component")
+  end
+
+  def test_icon_name_still_works_and_warns
+    @options.merge!(icon_name: "x")
+    assert_deprecated(/`icon_name:` is deprecated/, Bali.deprecator) do
+      render_inline(component)
+    end
+    assert_selector("button .icon-component")
+  end
+
+  Bali::ButtonTaxonomy::VARIANTS.each do |variant, css_class|
+    define_method("test_variants_applies_#{variant}") do
+      @options.merge!(variant: variant)
+      render_inline(component)
+      assert_selector("button.btn.#{css_class}")
+    end
+  end
+
+  def test_variants_keeps_the_destructive_red_only_where_the_variant_has_no_colour
+    render_inline(Bali::DeleteLink::Component.new(**@options))
+    assert_selector("button.btn-ghost.text-error")
+
+    @options.merge!(variant: :error)
+    render_inline(component)
+    assert_selector("button.btn-error")
+    assert_no_selector("button.text-error")
+  end
+
+  def test_styles_applies_outline
+    @options.merge!(style: :outline)
+    render_inline(component)
+    assert_selector("button.btn.btn-outline")
+  end
+
+  def test_sizes_accepts_xl_which_the_private_table_did_not_have
+    @options.merge!(size: :xl)
+    render_inline(component)
+    assert_selector("button.btn.btn-xl")
+  end
+
   def test_skip_confirm_skips_confirmation_when_skip_confirm_true
     @options.merge!(skip_confirm: true)
     render_inline(component)
@@ -114,21 +159,41 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
     assert_selector("[action='/delete-url']")
   end
 
-  def test_when_the_hover_card_link_component_is_in_use_renders_a_delete_link_disabled
+  # HTML has no `disabled` attribute on an anchor, so `<a disabled>` was paint with nothing
+  # behind it: the accessibility tree saw an ordinary piece of text.
+  def test_when_disabled_renders_a_button_marked_aria_disabled_and_not_an_anchor
     @options.merge!(disabled: true)
     render_inline(component)
-    assert_selector('[disabled="disabled"]')
+    assert_selector('button[aria-disabled="true"]', text: "Delete")
+    assert_no_selector("a")
+    assert_no_selector("[disabled]")
   end
 
-  def test_when_the_hover_card_link_component_is_in_use_applies_btn_disabled_class_when_disabled
+  # Focusable on purpose: `disabled` (or `tabindex="-1"`) would take the button out of the
+  # tab order, and with it the hover card that is the only place the reason is written.
+  def test_when_disabled_stays_reachable_by_keyboard
+    @options.merge!(disabled: true, disabled_hover_url: "/why-not")
+    render_inline(component)
+    assert_no_selector("button[tabindex]")
+    assert_no_selector("button[disabled]")
+    assert_selector("[data-hovercard-url-value='/why-not'] button")
+  end
+
+  def test_when_disabled_applies_btn_disabled_class
     @options.merge!(disabled: true)
     render_inline(component)
-    assert_selector("a.btn-disabled")
+    assert_selector("button.btn-disabled")
   end
 
-  def test_when_the_hover_card_link_component_is_in_use_preserves_custom_classes_when_disabled
+  def test_when_disabled_preserves_custom_classes
     @options.merge!(disabled: true, class: "custom-class")
     render_inline(component)
-    assert_selector("a.btn-disabled.custom-class")
+    assert_selector("button.btn-disabled.custom-class")
+  end
+
+  def test_when_disabled_still_draws_its_icon
+    @options.merge!(disabled: true, icon: true)
+    render_inline(component)
+    assert_selector("button .icon-component")
   end
 end

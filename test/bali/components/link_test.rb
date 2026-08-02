@@ -184,15 +184,34 @@ class BaliLinkComponentTest < ComponentTestCase
     assert_selector("a.btn", text: "Custom Content")
   end
 
-  def test_deprecated_type_parameter_supports_type_for_backwards_compatibility
-    render_inline(Bali::Link::Component.new(name: "Button", href: "#", type: :primary))
-    assert_selector("a.btn.btn-primary", text: "Button")
+  # `<a type="primary">` is valid HTML, so letting `type:` fall through to **options would
+  # have rendered an attribute nobody asked for instead of the colour they did ask for.
+  def test_removed_type_parameter_is_rejected_and_names_its_replacement
+    error = assert_raises(ArgumentError) do
+      Bali::Link::Component.new(name: "Button", href: "#", type: :primary)
+    end
+    assert_match(/no longer accepts `type:`/, error.message)
+    assert_match(/Use `variant:`/, error.message)
   end
 
-  def test_deprecated_type_parameter_prefers_variant_over_type_when_both_are_provided
-    render_inline(Bali::Link::Component.new(name: "Button", href: "#", variant: :error, type: :primary))
-    assert_selector("a.btn.btn-error", text: "Button")
-    assert_no_selector("a.btn-primary")
+  def test_removed_type_parameter_is_rejected_even_alongside_a_variant
+    assert_raises(ArgumentError) do
+      Bali::Link::Component.new(name: "Button", href: "#", variant: :error, type: :primary)
+    end
+  end
+
+  def test_variants_rejects_a_style_name_and_names_the_keyword_that_takes_it
+    error = assert_raises(ArgumentError) do
+      Bali::Link::Component.new(name: "Button", href: "#", variant: :outline)
+    end
+    assert_match(/Use style: :outline/, error.message)
+  end
+
+  def test_variants_rejects_an_unknown_name
+    error = assert_raises(ArgumentError) do
+      Bali::Link::Component.new(name: "Button", href: "#", variant: :chartreuse)
+    end
+    assert_match(/unknown variant :chartreuse/, error.message)
   end
 
   # Responsive (icon-only on mobile)

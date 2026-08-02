@@ -6,17 +6,9 @@ module Bali
       class Component < ApplicationViewComponent
         attr_reader :label, :href, :method, :variant, :size
 
-        VARIANTS = {
-          primary: "btn-primary",
-          secondary: "btn-secondary",
-          accent: "btn-accent",
-          info: "btn-info",
-          success: "btn-success",
-          warning: "btn-warning",
-          error: "btn-error",
-          ghost: "btn-ghost",
-          neutral: "btn-neutral"
-        }.freeze
+        # One table for every `.btn` in the library. See Bali::ButtonTaxonomy.
+        VARIANTS = Bali::ButtonTaxonomy::VARIANTS
+        SIZES = Bali::ButtonTaxonomy::SIZES
 
         # @param size [Symbol] Tamaño del botón. Lo inyecta la barra según su variante
         #   (`xs` en la fila contextual, `sm` en la flotante); pasarlo explícito gana.
@@ -26,6 +18,8 @@ module Bali
           @method = method.to_sym
           @variant = variant.to_sym
           @size = size.to_sym
+          @variant_class = Bali::ButtonTaxonomy.variant!(self.class, @variant)
+          @size_class = Bali::ButtonTaxonomy.size!(self.class, @size)
           @options = options
         end
 
@@ -47,7 +41,7 @@ module Bali
           render Bali::Link::Component.new(
             name: label,
             href: href,
-            type: variant,
+            variant: variant,
             size: size,
             data: { bulk_actions_target: "bulkAction" },
             **@options
@@ -69,8 +63,10 @@ module Bali
           { bulk_actions_target: "bulkAction" }
         end
 
+        # `"btn-#{size}"` was invisible to Tailwind's scanner: the class only ever shipped
+        # because some other component happened to spell it out.
         def button_classes
-          class_names("btn", "btn-#{size}", VARIANTS[variant])
+          class_names("btn", @size_class, @variant_class)
         end
       end
     end

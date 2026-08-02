@@ -3,7 +3,7 @@
     permanente al lado de los filtros para decir algo que el botón apagado ya dice. %>
 <% if disabled? %>
   <%= render Bali::Button::Component.new(name: trigger_label, icon_name: 'layers',
-                                         variant: :outline, size: :sm, disabled: true,
+                                         style: :outline, size: :sm, disabled: true,
                                          responsive: false, title: disabled_title,
                                          class: 'gap-2 whitespace-nowrap') %>
 <% else %>
