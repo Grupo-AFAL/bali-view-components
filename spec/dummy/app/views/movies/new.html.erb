@@ -1,6 +1,6 @@
 <%# Breadcrumb %>
 <%= render Bali::Breadcrumb::Component.new do |breadcrumb| %>
-  <% breadcrumb.with_item(name: t('navbar.dashboard'), href: root_path, icon_name: 'home') %>
+  <% breadcrumb.with_item(name: t('navbar.dashboard'), href: root_path, icon: 'home') %>
   <% breadcrumb.with_item(name: t('navbar.movies'), href: movies_path) %>
   <% breadcrumb.with_item(name: t('movies.form.new_title')) %>
 <% end %>

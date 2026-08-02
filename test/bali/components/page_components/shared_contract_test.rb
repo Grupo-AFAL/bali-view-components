@@ -185,7 +185,7 @@ class BaliPageComponentsSharedContractTest < ComponentTestCase
     each_page do |component|
       render_inline(component.new(title: "The Matrix")) do |page|
         page.with_action { "Edit" }
-        page.with_secondary_action(name: "Import", href: "/movies/import", icon_name: "upload")
+        page.with_secondary_action(name: "Import", href: "/movies/import", icon: "upload")
         page.with_body { "Body" }
       end
 

@@ -3,7 +3,7 @@
   <%= c.with_left(class: left_classes) do |level| %>
     <% if render_back_button? %>
       <% level.with_item do %>
-        <%= render Bali::Link::Component.new(icon_name: 'arrow-left', **back_button_options) %>
+        <%= render Bali::Link::Component.new(icon: 'arrow-left', **back_button_options) %>
       <% end %>
     <% end %>
     <% if render_title_block? %>

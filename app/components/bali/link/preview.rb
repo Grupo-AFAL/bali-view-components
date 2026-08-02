@@ -30,7 +30,7 @@ module Bali
 
       # With Icon
       # ---------------
-      # Link with an icon on the left using `icon_name` parameter.
+      # Link with an icon on the left using the `icon:` parameter.
       # When `responsive: true` (default), the label hides on mobile and the button becomes
       # a square icon-only button using DaisyUI's `max-sm:btn-square`.
       # @param variant [Symbol] select [primary, secondary, accent, info, success, warning, error, ghost, link]
@@ -38,7 +38,7 @@ module Bali
       # @param responsive toggle
       def with_icon(variant: :primary, size: :md, responsive: true)
         render Bali::Link::Component.new(
-          name: 'Click me!', href: '#', icon_name: 'book', variant: variant, size: size, responsive: responsive
+          name: 'Click me!', href: '#', icon: 'book', variant: variant, size: size, responsive: responsive
         )
       end
 
@@ -61,7 +61,7 @@ module Bali
       # @param size [Symbol] select [xs, sm, md, lg, xl]
       def with_icon_only(variant: :primary, size: :md)
         render Bali::Link::Component.new(
-          href: '#', variant: variant, icon_name: 'user', size: size
+          href: '#', variant: variant, icon: 'user', size: size
         )
       end
 
@@ -116,7 +116,7 @@ module Bali
       # Useful in navigation menus or dropdown items.
       def plain
         render Bali::Link::Component.new(
-          name: 'Menu Item', href: '#', icon_name: 'home', plain: true
+          name: 'Menu Item', href: '#', icon: 'home', plain: true
         )
       end
 

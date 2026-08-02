@@ -4,12 +4,16 @@ module Bali
   module Breadcrumb
     module Item
       class Component < ApplicationViewComponent
+        include Bali::DeprecatedIconName
+
         BASE_CLASSES = "inline-flex items-center gap-1"
 
-        def initialize(name:, href: nil, icon_name: nil, active: nil, **options)
+        # @param icon [String, Symbol] Icon name, drawn before the label.
+        # @param icon_name [String, nil] @deprecated Removed in Bali 4.0. Use `icon:`.
+        def initialize(name:, href: nil, icon: nil, icon_name: nil, active: nil, **options)
           @name = name
           @href = href
-          @icon_name = icon_name
+          @icon = icon || deprecated_icon_name(icon_name)
           @active = active.nil? ? href.nil? : active
           @options = options
         end
@@ -24,7 +28,7 @@ module Bali
 
         private
 
-        attr_reader :href, :name, :icon_name
+        attr_reader :href, :name, :icon
 
         def item_classes
           class_names(@options[:class])

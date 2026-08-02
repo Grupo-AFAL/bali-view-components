@@ -4,7 +4,7 @@
 <div class="max-w-4xl mx-auto">
   <%# Breadcrumb %>
   <%= render Bali::Breadcrumb::Component.new do |breadcrumb| %>
-    <% breadcrumb.with_item(name: t('navbar.dashboard'), href: root_path, icon_name: 'home') %>
+    <% breadcrumb.with_item(name: t('navbar.dashboard'), href: root_path, icon: 'home') %>
     <% breadcrumb.with_item(name: t('settings.title')) %>
   <% end %>
 
@@ -242,14 +242,14 @@
               name: t('settings.export_data'),
               variant: :ghost,
               size: :sm,
-              icon_name: 'download',
+              icon: 'download',
               responsive: false
             ) %>
           <%= render Bali::Button::Component.new(
               name: t('settings.delete_account'),
               variant: :error,
               size: :sm,
-              icon_name: 'trash-2',
+              icon: 'trash-2',
               responsive: false
             ) %>
         </div>

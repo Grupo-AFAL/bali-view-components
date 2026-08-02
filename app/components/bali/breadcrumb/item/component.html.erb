@@ -1,10 +1,10 @@
 <li class="<%= item_classes %>">
   <% if link? %>
-    <%= render Bali::Link::Component.new(href: href, name: name, icon_name: icon_name, plain: true, class: link_classes) %>
+    <%= render Bali::Link::Component.new(href: href, name: name, icon: icon, plain: true, class: link_classes) %>
   <% else %>
     <span class="<%= current_classes %>" aria-current="page">
-      <% if icon_name.present? %>
-        <%= render Bali::Icon::Component.new(icon_name) %>
+      <% if icon.present? %>
+        <%= render Bali::Icon::Component.new(icon) %>
       <% end %>
       <%= name %>
     </span>

@@ -5,7 +5,7 @@
   subtitle: "Last edited #{time_ago_in_words(@document.updated_at)} ago",
   initial_content: @document.content,
   breadcrumbs: [
-    { name: 'Dashboard', href: root_path, icon_name: 'home' },
+    { name: 'Dashboard', href: root_path, icon: 'home' },
     { name: 'Documents', href: documents_path },
     { name: @document.title }
   ]

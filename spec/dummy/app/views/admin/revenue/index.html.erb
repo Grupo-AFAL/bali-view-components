@@ -66,16 +66,19 @@
       <% end %>
     <% end %>
 
-    <%# Budget by Status - InfoLevel + PropertiesTable %>
+    <%# Budget by Status - StatCard grid + PropertiesTable %>
     <%= render Bali::Columns::Component.new(cols: 1, cols_lg: 2, gap: :xl, class: 'mt-6') do %>
       <%= render Bali::Card::Component.new(style: :bordered) do %>
         <h3 class="card-title text-lg mb-4"><%= t('revenue.budget_by_status') %></h3>
-        <%= render Bali::InfoLevel::Component.new(align: :between) do |info| %>
+        <%# A grid of StatCard, which is what Bali::InfoLevel's deprecation points at. %>
+        <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :md) do %>
           <% @budget_by_status.each do |status, amount| %>
-            <% info.with_item do |i| %>
-              <% i.with_heading(status) %>
-              <% i.with_title(number_to_currency(amount, precision: 0)) %>
-            <% end %>
+            <%= render Bali::StatCard::Component.new(
+                  title: status,
+                  value: number_to_currency(amount, precision: 0),
+                  icon: 'wallet',
+                  color: :info
+                ) %>
           <% end %>
         <% end %>
       <% end %>
@@ -179,20 +182,16 @@
       <% end %>
     </div>
 
-    <%# Budget Distribution Progress Bars with Level header %>
+    <%# Budget Distribution Progress Bars with a plain flex header %>
     <div class="mt-6">
       <%= render Bali::Card::Component.new(style: :bordered) do %>
-        <%= render Bali::Level::Component.new(class: 'mb-4') do |level| %>
-          <% level.with_left do %>
-            <h3 class="card-title text-lg"><%= t('revenue.genre_budget_distribution') %></h3>
-          <% end %>
-          <% level.with_right do %>
-            <div class="flex items-center gap-2 text-sm text-base-content/60">
-              <%= render Bali::Icon::Component.new('pie-chart', size: :small) %>
-              <span><%= number_to_currency(@stats[:total_revenue], precision: 0) %></span>
-            </div>
-          <% end %>
-        <% end %>
+        <div class="flex justify-between items-center gap-4 mb-4">
+          <h3 class="card-title text-lg"><%= t('revenue.genre_budget_distribution') %></h3>
+          <div class="flex items-center gap-2 text-sm text-base-content/60">
+            <%= render Bali::Icon::Component.new('pie-chart', size: :small) %>
+            <span><%= number_to_currency(@stats[:total_revenue], precision: 0) %></span>
+          </div>
+        </div>
         <div class="space-y-4">
           <% distribution_rows(@revenue_by_genre).each do |row| %>
             <div>

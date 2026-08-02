@@ -2,7 +2,7 @@
     movía la toolbar entera al cambiar de modo, y el cartel que lo explicaba ocupaba una franja
     permanente al lado de los filtros para decir algo que el botón apagado ya dice. %>
 <% if disabled? %>
-  <%= render Bali::Button::Component.new(name: trigger_label, icon_name: 'layers',
+  <%= render Bali::Button::Component.new(name: trigger_label, icon: 'layers',
                                          style: :outline, size: :sm, disabled: true,
                                          responsive: false, title: disabled_title,
                                          class: 'gap-2 whitespace-nowrap') %>

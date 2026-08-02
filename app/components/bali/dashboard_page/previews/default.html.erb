@@ -3,7 +3,7 @@
   subtitle: "Welcome back, Ana"
 ) do |page| %>
   <% page.with_action do %>
-    <%= render Bali::Button::Component.new(name: "Export", variant: :ghost, icon_name: "download") %>
+    <%= render Bali::Button::Component.new(name: "Export", variant: :ghost, icon: "download") %>
   <% end %>
 
   <% page.with_stat(label: "Total Movies", value: "1,234", icon: "film", color: :primary) %>

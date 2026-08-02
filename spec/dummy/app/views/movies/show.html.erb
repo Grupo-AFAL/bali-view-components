@@ -2,7 +2,7 @@
 
 <%# Breadcrumb %>
 <%= render Bali::Breadcrumb::Component.new do |breadcrumb| %>
-  <% breadcrumb.with_item(name: 'Dashboard', href: root_path, icon_name: 'home') %>
+  <% breadcrumb.with_item(name: 'Dashboard', href: root_path, icon: 'home') %>
   <% breadcrumb.with_item(name: 'Movies', href: movies_path) %>
   <% breadcrumb.with_item(name: @movie.name) %>
 <% end %>
@@ -31,7 +31,7 @@
       name: 'Edit',
       href: edit_movie_path(@movie),
       variant: :ghost,
-      icon_name: 'pencil'
+      icon: 'pencil'
     ) %>
     <%= render Bali::DeleteLink::Component.new(
       href: movie_path(@movie),
@@ -233,7 +233,7 @@
                 href: new_movie_character_path(@movie),
                 variant: :ghost,
                 size: :sm,
-                icon_name: 'plus',
+                icon: 'plus',
                 modal: true
               ) %>
         </div>

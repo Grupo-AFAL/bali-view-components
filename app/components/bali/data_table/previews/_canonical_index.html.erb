@@ -70,7 +70,7 @@
          collapses into the menu should keep its name there, where there is room. %>
   <% dt.with_toolbar_button do %>
     <%= render Bali::Button::Component.new(name: 'Refresh', variant: :ghost, size: :sm,
-                                           icon_name: 'refresh-cw', responsive: false) %>
+                                           icon: 'refresh-cw', responsive: false) %>
   <% end %>
 
   <%# Selection: the contextual row replaces the toolbar while a selection exists. %>
