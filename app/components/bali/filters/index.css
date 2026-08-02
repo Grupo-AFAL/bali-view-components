@@ -62,3 +62,14 @@
 .filters-multi-select-content {
   z-index: var(--bali-z-dropdown);
 }
+
+/* Same reason as the tier above: condition_controller.js decides when the "this condition
+   is ignored" note is on screen, and a display utility named only from JavaScript would
+   never be generated. Both states live here so neither can be outranked by the other. */
+.filters-condition-hint {
+  display: none;
+}
+
+.filters-condition-hint.is-shown {
+  display: flex;
+}

@@ -567,12 +567,59 @@ export class FiltersController extends Controller {
    * Private: Submit a form, updating URL and history
    */
   _submit (form) {
-    // Update URL for history
-    const url = this.buildUrl()
-    this.pushHistory(url)
+    const restore = this._withoutUnsubmittableConditions()
 
-    // Submit the form (Turbo will handle the response with morphing)
-    form.requestSubmit()
+    try {
+      // Update URL for history
+      const url = this.buildUrl()
+      this.pushHistory(url)
+
+      // Submit the form (Turbo will handle the response with morphing)
+      form.requestSubmit()
+    } finally {
+      restore()
+    }
+  }
+
+  /**
+   * Private: keep the conditions that would filter nothing out of this submission, and
+   * let each of them say so on screen.
+   *
+   * A condition with no value serializes as `q[g][0][genre_not_eq]=`, which Ransack drops
+   * in silence: the list comes back complete, no error, no hint, and the user concludes
+   * the filter is broken (#652). Disabling the inputs keeps them out of the request AND
+   * out of the URL that is pushed alongside it, so the address bar and the response
+   * finally describe the same query.
+   *
+   * The group combinator (`q[g][0][m]`) stays: it is not a predicate, and it is what tells
+   * the server the user DID submit a filter set that happens to be empty. Dropping it too
+   * would make an emptied panel look like a request that carried no filter state at all,
+   * which a host with persistence on answers by restoring the previous filters.
+   *
+   * The inputs are restored right after `requestSubmit()` because both Turbo and the
+   * browser build the form's entry list synchronously while the submit event is being
+   * dispatched — and the panel is still on screen afterwards for the user to fix.
+   *
+   * @returns {Function} restores every input this disabled
+   */
+  _withoutUnsubmittableConditions () {
+    const disabled = []
+    const disable = (input) => {
+      if (input.disabled) return
+      input.disabled = true
+      disabled.push(input)
+    }
+
+    this.element.querySelectorAll('[data-controller~="condition"]').forEach((element) => {
+      const controller = this.application.getControllerForElementAndIdentifier(
+        element,
+        'condition'
+      )
+      controller?.validate()
+      controller?.unsubmittableInputs().forEach(disable)
+    })
+
+    return () => disabled.forEach((input) => { input.disabled = false })
   }
 
   /**
