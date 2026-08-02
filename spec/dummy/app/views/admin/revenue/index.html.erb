@@ -25,17 +25,16 @@
       <%= render Bali::Tabs::Component.new(style: :box) do |tabs| %>
         <% tabs.with_tab(title: t('revenue.tabs.monthly_trend'), active: true) do %>
           <div class="p-4">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between gap-4 mb-4">
               <div>
                 <h3 class="text-lg font-semibold"><%= t('revenue.monthly_revenue') %></h3>
                 <p class="text-sm text-base-content/60"><%= t('revenue.monthly_revenue_desc') %></p>
               </div>
-              <%= render Bali::Clipboard::Component.new(
-                text: @monthly_revenue.map { |m, v| "#{m}: #{number_to_currency(v, precision: 0)}" }.join("\n"),
-                class: 'btn btn-ghost btn-sm'
-              ) do %>
-                <%= render Bali::Icon::Component.new('copy', size: :small) %>
-                <span class="ml-1"><%= t('revenue.export') %></span>
+              <%= render Bali::Clipboard::Component.new(class: 'max-w-xs') do |clipboard| %>
+                <% clipboard.with_source(
+                  @monthly_revenue.map { |m, v| "#{m}: #{number_to_currency(v, precision: 0)}" }.join("\n")
+                ) %>
+                <% clipboard.with_trigger(t('revenue.export')) %>
               <% end %>
             </div>
             <%= render Bali::Chart::Component.new(
