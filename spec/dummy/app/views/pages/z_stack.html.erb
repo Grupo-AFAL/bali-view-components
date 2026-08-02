@@ -57,6 +57,17 @@
   <% c.with_header(title: 'Modal') %>
   <% c.with_body do %>
     <p>Modal body</p>
+    <%# A tooltip triggered from INSIDE the overlay, unlike the two at the top of
+        the page: tippy portals its balloon, so this is the one that has to end up
+        in the dialog's subtree rather than under <body>. %>
+    <span id="probe-modal-tooltip-wrap">
+      <%= render Bali::Tooltip::Component.new(placement: :bottom) do |t| %>
+        <% t.with_trigger do %>
+          <span class="btn btn-sm">Tooltip inside the modal</span>
+        <% end %>
+        <p>Tooltip from inside</p>
+      <% end %>
+    </span>
     <%= form_with(model: Movie.new, url: '/', builder: Bali::FormBuilder) do |form| %>
       <%= form.datetime_group :release_date %>
       <%= form.slim_select_field :genre, [['Drama', 'drama'], ['Comedy', 'comedy']] %>
