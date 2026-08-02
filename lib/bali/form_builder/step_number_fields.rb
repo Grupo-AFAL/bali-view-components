@@ -89,7 +89,7 @@ module Bali
           BUTTON_DISABLED_CLASSES => opts[:disabled]
         )
 
-        data = build_button_data(opts[:action], opts[:target], opts[:extra_data], opts[:disabled])
+        data = build_button_data(opts[:action], opts[:target], opts[:extra_data])
 
         @template.button_tag(
           @template.render(Bali::Icon::Component.new(opts[:icon])),
@@ -102,9 +102,12 @@ module Bali
         )
       end
 
-      def build_button_data(action, target, extra_data, disabled)
-        return {} if disabled
-
+      # Targets and actions are emitted even for a disabled field. The Stimulus
+      # controller declares both buttons as required targets, so omitting them made
+      # `connect` raise and left the controller unattached: a host that enabled the
+      # field later got dead buttons. `disabled` is what makes the buttons inert, and
+      # the controller keeps it that way.
+      def build_button_data(action, target, extra_data)
         action_value = [
           "step-number-input##{action}",
           extra_data[:action]

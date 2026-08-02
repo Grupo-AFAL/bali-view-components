@@ -1,6 +1,9 @@
 describe('DirectUploadController', () => {
-  // Use dummy app URL directly (not Lookbook preview)
-  const dummyAppUrl = 'http://localhost:3001'
+  // These pages live in the dummy app, not under the Lookbook preview path `baseUrl`
+  // points at, so the origin is derived from it rather than written out. A literal
+  // `http://localhost:3001` ignores CYPRESS_BASE_URL and quietly tests another
+  // checkout's server whenever the suite runs from a git worktree.
+  const dummyAppUrl = new URL(Cypress.config('baseUrl')).origin
 
   context('auto-reset on successful Turbo submission', () => {
     beforeEach(() => {
