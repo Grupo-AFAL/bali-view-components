@@ -1,0 +1,15 @@
+<div class="flex justify-center items-center gap-16 p-16">
+  <%= render Bali::Tooltip::Component.new(placement: :bottom) do |c| %>
+    <% c.with_trigger do %>
+      <%= render Bali::Button::Component.new(name: 'Focusable trigger', variant: :primary) %>
+    <% end %>
+    <p>The button inside the slot is the tab stop; the balloon opens on its focus.</p>
+  <% end %>
+
+  <%= render Bali::Tooltip::Component.new(placement: :bottom, class: 'help-tip') do |c| %>
+    <% c.with_trigger do %>
+      <span class="w-6 h-6 rounded-full border border-neutral flex items-center justify-center text-sm">?</span>
+    <% end %>
+    <p>Nothing in this slot can take focus, so the wrapper becomes the tab stop.</p>
+  <% end %>
+</div>

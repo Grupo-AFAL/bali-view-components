@@ -414,8 +414,8 @@ en:
     placeholder: Placeholder
     calendar: Calendar
     calendar_desc: Monthly/weekly calendar view with event display.
-    search_input: SearchInput
-    search_input_desc: Search field with optional auto-submit functionality.
+    search_input: Search field
+    search_input_desc: Search field with optional auto-submit functionality, built with the FormBuilder.
     with_submit_button: With Submit Button
     search_products: Search products...
     auto_submit: Auto-submit (no button)

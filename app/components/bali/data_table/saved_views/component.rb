@@ -149,7 +149,7 @@ module Bali
           return @search_predicate if defined?(@search_predicate)
 
           fields = filter_form.try(:search_config)&.dig(:fields)
-          @search_predicate = fields.presence && "#{Array(fields).map(&:to_s).join('_or_')}_cont"
+          @search_predicate = Bali::RansackParamName.predicate(fields)
         end
       end
     end

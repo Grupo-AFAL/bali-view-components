@@ -25,14 +25,21 @@
               con sidebar) el campo se pintaba fuera de su caja, encima de los controles de
               al lado, en vez de cederles ancho. %>
           <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg w-full sm:w-auto min-w-0">
-            <label class="input input-bordered input-sm join-item w-full sm:w-64 min-w-0 flex items-center gap-2">
-              <input type="text"
-                     name="<%= search_field_name %>"
-                     value="<%= search_value %>"
-                     placeholder="<%= search_placeholder %>"
-                     class="grow min-w-0 bg-transparent outline-none"
-                     data-filters-target="searchInput"
-                     data-action="input->filters#toggleSearchClear">
+            <label class="input input-bordered input-sm join-item <%= search_width %> min-w-0 flex items-center gap-2">
+              <%# tag.input rather than literal markup: `label` is optional, and an empty
+                  aria-label is worse than none — it names the field the empty string. %>
+              <%= tag.input(
+                    type: "text",
+                    name: search_field_name,
+                    value: search_value,
+                    placeholder: search_placeholder,
+                    "aria-label": search_label,
+                    class: "grow min-w-0 bg-transparent outline-none",
+                    data: {
+                      filters_target: "searchInput",
+                      action: "input->filters#toggleSearchClear"
+                    }
+                  ) %>
               <%# Clear button - shown when search has value %>
               <button type="button"
                       class="cursor-pointer p-0 w-4 h-4 flex items-center justify-center text-base-content/40 hover:text-base-content/70 <%= 'hidden' if search_value.blank? %>"
@@ -46,7 +53,7 @@
                 as a bare "button". %>
             <button type="submit" class="btn btn-primary btn-sm join-item" data-action="click->filters#submitSearch"
                     aria-label="<%= t('bali_view.filters.submit_search') %>">
-              <%= render Bali::Icon::Component.new('search', class: 'w-4 h-4') %>
+              <%= render Bali::Icon::Component.new(search_icon, class: 'w-4 h-4') %>
             </button>
           </div>
         <% end %>

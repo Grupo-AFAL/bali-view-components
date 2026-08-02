@@ -847,32 +847,33 @@ class BaliFilterFormTestSimpleFilters < ActiveSupport::TestCase
     assert_equal([ %w[Dynamic dynamic] ], config.first[:collection])
   end
 
-  def test_simple_search_config_returns_search_config_hash_when_search_fields_configured
+  # `search_config` is the single builder both filter surfaces consume; there used to
+  # be a second one (`simple_search_config`) emitting a different shape for SimpleFilters.
+  def test_search_config_declares_the_columns_not_the_ransack_param
     @form = Bali::FilterForm.new(Movie.all, params({}), search_fields: %i[name genre])
-    config = @form.simple_search_config
+    config = @form.search_config
     assert_kind_of(Hash, config)
-    assert_equal("q[name_or_genre_cont]", config[:field_name])
+    assert_equal(%i[name genre], config[:fields])
     assert_equal("Search by name, genre...", config[:placeholder])
+    assert_equal("q[name_or_genre_cont]", Bali::SearchConfig.wrap(config).param_name)
   end
 
-  def test_simple_search_config_includes_current_search_value_from_params
+  def test_search_config_carries_the_search_icon
+    @form = Bali::FilterForm.new(Movie.all, params({}), search_fields: %i[name], search_icon: "search")
+    assert_equal("search", @form.search_config[:icon])
+  end
+
+  def test_search_config_includes_current_search_value_from_params
     filter_params = { name_or_genre_cont: "SAP" }
     @form = Bali::FilterForm.new(Movie.all, params(filter_params), search_fields: %i[name genre])
-    config = @form.simple_search_config
-    assert_equal("SAP", config[:value])
+    assert_equal("SAP", @form.search_config[:value])
   end
 
-  def test_simple_search_config_returns_nil_when_search_fields_not_configured
-    @form = Bali::FilterForm.new(Movie.all, params({}))
-    assert_nil(@form.simple_search_config)
-  end
-
-  def test_simple_search_config_uses_custom_placeholder_when_provided
+  def test_search_config_uses_custom_placeholder_when_provided
     @form = Bali::FilterForm.new(
     Movie.all, params({}), search_fields: %i[name], search_placeholder: "Find movies..."
     )
-    config = @form.simple_search_config
-    assert_equal("Find movies...", config[:placeholder])
+    assert_equal("Find movies...", @form.search_config[:placeholder])
   end
 end
 

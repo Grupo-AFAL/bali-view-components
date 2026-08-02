@@ -7,7 +7,6 @@ module Admin
 
     def new
       @character = @movie.characters.build
-      render layout: !drawer_request?
     end
 
     def create

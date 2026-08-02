@@ -1,11 +1,8 @@
-<% if params[:layout] == 'false' %>
-  <h2 class="text-lg font-semibold mb-4"><%= t('studios.form.edit_title', name: @studio.name) %></h2>
-  <%= render 'form', studio: @studio %>
-<% else %>
-  <%= render Bali::PageHeader::Component.new(
-    title: t('studios.form.edit_title', name: @studio.name),
-    back: { href: studio_path(@studio) }
-  ) %>
-
-  <%= render 'form', studio: @studio %>
+<%= render Bali::FormPage::Component.new(
+  title: t('studios.form.edit_title', name: @studio.name),
+  back: { href: studio_path(@studio) }
+) do |page| %>
+  <% page.with_body do %>
+    <%= render 'form', studio: @studio, drawer: page.drawer? %>
+  <% end %>
 <% end %>

@@ -201,7 +201,7 @@ FilterForm is organized into focused concerns for maintainability:
 | `search_enabled?` | `Boolean` | True if search is configured |
 | `search_value` | `String` | Current search value from params |
 | `search_field_name` | `String` | Ransack field name (e.g., `name_or_genre_cont`) |
-| `search_config` | `Hash` | Full config for Filters component |
+| `search_config` | `Hash` | The `search:` hash BOTH filter surfaces take (`fields`, `value`, `placeholder`, `icon`) |
 | `available_attributes` | `Array<Hash>` | Filter attributes from DSL |
 | `filter_groups` | `Array<Hash>` | Parsed filter groups from params |
 | `combinator` | `String` | Top-level combinator ('and' or 'or') |
@@ -261,3 +261,21 @@ When a `filter_form` is provided to DataTable, `with_filters_panel` auto-populat
   search: { placeholder: 'Custom...' }      # Merge with auto-config
 ) %>
 ```
+
+`with_simple_filters` resolves `search:` the same way, from the same `search_config`.
+
+### The `search:` shape
+
+One hash, both surfaces (`Bali::SearchConfig`). Declare the **columns**; Bali derives the
+Ransack param (`fields: %i[name email]` → `q[name_or_email_cont]`, via
+`Bali::RansackParamName`). Any other key raises `ArgumentError` — including v2's
+`field_name:`, whose message names the replacement.
+
+| Key | Description |
+|-----|-------------|
+| `fields` | Columns to search. Empty or absent, no box renders |
+| `value` | Current value, rendered back into the box |
+| `placeholder` | Placeholder text |
+| `label` | Accessible name for the input |
+| `icon` | Submit-button glyph in `Filters`, leading addon in `SimpleFilters` |
+| `width` | Tailwind width classes for the box |

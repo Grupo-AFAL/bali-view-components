@@ -109,6 +109,10 @@ Bali.deprecator.silence { ... }                              # or scope one exce
 | `Bali::Icon::DefaultIcons` | nothing — see [The icon fallback is gone](#the-icon-fallback-is-gone) |
 | `Bali::GanttChart::*` (component and sub-components) | nothing in v3 — see [The Gantt chart is gone](#the-gantt-chart-is-gone) |
 | The `bali-view-components/gantt` npm entry | nothing — remove the import |
+| `Bali::SearchInput::Component` | `f.search_field_group` — see [Quick search has one shape](#quick-search-has-one-shape) |
+| `Bali::Utils::DummyFilterForm` | nothing — it existed to feed the `SearchInput` preview |
+| `Bali::FilterForm#simple_search_config` | `#search_config`, the one builder both filter surfaces take |
+| `search: { field_name: … }` on `SimpleFilters` | `search: { fields: […] }` |
 
 `Bali::FilterForm.simple_filter` is **deprecated, not removed** — it still declares the
 filter and now warns. It goes away in v4; migrate at your own pace:
@@ -798,6 +802,73 @@ three of the five raised `ArgumentError` for *any* key, because they had no `max
 
 `sidebar_width:` is new and shared: `:default` gives the sidebar a third of the grid,
 `:narrow` a quarter, `:wide` a half. Below `lg` it always stacks under the body.
+
+### `context:` — one view for the page and for the drawer
+
+The five page components take a `context:`, and it is what lets you delete the
+`if drawer_request?` at the top of every `new`/`edit`/`show` template. Nothing is renamed and
+nothing is removed, so **a host that keeps its `if` keeps working unchanged** — this is worth
+doing when you next touch the file, not as a migration sweep.
+
+```erb
+<%# v2 — the two branches differ by exactly two arguments %>
+<% if drawer_request? %>
+  <%= render Bali::FormPage::Component.new(title: t(".title"), card: false) do |page| %>
+    <% page.with_body do %><%= render "form" %><% end %>
+  <% end %>
+<% else %>
+  <%= render Bali::FormPage::Component.new(title: t(".title"),
+                                           back: { href: vendors_path }) do |page| %>
+    <% page.with_body do %><%= render "form" %><% end %>
+  <% end %>
+<% end %>
+
+<%# v3 — one call, both contexts %>
+<%= render Bali::FormPage::Component.new(title: t(".title"),
+                                         back: { href: vendors_path }) do |page| %>
+  <% page.with_body do %><%= render "form" %><% end %>
+<% end %>
+```
+
+`context:` takes three values:
+
+| value | meaning |
+|---|---|
+| `:auto` | the default: ask the request |
+| `:page` | full page chrome, whatever the request says |
+| `:drawer` | overlay chrome, whatever the request says |
+
+Inside a drawer the component drops the **breadcrumbs**, the **back button** and — on
+`FormPage` — the **Card**. The first two are ways *out* of a page, and a drawer is closed
+rather than left; the Card is the panel the drawer already draws. They are dropped even when
+you pass them, because the whole point is that the one surviving call site does pass `back:`.
+
+**Why the component never reads `params`.** `Bali::LayoutConcern` now defines
+`drawer_request?` — `params[:layout] == "false"`, the same value its layout switch has always
+read — and exposes it as a helper. `context: :auto` asks the view context for that helper and
+renders a page when it is not there. Two consequences worth knowing:
+
+- **If your controllers already declare a `drawer_request?` helper of their own — the very
+  pattern this replaces — autodetection works with no change to them at all.** That is the
+  common case: the helper is what the deleted `if` was calling.
+- If they do not, `include Bali::LayoutConcern` in `ApplicationController`. A controller with
+  a layout of its own must then declare it as `self.conditional_layout = "admin"` rather than
+  `layout "admin"`: a `layout` call in a subclass overrides the concern's and takes the
+  layout skipping with it.
+
+**The escape hatches.** `card:` is an ordinary argument and always wins, `card: true` inside
+a drawer included. For the breadcrumbs and the back button the escape hatch is
+`context: :page`, which restores the whole page chrome inside a drawer request; combine the
+two (`context: :page, card: false`) and every arrangement is reachable.
+
+**When the host still has to branch.** `page.drawer?` is public and yielded with the
+component, because some differences are behavioural rather than chrome: a Cancel that
+*closes* an overlay and a Cancel that *navigates* are two different elements. Pass it down
+(`render "form", drawer: page.drawer?`) instead of reading `params` in the partial. A page
+component decides its own chrome; it does not decide what your buttons do.
+
+Lookbook cannot issue a drawer request, so a preview of the drawer variant has to force it —
+see the "Page or drawer" scenarios of `FormPage` and `ShowPage`.
 
 ### 4. Give `PageHeader` an `h2` if your layout already owns the page's `h1`
 
@@ -2512,6 +2583,81 @@ inline SVG data URI now.
 Nothing to change unless you were passing `placeholder_url:` — that still works — or
 asserting on the old URL in a test. The placeholder art itself changes.
 
+## Quick search has one shape
+
+Quick search had four implementations. The `Filters` panel took the columns and built
+the Ransack parameter itself; `SimpleFilters` took the parameter already written out;
+`FilterForm` shipped a builder for each of those two shapes; and `SavedViews` wrote the
+`_or_` join and the `_cont` suffix a fourth time. They agreed by convention only, and a
+listing moving between the two filter surfaces silently lost whichever options the other
+shape did not understand.
+
+**Declare the columns. Bali builds the parameter.**
+
+```ruby
+# v2 — SimpleFilters
+<% dt.with_simple_filters(search: { field_name: "q[name_or_email_cont]", value: params.dig(:q, :name_or_email_cont) }) %>
+
+# v3 — the same hash the Filters panel takes
+<% dt.with_simple_filters(search: { fields: %i[name email], value: params.dig(:q, :name_or_email_cont) }) %>
+```
+
+The full shape is `fields:`, `value:`, `placeholder:`, `label:`, `icon:` and `width:`,
+and **both** components honour all six now. Anything else raises `ArgumentError` rather
+than rendering a box that submits nothing — including `field_name:`, whose message spells
+the replacement out. `Bali::RansackParamName.predicate([:name, :email])` and `.param(…)`
+are the public way to build `name_or_email_cont` and `q[name_or_email_cont]` yourself if
+you need the string somewhere else.
+
+Run these:
+
+```bash
+grep -rn "field_name:" app/                       # → fields: [:col, :other_col]
+grep -rn "simple_search_config" app/              # → search_config (it carries icon: now)
+grep -rn "SearchInput" app/ test/                 # → f.search_field_group, see below
+grep -rn "DummyFilterForm" app/ test/ spec/       # → gone with the SearchInput preview
+```
+
+### `Bali::SearchInput` is deleted
+
+It was never wired into `Filters`, `SimpleFilters` or `DataTable` — each of those renders
+its own box — so it only ever served hosts rendering it directly. Its replacement is the
+FormBuilder's `search_field_group`, which emits the same text input and the same icon
+submit button from the same form object, and adds the caption the component never had:
+
+```erb
+<%# v2 %>
+<%= form_with url: movies_path, method: :get do |f| %>
+  <%= render Bali::SearchInput::Component.new(form: @filter_form, field: :name_cont,
+                                              placeholder: "Search movies...") %>
+<% end %>
+
+<%# v3 — note builder: Bali::FormBuilder %>
+<%= form_with model: @filter_form, url: movies_path, method: :get, builder: Bali::FormBuilder do |f| %>
+  <%= f.search_field_group :name_cont, placeholder: "Search movies..." %>
+<% end %>
+```
+
+The submitted parameter is unchanged: with a `FilterForm` (whose `model_name` is `q`) both
+emit `q[name_cont]`.
+
+`auto_submit: true` was the variant with no button, submitting on input. Drop the addon and
+point the input at the `submit-on-change` controller, which is what the component did
+internally:
+
+```erb
+<%= form_with model: @filter_form, url: movies_path, method: :get,
+              builder: Bali::FormBuilder, data: { controller: "submit-on-change" } do |f| %>
+  <%= f.search_field_group :name_cont, addon_right: nil,
+        data: { action: "submit-on-change#submit" } %>
+<% end %>
+```
+
+Both variants are rendered live on the dummy app's `/showcase`. The
+`bali_view.search_input.*` strings go with the component; `search_field_group` has its own
+under `bali_view.form_builder.search.*`, which already existed. `.search-input-component`
+had no CSS behind it, so no stylesheet changes.
+
 ## Checklist
 
 ```
@@ -2558,6 +2704,9 @@ grep -rn "NumericAttributesWithCommas\|gsub(\",\"" app/models/   # drop your own
 # dynamic_fields: these are <button> now
 grep -rn "link_to_add_fields\|link_to_remove_fields" app/ test/
 grep -rn "placehold.jp" app/ test/                   # ImageField's placeholder is a data URI
+# quick search: one shape, and SearchInput is gone
+grep -rn "field_name:\|simple_search_config" app/
+grep -rn "SearchInput\|DummyFilterForm" app/ test/ spec/
 ```
 
 Then walk the sidebar with the keyboard at a phone width: Tab to the hamburger, Enter,
