@@ -1,3 +1,5 @@
 <%= tag.button(**@options) do %>
+  <%= render Bali::Icon::Component.new(icon) if icon.present? %>
+  <%= name %>
   <%= content %>
 <% end %>

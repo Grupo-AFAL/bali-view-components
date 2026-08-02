@@ -315,6 +315,7 @@ en:
       close_drawer: Close drawer
       confirm_close: You have unsaved changes. Discard them?
     dropdown:
+      actions_trigger_label: Actions
       menu_label: Dropdown menu
     delete_link:
       generic_confirm_message: Are you sure?

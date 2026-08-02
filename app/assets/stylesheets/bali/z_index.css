@@ -51,6 +51,24 @@
  * component's own stacking context (`z-[1]` on a tippy arrow, `z-[2]` on a Gantt
  * resize handle, flatpickr's nav arrows at 3). Those never compete with another
  * overlay, and naming them would suggest they do.
+ *
+ * THE SCALE STOPS AT THE TOP LAYER. A `<dialog>` opened with `showModal()`, and
+ * an element shown with `showPopover()`, are painted in the top layer, which sits
+ * above the whole document and above every z-index there is: 800 does not beat
+ * it, and neither would 8000. This scale orders overlays *within the document*,
+ * and that is the whole of its contract. A host reading `--bali-z-toast: 700`
+ * should read it as "above every other overlay Bali renders into the document",
+ * not as "above everything".
+ *
+ * The rule that follows, and the one the package obeys: an overlay that has to
+ * appear over something in the top layer has to join the top layer itself. There
+ * is no number that does it. Bali's own case is a field popup — flatpickr's
+ * calendar, SlimSelect's list — opened from a field inside a modal overlay: it
+ * joins the top layer from inside that overlay's subtree, because a modal dialog
+ * also makes everything outside itself inert, so being painted on top is only
+ * half of what it takes. `assets/javascripts/bali/utils/top-layer.js` carries the
+ * measurement and does the work; `docs/guides/overlays-and-the-top-layer.md` is
+ * the version written for a host.
  */
 @layer theme {
   :where(:root) {

@@ -107,7 +107,7 @@
               dropdowns, checkboxes de columnas, el form de renombrar vistas). Declarado como
               `role="menu"` el lector de pantalla entra en modo menú sobre un formulario y
               expone hijos que ese rol no permite. Esto es un popover contenedor. %>
-          <%= render Bali::Dropdown::Component.new(align: :bottom_end, wide: true, menu: false) do |dropdown| %>
+          <%= render Bali::Dropdown::Component.new(direction: :bottom, align: :end, width: :xl, menu: false) do |dropdown| %>
             <% dropdown.with_trigger(variant: :ghost, class: "btn-sm btn-square",
                                      "aria-label": overflow_menu_label) do %>
               <%= render Bali::Icon::Component.new("ellipsis", class: "w-4 h-4") %>
