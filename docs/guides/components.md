@@ -1175,7 +1175,13 @@ option list below.
 ```
 
 **Options:**
-- `url` - Base URL for filtering/sorting links (required)
+- `url` - Base URL for filtering/sorting links (required). It is also the base for the **page**
+  links, but only when the `pagy` cannot build its own — that is, when it was not created by
+  the `pagy()` helper and so carries no request. With the helper (the normal case) Pagy keeps
+  building them from the real request, which is what preserves an applied filter across a page
+  change; `url:` is a filtering base and does not carry the query string, so letting it win
+  would drop that filter. When it *is* used, the listing composes it the way the view switch and
+  "Group by" do: `url` plus the current query string, minus the one-shot params.
 - `filter_form` - `Bali::FilterForm` instance for Ransack integration (default: nil)
 - `pagy` - Pagy object for pagination (default: nil)
 - `show_summary` - Show record summary (default: true when pagy present). Suppressed either way when there are no results — a "Showing 0-0 of 0" line under an empty table tells nobody anything.

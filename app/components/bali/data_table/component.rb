@@ -302,7 +302,8 @@ module Bali
         component
       end
 
-      # @param url [String] Base URL for filtering/sorting links
+      # @param url [String] Base URL for filtering/sorting links. También es la base de los
+      #   links de página cuando el Pagy no puede armar los suyos (ver #pagination_url)
       # @param filter_form [Bali::FilterForm] Optional filter form for Ransack integration
       # @param pagy [Pagy] Optional Pagy object for pagination
       # @param show_summary [Boolean] Show summary (default: true when pagy present)
@@ -424,6 +425,7 @@ module Bali
           pagy: @pagy,
           item_name: @item_name,
           show_summary: show_summary_bottom?,
+          url: pagination_url,
           divider: true
         )
       end
@@ -754,6 +756,31 @@ module Bali
 
         raise ArgumentError,
               format(DISPLAY_MODE_MISMATCH_MESSAGE, mode, @filter_form.group_by_modes.join(", "), mode)
+      end
+
+      # Base para los links de página, o `nil` para dejar que el Pagy arme los suyos.
+      #
+      # `nil` cuando el Pagy es linkable —el caso del helper `pagy()`, o sea todo host
+      # normal— y eso es deliberado: pasarle una base al `PaginationFooter` la hace GANAR
+      # (ver PagyAdapter#page_url, #654), y la `url:` de este listado es la base de filtrado
+      # y orden, que el host pasa sin query string (`admin_movies_path`). Reenviarla a
+      # ciegas convertía `/movies?q[name_cont]=a&page=1` en `/movies?page=2`: el filtro
+      # aplicado se perdía al pasar de página. Con el Pagy en su sitio, Pagy compone la URL
+      # desde el request real y el recorte sobrevive, además de respetar sus propias
+      # opciones (`root_key:`, `querify:`, `limit_key:`, `absolute:`) que esta base no sabe
+      # reproducir.
+      #
+      # Un Pagy SIN request —`Pagy::Offset.new` a mano, `render_inline`— no puede armar nada
+      # y caía en un `?page=2` pelado que borra el query string entero del navegador. Ahí sí
+      # hace falta una base, y el listado ya sabe construirla: la MISMA que arman el view
+      # switch y "Agrupar por" (`url:` + el query string actual, menos los params de un solo
+      # uso, `page` entre ellos). Así los links de página preservan filtros, orden y vista
+      # guardada en vez de solo apuntar al path correcto. Hasta ahora el DataTable no
+      # reenviaba NADA y ese host no tenía parámetro alguno con el que arreglarlo (#756).
+      def pagination_url
+        return if @pagy.nil? || pagy_adapter.linkable?
+
+        build_toolbar_href(@url, request_query_params, :page, nil)
       end
 
       def pagy_adapter
