@@ -24,12 +24,7 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
   UNSWEPT = {
     "documents/comment_threads#index" => "Turbo Stream partial; a bare GET has no frame to " \
                                          "render into and the JSON shape belongs to a " \
-                                         "controller test",
-    # Found by this sweep on its first run and filed rather than fixed here: `resources
-    # :documents` declares the route but DocumentsController has no `edit` action and there
-    # is no `edit.html.erb`, so the URL 404s. Editing a document happens through the overlay
-    # on `documents#show`, so the route is dead rather than broken. See #791.
-    "documents#edit" => "route declared by `resources :documents` with no action behind it (#791)"
+                                         "controller test"
   }.freeze
 
   def setup
