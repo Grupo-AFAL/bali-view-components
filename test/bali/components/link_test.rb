@@ -79,8 +79,8 @@ class BaliLinkComponentTest < ComponentTestCase
     assert_selector("span.icon-component")
   end
 
-  def test_with_icon_name_parameter_renders_icon_from_icon_name
-    render_inline(Bali::Link::Component.new(name: "Click", href: "#", icon_name: "star"))
+  def test_with_icon_keyword_renders_the_icon
+    render_inline(Bali::Link::Component.new(name: "Click", href: "#", icon: "star"))
     assert_selector("span.icon-component")
   end
 
@@ -217,22 +217,22 @@ class BaliLinkComponentTest < ComponentTestCase
   # Responsive (icon-only on mobile)
 
   def test_responsive_adds_btn_square_class_with_icon_and_variant
-    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon_name: "plus"))
+    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon: "plus"))
     assert_selector("a.btn.max-sm\\:btn-square")
   end
 
   def test_responsive_wraps_name_in_hidden_span
-    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon_name: "plus"))
+    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon: "plus"))
     assert_selector("a span.max-sm\\:hidden", text: "New")
   end
 
   def test_responsive_adds_aria_label
-    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon_name: "plus"))
+    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon: "plus"))
     assert_selector('a[aria-label="New"]')
   end
 
   def test_responsive_false_renders_normally
-    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon_name: "plus", responsive: false))
+    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon: "plus", responsive: false))
     assert_no_selector("a.max-sm\\:btn-square")
     assert_no_selector("a span.max-sm\\:hidden")
     assert_no_selector("a[aria-label]")
@@ -244,7 +244,7 @@ class BaliLinkComponentTest < ComponentTestCase
   end
 
   def test_responsive_without_variant_does_not_add_btn_square
-    render_inline(Bali::Link::Component.new(name: "New", href: "#", icon_name: "plus"))
+    render_inline(Bali::Link::Component.new(name: "New", href: "#", icon: "plus"))
     assert_no_selector("a.max-sm\\:btn-square")
   end
 end

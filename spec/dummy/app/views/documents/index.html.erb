@@ -1,5 +1,5 @@
 <%= render Bali::Breadcrumb::Component.new do |breadcrumb| %>
-  <% breadcrumb.with_item(name: 'Dashboard', href: root_path, icon_name: 'home') %>
+  <% breadcrumb.with_item(name: 'Dashboard', href: root_path, icon: 'home') %>
   <% breadcrumb.with_item(name: 'Documents') %>
 <% end %>
 
@@ -11,7 +11,7 @@
       name: 'New Document',
       href: new_document_path,
       variant: :primary,
-      icon_name: 'plus'
+      icon: 'plus'
     ) %>
   </div>
 <% end %>

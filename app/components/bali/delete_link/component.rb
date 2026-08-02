@@ -3,6 +3,8 @@
 module Bali
   module DeleteLink
     class Component < ApplicationViewComponent
+      include Bali::DeprecatedIconName
+
       class MissingURL < StandardError; end
 
       # One table for Button, Link and DeleteLink. See Bali::ButtonTaxonomy — DeleteLink
@@ -20,8 +22,9 @@ module Bali
 
       DEFAULT_ICON = "trash"
 
-      ICON_NAME_DEPRECATION = "Bali::DeleteLink::Component `icon_name:` is deprecated. " \
-                              "Use `icon:`, which now takes an icon name as well as `true`."
+      # The one component where `icon:` is not the old value under a new name: it also
+      # takes `true`, which is what the pair `icon: true` + `icon_name: 'x'` collapsed into.
+      ICON_HINT = "Here `icon:` takes an icon name as well as `true`."
 
       attr_reader :options, :disabled_hover_url
 
@@ -57,7 +60,7 @@ module Bali
         @disabled = disabled
         @disabled_hover_url = disabled_hover_url
         @skip_confirm = skip_confirm
-        @icon = icon.presence || deprecated_icon_name(icon_name)
+        @icon = icon.presence || deprecated_icon_name(icon_name, hint: ICON_HINT)
         @authorized = authorized
         @plain = plain
         @form_class = class_names("inline-block", options.delete(:form_class))
@@ -139,13 +142,6 @@ module Bali
       end
 
       private
-
-      def deprecated_icon_name(icon_name)
-        return if icon_name.blank?
-
-        Bali.deprecator.warn(ICON_NAME_DEPRECATION)
-        icon_name
-      end
 
       def default_confirm_message
         if @model.present?

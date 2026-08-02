@@ -69,18 +69,11 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
     assert_no_selector(".icon-component")
   end
 
-  # `icon:` said whether and `icon_name:` said which; now one keyword says both.
+  # `icon:` said whether and `icon_name:` said which; now one keyword says both. The
+  # `icon_name:` shim lives in test/bali/deprecated_icon_name_test.rb, with the other six.
   def test_icon_accepts_an_icon_name
     @options.merge!(icon: "x")
     render_inline(component)
-    assert_selector("button .icon-component")
-  end
-
-  def test_icon_name_still_works_and_warns
-    @options.merge!(icon_name: "x")
-    assert_deprecated(/`icon_name:` is deprecated/, Bali.deprecator) do
-      render_inline(component)
-    end
     assert_selector("button .icon-component")
   end
 

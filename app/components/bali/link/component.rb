@@ -3,6 +3,8 @@
 module Bali
   module Link
     class Component < ApplicationViewComponent
+      include Bali::DeprecatedIconName
+
       # One table for Button, Link and DeleteLink. See Bali::ButtonTaxonomy.
       VARIANTS = Bali::ButtonTaxonomy::VARIANTS
       SIZES = Bali::ButtonTaxonomy::SIZES
@@ -14,11 +16,16 @@ module Bali
       TYPE_REMOVED_MESSAGE = "Bali::Link::Component no longer accepts `type:`. " \
                              "Use `variant:` for the colour (`type:` was deprecated in v2.0)."
 
-      attr_reader :name, :href, :icon_name
+      attr_reader :name, :href
 
+      # The slot and the `icon:` keyword are the same concept written two ways, and now
+      # under the same word: the slot is the one that takes options (`with_icon('star',
+      # class: 'text-error')`), so it wins when both are given.
       renders_one :icon, ->(name, **options) { Icon::Component.new(name, **options) }
       renders_one :icon_right, ->(name, **options) { Icon::Component.new(name, **options) }
 
+      # @param icon [String, Symbol] Icon name, drawn before the label.
+      # @param icon_name [String, nil] @deprecated Removed in Bali 4.0. Use `icon:`.
       # rubocop:disable Metrics/ParameterLists
       def initialize(
         href:,
@@ -26,6 +33,7 @@ module Bali
         variant: nil,
         style: nil,
         size: nil,
+        icon: nil,
         icon_name: nil,
         active: nil,
         active_path: nil,
@@ -50,7 +58,7 @@ module Bali
         @variant_class = Bali::ButtonTaxonomy.variant!(self.class, variant)
         @style_class = Bali::ButtonTaxonomy.style!(self.class, style)
         @size_class = Bali::ButtonTaxonomy.size!(self.class, size)
-        @icon_name = icon_name
+        @icon = icon || deprecated_icon_name(icon_name)
         @active = active
         @active_path = active_path
         @match = match
@@ -177,7 +185,7 @@ module Bali
 
       def modal_enabled? = @modal.present?
       def drawer_enabled? = @drawer.present?
-      def responsive_icon_only? = @responsive && button_style? && @icon_name.present?
+      def responsive_icon_only? = @responsive && button_style? && @icon.present?
 
       # Normalize option to hash format. Supports: true, { size: :lg }
       def normalize_options(value) = value.is_a?(Hash) ? value.symbolize_keys : {}

@@ -253,16 +253,7 @@ class BaliDropdownComponentTest < ComponentTestCase
     assert_selector("button[role='menuitem'] svg")
   end
 
-  def test_icon_name_still_works_and_warns
-    assert_deprecated(Bali.deprecator) do
-      render_inline(Bali::Dropdown::Component.new) do |c|
-        c.with_trigger { "Trigger" }
-        c.with_item(name: "Edit", href: "/e", icon_name: "pencil")
-      end
-    end
-
-    assert_selector("a[role='menuitem'] svg")
-  end
+  # The `icon_name:` shim lives in test/bali/deprecated_icon_name_test.rb, with the other six.
 
   # `name:` and `icon:` on a button item used to be painted as HTML attributes, so the only
   # way to label one was a block.

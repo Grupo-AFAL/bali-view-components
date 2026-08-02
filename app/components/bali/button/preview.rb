@@ -27,7 +27,7 @@ module Bali
       # a square icon-only button using DaisyUI's `max-sm:btn-square`.
       # @param responsive toggle
       def with_icon(responsive: true)
-        render Bali::Button::Component.new(name: 'Add Item', variant: :primary, icon_name: 'plus', responsive: responsive)
+        render Bali::Button::Component.new(name: 'Add Item', variant: :primary, icon: 'plus', responsive: responsive)
       end
 
       # @label Button Group
