@@ -2,12 +2,12 @@
   title: 'Movies',
   subtitle: '24 movies total',
   breadcrumbs: [
-    { name: 'Dashboard', href: '/lookbook', icon_name: 'home' },
+    { name: 'Dashboard', href: '/lookbook', icon: 'home' },
     { name: 'Movies' }
   ]
 ) do |page| %>
   <% page.with_action do %>
-    <%= render Bali::Link::Component.new(name: 'New Movie', href: '#', variant: :primary, icon_name: 'plus') %>
+    <%= render Bali::Link::Component.new(name: 'New Movie', href: '#', variant: :primary, icon: 'plus') %>
   <% end %>
   <% page.with_nav do %>
     <%# Every tab here has an href:, so both sets render a <nav> with

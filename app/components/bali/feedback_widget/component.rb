@@ -3,6 +3,10 @@
 module Bali
   module FeedbackWidget
     class Component < ApplicationViewComponent
+      # The drawer's id, and with it the id of its title element, which the
+      # component's accessible name has always been read from.
+      DRAWER_ID = "feedback-widget"
+
       # @param project_slug [String] The project slug in Opina (e.g., "my-project")
       # @param opina_url [String] Base URL of the Opina instance (e.g., "https://opina.example.com")
       # @param token [String, nil] Pre-built JWT token for embed authentication
@@ -23,9 +27,9 @@ module Bali
         @options = options
       end
 
-      private
-
-      attr_reader :project_slug, :opina_url, :token, :badge_interval, :options
+      def drawer_id
+        DRAWER_ID
+      end
 
       def display_title
         @title || I18n.t("bali_view.feedback_widget.title")
@@ -35,9 +39,9 @@ module Bali
         I18n.t("bali_view.feedback_widget.open")
       end
 
-      def close_label
-        I18n.t("bali_view.feedback_widget.close")
-      end
+      private
+
+      attr_reader :project_slug, :opina_url, :token, :badge_interval, :options
 
       def generate_token(secret, user_id, email, user_name, expires_in)
         raise ArgumentError, "Either token: or secret: (with user_id: and email:) is required" unless secret
@@ -52,8 +56,21 @@ module Bali
         )
       end
 
+      # No token in the query string. A URL is the one place a bearer credential
+      # must not travel: it is written to the server's access log, offered in the
+      # `Referer` of anything the embed loads, and kept in browser history. The
+      # controller hands it to the frame with `postMessage` instead, addressed to
+      # `embed_origin` and never to `*`.
       def embed_url
-        "#{opina_url}/embed/feedback_posts?token=#{token}"
+        "#{opina_url}/embed/feedback_posts"
+      end
+
+      # The exact origin `postMessage` is allowed to deliver to.
+      def embed_origin
+        uri = URI.parse(opina_url)
+        origin = "#{uri.scheme}://#{uri.host}"
+        origin += ":#{uri.port}" unless uri.port == uri.default_port
+        origin
       end
 
       def badge_url
@@ -65,7 +82,10 @@ module Bali
           class: class_names("feedback-widget", options[:class]),
           data: {
             controller: "feedback-widget",
+            feedback_widget_drawer_id_value: drawer_id,
             feedback_widget_embed_url_value: embed_url,
+            feedback_widget_embed_origin_value: embed_origin,
+            feedback_widget_token_value: token,
             feedback_widget_badge_url_value: badge_url,
             feedback_widget_interval_value: badge_interval
           }

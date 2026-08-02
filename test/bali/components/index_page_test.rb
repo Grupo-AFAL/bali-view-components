@@ -15,7 +15,7 @@ class BaliIndexPageComponentTest < ComponentTestCase
     render_inline(Bali::IndexPage::Component.new(
       title: "Movies",
       breadcrumbs: [
-        { name: "Dashboard", href: "/", icon_name: "home" },
+        { name: "Dashboard", href: "/", icon: "home" },
         { name: "Movies" }
       ]
     )) do |page|
@@ -72,7 +72,7 @@ class BaliIndexPageComponentTest < ComponentTestCase
   def test_secondary_actions_live_in_the_overflow_menu_and_not_in_the_row
     render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
       page.with_action { "New Movie Button" }
-      page.with_secondary_action(name: "Import", href: "/movies/import", icon_name: "upload")
+      page.with_secondary_action(name: "Import", href: "/movies/import", icon: "upload")
       page.with_body { "Content" }
     end
 

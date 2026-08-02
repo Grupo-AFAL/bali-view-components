@@ -96,7 +96,7 @@ module Bali
       # verdad y sus items tienen que pasar por `with_item` para heredar el rol de menuitem y
       # la selección Link/DeleteLink. Mismo patrón que DashboardPage#with_stat.
       #
-      # @param options [Hash] Opciones de Bali::Dropdown#with_item (href:, icon_name:,
+      # @param options [Hash] Opciones de Bali::Dropdown#with_item (href:, icon:,
       #   method:, tag:, authorized:)
       def with_secondary_action(**options, &block)
         secondary_action_items << [ options, block ]

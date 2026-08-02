@@ -24,11 +24,18 @@ const SIZE_CLASSES = {
  *   <a href="http://localhost/customers/new" data-action="modal#open">
  *    Add Customer
  *   </a>
- *   <div id="modal-template" class="modal">
+ *   <dialog id="modal-template" class="modal" data-modal-target="template">
  *     <button data-action="modal#submit">Save</button>
- *     <a data-action="modal#close">Cancel</a>
- *   </div>
+ *     <button data-action="modal#close">Cancel</button>
+ *   </dialog>
  * </section>
+ *
+ * The panel is a native `<dialog>` opened with `showModal()`. That is where the
+ * top layer, the inertness of the page behind it and the browser's own focus
+ * containment come from; what stays hand-written is everything the element does
+ * not know about — the remote load, the skeleton, the unsaved-form prompt, and
+ * the popups (flatpickr, SlimSelect) that portal themselves out of the panel and
+ * have to be brought back into the top layer with it.
  *
  * Events, all dispatched on `document`:
  *   - bali:modal:open     emitted by `open()`, and listened for so a host can
@@ -103,6 +110,7 @@ export class ModalController extends Controller {
       // We detect clicks outside the wrapper to close the modal.
       this.templateTarget.addEventListener('mousedown', this._onOverlayMousedown)
       this.templateTarget.addEventListener('click', this._onOverlayClick)
+      this.templateTarget.addEventListener('cancel', this._onDialogCancel)
 
       // Capture-phase probe for the flatpickr popup guard (see _recordPopupState).
       this.element.addEventListener('keydown', this._recordPopupState, true)
@@ -113,6 +121,19 @@ export class ModalController extends Controller {
     }
 
     document.addEventListener(eventName, this.setOptionsAndOpenModal)
+
+    this._promoteInitiallyOpenOverlay()
+  }
+
+  // A panel rendered `active:` arrives with the open class already on it and no
+  // script in the loop, so nothing has put it in the top layer. Promoting it here
+  // is what makes a server-opened overlay behave like a user-opened one: same
+  // inertness behind it, same Escape, same handling of the popups inside it.
+  _promoteInitiallyOpenOverlay () {
+    if (!this.hasTemplateTarget) return
+    if (!this.templateTarget.classList.contains(this.openClass)) return
+
+    this._showOverlay()
   }
 
   disconnect () {
@@ -128,6 +149,7 @@ export class ModalController extends Controller {
     if (this.hasTemplateTarget) {
       this.templateTarget.removeEventListener('mousedown', this._onOverlayMousedown)
       this.templateTarget.removeEventListener('click', this._onOverlayClick)
+      this.templateTarget.removeEventListener('cancel', this._onDialogCancel)
       this.element.removeEventListener('keydown', this._recordPopupState, true)
     }
 
@@ -141,11 +163,13 @@ export class ModalController extends Controller {
   templateTargetConnected () {
     this.templateTarget.addEventListener('mousedown', this._onOverlayMousedown)
     this.templateTarget.addEventListener('click', this._onOverlayClick)
+    this.templateTarget.addEventListener('cancel', this._onDialogCancel)
   }
 
   templateTargetDisconnected () {
     this.templateTarget.removeEventListener('mousedown', this._onOverlayMousedown)
     this.templateTarget.removeEventListener('click', this._onOverlayClick)
+    this.templateTarget.removeEventListener('cancel', this._onDialogCancel)
   }
 
   setOptionsAndOpenModal = event => {
@@ -186,7 +210,7 @@ export class ModalController extends Controller {
       this._applySize(size)
     }
 
-    this.templateTarget.classList.add(this.openClass)
+    this._showOverlay()
 
     // Only replace content if provided - allows showing skeleton first
     if (content !== null && content !== undefined) {
@@ -197,6 +221,36 @@ export class ModalController extends Controller {
     // — a sibling subtree — so for the whole length of the fetch Escape never
     // reached the panel's handler and Tab walked the page behind the overlay.
     this.trapFocus()
+  }
+
+  // The overlay element is a real `<dialog>`, and `showModal()` is the whole
+  // reason: it paints the panel in the top layer, where no z-index in the
+  // document can cover it, and it makes everything outside the panel inert. The
+  // open class stays on for both — it is what the stylesheets, the previews and
+  // every existing call site read the state from, and it is what keeps a panel
+  // rendered `active:` visible in the seconds before Stimulus connects.
+  //
+  // Idempotent on purpose: `open()` runs this twice per remote open, once for
+  // the skeleton and once for the loaded content.
+  _showOverlay () {
+    const dialog = this.templateTarget
+    dialog.classList.add(this.openClass)
+
+    if (typeof dialog.showModal !== 'function' || dialog.open) return
+
+    try {
+      dialog.showModal()
+    } catch {
+      // Not connected, or already open from another controller instance. The
+      // class alone still shows the panel; it just is not in the top layer.
+    }
+  }
+
+  _hideOverlay () {
+    const dialog = this.templateTarget
+    dialog.classList.remove(this.openClass)
+
+    if (dialog.open) dialog.close()
   }
 
   // Swaps the panel's content on an already-open overlay. Deliberately does not
@@ -309,6 +363,17 @@ export class ModalController extends Controller {
     this._dirty = true
   }
 
+  // A `<dialog>` answers a close request on its own, and that close knows nothing
+  // about the open calendar or the unsaved form. `close()` cancels the keydown for
+  // every Escape it sees, so in practice this only runs for a close request that
+  // never was a keydown we saw: a platform back gesture, or Escape pressed while
+  // the focus sits inside an <iframe> in the panel. Route it through the same
+  // guarded path rather than let the browser discard the form.
+  _onDialogCancel = event => {
+    event.preventDefault()
+    this._closeWithConfirmation()
+  }
+
   // flatpickr binds its Escape handler on the input itself, so it closes the
   // calendar at the target phase — before our bubble-phase `close()` could see
   // `.flatpickr-calendar.open`. Sampling here in the capture phase (which runs
@@ -337,7 +402,10 @@ export class ModalController extends Controller {
     // Invalidates any open still waiting on its fetch. See `_openSequence`.
     this._openSequence = (this._openSequence || 0) + 1
 
-    this.templateTarget.classList.remove(this.openClass)
+    // Before the focus restore below: while the dialog is open everything
+    // outside it is inert, and `.focus()` on an inert element does nothing.
+    this._hideOverlay()
+
     if (this.wrapperClasses) {
       this.wrapperTarget.classList.remove(...this.wrapperClasses)
     }
@@ -481,6 +549,12 @@ export class ModalController extends Controller {
     // only the next one closes the modal/drawer.
     if (event && event.type === 'keydown' && this._escapeHadOpenPopup) {
       this._escapeHadOpenPopup = false
+
+      // The panel is a `<dialog>`, and its own Escape knows nothing about this
+      // guard: leaving the keydown alone would let the browser close the whole
+      // overlay in the same keystroke that flatpickr used to close its calendar,
+      // which is exactly the "first Escape belongs to the calendar" rule gone.
+      event.preventDefault()
       return
     }
 

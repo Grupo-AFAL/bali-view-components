@@ -1,7 +1,10 @@
-<div id="<%= modal_id %>"
+<%# A real `<dialog>`: `ModalController` opens it with `showModal()`, which is what
+    buys the top layer, the inertness of everything behind it and the browser's own
+    focus containment. `role="dialog"` and `aria-modal` are gone because both are
+    implicit here — and `aria-modal` was a lie in the one state a plain attribute
+    cannot tell apart, a panel rendered `active:` that no script has opened yet. %>
+<dialog id="<%= modal_id %>"
      class="<%= modal_classes %> fixed inset-0 z-[var(--bali-z-modal)] items-center justify-center hidden [&.modal-open]:flex"
-     role="dialog"
-     aria-modal="true"
      <% if title? %>aria-labelledby="<%= title_id %>"<% end %>
      <% if description? %>aria-describedby="<%= description_id %>"<% end %>
      <% if confirm_on_close? %>data-controller="modal" data-modal-confirm-close-message-value="<%= confirm_close_message %>"<% end %>
@@ -26,4 +29,4 @@
       <%= actions %>
     <% end %>
   </div>
-</div>
+</dialog>

@@ -1,4 +1,6 @@
-<%= tag.div(**html_attributes) do %>
+<%# A real `<dialog>`: `DrawerController` opens it with `showModal()`. See the
+    note on the modal template for why `role`/`aria-modal` are not written out. %>
+<%= tag.dialog(**html_attributes) do %>
   <div class="drawer-overlay fixed inset-0 bg-black/50 z-0"
        data-drawer-target="background"
        data-action="click->drawer#close"

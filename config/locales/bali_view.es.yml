@@ -406,7 +406,6 @@ es:
     feedback_widget:
       title: "Comentarios"
       open: "Abrir comentarios"
-      close: "Cerrar"
 
     document_editor:
       # Barra superior

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Fake Opina embed</title>
+  </head>
+  <body style="font-family: system-ui; padding: 1rem">
+    <p>Query string: <code id="query-string"><%= request.query_string.presence || '(empty)' %></code></p>
+    <p>Token received by message: <code id="received-token">(none)</code></p>
+
+    <script>
+      // What Opina's embed does with this PR in: read the credential off a
+      // message instead of off its own URL.
+      document.getElementById('query-string').textContent =
+        window.location.search.replace(/^\?/, '') || '(empty)'
+
+      window.addEventListener('message', event => {
+        if (event.origin !== window.location.origin) return
+        if (!event.data || event.data.type !== 'bali:feedback:token') return
+
+        document.getElementById('received-token').textContent = event.data.token
+      })
+    </script>
+  </body>
+</html>

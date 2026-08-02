@@ -410,7 +410,14 @@ export class FiltersController extends Controller {
   buildUrl () {
     const url = new URL(this.urlValue, window.location.origin)
     const formData = new FormData(this.formTarget)
-    const searchFormData = new FormData(this.searchFormTarget)
+    // The quick-search form is only painted when the host passed `search:`. Reading the
+    // target unguarded threw "Missing target element" right here, and since `_submit()`
+    // builds the URL BEFORE calling `requestSubmit()`, that exception took the whole
+    // submission with it: on a Filters without a search — every inline panel, by design —
+    // Apply did nothing at all, silently (#799).
+    const searchFormData = this.hasSearchFormTarget
+      ? new FormData(this.searchFormTarget)
+      : new FormData()
 
     // Clear existing q params
     for (const key of [...url.searchParams.keys()]) {
@@ -419,11 +426,25 @@ export class FiltersController extends Controller {
       }
     }
 
+    // `urlValue` is the listing's URL and can already carry the very params both forms
+    // paint as hidden fields (`locale`, `group_by`, `view`), so appending them left the
+    // pushed URL saying `?locale=es&locale=es`. The server keeps one, but that URL is the
+    // one the user copies. The FIRST write of a key drops whatever the base URL held for
+    // it; the writes after it append, so a multi-value field keeps all of its values.
+    const written = new Set()
+    const append = (key, value) => {
+      if (!value || value.trim() === '') return
+
+      if (!written.has(key)) {
+        url.searchParams.delete(key)
+        written.add(key)
+      }
+      url.searchParams.append(key, value)
+    }
+
     // Add form params (only non-empty values)
     for (const [key, value] of formData) {
-      if (value && value.trim() !== '') {
-        url.searchParams.append(key, value)
-      }
+      append(key, value)
     }
 
     // Add search-form params (only non-empty values). The applied filter state (q[g]/q[m])
@@ -439,9 +460,7 @@ export class FiltersController extends Controller {
     const filterKeys = new Set(formData.keys())
     for (const [key, value] of searchFormData) {
       if (filterKeys.has(key) || key.startsWith('q[g]') || key === 'q[m]') continue
-      if (value && value.trim() !== '') {
-        url.searchParams.append(key, value)
-      }
+      append(key, value)
     }
 
     return url

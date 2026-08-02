@@ -1,7 +1,7 @@
 <%= render Bali::ShowPage::Component.new(
   title: @studio.name,
   breadcrumbs: [
-    { name: t('studios.show.dashboard'), href: admin_root_path, icon_name: 'home' },
+    { name: t('studios.show.dashboard'), href: admin_root_path, icon: 'home' },
     { name: t('studios.title'), href: admin_studios_path },
     { name: @studio.name }
   ],
@@ -13,7 +13,7 @@
       href: edit_admin_studio_path(@studio),
       variant: :primary,
       size: :sm,
-      icon_name: 'pencil'
+      icon: 'pencil'
     ) %>
   <% end %>
 

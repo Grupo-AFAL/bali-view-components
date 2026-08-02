@@ -37,7 +37,7 @@
         <% if toolbar? %>
           <%# Limpiar la selección es una ACCIÓN, no navegación: botón, no link. %>
           <%= render Bali::Button::Component.new(
-                icon_name: 'times', variant: :ghost, size: :xs, responsive: false,
+                icon: 'times', variant: :ghost, size: :xs, responsive: false,
                 'aria-label': t('.clear'),
                 data: { action: 'bulk-actions#clear' }
               ) %>
