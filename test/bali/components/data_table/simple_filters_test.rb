@@ -14,7 +14,7 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
       }
     ]
     @search = {
-      field_name: "q[name_cont]",
+      fields: [ :name ],
       value: nil,
       placeholder: "Search by name..."
     }
@@ -173,6 +173,24 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: @search))
     assert_selector("input[type='text'][name='q[name_cont]']")
     assert_selector("input[placeholder='Search by name...']")
+  end
+
+  # #677: the caller declares columns, not the Ransack parameter. This is the same
+  # `search:` hash the Filters panel takes.
+  def test_search_input_name_is_derived_from_several_columns
+    search = @search.merge(fields: %i[name email])
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: search))
+    assert_selector("input[type='text'][name='q[name_or_email_cont]']")
+    assert_selector("input#simple-filter-search-q-name_or_email_cont")
+  end
+
+  def test_an_unknown_search_option_raises
+    error = assert_raises(ArgumentError) do
+      Bali::DataTable::SimpleFilters::Component.new(
+        url: "/test", filters: @filters, search: { field_name: "q[name_cont]" }
+      )
+    end
+    assert_includes(error.message, ":field_name")
   end
 
   def test_search_input_opts_out_of_password_manager_autofill

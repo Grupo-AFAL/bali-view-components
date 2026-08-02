@@ -130,21 +130,10 @@ module Bali
         capture_persistence(options[:storage_id], options[:persist_enabled])
         options[:persistence_toggle] = false
 
-        # Auto-populate search config from filter_form, merging with explicit overrides
-        filter_form_search = if @filter_form && @filter_form.respond_to?(:search_config)
-                               @filter_form.search_config
-        end
-        resolved_search = if filter_form_search && search
-                            # Merge: filter_form provides base, explicit search overrides
-                            filter_form_search.merge(search)
-        else
-                            search || filter_form_search
-        end
-
         Filters::Component.new(
           url: @url,
           available_attributes: resolved_attributes,
-          search: resolved_search,
+          search: resolved_search_config(search),
           **options
         )
       end
@@ -167,7 +156,7 @@ module Bali
       #   ])
       renders_one :simple_filters, ->(filters: nil, search: nil, storage_id: nil, persist_enabled: nil) do
         resolved_filters = filters || @filter_form&.simple_filters_config || []
-        resolved_search = search || @filter_form&.simple_search_config
+        resolved_search = resolved_search_config(search)
         filters_active = @filter_form&.simple_filters_active? || false
         search_active = resolved_search&.dig(:value).present?
 
@@ -608,6 +597,17 @@ module Bali
       def capture_persistence(storage_id, enabled)
         @persistence_storage_id = storage_id.presence
         @persistence_enabled = !!enabled
+      end
+
+      # The `search:` hash both filter slots hand to their component: whatever the
+      # FilterForm declares, with the slot's explicit options layered on top. The two
+      # slots used to resolve it apart, from two different FilterForm builders, so a
+      # listing that moved between them lost whichever keys the other shape lacked.
+      def resolved_search_config(override)
+        declared = @filter_form.search_config if @filter_form.respond_to?(:search_config)
+        return declared || override.presence unless declared && override.present?
+
+        declared.merge(override.to_h.symbolize_keys)
       end
 
       # Qué familias de control PINTAN algo. Es la ÚNICA lista: `overflow_menu?`,

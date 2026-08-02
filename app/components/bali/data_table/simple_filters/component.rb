@@ -25,11 +25,13 @@ module Bali
         # @param url [String] Form submission URL
         # @param filters [Array<Hash>] Filter configurations
         # @param show_clear [Boolean] Show clear button
-        # @param search [Hash, nil] Search input configuration
-        #   - :field_name [String] Ransack param name (e.g., "q[name_cont]")
+        # @param search [Hash, nil] Search input configuration (see Bali::SearchConfig)
+        #   - :fields [Array<Symbol>] Columns to search (e.g., [:name, :email]);
+        #     Bali derives the Ransack param name from them
         #   - :value [String, nil] Current search value
         #   - :placeholder [String, nil] Placeholder text
-        #   - :label [String, nil] Custom label (defaults to I18n)
+        #   - :label [String, nil] Accessible name for the search input
+        #   - :icon [String, nil] Icon rendered as a leading addon
         #   - :width [String, nil] Tailwind width classes (default: "w-48 sm:w-96")
         # @param storage_id [String, nil] Optional storage ID indicating filters can be persisted
         # @param persist_enabled [Boolean] Whether user has opted into filter persistence
@@ -44,7 +46,7 @@ module Bali
           @url = url
           @filters = filters
           @show_clear = show_clear
-          @search = search
+          @search = Bali::SearchConfig.wrap(search)
           @storage_id = storage_id
           @persist_enabled = persist_enabled
           @persistence_toggle = persistence_toggle
@@ -80,15 +82,28 @@ module Bali
         end
 
         def search_enabled?
-          @search.present? && @search[:field_name].present?
+          @search.enabled?
+        end
+
+        # "q[name_or_email_cont]"
+        def search_field_name
+          @search.param_name
+        end
+
+        def search_value
+          @search.value
+        end
+
+        def search_placeholder
+          @search.placeholder
         end
 
         def search_icon
-          @search&.dig(:icon)
+          @search.icon
         end
 
         def search_width
-          @search&.dig(:width) || "w-48 sm:w-96"
+          @search.width.presence || "w-48 sm:w-96"
         end
 
         def filter_type(filter)
@@ -166,13 +181,13 @@ module Bali
         end
 
         def search_input_id
-          "simple-filter-search-#{@search[:field_name].gsub(/[^a-zA-Z0-9_-]+/, "-").squeeze("-").delete_suffix("-")}"
+          "simple-filter-search-#{search_field_name.gsub(/[^a-zA-Z0-9_-]+/, "-").squeeze("-").delete_suffix("-")}"
         end
 
         # Documented since the component was written but never rendered, which
         # left the search box named by its placeholder alone.
         def search_label
-          @search&.dig(:label)
+          @search.label
         end
 
         def icon_addon(icon_name)

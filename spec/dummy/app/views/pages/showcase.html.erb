@@ -1,5 +1,5 @@
 <%# Component Showcase - Missing components from Kitchen Sink %>
-<%# Showcases: Calendar, Clipboard, Drawer, FlashNotifications, ImageField, List, Loader, LocationsMap, Modal, SearchInput, Tags, Tooltip, TreeView, RecurrentEventRuleForm %>
+<%# Showcases: Calendar, Clipboard, Drawer, FlashNotifications, ImageField, List, Loader, LocationsMap, Modal, Tags, Tooltip, TreeView, RecurrentEventRuleForm %>
 
 <%# Breadcrumb %>
 <%= render Bali::Breadcrumb::Component.new do |breadcrumb| %>
@@ -760,7 +760,7 @@
   <% end %>
 </section>
 
-<%# SearchInput Demo %>
+<%# Search field Demo — the replacement for the removed Bali::SearchInput %>
 <section class="mb-12">
   <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
     <%= render Bali::Icon::Component.new('search', class: 'text-primary') %>
@@ -772,28 +772,23 @@
     <div class="space-y-6">
       <div>
         <h4 class="font-medium mb-2"><%= t('showcase.with_submit_button') %></h4>
-        <%= form_with url: '/pages/showcase', method: :get, local: true do |f| %>
+        <%= form_with url: '/pages/showcase', method: :get, local: true, builder: Bali::FormBuilder do |f| %>
           <div class="max-w-md">
-            <%= render Bali::SearchInput::Component.new(
-              form: Struct.new(:model_name, :query).new(model_name: 'search', query: ''),
-              field: :query,
-              placeholder: t('showcase.search_products'),
-              auto_submit: false
-            ) %>
+            <%= f.search_field_group :query, placeholder: t('showcase.search_products') %>
           </div>
         <% end %>
       </div>
 
       <div>
         <h4 class="font-medium mb-2"><%= t('showcase.auto_submit') %></h4>
-        <%= form_with url: '/pages/showcase', method: :get, local: true, data: { controller: 'submit-on-change' } do |f| %>
+        <%# Dropping the addon is what turns the submit button off; the form submits
+            on input instead, through the submit-on-change controller. %>
+        <%= form_with url: '/pages/showcase', method: :get, local: true, builder: Bali::FormBuilder, data: { controller: 'submit-on-change' } do |f| %>
           <div class="max-w-md">
-            <%= render Bali::SearchInput::Component.new(
-              form: Struct.new(:model_name, :query).new(model_name: 'search', query: ''),
-              field: :query,
-              placeholder: t('showcase.start_typing'),
-              auto_submit: true
-            ) %>
+            <%= f.search_field_group :query,
+                  placeholder: t('showcase.start_typing'),
+                  addon_right: nil,
+                  data: { action: 'submit-on-change#submit' } %>
           </div>
         <% end %>
       </div>
@@ -1004,7 +999,6 @@
             <% tags.with_item(text: 'LocationsMap', size: :sm) %>
             <% tags.with_item(text: 'Modal', size: :sm) %>
             <% tags.with_item(text: 'RecurrentEventRuleForm', size: :sm) %>
-            <% tags.with_item(text: 'SearchInput', size: :sm) %>
             <% tags.with_item(text: 'Tags', size: :sm) %>
             <% tags.with_item(text: 'Tooltip', size: :sm) %>
             <% tags.with_item(text: 'TreeView', size: :sm) %>
