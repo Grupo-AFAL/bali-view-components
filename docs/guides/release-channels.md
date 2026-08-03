@@ -11,6 +11,39 @@ Two lines are maintained at the same time:
 | **Stable (v2)** | `main` | `v2.18.0`, `v2.18.1`, … | Every app in production today |
 | **Next (v3 pre-release)** | `3.0` | `v3.0.0.beta.1`, `.beta.2`, … | Apps adopting v3 early, one at a time |
 
+## One tag, two packages
+
+A release is one git tag over one repository that happens to contain two publishable things:
+the gem (`lib/`, `app/components/`, the ERB) and the npm package (`app/frontend/`,
+`app/assets/`, the Stimulus controllers and the CSS). They are not versioned separately and
+they are never released separately. `lib/bali/version.rb` and the `version` field of
+`package.json` carry the same number in the two spellings their registries want —
+`3.0.0.beta.1` and `3.0.0-beta.1` — and a release bumps both files in the same commit.
+
+A consuming app therefore pins the same ref twice:
+
+```ruby
+# Gemfile
+gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.0.0"
+```
+
+```json
+// package.json
+"bali-view-components": "github:Grupo-AFAL/bali-view-components#v3.0.0"
+```
+
+This is not a convention anyone can opt out of, because the two halves of a component are
+the Ruby that emits `data-controller="toolbar-overflow"` and the JavaScript that registers
+that identifier. A Gemfile on `v3.0.0` next to a `package.json` on `v2.18.0` renders markup
+no controller answers: no exception, no console error, a toolbar that simply stops
+collapsing. So `bundle update bali_view_components` without the matching `yarn upgrade` is
+not a smaller upgrade, it is half of one — and the half that fails silently.
+
+`spec/dummy` is the exception that proves the rule. It consumes the package as
+`"bali-view-components": "link:../.."`, so its two halves *are* the working tree and can
+never disagree, which is also why a version skew can never be caught by this repo's own
+tests. Only a host can hit it.
+
 ## How an app picks a channel
 
 **Pin a tag. Never track a branch.**
@@ -61,6 +94,33 @@ still reads correctly if this ever moves to a registry.
 When `3.0` is complete: merge `3.0` into `main`, tag `v3.0.0`, and `main` becomes the v3 line.
 From then on, v2 fixes (if any are still needed) branch off the `v2.18.x` tag into a `2-x`
 maintenance branch.
+
+**Before that merge, prove nobody is standing under it.** The moment `3.0` lands on `main`,
+every Gemfile that still says `branch: "main"` inherits the whole major on its next
+`bundle update` — no review, no opt-in, which is the exact failure the section above exists
+to prevent. The check is one sweep across the org, and it has to *read* the Gemfiles:
+
+```bash
+gh repo list Grupo-AFAL --limit 200 --json name -q '.[].name' | while read -r repo; do
+  gh api "repos/Grupo-AFAL/$repo/contents/Gemfile" -q .content 2>/dev/null |
+    base64 -d 2>/dev/null | grep -A1 bali_view_components | grep -q 'branch:' &&
+    echo "$repo still tracks a branch"
+done
+```
+
+Silence is the pass. Anything it prints has to be pinned — to a tag, or to a `ref:` SHA when
+the app needs something newer than the last tag — and that pin has to be merged before `3.0`
+goes to `main`.
+
+Three details are load-bearing, all of them learned the expensive way. The `-A1` matters:
+several apps wrap the declaration onto a second line, and a single-line grep reads those as
+pinned. A local `grep ~/code/afal/*/Gemfile` is not a substitute, because it only sees the
+repos you happen to have cloned. And `gh search code 'bali_view_components branch
+org:Grupo-AFAL filename:Gemfile'` looks like the same question asked faster and is not — run
+on 2026-08-03 it returned **nothing**, while the sweep above found four repos on
+`branch: 'main'` (`enjoykitchen`, `flamingOS`, `blogging`, `documentation`), none of which
+was cloned locally either. GitHub's code index does not cover every private repo in the org,
+so a clean search result is not evidence of anything.
 
 ## The CHANGELOG will conflict
 
