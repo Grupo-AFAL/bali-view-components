@@ -1,0 +1,106 @@
+<%# El listado, compartido por index.html.erb y por los streams de create/update: el drawer
+    reemplaza EXACTAMENTE este nodo, así que las dos ramas tienen que producir el mismo DOM.
+
+    El DataTable entra pelado: la superficie viaja con su slot de contenido. %>
+<%= render Bali::DataTable::Component.new(
+  filter_form: @filter_form,
+  url: studios_path,
+  pagy: @pagy,
+  item_name: t('studios.title').downcase
+) do |data_table| %>
+  <%# El `search:` viaja por el mismo camino en los dos modos de filtro. %>
+  <% data_table.with_simple_filters(search: { placeholder: t('studios.search_placeholder') }) %>
+
+  <%# Vistas guardadas: combinaciones de filtros CON NOMBRE. Sin `url:` apunta a las rutas
+      del engine montado (/bali); el store y el dueño los trae el FilterForm.
+
+      OJO (#823): acá la vista guarda la agrupación, las columnas y la búsqueda rápida, pero
+      NO el recorte de los filtros simplificados — `current_view_payload` no los representa.
+      Se deja puesto a propósito: es la superficie que el índice simplificado tiene que
+      ejercitar, y esconderla volvería a tapar el defecto en vez de arreglarlo. %>
+  <% data_table.with_saved_views %>
+
+  <%# Los índices arrancan en 0 porque esta tabla NO es `selectable:` — en /admin/movies la
+      0 es la columna de selección que pinta el componente y por eso allá arranca en 1. La
+      de acciones queda fuera a propósito: esconderla deja las filas sin su ⋯. %>
+  <% data_table.with_column_selector do |cs| %>
+    <% cs.with_column(index: 0, label: t('studios.columns.name')) %>
+    <% cs.with_column(index: 1, label: t('studios.columns.country')) %>
+    <% cs.with_column(index: 2, label: t('studios.columns.status')) %>
+    <% cs.with_column(index: 3, label: t('studios.columns.size')) %>
+    <% cs.with_column(index: 4, label: t('studios.columns.founded')) %>
+  <% end %>
+
+  <% data_table.with_table do %>
+    <%# `table` y no `t`: la variable del bloque sombrea al helper de i18n, y las seis
+        llamadas a `t(...)` de acá adentro sobreviven solo porque llevan paréntesis.
+
+        `group_counts` es lo que hace que el encabezado de grupo muestre el total GLOBAL
+        sobre el set filtrado, y no solo lo que entró en esta página. %>
+    <%= render Bali::Table::Component.new(form: @filter_form,
+                                          group_counts: @filter_form.group_counts) do |table| %>
+      <% table.with_header(name: t('studios.columns.name'), sort: :name) %>
+      <% table.with_header(name: t('studios.columns.country'), sort: :country) %>
+      <% table.with_header(name: t('studios.columns.status'), sort: :status) %>
+      <% table.with_header(name: t('studios.columns.size'), sort: :size) %>
+      <% table.with_header(name: t('studios.columns.founded'), sort: :founded_year) %>
+      <%# `class: 'text-right'` y no `align:`, que el componente no declara y sale como el
+          atributo HTML obsoleto `<th align="right">`. %>
+      <% table.with_header(name: t('studios.columns.actions'), class: 'text-right') %>
+
+      <% @studios.each do |studio| %>
+        <%# El valor del grupo tiene que coincidir con una clave de `group_counts`; `nil`
+            cuando la agrupación está apagada O suspendida — de ahí `group_by_applied` y no
+            `group_by`. %>
+        <% applied_group = @filter_form.group_by_applied %>
+        <% table.with_row(group: applied_group && studio.public_send(applied_group)) do %>
+          <td class="font-medium">
+            <%= render Bali::Link::Component.new(
+              name: studio.name,
+              href: studio_path(studio),
+              data: { action: 'modal#open', modal_size: 'lg' }
+            ) %>
+          </td>
+          <td>
+            <%= render Bali::Tag::Component.new(text: studio.country, size: :sm, style: :outline) %>
+          </td>
+          <td>
+            <%= render Bali::Tag::Component.new(
+              text: studio.status.humanize,
+              color: studio.status_color,
+              size: :sm
+            ) %>
+          </td>
+          <td><%= studio.size&.humanize %></td>
+          <td><%= studio.founded_year %></td>
+          <td>
+            <div class="flex justify-end">
+              <%= render Bali::ActionsDropdown::Component.new(align: :end, popover: true) do |dropdown| %>
+                <% dropdown.with_item(name: t('studios.actions.view'), href: studio_path(studio), icon: 'eye', data: { action: 'modal#open', modal_size: 'lg' }) %>
+                <% dropdown.with_item(name: t('studios.actions.edit'), href: edit_studio_path(studio), icon: 'pencil', data: { action: 'drawer#open', drawer_size: 'lg' }) %>
+                <% dropdown.with_item(
+                  name: t('studios.actions.delete'),
+                  href: studio_path(studio),
+                  icon: 'trash',
+                  method: :delete,
+                  data: { turbo_confirm: t('studios.confirm_delete', name: studio.name) },
+                  class: 'text-error'
+                ) %>
+              <% end %>
+            </div>
+          </td>
+        <% end %>
+      <% end %>
+
+      <%# El EmptyState del componente ya distingue "sin registros" de "sin resultados"
+          según haya filtros activos; lo único que le falta es a dónde ir cuando la tabla
+          está vacía de verdad. %>
+      <% table.with_new_record_link(
+        name: t('studios.new_studio'),
+        href: new_studio_path,
+        modal: false,
+        data: { action: 'drawer#open', drawer_size: 'lg' }
+      ) %>
+    <% end %>
+  <% end %>
+<% end %>
