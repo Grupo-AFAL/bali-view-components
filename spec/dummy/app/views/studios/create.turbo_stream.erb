@@ -1,7 +1,17 @@
-<%# El target es la identidad RESUELTA del listado, no el `storage_id` crudo: el DataTable lo
-    sanea a un identificador CSS válido. Turbo resuelve el target por getElementById — sin nodo
-    no reemplaza nada, no revienta y no loguea. El cuerpo es el MISMO partial que el html.erb,
-    así que los dos caminos no pueden divergir. %>
-<%= turbo_stream.replace Bali::DataTable::ListingIdentity.for(@filter_form) do %>
-  <%= render 'listing' %>
-<% end %>
+<%# Un refresh, no un `replace` del listado.
+
+    El POST del drawer viaja por `fetch` contra la URL del FORM, no contra la de la página:
+    `ModalController#_buildURL` sólo le agrega `layout=false`, así que del otro lado
+    `request.query_parameters` es `{layout=>"false"}` a secas. Un listado re-renderizado desde
+    acá sale sin la agrupación, sin el recorte y sin el orden que la página tenía puestos, y
+    encima escribe ese único param en los hrefs de la toolbar y en los `sort_link` de ransack.
+
+    `turbo_stream.refresh` no re-renderiza nada acá: le pide a Turbo que revisite la URL que el
+    navegador ya tiene, que sí lleva `?group_by=country`. `method: :morph` conserva scroll y
+    foco en vez de repintar la página entera, y `scroll: :preserve` la posición.
+
+    FRAGILIDAD A DOCUMENTAR: Turbo descarta un refresh cuyo `X-Turbo-Request-Id` haya visto
+    hace poco (`isRecentRequest`). El drawer usa `fetch` pelado, no `Turbo.fetch`, así que no
+    manda ese header y el refresh siempre dispara. Si el ModalController pasara algún día a
+    `Turbo.fetch`, esto deja de actualizar el listado sin dar ningún error. %>
+<%= turbo_stream.refresh(method: :morph, scroll: :preserve) %>

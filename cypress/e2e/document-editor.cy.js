@@ -70,6 +70,60 @@ describe('DocumentEditor version preview', () => {
   })
 })
 
+// A resolved thread whose author is not in the preview's `users:` list -- what a host gets
+// from anyone who left, and the normal case for anyone resolving through `users_url`.
+// BlockNote reads the resolver synchronously while rendering the thread and THROWS when the
+// id is not cached yet, and every path that fills that cache is async. The throw escapes into
+// React's render, so what used to break was not the sidebar: it was the whole document.
+describe('DocumentEditor with a comment from an unknown user', () => {
+  const stranger = 'nobody-9'
+  const timestamps = { created_at: '2026-08-02T17:43:55Z', updated_at: '2026-08-02T17:44:10Z' }
+
+  beforeEach(() => {
+    cy.intercept('GET', /\/block_editor_comments(\?|$)/, {
+      body: [{
+        id: 1,
+        resolved: true,
+        resolved_by: stranger,
+        resolved_updated_at: timestamps.updated_at,
+        metadata: {},
+        ...timestamps,
+        comments: [{
+          id: 1,
+          user_id: stranger,
+          metadata: {},
+          deleted_at: null,
+          reactions: [],
+          ...timestamps,
+          body: [{
+            id: 'stub-comment-1',
+            type: 'paragraph',
+            props: {},
+            content: [{ type: 'text', text: 'Looks good to me', styles: {} }],
+            children: []
+          }]
+        }]
+      }]
+    }).as('threads')
+
+    cy.visit('/bali/document_editor/default')
+    cy.wait('@threads')
+  })
+
+  it('still renders the document', () => {
+    cy.get('[data-document-editor-target="editorArea"]:visible .bn-editor')
+      .should('contain.text', 'Project Overview')
+      .and('contain.text', 'Key Objectives')
+  })
+
+  it('names the unknown user with the translated placeholder', () => {
+    cy.get('[data-action*="document-editor#toggleComments"]:visible').first().click()
+    cy.get('[data-document-editor-target="commentsList"]:visible')
+      .should('contain.text', 'Looks good to me')
+      .and('contain.text', `User ${stranger}`)
+  })
+})
+
 // BlockNote draws the tooltip card on `.bn-tooltip` and deliberately zeroes the Mantine box
 // around it. Re-skinning that card is fine; giving the wrapper one of its own is not — it
 // stacks a second border and shadow on every tooltip, and leaves an empty pill wherever a

@@ -1551,6 +1551,24 @@ from the shared table instead of `"btn-#{size}"`. That interpolation was invisib
 Tailwind's scanner, so those classes only ever shipped because some other component happened
 to spell them out. Nothing to change at your call sites.
 
+### `submit_group`'s Cancel is `btn-ghost`, not `btn-secondary`
+
+Nothing to change at the call site, but every form using `submit_group` with a `cancel_path:`,
+`cancel_options:`, `modal:` or `drawer:` repaints its Cancel — from filled secondary to ghost.
+
+The library was teaching two things at once. Every `FormPage` preview builds its actions row by
+hand and writes `variant: :ghost` on Cancel; `submit_group`, the helper those previews exist to
+promote, defaulted to `:secondary`. A form has one primary action, and a filled secondary next
+to Submit reads as a second thing to do rather than as the way out of the form.
+
+If a form wants the old weight, it is one keyword, and an explicit class still wins over the
+default:
+
+```erb
+<%= f.submit_group 'Save', cancel_path: movies_path,
+      cancel_options: { class: 'btn btn-secondary' } %>
+```
+
 ## Timeline renders each entry once, and its slots lose the `tag_` prefix
 
 A timeline item used to emit its heading and its content twice — once in `.timeline-start`,
@@ -2083,6 +2101,22 @@ component applies:
 While you are there: render the DataTable from a **shared partial** used by both
 `index.html.erb` and `index.turbo_stream.erb`. The stream replaces the node that carries
 the selection controller, so the two branches must produce the same DOM.
+
+And check *where* that stream is answered from. The snippet re-renders the listing out of
+`params`, so it needs the grouping, the filters and the sort the page had — which a request
+to `index` has and a form submitted from inside a `Modal` or `Drawer` does not. The overlay
+posts to the form's own action with `fetch` and adds only `layout=false`, so
+`request.query_parameters` is `{"layout" => "false"}`: the listing comes back ungrouped and
+unfiltered, with that param written into the toolbar's links and every `sort_link`, and
+nothing raises. From an overlay ask Turbo to revisit the page instead, so the listing is
+rebuilt from the URL that still carries the state:
+
+```erb
+<%= turbo_stream.refresh(method: :morph, scroll: :preserve) %>
+```
+
+The overlay still closes on its own. Turbo does drop a refresh whose `X-Turbo-Request-Id` it
+saw recently, but `Modal`/`Drawer` submit through plain `fetch` and never send that header.
 
 ### 4. Replace the actions panel with bulk actions
 

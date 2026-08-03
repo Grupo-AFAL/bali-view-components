@@ -29,13 +29,17 @@ class StudiosController < ApplicationController
   # panel, que es lo que un redirect no puede hacer — se lleva la página entera con él. El
   # error NO se ramifica: `render :new` devuelve HTML, el drawer lo mete en su propio cuerpo y
   # el formulario se re-pinta adentro con sus mensajes.
+  #
+  # La rama del stream NO arma el listado: el POST del drawer no lleva los params de la página
+  # (ver create.turbo_stream.erb), así que armarlo acá lo devuelve sin agrupar y sin recortar.
+  # La plantilla pide un refresh y el listado lo vuelve a armar `index`, desde la URL real.
   def create
     @studio = Studio.new(studio_params)
 
     if @studio.save
       respond_to do |format|
         format.html { redirect_to studios_path, notice: 'Studio was successfully created.' }
-        format.turbo_stream { load_listing }
+        format.turbo_stream
       end
     else
       render :new, status: :unprocessable_content
@@ -46,12 +50,9 @@ class StudiosController < ApplicationController
     if @studio.update(studio_params)
       respond_to do |format|
         format.html { redirect_to studios_path, notice: 'Studio was successfully updated.' }
-        # La misma plantilla que create: el nodo que se reemplaza es el mismo, y dos copias
-        # de un stream que apunta al mismo id divergen en silencio.
-        format.turbo_stream do
-          load_listing
-          render :create
-        end
+        # La misma plantilla que create: los dos hacen lo mismo, y dos copias de un refresh
+        # divergen en silencio.
+        format.turbo_stream { render :create }
       end
     else
       render :edit, status: :unprocessable_content
