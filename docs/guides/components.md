@@ -1264,6 +1264,32 @@ and reports nothing:
 `Bali::DataTable::ListingIdentity.for` accepts the form (or a raw value) and applies exactly
 the rule the component applies.
 
+**That recipe is only correct from a request that already carries the listing's state.** It
+re-renders the listing from `params`, so it needs the grouping, the filters and the sort the
+page had. `index` has them. A form submitted from inside a `Modal` or `Drawer` does not: the
+controller posts to the **form's** action with `fetch`, adding only `layout=false`, so
+`request.query_parameters` is `{"layout" => "false"}` and nothing else. Re-rendering from
+there answers 200 with an ungrouped, unfiltered listing, and writes that single param into the
+toolbar's links and into every ransack `sort_link` on the way out. Nothing raises.
+
+From an overlay, ask Turbo to revisit the page instead — the browser's URL is the one that
+still has the state:
+
+```erb
+<%# create.turbo_stream.erb, answering a form inside a Drawer %>
+<%= turbo_stream.refresh(method: :morph, scroll: :preserve) %>
+```
+
+The controller renders no listing at all on that branch; `index` rebuilds it from the real
+URL. `method: :morph` keeps scroll and focus instead of repainting the page, and the overlay
+still closes, because closing is what the stream response itself triggers.
+
+One thing to know before relying on it: Turbo drops a refresh whose `X-Turbo-Request-Id` it
+has seen recently (`isRecentRequest`). `Modal`/`Drawer` submit through plain `fetch`, not
+`Turbo.fetch`, so they never send that header and the refresh always fires. A host that
+submits the same form through `Turbo.fetch`, or from inside a `turbo-frame`, has to send the
+listing's params along and go back to the `replace` above.
+
 **Content slot.** There is exactly ONE content band, and it decides its own surface:
 
 | Slot | Surface | Scroll wrapper |
