@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The `data_table/with_simple_filters` preview survives a Studio with no status.** It answered 500 with `undefined method 'humanize' for nil` as soon as the database held one, which any record created from the drawer without picking a status leaves behind — the preview then stayed broken in that environment. The Size cell two lines below had the safe navigation all along. Seeded databases always set a status, which is why the preview sweep never saw it.
 - **Opening Views, Columns or Group by inside the `DataTable` overflow menu no longer resizes the menu.** Measured on `/admin/studios` at 1900px, the `⋯` panel went from 320x176 to 320x338 — a popover growing under the pointer, with the child laid out in flow inside it.
 
   The container forced `position: static` on every `.dropdown-content` beneath it, and that was deliberate: a nested absolute dropdown positions against the container and leaves the viewport on a phone (measured, `left: -115px` at 375px), so stacking them as sections in flow is the sensible thing there. What changed is that the `⋯` used to *be* the mobile mode; since the valve started measuring the row it fires at any width, and the same rule was reaching the desktop. It is scoped to `max-sm` now — below the breakpoint nothing changes, above it the child floats over the panel as a popover inside a popover should.
