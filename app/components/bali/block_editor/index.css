@@ -432,13 +432,22 @@
  * the editor inside BlockNoteView (non-portaled mode).
  * ------------------------------------------------------- */
 
-/* Thread card - inline */
+/* Thread card - inline
+ *
+ * `min-width: 0` cancels BlockNote's own `.bn-mantine .bn-thread { min-width: 350px }`.
+ * The sidebar above is 18rem = 288px, so the card sat 62px wider than its own panel
+ * (measured: sidebar clientWidth 288, scrollWidth 350) and the sidebar grew a horizontal
+ * scrollbar -- it declares `overflow-y: auto`, which makes overflow-x compute to `auto`.
+ * Both rules are unlayered and both are (0,2,0); this one wins on source order alone,
+ * because index.css is imported after BlockNote's CSS in BlockNoteEditorWrapper.jsx.
+ * `.document-editor-panel .bn-thread` below already carries the same declaration. */
 .block-editor-component .bn-thread {
   background-color: var(--color-base-100);
   border: 1px solid color-mix(in oklch, var(--color-base-content) 12%, transparent);
   border-radius: var(--radius-box, 0.5rem);
   padding: 0.75rem;
   margin-bottom: 0.5rem;
+  min-width: 0;
   transition: border-color 0.15s;
 }
 

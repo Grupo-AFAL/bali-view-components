@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The `BlockEditor` comments sidebar no longer scrolls sideways.** A thread card in the inline sidebar was 62px wider than the sidebar itself — measured, sidebar `clientWidth` 288 against `scrollWidth` 350 — so the card's left edge was clipped and a horizontal scrollbar appeared inside the panel. The sidebar declares `overflow-y: auto`, which makes `overflow-x` compute to `auto` as well, so the overflow got a scrollbar instead of just spilling.
+
+  It was not the classic flex `min-width: auto` refusing to shrink, and not a missing `overflow-wrap` — the comment body already breaks a long unbroken URL mid-token. BlockNote's own stylesheet sets a hard floor on the card it renders: `.bn-mantine .bn-thread { min-width: 350px }`. Bali skins that card in `.block-editor-component .bn-thread` and never cancelled the floor, so a 288px sidebar was being asked to hold a 350px child.
+
+  The inline rule now sets `min-width: 0`. Both rules are unlayered and both are (0,2,0), so it wins on source order alone — `block_editor/index.css` is imported after BlockNote's CSS in `BlockNoteEditorWrapper.jsx` — with no `!important` and no specificity bump. The portaled `DocumentEditor` panel was never affected: `.document-editor-panel .bn-thread` has carried the same declaration all along, and its `w-80` panel measures 319/319 with the comments open.
+
 - **The Delete item in a menu is the same box as the items beside it.** In `Bali::ActionsDropdown` the destructive item was 12px taller than its neighbours and its clickable area 24px narrower — measured 192x49 with the button inset to 168x37, against Edit's 192x37 — and it lit up two nested hover boxes, one with a 4px radius and one with an 8px radius inside it. In the `DataTable` saved-views dropdown the same defect painted the trash's hover box at 46x36 next to the pencil's 22x24, in the same row.
 
   One cause for both. Rails' `button_to` wraps its button in a `<form>`, and daisyUI 5 paints a menu item with `.menu :where(li:not(.menu-title) > :not(ul,menu,details,.menu-title,.btn))` — the direct child of the `<li>`. That child was the form, so the form took the padding, the radius and the `:hover`, while the thing you actually click sat inside it with a box of its own: `.menu-item`'s in the dropdown, `.btn btn-xs`'s in the saved views. Note the `:not(.btn)` in that selector — it is why the pencil beside the trash was never affected and the trash always was.
