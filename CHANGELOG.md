@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+### Fixed
+
+- **A `BlockEditor` comment is written across the card instead of one letter per line, and the bubble it is written in has a width.** Two defects in the same feature, both visible the moment you type a comment on `/lookbook/preview/bali/block_editor/with_comments`.
+
+  Every comment body is its own nested BlockNote instance, and it emits a **second** `.bn-container` — `.bn-container.bn-comment-editor` — inside `.bn-thread`. The two rules that lay the editor out beside its threads sidebar, `.bn-with-comments .bn-container` and `.bn-with-comments .bn-container > .bn-editor`, reached those nested containers as well: each became a flex row whose editor child took `flex: 1; min-width: 0`, which is a `flex-basis: 0%` item inside a shrink-to-fit box and resolves to zero. Measured with a comment open: the comment editor 163px wide, its `.bn-editor` **0px**. So the text — and the "Add comment" placeholder with it — wrapped at every character, in the floating popover and in the sidebar alike. Both rules, and the `@media` rule that flips them to a column, now use the child combinator, so they describe the top-level container and nothing else. The rules are from the original comments work (#482); this is not a regression of #832.
+
+  With the text laid out again, the popover had no width of its own: **165px** for a three-letter draft and **966px** for one long line, breathing with every keystroke. The rule meant to bound it keyed off `.bn-floating-composer` and `.bn-floating-thread`, and neither is in the DOM any more — measured 0 elements with a composer open — so its `max-width: 20rem` had never applied. BlockNote floats the card with Floating UI, and the portal it renders into is a hook that does exist; the card is `20rem` wide there now, `max-width: calc(100vw - 2rem)`, and carries its own card edges, since `.document-editor-panel .bn-thread` deliberately strips them for the side panel's list rows.
+
 ## [v3.0.0.beta.2] - 2026-08-03
 
 ### Fixed
