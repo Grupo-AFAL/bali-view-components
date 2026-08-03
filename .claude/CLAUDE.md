@@ -38,6 +38,20 @@ autoloader.do_not_eager_load(Dir[root.join('app/components/**/preview.rb')])
 - `ignore` = completely invisible to Zeitwerk → breaks Lookbook on-demand autoloading → 500 errors on preview URLs
 - `do_not_eager_load` = skips during `eager_load!` but still autoloads on demand ✓
 
+### Constants inside a preview file go written in full
+
+A `preview.rb` must name its sibling constants completely — `Bali::Icon::LucideMapping`, never
+`LucideMapping` — even though the short form reads fine and works on a cold server.
+
+`Module.nesting` is captured at parse time and holds a reference to the module *object*. Lookbook
+loads every preview at boot to build its navigation and keeps the class in its own registry, so a
+later `reload!` leaves that class resolving sibling constants against a `Bali::Icon` Zeitwerk has
+already discarded: `uninitialized constant Bali::Icon::Preview::LucideMapping` over the request
+path, on a constant `bin/rails runner` resolves without complaint (#843). Ordinary component files
+do not have this problem — they are re-parsed by the same reload that replaces the namespace.
+
+`test/requests/icon_previews_test.rb` fails the build if any `preview.rb` reintroduces the pattern.
+
 ### Preview file base class
 
 All preview files must inherit from `ApplicationViewComponentPreview`. Do NOT use `Lookbook::Preview` (unavailable in consuming apps without Lookbook) or `ViewComponent::Preview` (inconsistent with the rest of the codebase).
