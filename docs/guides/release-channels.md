@@ -101,10 +101,14 @@ every Gemfile that still says `branch: "main"` inherits the whole major on its n
 to prevent. The check is one sweep across the org, and it has to *read* the Gemfiles:
 
 ```bash
-gh repo list Grupo-AFAL --limit 200 --json name -q '.[].name' | while read -r repo; do
-  gh api "repos/Grupo-AFAL/$repo/contents/Gemfile" -q .content 2>/dev/null |
-    base64 -d 2>/dev/null | grep -A1 bali_view_components | grep -q 'branch:' &&
-    echo "$repo still tracks a branch"
+gh repo list Grupo-AFAL --limit 200 --no-archived --json name -q '.[].name' | while read -r repo; do
+  pushed=$(gh api "repos/Grupo-AFAL/$repo" -q .pushed_at 2>/dev/null)
+  for file in Gemfile package.json; do
+    gh api "repos/Grupo-AFAL/$repo/contents/$file" -q .content 2>/dev/null |
+      base64 -d 2>/dev/null | grep -A1 'bali.view.components' |
+      grep -Eq "branch:|github.com/Grupo-AFAL/bali-view-components\"" &&
+      echo "$repo  $file  unpinned  (last push $pushed)"
+  done
 done
 ```
 
@@ -112,15 +116,33 @@ Silence is the pass. Anything it prints has to be pinned — to a tag, or to a `
 the app needs something newer than the last tag — and that pin has to be merged before `3.0`
 goes to `main`.
 
-Three details are load-bearing, all of them learned the expensive way. The `-A1` matters:
-several apps wrap the declaration onto a second line, and a single-line grep reads those as
-pinned. A local `grep ~/code/afal/*/Gemfile` is not a substitute, because it only sees the
-repos you happen to have cloned. And `gh search code 'bali_view_components branch
-org:Grupo-AFAL filename:Gemfile'` looks like the same question asked faster and is not — run
-on 2026-08-03 it returned **nothing**, while the sweep above found four repos on
-`branch: 'main'` (`enjoykitchen`, `flamingOS`, `blogging`, `documentation`), none of which
-was cloned locally either. GitHub's code index does not cover every private repo in the org,
-so a clean search result is not evidence of anything.
+**Both files, because a pin on one half is not a pin.** *One tag, two packages* above explains
+why they move together; this is where you find out whether they did. A `package.json` entry
+written as a bare `"https://github.com/Grupo-AFAL/bali-view-components"` carries no ref at all
+and resolves to whatever the default branch's HEAD is that day — the same exposure as
+`branch: "main"`, in the half nobody thinks to check. Measured on 2026-08-03: `enjoykitchen`
+was floating on both.
+
+Five details are load-bearing, all of them learned the expensive way.
+
+- **`-A1` matters.** Several apps wrap the declaration onto a second line, and a single-line
+  grep reads those as pinned.
+- **A local `grep ~/code/afal/*/Gemfile` is not a substitute**, because it only sees the repos
+  you happen to have cloned. On 2026-08-03 every locally cloned app was pinned and four org
+  repos were not.
+- **`gh search code` is not the same question asked faster.** Run on 2026-08-03,
+  `gh search code 'bali_view_components branch org:Grupo-AFAL filename:Gemfile'` returned
+  **nothing**, while the sweep found four repos on `branch: "main"`. GitHub's code index does
+  not cover every private repo in the org, so a clean search result is not evidence.
+- **`--no-archived` is what keeps this a gate instead of noise.** A sweep that prints the same
+  dead repos every release stops being read by the third one. Archive a repo that is done and
+  it leaves the list honestly; leave it unarchived and it is indistinguishable from a live
+  consumer. On 2026-08-03 three of the four hits (`flamingOS`, `blogging`, `documentation`)
+  were inactive and none of the four was archived, so the flag did nothing — **archiving them
+  is part of the fix, not housekeeping to do later.**
+- **`pushed_at` is a hint, never the decision.** It tells you which hits to chase first; it
+  does not tell you a repo is dead. `flamingOS` had been pushed three days before it was
+  identified as inactive.
 
 ## The CHANGELOG will conflict
 
