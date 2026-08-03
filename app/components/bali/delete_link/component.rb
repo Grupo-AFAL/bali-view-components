@@ -63,7 +63,20 @@ module Bali
         @icon = icon.presence || deprecated_icon_name(icon_name, hint: ICON_HINT)
         @authorized = authorized
         @plain = plain
-        @form_class = class_names("inline-block", options.delete(:form_class))
+        # `button_to` puts a <form> around the button, and daisyUI styles `.menu li > *`
+        # (`:not(.btn)` skips a button, not a form) — so inside a menu the FORM was the
+        # item: it took the 6px/12px padding, the radius and the hover box, on top of the
+        # 8px/10px `.menu .menu-item` already gave the button. Measured on
+        # /lookbook/preview/bali/actions_dropdown/default: Delete 192x49 against Edit's
+        # 192x37, with the clickable button inset to 168px and a second hover box inside
+        # the first. `display: contents` takes the form out of the box tree and leaves the
+        # button as the item — 192x37 @0,0, identical to a link item.
+        #
+        # Gated on `plain:` because that keyword is passed from exactly one place,
+        # Bali::Dropdown::Component#build_link_item, i.e. "this DeleteLink is a menu item".
+        # Outside a menu the form stays `inline-block` and nothing changes.
+        @form_class = class_names(@plain ? "contents" : "inline-block",
+                                  options.delete(:form_class))
         @options = options
 
         validate_url_presence!
