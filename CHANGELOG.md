@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`Navbar`'s `color:` presets emit Bali classes instead of Tailwind utilities**, so a transparent navbar is finally transparent. `.navbar.is-transparent { @apply bg-transparent }` lives in `@layer components` and the preset put `bg-base-100` on the element as a utility, from a layer that outranks it: measured on `/lookbook/preview/bali/navbar/with_sidebar_burger?transparency=true`, the background stayed `oklch(1 0 0)` with `is-transparent` on. `Navbar::Component::COLORS` now maps to `navbar-base`, `navbar-primary` and the rest, and `navbar/index.css` declares them above the state rule — same layer, same specificity, so source order decides.
+
+  Two consequences worth knowing. A host that reads `COLORS`, or that has CSS matching `.navbar.bg-primary`, sees different classes on the element. And a host that wants to override the preset with a utility of its own now wins outright, instead of tying against `bg-base-100` and depending on the order of the compiled sheet.
+
 - **The "Navbar + Sidebar + Content" preview is one band of chrome, and says each destination once.** It is the reference app shell a host copies, and it read as three stacked white bands with the navigation printed twice.
 
   The navbar carried `Dashboard`, `Movies` and `Studios` as `start_item`s while the `SideMenu` beside it carried the same three. In this configuration the sidebar owns navigation and the navbar is the account bar, so those are gone. The command palette moves from the far right — wedged between the bell and the avatar — to the first position on the left, where a search field belongs, and its trigger is `style: :soft` instead of `:outline`: daisyUI mixes 8% of `base-content` into `base-100` for it, which reads as a filled well rather than a bordered button, with no loose utility to do it. The navbar also asks for `shadow: false` now, because its bottom border is already the divider.
@@ -36,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **A transparent navbar is finally transparent, and shadowless.** `.navbar.is-transparent { @apply bg-transparent shadow-none }` had never had any effect. It lives in `@layer components`, and the `shadow-sm` the component put on the element itself is a utility, from a layer that outranks it — so with `is-transparent` on the element, box-shadow measured `0 1px 3px rgba(0,0,0,.1)` and the background measured `oklch(1 0 0)`, on `/lookbook/preview/bali/navbar/with_sidebar_burger?transparency=true`. The shadow half is fixed here, by moving the default into the sheet next to the state that overrides it, which is the rule the rest of the package follows. The background half is a separate defect and is not addressed by this change.
+- **A transparent navbar is finally transparent, and shadowless.** `.navbar.is-transparent { @apply bg-transparent shadow-none }` had never had any effect. It lives in `@layer components`, and the `shadow-sm` the component put on the element itself is a utility, from a layer that outranks it — so with `is-transparent` on the element, box-shadow measured `0 1px 3px rgba(0,0,0,.1)` and the background measured `oklch(1 0 0)`, on `/lookbook/preview/bali/navbar/with_sidebar_burger?transparency=true`. The shadow half is fixed here, by moving the default into the sheet next to the state that overrides it, which is the rule the rest of the package follows. The background half needed the `color:` presets to move the same way, and is under Changed above.
 
   The `@apply shadow-md` that had been sitting in `navbar/index.css` went with it. It lost the same way and had never rendered at all: the effective shadow was always the element's `shadow-sm`.
 

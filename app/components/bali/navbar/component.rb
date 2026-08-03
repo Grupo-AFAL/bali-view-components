@@ -16,12 +16,24 @@ module Bali
       # which outranks it.
       NO_SHADOW_CLASSES = "shadow-none"
 
+      # Clases de Bali y no utilidades de Tailwind, por la misma razón que la sombra: el
+      # preset tiene que vivir en la capa donde `.navbar.is-transparent` lo pueda pisar.
+      # Como utilidades sobre el elemento le ganaban a la regla de estado desde otra capa, y
+      # un navbar `transparency: true` no era transparente — medido sobre
+      # /lookbook/preview/bali/navbar/with_sidebar_burger?transparency=true, con
+      # `is-transparent` puesto el fondo seguía en `oklch(1 0 0)`.
+      #
+      # Las declaraciones están en navbar/index.css, en @layer components y ARRIBA de la
+      # regla de `.is-transparent`: las dos son (0,2,0), así que decide el orden.
+      #
+      # De paso, un host que quiera pisar el color del preset con una utilidad ahora le gana
+      # limpio, en vez de empatar contra `bg-base-100` y depender del orden de la hoja.
       COLORS = {
-        base: "bg-base-100",
-        primary: "bg-primary text-primary-content",
-        secondary: "bg-secondary text-secondary-content",
-        accent: "bg-accent text-accent-content",
-        neutral: "bg-neutral text-neutral-content"
+        base: "navbar-base",
+        primary: "navbar-primary",
+        secondary: "navbar-secondary",
+        accent: "navbar-accent",
+        neutral: "navbar-neutral"
       }.freeze
 
       # Brand slot - accepts content block or name parameter
