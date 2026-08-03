@@ -13,9 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Opening Views, Columns or Group by inside the `DataTable` overflow menu no longer resizes the menu.** Measured on `/admin/studios` at 1900px, the `⋯` panel went from 320x176 to 320x338 — a popover growing under the pointer, with the child laid out in flow inside it.
+
+  The container forced `position: static` on every `.dropdown-content` beneath it, and that was deliberate: a nested absolute dropdown positions against the container and leaves the viewport on a phone (measured, `left: -115px` at 375px), so stacking them as sections in flow is the sensible thing there. What changed is that the `⋯` used to *be* the mobile mode; since the valve started measuring the row it fires at any width, and the same rule was reaching the desktop. It is scoped to `max-sm` now — below the breakpoint nothing changes, above it the child floats over the panel as a popover inside a popover should.
+
 - **The `DataTable` toolbar lines its controls up with each other.** `SimpleFilters` puts the caption *above* each control, so its block is twice the height of any single-line neighbour and wraps to two rows when the row tightens. With the toolbar centred, everything sharing that row aligned against the middle of the block rather than against its line of controls: measured on `/admin/studios` at 1900px, the `⋯` sat at y=226 and the Filter button — which lives on the block's last line — at y=264, **38px** below. The row aligns to the end now; where no item is taller than the others the two alignments are the same layout.
 
   Getting to zero took removing 4px of bottom padding from the filters row, and those 4px were doing something: the row declared `overflow-x-auto` at every width, which makes it a scroll container, and a scroll container clips at its padding box — the padding was the room for the Filter button's focus ring (`outline-width: 2px` at `outline-offset: 2px`). Above the breakpoint the row wraps and never scrolls, so the overflow goes back to `visible` there and the padding has nothing left to reserve. Below it nothing changes: the horizontal scroll and its gutter stay.
+
 ### Changed
 
 - **The "Navbar + Sidebar + Content" preview is one band of chrome, and says each destination once.** It is the reference app shell a host copies, and it read as three stacked white bands with the navigation printed twice.
@@ -35,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The `@apply shadow-md` that had been sitting in `navbar/index.css` went with it. It lost the same way and had never rendered at all: the effective shadow was always the element's `shadow-sm`.
 
 - **Classes passed to `Navbar` land on the `<nav>` once.** `navbar_classes` named `@options[:class]` and then handed its result to `prepend_class_name`, which appends the caller's classes a second time — measured on the AppLayout preview, the four it passes came out twice over.
+
 ### Fixed
 
 - **The time picker shows one pair of arrows per column, not two.** Hovering the minutes field drew a second, larger, darker pair with a grey track of its own, sitting on top of flatpickr's — and the native one is the half that is *not* wired to the calendar's value.
@@ -42,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The hour, minute and second fields are `input[type=number]`, and the sheet disarmed their spinners with `appearance: textfield` on `.flatpickr-time input`. Chrome stopped honouring that declaration for number inputs, so it paints its own spinner over whichever field has the pointer regardless. The pair that actually removes it — `::-webkit-outer-spin-button` and `::-webkit-inner-spin-button` set to `appearance: none` — has been in the same file all along for the header's year field; the time row never got it.
 
   Worth knowing before writing a test for this: `getComputedStyle(input, '::-webkit-inner-spin-button').appearance` does not answer the question. It reports the input's own value — measured, it still says `textfield` with the rule applied and the native arrows gone. The Cypress cover reads the CSSOM instead, which checks what can be checked without eyes: that the declaration reaches the browser through the build and that nothing later reverts it.
+
 - **A `BlockEditor` comment is written across the card instead of one letter per line, and the bubble it is written in has a width.** Two defects in the same feature, both visible the moment you type a comment on `/lookbook/preview/bali/block_editor/with_comments`.
 
   Every comment body is its own nested BlockNote instance, and it emits a **second** `.bn-container` — `.bn-container.bn-comment-editor` — inside `.bn-thread`. The two rules that lay the editor out beside its threads sidebar, `.bn-with-comments .bn-container` and `.bn-with-comments .bn-container > .bn-editor`, reached those nested containers as well: each became a flex row whose editor child took `flex: 1; min-width: 0`, which is a `flex-basis: 0%` item inside a shrink-to-fit box and resolves to zero. Measured with a comment open: the comment editor 163px wide, its `.bn-editor` **0px**. So the text — and the "Add comment" placeholder with it — wrapped at every character, in the floating popover and in the sidebar alike. Both rules, and the `@media` rule that flips them to a column, now use the child combinator, so they describe the top-level container and nothing else. The rules are from the original comments work (#482); this is not a regression of #832.
