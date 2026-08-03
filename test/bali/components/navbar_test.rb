@@ -262,6 +262,35 @@ class BaliNavbarBurgerComponentTest < ComponentTestCase
     assert_no_selector("[data-action]")
   end
 
+  # --- shadow: ---
+
+  # The default is `.navbar { @apply shadow-sm }` in navbar/index.css, and it has
+  # to stay there: from @layer components is the only place the `.is-transparent`
+  # rule can beat it. As a utility on the element (which is where it used to be)
+  # it outranked every state rule the sheet declares for that property.
+  def test_shadow_is_on_by_default_and_puts_no_class_on_the_element
+    render_inline(Bali::Navbar::Component.new)
+
+    classes = page.find("nav")[:class].split
+    assert_not_includes classes, "shadow-sm"
+    assert_not_includes classes, "shadow-none"
+  end
+
+  def test_shadow_false_turns_it_off_from_the_utilities_layer
+    render_inline(Bali::Navbar::Component.new(shadow: false))
+    assert_selector("nav.navbar.shadow-none")
+  end
+
+  # `navbar_classes` used to name `@options[:class]` and then hand its result to
+  # `prepend_class_name`, which appends the caller's classes a second time.
+  def test_caller_classes_land_on_the_nav_exactly_once
+    render_inline(Bali::Navbar::Component.new(class: "border-b border-base-300"))
+
+    classes = page.find("nav")[:class].split
+    assert_equal 1, classes.count("border-b")
+    assert_equal 1, classes.count("border-base-300")
+  end
+
   # --- type: :sidebar delegates to the one shared trigger ---
 
   def test_sidebar_burger_renders_the_shared_trigger
