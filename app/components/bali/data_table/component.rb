@@ -457,6 +457,9 @@ module Bali
       # el de selección pueda esconderla mientras la barra contextual ocupa su lugar.
       def toolbar_attributes
         attrs = prepend_controller({ class: toolbar_classes }, "toolbar-overflow")
+        # El servidor lo pone y el controlador lo saca al terminar su primer `apply()`. Ver
+        # RESERVED_CLASSES. Sin JS lo destapa el `<noscript>` de la plantilla.
+        attrs[SETTLING_ATTRIBUTE] = "" if overflow_menu?
         # El umbral se EMITE: el gate del ⋯ y el corte que aplica el JS son el mismo número,
         # y con dos defaults independientes moverlo de un lado dejaba al otro pintando un
         # menú que nunca se llena. El default del controlador cubre solo markup a mano.
@@ -479,13 +482,32 @@ module Bali
 
       # Envoltorio de un control: a qué grupo vuelve y con qué prioridad (ver
       # OVERFLOW_PRIORITIES). Es el nodo que el JS MUEVE, nunca copia.
+      # Un control que puede colapsar arranca con el lugar RESERVADO y sin dibujarse, y lo
+      # revela el controlador al terminar su primer `apply()`. `visibility: hidden` y no
+      # `display: none` a propósito: conserva la caja, así que la medición que decide el
+      # colapso mide exactamente lo mismo que sin esto.
+      #
+      # Lo que evita, medido en /admin/studios: la página pinta a los 260ms con la fila
+      # entera —que es el HTML del servidor, o sea la fila SIN colapsar— y el controlador no
+      # corre hasta los 1189ms, cuando termina de ejecutarse un bundle de 4.8 MB. En ese
+      # segundo se veían cuatro controles que después desaparecían de golpe dentro del ⋯.
+      # Reservado, lo que se ve es un hueco que se llena una vez.
+      #
+      # La variante arbitraria y no una regla en index.css: así vive en @layer utilities, que
+      # es donde un host la puede pisar, y no en una hoja sin capa cuyo encabezado explica
+      # que está sin capa por otra razón.
+      SETTLING_ATTRIBUTE = "data-toolbar-overflow-settling"
+      RESERVED_CLASSES = "[[data-toolbar-overflow-settling]_&]:invisible"
+
       def overflow_item_attributes(key, group:, css_class: nil)
+        priority = overflow_priority(key)
+
         {
-          class: css_class,
+          class: class_names(css_class, (RESERVED_CLASSES if priority < OVERFLOW_THRESHOLD)),
           data: {
             toolbar_overflow_target: "item",
             toolbar_overflow_group: group,
-            toolbar_overflow_priority: overflow_priority(key)
+            toolbar_overflow_priority: priority
           }
         }
       end

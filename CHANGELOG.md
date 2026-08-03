@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+### Changed
+
+- **The `DataTable` toolbar reserves the space for what can collapse instead of showing it and taking it away.** On first load the row used to show every control and then, a full second later, drop four of them into the `⋯` at once. Measured on `/admin/studios`: 5 controls in the row and 0 in the menu at 195ms, 1 and 4 at 1208ms.
+
+  The cause is not that the row grows. It is that the toolbar the server sends is, by definition, the row *before* anything collapses, and nothing can collapse it until the controller exists: the page paints at 260ms and `connect()` does not run until 1189ms, which is how long a 4.8 MB bundle takes to finish executing. Collapsible controls now arrive with their box reserved and nothing drawn in it, and the controller reveals them at the end of its first `apply()`. `visibility: hidden` rather than `display: none`, so the measurement that decides the collapse still measures exactly what it did before. Without JavaScript a `<noscript>` rule reveals them, because the attribute has to come from the server — the flicker it prevents happens before any script runs — and so cannot depend on a script to go away.
 ### Fixed
 
 - **The `data_table/with_simple_filters` preview survives a Studio with no status.** It answered 500 with `undefined method 'humanize' for nil` as soon as the database held one, which any record created from the drawer without picking a status leaves behind — the preview then stayed broken in that environment. The Size cell two lines below had the safe navigation all along. Seeded databases always set a status, which is why the preview sweep never saw it.
