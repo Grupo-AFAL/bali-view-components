@@ -679,6 +679,22 @@ span.flatpickr-weekday {
   transition: background var(--fp-animation-timing) ease;
 }
 
+/* La hora, los minutos y los segundos son `input[type=number]`, y el
+ * `appearance: textfield` de arriba ya no los desarma: Chrome dejó de honrarlo
+ * para ese tipo de input, así que sobre el campo que tiene el mouse encima pinta
+ * SU spinner además de las flechas que flatpickr dibuja en `.numInputWrapper`.
+ * Se ven dos pares de flechas en la misma columna —el nativo es más grande, más
+ * oscuro y trae su propia pista gris— y encima queda montado sobre el de
+ * flatpickr, que es el único de los dos conectado al valor del calendario.
+ * Es el par que `input.cur-year` ya trae desde siempre unas líneas más arriba;
+ * a esta fila nunca se le puso. */
+.flatpickr-time input::-webkit-outer-spin-button,
+.flatpickr-time input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
 .flatpickr-time input.flatpickr-hour {
   font-weight: 600;
 }
