@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+### Changed
+
+- **The "Navbar + Sidebar + Content" preview is one band of chrome, and says each destination once.** It is the reference app shell a host copies, and it read as three stacked white bands with the navigation printed twice.
+
+  The navbar carried `Dashboard`, `Movies` and `Studios` as `start_item`s while the `SideMenu` beside it carried the same three. In this configuration the sidebar owns navigation and the navbar is the account bar, so those are gone. The command palette moves from the far right — wedged between the bell and the avatar — to the first position on the left, where a search field belongs, and its trigger is `style: :soft` instead of `:outline`: daisyUI mixes 8% of `base-content` into `base-100` for it, which reads as a filled well rather than a bordered button, with no loose utility to do it. The navbar also asks for `shadow: false` now, because its bottom border is already the divider.
+
+  The breadcrumb comes out of `Bali::Topbar` — a 56px row with its own `bg-base-100` and bottom border, whose only content was the trail — and renders above the page title on the page's own background. Dropping the `with_topbar` slot is what turns AppLayout's default mobile row back on (`fixed_sidebar? && !topbar?`), so the `lg:hidden` hamburger still opens the sidebar on a phone.
+
 ### Added
 
 - **`Bali::Navbar::Component.new(shadow: false)`.** Turns off the drop shadow under the bar, for a layout that already separates it some other way — an app shell whose navbar carries a bottom border continuing the sidebar's draws two dividers otherwise. On by default, so nothing changes for anyone who does not ask. The `default` preview takes it as a toggle.
