@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+### Fixed
+
+- **Opening Views, Columns or Group by inside the `DataTable` overflow menu no longer resizes the menu.** Measured on `/admin/studios` at 1900px, the `⋯` panel went from 320x176 to 320x338 — a popover growing under the pointer, with the child laid out in flow inside it.
+
+  The container forced `position: static` on every `.dropdown-content` beneath it, and that was deliberate: a nested absolute dropdown positions against the container and leaves the viewport on a phone (measured, `left: -115px` at 375px), so stacking them as sections in flow is the sensible thing there. What changed is that the `⋯` used to *be* the mobile mode; since the valve started measuring the row it fires at any width, and the same rule was reaching the desktop. It is scoped to `max-sm` now — below the breakpoint nothing changes, above it the child floats over the panel as a popover inside a popover should.
+
 ## [v3.0.0.beta.2] - 2026-08-03
 
 ### Fixed
