@@ -81,7 +81,10 @@
             <% end %>
           </div>
         <% elsif boolean?(filter) %>
-          <label class="flex items-center gap-2 cursor-pointer px-1">
+          <%# `h-8` — la altura de un control `-sm` — porque es el único filtro sin caption
+              arriba, y la fila alinea por abajo (`items-end`): sin altura propia el switch se
+              apoyaba en la línea del label ajeno en vez de en la de los controles. %>
+          <label class="flex h-8 items-center gap-2 cursor-pointer px-1">
             <input type="hidden" name="<%= filter_field_name(filter) %>" value="" />
             <input type="checkbox"
                    name="<%= filter_field_name(filter) %>"
@@ -96,12 +99,16 @@
           <div class="<%= 'join' if filter[:icon] %>">
             <%= icon_addon(filter[:icon]) %>
 
-            <div class="flex items-center gap-1 <%= 'join-item' if filter[:icon] %>" <%= tag.attributes(group_attributes) %>>
+            <%# `join-item` va sobre el CONTROL, no sobre el div que lo envuelve: daisyUI lo usa
+                para recortar los bordes del elemento que une, y puesto en un contenedor de
+                layout le quitaba el borde a los dos inputs — se veían sin marco hasta enfocarlos.
+                El que se une al icono es el input Min, igual que en el buscador de arriba. %>
+            <div class="flex items-center gap-1" <%= tag.attributes(group_attributes) %>>
               <input type="number"
                      name="<%= names[:min] %>"
                      value="<%= values[:min] %>"
                      placeholder="<%= filter[:placeholder_min] || t('.placeholder_min') %>"
-                     class="input input-bordered input-sm w-20"
+                     class="input input-bordered input-sm w-20 <%= 'join-item rounded-l-none border-l-0' if filter[:icon] %>"
                      step="<%= filter[:step] || 'any' %>" />
               <span class="text-base-content/40 text-xs">–</span>
               <input type="number"
@@ -136,7 +143,11 @@
                 selected: (filter[:value] || filter[:default]),
                 size: :sm,
                 content_width: SLIM_SELECT_CONTENT_WIDTH,
-                addon_left: (render Bali::Icon::Component.new(filter[:icon], class: 'w-4 h-4') if filter[:icon]),
+                # `icon_addon` y no el icono pelado: el addon entra tal cual dentro de un `join`,
+                # y un <span> de 16px no se estira bajo `align-items: stretch`, así que este
+                # icono quedaba flotando a media altura mientras los otros cinco filtros, que sí
+                # usan el helper, alineaban con su control.
+                addon_left: icon_addon(filter[:icon]),
                 html: { id: filter_control_id(filter), class: "w-full #{'max-sm:w-16' if filter[:icon]}", select_class: ('max-sm:w-16' if filter[:icon]) }
               ) %>
         <% else %>
