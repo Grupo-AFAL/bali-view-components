@@ -96,7 +96,7 @@
         <% end %>
       <% end %>
     </div>
-    <%= render Bali::Link::Component.new(name: t('dashboard.view_all_activity'), href: movies_path, class: 'mt-4') %>
+    <%= render Bali::Link::Component.new(name: t('dashboard.view_all_activity'), href: admin_movies_path, class: 'mt-4') %>
   <% end %>
 <% end %>
 
@@ -149,7 +149,7 @@
       </div>
       <div class="flex flex-wrap gap-2">
         <%= render Bali::Link::Component.new(name: t('dashboard.add_movie'), href: new_movie_path, variant: :primary, size: :sm) %>
-        <%= render Bali::Link::Component.new(name: t('dashboard.view_all_movies'), href: movies_path, variant: :ghost, size: :sm) %>
+        <%= render Bali::Link::Component.new(name: t('dashboard.view_all_movies'), href: admin_movies_path, variant: :ghost, size: :sm) %>
         <%= render Bali::Link::Component.new(name: t('navbar.settings'), href: settings_path, variant: :ghost, size: :sm) %>
         <%= render Bali::Link::Component.new(name: t('navbar.lookbook'), href: '/lookbook', variant: :ghost, size: :sm, target: '_blank') %>
       </div>
@@ -164,9 +164,9 @@
     <p class="text-sm text-base-content/60 mb-4"><%= t('dashboard.bulk_actions_help') %></p>
 
     <%= render Bali::BulkActions::Component.new do |bulk| %>
-      <% bulk.with_action(label: t('dashboard.mark_done'), href: movies_bulk_actions_path, variant: :success) %>
-      <% bulk.with_action(label: t('dashboard.archive'), href: movies_bulk_actions_path, variant: :info) %>
-      <% bulk.with_action(label: t('dashboard.delete'), href: movies_bulk_actions_path, variant: :error) %>
+      <% bulk.with_action(label: t('dashboard.mark_done'), href: admin_movies_bulk_actions_path, variant: :success) %>
+      <% bulk.with_action(label: t('dashboard.archive'), href: admin_movies_bulk_actions_path, variant: :info) %>
+      <% bulk.with_action(label: t('dashboard.delete'), href: admin_movies_bulk_actions_path, variant: :error) %>
 
       <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, cols_lg: 3, gap: :lg) do %>
         <% @recent_movies.each do |movie| %>

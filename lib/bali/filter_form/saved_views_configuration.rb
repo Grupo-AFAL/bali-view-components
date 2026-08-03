@@ -33,7 +33,8 @@ module Bali
       # Llaves permitidas del payload de una vista. `columns` (índices visibles del column
       # selector) lo agrega el Stimulus del dropdown al GUARDAR y lo consume el column
       # selector al APLICAR — el FilterForm solo lo transporta.
-      PAYLOAD_KEYS = %w[attributes groupings combinator search_value group_by columns].freeze
+      PAYLOAD_KEYS = %w[attributes simple_filters groupings combinator search_value group_by
+                        columns].freeze
 
       def saved_views_enabled?
         @saved_views_store.present?
@@ -109,6 +110,12 @@ module Bali
       def current_view_payload
         {
           "attributes" => attributes.reject { |_k, v| v.nil? || v == "" || v == [] },
+          # Los filtros simplificados van aparte y NO dentro de `attributes`: su valor nunca
+          # es un atributo de ActiveModel —vive en `@q_params` y va directo a Ransack—, así
+          # que `attributes` no los ve. Sin esto, una vista guardada desde un índice
+          # simplificado nacía sin su recorte: se medía `country_eq=USA` cortando de 25 a 5
+          # filas y el payload salía `{"attributes"=>{}, "search_value"=>"pic"}`.
+          "simple_filters" => active_simple_filters.presence,
           "groupings" => @groupings,
           "combinator" => @combinator,
           "search_value" => @search_value,
@@ -170,6 +177,10 @@ module Bali
         @groupings = payload["groupings"]
         @combinator = payload["combinator"]
         @search_value = payload["search_value"]
+        # Mismo contrato que `attributes`: REEMPLAZA, no mergea. Un payload viejo, guardado
+        # antes de que la llave existiera, llega sin ella y limpia los simplificados — que es
+        # lo correcto: esa vista describe un estado que no los tenía.
+        apply_simple_filter_state(payload["simple_filters"])
         # Un `group_by` explícito en la URL gana sobre el del payload: con `?saved_view=` aún
         # pegado (los links de "Agrupar por" preservan la query), el payload pisaba el clic
         # recién dado y el control se veía muerto.

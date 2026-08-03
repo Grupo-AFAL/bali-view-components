@@ -5,36 +5,8 @@ class MoviesController < ApplicationController
 
   before_action :set_movie, only: %i[show edit update destroy]
 
-  def index
-    # FilterForm handles Ransack search params, sorting, and filter_groups parsing
-    # search_fields enables quick text search across multiple columns
-    # storage_id enables filter persistence across page visits
-    # persist_enabled is controlled by user preference (stored in cookie)
-    @filter_form = Bali::FilterForm.new(
-      Movie.all,
-      params,
-      # `studio_name` y no `tenant_name`: el alias `tenant` es un método Ruby invisible para
-      # Ransack, y un campo inválido tira el predicado combinado ENTERO en silencio.
-      search_fields: %i[name genre studio_name],
-      storage_id: 'movies',
-      # Sin `context:` la caché de persistencia es UNA sola para todo el proceso (ver
-      # ApplicationController#filter_context): dos visitantes se pisan los filtros.
-      context: filter_context,
-      persist_enabled: cookies['bali_persist_movies'] == '1'
-    )
-
-    # Use Pagy for pagination on the filtered/sorted results
-    @pagy, @movies = pagy(@filter_form.result.includes(:studio), items: 10)
-
-    respond_to do |format|
-      format.html
-      format.turbo_stream
-      # Sin esto el link de export es un 406 y no hay forma de ver que el recorte viajó.
-      format.csv do
-        render plain: @filter_form.result.pluck(:name).join("\n"), content_type: 'text/csv'
-      end
-    end
-  end
+  # Sin `index`: el índice canónico de películas es `/admin/movies`. Lo que sigue son las
+  # páginas de detalle y de formulario, que Cypress y los previews visitan directo.
 
   def show
     @characters = @movie.characters.positioned
@@ -66,7 +38,7 @@ class MoviesController < ApplicationController
 
   def destroy
     @movie.destroy
-    redirect_to movies_url, notice: 'Movie was successfully deleted.'
+    redirect_to admin_movies_url, notice: 'Movie was successfully deleted.'
   end
 
   private

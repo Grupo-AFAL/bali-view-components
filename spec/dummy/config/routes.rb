@@ -42,11 +42,9 @@ Rails.application.routes.draw do
   end
 
   # === Existing routes (keep for Cypress tests) ===
-  namespace :movies do
-    resource :bulk_actions, only: :create
-  end
-
-  resources :movies do
+  # Sin `index`: los cuatro índices de referencia viven bajo /admin. Lo que queda acá son las
+  # páginas de detalle y de formulario que Cypress y los previews visitan directo.
+  resources :movies, except: :index do
     resources :characters, only: %i[new create destroy] do
       collection do
         patch :sort
@@ -54,7 +52,6 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :studios
   resource :settings, only: %i[show update]
 
   # DirectUpload test

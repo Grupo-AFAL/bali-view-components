@@ -125,7 +125,7 @@
   <%# Form Actions - Using submit_group for reference implementation %>
   <%= f.submit_group(
     movie.persisted? ? t('movies.form.update_movie') : t('movies.form.create_movie'),
-    cancel_path: movies_path,
+    cancel_path: admin_movies_path,
     variant: :primary
   ) %>
 <% end %>

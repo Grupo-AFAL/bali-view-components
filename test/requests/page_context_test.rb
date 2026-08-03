@@ -46,12 +46,12 @@ class PageContextRequestTest < ActionDispatch::IntegrationTest
   end
 
   def test_show_page_view_serves_both_contexts
-    get studio_path(@studio)
+    get admin_studio_path(@studio)
     assert_response :ok
     assert_select ".show-page-component"
-    assert_select ".back-button[href=?]", studios_path
+    assert_select ".back-button[href=?]", admin_studios_path
 
-    get studio_path(@studio), params: { layout: "false" }
+    get admin_studio_path(@studio), params: { layout: "false" }
     assert_response :ok
     assert_select "body", false
     assert_select ".show-page-component"
@@ -62,11 +62,11 @@ class PageContextRequestTest < ActionDispatch::IntegrationTest
   # overlay in a drawer and navigates on a page. The context still reaches the partial from
   # the component (`drawer: page.drawer?`) rather than from `params`.
   def test_cancel_closes_the_drawer_and_navigates_on_a_page
-    get new_studio_path
+    get new_admin_studio_path
     assert_response :ok
-    assert_select "a[href=?]", studios_path, text: "Cancel"
+    assert_select "a[href=?]", admin_studios_path, text: "Cancel"
 
-    get new_studio_path, params: { layout: "false" }
+    get new_admin_studio_path, params: { layout: "false" }
     assert_response :ok
     assert_select "button[data-action='drawer#close']", text: "Cancel"
   end
