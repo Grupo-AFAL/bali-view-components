@@ -120,7 +120,7 @@ module Bali
             attribute: filter[:attribute],
             collection: resolve_collection(filter[:collection]),
             blank: resolve_definition_value(filter[:blank]),
-            label: resolve_definition_value(filter[:label]) || infer_simple_filter_label(filter[:attribute]),
+            label: simple_filter_label(filter),
             default: filter[:default],
             type: type,
             predicate: predicate,
@@ -271,6 +271,35 @@ module Bali
       end
 
       # Infer label from attribute name using I18n or humanization
+      # `label: false` es "no quiero rótulo"; `nil` o ausente sigue siendo "derivalo". Con
+      # el `||` que había acá los dos eran falsy y los dos caían a la derivación, así que
+      # no había forma de pedir un filtro sin caption. La plantilla sí sabe no pintarlo
+      # —`if filter[:label].present?`— lo que no dejaba llegar un rótulo vacío era esto.
+      #
+      # Importa porque lo derivado suele ser peor que nada: `infer_simple_filter_label`
+      # humaniza el nombre del atributo RANSACK, no el del campo, así que un
+      # `simple_filter :roles_name` sin `label:` pinta "Roles name" —el predicado,
+      # humanizado y en inglés— en una UI en español; el fallback de I18n tampoco alcanza
+      # ahí, porque `roles_name` no es un atributo del modelo sino un camino por una
+      # asociación.
+      #
+      # El centinela es `false` y NO la ausencia de la clave, aunque distinguir "no me la
+      # pasaron" sería más elegante: no se puede. `simple_filter` delega en
+      # `filter_attribute`, que guarda `explicit_label: label` siempre, y
+      # `defined_simple_filters` reconstruye el hash con `label:` fijo. O sea que
+      # `filter.key?(:label)` es SIEMPRE true y, usado como condición, dejaría a todos los
+      # filtros sin rótulo. `explicit_label` sí conserva el `false`, que es lo que hace
+      # que este camino funcione.
+      #
+      # El rótulo del panel avanzado no se toca: `filter_attributes` guarda
+      # `label: label || key.to_s.humanize` aparte, así que una fila del popover sigue
+      # teniendo nombre, que es lo que ahí hace falta.
+      def simple_filter_label(filter)
+        return nil if filter[:label] == false
+
+        resolve_definition_value(filter[:label]) || infer_simple_filter_label(filter[:attribute])
+      end
+
       def infer_simple_filter_label(attribute)
         # Try model-specific I18n first
         if respond_to?(:scope) && scope.respond_to?(:model)

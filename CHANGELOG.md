@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+### Added
+
+- **`label: false` on a filter attribute means "no caption" in the `SimpleFilters` row.** There was no way to ask for one without: `simple_filters_config` derived the label with a `||`, and `nil` and `false` are both falsy, so both fell through to the derivation. The template already knew not to paint an empty one — what could not reach it was a label.
+
+  It matters because the derived one is often worse than none: it humanises the **Ransack** attribute name, not the field's, so `filter_attribute :roles_name` without a label paints "Roles name" — the predicate, humanised, in English — in a Spanish UI, and the I18n fallback does not reach it either, because `roles_name` is a path through an association rather than a column. The advanced popover keeps a label regardless; a row there needs a name.
 ### Fixed
 
 - **Every control in the `DataTable` toolbar sits on the same line, not just the row's direct children.** Aligning the row itself fixed one level and left the other: the four groups that make it up align their own children, and the one holding the `SimpleFilters` block — which is twice the height of a single-line neighbour, because its captions sit above the controls — was centring them against it. Measured on `/admin/studios` at 2600px with the row already aligned: "Views" and the persistence marker sat level with the Filter button, while "Group by" and "Columns" sat **11px** above it. All four groups align to the end now; where every item is the same height the two alignments produce the same layout, so only that one group moves.
