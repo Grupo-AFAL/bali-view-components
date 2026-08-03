@@ -65,7 +65,9 @@ export class MultiSelectController extends Controller {
       case 'Escape':
         event.preventDefault()
         this.close()
-        this.triggerTarget?.focus()
+        // A Stimulus target getter throws when the element is missing, so `?.` guards
+        // nothing. The rest of this controller asks `hasDropdownTarget`; this asks too.
+        if (this.hasTriggerTarget) this.triggerTarget.focus()
         break
     }
   }

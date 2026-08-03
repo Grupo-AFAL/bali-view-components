@@ -47,6 +47,17 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
     assert_selector("button.text-error.btn-ghost", text: "Delete")
     assert_selector("form.inline-block.bg-success")
   end
+
+  # `plain:` is what a Dropdown item passes, and there the `button_to` form is a direct
+  # child of a `.menu` <li>, where daisyUI styles it as the item instead of the button.
+  # Transparent inside a menu, `inline-block` everywhere else — the assertion above is the
+  # other half of the pair and must keep passing.
+  def test_plain_takes_the_form_out_of_the_box_tree
+    @options.merge!(plain: true)
+    render_inline(component)
+    assert_selector("form.contents")
+    assert_no_selector("form.inline-block")
+  end
   Bali::DeleteLink::Component::SIZES.each do |size, css_class|
     next if css_class.blank?
 

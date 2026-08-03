@@ -43,8 +43,15 @@
                     data-action="saved-views#toggleRename" data-saved-views-id-param="<%= view.id %>">
               <%= render Bali::Icon::Component.new('pencil', class: 'w-3 h-3') %>
             </button>
+            <%# `form_class: 'contents'` and not Rails' default `button_to`: the form is a
+                direct child of a `.menu` <li>, and daisyUI styles `li > *` unless it is a
+                `.btn`. The pencil beside it IS a `.btn` and is skipped; this form was not,
+                so it collected a 46x36 box with its own hover against the pencil's 22x24,
+                and stretched the row from 32px to 36px. Transparent, the trash button is
+                the item and the two affordances match. %>
             <%= button_to view_url(view), method: :delete,
                   class: 'btn btn-ghost btn-xs px-1',
+                  form_class: 'contents',
                   title: t('.delete'),
                   form: { data: { turbo_confirm: t('.delete_confirm', name: view.name) } } do %>
               <%= render Bali::Icon::Component.new('trash-2', class: 'w-3 h-3') %>

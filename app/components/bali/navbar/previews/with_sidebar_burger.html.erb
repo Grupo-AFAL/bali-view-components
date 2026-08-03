@@ -1,0 +1,31 @@
+<div class="h-[200vh] bg-base-200">
+  <%= render Bali::Navbar::Component.new(transparency: transparency, color: :base) do |nav| %>
+    <% nav.with_brand do %>
+      <%= render Bali::Link::Component.new(name: 'LOGO', href: '#', variant: :ghost, class: 'text-xl') %>
+    <% end %>
+    <%# The burger that opens the SideMenu, and the whole point of this preview: `:sidebar` %>
+    <%# renders a SideMenu::Trigger and declares NO `data-navbar-target="burger"`. %>
+    <% nav.with_burger(type: :sidebar) %>
+    <% nav.with_menu do |menu| %>
+      <% menu.with_start_item(name: 'Home', href: '#') %>
+      <% menu.with_start_item(name: 'Documentation', href: '#') %>
+    <% end %>
+  <% end %>
+
+  <%= render Bali::SideMenu::Component.new(current_path: '/dashboard', fixed: true) do |c| %>
+    <% c.with_list(title: 'Navigation') do |list| %>
+      <% list.with_item(name: 'Dashboard', href: '/dashboard', icon: 'layout-dashboard') %>
+      <% list.with_item(name: 'Projects', href: '/projects', icon: 'folder-open') %>
+      <% list.with_item(name: 'Team', href: '/team', icon: 'users') %>
+    <% end %>
+  <% end %>
+
+  <div class="p-6 lg:ml-64">
+    <%# Alert and not the deprecated Notification: a new preview should not be teaching a %>
+    <%# composition that warns through `Bali.deprecator` the moment a host copies it. %>
+    <%= render Bali::Alert::Component.new(color: :info, icon: true) do %>
+      Scroll down. Past the navbar's own height the background must come back. Before #811 it
+      never did: the scroll handler threw on a `burger` target this composition never renders.
+    <% end %>
+  </div>
+</div>

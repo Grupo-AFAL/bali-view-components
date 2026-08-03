@@ -89,10 +89,18 @@ module Bali
         )
       end
 
+      # `multiple_menus?` joins the two states that already asked for the controller
+      # because the module switcher now needs it too: a `<details>` closes on its own
+      # `<summary>` and on nothing else, so click-outside and Escape are JavaScript
+      # (#830). Without this a sidebar that is neither collapsible nor fixed — which is
+      # exactly what the switcher preview composes — got no controller at all and the
+      # panel stayed open over the page.
       def container_data
         data = (@options[:data] || {}).dup
-        data[:controller] =
-          class_names(data[:controller], { "side-menu" => @collapsible || @fixed })
+        data[:controller] = class_names(
+          data[:controller],
+          { "side-menu" => @collapsible || @fixed || multiple_menus? }
+        )
         data[:side_menu_collapsible_value] = @collapsible
         data[:side_menu_fixed_value] = @fixed
         data
