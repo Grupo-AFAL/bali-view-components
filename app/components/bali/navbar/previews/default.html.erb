@@ -1,6 +1,7 @@
 <%= render Bali::Navbar::Component.new(
     fullscreen: fullscreen,
     transparency: transparency,
+    shadow: local_assigns.fetch(:shadow, true),
     color: local_assigns[:color] || :base,
     class: 'sticky top-0 z-50'
 ) do |nav| %>

@@ -11,6 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+### Added
+
+- **`Bali::Navbar::Component.new(shadow: false)`.** Turns off the drop shadow under the bar, for a layout that already separates it some other way — an app shell whose navbar carries a bottom border continuing the sidebar's draws two dividers otherwise. On by default, so nothing changes for anyone who does not ask. The `default` preview takes it as a toggle.
+
+### Fixed
+
+- **A transparent navbar is finally transparent, and shadowless.** `.navbar.is-transparent { @apply bg-transparent shadow-none }` had never had any effect. It lives in `@layer components`, and the `shadow-sm` the component put on the element itself is a utility, from a layer that outranks it — so with `is-transparent` on the element, box-shadow measured `0 1px 3px rgba(0,0,0,.1)` and the background measured `oklch(1 0 0)`, on `/lookbook/preview/bali/navbar/with_sidebar_burger?transparency=true`. The shadow half is fixed here, by moving the default into the sheet next to the state that overrides it, which is the rule the rest of the package follows. The background half is a separate defect and is not addressed by this change.
+
+  The `@apply shadow-md` that had been sitting in `navbar/index.css` went with it. It lost the same way and had never rendered at all: the effective shadow was always the element's `shadow-sm`.
+
+- **Classes passed to `Navbar` land on the `<nav>` once.** `navbar_classes` named `@options[:class]` and then handed its result to `prepend_class_name`, which appends the caller's classes a second time — measured on the AppLayout preview, the four it passes came out twice over.
+
 ## [v3.0.0.beta.2] - 2026-08-03
 
 ### Fixed
