@@ -1780,8 +1780,8 @@ Primary interactive element for actions.
 <%# With icon %>
 <%= render Bali::Button::Component.new(name: 'Add', variant: :success, icon: 'plus') %>
 
-<%# Loading state %>
-<%= render Bali::Button::Component.new(name: 'Processing...', loading: true, disabled: true) %>
+<%# Loading state — `loading:` already disables the button, no second keyword needed %>
+<%= render Bali::Button::Component.new(name: 'Processing...', loading: true) %>
 
 <%# Icon slots %>
 <%= render Bali::Button::Component.new(name: 'Next', variant: :primary) do |btn| %>
@@ -1797,7 +1797,7 @@ Primary interactive element for actions.
 - `icon` - Left icon name. `icon_name:` still works, warns through `Bali.deprecator`, and goes away in v4
 - `type` - The HTML attribute: `:button`, `:submit`, `:reset`. Never a look
 - `disabled` - Disable button
-- `loading` - Show loading spinner
+- `loading` - Draw a spinner beside the label and disable the button (`disabled` plus `aria-busy`). A button that is waiting is not one you can press, and it keeps its box: `loading` on the `<button>` itself is a daisyUI 5 spinner, not a modifier
 
 #### Link
 
