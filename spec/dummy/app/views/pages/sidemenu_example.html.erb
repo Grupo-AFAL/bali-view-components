@@ -44,7 +44,7 @@
       <% sidebar.with_list(title: 'E-Commerce') do |list| %>
         <%# Products with expandable sub-items %>
         <% list.with_item(name: 'Products', icon: 'package') do |item| %>
-          <% item.with_item(name: 'All Products', href: movies_path) %>
+          <% item.with_item(name: 'All Products', href: admin_movies_path) %>
           <% item.with_item(name: 'Add New', href: new_movie_path) %>
           <% item.with_item(name: 'Categories', href: '#') %>
           <% item.with_item(name: 'Inventory', href: '#') %>

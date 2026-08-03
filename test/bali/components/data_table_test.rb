@@ -446,7 +446,7 @@ class BaliDataTableComponentTest < ComponentTestCase
     # Un host que declara el switch y se olvida de `display_mode:` obtenía links que
     # cambiaban la URL y nunca la vista, en silencio: el componente ya tiene el query
     # string en la mano (arma esos mismos hrefs con él).
-    with_request_url "/movies?view=grid" do
+    with_request_url "/admin/movies?view=grid" do
       render_inline(Bali::DataTable::Component.new(url: "/movies")) do |c|
         declare_views(c)
         assert_equal(:grid, c.display_mode)
@@ -458,7 +458,7 @@ class BaliDataTableComponentTest < ComponentTestCase
   end
 
   def test_the_view_taken_from_the_url_also_travels_as_a_hidden_field
-    with_request_url "/movies?view=grid" do
+    with_request_url "/admin/movies?view=grid" do
       render_inline(Bali::DataTable::Component.new(url: "/movies")) do |c|
         c.with_filters_panel(available_attributes: filter_attributes)
         declare_views(c)
@@ -1094,7 +1094,7 @@ class BaliDataTableComponentTest < ComponentTestCase
   # string entero del navegador: el filtro que el usuario estaba mirando desaparecía al pasar
   # de página. La base la arma el listado igual que el view switch y "Agrupar por".
   def test_page_links_keep_the_applied_filter_when_the_pagy_has_no_request
-    with_request_url "/movies?q%5Bname_cont%5D=a&page=1" do
+    with_request_url "/admin/movies?q%5Bname_cont%5D=a&page=1" do
       render_listing(pagy: Pagy::Offset.new(count: 47, page: 1, limit: 10))
     end
 

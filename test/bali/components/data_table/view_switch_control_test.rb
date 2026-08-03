@@ -95,13 +95,13 @@ class BaliDataTableViewSwitchControlComponentTest < ComponentTestCase
     # Bali::ViewSwitch es la que sabe si estamos parados encima.
     switch = component
     switch.with_view(name: "Tabla", icon: "list", value: :table)
-    switch.with_view(name: "Estudios", icon: "calendar", href: "/studios")
+    switch.with_view(name: "Estudios", icon: "calendar", href: "/admin/studios")
 
-    with_request_url "/studios" do
+    with_request_url "/admin/studios" do
       render_inline(switch)
     end
 
-    assert_selector("a.btn-active[href='/studios']")
+    assert_selector("a.btn-active[href='/admin/studios']")
   end
 
   def test_explicit_active_overrides_the_current_value

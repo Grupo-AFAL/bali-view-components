@@ -4,7 +4,7 @@
     El DataTable entra pelado: la superficie viaja con su slot de contenido. %>
 <%= render Bali::DataTable::Component.new(
   filter_form: @filter_form,
-  url: studios_path,
+  url: admin_studios_path,
   pagy: @pagy,
   item_name: t('studios.title').downcase
 ) do |data_table| %>
@@ -57,30 +57,41 @@
           <td class="font-medium">
             <%= render Bali::Link::Component.new(
               name: studio.name,
-              href: studio_path(studio),
+              href: admin_studio_path(studio),
               data: { action: 'modal#open', modal_size: 'lg' }
             ) %>
           </td>
+          <%# `Studio` sólo valida `name`, y el drawer de esta misma página deja crear uno sin
+              país ni status: un `.humanize` pelado dejaba el índice en 500 (#834). Un valor
+              ausente se pinta como raya — eso ES el dato, y no un tag vacío. %>
           <td>
-            <%= render Bali::Tag::Component.new(text: studio.country, size: :sm, style: :outline) %>
+            <% if studio.country.present? %>
+              <%= render Bali::Tag::Component.new(text: studio.country, size: :sm, style: :outline) %>
+            <% else %>
+              <span class="text-base-content/40">&mdash;</span>
+            <% end %>
           </td>
           <td>
-            <%= render Bali::Tag::Component.new(
-              text: studio.status.humanize,
-              color: studio.status_color,
-              size: :sm
-            ) %>
+            <% if studio.status.present? %>
+              <%= render Bali::Tag::Component.new(
+                text: studio.status.humanize,
+                color: studio.status_color,
+                size: :sm
+              ) %>
+            <% else %>
+              <span class="text-base-content/40">&mdash;</span>
+            <% end %>
           </td>
           <td><%= studio.size&.humanize %></td>
           <td><%= studio.founded_year %></td>
           <td>
             <div class="flex justify-end">
               <%= render Bali::ActionsDropdown::Component.new(align: :end, popover: true) do |dropdown| %>
-                <% dropdown.with_item(name: t('studios.actions.view'), href: studio_path(studio), icon: 'eye', data: { action: 'modal#open', modal_size: 'lg' }) %>
-                <% dropdown.with_item(name: t('studios.actions.edit'), href: edit_studio_path(studio), icon: 'pencil', data: { action: 'drawer#open', drawer_size: 'lg' }) %>
+                <% dropdown.with_item(name: t('studios.actions.view'), href: admin_studio_path(studio), icon: 'eye', data: { action: 'modal#open', modal_size: 'lg' }) %>
+                <% dropdown.with_item(name: t('studios.actions.edit'), href: edit_admin_studio_path(studio), icon: 'pencil', data: { action: 'drawer#open', drawer_size: 'lg' }) %>
                 <% dropdown.with_item(
                   name: t('studios.actions.delete'),
-                  href: studio_path(studio),
+                  href: admin_studio_path(studio),
                   icon: 'trash',
                   method: :delete,
                   data: { turbo_confirm: t('studios.confirm_delete', name: studio.name) },
@@ -97,7 +108,7 @@
           está vacía de verdad. %>
       <% table.with_new_record_link(
         name: t('studios.new_studio'),
-        href: new_studio_path,
+        href: new_admin_studio_path,
         modal: false,
         data: { action: 'drawer#open', drawer_size: 'lg' }
       ) %>
