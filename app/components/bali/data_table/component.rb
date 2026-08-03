@@ -366,7 +366,15 @@ module Bali
       # por su contenido. Se declara EXPLÍCITO porque la fila contextual de selección lo
       # reemplaza en este mismo hueco (`BulkActions::Component::TOOLBAR_MIN_HEIGHT`): con el
       # alto como accidente del contenido, cualquier cambio ahí reintroduce el salto de layout.
-      TOOLBAR_CLASSES = "flex items-center gap-2 sm:gap-4 min-h-8 mb-4"
+      #
+      # `items-end` y no `items-center`: `SimpleFilters` lleva la etiqueta ARRIBA de cada
+      # control, así que su bloque mide el doble que sus vecinos de una línea y envuelve a
+      # dos renglones cuando la fila aprieta. Centrado, todo lo que comparte fila con él se
+      # alinea contra el centro del bloque en vez de contra la línea de controles, que es
+      # la que el ojo usa: medido en /admin/studios a 1900px, el ⋯ quedaba a y=226 y el
+      # botón Filter — que vive en la última línea de ese bloque — a y=264, 38px abajo.
+      # Cuando ningún item es más alto que los otros las dos alineaciones coinciden.
+      TOOLBAR_CLASSES = "flex items-end gap-2 sm:gap-4 min-h-8 mb-4"
 
       # La toolbar va SIN superficie: es la MISMA fila en todos los modos de visualización
       # y la superficie la trae el contenido.

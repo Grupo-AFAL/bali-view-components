@@ -335,9 +335,14 @@ class BaliDataTableComponentTest < ComponentTestCase
 
     # La toolbar es la MISMA fila en todos los modos: bare, hija directa del componente.
     # La única card de la página es la del contenido, y los filtros quedan FUERA.
-    assert_selector("div.data-table-component > div.flex.items-center div.filters")
+    #
+    # La fila se nombra por su controlador y no por sus clases de layout: escrita como
+    # `div.flex.items-center`, esta prueba —que es sobre la SUPERFICIE— fallaba al cambiar
+    # la alineación de la fila, que no es lo que mira.
+    toolbar = "div.data-table-component > div[data-controller~='toolbar-overflow']"
+    assert_selector("#{toolbar} div.filters")
     assert_no_selector("div.card div.filters")
-    assert_no_selector("div.data-table-component > div.flex.items-center.bg-base-100")
+    assert_no_selector("#{toolbar}.bg-base-100")
   end
 
   def test_declaring_two_content_slots_raises

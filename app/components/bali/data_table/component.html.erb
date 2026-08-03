@@ -141,11 +141,19 @@
                 viewport (medido: left -115px en un teléfono de 375px, cuando además eran
                 `.dropdown-end`). En flujo quedan como secciones apiladas, que es lo
                 razonable en un teléfono. Cerrados siguen siendo `display:none`, así que no
-                dejan huecos. %>
+                dejan huecos.
+
+                `max-sm:` es lo que acota esa decisión al teléfono para el que se tomó.
+                Cuando se escribió, el ⋯ ERA el modo de móvil; desde #842 la válvula se
+                dispara a cualquier ancho — medido, se lleva cuatro controles a 1900px. En
+                un escritorio apilar en flujo hace que el popover contenedor CREZCA al abrir
+                un hijo: medido en /admin/studios, el panel del ⋯ pasaba de 320x176 a
+                320x338 al abrir Views. Arriba del breakpoint el anidado vuelve a flotar,
+                que es lo que un popover dentro de otro tiene que hacer. %>
             <div class="toolbar-overflow-menu
                         flex flex-col items-stretch gap-2 w-full p-1
                         max-w-[calc(100vw-3rem)] max-h-[70vh] overflow-y-auto
-                        [&_.dropdown-content]:!static [&_.dropdown-content]:!w-full"
+                        max-sm:[&_.dropdown-content]:!static max-sm:[&_.dropdown-content]:!w-full"
                  data-toolbar-overflow-target="menu"></div>
           <% end %>
         </div>
