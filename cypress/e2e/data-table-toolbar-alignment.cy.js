@@ -34,6 +34,32 @@ describe('DataTable: la fila de la toolbar se alinea por su linea de controles',
     })
   })
 
+  // Alinear la FILA corrige un nivel y deja el otro: los grupos que la componen tambien
+  // alinean a sus hijos, y el unico que contiene el bloque alto los centraba contra el.
+  // Medido con la fila alineada pero los grupos centrados, a 2600px: "Views" y el marcador
+  // de persistencia a 0 del boton Filter, pero "Group by" y "Columns" 11px arriba.
+  it('deja TODOS los controles de la toolbar en la misma linea', () => {
+    cy.viewport(2600, 1000) // ancho de sobra: nada colapsa y la fila de filtros no envuelve
+    estudios()
+    cy.get('[data-controller~="toolbar-overflow"]').should('exist')
+    cy.get('[data-toolbar-overflow-target="menu"]').should($m => {
+      expect($m[0].children.length, 'nada colapso a este ancho').to.equal(0)
+    })
+
+    cy.get('.data-table-component form button[type="submit"]').first().then($submit => {
+      const linea = abajo($submit[0])
+
+      cy.get('[data-controller~="toolbar-overflow"] [aria-label]').each($control => {
+        const el = $control[0]
+        if (el.getBoundingClientRect().height === 0) return // dentro de un dropdown cerrado
+        if ($submit[0].contains(el) || el.contains($submit[0])) return
+
+        expect(abajo(el), `${el.getAttribute('aria-label')} en la linea de controles`)
+          .to.equal(linea)
+      })
+    })
+  })
+
   // Los 4px de relleno que se quitaron para lograr esa alineacion eran el lugar del anillo
   // de foco del ultimo control: la fila era contenedor de scroll en TODOS los anchos
   // (`overflow-x-auto` sin condicion) y un contenedor de scroll recorta en su caja de
