@@ -591,4 +591,18 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: [], search: @search, storage_id: "records_filters"))
     assert_selector('[data-controller="filter-persistence"]')
   end
+
+  # --- El rótulo del botón nombra lo que el botón hace ---
+
+  def test_the_button_says_search_when_there_is_nothing_to_filter
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: [], search: @search))
+
+    assert_selector("button[type=submit]", text: I18n.t("bali_view.filters.submit_search"))
+    assert_no_selector("button[type=submit]", text: I18n.t("bali_view.simple_filters.apply"))
+  end
+
+  def test_the_button_says_filter_as_soon_as_there_is_a_filter
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: @search))
+    assert_selector("button[type=submit]", text: I18n.t("bali_view.simple_filters.apply"))
+  end
 end

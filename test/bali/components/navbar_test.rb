@@ -89,19 +89,19 @@ class BaliNavbarComponentTest < ComponentTestCase
 
   def test_renders_base_color_by_default
     render_inline(Bali::Navbar::Component.new)
-    assert_selector("nav.navbar.bg-base-100")
+    assert_selector("nav.navbar.navbar-base")
   end
 
   def test_skips_color_classes_for_unknown_symbol
     render_inline(Bali::Navbar::Component.new(color: :invalid))
     assert_selector("nav.navbar")
-    assert_no_selector("nav.navbar.bg-base-100")
+    assert_no_selector("nav.navbar.navbar-base")
   end
 
   def test_skips_color_classes_when_color_is_nil_allowing_custom_class
     render_inline(Bali::Navbar::Component.new(color: nil, class: "bg-indigo-600 text-white"))
     assert_selector("nav.navbar.bg-indigo-600.text-white")
-    assert_no_selector("nav.navbar.bg-base-100")
+    assert_no_selector("nav.navbar.navbar-base")
   end
 
   def test_accessibility_has_navigation_role

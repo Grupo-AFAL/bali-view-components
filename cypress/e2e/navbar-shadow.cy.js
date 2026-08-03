@@ -39,12 +39,30 @@ describe('Navbar: la sombra', () => {
   // vive en @layer components y perdia contra el `shadow-sm` que el propio componente se
   // ponia como utilidad. Medido antes del arreglo sobre este mismo preview, con
   // `is-transparent` en el elemento, box-shadow seguia en `0 1px 3px rgba(0,0,0,.1)`.
-  it('un navbar transparente ya no la conserva', () => {
+  it('un navbar transparente ya no la conserva, y ahora es transparente', () => {
     cy.visit('/bali/navbar/with_sidebar_burger?transparency=true')
 
     cy.get('.navbar').should('have.class', 'is-transparent')
     cy.get('.navbar').should($n => {
-      expect(pinta(sombra($n)), 'transparente y sin sombra').to.equal(false)
+      const cs = window.getComputedStyle($n[0])
+
+      expect(pinta(sombra($n)), 'sin sombra').to.equal(false)
+      // El fondo perdía por lo mismo que la sombra, contra el `bg-base-100` que emitía el
+      // preset de `color:` como utilidad. Medido antes: `oklch(1 0 0)`.
+      expect(cs.backgroundColor, 'y sin fondo').to.match(/rgba\(0, 0, 0, 0\)|transparent/)
+    })
+  })
+
+  // El preset sigue pintando cuando el navbar NO es transparente — es lo que la mudanza a
+  // @layer components podría haber roto en silencio.
+  it('el preset de color sigue pintando el navbar opaco', () => {
+    cy.visit('/bali/navbar/default?color=primary')
+
+    cy.get('.navbar').should($n => {
+      expect($n[0].className, 'clase de Bali, no utilidad').to.match(/\bnavbar-primary\b/)
+      expect(window.getComputedStyle($n[0]).backgroundColor).to.not.match(
+        /rgba\(0, 0, 0, 0\)|transparent/
+      )
     })
   })
 })
