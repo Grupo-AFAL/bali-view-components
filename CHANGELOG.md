@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+### Fixed
+
+- **A page morph can no longer strand an open `Modal` or `Drawer` in the top layer, leaving the page inert with no way out.** Idiomorph writes every attribute the new node carries and removes every one the old node has that the new one does not; the markup a server sends for an open panel is a *closed* panel, so a morph strips both `open` and the open class. And removing `open` from a `<dialog>` opened with `showModal()` does not take it out of the top layer: the document stays inert, the UA simply stops painting the panel, and `close()` returns early on a dialog with no `open` attribute — without throwing. Nothing was left that could free the page.
+
+  Measured on a bare `<dialog>`, step by step: after `showModal()`, `:modal` is true and the point over a page button hits the dialog; after removing `open`, `:modal` is **still true** and `elementFromPoint` over that button returns `HTML`; `close()` there changes nothing. Put the attribute back and `close()` drops `:modal` to false and the page answers the mouse again.
+
+  Both halves are fixed. `ModalController` now cancels `turbo:before-morph-element` for its own panel while that panel is open — checking the open class as well as `dialog.open`, since the class is all that holds the panel open in the fallback where `showModal()` was unavailable, and listening on `document` because the panel and the controller element are often different subtrees. Cancelling the element rather than the finer `turbo:before-morph-attribute` is deliberate: the morph also overwrites `class`, so saving `open` alone would leave the panel in the top layer without the class that shows it. Separately, `_hideOverlay` gives the attribute back before closing when it finds a panel that is `:modal` without being `open`, which recovers a panel that was already stranded — prevention only covers the panels a controller can see at the moment of the morph.
+
+  `DrawerController extends ModalController`, so both overlays are covered by the one change. A closed panel still morphs normally.
+
 ### Documentation
 
 - **The migration guide no longer sends you to define `--bali-z-hovercard`, a token nothing declares.** The hovercard shares the tooltip tier — the guide's own table said so thirty lines above, and `HoverCard::Component` documents it too; only the prose disagreed. It fails in the worst direction: a host that declares the invented token sees no error, no warning, and not even the `9999` fallback, which `zIndexFor` reaches only when Bali's stylesheet is missing from the page. The override just reads as a no-op. A test now fails the build if the guide ever names a tier the scale does not declare.
