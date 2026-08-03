@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+### Fixed
+
+- **The `data_table/with_simple_filters` preview survives a Studio with no status.** It answered 500 with `undefined method 'humanize' for nil` as soon as the database held one, which any record created from the drawer without picking a status leaves behind — the preview then stayed broken in that environment. The Size cell two lines below had the safe navigation all along. Seeded databases always set a status, which is why the preview sweep never saw it.
+
 ## [v3.0.0.beta.2] - 2026-08-03
 
 ### Fixed
