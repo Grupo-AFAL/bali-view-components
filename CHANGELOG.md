@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+## [v3.0.0.beta.2] - 2026-08-03
+
 ### Fixed
 
 - **A pinned sidebar no longer paints over the navbar and the banner above it.** `AppLayout` offset only `.app-layout-content` for a fixed sidebar, but `.app-layout-banner` and `.app-layout-navbar` are full-width siblings *above* the main area, and `.side-menu-component--fixed` is `position: fixed; top: 0; height: 100%`. So the sidebar covered their left `--bali-side-menu-width`: on `/lookbook/preview/bali/app_layout/with_navbar` the navbar's brand was invisible and its first link rendered as "hboard", and with the impersonation banner on, its icon and half its text went under the sidebar too. Both now take the same offset, from the same variable and with the same collapsed variant, as the content. `<body>` had been carrying `app-layout--has-navbar` since the slot existed, with no rule reading it.
