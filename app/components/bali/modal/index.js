@@ -48,9 +48,15 @@ const SIZE_CLASSES = {
 export class ModalController extends Controller {
   static targets = ['template', 'background', 'wrapper', 'content', 'closeBtn']
 
-  // When set, closing while the form is dirty asks for confirmation first.
-  // Emitted by Drawer (default on) and Modal (opt-in). Subclasses inherit it.
-  static values = { confirmCloseMessage: String }
+  // confirmCloseMessage: when set, closing while the form is dirty asks for
+  // confirmation first. Emitted by Drawer (default on) and Modal (opt-in).
+  //
+  // shared: whether this overlay answers an open event that names no overlay.
+  // See `setOptionsAndOpenModal`. Subclasses inherit both.
+  static values = {
+    confirmCloseMessage: String,
+    shared: { type: Boolean, default: true }
+  }
 
   // Overridden by DrawerController so the two never answer each other's open event.
   get eventPrefix () {
@@ -178,10 +184,21 @@ export class ModalController extends Controller {
     // but only the one with targets will actually open the modal
     if (!this.hasContentTarget || !this.hasTemplateTarget || !this.hasWrapperTarget) return
 
-    // An addressed event names its overlay; anything else is a broadcast that
-    // the (single) overlay holding the targets answers, as it always did.
+    // An addressed event names its overlay. Anything else is a broadcast, and a
+    // broadcast is answered by every SHARED overlay on the page — which used to
+    // mean every overlay, full stop, on the assumption that a page carries one.
+    // The package broke that assumption itself: `Bali::FeedbackWidget` ships its
+    // own drawer, so on any page with the widget an ordinary `drawer#open`
+    // trigger opened two drawers. Only one of them belongs to the button that
+    // then submits, so only that one is closed — and the other stays
+    // `showModal()`-ed, which makes the whole document outside it inert. The
+    // page looked closed and stopped answering the mouse (#854).
     const { id } = event.detail
-    if (id && id !== this.templateTarget.id) return
+    if (id) {
+      if (id !== this.templateTarget.id) return
+    } else if (!this.sharedValue) {
+      return
+    }
 
     this.setOptions(event.detail.options)
     this.openModal(event.detail.content)
@@ -420,8 +437,12 @@ export class ModalController extends Controller {
       this.contentTarget.innerHTML = ''
     }
 
-    // Clean up focus trap
-    if (this.wrapperTarget) {
+    // Clean up focus trap. `hasWrapperTarget`, not `wrapperTarget`: reading the target
+    // getter to test for its own absence throws instead of answering false — the same
+    // mistake as `this.fooTarget?.bar`, spelled as a condition. Every other read of this
+    // target in the file (setupListeners, _applySize, _restoreDefaultSize, the two overlay
+    // handlers) already asks the has* twin.
+    if (this.hasWrapperTarget) {
       this.wrapperTarget.removeEventListener('keydown', this.handleTabKey)
     }
 

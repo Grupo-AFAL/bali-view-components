@@ -49,7 +49,17 @@
           en el primer render de escritorio. %>
       <% if toolbar_separator? %>
         <%= tag.div(**overflow_separator_attributes("left", "memory")) do %>
-          <div class="divider divider-horizontal mx-0 h-6"></div>
+          <%# Regla propia y no `divider divider-horizontal` de daisyUI: esa clase trae
+              `width: 1rem` en `.divider-horizontal.divider`, a (0,2,0) y en la misma capa,
+              así que NINGUNA utilidad de ancho la baja —medido: con `w-px` encima el ancho
+              calculado sigue siendo 16px—. Ese ancho se suma a los dos `sm:gap-4` de la
+              fila, y la frontera medía 48px de caja a caja (23px de aire a cada lado de la
+              regla de 2px) contra los 16px de cualquier otro par de la misma fila. `mx-0`
+              sólo mataba el `margin: 0 1rem`, que era la mitad del problema. Sin ancho
+              propio quedan 16px por lado, el mismo gap que separa a los demás grupos, y la
+              regla sigue midiendo 2×24 con el mismo color: `bg-base-content/10` compila al
+              mismo `color-mix()` que daisyUI usa en `--divider-color`. %>
+          <div class="w-0.5 h-6 bg-base-content/10"></div>
         <% end %>
       <% end %>
 
