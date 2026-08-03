@@ -1551,6 +1551,24 @@ from the shared table instead of `"btn-#{size}"`. That interpolation was invisib
 Tailwind's scanner, so those classes only ever shipped because some other component happened
 to spell them out. Nothing to change at your call sites.
 
+### `submit_group`'s Cancel is `btn-ghost`, not `btn-secondary`
+
+Nothing to change at the call site, but every form using `submit_group` with a `cancel_path:`,
+`cancel_options:`, `modal:` or `drawer:` repaints its Cancel — from filled secondary to ghost.
+
+The library was teaching two things at once. Every `FormPage` preview builds its actions row by
+hand and writes `variant: :ghost` on Cancel; `submit_group`, the helper those previews exist to
+promote, defaulted to `:secondary`. A form has one primary action, and a filled secondary next
+to Submit reads as a second thing to do rather than as the way out of the form.
+
+If a form wants the old weight, it is one keyword, and an explicit class still wins over the
+default:
+
+```erb
+<%= f.submit_group 'Save', cancel_path: movies_path,
+      cancel_options: { class: 'btn btn-secondary' } %>
+```
+
 ## Timeline renders each entry once, and its slots lose the `tag_` prefix
 
 A timeline item used to emit its heading and its content twice — once in `.timeline-start`,

@@ -206,6 +206,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed (breaking)
 
+- **`submit_group`'s Cancel renders `btn-ghost` instead of `btn-secondary`.** Every form using `submit_group` with a `cancel_path:`, `cancel_options:`, `modal:` or `drawer:` repaints its Cancel — no call site changes, but the button changes weight, so it is listed here rather than under Fixed.
+
+  The library was teaching two things at the same time. Every `FormPage` preview builds its actions row by hand and writes `variant: :ghost` on Cancel; `submit_group` — the helper those previews exist to promote — defaulted to `:secondary`. A form has one primary action, and a filled secondary sitting next to Submit reads as a second thing to do rather than as the way out of the form. Whichever of the two was right, shipping both meant the reference implementation and the helper disagreed on the page.
+
+  An explicit class still wins: `cancel_options: { class: 'btn btn-secondary' }`. A test now pins that, next to the one that pins the new default.
+
 - **`Modal` and `Drawer` are native `<dialog>` elements now, opened with `showModal()` — and everything the stacking scale ranked above them had to follow them into the top layer.** This is the last cut of #679; #784 modernised the interior and #796 made portaled popups survive a top-layer overlay, which was this change's precondition. The loading mechanism is untouched: `?layout=false`, the manual fetch, `_replaceBodyAndURL` and the contract of all 194 `drawer: true` / `modal: true` call sites are exactly as they were, per the 31/07 decision that DX parity is the acceptance criterion.
 
   **What the element buys.** `showModal()` paints the panel in the top layer, so no `z-index` in the document can cover it; it makes every node outside the panel inert, so the page behind stops taking clicks and stops being reachable by Tab without any focus trap of ours; and it restores focus to the trigger on close. What is kept hand-written is everything `<dialog>` knows nothing about — the remote load, the instant skeleton, the sequence number that discards an abandoned open, the unsaved-form prompt, and the popups that portal out of the panel.
