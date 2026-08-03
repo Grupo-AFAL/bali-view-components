@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+### Fixed
+
+- **The `DataTable` toolbar lines its controls up with each other.** `SimpleFilters` puts the caption *above* each control, so its block is twice the height of any single-line neighbour and wraps to two rows when the row tightens. With the toolbar centred, everything sharing that row aligned against the middle of the block rather than against its line of controls: measured on `/admin/studios` at 1900px, the `⋯` sat at y=226 and the Filter button — which lives on the block's last line — at y=264, **38px** below. The row aligns to the end now; where no item is taller than the others the two alignments are the same layout.
+
+  Getting to zero took removing 4px of bottom padding from the filters row, and those 4px were doing something: the row declared `overflow-x-auto` at every width, which makes it a scroll container, and a scroll container clips at its padding box — the padding was the room for the Filter button's focus ring (`outline-width: 2px` at `outline-offset: 2px`). Above the breakpoint the row wraps and never scrolls, so the overflow goes back to `visible` there and the padding has nothing left to reserve. Below it nothing changes: the horizontal scroll and its gutter stay.
+
 ## [v3.0.0.beta.2] - 2026-08-03
 
 ### Fixed
