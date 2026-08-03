@@ -101,8 +101,12 @@ module Bali
       def render_actions_group
         return unless actions? || secondary_actions?
 
+        # Misma regla propia que la toolbar del DataTable, y por la misma razón: la clase
+        # `divider-horizontal` de daisyUI trae un `width: 1rem` que ninguna utilidad puede
+        # bajar, y ese ancho se sumaba al gap de la fila. El comentario largo con la
+        # medición está en `data_table/component.html.erb` (#846).
         helpers.safe_join([
-          helpers.tag.div(class: "divider divider-horizontal mx-0 h-6"),
+          helpers.tag.div(class: "w-0.5 h-6 bg-base-content/10"),
           render_actions_bar
         ])
       end

@@ -42,7 +42,9 @@ class BaliDocumentPageComponentTest < ComponentTestCase
     end
 
     assert_selector('[aria-label="More actions"]', visible: :all)
-    assert_selector(".divider.divider-horizontal", visible: :all)
+    # Regla propia y no `.divider.divider-horizontal` de daisyUI: esa clase traía un
+    # `width: 1rem` propio que se sumaba al gap de la fila (#846).
+    assert_selector(".w-0\\.5.h-6.bg-base-content\\/10", visible: :all)
   end
 
   def test_renders_subtitle

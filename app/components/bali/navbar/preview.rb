@@ -24,6 +24,21 @@ module Bali
           locals: { fullscreen: fullscreen, transparency: transparency, color: color }
         )
       end
+
+      # @label Sidebar burger + transparency
+      # @param transparency toggle
+      # The navbar whose hamburger opens the SideMenu instead of the navbar's own menu —
+      # `nav.with_burger(type: :sidebar)`. It is the composition #811 broke, and the only one
+      # the package had no preview for: `Burger::CONFIGURATIONS[:sidebar]` is empty, so this
+      # navbar renders no `data-navbar-target="burger"`, and the transparency scroll handler
+      # used to throw on every scroll event reading a target that is not there. Scroll past
+      # the navbar's height: the background must come back.
+      def with_sidebar_burger(transparency: true)
+        render_with_template(
+          template: 'bali/navbar/previews/with_sidebar_burger',
+          locals: { transparency: transparency }
+        )
+      end
     end
   end
 end
