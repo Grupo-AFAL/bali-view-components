@@ -3,6 +3,17 @@
       recuerda, derecha CÓMO se ve. Bajo el breakpoint el controlador `toolbar-overflow`
       MUEVE los controles secundarios al menú ⋯ (ver OVERFLOW_PRIORITIES) y los devuelve al
       subir. %>
+  <%# Sin JS no hay quién saque el atributo que reserva el lugar de los controles
+      colapsables, así que se destapan acá. Es la única forma de que la fila siga completa
+      para quien no ejecuta scripts: el atributo tiene que venir del servidor —el parpadeo
+      que evita ocurre ANTES de que el bundle corra— y por lo tanto no puede depender de JS
+      para irse. `!important` porque la utilidad que esconde vive en @layer utilities. %>
+  <% if show_toolbar? && overflow_menu? %>
+    <noscript>
+      <style>[data-toolbar-overflow-settling] [data-toolbar-overflow-target="item"] { visibility: visible !important }</style>
+    </noscript>
+  <% end %>
+
   <% if show_toolbar? %>
     <%= tag.div(**toolbar_attributes) do %>
       <%# Izquierda, primer subgrupo: el CONTENIDO de la vista — qué filas y qué columnas.

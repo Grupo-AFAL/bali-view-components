@@ -63,6 +63,27 @@ export default class extends Controller {
     // El layout inicial puede llegar ya angosto: no alcanza con escuchar el cruce.
     this.apply(this.mediaQuery.matches)
     this.recordMeasurements()
+    this.reveal()
+  }
+
+  /**
+   * Los controles colapsables llegan con el lugar reservado y sin dibujarse, y esto los
+   * destapa una vez que la fila ya está en su forma final. Ver RESERVED_CLASSES en el
+   * componente.
+   *
+   * Va acá y no detrás de un heurístico de "ya se asentó" porque la causa del parpadeo no
+   * es que la fila crezca: es que el servidor manda la fila SIN colapsar y nadie la puede
+   * colapsar hasta que este controlador existe. Medido en /admin/studios, la página pinta a
+   * los 260ms y `connect()` no corre hasta los 1189ms, cuando termina de ejecutarse el
+   * bundle. Al terminar el `apply()` de arriba la fila ya es la definitiva, así que no hay
+   * nada que esperar.
+   *
+   * Un `apply()` posterior —el que dispara un widget que se ensancha al montar— pasa con los
+   * controles ya visibles, que es lo correcto: a esa altura mover uno al ⋯ es una respuesta
+   * a algo que cambió, no un estado inicial equivocado.
+   */
+  reveal () {
+    this.element.removeAttribute('data-toolbar-overflow-settling')
   }
 
   disconnect () {
