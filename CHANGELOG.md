@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+### Fixed
+
+- **The time picker shows one pair of arrows per column, not two.** Hovering the minutes field drew a second, larger, darker pair with a grey track of its own, sitting on top of flatpickr's — and the native one is the half that is *not* wired to the calendar's value.
+
+  The hour, minute and second fields are `input[type=number]`, and the sheet disarmed their spinners with `appearance: textfield` on `.flatpickr-time input`. Chrome stopped honouring that declaration for number inputs, so it paints its own spinner over whichever field has the pointer regardless. The pair that actually removes it — `::-webkit-outer-spin-button` and `::-webkit-inner-spin-button` set to `appearance: none` — has been in the same file all along for the header's year field; the time row never got it.
+
+  Worth knowing before writing a test for this: `getComputedStyle(input, '::-webkit-inner-spin-button').appearance` does not answer the question. It reports the input's own value — measured, it still says `textfield` with the rule applied and the native arrows gone. The Cypress cover reads the CSSOM instead, which checks what can be checked without eyes: that the declaration reaches the browser through the build and that nothing later reverts it.
+
 ## [v3.0.0.beta.2] - 2026-08-03
 
 ### Fixed
