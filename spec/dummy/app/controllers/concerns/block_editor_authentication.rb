@@ -14,8 +14,13 @@ module BlockEditorAuthentication
 
   # In the dummy app, user identity comes from a request header.
   # Production apps should replace this with their own authentication.
+  #
+  # The default has to be an id the views actually declare in `comments.users`
+  # (see DocumentsController::DEMO_USERS) -- otherwise every comment the dummy
+  # persists is authored by a stranger and the editor can only name it
+  # "User <id>".
   def current_user_id
-    request.headers['X-User-Id'] || '1'
+    request.headers['X-User-Id'] || 'user-1'
   end
 
   # BlockNote sends body as a JSON object (not a scalar), so we cannot use
