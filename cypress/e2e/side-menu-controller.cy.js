@@ -44,6 +44,46 @@ describe('SideMenuComponent', () => {
         .and('contain', 'Logistics')
         .and('contain', 'Accounting')
     })
+
+    // A `<details>` closes when its own `<summary>` is pressed again and on no other
+    // event, so the panel used to stay open over the rest of the page (#830). It stays a
+    // `<details>` — the focus-based dropdown is fragile on iOS Safari — and it gets the
+    // two ways out that every other popup in the package already offers.
+    it('closes when the click lands elsewhere in the sidebar', () => {
+      cy.get('.menu-switcher details summary').click()
+      cy.get('.menu-switcher details').should('have.attr', 'open')
+
+      // The open panel covers the top of the list, which is the point — the click has to
+      // land on something the panel is not sitting on, and that is still in flow (the
+      // links inside a collapsed accordion are in the DOM but not visible).
+      cy.get('.sidebar-menu a:visible').last().click()
+      cy.get('.menu-switcher details').should('not.have.attr', 'open')
+    })
+
+    it('closes when the click lands outside the sidebar entirely', () => {
+      cy.get('.menu-switcher details summary').click()
+      cy.get('.menu-switcher details').should('have.attr', 'open')
+
+      cy.contains('h2', 'Menu Switcher').click()
+      cy.get('.menu-switcher details').should('not.have.attr', 'open')
+    })
+
+    it('stays open while the pointer is inside its own panel', () => {
+      cy.get('.menu-switcher details summary').click()
+
+      cy.get('.menu-switcher .dropdown-content').trigger('pointerdown')
+      cy.get('.menu-switcher details').should('have.attr', 'open')
+    })
+
+    it('closes on Escape and hands focus back to the summary', () => {
+      cy.get('.menu-switcher details summary').click()
+      cy.get('.menu-switcher details').should('have.attr', 'open')
+
+      // `trigger` and not `type`: a <summary> is not one of Cypress's typeable elements.
+      cy.get('.menu-switcher details summary').trigger('keydown', { key: 'Escape' })
+      cy.get('.menu-switcher details').should('not.have.attr', 'open')
+      cy.focused().should('match', 'summary')
+    })
   })
 
   context('collapsible state', () => {
