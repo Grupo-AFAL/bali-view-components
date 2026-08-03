@@ -582,19 +582,19 @@ export class ModalController extends Controller {
    */
   submit = event => {
     event.preventDefault()
-    event.target.classList.add('loading')
-    event.target.setAttribute('disabled', '')
 
-    const form = event.target.closest('form')
+    const button = event.target
+    this._startSubmitting(button)
+
+    const form = button.closest('form')
     if (!form.checkValidity()) {
-      event.target.classList.remove('loading')
-      event.target.removeAttribute('disabled')
+      this._stopSubmitting(button)
       form.querySelectorAll('input').forEach(input => { input.reportValidity() })
       return
     }
 
     const formURL = form.getAttribute('action')
-    const enableTurbo = event.target.dataset.turbo || form.dataset.turbo
+    const enableTurbo = button.dataset.turbo || form.dataset.turbo
 
     const url = this._buildURL(formURL, this.redirectTo)
     const options = {
@@ -678,6 +678,65 @@ export class ModalController extends Controller {
           this._replaceContent(responseText)
         }
       })
+  }
+
+  /**
+   * Put the submit button into its waiting state.
+   *
+   * This used to be `classList.add('loading')` on the button, which reads like a
+   * modifier and is not one: in daisyUI 5 `.loading` IS the spinner. It sets
+   * `aspect-ratio: 1`, a width of six selector units and `background-color:
+   * currentColor` masked by the spinner SVG, so on the <button> it collapsed the
+   * box — measured 66x40 to 34x40 — and painted the button itself as the spinner,
+   * with the label still in the box showing through the holes in the mask. That is
+   * the letter that was visible under the spinner in #839.
+   *
+   * So the spinner goes inside as its own element and the button keeps `.btn`. The
+   * width is pinned first because the label is what was holding the button open:
+   * swapping "Save" for a 20px spinner without pinning resizes the actions row at
+   * exactly the moment the user is waiting on it. The height needs no pinning —
+   * `.btn` sets it.
+   *
+   * `loading loading-spinner loading-sm` is the same trio
+   * `Bali::Button::Component`'s template writes, and that is deliberate: the
+   * documented `@source` globs scan the package's `.erb` and `.rb`, not its `.js`,
+   * so a class that only ever appears here would be missing from a host's Tailwind
+   * build.
+   */
+  _startSubmitting (button) {
+    if (button.dataset.baliSubmitting) return
+
+    button.dataset.baliSubmitting = 'true'
+    button.style.minWidth = `${button.getBoundingClientRect().width}px`
+    button.setAttribute('disabled', '')
+    button.setAttribute('aria-busy', 'true')
+
+    // The label is kept rather than serialised: moving the nodes preserves whatever
+    // the call site put in the button — an icon, a translated span — and gives
+    // `_stopSubmitting` something exact to put back.
+    const label = document.createElement('span')
+    label.hidden = true
+    label.dataset.baliSubmitLabel = ''
+    label.append(...button.childNodes)
+
+    const spinner = document.createElement('span')
+    spinner.className = 'loading loading-spinner loading-sm'
+
+    button.replaceChildren(label, spinner)
+  }
+
+  // Only the client-side validation path comes back here: a 422 re-renders the
+  // whole panel and a redirect replaces the page, and in both cases this button is
+  // gone. Guarded on the stashed label so calling it twice is harmless.
+  _stopSubmitting (button) {
+    const label = button.querySelector('[data-bali-submit-label]')
+    if (!label) return
+
+    button.replaceChildren(...label.childNodes)
+    button.style.minWidth = ''
+    button.removeAttribute('disabled')
+    button.removeAttribute('aria-busy')
+    delete button.dataset.baliSubmitting
   }
 
   normalizeClass (classes) {

@@ -109,8 +109,26 @@ class BaliButtonComponentTest < ComponentTestCase
 
   def test_loading_state_renders_with_loading_spinner
     render_inline(Bali::Button::Component.new(loading: true)) { "Loading" }
-    assert_selector("button.btn.loading")
+    assert_selector("button.btn")
     assert_selector("button .loading-spinner")
+  end
+
+  # `.loading` on the <button> is the bug this used to assert. In daisyUI 5 the class
+  # IS the spinner — `aspect-ratio: 1`, a six-unit width and `background-color:
+  # currentColor` masked by the spinner SVG — so it collapsed the button to a square
+  # and painted it as the spinner, label and all (#839). The spinner belongs inside.
+  def test_loading_state_leaves_the_button_box_alone
+    render_inline(Bali::Button::Component.new(loading: true)) { "Loading" }
+    assert_no_selector("button.loading")
+    assert_selector("button > .loading.loading-spinner")
+  end
+
+  # The old `.loading` carried `pointer-events: none`, so a loading button was already
+  # unclickable — by accident of the class that was breaking its box. Now it is said
+  # out loud, and it also stops the button from being submitted or focused.
+  def test_loading_state_disables_the_button_and_says_it_is_busy
+    render_inline(Bali::Button::Component.new(loading: true)) { "Loading" }
+    assert_selector("button[disabled][aria-busy='true']")
   end
 
   def test_icons_renders_with_icon_keyword
