@@ -18,19 +18,73 @@
   end
 
   layout.with_navbar do %>
-    <%= render Bali::Navbar::Component.new(sticky: false, color: :base) do |nav|
-      nav.with_brand do %>
-        <span class="text-lg font-bold">MovieDB</span>
-      <% end
+    <%# The SideMenu owns the brand in this configuration — it renders it in its own
+        `--bali-chrome-height` row — so the navbar carries navigation plus the account
+        controls, the same set the dummy's /admin bar has: search with its shortcut,
+        notifications, help, and the user menu with name and chevron.
 
+        `min-h-0 bali-chrome-height` is what puts the navbar on that same 56px line, so
+        its bottom border continues the sidebar's. Without it the row measured 65px
+        against the sidebar's 56px: daisyUI's `.navbar` sets `min-height: 4rem`, and
+        daisyUI's `.menu { padding: .5rem }` adds 16px inside the navbar's own 16px.
+        `fullscreen: true` drops the `max-w-7xl mx-auto` centring an app shell does not
+        want and keeps the container's `px-4`, which over the navbar's own 8px lands the
+        first item on the same 24px gutter as the topbar's `md:px-6` (both measured at
+        x=280). `shadow-sm` comes from Navbar's own base classes and a `shadow-none`
+        from here does not beat it — measured — so the crisp line is a border. %>
+    <%= render Bali::Navbar::Component.new(
+      sticky: false,
+      color: :base,
+      fullscreen: true,
+      class: 'min-h-0 bali-chrome-height border-b border-base-300'
+    ) do |nav|
       nav.with_menu do |menu|
         menu.with_start_item(name: 'Dashboard', href: '/lookbook')
         menu.with_start_item(name: 'Movies', href: '/lookbook')
         menu.with_start_item(name: 'Studios', href: '/lookbook')
 
-        menu.with_end_item(tag_name: :div) do %>
-          <%= render Bali::Avatar::Component.new(size: :xs) do |avatar|
-            avatar.with_placeholder { 'AG' }
+        menu.with_end_item(tag_name: :div, class: 'flex items-center gap-1') do %>
+          <%= render Bali::Command::Component.new(placeholder: 'Search movies, studios, actions…') do |cmd|
+            cmd.with_trigger do %>
+              <%= render Bali::Button::Component.new(
+                style: :outline,
+                size: :sm,
+                class: 'w-52 justify-start font-normal text-base-content/60'
+              ) do %>
+                <%= render Bali::Icon::Component.new('search', class: 'size-4 shrink-0') %>
+                <span class="flex-1 text-left">Search…</span>
+                <kbd class="kbd kbd-xs hidden sm:inline-flex">⌘K</kbd>
+              <% end %>
+            <% end
+
+            cmd.with_group(name: 'Pages') do |group|
+              group.with_item(title: 'Dashboard', meta: 'Admin overview', icon: 'layout-dashboard', href: '/lookbook')
+              group.with_item(title: 'Movies', meta: 'Catalog', icon: 'film', href: '/lookbook')
+              group.with_item(title: 'Studios', meta: 'Production houses', icon: 'building-2', href: '/lookbook')
+            end
+          end %>
+
+          <%= render Bali::Button::Component.new(
+            icon: 'bell', variant: :ghost, size: :sm,
+            class: 'btn-square', aria: { label: 'Notifications' }
+          ) %>
+          <%= render Bali::Button::Component.new(
+            icon: 'circle-help', variant: :ghost, size: :sm,
+            class: 'btn-square', aria: { label: 'Help' }
+          ) %>
+
+          <%= render Bali::Dropdown::Component.new(align: :start, class: 'lg:dropdown-end') do |dropdown|
+            dropdown.with_trigger(variant: :ghost, class: 'btn-sm gap-2') do %>
+              <%= render Bali::Avatar::Component.new(size: :xs) do |avatar|
+                avatar.with_placeholder { 'AG' }
+              end %>
+              <span class="hidden md:inline">Ana García</span>
+              <%= render Bali::Icon::Component.new('chevron-down', size: :small) %>
+            <% end
+
+            dropdown.with_item(href: '#') { 'Profile' }
+            dropdown.with_item(href: '#') { 'Settings' }
+            dropdown.with_item(href: '#', class: 'text-error') { 'Sign out' }
           end %>
         <% end
       end
@@ -60,10 +114,21 @@
   <% end
 
   layout.with_topbar do %>
-    <%= render Bali::Breadcrumb::Component.new do |bc|
-      bc.with_item(name: "Home", href: "/lookbook")
-      bc.with_item(name: "Movies", href: "/lookbook")
-      bc.with_item(name: "The Matrix")
+    <%# A bare Breadcrumb in this slot renders a 20px-tall nav with no padding at all:
+        `.breadcrumbs { padding-block: 0 }` is deliberate and unlayered on purpose
+        (breadcrumb/index.css, #530), and `.app-layout-topbar` adds none of its own.
+        Bali::Topbar is the row that supplies the chrome — the 56px
+        `--bali-chrome-height` that lines up with the SideMenu's brand row and the
+        navbar above, `px-4 md:px-6`, the bottom border, and the `lg:hidden` hamburger
+        that opens the SideMenu on mobile. %>
+    <%= render Bali::Topbar::Component.new do |topbar|
+      topbar.with_brand do %>
+        <%= render Bali::Breadcrumb::Component.new do |bc|
+          bc.with_item(name: "Home", href: "/lookbook", icon: 'home')
+          bc.with_item(name: "Movies", href: "/lookbook")
+          bc.with_item(name: "The Matrix")
+        end %>
+      <% end
     end %>
   <% end
 
