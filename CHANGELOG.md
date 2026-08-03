@@ -13,6 +13,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A drawer trigger that names no drawer stops opening every drawer on the page — one of which nobody then closes, leaving the page alive but deaf to the mouse.** On a page with `AppLayout` and `FeedbackWidget` — the composition the guides recommend — clicking an ordinary "New…" button and submitting the form left the whole document unclickable. Nothing was visible on top of it; the drawer had, to all appearances, closed.
+
+  A `drawer#open` trigger may name the overlay it opens (`data-drawer-id`) and usually does not, because the common page has one shared overlay: `ModalController#open` then dispatches `bali:drawer:open` with no `id`, and `setOptionsAndOpenModal` skipped its id check entirely in that case. So every drawer holding the three targets answered — which was only ever right while a page carried one. The package broke that assumption itself: `Bali::FeedbackWidget` renders its own `Bali::Drawer`, so **one click opened two drawers**. `submit` then closes the panel whose controller handled the click, and only that one; the other stayed `showModal()`-ed. A `<dialog>` in the top layer makes every node outside its subtree inert, and the drawer's own CSS strips the UA box (`inset: auto`, transparent) and hides the overlay once `drawer-open` is off — so the stranded dialog rendered nothing at all while still owning the document.
+
+  Traced through the flow, which is what named the culprit — reading class names or the `open` attribute would have reported a page in perfect health:
+
+  ```
+  after load  :: main-drawer[open=false :modal=false]  feedback-widget[open=false :modal=false]
+  drawer open :: main-drawer[open=true  :modal=true ]  feedback-widget[open=true  :modal=true ]
+  after submit:: main-drawer[open=false :modal=false]  feedback-widget[open=true  :modal=true ]
+  ```
+
+  `Bali::Drawer::Component` takes **`shared:`** now. It defaults to `true`, so every existing drawer keeps the markup and the behaviour it had, and the attribute is only written when it is false. `FeedbackWidget`'s panel sets `shared: false`: it is opened by the widget's own button, which has always named it by id, so it never needed the broadcast — and its content is an iframe that a broadcast overwrites. A host with a feature drawer of its own now has the same opt-out.
+
 - **The `SideMenu` module switcher closes on a click outside it and on `Escape`.** It stayed open over the rest of the page: the only thing that shut it was pressing its own trigger again. That is not an oversight in a controller — it is the whole behaviour of the element. The switcher is a native `<details>`, chosen on purpose because the focus-based dropdown pattern is fragile on iOS Safari (focus lost to the slide-in animation, blur on scroll), and `<details>` toggles on its `<summary>` and on nothing else. It stays a `<details>`; the two ways out that every other popup in the package offers are added to it.
 
   Closing on `pointerdown` rather than on `click` is deliberate: a press that starts inside the open panel and drifts a pixel before release retargets the click to whatever is underneath, and a click-bound handler reads that as "outside" — closing the panel out from under the item the reader was pressing. The press is where the intent is. Pressing the summary itself needs no special case in either direction: while the panel is open the press is inside the `<details>`, and while it is closed there is nothing to close, so the native toggle runs afterwards as the click's default action. `Escape` closes the switcher before the drawer it may sit in — innermost first, the precedence the rest of the package already follows — and hands focus back to the summary rather than dropping it on `<body>`.
