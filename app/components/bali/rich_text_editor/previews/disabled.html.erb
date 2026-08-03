@@ -1,0 +1,60 @@
+<%# Lo que se ve cuando `Bali.rich_text_editor_enabled` está en false, que es el default del
+    paquete. Sin esto el preview contesta 200 con el body vacío y se lee como un componente
+    roto (#844). %>
+<div class="space-y-4">
+  <%= render Bali::Alert::Component.new(
+    title: 'This preview renders nothing on purpose',
+    color: :warning,
+    icon: true
+  ) do %>
+    <div class="space-y-2">
+      <p>
+        <code>Bali::RichTextEditor::Component</code> defines
+        <code>render?</code> as <code>Bali.rich_text_editor_enabled</code>, which the package
+        ships as <code>false</code>. With the flag off the component emits no markup at all
+        &mdash; not even its wrapper &mdash; so an empty preview here is the flag, not a defect.
+      </p>
+      <p>
+        The flag exists because this editor is the only reason the package declares
+        roughly thirty-five <code>@tiptap/*</code> optional peers plus <code>lowlight</code> and
+        <code>highlight.js</code>. Rendering it without those installed gives a dead
+        <code>&lt;div&gt;</code>, so it is opt-in.
+      </p>
+    </div>
+  <% end %>
+
+  <%= render Bali::Alert::Component.new(
+    title: 'Deprecated in v3, removed in v4',
+    color: :info,
+    icon: true
+  ) do %>
+    <div class="space-y-2">
+      <p>
+        Use <code>Bali::BlockEditor::Component</code> instead. It covers the same ground on a
+        maintained stack and reads and writes the same HTML through
+        <code>html_content:</code> / <code>format: :html</code>.
+      </p>
+      <p>
+        <%= render Bali::Link::Component.new(
+          name: 'Open the BlockEditor previews',
+          href: '/lookbook/inspect/bali/block_editor/default',
+          variant: :primary,
+          size: :sm
+        ) %>
+      </p>
+    </div>
+  <% end %>
+
+  <div class="space-y-2 text-sm text-base-content/70">
+    <p>
+      To see this component rendered anyway &mdash; to check a migration, say &mdash; boot the
+      dummy with the flag on:
+    </p>
+    <pre class="bg-base-200 rounded-box p-3 overflow-x-auto"><code>ENABLE_RICH_TEXT_EDITOR=1 bin/dev</code></pre>
+    <p>
+      In a host application the equivalent is
+      <code>config.rich_text_editor_enabled = true</code>, and it only makes sense once the
+      TipTap peers are installed.
+    </p>
+  </div>
+</div>
