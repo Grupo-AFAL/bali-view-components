@@ -3,8 +3,17 @@
   --bali-navbar-height: 3.75rem;
 }
 
+/* The shadow lives here and not on the element, so that the `.is-transparent`
+ * rule below can reach it. It used to be `shadow-sm` in the component's
+ * BASE_CLASSES — a utility, so from @layer components the state rule's
+ * `shadow-none` never won, and a transparent navbar kept its shadow: measured
+ * on /lookbook/preview/bali/navbar/with_sidebar_burger?transparency=true,
+ * box-shadow stayed `0 1px 3px rgba(0,0,0,.1)` with `is-transparent` on the
+ * element. (The `@apply shadow-md` that stood here lost the same way and had
+ * never rendered at all.) `shadow-none` from `shadow: false` still wins, on
+ * purpose: that one comes from @layer utilities. */
 .navbar {
-  @apply shadow-md;
+  @apply shadow-sm;
   transition: background-color 1s;
 
   &>.container {
