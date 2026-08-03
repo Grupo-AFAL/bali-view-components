@@ -146,11 +146,36 @@
   /* Never grow past the container, even when a selected option is wider
      than the column that holds it (see .control { min-width: 0 } in forms.css) */
   max-width: 100%;
-  @apply flex flex-row items-center relative select-none w-full h-10 min-h-[40px] p-0 cursor-pointer text-[14px];
+  @apply flex flex-row items-center relative select-none w-full min-h-[40px] p-0 cursor-pointer text-[14px];
   @apply bg-base-100 border border-base-content/20;
+  /* #841 — `height` stays DECLARED even though the value is `auto`. This file is
+     unlayered and `.ss-main` carries daisyUI's `.select` (see the file header), so
+     dropping the declaration does not free the box: it hands it back to
+     `.select { height: var(--size) }` in @layer utilities, i.e. 40px again.
+
+     `auto` plus the 40px minimum is what lets a `multiple` grow to a second row of
+     pills instead of being cut by the `overflow: hidden` that the same `.select`
+     rule sets. Measured on form/slim_select/multiple narrowed to 260px with four
+     values: `.ss-values` scrollHeight 56px inside a 38px content box — and because
+     this rule is `align-items: center`, the overflow split both ways: row 1 at
+     offsetTop -9 and row 2 ending at 47 against a clientHeight of 38. BOTH rows were
+     clipped, and the second row's delete buttons were unreachable. daisyUI answers
+     the native case the same way: `.select[multiple] { height: auto }`.
+
+     Capping the height and scrolling `.ss-values` was the alternative, and it loses:
+     a click anywhere on `.ss-main` opens the list, so the scroll surface and the
+     widget's own click target would be the same box.
+
+     The 6px of block padding restores the breathing room the fixed 40px used to give
+     a single row (26px pill + 6 + 6 + 2px border = 40px, unchanged). On a
+     fixed-height, centre-aligned box it is inert, so `.slim-select-sm` — still
+     pinned to 32px further down, and never a multiple — measures identical either
+     way. */
+  height: auto;
   border-radius: 4px;
   outline: none;
   box-sizing: border-box;
+  padding-block: 6px;
   padding-left: 12px;
   padding-right: 12px;
   transition: border-color var(--ss-animation-timing) ease,

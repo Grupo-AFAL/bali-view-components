@@ -5,6 +5,12 @@ const COLLAPSED_CLASS = 'is-collapsed'
 const COLLAPSE_STORAGE_KEY = 'bali_sideMenuCollapsed'
 const OVERLAY_QUERY = '(max-width: 1023.98px)'
 
+// The module switcher is a native `<details>` — see the note in component.html.erb for
+// why, which is iOS Safari and not preference. It comes with its own toggling and with
+// nothing else: `<details>` closes when its `<summary>` is pressed again and on no other
+// event, so the panel stayed open over the rest of the page.
+const SWITCHER = '.menu-switcher > details'
+
 const FOCUSABLE = [
   'a[href]',
   'button:not([disabled])',
@@ -48,6 +54,7 @@ export class SideMenuController extends Controller {
     this.onGlobalOpen = event => this.forThisMenu(event) && this.open(event)
     this.onGlobalClose = event => this.forThisMenu(event) && this.close()
     this.onDocumentKeydown = event => this.handleKeydown(event)
+    this.onDocumentPointerdown = event => this.closeSwitcherOnOutsideClick(event)
     // Crossing the breakpoint turns a drawer into permanent chrome and back,
     // which flips whether the panel should be reachable at all.
     this.onOverlayChange = () => this.syncInert()
@@ -56,6 +63,7 @@ export class SideMenuController extends Controller {
     window.addEventListener('bali:side-menu:open', this.onGlobalOpen)
     window.addEventListener('bali:side-menu:close', this.onGlobalClose)
     document.addEventListener('keydown', this.onDocumentKeydown)
+    document.addEventListener('pointerdown', this.onDocumentPointerdown)
     this.overlayQuery.addEventListener('change', this.onOverlayChange)
 
     this.syncInert()
@@ -66,7 +74,46 @@ export class SideMenuController extends Controller {
     window.removeEventListener('bali:side-menu:open', this.onGlobalOpen)
     window.removeEventListener('bali:side-menu:close', this.onGlobalClose)
     document.removeEventListener('keydown', this.onDocumentKeydown)
+    document.removeEventListener('pointerdown', this.onDocumentPointerdown)
     this.overlayQuery.removeEventListener('change', this.onOverlayChange)
+  }
+
+  // ── Module switcher ────────────────────────────────────────────────────
+
+  get switcher () {
+    return this.element.querySelector(SWITCHER)
+  }
+
+  // `pointerdown` and not `click`: a press that starts inside the open panel and drifts
+  // a pixel out before release retargets the click to whatever is underneath, and a
+  // click-bound handler would read that as "outside" and close the panel out from under
+  // the item the reader was pressing. The press is where the intent is.
+  //
+  // Pressing the summary itself is left alone in both directions, and it does not need a
+  // special case: while it is open the press is inside the `<details>`, and while it is
+  // closed there is nothing to close. The native toggle then runs as the click's default
+  // action, after this listener.
+  closeSwitcherOnOutsideClick (event) {
+    const switcher = this.switcher
+
+    if (!switcher?.open) return
+    if (switcher.contains(event.target)) return
+
+    switcher.open = false
+  }
+
+  // Escape closes the innermost thing that is open — the switcher before the drawer it
+  // sits in — which is the precedence every other popup in the package already follows.
+  // Focus goes back to the summary rather than being dropped on <body>.
+  closeSwitcherOnEscape () {
+    const switcher = this.switcher
+
+    if (!switcher?.open) return false
+
+    switcher.open = false
+    switcher.querySelector('summary')?.focus()
+
+    return true
   }
 
   // ── Mobile drawer ──────────────────────────────────────────────────────
@@ -130,6 +177,16 @@ export class SideMenuController extends Controller {
   }
 
   handleKeydown (event) {
+    // Ahead of the drawer guard on purpose: el switcher está en el sidebar fijo del
+    // desktop tanto como en el drawer, así que su Escape no puede depender de que haya un
+    // drawer abierto.
+    if (event.key === 'Escape' && this.element.contains(event.target)) {
+      if (this.closeSwitcherOnEscape()) {
+        event.preventDefault()
+        return
+      }
+    }
+
     if (!this.isOpen || !this.isOverlay) return
 
     if (event.key === 'Escape') {
