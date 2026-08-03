@@ -17,16 +17,6 @@ class KitchenSinkDemoPagesTest < ActionDispatch::IntegrationTest
     assert_response :ok
   end
 
-  def test_movies_get_movies_renders_the_index_page_successfully
-    get movies_path
-    assert_response :ok
-  end
-
-  def test_movies_get_movies_renders_with_filter_params
-    get movies_path, params: { q: { name_cont: "Test" } }
-    assert_response :ok
-  end
-
   # El index canónico tiene TRES ramas de contenido (tabla seleccionable, grid de tarjetas y
   # calendario) que comparten un partial. Sin pedirlas, una fecha nula, una clave i18n
   # faltante o un `with_content` roto se publican en verde.
@@ -40,16 +30,6 @@ class KitchenSinkDemoPagesTest < ActionDispatch::IntegrationTest
     assert_select "h2.card-title"
 
     get admin_movies_path, params: { view: "calendar" }
-    assert_response :ok
-    assert_select ".calendar-component"
-  end
-
-  def test_movies_renders_every_display_mode_of_the_shared_listing
-    get movies_path, params: { view: "grid" }
-    assert_response :ok
-    assert_select "h2.card-title"
-
-    get movies_path, params: { view: "calendar" }
     assert_response :ok
     assert_select ".calendar-component"
   end

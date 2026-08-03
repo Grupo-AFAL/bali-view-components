@@ -1,5 +1,6 @@
 <%= render Bali::FormPage::Component.new(
   title: t('studios.form.edit_title', name: @studio.name),
+  subtitle: t('studios.form.subtitle_edit'),
   breadcrumbs: [
     { name: t('navbar.dashboard'), href: admin_root_path, icon: 'home' },
     { name: t('studios.title'), href: admin_studios_path },

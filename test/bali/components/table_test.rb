@@ -63,7 +63,7 @@ class BaliTableComponentTest < ComponentTestCase
   def render_sortable_table(sort: nil, &block)
     params = sort ? { q: { s: sort } } : {}
     form = Bali::FilterForm.new(Movie.all, ActionController::Parameters.new(params))
-    with_request_url("/movies") do
+    with_request_url("/admin/movies") do
       render_inline(Bali::Table::Component.new(form: form), &block)
     end
   end

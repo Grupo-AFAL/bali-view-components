@@ -148,9 +148,6 @@ es:
       table: Tabla
       cards: Tarjetas
       calendar: Calendario
-    no_movies: No se encontraron peliculas.
-    no_movies_help: Intenta ajustar tus filtros o
-    add_new_movie: agrega una nueva pelicula
     form:
       name: Nombre
       genre: Genero

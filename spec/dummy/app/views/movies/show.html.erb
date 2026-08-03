@@ -3,7 +3,7 @@
 <%# Breadcrumb %>
 <%= render Bali::Breadcrumb::Component.new do |breadcrumb| %>
   <% breadcrumb.with_item(name: 'Dashboard', href: root_path, icon: 'home') %>
-  <% breadcrumb.with_item(name: 'Movies', href: movies_path) %>
+  <% breadcrumb.with_item(name: 'Movies', href: admin_movies_path) %>
   <% breadcrumb.with_item(name: @movie.name) %>
 <% end %>
 

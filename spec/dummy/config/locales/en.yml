@@ -146,9 +146,6 @@ en:
       linked_to: "Linked to %{name}"
       drag_to_reorder: Drag to reorder characters by importance
       add_character: Add Character
-    no_movies: No movies found.
-    no_movies_help: Try adjusting your filters or
-    add_new_movie: add a new movie
     form:
       name: Name
       genre: Genre
