@@ -106,6 +106,34 @@ class BaliSideMenuComponentTest < ComponentTestCase
     assert_selector("[data-side-menu-fixed-value='true']")
   end
 
+  # The module switcher is a `<details>`, and a `<details>` closes when its own `<summary>`
+  # is pressed again and on no other event — so click-outside and Escape are JavaScript
+  # (#830). The controller used to be attached only for `collapsible:` or `fixed:`, which
+  # left an inline sidebar with a switcher — the composition the preview itself uses —
+  # without any controller for that JavaScript to live in.
+  def test_a_switcher_earns_the_controller_even_when_nothing_else_asks_for_it
+    @options[:fixed] = false
+    render_inline(component) do |c|
+      c.with_menu_switch(title: "Back of House", href: "/boh", icon: "chef-hat", active: true)
+      c.with_menu_switch(title: "Logistics", href: "/logistics", icon: "truck")
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+    assert_selector(".menu-switcher > details")
+    assert_selector("[data-controller~='side-menu']")
+  end
+
+  # One menu renders no switcher, so nothing changes for a sidebar that had no reason to
+  # carry a controller.
+  def test_a_single_menu_still_leaves_an_inline_sidebar_without_a_controller
+    @options[:fixed] = false
+    render_inline(component) do |c|
+      c.with_menu_switch(title: "Back of House", href: "/boh", icon: "chef-hat", active: true)
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+    assert_no_selector(".menu-switcher > details")
+    assert_no_selector("[data-controller~='side-menu']")
+  end
+
   def test_scrim_is_hidden_from_assistive_tech_and_closes_the_menu
     render_inline(component) do |c|
       c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }

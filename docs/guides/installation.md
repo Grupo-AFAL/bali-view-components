@@ -380,6 +380,36 @@ By default, `Bali::Modal::Component` renders with `active: true` (open state). T
 <% end %>
 ```
 
+### A second drawer on the same page
+
+A `drawer#open` trigger may name the drawer it opens, and usually does not:
+
+```erb
+<%# The ordinary spelling: no name, so the open event is a broadcast %>
+<%= render Bali::Link::Component.new(name: "New Studio", href: new_studio_path,
+      data: { action: "drawer#open" }) %>
+```
+
+A broadcast is answered by every **shared** drawer on the page, which is the right thing while the
+page has one — the shell drawer above. The moment a page has a second drawer that belongs to one
+feature and has its own trigger, that one must opt out, or an unnamed trigger opens both and only
+one of them is closed afterwards. A `<dialog>` left in the top layer makes the whole document
+inert, so the symptom is a page that looks normal and stops answering the mouse.
+
+```erb
+<%# Belongs to one feature, opened only by its own trigger %>
+<%= render Bali::Drawer::Component.new(drawer_id: "cart", shared: false) do %>
+  ...
+<% end %>
+
+<%# ...and the trigger names it %>
+<%= render Bali::Button::Component.new(name: "Cart",
+      data: { action: "drawer#open", drawer_id: "cart" }) %>
+```
+
+`Bali::FeedbackWidget` already does this for its own panel, so mounting the widget alongside
+`AppLayout` needs nothing from you.
+
 ---
 
 ## Next Steps
