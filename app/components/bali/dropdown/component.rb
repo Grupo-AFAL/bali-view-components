@@ -178,7 +178,14 @@ module Bali
         options = prepend_class_name(options, "menu-item w-full text-left")
 
         if method&.to_sym == :delete
-          DeleteLink::Component.new(href: href, plain: true, icon: icon, **options)
+          # `form_class: "contents"` explícito, porque acá SÍ es item de menú: daisyUI pinta
+          # el item sobre `li > *` salvo que sea un `.btn`, y el `<form>` de `button_to` no lo
+          # es. Fuera del árbol de cajas, el botón es el item (#829). Antes esto lo deducía
+          # DeleteLink de `plain:`, que no significa eso (#868). Va ANTES de `**options` para
+          # que un call site lo pueda pisar.
+          DeleteLink::Component.new(
+            href: href, plain: true, icon: icon, form_class: "contents", **options
+          )
         else
           Link::Component.new(method: method, href: href, plain: true, icon: icon, **options)
         end

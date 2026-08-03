@@ -45,17 +45,34 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
     @options.merge!(form_class: "bg-success")
     render_inline(component)
     assert_selector("button.text-error.btn-ghost", text: "Delete")
-    assert_selector("form.inline-block.bg-success")
+    # `form_class:` SUMA, como dice su documentación: el default sigue puesto al lado.
+    assert_selector("form.bali-delete-link-form.bg-success")
   end
 
-  # `plain:` is what a Dropdown item passes, and there the `button_to` form is a direct
-  # child of a `.menu` <li>, where daisyUI styles it as the item instead of the button.
-  # Transparent inside a menu, `inline-block` everywhere else — the assertion above is the
-  # other half of the pair and must keep passing.
-  def test_plain_takes_the_form_out_of_the_box_tree
+  # Sacar el form del árbol de cajas se PIDE, con `form_class:`, y no se deduce de `plain:`
+  # (#868): ese keyword es lo que la API dice —un botón sin la caja del `.btn`— y viaja
+  # lejos de cualquier menú, así que gateado ahí cargaba un segundo significado que su
+  # documentación no anuncia.
+  def test_plain_alone_does_not_take_the_form_out_of_the_box_tree
     @options.merge!(plain: true)
     render_inline(component)
+    assert_selector("form.bali-delete-link-form")
+    assert_no_selector("form.contents")
+  end
+
+  def test_form_class_is_what_takes_the_form_out_of_the_box_tree
+    @options.merge!(form_class: "contents")
+    render_inline(component)
     assert_selector("form.contents")
+  end
+
+  # El default vive en @layer components, no como utilidad sobre el elemento, para que la
+  # utilidad del call site le gane. Como utilidades empataban, y el desempate lo ganaba la
+  # hoja compilada: medido, `.contents` se emite ANTES que `.inline-block`, así que
+  # `class="inline-block contents"` renderiza inline-block y el `form_class` no hacía nada.
+  def test_the_default_form_display_is_not_a_utility_on_the_element
+    render_inline(component)
+    assert_selector("form.bali-delete-link-form")
     assert_no_selector("form.inline-block")
   end
   Bali::DeleteLink::Component::SIZES.each do |size, css_class|

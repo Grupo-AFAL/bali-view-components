@@ -72,11 +72,20 @@ module Bali
         # the first. `display: contents` takes the form out of the box tree and leaves the
         # button as the item — 192x37 @0,0, identical to a link item.
         #
-        # Gated on `plain:` because that keyword is passed from exactly one place,
-        # Bali::Dropdown::Component#build_link_item, i.e. "this DeleteLink is a menu item".
-        # Outside a menu the form stays `inline-block` and nothing changes.
-        @form_class = class_names(@plain ? "contents" : "inline-block",
-                                  options.delete(:form_class))
+        # It is asked for with `form_class: "contents"` and nothing else. It used to be
+        # gated on `plain:`, on the premise that the keyword means "this DeleteLink is a
+        # menu item"; it does not (#868). `plain:` is what the API says it is — a button
+        # without the `.btn` box — and it travels far outside menus: the same Dropdown
+        # builder hands it to `Link` too, `Breadcrumb::Item` passes it with no menu in
+        # sight, and in afal-apps alone twelve `DeleteLink` carry it hand-written in the
+        # action rows of show pages, none of them from `build_link_item`. Gated there,
+        # `plain:` grew a second, undocumented meaning — "take my `<form>` out of the box
+        # tree" — that a caller asking for the documented one never signed up for.
+        # `inline-block` no va acá sino en delete_link/index.css, y su encabezado explica
+        # por qué: como utilidad sobre el elemento empata con la que llegue por
+        # `form_class:`, y el desempate lo gana la hoja compilada —medido, `.contents` se
+        # emite ANTES que `.inline-block`— así que `form_class: "contents"` no hacía nada.
+        @form_class = class_names("bali-delete-link-form", options.delete(:form_class))
         @options = options
 
         validate_url_presence!
