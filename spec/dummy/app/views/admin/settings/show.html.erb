@@ -116,24 +116,20 @@
               <%= f.switch_group :dark_mode, text: t('settings.dark_mode'), color: :accent %>
 
               <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg, class: 'mt-4') do %>
-                <%= render Bali::Card::Component.new(style: :bordered, class: 'bg-base-100') do %>
-                  <div class="card-body p-4">
-                    <div class="flex items-center gap-2">
-                      <%= render Bali::Icon::Component.new('sun', class: 'text-warning') %>
-                      <span class="font-medium"><%= t('settings.light_mode') %></span>
-                    </div>
-                    <p class="text-sm text-base-content/60"><%= t('settings.light_mode_desc') %></p>
+                <%= render Bali::Card::Component.new(style: :bordered, class: 'bg-base-100', body_class: 'p-4') do %>
+                  <div class="flex items-center gap-2">
+                    <%= render Bali::Icon::Component.new('sun', class: 'text-warning') %>
+                    <span class="font-medium"><%= t('settings.light_mode') %></span>
                   </div>
+                  <p class="text-sm text-base-content/60"><%= t('settings.light_mode_desc') %></p>
                 <% end %>
 
-                <%= render Bali::Card::Component.new(style: :bordered, class: 'bg-neutral text-neutral-content') do %>
-                  <div class="card-body p-4">
-                    <div class="flex items-center gap-2">
-                      <%= render Bali::Icon::Component.new('moon', class: 'text-info') %>
-                      <span class="font-medium"><%= t('settings.dark_mode_title') %></span>
-                    </div>
-                    <p class="text-sm opacity-70"><%= t('settings.dark_mode_desc') %></p>
+                <%= render Bali::Card::Component.new(style: :bordered, class: 'bg-neutral text-neutral-content', body_class: 'p-4') do %>
+                  <div class="flex items-center gap-2">
+                    <%= render Bali::Icon::Component.new('moon', class: 'text-info') %>
+                    <span class="font-medium"><%= t('settings.dark_mode_title') %></span>
                   </div>
+                  <p class="text-sm opacity-70"><%= t('settings.dark_mode_desc') %></p>
                 <% end %>
               <% end %>
 

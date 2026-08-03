@@ -14,6 +14,20 @@ class BaliFeedbackWidgetComponentTest < ComponentTestCase
     assert_selector("button[data-action='feedback-widget#open']")
   end
 
+  # The widget's panel is opened by its own button, which names it by id. While it also
+  # answered broadcasts, it opened on every ordinary `drawer#open` trigger on the page too —
+  # and since only the drawer holding the submitted form gets closed, the widget's stayed
+  # `showModal()`-ed with the whole document inert behind it (#854).
+  def test_its_drawer_only_opens_when_something_names_it
+    render_inline(Bali::FeedbackWidget::Component.new(
+      project_slug: "test-project",
+      opina_url: "https://opina.example.com",
+      token: "pre-built-token"
+    ))
+
+    assert_selector("dialog.drawer-component[data-drawer-shared-value='false']")
+  end
+
   def test_renders_with_secret
     render_inline(Bali::FeedbackWidget::Component.new(
       project_slug: "test-project",
