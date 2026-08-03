@@ -1186,8 +1186,20 @@ Nothing about escaping the scale got harder.
 **`Bali::HoverCard::Component::DEFAULT_Z_INDEX` is gone, and `z_index:` now defaults to
 `nil`.** The constant was `9999`. Referencing it raises `NameError`, and there is deliberately
 nothing to replace it with: hardcoding the scale's top value in Ruby is exactly what breaks
-the moment a host moves the scale. `z_index: nil` means "read `--bali-z-hovercard` at
+the moment a host moves the scale. `z_index: nil` means "read `--bali-z-tooltip` at
 connect", which is what you want; pass a number only to pin one hovercard outside the scale.
+
+**The hovercard has no tier of its own** — it shares the tooltip's, which is what the table
+above says and what `HoverCard::Component` documents. The scale is exactly these seven, and
+nothing else in it is named after a component that is not on this list:
+
+`--bali-z-dropdown`, `--bali-z-popover`, `--bali-z-tooltip`, `--bali-z-drawer`,
+`--bali-z-modal`, `--bali-z-command`, `--bali-z-toast`.
+
+Inventing a name outside that list does nothing at all: no error, no warning, and not even
+the `9999` fallback, which `zIndexFor` only reaches when Bali's stylesheet is missing from
+the page. The override reads as a no-op with nothing to say why. `test/bali/z_index_tokens_test.rb`
+fails the build if this guide ever names a tier the scale does not declare.
 
 ```bash
 grep -rn "DEFAULT_Z_INDEX" app/
