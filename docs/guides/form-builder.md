@@ -566,7 +566,9 @@ The actions row: submit with the cancel control beside it. Spelled
 
 **Options:**
 - `cancel_path` - Path for cancel link
-- `cancel_options` - HTML options for cancel link (including `:label`)
+- `cancel_options` - HTML options for cancel link (including `:label`). Cancel renders
+  `btn-ghost`: a form has one primary action, and Cancel is the way out of it rather than a
+  second thing to do. Pass `class:` here to override.
 - `modal` - Integrate with modal controller
 - `drawer` - Integrate with drawer controller
 - `field_class` - Wrapper class (default: flexbox with gap)

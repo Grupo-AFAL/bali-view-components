@@ -306,25 +306,20 @@ export default function BlockNoteEditorWrapper ({
     }
   }, [editor, pmContent])
 
-  // Pre-populate the UserStore cache with all known users so that
-  // resolved threads don't crash when BlockNote's Comments component
-  // calls getUser() before async resolution completes.
-  // We gate BlockNoteView's comments prop AND ThreadsSidebar on
-  // commentsReady to ensure the cache is populated before any
-  // resolved-thread UI mounts.
+  // The user store is created by the comments extension, so it only exists once
+  // the editor does. Hand it to useComments, which is what keeps every user id a
+  // thread references answerable before BlockNote renders that thread -- read
+  // the note there for why that has to happen, and why it cannot wait for the
+  // async resolution. The comments UI stays gated on commentsReady so it never
+  // mounts against a store nobody has seeded.
   const [commentsReady, setCommentsReady] = useState(!commentsEnabled)
   useEffect(() => {
-    if (!editor || !commentsResult?.staticUserMap) return
+    if (!editor || !commentsResult) return
     // editor.extensions is a Map<key, extension>, not an array
-    if (editor.extensions) {
-      for (const [, ext] of editor.extensions) {
-        if (ext.userStore?.userCache) {
-          for (const [id, user] of commentsResult.staticUserMap) {
-            ext.userStore.userCache.set(id, user)
-          }
-          break
-        }
-      }
+    for (const [, ext] of editor.extensions ?? []) {
+      if (typeof ext.userStore?.getUser !== 'function') continue
+      commentsResult.attachUserStore(ext.userStore)
+      break
     }
     setCommentsReady(true)
   }, [editor, commentsResult])
