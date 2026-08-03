@@ -1,0 +1,7 @@
+<%# El target es la identidad RESUELTA del listado, no el `storage_id` crudo: el DataTable lo
+    sanea a un identificador CSS válido. Turbo resuelve el target por getElementById — sin nodo
+    no reemplaza nada, no revienta y no loguea. El cuerpo es el MISMO partial que el html.erb,
+    así que los dos caminos no pueden divergir. %>
+<%= turbo_stream.replace Bali::DataTable::ListingIdentity.for(@filter_form) do %>
+  <%= render 'listing' %>
+<% end %>

@@ -1,44 +1,32 @@
-<%= form_with model: studio, class: 'space-y-4', builder: Bali::FormBuilder do |f| %>
+<%# `data: { turbo: true }` es lo que hace que un 200 con `text/vnd.turbo-stream.html` se aplique
+    en vez de navegar: sin él el drawer se va con la página en lugar de cerrarse. %>
+<%= form_with model: studio, class: 'space-y-4', builder: Bali::FormBuilder,
+               data: { turbo: true } do |f| %>
   <%= f.error_summary %>
 
   <%= render Bali::Columns::Component.new(cols: 1, cols_md: 2, gap: :lg) do %>
     <%= f.text_group :name, required: true %>
     <%= f.select_group :country,
           Studio::COUNTRIES.map { |c| [c, c] },
-          include_blank: 'Select country...' %>
+          include_blank: t('studios.form.select_country') %>
     <%= f.select_group :status,
           Studio.statuses.keys.map { |s| [s.humanize, s] },
-          include_blank: 'Select status...' %>
+          include_blank: t('studios.form.select_status') %>
     <%= f.select_group :size,
           Studio::SIZES.map { |s| [s.humanize, s] },
-          include_blank: 'Select size...' %>
+          include_blank: t('studios.form.select_size') %>
     <%= f.number_group :founded_year, min: 1800, max: Date.current.year %>
   <% end %>
 
-  <%# The Card this partial used to branch for belongs to FormPage now — that is exactly what
-      `card:` resolving from the context buys, and it is why the `capture` above is gone too.
-      What is left is NOT a layout branch: Cancel closes an overlay and navigates on a page,
-      two different elements doing two different things, and a page component has no business
-      deciding what the host's buttons do. The context still reaches here from the component
-      rather than from `params` — the view passes `drawer: page.drawer?`. %>
-  <div class="flex gap-2 justify-end mt-6">
-    <% if local_assigns.fetch(:drawer, false) %>
-      <%= render Bali::Button::Component.new(
-        name: 'Cancel',
-        variant: :ghost,
-        data: { action: 'drawer#close' }
-      ) %>
-    <% else %>
-      <%= render Bali::Link::Component.new(
-        name: 'Cancel',
-        href: studio.persisted? ? studio_path(studio) : studios_path,
-        variant: :ghost
-      ) %>
-    <% end %>
-    <%= render Bali::Button::Component.new(
-      name: studio.persisted? ? 'Update Studio' : 'Create Studio',
-      type: :submit,
-      variant: :primary
-    ) %>
-  </div>
+  <%# Por `submit_group` y no por una fila de botones a mano: es el helper el que cablea
+      `drawer#submit` en el submit y `drawer#close` en el Cancel cuando el formulario se está
+      pintando dentro del drawer, y el que resuelve el Cancel a link o a botón según haya un
+      `cancel_path`. El contexto llega desde el componente, no desde `params` — la vista pasa
+      `drawer: page.drawer?`. %>
+  <%= f.submit_group(
+    studio.persisted? ? t('studios.form.update') : t('studios.form.create'),
+    cancel_path: local_assigns.fetch(:drawer, false) ? nil : (studio.persisted? ? studio_path(studio) : studios_path),
+    drawer: local_assigns.fetch(:drawer, false),
+    variant: :primary
+  ) %>
 <% end %>

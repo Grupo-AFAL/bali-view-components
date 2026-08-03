@@ -24,6 +24,12 @@
       item que devuelve 406 en la página de referencia enseña la trampa en vez del arreglo. %>
   <% page.with_export(url: admin_movies_path, formats: [:csv]) %>
 
+  <%# El ⋯ existe para que el export tenga vecinos: sin una segunda acción, la página no
+      enseña que ahí cae todo lo que actúa SOBRE el listado y no sobre cómo se ve. %>
+  <% page.with_secondary_action(name: t('movies.secondary_actions.import'),
+                                icon: 'upload',
+                                href: new_admin_movie_path) %>
+
   <%# El DataTable entra pelado: la superficie viaja con su slot de contenido. %>
   <% page.with_body do %>
     <%= render 'listing' %>

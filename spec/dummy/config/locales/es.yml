@@ -133,6 +133,9 @@ es:
       studio: Estudio
       indie: Indie
       created: Creado
+      actions: Acciones
+    secondary_actions:
+      import: Importar desde CSV
     actions:
       view: Ver
       edit: Editar
@@ -191,6 +194,48 @@ es:
         poster: Poster
         details: Detalles
         settings: Configuracion
+
+  studios:
+    title: Estudios
+    subtitle: Las productoras detras del catalogo
+    new_studio: Nuevo Estudio
+    search_placeholder: Buscar por nombre...
+    form:
+      new_title: Nuevo Estudio
+      edit_title: "Editar %{name}"
+      subtitle_new: Agrega una productora al catalogo
+      subtitle_edit: Actualiza los datos de este estudio
+      new_breadcrumb: Nuevo
+      select_country: Selecciona un pais...
+      select_status: Selecciona un estado...
+      select_size: Selecciona un tamano...
+      update: Actualizar Estudio
+      create: Crear Estudio
+    columns:
+      name: Nombre
+      country: Pais
+      status: Estado
+      size: Tamano
+      founded: Fundado
+      actions: Acciones
+    actions:
+      view: Ver
+      edit: Editar
+      delete: Eliminar
+      close: Cerrar
+    confirm_delete: "Seguro que quieres eliminar %{name}?"
+    show:
+      dashboard: Panel
+      edit: Editar
+      name: Nombre
+      country: Pais
+      status: Estado
+      size: Tamano
+      founded: Fundado
+      created: Creado
+      delete_studio: Eliminar Estudio
+      confirm_delete: "Seguro que quieres eliminar %{name}?"
+      no_value: "—"
 
   # Showcase page
   showcase:

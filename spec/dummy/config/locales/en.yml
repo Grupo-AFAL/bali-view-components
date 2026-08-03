@@ -80,6 +80,9 @@ en:
       studio: Studio
       indie: Indie
       created: Created
+      actions: Actions
+    secondary_actions:
+      import: Import from CSV
     actions:
       view: View
       edit: Edit
@@ -268,10 +271,14 @@ en:
   # Studios
   studios:
     title: Studios
+    subtitle: The production companies behind the catalog
     new_studio: New Studio
+    search_placeholder: Search by name...
     form:
       new_title: New Studio
       edit_title: "Edit %{name}"
+      subtitle_new: Add a production company to the catalog
+      subtitle_edit: Update this studio's details
       new_breadcrumb: New
       select_country: Select country...
       select_status: Select status...

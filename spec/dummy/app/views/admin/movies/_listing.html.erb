@@ -8,7 +8,7 @@
   filter_form: @filter_form,
   url: admin_movies_path,
   pagy: @pagy,
-  item_name: 'movies',
+  item_name: t('movies.title').downcase,
   display_mode: params[:view]
 ) do |data_table| %>
 
@@ -124,7 +124,10 @@
         <% table.with_header(name: t('movies.columns.studio'), sort: :studio_name) %>
         <% table.with_header(name: t('movies.columns.indie'), sort: :indie, class: 'text-center') %>
         <% table.with_header(name: t('movies.columns.created'), sort: :created_at) %>
-        <% table.with_header(name: '', class: 'w-12') %>
+        <%# La columna de acciones va nombrada y alineada con `class:`. Un `<th>` vacío deja la
+            columna sin nombre accesible, y `align:` no existe en el componente: sale como el
+            atributo HTML obsoleto `<th align="right">`. %>
+        <% table.with_header(name: t('movies.columns.actions'), class: 'text-right w-12') %>
 
         <% @movies.each do |movie| %>
           <%# `select_label:` da contexto de registro al checkbox de la fila: sin él, N filas
@@ -152,21 +155,28 @@
               <%= render Bali::Timeago::Component.new(movie.created_at, add_suffix: true) %>
             </td>
             <td>
-              <%= render Bali::ActionsDropdown::Component.new(align: :end, popover: true) do |dropdown| %>
-                <% dropdown.with_item(href: admin_movie_path(movie), icon: 'eye') { t('movies.actions.view') } %>
-                <% dropdown.with_item(href: edit_admin_movie_path(movie), icon: 'pencil') { t('movies.actions.edit') } %>
-                <% dropdown.with_item(href: admin_movie_path(movie), method: :delete, icon: 'trash') { t('movies.actions.delete') } %>
-              <% end %>
+              <div class="flex justify-end">
+                <%= render Bali::ActionsDropdown::Component.new(align: :end, popover: true) do |dropdown| %>
+                  <% dropdown.with_item(href: admin_movie_path(movie), icon: 'eye') { t('movies.actions.view') } %>
+                  <% dropdown.with_item(href: edit_admin_movie_path(movie), icon: 'pencil') { t('movies.actions.edit') } %>
+                  <%# Borrar sin confirmar es lo que la página de referencia NO puede enseñar. %>
+                  <% dropdown.with_item(
+                    href: admin_movie_path(movie),
+                    method: :delete,
+                    icon: 'trash',
+                    data: { turbo_confirm: t('movies.show.confirm_delete', name: movie.name) },
+                    class: 'text-error'
+                  ) { t('movies.actions.delete') } %>
+                <% end %>
+              </div>
             </td>
           <% end %>
         <% end %>
 
-        <% table.with_no_records_notification do %>
-          <%= render Bali::Alert::Component.new(color: :info) do %>
-            <strong><%= t('movies.no_movies') %></strong> <%= t('movies.no_movies_help') %>
-            <%= render Bali::Link::Component.new(name: t('movies.add_new_movie'), href: new_admin_movie_path) %>.
-          <% end %>
-        <% end %>
+        <%# El EmptyState del componente ya distingue "sin registros" de "sin resultados" según
+            haya filtros activos; el Alert que estaba acá se saltaba esa distinción y dejaba el
+            mismo texto en los dos casos. Lo único que le falta es a dónde ir. %>
+        <% table.with_new_record_link(name: t('movies.new_movie'), href: new_admin_movie_path, modal: false) %>
       <% end %>
     <% end %>
   <% end %>

@@ -31,7 +31,7 @@
           <% table.with_header(name: t('studios.columns.status')) %>
           <% table.with_header(name: t('studios.columns.size')) %>
           <% table.with_header(name: t('studios.columns.founded'), sort: :founded_year) %>
-          <% table.with_header(name: t('studios.columns.actions'), align: :right) %>
+          <% table.with_header(name: t('studios.columns.actions'), class: 'text-right') %>
 
           <% @studios.each do |studio| %>
             <% table.with_row do %>
