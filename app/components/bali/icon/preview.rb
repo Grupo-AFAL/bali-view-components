@@ -2,6 +2,16 @@
 
 module Bali
   module Icon
+    # Las constantes hermanas van escritas completas (`Bali::Icon::LucideMapping`, no
+    # `LucideMapping`) a propósito, y no es estilo: `Module.nesting` se captura al parsear y
+    # guarda una referencia al objeto módulo. Lookbook carga este archivo al arrancar para armar
+    # su navegación; si después corre un `reload!`, Zeitwerk descarta ese `Bali::Icon` y crea
+    # otro, la constante hermana se autoloadea dentro del nuevo, y el nesting de esta clase
+    # sigue apuntando al viejo — `uninitialized constant Bali::Icon::Preview::LucideMapping`
+    # sobre una constante que `bin/rails runner` resuelve sin chistar (#843). El nombre completo
+    # se resuelve contra el `Bali` vigente en el momento de la llamada.
+    #
+    # `test/requests/icon_previews_test.rb` prohíbe el patrón en todos los `preview.rb`.
     class Preview < ApplicationViewComponentPreview
       # Icon
       # ----
@@ -38,7 +48,7 @@ module Bali
           locals: {
             title: 'Lucide-Mapped Icons',
             description: 'Old Bali icon names that now render as Lucide icons',
-            icons: LucideMapping.bali_names.sort
+            icons: Bali::Icon::LucideMapping.bali_names.sort
           }
         )
       end
@@ -53,7 +63,7 @@ module Bali
           locals: {
             title: 'Brand Icons',
             description: 'Payment processors and social media logos (kept from original Bali set)',
-            icons: (KeptIcons::BRAND_PAYMENT + KeptIcons::BRAND_SOCIAL).sort
+            icons: (Bali::Icon::KeptIcons::BRAND_PAYMENT + Bali::Icon::KeptIcons::BRAND_SOCIAL).sort
           }
         )
       end
@@ -67,7 +77,7 @@ module Bali
           locals: {
             title: 'Regional Icons',
             description: 'Country flags and regional symbols',
-            icons: KeptIcons::REGIONAL.sort
+            icons: Bali::Icon::KeptIcons::REGIONAL.sort
           }
         )
       end
@@ -81,7 +91,7 @@ module Bali
           locals: {
             title: 'Custom Domain Icons',
             description: 'Domain-specific icons for restaurant, medical, and other specialized uses',
-            icons: KeptIcons::CUSTOM.sort
+            icons: Bali::Icon::KeptIcons::CUSTOM.sort
           }
         )
       end
@@ -92,7 +102,8 @@ module Bali
       # directly: the Bali names Lucide covers, the kept set, and anything the
       # host registered through `Bali.custom_icons`.
       def all_existing_icons
-        names = LucideMapping.bali_names + KeptIcons::ALL + Bali.custom_icons.keys
+        names = Bali::Icon::LucideMapping.bali_names + Bali::Icon::KeptIcons::ALL +
+                Bali.custom_icons.keys
 
         render_with_template(
           template: 'bali/icon/previews/default',
