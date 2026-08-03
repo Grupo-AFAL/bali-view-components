@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The Delete item in a menu is the same box as the items beside it.** In `Bali::ActionsDropdown` the destructive item was 12px taller than its neighbours and its clickable area 24px narrower — measured 192x49 with the button inset to 168x37, against Edit's 192x37 — and it lit up two nested hover boxes, one with a 4px radius and one with an 8px radius inside it. In the `DataTable` saved-views dropdown the same defect painted the trash's hover box at 46x36 next to the pencil's 22x24, in the same row.
+
+  One cause for both. Rails' `button_to` wraps its button in a `<form>`, and daisyUI 5 paints a menu item with `.menu :where(li:not(.menu-title) > :not(ul,menu,details,.menu-title,.btn))` — the direct child of the `<li>`. That child was the form, so the form took the padding, the radius and the `:hover`, while the thing you actually click sat inside it with a box of its own: `.menu-item`'s in the dropdown, `.btn btn-xs`'s in the saved views. Note the `:not(.btn)` in that selector — it is why the pencil beside the trash was never affected and the trash always was.
+
+  The wrapper is now `display: contents` in the two places where a `button_to` is a menu item, so it generates no box and the button becomes the item: the Delete row measures 192x37 with the button at 0,0, byte-identical to a link item, and the trash's hover box measures 22x24 like the pencil's. `Bali::DeleteLink::Component` does this only under `plain:`, the keyword `Bali::Dropdown::Component` passes to say "this is a menu item", so what `DeleteLink` renders anywhere else is unchanged.
+
 - **The time picker's `:` reads as the separator it is instead of a third arrow glyph.** It is the only thing giving `12 : 00 PM` its structure and it was the least visible element in the row. Two causes, both measured on `/lookbook/preview/bali/form/time/with_value` with the picker open.
 
   It **inherited** the calendar's `font-size: 0.875rem` while `.flatpickr-time input` sets `1rem` explicitly — 14px against the 16px digits it separates. And it shared a `width: 2%` rule with `.flatpickr-am-pm`, which overrides itself to `18%` in the block below, so the 2% only ever applied to the colon: a **6.12px** box with no room for air. The hour stepper's arrows are `position: absolute; right: 0` on the hour's wrapper, whose right edge *is* the separator's left edge — leaving **0.81px** between the triangle and the glyph, which is why it read as part of the controls.

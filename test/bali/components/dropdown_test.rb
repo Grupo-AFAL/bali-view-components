@@ -242,6 +242,20 @@ class BaliDropdownComponentTest < ComponentTestCase
     assert_selector("button[role='menuitem']", text: "Delete")
   end
 
+  # daisyUI paints the item on `.menu li > *`, so the <form> `button_to` wraps the button in
+  # became the item and the button inside it a second, smaller one: Delete measured 192x49
+  # with a 168x37 hover box inside it, against Edit's single 192x37. The form has to be out
+  # of the box tree for the menu to have one metric.
+  def test_a_delete_item_leaves_the_button_as_the_menu_item
+    render_inline(Bali::Dropdown::Component.new) do |c|
+      c.with_trigger { "Trigger" }
+      c.with_item(name: "Delete", href: "/movies/1", method: :delete)
+    end
+
+    assert_selector("li > form.contents", visible: :all)
+    assert_no_selector("li > form.inline-block", visible: :all)
+  end
+
   def test_icon_is_one_keyword_for_both_kinds_of_item
     render_inline(Bali::Dropdown::Component.new) do |c|
       c.with_trigger { "Trigger" }
