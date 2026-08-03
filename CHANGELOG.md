@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The previews stop writing a second `card-body` inside a `Card`, which was doubling the padding of everything a host copies.** `Bali::Card::Component` emits its own `<div class="card-body">` and takes `body_class:` for whatever else the call site wants on it. Twenty-two places wrote a second one inside the Card block anyway, so the content sat inside two. daisyUI declares `.card-body { padding: var(--card-p, 1.5rem) }` and nothing sets `--card-p` at size `md`, so it was a flat 24px twice: measured on `/lookbook/preview/bali/dashboard_page/default`, a 728px card with its content at 630px — **48px a side instead of 24**.
+
+  The sweep covered every preview in the package and every view in the dummy: two `DashboardPage` previews, two `FormPage` previews, two in the `ThemeSampler`, and fifteen dummy views (`landing`, both `settings` pages, the three `direct_uploads` templates). The extra classes the hand-written divs carried — `space-y-4`, `p-4`, `text-center`, `prose`, `py-8` — moved onto `body_class:` rather than being dropped.
+
+  The two `FormPage` previews are the same defect one level removed, since `FormPage` wraps its own body in a Card; they get a plain wrapper div instead. **`FormPage` deliberately does not gain a `body_class:` passthrough**: its Card is conditional (`card?` is `!drawer?`), so in a drawer it renders no `card-body` at all, and a passthrough would silently swallow the caller's classes in exactly that case.
+
+  `test/requests/nested_card_body_test.rb` pins it from both ends — a request test that asserts no `.card-body .card-body` in the affected previews, and a static one that forbids any preview template from writing `card-body` by hand, so a preview added tomorrow is covered without anyone remembering to list it.
+
 - **A `SlimSelect` with `multiple` grows to fit its pills instead of cutting them in half.** With four values chosen in a 260px-wide control the pills wrapped to a second row and the box did not. Measured on `/lookbook/inspect/bali/form/slim_select/multiple`: `.ss-values` had a `scrollHeight` of 56px inside a `.ss-main` stuck at 40px, and because `.ss-main` is `align-items: center` the overflow split both ways — the first row started 9px above the content box and the second ended 47px into a 38px one. **Both** rows were clipped, and the second row's delete buttons were unreachable.
 
   Two rules made it. `.ss-main` declared `h-10 min-h-[40px]`, a fixed height; and the clipping is daisyUI's, because SlimSelect copies the native select's class list onto `.ss-main`, so the element carries `.select` — which sets `overflow: hidden`. The height is `auto` now with the 40px minimum kept, plus 6px of block padding to reproduce the breathing room the fixed height used to give a single row. The trigger measures 70px with two rows of pills and nothing crosses its padding box.
