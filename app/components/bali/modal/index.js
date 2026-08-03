@@ -420,8 +420,12 @@ export class ModalController extends Controller {
       this.contentTarget.innerHTML = ''
     }
 
-    // Clean up focus trap
-    if (this.wrapperTarget) {
+    // Clean up focus trap. `hasWrapperTarget`, not `wrapperTarget`: reading the target
+    // getter to test for its own absence throws instead of answering false — the same
+    // mistake as `this.fooTarget?.bar`, spelled as a condition. Every other read of this
+    // target in the file (setupListeners, _applySize, _restoreDefaultSize, the two overlay
+    // handlers) already asks the has* twin.
+    if (this.hasWrapperTarget) {
       this.wrapperTarget.removeEventListener('keydown', this.handleTabKey)
     }
 

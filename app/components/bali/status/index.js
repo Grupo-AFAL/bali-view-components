@@ -50,7 +50,11 @@ export class StatusController extends Controller {
       this.panelTarget.hidden = true
       this.panelTarget.classList.remove('status-panel--open')
     }
-    this.triggerTarget?.setAttribute('aria-expanded', 'false')
+    // Not `?.`: a missing Stimulus target throws from the getter, so the optional chain
+    // never runs. Matches the `hasPanelTarget` guard three lines up.
+    if (this.hasTriggerTarget) {
+      this.triggerTarget.setAttribute('aria-expanded', 'false')
+    }
 
     document.removeEventListener('click', this.handleOutsideClick)
     document.removeEventListener('keydown', this.handleKeydown)
