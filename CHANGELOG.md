@@ -13,6 +13,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A drawer trigger that names no drawer stops opening every drawer on the page — one of which nobody then closes, leaving the page alive but deaf to the mouse.** On a page with `AppLayout` and `FeedbackWidget` — the composition the guides recommend — clicking an ordinary "New…" button and submitting the form left the whole document unclickable. Nothing was visible on top of it; the drawer had, to all appearances, closed.
+
+  A `drawer#open` trigger may name the overlay it opens (`data-drawer-id`) and usually does not, because the common page has one shared overlay: `ModalController#open` then dispatches `bali:drawer:open` with no `id`, and `setOptionsAndOpenModal` skipped its id check entirely in that case. So every drawer holding the three targets answered — which was only ever right while a page carried one. The package broke that assumption itself: `Bali::FeedbackWidget` renders its own `Bali::Drawer`, so **one click opened two drawers**. `submit` then closes the panel whose controller handled the click, and only that one; the other stayed `showModal()`-ed. A `<dialog>` in the top layer makes every node outside its subtree inert, and the drawer's own CSS strips the UA box (`inset: auto`, transparent) and hides the overlay once `drawer-open` is off — so the stranded dialog rendered nothing at all while still owning the document.
+
+  Traced through the flow, which is what named the culprit — reading class names or the `open` attribute would have reported a page in perfect health:
+
+  ```
+  after load  :: main-drawer[open=false :modal=false]  feedback-widget[open=false :modal=false]
+  drawer open :: main-drawer[open=true  :modal=true ]  feedback-widget[open=true  :modal=true ]
+  after submit:: main-drawer[open=false :modal=false]  feedback-widget[open=true  :modal=true ]
+  ```
+
+  `Bali::Drawer::Component` takes **`shared:`** now. It defaults to `true`, so every existing drawer keeps the markup and the behaviour it had, and the attribute is only written when it is false. `FeedbackWidget`'s panel sets `shared: false`: it is opened by the widget's own button, which has always named it by id, so it never needed the broadcast — and its content is an iframe that a broadcast overwrites. A host with a feature drawer of its own now has the same opt-out.
+
 - **A submit button that is waiting keeps being a button.** Clicking **Save** in a modal or a drawer made the button vanish, leaving a spinner floating where it had been, with one letter of the label showing through the spinner as it turned. Both symptoms are the same cause: in daisyUI 5 `.loading` is not a modifier that adds a spinner — **it is the spinner**. It sets `aspect-ratio: 1`, a width of six selector units and `background-color: currentColor` masked by the spinner SVG. Put on the `<button>`, it collapsed the box — measured 66×40 to 34×40 — painted the button itself as the spinner, and left the label inside to show through the holes in the mask.
 
   The spinner is now a child element and the button keeps `.btn`. Its width is pinned to what it measured before the swap, because the label is what was holding it open: exchanging "Save" for a 20px spinner without pinning resizes the actions row at exactly the moment the user is waiting on it. The height needs nothing — `.btn` sets it. The button is `disabled` with `aria-busy="true"`, and the label is kept hidden inside rather than serialised, so whatever the call site put in the button — an icon, a translated span — comes back intact on the one path that returns: a form that fails `checkValidity()` before the request is even made. `ModalController` owns the code and `DrawerController` inherits it, so both overlays are covered.
