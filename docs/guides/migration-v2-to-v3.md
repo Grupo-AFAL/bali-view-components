@@ -3,21 +3,48 @@
 The largest single area v3.0 breaks is **the index page** — `DataTable`, its toolbar,
 `Bali::Table` selection and the surface that wraps them — and that is what most of this
 guide is about. Three things apply to every app regardless of whether it renders a
-`DataTable`: the *Version floors* below, the *npm peer dependencies* right after them, and
+`DataTable`: the *Requirements* below, the *npm peer dependencies* right after them, and
 one behaviour change listed under *Behaviour changes* — `FilterForm` now reads `?view=` on
 any listing that declares grouping.
 
-## Version floors
+## Requirements
 
-| | v2 | v3.0 |
-|---|---|---|
-| Rails | `>= 7.0, < 9.0` | `>= 8.1, < 9.0` |
-| Ruby | `>= 4.0` (the docs wrongly said 3.0+) | `>= 4.0` |
-| daisyUI | 5.6.x | 5.7.x |
+Every row below is a floor, not a recommendation, and the last column is the part worth
+reading: the Ruby side is declared in `bali_view_component.gemspec` and Bundler refuses to
+resolve under it, while the npm side is declared in `peerDependencies` and, on Yarn Classic,
+nothing checks it at all.
 
-Bundler resolves the gem floor for you — an app still on Rails 7 gets a resolution error,
-not a runtime surprise. daisyUI is not enforced by anything: it is the host's npm
-dependency, and Bali's component CSS is written against the 5.7 class set.
+| | v2 | v3.0 | Declared in | Enforced by |
+|---|---|---|---|---|
+| Ruby | `>= 4.0` (the docs wrongly said 3.0+) | `>= 4.0` | `required_ruby_version` | Bundler |
+| Rails | `>= 7.0, < 9.0` | `>= 8.1, < 9.0` | gemspec | Bundler |
+| `view_component` | `>= 4.0.0, < 5.0` | `>= 4.0.0, < 5.0` — unchanged | gemspec | Bundler |
+| `lucide-rails` | `>= 0.3.0` | `>= 0.3.0` — unchanged | gemspec | Bundler |
+| daisyUI | 5.6.x, as a *dependency* | **`>= 5.7.0`, as a peer** | `peerDependencies` | nothing — see below |
+| Tailwind CSS | v4 | **v4, and only v4** | nobody — see below | nothing |
+| `@hotwired/stimulus` | undeclared | `>= 3.2.0` | `peerDependencies` | npm 7+; not Yarn Classic |
+| `@hotwired/turbo-rails` | undeclared | `>= 8.0.0` | `peerDependencies` | npm 7+; not Yarn Classic |
+| `@blocknote/core` `/react` `/mantine` | `>= 0.51.0` declared | `>= 0.52.1` | `peerDependencies` | npm 7+; and see the caveat below |
+| Node | any | `>= 22`, **only if you render the BlockEditor** | `lib0`'s `engines.node` | `yarn install`, which aborts |
+
+An app still on Rails 7 gets a resolution error rather than a runtime surprise. Nothing
+gives you that on the other two.
+
+**daisyUI is now yours to install.** In v2 it was a regular dependency of Bali's npm
+package, so you got it transitively; in v3 it is a peer and that copy is gone. Below 5.7
+nothing fails — the components emit daisyUI class names from Ruby, so you get correct markup
+with the wrong styling, which is the kind of break you find in a screenshot rather than in a
+log. `spec/dummy` pins the exact `5.7.9` this guide's measurements were taken against.
+
+**Tailwind is declared by nobody, and that is deliberate.** The gemspec has no
+`tailwindcss-rails` dependency and `package.json` has no `tailwindcss` peer, because Bali
+ships CSS *source* rather than a compiled stylesheet: your build is the only Tailwind in the
+picture, and pinning a second one would only give you two. It has to be v4. Bali's sheets
+are built on `@layer`, `@theme` and the `@source` scanning v4 introduced, and the layer
+ordering described under *The CSS cascade changes — on purpose* is v4's; on v3 they do not
+compile at all. For reference, this repo's own `Gemfile` pins `tailwindcss-rails "~> 4.0"`
+for the dummy app, resolving `tailwindcss-ruby` 4.3.1 today. A host on Vite or esbuild needs
+the equivalent v4 toolchain, not this gem.
 
 ## npm peer dependencies
 
@@ -88,6 +115,34 @@ so you find out at `yarn install`, not in production. Bump your CI and your Dock
 bumping the package. This applies only if you render the BlockEditor; nothing else in Bali
 raises the Node floor.
 
+### The 0.52.1 floor is right; this repo's own checkouts are not on it
+
+Said plainly, because a host reading "tested at 0.52.1" deserves to know what that covers.
+`package.json` declares `>= 0.52.1`, `spec/dummy/package.json` asks for `^0.52.1`, and
+`spec/dummy/yarn.lock` resolves `0.52.1`. What is installed in `spec/dummy/node_modules` is
+**0.46.2** — all five `@blocknote/*` packages — and `node_modules/.yarn-integrity` still
+records its top-level patterns as `^0.46.0`, so the last successful `yarn install` in this
+checkout predates the bump in **#759**. The built bundle in
+`spec/dummy/app/assets/builds/application.js` came out of that tree, which means every
+by-hand pass over the editor on a developer machine since #759 has been a pass over 0.46.2.
+
+CI does not share that tree. `test.yml` and `cypress.yml` both run
+`cd spec/dummy && yarn install`, which reads the lockfile and installs 0.52.1. So the suite
+has only ever run against 0.52.1 and a human has only ever watched 0.46.2, and neither side
+complains, because a stale `node_modules` is not something `yarn build` has an opinion about.
+
+**The floor stays at 0.52.1.** 0.46.2 is not a candidate for it: it sits below even v2's
+declared `>= 0.51.0`, and 0.51 is the hard line for the reason given above — the editor
+serialises inside the form's `submit` event and cannot await there, so on 0.46 a submit
+inside the debounce window silently posts the previous content. Lowering the declared floor
+to match what happens to be on disk would be documenting an accident, and it would
+re-open a data-loss bug to do it.
+
+What is missing is not a different number, it is the verification behind the one we have.
+Before v3.0.0 ships, run `cd spec/dummy && yarn install && yarn build` and exercise the
+BlockEditor by hand on the version the floor names. Until that happens, "tested at 0.52.1"
+means CI's headless run and nothing more.
+
 ### `Bali.deprecator`
 
 Every deprecation warning the gem emits now goes through a single
@@ -133,12 +188,110 @@ is going away. `#add_query_param` also stopped duplicating a param already prese
 URL (**#653**); if you were compensating for that by stripping the param first, you can
 stop.
 
+### What v2 deprecated, v3 removed
+
+Separately from the table above: every API that *warned* in v2 has been removed rather than
+carried forward. There is no shim for any of these. The v2 spelling raises `ArgumentError`
+at construction, or the constant no longer resolves.
+
+| v2, deprecated | v3 |
+|---|---|
+| `Bali::Link(type:)` | `variant:` — raises. `type:` named the colour here and the HTML attribute on `Bali::Button`, which is why it is gone rather than renamed |
+| `Bali::Tag(light: true)` | `style: :outline` — raises, even though `light:` is no longer a keyword, so `**options` cannot swallow it into a `light="true"` attribute |
+| `Bali::Tag(color:)` — `:danger`, `:link`, `:black`, `:dark`, `:light`, `:white` | `:error`, `:primary`, `:neutral`, `:neutral`, `:ghost`, `:ghost` — raises, and the message names the replacement |
+| `Bali::Tag(size:)` — `:small`, `:medium`, `:large`, `:normal` | `:sm`, `:md`, `:lg`, `:md` — raises |
+| `Bali::Clipboard::SucessContent` | `Bali::Clipboard::SuccessContent` |
+| `Bali::Icon::DefaultIcons` | nothing — see [The icon fallback is gone](#the-icon-fallback-is-gone) |
+| `useDispatch`, and `window.baliDispatchDebugEnabled` with it | Stimulus' own `this.dispatch` — see *`useDispatch` is removed* |
+
+And the other side of the same question, because it is the one that decides how much of the
+migration you can defer. These still work and warn:
+
+| Still warning in v3 | Replacement |
+|---|---|
+| `Bali::Message::Component` | `Bali::Alert::Component` |
+| `Bali::Notification::Component` | `Bali::Toast::Component` inside `Bali::ToastContainer::Component` |
+| `Bali::FlashNotifications::Component` | `Bali::ToastContainer::Component`, which takes the whole `flash:` hash |
+| `Bali::Level::Component` | flex utilities, or `Bali::PageHeader::Component` |
+| `Bali::InfoLevel::Component` | a grid of `Bali::StatCard::Component` |
+| `Bali::RichTextEditor::Component` | `Bali::BlockEditor::Component` |
+| `DocumentPage#with_preview` | `#with_body` |
+| `Timeline#with_tag_item`, `#with_tag_header` | `#with_item`, `#with_header` |
+| `Timeline::Header(tag_class:)` | `color:` plus `class:` |
+| `icon_name:` on `Button`, `Link`, `DeleteLink`, `StatCard`, `Breadcrumb::Item`, `ImageField::Input` and `Dropdown#with_item` | `icon:` |
+| `FilterForm.simple_filter` | `filter_attribute` |
+| The FormBuilder's `*_field_group` names, `submit_actions`, `radio_field_group`, and the positional option hashes on the `select` / `slim_select` / `time_zone_select` / `radio` families | `<type>_group` and `<type>_field`, with the element's own attributes under `html:` |
+
+Every one of those goes through `Bali.deprecator`, which is
+`ActiveSupport::Deprecation.new("4.0", "Bali")` — so each warning names 4.0 as its removal,
+and there is exactly one switch that turns the whole set into build failures if you would
+rather finish the migration in one pass than discover it in v4:
+
+```ruby
+config.active_support.deprecators[:bali].behavior = :raise
+```
+
 The goal of the change is that the correct index layout is what you get by *default*.
 The reference composition is the `Complete` scenario of the IndexPage preview
 (`bali/index_page/complete` in Lookbook) — it is the only place all seven control families
 render at once. `/admin/movies` in the dummy app is the end-to-end reference against real
 controllers, routes and Turbo Streams — saved views included, backed by the engine's default
 store and a one-user demo owner; the only family it leaves out is host toolbar buttons.
+
+## Six new Stimulus controllers, if you register them by hand
+
+`registerAll` picks all six up with no change, and most apps can skip this section. It is for
+the app that calls `application.register(…)` one controller at a time — the shape the
+[JavaScript integration guide](javascript-integration.md) shows for a bundle that only wants
+part of Bali. A component whose controller was never registered still renders its markup and
+then does nothing: no exception, no missing-module warning, nothing in the console.
+
+Diffing every entry in the two `CONTROLLERS` maps between v2 and v3 gives six additions and
+three identifiers that stop registering:
+
+| New identifier | Class | What it is for |
+|---|---|---|
+| `alert` | `AlertController` | replaces `MessageController` and `NotificationController` — see [The Stimulus controllers merge](#the-stimulus-controllers-merge) |
+| `toast-container` | `ToastContainerController` | `Bali::ToastContainer::Component`, which now owns the positioning a `Notification` used to do for itself |
+| `kanban` | `KanbanController` | the board's drag announcements and its `role="status"` region |
+| `side-menu-trigger` | `SideMenuTriggerController` | the sidebar's real trigger button and scrim, replacing the hidden checkboxes |
+| `toolbar-overflow` | `ToolbarOverflowController` | the `⋯` valve that moves DataTable toolbar controls out of a row that no longer fits |
+| `export-links` | `ExportLinksController` | keeps the export links in the PageHeader `⋯` pointed at the slice on screen |
+
+| Identifier that stops registering | Replacement |
+|---|---|
+| `message`, `notification` | `alert` |
+| `table` | `bulk-actions` |
+
+The last two rows of the first table are the ones with no visible failure mode, and they are
+the reason this section exists. Both controllers live *outside* the node a filter submit
+replaces, and both fix something that only appears after the first interaction. Without
+`toolbar-overflow` the toolbar stops collapsing, so on a layout with a sidebar eating 300px
+the search input paints on top of the group-by and column controls. Without `export-links`
+the export href freezes on whatever filters the page was first loaded with — you export what
+looks like the filtered set and get everything, and the file is perfectly well-formed.
+Neither writes to the console, and neither breaks a test that does not resize or filter.
+
+```js
+import {
+  AlertController, ExportLinksController, KanbanController,
+  SideMenuTriggerController, ToastContainerController, ToolbarOverflowController
+} from 'bali-view-components'
+
+application.register('alert', AlertController)
+application.register('toast-container', ToastContainerController)
+application.register('kanban', KanbanController)
+application.register('side-menu-trigger', SideMenuTriggerController)
+application.register('toolbar-overflow', ToolbarOverflowController)
+application.register('export-links', ExportLinksController)
+```
+
+Those imports are guaranteed to resolve, which is not a claim about care taken: it is what
+`yarn check:manifest` (`scripts/check-controller-manifest.mjs`) asserts on every push through
+the `standardjs` workflow. It fails the build if a controller a bundle registers is not also
+re-exported from the package root — the seam that had already lost `CommandController`,
+`FeedbackWidgetController` and `FilterPersistenceController` once, registered but not
+importable, with nothing failing loudly.
 
 ## The document editor contract changes
 
