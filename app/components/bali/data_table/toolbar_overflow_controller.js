@@ -50,12 +50,19 @@ export default class extends Controller {
     this.mediaQuery.addEventListener('change', this.handleBreakpointChange)
     document.addEventListener('turbo:before-cache', this.handleBeforeCache)
 
-    this.lastWidth = Math.round(this.availableWidth())
+    // Se observan los ITEMS además de la fila. El box de la fila lo fija su padre y no cambia
+    // cuando su contenido crece: medido, meterle un hijo de 300px produce CERO callbacks. Lo
+    // que crece es el control — SlimSelect reemplaza su `<select>` por un widget más ancho,
+    // flatpickr monta el suyo, una fuente termina de cargar— y eso sí cambia el box del item
+    // que lo contiene. Sin esto la válvula del ⋯ sólo se evaluaba al montar, cuando ninguno de
+    // esos widgets existe todavía.
     this.observer = new window.ResizeObserver(this.handleResize)
     this.observer.observe(this.element)
+    this.itemTargets.forEach(item => this.observer.observe(item))
 
     // El layout inicial puede llegar ya angosto: no alcanza con escuchar el cruce.
     this.apply(this.mediaQuery.matches)
+    this.recordMeasurements()
   }
 
   disconnect () {
@@ -68,23 +75,39 @@ export default class extends Controller {
   handleBreakpointChange = (event) => this.apply(event.matches)
 
   /**
-   * Solo el ANCHO dispara una recomputación. Colapsar cambia el ALTO de la fila (un control
-   * menos puede plegar el contenido de al lado) y el ResizeObserver volvería a entrar acá
-   * por el cambio que acabamos de provocar: ese es el bucle que Chrome denuncia como
-   * "ResizeObserver loop". El rAF además saca el trabajo de layout de adentro del callback.
+   * Dos medidas deciden si hay que recomputar, no una: lo que la fila TIENE y lo que la fila
+   * NECESITA. Con sólo el ancho disponible, un control que se ensancha DESPUÉS del primer
+   * layout —SlimSelect reemplazando su `<select>`, flatpickr montando su input, una fuente
+   * que termina de cargar— no dispara nada, y la fila se desborda sin que el ⋯ se entere.
+   * Medido sobre `/studios` a 2008px: `max-content` pedía 2078 y el menú tenía 0 items, con
+   * la fila de filtros plegada en tres líneas.
+   *
+   * Las dos se leen dentro del rAF, no en el callback del observer: `requiredWidth()` escribe
+   * `style.width` para medir, y hacerlo dentro del callback es pedirle al observer que vuelva
+   * a entrar por el cambio que acabamos de provocar — el bucle que Chrome denuncia como
+   * "ResizeObserver loop". Por lo mismo la comparación se guarda DESPUÉS de aplicar: colapsar
+   * baja el `max-content`, así que anotar el valor previo garantizaba una segunda pasada.
    */
   handleResize = () => {
-    // Se remide el elemento en vez de leer `contentRect`: es la MISMA medida que usa el
-    // colapso, y dos fuentes distintas para el mismo ancho vuelven a aplicar de más.
-    const width = Math.round(this.availableWidth())
-    if (width === this.lastWidth) return
+    if (this.frame) return
 
-    this.lastWidth = width
-    if (this.frame) window.cancelAnimationFrame(this.frame)
     this.frame = window.requestAnimationFrame(() => {
       this.frame = null
+      if (this.measurementsUnchanged()) return
+
       this.apply(this.mediaQuery.matches)
+      this.recordMeasurements()
     })
+  }
+
+  measurementsUnchanged () {
+    return Math.round(this.availableWidth()) === this.lastWidth &&
+      Math.round(this.requiredWidth()) === this.lastRequired
+  }
+
+  recordMeasurements () {
+    this.lastWidth = Math.round(this.availableWidth())
+    this.lastRequired = Math.round(this.requiredWidth())
   }
 
   // El snapshot que Turbo cachea tiene que ser SIEMPRE el layout expandido. Cacheado
