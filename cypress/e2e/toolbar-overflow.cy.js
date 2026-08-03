@@ -173,3 +173,40 @@ describe('DataTable toolbar overflow', () => {
     cy.get(overflow).should('not.exist')
   })
 })
+
+// La válvula del ⋯ se evaluaba SOLO al montar y al cambiar el ancho del contenedor, y ninguno
+// de los dos cubre el caso real: los controles crecen DESPUÉS del primer layout. SlimSelect
+// reemplaza su `<select>` por un widget más ancho, flatpickr monta el suyo, una fuente termina
+// de cargar — y la fila se desborda sin que nada vuelva a medir.
+//
+// No se puede provocar con `cy.viewport()`: eso cambia el ancho disponible, que es justo la
+// señal que el controlador ya escuchaba. Lo que se ensancha acá es un CONTROL, con el viewport
+// quieto — la misma forma que tiene el caso real.
+describe('DataTable toolbar overflow when a control grows after mount', () => {
+  const menu = '[data-toolbar-overflow-target="menu"]'
+  const overflow = '[data-toolbar-overflow-target="overflow"]'
+  const filtersItem = '[data-toolbar-overflow-priority="70"]'
+
+  it('collapses into the ⋯ when a control widens with the viewport unchanged', () => {
+    cy.viewport(1440, 800)
+    cy.visit('/bali/data_table/complete')
+
+    // Punto de partida: la fila entra entera y el ⋯ está guardado.
+    cy.get(overflow).should('have.class', 'hidden')
+    cy.get(menu).children().should('have.length', 0)
+
+    // Un control se ensancha por su cuenta, como haría SlimSelect al montarse.
+    cy.get(filtersItem).then(($item) => {
+      $item[0].style.minWidth = `${$item[0].getBoundingClientRect().width + 600}px`
+    })
+
+    cy.get(overflow).should('not.have.class', 'hidden')
+    cy.get(menu).children().should('have.length.greaterThan', 0)
+
+    // Y vuelve solo cuando el control recupera su tamaño.
+    cy.get(filtersItem).then(($item) => { $item[0].style.minWidth = '' })
+
+    cy.get(overflow).should('have.class', 'hidden')
+    cy.get(menu).children().should('have.length', 0)
+  })
+})
