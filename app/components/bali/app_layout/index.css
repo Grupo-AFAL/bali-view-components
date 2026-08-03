@@ -76,7 +76,19 @@
 }
 
 @media (min-width: 1024px) {
-  /* Push content right when a fixed sidebar is present */
+  /* Push content right when a fixed sidebar is present.
+
+     The banner and the navbar are full-width siblings ABOVE `.app-layout-main`,
+     but a pinned sidebar is `position: fixed; top: 0; height: 100%`
+     (`.side-menu-component--fixed`, side_menu/index.css), so it paints over their
+     left `--bali-side-menu-width`. Measured on
+     /lookbook/preview/bali/app_layout/with_navbar: the navbar's brand was invisible
+     and its first link rendered as "hboard"; with the impersonation banner on, its
+     icon and half its text went under the sidebar too. They take the same offset,
+     from the same variable, as the content — `<body>` already carried
+     `app-layout--has-navbar` with nothing reading it. */
+  .app-layout--has-fixed-sidebar .app-layout-banner,
+  .app-layout--has-fixed-sidebar .app-layout-navbar,
   .app-layout--has-fixed-sidebar .app-layout-content {
     padding-left: var(--bali-side-menu-width);
     transition: padding-left 0.2s ease-in-out;
@@ -86,6 +98,8 @@
      SideMenuController owns — it used to read a hidden checkbox
      (`:has(.side-menu-collapse-trigger:checked)`), which is gone with the
      checkbox. */
+  .app-layout--has-fixed-sidebar:has(.side-menu-component.is-collapsed) .app-layout-banner,
+  .app-layout--has-fixed-sidebar:has(.side-menu-component.is-collapsed) .app-layout-navbar,
   .app-layout--has-fixed-sidebar:has(.side-menu-component.is-collapsed) .app-layout-content {
     padding-left: var(--bali-side-menu-collapsed-width);
   }
