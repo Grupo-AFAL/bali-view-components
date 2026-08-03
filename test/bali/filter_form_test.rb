@@ -49,6 +49,15 @@ class SimpleFilterableMovieFilterForm < Bali::FilterForm
                    default: "done"
 end
 
+# El caso de #882 escrito con la API que v3 promueve: un filtro cuyo control ya se nombra
+# solo con su opción en blanco, declarado con `label: false` para que no lleve caption.
+class UncaptionedSimpleFilterForm < Bali::FilterForm
+  filter_attribute :genre, type: :select, simple: true, advanced: false,
+                   options: [ %w[Action action] ],
+                   blank: "Todos los géneros",
+                   label: false
+end
+
 # Test simple filter inheritance
 class ExtendedSimpleFilterForm < SimpleFilterableMovieFilterForm
   filter_attribute :indie, type: :select, simple: true, advanced: false,
@@ -822,6 +831,49 @@ class BaliFilterFormTestSimpleFilters < ActiveSupport::TestCase
     config = @form.simple_filters_config
     status_config = config.find { |c| c[:attribute] == :status }
     assert_equal("Movie Status", status_config[:label])
+  end
+
+  # `label: false` es "no quiero rótulo". Antes no existía la distinción: `nil` y `false`
+  # son los dos falsy, así que el `||` mandaba a los dos a la derivación y no había forma
+  # de pedir un filtro sin caption. La plantilla ya sabía no pintarlo.
+  def test_simple_filters_config_honours_an_explicit_label_false
+    form = Bali::FilterForm.new(
+      Movie.all, params({}),
+      simple_filters: [ { attribute: :genre, collection: [ %w[A a] ], blank: "All", label: false } ]
+    )
+
+    assert_nil(form.simple_filters_config.first[:label])
+  end
+
+  # Y lo derivado sigue llegando cuando no se pide nada, que es el caso de siempre.
+  def test_simple_filters_config_still_infers_when_no_label_is_given
+    form = Bali::FilterForm.new(
+      Movie.all, params({}),
+      simple_filters: [ { attribute: :genre, collection: [ %w[A a] ], blank: "All" } ]
+    )
+
+    assert_equal("Genre", form.simple_filters_config.first[:label])
+  end
+
+  # El mismo caso por la API que v3 promueve, `filter_attribute`, que es por donde va a
+  # llegar de un host.
+  def test_filter_attribute_honours_an_explicit_label_false_for_the_simple_row
+    form = UncaptionedSimpleFilterForm.new(Movie.all, params({}))
+
+    assert_nil(form.simple_filters_config.first[:label])
+    assert_equal("Todos los géneros", form.simple_filters_config.first[:blank])
+  end
+
+  # El centinela NO puede ser la ausencia de la clave: `simple_filter` delega en
+  # `filter_attribute`, que guarda `explicit_label:` siempre, así que `defined_simple_filters`
+  # devuelve la clave `:label` puesta aunque nadie la haya escrito. Con `key?` como
+  # condición, TODOS los filtros declarados por el DSL se quedarían sin rótulo.
+  def test_the_dsl_always_carries_the_label_key_so_key_presence_cannot_be_the_sentinel
+    genre = SimpleFilterableMovieFilterForm.defined_simple_filters
+                                           .find { |f| f[:attribute] == :genre }
+
+    assert(genre.key?(:label), "la clave viene puesta")
+    assert_nil(genre[:label], "y sin valor, porque el DSL no recibió ninguno")
   end
 
   def test_simple_filters_config_returns_nil_when_simple_filters_not_enabled

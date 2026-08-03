@@ -26,6 +26,34 @@
     }
   }
 
+  /* Los presets de `color:`. Van acá y ARRIBA de `.is-transparent` por la misma razón
+   * que la sombra: los dos selectores son (0,2,0), así que a igual especificidad y en la
+   * misma capa decide el orden de origen, y el estado tiene que poder pisar al default.
+   * Como utilidades sobre el elemento —que es donde estaban— le ganaban desde
+   * @layer utilities y `bg-transparent` no se veía nunca. */
+  &.navbar-base {
+    @apply bg-base-100;
+  }
+
+  &.navbar-primary {
+    @apply bg-primary text-primary-content;
+  }
+
+  &.navbar-secondary {
+    @apply bg-secondary text-secondary-content;
+  }
+
+  &.navbar-accent {
+    @apply bg-accent text-accent-content;
+  }
+
+  &.navbar-neutral {
+    @apply bg-neutral text-neutral-content;
+  }
+
+  /* El color del texto NO se toca acá: un navbar transparente sobre una portada oscura
+   * sigue queriendo el `*-content` claro de su preset. Lo que se recupera bajo 1023px
+   * cuando el menú está abierto lo hace el bloque de abajo, que ya existía. */
   &.is-transparent {
     @apply bg-transparent shadow-none;
     transition: background-color 1s;

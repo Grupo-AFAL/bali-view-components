@@ -198,7 +198,13 @@ module Bali
           end
         end
 
+        # Sin filtros declarados el botón no filtra nada: lo único que manda es el término
+        # de búsqueda, y "Filtrar" nombra algo que en esa pantalla no existe. La cadena
+        # para ese caso ya estaba en el paquete —`filters.submit_search`, hoy usada como
+        # `aria-label` del buscador del panel completo— así que no suma traducciones.
         def apply_button_text
+          return I18n.t("bali_view.filters.submit_search") if @filters.blank?
+
           I18n.t("bali_view.simple_filters.apply")
         end
 
