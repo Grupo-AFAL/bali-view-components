@@ -13,11 +13,18 @@
   <%# The panel is a Bali::Drawer, not a second hand-written copy of one. That is
       where the overlay, the slide-in, the labelled header, the ✕, Escape, the
       focus containment and the `<dialog>` in the top layer all come from; what is
-      left here is the iframe and the token that goes into it. %>
+      left here is the iframe and the token that goes into it.
+
+      `shared: false` because this panel belongs to the widget and to nothing else: it is
+      opened by the button above, which names it by id. Left shared, it also answered every
+      `drawer#open` trigger on the page that names no drawer — the ordinary spelling — so a
+      click on a "New…" button opened this drawer alongside the layout's, and closing that
+      one left this one in the top layer with the whole page inert behind it (#854). %>
   <%= render Bali::Drawer::Component.new(
     drawer_id: drawer_id,
     title: display_title,
-    dismissable_without_confirm: true
+    dismissable_without_confirm: true,
+    shared: false
   ) do %>
     <iframe class="feedback-widget-embed"
             data-feedback-widget-target="iframe"

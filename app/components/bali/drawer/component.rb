@@ -25,6 +25,9 @@ module Bali
 
       attr_reader :drawer_id
 
+      # @param shared [Boolean] Whether this drawer answers a `drawer#open` trigger that
+      #   names no drawer. See {#shared?}.
+      # rubocop:disable Metrics/ParameterLists
       def initialize(
         active: false,
         size: :md,
@@ -33,6 +36,7 @@ module Bali
         title: nil,
         confirm_close_message: nil,
         dismissable_without_confirm: false,
+        shared: true,
         **options
       )
         @active = active
@@ -42,8 +46,10 @@ module Bali
         @title = title
         @confirm_close_message = confirm_close_message
         @dismissable_without_confirm = dismissable_without_confirm
+        @shared = shared
         @options = options
       end
+      # rubocop:enable Metrics/ParameterLists
 
       def drawer_classes
         class_names(
@@ -84,6 +90,23 @@ module Bali
         t(".close_drawer")
       end
 
+      # A `drawer#open` trigger may name the drawer it opens (`data-drawer-id`), and
+      # usually does not — the common page has one shared overlay and the event is a
+      # broadcast. A shared drawer answers those broadcasts; a drawer that belongs to one
+      # feature and has its own trigger sets `shared: false` and only ever opens when
+      # something names it.
+      #
+      # It matters because the package itself ships a second drawer:
+      # `Bali::FeedbackWidget`. With every drawer answering every broadcast, one click on
+      # an ordinary "New…" trigger opened both it and the layout's drawer. Only the one
+      # holding the submitted form gets closed afterwards, and the other stays
+      # `showModal()`-ed — a `<dialog>` in the top layer makes the entire document outside
+      # it inert, so the page went on looking normal and stopped answering the mouse
+      # (#854).
+      def shared?
+        @shared
+      end
+
       # Confirm-on-close is on by default: an unsaved form inside the drawer
       # prompts before Escape/overlay/close-button discard the input. Opt out
       # per-drawer with `dismissable_without_confirm: true`.
@@ -117,7 +140,15 @@ module Bali
           controller: "drawer",
           drawer_target: "template",
           action: "keydown.esc->drawer#close"
-        }.merge(confirm_close_data_attributes)
+        }.merge(confirm_close_data_attributes).merge(shared_data_attributes)
+      end
+
+      # Only written when it is false: the Stimulus value already defaults to true, so
+      # every ordinary drawer keeps the markup it had.
+      def shared_data_attributes
+        return {} if shared?
+
+        { drawer_shared_value: false }
       end
 
       def confirm_close_data_attributes

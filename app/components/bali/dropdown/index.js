@@ -221,7 +221,11 @@ export class DropdownController extends Controller {
         if (isOpen) {
           event.preventDefault()
           this.close()
-          this.triggerTarget?.focus()
+          // `?.` cannot guard a Stimulus target: the getter throws rather than returning
+          // undefined. This file already asks `hasTriggerTarget` at setupPopover and
+          // syncExpanded — Escape has to ask too, or a dropdown rendered without a trigger
+          // slot throws on Escape instead of just closing.
+          if (this.hasTriggerTarget) this.triggerTarget.focus()
         }
         break
       case 'ArrowDown':

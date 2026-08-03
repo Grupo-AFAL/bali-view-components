@@ -94,6 +94,21 @@ class BaliDrawerComponentTest < ComponentTestCase
     assert_selector("#my-settings-drawer")
   end
 
+  # A `drawer#open` trigger usually names no drawer, so the open event is a broadcast. Every
+  # drawer used to answer one, which was fine only while a page carried a single overlay —
+  # and the package itself ships a second one in `FeedbackWidget` (#854). A drawer that
+  # belongs to one feature opts out and waits to be named.
+  def test_broadcast_a_shared_drawer_answers_an_unaddressed_open_by_default
+    render_inline(component)
+    assert_no_selector("dialog.drawer-component[data-drawer-shared-value]")
+  end
+
+  def test_broadcast_an_unshared_drawer_says_so_on_the_controller_element
+    @options.merge!(shared: false)
+    render_inline(component)
+    assert_selector("dialog.drawer-component[data-controller~='drawer'][data-drawer-shared-value='false']")
+  end
+
   # A native `<dialog>` opened with `showModal()`. `role="dialog"` and
   # `aria-modal="true"` are gone because both are implicit on the element, and
   # the second one was a lie in the state a static attribute cannot tell apart:

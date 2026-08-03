@@ -698,9 +698,28 @@ span.flatpickr-weekday {
   line-height: inherit;
   color: var(--fp-font-color);
   font-weight: 600;
-  width: 2%;
   user-select: none;
   align-self: center;
+}
+
+/* El `:` es lo único que estructura la fila `12 : 00 PM` y era lo menos visible de ella.
+ * Dos causas, medidas en /lookbook/preview/bali/form/time/with_value: heredaba el
+ * `font-size: 0.875rem` del calendario contra el `1rem` explícito de `.flatpickr-time
+ * input` (14px contra 16px), y el `width: 2%` que compartía con `.flatpickr-am-pm` —que
+ * lo pisa con 18% en el bloque de abajo, así que el 2% sólo le tocaba a él— le dejaba una
+ * caja de 6.12px sin lugar para aire. Las flechas del stepper van `position: absolute;
+ * right: 0` sobre el numInputWrapper de la hora, cuyo borde derecho ES el borde izquierdo
+ * del separador: 0.00px entre el triángulo y los dos puntos, y por eso el `:` se leía como
+ * un control más. Con ancho automático y 0.5rem de padding la caja pasa a 20.98px y el
+ * glifo arranca a 8px de la flecha; el ancho del calendario (308px) y el alto de la fila
+ * (48px) no se mueven, y `hasSeconds` sigue sin desbordar (scrollWidth === clientWidth
+ * === 306). `flex: none` porque los numInputWrapper son `flex: 1` y sin esto el separador
+ * es el único que puede encogerse cuando la fila aprieta. */
+.flatpickr-time .flatpickr-time-separator {
+  flex: none;
+  width: auto;
+  padding: 0 0.5rem;
+  font-size: 1rem;
 }
 
 .flatpickr-time .flatpickr-am-pm {
