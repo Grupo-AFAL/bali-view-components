@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+### Fixed
+
+- **Every control in the `DataTable` toolbar sits on the same line, not just the row's direct children.** Aligning the row itself fixed one level and left the other: the four groups that make it up align their own children, and the one holding the `SimpleFilters` block — which is twice the height of a single-line neighbour, because its captions sit above the controls — was centring them against it. Measured on `/admin/studios` at 2600px with the row already aligned: "Views" and the persistence marker sat level with the Filter button, while "Group by" and "Columns" sat **11px** above it. All four groups align to the end now; where every item is the same height the two alignments produce the same layout, so only that one group moves.
+
+- **A listing with a search box and no filters says "Search" on its button, not "Filter".** With nothing declared to filter by, the only thing the button submits is the search term. The string already shipped — `bali_view.filters.submit_search`, used until now only as the full filter panel's search `aria-label` — so no new translation is involved.
+
 ### Changed
 
 - **The `DataTable` toolbar reserves the space for what can collapse instead of showing it and taking it away.** On first load the row used to show every control and then, a full second later, drop four of them into the `⋯` at once. Measured on `/admin/studios`: 5 controls in the row and 0 in the menu at 195ms, 1 and 4 at 1208ms.
