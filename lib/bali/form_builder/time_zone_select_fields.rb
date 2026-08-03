@@ -2,10 +2,10 @@
 
 module Bali
   class FormBuilder < ActionView::Helpers::FormBuilder
-    # Captured before TimeZoneSelectFields is included, so the implementation can
-    # live under the canonical `time_zone_select_field` name. See TextAreaFields
-    # for why the Rails-named override stays.
-    alias rails_time_zone_select time_zone_select
+    # El de Rails, para que la implementación pueda vivir bajo el nombre canónico
+    # `time_zone_select_field`. Se liga por la superclase y no con `alias`: ver la nota larga
+    # en `file_fields.rb` (#840).
+    define_method(:rails_time_zone_select, superclass.instance_method(:time_zone_select))
 
     module TimeZoneSelectFields
       # DaisyUI select classes matching SelectFields pattern
