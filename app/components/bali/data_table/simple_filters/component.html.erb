@@ -3,7 +3,19 @@
   <% preserved_params.each do |name, value| %>
     <%= tag.input(type: "hidden", name: name, value: value) %>
   <% end %>
-  <div class="flex flex-nowrap overflow-x-auto sm:flex-wrap gap-2 items-end py-1 pb-2 sm:pb-1 scrollbar-hide">
+  <%# El scroll horizontal es del teléfono: arriba de `sm` la fila envuelve
+      (`sm:flex-wrap`) y no scrollea nunca. Pero `overflow-x-auto` seguía puesto en todos
+      los anchos, y eso hace de la fila un contenedor de scroll, que RECORTA en su caja de
+      relleno — de ahí venía el `pb-1`: los 4px eran el lugar del anillo de foco del botón
+      Filter, que se dibuja a `outline-offset: 2px` con `outline-width: 2px`.
+      Esos mismos 4px desalineaban la fila. La toolbar del DataTable alinea por abajo, así
+      que sus vecinos de una línea se apoyan en el borde inferior de ESTE bloque: el botón
+      Filter quedaba 4px arriba del ⋯, medido en /admin/studios a 1900px.
+      Devolviendo el overflow a `visible` arriba del breakpoint el anillo ya no se puede
+      recortar, y sin nada que reservar el relleno de abajo se va: 0px de diferencia. Debajo
+      de `sm` no cambia nada — sigue el scroll y sigue el `pb-2`. El `pt-1` tampoco se toca,
+      que es el aire de las etiquetas. %>
+  <div class="flex flex-nowrap overflow-x-auto sm:overflow-visible sm:flex-wrap gap-2 items-end pt-1 pb-2 sm:pb-0 scrollbar-hide">
     <% if search_enabled? %>
       <div class="<%= search_width %> shrink-0">
         <div class="w-full <%= 'join' if search_icon %>">
