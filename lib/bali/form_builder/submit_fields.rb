@@ -135,11 +135,16 @@ module Bali
           config[:modal] || config[:drawer]
       end
 
+      # Ghost, not secondary: there is one primary action in an actions row and
+      # Cancel is not it. A filled secondary reads as a second thing to do and
+      # competes with Submit for the eye — which is why every `FormPage` preview
+      # in the library already hand-wrote `variant: :ghost` instead of taking
+      # this default. `class:` in `cancel_options` still wins.
       def build_cancel_link_options(config)
         link_options = dup_options(config[:options] || {}).except(:label)
         link_options = prepend_action(link_options, "modal#close") if config[:modal]
         link_options = prepend_action(link_options, "drawer#close") if config[:drawer]
-        link_options.with_defaults(class: button_classes(variant: :secondary))
+        link_options.with_defaults(class: button_classes(variant: :ghost))
       end
 
       def show_cancel_button?(options)

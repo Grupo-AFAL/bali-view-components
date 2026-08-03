@@ -157,7 +157,13 @@ class BaliFormBuilderSubmitButtonsTest < FormBuilderTestCase
 
   def test_submit_group_with_cancel_path_and_cancel_options_renders_a_cancel_button
     result = builder.submit_group("Save", cancel_path: "/", cancel_options: { label: "Back" })
-    assert_html(result, 'a.btn.btn-secondary[href="/"]', text: "Back")
+    assert_html(result, 'a.btn.btn-ghost[href="/"]', text: "Back")
+  end
+
+  def test_submit_group_cancel_takes_an_explicit_class_over_the_ghost_default
+    result = builder.submit_group("Save", cancel_path: "/", cancel_options: { class: "btn btn-secondary" })
+    assert_html(result, 'a.btn.btn-secondary[href="/"]')
+    refute_html(result, "a.btn-ghost")
   end
 
   def test_submit_group_with_cancel_path_and_cancel_options_renders_a_submit_button
