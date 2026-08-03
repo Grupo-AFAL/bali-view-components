@@ -403,15 +403,25 @@
 
 /* When comments are enabled, the ThreadsSidebar lives inside BlockNoteView
  * (required for React context). We apply flex layout to .bn-container so
- * the editor and sidebar sit side-by-side. */
-.bn-with-comments .bn-container {
+ * the editor and sidebar sit side-by-side.
+ *
+ * The child combinator is load-bearing. Every comment body is its own nested
+ * BlockNote instance, and it emits a SECOND `.bn-container`
+ * (`.bn-container.bn-comment-editor`) inside `.bn-thread`. As a descendant
+ * selector this pair turned each of those into a flex row and handed its
+ * `.bn-editor` `flex: 1; min-width: 0` — a `flex-basis: 0%` item in a
+ * shrink-to-fit container, which resolves to width 0. Measured on
+ * /lookbook/preview/bali/block_editor/with_comments: comment editor 163px wide,
+ * its `.bn-editor` 0px, so every comment and the "Add comment" placeholder
+ * wrapped one character per line, in the popover and in the sidebar alike. */
+.bn-with-comments > .bn-container {
   display: flex;
   gap: 1.5rem;
   align-items: flex-start;
 }
 
 /* Editor takes remaining space */
-.bn-with-comments .bn-container > .bn-editor {
+.bn-with-comments > .bn-container > .bn-editor {
   flex: 1;
   min-width: 0;
 }
@@ -494,14 +504,31 @@
   background-color: color-mix(in oklch, var(--color-warning) 35%, transparent);
 }
 
-/* Floating composer and thread popovers */
-.block-editor-component .bn-floating-composer,
-.block-editor-component .bn-floating-thread {
-  background-color: var(--color-base-100) !important;
-  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
-  box-shadow: 0 4px 16px color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
+/* Floating composer and thread popovers.
+ *
+ * The two selectors this rule used to carry, `.bn-floating-composer` and
+ * `.bn-floating-thread`, match nothing — measured 0 elements on
+ * /lookbook/preview/bali/block_editor/with_comments while a composer was open —
+ * so its `max-width: 20rem` never applied. BlockNote floats the card with
+ * Floating UI, and the portal that renders it is the hook that does exist.
+ *
+ * `width` and not `max-width`, because the positioned box Floating UI emits
+ * carries no width of its own: the card was shrink-to-fit and breathed with the
+ * text, measured 165px for a three-letter draft and 966px for one long line.
+ * 20rem is the threads sidebar's 18rem plus the gutters the popover has and the
+ * sidebar does not.
+ *
+ * The card look is repeated here rather than inherited because
+ * `.document-editor-panel .bn-thread` further down deliberately strips it — a
+ * thread in that side panel is a row in a list, not a card — and a popover
+ * floating over the page needs its own edges either way. */
+:is(.block-editor-component, .document-editor-panel) [data-floating-ui-portal] .bn-thread {
+  width: 20rem;
+  max-width: calc(100vw - 2rem);
+  background-color: var(--color-base-100);
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent);
   border-radius: var(--radius-box, 0.5rem);
-  max-width: 20rem;
+  box-shadow: 0 4px 16px color-mix(in oklch, var(--color-base-content) 15%, transparent);
 }
 
 /* --- Tooltip styling (Mantine Tooltip used by reaction badges, action buttons) ---
@@ -900,9 +927,10 @@
   border-radius: 0.25rem;
 }
 
-/* Collapse comments sidebar on narrow viewports */
+/* Collapse comments sidebar on narrow viewports.
+ * `>` for the same reason as the rule this overrides — see the note there. */
 @media (max-width: 768px) {
-  .bn-with-comments .bn-container {
+  .bn-with-comments > .bn-container {
     flex-direction: column;
   }
 

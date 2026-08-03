@@ -5,13 +5,23 @@ module Bali
     class Preview < ApplicationViewComponentPreview
       # @param fullscreen toggle "Edge-to-edge layout vs centered (1152px max)"
       # @param transparency toggle
+      # @param shadow toggle "Drop shadow under the bar"
       # @param color [Symbol] select [base, primary, secondary, accent, neutral]
       # **Fullscreen**: removes the max-width constraint so content spans edge-to-edge.
       # **Non-fullscreen** (default): content centered with 1152px max-width.
-      def default(fullscreen: false, transparency: false, color: :base)
+      #
+      # **Shadow**: on by default. Turn it off in a layout where the bar already
+      # separates itself — an app shell whose navbar carries a bottom border that
+      # continues the sidebar's draws two dividers otherwise.
+      def default(fullscreen: false, transparency: false, shadow: true, color: :base)
         render_with_template(
           template: 'bali/navbar/previews/default',
-          locals: { fullscreen: fullscreen, transparency: transparency, color: color }
+          locals: {
+            fullscreen: fullscreen,
+            transparency: transparency,
+            shadow: shadow,
+            color: color
+          }
         )
       end
 
