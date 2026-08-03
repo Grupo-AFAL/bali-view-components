@@ -268,6 +268,15 @@ module Bali
       # simple filter values bypass ActiveModel and go straight to Ransack.
       @q_params = q_params.permit(perm_attrs) if self.simple_filters_enabled?
 
+      # ORIGEN vs VALOR, la misma distinción que `@group_by_requested` hace para la
+      # agrupación, y por el mismo motivo: el form de SimpleFilters manda TODOS sus
+      # controles, así que vaciar un select llega como `q[genre_eq]=` — una elección
+      # explícita cuyo valor es vacío. Mirando solo los valores no se distingue de "no vino
+      # nada", y con la persistencia encendida eso cae al branch de restaurar, que le
+      # devolvía al usuario el filtro que acababa de limpiar. Se captura ANTES de aplicar
+      # una vista guardada, que reemplaza `@q_params` con el estado de la vista.
+      @simple_filters_requested = simple_filter_params?(@q_params)
+
       # Vista guardada aplicada por URL (?saved_view=<id>): su payload REEMPLAZA el estado
       # que hubiera venido en q — una vista es un estado completo, no un merge. Va ANTES de
       # la persistencia para que el estado de la vista se escriba como "último estado" del
@@ -520,7 +529,8 @@ module Bali
     def fetch_stored_filter_state(attributes, groupings, combinator, search_value, force_write: false)
       return [ attributes, groupings, combinator, search_value ] unless Object.const_defined?("Rails")
 
-      has_filter_params = force_write || attributes.present? || groupings.present? || search_value.present?
+      has_filter_params = force_write || attributes.present? || groupings.present? ||
+                          search_value.present? || @simple_filters_requested
 
       if has_filter_params
         # User submitted new filters → always save complete state. `group_by` viaja con el
@@ -531,7 +541,12 @@ module Bali
                             groupings: groupings,
                             combinator: combinator,
                             search_value: search_value,
-                            group_by: @group_by
+                            group_by: @group_by,
+                            # Misma llave y misma forma que `PAYLOAD_KEYS` de las vistas
+                            # guardadas: el round-trip es el que ya existe (`active_simple_filters`
+                            # escribe, `apply_simple_filter_state` restaura,
+                            # `current_simple_filter_value` lee), no una segunda ruta.
+                            simple_filters: active_simple_filters
                           })
         [ attributes, groupings, combinator, search_value ]
       elsif @clear_filters
@@ -545,7 +560,12 @@ module Bali
         # por la que reaparecen filtros que la URL ya no describe.
         stored = @persist_enabled ? Rails.cache.fetch(cache_key) : nil
         if stored.is_a?(Hash)
+          # Los simplificados sobreviven al merge —solo `search_value` se anula— y salen por
+          # el efecto: limpiar la búsqueda no puede llevarse los selects. `clearSearch` navega
+          # descartando todos los `q[...]` (ver preservedParamsUrl), así que la caché es la
+          # ÚNICA fuente de lo que el usuario tenía elegido.
           Rails.cache.write(cache_key, stored.merge(search_value: nil))
+          restore_simple_filter_state(stored)
           [ stored[:attributes] || {}, stored[:groupings], stored[:combinator], nil ]
         else
           [ {}, nil, nil, nil ]
@@ -565,6 +585,7 @@ module Bali
         elsif stored.key?(:group_by)
           @group_by = resolve_group_by(stored[:group_by])
         end
+        restore_simple_filter_state(stored)
         [
           stored[:attributes] || {},
           stored[:groupings],
@@ -577,6 +598,20 @@ module Bali
       end
     end
     # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
+
+    # Los simplificados se restauran por un EFECTO y no por la tupla, porque su valor nunca es
+    # un atributo de ActiveModel: vive en `@q_params` y va directo a Ransack. Es exactamente lo
+    # que ya hace una vista guardada, así que se reusa su camino en vez de abrir un segundo.
+    #
+    # `apply_simple_filter_state` REEMPLAZA `@q_params`, no mergea — un estado restaurado es
+    # completo, igual que una vista. Por eso solo se llega acá desde los branches donde la URL
+    # no pidió ningún simplificado (`@simple_filters_requested` los manda al branch de
+    # escribir): si no, esto pisaría el filtro recién elegido con el viejo.
+    def restore_simple_filter_state(stored)
+      return unless simple_filters_enabled?
+
+      apply_simple_filter_state(stored[:simple_filters])
+    end
 
     # Formato viejo de la caché: solo los atributos, sin las llaves del estado completo. Se
     # normaliza en la entrada para que el resto del branch hable una sola forma — restaurar y

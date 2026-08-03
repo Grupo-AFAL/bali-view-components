@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+### Fixed
+
+- **"Remember filters" covers the simple filters, not just the quick search.** The marker was never dead — it governs the search box — and that made it worse than if it had been: the user turns it on, comes back to the listing with a clean URL, and the search returns while their selects do not. Nothing in the UI tells apart a control that is remembered from one that is not; both sit in the same toolbar row.
+
+  The inconsistency was internal, which is what settled which side was wrong: a **saved view** over that same listing did restore them — `PAYLOAD_KEYS` has always listed `simple_filters` — so one component carried two definitions of "the filter state". A simple filter's value never becomes an ActiveModel attribute (it lives in `@q_params` and goes straight to Ransack), so `attributes.to_h` never carried it along by accident. The fix reuses the saved-view round trip instead of opening a second path: `active_simple_filters` writes, `apply_simple_filter_state` restores, `current_simple_filter_value` reads — one key throughout.
+
+  The same gap made a shared link mean different things to different people, which is the half that bites without persistence being involved at all. `has_filter_params` did not count the simple filters, so a URL asking only for one fell into the *restore* branch and the cache outranked the URL. Measured on `/admin/studios` over `?q[country_eq]=USA`: **9 rows** with the persistence cookie on — a cached search the URL never mentions applied on top of it — against **10** with it off. They are counted now as an *origin* rather than a value, the same distinction `group_by` already makes: the SimpleFilters form submits every control it renders, so emptying a select arrives as `q[size_eq]=`, an explicit choice whose value is blank. Reading only the values would have made clearing a filter indistinguishable from asking for nothing, and the restore branch would have handed back the filter the user had just cleared.
+
+  Clearing the search keeps them, too: `clearSearch` navigates dropping every `q[...]`, so the stored state is the only record left of what was selected.
+
 ### Documentation
 
 - **The migration guide no longer sends you to define `--bali-z-hovercard`, a token nothing declares.** The hovercard shares the tooltip tier — the guide's own table said so thirty lines above, and `HoverCard::Component` documents it too; only the prose disagreed. It fails in the worst direction: a host that declares the invented token sees no error, no warning, and not even the `9999` fallback, which `zIndexFor` reaches only when Bali's stylesheet is missing from the page. The override just reads as a no-op. A test now fails the build if the guide ever names a tier the scale does not declare.

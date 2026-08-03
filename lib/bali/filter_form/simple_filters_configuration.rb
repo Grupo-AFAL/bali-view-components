@@ -180,6 +180,23 @@ module Bali
         active_simple_filters.any?
       end
 
+      # Whether the request carried a simple filter FIELD, with or without a value.
+      #
+      # This is about ORIGIN, not value, and the two do not coincide: the SimpleFilters
+      # form is a plain GET that submits every control it renders, so emptying a select
+      # arrives as `q[genre_eq]=` — an explicit choice whose value happens to be blank.
+      # {#active_simple_filters} cannot tell that apart from a URL that mentioned no
+      # filter at all, and the difference decides whether the request is storing state
+      # or restoring it.
+      #
+      # @param params [ActionController::Parameters, Hash] the `q` params as they arrived
+      # @return [Boolean]
+      def simple_filter_params?(params)
+        return false if params.blank?
+
+        simple_filter_param_names.any? { |key| params.key?(key) }
+      end
+
       # Replace the simple filter values with the ones a saved view carries. A view
       # is a complete state and not a merge, so whatever came in the URL is dropped
       # — the same contract {FilterForm#apply_saved_view_state} applies to the
@@ -215,6 +232,14 @@ module Bali
         keys
       end
 
+      # The same keys, flattened for lookup. {#simple_filters_permitted_keys} is shaped for
+      # `permit`, where a toggle group is a `{key => []}` entry rather than a bare name.
+      #
+      # @return [Array<String>]
+      def simple_filter_param_names
+        simple_filters_permitted_keys.flat_map { |key| key.is_a?(Hash) ? key.keys : key }.map(&:to_s)
+      end
+
       private
 
       # Resolve type and predicate from a filter hash, normalizing to symbols.
@@ -246,13 +271,29 @@ module Bali
         value = @q_params[key] || @q_params[key.to_sym] if defined?(@q_params) && @q_params.present?
 
         # 2. Try instance attribute (for persisted/restored values)
-        value ||= send(key) if respond_to?(key)
+        value ||= send(key) if attributes_initialized? && respond_to?(key)
 
         if value.is_a?(Array)
           return value.compact_blank
         end
 
         value
+      end
+
+      # Whether this form has run ActiveModel's own initializer yet.
+      #
+      # `respond_to?` on an ActiveModel raises before it has: the dispatch reads
+      # `@attributes`, which `super(attributes)` sets at the very END of
+      # {FilterForm#initialize}. The persistence write asks for the active simple filters
+      # from inside `fetch_stored_filter_state`, which necessarily runs before that — what
+      # it writes is part of what it then hands to `super`.
+      #
+      # Nothing is lost by skipping the fallback there: at that point everything the request
+      # carries still lives in `@q_params`, which step 1 already read. The fallback exists
+      # for the render that comes after, where a value restored into a declared attribute is
+      # the only copy left.
+      def attributes_initialized?
+        defined?(@attributes) && !@attributes.nil?
       end
 
       # Get current min/max values for a number_range filter from params
