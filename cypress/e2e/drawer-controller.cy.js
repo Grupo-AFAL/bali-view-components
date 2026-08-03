@@ -1,4 +1,71 @@
 describe('DrawerController', () => {
+  // `submit` is inherited from ModalController, so this covers both overlays.
+  //
+  // The waiting state used to be `classList.add('loading')` on the button. In
+  // daisyUI 5 `.loading` is not a modifier that adds a spinner — it IS the
+  // spinner: `aspect-ratio: 1`, a six-unit width, and `background-color:
+  // currentColor` masked by the spinner SVG. On the <button> it collapsed the box
+  // (measured 66x40 to 34x40) and painted the button itself as the spinner, with
+  // the label still inside showing through the holes in the mask (#839).
+  context('submit button waiting state', () => {
+    const SUBMIT = '[data-action="drawer#submit"]'
+
+    beforeEach(() => {
+      cy.visit('/bali/drawer/turbo_stream_form')
+      cy.get('.drawer-open').should('exist')
+    })
+
+    it('keeps the button box and puts the spinner inside it', () => {
+      // Held pending on purpose: the waiting state is only observable while the
+      // request is in flight.
+      cy.intercept('POST', '/fake/submit*', {
+        delay: 8000,
+        headers: { 'Content-Type': 'text/vnd.turbo-stream.html' },
+        body: '<turbo-stream action="append" target="stream-target"><template><p>ok</p></template></turbo-stream>'
+      }).as('submit')
+
+      let width
+      cy.get(SUBMIT).then($b => { width = $b[0].getBoundingClientRect().width })
+      cy.get(SUBMIT).click()
+
+      cy.get(SUBMIT).should('have.attr', 'disabled')
+      cy.get(SUBMIT).should('have.attr', 'aria-busy', 'true')
+      cy.get(SUBMIT).should('not.have.class', 'loading')
+      cy.get(SUBMIT).should($b => {
+        // The box the user was looking at does not move. Without pinning, swapping
+        // the label for a 20px spinner resizes the actions row at exactly the
+        // moment the user is waiting on it. And the button paints itself, not the
+        // spinner: `mask-image` is what `.loading` on the <button> turned on.
+        expect($b[0].getBoundingClientRect().width).to.be.closeTo(width, 1)
+        expect(getComputedStyle($b[0]).maskImage).to.equal('none')
+      })
+
+      // The spinner is a child, and the label is out of sight rather than merely
+      // covered by it — reading textContent would pass either way.
+      cy.get(`${SUBMIT} .loading.loading-spinner`).should('be.visible')
+      cy.get(`${SUBMIT} [data-bali-submit-label]`).should('not.be.visible')
+    })
+
+    it('gives the label back when the form does not validate', () => {
+      cy.get('#name').invoke('attr', 'required', 'required')
+
+      let width
+      cy.get(SUBMIT).then($b => { width = $b[0].getBoundingClientRect().width })
+      cy.get(SUBMIT).click()
+
+      // `checkValidity()` fails before the fetch, so this is the one path that
+      // comes back to a button that is still on screen.
+      cy.get(SUBMIT).should('not.have.attr', 'disabled')
+      cy.get(SUBMIT).should('not.have.attr', 'aria-busy')
+      cy.get(SUBMIT).should('contain.text', 'Save')
+      cy.get(`${SUBMIT} .loading`).should('not.exist')
+      cy.get(SUBMIT).should($b => {
+        expect($b[0].getBoundingClientRect().width).to.be.closeTo(width, 1)
+        expect($b[0].style.minWidth).to.equal('')
+      })
+    })
+  })
+
   context('turbo_stream form submit', () => {
     beforeEach(() => {
       cy.visit('/bali/drawer/turbo_stream_form')
