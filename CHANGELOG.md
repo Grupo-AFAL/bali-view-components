@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+### Added
+
+- **`label: false` on a filter attribute means "no caption" in the `SimpleFilters` row.** There was no way to ask for one without: `simple_filters_config` derived the label with a `||`, and `nil` and `false` are both falsy, so both fell through to the derivation. The template already knew not to paint an empty one — what could not reach it was a label.
+
+  It matters because the derived one is often worse than none: it humanises the **Ransack** attribute name, not the field's, so `filter_attribute :roles_name` without a label paints "Roles name" — the predicate, humanised, in English — in a Spanish UI, and the I18n fallback does not reach it either, because `roles_name` is a path through an association rather than a column. The advanced popover keeps a label regardless; a row there needs a name.
+
 ### Changed
 
 - **The `DataTable` toolbar reserves the space for what can collapse instead of showing it and taking it away.** On first load the row used to show every control and then, a full second later, drop four of them into the `⋯` at once. Measured on `/admin/studios`: 5 controls in the row and 0 in the menu at 195ms, 1 and 4 at 1208ms.

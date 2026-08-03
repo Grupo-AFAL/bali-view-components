@@ -86,9 +86,15 @@ module Bali
       # @param type [Symbol] Data type: :text, :number, :date, :datetime,
       #   :select, :boolean. Drives the advanced UI operators and the default
       #   simple widget.
-      # @param label [String, Proc] Human-readable label (defaults to humanized key).
+      # @param label [String, Proc, false] Human-readable label (defaults to humanized key).
       #   Zero-arity procs are resolved per-instance with instance_exec (useful
       #   for I18n lookups that must not be frozen at class-load time).
+      #   `false` means "no caption" in the SimpleFilters row, for a control that
+      #   already names itself through its blank option ("All roles"). It is not
+      #   the same as omitting it: omitted derives one from the Ransack attribute
+      #   name, which for a path through an association is the predicate humanized
+      #   in English. The advanced popover keeps a label either way — a row there
+      #   needs a name.
       # @param options [Array, Proc] For select types, array of [label, value]
       #   pairs or a zero-arity proc resolved per-instance with instance_exec —
       #   inside it you can use `scope` (the relation the controller passed in,
