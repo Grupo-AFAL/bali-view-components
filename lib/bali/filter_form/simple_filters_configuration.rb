@@ -139,19 +139,53 @@ module Bali
         end
       end
 
+      # The simple filters that are narrowing the listing right now, keyed the way
+      # the query carries them (`country_eq`, `founded_year_gteq`, …).
+      #
+      # This is the state model for the whole simple-filters surface, and it is the
+      # single place that knows how a definition turns into a key/value pair. The
+      # value of a simple filter never becomes an ActiveModel attribute — it lives
+      # in `@q_params` and goes straight to Ransack — so anything that wants to ask
+      # "what is set?" has to come through here rather than through `attributes`.
+      #
+      # @param include_date_ranges [Boolean] date ranges are applied with a `where`
+      #   clause rather than a Ransack predicate, so the Ransack params builder asks
+      #   for them to be left out. Every other caller wants them: a date range that
+      #   is cutting the result is an active filter like any other.
+      # @return [Hash{String => Object}]
+      def active_simple_filters(include_date_ranges: true)
+        return {} unless simple_filters_enabled?
+
+        simple_filters.each_with_object({}) do |filter, active|
+          type, predicate = resolve_filter_type_and_predicate(filter)
+          next if type == :date_range && !include_date_ranges
+
+          if type == :number_range
+            min, max = current_number_range_value(filter[:attribute]).values_at(:min, :max)
+            active["#{filter[:attribute]}_gteq"] = min if min.present?
+            active["#{filter[:attribute]}_lteq"] = max if max.present?
+          else
+            value = current_simple_filter_value(filter[:attribute], predicate)
+            next if value.blank?
+
+            active[simple_filter_key(filter[:attribute], predicate)] = value
+          end
+        end
+      end
+
       # Check if any simple filter has an active value
       #
       # @return [Boolean]
       def simple_filters_active?
-        simple_filters.any? do |f|
-          type, predicate = resolve_filter_type_and_predicate(f)
-          if type == :number_range
-            value = current_number_range_value(f[:attribute])
-            value[:min].present? || value[:max].present?
-          else
-            current_simple_filter_value(f[:attribute], predicate).present?
-          end
-        end
+        active_simple_filters.any?
+      end
+
+      # Replace the simple filter values with the ones a saved view carries. A view
+      # is a complete state and not a merge, so whatever came in the URL is dropped
+      # — the same contract {FilterForm#apply_saved_view_state} applies to the
+      # declared attributes.
+      def apply_simple_filter_state(values)
+        @q_params = (values || {}).to_h.stringify_keys
       end
 
       def simple_date_range_attributes
@@ -167,7 +201,7 @@ module Bali
         keys = []
         simple_filters.each do |filter|
           type, predicate = resolve_filter_type_and_predicate(filter)
-          key = predicate.present? ? "#{filter[:attribute]}_#{predicate}" : filter[:attribute].to_s
+          key = simple_filter_key(filter[:attribute], predicate)
 
           if type == :toggle_group
             keys << { key => [] }
@@ -194,21 +228,13 @@ module Bali
       # Add simple filter values to Ransack params
       # Called from FilterForm#ransack_params
       def add_simple_filter_params(params)
-        simple_filters.each do |filter|
-          type, predicate = resolve_filter_type_and_predicate(filter)
-          next if type == :date_range # Handled separately via where clause
+        params.merge!(active_simple_filters(include_date_ranges: false))
+      end
 
-          if type == :number_range
-            values = current_number_range_value(filter[:attribute])
-            params["#{filter[:attribute]}_gteq"] = values[:min] if values[:min].present?
-            params["#{filter[:attribute]}_lteq"] = values[:max] if values[:max].present?
-          else
-            value = current_simple_filter_value(filter[:attribute], predicate)
-            next if value.blank?
-
-            params["#{filter[:attribute]}_#{predicate}"] = value
-          end
-        end
+      # The key a simple filter travels under. `predicate` is nil for a date range,
+      # which has no single Ransack predicate.
+      def simple_filter_key(attribute, predicate)
+        predicate.present? ? "#{attribute}_#{predicate}" : attribute.to_s
       end
 
       # Get current value for a simple filter from params

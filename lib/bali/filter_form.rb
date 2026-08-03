@@ -336,16 +336,40 @@ module Bali
       @cache_key ||= "#{self.class.name.tableize};#{context};#{storage_id}"
     end
 
+    # How many values are narrowing this listing right now. The quick search counts
+    # as one: it cuts the result exactly like any other filter, and a toolbar that
+    # reads "0 filters" over 3 of 200 rows is telling the user something false.
     def active_filters_count
-      (active_filters.keys & attribute_names).size
+      active_filters.size
     end
 
     def active_filters?
       active_filters.any?
     end
 
+    # Every value narrowing the listing right now, keyed the way the query carries
+    # it. Three sources, because a listing can be narrowed from three places and
+    # only the first used to be represented here:
+    #
+    #   - attributes declared with the `filter_attribute` DSL, via `query_params`;
+    #   - the simple filters, which never become ActiveModel attributes — a plain
+    #     `FilterForm.new(scope, params, simple_filters: [...])` declares none, so
+    #     `attribute_names` is just `["s"]` and this answered `{}` no matter what
+    #     the user had chosen;
+    #   - the quick search box, whose value never lived in `query_params` either.
+    #
+    # That mattered beyond the count: `Table` picks its empty state from
+    # `active_filters?`, so a search or a simple filter that cut the result to zero
+    # got "No records yet" plus an invitation to create one, instead of "No results"
+    # — the listing blamed the data for what the filters had done.
+    #
+    # `"s"` is Ransack's *sort* param, not a filter, and stays out.
     def active_filters
-      @active_filters || query_params.except("s").compact_blank
+      @active_filters || begin
+        filters = query_params.except("s").compact_blank.merge(active_simple_filters)
+        filters[search_field_name] = search_value if search_enabled? && search_value.present?
+        filters
+      end
     end
 
     # Get the available filter attributes defined via filter_attribute DSL.

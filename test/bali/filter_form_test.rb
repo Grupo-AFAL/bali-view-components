@@ -162,6 +162,43 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     refute(@form.active_filters?)
   end
 
+  # #817 — three surfaces narrow a listing and only one was represented here. A plain
+  # FilterForm declares no attributes, so `attribute_names` is `["s"]` and this answered
+  # `{}` no matter what the user had chosen; `Table` then read `active_filters?` as false
+  # and offered "No records yet — create one" over a result the filters had emptied.
+  def test_active_filters_counts_a_simple_filter_a_plain_form_never_declares
+    simple_filters_config = [ { attribute: :category, collection: [ %w[A a] ], blank: "All" } ]
+    @form = Bali::FilterForm.new(Movie.all, params({ category_eq: "a" }),
+                                 simple_filters: simple_filters_config)
+
+    assert(@form.active_filters?)
+    assert_equal(1, @form.active_filters_count)
+    assert_equal({ "category_eq" => "a" }, @form.active_filters)
+  end
+
+  def test_active_filters_counts_the_quick_search
+    @form = Bali::FilterForm.new(Movie.all, params({ name_or_genre_cont: "Iron" }),
+                                 search_fields: %i[name genre])
+
+    assert(@form.active_filters?)
+    assert_equal(1, @form.active_filters_count)
+  end
+
+  def test_active_filters_stays_false_on_a_plain_form_with_nothing_chosen
+    simple_filters_config = [ { attribute: :category, collection: [ %w[A a] ], blank: "All" } ]
+    @form = Bali::FilterForm.new(Movie.all, params({}), simple_filters: simple_filters_config,
+                                                        search_fields: %i[name])
+
+    refute(@form.active_filters?)
+    assert_equal(0, @form.active_filters_count)
+  end
+
+  # `s` is Ransack's sort param. Sorting is not narrowing.
+  def test_active_filters_ignores_the_sort_param
+    @form = MovieFilterForm.new(@tenant.movies, params({ s: "name asc" }))
+    refute(@form.active_filters?)
+  end
+
   def test_query_params_returns_a_hash_of_attributes_and_values
     assert_equal({ "genre_in" => nil, "name_i_cont" => "Iron", "s" => nil }, @form.query_params)
   end
@@ -1300,6 +1337,52 @@ class BaliFilterFormTestUnifiedDsl < ActiveSupport::TestCase
                                saved_views_store: store)
 
     assert_equal [ 0, 2 ], form.saved_view_columns
+  end
+
+  # #823 — a simple filter's value is never an ActiveModel attribute (it lives in q_params
+  # and goes straight to Ransack), so `attributes` could not see it and a view saved from a
+  # simplified index was born without its own cut.
+  def test_current_view_payload_carries_the_simple_filters
+    form = Bali::FilterForm.new(
+      Movie.all, params({ category_eq: "a" }),
+      simple_filters: [ { attribute: :category, collection: [ %w[A a] ], blank: "All" } ]
+    )
+
+    assert_equal({ "category_eq" => "a" }, form.current_view_payload["simple_filters"])
+  end
+
+  def test_current_view_payload_omits_the_key_with_no_simple_filter_chosen
+    form = Bali::FilterForm.new(
+      Movie.all, params({}),
+      simple_filters: [ { attribute: :category, collection: [ %w[A a] ], blank: "All" } ]
+    )
+
+    assert_not form.current_view_payload.key?("simple_filters")
+  end
+
+  def test_applying_a_view_restores_its_simple_filters
+    store = store_with_view({ "simple_filters" => { "category_eq" => "a" } })
+    form = Bali::FilterForm.new(
+      Movie.all, ActionController::Parameters.new(saved_view: "1"),
+      simple_filters: [ { attribute: :category, collection: [ %w[A a] ], blank: "All" } ],
+      saved_views_store: store
+    )
+
+    assert_equal("a", form.simple_filters_config.first[:value])
+    assert(form.active_filters?)
+  end
+
+  # Una vista es un estado COMPLETO, no un merge: el mismo contrato que ya rige para
+  # `attributes`. Un payload viejo, guardado antes de que la llave existiera, limpia.
+  def test_applying_a_view_without_simple_filters_clears_the_ones_in_the_url
+    store = store_with_view({ "attributes" => {} })
+    form = Bali::FilterForm.new(
+      Movie.all, ActionController::Parameters.new(q: { category_eq: "a" }, saved_view: "1"),
+      simple_filters: [ { attribute: :category, collection: [ %w[A a] ], blank: "All" } ],
+      saved_views_store: store
+    )
+
+    assert_nil(form.simple_filters_config.first[:value])
   end
 end
 
