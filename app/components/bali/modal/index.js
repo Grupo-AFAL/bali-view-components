@@ -127,8 +127,39 @@ export class ModalController extends Controller {
     }
 
     document.addEventListener(eventName, this.setOptionsAndOpenModal)
+    document.addEventListener('turbo:before-morph-element', this._keepOpenPanelThroughMorph)
 
     this._promoteInitiallyOpenOverlay()
+  }
+
+  // A page morph must not touch a panel that is currently open.
+  //
+  // Idiomorph writes every attribute the new node carries and REMOVES every one the old
+  // node has that the new one does not. The markup the server sends for an open panel is a
+  // CLOSED panel, so a morph strips both `open` and the open class — and stripping `open`
+  // from a dialog opened with `showModal()` does not take it out of the top layer. The
+  // document stays inert, the UA simply stops painting the panel, and `close()` returns
+  // early on a dialog with no `open` attribute: nothing is left that can free the page. It
+  // does not even throw.
+  //
+  // Cancelling the element (rather than `turbo:before-morph-attribute`, which is finer) is
+  // what is wanted here: idiomorph stops at the element AND its subtree, and a panel the
+  // user has open is live state a morph should be leaving alone anyway. The attribute event
+  // would not be enough on its own — the morph also overwrites `class`, which would leave
+  // the panel in the top layer without the class that shows it.
+  //
+  // Listens on `document`, not `this.element`: the panel and the controller element are
+  // often different subtrees (the shared body-level overlay), and the event bubbles.
+  _keepOpenPanelThroughMorph = event => {
+    if (!this.hasTemplateTarget) return
+    if (event.target !== this.templateTarget) return
+
+    const dialog = this.templateTarget
+    // The class as well as the attribute: in `_showOverlay`'s fallback, where `showModal()`
+    // was unavailable, the class is the only thing holding the panel open.
+    if (!dialog.open && !dialog.classList.contains(this.openClass)) return
+
+    event.preventDefault()
   }
 
   // A panel rendered `active:` arrives with the open class already on it and no
@@ -164,6 +195,7 @@ export class ModalController extends Controller {
     }
 
     document.removeEventListener(eventName, this.setOptionsAndOpenModal)
+    document.removeEventListener('turbo:before-morph-element', this._keepOpenPanelThroughMorph)
   }
 
   templateTargetConnected () {
@@ -263,9 +295,19 @@ export class ModalController extends Controller {
     }
   }
 
+  // The rescue for a panel that already lost the attribute. `_keepOpenPanelThroughMorph`
+  // only covers panels a controller can see at the moment of the morph; this covers the one
+  // that is already stranded — in the top layer, unpainted, with a `close()` that returns
+  // early and leaves the whole document inert with no way out.
+  //
+  // Giving the attribute back is enough: measured on a bare `<dialog>`, `close()` with the
+  // attribute restored drops `:modal` back to false and `elementFromPoint` over the page
+  // returns the page again instead of `HTML`.
   _hideOverlay () {
     const dialog = this.templateTarget
     dialog.classList.remove(this.openClass)
+
+    if (dialog.matches(':modal') && !dialog.open) dialog.setAttribute('open', '')
 
     if (dialog.open) dialog.close()
   }
