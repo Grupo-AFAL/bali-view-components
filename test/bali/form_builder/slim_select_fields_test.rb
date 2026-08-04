@@ -212,6 +212,29 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_html(result, 'div[data-slim-select-placeholder-value="Choose one"]')
   end
 
+  # The other six SlimSelect texts already go through `bali_view.form_builder.slim_select.*`;
+  # the placeholder was the odd one out — no data-attribute emitted, so the Stimulus
+  # controller's English default ('Select value') won on every call site that did not pass
+  # `html: { placeholder: }`.
+  def test_slim_select_field_placeholder_value_defaults_to_the_translated_placeholder
+    result = builder.slim_select_field(:status, Movie.statuses.to_a)
+    assert_html(result, 'div[data-slim-select-placeholder-value="Select value"]')
+  end
+
+  def test_slim_select_field_placeholder_value_default_is_translated
+    I18n.with_locale(:es) do
+      result = builder.slim_select_field(:status, Movie.statuses.to_a)
+      assert_html(result, 'div[data-slim-select-placeholder-value="Selecciona una opción"]')
+    end
+  end
+
+  def test_slim_select_field_html_placeholder_wins_over_the_translated_default
+    I18n.with_locale(:es) do
+      result = builder.slim_select_field(:status, Movie.statuses.to_a, html: { placeholder: "Choose one" })
+      assert_html(result, 'div[data-slim-select-placeholder-value="Choose one"]')
+    end
+  end
+
   def test_slim_select_field_stimulus_data_values_sets_add_items_value
     result = builder.slim_select_field(:status, Movie.statuses.to_a, add_items: true)
     assert_html(result, 'div[data-slim-select-add-items-value="true"]')

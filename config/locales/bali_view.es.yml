@@ -203,6 +203,7 @@ es:
         placeholder: "Buscar..."
         submit: "Buscar"
       slim_select:
+        placeholder: "Selecciona una opción"
         search_placeholder: "Buscar"
         select_all: "Seleccionar todo"
         deselect_all: "Deseleccionar todo"
