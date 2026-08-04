@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+## [v3.0.0.beta.5] - 2026-08-04
+
 ### Changed
 
 - **`Bali::Command` renders its own trigger; the slot replaces it, and `trigger: false` removes it.** Every call site that rendered a visible trigger — both palette previews, the AppLayout navbar preview and the dummy admin topbar — hand-rolled the same search-well button, which is the clearest sign the component was missing a default. It now renders that well itself (search icon + `trigger_label:` + the `shortcut_label` `kbd` hint marked `aria-hidden`, `aria-haspopup="dialog"`, its own themed focus-visible ring), sized by the component's `class:`; `with_trigger` replaces it for shapes the default cannot be. `trigger_label:` is independent of `placeholder:` on purpose — the trigger is usually shorter than the input's invitation — and ships in en and es (`bali_view.command.trigger_label`).
@@ -24,6 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The AppLayout reference scenario for "sidebar + account bar" is `with_topbar` now, built on `Bali::Topbar`.** The old "Navbar + Sidebar + Content" preview modelled that layout with a `Navbar` — a `<nav>` landmark carrying no navigation, since the sidebar owns every destination — and needed three overrides (`min-h-0 bali-chrome-height`, `fullscreen:`, `shadow: false`) to sit on the chrome line `Topbar` sits on by construction. The scenario now renders `Topbar` (banner landmark, chrome-height shared with the SideMenu's brand row, its own `lg:hidden` hamburger — so AppLayout's default mobile row is no longer needed), with the Command palette in its `search` zone. "Navbar + Content" remains the scenario for the layout where the top bar IS the navigation, and `docs/guides/components.md` now carries the which-to-choose note. The `with_navbar` **slot** on AppLayout is unchanged — only the preview scenario moved.
 
 - **The `actions_dropdown/with_custom_trigger` preview stops drawing two borders.** It nested its own `<button class="btn btn-outline">` inside the trigger slot, but the slot already renders `Dropdown::Trigger` — a `.btn`-dressed `div[role="button"][tabindex="0"]` carrying the wiring — so the preview painted two bordered boxes and offered two tab stops. Measured before/after: 2 `.btn` boxes → 1, 2 tab stops → 1, wiring intact and the menu still opens. The preview now shows the intended shape (`with_trigger(variant: :outline, class: 'btn-sm') { 'Actions ▾' }`), and its notes say why nesting a second button is the wrong one — the reference implementation is what hosts copy.
+
+### Fixed
+
+- **The pagination summary no longer says "of 1 items" — `item_name:` pluralizes.** (#909) `PagyAdapter#summary` already passed `count:` to `I18n.t`, but the key is a plain string and `item_name` was interpolated exactly as given, invariant with the count. The adapter now resolves it by type: a **Symbol** is an i18n key resolved with `count:` (Rails' full CLDR plural rules, for locales beyond one/other), a **Hash** picks `one:`/`other:` by count with no locale file needed, a **String** stays verbatim — the behaviour every existing call site already has — and the gem's `default_item_name` becomes a plural hash in both locales, so the default pluralizes too. One method covers `PaginationFooter` and `DataTable`, which only carry the value through.
+- **The SlimSelect placeholder finally speaks the host's language.** (#910) The other six SlimSelect texts already resolve through `bali_view.form_builder.slim_select.*`; the placeholder was the odd one out — without `html: { placeholder: }` the wrapper emitted no data-attribute, so the Stimulus controller's English default ("Select value") won on every call site, whatever the host's locale. The wrapper now emits the translated placeholder as the default ("Selecciona una opción" in es); `html: { placeholder: }` keeps priority, so no existing call site changes.
 
 ## [v3.0.0.beta.4] - 2026-08-04
 
