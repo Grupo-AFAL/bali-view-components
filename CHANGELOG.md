@@ -11,6 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+### Added
+
+- **`comments: { threads: [...] }` seeds a `BlockEditor` whose comments do not persist**, so a demo or a preview can open with threads already in the sidebar. Ignored when `url:` is given — there the REST store fetches the list and owns it, so a seed would be gone on the first poll.
+
+### Fixed
+
+- **The `block_editor/with_comments` preview opens with comments in it.** It rendered zero threads, which is not cosmetic: it is what made #832 — a thread card wider than the sidebar holding it — invisible. Reproducing that needed a comment created by hand through the UI first, and the preview sweep counted the page as a 200 either way. A preview that does not exercise what it announces covers nothing.
+
+  A comment lives in **two** places and needs both to be a real one: a thread in the store, and a `comment` mark on the text it anchors to. Seeding only the store gets threads into the sidebar, each labelled "Original content deleted" — measured — because nothing in the document points at them.
+
+  The mark cannot travel in the blocks array `initial_content` usually takes: BlockNote's comment mark declares `blocknoteIgnore`, so the block serializer skips it by design and no array of blocks can carry one. It travels in the **other** shape `initial_content` already accepts — ProseMirror JSON, the `{ type: "doc" }` form the component detects and loads through `setContent` precisely because it preserves comment marks. The preview now passes that shape, with a focused document instead of the shared showcase content.
+
+  Two threads, because the sidebar's width is what breaks: a short one, and one whose comment carries a URL with nothing to break on. Measured after the change: 2 threads, 2 marks, 0 orphans, and the sidebar's `scrollWidth` equal to its `clientWidth`. Cypress now covers all of it, so #832 stays covered without anyone typing a comment first.
+
 ## [v3.0.0.beta.3] - 2026-08-03
 
 ### Fixed

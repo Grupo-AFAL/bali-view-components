@@ -95,6 +95,7 @@ module Bali
         @comments_user  = comments_config&.fetch(:user, nil)
         @comments_users = comments_config&.fetch(:users, nil)
         @comments_users_url = comments_config&.fetch(:users_url, nil)
+        @comments_threads = comments_config&.fetch(:threads, nil)
         # -1 stands for "not configured": 0 is a real value that turns polling off,
         # so it cannot double as the unset marker.
         @comments_poll_interval = comments_config&.fetch(:poll_interval, nil) || -1
@@ -209,6 +210,7 @@ module Bali
           comments_user: serialized_comments_user,
           comments_users: serialized_comments_users,
           comments_users_url: @comments_users_url || "",
+          comments_threads: serialized_comments_threads,
           comments_poll_interval: @comments_poll_interval
         }
       end
@@ -285,6 +287,21 @@ module Bali
           else m.respond_to?(:to_h) ? m.to_h : { name: m.to_s }
           end
         end.to_json
+      end
+
+      # Threads the in-memory store opens with. Only for a store that does not persist:
+      # with `url:` the REST store fetches the list and owns it, so a seed there would be
+      # gone on the first poll (see useComments).
+      #
+      # A seeded thread lists and reads, but anchors to nothing in the text. That is not a
+      # gap in this method — BlockNote's `comment` mark declares `blocknoteIgnore`, so it
+      # is deliberately absent from the block JSON and there is no way to express one in
+      # `initial_content`. The comments sidebar reads the STORE, which is why a thread
+      # still shows.
+      def serialized_comments_threads
+        return "[]" if @comments_threads.blank?
+
+        Array(@comments_threads).map { |thread| thread.respond_to?(:to_h) ? thread.to_h : thread }.to_json
       end
 
       def serialized_comments_user

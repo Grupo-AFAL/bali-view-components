@@ -90,6 +90,7 @@ export default function BlockNoteEditorWrapper ({
   commentsUsers,
   commentsUsersUrl,
   commentsPollInterval,
+  commentsThreads,
   // Rails-supplied UI strings, keyed as in config/locales/bali_view.*.yml. The
   // hooks below used to hardcode them in English regardless of the app's locale.
   translations = {}
@@ -193,6 +194,7 @@ export default function BlockNoteEditorWrapper ({
     commentsUsersUrl: commentsEnabled ? commentsUsersUrl : undefined,
     commentsUrl: commentsEnabled ? commentsUrl : undefined,
     commentsPollInterval: commentsEnabled ? commentsPollInterval : undefined,
+    commentsThreads: commentsEnabled ? commentsThreads : undefined,
     translations
   })
 

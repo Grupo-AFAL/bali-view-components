@@ -33,6 +33,7 @@ export class BlockEditorController extends Controller {
     commentsUser: { type: Object, default: {} },
     commentsUsers: { type: Array, default: [] },
     commentsUsersUrl: { type: String, default: '' },
+    commentsThreads: { type: Array, default: [] },
     // 0 turns polling off; -1 means "unset", so RESTThreadStore's own 5000 ms
     // default stays the single place that number is written down.
     commentsPollInterval: { type: Number, default: -1 },
@@ -98,6 +99,7 @@ export class BlockEditorController extends Controller {
         commentsUser: Object.keys(this.commentsUserValue).length > 0 ? this.commentsUserValue : undefined,
         commentsUsers: this.commentsUsersValue.length > 0 ? this.commentsUsersValue : undefined,
         commentsUsersUrl: this.commentsUsersUrlValue || undefined,
+        commentsThreads: this.commentsThreadsValue.length > 0 ? this.commentsThreadsValue : undefined,
         commentsPollInterval: this.commentsPollIntervalValue >= 0 ? this.commentsPollIntervalValue : undefined,
         translations: this.translationsValue
       }
