@@ -28,12 +28,14 @@ function writeUser (store, user) {
  * @param {string} options.commentsUsersUrl - Remote endpoint for user resolution
  * @param {string} options.commentsUrl     - REST API base URL for thread persistence
  * @param {number} options.commentsPollInterval - Poll period in ms; 0 disables polling
+ * @param {Array}  options.commentsThreads - Threads to seed the in-memory store with;
+ *   ignored when commentsUrl is set (the REST store owns the list)
  * @param {Object} options.translations   - Rails-supplied UI strings
  * @returns {{ extension: Object, threadStore: ThreadStore } | null}
  */
 export function useComments ({
   commentsUser, commentsUsers, commentsUsersUrl, commentsUrl, commentsPollInterval,
-  translations = {}
+  commentsThreads, translations = {}
 }) {
   const threadStoreRef = useRef(null)
   // The name shown on a comment whose author id resolves to nothing. It is the
@@ -63,9 +65,12 @@ export function useComments ({
     }
 
     const userId = String(commentsUser.id)
+    // `threads:` seeds the in-memory store only. With a `url:` the REST store owns the
+    // list and fetches it, so a seed there would be overwritten on the first poll —
+    // it is ignored rather than half-applied.
     const threadStore = commentsUrl
       ? new RESTThreadStore(userId, commentsUrl, pollOptions(commentsPollInterval))
-      : new InMemoryThreadStore(userId, 'editor')
+      : new InMemoryThreadStore(userId, 'editor', commentsThreads)
 
     threadStoreRef.current = threadStore
 
@@ -193,5 +198,8 @@ export function useComments ({
     }
 
     return { extension, threadStore, attachUserStore }
-  }, [commentsUser, commentsUsers, commentsUsersUrl, commentsUrl, commentsPollInterval, userFallback])
+  }, [
+    commentsUser, commentsUsers, commentsUsersUrl, commentsUrl, commentsPollInterval,
+    commentsThreads, userFallback
+  ])
 }

@@ -35,7 +35,7 @@ describe('BlockEditor: comentarios', () => {
   beforeEach(() => {
     cy.viewport(1280, 900)
     cy.visit('/bali/block_editor/with_comments')
-    cy.get('.bn-with-comments > .bn-container > .bn-editor').should('contain.text', 'Block Editor')
+    cy.get('.bn-with-comments > .bn-container > .bn-editor').should('contain.text', 'Keyboard shortcuts')
 
     cy.get('.bn-with-comments > .bn-container').then($container => {
       const doc = $container[0].ownerDocument
@@ -73,6 +73,39 @@ describe('BlockEditor: comentarios', () => {
 
       expect(anchos[0], 'corta y larga miden igual').to.equal(anchos[1])
       expect(anchos[0], 'y ese ancho es el declarado').to.equal(320)
+    })
+  })
+})
+
+// El preview se llama `with_comments` y no traia ninguno (#863). No era cosmetico: es lo
+// que hizo invisible a #832 — para reproducir el desborde del hilo hubo que crear un
+// comentario a mano por la UI, y el barrido de previews contaba la pagina como 200.
+//
+// Un comentario vive en DOS lados y necesita los dos para ser uno de verdad: el hilo en el
+// store, y la marca `comment` sobre el texto al que ancla. Sembrar solo el store deja los
+// hilos en la barra pero rotulados "Original content deleted" — medido.
+describe('BlockEditor: el preview de comentarios abre con comentarios', () => {
+  beforeEach(() => {
+    cy.viewport(1280, 900)
+    cy.visit('/bali/block_editor/with_comments')
+    // La barra lateral se puebla desde el store cuando el editor monta.
+    cy.get('.bn-threads-sidebar .bn-thread', { timeout: 20000 }).should('have.length', 2)
+  })
+
+  it('los hilos estan anclados al texto, no huerfanos', () => {
+    // La marca es la mitad que el JSON de bloques no puede llevar: viaja en la forma
+    // ProseMirror de `initial_content`. Sin ella la barra pinta hilos que no apuntan a nada.
+    cy.get('.bn-editor .bn-thread-mark').should('have.length', 2)
+    cy.get('.bn-threads-sidebar').should('not.contain.text', 'Original content deleted')
+  })
+
+  it('mantiene el ancho de la barra con una URL larga sin cortes', () => {
+    // El caso de #832, ahora ejercitado por el preview en vez de a mano: un hilo cuyo
+    // comentario lleva una URL que no tiene donde partirse. Se mide el desborde real del
+    // contenedor, no las clases.
+    cy.get('.bn-threads-sidebar').should($sidebar => {
+      const el = $sidebar[0]
+      expect(el.scrollWidth, 'la barra no desborda horizontalmente').to.equal(el.clientWidth)
     })
   })
 })

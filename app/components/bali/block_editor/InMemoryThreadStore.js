@@ -1,5 +1,39 @@
 import { ThreadStore, DefaultThreadStoreAuth } from '@blocknote/core/comments'
 
+// Seeded threads arrive as JSON, where a timestamp is a string. BlockNote reads
+// `createdAt`/`updatedAt` as Date objects and calls Date methods on them, so a string
+// left as-is throws while rendering the thread — inside React's render, which takes the
+// whole editor down rather than just the sidebar. Missing dates get "now", which is the
+// only defensible guess and keeps a hand-written seed from having to carry them.
+function toDate (value) {
+  const date = value instanceof Date ? value : new Date(value)
+  return Number.isNaN(date.getTime()) ? new Date() : date
+}
+
+function normalizeSeed (threads) {
+  if (!Array.isArray(threads)) return []
+
+  return threads.filter(thread => thread?.id).map(thread => ({
+    type: 'thread',
+    resolved: false,
+    metadata: {},
+    ...thread,
+    id: String(thread.id),
+    createdAt: toDate(thread.createdAt),
+    updatedAt: toDate(thread.updatedAt ?? thread.createdAt),
+    comments: (thread.comments ?? []).map(comment => ({
+      type: 'comment',
+      reactions: [],
+      metadata: {},
+      ...comment,
+      id: String(comment.id),
+      userId: String(comment.userId),
+      createdAt: toDate(comment.createdAt),
+      updatedAt: toDate(comment.updatedAt ?? comment.createdAt)
+    }))
+  }))
+}
+
 /**
  * In-memory ThreadStore implementation for BlockNote comments.
  *
@@ -9,13 +43,25 @@ import { ThreadStore, DefaultThreadStoreAuth } from '@blocknote/core/comments'
  * Use this for previews, demos, or single-user note-taking where comments
  * don't need to survive page reloads. For persistent comments, host apps
  * should implement their own ThreadStore backed by a REST API.
+ *
+ * `seedThreads` gives the store a starting set. It is what lets a demo open with
+ * threads already in the sidebar: the comments sidebar reads its threads from the
+ * STORE, not from the document, so a seeded thread shows without the text carrying
+ * a `comment` mark. That distinction is not a shortcut — BlockNote's comment mark
+ * declares `blocknoteIgnore`, so it is deliberately absent from the block JSON and
+ * cannot be expressed in `initial_content` at all. Seeded threads are therefore
+ * anchorless: they list and read, and clicking one highlights nothing.
  */
 export class InMemoryThreadStore extends ThreadStore {
-  constructor (userId, role = 'editor') {
+  constructor (userId, role = 'editor', seedThreads = []) {
     super(new DefaultThreadStoreAuth(userId, role))
     this._userId = userId
     this._threads = new Map()
     this._subscribers = new Set()
+
+    for (const thread of normalizeSeed(seedThreads)) {
+      this._threads.set(thread.id, thread)
+    }
   }
 
   _generateId () {

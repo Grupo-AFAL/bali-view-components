@@ -177,6 +177,29 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     assert_selector('[data-block-editor-comments-url-value=""]')
   end
 
+  # `threads:` is what lets a store that does not persist open with something in it — the
+  # comments sidebar reads the STORE, so a seeded thread lists without the document having
+  # to say anything. Anchoring it is the other half, and travels in the ProseMirror form of
+  # `initial_content` (#863).
+  def test_with_comments_serializes_seed_threads_as_json_array
+    threads = [
+      { id: "t1", comments: [ { id: "c1", userId: "2", body: [ { type: "paragraph" } ] } ] }
+    ]
+    render_inline(Bali::BlockEditor::Component.new(
+                    comments: { user: { id: "1", username: "Alice" }, threads: threads }
+                  ))
+
+    parsed = JSON.parse(page.find("[data-block-editor-comments-threads-value]")[:"data-block-editor-comments-threads-value"])
+    assert_equal(1, parsed.size)
+    assert_equal("t1", parsed.first["id"])
+    assert_equal("c1", parsed.first["comments"].first["id"])
+  end
+
+  def test_with_comments_defaults_seed_threads_to_an_empty_array
+    render_inline(Bali::BlockEditor::Component.new(comments: { user: { id: "1", username: "Alice" } }))
+    assert_selector('[data-block-editor-comments-threads-value="[]"]')
+  end
+
   def test_export_functionality_does_not_render_export_buttons_by_default
     render_inline(Bali::BlockEditor::Component.new)
     assert_no_selector('[data-action*="exportPdf"]')
