@@ -36,6 +36,16 @@ class SearchableMovieFilterForm < Bali::FilterForm
   filter_attribute :genre, type: :select, options: [ %w[Action action], %w[Comedy comedy] ]
 end
 
+# El listado que reportó #852: búsqueda rápida y filtros simplificados sobre el mismo form,
+# que es donde los dos mecanismos de "estado" (la persistencia y las vistas guardadas) se
+# cruzan. Las opciones valen lo mismo que la columna para poder afirmar sobre el recorte.
+class SearchableSimpleFilterForm < Bali::FilterForm
+  search_fields :name, :genre
+
+  filter_attribute :genre, type: :select, simple: true, advanced: false,
+                   options: [ %w[Action Action], %w[Comedy Comedy] ], blank: "All Genres"
+end
+
 # Test form declaring simple-UI-only filters
 class SimpleFilterableMovieFilterForm < Bali::FilterForm
   filter_attribute :genre, type: :select, simple: true, advanced: false,
@@ -737,6 +747,121 @@ class BaliFilterFormPersistenceTest < ActiveSupport::TestCase
 
     assert_nil(@form.search_value, "la vista vacía debe ganarle a la búsqueda vieja en caché")
     assert_equal([], @form.filter_groups)
+  end
+
+  # --- #852: la persistencia cubre los filtros simplificados, igual que las vistas guardadas ---
+  #
+  # El marcador "Recordar filtros" no estaba muerto —gobierna la búsqueda rápida—, y por eso
+  # era peor: el usuario volvía al listado y la búsqueda aparecía, pero sus selects no. Una
+  # vista guardada SOBRE EL MISMO LISTADO sí los restauraba (`PAYLOAD_KEYS` los incluye), o
+  # sea que el mismo componente tenía dos definiciones de "el estado de los filtros".
+
+  def test_persists_and_restores_an_active_simple_filter
+    SearchableSimpleFilterForm.new(Movie.all, params(genre_eq: "Action"), storage_id: "movies")
+
+    stored = Rails.cache.read(cache_key_for(SearchableSimpleFilterForm))
+    assert_equal({ "genre_eq" => "Action" }, stored[:simple_filters])
+
+    restored = SearchableSimpleFilterForm.new(
+      Movie.all, ActionController::Parameters.new, storage_id: "movies", persist_enabled: true
+    )
+    assert_equal({ "genre_eq" => "Action" }, restored.active_simple_filters)
+    assert_equal("Action", restored.ransack_params["genre_eq"],
+                 "restaurar tiene que llegar hasta Ransack, no solo pintar el select")
+  end
+
+  def test_a_restored_simple_filter_narrows_the_result
+    tenant = Tenant.create(name: "Restore Studio")
+    tenant.movies.create(name: "Iron Man", genre: "Action")
+    tenant.movies.create(name: "Snatch", genre: "Comedy")
+
+    SearchableSimpleFilterForm.new(Movie.all, params(genre_eq: "Action"), storage_id: "movies")
+    restored = SearchableSimpleFilterForm.new(
+      Movie.all, ActionController::Parameters.new, storage_id: "movies", persist_enabled: true
+    )
+
+    names = restored.result.pluck(:name)
+    assert_includes(names, "Iron Man")
+    refute_includes(names, "Snatch")
+  end
+
+  def test_a_simple_filter_is_not_restored_when_persistence_is_off
+    # El marcador gobierna: si apagado restaurase, el arreglo habría cambiado lo que el
+    # marcador significa en vez de ampliar lo que cubre.
+    SearchableSimpleFilterForm.new(Movie.all, params(genre_eq: "Action"), storage_id: "movies")
+
+    restored = SearchableSimpleFilterForm.new(
+      Movie.all, ActionController::Parameters.new, storage_id: "movies", persist_enabled: false
+    )
+    assert_empty(restored.active_simple_filters)
+  end
+
+  def test_a_simple_filter_from_the_url_beats_the_persisted_state
+    # La otra mitad, y la más grave: como `has_filter_params` no contaba los simplificados,
+    # una URL que solo pedía uno caía en el branch de RESTAURAR y la caché le ganaba a la URL.
+    # Medido en /admin/studios sobre `?q[country_eq]=USA`: 9 filas con la cookie de
+    # persistencia en 1 —se colaba una búsqueda guardada que la URL no menciona— contra 10 con
+    # la cookie en 0. Un enlace compartido rendía distinto según una cookie de quien lo abría.
+    SearchableSimpleFilterForm.new(Movie.all, params(name_or_genre_cont: "iron"), storage_id: "movies")
+
+    deep_link = SearchableSimpleFilterForm.new(
+      Movie.all, params(genre_eq: "Action"), storage_id: "movies", persist_enabled: true
+    )
+    assert_nil(deep_link.search_value, "la URL manda: no puede colarse una búsqueda que no nombra")
+    assert_equal({ "genre_eq" => "Action" }, deep_link.active_simple_filters)
+  end
+
+  def test_clearing_a_simple_filter_is_not_undone_by_the_persisted_one
+    # El form de SimpleFilters manda TODOS sus controles, así que vaciar el select llega como
+    # `q[genre_eq]=`: valor vacío, elección explícita. Sin distinguir eso de "no vino nada"
+    # —la misma distinción que `@group_by_requested`—, restaurar le devolvía al usuario el
+    # filtro que acababa de limpiar.
+    SearchableSimpleFilterForm.new(Movie.all, params(genre_eq: "Action"), storage_id: "movies")
+
+    cleared = SearchableSimpleFilterForm.new(
+      Movie.all, params(genre_eq: ""), storage_id: "movies", persist_enabled: true
+    )
+    assert_empty(cleared.active_simple_filters)
+
+    returning = SearchableSimpleFilterForm.new(
+      Movie.all, ActionController::Parameters.new, storage_id: "movies", persist_enabled: true
+    )
+    assert_empty(returning.active_simple_filters, "limpiar tiene que sobrevivir al próximo request")
+  end
+
+  def test_clearing_the_search_keeps_the_simple_filters
+    # `clearSearch` navega descartando TODOS los `q[...]` (ver preservedParamsUrl), así que la
+    # caché es la única fuente de lo que había elegido: si el merge o la tupla se los lleva,
+    # limpiar la búsqueda limpia también los selects.
+    SearchableSimpleFilterForm.new(
+      Movie.all, params(genre_eq: "Action", name_or_genre_cont: "iron"), storage_id: "movies"
+    )
+
+    cleared = SearchableSimpleFilterForm.new(
+      Movie.all, ActionController::Parameters.new(clear_search: true),
+      storage_id: "movies", persist_enabled: true
+    )
+    assert_nil(cleared.search_value)
+    assert_equal({ "genre_eq" => "Action" }, cleared.active_simple_filters)
+
+    stored = Rails.cache.read(cache_key_for(SearchableSimpleFilterForm))
+    assert_equal({ "genre_eq" => "Action" }, stored[:simple_filters],
+                 "y tienen que sobrevivir al merge que anula la búsqueda")
+  end
+
+  def test_a_form_without_simple_filters_stores_an_empty_simple_filter_state
+    # El payload crece para todos, y el branch de restaurar lo lee sin condicionar: un form
+    # sin simplificados no puede quedar leyendo una llave que nunca se escribió.
+    SearchableMovieFilterForm.new(
+      Movie.all, params(name_or_genre_or_tenant_name_cont: "Iron"), storage_id: "movies"
+    )
+
+    stored = Rails.cache.read(cache_key_for(SearchableMovieFilterForm))
+    assert_empty(stored[:simple_filters])
+
+    restored = SearchableMovieFilterForm.new(Movie.all, params({}), storage_id: "movies",
+                                             persist_enabled: true)
+    assert_equal("Iron", restored.search_value)
   end
 end
 
