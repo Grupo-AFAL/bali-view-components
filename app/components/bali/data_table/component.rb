@@ -297,7 +297,9 @@ module Bali
       # @param pagy [Pagy] Optional Pagy object for pagination
       # @param show_summary [Boolean] Show summary (default: true when pagy present)
       # @param summary_position [Symbol] :bottom (default) or :top
-      # @param item_name [String] Name for items in summary (i18n default)
+      # @param item_name [String, Symbol, Hash] Name for items in summary. A Symbol is an
+      #   i18n key resolved with `count:` (full CLDR plurals); a Hash picks `one:`/`other:`
+      #   by count; a String is used verbatim, invariant with the count (i18n default)
       # @param table_class [String] CSS class for the content scroll wrapper
       # @param display_mode [Symbol] Modo de visualización pedido por el host (típicamente
       #   `params[:view]`). NO elige slot (hay uno solo): el host decide qué contenido

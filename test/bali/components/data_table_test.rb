@@ -1024,6 +1024,13 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_text("Showing 1-10 of 47 items")
   end
 
+  def test_footer_picks_the_singular_from_a_hash_item_name
+    render_with_pagy(Pagy::Offset.new(count: 1, page: 1, limit: 10),
+      item_name: { one: "movie", other: "movies" })
+
+    assert_text("Showing 1-1 of 1 movie")
+  end
+
   # Con cero resultados el listado decía "Showing 0-0 of 0 movies" debajo de una tabla vacía.
   def test_footer_says_nothing_without_results
     render_with_pagy(Pagy::Offset.new(count: 0, page: 1, limit: 10), item_name: "movies")

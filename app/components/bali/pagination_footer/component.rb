@@ -49,7 +49,9 @@ module Bali
       renders_one :controls
 
       # @param pagy [Pagy] Pagy object for pagination
-      # @param item_name [String] Name for items in summary (i18n default)
+      # @param item_name [String, Symbol, Hash] Name for items in summary. A Symbol is an
+      #   i18n key resolved with `count:` (full CLDR plurals); a Hash picks `one:`/`other:`
+      #   by count; a String is used verbatim, invariant with the count (i18n default)
       # @param show_summary [Boolean] Whether to show summary text (default: true)
       # @param show_pagination [Boolean] Whether to show pagination controls (default: true)
       # @param size [Symbol] Button size forwarded to Pagination - :xs, :sm, :md, :lg

@@ -29,6 +29,14 @@ class BaliPaginationFooterComponentTest < ComponentTestCase
     assert_text("Showing 1-10 of 47 studios")
   end
 
+  def test_picks_the_singular_from_a_hash_item_name
+    single_pagy = Pagy::Offset.new(count: 1, page: 1, limit: 10)
+    render_inline(Bali::PaginationFooter::Component.new(
+      pagy: single_pagy, item_name: { one: "movie", other: "movies" }
+    ))
+    assert_text("Showing 1-1 of 1 movie")
+  end
+
   def test_hides_summary_when_show_summary_is_false
     render_inline(Bali::PaginationFooter::Component.new(pagy: @pagy, show_summary: false))
     assert_no_text("Showing")

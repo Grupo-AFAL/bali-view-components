@@ -85,6 +85,23 @@ class BaliPaginationPagyAdapterTest < ActiveSupport::TestCase
     end
   end
 
+  def test_summary_pluralizes_the_default_item_name_by_count
+    pagy = Pagy::Offset.new(count: 1, page: 1, limit: 10)
+    assert_equal "Showing 1-1 of 1 item", adapter(pagy).summary
+  end
+
+  def test_summary_picks_one_or_other_from_a_hash_item_name
+    one = Pagy::Offset.new(count: 1, page: 1, limit: 10)
+    assert_equal "Showing 1-1 of 1 movie", adapter(one).summary(one: "movie", other: "movies")
+    assert_equal "Showing 21-30 of 100 movies", adapter.summary(one: "movie", other: "movies")
+  end
+
+  def test_summary_resolves_a_symbol_item_name_through_i18n_with_count
+    I18n.backend.store_translations(:en, movies_for_test: { one: "movie", other: "movies" })
+    one = Pagy::Offset.new(count: 1, page: 1, limit: 10)
+    assert_equal "Showing 1-1 of 1 movie", adapter(one).summary(:movies_for_test)
+  end
+
   # --- series -------------------------------------------------------------------------
 
   # Pagy keeps `series` protected; this is the shape the template's `case` depends on.
