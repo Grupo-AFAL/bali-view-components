@@ -10,7 +10,7 @@ PATH
   specs:
     bali_view_components (3.0.0.beta.3)
       caxlsx
-      lucide-rails (>= 0.3.0)
+      lucide-rails (>= 0.3.0, < 0.8)
       rails (>= 8.1, < 9.0)
       ransack
       view_component (>= 4.0.0, < 5.0)

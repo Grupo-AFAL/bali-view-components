@@ -22,7 +22,11 @@ Gem::Specification.new do |spec|
   end
 
   spec.add_dependency "caxlsx"
-  spec.add_dependency "lucide-rails", ">= 0.3.0"
+  # Capped: icon resolution and several legacy spellings ride the alias SVGs
+  # lucide-rails still ships, and an uncapped bump that drops them turns those
+  # names into IconNotAvailable — a 500 — with no change on the host's side.
+  # Raise the cap only after revalidating LucideMapping against the new set.
+  spec.add_dependency "lucide-rails", ">= 0.3.0", "< 0.8"
   spec.add_dependency "rails", ">= 8.1", "< 9.0"
   spec.add_dependency "ransack"
 
