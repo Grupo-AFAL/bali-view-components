@@ -1716,6 +1716,29 @@ from the shared table instead of `"btn-#{size}"`. That interpolation was invisib
 Tailwind's scanner, so those classes only ever shipped because some other component happened
 to spell them out. Nothing to change at your call sites.
 
+### The FormBuilder's submit joins the taxonomy
+
+`f.submit`, `submit_field` and `submit_group` were the last `.btn` in the library dressed
+by a private map. They validate through the same three keywords now: the variants the old
+map silently swallowed (`:neutral`, `:info`, `:link`) render, `size: :xl` exists, and
+`style:` means the fill — it used to fall through to the element as an inline
+`style="outline"` attribute, and an inline CSS `style:` on a submit is therefore no longer
+expressible (every other family still passes `style:` through as the HTML attribute).
+
+An unknown value raises `ArgumentError` at render naming the replacement, where it used to
+paint a colourless button:
+
+```erb
+<%# v2: rendered a plain .btn and looked merely unstyled %>
+<%= f.submit_field "Delete", variant: :danger %>
+<%# v3: raises — the message says: Use variant: :error. %>
+<%= f.submit_field "Delete", variant: :error %>
+```
+
+```
+grep -rn -A2 "submit_field\|submit_group\|f.submit\b\|submit_actions" app/ | grep -E "variant:|style:"
+```
+
 ### `submit_group`'s Cancel is `btn-ghost`, not `btn-secondary`
 
 Nothing to change at the call site, but every form using `submit_group` with a `cancel_path:`,
