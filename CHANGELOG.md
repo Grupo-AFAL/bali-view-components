@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+### Fixed
+
+- **The `actions_dropdown/with_custom_trigger` preview stops drawing two borders.** It nested its own `<button class="btn btn-outline">` inside the trigger slot, but the slot already renders `Dropdown::Trigger` — a `.btn`-dressed `div[role="button"][tabindex="0"]` carrying the wiring — so the preview painted two bordered boxes and offered two tab stops. Measured before/after: 2 `.btn` boxes → 1, 2 tab stops → 1, wiring intact and the menu still opens. The preview now shows the intended shape (`with_trigger(variant: :outline, class: 'btn-sm') { 'Actions ▾' }`), and its notes say why nesting a second button is the wrong one — the reference implementation is what hosts copy.
+
 ## [v3.0.0.beta.4] - 2026-08-04
 
 ### Added

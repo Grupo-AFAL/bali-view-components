@@ -33,8 +33,11 @@ module Bali
 
       # With Custom Trigger
       # ---------------
-      # Override the default ellipsis icon with a custom trigger button.
-      # Use `with_trigger` slot to provide any element as the dropdown trigger.
+      # Replace the default ellipsis with a labelled trigger. The `with_trigger` slot
+      # renders `Dropdown::Trigger` — it already IS the button (chrome, wiring, role,
+      # tabindex), so dress it with `variant:` / `class:` and pass the label as content.
+      # Do not nest your own `<button class="btn">` in it: that paints a second bordered
+      # box inside the first and adds a second tab stop.
       def with_custom_trigger
         render_with_template
       end
