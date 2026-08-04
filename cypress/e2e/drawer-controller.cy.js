@@ -53,7 +53,7 @@ describe('DrawerController', () => {
       cy.get(SUBMIT).then($b => { width = $b[0].getBoundingClientRect().width })
       cy.get(SUBMIT).click()
 
-      // `checkValidity()` fails before the fetch, so this is the one path that
+      // `reportValidity()` fails before the fetch, so this is the one path that
       // comes back to a button that is still on screen.
       cy.get(SUBMIT).should('not.have.attr', 'disabled')
       cy.get(SUBMIT).should('not.have.attr', 'aria-busy')
@@ -63,6 +63,56 @@ describe('DrawerController', () => {
         expect($b[0].getBoundingClientRect().width).to.be.closeTo(width, 1)
         expect($b[0].style.minWidth).to.equal('')
       })
+    })
+  })
+
+  // `submit` hace `event.preventDefault()` antes de validar, así que el navegador no va a
+  // reportar nada por su cuenta: si el controlador no lo pide, no lo pide nadie. Hasta #894
+  // lo pedía recorriendo `input` a mano, así que un `<textarea>` o un `<select>` requerido
+  // bloqueaba el envío en silencio — sin petición, sin mensaje, sin globo y sin foco en
+  // ninguna parte. El globo nativo no se puede leer desde el DOM; el foco sí, y es donde
+  // `reportValidity()` deja al primer control inválido.
+  context('required fields that are not <input>', () => {
+    const SUBMIT = '[data-action="drawer#submit"]'
+    const focusedId = () => cy.window().then(win => win.document.activeElement.id)
+
+    beforeEach(() => {
+      cy.visit('/bali/drawer/required_fields')
+      cy.get('.drawer-open').should('exist')
+      cy.intercept('POST', '/fake/submit*', { body: 'ok' }).as('submit')
+    })
+
+    it('stops at the first invalid control and sends nothing', () => {
+      cy.get(SUBMIT).click()
+
+      focusedId().should('equal', 'required-name')
+      cy.get('@submit.all').should('have.length', 0)
+    })
+
+    it('reports a required <textarea>', () => {
+      cy.get('#required-name').type('Something')
+      cy.get(SUBMIT).click()
+
+      focusedId().should('equal', 'required-description')
+      cy.get('@submit.all').should('have.length', 0)
+    })
+
+    it('reports a required <select>', () => {
+      cy.get('#required-name').type('Something')
+      cy.get('#required-description').type('A description')
+      cy.get(SUBMIT).click()
+
+      focusedId().should('equal', 'required-urgency')
+      cy.get('@submit.all').should('have.length', 0)
+    })
+
+    it('lets the submit through once every control is filled', () => {
+      cy.get('#required-name').type('Something')
+      cy.get('#required-description').type('A description')
+      cy.get('#required-urgency').select('high')
+      cy.get(SUBMIT).click()
+
+      cy.wait('@submit')
     })
   })
 
