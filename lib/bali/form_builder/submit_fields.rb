@@ -7,28 +7,13 @@ module Bali
       WRAPPER_CLASS = "inline"
       SUBMIT_ACTIONS_CLASS = "submit-actions flex items-center justify-end gap-2 mt-6"
 
-      VARIANTS = {
-        primary: "btn-primary",
-        secondary: "btn-secondary",
-        accent: "btn-accent",
-        success: "btn-success",
-        warning: "btn-warning",
-        error: "btn-error",
-        ghost: "btn-ghost"
-      }.freeze
-
-      SIZES = {
-        xs: "btn-xs",
-        sm: "btn-sm",
-        md: nil,
-        lg: "btn-lg"
-      }.freeze
-
       # Everything `submit_field` and `submit_group` read for themselves: the
       # button styling, the Stimulus wiring and the cancel button beside it. None
-      # of them is an attribute of the <button> that comes out the other end.
+      # of them is an attribute of the <button> that comes out the other end —
+      # `style:` included, or it would land on the element as an inline CSS
+      # attribute.
       SUBMIT_OPTIONS = %i[
-        variant size wrapper_class class modal drawer
+        variant style size wrapper_class class modal drawer
         cancel_path cancel_options field_id field_class field_data
       ].freeze
 
@@ -40,6 +25,7 @@ module Bali
           type: "submit",
           class: button_classes(
             variant: options[:variant] || :primary,
+            style: options[:style],
             size: options[:size],
             custom_class: options[:class]
           )
@@ -80,13 +66,18 @@ module Bali
 
       private
 
-      def button_classes(variant:, size: nil, custom_class: nil)
+      # The submit button dresses through the same table as Button, Link and
+      # DeleteLink — it was the last `.btn` in the library with a private map,
+      # which is how `variant: :info` rendered a colourless button in silence
+      # instead of raising like every other component.
+      def button_classes(variant:, style: nil, size: nil, custom_class: nil)
         [
           BUTTON_BASE_CLASS,
-          VARIANTS[variant],
-          SIZES[size],
+          Bali::ButtonTaxonomy.variant!("Bali::FormBuilder#submit_field", variant),
+          Bali::ButtonTaxonomy.style!("Bali::FormBuilder#submit_field", style),
+          Bali::ButtonTaxonomy.size!("Bali::FormBuilder#submit_field", size),
           custom_class
-        ].compact.join(" ")
+        ].compact_blank.join(" ")
       end
 
       def apply_stimulus_actions(options, attributes)

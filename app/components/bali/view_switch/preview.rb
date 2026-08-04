@@ -10,7 +10,7 @@ module Bali
       def default(size: :sm)
         render ViewSwitch::Component.new(aria_label: "Views", size: size) do |switch|
           switch.with_view(name: "List", icon: "list", href: "/lookbook", active: true)
-          switch.with_view(name: "Board", icon: "grid", href: "/lookbook?view=board")
+          switch.with_view(name: "Board", icon: "grid-2x2", href: "/lookbook?view=board")
         end
       end
 
@@ -18,7 +18,7 @@ module Bali
       def three_views
         render ViewSwitch::Component.new(aria_label: "Views") do |switch|
           switch.with_view(name: "Plan", icon: "list", href: "/lookbook")
-          switch.with_view(name: "Board", icon: "grid", href: "/lookbook?view=board", active: true)
+          switch.with_view(name: "Board", icon: "grid-2x2", href: "/lookbook?view=board", active: true)
           switch.with_view(name: "Schedule", icon: "calendar", href: "/lookbook?view=schedule")
         end
       end
@@ -36,7 +36,7 @@ module Bali
         render ViewSwitch::Component.new(aria_label: "Views") do |switch|
           switch.with_view(name: "List", icon: "list", href: "/lookbook",
                            active: true, data: { turbo_action: "replace" })
-          switch.with_view(name: "Board", icon: "grid", href: "/lookbook?view=board",
+          switch.with_view(name: "Board", icon: "grid-2x2", href: "/lookbook?view=board",
                            data: { turbo_action: "replace" })
         end
       end

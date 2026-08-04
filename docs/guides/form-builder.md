@@ -546,9 +546,11 @@ Styled submit button, on its own.
 <%= f.submit "Save" %>  <%# Rails' name for the same thing %>
 ```
 
-**Options:**
-- `variant` - `:primary`, `:secondary`, `:accent`, `:success`, `:warning`, `:error`, `:ghost`
-- `size` - `:xs`, `:sm`, `:md`, `:lg`
+**Options** (validated through `Bali::ButtonTaxonomy`, the same table as `Button`,
+`Link` and `DeleteLink` — an unknown value raises naming the replacement):
+- `variant` - the colour: `:neutral`, `:primary`, `:secondary`, `:accent`, `:info`, `:success`, `:warning`, `:error`, `:ghost`, `:link`
+- `style` - the fill: `:outline`, `:soft`
+- `size` - `:xs`, `:sm`, `:md`, `:lg`, `:xl`
 - `modal` - Add modal submit action
 - `drawer` - Add drawer submit action
 

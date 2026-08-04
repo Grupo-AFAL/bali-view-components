@@ -18,21 +18,58 @@ class BaliFormBuilderSubmitButtonsTest < FormBuilderTestCase
                  Bali::FormBuilder::SubmitFields::SUBMIT_ACTIONS_CLASS
   end
 
-  def test_submitfields_constants_defines_frozen_variants_hash
-    assert Bali::FormBuilder::SubmitFields::VARIANTS.frozen?
-    variants = Bali::FormBuilder::SubmitFields::VARIANTS
-    assert_equal "btn-primary", variants[:primary]
-    assert_equal "btn-secondary", variants[:secondary]
-    assert_equal "btn-success", variants[:success]
-    assert_equal "btn-error", variants[:error]
+  # The submit button dresses through Bali::ButtonTaxonomy — the same table as
+  # Button, Link and DeleteLink. The variants its old private map left out now
+  # render, and an unknown value raises instead of painting a colourless
+  # button, which is how a stale name used to survive unnoticed.
+
+  def test_submit_field_renders_the_variants_the_private_map_left_out
+    assert_html(builder.submit_field("Save", variant: :info), "button.btn.btn-info")
+    assert_html(builder.submit_field("Save", variant: :neutral), "button.btn.btn-neutral")
+    assert_html(builder.submit_field("Save", variant: :link), "button.btn.btn-link")
   end
 
-  def test_submitfields_constants_defines_frozen_sizes_hash
-    assert Bali::FormBuilder::SubmitFields::SIZES.frozen?
-    sizes = Bali::FormBuilder::SubmitFields::SIZES
-    assert_equal "btn-xs", sizes[:xs]
-    assert_equal "btn-sm", sizes[:sm]
-    assert_equal "btn-lg", sizes[:lg]
+  def test_submit_field_with_unknown_variant_raises_naming_the_valid_values
+    error = assert_raises(ArgumentError) { builder.submit_field("Save", variant: :chartreuse) }
+    assert_match(/unknown variant :chartreuse/, error.message)
+    assert_match(/:primary/, error.message)
+  end
+
+  def test_submit_field_with_a_bulma_variant_raises_naming_the_replacement
+    error = assert_raises(ArgumentError) { builder.submit_field("Save", variant: :danger) }
+    assert_match(/Bulma name removed in v3/, error.message)
+    assert_match(/variant: :error/, error.message)
+  end
+
+  def test_submit_field_with_variant_outline_raises_pointing_at_the_style_axis
+    error = assert_raises(ArgumentError) { builder.submit_field("Save", variant: :outline) }
+    assert_match(/a fill, not a colour/, error.message)
+    assert_match(/style: :outline/, error.message)
+  end
+
+  # style option
+
+  def test_submit_field_with_style_option_applies_the_fill_class
+    assert_html(builder.submit_field("Save", style: :outline), "button.btn.btn-outline")
+    assert_html(builder.submit_field("Save", style: :soft), "button.btn.btn-soft")
+  end
+
+  def test_submit_field_style_is_an_option_not_an_inline_style_attribute
+    result = builder.submit_field("Save", style: :outline)
+    refute_html(result, "button[style]")
+  end
+
+  def test_submit_field_with_unknown_style_raises
+    assert_raises(ArgumentError) { builder.submit_field("Save", style: :dotted) }
+  end
+
+  def test_submit_field_with_unknown_size_raises
+    assert_raises(ArgumentError) { builder.submit_field("Save", size: :huge) }
+  end
+
+  def test_submit_rails_name_validates_through_the_same_table
+    assert_html(builder.submit("Save", variant: :info), "button.btn.btn-info")
+    assert_raises(ArgumentError) { builder.submit("Save", { variant: :danger }) }
   end
 
   # #submit_field
@@ -84,6 +121,11 @@ class BaliFormBuilderSubmitButtonsTest < FormBuilderTestCase
   def test_submit_field_with_size_option_applies_lg_size
     result = builder.submit_field("Save", size: :lg)
     assert_html(result, "button.btn.btn-lg")
+  end
+
+  def test_submit_field_with_size_option_applies_xl_size
+    result = builder.submit_field("Save", size: :xl)
+    assert_html(result, "button.btn.btn-xl")
   end
 
   def test_submit_field_with_size_option_applies_no_size_class_for_md_default

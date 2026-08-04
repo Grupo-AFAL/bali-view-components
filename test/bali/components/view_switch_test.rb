@@ -6,7 +6,7 @@ class BaliViewSwitchComponentTest < ComponentTestCase
   def render_switch(**component_options)
     render_inline(Bali::ViewSwitch::Component.new(aria_label: "Views", **component_options)) do |switch|
       switch.with_view(name: "List", icon: "list", href: "/projects/list", active: true)
-      switch.with_view(name: "Board", icon: "grid", href: "/projects/board")
+      switch.with_view(name: "Board", icon: "grid-2x2", href: "/projects/board")
     end
   end
 
@@ -64,7 +64,7 @@ class BaliViewSwitchComponentTest < ComponentTestCase
     with_request_url "/admin/studios" do
       render_inline(Bali::ViewSwitch::Component.new(aria_label: "Views")) do |switch|
         switch.with_view(name: "List", icon: "list", href: "/admin/movies")
-        switch.with_view(name: "Board", icon: "grid", href: "/admin/studios")
+        switch.with_view(name: "Board", icon: "grid-2x2", href: "/admin/studios")
       end
     end
     assert_selector("a.btn-active.btn-primary[href='/admin/studios'][aria-current='page']")
@@ -74,7 +74,7 @@ class BaliViewSwitchComponentTest < ComponentTestCase
   def test_autodetection_ignores_the_query_string
     with_request_url "/admin/studios?page=2" do
       render_inline(Bali::ViewSwitch::Component.new(aria_label: "Views")) do |switch|
-        switch.with_view(name: "Board", icon: "grid", href: "/admin/studios")
+        switch.with_view(name: "Board", icon: "grid-2x2", href: "/admin/studios")
       end
     end
     assert_selector("a.btn-active.btn-primary[aria-current='page']")
@@ -83,7 +83,7 @@ class BaliViewSwitchComponentTest < ComponentTestCase
   def test_explicit_active_false_overrides_autodetection
     with_request_url "/admin/studios" do
       render_inline(Bali::ViewSwitch::Component.new(aria_label: "Views")) do |switch|
-        switch.with_view(name: "Board", icon: "grid", href: "/admin/studios", active: false)
+        switch.with_view(name: "Board", icon: "grid-2x2", href: "/admin/studios", active: false)
       end
     end
     assert_selector("a.btn-outline:not([aria-current])")

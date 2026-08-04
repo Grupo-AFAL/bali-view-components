@@ -22,7 +22,7 @@
       preservando filtros, orden, agrupación y la vista guardada aplicada. %>
   <% data_table.with_view_switch do |switch| %>
     <% switch.with_view(name: t('movies.views.table'), icon: 'list', value: :table) %>
-    <% switch.with_view(name: t('movies.views.cards'), icon: 'grid', value: :grid) %>
+    <% switch.with_view(name: t('movies.views.cards'), icon: 'grid-2x2', value: :grid) %>
     <% switch.with_view(name: t('movies.views.calendar'), icon: 'calendar', value: :calendar) %>
   <% end %>
 
