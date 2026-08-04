@@ -2509,12 +2509,17 @@ two back.
 
 ## Behaviour changes with no API change
 
+**Two of these raise, despite the heading.** The signature did not change, so they live
+here — but the failure is an `ArgumentError` at render time, which is a 500, not a
+degraded page. They are marked **RAISES** below, because a reader scanning this section
+for "what breaks" would reasonably skip a section whose title says nothing does.
+
 - **`toolbar_class:` is ignored, not rejected.** `DataTable#initialize` swallows unknown
   keywords in `**options`, so a leftover `toolbar_class:` raises nothing and simply loses
   its styling — unlike every other removal in the table above, which raises `ArgumentError`.
   Same for `display_mode:`'s old sibling `data_display_mode:` as a keyword. (It never
   shipped in a released 2.x — only apps tracking `main` need to grep for it.)
-- **`DataTable#with_content` shadows `ViewComponent::Base#with_content`.** The content band
+- **RAISES — `DataTable#with_content` shadows `ViewComponent::Base#with_content`.** The content band
   is declared with keywords (`with_content(surface:, scroll:)`), so the base one-positional
   form raises `ArgumentError: wrong number of arguments`. It was a silent no-op on
   `DataTable` before, so nothing that worked stops working — but the error is new.
@@ -2537,12 +2542,17 @@ two back.
   purpose (a density switch, a print mode, a tab) silently **stops grouping** after the
   upgrade — the page still returns 200, only the bands and their counts are gone. Pass
   `view_param:` on both sides, or widen `group_by_modes:`.
-- **A listing whose default view is not the table must tell the form.** The `DataTable`
-  resolves an absent `?view=` to the *first declared view*; the form, seeing no param,
-  assumes the grouping applies. Declare the table first, or pass the same value to both
-  (`Bali::FilterForm.new(..., display_mode: params[:view] || :grid)`). While they disagree
-  the `DataTable` raises `ArgumentError` on render rather than sorting cards by a group
-  nobody can see.
+- **RAISES — a listing whose default view is not the table must tell the form.** The
+  `DataTable` resolves an absent `?view=` to the *first declared view*; the form, seeing no
+  param, assumes the grouping applies. Declare the table first, or pass the same value to
+  both (`Bali::FilterForm.new(..., display_mode: params[:view] || :grid)`). While they
+  disagree the `DataTable` raises `ArgumentError` on render rather than sorting cards by a
+  group nobody can see.
+
+  It only bites where the default view is not the table, which is the minority — but where
+  it bites it takes the whole listing down. On one app in the group the projects index
+  opens on cards, and this was among the first 500s of the migration. The Checklist's
+  `grep -rn "view=\|params\[:view\]"` is what finds them.
 - **"No grouping" now leaves `?group_by=` in the URL** instead of dropping the param. With
   filter persistence on, an absent param means "restore whatever was cached", so removing
   it brought the grouping straight back.
@@ -3271,6 +3281,24 @@ the replacement out. `Bali::RansackParamName.predicate([:name, :email])` and `.p
 are the public way to build `name_or_email_cont` and `q[name_or_email_cont]` yourself if
 you need the string somewhere else.
 
+### Whether to keep your `search_placeholder:` depends on your translations
+
+With `fields:` declared, Bali derives the placeholder itself — "Search by name, email…" —
+running each field through `human_attribute_name`, so a host's existing
+`activerecord.attributes.*` translations come through with nothing to wire up. That is the
+argument for deleting a hand-written `search_placeholder:`, and for most listings it is
+the right call.
+
+The half that decides the other cases: `human_attribute_name` only returns your language
+**if the model has its attributes translated**, and it cannot reach a Ransack path through
+an association at all — `initiative_title`, `project_name` and the like are nobody's
+attribute, so there is no key to look up and no fallback that could produce one. A host
+with no `activerecord.attributes` block gets humanised column names in English.
+
+So: delete the Ruby-side placeholder where the fields are columns of a translated model,
+and keep it where they are association paths. Deciding it per listing rather than in bulk
+cost one measurement of 22 search forms on the largest app in the group.
+
 Run these:
 
 ```bash
@@ -3620,7 +3648,80 @@ grep -rnE "is-boxed|field-body|inline-label|delete-column|block-radio|large-radi
 grep -rnE "(block_editor|rich_text|rich_text_area|coordinates_polygon|time_period|direct_upload|recurrent_event_rule)_(group|field).*required" app/
 ```
 
-Then walk the sidebar with the keyboard at a phone width: Tab to the hamburger, Enter,
+### Inventory the deprecations twice, because one sweep cannot see the other half
+
+There are **two** families of deprecation warning here and neither inventory covers the
+other. Grepping the suite output — the obvious recipe, and the one this guide used to
+give on its own — finds only one of them, and the miss is silent.
+
+A deprecation emitted **in the body of a class** (`FilterForm.simple_filter` is the live
+example) fires once per process, when the class is loaded. So if the class was already
+loaded, the warning does not repeat; if the batch you are running never loads that class,
+the warning never happens at all; and a later run over a subset **looks clean when it is
+not**. Measured on the largest app in the group: one lane came back with no warnings, and
+loading the same classes in a fresh runner printed them.
+
+Worse, three of that app's 28 warnings came from inside **bali-auth**, and they only
+reached the suite because an unrelated structural test happens to call
+`Rails.application.eager_load!`. The `called from` line points at *that test*, not at the
+declaration, so the first diagnosis was wrong. Delete that test and those three warnings
+leave the inventory with nothing to indicate it.
+
+So run this one too, and treat it as the authoritative list for class-body deprecations:
+
+```bash
+# Nothing can hide in a class the run never loaded.
+RAILS_ENV=test bin/rails runner 'Rails.application.eager_load!; warn "EAGER LOAD OK"' 2>&1 | grep -iE "deprecat|EAGER LOAD OK"
+```
+
+Two details that are easy to get wrong. It has to be **`RAILS_ENV=test`** — in development
+eager loading is off, so the command exits clean and the clean means nothing. And print a
+sentinel like the one above: a runner that dies half way through prints a short list that
+*looks* like a clean bill of health.
+
+The suite output is still needed, but only for the family emitted **per render** — the
+FormBuilder's positional hashes. Two inventories, neither one a superset of the other.
+
+### If you mount a gem from the group, it needs its own compatible release
+
+This guide talks about the applications that render the package. A **gem** can render it
+too: `bali-auth` does, and its v0.4.0 does not work against v3 — `variant: :outline` and
+`SimpleFilters(search: { field_name: })` raise `ArgumentError`, which is a 500 on three
+screens of its admin engine.
+
+What makes that dangerous is that it is invisible to the host's suite. Nothing in the host
+tests the mounted engine's routes, so you can sit at ~4970 tests green with three
+administration screens broken. It was the only deploy blocker of that migration, and only
+a human opening the page found it.
+
+Hit the engine's routes yourself. A ten-line integration probe that just asserts a 200 on
+each of them catches it in a minute.
+
+### What the suite cannot see at all
+
+Fifteen of the sixteen commits in `beta.2` were CSS and JavaScript. The host suite went
+from 4966/0 to 4966/0 without moving a digit, and that release still fixed two bugs the app
+had live and changed visible surfaces.
+
+A green suite says nothing about: the toolbar collapsing into the `⋯`, the height of a
+multi-select's pills, the box of a menu item, the alignment of a filter row, or whether a
+`<dialog>` left the page inert. Look at those in a browser after you ship, not before.
+
+Three rules worth carrying, each one learned the hard way:
+
+- **A `multiple:` passed wrongly is not caught by a POST.** The POST sends the params
+  directly and passes whether or not the attribute ever reached the `<select>`. What does
+  catch it is asserting the emitted `name="x[]"` — that name only appears if the attribute
+  landed on the element.
+- **A control that only paints when there is data gives a false zero.** The Delete item on
+  a saved view is the example: with an empty table there is nothing to find and the
+  assertion passes. Seed the row, measure, clean up.
+- **A Tailwind `@source` that matches nothing does not fail**, it just contributes no
+  classes. Check against the compiled CSS, never against the glob.
+
+### The browser pass
+
+Walk the sidebar with the keyboard at a phone width: Tab to the hamburger, Enter,
 Tab through the items, Escape — focus has to come back to the hamburger.
 
 Then load each index page in a browser and check, in this order: the toolbar is not inside
