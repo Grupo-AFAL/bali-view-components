@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+## [v3.0.0.beta.3] - 2026-08-03
+
 ### Fixed
 
 - **A page morph can no longer strand an open `Modal` or `Drawer` in the top layer, leaving the page inert with no way out.** Idiomorph writes every attribute the new node carries and removes every one the old node has that the new one does not; the markup a server sends for an open panel is a *closed* panel, so a morph strips both `open` and the open class. And removing `open` from a `<dialog>` opened with `showModal()` does not take it out of the top layer: the document stays inert, the UA simply stops painting the panel, and `close()` returns early on a dialog with no `open` attribute — without throwing. Nothing was left that could free the page.
@@ -28,7 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   Clearing the search keeps them, too: `clearSearch` navigates dropping every `q[...]`, so the stored state is the only record left of what was selected.
 
-### Fixed
 
 - **`required:` on a `slim_select_*` field is no longer emitted, because it could block the submit without ever telling the user why.** The `<select>` SlimSelect wraps is clipped to 1×1 by `bali/slim_select.css` — correctly, since SlimSelect draws its own UI — and the browser cannot anchor a validation bubble to a box that size. Measured in the browser with only that control invalid: `reportValidity()` returns `false`, focus lands on the `<select>` (it is focusable, being clipped rather than `display: none`), and no message appears and nothing scrolls. The constraint was real and uncommunicable.
 
@@ -45,38 +46,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   Wider than "inside a panel": `AppLayout` renders `<main>` with `data-controller="modal drawer"` by default, so a `submit_group(..., drawer: true)` on an ordinary page is captured by the same controller. The line dates from #430, so this is not a v3 regression. A new `drawer/required_fields` preview covers it.
 
-### Documentation
-
-- **The migration guide's deprecation recipe no longer reports a false clean, and says what a Ruby suite cannot see.** Five additions, all from migrating a 235-file application against `beta.1` and `beta.2`.
-
-  The important one: grepping the suite output finds only the deprecations emitted **per render**. One emitted in the body of a class — `FilterForm.simple_filter` is the live example — fires once per process when the class loads, so it does not repeat if the class was already loaded, never happens at all if the batch does not load that class, and makes a later run over a subset *look* clean. Measured: one lane came back with no warnings and a fresh runner printed them. The guide now gives `RAILS_ENV=test bin/rails runner 'Rails.application.eager_load!; warn "EAGER LOAD OK"'` as the authoritative sweep for that family, with the two details that make it work — it has to be the test environment, because eager loading is off in development and the clean means nothing, and it needs a sentinel, because a runner that dies half way prints a short list that reads like a clean bill of health. Both inventories are needed; neither is a superset of the other.
-
-  Also: a **gem** from the group can render the package too (`bali-auth` does), it needs its own compatible release, and the host's suite cannot see it — ~4970 tests passed with three screens of a mounted engine answering 500. A new "what the suite cannot see at all" section, since fifteen of `beta.2`'s sixteen commits were CSS and JavaScript and the host suite did not move a digit. The two entries under "Behaviour changes with no API change" that actually **raise** are now marked as such, because a reader scanning for "what breaks" skips a section whose title says nothing does. And the search placeholder note now says the half that decides it: `human_attribute_name` only returns your language if the model's attributes are translated, and it cannot reach a Ransack path through an association at all.
-
-- **The migration guide no longer sends you to define `--bali-z-hovercard`, a token nothing declares.** The hovercard shares the tooltip tier — the guide's own table said so thirty lines above, and `HoverCard::Component` documents it too; only the prose disagreed. It fails in the worst direction: a host that declares the invented token sees no error, no warning, and not even the `9999` fallback, which `zIndexFor` reaches only when Bali's stylesheet is missing from the page. The override just reads as a no-op. A test now fails the build if the guide ever names a tier the scale does not declare.
-### Added
-
-- **`label: false` on a filter attribute means "no caption" in the `SimpleFilters` row.** There was no way to ask for one without: `simple_filters_config` derived the label with a `||`, and `nil` and `false` are both falsy, so both fell through to the derivation. The template already knew not to paint an empty one — what could not reach it was a label.
-
-  It matters because the derived one is often worse than none: it humanises the **Ransack** attribute name, not the field's, so `filter_attribute :roles_name` without a label paints "Roles name" — the predicate, humanised, in English — in a Spanish UI, and the I18n fallback does not reach it either, because `roles_name` is a path through an association rather than a column. The advanced popover keeps a label regardless; a row there needs a name.
-### Fixed
 
 - **Every control in the `DataTable` toolbar sits on the same line, not just the row's direct children.** Aligning the row itself fixed one level and left the other: the four groups that make it up align their own children, and the one holding the `SimpleFilters` block — which is twice the height of a single-line neighbour, because its captions sit above the controls — was centring them against it. Measured on `/admin/studios` at 2600px with the row already aligned: "Views" and the persistence marker sat level with the Filter button, while "Group by" and "Columns" sat **11px** above it. All four groups align to the end now; where every item is the same height the two alignments produce the same layout, so only that one group moves.
 
 - **A listing with a search box and no filters says "Search" on its button, not "Filter".** With nothing declared to filter by, the only thing the button submits is the search term. The string already shipped — `bali_view.filters.submit_search`, used until now only as the full filter panel's search `aria-label` — so no new translation is involved.
 
-### Changed
-
-- **Taking a `DeleteLink`'s `<form>` out of the box tree is asked for with `form_class: "contents"`, not inferred from `plain:`.** The menu-item fix that landed earlier gated it on that keyword, on the premise that it means "this DeleteLink is a menu item". It does not: `plain:` is what the API says it is — a button without the `.btn` box — and it travels far outside menus. The same Dropdown builder hands it to `Link` too, `Breadcrumb::Item` passes it with no menu in sight, and in one host alone twelve hand-written `DeleteLink` carry it in the action rows of show pages, none of them from a menu. Gated there, `plain:` grew a second, undocumented meaning that a caller asking for the documented one never signed up for. `Dropdown` now asks for it explicitly, which is the one place that needs it.
-
-  The `inline-block` default moved off the element and into `@layer components` as `.bali-delete-link-form`, and that part is not cosmetic: as two utilities they tied on layer and specificity, so the compiled sheet broke the tie — and it broke it the wrong way. `.contents` is emitted **before** `.inline-block`, so `class="inline-block contents"` rendered as `inline-block` and a `form_class: "contents"` from a call site did nothing at all, silently. From the components layer any display utility passed in wins outright.
-
-### Changed
-
-- **The `DataTable` toolbar reserves the space for what can collapse instead of showing it and taking it away.** On first load the row used to show every control and then, a full second later, drop four of them into the `⋯` at once. Measured on `/admin/studios`: 5 controls in the row and 0 in the menu at 195ms, 1 and 4 at 1208ms.
-
-  The cause is not that the row grows. It is that the toolbar the server sends is, by definition, the row *before* anything collapses, and nothing can collapse it until the controller exists: the page paints at 260ms and `connect()` does not run until 1189ms, which is how long a 4.8 MB bundle takes to finish executing. Collapsible controls now arrive with their box reserved and nothing drawn in it, and the controller reveals them at the end of its first `apply()`. `visibility: hidden` rather than `display: none`, so the measurement that decides the collapse still measures exactly what it did before. Without JavaScript a `<noscript>` rule reveals them, because the attribute has to come from the server — the flicker it prevents happens before any script runs — and so cannot depend on a script to go away.
-### Fixed
 
 - **The `data_table/with_simple_filters` preview survives a Studio with no status.** It answered 500 with `undefined method 'humanize' for nil` as soon as the database held one, which any record created from the drawer without picking a status leaves behind — the preview then stayed broken in that environment. The Size cell two lines below had the safe navigation all along. Seeded databases always set a status, which is why the preview sweep never saw it.
 - **Opening Views, Columns or Group by inside the `DataTable` overflow menu no longer resizes the menu.** Measured on `/admin/studios` at 1900px, the `⋯` panel went from 320x176 to 320x338 — a popover growing under the pointer, with the child laid out in flow inside it.
@@ -87,23 +61,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   Getting to zero took removing 4px of bottom padding from the filters row, and those 4px were doing something: the row declared `overflow-x-auto` at every width, which makes it a scroll container, and a scroll container clips at its padding box — the padding was the room for the Filter button's focus ring (`outline-width: 2px` at `outline-offset: 2px`). Above the breakpoint the row wraps and never scrolls, so the overflow goes back to `visible` there and the padding has nothing left to reserve. Below it nothing changes: the horizontal scroll and its gutter stay.
 
-### Changed
-
-- **`Navbar`'s `color:` presets emit Bali classes instead of Tailwind utilities**, so a transparent navbar is finally transparent. `.navbar.is-transparent { @apply bg-transparent }` lives in `@layer components` and the preset put `bg-base-100` on the element as a utility, from a layer that outranks it: measured on `/lookbook/preview/bali/navbar/with_sidebar_burger?transparency=true`, the background stayed `oklch(1 0 0)` with `is-transparent` on. `Navbar::Component::COLORS` now maps to `navbar-base`, `navbar-primary` and the rest, and `navbar/index.css` declares them above the state rule — same layer, same specificity, so source order decides.
-
-  Two consequences worth knowing. A host that reads `COLORS`, or that has CSS matching `.navbar.bg-primary`, sees different classes on the element. And a host that wants to override the preset with a utility of its own now wins outright, instead of tying against `bg-base-100` and depending on the order of the compiled sheet.
-
-- **The "Navbar + Sidebar + Content" preview is one band of chrome, and says each destination once.** It is the reference app shell a host copies, and it read as three stacked white bands with the navigation printed twice.
-
-  The navbar carried `Dashboard`, `Movies` and `Studios` as `start_item`s while the `SideMenu` beside it carried the same three. In this configuration the sidebar owns navigation and the navbar is the account bar, so those are gone. The command palette moves from the far right — wedged between the bell and the avatar — to the first position on the left, where a search field belongs, and its trigger is `style: :soft` instead of `:outline`: daisyUI mixes 8% of `base-content` into `base-100` for it, which reads as a filled well rather than a bordered button, with no loose utility to do it. The navbar also asks for `shadow: false` now, because its bottom border is already the divider.
-
-  The breadcrumb comes out of `Bali::Topbar` — a 56px row with its own `bg-base-100` and bottom border, whose only content was the trail — and renders above the page title on the page's own background. Dropping the `with_topbar` slot is what turns AppLayout's default mobile row back on (`fixed_sidebar? && !topbar?`), so the `lg:hidden` hamburger still opens the sidebar on a phone.
-
-### Added
-
-- **`Bali::Navbar::Component.new(shadow: false)`.** Turns off the drop shadow under the bar, for a layout that already separates it some other way — an app shell whose navbar carries a bottom border continuing the sidebar's draws two dividers otherwise. On by default, so nothing changes for anyone who does not ask. The `default` preview takes it as a toggle.
-
-### Fixed
 
 - **A transparent navbar is finally transparent, and shadowless.** `.navbar.is-transparent { @apply bg-transparent shadow-none }` had never had any effect. It lives in `@layer components`, and the `shadow-sm` the component put on the element itself is a utility, from a layer that outranks it — so with `is-transparent` on the element, box-shadow measured `0 1px 3px rgba(0,0,0,.1)` and the background measured `oklch(1 0 0)`, on `/lookbook/preview/bali/navbar/with_sidebar_burger?transparency=true`. The shadow half is fixed here, by moving the default into the sheet next to the state that overrides it, which is the rule the rest of the package follows. The background half needed the `color:` presets to move the same way, and is under Changed above.
 
@@ -111,7 +68,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Classes passed to `Navbar` land on the `<nav>` once.** `navbar_classes` named `@options[:class]` and then handed its result to `prepend_class_name`, which appends the caller's classes a second time — measured on the AppLayout preview, the four it passes came out twice over.
 
-### Fixed
 
 - **The time picker shows one pair of arrows per column, not two.** Hovering the minutes field drew a second, larger, darker pair with a grey track of its own, sitting on top of flatpickr's — and the native one is the half that is *not* wired to the calendar's value.
 
@@ -124,6 +80,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Every comment body is its own nested BlockNote instance, and it emits a **second** `.bn-container` — `.bn-container.bn-comment-editor` — inside `.bn-thread`. The two rules that lay the editor out beside its threads sidebar, `.bn-with-comments .bn-container` and `.bn-with-comments .bn-container > .bn-editor`, reached those nested containers as well: each became a flex row whose editor child took `flex: 1; min-width: 0`, which is a `flex-basis: 0%` item inside a shrink-to-fit box and resolves to zero. Measured with a comment open: the comment editor 163px wide, its `.bn-editor` **0px**. So the text — and the "Add comment" placeholder with it — wrapped at every character, in the floating popover and in the sidebar alike. Both rules, and the `@media` rule that flips them to a column, now use the child combinator, so they describe the top-level container and nothing else. The rules are from the original comments work (#482); this is not a regression of #832.
 
   With the text laid out again, the popover had no width of its own: **165px** for a three-letter draft and **966px** for one long line, breathing with every keystroke. The rule meant to bound it keyed off `.bn-floating-composer` and `.bn-floating-thread`, and neither is in the DOM any more — measured 0 elements with a composer open — so its `max-width: 20rem` had never applied. BlockNote floats the card with Floating UI, and the portal it renders into is a hook that does exist; the card is `20rem` wide there now, `max-width: calc(100vw - 2rem)`, and carries its own card edges, since `.document-editor-panel .bn-thread` deliberately strips them for the side panel's list rows.
+
+### Added
+
+- **`label: false` on a filter attribute means "no caption" in the `SimpleFilters` row.** There was no way to ask for one without: `simple_filters_config` derived the label with a `||`, and `nil` and `false` are both falsy, so both fell through to the derivation. The template already knew not to paint an empty one — what could not reach it was a label.
+
+  It matters because the derived one is often worse than none: it humanises the **Ransack** attribute name, not the field's, so `filter_attribute :roles_name` without a label paints "Roles name" — the predicate, humanised, in English — in a Spanish UI, and the I18n fallback does not reach it either, because `roles_name` is a path through an association rather than a column. The advanced popover keeps a label regardless; a row there needs a name.
+
+- **`Bali::Navbar::Component.new(shadow: false)`.** Turns off the drop shadow under the bar, for a layout that already separates it some other way — an app shell whose navbar carries a bottom border continuing the sidebar's draws two dividers otherwise. On by default, so nothing changes for anyone who does not ask. The `default` preview takes it as a toggle.
+
+### Changed
+
+- **Taking a `DeleteLink`'s `<form>` out of the box tree is asked for with `form_class: "contents"`, not inferred from `plain:`.** The menu-item fix that landed earlier gated it on that keyword, on the premise that it means "this DeleteLink is a menu item". It does not: `plain:` is what the API says it is — a button without the `.btn` box — and it travels far outside menus. The same Dropdown builder hands it to `Link` too, `Breadcrumb::Item` passes it with no menu in sight, and in one host alone twelve hand-written `DeleteLink` carry it in the action rows of show pages, none of them from a menu. Gated there, `plain:` grew a second, undocumented meaning that a caller asking for the documented one never signed up for. `Dropdown` now asks for it explicitly, which is the one place that needs it.
+
+  The `inline-block` default moved off the element and into `@layer components` as `.bali-delete-link-form`, and that part is not cosmetic: as two utilities they tied on layer and specificity, so the compiled sheet broke the tie — and it broke it the wrong way. `.contents` is emitted **before** `.inline-block`, so `class="inline-block contents"` rendered as `inline-block` and a `form_class: "contents"` from a call site did nothing at all, silently. From the components layer any display utility passed in wins outright.
+
+
+- **The `DataTable` toolbar reserves the space for what can collapse instead of showing it and taking it away.** On first load the row used to show every control and then, a full second later, drop four of them into the `⋯` at once. Measured on `/admin/studios`: 5 controls in the row and 0 in the menu at 195ms, 1 and 4 at 1208ms.
+
+  The cause is not that the row grows. It is that the toolbar the server sends is, by definition, the row *before* anything collapses, and nothing can collapse it until the controller exists: the page paints at 260ms and `connect()` does not run until 1189ms, which is how long a 4.8 MB bundle takes to finish executing. Collapsible controls now arrive with their box reserved and nothing drawn in it, and the controller reveals them at the end of its first `apply()`. `visibility: hidden` rather than `display: none`, so the measurement that decides the collapse still measures exactly what it did before. Without JavaScript a `<noscript>` rule reveals them, because the attribute has to come from the server — the flicker it prevents happens before any script runs — and so cannot depend on a script to go away.
+
+- **`Navbar`'s `color:` presets emit Bali classes instead of Tailwind utilities**, so a transparent navbar is finally transparent. `.navbar.is-transparent { @apply bg-transparent }` lives in `@layer components` and the preset put `bg-base-100` on the element as a utility, from a layer that outranks it: measured on `/lookbook/preview/bali/navbar/with_sidebar_burger?transparency=true`, the background stayed `oklch(1 0 0)` with `is-transparent` on. `Navbar::Component::COLORS` now maps to `navbar-base`, `navbar-primary` and the rest, and `navbar/index.css` declares them above the state rule — same layer, same specificity, so source order decides.
+
+  Two consequences worth knowing. A host that reads `COLORS`, or that has CSS matching `.navbar.bg-primary`, sees different classes on the element. And a host that wants to override the preset with a utility of its own now wins outright, instead of tying against `bg-base-100` and depending on the order of the compiled sheet.
+
+- **The "Navbar + Sidebar + Content" preview is one band of chrome, and says each destination once.** It is the reference app shell a host copies, and it read as three stacked white bands with the navigation printed twice.
+
+  The navbar carried `Dashboard`, `Movies` and `Studios` as `start_item`s while the `SideMenu` beside it carried the same three. In this configuration the sidebar owns navigation and the navbar is the account bar, so those are gone. The command palette moves from the far right — wedged between the bell and the avatar — to the first position on the left, where a search field belongs, and its trigger is `style: :soft` instead of `:outline`: daisyUI mixes 8% of `base-content` into `base-100` for it, which reads as a filled well rather than a bordered button, with no loose utility to do it. The navbar also asks for `shadow: false` now, because its bottom border is already the divider.
+
+  The breadcrumb comes out of `Bali::Topbar` — a 56px row with its own `bg-base-100` and bottom border, whose only content was the trail — and renders above the page title on the page's own background. Dropping the `with_topbar` slot is what turns AppLayout's default mobile row back on (`fixed_sidebar? && !topbar?`), so the `lg:hidden` hamburger still opens the sidebar on a phone.
+
+### Documentation
+
+- **The migration guide's deprecation recipe no longer reports a false clean, and says what a Ruby suite cannot see.** Five additions, all from migrating a 235-file application against `beta.1` and `beta.2`.
+
+  The important one: grepping the suite output finds only the deprecations emitted **per render**. One emitted in the body of a class — `FilterForm.simple_filter` is the live example — fires once per process when the class loads, so it does not repeat if the class was already loaded, never happens at all if the batch does not load that class, and makes a later run over a subset *look* clean. Measured: one lane came back with no warnings and a fresh runner printed them. The guide now gives `RAILS_ENV=test bin/rails runner 'Rails.application.eager_load!; warn "EAGER LOAD OK"'` as the authoritative sweep for that family, with the two details that make it work — it has to be the test environment, because eager loading is off in development and the clean means nothing, and it needs a sentinel, because a runner that dies half way prints a short list that reads like a clean bill of health. Both inventories are needed; neither is a superset of the other.
+
+  Also: a **gem** from the group can render the package too (`bali-auth` does), it needs its own compatible release, and the host's suite cannot see it — ~4970 tests passed with three screens of a mounted engine answering 500. A new "what the suite cannot see at all" section, since fifteen of `beta.2`'s sixteen commits were CSS and JavaScript and the host suite did not move a digit. The two entries under "Behaviour changes with no API change" that actually **raise** are now marked as such, because a reader scanning for "what breaks" skips a section whose title says nothing does. And the search placeholder note now says the half that decides it: `human_attribute_name` only returns your language if the model's attributes are translated, and it cannot reach a Ransack path through an association at all.
+
+- **The migration guide no longer sends you to define `--bali-z-hovercard`, a token nothing declares.** The hovercard shares the tooltip tier — the guide's own table said so thirty lines above, and `HoverCard::Component` documents it too; only the prose disagreed. It fails in the worst direction: a host that declares the invented token sees no error, no warning, and not even the `9999` fallback, which `zIndexFor` reaches only when Bali's stylesheet is missing from the page. The override just reads as a no-op. A test now fails the build if the guide ever names a tier the scale does not declare.
 
 ## [v3.0.0.beta.2] - 2026-08-03
 
