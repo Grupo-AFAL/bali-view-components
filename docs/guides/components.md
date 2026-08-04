@@ -201,6 +201,17 @@ Top-of-content bar that sits inside the AppLayout's `with_topbar` slot. 56px
 tall to align horizontally with the SideMenu's brand row. Slots: brand,
 search, actions (many), user_menu.
 
+**Topbar or Navbar?** Decide by what the strip *is*, not where it sits. When the
+sidebar is the navigation and the top strip carries search / notifications / the
+user menu, that strip is app chrome: use **Topbar** — a `<header>` (banner
+landmark) rendered inside the content column, sharing `--bali-chrome-height`
+with the sidebar's brand row, with its own mobile hamburger. When the top bar
+IS the navigation (no sidebar, marketing shells), use **Navbar** — the page's
+`<nav>`, rendered full-width above everything. A Navbar over a sidebar-driven
+layout announces a second navigation landmark with nothing navigational in it.
+The AppLayout previews model both: "Topbar + Sidebar + Content" and
+"Navbar + Content".
+
 ```erb
 <%= render Bali::Topbar::Component.new do |topbar| %>
   <% topbar.with_search do %>
