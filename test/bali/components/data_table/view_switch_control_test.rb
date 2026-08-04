@@ -15,7 +15,7 @@ class BaliDataTableViewSwitchControlComponentTest < ComponentTestCase
   def render_switch(**kwargs)
     switch = component(**kwargs)
     switch.with_view(name: "Tabla", icon: "list", value: :table)
-    switch.with_view(name: "Tarjetas", icon: "grid", value: :grid)
+    switch.with_view(name: "Tarjetas", icon: "grid-2x2", value: :grid)
     render_inline(switch)
   end
 
@@ -55,7 +55,7 @@ class BaliDataTableViewSwitchControlComponentTest < ComponentTestCase
       url: "/movies?scope=archived", current_params: { "q" => { "name_cont" => "matrix" } }
     )
     switch.with_view(name: "Tabla", icon: "list", value: :table)
-    switch.with_view(name: "Tarjetas", icon: "grid", value: :grid)
+    switch.with_view(name: "Tarjetas", icon: "grid-2x2", value: :grid)
     render_inline(switch)
 
     href = page.native.css("a").map { |link| link["href"] }.find { |url| url.include?("view=grid") }
@@ -107,7 +107,7 @@ class BaliDataTableViewSwitchControlComponentTest < ComponentTestCase
   def test_explicit_active_overrides_the_current_value
     switch = component(current: :table)
     switch.with_view(name: "Tabla", icon: "list", value: :table, active: false)
-    switch.with_view(name: "Tarjetas", icon: "grid", value: :grid)
+    switch.with_view(name: "Tarjetas", icon: "grid-2x2", value: :grid)
     render_inline(switch)
 
     assert_selector("a.btn-outline[href*='view=table']")

@@ -221,7 +221,7 @@ class BaliDataTableComponentTest < ComponentTestCase
     error = assert_raises(ArgumentError, ActionView::Template::Error) do
       render_inline(Bali::DataTable::Component.new(url: "/movies", filter_form: grouping_filter_form)) do |c|
         c.with_view_switch do |switch|
-          switch.with_view(name: "Cards", icon: "grid", value: :grid)
+          switch.with_view(name: "Cards", icon: "grid-2x2", value: :grid)
           switch.with_view(name: "Table", icon: "list", value: :table)
         end
         c.with_grid { c.display_mode.to_s.html_safe }
@@ -236,7 +236,7 @@ class BaliDataTableComponentTest < ComponentTestCase
     )
     render_inline(component) do |c|
       c.with_view_switch do |switch|
-        switch.with_view(name: "Cards", icon: "grid", value: :grid)
+        switch.with_view(name: "Cards", icon: "grid-2x2", value: :grid)
         switch.with_view(name: "Table", icon: "list", value: :table)
       end
       c.with_grid { c.display_mode.to_s.html_safe }
@@ -379,7 +379,7 @@ class BaliDataTableComponentTest < ComponentTestCase
   def declare_views(component_instance)
     component_instance.with_view_switch do |switch|
       switch.with_view(name: "Tabla", icon: "list", value: :table)
-      switch.with_view(name: "Tarjetas", icon: "grid", value: :grid)
+      switch.with_view(name: "Tarjetas", icon: "grid-2x2", value: :grid)
     end
   end
 
