@@ -201,13 +201,22 @@ Top-of-content bar that sits inside the AppLayout's `with_topbar` slot. 56px
 tall to align horizontally with the SideMenu's brand row. Slots: brand,
 search, actions (many), user_menu.
 
+**Topbar or Navbar?** Decide by what the strip *is*, not where it sits. When the
+sidebar is the navigation and the top strip carries search / notifications / the
+user menu, that strip is app chrome: use **Topbar** — a `<header>` (banner
+landmark) rendered inside the content column, sharing `--bali-chrome-height`
+with the sidebar's brand row, with its own mobile hamburger. When the top bar
+IS the navigation (no sidebar, marketing shells), use **Navbar** — the page's
+`<nav>`, rendered full-width above everything. A Navbar over a sidebar-driven
+layout announces a second navigation landmark with nothing navigational in it.
+The AppLayout previews model both: "Topbar + Sidebar + Content" and
+"Navbar + Content".
+
 ```erb
 <%= render Bali::Topbar::Component.new do |topbar| %>
   <% topbar.with_search do %>
+    <%# The Command renders its own search-well trigger — no slot needed. %>
     <%= render Bali::Command::Component.new do |cmd| %>
-      <% cmd.with_trigger do %>
-        <button type="button" class="...">Search… <kbd>⌘K</kbd></button>
-      <% end %>
       <% cmd.with_group(name: "Pages") do |g| %>
         <% g.with_item(title: "Dashboard", icon: 'layout-dashboard', href: '/') %>
       <% end %>
@@ -517,15 +526,8 @@ the drawer closes.
 results, keyboard navigation, and a global ⌘K (Mac) / Ctrl+K (Windows) shortcut.
 
 ```erb
-<%= render Bali::Command::Component.new(placeholder: 'Search…') do |c| %>
-  <% c.with_trigger do %>
-    <button type="button" class="...">
-      <%= render Bali::Icon::Component.new('search') %>
-      <span>Search…</span>
-      <kbd class="kbd kbd-xs">⌘K</kbd>
-    </button>
-  <% end %>
-
+<%# The search-well trigger is built in — size it via `class:`, no slot needed. %>
+<%= render Bali::Command::Component.new(placeholder: 'Search…', class: 'max-w-md') do |c| %>
   <% c.with_group(name: 'Pages') do |g| %>
     <% g.with_item(title: 'Dashboard', meta: 'Overview', icon: 'layout-dashboard', href: '/') %>
     <% g.with_item(title: 'Movies', meta: 'Catalog', icon: 'film', href: movies_path) %>
@@ -548,12 +550,14 @@ results, keyboard navigation, and a global ⌘K (Mac) / Ctrl+K (Windows) shortcu
 
 **Options:**
 - `placeholder` - Search input placeholder
+- `trigger_label` - Text of the default trigger (default "Search…"/"Buscar…" via i18n). Independent of `placeholder` — the trigger is usually shorter
 - `density` - `:default` (44px rows) or `:compact` (32px rows)
 - `no_results_text` / `no_results_subtitle` - Empty-state copy
-- `shortcut_label` - Display label for the shortcut hint (default `⌘K`). Actual binding is hardcoded to ⌘K/Ctrl+K
+- `shortcut_label` - Display label for the shortcut hint on the default trigger (default `⌘K`; `nil` hides it). Actual binding is hardcoded to ⌘K/Ctrl+K
 
 **Triggers:**
-- `with_trigger` slot — any clickable element opens the palette (input-shaped buttons are common)
+- Default — a search-well button the component renders on its own (icon + `trigger_label` + `kbd` hint). Deliberately not a `.btn`: a bordered button under the focus-visible ring reads as a double border when Escape returns focus to it
+- `with_trigger` slot — REPLACES the default for shapes it cannot be (icon-only toolbar button, etc.). The slot content is the whole trigger: bring your own accessible name
 - Global keyboard: ⌘K (Mac) / Ctrl+K (Windows/Linux)
 - Window events: `bali:command:open` / `bali:command:close` / `bali:command:toggle`
 

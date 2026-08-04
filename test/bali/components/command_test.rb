@@ -174,4 +174,56 @@ class BaliCommandComponentTest < ComponentTestCase
     render_inline(Bali::Command::Component.new(class: "my-palette"))
     assert_selector(".bali-command.my-palette")
   end
+
+  # Default trigger — rendered when no `with_trigger` slot is given. A search
+  # well, not a `.btn`: a bordered button under daisyUI's focus-visible ring
+  # reads as a double border the moment focus returns to it (closing the
+  # palette with Escape does exactly that).
+
+  def test_renders_a_default_trigger_when_no_slot_is_given
+    render_inline(Bali::Command::Component.new)
+    assert_selector("button.bali-command-trigger[type='button'][data-action='click->command#open']",
+                    text: "Search…")
+    assert_selector("button.bali-command-trigger[aria-haspopup='dialog'] kbd[aria-hidden='true']",
+                    text: "⌘K")
+    assert_no_selector("button.bali-command-trigger.btn")
+    assert_no_selector("button.bali-command-trigger[class*='btn-']")
+  end
+
+  def test_trigger_false_renders_no_trigger_at_all
+    render_inline(Bali::Command::Component.new(trigger: false))
+    assert_no_selector(".bali-command-trigger")
+    assert_no_selector("[data-action='click->command#open']")
+    assert_selector("[data-command-target='panel']", visible: :all)
+  end
+
+  def test_blank_trigger_label_falls_back_to_the_default
+    render_inline(Bali::Command::Component.new(trigger_label: ""))
+    assert_selector("button.bali-command-trigger", text: "Search…")
+  end
+
+  def test_default_trigger_label_resolves_through_locale_files
+    I18n.with_locale(:es) do
+      render_inline(Bali::Command::Component.new)
+      assert_selector("button.bali-command-trigger", text: "Buscar…")
+    end
+  end
+
+  def test_trigger_label_overrides_the_default
+    render_inline(Bali::Command::Component.new(trigger_label: "Jump to…"))
+    assert_selector("button.bali-command-trigger", text: "Jump to…")
+  end
+
+  def test_shortcut_label_nil_hides_the_kbd_hint_on_the_default_trigger
+    render_inline(Bali::Command::Component.new(shortcut_label: nil))
+    assert_no_selector("button.bali-command-trigger kbd")
+  end
+
+  def test_a_trigger_slot_replaces_the_default_trigger
+    render_inline(Bali::Command::Component.new) do |c|
+      c.with_trigger { "<button class='my-trigger'>Go</button>".html_safe }
+    end
+    assert_no_selector(".bali-command-trigger")
+    assert_selector("[data-action='click->command#open'] .my-trigger")
+  end
 end

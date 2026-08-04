@@ -75,7 +75,9 @@
   <% end %>
 <% end %>
 
-<%= render Bali::Command::Component.new(placeholder: 'Command palette') do |c| %>
+<%# trigger: false — this palette opens only via ⌘K / bali:command:open; the
+    page must not grow a visible search well. %>
+<%= render Bali::Command::Component.new(placeholder: 'Command palette', trigger: false) do |c| %>
   <% c.with_group(name: 'Group') do |g| %>
     <% g.with_item(title: 'Command item', href: '#') %>
   <% end %>

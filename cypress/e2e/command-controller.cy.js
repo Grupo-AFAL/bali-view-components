@@ -5,8 +5,8 @@ describe('CommandController', () => {
   })
 
   context('opening and closing', () => {
-    it('opens via the trigger slot and focuses the input', () => {
-      cy.get('[data-action*="click->command#open"] button').click()
+    it('opens via the default trigger and focuses the input', () => {
+      cy.get('.bali-command-trigger').click()
 
       cy.get('[data-command-target="panel"]').should('not.have.class', 'hidden')
       cy.get('[data-command-target="backdrop"]').should('not.have.class', 'hidden')

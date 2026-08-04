@@ -1300,6 +1300,31 @@ and the three functions it describes are published for exactly that. Bali's own 
 popups, its command palette and its toast stack all do this already, so a datepicker, a
 select, a ⌘K palette or a flash inside or over an open panel needs nothing from you.
 
+### The command palette renders its own trigger — a trigger-less mount needs `trigger: false`
+
+`Bali::Command` now renders a default trigger when no `with_trigger` slot is given: a
+search-well button (icon + label + `kbd` hint) sized by the component's `class:`, with
+`trigger_label:` for the text. Every call site that rendered a visible trigger was
+hand-rolling exactly that button, so for them the default is the deletion of markup, not a
+change.
+
+The shape that DOES change is the palette mounted globally with no trigger at all — opened
+only via ⌘K or the `bali:command:open` event. It used to render nothing visible; it now
+grows a search well it never asked for. Say so explicitly:
+
+```erb
+<%= render Bali::Command::Component.new(placeholder: 'Command palette', trigger: false) do |c| %>
+```
+
+```
+grep -rn -A2 "Command::Component" app/ | grep -L "with_trigger"   # mounts to check
+```
+
+The default trigger is deliberately not a `.btn`: closing the palette with Escape returns
+focus to the trigger, and daisyUI's focus-visible outline around a bordered button reads as
+a double border. If your hand-rolled trigger was a `.btn`, deleting it in favour of the
+default also removes that double ring.
+
 ## `FeedbackWidget`: the embed token stops travelling in a URL
 
 **This one needs a change on the Opina side, not just here.** The frame's `src` used to be

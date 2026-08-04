@@ -31,17 +31,22 @@ module Bali
         )
       end
 
-      # @label Navbar + Sidebar + Content
-      # Config B: Full admin with top navbar, optional impersonation banner, sidebar, and content.
+      # @label Topbar + Sidebar + Content
+      # Config B: Full admin — sidebar as THE navigation, and a Bali::Topbar over the
+      # content column as the account bar (search, notifications, user menu), plus an
+      # optional impersonation banner. Topbar and not Navbar: with the sidebar carrying
+      # the destinations, the top strip is chrome (a `<header>`/banner), not a second
+      # `<nav>` landmark. When the top bar IS the navigation, that is the
+      # "Navbar + Content" scenario.
       # @param collapsible toggle
       # @param show_banner toggle
       # @param flash_notice text
       # @param modal toggle
       # @param drawer toggle
       # @param body_container select { choices: [wide, contained, narrow, full] }
-      def with_navbar(collapsible: true, show_banner: false, flash_notice: "", modal: true, drawer: true, body_container: "wide")
+      def with_topbar(collapsible: true, show_banner: false, flash_notice: "", modal: true, drawer: true, body_container: "wide")
         render_with_template(
-          template: "bali/app_layout/previews/with_navbar",
+          template: "bali/app_layout/previews/with_topbar",
           locals: {
             collapsible: collapsible,
             show_banner: show_banner,
@@ -55,7 +60,9 @@ module Bali
       end
 
       # @label Navbar + Content
-      # Config C: Public/marketing layout with top navbar and full-width content.
+      # Config C: Public/marketing layout with top navbar and full-width content —
+      # the layout where the top bar IS the navigation, which is what makes Navbar
+      # (a `<nav>`) the right component here and Topbar the right one in Config B.
       # @param flash_notice text
       # @param body_container select { choices: [contained, wide, narrow, full] }
       def navbar_only(flash_notice: "", body_container: "contained")

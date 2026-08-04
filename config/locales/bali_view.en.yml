@@ -120,6 +120,7 @@ en:
     command:
       esc_key: "esc"
       placeholder: "Search…"
+      trigger_label: "Search…"
       no_results: "No results"
       navigate: "navigate"
       open_action: "open"

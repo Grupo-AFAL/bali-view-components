@@ -120,6 +120,7 @@ es:
     command:
       esc_key: "esc"
       placeholder: "Buscar…"
+      trigger_label: "Buscar…"
       no_results: "Sin resultados"
       navigate: "navegar"
       open_action: "abrir"
