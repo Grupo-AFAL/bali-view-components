@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+## [v3.0.0.beta.4] - 2026-08-04
+
 ### Added
 
 - **`comments: { threads: [...] }` seeds a `BlockEditor` whose comments do not persist**, so a demo or a preview can open with threads already in the sidebar. Ignored when `url:` is given — there the REST store fetches the list and owns it, so a seed would be gone on the first poll.
