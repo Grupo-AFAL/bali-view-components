@@ -39,7 +39,8 @@ class BaliFormBuilderRequiredOptionTest < FormBuilderTestCase
     "boolean_group" => ->(b, o) { b.boolean_group(:indie, **o) },
     "switch_group" => ->(b, o) { b.switch_group(:indie, **o) },
     "select_group" => ->(b, o) { b.select_group(:status, [], html: o) },
-    "slim_select_group" => ->(b, o) { b.slim_select_group(:status, [], html: o) },
+    # Its `<select>` is a plain, visible one — SlimSelect is not involved, so unlike
+    # `slim_select_group` below the browser has somewhere to anchor the message.
     "time_zone_select_group" => ->(b, o) { b.time_zone_select_group(:name, html: o) }
   }.freeze
 
@@ -47,11 +48,20 @@ class BaliFormBuilderRequiredOptionTest < FormBuilderTestCase
   # button. A hidden input is barred from constraint validation, so there is no
   # element here that `required` could have been put on and worked.
   #
+  # `slim_select_group` is here for the other reason the contract covers, and the one
+  # worth spelling out: its control IS a `<select>`, and the browser does validate it —
+  # but `bali/slim_select.css` clips that `<select>` to 1x1 (correctly: SlimSelect draws
+  # its own UI), and a bubble cannot be anchored to a box that size. Measured with only
+  # that field invalid: `reportValidity()` returns false, focuses the `<select>`, and
+  # shows nothing. Validated-but-unreportable is the same dead end as not-validated-at-all
+  # from where the user sits, so the attribute is not emitted (#895).
+  #
   # `radio_group` is in this list for a different reason, and it is the one worth
   # remembering: its per-input attributes travel in `html:`, so a top-level
   # `required:` is a group option and never reaches a radio. Passing it in
   # `html:` does reach them — asserted below.
   DROPS = {
+    "slim_select_group" => ->(b, o) { b.slim_select_group(:status, [], html: o) },
     "radio_group" => ->(b, o) { b.radio_group(:status, [ %w[One 1] ], **o) },
     "radio_buttons_group" => ->(b, o) { b.radio_buttons_group(:status, { a: [ %w[One 1] ] }, **o) },
     "rich_text_group" => ->(b, o) { b.rich_text_group(:synopsis, **o) },
@@ -110,7 +120,59 @@ class BaliFormBuilderRequiredOptionTest < FormBuilderTestCase
     assert_equal %w[input input], required_elements(html)
   end
 
+  # The sweep above passes `required:` through `html:`, which is where the docs send it.
+  # A select family has to be stripped on BOTH sides: Rails' `select_content_tag` copies
+  # `:required`, `:multiple` and `:size` out of the select OPTIONS and onto the element
+  # when the element does not already carry them, so a top-level `required:` reaches the
+  # `<select>` by a different route. That is the spelling the report in #895 used.
+  def test_slim_select_drops_a_top_level_required_too
+    html = builder.slim_select_group(:status, [ %w[One 1] ], required: true)
+
+    assert_empty required_elements(html)
+  end
+
+  def test_slim_select_field_drops_required_like_its_group
+    assert_empty required_elements(builder.slim_select_field(:status, [ %w[One 1] ], required: true))
+    assert_empty required_elements(builder.slim_select_field(:status, [ %w[One 1] ], html: { required: true }))
+  end
+
+  # Rails adds the empty `<option>` *because* the field is required
+  # (`Tags::SelectRenderer#placeholder_required?`), so dropping the attribute dropped the
+  # blank with it — and a nil value then paints as the first option in the list, which is a
+  # record silently showing a value nobody chose. The blank is put back explicitly.
+  def test_slim_select_keeps_the_blank_option_required_was_buying
+    html = builder.slim_select_group(:status, [ %w[One 1] ], required: true)
+
+    assert_equal [ "", "1" ], option_values(html)
+  end
+
+  def test_slim_select_does_not_invent_a_blank_when_required_was_not_asked_for
+    html = builder.slim_select_group(:status, [ %w[One 1] ])
+
+    assert_equal [ "1" ], option_values(html)
+  end
+
+  # Rails never gave a multiple select a blank, so neither does this.
+  def test_slim_select_adds_no_blank_to_a_multiple_select
+    html = builder.slim_select_group(:status, [ %w[One 1] ], html: { required: true, multiple: true })
+
+    assert_equal [ "1" ], option_values(html)
+  end
+
+  # An explicit blank still wins, and still becomes a real SlimSelect placeholder rather
+  # than a pickable row (see `build_select`).
+  def test_slim_select_leaves_an_explicit_blank_alone
+    html = builder.slim_select_group(:status, [ %w[One 1] ], required: true, include_blank: "Pick one")
+
+    assert_equal [ "", "1" ], option_values(html)
+    assert_equal "Pick one", Nokogiri::HTML5.fragment(html.to_s).css("option[data-placeholder]").text
+  end
+
   private
+
+  def option_values(html)
+    Nokogiri::HTML5.fragment(html.to_s).css("option").map { |option| option["value"].to_s }
+  end
 
   def live_group_helpers
     deprecated = Bali::FormBuilder::DeprecatedNames.instance_methods.map(&:to_s)

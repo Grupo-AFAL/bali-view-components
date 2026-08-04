@@ -36,13 +36,15 @@ module Bali
 
       def slim_select_field(method, values, *legacy, html: {}, **options)
         options, html_options = legacy_option_hashes(:slim_select_field, legacy, html, options)
-        merged_options = build_options(options)
         merged_html = apply_input_name_options(options, build_html_options(html_options))
+        merged_options = drop_unenforceable_required(build_options(options), merged_html)
         # `merged_html` carries the real HTML attributes — the Stimulus target
         # among them — so it stays untouched. The caption keys travel separately.
         group = group_options(options, merged_html)
 
-        attributes = html_attributes(merged_html)
+        # `widget_attributes`, not `html_attributes`: this family cannot carry `required`.
+        # See #drop_unenforceable_required.
+        attributes = widget_attributes(merged_html)
         attributes[:class] = field_class_name(
           method, class_names([ SELECT_CLASS, merged_html[:class] ].compact),
           error_class: "select-error"
@@ -57,6 +59,42 @@ module Bali
       end
 
       private
+
+      # `required` on this family is a constraint the user can never be told about, so it is
+      # not emitted at all.
+      #
+      # The `<select>` SlimSelect wraps is clipped to 1x1 by `bali/slim_select.css`, which is
+      # correct — SlimSelect draws its own UI — but the browser cannot anchor a validation
+      # bubble to a box that size. Measured with only that field invalid:
+      # `form.reportValidity()` returns false and focuses the `<select>` (it is focusable,
+      # being clipped rather than `display: none`), and NO bubble appears and nothing
+      # scrolls. The submit is blocked and there is no way for the user to find out why.
+      #
+      # {BaliFormBuilderRequiredOptionTest} already writes the contract this settles: the
+      # attribute reaches a control the browser validates, or it reaches nothing at all.
+      # Being validated but unable to report is the in-between that test exists to forbid.
+      #
+      # Both hashes have to be stripped, not just the element's: Rails' `select_content_tag`
+      # copies `:required`, `:multiple` and `:size` OUT of the select options and onto the
+      # element when the element does not already carry them, so a top-level `required:`
+      # reaches the `<select>` just as `html: { required: true }` does.
+      #
+      # The blank option goes back explicitly, because Rails was adding one *as a
+      # consequence* of the field being required (`placeholder_required?`). Dropping the
+      # attribute silently dropped the blank too, and a nil value then paints as the first
+      # option in the list — a record with no priority opening its form with "Low" already
+      # chosen. The condition mirrors Rails' own, so nothing changes for a caller who
+      # already asked for a blank or a prompt, or for a multiple select (which Rails never
+      # gave a blank to anyway).
+      def drop_unenforceable_required(options, html_options)
+        return options unless options[:required] || html_options[:required]
+
+        if !html_options[:multiple] && options[:include_blank].nil? && options[:prompt].nil?
+          options = options.merge(include_blank: true)
+        end
+
+        options.except(:required)
+      end
 
       def build_options(options)
         DEFAULT_OPTIONS.merge(options).merge(

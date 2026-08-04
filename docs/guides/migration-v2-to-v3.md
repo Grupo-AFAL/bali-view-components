@@ -3511,6 +3511,41 @@ One case is not a widget and is worth knowing: `radio_group`'s per-input attribu
 travel in `html:`, so `required:` at the top level is a group option and reaches no
 radio. `f.radio_group :status, values, html: { required: true }` does.
 
+### `slim_select_*` joins them, and this one changed under you
+
+The SlimSelect families are the one case where the control **is** something the browser
+validates — a real `<select>` — and the attribute still had to go. SlimSelect draws its
+own UI, so Bali clips the native `<select>` to 1×1, and a validation bubble cannot be
+anchored to a box that size. Measured with only that field invalid: `reportValidity()`
+returns `false`, focus lands on the `<select>` (it is focusable, being clipped rather than
+`display: none`), and no message appears and nothing scrolls. The submit was blocked with
+no way for the user to find out why — the one outcome worse than the attribute doing
+nothing.
+
+Unlike the widget families, **this one is a v3 behaviour change you did not ask for**. In
+v2 the element's attributes came from the second positional hash, so a top-level
+`required:` stayed in the options and never reached the `<select>`; it was decorative.
+Unifying the extraction in v3 turned those into real constraints, and a `required:` that
+had sat there doing nothing for months started blocking submits silently. It is not
+emitted at all now.
+
+The blank option comes back on its own, so you do not have to add `include_blank:`: Rails
+was adding an empty `<option>` *because* the field was required, and dropping the
+attribute would have dropped the blank with it — leaving a `nil` value painted as the
+first option in the list. Bali now requests that blank explicitly under Rails' own
+condition, and being a requested blank it renders as a proper SlimSelect placeholder
+rather than a pickable row.
+
+`time_zone_select_*` is **not** affected and still carries `required:`. It renders a
+plain, visible `<select>` with no SlimSelect wrapper, so the browser has somewhere to put
+the message.
+
+Enforce it on the server, and show it with `f.error_summary` on the re-render:
+
+```
+grep -rnE "slim_select_(group|field).*required" app/
+```
+
 ## The Google Maps key comes from `Bali.google_maps_key`
 
 `LocationsMap` and the form builder's `coordinates_polygon` field each called
@@ -3618,6 +3653,8 @@ grep -rn "submit_actions\|search_field_group" app/ test/
 grep -rnE "is-boxed|field-body|inline-label|delete-column|block-radio|large-radio-group|v-center|full-width" app/views app/components
 # required: on a widget family — it never worked, and now it is not emitted either
 grep -rnE "(block_editor|rich_text|rich_text_area|coordinates_polygon|time_period|direct_upload|recurrent_event_rule)_(group|field).*required" app/
+# required: on a slim_select — decorative in v2, silently blocking in early v3, dropped now
+grep -rnE "slim_select_(group|field).*required" app/
 ```
 
 Then walk the sidebar with the keyboard at a phone width: Tab to the hamburger, Enter,
