@@ -649,10 +649,26 @@ export class ModalController extends Controller {
     const button = event.target
     this._startSubmitting(button)
 
+    // `reportValidity()` on the FORM, not `checkValidity()` plus a hand-rolled loop.
+    //
+    // The `event.preventDefault()` above has already cancelled the browser's own
+    // interactive validation, so nothing will be reported unless this asks for it — and
+    // what used to ask walked `input` only. A `<textarea>` or a `<select>` left empty was
+    // validated (`checkValidity()` fires `invalid` on every control) and then reported to
+    // nobody: the submit was blocked with no request, no message, no bubble and no focus
+    // anywhere. The loop was also wrong in the small: reporting control by control leaves
+    // the LAST bubble on screen, not the first invalid field's, which is the one the user
+    // is looking for.
+    //
+    // The form-level call does all of it — validates every control the browser validates,
+    // focuses the first invalid one, scrolls to it and shows its message.
+    //
+    // Reach is wider than "inside a panel": `AppLayout` renders `<main>` with
+    // `data-controller="modal drawer"` by default, so a `submit_group(..., drawer: true)`
+    // on an ordinary page is captured by this controller too.
     const form = button.closest('form')
-    if (!form.checkValidity()) {
+    if (!form.reportValidity()) {
       this._stopSubmitting(button)
-      form.querySelectorAll('input').forEach(input => { input.reportValidity() })
       return
     }
 

@@ -28,6 +28,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   Clearing the search keeps them, too: `clearSearch` navigates dropping every `q[...]`, so the stored state is the only record left of what was selected.
 
+### Fixed
+
+- **A `required` `<textarea>` or `<select>` inside a `Modal` or `Drawer` form says why it blocked the submit, instead of nothing at all.** `submit` calls `event.preventDefault()` before validating, which cancels the browser's own interactive validation — so whatever the controller does *is* the report. What it did was walk `input` and call `reportValidity()` on each one, which left every other control type validated and reported to nobody: the button blocked the request with no message, no bubble, no console error and no focus anywhere. Measured on a form with three empty required fields (two `<textarea>`, one `<select>`): `submit` never fired, no request left, the three `invalid` events fired, and `document.activeElement` stayed on `BODY`.
+
+  It now asks the **form** — `form.reportValidity()` — which validates every control the browser validates, focuses the first invalid one, scrolls to it and shows its message. The old loop was also wrong in the small: reporting control by control leaves the *last* bubble on screen rather than the first invalid field's.
+
+  Wider than "inside a panel": `AppLayout` renders `<main>` with `data-controller="modal drawer"` by default, so a `submit_group(..., drawer: true)` on an ordinary page is captured by the same controller. The line dates from #430, so this is not a v3 regression. A new `drawer/required_fields` preview covers it.
+
 ### Documentation
 
 - **The migration guide no longer sends you to define `--bali-z-hovercard`, a token nothing declares.** The hovercard shares the tooltip tier — the guide's own table said so thirty lines above, and `HoverCard::Component` documents it too; only the prose disagreed. It fails in the worst direction: a host that declares the invented token sees no error, no warning, and not even the `9999` fallback, which `zIndexFor` reaches only when Bali's stylesheet is missing from the page. The override just reads as a no-op. A test now fails the build if the guide ever names a tier the scale does not declare.

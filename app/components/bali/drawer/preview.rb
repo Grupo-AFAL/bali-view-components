@@ -56,6 +56,18 @@ module Bali
         render_with_template
       end
 
+      # Required Fields
+      # ---
+      # `drawer#submit` cancels the event before the browser can run its own
+      # interactive validation, so the controller is what has to report an invalid
+      # field. It asks the FORM, which covers `<textarea>` and `<select>` as well as
+      # `<input>` and stops at the first invalid control: until #894 the report walked
+      # `input` only, and a required textarea or select blocked the submit with no
+      # message at all. Used by the Cypress suite.
+      def required_fields
+        render_with_template
+      end
+
       # Unsaved Changes (Confirm on Close)
       # ---
       # Drawers guard against silently discarding an unsaved form. Editing a
