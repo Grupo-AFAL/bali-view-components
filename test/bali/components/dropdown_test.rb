@@ -252,8 +252,8 @@ class BaliDropdownComponentTest < ComponentTestCase
       c.with_item(name: "Delete", href: "/movies/1", method: :delete)
     end
 
+    # El Dropdown lo PIDE con `form_class:`; no lo deduce de `plain:` (#868).
     assert_selector("li > form.contents", visible: :all)
-    assert_no_selector("li > form.inline-block", visible: :all)
   end
 
   def test_icon_is_one_keyword_for_both_kinds_of_item
