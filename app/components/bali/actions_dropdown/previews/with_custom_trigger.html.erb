@@ -1,8 +1,10 @@
 <div class="flex justify-center items-center min-h-[200px] p-8">
+  <%# The slot IS the trigger: Dropdown::Trigger renders the `.btn` chrome, the wiring
+      (`data-dropdown-target`, role, tabindex, aria) and takes the label as content.
+      Nesting your own `<button class="btn">` inside it paints two bordered boxes and
+      leaves two tab stops — the wrapper is already the interactive element. %>
   <%= render Bali::ActionsDropdown::Component.new do |c|
-    c.with_trigger do
-      tag.button('Actions ▾', type: 'button', tabindex: 0, class: 'btn btn-sm btn-outline')
-    end
+    c.with_trigger(variant: :outline, class: 'btn-sm') { 'Actions ▾' }
     c.with_item(name: 'Edit', icon: 'edit', href: '#')
     c.with_item(name: 'Export', icon: 'file-export', href: '#')
     c.with_item(name: 'Delete', icon: 'trash', href: '#', method: :delete)
