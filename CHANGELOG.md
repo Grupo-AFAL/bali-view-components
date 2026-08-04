@@ -28,6 +28,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   Clearing the search keeps them, too: `clearSearch` navigates dropping every `q[...]`, so the stored state is the only record left of what was selected.
 
+### Fixed
+
+- **`required:` on a `slim_select_*` field is no longer emitted, because it could block the submit without ever telling the user why.** The `<select>` SlimSelect wraps is clipped to 1×1 by `bali/slim_select.css` — correctly, since SlimSelect draws its own UI — and the browser cannot anchor a validation bubble to a box that size. Measured in the browser with only that control invalid: `reportValidity()` returns `false`, focus lands on the `<select>` (it is focusable, being clipped rather than `display: none`), and no message appears and nothing scrolls. The constraint was real and uncommunicable.
+
+  `required_option_test.rb` already writes the contract this settles — the attribute reaches a control the browser validates, or it reaches nothing at all — and validated-but-unreportable is the in-between that test exists to forbid. `slim_select_group` moves to its `DROPS` side, next to the widgets over a hidden field, for a different reason than theirs: not "no element could carry it" but "the element that carries it cannot speak".
+
+  It had to be stripped from **both** hashes, not just the element's: Rails' `select_content_tag` copies `:required`, `:multiple` and `:size` out of the select options and onto the element, so a top-level `required:` reached the `<select>` by a second route.
+
+  **The blank option `required` was buying is kept.** Rails adds an empty `<option>` *as a consequence* of the field being required (`placeholder_required?`), so removing the attribute silently removed the blank too — and a nil value then painted as the first option in the list, a record with no priority opening its form with "Low" already chosen. The blank is now requested explicitly under Rails' own condition, and being a requested blank it becomes a real SlimSelect placeholder rather than a pickable row: measured on `/movies/new`, the widget reads "Select value" where before it read empty.
+
+  This surfaced in v3 rather than earlier because v2 took the element's attributes from the second positional hash, so a top-level `required:` never reached the `<select>` at all. Unifying the extraction in #677 turned those decorative `required:` into real constraints. `time_zone_select_*` is **not** affected and keeps carrying `required`: it renders a plain, visible `<select>` with no SlimSelect wrapper, so the browser has somewhere to put the message.
+
 ### Documentation
 
 - **The migration guide no longer sends you to define `--bali-z-hovercard`, a token nothing declares.** The hovercard shares the tooltip tier — the guide's own table said so thirty lines above, and `HoverCard::Component` documents it too; only the prose disagreed. It fails in the worst direction: a host that declares the invented token sees no error, no warning, and not even the `9999` fallback, which `zIndexFor` reaches only when Bali's stylesheet is missing from the page. The override just reads as a no-op. A test now fails the build if the guide ever names a tier the scale does not declare.
