@@ -34,7 +34,8 @@ gives you that on the other two.
 package, so you got it transitively; in v3 it is a peer and that copy is gone. Below 5.7
 nothing fails — the components emit daisyUI class names from Ruby, so you get correct markup
 with the wrong styling, which is the kind of break you find in a screenshot rather than in a
-log. `spec/dummy` pins the exact `5.7.9` this guide's measurements were taken against.
+log. `spec/dummy` pins the exact daisyUI the suite runs against — `5.7.15` today; this
+guide's measurements were taken on `5.7.9`.
 
 **Tailwind is declared by nobody, and that is deliberate.** The gemspec has no
 `tailwindcss-rails` dependency and `package.json` has no `tailwindcss` peer, because Bali
