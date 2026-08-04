@@ -98,6 +98,9 @@ module Bali
 
       def build_options(options)
         DEFAULT_OPTIONS.merge(options).merge(
+          placeholder: options.fetch(:placeholder) do
+            I18n.t("bali_view.form_builder.slim_select.placeholder")
+          end,
           search_placeholder: options.fetch(:search_placeholder) do
             I18n.t("bali_view.form_builder.slim_select.search_placeholder")
           end,
@@ -201,7 +204,10 @@ module Bali
       def stimulus_data(options, html_options)
         data = {
           controller: "slim-select",
-          slim_select_placeholder_value: html_options[:placeholder],
+          # `html: { placeholder: }` keeps priority — call sites that pass it must not
+          # change. The translated default only fills the gap where nothing was emitted
+          # and the Stimulus controller's English 'Select value' won by omission.
+          slim_select_placeholder_value: html_options[:placeholder] || options[:placeholder],
           slim_select_show_content_value: options[:show_content],
           slim_select_search_placeholder_value: options[:search_placeholder],
           slim_select_select_all_text_value: options[:select_all_text],

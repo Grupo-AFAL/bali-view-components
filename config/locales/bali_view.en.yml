@@ -204,6 +204,7 @@ en:
         placeholder: "Search..."
         submit: "Search"
       slim_select:
+        placeholder: "Select value"
         search_placeholder: "Search"
         select_all: "Select all"
         deselect_all: "Deselect all"
