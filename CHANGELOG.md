@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > versiones `v2.x` de más abajo son la línea estable de `main`. Ver
 > [Release channels](docs/guides/release-channels.md).
 
+### Changed
+
+- **`Bali::Command` renders its own trigger; the slot replaces it, and `trigger: false` removes it.** Every call site that rendered a visible trigger — both palette previews, the AppLayout navbar preview and the dummy admin topbar — hand-rolled the same search-well button, which is the clearest sign the component was missing a default. It now renders that well itself (search icon + `trigger_label:` + the `shortcut_label` `kbd` hint marked `aria-hidden`, `aria-haspopup="dialog"`, its own themed focus-visible ring), sized by the component's `class:`; `with_trigger` replaces it for shapes the default cannot be. `trigger_label:` is independent of `placeholder:` on purpose — the trigger is usually shorter than the input's invitation — and ships in en and es (`bali_view.command.trigger_label`).
+
+  **This changes rendered output for one existing shape**: a palette mounted with no `with_trigger` at all — opened only via ⌘K or `bali:command:open`, the way the dummy's z-stack page mounts it — would now grow a visible search well. `trigger: false` is the named opt-out, and the migration guide carries the note.
+
+  The default is deliberately **not** a `.btn`: closing the palette with Escape returns focus to the trigger, and daisyUI's 2px focus-visible outline around a bordered button reads as a double border — measured on the AppLayout navbar preview, whose `btn-soft` trigger showed exactly that (1px border + 2px outline at 2px offset). A filled well carries no border of its own — and it declares its own `focus-visible` outline, because dropping `.btn` also dropped daisyUI's ring and the browser's fallback ring does not follow the theme.
+
+  The palette's `<dialog>` also takes `aria-label` from `placeholder:` — it announced as an unnamed dialog before.
+
 ### Fixed
 
 - **The `actions_dropdown/with_custom_trigger` preview stops drawing two borders.** It nested its own `<button class="btn btn-outline">` inside the trigger slot, but the slot already renders `Dropdown::Trigger` — a `.btn`-dressed `div[role="button"][tabindex="0"]` carrying the wiring — so the preview painted two bordered boxes and offered two tab stops. Measured before/after: 2 `.btn` boxes → 1, 2 tab stops → 1, wiring intact and the menu still opens. The preview now shows the intended shape (`with_trigger(variant: :outline, class: 'btn-sm') { 'Actions ▾' }`), and its notes say why nesting a second button is the wrong one — the reference implementation is what hosts copy.

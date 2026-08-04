@@ -39,24 +39,15 @@
       class: 'min-h-0 bali-chrome-height border-b border-base-300'
     ) do |nav|
       nav.with_menu do |menu|
-        # `style: :soft` and not `:outline`: the trigger stands for a search field, and a
-        # field reads as a filled well, not as a bordered button. daisyUI mixes 8% of
-        # base-content into base-100 for it, which is the "slightly darkened" the design
-        # asks for, without a raw utility.
+        # No trigger slot: the Command renders its own search well. A well and not a
+        # `.btn` on purpose — closing the palette with Escape focuses the trigger, and
+        # daisyUI's focus-visible outline around a bordered button used to read as a
+        # double border here. Width goes on the component's `class:`.
         menu.with_start_item(tag_name: :div, class: 'max-lg:w-full') do %>
-          <%= render Bali::Command::Component.new(placeholder: 'Search movies, studios, actions…') do |cmd|
-            cmd.with_trigger do %>
-              <%= render Bali::Button::Component.new(
-                style: :soft,
-                size: :sm,
-                class: 'w-64 max-lg:w-full justify-start font-normal text-base-content/60'
-              ) do %>
-                <%= render Bali::Icon::Component.new('search', class: 'size-4 shrink-0') %>
-                <span class="flex-1 text-left">Search…</span>
-                <kbd class="kbd kbd-xs hidden sm:inline-flex">⌘K</kbd>
-              <% end %>
-            <% end
-
+          <%= render Bali::Command::Component.new(
+            placeholder: 'Search movies, studios, actions…',
+            class: 'w-64 max-lg:w-full'
+          ) do |cmd|
             cmd.with_group(name: 'Pages') do |group|
               group.with_item(title: 'Dashboard', meta: 'Admin overview', icon: 'layout-dashboard', href: '/lookbook')
               group.with_item(title: 'Movies', meta: 'Catalog', icon: 'film', href: '/lookbook')

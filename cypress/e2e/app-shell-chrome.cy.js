@@ -29,18 +29,37 @@ describe('AppLayout with_navbar: la franja de chrome', () => {
   it('pone el command palette a la izquierda y con relleno, no con borde', () => {
     anchoEscritorio()
 
-    cy.get('[data-controller="command"] .btn').should($t => {
+    cy.get('[data-controller="command"] .bali-command-trigger').should($t => {
       const caja = $t[0].getBoundingClientRect()
       const cuenta = $t[0].ownerDocument
         .querySelector('.navbar [aria-label="Notifications"]')
         .getBoundingClientRect()
 
       expect(caja.left, 'a la izquierda de los controles de cuenta').to.be.lessThan(cuenta.left)
-      expect($t[0].className, 'relleno suave, no btn-outline').to.match(/\bbtn-soft\b/)
-      expect($t[0].className).to.not.match(/\bbtn-outline\b/)
+      // El trigger default es un pozo, no un .btn: relleno pintado y CERO borde
+      // propio — con un borde, el outline de focus-visible que queda al cerrar
+      // la paleta con Escape se leía como un borde doble.
+      expect($t[0].className, 'pozo, no boton').to.not.match(/\bbtn\b/)
+      const estilo = window.getComputedStyle($t[0])
+      expect(estilo.borderTopWidth, 'sin borde propio').to.eq('0px')
+      expect(estilo.backgroundColor, 'y el relleno se pinta').to.not.match(/rgba\(0, 0, 0, 0\)|transparent/)
+    })
+  })
 
-      const fondo = window.getComputedStyle($t[0]).backgroundColor
-      expect(fondo, 'y el relleno se pinta').to.not.match(/rgba\(0, 0, 0, 0\)|transparent/)
+  it('al cerrar la paleta con Escape el foco vuelve al trigger con UN solo anillo', () => {
+    anchoEscritorio()
+
+    cy.get('.bali-command-trigger').click()
+    cy.get('[data-command-target="input"]').should('be.focused').type('{esc}')
+
+    // El escenario que motivó el pozo: Escape devuelve el foco al trigger, y ahí
+    // el anillo de focus-visible tiene que ser el ÚNICO anillo (borde propio 0px).
+    cy.get('.bali-command-trigger').should($t => {
+      expect($t[0].ownerDocument.activeElement, 'el foco volvió al trigger').to.eq($t[0])
+      const estilo = window.getComputedStyle($t[0])
+      expect(estilo.borderTopWidth, 'sin borde propio').to.eq('0px')
+      expect(parseFloat(estilo.outlineWidth), 'con el anillo del design system').to.be.greaterThan(0)
+      expect(estilo.outlineStyle).to.not.eq('none')
     })
   })
 
