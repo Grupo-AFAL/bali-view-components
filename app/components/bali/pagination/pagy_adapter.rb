@@ -55,7 +55,7 @@ module Bali
           from: from,
           to: to,
           count: count,
-          item_name: item_name.presence || I18n.t("bali_view.pagination.default_item_name")
+          item_name: resolved_item_name(item_name)
         )
       end
 
@@ -77,6 +77,22 @@ module Bali
       end
 
       private
+
+      # "1 items" is not a sentence, and the count is already right there in the call.
+      #
+      # Symbol → an i18n key, resolved with `count:` — Rails' full CLDR plural rules, for
+      #   locales that go beyond one/other.
+      # Hash   → `{one:, other:}` picked by count. Enough for es/en, no locale file needed.
+      # String → used verbatim, invariant with the count: the behaviour every existing call
+      #   site already has.
+      # nil/"" → the gem's default, which is a plural hash now, so it pluralizes too.
+      def resolved_item_name(item_name)
+        case item_name
+        when Symbol then I18n.t(item_name, count: count)
+        when Hash   then item_name[count == 1 ? :one : :other] || item_name[:other]
+        else item_name.presence || I18n.t("bali_view.pagination.default_item_name", count: count)
+        end
+      end
 
       def pagy_url_options
         @fragment ? { fragment: @fragment } : {}

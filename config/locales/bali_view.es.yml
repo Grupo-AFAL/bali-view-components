@@ -304,7 +304,9 @@ es:
       next_page: Página siguiente
       page: "Página %{page}"
       summary: "Mostrando %{from}-%{to} de %{count} %{item_name}"
-      default_item_name: elementos
+      default_item_name:
+        one: elemento
+        other: elementos
     chart:
       loading: Cargando...
       default_label: Gráfica

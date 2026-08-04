@@ -305,7 +305,9 @@ en:
       next_page: Next page
       page: "Page %{page}"
       summary: "Showing %{from}-%{to} of %{count} %{item_name}"
-      default_item_name: items
+      default_item_name:
+        one: item
+        other: items
     chart:
       loading: Loading...
       default_label: Chart
