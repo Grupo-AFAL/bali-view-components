@@ -67,9 +67,15 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("select[name='q[status_eq]']")
   end
 
+  # `clear_filters` NO es cosmético: es el único param que en el server borra la caché de
+  # filtros (`Rails.cache.delete(cache_key)`). Sin él, el link navega a la URL pelada, que
+  # con la persistencia encendida es indistinguible de "no vino ningún filtro" — y el
+  # listado restaura lo que el usuario acaba de limpiar. Las otras dos rutas de limpieza
+  # (AppliedTags#clear_all_url y clearFiltersAndClose del JS) sí lo mandan; ésta se había
+  # quedado afuera, y estos tests fijaban la URL pelada como si fuera el contrato.
   def test_shows_clear_button_when_show_clear_is_true
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, show_clear: true))
-    assert_link(href: "/test")
+    assert_link(href: "/test?clear_filters=true")
   end
 
   def test_hides_clear_button_when_show_clear_is_false
@@ -264,7 +270,18 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
   def test_search_parameter_shows_clear_button_when_show_clear_is_true_with_search
     search_with_value = @search.merge(value: "test")
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: search_with_value, show_clear: true))
-    assert_link(href: "/test")
+    assert_link(href: "/test?clear_filters=true")
+  end
+
+  # Una `url:` con query string es el caso normal cuando el host pasa `request.fullpath` o un
+  # path helper con params: el param se AGREGA, sin pisar lo que ya viajaba ni duplicarse.
+  def test_the_clear_link_keeps_the_params_the_listing_url_already_carried
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+                    url: "/test?scope=mine", filters: @filters, show_clear: true))
+
+    href = page.find("a[href*='clear_filters']")[:href]
+    assert_equal("true", Rack::Utils.parse_query(URI(href).query)["clear_filters"])
+    assert_equal("mine", Rack::Utils.parse_query(URI(href).query)["scope"])
   end
 
   def test_search_parameter_does_not_show_clear_button_when_show_clear_is_false_even_with_search_value
